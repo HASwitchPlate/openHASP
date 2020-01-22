@@ -11,12 +11,12 @@ This version also adds ESP32 support to take advantage of the additional hardwar
 
 | Feature            | ESP8266 | ESP32
 |--------------------|---------|---------
-| SPI display        | **yes** | **yes**
-| Parallel display   | no      | *tbd*
-| PWM Screen dimming | **yes** | **yes**
+| SPI display        | <ul><li>- [x] yes</li> | <ul><li>- [x] yes</li>
+| Parallel display   | <ul><li>- [ ] no</li> | *tbd*
+| PWM Screen dimming | <ul><li>- [x] yes</li> | <ul><li>- [x] yes</li>
 | Maximum Page Count | 4       | 12
-| Dynamic Objects    | yes     | yes
+| Dynamic Objects    | <ul><li>- [x] yes</li> | <ul><li>- [x] yes</li>
 | Lvgl Theme Support | basic themes | all themes
-| Custom .zi V5 font | **yes** | **yes**
-| FontAwesome Icons  | **yes** | **yes**
-| PNG images         | no      | *tbd*
+| Custom .zi V5 font | <ul><li>- [x] yes</li> | <ul><li>- [x] yes</li>
+| FontAwesome Icons  | <ul><li>- [x] 1200+</li> | <ul><li>- [x] 1200+</li>
+| PNG images         | <ul><li>- [ ] no</li> | *tbd*
