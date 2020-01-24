@@ -21,3 +21,17 @@ This version also adds ESP32 support to take advantage of the additional hardwar
 | Custom .zi V5 font | <ul><li>- [x] yes</li> | <ul><li>- [x] yes</li>
 | FontAwesome Icons  | <ul><li>- [x] 1200+</li> | <ul><li>- [x] 1200+</li>
 | PNG images         | <ul><li>- [ ] no</li> | *tbd*
+
+# Cloning
+
+Make sure to add the `--recursive` parameter when cloning the project. Otherwise git will not download the required submodules in the `/lib` subdirectory.
+
+```bash
+git clone --recursive https://github.com/fvanroie/hasp-lvgl
+```
+
+If you already cloned hasp-lvgl without the submodules, you can fetch the submodules seperately using:
+
+```bash
+git submodule update --init --recursive
+```
