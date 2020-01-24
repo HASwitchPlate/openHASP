@@ -1,4 +1,4 @@
-
+#include <Arduino.h>
 #include "ArduinoJson.h"
 #include "TFT_eSPI.h"
 

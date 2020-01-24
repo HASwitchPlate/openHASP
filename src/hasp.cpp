@@ -9,7 +9,7 @@
 #include "lv_theme_hasp.h"
 #include "lv_objx/lv_roller.h"
 
-#include "../include/hasp_conf.h"
+#include "hasp_conf.h"
 
 #if LV_USE_HASP_SPIFFS
 #ifdef ESP32

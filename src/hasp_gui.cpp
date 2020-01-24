@@ -6,7 +6,7 @@
 #include "TFT_eSPI.h"
 
 #ifdef ESP32
-#include "png_decoder.h"
+//#include "png_decoder.h"
 #endif
 #include "lv_zifont.h"
 
