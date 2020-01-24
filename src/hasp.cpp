@@ -12,7 +12,7 @@
 #include "hasp_conf.h"
 
 #if LV_USE_HASP_SPIFFS
-#ifdef ESP32
+#if defined(ARDUINO_ARCH_ESP32)
 //#include "lv_zifont.h"
 #include "SPIFFS.h"
 #endif
@@ -83,7 +83,7 @@ static const char * btnm_map2[] = {"0",  "1", "\n", "2",  "3",  "\n", "4",  "5",
                                    "\n", "6", "7",  "\n", "P1", "P2", "P3", ""};
 */
 
-#ifdef ESP8266
+#if defined(ARDUINO_ARCH_ESP8266)
 lv_obj_t * pages[4];
 // lv_style_t styles[6];
 #else
@@ -674,7 +674,6 @@ void haspSetup(JsonObject settings)
 
     my_font = (lv_font_t *)lv_mem_alloc(sizeof(lv_font_t));
     lv_zifont_init();
-    //#ifdef ESP32
 
     if(lv_zifont_font_init(my_font, haspZiFontPath.c_str(), 24) != 0) {
         errorPrintln(String(F("HASP: %sFailed to set the custom font to ")) + haspZiFontPath);

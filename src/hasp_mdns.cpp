@@ -1,7 +1,7 @@
 #include "Arduino.h"
 #include "ArduinoJson.h"
 
-#ifdef ESP32
+#if defined(ARDUINO_ARCH_ESP32)
 #include <ESPmDNS.h>
 #else
 #include <ESP8266mDNS.h>

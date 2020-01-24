@@ -1,7 +1,7 @@
 #include "Arduino.h"
 #include "ArduinoJson.h"
 
-#ifdef ESP32
+#if defined(ARDUINO_ARCH_ESP32)
 #include "SPIFFS.h"
 #endif
 #include <FS.h> // Include the SPIFFS library

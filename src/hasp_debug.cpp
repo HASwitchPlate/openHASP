@@ -1,7 +1,7 @@
 #include <Arduino.h>
 #include "ArduinoJson.h"
 
-#ifdef ESP8266
+#if defined(ARDUINO_ARCH_ESP8266)
 #include <SoftwareSerial.h>
 #include <ESP8266WiFi.h>
 #else

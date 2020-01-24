@@ -38,7 +38,7 @@ void spiffsList()
 */
 void spiffsSetup()
 {
-    // no spiffs settings
+    // no SPIFFS settings, as settings depend on SPIFFS
 
 #if LV_USE_HASP_SPIFFS
     char msg[64];
@@ -48,7 +48,7 @@ void spiffsSetup()
     } else {
         sprintf(msg, PSTR("FILE: [SUCCESS] SPI flash FS mounted"));
         debugPrintln(msg);
-        // spiffsList();
+        // spiffsList(); // Wait on debugSetup()
     }
 #endif
 }

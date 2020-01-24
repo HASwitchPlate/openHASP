@@ -1,7 +1,7 @@
 #include "TFT_eSPI.h" // Graphics and font library for ST7735 driver chip
 #include "ArduinoJson.h"
 
-#ifdef ESP8266
+#if defined(ARDUINO_ARCH_ESP8266)
 ADC_MODE(ADC_VCC); // tftShowConfig measures the voltage on the pin
 #endif
 
@@ -30,7 +30,7 @@ void tftSetup(TFT_eSPI & tft, JsonObject settings)
     tftShowConfig(tft);
     /* Load Calibration data */
 
-#ifdef ESP8266
+#if defined(ARDUINO_ARCH_ESP8266)
     uint16_t calData[5] = {238, 3529, 369, 3532, 6};
 #else
     uint16_t calData[5] = {294, 3410, 383, 3491, 4};
@@ -106,7 +106,7 @@ void tftShowConfig(TFT_eSPI & tft)
     sprintf_P(buffer, PSTR("TFT: Frequency    = %i MHz"), ESP.getCpuFreqMHz());
     debugPrintln(buffer);
 
-#ifdef ESP8266
+#if defined(ARDUINO_ARCH_ESP8266)
     sprintf_P(buffer, PSTR("TFT: Voltage      = %2.2f V"), ESP.getVcc() / 918.0);
     debugPrintln(buffer); // 918 empirically determined
 #endif
@@ -114,7 +114,7 @@ void tftShowConfig(TFT_eSPI & tft)
     debugPrintln(buffer);
     sprintf_P(buffer, PSTR("TFT: Interface    = %s"), (tftSetup.serial == 1) ? PSTR("SPI") : PSTR("Parallel"));
     debugPrintln(buffer);
-#ifdef ESP8266
+#if defined(ARDUINO_ARCH_ESP8266)
     sprintf_P(buffer, PSTR("TFT: SPI overlap  = %s"), (tftSetup.overlap == 1) ? PSTR("Yes") : PSTR("No"));
     debugPrintln(buffer);
 #endif
@@ -147,7 +147,7 @@ void tftShowConfig(TFT_eSPI & tft)
     tftPinInfo(F("MISO   "), tftSetup.pin_tft_miso);
     tftPinInfo(F("SCLK   "), tftSetup.pin_tft_clk);
 
-#ifdef ESP8266
+#if defined(ARDUINO_ARCH_ESP8266)
     if(tftSetup.overlap == true) {
         debugPrintln(F("Overlap selected, following pins MUST be used:\n"));
 
@@ -204,7 +204,7 @@ void tftShowConfig(TFT_eSPI & tft)
 int8_t getPinName(int8_t pin)
 {
 // For ESP32 pin labels on boards use the GPIO number
-#ifdef ESP32
+#if defined(ARDUINO_ARCH_ESP32)
     return pin;
 #endif
 

@@ -5,7 +5,7 @@
 
 #include "TFT_eSPI.h"
 
-#ifdef ESP32
+#if defined(ARDUINO_ARCH_ESP32)
 //#include "png_decoder.h"
 #endif
 #include "lv_zifont.h"
@@ -123,7 +123,7 @@ void guiSetup(TFT_eSPI & screen, JsonObject settings)
     tft = screen;
     lv_init();
 
-#if ESP32
+#if defined(ARDUINO_ARCH_ESP32)
     /* allocate on iram (or psram ?) */
     buffer_size                      = 1024 * 8;
     static lv_color_t * guiVdbBuffer = (lv_color_t *)malloc(sizeof(lv_color_t) * buffer_size);
