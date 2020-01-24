@@ -17,9 +17,9 @@ This version also adds ESP32 support to take advantage of the additional hardwar
 | PWM Screen dimming | <ul><li>- [x] yes</li> | <ul><li>- [x] yes</li>
 | Maximum Page Count | 4       | 12
 | Dynamic Objects    | <ul><li>- [x] yes</li> | <ul><li>- [x] yes</li>
-| Lvgl Theme Support | basic themes | all themes
+| Lvgl Theme Support | basic only | all themes
 | Custom .zi V5 font | <ul><li>- [x] yes</li> | <ul><li>- [x] yes</li>
-| FontAwesome Icons  | <ul><li>- [x] 1200+</li> | <ul><li>- [x] 1200+</li>
+| FontAwesome Icons  | <ul><li>- [ ] 1200+</li> | <ul><li>- [ ] 1200+</li>
 | PNG images         | <ul><li>- [ ] no</li> | *tbd*
 
 # Cloning
