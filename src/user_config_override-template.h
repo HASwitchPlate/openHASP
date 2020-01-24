@@ -1,3 +1,10 @@
+// This file contains the default settings that are
+// burned into the compiled firmware.
+//
+// These default settings can be changed at runtime
+//
+// To use: Save a copy as user_config_override.h
+
 /***************************************************
           WiFi Settings
  **************************************************/
