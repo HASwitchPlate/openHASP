@@ -42,15 +42,31 @@ String mqttLightBrightStateTopic;   // MQTT topic for outgoing panel backlight d
 
 String mqttNodeTopic;
 String mqttGroupTopic;
+bool mqttEnabled;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // These defaults may be overwritten with values saved by the web interface
-char mqttServer[64]   = MQTT_HOST;
-uint16_t mqttPort     = MQTT_PORT;
-char mqttUser[32]     = MQTT_USER;
-char mqttPassword[32] = MQTT_PASSW;
-// char haspNode[16]     = "plate01";
-String mqttGroupName = "plates";
+#ifdef MQTT_HOST
+std::string mqttServer = MQTT_HOST;
+#else
+std::string mqttServer   = "";
+#endif
+#ifdef MQTT_PORT
+uint16_t mqttPort = MQTT_PORT;
+#else
+uint16_t mqttPort        = 1883;
+#endif
+#ifdef MQTT_USER
+std::string mqttUser = MQTT_USER;
+#else
+std::string mqttUser     = "";
+#endif
+#ifdef MQTT_PASSW
+std::string mqttPassword = MQTT_PASSW;
+#else
+std::string mqttPassword = "";
+#endif
+std::string mqttGroupName = "plates";
 
 /*
 const String mqttCommandSubscription      = mqttCommandTopic + "/#";
@@ -278,12 +294,13 @@ void mqttReconnect()
     mqttGroupTopic = topicBuffer;
 
     // haspSetPage(0);
-    debugPrintln(String(F("MQTT: Attempting connection to broker ")) + String(mqttServer) + String(F(" as clientID ")) +
-                 mqttClientId);
+    debugPrintln(String(F("MQTT: Attempting connection to broker ")) + String(mqttServer.c_str()) +
+                 String(F(" as clientID ")) + mqttClientId);
 
     // Attempt to connect and set LWT and Clean Session
     sprintf_P(topicBuffer, PSTR("%sstatus"), mqttNodeTopic.c_str());
-    if(!mqttClient.connect(mqttClientId.c_str(), mqttUser, mqttPassword, topicBuffer, 0, false, "OFF", true)) {
+    if(!mqttClient.connect(mqttClientId.c_str(), mqttUser.c_str(), mqttPassword.c_str(), topicBuffer, 0, false, "OFF",
+                           true)) {
         // Retry until we give up and restart after connectTimeout seconds
         mqttReconnectCount++;
 
@@ -353,28 +370,19 @@ void mqttReconnect()
 
 void mqttSetup(const JsonObject & settings)
 {
-    if(!settings[F_CONFIG_HOST].isNull()) {
-        strcpy(mqttServer, settings[F_CONFIG_HOST]);
-    }
-    if(!settings[F_CONFIG_PORT].isNull()) {
-        mqttPort = settings[F_CONFIG_PORT];
-    }
-    if(!settings[F_CONFIG_USER].isNull()) {
-        strcpy(mqttUser, settings[F_CONFIG_USER]);
-    }
-    if(!settings[F_CONFIG_PASS].isNull()) {
-        strcpy(mqttPassword, settings[F_CONFIG_PASS]);
-    }
-    if(!settings[F_CONFIG_GROUP].isNull()) {
-        mqttGroupName = settings[F_CONFIG_GROUP].as<String>();
-    }
+    mqttSetConfig(settings);
 
-    mqttClient.setServer(mqttServer, 1883);
+    mqttEnabled = mqttServer != "" && mqttPort > 0;
+    if(!mqttEnabled) return;
+
+    mqttClient.setServer(mqttServer.c_str(), 1883);
     mqttClient.setCallback(mqttCallback);
 }
 
 void mqttLoop(bool wifiIsConnected)
 {
+    if(!mqttEnabled) return;
+
     if(wifiIsConnected && !mqttClient.connected())
         mqttReconnect();
     else
@@ -404,19 +412,71 @@ void mqttStop()
 
 bool mqttGetConfig(const JsonObject & settings)
 {
-    if(!settings.isNull() && settings[F_CONFIG_HOST] == mqttServer && settings[F_CONFIG_PORT] == mqttPort &&
-       settings[F_CONFIG_USER] == mqttUser && settings[F_CONFIG_PASS] == mqttPassword &&
-       settings[F_CONFIG_GROUP] == mqttGroupName)
-        return false;
-
-    settings[F_CONFIG_GROUP] = mqttGroupName;
-    settings[F_CONFIG_HOST]  = mqttServer;
-    settings[F_CONFIG_PORT]  = mqttPort;
-    settings[F_CONFIG_USER]  = mqttUser;
-    settings[F_CONFIG_PASS]  = mqttPassword;
+    settings[FPSTR(F_CONFIG_GROUP)] = String(mqttGroupName.c_str());
+    settings[FPSTR(F_CONFIG_HOST)]  = String(mqttServer.c_str());
+    settings[FPSTR(F_CONFIG_PORT)]  = mqttPort;
+    settings[FPSTR(F_CONFIG_USER)]  = String(mqttUser.c_str());
+    settings[FPSTR(F_CONFIG_PASS)]  = String(mqttPassword.c_str());
 
     size_t size = serializeJson(settings, Serial);
     Serial.println();
 
     return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool mqttSetConfig(const JsonObject & settings)
+{
+    bool changed = false;
+
+    if(!settings[FPSTR(F_CONFIG_GROUP)].isNull()) {
+        if(mqttGroupName != settings[FPSTR(F_CONFIG_GROUP)].as<String>().c_str()) {
+            debugPrintln(F("mqttGroupName changed"));
+        }
+        changed |= mqttGroupName != settings[FPSTR(F_CONFIG_GROUP)].as<String>().c_str();
+
+        mqttGroupName = settings[FPSTR(F_CONFIG_GROUP)].as<String>().c_str();
+    }
+
+    if(!settings[FPSTR(F_CONFIG_HOST)].isNull()) {
+        if(mqttServer != settings[FPSTR(F_CONFIG_HOST)].as<String>().c_str()) {
+            debugPrintln(F("mqttServer changed"));
+        }
+        changed |= mqttServer != settings[FPSTR(F_CONFIG_HOST)].as<String>().c_str();
+
+        mqttServer = settings[FPSTR(F_CONFIG_HOST)].as<String>().c_str();
+    }
+
+    if(!settings[FPSTR(F_CONFIG_PORT)].isNull()) {
+        if(mqttPort != settings[FPSTR(F_CONFIG_PORT)].as<uint16_t>()) {
+            debugPrintln(F("mqttPort changed"));
+        }
+        changed |= mqttPort != settings[FPSTR(F_CONFIG_PORT)].as<uint16_t>();
+
+        mqttPort = settings[FPSTR(F_CONFIG_PORT)].as<uint16_t>();
+    }
+
+    if(!settings[FPSTR(F_CONFIG_USER)].isNull()) {
+        if(mqttUser != settings[FPSTR(F_CONFIG_USER)].as<String>().c_str()) {
+            debugPrintln(F("mqttUser changed"));
+        }
+        changed |= mqttUser != settings[FPSTR(F_CONFIG_USER)].as<String>().c_str();
+
+        mqttUser = settings[FPSTR(F_CONFIG_USER)].as<String>().c_str();
+    }
+
+    if(!settings[FPSTR(F_CONFIG_PASS)].isNull()) {
+        if(mqttPassword != settings[FPSTR(F_CONFIG_PASS)].as<String>().c_str()) {
+            debugPrintln(F("mqttPassword changed"));
+        }
+        changed |= mqttPassword != settings[FPSTR(F_CONFIG_PASS)].as<String>().c_str();
+
+        mqttPassword = settings[FPSTR(F_CONFIG_PASS)].as<String>().c_str();
+    }
+
+    size_t size = serializeJson(settings, Serial);
+    Serial.println();
+
+    return changed;
 }

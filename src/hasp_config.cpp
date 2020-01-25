@@ -112,10 +112,10 @@ void configWriteConfig()
     changed |= haspGetConfig(settings[F("hasp")].to<JsonObject>());
     // changed |= httpGetConfig(settings[F("http")].to<JsonObject>());
     // changed |= mdnsGetConfig(settings[F("mdns")].to<JsonObject>());
-    // changed |= mqttGetConfig(settings[F("mqtt")].to<JsonObject>());
+    changed |= mqttGetConfig(settings[F("mqtt")].to<JsonObject>());
     // changed |= otaGetConfig(settings[F("ota")].to<JsonObject>());
     // changed |= tftGetConfig(settings[F("tft")].to<JsonObject>());
-    // changed |= wifiGetConfig(settings[F("wifi")].to<JsonObject>());
+    changed |= wifiGetConfig(settings[F("wifi")].to<JsonObject>());
 
     if(changed) {
         File file = SPIFFS.open(HASP_CONFIG_FILE, "w");

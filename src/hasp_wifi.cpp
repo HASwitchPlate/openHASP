@@ -20,11 +20,22 @@
 static WiFiEventHandler wifiEventHandler[3];
 
 #endif
-
+#include "DNSserver.h"
 #include "user_config_override.h"
 
-std::string wifiSsid     = WIFI_SSID;
+#ifdef WIFI_SSID
+std::string wifiSsid = WIFI_SSID;
+#else
+std::string wifiSsid     = "";
+#endif
+#ifdef WIFI_PASSW
 std::string wifiPassword = WIFI_PASSW;
+#else
+std::string wifiPassword = "";
+#endif
+
+const byte DNS_PORT = 53;
+DNSServer dnsServer;
 
 // long wifiPrevMillis         = 0;
 // bool wifiWasConnected       = false;
@@ -101,33 +112,40 @@ void wifiSetup(JsonObject settings)
 {
     char buffer[64];
 
-    if(!settings[F_CONFIG_SSID].isNull()) {
-        wifiSsid = settings[F_CONFIG_SSID].as<String>().c_str();
+    wifiSetConfig(settings);
 
-        // sprintf_P(buffer, PSTR("Wifi Ssid: %s"), wifiSsid.c_str());
-        // debugPrintln(buffer);
+    if(wifiSsid == "") {
+        WiFi.mode(WIFI_AP);
+        WiFi.softAP("HASP-test", "haspadmin");
+        IPAddress IP = WiFi.softAPIP();
+
+        /* Setup the DNS server redirecting all the domains to the apIP */
+        dnsServer.setErrorReplyCode(DNSReplyCode::NoError);
+        dnsServer.start(DNS_PORT, "*", IP);
+
+        sprintf_P(buffer, PSTR("WIFI: Setting up temporary Access Point"));
+        debugPrintln(buffer);
+        sprintf_P(buffer, PSTR("WIFI: AP IP address : %s"), IP.toString().c_str());
+        debugPrintln(buffer);
+
+        httpReconnect();
+        return;
     }
-    if(!settings[F_CONFIG_PASS].isNull()) {
-        wifiPassword = settings[F_CONFIG_PASS].as<String>().c_str();
 
-        // sprintf_P(buffer, PSTR("Wifi Password: %s"), wifiPassword.c_str());
-        // debugPrintln(buffer);
-    }
-
+    WiFi.mode(WIFI_STA);
     sprintf_P(buffer, PSTR("WIFI: Connecting to : %s"), wifiSsid.c_str());
     debugPrintln(buffer);
 
-    WiFi.mode(WIFI_STA);
-    WiFi.begin(wifiSsid.c_str(), wifiPassword.c_str());
-
-#if defined(ARDUINO_ARCH_ESP32)
-    WiFi.onEvent(wifi_callback);
-#endif
 #if defined(ARDUINO_ARCH_ESP8266)
     wifiEventHandler[0] = WiFi.onStationModeGotIP(wifiSTAGotIP); // As soon WiFi is connected, start NTP Client
     wifiEventHandler[1] = WiFi.onStationModeDisconnected(wifiSTADisconnected);
     wifiEventHandler[2] = WiFi.onStationModeConnected(wifiSTAConnected);
 #endif
+#if defined(ARDUINO_ARCH_ESP32)
+    WiFi.onEvent(wifi_callback);
+#endif
+
+    WiFi.begin(wifiSsid.c_str(), wifiPassword.c_str());
 }
 
 bool wifiLoop()
@@ -165,15 +183,53 @@ bool wifiLoop()
 
 bool wifiGetConfig(const JsonObject & settings)
 {
-    if(!settings.isNull() && settings[F_CONFIG_SSID] == String(wifiSsid.c_str()) &&
-       settings[F_CONFIG_PASS] == String(wifiPassword.c_str()))
-        return false;
-
-    settings[F_CONFIG_SSID] = String(wifiSsid.c_str());
-    settings[F_CONFIG_PASS] = String(wifiPassword.c_str());
+    settings[FPSTR(F_CONFIG_SSID)] = String(wifiSsid.c_str());
+    settings[FPSTR(F_CONFIG_PASS)] = String(wifiPassword.c_str());
 
     size_t size = serializeJson(settings, Serial);
     Serial.println();
 
     return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool wifiSetConfig(const JsonObject & settings)
+{
+    /*    if(!settings.isNull() && settings[FPSTR(F_CONFIG_STARTPAGE)] == haspStartPage &&
+           settings[FPSTR(F_CONFIG_THEME)] == haspThemeId && settings[FPSTR(F_CONFIG_HUE)] == haspThemeHue &&
+           settings[FPSTR(F_CONFIG_ZIFONT)] == haspZiFontPath && settings[FPSTR(F_CONFIG_PAGES)] == haspPagesPath)
+            return false;
+    */
+    bool changed = false;
+
+    if(!settings[FPSTR(F_CONFIG_SSID)].isNull()) {
+        if(wifiSsid != settings[FPSTR(F_CONFIG_SSID)].as<String>().c_str()) {
+            debugPrintln(F("wifiSsid changed"));
+        }
+        changed |= wifiSsid != settings[FPSTR(F_CONFIG_SSID)].as<String>().c_str();
+
+        wifiSsid = settings[FPSTR(F_CONFIG_SSID)].as<String>().c_str();
+    }
+
+    if(!settings[FPSTR(F_CONFIG_PASS)].isNull() && settings[FPSTR(F_CONFIG_PASS)].as<String>() != F("********")) {
+        if(wifiPassword != settings[FPSTR(F_CONFIG_PASS)].as<String>().c_str()) {
+            debugPrintln(F("wifiPassword changed"));
+        }
+        changed |= wifiPassword != settings[FPSTR(F_CONFIG_PASS)].as<String>().c_str();
+
+        wifiPassword = settings[FPSTR(F_CONFIG_PASS)].as<String>().c_str();
+    }
+
+    size_t size = serializeJson(settings, Serial);
+    Serial.println();
+
+    return changed;
+}
+
+void wifiStop()
+{
+    debugPrintln(F("WIFI: Stopped"));
+    WiFi.mode(WIFI_OFF);
+    WiFi.disconnect();
 }

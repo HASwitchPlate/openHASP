@@ -247,6 +247,26 @@ void webHandleRoot()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+void httpHandleReboot()
+{ // http://plate01/reboot
+    if(!httpIsAuthenticated(F("/reboot"))) return;
+
+    String nodename    = haspGetNodename();
+    String httpMessage = F("Rebooting Device");
+    webSendPage(nodename, httpMessage.length(), true);
+    webServer.sendContent(httpMessage); // len
+    webServer.sendContent_P(HTTP_END);  // 20
+    delay(500);
+
+    debugPrintln(PSTR("HTTP: Reboot device"));
+    haspSetPage(0);
+    haspSetAttr(F("p[0].b[1].txt"), F("\"Rebooting...\""));
+
+    delay(500);
+    haspReset();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 void webHandleAbout()
 { // http://plate01/about
     if(!httpIsAuthenticated(F("/about"))) return;
@@ -603,25 +623,26 @@ void webHandleConfig()
 
     if(webServer.method() == HTTP_POST) {
         if(webServer.hasArg(F("save"))) {
+
             DynamicJsonDocument settings(256);
+            for(int i = 0; i < webServer.args(); i++) settings[webServer.argName(i)] = webServer.arg(i);
 
             if(webServer.arg(F("save")) == String(F("hasp"))) {
-                /*
-                if(webServer.hasArg(F_CONFIG_THEME) settings[F_CONFIG_THEME] = webServer.arg(F_CONFIG_THEME).toInt();
-                if(webServer.hasArg(F_CONFIG_HUE) settings[F_CONFIG_HUE] = webServer.arg(F_CONFIG_HUE.toInt();
-                if(webServer.hasArg(F_CONFIG_ZIFONT) settings[F_CONFIG_ZIFONT] = webServer.arg(F_CONFIG_ZIFONT;
-                if(webServer.hasArg(F_CONFIG_PAGES) settings[F_CONFIG_PAGES] = webServer.arg(F_CONFIG_PAGES;
-                if(webServer.hasArg(F_CONFIG_STARTPAGE)
-                    settings[F_CONFIG_STARTPAGE] = webServer.arg(F_CONFIG_STARTPAGE).toInt();*/
-                for(int i = 0; i < webServer.args(); i++) settings[webServer.argName(i)] = webServer.arg(i);
-
                 haspSetConfig(settings.as<JsonObject>());
 
             } else if(webServer.arg(F("save")) == String(F("mqtt"))) {
+                mqttSetConfig(settings.as<JsonObject>());
+
             } else if(webServer.arg(F("save")) == String(F("http"))) {
+
             } else if(webServer.arg(F("save")) == String(F("wifi"))) {
+                wifiSetConfig(settings.as<JsonObject>());
             }
         }
+    }
+
+    if(WiFi.getMode() == WIFI_AP) {
+        httpHandleReboot();
     }
 
     char buffer[64];
@@ -666,101 +687,36 @@ void webHandleMqttConfig()
 { // http://plate01/config/mqtt
     if(!httpIsAuthenticated(F("/config/mqtt"))) return;
 
+    DynamicJsonDocument settings(256);
+    mqttGetConfig(settings.to<JsonObject>());
+
     char buffer[64];
     String nodename = haspGetNodename();
     String httpMessage((char *)0);
     httpMessage.reserve(1024);
 
-    httpMessage += String(F("<form method='POST' action='/saveConfig'>"));
-    httpMessage += String(F("<b>WiFi SSID</b> <i><small>(required)</small></i><input id='wifiSSID' required "
-                            "name='wifiSSID' maxlength=32 placeholder='WiFi SSID' value='")) +
-                   String(WiFi.SSID()) + "'>";
-    httpMessage += String(F("<br/><b>WiFi Password</b> <i><small>(required)</small></i><input id='wifiPass' required "
-                            "name='wifiPass' type='password' maxlength=64 placeholder='WiFi Password' value='")) +
-                   String("********") + "'>";
-    httpMessage +=
-        F("<br/><br/><b>HASP Node Name</b> <i><small>(required. lowercase letters, numbers, and _ only)</small>"
-          "</i><input id='haspGetNodename()' required name='haspGetNodename()' maxlength=15 "
-          "placeholder='HASP Node Name' pattern='[a-z0-9_]*' value='");
-    httpMessage += nodename + "'>";
-    httpMessage += F("<br/><br/><b>Group Name</b> <i><small>(required)</small></i><input id='groupName' required "
-                     "name='groupName' maxlength=15 placeholder='Group Name' value='");
-    // httpMessage += mqttGetGroup() + "'>";
-    httpMessage += F("<br/><br/><b>MQTT Broker</b> <i><small>(required)</small></i><input id='mqttServer' required "
-                     "name='mqttServer' maxlength=63 placeholder='mqttServer' value='");
-    // httpMessage += mqttGetServer() + "'>";
-    httpMessage += F("<br/><b>MQTT Port</b> <i><small>(required)</small></i><input id='mqttPort' required "
-                     "name='mqttPort' type='number' maxlength=5 placeholder='mqttPort' value='");
-    // httpMessage += String(mqttGetPort()) + "'>";
-    httpMessage += F("<br/><b>MQTT User</b> <i><small>(optional)</small></i><input id='mqttUser' name='mqttUser' "
-                     "maxlength=31 placeholder='mqttUser' value='");
-    // httpMessage += mqttGetUser() + "'>";
-    httpMessage += F("<br/><b>MQTT Password</b> <i><small>(optional)</small></i><input id='mqttPassword' "
-                     "name='mqttPassword' type='password' maxlength=31 placeholder='mqttPassword' value='");
-    // if(mqttGetPassword() != "") httpMessage += String("********");
+    httpMessage += String(F("<form method='POST' action='/config'>"));
+    httpMessage += F("<b>HASP Node Name</b> <i><small>(required. lowercase letters, numbers, and _ only)</small>"
+                     "</i><input id='haspGetNodename()' required name='haspGetNodename()' maxlength=15 "
+                     "placeholder='HASP Node Name' pattern='[a-z0-9_]*' value='");
+    httpMessage += nodename;
+    httpMessage += F("'><br/><br/><b>Group Name</b> <i><small>(required)</small></i><input id='group' required "
+                     "name='group' maxlength=15 placeholder='Group Name' value='");
+    httpMessage += settings[FPSTR(F_CONFIG_GROUP)].as<String>();
+    httpMessage += F("'><br/><br/><b>MQTT Broker</b> <i><small>(required)</small></i><input id='host' required "
+                     "name='host' maxlength=63 placeholder='mqttServer' value='");
+    httpMessage += settings[FPSTR(F_CONFIG_HOST)].as<String>();
+    httpMessage += F("'><br/><b>MQTT Port</b> <i><small>(required)</small></i><input id='port' required "
+                     "name='port' type='number' maxlength=5 placeholder='mqttPort' value='");
+    httpMessage += settings[FPSTR(F_CONFIG_PORT)].as<uint16_t>();
+    httpMessage += F("'><br/><b>MQTT User</b> <i><small>(optional)</small></i><input id='mqttUser' name='user' "
+                     "maxlength=31 placeholder='user' value='");
+    httpMessage += settings[FPSTR(F_CONFIG_USER)].as<String>();
+    httpMessage += F("'><br/><b>MQTT Password</b> <i><small>(optional)</small></i><input id='pass' "
+                     "name='pass' type='password' maxlength=31 placeholder='mqttPassword' value='");
+    if(settings[FPSTR(F_CONFIG_PASS)].as<String>() != "") httpMessage += F("********");
 
-    httpMessage += String(F("'><br/><br/><b>HASP Admin Username</b> <i><small>(optional)</small></i><input "
-                            "id='httpUser' name='httpUser' maxlength=31 placeholder='Admin User' value='")) +
-                   String(httpUser) + "'>";
-    httpMessage +=
-        String(F("<br/><b>HASP Admin Password</b> <i><small>(optional)</small></i><input id='httpPassword' "
-                 "name='httpPassword' type='password' maxlength=31 placeholder='Admin User Password' value='"));
-    if(httpPassword.length() != 0) {
-        httpMessage += String("********");
-    }
-    httpMessage +=
-        String(F("'><br/><hr><b>Motion Sensor Pin:&nbsp;</b><select id='motionPinConfig' name='motionPinConfig'>"));
-    httpMessage += String(F("<option value='0'"));
-    if(!motionPin) {
-        httpMessage += String(F(" selected"));
-    }
-    httpMessage += String(F(">disabled/not installed</option><option value='D0'"));
-    if(motionPin == D0) {
-        httpMessage += String(F(" selected"));
-    }
-    httpMessage += String(F(">D0</option><option value='D1'"));
-    if(motionPin == D1) {
-        httpMessage += String(F(" selected"));
-    }
-    httpMessage += String(F(">D1</option><option value='D2'"));
-    if(motionPin == D2) {
-        httpMessage += String(F(" selected"));
-    }
-    httpMessage += String(F(">D2</option></select>"));
-
-    httpMessage += String(F("<br/><b>Serial debug output enabled:</b><input id='debugSerialEnabled' "
-                            "name='debugSerialEnabled' type='checkbox'"));
-    if(debugSerialEnabled) {
-        httpMessage += String(F(" checked='checked'"));
-    }
-    httpMessage += String(F("><br/><b>Telnet debug output enabled:</b><input id='debugTelnetEnabled' "
-                            "name='debugTelnetEnabled' type='checkbox'"));
-    if(debugTelnetEnabled) {
-        httpMessage += String(F(" checked='checked'"));
-    }
-    httpMessage += String(F("><br/><b>mDNS enabled:</b><input id='mdnsEnabled' name='mdnsEnabled' type='checkbox'>"));
-    /*if (mdnsEnabled)
-    {
-        httpMessage += String(F(" checked='checked'"));
-    }
-    httpMessage += String(F("><br/><hr><button type='submit'>save settings</button></form>"));
-
-    if (updateEspAvailable)
-    {
-        httpMessage += String(F("<br/><hr><font color='green'><center><h3>HASP Update
-    available!</h3></center></font>")); httpMessage += String(F("<form method='get' action='espfirmware'>"));
-        httpMessage += String(F("<input id='espFirmwareURL' type='hidden' name='espFirmware' value='")) +
-    espFirmwareUrl
-    + "'>"; httpMessage += String(F("<button type='submit'>update HASP to v")) + String(updateEspAvailableVersion) +
-    String(F("</button></form>"));
-    }*/
-
-    httpMessage += F("<button type='submit' name='save' "
-                     "value='mqtt'>Save Settings</button></form>");
-
-    httpMessage += F("<p><form method='get' action='resetConfig'><button class='red' type='submit'>Factory Reset "
-                     "All Settings</button></form></p>");
-
+    httpMessage += F("'><button type='submit' name='save' value='mqtt'>Save Settings</button></form>");
     httpMessage += F("<form method='get' action='/config'><button type='submit'>Configuration</button></form>");
 
     webSendPage(nodename, httpMessage.length(), false);
@@ -770,7 +726,38 @@ void webHandleMqttConfig()
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-#if LV_USE_HASP_MQTT > 0
+#if LV_USE_HASP_WIFI > 0
+void webHandleWifiConfig()
+{ // http://plate01/config/wifi
+    if(!httpIsAuthenticated(F("/config/wifi"))) return;
+
+    DynamicJsonDocument settings(256);
+    wifiGetConfig(settings.to<JsonObject>());
+
+    char buffer[64];
+    String nodename = haspGetNodename();
+    String httpMessage((char *)0);
+    httpMessage.reserve(1024);
+
+    httpMessage += String(F("<form method='POST' action='/config'>"));
+    httpMessage += String(F("<b>WiFi SSID</b> <i><small>(required)</small></i><input id='ssid' required "
+                            "name='ssid' maxlength=32 placeholder='WiFi SSID' value='"));
+    httpMessage += settings[FPSTR(F_CONFIG_SSID)].as<String>();
+    httpMessage += String(F("'><br/><b>WiFi Password</b> <i><small>(required)</small></i><input id='pass' required "
+                            "name='pass' type='password' maxlength=64 placeholder='WiFi Password' value='"));
+    if(settings[FPSTR(F_CONFIG_PASS)].as<String>() != "") {
+        httpMessage += F("********");
+    }
+    httpMessage += F("'><button type='submit' name='save' value='wifi'>Save Settings</button></form>");
+    httpMessage += F("<form method='get' action='/config'><button type='submit'>Configuration</button></form>");
+
+    webSendPage(nodename, httpMessage.length(), false);
+    webServer.sendContent(httpMessage); // len
+    webServer.sendContent_P(HTTP_END);  // 20
+}
+#endif
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 void webHandleHaspConfig()
 { // http://plate01/config/http
     if(!httpIsAuthenticated(F("/config/hasp"))) return;
@@ -863,7 +850,7 @@ void webHandleHaspConfig()
     webServer.sendContent(httpMessage); // len
     webServer.sendContent_P(HTTP_END);  // 20
 }
-#endif
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 void httpHandleNotFound()
 { // webServer 404
@@ -920,26 +907,6 @@ void httpHandleEspFirmware()
 
     debugPrintln(String(F("HTTP: Attempting ESP firmware update from: ")) + String(webServer.arg("espFirmware")));
     // espStartOta(webServer.arg("espFirmware"));
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-void httpHandleReboot()
-{ // http://plate01/reboot
-    if(!httpIsAuthenticated(F("/reboot"))) return;
-
-    String nodename    = haspGetNodename();
-    String httpMessage = F("Rebooting Device");
-    webSendPage(nodename, httpMessage.length(), true);
-    webServer.sendContent(httpMessage); // len
-    webServer.sendContent_P(HTTP_END);  // 20
-    delay(500);
-
-    debugPrintln(PSTR("HTTP: Reboot device"));
-    haspSetPage(0);
-    haspSetAttr(F("p[0].b[1].txt"), F("\"Rebooting...\""));
-
-    delay(500);
-    haspReset();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1023,6 +990,9 @@ void httpSetup(const JsonObject & settings)
 #if LV_USE_HASP_MQTT > 0
     webServer.on(F("/config/mqtt"), webHandleMqttConfig);
 #endif
+#if LV_USE_HASP_WIFI > 0
+    webServer.on(F("/config/wifi"), webHandleWifiConfig);
+#endif
     webServer.on(F("/saveConfig"), webHandleSaveConfig);
     webServer.on(F("/resetConfig"), httpHandleResetConfig);
     webServer.on(F("/firmware"), webHandleFirmware);
@@ -1036,9 +1006,16 @@ void httpReconnect()
 {
     if(!httpEnable) return;
 
+    if(WiFi.getMode() == WIFI_AP) {
+        webServer.on(F("/"), webHandleWifiConfig);
+        webServer.on(F("/config"), webHandleConfig);
+        webServer.onNotFound(webHandleWifiConfig);
+    }
+
     webServer.stop();
     webServer.begin();
-    debugPrintln(String(F("HTTP: Server started @ http://")) + WiFi.localIP().toString());
+    debugPrintln(String(F("HTTP: Server started @ http://")) +
+                 (WiFi.getMode() == WIFI_AP ? WiFi.softAPIP().toString() : WiFi.localIP().toString()));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1050,14 +1027,10 @@ void httpLoop(bool wifiIsConnected)
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 bool httpGetConfig(const JsonObject & settings)
 {
-    if(!settings.isNull() && settings[F_HTTP_ENABLE] == httpEnable && settings[F_HTTP_PORT] == httpPort &&
-       settings[F_HTTP_USER] == httpUser && settings[F_HTTP_PASS] == httpPassword)
-        return false;
-
-    settings[F_HTTP_ENABLE] = httpEnable;
-    settings[F_HTTP_PORT]   = httpPort;
-    settings[F_HTTP_USER]   = httpUser;
-    settings[F_HTTP_PASS]   = httpPassword;
+    settings[FPSTR(F_HTTP_ENABLE)] = httpEnable;
+    settings[FPSTR(F_HTTP_PORT)]   = httpPort;
+    settings[FPSTR(F_HTTP_USER)]   = httpUser;
+    settings[FPSTR(F_HTTP_PASS)]   = httpPassword;
 
     size_t size = serializeJson(settings, Serial);
     Serial.println();

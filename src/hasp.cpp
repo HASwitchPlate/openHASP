@@ -24,6 +24,7 @@
 #include "hasp_debug.h"
 #include "hasp_config.h"
 #include "hasp_mqtt.h"
+#include "hasp_wifi.h"
 #include "hasp_gui.h"
 #include "hasp_tft.h"
 #include "hasp.h"
@@ -83,12 +84,15 @@ static const char * btnm_map2[] = {"0",  "1", "\n", "2",  "3",  "\n", "4",  "5",
                                    "\n", "6", "7",  "\n", "P1", "P2", "P3", ""};
 */
 
+static lv_font_t * haspFonts[6];
 #if defined(ARDUINO_ARCH_ESP8266)
-lv_obj_t * pages[4];
-// lv_style_t styles[6];
+static lv_obj_t * pages[4];
+static lv_style_t labelStyles[6];
+static lv_style_t rollerStyles[6];
 #else
-lv_obj_t * pages[12];
-// lv_style_t styles[20];
+static lv_obj_t * pages[12];
+static lv_style_t labelStyles[6];
+static lv_style_t rollerStyles[6];
 #endif
 uint16_t current_page = 0;
 // uint16_t current_style = 0;
@@ -1019,10 +1023,12 @@ void haspReset()
 {
     mqttStop(); // Stop the MQTT Client first
     configWriteConfig();
-    debugPrintln(F("HASP: Reboot MCU"));
     debugStop();
-    delay(1000);
-    ESP.restart(); // nextionReset();
+    delay(250);
+    wifiStop();
+    debugPrintln(F("HASP: Properly Rebooting the MCU now!"));
+    debugPrintln(F("-------------------------------------"));
+    ESP.restart();
     delay(5000);
 }
 
