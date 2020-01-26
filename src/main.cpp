@@ -39,7 +39,7 @@ void setup()
     /* Init Storage */
     eepromSetup();
 #if LV_USE_HASP_SPIFFS
-    // spiffsSetup();
+    spiffsSetup();
 #endif
 
     /* Read Config File */

@@ -1299,14 +1299,12 @@ void haspLoadPage(String pages)
     char msg[92];
 
     if(!SPIFFS.begin()) {
-        sprintf_P(msg, PSTR("HASP: \%sFS not mounted. Failed to load %s"), pages.c_str());
-        errorPrintln(msg);
+        errorPrintln(String(F("HASP: %sFS not mounted. Failed to load ")) + pages.c_str());
         return;
     }
 
     if(!SPIFFS.exists(pages)) {
-        sprintf_P(msg, PSTR("HASP: \%sFile '%s' does not exist"), pages.c_str());
-        errorPrintln(msg);
+        errorPrintln(String(F("HASP: %sNon existing file ")) + pages.c_str());
         return;
     }
 
