@@ -98,10 +98,6 @@ String esp32ResetReason(uint8_t cpuid)
     }
 }
 
-// these need to be removed
-const uint8_t D0 = 0;
-const uint8_t D1 = 1;
-const uint8_t D2 = 2;
 #endif // ESP32
 
 static const char HTTP_DOCTYPE[] PROGMEM =
