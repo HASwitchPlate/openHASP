@@ -24,6 +24,18 @@ extern "C" {
 /**********************
  *      TYPEDEFS
  **********************/
+typedef uint8_t lv_zifont_char_offset_t[3];
+
+typedef struct
+{
+    uint16_t character;
+    uint8_t width;
+    uint8_t kerningL;
+    uint8_t kerningR;
+    lv_zifont_char_offset_t pos;
+    uint16_t length;
+} lv_zifont_char_t;
+
 typedef struct
 {
     uint8_t Password;
@@ -50,9 +62,9 @@ typedef struct
     uint8_t Variablewidth;
     uint8_t Namelength;
     uint8_t Fontdataadd8byte;
-    uint16_t Res1;
+    uint16_t last_glyph_id; // Reserved 1
     uint32_t Actualnumchars;
-    uint32_t Res3;
+    lv_zifont_char_t * last_glyph_dsc; // Reserved 3
 } lv_font_fmt_zifont_dsc_t;
 
 /**********************
@@ -64,17 +76,6 @@ int lv_zifont_font_init(lv_font_t * font, const char * font_path, uint16_t size)
 /**********************
  *      MACROS
  **********************/
-typedef uint8_t lv_zifont_char_offset_t[3];
-
-typedef struct
-{
-    uint16_t character;
-    uint8_t width;
-    uint8_t kerningL;
-    uint8_t kerningR;
-    lv_zifont_char_offset_t pos;
-    uint16_t length;
-} lv_zifont_char_t;
 
 #ifdef __cplusplus
 } /* extern "C" */
