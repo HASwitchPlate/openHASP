@@ -1080,6 +1080,18 @@ void haspNewObject(const JsonObject & config)
         return;
     }
 
+    lv_obj_t * parent_obj = page;
+    if(!config[F("parentid")].isNull()) {
+        uint8_t parentid = config[F("parentid")].as<uint8_t>();
+        parent_obj       = FindObjFromId(page, parentid);
+        if(!parent_obj) {
+            errorPrintln(F("HASP: %sParent ID not found"));
+            parent_obj = page;
+        } else {
+            debugPrintln(F("HASP: Parent ID found"));
+        }
+    }
+
     /* Input cache and validation */
     int16_t min = config[F("min")].as<int16_t>();
     int16_t max = config[F("max")].as<int16_t>();
@@ -1100,8 +1112,9 @@ void haspNewObject(const JsonObject & config)
     lv_obj_t * obj;
     lv_obj_t * label;
     switch(objid) {
+        /* ----- Basic Objects ------ */
         case LV_HASP_BUTTON: {
-            obj         = lv_btn_create(page, NULL);
+            obj         = lv_btn_create(parent_obj, NULL);
             bool toggle = config[F("toggle")].as<bool>();
             lv_btn_set_toggle(obj, toggle);
             if(config[F("txt")]) {
@@ -1114,13 +1127,13 @@ void haspNewObject(const JsonObject & config)
             break;
         }
         case LV_HASP_CHECKBOX: {
-            obj = lv_cb_create(page, NULL);
+            obj = lv_cb_create(parent_obj, NULL);
             if(config[F("txt")]) lv_cb_set_text(obj, config[F("txt")].as<String>().c_str());
-            //                lv_obj_set_event_cb(obj, btn_event_handler);
+            lv_obj_set_event_cb(obj, switch_event_handler);
             break;
         }
         case LV_HASP_LABEL: {
-            obj = lv_label_create(page, NULL);
+            obj = lv_label_create(parent_obj, NULL);
             if(config[F("txt")]) {
                 lv_label_set_text(obj, config[F("txt")].as<String>().c_str());
             }
@@ -1137,9 +1150,19 @@ void haspNewObject(const JsonObject & config)
             lv_obj_set_event_cb(obj, btn_event_handler);
             break;
         }
+        case LV_HASP_ARC: {
+            obj = lv_arc_create(parent_obj, NULL);
+            break;
+        }
+        case LV_HASP_CONTAINER: {
+            obj = lv_cont_create(parent_obj, NULL);
+            lv_obj_set_event_cb(obj, btn_event_handler);
+            break;
+        }
+
         /* ----- Color Objects ------ */
         case LV_HASP_CPICKER: {
-            obj = lv_cpicker_create(page, NULL);
+            obj = lv_cpicker_create(parent_obj, NULL);
             // lv_cpicker_set_value(obj, (uint8_t)val);
             bool rect = config[F("rect")].as<bool>();
             lv_cpicker_set_type(obj, rect ? LV_CPICKER_TYPE_RECT : LV_CPICKER_TYPE_DISC);
@@ -1148,34 +1171,34 @@ void haspNewObject(const JsonObject & config)
         }
 #if LV_USE_PRELOAD != 0
         case LV_HASP_PRELOADER: {
-            obj = lv_preload_create(page, NULL);
+            obj = lv_preload_create(parent_obj, NULL);
             break;
         }
 #endif
         /* ----- Range Objects ------ */
         case LV_HASP_SLIDER: {
-            obj = lv_slider_create(page, NULL);
+            obj = lv_slider_create(parent_obj, NULL);
             lv_slider_set_range(obj, min, max);
             lv_slider_set_value(obj, val, LV_ANIM_OFF);
             lv_obj_set_event_cb(obj, slider_event_handler);
             break;
         }
         case LV_HASP_GAUGE: {
-            obj = lv_gauge_create(page, NULL);
+            obj = lv_gauge_create(parent_obj, NULL);
             lv_gauge_set_range(obj, min, max);
             lv_gauge_set_value(obj, val, LV_ANIM_OFF);
             lv_obj_set_event_cb(obj, btn_event_handler);
             break;
         }
         case LV_HASP_BAR: {
-            obj = lv_bar_create(page, NULL);
+            obj = lv_bar_create(parent_obj, NULL);
             lv_bar_set_range(obj, min, max);
             lv_bar_set_value(obj, val, LV_ANIM_OFF);
             lv_obj_set_event_cb(obj, btn_event_handler);
             break;
         }
         case LV_HASP_LMETER: {
-            obj = lv_lmeter_create(page, NULL);
+            obj = lv_lmeter_create(parent_obj, NULL);
             lv_lmeter_set_range(obj, min, max);
             lv_lmeter_set_value(obj, val);
             lv_obj_set_event_cb(obj, btn_event_handler);
@@ -1184,14 +1207,14 @@ void haspNewObject(const JsonObject & config)
 
         /* ----- On/Off Objects ------ */
         case LV_HASP_SWITCH: {
-            obj        = lv_sw_create(page, NULL);
+            obj        = lv_sw_create(parent_obj, NULL);
             bool state = config[F("val")].as<bool>();
             if(state) lv_sw_on(obj, LV_ANIM_OFF);
             lv_obj_set_event_cb(obj, switch_event_handler);
             break;
         }
         case LV_HASP_LED: {
-            obj        = lv_led_create(page, NULL);
+            obj        = lv_led_create(parent_obj, NULL);
             bool state = config[F("val")].as<bool>();
             if(state) lv_led_on(obj);
             lv_obj_set_event_cb(obj, btn_event_handler);
@@ -1199,7 +1222,7 @@ void haspNewObject(const JsonObject & config)
         }
             /**/
         case LV_HASP_DDLIST: {
-            obj = lv_ddlist_create(page, NULL);
+            obj = lv_ddlist_create(parent_obj, NULL);
             if(config[F("txt")]) lv_ddlist_set_options(obj, config[F("txt")].as<String>().c_str());
             lv_ddlist_set_selected(obj, val);
             lv_ddlist_set_fix_width(obj, width);
@@ -1210,7 +1233,7 @@ void haspNewObject(const JsonObject & config)
             break;
         }
         case LV_HASP_ROLLER: {
-            obj           = lv_roller_create(page, NULL);
+            obj           = lv_roller_create(parent_obj, NULL);
             bool infinite = config[F("infinite")].as<bool>();
             if(config[F("txt")]) lv_roller_set_options(obj, config[F("txt")].as<String>().c_str(), infinite);
             lv_roller_set_selected(obj, val, LV_ANIM_ON);
