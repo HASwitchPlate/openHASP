@@ -744,8 +744,12 @@ void webHandleWifiConfig()
     if(settings[FPSTR(F_CONFIG_PASS)].as<String>() != "") {
         httpMessage += F("********");
     }
-    httpMessage += F("'><button type='submit' name='save' value='wifi'>Save Settings</button></form>");
-    httpMessage += F("<form method='get' action='/config'><button type='submit'>Configuration</button></form>");
+    httpMessage += F("'><p><button type='submit' name='save' value='wifi'>Save Settings</button></p></form>");
+
+    if(WiFi.getMode() == WIFI_STA) {
+        httpMessage +=
+            F("<p><form method='get' action='/config'><button type='submit'>Configuration</button></form></p>");
+    }
 
     webSendPage(nodename, httpMessage.length(), false);
     webServer.sendContent(httpMessage); // len
