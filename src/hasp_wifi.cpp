@@ -41,6 +41,20 @@ DNSServer dnsServer;
 // bool wifiWasConnected       = false;
 // int8_t wifiReconnectAttempt = -20;
 
+String wifiGetMacAddress(int start, const char * seperator)
+{
+    byte mac[6];
+    WiFi.macAddress(mac);
+    String cMac = "";
+    for(int i = start; i < 6; ++i) {
+        if(mac[i] < 0x10) cMac += "0";
+        cMac += String(mac[i], HEX);
+        if(i < 5) cMac += seperator;
+    }
+    cMac.toUpperCase();
+    return cMac;
+}
+
 void wifiConnected(IPAddress ipaddress)
 {
     char buffer[64];
@@ -115,15 +129,18 @@ void wifiSetup(JsonObject settings)
     wifiSetConfig(settings);
 
     if(wifiSsid == "") {
+        String apSsdid = F("HASP-");
+        apSsdid += wifiGetMacAddress(3, "");
+
         WiFi.mode(WIFI_AP);
-        WiFi.softAP("HASP-test", "haspadmin");
+        WiFi.softAP(apSsdid.c_str(), "haspadmin");
         IPAddress IP = WiFi.softAPIP();
 
         /* Setup the DNS server redirecting all the domains to the apIP */
         dnsServer.setErrorReplyCode(DNSReplyCode::NoError);
         dnsServer.start(DNS_PORT, "*", IP);
 
-        sprintf_P(buffer, PSTR("WIFI: Setting up temporary Access Point"));
+        sprintf_P(buffer, PSTR("WIFI: Setting up temporary Access Point: %s"), apSsdid.c_str());
         debugPrintln(buffer);
         sprintf_P(buffer, PSTR("WIFI: AP IP address : %s"), IP.toString().c_str());
         debugPrintln(buffer);

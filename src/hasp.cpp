@@ -104,7 +104,7 @@ uint16_t current_page = 0;
 /**********************
  *   GLOBAL FUNCTIONS
  **********************/
-void haspLoadPage();
+void haspLoadPage(String pages);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /**
@@ -658,6 +658,7 @@ void haspReconnect()
 void haspSetup(JsonObject settings)
 {
     char buffer[64];
+    haspPagesPath = F("/pages.jsonl");
 
     haspSetConfig(settings);
 
@@ -766,7 +767,7 @@ void haspSetup(JsonObject settings)
         lv_obj_set_pos(obj, lv_disp_get_hor_res(NULL) / 2 - 40, lv_disp_get_ver_res(NULL) / 2 - 40 - 20);
     */
     haspDisconnect();
-    haspLoadPage();
+    haspLoadPage(haspPagesPath);
     haspSetPage(haspStartPage);
 
     // // lv_page_set_style(page, LV_PAGE_STYLE_SB, &style_sb);           /*Set the scrollbar style*/
@@ -1293,15 +1294,26 @@ void haspNewObject(const JsonObject & config)
     }
 }
 
-void haspLoadPage()
+void haspLoadPage(String pages)
 {
+    char msg[92];
+
     if(!SPIFFS.begin()) {
-        errorPrintln(F("HASP: %sFS not mounted. Failed to load /pages.jsonl"));
+        sprintf_P(msg, PSTR("HASP: \%sFS not mounted. Failed to load %s"), pages.c_str());
+        errorPrintln(msg);
         return;
     }
 
-    debugPrintln(F("HASP: Loading /pages.jsonl"));
-    File file = SPIFFS.open(haspPagesPath, "r");
+    if(!SPIFFS.exists(pages)) {
+        sprintf_P(msg, PSTR("HASP: \%sFile '%s' does not exist"), pages.c_str());
+        errorPrintln(msg);
+        return;
+    }
+
+    sprintf_P(msg, PSTR("HASP: Loading file %s"), pages.c_str());
+    debugPrintln(msg);
+
+    File file = SPIFFS.open(pages, "r");
     //    ReadBufferingStream bufferingStream(file, 256);
     DynamicJsonDocument config(256);
 
@@ -1311,7 +1323,9 @@ void haspLoadPage()
         haspNewObject(config.as<JsonObject>());
     }
 
-    debugPrintln(F("HASP: /pages.jsonl loaded"));
+    sprintf_P(msg, PSTR("HASP: File %s loaded"), pages.c_str());
+    debugPrintln(msg);
+
     file.close();
 }
 

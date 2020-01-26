@@ -10,4 +10,6 @@ void wifiStop();
 bool wifiGetConfig(const JsonObject & settings);
 bool wifiSetConfig(const JsonObject & settings);
 
+String wifiGetMacAddress(int start, const char * seperator);
+
 #endif
