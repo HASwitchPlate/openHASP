@@ -144,7 +144,7 @@ void wifiSetup(JsonObject settings)
         debugPrintln(buffer);
         sprintf_P(buffer, PSTR("WIFI: AP IP address : %s"), IP.toString().c_str());
         debugPrintln(buffer);
-
+        haspDisplayAP(apSsdid.c_str(), "haspadmin");
         httpReconnect();
         return;
     }

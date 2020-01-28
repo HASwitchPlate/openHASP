@@ -14,7 +14,7 @@
 /*********************
  *      DEFINES
  *********************/
-#define QR_SIZE 140
+#define QR_SIZE 150
 
 /**********************
  *      TYPEDEFS
@@ -52,7 +52,6 @@ lv_obj_t * lv_qrcode_create(lv_obj_t * parent, lv_coord_t size, lv_color_t dark_
     if(buf == NULL) return NULL;
 
     lv_obj_t * canvas = lv_canvas_create(parent, NULL);
-    if(canvas == NULL) return NULL;
 
     lv_canvas_set_buffer(canvas, buf, size, size, LV_IMG_CF_INDEXED_1BIT);
     lv_canvas_set_palette(canvas, 0, dark_color);
@@ -73,6 +72,7 @@ lv_res_t lv_qrcode_update(lv_obj_t * qrcode, const void * data, uint32_t data_le
     lv_color_t c;
     c.full = 1;
     lv_canvas_fill_bg(qrcode, c, 0);
+    // lv_canvas_zoom();
 
     if(data_len > qrcodegen_BUFFER_LEN_MAX) return LV_RES_INV;
 

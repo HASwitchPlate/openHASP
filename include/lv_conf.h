@@ -396,7 +396,7 @@ typedef uint8_t  lv_obj_user_data_t;
 #define LV_USE_CALENDAR (LV_HIGH_RESOURCE_MCU)
 
 /*Canvas (dependencies: lv_img)*/
-#define LV_USE_CANVAS   (LV_HIGH_RESOURCE_MCU)
+#define LV_USE_CANVAS   1 // needed for QR code
 
 /*Check box (dependencies: lv_btn, lv_label)*/
 #define LV_USE_CB       1

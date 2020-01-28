@@ -87,6 +87,7 @@ void haspParseJson(String & strPayload);
 
 void haspReconnect(void);
 void haspDisconnect(void);
+void haspDisplayAP(const char * ssid, const char * pass);
 
 bool haspGetConfig(const JsonObject & settings);
 bool haspSetConfig(const JsonObject & settings);

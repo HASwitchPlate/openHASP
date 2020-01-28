@@ -8,6 +8,7 @@
 #include "lv_conf.h"
 #include "lv_theme_hasp.h"
 #include "lv_objx/lv_roller.h"
+#include "lv_qrcode.h"
 
 #include "hasp_conf.h"
 
@@ -650,6 +651,34 @@ void haspReconnect()
         lv_obj_set_hidden(obj, true);
         obj = lv_obj_get_child(lv_disp_get_layer_sys(NULL), obj);
         lv_obj_set_hidden(obj, true);*/
+}
+
+void haspDisplayAP(const char * ssid, const char * pass)
+{
+    String txt((char *)0);
+    txt.reserve(64);
+
+    char buffer[64];
+    sprintf_P(buffer, PSTR("WIFI:S:%s;T:WPA;P:%s;;"), ssid, pass);
+
+    lv_obj_t * qr = lv_qrcode_create(lv_disp_get_layer_sys(NULL), 150, LV_COLOR_BLACK, LV_COLOR_WHITE);
+    lv_obj_align(qr, NULL, LV_ALIGN_CENTER, 0, 20);
+    lv_qrcode_update(qr, buffer, strlen(buffer));
+
+    lv_obj_t * panel = lv_cont_create(lv_disp_get_layer_sys(NULL), NULL);
+    lv_obj_set_style(panel, &lv_style_pretty);
+    lv_obj_align(panel, qr, LV_ALIGN_OUT_TOP_MID, 0, 10);
+    lv_label_set_align(panel, LV_LABEL_ALIGN_CENTER);
+    lv_cont_set_fit(panel, LV_FIT_TIGHT);
+    lv_cont_set_layout(panel, LV_LAYOUT_COL_M);
+
+    txt                = String(LV_SYMBOL_WIFI) + String(ssid);
+    lv_obj_t * network = lv_label_create(panel, NULL);
+    lv_label_set_text(network, ssid);
+
+    lv_obj_t * password = lv_label_create(panel, NULL);
+    txt                 = String(LV_SYMBOL_WIFI) + String(pass);
+    lv_label_set_text(password, txt.c_str());
 }
 
 /**
