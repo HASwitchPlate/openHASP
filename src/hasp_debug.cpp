@@ -13,7 +13,9 @@
 #include "hasp_debug.h"
 #include "hasp_config.h"
 
+#ifdef USE_CONFIG_OVERRIDE
 #include "user_config_override.h"
+#endif
 
 #ifndef SYSLOG_SERVER
 #define SYSLOG_SERVER ""

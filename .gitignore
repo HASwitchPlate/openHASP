@@ -6,6 +6,7 @@
 .pio
 data/*
 src/user_config_override.h
+platformio_override.ini
 
 ## Visual Studio Code specific ######
 .vscode

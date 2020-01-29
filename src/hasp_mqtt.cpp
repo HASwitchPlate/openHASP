@@ -18,7 +18,9 @@
 #include "hasp_wifi.h"
 #include "hasp.h"
 
+#ifdef USE_CONFIG_OVERRIDE
 #include "user_config_override.h"
+#endif
 
 // Size of buffer for incoming MQTT message
 #define mqttMaxPacketSize 2u * 1024u

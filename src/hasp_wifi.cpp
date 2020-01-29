@@ -21,7 +21,10 @@ static WiFiEventHandler wifiEventHandler[3];
 
 #endif
 #include "DNSserver.h"
+
+#ifdef USE_CONFIG_OVERRIDE
 #include "user_config_override.h"
+#endif
 
 #ifdef WIFI_SSID
 std::string wifiSsid = WIFI_SSID;
