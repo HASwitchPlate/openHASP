@@ -630,7 +630,7 @@ void haspDisconnect()
     lv_style_copy(&style_mbox_bg, &lv_style_plain);
     style_mbox_bg.body.main_color = LV_COLOR_BLACK;
     style_mbox_bg.body.grad_color = LV_COLOR_BLACK;
-    style_mbox_bg.body.opa        = LV_OPA_50;
+    style_mbox_bg.body.opa        = LV_OPA_60;
 
     lv_obj_set_style(lv_disp_get_layer_sys(NULL), &style_mbox_bg);
     lv_obj_set_click(lv_disp_get_layer_sys(NULL), true);
@@ -662,12 +662,12 @@ void haspDisplayAP(const char * ssid, const char * pass)
     sprintf_P(buffer, PSTR("WIFI:S:%s;T:WPA;P:%s;;"), ssid, pass);
 
     lv_obj_t * qr = lv_qrcode_create(lv_disp_get_layer_sys(NULL), 150, LV_COLOR_BLACK, LV_COLOR_WHITE);
-    lv_obj_align(qr, NULL, LV_ALIGN_CENTER, 0, 20);
+    lv_obj_align(qr, NULL, LV_ALIGN_CENTER, 0, 10);
     lv_qrcode_update(qr, buffer, strlen(buffer));
 
     lv_obj_t * panel = lv_cont_create(lv_disp_get_layer_sys(NULL), NULL);
     lv_obj_set_style(panel, &lv_style_pretty);
-    lv_obj_align(panel, qr, LV_ALIGN_OUT_TOP_MID, 0, 10);
+    lv_obj_align(panel, qr, LV_ALIGN_OUT_TOP_MID, 0, 0);
     lv_label_set_align(panel, LV_LABEL_ALIGN_CENTER);
     lv_cont_set_fit(panel, LV_FIT_TIGHT);
     lv_cont_set_layout(panel, LV_LAYOUT_COL_M);
