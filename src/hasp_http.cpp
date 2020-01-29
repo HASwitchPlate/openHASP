@@ -47,55 +47,59 @@ String esp32ResetReason(uint8_t cpuid)
     }
     RESET_REASON reason = rtc_get_reset_reason(cpuid);
 
+    String resetReason((char *)0);
+    resetReason.reserve(25);
     switch(reason) {
         case 1:
-            return F("POWERON_RESET");
+            resetReason = F("POWERON");
             break; /**<1, Vbat power on reset*/
         case 3:
-            return F("SW_RESET");
+            resetReason = F("SW");
             break; /**<3, Software reset digital core*/
         case 4:
-            return F("OWDT_RESET");
+            resetReason = F("OWDT");
             break; /**<4, Legacy watch dog reset digital core*/
         case 5:
-            return F("DEEPSLEEP_RESET");
+            resetReason = F("DEEPSLEEP");
             break; /**<5, Deep Sleep reset digital core*/
         case 6:
-            return F("SDIO_RESET");
+            resetReason = F("SDIO");
             break; /**<6, Reset by SLC module, reset digital core*/
         case 7:
-            return F("TG0WDT_SYS_RESET");
+            resetReason = F("TG0WDT_SYS");
             break; /**<7, Timer Group0 Watch dog reset digital core*/
         case 8:
-            return F("TG1WDT_SYS_RESET");
+            resetReason = F("TG1WDT_SYS");
             break; /**<8, Timer Group1 Watch dog reset digital core*/
         case 9:
-            return F("RTCWDT_SYS_RESET");
+            resetReason = F("RTCWDT_SYS");
             break; /**<9, RTC Watch dog Reset digital core*/
         case 10:
-            return F("INTRUSION_RESET");
+            resetReason = F("INTRUSION");
             break; /**<10, Instrusion tested to reset CPU*/
         case 11:
-            return F("TGWDT_CPU_RESET");
+            resetReason = F("TGWDT_CPU");
             break; /**<11, Time Group reset CPU*/
         case 12:
-            return F("SW_CPU_RESET");
+            resetReason = F("SW_CPU");
             break; /**<12, Software reset CPU*/
         case 13:
-            return F("RTCWDT_CPU_RESET");
+            resetReason = F("RTCWDT_CPU");
             break; /**<13, RTC Watch dog Reset CPU*/
         case 14:
-            return F("EXT_CPU_RESET");
+            resetReason = F("EXT_CPU");
             break; /**<14, for APP CPU, reseted by PRO CPU*/
         case 15:
-            return F("RTCWDT_BROWN_OUT_RESET");
+            resetReason = F("RTCWDT_BROWN_OUT");
             break; /**<15, Reset when the vdd voltage is not stable*/
         case 16:
-            return F("RTCWDT_RTC_RESET");
+            resetReason = F("RTCWDT_RTC");
             break; /**<16, RTC Watch dog reset digital core and rtc module*/
         default:
             return F("NO_MEAN");
     }
+    resetReason += F("_RESET");
+    return resetReason;
 }
 
 #endif // ESP32
@@ -131,14 +135,6 @@ static const char HASP_STYLE[] PROGMEM =
     "<style>button{background-color:#03A9F4;}body{width:60%;margin:auto;}input:invalid{border:"
     "1px solid red;}input[type=checkbox]{width:20px;}</style>";
 
-// these need to be removed
-uint8_t motionPin       = 0;     // GPIO input pin for motion sensor if connected and enabled
-bool debugSerialEnabled = true;  // Enable USB serial debug output
-bool debugTelnetEnabled = false; // Enable telnet debug output
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-// These defaults may be overwritten with values saved by the web interface
-char motionPinConfig[3] = "0";
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // URL for auto-update "version.json"
@@ -255,7 +251,6 @@ void httpHandleReboot()
     delay(500);
 
     debugPrintln(PSTR("HTTP: Reboot device"));
-    haspSetPage(0);
     haspSetAttr(F("p[0].b[1].txt"), F("\"Rebooting...\""));
 
     delay(500);
@@ -269,7 +264,7 @@ void webHandleAbout()
 
     String nodename = haspGetNodename();
     String httpMessage((char *)0);
-    httpMessage.reserve(1250);
+    httpMessage.reserve(1500);
 
     httpMessage += F("<p><h3>HASP OpenHardware edition</h3>Copyright&copy; 2020 Francis Van Roie "
                      "</br>MIT License</p>");
@@ -279,15 +274,16 @@ void webHandleAbout()
     httpMessage +=
         F("<p><h3>LittlevGL</h3>Copyright&copy; 2016 G&aacute;bor Kiss-V&aacute;mosi</br>Copyright&copy; 2019 "
           "LittlevGL</br>MIT License</p>");
-    httpMessage += F("<p><h3>Lvgl ziFont Font Engine</h3>Copyright&copy; 2020 Francis Van Roie</br>MIT License</p>");
+    httpMessage += F("<p><h3>zi Font Engine</h3>Copyright&copy; 2020 Francis Van Roie</br>MIT License</p>");
     httpMessage += F("<p><h3>TFT_eSPI Library</h3>Copyright&copy; 2017 Bodmer (https://github.com/Bodmer) All "
-                     "rights reserved.</br>FreeBSD License</br>");
+                     "rights reserved.</br>FreeBSD License</p>");
     httpMessage +=
-        F("<i>includes parts from the Adafruit_GFX library - Copyright&copy; 2012 Adafruit Industries. All rights "
-          "reserved. BSD License</i></p>");
+        F("<p><i>includes parts from the <b>Adafruit_GFX library</b></br>Copyright&copy; 2012 Adafruit Industries. "
+          "All rights reserved</br>BSD License</i></p>");
     httpMessage += F("<p><h3>ArduinoJson</h3>Copyright&copy; 2014-2019 Benoit BLANCHON</br>MIT License</p>");
     httpMessage += F("<p><h3>PubSubClient</h3>Copyright&copy; 2008-2015 Nicholas O'Leary</br>MIT License</p>");
     httpMessage += F("<p><h3>Syslog</h3>Copyright&copy; 2016 Martin Sloup</br>MIT License</p>");
+    httpMessage += F("<p><h3>QR Code generator</h3>Copyright&copy; Project Nayuki</br>MIT License</p>");
 
     httpMessage += F("</p><p><form method='get' action='/'><button type='submit'>Main Menu</button></form>");
 
@@ -303,7 +299,7 @@ void webHandleInfo()
     char buffer[64];
     String nodename = haspGetNodename();
     String httpMessage((char *)0);
-    httpMessage.reserve(1024);
+    httpMessage.reserve(1500);
 
     httpMessage += F("<hr><b>MQTT Status: </b>");
     if(mqttIsConnected()) { // Check MQTT connection
@@ -398,9 +394,7 @@ String getContentType(String filename)
 {
     if(webServer.hasArg(F("download"))) {
         return F("application/octet-stream");
-    } else if(filename.endsWith(F(".htm"))) {
-        return F("text/html");
-    } else if(filename.endsWith(F(".html"))) {
+    } else if(filename.endsWith(F(".htm")) || filename.endsWith(F(".html"))) {
         return F("text/html");
     } else if(filename.endsWith(F(".css"))) {
         return F("text/css");
@@ -455,6 +449,8 @@ String urldecode(String str)
 
 bool handleFileRead(String path)
 {
+    if(!httpIsAuthenticated(F("fileread"))) return false;
+
     path = urldecode(path).substring(0, 31);
     if(!httpIsAuthenticated(path)) return false;
 
@@ -479,6 +475,8 @@ bool handleFileRead(String path)
 
 void handleFileUpload()
 {
+    if(!httpIsAuthenticated(F("fileupload"))) return;
+
     if(webServer.uri() != "/edit") {
         return;
     }
@@ -495,6 +493,9 @@ void handleFileUpload()
         // DBG_OUTPUT_PORT.print("handleFileUpload Data: "); debugPrintln(upload.currentSize);
         if(fsUploadFile) {
             fsUploadFile.write(upload.buf, upload.currentSize);
+            char buffer[128];
+            sprintf_P(buffer, PSTR("Uploading %u of %u"), upload.currentSize, upload.totalSize);
+            debugPrintln(buffer);
         }
     } else if(upload.status == UPLOAD_FILE_END) {
         if(fsUploadFile) {
@@ -508,6 +509,8 @@ void handleFileUpload()
 
 void handleFileDelete()
 {
+    if(!httpIsAuthenticated(F("filedelete"))) return;
+
     if(webServer.args() == 0) {
         return webServer.send(500, PSTR("text/plain"), PSTR("BAD ARGS"));
     }
@@ -526,6 +529,8 @@ void handleFileDelete()
 
 void handleFileCreate()
 {
+    if(!httpIsAuthenticated(F("filecreate"))) return;
+
     if(webServer.args() == 0) {
         return webServer.send(500, PSTR("text/plain"), PSTR("BAD ARGS"));
     }
@@ -549,6 +554,8 @@ void handleFileCreate()
 
 void handleFileList()
 {
+    if(!httpIsAuthenticated(F("filelist"))) return;
+
     if(!webServer.hasArg(F("dir"))) {
         webServer.send(500, PSTR("text/plain"), PSTR("BAD ARGS"));
         return;
@@ -771,8 +778,8 @@ void webHandleHaspConfig()
     httpMessage.reserve(1024);
 
     httpMessage += String(F("<p><form action='/edit' method='post' enctype='multipart/form-data'><input type='file' "
-                            "name='filename' accept='.zi'>"));
-    httpMessage += F("<hr><button type='submit'>Upload Font</button></form></p>");
+                            "name='filename' accept='.jsonl,.zi'>"));
+    httpMessage += F("<hr><button type='submit'>Upload File</button></form></p>");
 
     httpMessage += String(F("<form method='POST' action='/config'>"));
     httpMessage += String(F("<p><b>UI Theme</b> <i><small>(required)</small></i><select id='theme' name='theme'>"));
