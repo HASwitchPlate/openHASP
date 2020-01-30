@@ -16,18 +16,13 @@
 #include <FS.h>
 #include <ESP.h>
 
-#define F_HTTP_ENABLE F("enable")
-#define F_HTTP_PORT F("port")
-#define F_HTTP_USER F("user")
-#define F_HTTP_PASS F("pass")
-
 bool httpEnable       = true;
 bool webServerStarted = false;
 uint16_t httpPort     = 80;
 FS * filesystem       = &SPIFFS;
 File fsUploadFile;
-String httpUser     = "admin";
-String httpPassword = "";
+char httpUser[32]     = "";
+char httpPassword[64] = "";
 
 #if defined(ARDUINO_ARCH_ESP8266)
 #include <ESP8266WebServer.h>
@@ -104,6 +99,10 @@ String esp32ResetReason(uint8_t cpuid)
 
 #endif // ESP32
 
+static const char MAIN_MENU_BUTTON[] PROGMEM =
+    "</p><p><form method='get' action='/'><button type='submit'>Main Menu</button></form>";
+static const char MIT_LICENSE[] PROGMEM = "</br>MIT License</p>";
+
 static const char HTTP_DOCTYPE[] PROGMEM =
     "<!DOCTYPE html><html lang=\"en\"><head><meta name=\"viewport\" content=\"width=device-width,initial-scale=1,"
     "user-scalable=no\"/>";
@@ -152,7 +151,7 @@ void webHandleHaspConfig();
 bool httpIsAuthenticated(const String & page)
 {
     if(httpPassword[0] != '\0') { // Request HTTP auth if httpPassword is set
-        if(!webServer.authenticate(httpUser.c_str(), httpPassword.c_str())) {
+        if(!webServer.authenticate(httpUser, httpPassword)) {
             webServer.requestAuthentication();
             return false;
         }
@@ -220,7 +219,8 @@ void webHandleRoot()
     httpMessage += String(F("</h1>"));
 
     httpMessage += F("<p><form method='get' action='info'><button type='submit'>Information</button></form></p>");
-    httpMessage += F("<p><form method='get' action='config'><button type='submit'>Configuration</button></form></p>");
+    httpMessage +=
+        PSTR("<p><form method='get' action='/config'><button type='submit'>Configuration</button></form></p>");
 
     httpMessage +=
         F("<p><form method='get' action='firmware'><button type='submit'>Firmware Upgrade</button></form></p>");
@@ -266,26 +266,32 @@ void webHandleAbout()
     String httpMessage((char *)0);
     httpMessage.reserve(1500);
 
-    httpMessage += F("<p><h3>HASP OpenHardware edition</h3>Copyright&copy; 2020 Francis Van Roie "
-                     "</br>MIT License</p>");
+    httpMessage += F("<p><h3>HASP OpenHardware edition</h3>Copyright&copy; 2020 Francis Van Roie ");
+    httpMessage += FPSTR(MIT_LICENSE);
     httpMessage += F("<p>Based on the previous work of the following open source developers.</p><hr>");
-    httpMessage +=
-        F("<p><h3>HASwitchPlate</h3>Copyright&copy; 2019 Allen Derusha allen@derusha.org</b></br>MIT License</p>");
+    httpMessage += F("<p><h3>HASwitchPlate</h3>Copyright&copy; 2019 Allen Derusha allen@derusha.org</b>");
+    httpMessage += FPSTR(MIT_LICENSE);
     httpMessage +=
         F("<p><h3>LittlevGL</h3>Copyright&copy; 2016 G&aacute;bor Kiss-V&aacute;mosi</br>Copyright&copy; 2019 "
-          "LittlevGL</br>MIT License</p>");
-    httpMessage += F("<p><h3>zi Font Engine</h3>Copyright&copy; 2020 Francis Van Roie</br>MIT License</p>");
+          "LittlevGL");
+    httpMessage += FPSTR(MIT_LICENSE);
+    httpMessage += F("<p><h3>zi Font Engine</h3>Copyright&copy; 2020 Francis Van Roie");
+    httpMessage += FPSTR(MIT_LICENSE);
     httpMessage += F("<p><h3>TFT_eSPI Library</h3>Copyright&copy; 2017 Bodmer (https://github.com/Bodmer) All "
                      "rights reserved.</br>FreeBSD License</p>");
     httpMessage +=
         F("<p><i>includes parts from the <b>Adafruit_GFX library</b></br>Copyright&copy; 2012 Adafruit Industries. "
           "All rights reserved</br>BSD License</i></p>");
-    httpMessage += F("<p><h3>ArduinoJson</h3>Copyright&copy; 2014-2019 Benoit BLANCHON</br>MIT License</p>");
-    httpMessage += F("<p><h3>PubSubClient</h3>Copyright&copy; 2008-2015 Nicholas O'Leary</br>MIT License</p>");
-    httpMessage += F("<p><h3>Syslog</h3>Copyright&copy; 2016 Martin Sloup</br>MIT License</p>");
-    httpMessage += F("<p><h3>QR Code generator</h3>Copyright&copy; Project Nayuki</br>MIT License</p>");
+    httpMessage += F("<p><h3>ArduinoJson</h3>Copyright&copy; 2014-2019 Benoit BLANCHON");
+    httpMessage += FPSTR(MIT_LICENSE);
+    httpMessage += F("<p><h3>PubSubClient</h3>Copyright&copy; 2008-2015 Nicholas O'Leary");
+    httpMessage += FPSTR(MIT_LICENSE);
+    httpMessage += F("<p><h3>Syslog</h3>Copyright&copy; 2016 Martin Sloup");
+    httpMessage += FPSTR(MIT_LICENSE);
+    httpMessage += F("<p><h3>QR Code generator</h3>Copyright&copy; Project Nayuki");
+    httpMessage += FPSTR(MIT_LICENSE);
 
-    httpMessage += F("</p><p><form method='get' action='/'><button type='submit'>Main Menu</button></form>");
+    httpMessage += FPSTR(MAIN_MENU_BUTTON);
 
     webSendPage(nodename, httpMessage.length(), false);
     webServer.sendContent(httpMessage); // len
@@ -370,7 +376,8 @@ void webHandleInfo()
     httpMessage += String(ESP.getResetInfo());
 #endif
 
-    httpMessage += F("</p><p><form method='get' action='/'><button type='submit'>Main Menu</button></form>");
+    httpMessage += FPSTR(MAIN_MENU_BUTTON);
+    ;
 
     webSendPage(nodename, httpMessage.length(), false);
     webServer.sendContent(httpMessage); // len
@@ -625,20 +632,24 @@ void webHandleConfig()
     if(!httpIsAuthenticated(F("/config"))) return;
 
     if(webServer.method() == HTTP_POST) {
-        if(webServer.hasArg(F("save"))) {
+        if(webServer.hasArg(PSTR("save"))) {
 
             DynamicJsonDocument settings(256);
             for(int i = 0; i < webServer.args(); i++) settings[webServer.argName(i)] = webServer.arg(i);
 
-            if(webServer.arg(F("save")) == String(F("hasp"))) {
+            if(webServer.arg(PSTR("save")) == String(PSTR("hasp"))) {
                 haspSetConfig(settings.as<JsonObject>());
 
-            } else if(webServer.arg(F("save")) == String(F("mqtt"))) {
+            } else if(webServer.arg(PSTR("save")) == String(PSTR("mqtt"))) {
                 mqttSetConfig(settings.as<JsonObject>());
 
-            } else if(webServer.arg(F("save")) == String(F("http"))) {
+            } else if(webServer.arg(PSTR("save")) == String(PSTR("http"))) {
+                httpSetConfig(settings.as<JsonObject>());
 
-            } else if(webServer.arg(F("save")) == String(F("wifi"))) {
+                // Password might have changed
+                if(!httpIsAuthenticated(F("/config"))) return;
+
+            } else if(webServer.arg(PSTR("save")) == String(PSTR("wifi"))) {
                 wifiSetConfig(settings.as<JsonObject>());
             }
         }
@@ -675,9 +686,10 @@ void webHandleConfig()
         F("<p><form method='get' action='/config/debug'><button type='submit'>Debug Settings</button></form></p>");
 
     httpMessage += F("<p><form method='get' action='resetConfig'><button class='red' type='submit'>Factory Reset "
-                     "All Settings</button></form></p>");
+                     "All Settings</button></form>");
 
-    httpMessage += F("<form method='get' action='/'><button type='submit'>Main Menu</button></form>");
+    httpMessage += FPSTR(MAIN_MENU_BUTTON);
+    ;
 
     webSendPage(nodename, httpMessage.length(), false);
     webServer.sendContent(httpMessage); // len
@@ -719,8 +731,9 @@ void webHandleMqttConfig()
                      "name='pass' type='password' maxlength=31 placeholder='mqttPassword' value='");
     if(settings[FPSTR(F_CONFIG_PASS)].as<String>() != "") httpMessage += F("********");
 
-    httpMessage += F("'><button type='submit' name='save' value='mqtt'>Save Settings</button></form>");
-    httpMessage += F("<form method='get' action='/config'><button type='submit'>Configuration</button></form>");
+    httpMessage += F("'><p><button type='submit' name='save' value='mqtt'>Save Settings</button></form></p>");
+    httpMessage +=
+        PSTR("<p><form method='get' action='/config'><button type='submit'>Configuration</button></form></p>");
 
     webSendPage(nodename, httpMessage.length(), false);
     webServer.sendContent(httpMessage); // len
@@ -755,7 +768,43 @@ void webHandleWifiConfig()
 
     if(WiFi.getMode() == WIFI_STA) {
         httpMessage +=
-            F("<p><form method='get' action='/config'><button type='submit'>Configuration</button></form></p>");
+            PSTR("<p><form method='get' action='/config'><button type='submit'>Configuration</button></form></p>");
+    }
+
+    webSendPage(nodename, httpMessage.length(), false);
+    webServer.sendContent(httpMessage); // len
+    webServer.sendContent_P(HTTP_END);  // 20
+}
+#endif
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+#if LV_USE_HASP_HTTP > 0
+void webHandleHttpConfig()
+{ // http://plate01/config/http
+    if(!httpIsAuthenticated(F("/config/http"))) return;
+
+    DynamicJsonDocument settings(256);
+    httpGetConfig(settings.to<JsonObject>());
+
+    char buffer[64];
+    String nodename = haspGetNodename();
+    String httpMessage((char *)0);
+    httpMessage.reserve(1024);
+
+    httpMessage += String(F("<form method='POST' action='/config'>"));
+    httpMessage += String(F("<b>Web Username</b> <i><small>(optional)</small></i><input id='user' "
+                            "name='user' maxlength=32 placeholder='admin' value='"));
+    httpMessage += settings[FPSTR(F_CONFIG_USER)].as<String>();
+    httpMessage += String(F("'><br/><b>Web Password</b> <i><small>(optional)</small></i><input id='pass' "
+                            "name='pass' type='password' maxlength=64 placeholder='Password' value='"));
+    if(settings[FPSTR(F_CONFIG_PASS)].as<String>() != "") {
+        httpMessage += F("********");
+    }
+    httpMessage += F("'><p><button type='submit' name='save' value='http'>Save Settings</button></p></form>");
+
+    if(WiFi.getMode() == WIFI_STA) {
+        httpMessage +=
+            PSTR("<p><form method='get' action='/config'><button type='submit'>Configuration</button></form></p>");
     }
 
     webSendPage(nodename, httpMessage.length(), false);
@@ -849,9 +898,10 @@ void webHandleHaspConfig()
                             "name='startpage' type='number' min='0' max='3' value='")) +
                    settings[FPSTR(F_CONFIG_STARTPAGE)].as<String>() + "'></p>";
 
-    httpMessage += F("<button type='submit' name='save' value='hasp'>Save Settings</button></form>");
+    httpMessage += F("<p><button type='submit' name='save' value='hasp'>Save Settings</button></form></p>");
 
-    httpMessage += F("<form method='get' action='/config'><button type='submit'>Configuration</button></form>");
+    httpMessage +=
+        PSTR("<p><form method='get' action='/config'><button type='submit'>Configuration</button></form></p>");
 
     webSendPage(nodename, httpMessage.length(), false);
     webServer.sendContent(httpMessage); // len
@@ -925,7 +975,7 @@ void httpHandleResetConfig()
     String nodename     = haspGetNodename();
     char buffer[64];
     String httpMessage((char *)0);
-    httpMessage.reserve(128);
+    httpMessage.reserve(768);
 
     if(resetConfirmed) { // User has confirmed, so reset everything
         httpMessage += F("<h1>");
@@ -944,8 +994,10 @@ void httpHandleResetConfig()
               "re-configure the device before accessing it again. ALL FILES WILL BE LOST!"
               "<br/><hr><br/><form method='get' action='resetConfig'>"
               "<br/><br/><button type='submit' name='confirm' value='yes'>Reset All Settings</button></form>"
-              "<br/><hr><br/><form method='get' action='/config'>"
-              "<button type='submit'>Configuration</button></form>");
+              "<br/><hr><br/>");
+
+        httpMessage +=
+            PSTR("<p><form method='get' action='/config'><button type='submit'>Configuration</button></form></p>");
     }
 
     webSendPage(nodename, httpMessage.length(), resetConfirmed);
@@ -953,8 +1005,9 @@ void httpHandleResetConfig()
     webServer.sendContent_P(HTTP_END);  // 20
 
     if(resetConfirmed) {
-        delay(1000);
+        delay(250);
         // configClearSaved();
+        haspReset();
     }
 }
 
@@ -994,6 +1047,7 @@ void httpSetup(const JsonObject & settings)
     webServer.on(F("/info"), webHandleInfo);
     webServer.on(F("/config"), webHandleConfig);
     webServer.on(F("/config/hasp"), webHandleHaspConfig);
+    webServer.on(F("/config/http"), webHandleHttpConfig);
 #if LV_USE_HASP_MQTT > 0
     webServer.on(F("/config/mqtt"), webHandleMqttConfig);
 #endif
@@ -1034,13 +1088,44 @@ void httpLoop(bool wifiIsConnected)
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 bool httpGetConfig(const JsonObject & settings)
 {
-    settings[FPSTR(F_HTTP_ENABLE)] = httpEnable;
-    settings[FPSTR(F_HTTP_PORT)]   = httpPort;
-    settings[FPSTR(F_HTTP_USER)]   = httpUser;
-    settings[FPSTR(F_HTTP_PASS)]   = httpPassword;
+    settings[FPSTR(F_CONFIG_ENABLE)] = httpEnable;
+    settings[FPSTR(F_CONFIG_PORT)]   = httpPort;
+    settings[FPSTR(F_CONFIG_USER)]   = httpUser;
+    settings[FPSTR(F_CONFIG_PASS)]   = httpPassword;
 
     size_t size = serializeJson(settings, Serial);
     Serial.println();
 
     return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool httpSetConfig(const JsonObject & settings)
+{
+    bool changed = false;
+
+    if(!settings[FPSTR(F_CONFIG_USER)].isNull()) {
+        changed |= strcmp(httpUser, settings[FPSTR(F_CONFIG_USER)]) != 0;
+        strncpy(httpUser, settings[FPSTR(F_CONFIG_USER)], sizeof(httpUser));
+    }
+
+    if(!settings[FPSTR(F_CONFIG_PASS)].isNull()) {
+        changed |= strcmp(httpPassword, settings[FPSTR(F_CONFIG_PASS)]) != 0;
+        strncpy(httpPassword, settings[FPSTR(F_CONFIG_PASS)], sizeof(httpPassword));
+    }
+
+    if(!settings[FPSTR(F_CONFIG_PORT)].isNull()) {
+        if(httpPort != settings[FPSTR(F_CONFIG_PORT)].as<uint8_t>()) {
+            debugPrintln(F("httpPort set"));
+        }
+        changed |= httpPort != settings[FPSTR(F_CONFIG_PORT)].as<uint8_t>();
+
+        httpPort = settings[FPSTR(F_CONFIG_PORT)].as<uint8_t>();
+    }
+
+    size_t size = serializeJson(settings, Serial);
+    Serial.println();
+
+    return changed;
 }

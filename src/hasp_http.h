@@ -8,5 +8,6 @@ void httpLoop(bool wifiIsConnected);
 void httpReconnect();
 
 bool httpGetConfig(const JsonObject & settings);
+bool httpSetConfig(const JsonObject & settings);
 
 #endif
