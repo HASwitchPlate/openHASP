@@ -42,7 +42,7 @@ void spiffsSetup()
 
 #if LV_USE_HASP_SPIFFS
     char msg[64];
-    if(!SPIFFS.begin()) {
+    if(!SPIFFS.begin(true)) {
         sprintf(msg, PSTR("FILE: %sSPI flash init failed. Unable to mount FS."));
         errorPrintln(msg);
     } else {
