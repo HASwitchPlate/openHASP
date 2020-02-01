@@ -70,6 +70,22 @@ void serialPrintln(String debugText)
     Serial.println(debugTimeText);
 }
 
+void syslogSend(uint8_t log, const char * debugText)
+{
+    if(WiFi.isConnected() && debugSyslogHost != "") {
+        switch(log) {
+            case 1:
+                syslog.log(LOG_WARNING, debugText);
+                break;
+            case2:
+                syslog.log(LOG_ERR, debugText);
+                break;
+            default:
+                syslog.log(LOG_INFO, debugText);
+        }
+    }
+}
+
 void debugStop()
 {
     Serial.flush();

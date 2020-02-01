@@ -15,7 +15,7 @@
 void debugPrintln(String debugText)
 {
     serialPrintln(debugText);
-    // if(WiFi.isConnected()) syslog.log(LOG_INFO, debugText);
+    syslogSend(0, debugText.c_str());
 }
 
 void errorPrintln(String debugText)
@@ -23,11 +23,7 @@ void errorPrintln(String debugText)
     char buffer[256];
     sprintf_P(buffer, debugText.c_str(), PSTR("[ERROR] "));
     serialPrintln(buffer);
-    if(WiFi.isConnected()) {
-        char buffer[256];
-        sprintf_P(buffer, debugText.c_str(), "");
-        //  syslog.log(LOG_ERR, buffer);
-    }
+    syslogSend(2, buffer);
 }
 
 void warningPrintln(String debugText)
@@ -35,9 +31,5 @@ void warningPrintln(String debugText)
     char buffer[256];
     sprintf_P(buffer, debugText.c_str(), PSTR("[WARNING] "));
     serialPrintln(buffer);
-    if(WiFi.isConnected()) {
-        char buffer[256];
-        sprintf_P(buffer, debugText.c_str(), "");
-        //    syslog.log(LOG_WARNING, buffer);
-    }
+    syslogSend(1, buffer);
 }
