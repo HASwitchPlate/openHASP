@@ -13,6 +13,7 @@ void guiStop(void);
 void guiCalibrate();
 
 bool guiGetConfig(const JsonObject & settings);
+bool guiSetConfig(const JsonObject & settings);
 
 // lv_res_t guiChangeTheme(uint8_t themeid, uint16_t hue, String font, uint8_t fontsize);
 

@@ -52,18 +52,18 @@ void dispatchCommand(String cmnd)
 {
     debugPrintln("CMND: " + cmnd);
 
-    if(cmnd == "calibrate") {
+    if(cmnd == F("calibrate")) {
         guiCalibrate();
         return;
     }
 
-    if(cmnd == "restart") {
-        haspReset(true);
+    if(cmnd == F("reboot") || cmnd == F("restart")) {
+        haspReboot(true);
         return;
     }
 
-    if(cmnd == "" || cmnd == "statusupdate") {
-        haspReset(true);
+    if(cmnd == "" || cmnd == F("statusupdate")) {
+        mqttStatusUpdate();
         return;
     }
 

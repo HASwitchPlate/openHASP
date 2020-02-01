@@ -16,15 +16,17 @@
 #include "hasp_config.h"
 #include "hasp_dispatch.h"
 #include "hasp_gui.h"
+#include "hasp.h"
 
 #define LVGL_TICK_PERIOD 30 // 30
 
 uint16_t guiSleepTime = 150; // 0.1 second resolution
 bool guiSleeping      = false;
 uint8_t guiTickPeriod = 50;
-Ticker tick;                      /* timer for interrupt handler */
-TFT_eSPI tft        = TFT_eSPI(); /* TFT instance */
-uint16_t calData[5] = {0, 0, 0, 0, 0};
+Ticker tick;                        /* timer for interrupt handler */
+TFT_eSPI tft          = TFT_eSPI(); /* TFT instance */
+uint16_t calData[5]   = {0, 65535, 0, 65535, 0};
+bool guiAutoCalibrate = true;
 
 bool IRAM_ATTR guiCheckSleep()
 {
@@ -84,12 +86,24 @@ bool read_encoder(lv_indev_drv_t * indev, lv_indev_data_t * data)
     return false;
 }
 
+void guiFirstCalibration()
+{
+    dispatchCommand(F("calibrate"));
+    guiAutoCalibrate = false;
+    haspFirstSetup();
+}
+
 bool my_touchpad_read(lv_indev_drv_t * indev_driver, lv_indev_data_t * data)
 {
     uint16_t touchX, touchY;
 
     bool touched = tft.getTouch(&touchX, &touchY, 600);
     if(!touched) return false;
+
+    if(guiAutoCalibrate) {
+        guiFirstCalibration();
+        return false;
+    }
 
     bool shouldSleep = guiCheckSleep();
     if(!shouldSleep && guiSleeping) {
@@ -124,13 +138,14 @@ void guiCalibrate()
 {
     tft.fillScreen(TFT_BLACK);
     tft.setCursor(20, 0);
-    //        tft.setTextFont(2);
+    tft.setTextFont(1);
     tft.setTextSize(1);
     tft.setTextColor(TFT_WHITE, TFT_BLACK);
 
     tft.println(PSTR("Touch corners as indicated"));
 
     tft.setTextFont(1);
+    delay(500);
     tft.calibrateTouch(calData, TFT_MAGENTA, TFT_BLACK, 15);
 
     for(uint8_t i = 0; i < 5; i++) {
@@ -139,6 +154,7 @@ void guiCalibrate()
     }
 
     tft.setTouch(calData);
+    delay(500);
     lv_obj_invalidate(lv_disp_get_layer_sys(NULL));
 }
 
@@ -147,6 +163,7 @@ void guiSetup(TFT_eSPI & screen, JsonObject settings)
     size_t buffer_size;
     tft = screen;
 
+    guiSetConfig(settings);
     tft.setTouch(calData);
 
     lv_init();
@@ -252,14 +269,68 @@ void IRAM_ATTR guiLoop()
 void guiStop()
 {}
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
 bool guiGetConfig(const JsonObject & settings)
 {
-    if(!settings.isNull() && settings[F_GUI_TICKPERIOD] == guiTickPeriod) return false;
+    settings[FPSTR(F_GUI_TICKPERIOD)] = guiTickPeriod;
+    settings[FPSTR(F_GUI_IDLEPERIOD)] = guiSleepTime;
 
-    settings[F_GUI_TICKPERIOD] = guiTickPeriod;
+    JsonArray array = settings[FPSTR(F_GUI_CALIBRATION)].to<JsonArray>();
+    for(int i = 0; i < 5; i++) {
+        array.add(calData[i]);
+    }
 
     size_t size = serializeJson(settings, Serial);
     Serial.println();
 
     return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool guiSetConfig(const JsonObject & settings)
+{
+    bool changed = false;
+
+    if(!settings[FPSTR(F_GUI_TICKPERIOD)].isNull()) {
+        if(guiTickPeriod != settings[FPSTR(F_GUI_TICKPERIOD)].as<uint8_t>()) {
+            debugPrintln(F("guiTickPeriod set"));
+        }
+        changed |= guiTickPeriod != settings[FPSTR(F_GUI_TICKPERIOD)].as<uint8_t>();
+
+        guiTickPeriod = settings[FPSTR(F_GUI_TICKPERIOD)].as<uint8_t>();
+    }
+
+    if(!settings[FPSTR(F_GUI_IDLEPERIOD)].isNull()) {
+        if(guiSleepTime != settings[FPSTR(F_GUI_IDLEPERIOD)].as<uint8_t>()) {
+            debugPrintln(F("guiSleepTime set"));
+        }
+        changed |= guiSleepTime != settings[FPSTR(F_GUI_IDLEPERIOD)].as<uint8_t>();
+
+        guiSleepTime = settings[FPSTR(F_GUI_IDLEPERIOD)].as<uint8_t>();
+    }
+
+    if(!settings[FPSTR(F_GUI_CALIBRATION)].isNull()) {
+        bool status = false;
+        int i       = 0;
+
+        JsonArray array = settings[FPSTR(F_GUI_CALIBRATION)].as<JsonArray>();
+        for(JsonVariant v : array) {
+            if(calData[i] != v.as<uint16_t>()) status = true;
+            calData[i] = v.as<uint16_t>();
+            i++;
+        }
+
+        if(status) {
+            debugPrintln(F("calData set"));
+            guiAutoCalibrate = false;
+        }
+
+        changed |= status;
+    }
+
+    size_t size = serializeJson(settings, Serial);
+    Serial.println();
+
+    return changed;
 }

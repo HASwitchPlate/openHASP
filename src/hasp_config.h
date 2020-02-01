@@ -17,6 +17,8 @@ const char F_CONFIG_PASS[] PROGMEM      = "pass";
 const char F_CONFIG_SSID[] PROGMEM      = "ssid";
 const char F_CONFIG_GROUP[] PROGMEM     = "group";
 const char F_GUI_TICKPERIOD[] PROGMEM   = "tickperiod";
+const char F_GUI_IDLEPERIOD[] PROGMEM   = "idle";
+const char F_GUI_CALIBRATION[] PROGMEM  = "calibration";
 
 void configSetup(JsonDocument & settings);
 void configLoop(void);

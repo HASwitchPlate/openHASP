@@ -79,14 +79,14 @@ void configGetConfig(JsonDocument & settings, bool setupdebug = false)
 void configWriteConfig()
 {
     /* Read Config File */
-    DynamicJsonDocument settings(1024);
+    DynamicJsonDocument settings(2 * 1024);
     debugPrintln(String(F("CONF: Config LOADING first ")) + String(FPSTR(HASP_CONFIG_FILE)));
     configGetConfig(settings, false);
     debugPrintln(String(F("CONF: Config LOADED first ")) + String(FPSTR(HASP_CONFIG_FILE)));
 
     bool changed = true;
     // changed |= debugGetConfig(settings[F("debug")].to<JsonObject>());
-    // changed |= guiGetConfig(settings[F("gui")].to<JsonObject>());
+    changed |= guiGetConfig(settings[F("gui")].to<JsonObject>());
     changed |= haspGetConfig(settings[F("hasp")].to<JsonObject>());
     changed |= httpGetConfig(settings[F("http")].to<JsonObject>());
     // changed |= mdnsGetConfig(settings[F("mdns")].to<JsonObject>());

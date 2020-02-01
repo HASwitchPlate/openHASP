@@ -70,6 +70,7 @@ typedef enum lv_hasp_obj_type_t {
  */
 void haspSetup(JsonObject settings);
 void haspLoop(void);
+void haspFirstSetup(void);
 
 void haspSetPage(uint16_t id);
 uint16_t haspGetPage();
