@@ -3,11 +3,13 @@
 #include "ArduinoJson.h"
 
 #include "hasp_log.h"
+#include "hasp_gui.h"
 #include "hasp_debug.h"
 #include "hasp_http.h"
 #include "hasp_mqtt.h"
 #include "hasp_wifi.h"
 #include "hasp_config.h"
+#include "hasp_dispatch.h"
 #include "hasp.h"
 
 #if defined(ARDUINO_ARCH_ESP32)
@@ -248,13 +250,9 @@ void httpHandleReboot()
     webSendPage(nodename, httpMessage.length(), true);
     webServer.sendContent(httpMessage); // len
     webServer.sendContent_P(HTTP_END);  // 20
-    delay(500);
 
-    debugPrintln(PSTR("HTTP: Reboot device"));
-    // haspProcessAttribute(F("p[0].b[1].txt"), F("\"Rebooting...\""));
-
-    delay(500);
-    haspReset(true);
+    delay(200);
+    dispatchCommand(F("reboot"));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -677,7 +675,7 @@ void webHandleConfig()
         F("<p><form method='get' action='/config/http'><button type='submit'>HTTP Settings</button></form></p>");
 
     httpMessage +=
-        F("<p><form method='get' action='/config/tft'><button type='submit'>Display Settings</button></form></p>");
+        F("<p><form method='get' action='/config/gui'><button type='submit'>Display Settings</button></form></p>");
 
     httpMessage +=
         F("<p><form method='get' action='/config/hasp'><button type='submit'>HASP Settings</button></form></p>");
@@ -740,6 +738,35 @@ void webHandleMqttConfig()
     webServer.sendContent_P(HTTP_END);  // 20
 }
 #endif
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+void webHandleGuiConfig()
+{ // http://plate01/config/wifi
+    if(!httpIsAuthenticated(F("/config/gui"))) return;
+
+    DynamicJsonDocument settings(256);
+    // guiGetConfig(settings.to<JsonObject>());
+
+    char buffer[64];
+    String nodename = haspGetNodename();
+    String httpMessage((char *)0);
+    httpMessage.reserve(1024);
+
+    httpMessage += String(F("<form method='POST' action='/config'>"));
+    httpMessage += F("<p><button type='submit' name='save' value='gui'>Save Settings</button></p></form>");
+
+    httpMessage += PSTR("<p><form method='get' action='/config/gui'><button type='submit' name='action' "
+                        "value='calibrate'>Calibrate</button></form></p>");
+
+    httpMessage +=
+        PSTR("<p><form method='get' action='/config'><button type='submit'>Configuration</button></form></p>");
+
+    webSendPage(nodename, httpMessage.length(), false);
+    webServer.sendContent(httpMessage); // len
+    webServer.sendContent_P(HTTP_END);  // 20
+
+    if(webServer.hasArg(F("action"))) dispatchCommand(webServer.arg(F("action")));
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 #if LV_USE_HASP_WIFI > 0
@@ -826,12 +853,12 @@ void webHandleHaspConfig()
     String httpMessage((char *)0);
     httpMessage.reserve(1024);
 
-    httpMessage += String(F("<p><form action='/edit' method='post' enctype='multipart/form-data'><input type='file' "
-                            "name='filename' accept='.jsonl,.zi'>"));
+    httpMessage += F("<p><form action='/edit' method='post' enctype='multipart/form-data'><input type='file' "
+                     "name='filename' accept='.jsonl,.zi'>");
     httpMessage += F("<hr><button type='submit'>Upload File</button></form></p>");
 
-    httpMessage += String(F("<form method='POST' action='/config'>"));
-    httpMessage += String(F("<p><b>UI Theme</b> <i><small>(required)</small></i><select id='theme' name='theme'>"));
+    httpMessage += F("<form method='POST' action='/config'>");
+    httpMessage += F("<p><b>UI Theme</b> <i><small>(required)</small></i><select id='theme' name='theme'>");
 
     uint8_t themeid = settings[FPSTR(F_CONFIG_THEME)].as<uint8_t>();
     httpMessage += getOption(0, F("Built-in"), themeid == 0);
@@ -857,15 +884,15 @@ void webHandleHaspConfig()
 #if LV_USE_THEME_TEMPL == 1
     httpMessage += getOption(7, F("Template"), themeid == 7);
 #endif
-    httpMessage += String(F("</select></br>"));
+    httpMessage += F("</select></br>");
     httpMessage +=
-        "<b>Hue</b><div style='width:100%;background-image:linear-gradient(to "
-        "right,red,orange,yellow,green,blue,indigo,violet);'><input style='align:center;padding:0px' id='hue' "
-        "name='hue' type='range' "
-        "min='0' max='360' value='" +
-        settings[FPSTR(F_CONFIG_HUE)].as<String>() + "'></div></p>";
+        F("<b>Hue</b><div style='width:100%;background-image:linear-gradient(to "
+          "right,red,orange,yellow,green,blue,indigo,violet);'><input style='align:center;padding:0px' id='hue' "
+          "name='hue' type='range' min='0' max='360' value='");
+    httpMessage += settings[FPSTR(F_CONFIG_HUE)].as<String>();
+    httpMessage += F("'></div></p>");
+    httpMessage += F("<p><b>Default Font</b><select id='font' name='font'><option value=''>None</option>");
 
-    httpMessage += String(F("<p><b>Default Font</b><select id='font' name='font'><option value=''>None</option>"));
 #if defined(ARDUINO_ARCH_ESP32)
     debugPrintln(PSTR("HTTP: Listing files on the internal flash:"));
     File root = SPIFFS.open("/");
@@ -889,14 +916,16 @@ void webHandleHaspConfig()
         file.close();
     }
 #endif
-    httpMessage += String(F("</select></p>"));
+    httpMessage += F("</select></p>");
 
-    httpMessage += String(F("<p><b>Pages File</b> <i><small>(required)</small></i><input id='pages' required "
-                            "name='pages' maxlength=32 placeholder='/pages.jsonl' value='")) +
-                   settings[FPSTR(F_CONFIG_PAGES)].as<String>() + "'>";
-    httpMessage += String(F("</br><b>Startup Page</b> <i><small>(required)</small></i><input id='startpage' required "
-                            "name='startpage' type='number' min='0' max='3' value='")) +
-                   settings[FPSTR(F_CONFIG_STARTPAGE)].as<String>() + "'></p>";
+    httpMessage += F("<p><b>Pages File</b> <i><small>(required)</small></i><input id='pages' required "
+                     "name='pages' maxlength=32 placeholder='/pages.jsonl' value='");
+
+    httpMessage += settings[FPSTR(F_CONFIG_PAGES)].as<String>();
+    httpMessage += String(F("'></br><b>Startup Page</b> <i><small>(required)</small></i><input id='startpage' required "
+                            "name='startpage' type='number' min='0' max='3' value='"));
+    httpMessage += settings[FPSTR(F_CONFIG_STARTPAGE)].as<String>();
+    httpMessage += F("'></p>");
 
     httpMessage += F("<p><button type='submit' name='save' value='hasp'>Save Settings</button></form></p>");
 
@@ -916,7 +945,7 @@ void httpHandleNotFound()
     debugPrintln(String(F("HTTP: Sending 404 to client connected from: ")) + webServer.client().remoteIP().toString());
 
     String httpMessage((char *)0);
-    httpMessage.reserve(128);
+    httpMessage.reserve(512);
     httpMessage += F("File Not Found\n\nURI: ");
     httpMessage += webServer.uri();
     httpMessage += F("\nMethod: ");
@@ -1007,7 +1036,7 @@ void httpHandleResetConfig()
     if(resetConfirmed) {
         delay(250);
         // configClearSaved();
-        haspReset(false); // Do not save the current config
+        haspReboot(false); // Do not save the current config
     }
 }
 
@@ -1048,6 +1077,7 @@ void httpSetup(const JsonObject & settings)
     webServer.on(F("/config"), webHandleConfig);
     webServer.on(F("/config/hasp"), webHandleHaspConfig);
     webServer.on(F("/config/http"), webHandleHttpConfig);
+    webServer.on(F("/config/gui"), webHandleGuiConfig);
 #if LV_USE_HASP_MQTT > 0
     webServer.on(F("/config/mqtt"), webHandleMqttConfig);
 #endif
