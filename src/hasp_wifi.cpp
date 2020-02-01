@@ -216,16 +216,11 @@ bool wifiGetConfig(const JsonObject & settings)
 
 bool wifiSetConfig(const JsonObject & settings)
 {
-    /*    if(!settings.isNull() && settings[FPSTR(F_CONFIG_STARTPAGE)] == haspStartPage &&
-           settings[FPSTR(F_CONFIG_THEME)] == haspThemeId && settings[FPSTR(F_CONFIG_HUE)] == haspThemeHue &&
-           settings[FPSTR(F_CONFIG_ZIFONT)] == haspZiFontPath && settings[FPSTR(F_CONFIG_PAGES)] == haspPagesPath)
-            return false;
-    */
     bool changed = false;
 
     if(!settings[FPSTR(F_CONFIG_SSID)].isNull()) {
         if(wifiSsid != settings[FPSTR(F_CONFIG_SSID)].as<String>().c_str()) {
-            debugPrintln(F("wifiSsid changed"));
+            debugPrintln(F("wifiSsid set"));
         }
         changed |= wifiSsid != settings[FPSTR(F_CONFIG_SSID)].as<String>().c_str();
 
@@ -234,7 +229,7 @@ bool wifiSetConfig(const JsonObject & settings)
 
     if(!settings[FPSTR(F_CONFIG_PASS)].isNull() && settings[FPSTR(F_CONFIG_PASS)].as<String>() != F("********")) {
         if(wifiPassword != settings[FPSTR(F_CONFIG_PASS)].as<String>().c_str()) {
-            debugPrintln(F("wifiPassword changed"));
+            debugPrintln(F("wifiPassword set"));
         }
         changed |= wifiPassword != settings[FPSTR(F_CONFIG_PASS)].as<String>().c_str();
 

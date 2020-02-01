@@ -7,6 +7,7 @@
 void tftSetup(TFT_eSPI & screen, JsonObject settings);
 void tftLoop(void);
 void tftStop(void);
+
 void tftShowConfig(TFT_eSPI & tft);
 
 #endif

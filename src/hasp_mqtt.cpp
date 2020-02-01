@@ -16,6 +16,7 @@
 #include "hasp_config.h"
 #include "hasp_mqtt.h"
 #include "hasp_wifi.h"
+#include "hasp_dispatch.h"
 #include "hasp.h"
 
 #ifdef USE_CONFIG_OVERRIDE
@@ -71,8 +72,6 @@ std::string mqttPassword = "";
 std::string mqttGroupName = "plates";
 
 /*
-const String mqttCommandSubscription      = mqttCommandTopic + "/#";
-const String mqttGroupCommandSubscription = mqttGroupCommandTopic + "/#";
 const String mqttLightSubscription        = "hasp/" + String(haspGetNodename()) + "/light/#";
 const String mqttLightBrightSubscription  = "hasp/" + String(haspGetNodename()) + "/brightness/#";
 */
@@ -82,87 +81,53 @@ PubSubClient mqttClient(wifiClient);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Send changed values OUT
-void mqttSendNewEvent(uint8_t pageid, uint8_t btnid, int32_t val)
+
+void mqttSendState(const char * subtopic, const char * payload)
 {
-    char topic[72];
-    sprintf_P(topic, PSTR("hasp/%s/state/p[%u].b[%u].event"), haspGetNodename().c_str(), pageid, btnid);
-    char value[32];
-    itoa(val, value, 10);
-    mqttClient.publish(topic, value);
-    debugPrintln(String(F("MQTT OUT: ")) + String(topic) + " = " + String(value));
+    // page = 0
+    // p[0].b[0].attr = abc
+    // dim = 100
+    // idle = 0/1
+    // light = 0/1
+    // brightness = 100
+
+    char topic[128];
+    sprintf_P(topic, PSTR("%sstate/%s"), mqttNodeTopic.c_str(), subtopic);
+    mqttClient.publish(topic, payload);
+    debugPrintln(String(F("MQTT OUT: ")) + String(topic) + " = " + String(payload));
 
     // as json
-    sprintf_P(topic, PSTR("hasp/%s/state/json"), haspGetNodename().c_str(), pageid, btnid);
-    sprintf_P(value, PSTR("{\"event\":\"p[%u]].b[%u].event\", \"value\":%u}"), pageid, btnid, val);
+    char value[256];
+    sprintf_P(topic, PSTR("%sstate/json"), mqttNodeTopic.c_str());
+    sprintf_P(value, PSTR("{\"%s\":\"%s\"}"), subtopic, payload);
     mqttClient.publish(topic, value);
     debugPrintln(String(F("MQTT OUT: ")) + String(topic) + " = " + String(value));
+}
+
+void mqttSendNewValue(uint8_t pageid, uint8_t btnid, const char * attribute, String txt)
+{
+    char subtopic[32];
+    sprintf_P(subtopic, PSTR("p[%u].b[%u].%s"), pageid, btnid, attribute);
+    mqttSendState(subtopic, txt.c_str());
 }
 
 void mqttSendNewValue(uint8_t pageid, uint8_t btnid, int32_t val)
 {
-    char topic[72];
-    sprintf_P(topic, PSTR("hasp/%s/state/p[%u].b[%u].val"), haspGetNodename().c_str(), pageid, btnid);
-    char value[32];
+    char value[16];
     itoa(val, value, 10);
-    mqttClient.publish(topic, value);
-    debugPrintln(String(F("MQTT OUT: ")) + String(topic) + " = " + String(value));
-
-    // as json
-    sprintf_P(topic, PSTR("hasp/%s/state/json"), haspGetNodename().c_str(), pageid, btnid);
-    sprintf_P(value, PSTR("{\"event\":\"p[%u]].b[%u].val\", \"value\":%u}"), pageid, btnid, val);
-    mqttClient.publish(topic, value);
-    debugPrintln(String(F("MQTT OUT: ")) + String(topic) + " = " + String(value));
+    mqttSendNewValue(pageid, btnid, "val", value);
 }
 
 void mqttSendNewValue(uint8_t pageid, uint8_t btnid, String txt)
 {
-    char topic[72];
-    sprintf_P(topic, PSTR("hasp/%s/state/p[%u].b[%u].txt"), haspGetNodename().c_str(), pageid, btnid);
-    mqttClient.publish(topic, txt.c_str());
-    debugPrintln(String(F("MQTT OUT: ")) + String(topic) + " = " + txt);
-
-    // as json
-    char value[64];
-    sprintf_P(topic, PSTR("hasp/%s/state/json"), haspGetNodename().c_str(), pageid, btnid);
-    sprintf_P(value, PSTR("{\"event\":\"p[%u]].b[%u].txt\", \"value\":\"%s\"}"), pageid, btnid, txt.c_str());
-    mqttClient.publish(topic, value);
-    debugPrintln(String(F("MQTT OUT: ")) + String(topic) + " = " + String(value));
+    mqttSendNewValue(pageid, btnid, "txt", txt);
 }
 
-void mqttHandlePage(String strPageid)
+void mqttSendNewEvent(uint8_t pageid, uint8_t btnid, int32_t val)
 {
-    if(strPageid.length() == 0) {
-        String strPayload = String(haspGetPage());
-        String topic      = mqttNodeTopic + F("state/page");
-        char buffer[64];
-        sprintf_P(buffer, PSTR("MQTT OUT: %s = %s"), topic.c_str(), strPayload.c_str());
-        debugPrintln(buffer);
-        mqttClient.publish(topic.c_str(), strPayload.c_str());
-    } else {
-        if(strPageid.toInt() <= 250) haspSetPage(strPageid.toInt());
-    }
-}
-
-void mqttHandleJson(String & strPayload)
-{ // Parse an incoming JSON array into individual Nextion commands
-    if(strPayload.endsWith(
-           ",]")) { // Trailing null array elements are an artifact of older Home Assistant automations and need to
-        // be removed before parsing by ArduinoJSON 6+
-        strPayload.remove(strPayload.length() - 2, 2);
-        strPayload.concat("]");
-    }
-    DynamicJsonDocument nextionCommands(mqttMaxPacketSize + 1024);
-    DeserializationError jsonError = deserializeJson(nextionCommands, strPayload);
-    if(jsonError) { // Couldn't parse incoming JSON command
-        debugPrintln(String(F("MQTT: [ERROR] Failed to parse incoming JSON command with error: ")) +
-                     String(jsonError.c_str()));
-        return;
-    }
-
-    for(uint8_t i = 0; i < nextionCommands.size(); i++) {
-        debugPrintln(nextionCommands[i]);
-        //            nextionSendCmd(nextionCommands[i]);
-    }
+    char value[16];
+    itoa(val, value, 10);
+    mqttSendNewValue(pageid, btnid, "event", value);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -204,11 +169,7 @@ void mqttCallback(char * topic, byte * payload, unsigned int length)
     // debugPrintln(String(F("MQTT Short Topic : '")) + strTopic + "'");
 
     if(strTopic == F("command")) {
-        if(strPayload == "") { // '[...]/device/command' -m '' = No command requested, respond with mqttStatusUpdate()
-            // mqttStatusUpdate(); // return status JSON via MQTT
-        } else { // '[...]/device/command' -m 'dim=50' == nextionSendCmd("dim=50")
-            // nextionSendCmd(strPayload);
-        }
+        dispatchCommand(strPayload);
         return;
     }
 
@@ -217,7 +178,7 @@ void mqttCallback(char * topic, byte * payload, unsigned int length)
         // debugPrintln(String(F("MQTT Shorter Command Topic : '")) + strTopic + "'");
 
         if(strTopic == F("page")) { // '[...]/device/command/page' -m '1' == nextionSendCmd("page 1")
-            mqttHandlePage(strPayload);
+            dispatchPage(strPayload);
         } else if(strTopic == F("dim")) { // '[...]/device/command/page' -m '1' == nextionSendCmd("page 1")
 #if defined(ARDUINO_ARCH_ESP32)
             ledcWrite(0, map(strPayload.toInt(), 0, 100, 0, 1023)); // ledChannel and value
@@ -227,7 +188,7 @@ void mqttCallback(char * topic, byte * payload, unsigned int length)
 
         } else if(strTopic == F("json")) { // '[...]/device/command/json' -m '["dim=5", "page 1"]' =
             // nextionSendCmd("dim=50"), nextionSendCmd("page 1")
-            mqttHandleJson(strPayload);            // Send to nextionParseJson()
+            dispatchJson(strPayload);              // Send to nextionParseJson()
         } else if(strTopic == F("statusupdate")) { // '[...]/device/command/statusupdate' == mqttStatusUpdate()
             //  mqttStatusUpdate();                 // return status JSON via MQTT
         } else if(strTopic == F("espupdate")) { // '[...]/device/command/espupdate' -m
@@ -240,17 +201,18 @@ void mqttCallback(char * topic, byte * payload, unsigned int length)
             }
         } else if(strTopic == F("reboot")) { // '[...]/device/command/reboot' == reboot microcontroller)
             debugPrintln(F("MQTT: Rebooting device"));
-            haspReset();
+            haspReset(true);
         } else if(strTopic == F("lcdreboot")) { // '[...]/device/command/lcdreboot' == reboot LCD panel)
             debugPrintln(F("MQTT: Rebooting LCD"));
-            haspReset();
+            haspReset(true);
         } else if(strTopic == F("factoryreset")) { // '[...]/device/command/factoryreset' == clear all saved settings)
             // configClearSaved();
-        } else if(strPayload == "") { // '[...]/device/command/p[1].b[4].txt' -m '' == nextionGetAttr("p[1].b[4].txt")
-            haspProcessAttribute(strTopic, "");
+            //} else if(strPayload == "") { // '[...]/device/command/p[1].b[4].txt' -m '' ==
+            // nextionGetAttr("p[1].b[4].txt")
+            //    haspProcessAttribute(strTopic, "");
         } else { // '[...]/device/command/p[1].b[4].txt' -m '"Lights On"' ==
                  // nextionSetAttr("p[1].b[4].txt", "\"Lights On\"")
-            haspProcessAttribute(strTopic, strPayload);
+            dispatchAttribute(strTopic, strPayload);
         }
         return;
     }
@@ -434,7 +396,7 @@ bool mqttSetConfig(const JsonObject & settings)
 
     if(!settings[FPSTR(F_CONFIG_GROUP)].isNull()) {
         if(mqttGroupName != settings[FPSTR(F_CONFIG_GROUP)].as<String>().c_str()) {
-            debugPrintln(F("mqttGroupName changed"));
+            debugPrintln(F("mqttGroupName set"));
         }
         changed |= mqttGroupName != settings[FPSTR(F_CONFIG_GROUP)].as<String>().c_str();
 
@@ -443,7 +405,7 @@ bool mqttSetConfig(const JsonObject & settings)
 
     if(!settings[FPSTR(F_CONFIG_HOST)].isNull()) {
         if(mqttServer != settings[FPSTR(F_CONFIG_HOST)].as<String>().c_str()) {
-            debugPrintln(F("mqttServer changed"));
+            debugPrintln(F("mqttServer set"));
         }
         changed |= mqttServer != settings[FPSTR(F_CONFIG_HOST)].as<String>().c_str();
 
@@ -452,7 +414,7 @@ bool mqttSetConfig(const JsonObject & settings)
 
     if(!settings[FPSTR(F_CONFIG_PORT)].isNull()) {
         if(mqttPort != settings[FPSTR(F_CONFIG_PORT)].as<uint16_t>()) {
-            debugPrintln(F("mqttPort changed"));
+            debugPrintln(F("mqttPort set"));
         }
         changed |= mqttPort != settings[FPSTR(F_CONFIG_PORT)].as<uint16_t>();
 
@@ -461,7 +423,7 @@ bool mqttSetConfig(const JsonObject & settings)
 
     if(!settings[FPSTR(F_CONFIG_USER)].isNull()) {
         if(mqttUser != settings[FPSTR(F_CONFIG_USER)].as<String>().c_str()) {
-            debugPrintln(F("mqttUser changed"));
+            debugPrintln(F("mqttUser set"));
         }
         changed |= mqttUser != settings[FPSTR(F_CONFIG_USER)].as<String>().c_str();
 
@@ -470,7 +432,7 @@ bool mqttSetConfig(const JsonObject & settings)
 
     if(!settings[FPSTR(F_CONFIG_PASS)].isNull()) {
         if(mqttPassword != settings[FPSTR(F_CONFIG_PASS)].as<String>().c_str()) {
-            debugPrintln(F("mqttPassword changed"));
+            debugPrintln(F("mqttPassword set"));
         }
         changed |= mqttPassword != settings[FPSTR(F_CONFIG_PASS)].as<String>().c_str();
 

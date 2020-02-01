@@ -1,6 +1,7 @@
 #ifndef HASP_HTTP_H
 #define HASP_HTTP_H
 
+#include <Arduino.h>
 #include "ArduinoJson.h"
 
 void httpSetup(const JsonObject & settings);

@@ -251,10 +251,10 @@ void httpHandleReboot()
     delay(500);
 
     debugPrintln(PSTR("HTTP: Reboot device"));
-    haspSetAttr(F("p[0].b[1].txt"), F("\"Rebooting...\""));
+    // haspProcessAttribute(F("p[0].b[1].txt"), F("\"Rebooting...\""));
 
     delay(500);
-    haspReset();
+    haspReset(true);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1007,7 +1007,7 @@ void httpHandleResetConfig()
     if(resetConfirmed) {
         delay(250);
         // configClearSaved();
-        haspReset();
+        haspReset(false); // Do not save the current config
     }
 }
 

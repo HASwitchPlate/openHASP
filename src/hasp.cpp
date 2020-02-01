@@ -36,11 +36,11 @@
  *      DEFINES
  *********************/
 
-uint8_t haspStartPage = 0;
-uint8_t haspThemeId   = 0;
-uint16_t haspThemeHue = 200;
-String haspPagesPath;
-String haspZiFontPath;
+uint8_t haspStartPage  = 0;
+uint8_t haspThemeId    = 0;
+uint16_t haspThemeHue  = 200;
+char haspPagesPath[32] = "/pages.jsonl\0";
+char haspZiFontPath[32];
 
 /**********************
  *      TYPEDEFS
@@ -256,16 +256,16 @@ void haspSendNewValue(lv_obj_t * obj, const char * txt)
     }
 }
 
+void haspSendNewValue(lv_obj_t * obj, int16_t val)
+{
+    haspSendNewValue(obj, (int32_t)val);
+}
+
 int32_t get_cpicker_value(lv_obj_t * obj)
 {
     lv_color16_t c16;
     c16.full = lv_color_to16(lv_cpicker_get_color(obj));
     return (int32_t)c16.full;
-}
-
-void haspSendNewValue(lv_obj_t * obj, int16_t val)
-{
-    haspSendNewValue(obj, (int32_t)val);
 }
 
 void haspSendNewValue(lv_obj_t * obj, lv_color_t color)
@@ -457,9 +457,6 @@ bool haspGetObjAttribute(lv_obj_t * obj, String strAttr, std::string & strPayloa
     return false;
 }
 
-void haspSetAttr(String strTopic, String strPayload)
-{}
-
 void haspSetObjAttribute(lv_obj_t * obj, String strAttr, String strPayload)
 {
     if(!obj) return;
@@ -551,37 +548,22 @@ void haspSetObjAttribute(lv_obj_t * obj, String strAttr, String strPayload)
     }
 }
 
-void haspProcessAttribute(String strTopic, String strPayload)
+void haspProcessAttribute(uint8_t pageid, uint8_t objid, String strAttr, String strPayload)
 {
-    if(strTopic.startsWith("p[")) {
-        String strPageId = strTopic.substring(2, strTopic.indexOf("]"));
-        String strTemp   = strTopic.substring(strTopic.indexOf("]") + 1, strTopic.length());
-        if(strTemp.startsWith(".b[")) {
-            String strObjId = strTemp.substring(3, strTemp.indexOf("]"));
-            String strAttr  = strTemp.substring(strTemp.indexOf("]") + 1, strTemp.length());
-            debugPrintln(strPageId + " && " + strObjId + " && " + strAttr);
-
-            int pageid = strPageId.toInt();
-            int objid  = strObjId.toInt();
-
-            if(pageid >= 0 && pageid <= 255 && objid > 0 && objid <= 255) {
-                lv_obj_t * obj = FindObjFromId((uint8_t)pageid, (uint8_t)objid);
-                if(obj) {
-                    if(strPayload != "")
-                        haspSetObjAttribute(obj, strAttr, strPayload);
-                    else {
-                        /* publish the change */
-                        std::string strValue = "";
-                        if(haspGetObjAttribute(obj, strAttr, strValue)) {
-                            mqttSendNewValue(pageid, objid, String(strValue.c_str()));
-                        } else {
-                            warningPrintln(String(F("HASP: %sUnknown property: ")) + strAttr);
-                        }
-                    } // payload
-                }     // obj
-            }         // valid page
-        }
-    }
+    lv_obj_t * obj = FindObjFromId((uint8_t)pageid, (uint8_t)objid);
+    if(obj) {
+        if(strPayload != "")
+            haspSetObjAttribute(obj, strAttr, strPayload);
+        else {
+            /* publish the change */
+            std::string strValue = "";
+            if(haspGetObjAttribute(obj, strAttr, strValue)) {
+                mqttSendNewValue(pageid, objid, String(strValue.c_str()));
+            } else {
+                warningPrintln(String(F("HASP: %sUnknown property: ")) + strAttr);
+            }
+        } // payload
+    }     // obj
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -687,7 +669,6 @@ void haspDisplayAP(const char * ssid, const char * pass)
 void haspSetup(JsonObject settings)
 {
     char buffer[64];
-    haspPagesPath = F("/pages.jsonl");
 
     haspSetConfig(settings);
 
@@ -706,66 +687,66 @@ void haspSetup(JsonObject settings)
     // static lv_font_t *
     //    my_font = (lv_font_t *)lv_mem_alloc(sizeof(lv_font_t));
 
-    my_font = (lv_font_t *)lv_mem_alloc(sizeof(lv_font_t));
+    my_font[0] = (lv_font_t *)lv_mem_alloc(sizeof(lv_font_t));
     lv_zifont_init();
 
-    if(lv_zifont_font_init(my_font, haspZiFontPath.c_str(), 24) != 0) {
-        errorPrintln(String(F("HASP: %sFailed to set the custom font to ")) + haspZiFontPath);
-        my_font = NULL; // Use default font
+    if(lv_zifont_font_init(my_font[0], haspZiFontPath, 24) != 0) {
+        errorPrintln(String(F("HASP: %sFailed to set the custom font to ")) + String(haspZiFontPath));
+        my_font[0] = NULL; // Use default font
     }
 
     lv_theme_t * th;
     switch(haspThemeId) {
 #if LV_USE_THEME_ALIEN == 1
         case 1:
-            th = lv_theme_alien_init(haspThemeHue, my_font);
+            th = lv_theme_alien_init(haspThemeHue, my_font[0]);
             break;
 #endif
 #if LV_USE_THEME_NIGHT == 1
         case 2:
-            th = lv_theme_night_init(haspThemeHue, my_font); // heavy
+            th = lv_theme_night_init(haspThemeHue, my_font[0]); // heavy
             break;
 #endif
 #if LV_USE_THEME_MONO == 1
         case 3:
-            th = lv_theme_mono_init(haspThemeHue, my_font); // lightweight
+            th = lv_theme_mono_init(haspThemeHue, my_font[0]); // lightweight
             break;
 #endif
 #if LV_USE_THEME_MATERIAL == 1
         case 4:
-            th = lv_theme_material_init(haspThemeHue, my_font);
+            th = lv_theme_material_init(haspThemeHue, my_font[0]);
             break;
 #endif
 #if LV_USE_THEME_ZEN == 1
         case 5:
-            th = lv_theme_zen_init(haspThemeHue, my_font); // lightweight
+            th = lv_theme_zen_init(haspThemeHue, my_font[0]); // lightweight
             break;
 #endif
 #if LV_USE_THEME_NEMO == 1
         case 6:
-            th = lv_theme_nemo_init(haspThemeHue, my_font); // heavy
+            th = lv_theme_nemo_init(haspThemeHue, my_font[0]); // heavy
             break;
 #endif
 #if LV_USE_THEME_TEMPL == 1
         case 7:
-            th = lv_theme_templ_init(haspThemeHue, my_font); // lightweight, not for production...
+            th = lv_theme_templ_init(haspThemeHue, my_font[0]); // lightweight, not for production...
             break;
 #endif
 #if LV_USE_THEME_HASP == 1
         case 8:
-            th = lv_theme_hasp_init(haspThemeHue, my_font);
+            th = lv_theme_hasp_init(haspThemeHue, my_font[0]);
             break;
 #endif
         case 0:
 #if LV_USE_THEME_DEFAULT == 1
-            th = lv_theme_default_init(haspThemeHue, my_font);
+            th = lv_theme_default_init(haspThemeHue, my_font[0]);
 #else
-            th = lv_theme_hasp_init(512, my_font);
+            th = lv_theme_hasp_init(512, my_font[0]);
 #endif
             break;
 
         default:
-            th = lv_theme_hasp_init(512, my_font);
+            th = lv_theme_hasp_init(512, my_font[0]);
             debugPrintln(F("HASP: Unknown theme selected"));
     }
 
@@ -798,6 +779,10 @@ void haspSetup(JsonObject settings)
     haspDisconnect();
     haspLoadPage(haspPagesPath);
     haspSetPage(haspStartPage);
+
+    // lv_obj_t * img_bin_t = lv_img_create(pages[current_page], NULL); /*Crate an image object*/
+    // lv_img_set_src(img_bin_t, "F:/dogsmall(1).bin");                 /*Set the created file as image (a red rose)*/
+    // lv_obj_set_pos(img_bin_t, 64, 64);                               /*Set the positions*/
 
     // // lv_page_set_style(page, LV_PAGE_STYLE_SB, &style_sb);           /*Set the scrollbar style*/
 
@@ -1027,6 +1012,11 @@ static void switch_event_handler(lv_obj_t * obj, lv_event_t event)
     if(event == LV_EVENT_VALUE_CHANGED) haspSendNewValue(obj, lv_sw_get_state(obj));
 }
 
+static void checkbox_event_handler(lv_obj_t * obj, lv_event_t event)
+{
+    if(event == LV_EVENT_VALUE_CHANGED) haspSendNewValue(obj, lv_cb_is_checked(obj));
+}
+
 static void ddlist_event_handler(lv_obj_t * obj, lv_event_t event)
 {
     if(event == LV_EVENT_VALUE_CHANGED) {
@@ -1049,10 +1039,10 @@ static void roller_event_handler(lv_obj_t * obj, lv_event_t event)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void haspReset()
+void haspReset(bool write_config)
 {
     mqttStop(); // Stop the MQTT Client first
-    configWriteConfig();
+    if(write_config) configWriteConfig();
     debugStop();
     delay(250);
     wifiStop();
@@ -1159,7 +1149,7 @@ void haspNewObject(const JsonObject & config)
         case LV_HASP_CHECKBOX: {
             obj = lv_cb_create(parent_obj, NULL);
             if(config[F("txt")]) lv_cb_set_text(obj, config[F("txt")].as<String>().c_str());
-            lv_obj_set_event_cb(obj, switch_event_handler);
+            lv_obj_set_event_cb(obj, checkbox_event_handler);
             break;
         }
         case LV_HASP_LABEL: {
@@ -1360,11 +1350,6 @@ void haspLoadPage(String pages)
 
 bool haspGetConfig(const JsonObject & settings)
 {
-    if(!settings.isNull() && settings[FPSTR(F_CONFIG_STARTPAGE)] == haspStartPage &&
-       settings[FPSTR(F_CONFIG_THEME)] == haspThemeId && settings[FPSTR(F_CONFIG_HUE)] == haspThemeHue &&
-       settings[FPSTR(F_CONFIG_ZIFONT)] == haspZiFontPath && settings[FPSTR(F_CONFIG_PAGES)] == haspPagesPath)
-        return false;
-
     settings[FPSTR(F_CONFIG_STARTPAGE)] = haspStartPage;
     settings[FPSTR(F_CONFIG_THEME)]     = haspThemeId;
     settings[FPSTR(F_CONFIG_HUE)]       = haspThemeHue;
@@ -1381,55 +1366,30 @@ bool haspGetConfig(const JsonObject & settings)
 
 bool haspSetConfig(const JsonObject & settings)
 {
-    if(!settings.isNull() && settings[FPSTR(F_CONFIG_STARTPAGE)] == haspStartPage &&
-       settings[FPSTR(F_CONFIG_THEME)] == haspThemeId && settings[FPSTR(F_CONFIG_HUE)] == haspThemeHue &&
-       settings[FPSTR(F_CONFIG_ZIFONT)] == haspZiFontPath && settings[FPSTR(F_CONFIG_PAGES)] == haspPagesPath)
-        return false;
-
     bool changed = false;
 
     if(!settings[FPSTR(F_CONFIG_PAGES)].isNull()) {
-        if(haspPagesPath != settings[FPSTR(F_CONFIG_PAGES)].as<String>().c_str()) {
-            debugPrintln(F("haspPagesPath changed"));
-        }
-        changed |= haspPagesPath != settings[FPSTR(F_CONFIG_PAGES)].as<String>().c_str();
-
-        haspPagesPath = settings[FPSTR(F_CONFIG_PAGES)].as<String>().c_str();
+        changed |= strcmp(haspPagesPath, settings[FPSTR(F_CONFIG_PAGES)]) != 0;
+        strncpy(haspPagesPath, settings[FPSTR(F_CONFIG_PAGES)], sizeof(haspPagesPath));
     }
 
     if(!settings[FPSTR(F_CONFIG_ZIFONT)].isNull()) {
-        if(haspZiFontPath != settings[FPSTR(F_CONFIG_ZIFONT)].as<String>().c_str()) {
-            debugPrintln(F("haspZiFontPath changed"));
-        }
-        changed |= haspZiFontPath != settings[FPSTR(F_CONFIG_ZIFONT)].as<String>().c_str();
-
-        haspZiFontPath = settings[FPSTR(F_CONFIG_ZIFONT)].as<String>().c_str();
+        changed |= strcmp(haspZiFontPath, settings[FPSTR(F_CONFIG_ZIFONT)]) != 0;
+        strncpy(haspZiFontPath, settings[FPSTR(F_CONFIG_ZIFONT)], sizeof(haspZiFontPath));
     }
 
     if(!settings[FPSTR(F_CONFIG_STARTPAGE)].isNull()) {
-        if(haspStartPage != settings[FPSTR(F_CONFIG_STARTPAGE)].as<uint8_t>()) {
-            debugPrintln(F("haspStartPage changed"));
-        }
         changed |= haspStartPage != settings[FPSTR(F_CONFIG_STARTPAGE)].as<uint8_t>();
-
         haspStartPage = settings[FPSTR(F_CONFIG_STARTPAGE)].as<uint8_t>();
     }
 
     if(!settings[FPSTR(F_CONFIG_THEME)].isNull()) {
-        if(haspThemeId != settings[FPSTR(F_CONFIG_THEME)].as<uint8_t>()) {
-            debugPrintln(F("haspThemeId changed"));
-        }
         changed |= haspThemeId != settings[FPSTR(F_CONFIG_THEME)].as<uint8_t>();
-
         haspThemeId = settings[FPSTR(F_CONFIG_THEME)].as<uint8_t>();
     }
 
     if(!settings[FPSTR(F_CONFIG_HUE)].isNull()) {
-        if(haspThemeHue != settings[FPSTR(F_CONFIG_HUE)].as<uint16_t>()) {
-            debugPrintln(F("haspStartPage changed"));
-        }
         changed |= haspThemeHue != settings[FPSTR(F_CONFIG_HUE)].as<uint16_t>();
-
         haspThemeHue = settings[FPSTR(F_CONFIG_HUE)].as<uint16_t>();
     }
 

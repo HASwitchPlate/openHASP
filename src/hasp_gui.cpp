@@ -1,7 +1,8 @@
 #include <Ticker.h>
 
-#include "lvgl.h"
 #include "lv_conf.h"
+#include "lvgl.h"
+#include "lv_fs_if.h"
 
 #include "TFT_eSPI.h"
 
@@ -13,6 +14,7 @@
 #include "hasp_log.h"
 #include "hasp_debug.h"
 #include "hasp_config.h"
+#include "hasp_dispatch.h"
 #include "hasp_gui.h"
 
 #define LVGL_TICK_PERIOD 30 // 30
@@ -20,14 +22,15 @@
 uint16_t guiSleepTime = 150; // 0.1 second resolution
 bool guiSleeping      = false;
 uint8_t guiTickPeriod = 50;
-Ticker tick;               /* timer for interrupt handler */
-TFT_eSPI tft = TFT_eSPI(); /* TFT instance */
+Ticker tick;                      /* timer for interrupt handler */
+TFT_eSPI tft        = TFT_eSPI(); /* TFT instance */
+uint16_t calData[5] = {0, 0, 0, 0, 0};
 
 bool IRAM_ATTR guiCheckSleep()
 {
     bool shouldSleep = lv_disp_get_inactive_time(NULL) > guiSleepTime * 100;
     if(shouldSleep && !guiSleeping) {
-        debugPrintln(F("GUI: Going to sleep now..."));
+        dispatchIdle(F("LONG"));
         guiSleeping = true;
     }
     return shouldSleep;
@@ -90,7 +93,7 @@ bool my_touchpad_read(lv_indev_drv_t * indev_driver, lv_indev_data_t * data)
 
     bool shouldSleep = guiCheckSleep();
     if(!shouldSleep && guiSleeping) {
-        debugPrintln(F("GUI: Waking up!"));
+        dispatchIdle(F("OFF"));
         guiSleeping = false;
     }
 
@@ -117,10 +120,35 @@ bool my_touchpad_read(lv_indev_drv_t * indev_driver, lv_indev_data_t * data)
     return false; /*Return `false` because we are not buffering and no more data to read*/
 }
 
+void guiCalibrate()
+{
+    tft.fillScreen(TFT_BLACK);
+    tft.setCursor(20, 0);
+    //        tft.setTextFont(2);
+    tft.setTextSize(1);
+    tft.setTextColor(TFT_WHITE, TFT_BLACK);
+
+    tft.println(PSTR("Touch corners as indicated"));
+
+    tft.setTextFont(1);
+    tft.calibrateTouch(calData, TFT_MAGENTA, TFT_BLACK, 15);
+
+    for(uint8_t i = 0; i < 5; i++) {
+        Serial.print(calData[i]);
+        if(i < 4) Serial.print(", ");
+    }
+
+    tft.setTouch(calData);
+    lv_obj_invalidate(lv_disp_get_layer_sys(NULL));
+}
+
 void guiSetup(TFT_eSPI & screen, JsonObject settings)
 {
     size_t buffer_size;
     tft = screen;
+
+    tft.setTouch(calData);
+
     lv_init();
 
 #if defined(ARDUINO_ARCH_ESP32)
@@ -208,6 +236,10 @@ void guiSetup(TFT_eSPI & screen, JsonObject settings)
 
     /*Initialize the graphics library's tick*/
     tick.attach_ms(guiTickPeriod, lv_tick_handler);
+
+#if LV_USE_FS_IF != 0
+    lv_fs_if_init();
+#endif
 
     // guiLoop();
 }

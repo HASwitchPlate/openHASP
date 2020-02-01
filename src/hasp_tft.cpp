@@ -38,25 +38,6 @@ void tftSetup(TFT_eSPI & tft, JsonObject settings)
     //    uint16_t calData[5] = {0, 0, 0, 0, 0};
     uint8_t calDataOK = 0;
 
-    // Calibrate
-    if(0) {
-        tft.fillScreen(TFT_BLACK);
-        tft.setCursor(20, 0);
-        //        tft.setTextFont(2);
-        tft.setTextSize(1);
-        tft.setTextColor(TFT_WHITE, TFT_BLACK);
-
-        tft.println(PSTR("Touch corners as indicated"));
-
-        tft.setTextFont(1);
-        tft.calibrateTouch(calData, TFT_MAGENTA, TFT_BLACK, 15);
-
-        for(uint8_t i = 0; i < 5; i++) {
-            Serial.print(calData[i]);
-            if(i < 4) Serial.print(", ");
-        }
-    }
-
     tft.setTouch(calData);
 }
 
@@ -89,9 +70,6 @@ void tftPinInfo(String pinfunction, int8_t pin)
         debugPrintln(buffer);
     }
 }
-
-void tftCalibrate()
-{}
 
 void tftShowConfig(TFT_eSPI & tft)
 {

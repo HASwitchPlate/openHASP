@@ -8,6 +8,7 @@ void mqttLoop(bool wifiIsConnected);
 void mqttStop();
 void mqttReconnect();
 
+void mqttSendState(const char * subtopic, const char * payload);
 void mqttSendNewEvent(uint8_t pageid, uint8_t btnid, int32_t val);
 void mqttSendNewValue(uint8_t pageid, uint8_t btnid, int32_t val);
 void mqttSendNewValue(uint8_t pageid, uint8_t btnid, String txt);
