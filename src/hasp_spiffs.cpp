@@ -42,7 +42,11 @@ void spiffsSetup()
 
 #if LV_USE_HASP_SPIFFS
     char msg[64];
+#if defined(ARDUINO_ARCH_ESP8266)
+    if(!SPIFFS.begin()) {
+#else
     if(!SPIFFS.begin(true)) {
+#endif
         sprintf(msg, PSTR("FILE: %sSPI flash init failed. Unable to mount FS."));
         errorPrintln(msg);
     } else {
