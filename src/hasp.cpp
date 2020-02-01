@@ -1039,7 +1039,7 @@ static void roller_event_handler(lv_obj_t * obj, lv_event_t event)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void haspReset(bool write_config)
+void haspReboot(bool write_config)
 {
     mqttStop(); // Stop the MQTT Client first
     if(write_config) configWriteConfig();

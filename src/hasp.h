@@ -77,7 +77,7 @@ void haspSetNodename(String name);
 String haspGetNodename();
 float haspGetVersion();
 void haspBackground(uint16_t pageid, uint16_t imageid);
-void haspReset(bool write_config);
+void haspReboot(bool write_config);
 
 void haspSetLabelText(String value);
 void haspProcessAttribute(uint8_t pageid, uint8_t objid, String strAttr, String strPayload);
