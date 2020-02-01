@@ -18,8 +18,6 @@ const char F_CONFIG_SSID[] PROGMEM      = "ssid";
 const char F_CONFIG_GROUP[] PROGMEM     = "group";
 const char F_GUI_TICKPERIOD[] PROGMEM   = "tickperiod";
 
-void spiffsList();
-
 void configSetup(JsonDocument & settings);
 void configLoop(void);
 void configStop(void);

@@ -3,5 +3,6 @@
 
 void spiffsSetup(void);
 void spiffsLoop(void);
+void spiffsList();
 
 #endif

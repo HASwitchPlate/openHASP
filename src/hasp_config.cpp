@@ -16,34 +16,11 @@
 #include "hasp_gui.h"
 #include "hasp_tft.h"
 #include "hasp_ota.h"
+#include "hasp_spiffs.h"
 #include "hasp.h"
 
 //#define HASP_CONFIG_FILE F("/config.json")
 static const char HASP_CONFIG_FILE[] PROGMEM = "/config.json";
-
-void spiffsList()
-{
-#if defined(ARDUINO_ARCH_ESP32)
-    debugPrintln(F("FILE: Listing files on the internal flash:"));
-    File root = SPIFFS.open("/");
-    File file = root.openNextFile();
-    while(file) {
-        char msg[64];
-        sprintf_P(msg, PSTR("FILE:    * %s  (%u bytes)"), file.name(), (uint32_t)file.size());
-        debugPrintln(msg);
-        file = root.openNextFile();
-    }
-#endif
-#if defined(ARDUINO_ARCH_ESP8266)
-    debugPrintln(F("FILE: Listing files on the internal flash:"));
-    Dir dir = SPIFFS.openDir("/");
-    while(dir.next()) {
-        char msg[64];
-        sprintf_P(msg, PSTR("FILE:    * %s  (%u bytes)"), dir.fileName().c_str(), (uint32_t)dir.fileSize());
-        debugPrintln(msg);
-    }
-#endif
-}
 
 bool configChanged()
 {

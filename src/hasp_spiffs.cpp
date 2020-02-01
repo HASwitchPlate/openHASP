@@ -11,7 +11,7 @@
 #endif
 #include <FS.h> // Include the SPIFFS library
 #endif
-/*
+
 void spiffsList()
 {
 #if defined(ARDUINO_ARCH_ESP32)
@@ -35,7 +35,7 @@ void spiffsList()
     }
 #endif
 }
-*/
+
 void spiffsSetup()
 {
     // no SPIFFS settings, as settings depend on SPIFFS
