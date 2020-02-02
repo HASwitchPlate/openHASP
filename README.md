@@ -10,7 +10,7 @@ This version also adds ESP32 support to take advantage of the additional hardwar
 
 ## Demo Screens
 
-![Screenshot]](https://raw.githubusercontent.com/fvanroie/hasp-lvgl/master/docs/img/screenhot-13.png)
+![Screenshot](https://raw.githubusercontent.com/fvanroie/hasp-lvgl/master/docs/img/screenhot-13.png)
 
 ## Features
 
