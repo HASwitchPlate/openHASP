@@ -10,6 +10,8 @@ This version also adds ESP32 support to take advantage of the additional hardwar
 
 ## Features
 
+<img align="right" width="240" height="320" src="https://raw.githubusercontent.com/fvanroie/hasp-lvgl/master/docs/img/screenhot-13.png">
+
 | Feature            | ESP8266 | ESP32
 |--------------------|---------|---------
 | SPI display        | <ul><li>- [x] yes</li> | <ul><li>- [x] yes</li>
