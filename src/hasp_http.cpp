@@ -256,6 +256,17 @@ void httpHandleReboot()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+void webHandleScreenshot()
+{ // http://plate01/about
+    if(!httpIsAuthenticated(F("/screenshot"))) return;
+
+    webServer.setContentLength(138 + 320 * 240 * 4);
+    webServer.send(200, PSTR("image/bmp"), "");
+
+    guiTakeScreenshot(webServer.client());
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 void webHandleAbout()
 { // http://plate01/about
     if(!httpIsAuthenticated(F("/about"))) return;
@@ -1084,6 +1095,7 @@ void httpSetup(const JsonObject & settings)
 #if LV_USE_HASP_WIFI > 0
     webServer.on(F("/config/wifi"), webHandleWifiConfig);
 #endif
+    webServer.on(F("/screenshot"), webHandleScreenshot);
     webServer.on(F("/saveConfig"), webHandleSaveConfig);
     webServer.on(F("/resetConfig"), httpHandleResetConfig);
     webServer.on(F("/firmware"), webHandleFirmware);

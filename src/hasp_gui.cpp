@@ -27,17 +27,17 @@
 
 #define LVGL_TICK_PERIOD 30 // 30
 
+bool guiAutoCalibrate = true;
 uint16_t guiSleepTime = 150; // 0.1 second resolution
 bool guiSleeping      = false;
 uint8_t guiTickPeriod = 50;
-Ticker tick;                        /* timer for interrupt handler */
-TFT_eSPI tft          = TFT_eSPI(); /* TFT instance */
-uint16_t calData[5]   = {0, 65535, 0, 65535, 0};
-bool guiAutoCalibrate = true;
+static Ticker tick;                      /* timer for interrupt handler */
+static TFT_eSPI tft        = TFT_eSPI(); /* TFT instance */
+static uint16_t calData[5] = {0, 65535, 0, 65535, 0};
 
+static WiFiClient webClient; // for snatshot
 static File pFileOut;
-static bool bSnapshot;
-static uint32_t DISP_IMPL_lvgl_formatPixel(lv_color_t color);
+static uint8_t guiSnapshot = 0;
 
 bool IRAM_ATTR guiCheckSleep()
 {
@@ -67,26 +67,53 @@ void tft_espi_flush(lv_disp_drv_t * disp, const lv_area_t * area, lv_color_t * c
 {
     uint16_t c;
 
-    if(bSnapshot == true) {
-        // uint32_t data;
-        uint8_t pixel[4];
-        pixel[3] = 0xFF;
+    if(guiSnapshot != 0) {
+        int i = 0;
+        uint8_t pixel[1024];
 
         for(int y = area->y1; y <= area->y2; y++) {
             for(int x = area->x1; x <= area->x2; x++) {
                 /* Function for converting LittlevGL pixel format to RGB888 */
                 // data = DISP_IMPL_lvgl_formatPixel(*color_p);
 
-                pixel[0] = (LV_COLOR_GET_B(*color_p) * 263 + 7) >> 5;
-                pixel[1] = (LV_COLOR_GET_G(*color_p) * 259 + 3) >> 6;
-                pixel[2] = (LV_COLOR_GET_R(*color_p) * 263 + 7) >> 5;
-                pixel[3] = 0xFF;
+                pixel[i++] = (LV_COLOR_GET_B(*color_p) * 263 + 7) >> 5;
+                pixel[i++] = (LV_COLOR_GET_G(*color_p) * 259 + 3) >> 6;
+                pixel[i++] = (LV_COLOR_GET_R(*color_p) * 263 + 7) >> 5;
+                pixel[i++] = 0xFF;
 
-                pFileOut.write(pixel, sizeof(pixel));
                 color_p++;
+                // i += 4;
+
+                if(i + 4 >= sizeof(pixel)) {
+                    switch(guiSnapshot) {
+                        case 1:
+                            // Save to local file
+                            pFileOut.write(pixel, i);
+                            break;
+                        case 2:
+                            // Send to remote client
+                            if(webClient.write(pixel, i) != i) {
+                                errorPrintln(F("GUI: %sPixelbuffer not completely sent"));
+                            }
+                    }
+                    i = 0;
+                }
             }
         }
 
+        if(i > 0) {
+            switch(guiSnapshot) {
+                case 1:
+                    // Save to local file
+                    pFileOut.write(pixel, i);
+                    break;
+                case 2:
+                    // Send to remote client
+                    if(webClient.write(pixel, i) != i) {
+                        errorPrintln(F("GUI: %sPixelbuffer not completely sent"));
+                    }
+            }
+        }
     } else {
 
         tft.startWrite(); /* Start new TFT transaction */
@@ -101,6 +128,7 @@ void tft_espi_flush(lv_disp_drv_t * disp, const lv_area_t * area, lv_color_t * c
         }
         tft.endWrite(); /* terminate TFT transaction */
     }
+
     lv_disp_flush_ready(disp); /* tell lvgl that flushing is done */
 }
 
@@ -394,11 +422,34 @@ void guiTakeScreenshot(const char * pFileName)
         return;
     }
 
-    bSnapshot = true;
+    guiSnapshot = 1;
     lv_obj_invalidate(lv_scr_act());
     lv_refr_now(NULL); /* Will call our disp_drv.disp_flush function */
-    bSnapshot = false;
+    guiSnapshot = 0;
 
     pFileOut.close();
     printf(("[Display] data flushed to %s", pFileName));
+}
+void guiTakeScreenshot(WiFiClient client)
+{
+    webClient = client;
+
+    uint8_t bmpheader[138] = {0x42, 0x4D, 0x8A, 0xB0, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x8A, 0x00, 0x00, 0x00, 0x7C,
+                              0x00, 0x00, 0x00, 0xF0, 0x00, 0x00, 0x00, 0xC0, 0xFE, 0xFF, 0xFF, 0x01, 0x00, 0x20, 0x00,
+                              0x03, 0x00, 0x00, 0x00, 0x00, 0xB0, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                              0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0x00, 0x00, 0xFF,
+                              0x00, 0x00, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0x42, 0x47, 0x52, 0x73};
+
+    if(client.write(bmpheader, sizeof(bmpheader)) != sizeof(bmpheader)) {
+        Serial.println("Data sent does not match header size!");
+    } else {
+        Serial.println("OK BMP Header sent!");
+    }
+
+    guiSnapshot = 2;
+    lv_obj_invalidate(lv_scr_act());
+    lv_refr_now(NULL); /* Will call our disp_drv.disp_flush function */
+    guiSnapshot = 0;
+
+    printf("[Display] data flushed to webclient");
 }
