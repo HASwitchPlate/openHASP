@@ -12,18 +12,18 @@ This version also adds ESP32 support to take advantage of the additional hardwar
 
 ## Features
 
-| Feature            | ESP8266 | ESP32
-|--------------------|---------|---------
-| SPI display        | <ul><li>- [x] yes</li> | <ul><li>- [x] yes</li>
-| Parallel display   | <ul><li>- [ ] no</li> | *tbd*
-| PWM Screen dimming | <ul><li>- [x] yes</li> | <ul><li>- [x] yes</li>
-| Maximum Page Count | 4       | 12
-| Object Types / Widgets | 14  | 15
-| Dynamic Objects    | <ul><li>- [x] yes</li> | <ul><li>- [x] yes</li>
+| Feature                 | ESP8266 | ESP32
+|-------------------------|---------|---------
+| SPI display             | <ul><li>- [x] yes</li> | <ul><li>- [x] yes</li>
+| Parallel display        | <ul><li>- [ ] no</li> | *tbd*
+| PWM Screen dimming      | <ul><li>- [x] yes</li> | <ul><li>- [x] yes</li>
+| Maximum Page Count      | 4       | 12
+| Object Types / Widgets  | 14  | 15
+| Dynamic Objects         | <ul><li>- [x] yes</li> | <ul><li>- [x] yes</li>
 | [Lvgl Theme Support][3] | basic only | all themes
-| Custom .zi V5 font | <ul><li>- [x] yes (latin1)</li> | <ul><li>- [x] yes (latin1)</li>
-| [FontAwesome Icons][4]  | <ul><li>- [x] 1300+</li> | <ul><li>- [x] 1300+</li>
-| PNG images         | <ul><li>- [ ] no</li> | *tbd*
+| [Custom .zi V5 font][4] | <ul><li>- [x] yes (latin1)</li> | <ul><li>- [x] yes (latin1)</li>
+| [FontAwesome Icons][5]  | <ul><li>- [x] 1300+</li> | <ul><li>- [x] 1300+</li>
+| PNG images              | <ul><li>- [ ] no</li> | *tbd*
 
 ## Cloning
 
@@ -46,4 +46,5 @@ Check out the [wiki](https://github.com/fvanroie/hasp-lvgl/wiki) for how-to's, i
 [1]: https://github.com/aderusha/HASwitchPlate
 [2]: https://github.com/littlevgl/lvgl
 [3]: https://littlevgl.com/themes
-[4]: https://fontawesome.com/cheatsheet/
+[4]: https://github.com/fvanroie/HMI-Font-Pack/releases
+[5]: https://fontawesome.com/cheatsheet/
