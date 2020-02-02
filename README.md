@@ -10,7 +10,7 @@ This version also adds ESP32 support to take advantage of the additional hardwar
 
 ## Features
 
-<img align="right" width="240" height="320" src="https://raw.githubusercontent.com/fvanroie/hasp-lvgl/master/docs/img/screenhot-13.png">
+![Screenshot]](https://raw.githubusercontent.com/fvanroie/hasp-lvgl/master/docs/img/screenhot-13.png){:style="float: right;margin-right: 7px;margin-top: 7px;"}
 
 | Feature            | ESP8266 | ESP32
 |--------------------|---------|---------
@@ -22,7 +22,7 @@ This version also adds ESP32 support to take advantage of the additional hardwar
 | Dynamic Objects    | <ul><li>- [x] yes</li> | <ul><li>- [x] yes</li>
 | Lvgl Theme Support | basic only | all themes
 | Custom .zi V5 font | <ul><li>- [x] yes</li> | <ul><li>- [x] yes</li>
-| FontAwesome Icons  | <ul><li>- [ ] 1200+</li> | <ul><li>- [ ] 1200+</li>
+| FontAwesome Icons  | <ul><li>- [x] 1300+</li> | <ul><li>- [x] 1300+</li>
 | PNG images         | <ul><li>- [ ] no</li> | *tbd*
 
 # Cloning
