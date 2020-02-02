@@ -23,9 +23,6 @@
 #include "user_config_override.h"
 #endif
 
-// Size of buffer for incoming MQTT message
-#define mqttMaxPacketSize 2u * 1024u
-
 String mqttClientId; // Auto-generated MQTT ClientID
 /*
 String mqttGetSubtopic;             // MQTT subtopic for incoming commands requesting .val
@@ -130,6 +127,60 @@ void mqttSendNewEvent(uint8_t pageid, uint8_t btnid, int32_t val)
     mqttSendNewValue(pageid, btnid, "event", value);
 }
 
+void mqttStatusUpdate()
+{ // Periodically publish a JSON string indicating system status
+    String mqttStatusPayload((char *)0);
+    mqttStatusPayload.reserve(512);
+
+    mqttStatusPayload += "{";
+    mqttStatusPayload += F("\"status\":\"available\",");
+    mqttStatusPayload += F("\"espVersion\":");
+    mqttStatusPayload += String(haspGetVersion());
+    mqttStatusPayload += F(",");
+    /*    if(updateEspAvailable) {
+            mqttStatusPayload += F("\"updateEspAvailable\":true,");
+        } else {
+            mqttStatusPayload += F("\"updateEspAvailable\":false,");
+        }
+        if(lcdConnected) {
+            mqttStatusPayload += F("\"lcdConnected\":true,");
+        } else {
+            mqttStatusPayload += F("\"lcdConnected\":false,");
+        }
+    mqttStatusPayload += F("\"lcdVersion\":\"");
+    mqttStatusPayload += String(lcdVersion);
+    mqttStatusPayload += F("\",");
+    if(updateLcdAvailable) {
+        mqttStatusPayload += F("\"updateLcdAvailable\":true,");
+    } else {
+        mqttStatusPayload += F("\"updateLcdAvailable\":false,");
+    }*/
+    mqttStatusPayload += F("\"espUptime\":");
+    mqttStatusPayload += String(long(millis() / 1000));
+    mqttStatusPayload += F(",");
+    mqttStatusPayload += F("\"signalStrength\":");
+    mqttStatusPayload += String(WiFi.RSSI());
+    mqttStatusPayload += F(",");
+    mqttStatusPayload += F("\"haspIP\":\"");
+    mqttStatusPayload += WiFi.localIP().toString();
+    mqttStatusPayload += F("\",");
+    mqttStatusPayload += F("\"heapFree\":");
+    mqttStatusPayload += String(ESP.getFreeHeap());
+    /*mqttStatusPayload += F(",");
+    mqttStatusPayload += F("\"heapFragmentation\":");
+    mqttStatusPayload += String(ESP.getHeapFragmentation());
+    mqttStatusPayload += F(",");
+    mqttStatusPayload += F("\"espCore\":\"");
+    mqttStatusPayload += String(ESP.getCoreVersion());
+    mqttStatusPayload += F("\"");*/
+    mqttStatusPayload += "}";
+
+    // mqttClient.publish(mqttSensorTopic, mqttStatusPayload);
+    // mqttClient.publish(mqttStatusTopic, "ON", true); //, 1);
+    debugPrintln(String(F("MQTT: status update: ")) + String(mqttStatusPayload));
+    // debugPrintln(String(F("MQTT: binary_sensor state: [")) + mqttStatusTopic + "] : [ON]");
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Receive incoming messages
 void mqttCallback(char * topic, byte * payload, unsigned int length)
@@ -201,10 +252,10 @@ void mqttCallback(char * topic, byte * payload, unsigned int length)
             }
         } else if(strTopic == F("reboot")) { // '[...]/device/command/reboot' == reboot microcontroller)
             debugPrintln(F("MQTT: Rebooting device"));
-            haspReset(true);
+            dispatchCommand(F("reboot"));
         } else if(strTopic == F("lcdreboot")) { // '[...]/device/command/lcdreboot' == reboot LCD panel)
             debugPrintln(F("MQTT: Rebooting LCD"));
-            haspReset(true);
+            dispatchCommand(F("reboot"));
         } else if(strTopic == F("factoryreset")) { // '[...]/device/command/factoryreset' == clear all saved settings)
             // configClearSaved();
             //} else if(strPayload == "") { // '[...]/device/command/p[1].b[4].txt' -m '' ==
