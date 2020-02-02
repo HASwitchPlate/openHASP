@@ -8,9 +8,11 @@ This version also adds ESP32 support to take advantage of the additional hardwar
 [1]: https://github.com/aderusha/HASwitchPlate
 [2]: https://github.com/littlevgl/lvgl
 
-## Features
+## Demo Screens
 
-![Screenshot]](https://raw.githubusercontent.com/fvanroie/hasp-lvgl/master/docs/img/screenhot-13.png){:style="float: right;margin-right: 7px;margin-top: 7px;"}
+![Screenshot]](https://raw.githubusercontent.com/fvanroie/hasp-lvgl/master/docs/img/screenhot-13.png)
+
+## Features
 
 | Feature            | ESP8266 | ESP32
 |--------------------|---------|---------
@@ -38,3 +40,7 @@ If you already cloned hasp-lvgl without the submodules, you can fetch the submod
 ```bash
 git submodule update --init --recursive
 ```
+
+## Getting Started
+
+Check out the [wiki](https://github.com/fvanroie/hasp-lvgl/wiki) for how-to's, information and frequently asked questions.
