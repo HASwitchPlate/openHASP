@@ -84,7 +84,7 @@ void dispatchJson(String & strPayload)
         strPayload.remove(strPayload.length() - 2, 2);
         strPayload.concat("]");
     }
-    DynamicJsonDocument haspCommands(2048 + 1024);
+    DynamicJsonDocument haspCommands(2048 + 512);
     DeserializationError jsonError = deserializeJson(haspCommands, strPayload);
     if(jsonError) { // Couldn't parse incoming JSON command
         errorPrintln(String(F("JSON: %sFailed to parse incoming JSON command with error: ")) +
@@ -92,8 +92,16 @@ void dispatchJson(String & strPayload)
         return;
     }
 
-    for(uint8_t i = 0; i < haspCommands.size(); i++) {
-        dispatchCommand(haspCommands[i]);
+    // Slow
+    // for(uint8_t i = 0; i < haspCommands.size(); i++) {
+    //    dispatchCommand(haspCommands[i]);
+    //}
+
+    // Get a reference to the root array
+    JsonArray arr = haspCommands.as<JsonArray>();
+    // Fast
+    for(JsonVariant command : arr) {
+        dispatchCommand(command.as<String>());
     }
 }
 
