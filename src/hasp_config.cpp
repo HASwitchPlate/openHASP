@@ -34,9 +34,20 @@ void configLoop()
     }
 }
 
+void configStartDebug(bool setupdebug, String & configFile)
+{
+    if(setupdebug) {
+        debugSetup(); // Debug started, now we can use it; HASP header sent
+        debugPrintln(F("FILE: [SUCCESS] SPI flash FS mounted"));
+        spiffsList();
+    }
+    debugPrintln(String(F("CONF: Loading ")) + configFile);
+}
+
 void configGetConfig(JsonDocument & settings, bool setupdebug = false)
 {
-    File file = SPIFFS.open(FPSTR(HASP_CONFIG_FILE), "r");
+    String configFile = String(FPSTR(HASP_CONFIG_FILE));
+    File file         = SPIFFS.open(configFile, "r");
 
     if(file) {
         size_t size = file.size();
@@ -49,40 +60,35 @@ void configGetConfig(JsonDocument & settings, bool setupdebug = false)
         if(!error) {
             file.close();
 
-            if(setupdebug) {
-                debugSetup(); // Debug started, now we can use it; HASP header sent
-                debugPrintln(F("FILE: [SUCCESS] SPI flash FS mounted"));
-                spiffsList();
-            }
-            debugPrintln(String(F("CONF: Loading ")) + String(FPSTR(HASP_CONFIG_FILE)));
+            configStartDebug(setupdebug, configFile);
 
             // show settings in log
             String output;
             serializeJson(settings, output);
+            String passmask = F("********");
+            output.replace(settings[F("http")][F("pass")].as<String>(), passmask);
+            output.replace(settings[F("mqtt")][F("pass")].as<String>(), passmask);
+            output.replace(settings[F("wifi")][F("pass")].as<String>(), passmask);
             debugPrintln(String(F("CONF: ")) + output);
 
-            debugPrintln(String(F("CONF: [SUCCESS] Loaded ")) + String(FPSTR(HASP_CONFIG_FILE)));
+            debugPrintln(String(F("CONF: [SUCCESS] Loaded ")) + configFile);
             return;
         }
     }
 
-    if(setupdebug) {
-        // setup debugging defaults
-        debugSetup(); // Debug started, now we can use it; HASP header sent
-        debugPrintln(F("FILE: [SUCCESS] SPI flash FS mounted"));
-        spiffsList();
-    }
-    debugPrintln(String(F("CONF: Loading ")) + String(FPSTR(HASP_CONFIG_FILE)));
-    errorPrintln(String(F("CONF: %sFailed to load ")) + String(FPSTR(HASP_CONFIG_FILE)));
+    configStartDebug(setupdebug, configFile);
+    errorPrintln(String(F("CONF: %sFailed to load ")) + configFile);
 }
 
 void configWriteConfig()
 {
+    String configFile = String(FPSTR(HASP_CONFIG_FILE));
+
     /* Read Config File */
     DynamicJsonDocument settings(2 * 1024);
-    debugPrintln(String(F("CONF: Config LOADING first ")) + String(FPSTR(HASP_CONFIG_FILE)));
+    debugPrintln(String(F("CONF: Config LOADING first ")) + configFile);
     configGetConfig(settings, false);
-    debugPrintln(String(F("CONF: Config LOADED first ")) + String(FPSTR(HASP_CONFIG_FILE)));
+    debugPrintln(String(F("CONF: Config LOADED first ")) + configFile);
 
     bool changed = true;
     // changed |= debugGetConfig(settings[F("debug")].to<JsonObject>());
@@ -96,18 +102,18 @@ void configWriteConfig()
     changed |= wifiGetConfig(settings[F("wifi")].to<JsonObject>());
 
     if(changed) {
-        File file = SPIFFS.open(FPSTR(HASP_CONFIG_FILE), "w");
+        File file = SPIFFS.open(configFile, "w");
         if(file) {
-            debugPrintln(F("CONF: Writing /config.json"));
+            debugPrintln(String(F("CONF: Writing ")) + configFile);
             size_t size = serializeJson(settings, file);
             file.close();
             if(size > 0) {
-                debugPrintln(F("CONF: [SUCCESS] /config.json saved"));
+                debugPrintln(String(F("CONF: [SUCCESS] Saved ")) + configFile);
                 return;
             }
         }
 
-        errorPrintln(F("CONF: %sFailed to write /config.json"));
+        errorPrintln(String(F("CONF: %sFailed to write ")) + configFile);
     } else {
         debugPrintln(F("CONF: Configuration was not changed"));
     }
