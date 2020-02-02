@@ -199,28 +199,31 @@ static const uint8_t * lv_font_get_bitmap_fmt_zifont(const lv_font_t * font, uin
     lv_font_fmt_zifont_dsc_t * fdsc = (lv_font_fmt_zifont_dsc_t *)font->dsc; /* header data struct */
     int error                       = 0;
     uint32_t glyphID;
+    char filename[32];
 
     /* Bitmap still in buffer */
     if(charInBuffer == unicode_letter && charBitmap_p) {
-        Serial.printf("CacheLetter %c\n", (char)(uint8_t)unicode_letter);
+        // Serial.printf("CacheLetter %c\n", (char)(uint8_t)unicode_letter);
+        Serial.printf("#%c", (char)(uint8_t)unicode_letter);
         return charBitmap_p;
     }
 
     File file;
     uint16_t charmap_position;
     if(unicode_letter >= 0xF000) {
-        file             = SPIFFS.open("/fontawesome24.zi", "r");
+        sprintf_P(filename, PSTR("/fontawesome%u.zi"), fdsc->CharHeight);
         charmap_position = 25 + sizeof(lv_font_fmt_zifont_dsc_t);
         glyphID          = unicode_letter - 0xf000; // start of fontawesome
     } else {
-        file             = SPIFFS.open((char *)font->user_data, "r");
+        strcpy(filename, (char *)font->user_data);
         charmap_position = fdsc->Descriptionlength + sizeof(lv_font_fmt_zifont_dsc_t);
         glyphID          = unicode_letter - 0x20; // simple unicode to ascii - space is charNum=0
     }
 
+    file = SPIFFS.open(filename, "r");
     if(!file) {
-        debugPrintln(PSTR("FONT: [ERROR] while opening font:"));
-        debugPrintln((char *)font->user_data);
+        debugPrintln(String(F("FONT: [ERROR] while opening font:")) + String(filename));
+        // debugPrintln((char *)font->user_data);
         return NULL;
     }
 
@@ -380,7 +383,7 @@ static bool lv_font_get_glyph_dsc_fmt_zifont(const lv_font_t * font, lv_font_gly
     /* Only ascii characteres supported for now */
     if(unicode_letter < 0x20) return false;
     if(unicode_letter > 0xff && unicode_letter < 0xf000) return false;
-    if(unicode_letter > 0xff) Serial.printf("Char# %u\n", unicode_letter);
+    // if(unicode_letter > 0xff) Serial.printf("Char# %u\n", unicode_letter);
 
     File file;
     uint8_t charmap_position;
@@ -442,8 +445,8 @@ static bool lv_font_get_glyph_dsc_fmt_zifont(const lv_font_t * font, lv_font_gly
     uint8_t w = lastCharInfo.width + lastCharInfo.kerningL + lastCharInfo.kerningR;
 
     /*cache glyph data*/
-    // fdsc->last_glyph_id = glyphID;
-    // fdsc->last_glyph_dsc = lastCharInfo;
+    fdsc->last_glyph_id  = glyphID;
+    fdsc->last_glyph_dsc = &lastCharInfo;
 
     dsc_out->adv_w = lastCharInfo.width; //-myCharIndex->righroverlap)*16; /* 8 bit integer 4 bit fractional*/
     dsc_out->box_w = lastCharInfo.width + lastCharInfo.kerningL + lastCharInfo.kerningR;

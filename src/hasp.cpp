@@ -1196,7 +1196,7 @@ void haspNewObject(const JsonObject & config)
         min = 0;
         max = 100;
     }
-    bool enabled      = config[F("enable")] ? config[F("enable")].as<bool>() : true;
+    bool enabled      = config[F("enable")].as<bool>() | true;
     lv_coord_t width  = config[F("w")].as<lv_coord_t>();
     lv_coord_t height = config[F("h")].as<lv_coord_t>();
     if(width == 0) width = 32;
