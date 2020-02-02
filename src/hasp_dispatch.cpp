@@ -57,6 +57,11 @@ void dispatchCommand(String cmnd)
         return;
     }
 
+    if(cmnd == F("screenshot")) {
+        guiTakeScreenshot("/screenhot.bmp");
+        return;
+    }
+
     if(cmnd == F("reboot") || cmnd == F("restart")) {
         haspReboot(true);
         return;

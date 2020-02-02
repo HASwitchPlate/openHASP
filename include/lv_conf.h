@@ -164,6 +164,15 @@ typedef void * lv_group_user_data_t;
 #if LV_USE_FILESYSTEM
 /*Declare the type of the user data of file system drivers (can be e.g. `void *`, `int`, `struct`)*/
 typedef void * lv_fs_drv_user_data_t;
+
+/*File system interface*/
+#define LV_USE_FS_IF	1
+#if LV_USE_FS_IF
+#  define LV_FS_IF_FATFS    '\0'
+#  define LV_FS_IF_PC       '\0'
+#  define LV_FS_IF_SPIFFS   'F'
+#endif  /*LV_USE_FS_IF*/
+
 #endif
 
 /*1: Add a `user_data` to drivers and objects*/
@@ -329,7 +338,7 @@ typedef void * lv_indev_drv_user_data_t;            /*Type of user data in the i
  * #define LV_FONT_CUSTOM_DECLARE LV_FONT_DECLARE(my_font_1) \
  *                                LV_FONT_DECLARE(my_font_2)
  */
-#define LV_FONT_CUSTOM_DECLARE static lv_font_t *my_font;
+#define LV_FONT_CUSTOM_DECLARE static lv_font_t *my_font[5];
 
 /*Always set a default font from the built-in fonts*/
 #define LV_FONT_DEFAULT        &lv_font_unscii_8

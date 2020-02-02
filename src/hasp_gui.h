@@ -11,6 +11,7 @@ void guiLoop(void);
 void guiStop(void);
 
 void guiCalibrate();
+void guiTakeScreenshot(const char * pFileName);
 
 bool guiGetConfig(const JsonObject & settings);
 bool guiSetConfig(const JsonObject & settings);

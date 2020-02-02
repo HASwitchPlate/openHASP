@@ -44,8 +44,6 @@ void setup()
 
     /* Read Config File */
     DynamicJsonDocument settings(1024);
-    // configGetConfig(doc);
-    // JsonObject settings = doc.as<JsonObject>();
     configSetup(settings);
 
     if(!settings[F("pins")][F("TFT_BCKL")].isNull()) {
@@ -102,7 +100,7 @@ void loop()
     // sdcardLoop();
 #endif
 
-    configLoop();
+    // configLoop();
 
     /* Graphics Loops */
     // tftLoop();
@@ -127,8 +125,8 @@ void loop()
     mdnsLoop(wifiIsConnected);
 #endif
 
-    // otaLoop();
+    // otaLoop(wifiIsConnected);
 #endif
 
-    delay(5);
+    delay(1);
 }
