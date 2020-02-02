@@ -4,6 +4,7 @@
 
 #include "hasp_log.h"
 #include "hasp_debug.h"
+#include "hasp_dispatch.h"
 #include "hasp_ota.h"
 #include "hasp.h"
 
@@ -27,16 +28,16 @@ void otaSetup(JsonObject settings)
     ArduinoOTA.onStart([]() {
         debugPrintln(F("OTA: update start"));
         haspSendCmd("page 0");
-        haspSetAttr("p[0].b[1].txt", "\"ESP OTA Update\"");
+        // haspSetAttr("p[0].b[1].txt", "\"ESP OTA Update\"");
     });
     ArduinoOTA.onEnd([]() {
         haspSendCmd("page 0");
         debugPrintln(F("OTA: update complete"));
-        haspSetAttr("p[0].b[1].txt", "\"ESP OTA Update\\rComplete!\"");
-        haspReset();
+        // haspSetAttr("p[0].b[1].txt", "\"ESP OTA Update\\rComplete!\"");
+        dispatchCommand(F("reboot"));
     });
     ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
-        haspSetAttr("p[0].b[1].txt", "\"ESP OTA Update\\rProgress: " + String(progress / (total / 100)) + "%\"");
+        // haspSetAttr("p[0].b[1].txt", "\"ESP OTA Update\\rProgress: " + String(progress / (total / 100)) + "%\"");
     });
     ArduinoOTA.onError([](ota_error_t error) {
         debugPrintln(String(F("OTA: ERROR code ")) + String(error));
@@ -50,7 +51,7 @@ void otaSetup(JsonObject settings)
             debugPrintln(F("OTA: ERROR - Receive Failed"));
         else if(error == OTA_END_ERROR)
             debugPrintln(F("OTA: ERROR - End Failed"));
-        haspSetAttr("p[0].b[1].txt", "\"ESP OTA FAILED\"");
+        // haspSetAttr("p[0].b[1].txt", "\"ESP OTA FAILED\"");
         delay(5000);
         // haspSendCmd("page " + String(nextionActivePage));
     });
