@@ -79,7 +79,7 @@ PubSubClient mqttClient(wifiClient);
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Send changed values OUT
 
-void mqttSendState(const char * subtopic, const char * payload)
+void IRAM_ATTR mqttSendState(const char * subtopic, const char * payload)
 {
     // page = 0
     // p[0].b[0].attr = abc
@@ -101,26 +101,26 @@ void mqttSendState(const char * subtopic, const char * payload)
     debugPrintln(String(F("MQTT OUT: ")) + String(topic) + " = " + String(value));
 }
 
-void mqttSendNewValue(uint8_t pageid, uint8_t btnid, const char * attribute, String txt)
+void IRAM_ATTR mqttSendNewValue(uint8_t pageid, uint8_t btnid, const char * attribute, String txt)
 {
     char subtopic[32];
     sprintf_P(subtopic, PSTR("p[%u].b[%u].%s"), pageid, btnid, attribute);
     mqttSendState(subtopic, txt.c_str());
 }
 
-void mqttSendNewValue(uint8_t pageid, uint8_t btnid, int32_t val)
+void IRAM_ATTR mqttSendNewValue(uint8_t pageid, uint8_t btnid, int32_t val)
 {
     char value[16];
     itoa(val, value, 10);
     mqttSendNewValue(pageid, btnid, "val", value);
 }
 
-void mqttSendNewValue(uint8_t pageid, uint8_t btnid, String txt)
+void IRAM_ATTR mqttSendNewValue(uint8_t pageid, uint8_t btnid, String txt)
 {
     mqttSendNewValue(pageid, btnid, "txt", txt);
 }
 
-void mqttSendNewEvent(uint8_t pageid, uint8_t btnid, int32_t val)
+void IRAM_ATTR mqttSendNewEvent(uint8_t pageid, uint8_t btnid, int32_t val)
 {
     char value[16];
     itoa(val, value, 10);

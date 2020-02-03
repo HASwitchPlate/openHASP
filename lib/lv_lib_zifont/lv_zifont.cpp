@@ -204,7 +204,7 @@ static const uint8_t * lv_font_get_bitmap_fmt_zifont(const lv_font_t * font, uin
     /* Bitmap still in buffer */
     if(charInBuffer == unicode_letter && charBitmap_p) {
         // Serial.printf("CacheLetter %c\n", (char)(uint8_t)unicode_letter);
-        Serial.printf("#%c", (char)(uint8_t)unicode_letter);
+        // Serial.printf("#%c", (char)(uint8_t)unicode_letter);
         return charBitmap_p;
     }
 
@@ -230,7 +230,7 @@ static const uint8_t * lv_font_get_bitmap_fmt_zifont(const lv_font_t * font, uin
     lv_zifont_char_t * charInfo;
     /* Check Last Glyph in chache is valid and Matches currentGlyphID */
     if(fdsc->last_glyph_id == glyphID && fdsc->last_glyph_dsc && fdsc->last_glyph_dsc->width > 0) {
-        Serial.print("@");
+        // Serial.print("@");
         charInfo = fdsc->last_glyph_dsc;
     } else {
         Serial.print("-");

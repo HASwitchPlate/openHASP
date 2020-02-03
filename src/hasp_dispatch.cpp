@@ -14,7 +14,7 @@ void dispatchLoop()
 {}
 
 // objectattribute=value
-void dispatchAttribute(String & strTopic, String & strPayload)
+void IRAM_ATTR dispatchAttribute(String & strTopic, String & strPayload)
 {
     if(strTopic.startsWith("p[")) {
         String strPageId = strTopic.substring(2, strTopic.indexOf("]"));
@@ -36,7 +36,7 @@ void dispatchAttribute(String & strTopic, String & strPayload)
     }
 }
 
-void dispatchPage(String & strPageid)
+void IRAM_ATTR dispatchPage(String & strPageid)
 {
     debugPrintln("PAGE:" + strPageid);
 
@@ -48,7 +48,7 @@ void dispatchPage(String & strPageid)
     }
 }
 
-void dispatchCommand(String cmnd)
+void IRAM_ATTR dispatchCommand(String cmnd)
 {
     debugPrintln("CMND: " + cmnd);
 
@@ -81,7 +81,7 @@ void dispatchCommand(String cmnd)
     }
 }
 
-void dispatchJson(String & strPayload)
+void IRAM_ATTR dispatchJson(String & strPayload)
 { // Parse an incoming JSON array into individual commands
     if(strPayload.endsWith(",]")) {
         // Trailing null array elements are an artifact of older Home Assistant automations
@@ -110,7 +110,7 @@ void dispatchJson(String & strPayload)
     }
 }
 
-void dispatchIdle(const __FlashStringHelper * state)
+void IRAM_ATTR dispatchIdle(const __FlashStringHelper * state)
 {
     mqttSendState(String(F("idle")).c_str(), String(state).c_str());
 }
