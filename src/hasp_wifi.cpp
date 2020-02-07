@@ -17,7 +17,7 @@
 #else
 #include <ESP8266WiFi.h>
 
-static WiFiEventHandler wifiEventHandler[3];
+static WiFiEventHandler gotIpEventHandler, disconnectedEventHandler;
 
 #endif
 #include "DNSserver.h"
@@ -60,15 +60,18 @@ String wifiGetMacAddress(int start, const char * seperator)
 
 void wifiConnected(IPAddress ipaddress)
 {
+    bool isConnected = WiFi.status() == WL_CONNECTED;
     char buffer[64];
     sprintf_P(buffer, PSTR("WIFI: Received IP address %s"), ipaddress.toString().c_str());
     debugPrintln(buffer);
-    sprintf_P(buffer, PSTR("WIFI: Connected = %s"), WiFi.status() == WL_CONNECTED ? PSTR("yes") : PSTR("no"));
+    sprintf_P(buffer, PSTR("WIFI: Connected = %s"), isConnected ? PSTR("yes") : PSTR("no"));
     debugPrintln(buffer);
 
-    httpReconnect();
-    // mqttReconnect();
-    haspReconnect();
+    if(isConnected) {
+        httpReconnect();
+        // mqttReconnect();
+        haspReconnect();
+    }
 }
 
 void wifiDisconnected(const char * ssid, uint8_t reason)
@@ -157,9 +160,9 @@ void wifiSetup(JsonObject settings)
     debugPrintln(buffer);
 
 #if defined(ARDUINO_ARCH_ESP8266)
-    wifiEventHandler[0] = WiFi.onStationModeGotIP(wifiSTAGotIP); // As soon WiFi is connected, start NTP Client
-    wifiEventHandler[1] = WiFi.onStationModeDisconnected(wifiSTADisconnected);
-    wifiEventHandler[2] = WiFi.onStationModeConnected(wifiSTAConnected);
+    // wifiEventHandler[0]      = WiFi.onStationModeConnected(wifiSTAConnected);
+    gotIpEventHandler        = WiFi.onStationModeGotIP(wifiSTAGotIP); // As soon WiFi is connected, start NTP Client
+    disconnectedEventHandler = WiFi.onStationModeDisconnected(wifiSTADisconnected);
 #endif
 #if defined(ARDUINO_ARCH_ESP32)
     WiFi.onEvent(wifi_callback);
