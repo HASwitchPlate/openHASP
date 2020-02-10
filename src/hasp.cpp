@@ -199,7 +199,7 @@ void haspSendNewEvent(lv_obj_t * obj, uint8_t val)
     uint8_t objid;
 
     if(FindIdFromObj(obj, &pageid, &objid)) {
-        // char buffer[40];
+        // char buffer[127];
         // sprintf_P(buffer, PSTR("HASP: Send p[%u].b[%u].event=%d"), pageid, objid, val);
         // debugPrintln(buffer);
 
@@ -215,7 +215,7 @@ void haspSendNewValue(lv_obj_t * obj, int32_t val)
     uint8_t objid;
 
     if(FindIdFromObj(obj, &pageid, &objid)) {
-        // char buffer[40];
+        // char buffer[127];
         // sprintf_P(buffer, PSTR("HASP: Send p[%u].b[%u].val=%d"), pageid, objid, val);
         // debugPrintln(buffer);
 
@@ -231,7 +231,7 @@ void haspSendNewValue(lv_obj_t * obj, String txt)
     uint8_t objid;
 
     if(FindIdFromObj(obj, &pageid, &objid)) {
-        // char buffer[40];
+        // char buffer[127];
         // sprintf_P(buffer, PSTR("HASP: Send p[%u].b[%u].txt='%s'"), pageid, objid, txt.c_str());
         // debugPrintln(buffer);
 
@@ -247,7 +247,7 @@ void haspSendNewValue(lv_obj_t * obj, const char * txt)
     uint8_t objid;
 
     if(FindIdFromObj(obj, &pageid, &objid)) {
-        // char buffer[40];
+        // char buffer[127];
         // sprintf_P(buffer, PSTR("HASP: Send p[%u].b[%u].txt='%s'"), pageid, objid, txt);
         // debugPrintln(buffer);
 
@@ -382,13 +382,13 @@ bool haspGetObjAttribute(lv_obj_t * obj, String strAttr, std::string & strPayloa
                         return true;
                     }
                     if(check_obj_type(list.type[0], LV_HASP_DDLIST)) {
-                        char buffer[128];
+                        char buffer[127];
                         lv_ddlist_get_selected_str(obj, buffer, sizeof(buffer));
                         strPayload = String(buffer).c_str();
                         return true;
                     }
                     if(check_obj_type(list.type[0], LV_HASP_ROLLER)) {
-                        char buffer[128];
+                        char buffer[127];
                         lv_roller_get_selected_str(obj, buffer, sizeof(buffer));
                         strPayload = String(buffer).c_str();
                         return true;
@@ -641,7 +641,7 @@ void haspDisplayAP(const char * ssid, const char * pass)
     String txt((char *)0);
     txt.reserve(64);
 
-    char buffer[64];
+    char buffer[127];
     sprintf_P(buffer, PSTR("WIFI:S:%s;T:WPA;P:%s;;"), ssid, pass);
 
     /*Clear all screens*/
@@ -752,7 +752,7 @@ void haspFirstSetup(void)
  */
 void haspSetup(JsonObject settings)
 {
-    char buffer[64];
+    char buffer[127];
 
     haspSetConfig(settings);
 
@@ -1010,7 +1010,7 @@ static void btn_event_handler(lv_obj_t * obj, lv_event_t event)
     uint8_t pageid  = 0;
     lv_obj_user_data_t objid;
 
-    char buffer[64];
+    char buffer[127];
     sprintf(buffer, PSTR("HASP: "));
 
     if(!FindIdFromObj(obj, &pageid, &objid)) {
@@ -1106,7 +1106,7 @@ static void ddlist_event_handler(lv_obj_t * obj, lv_event_t event)
 {
     if(event == LV_EVENT_VALUE_CHANGED) {
         haspSendNewValue(obj, lv_ddlist_get_selected(obj));
-        char buffer[100];
+        char buffer[127];
         lv_ddlist_get_selected_str(obj, buffer, sizeof(buffer));
         haspSendNewValue(obj, String(buffer));
     }
@@ -1116,7 +1116,7 @@ static void roller_event_handler(lv_obj_t * obj, lv_event_t event)
 {
     if(event == LV_EVENT_VALUE_CHANGED) {
         haspSendNewValue(obj, lv_roller_get_selected(obj));
-        char buffer[100];
+        char buffer[127];
         lv_roller_get_selected_str(obj, buffer, sizeof(buffer));
         haspSendNewValue(obj, String(buffer));
     }

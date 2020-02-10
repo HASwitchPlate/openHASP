@@ -14,9 +14,9 @@ std::string otaUrl = "http://ota.local";
 
 void otaSetup(JsonObject settings)
 {
-    char buffer[256];
 
     if(!settings[F_OTA_URL].isNull()) {
+        char buffer[127];
         otaUrl = settings[F_OTA_URL].as<String>().c_str();
         sprintf_P(buffer, PSTR("ORA url: %s"), otaUrl.c_str());
         debugPrintln(buffer);

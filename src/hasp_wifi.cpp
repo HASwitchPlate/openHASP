@@ -61,7 +61,7 @@ String wifiGetMacAddress(int start, const char * seperator)
 void wifiConnected(IPAddress ipaddress)
 {
     bool isConnected = WiFi.status() == WL_CONNECTED;
-    char buffer[64];
+    char buffer[127];
     sprintf_P(buffer, PSTR("WIFI: Received IP address %s"), ipaddress.toString().c_str());
     debugPrintln(buffer);
     sprintf_P(buffer, PSTR("WIFI: Connected = %s"), isConnected ? PSTR("yes") : PSTR("no"));
@@ -76,7 +76,7 @@ void wifiConnected(IPAddress ipaddress)
 
 void wifiDisconnected(const char * ssid, uint8_t reason)
 {
-    char buffer[64];
+    char buffer[127];
     sprintf_P(buffer, PSTR("WIFI: Disconnected from %s (Reason: %d)"), ssid, reason);
     debugPrintln(buffer);
     WiFi.reconnect();
@@ -84,7 +84,7 @@ void wifiDisconnected(const char * ssid, uint8_t reason)
 
 void wifiSsidConnected(const char * ssid)
 {
-    char buffer[64];
+    char buffer[127];
     sprintf_P(buffer, PSTR("WIFI: Connected to SSID %s. Requesting IP..."), ssid);
     debugPrintln(buffer);
 }
@@ -130,7 +130,7 @@ void wifiSTADisconnected(WiFiEventStationModeDisconnected info)
 
 void wifiSetup(JsonObject settings)
 {
-    char buffer[64];
+    char buffer[127];
 
     wifiSetConfig(settings);
 

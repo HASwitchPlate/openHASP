@@ -26,7 +26,7 @@ void debugPrintln(String debugText)
 
 void errorPrintln(String debugText)
 {
-    char buffer[256];
+    char buffer[127];
     sprintf_P(buffer, debugText.c_str(), PSTR("[ERROR] "));
     serialPrintln(buffer);
 
@@ -37,7 +37,7 @@ void errorPrintln(String debugText)
 
 void warningPrintln(String debugText)
 {
-    char buffer[256];
+    char buffer[127];
     sprintf_P(buffer, debugText.c_str(), PSTR("[WARNING] "));
     serialPrintln(buffer);
 
