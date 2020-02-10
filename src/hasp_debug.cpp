@@ -1,21 +1,24 @@
+#include "hasp_conf.h"
 #include <Arduino.h>
 #include "ArduinoJson.h"
 
 #if defined(ARDUINO_ARCH_ESP8266)
-#include <SoftwareSerial.h>
 #include <ESP8266WiFi.h>
 #else
 #include <Wifi.h>
 #endif
 #include <WiFiUdp.h>
-#include <Syslog.h>
 
+#include "hasp_hal.h"
 #include "hasp_debug.h"
 #include "hasp_config.h"
 
 #ifdef USE_CONFIG_OVERRIDE
 #include "user_config_override.h"
 #endif
+
+#if HASP_USE_SYSLOG != 0
+#include <Syslog.h>
 
 #ifndef SYSLOG_SERVER
 #define SYSLOG_SERVER ""
@@ -39,6 +42,7 @@ WiFiUDP syslogClient;
 // Create a new empty syslog instance
 Syslog syslog(syslogClient, debugSyslogHost.c_str(), debugSyslogPort, debugAppName.c_str(), debugAppName.c_str(),
               LOG_LOCAL0);
+#endif
 
 void debugSetup()
 {
@@ -54,10 +58,12 @@ void debugSetup()
     // prepare syslog configuration here (can be anywhere before first call of
     // log/logf method)
 
+#if HASP_USE_SYSLOG != 0
     syslog.server(debugSyslogHost.c_str(), debugSyslogPort);
     syslog.deviceHostname(debugAppName.c_str());
     syslog.appName(debugAppName.c_str());
     syslog.defaultPriority(LOG_LOCAL0);
+#endif
 }
 
 void debugLoop()
@@ -65,11 +71,21 @@ void debugLoop()
 
 void serialPrintln(String debugText)
 {
-    String debugTimeText =
-        "[+" + String(float(millis()) / 1000, 3) + "s] " + String(ESP.getFreeHeap()) + " " + debugText;
+    String debugTimeText((char *)0);
+    debugTimeText.reserve(128);
+
+    debugTimeText = F("[");
+    debugTimeText += String(float(millis()) / 1000, 3);
+    debugTimeText += F("s] ");
+    debugTimeText += ESP.getFreeHeap();
+    debugTimeText += F(" ");
+    debugTimeText += halGetHeapFragmentation();
+    debugTimeText += F(" ");
+    debugTimeText += debugText;
     Serial.println(debugTimeText);
 }
 
+#if HASP_USE_SYSLOG != 0
 void syslogSend(uint8_t log, const char * debugText)
 {
     if(WiFi.isConnected() && debugSyslogHost != "") {
@@ -85,6 +101,7 @@ void syslogSend(uint8_t log, const char * debugText)
         }
     }
 }
+#endif
 
 void debugStop()
 {

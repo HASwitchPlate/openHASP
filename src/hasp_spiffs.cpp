@@ -5,7 +5,7 @@
 #include "hasp_log.h"
 #include "hasp_spiffs.h"
 
-#if LV_USE_HASP_SPIFFS
+#if HASP_USE_SPIFFS
 #if defined(ARDUINO_ARCH_ESP32)
 #include "SPIFFS.h"
 #endif
@@ -40,7 +40,7 @@ void spiffsSetup()
 {
     // no SPIFFS settings, as settings depend on SPIFFS
 
-#if LV_USE_HASP_SPIFFS
+#if HASP_USE_SPIFFS
     char msg[64];
 #if defined(ARDUINO_ARCH_ESP8266)
     if(!SPIFFS.begin()) {
@@ -59,3 +59,16 @@ void spiffsSetup()
 
 void spiffsLoop()
 {}
+
+String spiffsFormatBytes(size_t bytes)
+{
+    if(bytes < 1024) {
+        return String(bytes) + "B";
+    } else if(bytes < (1024 * 1024)) {
+        return String(bytes / 1024.0) + "KB";
+    } else if(bytes < (1024 * 1024 * 1024)) {
+        return String(bytes / 1024.0 / 1024.0) + "MB";
+    } else {
+        return String(bytes / 1024.0 / 1024.0 / 1024.0) + "GB";
+    }
+}

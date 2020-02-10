@@ -83,7 +83,7 @@ typedef int16_t lv_coord_t;
 #  define LV_MEM_SIZE    (12U * 1024U) // 4KB
 #endif
 #ifndef LV_MEM_SIZE
-#  define LV_MEM_SIZE    (40 * 1024U)  // 40KB
+#  define LV_MEM_SIZE    (48 * 1024U)  // 40KB
 #endif
 
 /* Complier prefix for a big array declaration */
@@ -246,7 +246,7 @@ typedef void * lv_indev_drv_user_data_t;            /*Type of user data in the i
  * LV_LOG_LEVEL_ERROR       Only critical issue, when the system may fail
  * LV_LOG_LEVEL_NONE        Do not log anything
  */
-#  define LV_LOG_LEVEL    LV_LOG_LEVEL_NONE
+#  define LV_LOG_LEVEL    LV_LOG_LEVEL_WARN
 
 /* 1: Print the log with 'printf';
  * 0: user need to register a callback with `lv_log_register_print_cb`*/
@@ -338,7 +338,7 @@ typedef void * lv_indev_drv_user_data_t;            /*Type of user data in the i
  * #define LV_FONT_CUSTOM_DECLARE LV_FONT_DECLARE(my_font_1) \
  *                                LV_FONT_DECLARE(my_font_2)
  */
-#define LV_FONT_CUSTOM_DECLARE static lv_font_t *my_font[5];
+#define LV_FONT_CUSTOM_DECLARE static lv_font_t *defaultFont;
 
 /*Always set a default font from the built-in fonts*/
 #define LV_FONT_DEFAULT        &lv_font_unscii_8

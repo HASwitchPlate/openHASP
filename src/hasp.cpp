@@ -1,6 +1,7 @@
 /*********************
  *      INCLUDES
  *********************/
+#include "hasp_conf.h"
 #include <Arduino.h>
 #include "ArduinoJson.h"
 
@@ -8,11 +9,12 @@
 #include "lv_conf.h"
 #include "lv_theme_hasp.h"
 #include "lv_objx/lv_roller.h"
+
+#if HASP_USE_QRCODE != 0
 #include "lv_qrcode.h"
+#endif
 
-#include "hasp_conf.h"
-
-#if LV_USE_HASP_SPIFFS
+#if HASP_USE_SPIFFS
 #if defined(ARDUINO_ARCH_ESP32)
 //#include "lv_zifont.h"
 #include "SPIFFS.h"
@@ -39,7 +41,7 @@
 uint8_t haspStartPage  = 0;
 uint8_t haspThemeId    = 0;
 uint16_t haspThemeHue  = 200;
-char haspPagesPath[32] = "/pages.jsonl\0";
+char haspPagesPath[32] = "/pages.jsonl";
 char haspZiFontPath[32];
 
 /**********************
@@ -86,15 +88,16 @@ static const char * btnm_map2[] = {"0",  "1", "\n", "2",  "3",  "\n", "4",  "5",
                                    "\n", "6", "7",  "\n", "P1", "P2", "P3", ""};
 */
 
-static lv_font_t * haspFonts[6];
 #if defined(ARDUINO_ARCH_ESP8266)
 static lv_obj_t * pages[4];
-static lv_style_t labelStyles[6];
-static lv_style_t rollerStyles[6];
+static lv_font_t * haspFonts[4];
+static lv_style_t labelStyles[4];
+static lv_style_t rollerStyles[4];
 #else
 static lv_obj_t * pages[12];
-static lv_style_t labelStyles[6];
-static lv_style_t rollerStyles[6];
+static lv_font_t * haspFonts[8];
+static lv_style_t labelStyles[8];
+static lv_style_t rollerStyles[8];
 #endif
 uint16_t current_page = 0;
 // uint16_t current_style = 0;
@@ -151,11 +154,8 @@ lv_obj_t * FindObjFromId(lv_obj_t * parent, uint8_t objid)
         if(child->user_data && (lv_obj_user_data_t)objid == child->user_data) return child; // object found
 
         /* check grandchildren */
-        // if(lv_obj_count_children(child) > 0) // tells the number of children on an object
-        //{
         lv_obj_t * grandchild = FindObjFromId(child, objid);
         if(grandchild) return grandchild;
-        //}
 
         /* next sibling */
         child = lv_obj_get_child(parent, child);
@@ -188,7 +188,7 @@ void haspGetAttr(String hmiAttribute)
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 void haspProcessInput()
 {
-#if LV_USE_HASP_MQTT > 0
+#if HASP_USE_MQTT > 0
     // mqttSend(topic, value);
 #endif
 }
@@ -203,7 +203,7 @@ void haspSendNewEvent(lv_obj_t * obj, uint8_t val)
         // sprintf_P(buffer, PSTR("HASP: Send p[%u].b[%u].event=%d"), pageid, objid, val);
         // debugPrintln(buffer);
 
-#if LV_USE_HASP_MQTT > 0
+#if HASP_USE_MQTT > 0
         mqttSendNewEvent(pageid, objid, val);
 #endif
     }
@@ -219,7 +219,7 @@ void haspSendNewValue(lv_obj_t * obj, int32_t val)
         // sprintf_P(buffer, PSTR("HASP: Send p[%u].b[%u].val=%d"), pageid, objid, val);
         // debugPrintln(buffer);
 
-#if LV_USE_HASP_MQTT > 0
+#if HASP_USE_MQTT > 0
         mqttSendNewValue(pageid, objid, val);
 #endif
     }
@@ -235,7 +235,7 @@ void haspSendNewValue(lv_obj_t * obj, String txt)
         // sprintf_P(buffer, PSTR("HASP: Send p[%u].b[%u].txt='%s'"), pageid, objid, txt.c_str());
         // debugPrintln(buffer);
 
-#if LV_USE_HASP_MQTT > 0
+#if HASP_USE_MQTT > 0
         mqttSendNewValue(pageid, objid, txt);
 #endif
     }
@@ -251,7 +251,7 @@ void haspSendNewValue(lv_obj_t * obj, const char * txt)
         // sprintf_P(buffer, PSTR("HASP: Send p[%u].b[%u].txt='%s'"), pageid, objid, txt);
         // debugPrintln(buffer);
 
-#if LV_USE_HASP_MQTT > 0
+#if HASP_USE_MQTT > 0
         mqttSendNewValue(pageid, objid, txt);
 #endif
     }
@@ -644,9 +644,16 @@ void haspDisplayAP(const char * ssid, const char * pass)
     char buffer[64];
     sprintf_P(buffer, PSTR("WIFI:S:%s;T:WPA;P:%s;;"), ssid, pass);
 
-    lv_obj_t * qr = lv_qrcode_create(lv_disp_get_layer_sys(NULL), 150, LV_COLOR_BLACK, LV_COLOR_WHITE);
+    /*Clear all screens*/
+    for(uint8_t i = 0; i < (sizeof pages / sizeof *pages); i++) {
+        lv_obj_clean(pages[i]);
+    }
+
+#if HASP_USE_QRCODE != 0
+    lv_obj_t * qr = lv_qrcode_create(lv_disp_get_layer_sys(NULL), 120, LV_COLOR_BLACK, LV_COLOR_WHITE);
     lv_obj_align(qr, NULL, LV_ALIGN_CENTER, 0, 10);
     lv_qrcode_update(qr, buffer, strlen(buffer));
+#endif
 
     lv_obj_t * panel = lv_cont_create(lv_disp_get_layer_sys(NULL), NULL);
     lv_obj_set_style(panel, &lv_style_pretty);
@@ -764,66 +771,66 @@ void haspSetup(JsonObject settings)
     // static lv_font_t *
     //    my_font = (lv_font_t *)lv_mem_alloc(sizeof(lv_font_t));
 
-    my_font[0] = (lv_font_t *)lv_mem_alloc(sizeof(lv_font_t));
+    defaultFont = (lv_font_t *)lv_mem_alloc(sizeof(lv_font_t));
     lv_zifont_init();
 
-    if(lv_zifont_font_init(my_font[0], haspZiFontPath, 24) != 0) {
+    if(lv_zifont_font_init(defaultFont, haspZiFontPath, 24) != 0) {
         errorPrintln(String(F("HASP: %sFailed to set the custom font to ")) + String(haspZiFontPath));
-        my_font[0] = NULL; // Use default font
+        defaultFont = NULL; // Use default font
     }
 
     lv_theme_t * th;
     switch(haspThemeId) {
 #if LV_USE_THEME_ALIEN == 1
         case 1:
-            th = lv_theme_alien_init(haspThemeHue, my_font[0]);
+            th = lv_theme_alien_init(haspThemeHue, defaultFont);
             break;
 #endif
 #if LV_USE_THEME_NIGHT == 1
         case 2:
-            th = lv_theme_night_init(haspThemeHue, my_font[0]); // heavy
+            th = lv_theme_night_init(haspThemeHue, defaultFont); // heavy
             break;
 #endif
 #if LV_USE_THEME_MONO == 1
         case 3:
-            th = lv_theme_mono_init(haspThemeHue, my_font[0]); // lightweight
+            th = lv_theme_mono_init(haspThemeHue, defaultFont); // lightweight
             break;
 #endif
 #if LV_USE_THEME_MATERIAL == 1
         case 4:
-            th = lv_theme_material_init(haspThemeHue, my_font[0]);
+            th = lv_theme_material_init(haspThemeHue, defaultFont);
             break;
 #endif
 #if LV_USE_THEME_ZEN == 1
         case 5:
-            th = lv_theme_zen_init(haspThemeHue, my_font[0]); // lightweight
+            th = lv_theme_zen_init(haspThemeHue, defaultFont); // lightweight
             break;
 #endif
 #if LV_USE_THEME_NEMO == 1
         case 6:
-            th = lv_theme_nemo_init(haspThemeHue, my_font[0]); // heavy
+            th = lv_theme_nemo_init(haspThemeHue, defaultFont); // heavy
             break;
 #endif
 #if LV_USE_THEME_TEMPL == 1
         case 7:
-            th = lv_theme_templ_init(haspThemeHue, my_font[0]); // lightweight, not for production...
+            th = lv_theme_templ_init(haspThemeHue, defaultFont); // lightweight, not for production...
             break;
 #endif
 #if LV_USE_THEME_HASP == 1
         case 8:
-            th = lv_theme_hasp_init(haspThemeHue, my_font[0]);
+            th = lv_theme_hasp_init(haspThemeHue, defaultFont);
             break;
 #endif
         case 0:
 #if LV_USE_THEME_DEFAULT == 1
-            th = lv_theme_default_init(haspThemeHue, my_font[0]);
+            th = lv_theme_default_init(haspThemeHue, defaultFont);
 #else
-            th = lv_theme_hasp_init(512, my_font[0]);
+            th = lv_theme_hasp_init(512, defaultFont);
 #endif
             break;
 
         default:
-            th = lv_theme_hasp_init(512, my_font[0]);
+            th = lv_theme_hasp_init(512, defaultFont);
             debugPrintln(F("HASP: Unknown theme selected"));
     }
 
@@ -1003,6 +1010,9 @@ static void btn_event_handler(lv_obj_t * obj, lv_event_t event)
     uint8_t pageid  = 0;
     lv_obj_user_data_t objid;
 
+    char buffer[64];
+    sprintf(buffer, PSTR("HASP: "));
+
     if(!FindIdFromObj(obj, &pageid, &objid)) {
         errorPrintln(F("HASP: %sEvent for unknown object"));
         return;
@@ -1010,58 +1020,56 @@ static void btn_event_handler(lv_obj_t * obj, lv_event_t event)
 
     switch(event) {
         case LV_EVENT_PRESSED:
-            debugPrintln(F("HASP: Pressed Down"));
+            strcat_P(buffer, PSTR("Pressed Down"));
+            debugPrintln(buffer);
             eventid = 1;
             break;
 
         case LV_EVENT_CLICKED:
-            debugPrintln(F("HASP: Released Up"));
+            strcat_P(buffer, PSTR("Released Up"));
+            debugPrintln(buffer);
             // UP = the same object was release then was pressed and press was not lost!
             eventid = 0;
             break;
 
         case LV_EVENT_SHORT_CLICKED:
-            debugPrintln(F("HASP: Short Click"));
+            strcat_P(buffer, PSTR("Short Click"));
+            debugPrintln(buffer);
             eventid = 2;
             break;
 
-        case LV_EVENT_PRESSING:
-            // printf("Pressing\n");  // Constant press events, do not send !
-            return;
-
         case LV_EVENT_LONG_PRESSED:
-            debugPrintln(F("HASP: Long Press"));
+            strcat_P(buffer, PSTR("Long Press"));
+            debugPrintln(buffer);
             eventid = 3;
             break;
 
         case LV_EVENT_LONG_PRESSED_REPEAT:
-            debugPrintln(F("HASP: Long Press Repeat"));
+            strcat_P(buffer, PSTR("Long Hold"));
+            debugPrintln(buffer);
             eventid = 4;
             break;
 
         case LV_EVENT_PRESS_LOST:
-            debugPrintln(F("HASP: Press Lost"));
+            strcat_P(buffer, PSTR("Lost Press"));
+            debugPrintln(buffer);
             eventid = 9;
             break;
 
+        case LV_EVENT_PRESSING:
+        case LV_EVENT_FOCUSED:
+        case LV_EVENT_DEFOCUSED:
         case LV_EVENT_RELEASED:
-            // printf("p[%u].b[%u].val = %u", pageid, objid, 512);
-            // printf("Released\n\n"); // Not used, is also fired when dragged
             return;
 
-            /*
-                                    lv_obj_t * child = lv_obj_get_child(obj, NULL);
-                                    if(child) lv_obj_get_type(child, &buf);
-                                    printf("obj eight %s -> ", buf.type[0]);
-            */
-            break;
-
         case LV_EVENT_VALUE_CHANGED:
-            debugPrintln(F("HASP: Value Changed Event occured"));
+            strcat_P(buffer, PSTR("Value Changed"));
+            debugPrintln(buffer);
             return;
 
         default:
-            debugPrintln(F("HASP: Unknown Event occured"));
+            sprintf(buffer, PSTR("HASP: Unknown Event %d occured"), event);
+            debugPrintln(buffer);
             return;
     }
 
@@ -1115,19 +1123,6 @@ static void roller_event_handler(lv_obj_t * obj, lv_event_t event)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
-void haspReboot(bool write_config)
-{
-    mqttStop(); // Stop the MQTT Client first
-    if(write_config) configWriteConfig();
-    debugStop();
-    delay(250);
-    wifiStop();
-    debugPrintln(F("HASP: Properly Rebooting the MCU now!"));
-    debugPrintln(F("-------------------------------------"));
-    ESP.restart();
-    delay(5000);
-}
-
 void haspSetNodename(String name)
 {}
 
@@ -1323,6 +1318,7 @@ void haspNewObject(const JsonObject & config)
             lv_ddlist_set_selected(obj, val);
             lv_ddlist_set_fix_width(obj, width);
             lv_ddlist_set_draw_arrow(obj, true);
+            lv_ddlist_set_anim_time(obj, 250);
             lv_obj_set_top(obj, true);
             // lv_obj_align(obj, NULL, LV_ALIGN_IN_TOP_MID, 0, 20);
             lv_obj_set_event_cb(obj, ddlist_event_handler);
