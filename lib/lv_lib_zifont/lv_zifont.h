@@ -62,9 +62,24 @@ typedef struct
     uint8_t Variablewidth;
     uint8_t Namelength;
     uint8_t Fontdataadd8byte;
-    uint16_t last_glyph_id; // Reserved 1
+    uint16_t reserved1; // Reserved 1
     uint32_t Actualnumchars;
-    lv_zifont_char_t * last_glyph_dsc; // Reserved 3
+    uint32_t * reserved3; // Reserved 3
+} zi_font_header_t;
+
+typedef struct
+{
+    uint8_t Codepageid;
+    uint8_t CharWidth;
+    uint8_t CharHeight;
+    uint32_t Maximumnumchars;
+    uint32_t Actualnumchars;
+    uint32_t Totaldatalength;
+    uint32_t Startdataaddress;
+    uint8_t Fontdataadd8byte;
+    uint16_t last_glyph_id;
+    lv_zifont_char_t * last_glyph_dsc;
+    lv_zifont_char_t * ascii_glyph_dsc;
 } lv_font_fmt_zifont_dsc_t;
 
 /**********************
