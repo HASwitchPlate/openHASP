@@ -1,10 +1,10 @@
 #include "Arduino.h"
 #include "ArduinoJson.h"
+#include <FS.h> // Include the SPIFFS library
 
 #if defined(ARDUINO_ARCH_ESP32)
 #include "SPIFFS.h"
 #endif
-#include <FS.h> // Include the SPIFFS library
 
 #include "hasp_config.h"
 #include "hasp_log.h"

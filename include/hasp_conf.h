@@ -1,6 +1,6 @@
 #pragma once
 
-#define USE_HASP_APP 1
+#define HASP_USE_APP 1
 
 #define HASP_USE_WIFI 1
 #define HASP_USE_MQTT 1
