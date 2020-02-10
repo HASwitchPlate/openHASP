@@ -231,12 +231,7 @@ void mqttCallback(char * topic, byte * payload, unsigned int length)
         if(strTopic == F("page")) { // '[...]/device/command/page' -m '1' == nextionSendCmd("page 1")
             dispatchPage(strPayload);
         } else if(strTopic == F("dim")) { // '[...]/device/command/page' -m '1' == nextionSendCmd("page 1")
-#if defined(ARDUINO_ARCH_ESP32)
-            ledcWrite(0, map(strPayload.toInt(), 0, 100, 0, 1023)); // ledChannel and value
-#else
-            analogWrite(D1, map(strPayload.toInt(), 0, 100, 0, 1023));
-#endif
-
+            dispatchDim(strPayload);
         } else if(strTopic == F("json")) { // '[...]/device/command/json' -m '["dim=5", "page 1"]' =
             // nextionSendCmd("dim=50"), nextionSendCmd("page 1")
             dispatchJson(strPayload);              // Send to nextionParseJson()
@@ -250,12 +245,8 @@ void mqttCallback(char * topic, byte * payload, unsigned int length)
             } else {
                 // espStartOta(strPayload);
             }
-        } else if(strTopic == F("reboot")) { // '[...]/device/command/reboot' == reboot microcontroller)
-            debugPrintln(F("MQTT: Rebooting device"));
-            dispatchCommand(F("reboot"));
-        } else if(strTopic == F("lcdreboot")) { // '[...]/device/command/lcdreboot' == reboot LCD panel)
-            debugPrintln(F("MQTT: Rebooting LCD"));
-            dispatchCommand(F("reboot"));
+        } else if(strTopic == F("reboot") || strTopic == F("lcdreboot")) {
+            dispatchReboot(true);
         } else if(strTopic == F("factoryreset")) { // '[...]/device/command/factoryreset' == clear all saved settings)
             // configClearSaved();
             //} else if(strPayload == "") { // '[...]/device/command/p[1].b[4].txt' -m '' ==

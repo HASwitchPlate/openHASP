@@ -1,11 +1,10 @@
+#include "hasp_conf.h"
 #include <Arduino.h>
 #include "ArduinoJson.h"
+
 #include "TFT_eSPI.h"
 
-#include "hasp_conf.h"
-
 #include "hasp_debug.h"
-#include "hasp_eeprom.h"
 #include "hasp_spiffs.h"
 #include "hasp_config.h"
 #include "hasp_tft.h"
@@ -13,23 +12,31 @@
 //#include "hasp_ota.h"
 #include "hasp.h"
 
-#if LV_USE_HASP_SPIFFS
+#if HASP_USE_SPIFFS
 #if defined(ARDUINO_ARCH_ESP32)
 #include "SPIFFS.h"
 #endif
 #include <FS.h> // Include the SPIFFS library
 #endif
 
-#if LV_USE_HASP_WIFI
+#if HASP_USE_EEPROM
+#include "hasp_eeprom.h"
+#endif
+
+#if HASP_USE_WIFI
 #include "hasp_wifi.h"
 #endif
 
-#if LV_USE_HASP_MQTT
+#if HASP_USE_MQTT
 #include "hasp_mqtt.h"
 #endif
 
-#if LV_USE_HASP_HTTP
+#if HASP_USE_HTTP
 #include "hasp_http.h"
+#endif
+
+#if HASP_USE_MDNS
+#include "hasp_mdns.h"
 #endif
 
 bool isConnected;
@@ -37,8 +44,10 @@ bool isConnected;
 void setup()
 {
     /* Init Storage */
+#if HASP_USE_EEPROM
     eepromSetup();
-#if LV_USE_HASP_SPIFFS
+#endif
+#if HASP_USE_SPIFFS
     spiffsSetup();
 #endif
 
@@ -46,20 +55,7 @@ void setup()
     DynamicJsonDocument settings(1024);
     configSetup(settings);
 
-    if(!settings[F("pins")][F("TFT_BCKL")].isNull()) {
-        int8_t pin = settings[F("pins")][F("TFT_BCKL")].as<int8_t>();
-#if defined(ARDUINO_ARCH_ESP32)
-        if(pin >= 0)
-            // configure LED PWM functionalitites
-            ledcSetup(0, 5000, 10);
-        // attach the channel to the GPIO to be controlled
-        ledcAttachPin(pin, 0);
-#else
-        pinMode(pin, OUTPUT);
-#endif
-    }
-
-#if LV_USE_HASP_SDCARD
+#if HASP_USE_SDCARD
     sdcardSetup();
 #endif
 
@@ -72,18 +68,18 @@ void setup()
     haspSetup(settings[F("hasp")]);
 
     /* Init Network Services */
-#if LV_USE_HASP_WIFI
+#if HASP_USE_WIFI
     wifiSetup(settings[F("wifi")]);
 
-#if LV_USE_HASP_MQTT
+#if HASP_USE_MQTT
     mqttSetup(settings[F("mqtt")]);
 #endif
 
-#if LV_USE_HASP_MDNS
+#if HASP_USE_MDNS
     mdnsSetup(settings[F("mdns")]);
 #endif
 
-#if LV_USE_HASP_HTTP
+#if HASP_USE_HTTP
     httpSetup(settings[F("http")]);
 #endif
 
@@ -94,9 +90,11 @@ void setup()
 void loop()
 {
     /* Storage Loops */
-    // eepromLoop();
+#if HASP_USE_EEPROM
+    eepromLoop();
+#endif
     // spiffsLoop();
-#if LV_USE_HASP_SDCARD
+#if HASP_USE_SDCARD
     // sdcardLoop();
 #endif
 
@@ -110,19 +108,19 @@ void loop()
     // haspLoop();
 
     /* Network Services Loops */
-#if LV_USE_HASP_WIFI > 0
+#if HASP_USE_WIFI
     isConnected = wifiLoop();
 
-#if LV_USE_HASP_MQTT > 0
+#if HASP_USE_MQTT
     mqttLoop(isConnected);
 #endif
 
-#if LV_USE_HASP_HTTP > 0
+#if HASP_USE_HTTP
     httpLoop(isConnected);
 #endif
 
-#if LV_USE_HASP_MDNS > 0
-    mdnsLoop(wifiIsConnected);
+#if HASP_USE_MDNS
+    mdnsLoop(isConnected);
 #endif
 
     // otaLoop(wifiIsConnected);

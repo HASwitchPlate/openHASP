@@ -6,11 +6,15 @@
 
 #include "lvgl.h"
 
-#if defined(ARDUINO_ARCH_ESP32)
-#include <Wifi.h>
-#else
-#include <ESP8266WiFi.h>
+#if defined(ARDUINO_ARCH_ESP8266)
+#include <ESP8266WebServer.h>
+void guiTakeScreenshot(ESP8266WebServer & client);
 #endif
+
+#if defined(ARDUINO_ARCH_ESP32)
+#include <WebServer.h>
+void guiTakeScreenshot(WebServer & client);
+#endif // ESP32
 
 void guiSetup(TFT_eSPI & screen, JsonObject settings);
 void guiLoop(void);
@@ -18,7 +22,9 @@ void guiStop(void);
 
 void guiCalibrate();
 void guiTakeScreenshot(const char * pFileName);
-void guiTakeScreenshot(WiFiClient client);
+
+void guiSetDim(uint8_t level);
+int8_t guiGetDim(void);
 
 bool guiGetConfig(const JsonObject & settings);
 bool guiSetConfig(const JsonObject & settings);

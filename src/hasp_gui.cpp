@@ -6,9 +6,6 @@
 
 #include "TFT_eSPI.h"
 
-#if defined(ARDUINO_ARCH_ESP32)
-//#include "png_decoder.h"
-#endif
 #include "lv_zifont.h"
 
 #include "hasp_log.h"
@@ -18,24 +15,43 @@
 #include "hasp_gui.h"
 #include "hasp.h"
 
-#if LV_USE_HASP_SPIFFS
+#if HASP_USE_PNGDECODE != 0
+#include "png_decoder.h"
+#endif
+
+#if HASP_USE_SPIFFS
 #if defined(ARDUINO_ARCH_ESP32)
 #include "SPIFFS.h"
 #endif
 #include <FS.h> // Include the SPIFFS library
 #endif
 
+#if defined(ARDUINO_ARCH_ESP8266)
+#include <ESP8266WebServer.h>
+static ESP8266WebServer * webClient; // for snatshot
+#endif
+
+#if defined(ARDUINO_ARCH_ESP32)
+#include <WebServer.h>
+static WebServer * webClient; // for snatshot
+#endif                        // ESP32
+
 #define LVGL_TICK_PERIOD 30 // 30
 
-bool guiAutoCalibrate = true;
-uint16_t guiSleepTime = 150; // 0.1 second resolution
-bool guiSleeping      = false;
-uint8_t guiTickPeriod = 50;
+#ifndef TFT_BCKL
+#define TFT_BCKL -1 // No Backlight Control
+#endif
+
+int8_t guiDimLevel     = -1;
+int8_t guiBacklightPin = TFT_BCKL;
+bool guiAutoCalibrate  = true;
+uint16_t guiSleepTime  = 150; // 0.1 second resolution
+bool guiSleeping       = false;
+uint8_t guiTickPeriod  = 50;
 static Ticker tick;                      /* timer for interrupt handler */
 static TFT_eSPI tft        = TFT_eSPI(); /* TFT instance */
 static uint16_t calData[5] = {0, 65535, 0, 65535, 0};
 
-static WiFiClient webClient; // for snatshot
 static File pFileOut;
 static uint8_t guiSnapshot = 0;
 
@@ -92,7 +108,7 @@ void tft_espi_flush(lv_disp_drv_t * disp, const lv_area_t * area, lv_color_t * c
                             break;
                         case 2:
                             // Send to remote client
-                            if(webClient.write(pixel, i) != i) {
+                            if(webClient->client().write(pixel, i) != i) {
                                 errorPrintln(F("GUI: %sPixelbuffer not completely sent"));
                             }
                     }
@@ -109,7 +125,7 @@ void tft_espi_flush(lv_disp_drv_t * disp, const lv_area_t * area, lv_color_t * c
                     break;
                 case 2:
                     // Send to remote client
-                    if(webClient.write(pixel, i) != i) {
+                    if(webClient->client().write(pixel, i) != i) {
                         errorPrintln(F("GUI: %sPixelbuffer not completely sent"));
                     }
             }
@@ -231,7 +247,7 @@ void guiSetup(TFT_eSPI & screen, JsonObject settings)
 
 #if defined(ARDUINO_ARCH_ESP32)
     /* allocate on iram (or psram ?) */
-    buffer_size                      = 1024 * 8;
+    buffer_size                      = 1024 * 24;
     static lv_color_t * guiVdbBuffer = (lv_color_t *)malloc(sizeof(lv_color_t) * buffer_size);
     static lv_disp_buf_t disp_buf;
     lv_disp_buf_init(&disp_buf, guiVdbBuffer, NULL, buffer_size);
@@ -250,7 +266,9 @@ void guiSetup(TFT_eSPI & screen, JsonObject settings)
 #endif
 
     /* Initialize PNG decoder */
-    // png_decoder_init();
+#if HASP_USE_PNGDECODE != 0
+    png_decoder_init();
+#endif
 
     /* Initialize the display driver */
     lv_disp_drv_t disp_drv;
@@ -319,7 +337,22 @@ void guiSetup(TFT_eSPI & screen, JsonObject settings)
     lv_fs_if_init();
 #endif
 
-    // guiLoop();
+    /* Setup Backlight Control Pin */
+    if(guiBacklightPin >= 0) {
+        char msg[128];
+        sprintf(msg, PSTR("LVGL: Backlight Pin = %i"), guiBacklightPin);
+        debugPrintln(msg);
+
+#if defined(ARDUINO_ARCH_ESP32)
+        // configure LED PWM functionalitites
+        ledcSetup(0, 1000, 10);
+        // attach the channel to the GPIO to be controlled
+        pinMode(guiBacklightPin, OUTPUT);
+        ledcAttachPin(guiBacklightPin, 0);
+#else
+        pinMode(guiBacklightPin, OUTPUT);
+#endif
+    }
 }
 
 void IRAM_ATTR guiLoop()
@@ -330,11 +363,33 @@ void IRAM_ATTR guiLoop()
 void guiStop()
 {}
 
+void guiSetDim(uint8_t level)
+{
+    if(guiBacklightPin >= 0) {
+        guiDimLevel = level >= 0 ? level : 0;
+        guiDimLevel = guiDimLevel <= 100 ? guiDimLevel : 100;
+
+#if defined(ARDUINO_ARCH_ESP32)
+        ledcWrite(0, map(guiDimLevel, 0, 100, 0, 1023)); // ledChannel and value
+#else
+        analogWrite(D1, map(guiDimLevel, 0, 100, 0, 1023));
+#endif
+    } else {
+        guiDimLevel = -1;
+    }
+}
+
+int8_t guiGetDim()
+{
+    return guiDimLevel;
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 bool guiGetConfig(const JsonObject & settings)
 {
-    settings[FPSTR(F_GUI_TICKPERIOD)] = guiTickPeriod;
-    settings[FPSTR(F_GUI_IDLEPERIOD)] = guiSleepTime;
+    settings[FPSTR(F_GUI_TICKPERIOD)]   = guiTickPeriod;
+    settings[FPSTR(F_GUI_IDLEPERIOD)]   = guiSleepTime;
+    settings[FPSTR(F_GUI_BACKLIGHTPIN)] = guiBacklightPin;
 
     JsonArray array = settings[FPSTR(F_GUI_CALIBRATION)].to<JsonArray>();
     for(int i = 0; i < 5; i++) {
@@ -360,6 +415,15 @@ bool guiSetConfig(const JsonObject & settings)
         changed |= guiTickPeriod != settings[FPSTR(F_GUI_TICKPERIOD)].as<uint8_t>();
 
         guiTickPeriod = settings[FPSTR(F_GUI_TICKPERIOD)].as<uint8_t>();
+    }
+
+    if(!settings[FPSTR(F_GUI_BACKLIGHTPIN)].isNull()) {
+        if(guiBacklightPin != settings[FPSTR(F_GUI_BACKLIGHTPIN)].as<int8_t>()) {
+            debugPrintln(F("guiBacklightPin set"));
+        }
+        changed |= guiBacklightPin != settings[FPSTR(F_GUI_BACKLIGHTPIN)].as<int8_t>();
+
+        guiBacklightPin = settings[FPSTR(F_GUI_BACKLIGHTPIN)].as<int8_t>();
     }
 
     if(!settings[FPSTR(F_GUI_IDLEPERIOD)].isNull()) {
@@ -430,9 +494,15 @@ void guiTakeScreenshot(const char * pFileName)
     pFileOut.close();
     printf(("[Display] data flushed to %s", pFileName));
 }
-void guiTakeScreenshot(WiFiClient client)
+
+#if defined(ARDUINO_ARCH_ESP8266)
+void guiTakeScreenshot(ESP8266WebServer & client)
+#endif
+#if defined(ARDUINO_ARCH_ESP32)
+    void guiTakeScreenshot(WebServer & client)
+#endif // ESP32{
 {
-    webClient = client;
+    webClient = &client;
 
     uint8_t bmpheader[138] = {0x42, 0x4D, 0x8A, 0xB0, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x8A, 0x00, 0x00, 0x00, 0x7C,
                               0x00, 0x00, 0x00, 0xF0, 0x00, 0x00, 0x00, 0xC0, 0xFE, 0xFF, 0xFF, 0x01, 0x00, 0x20, 0x00,
@@ -440,10 +510,10 @@ void guiTakeScreenshot(WiFiClient client)
                               0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0x00, 0x00, 0xFF,
                               0x00, 0x00, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0x42, 0x47, 0x52, 0x73};
 
-    if(client.write(bmpheader, sizeof(bmpheader)) != sizeof(bmpheader)) {
-        Serial.println("Data sent does not match header size!");
+    if(webClient->client().write(bmpheader, sizeof(bmpheader)) != sizeof(bmpheader)) {
+        errorPrintln(F("GUI: %sData sent does not match header size"));
     } else {
-        Serial.println("OK BMP Header sent!");
+        debugPrintln(F("GUI: Bitmap header sent"));
     }
 
     guiSnapshot = 2;
@@ -451,5 +521,5 @@ void guiTakeScreenshot(WiFiClient client)
     lv_refr_now(NULL); /* Will call our disp_drv.disp_flush function */
     guiSnapshot = 0;
 
-    printf("[Display] data flushed to webclient");
+    debugPrintln(F("GUI: Bitmap data flushed to webclient"));
 }

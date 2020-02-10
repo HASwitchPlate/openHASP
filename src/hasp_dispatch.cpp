@@ -1,4 +1,6 @@
 #include "hasp_dispatch.h"
+#include "hasp_config.h"
+#include "hasp_debug.h"
 #include "hasp_mqtt.h"
 #include "hasp_http.h"
 #include "hasp_mdns.h"
@@ -32,13 +34,15 @@ void IRAM_ATTR dispatchAttribute(String & strTopic, String & strPayload)
             } // valid page
         }
     } else if(strTopic == "page") {
+        dispatchPage(strPayload);
     } else if(strTopic == "dim") {
+        dispatchDim(strPayload);
     }
 }
 
 void IRAM_ATTR dispatchPage(String & strPageid)
 {
-    debugPrintln("PAGE:" + strPageid);
+    debugPrintln("PAGE: " + strPageid);
 
     if(strPageid.length() == 0) {
         String strPayload = String(haspGetPage());
@@ -48,9 +52,27 @@ void IRAM_ATTR dispatchPage(String & strPageid)
     }
 }
 
+void dispatchDim(String & strDimLevel)
+{
+    debugPrintln("DIM: " + strDimLevel);
+
+    if(strDimLevel.length() == 0) {
+        String strPayload = String(guiGetDim());
+        mqttSendState("dim", strPayload.c_str());
+    } else {
+        guiSetDim(strDimLevel.toInt());
+    }
+}
+
 void IRAM_ATTR dispatchCommand(String cmnd)
 {
     debugPrintln("CMND: " + cmnd);
+
+    if(cmnd.startsWith(F("page ")) || cmnd.startsWith(F("page="))) {
+        cmnd = cmnd.substring(5, cmnd.length());
+        dispatchPage(cmnd);
+        return;
+    }
 
     if(cmnd == F("calibrate")) {
         guiCalibrate();
@@ -63,7 +85,7 @@ void IRAM_ATTR dispatchCommand(String cmnd)
     }
 
     if(cmnd == F("reboot") || cmnd == F("restart")) {
-        haspReboot(true);
+        dispatchReboot(true);
         return;
     }
 
@@ -81,7 +103,7 @@ void IRAM_ATTR dispatchCommand(String cmnd)
     }
 }
 
-void IRAM_ATTR dispatchJson(String & strPayload)
+void dispatchJson(String & strPayload)
 { // Parse an incoming JSON array into individual commands
     if(strPayload.endsWith(",]")) {
         // Trailing null array elements are an artifact of older Home Assistant automations
@@ -97,14 +119,7 @@ void IRAM_ATTR dispatchJson(String & strPayload)
         return;
     }
 
-    // Slow
-    // for(uint8_t i = 0; i < haspCommands.size(); i++) {
-    //    dispatchCommand(haspCommands[i]);
-    //}
-
-    // Get a reference to the root array
     JsonArray arr = haspCommands.as<JsonArray>();
-    // Fast
     for(JsonVariant command : arr) {
         dispatchCommand(command.as<String>());
     }
@@ -113,4 +128,17 @@ void IRAM_ATTR dispatchJson(String & strPayload)
 void IRAM_ATTR dispatchIdle(const __FlashStringHelper * state)
 {
     mqttSendState(String(F("idle")).c_str(), String(state).c_str());
+}
+
+void dispatchReboot(bool saveConfig)
+{
+    mqttStop(); // Stop the MQTT Client first
+    if(saveConfig) configWriteConfig();
+    debugStop();
+    delay(250);
+    wifiStop();
+    debugPrintln(F("CMND: Properly Rebooting the MCU now!"));
+    debugPrintln(F("-------------------------------------"));
+    ESP.restart();
+    delay(5000);
 }
