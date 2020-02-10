@@ -86,7 +86,7 @@ typedef struct
  * GLOBAL PROTOTYPES
  **********************/
 int lv_zifont_init(void);
-int lv_zifont_font_init(lv_font_t * font, const char * font_path, uint16_t size);
+int lv_zifont_font_init(lv_font_t ** font, const char * font_path, uint16_t size);
 
 /**********************
  *      MACROS

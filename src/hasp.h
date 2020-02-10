@@ -29,7 +29,7 @@ extern "C" {
 #include "hasp_conf.h"
 #endif */
 
-#if LV_USE_HASP
+#if HASP_USE_APP
 
 /*********************
  *      DEFINES

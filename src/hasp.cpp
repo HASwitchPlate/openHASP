@@ -422,9 +422,7 @@ bool haspGetObjAttribute(lv_obj_t * obj, String strAttr, std::string & strPayloa
                     if(check_obj_type(list.type[0], LV_HASP_ROLLER))
                         strPayload = String(lv_roller_get_selected(obj)).c_str();
 
-                    if(check_obj_type(list.type[0], LV_HASP_LED))
-                        strPayload = String(lv_led_get_bright(obj) != 255 ? 0 : 1).c_str();
-
+                    if(check_obj_type(list.type[0], LV_HASP_LED)) strPayload = String(lv_led_get_bright(obj)).c_str();
                     if(check_obj_type(list.type[0], LV_HASP_SWITCH)) strPayload = String(lv_sw_get_state(obj)).c_str();
 
                     return true;
@@ -521,7 +519,7 @@ void haspSetObjAttribute(lv_obj_t * obj, String strAttr, String strPayload)
                     else if(check_obj_type(list.type[0], LV_HASP_SWITCH))
                         val == 0 ? lv_sw_off(obj, LV_ANIM_ON) : lv_sw_on(obj, LV_ANIM_ON);
                     else if(check_obj_type(list.type[0], LV_HASP_LED))
-                        val == 0 ? lv_led_off(obj) : lv_led_on(obj);
+                        lv_led_set_bright(obj, (uint8_t)val);
                     else if(check_obj_type(list.type[0], LV_HASP_GAUGE))
                         lv_gauge_set_value(obj, 0, intval);
                     else if(check_obj_type(list.type[0], LV_HASP_DDLIST))
@@ -771,10 +769,9 @@ void haspSetup(JsonObject settings)
     // static lv_font_t *
     //    my_font = (lv_font_t *)lv_mem_alloc(sizeof(lv_font_t));
 
-    defaultFont = (lv_font_t *)lv_mem_alloc(sizeof(lv_font_t));
     lv_zifont_init();
 
-    if(lv_zifont_font_init(defaultFont, haspZiFontPath, 24) != 0) {
+    if(lv_zifont_font_init(&defaultFont, haspZiFontPath, 24) != 0) {
         errorPrintln(String(F("HASP: %sFailed to set the custom font to ")) + String(haspZiFontPath));
         defaultFont = NULL; // Use default font
     }
@@ -845,6 +842,29 @@ void haspSetup(JsonObject settings)
     for(uint8_t i = 0; i < (sizeof pages / sizeof *pages); i++) {
         pages[i] = lv_obj_create(NULL, NULL);
         // lv_obj_set_size(pages[0], hres, vres);
+    }
+
+    for(uint8_t i = 0; i < (sizeof pages / sizeof *pages); i++) {
+        pages[i] = lv_obj_create(NULL, NULL);
+        // lv_obj_set_size(pages[0], hres, vres);
+    }
+
+    if(lv_zifont_font_init(&haspFonts[0], "/fonts/HMI FrankRuhlLibre 24.zi", 24) != 0) {
+        errorPrintln(String(F("HASP: %sFailed to set the custom font to 0")));
+        defaultFont = NULL; // Use default font
+    }
+    if(lv_zifont_font_init(&haspFonts[1], "/fonts/HMI FiraSans 24.zi", 24) != 0) {
+        errorPrintln(String(F("HASP: %sFailed to set the custom font to 1")));
+        defaultFont = NULL; // Use default font
+    }
+    if(lv_zifont_font_init(&haspFonts[2], "/fonts/HMI AbrilFatface 24.zi", 24) != 0) {
+        errorPrintln(String(F("HASP: %sFailed to set the custom font to 2")));
+        defaultFont = NULL; // Use default font
+    }
+
+    for(int i = 0; i < 3; i++) {
+        lv_style_copy(&labelStyles[i], &lv_style_pretty_color);
+        labelStyles[i].text.font = haspFonts[i];
     }
 
     /*
@@ -1196,8 +1216,9 @@ void haspNewObject(const JsonObject & config)
     lv_coord_t height = config[F("h")].as<lv_coord_t>();
     if(width == 0) width = 32;
     if(height == 0) height = 32;
-    uint8_t objid = config[F("objid")].as<uint8_t>();
-    uint8_t id    = config[F("id")].as<uint8_t>();
+    uint8_t objid   = config[F("objid")].as<uint8_t>();
+    uint8_t id      = config[F("id")].as<uint8_t>();
+    uint8_t styleid = config[F("styleid")].as<uint8_t>();
 
     /* Define Objects*/
     lv_obj_t * obj;
@@ -1227,6 +1248,10 @@ void haspNewObject(const JsonObject & config)
             obj = lv_label_create(parent_obj, NULL);
             if(config[F("txt")]) {
                 lv_label_set_text(obj, config[F("txt")].as<String>().c_str());
+            }
+            if(styleid < sizeof labelStyles / sizeof *labelStyles) {
+                debugPrintln("HASP: Styleid set to " + styleid);
+                lv_label_set_style(obj, LV_LABEL_STYLE_MAIN, &labelStyles[styleid]);
             }
             /* click area padding */
             uint8_t padh = config[F("padh")].as<uint8_t>();
@@ -1305,9 +1330,8 @@ void haspNewObject(const JsonObject & config)
             break;
         }
         case LV_HASP_LED: {
-            obj        = lv_led_create(parent_obj, NULL);
-            bool state = config[F("val")].as<bool>();
-            if(state) lv_led_on(obj);
+            obj = lv_led_create(parent_obj, NULL);
+            lv_led_set_bright(obj, config[F("val")].as<uint8_t>() | 0);
             lv_obj_set_event_cb(obj, btn_event_handler);
             break;
         }

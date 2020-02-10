@@ -101,22 +101,27 @@ bool openFont(File & file, const char * filename)
 {
     file = SPIFFS.open(filename, "r");
     if(!file) {
-        errorPrintln(String(F("FONT: %sOpening font: ")) + String(filename));
+        String error = String(F("FONT: %sOpening font: "));
+        error += String(filename);
+        errorPrintln(error);
         return false;
     }
     return true;
 }
 
-int lv_zifont_font_init(lv_font_t * font, const char * font_path, uint16_t size)
+int lv_zifont_font_init(lv_font_t ** font, const char * font_path, uint16_t size)
 {
     charInBuffer = 0; // invalidate any previous cache
 
+    if(!*font) *font = (lv_font_t *)lv_mem_alloc(sizeof(lv_font_t));
+    LV_ASSERT_MEM(*font);
+
     lv_font_fmt_zifont_dsc_t * dsc;
-    if(!font->dsc) {
+    if(!(*font)->dsc) {
         dsc = (lv_font_fmt_zifont_dsc_t *)lv_mem_alloc(sizeof(lv_font_fmt_zifont_dsc_t));
         LV_ASSERT_MEM(dsc);
     } else {
-        dsc = (lv_font_fmt_zifont_dsc_t *)font->dsc;
+        dsc = (lv_font_fmt_zifont_dsc_t *)(*font)->dsc;
     }
     if(dsc == NULL) return ZIFONT_ERROR_OUT_OF_MEMORY;
     int error = 0;
@@ -204,16 +209,16 @@ int lv_zifont_font_init(lv_font_t * font, const char * font_path, uint16_t size)
     dsc->last_glyph_dsc = NULL;
     dsc->last_glyph_id  = 0;
 
-    font->get_glyph_dsc    = lv_font_get_glyph_dsc_fmt_zifont; /*Function pointer to get glyph's data*/
-    font->get_glyph_bitmap = lv_font_get_bitmap_fmt_zifont;    /*Function pointer to get glyph's bitmap*/
-    font->line_height      = dsc->CharHeight;                  /*The maximum line height required by the font*/
-    font->base_line        = 0;                                /*Baseline measured from the bottom of the line*/
-    font->dsc   = dsc; /* header data struct */ /*The custom font data. Will be accessed by `get_glyph_bitmap/dsc` */
-    font->subpx = 0;
+    (*font)->get_glyph_dsc    = lv_font_get_glyph_dsc_fmt_zifont; /*Function pointer to get glyph's data*/
+    (*font)->get_glyph_bitmap = lv_font_get_bitmap_fmt_zifont;    /*Function pointer to get glyph's bitmap*/
+    (*font)->line_height      = dsc->CharHeight;                  /*The maximum line height required by the font*/
+    (*font)->base_line        = 0;                                /*Baseline measured from the bottom of the line*/
+    (*font)->dsc   = dsc; /* header data struct */ /*The custom font data. Will be accessed by `get_glyph_bitmap/dsc` */
+    (*font)->subpx = 0;
 
-    if(font->user_data != (char *)font_path) {
-        if(font->user_data) free(font->user_data);
-        font->user_data = (char *)font_path;
+    if((*font)->user_data != (char *)font_path) {
+        if((*font)->user_data) free((*font)->user_data);
+        (*font)->user_data = (char *)font_path;
     }
     return ZIFONT_NO_ERROR;
 }
