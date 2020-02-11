@@ -264,9 +264,13 @@ void haspSendNewValue(lv_obj_t * obj, int16_t val)
 
 int32_t get_cpicker_value(lv_obj_t * obj)
 {
-    lv_color16_t c16;
-    c16.full = lv_color_to16(lv_cpicker_get_color(obj));
-    return (int32_t)c16.full;
+    lv_color32_t c32;
+    c32.full = lv_color_to32(lv_cpicker_get_color(obj));
+    return (int32_t)c32.full;
+}
+void set_cpicker_value(lv_obj_t * obj, uint32_t color)
+{
+    lv_cpicker_set_color(obj, lv_color_hex(color));
 }
 
 void haspSendNewValue(lv_obj_t * obj, lv_color_t color)
@@ -527,11 +531,12 @@ void haspSetObjAttribute(lv_obj_t * obj, String strAttr, String strPayload)
                     else if(check_obj_type(list.type[0], LV_HASP_ROLLER))
                         lv_roller_set_selected(obj, val, LV_ANIM_ON);
                     else if(check_obj_type(list.type[0], LV_HASP_BAR))
-                        lv_bar_set_value(obj, intval, LV_ANIM_ON);
+                        lv_bar_set_value(obj, intval, LV_ANIM_OFF);
                     else if(check_obj_type(list.type[0], LV_HASP_LMETER))
                         lv_lmeter_set_value(obj, intval);
                     else if(check_obj_type(list.type[0], LV_HASP_CPICKER))
-                        lv_lmeter_set_value(obj, (uint8_t)val);
+                        set_cpicker_value(obj, (uint32_t)strPayload.toInt());
+
                     return;
                 }
             }
