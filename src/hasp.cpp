@@ -262,11 +262,11 @@ void haspSendNewValue(lv_obj_t * obj, int16_t val)
     haspSendNewValue(obj, (int32_t)val);
 }
 
-int32_t get_cpicker_value(lv_obj_t * obj)
+uint32_t get_cpicker_value(lv_obj_t * obj)
 {
     lv_color32_t c32;
     c32.full = lv_color_to32(lv_cpicker_get_color(obj));
-    return (int32_t)c32.full;
+    return (uint32_t)c32.full;
 }
 void set_cpicker_value(lv_obj_t * obj, uint32_t color)
 {
@@ -275,7 +275,7 @@ void set_cpicker_value(lv_obj_t * obj, uint32_t color)
 
 void haspSendNewValue(lv_obj_t * obj, lv_color_t color)
 {
-    haspSendNewValue(obj, get_cpicker_value(obj));
+    haspSendNewValue(obj, (int32_t)get_cpicker_value(obj));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -359,14 +359,6 @@ bool haspGetObjAttribute(lv_obj_t * obj, String strAttr, std::string & strPayloa
             }
             strPayload = String(val).c_str();
             return true;
-        case 3:
-            if(strAttr == F(".en")) {
-                strPayload = String(lv_obj_get_click(obj)).c_str();
-                return true;
-            } else {
-                return false;
-            }
-            return false;
         case 4:
             if(strAttr == F(".vis")) {
                 strPayload = String(!lv_obj_get_hidden(obj)).c_str();
@@ -433,10 +425,19 @@ bool haspGetObjAttribute(lv_obj_t * obj, String strAttr, std::string & strPayloa
                 }
             }
             break;
+        case 7:
+            if(strAttr == F(".hidden")) {
+                strPayload = String(!lv_obj_get_hidden(obj)).c_str();
+                return true;
+            } else {
+                return false;
+            }
+            return false;
         case 8:
             if(strAttr == F(".opacity")) {
-                strPayload = String(!lv_obj_get_opa_scale_enable(obj) ? 100 : lv_obj_get_opa_scale(obj)).c_str();
-
+                strPayload = String(!lv_obj_get_opa_scale_enable(obj) ? 255 : lv_obj_get_opa_scale(obj)).c_str();
+            } else if(strAttr == F(".enabled")) {
+                strPayload = String(lv_obj_get_click(obj)).c_str();
             } else if(strAttr == F(".options")) {
                 /* options depend on objecttype */
                 lv_obj_type_t list;
@@ -469,87 +470,113 @@ void haspSetObjAttribute(lv_obj_t * obj, String strAttr, String strPayload)
         case 2:
             if(strAttr == F(".x")) {
                 lv_obj_set_x(obj, val);
+                return;
             } else if(strAttr == F(".y")) {
                 lv_obj_set_y(obj, val);
+                return;
             } else if(strAttr == F(".w")) {
                 lv_obj_set_width(obj, val);
+                return;
             } else if(strAttr == F(".h")) {
                 lv_obj_set_height(obj, val);
-            } else {
-                return;
-            }
-            break;
-        case 3:
-            if(strAttr == F(".en")) {
-                lv_obj_set_click(obj, val != 0);
-            } else {
                 return;
             }
             break;
         case 4:
             if(strAttr == F(".vis")) {
                 lv_obj_set_hidden(obj, val == 0);
+                return;
             } else {
                 /* .txt and .val depend on objecttype */
                 lv_obj_type_t list;
                 lv_obj_get_type(obj, &list);
 
                 if(strAttr == F(".txt")) { // In order of likelihood to occur
-                    if(check_obj_type(list.type[0], LV_HASP_LABEL))
+                    if(check_obj_type(list.type[0], LV_HASP_LABEL)) {
                         lv_label_set_text(obj, strPayload.c_str());
-                    else if(check_obj_type(list.type[0], LV_HASP_CHECKBOX))
+                        return;
+                    } else if(check_obj_type(list.type[0], LV_HASP_CHECKBOX)) {
                         lv_cb_set_text(obj, strPayload.c_str());
-                    else if(check_obj_type(list.type[0], LV_HASP_DDLIST))
-                        lv_ddlist_set_options(obj, strPayload.c_str());
-                    else if(check_obj_type(list.type[0], LV_HASP_ROLLER)) {
-                        lv_roller_ext_t * ext = (lv_roller_ext_t *)lv_obj_get_ext_attr(obj);
-                        lv_roller_set_options(obj, strPayload.c_str(), ext->mode);
+                        return;
                     }
-                    return;
                 }
 
                 if(strAttr == F(".val")) { // In order of likelihood to occur
                     int16_t intval = (int16_t)strPayload.toInt();
 
                     if(check_obj_type(list.type[0], LV_HASP_BUTTON)) {
-                        if(lv_btn_get_toggle(obj))
+                        if(lv_btn_get_toggle(obj)) {
                             lv_btn_set_state(obj, val == 0 ? LV_BTN_STATE_REL : LV_BTN_STATE_TGL_REL);
+                            return;
+                        }
 
-                    } else if(check_obj_type(list.type[0], LV_HASP_CHECKBOX))
+                    } else if(check_obj_type(list.type[0], LV_HASP_CHECKBOX)) {
                         lv_cb_set_checked(obj, val != 0);
-                    else if(check_obj_type(list.type[0], LV_HASP_SLIDER))
+                        return;
+                    } else if(check_obj_type(list.type[0], LV_HASP_SLIDER)) {
                         lv_slider_set_value(obj, intval, LV_ANIM_ON);
+                        return;
+                    }
 
-                    else if(check_obj_type(list.type[0], LV_HASP_SWITCH))
+                    else if(check_obj_type(list.type[0], LV_HASP_SWITCH)) {
                         val == 0 ? lv_sw_off(obj, LV_ANIM_ON) : lv_sw_on(obj, LV_ANIM_ON);
-                    else if(check_obj_type(list.type[0], LV_HASP_LED))
+                        return;
+                    } else if(check_obj_type(list.type[0], LV_HASP_LED)) {
                         lv_led_set_bright(obj, (uint8_t)val);
-                    else if(check_obj_type(list.type[0], LV_HASP_GAUGE))
+                        return;
+                    } else if(check_obj_type(list.type[0], LV_HASP_GAUGE)) {
                         lv_gauge_set_value(obj, 0, intval);
-                    else if(check_obj_type(list.type[0], LV_HASP_DDLIST))
+                        return;
+                    } else if(check_obj_type(list.type[0], LV_HASP_DDLIST)) {
                         lv_ddlist_set_selected(obj, val);
-                    else if(check_obj_type(list.type[0], LV_HASP_ROLLER))
+                        return;
+                    } else if(check_obj_type(list.type[0], LV_HASP_ROLLER)) {
                         lv_roller_set_selected(obj, val, LV_ANIM_ON);
-                    else if(check_obj_type(list.type[0], LV_HASP_BAR))
+                        return;
+                    } else if(check_obj_type(list.type[0], LV_HASP_BAR)) {
                         lv_bar_set_value(obj, intval, LV_ANIM_OFF);
-                    else if(check_obj_type(list.type[0], LV_HASP_LMETER))
+                        return;
+                    } else if(check_obj_type(list.type[0], LV_HASP_LMETER)) {
                         lv_lmeter_set_value(obj, intval);
-                    else if(check_obj_type(list.type[0], LV_HASP_CPICKER))
+                        return;
+                    } else if(check_obj_type(list.type[0], LV_HASP_CPICKER)) {
                         set_cpicker_value(obj, (uint32_t)strPayload.toInt());
-
-                    return;
+                        return;
+                    }
                 }
+            }
+            break;
+        case 7:
+            if(strAttr == F(".hidden")) {
+                lv_obj_set_hidden(obj, val == 0);
+                return;
             }
             break;
         case 8:
             if(strAttr == F(".opacity")) {
-                lv_obj_set_opa_scale_enable(obj, val < 100);
-                lv_obj_set_opa_scale(obj, val < 100 ? val : 100);
+                lv_obj_set_opa_scale_enable(obj, val < 255);
+                lv_obj_set_opa_scale(obj, val < 255 ? val : 255);
+                return;
+            } else if(strAttr == F(".enabled")) {
+                lv_obj_set_click(obj, val != 0);
+                return;
+            } else if(strAttr == F(".options")) {
+                /* .options depend on objecttype */
+                lv_obj_type_t list;
+                lv_obj_get_type(obj, &list);
+
+                if(check_obj_type(list.type[0], LV_HASP_DDLIST)) {
+                    lv_ddlist_set_options(obj, strPayload.c_str());
+                    return;
+                } else if(check_obj_type(list.type[0], LV_HASP_ROLLER)) {
+                    lv_roller_ext_t * ext = (lv_roller_ext_t *)lv_obj_get_ext_attr(obj);
+                    lv_roller_set_options(obj, strPayload.c_str(), ext->mode);
+                    return;
+                }
             }
             break;
-        default:
-            errorPrintln(F("HASP: %sUnknown property"));
     }
+    errorPrintln(F("HASP: %sUnknown property"));
 }
 
 void haspProcessAttribute(uint8_t pageid, uint8_t objid, String strAttr, String strPayload)
@@ -869,7 +896,8 @@ void haspSetup(JsonObject settings)
 
     for(int i = 0; i < 3; i++) {
         lv_style_copy(&labelStyles[i], &lv_style_pretty_color);
-        labelStyles[i].text.font = haspFonts[i];
+        labelStyles[i].text.font  = haspFonts[i];
+        labelStyles[i].text.color = LV_COLOR_BLUE;
     }
 
     /*
@@ -1302,6 +1330,8 @@ void haspNewObject(const JsonObject & config)
             lv_slider_set_range(obj, min, max);
             lv_slider_set_value(obj, val, LV_ANIM_OFF);
             lv_obj_set_event_cb(obj, slider_event_handler);
+            bool knobin = config[F("knobin")].as<bool>() | true;
+            // lv_slider_set_knob_in(obj, knobin);
             break;
         }
         case LV_HASP_GAUGE: {
@@ -1378,8 +1408,8 @@ void haspNewObject(const JsonObject & config)
 
     if(!config[F("opacity")].isNull()) {
         uint8_t opacity = config[F("opacity")].as<uint8_t>();
-        lv_obj_set_opa_scale_enable(obj, opacity < 100);
-        lv_obj_set_opa_scale(obj, opacity < 100 ? opacity : 100);
+        lv_obj_set_opa_scale_enable(obj, opacity < 255);
+        lv_obj_set_opa_scale(obj, opacity < 255 ? opacity : 255);
     }
 
     bool hidden = config[F("hidden")].as<bool>();
