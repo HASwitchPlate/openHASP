@@ -16,7 +16,7 @@ void dispatchLoop()
 {}
 
 // objectattribute=value
-void IRAM_ATTR dispatchAttribute(String & strTopic, String & strPayload)
+void IRAM_ATTR dispatchAttribute(String & strTopic, const char * payload)
 {
     if(strTopic.startsWith("p[")) {
         String strPageId = strTopic.substring(2, strTopic.indexOf("]"));
@@ -30,17 +30,17 @@ void IRAM_ATTR dispatchAttribute(String & strTopic, String & strPayload)
             int objid  = strObjId.toInt();
 
             if(pageid >= 0 && pageid <= 255 && objid > 0 && objid <= 255) {
-                haspProcessAttribute((uint8_t)pageid, (uint8_t)objid, strAttr, strPayload);
+                haspProcessAttribute((uint8_t)pageid, (uint8_t)objid, strAttr, payload);
             } // valid page
         }
     } else if(strTopic == "page") {
-        dispatchPage(strPayload);
+        dispatchPage(payload);
     } else if(strTopic == "dim") {
-        dispatchDim(strPayload);
+        dispatchDim(payload);
     }
 }
 
-void IRAM_ATTR dispatchPage(String & strPageid)
+void IRAM_ATTR dispatchPage(String strPageid)
 {
     debugPrintln("PAGE: " + strPageid);
 
@@ -52,7 +52,7 @@ void IRAM_ATTR dispatchPage(String & strPageid)
     }
 }
 
-void dispatchDim(String & strDimLevel)
+void dispatchDim(String strDimLevel)
 {
     debugPrintln("DIM: " + strDimLevel);
 
@@ -98,21 +98,21 @@ void IRAM_ATTR dispatchCommand(String cmnd)
     if(pos > 0) {
         String strTopic   = cmnd.substring(0, pos);
         String strPayload = cmnd.substring(pos + 1, cmnd.length());
-        debugPrintln("CMND: '" + strTopic + "'='" + strPayload + "'");
-        dispatchAttribute(strTopic, strPayload);
+        // debugPrintln("CMND: '" + strTopic + "'='" + strPayload + "'");
+        dispatchAttribute(strTopic, strPayload.c_str());
     }
 }
 
-void dispatchJson(String & strPayload)
+void dispatchJson(char * payload)
 { // Parse an incoming JSON array into individual commands
-    if(strPayload.endsWith(",]")) {
-        // Trailing null array elements are an artifact of older Home Assistant automations
-        // and need to be removed before parsing by ArduinoJSON 6+
-        strPayload.remove(strPayload.length() - 2, 2);
-        strPayload.concat("]");
-    }
-    DynamicJsonDocument haspCommands(2048 + 512);
-    DeserializationError jsonError = deserializeJson(haspCommands, strPayload);
+    /*  if(strPayload.endsWith(",]")) {
+          // Trailing null array elements are an artifact of older Home Assistant automations
+          // and need to be removed before parsing by ArduinoJSON 6+
+          strPayload.remove(strPayload.length() - 2, 2);
+          strPayload.concat("]");
+      }*/
+    DynamicJsonDocument haspCommands(MQTT_MAX_PACKET_SIZE + 512);
+    DeserializationError jsonError = deserializeJson(haspCommands, payload);
     if(jsonError) { // Couldn't parse incoming JSON command
         errorPrintln(String(F("JSON: %sFailed to parse incoming JSON command with error: ")) +
                      String(jsonError.c_str()));

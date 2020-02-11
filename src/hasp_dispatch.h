@@ -6,12 +6,12 @@
 void dispatchSetup(void);
 void dispatchLoop(void);
 
-void dispatchAttribute(String & strTopic, String & strPayload);
+void dispatchAttribute(String & strTopic, const char * strPayload);
 void dispatchCommand(String cmnd);
-void dispatchJson(String & strPayload);
+void dispatchJson(char * strPayload);
 
-void dispatchPage(String & strPageid);
-void dispatchDim(String & strDimLevel);
+void dispatchPage(String strPageid);
+void dispatchDim(String strDimLevel);
 
 void dispatchIdle(const __FlashStringHelper * state);
 void dispatchReboot(bool saveConfig);

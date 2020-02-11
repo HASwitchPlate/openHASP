@@ -185,9 +185,8 @@ void mqttStatusUpdate()
 // Receive incoming messages
 void mqttCallback(char * topic, byte * payload, unsigned int length)
 { // Handle incoming commands from MQTT
-    payload[length]   = '\0';
-    String strTopic   = topic;
-    String strPayload = (char *)payload;
+    payload[length] = '\0';
+    String strTopic = topic;
 
     // strTopic: homeassistant/haswitchplate/devicename/command/p[1].b[4].txt
     // strPayload: "Lights On"
@@ -208,7 +207,7 @@ void mqttCallback(char * topic, byte * payload, unsigned int length)
     // '[...]/device/command/p[1].b[4].txt' -m '' = nextionGetAttr("p[1].b[4].txt")
     // '[...]/device/command/p[1].b[4].txt' -m '"Lights On"' = nextionSetAttr("p[1].b[4].txt", "\"Lights On\"")
 
-    debugPrintln(String(F("MQTT IN: '")) + strTopic + "' : '" + strPayload + "'");
+    debugPrintln(String(F("MQTT IN: '")) + strTopic + "' : '" + (char *)payload + "'");
 
     if(strTopic.startsWith(mqttNodeTopic)) {
         strTopic = strTopic.substring(mqttNodeTopic.length(), strTopic.length());
@@ -220,7 +219,7 @@ void mqttCallback(char * topic, byte * payload, unsigned int length)
     // debugPrintln(String(F("MQTT Short Topic : '")) + strTopic + "'");
 
     if(strTopic == F("command")) {
-        dispatchCommand(strPayload);
+        dispatchCommand((char *)payload);
         return;
     }
 
@@ -229,18 +228,18 @@ void mqttCallback(char * topic, byte * payload, unsigned int length)
         // debugPrintln(String(F("MQTT Shorter Command Topic : '")) + strTopic + "'");
 
         if(strTopic == F("page")) { // '[...]/device/command/page' -m '1' == nextionSendCmd("page 1")
-            dispatchPage(strPayload);
+            dispatchPage((char *)payload);
         } else if(strTopic == F("dim")) { // '[...]/device/command/page' -m '1' == nextionSendCmd("page 1")
-            dispatchDim(strPayload);
+            dispatchDim((char *)payload);
         } else if(strTopic == F("json")) { // '[...]/device/command/json' -m '["dim=5", "page 1"]' =
             // nextionSendCmd("dim=50"), nextionSendCmd("page 1")
-            dispatchJson(strPayload);              // Send to nextionParseJson()
+            dispatchJson((char *)payload);         // Send to nextionParseJson()
         } else if(strTopic == F("statusupdate")) { // '[...]/device/command/statusupdate' == mqttStatusUpdate()
             //  mqttStatusUpdate();                 // return status JSON via MQTT
         } else if(strTopic == F("espupdate")) { // '[...]/device/command/espupdate' -m
                                                 // 'http://192.168.0.10/local/HASwitchPlate.ino.d1_mini.bin' ==
             // espStartOta("http://192.168.0.10/local/HASwitchPlate.ino.d1_mini.bin")
-            if(strPayload == "") {
+            if(length == 0) {
                 // espStartOta(espFirmwareUrl);
             } else {
                 // espStartOta(strPayload);
@@ -254,10 +253,12 @@ void mqttCallback(char * topic, byte * payload, unsigned int length)
             //    haspProcessAttribute(strTopic, "");
         } else { // '[...]/device/command/p[1].b[4].txt' -m '"Lights On"' ==
                  // nextionSetAttr("p[1].b[4].txt", "\"Lights On\"")
-            dispatchAttribute(strTopic, strPayload);
+            dispatchAttribute(strTopic, (char *)payload);
         }
         return;
     }
+
+    String strPayload = (char *)payload;
 
     if(strTopic == mqttLightBrightCommandTopic) { // change the brightness from the light topic
         int panelDim = map(strPayload.toInt(), 0, 255, 0, 100);
