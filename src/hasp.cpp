@@ -286,25 +286,6 @@ void haspSendCmd(String nextionCmd)
     debugPrintln(String(F("HMI OUT: ")) + nextionCmd);*/
 }
 
-void haspSetLabelText(String value)
-{
-    uint8_t pageid  = 2;
-    lv_obj_t * page = get_page(pageid);
-    if(!page) {
-        errorPrintln(F("HASP: %sPage not defined"));
-        return;
-    }
-
-    lv_obj_t * button = lv_obj_get_child_back(page, NULL);
-    if(button) {
-        lv_obj_t * label = lv_obj_get_child_back(button, NULL);
-        debugPrintln(String(F("HASP: Setting value to ")) + value);
-        // lv_label_set_text(label, value.c_str());
-    } else {
-        warningPrintln(F("HASP: %shaspSetLabelText NULL Pointer encountered"));
-    }
-}
-
 bool check_obj_type(const char * lvobjtype, lv_hasp_obj_type_t haspobjtype)
 {
     switch(haspobjtype) {
@@ -339,6 +320,52 @@ bool check_obj_type(const char * lvobjtype, lv_hasp_obj_type_t haspobjtype)
     }
 }
 
+bool haspGetLabelText(lv_obj_t * obj, std::string & strPayload)
+{
+    if(!obj) {
+        errorPrintln(F("HASP: %sButton not defined"));
+        return false;
+    }
+
+    lv_obj_t * label = lv_obj_get_child_back(obj, NULL);
+    if(label) {
+        lv_obj_type_t list;
+        lv_obj_get_type(label, &list);
+
+        if(check_obj_type(list.type[0], LV_HASP_LABEL)) {
+            strPayload = lv_label_get_text(label);
+            return true;
+        }
+
+    } else {
+        warningPrintln(F("HASP: %shaspGetLabelText NULL Pointer encountered"));
+    }
+
+    return false;
+}
+
+void haspSetLabelText(lv_obj_t * obj, const char * value)
+{
+    if(!obj) {
+        errorPrintln(F("HASP: %sButton not defined"));
+        return;
+    }
+
+    lv_obj_t * label = lv_obj_get_child_back(obj, NULL);
+    if(label) {
+        lv_obj_type_t list;
+        lv_obj_get_type(label, &list);
+
+        if(check_obj_type(list.type[0], LV_HASP_LABEL)) {
+            debugPrintln(String(F("HASP: Setting value to ")) + String(value));
+            lv_label_set_text(label, value);
+        }
+
+    } else {
+        warningPrintln(F("HASP: %shaspSetLabelText NULL Pointer encountered"));
+    }
+}
+
 bool haspGetObjAttribute(lv_obj_t * obj, String strAttr, std::string & strPayload)
 {
     if(!obj) return false;
@@ -369,6 +396,9 @@ bool haspGetObjAttribute(lv_obj_t * obj, String strAttr, std::string & strPayloa
                 lv_obj_get_type(obj, &list);
 
                 if(strAttr == F(".txt")) {
+                    if(check_obj_type(list.type[0], LV_HASP_BUTTON)) {
+                        return haspGetLabelText(obj, strPayload);
+                    }
                     if(check_obj_type(list.type[0], LV_HASP_LABEL)) {
                         strPayload = lv_label_get_text(obj);
                         return true;
@@ -492,7 +522,10 @@ void haspSetObjAttribute(lv_obj_t * obj, String strAttr, String strPayload)
                 lv_obj_get_type(obj, &list);
 
                 if(strAttr == F(".txt")) { // In order of likelihood to occur
-                    if(check_obj_type(list.type[0], LV_HASP_LABEL)) {
+                    if(check_obj_type(list.type[0], LV_HASP_BUTTON)) {
+                        haspSetLabelText(obj, strPayload.c_str());
+                        return;
+                    } else if(check_obj_type(list.type[0], LV_HASP_LABEL)) {
                         lv_label_set_text(obj, strPayload.c_str());
                         return;
                     } else if(check_obj_type(list.type[0], LV_HASP_CHECKBOX)) {
@@ -1212,17 +1245,20 @@ void haspSetPage(uint16_t pageid)
 
 void haspNewObject(const JsonObject & config)
 {
-    /* Validate page and type */
-    if(config[F("page")].isNull()) return;  // comments
-    if(config[F("objid")].isNull()) return; // comments
+    /* Validate page */
+    uint8_t pageid = config[F("page")].isNull() ? current_page : config[F("page")].as<uint8_t>();
 
     /* Page selection */
-    uint8_t pageid  = config[F("page")].as<uint8_t>();
     lv_obj_t * page = get_page(pageid);
     if(!page) {
         errorPrintln(F("HASP: %sPage ID not defined"));
         return;
     }
+    /* save the current pageid */
+    current_page = pageid;
+
+    /* Validate type */
+    if(config[F("objid")].isNull()) return; // comments
 
     lv_obj_t * parent_obj = page;
     if(!config[F("parentid")].isNull()) {
@@ -1283,7 +1319,7 @@ void haspNewObject(const JsonObject & config)
                 lv_label_set_text(obj, config[F("txt")].as<String>().c_str());
             }
             if(styleid < sizeof labelStyles / sizeof *labelStyles) {
-                debugPrintln("HASP: Styleid set to " + styleid);
+                debugPrintln(String(F("HASP: Styleid set to ")) + styleid);
                 lv_label_set_style(obj, LV_LABEL_STYLE_MAIN, &labelStyles[styleid]);
             }
             /* click area padding */
@@ -1465,11 +1501,13 @@ void haspLoadPage(String pages)
     //    ReadBufferingStream bufferingStream(file, 256);
     DynamicJsonDocument config(256);
 
+    uint8_t savedPage = current_page;
     while(deserializeJson(config, file) == DeserializationError::Ok) {
         serializeJson(config, Serial);
         Serial.println();
         haspNewObject(config.as<JsonObject>());
     }
+    current_page = savedPage;
 
     sprintf_P(msg, PSTR("HASP: File %s loaded"), pages.c_str());
     debugPrintln(msg);
