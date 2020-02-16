@@ -81,8 +81,6 @@ void debugLvgl(lv_log_level_t level, const char * file, uint32_t line, const cha
 /* Display flushing */
 void tft_espi_flush(lv_disp_drv_t * disp, const lv_area_t * area, lv_color_t * color_p)
 {
-    uint16_t c;
-
     if(guiSnapshot != 0) {
         int i = 0;
         uint8_t pixel[1024];
@@ -110,6 +108,8 @@ void tft_espi_flush(lv_disp_drv_t * disp, const lv_area_t * area, lv_color_t * c
                             // Send to remote client
                             if(webClient->client().write(pixel, i) != i) {
                                 errorPrintln(F("GUI: %sPixelbuffer not completely sent"));
+                                lv_disp_flush_ready(disp); /* tell lvgl that flushing is done */
+                                return;
                             }
                     }
                     i = 0;
@@ -131,6 +131,7 @@ void tft_espi_flush(lv_disp_drv_t * disp, const lv_area_t * area, lv_color_t * c
             }
         }
     } else {
+        uint16_t c;
 
         tft.startWrite(); /* Start new TFT transaction */
         tft.setAddrWindow(area->x1, area->y1, (area->x2 - area->x1 + 1),
@@ -247,18 +248,18 @@ void guiSetup(TFT_eSPI & screen, JsonObject settings)
 
 #if defined(ARDUINO_ARCH_ESP32)
     /* allocate on iram (or psram ?) */
-    buffer_size                      = 1024 * 24;
+    buffer_size                      = 19200; // 38 KBytes
     static lv_color_t * guiVdbBuffer = (lv_color_t *)malloc(sizeof(lv_color_t) * buffer_size);
     static lv_disp_buf_t disp_buf;
     lv_disp_buf_init(&disp_buf, guiVdbBuffer, NULL, buffer_size);
 #else
     /* allocate on heap */
-    static lv_color_t guiVdbBuffer[1024 * 4];
+    static lv_color_t guiVdbBuffer[1024 * 3]; // 6 KBytes
     buffer_size = sizeof(guiVdbBuffer) / sizeof(guiVdbBuffer[0]);
     static lv_disp_buf_t disp_buf;
     lv_disp_buf_init(&disp_buf, guiVdbBuffer, NULL, buffer_size);
 #endif
-    debugPrintln(String(F("LVGL: VDB size : ")) + String(buffer_size));
+    debugPrintln(String(F("LVGL: VDB size : ")) + String((size_t)sizeof(lv_color_t) * buffer_size));
 
 #if LV_USE_LOG != 0
     debugPrintln(F("LVGL: Registering lvgl logging handler"));
