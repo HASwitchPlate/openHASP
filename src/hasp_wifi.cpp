@@ -163,9 +163,11 @@ void wifiSetup(JsonObject settings)
     // wifiEventHandler[0]      = WiFi.onStationModeConnected(wifiSTAConnected);
     gotIpEventHandler        = WiFi.onStationModeGotIP(wifiSTAGotIP); // As soon WiFi is connected, start NTP Client
     disconnectedEventHandler = WiFi.onStationModeDisconnected(wifiSTADisconnected);
+    WiFi.setSleepMode(WIFI_NONE_SLEEP);
 #endif
 #if defined(ARDUINO_ARCH_ESP32)
     WiFi.onEvent(wifi_callback);
+    WiFi.setSleep(false);
 #endif
 
     WiFi.begin(wifiSsid.c_str(), wifiPassword.c_str());
