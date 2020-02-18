@@ -1,0 +1,51 @@
+{
+    "name": "Button", 
+    "version": "1.0.0", 
+    "keywords": [
+        "signal", 
+        "input", 
+        "output"
+    ], 
+    "description": "Button is a tiny library to make reading buttons very simple.", 
+    "frameworks": [
+        "arduino"
+    ], 
+    "platforms": [
+        "atmelavr", 
+        "atmelsam", 
+        "espressif32", 
+        "espressif8266", 
+        "intel_arc32", 
+        "microchippic32", 
+        "nordicnrf51", 
+        "nordicnrf52", 
+        "ststm32", 
+        "teensy", 
+        "timsp430"
+    ], 
+    "authors": [
+        {
+            "email": "arduino@michaeladams.org", 
+            "url": null, 
+            "maintainer": true, 
+            "name": "Michael Adams"
+        }
+    ], 
+    "repository": {
+        "type": "git", 
+        "url": "https://github.com/madleech/Button"
+    }, 
+    "homepage": "http://utrainia.com/", 
+    "export": {
+        "include": null, 
+        "exclude": [
+            "extras", 
+            "docs", 
+            "tests", 
+            "test", 
+            "*.doxyfile", 
+            "*.pdf"
+        ]
+    }, 
+    "id": 919
+}
