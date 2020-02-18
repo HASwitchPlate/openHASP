@@ -12,6 +12,8 @@
 #define HASP_USE_EEPROM 0
 #define HASP_USE_SDCARD 0
 
+#define HASP_USE_BUTTON 1
+
 #define HASP_USE_QRCODE 1
 #define HASP_USE_PNGDECODE 0
 

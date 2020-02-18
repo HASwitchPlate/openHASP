@@ -39,6 +39,10 @@
 #include "hasp_mdns.h"
 #endif
 
+#if HASP_USE_BUTTON
+#include "hasp_button.h"
+#endif
+
 bool isConnected;
 
 void setup()
@@ -83,6 +87,10 @@ void setup()
     httpSetup(settings[F("http")]);
 #endif
 
+#if HASP_USE_BUTTON
+    buttonSetup();
+#endif
+
     // otaSetup(settings[F("ota")]);
 #endif
 }
@@ -121,6 +129,10 @@ void loop()
 
 #if HASP_USE_MDNS
     mdnsLoop(isConnected);
+#endif
+
+#if HASP_USE_BUTTON
+    buttonLoop();
 #endif
 
     // otaLoop(wifiIsConnected);
