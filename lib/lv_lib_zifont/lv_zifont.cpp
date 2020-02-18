@@ -21,7 +21,7 @@
 /**********************
  *      TYPEDEFS
  **********************/
-typedef enum zifont_error_t {
+enum zifont_error_t {
     ZIFONT_NO_ERROR,
     ZIFONT_ERROR_OUT_OF_MEMORY,
     ZIFONT_ERROR_OPENING_FILE,
@@ -29,7 +29,7 @@ typedef enum zifont_error_t {
     ZIFONT_ERROR_UNKNOWN_HEADER
 };
 
-typedef enum zifont_codepage_t8_t {
+enum zifont_codepage_t8_t {
     ASCII = 0x01,
     // GB2312     = 0x02,
     ISO_8859_1 = 0x03,
@@ -124,7 +124,6 @@ int lv_zifont_font_init(lv_font_t ** font, const char * font_path, uint16_t size
         dsc = (lv_font_fmt_zifont_dsc_t *)(*font)->dsc;
     }
     if(dsc == NULL) return ZIFONT_ERROR_OUT_OF_MEMORY;
-    int error = 0;
 
     /* Initialize Last Glyph DSC */
     dsc->last_glyph_dsc = (lv_zifont_char_t *)lv_mem_alloc(sizeof(lv_zifont_char_t));
@@ -236,7 +235,6 @@ int lv_zifont_font_init(lv_font_t ** font, const char * font_path, uint16_t size
 static const uint8_t * lv_font_get_bitmap_fmt_zifont(const lv_font_t * font, uint32_t unicode_letter)
 {
     lv_font_fmt_zifont_dsc_t * fdsc = (lv_font_fmt_zifont_dsc_t *)font->dsc; /* header data struct */
-    int error                       = 0;
     uint32_t glyphID;
     char filename[32];
 
@@ -412,7 +410,6 @@ static bool lv_font_get_glyph_dsc_fmt_zifont(const lv_font_t * font, lv_font_gly
     // ulong startMillis               = millis();
     lv_font_fmt_zifont_dsc_t * fdsc = (lv_font_fmt_zifont_dsc_t *)font->dsc; /* header data struct */
     uint16_t glyphID;
-    int error = 0;
 
     /* Only ascii characteres supported for now */
     if(unicode_letter < 0x20) return false;
@@ -475,8 +472,6 @@ static bool lv_font_get_glyph_dsc_fmt_zifont(const lv_font_t * font, lv_font_gly
     } else {
         lastCharInfo = fdsc->ascii_glyph_dsc[glyphID];
     }
-
-    uint8_t w = lastCharInfo.width + lastCharInfo.kerningL + lastCharInfo.kerningR;
 
     /*cache glyph data*/
     fdsc->last_glyph_id  = glyphID;

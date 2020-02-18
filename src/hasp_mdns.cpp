@@ -48,7 +48,7 @@ bool mdnsGetConfig(const JsonObject & settings)
 
     settings[F_CONFIG_ENABLE] = mdnsEnabled;
 
-    size_t size = serializeJson(settings, Serial);
+    serializeJson(settings, Serial);
     Serial.println();
 
     return true;

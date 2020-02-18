@@ -97,3 +97,12 @@ uint8_t halGetHeapFragmentation()
     return ESP.getHeapFragmentation();
 #endif
 }
+
+size_t halGetMaxFreeBlock()
+{
+#if defined(ARDUINO_ARCH_ESP32)
+    return ESP.getMaxAllocHeap();
+#else
+    return ESP.getMaxFreeBlockSize();
+#endif
+}

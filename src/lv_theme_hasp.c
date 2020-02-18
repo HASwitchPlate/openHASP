@@ -36,7 +36,7 @@ static lv_style_t label_prim;
 static lv_style_t label_sec;
 static lv_style_t label_hint;
 
-static lv_style_t btn_rel, btn_pr, btn_trel, btn_tpr, btn_ina;
+// static lv_style_t btn_rel, btn_pr, btn_trel, btn_tpr, btn_ina;
 
 /*Saved input parameters*/
 static uint16_t _hue;

@@ -63,6 +63,7 @@ void hasp_background(uint16_t pageid, uint16_t imageid);
  **********************/
 static lv_style_t style_mbox_bg; /*Black bg. style with opacity*/
 static lv_obj_t * kb;
+static lv_font_t * defaultFont;
 
 #if LV_DEMO_WALLPAPER
 LV_IMG_DECLARE(img_bubble_pattern)
@@ -425,12 +426,13 @@ bool haspGetObjAttribute(lv_obj_t * obj, String strAttr, std::string & strPayloa
                 if(strAttr == F(".val")) {
                     if(check_obj_type(list.type[0], LV_HASP_PRELOADER)) return false;
 
-                    if(check_obj_type(list.type[0], LV_HASP_BUTTON))
+                    if(check_obj_type(list.type[0], LV_HASP_BUTTON)) {
                         if(lv_btn_get_state(obj) == LV_BTN_STATE_TGL_PR ||
                            lv_btn_get_state(obj) == LV_BTN_STATE_TGL_REL)
                             strPayload = "1"; // It's toggled
                         else
                             strPayload = "0"; // Normal btn has no toggle state
+                    }
 
                     if(check_obj_type(list.type[0], LV_HASP_SLIDER))
                         strPayload = String(lv_slider_get_value(obj)).c_str();
@@ -815,21 +817,21 @@ void haspFirstSetup(void)
  */
 void haspSetup(JsonObject settings)
 {
-    char buffer[127];
-
     haspSetConfig(settings);
 
-#ifdef LV_HASP_HOR_RES_MAX
-    lv_coord_t hres = LV_HASP_HOR_RES_MAX;
-#else
-    lv_coord_t hres = lv_disp_get_hor_res(NULL);
-#endif
+    /*
+    #ifdef LV_HASP_HOR_RES_MAX
+        lv_coord_t hres = LV_HASP_HOR_RES_MAX;
+    #else
+        lv_coord_t hres = lv_disp_get_hor_res(NULL);
+    #endif
 
-#ifdef LV_HASP_VER_RES_MAX
-    lv_coord_t vres = LV_HASP_VER_RES_MAX;
-#else
-    lv_coord_t vres = lv_disp_get_ver_res(NULL);
-#endif
+    #ifdef LV_HASP_VER_RES_MAX
+        lv_coord_t vres = LV_HASP_VER_RES_MAX;
+    #else
+        lv_coord_t vres = lv_disp_get_ver_res(NULL);
+    #endif
+    */
 
     // static lv_font_t *
     //    my_font = (lv_font_t *)lv_mem_alloc(sizeof(lv_font_t));
@@ -1366,7 +1368,7 @@ void haspNewObject(const JsonObject & config)
             lv_slider_set_range(obj, min, max);
             lv_slider_set_value(obj, val, LV_ANIM_OFF);
             lv_obj_set_event_cb(obj, slider_event_handler);
-            bool knobin = config[F("knobin")].as<bool>() | true;
+            // bool knobin = config[F("knobin")].as<bool>() | true;
             // lv_slider_set_knob_in(obj, knobin);
             break;
         }
@@ -1525,7 +1527,7 @@ bool haspGetConfig(const JsonObject & settings)
     settings[FPSTR(F_CONFIG_ZIFONT)]    = haspZiFontPath;
     settings[FPSTR(F_CONFIG_PAGES)]     = haspPagesPath;
 
-    size_t size = serializeJson(settings, Serial);
+    serializeJson(settings, Serial);
     Serial.println();
 
     return true;
@@ -1562,7 +1564,7 @@ bool haspSetConfig(const JsonObject & settings)
         haspThemeHue = settings[FPSTR(F_CONFIG_HUE)].as<uint16_t>();
     }
 
-    size_t size = serializeJson(settings, Serial);
+    serializeJson(settings, Serial);
     Serial.println();
 
     return changed;

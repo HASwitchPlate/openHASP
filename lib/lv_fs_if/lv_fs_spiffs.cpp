@@ -174,7 +174,7 @@ static lv_fs_res_t fs_close(lv_fs_drv_t * drv, void * file_p)
     // File file = *(File *)(file_p);
     lv_spiffs_file_t * file = (lv_spiffs_file_t *)file_p; /*Convert type*/
 
-    char * msg;
+    char * msg = nullptr;
     sprintf(msg, "Closing: %s", file->name());
     Serial.println(msg);
     Serial.flush();
@@ -196,9 +196,9 @@ static lv_fs_res_t fs_close(lv_fs_drv_t * drv, void * file_p)
 static lv_fs_res_t fs_read(lv_fs_drv_t * drv, void * file_p, void * buf, uint32_t btr, uint32_t * br)
 {
     lv_spiffs_file_t * file = (lv_spiffs_file_t *)file_p; /*Convert type*/
-    // lv_spiffs_file_t file = *(lv_spiffs_file_t *)(file_p);
+                                                          // lv_spiffs_file_t file = *(lv_spiffs_file_t *)(file_p);
 
-    char * msg;
+    char * msg = nullptr;
     sprintf(msg, "Reading: %s", file->name());
     Serial.println(msg);
     Serial.flush();
@@ -252,7 +252,7 @@ static lv_fs_res_t fs_seek(lv_fs_drv_t * drv, void * file_p, uint32_t pos)
 {
     lv_spiffs_file_t * file = (lv_spiffs_file_t *)file_p; /*Convert type*/
                                                           // lv_spiffs_file_t file = *(lv_spiffs_file_t *)(file_p);
-    char * msg;
+    char * msg = nullptr;
     sprintf(msg, "Seeking: %s", file->name());
     Serial.println(msg);
     Serial.flush();
@@ -274,8 +274,8 @@ static lv_fs_res_t fs_seek(lv_fs_drv_t * drv, void * file_p, uint32_t pos)
 static lv_fs_res_t fs_size(lv_fs_drv_t * drv, void * file_p, uint32_t * size_p)
 {
     lv_spiffs_file_t * file = (lv_spiffs_file_t *)file_p; /*Convert type*/
-    // lv_spiffs_file_t file = *(lv_spiffs_file_t *)(file_p);
-    char * msg;
+                                                          // lv_spiffs_file_t file = *(lv_spiffs_file_t *)(file_p);
+    char * msg = nullptr;
     sprintf(msg, "Filesize: %s", file->name());
     Serial.println(msg);
     Serial.flush();
@@ -295,8 +295,8 @@ static lv_fs_res_t fs_size(lv_fs_drv_t * drv, void * file_p, uint32_t * size_p)
 static lv_fs_res_t fs_tell(lv_fs_drv_t * drv, void * file_p, uint32_t * pos_p)
 {
     lv_spiffs_file_t * file = (lv_spiffs_file_t *)file_p; /*Convert type*/
-    // lv_spiffs_file_t file = *(lv_spiffs_file_t *)(file_p);
-    char * msg;
+                                                          // lv_spiffs_file_t file = *(lv_spiffs_file_t *)(file_p);
+    char * msg = nullptr;
     sprintf(msg, "Telling: %s", file->name());
     Serial.println(msg);
     Serial.flush();

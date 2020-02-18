@@ -483,7 +483,7 @@ void guiTakeScreenshot(const char * pFileName)
     pFileOut.write(bmpheader, sizeof(bmpheader));
 
     if(pFileOut == NULL) {
-        printf(("[Display] error: %s cannot be opened", pFileName));
+        printf("[Display] error: %s cannot be opened", pFileName);
         return;
     }
 
@@ -493,7 +493,7 @@ void guiTakeScreenshot(const char * pFileName)
     guiSnapshot = 0;
 
     pFileOut.close();
-    printf(("[Display] data flushed to %s", pFileName));
+    printf("[Display] data flushed to %s", pFileName);
 }
 
 #if defined(ARDUINO_ARCH_ESP8266)

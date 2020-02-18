@@ -211,7 +211,7 @@ bool wifiGetConfig(const JsonObject & settings)
     settings[FPSTR(F_CONFIG_SSID)] = String(wifiSsid.c_str());
     settings[FPSTR(F_CONFIG_PASS)] = String(wifiPassword.c_str());
 
-    size_t size = serializeJson(settings, Serial);
+    serializeJson(settings, Serial);
     Serial.println();
 
     return true;
@@ -241,7 +241,7 @@ bool wifiSetConfig(const JsonObject & settings)
         wifiPassword = settings[FPSTR(F_CONFIG_PASS)].as<String>().c_str();
     }
 
-    size_t size = serializeJson(settings, Serial);
+    serializeJson(settings, Serial);
     Serial.println();
 
     return changed;

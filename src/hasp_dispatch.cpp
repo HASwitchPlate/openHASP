@@ -111,8 +111,11 @@ void dispatchJson(char * payload)
           strPayload.remove(strPayload.length() - 2, 2);
           strPayload.concat("]");
       }*/
+
     DynamicJsonDocument haspCommands(MQTT_MAX_PACKET_SIZE + 512);
     DeserializationError jsonError = deserializeJson(haspCommands, payload);
+    haspCommands.shrinkToFit();
+
     if(jsonError) { // Couldn't parse incoming JSON command
         errorPrintln(String(F("JSON: %sFailed to parse incoming JSON command with error: ")) +
                      String(jsonError.c_str()));
@@ -137,7 +140,7 @@ void dispatchReboot(bool saveConfig)
     debugStop();
     delay(250);
     wifiStop();
-    debugPrintln(F("CMND: Properly Rebooting the MCU now!"));
+    debugPrintln(F("STOP: Properly Rebooting the MCU now!"));
     debugPrintln(F("-------------------------------------"));
     ESP.restart();
     delay(5000);

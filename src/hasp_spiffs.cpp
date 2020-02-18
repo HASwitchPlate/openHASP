@@ -47,7 +47,7 @@ void spiffsSetup()
 #else
     if(!SPIFFS.begin(true)) {
 #endif
-        sprintf(msg, PSTR("FILE: %sSPI flash init failed. Unable to mount FS."));
+        sprintf(msg, PSTR("FILE: %%sSPI flash init failed. Unable to mount FS."));
         errorPrintln(msg);
     } else {
         sprintf(msg, PSTR("FILE: [SUCCESS] SPI flash FS mounted"));

@@ -46,7 +46,7 @@ Syslog syslog(syslogClient, debugSyslogHost.c_str(), debugSyslogPort, debugAppNa
 
 void debugSetup()
 {
-    Serial.begin(115200); /* prepare for possible serial debug */
+    Serial.begin(74880); /* prepare for possible serial debug */
     Serial.flush();
     Serial.println();
     Serial.println();

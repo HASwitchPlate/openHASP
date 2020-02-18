@@ -39,7 +39,7 @@ extern "C" {
  *      TYPEDEFS
  **********************/
 
-typedef enum lv_hasp_obj_type_t {
+enum lv_hasp_obj_type_t {
     LV_HASP_BUTTON    = 10,
     LV_HASP_CHECKBOX  = 11,
     LV_HASP_LABEL     = 12,

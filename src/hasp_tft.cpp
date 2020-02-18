@@ -79,7 +79,7 @@ void tftShowConfig(TFT_eSPI & tft)
 
     sprintf_P(buffer, PSTR("TFT: TFT_eSPI ver = %s"), tftSetup.version.c_str());
     debugPrintln(buffer);
-    sprintf_P(buffer, PSTR("TFT: Processor    = ESP%i"), tftSetup.esp, HEX);
+    sprintf_P(buffer, PSTR("TFT: Processor    = ESP%i"), tftSetup.esp);
     debugPrintln(buffer);
     sprintf_P(buffer, PSTR("TFT: Frequency    = %i MHz"), ESP.getCpuFreqMHz());
     debugPrintln(buffer);

@@ -148,7 +148,7 @@ void webHandleRoot()
 {
     if(!httpIsAuthenticated(F("root"))) return;
 
-    char buffer[127];
+    // char buffer[127];
     String nodename = haspGetNodename();
     String httpMessage((char *)0);
     httpMessage.reserve(1500);
@@ -266,7 +266,7 @@ void webHandleInfo()
 { // http://plate01/
     if(!httpIsAuthenticated(F("/info"))) return;
 
-    char buffer[127];
+    // char buffer[127];
     String nodename = haspGetNodename();
     String httpMessage((char *)0);
     httpMessage.reserve(1500);
@@ -374,9 +374,7 @@ String urldecode(String str)
 {
     String encodedString = "";
     char c;
-    char code0;
-    char code1;
-    for(int i = 0; i < str.length(); i++) {
+    for(unsigned int i = 0; i < str.length(); i++) {
         c = str.charAt(i);
         if(c == '+') {
             encodedString += ' ';
@@ -606,7 +604,7 @@ void webHandleConfig()
         httpHandleReboot();
     }
 
-    char buffer[127];
+    // char buffer[127];
     String nodename = haspGetNodename();
     String httpMessage((char *)0);
     httpMessage.reserve(1500);
@@ -652,7 +650,7 @@ void webHandleMqttConfig()
     DynamicJsonDocument settings(256);
     mqttGetConfig(settings.to<JsonObject>());
 
-    char buffer[127];
+    // char buffer[127];
     String nodename = haspGetNodename();
     String httpMessage((char *)0);
     httpMessage.reserve(1500);
@@ -696,7 +694,7 @@ void webHandleGuiConfig()
     DynamicJsonDocument settings(256);
     // guiGetConfig(settings.to<JsonObject>());
 
-    char buffer[127];
+    // char buffer[127];
     String nodename = haspGetNodename();
     String httpMessage((char *)0);
     httpMessage.reserve(1500);
@@ -726,7 +724,7 @@ void webHandleWifiConfig()
     DynamicJsonDocument settings(256);
     wifiGetConfig(settings.to<JsonObject>());
 
-    char buffer[127];
+    // char buffer[127];
     String nodename = haspGetNodename();
     String httpMessage((char *)0);
     httpMessage.reserve(1500);
@@ -762,7 +760,7 @@ void webHandleHttpConfig()
     DynamicJsonDocument settings(256);
     httpGetConfig(settings.to<JsonObject>());
 
-    char buffer[127];
+    // char buffer[127];
     String nodename = haspGetNodename();
     String httpMessage((char *)0);
     httpMessage.reserve(1500);
@@ -797,7 +795,7 @@ void webHandleHaspConfig()
     DynamicJsonDocument settings(256);
     haspGetConfig(settings.to<JsonObject>());
 
-    char buffer[127];
+    // char buffer[127];
     String nodename = haspGetNodename();
     String httpMessage((char *)0);
     httpMessage.reserve(1500);
@@ -926,7 +924,7 @@ void httpHandleEspFirmware()
     if(!httpIsAuthenticated(F("/espfirmware"))) return;
 
     String nodename = haspGetNodename();
-    char buffer[127];
+    // char buffer[127];
     String httpMessage((char *)0);
     httpMessage.reserve(1500);
     httpMessage += String(F("<h1>"));
@@ -949,7 +947,7 @@ void httpHandleResetConfig()
 
     bool resetConfirmed = webServer.arg(F("confirm")) == F("yes");
     String nodename     = haspGetNodename();
-    char buffer[127];
+    // char buffer[127];
     String httpMessage((char *)0);
     httpMessage.reserve(1500);
 
@@ -1066,11 +1064,12 @@ void httpReconnect()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 void httpLoop(bool wifiIsConnected)
 {
-    if(httpEnable)
+    if(httpEnable) {
         if(webServerStarted)
             webServer.handleClient();
         else
             httpReconnect();
+    }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1081,7 +1080,7 @@ bool httpGetConfig(const JsonObject & settings)
     settings[FPSTR(F_CONFIG_USER)]   = httpUser;
     settings[FPSTR(F_CONFIG_PASS)]   = httpPassword;
 
-    size_t size = serializeJson(settings, Serial);
+    serializeJson(settings, Serial);
     Serial.println();
 
     return true;
@@ -1112,7 +1111,7 @@ bool httpSetConfig(const JsonObject & settings)
         httpPort = settings[FPSTR(F_CONFIG_PORT)].as<uint8_t>();
     }
 
-    size_t size = serializeJson(settings, Serial);
+    serializeJson(settings, Serial);
     Serial.println();
 
     return changed;
