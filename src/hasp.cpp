@@ -703,6 +703,8 @@ void haspReconnect()
 
 void haspDisplayAP(const char * ssid, const char * pass)
 {
+    guiSetDim(100);
+
     String txt((char *)0);
     txt.reserve(64);
 
