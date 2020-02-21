@@ -20,7 +20,7 @@
 static WiFiEventHandler gotIpEventHandler, disconnectedEventHandler;
 
 #endif
-#include "DNSserver.h"
+//#include "DNSserver.h"
 
 #ifdef USE_CONFIG_OVERRIDE
 #include "user_config_override.h"
@@ -38,7 +38,7 @@ std::string wifiPassword = "";
 #endif
 
 const byte DNS_PORT = 53;
-DNSServer dnsServer;
+// DNSServer dnsServer;
 
 // long wifiPrevMillis         = 0;
 // bool wifiWasConnected       = false;
@@ -69,7 +69,7 @@ void wifiConnected(IPAddress ipaddress)
 
     if(isConnected) {
         httpReconnect();
-        // mqttReconnect();
+        mqttReconnect();
         haspReconnect();
     }
 }
@@ -143,14 +143,14 @@ void wifiSetup(JsonObject settings)
         IPAddress IP = WiFi.softAPIP();
 
         /* Setup the DNS server redirecting all the domains to the apIP */
-        dnsServer.setErrorReplyCode(DNSReplyCode::NoError);
-        dnsServer.start(DNS_PORT, "*", IP);
+        // dnsServer.setErrorReplyCode(DNSReplyCode::NoError);
+        // dnsServer.start(DNS_PORT, "*", apIP);
 
         sprintf_P(buffer, PSTR("WIFI: Setting up temporary Access Point: %s"), apSsdid.c_str());
         debugPrintln(buffer);
         sprintf_P(buffer, PSTR("WIFI: AP IP address : %s"), IP.toString().c_str());
         debugPrintln(buffer);
-        // haspDisplayAP(apSsdid.c_str(), "haspadmin");
+        haspDisplayAP(apSsdid.c_str(), "haspadmin");
         httpReconnect();
         return;
     }
