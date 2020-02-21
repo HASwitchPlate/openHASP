@@ -170,6 +170,7 @@ bool read_encoder(lv_indev_drv_t * indev, lv_indev_data_t * data)
 
 void guiFirstCalibration()
 {
+    guiSetDim(100);
     dispatchCommand(F("calibrate"));
     guiAutoCalibrate = false;
     haspFirstSetup();
