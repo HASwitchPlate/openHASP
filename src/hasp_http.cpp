@@ -195,7 +195,7 @@ void httpHandleReboot()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 void webHandleScreenshot()
-{ // http://plate01/about
+{ // http://plate01/screenshot
     if(!httpIsAuthenticated(F("/screenshot"))) return;
 
     if(webServer.hasArg(F("q"))) {
@@ -222,6 +222,7 @@ void webHandleScreenshot()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void webHandleAbout()
 { // http://plate01/about
     if(!httpIsAuthenticated(F("/about"))) return;
@@ -261,6 +262,7 @@ void webHandleAbout()
     webServer.sendContent(httpMessage); // len
     webServer.sendContent_P(HTTP_END);  // 20
 }
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 void webHandleInfo()
 { // http://plate01/
@@ -336,8 +338,8 @@ void webHandleInfo()
     httpMessage += FPSTR(MAIN_MENU_BUTTON);
 
     webSendPage(nodename, httpMessage.length(), false);
-    webServer.sendContent(httpMessage); // len
-    webServer.sendContent_P(HTTP_END);  // 20
+    webServer.sendContent(httpMessage);
+    webServer.sendContent_P(HTTP_END);
 }
 
 String getContentType(String filename)
@@ -370,7 +372,7 @@ String getContentType(String filename)
     return F("text/plain");
 }
 
-String urldecode(String str)
+/* String urldecode(String str)
 {
     String encodedString = "";
     char c;
@@ -394,13 +396,14 @@ String urldecode(String str)
         yield();
     }
     return encodedString;
-}
+} */
 
 bool handleFileRead(String path)
 {
     if(!httpIsAuthenticated(F("fileread"))) return false;
 
-    path = urldecode(path).substring(0, 31);
+    // path = urldecode(path).substring(0, 31);
+    path = webServer.urlDecode(path);
     if(!httpIsAuthenticated(path)) return false;
 
     if(path.endsWith("/")) {
@@ -988,54 +991,62 @@ void httpHandleResetConfig()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 void httpSetup(const JsonObject & settings)
 {
-    webServer.on(F("/page/"), []() {
-        String pageid = webServer.arg(F("page"));
-        webServer.send(200, PSTR("text/plain"), "Page: '" + pageid + "'");
-        haspSetPage(pageid.toInt());
-    });
+    if(WiFi.getMode() == WIFI_AP) {
+        debugPrintln(F("HTTP: Wifi access point"));
+        webServer.on(F("/"), webHandleWifiConfig);
+        webServer.on(F("/config"), webHandleConfig);
+        webServer.onNotFound(httpHandleNotFound);
+    } else {
 
-    webServer.on("/list", HTTP_GET, handleFileList);
-    // load editor
-    webServer.on("/edit", HTTP_GET, []() {
-        if(!handleFileRead("/edit.htm")) {
-            webServer.send(404, "text/plain", "FileNotFound");
-        }
-    });
-    webServer.on("/edit", HTTP_PUT, handleFileCreate);
-    webServer.on("/edit", HTTP_DELETE, handleFileDelete);
-    // first callback is called after the request has ended with all parsed arguments
-    // second callback handles file uploads at that location
-    webServer.on("/edit", HTTP_POST, []() { webServer.send(200, "text/plain", ""); }, handleFileUpload);
-    // get heap status, analog input value and all GPIO statuses in one json call
-    webServer.on("/all", HTTP_GET, []() {
-        String json('{');
-        json += "\"heap\":" + String(ESP.getFreeHeap());
-        json += ", \"analog\":" + String(analogRead(A0));
-        json += "}";
-        webServer.send(200, "text/json", json);
-        json.clear();
-    });
+        webServer.on(F("/page/"), []() {
+            String pageid = webServer.arg(F("page"));
+            webServer.send(200, PSTR("text/plain"), "Page: '" + pageid + "'");
+            haspSetPage(pageid.toInt());
+        });
 
-    webServer.on(F("/"), webHandleRoot);
-    webServer.on(F("/about"), webHandleAbout);
-    webServer.on(F("/info"), webHandleInfo);
-    webServer.on(F("/config"), webHandleConfig);
-    webServer.on(F("/config/hasp"), webHandleHaspConfig);
-    webServer.on(F("/config/http"), webHandleHttpConfig);
-    webServer.on(F("/config/gui"), webHandleGuiConfig);
+        webServer.on("/list", HTTP_GET, handleFileList);
+        // load editor
+        webServer.on("/edit", HTTP_GET, []() {
+            if(!handleFileRead("/edit.htm")) {
+                webServer.send(404, "text/plain", "FileNotFound");
+            }
+        });
+        webServer.on("/edit", HTTP_PUT, handleFileCreate);
+        webServer.on("/edit", HTTP_DELETE, handleFileDelete);
+        // first callback is called after the request has ended with all parsed arguments
+        // second callback handles file uploads at that location
+        webServer.on("/edit", HTTP_POST, []() { webServer.send(200, "text/plain", ""); }, handleFileUpload);
+        // get heap status, analog input value and all GPIO statuses in one json call
+        webServer.on("/all", HTTP_GET, []() {
+            String json('{');
+            json += "\"heap\":" + String(ESP.getFreeHeap());
+            json += ", \"analog\":" + String(analogRead(A0));
+            json += "}";
+            webServer.send(200, "text/json", json);
+            json.clear();
+        });
+
+        webServer.on(F("/"), webHandleRoot);
+        webServer.on(F("/about"), webHandleAbout);
+        webServer.on(F("/info"), webHandleInfo);
+        webServer.on(F("/config"), webHandleConfig);
+        webServer.on(F("/config/hasp"), webHandleHaspConfig);
+        webServer.on(F("/config/http"), webHandleHttpConfig);
+        webServer.on(F("/config/gui"), webHandleGuiConfig);
 #if HASP_USE_MQTT > 0
-    webServer.on(F("/config/mqtt"), webHandleMqttConfig);
+        webServer.on(F("/config/mqtt"), webHandleMqttConfig);
 #endif
 #if HASP_USE_WIFI > 0
-    webServer.on(F("/config/wifi"), webHandleWifiConfig);
+        webServer.on(F("/config/wifi"), webHandleWifiConfig);
 #endif
-    webServer.on(F("/screenshot"), webHandleScreenshot);
-    webServer.on(F("/saveConfig"), webHandleSaveConfig);
-    webServer.on(F("/resetConfig"), httpHandleResetConfig);
-    webServer.on(F("/firmware"), webHandleFirmware);
-    webServer.on(F("/espfirmware"), httpHandleEspFirmware);
-    webServer.on(F("/reboot"), httpHandleReboot);
-    webServer.onNotFound(httpHandleNotFound);
+        webServer.on(F("/screenshot"), webHandleScreenshot);
+        webServer.on(F("/saveConfig"), webHandleSaveConfig);
+        webServer.on(F("/resetConfig"), httpHandleResetConfig);
+        webServer.on(F("/firmware"), webHandleFirmware);
+        webServer.on(F("/espfirmware"), httpHandleEspFirmware);
+        webServer.on(F("/reboot"), httpHandleReboot);
+        webServer.onNotFound(httpHandleNotFound);
+    }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1043,16 +1054,16 @@ void httpReconnect()
 {
     if(!httpEnable) return;
 
-    if(WiFi.getMode() == WIFI_AP) {
-        webServer.on(F("/"), webHandleWifiConfig);
-        webServer.on(F("/config"), webHandleConfig);
-        webServer.onNotFound(webHandleWifiConfig);
-    }
-
     webServer.stop();
     webServerStarted = false;
 
-    if(WiFi.status() != WL_CONNECTED) return;
+    if(WiFi.getMode() == WIFI_AP) {
+        webServer.on(F("/"), webHandleWifiConfig);
+        webServer.on(F("/config"), webHandleConfig);
+        webServer.onNotFound(httpHandleNotFound);
+    } else {
+        if(WiFi.status() != WL_CONNECTED) return;
+    }
 
     webServer.begin();
     webServerStarted = true;
