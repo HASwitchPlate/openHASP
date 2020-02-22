@@ -28,17 +28,13 @@ static WiFiEventHandler gotIpEventHandler, disconnectedEventHandler;
 
 #ifdef WIFI_SSID
 char wifiSsid[32] = WIFI_SSID;
-// std::string wifiSsid = WIFI_SSID;
 #else
-char wifiSsid[32] = "";
-// std::string wifiSsid  = "";
+char wifiSsid[32]     = "";
 #endif
 #ifdef WIFI_PASSW
 char wifiPassword[32] = WIFI_PASSW;
-// std::string wifiPassword = WIFI_PASSW;
 #else
 char wifiPassword[32] = "";
-// std::string wifiPassword = "";
 #endif
 
 // const byte DNS_PORT = 53;
@@ -222,25 +218,6 @@ bool wifiGetConfig(const JsonObject & settings)
 bool wifiSetConfig(const JsonObject & settings)
 {
     bool changed = false;
-
-    /*    if(!settings[FPSTR(F_CONFIG_SSID)].isNull()) {
-            if(wifiSsid != settings[FPSTR(F_CONFIG_SSID)].as<String>().c_str()) {
-                debugPrintln(F("wifiSsid set"));
-            }
-            changed |= wifiSsid != settings[FPSTR(F_CONFIG_SSID)].as<String>().c_str();
-
-            wifiSsid = settings[FPSTR(F_CONFIG_SSID)].as<String>().c_str();
-        }
-
-        if(!settings[FPSTR(F_CONFIG_PASS)].isNull() && settings[FPSTR(F_CONFIG_PASS)].as<String>() != F("********")) {
-            if(wifiPassword != settings[FPSTR(F_CONFIG_PASS)].as<String>().c_str()) {
-                debugPrintln(F("wifiPassword set"));
-            }
-            changed |= wifiPassword != settings[FPSTR(F_CONFIG_PASS)].as<String>().c_str();
-
-            wifiPassword = settings[FPSTR(F_CONFIG_PASS)].as<String>().c_str();
-        }
-    */
 
     if(!settings[FPSTR(F_CONFIG_SSID)].isNull()) {
         changed |= strcmp(wifiSsid, settings[FPSTR(F_CONFIG_SSID)]) != 0;
