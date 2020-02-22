@@ -89,12 +89,13 @@ void IRAM_ATTR mqttSendState(const char * subtopic, const char * payload)
     // brightness = 100
 
     char topic[127];
+    char value[254];
+
     snprintf_P(topic, sizeof(topic), PSTR("%sstate/%s"), mqttNodeTopic.c_str(), subtopic);
     mqttClient.publish(topic, payload);
     debugPrintln(String(F("MQTT OUT: ")) + String(topic) + " = " + String(payload));
 
     // as json
-    char value[254];
     snprintf_P(topic, sizeof(topic), PSTR("%sstate/json"), mqttNodeTopic.c_str());
     snprintf_P(value, sizeof(value), PSTR("{\"%s\":\"%s\"}"), subtopic, payload);
     mqttClient.publish(topic, value);
@@ -311,7 +312,7 @@ void mqttReconnect()
         return;
     }
 
-    debugPrintln(F("MQTT: [SUCCESS] MQTT Client is Connected"));
+    debugPrintln(F("MQTT: MQTT Client is Connected"));
     haspReconnect();
 
     /*

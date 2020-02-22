@@ -29,6 +29,7 @@ FS * filesystem       = &SPIFFS;
 File fsUploadFile;
 char httpUser[32]     = "";
 char httpPassword[32] = "";
+HTTPUpload * upload;
 
 #if defined(ARDUINO_ARCH_ESP8266)
 #include <ESP8266WebServer.h>
@@ -192,18 +193,20 @@ void webHandleRoot()
 
     webSendPage(nodename, httpMessage.length(), false);
     webServer.sendContent(httpMessage);
+    httpMessage.clear();
     webSendFooter();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 void httpHandleReboot()
 { // http://plate01/reboot
-    if(!httpIsAuthenticated(F("/reboot"))) return;
+    if(!httpIsAuthenticated(F("reboot"))) return;
 
     String nodename    = haspGetNodename();
     String httpMessage = F("Rebooting Device");
     webSendPage(nodename, httpMessage.length(), true);
     webServer.sendContent(httpMessage);
+    httpMessage.clear();
     webSendFooter();
 
     delay(200);
@@ -213,7 +216,7 @@ void httpHandleReboot()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 void webHandleScreenshot()
 { // http://plate01/screenshot
-    if(!httpIsAuthenticated(F("/screenshot"))) return;
+    if(!httpIsAuthenticated(F("screenshot"))) return;
 
     if(webServer.hasArg(F("q"))) {
         webServer.setContentLength(138 + 320 * 240 * 4);
@@ -234,6 +237,7 @@ void webHandleScreenshot()
 
         webSendPage(nodename, httpMessage.length(), false);
         webServer.sendContent(httpMessage);
+        httpMessage.clear();
         webSendFooter();
     }
 }
@@ -242,7 +246,7 @@ void webHandleScreenshot()
 
 void webHandleAbout()
 { // http://plate01/about
-    if(!httpIsAuthenticated(F("/about"))) return;
+    if(!httpIsAuthenticated(F("about"))) return;
 
     String nodename = haspGetNodename();
     String httpMessage((char *)0);
@@ -277,13 +281,14 @@ void webHandleAbout()
 
     webSendPage(nodename, httpMessage.length(), false);
     webServer.sendContent(httpMessage);
+    httpMessage.clear();
     webSendFooter();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 void webHandleInfo()
 { // http://plate01/
-    if(!httpIsAuthenticated(F("/info"))) return;
+    if(!httpIsAuthenticated(F("info"))) return;
 
     // char buffer[127];
     String nodename = haspGetNodename();
@@ -356,6 +361,7 @@ void webHandleInfo()
 
     webSendPage(nodename, httpMessage.length(), false);
     webServer.sendContent(httpMessage);
+    httpMessage.clear();
     webSendFooter();
 }
 
@@ -444,35 +450,44 @@ bool handleFileRead(String path)
 
 void handleFileUpload()
 {
-    if(!httpIsAuthenticated(F("fileupload"))) return;
-
     if(webServer.uri() != "/edit") {
         return;
     }
-    HTTPUpload & upload = webServer.upload();
-    if(upload.status == UPLOAD_FILE_START) {
-        String filename = upload.filename;
+    upload = &webServer.upload();
+    if(upload->status == UPLOAD_FILE_START) {
+        if(!httpIsAuthenticated(F("fileupload"))) return;
+        String filename((char *)0);
+        filename.reserve(127);
+        filename = upload->filename;
         if(!filename.startsWith("/")) {
-            filename = "/" + filename;
+            filename = "/";
+            filename += upload->filename;
         }
-        debugPrintln(String(F("handleFileUpload Name: ")) + filename);
-        fsUploadFile = filesystem->open(filename, "w");
-        filename.clear();
-    } else if(upload.status == UPLOAD_FILE_WRITE) {
+        if(filename.length() < 32) {
+            fsUploadFile = filesystem->open(filename, "w");
+        }
+        filename = String(F("handleFileUpload Name: ")) + filename;
+        debugPrintln(filename);
+    } else if(upload->status == UPLOAD_FILE_WRITE) {
         // DBG_OUTPUT_PORT.print("handleFileUpload Data: "); debugPrintln(upload.currentSize);
         if(fsUploadFile) {
-            fsUploadFile.write(upload.buf, upload.currentSize);
+            fsUploadFile.write(upload->buf, upload->currentSize);
             char buffer[127];
-            sprintf_P(buffer, PSTR("Uploading %u of %u"), upload.currentSize, upload.totalSize);
+            sprintf_P(buffer, PSTR("    * Uploaded %u bytes"), upload->totalSize + upload->currentSize);
             debugPrintln(buffer);
         }
-    } else if(upload.status == UPLOAD_FILE_END) {
+    } else if(upload->status == UPLOAD_FILE_END) {
         if(fsUploadFile) {
+            char buffer[127];
+            sprintf_P(buffer, PSTR("Uploaded %s (%u bytes)"), fsUploadFile.name(), upload->totalSize);
+            debugPrintln(buffer);
             fsUploadFile.close();
         }
-        debugPrintln(String(F("handleFileUpload Size: ")) + String(upload.totalSize));
-        // String filename = upload.filename;
-        webHandleHaspConfig();
+
+        // Redirect to /config/hasp page. This flushes the web buffer and frees the memory
+        webServer.sendHeader(String(F("Location")), String(F("/config/hasp")), true);
+        webServer.send_P(302, PSTR("text/plain"), "");
+        // httpReconnect();
     }
 }
 
@@ -594,7 +609,7 @@ void handleFileList()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 void webHandleConfig()
 { // http://plate01/config
-    if(!httpIsAuthenticated(F("/config"))) return;
+    if(!httpIsAuthenticated(F("config"))) return;
 
     if(webServer.method() == HTTP_POST) {
         if(webServer.hasArg(PSTR("save"))) {
@@ -612,7 +627,7 @@ void webHandleConfig()
                 httpSetConfig(settings.as<JsonObject>());
 
                 // Password might have changed
-                if(!httpIsAuthenticated(F("/config"))) return;
+                if(!httpIsAuthenticated(F("config"))) return;
 
             } else if(webServer.arg(PSTR("save")) == String(PSTR("wifi"))) {
                 wifiSetConfig(settings.as<JsonObject>());
@@ -658,6 +673,7 @@ void webHandleConfig()
 
     webSendPage(nodename, httpMessage.length(), false);
     webServer.sendContent(httpMessage);
+    httpMessage.clear();
     webSendFooter();
 }
 
@@ -665,7 +681,7 @@ void webHandleConfig()
 #if HASP_USE_MQTT > 0
 void webHandleMqttConfig()
 { // http://plate01/config/mqtt
-    if(!httpIsAuthenticated(F("/config/mqtt"))) return;
+    if(!httpIsAuthenticated(F("config/mqtt"))) return;
 
     DynamicJsonDocument settings(256);
     mqttGetConfig(settings.to<JsonObject>());
@@ -702,6 +718,7 @@ void webHandleMqttConfig()
 
     webSendPage(nodename, httpMessage.length(), false);
     webServer.sendContent(httpMessage);
+    httpMessage.clear();
     webSendFooter();
 }
 #endif
@@ -709,7 +726,7 @@ void webHandleMqttConfig()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 void webHandleGuiConfig()
 { // http://plate01/config/wifi
-    if(!httpIsAuthenticated(F("/config/gui"))) return;
+    if(!httpIsAuthenticated(F("config/gui"))) return;
 
     DynamicJsonDocument settings(256);
     // guiGetConfig(settings.to<JsonObject>());
@@ -730,6 +747,7 @@ void webHandleGuiConfig()
 
     webSendPage(nodename, httpMessage.length(), false);
     webServer.sendContent(httpMessage);
+    httpMessage.clear();
     webSendFooter();
 
     if(webServer.hasArg(F("action"))) dispatchCommand(webServer.arg(F("action")));
@@ -739,7 +757,7 @@ void webHandleGuiConfig()
 #if HASP_USE_WIFI > 0
 void webHandleWifiConfig()
 { // http://plate01/config/wifi
-    if(!httpIsAuthenticated(F("/config/wifi"))) return;
+    if(!httpIsAuthenticated(F("config/wifi"))) return;
 
     DynamicJsonDocument settings(256);
     wifiGetConfig(settings.to<JsonObject>());
@@ -767,6 +785,7 @@ void webHandleWifiConfig()
 
     webSendPage(nodename, httpMessage.length(), false);
     webServer.sendContent(httpMessage);
+    httpMessage.clear();
     webSendFooter();
 }
 #endif
@@ -775,7 +794,7 @@ void webHandleWifiConfig()
 #if HASP_USE_HTTP > 0
 void webHandleHttpConfig()
 { // http://plate01/config/http
-    if(!httpIsAuthenticated(F("/config/http"))) return;
+    if(!httpIsAuthenticated(F("config/http"))) return;
 
     DynamicJsonDocument settings(256);
     httpGetConfig(settings.to<JsonObject>());
@@ -803,6 +822,7 @@ void webHandleHttpConfig()
 
     webSendPage(nodename, httpMessage.length(), false);
     webServer.sendContent(httpMessage);
+    httpMessage.clear();
     webSendFooter();
 }
 #endif
@@ -810,7 +830,7 @@ void webHandleHttpConfig()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 void webHandleHaspConfig()
 { // http://plate01/config/http
-    if(!httpIsAuthenticated(F("/config/hasp"))) return;
+    if(!httpIsAuthenticated(F("config/hasp"))) return;
 
     DynamicJsonDocument settings(256);
     haspGetConfig(settings.to<JsonObject>());
@@ -891,6 +911,10 @@ void webHandleHaspConfig()
     httpMessage += String(F("'></br><b>Startup Page</b> <i><small>(required)</small></i><input id='startpage' required "
                             "name='startpage' type='number' min='0' max='3' value='"));
     httpMessage += settings[FPSTR(F_CONFIG_STARTPAGE)].as<String>();
+    httpMessage +=
+        F("'></p><p><b>Startup Brightness</b> <i><small>(required)</small></i><input id='startpage' required "
+          "name='startdim' type='number' min='0' max='100' value='");
+    httpMessage += settings[FPSTR(F_CONFIG_STARTDIM)].as<String>();
     httpMessage += F("'></p>");
 
     httpMessage += F("<p><button type='submit' name='save' value='hasp'>Save Settings</button></form></p>");
@@ -899,6 +923,7 @@ void webHandleHaspConfig()
 
     webSendPage(nodename, httpMessage.length(), false);
     webServer.sendContent(httpMessage);
+    httpMessage.clear();
     webSendFooter();
 }
 
@@ -927,7 +952,7 @@ void httpHandleNotFound()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 void webHandleSaveConfig()
 {
-    if(!httpIsAuthenticated(F("/saveConfig"))) return;
+    if(!httpIsAuthenticated(F("saveConfig"))) return;
 
     configWriteConfig();
 }
@@ -935,13 +960,13 @@ void webHandleSaveConfig()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 void webHandleFirmware()
 {
-    if(!httpIsAuthenticated(F("/firmware"))) return;
+    if(!httpIsAuthenticated(F("firmware"))) return;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 void httpHandleEspFirmware()
 { // http://plate01/espfirmware
-    if(!httpIsAuthenticated(F("/espfirmware"))) return;
+    if(!httpIsAuthenticated(F("espfirmware"))) return;
 
     String nodename = haspGetNodename();
     // char buffer[127];
@@ -954,6 +979,7 @@ void httpHandleEspFirmware()
 
     webSendPage(nodename, httpMessage.length(), true);
     webServer.sendContent(httpMessage);
+    httpMessage.clear();
     webSendFooter();
 
     debugPrintln(String(F("HTTP: Attempting ESP firmware update from: ")) + String(webServer.arg("espFirmware")));
@@ -963,7 +989,7 @@ void httpHandleEspFirmware()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 void httpHandleResetConfig()
 { // http://plate01/resetConfig
-    if(!httpIsAuthenticated(F("/resetConfig"))) return;
+    if(!httpIsAuthenticated(F("resetConfig"))) return;
 
     bool resetConfirmed = webServer.arg(F("confirm")) == F("yes");
     String nodename     = haspGetNodename();
@@ -996,6 +1022,7 @@ void httpHandleResetConfig()
 
     webSendPage(nodename, httpMessage.length(), resetConfirmed);
     webServer.sendContent(httpMessage);
+    httpMessage.clear();
     webSendFooter();
 
     if(resetConfirmed) {
