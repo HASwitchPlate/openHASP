@@ -106,3 +106,12 @@ size_t halGetMaxFreeBlock()
     return ESP.getMaxFreeBlockSize();
 #endif
 }
+
+String halGetCoreVersion()
+{
+#if defined(ARDUINO_ARCH_ESP32)
+    return String(ESP.getSdkVersion());
+#else
+    return String(ESP.getCoreVersion());
+#endif
+}

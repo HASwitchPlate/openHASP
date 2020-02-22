@@ -1221,9 +1221,11 @@ String haspGetNodename()
     return String(F("plate11"));
 }
 
-float_t haspGetVersion()
+String haspGetVersion()
 {
-    return 0.1;
+    char buffer[127];
+    snprintf_P(buffer, sizeof(buffer), "%u.%u.%u", HASP_VERSION_MAJOR, HASP_VERSION_MINOR, HASP_VERSION_REVISION);
+    return buffer;
 }
 
 uint16_t haspGetPage()

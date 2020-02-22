@@ -12,6 +12,7 @@
 #include <PubSubClient.h>
 
 #include "hasp_log.h"
+#include "hasp_hal.h"
 #include "hasp_debug.h"
 #include "hasp_config.h"
 #include "hasp_mqtt.h"
@@ -129,13 +130,16 @@ void IRAM_ATTR mqttSendNewEvent(uint8_t pageid, uint8_t btnid, int32_t val)
 
 void mqttStatusUpdate()
 { // Periodically publish a JSON string indicating system status
+    char buffer[127];
+    snprintf_P(buffer, sizeof(buffer), "%u.%u.%u", HASP_VERSION_MAJOR, HASP_VERSION_MINOR, HASP_VERSION_REVISION);
+
     String mqttStatusPayload((char *)0);
     mqttStatusPayload.reserve(512);
 
     mqttStatusPayload += "{";
     mqttStatusPayload += F("\"status\":\"available\",");
     mqttStatusPayload += F("\"espVersion\":");
-    mqttStatusPayload += String(haspGetVersion());
+    mqttStatusPayload += buffer;
     mqttStatusPayload += F(",");
     /*    if(updateEspAvailable) {
             mqttStatusPayload += F("\"updateEspAvailable\":true,");
@@ -166,18 +170,20 @@ void mqttStatusUpdate()
     mqttStatusPayload += F("\",");
     mqttStatusPayload += F("\"heapFree\":");
     mqttStatusPayload += String(ESP.getFreeHeap());
-    /*mqttStatusPayload += F(",");
+    mqttStatusPayload += F(",");
     mqttStatusPayload += F("\"heapFragmentation\":");
-    mqttStatusPayload += String(ESP.getHeapFragmentation());
+    mqttStatusPayload += String(halGetHeapFragmentation());
     mqttStatusPayload += F(",");
     mqttStatusPayload += F("\"espCore\":\"");
-    mqttStatusPayload += String(ESP.getCoreVersion());
-    mqttStatusPayload += F("\"");*/
+    mqttStatusPayload += halGetCoreVersion();
+    mqttStatusPayload += F("\"");
     mqttStatusPayload += "}";
 
     // mqttClient.publish(mqttSensorTopic, mqttStatusPayload);
     // mqttClient.publish(mqttStatusTopic, "ON", true); //, 1);
-    debugPrintln(String(F("MQTT: status update: ")) + String(mqttStatusPayload));
+    mqttSendState(String(F("statusupdate")).c_str(), mqttStatusPayload.c_str());
+
+    // debugPrintln(String(F("MQTT: status update: ")) + String(mqttStatusPayload));
     // debugPrintln(String(F("MQTT: binary_sensor state: [")) + mqttStatusTopic + "] : [ON]");
 }
 
@@ -227,32 +233,16 @@ void mqttCallback(char * topic, byte * payload, unsigned int length)
         strTopic = strTopic.substring(8u, strTopic.length());
         // debugPrintln(String(F("MQTT Shorter Command Topic : '")) + strTopic + "'");
 
-        if(strTopic == F("page")) { // '[...]/device/command/page' -m '1' == nextionSendCmd("page 1")
-            dispatchPage((char *)payload);
-        } else if(strTopic == F("dim")) { // '[...]/device/command/page' -m '1' == nextionSendCmd("page 1")
-            dispatchDim((char *)payload);
-        } else if(strTopic == F("json")) { // '[...]/device/command/json' -m '["dim=5", "page 1"]' =
+        if(length == 0) {
+            dispatchCommand(strTopic.c_str());
+            return;
+        }
+
+        if(strTopic == F("json")) { // '[...]/device/command/json' -m '["dim=5", "page 1"]' =
             // nextionSendCmd("dim=50"), nextionSendCmd("page 1")
-            dispatchJson((char *)payload);         // Send to nextionParseJson()
-        } else if(strTopic == F("statusupdate")) { // '[...]/device/command/statusupdate' == mqttStatusUpdate()
-            //  mqttStatusUpdate();                 // return status JSON via MQTT
-        } else if(strTopic == F("espupdate")) { // '[...]/device/command/espupdate' -m
-                                                // 'http://192.168.0.10/local/HASwitchPlate.ino.d1_mini.bin' ==
-            // espStartOta("http://192.168.0.10/local/HASwitchPlate.ino.d1_mini.bin")
-            if(length == 0) {
-                // espStartOta(espFirmwareUrl);
-            } else {
-                // espStartOta(strPayload);
-            }
-        } else if(strTopic == F("reboot") || strTopic == F("lcdreboot")) {
-            dispatchReboot(true);
-        } else if(strTopic == F("factoryreset")) { // '[...]/device/command/factoryreset' == clear all saved settings)
-            // configClearSaved();
-            //} else if(strPayload == "") { // '[...]/device/command/p[1].b[4].txt' -m '' ==
-            // nextionGetAttr("p[1].b[4].txt")
-            //    haspProcessAttribute(strTopic, "");
-        } else { // '[...]/device/command/p[1].b[4].txt' -m '"Lights On"' ==
-                 // nextionSetAttr("p[1].b[4].txt", "\"Lights On\"")
+            dispatchJson((char *)payload); // Send to nextionParseJson()
+        } else {                           // '[...]/device/command/p[1].b[4].txt' -m '"Lights On"' ==
+                                           // nextionSetAttr("p[1].b[4].txt", "\"Lights On\"")
             dispatchAttribute(strTopic, (char *)payload);
         }
         return;
@@ -425,7 +415,7 @@ bool mqttGetConfig(const JsonObject & settings)
     settings[FPSTR(F_CONFIG_USER)]  = String(mqttUser.c_str());
     settings[FPSTR(F_CONFIG_PASS)]  = String(mqttPassword.c_str());
 
-    size_t size = serializeJson(settings, Serial);
+    serializeJson(settings, Serial);
     Serial.println();
 
     return true;
@@ -482,7 +472,7 @@ bool mqttSetConfig(const JsonObject & settings)
         mqttPassword = settings[FPSTR(F_CONFIG_PASS)].as<String>().c_str();
     }
 
-    size_t size = serializeJson(settings, Serial);
+    serializeJson(settings, Serial);
     Serial.println();
 
     return changed;

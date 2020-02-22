@@ -5,6 +5,7 @@
 
 uint8_t halGetHeapFragmentation(void);
 String halGetResetInfo(void);
-size_t halGetMaxFreeBlock();
+size_t halGetMaxFreeBlock(void);
+String halGetCoreVersion(void);
 
 #endif
