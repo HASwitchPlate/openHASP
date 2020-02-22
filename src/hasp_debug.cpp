@@ -46,13 +46,18 @@ Syslog syslog(syslogClient, debugSyslogHost.c_str(), debugSyslogPort, debugAppNa
 
 void debugSetup()
 {
+#if defined(ARDUINO_ARCH_ESP32)
+    Serial.begin(115200); /* prepare for possible serial debug */
+#else
     Serial.begin(74880); /* prepare for possible serial debug */
+#endif
+
     Serial.flush();
     Serial.println();
-    Serial.println();
-    Serial.println(F("\n           _____ _____ _____ _____\n          |  |  |  _  |   __|  _  |\n"
-                     "          |     |     |__   |   __|\n          |__|__|__|__|_____|__|\n"
-                     "        Home Automation Switch Plate\n           Open Hardware edition\n\n"));
+    Serial.printf_P(PSTR("           _____ _____ _____ _____\n          |  |  |  _  |   __|  _  |\n"
+                         "          |     |     |__   |   __|\n          |__|__|__|__|_____|__|\n"
+                         "        Home Automation Switch Plate\n        Open Hardware edition v%u.%u.%u\n\n"),
+                    HASP_VERSION_MAJOR, HASP_VERSION_MINOR, HASP_VERSION_REVISION);
     Serial.flush();
 
     // prepare syslog configuration here (can be anywhere before first call of
