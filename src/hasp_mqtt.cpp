@@ -138,9 +138,9 @@ void mqttStatusUpdate()
 
     mqttStatusPayload += "{";
     mqttStatusPayload += F("\"status\":\"available\",");
-    mqttStatusPayload += F("\"espVersion\":");
+    mqttStatusPayload += F("\"espVersion\":\"");
     mqttStatusPayload += buffer;
-    mqttStatusPayload += F(",");
+    mqttStatusPayload += F("\",");
     /*    if(updateEspAvailable) {
             mqttStatusPayload += F("\"updateEspAvailable\":true,");
         } else {
