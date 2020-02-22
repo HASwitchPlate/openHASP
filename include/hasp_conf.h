@@ -1,5 +1,9 @@
 #pragma once
 
+#define HASP_VERSION_MAJOR 0
+#define HASP_VERSION_MINOR 0
+#define HASP_VERSION_REVISION 5
+
 #define HASP_USE_APP 1
 
 #define HASP_USE_WIFI 1

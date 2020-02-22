@@ -2,6 +2,8 @@
 #include <Arduino.h>
 #include "ArduinoJson.h"
 
+#include "hasp_conf.h"
+
 #include "hasp_log.h"
 #include "hasp_gui.h"
 #include "hasp_hal.h"
@@ -68,7 +70,9 @@ static const char HTTP_SCRIPT[] PROGMEM = "<script>function "
 static const char HTTP_HEADER_END[] PROGMEM =
     "</head><body><div style='text-align:left;display:inline-block;min-width:260px;'>";
 static const char HTTP_END[] PROGMEM = "<div style='text-align:right;font-size:11px;'><hr/><a href='/about' "
-                                       "style='color:#aaa;'>HASP 0.0.0 by Francis Van Roie</div></body></html>";
+                                       "style='color:#aaa;'>HASP ";
+static const char HTTP_FOOTER[] PROGMEM = " by Francis Van Roie</div></body></html>";
+
 // Additional CSS style to match Hass theme
 static const char HASP_STYLE[] PROGMEM =
     "<style>button{background-color:#03A9F4;}body{width:60%;margin:auto;}input:invalid{border:"
@@ -116,13 +120,24 @@ String getOption(String value, String label, bool selected)
               label.c_str());
     return buffer;
 }
+void webSendFooter()
+{
+    char buffer[127];
+    snprintf_P(buffer, sizeof(buffer), "%u.%u.%u", HASP_VERSION_MAJOR, HASP_VERSION_MINOR, HASP_VERSION_REVISION);
+
+    webServer.sendContent_P(HTTP_END);
+    webServer.sendContent(buffer);
+    webServer.sendContent_P(HTTP_FOOTER);
+}
 
 void webSendPage(String & nodename, uint32_t httpdatalength, bool gohome = false)
 {
     char buffer[127];
 
+    snprintf_P(buffer, sizeof(buffer), "%u.%u.%u", HASP_VERSION_MAJOR, HASP_VERSION_MINOR, HASP_VERSION_REVISION);
+
     /* Calculate Content Length upfront */
-    uint16_t contentLength = 0;
+    uint16_t contentLength = strlen(buffer); // verion length
     contentLength += sizeof(HTTP_DOCTYPE) - 1;
     contentLength += sizeof(HTTP_HEADER) - 1 - 2 + nodename.length();
     contentLength += sizeof(HTTP_SCRIPT) - 1;
@@ -131,6 +146,7 @@ void webSendPage(String & nodename, uint32_t httpdatalength, bool gohome = false
     if(gohome) contentLength += sizeof(HTTP_META_GO_BACK) - 1;
     contentLength += sizeof(HTTP_HEADER_END) - 1;
     contentLength += sizeof(HTTP_END) - 1;
+    contentLength += sizeof(HTTP_FOOTER) - 1;
 
     webServer.setContentLength(contentLength + httpdatalength);
 
@@ -174,8 +190,8 @@ void webHandleRoot()
         F("<p><form method='get' action='reboot'><button class='red' type='submit'>Restart</button></form></p>");
 
     webSendPage(nodename, httpMessage.length(), false);
-    webServer.sendContent(httpMessage); // len
-    webServer.sendContent_P(HTTP_END);  // 20
+    webServer.sendContent(httpMessage);
+    webSendFooter();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -186,8 +202,8 @@ void httpHandleReboot()
     String nodename    = haspGetNodename();
     String httpMessage = F("Rebooting Device");
     webSendPage(nodename, httpMessage.length(), true);
-    webServer.sendContent(httpMessage); // len
-    webServer.sendContent_P(HTTP_END);  // 20
+    webServer.sendContent(httpMessage);
+    webSendFooter();
 
     delay(200);
     dispatchReboot(true);
@@ -216,8 +232,8 @@ void webHandleScreenshot()
         httpMessage += FPSTR(MAIN_MENU_BUTTON);
 
         webSendPage(nodename, httpMessage.length(), false);
-        webServer.sendContent(httpMessage); // len
-        webServer.sendContent_P(HTTP_END);  // 20
+        webServer.sendContent(httpMessage);
+        webSendFooter();
     }
 }
 
@@ -259,8 +275,8 @@ void webHandleAbout()
     httpMessage += FPSTR(MAIN_MENU_BUTTON);
 
     webSendPage(nodename, httpMessage.length(), false);
-    webServer.sendContent(httpMessage); // len
-    webServer.sendContent_P(HTTP_END);  // 20
+    webServer.sendContent(httpMessage);
+    webSendFooter();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -339,7 +355,7 @@ void webHandleInfo()
 
     webSendPage(nodename, httpMessage.length(), false);
     webServer.sendContent(httpMessage);
-    webServer.sendContent_P(HTTP_END);
+    webSendFooter();
 }
 
 String getContentType(String filename)
@@ -640,8 +656,8 @@ void webHandleConfig()
     ;
 
     webSendPage(nodename, httpMessage.length(), false);
-    webServer.sendContent(httpMessage); // len
-    webServer.sendContent_P(HTTP_END);  // 20
+    webServer.sendContent(httpMessage);
+    webSendFooter();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -684,8 +700,8 @@ void webHandleMqttConfig()
         PSTR("<p><form method='get' action='/config'><button type='submit'>Configuration</button></form></p>");
 
     webSendPage(nodename, httpMessage.length(), false);
-    webServer.sendContent(httpMessage); // len
-    webServer.sendContent_P(HTTP_END);  // 20
+    webServer.sendContent(httpMessage);
+    webSendFooter();
 }
 #endif
 
@@ -712,8 +728,8 @@ void webHandleGuiConfig()
         PSTR("<p><form method='get' action='/config'><button type='submit'>Configuration</button></form></p>");
 
     webSendPage(nodename, httpMessage.length(), false);
-    webServer.sendContent(httpMessage); // len
-    webServer.sendContent_P(HTTP_END);  // 20
+    webServer.sendContent(httpMessage);
+    webSendFooter();
 
     if(webServer.hasArg(F("action"))) dispatchCommand(webServer.arg(F("action")));
 }
@@ -749,8 +765,8 @@ void webHandleWifiConfig()
     }
 
     webSendPage(nodename, httpMessage.length(), false);
-    webServer.sendContent(httpMessage); // len
-    webServer.sendContent_P(HTTP_END);  // 20
+    webServer.sendContent(httpMessage);
+    webSendFooter();
 }
 #endif
 
@@ -785,8 +801,8 @@ void webHandleHttpConfig()
     }
 
     webSendPage(nodename, httpMessage.length(), false);
-    webServer.sendContent(httpMessage); // len
-    webServer.sendContent_P(HTTP_END);  // 20
+    webServer.sendContent(httpMessage);
+    webSendFooter();
 }
 #endif
 
@@ -881,8 +897,8 @@ void webHandleHaspConfig()
     httpMessage += F("<p><form method='get' action='/config'><button type='submit'>Configuration</button></form></p>");
 
     webSendPage(nodename, httpMessage.length(), false);
-    webServer.sendContent(httpMessage); // len
-    webServer.sendContent_P(HTTP_END);  // 20
+    webServer.sendContent(httpMessage);
+    webSendFooter();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -936,8 +952,8 @@ void httpHandleEspFirmware()
     httpMessage += String(webServer.arg("espFirmware"));
 
     webSendPage(nodename, httpMessage.length(), true);
-    webServer.sendContent(httpMessage); // len
-    webServer.sendContent_P(HTTP_END);  // 20
+    webServer.sendContent(httpMessage);
+    webSendFooter();
 
     debugPrintln(String(F("HTTP: Attempting ESP firmware update from: ")) + String(webServer.arg("espFirmware")));
     // espStartOta(webServer.arg("espFirmware"));
@@ -978,8 +994,8 @@ void httpHandleResetConfig()
     }
 
     webSendPage(nodename, httpMessage.length(), resetConfirmed);
-    webServer.sendContent(httpMessage); // len
-    webServer.sendContent_P(HTTP_END);  // 20
+    webServer.sendContent(httpMessage);
+    webSendFooter();
 
     if(resetConfirmed) {
         delay(250);
