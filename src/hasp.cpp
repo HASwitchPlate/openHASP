@@ -1473,7 +1473,7 @@ void haspNewObject(const JsonObject & config)
     }
     /** testing end **/
 
-    char msg[64];
+    char msg[127];
     sprintf_P(msg, PSTR("HASP: Created object p[%u].b[%u]"), pageid, temp);
     debugPrintln(msg);
 
@@ -1488,7 +1488,7 @@ void haspNewObject(const JsonObject & config)
 
 void haspLoadPage(String pages)
 {
-    char msg[92];
+    char msg[127];
 
     if(!SPIFFS.begin()) {
         errorPrintln(String(F("HASP: %sFS not mounted. Failed to load ")) + pages.c_str());

@@ -15,7 +15,24 @@
 #include "hasp_log.h"
 #include "hasp_debug.h"
 
-void debugPrintln(String debugText)
+void debugPrintln(String & debugText)
+{
+    serialPrintln(debugText);
+
+#if HASP_USE_SYSLOG != 0
+    syslogSend(0, debugText.c_str());
+#endif
+}
+
+void debugPrintln(const __FlashStringHelper * debugText)
+{
+    String buffer((char *)0);
+    buffer.reserve(127);
+    buffer = debugText;
+    debugPrintln(buffer);
+}
+
+void debugPrintln(const char * debugText)
 {
     serialPrintln(debugText);
 

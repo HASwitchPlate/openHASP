@@ -127,3 +127,13 @@ void configSetup(JsonDocument & settings)
         configGetConfig(settings, true);
     }
 }
+
+void configOutput(const JsonObject & settings)
+{
+    String output((char *)0);
+    output.reserve(127);
+    serializeJson(settings, output);
+    String passmask = F("********");
+    output.replace(settings[F("pass")].as<String>(), passmask);
+    debugPrintln(String(F("CONF: ")) + output);
+}

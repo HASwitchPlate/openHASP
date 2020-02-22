@@ -29,5 +29,6 @@ void configSetConfig(JsonObject & settings);
 void configGetConfig(JsonDocument & settings);
 void configWriteConfig();
 bool configChanged(void);
+void configOutput(const JsonObject & settings);
 
 #endif

@@ -9,29 +9,29 @@
 #if defined(ARDUINO_ARCH_ESP32)
 #include "SPIFFS.h"
 #endif
-#include <FS.h> // Include the SPIFFS library
+#include <FS.h>
 #endif
 
 void spiffsList()
 {
-#if defined(ARDUINO_ARCH_ESP32)
+    char buffer[127];
     debugPrintln(PSTR("FILE: Listing files on the internal flash:"));
+
+#if defined(ARDUINO_ARCH_ESP32)
     File root = SPIFFS.open("/");
     File file = root.openNextFile();
     while(file) {
-        char msg[64];
-        sprintf(msg, PSTR("FILE:    * %s  (%u bytes)"), file.name(), (uint32_t)file.size());
-        debugPrintln(msg);
+        snprintf(buffer, sizeof(buffer), PSTR("FILE:    * %s  (%u bytes)"), file.name(), (uint32_t)file.size());
+        debugPrintln(buffer);
         file = root.openNextFile();
     }
 #endif
 #if defined(ARDUINO_ARCH_ESP8266)
-    debugPrintln(PSTR("FILE: Listing files on the internal flash:"));
     Dir dir = SPIFFS.openDir("/");
     while(dir.next()) {
-        char msg[64];
-        sprintf(msg, PSTR("FILE:    * %s  (%u bytes)"), dir.fileName().c_str(), (uint32_t)dir.fileSize());
-        debugPrintln(msg);
+        snprintf(buffer, sizeof(buffer), PSTR("FILE:    * %s  (%u bytes)"), dir.fileName().c_str(),
+                 (uint32_t)dir.fileSize());
+        debugPrintln(buffer);
     }
 #endif
 }
@@ -41,18 +41,17 @@ void spiffsSetup()
     // no SPIFFS settings, as settings depend on SPIFFS
 
 #if HASP_USE_SPIFFS
-    char msg[64];
+    char buffer[127];
 #if defined(ARDUINO_ARCH_ESP8266)
     if(!SPIFFS.begin()) {
 #else
     if(!SPIFFS.begin(true)) {
 #endif
-        sprintf(msg, PSTR("FILE: %%sSPI flash init failed. Unable to mount FS."));
-        errorPrintln(msg);
+        snprintf(buffer, sizeof(buffer), PSTR("FILE: %%sSPI flash init failed. Unable to mount FS."));
+        errorPrintln(buffer);
     } else {
-        sprintf(msg, PSTR("FILE: [SUCCESS] SPI flash FS mounted"));
-        debugPrintln(msg);
-        // spiffsList(); // Wait on debugSetup()
+        snprintf(buffer, sizeof(buffer), PSTR("FILE: SPI Flash FS mounted"));
+        debugPrintln(buffer);
     }
 #endif
 }
@@ -62,13 +61,21 @@ void spiffsLoop()
 
 String spiffsFormatBytes(size_t bytes)
 {
+    String output((char *)0);
+    output.reserve(127);
+
     if(bytes < 1024) {
-        return String(bytes) + "B";
+        output += bytes;
     } else if(bytes < (1024 * 1024)) {
-        return String(bytes / 1024.0) + "KB";
+        output += bytes / 1024.0;
+        output += "K";
     } else if(bytes < (1024 * 1024 * 1024)) {
-        return String(bytes / 1024.0 / 1024.0) + "MB";
+        output += bytes / 1024.0 / 1024.0;
+        output += "M";
     } else {
-        return String(bytes / 1024.0 / 1024.0 / 1024.0) + "GB";
+        output += bytes / 1024.0 / 1024.0 / 1024.0;
+        output += "G";
     }
+    output += "B";
+    return output;
 }

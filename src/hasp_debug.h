@@ -5,7 +5,8 @@ void debugSetup(void);
 void debugLoop(void);
 void debugStop(void);
 
-void serialPrintln(String debugText);
+void serialPrintln(String & debugText);
+void serialPrintln(const char * debugText);
 
 void syslogSend(uint8_t log, const char * debugText);
 

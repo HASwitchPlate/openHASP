@@ -27,28 +27,30 @@ static WiFiEventHandler gotIpEventHandler, disconnectedEventHandler;
 #endif
 
 #ifdef WIFI_SSID
-std::string wifiSsid = WIFI_SSID;
+char wifiSsid[32] = WIFI_SSID;
+// std::string wifiSsid = WIFI_SSID;
 #else
-std::string wifiSsid     = "";
+char wifiSsid[32] = "";
+// std::string wifiSsid  = "";
 #endif
 #ifdef WIFI_PASSW
-std::string wifiPassword = WIFI_PASSW;
+char wifiPassword[32] = WIFI_PASSW;
+// std::string wifiPassword = WIFI_PASSW;
 #else
-std::string wifiPassword = "";
+char wifiPassword[32] = "";
+// std::string wifiPassword = "";
 #endif
 
-const byte DNS_PORT = 53;
+// const byte DNS_PORT = 53;
 // DNSServer dnsServer;
-
-// long wifiPrevMillis         = 0;
-// bool wifiWasConnected       = false;
-// int8_t wifiReconnectAttempt = -20;
 
 String wifiGetMacAddress(int start, const char * seperator)
 {
     byte mac[6];
     WiFi.macAddress(mac);
-    String cMac = "";
+    String cMac((char *)0);
+    cMac.reserve(127);
+
     for(int i = start; i < 6; ++i) {
         if(mac[i] < 0x10) cMac += "0";
         cMac += String(mac[i], HEX);
@@ -62,9 +64,9 @@ void wifiConnected(IPAddress ipaddress)
 {
     bool isConnected = WiFi.status() == WL_CONNECTED;
     char buffer[127];
-    sprintf_P(buffer, PSTR("WIFI: Received IP address %s"), ipaddress.toString().c_str());
+    snprintf_P(buffer, sizeof(buffer), PSTR("WIFI: Received IP address %s"), ipaddress.toString().c_str());
     debugPrintln(buffer);
-    sprintf_P(buffer, PSTR("WIFI: Connected = %s"), isConnected ? PSTR("yes") : PSTR("no"));
+    snprintf_P(buffer, sizeof(buffer), PSTR("WIFI: Connected = %s"), isConnected ? PSTR("yes") : PSTR("no"));
     debugPrintln(buffer);
 
     if(isConnected) {
@@ -77,7 +79,7 @@ void wifiConnected(IPAddress ipaddress)
 void wifiDisconnected(const char * ssid, uint8_t reason)
 {
     char buffer[127];
-    sprintf_P(buffer, PSTR("WIFI: Disconnected from %s (Reason: %d)"), ssid, reason);
+    snprintf_P(buffer, sizeof(buffer), PSTR("WIFI: Disconnected from %s (Reason: %d)"), ssid, reason);
     debugPrintln(buffer);
     WiFi.reconnect();
 }
@@ -85,7 +87,7 @@ void wifiDisconnected(const char * ssid, uint8_t reason)
 void wifiSsidConnected(const char * ssid)
 {
     char buffer[127];
-    sprintf_P(buffer, PSTR("WIFI: Connected to SSID %s. Requesting IP..."), ssid);
+    snprintf_P(buffer, sizeof(buffer), PSTR("WIFI: Connected to SSID %s. Requesting IP..."), ssid);
     debugPrintln(buffer);
 }
 
@@ -156,7 +158,7 @@ void wifiSetup(JsonObject settings)
     }
 
     WiFi.mode(WIFI_STA);
-    sprintf_P(buffer, PSTR("WIFI: Connecting to : %s"), wifiSsid.c_str());
+    snprintf_P(buffer, sizeof(buffer), PSTR("WIFI: Connecting to : %s"), wifiSsid);
     debugPrintln(buffer);
 
 #if defined(ARDUINO_ARCH_ESP8266)
@@ -170,7 +172,7 @@ void wifiSetup(JsonObject settings)
     WiFi.setSleep(false);
 #endif
 
-    WiFi.begin(wifiSsid.c_str(), wifiPassword.c_str());
+    WiFi.begin(wifiSsid, wifiPassword);
 }
 
 bool wifiLoop()
@@ -208,12 +210,10 @@ bool wifiLoop()
 
 bool wifiGetConfig(const JsonObject & settings)
 {
-    settings[FPSTR(F_CONFIG_SSID)] = String(wifiSsid.c_str());
-    settings[FPSTR(F_CONFIG_PASS)] = String(wifiPassword.c_str());
+    settings[FPSTR(F_CONFIG_SSID)] = wifiSsid;     // String(wifiSsid.c_str());
+    settings[FPSTR(F_CONFIG_PASS)] = wifiPassword; // String(wifiPassword.c_str());
 
-    serializeJson(settings, Serial);
-    Serial.println();
-
+    configOutput(settings);
     return true;
 }
 
@@ -223,27 +223,36 @@ bool wifiSetConfig(const JsonObject & settings)
 {
     bool changed = false;
 
+    /*    if(!settings[FPSTR(F_CONFIG_SSID)].isNull()) {
+            if(wifiSsid != settings[FPSTR(F_CONFIG_SSID)].as<String>().c_str()) {
+                debugPrintln(F("wifiSsid set"));
+            }
+            changed |= wifiSsid != settings[FPSTR(F_CONFIG_SSID)].as<String>().c_str();
+
+            wifiSsid = settings[FPSTR(F_CONFIG_SSID)].as<String>().c_str();
+        }
+
+        if(!settings[FPSTR(F_CONFIG_PASS)].isNull() && settings[FPSTR(F_CONFIG_PASS)].as<String>() != F("********")) {
+            if(wifiPassword != settings[FPSTR(F_CONFIG_PASS)].as<String>().c_str()) {
+                debugPrintln(F("wifiPassword set"));
+            }
+            changed |= wifiPassword != settings[FPSTR(F_CONFIG_PASS)].as<String>().c_str();
+
+            wifiPassword = settings[FPSTR(F_CONFIG_PASS)].as<String>().c_str();
+        }
+    */
+
     if(!settings[FPSTR(F_CONFIG_SSID)].isNull()) {
-        if(wifiSsid != settings[FPSTR(F_CONFIG_SSID)].as<String>().c_str()) {
-            debugPrintln(F("wifiSsid set"));
-        }
-        changed |= wifiSsid != settings[FPSTR(F_CONFIG_SSID)].as<String>().c_str();
-
-        wifiSsid = settings[FPSTR(F_CONFIG_SSID)].as<String>().c_str();
+        changed |= strcmp(wifiSsid, settings[FPSTR(F_CONFIG_SSID)]) != 0;
+        strncpy(wifiSsid, settings[FPSTR(F_CONFIG_SSID)], sizeof(wifiSsid));
     }
 
-    if(!settings[FPSTR(F_CONFIG_PASS)].isNull() && settings[FPSTR(F_CONFIG_PASS)].as<String>() != F("********")) {
-        if(wifiPassword != settings[FPSTR(F_CONFIG_PASS)].as<String>().c_str()) {
-            debugPrintln(F("wifiPassword set"));
-        }
-        changed |= wifiPassword != settings[FPSTR(F_CONFIG_PASS)].as<String>().c_str();
-
-        wifiPassword = settings[FPSTR(F_CONFIG_PASS)].as<String>().c_str();
+    if(!settings[FPSTR(F_CONFIG_PASS)].isNull()) {
+        changed |= strcmp(wifiPassword, settings[FPSTR(F_CONFIG_PASS)]) != 0;
+        strncpy(wifiPassword, settings[FPSTR(F_CONFIG_PASS)], sizeof(wifiPassword));
     }
 
-    serializeJson(settings, Serial);
-    Serial.println();
-
+    configOutput(settings);
     return changed;
 }
 

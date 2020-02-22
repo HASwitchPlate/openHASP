@@ -74,20 +74,28 @@ void debugSetup()
 void debugLoop()
 {}
 
-void serialPrintln(String debugText)
+void serialPrintln(const char * debugText)
 {
     String debugTimeText((char *)0);
-    debugTimeText.reserve(128);
+    debugTimeText.reserve(127);
 
     debugTimeText = F("[");
     debugTimeText += String(float(millis()) / 1000, 3);
     debugTimeText += F("s] ");
+    debugTimeText += ESP.getMaxFreeBlockSize();
+    debugTimeText += F("/");
     debugTimeText += ESP.getFreeHeap();
     debugTimeText += F(" ");
     debugTimeText += halGetHeapFragmentation();
     debugTimeText += F(" ");
-    debugTimeText += debugText;
-    Serial.println(debugTimeText);
+
+    Serial.print(debugTimeText);
+    Serial.println(debugText);
+}
+
+void serialPrintln(String & debugText)
+{
+    serialPrintln(debugText.c_str());
 }
 
 #if HASP_USE_SYSLOG != 0

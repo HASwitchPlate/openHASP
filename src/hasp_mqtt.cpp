@@ -7,7 +7,6 @@
 #include <ESP8266WiFi.h>
 #include <EEPROM.h>
 #include <ESP.h>
-#include <DNSServer.h>
 #endif
 #include <PubSubClient.h>
 
@@ -24,7 +23,7 @@
 #include "user_config_override.h"
 #endif
 
-String mqttClientId; // Auto-generated MQTT ClientID
+String mqttClientId((char *)0); // Auto-generated MQTT ClientID
 /*
 String mqttGetSubtopic;             // MQTT subtopic for incoming commands requesting .val
 String mqttGetSubtopicJSON;         // MQTT object buffer for JSON status when requesting .val
@@ -41,8 +40,8 @@ String mqttLightBrightCommandTopic; // MQTT topic for incoming panel backlight d
 String mqttLightBrightStateTopic;   // MQTT topic for outgoing panel backlight dimmer state
 // String mqttMotionStateTopic;        // MQTT topic for outgoing motion sensor state
 
-String mqttNodeTopic;
-String mqttGroupTopic;
+String mqttNodeTopic((char *)0);
+String mqttGroupTopic((char *)0);
 bool mqttEnabled;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -89,29 +88,29 @@ void IRAM_ATTR mqttSendState(const char * subtopic, const char * payload)
     // light = 0/1
     // brightness = 100
 
-    char topic[128];
-    sprintf_P(topic, PSTR("%sstate/%s"), mqttNodeTopic.c_str(), subtopic);
+    char topic[127];
+    snprintf_P(topic, sizeof(topic), PSTR("%sstate/%s"), mqttNodeTopic.c_str(), subtopic);
     mqttClient.publish(topic, payload);
     debugPrintln(String(F("MQTT OUT: ")) + String(topic) + " = " + String(payload));
 
     // as json
-    char value[256];
-    sprintf_P(topic, PSTR("%sstate/json"), mqttNodeTopic.c_str());
-    sprintf_P(value, PSTR("{\"%s\":\"%s\"}"), subtopic, payload);
+    char value[254];
+    snprintf_P(topic, sizeof(topic), PSTR("%sstate/json"), mqttNodeTopic.c_str());
+    snprintf_P(value, sizeof(value), PSTR("{\"%s\":\"%s\"}"), subtopic, payload);
     mqttClient.publish(topic, value);
     debugPrintln(String(F("MQTT OUT: ")) + String(topic) + " = " + String(value));
 }
 
 void IRAM_ATTR mqttSendNewValue(uint8_t pageid, uint8_t btnid, const char * attribute, String txt)
 {
-    char subtopic[32];
-    sprintf_P(subtopic, PSTR("p[%u].b[%u].%s"), pageid, btnid, attribute);
+    char subtopic[127];
+    snprintf_P(subtopic, sizeof(subtopic), PSTR("p[%u].b[%u].%s"), pageid, btnid, attribute);
     mqttSendState(subtopic, txt.c_str());
 }
 
 void IRAM_ATTR mqttSendNewValue(uint8_t pageid, uint8_t btnid, int32_t val)
 {
-    char value[16];
+    char value[127];
     itoa(val, value, 10);
     mqttSendNewValue(pageid, btnid, "val", value);
 }
@@ -123,7 +122,7 @@ void IRAM_ATTR mqttSendNewValue(uint8_t pageid, uint8_t btnid, String txt)
 
 void IRAM_ATTR mqttSendNewEvent(uint8_t pageid, uint8_t btnid, int32_t val)
 {
-    char value[16];
+    char value[127];
     itoa(val, value, 10);
     mqttSendNewValue(pageid, btnid, "event", value);
 }
@@ -268,8 +267,8 @@ void mqttCallback(char * topic, byte * payload, unsigned int length)
 
     if(strTopic == F("status") &&
        strPayload == F("OFF")) { // catch a dangling LWT from a previous connection if it appears
-        char topicBuffer[64];
-        sprintf_P(topicBuffer, PSTR("%sstatus"), mqttNodeTopic.c_str());
+        char topicBuffer[127];
+        snprintf_P(topicBuffer, sizeof(topicBuffer), PSTR("%sstatus"), mqttNodeTopic.c_str());
         debugPrintln(String(F("MQTT: binary_sensor state: [")) + topicBuffer + "] : ON");
         mqttClient.publish(topicBuffer, "ON", true);
         return;
@@ -281,13 +280,17 @@ void mqttReconnect()
     static uint8_t mqttReconnectCount = 0;
     bool mqttFirstConnect             = true;
     String nodeName                   = haspGetNodename();
-    // Generate an MQTT client ID as haspNode + our MAC address
-    mqttClientId = nodeName + "-" + WiFi.macAddress();
+    char topicBuffer[127];
 
-    char topicBuffer[64];
-    sprintf_P(topicBuffer, PSTR("hasp/%s/"), nodeName.c_str());
+    // Generate an MQTT client ID as haspNode + our MAC address
+    mqttClientId = nodeName;
+    mqttClientId += F("-");
+    mqttClientId += wifiGetMacAddress(3, "");
+    WiFi.macAddress();
+
+    snprintf_P(topicBuffer, sizeof(topicBuffer), PSTR("hasp/%s/"), nodeName.c_str());
     mqttNodeTopic = topicBuffer;
-    sprintf_P(topicBuffer, PSTR("hasp/%s/"), mqttGroupName.c_str());
+    snprintf_P(topicBuffer, sizeof(topicBuffer), PSTR("hasp/%s/"), mqttGroupName.c_str());
     mqttGroupTopic = topicBuffer;
 
     // haspSetPage(0);
@@ -295,7 +298,7 @@ void mqttReconnect()
                  String(F(" as clientID ")) + mqttClientId);
 
     // Attempt to connect and set LWT and Clean Session
-    sprintf_P(topicBuffer, PSTR("%sstatus"), mqttNodeTopic.c_str());
+    snprintf_P(topicBuffer, sizeof(topicBuffer), PSTR("%sstatus"), mqttNodeTopic.c_str());
     if(!mqttClient.connect(mqttClientId.c_str(), mqttUser.c_str(), mqttPassword.c_str(), topicBuffer, 0, false, "OFF",
                            true)) {
         // Retry until we give up and restart after connectTimeout seconds
@@ -334,24 +337,24 @@ void mqttReconnect()
 
     // Attempt to connect to broker, setting last will and testament
     // Subscribe to our incoming topics
-    sprintf_P(topicBuffer, PSTR("%scommand/#"), mqttGroupTopic.c_str());
+    snprintf_P(topicBuffer, sizeof(topicBuffer), PSTR("%scommand/#"), mqttGroupTopic.c_str());
     if(mqttClient.subscribe(topicBuffer)) {
         debugPrintln(String(F("MQTT:    * Subscribed to ")) + topicBuffer);
     }
-    sprintf_P(topicBuffer, PSTR("%scommand/#"), mqttNodeTopic.c_str());
+    snprintf_P(topicBuffer, sizeof(topicBuffer), PSTR("%scommand/#"), mqttNodeTopic.c_str());
     if(mqttClient.subscribe(topicBuffer)) {
         debugPrintln(String(F("MQTT:    * Subscribed to ")) + topicBuffer);
     }
-    sprintf_P(topicBuffer, PSTR("%slight/#"), mqttNodeTopic.c_str());
+    snprintf_P(topicBuffer, sizeof(topicBuffer), PSTR("%slight/#"), mqttNodeTopic.c_str());
     if(mqttClient.subscribe(topicBuffer)) {
         debugPrintln(String(F("MQTT:    * Subscribed to ")) + topicBuffer);
     }
-    sprintf_P(topicBuffer, PSTR("%sbrightness/#"), mqttNodeTopic.c_str());
+    snprintf_P(topicBuffer, sizeof(topicBuffer), PSTR("%sbrightness/#"), mqttNodeTopic.c_str());
     if(mqttClient.subscribe(topicBuffer)) {
         debugPrintln(String(F("MQTT:    * Subscribed to ")) + topicBuffer);
     }
 
-    sprintf_P(topicBuffer, PSTR("%sstatus"), mqttNodeTopic.c_str());
+    snprintf_P(topicBuffer, sizeof(topicBuffer), PSTR("%sstatus"), mqttNodeTopic.c_str());
     if(mqttClient.subscribe(topicBuffer)) {
         debugPrintln(String(F("MQTT:    * Subscribed to ")) + topicBuffer);
     }
@@ -367,6 +370,10 @@ void mqttReconnect()
 
 void mqttSetup(const JsonObject & settings)
 {
+    mqttClientId.reserve(127);
+    mqttNodeTopic.reserve(127);
+    mqttGroupTopic.reserve(127);
+
     mqttSetConfig(settings);
 
     mqttEnabled = mqttServer != "" && mqttPort > 0;
@@ -394,16 +401,16 @@ bool mqttIsConnected()
 void mqttStop()
 {
     if(mqttClient.connected()) {
-        char topicBuffer[64];
+        char topicBuffer[127];
 
-        sprintf_P(topicBuffer, PSTR("%sstatus"), mqttNodeTopic.c_str());
+        snprintf_P(topicBuffer, sizeof(topicBuffer), PSTR("%sstatus"), mqttNodeTopic.c_str());
         mqttClient.publish(topicBuffer, "OFF");
 
-        sprintf_P(topicBuffer, PSTR("%ssensor"), mqttNodeTopic.c_str());
+        snprintf_P(topicBuffer, sizeof(topicBuffer), PSTR("%ssensor"), mqttNodeTopic.c_str());
         mqttClient.publish(topicBuffer, "{\"status\": \"unavailable\"}");
 
         mqttClient.disconnect();
-        debugPrintln(String(F("MQTT: Disconnected from broker")));
+        debugPrintln(F("MQTT: Disconnected from broker"));
     }
 }
 
@@ -415,9 +422,7 @@ bool mqttGetConfig(const JsonObject & settings)
     settings[FPSTR(F_CONFIG_USER)]  = String(mqttUser.c_str());
     settings[FPSTR(F_CONFIG_PASS)]  = String(mqttPassword.c_str());
 
-    serializeJson(settings, Serial);
-    Serial.println();
-
+    configOutput(settings);
     return true;
 }
 
@@ -472,8 +477,6 @@ bool mqttSetConfig(const JsonObject & settings)
         mqttPassword = settings[FPSTR(F_CONFIG_PASS)].as<String>().c_str();
     }
 
-    serializeJson(settings, Serial);
-    Serial.println();
-
+    configOutput(settings);
     return changed;
 }

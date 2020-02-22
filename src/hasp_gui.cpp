@@ -72,7 +72,7 @@ bool IRAM_ATTR guiCheckSleep()
 /* Serial debugging */
 void debugLvgl(lv_log_level_t level, const char * file, uint32_t line, const char * dsc)
 {
-    char msg[128];
+    char msg[127];
     sprintf(msg, PSTR("LVGL: %s@%d->%s"), file, line, dsc);
     debugPrintln(msg);
 }
@@ -341,7 +341,7 @@ void guiSetup(TFT_eSPI & screen, JsonObject settings)
 
     /* Setup Backlight Control Pin */
     if(guiBacklightPin >= 0) {
-        char msg[128];
+        char msg[127];
         sprintf(msg, PSTR("LVGL: Backlight Pin = %i"), guiBacklightPin);
         debugPrintln(msg);
 

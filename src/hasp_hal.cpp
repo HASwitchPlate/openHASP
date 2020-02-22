@@ -13,7 +13,7 @@ String esp32ResetReason(uint8_t cpuid)
     RESET_REASON reason = rtc_get_reset_reason(cpuid);
 
     String resetReason((char *)0);
-    resetReason.reserve(32);
+    resetReason.reserve(127);
 
     resetReason += F("CPU");
     resetReason += cpuid;
@@ -78,7 +78,7 @@ String halGetResetInfo()
 {
 #if defined(ARDUINO_ARCH_ESP32)
     String resetReason((char *)0);
-    resetReason.reserve(64);
+    resetReason.reserve(127);
 
     resetReason += String(esp32ResetReason(0));
     resetReason += F(" / ");

@@ -28,7 +28,7 @@ uint16_t httpPort     = 80;
 FS * filesystem       = &SPIFFS;
 File fsUploadFile;
 char httpUser[32]     = "";
-char httpPassword[64] = "";
+char httpPassword[32] = "";
 
 #if defined(ARDUINO_ARCH_ESP8266)
 #include <ESP8266WebServer.h>
@@ -99,6 +99,7 @@ bool httpIsAuthenticated(const String & page)
             return false;
         }
     }
+
     char buffer[127];
     snprintf(buffer, sizeof(buffer), PSTR("HTTP: Sending %s page to client connected from: %s"), page.c_str(),
              webServer.client().remoteIP().toString().c_str());
@@ -557,7 +558,7 @@ void handleFileList()
         }
         output += F("\"}");
 
-        char msg[64];
+        char msg[127];
         sprintf(msg, PSTR("HTTP:    * %s  (%u bytes)"), file.name(), (uint32_t)file.size());
         debugPrintln(msg);
 
@@ -1107,9 +1108,7 @@ bool httpGetConfig(const JsonObject & settings)
     settings[FPSTR(F_CONFIG_USER)]   = httpUser;
     settings[FPSTR(F_CONFIG_PASS)]   = httpPassword;
 
-    serializeJson(settings, Serial);
-    Serial.println();
-
+    configOutput(settings);
     return true;
 }
 
@@ -1138,8 +1137,6 @@ bool httpSetConfig(const JsonObject & settings)
         httpPort = settings[FPSTR(F_CONFIG_PORT)].as<uint8_t>();
     }
 
-    serializeJson(settings, Serial);
-    Serial.println();
-
+    configOutput(settings);
     return changed;
 }
