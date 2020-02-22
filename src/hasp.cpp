@@ -1326,7 +1326,7 @@ void haspNewObject(const JsonObject & config)
             }
             if(styleid < sizeof labelStyles / sizeof *labelStyles) {
                 debugPrintln(String(F("HASP: Styleid set to ")) + styleid);
-                lv_label_set_style(obj, LV_LABEL_STYLE_MAIN, &labelStyles[styleid]);
+                // lv_label_set_style(obj, LV_LABEL_STYLE_MAIN, &labelStyles[styleid]);
             }
             /* click area padding */
             uint8_t padh = config[F("padh")].as<uint8_t>();
