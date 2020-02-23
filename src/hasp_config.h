@@ -5,6 +5,7 @@
 
 /* json keys used in the configfile */
 const char F_CONFIG_STARTPAGE[] PROGMEM = "startpage";
+const char F_CONFIG_STARTDIM[] PROGMEM  = "startdim";
 const char F_CONFIG_THEME[] PROGMEM     = "theme";
 const char F_CONFIG_HUE[] PROGMEM       = "hue";
 const char F_CONFIG_ZIFONT[] PROGMEM    = "font";

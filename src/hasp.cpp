@@ -26,6 +26,7 @@
 #include "hasp_log.h"
 #include "hasp_debug.h"
 #include "hasp_config.h"
+#include "hasp_dispatch.h"
 #include "hasp_mqtt.h"
 #include "hasp_wifi.h"
 #include "hasp_gui.h"
@@ -38,6 +39,7 @@
  *      DEFINES
  *********************/
 
+uint8_t haspStartDim   = 100;
 uint8_t haspStartPage  = 0;
 uint8_t haspThemeId    = 0;
 uint16_t haspThemeHue  = 200;
@@ -672,6 +674,11 @@ static int16_t get_obj(uint8_t pageid, uint8_t objid, lv_obj_t * obj)
  * Connection lost GUI
  */
 
+void haspWakeUp()
+{
+    lv_disp_trig_activity(NULL);
+}
+
 void haspDisconnect()
 {
     /* Create a dark plain style for a message box's background (modal)*/
@@ -953,6 +960,7 @@ void haspSetup(JsonObject settings)
     haspDisconnect();
     haspLoadPage(haspPagesPath);
     haspSetPage(haspStartPage);
+    guiSetDim(haspStartDim);
 
     // lv_obj_t * img_bin_t = lv_img_create(pages[current_page], NULL); /*Crate an image object*/
     // lv_img_set_src(img_bin_t, "F:/dogsmall(1).bin");                 /*Set the created file as image (a red rose)*/
@@ -1526,6 +1534,7 @@ void haspLoadPage(String pages)
 bool haspGetConfig(const JsonObject & settings)
 {
     settings[FPSTR(F_CONFIG_STARTPAGE)] = haspStartPage;
+    settings[FPSTR(F_CONFIG_STARTDIM)]  = haspStartDim;
     settings[FPSTR(F_CONFIG_THEME)]     = haspThemeId;
     settings[FPSTR(F_CONFIG_HUE)]       = haspThemeHue;
     settings[FPSTR(F_CONFIG_ZIFONT)]    = haspZiFontPath;
@@ -1556,6 +1565,11 @@ bool haspSetConfig(const JsonObject & settings)
     if(!settings[FPSTR(F_CONFIG_STARTPAGE)].isNull()) {
         changed |= haspStartPage != settings[FPSTR(F_CONFIG_STARTPAGE)].as<uint8_t>();
         haspStartPage = settings[FPSTR(F_CONFIG_STARTPAGE)].as<uint8_t>();
+    }
+
+    if(!settings[FPSTR(F_CONFIG_STARTDIM)].isNull()) {
+        changed |= haspStartDim != settings[FPSTR(F_CONFIG_STARTDIM)].as<uint8_t>();
+        haspStartDim = settings[FPSTR(F_CONFIG_STARTDIM)].as<uint8_t>();
     }
 
     if(!settings[FPSTR(F_CONFIG_THEME)].isNull()) {
