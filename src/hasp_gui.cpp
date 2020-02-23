@@ -260,6 +260,7 @@ void guiSetup(TFT_eSPI & screen, JsonObject settings)
     static lv_disp_buf_t disp_buf;
     lv_disp_buf_init(&disp_buf, guiVdbBuffer, NULL, buffer_size);
 #endif
+    debugPrintln(String(F("LVGL: MEM size : ")) + String(LV_MEM_SIZE));
     debugPrintln(String(F("LVGL: VDB size : ")) + String((size_t)sizeof(lv_color_t) * buffer_size));
 
 #if LV_USE_LOG != 0
@@ -374,7 +375,7 @@ void guiSetDim(uint8_t level)
 #if defined(ARDUINO_ARCH_ESP32)
         ledcWrite(0, map(guiDimLevel, 0, 100, 0, 1023)); // ledChannel and value
 #else
-        analogWrite(D1, map(guiDimLevel, 0, 100, 0, 1023));
+        analogWrite(guiBacklightPin, map(guiDimLevel, 0, 100, 0, 1023));
 #endif
     } else {
         guiDimLevel = -1;
