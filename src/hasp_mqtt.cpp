@@ -76,6 +76,9 @@ const String mqttLightBrightSubscription  = "hasp/" + String(haspGetNodename()) 
 WiFiClient wifiClient;
 PubSubClient mqttClient(wifiClient);
 
+static char mqttTopic[127];
+static char mqttPayload[254];
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Send changed values OUT
 
@@ -88,18 +91,15 @@ void IRAM_ATTR mqttSendState(const char * subtopic, const char * payload)
     // light = 0/1
     // brightness = 100
 
-    char topic[127];
-    char value[254];
-
-    snprintf_P(topic, sizeof(topic), PSTR("%sstate/%s"), mqttNodeTopic.c_str(), subtopic);
-    mqttClient.publish(topic, payload);
-    debugPrintln(String(F("MQTT OUT: ")) + String(topic) + " = " + String(payload));
+    snprintf_P(mqttTopic, sizeof(mqttTopic), PSTR("%sstate/%s"), mqttNodeTopic.c_str(), subtopic);
+    mqttClient.publish(mqttTopic, payload);
+    debugPrintln(String(F("MQTT OUT: ")) + String(mqttTopic) + " = " + String(payload));
 
     // as json
-    snprintf_P(topic, sizeof(topic), PSTR("%sstate/json"), mqttNodeTopic.c_str());
-    snprintf_P(value, sizeof(value), PSTR("{\"%s\":\"%s\"}"), subtopic, payload);
-    mqttClient.publish(topic, value);
-    debugPrintln(String(F("MQTT OUT: ")) + String(topic) + " = " + String(value));
+    snprintf_P(mqttTopic, sizeof(mqttTopic), PSTR("%sstate/json"), mqttNodeTopic.c_str());
+    snprintf_P(mqttPayload, sizeof(mqttPayload), PSTR("{\"%s\":\"%s\"}"), subtopic, payload);
+    mqttClient.publish(mqttTopic, mqttPayload);
+    debugPrintln(String(F("MQTT OUT: ")) + String(mqttTopic) + " = " + String(mqttPayload));
 }
 
 void IRAM_ATTR mqttSendNewValue(uint8_t pageid, uint8_t btnid, const char * attribute, String txt)

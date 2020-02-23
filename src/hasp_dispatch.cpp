@@ -71,35 +71,25 @@ void IRAM_ATTR dispatchCommand(String cmnd)
     if(cmnd.startsWith(F("page ")) || cmnd.startsWith(F("page="))) {
         cmnd = cmnd.substring(5, cmnd.length());
         dispatchPage(cmnd);
-        return;
-    }
-
-    if(cmnd == F("calibrate")) {
+    } else if(cmnd == F("calibrate")) {
         guiCalibrate();
-        return;
-    }
-
-    if(cmnd == F("screenshot")) {
+    } else if(cmnd == F("wakeup")) {
+        haspWakeUp();
+    } else if(cmnd == F("screenshot")) {
         guiTakeScreenshot("/screenhot.bmp");
-        return;
-    }
-
-    if(cmnd == F("reboot") || cmnd == F("restart")) {
+    } else if(cmnd == F("reboot") || cmnd == F("restart")) {
         dispatchReboot(true);
-        return;
-    }
-
-    if(cmnd == "" || cmnd == F("statusupdate")) {
+    } else if(cmnd == "" || cmnd == F("statusupdate")) {
         mqttStatusUpdate();
-        return;
-    }
+    } else {
 
-    int pos = cmnd.indexOf("=");
-    if(pos > 0) {
-        String strTopic   = cmnd.substring(0, pos);
-        String strPayload = cmnd.substring(pos + 1, cmnd.length());
-        // debugPrintln("CMND: '" + strTopic + "'='" + strPayload + "'");
-        dispatchAttribute(strTopic, strPayload.c_str());
+        int pos = cmnd.indexOf("=");
+        if(pos > 0) {
+            String strTopic   = cmnd.substring(0, pos);
+            String strPayload = cmnd.substring(pos + 1, cmnd.length());
+            // debugPrintln("CMND: '" + strTopic + "'='" + strPayload + "'");
+            dispatchAttribute(strTopic, strPayload.c_str());
+        }
     }
 }
 
