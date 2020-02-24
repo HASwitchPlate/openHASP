@@ -132,7 +132,7 @@ void wifiSetup(JsonObject settings)
 
     wifiSetConfig(settings);
 
-    if(wifiSsid == "") {
+    if(strlen(wifiSsid) == 0) {
         String apSsdid = F("HASP-");
         apSsdid += wifiGetMacAddress(3, "");
 
