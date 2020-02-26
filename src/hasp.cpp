@@ -93,14 +93,14 @@ static const char * btnm_map2[] = {"0",  "1", "\n", "2",  "3",  "\n", "4",  "5",
 
 #if defined(ARDUINO_ARCH_ESP8266)
 static lv_obj_t * pages[4];
-static lv_font_t * haspFonts[4];
-static lv_style_t labelStyles[4];
-static lv_style_t rollerStyles[4];
+// static lv_font_t * haspFonts[4];
+// static lv_style_t labelStyles[4];
+// static lv_style_t rollerStyles[4];
 #else
 static lv_obj_t * pages[12];
-static lv_font_t * haspFonts[8];
-static lv_style_t labelStyles[8];
-static lv_style_t rollerStyles[8];
+// static lv_font_t * haspFonts[8];
+// static lv_style_t labelStyles[8];
+// static lv_style_t rollerStyles[8];
 #endif
 uint16_t current_page = 0;
 // uint16_t current_style = 0;
@@ -925,24 +925,26 @@ void haspSetup(JsonObject settings)
         // lv_obj_set_size(pages[0], hres, vres);
     }
 
-    if(lv_zifont_font_init(&haspFonts[0], "/fonts/HMI FrankRuhlLibre 24.zi", 24) != 0) {
-        errorPrintln(String(F("HASP: %sFailed to set the custom font to 0")));
-        defaultFont = NULL; // Use default font
-    }
-    if(lv_zifont_font_init(&haspFonts[1], "/fonts/HMI FiraSans 24.zi", 24) != 0) {
-        errorPrintln(String(F("HASP: %sFailed to set the custom font to 1")));
-        defaultFont = NULL; // Use default font
-    }
-    if(lv_zifont_font_init(&haspFonts[2], "/fonts/HMI AbrilFatface 24.zi", 24) != 0) {
-        errorPrintln(String(F("HASP: %sFailed to set the custom font to 2")));
-        defaultFont = NULL; // Use default font
-    }
+    /*
+        if(lv_zifont_font_init(&haspFonts[0], "/fonts/HMI FrankRuhlLibre 24.zi", 24) != 0) {
+            errorPrintln(String(F("HASP: %sFailed to set the custom font to 0")));
+            defaultFont = NULL; // Use default font
+        }
+        if(lv_zifont_font_init(&haspFonts[1], "/fonts/HMI FiraSans 24.zi", 24) != 0) {
+            errorPrintln(String(F("HASP: %sFailed to set the custom font to 1")));
+            defaultFont = NULL; // Use default font
+        }
+        if(lv_zifont_font_init(&haspFonts[2], "/fonts/HMI AbrilFatface 24.zi", 24) != 0) {
+            errorPrintln(String(F("HASP: %sFailed to set the custom font to 2")));
+            defaultFont = NULL; // Use default font
+        }
 
-    for(int i = 0; i < 3; i++) {
-        lv_style_copy(&labelStyles[i], &lv_style_pretty_color);
-        labelStyles[i].text.font  = haspFonts[i];
-        labelStyles[i].text.color = LV_COLOR_BLUE;
-    }
+        for(int i = 0; i < 3; i++) {
+            //lv_style_copy(&labelStyles[i], &lv_style_pretty_color);
+            labelStyles[i].text.font  = haspFonts[i];
+            labelStyles[i].text.color = LV_COLOR_BLUE;
+        }
+    */
 
     /*
     lv_obj_t * obj;
@@ -1332,10 +1334,10 @@ void haspNewObject(const JsonObject & config)
             if(config[F("txt")]) {
                 lv_label_set_text(obj, config[F("txt")].as<String>().c_str());
             }
-            if(styleid < sizeof labelStyles / sizeof *labelStyles) {
+            /*if(styleid < sizeof labelStyles / sizeof *labelStyles) {
                 debugPrintln(String(F("HASP: Styleid set to ")) + styleid);
-                // lv_label_set_style(obj, LV_LABEL_STYLE_MAIN, &labelStyles[styleid]);
-            }
+                lv_label_set_style(obj, LV_LABEL_STYLE_MAIN, &labelStyles[styleid]);
+            }*/
             /* click area padding */
             uint8_t padh = config[F("padh")].as<uint8_t>();
             uint8_t padv = config[F("padv")].as<uint8_t>();
@@ -1482,15 +1484,17 @@ void haspNewObject(const JsonObject & config)
     /** testing end **/
 
     char msg[127];
-    sprintf_P(msg, PSTR("HASP: Created object p[%u].b[%u]"), pageid, temp);
+    lv_obj_type_t list;
+    lv_obj_get_type(obj, &list);
+    sprintf_P(msg, PSTR("HASP:     * Created %s object p[%u].b[%u]"), list.type[0], pageid, temp);
     debugPrintln(msg);
 
     /* Double-check */
     lv_obj_t * test = FindObjFromId(pageid, (uint8_t)temp);
-    if(test == obj) {
-        debugPrintln(F("Objects match!"));
-    } else {
+    if(test != obj) {
         errorPrintln(F("HASP: %sObjects DO NOT match!"));
+    } else {
+        // debugPrintln(F("Objects match!"));
     }
 }
 
@@ -1517,8 +1521,8 @@ void haspLoadPage(String pages)
 
     uint8_t savedPage = current_page;
     while(deserializeJson(config, file) == DeserializationError::Ok) {
-        serializeJson(config, Serial);
-        Serial.println();
+        // serializeJson(config, Serial);
+        // Serial.println();
         haspNewObject(config.as<JsonObject>());
     }
     current_page = savedPage;
