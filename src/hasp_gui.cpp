@@ -115,14 +115,14 @@ void tft_espi_flush(lv_disp_drv_t * disp, const lv_area_t * area, lv_color_t * c
                  pixel[i++] = 0xFF;*/
 
                 // Simple 32 bpp
-                pixel[i++] = (LV_COLOR_GET_B(*color_p) << 3);
-                pixel[i++] = (LV_COLOR_GET_G(*color_p) << 2);
-                pixel[i++] = (LV_COLOR_GET_R(*color_p) << 3);
+                // pixel[i++] = (LV_COLOR_GET_B(*color_p) << 3);
+                // pixel[i++] = (LV_COLOR_GET_G(*color_p) << 2);
+                // pixel[i++] = (LV_COLOR_GET_R(*color_p) << 3);
                 // pixel[i++] = 0xFF;
 
                 // Simple 16 bpp
-                // pixel[i++] = color_p->full & 0xFF;
-                // pixel[i++] = (color_p->full >> 8) & 0xFF;
+                pixel[i++] = color_p->full & 0xFF;
+                pixel[i++] = (color_p->full >> 8) & 0xFF;
 
                 color_p++;
                 // i += 4;
@@ -550,21 +550,21 @@ bool guiSetConfig(const JsonObject & settings)
 
 void guiSendBmpHeader()
 {
-    uint8_t buffer[54];
+    uint8_t buffer[127];
     memset(buffer, 0, sizeof(buffer));
 
     lv_disp_t * disp = lv_disp_get_default();
     buffer[0]        = 0x42;
     buffer[1]        = 0x4D;
 
-    buffer[10 + 0] = sizeof(buffer);      // full header size
-    buffer[14 + 0] = sizeof(buffer) - 14; // dib header size
-    buffer[26 + 0] = 1;                   // number of color planes
-    buffer[28 + 0] = 24;                  // bbp
-    buffer[30 + 0] = 0;                   // compression, 0 = RGB / 3 = RGBA
+    buffer[10 + 0] = 122;      // full header size
+    buffer[14 + 0] = 122 - 14; // dib header size
+    buffer[26 + 0] = 1;        // number of color planes
+    buffer[28 + 0] = 16;       // 24;                  // bbp
+    buffer[30 + 0] = 3;        // compression, 0 = RGB / 3 = RGBA
 
     // file size
-    int32_t res   = sizeof(buffer) + disp->driver.hor_res * disp->driver.ver_res * buffer[28] / 8;
+    int32_t res   = 122 + disp->driver.hor_res * disp->driver.ver_res * buffer[28] / 8;
     buffer[2 + 3] = (res >> 24) & 0xFF;
     buffer[2 + 2] = (res >> 16) & 0xFF;
     buffer[2 + 1] = (res >> 8) & 0xFF;
@@ -591,8 +591,34 @@ void guiSendBmpHeader()
     buffer[34 + 1] = (res >> 8) & 0xFF;
     buffer[34 + 0] = res & 0xFF;
 
+    res            = 2836;
+    buffer[38 + 3] = (res >> 24) & 0xFF;
+    buffer[38 + 2] = (res >> 16) & 0xFF;
+    buffer[38 + 1] = (res >> 8) & 0xFF;
+    buffer[38 + 0] = res & 0xFF;
+    buffer[42 + 3] = (res >> 24) & 0xFF;
+    buffer[42 + 2] = (res >> 16) & 0xFF;
+    buffer[42 + 1] = (res >> 8) & 0xFF;
+    buffer[42 + 0] = res & 0xFF;
+
+    // R: 1111 1000 | 0000 0000
+    buffer[54 + 1] = 0xF8;
+    // G: 0000 0111 | 1110 0000
+    buffer[58 + 0] = 0xE0;
+    buffer[58 + 1] = 0x07;
+    // B: 0000 0000 | 0001 1111
+    buffer[62 + 0] = 0x1F;
+    // A: 0000 0000 | 0000 0000
+    // buffer[66 + 0] = 0x00;
+
+    // "Win
+    buffer[70 + 3] = 0x57;
+    buffer[70 + 2] = 0x69;
+    buffer[70 + 1] = 0x6E;
+    buffer[70 + 0] = 0x20;
+
     if(guiSnapshot == 1) {
-        size_t len = pFileOut.write(buffer, sizeof(*buffer));
+        size_t len = pFileOut.write(buffer, 122);
         if(len != sizeof(buffer)) {
             errorPrintln(F("GUI: %sData written does not match header size"));
         } else {
@@ -600,7 +626,7 @@ void guiSendBmpHeader()
         }
 
     } else if(guiSnapshot == 2) {
-        if(webClient->client().write(buffer, sizeof(buffer)) != sizeof(buffer)) {
+        if(webClient->client().write(buffer, 122) != 122) {
             errorPrintln(F("GUI: %sData sent does not match header size"));
         } else {
             debugPrintln(F("GUI: Bitmap header sent"));
