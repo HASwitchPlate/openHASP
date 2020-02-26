@@ -14,13 +14,10 @@
 #include "hasp_wifi.h"
 #include "hasp_mdns.h"
 #include "hasp_gui.h"
-#include "hasp_tft.h"
+// #include "hasp_tft.h"
 #include "hasp_ota.h"
 #include "hasp_spiffs.h"
 #include "hasp.h"
-
-//#define HASP_CONFIG_FILE F("/config.json")
-static const char HASP_CONFIG_FILE[] PROGMEM = "/config.json";
 
 bool configChanged()
 {
@@ -37,7 +34,7 @@ void configLoop()
 void configStartDebug(bool setupdebug, String & configFile)
 {
     if(setupdebug) {
-        debugSetup(); // Debug started, now we can use it; HASP header sent
+        debugStart(); // Debug started, now we can use it; HASP header sent
         debugPrintln(F("FILE: [SUCCESS] SPI flash FS mounted"));
         spiffsList();
     }
@@ -46,8 +43,10 @@ void configStartDebug(bool setupdebug, String & configFile)
 
 void configGetConfig(JsonDocument & settings, bool setupdebug = false)
 {
-    String configFile = String(FPSTR(HASP_CONFIG_FILE));
-    File file         = SPIFFS.open(configFile, "r");
+    String configFile((char *)0);
+    configFile.reserve(127);
+    configFile = String(FPSTR(HASP_CONFIG_FILE));
+    File file  = SPIFFS.open(configFile, "r");
 
     if(file) {
         size_t size = file.size();
@@ -60,6 +59,8 @@ void configGetConfig(JsonDocument & settings, bool setupdebug = false)
         if(!error) {
             file.close();
 
+            /* Load Debug params */
+            debugPreSetup(settings[F("debug")]);
             configStartDebug(setupdebug, configFile);
 
             // show settings in log
@@ -72,6 +73,7 @@ void configGetConfig(JsonDocument & settings, bool setupdebug = false)
             debugPrintln(String(F("CONF: ")) + output);
 
             debugPrintln(String(F("CONF: [SUCCESS] Loaded ")) + configFile);
+            debugSetup(settings[F("debug")]);
             return;
         }
     }
@@ -82,7 +84,9 @@ void configGetConfig(JsonDocument & settings, bool setupdebug = false)
 
 void configWriteConfig()
 {
-    String configFile = String(FPSTR(HASP_CONFIG_FILE));
+    String configFile((char *)0);
+    configFile.reserve(127);
+    configFile = String(FPSTR(HASP_CONFIG_FILE));
 
     /* Read Config File */
     DynamicJsonDocument settings(2 * 1024);
@@ -91,7 +95,7 @@ void configWriteConfig()
     debugPrintln(String(F("CONF: Config LOADED first ")) + configFile);
 
     bool changed = true;
-    // changed |= debugGetConfig(settings[F("debug")].to<JsonObject>());
+    changed |= debugGetConfig(settings[F("debug")].to<JsonObject>());
     changed |= guiGetConfig(settings[F("gui")].to<JsonObject>());
     changed |= haspGetConfig(settings[F("hasp")].to<JsonObject>());
     changed |= httpGetConfig(settings[F("http")].to<JsonObject>());
@@ -133,7 +137,17 @@ void configOutput(const JsonObject & settings)
     String output((char *)0);
     output.reserve(127);
     serializeJson(settings, output);
-    String passmask = F("********");
-    output.replace(settings[F("pass")].as<String>(), passmask);
+
+    String passmask((char *)0);
+    passmask.reserve(127);
+    passmask = F("\"pass\":\"********\"");
+
+    String password((char *)0);
+    password.reserve(127);
+    password = F("\"pass\":\"");
+    password += settings[F("pass")].as<String>();
+    password += F("\"");
+
+    if(password.length() > 2) output.replace(password, passmask);
     debugPrintln(String(F("CONF: ")) + output);
 }

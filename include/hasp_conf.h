@@ -2,7 +2,7 @@
 
 #define HASP_VERSION_MAJOR 0
 #define HASP_VERSION_MINOR 0
-#define HASP_VERSION_REVISION 7
+#define HASP_VERSION_REVISION 8
 
 #define HASP_USE_APP 1
 
@@ -20,6 +20,9 @@
 
 #define HASP_USE_QRCODE 1
 #define HASP_USE_PNGDECODE 0
+
+#define HASP_NUM_INPUTS 3 // Buttons
+#define HASP_NUM_OUTPUTS 3
 
 //#define LV_DEMO_WALLPAPER 0 /*Create a wallpaper too*/
 

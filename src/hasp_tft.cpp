@@ -15,30 +15,7 @@ int8_t getPinName(int8_t pin);
 
 void tftSetup(TFT_eSPI & tft, JsonObject settings)
 {
-    uint8_t rotation = TFT_ROTATION;
-    if(settings[F_TFT_ROTATION]) rotation = settings[F_TFT_ROTATION];
-    uint32_t frequency = SPI_FREQUENCY;
-    if(settings[F_TFT_FREQUENCY]) frequency = settings[F_TFT_FREQUENCY];
-
-    char buffer[127];
-    sprintf_P(buffer, PSTR("TFT: %d rotation / %d frequency"), rotation, frequency);
-    debugPrintln(buffer);
-
-    tft.begin();               /* TFT init */
-    tft.setRotation(rotation); /* 1/3=Landscape or 0/2=Portrait orientation */
-
     tftShowConfig(tft);
-    /* Load Calibration data */
-
-#if defined(ARDUINO_ARCH_ESP8266)
-    uint16_t calData[5] = {238, 3529, 369, 3532, 6};
-#else
-    uint16_t calData[5] = {294, 3410, 383, 3491, 4};
-#endif
-    //    uint16_t calData[5] = {0, 0, 0, 0, 0};
-    uint8_t calDataOK = 0;
-
-    tft.setTouch(calData);
 }
 
 void tftLoop()

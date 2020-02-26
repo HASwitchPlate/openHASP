@@ -9,9 +9,11 @@
 #endif
 #include <WiFiUdp.h>
 
+#include "hasp_log.h"
 #include "hasp_hal.h"
 #include "hasp_debug.h"
 #include "hasp_config.h"
+#include "hasp_dispatch.h"
 
 #ifdef USE_CONFIG_OVERRIDE
 #include "user_config_override.h"
@@ -44,7 +46,10 @@ Syslog syslog(syslogClient, debugSyslogHost.c_str(), debugSyslogPort, debugAppNa
               LOG_LOCAL0);
 #endif
 
-void debugSetup()
+unsigned long debugLastMillis = 0;
+uint16_t debugTelePeriod      = 300;
+
+void debugStart()
 {
 #if defined(ARDUINO_ARCH_ESP32)
     Serial.begin(115200); /* prepare for possible serial debug */
@@ -71,9 +76,6 @@ void debugSetup()
 #endif
 }
 
-void debugLoop()
-{}
-
 void serialPrintln(const char * debugText)
 {
     String debugTimeText((char *)0);
@@ -82,7 +84,7 @@ void serialPrintln(const char * debugText)
     debugTimeText = F("[");
     debugTimeText += String(float(millis()) / 1000, 3);
     debugTimeText += F("s] ");
-    debugTimeText += ESP.getMaxFreeBlockSize();
+    debugTimeText += halGetMaxFreeBlock();
     debugTimeText += F("/");
     debugTimeText += ESP.getFreeHeap();
     debugTimeText += F(" ");
@@ -119,4 +121,53 @@ void syslogSend(uint8_t log, const char * debugText)
 void debugStop()
 {
     Serial.flush();
+}
+
+bool debugGetConfig(const JsonObject & settings)
+{
+    settings[FPSTR(F_DEBUG_TELEPERIOD)] = debugTelePeriod;
+
+    configOutput(settings);
+    return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool debugSetConfigLog(const JsonObject & settings, bool silent)
+{
+    bool changed = false;
+
+    if(!settings[FPSTR(F_DEBUG_TELEPERIOD)].isNull()) {
+        if(debugTelePeriod != settings[FPSTR(F_DEBUG_TELEPERIOD)].as<uint16_t>()) {
+            if(!silent) debugPrintln(F("debugTelePeriod set"));
+        }
+        changed |= debugTelePeriod != settings[FPSTR(F_DEBUG_TELEPERIOD)].as<uint16_t>();
+
+        debugTelePeriod = settings[FPSTR(F_DEBUG_TELEPERIOD)].as<uint16_t>();
+    }
+
+    if(!silent) configOutput(settings);
+    return changed;
+}
+
+bool debugSetConfig(const JsonObject & settings)
+{
+    return debugSetConfigLog(settings, false);
+}
+
+void debugPreSetup(JsonObject settings)
+{
+    debugSetConfigLog(settings, true);
+}
+void debugSetup(JsonObject settings)
+{
+    debugSetConfigLog(settings, false);
+}
+
+void debugLoop()
+{
+    if(debugTelePeriod > 0 && (millis() - debugLastMillis) >= debugTelePeriod * 1000) {
+        dispatchStatusUpdate();
+        debugLastMillis = millis();
+    }
 }

@@ -15,6 +15,11 @@ void dispatchSetup()
 void dispatchLoop()
 {}
 
+void dispatchStatusUpdate()
+{
+    mqttStatusUpdate();
+}
+
 // objectattribute=value
 void IRAM_ATTR dispatchAttribute(String & strTopic, const char * payload)
 {
@@ -76,19 +81,20 @@ void IRAM_ATTR dispatchCommand(String cmnd)
     } else if(cmnd == F("wakeup")) {
         haspWakeUp();
     } else if(cmnd == F("screenshot")) {
-        guiTakeScreenshot("/screenhot.bmp");
+        // guiTakeScreenshot("/screenhot.bmp");
     } else if(cmnd == F("reboot") || cmnd == F("restart")) {
         dispatchReboot(true);
     } else if(cmnd == "" || cmnd == F("statusupdate")) {
-        mqttStatusUpdate();
+        dispatchStatusUpdate();
     } else {
 
         int pos = cmnd.indexOf("=");
         if(pos > 0) {
             String strTopic   = cmnd.substring(0, pos);
             String strPayload = cmnd.substring(pos + 1, cmnd.length());
-            // debugPrintln("CMND: '" + strTopic + "'='" + strPayload + "'");
             dispatchAttribute(strTopic, strPayload.c_str());
+        } else {
+            dispatchAttribute(cmnd, "");
         }
     }
 }
@@ -134,4 +140,11 @@ void dispatchReboot(bool saveConfig)
     debugPrintln(F("-------------------------------------"));
     ESP.restart();
     delay(5000);
+}
+
+void dispatchButton(uint8_t i, bool pressed)
+{
+    char buffer[127];
+    snprintf_P(buffer, sizeof(buffer), PSTR("INPUT%d"), i);
+    mqttSendState(buffer, String(pressed ? F("ON") : F("OFF")).c_str());
 }

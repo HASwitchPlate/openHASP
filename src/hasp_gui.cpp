@@ -26,46 +26,64 @@
 #include <FS.h> // Include the SPIFFS library
 #endif
 
+/* ---------- Screenshot Variables ---------- */
+File pFileOut;
+uint8_t guiSnapshot = 0;
+
 #if defined(ARDUINO_ARCH_ESP8266)
 #include <ESP8266WebServer.h>
-static ESP8266WebServer * webClient; // for snatshot
+ESP8266WebServer * webClient; // for snatshot
 #endif
 
 #if defined(ARDUINO_ARCH_ESP32)
 #include <WebServer.h>
-static WebServer * webClient; // for snatshot
-#endif                        // ESP32
+WebServer * webClient; // for snatshot
+#endif                 // ESP32
+/* ------------------------------------------- */
 
-#define LVGL_TICK_PERIOD 30 // 30
+// #define LVGL_TICK_PERIOD 30
 
 #ifndef TFT_BCKL
 #define TFT_BCKL -1 // No Backlight Control
 #endif
+#ifndef TFT_ROTATION
+#define TFT_ROTATION 0
+#endif
 
+bool guiBacklightIsOn  = true;
 int8_t guiDimLevel     = -1;
 int8_t guiBacklightPin = TFT_BCKL;
 bool guiAutoCalibrate  = true;
-uint16_t guiSleepTime  = 150; // 0.1 second resolution
-bool guiSleeping       = false;
+uint16_t guiSleepTime1 = 60;  // 1 second resolution
+uint16_t guiSleepTime2 = 120; // 1 second resolution
+uint8_t guiSleeping    = 0;   // 0 = off, 1 = short, 2 = long
 uint8_t guiTickPeriod  = 50;
-static Ticker tick;                      /* timer for interrupt handler */
-static TFT_eSPI tft        = TFT_eSPI(); /* TFT instance */
+uint8_t guiRotation    = TFT_ROTATION;
+static Ticker tick;  /* timer for interrupt handler */
+static TFT_eSPI tft; // = TFT_eSPI(); /* TFT instance */
 static uint16_t calData[5] = {0, 65535, 0, 65535, 0};
-
-static File pFileOut;
-static uint8_t guiSnapshot = 0;
 
 bool IRAM_ATTR guiCheckSleep()
 {
-    bool shouldSleep = lv_disp_get_inactive_time(NULL) > guiSleepTime * 100;
-    if(shouldSleep && !guiSleeping) {
-        dispatchIdle(F("LONG"));
-        guiSleeping = true;
-    } else if(!shouldSleep && guiSleeping) {
-        dispatchIdle(F("OFF"));
-        guiSleeping = false;
+    if(lv_disp_get_inactive_time(NULL) >= (guiSleepTime1 + guiSleepTime2) * 1000) {
+        if(guiSleeping != 2) {
+            dispatchIdle(F("LONG"));
+            guiSleeping = 2;
+        }
+        return true;
+    } else if(lv_disp_get_inactive_time(NULL) >= guiSleepTime1 * 1000) {
+        if(guiSleeping != 1) {
+            dispatchIdle(F("SHORT"));
+            guiSleeping = 1;
+        }
+        return true;
+    } else {
+        if(guiSleeping != 0) {
+            dispatchIdle(F("OFF"));
+            guiSleeping = 0;
+        }
+        return false;
     }
-    return shouldSleep;
 }
 
 #if LV_USE_LOG != 0
@@ -73,7 +91,7 @@ bool IRAM_ATTR guiCheckSleep()
 void debugLvgl(lv_log_level_t level, const char * file, uint32_t line, const char * dsc)
 {
     char msg[127];
-    sprintf(msg, PSTR("LVGL: %s@%d->%s"), file, line, dsc);
+    snprintf(msg, sizeof(msg), PSTR("LVGL: %s@%d->%s"), file, line, dsc);
     debugPrintln(msg);
 }
 #endif
@@ -90,10 +108,21 @@ void tft_espi_flush(lv_disp_drv_t * disp, const lv_area_t * area, lv_color_t * c
                 /* Function for converting LittlevGL pixel format to RGB888 */
                 // data = DISP_IMPL_lvgl_formatPixel(*color_p);
 
-                pixel[i++] = (LV_COLOR_GET_B(*color_p) * 263 + 7) >> 5;
-                pixel[i++] = (LV_COLOR_GET_G(*color_p) * 259 + 3) >> 6;
-                pixel[i++] = (LV_COLOR_GET_R(*color_p) * 263 + 7) >> 5;
-                pixel[i++] = 0xFF;
+                // Complex 32 bpp
+                /* pixel[i++] = (LV_COLOR_GET_B(*color_p) * 263 + 7) >> 5;
+                 pixel[i++] = (LV_COLOR_GET_G(*color_p) * 259 + 3) >> 6;
+                 pixel[i++] = (LV_COLOR_GET_R(*color_p) * 263 + 7) >> 5;
+                 pixel[i++] = 0xFF;*/
+
+                // Simple 32 bpp
+                pixel[i++] = (LV_COLOR_GET_B(*color_p) << 3);
+                pixel[i++] = (LV_COLOR_GET_G(*color_p) << 2);
+                pixel[i++] = (LV_COLOR_GET_R(*color_p) << 3);
+                // pixel[i++] = 0xFF;
+
+                // Simple 16 bpp
+                // pixel[i++] = color_p->full & 0xFF;
+                // pixel[i++] = (color_p->full >> 8) & 0xFF;
 
                 color_p++;
                 // i += 4;
@@ -156,17 +185,17 @@ static void IRAM_ATTR lv_tick_handler(void)
 }
 
 /* Reading input device (simulated encoder here) */
-bool read_encoder(lv_indev_drv_t * indev, lv_indev_data_t * data)
+/*bool read_encoder(lv_indev_drv_t * indev, lv_indev_data_t * data)
 {
     static int32_t last_diff = 0;
-    int32_t diff             = 0;                  /* Dummy - no movement */
-    int btn_state            = LV_INDEV_STATE_REL; /* Dummy - no press */
+    int32_t diff             = 0;                  // Dummy - no movement
+    int btn_state            = LV_INDEV_STATE_REL; // Dummy - no press
 
     data->enc_diff = diff - last_diff;
     data->state    = btn_state;
     last_diff      = diff;
     return false;
-}
+}*/
 
 void guiFirstCalibration()
 {
@@ -188,7 +217,7 @@ bool my_touchpad_read(lv_indev_drv_t * indev_driver, lv_indev_data_t * data)
         return false;
     }
 
-    bool shouldSleep = guiCheckSleep();
+    guiCheckSleep();
 
     // Ignore first press?
 
@@ -243,25 +272,37 @@ void guiSetup(TFT_eSPI & screen, JsonObject settings)
     tft = screen;
 
     guiSetConfig(settings);
+    guiBacklightIsOn = guiDimLevel > 0;
+
+    tft.begin(); /* TFT init */
     tft.setTouch(calData);
 
+    tft.setRotation(guiRotation); /* 1/3=Landscape or 0/2=Portrait orientation */
     lv_init();
 
 #if defined(ARDUINO_ARCH_ESP32)
     /* allocate on iram (or psram ?) */
-    buffer_size                      = 19200; // 38 KBytes
+    buffer_size                      = 16 * 1024u; // 32 KBytes
     static lv_color_t * guiVdbBuffer = (lv_color_t *)malloc(sizeof(lv_color_t) * buffer_size);
     static lv_disp_buf_t disp_buf;
     lv_disp_buf_init(&disp_buf, guiVdbBuffer, NULL, buffer_size);
 #else
     /* allocate on heap */
-    static lv_color_t guiVdbBuffer[1024 * 3]; // 6 KBytes
+    static lv_color_t guiVdbBuffer[3 * 1024u]; // 6 KBytes
     buffer_size = sizeof(guiVdbBuffer) / sizeof(guiVdbBuffer[0]);
     static lv_disp_buf_t disp_buf;
     lv_disp_buf_init(&disp_buf, guiVdbBuffer, NULL, buffer_size);
 #endif
-    debugPrintln(String(F("LVGL: MEM size : ")) + String(LV_MEM_SIZE));
-    debugPrintln(String(F("LVGL: VDB size : ")) + String((size_t)sizeof(lv_color_t) * buffer_size));
+
+    char buffer[127];
+    snprintf_P(buffer, sizeof(buffer), PSTR("LVGL: Rotation : %d"), guiRotation);
+    debugPrintln(buffer);
+
+    snprintf_P(buffer, sizeof(buffer), PSTR("LVGL: MEM size : %d"), LV_MEM_SIZE);
+    debugPrintln(buffer);
+
+    snprintf_P(buffer, sizeof(buffer), PSTR("LVGL: VFB size : %d"), (size_t)sizeof(lv_color_t) * buffer_size);
+    debugPrintln(buffer);
 
 #if LV_USE_LOG != 0
     debugPrintln(F("LVGL: Registering lvgl logging handler"));
@@ -273,21 +314,25 @@ void guiSetup(TFT_eSPI & screen, JsonObject settings)
     png_decoder_init();
 #endif
 
+#if LV_USE_FS_IF != 0
+    lv_fs_if_init();
+#endif
+
     /* Initialize the display driver */
     lv_disp_drv_t disp_drv;
     lv_disp_drv_init(&disp_drv);
     disp_drv.flush_cb = tft_espi_flush;
     disp_drv.buffer   = &disp_buf;
-#if(TFT_ROTATION == 0 || TFT_ROTATION == 2 || TFT_ROTATION == 4 || TFT_ROTATION == 6)
-    /* 1/3=Landscape or 0/2=Portrait orientation */
-    // Normal width & height
-    disp_drv.hor_res = TFT_WIDTH;  // From User_Setup.h
-    disp_drv.ver_res = TFT_HEIGHT; // From User_Setup.h
-#else
-    // Swapped width & height
-    disp_drv.hor_res = TFT_HEIGHT; // From User_Setup.h
-    disp_drv.ver_res = TFT_WIDTH;  // From User_Setup.h
-#endif
+    if(guiRotation == 0 || guiRotation == 2 || guiRotation == 4 || guiRotation == 6) {
+        /* 1/3=Landscape or 0/2=Portrait orientation */
+        // Normal width & height
+        disp_drv.hor_res = TFT_WIDTH;  // From User_Setup.h
+        disp_drv.ver_res = TFT_HEIGHT; // From User_Setup.h
+    } else {
+        // Swapped width & height
+        disp_drv.hor_res = TFT_HEIGHT; // From User_Setup.h
+        disp_drv.ver_res = TFT_WIDTH;  // From User_Setup.h
+    }
     lv_disp_drv_register(&disp_drv);
 
     /*Initialize the touch pad*/
@@ -336,22 +381,17 @@ void guiSetup(TFT_eSPI & screen, JsonObject settings)
     /*Initialize the graphics library's tick*/
     tick.attach_ms(guiTickPeriod, lv_tick_handler);
 
-#if LV_USE_FS_IF != 0
-    lv_fs_if_init();
-#endif
-
     /* Setup Backlight Control Pin */
     if(guiBacklightPin >= 0) {
-        char msg[127];
-        sprintf(msg, PSTR("LVGL: Backlight Pin = %i"), guiBacklightPin);
-        debugPrintln(msg);
+        snprintf(buffer, sizeof(buffer), PSTR("LVGL: Backlight Pin = %i"), guiBacklightPin);
+        debugPrintln(buffer);
 
 #if defined(ARDUINO_ARCH_ESP32)
         // configure LED PWM functionalitites
-        ledcSetup(0, 1000, 10);
+        ledcSetup(100, 1000, 10);
         // attach the channel to the GPIO to be controlled
         pinMode(guiBacklightPin, OUTPUT);
-        ledcAttachPin(guiBacklightPin, 0);
+        ledcAttachPin(guiBacklightPin, 99);
 #else
         pinMode(guiBacklightPin, OUTPUT);
 #endif
@@ -366,17 +406,42 @@ void IRAM_ATTR guiLoop()
 void guiStop()
 {}
 
+bool guiGetBacklight(bool lighton)
+{
+    return guiBacklightIsOn;
+}
+
+void guiSetBacklight(bool lighton)
+{
+    guiBacklightIsOn = lighton;
+
+    if(guiBacklightPin >= 0) {
+
+#if defined(ARDUINO_ARCH_ESP32)
+        ledcWrite(99, lighton ? 1023 : 0); // ledChannel and value
+#else
+        analogWrite(guiBacklightPin, lighton ? 1023 : 0);
+#endif
+
+    } else {
+        guiBacklightIsOn = true;
+    }
+}
+
 void guiSetDim(uint8_t level)
 {
     if(guiBacklightPin >= 0) {
         guiDimLevel = level >= 0 ? level : 0;
         guiDimLevel = guiDimLevel <= 100 ? guiDimLevel : 100;
 
+        if(guiBacklightIsOn) { // The backlight is ON
 #if defined(ARDUINO_ARCH_ESP32)
-        ledcWrite(0, map(guiDimLevel, 0, 100, 0, 1023)); // ledChannel and value
+            ledcWrite(99, map(guiDimLevel, 0, 100, 0, 1023)); // ledChannel and value
 #else
-        analogWrite(guiBacklightPin, map(guiDimLevel, 0, 100, 0, 1023));
+            analogWrite(guiBacklightPin, map(guiDimLevel, 0, 100, 0, 1023));
 #endif
+        }
+
     } else {
         guiDimLevel = -1;
     }
@@ -391,8 +456,10 @@ int8_t guiGetDim()
 bool guiGetConfig(const JsonObject & settings)
 {
     settings[FPSTR(F_GUI_TICKPERIOD)]   = guiTickPeriod;
-    settings[FPSTR(F_GUI_IDLEPERIOD)]   = guiSleepTime;
+    settings[FPSTR(F_GUI_IDLEPERIOD1)]  = guiSleepTime1;
+    settings[FPSTR(F_GUI_IDLEPERIOD2)]  = guiSleepTime2;
     settings[FPSTR(F_GUI_BACKLIGHTPIN)] = guiBacklightPin;
+    settings[FPSTR(F_GUI_ROTATION)]     = guiRotation;
 
     JsonArray array = settings[FPSTR(F_GUI_CALIBRATION)].to<JsonArray>();
     for(int i = 0; i < 5; i++) {
@@ -429,13 +496,31 @@ bool guiSetConfig(const JsonObject & settings)
         guiBacklightPin = settings[FPSTR(F_GUI_BACKLIGHTPIN)].as<int8_t>();
     }
 
-    if(!settings[FPSTR(F_GUI_IDLEPERIOD)].isNull()) {
-        if(guiSleepTime != settings[FPSTR(F_GUI_IDLEPERIOD)].as<uint8_t>()) {
-            debugPrintln(F("guiSleepTime set"));
+    if(!settings[FPSTR(F_GUI_IDLEPERIOD1)].isNull()) {
+        if(guiSleepTime1 != settings[FPSTR(F_GUI_IDLEPERIOD1)].as<uint8_t>()) {
+            debugPrintln(F("guiSleepTime1 set"));
         }
-        changed |= guiSleepTime != settings[FPSTR(F_GUI_IDLEPERIOD)].as<uint8_t>();
+        changed |= guiSleepTime1 != settings[FPSTR(F_GUI_IDLEPERIOD1)].as<uint8_t>();
 
-        guiSleepTime = settings[FPSTR(F_GUI_IDLEPERIOD)].as<uint8_t>();
+        guiSleepTime1 = settings[FPSTR(F_GUI_IDLEPERIOD1)].as<uint8_t>();
+    }
+
+    if(!settings[FPSTR(F_GUI_IDLEPERIOD2)].isNull()) {
+        if(guiSleepTime2 != settings[FPSTR(F_GUI_IDLEPERIOD2)].as<uint8_t>()) {
+            debugPrintln(F("guiSleepTime2 set"));
+        }
+        changed |= guiSleepTime2 != settings[FPSTR(F_GUI_IDLEPERIOD2)].as<uint8_t>();
+
+        guiSleepTime2 = settings[FPSTR(F_GUI_IDLEPERIOD2)].as<uint8_t>();
+    }
+
+    if(!settings[FPSTR(F_GUI_ROTATION)].isNull()) {
+        if(guiRotation != settings[FPSTR(F_GUI_ROTATION)].as<uint8_t>()) {
+            debugPrintln(F("guiRotation set"));
+        }
+        changed |= guiRotation != settings[FPSTR(F_GUI_ROTATION)].as<uint8_t>();
+
+        guiRotation = settings[FPSTR(F_GUI_ROTATION)].as<uint8_t>();
     }
 
     if(!settings[FPSTR(F_GUI_CALIBRATION)].isNull()) {
@@ -463,6 +548,66 @@ bool guiSetConfig(const JsonObject & settings)
     return changed;
 }
 
+void guiSendBmpHeader()
+{
+    uint8_t buffer[54];
+    memset(buffer, 0, sizeof(buffer));
+
+    lv_disp_t * disp = lv_disp_get_default();
+    buffer[0]        = 0x42;
+    buffer[1]        = 0x4D;
+
+    buffer[10 + 0] = sizeof(buffer);      // full header size
+    buffer[14 + 0] = sizeof(buffer) - 14; // dib header size
+    buffer[26 + 0] = 1;                   // number of color planes
+    buffer[28 + 0] = 24;                  // bbp
+    buffer[30 + 0] = 0;                   // compression, 0 = RGB / 3 = RGBA
+
+    // file size
+    int32_t res   = sizeof(buffer) + disp->driver.hor_res * disp->driver.ver_res * buffer[28] / 8;
+    buffer[2 + 3] = (res >> 24) & 0xFF;
+    buffer[2 + 2] = (res >> 16) & 0xFF;
+    buffer[2 + 1] = (res >> 8) & 0xFF;
+    buffer[2 + 0] = res & 0xFF;
+
+    // horizontal resolution
+    res            = disp->driver.hor_res;
+    buffer[18 + 3] = (res >> 24) & 0xFF;
+    buffer[18 + 2] = (res >> 16) & 0xFF;
+    buffer[18 + 1] = (res >> 8) & 0xFF;
+    buffer[18 + 0] = res & 0xFF;
+
+    // vertical resolution
+    res            = -disp->driver.ver_res; // top down lines
+    buffer[22 + 3] = (res >> 24) & 0xFF;
+    buffer[22 + 2] = (res >> 16) & 0xFF;
+    buffer[22 + 1] = (res >> 8) & 0xFF;
+    buffer[22 + 0] = res & 0xFF;
+
+    // bitmp size
+    res            = disp->driver.hor_res * disp->driver.ver_res * buffer[28 + 0] / 8; //* 2;
+    buffer[34 + 3] = (res >> 24) & 0xFF;
+    buffer[34 + 2] = (res >> 16) & 0xFF;
+    buffer[34 + 1] = (res >> 8) & 0xFF;
+    buffer[34 + 0] = res & 0xFF;
+
+    if(guiSnapshot == 1) {
+        size_t len = pFileOut.write(buffer, sizeof(*buffer));
+        if(len != sizeof(buffer)) {
+            errorPrintln(F("GUI: %sData written does not match header size"));
+        } else {
+            debugPrintln(F("GUI: Bitmap header written"));
+        }
+
+    } else if(guiSnapshot == 2) {
+        if(webClient->client().write(buffer, sizeof(buffer)) != sizeof(buffer)) {
+            errorPrintln(F("GUI: %sData sent does not match header size"));
+        } else {
+            debugPrintln(F("GUI: Bitmap header sent"));
+        }
+    }
+}
+
 /** Flush buffer.
  *
  * Flush buffer into a binary file.
@@ -476,20 +621,14 @@ void guiTakeScreenshot(const char * pFileName)
 {
     pFileOut = SPIFFS.open(pFileName, "w");
 
-    uint8_t bmpheader[138] = {0x42, 0x4D, 0x8A, 0xB0, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x8A, 0x00, 0x00, 0x00, 0x7C,
-                              0x00, 0x00, 0x00, 0xF0, 0x00, 0x00, 0x00, 0xC0, 0xFE, 0xFF, 0xFF, 0x01, 0x00, 0x20, 0x00,
-                              0x03, 0x00, 0x00, 0x00, 0x00, 0xB0, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                              0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0x00, 0x00, 0xFF,
-                              0x00, 0x00, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0x42, 0x47, 0x52, 0x73};
-
-    pFileOut.write(bmpheader, sizeof(bmpheader));
-
     if(pFileOut == NULL) {
         printf("[Display] error: %s cannot be opened", pFileName);
         return;
     }
 
     guiSnapshot = 1;
+    guiSendBmpHeader();
+
     lv_obj_invalidate(lv_scr_act());
     lv_refr_now(NULL); /* Will call our disp_drv.disp_flush function */
     guiSnapshot = 0;
@@ -507,19 +646,9 @@ void guiTakeScreenshot(ESP8266WebServer & client)
 {
     webClient = &client;
 
-    uint8_t bmpheader[138] = {0x42, 0x4D, 0x8A, 0xB0, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x8A, 0x00, 0x00, 0x00, 0x7C,
-                              0x00, 0x00, 0x00, 0xF0, 0x00, 0x00, 0x00, 0xC0, 0xFE, 0xFF, 0xFF, 0x01, 0x00, 0x20, 0x00,
-                              0x03, 0x00, 0x00, 0x00, 0x00, 0xB0, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                              0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0x00, 0x00, 0xFF,
-                              0x00, 0x00, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0x42, 0x47, 0x52, 0x73};
-
-    if(webClient->client().write(bmpheader, sizeof(bmpheader)) != sizeof(bmpheader)) {
-        errorPrintln(F("GUI: %sData sent does not match header size"));
-    } else {
-        debugPrintln(F("GUI: Bitmap header sent"));
-    }
-
     guiSnapshot = 2;
+    guiSendBmpHeader();
+
     lv_obj_invalidate(lv_scr_act());
     lv_refr_now(NULL); /* Will call our disp_drv.disp_flush function */
     guiSnapshot = 0;

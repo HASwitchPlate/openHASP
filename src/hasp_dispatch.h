@@ -1,7 +1,7 @@
 #ifndef HASP_DISPATCH_H
 #define HASP_DISPATCH_H
 
-#include <Arduino.h>
+#include "ArduinoJson.h"
 
 void dispatchSetup(void);
 void dispatchLoop(void);
@@ -15,5 +15,8 @@ void dispatchDim(String strDimLevel);
 
 void dispatchIdle(const __FlashStringHelper * state);
 void dispatchReboot(bool saveConfig);
+void dispatchStatusUpdate(void);
+
+void dispatchButton(uint8_t i, bool pressed);
 
 #endif

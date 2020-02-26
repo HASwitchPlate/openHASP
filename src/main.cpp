@@ -63,10 +63,12 @@ void setup()
     sdcardSetup();
 #endif
 
+    // debugSetup(settings[F("debug")]);
+
     /* Init Graphics */
     TFT_eSPI screen = TFT_eSPI();
-    tftSetup(screen, settings[F("tft")]);
     guiSetup(screen, settings[F("gui")]);
+    tftSetup(screen, settings[F("tft")]);
 
     /* Init GUI Application */
     haspSetup(settings[F("hasp")]);
@@ -136,7 +138,8 @@ void loop()
 #endif
 
     // otaLoop(wifiIsConnected);
+    debugLoop();
 #endif
 
-    delay(1);
+    // delay(1);
 }

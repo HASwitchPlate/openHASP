@@ -17,10 +17,15 @@ const char F_CONFIG_USER[] PROGMEM      = "user";
 const char F_CONFIG_PASS[] PROGMEM      = "pass";
 const char F_CONFIG_SSID[] PROGMEM      = "ssid";
 const char F_CONFIG_GROUP[] PROGMEM     = "group";
+const char F_GUI_ROTATION[] PROGMEM     = "rotation";
 const char F_GUI_TICKPERIOD[] PROGMEM   = "tickperiod";
-const char F_GUI_IDLEPERIOD[] PROGMEM   = "idle";
+const char F_GUI_IDLEPERIOD1[] PROGMEM  = "idle1";
+const char F_GUI_IDLEPERIOD2[] PROGMEM  = "idle2";
 const char F_GUI_CALIBRATION[] PROGMEM  = "calibration";
 const char F_GUI_BACKLIGHTPIN[] PROGMEM = "bcklpin";
+const char F_DEBUG_TELEPERIOD[] PROGMEM = "teleperiod";
+
+const char HASP_CONFIG_FILE[] PROGMEM = "/config.json";
 
 void configSetup(JsonDocument & settings);
 void configLoop(void);
