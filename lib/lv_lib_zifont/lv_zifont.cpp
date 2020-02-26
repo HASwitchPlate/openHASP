@@ -59,16 +59,16 @@ enum zifont_codepage_t8_t {
 /**********************
  *  STATIC PROTOTYPES
  **********************/
-static const uint8_t * lv_font_get_bitmap_fmt_zifont(const lv_font_t * font, uint32_t unicode_letter);
-static bool lv_font_get_glyph_dsc_fmt_zifont(const lv_font_t * font, lv_font_glyph_dsc_t * dsc_out,
-                                             uint32_t unicode_letter, uint32_t unicode_letter_next);
+const uint8_t * IRAM_ATTR lv_font_get_bitmap_fmt_zifont(const lv_font_t * font, uint32_t unicode_letter);
+bool IRAM_ATTR lv_font_get_glyph_dsc_fmt_zifont(const lv_font_t * font, lv_font_glyph_dsc_t * dsc_out,
+                                                uint32_t unicode_letter, uint32_t unicode_letter_next);
 
 /**********************
  *  STATIC VARIABLES
  **********************/
 uint32_t charInBuffer = 0; // Last Character ID in the Bitmap Buffer
 // uint8_t filecharBitmap_p[20 * 1024];
-static lv_zifont_char_t lastCharInfo; // Holds the last Glyph DSC
+lv_zifont_char_t lastCharInfo; // Holds the last Glyph DSC
 
 #if ESP32
 // static lv_zifont_char_t charCache[256 - 32]; // glyphID DSC cache
@@ -232,7 +232,7 @@ int lv_zifont_font_init(lv_font_t ** font, const char * font_path, uint16_t size
  * @param unicode_letter an unicode letter which bitmap should be get
  * @return pointer to the bitmap or NULL if not found
  */
-static const uint8_t * lv_font_get_bitmap_fmt_zifont(const lv_font_t * font, uint32_t unicode_letter)
+const uint8_t * IRAM_ATTR lv_font_get_bitmap_fmt_zifont(const lv_font_t * font, uint32_t unicode_letter)
 {
     lv_font_fmt_zifont_dsc_t * fdsc = (lv_font_fmt_zifont_dsc_t *)font->dsc; /* header data struct */
     uint32_t glyphID;
@@ -297,11 +297,11 @@ static const uint8_t * lv_font_get_bitmap_fmt_zifont(const lv_font_t * font, uin
     charBitmap_p = (uint8_t *)lv_mem_alloc(size);
     memset(charBitmap_p, 0, size); // init the bitmap to white
 
-    char ch[1];
+    char data[256];
     file.seek(datapos, SeekSet);
-    file.readBytes(ch, 1); /* check first byte = bpp */
+    file.readBytes(data, 1); /* check first byte = bpp */
 
-    if(ch[0] != 3) {
+    if(data[0] != 3) {
         file.close();
         lv_mem_free(charInfo);
         debugPrintln(PSTR("FONT: [ERROR] Character is not 3bpp encoded"));
@@ -318,7 +318,7 @@ static const uint8_t * lv_font_get_bitmap_fmt_zifont(const lv_font_t * font, uin
     uint8_t w          = charInfo->width + charInfo->kerningL + charInfo->kerningR;
     uint16_t fileindex = 0;
 
-    char data[256];
+    // char data[256];
     int len = 1;
 
     // while((fileindex < charInfo->length) && len > 0) { //} && !feof(file)) {
@@ -404,8 +404,8 @@ static const uint8_t * lv_font_get_bitmap_fmt_zifont(const lv_font_t * font, uin
  * @return true: descriptor is successfully loaded into `dsc_out`.
  *         false: the letter was not found, no data is loaded to `dsc_out`
  */
-static bool lv_font_get_glyph_dsc_fmt_zifont(const lv_font_t * font, lv_font_glyph_dsc_t * dsc_out,
-                                             uint32_t unicode_letter, uint32_t unicode_letter_next)
+bool IRAM_ATTR lv_font_get_glyph_dsc_fmt_zifont(const lv_font_t * font, lv_font_glyph_dsc_t * dsc_out,
+                                                uint32_t unicode_letter, uint32_t unicode_letter_next)
 {
     // ulong startMillis               = millis();
     lv_font_fmt_zifont_dsc_t * fdsc = (lv_font_fmt_zifont_dsc_t *)font->dsc; /* header data struct */

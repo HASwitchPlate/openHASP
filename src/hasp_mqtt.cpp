@@ -23,7 +23,6 @@
 #include "user_config_override.h"
 #endif
 
-String mqttClientId((char *)0); // Auto-generated MQTT ClientID
 /*
 String mqttGetSubtopic;             // MQTT subtopic for incoming commands requesting .val
 String mqttGetSubtopicJSON;         // MQTT object buffer for JSON status when requesting .val
@@ -40,6 +39,7 @@ String mqttLightBrightCommandTopic; // MQTT topic for incoming panel backlight d
 String mqttLightBrightStateTopic;   // MQTT topic for outgoing panel backlight dimmer state
 // String mqttMotionStateTopic;        // MQTT topic for outgoing motion sensor state
 
+String mqttClientId((char *)0); // Auto-generated MQTT ClientID
 String mqttNodeTopic((char *)0);
 String mqttGroupTopic((char *)0);
 bool mqttEnabled;
@@ -76,9 +76,6 @@ const String mqttLightBrightSubscription  = "hasp/" + String(haspGetNodename()) 
 WiFiClient wifiClient;
 PubSubClient mqttClient(wifiClient);
 
-static char mqttTopic[127];
-static char mqttPayload[254];
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Send changed values OUT
 
@@ -90,6 +87,9 @@ void IRAM_ATTR mqttSendState(const char * subtopic, const char * payload)
     // idle = 0/1
     // light = 0/1
     // brightness = 100
+
+    char mqttTopic[127];
+    char mqttPayload[127 * 5];
 
     snprintf_P(mqttTopic, sizeof(mqttTopic), PSTR("%sstate/%s"), mqttNodeTopic.c_str(), subtopic);
     mqttClient.publish(mqttTopic, payload);
@@ -270,8 +270,11 @@ void mqttCallback(char * topic, byte * payload, unsigned int length)
        strPayload == F("OFF")) { // catch a dangling LWT from a previous connection if it appears
         char topicBuffer[127];
         snprintf_P(topicBuffer, sizeof(topicBuffer), PSTR("%sstatus"), mqttNodeTopic.c_str());
-        debugPrintln(String(F("MQTT: binary_sensor state: [")) + topicBuffer + "] : ON");
         mqttClient.publish(topicBuffer, "ON", true);
+
+        snprintf_P(topicBuffer, sizeof(topicBuffer), PSTR("MQTT: binary_sensor state: [%sstatus] : ON"),
+                   mqttNodeTopic.c_str());
+        debugPrintln(topicBuffer);
         return;
     }
 }
@@ -280,10 +283,13 @@ void mqttReconnect()
 {
     static uint8_t mqttReconnectCount = 0;
     bool mqttFirstConnect             = true;
-    String nodeName                   = haspGetNodename();
+    String nodeName((char *)0);
+    nodeName.reserve(127);
+    nodeName = haspGetNodename();
     char topicBuffer[127];
 
     // Generate an MQTT client ID as haspNode + our MAC address
+    mqttClientId.reserve(127);
     mqttClientId = nodeName;
     mqttClientId += F("-");
     mqttClientId += wifiGetMacAddress(3, "");
@@ -295,8 +301,9 @@ void mqttReconnect()
     mqttGroupTopic = topicBuffer;
 
     // haspSetPage(0);
-    debugPrintln(String(F("MQTT: Attempting connection to broker ")) + String(mqttServer.c_str()) +
-                 String(F(" as clientID ")) + mqttClientId);
+    snprintf_P(topicBuffer, sizeof(topicBuffer), PSTR("MQTT: Attempting connection to broker %s as clientID %s"),
+               mqttServer.c_str(), mqttClientId.c_str());
+    debugPrintln(topicBuffer);
 
     // Attempt to connect and set LWT and Clean Session
     snprintf_P(topicBuffer, sizeof(topicBuffer), PSTR("%sstatus"), mqttNodeTopic.c_str());
@@ -340,30 +347,44 @@ void mqttReconnect()
     // Subscribe to our incoming topics
     snprintf_P(topicBuffer, sizeof(topicBuffer), PSTR("%scommand/#"), mqttGroupTopic.c_str());
     if(mqttClient.subscribe(topicBuffer)) {
-        debugPrintln(String(F("MQTT:    * Subscribed to ")) + topicBuffer);
+        snprintf_P(topicBuffer, sizeof(topicBuffer), PSTR("MQTT:    * Subscribed to %scommand/#"),
+                   mqttGroupTopic.c_str());
+        debugPrintln(topicBuffer);
     }
+
     snprintf_P(topicBuffer, sizeof(topicBuffer), PSTR("%scommand/#"), mqttNodeTopic.c_str());
     if(mqttClient.subscribe(topicBuffer)) {
-        debugPrintln(String(F("MQTT:    * Subscribed to ")) + topicBuffer);
+        snprintf_P(topicBuffer, sizeof(topicBuffer), PSTR("MQTT:    * Subscribed to %scommand/#"),
+                   mqttNodeTopic.c_str());
+        debugPrintln(topicBuffer);
     }
+
     snprintf_P(topicBuffer, sizeof(topicBuffer), PSTR("%slight/#"), mqttNodeTopic.c_str());
     if(mqttClient.subscribe(topicBuffer)) {
-        debugPrintln(String(F("MQTT:    * Subscribed to ")) + topicBuffer);
+        snprintf_P(topicBuffer, sizeof(topicBuffer), PSTR("MQTT:    * Subscribed to %slight/#"), mqttNodeTopic.c_str());
+        debugPrintln(topicBuffer);
     }
+
     snprintf_P(topicBuffer, sizeof(topicBuffer), PSTR("%sbrightness/#"), mqttNodeTopic.c_str());
     if(mqttClient.subscribe(topicBuffer)) {
-        debugPrintln(String(F("MQTT:    * Subscribed to ")) + topicBuffer);
+        snprintf_P(topicBuffer, sizeof(topicBuffer), PSTR("MQTT:    * Subscribed to %sbrightness/#"),
+                   mqttNodeTopic.c_str());
+        debugPrintln(topicBuffer);
     }
 
     snprintf_P(topicBuffer, sizeof(topicBuffer), PSTR("%sstatus"), mqttNodeTopic.c_str());
     if(mqttClient.subscribe(topicBuffer)) {
-        debugPrintln(String(F("MQTT:    * Subscribed to ")) + topicBuffer);
+        snprintf_P(topicBuffer, sizeof(topicBuffer), PSTR("MQTT:    * Subscribed to %sstatus"), mqttNodeTopic.c_str());
+        debugPrintln(topicBuffer);
     }
     // Force any subscribed clients to toggle OFF/ON when we first connect to
     // make sure we get a full panel refresh at power on.  Sending OFF,
     // "ON" will be sent by the mqttStatusTopic subscription action.
-    debugPrintln(String(F("MQTT: binary_sensor state: [")) + topicBuffer + "] : " + (mqttFirstConnect ? "OFF" : "ON"));
+    snprintf_P(topicBuffer, sizeof(topicBuffer), PSTR("%sstatus"), mqttNodeTopic.c_str());
     mqttClient.publish(topicBuffer, mqttFirstConnect ? "OFF" : "ON", true); //, 1);
+    snprintf_P(topicBuffer, sizeof(topicBuffer), PSTR("MQTT: binary_sensor state: [%sstatus] : %s"),
+               mqttNodeTopic.c_str(), mqttFirstConnect ? PSTR("OFF") : PSTR("ON"));
+    debugPrintln(topicBuffer);
 
     mqttFirstConnect   = false;
     mqttReconnectCount = 0;
