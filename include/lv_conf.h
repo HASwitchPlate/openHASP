@@ -330,7 +330,10 @@ typedef void * lv_indev_drv_user_data_t;            /*Type of user data in the i
 
 /*Pixel perfect monospace font
  * http://pelulamu.net/unscii/ */
-#define LV_FONT_UNSCII_8     1
+#define LV_FONT_UNSCII_8     0
+
+/*Custom font*/
+#define UNSCII_8_ICON 1
 
 /* Optionally declare your custom fonts here.
  * You can use these fonts as default font too
@@ -339,9 +342,10 @@ typedef void * lv_indev_drv_user_data_t;            /*Type of user data in the i
  *                                LV_FONT_DECLARE(my_font_2)
  */
 //#define LV_FONT_CUSTOM_DECLARE static lv_font_t *defaultFont;
+#define LV_FONT_CUSTOM_DECLARE LV_FONT_DECLARE(unscii_8_icon);
 
 /*Always set a default font from the built-in fonts*/
-#define LV_FONT_DEFAULT        &lv_font_unscii_8
+#define LV_FONT_DEFAULT        &unscii_8_icon //&lv_font_unscii_8
 //#define LV_FONT_DEFAULT        my_font
 
 /*Declare the type of the user data of fonts (can be e.g. `void *`, `int`, `struct`)*/

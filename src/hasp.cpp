@@ -708,6 +708,14 @@ void haspReconnect()
         lv_obj_set_hidden(obj, true);*/
 }
 
+void gotoPage1(lv_obj_t * event_kb, lv_event_t event)
+{
+    if(event == LV_EVENT_RELEASED) {
+        lv_obj_set_click(lv_disp_get_layer_sys(NULL), false);
+        haspSetPage(1);
+    }
+}
+
 void haspDisplayAP(const char * ssid, const char * pass)
 {
     guiSetDim(100);
@@ -724,12 +732,12 @@ void haspDisplayAP(const char * ssid, const char * pass)
     }
 
 #if HASP_USE_QRCODE != 0
-    lv_obj_t * qr = lv_qrcode_create(lv_disp_get_layer_sys(NULL), 120, LV_COLOR_BLACK, LV_COLOR_WHITE);
+    lv_obj_t * qr = lv_qrcode_create(pages[0], 120, LV_COLOR_BLACK, LV_COLOR_WHITE);
     lv_obj_align(qr, NULL, LV_ALIGN_CENTER, 0, 10);
     lv_qrcode_update(qr, buffer, strlen(buffer));
 #endif
 
-    lv_obj_t * panel = lv_cont_create(lv_disp_get_layer_sys(NULL), NULL);
+    lv_obj_t * panel = lv_cont_create(pages[0], NULL);
     lv_obj_set_style(panel, &lv_style_pretty);
     lv_obj_align(panel, qr, LV_ALIGN_OUT_TOP_MID, 0, 0);
     lv_label_set_align(panel, LV_LABEL_ALIGN_CENTER);
@@ -738,17 +746,35 @@ void haspDisplayAP(const char * ssid, const char * pass)
 
     txt                = String(LV_SYMBOL_WIFI) + String(ssid);
     lv_obj_t * network = lv_label_create(panel, NULL);
-    lv_label_set_text(network, ssid);
+    lv_label_set_text(network, txt.c_str());
 
     lv_obj_t * password = lv_label_create(panel, NULL);
-    txt                 = String(LV_SYMBOL_WIFI) + String(pass);
+    txt                 = String(F("\xef\x80\xA3")) + String(pass);
     lv_label_set_text(password, txt.c_str());
+
+    haspSetPage(0);
+    lv_obj_set_click(lv_disp_get_layer_sys(NULL), true);
+    lv_obj_set_event_cb(lv_disp_get_layer_sys(NULL), gotoPage1);
+
+    haspFirstSetup();
+    lv_obj_set_style(lv_disp_get_layer_sys(NULL), &lv_style_transp);
 }
 
 static void kb_event_cb(lv_obj_t * event_kb, lv_event_t event)
 {
-    /* Just call the regular event handler */
-    lv_kb_def_event_cb(event_kb, event);
+    if(event == LV_EVENT_APPLY) {
+        dispatchReboot(true);
+
+    } else if(event == LV_EVENT_CANCEL) {
+        haspSetPage(0);
+        lv_obj_set_click(lv_disp_get_layer_sys(NULL), true);
+        // dispatchReboot(false);
+
+    } else {
+
+        /* Just call the regular event handler */
+        lv_kb_def_event_cb(event_kb, event);
+    }
 }
 static void ta_event_cb(lv_obj_t * ta, lv_event_t event)
 {
@@ -770,6 +796,7 @@ static void ta_event_cb(lv_obj_t * ta, lv_event_t event)
 
 void haspFirstSetup(void)
 {
+
     /*Create styles for the keyboard*/
     static lv_style_t rel_style, pr_style;
 
@@ -782,7 +809,7 @@ void haspFirstSetup(void)
     pr_style.body.border.width = 1;
 
     /* Create the password box */
-    lv_obj_t * pwd_ta = lv_ta_create(lv_disp_get_layer_sys(NULL), NULL);
+    lv_obj_t * pwd_ta = lv_ta_create(pages[1], NULL);
     lv_ta_set_text(pwd_ta, "");
     lv_ta_set_pwd_mode(pwd_ta, true);
     lv_ta_set_one_line(pwd_ta, true);
@@ -792,23 +819,23 @@ void haspFirstSetup(void)
     lv_obj_align(pwd_ta, NULL, LV_ALIGN_OUT_TOP_MID, 0, 140);
 
     /* Create a label and position it above the text box */
-    lv_obj_t * pwd_label = lv_label_create(lv_disp_get_layer_sys(NULL), NULL);
+    lv_obj_t * pwd_label = lv_label_create(pages[1], NULL);
     lv_label_set_text(pwd_label, "Password:");
     lv_obj_align(pwd_label, pwd_ta, LV_ALIGN_OUT_TOP_LEFT, 0, 0);
 
     /* Create the one-line mode text area */
-    lv_obj_t * oneline_ta = lv_ta_create(lv_disp_get_layer_sys(NULL), pwd_ta);
+    lv_obj_t * oneline_ta = lv_ta_create(pages[1], pwd_ta);
     lv_ta_set_pwd_mode(oneline_ta, false);
     lv_ta_set_cursor_type(oneline_ta, LV_CURSOR_LINE | LV_CURSOR_HIDDEN);
     lv_obj_align(oneline_ta, NULL, LV_ALIGN_OUT_TOP_MID, 0, 100);
 
     /* Create a label and position it above the text box */
-    lv_obj_t * oneline_label = lv_label_create(lv_disp_get_layer_sys(NULL), NULL);
+    lv_obj_t * oneline_label = lv_label_create(pages[1], NULL);
     lv_label_set_text(oneline_label, "Ssid:");
     lv_obj_align(oneline_label, oneline_ta, LV_ALIGN_OUT_TOP_LEFT, 0, 0);
 
     /* Create a keyboard and make it fill the width of the above text areas */
-    kb = lv_kb_create(lv_disp_get_layer_sys(NULL), NULL);
+    kb = lv_kb_create(pages[1], NULL);
     // lv_obj_set_pos(kb, 5, 90);
     lv_obj_set_event_cb(kb,
                         kb_event_cb); /* Setting a custom event handler stops the keyboard from closing automatically */
