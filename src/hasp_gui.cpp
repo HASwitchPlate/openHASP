@@ -434,7 +434,7 @@ void guiSetDim(uint8_t level)
         guiDimLevel = level >= 0 ? level : 0;
         guiDimLevel = guiDimLevel <= 100 ? guiDimLevel : 100;
 
-        if(guiBacklightIsOn) { // The backlight is ON
+        if(true || guiBacklightIsOn) { // The backlight is ON
 #if defined(ARDUINO_ARCH_ESP32)
             ledcWrite(99, map(guiDimLevel, 0, 100, 0, 1023)); // ledChannel and value
 #else
