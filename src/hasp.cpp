@@ -763,13 +763,41 @@ void haspDisplayAP(const char * ssid, const char * pass)
 static void kb_event_cb(lv_obj_t * event_kb, lv_event_t event)
 {
     if(event == LV_EVENT_APPLY) {
-        dispatchReboot(true);
+        char ssid[32];
+        char pass[32];
+
+        DynamicJsonDocument settings(256);
+
+        lv_obj_t * child;
+        child = lv_obj_get_child(pages[1], NULL);
+        while(child) {
+            if(child->user_data) {
+                lv_obj_user_data_t objid = 10;
+                if(objid == child->user_data) {
+                    strncpy(ssid, lv_ta_get_text(child), sizeof(ssid));
+                    settings[FPSTR(F_CONFIG_SSID)] = ssid;
+                    if(kb != NULL) lv_kb_set_ta(kb, child);
+                }
+                objid = 20;
+                if(objid == child->user_data) {
+                    strncpy(pass, lv_ta_get_text(child), sizeof(pass));
+                    settings[FPSTR(F_CONFIG_PASS)] = pass;
+                }
+            }
+
+            /* next sibling */
+            child = lv_obj_get_child(pages[1], child);
+        }
+
+        if(strlen(ssid) > 0) {
+            wifiSetConfig(settings.as<JsonObject>());
+            dispatchReboot(true);
+        }
 
     } else if(event == LV_EVENT_CANCEL) {
         haspSetPage(0);
         lv_obj_set_click(lv_disp_get_layer_sys(NULL), true);
         // dispatchReboot(false);
-
     } else {
 
         /* Just call the regular event handler */
@@ -788,8 +816,7 @@ static void ta_event_cb(lv_obj_t * ta, lv_event_t event)
         if(str[0] == '\n') {
             printf("Ready\n");
         } else {
-            printf(lv_ta_get_text(ta));
-            printf("\n");
+            printf("%s\n", lv_ta_get_text(ta));
         }
     }
 }
@@ -813,21 +840,23 @@ void haspFirstSetup(void)
     lv_ta_set_text(pwd_ta, "");
     lv_ta_set_pwd_mode(pwd_ta, true);
     lv_ta_set_one_line(pwd_ta, true);
+    lv_obj_set_user_data(pwd_ta, 20);
     lv_obj_set_width(pwd_ta, LV_HOR_RES - 20);
     lv_obj_set_pos(pwd_ta, 5, 20);
     lv_obj_set_event_cb(pwd_ta, ta_event_cb);
     lv_obj_align(pwd_ta, NULL, LV_ALIGN_OUT_TOP_MID, 0, 140);
 
+    /* Create the one-line mode text area */
+    lv_obj_t * oneline_ta = lv_ta_create(pages[1], pwd_ta);
+    lv_ta_set_pwd_mode(oneline_ta, false);
+    lv_obj_set_user_data(oneline_ta, 10);
+    lv_ta_set_cursor_type(oneline_ta, LV_CURSOR_LINE | LV_CURSOR_HIDDEN);
+    lv_obj_align(oneline_ta, NULL, LV_ALIGN_OUT_TOP_MID, 0, 100);
+
     /* Create a label and position it above the text box */
     lv_obj_t * pwd_label = lv_label_create(pages[1], NULL);
     lv_label_set_text(pwd_label, "Password:");
     lv_obj_align(pwd_label, pwd_ta, LV_ALIGN_OUT_TOP_LEFT, 0, 0);
-
-    /* Create the one-line mode text area */
-    lv_obj_t * oneline_ta = lv_ta_create(pages[1], pwd_ta);
-    lv_ta_set_pwd_mode(oneline_ta, false);
-    lv_ta_set_cursor_type(oneline_ta, LV_CURSOR_LINE | LV_CURSOR_HIDDEN);
-    lv_obj_align(oneline_ta, NULL, LV_ALIGN_OUT_TOP_MID, 0, 100);
 
     /* Create a label and position it above the text box */
     lv_obj_t * oneline_label = lv_label_create(pages[1], NULL);
@@ -1544,7 +1573,7 @@ void haspLoadPage(String pages)
 
     File file = SPIFFS.open(pages, "r");
     //    ReadBufferingStream bufferingStream(file, 256);
-    DynamicJsonDocument config(256);
+    DynamicJsonDocument config(254);
 
     uint8_t savedPage = current_page;
     while(deserializeJson(config, file) == DeserializationError::Ok) {
