@@ -465,9 +465,12 @@ void handleFileUpload()
         }
         if(filename.length() < 32) {
             fsUploadFile = filesystem->open(filename, "w");
+            filename     = String(F("handleFileUpload Name: ")) + filename;
+            debugPrintln(filename);
+        } else {
+            filename = String(F("%sFilename is too long: ")) + filename;
+            errorPrintln(filename);
         }
-        filename = String(F("handleFileUpload Name: ")) + filename;
-        debugPrintln(filename);
     } else if(upload->status == UPLOAD_FILE_WRITE) {
         // DBG_OUTPUT_PORT.print("handleFileUpload Data: "); debugPrintln(upload.currentSize);
         if(fsUploadFile) {
