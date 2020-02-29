@@ -241,8 +241,12 @@ void mqttCallback(char * topic, byte * payload, unsigned int length)
         if(strTopic == F("json")) { // '[...]/device/command/json' -m '["dim=5", "page 1"]' =
             // nextionSendCmd("dim=50"), nextionSendCmd("page 1")
             dispatchJson((char *)payload); // Send to nextionParseJson()
-        } else {                           // '[...]/device/command/p[1].b[4].txt' -m '"Lights On"' ==
-                                           // nextionSetAttr("p[1].b[4].txt", "\"Lights On\"")
+        } else if(strTopic == F("jsonl")) {
+            dispatchJsonl((char *)payload);
+        } else if(strTopic == F("setupap")) {
+            haspDisplayAP("HASP-ABC123", "haspadmin");
+        } else { // '[...]/device/command/p[1].b[4].txt' -m '"Lights On"' ==
+                 // nextionSetAttr("p[1].b[4].txt", "\"Lights On\"")
             dispatchAttribute(strTopic, (char *)payload);
         }
         return;

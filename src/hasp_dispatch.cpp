@@ -1,3 +1,6 @@
+#include "StringStream.h"
+#include "ArduinoJson.h"
+
 #include "hasp_dispatch.h"
 #include "hasp_config.h"
 #include "hasp_debug.h"
@@ -121,6 +124,24 @@ void dispatchJson(char * payload)
     JsonArray arr = haspCommands.as<JsonArray>();
     for(JsonVariant command : arr) {
         dispatchCommand(command.as<String>());
+    }
+}
+
+void dispatchJsonl(char * strPayload)
+{
+    Serial.println("JSONL\n");
+    DynamicJsonDocument config(254);
+
+    String output((char *)0);
+    output.reserve(1500);
+
+    StringStream stream((String &)output);
+    stream.print(strPayload);
+
+    while(deserializeJson(config, stream) == DeserializationError::Ok) {
+        serializeJson(config, Serial);
+        Serial.println();
+        haspNewObject(config.as<JsonObject>());
     }
 }
 

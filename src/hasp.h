@@ -82,6 +82,7 @@ void haspBackground(uint16_t pageid, uint16_t imageid);
 void haspProcessAttribute(uint8_t pageid, uint8_t objid, String strAttr, String strPayload);
 void haspSendCmd(String nextionCmd);
 void haspParseJson(String & strPayload);
+void haspNewObject(const JsonObject & settings);
 
 void haspReconnect(void);
 void haspDisconnect(void);
