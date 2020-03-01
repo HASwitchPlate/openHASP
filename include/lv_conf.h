@@ -319,9 +319,9 @@ typedef void * lv_indev_drv_user_data_t;            /*Type of user data in the i
 
 /* Robot fonts with bpp = 4
  * https://fonts.google.com/specimen/Roboto  */
-#define LV_FONT_ROBOTO_12    0
-#define LV_FONT_ROBOTO_16    0
-#define LV_FONT_ROBOTO_22    0
+#define LV_FONT_ROBOTO_12    LV_HIGH_RESOURCE_MCU
+#define LV_FONT_ROBOTO_16    LV_HIGH_RESOURCE_MCU
+#define LV_FONT_ROBOTO_22    LV_HIGH_RESOURCE_MCU
 #define LV_FONT_ROBOTO_28    0
 
 /* Demonstrate special features */
@@ -342,11 +342,16 @@ typedef void * lv_indev_drv_user_data_t;            /*Type of user data in the i
  *                                LV_FONT_DECLARE(my_font_2)
  */
 //#define LV_FONT_CUSTOM_DECLARE static lv_font_t *defaultFont;
-#define LV_FONT_CUSTOM_DECLARE LV_FONT_DECLARE(unscii_8_icon);
 
 /*Always set a default font from the built-in fonts*/
+#if LV_HIGH_RESOURCE_MCU>0
+#define LV_FONT_CUSTOM_DECLARE LV_FONT_DECLARE(lv_font_roboto_16);
+#define LV_FONT_DEFAULT        &lv_font_roboto_16
+#else
+#define LV_FONT_CUSTOM_DECLARE LV_FONT_DECLARE(unscii_8_icon);
 #define LV_FONT_DEFAULT        &unscii_8_icon //&lv_font_unscii_8
 //#define LV_FONT_DEFAULT        my_font
+#endif
 
 /*Declare the type of the user data of fonts (can be e.g. `void *`, `int`, `struct`)*/
 typedef void * lv_font_user_data_t;
