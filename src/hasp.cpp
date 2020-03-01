@@ -53,12 +53,13 @@ char haspZiFontPath[32];
 /**********************
  *  STATIC PROTOTYPES
  **********************/
-static void keyboard_event_cb(lv_obj_t * keyboard, lv_event_t event);
-#if LV_USE_ANIMATION
-static void kb_hide_anim_end(lv_anim_t * a);
-#endif
+static void btn_event_handler(lv_obj_t * obj, lv_event_t event);
+static void toggle_event_handler(lv_obj_t * obj, lv_event_t event);
+// void hasp_background(uint16_t pageid, uint16_t imageid);
 
-void hasp_background(uint16_t pageid, uint16_t imageid);
+#if LV_USE_ANIMATION
+// static void kb_hide_anim_end(lv_anim_t * a);
+#endif
 
 /**********************
  *  STATIC VARIABLES
@@ -196,7 +197,7 @@ void haspProcessInput()
 #endif
 }
 
-void haspSendNewEvent(lv_obj_t * obj, uint8_t val)
+void haspSendNewEvent(lv_obj_t * obj, char * val)
 {
     uint8_t pageid;
     uint8_t objid;
@@ -367,6 +368,12 @@ void haspSetLabelText(lv_obj_t * obj, const char * value)
     } else {
         warningPrintln(F("HASP: %shaspSetLabelText NULL Pointer encountered"));
     }
+}
+
+void haspSetToggle(lv_obj_t * obj, bool toggle)
+{
+    lv_btn_set_toggle(obj, toggle);
+    lv_obj_set_event_cb(obj, toggle ? toggle_event_handler : btn_event_handler);
 }
 
 bool haspGetObjAttribute(lv_obj_t * obj, String strAttr, std::string & strPayload)
@@ -587,6 +594,13 @@ void haspSetObjAttribute(lv_obj_t * obj, String strAttr, String strPayload)
             if(strAttr == F(".hidden")) {
                 lv_obj_set_hidden(obj, val == 0);
                 return;
+            } else if(strAttr == F(".toggle")) {
+                lv_obj_type_t list;
+                lv_obj_get_type(obj, &list);
+                if(check_obj_type(list.type[0], LV_HASP_BUTTON)) {
+                    haspSetToggle(obj, strPayload.toInt() > 0);
+                    return;
+                }
             }
             break;
         case 8:
@@ -689,6 +703,8 @@ void haspDisconnect()
 
     lv_obj_set_style(lv_disp_get_layer_sys(NULL), &style_mbox_bg);
     lv_obj_set_click(lv_disp_get_layer_sys(NULL), true);
+    lv_obj_set_event_cb(lv_disp_get_layer_sys(NULL), NULL);
+    lv_obj_set_user_data(lv_disp_get_layer_sys(NULL), 255);
     /*
         lv_obj_t * obj = lv_obj_get_child(lv_disp_get_layer_sys(NULL), NULL);
         lv_obj_set_hidden(obj, false);
@@ -701,6 +717,7 @@ void haspReconnect()
     /*Revert the top layer to not block*/
     lv_obj_set_style(lv_disp_get_layer_sys(NULL), &lv_style_transp);
     lv_obj_set_click(lv_disp_get_layer_sys(NULL), false);
+    lv_obj_set_event_cb(lv_disp_get_layer_sys(NULL), btn_event_handler);
     /*
         lv_obj_t * obj = lv_obj_get_child(lv_disp_get_layer_sys(NULL), NULL);
         lv_obj_set_hidden(obj, true);
@@ -724,7 +741,7 @@ void haspDisplayAP(const char * ssid, const char * pass)
     txt.reserve(64);
 
     char buffer[127];
-    sprintf_P(buffer, PSTR("WIFI:S:%s;T:WPA;P:%s;;"), ssid, pass);
+    snprintf_P(buffer, sizeof(buffer), PSTR("WIFI:S:%s;T:WPA;P:%s;;"), ssid, pass);
 
     /*Clear all screens*/
     for(uint8_t i = 0; i < (sizeof pages / sizeof *pages); i++) {
@@ -733,13 +750,13 @@ void haspDisplayAP(const char * ssid, const char * pass)
 
 #if HASP_USE_QRCODE != 0
     lv_obj_t * qr = lv_qrcode_create(pages[0], 120, LV_COLOR_BLACK, LV_COLOR_WHITE);
-    lv_obj_align(qr, NULL, LV_ALIGN_CENTER, 0, 10);
+    lv_obj_align(qr, NULL, LV_ALIGN_CENTER, 0, 50);
     lv_qrcode_update(qr, buffer, strlen(buffer));
 #endif
 
     lv_obj_t * panel = lv_cont_create(pages[0], NULL);
     lv_obj_set_style(panel, &lv_style_pretty);
-    lv_obj_align(panel, qr, LV_ALIGN_OUT_TOP_MID, 0, 0);
+    lv_obj_align(panel, qr, LV_ALIGN_OUT_TOP_MID, 0, -20);
     lv_label_set_align(panel, LV_LABEL_ALIGN_CENTER);
     lv_cont_set_fit(panel, LV_FIT_TIGHT);
     lv_cont_set_layout(panel, LV_LAYOUT_COL_M);
@@ -797,11 +814,13 @@ static void kb_event_cb(lv_obj_t * event_kb, lv_event_t event)
     } else if(event == LV_EVENT_CANCEL) {
         haspSetPage(0);
         lv_obj_set_click(lv_disp_get_layer_sys(NULL), true);
-        // dispatchReboot(false);
     } else {
 
+        /* prevent double presses, swipes and ghost press on tiny keyboard */
+        if(event == LV_EVENT_RELEASED) lv_kb_def_event_cb(event_kb, LV_EVENT_VALUE_CHANGED);
+
         /* Just call the regular event handler */
-        lv_kb_def_event_cb(event_kb, event);
+        // lv_kb_def_event_cb(event_kb, event);
     }
 }
 static void ta_event_cb(lv_obj_t * ta, lv_event_t event)
@@ -816,65 +835,81 @@ static void ta_event_cb(lv_obj_t * ta, lv_event_t event)
         if(str[0] == '\n') {
             printf("Ready\n");
         } else {
-            printf("%s\n", lv_ta_get_text(ta));
+            // printf("%s\n", lv_ta_get_text(ta));
         }
     }
 }
 
 void haspFirstSetup(void)
 {
-
     /*Create styles for the keyboard*/
     static lv_style_t rel_style, pr_style;
+
+    lv_coord_t leftmargin, topmargin, voffset;
+    lv_align_t labelpos;
+
+    lv_disp_t * disp = lv_disp_get_default();
+    if(disp->driver.hor_res <= disp->driver.ver_res) {
+        leftmargin = 0;
+        topmargin  = -35;
+        voffset    = 12;
+        labelpos   = LV_ALIGN_OUT_TOP_LEFT;
+    } else {
+        leftmargin = 100;
+        topmargin  = -14;
+        voffset    = 20;
+        labelpos   = LV_ALIGN_OUT_LEFT_MID;
+    }
 
     lv_style_copy(&rel_style, &lv_style_btn_rel);
     rel_style.body.radius       = 0;
     rel_style.body.border.width = 1;
+    rel_style.text.font         = LV_FONT_DEFAULT;
 
     lv_style_copy(&pr_style, &lv_style_btn_pr);
     pr_style.body.radius       = 0;
     pr_style.body.border.width = 1;
+    rel_style.text.font        = LV_FONT_DEFAULT;
 
     /* Create the password box */
     lv_obj_t * pwd_ta = lv_ta_create(pages[1], NULL);
     lv_ta_set_text(pwd_ta, "");
+    lv_ta_set_max_length(pwd_ta, 32);
     lv_ta_set_pwd_mode(pwd_ta, true);
     lv_ta_set_one_line(pwd_ta, true);
     lv_obj_set_user_data(pwd_ta, 20);
-    lv_obj_set_width(pwd_ta, LV_HOR_RES - 20);
-    lv_obj_set_pos(pwd_ta, 5, 20);
+    lv_obj_set_width(pwd_ta, disp->driver.hor_res - leftmargin - 20);
     lv_obj_set_event_cb(pwd_ta, ta_event_cb);
-    lv_obj_align(pwd_ta, NULL, LV_ALIGN_OUT_TOP_MID, 0, 140);
+    lv_obj_align(pwd_ta, NULL, LV_ALIGN_CENTER, leftmargin / 2, topmargin - voffset);
 
     /* Create the one-line mode text area */
     lv_obj_t * oneline_ta = lv_ta_create(pages[1], pwd_ta);
     lv_ta_set_pwd_mode(oneline_ta, false);
     lv_obj_set_user_data(oneline_ta, 10);
     lv_ta_set_cursor_type(oneline_ta, LV_CURSOR_LINE | LV_CURSOR_HIDDEN);
-    lv_obj_align(oneline_ta, NULL, LV_ALIGN_OUT_TOP_MID, 0, 100);
+    lv_obj_align(oneline_ta, pwd_ta, LV_ALIGN_OUT_TOP_MID, 0, topmargin);
 
     /* Create a label and position it above the text box */
     lv_obj_t * pwd_label = lv_label_create(pages[1], NULL);
     lv_label_set_text(pwd_label, "Password:");
-    lv_obj_align(pwd_label, pwd_ta, LV_ALIGN_OUT_TOP_LEFT, 0, 0);
+    lv_obj_align(pwd_label, pwd_ta, labelpos, 0, 0);
 
     /* Create a label and position it above the text box */
     lv_obj_t * oneline_label = lv_label_create(pages[1], NULL);
     lv_label_set_text(oneline_label, "Ssid:");
-    lv_obj_align(oneline_label, oneline_ta, LV_ALIGN_OUT_TOP_LEFT, 0, 0);
+    lv_obj_align(oneline_label, oneline_ta, labelpos, 0, 0);
 
     /* Create a keyboard and make it fill the width of the above text areas */
     kb = lv_kb_create(pages[1], NULL);
     // lv_obj_set_pos(kb, 5, 90);
     lv_obj_set_event_cb(kb,
                         kb_event_cb); /* Setting a custom event handler stops the keyboard from closing automatically */
-    // lv_obj_set_size(kb, LV_HOR_RES, 140);
     lv_kb_set_style(kb, LV_KB_STYLE_BG, &lv_style_transp_tight);
     lv_kb_set_style(kb, LV_KB_STYLE_BTN_REL, &rel_style);
     lv_kb_set_style(kb, LV_KB_STYLE_BTN_PR, &pr_style);
 
-    lv_kb_set_ta(kb, pwd_ta);          /* Focus it on one of the text areas to start */
-    lv_kb_set_cursor_manage(kb, true); /* Automatically show/hide cursors on text areas */
+    lv_kb_set_ta(kb, oneline_ta);              /* Focus it on one of the text areas to start */
+    lv_kb_set_cursor_manage(oneline_ta, true); /* Automatically show/hide cursors on text areas */
 }
 
 /**
@@ -1098,10 +1133,9 @@ void haspSetup(JsonObject settings)
  **********************/
 
 void haspLoop(void)
-{
-    /* idle detection and dim */
-}
+{}
 
+/*
 void hasp_background(uint16_t pageid, uint16_t imageid)
 {
     lv_obj_t * page = get_page(pageid);
@@ -1114,7 +1148,8 @@ void hasp_background(uint16_t pageid, uint16_t imageid)
 
     if(!thisobj) return;
 
-    /*
+    
+
     switch (imageid)
     {
     case 0:
@@ -1143,13 +1178,13 @@ void hasp_background(uint16_t pageid, uint16_t imageid)
         break;
     }
     //printf("Image set to %u\n", imageid);
-*/
+
     lv_img_set_auto_size(thisobj, false);
     lv_obj_set_width(thisobj, lv_disp_get_hor_res(NULL));
     lv_obj_set_height(thisobj, lv_disp_get_ver_res(NULL));
     // lv_obj_set_protect(wp, LV_PROTECT_POS);
     // lv_obj_invalidate(thisobj);
-}
+}*/
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -1162,54 +1197,62 @@ static void btn_event_handler(lv_obj_t * obj, lv_event_t event)
 {
     // int16_t id = get_obj_id(obj);
 
-    uint8_t eventid = 0;
-    uint8_t pageid  = 0;
+    // uint8_t eventid = 0;
+    uint8_t pageid = 0;
     lv_obj_user_data_t objid;
 
     char buffer[127];
     sprintf(buffer, PSTR("HASP: "));
 
-    if(!FindIdFromObj(obj, &pageid, &objid)) {
-        errorPrintln(F("HASP: %sEvent for unknown object"));
-        return;
+    if(obj != lv_disp_get_layer_sys(NULL)) {
+        if(!FindIdFromObj(obj, &pageid, &objid)) {
+            errorPrintln(F("HASP: %sEvent for unknown object"));
+            return;
+        }
     }
 
     switch(event) {
         case LV_EVENT_PRESSED:
-            strcat_P(buffer, PSTR("Pressed Down"));
-            debugPrintln(buffer);
-            eventid = 1;
+            // strcat_P(buffer, PSTR("Pressed Down"));
+            // debugPrintln(buffer);
+            // eventid = 1;
+            memcpy_P(buffer, PSTR("DOWN"), sizeof(buffer));
             break;
 
         case LV_EVENT_CLICKED:
-            strcat_P(buffer, PSTR("Released Up"));
-            debugPrintln(buffer);
+            // strcat_P(buffer, PSTR("Released Up"));
+            // debugPrintln(buffer);
             // UP = the same object was release then was pressed and press was not lost!
-            eventid = 0;
+            // eventid = 0;
+            memcpy_P(buffer, PSTR("UP"), sizeof(buffer));
             break;
 
         case LV_EVENT_SHORT_CLICKED:
-            strcat_P(buffer, PSTR("Short Click"));
-            debugPrintln(buffer);
-            eventid = 2;
+            // strcat_P(buffer, PSTR("Short Click"));
+            // debugPrintln(buffer);
+            // eventid = 2;
+            memcpy_P(buffer, PSTR("SHORT"), sizeof(buffer));
             break;
 
         case LV_EVENT_LONG_PRESSED:
-            strcat_P(buffer, PSTR("Long Press"));
-            debugPrintln(buffer);
-            eventid = 3;
+            // strcat_P(buffer, PSTR("Long Press"));
+            // debugPrintln(buffer);
+            // eventid = 3;
+            memcpy_P(buffer, PSTR("LONG"), sizeof(buffer));
             break;
 
         case LV_EVENT_LONG_PRESSED_REPEAT:
-            strcat_P(buffer, PSTR("Long Hold"));
-            debugPrintln(buffer);
-            eventid = 4;
+            // strcat_P(buffer, PSTR("Long Hold"));
+            // debugPrintln(buffer);
+            // eventid = 4;
+            memcpy_P(buffer, PSTR("HOLD"), sizeof(buffer));
             break;
 
         case LV_EVENT_PRESS_LOST:
-            strcat_P(buffer, PSTR("Lost Press"));
-            debugPrintln(buffer);
-            eventid = 9;
+            // strcat_P(buffer, PSTR("Lost Press"));
+            // debugPrintln(buffer);
+            // eventid = 9;
+            memcpy_P(buffer, PSTR("LOST"), sizeof(buffer));
             break;
 
         case LV_EVENT_PRESSING:
@@ -1230,12 +1273,22 @@ static void btn_event_handler(lv_obj_t * obj, lv_event_t event)
     }
 
     // printf("p[%u].b[%u].val = %u  ", pageid, objid, eventid);
-    mqttSendNewEvent(pageid, objid, eventid);
+    if(obj == lv_disp_get_layer_sys(NULL)) {
+        mqttSendState("wakeuptouch", buffer);
+    } else {
+        mqttSendNewEvent(pageid, objid, buffer);
+    }
 }
 
 static void btnmap_event_handler(lv_obj_t * obj, lv_event_t event)
 {
     if(event == LV_EVENT_VALUE_CHANGED) haspSendNewValue(obj, lv_btnm_get_pressed_btn(obj));
+}
+
+static void toggle_event_handler(lv_obj_t * obj, lv_event_t event)
+{
+    bool toggled = lv_btn_get_state(obj) == LV_BTN_STATE_TGL_PR || lv_btn_get_state(obj) == LV_BTN_STATE_TGL_REL;
+    if(event == LV_EVENT_VALUE_CHANGED) haspSendNewValue(obj, toggled);
 }
 
 static void slider_event_handler(lv_obj_t * obj, lv_event_t event)
@@ -1369,14 +1422,15 @@ void haspNewObject(const JsonObject & config)
         case LV_HASP_BUTTON: {
             obj         = lv_btn_create(parent_obj, NULL);
             bool toggle = config[F("toggle")].as<bool>();
-            lv_btn_set_toggle(obj, toggle);
-            if(config[F("txt")]) {
-                label = lv_label_create(obj, NULL);
-                lv_label_set_text(label, config[F("txt")].as<String>().c_str());
-                lv_obj_set_opa_scale_enable(label, true);
-                lv_obj_set_opa_scale(label, LV_OPA_COVER);
-            }
-            lv_obj_set_event_cb(obj, btn_event_handler);
+            haspSetToggle(obj, toggle);
+            // lv_btn_set_toggle(obj, toggle);
+            // if(config[F("txt")]) {
+            label = lv_label_create(obj, NULL);
+            lv_label_set_text(label, config[F("txt")].as<String>().c_str());
+            lv_obj_set_opa_scale_enable(label, true);
+            lv_obj_set_opa_scale(label, LV_OPA_COVER);
+            //}
+            // lv_obj_set_event_cb(obj, btn_event_handler);
             break;
         }
         case LV_HASP_CHECKBOX: {
