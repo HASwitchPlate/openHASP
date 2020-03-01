@@ -66,9 +66,9 @@ void wifiConnected(IPAddress ipaddress)
     debugPrintln(buffer);
 
     if(isConnected) {
-        httpReconnect();
         mqttReconnect();
         haspReconnect();
+        httpReconnect();
     }
 }
 
