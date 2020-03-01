@@ -2,7 +2,7 @@
 
 #define HASP_VERSION_MAJOR 0
 #define HASP_VERSION_MINOR 0
-#define HASP_VERSION_REVISION 8
+#define HASP_VERSION_REVISION 9
 
 #define HASP_USE_APP 1
 
@@ -11,6 +11,7 @@
 #define HASP_USE_HTTP 1
 #define HASP_USE_MDNS 0
 #define HASP_USE_SYSLOG 0
+#define HASP_USE_TELNET 0
 
 #define HASP_USE_SPIFFS 1
 #define HASP_USE_EEPROM 0
