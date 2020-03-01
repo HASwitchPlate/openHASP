@@ -160,6 +160,10 @@ void webSendPage(String & nodename, uint32_t httpdatalength, bool gohome = false
     webServer.sendContent_P(HASP_STYLE);                   // 145
     if(gohome) webServer.sendContent_P(HTTP_META_GO_BACK); // 47
     webServer.sendContent_P(HTTP_HEADER_END);              // 80
+
+    snprintf_P(buffer, sizeof(buffer), PSTR("HTTP: Sent page with %u static and %u dynamic bytes"), contentLength,
+               httpdatalength);
+    debugPrintln(buffer);
 }
 
 void webHandleRoot()
