@@ -23,15 +23,36 @@ void dispatchStatusUpdate()
     mqttStatusUpdate();
 }
 
+void dispatchOutput(int output, bool state)
+{
+    int pin = 0;
+
+    if(pin >= 0) {
+
+#if defined(ARDUINO_ARCH_ESP32)
+        ledcWrite(99, state ? 1023 : 0); // ledChannel and value
+#else
+        analogWrite(pin, state ? 1023 : 0);
+#endif
+    }
+}
+
 // objectattribute=value
 void IRAM_ATTR dispatchAttribute(String & strTopic, const char * payload)
 {
     if(strTopic.startsWith("p[")) {
-        String strPageId = strTopic.substring(2, strTopic.indexOf("]"));
-        String strTemp   = strTopic.substring(strTopic.indexOf("]") + 1, strTopic.length());
+        String strPageId((char *)0);
+        String strTemp((char *)0);
+
+        strPageId = strTopic.substring(2, strTopic.indexOf("]"));
+        strTemp   = strTopic.substring(strTopic.indexOf("]") + 1, strTopic.length());
+
         if(strTemp.startsWith(".b[")) {
-            String strObjId = strTemp.substring(3, strTemp.indexOf("]"));
-            String strAttr  = strTemp.substring(strTemp.indexOf("]") + 1, strTemp.length());
+            String strObjId((char *)0);
+            String strAttr((char *)0);
+
+            strObjId = strTemp.substring(3, strTemp.indexOf("]"));
+            strAttr  = strTemp.substring(strTemp.indexOf("]") + 1, strTemp.length());
             // debugPrintln(strPageId + " && " + strObjId + " && " + strAttr);
 
             int pageid = strPageId.toInt();
@@ -41,14 +62,24 @@ void IRAM_ATTR dispatchAttribute(String & strTopic, const char * payload)
                 haspProcessAttribute((uint8_t)pageid, (uint8_t)objid, strAttr, payload);
             } // valid page
         }
-    } else if(strTopic == "page") {
+
+    } else if(strTopic == F("page")) {
         dispatchPage(payload);
-    } else if(strTopic == "dim") {
+
+    } else if(strTopic == F("dim") || strTopic == F("brightness")) {
         dispatchDim(payload);
+
+    } else if(strTopic == F("light")) {
+        dispatchBacklight(payload);
+
+    } else if(strTopic.length() == 7 && strTopic.startsWith(F("output"))) {
+        String strTemp((char *)0);
+        strTemp = strTopic.substring(7, strTopic.length());
+        dispatchOutput(strTemp.toInt(), true);
     }
 }
 
-void IRAM_ATTR dispatchPage(String strPageid)
+void dispatchPage(String strPageid)
 {
     debugPrintln("PAGE: " + strPageid);
 
@@ -72,13 +103,33 @@ void dispatchDim(String strDimLevel)
     }
 }
 
-void IRAM_ATTR dispatchCommand(String cmnd)
+void dispatchBacklight(String strPayload)
+{
+    debugPrintln("LIGHT: " + strPayload);
+    strPayload.toUpperCase();
+
+    if(strPayload == F("ON")) {
+        guiSetBacklight(true);
+    } else if(strPayload == F("OFF")) {
+        guiSetBacklight(false);
+    } else {
+        String strPayload = String(guiGetBacklight());
+        mqttSendState("light", strPayload.c_str());
+    }
+}
+
+void dispatchCommand(String cmnd)
 {
     debugPrintln("CMND: " + cmnd);
 
-    if(cmnd.startsWith(F("page ")) || cmnd.startsWith(F("page="))) {
+    if(cmnd.startsWith(F("page "))) {
         cmnd = cmnd.substring(5, cmnd.length());
-        dispatchPage(cmnd);
+        String strTopic((char *)0);
+        strTopic.reserve(127);
+        strTopic = F("page");
+        dispatchAttribute(strTopic, cmnd.c_str());
+
+        //        dispatchPage(cmnd);
     } else if(cmnd == F("calibrate")) {
         guiCalibrate();
     } else if(cmnd == F("wakeup")) {
@@ -93,8 +144,15 @@ void IRAM_ATTR dispatchCommand(String cmnd)
 
         int pos = cmnd.indexOf("=");
         if(pos > 0) {
-            String strTopic   = cmnd.substring(0, pos);
-            String strPayload = cmnd.substring(pos + 1, cmnd.length());
+            String strTopic((char *)0);
+            String strPayload((char *)0);
+
+            strTopic.reserve(127);
+            strPayload.reserve(127);
+
+            strTopic   = cmnd.substring(0, pos);
+            strPayload = cmnd.substring(pos + 1, cmnd.length());
+
             dispatchAttribute(strTopic, strPayload.c_str());
         } else {
             dispatchAttribute(cmnd, "");

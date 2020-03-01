@@ -121,10 +121,10 @@ void IRAM_ATTR mqttSendNewValue(uint8_t pageid, uint8_t btnid, String txt)
     mqttSendNewValue(pageid, btnid, "txt", txt);
 }
 
-void IRAM_ATTR mqttSendNewEvent(uint8_t pageid, uint8_t btnid, int32_t val)
+void IRAM_ATTR mqttSendNewEvent(uint8_t pageid, uint8_t btnid, char * value) // int32_t val)
 {
-    char value[127];
-    itoa(val, value, 10);
+    // char value[127];
+    // itoa(val, value, 10);
     mqttSendNewValue(pageid, btnid, "event", value);
 }
 
@@ -233,11 +233,6 @@ void mqttCallback(char * topic, byte * payload, unsigned int length)
         strTopic = strTopic.substring(8u, strTopic.length());
         // debugPrintln(String(F("MQTT Shorter Command Topic : '")) + strTopic + "'");
 
-        if(length == 0) {
-            dispatchCommand(strTopic.c_str());
-            return;
-        }
-
         if(strTopic == F("json")) { // '[...]/device/command/json' -m '["dim=5", "page 1"]' =
             // nextionSendCmd("dim=50"), nextionSendCmd("page 1")
             dispatchJson((char *)payload); // Send to nextionParseJson()
@@ -245,6 +240,8 @@ void mqttCallback(char * topic, byte * payload, unsigned int length)
             dispatchJsonl((char *)payload);
         } else if(strTopic == F("setupap")) {
             haspDisplayAP("HASP-ABC123", "haspadmin");
+        } else if(length == 0) {
+            dispatchCommand(strTopic.c_str());
         } else { // '[...]/device/command/p[1].b[4].txt' -m '"Lights On"' ==
                  // nextionSetAttr("p[1].b[4].txt", "\"Lights On\"")
             dispatchAttribute(strTopic, (char *)payload);

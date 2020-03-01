@@ -13,6 +13,7 @@ void dispatchJsonl(char * strPayload);
 
 void dispatchPage(String strPageid);
 void dispatchDim(String strDimLevel);
+void dispatchBacklight(String strPayload);
 
 void dispatchIdle(const __FlashStringHelper * state);
 void dispatchReboot(bool saveConfig);
