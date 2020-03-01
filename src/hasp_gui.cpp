@@ -272,7 +272,7 @@ void guiSetup(TFT_eSPI & screen, JsonObject settings)
     tft = screen;
 
     guiSetConfig(settings);
-    guiBacklightIsOn = guiDimLevel > 0;
+    // guiBacklightIsOn = guiDimLevel > 0;
 
     tft.begin(); /* TFT init */
     tft.setTouch(calData);
@@ -406,7 +406,7 @@ void IRAM_ATTR guiLoop()
 void guiStop()
 {}
 
-bool guiGetBacklight(bool lighton)
+bool guiGetBacklight()
 {
     return guiBacklightIsOn;
 }
@@ -418,9 +418,9 @@ void guiSetBacklight(bool lighton)
     if(guiBacklightPin >= 0) {
 
 #if defined(ARDUINO_ARCH_ESP32)
-        ledcWrite(99, lighton ? 1023 : 0); // ledChannel and value
+        ledcWrite(99, lighton ? map(guiDimLevel, 0, 100, 0, 1023) : 0); // ledChannel and value
 #else
-        analogWrite(guiBacklightPin, lighton ? 1023 : 0);
+        analogWrite(guiBacklightPin, lighton ? map(guiDimLevel, 0, 100, 0, 1023) : 0);
 #endif
 
     } else {
@@ -434,7 +434,7 @@ void guiSetDim(uint8_t level)
         guiDimLevel = level >= 0 ? level : 0;
         guiDimLevel = guiDimLevel <= 100 ? guiDimLevel : 100;
 
-        if(true || guiBacklightIsOn) { // The backlight is ON
+        if(guiBacklightIsOn) { // The backlight is ON
 #if defined(ARDUINO_ARCH_ESP32)
             ledcWrite(99, map(guiDimLevel, 0, 100, 0, 1023)); // ledChannel and value
 #else

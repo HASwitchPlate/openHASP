@@ -25,6 +25,8 @@ void guiTakeScreenshot(const char * pFileName);
 
 void guiSetDim(uint8_t level);
 int8_t guiGetDim(void);
+void guiSetBacklight(bool lighton);
+bool guiGetBacklight();
 
 bool guiGetConfig(const JsonObject & settings);
 bool guiSetConfig(const JsonObject & settings);
