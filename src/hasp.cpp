@@ -833,7 +833,7 @@ static void ta_event_cb(lv_obj_t * ta, lv_event_t event)
     else if(event == LV_EVENT_INSERT) {
         const char * str = (const char *)lv_event_get_data();
         if(str[0] == '\n') {
-            printf("Ready\n");
+            // printf("Ready\n");
         } else {
             // printf("%s\n", lv_ta_get_text(ta));
         }
@@ -1266,6 +1266,10 @@ static void btn_event_handler(lv_obj_t * obj, lv_event_t event)
             debugPrintln(buffer);
             return;
 
+        case LV_EVENT_DELETE:
+            sprintf(buffer, PSTR("HASP: Object deleted"), event);
+            debugPrintln(buffer);
+            return;
         default:
             sprintf(buffer, PSTR("HASP: Unknown Event %d occured"), event);
             debugPrintln(buffer);
@@ -1345,6 +1349,19 @@ String haspGetVersion()
     char buffer[127];
     snprintf_P(buffer, sizeof(buffer), "%u.%u.%u", HASP_VERSION_MAJOR, HASP_VERSION_MINOR, HASP_VERSION_REVISION);
     return buffer;
+}
+
+void haspClearPage(uint16_t pageid)
+{
+    lv_obj_t * page = get_page(pageid);
+    if(!page) {
+        errorPrintln(F("HASP: %sPage ID not defined"));
+    } else if(page == lv_layer_sys() || page == lv_layer_top()) {
+        errorPrintln(F("HASP: %sCannot clear a layer"));
+    } else {
+        debugPrintln(String(F("HASP: Clearing page ")) + String(pageid));
+        lv_obj_clean(pages[pageid]);
+    }
 }
 
 uint16_t haspGetPage()
@@ -1664,7 +1681,13 @@ bool haspGetConfig(const JsonObject & settings)
 
 bool haspSetConfig(const JsonObject & settings)
 {
+    configOutput(settings);
     bool changed = false;
+
+    changed |= configSet(haspStartPage, settings[FPSTR(F_CONFIG_STARTPAGE)], PSTR("haspStartPage"));
+    changed |= configSet(haspStartDim, settings[FPSTR(F_CONFIG_STARTDIM)], PSTR("haspStartDim"));
+    changed |= configSet(haspThemeId, settings[FPSTR(F_CONFIG_THEME)], PSTR("haspThemeId"));
+    changed |= configSet(haspThemeHue, settings[FPSTR(F_CONFIG_HUE)], PSTR("haspThemeHue"));
 
     if(!settings[FPSTR(F_CONFIG_PAGES)].isNull()) {
         changed |= strcmp(haspPagesPath, settings[FPSTR(F_CONFIG_PAGES)]) != 0;
@@ -1675,29 +1698,6 @@ bool haspSetConfig(const JsonObject & settings)
         changed |= strcmp(haspZiFontPath, settings[FPSTR(F_CONFIG_ZIFONT)]) != 0;
         strncpy(haspZiFontPath, settings[FPSTR(F_CONFIG_ZIFONT)], sizeof(haspZiFontPath));
     }
-
-    if(!settings[FPSTR(F_CONFIG_STARTPAGE)].isNull()) {
-        changed |= haspStartPage != settings[FPSTR(F_CONFIG_STARTPAGE)].as<uint8_t>();
-        haspStartPage = settings[FPSTR(F_CONFIG_STARTPAGE)].as<uint8_t>();
-    }
-
-    if(!settings[FPSTR(F_CONFIG_STARTDIM)].isNull()) {
-        changed |= haspStartDim != settings[FPSTR(F_CONFIG_STARTDIM)].as<uint8_t>();
-        haspStartDim = settings[FPSTR(F_CONFIG_STARTDIM)].as<uint8_t>();
-    }
-
-    if(!settings[FPSTR(F_CONFIG_THEME)].isNull()) {
-        changed |= haspThemeId != settings[FPSTR(F_CONFIG_THEME)].as<uint8_t>();
-        haspThemeId = settings[FPSTR(F_CONFIG_THEME)].as<uint8_t>();
-    }
-
-    if(!settings[FPSTR(F_CONFIG_HUE)].isNull()) {
-        changed |= haspThemeHue != settings[FPSTR(F_CONFIG_HUE)].as<uint16_t>();
-        haspThemeHue = settings[FPSTR(F_CONFIG_HUE)].as<uint16_t>();
-    }
-
-    serializeJson(settings, Serial);
-    Serial.println();
 
     return changed;
 }

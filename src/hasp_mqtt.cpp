@@ -453,7 +453,10 @@ bool mqttGetConfig(const JsonObject & settings)
 
 bool mqttSetConfig(const JsonObject & settings)
 {
+    configOutput(settings);
     bool changed = false;
+
+    changed |= configSet(mqttPort, settings[FPSTR(F_CONFIG_PORT)], PSTR("mqttPort"));
 
     if(!settings[FPSTR(F_CONFIG_GROUP)].isNull()) {
         if(mqttGroupName != settings[FPSTR(F_CONFIG_GROUP)].as<String>().c_str()) {
@@ -473,15 +476,6 @@ bool mqttSetConfig(const JsonObject & settings)
         mqttServer = settings[FPSTR(F_CONFIG_HOST)].as<String>().c_str();
     }
 
-    if(!settings[FPSTR(F_CONFIG_PORT)].isNull()) {
-        if(mqttPort != settings[FPSTR(F_CONFIG_PORT)].as<uint16_t>()) {
-            debugPrintln(F("mqttPort set"));
-        }
-        changed |= mqttPort != settings[FPSTR(F_CONFIG_PORT)].as<uint16_t>();
-
-        mqttPort = settings[FPSTR(F_CONFIG_PORT)].as<uint16_t>();
-    }
-
     if(!settings[FPSTR(F_CONFIG_USER)].isNull()) {
         if(mqttUser != settings[FPSTR(F_CONFIG_USER)].as<String>().c_str()) {
             debugPrintln(F("mqttUser set"));
@@ -491,7 +485,8 @@ bool mqttSetConfig(const JsonObject & settings)
         mqttUser = settings[FPSTR(F_CONFIG_USER)].as<String>().c_str();
     }
 
-    if(!settings[FPSTR(F_CONFIG_PASS)].isNull()) {
+    if(!settings[FPSTR(F_CONFIG_PASS)].isNull() &&
+       settings[FPSTR(F_CONFIG_PASS)].as<String>() != String(FPSTR("********"))) {
         if(mqttPassword != settings[FPSTR(F_CONFIG_PASS)].as<String>().c_str()) {
             debugPrintln(F("mqttPassword set"));
         }
@@ -500,6 +495,5 @@ bool mqttSetConfig(const JsonObject & settings)
         mqttPassword = settings[FPSTR(F_CONFIG_PASS)].as<String>().c_str();
     }
 
-    configOutput(settings);
     return changed;
 }

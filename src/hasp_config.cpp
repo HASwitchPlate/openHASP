@@ -19,6 +19,50 @@
 #include "hasp_spiffs.h"
 #include "hasp.h"
 
+void confDebugSet(const char * name)
+{
+    char buffer[127];
+    snprintf(buffer, sizeof(buffer), PSTR("CONF:    * %s set"), name);
+    debugPrintln(buffer);
+}
+
+bool configSet(int8_t & value, const JsonVariant & setting, const char * name)
+{
+    if(!setting.isNull()) {
+        int8_t val = setting.as<int8_t>();
+        if(value != val) {
+            confDebugSet(name);
+            value = val;
+            return true;
+        }
+    }
+    return false;
+}
+bool configSet(uint8_t & value, const JsonVariant & setting, const char * name)
+{
+    if(!setting.isNull()) {
+        uint8_t val = setting.as<uint8_t>();
+        if(value != val) {
+            confDebugSet(name);
+            value = val;
+            return true;
+        }
+    }
+    return false;
+}
+bool configSet(uint16_t & value, const JsonVariant & setting, const char * name)
+{
+    if(!setting.isNull()) {
+        uint16_t val = setting.as<uint16_t>();
+        if(value != val) {
+            confDebugSet(name);
+            value = val;
+            return true;
+        }
+    }
+    return false;
+}
+
 bool configChanged()
 {
     return false;

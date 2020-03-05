@@ -23,6 +23,7 @@ const char F_GUI_IDLEPERIOD1[] PROGMEM  = "idle1";
 const char F_GUI_IDLEPERIOD2[] PROGMEM  = "idle2";
 const char F_GUI_CALIBRATION[] PROGMEM  = "calibration";
 const char F_GUI_BACKLIGHTPIN[] PROGMEM = "bcklpin";
+const char F_GUI_POINTER[] PROGMEM      = "pointer";
 const char F_DEBUG_TELEPERIOD[] PROGMEM = "teleperiod";
 
 const char HASP_CONFIG_FILE[] PROGMEM = "/config.json";
@@ -36,5 +37,9 @@ void configGetConfig(JsonDocument & settings);
 void configWriteConfig();
 bool configChanged(void);
 void configOutput(const JsonObject & settings);
+
+bool configSet(int8_t & value, const JsonVariant & setting, const char * name);
+bool configSet(uint8_t & value, const JsonVariant & setting, const char * name);
+bool configSet(uint16_t & value, const JsonVariant & setting, const char * name);
 
 #endif

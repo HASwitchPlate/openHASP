@@ -150,25 +150,25 @@ void wifiSetup(JsonObject settings)
         debugPrintln(buffer);
         haspDisplayAP(apSsdid.c_str(), "haspadmin");
         httpReconnect();
-        return;
-    }
+    } else {
 
-    WiFi.mode(WIFI_STA);
-    snprintf_P(buffer, sizeof(buffer), PSTR("WIFI: Connecting to : %s"), wifiSsid);
-    debugPrintln(buffer);
+        WiFi.mode(WIFI_STA);
+        snprintf_P(buffer, sizeof(buffer), PSTR("WIFI: Connecting to : %s"), wifiSsid);
+        debugPrintln(buffer);
 
 #if defined(ARDUINO_ARCH_ESP8266)
-    // wifiEventHandler[0]      = WiFi.onStationModeConnected(wifiSTAConnected);
-    gotIpEventHandler        = WiFi.onStationModeGotIP(wifiSTAGotIP); // As soon WiFi is connected, start NTP Client
-    disconnectedEventHandler = WiFi.onStationModeDisconnected(wifiSTADisconnected);
-    WiFi.setSleepMode(WIFI_NONE_SLEEP);
+        // wifiEventHandler[0]      = WiFi.onStationModeConnected(wifiSTAConnected);
+        gotIpEventHandler        = WiFi.onStationModeGotIP(wifiSTAGotIP); // As soon WiFi is connected, start NTP Client
+        disconnectedEventHandler = WiFi.onStationModeDisconnected(wifiSTADisconnected);
+        WiFi.setSleepMode(WIFI_NONE_SLEEP);
 #endif
 #if defined(ARDUINO_ARCH_ESP32)
-    WiFi.onEvent(wifi_callback);
-    WiFi.setSleep(false);
+        WiFi.onEvent(wifi_callback);
+        WiFi.setSleep(false);
 #endif
 
-    WiFi.begin(wifiSsid, wifiPassword);
+        WiFi.begin(wifiSsid, wifiPassword);
+    }
 }
 
 bool wifiLoop()
@@ -217,6 +217,7 @@ bool wifiGetConfig(const JsonObject & settings)
 
 bool wifiSetConfig(const JsonObject & settings)
 {
+    configOutput(settings);
     bool changed = false;
 
     if(!settings[FPSTR(F_CONFIG_SSID)].isNull()) {
@@ -229,7 +230,6 @@ bool wifiSetConfig(const JsonObject & settings)
         strncpy(wifiPassword, settings[FPSTR(F_CONFIG_PASS)], sizeof(wifiPassword));
     }
 
-    configOutput(settings);
     return changed;
 }
 

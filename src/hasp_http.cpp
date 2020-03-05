@@ -125,7 +125,7 @@ String getOption(String value, String label, bool selected)
 void webSendFooter()
 {
     char buffer[127];
-    snprintf_P(buffer, sizeof(buffer), "%u.%u.%u", HASP_VERSION_MAJOR, HASP_VERSION_MINOR, HASP_VERSION_REVISION);
+    snprintf_P(buffer, sizeof(buffer), PSTR("%u.%u.%u"), HASP_VERSION_MAJOR, HASP_VERSION_MINOR, HASP_VERSION_REVISION);
 
     webServer.sendContent_P(HTTP_END);
     webServer.sendContent(buffer);
@@ -136,7 +136,7 @@ void webSendPage(String & nodename, uint32_t httpdatalength, bool gohome = false
 {
     char buffer[127];
 
-    snprintf_P(buffer, sizeof(buffer), "%u.%u.%u", HASP_VERSION_MAJOR, HASP_VERSION_MINOR, HASP_VERSION_REVISION);
+    snprintf_P(buffer, sizeof(buffer), PSTR("%u.%u.%u"), HASP_VERSION_MAJOR, HASP_VERSION_MINOR, HASP_VERSION_REVISION);
 
     /* Calculate Content Length upfront */
     uint16_t contentLength = strlen(buffer); // verion length
@@ -150,8 +150,11 @@ void webSendPage(String & nodename, uint32_t httpdatalength, bool gohome = false
     contentLength += sizeof(HTTP_END) - 1;
     contentLength += sizeof(HTTP_FOOTER) - 1;
 
-    webServer.setContentLength(contentLength + httpdatalength);
+    snprintf_P(buffer, sizeof(buffer), PSTR("HTTP: Sending page with %u static and %u dynamic bytes"), contentLength,
+               httpdatalength);
+    debugPrintln(buffer);
 
+    webServer.setContentLength(contentLength + httpdatalength);
     webServer.send_P(200, PSTR("text/html"), HTTP_DOCTYPE); // 122
     sprintf_P(buffer, HTTP_HEADER, nodename.c_str());
     webServer.sendContent(buffer);                         // 17-2+len
@@ -160,10 +163,6 @@ void webSendPage(String & nodename, uint32_t httpdatalength, bool gohome = false
     webServer.sendContent_P(HASP_STYLE);                   // 145
     if(gohome) webServer.sendContent_P(HTTP_META_GO_BACK); // 47
     webServer.sendContent_P(HTTP_HEADER_END);              // 80
-
-    snprintf_P(buffer, sizeof(buffer), PSTR("HTTP: Sent page with %u static and %u dynamic bytes"), contentLength,
-               httpdatalength);
-    debugPrintln(buffer);
 }
 
 void webHandleRoot()
@@ -502,7 +501,7 @@ void handleFileDelete()
 {
     if(!httpIsAuthenticated(F("filedelete"))) return;
 
-    char mimetype[10];
+    char mimetype[127];
     sprintf(mimetype, PSTR("text/plain"));
 
     if(webServer.args() == 0) {
@@ -1123,27 +1122,35 @@ void httpSetup(const JsonObject & settings)
             haspSetPage(pageid.toInt());
         });
 
-        webServer.on("/list", HTTP_GET, handleFileList);
+        webServer.on(F("/list"), HTTP_GET, handleFileList);
         // load editor
-        webServer.on("/edit", HTTP_GET, []() {
+        webServer.on(F("/edit"), HTTP_GET, []() {
             if(!handleFileRead("/edit.htm")) {
-                webServer.send(404, "text/plain", "FileNotFound");
+                char mimetype[127];
+                sprintf(mimetype, PSTR("text/plain"));
+                webServer.send_P(404, mimetype, PSTR("FileNotFound"));
             }
         });
-        webServer.on("/edit", HTTP_PUT, handleFileCreate);
-        webServer.on("/edit", HTTP_DELETE, handleFileDelete);
+        webServer.on(F("/edit"), HTTP_PUT, handleFileCreate);
+        webServer.on(F("/edit"), HTTP_DELETE, handleFileDelete);
         // first callback is called after the request has ended with all parsed arguments
         // second callback handles file uploads at that location
-        webServer.on("/edit", HTTP_POST, []() { webServer.send(200, "text/plain", ""); }, handleFileUpload);
+        webServer.on(F("/edit"), HTTP_POST, []() { webServer.send(200, "text/plain", ""); }, handleFileUpload);
         // get heap status, analog input value and all GPIO statuses in one json call
-        webServer.on("/all", HTTP_GET, []() {
-            String json('{');
-            json += "\"heap\":" + String(ESP.getFreeHeap());
-            json += ", \"analog\":" + String(analogRead(A0));
-            json += "}";
-            webServer.send(200, "text/json", json);
+        /*webServer.on(F("/all"), HTTP_GET, []() {
+            String json;
+            json.reserve(127);
+            json += F("{\"heap\":");
+            json += String(ESP.getFreeHeap());
+            json += F(", \"analog\":");
+            json += String(analogRead(A0));
+            json += F("}");
+
+            char mimetype[127];
+            sprintf(mimetype, PSTR("text/json"));
+            webServer.send(200, mimetype, json);
             json.clear();
-        });
+        });*/
 
         webServer.on(F("/"), webHandleRoot);
         webServer.on(F("/about"), webHandleAbout);
@@ -1219,7 +1226,10 @@ bool httpGetConfig(const JsonObject & settings)
 
 bool httpSetConfig(const JsonObject & settings)
 {
+    configOutput(settings);
     bool changed = false;
+
+    changed |= configSet(httpPort, settings[FPSTR(F_CONFIG_PORT)], PSTR("httpPort"));
 
     if(!settings[FPSTR(F_CONFIG_USER)].isNull()) {
         changed |= strcmp(httpUser, settings[FPSTR(F_CONFIG_USER)]) != 0;
@@ -1231,15 +1241,5 @@ bool httpSetConfig(const JsonObject & settings)
         strncpy(httpPassword, settings[FPSTR(F_CONFIG_PASS)], sizeof(httpPassword));
     }
 
-    if(!settings[FPSTR(F_CONFIG_PORT)].isNull()) {
-        if(httpPort != settings[FPSTR(F_CONFIG_PORT)].as<uint8_t>()) {
-            debugPrintln(F("httpPort set"));
-        }
-        changed |= httpPort != settings[FPSTR(F_CONFIG_PORT)].as<uint8_t>();
-
-        httpPort = settings[FPSTR(F_CONFIG_PORT)].as<uint8_t>();
-    }
-
-    configOutput(settings);
     return changed;
 }

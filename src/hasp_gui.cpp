@@ -50,15 +50,16 @@ WebServer * webClient; // for snatshot
 #define TFT_ROTATION 0
 #endif
 
-bool guiBacklightIsOn  = true;
-int8_t guiDimLevel     = -1;
-int8_t guiBacklightPin = TFT_BCKL;
-bool guiAutoCalibrate  = true;
-uint16_t guiSleepTime1 = 60;  // 1 second resolution
-uint16_t guiSleepTime2 = 120; // 1 second resolution
-uint8_t guiSleeping    = 0;   // 0 = off, 1 = short, 2 = long
-uint8_t guiTickPeriod  = 50;
-uint8_t guiRotation    = TFT_ROTATION;
+static bool guiShowPointer    = false;
+static bool guiBacklightIsOn  = true;
+static int8_t guiDimLevel     = -1;
+static int8_t guiBacklightPin = TFT_BCKL;
+static bool guiAutoCalibrate  = true;
+static uint16_t guiSleepTime1 = 60;  // 1 second resolution
+static uint16_t guiSleepTime2 = 120; // 1 second resolution
+static uint8_t guiSleeping    = 0;   // 0 = off, 1 = short, 2 = long
+static uint8_t guiTickPeriod  = 50;
+static uint8_t guiRotation    = TFT_ROTATION;
 static Ticker tick;  /* timer for interrupt handler */
 static TFT_eSPI tft; // = TFT_eSPI(); /* TFT instance */
 static uint16_t calData[5] = {0, 65535, 0, 65535, 0};
@@ -344,9 +345,11 @@ void guiSetup(TFT_eSPI & screen, JsonObject settings)
     indev_drv.read_cb        = my_touchpad_read;
     lv_indev_t * mouse_indev = lv_indev_drv_register(&indev_drv);
 
-    lv_obj_t * label = lv_label_create(lv_layer_sys(), NULL);
-    lv_label_set_text(label, "<");
-    lv_indev_set_cursor(mouse_indev, label); // connect the object to the driver
+    if(guiShowPointer) {
+        lv_obj_t * label = lv_label_create(lv_layer_sys(), NULL);
+        lv_label_set_text(label, "<");
+        lv_indev_set_cursor(mouse_indev, label); // connect the object to the driver
+    }
 
     /*
         lv_obj_t * cursor = lv_obj_create(lv_layer_sys(), NULL); // show on every page
@@ -460,13 +463,14 @@ bool guiGetConfig(const JsonObject & settings)
     settings[FPSTR(F_GUI_IDLEPERIOD2)]  = guiSleepTime2;
     settings[FPSTR(F_GUI_BACKLIGHTPIN)] = guiBacklightPin;
     settings[FPSTR(F_GUI_ROTATION)]     = guiRotation;
+    settings[FPSTR(F_GUI_POINTER)]      = guiShowPointer;
 
     JsonArray array = settings[FPSTR(F_GUI_CALIBRATION)].to<JsonArray>();
-    for(int i = 0; i < 5; i++) {
+    for(uint8_t i = 0; i < 5; i++) {
         array.add(calData[i]);
     }
 
-    size_t size = serializeJson(settings, Serial);
+    serializeJson(settings, Serial);
     Serial.println();
 
     return true;
@@ -476,51 +480,22 @@ bool guiGetConfig(const JsonObject & settings)
 
 bool guiSetConfig(const JsonObject & settings)
 {
+    configOutput(settings);
     bool changed = false;
 
-    if(!settings[FPSTR(F_GUI_TICKPERIOD)].isNull()) {
-        if(guiTickPeriod != settings[FPSTR(F_GUI_TICKPERIOD)].as<uint8_t>()) {
-            debugPrintln(F("guiTickPeriod set"));
+    changed |= configSet(guiTickPeriod, settings[FPSTR(F_GUI_TICKPERIOD)], PSTR("guiTickPeriod"));
+    changed |= configSet(guiBacklightPin, settings[FPSTR(F_GUI_BACKLIGHTPIN)], PSTR("guiBacklightPin"));
+    changed |= configSet(guiSleepTime1, settings[FPSTR(F_GUI_IDLEPERIOD1)], PSTR("guiSleepTime1"));
+    changed |= configSet(guiSleepTime2, settings[FPSTR(F_GUI_IDLEPERIOD2)], PSTR("guiSleepTime2"));
+    changed |= configSet(guiRotation, settings[FPSTR(F_GUI_ROTATION)], PSTR("guiRotation"));
+
+    if(!settings[FPSTR(F_GUI_POINTER)].isNull()) {
+        if(guiShowPointer != settings[FPSTR(F_GUI_POINTER)].as<bool>()) {
+            debugPrintln(F("guiShowPointer set"));
         }
-        changed |= guiTickPeriod != settings[FPSTR(F_GUI_TICKPERIOD)].as<uint8_t>();
+        changed |= guiShowPointer != settings[FPSTR(F_GUI_POINTER)].as<bool>();
 
-        guiTickPeriod = settings[FPSTR(F_GUI_TICKPERIOD)].as<uint8_t>();
-    }
-
-    if(!settings[FPSTR(F_GUI_BACKLIGHTPIN)].isNull()) {
-        if(guiBacklightPin != settings[FPSTR(F_GUI_BACKLIGHTPIN)].as<int8_t>()) {
-            debugPrintln(F("guiBacklightPin set"));
-        }
-        changed |= guiBacklightPin != settings[FPSTR(F_GUI_BACKLIGHTPIN)].as<int8_t>();
-
-        guiBacklightPin = settings[FPSTR(F_GUI_BACKLIGHTPIN)].as<int8_t>();
-    }
-
-    if(!settings[FPSTR(F_GUI_IDLEPERIOD1)].isNull()) {
-        if(guiSleepTime1 != settings[FPSTR(F_GUI_IDLEPERIOD1)].as<uint8_t>()) {
-            debugPrintln(F("guiSleepTime1 set"));
-        }
-        changed |= guiSleepTime1 != settings[FPSTR(F_GUI_IDLEPERIOD1)].as<uint8_t>();
-
-        guiSleepTime1 = settings[FPSTR(F_GUI_IDLEPERIOD1)].as<uint8_t>();
-    }
-
-    if(!settings[FPSTR(F_GUI_IDLEPERIOD2)].isNull()) {
-        if(guiSleepTime2 != settings[FPSTR(F_GUI_IDLEPERIOD2)].as<uint8_t>()) {
-            debugPrintln(F("guiSleepTime2 set"));
-        }
-        changed |= guiSleepTime2 != settings[FPSTR(F_GUI_IDLEPERIOD2)].as<uint8_t>();
-
-        guiSleepTime2 = settings[FPSTR(F_GUI_IDLEPERIOD2)].as<uint8_t>();
-    }
-
-    if(!settings[FPSTR(F_GUI_ROTATION)].isNull()) {
-        if(guiRotation != settings[FPSTR(F_GUI_ROTATION)].as<uint8_t>()) {
-            debugPrintln(F("guiRotation set"));
-        }
-        changed |= guiRotation != settings[FPSTR(F_GUI_ROTATION)].as<uint8_t>();
-
-        guiRotation = settings[FPSTR(F_GUI_ROTATION)].as<uint8_t>();
+        guiShowPointer = settings[FPSTR(F_GUI_POINTER)].as<bool>();
     }
 
     if(!settings[FPSTR(F_GUI_CALIBRATION)].isNull()) {
@@ -541,9 +516,6 @@ bool guiSetConfig(const JsonObject & settings)
 
         changed |= status;
     }
-
-    size_t size = serializeJson(settings, Serial);
-    Serial.println();
 
     return changed;
 }
@@ -646,9 +618,11 @@ void guiSendBmpHeader()
 void guiTakeScreenshot(const char * pFileName)
 {
     pFileOut = SPIFFS.open(pFileName, "w");
+    char buffer[127];
 
     if(pFileOut == NULL) {
-        printf("[Display] error: %s cannot be opened", pFileName);
+        snprintf_P(buffer, sizeof(buffer), PSTR("[Display] error: %s cannot be opened"), pFileName);
+        debugPrintln(buffer);
         return;
     }
 
@@ -660,7 +634,8 @@ void guiTakeScreenshot(const char * pFileName)
     guiSnapshot = 0;
 
     pFileOut.close();
-    printf("[Display] data flushed to %s", pFileName);
+    snprintf_P(buffer, sizeof(buffer), PSTR("[Display] data flushed to %s"), pFileName);
+    debugPrintln(buffer);
 }
 
 #if defined(ARDUINO_ARCH_ESP8266)
