@@ -38,7 +38,7 @@ void dispatchOutput(int output, bool state)
 }
 
 // objectattribute=value
-void IRAM_ATTR dispatchAttribute(String & strTopic, const char * payload)
+void dispatchAttribute(String & strTopic, const char * payload)
 {
     if(strTopic.startsWith("p[")) {
         String strPageId((char *)0);
@@ -62,6 +62,9 @@ void IRAM_ATTR dispatchAttribute(String & strTopic, const char * payload)
                 haspProcessAttribute((uint8_t)pageid, (uint8_t)objid, strAttr, payload);
             } // valid page
         }
+    } else if(strTopic.startsWith(F("output"))) {
+        uint8_t state = strcmp_P(payload, PSTR("ON")) == 0 ? HIGH : LOW;
+        digitalWrite(D1, state);
 
     } else if(strTopic == F("page")) {
         dispatchPage(payload);
@@ -71,6 +74,9 @@ void IRAM_ATTR dispatchAttribute(String & strTopic, const char * payload)
 
     } else if(strTopic == F("light")) {
         dispatchBacklight(payload);
+
+    } else if(strTopic == F("clearpage")) {
+        dispatchClearPage(payload);
 
     } else if(strTopic.length() == 7 && strTopic.startsWith(F("output"))) {
         String strTemp((char *)0);
@@ -88,6 +94,17 @@ void dispatchPage(String strPageid)
         mqttSendState("page", strPayload.c_str());
     } else {
         if(strPageid.toInt() <= 250) haspSetPage(strPageid.toInt());
+    }
+}
+
+void dispatchClearPage(String strPageid)
+{
+    debugPrintln("Clear Page: " + strPageid);
+
+    if(strPageid.length() == 0) {
+        haspClearPage(haspGetPage());
+    } else {
+        haspClearPage(strPageid.toInt());
     }
 }
 
