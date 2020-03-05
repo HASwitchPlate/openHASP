@@ -12,6 +12,7 @@ void dispatchJson(char * strPayload);
 void dispatchJsonl(char * strPayload);
 
 void dispatchPage(String strPageid);
+void dispatchClearPage(String strPageid);
 void dispatchDim(String strDimLevel);
 void dispatchBacklight(String strPayload);
 
