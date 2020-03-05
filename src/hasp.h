@@ -75,6 +75,7 @@ void haspFirstSetup(void);
 
 void haspSetPage(uint16_t id);
 uint16_t haspGetPage();
+void haspClearPage(uint16_t pageid);
 void haspSetNodename(String name);
 String haspGetNodename();
 String haspGetVersion();
