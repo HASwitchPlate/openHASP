@@ -75,11 +75,11 @@ static void basic_init(void)
         lv_style_btn_pr.body.main_color = lv_color_hsv_to_rgb(_hue, 80, 70);
         lv_style_btn_pr.body.grad_color = lv_color_hsv_to_rgb(_hue, 10, 80);
 
-        lv_style_btn_tgl_rel.body.main_color = lv_color_hsv_to_rgb(_hue, 10, 70);
-        lv_style_btn_tgl_rel.body.grad_color = lv_color_hsv_to_rgb(_hue, 80, 80);
+        lv_style_btn_tgl_rel.body.main_color = lv_color_hsv_to_rgb(_hue, 80, 70);
+        lv_style_btn_tgl_rel.body.grad_color = lv_color_hsv_to_rgb(_hue, 10, 80);
 
-        lv_style_btn_tgl_pr.body.main_color = lv_color_hsv_to_rgb(_hue, 80, 70);
-        lv_style_btn_tgl_pr.body.grad_color = lv_color_hsv_to_rgb(_hue, 10, 80);
+        lv_style_btn_tgl_pr.body.main_color = lv_color_hsv_to_rgb(_hue, 10, 70);
+        lv_style_btn_tgl_pr.body.grad_color = lv_color_hsv_to_rgb(_hue, 80, 80);
     }
 
     lv_style_copy(&def, &lv_style_pretty); /*Initialize the default style*/
