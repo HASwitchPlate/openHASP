@@ -1,6 +1,7 @@
 #include "hasp_conf.h"
 #include <Arduino.h>
 #include "ArduinoJson.h"
+#include "lvgl.h"
 
 #if defined(ARDUINO_ARCH_ESP8266)
 #include <ESP8266WiFi.h>
@@ -91,6 +92,17 @@ void serialPrintln(const char * debugText)
     debugTimeText += halGetHeapFragmentation();
     debugTimeText += F(" ");
 
+#if LV_MEM_CUSTOM == 0
+    /*lv_mem_monitor_t mem_mon;
+    lv_mem_monitor(&mem_mon);
+    debugTimeText += mem_mon.used_pct;
+    debugTimeText += F("% ");
+    debugTimeText += mem_mon.free_biggest_size;
+    debugTimeText += F("b/");
+    debugTimeText += mem_mon.free_size;
+    debugTimeText += F("b ");*/
+#endif
+
     Serial.print(debugTimeText);
     Serial.println(debugText);
 }
@@ -135,18 +147,18 @@ bool debugGetConfig(const JsonObject & settings)
 
 bool debugSetConfigLog(const JsonObject & settings, bool silent)
 {
+    if(!silent) configOutput(settings);
     bool changed = false;
 
     if(!settings[FPSTR(F_DEBUG_TELEPERIOD)].isNull()) {
-        if(debugTelePeriod != settings[FPSTR(F_DEBUG_TELEPERIOD)].as<uint16_t>()) {
+        uint16_t period = settings[FPSTR(F_DEBUG_TELEPERIOD)].as<uint16_t>();
+        if(debugTelePeriod != period) {
             if(!silent) debugPrintln(F("debugTelePeriod set"));
+            debugTelePeriod = period;
+            changed         = true;
         }
-        changed |= debugTelePeriod != settings[FPSTR(F_DEBUG_TELEPERIOD)].as<uint16_t>();
-
-        debugTelePeriod = settings[FPSTR(F_DEBUG_TELEPERIOD)].as<uint16_t>();
     }
 
-    if(!silent) configOutput(settings);
     return changed;
 }
 
