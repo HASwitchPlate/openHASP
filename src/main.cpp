@@ -47,6 +47,9 @@ bool isConnected;
 
 void setup()
 {
+    pinMode(D1, OUTPUT);
+    pinMode(D2, INPUT_PULLUP);
+
     /* Init Storage */
 #if HASP_USE_EEPROM
     eepromSetup();
