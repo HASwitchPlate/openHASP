@@ -1432,7 +1432,12 @@ void haspNewObject(const JsonObject & config)
     uint8_t styleid = config[F("styleid")].as<uint8_t>();
 
     /* Define Objects*/
-    lv_obj_t * obj;
+    lv_obj_t * obj = FindObjFromId(parent_obj, id);
+    if(obj) {
+        warningPrintln(F("HASP: %sObject ID already exists!"));
+        return;
+    }
+
     lv_obj_t * label;
     switch(objid) {
         /* ----- Basic Objects ------ */
@@ -1613,7 +1618,7 @@ void haspNewObject(const JsonObject & config)
     char msg[127];
     lv_obj_type_t list;
     lv_obj_get_type(obj, &list);
-    sprintf_P(msg, PSTR("HASP:     * Created %s object p[%u].b[%u]"), list.type[0], pageid, temp);
+    sprintf_P(msg, PSTR("HASP:     * p[%u].b[%u] = %s"), pageid, temp, list.type[0]);
     debugPrintln(msg);
 
     /* Double-check */

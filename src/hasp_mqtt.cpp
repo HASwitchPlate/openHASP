@@ -238,8 +238,6 @@ void mqttCallback(char * topic, byte * payload, unsigned int length)
             dispatchJson((char *)payload); // Send to nextionParseJson()
         } else if(strTopic == F("jsonl")) {
             dispatchJsonl((char *)payload);
-        } else if(strTopic == F("setupap")) {
-            haspDisplayAP("HASP-ABC123", "haspadmin");
         } else if(length == 0) {
             dispatchCommand(strTopic.c_str());
         } else { // '[...]/device/command/p[1].b[4].txt' -m '"Lights On"' ==

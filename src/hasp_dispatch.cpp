@@ -64,7 +64,9 @@ void dispatchAttribute(String & strTopic, const char * payload)
         }
     } else if(strTopic.startsWith(F("output"))) {
         uint8_t state = strcmp_P(payload, PSTR("ON")) == 0 ? HIGH : LOW;
+#if defined(ARDUINO_ARCH_ESP8266)
         digitalWrite(D1, state);
+#endif
 
     } else if(strTopic == F("page")) {
         dispatchPage(payload);
@@ -77,6 +79,9 @@ void dispatchAttribute(String & strTopic, const char * payload)
 
     } else if(strTopic == F("clearpage")) {
         dispatchClearPage(payload);
+
+    } else if(strTopic == F("setupap")) {
+        haspDisplayAP(String(F("HASP-ABC123")).c_str(), String(F("haspadmin")).c_str());
 
     } else if(strTopic.length() == 7 && strTopic.startsWith(F("output"))) {
         String strTemp((char *)0);
