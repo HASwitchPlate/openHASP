@@ -1,6 +1,7 @@
 //#include "webServer.h"
 #include <Arduino.h>
 #include "ArduinoJson.h"
+#include "lvgl.h"
 
 #include "hasp_conf.h"
 
@@ -298,28 +299,33 @@ void webHandleInfo()
     String httpMessage((char *)0);
     httpMessage.reserve(1500);
 
-    httpMessage += F("<hr><b>MQTT Status: </b>");
-    if(mqttIsConnected()) { // Check MQTT connection
-        httpMessage += String(F("Connected"));
-    } else {
-        httpMessage += String(F("<font color='red'><b>Disconnected</b></font>, return code: "));
-        //     +String(mqttClient.returnCode());
-    }
-    httpMessage += String(F("<br/><b>MQTT ClientID: </b>"));
-    //   +String(mqttClientId);
-    httpMessage += F("<br/><b>HASP Version: </b>");
+    /* HASP Stats */
+    httpMessage += F("<hr><b>HASP Version: </b>");
     httpMessage += String(haspGetVersion());
     httpMessage += F("<br/><b>Uptime: </b>");
     httpMessage += String(long(millis() / 1000));
+    httpMessage += F("<br/><b>Free Memory: </b>");
+    httpMessage += spiffsFormatBytes(ESP.getFreeHeap());
+    httpMessage += F("<br/><b>Memory Fragmentation: </b>");
+    httpMessage += String(halGetHeapFragmentation());
+
+    /* LVGL Stats */
+    lv_mem_monitor_t mem_mon;
+    lv_mem_monitor(&mem_mon);
+    httpMessage += F("</p><p><b>LVGL Memory: </b>");
+    httpMessage += spiffsFormatBytes(mem_mon.total_size);
+    httpMessage += F("<br/><b>LVGL Free: </b>");
+    httpMessage += spiffsFormatBytes(mem_mon.free_size);
+    httpMessage += F("<br/><b>LVGL Fragmentation: </b>");
+    httpMessage += mem_mon.frag_pct;
 
     // httpMessage += String(F("<br/><b>LCD Model: </b>")) + String(LV_HASP_HOR_RES_MAX) + " x " +
     // String(LV_HASP_VER_RES_MAX); httpMessage += String(F("<br/><b>LCD Version: </b>")) + String(lcdVersion);
     httpMessage += F("</p/><p><b>LCD Active Page: </b>");
     httpMessage += String(haspGetPage());
-    httpMessage += F("<br/><b>CPU Frequency: </b>");
-    httpMessage += String(ESP.getCpuFreqMHz());
 
-    httpMessage += F("MHz</p/><p><b>SSID: </b>");
+    /* Wifi Stats */
+    httpMessage += F("</p/><p><b>SSID: </b>");
     httpMessage += String(WiFi.SSID());
     httpMessage += F("</br><b>Signal Strength: </b>");
     httpMessage += String(WiFi.RSSI());
@@ -329,26 +335,35 @@ void webHandleInfo()
     httpMessage += String(WiFi.gatewayIP().toString());
     httpMessage += F("</br><b>DNS Server: </b>");
     httpMessage += String(WiFi.dnsIP().toString());
-    httpMessage += F("</br><b>MAC Aress: </b>");
+    httpMessage += F("</br><b>MAC Address: </b>");
     httpMessage += String(WiFi.macAddress());
 
+    /* Mqtt Stats */
+    httpMessage += F("</p/><p><b>MQTT Status: </b>");
+    if(mqttIsConnected()) { // Check MQTT connection
+        httpMessage += String(F("Connected"));
+    } else {
+        httpMessage += String(F("<font color='red'><b>Disconnected</b></font>, return code: "));
+        //     +String(mqttClient.returnCode());
+    }
+    httpMessage += String(F("<br/><b>MQTT ClientID: </b>"));
+    //   +String(mqttClientId);
+
+    /* ESP Stats */
     httpMessage += F("</p/><p><b>ESP Chip Id: </b>");
 #if defined(ARDUINO_ARCH_ESP32)
     httpMessage += String(ESP.getChipRevision());
 #else
     httpMessage += String(ESP.getChipId());
 #endif
-    httpMessage += F("<br/><b>Flash Chip Size: </b>");
+    httpMessage += F("<br/><b>CPU Frequency: </b>");
+    httpMessage += String(ESP.getCpuFreqMHz());
+    httpMessage += F("MHz<br/><b>Flash Chip Size: </b>");
     httpMessage += spiffsFormatBytes(ESP.getFlashChipSize());
     httpMessage += F("</br><b>Program Size: </b>");
     httpMessage += spiffsFormatBytes(ESP.getSketchSize());
-    httpMessage += F(" bytes<br/><b>Free Program Space: </b>");
+    httpMessage += F("<br/><b>Free Program Space: </b>");
     httpMessage += spiffsFormatBytes(ESP.getFreeSketchSpace());
-    httpMessage += F(" bytes<br/><b>Free Memory: </b>");
-    httpMessage += spiffsFormatBytes(ESP.getFreeHeap());
-
-    httpMessage += F("<br/><b>Memory Fragmentation: </b>");
-    httpMessage += String(halGetHeapFragmentation());
 
 #if defined(ARDUINO_ARCH_ESP32)
     httpMessage += F("<br/><b>ESP SDK version: </b>");
