@@ -16,6 +16,10 @@
 #include "hasp_config.h"
 #include "hasp_dispatch.h"
 
+#if HASP_USE_TELNET != 0
+#include "hasp_telnet.h"
+#endif
+
 #ifdef USE_CONFIG_OVERRIDE
 #include "user_config_override.h"
 #endif
@@ -105,6 +109,11 @@ void serialPrintln(const char * debugText)
 
     Serial.print(debugTimeText);
     Serial.println(debugText);
+
+#if HASP_USE_TELNET != 0
+    telnetPrint(debugTimeText.c_str());
+    telnetPrintln(debugText);
+#endif
 }
 
 void serialPrintln(String & debugText)

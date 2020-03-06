@@ -11,7 +11,7 @@
 #define HASP_USE_HTTP 1
 #define HASP_USE_MDNS 0
 #define HASP_USE_SYSLOG 0
-#define HASP_USE_TELNET 0
+#define HASP_USE_TELNET 1
 
 #define HASP_USE_SPIFFS 1
 #define HASP_USE_EEPROM 0

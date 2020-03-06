@@ -35,6 +35,10 @@
 #include "hasp_http.h"
 #endif
 
+#if HASP_USE_TELNET
+#include "hasp_telnet.h"
+#endif
+
 #if HASP_USE_MDNS
 #include "hasp_mdns.h"
 #endif
@@ -47,8 +51,10 @@ bool isConnected;
 
 void setup()
 {
+#if defined(ARDUINO_ARCH_ESP8266)
     pinMode(D1, OUTPUT);
     pinMode(D2, INPUT_PULLUP);
+#endif
 
     /* Init Storage */
 #if HASP_USE_EEPROM
@@ -82,6 +88,10 @@ void setup()
 
 #if HASP_USE_MQTT
     mqttSetup(settings[F("mqtt")]);
+#endif
+
+#if HASP_USE_TELNET
+    telnetSetup(settings[F("telnet")]);
 #endif
 
 #if HASP_USE_MDNS
@@ -130,6 +140,10 @@ void loop()
 
 #if HASP_USE_HTTP
     httpLoop(isConnected);
+#endif
+
+#if HASP_USE_TELNET
+    telnetLoop(isConnected);
 #endif
 
 #if HASP_USE_MDNS
