@@ -283,16 +283,18 @@ void guiSetup(TFT_eSPI & screen, JsonObject settings)
 
 #if defined(ARDUINO_ARCH_ESP32)
     /* allocate on iram (or psram ?) */
-    buffer_size                      = 16 * 1024u; // 32 KBytes
-    static lv_color_t * guiVdbBuffer = (lv_color_t *)malloc(sizeof(lv_color_t) * buffer_size);
+    buffer_size                       = 16 * 1024u; // 32 KBytes
+    static lv_color_t * guiVdbBuffer1 = (lv_color_t *)malloc(sizeof(lv_color_t) * buffer_size);
+    static lv_color_t * guiVdbBuffer2 = (lv_color_t *)malloc(sizeof(lv_color_t) * buffer_size);
     static lv_disp_buf_t disp_buf;
-    lv_disp_buf_init(&disp_buf, guiVdbBuffer, NULL, buffer_size);
+    lv_disp_buf_init(&disp_buf, guiVdbBuffer1, guiVdbBuffer2, buffer_size);
 #else
     /* allocate on heap */
-    static lv_color_t guiVdbBuffer[3 * 1024u]; // 6 KBytes
-    buffer_size = sizeof(guiVdbBuffer) / sizeof(guiVdbBuffer[0]);
+    static lv_color_t guiVdbBuffer1[3 * 1024u]; // 6 KBytes
+    // static lv_color_t guiVdbBuffer2[3 * 1024u]; // 6 KBytes
+    buffer_size = sizeof(guiVdbBuffer1) / sizeof(guiVdbBuffer1[0]);
     static lv_disp_buf_t disp_buf;
-    lv_disp_buf_init(&disp_buf, guiVdbBuffer, NULL, buffer_size);
+    lv_disp_buf_init(&disp_buf, guiVdbBuffer1, NULL, buffer_size);
 #endif
 
     char buffer[127];
