@@ -135,20 +135,21 @@ void wifiSetup(JsonObject settings)
     if(strlen(wifiSsid) == 0) {
         String apSsdid = F("HASP-");
         apSsdid += wifiGetMacAddress(3, "");
+        snprintf_P(buffer, sizeof(buffer), PSTR("haspadmin"));
 
         WiFi.mode(WIFI_AP);
-        WiFi.softAP(apSsdid.c_str(), "haspadmin");
-        IPAddress IP = WiFi.softAPIP();
+        WiFi.softAP(apSsdid.c_str(), buffer);
+        haspDisplayAP(apSsdid.c_str(), buffer);
 
         /* Setup the DNS server redirecting all the domains to the apIP */
         // dnsServer.setErrorReplyCode(DNSReplyCode::NoError);
         // dnsServer.start(DNS_PORT, "*", apIP);
 
-        sprintf_P(buffer, PSTR("WIFI: Setting up temporary Access Point: %s"), apSsdid.c_str());
+        IPAddress IP = WiFi.softAPIP();
+        sprintf_P(buffer, PSTR("WIFI: Temporary Access Point %s password: %s"), apSsdid.c_str(), PSTR("haspadmin"));
         debugPrintln(buffer);
         sprintf_P(buffer, PSTR("WIFI: AP IP address : %s"), IP.toString().c_str());
         debugPrintln(buffer);
-        haspDisplayAP(apSsdid.c_str(), "haspadmin");
         httpReconnect();
     } else {
 
@@ -225,7 +226,8 @@ bool wifiSetConfig(const JsonObject & settings)
         strncpy(wifiSsid, settings[FPSTR(F_CONFIG_SSID)], sizeof(wifiSsid));
     }
 
-    if(!settings[FPSTR(F_CONFIG_PASS)].isNull()) {
+    if(!settings[FPSTR(F_CONFIG_PASS)].isNull() &&
+       settings[FPSTR(F_CONFIG_PASS)].as<String>() != String(FPSTR("********"))) {
         changed |= strcmp(wifiPassword, settings[FPSTR(F_CONFIG_PASS)]) != 0;
         strncpy(wifiPassword, settings[FPSTR(F_CONFIG_PASS)], sizeof(wifiPassword));
     }
