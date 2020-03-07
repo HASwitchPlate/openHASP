@@ -6,6 +6,7 @@
 #include "hasp_wifi.h"
 #include "hasp_mqtt.h"
 #include "hasp_http.h"
+#include "hasp_mdns.h"
 #include "hasp_log.h"
 #include "hasp_debug.h"
 #include "hasp_config.h"
@@ -69,6 +70,7 @@ void wifiConnected(IPAddress ipaddress)
         mqttReconnect();
         haspReconnect();
         httpReconnect();
+        mdnsStart();
     }
 }
 
