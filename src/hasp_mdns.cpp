@@ -5,36 +5,52 @@
 #include <ESPmDNS.h>
 #else
 #include <ESP8266mDNS.h>
-MDNSResponder::hMDNSService hMDNSService;
+// MDNSResponder::hMDNSService hMDNSService;
 #endif
 
+#include "hasp_conf.h"
+
+#include "hasp_log.h"
 #include "hasp_mdns.h"
+#include "hasp_mqtt.h"
+#include "hasp_config.h"
 
-const char F_CONFIG_ENABLE[] PROGMEM = "enable";
-
-bool mdnsEnabled        = true;
-String hasp2Node        = "plate01";
+uint8_t mdnsEnabled     = true;
 const float haspVersion = 0.38;
 
 void mdnsSetup(const JsonObject & settings)
 {
+    mqttSetConfig(settings);
+}
+
+void mdnsStart()
+{
     if(mdnsEnabled) {
+        String hasp2Node = mqttGetNodename();
         // Setup mDNS service discovery if enabled
-        //     MDNS.addService(String(hasp2Node), String("tcp"), 80);
         /*if(debugTelnetEnabled) {
-            MDNS.addService(haspNode, "telnet", "tcp", 23);
-        }*/
-        //      MDNS.addServiceTxt(hasp2Node, "tcp", "app_name", "HASwitchPlate");
-        //      MDNS.addServiceTxt(hasp2Node, "tcp", "app_version", String(haspVersion).c_str());
-        MDNS.begin(hasp2Node.c_str());
+        }
+        return;
+        char buffer[127];
+        snprintf_P(buffer, sizeof(buffer), PSTR("%u.%u.%u"), HASP_VERSION_MAJOR, HASP_VERSION_MINOR,
+                   HASP_VERSION_REVISION);
+        MDNS.addServiceTxt(hasp2Node, "tcp", "app_version", buffer); */
+        if(MDNS.begin(hasp2Node.c_str())) {
+            debugPrintln(F("MDNS: Responder started"));
+            MDNS.addService(F("http"), F("tcp"), 80);
+            MDNS.addService(F("telnet"), F("tcp"), 23);
+            MDNS.addServiceTxt(hasp2Node, F("tcp"), F("app_name"), F("HASP-lvgl"));
+        } else {
+            errorPrintln(String(F("MDNS: %sResponder failed to start ")) + hasp2Node);
+        };
     }
 }
 
 void mdnsLoop(bool wifiIsConnected)
 {
-    // if(mdnsEnabled) {
-    //     MDNS();
-    // }s
+    if(mdnsEnabled) {
+        MDNS.update();
+    }
 }
 
 void mdnsStop()
@@ -44,12 +60,20 @@ void mdnsStop()
 
 bool mdnsGetConfig(const JsonObject & settings)
 {
-    if(!settings.isNull() && settings[F_CONFIG_ENABLE] == mdnsEnabled) return false;
+    settings[FPSTR(F_CONFIG_ENABLE)] = mdnsEnabled;
 
-    settings[F_CONFIG_ENABLE] = mdnsEnabled;
-
-    serializeJson(settings, Serial);
-    Serial.println();
-
+    configOutput(settings);
     return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool mdnsSetConfig(const JsonObject & settings)
+{
+    configOutput(settings);
+    bool changed = false;
+
+    changed |= configSet(mdnsEnabled, settings[FPSTR(F_CONFIG_ENABLE)], PSTR("mdnsEnabled"));
+
+    return changed;
 }

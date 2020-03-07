@@ -5,7 +5,10 @@
 
 void mdnsSetup(const JsonObject & settings);
 void mdnsLoop(bool wifiIsConnected);
-void mdnsStop();
+void mdnsStart(void);
+void mdnsStop(void);
+
 bool mdnsGetConfig(const JsonObject & settings);
+bool mdnsSetConfig(const JsonObject & settings);
 
 #endif
