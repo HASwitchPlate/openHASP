@@ -17,6 +17,7 @@
 // #include "hasp_tft.h"
 #include "hasp_ota.h"
 #include "hasp_spiffs.h"
+#include "hasp_telnet.h"
 #include "hasp.h"
 
 void confDebugSet(const char * name)
@@ -139,15 +140,33 @@ void configWriteConfig()
     debugPrintln(String(F("CONF: Config LOADED first ")) + configFile);
 
     bool changed = true;
+
+#if HASP_USE_WIFI
+    changed |= wifiGetConfig(settings[F("wifi")].to<JsonObject>());
+
+#if HASP_USE_MQTT
+    changed |= mqttGetConfig(settings[F("mqtt")].to<JsonObject>());
+#endif
+
+#if HASP_USE_TELNET
+    changed |= telnetGetConfig(settings[F("telnet")].to<JsonObject>());
+#endif
+
+#if HASP_USE_MDNS
+    changed |= mdnsGetConfig(settings[F("mdns")].to<JsonObject>());
+#endif
+
+#if HASP_USE_HTTP
+    changed |= httpGetConfig(settings[F("http")].to<JsonObject>());
+#endif
+
+#endif
+
     changed |= debugGetConfig(settings[F("debug")].to<JsonObject>());
     changed |= guiGetConfig(settings[F("gui")].to<JsonObject>());
     changed |= haspGetConfig(settings[F("hasp")].to<JsonObject>());
-    changed |= httpGetConfig(settings[F("http")].to<JsonObject>());
-    // changed |= mdnsGetConfig(settings[F("mdns")].to<JsonObject>());
-    changed |= mqttGetConfig(settings[F("mqtt")].to<JsonObject>());
     // changed |= otaGetConfig(settings[F("ota")].to<JsonObject>());
     // changed |= tftGetConfig(settings[F("tft")].to<JsonObject>());
-    changed |= wifiGetConfig(settings[F("wifi")].to<JsonObject>());
 
     if(changed) {
         File file = SPIFFS.open(configFile, "w");
