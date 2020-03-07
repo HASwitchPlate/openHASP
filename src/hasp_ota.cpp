@@ -6,7 +6,7 @@
 #include "hasp_debug.h"
 #include "hasp_dispatch.h"
 #include "hasp_ota.h"
-#include "hasp.h"
+#include "hasp_mqtt.h"
 
 #define F_OTA_URL F("otaurl")
 
@@ -22,16 +22,16 @@ void otaSetup(JsonObject settings)
         debugPrintln(buffer);
     }
 
-    ArduinoOTA.setHostname(String(haspGetNodename()).c_str());
+    ArduinoOTA.setHostname(String(mqttGetNodename()).c_str());
     // ArduinoOTA.setPassword(configPassword);
 
     ArduinoOTA.onStart([]() {
         debugPrintln(F("OTA: update start"));
-        haspSendCmd("page 0");
+        dispatchCommand("page 0");
         // haspSetAttr("p[0].b[1].txt", "\"ESP OTA Update\"");
     });
     ArduinoOTA.onEnd([]() {
-        haspSendCmd("page 0");
+        dispatchCommand("page 0");
         debugPrintln(F("OTA: update complete"));
         // haspSetAttr("p[0].b[1].txt", "\"ESP OTA Update\\rComplete!\"");
         dispatchCommand(F("reboot"));
@@ -59,7 +59,7 @@ void otaSetup(JsonObject settings)
     debugPrintln(F("OTA: Over the Air firmware update ready"));
 }
 
-void otaLoop()
+void otaLoop(bool wifiIsConnected)
 {
     ArduinoOTA.handle(); // Arduino OTA loop
 }

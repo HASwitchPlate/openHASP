@@ -4,6 +4,6 @@
 #include "ArduinoJson.h"
 
 void otaSetup(JsonObject settings);
-void otaLoop(void);
+void otaLoop(bool wifiIsConnected);
 
 #endif
