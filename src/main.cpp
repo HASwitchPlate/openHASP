@@ -9,6 +9,7 @@
 #include "hasp_config.h"
 #include "hasp_tft.h"
 #include "hasp_gui.h"
+#include "hasp_ota.h"
 //#include "hasp_ota.h"
 #include "hasp.h"
 
@@ -106,7 +107,7 @@ void setup()
     buttonSetup();
 #endif
 
-    // otaSetup(settings[F("ota")]);
+    otaSetup(settings[F("ota")]);
 #endif
 }
 
@@ -154,7 +155,7 @@ void loop()
     buttonLoop();
 #endif
 
-    // otaLoop(wifiIsConnected);
+    otaLoop(isConnected);
     debugLoop();
 #endif
 
