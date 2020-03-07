@@ -48,9 +48,11 @@ void mdnsStart()
 
 void mdnsLoop(bool wifiIsConnected)
 {
+#if defined(ARDUINO_ARCH_ESP8266)
     if(mdnsEnabled) {
         MDNS.update();
     }
+#endif
 }
 
 void mdnsStop()
