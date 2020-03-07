@@ -39,6 +39,18 @@ String mqttLightBrightCommandTopic; // MQTT topic for incoming panel backlight d
 String mqttLightBrightStateTopic;   // MQTT topic for outgoing panel backlight dimmer state
 // String mqttMotionStateTopic;        // MQTT topic for outgoing motion sensor state
 
+#ifdef MQTT_NODENAME
+char mqttNodeName[16] = MQTT_NODENAME;
+#else
+char mqttNodeName[16]  = "";
+#endif
+
+#ifdef MQTT_GROUPNAME
+char mqttGroupName[16] = MQTT_GROUPNAME;
+#else
+char mqttGroupName[16] = "";
+#endif
+
 String mqttClientId((char *)0); // Auto-generated MQTT ClientID
 String mqttNodeTopic((char *)0);
 String mqttGroupTopic((char *)0);
@@ -47,34 +59,33 @@ bool mqttEnabled;
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // These defaults may be overwritten with values saved by the web interface
 #ifdef MQTT_HOST
-std::string mqttServer = MQTT_HOST;
+char mqttServer[16] = MQTT_HOST;
 #else
-std::string mqttServer   = "";
+char mqttServer[16]    = "";
 #endif
 #ifdef MQTT_PORT
 uint16_t mqttPort = MQTT_PORT;
 #else
-uint16_t mqttPort        = 1883;
+uint16_t mqttPort      = 1883;
 #endif
 #ifdef MQTT_USER
-std::string mqttUser = MQTT_USER;
+char mqttUser[23] = MQTT_USER;
 #else
-std::string mqttUser     = "";
+char mqttUser[23]      = "";
 #endif
 #ifdef MQTT_PASSW
-std::string mqttPassword = MQTT_PASSW;
+char mqttPassword[32] = MQTT_PASSW;
 #else
-std::string mqttPassword = "";
+char mqttPassword[32]  = "";
 #endif
-std::string mqttGroupName = "plates";
 
 /*
 const String mqttLightSubscription        = "hasp/" + String(haspGetNodename()) + "/light/#";
 const String mqttLightBrightSubscription  = "hasp/" + String(haspGetNodename()) + "/brightness/#";
 */
 
-WiFiClient wifiClient;
-PubSubClient mqttClient(wifiClient);
+WiFiClient mqttWifiClient;
+PubSubClient mqttClient(mqttWifiClient);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Send changed values OUT
@@ -294,20 +305,19 @@ void mqttReconnect()
     mqttClientId += wifiGetMacAddress(3, "");
     WiFi.macAddress();
 
-    snprintf_P(topicBuffer, sizeof(topicBuffer), PSTR("hasp/%s/"), nodeName.c_str());
+    snprintf_P(topicBuffer, sizeof(topicBuffer), PSTR("hasp/%s/"), mqttNodeName);
     mqttNodeTopic = topicBuffer;
-    snprintf_P(topicBuffer, sizeof(topicBuffer), PSTR("hasp/%s/"), mqttGroupName.c_str());
+    snprintf_P(topicBuffer, sizeof(topicBuffer), PSTR("hasp/%s/"), mqttGroupName);
     mqttGroupTopic = topicBuffer;
 
     // haspSetPage(0);
     snprintf_P(topicBuffer, sizeof(topicBuffer), PSTR("MQTT: Attempting connection to broker %s as clientID %s"),
-               mqttServer.c_str(), mqttClientId.c_str());
+               mqttServer, mqttClientId.c_str());
     debugPrintln(topicBuffer);
 
     // Attempt to connect and set LWT and Clean Session
     snprintf_P(topicBuffer, sizeof(topicBuffer), PSTR("%sstatus"), mqttNodeTopic.c_str());
-    if(!mqttClient.connect(mqttClientId.c_str(), mqttUser.c_str(), mqttPassword.c_str(), topicBuffer, 0, false, "OFF",
-                           true)) {
+    if(!mqttClient.connect(mqttClientId.c_str(), mqttUser, mqttPassword, topicBuffer, 0, false, "OFF", true)) {
         // Retry until we give up and restart after connectTimeout seconds
         mqttReconnectCount++;
 
@@ -397,10 +407,10 @@ void mqttSetup(const JsonObject & settings)
 
     mqttSetConfig(settings);
 
-    mqttEnabled = mqttServer != "" && mqttPort > 0;
+    mqttEnabled = strcmp(mqttServer, "") != 0 && mqttPort > 0;
     if(!mqttEnabled) return;
 
-    mqttClient.setServer(mqttServer.c_str(), 1883);
+    mqttClient.setServer(mqttServer, 1883);
     mqttClient.setCallback(mqttCallback);
 }
 
@@ -412,6 +422,11 @@ void mqttLoop(bool wifiIsConnected)
         mqttReconnect();
     else
         mqttClient.loop();
+}
+
+String mqttGetNodename()
+{
+    return mqttNodeName;
 }
 
 bool mqttIsConnected()
@@ -437,11 +452,12 @@ void mqttStop()
 
 bool mqttGetConfig(const JsonObject & settings)
 {
-    settings[FPSTR(F_CONFIG_GROUP)] = String(mqttGroupName.c_str());
-    settings[FPSTR(F_CONFIG_HOST)]  = String(mqttServer.c_str());
+    settings[FPSTR(F_CONFIG_NAME)]  = mqttNodeName;
+    settings[FPSTR(F_CONFIG_GROUP)] = mqttGroupName;
+    settings[FPSTR(F_CONFIG_HOST)]  = mqttServer;
     settings[FPSTR(F_CONFIG_PORT)]  = mqttPort;
-    settings[FPSTR(F_CONFIG_USER)]  = String(mqttUser.c_str());
-    settings[FPSTR(F_CONFIG_PASS)]  = String(mqttPassword.c_str());
+    settings[FPSTR(F_CONFIG_USER)]  = mqttUser;
+    settings[FPSTR(F_CONFIG_PASS)]  = mqttPassword;
 
     configOutput(settings);
     return true;
@@ -456,41 +472,36 @@ bool mqttSetConfig(const JsonObject & settings)
 
     changed |= configSet(mqttPort, settings[FPSTR(F_CONFIG_PORT)], PSTR("mqttPort"));
 
-    if(!settings[FPSTR(F_CONFIG_GROUP)].isNull()) {
-        if(mqttGroupName != settings[FPSTR(F_CONFIG_GROUP)].as<String>().c_str()) {
-            debugPrintln(F("mqttGroupName set"));
-        }
-        changed |= mqttGroupName != settings[FPSTR(F_CONFIG_GROUP)].as<String>().c_str();
+    if(!settings[FPSTR(F_CONFIG_NAME)].isNull()) {
+        changed |= strcmp(mqttNodeName, settings[FPSTR(F_CONFIG_NAME)]) != 0;
+        strncpy(mqttNodeName, settings[FPSTR(F_CONFIG_NAME)], sizeof(mqttNodeName));
+    }
+    // Prefill node name
+    if(strlen(mqttNodeName) == 0) {
+        String mac = wifiGetMacAddress(3, "");
+        mac.toLowerCase();
+        snprintf_P(mqttNodeName, sizeof(mqttNodeName), PSTR("plate_%s"), mac.c_str());
+    }
 
-        mqttGroupName = settings[FPSTR(F_CONFIG_GROUP)].as<String>().c_str();
+    if(!settings[FPSTR(F_CONFIG_GROUP)].isNull()) {
+        changed |= strcmp(mqttGroupName, settings[FPSTR(F_CONFIG_GROUP)]) != 0;
+        strncpy(mqttGroupName, settings[FPSTR(F_CONFIG_GROUP)], sizeof(mqttGroupName));
     }
 
     if(!settings[FPSTR(F_CONFIG_HOST)].isNull()) {
-        if(mqttServer != settings[FPSTR(F_CONFIG_HOST)].as<String>().c_str()) {
-            debugPrintln(F("mqttServer set"));
-        }
-        changed |= mqttServer != settings[FPSTR(F_CONFIG_HOST)].as<String>().c_str();
-
-        mqttServer = settings[FPSTR(F_CONFIG_HOST)].as<String>().c_str();
+        changed |= strcmp(mqttServer, settings[FPSTR(F_CONFIG_HOST)]) != 0;
+        strncpy(mqttServer, settings[FPSTR(F_CONFIG_HOST)], sizeof(mqttServer));
     }
 
     if(!settings[FPSTR(F_CONFIG_USER)].isNull()) {
-        if(mqttUser != settings[FPSTR(F_CONFIG_USER)].as<String>().c_str()) {
-            debugPrintln(F("mqttUser set"));
-        }
-        changed |= mqttUser != settings[FPSTR(F_CONFIG_USER)].as<String>().c_str();
-
-        mqttUser = settings[FPSTR(F_CONFIG_USER)].as<String>().c_str();
+        changed |= strcmp(mqttUser, settings[FPSTR(F_CONFIG_USER)]) != 0;
+        strncpy(mqttUser, settings[FPSTR(F_CONFIG_USER)], sizeof(mqttUser));
     }
 
     if(!settings[FPSTR(F_CONFIG_PASS)].isNull() &&
        settings[FPSTR(F_CONFIG_PASS)].as<String>() != String(FPSTR("********"))) {
-        if(mqttPassword != settings[FPSTR(F_CONFIG_PASS)].as<String>().c_str()) {
-            debugPrintln(F("mqttPassword set"));
-        }
-        changed |= mqttPassword != settings[FPSTR(F_CONFIG_PASS)].as<String>().c_str();
-
-        mqttPassword = settings[FPSTR(F_CONFIG_PASS)].as<String>().c_str();
+        changed |= strcmp(mqttPassword, settings[FPSTR(F_CONFIG_PASS)]) != 0;
+        strncpy(mqttPassword, settings[FPSTR(F_CONFIG_PASS)], sizeof(mqttPassword));
     }
 
     return changed;

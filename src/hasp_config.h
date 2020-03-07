@@ -13,6 +13,7 @@ const char F_CONFIG_PAGES[] PROGMEM     = "pages";
 const char F_CONFIG_ENABLE[] PROGMEM    = "enable";
 const char F_CONFIG_HOST[] PROGMEM      = "host";
 const char F_CONFIG_PORT[] PROGMEM      = "port";
+const char F_CONFIG_NAME[] PROGMEM      = "name";
 const char F_CONFIG_USER[] PROGMEM      = "user";
 const char F_CONFIG_PASS[] PROGMEM      = "pass";
 const char F_CONFIG_SSID[] PROGMEM      = "ssid";

@@ -19,4 +19,6 @@ bool mqttIsConnected(void);
 bool mqttGetConfig(const JsonObject & settings);
 bool mqttSetConfig(const JsonObject & settings);
 
+String mqttGetNodename(void);
+
 #endif
