@@ -908,8 +908,8 @@ void haspFirstSetup(void)
     lv_kb_set_style(kb, LV_KB_STYLE_BTN_REL, &rel_style);
     lv_kb_set_style(kb, LV_KB_STYLE_BTN_PR, &pr_style);
 
-    lv_kb_set_ta(kb, oneline_ta);              /* Focus it on one of the text areas to start */
-    lv_kb_set_cursor_manage(oneline_ta, true); /* Automatically show/hide cursors on text areas */
+    lv_kb_set_ta(kb, oneline_ta);      /* Focus it on one of the text areas to start */
+    lv_kb_set_cursor_manage(kb, true); /* Automatically show/hide cursors on text areas */
 }
 
 /**
@@ -1149,6 +1149,7 @@ void hasp_background(uint16_t pageid, uint16_t imageid)
     if(!thisobj) return;
 
     
+
 
     switch (imageid)
     {
