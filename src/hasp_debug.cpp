@@ -64,9 +64,9 @@ void debugStart()
 
     Serial.flush();
     Serial.println();
-    Serial.printf_P(PSTR("           _____ _____ _____ _____\n          |  |  |  _  |   __|  _  |\n"
-                         "          |     |     |__   |   __|\n          |__|__|__|__|_____|__|\n"
-                         "        Home Automation Switch Plate\n        Open Hardware edition v%u.%u.%u\n\n"),
+    Serial.printf_P(PSTR("           _____ _____ _____ _____\r\n          |  |  |  _  |   __|  _  |\r\n"
+                         "          |     |     |__   |   __|\r\n          |__|__|__|__|_____|__|\r\n"
+                         "        Home Automation Switch Plate\r\n        Open Hardware edition v%u.%u.%u\r\n\r\n"),
                     HASP_VERSION_MAJOR, HASP_VERSION_MINOR, HASP_VERSION_REVISION);
     Serial.flush();
 
@@ -84,7 +84,7 @@ void debugStart()
 void serialPrintln(const char * debugText)
 {
     String debugTimeText((char *)0);
-    debugTimeText.reserve(127);
+    debugTimeText.reserve(128);
 
     debugTimeText = F("[");
     debugTimeText += String(float(millis()) / 1000, 3);
