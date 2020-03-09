@@ -83,7 +83,7 @@ typedef int16_t lv_coord_t;
 #  define LV_MEM_SIZE    (10U * 1024U) // 10kb with telnet, 12kb without telnet
 #endif
 #ifndef LV_MEM_SIZE
-#  define LV_MEM_SIZE    (48 * 1024U)  // 40KB
+#  define LV_MEM_SIZE    (40 * 1024U)  // 40KB
 #endif
 
 /* Complier prefix for a big array declaration */
@@ -132,7 +132,7 @@ typedef int16_t lv_coord_t;
 
 /* Repeated trigger period in long press [ms]
  * Time between `LV_EVENT_LONG_PRESSED_REPEAT */
-#define LV_INDEV_DEF_LONG_PRESS_REP_TIME  100
+#define LV_INDEV_DEF_LONG_PRESS_REP_TIME  250
 
 /*==================
  * Feature usage
@@ -157,7 +157,7 @@ typedef void * lv_group_user_data_t;
 #endif  /*LV_USE_GROUP*/
 
 /* 1: Enable GPU interface*/
-#define LV_USE_GPU              1
+#define LV_USE_GPU              0
 
 /* 1: Enable file system (might be required for images */
 #define LV_USE_FILESYSTEM       0

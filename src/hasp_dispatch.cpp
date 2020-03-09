@@ -12,6 +12,19 @@
 #include "hasp_gui.h"
 #include "hasp.h"
 
+bool isON(const char * payload)
+{
+    return strcmp_P(payload, PSTR("ON")) == 0;
+}
+
+String getOnOff(bool state)
+{
+    String result((char *)0);
+    result.reserve(128);
+    result = state ? F("ON") : F("OFF");
+    return result;
+}
+
 void dispatchSetup()
 {}
 
@@ -63,7 +76,7 @@ void dispatchAttribute(String & strTopic, const char * payload)
             } // valid page
         }
     } else if(strTopic.startsWith(F("output"))) {
-        uint8_t state = strcmp_P(payload, PSTR("ON")) == 0 ? HIGH : LOW;
+        uint8_t state = isON(payload) ? HIGH : LOW;
 #if defined(ARDUINO_ARCH_ESP8266)
         digitalWrite(D1, state);
 #endif
@@ -95,11 +108,11 @@ void dispatchPage(String strPageid)
     debugPrintln("PAGE: " + strPageid);
 
     if(strPageid.length() == 0) {
-        String strPayload = String(haspGetPage());
-        mqttSendState("page", strPayload.c_str());
     } else {
         if(strPageid.toInt() <= 250) haspSetPage(strPageid.toInt());
     }
+    String strPayload = String(haspGetPage());
+    mqttSendState("page", strPayload.c_str());
 }
 
 void dispatchClearPage(String strPageid)
@@ -115,43 +128,39 @@ void dispatchClearPage(String strPageid)
 
 void dispatchDim(String strDimLevel)
 {
+    // Set the current state
+    if(strDimLevel.length() != 0) guiSetDim(strDimLevel.toInt());
     debugPrintln("DIM: " + strDimLevel);
 
-    if(strDimLevel.length() == 0) {
-        String strPayload = String(guiGetDim());
-        mqttSendState("dim", strPayload.c_str());
-    } else {
-        guiSetDim(strDimLevel.toInt());
-    }
+    // Return the current state
+    String strPayload = String(guiGetDim());
+    mqttSendState("dim", strPayload.c_str());
 }
 
 void dispatchBacklight(String strPayload)
 {
-    debugPrintln("LIGHT: " + strPayload);
     strPayload.toUpperCase();
+    debugPrintln("LIGHT: " + strPayload);
 
-    if(strPayload == F("ON")) {
-        guiSetBacklight(true);
-    } else if(strPayload == F("OFF")) {
-        guiSetBacklight(false);
-    } else {
-        String strPayload = String(guiGetBacklight());
-        mqttSendState("light", strPayload.c_str());
-    }
+    // Set the current state
+    if(strPayload.length() != 0) guiSetBacklight(isON(strPayload.c_str()));
+
+    // Return the current state
+    strPayload = getOnOff(guiGetBacklight());
+    mqttSendState("light", strPayload.c_str());
 }
 
 void dispatchCommand(String cmnd)
 {
+    cmnd.toLowerCase();
     debugPrintln("CMND: " + cmnd);
 
     if(cmnd.startsWith(F("page "))) {
         cmnd = cmnd.substring(5, cmnd.length());
         String strTopic((char *)0);
-        strTopic.reserve(127);
+        strTopic.reserve(128);
         strTopic = F("page");
         dispatchAttribute(strTopic, cmnd.c_str());
-
-        //        dispatchPage(cmnd);
     } else if(cmnd == F("calibrate")) {
         guiCalibrate();
     } else if(cmnd == F("wakeup")) {
@@ -169,8 +178,8 @@ void dispatchCommand(String cmnd)
             String strTopic((char *)0);
             String strPayload((char *)0);
 
-            strTopic.reserve(127);
-            strPayload.reserve(127);
+            strTopic.reserve(128);
+            strPayload.reserve(128);
 
             strTopic   = cmnd.substring(0, pos);
             strPayload = cmnd.substring(pos + 1, cmnd.length());
@@ -225,15 +234,15 @@ void dispatchJsonl(char * strPayload)
     }
 }
 
-void IRAM_ATTR dispatchIdle(const __FlashStringHelper * state)
+void dispatchIdle(const __FlashStringHelper * state)
 {
     mqttSendState(String(F("idle")).c_str(), String(state).c_str());
 }
 
 void dispatchReboot(bool saveConfig)
 {
-    mqttStop(); // Stop the MQTT Client first
     if(saveConfig) configWriteConfig();
+    mqttStop(); // Stop the MQTT Client first
     debugStop();
     delay(250);
     wifiStop();
@@ -243,9 +252,9 @@ void dispatchReboot(bool saveConfig)
     delay(5000);
 }
 
-void dispatchButton(uint8_t i, bool pressed)
+void dispatchButton(uint8_t id, char * event)
 {
-    char buffer[127];
-    snprintf_P(buffer, sizeof(buffer), PSTR("INPUT%d"), i);
-    mqttSendState(buffer, String(pressed ? F("ON") : F("OFF")).c_str());
+    char buffer[128];
+    snprintf_P(buffer, sizeof(buffer), PSTR("INPUT%d"), id);
+    mqttSendState(buffer, event);
 }
