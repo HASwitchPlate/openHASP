@@ -14,7 +14,7 @@
 
 void spiffsList()
 {
-    char buffer[127];
+    char buffer[128];
     debugPrintln(PSTR("FILE: Listing files on the internal flash:"));
 
 #if defined(ARDUINO_ARCH_ESP32)
@@ -41,7 +41,7 @@ void spiffsSetup()
     // no SPIFFS settings, as settings depend on SPIFFS
 
 #if HASP_USE_SPIFFS
-    char buffer[127];
+    char buffer[128];
 #if defined(ARDUINO_ARCH_ESP8266)
     if(!SPIFFS.begin()) {
 #else
@@ -62,7 +62,7 @@ void spiffsLoop()
 String spiffsFormatBytes(size_t bytes)
 {
     String output((char *)0);
-    output.reserve(127);
+    output.reserve(128);
 
     if(bytes < 1024) {
         output += bytes;

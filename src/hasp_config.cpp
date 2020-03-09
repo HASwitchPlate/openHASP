@@ -22,7 +22,7 @@
 
 void confDebugSet(const char * name)
 {
-    char buffer[127];
+    char buffer[128];
     snprintf(buffer, sizeof(buffer), PSTR("CONF:    * %s set"), name);
     debugPrintln(buffer);
 }
@@ -89,7 +89,7 @@ void configStartDebug(bool setupdebug, String & configFile)
 void configGetConfig(JsonDocument & settings, bool setupdebug = false)
 {
     String configFile((char *)0);
-    configFile.reserve(127);
+    configFile.reserve(128);
     configFile = String(FPSTR(HASP_CONFIG_FILE));
     File file  = SPIFFS.open(configFile, "r");
 
@@ -130,7 +130,7 @@ void configGetConfig(JsonDocument & settings, bool setupdebug = false)
 void configWriteConfig()
 {
     String configFile((char *)0);
-    configFile.reserve(127);
+    configFile.reserve(128);
     configFile = String(FPSTR(HASP_CONFIG_FILE));
 
     /* Read Config File */
@@ -198,15 +198,15 @@ void configSetup(JsonDocument & settings)
 void configOutput(const JsonObject & settings)
 {
     String output((char *)0);
-    output.reserve(127);
+    output.reserve(128);
     serializeJson(settings, output);
 
     String passmask((char *)0);
-    passmask.reserve(127);
+    passmask.reserve(128);
     passmask = F("\"pass\":\"********\"");
 
     String password((char *)0);
-    password.reserve(127);
+    password.reserve(128);
     password = F("\"pass\":\"");
     password += settings[F("pass")].as<String>();
     password += F("\"");

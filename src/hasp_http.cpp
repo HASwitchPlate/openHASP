@@ -102,7 +102,7 @@ bool httpIsAuthenticated(const String & page)
         }
     }
 
-    char buffer[127];
+    char buffer[128];
     snprintf(buffer, sizeof(buffer), PSTR("HTTP: Sending %s page to client connected from: %s"), page.c_str(),
              webServer.client().remoteIP().toString().c_str());
     debugPrintln(buffer);
@@ -111,21 +111,21 @@ bool httpIsAuthenticated(const String & page)
 
 String getOption(int value, String label, bool selected)
 {
-    char buffer[127];
+    char buffer[128];
     snprintf_P(buffer, sizeof(buffer), PSTR("<option value='%d'%s>%s</option>"), value,
                (selected ? PSTR(" selected") : ""), label.c_str());
     return buffer;
 }
 String getOption(String value, String label, bool selected)
 {
-    char buffer[127];
+    char buffer[128];
     snprintf_P(buffer, sizeof(buffer), PSTR("<option value='%s'%s>%s</option>"), value.c_str(),
                (selected ? PSTR(" selected") : ""), label.c_str());
     return buffer;
 }
 void webSendFooter()
 {
-    char buffer[127];
+    char buffer[128];
     snprintf_P(buffer, sizeof(buffer), PSTR("%u.%u.%u"), HASP_VERSION_MAJOR, HASP_VERSION_MINOR, HASP_VERSION_REVISION);
 
     webServer.sendContent_P(HTTP_END);
@@ -135,7 +135,7 @@ void webSendFooter()
 
 void webSendPage(String & nodename, uint32_t httpdatalength, bool gohome = false)
 {
-    char buffer[127];
+    char buffer[128];
 
     snprintf_P(buffer, sizeof(buffer), PSTR("%u.%u.%u"), HASP_VERSION_MAJOR, HASP_VERSION_MINOR, HASP_VERSION_REVISION);
 
@@ -170,7 +170,7 @@ void webHandleRoot()
 {
     if(!httpIsAuthenticated(F("root"))) return;
 
-    // char buffer[127];
+    // char buffer[128];
     String nodename = haspGetNodename();
     String httpMessage((char *)0);
     httpMessage.reserve(1500);
@@ -294,7 +294,7 @@ void webHandleInfo()
 { // http://plate01/
     if(!httpIsAuthenticated(F("info"))) return;
 
-    // char buffer[127];
+    // char buffer[128];
     String nodename = haspGetNodename();
     String httpMessage((char *)0);
     httpMessage.reserve(1500);
@@ -423,7 +423,7 @@ String getContentType(String filename)
             encodedString += ' ';
         } else if(c == '%') {
             // char buffer[3];
-            char buffer[127];
+            char buffer[128];
             i++;
             buffer[0] = str.charAt(i);
             i++;
@@ -475,7 +475,7 @@ void handleFileUpload()
     if(upload->status == UPLOAD_FILE_START) {
         if(!httpIsAuthenticated(F("fileupload"))) return;
         String filename((char *)0);
-        filename.reserve(127);
+        filename.reserve(128);
         filename = upload->filename;
         if(!filename.startsWith("/")) {
             filename = "/";
@@ -493,13 +493,13 @@ void handleFileUpload()
         // DBG_OUTPUT_PORT.print("handleFileUpload Data: "); debugPrintln(upload.currentSize);
         if(fsUploadFile) {
             fsUploadFile.write(upload->buf, upload->currentSize);
-            char buffer[127];
+            char buffer[128];
             sprintf_P(buffer, PSTR("    * Uploaded %u bytes"), upload->totalSize + upload->currentSize);
             debugPrintln(buffer);
         }
     } else if(upload->status == UPLOAD_FILE_END) {
         if(fsUploadFile) {
-            char buffer[127];
+            char buffer[128];
             sprintf_P(buffer, PSTR("Uploaded %s (%u bytes)"), fsUploadFile.name(), upload->totalSize);
             debugPrintln(buffer);
             fsUploadFile.close();
@@ -516,7 +516,7 @@ void handleFileDelete()
 {
     if(!httpIsAuthenticated(F("filedelete"))) return;
 
-    char mimetype[127];
+    char mimetype[128];
     sprintf(mimetype, PSTR("text/plain"));
 
     if(webServer.args() == 0) {
@@ -662,7 +662,7 @@ void webHandleConfig()
         httpHandleReboot();
     }
 
-    // char buffer[127];
+    // char buffer[128];
     String nodename = haspGetNodename();
     String httpMessage((char *)0);
     httpMessage.reserve(1500);
@@ -709,16 +709,15 @@ void webHandleMqttConfig()
     DynamicJsonDocument settings(256);
     mqttGetConfig(settings.to<JsonObject>());
 
-    // char buffer[127];
-    String nodename = haspGetNodename();
+    // char buffer[128];
     String httpMessage((char *)0);
     httpMessage.reserve(1500);
 
     httpMessage += String(F("<form method='POST' action='/config'>"));
     httpMessage += F("<b>HASP Node Name</b> <i><small>(required. lowercase letters, numbers, and _ only)</small>"
-                     "</i><input id='haspGetNodename()' required name='haspGetNodename()' maxlength=15 "
+                     "</i><input id='name' required name='name' maxlength=15 "
                      "placeholder='HASP Node Name' pattern='[a-z0-9_]*' value='");
-    httpMessage += nodename;
+    httpMessage += settings[FPSTR(F_CONFIG_NAME)].as<String>();
     httpMessage += F("'><br/><br/><b>Group Name</b> <i><small>(required)</small></i><input id='group' required "
                      "name='group' maxlength=15 placeholder='Group Name' value='");
     httpMessage += settings[FPSTR(F_CONFIG_GROUP)].as<String>();
@@ -739,6 +738,7 @@ void webHandleMqttConfig()
     httpMessage +=
         PSTR("<p><form method='get' action='/config'><button type='submit'>Configuration</button></form></p>");
 
+    String nodename = haspGetNodename();
     webSendPage(nodename, httpMessage.length(), false);
     webServer.sendContent(httpMessage);
     httpMessage.clear();
@@ -754,7 +754,7 @@ void webHandleGuiConfig()
     DynamicJsonDocument settings(256);
     guiGetConfig(settings.to<JsonObject>());
 
-    // char buffer[127];
+    // char buffer[128];
     String nodename = haspGetNodename();
     String httpMessage((char *)0);
     httpMessage.reserve(1500);
@@ -824,7 +824,7 @@ void webHandleWifiConfig()
     DynamicJsonDocument settings(256);
     wifiGetConfig(settings.to<JsonObject>());
 
-    // char buffer[127];
+    // char buffer[128];
     String nodename = haspGetNodename();
     String httpMessage((char *)0);
     httpMessage.reserve(1500);
@@ -861,7 +861,7 @@ void webHandleHttpConfig()
     DynamicJsonDocument settings(256);
     httpGetConfig(settings.to<JsonObject>());
 
-    // char buffer[127];
+    // char buffer[128];
     String nodename = haspGetNodename();
     String httpMessage((char *)0);
     httpMessage.reserve(1500);
@@ -895,7 +895,7 @@ void webHandleDebugConfig()
     DynamicJsonDocument settings(256);
     debugGetConfig(settings.to<JsonObject>());
 
-    // char buffer[127];
+    // char buffer[128];
     String nodename = haspGetNodename();
     String httpMessage((char *)0);
     httpMessage.reserve(1500);
@@ -924,7 +924,7 @@ void webHandleHaspConfig()
     DynamicJsonDocument settings(256);
     haspGetConfig(settings.to<JsonObject>());
 
-    // char buffer[127];
+    // char buffer[128];
     String nodename = haspGetNodename();
     String httpMessage((char *)0);
     httpMessage.reserve(1500);
@@ -1058,7 +1058,7 @@ void httpHandleEspFirmware()
     if(!httpIsAuthenticated(F("espfirmware"))) return;
 
     String nodename = haspGetNodename();
-    // char buffer[127];
+    // char buffer[128];
     String httpMessage((char *)0);
     httpMessage.reserve(1500);
     httpMessage += String(F("<h1>"));
@@ -1082,7 +1082,7 @@ void httpHandleResetConfig()
 
     bool resetConfirmed = webServer.arg(F("confirm")) == F("yes");
     String nodename     = haspGetNodename();
-    // char buffer[127];
+    // char buffer[128];
     String httpMessage((char *)0);
     httpMessage.reserve(1500);
 
@@ -1141,7 +1141,7 @@ void httpSetup(const JsonObject & settings)
         // load editor
         webServer.on(F("/edit"), HTTP_GET, []() {
             if(!handleFileRead("/edit.htm")) {
-                char mimetype[127];
+                char mimetype[128];
                 sprintf(mimetype, PSTR("text/plain"));
                 webServer.send_P(404, mimetype, PSTR("FileNotFound"));
             }
@@ -1154,14 +1154,14 @@ void httpSetup(const JsonObject & settings)
         // get heap status, analog input value and all GPIO statuses in one json call
         /*webServer.on(F("/all"), HTTP_GET, []() {
             String json;
-            json.reserve(127);
+            json.reserve(128);
             json += F("{\"heap\":");
             json += String(ESP.getFreeHeap());
             json += F(", \"analog\":");
             json += String(analogRead(A0));
             json += F("}");
 
-            char mimetype[127];
+            char mimetype[128];
             sprintf(mimetype, PSTR("text/json"));
             webServer.send(200, mimetype, json);
             json.clear();

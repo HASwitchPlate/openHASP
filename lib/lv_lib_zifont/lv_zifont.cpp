@@ -242,7 +242,7 @@ int lv_zifont_font_init(lv_font_t ** font, const char * font_path, uint16_t size
  * @param unicode_letter an unicode letter which bitmap should be get
  * @return pointer to the bitmap or NULL if not found
  */
-const uint8_t * IRAM_ATTR lv_font_get_bitmap_fmt_zifont(const lv_font_t * font, uint32_t unicode_letter)
+const uint8_t * lv_font_get_bitmap_fmt_zifont(const lv_font_t * font, uint32_t unicode_letter)
 {
     /* Bitmap still in buffer */
     if(charInBuffer == unicode_letter && charBitmap_p) {
@@ -263,7 +263,7 @@ const uint8_t * IRAM_ATTR lv_font_get_bitmap_fmt_zifont(const lv_font_t * font, 
     }
 
     File file;
-    char filename[127];
+    char filename[128];
     uint32_t glyphID;
     uint16_t charmap_position;
 

@@ -99,30 +99,39 @@ void IRAM_ATTR mqttSendState(const char * subtopic, const char * payload)
     // light = 0/1
     // brightness = 100
 
-    char mqttTopic[127];
-    char mqttPayload[127 * 5];
+    char mqttTopic[128];
+    char mqttPayload[128 * 5];
 
     snprintf_P(mqttTopic, sizeof(mqttTopic), PSTR("%sstate/%s"), mqttNodeTopic.c_str(), subtopic);
     mqttClient.publish(mqttTopic, payload);
-    debugPrintln(String(F("MQTT OUT: ")) + String(mqttTopic) + " = " + String(payload));
+
+    String msg((char *)0);
+    msg.reserve(512);
+    msg = F("MQTT OUT: ");
+    msg += mqttTopic;
+    msg += " = ";
+    msg += payload;
+    debugPrintln(msg);
 
     // as json
-    snprintf_P(mqttTopic, sizeof(mqttTopic), PSTR("%sstate/json"), mqttNodeTopic.c_str());
-    snprintf_P(mqttPayload, sizeof(mqttPayload), PSTR("{\"%s\":\"%s\"}"), subtopic, payload);
-    mqttClient.publish(mqttTopic, mqttPayload);
-    debugPrintln(String(F("MQTT OUT: ")) + String(mqttTopic) + " = " + String(mqttPayload));
+    // snprintf_P(mqttTopic, sizeof(mqttTopic), PSTR("%sstate/json"), mqttNodeTopic.c_str());
+    // snprintf_P(mqttPayload, sizeof(mqttPayload), PSTR("{\"%s\":\"%s\"}"), subtopic, payload);
+    // mqttClient.publish(mqttTopic, mqttPayload);
+    // debugPrintln(String(F("MQTT OUT: ")) + String(mqttTopic) + " = " + String(mqttPayload));
 }
 
 void IRAM_ATTR mqttSendNewValue(uint8_t pageid, uint8_t btnid, const char * attribute, String txt)
 {
-    char subtopic[127];
-    snprintf_P(subtopic, sizeof(subtopic), PSTR("p[%u].b[%u].%s"), pageid, btnid, attribute);
-    mqttSendState(subtopic, txt.c_str());
+    char topic[128];
+    char payload[128];
+    snprintf_P(topic, sizeof(topic), PSTR("json"));
+    snprintf_P(payload, sizeof(payload), PSTR("{\"p[%u].b[%u].%s\":\"%s\"}"), pageid, btnid, attribute, txt.c_str());
+    mqttSendState(topic, payload);
 }
 
 void IRAM_ATTR mqttSendNewValue(uint8_t pageid, uint8_t btnid, int32_t val)
 {
-    char value[127];
+    char value[128];
     itoa(val, value, 10);
     mqttSendNewValue(pageid, btnid, "val", value);
 }
@@ -134,14 +143,14 @@ void IRAM_ATTR mqttSendNewValue(uint8_t pageid, uint8_t btnid, String txt)
 
 void IRAM_ATTR mqttSendNewEvent(uint8_t pageid, uint8_t btnid, char * value) // int32_t val)
 {
-    // char value[127];
+    // char value[128];
     // itoa(val, value, 10);
     mqttSendNewValue(pageid, btnid, "event", value);
 }
 
 void mqttStatusUpdate()
 { // Periodically publish a JSON string indicating system status
-    char buffer[127];
+    char buffer[128];
     snprintf_P(buffer, sizeof(buffer), "%u.%u.%u", HASP_VERSION_MAJOR, HASP_VERSION_MINOR, HASP_VERSION_REVISION);
 
     String mqttStatusPayload((char *)0);
@@ -278,7 +287,7 @@ void mqttCallback(char * topic, byte * payload, unsigned int length)
 
     if(strTopic == F("status") &&
        strPayload == F("OFF")) { // catch a dangling LWT from a previous connection if it appears
-        char topicBuffer[127];
+        char topicBuffer[128];
         snprintf_P(topicBuffer, sizeof(topicBuffer), PSTR("%sstatus"), mqttNodeTopic.c_str());
         mqttClient.publish(topicBuffer, "ON", true);
 
@@ -294,12 +303,12 @@ void mqttReconnect()
     static uint8_t mqttReconnectCount = 0;
     bool mqttFirstConnect             = true;
     String nodeName((char *)0);
-    nodeName.reserve(127);
+    nodeName.reserve(128);
     nodeName = haspGetNodename();
-    char topicBuffer[127];
+    char topicBuffer[128];
 
     // Generate an MQTT client ID as haspNode + our MAC address
-    mqttClientId.reserve(127);
+    mqttClientId.reserve(128);
     mqttClientId = nodeName;
     mqttClientId += F("-");
     mqttClientId += wifiGetMacAddress(3, "");
@@ -401,9 +410,9 @@ void mqttReconnect()
 
 void mqttSetup(const JsonObject & settings)
 {
-    mqttClientId.reserve(127);
-    mqttNodeTopic.reserve(127);
-    mqttGroupTopic.reserve(127);
+    mqttClientId.reserve(128);
+    mqttNodeTopic.reserve(128);
+    mqttGroupTopic.reserve(128);
 
     mqttSetConfig(settings);
 
@@ -437,7 +446,7 @@ bool mqttIsConnected()
 void mqttStop()
 {
     if(mqttClient.connected()) {
-        char topicBuffer[127];
+        char topicBuffer[128];
 
         snprintf_P(topicBuffer, sizeof(topicBuffer), PSTR("%sstatus"), mqttNodeTopic.c_str());
         mqttClient.publish(topicBuffer, "OFF");

@@ -28,7 +28,7 @@ void tftStop()
 
 void tftOffsetInfo(uint8_t pin, uint8_t x_offset, uint8_t y_offset)
 {
-    char buffer[127];
+    char buffer[128];
     if(x_offset != 0) {
         sprintf_P(buffer, PSTR("TFT: R%u x offset = %i"), pin, x_offset);
         debugPrintln(buffer);
@@ -42,7 +42,7 @@ void tftOffsetInfo(uint8_t pin, uint8_t x_offset, uint8_t y_offset)
 void tftPinInfo(String pinfunction, int8_t pin)
 {
     if(pin != -1) {
-        char buffer[127];
+        char buffer[128];
         sprintf_P(buffer, PSTR("TFT: %s = D%i (GPIO %i)"), pinfunction.c_str(), getPinName(pin), pin);
         debugPrintln(buffer);
     }
@@ -51,7 +51,7 @@ void tftPinInfo(String pinfunction, int8_t pin)
 void tftShowConfig(TFT_eSPI & tft)
 {
     setup_t tftSetup;
-    char buffer[127];
+    char buffer[128];
     tft.getSetup(tftSetup);
 
     sprintf_P(buffer, PSTR("TFT: TFT_eSPI ver = %s"), tftSetup.version.c_str());

@@ -31,7 +31,7 @@ void mdnsStart()
         /*if(debugTelnetEnabled) {
         }
         return;
-        char buffer[127];
+        char buffer[128];
         snprintf_P(buffer, sizeof(buffer), PSTR("%u.%u.%u"), HASP_VERSION_MAJOR, HASP_VERSION_MINOR,
                    HASP_VERSION_REVISION);
         MDNS.addServiceTxt(hasp2Node, "tcp", "app_version", buffer); */

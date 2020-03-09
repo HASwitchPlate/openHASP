@@ -27,7 +27,7 @@ void debugPrintln(String & debugText)
 void debugPrintln(const __FlashStringHelper * debugText)
 {
     String buffer((char *)0);
-    buffer.reserve(127);
+    buffer.reserve(128);
     buffer = debugText;
     debugPrintln(buffer);
 }
@@ -37,13 +37,13 @@ void debugPrintln(const char * debugText)
     serialPrintln(debugText);
 
 #if HASP_USE_SYSLOG != 0
-    syslogSend(0, debugText.c_str());
+    syslogSend(0, debugText);
 #endif
 }
 
 void errorPrintln(String debugText)
 {
-    char buffer[127];
+    char buffer[128];
     sprintf_P(buffer, debugText.c_str(), PSTR("[ERROR] "));
     serialPrintln(buffer);
 
@@ -54,7 +54,7 @@ void errorPrintln(String debugText)
 
 void warningPrintln(String debugText)
 {
-    char buffer[127];
+    char buffer[128];
     sprintf_P(buffer, debugText.c_str(), PSTR("[WARNING] "));
     serialPrintln(buffer);
 

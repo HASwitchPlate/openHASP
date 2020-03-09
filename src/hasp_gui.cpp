@@ -64,36 +64,36 @@ static Ticker tick;  /* timer for interrupt handler */
 static TFT_eSPI tft; // = TFT_eSPI(); /* TFT instance */
 static uint16_t calData[5] = {0, 65535, 0, 65535, 0};
 
-bool IRAM_ATTR guiCheckSleep()
+bool guiCheckSleep()
 {
-    if(lv_disp_get_inactive_time(NULL) >= (guiSleepTime1 + guiSleepTime2) * 1000) {
+    uint32_t idle = lv_disp_get_inactive_time(NULL);
+    if(idle >= (guiSleepTime1 + guiSleepTime2) * 1000) {
         if(guiSleeping != 2) {
             dispatchIdle(F("LONG"));
             guiSleeping = 2;
         }
         return true;
-    } else if(lv_disp_get_inactive_time(NULL) >= guiSleepTime1 * 1000) {
+    } else if(idle >= guiSleepTime1 * 1000) {
         if(guiSleeping != 1) {
             dispatchIdle(F("SHORT"));
             guiSleeping = 1;
         }
         return true;
-    } else {
-        if(guiSleeping != 0) {
-            dispatchIdle(F("OFF"));
-            guiSleeping = 0;
-        }
-        return false;
     }
+    if(guiSleeping != 0) {
+        dispatchIdle(F("OFF"));
+        guiSleeping = 0;
+    }
+    return false;
 }
 
 #if LV_USE_LOG != 0
 /* Serial debugging */
 void debugLvgl(lv_log_level_t level, const char * file, uint32_t line, const char * dsc)
 {
-    char msg[127];
-    snprintf(msg, sizeof(msg), PSTR("LVGL: %s@%d->%s"), file, line, dsc);
-    debugPrintln(msg);
+    char buffer[128];
+    snprintf(buffer, sizeof(buffer), PSTR("LVGL: %s@%d->%s"), file, line, dsc);
+    debugPrintln(buffer);
 }
 #endif
 
@@ -283,7 +283,7 @@ void guiSetup(TFT_eSPI & screen, JsonObject settings)
 
 #if defined(ARDUINO_ARCH_ESP32)
     /* allocate on iram (or psram ?) */
-    buffer_size                       = 16 * 1024u; // 32 KBytes
+    buffer_size                       = 16 * 1024u; // 32 KBytes *2
     static lv_color_t * guiVdbBuffer1 = (lv_color_t *)malloc(sizeof(lv_color_t) * buffer_size);
     static lv_color_t * guiVdbBuffer2 = (lv_color_t *)malloc(sizeof(lv_color_t) * buffer_size);
     static lv_disp_buf_t disp_buf;
@@ -297,7 +297,7 @@ void guiSetup(TFT_eSPI & screen, JsonObject settings)
     lv_disp_buf_init(&disp_buf, guiVdbBuffer1, NULL, buffer_size);
 #endif
 
-    char buffer[127];
+    char buffer[128];
     snprintf_P(buffer, sizeof(buffer), PSTR("LVGL: Rotation : %d"), guiRotation);
     debugPrintln(buffer);
 
@@ -524,7 +524,7 @@ bool guiSetConfig(const JsonObject & settings)
 
 void guiSendBmpHeader()
 {
-    uint8_t buffer[127];
+    uint8_t buffer[128];
     memset(buffer, 0, sizeof(buffer));
 
     lv_disp_t * disp = lv_disp_get_default();
@@ -620,7 +620,7 @@ void guiSendBmpHeader()
 void guiTakeScreenshot(const char * pFileName)
 {
     pFileOut = SPIFFS.open(pFileName, "w");
-    char buffer[127];
+    char buffer[128];
 
     if(pFileOut == NULL) {
         snprintf_P(buffer, sizeof(buffer), PSTR("[Display] error: %s cannot be opened"), pFileName);
