@@ -280,6 +280,8 @@ void webHandleAbout()
     httpMessage += FPSTR(MIT_LICENSE);
     httpMessage += F("<p><h3>QR Code generator</h3>Copyright&copy; Project Nayuki");
     httpMessage += FPSTR(MIT_LICENSE);
+    httpMessage += F("<p><h3>AceButton</h3>Copyright&copy; 2018 Brian T. Park");
+    httpMessage += FPSTR(MIT_LICENSE);
 
     httpMessage += FPSTR(MAIN_MENU_BUTTON);
 

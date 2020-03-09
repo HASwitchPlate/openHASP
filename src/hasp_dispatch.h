@@ -20,6 +20,6 @@ void dispatchIdle(const __FlashStringHelper * state);
 void dispatchReboot(bool saveConfig);
 void dispatchStatusUpdate(void);
 
-void dispatchButton(uint8_t i, bool pressed);
+void dispatchButton(uint8_t id, char * event);
 
 #endif
