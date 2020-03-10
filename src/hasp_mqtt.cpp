@@ -99,19 +99,23 @@ void IRAM_ATTR mqttSendState(const char * subtopic, const char * payload)
     // light = 0/1
     // brightness = 100
 
-    char mqttTopic[128];
     // char mqttPayload[128 * 5];
 
-    snprintf_P(mqttTopic, sizeof(mqttTopic), PSTR("%sstate/%s"), mqttNodeTopic.c_str(), subtopic);
-    mqttClient.publish(mqttTopic, payload);
+    if(mqttClient.connected()) {
+        char mqttTopic[128];
+        snprintf_P(mqttTopic, sizeof(mqttTopic), PSTR("%sstate/%s"), mqttNodeTopic.c_str(), subtopic);
+        mqttClient.publish(mqttTopic, payload);
 
-    String msg((char *)0);
-    msg.reserve(512);
-    msg = F("MQTT OUT: ");
-    msg += mqttTopic;
-    msg += " = ";
-    msg += payload;
-    debugPrintln(msg);
+        String msg((char *)0);
+        msg.reserve(512);
+        msg = F("MQTT OUT: ");
+        msg += mqttTopic;
+        msg += " = ";
+        msg += payload;
+        debugPrintln(msg);
+    } else {
+        errorPrintln(F("MQTT: %sNot connected"));
+    }
 
     // as json
     // snprintf_P(mqttTopic, sizeof(mqttTopic), PSTR("%sstate/json"), mqttNodeTopic.c_str());
