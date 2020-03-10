@@ -10,13 +10,33 @@
 
 #define F_OTA_URL F("otaurl")
 
-std::string otaUrl = "http://ota.local";
+std::string otaUrl     = "http://10.1.0.3";
+int8_t prevUpdateValue = -1;
+
+void otaProgress(uint8_t val)
+{
+    String type;
+    uint8_t deltaValue;
+
+    if(ArduinoOTA.getCommand() == U_FLASH) {
+        type       = F("Firmware");
+        deltaValue = 4;
+    } else { // U_SPIFFS
+        deltaValue = 2;
+        type       = F("Filesystem");
+    }
+
+    if(val - prevUpdateValue >= deltaValue) {
+        debugPrintln(String(F("OTA: ")) + type + F(" update in progress... ") + val + "%");
+        prevUpdateValue = val;
+    }
+}
 
 void otaSetup(JsonObject settings)
 {
 
     if(!settings[F_OTA_URL].isNull()) {
-        char buffer[127];
+        char buffer[128];
         otaUrl = settings[F_OTA_URL].as<String>().c_str();
         sprintf_P(buffer, PSTR("ORA url: %s"), otaUrl.c_str());
         debugPrintln(buffer);
@@ -26,17 +46,27 @@ void otaSetup(JsonObject settings)
     // ArduinoOTA.setPassword(configPassword);
 
     ArduinoOTA.onStart([]() {
-        debugPrintln(F("OTA: update start"));
+        if(ArduinoOTA.getCommand() == U_FLASH) {
+        } else { // U_SPIFFS
+            // NOTE: if updating SPIFFS this would be the place to unmount SPIFFS using SPIFFS.end()
+        }
+
+        debugPrintln(F("OTA: Start update"));
         dispatchCommand("page 0");
         // haspSetAttr("p[0].b[1].txt", "\"ESP OTA Update\"");
     });
     ArduinoOTA.onEnd([]() {
-        dispatchCommand("page 0");
-        debugPrintln(F("OTA: update complete"));
+        prevUpdateValue = -1;
+        otaProgress(100);
+        dispatchPage("0");
         // haspSetAttr("p[0].b[1].txt", "\"ESP OTA Update\\rComplete!\"");
-        dispatchCommand(F("reboot"));
+        dispatchReboot(true);
     });
     ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
+        if(total != 0) {
+            int8_t val = progress * 100 / total;
+            otaProgress(val);
+        }
         // haspSetAttr("p[0].b[1].txt", "\"ESP OTA Update\\rProgress: " + String(progress / (total / 100)) + "%\"");
     });
     ArduinoOTA.onError([](ota_error_t error) {
@@ -61,5 +91,5 @@ void otaSetup(JsonObject settings)
 
 void otaLoop(bool wifiIsConnected)
 {
-    ArduinoOTA.handle(); // Arduino OTA loop
+    ArduinoOTA.handle();
 }
