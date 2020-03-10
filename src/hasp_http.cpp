@@ -31,6 +31,7 @@ File fsUploadFile;
 char httpUser[32]     = "";
 char httpPassword[32] = "";
 HTTPUpload * upload;
+#define HTTP_PAGE_SIZE (6 * 256)
 
 #if defined(ARDUINO_ARCH_ESP8266)
 #include <ESP8266WebServer.h>
@@ -173,7 +174,7 @@ void webHandleRoot()
     // char buffer[128];
     String nodename = haspGetNodename();
     String httpMessage((char *)0);
-    httpMessage.reserve(1500);
+    httpMessage.reserve(HTTP_PAGE_SIZE);
 
     httpMessage += String(F("<h1>"));
     httpMessage += String(nodename);
@@ -231,7 +232,7 @@ void webHandleScreenshot()
 
         String nodename = haspGetNodename();
         String httpMessage((char *)0);
-        httpMessage.reserve(1500);
+        httpMessage.reserve(HTTP_PAGE_SIZE);
 
         httpMessage += F("<p class='c'><img id='bmp' src='?q=0'></p>");
         httpMessage += F("<p><form method='get' onsubmit=\"var timestamp = new Date().getTime();var ");
@@ -254,7 +255,7 @@ void webHandleAbout()
 
     String nodename = haspGetNodename();
     String httpMessage((char *)0);
-    httpMessage.reserve(1500);
+    httpMessage.reserve(HTTP_PAGE_SIZE);
 
     httpMessage += F("<p><h3>HASP OpenHardware edition</h3>Copyright&copy; 2020 Francis Van Roie ");
     httpMessage += FPSTR(MIT_LICENSE);
@@ -299,7 +300,7 @@ void webHandleInfo()
     // char buffer[128];
     String nodename = haspGetNodename();
     String httpMessage((char *)0);
-    httpMessage.reserve(1500);
+    httpMessage.reserve(HTTP_PAGE_SIZE);
 
     /* HASP Stats */
     httpMessage += F("<hr><b>HASP Version: </b>");
@@ -667,7 +668,7 @@ void webHandleConfig()
     // char buffer[128];
     String nodename = haspGetNodename();
     String httpMessage((char *)0);
-    httpMessage.reserve(1500);
+    httpMessage.reserve(HTTP_PAGE_SIZE);
 
     httpMessage += F("<hr>");
     httpMessage +=
@@ -713,7 +714,7 @@ void webHandleMqttConfig()
 
     // char buffer[128];
     String httpMessage((char *)0);
-    httpMessage.reserve(1500);
+    httpMessage.reserve(HTTP_PAGE_SIZE);
 
     httpMessage += String(F("<form method='POST' action='/config'>"));
     httpMessage += F("<b>HASP Node Name</b> <i><small>(required. lowercase letters, numbers, and _ only)</small>"
@@ -759,7 +760,7 @@ void webHandleGuiConfig()
     // char buffer[128];
     String nodename = haspGetNodename();
     String httpMessage((char *)0);
-    httpMessage.reserve(1500);
+    httpMessage.reserve(HTTP_PAGE_SIZE);
 
     httpMessage += String(F("<form method='POST' action='/config'>"));
 
@@ -829,7 +830,7 @@ void webHandleWifiConfig()
     // char buffer[128];
     String nodename = haspGetNodename();
     String httpMessage((char *)0);
-    httpMessage.reserve(1500);
+    httpMessage.reserve(HTTP_PAGE_SIZE);
 
     httpMessage += String(F("<form method='POST' action='/config'>"));
     httpMessage += String(F("<b>WiFi SSID</b> <i><small>(required)</small></i><input id='ssid' required "
@@ -866,7 +867,7 @@ void webHandleHttpConfig()
     // char buffer[128];
     String nodename = haspGetNodename();
     String httpMessage((char *)0);
-    httpMessage.reserve(1500);
+    httpMessage.reserve(HTTP_PAGE_SIZE);
 
     httpMessage += String(F("<form method='POST' action='/config'>"));
     httpMessage += String(F("<b>Web Username</b> <i><small>(optional)</small></i><input id='user' "
@@ -900,7 +901,7 @@ void webHandleDebugConfig()
     // char buffer[128];
     String nodename = haspGetNodename();
     String httpMessage((char *)0);
-    httpMessage.reserve(1500);
+    httpMessage.reserve(HTTP_PAGE_SIZE);
 
     httpMessage += String(F("<form method='POST' action='/config'>"));
     httpMessage += String(F("<p><b>Telemetry Period</b> <input id='teleperiod' required "
@@ -929,7 +930,7 @@ void webHandleHaspConfig()
     // char buffer[128];
     String nodename = haspGetNodename();
     String httpMessage((char *)0);
-    httpMessage.reserve(1500);
+    httpMessage.reserve(HTTP_PAGE_SIZE);
 
     httpMessage += F("<p><form action='/edit' method='post' enctype='multipart/form-data'><input type='file' "
                      "name='filename' accept='.jsonl,.zi'>");
@@ -1026,7 +1027,7 @@ void httpHandleNotFound()
     debugPrintln(String(F("HTTP: Sending 404 to client connected from: ")) + webServer.client().remoteIP().toString());
 
     String httpMessage((char *)0);
-    httpMessage.reserve(1500);
+    httpMessage.reserve(HTTP_PAGE_SIZE);
     httpMessage += F("File Not Found\n\nURI: ");
     httpMessage += webServer.uri();
     httpMessage += F("\nMethod: ");
@@ -1062,7 +1063,7 @@ void httpHandleEspFirmware()
     String nodename = haspGetNodename();
     // char buffer[128];
     String httpMessage((char *)0);
-    httpMessage.reserve(1500);
+    httpMessage.reserve(HTTP_PAGE_SIZE);
     httpMessage += String(F("<h1>"));
     httpMessage += String(haspGetNodename());
     httpMessage += String(F(" ESP update</h1><br/>Updating ESP firmware from: "));
@@ -1086,7 +1087,7 @@ void httpHandleResetConfig()
     String nodename     = haspGetNodename();
     // char buffer[128];
     String httpMessage((char *)0);
-    httpMessage.reserve(1500);
+    httpMessage.reserve(HTTP_PAGE_SIZE);
 
     if(resetConfirmed) { // User has confirmed, so reset everything
         httpMessage += F("<h1>");

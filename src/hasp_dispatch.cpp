@@ -219,10 +219,10 @@ void dispatchJson(char * payload)
 void dispatchJsonl(char * strPayload)
 {
     Serial.println("JSONL\n");
-    DynamicJsonDocument config(254);
+    DynamicJsonDocument config(256);
 
     String output((char *)0);
-    output.reserve(1500);
+    output.reserve(MQTT_MAX_PACKET_SIZE+ 256);
 
     StringStream stream((String &)output);
     stream.print(strPayload);

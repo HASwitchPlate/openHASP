@@ -1649,7 +1649,7 @@ void haspLoadPage(String pages)
 
     File file = SPIFFS.open(pages, "r");
     //    ReadBufferingStream bufferingStream(file, 256);
-    DynamicJsonDocument config(254);
+    DynamicJsonDocument config(256);
 
     uint8_t savedPage = current_page;
     while(deserializeJson(config, file) == DeserializationError::Ok) {
