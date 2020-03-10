@@ -1209,8 +1209,6 @@ void httpSetup(const JsonObject & settings)
     if(WiFi.getMode() == WIFI_AP) {
         debugPrintln(F("HTTP: Wifi access point"));
         webServer.on(F("/"), webHandleWifiConfig);
-        webServer.on(F("/config"), webHandleConfig);
-        webServer.onNotFound(httpHandleNotFound);
     } else {
 
         webServer.on(F("/page/"), []() {
@@ -1250,9 +1248,8 @@ void httpSetup(const JsonObject & settings)
         });*/
 
         webServer.on(F("/"), webHandleRoot);
-        webServer.on(F("/about"), webHandleAbout);
         webServer.on(F("/info"), webHandleInfo);
-        webServer.on(F("/config"), webHandleConfig);
+
         webServer.on(F("/config/hasp"), webHandleHaspConfig);
         webServer.on(F("/config/http"), webHandleHttpConfig);
         webServer.on(F("/config/gui"), webHandleGuiConfig);
@@ -1272,6 +1269,12 @@ void httpSetup(const JsonObject & settings)
         webServer.onNotFound(httpHandleNotFound);
     }
 
+    // Shared pages
+    webServer.on(F("/about"), webHandleAbout);
+    webServer.on(F("/config"), webHandleConfig);
+    webServer.onNotFound(httpHandleNotFound);
+
+    httpReconnect();
     debugPrintln(F("HTTP: Setup Complete"));
 }
 
@@ -1280,33 +1283,38 @@ void httpReconnect()
 {
     if(!httpEnable) return;
 
-    webServer.stop();
-    webServerStarted = false;
+    if(webServerStarted) {
+        webServer.stop();
+        webServerStarted = false;
+        debugPrintln(F("HTTP: Server stoped"));
+    } else if(WiFi.status() == WL_CONNECTED || WiFi.getMode() == WIFI_AP) {
 
-    if(WiFi.getMode() == WIFI_AP) {
-        webServer.on(F("/"), webHandleWifiConfig);
-        webServer.on(F("/config"), webHandleConfig);
-        webServer.onNotFound(httpHandleNotFound);
-    } else {
-        if(WiFi.status() != WL_CONNECTED) return;
+        /*
+            if(WiFi.getMode() == WIFI_AP) {
+                webServer.on(F("/"), webHandleWifiConfig);
+                webServer.on(F("/config"), webHandleConfig);
+                webServer.onNotFound(httpHandleNotFound);
+            } else {
+            }
+        */
+        webServer.begin();
+        webServerStarted = true;
+
+        debugPrintln(String(F("HTTP: Server started @ http://")) +
+                     (WiFi.getMode() == WIFI_AP ? WiFi.softAPIP().toString() : WiFi.localIP().toString()));
     }
-
-    webServer.begin();
-    webServerStarted = true;
-
-    debugPrintln(String(F("HTTP: Server started @ http://")) +
-                 (WiFi.getMode() == WIFI_AP ? WiFi.softAPIP().toString() : WiFi.localIP().toString()));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 void httpLoop()
 {
-    if(httpEnable) {
-        if(webServerStarted)
-            webServer.handleClient();
-        else
-            httpReconnect();
-    }
+    if(httpEnable) webServer.handleClient();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+void httpEverySecond()
+{
+    if(httpEnable && !webServerStarted) httpReconnect();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
