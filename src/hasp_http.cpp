@@ -137,7 +137,6 @@ void webSendFooter()
 void webSendPage(String & nodename, uint32_t httpdatalength, bool gohome = false)
 {
     char buffer[128];
-
     snprintf_P(buffer, sizeof(buffer), PSTR("%u.%u.%u"), HASP_VERSION_MAJOR, HASP_VERSION_MINOR, HASP_VERSION_REVISION);
 
     /* Calculate Content Length upfront */
@@ -167,18 +166,27 @@ void webSendPage(String & nodename, uint32_t httpdatalength, bool gohome = false
     webServer.sendContent_P(HTTP_HEADER_END);              // 80
 }
 
+void webSendPage(uint32_t httpdatalength, bool gohome = false)
+{
+    String nodename((char *)0);
+    nodename.reserve(128);
+    nodename = mqttGetNodename();
+    webSendPage(nodename, httpdatalength, gohome);
+}
+
 void webHandleRoot()
 {
     if(!httpIsAuthenticated(F("root"))) return;
 
-    // char buffer[128];
-    String nodename = haspGetNodename();
+    String nodename((char *)0);
+    nodename.reserve(128);
+    nodename = mqttGetNodename();
+
     String httpMessage((char *)0);
     httpMessage.reserve(HTTP_PAGE_SIZE);
-
-    httpMessage += String(F("<h1>"));
-    httpMessage += String(nodename);
-    httpMessage += String(F("</h1>"));
+    httpMessage += F("<h1>");
+    httpMessage += nodename;
+    httpMessage += F("</h1><hr>");
 
     httpMessage += F("<p><form method='get' action='info'><button type='submit'>Information</button></form></p>");
     httpMessage += F("<p><form method='get' action='screenshot'><button type='submit'>Screenshot</button></form></p>");
@@ -207,8 +215,17 @@ void httpHandleReboot()
 { // http://plate01/reboot
     if(!httpIsAuthenticated(F("reboot"))) return;
 
-    String nodename    = haspGetNodename();
-    String httpMessage = F("Rebooting Device");
+    String nodename((char *)0);
+    nodename.reserve(128);
+    nodename = mqttGetNodename();
+
+    String httpMessage((char *)0);
+    httpMessage.reserve(HTTP_PAGE_SIZE);
+    httpMessage += F("<h1>");
+    httpMessage += nodename;
+    httpMessage += F("</h1><hr>");
+    httpMessage = F("Rebooting Device");
+
     webSendPage(nodename, httpMessage.length(), true);
     webServer.sendContent(httpMessage);
     httpMessage.clear();
@@ -230,9 +247,15 @@ void webHandleScreenshot()
         guiTakeScreenshot(webServer);
     } else {
 
-        String nodename = haspGetNodename();
+        String nodename((char *)0);
+        nodename.reserve(128);
+        nodename = mqttGetNodename();
+
         String httpMessage((char *)0);
         httpMessage.reserve(HTTP_PAGE_SIZE);
+        httpMessage += F("<h1>");
+        httpMessage += nodename;
+        httpMessage += F("</h1><hr>");
 
         httpMessage += F("<p class='c'><img id='bmp' src='?q=0'></p>");
         httpMessage += F("<p><form method='get' onsubmit=\"var timestamp = new Date().getTime();var ");
@@ -253,7 +276,10 @@ void webHandleAbout()
 { // http://plate01/about
     if(!httpIsAuthenticated(F("about"))) return;
 
-    String nodename = haspGetNodename();
+    String nodename((char *)0);
+    nodename.reserve(128);
+    nodename = mqttGetNodename();
+
     String httpMessage((char *)0);
     httpMessage.reserve(HTTP_PAGE_SIZE);
 
@@ -297,15 +323,24 @@ void webHandleInfo()
 { // http://plate01/
     if(!httpIsAuthenticated(F("info"))) return;
 
-    // char buffer[128];
-    String nodename = haspGetNodename();
+    String nodename((char *)0);
+    nodename.reserve(128);
+    nodename = mqttGetNodename();
+
     String httpMessage((char *)0);
     httpMessage.reserve(HTTP_PAGE_SIZE);
+    httpMessage += F("<h1>");
+    httpMessage += nodename;
+    httpMessage += F("</h1><hr>");
 
     /* HASP Stats */
-    httpMessage += F("<hr><b>HASP Version: </b>");
+    httpMessage += F("<b>HASP Version: </b>");
     httpMessage += String(haspGetVersion());
-    httpMessage += F("<br/><b>Uptime: </b>");
+    httpMessage += F("<b>Build DateTime: </b>");
+    httpMessage += __DATE__;
+    httpMessage += F(" ");
+    httpMessage += __TIME__;
+    httpMessage += F(" CET<br/><b>Uptime: </b>");
     httpMessage += String(long(millis() / 1000));
     httpMessage += F("<br/><b>Free Memory: </b>");
     httpMessage += spiffsFormatBytes(ESP.getFreeHeap());
@@ -322,8 +357,8 @@ void webHandleInfo()
     httpMessage += F("<br/><b>LVGL Fragmentation: </b>");
     httpMessage += mem_mon.frag_pct;
 
-    // httpMessage += String(F("<br/><b>LCD Model: </b>")) + String(LV_HASP_HOR_RES_MAX) + " x " +
-    // String(LV_HASP_VER_RES_MAX); httpMessage += String(F("<br/><b>LCD Version: </b>")) + String(lcdVersion);
+    // httpMessage += F("<br/><b>LCD Model: </b>")) + String(LV_HASP_HOR_RES_MAX) + " x " +
+    // String(LV_HASP_VER_RES_MAX); httpMessage += F("<br/><b>LCD Version: </b>")) + String(lcdVersion);
     httpMessage += F("</p/><p><b>LCD Active Page: </b>");
     httpMessage += String(haspGetPage());
 
@@ -344,12 +379,12 @@ void webHandleInfo()
     /* Mqtt Stats */
     httpMessage += F("</p/><p><b>MQTT Status: </b>");
     if(mqttIsConnected()) { // Check MQTT connection
-        httpMessage += String(F("Connected"));
+        httpMessage += F("Connected");
     } else {
-        httpMessage += String(F("<font color='red'><b>Disconnected</b></font>, return code: "));
+        httpMessage += F("<font color='red'><b>Disconnected</b></font>, return code: ");
         //     +String(mqttClient.returnCode());
     }
-    httpMessage += String(F("<br/><b>MQTT ClientID: </b>"));
+    httpMessage += F("<br/><b>MQTT ClientID: </b>");
     //   +String(mqttClientId);
 
     /* ESP Stats */
@@ -665,12 +700,16 @@ void webHandleConfig()
         httpHandleReboot();
     }
 
-    // char buffer[128];
-    String nodename = haspGetNodename();
+    String nodename((char *)0);
+    nodename.reserve(128);
+    nodename = mqttGetNodename();
+
     String httpMessage((char *)0);
     httpMessage.reserve(HTTP_PAGE_SIZE);
+    httpMessage += F("<h1>");
+    httpMessage += nodename;
+    httpMessage += F("</h1><hr>");
 
-    httpMessage += F("<hr>");
     httpMessage +=
         F("<p><form method='get' action='/config/wifi'><button type='submit'>Wifi Settings</button></form></p>");
 
@@ -709,14 +748,21 @@ void webHandleMqttConfig()
 { // http://plate01/config/mqtt
     if(!httpIsAuthenticated(F("config/mqtt"))) return;
 
+    String nodename((char *)0);
+    nodename.reserve(128);
+    nodename = mqttGetNodename();
+
     DynamicJsonDocument settings(256);
     mqttGetConfig(settings.to<JsonObject>());
 
     // char buffer[128];
     String httpMessage((char *)0);
     httpMessage.reserve(HTTP_PAGE_SIZE);
+    httpMessage += F("<h1>");
+    httpMessage += nodename;
+    httpMessage += F("</h1><hr>");
 
-    httpMessage += String(F("<form method='POST' action='/config'>"));
+    httpMessage += F("<form method='POST' action='/config'>");
     httpMessage += F("<b>HASP Node Name</b> <i><small>(required. lowercase letters, numbers, and _ only)</small>"
                      "</i><input id='name' required name='name' maxlength=15 "
                      "placeholder='HASP Node Name' pattern='[a-z0-9_]*' value='");
@@ -741,7 +787,6 @@ void webHandleMqttConfig()
     httpMessage +=
         PSTR("<p><form method='get' action='/config'><button type='submit'>Configuration</button></form></p>");
 
-    String nodename = haspGetNodename();
     webSendPage(nodename, httpMessage.length(), false);
     webServer.sendContent(httpMessage);
     httpMessage.clear();
@@ -757,20 +802,25 @@ void webHandleGuiConfig()
     DynamicJsonDocument settings(256);
     guiGetConfig(settings.to<JsonObject>());
 
-    // char buffer[128];
-    String nodename = haspGetNodename();
+    String nodename((char *)0);
+    nodename.reserve(128);
+    nodename = mqttGetNodename();
+
     String httpMessage((char *)0);
     httpMessage.reserve(HTTP_PAGE_SIZE);
+    httpMessage += F("<h1>");
+    httpMessage += nodename;
+    httpMessage += F("</h1><hr>");
 
-    httpMessage += String(F("<form method='POST' action='/config'>"));
+    httpMessage += F("<form method='POST' action='/config'>");
 
-    httpMessage += String(F("<p><b>Short Idle</b> <input id='idle1' required "
-                            "name='idle1' type='number' min='0' max='32400' value='"));
+    httpMessage += F("<p><b>Short Idle</b> <input id='idle1' required "
+                     "name='idle1' type='number' min='0' max='32400' value='");
     httpMessage += settings[FPSTR(F_GUI_IDLEPERIOD1)].as<String>();
     httpMessage += F("'></p>");
 
-    httpMessage += String(F("<p><b>Long Idle</b> <input id='idle2' required "
-                            "name='idle2' type='number' min='0' max='32400' value='"));
+    httpMessage += F("<p><b>Long Idle</b> <input id='idle2' required "
+                     "name='idle2' type='number' min='0' max='32400' value='");
     httpMessage += settings[FPSTR(F_GUI_IDLEPERIOD2)].as<String>();
     httpMessage += F("'></p>");
 
@@ -827,17 +877,22 @@ void webHandleWifiConfig()
     DynamicJsonDocument settings(256);
     wifiGetConfig(settings.to<JsonObject>());
 
-    // char buffer[128];
-    String nodename = haspGetNodename();
+    String nodename((char *)0);
+    nodename.reserve(128);
+    nodename = mqttGetNodename();
+
     String httpMessage((char *)0);
     httpMessage.reserve(HTTP_PAGE_SIZE);
+    httpMessage += F("<h1>");
+    httpMessage += nodename;
+    httpMessage += F("</h1><hr>");
 
-    httpMessage += String(F("<form method='POST' action='/config'>"));
-    httpMessage += String(F("<b>WiFi SSID</b> <i><small>(required)</small></i><input id='ssid' required "
-                            "name='ssid' maxlength=32 placeholder='WiFi SSID' value='"));
+    httpMessage += F("<form method='POST' action='/config'>");
+    httpMessage += F("<b>WiFi SSID</b> <i><small>(required)</small></i><input id='ssid' required "
+                     "name='ssid' maxlength=31 placeholder='WiFi SSID' value='");
     httpMessage += settings[FPSTR(F_CONFIG_SSID)].as<String>();
-    httpMessage += String(F("'><br/><b>WiFi Password</b> <i><small>(required)</small></i><input id='pass' required "
-                            "name='pass' type='password' maxlength=64 placeholder='WiFi Password' value='"));
+    httpMessage += F("'><br/><b>WiFi Password</b> <i><small>(required)</small></i><input id='pass' required "
+                     "name='pass' type='password' maxlength=63 placeholder='WiFi Password' value='");
     if(settings[FPSTR(F_CONFIG_PASS)].as<String>() != "") {
         httpMessage += F("********");
     }
@@ -864,17 +919,22 @@ void webHandleHttpConfig()
     DynamicJsonDocument settings(256);
     httpGetConfig(settings.to<JsonObject>());
 
-    // char buffer[128];
-    String nodename = haspGetNodename();
+    String nodename((char *)0);
+    nodename.reserve(128);
+    nodename = mqttGetNodename();
+
     String httpMessage((char *)0);
     httpMessage.reserve(HTTP_PAGE_SIZE);
+    httpMessage += F("<h1>");
+    httpMessage += nodename;
+    httpMessage += F("</h1><hr>");
 
-    httpMessage += String(F("<form method='POST' action='/config'>"));
-    httpMessage += String(F("<b>Web Username</b> <i><small>(optional)</small></i><input id='user' "
-                            "name='user' maxlength=32 placeholder='admin' value='"));
+    httpMessage += F("<form method='POST' action='/config'>");
+    httpMessage += F("<b>Web Username</b> <i><small>(optional)</small></i><input id='user' "
+                     "name='user' maxlength=31 placeholder='admin' value='");
     httpMessage += settings[FPSTR(F_CONFIG_USER)].as<String>();
-    httpMessage += String(F("'><br/><b>Web Password</b> <i><small>(optional)</small></i><input id='pass' "
-                            "name='pass' type='password' maxlength=64 placeholder='Password' value='"));
+    httpMessage += F("'><br/><b>Web Password</b> <i><small>(optional)</small></i><input id='pass' "
+                     "name='pass' type='password' maxlength=63 placeholder='Password' value='");
     if(settings[FPSTR(F_CONFIG_PASS)].as<String>() != "") {
         httpMessage += F("********");
     }
@@ -898,14 +958,19 @@ void webHandleDebugConfig()
     DynamicJsonDocument settings(256);
     debugGetConfig(settings.to<JsonObject>());
 
-    // char buffer[128];
-    String nodename = haspGetNodename();
+    String nodename((char *)0);
+    nodename.reserve(128);
+    nodename = mqttGetNodename();
+
     String httpMessage((char *)0);
     httpMessage.reserve(HTTP_PAGE_SIZE);
+    httpMessage += F("<h1>");
+    httpMessage += nodename;
+    httpMessage += F("</h1><hr>");
 
-    httpMessage += String(F("<form method='POST' action='/config'>"));
-    httpMessage += String(F("<p><b>Telemetry Period</b> <input id='teleperiod' required "
-                            "name='idle1' type='number' min='0' max='65535' value='"));
+    httpMessage += F("<form method='POST' action='/config'>");
+    httpMessage += F("<p><b>Telemetry Period</b> <input id='teleperiod' required "
+                     "name='idle1' type='number' min='0' max='65535' value='");
     httpMessage += settings[FPSTR(F_DEBUG_TELEPERIOD)].as<String>();
     httpMessage += F("'></p>");
     httpMessage += F("<p><button type='submit' name='save' value='debug'>Save Settings</button></p></form>");
@@ -927,14 +992,19 @@ void webHandleHaspConfig()
     DynamicJsonDocument settings(256);
     haspGetConfig(settings.to<JsonObject>());
 
-    // char buffer[128];
-    String nodename = haspGetNodename();
+    String nodename((char *)0);
+    nodename.reserve(128);
+    nodename = mqttGetNodename();
+
     String httpMessage((char *)0);
     httpMessage.reserve(HTTP_PAGE_SIZE);
+    httpMessage += F("<h1>");
+    httpMessage += nodename;
+    httpMessage += F("</h1><hr>");
 
     httpMessage += F("<p><form action='/edit' method='post' enctype='multipart/form-data'><input type='file' "
                      "name='filename' accept='.jsonl,.zi'>");
-    httpMessage += F("<hr><button type='submit'>Upload File</button></form></p>");
+    httpMessage += F("<button type='submit'>Upload File</button></form></p><hr>");
 
     httpMessage += F("<form method='POST' action='/config'>");
     httpMessage += F("<p><b>UI Theme</b> <i><small>(required)</small></i><select id='theme' name='theme'>");
@@ -996,12 +1066,12 @@ void webHandleHaspConfig()
 #endif
     httpMessage += F("</select></p>");
 
-    httpMessage += F("<p><b>Pages File</b> <i><small>(required)</small></i><input id='pages' required "
-                     "name='pages' maxlength=32 placeholder='/pages.jsonl' value='");
+    httpMessage += F("<p><b>Startup Layout</b> <i><small>(optional)</small></i><input id='pages' "
+                     "name='pages' maxlength=31 placeholder='/pages.jsonl' value='");
 
     httpMessage += settings[FPSTR(F_CONFIG_PAGES)].as<String>();
-    httpMessage += String(F("'></br><b>Startup Page</b> <i><small>(required)</small></i><input id='startpage' required "
-                            "name='startpage' type='number' min='0' max='3' value='"));
+    httpMessage += F("'></br><b>Startup Page</b> <i><small>(required)</small></i><input id='startpage' required "
+                     "name='startpage' type='number' min='0' max='3' value='");
     httpMessage += settings[FPSTR(F_CONFIG_STARTPAGE)].as<String>();
     httpMessage +=
         F("'></p><p><b>Startup Brightness</b> <i><small>(required)</small></i><input id='startpage' required "
@@ -1028,6 +1098,7 @@ void httpHandleNotFound()
 
     String httpMessage((char *)0);
     httpMessage.reserve(HTTP_PAGE_SIZE);
+
     httpMessage += F("File Not Found\n\nURI: ");
     httpMessage += webServer.uri();
     httpMessage += F("\nMethod: ");
@@ -1060,14 +1131,18 @@ void httpHandleEspFirmware()
 { // http://plate01/espfirmware
     if(!httpIsAuthenticated(F("espfirmware"))) return;
 
-    String nodename = haspGetNodename();
-    // char buffer[128];
+    String nodename((char *)0);
+    nodename.reserve(128);
+    nodename = mqttGetNodename();
+
     String httpMessage((char *)0);
     httpMessage.reserve(HTTP_PAGE_SIZE);
-    httpMessage += String(F("<h1>"));
-    httpMessage += String(haspGetNodename());
-    httpMessage += String(F(" ESP update</h1><br/>Updating ESP firmware from: "));
-    httpMessage += String(webServer.arg("espFirmware"));
+    httpMessage += F("<h1>");
+    httpMessage += nodename;
+    httpMessage += F("</h1><hr>");
+
+    httpMessage += F("<p><b>ESP update</b></p>Updating ESP firmware from: ");
+    httpMessage += webServer.arg("espFirmware");
 
     webSendPage(nodename, httpMessage.length(), true);
     webServer.sendContent(httpMessage);
@@ -1084,24 +1159,28 @@ void httpHandleResetConfig()
     if(!httpIsAuthenticated(F("resetConfig"))) return;
 
     bool resetConfirmed = webServer.arg(F("confirm")) == F("yes");
-    String nodename     = haspGetNodename();
-    // char buffer[128];
+
+    String nodename((char *)0);
+    nodename.reserve(128);
+    nodename = mqttGetNodename();
+
     String httpMessage((char *)0);
     httpMessage.reserve(HTTP_PAGE_SIZE);
+    httpMessage += F("<h1>");
+    httpMessage += nodename;
+    httpMessage += F("</h1><hr>");
 
     if(resetConfirmed) { // User has confirmed, so reset everything
-        httpMessage += F("<h1>");
-        httpMessage += haspGetNodename();
         bool formatted = SPIFFS.format();
         if(formatted) {
-            httpMessage += F("</h1><b>Resetting all saved settings and restarting device into WiFi AP mode</b>");
+            httpMessage += F("<b>Resetting all saved settings and restarting device into WiFi AP mode</b>");
         } else {
-            httpMessage += F("</h1><b>Failed to format the internal flash partition</b>");
+            httpMessage += F("<b>Failed to format the internal flash partition</b>");
             resetConfirmed = false;
         }
     } else {
         httpMessage +=
-            F("<h1>Warning</h1><b>This process will reset all settings to the default values. The internal flash will "
+            F("<h2>Warning</h2><b>This process will reset all settings to the default values. The internal flash will "
               "be erased and the device is restarted. You may need to connect to the WiFi AP displayed on the panel to "
               "re-configure the device before accessing it again. ALL FILES WILL BE LOST!"
               "<br/><hr><br/><form method='get' action='resetConfig'>"
@@ -1192,6 +1271,8 @@ void httpSetup(const JsonObject & settings)
         webServer.on(F("/reboot"), httpHandleReboot);
         webServer.onNotFound(httpHandleNotFound);
     }
+
+    debugPrintln(F("HTTP: Setup Complete"));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1218,7 +1299,7 @@ void httpReconnect()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-void httpLoop(bool wifiIsConnected)
+void httpLoop()
 {
     if(httpEnable) {
         if(webServerStarted)
