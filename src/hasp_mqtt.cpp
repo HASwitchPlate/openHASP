@@ -100,7 +100,7 @@ void IRAM_ATTR mqttSendState(const char * subtopic, const char * payload)
     // brightness = 100
 
     char mqttTopic[128];
-    char mqttPayload[128 * 5];
+    // char mqttPayload[128 * 5];
 
     snprintf_P(mqttTopic, sizeof(mqttTopic), PSTR("%sstate/%s"), mqttNodeTopic.c_str(), subtopic);
     mqttClient.publish(mqttTopic, payload);
@@ -421,6 +421,8 @@ void mqttSetup(const JsonObject & settings)
 
     mqttClient.setServer(mqttServer, 1883);
     mqttClient.setCallback(mqttCallback);
+
+    debugPrintln(F("MQTT: Setup Complete"));
 }
 
 void mqttLoop(bool wifiIsConnected)

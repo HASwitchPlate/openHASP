@@ -5,8 +5,8 @@
 #include "ArduinoJson.h"
 
 void httpSetup(const JsonObject & settings);
-void httpLoop(bool wifiIsConnected);
-void httpReconnect();
+void httpLoop(void);
+void httpReconnect(void);
 
 bool httpGetConfig(const JsonObject & settings);
 bool httpSetConfig(const JsonObject & settings);
