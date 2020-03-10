@@ -20,7 +20,8 @@ const float haspVersion = 0.38;
 
 void mdnsSetup(const JsonObject & settings)
 {
-    mqttSetConfig(settings);
+    mdnsSetConfig(settings);
+    debugPrintln(F("MDNS: Setup Complete"));
 }
 
 void mdnsStart()
@@ -46,7 +47,7 @@ void mdnsStart()
     }
 }
 
-void mdnsLoop(bool wifiIsConnected)
+void mdnsLoop()
 {
 #if defined(ARDUINO_ARCH_ESP8266)
     if(mdnsEnabled) {

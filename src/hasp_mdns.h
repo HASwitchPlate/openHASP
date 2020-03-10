@@ -4,7 +4,7 @@
 #include "ArduinoJson.h"
 
 void mdnsSetup(const JsonObject & settings);
-void mdnsLoop(bool wifiIsConnected);
+void mdnsLoop(void);
 void mdnsStart(void);
 void mdnsStop(void);
 
