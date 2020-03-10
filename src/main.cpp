@@ -88,15 +88,15 @@ void setup()
     wifiSetup(settings[F("wifi")]);
 
 #if HASP_USE_MQTT
-    mqttSetup(settings[F("mqtt")]);
+    // mqttSetup(settings[F("mqtt")]);
 #endif
 
 #if HASP_USE_TELNET
-    telnetSetup(settings[F("telnet")]);
+    // telnetSetup(settings[F("telnet")]);
 #endif
 
 #if HASP_USE_MDNS
-    mdnsSetup(settings[F("mdns")]);
+    // mdnsSetup(settings[F("mdns")]);
 #endif
 
 #if HASP_USE_HTTP
@@ -134,30 +134,39 @@ void loop()
     /* Network Services Loops */
 #if HASP_USE_WIFI
     isConnected = wifiLoop();
-
 #if HASP_USE_MQTT
     mqttLoop(isConnected);
 #endif
 
+    if(isConnected) {
 #if HASP_USE_HTTP
-    httpLoop(isConnected);
+        httpLoop();
 #endif
 
 #if HASP_USE_TELNET
-    telnetLoop(isConnected);
+        telnetLoop();
 #endif
 
 #if HASP_USE_MDNS
-    mdnsLoop(isConnected);
+        mdnsLoop();
 #endif
 
 #if HASP_USE_BUTTON
-    buttonLoop();
+        buttonLoop();
 #endif
+    }
 
-    otaLoop(isConnected);
+    otaLoop();
     debugLoop();
 #endif
+
+    static unsigned long mainLastLoopTime = 0;
+
+    // Every Secons Loop
+    if(millis() - mainLastLoopTime >= 1000) {
+        mainLastLoopTime += 1000;
+        otaEverySecond();
+    }
 
     // delay(1);
 }
