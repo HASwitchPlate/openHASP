@@ -54,6 +54,22 @@ Syslog syslog(syslogClient, debugSyslogHost.c_str(), debugSyslogPort, debugAppNa
 unsigned long debugLastMillis = 0;
 uint16_t debugTelePeriod      = 300;
 
+String debugHaspHeader()
+{
+    String header((char *)0);
+    header.reserve(256);
+    header = F("           _____ _____ _____ _____\r\n"
+               "          |  |  |  _  |   __|  _  |\r\n"
+               "          |     |     |__   |   __|\r\n"
+               "          |__|__|__|__|_____|__|\r\n"
+               "        Home Automation Switch Plate\r\n");
+    char buffer[128];
+    snprintf(buffer, sizeof(buffer), PSTR("        Open Hardware edition v%u.%u.%u\r\n"), HASP_VERSION_MAJOR,
+             HASP_VERSION_MINOR, HASP_VERSION_REVISION);
+    header += buffer;
+    return header;
+}
+
 void debugStart()
 {
 #if defined(ARDUINO_ARCH_ESP32)
@@ -64,10 +80,7 @@ void debugStart()
 
     Serial.flush();
     Serial.println();
-    Serial.printf_P(PSTR("           _____ _____ _____ _____\r\n          |  |  |  _  |   __|  _  |\r\n"
-                         "          |     |     |__   |   __|\r\n          |__|__|__|__|_____|__|\r\n"
-                         "        Home Automation Switch Plate\r\n        Open Hardware edition v%u.%u.%u\r\n\r\n"),
-                    HASP_VERSION_MAJOR, HASP_VERSION_MINOR, HASP_VERSION_REVISION);
+    Serial.println(debugHaspHeader());
     Serial.flush();
 
     // prepare syslog configuration here (can be anywhere before first call of
@@ -129,7 +142,7 @@ void syslogSend(uint8_t log, const char * debugText)
             case 1:
                 syslog.log(LOG_WARNING, debugText);
                 break;
-            case2:
+            case 2:
                 syslog.log(LOG_ERR, debugText);
                 break;
             default:

@@ -8,7 +8,7 @@
 #include "ArduinoJson.h"
 
 void telnetSetup(const JsonObject & settings);
-void telnetLoop(bool isConnected);
+void telnetLoop(void);
 void telnetStop(void);
 
 void telnetPrint(const char * msg);

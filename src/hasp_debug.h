@@ -3,6 +3,8 @@
 
 #include "ArduinoJson.h"
 
+String debugHaspHeader(void);
+
 void debugPreSetup(JsonObject settings);
 void debugSetup(JsonObject settings);
 void debugLoop(void);
