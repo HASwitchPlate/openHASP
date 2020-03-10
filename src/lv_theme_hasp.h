@@ -14,7 +14,7 @@ extern "C" {
  *      INCLUDES
  *********************/
 #include "lvgl.h"
-#include "../lib/lvgl/src/lv_conf_internal.h"
+//#include "../lib/lvgl/src/lv_conf_internal.h"
 
 #if LV_USE_THEME_HASP
 

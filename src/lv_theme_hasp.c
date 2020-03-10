@@ -6,7 +6,7 @@
 /*********************
  *      INCLUDES
  *********************/
-#include "../lib/lvgl/src/lv_themes/lv_theme.h"
+#include "lv_themes/lv_theme.h"
 
 #if LV_USE_THEME_HASP
 

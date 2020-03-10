@@ -139,7 +139,7 @@ typedef int16_t lv_coord_t;
  *==================*/
 
 /*1: Enable the Animations */
-#define LV_USE_ANIMATION        (LV_HIGH_RESOURCE_MCU)
+#define LV_USE_ANIMATION        1 // (LV_HIGH_RESOURCE_MCU)
 #if LV_USE_ANIMATION
 
 /*Declare the type of the user data of animations (can be e.g. `void *`, `int`, `struct`)*/
@@ -494,7 +494,7 @@ typedef uint8_t  lv_obj_user_data_t;
 #endif
 
 /*Preload (dependencies: lv_arc, lv_anim)*/
-#define LV_USE_PRELOAD      (LV_HIGH_RESOURCE_MCU)
+#define LV_USE_PRELOAD      1 // (LV_HIGH_RESOURCE_MCU)
 #if LV_USE_PRELOAD != 0
 #  define LV_PRELOAD_DEF_ARC_LENGTH   60      /*[deg]*/
 #  define LV_PRELOAD_DEF_SPIN_TIME    1000    /*[ms]*/
@@ -561,7 +561,7 @@ typedef uint8_t  lv_obj_user_data_t;
 /*--END OF LV_CONF_H--*/
 
 /*Be sure every define has a default value*/
-//#include "src/lv_conf_checker.h"
+#include "lv_conf_checker.h"
 
 #endif /*LV_CONF_H*/
 
