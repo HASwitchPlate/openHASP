@@ -10,7 +10,7 @@
 #define HASP_USE_MQTT 1
 #define HASP_USE_HTTP 1
 #define HASP_USE_MDNS 1
-#define HASP_USE_SYSLOG 0
+#define HASP_USE_SYSLOG 1
 #define HASP_USE_TELNET 1
 
 #define HASP_USE_SPIFFS 1
