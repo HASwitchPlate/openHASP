@@ -152,7 +152,7 @@ void dispatchBacklight(String strPayload)
 
 void dispatchCommand(String cmnd)
 {
-    cmnd.toLowerCase();
+    // cmnd.toLowerCase();
     debugPrintln("CMND: " + cmnd);
 
     if(cmnd.startsWith(F("page "))) {
