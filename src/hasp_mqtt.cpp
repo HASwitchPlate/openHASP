@@ -201,6 +201,13 @@ void mqttStatusUpdate()
     mqttStatusPayload += F("\"espCore\":\"");
     mqttStatusPayload += halGetCoreVersion();
     mqttStatusPayload += F("\"");
+
+#if defined(ARDUINO_ARCH_ESP8266)
+    mqttStatusPayload += F(",");
+    mqttStatusPayload += F("\"Vcc\":\"");
+    mqttStatusPayload += (float)ESP.getVcc() / 1000;
+    mqttStatusPayload += F("\"");
+#endif
     mqttStatusPayload += "}";
 
     // mqttClient.publish(mqttSensorTopic, mqttStatusPayload);

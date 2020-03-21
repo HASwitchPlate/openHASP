@@ -76,8 +76,8 @@ void dispatchAttribute(String & strTopic, const char * payload)
             } // valid page
         }
     } else if(strTopic.startsWith(F("output"))) {
-        uint8_t state = isON(payload) ? HIGH : LOW;
 #if defined(ARDUINO_ARCH_ESP8266)
+        uint8_t state = isON(payload) ? HIGH : LOW;
         digitalWrite(D1, state);
 #endif
 
@@ -222,7 +222,7 @@ void dispatchJsonl(char * strPayload)
     DynamicJsonDocument config(256);
 
     String output((char *)0);
-    output.reserve(MQTT_MAX_PACKET_SIZE+ 256);
+    output.reserve(MQTT_MAX_PACKET_SIZE + 256);
 
     StringStream stream((String &)output);
     stream.print(strPayload);

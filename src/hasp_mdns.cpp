@@ -41,6 +41,13 @@ void mdnsStart()
             MDNS.addService(F("http"), F("tcp"), 80);
             MDNS.addService(F("telnet"), F("tcp"), 23);
             MDNS.addServiceTxt(hasp2Node, F("tcp"), F("app_name"), F("HASP-lvgl"));
+            /*
+                        addService("arduino", "tcp", port);
+                        addServiceTxt("arduino", "tcp", "tcp_check", "no");
+                        addServiceTxt("arduino", "tcp", "ssh_upload", "no");
+                        addServiceTxt("arduino", "tcp", "board", ARDUINO_BOARD);
+                        addServiceTxt("arduino", "tcp", "auth_upload", (auth) ? "yes" : "no");
+                        */
         } else {
             errorPrintln(String(F("MDNS: %sResponder failed to start ")) + hasp2Node);
         };

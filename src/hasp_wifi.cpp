@@ -10,6 +10,7 @@
 #include "hasp_log.h"
 #include "hasp_debug.h"
 #include "hasp_config.h"
+#include "hasp_dispatch.h"
 #include "hasp_gui.h"
 #include "hasp.h"
 
@@ -37,6 +38,7 @@ char wifiPassword[32] = WIFI_PASSW;
 #else
 char wifiPassword[32] = "";
 #endif
+uint8_t wifiReconnectCounter = 0;
 
 // const byte DNS_PORT = 53;
 // DNSServer dnsServer;
@@ -67,19 +69,24 @@ void wifiConnected(IPAddress ipaddress)
     debugPrintln(buffer);
 
     if(isConnected) {
-        mqttReconnect();
-        haspReconnect();
+        /*    mqttReconnect();
+            haspReconnect();*/
         httpReconnect();
-        mdnsStart();
+        // mdnsStart();
     }
 }
 
 void wifiDisconnected(const char * ssid, uint8_t reason)
 {
     char buffer[128];
+    wifiReconnectCounter++;
+    if(wifiReconnectCounter > 45) {
+        snprintf_P(buffer, sizeof(buffer), PSTR("WIFI: %%s Retries exceed %u: Rebooting..."), wifiReconnectCounter);
+        errorPrintln(buffer);
+        dispatchReboot(false);
+    }
     snprintf_P(buffer, sizeof(buffer), PSTR("WIFI: Disconnected from %s (Reason: %d)"), ssid, reason);
     debugPrintln(buffer);
-    WiFi.reconnect();
 }
 
 void wifiSsidConnected(const char * ssid)
@@ -87,6 +94,7 @@ void wifiSsidConnected(const char * ssid)
     char buffer[128];
     snprintf_P(buffer, sizeof(buffer), PSTR("WIFI: Connected to SSID %s. Requesting IP..."), ssid);
     debugPrintln(buffer);
+    wifiReconnectCounter = 0;
 }
 
 #if defined(ARDUINO_ARCH_ESP32)
@@ -141,7 +149,7 @@ void wifiSetup(JsonObject settings)
 
         WiFi.mode(WIFI_AP);
         WiFi.softAP(apSsdid.c_str(), buffer);
-        haspDisplayAP(apSsdid.c_str(), buffer);
+        // haspDisplayAP(apSsdid.c_str(), buffer);
 
         /* Setup the DNS server redirecting all the domains to the apIP */
         // dnsServer.setErrorReplyCode(DNSReplyCode::NoError);
@@ -152,7 +160,7 @@ void wifiSetup(JsonObject settings)
         debugPrintln(buffer);
         sprintf_P(buffer, PSTR("WIFI: AP IP address : %s"), IP.toString().c_str());
         debugPrintln(buffer);
-        httpReconnect();
+        // httpReconnect();
     } else {
 
         WiFi.mode(WIFI_STA);
@@ -177,34 +185,6 @@ void wifiSetup(JsonObject settings)
 bool wifiLoop()
 {
     return WiFi.status() == WL_CONNECTED;
-
-    /*
-      if(WiFi.status() == WL_CONNECTED) {
-          if(wifiWasConnected) return true;
-
-          debugPrintln(F("WIFI: Reconnected"));
-          wifiWasConnected     = true;
-          wifiReconnectAttempt = 1;
-          wifiPrevMillis       = millis();
-          haspOnline();
-          return true;
-
-      } else if(millis() - wifiPrevMillis > 1000) {
-          if(wifiReconnectAttempt < 20) {
-              if(wifiReconnectAttempt == 1) { // <0 means we were never connected yet
-                                              // haspOffline();
-                  warningPrintln(String(F("WIFI: %sConnection lost. Reconnecting... #")) +
-      String(wifiReconnectAttempt)); WiFi.reconnect(); } else { debugPrintln(F("WIFI: Waiting for connection..."));
-              }
-          } else {
-              // haspOffline();
-              debugPrintln(F("WIFI: Connection lost. Reconnecting..."));
-              WiFi.reconnect();
-          }
-          wifiReconnectAttempt++;
-          wifiPrevMillis = millis();
-      }
-      return false;*/
 }
 
 bool wifiGetConfig(const JsonObject & settings)

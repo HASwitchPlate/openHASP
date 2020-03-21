@@ -1,6 +1,7 @@
 //#include "webServer.h"
-#include <Arduino.h>
+#include "Arduino.h"
 #include "ArduinoJson.h"
+//#include "Update.h"
 #include "lvgl.h"
 
 #include "hasp_conf.h"
@@ -241,7 +242,7 @@ void webHandleScreenshot()
     if(!httpIsAuthenticated(F("screenshot"))) return;
 
     if(webServer.hasArg(F("q"))) {
-        webServer.setContentLength(138 + 320 * 240 * 4);
+        webServer.setContentLength(122 + 320 * 240 * 2);
         webServer.send(200, PSTR("image/bmp"), "");
 
         guiTakeScreenshot(webServer);
@@ -336,7 +337,7 @@ void webHandleInfo()
     /* HASP Stats */
     httpMessage += F("<b>HASP Version: </b>");
     httpMessage += String(haspGetVersion());
-    httpMessage += F("<b>Build DateTime: </b>");
+    httpMessage += F("<br/><b>Build DateTime: </b>");
     httpMessage += __DATE__;
     httpMessage += F(" ");
     httpMessage += __TIME__;
@@ -385,7 +386,7 @@ void webHandleInfo()
         //     +String(mqttClient.returnCode());
     }
     httpMessage += F("<br/><b>MQTT ClientID: </b>");
-    //   +String(mqttClientId);
+    httpMessage += nodename;
 
     /* ESP Stats */
     httpMessage += F("</p/><p><b>ESP Chip Id: </b>");
@@ -503,6 +504,33 @@ bool handleFileRead(String path)
     }
     return false;
 }
+
+/*
+void handleFirmwareUpdate()
+{
+    upload = &webServer.upload();
+    if(upload->status == UPLOAD_FILE_START) {
+        if(!httpIsAuthenticated(F("firmwareupdate"))) return false;
+        Serial.printf("Update: %s\n", upload->filename.c_str());
+        if(!Update.begin(UPDATE_SIZE_UNKNOWN)) { // start with max available size
+            Update.printError(Serial);
+        }
+    } else if(upload->status == UPLOAD_FILE_WRITE) {
+        // flashing firmware to /
+if(Update.write(upload->buf, upload->currentSize) != upload->currentSize) {
+    Update.printError(Serial);
+}
+}
+else if(upload->status == UPLOAD_FILE_END)
+{
+    if(Update.end(true)) { // true to set the size to the current progress
+        Serial.printf("Update Success: %u\nRebooting...\n", upload->totalSize);
+    } else {
+        Update.printError(Serial);
+    }
+}
+}
+*/
 
 void handleFileUpload()
 {
