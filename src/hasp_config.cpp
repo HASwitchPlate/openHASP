@@ -1,5 +1,6 @@
 #include "Arduino.h"
 #include "ArduinoJson.h"
+#include "ArduinoLog.h"
 #include <FS.h> // Include the SPIFFS library
 
 #if defined(ARDUINO_ARCH_ESP32)
@@ -7,24 +8,28 @@
 #endif
 
 #include "hasp_config.h"
-#include "hasp_log.h"
+//#include "hasp_log.h"
 #include "hasp_debug.h"
 #include "hasp_http.h"
-#include "hasp_mqtt.h"
 #include "hasp_wifi.h"
 #include "hasp_mdns.h"
 #include "hasp_gui.h"
-// #include "hasp_tft.h"
 #include "hasp_ota.h"
 #include "hasp_spiffs.h"
 #include "hasp_telnet.h"
 #include "hasp.h"
 
+#include "hasp_conf.h"
+#if HASP_USE_MQTT
+#include "hasp_mqtt.h"
+#endif
+
 void confDebugSet(const char * name)
 {
-    char buffer[128];
+    /*char buffer[128];
     snprintf(buffer, sizeof(buffer), PSTR("CONF:    * %s set"), name);
-    debugPrintln(buffer);
+    debugPrintln(buffer);*/
+    Log.trace(F("CONF:    * %s set"), name);
 }
 
 bool configSet(int8_t & value, const JsonVariant & setting, const char * name)
@@ -64,26 +69,14 @@ bool configSet(uint16_t & value, const JsonVariant & setting, const char * name)
     return false;
 }
 
-bool configChanged()
-{
-    return false;
-}
-
-void configLoop()
-{
-    if(configChanged()) {
-        // configSetConfig();
-    }
-}
-
 void configStartDebug(bool setupdebug, String & configFile)
 {
     if(setupdebug) {
         debugStart(); // Debug started, now we can use it; HASP header sent
-        debugPrintln(F("FILE: [SUCCESS] SPI flash FS mounted"));
+        Log.notice(F("FILE: [SUCCESS] SPI flash FS mounted"));
         spiffsList();
     }
-    debugPrintln(String(F("CONF: Loading ")) + configFile);
+    Log.notice(F("CONF: Loading %s"), configFile.c_str());
 }
 
 void configGetConfig(JsonDocument & settings, bool setupdebug = false)
@@ -96,7 +89,7 @@ void configGetConfig(JsonDocument & settings, bool setupdebug = false)
     if(file) {
         size_t size = file.size();
         if(size > 1024) {
-            errorPrintln(F("CONF: %sConfig file size is too large"));
+            Log.error(F("CONF: Config file size is too large"));
             return;
         }
 
@@ -105,7 +98,9 @@ void configGetConfig(JsonDocument & settings, bool setupdebug = false)
             file.close();
 
             /* Load Debug params */
-            debugPreSetup(settings[F("debug")]);
+            if(setupdebug) {
+                debugPreSetup(settings[F("debug")]);
+            }
             configStartDebug(setupdebug, configFile);
 
             // show settings in log
@@ -115,16 +110,16 @@ void configGetConfig(JsonDocument & settings, bool setupdebug = false)
             output.replace(settings[F("http")][F("pass")].as<String>(), passmask);
             output.replace(settings[F("mqtt")][F("pass")].as<String>(), passmask);
             output.replace(settings[F("wifi")][F("pass")].as<String>(), passmask);
-            debugPrintln(String(F("CONF: ")) + output);
+            Log.verbose(F("CONF: %s"), output.c_str());
+            Log.notice(F("CONF: [SUCCESS] Loaded %s"), configFile.c_str());
 
-            debugPrintln(String(F("CONF: [SUCCESS] Loaded ")) + configFile);
-            debugSetup(settings[F("debug")]);
+            if(setupdebug) debugSetup(settings[F("debug")]);
             return;
         }
     }
 
     configStartDebug(setupdebug, configFile);
-    errorPrintln(String(F("CONF: %sFailed to load ")) + configFile);
+    Log.error(F("CONF: Failed to load %s"), configFile.c_str());
 }
 
 void configWriteConfig()
@@ -134,62 +129,56 @@ void configWriteConfig()
     configFile = String(FPSTR(HASP_CONFIG_FILE));
 
     /* Read Config File */
-    DynamicJsonDocument settings(2 * 1024);
-    debugPrintln(String(F("CONF: Config LOADING first ")) + configFile);
+    DynamicJsonDocument settings(1024 * 2);
+    Log.notice(F("CONF: Config LOADING first %s"), configFile.c_str());
     configGetConfig(settings, false);
-    debugPrintln(String(F("CONF: Config LOADED first ")) + configFile);
+    Log.trace(F("CONF: Config LOADED first %s"), configFile.c_str());
 
     bool changed = true;
 
 #if HASP_USE_WIFI
     changed |= wifiGetConfig(settings[F("wifi")].to<JsonObject>());
-
 #if HASP_USE_MQTT
     changed |= mqttGetConfig(settings[F("mqtt")].to<JsonObject>());
 #endif
-
 #if HASP_USE_TELNET
     changed |= telnetGetConfig(settings[F("telnet")].to<JsonObject>());
 #endif
-
 #if HASP_USE_MDNS
     changed |= mdnsGetConfig(settings[F("mdns")].to<JsonObject>());
 #endif
-
 #if HASP_USE_HTTP
     changed |= httpGetConfig(settings[F("http")].to<JsonObject>());
 #endif
-
 #endif
 
     changed |= debugGetConfig(settings[F("debug")].to<JsonObject>());
     changed |= guiGetConfig(settings[F("gui")].to<JsonObject>());
     changed |= haspGetConfig(settings[F("hasp")].to<JsonObject>());
     // changed |= otaGetConfig(settings[F("ota")].to<JsonObject>());
-    // changed |= tftGetConfig(settings[F("tft")].to<JsonObject>());
 
     if(changed) {
         File file = SPIFFS.open(configFile, "w");
         if(file) {
-            debugPrintln(String(F("CONF: Writing ")) + configFile);
+            Log.notice(F("CONF: Writing %s"), configFile.c_str());
             size_t size = serializeJson(settings, file);
             file.close();
             if(size > 0) {
-                debugPrintln(String(F("CONF: [SUCCESS] Saved ")) + configFile);
+                Log.verbose(F("CONF: [SUCCESS] Saved %s"), configFile.c_str());
                 return;
             }
         }
 
-        errorPrintln(String(F("CONF: %sFailed to write ")) + configFile);
+        Log.error(F("CONF: Failed to write %s"), configFile.c_str());
     } else {
-        debugPrintln(F("CONF: Configuration was not changed"));
+        Log.verbose(F("CONF: Configuration was not changed"));
     }
 }
 
 void configSetup(JsonDocument & settings)
 {
     if(!SPIFFS.begin()) {
-        errorPrintln(F("FILE: %sSPI flash init failed. Unable to mount FS."));
+        Log.error(F("FILE: SPI flash init failed. Unable to mount FS."));
     } else {
         configGetConfig(settings, true);
     }
@@ -212,5 +201,5 @@ void configOutput(const JsonObject & settings)
     password += F("\"");
 
     if(password.length() > 2) output.replace(password, passmask);
-    debugPrintln(String(F("CONF: ")) + output);
+    Log.trace(F("CONF: %s"), output.c_str());
 }

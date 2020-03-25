@@ -1,5 +1,6 @@
 #include "hasp_conf.h"
 #include <Arduino.h>
+#include "ArduinoLog.h"
 
 #if defined(ARDUINO_ARCH_ESP8266)
 #include <ESP8266WiFi.h>
@@ -17,10 +18,10 @@
 
 void debugPrintln(String & debugText)
 {
-    serialPrintln(debugText);
+    serialPrintln(debugText, LOG_LEVEL_NOTICE);
 
 #if HASP_USE_SYSLOG != 0
-    syslogSend(0, debugText.c_str());
+    syslogSend(LOG_INFO, debugText.c_str());
 #endif
 }
 
@@ -34,10 +35,10 @@ void debugPrintln(const __FlashStringHelper * debugText)
 
 void debugPrintln(const char * debugText)
 {
-    serialPrintln(debugText);
+    serialPrintln(debugText, LOG_LEVEL_NOTICE);
 
 #if HASP_USE_SYSLOG != 0
-    syslogSend(0, debugText);
+    syslogSend(LOG_INFO, debugText);
 #endif
 }
 
@@ -45,10 +46,10 @@ void errorPrintln(String debugText)
 {
     char buffer[128];
     sprintf_P(buffer, debugText.c_str(), PSTR("[ERROR] "));
-    serialPrintln(buffer);
+    serialPrintln(buffer, LOG_LEVEL_ERROR);
 
 #if HASP_USE_SYSLOG != 0
-    syslogSend(2, buffer);
+    syslogSend(LOG_ERR, buffer);
 #endif
 }
 
@@ -56,9 +57,9 @@ void warningPrintln(String debugText)
 {
     char buffer[128];
     sprintf_P(buffer, debugText.c_str(), PSTR("[WARNING] "));
-    serialPrintln(buffer);
+    serialPrintln(buffer, LOG_LEVEL_WARNING);
 
 #if HASP_USE_SYSLOG != 0
-    syslogSend(1, buffer);
+    syslogSend(LOG_WARNING, buffer);
 #endif
 }

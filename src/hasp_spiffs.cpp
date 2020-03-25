@@ -1,8 +1,9 @@
 #include <Arduino.h>
 #include "ArduinoJson.h"
+#include "ArduinoLog.h"
 
 #include "hasp_conf.h"
-#include "hasp_log.h"
+//#include "hasp_log.h"
 #include "hasp_spiffs.h"
 
 #if HASP_USE_SPIFFS
@@ -14,24 +15,20 @@
 
 void spiffsList()
 {
-    char buffer[128];
-    debugPrintln(PSTR("FILE: Listing files on the internal flash:"));
+    Log.verbose(F("FILE: Listing files on the internal flash:"));
 
 #if defined(ARDUINO_ARCH_ESP32)
     File root = SPIFFS.open("/");
     File file = root.openNextFile();
     while(file) {
-        snprintf(buffer, sizeof(buffer), PSTR("FILE:    * %s  (%u bytes)"), file.name(), (uint32_t)file.size());
-        debugPrintln(buffer);
+        Log.verbose(F("FILE:    * %s  (%u bytes)"), file.name(), (uint32_t)file.size());
         file = root.openNextFile();
     }
 #endif
 #if defined(ARDUINO_ARCH_ESP8266)
     Dir dir = SPIFFS.openDir("/");
     while(dir.next()) {
-        snprintf(buffer, sizeof(buffer), PSTR("FILE:    * %s  (%u bytes)"), dir.fileName().c_str(),
-                 (uint32_t)dir.fileSize());
-        debugPrintln(buffer);
+        Log.notice(F("FILE:    * %s  (%u bytes)"), dir.fileName().c_str(), (uint32_t)dir.fileSize());
     }
 #endif
 }
@@ -41,17 +38,14 @@ void spiffsSetup()
     // no SPIFFS settings, as settings depend on SPIFFS
 
 #if HASP_USE_SPIFFS
-    char buffer[128];
 #if defined(ARDUINO_ARCH_ESP8266)
     if(!SPIFFS.begin()) {
 #else
     if(!SPIFFS.begin(true)) {
 #endif
-        snprintf(buffer, sizeof(buffer), PSTR("FILE: %%sSPI flash init failed. Unable to mount FS."));
-        errorPrintln(buffer);
+        Log.error(F("FILE: SPI flash init failed. Unable to mount FS."));
     } else {
-        snprintf(buffer, sizeof(buffer), PSTR("FILE: SPI Flash FS mounted"));
-        debugPrintln(buffer);
+        Log.notice(F("FILE: SPI Flash FS mounted"));
     }
 #endif
 }

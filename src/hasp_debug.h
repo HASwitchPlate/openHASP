@@ -8,11 +8,12 @@ String debugHaspHeader(void);
 void debugPreSetup(JsonObject settings);
 void debugSetup(JsonObject settings);
 void debugLoop(void);
+void debugEverySecond(void);
 void debugStart(void);
 void debugStop(void);
 
-void serialPrintln(String & debugText);
-void serialPrintln(const char * debugText);
+void serialPrintln(String & debugText, uint8_t level);
+void serialPrintln(const char * debugText, uint8_t level);
 
 void syslogSend(uint8_t log, const char * debugText);
 
