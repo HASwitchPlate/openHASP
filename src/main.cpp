@@ -2,16 +2,12 @@
 #include <Arduino.h>
 #include "ArduinoJson.h"
 
-#include "TFT_eSPI.h"
-
 #include "hasp_debug.h"
 #include "hasp_spiffs.h"
 #include "hasp_config.h"
-#include "hasp_tft.h"
 #include "hasp_gui.h"
-#include "hasp_ota.h"
-//#include "hasp_ota.h"
 #include "hasp.h"
+#include "hasp_conf.h"
 
 #if HASP_USE_SPIFFS
 #if defined(ARDUINO_ARCH_ESP32)
@@ -48,8 +44,13 @@
 #include "hasp_button.h"
 #endif
 
+#if HASP_USE_OTA
+#include "hasp_ota.h"
+#endif
+
 bool isConnected;
-uint8_t mainLoopCounter = 0;
+uint8_t mainLoopCounter        = 0;
+unsigned long mainLastLoopTime = 0;
 
 void setup()
 {
@@ -62,24 +63,24 @@ void setup()
 #if HASP_USE_EEPROM
     eepromSetup();
 #endif
+
 #if HASP_USE_SPIFFS
     spiffsSetup();
 #endif
 
     /* Read Config File */
-    DynamicJsonDocument settings(1024);
+    DynamicJsonDocument settings(1024 + 512);
     configSetup(settings);
 
 #if HASP_USE_SDCARD
     sdcardSetup();
 #endif
 
-    // debugSetup(settings[F("debug")]);
+    debugSetup(settings[F("debug")]);
 
     /* Init Graphics */
-    TFT_eSPI screen = TFT_eSPI();
-    guiSetup(screen, settings[F("gui")]);
-    tftSetup(screen, settings[F("tft")]);
+    // TFT_eSPI screen = TFT_eSPI();
+    guiSetup(settings[F("gui")]);
 
     /* Init GUI Application */
     haspSetup(settings[F("hasp")]);
@@ -108,8 +109,11 @@ void setup()
     buttonSetup();
 #endif
 
+#if HASP_USE_OTA
     otaSetup(settings[F("ota")]);
 #endif
+
+#endif // WIFI
 }
 
 void loop()
@@ -134,42 +138,53 @@ void loop()
 
     /* Network Services Loops */
 #if HASP_USE_WIFI
-    isConnected = wifiLoop();
 
 #if HASP_USE_MQTT
-    mqttLoop(isConnected);
-#endif
+    mqttLoop();
+#endif // MQTT
 
 #if HASP_USE_HTTP
     httpLoop();
-#endif
+#endif // HTTP
 
 #if HASP_USE_TELNET
     telnetLoop();
-#endif
+#endif // TELNET
 
 #if HASP_USE_MDNS
     mdnsLoop();
-#endif
+#endif // MDNS
 
 #if HASP_USE_BUTTON
     buttonLoop();
-#endif
+#endif // BUTTON
 
+#if HASP_USE_OTA
     otaLoop();
-    debugLoop();
-#endif
+#endif // OTA
 
-    static unsigned long mainLastLoopTime = 0;
+#endif // WIFI
 
     // Every Second Loop
     if(millis() - mainLastLoopTime >= 1000) {
+        /* Update counters */
         mainLastLoopTime += 1000;
-        httpEverySecond();
-        otaEverySecond();
         mainLoopCounter++;
         if(mainLoopCounter >= 10) {
             mainLoopCounter = 0;
+        }
+
+        /* Run Every Second */
+#if HASP_USE_OTA
+        otaEverySecond();
+#endif
+        debugEverySecond();
+
+        /* Run Every 5 Seconds */
+        if(mainLoopCounter == 0 || mainLoopCounter == 5) {
+            httpEvery5Seconds();
+            isConnected = wifiLoop();
+            mqttEvery5Seconds(isConnected);
         }
     }
 

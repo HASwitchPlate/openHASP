@@ -4,7 +4,8 @@
 #include "ArduinoJson.h"
 
 void mqttSetup(const JsonObject & settings);
-void mqttLoop(bool wifiIsConnected);
+void mqttLoop();
+void mqttEvery5Seconds(bool wifiIsConnected);
 void mqttStop();
 void mqttReconnect();
 

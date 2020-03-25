@@ -6,7 +6,7 @@
 
 void httpSetup(const JsonObject & settings);
 void httpLoop(void);
-void httpEverySecond(void);
+void httpEvery5Seconds(void);
 void httpReconnect(void);
 
 bool httpGetConfig(const JsonObject & settings);
