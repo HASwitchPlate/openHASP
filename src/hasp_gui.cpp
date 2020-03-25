@@ -298,7 +298,7 @@ void guiSetup(JsonObject settings)
 #endif
     tftSetup(tft, settings[F("tft")]);
 
-    // tft.setRotation(guiRotation); /* 1/3=Landscape or 0/2=Portrait orientation */
+    tft.setRotation(guiRotation); /* 1/3=Landscape or 0/2=Portrait orientation */
     lv_init();
 
 #if defined(ARDUINO_ARCH_ESP32)
