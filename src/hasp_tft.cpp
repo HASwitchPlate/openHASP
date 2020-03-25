@@ -1,15 +1,12 @@
-#include "TFT_eSPI.h" // Graphics and font library for ST7735 driver chip
 #include "ArduinoJson.h"
+#include "ArduinoLog.h"
+#include "TFT_eSPI.h"
+
+#include "hasp_tft.h"
 
 #if defined(ARDUINO_ARCH_ESP8266)
 ADC_MODE(ADC_VCC); // tftShowConfig measures the voltage on the pin
 #endif
-
-#include "hasp_log.h"
-#include "hasp_tft.h"
-
-#define F_TFT_ROTATION F("rotation")
-#define F_TFT_FREQUENCY F("frequency")
 
 int8_t getPinName(int8_t pin);
 
@@ -62,61 +59,46 @@ String tftDriverName()
 
 void tftOffsetInfo(uint8_t pin, uint8_t x_offset, uint8_t y_offset)
 {
-    char buffer[128];
     if(x_offset != 0) {
-        sprintf_P(buffer, PSTR("TFT: R%u x offset = %i"), pin, x_offset);
-        debugPrintln(buffer);
+        Log.verbose(F("TFT: R%u x offset = %i"), pin, x_offset);
     }
     if(y_offset != 0) {
-        sprintf_P(buffer, PSTR("TFT: R%u y offset = %i"), pin, y_offset);
-        debugPrintln(buffer);
+        Log.verbose(F("TFT: R%u y offset = %i"), pin, y_offset);
     }
 }
 
 void tftPinInfo(String pinfunction, int8_t pin)
 {
     if(pin != -1) {
-        char buffer[128];
-        sprintf_P(buffer, PSTR("TFT: %s = D%i (GPIO %i)"), pinfunction.c_str(), getPinName(pin), pin);
-        debugPrintln(buffer);
+        Log.verbose(F("TFT: %s = D%i (GPIO %i)"), pinfunction.c_str(), getPinName(pin), pin);
     }
 }
 
 void tftShowConfig(TFT_eSPI & tft)
 {
     setup_t tftSetup;
-    char buffer[128];
+    // char buffer[128];
     tft.getSetup(tftSetup);
 
-    sprintf_P(buffer, PSTR("TFT: TFT_eSPI ver = %s"), tftSetup.version.c_str());
-    debugPrintln(buffer);
-    sprintf_P(buffer, PSTR("TFT: Processor    = ESP%x"), tftSetup.esp);
-    debugPrintln(buffer);
-    sprintf_P(buffer, PSTR("TFT: Frequency    = %i MHz"), ESP.getCpuFreqMHz());
-    debugPrintln(buffer);
+    Log.verbose(F("TFT: TFT_eSPI ver = %s"), tftSetup.version.c_str());
+    Log.verbose(F("TFT: Processor    = ESP%x"), tftSetup.esp);
+    Log.verbose(F("TFT: Frequency    = %i MHz"), ESP.getCpuFreqMHz());
 
 #if defined(ARDUINO_ARCH_ESP8266)
-    sprintf_P(buffer, PSTR("TFT: Voltage      = %2.2f V"), ESP.getVcc() / 918.0);
-    debugPrintln(buffer); // 918 empirically determined
+    Log.verbose(F("TFT: Voltage      = %2.2f V"), ESP.getVcc() / 918.0); // 918 empirically determined
 #endif
-    sprintf_P(buffer, PSTR("TFT: Transactions = %s"), (tftSetup.trans == 1) ? PSTR("Yes") : PSTR("No"));
-    debugPrintln(buffer);
-    sprintf_P(buffer, PSTR("TFT: Interface    = %s"), (tftSetup.serial == 1) ? PSTR("SPI") : PSTR("Parallel"));
-    debugPrintln(buffer);
+    Log.verbose(F("TFT: Transactions = %s"), (tftSetup.trans == 1) ? PSTR("Yes") : PSTR("No"));
+    Log.verbose(F("TFT: Interface    = %s"), (tftSetup.serial == 1) ? PSTR("SPI") : PSTR("Parallel"));
 #if defined(ARDUINO_ARCH_ESP8266)
-    sprintf_P(buffer, PSTR("TFT: SPI overlap  = %s"), (tftSetup.overlap == 1) ? PSTR("Yes") : PSTR("No"));
-    debugPrintln(buffer);
+    Log.verbose(F("TFT: SPI overlap  = %s"), (tftSetup.overlap == 1) ? PSTR("Yes") : PSTR("No"));
 #endif
     if(tftSetup.tft_driver != 0xE9D) // For ePaper displays the size is defined in the sketch
     {
-        sprintf_P(buffer, PSTR("TFT: Display driver = %s"), tftDriverName().c_str()); // tftSetup.tft_driver);
-        debugPrintln(buffer);
-        sprintf_P(buffer, PSTR("TFT: Display width  = %i"), tftSetup.tft_width);
-        debugPrintln(buffer);
-        sprintf_P(buffer, PSTR("TFT: Display height = %i"), tftSetup.tft_height);
-        debugPrintln(buffer);
+        Log.verbose(F("TFT: Display driver = %s"), tftDriverName().c_str()); // tftSetup.tft_driver);
+        Log.verbose(F("TFT: Display width  = %i"), tftSetup.tft_width);
+        Log.verbose(F("TFT: Display height = %i"), tftSetup.tft_height);
     } else if(tftSetup.tft_driver == 0xE9D)
-        debugPrintln(F("Display driver = ePaper"));
+        Log.verbose(F("Display driver = ePaper"));
 
     // Offsets, not all used yet
     tftOffsetInfo(0, tftSetup.r0_x_offset, tftSetup.r0_y_offset);
@@ -138,14 +120,14 @@ void tftShowConfig(TFT_eSPI & tft)
 
 #if defined(ARDUINO_ARCH_ESP8266)
     if(tftSetup.overlap == true) {
-        debugPrintln(F("Overlap selected, following pins MUST be used:\n"));
+        Log.verbose(F("Overlap selected, following pins MUST be used:"));
 
-        debugPrintln(F("MOSI     = SD1 (GPIO 8)"));
-        debugPrintln(F("MISO     = SD0 (GPIO 7)"));
-        debugPrintln(F("SCK      = CLK (GPIO 6)"));
-        debugPrintln(F("TFT_CS   = D3  (GPIO 0)"));
+        Log.verbose(F("MOSI     = SD1 (GPIO 8)"));
+        Log.verbose(F("MISO     = SD0 (GPIO 7)"));
+        Log.verbose(F("SCK      = CLK (GPIO 6)"));
+        Log.verbose(F("TFT_CS   = D3  (GPIO 0)"));
 
-        debugPrintln(F("TFT_DC and TFT_RST pins can be tftSetup defined\n"));
+        Log.verbose(F("TFT_DC and TFT_RST pins can be tftSetup defined"));
     }
 #endif
 
@@ -169,25 +151,23 @@ void tftShowConfig(TFT_eSPI & tft)
 
     /*
         uint16_t fonts = tft.fontsLoaded();
-        if(fonts & (1 << 1)) debugPrintln(F("Font GLCD   loaded\n"));
-        if(fonts & (1 << 2)) debugPrintln(F("Font 2      loaded\n"));
-        if(fonts & (1 << 4)) debugPrintln(F("Font 4      loaded\n"));
-        if(fonts & (1 << 6)) debugPrintln(F("Font 6      loaded\n"));
-        if(fonts & (1 << 7)) debugPrintln(F("Font 7      loaded\n"));
+        if(fonts & (1 << 1)) Log.verbose(F("Font GLCD   loaded\n"));
+        if(fonts & (1 << 2)) Log.verbose(F("Font 2      loaded\n"));
+        if(fonts & (1 << 4)) Log.verbose(F("Font 4      loaded\n"));
+        if(fonts & (1 << 6)) Log.verbose(F("Font 6      loaded\n"));
+        if(fonts & (1 << 7)) Log.verbose(F("Font 7      loaded\n"));
         if(fonts & (1 << 9))
-            debugPrintln(F("Font 8N     loaded\n"));
+            Log.verbose(F("Font 8N     loaded\n"));
         else if(fonts & (1 << 8))
-            debugPrintln(F("Font 8      loaded\n"));
-        if(fonts & (1 << 15)) debugPrintln(F("Smooth font enabled\n"));
+            Log.verbose(F("Font 8      loaded\n"));
+        if(fonts & (1 << 15)) Log.verbose(F("Smooth font enabled\n"));
     */
 
     if(tftSetup.serial == 1) {
-        sprintf_P(buffer, PSTR("TFT: Display SPI frequency = %2.1f MHz"), tftSetup.tft_spi_freq / 10.0);
-        debugPrintln(buffer);
+        Log.verbose(F("TFT: Display SPI frequency = %2.1f MHz"), tftSetup.tft_spi_freq / 10.0);
     }
     if(tftSetup.pin_tch_cs != -1) {
-        sprintf_P(buffer, PSTR("TFT: Touch SPI frequency   = %2.1f MHz"), tftSetup.tch_spi_freq / 10.0);
-        debugPrintln(buffer);
+        Log.verbose(F("TFT: Touch SPI frequency   = %2.1f MHz"), tftSetup.tch_spi_freq / 10.0);
     }
 }
 

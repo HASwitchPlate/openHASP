@@ -10,7 +10,6 @@
 
 #include "hasp_conf.h"
 
-// #include "hasp_log.h"
 #include "hasp_mdns.h"
 #include "hasp_config.h"
 

@@ -3,8 +3,8 @@
 
 #include "Arduino.h"
 #include "ArduinoJson.h"
+#include "ArduinoLog.h"
 
-#include "hasp_log.h"
 #include "hasp_debug.h"
 #include "hasp_config.h"
 #include "hasp_dispatch.h"
@@ -34,9 +34,7 @@ bool telnetExitCommand()
     char buffer[128];
     snprintf_P(buffer, sizeof(buffer), PSTR("exit"));
     if(strcmp(telnetInputBuffer, buffer) == 0 || telnetLoginAttempt >= 3) {
-        snprintf_P(buffer, sizeof(buffer), PSTR("TELNET: Closing session from %s"),
-                   telnetClient->remoteIP().toString().c_str());
-        debugPrintln(buffer);
+        Log.notice(F("TELNET: Closing session from %s"), telnetClient->remoteIP().toString().c_str());
         telnetClient->stop();
         telnetLoginState   = TELNET_UNAUTHENTICATED;
         telnetInputIndex   = 0; // Empty buffer
@@ -53,10 +51,9 @@ void telnetAcceptClient()
         telnetClient->stop(); // client disconnected
     }
     *telnetClient = telnetServer->available(); // ready for new client
+    Log.notice(F("TELNET: Client connected from %s"), telnetClient->remoteIP().toString().c_str());
+
     char buffer[128];
-    snprintf_P(buffer, sizeof(buffer), PSTR("TELNET: Client connected from %s"),
-               telnetClient->remoteIP().toString().c_str());
-    debugPrintln(buffer);
     snprintf_P(buffer, sizeof(buffer), PSTR("\r\nUsername: "));
     telnetClient->print(buffer);
     telnetLoginState   = TELNET_UNAUTHENTICATED;
@@ -109,17 +106,14 @@ void telnetProcessInput()
                         telnetLoginState   = TELNET_AUTHENTICATED;
                         telnetLoginAttempt = 0; // Initial attempt
                         telnetClient->println(debugHaspHeader());
-                        snprintf_P(buffer, sizeof(buffer), PSTR("TELNET: Client login from %s"),
-                                   telnetClient->remoteIP().toString().c_str());
-                        debugPrintln(buffer);
+                        Log.notice(F("TELNET: Client login from %s"), telnetClient->remoteIP().toString().c_str());
                     } else {
                         telnetLoginState = TELNET_UNAUTHENTICATED;
                         telnetLoginAttempt++; // Subsequent attempt
                         snprintf_P(buffer, sizeof(buffer), PSTR("Authorization failed!\r\n"));
                         telnetClient->println(buffer);
-                        snprintf_P(buffer, sizeof(buffer), PSTR("TELNET: %%Incorrect login attempt from %s"),
-                                   telnetClient->remoteIP().toString().c_str());
-                        errorPrintln(buffer);
+                        Log.warning(F("TELNET: Incorrect login attempt from %s"),
+                                    telnetClient->remoteIP().toString().c_str());
                         if(telnetLoginAttempt >= 3) {
                             telnetExitCommand();
                         } else {
@@ -155,9 +149,9 @@ void telnetSetup(const JsonObject & settings)
             telnetClient = new WiFiClient;
             telnetServer->setNoDelay(true);
             telnetServer->begin();
-            debugPrintln(String(F("TELNET: Debug console enabled at telnet://")) + WiFi.localIP().toString());
+            Log.notice(F("TELNET: Debug console enabled at telnet://%s"), WiFi.localIP().toString().c_str());
         } else {
-            errorPrintln(F("TELNET: %sFailed to start telnet server"));
+            Log.error(F("TELNET: Failed to start telnet server"));
         }
     }
 }

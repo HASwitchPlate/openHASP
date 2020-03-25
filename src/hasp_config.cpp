@@ -8,7 +8,6 @@
 #endif
 
 #include "hasp_config.h"
-//#include "hasp_log.h"
 #include "hasp_debug.h"
 #include "hasp_http.h"
 #include "hasp_wifi.h"

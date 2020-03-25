@@ -1,14 +1,12 @@
 #include <Ticker.h>
+#include "ArduinoLog.h"
 
 #include "lv_conf.h"
 #include "lvgl.h"
 #include "lv_fs_if.h"
-
 #include "TFT_eSPI.h"
-
 #include "lv_zifont.h"
 
-#include "hasp_log.h"
 #include "hasp_tft.h"
 #include "hasp_debug.h"
 #include "hasp_config.h"
@@ -16,7 +14,7 @@
 #include "hasp_gui.h"
 #include "hasp.h"
 
-#if HASP_USE_PNGDECODE != 0
+#if HASP_USE_PNGDECODE
 #include "png_decoder.h"
 #endif
 
@@ -95,7 +93,7 @@ void debugLvgl(lv_log_level_t level, const char * file, uint32_t line, const cha
 {
     char buffer[128];
     snprintf(buffer, sizeof(buffer), PSTR("LVGL: %s@%d->%s"), file, line, dsc);
-    debugPrintln(buffer);
+    Log.warning(buffer);
 }
 #endif
 
@@ -147,7 +145,7 @@ void tft_espi_flush(lv_disp_drv_t * disp, const lv_area_t * area, lv_color_t * c
                         case 2:
                             // Send to remote client
                             if(webClient->client().write(pixel, i) != i) {
-                                errorPrintln(F("GUI: %sPixelbuffer not completely sent"));
+                                Log.warning(F("GUI: Pixelbuffer not completely sent"));
                                 lv_disp_flush_ready(disp); /* tell lvgl that flushing is done */
                                 return;
                             }
@@ -166,7 +164,7 @@ void tft_espi_flush(lv_disp_drv_t * disp, const lv_area_t * area, lv_color_t * c
                 case 2:
                     // Send to remote client
                     if(webClient->client().write(pixel, i) != i) {
-                        errorPrintln(F("GUI: %sPixelbuffer not completely sent"));
+                        Log.warning(F("GUI: Pixelbuffer not completely sent"));
                     }
             }
         }
@@ -306,22 +304,15 @@ void guiSetup(JsonObject settings)
     lv_disp_buf_init(&disp_buf, guiVdbBuffer1, NULL, guiVDBsize);
 #endif
 
-    char buffer[128];
-    snprintf_P(buffer, sizeof(buffer), PSTR("LVGL: Version  : %u.%u.%u %s"), LVGL_VERSION_MAJOR, LVGL_VERSION_MINOR,
-               LVGL_VERSION_PATCH, F(LVGL_VERSION_INFO));
-    debugPrintln(buffer);
-
-    snprintf_P(buffer, sizeof(buffer), PSTR("LVGL: Rotation : %d"), guiRotation);
-    debugPrintln(buffer);
-
-    snprintf_P(buffer, sizeof(buffer), PSTR("LVGL: MEM size : %d"), LV_MEM_SIZE);
-    debugPrintln(buffer);
-
-    snprintf_P(buffer, sizeof(buffer), PSTR("LVGL: VFB size : %d"), (size_t)sizeof(lv_color_t) * guiVDBsize);
-    debugPrintln(buffer);
+    // char buffer[128];
+    Log.verbose(F("LVGL: Version  : %u.%u.%u %s"), LVGL_VERSION_MAJOR, LVGL_VERSION_MINOR, LVGL_VERSION_PATCH,
+                PSTR(LVGL_VERSION_INFO));
+    Log.verbose(F("LVGL: Rotation : %d"), guiRotation);
+    Log.verbose(F("LVGL: MEM size : %d"), LV_MEM_SIZE);
+    Log.verbose(F("LVGL: VFB size : %d"), (size_t)sizeof(lv_color_t) * guiVDBsize);
 
 #if LV_USE_LOG != 0
-    debugPrintln(F("LVGL: NOT Registering lvgl logging handler"));
+    Log.warning(F("LVGL: NOT Registering lvgl logging handler"));
     // lv_log_register_print_cb(debugLvgl); /* register print function for debugging */
 #endif
 
@@ -401,8 +392,7 @@ void guiSetup(JsonObject settings)
 
     /* Setup Backlight Control Pin */
     if(guiBacklightPin >= 0) {
-        snprintf(buffer, sizeof(buffer), PSTR("LVGL: Backlight: Pin %i"), guiBacklightPin);
-        debugPrintln(buffer);
+        Log.verbose(F("LVGL: Backlight: Pin %i"), guiBacklightPin);
 
 #if defined(ARDUINO_ARCH_ESP32)
         // configure LED PWM functionalitites
@@ -485,9 +475,7 @@ bool guiGetConfig(const JsonObject & settings)
         array.add(calData[i]);
     }
 
-    serializeJson(settings, Serial);
-    Serial.println();
-
+    configOutput(settings);
     return true;
 }
 
@@ -506,7 +494,7 @@ bool guiSetConfig(const JsonObject & settings)
 
     if(!settings[FPSTR(F_GUI_POINTER)].isNull()) {
         if(guiShowPointer != settings[FPSTR(F_GUI_POINTER)].as<bool>()) {
-            debugPrintln(F("guiShowPointer set"));
+            Log.trace(F("guiShowPointer set"));
         }
         changed |= guiShowPointer != settings[FPSTR(F_GUI_POINTER)].as<bool>();
 
@@ -525,7 +513,7 @@ bool guiSetConfig(const JsonObject & settings)
         }
 
         if(status) {
-            debugPrintln(F("calData set"));
+            Log.trace(F("calData set"));
             guiAutoCalibrate = false;
         }
 
@@ -607,16 +595,16 @@ void guiSendBmpHeader()
     if(guiSnapshot == 1) {
         size_t len = pFileOut.write(buffer, 122);
         if(len != sizeof(buffer)) {
-            errorPrintln(F("GUI: %sData written does not match header size"));
+            Log.warning(F("GUI: Data written does not match header size"));
         } else {
-            debugPrintln(F("GUI: Bitmap header written"));
+            Log.verbose(F("GUI: Bitmap header written"));
         }
 
     } else if(guiSnapshot == 2) {
         if(webClient->client().write(buffer, 122) != 122) {
-            errorPrintln(F("GUI: %sData sent does not match header size"));
+            Log.warning(F("GUI: Data sent does not match header size"));
         } else {
-            debugPrintln(F("GUI: Bitmap header sent"));
+            Log.verbose(F("GUI: Bitmap header sent"));
         }
     }
 }
@@ -633,11 +621,9 @@ void guiSendBmpHeader()
 void guiTakeScreenshot(const char * pFileName)
 {
     pFileOut = SPIFFS.open(pFileName, "w");
-    char buffer[128];
 
     if(pFileOut == NULL) {
-        snprintf_P(buffer, sizeof(buffer), PSTR("[Display] error: %s cannot be opened"), pFileName);
-        debugPrintln(buffer);
+        Log.warning(F("GUI: %s cannot be opened"), pFileName);
         return;
     }
 
@@ -649,8 +635,7 @@ void guiTakeScreenshot(const char * pFileName)
     guiSnapshot = 0;
 
     pFileOut.close();
-    snprintf_P(buffer, sizeof(buffer), PSTR("[Display] data flushed to %s"), pFileName);
-    debugPrintln(buffer);
+    Log.verbose(F("[Display] data flushed to %s"), pFileName);
 }
 
 #if defined(ARDUINO_ARCH_ESP8266)
@@ -672,5 +657,5 @@ void guiTakeScreenshot(ESP8266WebServer & client)
     lv_refr_now(NULL); /* Will call our disp_drv.disp_flush function */
     guiSnapshot = 0;
 
-    debugPrintln(F("GUI: Bitmap data flushed to webclient"));
+    Log.verbose(F("GUI: Bitmap data flushed to webclient"));
 }

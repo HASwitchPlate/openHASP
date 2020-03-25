@@ -31,7 +31,6 @@
 #include <FS.h> // Include the SPIFFS library
 #endif
 
-//#include "hasp_log.h"
 #include "hasp_debug.h"
 #include "hasp_config.h"
 #include "hasp_dispatch.h"

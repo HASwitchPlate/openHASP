@@ -17,7 +17,6 @@
 #include <ESP.h>
 #endif
 
-//#include "hasp_log.h"
 #include "hasp_hal.h"
 #include "hasp_debug.h"
 #include "hasp_config.h"

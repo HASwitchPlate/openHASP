@@ -8,7 +8,6 @@
 
 #include "hasp_conf.h"
 
-// #include "hasp_log.h"
 #include "hasp_gui.h"
 #include "hasp_hal.h"
 #include "hasp_debug.h"
@@ -440,7 +439,6 @@ bool httpSetConfig(const JsonObject & settings)
 
 #include "hasp_conf.h"
 
-//#include "hasp_log.h"
 #include "hasp_gui.h"
 #include "hasp_hal.h"
 #include "hasp_debug.h"

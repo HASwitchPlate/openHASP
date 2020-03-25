@@ -3,7 +3,6 @@
 #include "ArduinoLog.h"
 
 #include "hasp_conf.h"
-//#include "hasp_log.h"
 #include "hasp_spiffs.h"
 
 #if HASP_USE_SPIFFS

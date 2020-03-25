@@ -1,8 +1,8 @@
 #include <Arduino.h>
-#include "ArduinoJson.h"
 #include <ArduinoOTA.h>
+#include "ArduinoJson.h"
+#include "ArduinoLog.h"
 
-#include "hasp_log.h"
 #include "hasp_debug.h"
 #include "hasp_dispatch.h"
 #include "hasp_ota.h"
@@ -20,17 +20,15 @@ int16_t otaPort              = 3232;
 
 void otaProgress()
 {
-    debugPrintln(String(F("OTA: ")) + (ArduinoOTA.getCommand() == U_FLASH ? F("Firmware") : F("Filesystem")) +
-                 F(" update in progress... ") + otaPrecentageComplete + "%");
+    Log.verbose(F("OTA: %s update in progress... %3u%"),
+                (ArduinoOTA.getCommand() == U_FLASH ? PSTR("Firmware") : PSTR("Filesystem")), otaPrecentageComplete);
 }
 
 void otaSetup(JsonObject settings)
 {
     if(!settings[F_OTA_URL].isNull()) {
-        char buffer[128];
         otaUrl = settings[F_OTA_URL].as<String>().c_str();
-        sprintf_P(buffer, PSTR("ORA url: %s"), otaUrl.c_str());
-        debugPrintln(buffer);
+        Log.verbose(F("ORA url: %s"), otaUrl.c_str());
     }
 
     if(otaPort > 0) {
@@ -40,8 +38,8 @@ void otaSetup(JsonObject settings)
                 // NOTE: if updating SPIFFS this would be the place to unmount SPIFFS using SPIFFS.end()
             }
 
-            debugPrintln(F("OTA: Start update"));
-            dispatchCommand("page 0");
+            Log.notice(F("OTA: Start update"));
+            dispatchPage("0");
             otaPrecentageComplete = 0;
             // haspSetAttr("p[0].b[1].txt", "\"ESP OTA Update\"");
         });
@@ -60,17 +58,17 @@ void otaSetup(JsonObject settings)
         });
         ArduinoOTA.onError([](ota_error_t error) {
             otaPrecentageComplete = -1;
-            debugPrintln(String(F("OTA: ERROR code ")) + String(error));
+            Log.error(F("OTA: ERROR code %u"), error);
             if(error == OTA_AUTH_ERROR)
-                debugPrintln(F("OTA: ERROR - Auth Failed"));
+                Log.error(F("OTA: ERROR - Auth Failed"));
             else if(error == OTA_BEGIN_ERROR)
-                debugPrintln(F("OTA: ERROR - Begin Failed"));
+                Log.error(F("OTA: ERROR - Begin Failed"));
             else if(error == OTA_CONNECT_ERROR)
-                debugPrintln(F("OTA: ERROR - Connect Failed"));
+                Log.error(F("OTA: ERROR - Connect Failed"));
             else if(error == OTA_RECEIVE_ERROR)
-                debugPrintln(F("OTA: ERROR - Receive Failed"));
+                Log.error(F("OTA: ERROR - Receive Failed"));
             else if(error == OTA_END_ERROR)
-                debugPrintln(F("OTA: ERROR - End Failed"));
+                Log.error(F("OTA: ERROR - End Failed"));
             // haspSetAttr("p[0].b[1].txt", "\"ESP OTA FAILED\"");
             delay(5000);
             // haspSendCmd("page " + String(nextionActivePage));
@@ -95,10 +93,10 @@ void otaSetup(JsonObject settings)
         ArduinoOTA.setRebootOnSuccess(true);
 
         ArduinoOTA.begin();
-        debugPrintln(F("OTA: Over the Air firmware update ready"));
-        debugPrintln(F("OTA: Setup Complete"));
+        Log.notice(F("OTA: Over the Air firmware update ready"));
+        Log.verbose(F("OTA: Setup Complete"));
     } else {
-        debugPrintln(F("OTA: Disabled"));
+        Log.notice(F("OTA: Disabled"));
     }
 }
 
