@@ -26,6 +26,40 @@ void tftLoop()
 void tftStop()
 {}
 
+String tftDriverName()
+{
+#if defined(ILI9341_DRIVER)
+    return F("ILI9341");
+#elif defined(ST7735_DRIVER)
+    return F("ST7735");
+#elif defined(ILI9163_DRIVER)
+    return F("ILI9163");
+#elif defined(S6D02A1_DRIVER)
+    return F("S6D02A1");
+#elif defined(ST7796_DRIVER)
+    return F("ST7796");
+#elif defined(ILI9486_DRIVER)
+    return F("ILI9486");
+#elif defined(ILI9481_DRIVER)
+    return F("ILI9481");
+#elif defined(ILI9488_DRIVER)
+    return F("ILI9488");
+#elif defined(HX8357D_DRIVER)
+    return F("HX8357D");
+#elif defined(EPD_DRIVER)
+    return F("EPD");
+#elif defined(ST7789_DRIVER)
+    return F("ST7789");
+#elif defined(R61581_DRIVER)
+    return F("R61581");
+#elif defined(ST7789_2_DRIVER)
+    return F("ST7789_2");
+#elif defined(RM68140_DRIVER)
+    return F("RM68140");
+#endif
+    return F("Unknown");
+}
+
 void tftOffsetInfo(uint8_t pin, uint8_t x_offset, uint8_t y_offset)
 {
     char buffer[128];
@@ -56,7 +90,7 @@ void tftShowConfig(TFT_eSPI & tft)
 
     sprintf_P(buffer, PSTR("TFT: TFT_eSPI ver = %s"), tftSetup.version.c_str());
     debugPrintln(buffer);
-    sprintf_P(buffer, PSTR("TFT: Processor    = ESP%i"), tftSetup.esp);
+    sprintf_P(buffer, PSTR("TFT: Processor    = ESP%x"), tftSetup.esp);
     debugPrintln(buffer);
     sprintf_P(buffer, PSTR("TFT: Frequency    = %i MHz"), ESP.getCpuFreqMHz());
     debugPrintln(buffer);
@@ -75,7 +109,7 @@ void tftShowConfig(TFT_eSPI & tft)
 #endif
     if(tftSetup.tft_driver != 0xE9D) // For ePaper displays the size is defined in the sketch
     {
-        sprintf_P(buffer, PSTR("TFT: Display driver = %i"), tftSetup.tft_driver);
+        sprintf_P(buffer, PSTR("TFT: Display driver = %s"), tftDriverName().c_str()); // tftSetup.tft_driver);
         debugPrintln(buffer);
         sprintf_P(buffer, PSTR("TFT: Display width  = %i"), tftSetup.tft_width);
         debugPrintln(buffer);
@@ -106,10 +140,10 @@ void tftShowConfig(TFT_eSPI & tft)
     if(tftSetup.overlap == true) {
         debugPrintln(F("Overlap selected, following pins MUST be used:\n"));
 
-        debugPrintln(F("MOSI     = SD1 (GPIO 8)\n"));
-        debugPrintln(F("MISO     = SD0 (GPIO 7)\n"));
-        debugPrintln(F("SCK      = CLK (GPIO 6)\n"));
-        debugPrintln(F("TFT_CS   = D3  (GPIO 0)\n\n"));
+        debugPrintln(F("MOSI     = SD1 (GPIO 8)"));
+        debugPrintln(F("MISO     = SD0 (GPIO 7)"));
+        debugPrintln(F("SCK      = CLK (GPIO 6)"));
+        debugPrintln(F("TFT_CS   = D3  (GPIO 0)"));
 
         debugPrintln(F("TFT_DC and TFT_RST pins can be tftSetup defined\n"));
     }
@@ -133,17 +167,19 @@ void tftShowConfig(TFT_eSPI & tft)
     tftPinInfo(F("TFT_D6 "), tftSetup.pin_tft_d6);
     tftPinInfo(F("TFT_D7 "), tftSetup.pin_tft_d7);
 
-    uint16_t fonts = tft.fontsLoaded();
-    if(fonts & (1 << 1)) debugPrintln(F("Font GLCD   loaded\n"));
-    if(fonts & (1 << 2)) debugPrintln(F("Font 2      loaded\n"));
-    if(fonts & (1 << 4)) debugPrintln(F("Font 4      loaded\n"));
-    if(fonts & (1 << 6)) debugPrintln(F("Font 6      loaded\n"));
-    if(fonts & (1 << 7)) debugPrintln(F("Font 7      loaded\n"));
-    if(fonts & (1 << 9))
-        debugPrintln(F("Font 8N     loaded\n"));
-    else if(fonts & (1 << 8))
-        debugPrintln(F("Font 8      loaded\n"));
-    if(fonts & (1 << 15)) debugPrintln(F("Smooth font enabled\n"));
+    /*
+        uint16_t fonts = tft.fontsLoaded();
+        if(fonts & (1 << 1)) debugPrintln(F("Font GLCD   loaded\n"));
+        if(fonts & (1 << 2)) debugPrintln(F("Font 2      loaded\n"));
+        if(fonts & (1 << 4)) debugPrintln(F("Font 4      loaded\n"));
+        if(fonts & (1 << 6)) debugPrintln(F("Font 6      loaded\n"));
+        if(fonts & (1 << 7)) debugPrintln(F("Font 7      loaded\n"));
+        if(fonts & (1 << 9))
+            debugPrintln(F("Font 8N     loaded\n"));
+        else if(fonts & (1 << 8))
+            debugPrintln(F("Font 8      loaded\n"));
+        if(fonts & (1 << 15)) debugPrintln(F("Smooth font enabled\n"));
+    */
 
     if(tftSetup.serial == 1) {
         sprintf_P(buffer, PSTR("TFT: Display SPI frequency = %2.1f MHz"), tftSetup.tft_spi_freq / 10.0);

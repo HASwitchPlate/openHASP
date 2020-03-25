@@ -9,6 +9,7 @@
 #include "lv_zifont.h"
 
 #include "hasp_log.h"
+#include "hasp_tft.h"
 #include "hasp_debug.h"
 #include "hasp_config.h"
 #include "hasp_dispatch.h"
@@ -29,6 +30,7 @@
 /* ---------- Screenshot Variables ---------- */
 File pFileOut;
 uint8_t guiSnapshot = 0;
+size_t guiVDBsize   = 0;
 
 #if defined(ARDUINO_ARCH_ESP8266)
 #include <ESP8266WebServer.h>
@@ -100,6 +102,12 @@ void debugLvgl(lv_log_level_t level, const char * file, uint32_t line, const cha
 /* Display flushing */
 void tft_espi_flush(lv_disp_drv_t * disp, const lv_area_t * area, lv_color_t * color_p)
 {
+    uint16_t c;
+
+    tft.startWrite(); /* Start new TFT transaction */
+    tft.setAddrWindow(area->x1, area->y1, (area->x2 - area->x1 + 1),
+                      (area->y2 - area->y1 + 1)); /* set the working window */
+
     if(guiSnapshot != 0) {
         int i = 0;
         uint8_t pixel[1024];
@@ -121,12 +129,14 @@ void tft_espi_flush(lv_disp_drv_t * disp, const lv_area_t * area, lv_color_t * c
                 // pixel[i++] = (LV_COLOR_GET_R(*color_p) << 3);
                 // pixel[i++] = 0xFF;
 
+                c = color_p->full;
+                tft.writeColor(c, 1); // also update tft
+
                 // Simple 16 bpp
-                pixel[i++] = color_p->full & 0xFF;
-                pixel[i++] = (color_p->full >> 8) & 0xFF;
+                pixel[i++] = c & 0xFF;
+                pixel[i++] = (c >> 8) & 0xFF;
 
                 color_p++;
-                // i += 4;
 
                 if(i + 4 >= sizeof(pixel)) {
                     switch(guiSnapshot) {
@@ -161,11 +171,6 @@ void tft_espi_flush(lv_disp_drv_t * disp, const lv_area_t * area, lv_color_t * c
             }
         }
     } else {
-        uint16_t c;
-
-        tft.startWrite(); /* Start new TFT transaction */
-        tft.setAddrWindow(area->x1, area->y1, (area->x2 - area->x1 + 1),
-                          (area->y2 - area->y1 + 1)); /* set the working window */
         for(int y = area->y1; y <= area->y2; y++) {
             for(int x = area->x1; x <= area->x2; x++) {
                 c = color_p->full;
@@ -173,8 +178,8 @@ void tft_espi_flush(lv_disp_drv_t * disp, const lv_area_t * area, lv_color_t * c
                 color_p++;
             }
         }
-        tft.endWrite(); /* terminate TFT transaction */
     }
+    tft.endWrite(); /* terminate TFT transaction */
 
     lv_disp_flush_ready(disp); /* tell lvgl that flushing is done */
 }
@@ -208,6 +213,7 @@ void guiFirstCalibration()
 
 bool my_touchpad_read(lv_indev_drv_t * indev_driver, lv_indev_data_t * data)
 {
+#ifdef TOUCH_CS
     uint16_t touchX, touchY;
 
     bool touched = tft.getTouch(&touchX, &touchY, 600);
@@ -239,12 +245,14 @@ bool my_touchpad_read(lv_indev_drv_t * indev_driver, lv_indev_data_t * data)
                 Serial.print("Data y");
                 Serial.println(touchY);*/
     }
+#endif
 
     return false; /*Return `false` because we are not buffering and no more data to read*/
 }
 
 void guiCalibrate()
 {
+#ifdef TOUCH_CS
     tft.fillScreen(TFT_BLACK);
     tft.setCursor(20, 0);
     tft.setTextFont(1);
@@ -265,51 +273,56 @@ void guiCalibrate()
     tft.setTouch(calData);
     delay(500);
     lv_obj_invalidate(lv_disp_get_layer_sys(NULL));
+#endif
 }
 
-void guiSetup(TFT_eSPI & screen, JsonObject settings)
+void guiSetup(JsonObject settings)
 {
-    size_t buffer_size;
-    tft = screen;
-
     guiSetConfig(settings);
     // guiBacklightIsOn = guiDimLevel > 0;
 
     tft.begin(); /* TFT init */
+#ifdef TOUCH_CS
     tft.setTouch(calData);
+#endif
+    tftSetup(tft, settings[F("tft")]);
 
-    tft.setRotation(guiRotation); /* 1/3=Landscape or 0/2=Portrait orientation */
+    // tft.setRotation(guiRotation); /* 1/3=Landscape or 0/2=Portrait orientation */
     lv_init();
 
 #if defined(ARDUINO_ARCH_ESP32)
     /* allocate on iram (or psram ?) */
-    buffer_size                       = 16 * 1024u; // 32 KBytes *2
-    static lv_color_t * guiVdbBuffer1 = (lv_color_t *)malloc(sizeof(lv_color_t) * buffer_size);
-    static lv_color_t * guiVdbBuffer2 = (lv_color_t *)malloc(sizeof(lv_color_t) * buffer_size);
+    guiVDBsize                        = 16 * 1024u; // 32 KBytes * 2
+    static lv_color_t * guiVdbBuffer1 = (lv_color_t *)malloc(sizeof(lv_color_t) * guiVDBsize);
+    static lv_color_t * guiVdbBuffer2 = (lv_color_t *)malloc(sizeof(lv_color_t) * guiVDBsize);
     static lv_disp_buf_t disp_buf;
-    lv_disp_buf_init(&disp_buf, guiVdbBuffer1, guiVdbBuffer2, buffer_size);
+    lv_disp_buf_init(&disp_buf, guiVdbBuffer1, guiVdbBuffer2, guiVDBsize);
 #else
     /* allocate on heap */
-    static lv_color_t guiVdbBuffer1[3 * 1024u]; // 6 KBytes
+    static lv_color_t guiVdbBuffer1[5 * 512u]; // 6 KBytes
     // static lv_color_t guiVdbBuffer2[3 * 1024u]; // 6 KBytes
-    buffer_size = sizeof(guiVdbBuffer1) / sizeof(guiVdbBuffer1[0]);
+    guiVDBsize = sizeof(guiVdbBuffer1) / sizeof(guiVdbBuffer1[0]);
     static lv_disp_buf_t disp_buf;
-    lv_disp_buf_init(&disp_buf, guiVdbBuffer1, NULL, buffer_size);
+    lv_disp_buf_init(&disp_buf, guiVdbBuffer1, NULL, guiVDBsize);
 #endif
 
     char buffer[128];
+    snprintf_P(buffer, sizeof(buffer), PSTR("LVGL: Version  : %u.%u.%u %s"), LVGL_VERSION_MAJOR, LVGL_VERSION_MINOR,
+               LVGL_VERSION_PATCH, F(LVGL_VERSION_INFO));
+    debugPrintln(buffer);
+
     snprintf_P(buffer, sizeof(buffer), PSTR("LVGL: Rotation : %d"), guiRotation);
     debugPrintln(buffer);
 
     snprintf_P(buffer, sizeof(buffer), PSTR("LVGL: MEM size : %d"), LV_MEM_SIZE);
     debugPrintln(buffer);
 
-    snprintf_P(buffer, sizeof(buffer), PSTR("LVGL: VFB size : %d"), (size_t)sizeof(lv_color_t) * buffer_size);
+    snprintf_P(buffer, sizeof(buffer), PSTR("LVGL: VFB size : %d"), (size_t)sizeof(lv_color_t) * guiVDBsize);
     debugPrintln(buffer);
 
 #if LV_USE_LOG != 0
-    debugPrintln(F("LVGL: Registering lvgl logging handler"));
-    lv_log_register_print_cb(debugLvgl); /* register print function for debugging */
+    debugPrintln(F("LVGL: NOT Registering lvgl logging handler"));
+    // lv_log_register_print_cb(debugLvgl); /* register print function for debugging */
 #endif
 
     /* Initialize PNG decoder */
@@ -388,7 +401,7 @@ void guiSetup(TFT_eSPI & screen, JsonObject settings)
 
     /* Setup Backlight Control Pin */
     if(guiBacklightPin >= 0) {
-        snprintf(buffer, sizeof(buffer), PSTR("LVGL: Backlight Pin = %i"), guiBacklightPin);
+        snprintf(buffer, sizeof(buffer), PSTR("LVGL: Backlight: Pin %i"), guiBacklightPin);
         debugPrintln(buffer);
 
 #if defined(ARDUINO_ARCH_ESP32)
@@ -650,6 +663,9 @@ void guiTakeScreenshot(ESP8266WebServer & client)
     webClient = &client;
 
     guiSnapshot = 2;
+    webClient->setContentLength(122 + 320 * 240 * 2);
+    webClient->send(200, PSTR("image/bmp"), "");
+
     guiSendBmpHeader();
 
     lv_obj_invalidate(lv_scr_act());
