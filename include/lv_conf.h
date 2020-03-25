@@ -77,10 +77,10 @@ typedef int16_t lv_coord_t;
 #if LV_MEM_CUSTOM == 0
 /* Size of the memory used by `lv_mem_alloc` in bytes (>= 2kB)*/
 #ifdef ESP8266
-#  define LV_MEM_SIZE    (12U * 1024U) // 4KB
+#  define LV_MEM_SIZE    (25 * 512U) // 12.5KB
 #endif
 #ifndef LV_MEM_SIZE
-#  define LV_MEM_SIZE    (48 * 1024U)  // 40KB
+#  define LV_MEM_SIZE    (48 * 1024U)  // 48KB
 #endif
 
 /* Complier prefix for a big array declaration */
@@ -272,7 +272,7 @@ typedef void* lv_indev_drv_user_data_t;            /*Type of user data in the in
 
  /* 1: Print the log with 'printf';
   * 0: user need to register a callback with `lv_log_register_print_cb`*/
-#  define LV_LOG_PRINTF   1
+#  define LV_LOG_PRINTF   0
 #endif  /*LV_USE_LOG*/
 
   /*=================
