@@ -1,9 +1,7 @@
-#include "hasp_conf.h"
-#include <Arduino.h>
 #include "ArduinoJson.h"
-#include "lvgl.h"
-
 #include "ArduinoLog.h"
+#include "lvgl.h"
+#include "hasp_conf.h"
 
 #if defined(ARDUINO_ARCH_ESP8266)
 #include <ESP8266WiFi.h>
@@ -12,7 +10,7 @@
 #endif
 #include <WiFiUdp.h>
 
-#include "hasp_log.h"
+// #include "hasp_log.h"
 #include "hasp_hal.h"
 #include "hasp_mqtt.h"
 #include "hasp_debug.h"
