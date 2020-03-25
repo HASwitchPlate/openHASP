@@ -622,7 +622,7 @@ typedef uint8_t lv_obj_user_data_t;
 #endif
 
 /*Table (dependencies: lv_label)*/
-#define LV_USE_TABLE    (LV_HIGH_RESOURCE_MCU)
+#define LV_USE_TABLE    1 //(LV_HIGH_RESOURCE_MCU)
 #if LV_USE_TABLE
 #  define LV_TABLE_COL_MAX    12
 #endif
@@ -642,7 +642,7 @@ typedef uint8_t lv_obj_user_data_t;
 #endif
 
 /*Window (dependencies: lv_cont, lv_btn, lv_label, lv_img, lv_page)*/
-#define LV_USE_WIN      1
+#define LV_USE_WIN      (LV_HIGH_RESOURCE_MCU)
 
 /*==================
  * Non-user section
