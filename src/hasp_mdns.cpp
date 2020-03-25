@@ -12,11 +12,14 @@
 
 #include "hasp_log.h"
 #include "hasp_mdns.h"
-#include "hasp_mqtt.h"
 #include "hasp_config.h"
 
-uint8_t mdnsEnabled     = true;
-const float haspVersion = 0.38;
+#include "hasp_conf.h"
+#if HASP_USE_MQTT
+#include "hasp_mqtt.h"
+#endif
+
+uint8_t mdnsEnabled = true;
 
 void mdnsSetup(const JsonObject & settings)
 {
@@ -27,7 +30,11 @@ void mdnsSetup(const JsonObject & settings)
 void mdnsStart()
 {
     if(mdnsEnabled) {
+#if HASP_USE_MQTT > 0
         String hasp2Node = mqttGetNodename();
+#else
+        String hasp2Node = "unknown";
+#endif
         // Setup mDNS service discovery if enabled
         /*if(debugTelnetEnabled) {
         }
@@ -46,8 +53,7 @@ void mdnsStart()
                         addServiceTxt("arduino", "tcp", "tcp_check", "no");
                         addServiceTxt("arduino", "tcp", "ssh_upload", "no");
                         addServiceTxt("arduino", "tcp", "board", ARDUINO_BOARD);
-                        addServiceTxt("arduino", "tcp", "auth_upload", (auth) ? "yes" : "no");
-                        */
+                        addServiceTxt("arduino", "tcp", "auth_upload", (auth) ? "yes" : "no");*/
         } else {
             errorPrintln(String(F("MDNS: %sResponder failed to start ")) + hasp2Node);
         };
