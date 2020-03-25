@@ -67,13 +67,13 @@ static uint16_t calData[5] = {0, 65535, 0, 65535, 0};
 bool guiCheckSleep()
 {
     uint32_t idle = lv_disp_get_inactive_time(NULL);
-    if(idle >= (guiSleepTime1 + guiSleepTime2) * 1000) {
+    if(idle >= (guiSleepTime1 + guiSleepTime2) * 1000U) {
         if(guiSleeping != 2) {
             dispatchIdle(F("LONG"));
             guiSleeping = 2;
         }
         return true;
-    } else if(idle >= guiSleepTime1 * 1000) {
+    } else if(idle >= guiSleepTime1 * 1000U) {
         if(guiSleeping != 1) {
             dispatchIdle(F("SHORT"));
             guiSleeping = 1;
@@ -89,11 +89,24 @@ bool guiCheckSleep()
 
 #if LV_USE_LOG != 0
 /* Serial debugging */
-void debugLvgl(lv_log_level_t level, const char * file, uint32_t line, const char * dsc)
+void debugLvgl(lv_log_level_t level, const char * file, uint32_t line, const char * funcname, const char * descr)
 {
-    char buffer[128];
-    snprintf(buffer, sizeof(buffer), PSTR("LVGL: %s@%d->%s"), file, line, dsc);
-    Log.warning(buffer);
+    switch(level) {
+        case LV_LOG_LEVEL_TRACE:
+            Log.trace(F("LVGL: %s:%u %s -> %s"), file, line, funcname, descr);
+            break;
+        case LV_LOG_LEVEL_INFO:
+            Log.notice(F("LVGL: %s:%u %s -> %s"), file, line, funcname, descr);
+            break;
+        case LV_LOG_LEVEL_WARN:
+            Log.warning(F("LVGL: %s:%u %s -> %s"), file, line, funcname, descr);
+            break;
+        case LV_LOG_LEVEL_ERROR:
+            Log.error(F("LVGL: %s:%u %s -> %s"), file, line, funcname, descr);
+            break;
+        default:
+            Log.verbose(F("LVGL: %s:%u %s -> %s"), file, line, funcname, descr);
+    }
 }
 #endif
 
@@ -107,7 +120,7 @@ void tft_espi_flush(lv_disp_drv_t * disp, const lv_area_t * area, lv_color_t * c
                       (area->y2 - area->y1 + 1)); /* set the working window */
 
     if(guiSnapshot != 0) {
-        int i = 0;
+        uint i = 0;
         uint8_t pixel[1024];
 
         for(int y = area->y1; y <= area->y2; y++) {
@@ -312,8 +325,8 @@ void guiSetup(JsonObject settings)
     Log.verbose(F("LVGL: VFB size : %d"), (size_t)sizeof(lv_color_t) * guiVDBsize);
 
 #if LV_USE_LOG != 0
-    Log.warning(F("LVGL: NOT Registering lvgl logging handler"));
-    // lv_log_register_print_cb(debugLvgl); /* register print function for debugging */
+    Log.warning(F("LVGL: Registering lvgl logging handler"));
+    lv_log_register_print_cb(debugLvgl); /* register print function for debugging */
 #endif
 
     /* Initialize PNG decoder */
@@ -479,8 +492,14 @@ bool guiGetConfig(const JsonObject & settings)
     return true;
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
+/** Set GUI Configuration.
+ *
+ * Read the settings from json and sets the application variables.
+ *
+ * @note: data pixel should be formated to uint32_t RGBA. Imagemagick requirements.
+ *
+ * @param[in] settings    JsonObject with the config settings.
+ **/
 bool guiSetConfig(const JsonObject & settings)
 {
     configOutput(settings);
@@ -523,6 +542,13 @@ bool guiSetConfig(const JsonObject & settings)
     return changed;
 }
 
+/** Send Bitmap Header.
+ *
+ * Sends a header in BMP format for the size of the screen.
+ *
+ * @note: data pixel should be formated to uint32_t RGBA. Imagemagick requirements.
+ *
+ **/
 void guiSendBmpHeader()
 {
     uint8_t buffer[128];
@@ -609,7 +635,7 @@ void guiSendBmpHeader()
     }
 }
 
-/** Flush buffer.
+/** Take Screenshot.
  *
  * Flush buffer into a binary file.
  *
@@ -617,12 +643,12 @@ void guiSendBmpHeader()
  *
  * @param[in] pFileName   Output binary file name.
  *
- */
+ **/
 void guiTakeScreenshot(const char * pFileName)
 {
     pFileOut = SPIFFS.open(pFileName, "w");
 
-    if(pFileOut == NULL) {
+    if(pFileOut == 0) {
         Log.warning(F("GUI: %s cannot be opened"), pFileName);
         return;
     }

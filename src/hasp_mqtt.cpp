@@ -310,29 +310,19 @@ void mqttCallback(char * topic, byte * payload, unsigned int length)
         char topicBuffer[128];
         snprintf_P(topicBuffer, sizeof(topicBuffer), PSTR("%sstatus"), mqttNodeTopic);
         mqttClient.publish(topicBuffer, "ON", true);
-
         Log.notice(F("MQTT: binary_sensor state: [status] : ON"));
-        // snprintf_P(topicBuffer, sizeof(topicBuffer), PSTR("MQTT: binary_sensor state: [%sstatus] : ON"),
-        // mqttNodeTopic); debugPrintln(topicBuffer);
         return;
     }
 }
 
 void mqttSubscribeTo(const char * format, const char * data)
 {
-    char buffer[128];
     char topic[128];
     snprintf_P(topic, sizeof(topic), format, data);
     if(mqttClient.subscribe(topic)) {
         Log.verbose(F("MQTT:    * Subscribed to %s"), topic);
-
-        // snprintf_P(buffer, sizeof(buffer), PSTR("MQTT:    * Subscribed to %s"), topic);
-        // debugPrintln(buffer);
     } else {
         Log.error(F("MQTT: Failed to subscribe to %s"), topic);
-
-        // snprintf_P(buffer, sizeof(buffer), PSTR("MQTT: %%sFailed to subscribe to %s"), topic);
-        // errorPrintln(buffer);
     }
 }
 
@@ -461,7 +451,6 @@ void mqttSetup(const JsonObject & settings)
     mqttClient.setCallback(mqttCallback);
 
     Log.notice(F("MQTT: Setup Complete"));
-    //   debugPrintln(F("MQTT: Setup Complete"));
 }
 
 void mqttLoop()
@@ -499,7 +488,6 @@ void mqttStop()
 
         mqttClient.disconnect();
         Log.notice(F("MQTT: Disconnected from broker"));
-        //    debugPrintln(F("MQTT: Disconnected from broker"));
     }
 }
 
@@ -516,8 +504,14 @@ bool mqttGetConfig(const JsonObject & settings)
     return true;
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
+/** Set MQTT Configuration.
+ *
+ * Read the settings from json and sets the application variables.
+ *
+ * @note: data pixel should be formated to uint32_t RGBA. Imagemagick requirements.
+ *
+ * @param[in] settings    JsonObject with the config settings.
+ **/
 bool mqttSetConfig(const JsonObject & settings)
 {
     configOutput(settings);

@@ -1044,7 +1044,6 @@ void haspNewObject(const JsonObject & config)
         return;
     }
 
-    lv_obj_t * label;
     switch(objid) {
         /* ----- Basic Objects ------ */
         case LV_HASP_BUTTON: {
@@ -1053,7 +1052,7 @@ void haspNewObject(const JsonObject & config)
             // haspSetToggle(obj, toggle);
             // lv_btn_set_toggle(obj, toggle);
             // if(config[F("txt")]) {
-            label = lv_label_create(obj, NULL);
+            lv_obj_t * label = lv_label_create(obj, NULL);
             // lv_label_set_text(label, config[F("txt")].as<String>().c_str());
             // haspSetOpacity(obj, LV_OPA_COVER);
             //}
@@ -1276,8 +1275,6 @@ void haspNewObject(const JsonObject & config)
 
 void haspLoadPage(String pages)
 {
-    char msg[128];
-
     if(!SPIFFS.begin()) {
         Log.error(F("HASP: FS not mounted. Failed to load %s"), pages.c_str());
         return;
@@ -1321,8 +1318,14 @@ bool haspGetConfig(const JsonObject & settings)
     return true;
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
+/** Set HASP Configuration.
+ *
+ * Read the settings from json and sets the application variables.
+ *
+ * @note: data pixel should be formated to uint32_t RGBA. Imagemagick requirements.
+ *
+ * @param[in] settings    JsonObject with the config settings.
+ **/
 bool haspSetConfig(const JsonObject & settings)
 {
     configOutput(settings);

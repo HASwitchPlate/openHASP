@@ -65,7 +65,6 @@ String wifiGetMacAddress(int start, const char * seperator)
 
 void wifiConnected(IPAddress ipaddress)
 {
-    char buffer[128];
     bool isConnected = WiFi.status() == WL_CONNECTED;
 
     Log.notice(F("WIFI: Received IP address %s"), ipaddress.toString().c_str());
@@ -81,7 +80,6 @@ void wifiConnected(IPAddress ipaddress)
 
 void wifiDisconnected(const char * ssid, uint8_t reason)
 {
-    char buffer[128];
     wifiReconnectCounter++;
     if(wifiReconnectCounter > 45) {
         Log.error(F("WIFI: Retries exceed %u: Rebooting..."), wifiReconnectCounter);
@@ -192,8 +190,14 @@ bool wifiGetConfig(const JsonObject & settings)
     return true;
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
+/** Set WIFI Configuration.
+ *
+ * Read the settings from json and sets the application variables.
+ *
+ * @note: data pixel should be formated to uint32_t RGBA. Imagemagick requirements.
+ *
+ * @param[in] settings    JsonObject with the config settings.
+ **/
 bool wifiSetConfig(const JsonObject & settings)
 {
     configOutput(settings);

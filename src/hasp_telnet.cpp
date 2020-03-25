@@ -128,7 +128,7 @@ void telnetProcessInput()
                         dispatchCommand(telnetInputBuffer);
                     }
             }
-            telnetInputIndex = 0;
+            telnetInputIndex = 0; // reset input buffer index
             break;
         default:
             // If we have room left in our buffer add the current byte
@@ -149,7 +149,7 @@ void telnetSetup(const JsonObject & settings)
             telnetClient = new WiFiClient;
             telnetServer->setNoDelay(true);
             telnetServer->begin();
-            Log.notice(F("TELNET: Debug console enabled at telnet://%s"), WiFi.localIP().toString().c_str());
+            Log.notice(F("TELNET: Debug telnet console started"));
         } else {
             Log.error(F("TELNET: Failed to start telnet server"));
         }
@@ -197,6 +197,14 @@ bool telnetGetConfig(const JsonObject & settings)
     return true;
 }
 
+/** Set TELNET Configuration.
+ *
+ * Read the settings from json and sets the application variables.
+ *
+ * @note: data pixel should be formated to uint32_t RGBA. Imagemagick requirements.
+ *
+ * @param[in] settings    JsonObject with the config settings.
+ **/
 bool telnetSetConfig(const JsonObject & settings)
 {
     configOutput(settings);

@@ -34,7 +34,6 @@ void eepromWrite(uint16_t addr, std::string & data)
 
 std::string eepromRead(uint16_t addr)
 {
-    int i;
     char data[1024]; // Max 1024 Bytes
     int len = 0;
     unsigned char k;

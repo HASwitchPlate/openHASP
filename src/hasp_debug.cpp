@@ -10,7 +10,6 @@
 #endif
 #include <WiFiUdp.h>
 
-// #include "hasp_log.h"
 #include "hasp_hal.h"
 #include "hasp_mqtt.h"
 #include "hasp_debug.h"
@@ -21,23 +20,45 @@
 #include "user_config_override.h"
 #endif
 
-#if HASP_USE_SYSLOG != 0
-#include "Syslog.h"
-
 #if HASP_USE_TELNET != 0
 #include "hasp_telnet.h"
 //#include "hasp_telnet.cpp"
 #endif
 
+#if HASP_USE_SYSLOG != 0
+#include "Syslog.h"
+
 #ifndef SYSLOG_SERVER
 #define SYSLOG_SERVER ""
 #endif
+
 #ifndef SYSLOG_PORT
 #define SYSLOG_PORT 514
 #endif
+
 #ifndef APP_NAME
 #define APP_NAME "HASP"
 #endif
+
+const char * syslogAppName  = APP_NAME;
+char debugSyslogHost[32]    = SYSLOG_SERVER;
+uint16_t debugSyslogPort    = SYSLOG_PORT;
+uint8_t debugSyslogFacility = 0;
+uint8_t debugSyslogProtocol = 0;
+extern char mqttNodeName[16];
+
+// A UDP instance to let us send and receive packets over UDP
+WiFiUDP syslogClient;
+
+// Create a new syslog instance with LOG_KERN facility
+// Syslog syslog(syslogClient, SYSLOG_SERVER, SYSLOG_PORT, MQTT_CLIENT, APP_NAME, LOG_KERN);
+// Create a new empty syslog instance
+Syslog * syslog;
+#endif // USE_SYSLOG
+
+// Serial Settings
+uint16_t debugSerialBaud = 11520; // Multiplied by 10
+bool debugSerialStarted  = false;
 
 //#define TERM_COLOR_Black "\u001b[30m"
 #define TERM_COLOR_GRAY "\e[37m"
@@ -49,28 +70,6 @@
 #define TERM_COLOR_CYAN "\e[96m"
 #define TERM_COLOR_WHITE "\e[97m"
 #define TERM_COLOR_RESET "\e[0m"
-
-// unsigned char TERM_COLOR_CYAN[]  = {27, '[', '3', '6', 'm'};
-// unsigned char TERM_COLOR_RESET[] = {27, '[', '0', 'm'};
-
-const char * syslogAppName  = APP_NAME;
-char debugSyslogHost[32]    = SYSLOG_SERVER;
-uint16_t debugSyslogPort    = SYSLOG_PORT;
-uint8_t debugSyslogFacility = 0;
-uint8_t debugSyslogProtocol = 0;
-uint16_t debugSerialBaud    = 11520; // Multiplied by 10
-bool debugSerialStarted     = false;
-
-extern char mqttNodeName[16];
-
-// A UDP instance to let us send and receive packets over UDP
-WiFiUDP syslogClient;
-
-// Create a new syslog instance with LOG_KERN facility
-// Syslog syslog(syslogClient, SYSLOG_SERVER, SYSLOG_PORT, MQTT_CLIENT, APP_NAME, LOG_KERN);
-// Create a new empty syslog instance
-Syslog * syslog;
-#endif
 
 unsigned long debugLastMillis = 0;
 uint16_t debugTelePeriod      = 300;
@@ -216,8 +215,14 @@ bool debugGetConfig(const JsonObject & settings)
     return true;
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
+/** Set DEBUG Configuration.
+ *
+ * Read the settings from json and sets the application variables.
+ *
+ * @note: data pixel should be formated to uint32_t RGBA. Imagemagick requirements.
+ *
+ * @param[in] settings    JsonObject with the config settings.
+ **/
 bool debugSetConfig(const JsonObject & settings)
 {
     configOutput(settings);
@@ -246,8 +251,9 @@ bool debugSetConfig(const JsonObject & settings)
 void printTimestamp(int level, Print * _logOutput)
 {
     char c[128];
-    int m = snprintf(c, sizeof(c), PSTR("[%10.3fs] %5u/%5u %2u | "), float(millis()) / 1000, halGetMaxFreeBlock(),
-                     ESP.getFreeHeap(), halGetHeapFragmentation());
+    /*int m =*/
+    snprintf(c, sizeof(c), PSTR("[%10.3fs] %5u/%5u %2u | "), float(millis()) / 1000, halGetMaxFreeBlock(),
+             ESP.getFreeHeap(), halGetHeapFragmentation());
 
 #if LV_MEM_CUSTOM == 0
     /*    lv_mem_monitor_t mem_mon;
