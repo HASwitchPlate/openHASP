@@ -18,6 +18,9 @@ const char F_CONFIG_USER[] PROGMEM      = "user";
 const char F_CONFIG_PASS[] PROGMEM      = "pass";
 const char F_CONFIG_SSID[] PROGMEM      = "ssid";
 const char F_CONFIG_GROUP[] PROGMEM     = "group";
+const char F_CONFIG_BAUD[] PROGMEM      = "baud";
+const char F_CONFIG_LOG[] PROGMEM       = "log";
+const char F_CONFIG_PROTOCOL[] PROGMEM  = "proto";
 const char F_GUI_ROTATION[] PROGMEM     = "rotation";
 const char F_GUI_TICKPERIOD[] PROGMEM   = "tickperiod";
 const char F_GUI_IDLEPERIOD1[] PROGMEM  = "idle1";
@@ -30,13 +33,11 @@ const char F_DEBUG_TELEPERIOD[] PROGMEM = "teleperiod";
 const char HASP_CONFIG_FILE[] PROGMEM = "/config.json";
 
 void configSetup(JsonDocument & settings);
-void configLoop(void);
 void configStop(void);
 
 void configSetConfig(JsonObject & settings);
 void configGetConfig(JsonDocument & settings);
 void configWriteConfig();
-bool configChanged(void);
 void configOutput(const JsonObject & settings);
 
 bool configSet(int8_t & value, const JsonVariant & setting, const char * name);
