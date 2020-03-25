@@ -1,6 +1,10 @@
 #include <ESP.h>
 #include "hasp_hal.h"
 
+#if ESP32
+#include "esp_system.h"
+#endif
+
 #if defined(ARDUINO_ARCH_ESP32)
 #include <rom/rtc.h> // needed to get the ResetInfo
 
@@ -114,4 +118,39 @@ String halGetCoreVersion()
 #else
     return String(ESP.getCoreVersion());
 #endif
+}
+
+String halGetChipModel()
+{
+    String model((char *)0);
+    model.reserve(128);
+
+#if ESP8266
+    model += F("ESP8266");
+#endif
+
+#if ESP32
+    esp_chip_info_t chip_info;
+    esp_chip_info(&chip_info);
+
+    model = chip_info.cores;
+    model += F("core ");
+    switch(chip_info.model) {
+        case CHIP_ESP32:
+            model += F("ESP32");
+            break;
+#ifndef CHIP_ESP32S2
+#define CHIP_ESP32S2 2
+#endif
+        case CHIP_ESP32S2:
+            model += F("ESP32-S2");
+            break;
+        default:
+            model = F("Unknown ESP");
+    }
+    model += F(" rev");
+    model += chip_info.revision;
+#endif // ESP32
+
+    return model;
 }
