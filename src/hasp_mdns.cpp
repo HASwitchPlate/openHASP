@@ -1,5 +1,5 @@
-#include "Arduino.h"
 #include "ArduinoJson.h"
+#include "ArduinoLog.h"
 
 #if defined(ARDUINO_ARCH_ESP32)
 #include <ESPmDNS.h>
@@ -10,7 +10,7 @@
 
 #include "hasp_conf.h"
 
-#include "hasp_log.h"
+// #include "hasp_log.h"
 #include "hasp_mdns.h"
 #include "hasp_config.h"
 
@@ -24,7 +24,7 @@ uint8_t mdnsEnabled = true;
 void mdnsSetup(const JsonObject & settings)
 {
     mdnsSetConfig(settings);
-    debugPrintln(F("MDNS: Setup Complete"));
+    Log.verbose(F("MDNS: Setup Complete"));
 }
 
 void mdnsStart()
@@ -44,7 +44,7 @@ void mdnsStart()
                    HASP_VERSION_REVISION);
         MDNS.addServiceTxt(hasp2Node, "tcp", "app_version", buffer); */
         if(MDNS.begin(hasp2Node.c_str())) {
-            debugPrintln(F("MDNS: Responder started"));
+            Log.notice(F("MDNS: Responder started"));
             MDNS.addService(F("http"), F("tcp"), 80);
             MDNS.addService(F("telnet"), F("tcp"), 23);
             MDNS.addServiceTxt(hasp2Node, F("tcp"), F("app_name"), F("HASP-lvgl"));
@@ -55,7 +55,7 @@ void mdnsStart()
                         addServiceTxt("arduino", "tcp", "board", ARDUINO_BOARD);
                         addServiceTxt("arduino", "tcp", "auth_upload", (auth) ? "yes" : "no");*/
         } else {
-            errorPrintln(String(F("MDNS: %sResponder failed to start ")) + hasp2Node);
+            Log.error(F("MDNS: Responder failed to start %s"), hasp2Node.c_str());
         };
     }
 }

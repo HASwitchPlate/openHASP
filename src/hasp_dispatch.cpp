@@ -1,6 +1,6 @@
-#include "StringStream.h"
 #include "ArduinoJson.h"
 #include "ArduinoLog.h"
+#include "StringStream.h"
 
 #include "hasp_dispatch.h"
 #include "hasp_config.h"
@@ -8,7 +8,6 @@
 #include "hasp_http.h"
 #include "hasp_mdns.h"
 #include "hasp_wifi.h"
-#include "hasp_log.h"
 #include "hasp_gui.h"
 #include "hasp.h"
 
@@ -241,8 +240,7 @@ void dispatchJson(char * payload)
     haspCommands.shrinkToFit();
 
     if(jsonError) { // Couldn't parse incoming JSON command
-        errorPrintln(String(F("JSON: %sFailed to parse incoming JSON command with error: ")) +
-                     String(jsonError.c_str()));
+        Log.warning(F("JSON: Failed to parse incoming JSON command with error: "), jsonError.c_str());
         return;
     }
 
@@ -254,7 +252,6 @@ void dispatchJson(char * payload)
 
 void dispatchJsonl(char * strPayload)
 {
-    Serial.println("JSONL\n");
     DynamicJsonDocument config(256);
 
     String output((char *)0);

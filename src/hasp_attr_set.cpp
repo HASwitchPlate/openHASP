@@ -1,8 +1,8 @@
-#include "Arduino.h"
+#include "ArduinoLog.h"
+
 #include "lvgl.h"
 #include "lv_conf.h"
 #include "hasp.h"
-#include "hasp_log.h"
 #include "hasp_attr_set.h"
 
 #define LVGL7 1
@@ -11,7 +11,7 @@ LV_FONT_DECLARE(unscii_8_icon);
 
 void haspAttributeNotFound(String & strAttr)
 {
-    errorPrintln(String(F("HASP: %sUnknown property ")) + strAttr);
+    Log.warning(F("HASP: Unknown property %s"), strAttr.c_str());
 }
 
 void set_cpicker_value(lv_obj_t * obj, uint32_t color)
@@ -22,7 +22,7 @@ void set_cpicker_value(lv_obj_t * obj, uint32_t color)
 void haspSetLabelText(lv_obj_t * obj, const char * value)
 {
     if(!obj) {
-        errorPrintln(F("HASP: %sButton not defined"));
+        Log.warning(F("HASP: Button not defined"));
         return;
     }
 
@@ -32,12 +32,12 @@ void haspSetLabelText(lv_obj_t * obj, const char * value)
         lv_obj_get_type(label, &list);
 
         if(check_obj_type(list.type[0], LV_HASP_LABEL)) {
-            debugPrintln(String(F("HASP: Setting value to ")) + String(value));
+            Log.verbose(F("HASP: Setting value to %s"), value);
             lv_label_set_text(label, value);
         }
 
     } else {
-        warningPrintln(F("HASP: %shaspSetLabelText NULL Pointer encountered"));
+        Log.error(F("HASP: haspSetLabelText NULL Pointer encountered"));
     }
 }
 
@@ -507,7 +507,7 @@ void haspSetObjAttribute7(lv_obj_t * obj, String & strAttr, String & strPayload)
 void haspSetObjAttribute(lv_obj_t * obj, String strAttr, String strPayload)
 {
     if(!obj) {
-        errorPrintln(F("HASP: %sUnknown object"));
+        Log.warning(F("HASP: Unknown object"));
         return;
     }
 

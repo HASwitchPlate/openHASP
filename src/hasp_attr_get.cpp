@@ -1,7 +1,8 @@
 #include "Arduino.h"
+#include "ArduinoLog.h"
+
 #include "lvgl.h"
 #include "hasp.h"
-#include "hasp_log.h"
 #include "hasp_attr_get.h"
 
 #define LVGL7 1
@@ -25,7 +26,7 @@ uint32_t get_cpicker_value(lv_obj_t * obj)
 bool haspGetLabelText(lv_obj_t * obj, std::string & strPayload)
 {
     if(!obj) {
-        errorPrintln(F("HASP: %sButton not defined"));
+        Log.warning(F("HASP: Button not defined"));
         return false;
     }
 
@@ -40,7 +41,7 @@ bool haspGetLabelText(lv_obj_t * obj, std::string & strPayload)
         }
 
     } else {
-        warningPrintln(F("HASP: %shaspGetLabelText NULL Pointer encountered"));
+        Log.warning(F("HASP: haspGetLabelText NULL Pointer encountered"));
     }
 
     return false;
@@ -211,7 +212,7 @@ bool haspGetObjAttribute(lv_obj_t * obj, String strAttr, std::string & strPayloa
             }
             break;
         default:
-            errorPrintln(F("HASP: %sUnknown property"));
+            Log.warning(F("HASP: Unknown property %s"), strAttr.c_str());
             return false;
     }
     return false;

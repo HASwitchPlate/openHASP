@@ -2,12 +2,13 @@
 
 #include "Arduino.h"
 #include "ArduinoJson.h"
+#include "ArduinoLog.h"
 //#include "Update.h"
 #include "lvgl.h"
 
 #include "hasp_conf.h"
 
-#include "hasp_log.h"
+// #include "hasp_log.h"
 #include "hasp_gui.h"
 #include "hasp_hal.h"
 #include "hasp_debug.h"

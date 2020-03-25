@@ -1,3 +1,5 @@
+#include "Arduino.h"
+#include "ArduinoLog.h"
 #include "AceButton.h"
 
 #include "hasp_conf.h"
@@ -5,7 +7,6 @@
 
 #include "hasp_button.h"
 #include "hasp_dispatch.h"
-#include "hasp_log.h"
 
 using namespace ace_button;
 AceButton * button[HASP_NUM_INPUTS]; // Connect your button between pin 2 and GND
@@ -35,7 +36,7 @@ void buttonSetup(void)
     buttonConfig->setRepeatPressDelay(LV_INDEV_DEF_LONG_PRESS_TIME);
     buttonConfig->setRepeatPressInterval(LV_INDEV_DEF_LONG_PRESS_REP_TIME);
 
-    debugPrintln(F("BTNS: setup(): ready"));
+    Log.verbose(F("BTNS: setup(): ready"));
 }
 
 void buttonLoop(void)
