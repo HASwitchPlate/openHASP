@@ -6,6 +6,11 @@
 #ifndef HASP_H
 #define HASP_H
 
+#include <Arduino.h>
+#include "lvgl.h"
+#include "hasp_conf.h"
+#include "hasp_debug.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -13,21 +18,6 @@ extern "C" {
 /*********************
  *      INCLUDES
  *********************/
-
-#include <Arduino.h>
-#include "lvgl.h"
-
-#include "hasp_conf.h"
-
-#include "hasp_debug.h"
-
-/* #ifdef LV_CONF_INCLUDE_SIMPLE
-#include "lvgl.h"
-#include "hasp_conf.h"
-#else
-#include "../lvgl/lvgl.h"
-#include "hasp_conf.h"
-#endif */
 
 #if HASP_USE_APP
 
@@ -93,6 +83,9 @@ void haspWakeUp(void);
 
 bool haspGetConfig(const JsonObject & settings);
 bool haspSetConfig(const JsonObject & settings);
+
+bool check_obj_type(const char * lvobjtype, lv_hasp_obj_type_t haspobjtype);
+void haspSetToggle(lv_obj_t * obj, bool toggle);
 
 /**********************
  *      MACROS
