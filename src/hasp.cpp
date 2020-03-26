@@ -1056,7 +1056,7 @@ void haspNewObject(const JsonObject & config)
             // lv_label_set_text(label, config[F("txt")].as<String>().c_str());
             // haspSetOpacity(obj, LV_OPA_COVER);
             //}
-            // lv_obj_set_event_cb(obj, btn_event_handler);
+            lv_obj_set_event_cb(obj, btn_event_handler);
 
             break;
         }
