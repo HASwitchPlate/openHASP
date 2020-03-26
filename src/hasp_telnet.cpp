@@ -102,10 +102,10 @@ void telnetProcessInput()
                     snprintf_P(buffer, sizeof(buffer), PSTR("%c%c%c"), 0xFF, 0xFC, 0x01); // Show characters
                     telnetClient->println(buffer);
                     snprintf_P(buffer, sizeof(buffer), PSTR("haspadmin"));
-                    if(telnetLoginState == TELNET_AUTHENTICATED && strcmp(telnetInputBuffer, buffer) == 0) {
-                        telnetLoginState   = TELNET_AUTHENTICATED;
-                        telnetLoginAttempt = 0; // Initial attempt
-                        telnetClient->println(debugHaspHeader());
+                    if(telnetLoginState == TELNET_USERNAME_OK && strcmp(telnetInputBuffer, buffer) == 0) {
+                        telnetLoginState   = TELNET_AUTHENTICATED; // User and Pass are correct
+                        telnetLoginAttempt = 0;                    // Reset attempt counter
+                        telnetClient->println(debugHaspHeader());  // Send version header
                         Log.notice(F("TELNET: Client login from %s"), telnetClient->remoteIP().toString().c_str());
                     } else {
                         telnetLoginState = TELNET_UNAUTHENTICATED;
