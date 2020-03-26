@@ -10,7 +10,8 @@
 
 #include "lvgl.h"
 #include "lv_zifont.h"
-#include "../src/hasp_log.h"
+// #include "../src/hasp_log.h"
+#include "ArduinoLog.h"
 
 /*********************
  *      DEFINES
@@ -101,9 +102,7 @@ bool openFont(File & file, const char * filename)
 {
     file = SPIFFS.open(filename, "r");
     if(!file) {
-        String error = String(F("FONT: %sOpening font: "));
-        error += String(filename);
-        errorPrintln(error);
+        Log.error(F("FONT: %sOpening font: %s"), filename);
         return false;
     }
     return true;
@@ -150,14 +149,14 @@ int lv_zifont_font_init(lv_font_t ** font, const char * font_path, uint16_t size
 
     /* Check that we read the correct size */
     if(readSize != sizeof(zi_font_header_t)) {
-        debugPrintln(PSTR("FONT: Error reading ziFont Header"));
+        Log.error(F("FONT: Error reading ziFont Header"));
         file.close();
         return ZIFONT_ERROR_READING_DATA;
     }
 
     /* Check ziFile Header Format */
     if(header.Password != 4 || header.Version != 5) {
-        debugPrintln(PSTR("FONT: Unknown font file format"));
+        Log.error(F("FONT: Unknown font file format"));
         file.close();
         return ZIFONT_ERROR_UNKNOWN_HEADER;
     }
@@ -186,15 +185,13 @@ int lv_zifont_font_init(lv_font_t ** font, const char * font_path, uint16_t size
 
     //* Check that we read the correct size
     if(readSize != sizeof(lv_zifont_char_t) * CHAR_CACHE_SIZE) {
-        debugPrintln(PSTR("FONT: Error reading ziFont character map"));
+        Log.error(F("FONT: Error reading ziFont character map"));
         file.close();
         return ZIFONT_ERROR_READING_DATA;
     }
 
-    char msg[128];
-    sprintf_P(msg, PSTR("FONT: Loaded V%d Font File: %s containing %d characters"), header.Version, font_path,
-              header.Maximumnumchars);
-    debugPrintln(msg);
+    Log.notice(F("FONT: Loaded V%d Font File: %s containing %d characters"), header.Version, font_path,
+               header.Maximumnumchars);
 
     file.close();
 
@@ -295,7 +292,7 @@ const uint8_t * lv_font_get_bitmap_fmt_zifont(const lv_font_t * font, uint32_t u
         if(readSize != sizeof(lv_zifont_char_t)) {
             file.close();
             lv_mem_free(charInfo);
-            debugPrintln(PSTR("FONT: [ERROR] Wrong number of bytes read from flash"));
+            Log.error(F("FONT: Wrong number of bytes read from flash"));
             return NULL;
         }
 
@@ -303,7 +300,7 @@ const uint8_t * lv_font_get_bitmap_fmt_zifont(const lv_font_t * font, uint32_t u
         if(charInfo->character != unicode_letter) {
             file.close();
             lv_mem_free(charInfo);
-            debugPrintln(PSTR("FONT: [ERROR] Incorrect letter read from flash"));
+            Log.error(F("FONT: Incorrect letter read from flash"));
             return NULL;
         }
     }

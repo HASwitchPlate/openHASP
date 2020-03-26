@@ -1,3 +1,4 @@
+/*
 #include "hasp_conf.h"
 #include <Arduino.h>
 #include "ArduinoLog.h"
@@ -15,6 +16,7 @@
 
 #include "hasp_log.h"
 #include "hasp_debug.h"
+
 
 void debugPrintln(String & debugText)
 {
@@ -63,3 +65,4 @@ void warningPrintln(String debugText)
     syslogSend(LOG_WARNING, buffer);
 #endif
 }
+*/

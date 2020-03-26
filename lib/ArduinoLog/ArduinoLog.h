@@ -21,7 +21,8 @@ Licensed under the MIT License <http://opensource.org/licenses/MIT>.
 #else
 #include "WProgram.h"
 #endif
-typedef void (*printfunction)(int level, Print *);
+#include "StringStream.h"
+typedef void (*printfunction)(int level, Print *, String &);
 
 //#include <stdint.h>
 //#include <stddef.h>
@@ -251,11 +252,11 @@ class Logging {
     }
 
   private:
-    void print(const char * format, va_list args);
+    void print(Print * logOutput, const char * format, va_list args);
 
-    void print(const __FlashStringHelper * format, va_list args);
+    void print(Print * logOutput, const __FlashStringHelper * format, va_list args);
 
-    void printFormat(const char format, va_list * args);
+    void printFormat(Print * logOutput, const char format, va_list * args);
 
     template <class T> void printLevel(int level, T msg, ...)
     {
@@ -264,23 +265,30 @@ class Logging {
             return;
         }
 
+        String debugOutput((char *)0);
+        StringStream debugStream((String &)debugOutput);
+        debugOutput.reserve(5 * 128);
+
         if(_prefix != NULL) {
-            _prefix(level, _logOutput);
+            _prefix(level, &debugStream, debugOutput);
         }
 
         if(_showLevel) {
             static const char levels[] = "FEWNTV";
-            _logOutput->print(levels[level - 1]);
-            _logOutput->print(": ");
+            debugStream.print(levels[level - 1]);
+            debugStream.print(": ");
         }
 
         va_list args;
         va_start(args, msg);
-        print(msg, args);
+        print(&debugStream, msg, args);
 
         if(_suffix != NULL) {
-            _suffix(level, _logOutput);
+            _suffix(level, &debugStream, debugOutput);
         }
+
+        //_logOutput->print(debugOutput);
+        debugOutput.clear();
 #endif
     }
 
