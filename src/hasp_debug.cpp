@@ -1,9 +1,13 @@
 #include "ArduinoJson.h"
 #include "ArduinoLog.h"
 #include "lvgl.h"
+#include "StringStream.h"
+#include "time.h"
+
 #include "hasp_conf.h"
 
 #if defined(ARDUINO_ARCH_ESP8266)
+#include <sntp.h> // sntp_servermode_dhcp()
 #include <ESP8266WiFi.h>
 #else
 #include <Wifi.h>
@@ -40,12 +44,17 @@
 #define APP_NAME "HASP"
 #endif
 
+// variables for debug stream writer
+// static String debugOutput((char *)0);
+// static StringStream debugStream((String &)debugOutput);
+
+extern char mqttNodeName[16];
 const char * syslogAppName  = APP_NAME;
 char debugSyslogHost[32]    = SYSLOG_SERVER;
 uint16_t debugSyslogPort    = SYSLOG_PORT;
 uint8_t debugSyslogFacility = 0;
 uint8_t debugSyslogProtocol = 0;
-extern char mqttNodeName[16];
+bool debugAnsiCodes         = true;
 
 // A UDP instance to let us send and receive packets over UDP
 WiFiUDP syslogClient;
@@ -103,73 +112,73 @@ void debugStart()
     // log/logf method)
 }
 
-void serialPrintln(const char * debugText, uint8_t level)
-{
-    /*
-    String debugTimeText((char *)0);
-    debugTimeText.reserve(128);
+// void serialPrintln(const char * debugText, uint8_t level)
+//{
+/*
+String debugTimeText((char *)0);
+debugTimeText.reserve(128);
 
-    uint8_t heapfrag = halGetHeapFragmentation();
-    debugTimeText    = F("[");
-    debugTimeText += String(float(millis()) / 1000, 3);
-    debugTimeText += F("s] ");
-    debugTimeText += halGetMaxFreeBlock();
-    debugTimeText += F("/");
-    debugTimeText += ESP.getFreeHeap();
-    debugTimeText += F(" ");
-    if(heapfrag < 10) debugTimeText += F(" ");
-    debugTimeText += heapfrag;
-    debugTimeText += F(" ");
+uint8_t heapfrag = halGetHeapFragmentation();
+debugTimeText    = F("[");
+debugTimeText += String(float(millis()) / 1000, 3);
+debugTimeText += F("s] ");
+debugTimeText += halGetMaxFreeBlock();
+debugTimeText += F("/");
+debugTimeText += ESP.getFreeHeap();
+debugTimeText += F(" ");
+if(heapfrag < 10) debugTimeText += F(" ");
+debugTimeText += heapfrag;
+debugTimeText += F(" ");
 
 #if LV_MEM_CUSTOM == 0
-    lv_mem_monitor_t mem_mon;
-    lv_mem_monitor(&mem_mon);
-    debugTimeText += F("| ");
-    debugTimeText += mem_mon.used_pct;
-    debugTimeText += F("% ");
-    debugTimeText += mem_mon.free_biggest_size;
-    debugTimeText += F("b/");
-    debugTimeText += mem_mon.free_size;
-    debugTimeText += F("b ");
-    debugTimeText += (mem_mon.total_size - mem_mon.free_size);
-    debugTimeText += F("b | ");
+lv_mem_monitor_t mem_mon;
+lv_mem_monitor(&mem_mon);
+debugTimeText += F("| ");
+debugTimeText += mem_mon.used_pct;
+debugTimeText += F("% ");
+debugTimeText += mem_mon.free_biggest_size;
+debugTimeText += F("b/");
+debugTimeText += mem_mon.free_size;
+debugTimeText += F("b ");
+debugTimeText += (mem_mon.total_size - mem_mon.free_size);
+debugTimeText += F("b | ");
 #endif
 
-    if(debugSerialStarted) {
-        //    Serial.print(debugTimeText);
-        //    Serial.println(debugText);
-    }*/
+if(debugSerialStarted) {
+    //    Serial.print(debugTimeText);
+    //    Serial.println(debugText);
+}/
 
-    switch(level) {
-        case LOG_LEVEL_FATAL:
-            Log.fatal(debugText);
-            break;
-        case LOG_LEVEL_ERROR:
-            Log.error(debugText);
-            break;
-        case LOG_LEVEL_WARNING:
-            Log.warning(debugText);
-            break;
-        case LOG_LEVEL_VERBOSE:
-            Log.verbose(debugText);
-            break;
-        case LOG_LEVEL_TRACE:
-            Log.trace(debugText);
-            break;
-        default:
-            Log.notice(debugText);
-    }
+switch(level) {
+    case LOG_LEVEL_FATAL:
+        Log.fatal(debugText);
+        break;
+    case LOG_LEVEL_ERROR:
+        Log.error(debugText);
+        break;
+    case LOG_LEVEL_WARNING:
+        Log.warning(debugText);
+        break;
+    case LOG_LEVEL_VERBOSE:
+        Log.verbose(debugText);
+        break;
+    case LOG_LEVEL_TRACE:
+        Log.trace(debugText);
+        break;
+    default:
+        Log.notice(debugText);
+}
 
 #if HASP_USE_TELNET != 0
-    // telnetPrint(debugTimeText.c_str());
-    telnetPrintln(debugText);
+// telnetPrint(debugTimeText.c_str());
+telnetPrintln(debugText);
 #endif
 }
 
 void serialPrintln(String & debugText, uint8_t level)
 {
-    serialPrintln(debugText.c_str(), level);
-}
+serialPrintln(debugText.c_str(), level);
+} */
 
 #if HASP_USE_SYSLOG != 0
 void syslogSend(uint8_t priority, const char * debugText)
@@ -248,12 +257,32 @@ bool debugSetConfig(const JsonObject & settings)
     return changed;
 }
 
-void printTimestamp(int level, Print * _logOutput)
+static void printTimestamp(int level, Print * _logOutput, String & debugOutput)
 {
-    char c[128];
-    /*int m =*/
-    snprintf(c, sizeof(c), PSTR("[%10.3fs] %5u/%5u %2u | "), float(millis()) / 1000, halGetMaxFreeBlock(),
+    char buffer[128];
+
+    /* Print Current Time */
+    time_t rawtime;
+    struct tm * timeinfo;
+    // if(!time(nullptr)) return;
+    time(&rawtime);
+    timeinfo = localtime(&rawtime);
+
+    strftime(buffer, sizeof(buffer), ("[%b %d %H:%M:%S."), timeinfo);
+    if(debugSerialStarted) {
+        if(debugAnsiCodes) Serial.print(TERM_COLOR_CYAN);
+        Serial.print(buffer);
+    }
+    if(debugAnsiCodes) telnetPrint(TERM_COLOR_CYAN);
+    telnetPrint(buffer);
+
+    /* Print Memory Info */
+    snprintf(buffer, sizeof(buffer), PSTR("%8.3fs] %5u/%5u %2u | "), float(millis()) / 1000, halGetMaxFreeBlock(),
              ESP.getFreeHeap(), halGetHeapFragmentation());
+    if(debugSerialStarted) {
+        if(debugAnsiCodes) Serial.print(buffer);
+    }
+    telnetPrint(buffer);
 
 #if LV_MEM_CUSTOM == 0
     /*    lv_mem_monitor_t mem_mon;
@@ -269,38 +298,54 @@ void printTimestamp(int level, Print * _logOutput)
         debugTimeText += F("b | ");*/
 #endif
 
-    _logOutput->print(TERM_COLOR_CYAN);
-    _logOutput->print(c);
     switch(level) {
         case LOG_LEVEL_FATAL:
         case LOG_LEVEL_ERROR:
-            _logOutput->print(TERM_COLOR_RED);
+            strcpy(buffer, TERM_COLOR_RED);
             break;
         case LOG_LEVEL_WARNING:
-            _logOutput->print(TERM_COLOR_YELLOW);
+            strcpy(buffer, TERM_COLOR_YELLOW);
             break;
         case LOG_LEVEL_NOTICE:
-            _logOutput->print(TERM_COLOR_WHITE);
+            strcpy(buffer, TERM_COLOR_WHITE);
             break;
         case LOG_LEVEL_VERBOSE:
-            _logOutput->print(TERM_COLOR_CYAN);
+            strcpy(buffer, TERM_COLOR_CYAN);
             break;
         case LOG_LEVEL_TRACE:
-            _logOutput->print(TERM_COLOR_GRAY);
+            strcpy(buffer, TERM_COLOR_GRAY);
             break;
         default:
-            _logOutput->print(TERM_COLOR_RESET);
+            strcpy(buffer, TERM_COLOR_RESET);
     }
+
+    if(debugSerialStarted) {
+        if(debugAnsiCodes) Serial.print(buffer);
+    }
+    telnetPrint(buffer);
 }
 
-void printNewline(int level, Print * _logOutput)
+static void printNewline(int level, Print * _logOutput, String & debugOutput)
 {
-    _logOutput->print(TERM_COLOR_MAGENTA);
-    _logOutput->print("\r\n");
+    if(debugSerialStarted) {
+        Serial.print(debugOutput);
+        if(debugAnsiCodes) Serial.print(TERM_COLOR_RESET);
+        Serial.print("\r\n");
+        if(debugAnsiCodes) Serial.print(TERM_COLOR_MAGENTA);
+    }
+
+    telnetPrint(debugOutput.c_str());
+    if(debugAnsiCodes) telnetPrint(TERM_COLOR_RESET);
+    telnetPrint("\r\n");
+    if(debugAnsiCodes) telnetPrint(TERM_COLOR_MAGENTA);
+
+    syslogSend(level, debugOutput.c_str());
 }
 
 void debugPreSetup(JsonObject settings)
 {
+    // Link stream to debugOutput
+    // debugOutput.reserve(512);
     Log.begin(LOG_LEVEL_VERBOSE, &Serial, true);
     Log.setPrefix(printTimestamp); // Uncomment to get timestamps as prefix
     Log.setSuffix(printNewline);   // Uncomment to get newline as suffix
@@ -308,6 +353,7 @@ void debugPreSetup(JsonObject settings)
     uint16_t baudrate = settings[FPSTR(F_CONFIG_BAUD)].as<uint16_t>();
     if(baudrate > 0) {
         Serial.begin(baudrate * 10); /* prepare for possible serial debug */
+        delay(10);
         debugSerialStarted = true;
     }
 
@@ -318,10 +364,49 @@ void debugPreSetup(JsonObject settings)
 void debugLoop()
 {}
 
+void printLocalTime()
+{
+    char buffer[128];
+    time_t rawtime;
+    struct tm * timeinfo;
+
+    // if(!time(nullptr)) return;
+
+    time(&rawtime);
+    timeinfo = localtime(&rawtime);
+
+    strftime(buffer, sizeof(buffer), "%b %d %H:%M:%S.", timeinfo);
+    Serial.println(buffer);
+    // struct tm timeinfo;
+    // time_t now = time(nullptr);
+
+    // Serial-.print(ctime(&now));
+    // Serial.print(&timeinfo, " %d %B %Y %H:%M:%S ");
+
+#if LWIP_VERSION_MAJOR > 1
+
+    // LwIP v2 is able to list more details about the currently configured SNTP servers
+    for(int i = 0; i < SNTP_MAX_SERVERS; i++) {
+        IPAddress sntp    = *sntp_getserver(i);
+        const char * name = sntp_getservername(i);
+        if(sntp.isSet()) {
+            Serial.printf("sntp%d:     ", i);
+            if(name) {
+                Serial.printf("%s (%s) ", name, sntp.toString().c_str());
+            } else {
+                Serial.printf("%s ", sntp.toString().c_str());
+            }
+            Serial.printf("IPv6: %s Reachability: %o\n", sntp.isV6() ? "Yes" : "No", sntp_getreachability(i));
+        }
+    }
+#endif
+}
+
 void debugEverySecond()
 {
     if(debugTelePeriod > 0 && (millis() - debugLastMillis) >= debugTelePeriod * 1000) {
         dispatchStatusUpdate();
         debugLastMillis = millis();
     }
+    // printLocalTime();
 }
