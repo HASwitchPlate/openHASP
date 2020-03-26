@@ -9,14 +9,72 @@
 
 LV_FONT_DECLARE(unscii_8_icon);
 
+lv_color_t haspLogColor(lv_color_t color)
+{
+    uint8_t r = (LV_COLOR_GET_R(color) * 263 + 7) >> 5;
+    uint8_t g = (LV_COLOR_GET_G(color) * 259 + 3) >> 6;
+    uint8_t b = (LV_COLOR_GET_B(color) * 263 + 7) >> 5;
+    Log.trace(F("Color: R%u G%u B%u"), r, g, b);
+    return color;
+}
+
+lv_color_t haspPayloadToColor(const char * payload)
+{
+    switch(strlen(payload)) {
+        case 3:
+            if(!strcmp_P(payload, PSTR("red"))) return haspLogColor(LV_COLOR_RED);
+            break;
+        case 4:
+            if(!strcmp_P(payload, PSTR("aqua"))) return haspLogColor(LV_COLOR_AQUA);
+            if(!strcmp_P(payload, PSTR("blue"))) return haspLogColor(LV_COLOR_BLUE);
+            if(!strcmp_P(payload, PSTR("cyan"))) return haspLogColor(LV_COLOR_CYAN);
+            if(!strcmp_P(payload, PSTR("gray"))) return haspLogColor(LV_COLOR_GRAY);
+            if(!strcmp_P(payload, PSTR("lime"))) return haspLogColor(LV_COLOR_LIME);
+            if(!strcmp_P(payload, PSTR("teal"))) return haspLogColor(LV_COLOR_TEAL);
+            if(!strcmp_P(payload, PSTR("navy"))) return haspLogColor(LV_COLOR_NAVY);
+            break;
+        case 5:
+            if(!strcmp_P(payload, PSTR("olive"))) return haspLogColor(LV_COLOR_OLIVE);
+            if(!strcmp_P(payload, PSTR("green"))) return haspLogColor(LV_COLOR_GREEN);
+            if(!strcmp_P(payload, PSTR("white"))) return haspLogColor(LV_COLOR_WHITE);
+            if(!strcmp_P(payload, PSTR("black"))) return haspLogColor(LV_COLOR_BLACK);
+            break;
+        case 6:
+            if(!strcmp_P(payload, PSTR("maroon"))) return haspLogColor(LV_COLOR_MAROON);
+            if(!strcmp_P(payload, PSTR("orange"))) return haspLogColor(LV_COLOR_ORANGE);
+            if(!strcmp_P(payload, PSTR("purple"))) return haspLogColor(LV_COLOR_PURPLE);
+            if(!strcmp_P(payload, PSTR("silver"))) return haspLogColor(LV_COLOR_SILVER);
+            if(!strcmp_P(payload, PSTR("yellow"))) return haspLogColor(LV_COLOR_YELLOW);
+            break;
+        case 7:
+            if(!strcmp_P(payload, PSTR("magenta"))) return haspLogColor(LV_COLOR_MAGENTA);
+
+            int r, g, b, a;
+            if(*payload == '#' && sscanf(payload + 1, "%2x%2x%2x%2x", &r, &g, &b, &a) == 4) {
+                return haspLogColor(LV_COLOR_MAKE(r, g, b));
+            } else if(*payload == '#' && sscanf(payload + 1, "%2x%2x%2x", &r, &g, &b) == 3) {
+                return haspLogColor(LV_COLOR_MAKE(r, g, b));
+            }
+        default:
+            if(!strcmp_P(payload, PSTR("darkblue"))) return haspLogColor(LV_COLOR_MAKE(0, 51, 102));
+            if(!strcmp_P(payload, PSTR("lightblue"))) return haspLogColor(LV_COLOR_MAKE(46, 203, 203));
+            break;
+    }
+
+    Log.warning(F("Invalid color %s"), payload);
+    return LV_COLOR_BLACK;
+}
+
 void haspAttributeNotFound(String & strAttr)
 {
     Log.warning(F("HASP: Unknown property %s"), strAttr.c_str());
 }
 
-void set_cpicker_value(lv_obj_t * obj, uint32_t color)
+void set_cpicker_value(lv_obj_t * obj, const char * payload)
 {
-    lv_cpicker_set_color(obj, lv_color_hex(color));
+    lv_color_t color = haspPayloadToColor(payload);
+    lv_cpicker_set_color(obj, color);
+    // lv_cpicker_set_color(obj, lv_color_hex(color));
 }
 
 void haspSetLabelText(lv_obj_t * obj, const char * value)
@@ -54,11 +112,10 @@ void haspSetOpacity(lv_obj_t * obj, uint8_t val)
 
 void haspSetLocalStyle(lv_obj_t * obj, String & strAttr, String & strPayload)
 {
-    uint8_t part     = LV_TABLE_PART_BG;
-    uint8_t state    = LV_STATE_DEFAULT;
-    uint8_t val8     = strPayload.toInt();
-    int16_t var      = strPayload.toInt();
-    lv_color_t color = lv_color_hex((uint32_t)strPayload.toInt());
+    uint8_t part  = LV_TABLE_PART_BG;
+    uint8_t state = LV_STATE_DEFAULT;
+    int16_t var   = strPayload.toInt();
+    // lv_color_t color = lv_color_hex((uint32_t)strPayload.toInt());
     // debugPrintln(strAttr + ":" + strPayload);
 
     // Check Trailing partnumber
@@ -74,7 +131,7 @@ void haspSetLocalStyle(lv_obj_t * obj, String & strAttr, String & strPayload)
         // part = LV_PAGE_PART_SCRL;
     }
 
-    // Remove Trailing partnumber
+    // Remove Trailing part digit
     if(part != LV_TABLE_PART_BG && strAttr.length() > 0) strAttr.remove(strAttr.length() - 1);
     // debugPrintln(strAttr + "&" + part);
 
@@ -109,12 +166,14 @@ void haspSetLocalStyle(lv_obj_t * obj, String & strAttr, String & strPayload)
     } else if(strAttr == F("bg_grad_dir")) {
         return lv_obj_set_style_local_bg_grad_dir(obj, part, state, (lv_grad_dir_t)var);
     } else if(strAttr == F("bg_color")) {
+        lv_color_t color = haspPayloadToColor(strPayload.c_str());
         if(part != 64)
-            return lv_obj_set_style_local_bg_color(obj, part, state, (lv_color_t)color);
+            return lv_obj_set_style_local_bg_color(obj, part, state, color);
         else
-            return lv_obj_set_style_local_bg_color(obj, LV_PAGE_PART_SCRL, LV_STATE_CHECKED, (lv_color_t)color);
+            return lv_obj_set_style_local_bg_color(obj, LV_PAGE_PART_SCRL, LV_STATE_CHECKED, color);
     } else if(strAttr == F("bg_grad_color")) {
-        return lv_obj_set_style_local_bg_grad_color(obj, part, state, (lv_color_t)color);
+        lv_color_t color = haspPayloadToColor(strPayload.c_str());
+        return lv_obj_set_style_local_bg_grad_color(obj, part, state, color);
     } else if(strAttr == F("bg_opa")) {
         return lv_obj_set_style_local_bg_opa(obj, part, state, (lv_opa_t)var);
     } else if(strAttr == F("border_width")) {
@@ -126,7 +185,8 @@ void haspSetLocalStyle(lv_obj_t * obj, String & strAttr, String & strPayload)
     } else if(strAttr == F("border_post")) {
         return lv_obj_set_style_local_border_post(obj, part, state, (bool)var);
     } else if(strAttr == F("border_color")) {
-        return lv_obj_set_style_local_border_color(obj, part, state, (lv_color_t)color);
+        lv_color_t color = haspPayloadToColor(strPayload.c_str());
+        return lv_obj_set_style_local_border_color(obj, part, state, color);
     } else if(strAttr == F("border_opa")) {
         return lv_obj_set_style_local_border_opa(obj, part, state, (lv_opa_t)var);
     } else if(strAttr == F("outline_width")) {
@@ -136,7 +196,8 @@ void haspSetLocalStyle(lv_obj_t * obj, String & strAttr, String & strPayload)
     } else if(strAttr == F("outline_blend_mode")) {
         return lv_obj_set_style_local_outline_blend_mode(obj, part, state, (lv_blend_mode_t)var);
     } else if(strAttr == F("outline_color")) {
-        return lv_obj_set_style_local_outline_color(obj, part, state, (lv_color_t)color);
+        lv_color_t color = haspPayloadToColor(strPayload.c_str());
+        return lv_obj_set_style_local_outline_color(obj, part, state, color);
     } else if(strAttr == F("outline_opa")) {
         return lv_obj_set_style_local_outline_opa(obj, part, state, (lv_opa_t)var);
     } else if(strAttr == F("shadow_width")) {
@@ -150,7 +211,8 @@ void haspSetLocalStyle(lv_obj_t * obj, String & strAttr, String & strPayload)
     } else if(strAttr == F("shadow_blend_mode")) {
         return lv_obj_set_style_local_shadow_blend_mode(obj, part, state, (lv_blend_mode_t)var);
     } else if(strAttr == F("shadow_color")) {
-        return lv_obj_set_style_local_shadow_color(obj, part, state, (lv_color_t)color);
+        lv_color_t color = haspPayloadToColor(strPayload.c_str());
+        return lv_obj_set_style_local_shadow_color(obj, part, state, color);
     } else if(strAttr == F("shadow_opa")) {
         return lv_obj_set_style_local_shadow_opa(obj, part, state, (lv_opa_t)var);
     } else if(strAttr == F("pattern_repeat")) {
@@ -158,7 +220,8 @@ void haspSetLocalStyle(lv_obj_t * obj, String & strAttr, String & strPayload)
     } else if(strAttr == F("pattern_blend_mode")) {
         return lv_obj_set_style_local_pattern_blend_mode(obj, part, state, (lv_blend_mode_t)var);
     } else if(strAttr == F("pattern_recolor")) {
-        return lv_obj_set_style_local_pattern_recolor(obj, part, state, (lv_color_t)color);
+        lv_color_t color = haspPayloadToColor(strPayload.c_str());
+        return lv_obj_set_style_local_pattern_recolor(obj, part, state, color);
     } else if(strAttr == F("pattern_opa")) {
         return lv_obj_set_style_local_pattern_opa(obj, part, state, (lv_opa_t)var);
     } else if(strAttr == F("pattern_recolor_opa")) {
@@ -178,7 +241,8 @@ void haspSetLocalStyle(lv_obj_t * obj, String & strAttr, String & strPayload)
     } else if(strAttr == F("value_align")) {
         return lv_obj_set_style_local_value_align(obj, part, state, (lv_align_t)var);
     } else if(strAttr == F("value_color")) {
-        return lv_obj_set_style_local_value_color(obj, part, state, (lv_color_t)color);
+        lv_color_t color = haspPayloadToColor(strPayload.c_str());
+        return lv_obj_set_style_local_value_color(obj, part, state, color);
     } else if(strAttr == F("value_opa")) {
         return lv_obj_set_style_local_value_opa(obj, part, state, (lv_opa_t)var);
     } else if(strAttr == F("value_font")) {
@@ -214,9 +278,11 @@ void haspSetLocalStyle(lv_obj_t * obj, String & strAttr, String & strPayload)
     } else if(strAttr == F("text_blend_mode")) {
         return lv_obj_set_style_local_text_blend_mode(obj, part, state, (lv_blend_mode_t)var);
     } else if(strAttr == F("text_color")) {
-        return lv_obj_set_style_local_text_color(obj, part, state, (lv_color_t)color);
+        lv_color_t color = haspPayloadToColor(strPayload.c_str());
+        return lv_obj_set_style_local_text_color(obj, part, state, color);
     } else if(strAttr == F("text_sel_color")) {
-        return lv_obj_set_style_local_text_sel_color(obj, part, state, (lv_color_t)color);
+        lv_color_t color = haspPayloadToColor(strPayload.c_str());
+        return lv_obj_set_style_local_text_sel_color(obj, part, state, color);
     } else if(strAttr == F("text_opa")) {
         return lv_obj_set_style_local_text_opa(obj, part, state, (lv_opa_t)var);
     } else if(strAttr == F("text_font")) {
@@ -252,7 +318,8 @@ void haspSetLocalStyle(lv_obj_t * obj, String & strAttr, String & strPayload)
     } else if(strAttr == F("line_rounded")) {
         return lv_obj_set_style_local_line_rounded(obj, part, state, (bool)var);
     } else if(strAttr == F("line_color")) {
-        return lv_obj_set_style_local_line_color(obj, part, state, (lv_color_t)color);
+        lv_color_t color = haspPayloadToColor(strPayload.c_str());
+        return lv_obj_set_style_local_line_color(obj, part, state, color);
     } else if(strAttr == F("line_opa")) {
         return lv_obj_set_style_local_line_opa(obj, part, state, (lv_opa_t)var);
     }
@@ -378,7 +445,7 @@ void haspSetObjAttribute3(lv_obj_t * obj, String & strAttr, String & strPayload)
                 lv_bar_set_value(obj, intval, LV_ANIM_OFF);
                 return;
             } else if(check_obj_type(list.type[0], LV_HASP_CPICKER)) {
-                set_cpicker_value(obj, (uint32_t)strPayload.toInt());
+                set_cpicker_value(obj, strPayload.c_str());
                 return;
             }
         }
