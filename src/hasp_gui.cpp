@@ -89,7 +89,7 @@ bool guiCheckSleep()
 
 #if LV_USE_LOG != 0
 /* Serial debugging */
-void debugLvgl(lv_log_level_t level, const char * file, uint32_t line, const char * funcname, const char * descr)
+static void debugLvgl(lv_log_level_t level, const char * file, uint32_t line, const char * funcname, const char * descr)
 {
     switch(level) {
         case LV_LOG_LEVEL_TRACE:
