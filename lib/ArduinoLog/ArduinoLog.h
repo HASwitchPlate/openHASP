@@ -267,7 +267,7 @@ class Logging {
 
         String debugOutput((char *)0);
         StringStream debugStream((String &)debugOutput);
-        debugOutput.reserve(5 * 128);
+        debugOutput.reserve(4 * 128);
 
         if(_prefix != NULL) {
             _prefix(level, &debugStream, debugOutput);
