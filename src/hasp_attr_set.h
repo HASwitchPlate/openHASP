@@ -8,7 +8,7 @@
 extern "C" {
 #endif
 
-void haspSetObjAttribute(lv_obj_t * obj, String strAttr, String strPayload);
+void hasp_set_obj_attribute(lv_obj_t * obj, const char * attr_p, const char * payload);
 void haspSetOpacity(lv_obj_t * obj, uint8_t val);
 
 #ifdef __cplusplus
