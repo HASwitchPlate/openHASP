@@ -16,14 +16,8 @@
 #include "hasp_mqtt.h"
 #endif
 
-void dispatchPrintln(String header, String & data)
+inline void dispatchPrintln(String header, String & data)
 {
-    /*    String message((char *)0);
-        message.reserve(128);
-        message = header;
-        message += F(": ");
-        message += data;
-        debugPrintln(message); */
     Log.notice(F("%s: %s"), header.c_str(), data.c_str());
 }
 
@@ -49,7 +43,7 @@ void dispatchLoop()
 void dispatchStatusUpdate()
 {
 #if HASP_USE_MQTT
-    mqttStatusUpdate();
+    mqtt_send_statusupdate();
 #endif
 }
 
@@ -95,13 +89,13 @@ void dispatchButtonAttribute(String & strTopic, const char * payload)
         int objid  = strObjId.toInt();
 
         if(pageid >= 0 && pageid <= 255 && objid >= 0 && objid <= 255) {
-            haspProcessAttribute((uint8_t)pageid, (uint8_t)objid, strAttr, payload);
+            hasp_process_attribute((uint8_t)pageid, (uint8_t)objid, strAttr, payload);
         } // valid page
     }
 }
 
 // objectattribute=value
-void dispatchAttribute(String & strTopic, const char * payload)
+void dispatchAttribute(String strTopic, const char * payload)
 {
     if(strTopic.startsWith("p[")) {
         dispatchButtonAttribute(strTopic, payload);
@@ -143,7 +137,7 @@ void dispatchPage(String strPageid)
     strPage.reserve(128);
     strPage = haspGetPage();
 #if HASP_USE_MQTT
-    mqttSendState("page", strPage.c_str());
+    mqtt_send_state(F("page"), strPage.c_str());
 #endif
 }
 
@@ -167,7 +161,7 @@ void dispatchDim(String strDimLevel)
     // Return the current state
     String strPayload = String(guiGetDim());
 #if HASP_USE_MQTT
-    mqttSendState("dim", strPayload.c_str());
+    mqtt_send_state(F("dim"), strPayload.c_str());
 #endif
 }
 
@@ -182,7 +176,7 @@ void dispatchBacklight(String strPayload)
     // Return the current state
     strPayload = getOnOff(guiGetBacklight());
 #if HASP_USE_MQTT
-    mqttSendState("light", strPayload.c_str());
+    mqtt_send_state(F("light"), strPayload.c_str());
 #endif
 }
 
@@ -204,7 +198,7 @@ void dispatchCommand(String cmnd)
         // guiTakeScreenshot("/screenhot.bmp");
     } else if(cmnd == F("reboot") || cmnd == F("restart")) {
         dispatchReboot(true);
-    } else if(cmnd == "" || cmnd == F("statusupdate")) {
+    } else if(cmnd == F("") || cmnd == F("statusupdate")) {
         dispatchStatusUpdate();
     } else {
 
@@ -234,13 +228,13 @@ void dispatchJson(char * payload)
           strPayload.remove(strPayload.length() - 2, 2);
           strPayload.concat("]");
       }*/
-
-    DynamicJsonDocument haspCommands(MQTT_MAX_PACKET_SIZE + 512);
+    size_t maxsize = (128u * ((strlen(payload) / 128) + 1)) + 256;
+    DynamicJsonDocument haspCommands(maxsize);
     DeserializationError jsonError = deserializeJson(haspCommands, payload);
-    haspCommands.shrinkToFit();
+    // haspCommands.shrinkToFit();
 
     if(jsonError) { // Couldn't parse incoming JSON command
-        Log.warning(F("JSON: Failed to parse incoming JSON command with error: "), jsonError.c_str());
+        Log.warning(F("JSON: Failed to parse incoming JSON command with error: %s"), jsonError.c_str());
         return;
     }
 
@@ -250,15 +244,18 @@ void dispatchJson(char * payload)
     }
 }
 
-void dispatchJsonl(char * strPayload)
+void dispatchJsonl(char * payload)
 {
     DynamicJsonDocument config(256);
 
     String output((char *)0);
-    output.reserve(MQTT_MAX_PACKET_SIZE + 256);
-
     StringStream stream((String &)output);
-    stream.print(strPayload);
+
+    size_t maxsize = (128u * ((strlen(payload) / 128) + 1));
+    Log.verbose(F("CMND: payload %u => reserve %u"), strlen(payload), (128u * ((strlen(payload) / 128) + 1)));
+
+    output.reserve((128u * ((strlen(payload) / 128) + 1)));
+    stream.print(payload);
 
     while(deserializeJson(config, stream) == DeserializationError::Ok) {
         serializeJson(config, Serial);
@@ -267,10 +264,10 @@ void dispatchJsonl(char * strPayload)
     }
 }
 
-void dispatchIdle(const __FlashStringHelper * state)
+void dispatchIdle(const char * state)
 {
 #if HASP_USE_MQTT
-    mqttSendState(String(F("idle")).c_str(), String(state).c_str());
+    mqtt_send_state(F("idle"), state);
 #endif
 }
 
@@ -291,11 +288,9 @@ void dispatchReboot(bool saveConfig)
     delay(5000);
 }
 
-void dispatchButton(uint8_t id, char * event)
+void dispatch_button(uint8_t id, const char * event)
 {
-    char buffer[128];
-    snprintf_P(buffer, sizeof(buffer), PSTR("INPUT%d"), id);
 #if HASP_USE_MQTT
-    mqttSendState(buffer, event);
+    mqtt_send_input(id, event);
 #endif
 }
