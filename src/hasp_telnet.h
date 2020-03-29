@@ -13,6 +13,7 @@ void telnetStop(void);
 
 void telnetPrint(const char * msg);
 void telnetPrintln(const char * msg);
+void telnetPrint(const __FlashStringHelper * msg);
 
 bool telnetSetConfig(const JsonObject & settings);
 bool telnetGetConfig(const JsonObject & settings);
