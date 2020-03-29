@@ -79,7 +79,23 @@ void set_cpicker_value(lv_obj_t * obj, const char * payload)
 {
     lv_color_t color = haspPayloadToColor(payload);
     lv_cpicker_set_color(obj, color);
-    // lv_cpicker_set_color(obj, lv_color_hex(color));
+}
+
+void set_label_long_mode(lv_obj_t * obj, const char * payload)
+{
+    lv_label_long_mode_t mode;
+    if(!strcmp_P(payload, PSTR("expand"))) {
+        mode = LV_LABEL_LONG_EXPAND;
+    } else if(!strcmp_P(payload, PSTR("break"))) {
+        mode = LV_LABEL_LONG_BREAK;
+    } else if(!strcmp_P(payload, PSTR("dots"))) {
+        mode = LV_LABEL_LONG_DOT;
+    } else if(!strcmp_P(payload, PSTR("scroll"))) {
+        mode = LV_LABEL_LONG_SROLL;
+    } else if(!strcmp_P(payload, PSTR("loop"))) {
+        mode = LV_LABEL_LONG_SROLL_CIRC;
+    }
+    lv_label_set_long_mode(obj, mode);
 }
 
 void haspSetLabelText(lv_obj_t * obj, const char * value)
@@ -520,14 +536,22 @@ void haspSetObjAttribute4(lv_obj_t * obj, const char * attr, const char * payloa
             lv_roller_set_visible_row_count(obj, (uint8_t)val);
             return;
         }
-    } else if(!strcmp_P(attr, PSTR("rect"))) {
+    } else {
         lv_obj_type_t list;
         lv_obj_get_type(obj, &list);
 
-        if(check_obj_type(list.type[0], LV_HASP_CPICKER)) {
-            if(is_true(payload)) val = 1;
-            lv_cpicker_set_type(obj, val ? LV_CPICKER_TYPE_RECT : LV_CPICKER_TYPE_DISC);
-            return;
+        if(!strcmp_P(attr, PSTR("rect"))) {
+            if(check_obj_type(list.type[0], LV_HASP_CPICKER)) {
+                lv_cpicker_set_type(obj, is_true(payload) ? LV_CPICKER_TYPE_RECT : LV_CPICKER_TYPE_DISC);
+                return;
+            }
+        }
+
+        if(!strcmp_P(attr, PSTR("mode"))) {
+            if(check_obj_type(list.type[0], LV_HASP_LABEL)) {
+                set_label_long_mode(obj, payload);
+                return;
+            }
         }
     }
 
@@ -541,12 +565,15 @@ void haspSetObjAttribute6(lv_obj_t * obj, const char * attr, const char * payloa
     if(!strcmp_P(attr, PSTR("hidden"))) {
         lv_obj_set_hidden(obj, val == 0);
         return;
-    } else if(!strcmp_P(attr, PSTR("toggle"))) {
+    } else {
         lv_obj_type_t list;
         lv_obj_get_type(obj, &list);
-        if(check_obj_type(list.type[0], LV_HASP_BUTTON)) {
-            haspSetToggle(obj, atoi(payload) > 0);
-            return;
+
+        if(!strcmp_P(attr, PSTR("toggle"))) {
+            if(check_obj_type(list.type[0], LV_HASP_BUTTON)) {
+                haspSetToggle(obj, atoi(payload) > 0);
+                return;
+            }
         }
     }
     haspSetLocalStyle(obj, attr, payload);
