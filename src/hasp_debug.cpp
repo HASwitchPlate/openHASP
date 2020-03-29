@@ -272,9 +272,9 @@ void debugSendOuput(const __FlashStringHelper * txt)
 }
 */
 
-inline void debugSendAnsiCode(char * buffer, Print * _logOutput)
+inline void debugSendAnsiCode(const __FlashStringHelper * code, Print * _logOutput)
 {
-    if(debugAnsiCodes) _logOutput->print(buffer);
+    if(debugAnsiCodes) _logOutput->print(code);
 }
 
 static void debugPrintTimestamp(int level, Print * _logOutput)
@@ -285,7 +285,7 @@ static void debugPrintTimestamp(int level, Print * _logOutput)
     time(&rawtime);
     timeinfo = localtime(&rawtime);
 
-    debugSendAnsiCode(TERM_COLOR_CYAN, _logOutput);
+    debugSendAnsiCode(F(TERM_COLOR_CYAN), _logOutput);
     // strftime(buffer, sizeof(buffer), ("[%b %d %H:%M:%S."), timeinfo);
     // strftime(buffer, sizeof(buffer), ("[%H:%M:%S."), timeinfo);
     if(timeinfo->tm_year >= 2020) {
@@ -307,11 +307,11 @@ static void debugPrintHaspMemory(int level, Print * _logOutput)
     /* Print HASP Memory Info */
     if(debugAnsiCodes) {
         if(maxfree > (1024u * 5) && (totalfree > 1024u * 6) && (frag <= 10))
-            debugSendAnsiCode(TERM_COLOR_GREEN, _logOutput);
+            debugSendAnsiCode(F(TERM_COLOR_GREEN), _logOutput);
         else if(maxfree > (1024u * 3) && (totalfree > 1024u * 5) && (frag <= 20))
-            debugSendAnsiCode(TERM_COLOR_ORANGE, _logOutput);
+            debugSendAnsiCode(F(TERM_COLOR_ORANGE), _logOutput);
         else
-            debugSendAnsiCode(TERM_COLOR_RED, _logOutput);
+            debugSendAnsiCode(F(TERM_COLOR_RED), _logOutput);
     }
     _logOutput->printf(PSTR("[%5u/%5u %2u] "), maxfree, totalfree, frag);
 }
@@ -325,12 +325,12 @@ static void debugPrintLvglMemory(int level, Print * _logOutput)
     /* Print LVGL Memory Info */
     if(debugAnsiCodes) {
         if(mem_mon.free_biggest_size > (1024u * 2) && (mem_mon.free_size > 1024u * 2.5) && (mem_mon.frag_pct <= 10))
-            debugSendAnsiCode(TERM_COLOR_GREEN, _logOutput);
+            debugSendAnsiCode(F(TERM_COLOR_GREEN), _logOutput);
         else if(mem_mon.free_biggest_size > (1024u * 1) && (mem_mon.free_size > 1024u * 1.5) &&
                 (mem_mon.frag_pct <= 25))
-            debugSendAnsiCode(TERM_COLOR_ORANGE, _logOutput);
+            debugSendAnsiCode(F(TERM_COLOR_ORANGE), _logOutput);
         else
-            debugSendAnsiCode(TERM_COLOR_RED, _logOutput);
+            debugSendAnsiCode(F(TERM_COLOR_RED), _logOutput);
     }
     _logOutput->printf(PSTR("[%5u/%5u %2u] "), mem_mon.free_biggest_size, mem_mon.free_size, mem_mon.frag_pct);
 }
@@ -341,22 +341,22 @@ static void debugPrintPriority(int level, Print * _logOutput)
     switch(level) {
         case LOG_LEVEL_FATAL:
         case LOG_LEVEL_ERROR:
-            debugSendAnsiCode(TERM_COLOR_RED, _logOutput);
+            debugSendAnsiCode(F(TERM_COLOR_RED), _logOutput);
             break;
         case LOG_LEVEL_WARNING:
-            debugSendAnsiCode(TERM_COLOR_YELLOW, _logOutput);
+            debugSendAnsiCode(F(TERM_COLOR_YELLOW), _logOutput);
             break;
         case LOG_LEVEL_NOTICE:
-            debugSendAnsiCode(TERM_COLOR_WHITE, _logOutput);
+            debugSendAnsiCode(F(TERM_COLOR_WHITE), _logOutput);
             break;
         case LOG_LEVEL_VERBOSE:
-            debugSendAnsiCode(TERM_COLOR_CYAN, _logOutput);
+            debugSendAnsiCode(F(TERM_COLOR_CYAN), _logOutput);
             break;
         case LOG_LEVEL_TRACE:
-            debugSendAnsiCode(TERM_COLOR_GRAY, _logOutput);
+            debugSendAnsiCode(F(TERM_COLOR_GRAY), _logOutput);
             break;
         default:
-            debugSendAnsiCode(TERM_COLOR_RESET, _logOutput);
+            debugSendAnsiCode(F(TERM_COLOR_RESET), _logOutput);
     }
 }
 
@@ -372,25 +372,11 @@ void debugPrintPrefix(int level, Print * _logOutput)
 
 void debugPrintSuffix(int level, Print * _logOutput)
 {
-    /*
-    if(debugSerialStarted) {
-        Serial.print(debugOutput);
-        if(debugAnsiCodes) Serial.print(TERM_COLOR_RESET);
-        Serial.print("\r\n");
-        if(debugAnsiCodes) Serial.print(TERM_COLOR_MAGENTA);
-    }
-
-    telnetPrint(debugOutput);
-    if(debugAnsiCodes) telnetPrint(TERM_COLOR_RESET);
-    telnetPrint("\r\n");
-    if(debugAnsiCodes) telnetPrint(TERM_COLOR_MAGENTA);
-*/
-
     if(debugAnsiCodes)
-        _logOutput->println(TERM_COLOR_RESET);
+        _logOutput->println(F(TERM_COLOR_RESET));
     else
         _logOutput->println();
-    if(debugAnsiCodes) _logOutput->print(TERM_COLOR_MAGENTA);
+    if(debugAnsiCodes) _logOutput->print(F(TERM_COLOR_MAGENTA));
 
     // syslogSend(level, debugOutput);
 }
@@ -411,36 +397,34 @@ void debugPreSetup(JsonObject settings)
         Log.registerOutput(0, &Serial, LOG_LEVEL_VERBOSE, true);
         Log.trace(F("Serial started at %u baud"), baudrate * 10);
     }
-
-    // Serial.begin(74880); /* prepare for possible serial debug */
-    // Serial.begin(115200);
 }
 
 #if LV_USE_LOG != 0
+static uint32_t lastDbgLine;
+static uint16_t lastDbgFree;
 void debugLvgl(lv_log_level_t level, const char * file, uint32_t line, const char * funcname, const char * descr)
 {
-    switch(level) {
-        case LV_LOG_LEVEL_TRACE:
-            Log.trace(descr);
-            // debugPrintPrefix(LOG_LEVEL_TRACE, NULL);
-            break;
-        case LV_LOG_LEVEL_WARN:
-            Log.warning(descr);
-            // debugPrintPrefix(LOG_LEVEL_WARNING, NULL);
-            break;
-        case LV_LOG_LEVEL_ERROR:
-            Log.error(descr);
-            // debugPrintPrefix(LOG_LEVEL_ERROR, NULL);
-            break;
-        default:
-            Log.notice(descr);
-            // debugPrintPrefix(LOG_LEVEL_WARNING, NULL);
+    lv_mem_monitor_t mem_mon;
+    lv_mem_monitor(&mem_mon);
+
+    /* Reduce the number of reepeated debug message */
+    if(line != lastDbgLine || mem_mon.free_biggest_size != lastDbgFree) {
+        switch(level) {
+            case LV_LOG_LEVEL_TRACE:
+                Log.trace(descr);
+                break;
+            case LV_LOG_LEVEL_WARN:
+                Log.warning(descr);
+                break;
+            case LV_LOG_LEVEL_ERROR:
+                Log.error(descr);
+                break;
+            default:
+                Log.notice(descr);
+        }
+        lastDbgLine = line;
+        lastDbgFree = mem_mon.free_biggest_size;
     }
-    /*
-    debugSendOuput(F("LVGL: "));
-    debugSendOuput(descr);
-    debugSendOuput(F("\r\n"));
-    syslogSend(level, descr);*/
 }
 #endif
 
