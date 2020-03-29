@@ -65,17 +65,15 @@ String wifiGetMacAddress(int start, const char * seperator)
 
 void wifiConnected(IPAddress ipaddress)
 {
-    bool isConnected = WiFi.status() == WL_CONNECTED;
-
     Log.notice(F("WIFI: Received IP address %s"), ipaddress.toString().c_str());
-    Log.verbose(F("WIFI: Connected = %s"), isConnected ? PSTR("yes") : PSTR("no"));
+    Log.verbose(F("WIFI: Connected = %s"), WiFi.status() == WL_CONNECTED ? PSTR("yes") : PSTR("no"));
 
-    if(isConnected) {
-        // mqttReconnect();
-        // haspReconnect();
-        httpReconnect();
-        // mdnsStart();
-    }
+    // if(isConnected) {
+    // mqttReconnect();
+    // haspReconnect();
+    // httpReconnect();
+    // mdnsStart();
+    //}
 }
 
 void wifiDisconnected(const char * ssid, uint8_t reason)
@@ -137,7 +135,7 @@ void wifiSetup(JsonObject settings)
 {
     char buffer[128];
 
-    wifiSetConfig(settings);
+    // wifiSetConfig(settings);
 
     if(strlen(wifiSsid) == 0) {
         String apSsdid = F("HASP-");
@@ -176,9 +174,20 @@ void wifiSetup(JsonObject settings)
     }
 }
 
-bool wifiLoop()
+bool wifiEvery5Seconds()
 {
-    return WiFi.status() == WL_CONNECTED;
+    if(WiFi.status() == WL_CONNECTED) {
+        return true;
+    } else {
+        wifiReconnectCounter++;
+        if(wifiReconnectCounter > 45) {
+            Log.error(F("WIFI: Retries exceed %u: Rebooting..."), wifiReconnectCounter);
+            dispatchReboot(false);
+        }
+        Log.warning(F("WIFI: No Connection... retry %u"), wifiReconnectCounter);
+        if(wifiReconnectCounter % 6 == 0) WiFi.begin(wifiSsid, wifiPassword);
+        return false;
+    }
 }
 
 bool wifiGetConfig(const JsonObject & settings)
