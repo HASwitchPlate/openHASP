@@ -63,8 +63,8 @@ void haspSetup(JsonObject settings);
 void haspLoop(void);
 void haspFirstSetup(void);
 
-void haspSetPage(uint16_t id);
-uint16_t haspGetPage();
+void haspSetPage(uint8_t id);
+uint8_t haspGetPage();
 void haspClearPage(uint16_t pageid);
 void haspSetNodename(String name);
 String haspGetNodename();
