@@ -10,7 +10,7 @@ ADC_MODE(ADC_VCC); // tftShowConfig measures the voltage on the pin
 
 int8_t getPinName(int8_t pin);
 
-void tftSetup(TFT_eSPI & tft, JsonObject settings)
+void tftSetup(TFT_eSPI & tft, const JsonObject & settings)
 {
     tftShowConfig(tft);
 }
@@ -67,17 +67,16 @@ void tftOffsetInfo(uint8_t pin, uint8_t x_offset, uint8_t y_offset)
     }
 }
 
-void tftPinInfo(String pinfunction, int8_t pin)
+void tftPinInfo(const __FlashStringHelper * pinfunction, int8_t pin)
 {
     if(pin != -1) {
-        Log.verbose(F("TFT: %s = D%i (GPIO %i)"), pinfunction.c_str(), getPinName(pin), pin);
+        Log.verbose(F("TFT: %s = D%i (GPIO %i)"), pinfunction, getPinName(pin), pin);
     }
 }
 
 void tftShowConfig(TFT_eSPI & tft)
 {
     setup_t tftSetup;
-    // char buffer[128];
     tft.getSetup(tftSetup);
 
     Log.verbose(F("TFT: TFT_eSPI ver = %s"), tftSetup.version.c_str());
@@ -164,10 +163,10 @@ void tftShowConfig(TFT_eSPI & tft)
     */
 
     if(tftSetup.serial == 1) {
-        Log.verbose(F("TFT: Display SPI frequency = %2.1f MHz"), tftSetup.tft_spi_freq / 10.0);
+        Log.verbose(F("TFT: Display SPI frequency = %4.1f MHz"), (float)tftSetup.tft_spi_freq / 10.0f);
     }
     if(tftSetup.pin_tch_cs != -1) {
-        Log.verbose(F("TFT: Touch SPI frequency   = %2.1f MHz"), tftSetup.tch_spi_freq / 10.0);
+        Log.verbose(F("TFT: Touch SPI frequency   = %4.1f MHz"), (float)tftSetup.tch_spi_freq / 10.0f);
     }
 }
 

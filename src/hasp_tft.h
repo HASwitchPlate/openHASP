@@ -4,7 +4,7 @@
 #include "TFT_eSPI.h"
 #include "ArduinoJson.h"
 
-void tftSetup(TFT_eSPI & screen, JsonObject settings);
+void tftSetup(TFT_eSPI & screen, const JsonObject & settings);
 void tftLoop(void);
 void tftStop(void);
 
