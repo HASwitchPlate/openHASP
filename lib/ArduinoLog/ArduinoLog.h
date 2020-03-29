@@ -22,7 +22,7 @@ Licensed under the MIT License <http://opensource.org/licenses/MIT>.
 #include "WProgram.h"
 #endif
 #include "StringStream.h"
-typedef void (*printfunction)(int level, Print *, String &);
+typedef void (*printfunction)(int level, Print *);
 
 //#include <stdint.h>
 //#include <stddef.h>
@@ -85,7 +85,7 @@ class Logging {
      */
     Logging()
 #ifndef DISABLE_LOGGING
-        : _level(LOG_LEVEL_SILENT), _showLevel(true), _logOutput(NULL)
+        : _level(LOG_LEVEL_SILENT), _showLevel(true)
 #endif
     {}
 
@@ -99,7 +99,26 @@ class Logging {
      * \return void
      *
      */
-    void begin(int level, Print * output, bool showLevel = true);
+    void begin(int level, bool showLevel = true);
+
+    /**
+     * Register up to 3 printers to a certain slot
+     *
+     * \param slot - index of the printer to register.
+     * \param printer - place that logging output will be sent to.
+     * \return void
+     *
+     */
+    void registerOutput(uint8_t slot, Print * logOutput, int level, bool showLevel);
+
+    /**
+     * Unregister the printer in a certain slot
+     *
+     * \param slot - index of the printer to register.
+     * \return void
+     *
+     */
+    void unregisterOutput(uint8_t slot);
 
     /**
      * Set the log level.
@@ -265,37 +284,29 @@ class Logging {
             return;
         }
 
-        String debugOutput((char *)0);
-        StringStream debugStream((String &)debugOutput);
-        debugOutput.reserve(4 * 128);
+        for(uint8_t i = 0; i < 3; i++) {
+            if(_logOutput[i] == NULL) continue;
 
-        if(_prefix != NULL) {
-            _prefix(level, &debugStream, debugOutput);
+            if(_prefix != NULL) {
+                _prefix(level, _logOutput[i]);
+            }
+
+            va_list args;
+            va_start(args, msg);
+            print(_logOutput[i], msg, args);
+
+            if(_suffix != NULL) {
+                _suffix(level, _logOutput[i]);
+            }
         }
 
-        if(_showLevel) {
-            static const char levels[] = "FEWNTV";
-            debugStream.print(levels[level - 1]);
-            debugStream.print(": ");
-        }
-
-        va_list args;
-        va_start(args, msg);
-        print(&debugStream, msg, args);
-
-        if(_suffix != NULL) {
-            _suffix(level, &debugStream, debugOutput);
-        }
-
-        //_logOutput->print(debugOutput);
-        debugOutput.clear();
 #endif
     }
 
 #ifndef DISABLE_LOGGING
     int _level;
     bool _showLevel;
-    Print * _logOutput;
+    Print * _logOutput[3];
 
     printfunction _prefix = NULL;
     printfunction _suffix = NULL;

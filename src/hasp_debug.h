@@ -2,6 +2,7 @@
 #define HASP_DEBUG_H
 
 #include "ArduinoJson.h"
+#include "lvgl.h"
 
 String debugHaspHeader(void);
 
@@ -19,5 +20,10 @@ void syslogSend(uint8_t log, const char * debugText);
 
 bool debugGetConfig(const JsonObject & settings);
 bool debugSetConfig(const JsonObject & settings);
+
+// void debugPrintPrefix(int level, Print * _logOutput);
+// void debugPrintSuffix(int level, Print * _logOutput);
+// void debugSendOuput(const char * buffer);
+void debugLvgl(lv_log_level_t level, const char * file, uint32_t line, const char * funcname, const char * descr);
 
 #endif

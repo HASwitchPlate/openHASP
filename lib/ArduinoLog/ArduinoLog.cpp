@@ -31,12 +31,29 @@ SOFTWARE.
 
 #include "ArduinoLog.h"
 
-void Logging::begin(int level, Print * logOutput, bool showLevel)
+void Logging::begin(int level, bool showLevel)
 {
 #ifndef DISABLE_LOGGING
     setLevel(level);
     setShowLevel(showLevel);
-    _logOutput = logOutput;
+#endif
+}
+
+void Logging::registerOutput(uint8_t slot, Print * logOutput, int level, bool showLevel)
+{
+#ifndef DISABLE_LOGGING
+    setLevel(level);
+    setShowLevel(showLevel);
+    if(slot >= 3) return;
+    _logOutput[slot] = logOutput;
+#endif
+}
+
+void Logging::unregisterOutput(uint8_t slot)
+{
+#ifndef DISABLE_LOGGING
+    if(slot >= 3) return;
+    _logOutput[slot] = NULL;
 #endif
 }
 
@@ -94,7 +111,7 @@ void Logging::print(Print * logOutput, const __FlashStringHelper * format, va_li
     for(; c != 0; c = pgm_read_byte(p++)) {
         if(c == '%') {
             c = pgm_read_byte(p++);
-            printFormat(logOutput, c, &args);
+            printFormat(logOutput, c, (va_list *)&args);
         } else {
             logOutput->print(c);
         }
@@ -108,7 +125,7 @@ void Logging::print(Print * logOutput, const char * format, va_list args)
     for(; *format != 0; ++format) {
         if(*format == '%') {
             ++format;
-            printFormat(logOutput, *format, &args);
+            printFormat(logOutput, *format, (va_list *)&args);
         } else {
             //_logOutput->print(*format);
             logOutput->print(*format);

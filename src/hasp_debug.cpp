@@ -73,6 +73,7 @@ bool debugSerialStarted  = false;
 #define TERM_COLOR_GRAY "\e[37m"
 #define TERM_COLOR_RED "\e[91m"
 #define TERM_COLOR_GREEN "\e[92m"
+#define TERM_COLOR_ORANGE "\e[38;5;214m"
 #define TERM_COLOR_YELLOW "\e[93m"
 #define TERM_COLOR_BLUE "\e[94m"
 #define TERM_COLOR_MAGENTA "\e[35m"
@@ -191,7 +192,7 @@ void syslogSend(uint8_t priority, const char * debugText)
 
 void debugSetup(JsonObject settings)
 {
-    debugSetConfig(settings);
+    // debugSetConfig(settings);
 
 #if HASP_USE_SYSLOG != 0
     syslog = new Syslog(syslogClient, debugSyslogProtocol == 0 ? SYSLOG_PROTO_IETF : SYSLOG_PROTO_BSD);
@@ -257,76 +258,121 @@ bool debugSetConfig(const JsonObject & settings)
     return changed;
 }
 
-static void printTimestamp(int level, Print * _logOutput, String & debugOutput)
+/*
+void debugSendOuput(const char * buffer)
 {
-    char buffer[128];
-
-    /* Print Current Time */
-    time_t rawtime;
-    struct tm * timeinfo;
-    // if(!time(nullptr)) return;
-    time(&rawtime);
-    timeinfo = localtime(&rawtime);
-
-    strftime(buffer, sizeof(buffer), ("[%b %d %H:%M:%S."), timeinfo);
-    if(debugSerialStarted) {
-        if(debugAnsiCodes) Serial.print(TERM_COLOR_CYAN);
-        Serial.print(buffer);
-    }
-    if(debugAnsiCodes) telnetPrint(TERM_COLOR_CYAN);
-    telnetPrint(buffer);
-
-    /* Print Memory Info */
-    snprintf(buffer, sizeof(buffer), PSTR("%8.3fs] %5u/%5u %2u | "), float(millis()) / 1000, halGetMaxFreeBlock(),
-             ESP.getFreeHeap(), halGetHeapFragmentation());
-    if(debugSerialStarted) {
-        if(debugAnsiCodes) Serial.print(buffer);
-    }
-    telnetPrint(buffer);
-
-#if LV_MEM_CUSTOM == 0
-    /*    lv_mem_monitor_t mem_mon;
-        lv_mem_monitor(&mem_mon);
-        debugTimeText += F("| ");
-        debugTimeText += mem_mon.used_pct;
-        debugTimeText += F("% ");
-        debugTimeText += mem_mon.free_biggest_size;
-        debugTimeText += F("b/");
-        debugTimeText += mem_mon.free_size;
-        debugTimeText += F("b ");
-        debugTimeText += (mem_mon.total_size - mem_mon.free_size);
-        debugTimeText += F("b | ");*/
-#endif
-
-    switch(level) {
-        case LOG_LEVEL_FATAL:
-        case LOG_LEVEL_ERROR:
-            strcpy(buffer, TERM_COLOR_RED);
-            break;
-        case LOG_LEVEL_WARNING:
-            strcpy(buffer, TERM_COLOR_YELLOW);
-            break;
-        case LOG_LEVEL_NOTICE:
-            strcpy(buffer, TERM_COLOR_WHITE);
-            break;
-        case LOG_LEVEL_VERBOSE:
-            strcpy(buffer, TERM_COLOR_CYAN);
-            break;
-        case LOG_LEVEL_TRACE:
-            strcpy(buffer, TERM_COLOR_GRAY);
-            break;
-        default:
-            strcpy(buffer, TERM_COLOR_RESET);
-    }
-
-    if(debugSerialStarted) {
-        if(debugAnsiCodes) Serial.print(buffer);
-    }
+    if(debugSerialStarted) Serial.print(buffer);
     telnetPrint(buffer);
 }
 
-static void printNewline(int level, Print * _logOutput, String & debugOutput)
+void debugSendOuput(const __FlashStringHelper * txt)
 {
+    if(debugSerialStarted) Serial.print(txt);
+    telnetPrint(txt);
+}
+*/
+
+inline void debugSendAnsiCode(char * buffer, Print * _logOutput)
+{
+    if(debugAnsiCodes) _logOutput->print(buffer);
+}
+
+static void debugPrintTimestamp(int level, Print * _logOutput)
+{ /* Print Current Time */
+    time_t rawtime;
+    struct tm * timeinfo;
+
+    time(&rawtime);
+    timeinfo = localtime(&rawtime);
+
+    debugSendAnsiCode(TERM_COLOR_CYAN, _logOutput);
+    // strftime(buffer, sizeof(buffer), ("[%b %d %H:%M:%S."), timeinfo);
+    // strftime(buffer, sizeof(buffer), ("[%H:%M:%S."), timeinfo);
+    if(timeinfo->tm_year >= 2020) {
+        char buffer[64];
+        strftime(buffer, sizeof(buffer), PSTR("[%b %d %H:%M:%S."), timeinfo); // Literal String
+        _logOutput->print(buffer);
+        _logOutput->printf(PSTR("%03u]"), millis() % 1000);
+    } else {
+        _logOutput->printf(PSTR("[%20.3f]"), (float)millis() / 1000);
+    }
+}
+
+static void debugPrintHaspMemory(int level, Print * _logOutput)
+{
+    size_t maxfree     = halGetMaxFreeBlock();
+    uint32_t totalfree = ESP.getFreeHeap();
+    uint8_t frag       = halGetHeapFragmentation();
+
+    /* Print HASP Memory Info */
+    if(debugAnsiCodes) {
+        if(maxfree > (1024u * 5) && (totalfree > 1024u * 6) && (frag <= 10))
+            debugSendAnsiCode(TERM_COLOR_GREEN, _logOutput);
+        else if(maxfree > (1024u * 3) && (totalfree > 1024u * 5) && (frag <= 20))
+            debugSendAnsiCode(TERM_COLOR_ORANGE, _logOutput);
+        else
+            debugSendAnsiCode(TERM_COLOR_RED, _logOutput);
+    }
+    _logOutput->printf(PSTR("[%5u/%5u %2u] "), maxfree, totalfree, frag);
+}
+
+#if LV_MEM_CUSTOM == 0
+static void debugPrintLvglMemory(int level, Print * _logOutput)
+{
+    lv_mem_monitor_t mem_mon;
+    lv_mem_monitor(&mem_mon);
+
+    /* Print LVGL Memory Info */
+    if(debugAnsiCodes) {
+        if(mem_mon.free_biggest_size > (1024u * 2) && (mem_mon.free_size > 1024u * 2.5) && (mem_mon.frag_pct <= 10))
+            debugSendAnsiCode(TERM_COLOR_GREEN, _logOutput);
+        else if(mem_mon.free_biggest_size > (1024u * 1) && (mem_mon.free_size > 1024u * 1.5) &&
+                (mem_mon.frag_pct <= 25))
+            debugSendAnsiCode(TERM_COLOR_ORANGE, _logOutput);
+        else
+            debugSendAnsiCode(TERM_COLOR_RED, _logOutput);
+    }
+    _logOutput->printf(PSTR("[%5u/%5u %2u] "), mem_mon.free_biggest_size, mem_mon.free_size, mem_mon.frag_pct);
+}
+#endif
+
+static void debugPrintPriority(int level, Print * _logOutput)
+{
+    switch(level) {
+        case LOG_LEVEL_FATAL:
+        case LOG_LEVEL_ERROR:
+            debugSendAnsiCode(TERM_COLOR_RED, _logOutput);
+            break;
+        case LOG_LEVEL_WARNING:
+            debugSendAnsiCode(TERM_COLOR_YELLOW, _logOutput);
+            break;
+        case LOG_LEVEL_NOTICE:
+            debugSendAnsiCode(TERM_COLOR_WHITE, _logOutput);
+            break;
+        case LOG_LEVEL_VERBOSE:
+            debugSendAnsiCode(TERM_COLOR_CYAN, _logOutput);
+            break;
+        case LOG_LEVEL_TRACE:
+            debugSendAnsiCode(TERM_COLOR_GRAY, _logOutput);
+            break;
+        default:
+            debugSendAnsiCode(TERM_COLOR_RESET, _logOutput);
+    }
+}
+
+void debugPrintPrefix(int level, Print * _logOutput)
+{
+    debugPrintTimestamp(level, _logOutput);
+    debugPrintHaspMemory(level, _logOutput);
+#if LV_MEM_CUSTOM == 0
+    debugPrintLvglMemory(level, _logOutput);
+#endif
+    debugPrintPriority(level, _logOutput);
+}
+
+void debugPrintSuffix(int level, Print * _logOutput)
+{
+    /*
     if(debugSerialStarted) {
         Serial.print(debugOutput);
         if(debugAnsiCodes) Serial.print(TERM_COLOR_RESET);
@@ -334,37 +380,74 @@ static void printNewline(int level, Print * _logOutput, String & debugOutput)
         if(debugAnsiCodes) Serial.print(TERM_COLOR_MAGENTA);
     }
 
-    telnetPrint(debugOutput.c_str());
+    telnetPrint(debugOutput);
     if(debugAnsiCodes) telnetPrint(TERM_COLOR_RESET);
     telnetPrint("\r\n");
     if(debugAnsiCodes) telnetPrint(TERM_COLOR_MAGENTA);
+*/
 
-    syslogSend(level, debugOutput.c_str());
+    if(debugAnsiCodes)
+        _logOutput->println(TERM_COLOR_RESET);
+    else
+        _logOutput->println();
+    if(debugAnsiCodes) _logOutput->print(TERM_COLOR_MAGENTA);
+
+    // syslogSend(level, debugOutput);
 }
 
 void debugPreSetup(JsonObject settings)
 {
     // Link stream to debugOutput
     // debugOutput.reserve(512);
-    Log.begin(LOG_LEVEL_VERBOSE, &Serial, true);
-    Log.setPrefix(printTimestamp); // Uncomment to get timestamps as prefix
-    Log.setSuffix(printNewline);   // Uncomment to get newline as suffix
+    Log.begin(LOG_LEVEL_VERBOSE, true);
+    Log.setPrefix(debugPrintPrefix); // Uncomment to get timestamps as prefix
+    Log.setSuffix(debugPrintSuffix); // Uncomment to get newline as suffix
 
     uint16_t baudrate = settings[FPSTR(F_CONFIG_BAUD)].as<uint16_t>();
     if(baudrate > 0) {
         Serial.begin(baudrate * 10); /* prepare for possible serial debug */
         delay(10);
         debugSerialStarted = true;
+        Log.registerOutput(0, &Serial, LOG_LEVEL_VERBOSE, true);
+        Log.trace(F("Serial started at %u baud"), baudrate * 10);
     }
 
     // Serial.begin(74880); /* prepare for possible serial debug */
     // Serial.begin(115200);
 }
 
+#if LV_USE_LOG != 0
+void debugLvgl(lv_log_level_t level, const char * file, uint32_t line, const char * funcname, const char * descr)
+{
+    switch(level) {
+        case LV_LOG_LEVEL_TRACE:
+            Log.trace(descr);
+            // debugPrintPrefix(LOG_LEVEL_TRACE, NULL);
+            break;
+        case LV_LOG_LEVEL_WARN:
+            Log.warning(descr);
+            // debugPrintPrefix(LOG_LEVEL_WARNING, NULL);
+            break;
+        case LV_LOG_LEVEL_ERROR:
+            Log.error(descr);
+            // debugPrintPrefix(LOG_LEVEL_ERROR, NULL);
+            break;
+        default:
+            Log.notice(descr);
+            // debugPrintPrefix(LOG_LEVEL_WARNING, NULL);
+    }
+    /*
+    debugSendOuput(F("LVGL: "));
+    debugSendOuput(descr);
+    debugSendOuput(F("\r\n"));
+    syslogSend(level, descr);*/
+}
+#endif
+
 void debugLoop()
 {}
 
-void printLocalTime()
+/*void printLocalTime()
 {
     char buffer[128];
     time_t rawtime;
@@ -400,7 +483,7 @@ void printLocalTime()
         }
     }
 #endif
-}
+}*/
 
 void debugEverySecond()
 {
