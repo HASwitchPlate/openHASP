@@ -44,7 +44,7 @@ void spiffsSetup()
 #endif
         Log.error(F("FILE: SPI flash init failed. Unable to mount FS."));
     } else {
-        Log.notice(F("FILE: SPI Flash FS mounted"));
+        Log.verbose(F("FILE: SPI Flash FS mounted"));
     }
 #endif
 }

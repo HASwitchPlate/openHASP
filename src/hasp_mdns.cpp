@@ -22,7 +22,7 @@ uint8_t mdnsEnabled = true;
 
 void mdnsSetup(const JsonObject & settings)
 {
-    mdnsSetConfig(settings);
+    // mdnsSetConfig(settings);
     Log.verbose(F("MDNS: Setup Complete"));
 }
 
@@ -43,7 +43,6 @@ void mdnsStart()
                    HASP_VERSION_REVISION);
         MDNS.addServiceTxt(hasp2Node, "tcp", "app_version", buffer); */
         if(MDNS.begin(hasp2Node.c_str())) {
-            Log.notice(F("MDNS: Responder started"));
             MDNS.addService(F("http"), F("tcp"), 80);
             MDNS.addService(F("telnet"), F("tcp"), 23);
             MDNS.addServiceTxt(hasp2Node, F("tcp"), F("app_name"), F("HASP-lvgl"));
@@ -53,6 +52,7 @@ void mdnsStart()
                         addServiceTxt("arduino", "tcp", "ssh_upload", "no");
                         addServiceTxt("arduino", "tcp", "board", ARDUINO_BOARD);
                         addServiceTxt("arduino", "tcp", "auth_upload", (auth) ? "yes" : "no");*/
+            Log.notice(F("MDNS: Responder started"));
         } else {
             Log.error(F("MDNS: Responder failed to start %s"), hasp2Node.c_str());
         };

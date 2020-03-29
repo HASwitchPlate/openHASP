@@ -32,7 +32,7 @@ const char F_DEBUG_TELEPERIOD[] PROGMEM = "teleperiod";
 
 const char HASP_CONFIG_FILE[] PROGMEM = "/config.json";
 
-void configSetup(JsonDocument & settings);
+void configSetup(JsonObject settings);
 void configStop(void);
 
 void configSetConfig(JsonObject & settings);

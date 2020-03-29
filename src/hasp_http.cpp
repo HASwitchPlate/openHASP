@@ -541,7 +541,7 @@ static inline String httpGetNodename()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-bool httpIsAuthenticated(const String & page)
+bool httpIsAuthenticated(const __FlashStringHelper * page)
 {
     if(httpPassword[0] != '\0') { // Request HTTP auth if httpPassword is set
         if(!webServer.authenticate(httpUser, httpPassword)) {
@@ -551,7 +551,7 @@ bool httpIsAuthenticated(const String & page)
     }
 
     {
-        Log.verbose(F("HTTP: Sending %s page to client connected from: %s"), page.c_str(),
+        Log.verbose(F("HTTP: Sending %s page to client connected from: %s"), page,
                     webServer.client().remoteIP().toString().c_str());
     }
     return true;
@@ -982,10 +982,7 @@ bool handleFileRead(String path)
 {
     if(!httpIsAuthenticated(F("fileread"))) return false;
 
-    // path = urldecode(path).substring(0, 31);
-    path = webServer.urlDecode(path);
-    if(!httpIsAuthenticated(path)) return false;
-
+    path = webServer.urlDecode(path).substring(0, 31);
     if(path.endsWith("/")) {
         path += F("index.htm");
     }
@@ -1829,10 +1826,25 @@ void httpHandleResetConfig()
     }
 }
 
+void webStart()
+{
+    webServer.begin();
+    webServerStarted = true;
+    Log.notice(F("HTTP: Server started @ http://%s"),
+               (WiFi.getMode() == WIFI_AP ? WiFi.softAPIP().toString().c_str() : WiFi.localIP().toString().c_str()));
+}
+
+void webStop()
+{
+    webServer.stop();
+    webServerStarted = false;
+    Log.warning(F("HTTP: Server stoped"));
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 void httpSetup(const JsonObject & settings)
 {
-    httpSetConfig(settings);
+    // httpSetConfig(settings);
 
     if(WiFi.getMode() == WIFI_AP) {
         Log.notice(F("HTTP: Wifi access point"));
@@ -1905,8 +1917,8 @@ void httpSetup(const JsonObject & settings)
     webServer.on(F("/config"), webHandleConfig);
     webServer.onNotFound(httpHandleNotFound);
 
-    httpReconnect();
     Log.verbose(F("HTTP: Setup Complete"));
+    webStart();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1915,15 +1927,9 @@ void httpReconnect()
     if(!httpEnable) return;
 
     if(webServerStarted) {
-        webServer.stop();
-        webServerStarted = false;
-        Log.warning(F("HTTP: Server stoped"));
+        webStop();
     } else if(WiFi.status() == WL_CONNECTED || WiFi.getMode() == WIFI_AP) {
-        webServer.begin();
-        webServerStarted = true;
-        Log.notice(
-            F("HTTP: Server started @ http://%s"),
-            (WiFi.getMode() == WIFI_AP ? WiFi.softAPIP().toString().c_str() : WiFi.localIP().toString().c_str()));
+        webStart();
     }
 }
 

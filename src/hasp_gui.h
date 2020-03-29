@@ -16,7 +16,7 @@ void guiTakeScreenshot(ESP8266WebServer & client);
 void guiTakeScreenshot(WebServer & client);
 #endif // ESP32
 
-void guiSetup(JsonObject settings);
+void guiSetup(const JsonObject & settings);
 void guiLoop(void);
 void guiStop(void);
 

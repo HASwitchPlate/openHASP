@@ -54,6 +54,10 @@ unsigned long mainLastLoopTime = 0;
 
 void setup()
 {
+
+    /****************************
+     * Constant initialzations
+     ***************************/
 #if defined(ARDUINO_ARCH_ESP8266)
     pinMode(D1, OUTPUT);
     pinMode(D2, INPUT_PULLUP);
@@ -68,19 +72,28 @@ void setup()
     spiffsSetup();
 #endif
 
-    /* Read Config File */
-    DynamicJsonDocument settings(1024 + 512);
-    configSetup(settings);
-
 #if HASP_USE_SDCARD
     sdcardSetup();
 #endif
 
+    /****************************
+     * Read & Apply User Configuration
+     ***************************/
+    DynamicJsonDocument settings(128);
+    configSetup(settings[F("debug")]);
+
+    /****************************
+     * Apply User Configuration
+     ***************************/
     debugSetup(settings[F("debug")]);
 
     /* Init Graphics */
     // TFT_eSPI screen = TFT_eSPI();
     guiSetup(settings[F("gui")]);
+
+#if HASP_USE_WIFI
+    wifiSetup(settings[F("wifi")]);
+#endif
 
     /* Init GUI Application */
     haspSetup(settings[F("hasp")]);
@@ -88,6 +101,10 @@ void setup()
     /* Init Network Services */
 #if HASP_USE_WIFI
     wifiSetup(settings[F("wifi")]);
+
+#if HASP_USE_HTTP
+    httpSetup(settings[F("http")]);
+#endif
 
 #if HASP_USE_MQTT
     mqttSetup(settings[F("mqtt")]);
@@ -101,19 +118,15 @@ void setup()
     mdnsSetup(settings[F("mdns")]);
 #endif
 
-#if HASP_USE_HTTP
-    httpSetup(settings[F("http")]);
-#endif
-
-#if HASP_USE_BUTTON
-    buttonSetup();
-#endif
-
 #if HASP_USE_OTA
     otaSetup(settings[F("ota")]);
 #endif
 
 #endif // WIFI
+
+#if HASP_USE_BUTTON
+    buttonSetup();
+#endif
 }
 
 void loop()
@@ -183,7 +196,7 @@ void loop()
         /* Run Every 5 Seconds */
         if(mainLoopCounter == 0 || mainLoopCounter == 5) {
             httpEvery5Seconds();
-            isConnected = wifiLoop();
+            isConnected = wifiEvery5Seconds();
             mqttEvery5Seconds(isConnected);
         }
     }

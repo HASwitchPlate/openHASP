@@ -174,13 +174,44 @@ void configWriteConfig()
     }
 }
 
-void configSetup(JsonDocument & settings)
+void configSetup(JsonObject dummy)
 {
     if(!SPIFFS.begin()) {
-        Log.error(F("FILE: SPI flash init failed. Unable to mount FS."));
+        Log.error(F("FILE: SPI flash init failed. Unable to mount FS: Using default settings..."));
     } else {
+        DynamicJsonDocument settings(1024 + 128);
+
         configGetConfig(settings, true);
+        Log.verbose(F("Loading debug settings"));
+        debugSetConfig(settings[F("debug")]);
+        Log.verbose(F("Loading GUI settings"));
+        guiSetConfig(settings[F("gui")]);
+        Log.verbose(F("Loading HASP settings"));
+        haspSetConfig(settings[F("hasp")]);
+        // otaGetConfig(settings[F("ota")]);
+
+#if HASP_USE_WIFI
+        Log.verbose(F("Loading WiFi settings"));
+        wifiSetConfig(settings[F("wifi")]);
+#if HASP_USE_MQTT
+        Log.verbose(F("Loading MQTT settings"));
+        mqttSetConfig(settings[F("mqtt")]);
+#endif
+#if HASP_USE_TELNET
+        Log.verbose(F("Loading Telnet settings"));
+        telnetSetConfig(settings[F("telnet")]);
+#endif
+#if HASP_USE_MDNS
+        Log.verbose(F("Loading MDNS settings"));
+        mdnsSetConfig(settings[F("mdns")]);
+#endif
+#if HASP_USE_HTTP
+        Log.verbose(F("Loading HTTP settings"));
+        httpSetConfig(settings[F("http")]);
+#endif
+#endif
     }
+    Log.notice(F("User configuration loaded"));
 }
 
 void configOutput(const JsonObject & settings)
