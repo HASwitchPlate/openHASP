@@ -206,7 +206,7 @@ void mqtt_send_statusupdate()
     doc[F("heapFree")]           = ESP.getFreeHeap();
     doc[F("heapFrag")]           = halGetHeapFragmentation();
     doc[F("updateEspAvailable")] = false;
-    doc[F("espCore")]            = halGetCoreVersion();
+    doc[F("espCore")]            = halGetCoreVersion().c_str();
 
     char buffer[256];
     size_t n = serializeJson(doc, buffer);
