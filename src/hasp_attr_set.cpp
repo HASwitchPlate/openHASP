@@ -33,23 +33,23 @@ lv_color_t haspPayloadToColor(const char * payload)
             if(!strcmp_P(payload, PSTR("blue"))) return haspLogColor(LV_COLOR_BLUE);
             if(!strcmp_P(payload, PSTR("cyan"))) return haspLogColor(LV_COLOR_CYAN);
             if(!strcmp_P(payload, PSTR("gray"))) return haspLogColor(LV_COLOR_GRAY);
-            if(!strcmp_P(payload, PSTR("aqua"))) return haspLogColor(LV_COLOR_AQUA);
-            if(!strcmp_P(payload, PSTR("lime"))) return haspLogColor(LV_COLOR_LIME);
-            if(!strcmp_P(payload, PSTR("teal"))) return haspLogColor(LV_COLOR_TEAL);
-            if(!strcmp_P(payload, PSTR("navy"))) return haspLogColor(LV_COLOR_NAVY);
+            /*          if(!strcmp_P(payload, PSTR("aqua"))) return haspLogColor(LV_COLOR_AQUA);
+                        if(!strcmp_P(payload, PSTR("lime"))) return haspLogColor(LV_COLOR_LIME);
+                        if(!strcmp_P(payload, PSTR("teal"))) return haspLogColor(LV_COLOR_TEAL);
+                        if(!strcmp_P(payload, PSTR("navy"))) return haspLogColor(LV_COLOR_NAVY);*/
             break;
         case 5:
             if(!strcmp_P(payload, PSTR("green"))) return haspLogColor(LV_COLOR_GREEN);
             if(!strcmp_P(payload, PSTR("white"))) return haspLogColor(LV_COLOR_WHITE);
             if(!strcmp_P(payload, PSTR("black"))) return haspLogColor(LV_COLOR_BLACK);
-            if(!strcmp_P(payload, PSTR("olive"))) return haspLogColor(LV_COLOR_OLIVE);
+            //            if(!strcmp_P(payload, PSTR("olive"))) return haspLogColor(LV_COLOR_OLIVE);
             break;
         case 6:
             if(!strcmp_P(payload, PSTR("yellow"))) return haspLogColor(LV_COLOR_YELLOW);
             if(!strcmp_P(payload, PSTR("orange"))) return haspLogColor(LV_COLOR_ORANGE);
             if(!strcmp_P(payload, PSTR("purple"))) return haspLogColor(LV_COLOR_PURPLE);
             if(!strcmp_P(payload, PSTR("silver"))) return haspLogColor(LV_COLOR_SILVER);
-            if(!strcmp_P(payload, PSTR("maroon"))) return haspLogColor(LV_COLOR_MAROON);
+            //            if(!strcmp_P(payload, PSTR("maroon"))) return haspLogColor(LV_COLOR_MAROON);
             break;
         case 7:
             if(!strcmp_P(payload, PSTR("magenta"))) return haspLogColor(LV_COLOR_MAGENTA);
@@ -61,11 +61,30 @@ lv_color_t haspPayloadToColor(const char * payload)
                 return haspLogColor(LV_COLOR_MAKE(r, g, b));
             }
         default:
-            if(!strcmp_P(payload, PSTR("darkblue"))) return haspLogColor(LV_COLOR_MAKE(0, 51, 102));
-            if(!strcmp_P(payload, PSTR("lightblue"))) return haspLogColor(LV_COLOR_MAKE(46, 203, 203));
+            //            if(!strcmp_P(payload, PSTR("darkblue"))) return haspLogColor(LV_COLOR_MAKE(0, 51, 102));
+            //            if(!strcmp_P(payload, PSTR("lightblue"))) return haspLogColor(LV_COLOR_MAKE(46, 203, 203));
             break;
     }
 
+    /* 16-bit RGB565 Color Scheme*/
+    uint8_t digits = 0;
+    while((payload + digits) != '\0' && isdigit(*(payload + digits))) {
+        digits++;
+    }
+    if(strlen(payload) == digits) {
+        uint16_t c = atoi(payload);
+        /* Initial colors */
+        uint8_t R5 = ((c >> 11) & 0b11111);
+        uint8_t G6 = ((c >> 5) & 0b111111);
+        uint8_t B5 = (c & 0b11111);
+        /* Remapped colors */
+        uint8_t R8 = (R5 * 527 + 23) >> 6;
+        uint8_t G8 = (G6 * 259 + 33) >> 6;
+        uint8_t B8 = (B5 * 527 + 23) >> 6;
+        return lv_color_make(R8, G8, B8);
+    }
+
+    /* Unknown format */
     Log.warning(F("Invalid color %s"), payload);
     return LV_COLOR_BLACK;
 }
