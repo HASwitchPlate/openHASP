@@ -98,25 +98,32 @@ void set_label_long_mode(lv_obj_t * obj, const char * payload)
     lv_label_set_long_mode(obj, mode);
 }
 
-void haspSetLabelText(lv_obj_t * obj, const char * value)
+lv_obj_t * FindButtonLabel(lv_obj_t * btn)
 {
-    if(!obj) {
-        Log.warning(F("HASP: Button not defined"));
-        return;
-    }
+    if(btn) {
+        lv_obj_t * label = lv_obj_get_child_back(btn, NULL);
+        if(label) {
+            lv_obj_type_t list;
+            lv_obj_get_type(label, &list);
 
-    lv_obj_t * label = lv_obj_get_child_back(obj, NULL);
-    if(label) {
-        lv_obj_type_t list;
-        lv_obj_get_type(label, &list);
+            if(check_obj_type(list.type[0], LV_HASP_LABEL)) {
+                return label;
+            }
 
-        if(check_obj_type(list.type[0], LV_HASP_LABEL)) {
-            Log.verbose(F("HASP: Setting value to %s"), value);
-            lv_label_set_text(label, value);
+        } else {
+            Log.error(F("HASP: FindButtonLabel NULL Pointer encountered"));
         }
-
     } else {
-        Log.error(F("HASP: haspSetLabelText NULL Pointer encountered"));
+        Log.warning(F("HASP: Button not defined"));
+    }
+    return NULL;
+}
+
+static inline void haspSetLabelText(lv_obj_t * obj, const char * value)
+{
+    lv_obj_t * label = FindButtonLabel(obj);
+    if(label) {
+        lv_label_set_text(label, value);
     }
 }
 
@@ -138,7 +145,6 @@ void haspSetLocalStyle(lv_obj_t * obj, const char * attr_p, const char * payload
     int16_t var   = atoi(payload);
 
     int len = strlen(attr_p);
-
     if(len > 0) {
         // Check Trailing partnumber
         if(attr_p[len - 1] == '1') {
@@ -152,209 +158,209 @@ void haspSetLocalStyle(lv_obj_t * obj, const char * attr_p, const char * payload
             // } else if(attr[len - 1] == '9') {
             // part = LV_PAGE_PART_SCRL;
         }
-    }
 
-    // Remove Trailing part digit
-    char attr[128];
-    if(part != LV_TABLE_PART_BG && len > 0) {
-        strncpy(attr, attr_p, len - 1);
-    } else {
-        strncpy(attr, attr_p, len);
-    }
-
-    // debugPrintln(strAttr + "&" + part);
-
-    if(!strcmp_P(attr, PSTR("radius"))) {
-        return lv_obj_set_style_local_radius(obj, part, state, (lv_style_int_t)var);
-    } else if(!strcmp_P(attr, PSTR("clip_corner"))) {
-        return lv_obj_set_style_local_clip_corner(obj, part, state, (bool)var);
-    } else if(!strcmp_P(attr, PSTR("size"))) {
-        return lv_obj_set_style_local_size(obj, part, state, (lv_style_int_t)var);
-    } else if(!strcmp_P(attr, PSTR("transform_width"))) {
-        return lv_obj_set_style_local_transform_width(obj, part, state, (lv_style_int_t)var);
-    } else if(!strcmp_P(attr, PSTR("transform_height"))) {
-        return lv_obj_set_style_local_transform_height(obj, part, state, (lv_style_int_t)var);
-    } else if(!strcmp_P(attr, PSTR("opa_scale"))) {
-        return lv_obj_set_style_local_opa_scale(obj, part, state, (lv_opa_t)var);
-    } else if(!strcmp_P(attr, PSTR("pad_top"))) {
-        return lv_obj_set_style_local_pad_top(obj, part, state, (lv_style_int_t)var);
-    } else if(!strcmp_P(attr, PSTR("pad_bottom"))) {
-        return lv_obj_set_style_local_pad_bottom(obj, part, state, (lv_style_int_t)var);
-    } else if(!strcmp_P(attr, PSTR("pad_left"))) {
-        return lv_obj_set_style_local_pad_left(obj, part, state, (lv_style_int_t)var);
-    } else if(!strcmp_P(attr, PSTR("pad_right"))) {
-        return lv_obj_set_style_local_pad_right(obj, part, state, (lv_style_int_t)var);
-    } else if(!strcmp_P(attr, PSTR("pad_inner"))) {
-        return lv_obj_set_style_local_pad_inner(obj, part, state, (lv_style_int_t)var);
-    } else if(!strcmp_P(attr, PSTR("bg_blend_mode"))) {
-        return lv_obj_set_style_local_bg_blend_mode(obj, part, state, (lv_blend_mode_t)var);
-    } else if(!strcmp_P(attr, PSTR("bg_main_stop"))) {
-        return lv_obj_set_style_local_bg_main_stop(obj, part, state, (lv_style_int_t)var);
-    } else if(!strcmp_P(attr, PSTR("bg_grad_stop"))) {
-        return lv_obj_set_style_local_bg_grad_stop(obj, part, state, (lv_style_int_t)var);
-    } else if(!strcmp_P(attr, PSTR("bg_grad_dir"))) {
-        return lv_obj_set_style_local_bg_grad_dir(obj, part, state, (lv_grad_dir_t)var);
-    } else if(!strcmp_P(attr, PSTR("bg_color"))) {
-        lv_color_t color = haspPayloadToColor(payload);
-        if(part != 64)
-            return lv_obj_set_style_local_bg_color(obj, part, state, color);
-        else
-            return lv_obj_set_style_local_bg_color(obj, LV_PAGE_PART_SCRL, LV_STATE_CHECKED, color);
-    } else if(!strcmp_P(attr, PSTR("bg_grad_color"))) {
-        lv_color_t color = haspPayloadToColor(payload);
-        return lv_obj_set_style_local_bg_grad_color(obj, part, state, color);
-    } else if(!strcmp_P(attr, PSTR("bg_opa"))) {
-        return lv_obj_set_style_local_bg_opa(obj, part, state, (lv_opa_t)var);
-    } else if(!strcmp_P(attr, PSTR("border_width"))) {
-        return lv_obj_set_style_local_border_width(obj, part, state, (lv_style_int_t)var);
-    } else if(!strcmp_P(attr, PSTR("border_side"))) {
-        return lv_obj_set_style_local_border_side(obj, part, state, (lv_border_side_t)var);
-    } else if(!strcmp_P(attr, PSTR("border_blend_mode"))) {
-        return lv_obj_set_style_local_border_blend_mode(obj, part, state, (lv_blend_mode_t)var);
-    } else if(!strcmp_P(attr, PSTR("border_post"))) {
-        return lv_obj_set_style_local_border_post(obj, part, state, (bool)var);
-    } else if(!strcmp_P(attr, PSTR("border_color"))) {
-        lv_color_t color = haspPayloadToColor(payload);
-        return lv_obj_set_style_local_border_color(obj, part, state, color);
-    } else if(!strcmp_P(attr, PSTR("border_opa"))) {
-        return lv_obj_set_style_local_border_opa(obj, part, state, (lv_opa_t)var);
-    } else if(!strcmp_P(attr, PSTR("outline_width"))) {
-        return lv_obj_set_style_local_outline_width(obj, part, state, (lv_style_int_t)var);
-    } else if(!strcmp_P(attr, PSTR("outline_pad"))) {
-        return lv_obj_set_style_local_outline_pad(obj, part, state, (lv_style_int_t)var);
-    } else if(!strcmp_P(attr, PSTR("outline_blend_mode"))) {
-        return lv_obj_set_style_local_outline_blend_mode(obj, part, state, (lv_blend_mode_t)var);
-    } else if(!strcmp_P(attr, PSTR("outline_color"))) {
-        lv_color_t color = haspPayloadToColor(payload);
-        return lv_obj_set_style_local_outline_color(obj, part, state, color);
-    } else if(!strcmp_P(attr, PSTR("outline_opa"))) {
-        return lv_obj_set_style_local_outline_opa(obj, part, state, (lv_opa_t)var);
-    } else if(!strcmp_P(attr, PSTR("shadow_width"))) {
-        return lv_obj_set_style_local_shadow_width(obj, part, state, (lv_style_int_t)var);
-    } else if(!strcmp_P(attr, PSTR("shadow_ofs_x"))) {
-        return lv_obj_set_style_local_shadow_ofs_x(obj, part, state, (lv_style_int_t)var);
-    } else if(!strcmp_P(attr, PSTR("shadow_ofs_y"))) {
-        return lv_obj_set_style_local_shadow_ofs_y(obj, part, state, (lv_style_int_t)var);
-    } else if(!strcmp_P(attr, PSTR("shadow_spread"))) {
-        return lv_obj_set_style_local_shadow_spread(obj, part, state, (lv_style_int_t)var);
-    } else if(!strcmp_P(attr, PSTR("shadow_blend_mode"))) {
-        return lv_obj_set_style_local_shadow_blend_mode(obj, part, state, (lv_blend_mode_t)var);
-    } else if(!strcmp_P(attr, PSTR("shadow_color"))) {
-        lv_color_t color = haspPayloadToColor(payload);
-        return lv_obj_set_style_local_shadow_color(obj, part, state, color);
-    } else if(!strcmp_P(attr, PSTR("shadow_opa"))) {
-        return lv_obj_set_style_local_shadow_opa(obj, part, state, (lv_opa_t)var);
-    } else if(!strcmp_P(attr, PSTR("pattern_repeat"))) {
-        return lv_obj_set_style_local_pattern_repeat(obj, part, state, (bool)var);
-    } else if(!strcmp_P(attr, PSTR("pattern_blend_mode"))) {
-        return lv_obj_set_style_local_pattern_blend_mode(obj, part, state, (lv_blend_mode_t)var);
-    } else if(!strcmp_P(attr, PSTR("pattern_recolor"))) {
-        lv_color_t color = haspPayloadToColor(payload);
-        return lv_obj_set_style_local_pattern_recolor(obj, part, state, color);
-    } else if(!strcmp_P(attr, PSTR("pattern_opa"))) {
-        return lv_obj_set_style_local_pattern_opa(obj, part, state, (lv_opa_t)var);
-    } else if(!strcmp_P(attr, PSTR("pattern_recolor_opa"))) {
-        return lv_obj_set_style_local_pattern_recolor_opa(obj, part, state, (lv_opa_t)var);
-    } else if(!strcmp_P(attr, PSTR("pattern_image"))) {
-        //   return lv_obj_set_style_local_pattern_image(obj, part, state, (constvoid *)var);
-    } else if(!strcmp_P(attr, PSTR("value_letter_space"))) {
-        return lv_obj_set_style_local_value_letter_space(obj, part, state, (lv_style_int_t)var);
-    } else if(!strcmp_P(attr, PSTR("value_line_space"))) {
-        return lv_obj_set_style_local_value_line_space(obj, part, state, (lv_style_int_t)var);
-    } else if(!strcmp_P(attr, PSTR("value_blend_mode"))) {
-        return lv_obj_set_style_local_value_blend_mode(obj, part, state, (lv_blend_mode_t)var);
-    } else if(!strcmp_P(attr, PSTR("value_ofs_x"))) {
-        return lv_obj_set_style_local_value_ofs_x(obj, part, state, (lv_style_int_t)var);
-    } else if(!strcmp_P(attr, PSTR("value_ofs_y"))) {
-        return lv_obj_set_style_local_value_ofs_y(obj, part, state, (lv_style_int_t)var);
-    } else if(!strcmp_P(attr, PSTR("value_align"))) {
-        return lv_obj_set_style_local_value_align(obj, part, state, (lv_align_t)var);
-    } else if(!strcmp_P(attr, PSTR("value_color"))) {
-        lv_color_t color = haspPayloadToColor(payload);
-        return lv_obj_set_style_local_value_color(obj, part, state, color);
-    } else if(!strcmp_P(attr, PSTR("value_opa"))) {
-        return lv_obj_set_style_local_value_opa(obj, part, state, (lv_opa_t)var);
-    } else if(!strcmp_P(attr, PSTR("value_font"))) {
-#if ESP32
-        switch(var) {
-            case 8:
-                lv_obj_set_style_local_value_font(obj, part, state, &unscii_8_icon);
-                break;
-            case 12:
-                lv_obj_set_style_local_value_font(obj, part, state, &lv_font_roboto_12);
-                break;
-            case 16:
-                lv_obj_set_style_local_value_font(obj, part, state, &lv_font_roboto_16);
-                break;
-            case 22:
-                lv_obj_set_style_local_value_font(obj, part, state, &lv_font_roboto_22);
-                break;
-            case 28:
-                lv_obj_set_style_local_value_font(obj, part, state, &lv_font_roboto_28);
-                break;
+        // Remove Trailing part digit
+        char attr[128];
+        if(part != LV_TABLE_PART_BG && len > 0) {
+            len--;
         }
-        return;
-#endif
-        //    return lv_obj_set_style_local_value_font(obj, part, state, (constlv_font_t *)var);
-    } else if(!strcmp_P(attr, PSTR("value_str"))) {
-        return lv_obj_set_style_local_value_str(obj, part, state, (const char *)payload);
-    } else if(!strcmp_P(attr, PSTR("text_letter_space"))) {
-        return lv_obj_set_style_local_text_letter_space(obj, part, state, (lv_style_int_t)var);
-    } else if(!strcmp_P(attr, PSTR("text_line_space"))) {
-        return lv_obj_set_style_local_text_line_space(obj, part, state, (lv_style_int_t)var);
-    } else if(!strcmp_P(attr, PSTR("text_decor"))) {
-        return lv_obj_set_style_local_text_decor(obj, part, state, (lv_text_decor_t)var);
-    } else if(!strcmp_P(attr, PSTR("text_blend_mode"))) {
-        return lv_obj_set_style_local_text_blend_mode(obj, part, state, (lv_blend_mode_t)var);
-    } else if(!strcmp_P(attr, PSTR("text_color"))) {
-        lv_color_t color = haspPayloadToColor(payload);
-        return lv_obj_set_style_local_text_color(obj, part, state, color);
-    } else if(!strcmp_P(attr, PSTR("text_sel_color"))) {
-        lv_color_t color = haspPayloadToColor(payload);
-        return lv_obj_set_style_local_text_sel_color(obj, part, state, color);
-    } else if(!strcmp_P(attr, PSTR("text_opa"))) {
-        return lv_obj_set_style_local_text_opa(obj, part, state, (lv_opa_t)var);
-    } else if(!strcmp_P(attr, PSTR("text_font"))) {
+        strncpy(attr, attr_p, len + 1);
+        attr[len] = 0;
+
+        // debugPrintln(strAttr + "&" + part);
+
+        if(!strcmp_P(attr, PSTR("radius"))) {
+            return lv_obj_set_style_local_radius(obj, part, state, (lv_style_int_t)var);
+        } else if(!strcmp_P(attr, PSTR("clip_corner"))) {
+            return lv_obj_set_style_local_clip_corner(obj, part, state, (bool)var);
+        } else if(!strcmp_P(attr, PSTR("size"))) {
+            return lv_obj_set_style_local_size(obj, part, state, (lv_style_int_t)var);
+        } else if(!strcmp_P(attr, PSTR("transform_width"))) {
+            return lv_obj_set_style_local_transform_width(obj, part, state, (lv_style_int_t)var);
+        } else if(!strcmp_P(attr, PSTR("transform_height"))) {
+            return lv_obj_set_style_local_transform_height(obj, part, state, (lv_style_int_t)var);
+        } else if(!strcmp_P(attr, PSTR("opa_scale"))) {
+            return lv_obj_set_style_local_opa_scale(obj, part, state, (lv_opa_t)var);
+        } else if(!strcmp_P(attr, PSTR("pad_top"))) {
+            return lv_obj_set_style_local_pad_top(obj, part, state, (lv_style_int_t)var);
+        } else if(!strcmp_P(attr, PSTR("pad_bottom"))) {
+            return lv_obj_set_style_local_pad_bottom(obj, part, state, (lv_style_int_t)var);
+        } else if(!strcmp_P(attr, PSTR("pad_left"))) {
+            return lv_obj_set_style_local_pad_left(obj, part, state, (lv_style_int_t)var);
+        } else if(!strcmp_P(attr, PSTR("pad_right"))) {
+            return lv_obj_set_style_local_pad_right(obj, part, state, (lv_style_int_t)var);
+        } else if(!strcmp_P(attr, PSTR("pad_inner"))) {
+            return lv_obj_set_style_local_pad_inner(obj, part, state, (lv_style_int_t)var);
+        } else if(!strcmp_P(attr, PSTR("bg_blend_mode"))) {
+            return lv_obj_set_style_local_bg_blend_mode(obj, part, state, (lv_blend_mode_t)var);
+        } else if(!strcmp_P(attr, PSTR("bg_main_stop"))) {
+            return lv_obj_set_style_local_bg_main_stop(obj, part, state, (lv_style_int_t)var);
+        } else if(!strcmp_P(attr, PSTR("bg_grad_stop"))) {
+            return lv_obj_set_style_local_bg_grad_stop(obj, part, state, (lv_style_int_t)var);
+        } else if(!strcmp_P(attr, PSTR("bg_grad_dir"))) {
+            return lv_obj_set_style_local_bg_grad_dir(obj, part, state, (lv_grad_dir_t)var);
+        } else if(!strcmp_P(attr, PSTR("bg_color"))) {
+            lv_color_t color = haspPayloadToColor(payload);
+            if(part != 64)
+                return lv_obj_set_style_local_bg_color(obj, part, state, color);
+            else
+                return lv_obj_set_style_local_bg_color(obj, LV_PAGE_PART_SCRL, LV_STATE_CHECKED, color);
+        } else if(!strcmp_P(attr, PSTR("bg_grad_color"))) {
+            lv_color_t color = haspPayloadToColor(payload);
+            return lv_obj_set_style_local_bg_grad_color(obj, part, state, color);
+        } else if(!strcmp_P(attr, PSTR("bg_opa"))) {
+            return lv_obj_set_style_local_bg_opa(obj, part, state, (lv_opa_t)var);
+        } else if(!strcmp_P(attr, PSTR("border_width"))) {
+            return lv_obj_set_style_local_border_width(obj, part, state, (lv_style_int_t)var);
+        } else if(!strcmp_P(attr, PSTR("border_side"))) {
+            return lv_obj_set_style_local_border_side(obj, part, state, (lv_border_side_t)var);
+        } else if(!strcmp_P(attr, PSTR("border_blend_mode"))) {
+            return lv_obj_set_style_local_border_blend_mode(obj, part, state, (lv_blend_mode_t)var);
+        } else if(!strcmp_P(attr, PSTR("border_post"))) {
+            return lv_obj_set_style_local_border_post(obj, part, state, (bool)var);
+        } else if(!strcmp_P(attr, PSTR("border_color"))) {
+            lv_color_t color = haspPayloadToColor(payload);
+            return lv_obj_set_style_local_border_color(obj, part, state, color);
+        } else if(!strcmp_P(attr, PSTR("border_opa"))) {
+            return lv_obj_set_style_local_border_opa(obj, part, state, (lv_opa_t)var);
+        } else if(!strcmp_P(attr, PSTR("outline_width"))) {
+            return lv_obj_set_style_local_outline_width(obj, part, state, (lv_style_int_t)var);
+        } else if(!strcmp_P(attr, PSTR("outline_pad"))) {
+            return lv_obj_set_style_local_outline_pad(obj, part, state, (lv_style_int_t)var);
+        } else if(!strcmp_P(attr, PSTR("outline_blend_mode"))) {
+            return lv_obj_set_style_local_outline_blend_mode(obj, part, state, (lv_blend_mode_t)var);
+        } else if(!strcmp_P(attr, PSTR("outline_color"))) {
+            lv_color_t color = haspPayloadToColor(payload);
+            return lv_obj_set_style_local_outline_color(obj, part, state, color);
+        } else if(!strcmp_P(attr, PSTR("outline_opa"))) {
+            return lv_obj_set_style_local_outline_opa(obj, part, state, (lv_opa_t)var);
+        } else if(!strcmp_P(attr, PSTR("shadow_width"))) {
+            return lv_obj_set_style_local_shadow_width(obj, part, state, (lv_style_int_t)var);
+        } else if(!strcmp_P(attr, PSTR("shadow_ofs_x"))) {
+            return lv_obj_set_style_local_shadow_ofs_x(obj, part, state, (lv_style_int_t)var);
+        } else if(!strcmp_P(attr, PSTR("shadow_ofs_y"))) {
+            return lv_obj_set_style_local_shadow_ofs_y(obj, part, state, (lv_style_int_t)var);
+        } else if(!strcmp_P(attr, PSTR("shadow_spread"))) {
+            return lv_obj_set_style_local_shadow_spread(obj, part, state, (lv_style_int_t)var);
+        } else if(!strcmp_P(attr, PSTR("shadow_blend_mode"))) {
+            return lv_obj_set_style_local_shadow_blend_mode(obj, part, state, (lv_blend_mode_t)var);
+        } else if(!strcmp_P(attr, PSTR("shadow_color"))) {
+            lv_color_t color = haspPayloadToColor(payload);
+            return lv_obj_set_style_local_shadow_color(obj, part, state, color);
+        } else if(!strcmp_P(attr, PSTR("shadow_opa"))) {
+            return lv_obj_set_style_local_shadow_opa(obj, part, state, (lv_opa_t)var);
+        } else if(!strcmp_P(attr, PSTR("pattern_repeat"))) {
+            return lv_obj_set_style_local_pattern_repeat(obj, part, state, (bool)var);
+        } else if(!strcmp_P(attr, PSTR("pattern_blend_mode"))) {
+            return lv_obj_set_style_local_pattern_blend_mode(obj, part, state, (lv_blend_mode_t)var);
+        } else if(!strcmp_P(attr, PSTR("pattern_recolor"))) {
+            lv_color_t color = haspPayloadToColor(payload);
+            return lv_obj_set_style_local_pattern_recolor(obj, part, state, color);
+        } else if(!strcmp_P(attr, PSTR("pattern_opa"))) {
+            return lv_obj_set_style_local_pattern_opa(obj, part, state, (lv_opa_t)var);
+        } else if(!strcmp_P(attr, PSTR("pattern_recolor_opa"))) {
+            return lv_obj_set_style_local_pattern_recolor_opa(obj, part, state, (lv_opa_t)var);
+        } else if(!strcmp_P(attr, PSTR("pattern_image"))) {
+            //   return lv_obj_set_style_local_pattern_image(obj, part, state, (constvoid *)var);
+        } else if(!strcmp_P(attr, PSTR("value_letter_space"))) {
+            return lv_obj_set_style_local_value_letter_space(obj, part, state, (lv_style_int_t)var);
+        } else if(!strcmp_P(attr, PSTR("value_line_space"))) {
+            return lv_obj_set_style_local_value_line_space(obj, part, state, (lv_style_int_t)var);
+        } else if(!strcmp_P(attr, PSTR("value_blend_mode"))) {
+            return lv_obj_set_style_local_value_blend_mode(obj, part, state, (lv_blend_mode_t)var);
+        } else if(!strcmp_P(attr, PSTR("value_ofs_x"))) {
+            return lv_obj_set_style_local_value_ofs_x(obj, part, state, (lv_style_int_t)var);
+        } else if(!strcmp_P(attr, PSTR("value_ofs_y"))) {
+            return lv_obj_set_style_local_value_ofs_y(obj, part, state, (lv_style_int_t)var);
+        } else if(!strcmp_P(attr, PSTR("value_align"))) {
+            return lv_obj_set_style_local_value_align(obj, part, state, (lv_align_t)var);
+        } else if(!strcmp_P(attr, PSTR("value_color"))) {
+            lv_color_t color = haspPayloadToColor(payload);
+            return lv_obj_set_style_local_value_color(obj, part, state, color);
+        } else if(!strcmp_P(attr, PSTR("value_opa"))) {
+            return lv_obj_set_style_local_value_opa(obj, part, state, (lv_opa_t)var);
+        } else if(!strcmp_P(attr, PSTR("value_font"))) {
 #if ESP32
-        switch(var) {
-            case 8:
-                lv_obj_set_style_local_text_font(obj, part, state, &unscii_8_icon);
-                break;
-            case 12:
-                lv_obj_set_style_local_text_font(obj, part, state, &lv_font_roboto_12);
-                break;
-            case 16:
-                lv_obj_set_style_local_text_font(obj, part, state, &lv_font_roboto_16);
-                break;
-            case 22:
-                lv_obj_set_style_local_text_font(obj, part, state, &lv_font_roboto_22);
-                break;
-            case 28:
-                lv_obj_set_style_local_text_font(obj, part, state, &lv_font_roboto_28);
-                break;
-        }
-        return;
+            switch(var) {
+                case 8:
+                    lv_obj_set_style_local_value_font(obj, part, state, &unscii_8_icon);
+                    break;
+                case 12:
+                    lv_obj_set_style_local_value_font(obj, part, state, &lv_font_roboto_12);
+                    break;
+                case 16:
+                    lv_obj_set_style_local_value_font(obj, part, state, &lv_font_roboto_16);
+                    break;
+                case 22:
+                    lv_obj_set_style_local_value_font(obj, part, state, &lv_font_roboto_22);
+                    break;
+                case 28:
+                    lv_obj_set_style_local_value_font(obj, part, state, &lv_font_roboto_28);
+                    break;
+            }
+            return;
 #endif
-        // return lv_obj_set_style_local_text_font(obj, part, state, (constlv_font_t *)var);
-    } else if(!strcmp_P(attr, PSTR("line_width"))) {
-        return lv_obj_set_style_local_line_width(obj, part, state, (lv_style_int_t)var);
-    } else if(!strcmp_P(attr, PSTR("line_blend_mode"))) {
-        return lv_obj_set_style_local_line_blend_mode(obj, part, state, (lv_blend_mode_t)var);
-    } else if(!strcmp_P(attr, PSTR("line_dash_width"))) {
-        return lv_obj_set_style_local_line_dash_width(obj, part, state, (lv_style_int_t)var);
-    } else if(!strcmp_P(attr, PSTR("line_dash_gap"))) {
-        return lv_obj_set_style_local_line_dash_gap(obj, part, state, (lv_style_int_t)var);
-    } else if(!strcmp_P(attr, PSTR("line_rounded"))) {
-        return lv_obj_set_style_local_line_rounded(obj, part, state, (bool)var);
-    } else if(!strcmp_P(attr, PSTR("line_color"))) {
-        lv_color_t color = haspPayloadToColor(payload);
-        return lv_obj_set_style_local_line_color(obj, part, state, color);
-    } else if(!strcmp_P(attr, PSTR("line_opa"))) {
-        return lv_obj_set_style_local_line_opa(obj, part, state, (lv_opa_t)var);
+            //    return lv_obj_set_style_local_value_font(obj, part, state, (constlv_font_t *)var);
+        } else if(!strcmp_P(attr, PSTR("value_str"))) {
+            return lv_obj_set_style_local_value_str(obj, part, state, (const char *)payload);
+        } else if(!strcmp_P(attr, PSTR("text_letter_space"))) {
+            return lv_obj_set_style_local_text_letter_space(obj, part, state, (lv_style_int_t)var);
+        } else if(!strcmp_P(attr, PSTR("text_line_space"))) {
+            return lv_obj_set_style_local_text_line_space(obj, part, state, (lv_style_int_t)var);
+        } else if(!strcmp_P(attr, PSTR("text_decor"))) {
+            return lv_obj_set_style_local_text_decor(obj, part, state, (lv_text_decor_t)var);
+        } else if(!strcmp_P(attr, PSTR("text_blend_mode"))) {
+            return lv_obj_set_style_local_text_blend_mode(obj, part, state, (lv_blend_mode_t)var);
+        } else if(!strcmp_P(attr, PSTR("text_color"))) {
+            lv_color_t color = haspPayloadToColor(payload);
+            return lv_obj_set_style_local_text_color(obj, part, state, color);
+        } else if(!strcmp_P(attr, PSTR("text_sel_color"))) {
+            lv_color_t color = haspPayloadToColor(payload);
+            return lv_obj_set_style_local_text_sel_color(obj, part, state, color);
+        } else if(!strcmp_P(attr, PSTR("text_opa"))) {
+            return lv_obj_set_style_local_text_opa(obj, part, state, (lv_opa_t)var);
+        } else if(!strcmp_P(attr, PSTR("text_font"))) {
+#if ESP32
+            switch(var) {
+                case 8:
+                    lv_obj_set_style_local_text_font(obj, part, state, &unscii_8_icon);
+                    break;
+                case 12:
+                    lv_obj_set_style_local_text_font(obj, part, state, &lv_font_roboto_12);
+                    break;
+                case 16:
+                    lv_obj_set_style_local_text_font(obj, part, state, &lv_font_roboto_16);
+                    break;
+                case 22:
+                    lv_obj_set_style_local_text_font(obj, part, state, &lv_font_roboto_22);
+                    break;
+                case 28:
+                    lv_obj_set_style_local_text_font(obj, part, state, &lv_font_roboto_28);
+                    break;
+            }
+            return;
+#endif
+            // return lv_obj_set_style_local_text_font(obj, part, state, (constlv_font_t *)var);
+        } else if(!strcmp_P(attr, PSTR("line_width"))) {
+            return lv_obj_set_style_local_line_width(obj, part, state, (lv_style_int_t)var);
+        } else if(!strcmp_P(attr, PSTR("line_blend_mode"))) {
+            return lv_obj_set_style_local_line_blend_mode(obj, part, state, (lv_blend_mode_t)var);
+        } else if(!strcmp_P(attr, PSTR("line_dash_width"))) {
+            return lv_obj_set_style_local_line_dash_width(obj, part, state, (lv_style_int_t)var);
+        } else if(!strcmp_P(attr, PSTR("line_dash_gap"))) {
+            return lv_obj_set_style_local_line_dash_gap(obj, part, state, (lv_style_int_t)var);
+        } else if(!strcmp_P(attr, PSTR("line_rounded"))) {
+            return lv_obj_set_style_local_line_rounded(obj, part, state, (bool)var);
+        } else if(!strcmp_P(attr, PSTR("line_color"))) {
+            lv_color_t color = haspPayloadToColor(payload);
+            return lv_obj_set_style_local_line_color(obj, part, state, color);
+        } else if(!strcmp_P(attr, PSTR("line_opa"))) {
+            return lv_obj_set_style_local_line_opa(obj, part, state, (lv_opa_t)var);
+        }
     }
 
     /* Property not found */
-    haspAttributeNotFound(attr);
+    haspAttributeNotFound(attr_p);
 }
 
 void haspSetObjAttribute1(lv_obj_t * obj, const char * attr, const char * payload)
@@ -548,6 +554,15 @@ void haspSetObjAttribute4(lv_obj_t * obj, const char * attr, const char * payloa
         }
 
         if(!strcmp_P(attr, PSTR("mode"))) {
+            if(check_obj_type(list.type[0], LV_HASP_BUTTON)) {
+                lv_obj_t * label = FindButtonLabel(obj);
+                if(label) {
+                    set_label_long_mode(label, payload);
+                    lv_obj_set_width(label, lv_obj_get_width(obj));
+                }
+                return;
+            }
+
             if(check_obj_type(list.type[0], LV_HASP_LABEL)) {
                 set_label_long_mode(obj, payload);
                 return;
@@ -563,7 +578,7 @@ void haspSetObjAttribute6(lv_obj_t * obj, const char * attr, const char * payloa
     int16_t val = atoi(payload);
 
     if(!strcmp_P(attr, PSTR("hidden"))) {
-        lv_obj_set_hidden(obj, val == 0);
+        lv_obj_set_hidden(obj, is_true(payload));
         return;
     } else {
         lv_obj_type_t list;
@@ -571,7 +586,7 @@ void haspSetObjAttribute6(lv_obj_t * obj, const char * attr, const char * payloa
 
         if(!strcmp_P(attr, PSTR("toggle"))) {
             if(check_obj_type(list.type[0], LV_HASP_BUTTON)) {
-                haspSetToggle(obj, atoi(payload) > 0);
+                haspSetToggle(obj, is_true(payload));
                 return;
             }
         }
@@ -587,7 +602,7 @@ void haspSetObjAttribute7(lv_obj_t * obj, const char * attr, const char * payloa
         haspSetOpacity(obj, val);
         return;
     } else if(!strcmp_P(attr, PSTR("enabled"))) {
-        lv_obj_set_click(obj, val != 0);
+        lv_obj_set_click(obj, is_true(payload));
         return;
     } else if(!strcmp_P(attr, PSTR("options"))) {
         /* .options depend on objecttype */
