@@ -41,6 +41,15 @@ If you already cloned hasp-lvgl without the submodules, you can fetch the submod
 git submodule update --init --recursive
 ```
 
+To build a defierent branch use:
+
+```bash
+git clone --recursive https://github.com/fvanroie/hasp-lvgl
+cd hasp-lvgl
+git checkout 0.1.0
+git submodule update --init --recursive
+```
+
 ## Getting Started
 
 Check out the [wiki](https://github.com/fvanroie/hasp-lvgl/wiki) for how-to's, information and frequently asked questions.
