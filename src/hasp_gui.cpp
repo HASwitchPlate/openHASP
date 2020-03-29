@@ -69,46 +69,23 @@ bool guiCheckSleep()
     uint32_t idle = lv_disp_get_inactive_time(NULL);
     if(idle >= (guiSleepTime1 + guiSleepTime2) * 1000U) {
         if(guiSleeping != 2) {
-            dispatchIdle(F("LONG"));
+            dispatchIdle(("LONG")); // Literal string
             guiSleeping = 2;
         }
         return true;
     } else if(idle >= guiSleepTime1 * 1000U) {
         if(guiSleeping != 1) {
-            dispatchIdle(F("SHORT"));
+            dispatchIdle(("SHORT")); // Literal string
             guiSleeping = 1;
         }
         return true;
     }
     if(guiSleeping != 0) {
-        dispatchIdle(F("OFF"));
+        dispatchIdle(("OFF")); // Literal string
         guiSleeping = 0;
     }
     return false;
 }
-
-#if LV_USE_LOG != 0
-/* Serial debugging */
-static void debugLvgl(lv_log_level_t level, const char * file, uint32_t line, const char * funcname, const char * descr)
-{
-    switch(level) {
-        case LV_LOG_LEVEL_TRACE:
-            Log.trace(F("LVGL: %s:%u %s -> %s"), file, line, funcname, descr);
-            break;
-        case LV_LOG_LEVEL_INFO:
-            Log.notice(F("LVGL: %s:%u %s -> %s"), file, line, funcname, descr);
-            break;
-        case LV_LOG_LEVEL_WARN:
-            Log.warning(F("LVGL: %s:%u %s -> %s"), file, line, funcname, descr);
-            break;
-        case LV_LOG_LEVEL_ERROR:
-            Log.error(F("LVGL: %s:%u %s -> %s"), file, line, funcname, descr);
-            break;
-        default:
-            Log.verbose(F("LVGL: %s:%u %s -> %s"), file, line, funcname, descr);
-    }
-}
-#endif
 
 /* Display flushing */
 void tft_espi_flush(lv_disp_drv_t * disp, const lv_area_t * area, lv_color_t * color_p)
@@ -287,35 +264,62 @@ void guiCalibrate()
 #endif
 }
 
-void guiSetup(JsonObject settings)
+void guiSetup(const JsonObject & settings)
 {
-    guiSetConfig(settings);
-    // guiBacklightIsOn = guiDimLevel > 0;
-
-    tft.begin(); /* TFT init */
+    /* TFT init */
+    tft.begin();
+    tft.setRotation(guiRotation); /* 1/3=Landscape or 0/2=Portrait orientation */
 #ifdef TOUCH_CS
     tft.setTouch(calData);
 #endif
-    tftSetup(tft, settings[F("tft")]);
 
-    tft.setRotation(guiRotation); /* 1/3=Landscape or 0/2=Portrait orientation */
+    /* Initialize the Virtual Device Buffers */
     lv_init();
-
 #if defined(ARDUINO_ARCH_ESP32)
     /* allocate on iram (or psram ?) */
-    guiVDBsize                        = 16 * 1024u; // 32 KBytes * 2
+    guiVDBsize = 16 * 1024u; // 32 KBytes * 2
+    static lv_disp_buf_t disp_buf;
     static lv_color_t * guiVdbBuffer1 = (lv_color_t *)malloc(sizeof(lv_color_t) * guiVDBsize);
     static lv_color_t * guiVdbBuffer2 = (lv_color_t *)malloc(sizeof(lv_color_t) * guiVDBsize);
-    static lv_disp_buf_t disp_buf;
     lv_disp_buf_init(&disp_buf, guiVdbBuffer1, guiVdbBuffer2, guiVDBsize);
 #else
     /* allocate on heap */
+    static lv_disp_buf_t disp_buf;
     static lv_color_t guiVdbBuffer1[5 * 512u]; // 6 KBytes
     // static lv_color_t guiVdbBuffer2[3 * 1024u]; // 6 KBytes
     guiVDBsize = sizeof(guiVdbBuffer1) / sizeof(guiVdbBuffer1[0]);
-    static lv_disp_buf_t disp_buf;
     lv_disp_buf_init(&disp_buf, guiVdbBuffer1, NULL, guiVDBsize);
 #endif
+
+    /* Initialize PNG decoder */
+#if HASP_USE_PNGDECODE != 0
+    png_decoder_init();
+#endif
+
+    /* Initialize Filesystems */
+#if LV_USE_FS_IF != 0
+    lv_fs_if_init();
+#endif
+
+    /* Dump TFT Cofiguration */
+    tftSetup(tft, settings[F("tft")]);
+
+    /* Load User Settings */
+    // guiSetConfig(settings);
+    /* Setup Backlight Control Pin */
+    if(guiBacklightPin >= 0) {
+        Log.verbose(F("LVGL: Backlight: Pin %d"), guiBacklightPin);
+
+#if defined(ARDUINO_ARCH_ESP32)
+        // configure LED PWM functionalitites
+        ledcSetup(100, 1000, 10);
+        // attach the channel to the GPIO to be controlled
+        pinMode(guiBacklightPin, OUTPUT);
+        ledcAttachPin(guiBacklightPin, 99);
+#else
+        pinMode(guiBacklightPin, OUTPUT);
+#endif
+    }
 
     // char buffer[128];
     Log.verbose(F("LVGL: Version  : %u.%u.%u %s"), LVGL_VERSION_MAJOR, LVGL_VERSION_MINOR, LVGL_VERSION_PATCH,
@@ -325,17 +329,8 @@ void guiSetup(JsonObject settings)
     Log.verbose(F("LVGL: VFB size : %d"), (size_t)sizeof(lv_color_t) * guiVDBsize);
 
 #if LV_USE_LOG != 0
-    Log.warning(F("LVGL: Registering lvgl logging handler"));
+    Log.verbose(F("LVGL: Registering lvgl logging handler"));
     lv_log_register_print_cb(debugLvgl); /* register print function for debugging */
-#endif
-
-    /* Initialize PNG decoder */
-#if HASP_USE_PNGDECODE != 0
-    png_decoder_init();
-#endif
-
-#if LV_USE_FS_IF != 0
-    lv_fs_if_init();
 #endif
 
     /* Initialize the display driver */
@@ -402,21 +397,6 @@ void guiSetup(JsonObject settings)
 
     /*Initialize the graphics library's tick*/
     tick.attach_ms(guiTickPeriod, lv_tick_handler);
-
-    /* Setup Backlight Control Pin */
-    if(guiBacklightPin >= 0) {
-        Log.verbose(F("LVGL: Backlight: Pin %i"), guiBacklightPin);
-
-#if defined(ARDUINO_ARCH_ESP32)
-        // configure LED PWM functionalitites
-        ledcSetup(100, 1000, 10);
-        // attach the channel to the GPIO to be controlled
-        pinMode(guiBacklightPin, OUTPUT);
-        ledcAttachPin(guiBacklightPin, 99);
-#else
-        pinMode(guiBacklightPin, OUTPUT);
-#endif
-    }
 }
 
 void IRAM_ATTR guiLoop()
@@ -424,6 +404,7 @@ void IRAM_ATTR guiLoop()
     lv_task_handler(); /* let the GUI do its work */
     guiCheckSleep();
 }
+
 void guiStop()
 {}
 
@@ -532,7 +513,8 @@ bool guiSetConfig(const JsonObject & settings)
         }
 
         if(status) {
-            Log.trace(F("calData set"));
+            Log.trace(F("calData set [%u, %u, %u, %u, %u]"), calData[0], calData[1], calData[2], calData[3],
+                      calData[4]);
             guiAutoCalibrate = false;
         }
 
