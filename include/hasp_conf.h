@@ -27,4 +27,10 @@
 #define HASP_NUM_INPUTS 3 // Buttons
 #define HASP_NUM_OUTPUTS 3
 
+#if defined(ARDUINO_ARCH_ESP32)
+#define HASP_NUM_PAGES 12
+#else
+#define HASP_NUM_PAGES 4
+#endif
+
 #endif

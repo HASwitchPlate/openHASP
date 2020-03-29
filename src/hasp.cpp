@@ -105,18 +105,17 @@ static const char * btnm_map2[] = {"0",  "1", "\n", "2",  "3",  "\n", "4",  "5",
                                    "\n", "6", "7",  "\n", "P1", "P2", "P3", ""};
 */
 
+static lv_obj_t * pages[HASP_NUM_PAGES];
 #if defined(ARDUINO_ARCH_ESP8266)
-static lv_obj_t * pages[4];
 // static lv_font_t * haspFonts[4];
 // static lv_style_t labelStyles[4];
 // static lv_style_t rollerStyles[4];
 #else
-static lv_obj_t * pages[12];
 // static lv_font_t * haspFonts[8];
 // static lv_style_t labelStyles[8];
 // static lv_style_t rollerStyles[8];
 #endif
-uint16_t current_page = 0;
+uint8_t current_page = 0;
 // uint16_t current_style = 0;
 
 /**********************
@@ -963,12 +962,12 @@ void haspClearPage(uint16_t pageid)
     }
 }
 
-uint16_t haspGetPage()
+uint8_t haspGetPage()
 {
     return current_page;
 }
 
-void haspSetPage(uint16_t pageid)
+void haspSetPage(uint8_t pageid)
 {
     lv_obj_t * page = get_page(pageid);
     if(!page) {

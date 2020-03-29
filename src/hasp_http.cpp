@@ -689,11 +689,21 @@ void webHandleScreenshot()
 
     if(webServer.hasArg(F("a")) && webServer.arg(F("a")) == F("next")) {
         uint8_t page = haspGetPage();
-        haspSetPage(page + 1);
+        if(page + 1 == HASP_NUM_PAGES) {
+            page = 0;
+        } else {
+            page++;
+        }
+        haspSetPage(page);
     }
     if(webServer.hasArg(F("a")) && webServer.arg(F("a")) == F("prev")) {
         uint8_t page = haspGetPage();
-        haspSetPage(page - 1);
+        if(page == 0) {
+            page = HASP_NUM_PAGES - 1;
+        } else {
+            page--;
+        }
+        haspSetPage(page);
     }
 
     if(webServer.hasArg(F("q"))) {
