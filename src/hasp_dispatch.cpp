@@ -114,7 +114,7 @@ void dispatchAttribute(String strTopic, const char * payload)
     } else if(strTopic == F("light")) {
         dispatchBacklight(payload);
 
-    } else if(cmnd == F("reboot") || cmnd == F("restart")) {
+    } else if(strTopic == F("reboot") || strTopic == F("restart")) {
         dispatchReboot(true);
 
     } else if(strTopic == F("clearpage")) {
@@ -281,8 +281,6 @@ void dispatchReboot(bool saveConfig)
     debugStop();
     delay(250);
     wifiStop();
-    // debugPrintln(F("STOP: Properly Rebooting the MCU now!"));
-    // debugPrintln(F("-------------------------------------"));
     Log.notice(F("STOP: Properly Rebooting the MCU now!"));
     Log.verbose(F("-------------------------------------"));
     ESP.restart();
