@@ -756,7 +756,9 @@ void haspDisplayAP(const char * ssid, const char * pass)
 
     lv_obj_t * panel = lv_cont_create(pages[0], NULL);
     lv_obj_set_style(panel, &lv_style_pretty);
+#if HASP_USE_QRCODE !=0
     lv_obj_align(panel, qr, LV_ALIGN_OUT_TOP_MID, 0, -20);
+#endif
     lv_label_set_align(panel, LV_LABEL_ALIGN_CENTER);
     lv_cont_set_fit(panel, LV_FIT_TIGHT);
     lv_cont_set_layout(panel, LV_LAYOUT_COL_M);
