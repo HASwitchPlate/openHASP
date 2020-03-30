@@ -18,6 +18,7 @@
 #endif
 
 #include "hasp_hal.h"
+#include "hasp_tft.h"
 #include "hasp_debug.h"
 #include "hasp_config.h"
 #include "hasp_mqtt.h"
@@ -207,6 +208,7 @@ void mqtt_send_statusupdate()
     doc[F("heapFrag")]     = halGetHeapFragmentation();
     doc[F("espCanUpdate")] = false;
     doc[F("espCore")]      = halGetCoreVersion().c_str();
+    doc[F("tftDriver")]    = tftDriverName();
 
 #if defined(ARDUINO_ARCH_ESP8266)
     doc[F("espVcc")] = (float)ESP.getVcc() / 1000;
@@ -215,7 +217,6 @@ void mqtt_send_statusupdate()
     char buffer[3 * 128];
     size_t n = serializeJson(doc, buffer, sizeof(buffer));
     mqtt_send_state(F("statusupdate"), buffer);
-
 
     /*    if(updateEspAvailable) {
             mqttStatusPayload += F("\"updateEspAvailable\":true,");
