@@ -584,23 +584,42 @@ void haspSetup(JsonObject settings)
 {
     guiSetDim(haspStartDim);
 
-    /*
-    #ifdef LV_HASP_HOR_RES_MAX
-        lv_coord_t hres = LV_HASP_HOR_RES_MAX;
-    #else
-        lv_coord_t hres = lv_disp_get_hor_res(NULL);
-    #endif
-
-    #ifdef LV_HASP_VER_RES_MAX
-        lv_coord_t vres = LV_HASP_VER_RES_MAX;
-    #else
-        lv_coord_t vres = lv_disp_get_ver_res(NULL);
-    #endif
-    */
+    lv_coord_t hres = lv_disp_get_hor_res(NULL);
+    lv_coord_t vres = lv_disp_get_ver_res(NULL);
 
     // static lv_font_t *
     //    my_font = (lv_font_t *)lv_mem_alloc(sizeof(lv_font_t));
 
+    /******* File SustemTest ********************************************************************
+        lv_fs_init();
+        lv_fs_file_t f;
+        lv_fs_res_t res;
+        res = lv_fs_open(&f, "F:/pages.jsonl", LV_FS_MODE_RD);
+        if(res == LV_FS_RES_OK)
+            Log.error(F("Opening pages.json OK"));
+        else
+            Log.verbose(F("Opening pages.json from FS failed %d"), res);
+
+        uint32_t btoread = 128;
+        uint32_t bread   = 0;
+        char buffer[128];
+
+        res = lv_fs_read(&f, buffer, 128, &bread);
+        if(res == LV_FS_RES_OK) {
+            Log.error(F("Reading pages.json OK %u"), bread);
+            buffer[127] = '\0';
+            Log.verbose(buffer);
+        } else
+            Log.verbose(F("Reading pages.json from FS failed %d"), res);
+
+        res = lv_fs_close(&f);
+        if(res == LV_FS_RES_OK)
+            Log.error(F("Closing pages.json OK"));
+        else
+            Log.verbose(F("Closing pages.json on FS failed %d"), res);
+    ******* File SustemTest ********************************************************************/
+
+    /* ********** Font Initializations ********** */
     lv_zifont_init();
 
     if(lv_zifont_font_init(&haspFonts[0], haspZiFontPath, 24) != 0) {
@@ -609,7 +628,9 @@ void haspSetup(JsonObject settings)
     } else {
         defaultFont = haspFonts[0];
     }
+    /* ********** Font Initializations ********** */
 
+    /* ********** Theme Initializations ********** */
     lv_theme_t * th;
     switch(haspThemeId) {
 #if LV_USE_THEME_ALIEN == 1
@@ -634,15 +655,16 @@ void haspSetup(JsonObject settings)
                                         defaultFont, defaultFont, defaultFont);
             break;
 #endif
+
 #if LV_USE_THEME_ZEN == 1
         case 5:
-            th = lv_theme_zen_init(haspThemeHue, defaultFont); // lightweight
-            break;
+            th = lv_theme_zen_init(haspThemeHue, defaultFont); // lightweight break;
 #endif
 #if LV_USE_THEME_NEMO == 1
         case 6:
-            th = lv_theme_nemo_init(haspThemeHue, defaultFont); // heavy
-            break;
+            th =
+                // lv_theme_nemo_init(haspThemeHue, defaultFont); // heavy
+                break;
 #endif
 #if LV_USE_THEME_TEMPL == 1
         case 7:
@@ -655,14 +677,14 @@ void haspSetup(JsonObject settings)
                                         defaultFont, defaultFont, defaultFont);
             break;
 #endif
-            /*        case 0:
-            #if LV_USE_THEME_DEFAULT == 1
-                        th = lv_theme_default_init(haspThemeHue, defaultFont);
-            #else
-                        th = lv_theme_hasp_init(512, defaultFont);
-            #endif
-                        break;
-            */
+        /*        case 0:
+        #if LV_USE_THEME_DEFAULT == 1
+                    th = lv_theme_default_init(haspThemeHue, defaultFont);
+        #else
+                    th = lv_theme_hasp_init(512, defaultFont);
+        #endif
+                    break;
+        */
         default:
             th = lv_theme_material_init(LV_COLOR_PURPLE, LV_COLOR_ORANGE, LV_THEME_DEFAULT_FLAGS, defaultFont,
                                         defaultFont, defaultFont, defaultFont);
@@ -675,6 +697,7 @@ void haspSetup(JsonObject settings)
         Log.error(F("HASP: No theme could be loaded"));
     }
     // lv_theme_set_current(th);
+    /* ********** Theme Initializations ********** */
 
     /* Create all screens using the theme */
     for(uint8_t i = 0; i < (sizeof pages / sizeof *pages); i++) {
@@ -953,9 +976,11 @@ void haspSetPage(uint8_t pageid)
     } else if(page == lv_layer_sys() || page == lv_layer_top()) {
         Log.warning(F("HASP: %sCannot change to a layer"));
     } else {
+        // if(pageid != current_page) {
         Log.notice(F("HASP: Changing page to %u"), pageid);
         current_page = pageid;
         lv_scr_load(page);
+        //}
     }
 }
 
