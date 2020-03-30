@@ -584,14 +584,6 @@ void haspSetup(JsonObject settings)
 {
     guiSetDim(haspStartDim);
 
-    /* Create all screens */
-    for(uint8_t i = 0; i < (sizeof pages / sizeof *pages); i++) {
-        pages[i] = lv_obj_create(NULL, NULL);
-        // lv_obj_set_size(pages[0], hres, vres);
-    }
-
-    // haspSetConfig(settings);
-
     /*
     #ifdef LV_HASP_HOR_RES_MAX
         lv_coord_t hres = LV_HASP_HOR_RES_MAX;
@@ -683,6 +675,12 @@ void haspSetup(JsonObject settings)
         Log.error(F("HASP: No theme could be loaded"));
     }
     // lv_theme_set_current(th);
+
+    /* Create all screens using the theme */
+    for(uint8_t i = 0; i < (sizeof pages / sizeof *pages); i++) {
+        pages[i] = lv_obj_create(NULL, NULL);
+        // lv_obj_set_size(pages[0], hres, vres);
+    }
 
     haspDisconnect();
     haspLoadPage(haspPagesPath);

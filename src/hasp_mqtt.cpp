@@ -208,7 +208,7 @@ void mqtt_send_statusupdate()
     doc[F("heapFrag")]     = halGetHeapFragmentation();
     doc[F("espCanUpdate")] = false;
     doc[F("espCore")]      = halGetCoreVersion().c_str();
-    doc[F("tftDriver")]    = tftDriverName();
+    doc[F("tftDriver")]    = tftDriverName().c_str();
 
 #if defined(ARDUINO_ARCH_ESP8266)
     doc[F("espVcc")] = (float)ESP.getVcc() / 1000;
