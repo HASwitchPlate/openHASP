@@ -196,25 +196,26 @@ void mqtt_send_statusupdate()
     //    String mqttStatusPayload((char *)0);
     //    mqttStatusPayload.reserve(512);
 
-    DynamicJsonDocument doc(256);
+    DynamicJsonDocument doc(3 * 128);
 
-    doc[F("status")]             = F("available");
-    doc[F("version")]            = haspGetVersion();
-    doc[F("uptime")]             = long(millis() / 1000);
-    doc[F("rssi")]               = WiFi.RSSI();
-    doc[F("ip")]                 = WiFi.localIP().toString();
-    doc[F("heapFree")]           = ESP.getFreeHeap();
-    doc[F("heapFrag")]           = halGetHeapFragmentation();
-    doc[F("updateEspAvailable")] = false;
-    doc[F("espCore")]            = halGetCoreVersion().c_str();
-
-    char buffer[256];
-    size_t n = serializeJson(doc, buffer);
-    mqtt_send_state(F("statusupdate"), buffer);
+    doc[F("status")]       = F("available");
+    doc[F("version")]      = haspGetVersion();
+    doc[F("uptime")]       = long(millis() / 1000);
+    doc[F("rssi")]         = WiFi.RSSI();
+    doc[F("ip")]           = WiFi.localIP().toString();
+    doc[F("heapFree")]     = ESP.getFreeHeap();
+    doc[F("heapFrag")]     = halGetHeapFragmentation();
+    doc[F("espCanUpdate")] = false;
+    doc[F("espCore")]      = halGetCoreVersion().c_str();
 
 #if defined(ARDUINO_ARCH_ESP8266)
     doc[F("espVcc")] = (float)ESP.getVcc() / 1000;
 #endif
+
+    char buffer[3 * 128];
+    size_t n = serializeJson(doc, buffer, sizeof(buffer));
+    mqtt_send_state(F("statusupdate"), buffer);
+
 
     /*    if(updateEspAvailable) {
             mqttStatusPayload += F("\"updateEspAvailable\":true,");
