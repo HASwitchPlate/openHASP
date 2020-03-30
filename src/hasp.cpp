@@ -24,7 +24,7 @@
 
 #if HASP_USE_SPIFFS
 #if defined(ARDUINO_ARCH_ESP32)
-//#include "lv_zifont.h"
+#include "lv_zifont.h"
 #include "SPIFFS.h"
 #endif
 #include "lv_zifont.h"
@@ -107,11 +107,11 @@ static const char * btnm_map2[] = {"0",  "1", "\n", "2",  "3",  "\n", "4",  "5",
 
 static lv_obj_t * pages[HASP_NUM_PAGES];
 #if defined(ARDUINO_ARCH_ESP8266)
-// static lv_font_t * haspFonts[4];
+static lv_font_t * haspFonts[4];
 // static lv_style_t labelStyles[4];
 // static lv_style_t rollerStyles[4];
 #else
-// static lv_font_t * haspFonts[8];
+lv_font_t * haspFonts[8];
 // static lv_style_t labelStyles[8];
 // static lv_style_t rollerStyles[8];
 #endif
@@ -611,98 +611,78 @@ void haspSetup(JsonObject settings)
 
     lv_zifont_init();
 
-    /*  if(lv_zifont_font_init(&defaultFont, haspZiFontPath, 24) != 0) {
-          errorPrintln(String(F("HASP: %sFailed to set the custom font to ")) + String(haspZiFontPath));
-          defaultFont = LV_FONT_DEFAULT; // Use default font
-      }*/
+    if(lv_zifont_font_init(&haspFonts[0], haspZiFontPath, 24) != 0) {
+        Log.error(F("HASP: Failed to set the custom font to %s"), haspZiFontPath);
+        defaultFont = LV_FONT_DEFAULT; // Use default font
+    } else {
+        defaultFont = haspFonts[0];
+    }
 
-    lv_theme_t * th = lv_theme_material_init(LV_COLOR_PURPLE, LV_COLOR_ORANGE, LV_THEME_DEFAULT_FLAGS, LV_FONT_DEFAULT,
-                                             LV_FONT_DEFAULT, LV_FONT_DEFAULT, LV_FONT_DEFAULT);
+    lv_theme_t * th;
+    switch(haspThemeId) {
+#if LV_USE_THEME_ALIEN == 1
+        case 1:
+            th = lv_theme_alien_init(haspThemeHue, defaultFont);
+            break;
+#endif
+#if LV_USE_THEME_NIGHT == 1
+        case 2:
+            th = lv_theme_night_init(haspThemeHue, defaultFont); // heavy
+            break;
+#endif
+#if(LV_USE_THEME_MONO == 1) || (LV_USE_THEME_EMPTY == 1)
+        case 3:
+            th = lv_theme_empty_init(LV_COLOR_PURPLE, LV_COLOR_BLACK, LV_THEME_DEFAULT_FLAGS, defaultFont, defaultFont,
+                                     defaultFont, defaultFont);
+            break;
+#endif
+#if LV_USE_THEME_MATERIAL == 1
+        case 4:
+            th = lv_theme_material_init(LV_COLOR_PURPLE, LV_COLOR_ORANGE, LV_THEME_DEFAULT_FLAGS, defaultFont,
+                                        defaultFont, defaultFont, defaultFont);
+            break;
+#endif
+#if LV_USE_THEME_ZEN == 1
+        case 5:
+            th = lv_theme_zen_init(haspThemeHue, defaultFont); // lightweight
+            break;
+#endif
+#if LV_USE_THEME_NEMO == 1
+        case 6:
+            th = lv_theme_nemo_init(haspThemeHue, defaultFont); // heavy
+            break;
+#endif
+#if LV_USE_THEME_TEMPL == 1
+        case 7:
+            th = lv_theme_templ_init(haspThemeHue, defaultFont); // lightweight, not for production...
+            break;
+#endif
+#if(LV_USE_THEME_HASP == 1) || (LV_USE_THEME_TEMPLATE == 1)
+        case 8:
+            th = lv_theme_template_init(LV_COLOR_PURPLE, LV_COLOR_ORANGE, LV_THEME_DEFAULT_FLAGS, defaultFont,
+                                        defaultFont, defaultFont, defaultFont);
+            break;
+#endif
+            /*        case 0:
+            #if LV_USE_THEME_DEFAULT == 1
+                        th = lv_theme_default_init(haspThemeHue, defaultFont);
+            #else
+                        th = lv_theme_hasp_init(512, defaultFont);
+            #endif
+                        break;
+            */
+        default:
+            th = lv_theme_material_init(LV_COLOR_PURPLE, LV_COLOR_ORANGE, LV_THEME_DEFAULT_FLAGS, defaultFont,
+                                        defaultFont, defaultFont, defaultFont);
+            Log.error(F("HASP: Unknown theme selected"));
+    }
 
-    /*
-            lv_theme_t * th;
-            switch(haspThemeId) {
-        #if LV_USE_THEME_ALIEN == 1
-                case 1:
-                    th = lv_theme_alien_init(haspThemeHue, defaultFont);
-                    break;
-        #endif
-        #if LV_USE_THEME_NIGHT == 1
-                case 2:
-                    th = lv_theme_night_init(haspThemeHue, defaultFont); // heavy
-                    break;
-        #endif
-        #if LV_USE_THEME_MONO == 1
-                case 3:
-                    th = lv_theme_mono_init(haspThemeHue, defaultFont); // lightweight
-                    break;
-        #endif
-        #if LV_USE_THEME_MATERIAL == 1
-                case 4:
-                    // th = lv_theme_material_init(haspThemeHue, defaultFont);
-                    break;
-        #endif
-        #if LV_USE_THEME_ZEN == 1
-                case 5:
-                    th = lv_theme_zen_init(haspThemeHue, defaultFont); // lightweight
-                    break;
-        #endif
-        #if LV_USE_THEME_NEMO == 1
-                case 6:
-                    th = lv_theme_nemo_init(haspThemeHue, defaultFont); // heavy
-                    break;
-        #endif
-        #if LV_USE_THEME_TEMPL == 1
-                case 7:
-                    th = lv_theme_templ_init(haspThemeHue, defaultFont); // lightweight, not for production...
-                    break;
-        #endif
-        #if LV_USE_THEME_HASP == 1
-                case 8:
-                    th = lv_theme_hasp_init(haspThemeHue, defaultFont);
-                    break;
-        #endif
-                case 0:
-        #if LV_USE_THEME_DEFAULT == 1
-                    th = lv_theme_default_init(haspThemeHue, defaultFont);
-        #else
-                    th = lv_theme_hasp_init(512, defaultFont);
-        #endif
-                    break;
-
-                default:
-                    th = lv_theme_hasp_init(512, defaultFont);
-                    debugPrintln(F("HASP: Unknown theme selected"));
-            }
-
-            if(th) {
-                debugPrintln(F("HASP: Custom theme loaded"));
-            } else {
-                errorPrintln(F("HASP: %sNo theme could be loaded"));
-            }
-            // lv_theme_set_current(th);
-        */
-
-    /*
-        if(lv_zifont_font_init(&haspFonts[0], "/fonts/HMI FrankRuhlLibre 24.zi", 24) != 0) {
-            errorPrintln(String(F("HASP: %sFailed to set the custom font to 0")));
-            defaultFont = NULL; // Use default font
-        }
-        if(lv_zifont_font_init(&haspFonts[1], "/fonts/HMI FiraSans 24.zi", 24) != 0) {
-            errorPrintln(String(F("HASP: %sFailed to set the custom font to 1")));
-            defaultFont = NULL; // Use default font
-        }
-        if(lv_zifont_font_init(&haspFonts[2], "/fonts/HMI AbrilFatface 24.zi", 24) != 0) {
-            errorPrintln(String(F("HASP: %sFailed to set the custom font to 2")));
-            defaultFont = NULL; // Use default font
-        }
-
-        for(int i = 0; i < 3; i++) {
-            //lv_style_copy(&labelStyles[i], &lv_style_pretty_color);
-            labelStyles[i].text.font  = haspFonts[i];
-            labelStyles[i].text.color = LV_COLOR_BLUE;
-        }
-    */
+    if(th) {
+        Log.verbose(F("HASP: Custom theme loaded"));
+    } else {
+        Log.error(F("HASP: No theme could be loaded"));
+    }
+    // lv_theme_set_current(th);
 
     haspDisconnect();
     haspLoadPage(haspPagesPath);

@@ -256,7 +256,7 @@ typedef void* lv_indev_drv_user_data_t;            /*Type of user data in the in
  * Log settings
  *===============*/
 
-#define LV_USE_PERF_MONITOR  0
+#define LV_USE_PERF_MONITOR  1
 
  /*1: Enable the log module*/
 #define LV_USE_LOG      1  // set back to 0 before release !!
@@ -399,6 +399,9 @@ typedef void* lv_font_user_data_t;
 #define LV_THEME_DEFAULT_FONT_SUBTITLE      LV_FONT_DEFAULT // &lv_font_roboto_22
 #define LV_THEME_DEFAULT_FONT_TITLE         LV_FONT_DEFAULT // &lv_font_roboto_28
 #endif
+
+#define LV_USE_THEME_EMPTY 1
+#define LV_USE_THEME_TEMPLATE 1
 
 /*=================
  *  Text settings

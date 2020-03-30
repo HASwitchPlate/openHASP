@@ -8,6 +8,7 @@
 #define LVGL7 1
 
 LV_FONT_DECLARE(unscii_8_icon);
+extern lv_font_t * haspFonts[8];
 
 static inline bool is_true(const char * s)
 {
@@ -341,6 +342,10 @@ void haspSetLocalStyle(lv_obj_t * obj, const char * attr_p, const char * payload
         } else if(!strcmp_P(attr, PSTR("text_font"))) {
 #if ESP32
             switch(var) {
+                case 0:
+                    lv_obj_set_style_local_text_font(obj, part, state, haspFonts[0]);
+                    Log.verbose(F("Changing font to : %s"), (char *)haspFonts[0]->user_data);
+                    break;
                 case 8:
                     lv_obj_set_style_local_text_font(obj, part, state, &unscii_8_icon);
                     break;
