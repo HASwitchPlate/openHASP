@@ -23,7 +23,7 @@ void guiStop(void);
 void guiCalibrate();
 void guiTakeScreenshot(const char * pFileName);
 
-void guiSetDim(uint8_t level);
+void guiSetDim(int8_t level);
 int8_t guiGetDim(void);
 void guiSetBacklight(bool lighton);
 bool guiGetBacklight();

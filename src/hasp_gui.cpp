@@ -430,7 +430,7 @@ void guiSetBacklight(bool lighton)
     }
 }
 
-void guiSetDim(uint8_t level)
+void guiSetDim(int8_t level)
 {
     if(guiBacklightPin >= 0) {
         guiDimLevel = level >= 0 ? level : 0;
