@@ -114,6 +114,9 @@ void dispatchAttribute(String strTopic, const char * payload)
     } else if(strTopic == F("light")) {
         dispatchBacklight(payload);
 
+    } else if(cmnd == F("reboot") || cmnd == F("restart")) {
+        dispatchReboot(true);
+
     } else if(strTopic == F("clearpage")) {
         dispatchClearPage(payload);
 
@@ -196,8 +199,6 @@ void dispatchCommand(String cmnd)
         haspWakeUp();
     } else if(cmnd == F("screenshot")) {
         // guiTakeScreenshot("/screenhot.bmp");
-    } else if(cmnd == F("reboot") || cmnd == F("restart")) {
-        dispatchReboot(true);
     } else if(cmnd == F("") || cmnd == F("statusupdate")) {
         dispatchStatusUpdate();
     } else {
