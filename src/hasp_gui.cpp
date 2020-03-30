@@ -245,24 +245,45 @@ bool my_touchpad_read(lv_indev_drv_t * indev_driver, lv_indev_data_t * data)
 
 void guiCalibrate()
 {
-    tft.fillScreen(TFT_BLACK);
-    tft.setCursor(20, 0);
-    tft.setTextFont(1);
-    tft.setTextSize(1);
-    tft.setTextColor(TFT_WHITE, TFT_BLACK);
+    uint8_t calDataOK = 0;
+    
+    String calibrationFile((char *)0);
+    calibrationFile.reserve(127);
+    calibrationFile = String(FPSTR(HASP_CALIBRATION_FILE));    
+    if (SPIFFS.exists(calibrationFile)) {
+      File f = SPIFFS.open(calibrationFile, "r");
+      if (f) {
+        if (f.readBytes((char *)calData, 14) == 14)
+          calDataOK = 1;
+        f.close();
+      }
+    }        
+    if (calDataOK && guiAutoCalibrate) {
+        tft.setTouch(calData);
+    } else {    
+        tft.fillScreen(TFT_BLACK);
+        tft.setCursor(20, 0);
+        tft.setTextFont(1);
+        tft.setTextSize(1);
+        tft.setTextColor(TFT_WHITE, TFT_BLACK);
 
-    tft.println(PSTR("Touch corners as indicated"));
+        tft.println(PSTR("Touch corners as indicated"));
 
-    tft.setTextFont(1);
-    delay(500);
-    tft.calibrateTouch(calData, TFT_MAGENTA, TFT_BLACK, 15);
+        tft.setTextFont(1);
+        delay(500);
+        tft.calibrateTouch(calData, TFT_MAGENTA, TFT_BLACK, 15);
 
-    for(uint8_t i = 0; i < 5; i++) {
-        Serial.print(calData[i]);
-        if(i < 4) Serial.print(", ");
+        for(uint8_t i = 0; i < 5; i++) {
+            Serial.print(calData[i]);
+            if(i < 4) Serial.print(", ");
+        }
+        File f = SPIFFS.open(calibrationFile, "w");
+        if (f) {
+            f.write((const unsigned char *)calData, 14);
+            f.close();
+        }
+        tft.setTouch(calData);
     }
-
-    tft.setTouch(calData);
     delay(500);
     lv_obj_invalidate(lv_disp_get_layer_sys(NULL));
 }

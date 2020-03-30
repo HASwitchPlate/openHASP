@@ -28,6 +28,7 @@ const char F_GUI_POINTER[] PROGMEM      = "pointer";
 const char F_DEBUG_TELEPERIOD[] PROGMEM = "teleperiod";
 
 const char HASP_CONFIG_FILE[] PROGMEM = "/config.json";
+const char HASP_CALIBRATION_FILE[] PROGMEM = "/calibration.bin";
 
 void configSetup(JsonDocument & settings);
 void configLoop(void);
