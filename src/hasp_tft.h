@@ -9,5 +9,6 @@ void tftLoop(void);
 void tftStop(void);
 
 void tftShowConfig(TFT_eSPI & tft);
+String tftDriverName();
 
 #endif
