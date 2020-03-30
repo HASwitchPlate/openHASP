@@ -30,6 +30,8 @@
 #include "user_config_override.h"
 #endif
 
+extern unsigned long debugLastMillis; // UpdateStatus timer
+
 /*
 String mqttGetSubtopic;             // MQTT subtopic for incoming commands requesting .val
 String mqttGetSubtopicJSON;         // MQTT object buffer for JSON status when requesting .val
@@ -196,25 +198,36 @@ void mqtt_send_statusupdate()
 { // Periodically publish a JSON string indicating system status
     //    String mqttStatusPayload((char *)0);
     //    mqttStatusPayload.reserve(512);
+    debugLastMillis = millis();
 
     DynamicJsonDocument doc(3 * 128);
 
-    doc[F("status")]       = F("available");
-    doc[F("version")]      = haspGetVersion();
-    doc[F("uptime")]       = long(millis() / 1000);
-    doc[F("rssi")]         = WiFi.RSSI();
-    doc[F("ip")]           = WiFi.localIP().toString();
-    doc[F("heapFree")]     = ESP.getFreeHeap();
-    doc[F("heapFrag")]     = halGetHeapFragmentation();
+    doc[F("status")] = F("available");
+
+    doc[F("version")] = haspGetVersion();
+    doc[F("uptime")]  = long(millis() / 1000);
+
+    doc[F("rssi")] = WiFi.RSSI();
+    doc[F("ip")]   = WiFi.localIP().toString();
+
+    doc[F("heapFree")] = ESP.getFreeHeap();
+    doc[F("heapFrag")] = halGetHeapFragmentation();
+
     doc[F("espCanUpdate")] = false;
-    doc[F("espCore")]      = halGetCoreVersion().c_str();
-    doc[F("tftDriver")]    = tftDriverName().c_str();
+    doc[F("espCore")]      = halGetCoreVersion();
+
+    doc[F("page")]     = haspGetPage();
+    doc[F("numPages")] = (HASP_NUM_PAGES);
+
+    doc[F("tftDriver")] = tftDriverName();
+    doc[F("tftWidth")]  = (TFT_WIDTH);
+    doc[F("tftHeight")] = (TFT_HEIGHT);
 
 #if defined(ARDUINO_ARCH_ESP8266)
     doc[F("espVcc")] = (float)ESP.getVcc() / 1000;
 #endif
 
-    char buffer[3 * 128];
+    char buffer[2 * 128];
     size_t n = serializeJson(doc, buffer, sizeof(buffer));
     mqtt_send_state(F("statusupdate"), buffer);
 
@@ -402,7 +415,6 @@ void mqttReconnect()
     }
 
     Log.notice(F("MQTT: [SUCCESS] Connected to broker %s as clientID %s"), mqttServer, mqttClientId);
-    haspReconnect();
 
     /*
         // MQTT topic string definitions
@@ -448,6 +460,10 @@ void mqttReconnect()
 
     mqttFirstConnect   = false;
     mqttReconnectCount = 0;
+
+    haspReconnect();
+    dispatchPage(String(haspGetPage()));
+    mqtt_send_statusupdate();
 }
 
 void mqttSetup(const JsonObject & settings)
