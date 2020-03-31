@@ -1550,7 +1550,7 @@ void webHandleDebugConfig()
 
     uint16_t baudrate = settings[FPSTR(F_CONFIG_BAUD)].as<uint16_t>();
     httpMessage += F("<p><b>Serial Port</b> <select id='baud' name='baud'>");
-    httpMessage += getOption(0, F("Disabled"), baudrate == 0);
+    httpMessage += getOption(1, F("Disabled"), baudrate == 1); // Don't use 0 here which is default 115200
     httpMessage += getOption(960, F("9600"), baudrate == 960);
     httpMessage += getOption(1920, F("19200"), baudrate == 1920);
     httpMessage += getOption(3840, F("38400"), baudrate == 3840);
