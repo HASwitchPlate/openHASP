@@ -389,13 +389,15 @@ void debugPreSetup(JsonObject settings)
     Log.setPrefix(debugPrintPrefix); // Uncomment to get timestamps as prefix
     Log.setSuffix(debugPrintSuffix); // Uncomment to get newline as suffix
 
-    uint16_t baudrate = settings[FPSTR(F_CONFIG_BAUD)].as<uint16_t>() | debugSerialBaud;
-    if(baudrate >= 960) {            /* the baudrates are stored divided by 10 */
-        Serial.begin(baudrate * 10); /* prepare for possible serial debug */
+    uint32_t baudrate = settings[FPSTR(F_CONFIG_BAUD)].as<uint32_t>() * 10;
+    if(baudrate == 0) baudrate = 115200u;
+    if(baudrate >= 9600u) {     /* the baudrates are stored divided by 10 */
+        Serial.begin(baudrate); /* prepare for possible serial debug */
         delay(10);
         debugSerialStarted = true;
+        Serial.println();
         Log.registerOutput(0, &Serial, LOG_LEVEL_VERBOSE, true);
-        Log.trace(F("Serial started at %u baud"), baudrate * 10);
+        Log.trace(F("Serial started at %u baud"), baudrate);
     }
 }
 

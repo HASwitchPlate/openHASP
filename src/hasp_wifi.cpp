@@ -176,6 +176,8 @@ void wifiSetup(JsonObject settings)
 
 bool wifiEvery5Seconds()
 {
+    if(WiFi.getMode() == WIFI_AP) return true;
+
     if(WiFi.status() == WL_CONNECTED) {
         return true;
     } else {

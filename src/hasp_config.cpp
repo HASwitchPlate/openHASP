@@ -117,6 +117,11 @@ void configGetConfig(JsonDocument & settings, bool setupdebug = false)
         }
     }
 
+    // File does not exist or error reading file
+    if(setupdebug) {
+        debugPreSetup(settings[F("debug")]);
+    }
+
     configStartDebug(setupdebug, configFile);
     Log.error(F("CONF: Failed to load %s"), configFile.c_str());
 }
