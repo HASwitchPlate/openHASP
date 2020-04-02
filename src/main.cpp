@@ -1,4 +1,4 @@
-#include "hasp_conf.h"
+#include "hasp_conf.h" // load first
 #include <Arduino.h>
 #include "ArduinoJson.h"
 
@@ -8,6 +8,7 @@
 #include "hasp_gui.h"
 #include "hasp.h"
 #include "hasp_conf.h"
+#include "hasp_gpio.h"
 
 #if HASP_USE_SPIFFS
 #if defined(ARDUINO_ARCH_ESP32)
@@ -58,10 +59,6 @@ void setup()
     /****************************
      * Constant initialzations
      ***************************/
-#if defined(ARDUINO_ARCH_ESP8266)
-    pinMode(D1, OUTPUT);
-    pinMode(D2, INPUT_PULLUP);
-#endif
 
     /* Init Storage */
 #if HASP_USE_EEPROM
@@ -86,6 +83,7 @@ void setup()
      * Apply User Configuration
      ***************************/
     debugSetup(settings[F("debug")]);
+    gpioSetup(settings[F("gpio")]);
 
     /* Init Graphics */
     // TFT_eSPI screen = TFT_eSPI();
