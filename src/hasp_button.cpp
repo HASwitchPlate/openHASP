@@ -36,8 +36,7 @@ static void IRAM_ATTR button_event_cb(AceButton * button, uint8_t eventType, uin
             memcpy_P(buffer, PSTR("UP"), sizeof(buffer));
             break;
     }
-    // dispatch_button(button->getId(), buffer);
-    mqtt_send_input(button->getId(), buffer);
+    dispatch_button(button->getId(), buffer);
 }
 
 void buttonSetup(void)
