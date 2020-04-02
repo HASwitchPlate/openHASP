@@ -64,7 +64,7 @@ static Ticker tick;  /* timer for interrupt handler */
 static TFT_eSPI tft; // = TFT_eSPI(); /* TFT instance */
 static uint16_t calData[5] = {0, 65535, 0, 65535, 0};
 
-bool guiCheckSleep()
+static bool guiCheckSleep()
 {
     uint32_t idle = lv_disp_get_inactive_time(NULL);
     if(idle >= (guiSleepTime1 + guiSleepTime2) * 1000U) {
@@ -87,14 +87,99 @@ bool guiCheckSleep()
     return false;
 }
 
+static void gui_take_screenshot(lv_disp_drv_t * disp, const lv_area_t * area, lv_color_t * color_p)
+{
+    uint i = 0;
+    uint16_t c;
+    uint8_t pixel[1024];
+
+    for(int y = area->y1; y <= area->y2; y++) {
+        for(int x = area->x1; x <= area->x2; x++) {
+            /* Function for converting LittlevGL pixel format to RGB888 */
+            // data = DISP_IMPL_lvgl_formatPixel(*color_p);
+
+            // Complex 32 bpp
+            /* pixel[i++] = (LV_COLOR_GET_B(*color_p) * 263 + 7) >> 5;
+             pixel[i++] = (LV_COLOR_GET_G(*color_p) * 259 + 3) >> 6;
+             pixel[i++] = (LV_COLOR_GET_R(*color_p) * 263 + 7) >> 5;
+             pixel[i++] = 0xFF;*/
+
+            // Simple 32 bpp
+            // pixel[i++] = (LV_COLOR_GET_B(*color_p) << 3);
+            // pixel[i++] = (LV_COLOR_GET_G(*color_p) << 2);
+            // pixel[i++] = (LV_COLOR_GET_R(*color_p) << 3);
+            // pixel[i++] = 0xFF;
+
+            c = color_p->full;
+
+            // Simple 16 bpp
+            pixel[i++] = c & 0xFF;
+            pixel[i++] = (c >> 8) & 0xFF;
+
+            color_p++;
+
+            if(i + 4 >= sizeof(pixel)) {
+                switch(guiSnapshot) {
+                    case 1:
+                        // Save to local file
+                        pFileOut.write(pixel, i);
+                        break;
+                    case 2:
+                        // Send to remote client
+                        if(webClient->client().write(pixel, i) != i) {
+                            Log.warning(F("GUI: Pixelbuffer not completely sent"));
+                            lv_disp_flush_ready(disp); /* tell lvgl that flushing is done */
+                            return;
+                        }
+                }
+                i = 0;
+            }
+        }
+    }
+
+    if(i > 0) {
+        switch(guiSnapshot) {
+            case 1:
+                // Save to local file
+                pFileOut.write(pixel, i);
+                break;
+            case 2:
+                // Send to remote client
+                if(webClient->client().write(pixel, i) != i) {
+                    Log.warning(F("GUI: Pixelbuffer not completely sent"));
+                }
+        }
+    }
+}
+
+/* Experimetnal Display flushing */
+static void IRAM_ATTR tft_espi_flush(lv_disp_drv_t * disp, const lv_area_t * area, lv_color_t * color_p)
+{
+    /* Update TFT */
+    tft.startWrite();                                      /* Start new TFT transaction */
+    tft.setWindow(area->x1, area->y1, area->x2, area->y2); /* set the working window */
+    tft.setSwapBytes(true);                                // endianess
+    tft.pushPixels((uint16_t *)color_p, (area->x2 - area->x1 + 1) * (area->y2 - area->y1 + 1));
+    tft.endWrite(); /* terminate TFT transaction */
+
+    /* Send Screenshot data */
+    if(guiSnapshot != 0) {
+        gui_take_screenshot(disp, area, color_p);
+    }
+
+    /* Tell lvgl that flushing is done */
+    lv_disp_flush_ready(disp);
+}
+
 /* Display flushing */
+/*
 void tft_espi_flush(lv_disp_drv_t * disp, const lv_area_t * area, lv_color_t * color_p)
 {
     uint16_t c;
 
-    tft.startWrite(); /* Start new TFT transaction */
+    tft.startWrite(); // Start new TFT transaction
     tft.setAddrWindow(area->x1, area->y1, (area->x2 - area->x1 + 1),
-                      (area->y2 - area->y1 + 1)); /* set the working window */
+                      (area->y2 - area->y1 + 1)); // set the working window
 
     if(guiSnapshot != 0) {
         uint i = 0;
@@ -102,14 +187,14 @@ void tft_espi_flush(lv_disp_drv_t * disp, const lv_area_t * area, lv_color_t * c
 
         for(int y = area->y1; y <= area->y2; y++) {
             for(int x = area->x1; x <= area->x2; x++) {
-                /* Function for converting LittlevGL pixel format to RGB888 */
+                // Function for converting LittlevGL pixel format to RGB888
                 // data = DISP_IMPL_lvgl_formatPixel(*color_p);
 
                 // Complex 32 bpp
-                /* pixel[i++] = (LV_COLOR_GET_B(*color_p) * 263 + 7) >> 5;
-                 pixel[i++] = (LV_COLOR_GET_G(*color_p) * 259 + 3) >> 6;
-                 pixel[i++] = (LV_COLOR_GET_R(*color_p) * 263 + 7) >> 5;
-                 pixel[i++] = 0xFF;*/
+                // pixel[i++] = (LV_COLOR_GET_B(*color_p) * 263 + 7) >> 5;
+                // pixel[i++] = (LV_COLOR_GET_G(*color_p) * 259 + 3) >> 6;
+                // pixel[i++] = (LV_COLOR_GET_R(*color_p) * 263 + 7) >> 5;
+                // pixel[i++] = 0xFF;
 
                 // Simple 32 bpp
                 // pixel[i++] = (LV_COLOR_GET_B(*color_p) << 3);
@@ -136,7 +221,7 @@ void tft_espi_flush(lv_disp_drv_t * disp, const lv_area_t * area, lv_color_t * c
                             // Send to remote client
                             if(webClient->client().write(pixel, i) != i) {
                                 Log.warning(F("GUI: Pixelbuffer not completely sent"));
-                                lv_disp_flush_ready(disp); /* tell lvgl that flushing is done */
+                                lv_disp_flush_ready(disp); // tell lvgl that flushing is done
                                 return;
                             }
                     }
@@ -167,10 +252,10 @@ void tft_espi_flush(lv_disp_drv_t * disp, const lv_area_t * area, lv_color_t * c
             }
         }
     }
-    tft.endWrite(); /* terminate TFT transaction */
+    tft.endWrite(); // terminate TFT transaction
 
-    lv_disp_flush_ready(disp); /* tell lvgl that flushing is done */
-}
+    lv_disp_flush_ready(disp); // tell lvgl that flushing is done
+} */
 
 /* Interrupt driven periodic handler */
 static void IRAM_ATTR lv_tick_handler(void)
@@ -199,7 +284,7 @@ void guiFirstCalibration()
     // haspFirstSetup();
 }
 
-bool my_touchpad_read(lv_indev_drv_t * indev_driver, lv_indev_data_t * data)
+bool IRAM_ATTR my_touchpad_read(lv_indev_drv_t * indev_driver, lv_indev_data_t * data)
 {
 #ifdef TOUCH_CS
     uint16_t touchX, touchY;
@@ -212,7 +297,7 @@ bool my_touchpad_read(lv_indev_drv_t * indev_driver, lv_indev_data_t * data)
         return false;
     }
 
-    guiCheckSleep();
+    if(guiSleeping > 0) guiCheckSleep(); // update Idle
 
     // Ignore first press?
 
@@ -226,12 +311,10 @@ bool my_touchpad_read(lv_indev_drv_t * indev_driver, lv_indev_data_t * data)
         data->state   = touched ? LV_INDEV_STATE_PR : LV_INDEV_STATE_REL;
         data->point.x = touchX;
         data->point.y = touchY;
-        /*
-                Serial.print("Data x");
-                Serial.println(touchX);
-
-                Serial.print("Data y");
-                Serial.println(touchY);*/
+        /* Serial.print("Data x");
+           Serial.println(touchX);
+           Serial.print("Data y");
+           Serial.println(touchY);*/
     }
 #endif
 
