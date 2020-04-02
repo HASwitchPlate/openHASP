@@ -11,12 +11,7 @@
 
 #define LVGL7 1
 
-#if LVGL7
-#include "../lib/lvgl/src/lv_widgets/lv_roller.h"
-#else
-#include "lv_theme_hasp.h"
-#include "lv_objx/lv_roller.h"
-#endif
+//#include "../lib/lvgl/src/lv_widgets/lv_roller.h"
 
 #if HASP_USE_QRCODE != 0
 #include "lv_qrcode.h"
@@ -37,8 +32,8 @@
 #include "hasp_wifi.h"
 #include "hasp_gui.h"
 #include "hasp_tft.h"
-#include "hasp_attr_get.h"
-#include "hasp_attr_set.h"
+//#include "hasp_attr_get.h"
+#include "hasp_attribute.h"
 #include "hasp.h"
 
 #include "hasp_conf.h"
@@ -51,7 +46,6 @@
 /*********************
  *      DEFINES
  *********************/
-
 uint8_t haspStartDim   = 100;
 uint8_t haspStartPage  = 0;
 uint8_t haspThemeId    = 0;
@@ -66,8 +60,6 @@ char haspZiFontPath[32];
 /**********************
  *  STATIC PROTOTYPES
  **********************/
-static void btn_event_handler(lv_obj_t * obj, lv_event_t event);
-static void toggle_event_handler(lv_obj_t * obj, lv_event_t event);
 // void hasp_background(uint16_t pageid, uint16_t imageid);
 
 #if LV_USE_ANIMATION
@@ -194,62 +186,64 @@ bool FindIdFromObj(lv_obj_t * obj, uint8_t * pageid, lv_obj_user_data_t * objid)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void hasp_send_event_attribute(lv_obj_t * obj, const char * event)
+void hasp_send_obj_attribute_str(lv_obj_t * obj, const char * attribute, const char * data)
 {
     uint8_t pageid;
     uint8_t objid;
 
     if(FindIdFromObj(obj, &pageid, &objid)) {
-#if HASP_USE_MQTT > 0
-        mqtt_send_event_attribute(pageid, objid, event);
-#endif
+        dispatch_obj_attribute_str(pageid, objid, attribute, data);
     }
 }
 
-static void hasp_send_val_attribute(lv_obj_t * obj, int32_t val)
+void hasp_send_obj_attribute_int(lv_obj_t * obj, const char * attribute, int32_t val)
 {
-    uint8_t pageid;
-    uint8_t objid;
-
-    if(FindIdFromObj(obj, &pageid, &objid)) {
-#if HASP_USE_MQTT > 0
-        mqtt_send_val_attribute(pageid, objid, val);
-#endif
-    }
+    char data[64];
+    itoa(val, data, 10);
+    hasp_send_obj_attribute_str(obj, attribute, data);
 }
 
-static void hasp_send_txt_attribute(lv_obj_t * obj, String & txt)
-{
-    uint8_t pageid;
-    uint8_t objid;
+/** Senders for event handlers **/
 
-    if(FindIdFromObj(obj, &pageid, &objid)) {
-#if HASP_USE_MQTT > 0
-        mqtt_send_txt_attribute(pageid, objid, txt.c_str());
-#endif
-    }
+static void hasp_send_obj_attribute_P(lv_obj_t * obj, const char * attr, const char * data)
+{
+    char * buffer;
+    buffer = (char *)malloc(strlen_P(attr) + 1);
+    strcpy_P(buffer, attr);
+    hasp_send_obj_attribute_P(obj, buffer, data);
+    free(buffer);
 }
 
-static void hasp_send_txt_attribute(lv_obj_t * obj, const char * txt)
+static inline void hasp_send_obj_attribute_val(lv_obj_t * obj, int32_t val)
 {
-    uint8_t pageid;
-    uint8_t objid;
-
-    if(FindIdFromObj(obj, &pageid, &objid)) {
-#if HASP_USE_MQTT > 0
-        mqtt_send_txt_attribute(pageid, objid, txt);
-#endif
-    }
+    char data[64];
+    itoa(val, data, 10);
+    hasp_send_obj_attribute_P(obj, PSTR("val"), data);
 }
 
-static inline void hasp_send_val_attribute(lv_obj_t * obj, int16_t val)
+static inline void hasp_send_obj_attribute_val(lv_obj_t * obj, int16_t val)
 {
-    hasp_send_val_attribute(obj, (int32_t)val);
+    hasp_send_obj_attribute_val(obj, (int32_t)val);
 }
 
-static inline void hasp_send_color_attribute(lv_obj_t * obj, lv_color_t color)
+static inline void hasp_send_obj_attribute_event(lv_obj_t * obj, const char * event)
 {
-    hasp_send_val_attribute(obj, (int32_t)get_cpicker_value(obj)); // Needs a color function
+    hasp_send_obj_attribute_P(obj, PSTR("event"), event);
+}
+
+static inline void hasp_send_obj_attribute_txt(lv_obj_t * obj, const char * txt)
+{
+    hasp_send_obj_attribute_P(obj, PSTR("txt"), txt);
+}
+
+static void hasp_send_obj_attribute_txt(lv_obj_t * obj, String & txt)
+{
+    hasp_send_obj_attribute_P(obj, PSTR("txt"), txt.c_str());
+}
+
+static inline void hasp_send_obj_attribute_color(lv_obj_t * obj, lv_color_t color)
+{
+    // hasp_send_obj_attribute_val(obj, (int32_t)get_cpicker_value(obj)); // Needs a color function
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -262,13 +256,13 @@ bool check_obj_type(const char * lvobjtype, lv_hasp_obj_type_t haspobjtype)
         case LV_HASP_LABEL:
             return (strcmp_P(lvobjtype, PSTR("lv_label")) == 0);
         case LV_HASP_CHECKBOX:
-            return (strcmp_P(lvobjtype, PSTR("lv_cb")) == 0) || (strcmp_P(lvobjtype, PSTR("lv_checkbox")) == 0);
+            return (strcmp_P(lvobjtype, PSTR("lv_checkbox")) == 0); // || (strcmp_P(lvobjtype, PSTR("lv_cb")) == 0);
         case LV_HASP_DDLIST:
-            return (strcmp_P(lvobjtype, PSTR("lv_ddlist")) == 0) || (strcmp_P(lvobjtype, PSTR("lv_dropdown")) == 0);
+            return (strcmp_P(lvobjtype, PSTR("lv_dropdown")) == 0); // || (strcmp_P(lvobjtype, PSTR("lv_ddlist")) == 0);
         case LV_HASP_CPICKER:
             return (strcmp_P(lvobjtype, PSTR("lv_cpicker")) == 0);
         case LV_HASP_PRELOADER:
-            return (strcmp_P(lvobjtype, PSTR("lv_preload")) == 0) || (strcmp_P(lvobjtype, PSTR("lv_spinner")) == 0);
+            return (strcmp_P(lvobjtype, PSTR("lv_spinner")) == 0); // || (strcmp_P(lvobjtype, PSTR("lv_preload")) == 0);
         case LV_HASP_SLIDER:
             return (strcmp_P(lvobjtype, PSTR("lv_slider")) == 0);
         case LV_HASP_GAUGE:
@@ -276,49 +270,36 @@ bool check_obj_type(const char * lvobjtype, lv_hasp_obj_type_t haspobjtype)
         case LV_HASP_BAR:
             return (strcmp_P(lvobjtype, PSTR("lv_bar")) == 0);
         case LV_HASP_LMETER:
-            return (strcmp_P(lvobjtype, PSTR("lv_lmeter")) == 0) || (strcmp_P(lvobjtype, PSTR("lv_linemeter")) == 0);
+            return (strcmp_P(lvobjtype, PSTR("lv_linemeter")) == 0); // || (strcmp_P(lvobjtype, PSTR("lv_lmeter")) == 0)
         case LV_HASP_ROLLER:
             return (strcmp_P(lvobjtype, PSTR("lv_roller")) == 0);
         case LV_HASP_SWITCH:
-            return (strcmp_P(lvobjtype, PSTR("lv_sw")) == 0) || (strcmp_P(lvobjtype, PSTR("lv_switch")) == 0);
+            return (strcmp_P(lvobjtype, PSTR("lv_switch")) == 0); // || (strcmp_P(lvobjtype, PSTR("lv_sw")) == 0)
         case LV_HASP_LED:
             return (strcmp_P(lvobjtype, PSTR("lv_led")) == 0);
         case LV_HASP_CONTAINER:
-            return (strcmp_P(lvobjtype, PSTR("lv_cont")) == 0) || (strcmp_P(lvobjtype, PSTR("lv_container")) == 0);
+            return (strcmp_P(lvobjtype, PSTR("lv_container")) == 0); // || (strcmp_P(lvobjtype, PSTR("lv_cont")) == 0)
         default:
             return false;
     }
 }
 
-void haspSetToggle(lv_obj_t * obj, bool toggle)
-{
-#if LVGL7
-    lv_btn_set_checkable(obj, toggle);
-#else
-    lv_btn_set_toggle(obj, toggle);
-#endif
-    lv_obj_set_event_cb(obj, toggle ? toggle_event_handler : btn_event_handler);
-}
-
 // Used in the dispatcher
-void hasp_process_attribute(uint8_t pageid, uint8_t objid, String strAttr, String strPayload)
+void hasp_process_attribute(uint8_t pageid, uint8_t objid, const char * attr, const char * payload)
 {
-    lv_obj_t * obj = FindObjFromId((uint8_t)pageid, (uint8_t)objid);
-    if(obj) {
-        if(strPayload != "")
-            hasp_set_obj_attribute(obj, strAttr.c_str(), strPayload.c_str());
-        else {
-            // publish the change
-            std::string strValue = "";
-            if(haspGetObjAttribute(obj, strAttr, strValue)) {
-#if HASP_USE_MQTT > 0
-                mqtt_send_attribute(pageid, objid, strAttr.c_str(), strValue.c_str());
-#endif
-            } else {
-                Log.warning(F("HASP: Unknown property: %s"), strAttr.c_str());
-            }
-        } // payload
-    }     // obj
+    hasp_process_obj_attribute(FindObjFromId(pageid, objid), attr, payload, strlen(payload) > 0);
+
+    /*        else {
+                // publish the change
+                std::string strValue = "";
+                if(haspGetObjAttribute(obj, strAttr, strValue)) {
+    #if HASP_USE_MQTT > 0
+                    mqtt_send_attribute(pageid, objid, strAttr.c_str(), strValue.c_str());
+    #endif
+                } else {
+                    Log.warning(F("HASP: Unknown property: %s"), strAttr.c_str());
+                }
+            } // payload */
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -436,23 +417,13 @@ static void kb_event_cb(lv_obj_t * event_kb, lv_event_t event)
             if(child->user_data) {
                 lv_obj_user_data_t objid = 10;
                 if(objid == child->user_data) {
-#if LVGL7
                     strncpy(ssid, lv_textarea_get_text(child), sizeof(ssid));
                     settings[FPSTR(F_CONFIG_SSID)] = ssid;
                     // if(kb != NULL) lv_keyboard_set_ta(kb, child);
-#else
-                    strncpy(ssid, lv_ta_get_text(child), sizeof(ssid));
-                    settings[FPSTR(F_CONFIG_SSID)] = ssid;
-                    if(kb != NULL) lv_kb_set_ta(kb, child);
-#endif
                 }
                 objid = 20;
                 if(objid == child->user_data) {
-#if LVGL7
                     strncpy(pass, lv_textarea_get_text(child), sizeof(pass));
-#else
-                    strncpy(pass, lv_ta_get_text(child), sizeof(pass));
-#endif
                     settings[FPSTR(F_CONFIG_PASS)] = pass;
                 }
             }
@@ -472,11 +443,7 @@ static void kb_event_cb(lv_obj_t * event_kb, lv_event_t event)
     } else {
 
         /* prevent double presses, swipes and ghost press on tiny keyboard */
-#if LVGL7
         if(event == LV_EVENT_RELEASED) lv_keyboard_def_event_cb(event_kb, LV_EVENT_VALUE_CHANGED);
-#else
-        if(event == LV_EVENT_RELEASED) lv_kb_def_event_cb(event_kb, LV_EVENT_VALUE_CHANGED);
-#endif
         /* Just call the regular event handler */
         // lv_kb_def_event_cb(event_kb, event);
     }
@@ -485,11 +452,7 @@ static void ta_event_cb(lv_obj_t * ta, lv_event_t event)
 {
     if(event == LV_EVENT_CLICKED) {
         /* Focus on the clicked text area */
-#if LVGL7
         // if(kb != NULL) lv_keyboard_set_ta(kb, ta);
-#else
-        if(kb != NULL) lv_kb_set_ta(kb, ta);
-#endif
     }
 
     else if(event == LV_EVENT_INSERT) {
@@ -773,29 +736,10 @@ void hasp_background(uint16_t pageid, uint16_t imageid)
  * @param btn pointer to a list button
  * @param event type of event that occured
  */
-static void IRAM_ATTR btn_event_handler(lv_obj_t * obj, lv_event_t event)
+void IRAM_ATTR btn_event_handler(lv_obj_t * obj, lv_event_t event)
 {
-    char buffer[128];
+    char buffer[64];
     sprintf(buffer, PSTR("HASP: "));
-
-    /*
-
-        // int16_t id = get_obj_id(obj);
-
-        // uint8_t eventid = 0;
-        uint8_t pageid = 0;
-        lv_obj_user_data_t objid;
-
-        char buffer[128];
-
-        if(obj != lv_disp_get_layer_sys(NULL)) {
-            if(!FindIdFromObj(obj, &pageid, &objid)) {
-                Log.warning(F("HASP: Event for unknown object"));
-                return;
-            }
-        }
-
-    */
 
     switch(event) {
         case LV_EVENT_PRESSED:
@@ -829,10 +773,12 @@ static void IRAM_ATTR btn_event_handler(lv_obj_t * obj, lv_event_t event)
             return;
 
         case LV_EVENT_DELETE:
-            Log.notice(PSTR("HASP: Object deleted"), event);
+            strcat_P(buffer, PSTR("Object deleted"));
+            Log.notice(buffer, event);
             return;
         default:
-            Log.warning(F("HASP: Unknown Event %d occured"), event);
+            strcat_P(buffer, PSTR("HASP : Unknown Event % d occured"));
+            Log.warning(buffer, event);
             return;
     }
 
@@ -842,95 +788,62 @@ static void IRAM_ATTR btn_event_handler(lv_obj_t * obj, lv_event_t event)
 #endif
     } else {
 #if HASP_USE_MQTT > 0
-        hasp_send_event_attribute(obj, buffer);
+        hasp_send_obj_attribute_event(obj, buffer);
 #endif
     }
 }
 
 // ##################### Event Handlers by Version ########################################################
 
-#if LVGL7
 static void btnmap_event_handler(lv_obj_t * obj, lv_event_t event)
 {
     // if(event == LV_EVENT_VALUE_CHANGED) haspSendNewValue(obj, lv_btnmatrix_get_pressed_btn(obj));
 }
 
-static void toggle_event_handler(lv_obj_t * obj, lv_event_t event)
+void IRAM_ATTR toggle_event_handler(lv_obj_t * obj, lv_event_t event)
 {
     bool toggled =
         lv_btn_get_state(obj) == LV_BTN_STATE_CHECKED_PRESSED || lv_btn_get_state(obj) == LV_BTN_STATE_CHECKED_RELEASED;
-    if(event == LV_EVENT_VALUE_CHANGED) hasp_send_val_attribute(obj, toggled);
+    if(event == LV_EVENT_VALUE_CHANGED) hasp_send_obj_attribute_val(obj, toggled);
 }
 
 static void switch_event_handler(lv_obj_t * obj, lv_event_t event)
 {
-    if(event == LV_EVENT_VALUE_CHANGED) hasp_send_val_attribute(obj, lv_switch_get_state(obj));
+    if(event == LV_EVENT_VALUE_CHANGED) hasp_send_obj_attribute_val(obj, lv_switch_get_state(obj));
 }
 
 static void checkbox_event_handler(lv_obj_t * obj, lv_event_t event)
 {
-    if(event == LV_EVENT_VALUE_CHANGED) hasp_send_val_attribute(obj, lv_checkbox_is_checked(obj));
+    if(event == LV_EVENT_VALUE_CHANGED) hasp_send_obj_attribute_val(obj, lv_checkbox_is_checked(obj));
 }
 
 static void ddlist_event_handler(lv_obj_t * obj, lv_event_t event)
 {
     if(event == LV_EVENT_VALUE_CHANGED) {
-        hasp_send_val_attribute(obj, lv_dropdown_get_selected(obj));
+        hasp_send_obj_attribute_val(obj, lv_dropdown_get_selected(obj));
         char buffer[128];
         lv_dropdown_get_selected_str(obj, buffer, sizeof(buffer));
-        hasp_send_txt_attribute(obj, buffer);
+        hasp_send_obj_attribute_txt(obj, buffer);
     }
 }
-#else
-static void btnmap_event_handler(lv_obj_t * obj, lv_event_t event)
-{
-    if(event == LV_EVENT_VALUE_CHANGED) hasp_send_val_attribute(obj, lv_btnm_get_pressed_btn(obj));
-}
-
-static void toggle_event_handler(lv_obj_t * obj, lv_event_t event)
-{
-    bool toggled = lv_btn_get_state(obj) == LV_BTN_STATE_TGL_PR || lv_btn_get_state(obj) == LV_BTN_STATE_TGL_REL;
-    if(event == LV_EVENT_VALUE_CHANGED) hasp_send_val_attribute(obj, toggled);
-}
-
-static void switch_event_handler(lv_obj_t * obj, lv_event_t event)
-{
-    if(event == LV_EVENT_VALUE_CHANGED) hasp_send_val_attribute(obj, lv_sw_get_state(obj));
-}
-
-static void checkbox_event_handler(lv_obj_t * obj, lv_event_t event)
-{
-    if(event == LV_EVENT_VALUE_CHANGED) hasp_send_val_attribute(obj, lv_cb_is_checked(obj));
-}
-
-static void ddlist_event_handler(lv_obj_t * obj, lv_event_t event)
-{
-    if(event == LV_EVENT_VALUE_CHANGED) {
-        hasp_send_val_attribute(obj, lv_ddlist_get_selected(obj));
-        char buffer[128];
-        lv_ddlist_get_selected_str(obj, buffer, sizeof(buffer));
-        hasp_send_txt_attribute(obj, String(buffer));
-    }
-}
-#endif
 
 static void slider_event_handler(lv_obj_t * obj, lv_event_t event)
 {
-    if(event == LV_EVENT_VALUE_CHANGED) hasp_send_val_attribute(obj, lv_slider_get_value(obj));
+    if(event == LV_EVENT_VALUE_CHANGED) hasp_send_obj_attribute_val(obj, lv_slider_get_value(obj));
 }
 
 static void cpicker_event_handler(lv_obj_t * obj, lv_event_t event)
 {
-    if(event == LV_EVENT_VALUE_CHANGED) hasp_send_color_attribute(obj, lv_cpicker_get_color(obj));
+    if(event == LV_EVENT_VALUE_CHANGED) hasp_send_obj_attribute_color(obj, lv_cpicker_get_color(obj));
 }
 
 static void roller_event_handler(lv_obj_t * obj, lv_event_t event)
 {
     if(event == LV_EVENT_VALUE_CHANGED) {
-        hasp_send_val_attribute(obj, lv_roller_get_selected(obj));
+        hasp_send_obj_attribute_val(obj, lv_roller_get_selected(obj));
         char buffer[128];
         lv_roller_get_selected_str(obj, buffer, sizeof(buffer));
-        hasp_send_txt_attribute(obj, buffer);
+        hasp_send_obj_attribute_txt(obj, buffer);
     }
 }
 
@@ -986,7 +899,7 @@ void haspSetPage(uint8_t pageid)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void haspNewObject(const JsonObject & config)
+void haspNewObject(const JsonObject & config, uint8_t & saved_page_id)
 {
     /* Validate page */
     uint8_t pageid = config[F("page")].isNull() ? current_page : config[F("page")].as<uint8_t>();
@@ -998,7 +911,7 @@ void haspNewObject(const JsonObject & config)
         return;
     }
     /* save the current pageid */
-    current_page = pageid;
+    saved_page_id = pageid;
 
     /* Validate type */
     if(config[F("objid")].isNull()) return; // comments
@@ -1044,7 +957,6 @@ void haspNewObject(const JsonObject & config)
         case LV_HASP_BUTTON: {
             obj = lv_btn_create(parent_obj, NULL);
             // bool toggle = config[F("toggle")].as<bool>();
-            // haspSetToggle(obj, toggle);
             // lv_btn_set_toggle(obj, toggle);
             // if(config[F("txt")]) {
             lv_obj_t * label = lv_label_create(obj, NULL);
@@ -1056,13 +968,8 @@ void haspNewObject(const JsonObject & config)
             break;
         }
         case LV_HASP_CHECKBOX: {
-#if LVGL7
             obj = lv_checkbox_create(parent_obj, NULL);
             // if(config[F("txt")]) lv_checkbox_set_text(obj, config[F("txt")].as<String>().c_str());
-#else
-            obj = lv_cb_create(parent_obj, NULL);
-            // if(config[F("txt")]) lv_cb_set_text(obj, config[F("txt")].as<String>().c_str());
-#endif
             lv_obj_set_event_cb(obj, checkbox_event_handler);
             break;
         }
@@ -1109,11 +1016,7 @@ void haspNewObject(const JsonObject & config)
         }
 #if LV_USE_PRELOAD != 0
         case LV_HASP_PRELOADER: {
-#if LVGL7
             obj = lv_spinner_create(parent_obj, NULL);
-#else
-            obj = lv_preload_create(parent_obj, NULL);
-#endif
             break;
         }
 #endif
@@ -1141,15 +1044,9 @@ void haspNewObject(const JsonObject & config)
             break;
         }
         case LV_HASP_LMETER: {
-#if LVGL7
             obj = lv_linemeter_create(parent_obj, NULL);
             lv_linemeter_set_range(obj, 0, 100);
             // lv_linemeter_set_value(obj, val);
-#else
-            obj = lv_lmeter_create(parent_obj, NULL);
-            lv_lmeter_set_range(obj, 0, 100);
-            // lv_lmeter_set_value(obj, val);
-#endif
             lv_obj_set_event_cb(obj, btn_event_handler);
             break;
         }
@@ -1157,13 +1054,8 @@ void haspNewObject(const JsonObject & config)
         /* ----- On/Off Objects ------ */
         case LV_HASP_SWITCH: {
             // bool state = config[F("val")].as<bool>();
-#if LVGL7
             obj = lv_switch_create(parent_obj, NULL);
             // if(state) lv_switch_on(obj, LV_ANIM_OFF);
-#else
-            obj = lv_sw_create(parent_obj, NULL);
-            // if(state) lv_sw_on(obj, LV_ANIM_OFF);
-#endif
             lv_obj_set_event_cb(obj, switch_event_handler);
             break;
         }
@@ -1175,21 +1067,12 @@ void haspNewObject(const JsonObject & config)
         }
             /**/
         case LV_HASP_DDLIST: {
-#if LVGL7
             obj = lv_dropdown_create(parent_obj, NULL);
             // if(config[F("txt")]) lv_dropdown_set_options(obj, config[F("txt")].as<String>().c_str());
             // lv_dropdown_set_selected(obj, val);
             // lv_dropdown_set_fix_width(obj, width);
             lv_dropdown_set_draw_arrow(obj, true);
             lv_dropdown_set_anim_time(obj, 250);
-#else
-            obj = lv_ddlist_create(parent_obj, NULL);
-            // if(config[F("txt")]) lv_ddlist_set_options(obj, config[F("txt")].as<String>().c_str());
-            // lv_ddlist_set_selected(obj, val);
-            // lv_ddlist_set_fix_width(obj, width);
-            lv_ddlist_set_draw_arrow(obj, true);
-            lv_ddlist_set_anim_time(obj, 250);
-#endif
             lv_obj_set_top(obj, true);
             // lv_obj_align(obj, NULL, LV_ALIGN_IN_TOP_MID, 0, 20);
             lv_obj_set_event_cb(obj, ddlist_event_handler);
@@ -1200,11 +1083,7 @@ void haspNewObject(const JsonObject & config)
             bool infinite = config[F("infinite")].as<bool>();
             // if(config[F("txt")]) lv_roller_set_options(obj, config[F("txt")].as<String>().c_str(), infinite);
             // lv_roller_set_selected(obj, val, LV_ANIM_ON);
-#if LVGL7
             // lv_roller_set_fix_width(obj, width);
-#else
-            // lv_roller_set_fix_width(obj, width);
-#endif
             // lv_obj_align(obj, NULL, LV_ALIGN_IN_TOP_MID, 0, 20);
             lv_obj_set_event_cb(obj, roller_event_handler);
             break;
@@ -1242,7 +1121,7 @@ void haspNewObject(const JsonObject & config)
         k = keyValue.key().c_str();
         if(k != F("page") && k != F("id") && k != F("objid") && k != F("parentid")) {
             v = keyValue.value().as<String>();
-            hasp_set_obj_attribute(obj, k.c_str(), v.c_str());
+            hasp_process_obj_attribute(obj, k.c_str(), v.c_str(), true);
             Log.trace(F("     * %s => %s"), k.c_str(), v.c_str());
         }
     }
@@ -1290,9 +1169,8 @@ void haspLoadPage(String pages)
     while(deserializeJson(config, file) == DeserializationError::Ok) {
         serializeJson(config, Serial);
         Serial.println();
-        haspNewObject(config.as<JsonObject>());
+        haspNewObject(config.as<JsonObject>(), savedPage);
     }
-    current_page = savedPage;
 
     Log.notice(F("HASP: File %s loaded"), pages.c_str());
     file.close();
