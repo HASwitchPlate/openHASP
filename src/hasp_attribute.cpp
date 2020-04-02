@@ -695,6 +695,7 @@ static void hasp_process_obj_attribute6(lv_obj_t * obj, const char * attr, const
             } else {
                 hasp_out_int(obj, attr, lv_btn_get_checkable(obj));
             }
+            return;
         }
     }
 
@@ -709,11 +710,13 @@ static void hasp_process_obj_attribute7(lv_obj_t * obj, const char * attr, const
     if(!strcmp_P(attr, PSTR("opacity"))) {
         return update ? lv_obj_set_style_local_opa_scale(obj, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, val)
                       : hasp_out_int(obj, attr, lv_obj_get_style_opa_scale(obj, LV_OBJ_PART_MAIN));
+    }
 
-    } else if(!strcmp_P(attr, PSTR("enabled"))) {
+    if(!strcmp_P(attr, PSTR("enabled"))) {
         return update ? lv_obj_set_click(obj, is_true(payload)) : hasp_out_int(obj, attr, lv_obj_get_click(obj));
+    }
 
-    } else if(!strcmp_P(attr, PSTR("options"))) {
+    if(!strcmp_P(attr, PSTR("options"))) {
         /* Attributes depending on objecttype */
         lv_obj_type_t list;
         lv_obj_get_type(obj, &list);
@@ -802,15 +805,5 @@ static inline void hasp_out_str(lv_obj_t * obj, const char * attr, const char * 
 
 static inline void hasp_out_color(lv_obj_t * obj, const char * attr, lv_color_t color)
 {
-    lv_color32_t c32;
-    c32.full = lv_color_to32(color);
-
-    DynamicJsonDocument doc(128);
-    doc[F("r")] = c32.ch.red;
-    doc[F("g")] = c32.ch.green;
-    doc[F("b")] = c32.ch.blue;
-
-    char buffer[128];
-    serializeJson(doc, buffer, sizeof(buffer));
-    hasp_send_obj_attribute_str(obj, attr, buffer);
+    hasp_send_obj_attribute_color(obj, attr, color);
 }
