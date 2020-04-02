@@ -792,12 +792,12 @@ static inline bool only_digits(const char * s)
 
 static inline void hasp_out_int(lv_obj_t * obj, const char * attr, uint32_t val)
 {
-    return hasp_send_attribute(obj, attr, val);
+    hasp_send_obj_attribute_int(obj, attr, val);
 }
 
 static inline void hasp_out_str(lv_obj_t * obj, const char * attr, const char * data)
 {
-    return hasp_send_attribute_str(obj, attr, data);
+    hasp_send_obj_attribute_str(obj, attr, data);
 }
 
 static inline void hasp_out_color(lv_obj_t * obj, const char * attr, lv_color_t color)
@@ -812,5 +812,5 @@ static inline void hasp_out_color(lv_obj_t * obj, const char * attr, lv_color_t 
 
     char buffer[128];
     serializeJson(doc, buffer, sizeof(buffer));
-    hasp_send_attribute_str(obj, attr, buffer);
+    hasp_send_obj_attribute_str(obj, attr, buffer);
 }
