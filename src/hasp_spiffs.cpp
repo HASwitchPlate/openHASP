@@ -12,6 +12,62 @@
 #include <FS.h>
 #endif
 
+void spiffsInfo()
+{ // Get all information of your SPIFFS
+#if defined(ARDUINO_ARCH_ESP8266)
+    FSInfo fs_info;
+    SPIFFS.info(fs_info);
+
+    Serial.println("File sistem info.");
+
+    Serial.print("Total space:      ");
+    Serial.print(fs_info.totalBytes);
+    Serial.println("byte");
+
+    Serial.print("Total space used: ");
+    Serial.print(fs_info.usedBytes);
+    Serial.println("byte");
+
+    Serial.print("Block size:       ");
+    Serial.print(fs_info.blockSize);
+    Serial.println("byte");
+
+    Serial.print("Page size:        ");
+    Serial.print(fs_info.totalBytes);
+    Serial.println("byte");
+
+    Serial.print("Max open files:   ");
+    Serial.println(fs_info.maxOpenFiles);
+
+    Serial.print("Max path lenght:  ");
+    Serial.println(fs_info.maxPathLength);
+#else
+    Serial.println("File sistem info.");
+
+    Serial.print("Total space:      ");
+    Serial.print(SPIFFS.totalBytes());
+    Serial.println("byte");
+
+    Serial.print("Total space used: ");
+    Serial.print(SPIFFS.usedBytes());
+    Serial.println("byte");
+
+    Serial.print("Block size:       ");
+    // Serial.print(SPIFFS);
+    Serial.println("byte");
+
+    Serial.print("Page size:        ");
+    Serial.print(SPIFFS.totalBytes());
+    Serial.println("byte");
+
+    Serial.print("Max open files:   ");
+    // Serial.println(SPIFFS.maxOpenFiles());
+
+    Serial.print("Max path lenght:  ");
+    // Serial.println(SPIFFS.maxPathLength());
+#endif
+}
+
 void spiffsList()
 {
     Log.verbose(F("FILE: Listing files on the internal flash:"));
@@ -48,9 +104,6 @@ void spiffsSetup()
     }
 #endif
 }
-
-void spiffsLoop()
-{}
 
 String spiffsFormatBytes(size_t bytes)
 {
