@@ -210,7 +210,7 @@ static void hasp_send_obj_attribute_P(lv_obj_t * obj, const char * attr, const c
     char * buffer;
     buffer = (char *)malloc(strlen_P(attr) + 1);
     strcpy_P(buffer, attr);
-    hasp_send_obj_attribute_P(obj, buffer, data);
+    hasp_send_obj_attribute_str(obj, buffer, data);
     free(buffer);
 }
 
@@ -221,10 +221,12 @@ static inline void hasp_send_obj_attribute_val(lv_obj_t * obj, int32_t val)
     hasp_send_obj_attribute_P(obj, PSTR("val"), data);
 }
 
-static inline void hasp_send_obj_attribute_val(lv_obj_t * obj, int16_t val)
+/*static inline void hasp_send_obj_attribute_val(lv_obj_t * obj, int16_t val)
 {
-    hasp_send_obj_attribute_val(obj, (int32_t)val);
-}
+    char data[64];
+    itoa(val, data, 10);
+    hasp_send_obj_attribute_P(obj, PSTR("val"), data);
+}*/
 
 static inline void hasp_send_obj_attribute_event(lv_obj_t * obj, const char * event)
 {
@@ -236,10 +238,10 @@ static inline void hasp_send_obj_attribute_txt(lv_obj_t * obj, const char * txt)
     hasp_send_obj_attribute_P(obj, PSTR("txt"), txt);
 }
 
-static void hasp_send_obj_attribute_txt(lv_obj_t * obj, String & txt)
+/*static void hasp_send_obj_attribute_txt(lv_obj_t * obj, String & txt)
 {
     hasp_send_obj_attribute_P(obj, PSTR("txt"), txt.c_str());
-}
+}*/
 
 static inline void hasp_send_obj_attribute_color(lv_obj_t * obj, lv_color_t color)
 {
