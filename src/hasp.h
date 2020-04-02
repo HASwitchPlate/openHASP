@@ -71,10 +71,13 @@ String haspGetNodename();
 String haspGetVersion();
 void haspBackground(uint16_t pageid, uint16_t imageid);
 
-void hasp_process_attribute(uint8_t pageid, uint8_t objid, String strAttr, String strPayload);
+void hasp_send_obj_attribute_str(lv_obj_t * obj, const char * attribute, const char * data);
+void hasp_send_obj_attribute_int(lv_obj_t * obj, const char * attribute, int32_t val);
+void hasp_process_attribute(uint8_t pageid, uint8_t objid, const char * attr, const char * payload);
+
 void haspSendCmd(String nextionCmd);
 void haspParseJson(String & strPayload);
-void haspNewObject(const JsonObject & settings);
+void haspNewObject(const JsonObject & config, uint8_t & saved_page_id);
 
 void haspReconnect(void);
 void haspDisconnect(void);
@@ -85,7 +88,9 @@ bool haspGetConfig(const JsonObject & settings);
 bool haspSetConfig(const JsonObject & settings);
 
 bool check_obj_type(const char * lvobjtype, lv_hasp_obj_type_t haspobjtype);
-void haspSetToggle(lv_obj_t * obj, bool toggle);
+
+void IRAM_ATTR btn_event_handler(lv_obj_t * obj, lv_event_t event);
+void IRAM_ATTR toggle_event_handler(lv_obj_t * obj, lv_event_t event);
 
 /**********************
  *      MACROS

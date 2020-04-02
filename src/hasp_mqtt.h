@@ -13,10 +13,10 @@ void IRAM_ATTR mqtt_send_state(const __FlashStringHelper * subtopic, const char 
 void IRAM_ATTR mqtt_send_input(uint8_t id, const char * payload);
 
 // attributes
-void IRAM_ATTR mqtt_send_attribute(uint8_t pageid, uint8_t btnid, const char * attribute, const char * data);
-void IRAM_ATTR mqtt_send_event_attribute(uint8_t pageid, uint8_t btnid, const char * event);
-void IRAM_ATTR mqtt_send_val_attribute(uint8_t pageid, uint8_t btnid, int32_t val);
-void IRAM_ATTR mqtt_send_txt_attribute(uint8_t pageid, uint8_t btnid, const char * txt);
+void IRAM_ATTR mqtt_send_obj_attribute_str(uint8_t pageid, uint8_t btnid, const char * attribute, const char * data);
+/*void IRAM_ATTR mqtt_send_attribute_txt(uint8_t pageid, uint8_t btnid, const char * txt);
+void IRAM_ATTR mqtt_send_attribute_val(uint8_t pageid, uint8_t btnid, int32_t val);
+void IRAM_ATTR mqtt_send_attribute_event(uint8_t pageid, uint8_t btnid, const char * event);*/
 
 void mqtt_send_statusupdate(void);
 bool IRAM_ATTR mqttIsConnected(void);

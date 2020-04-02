@@ -149,7 +149,7 @@ void IRAM_ATTR mqtt_send_input(uint8_t id, const char * payload)
     Log.notice(F("MQTT OUT: %sstate/input%u = %s"), mqttNodeTopic, id, payload);
 }
 
-void IRAM_ATTR mqtt_send_attribute(uint8_t pageid, uint8_t btnid, const char * attribute, const char * data)
+void IRAM_ATTR mqtt_send_obj_attribute_str(uint8_t pageid, uint8_t btnid, const char * attribute, const char * data)
 {
     if(mqttIsConnected()) {
         char topic[64];
@@ -169,30 +169,31 @@ void IRAM_ATTR mqtt_send_attribute(uint8_t pageid, uint8_t btnid, const char * a
                data);
 }
 
-void mqtt_send_attribute(uint8_t pageid, uint8_t btnid, const __FlashStringHelper * attr, const char * data)
+/*void IRAM_ATTR mqtt_send_attribute_P(uint8_t pageid, uint8_t btnid, const char * attr, const char * data)
 {
-    String strAttr((char *)0);
-    strAttr.reserve(64);
-    strAttr = attr;
-    mqtt_send_attribute(pageid, btnid, strAttr.c_str(), data);
+    char * buffer;
+    buffer = (char *)malloc(strlen_P(attr) + 1);
+    strcpy_P(buffer, attr);
+    mqtt_send_attribute_str(pageid, btnid, buffer, data);
+    free(buffer);
 }
 
-void IRAM_ATTR mqtt_send_txt_attribute(uint8_t pageid, uint8_t btnid, const char * txt)
+void IRAM_ATTR mqtt_send_attribute_txt(uint8_t pageid, uint8_t btnid, const char * txt)
 {
-    mqtt_send_attribute(pageid, btnid, F("txt"), txt);
+    mqtt_send_attribute_P(pageid, btnid, PSTR("txt"), txt);
 }
 
-void IRAM_ATTR mqtt_send_val_attribute(uint8_t pageid, uint8_t btnid, int32_t val)
+void IRAM_ATTR mqtt_send_attribute_val(uint8_t pageid, uint8_t btnid, int32_t val)
 {
     char data[64];
     itoa(val, data, 10);
-    mqtt_send_attribute(pageid, btnid, F("val"), data);
+    mqtt_send_attribute_P(pageid, btnid, PSTR("val"), data);
 }
 
-void IRAM_ATTR mqtt_send_event_attribute(uint8_t pageid, uint8_t btnid, const char * event)
+void IRAM_ATTR mqtt_send_attribute_event(uint8_t pageid, uint8_t btnid, const char * event)
 {
-    mqtt_send_attribute(pageid, btnid, F("event"), event);
-}
+    mqtt_send_attribute_P(pageid, btnid, PSTR("event"), event);
+}*/
 
 void mqtt_send_statusupdate()
 { // Periodically publish a JSON string indicating system status
@@ -287,7 +288,7 @@ static void mqtt_message_cb(char * topic_p, byte * payload, unsigned int length)
         Log.error(F("MQTT: Message received with invalid topic"));
         return;
     }
-    Log.trace(F("MQTT IN: short topic: %s"), topic);
+    // Log.trace(F("MQTT IN: short topic: %s"), topic);
 
     if(!strcmp_P(topic, PSTR("command"))) {
         dispatchCommand((char *)payload);
@@ -296,7 +297,7 @@ static void mqtt_message_cb(char * topic_p, byte * payload, unsigned int length)
 
     if(topic == strstr_P(topic, PSTR("command/"))) { // startsWith command/
         topic += 8u;
-        Log.trace(F("MQTT IN: command subtopic: %s"), topic);
+        // Log.trace(F("MQTT IN: command subtopic: %s"), topic);
 
         if(!strcmp_P(topic, PSTR("json"))) { // '[...]/device/command/json' -m '["dim=5", "page 1"]' =
             // nextionSendCmd("dim=50"), nextionSendCmd("page 1")
