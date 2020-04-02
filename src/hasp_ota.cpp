@@ -8,9 +8,26 @@
 #include "hasp_ota.h"
 
 #include "hasp_conf.h"
+
 #if HASP_USE_MQTT
 #include "hasp_mqtt.h"
 #endif
+
+#if HASP_USE_MDNS
+#include "hasp_mdns.h"
+#endif
+
+#if defined(ARDUINO_ARCH_ESP8266)
+#include <ESP8266HTTPClient.h>
+#include <ESP8266httpUpdate.h>
+#include <ESP8266WiFi.h>
+#else
+#include <HTTPClient.h>
+#include <HTTPUpdate.h>
+#include <WiFi.h>
+#endif
+
+WiFiClient wifiClient;
 
 #define F_OTA_URL F("otaurl")
 
@@ -108,4 +125,59 @@ void otaLoop()
 void otaEverySecond()
 {
     if(otaPrecentageComplete >= 0) otaProgress();
+}
+
+void otaHttpUpdate(const char * espOtaUrl)
+{ // Update ESP firmware from HTTP
+    // nextionSendCmd("page 0");
+    // nextionSetAttr("p[0].b[1].txt", "\"HTTP update\\rstarting...\"");
+    mdnsStop(); // Keep mDNS responder from breaking things
+
+#if defined(ARDUINO_ARCH_ESP8266)
+    t_httpUpdate_return returnCode = ESPhttpUpdate.update(wifiClient, espOtaUrl);
+
+    switch(returnCode) {
+        case HTTP_UPDATE_FAILED:
+            Log.error("FWUP: HTTP_UPDATE_FAILED error %d %s", ESPhttpUpdate.getLastError(),
+                      ESPhttpUpdate.getLastErrorString().c_str());
+            // nextionSetAttr("p[0].b[1].txt", "\"HTTP Update\\rFAILED\"");
+            break;
+
+        case HTTP_UPDATE_NO_UPDATES:
+            Log.notice(F("FWUP: HTTP_UPDATE_NO_UPDATES"));
+            // nextionSetAttr("p[0].b[1].txt", "\"HTTP Update\\rNo update\"");
+            break;
+
+        case HTTP_UPDATE_OK:
+            Log.notice(F("FWUP: HTTP_UPDATE_OK"));
+            // nextionSetAttr("p[0].b[1].txt", "\"HTTP Update\\rcomplete!\\r\\rRestarting.\"");
+            dispatchReboot(true);
+            delay(5000);
+    }
+
+#else
+    t_httpUpdate_return returnCode = httpUpdate.update(wifiClient, espOtaUrl);
+
+    switch(returnCode) {
+        case HTTP_UPDATE_FAILED:
+            Log.error("FWUP: HTTP_UPDATE_FAILED error %i %s", httpUpdate.getLastError(),
+                      httpUpdate.getLastErrorString().c_str());
+            // nextionSetAttr("p[0].b[1].txt", "\"HTTP Update\\rFAILED\"");
+            break;
+
+        case HTTP_UPDATE_NO_UPDATES:
+            Log.notice(F("FWUP: HTTP_UPDATE_NO_UPDATES"));
+            // nextionSetAttr("p[0].b[1].txt", "\"HTTP Update\\rNo update\"");
+            break;
+
+        case HTTP_UPDATE_OK:
+            Log.notice(F("FWUP: HTTP_UPDATE_OK"));
+            // nextionSetAttr("p[0].b[1].txt", "\"HTTP Update\\rcomplete!\\r\\rRestarting.\"");
+            dispatchReboot(true);
+            delay(5000);
+    }
+
+#endif
+    mdnsStart();
+    // nextionSendCmd("page " + String(nextionActivePage));
 }

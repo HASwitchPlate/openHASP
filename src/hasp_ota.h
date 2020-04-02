@@ -6,5 +6,6 @@
 void otaSetup(JsonObject settings);
 void otaLoop(void);
 void otaEverySecond(void);
+void otaHttpUpdate(const char * espOtaUrl);
 
 #endif
