@@ -689,7 +689,7 @@ void webHandleScreenshot()
 
     if(webServer.hasArg(F("a")) && webServer.arg(F("a")) == F("next")) {
         uint8_t page = haspGetPage();
-        if(page + 1 == HASP_NUM_PAGES) {
+        if(page + 1 >= HASP_NUM_PAGES) {
             page = 0;
         } else {
             page++;
