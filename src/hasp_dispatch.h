@@ -16,10 +16,13 @@ void dispatchClearPage(String strPageid);
 void dispatchDim(String strDimLevel);
 void dispatchBacklight(String strPayload);
 
+void dispatchWebUpdate(const char * espOtaUrl);
 void dispatchIdle(const char * state);
 void dispatchReboot(bool saveConfig);
 void dispatchStatusUpdate(void);
 
 void dispatch_button(uint8_t id, const char * event);
+
+void IRAM_ATTR dispatch_obj_attribute_str(uint8_t pageid, uint8_t btnid, const char * attribute, const char * data);
 
 #endif

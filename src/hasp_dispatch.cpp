@@ -9,6 +9,7 @@
 #include "hasp_mdns.h"
 #include "hasp_wifi.h"
 #include "hasp_gui.h"
+#include "hasp_ota.h"
 #include "hasp.h"
 
 #include "hasp_conf.h"
@@ -89,7 +90,7 @@ void dispatchButtonAttribute(String & strTopic, const char * payload)
         int objid  = strObjId.toInt();
 
         if(pageid >= 0 && pageid <= 255 && objid >= 0 && objid <= 255) {
-            hasp_process_attribute((uint8_t)pageid, (uint8_t)objid, strAttr, payload);
+            hasp_process_attribute((uint8_t)pageid, (uint8_t)objid, strAttr.c_str(), payload);
         } // valid page
     }
 }
@@ -119,6 +120,9 @@ void dispatchAttribute(String strTopic, const char * payload)
 
     } else if(strTopic == F("clearpage")) {
         dispatchClearPage(payload);
+
+    } else if(strTopic == F("update")) {
+        dispatchWebUpdate(payload);
 
     } else if(strTopic == F("setupap")) {
         haspDisplayAP(String(F("HASP-ABC123")).c_str(), String(F("haspadmin")).c_str());
@@ -236,32 +240,32 @@ void dispatchJson(char * payload)
 
     if(jsonError) { // Couldn't parse incoming JSON command
         Log.warning(F("JSON: Failed to parse incoming JSON command with error: %s"), jsonError.c_str());
-        return;
-    }
+    } else {
 
-    JsonArray arr = haspCommands.as<JsonArray>();
-    for(JsonVariant command : arr) {
-        dispatchCommand(command.as<String>());
+        JsonArray arr = haspCommands.as<JsonArray>();
+        for(JsonVariant command : arr) {
+            dispatchCommand(command.as<String>());
+        }
     }
 }
 
 void dispatchJsonl(char * payload)
 {
-    DynamicJsonDocument config(256);
+    DynamicJsonDocument config(3 * 128u);
+    size_t len     = strlen(payload);
+    size_t maxsize = 128u * ((len / 128) + 1);
+    Log.verbose(F("CMND: payload %u => reserve %u"), len, maxsize);
 
     String output((char *)0);
     StringStream stream((String &)output);
-
-    size_t maxsize = (128u * ((strlen(payload) / 128) + 1));
-    Log.verbose(F("CMND: payload %u => reserve %u"), strlen(payload), (128u * ((strlen(payload) / 128) + 1)));
-
-    output.reserve((128u * ((strlen(payload) / 128) + 1)));
+    output.reserve(maxsize);
     stream.print(payload);
 
+    uint8_t savedPage = 0;
     while(deserializeJson(config, stream) == DeserializationError::Ok) {
         serializeJson(config, Serial);
         Serial.println();
-        haspNewObject(config.as<JsonObject>());
+        haspNewObject(config.as<JsonObject>(), savedPage);
     }
 }
 
@@ -281,8 +285,8 @@ void dispatchReboot(bool saveConfig)
     debugStop();
     delay(250);
     wifiStop();
-    Log.notice(F("STOP: Properly Rebooting the MCU now!"));
     Log.verbose(F("-------------------------------------"));
+    Log.notice(F("STOP: Properly Rebooting the MCU now!"));
     ESP.restart();
     delay(5000);
 }
@@ -291,5 +295,18 @@ void dispatch_button(uint8_t id, const char * event)
 {
 #if HASP_USE_MQTT
     mqtt_send_input(id, event);
+#endif
+}
+
+void dispatchWebUpdate(const char * espOtaUrl)
+{
+    Log.verbose("FWUP: Checking for updates at URL: %s", espOtaUrl);
+    otaHttpUpdate(espOtaUrl);
+}
+
+void IRAM_ATTR dispatch_obj_attribute_str(uint8_t pageid, uint8_t btnid, const char * attribute, const char * data)
+{
+#if HASP_USE_MQTT
+    mqtt_send_obj_attribute_str(pageid, btnid, attribute, data);
 #endif
 }
