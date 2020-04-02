@@ -251,20 +251,16 @@ void dispatchJson(char * payload)
 
 void dispatchJsonl(char * payload)
 {
+    uint8_t savedPage = 0;
     DynamicJsonDocument config(3 * 128u);
-    size_t len     = strlen(payload);
-    size_t maxsize = 128u * ((len / 128) + 1);
-    Log.verbose(F("CMND: payload %u => reserve %u"), len, maxsize);
-
     String output((char *)0);
     StringStream stream((String &)output);
-    output.reserve(maxsize);
-    stream.print(payload);
+    output.reserve(3 * 128u);
 
-    uint8_t savedPage = 0;
+    stream.print(payload);
     while(deserializeJson(config, stream) == DeserializationError::Ok) {
         serializeJson(config, Serial);
-        Serial.println();
+        // Serial.println();
         haspNewObject(config.as<JsonObject>(), savedPage);
     }
 }
