@@ -6,6 +6,9 @@
 #ifndef LV_ZIFONT_H
 #define LV_ZIFONT_H
 
+#include <Arduino.h>
+#include "lvgl.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -13,9 +16,7 @@ extern "C" {
 /*********************
  *      INCLUDES
  *********************/
-#include <Arduino.h>
 #include <stdint.h>
-#include "lvgl.h"
 
 /*********************
  *      DEFINES
