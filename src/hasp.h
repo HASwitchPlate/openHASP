@@ -73,6 +73,7 @@ void haspBackground(uint16_t pageid, uint16_t imageid);
 
 void hasp_send_obj_attribute_str(lv_obj_t * obj, const char * attribute, const char * data);
 void hasp_send_obj_attribute_int(lv_obj_t * obj, const char * attribute, int32_t val);
+void hasp_send_obj_attribute_color(lv_obj_t * obj, const char * attribute, lv_color_t color);
 void hasp_process_attribute(uint8_t pageid, uint8_t objid, const char * attr, const char * payload);
 
 void haspSendCmd(String nextionCmd);

@@ -203,6 +203,15 @@ void hasp_send_obj_attribute_int(lv_obj_t * obj, const char * attribute, int32_t
     hasp_send_obj_attribute_str(obj, attribute, data);
 }
 
+void hasp_send_obj_attribute_color(lv_obj_t * obj, const char * attribute, lv_color_t color)
+{
+    char buffer[128];
+    lv_color32_t c32;
+    c32.full = lv_color_to32(color);
+    snprintf(buffer, sizeof(buffer), PSTR("#%02x%02x%02x"), c32.ch.red, c32.ch.green, c32.ch.blue);
+    hasp_send_obj_attribute_str(obj, attribute, buffer);
+}
+
 /** Senders for event handlers **/
 
 static void hasp_send_obj_attribute_P(lv_obj_t * obj, const char * attr, const char * data)
@@ -242,11 +251,6 @@ static inline void hasp_send_obj_attribute_txt(lv_obj_t * obj, const char * txt)
 {
     hasp_send_obj_attribute_P(obj, PSTR("txt"), txt.c_str());
 }*/
-
-static inline void hasp_send_obj_attribute_color(lv_obj_t * obj, lv_color_t color)
-{
-    // hasp_send_obj_attribute_val(obj, (int32_t)get_cpicker_value(obj)); // Needs a color function
-}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -664,9 +668,19 @@ void haspSetup(JsonObject settings)
     // lv_theme_set_current(th);
     /* ********** Theme Initializations ********** */
 
+    lv_style_list_t * list;
+    static lv_style_t pagefont;
+    lv_style_init(&pagefont);
+    lv_style_set_text_font(&pagefont, LV_STATE_DEFAULT, defaultFont);
+
+    list = lv_obj_get_style_list(lv_disp_get_layer_top(NULL), LV_OBJ_PART_MAIN);
+    lv_style_list_add_style(list, &pagefont);
+
     /* Create all screens using the theme */
     for(uint8_t i = 0; i < (sizeof pages / sizeof *pages); i++) {
         pages[i] = lv_obj_create(NULL, NULL);
+        list     = lv_obj_get_style_list(pages[i], LV_OBJ_PART_MAIN);
+        lv_style_list_add_style(list, &pagefont);
         // lv_obj_set_size(pages[0], hres, vres);
     }
 
@@ -741,7 +755,7 @@ void hasp_background(uint16_t pageid, uint16_t imageid)
 void IRAM_ATTR btn_event_handler(lv_obj_t * obj, lv_event_t event)
 {
     char buffer[64];
-    sprintf(buffer, PSTR("HASP: "));
+    snprintf(buffer, sizeof(buffer), PSTR("HASP: "));
 
     switch(event) {
         case LV_EVENT_PRESSED:
@@ -836,7 +850,7 @@ static void slider_event_handler(lv_obj_t * obj, lv_event_t event)
 
 static void cpicker_event_handler(lv_obj_t * obj, lv_event_t event)
 {
-    if(event == LV_EVENT_VALUE_CHANGED) hasp_send_obj_attribute_color(obj, lv_cpicker_get_color(obj));
+    if(event == LV_EVENT_VALUE_CHANGED) hasp_send_obj_attribute_color(obj, "color", lv_cpicker_get_color(obj));
 }
 
 static void roller_event_handler(lv_obj_t * obj, lv_event_t event)
@@ -957,33 +971,19 @@ void haspNewObject(const JsonObject & config, uint8_t & saved_page_id)
     switch(objid) {
         /* ----- Basic Objects ------ */
         case LV_HASP_BUTTON: {
-            obj = lv_btn_create(parent_obj, NULL);
-            // bool toggle = config[F("toggle")].as<bool>();
-            // lv_btn_set_toggle(obj, toggle);
-            // if(config[F("txt")]) {
+            obj              = lv_btn_create(parent_obj, NULL);
             lv_obj_t * label = lv_label_create(obj, NULL);
-            // lv_label_set_text(label, config[F("txt")].as<String>().c_str());
             // haspSetOpacity(obj, LV_OPA_COVER);
-            //}
             lv_obj_set_event_cb(obj, btn_event_handler);
-
             break;
         }
         case LV_HASP_CHECKBOX: {
             obj = lv_checkbox_create(parent_obj, NULL);
-            // if(config[F("txt")]) lv_checkbox_set_text(obj, config[F("txt")].as<String>().c_str());
             lv_obj_set_event_cb(obj, checkbox_event_handler);
             break;
         }
         case LV_HASP_LABEL: {
             obj = lv_label_create(parent_obj, NULL);
-            // if(config[F("txt")]) {
-            //    lv_label_set_text(obj, config[F("txt")].as<String>().c_str());
-            // }
-            /*if(styleid < sizeof labelStyles / sizeof *labelStyles) {
-                debugPrintln(String(F("HASP: Styleid set to ")) + styleid);
-                lv_label_set_style(obj, LV_LABEL_STYLE_MAIN, &labelStyles[styleid]);
-            }*/
             /* click area padding */
             uint8_t padh = config[F("padh")].as<uint8_t>();
             uint8_t padv = config[F("padv")].as<uint8_t>();
@@ -999,6 +999,7 @@ void haspNewObject(const JsonObject & config, uint8_t & saved_page_id)
         }
         case LV_HASP_ARC: {
             obj = lv_arc_create(parent_obj, NULL);
+            lv_obj_set_event_cb(obj, btn_event_handler);
             break;
         }
         case LV_HASP_CONTAINER: {
@@ -1010,9 +1011,6 @@ void haspNewObject(const JsonObject & config, uint8_t & saved_page_id)
         /* ----- Color Objects ------ */
         case LV_HASP_CPICKER: {
             obj = lv_cpicker_create(parent_obj, NULL);
-            // lv_cpicker_set_value(obj, (uint8_t)val);
-            // bool rect = config[F("rect")].as<bool>();
-            // lv_cpicker_set_type(obj, rect ? LV_CPICKER_TYPE_RECT : LV_CPICKER_TYPE_DISC);
             lv_obj_set_event_cb(obj, cpicker_event_handler);
             break;
         }
@@ -1034,47 +1032,39 @@ void haspNewObject(const JsonObject & config, uint8_t & saved_page_id)
         case LV_HASP_GAUGE: {
             obj = lv_gauge_create(parent_obj, NULL);
             lv_gauge_set_range(obj, 0, 100);
-            // lv_gauge_set_value(obj, val, LV_ANIM_OFF);
             lv_obj_set_event_cb(obj, btn_event_handler);
             break;
         }
         case LV_HASP_BAR: {
             obj = lv_bar_create(parent_obj, NULL);
             lv_bar_set_range(obj, 0, 100);
-            // lv_bar_set_value(obj, val, LV_ANIM_OFF);
             lv_obj_set_event_cb(obj, btn_event_handler);
             break;
         }
         case LV_HASP_LMETER: {
             obj = lv_linemeter_create(parent_obj, NULL);
             lv_linemeter_set_range(obj, 0, 100);
-            // lv_linemeter_set_value(obj, val);
             lv_obj_set_event_cb(obj, btn_event_handler);
             break;
         }
 
         /* ----- On/Off Objects ------ */
         case LV_HASP_SWITCH: {
-            // bool state = config[F("val")].as<bool>();
             obj = lv_switch_create(parent_obj, NULL);
-            // if(state) lv_switch_on(obj, LV_ANIM_OFF);
             lv_obj_set_event_cb(obj, switch_event_handler);
             break;
         }
         case LV_HASP_LED: {
             obj = lv_led_create(parent_obj, NULL);
-            // lv_led_set_bright(obj, config[F("val")].as<uint8_t>() | 0);
             lv_obj_set_event_cb(obj, btn_event_handler);
             break;
         }
             /**/
         case LV_HASP_DDLIST: {
             obj = lv_dropdown_create(parent_obj, NULL);
-            // if(config[F("txt")]) lv_dropdown_set_options(obj, config[F("txt")].as<String>().c_str());
-            // lv_dropdown_set_selected(obj, val);
             // lv_dropdown_set_fix_width(obj, width);
             lv_dropdown_set_draw_arrow(obj, true);
-            lv_dropdown_set_anim_time(obj, 250);
+            lv_dropdown_set_anim_time(obj, 200);
             lv_obj_set_top(obj, true);
             // lv_obj_align(obj, NULL, LV_ALIGN_IN_TOP_MID, 0, 20);
             lv_obj_set_event_cb(obj, ddlist_event_handler);
@@ -1083,8 +1073,6 @@ void haspNewObject(const JsonObject & config, uint8_t & saved_page_id)
         case LV_HASP_ROLLER: {
             obj           = lv_roller_create(parent_obj, NULL);
             bool infinite = config[F("infinite")].as<bool>();
-            // if(config[F("txt")]) lv_roller_set_options(obj, config[F("txt")].as<String>().c_str(), infinite);
-            // lv_roller_set_selected(obj, val, LV_ANIM_ON);
             // lv_roller_set_fix_width(obj, width);
             // lv_obj_align(obj, NULL, LV_ALIGN_IN_TOP_MID, 0, 20);
             lv_obj_set_event_cb(obj, roller_event_handler);
@@ -1102,30 +1090,19 @@ void haspNewObject(const JsonObject & config, uint8_t & saved_page_id)
         return;
     }
 
-    /*
-        if(!config[F("opacity")].isNull()) {
-            uint8_t opacity = config[F("opacity")].as<uint8_t>();
-            haspSetOpacity(obj, opacity);
-        }
-
-        bool hidden = config[F("hidden")].as<bool>();
-        lv_obj_set_hidden(obj, hidden);
-        lv_obj_set_click(obj, enabled);
-
-        lv_obj_set_pos(obj, config[F("x")].as<lv_coord_t>(), config[F("y")].as<lv_coord_t>());
-        lv_obj_set_width(obj, width);
-    */
-
-    String k, v;
     lv_obj_set_user_data(obj, id);
 
+    /* do not process these attributes */
+    config.remove(F("page"));
+    config.remove(F("id"));
+    config.remove(F("objid"));
+    config.remove(F("parentid"));
+    String v;
+
     for(JsonPair keyValue : config) {
-        k = keyValue.key().c_str();
-        if(k != F("page") && k != F("id") && k != F("objid") && k != F("parentid")) {
-            v = keyValue.value().as<String>();
-            hasp_process_obj_attribute(obj, k.c_str(), v.c_str(), true);
-            Log.trace(F("     * %s => %s"), k.c_str(), v.c_str());
-        }
+        v = keyValue.value().as<String>();
+        hasp_process_obj_attribute(obj, keyValue.key().c_str(), v.c_str(), true);
+        Log.trace(F("     * %s => %s"), keyValue.key().c_str(), v.c_str());
     }
 
     /** testing start **/
@@ -1169,8 +1146,8 @@ void haspLoadPage(String pages)
 
     uint8_t savedPage = current_page;
     while(deserializeJson(config, file) == DeserializationError::Ok) {
-        serializeJson(config, Serial);
-        Serial.println();
+        // serializeJson(config, Serial);
+        // Serial.println();
         haspNewObject(config.as<JsonObject>(), savedPage);
     }
 
