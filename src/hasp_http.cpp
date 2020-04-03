@@ -528,16 +528,19 @@ String espFirmwareUrl = "http://haswitchplate.com/update/HASwitchPlate.ino.d1_mi
 // Default link to compiled Nextion firmware images
 String lcdFirmwareUrl = "http://haswitchplate.com/update/HASwitchPlate.tft";
 
+#if HASP_USE_MQTT > 0
+extern char mqttNodeName[16];
+extern char mqttNodeName[16];
+#else
+char mqttNodeName[3] = "na";
+#endif
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 void webHandleHaspConfig();
 
-static inline String httpGetNodename()
+static inline char * httpGetNodename()
 {
-#if HASP_USE_MQTT > 0
-    return mqttGetNodename();
-#else
-    return "na";
-#endif
+    return mqttNodeName;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -581,15 +584,15 @@ void webSendFooter()
     webServer.sendContent_P(HTTP_FOOTER);
 }
 
-void webSendPage(String & nodename, uint32_t httpdatalength, bool gohome = false)
+void webSendPage(char * nodename, uint32_t httpdatalength, bool gohome = false)
 {
-    char buffer[128];
+    char buffer[64];
     snprintf_P(buffer, sizeof(buffer), PSTR("%u.%u.%u"), HASP_VERSION_MAJOR, HASP_VERSION_MINOR, HASP_VERSION_REVISION);
 
     /* Calculate Content Length upfront */
     uint16_t contentLength = strlen(buffer); // verion length
     contentLength += sizeof(HTTP_DOCTYPE) - 1;
-    contentLength += sizeof(HTTP_HEADER) - 1 - 2 + nodename.length();
+    contentLength += sizeof(HTTP_HEADER) - 1 - 2 + strlen(nodename);
     contentLength += sizeof(HTTP_SCRIPT) - 1;
     contentLength += sizeof(HTTP_STYLE) - 1;
     contentLength += sizeof(HASP_STYLE) - 1;
@@ -604,7 +607,7 @@ void webSendPage(String & nodename, uint32_t httpdatalength, bool gohome = false
 
     webServer.setContentLength(contentLength + httpdatalength);
     webServer.send_P(200, PSTR("text/html"), HTTP_DOCTYPE); // 122
-    sprintf_P(buffer, HTTP_HEADER, nodename.c_str());
+    sprintf_P(buffer, HTTP_HEADER, nodename);
     webServer.sendContent(buffer);                         // 17-2+len
     webServer.sendContent_P(HTTP_SCRIPT);                  // 131
     webServer.sendContent_P(HTTP_STYLE);                   // 487
@@ -613,26 +616,14 @@ void webSendPage(String & nodename, uint32_t httpdatalength, bool gohome = false
     webServer.sendContent_P(HTTP_HEADER_END);              // 80
 }
 
-void webSendPage(uint32_t httpdatalength, bool gohome = false)
-{
-    String nodename((char *)0);
-    nodename.reserve(128);
-    nodename = httpGetNodename();
-    webSendPage(nodename, httpdatalength, gohome);
-}
-
 void webHandleRoot()
 {
     if(!httpIsAuthenticated(F("root"))) return;
 
-    String nodename((char *)0);
-    nodename.reserve(128);
-    nodename = httpGetNodename();
-
     String httpMessage((char *)0);
     httpMessage.reserve(HTTP_PAGE_SIZE);
     httpMessage += F("<h1>");
-    httpMessage += nodename;
+    httpMessage += httpGetNodename();
     httpMessage += F("</h1><hr>");
 
     httpMessage += F("<p><form method='get' action='info'><button type='submit'>Information</button></form></p>");
@@ -651,7 +642,7 @@ void webHandleRoot()
     httpMessage +=
         F("<p><form method='get' action='reboot'><button class='red' type='submit'>Restart</button></form></p>");
 
-    webSendPage(nodename, httpMessage.length(), false);
+    webSendPage(httpGetNodename(), httpMessage.length(), false);
     webServer.sendContent(httpMessage);
     httpMessage.clear();
     webSendFooter();
@@ -662,18 +653,14 @@ void httpHandleReboot()
 { // http://plate01/reboot
     if(!httpIsAuthenticated(F("reboot"))) return;
 
-    String nodename((char *)0);
-    nodename.reserve(128);
-    nodename = httpGetNodename();
-
     String httpMessage((char *)0);
     httpMessage.reserve(HTTP_PAGE_SIZE);
     httpMessage += F("<h1>");
-    httpMessage += nodename;
+    httpMessage += httpGetNodename();
     httpMessage += F("</h1><hr>");
     httpMessage = F("Rebooting Device");
 
-    webSendPage(nodename, httpMessage.length(), true);
+    webSendPage(httpGetNodename(), httpMessage.length(), true);
     webServer.sendContent(httpMessage);
     httpMessage.clear();
     webSendFooter();
@@ -710,14 +697,10 @@ void webHandleScreenshot()
         guiTakeScreenshot(webServer);
     } else {
 
-        String nodename((char *)0);
-        nodename.reserve(128);
-        nodename = httpGetNodename();
-
         String httpMessage((char *)0);
         httpMessage.reserve(HTTP_PAGE_SIZE);
         httpMessage += F("<h1>");
-        httpMessage += nodename;
+        httpMessage += httpGetNodename();
         httpMessage += F("</h1><hr>");
 
         httpMessage +=
@@ -732,7 +715,7 @@ void webHandleScreenshot()
                          "Page</button></form></p>");
         httpMessage += FPSTR(MAIN_MENU_BUTTON);
 
-        webSendPage(nodename, httpMessage.length(), false);
+        webSendPage(httpGetNodename(), httpMessage.length(), false);
         webServer.sendContent(httpMessage);
         httpMessage.clear();
         webSendFooter();
@@ -744,10 +727,6 @@ void webHandleScreenshot()
 void webHandleAbout()
 { // http://plate01/about
     if(!httpIsAuthenticated(F("about"))) return;
-
-    String nodename((char *)0);
-    nodename.reserve(128);
-    nodename = httpGetNodename();
 
     String httpMessage((char *)0);
     httpMessage.reserve(HTTP_PAGE_SIZE);
@@ -784,7 +763,7 @@ void webHandleAbout()
 
     httpMessage += FPSTR(MAIN_MENU_BUTTON);
 
-    webSendPage(nodename, httpMessage.length(), false);
+    webSendPage(httpGetNodename(), httpMessage.length(), false);
     webServer.sendContent(httpMessage);
     httpMessage.clear();
     webSendFooter();
@@ -795,14 +774,10 @@ void webHandleInfo()
 { // http://plate01/
     if(!httpIsAuthenticated(F("info"))) return;
 
-    String nodename((char *)0);
-    nodename.reserve(128);
-    nodename = httpGetNodename();
-
     String httpMessage((char *)0);
     httpMessage.reserve(HTTP_PAGE_SIZE);
     httpMessage += F("<h1>");
-    httpMessage += nodename;
+    httpMessage += httpGetNodename();
     httpMessage += F("</h1><hr>");
 
     /* HASP Stats */
@@ -899,7 +874,15 @@ void webHandleInfo()
         //     +String(mqttClient.returnCode());
     }
     httpMessage += F("<br/><b>MQTT ClientID: </b>");
-    httpMessage += nodename;
+
+    {
+        char mqttClientId[64];
+        byte mac[6];
+        WiFi.macAddress(mac);
+        snprintf_P(mqttClientId, sizeof(mqttClientId), PSTR("%s-%2x%2x%2x"), mqttNodeName, mac[3], mac[4], mac[5]);
+        httpMessage += mqttClientId;
+    }
+
 #endif
 
     /* ESP Stats */
@@ -926,7 +909,7 @@ void webHandleInfo()
 
     httpMessage += FPSTR(MAIN_MENU_BUTTON);
 
-    webSendPage(nodename, httpMessage.length(), false);
+    webSendPage(httpGetNodename(), httpMessage.length(), false);
     webServer.sendContent(httpMessage);
     httpMessage.clear();
     webSendFooter();
@@ -1034,18 +1017,14 @@ void webUpdateReboot()
 {
     Log.notice(F("Update Success: %u bytes received. Rebooting..."), upload->totalSize);
 
-    String nodename((char *)0);
-    nodename.reserve(128);
-    nodename = httpGetNodename();
-
     String httpMessage((char *)0);
     httpMessage.reserve(HTTP_PAGE_SIZE);
     httpMessage += F("<h1>");
-    httpMessage += nodename;
+    httpMessage += httpGetNodename();
     httpMessage += F("</h1><hr>");
     httpMessage += F("<b>Upload complete. Rebooting device, please wait...</b>");
 
-    webSendPage(nodename, httpMessage.length(), true);
+    webSendPage(httpGetNodename(), httpMessage.length(), true);
     webServer.sendContent(httpMessage);
     httpMessage.clear();
     webSendFooter();
@@ -1278,14 +1257,10 @@ void webHandleConfig()
         httpHandleReboot();
     }
 
-    String nodename((char *)0);
-    nodename.reserve(128);
-    nodename = httpGetNodename();
-
     String httpMessage((char *)0);
     httpMessage.reserve(HTTP_PAGE_SIZE);
     httpMessage += F("<h1>");
-    httpMessage += nodename;
+    httpMessage += httpGetNodename();
     httpMessage += F("</h1><hr>");
 
     httpMessage +=
@@ -1314,7 +1289,7 @@ void webHandleConfig()
     httpMessage += FPSTR(MAIN_MENU_BUTTON);
     ;
 
-    webSendPage(nodename, httpMessage.length(), false);
+    webSendPage(httpGetNodename(), httpMessage.length(), false);
     webServer.sendContent(httpMessage);
     httpMessage.clear();
     webSendFooter();
@@ -1326,10 +1301,6 @@ void webHandleMqttConfig()
 { // http://plate01/config/mqtt
     if(!httpIsAuthenticated(F("config/mqtt"))) return;
 
-    String nodename((char *)0);
-    nodename.reserve(128);
-    nodename = httpGetNodename();
-
     DynamicJsonDocument settings(256);
     mqttGetConfig(settings.to<JsonObject>());
 
@@ -1337,7 +1308,7 @@ void webHandleMqttConfig()
     String httpMessage((char *)0);
     httpMessage.reserve(HTTP_PAGE_SIZE);
     httpMessage += F("<h1>");
-    httpMessage += nodename;
+    httpMessage += httpGetNodename();
     httpMessage += F("</h1><hr>");
 
     httpMessage += F("<form method='POST' action='/config'>");
@@ -1365,7 +1336,7 @@ void webHandleMqttConfig()
     httpMessage +=
         PSTR("<p><form method='get' action='/config'><button type='submit'>Configuration</button></form></p>");
 
-    webSendPage(nodename, httpMessage.length(), false);
+    webSendPage(httpGetNodename(), httpMessage.length(), false);
     webServer.sendContent(httpMessage);
     httpMessage.clear();
     webSendFooter();
@@ -1380,14 +1351,10 @@ void webHandleGuiConfig()
     DynamicJsonDocument settings(256);
     guiGetConfig(settings.to<JsonObject>());
 
-    String nodename((char *)0);
-    nodename.reserve(128);
-    nodename = httpGetNodename();
-
     String httpMessage((char *)0);
     httpMessage.reserve(HTTP_PAGE_SIZE);
     httpMessage += F("<h1>");
-    httpMessage += nodename;
+    httpMessage += httpGetNodename();
     httpMessage += F("</h1><hr>");
 
     httpMessage += F("<form method='POST' action='/config'>");
@@ -1438,7 +1405,7 @@ void webHandleGuiConfig()
     httpMessage +=
         PSTR("<p><form method='get' action='/config'><button type='submit'>Configuration</button></form></p>");
 
-    webSendPage(nodename, httpMessage.length(), false);
+    webSendPage(httpGetNodename(), httpMessage.length(), false);
     webServer.sendContent(httpMessage);
     httpMessage.clear();
     webSendFooter();
@@ -1455,14 +1422,10 @@ void webHandleWifiConfig()
     DynamicJsonDocument settings(256);
     wifiGetConfig(settings.to<JsonObject>());
 
-    String nodename((char *)0);
-    nodename.reserve(128);
-    nodename = httpGetNodename();
-
     String httpMessage((char *)0);
     httpMessage.reserve(HTTP_PAGE_SIZE);
     httpMessage += F("<h1>");
-    httpMessage += nodename;
+    httpMessage += httpGetNodename();
     httpMessage += F("</h1><hr>");
 
     httpMessage += F("<form method='POST' action='/config'>");
@@ -1481,7 +1444,7 @@ void webHandleWifiConfig()
             PSTR("<p><form method='get' action='/config'><button type='submit'>Configuration</button></form></p>");
     }
 
-    webSendPage(nodename, httpMessage.length(), false);
+    webSendPage(httpGetNodename(), httpMessage.length(), false);
     webServer.sendContent(httpMessage);
     httpMessage.clear();
     webSendFooter();
@@ -1497,14 +1460,10 @@ void webHandleHttpConfig()
     DynamicJsonDocument settings(256);
     httpGetConfig(settings.to<JsonObject>());
 
-    String nodename((char *)0);
-    nodename.reserve(128);
-    nodename = httpGetNodename();
-
     String httpMessage((char *)0);
     httpMessage.reserve(HTTP_PAGE_SIZE);
     httpMessage += F("<h1>");
-    httpMessage += nodename;
+    httpMessage += httpGetNodename();
     httpMessage += F("</h1><hr>");
 
     httpMessage += F("<form method='POST' action='/config'>");
@@ -1521,7 +1480,7 @@ void webHandleHttpConfig()
     httpMessage +=
         PSTR("<p><form method='get' action='/config'><button type='submit'>Configuration</button></form></p>");
 
-    webSendPage(nodename, httpMessage.length(), false);
+    webSendPage(httpGetNodename(), httpMessage.length(), false);
     webServer.sendContent(httpMessage);
     httpMessage.clear();
     webSendFooter();
@@ -1536,14 +1495,10 @@ void webHandleDebugConfig()
     DynamicJsonDocument settings(256);
     debugGetConfig(settings.to<JsonObject>());
 
-    String nodename((char *)0);
-    nodename.reserve(128);
-    nodename = httpGetNodename();
-
     String httpMessage((char *)0);
     httpMessage.reserve(HTTP_PAGE_SIZE);
     httpMessage += F("<h1>");
-    httpMessage += nodename;
+    httpMessage += httpGetNodename();
     httpMessage += F("</h1><hr>");
 
     httpMessage += F("<form method='POST' action='/config'>");
@@ -1586,7 +1541,7 @@ void webHandleDebugConfig()
     httpMessage +=
         PSTR("<p><form method='get' action='/config'><button type='submit'>Configuration</button></form></p>");
 
-    webSendPage(nodename, httpMessage.length(), false);
+    webSendPage(httpGetNodename(), httpMessage.length(), false);
     webServer.sendContent(httpMessage);
     httpMessage.clear();
     webSendFooter();
@@ -1600,14 +1555,10 @@ void webHandleHaspConfig()
     DynamicJsonDocument settings(256);
     haspGetConfig(settings.to<JsonObject>());
 
-    String nodename((char *)0);
-    nodename.reserve(128);
-    nodename = httpGetNodename();
-
     String httpMessage((char *)0);
     httpMessage.reserve(HTTP_PAGE_SIZE);
     httpMessage += F("<h1>");
-    httpMessage += nodename;
+    httpMessage += httpGetNodename();
     httpMessage += F("</h1><hr>");
 
     httpMessage += F("<p><form action='/edit' method='post' enctype='multipart/form-data'><input type='file' "
@@ -1691,7 +1642,7 @@ void webHandleHaspConfig()
 
     httpMessage += F("<p><form method='get' action='/config'><button type='submit'>Configuration</button></form></p>");
 
-    webSendPage(nodename, httpMessage.length(), false);
+    webSendPage(httpGetNodename(), httpMessage.length(), false);
     webServer.sendContent(httpMessage);
     httpMessage.clear();
     webSendFooter();
@@ -1733,14 +1684,10 @@ void webHandleFirmware()
 {
     if(!httpIsAuthenticated(F("firmware"))) return;
 
-    String nodename((char *)0);
-    nodename.reserve(128);
-    nodename = httpGetNodename();
-
     String httpMessage((char *)0);
     httpMessage.reserve(HTTP_PAGE_SIZE);
     httpMessage += F("<h1>");
-    httpMessage += nodename;
+    httpMessage += httpGetNodename();
     httpMessage += F("</h1><hr>");
 
     httpMessage += F("<p><form action='/update' method='post' enctype='multipart/form-data'><input type='file' "
@@ -1753,7 +1700,7 @@ void webHandleFirmware()
 
     httpMessage += FPSTR(MAIN_MENU_BUTTON);
 
-    webSendPage(nodename, httpMessage.length(), false);
+    webSendPage(httpGetNodename(), httpMessage.length(), false);
     webServer.sendContent(httpMessage);
     httpMessage.clear();
     webSendFooter();
@@ -1764,20 +1711,16 @@ void httpHandleEspFirmware()
 { // http://plate01/espfirmware
     if(!httpIsAuthenticated(F("espfirmware"))) return;
 
-    String nodename((char *)0);
-    nodename.reserve(128);
-    nodename = httpGetNodename();
-
     String httpMessage((char *)0);
     httpMessage.reserve(HTTP_PAGE_SIZE);
     httpMessage += F("<h1>");
-    httpMessage += nodename;
+    httpMessage += httpGetNodename();
     httpMessage += F("</h1><hr>");
 
     httpMessage += F("<p><b>ESP update</b></p>Updating ESP firmware from: ");
     httpMessage += webServer.arg("espFirmware");
 
-    webSendPage(nodename, httpMessage.length(), true);
+    webSendPage(httpGetNodename(), httpMessage.length(), true);
     webServer.sendContent(httpMessage);
     httpMessage.clear();
     webSendFooter();
@@ -1793,14 +1736,10 @@ void httpHandleResetConfig()
 
     bool resetConfirmed = webServer.arg(F("confirm")) == F("yes");
 
-    String nodename((char *)0);
-    nodename.reserve(128);
-    nodename = httpGetNodename();
-
     String httpMessage((char *)0);
     httpMessage.reserve(HTTP_PAGE_SIZE);
     httpMessage += F("<h1>");
-    httpMessage += nodename;
+    httpMessage += httpGetNodename();
     httpMessage += F("</h1><hr>");
 
     if(resetConfirmed) { // User has confirmed, so reset everything
@@ -1824,7 +1763,7 @@ void httpHandleResetConfig()
             PSTR("<p><form method='get' action='/config'><button type='submit'>Configuration</button></form></p>");
     }
 
-    webSendPage(nodename, httpMessage.length(), resetConfirmed);
+    webSendPage(httpGetNodename(), httpMessage.length(), resetConfirmed);
     webServer.sendContent(httpMessage);
     httpMessage.clear();
     webSendFooter();
