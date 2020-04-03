@@ -125,6 +125,8 @@ void setup()
 #if HASP_USE_BUTTON
     buttonSetup();
 #endif
+
+    mainLastLoopTime = millis() - 1000;
 }
 
 void loop()
@@ -178,13 +180,6 @@ void loop()
 
     // Every Second Loop
     if(millis() - mainLastLoopTime >= 1000) {
-        /* Update counters */
-        mainLastLoopTime += 1000;
-        mainLoopCounter++;
-        if(mainLoopCounter >= 10) {
-            mainLoopCounter = 0;
-        }
-
         /* Run Every Second */
 #if HASP_USE_OTA
         otaEverySecond();
@@ -192,10 +187,17 @@ void loop()
         debugEverySecond();
 
         /* Run Every 5 Seconds */
-        if(mainLoopCounter == 0 || mainLoopCounter == 5) {
+        if(mainLoopCounter == 0 || mainLoopCounter == 4) {
             httpEvery5Seconds();
             isConnected = wifiEvery5Seconds();
             mqttEvery5Seconds(isConnected);
+        }
+
+        /* Update counters */
+        mainLastLoopTime += 1000;
+        mainLoopCounter++;
+        if(mainLoopCounter >= 10) {
+            mainLoopCounter = 0;
         }
     }
 
