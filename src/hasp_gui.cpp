@@ -87,84 +87,105 @@ static bool guiCheckSleep()
     return false;
 }
 
-static void gui_take_screenshot(lv_disp_drv_t * disp, const lv_area_t * area, lv_color_t * color_p)
+// static void gui_take_screenshot(lv_disp_drv_t * disp, const lv_area_t * area, lv_color_t * color_p)
+// {
+//     uint i = 0;
+//     uint16_t c;
+//     uint8_t pixel[1024];
+
+//     for(int y = area->y1; y <= area->y2; y++) {
+//         for(int x = area->x1; x <= area->x2; x++) {
+//             /* Function for converting LittlevGL pixel format to RGB888 */
+//             // data = DISP_IMPL_lvgl_formatPixel(*color_p);
+
+//             // Complex 32 bpp
+//             /* pixel[i++] = (LV_COLOR_GET_B(*color_p) * 263 + 7) >> 5;
+//              pixel[i++] = (LV_COLOR_GET_G(*color_p) * 259 + 3) >> 6;
+//              pixel[i++] = (LV_COLOR_GET_R(*color_p) * 263 + 7) >> 5;
+//              pixel[i++] = 0xFF;*/
+
+//             // Simple 32 bpp
+//             // pixel[i++] = (LV_COLOR_GET_B(*color_p) << 3);
+//             // pixel[i++] = (LV_COLOR_GET_G(*color_p) << 2);
+//             // pixel[i++] = (LV_COLOR_GET_R(*color_p) << 3);
+//             // pixel[i++] = 0xFF;
+
+//             c = color_p->full;
+
+//             // Simple 16 bpp
+//             pixel[i++] = c & 0xFF;
+//             pixel[i++] = (c >> 8) & 0xFF;
+
+//             color_p++;
+
+//             if(i + 4 >= sizeof(pixel)) {
+//                 switch(guiSnapshot) {
+//                     case 1:
+//                         // Save to local file
+//                         pFileOut.write(pixel, i);
+//                         break;
+//                     case 2:
+//                         // Send to remote client
+//                         if(webClient->client().write(pixel, i) != i) {
+//                             Log.warning(F("GUI: Pixelbuffer not completely sent"));
+//                             lv_disp_flush_ready(disp); /* tell lvgl that flushing is done */
+//                             return;
+//                         }
+//                 }
+//                 i = 0;
+//             }
+//         }
+//     }
+
+//     if(i > 0) {
+//         switch(guiSnapshot) {
+//             case 1:
+//                 // Save to local file
+//                 pFileOut.write(pixel, i);
+//                 break;
+//             case 2:
+//                 // Send to remote client
+//                 if(webClient->client().write(pixel, i) != i) {
+//                     Log.warning(F("GUI: Pixelbuffer not completely sent"));
+//                 }
+//         }
+//     }
+// }
+
+/* Flush VDB bytes to a stream */
+static void gui_take_screenshot(uint8_t * data_p, size_t len)
 {
-    uint i = 0;
-    uint16_t c;
-    uint8_t pixel[1024];
-
-    for(int y = area->y1; y <= area->y2; y++) {
-        for(int x = area->x1; x <= area->x2; x++) {
-            /* Function for converting LittlevGL pixel format to RGB888 */
-            // data = DISP_IMPL_lvgl_formatPixel(*color_p);
-
-            // Complex 32 bpp
-            /* pixel[i++] = (LV_COLOR_GET_B(*color_p) * 263 + 7) >> 5;
-             pixel[i++] = (LV_COLOR_GET_G(*color_p) * 259 + 3) >> 6;
-             pixel[i++] = (LV_COLOR_GET_R(*color_p) * 263 + 7) >> 5;
-             pixel[i++] = 0xFF;*/
-
-            // Simple 32 bpp
-            // pixel[i++] = (LV_COLOR_GET_B(*color_p) << 3);
-            // pixel[i++] = (LV_COLOR_GET_G(*color_p) << 2);
-            // pixel[i++] = (LV_COLOR_GET_R(*color_p) << 3);
-            // pixel[i++] = 0xFF;
-
-            c = color_p->full;
-
-            // Simple 16 bpp
-            pixel[i++] = c & 0xFF;
-            pixel[i++] = (c >> 8) & 0xFF;
-
-            color_p++;
-
-            if(i + 4 >= sizeof(pixel)) {
-                switch(guiSnapshot) {
-                    case 1:
-                        // Save to local file
-                        pFileOut.write(pixel, i);
-                        break;
-                    case 2:
-                        // Send to remote client
-                        if(webClient->client().write(pixel, i) != i) {
-                            Log.warning(F("GUI: Pixelbuffer not completely sent"));
-                            lv_disp_flush_ready(disp); /* tell lvgl that flushing is done */
-                            return;
-                        }
-                }
-                i = 0;
-            }
-        }
+    size_t res = 0;
+    switch(guiSnapshot) {
+        case 1:
+            res = pFileOut.write(data_p, len);
+            break;
+        case 2:
+            len = webClient->client().write(data_p, len);
+            break;
+        default:
+            res = 0; // nothing to do
     }
-
-    if(i > 0) {
-        switch(guiSnapshot) {
-            case 1:
-                // Save to local file
-                pFileOut.write(pixel, i);
-                break;
-            case 2:
-                // Send to remote client
-                if(webClient->client().write(pixel, i) != i) {
-                    Log.warning(F("GUI: Pixelbuffer not completely sent"));
-                }
-        }
+    if(res != len) {
+        Log.warning(F("GUI: Pixelbuffer not completely sent"));
     }
 }
 
 /* Experimetnal Display flushing */
 static void IRAM_ATTR tft_espi_flush(lv_disp_drv_t * disp, const lv_area_t * area, lv_color_t * color_p)
 {
+    size_t len = (area->x2 - area->x1 + 1) * (area->y2 - area->y1 + 1); /* Number of pixels */
+
     /* Update TFT */
     tft.startWrite();                                      /* Start new TFT transaction */
     tft.setWindow(area->x1, area->y1, area->x2, area->y2); /* set the working window */
-    tft.setSwapBytes(true);                                // endianess
-    tft.pushPixels((uint16_t *)color_p, (area->x2 - area->x1 + 1) * (area->y2 - area->y1 + 1));
-    tft.endWrite(); /* terminate TFT transaction */
+    tft.setSwapBytes(true);                                /* set endianess */
+    tft.pushPixels((uint16_t *)color_p, len);              /* Write words at once */
+    tft.endWrite();                                        /* terminate TFT transaction */
 
     /* Send Screenshot data */
     if(guiSnapshot != 0) {
-        gui_take_screenshot(disp, area, color_p);
+        gui_take_screenshot((uint8_t *)color_p, len * sizeof(lv_color_t)); /* Number of bytes */
     }
 
     /* Tell lvgl that flushing is done */
@@ -607,75 +628,57 @@ bool guiSetConfig(const JsonObject & settings)
     return changed;
 }
 
+static void guiSetBmpHeader(uint8_t * buffer_p, int32_t data)
+{
+    *buffer_p++ = data & 0xFF;
+    *buffer_p++ = (data >> 8) & 0xFF;
+    *buffer_p++ = (data >> 16) & 0xFF;
+    *buffer_p++ = (data >> 24) & 0xFF;
+}
+
 /** Send Bitmap Header.
  *
  * Sends a header in BMP format for the size of the screen.
  *
- * @note: data pixel should be formated to uint32_t RGBA. Imagemagick requirements.
+ * @note: send header before refreshing the whole screen
  *
  **/
-void guiSendBmpHeader()
+static void guiSendBmpHeader()
 {
     uint8_t buffer[128];
     memset(buffer, 0, sizeof(buffer));
+    int32_t res;
 
     lv_disp_t * disp = lv_disp_get_default();
-    buffer[0]        = 0x42;
-    buffer[1]        = 0x4D;
+    buffer[0]        = 0x42; // B
+    buffer[1]        = 0x4D; // M
 
     buffer[10 + 0] = 122;      // full header size
     buffer[14 + 0] = 122 - 14; // dib header size
     buffer[26 + 0] = 1;        // number of color planes
-    buffer[28 + 0] = 16;       // 24;                  // bbp
+    buffer[28 + 0] = 16;       // or 24, bbp
     buffer[30 + 0] = 3;        // compression, 0 = RGB / 3 = RGBA
 
     // file size
-    int32_t res   = 122 + disp->driver.hor_res * disp->driver.ver_res * buffer[28] / 8;
-    buffer[2 + 3] = (res >> 24) & 0xFF;
-    buffer[2 + 2] = (res >> 16) & 0xFF;
-    buffer[2 + 1] = (res >> 8) & 0xFF;
-    buffer[2 + 0] = res & 0xFF;
-
+    guiSetBmpHeader(&buffer[2], 122 + disp->driver.hor_res * disp->driver.ver_res * buffer[28] / 8);
     // horizontal resolution
-    res            = disp->driver.hor_res;
-    buffer[18 + 3] = (res >> 24) & 0xFF;
-    buffer[18 + 2] = (res >> 16) & 0xFF;
-    buffer[18 + 1] = (res >> 8) & 0xFF;
-    buffer[18 + 0] = res & 0xFF;
-
+    guiSetBmpHeader(&buffer[18], disp->driver.hor_res);
     // vertical resolution
-    res            = -disp->driver.ver_res; // top down lines
-    buffer[22 + 3] = (res >> 24) & 0xFF;
-    buffer[22 + 2] = (res >> 16) & 0xFF;
-    buffer[22 + 1] = (res >> 8) & 0xFF;
-    buffer[22 + 0] = res & 0xFF;
-
-    // bitmp size
-    res            = disp->driver.hor_res * disp->driver.ver_res * buffer[28 + 0] / 8; //* 2;
-    buffer[34 + 3] = (res >> 24) & 0xFF;
-    buffer[34 + 2] = (res >> 16) & 0xFF;
-    buffer[34 + 1] = (res >> 8) & 0xFF;
-    buffer[34 + 0] = res & 0xFF;
-
-    res            = 2836;
-    buffer[38 + 3] = (res >> 24) & 0xFF;
-    buffer[38 + 2] = (res >> 16) & 0xFF;
-    buffer[38 + 1] = (res >> 8) & 0xFF;
-    buffer[38 + 0] = res & 0xFF;
-    buffer[42 + 3] = (res >> 24) & 0xFF;
-    buffer[42 + 2] = (res >> 16) & 0xFF;
-    buffer[42 + 1] = (res >> 8) & 0xFF;
-    buffer[42 + 0] = res & 0xFF;
-
+    guiSetBmpHeader(&buffer[22], -disp->driver.ver_res);
+    // bitmap size
+    guiSetBmpHeader(&buffer[34], disp->driver.hor_res * disp->driver.ver_res * buffer[28 + 0] / 8);
+    // horizontal pixels per meter
+    guiSetBmpHeader(&buffer[38], 2836);
+    // vertical pixels per meter
+    guiSetBmpHeader(&buffer[42], 2836);
     // R: 1111 1000 | 0000 0000
-    buffer[54 + 1] = 0xF8;
+    guiSetBmpHeader(&buffer[54], 0xF800); // Red bitmask
     // G: 0000 0111 | 1110 0000
-    buffer[58 + 0] = 0xE0;
-    buffer[58 + 1] = 0x07;
+    guiSetBmpHeader(&buffer[58], 0x07E0); // Green bitmask
     // B: 0000 0000 | 0001 1111
-    buffer[62 + 0] = 0x1F;
+    guiSetBmpHeader(&buffer[62], 0x001F); // Blue bitmask
     // A: 0000 0000 | 0000 0000
-    // buffer[66 + 0] = 0x00;
+    guiSetBmpHeader(&buffer[66], 0x0000); // No Aplpha Mask
 
     // "Win
     buffer[70 + 3] = 0x57;
