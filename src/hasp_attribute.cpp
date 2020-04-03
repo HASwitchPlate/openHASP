@@ -32,12 +32,12 @@ static uint8_t lv_roller_get_visible_row_count(lv_obj_t * roller)
 }
 
 // OK
-static lv_color_t haspLogColor(lv_color_t color)
+static inline lv_color_t haspLogColor(lv_color_t color)
 {
-    uint8_t r = (LV_COLOR_GET_R(color) * 263 + 7) >> 5;
-    uint8_t g = (LV_COLOR_GET_G(color) * 259 + 3) >> 6;
-    uint8_t b = (LV_COLOR_GET_B(color) * 263 + 7) >> 5;
-    Log.trace(F("Color: R%u G%u B%u"), r, g, b);
+    // uint8_t r = (LV_COLOR_GET_R(color) * 263 + 7) >> 5;
+    // uint8_t g = (LV_COLOR_GET_G(color) * 259 + 3) >> 6;
+    // uint8_t b = (LV_COLOR_GET_B(color) * 263 + 7) >> 5;
+    // Log.trace(F("Color: R%u G%u B%u"), r, g, b);
     return color;
 }
 
@@ -603,6 +603,18 @@ static void hasp_process_obj_attribute1(lv_obj_t * obj, const char * attr, const
 }
 
 // OK
+static void hasp_process_obj_attribute2(lv_obj_t * obj, const char * attr, const char * payload, bool update)
+{
+    int16_t val = atoi(payload);
+
+    if(!strcmp_P(attr, PSTR("id"))) {
+        return update ? (void)(obj->user_data = (uint8_t)val) : hasp_out_int(obj, attr, obj->user_data);
+    }
+
+    hasp_local_style_attr(obj, attr, payload, update);
+}
+
+// OK
 static void hasp_process_obj_attribute3(lv_obj_t * obj, const char * attr, const char * payload, bool update)
 {
     int16_t val = atoi(payload);
@@ -640,6 +652,10 @@ static void hasp_process_obj_attribute4(lv_obj_t * obj, const char * attr, const
                           : hasp_out_int(obj, attr, lv_roller_get_visible_row_count(obj));
         }
     }
+
+    //    if(!strcmp_P(attr, PSTR("page"))) {
+    //        return lv_obj_set_parent;
+    //    }
 
     /* Attributes depending on objecttype */
     lv_obj_type_t list;
@@ -756,6 +772,9 @@ void hasp_process_obj_attribute(lv_obj_t * obj, const char * attr_p, const char 
     switch(strlen(attr)) {
         case 1:
             hasp_process_obj_attribute1(obj, attr, payload, update);
+            break;
+        case 2:
+            hasp_process_obj_attribute2(obj, attr, payload, update);
             break;
         case 4:
             hasp_process_obj_attribute4(obj, attr, payload, update);
