@@ -739,14 +739,14 @@ void guiTakeScreenshot(ESP8266WebServer & client)
     void guiTakeScreenshot(WebServer & client)
 #endif // ESP32{
 {
-    webClient = &client;
+    webClient        = &client;
+    lv_disp_t * disp = lv_disp_get_default();
 
-    guiSnapshot = 2;
-    webClient->setContentLength(122 + 320 * 240 * 2);
+    webClient->setContentLength(122 + disp->driver.hor_res * disp->driver.ver_res * sizeof(lv_color_t));
     webClient->send(200, PSTR("image/bmp"), "");
 
+    guiSnapshot = 2;
     guiSendBmpHeader();
-
     lv_obj_invalidate(lv_scr_act());
     lv_refr_now(NULL); /* Will call our disp_drv.disp_flush function */
     guiSnapshot = 0;
