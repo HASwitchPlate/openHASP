@@ -15,7 +15,7 @@
 #include "hasp_oobe.h"
 #include "hasp.h"
 
-#include "lv_ex_conf.h"
+//#include "lv_ex_conf.h"
 //#include "tpcal.h"
 
 #if HASP_USE_PNGDECODE
