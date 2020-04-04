@@ -13,10 +13,6 @@
 
 //#include "../lib/lvgl/src/lv_widgets/lv_roller.h"
 
-#if HASP_USE_QRCODE != 0
-#include "lv_qrcode.h"
-#endif
-
 #if HASP_USE_SPIFFS
 #if defined(ARDUINO_ARCH_ESP32)
 #include "lv_zifont.h"
@@ -69,9 +65,9 @@ char haspZiFontPath[32];
 /**********************
  *  STATIC VARIABLES
  **********************/
-static lv_style_t style_mbox_bg; /*Black bg. style with opacity*/
-static lv_obj_t * kb;
-static lv_font_t * defaultFont;
+lv_style_t style_mbox_bg; /*Black bg. style with opacity*/
+lv_obj_t * kb;
+lv_font_t * defaultFont;
 
 #if LV_DEMO_WALLPAPER
 LV_IMG_DECLARE(img_bubble_pattern)
@@ -97,7 +93,7 @@ static const char * btnm_map2[] = {"0",  "1", "\n", "2",  "3",  "\n", "4",  "5",
                                    "\n", "6", "7",  "\n", "P1", "P2", "P3", ""};
 */
 
-static lv_obj_t * pages[HASP_NUM_PAGES];
+lv_obj_t * pages[HASP_NUM_PAGES];
 #if defined(ARDUINO_ARCH_ESP8266)
 static lv_font_t * haspFonts[4];
 // static lv_style_t labelStyles[4];
@@ -321,20 +317,21 @@ void haspWakeUp()
 
 void haspDisconnect()
 {
-#if LVGL7
 
-#else
     /* Create a dark plain style for a message box's background (modal)*/
-    lv_style_copy(&style_mbox_bg, &lv_style_plain);
-    style_mbox_bg.body.main_color = LV_COLOR_BLACK;
-    style_mbox_bg.body.grad_color = LV_COLOR_BLACK;
-    style_mbox_bg.body.opa        = LV_OPA_60;
+    // lv_style_copy(&style_mbox_bg, &lv_style_plain);
+    // style_mbox_bg.body.main_color = LV_COLOR_BLACK;
+    // style_mbox_bg.body.grad_color = LV_COLOR_BLACK;
+    // style_mbox_bg.body.opa        = LV_OPA_60;
 
-    lv_obj_set_style(lv_disp_get_layer_sys(NULL), &style_mbox_bg);
-#endif
-    lv_obj_set_click(lv_disp_get_layer_sys(NULL), true);
-    lv_obj_set_event_cb(lv_disp_get_layer_sys(NULL), NULL);
-    lv_obj_set_user_data(lv_disp_get_layer_sys(NULL), 255);
+    // lv_obj_set_style(lv_disp_get_layer_sys(NULL), &style_mbox_bg);
+
+    /*
+        lv_obj_set_click(lv_disp_get_layer_sys(NULL), true);
+        lv_obj_set_event_cb(lv_disp_get_layer_sys(NULL), NULL);
+        lv_obj_set_user_data(lv_disp_get_layer_sys(NULL), 255);
+        */
+
     /*
         lv_obj_t * obj = lv_obj_get_child(lv_disp_get_layer_sys(NULL), NULL);
         lv_obj_set_hidden(obj, false);
@@ -346,8 +343,8 @@ void haspReconnect()
 {
     /*Revert the top layer to not block*/
     // lv_obj_set_style(lv_disp_get_layer_sys(NULL), &lv_style_transp);
-    lv_obj_set_click(lv_disp_get_layer_sys(NULL), false);
-    lv_obj_set_event_cb(lv_disp_get_layer_sys(NULL), btn_event_handler);
+    // lv_obj_set_click(lv_disp_get_layer_sys(NULL), false);
+    // lv_obj_set_event_cb(lv_disp_get_layer_sys(NULL), btn_event_handler);
     /*
         lv_obj_t * obj = lv_obj_get_child(lv_disp_get_layer_sys(NULL), NULL);
         lv_obj_set_hidden(obj, true);
@@ -355,201 +352,10 @@ void haspReconnect()
         lv_obj_set_hidden(obj, true);*/
 }
 
-void gotoPage1(lv_obj_t * event_kb, lv_event_t event)
-{
-    if(event == LV_EVENT_RELEASED) {
-        lv_obj_set_click(lv_disp_get_layer_sys(NULL), false);
-        haspSetPage(1);
-    }
-}
-
-void haspDisplayAP(const char * ssid, const char * pass)
-{
-    guiSetDim(100);
-
-    String txt((char *)0);
-    txt.reserve(64);
-
-    char buffer[128];
-    snprintf_P(buffer, sizeof(buffer), PSTR("WIFI:S:%s;T:WPA;P:%s;;"), ssid, pass);
-
-    /*Clear all screens*/
-    for(uint8_t i = 0; i < (sizeof pages / sizeof *pages); i++) {
-        lv_obj_clean(pages[i]);
-    }
-
-#if HASP_USE_QRCODE != 0
-    lv_obj_t * qr = lv_qrcode_create(pages[0], 120, LV_COLOR_BLACK, LV_COLOR_WHITE);
-    lv_obj_align(qr, NULL, LV_ALIGN_CENTER, 0, 50);
-    lv_qrcode_update(qr, buffer, strlen(buffer));
-#endif
-
-    lv_obj_t * panel = lv_cont_create(pages[0], NULL);
-    // lv_obj_set_style(panel, &lv_style_pretty);
-#if HASP_USE_QRCODE != 0
-    lv_obj_align(panel, qr, LV_ALIGN_OUT_TOP_MID, 0, -20);
-#endif
-    lv_label_set_align(panel, LV_LABEL_ALIGN_CENTER);
-    lv_cont_set_fit(panel, LV_FIT_TIGHT);
-    // lv_cont_set_layout(panel, LV_LAYOUT_COL_M);
-
-    txt                = String(LV_SYMBOL_WIFI) + String(ssid);
-    lv_obj_t * network = lv_label_create(panel, NULL);
-    lv_label_set_text(network, txt.c_str());
-
-    lv_obj_t * password = lv_label_create(panel, NULL);
-    txt                 = String(F("\xef\x80\xA3")) + String(pass);
-    lv_label_set_text(password, txt.c_str());
-
-    haspSetPage(0);
-    lv_obj_set_click(lv_disp_get_layer_sys(NULL), true);
-    lv_obj_set_event_cb(lv_disp_get_layer_sys(NULL), gotoPage1);
-
-    haspFirstSetup();
-    // lv_obj_set_style(lv_disp_get_layer_sys(NULL), &lv_style_transp);
-}
-
-static void kb_event_cb(lv_obj_t * event_kb, lv_event_t event)
-{
-    if(event == LV_EVENT_APPLY) {
-        char ssid[32];
-        char pass[32];
-
-        DynamicJsonDocument settings(256);
-
-        lv_obj_t * child;
-        child = lv_obj_get_child(pages[1], NULL);
-        while(child) {
-            if(child->user_data) {
-                lv_obj_user_data_t objid = 10;
-                if(objid == child->user_data) {
-                    strncpy(ssid, lv_textarea_get_text(child), sizeof(ssid));
-                    settings[FPSTR(F_CONFIG_SSID)] = ssid;
-                    // if(kb != NULL) lv_keyboard_set_ta(kb, child);
-                }
-                objid = 20;
-                if(objid == child->user_data) {
-                    strncpy(pass, lv_textarea_get_text(child), sizeof(pass));
-                    settings[FPSTR(F_CONFIG_PASS)] = pass;
-                }
-            }
-
-            /* next sibling */
-            child = lv_obj_get_child(pages[1], child);
-        }
-
-        if(strlen(ssid) > 0) {
-            wifiSetConfig(settings.as<JsonObject>());
-            dispatchReboot(true);
-        }
-
-    } else if(event == LV_EVENT_CANCEL) {
-        haspSetPage(0);
-        lv_obj_set_click(lv_disp_get_layer_sys(NULL), true);
-    } else {
-
-        /* prevent double presses, swipes and ghost press on tiny keyboard */
-        if(event == LV_EVENT_RELEASED) lv_keyboard_def_event_cb(event_kb, LV_EVENT_VALUE_CHANGED);
-        /* Just call the regular event handler */
-        // lv_kb_def_event_cb(event_kb, event);
-    }
-}
-static void ta_event_cb(lv_obj_t * ta, lv_event_t event)
-{
-    if(event == LV_EVENT_CLICKED) {
-        /* Focus on the clicked text area */
-        // if(kb != NULL) lv_keyboard_set_ta(kb, ta);
-    }
-
-    else if(event == LV_EVENT_INSERT) {
-        const char * str = (const char *)lv_event_get_data();
-        if(str[0] == '\n') {
-            // printf("Ready\n");
-        } else {
-            // printf("%s\n", lv_ta_get_text(ta));
-        }
-    }
-}
-
-void haspFirstSetup(void)
-{
-    /*Create styles for the keyboard*/
-    static lv_style_t rel_style, pr_style;
-
-    lv_coord_t leftmargin, topmargin, voffset;
-    lv_align_t labelpos;
-
-    lv_disp_t * disp = lv_disp_get_default();
-    if(disp->driver.hor_res <= disp->driver.ver_res) {
-        leftmargin = 0;
-        topmargin  = -35;
-        voffset    = 12;
-        labelpos   = LV_ALIGN_OUT_TOP_LEFT;
-    } else {
-        leftmargin = 100;
-        topmargin  = -14;
-        voffset    = 20;
-        labelpos   = LV_ALIGN_OUT_LEFT_MID;
-    }
-
-#if LVGL7
-#else
-    lv_style_copy(&rel_style, &lv_style_btn_rel);
-    rel_style.body.radius       = 0;
-    rel_style.body.border.width = 1;
-    rel_style.text.font         = LV_FONT_DEFAULT;
-
-    lv_style_copy(&pr_style, &lv_style_btn_pr);
-    pr_style.body.radius       = 0;
-    pr_style.body.border.width = 1;
-    rel_style.text.font        = LV_FONT_DEFAULT;
-
-    /* Create the password box */
-    lv_obj_t * pwd_ta = lv_ta_create(pages[1], NULL);
-    lv_ta_set_text(pwd_ta, "");
-    lv_ta_set_max_length(pwd_ta, 32);
-    lv_ta_set_pwd_mode(pwd_ta, true);
-    lv_ta_set_one_line(pwd_ta, true);
-    lv_obj_set_user_data(pwd_ta, 20);
-    lv_obj_set_width(pwd_ta, disp->driver.hor_res - leftmargin - 20);
-    lv_obj_set_event_cb(pwd_ta, ta_event_cb);
-    lv_obj_align(pwd_ta, NULL, LV_ALIGN_CENTER, leftmargin / 2, topmargin - voffset);
-
-    /* Create the one-line mode text area */
-    lv_obj_t * oneline_ta = lv_ta_create(pages[1], pwd_ta);
-    lv_ta_set_pwd_mode(oneline_ta, false);
-    lv_obj_set_user_data(oneline_ta, 10);
-    lv_ta_set_cursor_type(oneline_ta, LV_CURSOR_LINE | LV_CURSOR_HIDDEN);
-    lv_obj_align(oneline_ta, pwd_ta, LV_ALIGN_OUT_TOP_MID, 0, topmargin);
-
-    /* Create a label and position it above the text box */
-    lv_obj_t * pwd_label = lv_label_create(pages[1], NULL);
-    lv_label_set_text(pwd_label, "Password:");
-    lv_obj_align(pwd_label, pwd_ta, labelpos, 0, 0);
-
-    /* Create a label and position it above the text box */
-    lv_obj_t * oneline_label = lv_label_create(pages[1], NULL);
-    lv_label_set_text(oneline_label, "Ssid:");
-    lv_obj_align(oneline_label, oneline_ta, labelpos, 0, 0);
-
-    /* Create a keyboard and make it fill the width of the above text areas */
-    kb = lv_kb_create(pages[1], NULL);
-    // lv_obj_set_pos(kb, 5, 90);
-    lv_obj_set_event_cb(kb,
-                        kb_event_cb); /* Setting a custom event handler stops the keyboard from closing automatically */
-    lv_kb_set_style(kb, LV_KB_STYLE_BG, &lv_style_transp_tight);
-    lv_kb_set_style(kb, LV_KB_STYLE_BTN_REL, &rel_style);
-    lv_kb_set_style(kb, LV_KB_STYLE_BTN_PR, &pr_style);
-
-    lv_kb_set_ta(kb, oneline_ta);              /* Focus it on one of the text areas to start */
-    lv_kb_set_cursor_manage(oneline_ta, true); /* Automatically show/hide cursors on text areas */
-#endif
-}
-
 /**
  * Create a demo application
  */
-void haspSetup(JsonObject settings)
+void haspSetup()
 {
     guiSetDim(haspStartDim);
 

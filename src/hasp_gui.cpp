@@ -12,7 +12,11 @@
 #include "hasp_config.h"
 #include "hasp_dispatch.h"
 #include "hasp_gui.h"
+#include "hasp_oobe.h"
 #include "hasp.h"
+
+#include "lv_ex_conf.h"
+//#include "tpcal.h"
 
 #if HASP_USE_PNGDECODE
 #include "png_decoder.h"
@@ -54,7 +58,6 @@ static bool guiShowPointer    = false;
 static bool guiBacklightIsOn  = true;
 static int8_t guiDimLevel     = -1;
 static int8_t guiBacklightPin = TFT_BCKL;
-static bool guiAutoCalibrate  = true;
 static uint16_t guiSleepTime1 = 60;  // 1 second resolution
 static uint16_t guiSleepTime2 = 120; // 1 second resolution
 static uint8_t guiSleeping    = 0;   // 0 = off, 1 = short, 2 = long
@@ -161,7 +164,7 @@ static void gui_take_screenshot(uint8_t * data_p, size_t len)
             res = pFileOut.write(data_p, len);
             break;
         case 2:
-            len = webClient->client().write(data_p, len);
+            res = webClient->client().write(data_p, len);
             break;
         default:
             res = 0; // nothing to do
@@ -297,12 +300,83 @@ static void IRAM_ATTR lv_tick_handler(void)
     return false;
 }*/
 
-void guiFirstCalibration()
+#define _RAWERR 20 // Deadband error allowed in successive position samples
+uint8_t validTouch(uint16_t * x, uint16_t * y, uint16_t threshold)
 {
-    guiSetDim(100);
-    dispatchCommand(F("calibrate"));
-    guiAutoCalibrate = false;
-    // haspFirstSetup();
+    uint16_t x_tmp, y_tmp, x_tmp2, y_tmp2;
+
+    // Wait until pressure stops increasing to debounce pressure
+    uint16_t z1 = 1;
+    uint16_t z2 = 0;
+    while(z1 > z2) {
+        z2 = z1;
+        z1 = tft.getTouchRawZ();
+        delay(1);
+    }
+
+    //  Serial.print("Z = ");Serial.println(z1);
+
+    if(z1 <= threshold) return false;
+
+    tft.getTouchRaw(&x_tmp, &y_tmp);
+
+    //  Serial.print("Sample 1 x,y = "); Serial.print(x_tmp);Serial.print(",");Serial.print(y_tmp);
+    //  Serial.print(", Z = ");Serial.println(z1);
+
+    delay(1); // Small delay to the next sample
+    if(tft.getTouchRawZ() <= threshold) return false;
+
+    delay(2); // Small delay to the next sample
+    tft.getTouchRaw(&x_tmp2, &y_tmp2);
+
+    //  Serial.print("Sample 2 x,y = "); Serial.print(x_tmp2);Serial.print(",");Serial.println(y_tmp2);
+    //  Serial.print("Sample difference = ");Serial.print(abs(x_tmp -
+    //  x_tmp2));Serial.print(",");Serial.println(abs(y_tmp - y_tmp2));
+
+    if(abs(x_tmp - x_tmp2) > _RAWERR) return false;
+    if(abs(y_tmp - y_tmp2) > _RAWERR) return false;
+
+    *x = x_tmp;
+    *y = y_tmp;
+
+    return true;
+}
+
+bool my_touchpad_read_raw(lv_indev_drv_t * indev_driver, lv_indev_data_t * data)
+{
+#ifdef TOUCH_CS
+    uint16_t touchX, touchY;
+
+    bool touched = validTouch(&touchX, &touchY, 600u / 2);
+    if(!touched) return false;
+
+    // if(touchCounter < 255) {
+    //     touchCounter++;
+
+    //     // Store the raw touches
+    //     if(touchCounter >= 8) {
+    //         touchPoints[touchCorner].x /= touchCounter;
+    //         touchPoints[touchCorner].y /= touchCounter;
+    //         touchCounter = 255;
+    //     } else {
+    //         touchPoints[touchCorner].x += touchX;
+    //         touchPoints[touchCorner].y += touchY;
+    //     }
+    // }
+
+    if(guiSleeping > 0) guiCheckSleep(); // update Idle
+
+    /*Save the state and save the pressed coordinate*/
+    // lv_disp_t * disp = lv_disp_get_default();
+    data->state   = touched ? LV_INDEV_STATE_PR : LV_INDEV_STATE_REL;
+    data->point.x = touchX; // 20 + (disp->driver.hor_res - 40) * (touchCorner % 2);
+    data->point.y = touchY; // 20 + (disp->driver.ver_res - 40) * (touchCorner / 2);
+
+    Log.trace(F("Calibrate touch %u / %u"), touchX, touchY);
+
+#endif
+
+    return false; /*Return `false` because we are not buffering and no more data to read*/
 }
 
 bool IRAM_ATTR my_touchpad_read(lv_indev_drv_t * indev_driver, lv_indev_data_t * data)
@@ -312,11 +386,6 @@ bool IRAM_ATTR my_touchpad_read(lv_indev_drv_t * indev_driver, lv_indev_data_t *
 
     bool touched = tft.getTouch(&touchX, &touchY, 600);
     if(!touched) return false;
-
-    if(guiAutoCalibrate) {
-        guiFirstCalibration();
-        return false;
-    }
 
     if(guiSleeping > 0) guiCheckSleep(); // update Idle
 
@@ -368,7 +437,7 @@ void guiCalibrate()
 #endif
 }
 
-void guiSetup(const JsonObject & settings)
+void guiSetup()
 {
     /* TFT init */
     tft.begin();
@@ -406,7 +475,7 @@ void guiSetup(const JsonObject & settings)
 #endif
 
     /* Dump TFT Cofiguration */
-    tftSetup(tft, settings[F("tft")]);
+    tftSetup(tft);
 
     /* Load User Settings */
     // guiSetConfig(settings);
@@ -425,7 +494,6 @@ void guiSetup(const JsonObject & settings)
 #endif
     }
 
-    // char buffer[128];
     Log.verbose(F("LVGL: Version  : %u.%u.%u %s"), LVGL_VERSION_MAJOR, LVGL_VERSION_MINOR, LVGL_VERSION_PATCH,
                 PSTR(LVGL_VERSION_INFO));
     Log.verbose(F("LVGL: Rotation : %d"), guiRotation);
@@ -445,12 +513,12 @@ void guiSetup(const JsonObject & settings)
     if(guiRotation == 0 || guiRotation == 2 || guiRotation == 4 || guiRotation == 6) {
         /* 1/3=Landscape or 0/2=Portrait orientation */
         // Normal width & height
-        disp_drv.hor_res = TFT_WIDTH;  // From User_Setup.h
-        disp_drv.ver_res = TFT_HEIGHT; // From User_Setup.h
+        disp_drv.hor_res = TFT_WIDTH;
+        disp_drv.ver_res = TFT_HEIGHT;
     } else {
         // Swapped width & height
-        disp_drv.hor_res = TFT_HEIGHT; // From User_Setup.h
-        disp_drv.ver_res = TFT_WIDTH;  // From User_Setup.h
+        disp_drv.hor_res = TFT_HEIGHT;
+        disp_drv.ver_res = TFT_WIDTH;
     }
     lv_disp_drv_register(&disp_drv);
 
@@ -463,10 +531,17 @@ void guiSetup(const JsonObject & settings)
     indev_drv.read_cb        = my_touchpad_read;
     lv_indev_t * mouse_indev = lv_indev_drv_register(&indev_drv);
 
-    if(guiShowPointer) {
-        lv_obj_t * label = lv_label_create(lv_layer_sys(), NULL);
-        lv_label_set_text(label, "<");
-        lv_indev_set_cursor(mouse_indev, label); // connect the object to the driver
+    if(guiShowPointer || true) {
+        //        lv_obj_t * label = lv_label_create(lv_layer_sys(), NULL);
+        //        lv_label_set_text(label, "<");
+        //        lv_indev_set_cursor(mouse_indev, label); // connect the object to the driver
+
+        /*Set a cursor for the mouse*/
+        LV_IMG_DECLARE(mouse_cursor_icon); /*Declare the image file.*/
+        lv_obj_t * cursor_obj =
+            lv_img_create(lv_disp_get_scr_act(NULL), NULL); /*Create an image object for the cursor */
+        lv_img_set_src(cursor_obj, &mouse_cursor_icon);     /*Set the image source*/
+        lv_indev_set_cursor(mouse_indev, cursor_obj);       /*Connect the image  object to the driver*/
     }
 
     /*
@@ -616,10 +691,13 @@ bool guiSetConfig(const JsonObject & settings)
             i++;
         }
 
-        if(status) {
+        if(calData[0] != 0 || calData[1] != 65535 || calData[2] != 0 || calData[3] != 65535) {
             Log.trace(F("calData set [%u, %u, %u, %u, %u]"), calData[0], calData[1], calData[2], calData[3],
                       calData[4]);
-            guiAutoCalibrate = false;
+            oobeSetAutoCalibrate(true);
+        } else {
+            Log.notice(F("First Touch Calibration enabled"));
+            oobeSetAutoCalibrate(true);
         }
 
         changed |= status;

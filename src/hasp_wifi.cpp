@@ -136,26 +136,9 @@ void wifiSetup()
     char buffer[128];
 
     if(strlen(wifiSsid) == 0) {
-        String apSsdid = F("HASP-");
-        apSsdid += wifiGetMacAddress(3, "");
-        snprintf_P(buffer, sizeof(buffer), PSTR("haspadmin"));
-
         WiFi.mode(WIFI_AP);
-        WiFi.softAP(apSsdid.c_str(), buffer);
-        // haspDisplayAP(apSsdid.c_str(), buffer);
-
-        /* Setup the DNS server redirecting all the domains to the apIP */
-        // dnsServer.setErrorReplyCode(DNSReplyCode::NoError);
-        // dnsServer.start(DNS_PORT, "*", apIP);
-
-        IPAddress IP = WiFi.softAPIP();
-        Log.warning(F("WIFI: Temporary Access Point %s password: %s"), apSsdid.c_str(), PSTR("haspadmin"));
-        Log.warning(F("WIFI: AP IP address : %s"), IP.toString().c_str());
-        // httpReconnect();
     } else {
-
         WiFi.mode(WIFI_STA);
-        Log.notice(F("WIFI: Connecting to : %s"), wifiSsid);
 
 #if defined(ARDUINO_ARCH_ESP8266)
         // wifiEventHandler[0]      = WiFi.onStationModeConnected(wifiSTAConnected);
@@ -167,9 +150,36 @@ void wifiSetup()
         WiFi.onEvent(wifi_callback);
         WiFi.setSleep(false);
 #endif
-
         WiFi.begin(wifiSsid, wifiPassword);
+        Log.notice(F("WIFI: Connecting to : %s"), wifiSsid);
     }
+}
+
+bool wifiConfigured()
+{
+    return (strlen(wifiSsid) >= 0);
+}
+
+bool wifiShowAP(char * ssid, char * pass)
+{
+    // if(WiFi.mode != WIFI_AP) return false;
+
+    byte mac[6];
+    WiFi.macAddress(mac);
+    sprintf_P(ssid, PSTR("HASP-%02x%02x%02x"), mac[3], mac[4], mac[5]);
+    sprintf_P(pass, PSTR("haspadmin"));
+
+    // WiFi.softAP(ssid, pass);
+
+    /* Setup the DNS server redirecting all the domains to the apIP */
+    // dnsServer.setErrorReplyCode(DNSReplyCode::NoError);
+    // dnsServer.start(DNS_PORT, "*", apIP);
+
+    Log.warning(F("WIFI: Temporary Access Point %s password: %s"), ssid, pass);
+    Log.warning(F("WIFI: AP IP address : %s"), WiFi.softAPIP().toString().c_str());
+    // httpReconnect();}
+
+    return true;
 }
 
 bool wifiEvery5Seconds()

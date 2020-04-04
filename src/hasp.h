@@ -61,7 +61,6 @@ enum lv_hasp_obj_type_t {
  */
 void haspSetup();
 void haspLoop(void);
-void haspFirstSetup(void);
 
 void haspSetPage(uint8_t id);
 uint8_t haspGetPage();
@@ -82,7 +81,6 @@ void haspNewObject(const JsonObject & config, uint8_t & saved_page_id);
 
 void haspReconnect(void);
 void haspDisconnect(void);
-void haspDisplayAP(const char * ssid, const char * pass);
 void haspWakeUp(void);
 
 bool haspGetConfig(const JsonObject & settings);

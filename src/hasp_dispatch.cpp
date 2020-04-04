@@ -125,7 +125,7 @@ void dispatchAttribute(String strTopic, const char * payload)
         dispatchWebUpdate(payload);
 
     } else if(strTopic == F("setupap")) {
-        haspDisplayAP(String(F("HASP-ABC123")).c_str(), String(F("haspadmin")).c_str());
+        // haspDisplayAP(String(F("HASP-ABC123")).c_str(), String(F("haspadmin")).c_str());
 
     } else if(strTopic.length() == 7 && strTopic.startsWith(F("output"))) {
         dispatchOutput(strTopic, payload);
@@ -189,7 +189,7 @@ void dispatchBacklight(String strPayload)
 
 void dispatchCommand(String cmnd)
 {
-    dispatchPrintln(F("CMND"), cmnd);
+    // dispatchPrintln(F("CMND"), cmnd);
 
     if(cmnd.startsWith(F("page "))) {
         cmnd = cmnd.substring(5, cmnd.length());
@@ -260,7 +260,7 @@ void dispatchJsonl(char * payload)
     stream.print(payload);
     while(deserializeJson(config, stream) == DeserializationError::Ok) {
         serializeJson(config, Serial);
-        // Serial.println();
+        Serial.println();
         haspNewObject(config.as<JsonObject>(), savedPage);
     }
 }
