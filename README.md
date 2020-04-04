@@ -16,11 +16,11 @@ This version also adds ESP32 support to take advantage of the additional hardwar
 
 | Feature                 | ESP8266 | ESP32
 |-------------------------|---------|---------
-| SPI display             | :white_check_mark: yes | :white_check_mark: yes<
-| Parallel display        | :x: no</li> | *tbd*
+| SPI display             | :white_check_mark: yes | :white_check_mark: yes
+| Parallel display        | :x: no | :grey_question: tbd
 | PWM Screen dimming      | :white_check_mark: yes | :white_check_mark: yes
 | Maximum Page Count      | 4       | 12
-| Object Types / Widgets  | 14  | 15
+| Object Types / Widgets  | 14      | 15
 | Dynamic Objects         | :white_check_mark: yes | :white_check_mark: yes
 | [Lvgl Theme Support][3] | basic only | all themes
 | [Custom .zi V5 font][4] | :white_check_mark: yes (latin1) | :white_check_mark: yes (latin1)
