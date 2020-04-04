@@ -300,84 +300,84 @@ static void IRAM_ATTR lv_tick_handler(void)
     return false;
 }*/
 
-#define _RAWERR 20 // Deadband error allowed in successive position samples
-uint8_t validTouch(uint16_t * x, uint16_t * y, uint16_t threshold)
-{
-    uint16_t x_tmp, y_tmp, x_tmp2, y_tmp2;
+// #define _RAWERR 20 // Deadband error allowed in successive position samples
+// uint8_t validTouch(uint16_t * x, uint16_t * y, uint16_t threshold)
+// {
+//     uint16_t x_tmp, y_tmp, x_tmp2, y_tmp2;
 
-    // Wait until pressure stops increasing to debounce pressure
-    uint16_t z1 = 1;
-    uint16_t z2 = 0;
-    while(z1 > z2) {
-        z2 = z1;
-        z1 = tft.getTouchRawZ();
-        delay(1);
-    }
+//     // Wait until pressure stops increasing to debounce pressure
+//     uint16_t z1 = 1;
+//     uint16_t z2 = 0;
+//     while(z1 > z2) {
+//         z2 = z1;
+//         z1 = tft.getTouchRawZ();
+//         delay(1);
+//     }
 
-    //  Serial.print("Z = ");Serial.println(z1);
+//     //  Serial.print("Z = ");Serial.println(z1);
 
-    if(z1 <= threshold) return false;
+//     if(z1 <= threshold) return false;
 
-    tft.getTouchRaw(&x_tmp, &y_tmp);
+//     tft.getTouchRaw(&x_tmp, &y_tmp);
 
-    //  Serial.print("Sample 1 x,y = "); Serial.print(x_tmp);Serial.print(",");Serial.print(y_tmp);
-    //  Serial.print(", Z = ");Serial.println(z1);
+//     //  Serial.print("Sample 1 x,y = "); Serial.print(x_tmp);Serial.print(",");Serial.print(y_tmp);
+//     //  Serial.print(", Z = ");Serial.println(z1);
 
-    delay(1); // Small delay to the next sample
-    if(tft.getTouchRawZ() <= threshold) return false;
+//     delay(1); // Small delay to the next sample
+//     if(tft.getTouchRawZ() <= threshold) return false;
 
-    delay(2); // Small delay to the next sample
-    tft.getTouchRaw(&x_tmp2, &y_tmp2);
+//     delay(2); // Small delay to the next sample
+//     tft.getTouchRaw(&x_tmp2, &y_tmp2);
 
-    //  Serial.print("Sample 2 x,y = "); Serial.print(x_tmp2);Serial.print(",");Serial.println(y_tmp2);
-    //  Serial.print("Sample difference = ");Serial.print(abs(x_tmp -
-    //  x_tmp2));Serial.print(",");Serial.println(abs(y_tmp - y_tmp2));
+//     //  Serial.print("Sample 2 x,y = "); Serial.print(x_tmp2);Serial.print(",");Serial.println(y_tmp2);
+//     //  Serial.print("Sample difference = ");Serial.print(abs(x_tmp -
+//     //  x_tmp2));Serial.print(",");Serial.println(abs(y_tmp - y_tmp2));
 
-    if(abs(x_tmp - x_tmp2) > _RAWERR) return false;
-    if(abs(y_tmp - y_tmp2) > _RAWERR) return false;
+//     if(abs(x_tmp - x_tmp2) > _RAWERR) return false;
+//     if(abs(y_tmp - y_tmp2) > _RAWERR) return false;
 
-    *x = x_tmp;
-    *y = y_tmp;
+//     *x = x_tmp;
+//     *y = y_tmp;
 
-    return true;
-}
+//     return true;
+// }
 
-bool my_touchpad_read_raw(lv_indev_drv_t * indev_driver, lv_indev_data_t * data)
-{
-#ifdef TOUCH_CS
-    uint16_t touchX, touchY;
+// bool my_touchpad_read_raw(lv_indev_drv_t * indev_driver, lv_indev_data_t * data)
+// {
+// #ifdef TOUCH_CS
+//     uint16_t touchX, touchY;
 
-    bool touched = validTouch(&touchX, &touchY, 600u / 2);
-    if(!touched) return false;
+//     bool touched = validTouch(&touchX, &touchY, 600u / 2);
+//     if(!touched) return false;
 
-    // if(touchCounter < 255) {
-    //     touchCounter++;
+//     // if(touchCounter < 255) {
+//     //     touchCounter++;
 
-    //     // Store the raw touches
-    //     if(touchCounter >= 8) {
-    //         touchPoints[touchCorner].x /= touchCounter;
-    //         touchPoints[touchCorner].y /= touchCounter;
-    //         touchCounter = 255;
-    //     } else {
-    //         touchPoints[touchCorner].x += touchX;
-    //         touchPoints[touchCorner].y += touchY;
-    //     }
-    // }
+//     //     // Store the raw touches
+//     //     if(touchCounter >= 8) {
+//     //         touchPoints[touchCorner].x /= touchCounter;
+//     //         touchPoints[touchCorner].y /= touchCounter;
+//     //         touchCounter = 255;
+//     //     } else {
+//     //         touchPoints[touchCorner].x += touchX;
+//     //         touchPoints[touchCorner].y += touchY;
+//     //     }
+//     // }
 
-    if(guiSleeping > 0) guiCheckSleep(); // update Idle
+//     if(guiSleeping > 0) guiCheckSleep(); // update Idle
 
-    /*Save the state and save the pressed coordinate*/
-    // lv_disp_t * disp = lv_disp_get_default();
-    data->state   = touched ? LV_INDEV_STATE_PR : LV_INDEV_STATE_REL;
-    data->point.x = touchX; // 20 + (disp->driver.hor_res - 40) * (touchCorner % 2);
-    data->point.y = touchY; // 20 + (disp->driver.ver_res - 40) * (touchCorner / 2);
+//     /*Save the state and save the pressed coordinate*/
+//     // lv_disp_t * disp = lv_disp_get_default();
+//     data->state   = touched ? LV_INDEV_STATE_PR : LV_INDEV_STATE_REL;
+//     data->point.x = touchX; // 20 + (disp->driver.hor_res - 40) * (touchCorner % 2);
+//     data->point.y = touchY; // 20 + (disp->driver.ver_res - 40) * (touchCorner / 2);
 
-    Log.trace(F("Calibrate touch %u / %u"), touchX, touchY);
+//     Log.trace(F("Calibrate touch %u / %u"), touchX, touchY);
 
-#endif
+// #endif
 
-    return false; /*Return `false` because we are not buffering and no more data to read*/
-}
+//     return false; /*Return `false` because we are not buffering and no more data to read*/
+// }
 
 bool IRAM_ATTR my_touchpad_read(lv_indev_drv_t * indev_driver, lv_indev_data_t * data)
 {
