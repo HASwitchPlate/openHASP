@@ -133,12 +133,12 @@ void IRAM_ATTR mqtt_send_state(const __FlashStringHelper * subtopic, const char 
     Log.notice(F("MQTT OUT: %sstate/%S = %s"), mqttNodeTopic, subtopic, payload);
 }
 
-void IRAM_ATTR mqtt_send_input(uint8_t id, const char * payload)
+void mqtt_send_input(uint8_t id, const char * payload)
 {
-    Log.trace(F("MQTT TST: %sstate/input%u = %s"), mqttNodeTopic, id, payload); // to be remove
+    // Log.trace(F("MQTT TST: %sstate/input%u = %s"), mqttNodeTopic, id, payload); // to be removed
 
     if(mqttIsConnected()) {
-        char topic[40];
+        char topic[64];
         snprintf_P(topic, sizeof(topic), PSTR("%sstate/input%u"), mqttNodeTopic, id);
         mqttClient.publish(topic, payload);
     } else {
@@ -152,8 +152,8 @@ void IRAM_ATTR mqtt_send_input(uint8_t id, const char * payload)
 void IRAM_ATTR mqtt_send_obj_attribute_str(uint8_t pageid, uint8_t btnid, const char * attribute, const char * data)
 {
     if(mqttIsConnected()) {
-        char topic[64];
         char payload[128];
+        char topic[64];
 
         snprintf_P(topic, sizeof(topic), PSTR("%sstate/json"), mqttNodeTopic);
         unsigned int len =
@@ -169,68 +169,36 @@ void IRAM_ATTR mqtt_send_obj_attribute_str(uint8_t pageid, uint8_t btnid, const 
                data);
 }
 
-/*void IRAM_ATTR mqtt_send_attribute_P(uint8_t pageid, uint8_t btnid, const char * attr, const char * data)
-{
-    char * buffer;
-    buffer = (char *)malloc(strlen_P(attr) + 1);
-    strcpy_P(buffer, attr);
-    mqtt_send_attribute_str(pageid, btnid, buffer, data);
-    free(buffer);
-}
-
-void IRAM_ATTR mqtt_send_attribute_txt(uint8_t pageid, uint8_t btnid, const char * txt)
-{
-    mqtt_send_attribute_P(pageid, btnid, PSTR("txt"), txt);
-}
-
-void IRAM_ATTR mqtt_send_attribute_val(uint8_t pageid, uint8_t btnid, int32_t val)
-{
-    char data[64];
-    itoa(val, data, 10);
-    mqtt_send_attribute_P(pageid, btnid, PSTR("val"), data);
-}
-
-void IRAM_ATTR mqtt_send_attribute_event(uint8_t pageid, uint8_t btnid, const char * event)
-{
-    mqtt_send_attribute_P(pageid, btnid, PSTR("event"), event);
-}*/
-
 void mqtt_send_statusupdate()
 { // Periodically publish a JSON string indicating system status
-    //    String mqttStatusPayload((char *)0);
-    //    mqttStatusPayload.reserve(512);
-    debugLastMillis = millis();
+    char data[3 * 128];
+    {
+        char buffer[128];
 
-    DynamicJsonDocument doc(3 * 128);
-
-    doc[F("status")] = F("available");
-
-    doc[F("version")] = haspGetVersion();
-    doc[F("uptime")]  = long(millis() / 1000);
-
-    doc[F("rssi")] = WiFi.RSSI();
-    doc[F("ip")]   = WiFi.localIP().toString();
-
-    doc[F("heapFree")] = ESP.getFreeHeap();
-    doc[F("heapFrag")] = halGetHeapFragmentation();
-
-    doc[F("espCanUpdate")] = false;
-    doc[F("espCore")]      = halGetCoreVersion();
-
-    doc[F("page")]     = haspGetPage();
-    doc[F("numPages")] = (HASP_NUM_PAGES);
-
-    doc[F("tftDriver")] = tftDriverName();
-    doc[F("tftWidth")]  = (TFT_WIDTH);
-    doc[F("tftHeight")] = (TFT_HEIGHT);
+        snprintf_P(data, sizeof(data), PSTR("{\"status\":\"available\",\"version\":\"%s\",\"uptime\":%lu,"),
+                   haspGetVersion().c_str(), long(millis() / 1000));
+        strcat(buffer, data);
+        snprintf_P(buffer, sizeof(buffer), PSTR("\"ssid\":\"%s\",\"rssi\":%i,\"ip\":\"%s\","), WiFi.SSID().c_str(),
+                   WiFi.RSSI(), WiFi.localIP().toString().c_str());
+        strcat(data, buffer);
+        snprintf_P(buffer, sizeof(buffer), PSTR("\"heapFree\":%u,\"heapFrag\":%u,\"espCore\":\"%s\","),
+                   ESP.getFreeHeap(), halGetHeapFragmentation(), halGetCoreVersion().c_str());
+        strcat(data, buffer);
+        snprintf_P(buffer, sizeof(buffer), PSTR("\"espCanUpdate\":\"false\",\"page\":%u,\"numPages\":%u,"),
+                   haspGetPage(), (HASP_NUM_PAGES));
+        strcat(data, buffer);
 
 #if defined(ARDUINO_ARCH_ESP8266)
-    doc[F("espVcc")] = (float)ESP.getVcc() / 1000;
+        snprintf_P(buffer, sizeof(buffer), PSTR("\"espVcc\":%.2f,"), (float)ESP.getVcc() / 1000);
+        strcat(data, buffer);
 #endif
 
-    char buffer[2 * 128];
-    size_t n = serializeJson(doc, buffer, sizeof(buffer));
-    mqtt_send_state(F("statusupdate"), buffer);
+        snprintf_P(buffer, sizeof(buffer), PSTR("\"tftDriver\":\"%s\",\"tftWidth\":%u,\"tftHeight\":%u}"),
+                   tftDriverName().c_str(), (TFT_WIDTH), (TFT_HEIGHT));
+        strcat(data, buffer);
+    }
+    mqtt_send_state(F("statusupdate"), data);
+    debugLastMillis = millis();
 
     /*    if(updateEspAvailable) {
             mqttStatusPayload += F("\"updateEspAvailable\":true,");
@@ -346,7 +314,7 @@ static void mqtt_message_cb(char * topic_p, byte * payload, unsigned int length)
 
 void mqttSubscribeTo(const char * format, const char * data)
 {
-    char topic[128];
+    char topic[64];
     snprintf_P(topic, sizeof(topic), format, data);
     if(mqttClient.subscribe(topic)) {
         Log.verbose(F("MQTT:    * Subscribed to %s"), topic);
@@ -357,14 +325,16 @@ void mqttSubscribeTo(const char * format, const char * data)
 
 void mqttReconnect()
 {
+    char buffer[128];
+    char mqttClientId[64];
     static uint8_t mqttReconnectCount = 0;
     bool mqttFirstConnect             = true;
-    char mqttClientId[128];
-    char buffer[128];
 
-    snprintf(mqttClientId, sizeof(mqttClientId), PSTR("%s-%s"), mqttNodeName, wifiGetMacAddress(3, "").c_str());
-    snprintf_P(mqttNodeTopic, sizeof(mqttNodeTopic), PSTR("hasp/%s/"), mqttNodeName);
-    snprintf_P(mqttGroupTopic, sizeof(mqttGroupTopic), PSTR("hasp/%s/"), mqttGroupName);
+    {
+        byte mac[6];
+        WiFi.macAddress(mac);
+        snprintf_P(mqttClientId, sizeof(mqttClientId), PSTR("%s-%2x%2x%2x"), mqttNodeName, mac[3], mac[4], mac[5]);
+    }
 
     // Attempt to connect and set LWT and Clean Session
     snprintf_P(buffer, sizeof(buffer), PSTR("%sstatus"), mqttNodeTopic);
@@ -467,29 +437,26 @@ void mqttReconnect()
     mqtt_send_statusupdate();
 }
 
-void mqttSetup(const JsonObject & settings)
+void mqttSetup()
 {
-    // mqttSetConfig(settings);
-
     mqttEnabled = strlen(mqttServer) > 0 && mqttPort > 0;
-    if(!mqttEnabled) return Log.notice(F("MQTT: Broker not configured"));
-
-    mqttClient.setServer(mqttServer, 1883);
-    mqttClient.setCallback(mqtt_message_cb);
-
-    Log.notice(F("MQTT: Setup Complete"));
+    if(mqttEnabled) {
+        mqttClient.setServer(mqttServer, 1883);
+        mqttClient.setCallback(mqtt_message_cb);
+        Log.notice(F("MQTT: Setup Complete"));
+    } else {
+        Log.notice(F("MQTT: Broker not configured"));
+    }
 }
 
 void mqttLoop()
 {
-    if(!mqttEnabled) return;
-    mqttClient.loop();
+    if(mqttEnabled) mqttClient.loop();
 }
 
 void mqttEvery5Seconds(bool wifiIsConnected)
 {
-    if(!mqttEnabled) return;
-    if(wifiIsConnected && !mqttClient.connected()) mqttReconnect();
+    if(mqttEnabled && wifiIsConnected && !mqttClient.connected()) mqttReconnect();
 }
 
 String mqttGetNodename()
@@ -572,6 +539,9 @@ bool mqttSetConfig(const JsonObject & settings)
         changed |= strcmp(mqttPassword, settings[FPSTR(F_CONFIG_PASS)]) != 0;
         strncpy(mqttPassword, settings[FPSTR(F_CONFIG_PASS)], sizeof(mqttPassword));
     }
+
+    snprintf_P(mqttNodeTopic, sizeof(mqttNodeTopic), PSTR("hasp/%s/"), mqttNodeName);
+    snprintf_P(mqttGroupTopic, sizeof(mqttGroupTopic), PSTR("hasp/%s/"), mqttGroupName);
 
     return changed;
 }
