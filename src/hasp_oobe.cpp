@@ -311,6 +311,8 @@ void oobeSetup()
         oobeSetupQR(ssid, pass);
         oobeSetupSsid();
         oobeSetPage(0);
+        lv_obj_set_click(lv_disp_get_layer_sys(NULL), true);
+        lv_obj_set_event_cb(lv_disp_get_layer_sys(NULL), gotoPage1_cb);
     }
 
     if(oobeAutoCalibrate) {
@@ -318,8 +320,6 @@ void oobeSetup()
         lv_obj_set_event_cb(lv_disp_get_layer_sys(NULL), oobe_calibrate_cb);
         Log.verbose(F("OOBE: Enabled Auto Calibrate on touch"));
     } else {
-        lv_obj_set_click(lv_disp_get_layer_sys(NULL), true);
-        lv_obj_set_event_cb(lv_disp_get_layer_sys(NULL), gotoPage1_cb);
         Log.verbose(F("OOBE: Already calibrated"));
     }
 }

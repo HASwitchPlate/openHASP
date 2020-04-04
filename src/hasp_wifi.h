@@ -4,6 +4,7 @@
 #include "ArduinoJson.h"
 
 void wifiSetup();
+bool wifiShowAP();
 bool wifiShowAP(char * ssid, char * pass);
 bool wifiEvery5Seconds(void);
 void wifiStop(void);

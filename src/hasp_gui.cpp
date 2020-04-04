@@ -532,16 +532,16 @@ void guiSetup()
     lv_indev_t * mouse_indev = lv_indev_drv_register(&indev_drv);
 
     if(guiShowPointer || true) {
-        //        lv_obj_t * label = lv_label_create(lv_layer_sys(), NULL);
-        //        lv_label_set_text(label, "<");
-        //        lv_indev_set_cursor(mouse_indev, label); // connect the object to the driver
+        lv_obj_t * label = lv_label_create(lv_layer_sys(), NULL);
+        lv_label_set_text(label, "<");
+        lv_indev_set_cursor(mouse_indev, label); // connect the object to the driver
 
         /*Set a cursor for the mouse*/
-        LV_IMG_DECLARE(mouse_cursor_icon); /*Declare the image file.*/
-        lv_obj_t * cursor_obj =
-            lv_img_create(lv_disp_get_scr_act(NULL), NULL); /*Create an image object for the cursor */
-        lv_img_set_src(cursor_obj, &mouse_cursor_icon);     /*Set the image source*/
-        lv_indev_set_cursor(mouse_indev, cursor_obj);       /*Connect the image  object to the driver*/
+        // LV_IMG_DECLARE(mouse_cursor_icon); /*Declare the image file.*/
+        // lv_obj_t * cursor_obj =
+        //     lv_img_create(lv_disp_get_scr_act(NULL), NULL); /*Create an image object for the cursor */
+        // lv_img_set_src(cursor_obj, &mouse_cursor_icon);     /*Set the image source*/
+        // lv_indev_set_cursor(mouse_indev, cursor_obj);       /*Connect the image  object to the driver*/
     }
 
     /*
@@ -694,7 +694,7 @@ bool guiSetConfig(const JsonObject & settings)
         if(calData[0] != 0 || calData[1] != 65535 || calData[2] != 0 || calData[3] != 65535) {
             Log.trace(F("calData set [%u, %u, %u, %u, %u]"), calData[0], calData[1], calData[2], calData[3],
                       calData[4]);
-            oobeSetAutoCalibrate(true);
+            oobeSetAutoCalibrate(false);
         } else {
             Log.notice(F("First Touch Calibration enabled"));
             oobeSetAutoCalibrate(true);

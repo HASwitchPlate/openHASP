@@ -490,9 +490,11 @@ void haspSetup()
         // lv_obj_set_size(pages[0], hres, vres);
     }
 
-    haspDisconnect();
-    haspLoadPage(haspPagesPath);
-    haspSetPage(haspStartPage);
+    if(!wifiShowAP()) {
+        haspDisconnect();
+        haspLoadPage(haspPagesPath);
+        haspSetPage(haspStartPage);
+    }
 }
 
 /**********************
