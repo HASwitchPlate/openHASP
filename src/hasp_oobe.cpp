@@ -185,8 +185,12 @@ static void oobeSetupQR(const char * ssid, const char * pass)
 
 static void oobeSetupSsid(void)
 {
-    /*Create styles for the keyboard*/
-    static lv_style_t rel_style, pr_style;
+    lv_font_t * defaultfont;
+#if defined(ARDUINO_ARCH_ESP32)
+    defaultfont = &lv_font_roboto_12;
+#else
+    defaultfont = LV_FONT_DEFAULT;
+#endif
 
     lv_coord_t leftmargin, topmargin, voffset;
     lv_align_t labelpos;
@@ -219,18 +223,13 @@ static void oobeSetupSsid(void)
     // lv_style_list_t * list;
     // static lv_style_t robotofont;
     // lv_style_init(&robotofont);
-    // lv_style_set_text_font(&robotofont, LV_STATE_DEFAULT, &lv_font_roboto_12);
+    // lv_style_set_text_font(&robotofont, LV_STATE_DEFAULT, defaultfont);
 
     oobepage[1] = lv_obj_create(NULL, NULL);
 
     /* Create the password box */
     lv_obj_t * pwd_ta = lv_textarea_create(oobepage[1], NULL);
-
-#if defined(ARDUINO_ARCH_ESP32)
-    lv_obj_set_style_local_text_font(pwd_ta, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, &lv_font_roboto_12);
-#else
-    lv_obj_set_style_local_text_font(pwd_ta, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_FONT_DEFAULT);
-#endif
+    lv_obj_set_style_local_text_font(pwd_ta, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, defaultfont);
 
     lv_textarea_set_text(pwd_ta, "");
     lv_textarea_set_max_length(pwd_ta, 32);
@@ -246,7 +245,7 @@ static void oobeSetupSsid(void)
     /* Create the one-line mode text area */
     lv_obj_t * oneline_ta = lv_textarea_create(oobepage[1], pwd_ta);
 
-    lv_obj_set_style_local_text_font(oneline_ta, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, &lv_font_roboto_12);
+    lv_obj_set_style_local_text_font(oneline_ta, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, defaultfont);
 
     lv_textarea_set_pwd_mode(oneline_ta, false);
     lv_obj_set_user_data(oneline_ta, 10);
@@ -268,7 +267,7 @@ static void oobeSetupSsid(void)
     /* Create a keyboard and make it fill the width of the above text areas */
     oobekb = lv_keyboard_create(oobepage[1], NULL);
 
-    lv_obj_set_style_local_text_font(oobekb, LV_KEYBOARD_PART_BG, LV_STATE_DEFAULT, &lv_font_roboto_12);
+    lv_obj_set_style_local_text_font(oobekb, LV_KEYBOARD_PART_BG, LV_STATE_DEFAULT, defaultfont);
     lv_obj_set_style_local_radius(oobekb, LV_KEYBOARD_PART_BG, LV_STATE_DEFAULT, 0);
     lv_obj_set_style_local_pad_inner(oobekb, LV_KEYBOARD_PART_BG, LV_STATE_DEFAULT, 1);
     lv_obj_set_style_local_pad_left(oobekb, LV_KEYBOARD_PART_BG, LV_STATE_DEFAULT, 0);
