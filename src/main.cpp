@@ -7,6 +7,7 @@
 #include "hasp_gui.h"
 #include "hasp.h"
 #include "hasp_conf.h"
+#include "hasp_oobe.h"
 #include "hasp_gpio.h"
 
 #if HASP_USE_SPIFFS
@@ -87,6 +88,7 @@ void setup()
 #if HASP_USE_WIFI
     wifiSetup();
 #endif
+    oobeSetup();
     haspSetup();
 
 #if HASP_USE_WIFI
