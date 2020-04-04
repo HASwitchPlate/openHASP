@@ -216,17 +216,21 @@ static void oobeSetupSsid(void)
         rel_style.text.font        = LV_FONT_DEFAULT;
     */
 
-    lv_style_list_t * list;
-    static lv_style_t robotofont;
-    lv_style_init(&robotofont);
-    lv_style_set_text_font(&robotofont, LV_STATE_DEFAULT, &lv_font_roboto_12);
+    // lv_style_list_t * list;
+    // static lv_style_t robotofont;
+    // lv_style_init(&robotofont);
+    // lv_style_set_text_font(&robotofont, LV_STATE_DEFAULT, &lv_font_roboto_12);
 
     oobepage[1] = lv_obj_create(NULL, NULL);
 
     /* Create the password box */
     lv_obj_t * pwd_ta = lv_textarea_create(oobepage[1], NULL);
 
+#if defined(ARDUINO_ARCH_ESP32)
     lv_obj_set_style_local_text_font(pwd_ta, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, &lv_font_roboto_12);
+#else
+    lv_obj_set_style_local_text_font(pwd_ta, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_FONT_DEFAULT);
+#endif
 
     lv_textarea_set_text(pwd_ta, "");
     lv_textarea_set_max_length(pwd_ta, 32);
