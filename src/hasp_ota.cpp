@@ -134,10 +134,10 @@ void otaHttpUpdate(const char * espOtaUrl)
 
 #if defined(ARDUINO_ARCH_ESP8266)
 
-    ESPhttpUpdate.onStart(update_started);
-    ESPhttpUpdate.onEnd(update_finished);
-    ESPhttpUpdate.onProgress(update_progress);
-    ESPhttpUpdate.onError(update_error);
+    // ESPhttpUpdate.onStart(update_started);
+    // ESPhttpUpdate.onEnd(update_finished);
+    // ESPhttpUpdate.onProgress(update_progress);
+    // ESPhttpUpdate.onError(update_error);
 
     t_httpUpdate_return returnCode = ESPhttpUpdate.update(otaClient, espOtaUrl);
 
