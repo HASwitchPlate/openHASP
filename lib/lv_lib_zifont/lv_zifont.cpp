@@ -97,7 +97,7 @@ int lv_zifont_init(void)
     return LV_RES_OK; // OK
 }
 
-static inline bool IRAM_ATTR openFont(File & file, const char * filename)
+static inline bool openFont(File & file, const char * filename)
 {
     file = SPIFFS.open(filename, "r");
     if(!file) {
