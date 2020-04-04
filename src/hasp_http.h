@@ -4,7 +4,7 @@
 #include <Arduino.h>
 #include "ArduinoJson.h"
 
-void httpSetup(const JsonObject & settings);
+void httpSetup();
 void httpLoop(void);
 void httpEvery5Seconds(void);
 void httpReconnect(void);

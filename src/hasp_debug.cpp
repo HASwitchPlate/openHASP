@@ -190,10 +190,8 @@ void syslogSend(uint8_t priority, const char * debugText)
 }
 #endif
 
-void debugSetup(JsonObject settings)
+void debugSetup()
 {
-    // debugSetConfig(settings);
-
 #if HASP_USE_SYSLOG != 0
     syslog = new Syslog(syslogClient, debugSyslogProtocol == 0 ? SYSLOG_PROTO_IETF : SYSLOG_PROTO_BSD);
     syslog->server(debugSyslogHost, debugSyslogPort);

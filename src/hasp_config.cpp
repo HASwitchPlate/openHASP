@@ -73,6 +73,7 @@ void configStartDebug(bool setupdebug, String & configFile)
     if(setupdebug) {
         debugStart(); // Debug started, now we can use it; HASP header sent
         Log.notice(F("FILE: [SUCCESS] SPI flash FS mounted"));
+        spiffsInfo();
         spiffsList();
     }
     Log.notice(F("CONF: Loading %s"), configFile.c_str());
@@ -112,7 +113,7 @@ void configGetConfig(JsonDocument & settings, bool setupdebug = false)
             Log.verbose(F("CONF: %s"), output.c_str());
             Log.notice(F("CONF: [SUCCESS] Loaded %s"), configFile.c_str());
 
-            if(setupdebug) debugSetup(settings[F("debug")]);
+            if(setupdebug) debugSetup();
             return;
         }
     }
@@ -179,7 +180,7 @@ void configWriteConfig()
     }
 }
 
-void configSetup(JsonObject dummy)
+void configSetup()
 {
     if(!SPIFFS.begin()) {
         Log.error(F("FILE: SPI flash init failed. Unable to mount FS: Using default settings..."));

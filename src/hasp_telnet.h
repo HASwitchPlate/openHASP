@@ -7,7 +7,7 @@
 
 #include "ArduinoJson.h"
 
-void telnetSetup(const JsonObject & settings);
+void telnetSetup();
 void telnetLoop(void);
 void telnetStop(void);
 

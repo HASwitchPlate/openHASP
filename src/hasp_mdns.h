@@ -3,7 +3,7 @@
 
 #include "ArduinoJson.h"
 
-void mdnsSetup(const JsonObject & settings);
+void mdnsSetup();
 void mdnsLoop(void);
 void mdnsStart(void);
 void mdnsStop(void);

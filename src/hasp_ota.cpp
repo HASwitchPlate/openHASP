@@ -27,7 +27,7 @@
 #include <WiFi.h>
 #endif
 
-WiFiClient wifiClient;
+static WiFiClient otaClient;
 
 #define F_OTA_URL F("otaurl")
 
@@ -41,10 +41,9 @@ void otaProgress()
                 (ArduinoOTA.getCommand() == U_FLASH ? PSTR("Firmware") : PSTR("Filesystem")), otaPrecentageComplete);
 }
 
-void otaSetup(JsonObject settings)
+void otaSetup()
 {
-    if(!settings[F_OTA_URL].isNull()) {
-        otaUrl = settings[F_OTA_URL].as<String>().c_str();
+    if(strlen(otaUrl.c_str())) {
         Log.verbose(F("ORA url: %s"), otaUrl.c_str());
     }
 
@@ -134,7 +133,13 @@ void otaHttpUpdate(const char * espOtaUrl)
     mdnsStop(); // Keep mDNS responder from breaking things
 
 #if defined(ARDUINO_ARCH_ESP8266)
-    t_httpUpdate_return returnCode = ESPhttpUpdate.update(wifiClient, espOtaUrl);
+
+    ESPhttpUpdate.onStart(update_started);
+    ESPhttpUpdate.onEnd(update_finished);
+    ESPhttpUpdate.onProgress(update_progress);
+    ESPhttpUpdate.onError(update_error);
+
+    t_httpUpdate_return returnCode = ESPhttpUpdate.update(otaClient, espOtaUrl);
 
     switch(returnCode) {
         case HTTP_UPDATE_FAILED:
@@ -156,7 +161,7 @@ void otaHttpUpdate(const char * espOtaUrl)
     }
 
 #else
-    t_httpUpdate_return returnCode = httpUpdate.update(wifiClient, espOtaUrl);
+    t_httpUpdate_return returnCode = httpUpdate.update(otaClient, espOtaUrl);
 
     switch(returnCode) {
         case HTTP_UPDATE_FAILED:

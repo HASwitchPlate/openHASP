@@ -1,6 +1,5 @@
 #include "hasp_conf.h" // load first
 #include <Arduino.h>
-#include "ArduinoJson.h"
 
 #include "hasp_debug.h"
 #include "hasp_spiffs.h"
@@ -76,48 +75,41 @@ void setup()
     /****************************
      * Read & Apply User Configuration
      ***************************/
-    DynamicJsonDocument settings(128);
-    configSetup(settings[F("debug")]);
+    configSetup();
 
     /****************************
      * Apply User Configuration
      ***************************/
-    debugSetup(settings[F("debug")]);
-    gpioSetup(settings[F("gpio")]);
-
-    /* Init Graphics */
-    // TFT_eSPI screen = TFT_eSPI();
-    guiSetup(settings[F("gui")]);
+    debugSetup();
+    gpioSetup();
+    guiSetup();
 
 #if HASP_USE_WIFI
-    wifiSetup(settings[F("wifi")]);
+    wifiSetup();
 #endif
+    haspSetup();
 
-    /* Init GUI Application */
-    haspSetup(settings[F("hasp")]);
-
-    /* Init Network Services */
 #if HASP_USE_WIFI
-    wifiSetup(settings[F("wifi")]);
+    wifiSetup();
 
 #if HASP_USE_HTTP
-    httpSetup(settings[F("http")]);
+    httpSetup();
 #endif
 
 #if HASP_USE_MQTT
-    mqttSetup(settings[F("mqtt")]);
+    mqttSetup();
 #endif
 
 #if HASP_USE_TELNET
-    telnetSetup(settings[F("telnet")]);
+    telnetSetup();
 #endif
 
 #if HASP_USE_MDNS
-    mdnsSetup(settings[F("mdns")]);
+    mdnsSetup();
 #endif
 
 #if HASP_USE_OTA
-    otaSetup(settings[F("ota")]);
+    otaSetup();
 #endif
 
 #endif // WIFI

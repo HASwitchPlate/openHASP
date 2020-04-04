@@ -20,7 +20,7 @@
 
 uint8_t mdnsEnabled = true;
 
-void mdnsSetup(const JsonObject & settings)
+void mdnsSetup()
 {
     // mdnsSetConfig(settings);
     Log.verbose(F("MDNS: Setup Complete"));

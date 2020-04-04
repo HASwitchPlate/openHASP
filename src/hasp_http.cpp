@@ -331,7 +331,7 @@ void webHandleFirmware()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-void httpSetup(const JsonObject & settings)
+void httpSetup()
 {
     if(WiFi.getMode() == WIFI_AP) {
         debugPrintln(F("HTTP: Wifi access point"));
@@ -1791,7 +1791,7 @@ void webStop()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-void httpSetup(const JsonObject & settings)
+void httpSetup()
 {
     // httpSetConfig(settings);
 

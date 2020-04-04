@@ -3,7 +3,7 @@
 
 #include "ArduinoJson.h"
 
-void wifiSetup(JsonObject settings);
+void wifiSetup();
 bool wifiEvery5Seconds(void);
 void wifiStop(void);
 

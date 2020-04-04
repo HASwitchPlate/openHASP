@@ -52,7 +52,7 @@ String wifiGetMacAddress(int start, const char * seperator)
     byte mac[6];
     WiFi.macAddress(mac);
     String cMac((char *)0);
-    cMac.reserve(128);
+    cMac.reserve(32);
 
     for(int i = start; i < 6; ++i) {
         if(mac[i] < 0x10) cMac += "0";
@@ -131,11 +131,9 @@ void wifiSTADisconnected(WiFiEventStationModeDisconnected info)
 }
 #endif
 
-void wifiSetup(JsonObject settings)
+void wifiSetup()
 {
     char buffer[128];
-
-    // wifiSetConfig(settings);
 
     if(strlen(wifiSsid) == 0) {
         String apSsdid = F("HASP-");
@@ -176,9 +174,7 @@ void wifiSetup(JsonObject settings)
 
 bool wifiEvery5Seconds()
 {
-    if(WiFi.getMode() == WIFI_AP) return true;
-
-    if(WiFi.status() == WL_CONNECTED) {
+    if(WiFi.getMode() == WIFI_AP || WiFi.status() == WL_CONNECTED) {
         return true;
     } else {
         wifiReconnectCounter++;

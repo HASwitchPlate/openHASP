@@ -7,7 +7,7 @@
 String debugHaspHeader(void);
 
 void debugPreSetup(JsonObject settings);
-void debugSetup(JsonObject settings);
+void debugSetup();
 void debugLoop(void);
 void debugEverySecond(void);
 void debugStart(void);

@@ -59,7 +59,7 @@ enum lv_hasp_obj_type_t {
 /**
  * Create a hasp application
  */
-void haspSetup(JsonObject settings);
+void haspSetup();
 void haspLoop(void);
 void haspFirstSetup(void);
 

@@ -12,7 +12,7 @@
 using namespace ace_button;
 static AceButton * button[HASP_NUM_INPUTS]; // Connect your button between pin 2 and GND
 
-static void IRAM_ATTR button_event_cb(AceButton * button, uint8_t eventType, uint8_t buttonState)
+static void button_event_cb(AceButton * button, uint8_t eventType, uint8_t buttonState)
 {
     char buffer[8];
     switch(eventType) {

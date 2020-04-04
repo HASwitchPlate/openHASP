@@ -10,7 +10,7 @@ ADC_MODE(ADC_VCC); // tftShowConfig measures the voltage on the pin
 
 int8_t getPinName(int8_t pin);
 
-void tftSetup(TFT_eSPI & tft, const JsonObject & settings)
+void tftSetup(TFT_eSPI & tft)
 {
     tftShowConfig(tft);
 }
