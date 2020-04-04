@@ -16,16 +16,16 @@ This version also adds ESP32 support to take advantage of the additional hardwar
 
 | Feature                 | ESP8266 | ESP32
 |-------------------------|---------|---------
-| SPI display             | <ul><li>- [x] yes</li> | <ul><li>- [x] yes</li>
-| Parallel display        | <ul><li>- [ ] no</li> | *tbd*
-| PWM Screen dimming      | <ul><li>- [x] yes</li> | <ul><li>- [x] yes</li>
+| SPI display             | :white_check_mark: yes | :white_check_mark: yes<
+| Parallel display        | :x: no</li> | *tbd*
+| PWM Screen dimming      | :white_check_mark: yes | :white_check_mark: yes
 | Maximum Page Count      | 4       | 12
 | Object Types / Widgets  | 14  | 15
-| Dynamic Objects         | <ul><li>- [x] yes</li> | <ul><li>- [x] yes</li>
+| Dynamic Objects         | :white_check_mark: yes | :white_check_mark: yes
 | [Lvgl Theme Support][3] | basic only | all themes
-| [Custom .zi V5 font][4] | <ul><li>- [x] yes (latin1)</li> | <ul><li>- [x] yes (latin1)</li>
-| [FontAwesome Icons][5]  | <ul><li>- [x] 1300+</li> | <ul><li>- [x] 1300+</li>
-| PNG images              | <ul><li>- [ ] no</li> | *tbd*
+| [Custom .zi V5 font][4] | :white_check_mark: yes (latin1) | :white_check_mark: yes (latin1)
+| [FontAwesome Icons][5]  | :white_check_mark: 1300+ | :white_check_mark: 1300+
+| PNG images              | :x: no | :grey_question: tbd
 
 ## Cloning
 
