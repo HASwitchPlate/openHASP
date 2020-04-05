@@ -21,7 +21,7 @@
 
 #define HASP_USE_BUTTON 1
 
-#define HASP_USE_QRCODE 0
+#define HASP_USE_QRCODE 1
 #define HASP_USE_PNGDECODE 0
 
 #define HASP_NUM_INPUTS 3 // Buttons
