@@ -4,6 +4,7 @@
 #include "lv_conf.h"
 #include "lvgl.h"
 #include "lv_fs_if.h"
+#include "Touchscreen.h" // For Uno Shield or ADC based resistive touchscreens
 #include "TFT_eSPI.h"
 #include "lv_zifont.h"
 
@@ -40,7 +41,6 @@ ESP8266WebServer * webClient; // for snatshot
 #endif
 
 #if defined(ARDUINO_ARCH_ESP32)
-#include "Touchscreen.h" // For Uno Shield or ADC based resistive touchscreens
 #include <WebServer.h>
 WebServer * webClient; // for snatshot
 #endif                 // ESP32
