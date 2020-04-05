@@ -380,12 +380,58 @@ static void IRAM_ATTR lv_tick_handler(void)
 //     return false; /*Return `false` because we are not buffering and no more data to read*/
 // }
 
+#ifndef TOUCH_CS
+boolean Touch_getXY(uint16_t * x, uint16_t * y, boolean showTouch)
+{
+    static const int coords[] = {3800, 500, 300, 3800}; // portrait - left, right, top, bottom
+    static const int XP = 27, XM = 15, YP = 4, YM = 14; // default ESP32 Uno touchscreen pins
+    static TouchScreen ts = TouchScreen(XP, aYP, aXM, YM, 300);
+    TSPoint p             = ts.getPoint();
+
+    pinMode(aYP, OUTPUT); // restore shared pins
+    pinMode(aXM, OUTPUT);
+    digitalWrite(aYP, HIGH); // because TFT control pins
+    digitalWrite(aXM, HIGH);
+    // adjust pressure sensitivity - note works 'backwards'
+#define MINPRESSURE 200
+#define MAXPRESSURE 1000
+    bool pressed = (p.z > MINPRESSURE && p.z < MAXPRESSURE);
+    if(pressed) {
+        switch(guiRotation) {
+            case 0: // portrait
+                *x = map(p.x, coords[0], coords[1], 0, tft.width());
+                *y = map(p.y, coords[2], coords[3], 0, tft.height());
+                break;
+            case 1: // landscape
+                *x = map(p.y, coords[1], coords[0], 0, tft.width());
+                *y = map(p.x, coords[2], coords[3], 0, tft.height());
+                break;
+            case 2: // portrait inverted
+                *x = map(p.x, coords[1], coords[0], 0, tft.width());
+                *y = map(p.y, coords[3], coords[2], 0, tft.height());
+                break;
+            case 3: // landscape inverted
+                *x = map(p.y, coords[0], coords[1], 0, tft.width());
+                *y = map(p.x, coords[3], coords[2], 0, tft.height());
+                break;
+        }
+        // if(showTouch) tft.fillCircle(*x, *y, 2, YELLOW);
+    }
+    return pressed;
+}
+#endif
+
 bool IRAM_ATTR my_touchpad_read(lv_indev_drv_t * indev_driver, lv_indev_data_t * data)
 {
-#ifdef TOUCH_CS
+    //#ifdef TOUCH_CS
     uint16_t touchX, touchY;
 
+#ifdef TOUCH_CS
     bool touched = tft.getTouch(&touchX, &touchY, 600);
+#else
+    bool touched = Touch_getXY(&touchX, &touchY, false);
+#endif
+
     if(!touched) return false;
 
     if(guiSleeping > 0) guiCheckSleep(); // update Idle
@@ -407,7 +453,7 @@ bool IRAM_ATTR my_touchpad_read(lv_indev_drv_t * indev_driver, lv_indev_data_t *
            Serial.print("Data y");
            Serial.println(touchY);*/
     }
-#endif
+    //#endif
 
     return false; /*Return `false` because we are not buffering and no more data to read*/
 }
