@@ -333,7 +333,7 @@ void webHandleFirmware()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 void httpSetup()
 {
-    if(WiFi.getMode() == WIFI_AP) {
+    if(WiFi.getMode() != WIFI_STA) {
         debugPrintln(F("HTTP: Wifi access point"));
         // webServer.on(F("/"), webHandleWifiConfig);
     } else {
@@ -360,10 +360,10 @@ void httpReconnect()
         webServer.end();
         webServerStarted = false;
         debugPrintln(F("HTTP: Server stoped"));
-    } else if(WiFi.status() == WL_CONNECTED || WiFi.getMode() == WIFI_AP) {
+    } else if(WiFi.status() == WL_CONNECTED || WiFi.getMode() != WIFI_STA) {
 
         /*
-            if(WiFi.getMode() == WIFI_AP) {
+            if(WiFi.getMode() != WIFI_STA) {
                 webServer.on(F("/"), webHandleWifiConfig);
                 webServer.on(F("/config"), webHandleConfig);
                 webServer.onNotFound(httpHandleNotFound);
@@ -374,7 +374,7 @@ void httpReconnect()
         webServerStarted = true;
 
         debugPrintln(String(F("HTTP: Server started @ http://")) +
-                     (WiFi.getMode() == WIFI_AP ? WiFi.softAPIP().toString() : WiFi.localIP().toString()));
+                     (WiFi.getMode() != WIFI_STA ? WiFi.softAPIP().toString() : WiFi.localIP().toString()));
     }
 }
 
@@ -1253,7 +1253,7 @@ void webHandleConfig()
         }
     }
 
-    if(WiFi.getMode() == WIFI_AP) {
+    if(WiFi.getMode() != WIFI_STA) {
         httpHandleReboot();
     }
 
@@ -1780,7 +1780,7 @@ void webStart()
     webServer.begin();
     webServerStarted = true;
     Log.notice(F("HTTP: Server started @ http://%s"),
-               (WiFi.getMode() == WIFI_AP ? WiFi.softAPIP().toString().c_str() : WiFi.localIP().toString().c_str()));
+               (WiFi.getMode() != WIFI_STA ? WiFi.softAPIP().toString().c_str() : WiFi.localIP().toString().c_str()));
 }
 
 void webStop()
@@ -1795,7 +1795,7 @@ void httpSetup()
 {
     // httpSetConfig(settings);
 
-    if(WiFi.getMode() == WIFI_AP) {
+    if(WiFi.getMode() != WIFI_STA) {
         Log.notice(F("HTTP: Wifi access point"));
         webServer.on(F("/"), webHandleWifiConfig);
     } else {
@@ -1877,7 +1877,7 @@ void httpReconnect()
 
     if(webServerStarted) {
         webStop();
-    } else if(WiFi.status() == WL_CONNECTED || WiFi.getMode() == WIFI_AP) {
+    } else if(WiFi.status() == WL_CONNECTED || WiFi.getMode() != WIFI_STA) {
         webStart();
     }
 }

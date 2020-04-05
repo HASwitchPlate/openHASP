@@ -161,7 +161,7 @@ bool wifiShowAP(char * ssid, char * pass)
 void wifiSetup()
 {
     if(wifiShowAP()) {
-        WiFi.mode(WIFI_AP);
+        WiFi.mode(WIFI_AP_STA);
     } else {
         WiFi.mode(WIFI_STA);
 
@@ -182,7 +182,9 @@ void wifiSetup()
 
 bool wifiEvery5Seconds()
 {
-    if(WiFi.getMode() == WIFI_AP || WiFi.status() == WL_CONNECTED) {
+    if(WiFi.getMode() != WIFI_STA) {
+        return false;
+    } else if(WiFi.status() == WL_CONNECTED) {
         return true;
     } else {
         wifiReconnectCounter++;
@@ -230,6 +232,21 @@ bool wifiSetConfig(const JsonObject & settings)
     }
 
     return changed;
+}
+
+bool wifiTestConnection()
+{
+    uint8_t attempt = 0;
+    WiFi.begin(wifiSsid, wifiPassword);
+    while(attempt < 10 && WiFi.localIP().toString() == F("0.0.0.0")) {
+        attempt++;
+        Log.verbose(F("WIFI: Trying to connect to %s... %u"), wifiSsid, attempt);
+        delay(1000);
+    }
+    if(WiFi.localIP().toString() != F("0.0.0.0")) return true;
+
+    WiFi.disconnect();
+    return false;
 }
 
 void wifiStop()
