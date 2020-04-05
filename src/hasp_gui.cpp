@@ -4,7 +4,7 @@
 #include "lv_conf.h"
 #include "lvgl.h"
 #include "lv_fs_if.h"
-#include "Touchscreen.h" // For Uno Shield or ADC based resistive touchscreens
+//#include "Touchscreen.h" // For Uno Shield or ADC based resistive touchscreens
 #include "TFT_eSPI.h"
 #include "lv_zifont.h"
 
