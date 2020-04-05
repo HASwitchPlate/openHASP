@@ -40,6 +40,7 @@ ESP8266WebServer * webClient; // for snatshot
 #endif
 
 #if defined(ARDUINO_ARCH_ESP32)
+#include "Touchscreen.h" // For Uno Shield or ADC based resistive touchscreens
 #include <WebServer.h>
 WebServer * webClient; // for snatshot
 #endif                 // ESP32
