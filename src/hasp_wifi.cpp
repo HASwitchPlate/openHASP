@@ -200,11 +200,16 @@ bool wifiEvery5Seconds()
 
 bool wifiGetConfig(const JsonObject & settings)
 {
-    settings[FPSTR(F_CONFIG_SSID)] = wifiSsid;     // String(wifiSsid.c_str());
-    settings[FPSTR(F_CONFIG_PASS)] = wifiPassword; // String(wifiPassword.c_str());
+    bool changed = false;
+
+    if(strcmp(wifiSsid, settings[FPSTR(F_CONFIG_SSID)].as<String>().c_str()) != 0) changed = true;
+    settings[FPSTR(F_CONFIG_SSID)] = wifiSsid;
+
+    if(strcmp(wifiPassword, settings[FPSTR(F_CONFIG_PASS)].as<String>().c_str()) != 0) changed = true;
+    settings[FPSTR(F_CONFIG_PASS)] = wifiPassword;
 
     configOutput(settings);
-    return true;
+    return changed;
 }
 
 /** Set WIFI Configuration.
@@ -238,12 +243,13 @@ bool wifiTestConnection()
 {
     uint8_t attempt = 0;
     WiFi.begin(wifiSsid, wifiPassword);
-    while(attempt < 10 && WiFi.localIP().toString() == F("0.0.0.0")) {
+    while(attempt < 10 && (WiFi.status() != WL_CONNECTED || WiFi.localIP().toString() == F("0.0.0.0"))) {
         attempt++;
         Log.verbose(F("WIFI: Trying to connect to %s... %u"), wifiSsid, attempt);
         delay(1000);
     }
-    if(WiFi.localIP().toString() != F("0.0.0.0")) return true;
+    Log.verbose(F("WIFI: Received IP addres %s"), WiFi.localIP().toString().c_str());
+    if((WiFi.status() == WL_CONNECTED && WiFi.localIP().toString() != F("0.0.0.0"))) return true;
 
     WiFi.disconnect();
     return false;
@@ -251,7 +257,8 @@ bool wifiTestConnection()
 
 void wifiStop()
 {
-    Log.warning(F("WIFI: Stopped"));
-    WiFi.mode(WIFI_OFF);
+    wifiReconnectCounter = 0; // Prevent endless loop in wifiDisconnected
     WiFi.disconnect();
+    WiFi.mode(WIFI_OFF);
+    Log.warning(F("WIFI: Stopped"));
 }
