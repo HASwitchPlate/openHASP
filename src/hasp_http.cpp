@@ -1897,13 +1897,21 @@ void httpEvery5Seconds()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 bool httpGetConfig(const JsonObject & settings)
 {
+    bool changed = false;
+
     settings[FPSTR(F_CONFIG_ENABLE)] = httpEnable;
-    settings[FPSTR(F_CONFIG_PORT)]   = httpPort;
-    settings[FPSTR(F_CONFIG_USER)]   = httpUser;
-    settings[FPSTR(F_CONFIG_PASS)]   = httpPassword;
+
+    if(httpPort != settings[FPSTR(F_CONFIG_PORT)].as<uint16_t>()) changed = true;
+    settings[FPSTR(F_CONFIG_PORT)] = httpPort;
+
+    if(strcmp(httpUser, settings[FPSTR(F_CONFIG_USER)].as<String>().c_str()) != 0) changed = true;
+    settings[FPSTR(F_CONFIG_USER)] = httpUser;
+
+    if(strcmp(httpPassword, settings[FPSTR(F_CONFIG_PASS)].as<String>().c_str()) != 0) changed = true;
+    settings[FPSTR(F_CONFIG_PASS)] = httpPassword;
 
     configOutput(settings);
-    return true;
+    return changed;
 }
 
 /** Set HTTP Configuration.
