@@ -62,7 +62,7 @@ void setup()
 
     /* Init Storage */
 #if HASP_USE_EEPROM
-    eepromSetup();
+//    eepromSetup(); // Don't start at boot, only at write
 #endif
 
 #if HASP_USE_SPIFFS
@@ -92,7 +92,6 @@ void setup()
     haspSetup();
 
 #if HASP_USE_WIFI
-    wifiSetup();
 
 #if HASP_USE_HTTP
     httpSetup();
@@ -120,7 +119,7 @@ void setup()
     buttonSetup();
 #endif
 
-    mainLastLoopTime = millis() - 1000;
+    mainLastLoopTime = millis() - 1000; // reset loop counter
 }
 
 void loop()
