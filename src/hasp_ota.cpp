@@ -44,7 +44,7 @@ void otaProgress()
 void otaSetup()
 {
     if(strlen(otaUrl.c_str())) {
-        Log.verbose(F("ORA url: %s"), otaUrl.c_str());
+        Log.verbose(F("OTA: %s"), otaUrl.c_str());
     }
 
     if(otaPort > 0) {
@@ -55,7 +55,7 @@ void otaSetup()
             }
 
             Log.notice(F("OTA: Start update"));
-            dispatchPage("0");
+            // dispatchPage("0");
             otaPrecentageComplete = 0;
             // haspSetAttr("p[0].b[1].txt", "\"ESP OTA Update\"");
         });
@@ -63,7 +63,7 @@ void otaSetup()
             otaPrecentageComplete = 100;
             otaProgress();
             otaPrecentageComplete = -1;
-            dispatchPage("0");
+            // dispatchPage("0");
             // haspSetAttr("p[0].b[1].txt", "\"ESP OTA Update\\rComplete!\"");
             dispatchReboot(true);
         });
@@ -110,7 +110,6 @@ void otaSetup()
 
         ArduinoOTA.begin();
         Log.notice(F("OTA: Over the Air firmware update ready"));
-        Log.verbose(F("OTA: Setup Complete"));
     } else {
         Log.notice(F("OTA: Disabled"));
     }
