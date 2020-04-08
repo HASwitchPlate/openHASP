@@ -55,55 +55,36 @@ static void peek_password_cb(lv_obj_t * obj, lv_event_t event)
 static void kb_event_cb(lv_obj_t * event_kb, lv_event_t event)
 {
     if(event == LV_EVENT_APPLY) {
+        DynamicJsonDocument settings(256);
         char ssid[32];
         char pass[32];
+        lv_obj_t * obj;
 
-        DynamicJsonDocument settings(256);
+        obj = hasp_find_obj_from_id(oobepage[1], 10);
+        if(obj) {
+            strncpy(ssid, lv_textarea_get_text(obj), sizeof(ssid));
+            settings[FPSTR(F_CONFIG_SSID)] = ssid;
+            if(oobekb != NULL) lv_keyboard_set_textarea(oobekb, obj);
+        }
 
-        lv_obj_t * child;
-        child = lv_obj_get_child(oobepage[1], NULL);
-        while(child) {
-            if(child->user_data) {
-                lv_obj_user_data_t objid = 10;
-                if(objid == child->user_data) {
-                    strncpy(ssid, lv_textarea_get_text(child), sizeof(ssid));
-                    settings[FPSTR(F_CONFIG_SSID)] = ssid;
-                    if(oobekb != NULL) lv_keyboard_set_textarea(oobekb, child);
-                }
-                objid = 20;
-                if(objid == child->user_data) {
-                    strncpy(pass, lv_textarea_get_text(child), sizeof(pass));
-                    settings[FPSTR(F_CONFIG_PASS)] = pass;
-                }
-            }
-
-            /* next sibling */
-            child = lv_obj_get_child(oobepage[1], child);
+        obj = hasp_find_obj_from_id(oobepage[1], 20);
+        if(obj) {
+            strncpy(pass, lv_textarea_get_text(obj), sizeof(pass));
+            settings[FPSTR(F_CONFIG_PASS)] = pass;
         }
 
         if(strlen(ssid) > 0) {
             wifiSetConfig(settings.as<JsonObject>());
-            lv_obj_t * msgb = lv_cont_create(oobepage[1], NULL);
-            lv_obj_set_size(msgb, 120, 30);
-            lv_obj_align(msgb, oobepage[1], LV_ALIGN_CENTER, 0, 0);
-
-            lv_obj_t * lbl = lv_label_create(msgb, NULL);
-            char buffer[128];
-            snprintf(buffer, sizeof(buffer), PSTR("Connecting to %s..."), ssid);
-            lv_label_set_text(lbl, buffer);
-
             if(wifiTestConnection()) {
-                // dispatchReboot(true);
+                dispatchReboot(true);
             }
-
-            // lv_obj_del(msgb);
         }
 
     } else if(event == LV_EVENT_CANCEL) {
         oobeSetPage(0);
         lv_obj_set_click(lv_disp_get_layer_sys(NULL), true);
-    } else {
 
+    } else {
         /* prevent double presses, swipes and ghost press on tiny keyboard */
         if(event == LV_EVENT_RELEASED) lv_keyboard_def_event_cb(event_kb, LV_EVENT_VALUE_CHANGED);
         /* Just call the regular event handler */
@@ -120,18 +101,17 @@ static void ta_event_cb(lv_obj_t * ta, lv_event_t event)
     else if(event == LV_EVENT_INSERT) {
         const char * str = (const char *)lv_event_get_data();
         if(str[0] == '\n') {
-            lv_obj_t * child;
-            child = lv_obj_get_child(oobepage[1], NULL);
-            while(child) {
-                if(child->user_data && child->user_data > 0 && child->user_data != ta->user_data) {
-                    if(oobekb != NULL) {
-                        lv_keyboard_set_textarea(oobekb, child);
-                    }
-                }
+            lv_obj_t * obj;
 
-                /* next sibling */
-                child = lv_obj_get_child(oobepage[1], child);
+            obj = hasp_find_obj_from_id(oobepage[1], 10);
+            if(ta == obj) { // now ssid, goto pass
+                obj = hasp_find_obj_from_id(oobepage[1], 20);
             }
+
+            if(oobekb && obj) {
+                lv_keyboard_set_textarea(oobekb, obj);
+            }
+
         } else {
             // printf("%s\n", lv_ta_get_text(ta));
         }
@@ -155,7 +135,7 @@ static void oobeSetupQR(const char * ssid, const char * pass)
     lv_qrcode_update(qr, buffer, strlen(buffer));
 
     lv_obj_t * qrlabel = lv_label_create(oobepage[0], NULL);
-    snprintf(buffer, sizeof(buffer), PSTR("Scan to connect:"));
+    snprintf(buffer, sizeof(buffer), PSTR("Scan to connect"));
     lv_label_set_text(qrlabel, buffer);
 
     if(disp->driver.hor_res <= disp->driver.ver_res) {
@@ -174,7 +154,7 @@ static void oobeSetupQR(const char * ssid, const char * pass)
 #endif
 
     lv_obj_t * aplabel = lv_label_create(container, NULL);
-    snprintf(buffer, sizeof(buffer), PSTR("Tap the screen to setup WiFi or\nconnect to this Access Point:"));
+    snprintf(buffer, sizeof(buffer), PSTR("Tap the screen to setup WiFi or connect to this Access Point:"));
     lv_label_set_text(aplabel, buffer);
     lv_label_set_long_mode(aplabel, LV_LABEL_LONG_BREAK);
 
@@ -206,7 +186,7 @@ static void oobeSetupSsid(void)
 {
     lv_font_t * defaultfont;
 #if defined(ARDUINO_ARCH_ESP32)
-    defaultfont = &lv_font_roboto_12;
+    defaultfont = &lv_font_montserrat_12;
 #else
     defaultfont = LV_FONT_DEFAULT;
 #endif
@@ -226,23 +206,6 @@ static void oobeSetupSsid(void)
         voffset    = 20;
         labelpos   = LV_ALIGN_OUT_LEFT_MID;
     }
-
-    /*
-        lv_style_copy(&rel_style, &lv_style_btn_rel);
-        rel_style.body.radius       = 0;
-        rel_style.body.border.width = 1;
-        rel_style.text.font         = LV_FONT_DEFAULT;
-
-        lv_style_copy(&pr_style, &lv_style_btn_pr);
-        pr_style.body.radius       = 0;
-        pr_style.body.border.width = 1;
-        rel_style.text.font        = LV_FONT_DEFAULT;
-    */
-
-    // lv_style_list_t * list;
-    // static lv_style_t robotofont;
-    // lv_style_init(&robotofont);
-    // lv_style_set_text_font(&robotofont, LV_STATE_DEFAULT, defaultfont);
 
     oobepage[1] = lv_obj_create(NULL, NULL);
     char buffer[32];
@@ -342,13 +305,13 @@ void oobeSetup()
         oobeSetPage(0);
         lv_obj_set_click(lv_disp_get_layer_sys(NULL), true);
         lv_obj_set_event_cb(lv_disp_get_layer_sys(NULL), gotoPage1_cb);
-    }
 
-    if(oobeAutoCalibrate) {
-        lv_obj_set_click(lv_disp_get_layer_sys(NULL), true);
-        lv_obj_set_event_cb(lv_disp_get_layer_sys(NULL), oobe_calibrate_cb);
-        Log.verbose(F("OOBE: Enabled Auto Calibrate on touch"));
-    } else {
-        Log.verbose(F("OOBE: Already calibrated"));
+        if(oobeAutoCalibrate) {
+            lv_obj_set_click(lv_disp_get_layer_sys(NULL), true);
+            lv_obj_set_event_cb(lv_disp_get_layer_sys(NULL), oobe_calibrate_cb);
+            Log.verbose(F("OOBE: Enabled Auto Calibrate on touch"));
+        } else {
+            Log.verbose(F("OOBE: Already calibrated"));
+        }
     }
 }
