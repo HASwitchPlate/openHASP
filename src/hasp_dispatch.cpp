@@ -279,12 +279,11 @@ void dispatchReboot(bool saveConfig)
     mqttStop(); // Stop the MQTT Client first
 #endif
     debugStop();
-    delay(250);
     wifiStop();
     Log.verbose(F("-------------------------------------"));
     Log.notice(F("STOP: Properly Rebooting the MCU now!"));
+    Serial.flush();
     ESP.restart();
-    delay(5000);
 }
 
 void dispatch_button(uint8_t id, const char * event)
@@ -296,7 +295,7 @@ void dispatch_button(uint8_t id, const char * event)
 
 void dispatchWebUpdate(const char * espOtaUrl)
 {
-    Log.verbose("FWUP: Checking for updates at URL: %s", espOtaUrl);
+    Log.verbose(F("FWUP: Checking for updates at URL: %s"), espOtaUrl);
     otaHttpUpdate(espOtaUrl);
 }
 
