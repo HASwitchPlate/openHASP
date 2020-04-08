@@ -34,16 +34,18 @@ SOFTWARE.
 void Logging::begin(int level, bool showLevel)
 {
 #ifndef DISABLE_LOGGING
-    setLevel(level);
-    setShowLevel(showLevel);
+    setLevel(0, level);
+    setLevel(1, level);
+    setLevel(2, level);
+    setShowLevel(0, showLevel);
 #endif
 }
 
 void Logging::registerOutput(uint8_t slot, Print * logOutput, int level, bool showLevel)
 {
 #ifndef DISABLE_LOGGING
-    setLevel(level);
-    setShowLevel(showLevel);
+    setLevel(0, level);
+    setShowLevel(0, showLevel);
     if(slot >= 3) return;
     _logOutput[slot] = logOutput;
 #endif
@@ -57,33 +59,33 @@ void Logging::unregisterOutput(uint8_t slot)
 #endif
 }
 
-void Logging::setLevel(int level)
+void Logging::setLevel(uint8_t slot, int level)
 {
 #ifndef DISABLE_LOGGING
-    _level = constrain(level, LOG_LEVEL_SILENT, LOG_LEVEL_VERBOSE);
+    _level[slot] = constrain(level, LOG_LEVEL_SILENT, LOG_LEVEL_VERBOSE);
 #endif
 }
 
-int Logging::getLevel() const
+int Logging::getLevel(uint8_t slot) const
 {
 #ifndef DISABLE_LOGGING
-    return _level;
+    return _level[slot];
 #else
     return 0;
 #endif
 }
 
-void Logging::setShowLevel(bool showLevel)
+void Logging::setShowLevel(uint8_t slot, bool showLevel)
 {
 #ifndef DISABLE_LOGGING
-    _showLevel = showLevel;
+    _showLevel[slot] = showLevel;
 #endif
 }
 
-bool Logging::getShowLevel() const
+bool Logging::getShowLevel(uint8_t slot) const
 {
 #ifndef DISABLE_LOGGING
-    return _showLevel;
+    return _showLevel[slot];
 #else
     return false;
 #endif

@@ -85,7 +85,7 @@ class Logging {
      */
     Logging()
 #ifndef DISABLE_LOGGING
-        : _level(LOG_LEVEL_SILENT), _showLevel(true)
+     //   : _level(LOG_LEVEL_SILENT), _showLevel(true)
 #endif
     {}
 
@@ -126,14 +126,14 @@ class Logging {
      * \param level - The new log level.
      * \return void
      */
-    void setLevel(int level);
+    void setLevel(uint8_t slot,int level);
 
     /**
      * Get the log level.
      *
      * \return The current log level.
      */
-    int getLevel() const;
+    int getLevel(uint8_t slot) const;
 
     /**
      * Set whether to show the log level.
@@ -142,7 +142,7 @@ class Logging {
      *                    false otherwise.
      * \return void
      */
-    void setShowLevel(bool showLevel);
+    void setShowLevel(uint8_t slot,bool showLevel);
 
     /**
      * Get whether the log level is shown during logging
@@ -150,7 +150,7 @@ class Logging {
      * \return true if the log level is be shown for each log
      *         false otherwise.
      */
-    bool getShowLevel() const;
+    bool getShowLevel(uint8_t slot) const;
 
     /**
      * Sets a function to be called before each log command.
@@ -280,12 +280,9 @@ class Logging {
     template <class T> void printLevel(int level, T msg, ...)
     {
 #ifndef DISABLE_LOGGING
-        if(level > _level) {
-            return;
-        }
 
         for(uint8_t i = 0; i < 3; i++) {
-            if(_logOutput[i] == NULL) continue;
+            if(_logOutput[i] == NULL || level>_level[i]) continue;
 
             if(_prefix != NULL) {
                 _prefix(level, _logOutput[i]);
@@ -304,8 +301,8 @@ class Logging {
     }
 
 #ifndef DISABLE_LOGGING
-    int _level;
-    bool _showLevel;
+    int _level[3];
+    bool _showLevel[3];
     Print * _logOutput[3];
 
     printfunction _prefix = NULL;

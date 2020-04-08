@@ -113,74 +113,6 @@ void debugStart()
     // log/logf method)
 }
 
-// void serialPrintln(const char * debugText, uint8_t level)
-//{
-/*
-String debugTimeText((char *)0);
-debugTimeText.reserve(128);
-
-uint8_t heapfrag = halGetHeapFragmentation();
-debugTimeText    = F("[");
-debugTimeText += String(float(millis()) / 1000, 3);
-debugTimeText += F("s] ");
-debugTimeText += halGetMaxFreeBlock();
-debugTimeText += F("/");
-debugTimeText += ESP.getFreeHeap();
-debugTimeText += F(" ");
-if(heapfrag < 10) debugTimeText += F(" ");
-debugTimeText += heapfrag;
-debugTimeText += F(" ");
-
-#if LV_MEM_CUSTOM == 0
-lv_mem_monitor_t mem_mon;
-lv_mem_monitor(&mem_mon);
-debugTimeText += F("| ");
-debugTimeText += mem_mon.used_pct;
-debugTimeText += F("% ");
-debugTimeText += mem_mon.free_biggest_size;
-debugTimeText += F("b/");
-debugTimeText += mem_mon.free_size;
-debugTimeText += F("b ");
-debugTimeText += (mem_mon.total_size - mem_mon.free_size);
-debugTimeText += F("b | ");
-#endif
-
-if(debugSerialStarted) {
-    //    Serial.print(debugTimeText);
-    //    Serial.println(debugText);
-}/
-
-switch(level) {
-    case LOG_LEVEL_FATAL:
-        Log.fatal(debugText);
-        break;
-    case LOG_LEVEL_ERROR:
-        Log.error(debugText);
-        break;
-    case LOG_LEVEL_WARNING:
-        Log.warning(debugText);
-        break;
-    case LOG_LEVEL_VERBOSE:
-        Log.verbose(debugText);
-        break;
-    case LOG_LEVEL_TRACE:
-        Log.trace(debugText);
-        break;
-    default:
-        Log.notice(debugText);
-}
-
-#if HASP_USE_TELNET != 0
-// telnetPrint(debugTimeText.c_str());
-telnetPrintln(debugText);
-#endif
-}
-
-void serialPrintln(String & debugText, uint8_t level)
-{
-serialPrintln(debugText.c_str(), level);
-} */
-
 #if HASP_USE_SYSLOG != 0
 void syslogSend(uint8_t priority, const char * debugText)
 {
@@ -256,20 +188,6 @@ bool debugSetConfig(const JsonObject & settings)
     return changed;
 }
 
-/*
-void debugSendOuput(const char * buffer)
-{
-    if(debugSerialStarted) Serial.print(buffer);
-    telnetPrint(buffer);
-}
-
-void debugSendOuput(const __FlashStringHelper * txt)
-{
-    if(debugSerialStarted) Serial.print(txt);
-    telnetPrint(txt);
-}
-*/
-
 inline void debugSendAnsiCode(const __FlashStringHelper * code, Print * _logOutput)
 {
     if(debugAnsiCodes) _logOutput->print(code);
@@ -283,12 +201,14 @@ static void debugPrintTimestamp(int level, Print * _logOutput)
     time(&rawtime);
     timeinfo = localtime(&rawtime);
 
+    // strftime(buffer, sizeof(buffer), "%b %d %H:%M:%S.", timeinfo);
+    // Serial.println(buffer);
+
     debugSendAnsiCode(F(TERM_COLOR_CYAN), _logOutput);
-    // strftime(buffer, sizeof(buffer), ("[%b %d %H:%M:%S."), timeinfo);
-    // strftime(buffer, sizeof(buffer), ("[%H:%M:%S."), timeinfo);
-    if(timeinfo->tm_year >= 2020) {
+
+    if(timeinfo->tm_year >= 120) {
         char buffer[64];
-        strftime(buffer, sizeof(buffer), PSTR("[%b %d %H:%M:%S."), timeinfo); // Literal String
+        strftime(buffer, sizeof(buffer), "[%b %d %H:%M:%S.", timeinfo); // Literal String
         _logOutput->print(buffer);
         _logOutput->printf(PSTR("%03u]"), millis() % 1000);
     } else {
@@ -311,7 +231,7 @@ static void debugPrintHaspMemory(int level, Print * _logOutput)
         else
             debugSendAnsiCode(F(TERM_COLOR_RED), _logOutput);
     }
-    _logOutput->printf(PSTR("[%5u/%5u %2u] "), maxfree, totalfree, frag);
+    _logOutput->printf(PSTR("[%5u/%5u%3u]"), maxfree, totalfree, frag);
 }
 
 #if LV_MEM_CUSTOM == 0
@@ -330,7 +250,7 @@ static void debugPrintLvglMemory(int level, Print * _logOutput)
         else
             debugSendAnsiCode(F(TERM_COLOR_RED), _logOutput);
     }
-    _logOutput->printf(PSTR("[%5u/%5u %2u] "), mem_mon.free_biggest_size, mem_mon.free_size, mem_mon.frag_pct);
+    _logOutput->printf(PSTR("[%5u/%5u%3u]"), mem_mon.free_biggest_size, mem_mon.free_size, mem_mon.frag_pct);
 }
 #endif
 
@@ -383,7 +303,8 @@ void debugPreSetup(JsonObject settings)
 {
     // Link stream to debugOutput
     // debugOutput.reserve(512);
-    Log.begin(LOG_LEVEL_VERBOSE, true);
+
+    Log.begin(LOG_LEVEL_WARNING, true);
     Log.setPrefix(debugPrintPrefix); // Uncomment to get timestamps as prefix
     Log.setSuffix(debugPrintSuffix); // Uncomment to get newline as suffix
 
