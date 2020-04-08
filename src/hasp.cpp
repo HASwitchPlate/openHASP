@@ -150,7 +150,7 @@ bool get_page_id(lv_obj_t * obj, uint8_t * pageid)
     return false;
 }
 
-lv_obj_t * FindObjFromId(lv_obj_t * parent, uint8_t objid)
+lv_obj_t * hasp_find_obj_from_id(lv_obj_t * parent, uint8_t objid)
 {
     if(objid == 0) return parent;
     lv_obj_t * child;
@@ -159,7 +159,7 @@ lv_obj_t * FindObjFromId(lv_obj_t * parent, uint8_t objid)
         if(child->user_data && (lv_obj_user_data_t)objid == child->user_data) return child; // object found
 
         /* check grandchildren */
-        lv_obj_t * grandchild = FindObjFromId(child, objid);
+        lv_obj_t * grandchild = hasp_find_obj_from_id(child, objid);
         if(grandchild) return grandchild;
 
         /* next sibling */
@@ -167,9 +167,9 @@ lv_obj_t * FindObjFromId(lv_obj_t * parent, uint8_t objid)
     }
     return NULL;
 }
-lv_obj_t * FindObjFromId(uint8_t pageid, uint8_t objid)
+lv_obj_t * hasp_find_obj_from_id(uint8_t pageid, uint8_t objid)
 {
-    return FindObjFromId(get_page(pageid), objid);
+    return hasp_find_obj_from_id(get_page(pageid), objid);
 }
 
 bool FindIdFromObj(lv_obj_t * obj, uint8_t * pageid, lv_obj_user_data_t * objid)
@@ -289,7 +289,7 @@ bool check_obj_type(const char * lvobjtype, lv_hasp_obj_type_t haspobjtype)
 // Used in the dispatcher
 void hasp_process_attribute(uint8_t pageid, uint8_t objid, const char * attr, const char * payload)
 {
-    hasp_process_obj_attribute(FindObjFromId(pageid, objid), attr, payload, strlen(payload) > 0);
+    hasp_process_obj_attribute(hasp_find_obj_from_id(pageid, objid), attr, payload, strlen(payload) > 0);
 
     /*        else {
                 // publish the change
@@ -359,8 +359,8 @@ void haspSetup()
 {
     guiSetDim(haspStartDim);
 
-    lv_coord_t hres = lv_disp_get_hor_res(NULL);
-    lv_coord_t vres = lv_disp_get_ver_res(NULL);
+   // lv_coord_t hres = lv_disp_get_hor_res(NULL);
+   // lv_coord_t vres = lv_disp_get_ver_res(NULL);
 
     // static lv_font_t *
     //    my_font = (lv_font_t *)lv_mem_alloc(sizeof(lv_font_t));
@@ -619,10 +619,10 @@ void IRAM_ATTR btn_event_handler(lv_obj_t * obj, lv_event_t event)
 
 // ##################### Event Handlers by Version ########################################################
 
-static void btnmap_event_handler(lv_obj_t * obj, lv_event_t event)
+/*static void btnmap_event_handler(lv_obj_t * obj, lv_event_t event)
 {
-    // if(event == LV_EVENT_VALUE_CHANGED) haspSendNewValue(obj, lv_btnmatrix_get_pressed_btn(obj));
-}
+     if(event == LV_EVENT_VALUE_CHANGED) haspSendNewValue(obj, lv_btnmatrix_get_pressed_btn(obj));
+}*/
 
 void IRAM_ATTR toggle_event_handler(lv_obj_t * obj, lv_event_t event)
 {
@@ -743,7 +743,7 @@ void haspNewObject(const JsonObject & config, uint8_t & saved_page_id)
     lv_obj_t * parent_obj = page;
     if(!config[F("parentid")].isNull()) {
         uint8_t parentid = config[F("parentid")].as<uint8_t>();
-        parent_obj       = FindObjFromId(page, parentid);
+        parent_obj       = hasp_find_obj_from_id(page, parentid);
         if(!parent_obj) {
             Log.warning(F("HASP: Parent ID p[%u].b[%u] not found"), pageid, parentid);
             parent_obj = page; // create on the page instead ??
@@ -770,7 +770,7 @@ void haspNewObject(const JsonObject & config, uint8_t & saved_page_id)
     // uint8_t styleid = config[F("styleid")].as<uint8_t>();
 
     /* Define Objects*/
-    lv_obj_t * obj = FindObjFromId(parent_obj, id);
+    lv_obj_t * obj = hasp_find_obj_from_id(parent_obj, id);
     if(obj) {
         Log.warning(F("HASP: Object ID %u already exists!"), id);
         return;
@@ -926,7 +926,7 @@ void haspNewObject(const JsonObject & config, uint8_t & saved_page_id)
     Log.verbose(F("HASP:     * p[%u].b[%u] = %s"), pageid, temp, list.type[0]);
 
     /* Double-check */
-    lv_obj_t * test = FindObjFromId(pageid, (uint8_t)temp);
+    lv_obj_t * test = hasp_find_obj_from_id(pageid, (uint8_t)temp);
     if(test != obj) {
         Log.error(F("HASP: Objects DO NOT match!"));
     } else {
