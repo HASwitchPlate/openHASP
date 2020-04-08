@@ -364,16 +364,16 @@ static void hasp_local_style_attr(lv_obj_t * obj, const char * attr_p, const cha
                     lv_obj_set_style_local_value_font(obj, part, state, &unscii_8_icon);
                     break;
                 case 12:
-                    lv_obj_set_style_local_value_font(obj, part, state, &lv_font_roboto_12);
+                    lv_obj_set_style_local_value_font(obj, part, state, &lv_font_montserrat_12);
                     break;
                 case 16:
-                    lv_obj_set_style_local_value_font(obj, part, state, &lv_font_roboto_16);
+                    lv_obj_set_style_local_value_font(obj, part, state, &lv_font_montserrat_16);
                     break;
                 case 22:
-                    lv_obj_set_style_local_value_font(obj, part, state, &lv_font_roboto_22);
+                    lv_obj_set_style_local_value_font(obj, part, state, &lv_font_montserrat_22);
                     break;
                 case 28:
-                    lv_obj_set_style_local_value_font(obj, part, state, &lv_font_roboto_28);
+                    lv_obj_set_style_local_value_font(obj, part, state, &lv_font_montserrat_28_compressed);
                     break;
             }
             return;
@@ -408,16 +408,16 @@ static void hasp_local_style_attr(lv_obj_t * obj, const char * attr_p, const cha
                     lv_obj_set_style_local_text_font(obj, part, state, &unscii_8_icon);
                     break;
                 case 12:
-                    lv_obj_set_style_local_text_font(obj, part, state, &lv_font_roboto_12);
+                    lv_obj_set_style_local_text_font(obj, part, state, &lv_font_montserrat_12);
                     break;
                 case 16:
-                    lv_obj_set_style_local_text_font(obj, part, state, &lv_font_roboto_16);
+                    lv_obj_set_style_local_text_font(obj, part, state, &lv_font_montserrat_16);
                     break;
                 case 22:
-                    lv_obj_set_style_local_text_font(obj, part, state, &lv_font_roboto_22);
+                    lv_obj_set_style_local_text_font(obj, part, state, &lv_font_montserrat_22);
                     break;
                 case 28:
-                    lv_obj_set_style_local_text_font(obj, part, state, &lv_font_roboto_28);
+                    lv_obj_set_style_local_text_font(obj, part, state, &lv_font_montserrat_28_compressed);
                     break;
             }
             return;
@@ -617,7 +617,7 @@ static void hasp_process_obj_attribute2(lv_obj_t * obj, const char * attr, const
 // OK
 static void hasp_process_obj_attribute3(lv_obj_t * obj, const char * attr, const char * payload, bool update)
 {
-    int16_t val = atoi(payload);
+    // int16_t val = atoi(payload);
 
     if(!strcmp_P(attr, PSTR("vis"))) {
         return update ? lv_obj_set_hidden(obj, !is_true(payload)) : hasp_out_int(obj, attr, !lv_obj_get_hidden(obj));
@@ -691,7 +691,7 @@ static void hasp_process_obj_attribute4(lv_obj_t * obj, const char * attr, const
 // OK
 static void hasp_process_obj_attribute6(lv_obj_t * obj, const char * attr, const char * payload, bool update)
 {
-    int16_t val = atoi(payload);
+    // int16_t val = atoi(payload);
 
     if(!strcmp_P(attr, PSTR("hidden"))) {
         return update ? lv_obj_set_hidden(obj, is_true(payload)) : hasp_out_int(obj, attr, lv_obj_get_hidden(obj));

@@ -256,7 +256,7 @@ typedef void* lv_indev_drv_user_data_t;            /*Type of user data in the in
  * Log settings
  *===============*/
 
-#define LV_USE_PERF_MONITOR  1
+#define LV_USE_PERF_MONITOR  0
 
  /*1: Enable the log module*/
 #define LV_USE_LOG      1  // set back to 0 before release !!
@@ -328,14 +328,14 @@ typedef void* lv_indev_drv_user_data_t;            /*Type of user data in the in
 
   /* Robot fonts with bpp = 4
    * https://fonts.google.com/specimen/Roboto  */
-#define LV_FONT_ROBOTO_12    LV_HIGH_RESOURCE_MCU
-#define LV_FONT_ROBOTO_16    LV_HIGH_RESOURCE_MCU
-#define LV_FONT_ROBOTO_22    LV_HIGH_RESOURCE_MCU
-#define LV_FONT_ROBOTO_28    LV_HIGH_RESOURCE_MCU
+#define LV_FONT_MONTSERRAT_12    LV_HIGH_RESOURCE_MCU
+#define LV_FONT_MONTSERRAT_16    LV_HIGH_RESOURCE_MCU
+#define LV_FONT_MONTSERRAT_22    LV_HIGH_RESOURCE_MCU
+#define LV_FONT_MONTSERRAT_28    0 // LV_HIGH_RESOURCE_MCU
 
    /* Demonstrate special features */
-#define LV_FONT_ROBOTO_12_SUBPX 0
-#define LV_FONT_ROBOTO_28_COMPRESSED 0  /*bpp = 3*/
+#define LV_FONT_MONTSERRAT_12_SUBPX 0
+#define LV_FONT_MONTSERRAT_28_COMPRESSED LV_HIGH_RESOURCE_MCU  /*bpp = 3*/
 
 /*Pixel perfect monospace font
  * http://pelulamu.net/unscii/ */
@@ -369,8 +369,8 @@ typedef void* lv_font_user_data_t;
 
 /*Always set a default font from the built-in fonts*/
 #if LV_HIGH_RESOURCE_MCU>0
-#define LV_FONT_CUSTOM_DECLARE LV_FONT_DECLARE(lv_font_roboto_16);
-#define LV_FONT_DEFAULT        &lv_font_roboto_16
+#define LV_FONT_CUSTOM_DECLARE LV_FONT_DECLARE(lv_font_montserrat_16);
+#define LV_FONT_DEFAULT        &lv_font_montserrat_16
 #else
 #define LV_FONT_CUSTOM_DECLARE LV_FONT_DECLARE(unscii_8_icon);
 #define LV_FONT_DEFAULT        &unscii_8_icon //&lv_font_unscii_8
@@ -389,15 +389,15 @@ typedef void* lv_font_user_data_t;
 #define LV_THEME_DEFAULT_COLOR_SECONDARY    LV_COLOR_BLUE
 #define LV_THEME_DEFAULT_FLAGS              0 //LV_THEME_MATERIAL_FLAG_NONE
 #if LV_HIGH_RESOURCE_MCU
-#define LV_THEME_DEFAULT_FONT_SMALL         &lv_font_roboto_12
-#define LV_THEME_DEFAULT_FONT_NORMAL        &lv_font_roboto_16
-#define LV_THEME_DEFAULT_FONT_SUBTITLE      &lv_font_roboto_22
-#define LV_THEME_DEFAULT_FONT_TITLE         &lv_font_roboto_28
+#define LV_THEME_DEFAULT_FONT_SMALL         &lv_font_montserrat_12
+#define LV_THEME_DEFAULT_FONT_NORMAL        &lv_font_montserrat_16
+#define LV_THEME_DEFAULT_FONT_SUBTITLE      &lv_font_montserrat_22
+#define LV_THEME_DEFAULT_FONT_TITLE         &lv_font_montserrat_28_compressed
 #else
-#define LV_THEME_DEFAULT_FONT_SMALL         LV_FONT_DEFAULT // &lv_font_roboto_12
-#define LV_THEME_DEFAULT_FONT_NORMAL        LV_FONT_DEFAULT // &lv_font_roboto_16
-#define LV_THEME_DEFAULT_FONT_SUBTITLE      LV_FONT_DEFAULT // &lv_font_roboto_22
-#define LV_THEME_DEFAULT_FONT_TITLE         LV_FONT_DEFAULT // &lv_font_roboto_28
+#define LV_THEME_DEFAULT_FONT_SMALL         LV_FONT_DEFAULT // &lv_font_montserrat_12
+#define LV_THEME_DEFAULT_FONT_NORMAL        LV_FONT_DEFAULT // &lv_font_montserrat_16
+#define LV_THEME_DEFAULT_FONT_SUBTITLE      LV_FONT_DEFAULT // &lv_font_montserrat_22
+#define LV_THEME_DEFAULT_FONT_TITLE         LV_FONT_DEFAULT // &lv_font_montserrat_28_compressed
 #endif
 
 #define LV_USE_THEME_EMPTY 1
