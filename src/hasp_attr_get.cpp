@@ -3,14 +3,13 @@
 
 #include "lvgl.h"
 #include "hasp.h"
-#include "hasp_attr_get.h"
+//#include "hasp_attr_get.h"
 
 #define LVGL7 1
 
 bool haspGetObjAttribute(lv_obj_t * obj, String strAttr, std::string & strPayload)
 {
     if(!obj) return false;
-    uint16_t val = 0;
 
     switch(strAttr.length()) {
         case 4:
@@ -36,7 +35,8 @@ bool haspGetObjAttribute(lv_obj_t * obj, String strAttr, std::string & strPayloa
                 if(check_obj_type(list.type[0], LV_HASP_BAR)) strPayload = String(lv_bar_get_value(obj)).c_str();
                 if(check_obj_type(list.type[0], LV_HASP_LMETER))
                     strPayload = String(lv_linemeter_get_value(obj)).c_str();
-                if(check_obj_type(list.type[0], LV_HASP_CPICKER)) strPayload = String(get_cpicker_value(obj)).c_str();
+                // if(check_obj_type(list.type[0], LV_HASP_CPICKER)) strPayload =
+                // String(lv_cpicker_get_color(obj)).c_str();
                 if(check_obj_type(list.type[0], LV_HASP_CHECKBOX))
                     strPayload = String(!lv_checkbox_is_checked(obj) ? 0 : 1).c_str();
                 if(check_obj_type(list.type[0], LV_HASP_DDLIST))
@@ -47,6 +47,6 @@ bool haspGetObjAttribute(lv_obj_t * obj, String strAttr, std::string & strPayloa
                 if(check_obj_type(list.type[0], LV_HASP_LED)) strPayload = String(lv_led_get_bright(obj)).c_str();
                 if(check_obj_type(list.type[0], LV_HASP_SWITCH)) strPayload = String(lv_switch_get_state(obj)).c_str();
             }
-    }
+        }
     return false;
 }
