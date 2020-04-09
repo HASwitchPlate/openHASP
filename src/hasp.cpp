@@ -252,35 +252,37 @@ static inline void hasp_send_obj_attribute_txt(lv_obj_t * obj, const char * txt)
 
 bool check_obj_type(const char * lvobjtype, lv_hasp_obj_type_t haspobjtype)
 {
+    lvobjtype += 3; // skip "lv_"
+
     switch(haspobjtype) {
         case LV_HASP_BUTTON:
-            return (strcmp_P(lvobjtype, PSTR("lv_btn")) == 0);
+            return (strcmp_P(lvobjtype, PSTR("btn")) == 0);
         case LV_HASP_LABEL:
-            return (strcmp_P(lvobjtype, PSTR("lv_label")) == 0);
+            return (strcmp_P(lvobjtype, PSTR("label")) == 0);
         case LV_HASP_CHECKBOX:
-            return (strcmp_P(lvobjtype, PSTR("lv_checkbox")) == 0); // || (strcmp_P(lvobjtype, PSTR("lv_cb")) == 0);
+            return (strcmp_P(lvobjtype, PSTR("checkbox")) == 0); // || (strcmp_P(lvobjtype, PSTR("lv_cb")) == 0);
         case LV_HASP_DDLIST:
-            return (strcmp_P(lvobjtype, PSTR("lv_dropdown")) == 0); // || (strcmp_P(lvobjtype, PSTR("lv_ddlist")) == 0);
+            return (strcmp_P(lvobjtype, PSTR("dropdown")) == 0); // || (strcmp_P(lvobjtype, PSTR("lv_ddlist")) == 0);
         case LV_HASP_CPICKER:
-            return (strcmp_P(lvobjtype, PSTR("lv_cpicker")) == 0);
+            return (strcmp_P(lvobjtype, PSTR("cpicker")) == 0);
         case LV_HASP_PRELOADER:
-            return (strcmp_P(lvobjtype, PSTR("lv_spinner")) == 0); // || (strcmp_P(lvobjtype, PSTR("lv_preload")) == 0);
+            return (strcmp_P(lvobjtype, PSTR("spinner")) == 0); // || (strcmp_P(lvobjtype, PSTR("lv_preload")) == 0);
         case LV_HASP_SLIDER:
-            return (strcmp_P(lvobjtype, PSTR("lv_slider")) == 0);
+            return (strcmp_P(lvobjtype, PSTR("slider")) == 0);
         case LV_HASP_GAUGE:
-            return (strcmp_P(lvobjtype, PSTR("lv_gauge")) == 0);
+            return (strcmp_P(lvobjtype, PSTR("gauge")) == 0);
         case LV_HASP_BAR:
-            return (strcmp_P(lvobjtype, PSTR("lv_bar")) == 0);
+            return (strcmp_P(lvobjtype, PSTR("bar")) == 0);
         case LV_HASP_LMETER:
-            return (strcmp_P(lvobjtype, PSTR("lv_linemeter")) == 0); // || (strcmp_P(lvobjtype, PSTR("lv_lmeter")) == 0)
+            return (strcmp_P(lvobjtype, PSTR("linemeter")) == 0); // || (strcmp_P(lvobjtype, PSTR("lv_lmeter")) == 0)
         case LV_HASP_ROLLER:
-            return (strcmp_P(lvobjtype, PSTR("lv_roller")) == 0);
+            return (strcmp_P(lvobjtype, PSTR("roller")) == 0);
         case LV_HASP_SWITCH:
-            return (strcmp_P(lvobjtype, PSTR("lv_switch")) == 0); // || (strcmp_P(lvobjtype, PSTR("lv_sw")) == 0)
+            return (strcmp_P(lvobjtype, PSTR("switch")) == 0); // || (strcmp_P(lvobjtype, PSTR("lv_sw")) == 0)
         case LV_HASP_LED:
-            return (strcmp_P(lvobjtype, PSTR("lv_led")) == 0);
+            return (strcmp_P(lvobjtype, PSTR("led")) == 0);
         case LV_HASP_CONTAINER:
-            return (strcmp_P(lvobjtype, PSTR("lv_container")) == 0); // || (strcmp_P(lvobjtype, PSTR("lv_cont")) == 0)
+            return (strcmp_P(lvobjtype, PSTR("container")) == 0); // || (strcmp_P(lvobjtype, PSTR("lv_cont")) == 0)
         default:
             return false;
     }
