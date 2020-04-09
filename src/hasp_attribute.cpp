@@ -1,5 +1,5 @@
-#include "ArduinoLog.h"
 #include "ArduinoJson.h"
+#include "ArduinoLog.h"
 
 #include "lvgl.h"
 #include "lv_conf.h"
@@ -13,12 +13,22 @@ extern lv_font_t * haspFonts[8];
 
 static inline bool is_true(const char * s);
 static inline bool only_digits(const char * s);
-static inline void hasp_out_int(lv_obj_t * obj, const char * attr, uint32_t val);
-static inline void hasp_out_str(lv_obj_t * obj, const char * attr, const char * data);
-static inline void hasp_out_color(lv_obj_t * obj, const char * attr, lv_color_t color);
 
-// this function is missing in lvgl
-// OK
+/* 16-bit hashing function http://www.cse.yorku.ca/~oz/hash.html */
+static uint16_t sdbm(const char * str)
+{
+    uint16_t hash = 0;
+    char c;
+
+    // while(c = *str++) hash = c + (hash << 6) + (hash << 16) - hash;
+    while(c = (*str++)) {
+        hash = tolower(c) + (hash << 6) - hash;
+    }
+
+    return hash;
+}
+
+// OK - this function is missing in lvgl
 static uint8_t lv_roller_get_visible_row_count(lv_obj_t * roller)
 {
     const lv_font_t * font    = lv_obj_get_style_text_font(roller, LV_ROLLER_PART_BG);
@@ -186,14 +196,138 @@ static inline bool haspGetLabelText(lv_obj_t * obj, char * text)
     return false;
 }
 
+static void hasp_attribute_get_part_state(lv_obj_t * obj, const char * attr_in, char * attr_out, uint8_t & part,
+                                          uint8_t & state)
+{
+    int len = strlen(attr_in);
+    if(len > 0 && len < 32) {
+        // Check Trailing partnumber
+        if(attr_in[len - 1] == '1') {
+            part = LV_TABLE_PART_CELL1;
+        } else if(attr_in[len - 1] == '2') {
+            part = LV_TABLE_PART_CELL2;
+        } else if(attr_in[len - 1] == '3') {
+            part = LV_TABLE_PART_CELL3;
+        } else if(attr_in[len - 1] == '4') {
+            part = LV_TABLE_PART_CELL4;
+        }
+
+        // Remove Trailing part digit
+        char attr[128];
+        if(part != LV_TABLE_PART_BG && len > 0) {
+            len--;
+        }
+        strncpy(attr_out, attr_in, len + 1);
+        attr_out[len] = 0;
+    } else {
+        attr_out[0] = 0;
+    }
+}
+
+static void hasp_local_style_attr_bg(lv_obj_t * obj, const char * attr_p, const char * payload, bool update)
+{
+    char attr[32];
+    uint8_t part  = LV_TABLE_PART_BG;
+    uint8_t state = LV_STATE_DEFAULT;
+    int16_t var   = atoi(payload);
+
+    hasp_attribute_get_part_state(obj, attr_p, attr, part, state);
+
+    /* ***** WARNING ****************************************************
+     * when using hasp_out use attr_p for the original attribute name
+     * *************************************************************** */
+
+    if(!strcmp_P(attr, PSTR("bg_blend_mode")))
+        return attribute_bg_blend_mode(obj, part, state, update, attr_p, (lv_blend_mode_t)var);
+
+    if(!strcmp_P(attr, PSTR("bg_main_stop")))
+        return attribute_bg_main_stop(obj, part, state, update, attr_p, (lv_style_int_t)var);
+
+    if(!strcmp_P(attr, PSTR("bg_grad_stop")))
+        return attribute_bg_grad_stop(obj, part, state, update, attr_p, (lv_style_int_t)var);
+
+    if(!strcmp_P(attr, PSTR("bg_grad_dir")))
+        return attribute_bg_grad_dir(obj, part, state, update, attr_p, (lv_grad_dir_t)var);
+
+    if(!strcmp_P(attr, PSTR("bg_color"))) {
+        lv_color_t color = haspPayloadToColor(payload);
+        if(part != 64)
+            return lv_obj_set_style_local_bg_color(obj, part, state, color);
+        else
+            return lv_obj_set_style_local_bg_color(obj, LV_PAGE_PART_SCRL, LV_STATE_CHECKED, color);
+    }
+    if(!strcmp_P(attr, PSTR("bg_grad_color"))) {
+        lv_color_t color = haspPayloadToColor(payload);
+        return lv_obj_set_style_local_bg_grad_color(obj, part, state, color);
+    }
+
+    if(!strcmp_P(attr, PSTR("bg_opa"))) return attribute_bg_opa(obj, part, state, update, attr_p, (lv_opa_t)var);
+
+    Log.warning(F("HASP: Unknown property %s"), attr_p);
+}
+
+static void hasp_local_style_attr_pad(lv_obj_t * obj, const char * attr_p, const char * payload, bool update)
+{
+    char attr[32];
+    uint8_t part  = LV_TABLE_PART_BG;
+    uint8_t state = LV_STATE_DEFAULT;
+    int16_t var   = atoi(payload);
+
+    hasp_attribute_get_part_state(obj, attr_p, attr, part, state);
+
+    /* ***** WARNING ****************************************************
+     * when using hasp_out use attr_p for the original attribute name
+     * *************************************************************** */
+
+    if(!strcmp_P(attr, PSTR("pad_top")))
+        return attribute_pad_top(obj, part, state, update, attr_p, (lv_blend_mode_t)var);
+
+    if(!strcmp_P(attr, PSTR("pad_bottom")))
+        return attribute_pad_bottom(obj, part, state, update, attr_p, (lv_style_int_t)var);
+
+    if(!strcmp_P(attr, PSTR("pad_left")))
+        return attribute_pad_left(obj, part, state, update, attr_p, (lv_style_int_t)var);
+
+    if(!strcmp_P(attr, PSTR("pad_right")))
+        return attribute_pad_right(obj, part, state, update, attr_p, (lv_grad_dir_t)var);
+
+    if(!strcmp_P(attr, PSTR("pad_inner"))) {
+        return attribute_pad_inner(obj, part, state, update, attr_p, (lv_opa_t)var);
+    }
+
+    Log.warning(F("HASP: Unknown property %s"), attr_p);
+}
+
 static void hasp_local_style_attr(lv_obj_t * obj, const char * attr_p, const char * payload, bool update)
 {
+
+    if(attr_p == strstr_P(attr_p, PSTR("bg_"))) { // startsWith command/
+        return hasp_local_style_attr_bg(obj, attr_p, payload, update);
+
+    } else if(attr_p == strstr_P(attr_p, PSTR("pad_"))) {
+        return hasp_local_style_attr_pad(obj, attr_p, payload, update);
+        /*    } else if(attr_p == strstr_P(attr_p, PSTR("text_"))) {
+                return hasp_local_style_attr_text(obj, attr_p, payload, update);
+            } else if(attr_p == strstr_P(attr_p, PSTR("line_"))) {
+                return hasp_local_style_attr_line(obj, attr_p, payload, update);
+            } else if(attr_p == strstr_P(attr_p, PSTR("value_"))) {
+                return hasp_local_style_attr_value(obj, attr_p, payload, update);
+            } else if(attr_p == strstr_P(attr_p, PSTR("border_"))) {
+                return hasp_local_style_attr_border(obj, attr_p, payload, update);
+            } else if(attr_p == strstr_P(attr_p, PSTR("shadow_"))) {
+                return hasp_local_style_attr_shadow(obj, attr_p, payload, update);
+            } else if(attr_p == strstr_P(attr_p, PSTR("outline_"))) {
+                return hasp_local_style_attr_outline(obj, attr_p, payload, update);
+            } else if(attr_p == strstr_P(attr_p, PSTR("pattern_"))) {
+                return hasp_local_style_attr_pattern(obj, attr_p, payload, update);*/
+    }
+
     uint8_t part  = LV_TABLE_PART_BG;
     uint8_t state = LV_STATE_DEFAULT;
     int16_t var   = atoi(payload);
 
     int len = strlen(attr_p);
-    if(len > 0 && len < 128) {
+    if(len > 0 && len < 32) {
         // Check Trailing partnumber
         if(attr_p[len - 1] == '1') {
             part = LV_TABLE_PART_CELL1;
@@ -208,7 +342,7 @@ static void hasp_local_style_attr(lv_obj_t * obj, const char * attr_p, const cha
         }
 
         // Remove Trailing part digit
-        char attr[128];
+        char attr[32];
         if(part != LV_TABLE_PART_BG && len > 0) {
             len--;
         }
@@ -216,30 +350,19 @@ static void hasp_local_style_attr(lv_obj_t * obj, const char * attr_p, const cha
         attr[len] = 0;
 
         // debugPrintln(strAttr + "&" + part);
-        uint8_t t8 = 0;
 
         /* ***** WARNING ****************************************************
          * when using hasp_out use attr_p for the original attribute name
          * *************************************************************** */
 
         if(!strcmp_P(attr, PSTR("radius"))) {
-            if(update) {
-                return lv_obj_set_style_local_radius(obj, part, state, (lv_style_int_t)var);
-            } else {
-                lv_obj_get_style_local_radius(obj, part, state, &var);
-                return hasp_out_int(obj, attr_p, var);
-            }
+            return attribute_radius(obj, part, state, update, attr_p, var);
 
         } else if(!strcmp_P(attr, PSTR("clip_corner"))) {
-            if(update) {
-                return lv_obj_set_style_local_clip_corner(obj, part, state, (bool)var);
-            } else {
-                lv_obj_get_style_local_clip_corner(obj, part, state, &t8);
-                return hasp_out_int(obj, attr_p, t8);
-            }
+            return attribute_clip_corner(obj, part, state, update, attr_p, var);
 
         } else if(!strcmp_P(attr, PSTR("size"))) {
-            return lv_obj_set_style_local_size(obj, part, state, (lv_style_int_t)var);
+            return attribute_size(obj, part, state, update, attr_p, var);
 
         } else if(!strcmp_P(attr, PSTR("transform_width"))) {
             return lv_obj_set_style_local_transform_width(obj, part, state, (lv_style_int_t)var);
@@ -250,44 +373,6 @@ static void hasp_local_style_attr(lv_obj_t * obj, const char * attr_p, const cha
         } else if(!strcmp_P(attr, PSTR("opa_scale"))) {
             return lv_obj_set_style_local_opa_scale(obj, part, state, (lv_opa_t)var);
 
-        } else if(!strcmp_P(attr, PSTR("pad_top"))) {
-            return lv_obj_set_style_local_pad_top(obj, part, state, (lv_style_int_t)var);
-
-        } else if(!strcmp_P(attr, PSTR("pad_bottom"))) {
-            return lv_obj_set_style_local_pad_bottom(obj, part, state, (lv_style_int_t)var);
-
-        } else if(!strcmp_P(attr, PSTR("pad_left"))) {
-            return lv_obj_set_style_local_pad_left(obj, part, state, (lv_style_int_t)var);
-
-        } else if(!strcmp_P(attr, PSTR("pad_right"))) {
-            return lv_obj_set_style_local_pad_right(obj, part, state, (lv_style_int_t)var);
-
-        } else if(!strcmp_P(attr, PSTR("pad_inner"))) {
-            return lv_obj_set_style_local_pad_inner(obj, part, state, (lv_style_int_t)var);
-
-        } else if(!strcmp_P(attr, PSTR("bg_blend_mode"))) {
-            return lv_obj_set_style_local_bg_blend_mode(obj, part, state, (lv_blend_mode_t)var);
-
-        } else if(!strcmp_P(attr, PSTR("bg_main_stop"))) {
-            return lv_obj_set_style_local_bg_main_stop(obj, part, state, (lv_style_int_t)var);
-
-        } else if(!strcmp_P(attr, PSTR("bg_grad_stop"))) {
-            return lv_obj_set_style_local_bg_grad_stop(obj, part, state, (lv_style_int_t)var);
-
-        } else if(!strcmp_P(attr, PSTR("bg_grad_dir"))) {
-            return lv_obj_set_style_local_bg_grad_dir(obj, part, state, (lv_grad_dir_t)var);
-
-        } else if(!strcmp_P(attr, PSTR("bg_color"))) {
-            lv_color_t color = haspPayloadToColor(payload);
-            if(part != 64)
-                return lv_obj_set_style_local_bg_color(obj, part, state, color);
-            else
-                return lv_obj_set_style_local_bg_color(obj, LV_PAGE_PART_SCRL, LV_STATE_CHECKED, color);
-        } else if(!strcmp_P(attr, PSTR("bg_grad_color"))) {
-            lv_color_t color = haspPayloadToColor(payload);
-            return lv_obj_set_style_local_bg_grad_color(obj, part, state, color);
-        } else if(!strcmp_P(attr, PSTR("bg_opa"))) {
-            return lv_obj_set_style_local_bg_opa(obj, part, state, (lv_opa_t)var);
         } else if(!strcmp_P(attr, PSTR("border_width"))) {
             return lv_obj_set_style_local_border_width(obj, part, state, (lv_style_int_t)var);
         } else if(!strcmp_P(attr, PSTR("border_side"))) {
@@ -582,215 +667,129 @@ static void hasp_process_obj_attribute_range(lv_obj_t * obj, const char * attr, 
 }
 
 // OK
-static void hasp_process_obj_attribute1(lv_obj_t * obj, const char * attr, const char * payload, bool update)
-{
-    int16_t val = atoi(payload);
-
-    if(!strcmp_P(attr, PSTR("x"))) {
-        return update ? lv_obj_set_x(obj, val) : hasp_out_int(obj, attr, lv_obj_get_x(obj));
-    }
-    if(!strcmp_P(attr, PSTR("y"))) {
-        return update ? lv_obj_set_y(obj, val) : hasp_out_int(obj, attr, lv_obj_get_y(obj));
-    }
-    if(!strcmp_P(attr, PSTR("w"))) {
-        return update ? lv_obj_set_width(obj, val) : hasp_out_int(obj, attr, lv_obj_get_width(obj));
-    }
-    if(!strcmp_P(attr, PSTR("h"))) {
-        return update ? lv_obj_set_height(obj, val) : hasp_out_int(obj, attr, lv_obj_get_height(obj));
-    }
-
-    hasp_local_style_attr(obj, attr, payload, update);
-}
-
-// OK
-static void hasp_process_obj_attribute2(lv_obj_t * obj, const char * attr, const char * payload, bool update)
-{
-    int16_t val = atoi(payload);
-
-    if(!strcmp_P(attr, PSTR("id"))) {
-        return update ? (void)(obj->user_data = (uint8_t)val) : hasp_out_int(obj, attr, obj->user_data);
-    }
-
-    hasp_local_style_attr(obj, attr, payload, update);
-}
-
-// OK
-static void hasp_process_obj_attribute3(lv_obj_t * obj, const char * attr, const char * payload, bool update)
-{
-    // int16_t val = atoi(payload);
-
-    if(!strcmp_P(attr, PSTR("vis"))) {
-        return update ? lv_obj_set_hidden(obj, !is_true(payload)) : hasp_out_int(obj, attr, !lv_obj_get_hidden(obj));
-    }
-    if(!strcmp_P(attr, PSTR("txt"))) { // In order of likelihood to occur
-        return hasp_process_obj_attribute_txt(obj, attr, payload, update);
-    }
-    if(!strcmp_P(attr, PSTR("val"))) { // In order of likelihood to occur
-        return hasp_process_obj_attribute_val(obj, attr, payload, update);
-    }
-    if(!strcmp_P(attr, PSTR("min"))) { // In order of likelihood to occur
-        return hasp_process_obj_attribute_range(obj, attr, payload, update, true, false);
-    }
-    if(!strcmp_P(attr, PSTR("max"))) { // In order of likelihood to occur
-        return hasp_process_obj_attribute_range(obj, attr, payload, update, false, true);
-    }
-
-    hasp_local_style_attr(obj, attr, payload, update);
-}
-
-static void hasp_process_obj_attribute4(lv_obj_t * obj, const char * attr, const char * payload, bool update)
-{
-    int16_t val = atoi(payload);
-
-    if(!strcmp_P(attr, PSTR("rows"))) {
-        lv_obj_type_t list;
-        lv_obj_get_type(obj, &list);
-        const char * objtype = list.type[0];
-
-        if(check_obj_type(objtype, LV_HASP_ROLLER)) {
-            return update ? lv_roller_set_visible_row_count(obj, (uint8_t)val)
-                          : hasp_out_int(obj, attr, lv_roller_get_visible_row_count(obj));
-        }
-    }
-
-    //    if(!strcmp_P(attr, PSTR("page"))) {
-    //        return lv_obj_set_parent;
-    //    }
-
-    /* Attributes depending on objecttype */
-    lv_obj_type_t list;
-    lv_obj_get_type(obj, &list);
-    const char * objtype = list.type[0];
-
-    if(!strcmp_P(attr, PSTR("rect"))) {
-        if(check_obj_type(objtype, LV_HASP_CPICKER)) {
-            lv_cpicker_set_type(obj, is_true(payload) ? LV_CPICKER_TYPE_RECT : LV_CPICKER_TYPE_DISC);
-            return;
-        }
-    }
-
-    if(!strcmp_P(attr, PSTR("mode"))) {
-        if(check_obj_type(objtype, LV_HASP_BUTTON)) {
-            lv_obj_t * label = FindButtonLabel(obj);
-            if(label) {
-                hasp_process_label_long_mode(label, payload, update);
-                lv_obj_set_width(label, lv_obj_get_width(obj));
-            }
-            return;
-        }
-
-        if(check_obj_type(objtype, LV_HASP_LABEL)) {
-            hasp_process_label_long_mode(obj, payload, update);
-            return;
-        }
-    }
-
-    hasp_local_style_attr(obj, attr, payload, update);
-}
-
-// OK
-static void hasp_process_obj_attribute6(lv_obj_t * obj, const char * attr, const char * payload, bool update)
-{
-    // int16_t val = atoi(payload);
-
-    if(!strcmp_P(attr, PSTR("hidden"))) {
-        return update ? lv_obj_set_hidden(obj, is_true(payload)) : hasp_out_int(obj, attr, lv_obj_get_hidden(obj));
-    }
-
-    /* Attributes depending on objecttype */
-    lv_obj_type_t list;
-    lv_obj_get_type(obj, &list);
-    const char * objtype = list.type[0];
-
-    if(!strcmp_P(attr, PSTR("toggle"))) {
-        if(check_obj_type(objtype, LV_HASP_BUTTON)) {
-            if(update) {
-                bool toggle = is_true(payload);
-                lv_btn_set_checkable(obj, toggle);
-                lv_obj_set_event_cb(obj, toggle ? toggle_event_handler : btn_event_handler);
-            } else {
-                hasp_out_int(obj, attr, lv_btn_get_checkable(obj));
-            }
-            return;
-        }
-    }
-
-    hasp_local_style_attr(obj, attr, payload, update);
-}
-
-// OK
-static void hasp_process_obj_attribute7(lv_obj_t * obj, const char * attr, const char * payload, bool update)
-{
-    int16_t val = atoi(payload);
-
-    if(!strcmp_P(attr, PSTR("opacity"))) {
-        return update ? lv_obj_set_style_local_opa_scale(obj, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, val)
-                      : hasp_out_int(obj, attr, lv_obj_get_style_opa_scale(obj, LV_OBJ_PART_MAIN));
-    }
-
-    if(!strcmp_P(attr, PSTR("enabled"))) {
-        return update ? lv_obj_set_click(obj, is_true(payload)) : hasp_out_int(obj, attr, lv_obj_get_click(obj));
-    }
-
-    if(!strcmp_P(attr, PSTR("options"))) {
-        /* Attributes depending on objecttype */
-        lv_obj_type_t list;
-        lv_obj_get_type(obj, &list);
-        const char * objtype = list.type[0];
-
-        if(check_obj_type(objtype, LV_HASP_DDLIST)) {
-            if(update) {
-                lv_dropdown_set_options(obj, payload);
-            } else {
-                hasp_out_str(obj, attr, lv_dropdown_get_options(obj));
-            }
-            return;
-
-        } else if(check_obj_type(objtype, LV_HASP_ROLLER)) {
-            if(update) {
-                lv_roller_ext_t * ext = (lv_roller_ext_t *)lv_obj_get_ext_attr(obj);
-                lv_roller_set_options(obj, payload, ext->mode);
-            } else {
-                hasp_out_str(obj, attr, lv_roller_get_options(obj));
-            }
-            return;
-        }
-    }
-
-    hasp_local_style_attr(obj, attr, payload, update);
-}
-
-// OK
 // @param update  bool: change the value if true, dispatch value if false
 void hasp_process_obj_attribute(lv_obj_t * obj, const char * attr_p, const char * payload, bool update)
 {
     if(!obj) return Log.warning(F("HASP: Unknown object"));
+    int16_t val = atoi(payload);
 
     char * attr = (char *)attr_p;
     if(*attr == '.') attr++; // strip leading '.'
 
-    switch(strlen(attr)) {
-        case 1:
-            hasp_process_obj_attribute1(obj, attr, payload, update);
+    Log.trace("ATTR: %s => %d", attr, sdbm(attr));
+
+    /* 16-bit Hash Lookup Table */
+    switch(sdbm(attr)) {
+        case ATTR_X:
+            return update ? lv_obj_set_x(obj, val) : hasp_out_int(obj, attr, lv_obj_get_x(obj));
+
+        case ATTR_Y:
+            return update ? lv_obj_set_y(obj, val) : hasp_out_int(obj, attr, lv_obj_get_y(obj));
+
+        case ATTR_W:
+            return update ? lv_obj_set_width(obj, val) : hasp_out_int(obj, attr, lv_obj_get_width(obj));
+
+        case ATTR_H:
+            return update ? lv_obj_set_height(obj, val) : hasp_out_int(obj, attr, lv_obj_get_height(obj));
+
+        case ATTR_ID:
+            return update ? (void)(obj->user_data = (uint8_t)val) : hasp_out_int(obj, attr, obj->user_data);
+
+        case ATTR_VIS:
+            return update ? lv_obj_set_hidden(obj, !is_true(payload))
+                          : hasp_out_int(obj, attr, !lv_obj_get_hidden(obj));
+
+        case ATTR_TXT:
+            return hasp_process_obj_attribute_txt(obj, attr, payload, update);
+
+        case ATTR_VAL:
+            return hasp_process_obj_attribute_val(obj, attr, payload, update);
+
+        case ATTR_MIN:
+            return hasp_process_obj_attribute_range(obj, attr, payload, update, true, false);
+
+        case ATTR_MAX:
+            return hasp_process_obj_attribute_range(obj, attr, payload, update, false, true);
+
+        case ATTR_HIDDEN:
+            return update ? lv_obj_set_hidden(obj, is_true(payload)) : hasp_out_int(obj, attr, lv_obj_get_hidden(obj));
+
+        case ATTR_ROWS:
+            if(check_obj_type(obj, LV_HASP_ROLLER)) {
+                return update ? lv_roller_set_visible_row_count(obj, (uint8_t)val)
+                              : hasp_out_int(obj, attr, lv_roller_get_visible_row_count(obj));
+            }
             break;
-        case 2:
-            hasp_process_obj_attribute2(obj, attr, payload, update);
+
+        case ATTR_RECT:
+            if(check_obj_type(obj, LV_HASP_CPICKER)) {
+                lv_cpicker_set_type(obj, is_true(payload) ? LV_CPICKER_TYPE_RECT : LV_CPICKER_TYPE_DISC);
+                return;
+            }
             break;
-        case 4:
-            hasp_process_obj_attribute4(obj, attr, payload, update);
+
+        case ATTR_MODE:
+            if(check_obj_type(obj, LV_HASP_BUTTON)) {
+                lv_obj_t * label = FindButtonLabel(obj);
+                if(label) {
+                    hasp_process_label_long_mode(label, payload, update);
+                    lv_obj_set_width(label, lv_obj_get_width(obj));
+                }
+                return;
+            }
+
+            if(check_obj_type(obj, LV_HASP_LABEL)) {
+                hasp_process_label_long_mode(obj, payload, update);
+                return;
+            }
             break;
-        case 3:
-            hasp_process_obj_attribute3(obj, attr, payload, update);
-            break;
-        case 6:
-            hasp_process_obj_attribute6(obj, attr, payload, update);
-            break;
-        case 7:
-            hasp_process_obj_attribute7(obj, attr, payload, update);
-            break;
-        default:
-            hasp_local_style_attr(obj, attr, payload, update); // all other lengths
+
+        case ATTR_TOGGLE:
+            if(check_obj_type(obj, LV_HASP_BUTTON)) {
+                if(update) {
+                    bool toggle = is_true(payload);
+                    lv_btn_set_checkable(obj, toggle);
+                    lv_obj_set_event_cb(obj, toggle ? toggle_event_handler : btn_event_handler);
+                } else {
+                    hasp_out_int(obj, attr, lv_btn_get_checkable(obj));
+                }
+                return;
+            }
+            break; // not a toggle object
+
+        case ATTR_OPACITY:
+            return update ? lv_obj_set_style_local_opa_scale(obj, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, val)
+                          : hasp_out_int(obj, attr, lv_obj_get_style_opa_scale(obj, LV_OBJ_PART_MAIN));
+
+        case ATTR_ENABLED:
+            return update ? lv_obj_set_click(obj, is_true(payload)) : hasp_out_int(obj, attr, lv_obj_get_click(obj));
+
+        case ATTR_OPTIONS:
+            if(check_obj_type(obj, LV_HASP_DDLIST)) {
+                if(update) {
+                    lv_dropdown_set_options(obj, payload);
+                } else {
+                    hasp_out_str(obj, attr, lv_dropdown_get_options(obj));
+                }
+                return;
+            }
+
+            if(check_obj_type(obj, LV_HASP_ROLLER)) {
+                if(update) {
+                    lv_roller_ext_t * ext = (lv_roller_ext_t *)lv_obj_get_ext_attr(obj);
+                    lv_roller_set_options(obj, payload, ext->mode);
+                } else {
+                    hasp_out_str(obj, attr, lv_roller_get_options(obj));
+                }
+                return;
+            }
+            break; // not a options object
+
+            // default:
+            // hasp_local_style_attr(obj, attr, payload, update);
     }
+
+    hasp_local_style_attr(obj, attr, payload, update);
 }
 
 /* **************************
@@ -812,17 +811,63 @@ static inline bool only_digits(const char * s)
     return strlen(s) == digits;
 }
 
-static inline void hasp_out_int(lv_obj_t * obj, const char * attr, uint32_t val)
+static void hasp_out_int(lv_obj_t * obj, const char * attr, uint32_t val)
 {
     hasp_send_obj_attribute_int(obj, attr, val);
 }
 
-static inline void hasp_out_str(lv_obj_t * obj, const char * attr, const char * data)
+static void hasp_out_str(lv_obj_t * obj, const char * attr, const char * data)
 {
     hasp_send_obj_attribute_str(obj, attr, data);
 }
 
-static inline void hasp_out_color(lv_obj_t * obj, const char * attr, lv_color_t color)
+static void hasp_out_color(lv_obj_t * obj, const char * attr, lv_color_t color)
 {
     hasp_send_obj_attribute_color(obj, attr, color);
+}
+
+bool check_obj_type(const char * lvobjtype, lv_hasp_obj_type_t haspobjtype)
+{
+    lvobjtype += 3; // skip "lv_"
+
+    switch(haspobjtype) {
+        case LV_HASP_BUTTON:
+            return (strcmp_P(lvobjtype, PSTR("btn")) == 0);
+        case LV_HASP_LABEL:
+            return (strcmp_P(lvobjtype, PSTR("label")) == 0);
+        case LV_HASP_CHECKBOX:
+            return (strcmp_P(lvobjtype, PSTR("checkbox")) == 0); // || (strcmp_P(lvobjtype, PSTR("lv_cb")) == 0);
+        case LV_HASP_DDLIST:
+            return (strcmp_P(lvobjtype, PSTR("dropdown")) == 0); // || (strcmp_P(lvobjtype, PSTR("lv_ddlist")) == 0);
+        case LV_HASP_CPICKER:
+            return (strcmp_P(lvobjtype, PSTR("cpicker")) == 0);
+        case LV_HASP_PRELOADER:
+            return (strcmp_P(lvobjtype, PSTR("spinner")) == 0); // || (strcmp_P(lvobjtype, PSTR("lv_preload")) == 0);
+        case LV_HASP_SLIDER:
+            return (strcmp_P(lvobjtype, PSTR("slider")) == 0);
+        case LV_HASP_GAUGE:
+            return (strcmp_P(lvobjtype, PSTR("gauge")) == 0);
+        case LV_HASP_BAR:
+            return (strcmp_P(lvobjtype, PSTR("bar")) == 0);
+        case LV_HASP_LMETER:
+            return (strcmp_P(lvobjtype, PSTR("linemeter")) == 0); // || (strcmp_P(lvobjtype, PSTR("lv_lmeter")) == 0)
+        case LV_HASP_ROLLER:
+            return (strcmp_P(lvobjtype, PSTR("roller")) == 0);
+        case LV_HASP_SWITCH:
+            return (strcmp_P(lvobjtype, PSTR("switch")) == 0); // || (strcmp_P(lvobjtype, PSTR("lv_sw")) == 0)
+        case LV_HASP_LED:
+            return (strcmp_P(lvobjtype, PSTR("led")) == 0);
+        case LV_HASP_CONTAINER:
+            return (strcmp_P(lvobjtype, PSTR("container")) == 0); // || (strcmp_P(lvobjtype, PSTR("lv_cont")) == 0)
+        default:
+            return false;
+    }
+}
+
+bool check_obj_type(lv_obj_t * obj, lv_hasp_obj_type_t haspobjtype)
+{
+    lv_obj_type_t list;
+    lv_obj_get_type(obj, &list);
+    const char * objtype = list.type[0];
+    return check_obj_type(objtype, haspobjtype);
 }

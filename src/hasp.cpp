@@ -250,44 +250,6 @@ static inline void hasp_send_obj_attribute_txt(lv_obj_t * obj, const char * txt)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool check_obj_type(const char * lvobjtype, lv_hasp_obj_type_t haspobjtype)
-{
-    lvobjtype += 3; // skip "lv_"
-
-    switch(haspobjtype) {
-        case LV_HASP_BUTTON:
-            return (strcmp_P(lvobjtype, PSTR("btn")) == 0);
-        case LV_HASP_LABEL:
-            return (strcmp_P(lvobjtype, PSTR("label")) == 0);
-        case LV_HASP_CHECKBOX:
-            return (strcmp_P(lvobjtype, PSTR("checkbox")) == 0); // || (strcmp_P(lvobjtype, PSTR("lv_cb")) == 0);
-        case LV_HASP_DDLIST:
-            return (strcmp_P(lvobjtype, PSTR("dropdown")) == 0); // || (strcmp_P(lvobjtype, PSTR("lv_ddlist")) == 0);
-        case LV_HASP_CPICKER:
-            return (strcmp_P(lvobjtype, PSTR("cpicker")) == 0);
-        case LV_HASP_PRELOADER:
-            return (strcmp_P(lvobjtype, PSTR("spinner")) == 0); // || (strcmp_P(lvobjtype, PSTR("lv_preload")) == 0);
-        case LV_HASP_SLIDER:
-            return (strcmp_P(lvobjtype, PSTR("slider")) == 0);
-        case LV_HASP_GAUGE:
-            return (strcmp_P(lvobjtype, PSTR("gauge")) == 0);
-        case LV_HASP_BAR:
-            return (strcmp_P(lvobjtype, PSTR("bar")) == 0);
-        case LV_HASP_LMETER:
-            return (strcmp_P(lvobjtype, PSTR("linemeter")) == 0); // || (strcmp_P(lvobjtype, PSTR("lv_lmeter")) == 0)
-        case LV_HASP_ROLLER:
-            return (strcmp_P(lvobjtype, PSTR("roller")) == 0);
-        case LV_HASP_SWITCH:
-            return (strcmp_P(lvobjtype, PSTR("switch")) == 0); // || (strcmp_P(lvobjtype, PSTR("lv_sw")) == 0)
-        case LV_HASP_LED:
-            return (strcmp_P(lvobjtype, PSTR("led")) == 0);
-        case LV_HASP_CONTAINER:
-            return (strcmp_P(lvobjtype, PSTR("container")) == 0); // || (strcmp_P(lvobjtype, PSTR("lv_cont")) == 0)
-        default:
-            return false;
-    }
-}
-
 // Used in the dispatcher
 void hasp_process_attribute(uint8_t pageid, uint8_t objid, const char * attr, const char * payload)
 {

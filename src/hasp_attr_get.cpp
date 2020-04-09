@@ -1,8 +1,6 @@
-#include "Arduino.h"
-#include "ArduinoLog.h"
-
 #include "lvgl.h"
 #include "hasp.h"
+#include "hasp_attribute.h"
 //#include "hasp_attr_get.h"
 
 #define LVGL7 1
@@ -47,6 +45,6 @@ bool haspGetObjAttribute(lv_obj_t * obj, String strAttr, std::string & strPayloa
                 if(check_obj_type(list.type[0], LV_HASP_LED)) strPayload = String(lv_led_get_bright(obj)).c_str();
                 if(check_obj_type(list.type[0], LV_HASP_SWITCH)) strPayload = String(lv_switch_get_state(obj)).c_str();
             }
-        }
+    }
     return false;
 }

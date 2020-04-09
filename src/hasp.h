@@ -86,7 +86,6 @@ void haspWakeUp(void);
 bool haspGetConfig(const JsonObject & settings);
 bool haspSetConfig(const JsonObject & settings);
 
-bool check_obj_type(const char * lvobjtype, lv_hasp_obj_type_t haspobjtype);
 lv_obj_t * hasp_find_obj_from_id(lv_obj_t * parent, uint8_t objid);
 
 void IRAM_ATTR btn_event_handler(lv_obj_t * obj, lv_event_t event);
