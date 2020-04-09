@@ -4,7 +4,6 @@
 #include "lv_conf.h"
 #include "lvgl.h"
 #include "lv_fs_if.h"
-//#include "Touchscreen.h" // For Uno Shield or ADC based resistive touchscreens
 #include "TFT_eSPI.h"
 #include "lv_zifont.h"
 
@@ -381,7 +380,9 @@ static void IRAM_ATTR lv_tick_handler(void)
 //     return false; /*Return `false` because we are not buffering and no more data to read*/
 // }
 
-#ifndef TOUCH_CS
+#if TOUCH_DRIVER == 2
+#include "Touchscreen.h" // For Uno Shield or ADC based resistive touchscreens
+
 boolean Touch_getXY(uint16_t * x, uint16_t * y, boolean showTouch)
 {
     static const int coords[] = {3800, 500, 300, 3800}; // portrait - left, right, top, bottom
@@ -434,6 +435,103 @@ boolean Touch_getXY(uint16_t * x, uint16_t * y, boolean showTouch)
 }
 #endif
 
+#if TOUCH_DRIVER == 1
+
+#include <Wire.h>
+#include "Goodix.h"
+#define INT_PIN (TOUCH_IRQ)
+#define RST_PIN (TOUCH_RST) // -1 if pin is connected to VCC else set pin number
+
+static Goodix touch = Goodix();
+static int8_t GT911_num_touches;
+static GTPoint * GT911_points;
+
+void handleTouch(int8_t contacts, GTPoint * points)
+{
+    GT911_num_touches = contacts;
+    GT911_points      = points;
+
+    Log.trace("Contacts: %d", contacts);
+    for(uint8_t i = 0; i < contacts; i++) {
+        Log.trace("C%d: #%d %d,%d s:%d", i, points[i].trackId, points[i].x, points[i].y, points[i].area);
+        yield();
+    }
+}
+
+bool IRAM_ATTR GT911_getXY(uint16_t * touchX, uint16_t * touchY, bool debug)
+{
+    static GTPoint points[5];
+    int16_t contacts = touch.readInput((uint8_t *)&points);
+    if(contacts <= 0) return false;
+
+    if(debug) {
+        Serial.print(contacts);
+        Serial.print(" : ");
+        Serial.print(points[0].x);
+        Serial.print(" x ");
+        Serial.println(points[0].y);
+    }
+
+    *touchX = points[0].x;
+    *touchY = points[0].y;
+    return true;
+
+    // ALTERNATE REGISTER READ METHOD
+    // static uint8_t touchBuffer[6];
+
+    // uint16_t first = 0x814E; // 8150
+    // uint16_t last  = 0x8153;
+    // uint16_t len   = first - last + 1;
+    // uint8_t res = touch.read(first, touchBuffer, len);
+
+    // if(res != GOODIX_OK || touchBuffer[0] - 128 == 0) return false;
+
+    // *touchX = touchBuffer[2] + touchBuffer[3] * 256;
+    // *touchY = touchBuffer[4] + touchBuffer[5] * 256;
+
+    // if (debug) {
+    //     Serial.print(touchBuffer[0] - 128);
+    //     Serial.print(" : ");
+    //     Serial.print(*touchX);
+    //     Serial.print(" x ");
+    //     Serial.println(*touchY);
+    // }
+    // return true;
+}
+
+void touchStart()
+{
+    if(touch.begin(INT_PIN, RST_PIN) != true) {
+        Serial.println("! Module reset failed");
+    } else {
+        Serial.println("Module reset OK");
+    }
+
+    Serial.print("Check ACK on addr request on 0x");
+    Serial.print(touch.i2cAddr, HEX);
+
+    Wire.beginTransmission(touch.i2cAddr);
+    int error = Wire.endTransmission();
+    if(error == 0) {
+        Serial.println(": SUCCESS");
+    } else {
+        Serial.print(": ERROR #");
+        Serial.println(error);
+    }
+}
+
+void GT911_setup()
+{
+    Wire.setClock(400000);
+    Wire.begin();
+    delay(300);
+
+    touch.setHandler(handleTouch);
+    touchStart();
+    Log.verbose(F("Goodix GT911x touch driver started"));
+}
+#endif
+
 bool IRAM_ATTR my_touchpad_read(lv_indev_drv_t * indev_driver, lv_indev_data_t * data)
 {
     //#ifdef TOUCH_CS
@@ -441,6 +539,9 @@ bool IRAM_ATTR my_touchpad_read(lv_indev_drv_t * indev_driver, lv_indev_data_t *
 
 #ifdef TOUCH_CS
     bool touched = tft.getTouch(&touchX, &touchY, 600);
+#elif TOUCH_DRIVER == 1
+    // return false;
+    bool touched = GT911_getXY(&touchX, &touchY, true);
 #else
     bool touched = Touch_getXY(&touchX, &touchY, false);
 #endif
@@ -638,12 +739,20 @@ void guiSetup()
 
     /*Initialize the graphics library's tick*/
     tick.attach_ms(guiTickPeriod, lv_tick_handler);
+
+#if TOUCH_DRIVER == 1
+    GT911_setup();
+#endif
 }
 
 void IRAM_ATTR guiLoop()
 {
     lv_task_handler(); /* let the GUI do its work */
     guiCheckSleep();
+
+#if TOUCH_DRIVER == 1
+    touch.loop();
+#endif
 }
 
 void guiStop()
