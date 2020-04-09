@@ -87,9 +87,9 @@ static uint8_t * charBitmap_p;
  *   GLOBAL FUNCTIONS
  **********************/
 
-static void printBuffer(uint8_t * charBitmap_p, uint8_t w, uint8_t h);
 static void colorsAdd(uint8_t * charBitmap_p, uint8_t color1, uint16_t pos);
-static uint16_t unicode2codepoint(uint32_t unicode, uint8_t codepage);
+// static uint16_t unicode2codepoint(uint32_t unicode, uint8_t codepage);
+// static void printBuffer(uint8_t * charBitmap_p, uint8_t w, uint8_t h);
 
 int lv_zifont_init(void)
 {
@@ -99,6 +99,8 @@ int lv_zifont_init(void)
 
 static inline bool openFont(File & file, const char * filename)
 {
+    if(*filename != '/') return false;
+
     file = SPIFFS.open(filename, "r");
     if(!file) {
         // Log.error(F("FONT: %sOpening font: %s"), filename);
@@ -354,7 +356,7 @@ const uint8_t * IRAM_ATTR lv_font_get_bitmap_fmt_zifont(const lv_font_t * font, 
 
     // while((fileindex < charInfo->length) && len > 0) { //} && !feof(file)) {
     while(arrindex < size && len > 0) { // read untill the bitmap is full, no need for datalength
-        if(sizeof(data) < charInfo->length - fileindex) {
+        if((int32_t)sizeof(data) < charInfo->length - fileindex) {
             len = file.readBytes(data, sizeof(data));
         } else {
             len = file.readBytes(data, charInfo->length - fileindex);
