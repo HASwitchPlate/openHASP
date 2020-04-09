@@ -44,9 +44,9 @@ void Logging::begin(int level, bool showLevel)
 void Logging::registerOutput(uint8_t slot, Print * logOutput, int level, bool showLevel)
 {
 #ifndef DISABLE_LOGGING
-    setLevel(0, level);
-    setShowLevel(0, showLevel);
     if(slot >= 3) return;
+    setLevel(slot, level);
+    setShowLevel(slot, showLevel);
     _logOutput[slot] = logOutput;
 #endif
 }
