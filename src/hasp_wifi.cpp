@@ -208,7 +208,7 @@ bool wifiGetConfig(const JsonObject & settings)
     if(strcmp(wifiPassword, settings[FPSTR(F_CONFIG_PASS)].as<String>().c_str()) != 0) changed = true;
     settings[FPSTR(F_CONFIG_PASS)] = wifiPassword;
 
-    configOutput(settings);
+    if(changed) configOutput(settings);
     return changed;
 }
 

@@ -30,10 +30,11 @@
 #include <FS.h> // Include the SPIFFS library
 #endif
 
+#define BACKLIGHT_CHANNEL 15 // pwm channek 0-15
+
 /* ---------- Screenshot Variables ---------- */
 File pFileOut;
 uint8_t guiSnapshot = 0;
-size_t guiVDBsize   = 0;
 
 #if defined(ARDUINO_ARCH_ESP8266)
 #include <ESP8266WebServer.h>
@@ -385,8 +386,19 @@ boolean Touch_getXY(uint16_t * x, uint16_t * y, boolean showTouch)
 {
     static const int coords[] = {3800, 500, 300, 3800}; // portrait - left, right, top, bottom
     static const int XP = 27, XM = 15, YP = 4, YM = 14; // default ESP32 Uno touchscreen pins
-    static TouchScreen ts = TouchScreen(XP, aYP, aXM, YM, 300);
+    static TouchScreen ts = TouchScreen(XP, YP, XM, YM, 300);
     TSPoint p             = ts.getPoint();
+    int z1                = analogRead(aXM);
+    int z2                = analogRead(aYP);
+    Serial.print(p.x);
+    Serial.print(" - ");
+    Serial.print(p.y);
+    Serial.print(" - ");
+    Serial.print(p.z);
+    Serial.print(" - ");
+    Serial.print(z1);
+    Serial.print(" - ");
+    Serial.println(z2);
 
     pinMode(aYP, OUTPUT); // restore shared pins
     pinMode(aXM, OUTPUT);
@@ -397,6 +409,7 @@ boolean Touch_getXY(uint16_t * x, uint16_t * y, boolean showTouch)
 #define MAXPRESSURE 1000
     bool pressed = (p.z > MINPRESSURE && p.z < MAXPRESSURE);
     if(pressed) {
+
         switch(guiRotation) {
             case 0: // portrait
                 *x = map(p.x, coords[0], coords[1], 0, tft.width());
@@ -494,7 +507,9 @@ void guiSetup()
 #endif
 
     /* Initialize the Virtual Device Buffers */
+    size_t guiVDBsize = 0;
     lv_init();
+
 #if defined(ARDUINO_ARCH_ESP32)
     /* allocate on iram (or psram ?) */
     guiVDBsize = 16 * 1024u; // 32 KBytes * 2
@@ -531,11 +546,11 @@ void guiSetup()
         Log.verbose(F("LVGL: Backlight: Pin %d"), guiBacklightPin);
 
 #if defined(ARDUINO_ARCH_ESP32)
+        // pinMode(guiBacklightPin, OUTPUT);
         // configure LED PWM functionalitites
-        ledcSetup(100, 1000, 10);
+        ledcSetup(BACKLIGHT_CHANNEL, 1000, 10);
         // attach the channel to the GPIO to be controlled
-        pinMode(guiBacklightPin, OUTPUT);
-        ledcAttachPin(guiBacklightPin, 99);
+        ledcAttachPin(guiBacklightPin, BACKLIGHT_CHANNEL);
 #else
         pinMode(guiBacklightPin, OUTPUT);
 #endif
@@ -578,7 +593,7 @@ void guiSetup()
     indev_drv.read_cb        = my_touchpad_read;
     lv_indev_t * mouse_indev = lv_indev_drv_register(&indev_drv);
 
-    if(guiShowPointer || true) {
+    if(guiShowPointer) {
         lv_obj_t * label = lv_label_create(lv_layer_sys(), NULL);
         lv_label_set_text(label, "<");
         lv_indev_set_cursor(mouse_indev, label); // connect the object to the driver
@@ -646,7 +661,7 @@ void guiSetBacklight(bool lighton)
     if(guiBacklightPin >= 0) {
 
 #if defined(ARDUINO_ARCH_ESP32)
-        ledcWrite(99, lighton ? map(guiDimLevel, 0, 100, 0, 1023) : 0); // ledChannel and value
+        ledcWrite(BACKLIGHT_CHANNEL, lighton ? map(guiDimLevel, 0, 100, 0, 1023) : 0); // ledChannel and value
 #else
         analogWrite(guiBacklightPin, lighton ? map(guiDimLevel, 0, 100, 0, 1023) : 0);
 #endif
@@ -664,7 +679,7 @@ void guiSetDim(int8_t level)
 
         if(guiBacklightIsOn) { // The backlight is ON
 #if defined(ARDUINO_ARCH_ESP32)
-            ledcWrite(99, map(guiDimLevel, 0, 100, 0, 1023)); // ledChannel and value
+            ledcWrite(BACKLIGHT_CHANNEL, map(guiDimLevel, 0, 100, 0, 1023)); // ledChannel and value
 #else
             analogWrite(guiBacklightPin, map(guiDimLevel, 0, 100, 0, 1023));
 #endif
@@ -683,20 +698,46 @@ int8_t guiGetDim()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 bool guiGetConfig(const JsonObject & settings)
 {
-    settings[FPSTR(F_GUI_TICKPERIOD)]   = guiTickPeriod;
-    settings[FPSTR(F_GUI_IDLEPERIOD1)]  = guiSleepTime1;
-    settings[FPSTR(F_GUI_IDLEPERIOD2)]  = guiSleepTime2;
-    settings[FPSTR(F_GUI_BACKLIGHTPIN)] = guiBacklightPin;
-    settings[FPSTR(F_GUI_ROTATION)]     = guiRotation;
-    settings[FPSTR(F_GUI_POINTER)]      = guiShowPointer;
+    bool changed = false;
 
+    if(guiTickPeriod != settings[FPSTR(F_GUI_TICKPERIOD)].as<uint8_t>()) changed = true;
+    settings[FPSTR(F_GUI_TICKPERIOD)] = guiTickPeriod;
+
+    if(guiSleepTime1 != settings[FPSTR(F_GUI_IDLEPERIOD1)].as<uint16_t>()) changed = true;
+    settings[FPSTR(F_GUI_IDLEPERIOD1)] = guiSleepTime1;
+
+    if(guiSleepTime2 != settings[FPSTR(F_GUI_IDLEPERIOD2)].as<uint16_t>()) changed = true;
+    settings[FPSTR(F_GUI_IDLEPERIOD2)] = guiSleepTime2;
+
+    if(guiBacklightPin != settings[FPSTR(F_GUI_BACKLIGHTPIN)].as<uint8_t>()) changed = true;
+    settings[FPSTR(F_GUI_BACKLIGHTPIN)] = guiBacklightPin;
+
+    if(guiRotation != settings[FPSTR(F_GUI_ROTATION)].as<uint8_t>()) changed = true;
+    settings[FPSTR(F_GUI_ROTATION)] = guiRotation;
+
+    if(guiShowPointer != settings[FPSTR(F_GUI_POINTER)].as<bool>()) changed = true;
+    settings[FPSTR(F_GUI_POINTER)] = guiShowPointer;
+
+    /* Check CalData array has changed */
     JsonArray array = settings[FPSTR(F_GUI_CALIBRATION)].to<JsonArray>();
+    uint8_t i       = 0;
+    for(JsonVariant v : array) {
+        Log.verbose(F("GUI CONF: %d: %d <=> %d"), i, calData[i], v.as<uint16_t>());
+        if(i < 5) {
+            if(calData[i] != v.as<uint16_t>()) changed = true;
+        } else {
+            changed = true;
+        }
+        i++;
+    }
+
+    /* Build new CalData array */
     for(uint8_t i = 0; i < 5; i++) {
         array.add(calData[i]);
     }
 
-    configOutput(settings);
-    return true;
+    if(changed) configOutput(settings);
+    return changed;
 }
 
 /** Set GUI Configuration.
@@ -772,7 +813,6 @@ static void guiSendBmpHeader()
 {
     uint8_t buffer[128];
     memset(buffer, 0, sizeof(buffer));
-    int32_t res;
 
     lv_disp_t * disp = lv_disp_get_default();
     buffer[0]        = 0x42; // B

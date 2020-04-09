@@ -1910,7 +1910,7 @@ bool httpGetConfig(const JsonObject & settings)
     if(strcmp(httpPassword, settings[FPSTR(F_CONFIG_PASS)].as<String>().c_str()) != 0) changed = true;
     settings[FPSTR(F_CONFIG_PASS)] = httpPassword;
 
-    configOutput(settings);
+    if(changed) configOutput(settings);
     return changed;
 }
 

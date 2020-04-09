@@ -26,8 +26,9 @@ extern char httpUser[32];
 extern char httpPassword[32];
 
 uint8_t telnetLoginState = TELNET_UNAUTHENTICATED;
-static WiFiServer * telnetServer; //= new WiFiServer(23);
 WiFiClient telnetClient;
+static WiFiServer * telnetServer;
+uint16_t telnetPort        = 23;
 bool telnetInCommandMode   = false;
 uint8_t telnetEnabled      = true; // Enable telnet debug output
 uint8_t telnetLoginAttempt = 0;    // Initial attempt
@@ -173,17 +174,17 @@ void telnetSetup()
     // telnetSetConfig(settings);
 
     if(telnetEnabled) { // Setup telnet server for remote debug output
-        if(!telnetServer) telnetServer = new WiFiServer(23);
+        if(!telnetServer) telnetServer = new WiFiServer(telnetPort);
         if(telnetServer) {
             telnetServer->setNoDelay(true);
             telnetServer->begin();
 
             // if(!telnetClient) telnetClient = new WiFiClient;
-            if(!telnetClient) {
-                Log.error(F("Failed to start telnet client"));
-            } else {
-                telnetClient.setNoDelay(true);
-            }
+            // if(!telnetClient) {
+            //    Log.error(F("Failed to start telnet client"));
+            //} else {
+            telnetClient.setNoDelay(true);
+            //}
 
             Log.notice(F("Debug telnet console started"));
         } else {
@@ -213,10 +214,16 @@ void IRAM_ATTR telnetLoop()
 
 bool telnetGetConfig(const JsonObject & settings)
 {
+    bool changed = false;
+
+    if(telnetEnabled != settings[FPSTR(F_CONFIG_ENABLE)].as<bool>()) changed = true;
     settings[FPSTR(F_CONFIG_ENABLE)] = telnetEnabled;
 
-    configOutput(settings);
-    return true;
+    if(telnetPort != settings[FPSTR(F_CONFIG_PORT)].as<uint16_t>()) changed = true;
+    settings[FPSTR(F_CONFIG_PORT)] = telnetPort;
+
+    if(changed) configOutput(settings);
+    return changed;
 }
 
 /** Set TELNET Configuration.
@@ -231,6 +238,9 @@ bool telnetSetConfig(const JsonObject & settings)
 {
     configOutput(settings);
     bool changed = false;
+
+    changed |= configSet(telnetEnabled, settings[FPSTR(F_CONFIG_ENABLE)], PSTR("telnetEnabled"));
+    changed |= configSet(telnetPort, settings[FPSTR(F_CONFIG_PORT)], PSTR("telnetPort"));
 
     return changed;
 }

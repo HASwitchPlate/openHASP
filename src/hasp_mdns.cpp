@@ -75,10 +75,13 @@ void mdnsStop()
 
 bool mdnsGetConfig(const JsonObject & settings)
 {
+    bool changed = false;
+
+    if(mdnsEnabled != settings[FPSTR(F_CONFIG_ENABLE)].as<bool>()) changed = true;
     settings[FPSTR(F_CONFIG_ENABLE)] = mdnsEnabled;
 
-    configOutput(settings);
-    return true;
+    if(changed) configOutput(settings);
+    return changed;
 }
 
 /** Set MDNS Configuration.

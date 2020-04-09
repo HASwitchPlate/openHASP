@@ -359,8 +359,8 @@ void haspSetup()
 {
     guiSetDim(haspStartDim);
 
-   // lv_coord_t hres = lv_disp_get_hor_res(NULL);
-   // lv_coord_t vres = lv_disp_get_ver_res(NULL);
+    // lv_coord_t hres = lv_disp_get_hor_res(NULL);
+    // lv_coord_t vres = lv_disp_get_ver_res(NULL);
 
     // static lv_font_t *
     //    my_font = (lv_font_t *)lv_mem_alloc(sizeof(lv_font_t));
@@ -967,15 +967,28 @@ void haspLoadPage(String pages)
 
 bool haspGetConfig(const JsonObject & settings)
 {
-    settings[FPSTR(F_CONFIG_STARTPAGE)] = haspStartPage;
-    settings[FPSTR(F_CONFIG_STARTDIM)]  = haspStartDim;
-    settings[FPSTR(F_CONFIG_THEME)]     = haspThemeId;
-    settings[FPSTR(F_CONFIG_HUE)]       = haspThemeHue;
-    settings[FPSTR(F_CONFIG_ZIFONT)]    = haspZiFontPath;
-    settings[FPSTR(F_CONFIG_PAGES)]     = haspPagesPath;
+    bool changed = false;
 
-    configOutput(settings);
-    return true;
+    if(haspStartPage != settings[FPSTR(F_CONFIG_STARTPAGE)].as<uint8_t>()) changed = true;
+    settings[FPSTR(F_CONFIG_STARTPAGE)] = haspStartPage;
+
+    if(haspStartDim != settings[FPSTR(F_CONFIG_STARTDIM)].as<uint8_t>()) changed = true;
+    settings[FPSTR(F_CONFIG_STARTDIM)] = haspStartDim;
+
+    if(haspThemeId != settings[FPSTR(F_CONFIG_THEME)].as<uint8_t>()) changed = true;
+    settings[FPSTR(F_CONFIG_THEME)] = haspThemeId;
+
+    if(haspThemeHue != settings[FPSTR(F_CONFIG_HUE)].as<uint8_t>()) changed = true;
+    settings[FPSTR(F_CONFIG_HUE)] = haspThemeHue;
+
+    if(strcmp(haspZiFontPath, settings[FPSTR(F_CONFIG_ZIFONT)].as<String>().c_str()) != 0) changed = true;
+    settings[FPSTR(F_CONFIG_ZIFONT)] = haspZiFontPath;
+
+    if(strcmp(haspPagesPath, settings[FPSTR(F_CONFIG_PAGES)].as<String>().c_str()) != 0) changed = true;
+    settings[FPSTR(F_CONFIG_PAGES)] = haspPagesPath;
+
+    if(changed) configOutput(settings);
+    return changed;
 }
 
 /** Set HASP Configuration.
