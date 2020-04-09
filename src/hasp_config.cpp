@@ -2,6 +2,7 @@
 #include "ArduinoJson.h"
 #include "ArduinoLog.h"
 #include <FS.h> // Include the SPIFFS library
+#include "EEPROM.h"
 
 #if defined(ARDUINO_ARCH_ESP32)
 #include "SPIFFS.h"
@@ -16,6 +17,7 @@
 #include "hasp_ota.h"
 #include "hasp_spiffs.h"
 #include "hasp_telnet.h"
+//#include "hasp_eeprom.h"
 #include "hasp.h"
 
 #include "hasp_conf.h"
@@ -127,6 +129,33 @@ void configGetConfig(JsonDocument & settings, bool setupdebug = false)
     Log.error(F("CONF: Failed to load %s"), configFile.c_str());
 }
 
+void configBackupToEeprom()
+{
+    String configFile((char *)0);
+    configFile.reserve(128);
+    configFile = String(FPSTR(HASP_CONFIG_FILE));
+
+    EEPROM.begin(1024);
+    uint8_t buffer[128];
+    size_t index = 0;
+
+    File file = SPIFFS.open(configFile, "r");
+    if(file) {
+
+        while(size_t count = file.read(buffer, sizeof(buffer)) > 0) {
+            for(size_t i = 0; i < count; i++) {
+                EEPROM.write(index, buffer[i]);
+                index++;
+            }
+        }
+
+        file.close();
+        EEPROM.commit();
+
+        Log.verbose(F("CONF: Written %u to EEPROM"), index);
+    }
+}
+
 void configWriteConfig()
 {
     String configFile((char *)0);
@@ -134,35 +163,71 @@ void configWriteConfig()
     configFile = String(FPSTR(HASP_CONFIG_FILE));
 
     /* Read Config File */
-    DynamicJsonDocument settings(1024 * 2);
+    DynamicJsonDocument settings(6 * 256);
     Log.notice(F("CONF: Config LOADING first %s"), configFile.c_str());
     configGetConfig(settings, false);
     Log.trace(F("CONF: Config LOADED first %s"), configFile.c_str());
 
-    bool changed = true;
+    bool writefile = false;
+    bool changed   = false;
 
 #if HASP_USE_WIFI
-    changed |= wifiGetConfig(settings[F("wifi")].to<JsonObject>());
+    changed = wifiGetConfig(settings[F("wifi")]);
+    if(changed) {
+        Log.verbose(F("WIFI: Settings changed"));
+        writefile = true;
+    }
 #if HASP_USE_MQTT
-    changed |= mqttGetConfig(settings[F("mqtt")].to<JsonObject>());
+    changed = mqttGetConfig(settings[F("mqtt")]);
+    if(changed) {
+        Log.verbose(F("MQTT: Settings changed"));
+        writefile = true;
+    }
 #endif
 #if HASP_USE_TELNET
-    changed |= telnetGetConfig(settings[F("telnet")].to<JsonObject>());
+    changed = telnetGetConfig(settings[F("telnet")]);
+    if(changed) {
+        Log.verbose(F("TELNET: Settings changed"));
+        writefile = true;
+    }
 #endif
 #if HASP_USE_MDNS
-    changed |= mdnsGetConfig(settings[F("mdns")].to<JsonObject>());
+    changed = mdnsGetConfig(settings[F("mdns")]);
+    if(changed) {
+        Log.verbose(F("MDNS: Settings changed"));
+        writefile = true;
+    }
 #endif
 #if HASP_USE_HTTP
-    changed |= httpGetConfig(settings[F("http")].to<JsonObject>());
+    changed = httpGetConfig(settings[F("http")]);
+    if(changed) {
+        Log.verbose(F("HTTP: Settings changed"));
+        writefile = true;
+    }
 #endif
 #endif
 
-    changed |= debugGetConfig(settings[F("debug")].to<JsonObject>());
-    changed |= guiGetConfig(settings[F("gui")].to<JsonObject>());
-    changed |= haspGetConfig(settings[F("hasp")].to<JsonObject>());
+    changed = debugGetConfig(settings[F("debug")]);
+    if(changed) {
+        Log.verbose(F("DEBUG: Settings changed"));
+        writefile = true;
+    }
+
+    changed = guiGetConfig(settings[F("gui")]);
+    if(changed) {
+        Log.verbose(F("GUI: Settings changed"));
+        writefile = true;
+    }
+
+    changed = haspGetConfig(settings[F("hasp")]);
+    if(changed) {
+        Log.verbose(F("HASP: Settings changed"));
+        writefile = true;
+    }
+
     // changed |= otaGetConfig(settings[F("ota")].to<JsonObject>());
 
-    if(changed) {
+    if(writefile) {
         File file = SPIFFS.open(configFile, "w");
         if(file) {
             Log.notice(F("CONF: Writing %s"), configFile.c_str());
@@ -170,13 +235,15 @@ void configWriteConfig()
             file.close();
             if(size > 0) {
                 Log.verbose(F("CONF: [SUCCESS] Saved %s"), configFile.c_str());
+                configBackupToEeprom();
                 return;
             }
         }
 
         Log.error(F("CONF: Failed to write %s"), configFile.c_str());
+
     } else {
-        Log.verbose(F("CONF: Configuration was not changed"));
+        Log.notice(F("CONF: Configuration was not changed"));
     }
 }
 

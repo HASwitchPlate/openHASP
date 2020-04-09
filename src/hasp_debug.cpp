@@ -141,18 +141,30 @@ void debugStop()
 
 bool debugGetConfig(const JsonObject & settings)
 {
-    settings[FPSTR(F_CONFIG_BAUD)]      = debugSerialBaud;
+    bool changed = false;
+
+    if(debugSerialBaud != settings[FPSTR(F_CONFIG_BAUD)].as<uint16_t>()) changed = true;
+    settings[FPSTR(F_CONFIG_BAUD)] = debugSerialBaud;
+
+    if(debugTelePeriod != settings[FPSTR(F_DEBUG_TELEPERIOD)].as<uint16_t>()) changed = true;
     settings[FPSTR(F_DEBUG_TELEPERIOD)] = debugTelePeriod;
 
 #if HASP_USE_SYSLOG != 0
-    settings[FPSTR(F_CONFIG_HOST)]     = debugSyslogHost;
-    settings[FPSTR(F_CONFIG_PORT)]     = debugSyslogPort;
+    if(strcmp(debugSyslogHost, settings[FPSTR(F_CONFIG_HOST)].as<String>().c_str()) != 0) changed = true;
+    settings[FPSTR(F_CONFIG_HOST)] = debugSyslogHost;
+
+    if(debugSyslogPort != settings[FPSTR(F_CONFIG_PORT)].as<uint16_t>()) changed = true;
+    settings[FPSTR(F_CONFIG_PORT)] = debugSyslogPort;
+
+    if(debugSyslogProtocol != settings[FPSTR(F_CONFIG_PROTOCOL)].as<uint8_t>()) changed = true;
     settings[FPSTR(F_CONFIG_PROTOCOL)] = debugSyslogProtocol;
-    settings[FPSTR(F_CONFIG_LOG)]      = debugSyslogFacility;
+
+    if(debugSyslogFacility != settings[FPSTR(F_CONFIG_LOG)].as<uint8_t>()) changed = true;
+    settings[FPSTR(F_CONFIG_LOG)] = debugSyslogFacility;
 #endif
 
-    configOutput(settings);
-    return true;
+    if(changed) configOutput(settings);
+    return changed;
 }
 
 /** Set DEBUG Configuration.
