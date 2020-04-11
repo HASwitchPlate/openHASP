@@ -574,7 +574,7 @@ static void hasp_process_obj_attribute_val(lv_obj_t * obj, const char * attr, co
     }
     if(check_obj_type(objtype, LV_HASP_SWITCH)) {
         if(update) {
-            return is_true(payload) ? lv_switch_off(obj, LV_ANIM_ON) : lv_switch_on(obj, LV_ANIM_ON);
+            return is_true(payload) ? lv_switch_on(obj, LV_ANIM_ON) : lv_switch_off(obj, LV_ANIM_ON);
         } else {
             return hasp_out_int(obj, attr, lv_switch_get_state(obj));
         }
