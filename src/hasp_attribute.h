@@ -14,9 +14,9 @@ void hasp_process_obj_attribute(lv_obj_t * obj, const char * attr_p, const char 
 } /* extern "C" */
 #endif
 
-static void hasp_out_int(lv_obj_t * obj, const char * attr, uint32_t val);
-static void hasp_out_str(lv_obj_t * obj, const char * attr, const char * data);
-static void hasp_out_color(lv_obj_t * obj, const char * attr, lv_color_t color);
+void hasp_out_int(lv_obj_t * obj, const char * attr, uint32_t val);
+void hasp_out_str(lv_obj_t * obj, const char * attr, const char * data);
+void hasp_out_color(lv_obj_t * obj, const char * attr, lv_color_t color);
 
 bool check_obj_type(const char * lvobjtype, lv_hasp_obj_type_t haspobjtype);
 bool check_obj_type(lv_obj_t * obj, lv_hasp_obj_type_t haspobjtype);

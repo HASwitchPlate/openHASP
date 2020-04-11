@@ -22,7 +22,7 @@ static uint16_t sdbm(const char * str)
     char c;
 
     // while(c = *str++) hash = c + (hash << 6) + (hash << 16) - hash;
-    while(c = (*(str++))) {
+    while((c = *str++)) {
         hash = tolower(c) + (hash << 6) - hash;
     }
 
@@ -214,7 +214,6 @@ static void hasp_attribute_get_part_state(lv_obj_t * obj, const char * attr_in, 
         }
 
         // Remove Trailing part digit
-        char attr[128];
         if(part != LV_TABLE_PART_BG && len > 0) {
             len--;
         }
@@ -792,17 +791,17 @@ static inline bool only_digits(const char * s)
     return strlen(s) == digits;
 }
 
-static void hasp_out_int(lv_obj_t * obj, const char * attr, uint32_t val)
+void hasp_out_int(lv_obj_t * obj, const char * attr, uint32_t val)
 {
     hasp_send_obj_attribute_int(obj, attr, val);
 }
 
-static void hasp_out_str(lv_obj_t * obj, const char * attr, const char * data)
+void hasp_out_str(lv_obj_t * obj, const char * attr, const char * data)
 {
     hasp_send_obj_attribute_str(obj, attr, data);
 }
 
-static void hasp_out_color(lv_obj_t * obj, const char * attr, lv_color_t color)
+void hasp_out_color(lv_obj_t * obj, const char * attr, lv_color_t color)
 {
     hasp_send_obj_attribute_color(obj, attr, color);
 }
