@@ -22,6 +22,10 @@
 #include "png_decoder.h"
 #endif
 
+#ifndef TOUCH_DRIVER
+#define TOUCH_DRIVER = -1
+#endif
+
 #if HASP_USE_SPIFFS
 #if defined(ARDUINO_ARCH_ESP32)
 #include "SPIFFS.h"
@@ -537,7 +541,7 @@ bool IRAM_ATTR my_touchpad_read(lv_indev_drv_t * indev_driver, lv_indev_data_t *
     //#ifdef TOUCH_CS
     uint16_t touchX, touchY;
 
-#ifdef TOUCH_CS
+#if TOUCH_DRIVER == 0
     bool touched = tft.getTouch(&touchX, &touchY, 600);
 #elif TOUCH_DRIVER == 1
     // return false;
@@ -574,7 +578,7 @@ bool IRAM_ATTR my_touchpad_read(lv_indev_drv_t * indev_driver, lv_indev_data_t *
 
 void guiCalibrate()
 {
-#ifdef TOUCH_CS
+#if TOUCH_DRIVER == 0
     tft.fillScreen(TFT_BLACK);
     tft.setCursor(20, 0);
     tft.setTextFont(1);
@@ -603,7 +607,7 @@ void guiSetup()
     /* TFT init */
     tft.begin();
     tft.setRotation(guiRotation); /* 1/3=Landscape or 0/2=Portrait orientation */
-#ifdef TOUCH_CS
+#if TOUCH_DRIVER == 0
     tft.setTouch(calData);
 #endif
 
