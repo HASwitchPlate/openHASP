@@ -23,7 +23,7 @@
 #endif
 
 #ifndef TOUCH_DRIVER
-#define TOUCH_DRIVER = -1
+#define TOUCH_DRIVER 0
 #endif
 
 #if HASP_USE_SPIFFS
