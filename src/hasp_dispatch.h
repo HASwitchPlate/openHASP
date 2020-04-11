@@ -10,6 +10,7 @@ void dispatchAttribute(String strTopic, const char * strPayload);
 void dispatchCommand(String cmnd);
 void dispatchJson(char * strPayload);
 void dispatchJsonl(char * strPayload);
+void dispatchJsonl(Stream & stream);
 
 void dispatchPage(String strPageid);
 void dispatchClearPage(String strPageid);

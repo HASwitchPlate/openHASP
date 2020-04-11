@@ -1,6 +1,7 @@
 #include "ArduinoJson.h"
 #include "ArduinoLog.h"
 #include "StringStream.h"
+#include "CharStream.h"
 
 #include "hasp_dispatch.h"
 #include "hasp_config.h"
@@ -249,20 +250,24 @@ void dispatchJson(char * payload)
     }
 }
 
+void dispatchJsonl(Stream & stream)
+{
+    DynamicJsonDocument jsonl(3 * 128u);
+    uint8_t savedPage = haspGetPage();
+
+    Log.notice(F("DISPATCH: jsonl"));
+
+    while(deserializeJson(jsonl, stream) == DeserializationError::Ok) {
+        serializeJson(jsonl, Serial);
+        Serial.println();
+        haspNewObject(jsonl.as<JsonObject>(), savedPage);
+    }
+}
+
 void dispatchJsonl(char * payload)
 {
-    uint8_t savedPage = 0;
-    DynamicJsonDocument config(3 * 128u);
-    String output((char *)0);
-    StringStream stream((String &)output);
-    output.reserve(3 * 128u);
-
-    stream.print(payload);
-    while(deserializeJson(config, stream) == DeserializationError::Ok) {
-        serializeJson(config, Serial);
-        Serial.println();
-        haspNewObject(config.as<JsonObject>(), savedPage);
-    }
+    CharStream stream(payload);
+    dispatchJsonl(stream);
 }
 
 void dispatchIdle(const char * state)

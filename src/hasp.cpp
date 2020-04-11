@@ -743,8 +743,9 @@ void haspNewObject(const JsonObject & config, uint8_t & saved_page_id)
     switch(objid) {
         /* ----- Basic Objects ------ */
         case LV_HASP_BUTTON: {
-            obj              = lv_btn_create(parent_obj, NULL);
-            lv_obj_t * label = lv_label_create(obj, NULL);
+            obj = lv_btn_create(parent_obj, NULL);
+            /* lv_obj_t * label ; */
+            lv_label_create(obj, NULL);
             // haspSetOpacity(obj, LV_OPA_COVER);
             lv_obj_set_event_cb(obj, btn_event_handler);
             break;
@@ -913,18 +914,10 @@ void haspLoadPage(String pages)
     Log.notice(F("HASP: Loading file %s"), pages.c_str());
 
     File file = SPIFFS.open(pages, "r");
-    //    ReadBufferingStream bufferingStream(file, 256);
-    DynamicJsonDocument config(256);
-
-    uint8_t savedPage = current_page;
-    while(deserializeJson(config, file) == DeserializationError::Ok) {
-        // serializeJson(config, Serial);
-        // Serial.println();
-        haspNewObject(config.as<JsonObject>(), savedPage);
-    }
+    dispatchJsonl(file);
+    file.close();
 
     Log.notice(F("HASP: File %s loaded"), pages.c_str());
-    file.close();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
