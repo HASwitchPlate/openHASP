@@ -17,7 +17,7 @@ This version also adds ESP32 support to take advantage of the additional hardwar
 | Feature                 | ESP8266 | ESP32
 |-------------------------|---------|---------
 | SPI display             | :white_check_mark: yes | :white_check_mark: yes
-| Parallel display        | :x: no | :grey_question: tbd
+| Parallel display        | :x: no | :white_check_mark: yes
 | PWM Screen dimming      | :white_check_mark: yes | :white_check_mark: yes
 | Maximum Page Count      | 4       | 12
 | Object Types / Widgets  | 14      | 15
@@ -46,7 +46,7 @@ To build a defierent branch use:
 ```bash
 git clone --recursive https://github.com/fvanroie/hasp-lvgl
 cd hasp-lvgl
-git checkout 0.1.0
+git checkout 0.1.0-dev
 git submodule update --init --recursive
 ```
 
