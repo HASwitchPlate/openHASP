@@ -24,7 +24,7 @@ typedef volatile uint8_t RwReg;
 #if defined(ARDUINO_STM32_FEATHER)
 typedef volatile uint32 RwReg;
 #endif
-#if defined(ARDUINO_FEATHER52) || defined(ESP32)
+#if defined(ARDUINO_FEATHER52) || defined(ESP32) || defined(ESP8266)
 typedef volatile uint32_t RwReg;
 #endif
 
