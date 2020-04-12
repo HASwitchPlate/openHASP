@@ -225,7 +225,7 @@ static void debugPrintTimestamp(int level, Print * _logOutput)
         char buffer[64];
         strftime(buffer, sizeof(buffer), "[%b %d %H:%M:%S.", timeinfo); // Literal String
         _logOutput->print(buffer);
-        _logOutput->printf(PSTR("%03u]"), millis() % 1000);
+        _logOutput->printf(PSTR("%03lu]"), millis() % 1000);
     } else {
         _logOutput->printf(PSTR("[%20.3f]"), (float)millis() / 1000);
     }
