@@ -65,7 +65,6 @@ void haspLoop(void);
 void haspSetPage(uint8_t id);
 uint8_t haspGetPage();
 void haspClearPage(uint16_t pageid);
-void haspSetNodename(String name);
 String haspGetNodename();
 String haspGetVersion();
 void haspBackground(uint16_t pageid, uint16_t imageid);

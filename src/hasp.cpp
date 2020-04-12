@@ -113,7 +113,7 @@ uint8_t current_page = 0;
 /**********************
  *   GLOBAL FUNCTIONS
  **********************/
-void haspLoadPage(String pages);
+void haspLoadPage(const char * pages);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /**
@@ -636,13 +636,6 @@ static void roller_event_handler(lv_obj_t * obj, lv_event_t event)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
-void haspSetNodename(String name)
-{}
-
-// String haspGetNodename()
-//{
-//    return String(F("plate11"));
-//}
 
 String haspGetVersion()
 {
@@ -875,7 +868,7 @@ void haspNewObject(const JsonObject & config, uint8_t & saved_page_id)
     for(JsonPair keyValue : config) {
         v = keyValue.value().as<String>();
         hasp_process_obj_attribute(obj, keyValue.key().c_str(), v.c_str(), true);
-        Log.trace(F("     * %s => %s"), keyValue.key().c_str(), v.c_str());
+        // Log.trace(F("     * %s => %s"), keyValue.key().c_str(), v.c_str());
     }
 
     /** testing start **/
@@ -895,29 +888,31 @@ void haspNewObject(const JsonObject & config, uint8_t & saved_page_id)
     if(test != obj) {
         Log.error(F("HASP: Objects DO NOT match!"));
     } else {
-        Log.trace(F("Objects match!"));
+        // Log.trace(F("Objects match!"));
     }
 }
 
-void haspLoadPage(String pages)
+void haspLoadPage(const char * pages)
 {
+    if(pages[0] == '\0') return;
+
     if(!SPIFFS.begin()) {
-        Log.error(F("HASP: FS not mounted. Failed to load %s"), pages.c_str());
+        Log.error(F("HASP: FS not mounted. Failed to load %s"), pages);
         return;
     }
 
     if(!SPIFFS.exists(pages)) {
-        Log.error(F("HASP: Non existing file %s"), pages.c_str());
+        Log.error(F("HASP: Non existing file %s"), pages);
         return;
     }
 
-    Log.notice(F("HASP: Loading file %s"), pages.c_str());
+    Log.notice(F("HASP: Loading file %s"), pages);
 
     File file = SPIFFS.open(pages, "r");
     dispatchJsonl(file);
     file.close();
 
-    Log.notice(F("HASP: File %s loaded"), pages.c_str());
+    Log.notice(F("HASP: File %s loaded"), pages);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
