@@ -1,7 +1,7 @@
 #include "ArduinoJson.h"
 #include "ArduinoLog.h"
 #include "lvgl.h"
-#include "StringStream.h"
+//#include "StringStream.h"
 #include "time.h"
 
 #include "hasp_conf.h"
@@ -24,9 +24,12 @@
 #include "user_config_override.h"
 #endif
 
+#ifndef SERIAL_SPEED
+#define SERIAL_SPEED 115200
+#endif
+
 #if HASP_USE_TELNET != 0
 #include "hasp_telnet.h"
-//#include "hasp_telnet.cpp"
 #endif
 
 #if HASP_USE_SYSLOG != 0
@@ -66,7 +69,7 @@ Syslog * syslog;
 #endif // USE_SYSLOG
 
 // Serial Settings
-uint16_t debugSerialBaud = 11520; // Multiplied by 10
+uint16_t debugSerialBaud = SERIAL_SPEED / 10; // Multiplied by 10
 bool debugSerialStarted  = false;
 
 //#define TERM_COLOR_Black "\u001b[30m"
@@ -321,7 +324,7 @@ void debugPreSetup(JsonObject settings)
     Log.setSuffix(debugPrintSuffix); // Uncomment to get newline as suffix
 
     uint32_t baudrate = settings[FPSTR(F_CONFIG_BAUD)].as<uint32_t>() * 10;
-    if(baudrate == 0) baudrate = 115200u;
+    if(baudrate == 0) baudrate = SERIAL_SPEED;
     if(baudrate >= 9600u) {     /* the baudrates are stored divided by 10 */
         Serial.begin(baudrate); /* prepare for possible serial debug */
         delay(10);
