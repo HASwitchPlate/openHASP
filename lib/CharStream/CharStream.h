@@ -2,25 +2,26 @@
 #define _CHAR_STREAM_H_
 
 #include <Stream.h>
-#include "Arduino.h"
 
 class CharStream : public Stream {
   public:
     CharStream(char * s) : string(s), position(0)
-    {}
+    {
+        length = strlen(s);
+    }
 
     // Stream methods
     virtual int available()
     {
-        return strlen(string) - position;
+        return length - position;
     }
     virtual int read()
     {
-        return position < strlen(string) ? string[position++] : -1;
+        return position < length ? string[position++] : -1;
     }
     virtual int peek()
     {
-        return position < strlen(string) ? string[position] : -1;
+        return position < length ? string[position] : -1;
     }
     virtual void flush(){};
     // Print methods
