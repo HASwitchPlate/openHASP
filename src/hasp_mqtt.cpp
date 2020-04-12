@@ -49,18 +49,6 @@ String mqttLightBrightStateTopic;   // MQTT topic for outgoing panel backlight d
 // String mqttMotionStateTopic;        // MQTT topic for outgoing motion sensor state
 */
 
-#ifdef MQTT_NODENAME
-char mqttNodeName[16] = MQTT_NODENAME;
-#else
-char mqttNodeName[16]  = "";
-#endif
-
-#ifdef MQTT_GROUPNAME
-char mqttGroupName[16] = MQTT_GROUPNAME;
-#else
-char mqttGroupName[16] = "";
-#endif
-
 // String mqttClientId((char *)0); // Auto-generated MQTT ClientID
 // String mqttNodeTopic((char *)0);
 // String mqttGroupTopic((char *)0);
@@ -89,6 +77,19 @@ char mqttUser[23]      = "";
 char mqttPassword[32] = MQTT_PASSW;
 #else
 char mqttPassword[32]  = "";
+#endif
+#ifdef MQTT_NODENAME
+char mqttNodeName[16] = MQTT_NODENAME;
+#else
+char mqttNodeName[16]  = "";
+#endif
+#ifdef MQTT_GROUPNAME
+char mqttGroupName[16] = MQTT_GROUPNAME;
+#else
+char mqttGroupName[16] = "";
+#endif
+#ifndef MQTT_PREFIX
+#define MQTT_PREFIX "hasp"
 #endif
 
 /*
@@ -559,8 +560,8 @@ bool mqttSetConfig(const JsonObject & settings)
         strncpy(mqttPassword, settings[FPSTR(F_CONFIG_PASS)], sizeof(mqttPassword));
     }
 
-    snprintf_P(mqttNodeTopic, sizeof(mqttNodeTopic), PSTR("hasp/%s/"), mqttNodeName);
-    snprintf_P(mqttGroupTopic, sizeof(mqttGroupTopic), PSTR("hasp/%s/"), mqttGroupName);
+    snprintf_P(mqttNodeTopic, sizeof(mqttNodeTopic), PSTR(MQTT_PREFIX "/%s/"), mqttNodeName);
+    snprintf_P(mqttGroupTopic, sizeof(mqttGroupTopic), PSTR(MQTT_PREFIX "/%s/"), mqttGroupName);
 
     return changed;
 }
