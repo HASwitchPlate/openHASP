@@ -653,7 +653,7 @@ void guiSetup()
 #if defined(ARDUINO_ARCH_ESP32)
         // pinMode(guiBacklightPin, OUTPUT);
         // configure LED PWM functionalitites
-        ledcSetup(BACKLIGHT_CHANNEL, 1000, 10);
+        ledcSetup(BACKLIGHT_CHANNEL, 20000, 10);
         // attach the channel to the GPIO to be controlled
         ledcAttachPin(guiBacklightPin, BACKLIGHT_CHANNEL);
 #else
