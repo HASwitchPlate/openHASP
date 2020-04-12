@@ -822,7 +822,7 @@ bool guiGetConfig(const JsonObject & settings)
     if(guiSleepTime2 != settings[FPSTR(F_GUI_IDLEPERIOD2)].as<uint16_t>()) changed = true;
     settings[FPSTR(F_GUI_IDLEPERIOD2)] = guiSleepTime2;
 
-    if(guiBacklightPin != settings[FPSTR(F_GUI_BACKLIGHTPIN)].as<uint8_t>()) changed = true;
+    if(guiBacklightPin != settings[FPSTR(F_GUI_BACKLIGHTPIN)].as<int8_t>()) changed = true;
     settings[FPSTR(F_GUI_BACKLIGHTPIN)] = guiBacklightPin;
 
     if(guiRotation != settings[FPSTR(F_GUI_ROTATION)].as<uint8_t>()) changed = true;

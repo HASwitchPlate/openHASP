@@ -163,7 +163,7 @@ void configWriteConfig()
     configFile = String(FPSTR(HASP_CONFIG_FILE));
 
     /* Read Config File */
-    DynamicJsonDocument settings(6 * 256);
+    DynamicJsonDocument settings(8 * 256);
     Log.notice(F("CONF: Config LOADING first %s"), configFile.c_str());
     configGetConfig(settings, false);
     Log.trace(F("CONF: Config LOADED first %s"), configFile.c_str());
@@ -172,13 +172,13 @@ void configWriteConfig()
     bool changed   = false;
 
 #if HASP_USE_WIFI
-    changed = wifiGetConfig(settings[F("wifi")].to<JsonObject>());
+    changed = wifiGetConfig(settings[F("wifi")].as<JsonObject>());
     if(changed) {
         Log.verbose(F("WIFI: Settings changed"));
         writefile = true;
     }
 #if HASP_USE_MQTT
-    changed = mqttGetConfig(settings[F("mqtt")].to<JsonObject>());
+    changed = mqttGetConfig(settings[F("mqtt")].as<JsonObject>());
     if(changed) {
         Log.verbose(F("MQTT: Settings changed"));
         configOutput(settings[F("mqtt")]);
@@ -186,7 +186,7 @@ void configWriteConfig()
     }
 #endif
 #if HASP_USE_TELNET
-    changed = telnetGetConfig(settings[F("telnet")].to<JsonObject>());
+    changed = telnetGetConfig(settings[F("telnet")].as<JsonObject>());
     if(changed) {
         Log.verbose(F("TELNET: Settings changed"));
         configOutput(settings[F("telnet")]);
@@ -194,14 +194,14 @@ void configWriteConfig()
     }
 #endif
 #if HASP_USE_MDNS
-    changed = mdnsGetConfig(settings[F("mdns")].to<JsonObject>());
+    changed = mdnsGetConfig(settings[F("mdns")].as<JsonObject>());
     if(changed) {
         Log.verbose(F("MDNS: Settings changed"));
         writefile = true;
     }
 #endif
 #if HASP_USE_HTTP
-    changed = httpGetConfig(settings[F("http")].to<JsonObject>());
+    changed = httpGetConfig(settings[F("http")].as<JsonObject>());
     if(changed) {
         Log.verbose(F("HTTP: Settings changed"));
         configOutput(settings[F("http")]);
@@ -210,19 +210,19 @@ void configWriteConfig()
 #endif
 #endif
 
-    changed = debugGetConfig(settings[F("debug")].to<JsonObject>());
+    changed = debugGetConfig(settings[F("debug")].as<JsonObject>());
     if(changed) {
         Log.verbose(F("DEBUG: Settings changed"));
         writefile = true;
     }
 
-    changed = guiGetConfig(settings[F("gui")].to<JsonObject>());
+    changed = guiGetConfig(settings[F("gui")].as<JsonObject>());
     if(changed) {
         Log.verbose(F("GUI: Settings changed"));
         writefile = true;
     }
 
-    changed = haspGetConfig(settings[F("hasp")].to<JsonObject>());
+    changed = haspGetConfig(settings[F("hasp")].as<JsonObject>());
     if(changed) {
         Log.verbose(F("HASP: Settings changed"));
         writefile = true;
@@ -238,7 +238,7 @@ void configWriteConfig()
             file.close();
             if(size > 0) {
                 Log.verbose(F("CONF: [SUCCESS] Saved %s"), configFile.c_str());
-                // configBackupToEeprom();
+                configBackupToEeprom();
                 return;
             }
         }

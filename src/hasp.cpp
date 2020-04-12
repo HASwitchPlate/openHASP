@@ -930,7 +930,7 @@ bool haspGetConfig(const JsonObject & settings)
     if(haspThemeId != settings[FPSTR(F_CONFIG_THEME)].as<uint8_t>()) changed = true;
     settings[FPSTR(F_CONFIG_THEME)] = haspThemeId;
 
-    if(haspThemeHue != settings[FPSTR(F_CONFIG_HUE)].as<uint8_t>()) changed = true;
+    if(haspThemeHue != settings[FPSTR(F_CONFIG_HUE)].as<uint16_t>()) changed = true;
     settings[FPSTR(F_CONFIG_HUE)] = haspThemeHue;
 
     if(strcmp(haspZiFontPath, settings[FPSTR(F_CONFIG_ZIFONT)].as<String>().c_str()) != 0) changed = true;
