@@ -172,17 +172,28 @@ void configWriteConfig()
     bool changed   = false;
     JsonObject settings;
 
-    settings = doc.as<JsonObject>();
+    if(doc.as<JsonObject>().isNull()) {
+        settings = doc.to<JsonObject>();
+    } else {
+        settings = doc.as<JsonObject>();
+    }
+
+    if(settings[F("wifi")].as<JsonObject>().isNull()) settings.createNestedObject(F("wifi"));
+    if(settings[F("mqtt")].as<JsonObject>().isNull()) settings.createNestedObject(F("mqtt"));
+    if(settings[F("hasp")].as<JsonObject>().isNull()) settings.createNestedObject(F("hasp"));
+    if(settings[F("mdns")].as<JsonObject>().isNull()) settings.createNestedObject(F("mdns"));
+    if(settings[F("http")].as<JsonObject>().isNull()) settings.createNestedObject(F("http"));
+    if(settings[F("debug")].as<JsonObject>().isNull()) settings.createNestedObject(F("debug"));
+    if(settings[F("telnet")].as<JsonObject>().isNull()) settings.createNestedObject(F("telnet"));
+    if(settings[F("gui")].as<JsonObject>().isNull()) settings.createNestedObject(F("gui"));
 
 #if HASP_USE_WIFI
-    if(!settings[F("wifi")].is<JsonObject>()) settings[F("wifi")].to<JsonObject>();
-    changed = wifiGetConfig(settings[F("wifi")]);
+    changed = wifiGetConfig(settings[F("wifi")].as<JsonObject>());
     if(changed) {
         Log.verbose(F("WIFI: Settings changed"));
         writefile = true;
     }
 #if HASP_USE_MQTT
-    if(!settings[F("mqtt")].is<JsonObject>()) settings[F("mqtt")].to<JsonObject>();
     changed = mqttGetConfig(settings[F("mqtt")]);
     if(changed) {
         Log.verbose(F("MQTT: Settings changed"));
@@ -191,7 +202,6 @@ void configWriteConfig()
     }
 #endif
 #if HASP_USE_TELNET
-    if(!settings[F("telnet")].is<JsonObject>()) settings[F("telnet")].to<JsonObject>();
     changed = telnetGetConfig(settings[F("telnet")]);
     if(changed) {
         Log.verbose(F("TELNET: Settings changed"));
@@ -200,7 +210,6 @@ void configWriteConfig()
     }
 #endif
 #if HASP_USE_MDNS
-    if(!settings[F("mdns")].is<JsonObject>()) settings[F("mdns")].to<JsonObject>();
     changed = mdnsGetConfig(settings[F("mdns")]);
     if(changed) {
         Log.verbose(F("MDNS: Settings changed"));
@@ -208,8 +217,7 @@ void configWriteConfig()
     }
 #endif
 #if HASP_USE_HTTP
-    if(!settings[F("http")].is<JsonObject>()) settings[F("http")].to<JsonObject>();
-    changed = httpGetConfig(settings[F("http")].as<JsonVariant>());
+    changed = httpGetConfig(settings[F("http")]);
     if(changed) {
         Log.verbose(F("HTTP: Settings changed"));
         configOutput(settings[F("http")]);
@@ -218,22 +226,19 @@ void configWriteConfig()
 #endif
 #endif
 
-    if(!settings[F("debug")].is<JsonObject>()) settings[F("debug")].to<JsonObject>();
-    changed = debugGetConfig(settings[F("debug")].as<JsonVariant>());
+    changed = debugGetConfig(settings[F("debug")]);
     if(changed) {
         Log.verbose(F("DEBUG: Settings changed"));
         writefile = true;
     }
 
-    if(!settings[F("gui")].is<JsonObject>()) settings[F("gui")].to<JsonObject>();
-    changed = guiGetConfig(settings[F("gui")].as<JsonVariant>());
+    changed = guiGetConfig(settings[F("gui")]);
     if(changed) {
         Log.verbose(F("GUI: Settings changed"));
         writefile = true;
     }
 
-    if(!settings[F("hasp")].is<JsonObject>()) settings[F("hasp")].to<JsonObject>();
-    changed = haspGetConfig(settings[F("hasp")].as<JsonVariant>());
+    changed = haspGetConfig(settings[F("hasp")]);
     if(changed) {
         Log.verbose(F("HASP: Settings changed"));
         writefile = true;
