@@ -166,10 +166,10 @@ void dispatchDim(String strDimLevel)
     if(strDimLevel.length() != 0) guiSetDim(strDimLevel.toInt());
     dispatchPrintln(F("DIM"), strDimLevel);
 
-    // Return the current state
-    String strPayload = String(guiGetDim());
 #if HASP_USE_MQTT
-    mqtt_send_state(F("dim"), strPayload.c_str());
+    char buffer[8];
+    itoa(guiGetDim(), buffer, DEC);
+    mqtt_send_state(F("dim"), buffer);
 #endif
 }
 
@@ -258,8 +258,8 @@ void dispatchJsonl(Stream & stream)
     Log.notice(F("DISPATCH: jsonl"));
 
     while(deserializeJson(jsonl, stream) == DeserializationError::Ok) {
-        serializeJson(jsonl, Serial);
-        Serial.println();
+        // serializeJson(jsonl, Serial);
+        // Serial.println();
         haspNewObject(jsonl.as<JsonObject>(), savedPage);
     }
 }
