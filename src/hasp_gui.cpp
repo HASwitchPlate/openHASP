@@ -625,7 +625,7 @@ void guiSetup()
 #else
     /* allocate on heap */
     static lv_disp_buf_t disp_buf;
-    static lv_color_t guiVdbBuffer1[5 * 512u]; // 6 KBytes
+    static lv_color_t guiVdbBuffer1[5 * 512u]; // 5 KBytes
     // static lv_color_t guiVdbBuffer2[3 * 1024u]; // 6 KBytes
     guiVDBsize = sizeof(guiVdbBuffer1) / sizeof(guiVdbBuffer1[0]);
     lv_disp_buf_init(&disp_buf, guiVdbBuffer1, NULL, guiVDBsize);
