@@ -420,6 +420,8 @@ void mqttReconnect()
     // Subscribe to our incoming topics
     mqttSubscribeTo(PSTR("%scommand/#"), mqttGroupTopic);
     mqttSubscribeTo(PSTR("%scommand/#"), mqttNodeTopic);
+    mqttSubscribeTo(PSTR("%sconfig/#"), mqttGroupTopic);
+    mqttSubscribeTo(PSTR("%sconfig/#"), mqttNodeTopic);
     mqttSubscribeTo(PSTR("%slight/#"), mqttNodeTopic);
     mqttSubscribeTo(PSTR("%sbrightness/#"), mqttNodeTopic);
     mqttSubscribeTo(PSTR("%sstatus"), mqttNodeTopic);
