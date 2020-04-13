@@ -832,21 +832,25 @@ bool guiGetConfig(const JsonObject & settings)
     settings[FPSTR(F_GUI_POINTER)] = guiShowPointer;
 
     /* Check CalData array has changed */
-    JsonArray array = settings[FPSTR(F_GUI_CALIBRATION)].to<JsonArray>();
+    JsonArray array = settings[FPSTR(F_GUI_CALIBRATION)].as<JsonArray>();
     uint8_t i       = 0;
     for(JsonVariant v : array) {
         Log.verbose(F("GUI CONF: %d: %d <=> %d"), i, calData[i], v.as<uint16_t>());
         if(i < 5) {
             if(calData[i] != v.as<uint16_t>()) changed = true;
+            v.set(calData[i]);
         } else {
             changed = true;
         }
         i++;
     }
 
-    /* Build new CalData array */
-    for(uint8_t i = 0; i < 5; i++) {
-        array.add(calData[i]);
+    /* Build new CalData array if the count is not correct */
+    if(i != 5) {
+        array = settings[FPSTR(F_GUI_CALIBRATION)].to<JsonArray>(); // Clear JsonArray
+        for(uint8_t i = 0; i < 5; i++) {
+            array.add(calData[i]);
+        }
     }
 
     if(changed) configOutput(settings);
@@ -887,8 +891,10 @@ bool guiSetConfig(const JsonObject & settings)
 
         JsonArray array = settings[FPSTR(F_GUI_CALIBRATION)].as<JsonArray>();
         for(JsonVariant v : array) {
-            if(calData[i] != v.as<uint16_t>()) status = true;
-            calData[i] = v.as<uint16_t>();
+            if(i < 5) {
+                if(calData[i] != v.as<uint16_t>()) status = true;
+                calData[i] = v.as<uint16_t>();
+            }
             i++;
         }
 
