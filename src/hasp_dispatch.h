@@ -8,6 +8,8 @@ void dispatchLoop(void);
 
 void dispatchAttribute(String strTopic, const char * strPayload);
 void dispatchCommand(String cmnd);
+void dispatchConfig(const char * topic, const char * payload);
+
 void dispatchJson(char * strPayload);
 void dispatchJsonl(char * strPayload);
 void dispatchJsonl(Stream & stream);

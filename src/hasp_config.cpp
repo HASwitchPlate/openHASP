@@ -168,32 +168,26 @@ void configWriteConfig()
     configGetConfig(doc, false);
     Log.trace(F("CONF: Config LOADED first %s"), configFile.c_str());
 
-    bool writefile = false;
-    bool changed   = false;
+    // Make sure we have a valid JsonObject to start from
     JsonObject settings;
-
     if(doc.as<JsonObject>().isNull()) {
-        settings = doc.to<JsonObject>();
+        settings = doc.to<JsonObject>(); // Settings are invalid, force creation of an empty JsonObject
     } else {
-        settings = doc.as<JsonObject>();
+        settings = doc.as<JsonObject>(); // Settings are valid, cast as a JsonObject
     }
 
-    if(settings[F("wifi")].as<JsonObject>().isNull()) settings.createNestedObject(F("wifi"));
-    if(settings[F("mqtt")].as<JsonObject>().isNull()) settings.createNestedObject(F("mqtt"));
-    if(settings[F("hasp")].as<JsonObject>().isNull()) settings.createNestedObject(F("hasp"));
-    if(settings[F("mdns")].as<JsonObject>().isNull()) settings.createNestedObject(F("mdns"));
-    if(settings[F("http")].as<JsonObject>().isNull()) settings.createNestedObject(F("http"));
-    if(settings[F("debug")].as<JsonObject>().isNull()) settings.createNestedObject(F("debug"));
-    if(settings[F("telnet")].as<JsonObject>().isNull()) settings.createNestedObject(F("telnet"));
-    if(settings[F("gui")].as<JsonObject>().isNull()) settings.createNestedObject(F("gui"));
+    bool writefile = false;
+    bool changed   = false;
 
 #if HASP_USE_WIFI
-    changed = wifiGetConfig(settings[F("wifi")].as<JsonObject>());
+    if(settings[F("wifi")].as<JsonObject>().isNull()) settings.createNestedObject(F("wifi"));
+    changed = wifiGetConfig(settings[F("wifi")]);
     if(changed) {
         Log.verbose(F("WIFI: Settings changed"));
         writefile = true;
     }
 #if HASP_USE_MQTT
+    if(settings[F("mqtt")].as<JsonObject>().isNull()) settings.createNestedObject(F("mqtt"));
     changed = mqttGetConfig(settings[F("mqtt")]);
     if(changed) {
         Log.verbose(F("MQTT: Settings changed"));
@@ -202,6 +196,7 @@ void configWriteConfig()
     }
 #endif
 #if HASP_USE_TELNET
+    if(settings[F("telnet")].as<JsonObject>().isNull()) settings.createNestedObject(F("telnet"));
     changed = telnetGetConfig(settings[F("telnet")]);
     if(changed) {
         Log.verbose(F("TELNET: Settings changed"));
@@ -210,6 +205,7 @@ void configWriteConfig()
     }
 #endif
 #if HASP_USE_MDNS
+    if(settings[F("mdns")].as<JsonObject>().isNull()) settings.createNestedObject(F("mdns"));
     changed = mdnsGetConfig(settings[F("mdns")]);
     if(changed) {
         Log.verbose(F("MDNS: Settings changed"));
@@ -217,6 +213,7 @@ void configWriteConfig()
     }
 #endif
 #if HASP_USE_HTTP
+    if(settings[F("http")].as<JsonObject>().isNull()) settings.createNestedObject(F("http"));
     changed = httpGetConfig(settings[F("http")]);
     if(changed) {
         Log.verbose(F("HTTP: Settings changed"));
@@ -226,18 +223,21 @@ void configWriteConfig()
 #endif
 #endif
 
+    if(settings[F("debug")].as<JsonObject>().isNull()) settings.createNestedObject(F("debug"));
     changed = debugGetConfig(settings[F("debug")]);
     if(changed) {
         Log.verbose(F("DEBUG: Settings changed"));
         writefile = true;
     }
 
+    if(settings[F("gui")].as<JsonObject>().isNull()) settings.createNestedObject(F("gui"));
     changed = guiGetConfig(settings[F("gui")]);
     if(changed) {
         Log.verbose(F("GUI: Settings changed"));
         writefile = true;
     }
 
+    if(settings[F("hasp")].as<JsonObject>().isNull()) settings.createNestedObject(F("hasp"));
     changed = haspGetConfig(settings[F("hasp")]);
     if(changed) {
         Log.verbose(F("HASP: Settings changed"));

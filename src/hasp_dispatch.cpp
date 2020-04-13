@@ -310,3 +310,93 @@ void IRAM_ATTR dispatch_obj_attribute_str(uint8_t pageid, uint8_t btnid, const c
     mqtt_send_obj_attribute_str(pageid, btnid, attribute, data);
 #endif
 }
+
+void dispatchConfig(const char * topic, const char * payload)
+{
+    DynamicJsonDocument doc(128 * 2);
+    char buffer[128 * 2];
+    JsonObject settings;
+    bool update;
+
+    if(strlen(payload) == 0) {
+        // Make sure we have a valid JsonObject to start from
+        settings = doc.to<JsonObject>().createNestedObject(topic);
+        update   = false;
+
+    } else {
+        DeserializationError jsonError = deserializeJson(doc, payload);
+        if(jsonError) { // Couldn't parse incoming JSON command
+            Log.warning(F("JSON: Failed to parse incoming JSON command with error: %s"), jsonError.c_str());
+            return;
+        }
+        settings = doc.as<JsonObject>();
+        update   = true;
+    }
+
+    if(strcmp_P(topic, PSTR("debug")) == 0) {
+        if(update)
+            debugSetConfig(settings);
+        else
+            debugGetConfig(settings);
+    }
+
+    else if(strcmp_P(topic, PSTR("gui")) == 0) {
+        if(update)
+            guiSetConfig(settings);
+        else
+            guiGetConfig(settings);
+    }
+
+    else if(strcmp_P(topic, PSTR("hasp")) == 0) {
+        if(update)
+            haspSetConfig(settings);
+        else
+            haspGetConfig(settings);
+    }
+
+#if HASP_USE_WIFI
+    else if(strcmp_P(topic, PSTR("wifi")) == 0) {
+        if(update)
+            wifiSetConfig(settings);
+        else
+            wifiGetConfig(settings);
+    }
+#if HASP_USE_MQTT
+    else if(strcmp_P(topic, PSTR("mqtt")) == 0) {
+        if(update)
+            mqttSetConfig(settings);
+        else
+            mqttGetConfig(settings);
+    }
+#endif
+#if HASP_USE_TELNET
+    //   else if(strcmp_P(topic, PSTR("telnet")) == 0)
+    //       telnetGetConfig(settings[F("telnet")]);
+#endif
+#if HASP_USE_MDNS
+    else if(strcmp_P(topic, PSTR("mdns")) == 0) {
+        if(update)
+            mdnsSetConfig(settings);
+        else
+            mdnsGetConfig(settings);
+    }
+#endif
+#if HASP_USE_HTTP
+    else if(strcmp_P(topic, PSTR("http")) == 0) {
+        if(update)
+            httpSetConfig(settings);
+        else
+            httpGetConfig(settings);
+    }
+#endif
+#endif
+
+    // Send output
+    if(!update) {
+        settings.remove(F("pass")); // hide password in output
+        size_t size = serializeJson(doc, buffer, sizeof(buffer));
+#if HASP_USE_MQTT
+        mqtt_send_state(F("config"), buffer);
+#endif
+    }
+}

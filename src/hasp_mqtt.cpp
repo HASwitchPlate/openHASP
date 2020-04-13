@@ -131,7 +131,7 @@ void IRAM_ATTR mqtt_send_state(const __FlashStringHelper * subtopic, const char 
     }
 
     // Log after char buffers are cleared
-    Log.notice(F("MQTT OUT: %sstate/%S = %s"), mqttNodeTopic, subtopic, payload);
+    Log.notice(F("MQTT PUB: %sstate/%S = %s"), mqttNodeTopic, subtopic, payload);
 }
 
 void mqtt_send_input(uint8_t id, const char * payload)
@@ -147,7 +147,7 @@ void mqtt_send_input(uint8_t id, const char * payload)
     }
 
     // Log after char buffers are cleared
-    Log.notice(F("MQTT OUT: %sstate/input%u = %s"), mqttNodeTopic, id, payload);
+    Log.notice(F("MQTT PUB: %sstate/input%u = %s"), mqttNodeTopic, id, payload);
 }
 
 void IRAM_ATTR mqtt_send_obj_attribute_str(uint8_t pageid, uint8_t btnid, const char * attribute, const char * data)
@@ -166,7 +166,7 @@ void IRAM_ATTR mqtt_send_obj_attribute_str(uint8_t pageid, uint8_t btnid, const 
     }
 
     // Log after char buffers are cleared
-    Log.notice(F("MQTT OUT: %sstate/json = {\"p[%u].b[%u].%s\":\"%s\"}"), mqttNodeTopic, pageid, btnid, attribute,
+    Log.notice(F("MQTT PUB: %sstate/json = {\"p[%u].b[%u].%s\":\"%s\"}"), mqttNodeTopic, pageid, btnid, attribute,
                data);
 }
 
@@ -226,6 +226,7 @@ void mqtt_send_statusupdate()
 // Receive incoming messages
 static void mqtt_message_cb(char * topic_p, byte * payload, unsigned int length)
 { // Handle incoming commands from MQTT
+    if(length >= MQTT_MAX_PACKET_SIZE) return;
     payload[length] = '\0';
 
     // String strTopic((char *)0);
@@ -247,7 +248,7 @@ static void mqtt_message_cb(char * topic_p, byte * payload, unsigned int length)
     // '[...]/device/command/p[1].b[4].txt' -m '"Lights On"' = nextionSetAttr("p[1].b[4].txt", "\"Lights On\"")
 
     char * topic = (char *)topic_p;
-    Log.notice(F("MQTT  IN: %s = %s"), topic, (char *)payload);
+    Log.notice(F("MQTT RCV: %s = %s"), topic, (char *)payload);
 
     if(topic == strstr(topic, mqttNodeTopic)) { // startsWith mqttNodeTopic
         topic += strlen(mqttNodeTopic);
@@ -279,6 +280,12 @@ static void mqtt_message_cb(char * topic_p, byte * payload, unsigned int length)
                  // nextionSetAttr("p[1].b[4].txt", "\"Lights On\"")
             dispatchAttribute(topic, (char *)payload);
         }
+        return;
+    }
+
+    if(topic == strstr_P(topic, PSTR("config/"))) { // startsWith command/
+        topic += 7u;
+        dispatchConfig(topic, (char *)payload);
         return;
     }
 
