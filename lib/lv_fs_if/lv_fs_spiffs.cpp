@@ -6,7 +6,7 @@
 /*********************
  *      INCLUDES
  *********************/
-//#include <Arduino.h>
+#include <Arduino.h>
 #include "lv_fs_if.h"
 #include "lv_fs_spiffs.h"
 #include "ArduinoLog.h"
@@ -31,7 +31,13 @@
 typedef File lv_spiffs_file_t;
 
 /*Similarly to `file_t` create a type for directory reading too */
-typedef File * lv_spiffs_dir_t;
+#if defined(ARDUINO_ARCH_ESP32)
+typedef File lv_spiffs_dir_t;
+#elif defined(ARDUINO_ARCH_ESP8266)
+typedef Dir lv_spiffs_dir_t;
+#define FILE_READ "r"
+#define FILE_WRITE "r+"
+#endif
 
 /**********************
  *  STATIC PROTOTYPES
@@ -129,20 +135,25 @@ static lv_fs_res_t fs_open(lv_fs_drv_t * drv, void * file_p, const char * path, 
     snprintf_P(filename, sizeof(filename), PSTR("/%s"), path);
 
     Log.verbose(F("LVFS: Opening %s"), filename);
-    File f = SPIFFS.open(filename, mode == LV_FS_MODE_WR ? FILE_WRITE : FILE_READ);
-    if(!f) return LV_FS_RES_NOT_EX;
+    File file = SPIFFS.open(filename, mode == LV_FS_MODE_WR ? FILE_WRITE : FILE_READ);
 
-    Log.verbose(F("LVFS: Opened %s"), filename);
+    Log.verbose(F("LVFS: %d"), __LINE__);
+    if(!file) {
+        return LV_FS_RES_NOT_EX;
 
-    if(!f || f.isDirectory()) {
+    } else if(file.isDirectory()) {
         return LV_FS_RES_UNKNOWN;
+
     } else {
-        f.seek(0, SeekSet);
-        Log.verbose(F("LVFS: Assigning %s"), f.name());
+        // f.seek(0, SeekSet);
+        // Log.verbose(F("LVFS: Assigning %s"), f.name());
+        Log.verbose(F("LVFS: %d"), __LINE__);
         lv_spiffs_file_t * fp = (lv_spiffs_file_t *)file_p; /*Just avoid the confusing casings*/
-        Log.verbose(F("LVFS: Copying %s"), f.name());
-        *fp = f;
-        //    memcpy(*file_p,&f,sizeof(lv_spiffs_file_t));
+        // Log.verbose(F("LVFS: Copying %s"), f.name());
+        Log.verbose(F("LVFS: %d"), __LINE__);
+        *fp = file;
+        // memcpy(fp,&file,sizeof(lv_spiffs_file_t));
+        Log.verbose(F("LVFS: %d"), __LINE__);
         return LV_FS_RES_OK;
     }
 }
@@ -157,16 +168,17 @@ static lv_fs_res_t fs_open(lv_fs_drv_t * drv, void * file_p, const char * path, 
 static lv_fs_res_t fs_close(lv_fs_drv_t * drv, void * file_p)
 {
     (void)drv; /*Unused*/
-    lv_spiffs_file_t * fp = (lv_spiffs_file_t *)file_p;
-    File file             = *fp;
+    lv_spiffs_file_t file = *(lv_spiffs_file_t *)file_p;
+    // File file           = fp;
+    //file = SPIFFS.open("/background.bin");
 
     if(!file) {
-        Log.verbose(F("LVFS: Invalid file"));
+        // Log.verbose(F("LVFS: Invalid file"));
         return LV_FS_RES_NOT_EX;
-    }
 
-    if(!file || file.isDirectory()) {
+    } else if(file.isDirectory()) {
         return LV_FS_RES_UNKNOWN;
+
     } else {
         file.close();
         return LV_FS_RES_OK;
@@ -186,21 +198,19 @@ static lv_fs_res_t fs_close(lv_fs_drv_t * drv, void * file_p)
 static lv_fs_res_t fs_read(lv_fs_drv_t * drv, void * file_p, void * buf, uint32_t btr, uint32_t * br)
 {
     (void)drv; /*Unused*/
-    lv_spiffs_file_t * fp = (lv_spiffs_file_t *)file_p;
-    File file             = *fp;
+    lv_spiffs_file_t *fp = (lv_spiffs_file_t *)file_p;
+    lv_spiffs_file_t file           = *fp;
 
     if(!file) {
-        Log.verbose(F("LVFS: Invalid file"));
+        // Log.verbose(F("LVFS: Invalid file"));
         return LV_FS_RES_NOT_EX;
+
+    } else {
+        // Log.verbose(F("LVFS: Reading %u bytes from %s at position %u"), btr, file.name(), file.position());
+        *br = (uint32_t)file.readBytes((char *)buf, btr);
+        Serial.print("!");
+        return LV_FS_RES_OK;
     }
-
-    // Log.verbose(F("LVFS: Reading %u bytes from %s at position %u"), btr, file.name(), file.position());
-
-    int len = file.readBytes((char *)buf, btr);
-    // Log.verbose(F("LVFS: Read %u bytes from %s at position %u"), len, file.name(), file.position());
-    *br = (uint32_t)len;
-
-    return LV_FS_RES_OK;
 }
 
 /**
@@ -215,16 +225,17 @@ static lv_fs_res_t fs_read(lv_fs_drv_t * drv, void * file_p, void * buf, uint32_
 static lv_fs_res_t fs_write(lv_fs_drv_t * drv, void * file_p, const void * buf, uint32_t btw, uint32_t * bw)
 {
     (void)drv; /*Unused*/
-    lv_spiffs_file_t * fp = (lv_spiffs_file_t *)file_p;
-    File file             = *fp;
+    lv_spiffs_file_t file = *(lv_spiffs_file_t *)file_p;
+    // File file           = fp;
 
     if(!file) {
-        Log.verbose(F("LVFS: Invalid file"));
+        // Log.verbose(F("LVFS: Invalid file"));
         return LV_FS_RES_NOT_EX;
-    }
 
-    *bw = file.write((byte *)buf, btw);
-    return LV_FS_RES_OK;
+    } else {
+        *bw = (uint32_t)file.write((byte *)buf, btw);
+        return LV_FS_RES_OK;
+    }
 }
 
 /**
@@ -238,16 +249,17 @@ static lv_fs_res_t fs_write(lv_fs_drv_t * drv, void * file_p, const void * buf, 
 static lv_fs_res_t fs_seek(lv_fs_drv_t * drv, void * file_p, uint32_t pos)
 {
     (void)drv; /*Unused*/
-    lv_spiffs_file_t * fp = (lv_spiffs_file_t *)file_p;
-    File file             = *fp;
+    lv_spiffs_file_t file = *(lv_spiffs_file_t *)file_p;
+    // File file           = fp;
 
     if(!file) {
-        Log.verbose(F("LVFS: Invalid file"));
+        // Log.verbose(F("LVFS: Invalid file"));
         return LV_FS_RES_NOT_EX;
-    }
 
-    file.seek(pos, SeekSet);
-    return LV_FS_RES_OK;
+    } else {
+        file.seek(pos, SeekSet);
+        return LV_FS_RES_OK;
+    }
 }
 
 /**
@@ -260,17 +272,17 @@ static lv_fs_res_t fs_seek(lv_fs_drv_t * drv, void * file_p, uint32_t pos)
 static lv_fs_res_t fs_size(lv_fs_drv_t * drv, void * file_p, uint32_t * size_p)
 {
     (void)drv; /*Unused*/
-    lv_spiffs_file_t * fp = (lv_spiffs_file_t *)file_p;
-    File file             = *fp;
+    lv_spiffs_file_t file = *(lv_spiffs_file_t *)file_p;
+    // File file           = fp;
 
     if(!file) {
-        Log.verbose(F("LVFS: Invalid file"));
+        // Log.verbose(F("LVFS: Invalid file"));
         return LV_FS_RES_NOT_EX;
+
+    } else {
+        *size_p = (uint32_t)file.size();
+        return LV_FS_RES_OK;
     }
-
-    *size_p = (uint32_t)file.size();
-
-    return LV_FS_RES_OK;
 }
 
 /**
@@ -284,17 +296,17 @@ static lv_fs_res_t fs_size(lv_fs_drv_t * drv, void * file_p, uint32_t * size_p)
 static lv_fs_res_t fs_tell(lv_fs_drv_t * drv, void * file_p, uint32_t * pos_p)
 {
     (void)drv; /*Unused*/
-    lv_spiffs_file_t * fp = (lv_spiffs_file_t *)file_p;
-    File file             = *fp;
+    lv_spiffs_file_t file = *(lv_spiffs_file_t *)file_p;
+    // File file           = fp;
 
     if(!file) {
-        Log.verbose(F("LVFS: Invalid file"));
+        // Log.verbose(F("LVFS: Invalid file"));
         return LV_FS_RES_NOT_EX;
+
+    } else {
+        *pos_p = (uint32_t)file.position();
+        return LV_FS_RES_OK;
     }
-
-    *pos_p = (uint32_t)file.position();
-
-    return LV_FS_RES_OK;
 }
 
 /**
@@ -307,8 +319,15 @@ static lv_fs_res_t fs_remove(lv_fs_drv_t * drv, const char * path)
 {
     (void)drv; /*Unused*/
 
-    if(SPIFFS.remove(path)) {
+    char filename[32];
+    snprintf_P(filename, sizeof(filename), PSTR("/%s"), path);
+
+    if(!SPIFFS.exists(filename)) {
+        return LV_FS_RES_NOT_EX;
+
+    } else if(SPIFFS.remove(filename)) {
         return LV_FS_RES_OK;
+
     } else {
         return LV_FS_RES_UNKNOWN;
     }
@@ -336,8 +355,13 @@ static lv_fs_res_t fs_trunc(lv_fs_drv_t * drv, void * file_p)
 static lv_fs_res_t fs_rename(lv_fs_drv_t * drv, const char * oldname, const char * newname)
 {
     (void)drv; /*Unused*/
+    char fromname[32];
+    char toname[32];
 
-    if(SPIFFS.rename(oldname, newname)) {
+    snprintf_P(fromname, sizeof(fromname), PSTR("/%s"), oldname);
+    snprintf_P(toname, sizeof(toname), PSTR("/%s"), newname);
+
+    if(SPIFFS.rename(fromname, toname)) {
         return LV_FS_RES_OK;
     } else {
         return LV_FS_RES_UNKNOWN;
@@ -382,19 +406,22 @@ static lv_fs_res_t fs_free(lv_fs_drv_t * drv, uint32_t * total_p, uint32_t * fre
  */
 static lv_fs_res_t fs_dir_open(lv_fs_drv_t * drv, void * dir_p, const char * path)
 {
-    lv_spiffs_dir_t dir = (lv_spiffs_dir_t)dir_p; /*Convert type*/
+    lv_spiffs_dir_t dir;
 
-    Serial.print("Open directory: ");
-    Serial.println(path);
-    Serial.flush();
-
-    *dir = SPIFFS.open(path, "r");
-    if(*dir) {
-        dir_p = &dir;
-        return LV_FS_RES_OK;
-    } else {
+#if defined(ARDUINO_ARCH_ESP32)
+    dir = SPIFFS.open(path);
+    if(!dir) {
         return LV_FS_RES_UNKNOWN;
     }
+#endif
+
+#if defined(ARDUINO_ARCH_ESP8266)
+    dir = SPIFFS.openDir(path);
+#endif
+
+    lv_spiffs_dir_t * dp = (lv_spiffs_dir_t *)dir_p; /*Just avoid the confusing casings*/
+    *dp                  = dir;
+    return LV_FS_RES_OK;
 }
 
 /**
@@ -407,15 +434,28 @@ static lv_fs_res_t fs_dir_open(lv_fs_drv_t * drv, void * dir_p, const char * pat
  */
 static lv_fs_res_t fs_dir_read(lv_fs_drv_t * drv, void * dir_p, char * fn)
 {
-    lv_spiffs_dir_t dir = (lv_spiffs_dir_t)dir_p; /*Convert type*/
-    File file           = dir->openNextFile();
+    lv_spiffs_dir_t dir = *(lv_spiffs_dir_t *)dir_p; /*Convert type*/
 
+#if defined(ARDUINO_ARCH_ESP32)
+    File file = dir.openNextFile();
     if(file) {
         strcpy(fn, file.name());
         return LV_FS_RES_OK;
     } else {
         return LV_FS_RES_UNKNOWN;
     }
+#endif
+
+#if defined(ARDUINO_ARCH_ESP8266)
+    if(dir.next()) {
+        strcpy(fn, dir.fileName().c_str());
+        return LV_FS_RES_OK;
+    } else {
+        return LV_FS_RES_UNKNOWN;
+    }
+#endif
+
+    return LV_FS_RES_NOT_IMP;
 }
 
 /**

@@ -638,7 +638,8 @@ void guiSetup()
 
     /* Initialize Filesystems */
 #if LV_USE_FS_IF != 0
-    lv_fs_if_init();
+    lv_fs_init();    // lvgl File System
+    lv_fs_if_init(); // auxilary file system drivers
 #endif
 
     /* Dump TFT Cofiguration */

@@ -178,11 +178,11 @@ typedef void* lv_group_user_data_t;
 typedef void* lv_fs_drv_user_data_t;
 
 /*File system interface*/
-#define LV_USE_FS_IF	0
+#define LV_USE_FS_IF	      (LV_HIGH_RESOURCE_MCU)
 #if LV_USE_FS_IF
 #  define LV_FS_IF_FATFS    '\0'
 #  define LV_FS_IF_PC       '\0'
-#  define LV_FS_IF_SPIFFS   '\0'
+#  define LV_FS_IF_SPIFFS   'F'  // internal Flash
 #endif  /*LV_USE_FS_IF*/
 
 #endif
