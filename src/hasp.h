@@ -49,7 +49,14 @@ enum lv_hasp_obj_type_t {
     LV_HASP_DDLIST = 50,
     LV_HASP_ROLLER = 51,
 
+    LV_HASP_IMAGE = 60,
+
+    LV_HASP_TABVIEW = 70,
+    LV_HASP_TILEVIEW = 71,
+
     LV_HASP_CONTAINER = 90,
+    LV_HASP_OBJECT = 91,
+    LV_HASP_PAGE = 92,
 };
 
 /**********************

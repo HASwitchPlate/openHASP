@@ -693,6 +693,23 @@ void hasp_process_obj_attribute(lv_obj_t * obj, const char * attr_p, const char 
         case ATTR_HIDDEN:
             return update ? lv_obj_set_hidden(obj, is_true(payload)) : hasp_out_int(obj, attr, lv_obj_get_hidden(obj));
 
+        case ATTR_SRC:
+            if(check_obj_type(obj, LV_HASP_IMAGE)) {
+                if(update) {
+                    return lv_img_set_src(obj, payload);
+                } else {
+                    switch(lv_img_src_get_type(obj)) {
+                        case LV_IMG_SRC_FILE:
+                            return hasp_out_str(obj, attr, lv_img_get_file_name(obj));
+                        case LV_IMG_SRC_SYMBOL:
+                            return hasp_out_str(obj, attr, (char *)lv_img_get_src(obj));
+                        default:
+                            return;
+                    }
+                }
+            }
+            break;
+
         case ATTR_ROWS:
             if(check_obj_type(obj, LV_HASP_ROLLER)) {
                 return update ? lv_roller_set_visible_row_count(obj, (uint8_t)val)
@@ -837,8 +854,18 @@ bool check_obj_type(const char * lvobjtype, lv_hasp_obj_type_t haspobjtype)
             return (strcmp_P(lvobjtype, PSTR("switch")) == 0); // || (strcmp_P(lvobjtype, PSTR("lv_sw")) == 0)
         case LV_HASP_LED:
             return (strcmp_P(lvobjtype, PSTR("led")) == 0);
+        case LV_HASP_IMAGE:
+            return (strcmp_P(lvobjtype, PSTR("img")) == 0);
         case LV_HASP_CONTAINER:
             return (strcmp_P(lvobjtype, PSTR("container")) == 0); // || (strcmp_P(lvobjtype, PSTR("lv_cont")) == 0)
+        case LV_HASP_OBJECT:
+            return (strcmp_P(lvobjtype, PSTR("page")) == 0); // || (strcmp_P(lvobjtype, PSTR("lv_cont")) == 0)
+        case LV_HASP_PAGE:
+            return (strcmp_P(lvobjtype, PSTR("obj")) == 0); // || (strcmp_P(lvobjtype, PSTR("lv_cont")) == 0)
+        case LV_HASP_TABVIEW:
+            return (strcmp_P(lvobjtype, PSTR("tabview")) == 0);
+        case LV_HASP_TILEVIEW:
+            return (strcmp_P(lvobjtype, PSTR("tileview")) == 0);
         default:
             return false;
     }

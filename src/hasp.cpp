@@ -9,25 +9,23 @@
 #include "lvgl.h"
 #include "lv_conf.h"
 
-#define LVGL7 1
-
 //#include "../lib/lvgl/src/lv_widgets/lv_roller.h"
 
 #if HASP_USE_SPIFFS
 #if defined(ARDUINO_ARCH_ESP32)
-#include "lv_zifont.h"
 #include "SPIFFS.h"
 #endif
-#include "lv_zifont.h"
 #include <FS.h> // Include the SPIFFS library
 #endif
 
+#include "lv_fs_if.h"
 #include "hasp_debug.h"
 #include "hasp_config.h"
 #include "hasp_dispatch.h"
 #include "hasp_wifi.h"
 #include "hasp_gui.h"
 #include "hasp_tft.h"
+#include "lv_zifont.h"
 //#include "hasp_attr_get.h"
 #include "hasp_attribute.h"
 #include "hasp.h"
@@ -161,6 +159,19 @@ lv_obj_t * hasp_find_obj_from_id(lv_obj_t * parent, uint8_t objid)
         /* check grandchildren */
         lv_obj_t * grandchild = hasp_find_obj_from_id(child, objid);
         if(grandchild) return grandchild;
+
+        /* check tabs */
+        if(check_obj_type(child, LV_HASP_TABVIEW)) {
+            uint16_t tabcount = lv_tabview_get_tab_count(child);
+            for(uint16_t i = 0; i < tabcount; i++) {
+                lv_obj_t * tab = lv_tabview_get_tab(child, i);
+                Log.verbose("Found tab %i", i);
+                if(tab->user_data && (lv_obj_user_data_t)objid == tab->user_data) return tab; // object found
+
+                grandchild = hasp_find_obj_from_id(tab, objid);
+                if(grandchild) return grandchild;
+            }
+        }
 
         /* next sibling */
         child = lv_obj_get_child(parent, child);
@@ -329,34 +340,33 @@ void haspSetup()
     // static lv_font_t *
     //    my_font = (lv_font_t *)lv_mem_alloc(sizeof(lv_font_t));
 
-    /******* File SustemTest ********************************************************************
-        lv_fs_init();
-        lv_fs_file_t f;
-        lv_fs_res_t res;
-        res = lv_fs_open(&f, "F:/pages.jsonl", LV_FS_MODE_RD);
-        if(res == LV_FS_RES_OK)
-            Log.error(F("Opening pages.json OK"));
-        else
-            Log.verbose(F("Opening pages.json from FS failed %d"), res);
+    /******* File System Test ********************************************************************/
+    lv_fs_file_t f;
+    lv_fs_res_t res;
+    res = lv_fs_open(&f, "F:/pages.jsonl", LV_FS_MODE_RD);
+    if(res == LV_FS_RES_OK)
+        Log.error(F("Opening pages.json OK"));
+    else
+        Log.verbose(F("Opening pages.json from FS failed %d"), res);
 
-        uint32_t btoread = 128;
-        uint32_t bread   = 0;
-        char buffer[128];
+    uint32_t btoread = 128;
+    uint32_t bread   = 0;
+    char buffer[128];
 
-        res = lv_fs_read(&f, buffer, 128, &bread);
-        if(res == LV_FS_RES_OK) {
-            Log.error(F("Reading pages.json OK %u"), bread);
-            buffer[127] = '\0';
-            Log.verbose(buffer);
-        } else
-            Log.verbose(F("Reading pages.json from FS failed %d"), res);
+    res = lv_fs_read(&f, &buffer, btoread, &bread);
+    if(res == LV_FS_RES_OK) {
+        Log.error(F("Reading pages.json OK %u"), bread);
+        buffer[127] = '\0';
+        Log.verbose(buffer);
+    } else
+        Log.verbose(F("Reading pages.json from FS failed %d"), res);
 
-        res = lv_fs_close(&f);
-        if(res == LV_FS_RES_OK)
-            Log.error(F("Closing pages.json OK"));
-        else
-            Log.verbose(F("Closing pages.json on FS failed %d"), res);
-    ******* File SustemTest ********************************************************************/
+    res = lv_fs_close(&f);
+    if(res == LV_FS_RES_OK)
+        Log.error(F("Closing pages.json OK"));
+    else
+        Log.verbose(F("Closing pages.json on FS failed %d"), res);
+    /******* File System Test ********************************************************************/
 
     /* ********** Font Initializations ********** */
     lv_zifont_init();
@@ -653,7 +663,7 @@ void haspClearPage(uint16_t pageid)
         Log.warning(F("HASP: Cannot clear a layer"));
     } else {
         Log.notice(F("HASP: Clearing page %u"), pageid);
-        lv_obj_clean(pages[pageid]);
+        lv_page_clean(pages[pageid]);
     }
 }
 
@@ -763,6 +773,11 @@ void haspNewObject(const JsonObject & config, uint8_t & saved_page_id)
             lv_obj_set_event_cb(obj, btn_event_handler);
             break;
         }
+        case LV_HASP_IMAGE: {
+            obj = lv_img_create(parent_obj, NULL);
+            lv_obj_set_event_cb(obj, btn_event_handler);
+            break;
+        }
         case LV_HASP_ARC: {
             obj = lv_arc_create(parent_obj, NULL);
             lv_obj_set_event_cb(obj, btn_event_handler);
@@ -771,6 +786,30 @@ void haspNewObject(const JsonObject & config, uint8_t & saved_page_id)
         case LV_HASP_CONTAINER: {
             obj = lv_cont_create(parent_obj, NULL);
             lv_obj_set_event_cb(obj, btn_event_handler);
+            break;
+        }
+        case LV_HASP_OBJECT: {
+            obj = lv_obj_create(parent_obj, NULL);
+            lv_obj_set_event_cb(obj, btn_event_handler);
+            break;
+        }
+        case LV_HASP_PAGE: {
+            obj = lv_page_create(parent_obj, NULL);
+            break;
+        }
+        case LV_HASP_TABVIEW: {
+            obj = lv_tabview_create(parent_obj, NULL);
+            lv_obj_t * tab;
+            tab = lv_tabview_add_tab(obj, "tab 1");
+            lv_obj_set_user_data(tab, id + 1);
+            tab = lv_tabview_add_tab(obj, "tab 2");
+            lv_obj_set_user_data(tab, id + 2);
+            tab = lv_tabview_add_tab(obj, "tab 3");
+            lv_obj_set_user_data(tab, id + 3);
+            break;
+        }
+        case LV_HASP_TILEVIEW: {
+            obj = lv_tileview_create(parent_obj, NULL);
             break;
         }
 
@@ -830,7 +869,7 @@ void haspNewObject(const JsonObject & config, uint8_t & saved_page_id)
             obj = lv_dropdown_create(parent_obj, NULL);
             // lv_dropdown_set_fix_width(obj, width);
             lv_dropdown_set_draw_arrow(obj, true);
-            lv_dropdown_set_anim_time(obj, 200);
+            // lv_dropdown_set_anim_time(obj, 200);
             lv_obj_set_top(obj, true);
             // lv_obj_align(obj, NULL, LV_ALIGN_IN_TOP_MID, 0, 20);
             lv_obj_set_event_cb(obj, ddlist_event_handler);

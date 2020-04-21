@@ -619,9 +619,11 @@ void guiSetup()
     /* allocate on iram (or psram ?) */
     guiVDBsize = 16 * 1024u; // 32 KBytes * 2
     static lv_disp_buf_t disp_buf;
-    static lv_color_t * guiVdbBuffer1 = (lv_color_t *)malloc(sizeof(lv_color_t) * guiVDBsize);
-    static lv_color_t * guiVdbBuffer2 = (lv_color_t *)malloc(sizeof(lv_color_t) * guiVDBsize);
-    lv_disp_buf_init(&disp_buf, guiVdbBuffer1, guiVdbBuffer2, guiVDBsize);
+    static lv_color_t * guiVdbBuffer1 =
+        (lv_color_t *)heap_caps_malloc(sizeof(lv_color_t) * guiVDBsize, MALLOC_CAP_8BIT);
+    // static lv_color_t * guiVdbBuffer2 = (lv_color_t *)malloc(sizeof(lv_color_t) * guiVDBsize);
+    // lv_disp_buf_init(&disp_buf, guiVdbBuffer1, guiVdbBuffer2, guiVDBsize);
+    lv_disp_buf_init(&disp_buf, guiVdbBuffer1, NULL, guiVDBsize);
 #else
     /* allocate on heap */
     static lv_disp_buf_t disp_buf;
@@ -665,7 +667,9 @@ void guiSetup()
     Log.verbose(F("LVGL: Version  : %u.%u.%u %s"), LVGL_VERSION_MAJOR, LVGL_VERSION_MINOR, LVGL_VERSION_PATCH,
                 PSTR(LVGL_VERSION_INFO));
     Log.verbose(F("LVGL: Rotation : %d"), guiRotation);
+#ifdef LV_MEM_SIZE
     Log.verbose(F("LVGL: MEM size : %d"), LV_MEM_SIZE);
+#endif
     Log.verbose(F("LVGL: VFB size : %d"), (size_t)sizeof(lv_color_t) * guiVDBsize);
 
 #if LV_USE_LOG != 0
