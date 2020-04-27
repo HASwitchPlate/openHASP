@@ -1,3 +1,4 @@
+#if defined(ARDUINO_ARCH_ESP8266) || defined(ARDUINO_ARCH_ESP32)
 #include <Arduino.h>
 #include <ArduinoOTA.h>
 #include "ArduinoJson.h"
@@ -185,3 +186,4 @@ void otaHttpUpdate(const char * espOtaUrl)
     mdnsStart();
     // nextionSendCmd("page " + String(nextionActivePage));
 }
+#endif

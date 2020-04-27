@@ -6,17 +6,11 @@
 #include "hasp_dispatch.h"
 #include "hasp_config.h"
 #include "hasp_debug.h"
-#include "hasp_http.h"
-#include "hasp_mdns.h"
-#include "hasp_wifi.h"
 #include "hasp_gui.h"
-#include "hasp_ota.h"
+#include "hasp_hal.h"
 #include "hasp.h"
 
 #include "hasp_conf.h"
-#if HASP_USE_MQTT
-#include "hasp_mqtt.h"
-#endif
 
 inline void dispatchPrintln(String header, String & data)
 {
@@ -272,42 +266,50 @@ void dispatchJsonl(char * payload)
 
 void dispatchIdle(const char * state)
 {
-#if HASP_USE_MQTT
+#if HASP_USE_MQTT>0
     mqtt_send_state(F("idle"), state);
+#else
+    Log.notice(F("OUT: idle = %s"), state);
 #endif
 }
 
 void dispatchReboot(bool saveConfig)
 {
     if(saveConfig) configWriteConfig();
-#if HASP_USE_MQTT
+#if HASP_USE_MQTT>0
     mqttStop(); // Stop the MQTT Client first
 #endif
     debugStop();
+#if HASP_USE_WIFI>0
     wifiStop();
+#endif
     Log.verbose(F("-------------------------------------"));
     Log.notice(F("STOP: Properly Rebooting the MCU now!"));
     Serial.flush();
-    ESP.restart();
+    //halRestart();
 }
 
 void dispatch_button(uint8_t id, const char * event)
 {
-#if HASP_USE_MQTT
+#if HASP_USE_MQTT > 0
     mqtt_send_input(id, event);
 #endif
 }
 
 void dispatchWebUpdate(const char * espOtaUrl)
 {
+#if HASP_USE_OTA > 0
     Log.verbose(F("FWUP: Checking for updates at URL: %s"), espOtaUrl);
     otaHttpUpdate(espOtaUrl);
+#endif
 }
 
 void IRAM_ATTR dispatch_obj_attribute_str(uint8_t pageid, uint8_t btnid, const char * attribute, const char * data)
 {
-#if HASP_USE_MQTT
+#if HASP_USE_MQTT > 0
     mqtt_send_obj_attribute_str(pageid, btnid, attribute, data);
+#else
+    Log.notice(F("OUT: json = {\"p[%u].b[%u].%s\":\"%s\"}"), pageid, btnid, attribute, data);
 #endif
 }
 
@@ -397,6 +399,8 @@ void dispatchConfig(const char * topic, const char * payload)
         size_t size = serializeJson(doc, buffer, sizeof(buffer));
 #if HASP_USE_MQTT
         mqtt_send_state(F("config"), buffer);
+#else
+    Log.notice(F("OUT: config %s = %s"),topic,buffer);
 #endif
     }
 }

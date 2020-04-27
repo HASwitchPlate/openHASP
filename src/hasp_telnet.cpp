@@ -5,7 +5,6 @@
 #include "ArduinoJson.h"
 #include "ArduinoLog.h"
 
-#include "hasp_http.h"
 #include "hasp_debug.h"
 #include "hasp_config.h"
 #include "hasp_dispatch.h"

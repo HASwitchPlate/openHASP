@@ -298,6 +298,7 @@ void oobeSetup()
     char ssid[32];
     char pass[32];
 
+#if HASP_USE_WIFI>0
     if(wifiShowAP(ssid, pass)) {
         guiSetDim(100);
         oobeSetupQR(ssid, pass);
@@ -314,4 +315,5 @@ void oobeSetup()
             Log.verbose(F("OOBE: Already calibrated"));
         }
     }
+#endif
 }

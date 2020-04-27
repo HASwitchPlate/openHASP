@@ -4,23 +4,17 @@
 
 #include "hasp_conf.h"
 
-#include "hasp_wifi.h"
-#include "hasp_http.h"
-#include "hasp_mdns.h"
+#if HASP_USE_WIFI>0
+
 #include "hasp_debug.h"
 #include "hasp_config.h"
 #include "hasp_dispatch.h"
 #include "hasp_gui.h"
 #include "hasp.h"
 
-#include "hasp_conf.h"
-#if HASP_USE_MQTT
-#include "hasp_mqtt.h"
-#endif
-
 #if defined(ARDUINO_ARCH_ESP32)
 #include <Wifi.h>
-#else
+#elif defined(ARDUINO_ARCH_ESP8266)
 #include <ESP8266WiFi.h>
 
 static WiFiEventHandler gotIpEventHandler, disconnectedEventHandler;
@@ -262,3 +256,5 @@ void wifiStop()
     WiFi.mode(WIFI_OFF);
     Log.warning(F("WIFI: Stopped"));
 }
+
+#endif

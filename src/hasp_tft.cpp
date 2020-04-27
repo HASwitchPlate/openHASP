@@ -82,8 +82,13 @@ void tftShowConfig(TFT_eSPI & tft)
     tft.getSetup(tftSetup);
 
     Log.verbose(F("TFT: TFT_eSPI   : v%s"), tftSetup.version.c_str());
+#if defined(ARDUINO_ARCH_ESP8266) || defined(ARDUINO_ARCH_32)
     Log.verbose(F("TFT: Processor  : ESP%x"), tftSetup.esp);
     Log.verbose(F("TFT: CPU freq.  : %i MHz"), ESP.getCpuFreqMHz());
+#else
+    Log.verbose(F("TFT: Processor  : STM%x"), tftSetup.esp);
+    Log.verbose(F("TFT: CPU freq.  : %i MHz"), F_CPU/1000/1000);
+#endif
 
 #if defined(ARDUINO_ARCH_ESP8266)
     Log.verbose(F("TFT: Voltage    : %2.2f V"), ESP.getVcc() / 918.0); // 918 empirically determined
@@ -164,8 +169,8 @@ void tftShowConfig(TFT_eSPI & tft)
 // Get pin name for ESP8266
 int8_t getPinName(int8_t pin)
 {
-// For ESP32 pin labels on boards use the GPIO number
-#if defined(ARDUINO_ARCH_ESP32)
+// For ESP32 and STM32 pin labels on boards use the GPIO number
+#ifndef ARDUINO_ARCH_ESP8266
     return pin;
 #endif
 

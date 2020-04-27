@@ -1,18 +1,9 @@
 #include "Arduino.h"
 #include "ArduinoJson.h"
 #include "ArduinoLog.h"
-#include <FS.h> // Include the SPIFFS library
-#include "EEPROM.h"
-
-#if defined(ARDUINO_ARCH_ESP32)
-#include "SPIFFS.h"
-#endif
 
 #include "hasp_config.h"
 #include "hasp_debug.h"
-#include "hasp_http.h"
-#include "hasp_wifi.h"
-#include "hasp_mdns.h"
 #include "hasp_gui.h"
 #include "hasp_ota.h"
 #include "hasp_spiffs.h"
@@ -21,9 +12,21 @@
 #include "hasp.h"
 
 #include "hasp_conf.h"
-#if HASP_USE_MQTT
-#include "hasp_mqtt.h"
+
+#if HASP_USE_SPIFFS>0
+#include <FS.h> // Include the SPIFFS library
+#if defined(ARDUINO_ARCH_ESP32)
+#include "SPIFFS.h"
 #endif
+#endif
+#if HASP_USE_EEPROM>0
+#include "EEPROM.h"
+#endif
+
+#ifndef FPSTR
+#define FPSTR(pstr_pointer) (reinterpret_cast<const __FlashStringHelper *>(pstr_pointer))
+#endif
+
 
 void confDebugSet(const char * name)
 {
@@ -75,8 +78,10 @@ void configStartDebug(bool setupdebug, String & configFile)
     if(setupdebug) {
         debugStart(); // Debug started, now we can use it; HASP header sent
         Log.notice(F("FILE: [SUCCESS] SPI flash FS mounted"));
+#if HASP_USE_SPIFFS>0
         spiffsInfo();
         spiffsList();
+#endif
     }
     Log.notice(F("CONF: Loading %s"), configFile.c_str());
 }
@@ -86,6 +91,8 @@ void configGetConfig(JsonDocument & settings, bool setupdebug = false)
     String configFile((char *)0);
     configFile.reserve(128);
     configFile = String(FPSTR(HASP_CONFIG_FILE));
+
+#if HASP_USE_SPIFFS>0
     File file  = SPIFFS.open(configFile, "r");
 
     if(file) {
@@ -119,6 +126,7 @@ void configGetConfig(JsonDocument & settings, bool setupdebug = false)
             return;
         }
     }
+#endif
 
     // File does not exist or error reading file
     if(setupdebug) {
@@ -131,6 +139,7 @@ void configGetConfig(JsonDocument & settings, bool setupdebug = false)
 
 void configBackupToEeprom()
 {
+#if HASP_USE_SPIFFS>0
     String configFile((char *)0);
     configFile.reserve(128);
     configFile = String(FPSTR(HASP_CONFIG_FILE));
@@ -154,10 +163,12 @@ void configBackupToEeprom()
 
         Log.verbose(F("CONF: Written %u to EEPROM"), index);
     }
+#endif
 }
 
 void configWriteConfig()
 {
+#if HASP_USE_SPIFFS>0
     String configFile((char *)0);
     configFile.reserve(128);
     configFile = String(FPSTR(HASP_CONFIG_FILE));
@@ -264,16 +275,26 @@ void configWriteConfig()
     } else {
         Log.notice(F("CONF: Configuration was not changed"));
     }
+#endif
 }
 
 void configSetup()
 {
+#if HASP_USE_SPIFFS>0
     if(!SPIFFS.begin()) {
-        Log.error(F("FILE: SPI flash init failed. Unable to mount FS: Using default settings..."));
+#endif
+    
+#if HASP_USE_SPIFFS>0
     } else {
+#endif
         DynamicJsonDocument settings(1024 + 128);
+  Serial.print(__FILE__);
+  Serial.println(__LINE__);
 
         configGetConfig(settings, true);
+
+            Log.error(F("FILE: SPI flash init failed. Unable to mount FS: Using default settings..."));
+#if HASP_USE_SPIFFS>0
         Log.verbose(F("Loading debug settings"));
         debugSetConfig(settings[F("debug")]);
         Log.verbose(F("Loading GUI settings"));
@@ -304,6 +325,7 @@ void configSetup()
 #endif
     }
     Log.notice(F("User configuration loaded"));
+#endif
 }
 
 void configOutput(const JsonObject & settings)
