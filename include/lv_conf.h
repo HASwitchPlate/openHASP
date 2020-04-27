@@ -11,12 +11,12 @@
 
 #include <stdint.h>
 
-#ifdef ESP32
-#define LV_HIGH_RESOURCE_MCU  1
+#ifdef ESP8266
+#define LV_HIGH_RESOURCE_MCU  0
 #endif
 
 #ifndef LV_HIGH_RESOURCE_MCU
-#define LV_HIGH_RESOURCE_MCU  0
+#define LV_HIGH_RESOURCE_MCU  1
 #endif
 
 /*====================
@@ -80,7 +80,7 @@ typedef int16_t lv_coord_t;
 #  define LV_MEM_SIZE    (12 * 1024U) // 12KB
 #endif
 #ifndef LV_MEM_SIZE
-#  define LV_MEM_SIZE    (48 * 1024U)  // 48KB
+#  define LV_MEM_SIZE    (64 * 1024U)  // 48KB
 #endif
 
 /* Complier prefix for a big array declaration */
@@ -178,7 +178,7 @@ typedef void* lv_group_user_data_t;
 typedef void* lv_fs_drv_user_data_t;
 
 /*File system interface*/
-#define LV_USE_FS_IF	      (LV_HIGH_RESOURCE_MCU)
+#define LV_USE_FS_IF	      0
 #if LV_USE_FS_IF
 #  define LV_FS_IF_FATFS    '\0'
 #  define LV_FS_IF_PC       '\0'
