@@ -3,19 +3,21 @@
 
 #if defined(ARDUINO_ARCH_ESP32)
 #include <ESPmDNS.h>
-#else
+#elif defined(ARDUINO_ARCH_ESP8266)
 #include <ESP8266mDNS.h>
 // MDNSResponder::hMDNSService hMDNSService;
 #endif
 
 #include "hasp_conf.h"
 
-#include "hasp_mdns.h"
 #include "hasp_config.h"
 
 #include "hasp_conf.h"
 #if HASP_USE_MQTT
 #include "hasp_mqtt.h"
+#endif
+#if HASP_USE_MDNS
+#include "hasp_mdns.h"
 #endif
 
 uint8_t mdnsEnabled = true;
@@ -28,7 +30,9 @@ void mdnsSetup()
 
 void mdnsStart()
 {
+#if HASP_USE_MDNS > 0
     if(mdnsEnabled) {
+
 #if HASP_USE_MQTT > 0
         String hasp2Node = mqttGetNodename();
 #else
@@ -57,6 +61,7 @@ void mdnsStart()
             Log.error(F("MDNS: Responder failed to start %s"), hasp2Node.c_str());
         };
     }
+#endif
 }
 
 void mdnsLoop()
@@ -70,7 +75,9 @@ void mdnsLoop()
 
 void mdnsStop()
 {
+#if HASP_USE_MDNS > 0
     MDNS.end();
+#endif
 }
 
 bool mdnsGetConfig(const JsonObject & settings)

@@ -8,7 +8,7 @@ std::string eepromRead(char addr);
 
 void eepromSetup()
 {
-    EEPROM.begin(1024);
+    // EEPROM.begin(1024);
     // debugPrintln("EEPROM: Started Eeprom");
 }
 
@@ -29,7 +29,7 @@ void eepromWrite(uint16_t addr, std::string & data)
         eepromUpdate(addr + i, data[i]);
     }
     eepromUpdate(addr + count, '\0');
-    EEPROM.commit();
+    // EEPROM.commit();
 }
 
 std::string eepromRead(uint16_t addr)

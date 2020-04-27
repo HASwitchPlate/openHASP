@@ -41,7 +41,6 @@ void spiffsInfo()
 
     Serial.print("Max path lenght:  ");
     Serial.println(fs_info.maxPathLength);
-#else
     Serial.println("File sistem info.");
 
     Serial.print("Total space:      ");

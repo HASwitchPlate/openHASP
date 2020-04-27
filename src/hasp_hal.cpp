@@ -1,4 +1,7 @@
+#if defined(ESP32) || defined(ESP8266)
 #include <ESP.h>
+#endif
+
 #include "hasp_hal.h"
 
 #if ESP32
@@ -7,6 +10,15 @@
 
 #if defined(ARDUINO_ARCH_ESP32)
 #include <rom/rtc.h> // needed to get the ResetInfo
+
+void halRestart(void)
+{
+#if defined(ESP32) || defined(ESP8266)
+    ESP.restart();
+#else
+    NVIC_SystemReset();
+#endif
+}
 
 // Compatibility function for ESP8266 getRestInfo
 String esp32ResetReason(uint8_t cpuid)
@@ -88,17 +100,39 @@ String halGetResetInfo()
     resetReason += F(" / ");
     resetReason += String(esp32ResetReason(1));
     return resetReason;
-#else
+#elif defined(ARDUINO_ARCH_ESP8266)
     return ESP.getResetInfo();
+#else
+    return "";
 #endif
 }
+
+    #ifdef __arm__
+    // should use uinstd.h to define sbrk but Due causes a conflict
+    extern "C" char* sbrk(int incr);
+    #else  // __ARM__
+    extern char *__brkval;
+    #endif  // __arm__
+     
+    int freeMemory() {
+      char top;
+    #ifdef __arm__
+      return &top - reinterpret_cast<char*>(sbrk(0));
+    #elif defined(CORE_TEENSY) || (ARDUINO > 103 && ARDUINO != 151)
+      return &top - __brkval;
+    #else  // __arm__
+      return __brkval ? &top - __brkval : &top - __malloc_heap_start;
+    #endif  // __arm__
+    }
 
 uint8_t halGetHeapFragmentation()
 {
 #if defined(ARDUINO_ARCH_ESP32)
     return (int8_t)(100.00f - (float)ESP.getMaxAllocHeap() * 100.00f / (float)ESP.getFreeHeap());
-#else
+#elif defined(ARDUINO_ARCH_ESP8266)
     return ESP.getHeapFragmentation();
+#else
+    return 255;
 #endif
 }
 
@@ -106,8 +140,21 @@ size_t halGetMaxFreeBlock()
 {
 #if defined(ARDUINO_ARCH_ESP32)
     return ESP.getMaxAllocHeap();
-#else
+#elif defined(ARDUINO_ARCH_ESP8266)
     return ESP.getMaxFreeBlockSize();
+#else
+    return freeMemory();
+#endif
+}
+
+size_t halGetFreeHeap(void)
+{
+#if defined(ARDUINO_ARCH_ESP32)
+    return ESP.getFreeHeap();
+#elif defined(ARDUINO_ARCH_ESP8266)
+    return ESP.getFreeHeap();
+#else
+    return 1;
 #endif
 }
 
@@ -115,8 +162,10 @@ String halGetCoreVersion()
 {
 #if defined(ARDUINO_ARCH_ESP32)
     return String(ESP.getSdkVersion());
-#else
+#elif defined(ARDUINO_ARCH_ESP8266)
     return String(ESP.getCoreVersion());
+#else
+    return String(STM32_CORE_VERSION_MAJOR) + "." + STM32_CORE_VERSION_MINOR + "." + STM32_CORE_VERSION_PATCH;
 #endif
 }
 
@@ -124,9 +173,10 @@ String halGetChipModel()
 {
     String model((char *)0);
     model.reserve(128);
+    model = F("STM32");
 
 #if ESP8266
-    model += F("ESP8266");
+    model = F("ESP8266");
 #endif
 
 #if ESP32
@@ -139,13 +189,12 @@ String halGetChipModel()
         case CHIP_ESP32:
             model += F("ESP32");
             break;
-#ifndef CHIP_ESP32S2
-#define CHIP_ESP32S2 2
-#endif
+#ifdef CHIP_ESP32S2
         case CHIP_ESP32S2:
             model += F("ESP32-S2");
             break;
-        default:
+ #endif
+       default:
             model = F("Unknown ESP");
     }
     model += F(" rev");

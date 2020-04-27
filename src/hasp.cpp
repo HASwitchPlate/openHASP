@@ -11,11 +11,15 @@
 
 //#include "../lib/lvgl/src/lv_widgets/lv_roller.h"
 
-#if HASP_USE_SPIFFS
+#if HASP_USE_SPIFFS > 0
 #if defined(ARDUINO_ARCH_ESP32)
 #include "SPIFFS.h"
 #endif
 #include <FS.h> // Include the SPIFFS library
+#endif
+
+#if HASP_USE_SPIFFS > 0
+//#include "lv_zifont.h"
 #endif
 
 #include "lv_fs_if.h"
@@ -25,7 +29,7 @@
 #include "hasp_wifi.h"
 #include "hasp_gui.h"
 #include "hasp_tft.h"
-#include "lv_zifont.h"
+
 //#include "hasp_attr_get.h"
 #include "hasp_attribute.h"
 #include "hasp.h"
@@ -369,14 +373,16 @@ void haspSetup()
     /******* File System Test ********************************************************************/
 
     /* ********** Font Initializations ********** */
+    defaultFont = LV_FONT_DEFAULT; // Use default font
+#if HASP_USE_SPIFFS > 0
     lv_zifont_init();
 
     if(lv_zifont_font_init(&haspFonts[0], haspZiFontPath, 24) != 0) {
         Log.error(F("HASP: Failed to set the custom font to %s"), haspZiFontPath);
-        defaultFont = LV_FONT_DEFAULT; // Use default font
     } else {
         defaultFont = haspFonts[0];
     }
+#endif
     /* ********** Font Initializations ********** */
 
     /* ********** Theme Initializations ********** */
@@ -464,11 +470,22 @@ void haspSetup()
         // lv_obj_set_size(pages[0], hres, vres);
     }
 
+#if HASP_USE_WIFI > 0
     if(!wifiShowAP()) {
         haspDisconnect();
-        haspLoadPage(haspPagesPath);
-        haspSetPage(haspStartPage);
     }
+#endif
+
+    haspLoadPage(haspPagesPath);
+    haspSetPage(haspStartPage);
+
+    // lv_obj_t * obj = lv_btn_create(pages[0], NULL);
+    // lv_obj_set_size(obj, 100, 100);
+    // lv_obj_set_user_data(obj, (lv_obj_user_data_t)15);
+    // /* lv_obj_t * label ; */
+    // lv_label_create(obj, NULL);
+    // // haspSetOpacity(obj, LV_OPA_COVER);
+    // lv_obj_set_event_cb(obj, btn_event_handler);
 }
 
 /**********************
@@ -585,9 +602,7 @@ void IRAM_ATTR btn_event_handler(lv_obj_t * obj, lv_event_t event)
         mqtt_send_state(F("wakeuptouch"), buffer);
 #endif
     } else {
-#if HASP_USE_MQTT > 0
         hasp_send_obj_attribute_event(obj, buffer);
-#endif
     }
 }
 
@@ -933,6 +948,7 @@ void haspNewObject(const JsonObject & config, uint8_t & saved_page_id)
 
 void haspLoadPage(const char * pages)
 {
+#if HASP_USE_SPIFFS > 0
     if(pages[0] == '\0') return;
 
     if(!SPIFFS.begin()) {
@@ -952,6 +968,7 @@ void haspLoadPage(const char * pages)
     file.close();
 
     Log.notice(F("HASP: File %s loaded"), pages);
+#endif
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

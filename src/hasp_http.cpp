@@ -11,7 +11,6 @@
 #include "hasp_gui.h"
 #include "hasp_hal.h"
 #include "hasp_debug.h"
-#include "hasp_http.h"
 #include "hasp_mqtt.h"
 #include "hasp_wifi.h"
 #include "hasp_spiffs.h"
@@ -442,24 +441,23 @@ bool httpSetConfig(const JsonObject & settings)
 #include "hasp_gui.h"
 #include "hasp_hal.h"
 #include "hasp_debug.h"
-#include "hasp_http.h"
-#include "hasp_wifi.h"
-#include "hasp_spiffs.h"
 #include "hasp_config.h"
 #include "hasp_dispatch.h"
 #include "hasp.h"
 
 #include "hasp_conf.h"
-#if HASP_USE_MQTT
-#include "hasp_mqtt.h"
-#endif
 
 #if defined(ARDUINO_ARCH_ESP32)
 #include "SPIFFS.h"
 #include <FS.h>
-#endif
 #include <FS.h>
 #include <ESP.h>
+#elif defined(ARDUINO_ARCH_ESP8266)
+#include <FS.h>
+#include <ESP.h>
+#endif
+
+#if HASP_USE_HTTP>0
 
 bool httpEnable       = true;
 bool webServerStarted = false;
@@ -1946,4 +1944,5 @@ bool httpSetConfig(const JsonObject & settings)
     return changed;
 }
 
+#endif
 #endif
