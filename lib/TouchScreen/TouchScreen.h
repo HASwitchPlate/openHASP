@@ -27,6 +27,9 @@ typedef volatile uint32 RwReg;
 #if defined(ARDUINO_FEATHER52) || defined(ESP32) || defined(ESP8266)
 typedef volatile uint32_t RwReg;
 #endif
+#if defined(STM32F4)
+typedef volatile uint32_t RwReg;
+#endif
 
 #if defined(__AVR__) || defined(TEENSYDUINO) || defined(ARDUINO_ARCH_SAMD)
 #define USE_FAST_PINIO
