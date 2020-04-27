@@ -1,11 +1,11 @@
-#include <Ticker.h>
+#include "Ticker.h"
 #include "ArduinoLog.h"
 
 #include "lv_conf.h"
 #include "lvgl.h"
 #include "lv_fs_if.h"
 #include "TFT_eSPI.h"
-#include "lv_zifont.h"
+//#include "lv_zifont.h"
 
 #include "hasp_tft.h"
 #include "hasp_debug.h"
@@ -36,7 +36,9 @@
 #define BACKLIGHT_CHANNEL 15 // pwm channek 0-15
 
 /* ---------- Screenshot Variables ---------- */
+#if defined(ARDUINO_ARCH_ESP8266) || defined(ARDUINO_ARCH_ESP32)
 File pFileOut;
+#endif
 uint8_t guiSnapshot = 0;
 
 #if defined(ARDUINO_ARCH_ESP8266)
@@ -59,6 +61,8 @@ WebServer * webClient; // for snatshot
 #define TFT_ROTATION 0
 #endif
 
+static void IRAM_ATTR lv_tick_handler(void);
+
 static bool guiShowPointer    = false;
 static bool guiBacklightIsOn  = true;
 static int8_t guiDimLevel     = -1;
@@ -66,9 +70,16 @@ static int8_t guiBacklightPin = TFT_BCKL;
 static uint16_t guiSleepTime1 = 60;  // 1 second resolution
 static uint16_t guiSleepTime2 = 120; // 1 second resolution
 static uint8_t guiSleeping    = 0;   // 0 = off, 1 = short, 2 = long
-static uint8_t guiTickPeriod  = 50;
+static uint8_t guiTickPeriod  = 20;
 static uint8_t guiRotation    = TFT_ROTATION;
-static Ticker tick;  /* timer for interrupt handler */
+#if ESP32 > 0 || ESP8266 > 0
+static Ticker tick; /* timer for interrupt handler */
+#else
+static Ticker tick(lv_tick_handler,guiTickPeriod);
+uint8_t serialInputIndex   = 0;    // Empty buffer
+char serialInputBuffer[1024];
+
+#endif
 static TFT_eSPI tft; // = TFT_eSPI(); /* TFT instance */
 static uint16_t calData[5] = {0, 65535, 0, 65535, 0};
 
@@ -163,6 +174,7 @@ static bool guiCheckSleep()
 /* Flush VDB bytes to a stream */
 static void gui_take_screenshot(uint8_t * data_p, size_t len)
 {
+#if defined(ARDUINO_ARCH_ESP8266) || defined(ARDUINO_ARCH_ESP32)
     size_t res = 0;
     switch(guiSnapshot) {
         case 1:
@@ -177,6 +189,7 @@ static void gui_take_screenshot(uint8_t * data_p, size_t len)
     if(res != len) {
         Log.warning(F("GUI: Pixelbuffer not completely sent"));
     }
+#endif
 }
 
 /* Experimetnal Display flushing */
@@ -289,8 +302,17 @@ void tft_espi_flush(lv_disp_drv_t * disp, const lv_area_t * area, lv_color_t * c
 /* Interrupt driven periodic handler */
 static void IRAM_ATTR lv_tick_handler(void)
 {
+    // Serial.print(".");
     lv_tick_inc(guiTickPeriod);
 }
+
+#ifdef STM32_CORE_VERSION
+void Update_IT_callback(void)
+{
+     Serial.print("?");
+   lv_tick_inc(guiTickPeriod);
+}
+#endif
 
 /* Reading input device (simulated encoder here) */
 /*bool read_encoder(lv_indev_drv_t * indev, lv_indev_data_t * data)
@@ -747,7 +769,33 @@ void guiSetup()
     // }*/
 
     /*Initialize the graphics library's tick*/
+#if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
     tick.attach_ms(guiTickPeriod, lv_tick_handler);
+#else
+
+/*
+#if defined(TIM1)
+    TIM_TypeDef * Instance = TIM1;
+#else
+    TIM_TypeDef * Instance = TIM2;
+#endif
+*/
+    // Instantiate HardwareTimer object. Thanks to 'new' instanciation, HardwareTimer is not destructed when setup()
+    // function is finished.
+  /*  static HardwareTimer * MyTim = new HardwareTimer(Instance);
+    MyTim->pause();
+    MyTim->setPrescaleFactor(1);
+    MyTim->setMode(0, TIMER_OUTPUT_COMPARE, NC);
+    MyTim->setOverflow(1000 * guiTickPeriod, MICROSEC_FORMAT); //  MicroSec
+    MyTim->setCount(0,MICROSEC_FORMAT);
+    MyTim->refresh();
+    MyTim->detachInterrupt();
+    MyTim->attachInterrupt((void (*)(HardwareTimer *))lv_tick_handler);
+    MyTim->detachInterrupt(0);
+    MyTim->attachInterrupt(0,(void (*)(HardwareTimer *))lv_tick_handler);
+    MyTim->resume();*/
+    tick.start();
+#endif
 
 #if TOUCH_DRIVER == 1
     GT911_setup();
@@ -756,12 +804,36 @@ void guiSetup()
 
 void IRAM_ATTR guiLoop()
 {
+#ifdef STM32_CORE_VERSION_MAJOR
+    tick.update();
+
+            while(Serial.available()) {
+            char ch = Serial.read();
+            Serial.print(ch);
+            if (ch == 13 ||ch == 10) {
+                serialInputBuffer[serialInputIndex] = 0;
+                if (serialInputIndex>0) dispatchCommand(serialInputBuffer);
+                serialInputIndex=0;
+            }else{
+                if(serialInputIndex < sizeof(serialInputBuffer) - 1) {
+                    serialInputBuffer[serialInputIndex++] = ch;
+                }
+                serialInputBuffer[serialInputIndex] = 0;
+                if (strcmp(serialInputBuffer,"jsonl=")==0){
+                    dispatchJsonl(Serial);
+                    serialInputIndex=0;
+                }
+            }
+        }
+#endif
+    //lv_tick_handler();
     lv_task_handler(); /* let the GUI do its work */
     guiCheckSleep();
 
 #if TOUCH_DRIVER == 1
     touch.loop();
 #endif
+
 }
 
 void guiStop()
@@ -926,6 +998,33 @@ static void guiSetBmpHeader(uint8_t * buffer_p, int32_t data)
     *buffer_p++ = (data >> 24) & 0xFF;
 }
 
+#if defined(ARDUINO_ARCH_ESP8266)
+static void guiSendBmpHeader();
+
+void guiTakeScreenshot(ESP8266WebServer & client)
+#endif
+#if defined(ARDUINO_ARCH_ESP32)
+    static void guiSendBmpHeader();
+
+void guiTakeScreenshot(WebServer & client)
+#endif // ESP32{
+#if defined(ARDUINO_ARCH_ESP8266) || defined(ARDUINO_ARCH_ESP32)
+{
+    webClient        = &client;
+    lv_disp_t * disp = lv_disp_get_default();
+
+    webClient->setContentLength(122 + disp->driver.hor_res * disp->driver.ver_res * sizeof(lv_color_t));
+    webClient->send(200, PSTR("image/bmp"), "");
+
+    guiSnapshot = 2;
+    guiSendBmpHeader();
+    lv_obj_invalidate(lv_scr_act());
+    lv_refr_now(NULL); /* Will call our disp_drv.disp_flush function */
+    guiSnapshot = 0;
+
+    Log.verbose(F("GUI: Bitmap data flushed to webclient"));
+}
+
 /** Send Bitmap Header.
  *
  * Sends a header in BMP format for the size of the screen.
@@ -1020,25 +1119,4 @@ void guiTakeScreenshot(const char * pFileName)
     pFileOut.close();
     Log.verbose(F("[Display] data flushed to %s"), pFileName);
 }
-
-#if defined(ARDUINO_ARCH_ESP8266)
-void guiTakeScreenshot(ESP8266WebServer & client)
 #endif
-#if defined(ARDUINO_ARCH_ESP32)
-    void guiTakeScreenshot(WebServer & client)
-#endif // ESP32{
-{
-    webClient        = &client;
-    lv_disp_t * disp = lv_disp_get_default();
-
-    webClient->setContentLength(122 + disp->driver.hor_res * disp->driver.ver_res * sizeof(lv_color_t));
-    webClient->send(200, PSTR("image/bmp"), "");
-
-    guiSnapshot = 2;
-    guiSendBmpHeader();
-    lv_obj_invalidate(lv_scr_act());
-    lv_refr_now(NULL); /* Will call our disp_drv.disp_flush function */
-    guiSnapshot = 0;
-
-    Log.verbose(F("GUI: Bitmap data flushed to webclient"));
-}
