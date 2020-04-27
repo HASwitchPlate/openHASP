@@ -60,7 +60,6 @@ char debugSyslogHost[32]    = SYSLOG_SERVER;
 uint16_t debugSyslogPort    = SYSLOG_PORT;
 uint8_t debugSyslogFacility = 0;
 uint8_t debugSyslogProtocol = 0;
-bool debugAnsiCodes         = true;
 
 // A UDP instance to let us send and receive packets over UDP
 WiFiUDP syslogClient;
