@@ -1,20 +1,24 @@
 #include "ArduinoJson.h"
 #include "ArduinoLog.h"
 #include "lvgl.h"
-#include "time.h"
+//#include "time.h"
 
 #include "hasp_conf.h"
 
 #if defined(ARDUINO_ARCH_ESP8266)
 #include <sntp.h> // sntp_servermode_dhcp()
 #include <ESP8266WiFi.h>
-#else
-#include <Wifi.h>
-#endif
 #include <WiFiUdp.h>
+#elif defined(ARDUINO_ARCH_ESP32)
+#include <Wifi.h>
+#include <WiFiUdp.h>
+#endif
 
 #include "hasp_hal.h"
+#if HASP_USE_MQTT>0
 #include "hasp_mqtt.h"
+#endif
+
 #include "hasp_debug.h"
 #include "hasp_config.h"
 #include "hasp_dispatch.h"
@@ -70,6 +74,7 @@ Syslog * syslog;
 // Serial Settings
 uint16_t debugSerialBaud = SERIAL_SPEED / 10; // Multiplied by 10
 bool debugSerialStarted  = false;
+bool debugAnsiCodes         = true;
 
 //#define TERM_COLOR_Black "\u001b[30m"
 #define TERM_COLOR_GRAY "\e[37m"
@@ -212,20 +217,20 @@ static void debugPrintTimestamp(int level, Print * _logOutput)
     time_t rawtime;
     struct tm * timeinfo;
 
-    time(&rawtime);
-    timeinfo = localtime(&rawtime);
+    //time(&rawtime);
+    //timeinfo = localtime(&rawtime);
 
     // strftime(buffer, sizeof(buffer), "%b %d %H:%M:%S.", timeinfo);
     // Serial.println(buffer);
 
     debugSendAnsiCode(F(TERM_COLOR_CYAN), _logOutput);
 
-    if(timeinfo->tm_year >= 120) {
+   /* if(timeinfo->tm_year >= 120) {
         char buffer[64];
         strftime(buffer, sizeof(buffer), "[%b %d %H:%M:%S.", timeinfo); // Literal String
         _logOutput->print(buffer);
         _logOutput->printf(PSTR("%03lu]"), millis() % 1000);
-    } else {
+    } else */ {
         _logOutput->printf(PSTR("[%20.3f]"), (float)millis() / 1000);
     }
 }
@@ -233,7 +238,7 @@ static void debugPrintTimestamp(int level, Print * _logOutput)
 static void debugPrintHaspMemory(int level, Print * _logOutput)
 {
     size_t maxfree     = halGetMaxFreeBlock();
-    uint32_t totalfree = ESP.getFreeHeap();
+    uint32_t totalfree = halGetFreeHeap();
     uint8_t frag       = halGetHeapFragmentation();
 
     /* Print HASP Memory Info */
@@ -325,12 +330,17 @@ void debugPreSetup(JsonObject settings)
     uint32_t baudrate = settings[FPSTR(F_CONFIG_BAUD)].as<uint32_t>() * 10;
     if(baudrate == 0) baudrate = SERIAL_SPEED;
     if(baudrate >= 9600u) {     /* the baudrates are stored divided by 10 */
+
+#ifdef STM32_CORE_VERSION_MAJOR
+    Serial.setRx(PA3);  // User Serial2
+    Serial.setTx(PA2);
+#endif
         Serial.begin(baudrate); /* prepare for possible serial debug */
         delay(10);
+       Log.registerOutput(0, &Serial, LOG_LEVEL_VERBOSE, true);
         debugSerialStarted = true;
         Serial.println();
-        Log.registerOutput(0, &Serial, LOG_LEVEL_VERBOSE, true);
-        Log.trace(F("Serial started at %u baud"), baudrate);
+        Log.trace(("Serial started at %u baud"), baudrate);
     }
 }
 

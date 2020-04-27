@@ -10,45 +10,6 @@
 #include "hasp_oobe.h"
 #include "hasp_gpio.h"
 
-#if HASP_USE_SPIFFS
-#if defined(ARDUINO_ARCH_ESP32)
-#include "SPIFFS.h"
-#endif
-#include <FS.h> // Include the SPIFFS library
-#endif
-
-#if HASP_USE_EEPROM
-#include "hasp_eeprom.h"
-#endif
-
-#if HASP_USE_WIFI
-#include "hasp_wifi.h"
-#endif
-
-#if HASP_USE_MQTT
-#include "hasp_mqtt.h"
-#endif
-
-#if HASP_USE_HTTP
-#include "hasp_http.h"
-#endif
-
-#if HASP_USE_TELNET
-#include "hasp_telnet.h"
-#endif
-
-#if HASP_USE_MDNS
-#include "hasp_mdns.h"
-#endif
-
-#if HASP_USE_BUTTON
-#include "hasp_button.h"
-#endif
-
-#if HASP_USE_OTA
-#include "hasp_ota.h"
-#endif
-
 bool isConnected;
 uint8_t mainLoopCounter        = 0;
 unsigned long mainLastLoopTime = 0;
@@ -181,16 +142,25 @@ void loop()
 
         /* Run Every 5 Seconds */
         if(mainLoopCounter == 0 || mainLoopCounter == 4) {
+#if HASP_USE_HTTP
             httpEvery5Seconds();
+#endif
+
+#if HASP_USE_WIFI
             isConnected = wifiEvery5Seconds();
+
+#if HASP_USE_MQTT
             mqttEvery5Seconds(isConnected);
+#endif
+
+#endif
         }
 
         /* Update counters */
         mainLastLoopTime += 1000;
         mainLoopCounter++;
         if(mainLoopCounter >= 10) {
-            mainLoopCounter = 0;
+                    mainLoopCounter = 0;
         }
     }
 
