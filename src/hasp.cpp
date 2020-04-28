@@ -8,21 +8,9 @@
 
 #include "lvgl.h"
 #include "lv_conf.h"
+#include "hasp_conf.h"
 
 //#include "../lib/lvgl/src/lv_widgets/lv_roller.h"
-
-#if HASP_USE_SPIFFS > 0
-#if defined(ARDUINO_ARCH_ESP32)
-#include "SPIFFS.h"
-#endif
-#include <FS.h> // Include the SPIFFS library
-#endif
-
-#if HASP_USE_SPIFFS > 0
-#if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
-#include "lv_zifont.h"
-#endif
-#endif
 
 #include "lv_fs_if.h"
 #include "hasp_debug.h"
@@ -35,11 +23,6 @@
 //#include "hasp_attr_get.h"
 #include "hasp_attribute.h"
 #include "hasp.h"
-
-#include "hasp_conf.h"
-#if HASP_USE_MQTT
-#include "hasp_mqtt.h"
-#endif
 
 //#if LV_USE_HASP
 
@@ -377,6 +360,7 @@ void haspSetup()
     /* ********** Font Initializations ********** */
     defaultFont = LV_FONT_DEFAULT; // Use default font
 #if HASP_USE_SPIFFS > 0
+#if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
     lv_zifont_init();
 
     if(lv_zifont_font_init(&haspFonts[0], haspZiFontPath, 24) != 0) {
@@ -384,6 +368,7 @@ void haspSetup()
     } else {
         defaultFont = haspFonts[0];
     }
+#endif
 #endif
     /* ********** Font Initializations ********** */
 
