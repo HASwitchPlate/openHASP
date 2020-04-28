@@ -266,7 +266,7 @@ static void hasp_local_style_attr(lv_obj_t * obj, const char * attr_p, uint16_t 
             if(part != 64)
                 return lv_obj_set_style_local_bg_color(obj, part, state, color);
             else
-                return lv_obj_set_style_local_bg_color(obj, LV_PAGE_PART_SCRL, LV_STATE_CHECKED, color);
+                return lv_obj_set_style_local_bg_color(obj, LV_PAGE_PART_SCROLLBAR, LV_STATE_CHECKED, color);
         }
         case ATTR_BG_GRAD_COLOR:
             return lv_obj_set_style_local_bg_grad_color(obj, part, state, haspPayloadToColor(payload));
@@ -434,7 +434,7 @@ static void hasp_local_style_attr_font(lv_obj_t * obj, const char * attr_p, uint
         } else if(attr_p[len - 1] == '4') {
             part = LV_TABLE_PART_CELL4;
             // } else if(attr[len - 1] == '9') {
-            // part = LV_PAGE_PART_SCRL;
+            // part = LV_PAGE_PART_SCROLLBAR;
         }
 
         // Remove Trailing part digit
@@ -802,7 +802,7 @@ static inline bool is_true(const char * s)
 static inline bool only_digits(const char * s)
 {
     size_t digits = 0;
-    while((s + digits) != '\0' && isdigit(*(s + digits))) {
+    while(*(s + digits) != '\0' && isdigit(*(s + digits))) {
         digits++;
     }
     return strlen(s) == digits;
