@@ -29,32 +29,7 @@ enum zifont_error_t {
     ZIFONT_ERROR_UNKNOWN_HEADER
 };
 
-enum zifont_codepage_t8_t {
-    ASCII = 0x01,
-    // GB2312     = 0x02,
-    ISO_8859_1 = 0x03,
-    /*   ISO_8859_2     = 0x04,
-       ISO_8859_3     = 0x05,
-       ISO_8859_4     = 0x06,
-       ISO_8859_5     = 0x07,
-       ISO_8859_6     = 0x08,
-       ISO_8859_7     = 0x09,
-       ISO_8859_8     = 0x0A,
-       ISO_8859_9     = 0x0B,
-       ISO_8859_13    = 0x0C,
-       ISO_8859_15    = 0x0D,
-       ISO_8859_11    = 0x0E,
-       KS_C_5601_1987 = 0x0F,
-       BIG5           = 0x10,
-       WINDOWS_1255   = 0x11,
-       WINDOWS_1256   = 0x12,
-       WINDOWS_1257   = 0x13,
-       WINDOWS_1258   = 0x14,
-       WINDOWS_874    = 0x15,
-       KOI8_R         = 0x16,
-       SHIFT_JIS      = 0x17,*/
-    UTF_8 = 0x18
-};
+enum zifont_codepage_t8_t { ASCII = 0x01, ISO_8859_1 = 0x03, UTF_8 = 0x18 };
 
 /**********************
  *  STATIC PROTOTYPES
@@ -267,6 +242,7 @@ const uint8_t * IRAM_ATTR lv_font_get_bitmap_fmt_zifont(const lv_font_t * font, 
         charInfo    = &fdsc->ascii_glyph_dsc[0];
         size_t size = (charInfo->width * fdsc->CharHeight + 1) / 2; // add 1 for rounding up
         initCharacterFrame(size);
+        charInBuffer = unicode_letter;
         return charBitmap_p;
     }
 
