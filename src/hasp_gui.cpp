@@ -657,6 +657,7 @@ void guiSetup()
     static lv_disp_buf_t disp_buf;
     static lv_color_t guiVdbBuffer1[16 * 512u]; // 16 KBytes
     static lv_color_t guiVdbBuffer2[16 * 512u]; // 16 KBytes
+    guiVDBsize = sizeof(guiVdbBuffer1) / sizeof(guiVdbBuffer1[0]);
     lv_disp_buf_init(&disp_buf, guiVdbBuffer1, guiVdbBuffer2, guiVDBsize);
     //lv_disp_buf_init(&disp_buf, guiVdbBuffer1, NULL, guiVDBsize);
 #endif
