@@ -48,11 +48,15 @@ void dispatchOutput(int output, bool state)
     int pin = 0;
 
     if(pin >= 0) {
+        Log.notice(F("PIN OUTPUT STATE %d"),state);
 
 #if defined(ARDUINO_ARCH_ESP32)
         ledcWrite(99, state ? 1023 : 0); // ledChannel and value
-#else
+#elif defined(ARDUINO_ARCH_ESP8266)
         analogWrite(pin, state ? 1023 : 0);
+#else
+        pinMode (PE0, OUTPUT);
+        digitalWrite(PE0, state ? 1 : 0);
 #endif
     }
 }
@@ -95,11 +99,6 @@ void dispatchAttribute(String strTopic, const char * payload)
 {
     if(strTopic.startsWith("p[")) {
         dispatchButtonAttribute(strTopic, payload);
-    } else if(strTopic.startsWith(F("output"))) {
-#if defined(ARDUINO_ARCH_ESP8266)
-        uint8_t state = isON(payload) ? HIGH : LOW;
-        digitalWrite(D1, state);
-#endif
 
     } else if(strTopic == F("page")) {
         dispatchPage(payload);
@@ -184,7 +183,7 @@ void dispatchBacklight(String strPayload)
 
 void dispatchCommand(String cmnd)
 {
-    // dispatchPrintln(F("CMND"), cmnd);
+    dispatchPrintln(F("CMND"), cmnd);
 
     if(cmnd.startsWith(F("page "))) {
         cmnd = cmnd.substring(5, cmnd.length());
@@ -293,6 +292,8 @@ void dispatch_button(uint8_t id, const char * event)
 {
 #if HASP_USE_MQTT > 0
     mqtt_send_input(id, event);
+#else
+    Log.notice(F("OUT: input%d = %s"), id, event);
 #endif
 }
 
