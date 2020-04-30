@@ -98,10 +98,7 @@ void dispatchAttribute(String strTopic, const char * payload)
 {
     if(strTopic.startsWith("p[")) {
         dispatchButtonAttribute(strTopic, payload);
-<<<<<<< HEAD
-
-=======
->>>>>>> 408b27b8155bd5f1c11900503df88956925fa6bd
+        
     } else if(strTopic == F("page")) {
         dispatchPage(payload);
 
