@@ -85,6 +85,10 @@
 #include "hasp_ota.h"
 #endif
 
+#if HASP_USE_TASMOTA_SLAVE>0
+#include "hasp_slave.h"
+#endif
+
 #endif
 
 #ifndef FPSTR
