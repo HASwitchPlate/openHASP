@@ -23,11 +23,6 @@
 #include "EEPROM.h"
 #endif
 
-#ifndef FPSTR
-#define FPSTR(pstr_pointer) (reinterpret_cast<const __FlashStringHelper *>(pstr_pointer))
-#endif
-
-
 void confDebugSet(const char * name)
 {
     /*char buffer[128];
