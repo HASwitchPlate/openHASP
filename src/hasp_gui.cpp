@@ -937,6 +937,7 @@ bool guiGetConfig(const JsonObject & settings)
             v.set(calData[i]);
         } else {
             changed = true;
+            tft.setTouch(calData);
         }
         i++;
     }
@@ -947,6 +948,8 @@ bool guiGetConfig(const JsonObject & settings)
         for(uint8_t i = 0; i < 5; i++) {
             array.add(calData[i]);
         }
+        changed = true;
+        tft.setTouch(calData);
     }
 
     if(changed) configOutput(settings);
@@ -995,14 +998,13 @@ bool guiSetConfig(const JsonObject & settings)
         }
 
         if(calData[0] != 0 || calData[1] != 65535 || calData[2] != 0 || calData[3] != 65535) {
-            Log.trace(F("calData set [%u, %u, %u, %u, %u]"), calData[0], calData[1], calData[2], calData[3],
-                      calData[4]);
+            Log.trace(F("calData set [%u, %u, %u, %u, %u]"), calData[0], calData[1], calData[2], calData[3],calData[4]);
             oobeSetAutoCalibrate(false);
         } else {
             Log.notice(F("First Touch Calibration enabled"));
             oobeSetAutoCalibrate(true);
         }
-
+        
         if (status) tft.setTouch(calData);
         changed |= status;
     }

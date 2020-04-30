@@ -80,6 +80,10 @@ void setup()
     buttonSetup();
 #endif
 
+#if HASP_USE_TASMOTA_SLAVE
+    slaveSetup();
+#endif
+
     mainLastLoopTime = millis() - 1000; // reset loop counter
 }
 
@@ -131,6 +135,10 @@ void loop()
 #endif // OTA
 
 #endif // WIFI
+
+#if HASP_USE_TASMOTA_SLAVE
+    slaveLoop();
+#endif // TASMOTASLAVE
 
     // Every Second Loop
     if(millis() - mainLastLoopTime >= 1000) {

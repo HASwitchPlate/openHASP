@@ -52,11 +52,10 @@ void dispatchOutput(int output, bool state)
 
 #if defined(ARDUINO_ARCH_ESP32)
         ledcWrite(99, state ? 1023 : 0); // ledChannel and value
-#elif defined(ARDUINO_ARCH_ESP8266)
-        analogWrite(pin, state ? 1023 : 0);
+#elif defined(STM32_CORE_VERSION)
+        digitalWrite(HASP_OUTPUT_PIN, state);
 #else
-        pinMode (PE0, OUTPUT);
-        digitalWrite(PE0, state ? 1 : 0);
+        analogWrite(pin, state ? 1023 : 0);
 #endif
     }
 }
@@ -99,7 +98,10 @@ void dispatchAttribute(String strTopic, const char * payload)
 {
     if(strTopic.startsWith("p[")) {
         dispatchButtonAttribute(strTopic, payload);
+<<<<<<< HEAD
 
+=======
+>>>>>>> 408b27b8155bd5f1c11900503df88956925fa6bd
     } else if(strTopic == F("page")) {
         dispatchPage(payload);
 
@@ -137,8 +139,11 @@ void dispatchPage(String strPageid)
     String strPage((char *)0);
     strPage.reserve(128);
     strPage = haspGetPage();
-#if HASP_USE_MQTT
+#if HASP_USE_MQTT > 0
     mqtt_send_state(F("page"), strPage.c_str());
+#endif
+#if HASP_USE_TASMOTA_SLAVE > 0
+    slave_send_state(F("page"), strPage.c_str());
 #endif
 }
 
@@ -159,10 +164,15 @@ void dispatchDim(String strDimLevel)
     if(strDimLevel.length() != 0) guiSetDim(strDimLevel.toInt());
     dispatchPrintln(F("DIM"), strDimLevel);
 
-#if HASP_USE_MQTT
+#if HASP_USE_MQTT > 0
     char buffer[8];
     itoa(guiGetDim(), buffer, DEC);
     mqtt_send_state(F("dim"), buffer);
+#endif
+#if HASP_USE_TASMOTA_SLAVE > 0
+    char buffer[8];
+    itoa(guiGetDim(), buffer, DEC);
+    slave_send_state(F("dim"), buffer);
 #endif
 }
 
@@ -176,9 +186,13 @@ void dispatchBacklight(String strPayload)
 
     // Return the current state
     strPayload = getOnOff(guiGetBacklight());
-#if HASP_USE_MQTT
+#if HASP_USE_MQTT > 0
     mqtt_send_state(F("light"), strPayload.c_str());
 #endif
+#if HASP_USE_TASMOTA_SLAVE > 0
+    slave_send_state(F("light"), strPayload.c_str());
+#endif
+
 }
 
 void dispatchCommand(String cmnd)
@@ -265,8 +279,10 @@ void dispatchJsonl(char * payload)
 
 void dispatchIdle(const char * state)
 {
-#if HASP_USE_MQTT>0
+#if HASP_USE_MQTT > 0
     mqtt_send_state(F("idle"), state);
+#elif HASP_USE_TASMOTA_SLAVE > 0
+    slave_send_state(F("idle"), state);
 #else
     Log.notice(F("OUT: idle = %s"), state);
 #endif
@@ -275,11 +291,11 @@ void dispatchIdle(const char * state)
 void dispatchReboot(bool saveConfig)
 {
     if(saveConfig) configWriteConfig();
-#if HASP_USE_MQTT>0
+#if HASP_USE_MQTT > 0
     mqttStop(); // Stop the MQTT Client first
 #endif
     debugStop();
-#if HASP_USE_WIFI>0
+#if HASP_USE_WIFI > 0
     wifiStop();
 #endif
     Log.verbose(F("-------------------------------------"));
@@ -295,6 +311,9 @@ void dispatch_button(uint8_t id, const char * event)
 #else
     Log.notice(F("OUT: input%d = %s"), id, event);
 #endif
+#if HASP_USE_TASMOTA_SLAVE
+    slave_send_input(id, event);
+#endif
 }
 
 void dispatchWebUpdate(const char * espOtaUrl)
@@ -309,6 +328,8 @@ void IRAM_ATTR dispatch_obj_attribute_str(uint8_t pageid, uint8_t btnid, const c
 {
 #if HASP_USE_MQTT > 0
     mqtt_send_obj_attribute_str(pageid, btnid, attribute, data);
+#elif HASP_USE_TASMOTA_SLAVE > 0
+    slave_send_obj_attribute_str(pageid, btnid, attribute, data);
 #else
     Log.notice(F("OUT: json = {\"p[%u].b[%u].%s\":\"%s\"}"), pageid, btnid, attribute, data);
 #endif
@@ -357,14 +378,14 @@ void dispatchConfig(const char * topic, const char * payload)
             haspGetConfig(settings);
     }
 
-#if HASP_USE_WIFI
+#if HASP_USE_WIFI > 0
     else if(strcmp_P(topic, PSTR("wifi")) == 0) {
         if(update)
             wifiSetConfig(settings);
         else
             wifiGetConfig(settings);
     }
-#if HASP_USE_MQTT
+#if HASP_USE_MQTT > 0
     else if(strcmp_P(topic, PSTR("mqtt")) == 0) {
         if(update)
             mqttSetConfig(settings);
@@ -372,11 +393,11 @@ void dispatchConfig(const char * topic, const char * payload)
             mqttGetConfig(settings);
     }
 #endif
-#if HASP_USE_TELNET
+#if HASP_USE_TELNET > 0
     //   else if(strcmp_P(topic, PSTR("telnet")) == 0)
     //       telnetGetConfig(settings[F("telnet")]);
 #endif
-#if HASP_USE_MDNS
+#if HASP_USE_MDNS > 0
     else if(strcmp_P(topic, PSTR("mdns")) == 0) {
         if(update)
             mdnsSetConfig(settings);
@@ -384,7 +405,7 @@ void dispatchConfig(const char * topic, const char * payload)
             mdnsGetConfig(settings);
     }
 #endif
-#if HASP_USE_HTTP
+#if HASP_USE_HTTP > 0
     else if(strcmp_P(topic, PSTR("http")) == 0) {
         if(update)
             httpSetConfig(settings);
@@ -398,8 +419,10 @@ void dispatchConfig(const char * topic, const char * payload)
     if(!update) {
         settings.remove(F("pass")); // hide password in output
         size_t size = serializeJson(doc, buffer, sizeof(buffer));
-#if HASP_USE_MQTT
+#if HASP_USE_MQTT > 0
         mqtt_send_state(F("config"), buffer);
+#elif HASP_USE_TASMOTA > 0
+        slave_send_state(F("config"), buffer);
 #else
     Log.notice(F("OUT: config %s = %s"),topic,buffer);
 #endif

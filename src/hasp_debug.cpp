@@ -334,8 +334,10 @@ void debugPreSetup(JsonObject settings)
     if(baudrate >= 9600u) { /* the baudrates are stored divided by 10 */
 
 #ifdef STM32_CORE_VERSION_MAJOR
-        // Serial.setRx(PA3);  // User Serial2
-        // Serial.setTx(PA2);
+    #ifndef STM32_SERIAL1   // Define what Serial port to use for log output
+        Serial.setRx(PA3);  // User Serial2
+        Serial.setTx(PA2);
+    #endif
 #endif
         Serial.begin(baudrate); /* prepare for possible serial debug */
         delay(10);
