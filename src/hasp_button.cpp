@@ -36,17 +36,13 @@ static void button_event_cb(AceButton * button, uint8_t eventType, uint8_t butto
             memcpy_P(buffer, PSTR("UP"), sizeof(buffer));
             break;
     }
+        Log.verbose(F("BTNS: setup(): ready"));
+
     dispatch_button(button->getId(), buffer);
 }
 
 void buttonSetup(void)
 {
-    // button[0] = new Button(2);
-    button[1] = new AceButton(3, HIGH, 1);
-    button[2] = new AceButton(4, HIGH, 2);
-
-    Log.verbose(F("BTNS: setup(): ready"));
-
     ButtonConfig * buttonConfig = ButtonConfig::getSystemButtonConfig();
     buttonConfig->setEventHandler(button_event_cb);
 
@@ -63,6 +59,25 @@ void buttonSetup(void)
     buttonConfig->setLongPressDelay(LV_INDEV_DEF_LONG_PRESS_TIME);
     buttonConfig->setRepeatPressDelay(LV_INDEV_DEF_LONG_PRESS_TIME);
     buttonConfig->setRepeatPressInterval(LV_INDEV_DEF_LONG_PRESS_REP_TIME);
+
+    // button[0] = new Button(2);
+#if defined(ARDUINO_ARCH_ESP8266)
+    button[1] = new AceButton(3, HIGH, 1);
+#else
+    //button[1] = new AceButton(3, HIGH, 1);
+#endif
+    pinMode (PC13, INPUT_PULLUP);
+    button[0] = new AceButton(buttonConfig, PC13, HIGH, 0);
+
+    pinMode (PA0, INPUT_PULLUP);
+    button[1] = new AceButton(buttonConfig, PA0, HIGH, 1);
+
+    pinMode (PD15, INPUT);
+    button[2] = new AceButton(buttonConfig, PD15, HIGH, 2);
+
+    Log.verbose(F("BTNS: setup(): ready"));
+
+
 }
 
 void IRAM_ATTR buttonLoop(void)
