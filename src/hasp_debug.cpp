@@ -15,7 +15,7 @@
 #endif
 
 #include "hasp_hal.h"
-#if HASP_USE_MQTT>0
+#if HASP_USE_MQTT > 0
 #include "hasp_mqtt.h"
 #endif
 
@@ -73,7 +73,7 @@ Syslog * syslog;
 // Serial Settings
 uint16_t debugSerialBaud = SERIAL_SPEED / 10; // Multiplied by 10
 bool debugSerialStarted  = false;
-bool debugAnsiCodes         = true;
+bool debugAnsiCodes      = true;
 
 //#define TERM_COLOR_Black "\u001b[30m"
 #define TERM_COLOR_GRAY "\e[37m"
@@ -94,7 +94,8 @@ String debugHaspHeader()
 {
     String header((char *)0);
     header.reserve(256);
-    header = F("           _____ _____ _____ _____\r\n"
+    if(debugAnsiCodes) header += TERM_COLOR_YELLOW;
+    header += F("           _____ _____ _____ _____\r\n"
                "          |  |  |  _  |   __|  _  |\r\n"
                "          |     |     |__   |   __|\r\n"
                "          |__|__|__|__|_____|__|\r\n"
@@ -216,21 +217,23 @@ static void debugPrintTimestamp(int level, Print * _logOutput)
     time_t rawtime;
     struct tm * timeinfo;
 
-    //time(&rawtime);
-    //timeinfo = localtime(&rawtime);
+    // time(&rawtime);
+    // timeinfo = localtime(&rawtime);
 
     // strftime(buffer, sizeof(buffer), "%b %d %H:%M:%S.", timeinfo);
     // Serial.println(buffer);
 
     debugSendAnsiCode(F(TERM_COLOR_CYAN), _logOutput);
 
-   /* if(timeinfo->tm_year >= 120) {
-        char buffer[64];
-        strftime(buffer, sizeof(buffer), "[%b %d %H:%M:%S.", timeinfo); // Literal String
-        _logOutput->print(buffer);
-        _logOutput->printf(PSTR("%03lu]"), millis() % 1000);
-    } else */ {
-        _logOutput->printf(PSTR("[%20.3f]"), (float)millis() / 1000);
+    /* if(timeinfo->tm_year >= 120) {
+         char buffer[64];
+         strftime(buffer, sizeof(buffer), "[%b %d %H:%M:%S.", timeinfo); // Literal String
+         _logOutput->print(buffer);
+         _logOutput->printf(PSTR("%03lu]"), millis() % 1000);
+     } else */
+    {
+       //_logOutput->printf(PSTR("[%20.3f]"), (float)millis() / 1000);
+        _logOutput->printf(PSTR("[%20d]"), millis() );
     }
 }
 
@@ -328,15 +331,15 @@ void debugPreSetup(JsonObject settings)
 
     uint32_t baudrate = settings[FPSTR(F_CONFIG_BAUD)].as<uint32_t>() * 10;
     if(baudrate == 0) baudrate = SERIAL_SPEED;
-    if(baudrate >= 9600u) {     /* the baudrates are stored divided by 10 */
+    if(baudrate >= 9600u) { /* the baudrates are stored divided by 10 */
 
 #ifdef STM32_CORE_VERSION_MAJOR
-    Serial.setRx(PA3);  // User Serial2
-    Serial.setTx(PA2);
+        // Serial.setRx(PA3);  // User Serial2
+        // Serial.setTx(PA2);
 #endif
         Serial.begin(baudrate); /* prepare for possible serial debug */
         delay(10);
-       Log.registerOutput(0, &Serial, LOG_LEVEL_VERBOSE, true);
+        Log.registerOutput(0, &Serial, LOG_LEVEL_VERBOSE, true);
         debugSerialStarted = true;
         Serial.println();
         Log.trace(("Serial started at %u baud"), baudrate);
