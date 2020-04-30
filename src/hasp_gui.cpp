@@ -628,6 +628,13 @@ void guiSetup()
 {
     /* TFT init */
     tft.begin();
+
+#ifdef USE_DMA_TO_TFT
+// DMA - should work with STM32F2xx/F4xx/F7xx processors
+// NOTE: >>>>>> DMA IS FOR SPI DISPLAYS ONLY <<<<<<
+tft.initDMA(); // Initialise the DMA engine (tested with STM32F446 and STM32F767)
+#endif
+
     tft.setRotation(guiRotation); /* 1/3=Landscape or 0/2=Portrait orientation */
 #if TOUCH_DRIVER == 0
     tft.setTouch(calData);
@@ -673,8 +680,13 @@ void guiSetup()
     lv_fs_if_init(); // auxilary file system drivers
 #endif
 
-    /* Dump TFT Cofiguration */
+    /* Dump TFT Configuration */
     tftSetup(tft);
+#ifdef USE_DMA_TO_TFT
+    Log.verbose(F("TFT: DMA        : ENABELD"));
+#else
+    Log.verbose(F("TFT: DMA        : DISABELD"));
+#endif
 
     /* Load User Settings */
     // guiSetConfig(settings);
@@ -814,7 +826,7 @@ void IRAM_ATTR guiLoop()
 #ifdef STM32_CORE_VERSION_MAJOR
     tick.update();
 
-            while(Serial.available()) {
+        while(Serial.available()) {
             char ch = Serial.read();
             Serial.print(ch);
             if (ch == 13 ||ch == 10) {
@@ -991,6 +1003,7 @@ bool guiSetConfig(const JsonObject & settings)
             oobeSetAutoCalibrate(true);
         }
 
+        if (status) tft.setTouch(calData);
         changed |= status;
     }
 
