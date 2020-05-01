@@ -99,10 +99,10 @@ void IRAM_ATTR toggle_event_handler(lv_obj_t * obj, lv_event_t event);
  *      MACROS
  **********************/
 
-#endif /*LV_USE_DEMO*/
+#endif /*HASP_USE_APP*/
 
 #ifdef __cplusplus
 } /* extern "C" */
 #endif
 
-#endif /*DEMO_H*/
+#endif /*HASP_H*/
