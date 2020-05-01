@@ -7,6 +7,10 @@
 #include "ArduinoLog.h"
 #include "hasp_dispatch.h"
 #include "hasp_gui.h"
+#include "hasp_hal.h"
+#include "hasp_tft.h"
+#include "hasp_config.h"
+#include "hasp.h"
 #include "tasmotaSlave.h"
 
 // set RX and TX pins
@@ -62,54 +66,63 @@ void slave_send_input(uint8_t id, const char * payload)
   Log.notice(F("TAS PUB: %sstate/input%u = %s"), slaveNodeTopic, id, payload);
 }
 
-// void slave_send_statusupdate()
-// { // Periodically publish a JSON string indicating system status
-//     char data[3 * 128];
-//     {
-//         char buffer[128];
-//         snprintf_P(data, sizeof(data), PSTR("{\"status\":\"available\",\"version\":\"%s\",\"uptime\":%lu,"),
-//                    haspGetVersion().c_str(), long(millis() / 1000));
-//         strcat(buffer, data);
-//         snprintf_P(buffer, sizeof(buffer), PSTR("\"heapFree\":%u,\"heapFrag\":%u,\"espCore\":\"%s\","),
-//                    ESP.getFreeHeap(), halGetHeapFragmentation(), halGetCoreVersion().c_str());
-//         strcat(data, buffer);
-//         snprintf_P(buffer, sizeof(buffer), PSTR("\"espCanUpdate\":\"false\",\"page\":%u,\"numPages\":%u}"),
-//                    haspGetPage(), (HASP_NUM_PAGES));
-//         strcat(data, buffer);
-//         snprintf_P(buffer, sizeof(buffer), PSTR("\"tftDriver\":\"%s\",\"tftWidth\":%u,\"tftHeight\":%u}"),
-//                    tftDriverName().c_str(), (TFT_WIDTH), (TFT_HEIGHT));
-//         strcat(data, buffer);
-//     }
-//     slave_send_state(F("statusupdate"), data);
-//     debugLastMillis = millis();
-// }
+void TASMO_TELE_JSON()
+{ // Periodically publish a JSON string indicating system status
+  char data[3 * 128];
+  {
+      char buffer[128];
+      snprintf_P(data, sizeof(data), PSTR("{\"status\":\"available\",\"version\":\"%s\",\"uptime\":%lu,"),
+                  haspGetVersion().c_str(), long(millis() / 1000));
+      strcat(buffer, data);
+      snprintf_P(buffer, sizeof(buffer), PSTR("\"espCanUpdate\":\"false\",\"page\":%u,\"numPages\":%u,"),
+                  haspGetPage(), (HASP_NUM_PAGES));
+      strcat(data, buffer);
+      snprintf_P(buffer, sizeof(buffer), PSTR("\"tftDriver\":\"%s\",\"tftWidth\":%u,\"tftHeight\":%u}"),
+                  tftDriverName().c_str(), (TFT_WIDTH), (TFT_HEIGHT));
+      strcat(data, buffer);
+  }
+  slave.sendJSON((char*)data);
+    // slave_send_state(F("statusupdate"), data);
+    // debugLastMillis = millis();
+}
 
 void TASMO_DATA_RECEIVE(char *data)
 {
   Log.verbose(F("TAS: Slave IN [%s]"), data);
 
-  char slvCmd[20],slvVal[60];
-  memset(slvCmd, 0 ,sizeof(slvCmd));
-  memset(slvVal, 0 ,sizeof(slvVal));
-  sscanf(data,"%s %s", slvCmd, slvVal);
+  char dataType[3];
+  memset(dataType, 0 ,sizeof(dataType));
+  snprintf_P(dataType, sizeof(dataType), data);
+  Log.verbose(F("TAS: dataType [%s]"), dataType);
 
-  Log.verbose(F("TAS: Cmd[%s] Val[%s]"), slvCmd, slvVal);
-
-  if (!strcmp(slvCmd, "calData")){
-    if (strlen(slvVal) != 0) {
-      char cBuffer[strlen(slvVal) + 24];
-      memset(cBuffer, 0 ,sizeof(cBuffer));
-      snprintf_P(cBuffer, sizeof(cBuffer), PSTR("{'calibration':[%s]}"), slvVal);
-      dispatchConfig("gui",cBuffer);
-    } else {
-      dispatchConfig("gui","");
-    }
-  } else if (!strcmp(slvCmd, "jsonl")) {
-    dispatchJsonl(slvVal);
+  if (!strcmp(dataType, "p[")){   //
+    dispatchCommand(data);
+  } else if (!strcmp(dataType, "[\"")) {
+    dispatchJson(data);
   } else {
-    char cBuffer[strlen(data)+1];
-    snprintf_P(cBuffer, sizeof(cBuffer), PSTR("%s=%s"), slvCmd, slvVal);
-    dispatchCommand(cBuffer);
+    char slvCmd[20],slvVal[60];
+    memset(slvCmd, 0 ,sizeof(slvCmd));
+    memset(slvVal, 0 ,sizeof(slvVal));
+    sscanf(data,"%[^=] =%s", slvCmd, slvVal);
+
+    Log.verbose(F("TAS: Cmd[%s] Val[%s]"), slvCmd, slvVal);
+
+    if (!strcmp(slvCmd, "calData")){
+      if (strlen(slvVal) != 0) {
+        char cBuffer[strlen(slvVal) + 24];
+        memset(cBuffer, 0 ,sizeof(cBuffer));
+        snprintf_P(cBuffer, sizeof(cBuffer), PSTR("{'calibration':[%s]}"), slvVal);
+        dispatchConfig("gui",cBuffer);
+      } else {
+        dispatchConfig("gui","");
+      }
+    } else if (!strcmp(slvCmd, "jsonl")) {
+      dispatchJsonl(slvVal);
+    } else if (!strcmp(slvCmd, "clearpage")) {
+      dispatchClearPage(slvVal);
+    } else {
+      dispatchCommand(data);
+    }
   }
 }
 
@@ -130,6 +143,7 @@ void slaveSetup()
 {
   Serial2.begin(HASP_SLAVE_SPEED);
   // slave.attach_FUNC_EVERY_SECOND(TASMO_EVERY_SECOND);
+  slave.attach_FUNC_JSON(TASMO_TELE_JSON);
   slave.attach_FUNC_COMMAND_SEND(TASMO_DATA_RECEIVE);
 
   Log.notice(F("TAS: HASP SLAVE LOADED"));
