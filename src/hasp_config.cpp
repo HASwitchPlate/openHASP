@@ -1,6 +1,7 @@
 #include "Arduino.h"
-#include "ArduinoJson.h"
 #include "ArduinoLog.h"
+#include "ArduinoJson.h"
+#include "StreamUtils.h"
 
 #include "hasp_config.h"
 #include "hasp_debug.h"
@@ -13,13 +14,13 @@
 
 #include "hasp_conf.h"
 
-#if HASP_USE_SPIFFS>0
+#if HASP_USE_SPIFFS > 0
 #include <FS.h> // Include the SPIFFS library
 #if defined(ARDUINO_ARCH_ESP32)
 #include "SPIFFS.h"
 #endif
 #endif
-#if HASP_USE_EEPROM>0
+#if HASP_USE_EEPROM > 0
 #include "EEPROM.h"
 #endif
 
@@ -72,13 +73,17 @@ void configStartDebug(bool setupdebug, String & configFile)
 {
     if(setupdebug) {
         debugStart(); // Debug started, now we can use it; HASP header sent
+#if HASP_USE_SPIFFS > 0
         Log.notice(F("FILE: [SUCCESS] SPI flash FS mounted"));
-#if HASP_USE_SPIFFS>0
         spiffsInfo();
         spiffsList();
 #endif
     }
+#if HASP_USE_SPIFFS > 0
     Log.notice(F("CONF: Loading %s"), configFile.c_str());
+#else
+    Log.notice(F("CONF: reading EEPROM"));
+#endif
 }
 
 void configGetConfig(JsonDocument & settings, bool setupdebug = false)
@@ -86,9 +91,10 @@ void configGetConfig(JsonDocument & settings, bool setupdebug = false)
     String configFile((char *)0);
     configFile.reserve(128);
     configFile = String(FPSTR(HASP_CONFIG_FILE));
+    DeserializationError error;
 
-#if HASP_USE_SPIFFS>0
-    File file  = SPIFFS.open(configFile, "r");
+#if HASP_USE_SPIFFS > 0
+    File file = SPIFFS.open(configFile, "r");
 
     if(file) {
         size_t size = file.size();
@@ -97,7 +103,7 @@ void configGetConfig(JsonDocument & settings, bool setupdebug = false)
             return;
         }
 
-        DeserializationError error = deserializeJson(settings, file);
+        error = deserializeJson(settings, file);
         if(!error) {
             file.close();
 
@@ -121,17 +127,26 @@ void configGetConfig(JsonDocument & settings, bool setupdebug = false)
             return;
         }
     }
+#else
+
+#if HASP_USE_EEPROM > 0
+    EepromStream eepromStream(0, 1024);
+    error = deserializeJson(settings, eepromStream);
+#endif
+
 #endif
 
     // File does not exist or error reading file
     if(setupdebug) {
         debugPreSetup(settings[F("debug")]);
     }
-
     configStartDebug(setupdebug, configFile);
-    Log.error(F("CONF: Failed to load %s"), configFile.c_str());
-}
 
+#if HASP_USE_SPIFFS > 0
+    Log.error(F("CONF: Failed to load %s"), configFile.c_str());
+#endif
+}
+/*
 void configBackupToEeprom()
 {
 #if HASP_USE_SPIFFS>0
@@ -160,10 +175,9 @@ void configBackupToEeprom()
     }
 #endif
 }
-
+*/
 void configWriteConfig()
 {
-#if HASP_USE_SPIFFS>0
     String configFile((char *)0);
     configFile.reserve(128);
     configFile = String(FPSTR(HASP_CONFIG_FILE));
@@ -253,6 +267,7 @@ void configWriteConfig()
     // changed |= otaGetConfig(settings[F("ota")].as<JsonObject>());
 
     if(writefile) {
+#if HASP_USE_SPIFFS > 0
         File file = SPIFFS.open(configFile, "w");
         if(file) {
             Log.notice(F("CONF: Writing %s"), configFile.c_str());
@@ -260,36 +275,70 @@ void configWriteConfig()
             file.close();
             if(size > 0) {
                 Log.verbose(F("CONF: [SUCCESS] Saved %s"), configFile.c_str());
-                configBackupToEeprom();
-                return;
+                // configBackupToEeprom();
+            } else {
+                Log.error(F("CONF: Failed to write %s"), configFile.c_str());
             }
+        } else {
+            Log.error(F("CONF: Failed to write %s"), configFile.c_str());
         }
+#endif
 
-        Log.error(F("CONF: Failed to write %s"), configFile.c_str());
+        // Method 1
+        // Log.verbose(F("CONF: Writing to EEPROM"));
+        // EepromStream eepromStream(0, 1024);
+        // WriteBufferingStream bufferedWifiClient{eepromStream, 512};
+        // serializeJson(doc, bufferedWifiClient);
+        // bufferedWifiClient.flush(); // <- OPTIONAL
+        // eepromStream.flush();       // (for ESP)
+
+#if defined(STM32F4xx)
+        // Method 2
+        Log.verbose(F("CONF: Writing to EEPROM"));
+        char buffer[1024 + 128];
+        size_t size = serializeJson(doc, buffer, sizeof(buffer));
+        if(size > 0) {
+            uint16_t i;
+            for(i = 0; i < size; i++) eeprom_buffered_write_byte(i, buffer[i]);
+            eeprom_buffered_write_byte(i, 0);
+            eeprom_buffer_flush();
+            Log.verbose(F("CONF: [SUCCESS] Saved EEPROM"));
+        } else {
+            Log.error(F("CONF: Failed to save config to EEPROM"));
+        }
+#endif
 
     } else {
-        Log.notice(F("CONF: Configuration was not changed"));
+        Log.notice(F("CONF: Configuration did not change"));
     }
-#endif
 }
 
 void configSetup()
 {
-#if HASP_USE_SPIFFS>0
-    if(!SPIFFS.begin()) {
-#endif
-    
-#if HASP_USE_SPIFFS>0
-    } else {
-#endif
-        DynamicJsonDocument settings(1024 + 128);
-  Serial.print(__FILE__);
-  Serial.println(__LINE__);
+    DynamicJsonDocument settings(1024 + 128);
 
-        configGetConfig(settings, true);
+    for(uint8_t i = 0; i < 2; i++) {
+        Serial.print(__FILE__);
+        Serial.println(__LINE__);
 
-            Log.error(F("FILE: SPI flash init failed. Unable to mount FS: Using default settings..."));
-#if HASP_USE_SPIFFS>0
+        if(i == 0) {
+#if HASP_USE_SPIFFS > 0
+            EepromStream eepromStream(0, 2048);
+            DeserializationError error = deserializeJson(settings, eepromStream);
+#else
+            continue;
+#endif
+        } else {
+#if HASP_USE_SPIFFS > 0
+            if(!SPIFFS.begin()) {
+                Log.error(F("FILE: SPI flash init failed. Unable to mount FS: Using default settings..."));
+                return;
+            }
+#endif
+            configGetConfig(settings, true);
+        }
+
+        //#if HASP_USE_SPIFFS > 0
         Log.verbose(F("Loading debug settings"));
         debugSetConfig(settings[F("debug")]);
         Log.verbose(F("Loading GUI settings"));
@@ -317,10 +366,11 @@ void configSetup()
         Log.verbose(F("Loading HTTP settings"));
         httpSetConfig(settings[F("http")]);
 #endif
-#endif
+#endif // Wifi
+       //        }
+        Log.notice(F("User configuration loaded"));
     }
-    Log.notice(F("User configuration loaded"));
-#endif
+    //#endif
 }
 
 void configOutput(const JsonObject & settings)
