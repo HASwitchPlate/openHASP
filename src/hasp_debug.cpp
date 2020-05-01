@@ -232,8 +232,8 @@ static void debugPrintTimestamp(int level, Print * _logOutput)
          _logOutput->printf(PSTR("%03lu]"), millis() % 1000);
      } else */
     {
-       //_logOutput->printf(PSTR("[%20.3f]"), (float)millis() / 1000);
-        _logOutput->printf(PSTR("[%20d]"), millis() );
+       uint32_t msecs = millis();
+        _logOutput->printf(PSTR("[%16d.%03d]"), msecs/1000, msecs%1000 );
     }
 }
 
@@ -333,7 +333,7 @@ void debugPreSetup(JsonObject settings)
     if(baudrate == 0) baudrate = SERIAL_SPEED;
     if(baudrate >= 9600u) { /* the baudrates are stored divided by 10 */
 
-#ifdef STM32_CORE_VERSION_MAJOR
+#if defined(STM32F4xx)
     #ifndef STM32_SERIAL1   // Define what Serial port to use for log output
         Serial.setRx(PA3);  // User Serial2
         Serial.setTx(PA2);

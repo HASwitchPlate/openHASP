@@ -52,7 +52,7 @@ void dispatchOutput(int output, bool state)
 
 #if defined(ARDUINO_ARCH_ESP32)
         ledcWrite(99, state ? 1023 : 0); // ledChannel and value
-#elif defined(STM32_CORE_VERSION)
+#elif defined(STM32F4xx)
         digitalWrite(HASP_OUTPUT_PIN, state);
 #else
         analogWrite(pin, state ? 1023 : 0);
@@ -98,7 +98,7 @@ void dispatchAttribute(String strTopic, const char * payload)
 {
     if(strTopic.startsWith("p[")) {
         dispatchButtonAttribute(strTopic, payload);
-        
+
     } else if(strTopic == F("page")) {
         dispatchPage(payload);
 
