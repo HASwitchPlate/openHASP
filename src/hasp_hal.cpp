@@ -107,56 +107,7 @@ String halGetResetInfo()
 #endif
 }
 
-    #ifdef __arm__
-    // should use uinstd.h to define sbrk but Due causes a conflict
-    extern "C" char* sbrk(int incr);
-    #else  // __ARM__
-    extern char *__brkval;
-    #endif  // __arm__
-     
-    int freeMemory() {
-      char top;
-    #ifdef __arm__
-      return &top - reinterpret_cast<char*>(sbrk(0));
-    #elif defined(CORE_TEENSY) || (ARDUINO > 103 && ARDUINO != 151)
-      return &top - __brkval;
-    #else  // __arm__
-      return __brkval ? &top - __brkval : &top - __malloc_heap_start;
-    #endif  // __arm__
-    }
 
-uint8_t halGetHeapFragmentation()
-{
-#if defined(ARDUINO_ARCH_ESP32)
-    return (int8_t)(100.00f - (float)ESP.getMaxAllocHeap() * 100.00f / (float)ESP.getFreeHeap());
-#elif defined(ARDUINO_ARCH_ESP8266)
-    return ESP.getHeapFragmentation();
-#else
-    return 255;
-#endif
-}
-
-size_t halGetMaxFreeBlock()
-{
-#if defined(ARDUINO_ARCH_ESP32)
-    return ESP.getMaxAllocHeap();
-#elif defined(ARDUINO_ARCH_ESP8266)
-    return ESP.getMaxFreeBlockSize();
-#else
-    return freeMemory();
-#endif
-}
-
-size_t halGetFreeHeap(void)
-{
-#if defined(ARDUINO_ARCH_ESP32)
-    return ESP.getFreeHeap();
-#elif defined(ARDUINO_ARCH_ESP8266)
-    return ESP.getFreeHeap();
-#else
-    return 1;
-#endif
-}
 
 String halGetCoreVersion()
 {
@@ -193,8 +144,8 @@ String halGetChipModel()
         case CHIP_ESP32S2:
             model += F("ESP32-S2");
             break;
- #endif
-       default:
+#endif
+        default:
             model = F("Unknown ESP");
     }
     model += F(" rev");
@@ -202,4 +153,89 @@ String halGetChipModel()
 #endif // ESP32
 
     return model;
+}
+
+
+/*******************************/
+/* Memory Management Functions */
+
+#if defined(STM32F4xx)
+#include <malloc.h>    // for mallinfo() 
+#include <unistd.h>    // for sbrk() 
+
+int freeHighMemory()
+{
+    char top;
+#ifdef __arm__
+    return &top - reinterpret_cast<char *>(sbrk(0));
+#elif defined(CORE_TEENSY) || (ARDUINO > 103 && ARDUINO != 151)
+    return &top - __brkval;
+#else  // __arm__
+    return __brkval ? &top - __brkval : &top - __malloc_heap_start;
+#endif // __arm__
+}
+#endif
+
+/*
+extern char *fake_heap_end;   // current heap start 
+extern char *fake_heap_start;   // current heap end 
+
+char* getHeapStart() { 
+   return fake_heap_start; 
+} 
+
+char* getHeapEnd() { 
+   return (char*)sbrk(0); 
+} 
+
+char* getHeapLimit() { 
+   return fake_heap_end; 
+}
+
+int getMemUsed() { // returns the amount of used memory in bytes 
+   struct mallinfo mi = mallinfo(); 
+   return mi.uordblks; 
+} 
+
+int getMemFree() { // returns the amount of free memory in bytes 
+   struct mallinfo mi = mallinfo(); 
+   return mi.fordblks + freeHighMemory(); 
+} */
+
+size_t halGetMaxFreeBlock()
+{
+#if defined(ARDUINO_ARCH_ESP32)
+    return ESP.getMaxAllocHeap();
+#elif defined(ARDUINO_ARCH_ESP8266)
+    return ESP.getMaxFreeBlockSize();
+#else
+    return freeHighMemory();
+#endif
+}
+
+size_t halGetFreeHeap(void)
+{
+#if defined(ARDUINO_ARCH_ESP32)
+    return ESP.getFreeHeap();
+#elif defined(ARDUINO_ARCH_ESP8266)
+    return ESP.getFreeHeap();
+#else
+    struct mallinfo chuncks = mallinfo();
+
+    // fordblks
+    //    This is the total size of memory occupied by free (not in use) chunks.
+
+    return chuncks.fordblks + freeHighMemory();
+#endif
+}
+
+uint8_t halGetHeapFragmentation()
+{
+#if defined(ARDUINO_ARCH_ESP32)
+    return (int8_t)(100.00f - (float)ESP.getMaxAllocHeap() * 100.00f / (float)ESP.getFreeHeap());
+#elif defined(ARDUINO_ARCH_ESP8266)
+    return ESP.getHeapFragmentation();
+#else
+    return (int8_t)(100.00f - (float)freeHighMemory() * 100.00f / (float)halGetFreeHeap());
+#endif
 }
