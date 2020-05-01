@@ -306,14 +306,6 @@ static void IRAM_ATTR lv_tick_handler(void)
     lv_tick_inc(guiTickPeriod);
 }
 
-#ifdef STM32_CORE_VERSION
-void Update_IT_callback(void)
-{
-     Serial.print("?");
-   lv_tick_inc(guiTickPeriod);
-}
-#endif
-
 /* Reading input device (simulated encoder here) */
 /*bool read_encoder(lv_indev_drv_t * indev, lv_indev_data_t * data)
 {
@@ -823,7 +815,7 @@ tft.initDMA(); // Initialise the DMA engine (tested with STM32F446 and STM32F767
 
 void IRAM_ATTR guiLoop()
 {
-#ifdef STM32_CORE_VERSION_MAJOR
+#if defined(STM32F4xx)
     tick.update();
 
         while(Serial.available()) {
