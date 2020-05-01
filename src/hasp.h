@@ -81,8 +81,6 @@ void hasp_send_obj_attribute_int(lv_obj_t * obj, const char * attribute, int32_t
 void hasp_send_obj_attribute_color(lv_obj_t * obj, const char * attribute, lv_color_t color);
 void hasp_process_attribute(uint8_t pageid, uint8_t objid, const char * attr, const char * payload);
 
-void haspSendCmd(String nextionCmd);
-void haspParseJson(String & strPayload);
 void haspNewObject(const JsonObject & config, uint8_t & saved_page_id);
 
 void haspReconnect(void);
