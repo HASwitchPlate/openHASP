@@ -1,12 +1,11 @@
 #include "hasp_conf.h" // load first
 #include <Arduino.h>
 
+#include "hasp_conf.h"
 #include "hasp_debug.h"
-#include "hasp_spiffs.h"
 #include "hasp_config.h"
 #include "hasp_gui.h"
 #include "hasp.h"
-#include "hasp_conf.h"
 #include "hasp_oobe.h"
 #include "hasp_gpio.h"
 
@@ -23,7 +22,7 @@ void setup()
 
     /* Init Storage */
 #if HASP_USE_EEPROM
-//    eepromSetup(); // Don't start at boot, only at write
+    eepromSetup(); // Don't start at boot, only at write
 #endif
 
 #if HASP_USE_SPIFFS
@@ -44,7 +43,10 @@ void setup()
      ***************************/
     debugSetup();
     gpioSetup();
+
+#if HASP_USE_GPIO
     guiSetup();
+#endif
 
 #if HASP_USE_WIFI
     wifiSetup();
@@ -76,10 +78,6 @@ void setup()
 
 #endif // WIFI
 
-#if HASP_USE_BUTTON
-    buttonSetup();
-#endif
-
 #if HASP_USE_TASMOTA_SLAVE
     slaveSetup();
 #endif
@@ -90,15 +88,21 @@ void setup()
 void loop()
 {
     /* Storage Loops */
+/*
 #if HASP_USE_EEPROM
-    eepromLoop();
-#endif
-    // spiffsLoop();
-#if HASP_USE_SDCARD
-    // sdcardLoop();
+    // eepromLoop(); // Not used
 #endif
 
-    // configLoop();
+#if HASP_USE_SPIFFS
+    // spiffsLoop(); // Not used
+#endif
+
+#if HASP_USE_SDCARD
+    // sdcardLoop(); // Not used
+#endif
+
+    // configLoop();  // Not used
+*/
 
     /* Graphics Loops */
     // tftLoop();
@@ -106,9 +110,9 @@ void loop()
     /* Application Loops */
     // haspLoop();
 
-#if HASP_USE_BUTTON
-    buttonLoop();
-#endif // BUTTON
+#if HASP_USE_GPIO
+    gpioLoop();
+#endif
 
     /* Network Services Loops */
 #if HASP_USE_WIFI
@@ -139,7 +143,9 @@ void loop()
     slaveLoop();
 #endif // TASMOTASLAVE
 
-    // Every Second Loop
+    // digitalWrite(HASP_OUTPUT_PIN, digitalRead(HASP_INPUT_PIN)); // sets the LED to the button's value
+
+    /* Timer Loop */
     if(millis() - mainLastLoopTime >= 1000) {
         /* Run Every Second */
 #if HASP_USE_OTA
@@ -148,27 +154,25 @@ void loop()
         debugEverySecond();
 
         /* Run Every 5 Seconds */
-        if(mainLoopCounter == 0 || mainLoopCounter == 4) {
+#if HASP_USE_WIFI
+        if(mainLoopCounter == 0 || mainLoopCounter == 5) {
+            isConnected = wifiEvery5Seconds();
 #if HASP_USE_HTTP
             httpEvery5Seconds();
 #endif
-
-#if HASP_USE_WIFI
-            isConnected = wifiEvery5Seconds();
-
 #if HASP_USE_MQTT
             mqttEvery5Seconds(isConnected);
 #endif
-
-#endif
         }
+#endif // Wifi
 
-        /* Update counters */
+        /* Reset loop counter every 10 seconds */
+        if(mainLoopCounter >= 9) {
+            mainLoopCounter = 0;
+        } else {
+            mainLoopCounter++;
+        }
         mainLastLoopTime += 1000;
-        mainLoopCounter++;
-        if(mainLoopCounter >= 10) {
-                    mainLoopCounter = 0;
-        }
     }
 
     delay(3);

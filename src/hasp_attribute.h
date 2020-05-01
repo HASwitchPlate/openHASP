@@ -212,6 +212,7 @@ _HASP_ATTRIBUTE(SCALE_END_LINE_WIDTH, scale_end_line_width, lv_style_int_t)
 #define ATTR_Y 121
 #define ATTR_W 119
 #define ATTR_H 104
+#define ATTR_BRIGHTNESS 10 // LED
 #define ATTR_OPTIONS 29886
 #define ATTR_ENABLED 28193
 #define ATTR_OPACITY 10155

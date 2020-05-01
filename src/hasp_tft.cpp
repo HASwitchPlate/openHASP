@@ -98,6 +98,7 @@ void tftShowConfig(TFT_eSPI & tft)
 #if defined(ARDUINO_ARCH_ESP8266)
     Log.verbose(F("TFT: SPI overlap   : %s"), (tftSetup.overlap == 1) ? PSTR("Yes") : PSTR("No"));
 #endif
+
     if(tftSetup.tft_driver != 0xE9D) // For ePaper displays the size is defined in the sketch
     {
         Log.verbose(F("TFT: Driver     : %s"), tftDriverName().c_str()); // tftSetup.tft_driver);

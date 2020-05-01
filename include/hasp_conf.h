@@ -22,10 +22,10 @@
 #define HASP_HAS_FILESYSTEM (ARDUINO_ARCH_ESP32>0 || ARDUINO_ARCH_ESP8266>0)
 
 #define HASP_USE_SPIFFS (HASP_HAS_FILESYSTEM)
-#define HASP_USE_EEPROM (HASP_HAS_FILESYSTEM)
+#define HASP_USE_EEPROM 1
 #define HASP_USE_SDCARD 0
 
-#define HASP_USE_BUTTON 1
+#define HASP_USE_GPIO 1
 
 #define HASP_USE_QRCODE 1
 #define HASP_USE_PNGDECODE 0
@@ -43,7 +43,6 @@
 #if HASP_USE_SPIFFS>0
 #if defined(ARDUINO_ARCH_ESP32)
 #include "SPIFFS.h"
-#include "hasp_eeprom.h"
 #endif
 #include <FS.h> // Include the SPIFFS library
 #include "hasp_spiffs.h"

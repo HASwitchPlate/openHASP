@@ -48,10 +48,11 @@ void dispatchOutput(int output, bool state)
     int pin = 0;
 
     if(pin >= 0) {
+        Log.notice(F("PIN OUTPUT STATE %d"),state);
 
 #if defined(ARDUINO_ARCH_ESP32)
         ledcWrite(99, state ? 1023 : 0); // ledChannel and value
-#elif defined(STM32_CORE_VERSION)
+#elif defined(STM32F4xx)
         digitalWrite(HASP_OUTPUT_PIN, state);
 #else
         analogWrite(pin, state ? 1023 : 0);
@@ -97,6 +98,7 @@ void dispatchAttribute(String strTopic, const char * payload)
 {
     if(strTopic.startsWith("p[")) {
         dispatchButtonAttribute(strTopic, payload);
+
     } else if(strTopic == F("page")) {
         dispatchPage(payload);
 
@@ -192,7 +194,7 @@ void dispatchBacklight(String strPayload)
 
 void dispatchCommand(String cmnd)
 {
-    // dispatchPrintln(F("CMND"), cmnd);
+    dispatchPrintln(F("CMND"), cmnd);
 
     if(cmnd.startsWith(F("page "))) {
         cmnd = cmnd.substring(5, cmnd.length());
@@ -303,6 +305,8 @@ void dispatch_button(uint8_t id, const char * event)
 {
 #if HASP_USE_MQTT > 0
     mqtt_send_input(id, event);
+#else
+    Log.notice(F("OUT: input%d = %s"), id, event);
 #endif
 #if HASP_USE_TASMOTA_SLAVE
     slave_send_input(id, event);
