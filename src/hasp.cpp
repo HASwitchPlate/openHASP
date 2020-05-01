@@ -665,7 +665,7 @@ void haspClearPage(uint16_t pageid)
         Log.warning(F("HASP: Cannot clear a layer"));
     } else {
         Log.notice(F("HASP: Clearing page %u"), pageid);
-        lv_page_clean(pages[pageid]);
+        lv_obj_clean(pages[pageid]);
     }
 }
 

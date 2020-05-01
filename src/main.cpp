@@ -107,7 +107,6 @@ void loop()
     /* Graphics Loops */
     // tftLoop();
     guiLoop();
-
     /* Application Loops */
     // haspLoop();
 
