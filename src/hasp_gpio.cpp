@@ -9,6 +9,6 @@ void gpioSetup()
 #endif
 #if defined(STM32_CORE_VERSION)
     pinMode(HASP_OUTPUT_PIN, OUTPUT);
-    pinMode(HASP_INPUT_PIN, INPUT_PULLUP);
+    pinMode(HASP_INPUT_PIN, INPUT_PULLDOWN);
 #endif
 }

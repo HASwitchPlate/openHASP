@@ -103,9 +103,12 @@ void loop()
     /* Graphics Loops */
     // tftLoop();
     guiLoop();
-
     /* Application Loops */
     // haspLoop();
+
+#if HASP_USE_BUTTON
+    buttonLoop();
+#endif // BUTTON
 
     /* Network Services Loops */
 #if HASP_USE_WIFI
@@ -125,10 +128,6 @@ void loop()
 #if HASP_USE_MDNS
     mdnsLoop();
 #endif // MDNS
-
-#if HASP_USE_BUTTON
-    buttonLoop();
-#endif // BUTTON
 
 #if HASP_USE_OTA
     otaLoop();

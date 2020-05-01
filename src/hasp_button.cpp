@@ -41,7 +41,7 @@ static void button_event_cb(AceButton * button, uint8_t eventType, uint8_t butto
 
 void buttonSetup(void)
 {
-    // button[0] = new Button(2);
+    button[0] = new AceButton(HASP_INPUT_PIN, LOW, 0);
     button[1] = new AceButton(3, HIGH, 1);
     button[2] = new AceButton(4, HIGH, 2);
 
