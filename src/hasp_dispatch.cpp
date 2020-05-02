@@ -55,7 +55,8 @@ void dispatchOutput(int output, bool state)
 #elif defined(STM32F4xx)
         digitalWrite(HASP_OUTPUT_PIN, state);
 #else
-        analogWrite(pin, state ? 1023 : 0);
+        digitalWrite(D1, state);
+        // analogWrite(pin, state ? 1023 : 0);
 #endif
     }
 }

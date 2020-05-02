@@ -87,10 +87,10 @@ void gpioAddButton(uint8_t pin, uint8_t input_mode, uint8_t default_state, uint8
                 ButtonConfig * buttonConfig = button[i]->getButtonConfig();
                 buttonConfig->setEventHandler(gpio_event_cb);
                 buttonConfig->setFeature(ButtonConfig::kFeatureClick);
-                buttonConfig->setFeature(ButtonConfig::kFeatureDoubleClick);
+                buttonConfig->clearFeature(ButtonConfig::kFeatureDoubleClick);
                 buttonConfig->setFeature(ButtonConfig::kFeatureLongPress);
-                buttonConfig->setFeature(ButtonConfig::kFeatureRepeatPress);
-                buttonConfig->setFeature(ButtonConfig::kFeatureSuppressClickBeforeDoubleClick);
+                buttonConfig->clearFeature(ButtonConfig::kFeatureRepeatPress);
+                buttonConfig->clearFeature(ButtonConfig::kFeatureSuppressClickBeforeDoubleClick); // Causes annoying pauses
 
                 Log.verbose(F("GPIO: Button%d created on pin %d (channel %d) mode %d default %d"), i, pin, channel, input_mode,default_state);
                 gpioUsedInputCount = i + 1;
@@ -107,7 +107,10 @@ void gpioSetup()
     aceButtonSetup();
 
     //gpioConfig[0] = PD15 * 256 + 5 + (INPUT << 3);
-    gpioAddButton(D1, INPUT_PULLUP, HIGH, 1);
+#if defined(ARDUINO_ARCH_ESP8266)
+    gpioAddButton(D2, INPUT_PULLUP, HIGH, 1);
+    pinMode(D1, OUTPUT);
+#endif
 
     for(uint8_t i = 0; i < HASP_NUM_GPIO_CONFIG; i++) {
         uint8_t pin           = (gpioConfig[i] >> 8) & 0xFF;
