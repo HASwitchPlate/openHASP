@@ -1,6 +1,8 @@
 /*********************
  *      INCLUDES
  *********************/
+#if HASP_USE_SLAVE>0
+
 #include "hasp_slave.h"
 #include <Arduino.h>
 #include "ArduinoJson.h"
@@ -130,11 +132,11 @@ void TASMO_EVERY_SECOND(void)
 {
   if (ledstate) {
     ledstate = false;
-    digitalWrite(HASP_OUTPUT_PIN, 1);
+    //digitalWrite(HASP_OUTPUT_PIN, 1);
     // Log.verbose(F("LED OFF"));
   } else {
     ledstate = true;
-    digitalWrite(HASP_OUTPUT_PIN, 0);
+    //digitalWrite(HASP_OUTPUT_PIN, 0);
     // Log.verbose(F("LED ON"));
   }
 }
@@ -159,3 +161,5 @@ void slaveLoop(void)
   // }
 
 }
+
+#endif

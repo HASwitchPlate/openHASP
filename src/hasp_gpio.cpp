@@ -107,6 +107,7 @@ void gpioSetup()
     aceButtonSetup();
 
     //gpioConfig[0] = PD15 * 256 + 5 + (INPUT << 3);
+    gpioAddButton(D1, INPUT_PULLUP, HIGH, 1);
 
     for(uint8_t i = 0; i < HASP_NUM_GPIO_CONFIG; i++) {
         uint8_t pin           = (gpioConfig[i] >> 8) & 0xFF;
@@ -134,7 +135,7 @@ void gpioSetup()
         switch(gpiotype) {
             case HASP_GPIO_SWITCH:
             case HASP_GPIO_BUTTON:
-                gpioAddButton(pin, input_mode, default_state, channel);
+               // gpioAddButton(pin, input_mode, default_state, channel);
                 break;
 
             case HASP_GPIO_RELAY:
