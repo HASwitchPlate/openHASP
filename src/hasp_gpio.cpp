@@ -122,9 +122,11 @@ void gpioSetup()
             case 2:
                 input_mode = INPUT_PULLUP;
                 break;
+#ifndef ARDUINO_ARCH_ESP8266
             case 3:
                 input_mode = INPUT_PULLDOWN;
                 break;
+#endif
             default:
                 input_mode = INPUT;
         }
