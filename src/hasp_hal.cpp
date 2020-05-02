@@ -11,15 +11,6 @@
 #if defined(ARDUINO_ARCH_ESP32)
 #include <rom/rtc.h> // needed to get the ResetInfo
 
-void halRestart(void)
-{
-#if defined(ESP32) || defined(ESP8266)
-    ESP.restart();
-#else
-    NVIC_SystemReset();
-#endif
-}
-
 // Compatibility function for ESP8266 getRestInfo
 String esp32ResetReason(uint8_t cpuid)
 {
@@ -89,6 +80,15 @@ String esp32ResetReason(uint8_t cpuid)
     return resetReason;
 }
 #endif
+
+void halRestart(void)
+{
+#if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
+    ESP.restart();
+#else
+    NVIC_SystemReset();
+#endif
+}
 
 String halGetResetInfo()
 {

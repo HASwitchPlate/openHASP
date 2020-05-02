@@ -298,7 +298,7 @@ void dispatchReboot(bool saveConfig)
     Log.verbose(F("-------------------------------------"));
     Log.notice(F("STOP: Properly Rebooting the MCU now!"));
     Serial.flush();
-    //halRestart();
+    halRestart();
 }
 
 void dispatch_button(uint8_t id, const char * event)
