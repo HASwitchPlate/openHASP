@@ -588,11 +588,7 @@ static void hasp_process_obj_attribute_val(lv_obj_t * obj, const char * attr, co
         return update ? lv_slider_set_value(obj, intval, LV_ANIM_ON)
                       : hasp_out_int(obj, attr, lv_slider_get_value(obj));
     } else if(check_obj_type(objtype, LV_HASP_LED)) {
-        if(update) {
-            return is_true(payload) ? lv_led_on(obj) : lv_led_off(obj);
-        } else {
-            // return hasp_out_int(obj, attr, lv_led_get_state(obj));
-        }
+        return update ? lv_led_set_bright(obj, (uint8_t)val) : hasp_out_int(obj, attr, lv_led_get_bright(obj));
     } else if(check_obj_type(objtype, LV_HASP_GAUGE)) {
         return update ? lv_gauge_set_value(obj, 0, intval) : hasp_out_int(obj, attr, lv_gauge_get_value(obj, 0));
     } else if(check_obj_type(objtype, LV_HASP_ROLLER)) {
@@ -781,16 +777,6 @@ void hasp_process_obj_attribute(lv_obj_t * obj, const char * attr_p, const char 
                 return;
             }
             break; // not a options object
-
-        case ATTR_BRIGHTNESS:
-            if(check_obj_type(obj, LV_HASP_LED)) {
-                if(update) {
-                    lv_led_set_bright(obj, (uint8_t)val);
-                } else {
-                    hasp_out_int(obj, attr, lv_led_get_bright(obj));
-                }
-                return;
-            }
 
             // default:
             // hasp_local_style_attr(obj, attr, payload, update);

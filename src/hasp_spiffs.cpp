@@ -14,7 +14,7 @@
 
 void spiffsInfo()
 { // Get all information of your SPIFFS
-#if defined(ARDUINO_ARCH_ESP8266)
+#if 0
     FSInfo fs_info;
     SPIFFS.info(fs_info);
 

@@ -87,7 +87,7 @@ void tftShowConfig(TFT_eSPI & tft)
     Log.verbose(F("TFT: CPU freq.  : %i MHz"), ESP.getCpuFreqMHz());
 #else
     Log.verbose(F("TFT: Processor  : STM%x"), tftSetup.esp);
-    Log.verbose(F("TFT: CPU freq.  : %i MHz"), F_CPU/1000/1000);
+    Log.verbose(F("TFT: CPU freq.  : %i MHz"), F_CPU / 1000 / 1000);
 #endif
 
 #if defined(ARDUINO_ARCH_ESP8266)
@@ -156,14 +156,10 @@ void tftShowConfig(TFT_eSPI & tft)
     tftPinInfo(F("TFT_D7"), tftSetup.pin_tft_d7);
 
     if(tftSetup.serial == 1) {
-        char buffer[8];
-        snprintf_P(buffer, sizeof(buffer), "%4.2f", (float)tftSetup.tft_spi_freq / 10.0f);
-        Log.verbose(F("TFT: Display SPI freq. : %s MHz"), buffer);
+        Log.verbose(F("TFT: Display SPI freq. : %d.%d MHz"), tftSetup.tft_spi_freq / 10, tftSetup.tft_spi_freq % 10);
     }
     if(tftSetup.pin_tch_cs != -1) {
-        char buffer[8];
-        snprintf_P(buffer, sizeof(buffer), "%4.2f", (float)tftSetup.tch_spi_freq / 10.0f);
-        Log.verbose(F("TFT: Touch SPI freq.   : %s MHz"), buffer);
+        Log.verbose(F("TFT: Touch SPI freq.   : %d.%d MHz"), tftSetup.tch_spi_freq / 10, tftSetup.tch_spi_freq % 10);
     }
 }
 
