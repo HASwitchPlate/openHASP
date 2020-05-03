@@ -78,6 +78,10 @@ void setup()
 
 #endif // WIFI
 
+#if HASP_USE_ETHERNET
+    ethernetSetup();
+#endif
+
 #if HASP_USE_TASMOTA_SLAVE
     slaveSetup();
 #endif
@@ -139,6 +143,10 @@ void loop()
 #endif // OTA
 
 #endif // WIFI
+
+#if HASP_USE_ETHERNET
+    ethernetLoop();
+#endif
 
 #if HASP_USE_TASMOTA_SLAVE
     slaveLoop();
