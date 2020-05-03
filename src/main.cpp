@@ -109,6 +109,7 @@ void loop()
     guiLoop();
     /* Application Loops */
     // haspLoop();
+    debugLoop();
 
 #if HASP_USE_GPIO
     gpioLoop();

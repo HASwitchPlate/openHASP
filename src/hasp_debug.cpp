@@ -71,6 +71,8 @@ Syslog * syslog;
 #endif // USE_SYSLOG
 
 // Serial Settings
+uint8_t serialInputIndex   = 0;    // Empty buffer
+char serialInputBuffer[1024];
 uint16_t debugSerialBaud = SERIAL_SPEED / 10; // Multiplied by 10
 bool debugSerialStarted  = false;
 bool debugAnsiCodes      = true;
@@ -96,10 +98,10 @@ String debugHaspHeader()
     header.reserve(256);
     if(debugAnsiCodes) header += TERM_COLOR_YELLOW;
     header += F("           _____ _____ _____ _____\r\n"
-               "          |  |  |  _  |   __|  _  |\r\n"
-               "          |     |     |__   |   __|\r\n"
-               "          |__|__|__|__|_____|__|\r\n"
-               "        Home Automation Switch Plate\r\n");
+                "          |  |  |  _  |   __|  _  |\r\n"
+                "          |     |     |__   |   __|\r\n"
+                "          |__|__|__|__|_____|__|\r\n"
+                "        Home Automation Switch Plate\r\n");
     char buffer[128];
     snprintf(buffer, sizeof(buffer), PSTR("        Open Hardware edition v%u.%u.%u\r\n"), HASP_VERSION_MAJOR,
              HASP_VERSION_MINOR, HASP_VERSION_REVISION);
@@ -232,8 +234,8 @@ static void debugPrintTimestamp(int level, Print * _logOutput)
          _logOutput->printf(PSTR("%03lu]"), millis() % 1000);
      } else */
     {
-       uint32_t msecs = millis();
-        _logOutput->printf(PSTR("[%16d.%03d]"), msecs/1000, msecs%1000 );
+        uint32_t msecs = millis();
+        _logOutput->printf(PSTR("[%16d.%03d]"), msecs / 1000, msecs % 1000);
     }
 }
 
@@ -334,10 +336,10 @@ void debugPreSetup(JsonObject settings)
     if(baudrate >= 9600u) { /* the baudrates are stored divided by 10 */
 
 #if defined(STM32F4xx)
-    #ifndef STM32_SERIAL1   // Define what Serial port to use for log output
-        Serial.setRx(PA3);  // User Serial2
+#ifndef STM32_SERIAL1      // Define what Serial port to use for log output
+        Serial.setRx(PA3); // User Serial2
         Serial.setTx(PA2);
-    #endif
+#endif
 #endif
         Serial.begin(baudrate); /* prepare for possible serial debug */
         delay(10);
@@ -378,7 +380,26 @@ void debugLvgl(lv_log_level_t level, const char * file, uint32_t line, const cha
 #endif
 
 void debugLoop()
-{}
+{
+   while(Serial.available()) {
+        char ch = Serial.read();
+        Serial.print(ch);
+        if(ch == 13 || ch == 10) {
+            serialInputBuffer[serialInputIndex] = 0;
+            if(serialInputIndex > 0) dispatchCommand(serialInputBuffer);
+            serialInputIndex = 0;
+        } else {
+            if(serialInputIndex < sizeof(serialInputBuffer) - 1) {
+                serialInputBuffer[serialInputIndex++] = ch;
+            }
+            serialInputBuffer[serialInputIndex] = 0;
+            if(strcmp(serialInputBuffer, "jsonl=") == 0) {
+                dispatchJsonl(Serial);
+                serialInputIndex = 0;
+            }
+        }
+    }
+}
 
 /*void printLocalTime()
 {

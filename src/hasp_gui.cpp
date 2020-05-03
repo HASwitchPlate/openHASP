@@ -76,9 +76,6 @@ static uint8_t guiRotation    = TFT_ROTATION;
 static Ticker tick; /* timer for interrupt handler */
 #else
 static Ticker tick(lv_tick_handler,guiTickPeriod);
-uint8_t serialInputIndex   = 0;    // Empty buffer
-char serialInputBuffer[1024];
-
 #endif
 static TFT_eSPI tft; // = TFT_eSPI(); /* TFT instance */
 static uint16_t calData[5] = {0, 65535, 0, 65535, 0};
@@ -817,26 +814,8 @@ void IRAM_ATTR guiLoop()
 {
 #if defined(STM32F4xx)
     tick.update();
-
-        while(Serial.available()) {
-            char ch = Serial.read();
-            Serial.print(ch);
-            if (ch == 13 ||ch == 10) {
-                serialInputBuffer[serialInputIndex] = 0;
-                if (serialInputIndex>0) dispatchCommand(serialInputBuffer);
-                serialInputIndex=0;
-            }else{
-                if(serialInputIndex < sizeof(serialInputBuffer) - 1) {
-                    serialInputBuffer[serialInputIndex++] = ch;
-                }
-                serialInputBuffer[serialInputIndex] = 0;
-                if (strcmp(serialInputBuffer,"jsonl=")==0){
-                    dispatchJsonl(Serial);
-                    serialInputIndex=0;
-                }
-            }
-        }
 #endif
+
     //lv_tick_handler();
     lv_task_handler(); /* let the GUI do its work */
     guiCheckSleep();
