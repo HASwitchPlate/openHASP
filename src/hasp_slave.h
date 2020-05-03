@@ -3,7 +3,7 @@
 
 #include "ArduinoJson.h"
 
-#define HASP_SLAVE_SPEED 38400
+#define HASP_SLAVE_SPEED 57600
 
 void TASMO_EVERY_SECOND(void);
 void TASMO_DATA_RECEIVE(char *data);

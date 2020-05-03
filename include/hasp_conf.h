@@ -48,7 +48,7 @@
 #include "hasp_spiffs.h"
 
 #if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
-#include "lv_zifont.h"
+// #include "lv_zifont.h"
 #endif
 #endif
 
@@ -86,6 +86,10 @@
 
 #if HASP_USE_TASMOTA_SLAVE>0
 #include "hasp_slave.h"
+#endif
+
+#if HASP_USE_ETHERNET>0
+#include "hasp_ethernet.h"
 #endif
 
 #endif

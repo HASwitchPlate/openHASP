@@ -1,7 +1,7 @@
 /*********************
  *      INCLUDES
  *********************/
-#if HASP_USE_SLAVE>0
+#if HASP_USE_TASMOTA_SLAVE>0
 
 #include "hasp_slave.h"
 #include <Arduino.h>
