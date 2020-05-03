@@ -1510,40 +1510,18 @@ void webHandleGpioConfig()
 
     httpMessage += F("<form method='POST' action='/config'>");
 
-    uint16_t baudrate = settings[FPSTR(F_CONFIG_BAUD)].as<uint16_t>();
-    httpMessage += F("<p><b>Serial Port</b> <select id='baud' name='baud'>");
-    httpMessage += getOption(1, F("Disabled"), baudrate == 1); // Don't use 0 here which is default 115200
-    httpMessage += getOption(960, F("9600"), baudrate == 960);
-    httpMessage += getOption(1920, F("19200"), baudrate == 1920);
-    httpMessage += getOption(3840, F("38400"), baudrate == 3840);
-    httpMessage += getOption(5760, F("57600"), baudrate == 5760);
-    httpMessage += getOption(7488, F("74880"), baudrate == 7488);
-    httpMessage += getOption(11520, F("115200"), baudrate == 11520);
-    httpMessage += F("</select></p><p><b>Telemetry Period</b> <i><small>(Seconds, 0=disable)</small></i> "
-                     "<input id='teleperiod' required name='teleperiod' type='number' min='0' max='65535' value='");
-    httpMessage += settings[FPSTR(F_DEBUG_TELEPERIOD)].as<String>();
-    httpMessage += F("'></p>");
+    httpMessage += F("<table><tr><th>Pin</th><th>Type</th><th>Channel</th><th>Normal</th><th>Options</th></tr>");
+    httpMessage += F("<tr><td>D1</td><td>Button</td><td>1</td><td>High</td><td>Options</td><tr>");
+    httpMessage += F("<tr><td>D2</td><td>Switch</td><td>2</td><td>High</td><td>Options</td><tr>");
+    httpMessage += F("<tr><td>D4</td><td>Backligth</td><td>15</td><td>Low</td><td>Options</td><tr>");
 
-    httpMessage += F("<b>Syslog Hostame</b> <i><small>(optional)</small></i><input id='host' "
-                     "name='host' maxlength=31 placeholder='logserver' value='");
-    httpMessage += settings[FPSTR(F_CONFIG_HOST)].as<String>();
-    httpMessage += F("'><br/><b>Syslog Port</b> <i><small>(optional)</small></i> <input id='port' required "
-                     "name='port' type='number' min='0' max='65535' value='");
-    httpMessage += settings[FPSTR(F_CONFIG_PORT)].as<String>();
+for (uint8_t i=0; i<NUM_DIGITAL_PINS; i++) {
+        httpMessage += F("<tr><td>D4</td><td>Backligth</td><td>15</td><td>Low</td><td>Options</td><tr>");
+}
 
-    httpMessage += F("'><b>Syslog Facility</b> <select id='log' name='log'>");
-    uint8_t logid = settings[FPSTR(F_CONFIG_LOG)].as<uint8_t>();
-    for(uint8_t i = 0; i < 8; i++) {
-        httpMessage += getOption(i, String(F("Local")) + i, i == logid);
-    }
+    httpMessage += F("</table>");
 
-    httpMessage += F("</select></br><b>Syslog Protocol</b> <input id='proto' name='proto' type='radio' value='0'");
-    if(settings[FPSTR(F_CONFIG_PROTOCOL)].as<uint8_t>() == 0) httpMessage += F(" checked");
-    httpMessage += F(">IETF (RFC 5424) &nbsp; <input id='proto' name='proto' type='radio' value='1'");
-    if(settings[FPSTR(F_CONFIG_PROTOCOL)].as<uint8_t>() == 1) httpMessage += F(" checked");
-    httpMessage += F(">BSD (RFC 3164)");
-
-    httpMessage += F("</p><p><button type='submit' name='save' value='debug'>Save Settings</button></p></form>");
+//    httpMessage += F("</p><p><button type='submit' name='save' value='debug'>Save Settings</button></p></form>");
 
     httpMessage +=
         PSTR("<p><form method='get' action='/config'><button type='submit'>Configuration</button></form></p>");

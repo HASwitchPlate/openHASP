@@ -16,6 +16,46 @@ uint16_t gpioConfig[HASP_NUM_GPIO_CONFIG];
 using namespace ace_button;
 static AceButton * button[HASP_NUM_INPUTS];
 
+struct hasp_gpio_config_t {
+  const uint8_t pin;
+  const uint8_t group;
+  const uint8_t io_mode;
+  bool default_state;
+};
+
+// An array of button pins, led pins, and the led states. Cannot be const
+// because ledState is mutable.
+ hasp_gpio_config_t  gpioConfig2[HASP_NUM_GPIO_CONFIG] = {
+  {2, 8, INPUT, LOW},
+  {3, 9, OUTPUT, LOW},
+  {4, 10, INPUT, HIGH},
+  {5, 11, OUTPUT, LOW},
+  {6, 12, INPUT, LOW},
+};
+
+#if defined(ARDUINO_ARCH_ESP32)
+class TouchConfig : public ButtonConfig {
+    public:
+    TouchConfig();
+
+  protected:
+    // Number of iterations to sample the capacitive switch. Higher number
+    // provides better smoothing but increases the time taken for a single read.
+    static const uint8_t kSamples = 10;
+
+    // The threshold value which is considered to be a "touch" on the switch.
+    static const long kTouchThreshold = 70;
+
+    int readButton(uint8_t pin) override
+    {
+        // long total =  mSensor.capacitiveSensor(kSamples);
+        return (touchRead(pin) > kTouchThreshold) ? LOW : HIGH;
+    }
+};
+
+TouchConfig touchConfig();
+#endif
+
 static void gpio_event_cb(AceButton * button, uint8_t eventType, uint8_t buttonState)
 {
     char buffer[16];
@@ -73,13 +113,16 @@ void IRAM_ATTR gpioLoop(void)
     }
 }
 
-void gpioAddButton(uint8_t pin, uint8_t input_mode, uint8_t default_state, uint8_t channel)
+void gpioAddButton( uint8_t pin, uint8_t input_mode, uint8_t default_state, uint8_t channel)
 {
+
+
     uint8_t i;
     for(i = 0; i < HASP_NUM_INPUTS; i++) {
 
         if(!button[i]) {
             button[i] = new AceButton(pin, default_state, channel);
+            // button[i]->init(pin, default_state, channel);
 
             if(button[i]) {
                 pinMode(pin, input_mode);
@@ -90,9 +133,42 @@ void gpioAddButton(uint8_t pin, uint8_t input_mode, uint8_t default_state, uint8
                 buttonConfig->clearFeature(ButtonConfig::kFeatureDoubleClick);
                 buttonConfig->setFeature(ButtonConfig::kFeatureLongPress);
                 buttonConfig->clearFeature(ButtonConfig::kFeatureRepeatPress);
-                buttonConfig->clearFeature(ButtonConfig::kFeatureSuppressClickBeforeDoubleClick); // Causes annoying pauses
+                buttonConfig->clearFeature(
+                    ButtonConfig::kFeatureSuppressClickBeforeDoubleClick); // Causes annoying pauses
 
-                Log.verbose(F("GPIO: Button%d created on pin %d (channel %d) mode %d default %d"), i, pin, channel, input_mode,default_state);
+                Log.verbose(F("GPIO: Button%d created on pin %d (channel %d) mode %d default %d"), i, pin, channel,
+                            input_mode, default_state);
+                gpioUsedInputCount = i + 1;
+                return;
+            }
+        }
+    }
+    Log.error(F("GPIO: Failed to create Button%d pin %d (channel %d). All %d slots available are in use!"), i, pin,
+              channel, HASP_NUM_INPUTS);
+}
+
+void gpioAddTouchButton( uint8_t pin, uint8_t input_mode, uint8_t default_state, uint8_t channel)
+{
+    uint8_t i;
+    for(i = 0; i < HASP_NUM_INPUTS; i++) {
+
+        if(!button[i]) {
+            button[i] = new AceButton();
+
+            if(button[i]) {
+                pinMode(pin, input_mode);
+
+                ButtonConfig * buttonConfig = button[i]->getButtonConfig();
+                buttonConfig->setEventHandler(gpio_event_cb);
+                buttonConfig->setFeature(ButtonConfig::kFeatureClick);
+                buttonConfig->clearFeature(ButtonConfig::kFeatureDoubleClick);
+                buttonConfig->setFeature(ButtonConfig::kFeatureLongPress);
+                buttonConfig->clearFeature(ButtonConfig::kFeatureRepeatPress);
+                buttonConfig->clearFeature(
+                    ButtonConfig::kFeatureSuppressClickBeforeDoubleClick); // Causes annoying pauses
+
+                Log.verbose(F("GPIO: Button%d created on pin %d (channel %d) mode %d default %d"), i, pin, channel,
+                            input_mode, default_state);
                 gpioUsedInputCount = i + 1;
                 return;
             }
@@ -106,18 +182,24 @@ void gpioSetup()
 {
     aceButtonSetup();
 
-    //gpioConfig[0] = PD15 * 256 + 5 + (INPUT << 3);
+    // gpioConfig[0] = PD15 * 256 + 5 + (INPUT << 3);
 #if defined(ARDUINO_ARCH_ESP8266)
-    gpioAddButton(D2, INPUT_PULLUP, HIGH, 1);
+    gpioAddButton( D2, INPUT_PULLUP, HIGH, 1);
+    pinMode(D1, OUTPUT);
+#endif
+
+#if defined(ARDUINO_ARCH_ESP32)
+    gpioAddButton( D2, INPUT, HIGH, 1);
     pinMode(D1, OUTPUT);
 #endif
 
     for(uint8_t i = 0; i < HASP_NUM_GPIO_CONFIG; i++) {
         uint8_t pin           = (gpioConfig[i] >> 8) & 0xFF;
-        uint8_t channel       = gpioConfig[i] & 0b111;         // 3bit
+        uint8_t channel       = gpioConfig[i] & 0b111;        // 3bit
         uint8_t input_mode    = (gpioConfig[i] >> 3) & 0b11;   // 2bit gpio mode
-        uint8_t gpiotype      = (gpioConfig[i] >> 5) & 0b111;  // 3bit
-        uint8_t default_state = gpioConfig[i] & 0b1;           // 1bit: 0=LOW, 1=HIGH
+        //uint8_t input_mode    = gpioConfig[i].io_mode
+        uint8_t gpiotype      = (gpioConfig[i] >> 5) & 0b111; // 3bit
+        uint8_t default_state = gpioConfig[i] & 0b1;          // 1bit: 0=LOW, 1=HIGH
 
         switch(input_mode) {
             case 1:
@@ -138,7 +220,7 @@ void gpioSetup()
         switch(gpiotype) {
             case HASP_GPIO_SWITCH:
             case HASP_GPIO_BUTTON:
-               // gpioAddButton(pin, input_mode, default_state, channel);
+                // gpioAddButton(gpioConfig[i].io_mode.pin, input_mode, gpioConfig[i].default_state, gpioConfig[i].group);
                 break;
 
             case HASP_GPIO_RELAY:
