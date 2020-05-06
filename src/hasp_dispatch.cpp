@@ -161,14 +161,13 @@ void dispatchDim(String strDimLevel)
     // Set the current state
     if(strDimLevel.length() != 0) guiSetDim(strDimLevel.toInt());
     dispatchPrintln(F("DIM"), strDimLevel);
+    char buffer[8];
 
 #if HASP_USE_MQTT > 0
-    char buffer[8];
     itoa(guiGetDim(), buffer, DEC);
     mqtt_send_state(F("dim"), buffer);
 #endif
 #if HASP_USE_TASMOTA_SLAVE > 0
-    char buffer[8];
     itoa(guiGetDim(), buffer, DEC);
     slave_send_state(F("dim"), buffer);
 #endif

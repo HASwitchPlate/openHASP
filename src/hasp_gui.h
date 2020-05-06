@@ -6,15 +6,17 @@
 
 #include "lvgl.h"
 
-#if defined(ARDUINO_ARCH_ESP8266)
-#include <ESP8266WebServer.h>
-void guiTakeScreenshot(ESP8266WebServer & client);
-#endif
+// #if defined(ARDUINO_ARCH_ESP8266)
+// #include <ESP8266WebServer.h>
+// void guiTakeScreenshot(ESP8266WebServer & client);
+// #endif
 
-#if defined(ARDUINO_ARCH_ESP32)
-#include <WebServer.h>
-void guiTakeScreenshot(WebServer & client);
-#endif // ESP32
+// #if defined(ARDUINO_ARCH_ESP32)
+// #include <WebServer.h>
+// void guiTakeScreenshot(WebServer & client);
+// #endif // ESP32
+
+void guiTakeScreenshot();
 
 void guiSetup();
 void guiLoop(void);

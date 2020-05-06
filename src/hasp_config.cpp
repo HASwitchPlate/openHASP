@@ -206,6 +206,7 @@ void configWriteConfig()
         Log.verbose(F("WIFI: Settings changed"));
         writefile = true;
     }
+#endif
 #if HASP_USE_MQTT
     if(settings[F("mqtt")].as<JsonObject>().isNull()) settings.createNestedObject(F("mqtt"));
     changed = mqttGetConfig(settings[F("mqtt")]);
@@ -240,7 +241,6 @@ void configWriteConfig()
         configOutput(settings[F("http")]);
         writefile = true;
     }
-#endif
 #endif
 
     if(settings[F("debug")].as<JsonObject>().isNull()) settings.createNestedObject(F("debug"));
@@ -350,6 +350,7 @@ void configSetup()
 #if HASP_USE_WIFI
         Log.verbose(F("Loading WiFi settings"));
         wifiSetConfig(settings[F("wifi")]);
+#endif
 #if HASP_USE_MQTT
         Log.verbose(F("Loading MQTT settings"));
         mqttSetConfig(settings[F("mqtt")]);
@@ -366,8 +367,7 @@ void configSetup()
         Log.verbose(F("Loading HTTP settings"));
         httpSetConfig(settings[F("http")]);
 #endif
-#endif // Wifi
-       //        }
+        //        }
         Log.notice(F("User configuration loaded"));
     }
     //#endif

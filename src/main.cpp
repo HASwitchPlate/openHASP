@@ -9,6 +9,10 @@
 #include "hasp_oobe.h"
 #include "hasp_gpio.h"
 
+#if HASP_USE_ETHERNET > 0
+#include <STM32Ethernet.h>
+#endif
+
 bool isConnected;
 uint8_t mainLoopCounter        = 0;
 unsigned long mainLastLoopTime = 0;
@@ -42,31 +46,18 @@ void setup()
      * Apply User Configuration
      ***************************/
     debugSetup();
-    gpioSetup();
 
 #if HASP_USE_GPIO
-    guiSetup();
+    gpioSetup();
 #endif
 
 #if HASP_USE_WIFI
     wifiSetup();
 #endif
+
+    guiSetup();
     oobeSetup();
     haspSetup();
-
-#if HASP_USE_WIFI
-
-#if HASP_USE_HTTP
-    httpSetup();
-#endif
-
-#if HASP_USE_MQTT
-    mqttSetup();
-#endif
-
-#if HASP_USE_TELNET
-    telnetSetup();
-#endif
 
 #if HASP_USE_MDNS
     mdnsSetup();
@@ -76,10 +67,20 @@ void setup()
     otaSetup();
 #endif
 
-#endif // WIFI
-
-#if HASP_USE_ETHERNET
+#if HASP_USE_ETHERNET > 0
     ethernetSetup();
+#endif
+
+#if HASP_USE_MQTT
+    mqttSetup();
+#endif
+
+#if HASP_USE_HTTP
+    httpSetup();
+#endif
+
+#if HASP_USE_TELNET > 0
+    telnetSetup();
 #endif
 
 #if HASP_USE_TASMOTA_SLAVE
@@ -92,21 +93,21 @@ void setup()
 void loop()
 {
     /* Storage Loops */
-/*
-#if HASP_USE_EEPROM
-    // eepromLoop(); // Not used
-#endif
+    /*
+    #if HASP_USE_EEPROM
+        // eepromLoop(); // Not used
+    #endif
 
-#if HASP_USE_SPIFFS
-    // spiffsLoop(); // Not used
-#endif
+    #if HASP_USE_SPIFFS
+        // spiffsLoop(); // Not used
+    #endif
 
-#if HASP_USE_SDCARD
-    // sdcardLoop(); // Not used
-#endif
+    #if HASP_USE_SDCARD
+        // sdcardLoop(); // Not used
+    #endif
 
-    // configLoop();  // Not used
-*/
+        // configLoop();  // Not used
+    */
 
     /* Graphics Loops */
     // tftLoop();
@@ -120,7 +121,9 @@ void loop()
 #endif
 
     /* Network Services Loops */
-#if HASP_USE_WIFI
+#if HASP_USE_ETHERNET > 0
+    ethernetLoop();
+#endif
 
 #if HASP_USE_MQTT
     mqttLoop();
@@ -130,10 +133,6 @@ void loop()
     httpLoop();
 #endif // HTTP
 
-#if HASP_USE_TELNET
-    telnetLoop();
-#endif // TELNET
-
 #if HASP_USE_MDNS
     mdnsLoop();
 #endif // MDNS
@@ -142,11 +141,9 @@ void loop()
     otaLoop();
 #endif // OTA
 
-#endif // WIFI
-
-#if HASP_USE_ETHERNET
-    ethernetLoop();
-#endif
+#if HASP_USE_TELNET > 0
+    telnetLoop();
+#endif // TELNET
 
 #if HASP_USE_TASMOTA_SLAVE
     slaveLoop();
@@ -163,17 +160,24 @@ void loop()
         debugEverySecond();
 
         /* Run Every 5 Seconds */
-#if HASP_USE_WIFI
         if(mainLoopCounter == 0 || mainLoopCounter == 5) {
+#if HASP_USE_WIFI > 0
             isConnected = wifiEvery5Seconds();
-#if HASP_USE_HTTP
+#endif
+
+#if HASP_USE_ETHERNET > 0
+            isConnected = Ethernet.linkStatus() == LinkON;
+            Serial.print(Ethernet.linkStatus());
+#endif
+
+#if HASP_USE_HTTP > 0
             httpEvery5Seconds();
 #endif
-#if HASP_USE_MQTT
+
+#if HASP_USE_MQTT > 0
             mqttEvery5Seconds(isConnected);
 #endif
         }
-#endif // Wifi
 
         /* Reset loop counter every 10 seconds */
         if(mainLoopCounter >= 9) {

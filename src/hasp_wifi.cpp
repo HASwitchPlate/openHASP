@@ -41,22 +41,6 @@ uint8_t wifiReconnectCounter = 0;
 // const byte DNS_PORT = 53;
 // DNSServer dnsServer;
 
-String wifiGetMacAddress(int start, const char * seperator)
-{
-    byte mac[6];
-    WiFi.macAddress(mac);
-    String cMac((char *)0);
-    cMac.reserve(32);
-
-    for(int i = start; i < 6; ++i) {
-        if(mac[i] < 0x10) cMac += "0";
-        cMac += String(mac[i], HEX);
-        if(i < 5) cMac += seperator;
-    }
-    cMac.toUpperCase();
-    return cMac;
-}
-
 void wifiConnected(IPAddress ipaddress)
 {
     Log.notice(F("WIFI: Received IP address %s"), ipaddress.toString().c_str());
