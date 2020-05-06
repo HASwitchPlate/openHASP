@@ -91,7 +91,7 @@ static int numCharCountBits(enum qrcodegen_Mode mode, int version);
 
 // The set of all legal characters in alphanumeric mode, where each character
 // value maps to the index in the string. For checking text and encoding segments.
-static const char ALPHANUMERIC_CHARSET[] PROGMEM = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ $%*+-./:";
+static const char ALPHANUMERIC_CHARSET[] PROGMEM = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ $%%*+-./:";
 
 // For generating error correction codes.
 testable const int8_t ECC_CODEWORDS_PER_BLOCK[4][41] PROGMEM = {
@@ -784,7 +784,7 @@ static bool getBit(int x, int i)
 // Public function - see documentation comment in header file.
 bool qrcodegen_isAlphanumeric(const char * text)
 {
-    char buffer[128];
+    char buffer[64];
     snprintf_P(buffer, sizeof(buffer), ALPHANUMERIC_CHARSET);
 
     assert(text != NULL);
@@ -895,7 +895,7 @@ struct qrcodegen_Segment qrcodegen_makeNumeric(const char * digits, uint8_t buf[
 // Public function - see documentation comment in header file.
 struct qrcodegen_Segment qrcodegen_makeAlphanumeric(const char * text, uint8_t buf[])
 {
-    char buffer[128];
+    char buffer[64];
     snprintf_P(buffer, sizeof(buffer), ALPHANUMERIC_CHARSET);
 
     assert(text != NULL);

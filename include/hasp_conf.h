@@ -1,31 +1,153 @@
-#pragma once
+#ifndef HASP_CONF_H
+#define HASP_CONF_H
 
 #define HASP_VERSION_MAJOR 0
-#define HASP_VERSION_MINOR 0
-#define HASP_VERSION_REVISION 11
+#define HASP_VERSION_MINOR 1
+#define HASP_VERSION_REVISION 0
 
 #define HASP_USE_APP 1
 
-#define HASP_USE_WIFI 1
+/* Network Services */
+#define HASP_HAS_NETWORK (ARDUINO_ARCH_ESP32 > 0 || ARDUINO_ARCH_ESP8266 > 0)
+
+#ifndef HASP_USE_OTA
+#define HASP_USE_OTA (HASP_HAS_NETWORK)
+#endif
+
+#ifndef HASP_USE_WIFI
+#define HASP_USE_WIFI (HASP_HAS_NETWORK)
+#endif
+
+#ifndef HASP_USE_ETHERNET
+#define HASP_USE_ETHERNET 0
+#endif
+
+#ifndef HASP_USE_MQTT
 #define HASP_USE_MQTT 1
+#endif
+
+#ifndef HASP_USE_HTTP
 #define HASP_USE_HTTP 1
-#define HASP_USE_MDNS 1
-#define HASP_USE_SYSLOG 1
-#define HASP_USE_TELNET 1
+#endif
 
-#define HASP_USE_SPIFFS 1
-#define HASP_USE_EEPROM 0
+#ifndef HASP_USE_MDNS
+#define HASP_USE_MDNS (HASP_HAS_NETWORK)
+#endif
+
+#ifndef HASP_USE_SYSLOG
+#define HASP_USE_SYSLOG (HASP_HAS_NETWORK)
+#endif
+
+#ifndef HASP_USE_TELNET
+#define HASP_USE_TELNET 0
+#endif
+
+/* Filesystem */
+#define HASP_HAS_FILESYSTEM (ARDUINO_ARCH_ESP32 > 0 || ARDUINO_ARCH_ESP8266 > 0)
+
+#ifndef HASP_USE_SPIFFS
+#define HASP_USE_SPIFFS (HASP_HAS_FILESYSTEM)
+#endif
+
+#ifndef HASP_USE_EEPROM
+#define HASP_USE_EEPROM 1
+#endif
+
+#ifndef HASP_USE_SDCARD
 #define HASP_USE_SDCARD 0
+#endif
 
-#define HASP_USE_BUTTON 1
+#ifndef HASP_USE_GPIO
+#define HASP_USE_GPIO 1
+#endif
 
+#ifndef HASP_USE_QRCODE
 #define HASP_USE_QRCODE 1
+#endif
+
+#ifndef HASP_USE_PNGDECODE
 #define HASP_USE_PNGDECODE 0
+#endif
 
+#ifndef HASP_NUM_INPUTS
 #define HASP_NUM_INPUTS 3 // Buttons
+#endif
+
+#ifndef HASP_NUM_OUTPUTS
 #define HASP_NUM_OUTPUTS 3
+#endif
 
-//#define LV_DEMO_WALLPAPER 0 /*Create a wallpaper too*/
+#ifndef HASP_NUM_PAGES
+#if defined(ARDUINO_ARCH_ESP8266)
+#define HASP_NUM_PAGES 4
+#else
+#define HASP_NUM_PAGES 12
+#endif
+#endif
 
-//#define LV_HASP_HOR_RES_MAX 128
-//#define LV_HASP_VER_RES_MAX 160
+/* Includes */
+#if HASP_USE_SPIFFS > 0
+#if defined(ARDUINO_ARCH_ESP32)
+#include "SPIFFS.h"
+#endif
+#include <FS.h> // Include the SPIFFS library
+#include "hasp_spiffs.h"
+
+#if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
+#include "lv_zifont.h"
+#endif
+#endif // SPIFFS
+
+#if HASP_USE_EEPROM > 0
+#include "hasp_eeprom.h"
+#endif
+
+#if HASP_USE_WIFI > 0
+#include "hasp_wifi.h"
+#endif
+
+#if HASP_USE_ETHERNET>0
+#include "hasp_ethernet.h"
+#endif
+
+#if HASP_USE_MQTT > 0
+#include "hasp_mqtt.h"
+#endif
+
+#if HASP_USE_HTTP > 0
+#include "hasp_http.h"
+#endif
+
+#if HASP_USE_TELNET > 0
+#include "hasp_telnet.h"
+#endif
+
+#if HASP_USE_MDNS > 0
+#include "hasp_mdns.h"
+#endif
+
+#if HASP_USE_BUTTON > 0
+#include "hasp_button.h"
+#endif
+
+#if HASP_USE_OTA > 0
+#include "hasp_ota.h"
+#endif
+
+#if HASP_USE_TASMOTA_SLAVE > 0
+#include "hasp_slave.h"
+#endif
+
+#if HASP_USE_ETHERNET > 0
+#include "hasp_ethernet.h"
+#endif
+
+#ifndef FPSTR
+#define FPSTR(pstr_pointer) (reinterpret_cast<const __FlashStringHelper *>(pstr_pointer))
+#endif
+
+#ifndef PGM_P
+#define PGM_P const char *
+#endif
+
+#endif // HASP_CONF_H

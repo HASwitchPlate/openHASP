@@ -10,7 +10,7 @@
 
 #include "lvgl.h"
 #include "lv_zifont.h"
-#include "../src/hasp_log.h"
+#include "ArduinoLog.h"
 
 /*********************
  *      DEFINES
@@ -29,32 +29,7 @@ enum zifont_error_t {
     ZIFONT_ERROR_UNKNOWN_HEADER
 };
 
-enum zifont_codepage_t8_t {
-    ASCII = 0x01,
-    // GB2312     = 0x02,
-    ISO_8859_1 = 0x03,
-    /*   ISO_8859_2     = 0x04,
-       ISO_8859_3     = 0x05,
-       ISO_8859_4     = 0x06,
-       ISO_8859_5     = 0x07,
-       ISO_8859_6     = 0x08,
-       ISO_8859_7     = 0x09,
-       ISO_8859_8     = 0x0A,
-       ISO_8859_9     = 0x0B,
-       ISO_8859_13    = 0x0C,
-       ISO_8859_15    = 0x0D,
-       ISO_8859_11    = 0x0E,
-       KS_C_5601_1987 = 0x0F,
-       BIG5           = 0x10,
-       WINDOWS_1255   = 0x11,
-       WINDOWS_1256   = 0x12,
-       WINDOWS_1257   = 0x13,
-       WINDOWS_1258   = 0x14,
-       WINDOWS_874    = 0x15,
-       KOI8_R         = 0x16,
-       SHIFT_JIS      = 0x17,*/
-    UTF_8 = 0x18
-};
+enum zifont_codepage_t8_t { ASCII = 0x01, ISO_8859_1 = 0x03, UTF_8 = 0x18 };
 
 /**********************
  *  STATIC PROTOTYPES
@@ -87,9 +62,9 @@ static uint8_t * charBitmap_p;
  *   GLOBAL FUNCTIONS
  **********************/
 
-void printBuffer(uint8_t * charBitmap_p, uint8_t w, uint8_t h);
-void colorsAdd(uint8_t * charBitmap_p, uint8_t color1, uint16_t pos);
-uint16_t unicode2codepoint(uint32_t unicode, uint8_t codepage);
+static void colorsAdd(uint8_t * charBitmap_p, uint8_t color1, uint16_t pos);
+// static uint16_t unicode2codepoint(uint32_t unicode, uint8_t codepage);
+// static void printBuffer(uint8_t * charBitmap_p, uint8_t w, uint8_t h);
 
 int lv_zifont_init(void)
 {
@@ -97,45 +72,52 @@ int lv_zifont_init(void)
     return LV_RES_OK; // OK
 }
 
-bool openFont(File & file, const char * filename)
+static inline bool openFont(File & file, const char * filename)
 {
+    if(*filename != '/') return false;
+
     file = SPIFFS.open(filename, "r");
     if(!file) {
-        String error = String(F("FONT: %sOpening font: "));
-        error += String(filename);
-        errorPrintln(error);
-        return false;
+        // Log.error(F("FONT: %sOpening font: %s"), filename);
+        // return false;
     }
-    return true;
+    return file;
 }
 
-void initCharacterFrame(size_t size)
+static inline void initCharacterFrame(size_t size)
 {
     if(size > lv_mem_get_size(charBitmap_p)) {
         if(charBitmap_p) lv_mem_free(charBitmap_p);
         charBitmap_p = (uint8_t *)lv_mem_alloc(size);
     }
-    memset(charBitmap_p, 0, size); // init the bitmap to white}
+    memset(charBitmap_p, 0, size); // init the bitmap to white
 }
 
 int lv_zifont_font_init(lv_font_t ** font, const char * font_path, uint16_t size)
 {
     charInBuffer = 0; // invalidate any previous cache
 
-    if(!*font) *font = (lv_font_t *)lv_mem_alloc(sizeof(lv_font_t));
-    LV_ASSERT_MEM(*font);
+    if(!*font) {
+        *font = (lv_font_t *)lv_mem_alloc(sizeof(lv_font_t));
+        LV_ASSERT_MEM(*font);
+        lv_memset(*font, 0x00, sizeof(lv_font_t)); // lv_mem_alloc might be dirty
+    }
 
     lv_font_fmt_zifont_dsc_t * dsc;
     if(!(*font)->dsc) {
         dsc = (lv_font_fmt_zifont_dsc_t *)lv_mem_alloc(sizeof(lv_font_fmt_zifont_dsc_t));
         LV_ASSERT_MEM(dsc);
+        lv_memset(dsc, 0x00, sizeof(lv_font_fmt_zifont_dsc_t)); // lv_mem_alloc might be dirty
     } else {
         dsc = (lv_font_fmt_zifont_dsc_t *)(*font)->dsc;
     }
-    if(dsc == NULL) return ZIFONT_ERROR_OUT_OF_MEMORY;
+    LV_ASSERT_MEM(dsc);
+    if(!dsc) return ZIFONT_ERROR_OUT_OF_MEMORY;
 
     /* Initialize Last Glyph DSC */
     dsc->last_glyph_dsc = (lv_zifont_char_t *)lv_mem_alloc(sizeof(lv_zifont_char_t));
+    lv_memset(dsc->last_glyph_dsc, 0x00, sizeof(lv_zifont_char_t)); // lv_mem_alloc might be dirty
+
     if(dsc->last_glyph_dsc == NULL) return ZIFONT_ERROR_OUT_OF_MEMORY;
     dsc->last_glyph_dsc->width = 0;
     dsc->last_glyph_id         = 0;
@@ -150,14 +132,14 @@ int lv_zifont_font_init(lv_font_t ** font, const char * font_path, uint16_t size
 
     /* Check that we read the correct size */
     if(readSize != sizeof(zi_font_header_t)) {
-        debugPrintln(PSTR("FONT: Error reading ziFont Header"));
+        Log.error(F("FONT: Error reading ziFont Header"));
         file.close();
         return ZIFONT_ERROR_READING_DATA;
     }
 
     /* Check ziFile Header Format */
     if(header.Password != 4 || header.Version != 5) {
-        debugPrintln(PSTR("FONT: Unknown font file format"));
+        Log.error(F("FONT: Unknown font file format"));
         file.close();
         return ZIFONT_ERROR_UNKNOWN_HEADER;
     }
@@ -173,6 +155,8 @@ int lv_zifont_font_init(lv_font_t ** font, const char * font_path, uint16_t size
     if(!dsc->ascii_glyph_dsc) {
         dsc->ascii_glyph_dsc = (lv_zifont_char_t *)lv_mem_alloc(sizeof(lv_zifont_char_t) * CHAR_CACHE_SIZE);
         LV_ASSERT_MEM(dsc->ascii_glyph_dsc);
+        lv_memset(dsc->ascii_glyph_dsc, 0x00,
+                  sizeof(lv_zifont_char_t) * CHAR_CACHE_SIZE); // lv_mem_alloc might be dirty
     }
     if(dsc->ascii_glyph_dsc == NULL) {
         file.close();
@@ -186,15 +170,13 @@ int lv_zifont_font_init(lv_font_t ** font, const char * font_path, uint16_t size
 
     //* Check that we read the correct size
     if(readSize != sizeof(lv_zifont_char_t) * CHAR_CACHE_SIZE) {
-        debugPrintln(PSTR("FONT: Error reading ziFont character map"));
+        Log.error(F("FONT: Error reading ziFont character map"));
         file.close();
         return ZIFONT_ERROR_READING_DATA;
     }
 
-    char msg[128];
-    sprintf_P(msg, PSTR("FONT: Loaded V%d Font File: %s containing %d characters"), header.Version, font_path,
-              header.Maximumnumchars);
-    debugPrintln(msg);
+    Log.notice(F("FONT: Loaded V%d Font File: %s containing %d characters"), header.Version, font_path,
+               header.Maximumnumchars);
 
     file.close();
 
@@ -229,6 +211,7 @@ int lv_zifont_font_init(lv_font_t ** font, const char * font_path, uint16_t size
         if((*font)->user_data) free((*font)->user_data);
         (*font)->user_data = (char *)font_path;
     }
+
     return ZIFONT_NO_ERROR;
 }
 
@@ -242,7 +225,7 @@ int lv_zifont_font_init(lv_font_t ** font, const char * font_path, uint16_t size
  * @param unicode_letter an unicode letter which bitmap should be get
  * @return pointer to the bitmap or NULL if not found
  */
-const uint8_t * lv_font_get_bitmap_fmt_zifont(const lv_font_t * font, uint32_t unicode_letter)
+const uint8_t * IRAM_ATTR lv_font_get_bitmap_fmt_zifont(const lv_font_t * font, uint32_t unicode_letter)
 {
     /* Bitmap still in buffer */
     if(charInBuffer == unicode_letter && charBitmap_p) {
@@ -259,6 +242,7 @@ const uint8_t * lv_font_get_bitmap_fmt_zifont(const lv_font_t * font, uint32_t u
         charInfo    = &fdsc->ascii_glyph_dsc[0];
         size_t size = (charInfo->width * fdsc->CharHeight + 1) / 2; // add 1 for rounding up
         initCharacterFrame(size);
+        charInBuffer = unicode_letter;
         return charBitmap_p;
     }
 
@@ -286,7 +270,8 @@ const uint8_t * lv_font_get_bitmap_fmt_zifont(const lv_font_t * font, uint32_t u
     } else {
         Serial.print("%");
         /* Read Character Table */
-        charInfo               = (lv_zifont_char_t *)lv_mem_alloc(sizeof(lv_zifont_char_t));
+        charInfo = (lv_zifont_char_t *)lv_mem_alloc(sizeof(lv_zifont_char_t));
+        // lv_memset(charInfo, 0x00, sizeof(lv_zifont_char_t)); // lv_mem_alloc might be dirty
         uint32_t char_position = glyphID * sizeof(lv_zifont_char_t) + charmap_position;
         file.seek(char_position, SeekSet);
         size_t readSize = file.readBytes((char *)charInfo, sizeof(lv_zifont_char_t));
@@ -295,7 +280,7 @@ const uint8_t * lv_font_get_bitmap_fmt_zifont(const lv_font_t * font, uint32_t u
         if(readSize != sizeof(lv_zifont_char_t)) {
             file.close();
             lv_mem_free(charInfo);
-            debugPrintln(PSTR("FONT: [ERROR] Wrong number of bytes read from flash"));
+            Log.error(F("FONT: Wrong number of bytes read from flash"));
             return NULL;
         }
 
@@ -303,7 +288,7 @@ const uint8_t * lv_font_get_bitmap_fmt_zifont(const lv_font_t * font, uint32_t u
         if(charInfo->character != unicode_letter) {
             file.close();
             lv_mem_free(charInfo);
-            debugPrintln(PSTR("FONT: [ERROR] Incorrect letter read from flash"));
+            Log.error(F("FONT: Incorrect letter read from flash"));
             return NULL;
         }
     }
@@ -347,7 +332,7 @@ const uint8_t * lv_font_get_bitmap_fmt_zifont(const lv_font_t * font, uint32_t u
 
     // while((fileindex < charInfo->length) && len > 0) { //} && !feof(file)) {
     while(arrindex < size && len > 0) { // read untill the bitmap is full, no need for datalength
-        if(sizeof(data) < charInfo->length - fileindex) {
+        if((int32_t)sizeof(data) < charInfo->length - fileindex) {
             len = file.readBytes(data, sizeof(data));
         } else {
             len = file.readBytes(data, charInfo->length - fileindex);
@@ -509,7 +494,7 @@ bool IRAM_ATTR lv_font_get_glyph_dsc_fmt_zifont(const lv_font_t * font, lv_font_
     return true;
 }
 
-void colorsAdd(uint8_t * charBitmap_p, uint8_t color1, uint16_t pos)
+static void IRAM_ATTR colorsAdd(uint8_t * charBitmap_p, uint8_t color1, uint16_t pos)
 {
     uint16_t map_p = pos >> 1; // devide by 2
     uint8_t col    = pos % 2;  // remainder

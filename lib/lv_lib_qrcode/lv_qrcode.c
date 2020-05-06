@@ -7,7 +7,7 @@
  *      INCLUDES
  *********************/
 #include "lvgl.h"
-#include "lv_objx/lv_canvas.h"
+#include "lv_widgets/lv_canvas.h"
 #include "lv_qrcode.h"
 #include "qrcodegen.h"
 
@@ -71,7 +71,7 @@ lv_res_t lv_qrcode_update(lv_obj_t * qrcode, const void * data, uint32_t data_le
 {
     lv_color_t c;
     c.full = 1;
-    lv_canvas_fill_bg(qrcode, c);
+    lv_canvas_fill_bg(qrcode, c, 0);
     // lv_canvas_zoom();
 
     if(data_len > qrcodegen_BUFFER_LEN_MAX) return LV_RES_INV;

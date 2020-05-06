@@ -1,13 +1,11 @@
 #include <Arduino.h>
 #include "ArduinoJson.h"
+#include "ArduinoLog.h"
 
 #include "hasp_conf.h"
 
-#include "hasp_wifi.h"
-#include "hasp_mqtt.h"
-#include "hasp_http.h"
-#include "hasp_mdns.h"
-#include "hasp_log.h"
+#if HASP_USE_WIFI>0
+
 #include "hasp_debug.h"
 #include "hasp_config.h"
 #include "hasp_dispatch.h"
@@ -16,7 +14,7 @@
 
 #if defined(ARDUINO_ARCH_ESP32)
 #include <Wifi.h>
-#else
+#elif defined(ARDUINO_ARCH_ESP8266)
 #include <ESP8266WiFi.h>
 
 static WiFiEventHandler gotIpEventHandler, disconnectedEventHandler;
@@ -43,57 +41,32 @@ uint8_t wifiReconnectCounter = 0;
 // const byte DNS_PORT = 53;
 // DNSServer dnsServer;
 
-String wifiGetMacAddress(int start, const char * seperator)
-{
-    byte mac[6];
-    WiFi.macAddress(mac);
-    String cMac((char *)0);
-    cMac.reserve(128);
-
-    for(int i = start; i < 6; ++i) {
-        if(mac[i] < 0x10) cMac += "0";
-        cMac += String(mac[i], HEX);
-        if(i < 5) cMac += seperator;
-    }
-    cMac.toUpperCase();
-    return cMac;
-}
-
 void wifiConnected(IPAddress ipaddress)
 {
-    bool isConnected = WiFi.status() == WL_CONNECTED;
-    char buffer[128];
-    snprintf_P(buffer, sizeof(buffer), PSTR("WIFI: Received IP address %s"), ipaddress.toString().c_str());
-    debugPrintln(buffer);
-    snprintf_P(buffer, sizeof(buffer), PSTR("WIFI: Connected = %s"), isConnected ? PSTR("yes") : PSTR("no"));
-    debugPrintln(buffer);
+    Log.notice(F("WIFI: Received IP address %s"), ipaddress.toString().c_str());
+    Log.verbose(F("WIFI: Connected = %s"), WiFi.status() == WL_CONNECTED ? PSTR("yes") : PSTR("no"));
 
-    if(isConnected) {
-        /*    mqttReconnect();
-            haspReconnect();*/
-        httpReconnect();
-        // mdnsStart();
-    }
+    // if(isConnected) {
+    // mqttReconnect();
+    // haspReconnect();
+    // httpReconnect();
+    // mdnsStart();
+    //}
 }
 
 void wifiDisconnected(const char * ssid, uint8_t reason)
 {
-    char buffer[128];
     wifiReconnectCounter++;
     if(wifiReconnectCounter > 45) {
-        snprintf_P(buffer, sizeof(buffer), PSTR("WIFI: %%s Retries exceed %u: Rebooting..."), wifiReconnectCounter);
-        errorPrintln(buffer);
+        Log.error(F("WIFI: Retries exceed %u: Rebooting..."), wifiReconnectCounter);
         dispatchReboot(false);
     }
-    snprintf_P(buffer, sizeof(buffer), PSTR("WIFI: Disconnected from %s (Reason: %d)"), ssid, reason);
-    debugPrintln(buffer);
+    Log.warning(F("WIFI: Disconnected from %s (Reason: %d)"), ssid, reason);
 }
 
 void wifiSsidConnected(const char * ssid)
 {
-    char buffer[128];
-    snprintf_P(buffer, sizeof(buffer), PSTR("WIFI: Connected to SSID %s. Requesting IP..."), ssid);
-    debugPrintln(buffer);
+    Log.notice(F("WIFI: Connected to SSID %s. Requesting IP..."), ssid);
     wifiReconnectCounter = 0;
 }
 
@@ -136,36 +109,39 @@ void wifiSTADisconnected(WiFiEventStationModeDisconnected info)
 }
 #endif
 
-void wifiSetup(JsonObject settings)
+bool wifiShowAP()
 {
-    char buffer[128];
+    return (strlen(wifiSsid) == 0);
+}
 
-    wifiSetConfig(settings);
+bool wifiShowAP(char * ssid, char * pass)
+{
+    if(strlen(wifiSsid) != 0) return false;
 
-    if(strlen(wifiSsid) == 0) {
-        String apSsdid = F("HASP-");
-        apSsdid += wifiGetMacAddress(3, "");
-        snprintf_P(buffer, sizeof(buffer), PSTR("haspadmin"));
+    byte mac[6];
+    WiFi.macAddress(mac);
+    sprintf_P(ssid, PSTR("HASP-%02x%02x%02x"), mac[3], mac[4], mac[5]);
+    sprintf_P(pass, PSTR("haspadmin"));
 
-        WiFi.mode(WIFI_AP);
-        WiFi.softAP(apSsdid.c_str(), buffer);
-        // haspDisplayAP(apSsdid.c_str(), buffer);
+    WiFi.softAP(ssid, pass);
 
-        /* Setup the DNS server redirecting all the domains to the apIP */
-        // dnsServer.setErrorReplyCode(DNSReplyCode::NoError);
-        // dnsServer.start(DNS_PORT, "*", apIP);
+    /* Setup the DNS server redirecting all the domains to the apIP */
+    // dnsServer.setErrorReplyCode(DNSReplyCode::NoError);
+    // dnsServer.start(DNS_PORT, "*", apIP);
 
-        IPAddress IP = WiFi.softAPIP();
-        sprintf_P(buffer, PSTR("WIFI: Temporary Access Point %s password: %s"), apSsdid.c_str(), PSTR("haspadmin"));
-        debugPrintln(buffer);
-        sprintf_P(buffer, PSTR("WIFI: AP IP address : %s"), IP.toString().c_str());
-        debugPrintln(buffer);
-        // httpReconnect();
+    Log.warning(F("WIFI: Temporary Access Point %s password: %s"), ssid, pass);
+    Log.warning(F("WIFI: AP IP address : %s"), WiFi.softAPIP().toString().c_str());
+    // httpReconnect();}
+
+    return true;
+}
+
+void wifiSetup()
+{
+    if(wifiShowAP()) {
+        WiFi.mode(WIFI_AP_STA);
     } else {
-
         WiFi.mode(WIFI_STA);
-        snprintf_P(buffer, sizeof(buffer), PSTR("WIFI: Connecting to : %s"), wifiSsid);
-        debugPrintln(buffer);
 
 #if defined(ARDUINO_ARCH_ESP8266)
         // wifiEventHandler[0]      = WiFi.onStationModeConnected(wifiSTAConnected);
@@ -177,27 +153,51 @@ void wifiSetup(JsonObject settings)
         WiFi.onEvent(wifi_callback);
         WiFi.setSleep(false);
 #endif
-
         WiFi.begin(wifiSsid, wifiPassword);
+        Log.notice(F("WIFI: Connecting to : %s"), wifiSsid);
     }
 }
 
-bool wifiLoop()
+bool wifiEvery5Seconds()
 {
-    return WiFi.status() == WL_CONNECTED;
+    if(WiFi.getMode() != WIFI_STA) {
+        return false;
+    } else if(WiFi.status() == WL_CONNECTED) {
+        return true;
+    } else {
+        wifiReconnectCounter++;
+        if(wifiReconnectCounter > 45) {
+            Log.error(F("WIFI: Retries exceed %u: Rebooting..."), wifiReconnectCounter);
+            dispatchReboot(false);
+        }
+        Log.warning(F("WIFI: No Connection... retry %u"), wifiReconnectCounter);
+        if(wifiReconnectCounter % 6 == 0) WiFi.begin(wifiSsid, wifiPassword);
+        return false;
+    }
 }
 
 bool wifiGetConfig(const JsonObject & settings)
 {
-    settings[FPSTR(F_CONFIG_SSID)] = wifiSsid;     // String(wifiSsid.c_str());
-    settings[FPSTR(F_CONFIG_PASS)] = wifiPassword; // String(wifiPassword.c_str());
+    bool changed = false;
 
-    configOutput(settings);
-    return true;
+    if(strcmp(wifiSsid, settings[FPSTR(F_CONFIG_SSID)].as<String>().c_str()) != 0) changed = true;
+    settings[FPSTR(F_CONFIG_SSID)] = wifiSsid;
+
+    if(strcmp(wifiPassword, settings[FPSTR(F_CONFIG_PASS)].as<String>().c_str()) != 0) changed = true;
+    settings[FPSTR(F_CONFIG_PASS)] = wifiPassword;
+
+    if(changed) configOutput(settings);
+    return changed;
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
+/** Set WIFI Configuration.
+ *
+ * Read the settings from json and sets the application variables.
+ *
+ * @note: data pixel should be formated to uint32_t RGBA. Imagemagick requirements.
+ *
+ * @param[in] settings    JsonObject with the config settings.
+ **/
 bool wifiSetConfig(const JsonObject & settings)
 {
     configOutput(settings);
@@ -217,9 +217,28 @@ bool wifiSetConfig(const JsonObject & settings)
     return changed;
 }
 
+bool wifiTestConnection()
+{
+    uint8_t attempt = 0;
+    WiFi.begin(wifiSsid, wifiPassword);
+    while(attempt < 10 && (WiFi.status() != WL_CONNECTED || WiFi.localIP().toString() == F("0.0.0.0"))) {
+        attempt++;
+        Log.verbose(F("WIFI: Trying to connect to %s... %u"), wifiSsid, attempt);
+        delay(1000);
+    }
+    Log.verbose(F("WIFI: Received IP addres %s"), WiFi.localIP().toString().c_str());
+    if((WiFi.status() == WL_CONNECTED && WiFi.localIP().toString() != F("0.0.0.0"))) return true;
+
+    WiFi.disconnect();
+    return false;
+}
+
 void wifiStop()
 {
-    debugPrintln(F("WIFI: Stopped"));
-    WiFi.mode(WIFI_OFF);
+    wifiReconnectCounter = 0; // Prevent endless loop in wifiDisconnected
     WiFi.disconnect();
+    WiFi.mode(WIFI_OFF);
+    Log.warning(F("WIFI: Stopped"));
 }
+
+#endif

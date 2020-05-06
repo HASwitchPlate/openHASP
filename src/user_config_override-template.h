@@ -5,6 +5,8 @@
 //
 // To use: Save a copy as user_config_override.h
 
+#define SERIAL_SPEED 115200
+
 /***************************************************
           WiFi Settings
  **************************************************/
@@ -18,8 +20,9 @@
 #define MQTT_PORT 1883
 #define MQTT_USER ""
 #define MQTT_PASSW ""
-#define MQTT_TOPIC "plates"
-#define MQTT_CLIENTID "plate01"
+#define MQTT_PREFIX "hasp"
+#define MQTT_NODENAME "plate01"
+#define MQTT_GROUPNAME "plates"
 
 #define MQTT_TELEPERIOD 60000
 #define MQTT_STATEPERIOD 300000

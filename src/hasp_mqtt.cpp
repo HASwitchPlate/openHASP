@@ -1,17 +1,29 @@
+#include "hasp_conf.h"
+#if HASP_USE_MQTT
+
 #include <Arduino.h>
 #include "ArduinoJson.h"
+#include "ArduinoLog.h"
+#include "PubSubClient.h"
+
+#include "hasp_conf.h"
+#include "hasp_mqtt.h"
 
 #if defined(ARDUINO_ARCH_ESP32)
 #include <Wifi.h>
-#else
+WiFiClient mqttNetworkClient;
+#elif defined(ARDUINO_ARCH_ESP8266)
 #include <ESP8266WiFi.h>
 #include <EEPROM.h>
 #include <ESP.h>
+WiFiClient mqttNetworkClient;
+#else
+#include <STM32Ethernet.h>
+EthernetClient mqttNetworkClient;
 #endif
-#include <PubSubClient.h>
 
-#include "hasp_log.h"
 #include "hasp_hal.h"
+#include "hasp_tft.h"
 #include "hasp_debug.h"
 #include "hasp_config.h"
 #include "hasp_mqtt.h"
@@ -23,6 +35,8 @@
 #include "user_config_override.h"
 #endif
 
+extern unsigned long debugLastMillis; // UpdateStatus timer
+
 /*
 String mqttGetSubtopic;             // MQTT subtopic for incoming commands requesting .val
 String mqttGetSubtopicJSON;         // MQTT object buffer for JSON status when requesting .val
@@ -32,28 +46,19 @@ String mqttCommandTopic;            // MQTT topic for incoming panel commands
 String mqttGroupCommandTopic;       // MQTT topic for incoming group panel commands
 String mqttStatusTopic;             // MQTT topic for publishing device connectivity state
 String mqttSensorTopic;             // MQTT topic for publishing device information in JSON format
-*/
+
 String mqttLightCommandTopic;       // MQTT topic for incoming panel backlight on/off commands
 String mqttLightStateTopic;         // MQTT topic for outgoing panel backlight on/off state
 String mqttLightBrightCommandTopic; // MQTT topic for incoming panel backlight dimmer commands
 String mqttLightBrightStateTopic;   // MQTT topic for outgoing panel backlight dimmer state
 // String mqttMotionStateTopic;        // MQTT topic for outgoing motion sensor state
+*/
 
-#ifdef MQTT_NODENAME
-char mqttNodeName[16] = MQTT_NODENAME;
-#else
-char mqttNodeName[16]  = "";
-#endif
-
-#ifdef MQTT_GROUPNAME
-char mqttGroupName[16] = MQTT_GROUPNAME;
-#else
-char mqttGroupName[16] = "";
-#endif
-
-String mqttClientId((char *)0); // Auto-generated MQTT ClientID
-String mqttNodeTopic((char *)0);
-String mqttGroupTopic((char *)0);
+// String mqttClientId((char *)0); // Auto-generated MQTT ClientID
+// String mqttNodeTopic((char *)0);
+// String mqttGroupTopic((char *)0);
+char mqttNodeTopic[24];
+char mqttGroupTopic[24];
 bool mqttEnabled;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -78,19 +83,41 @@ char mqttPassword[32] = MQTT_PASSW;
 #else
 char mqttPassword[32]  = "";
 #endif
+#ifdef MQTT_NODENAME
+char mqttNodeName[16] = MQTT_NODENAME;
+#else
+char mqttNodeName[16]  = "";
+#endif
+#ifdef MQTT_GROUPNAME
+char mqttGroupName[16] = MQTT_GROUPNAME;
+#else
+char mqttGroupName[16] = "";
+#endif
+#ifndef MQTT_PREFIX
+#define MQTT_PREFIX "hasp"
+#endif
 
 /*
 const String mqttLightSubscription        = "hasp/" + String(haspGetNodename()) + "/light/#";
 const String mqttLightBrightSubscription  = "hasp/" + String(haspGetNodename()) + "/brightness/#";
 */
 
-WiFiClient mqttWifiClient;
-PubSubClient mqttClient(mqttWifiClient);
+PubSubClient mqttClient(mqttNetworkClient);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Send changed values OUT
 
-void IRAM_ATTR mqttSendState(const char * subtopic, const char * payload)
+void mqtt_log_no_connection()
+{
+    Log.error(F("MQTT: Not connected"));
+}
+
+bool IRAM_ATTR mqttIsConnected()
+{
+    return mqttEnabled && mqttClient.connected();
+}
+
+void IRAM_ATTR mqtt_send_state(const __FlashStringHelper * subtopic, const char * payload)
 {
     // page = 0
     // p[0].b[0].attr = abc
@@ -99,72 +126,87 @@ void IRAM_ATTR mqttSendState(const char * subtopic, const char * payload)
     // light = 0/1
     // brightness = 100
 
-    // char mqttPayload[128 * 5];
-
-    if(mqttClient.connected()) {
-        char mqttTopic[128];
-        snprintf_P(mqttTopic, sizeof(mqttTopic), PSTR("%sstate/%s"), mqttNodeTopic.c_str(), subtopic);
-        mqttClient.publish(mqttTopic, payload);
-
-        String msg((char *)0);
-        msg.reserve(512);
-        msg = F("MQTT OUT: ");
-        msg += mqttTopic;
-        msg += " = ";
-        msg += payload;
-        debugPrintln(msg);
+    if(mqttIsConnected()) {
+        char topic[64];
+        snprintf_P(topic, sizeof(topic), PSTR("%sstate/%s"), mqttNodeTopic, subtopic);
+        mqttClient.publish(topic, payload);
     } else {
-        errorPrintln(F("MQTT: %sNot connected"));
+        return mqtt_log_no_connection();
     }
 
-    // as json
-    // snprintf_P(mqttTopic, sizeof(mqttTopic), PSTR("%sstate/json"), mqttNodeTopic.c_str());
-    // snprintf_P(mqttPayload, sizeof(mqttPayload), PSTR("{\"%s\":\"%s\"}"), subtopic, payload);
-    // mqttClient.publish(mqttTopic, mqttPayload);
-    // debugPrintln(String(F("MQTT OUT: ")) + String(mqttTopic) + " = " + String(mqttPayload));
+    // Log after char buffers are cleared
+    Log.notice(F("MQTT PUB: %sstate/%S = %s"), mqttNodeTopic, subtopic, payload);
 }
 
-void IRAM_ATTR mqttSendNewValue(uint8_t pageid, uint8_t btnid, const char * attribute, String txt)
+void mqtt_send_input(uint8_t id, const char * payload)
 {
-    char topic[128];
-    char payload[128];
-    snprintf_P(topic, sizeof(topic), PSTR("json"));
-    snprintf_P(payload, sizeof(payload), PSTR("{\"p[%u].b[%u].%s\":\"%s\"}"), pageid, btnid, attribute, txt.c_str());
-    mqttSendState(topic, payload);
+    // Log.trace(F("MQTT TST: %sstate/input%u = %s"), mqttNodeTopic, id, payload); // to be removed
+
+    if(mqttIsConnected()) {
+        char topic[64];
+        snprintf_P(topic, sizeof(topic), PSTR("%sstate/input%u"), mqttNodeTopic, id);
+        mqttClient.publish(topic, payload);
+    } else {
+        return mqtt_log_no_connection();
+    }
+
+    // Log after char buffers are cleared
+    Log.notice(F("MQTT PUB: %sstate/input%u = %s"), mqttNodeTopic, id, payload);
 }
 
-void IRAM_ATTR mqttSendNewValue(uint8_t pageid, uint8_t btnid, int32_t val)
+void IRAM_ATTR mqtt_send_obj_attribute_str(uint8_t pageid, uint8_t btnid, const char * attribute, const char * data)
 {
-    char value[128];
-    itoa(val, value, 10);
-    mqttSendNewValue(pageid, btnid, "val", value);
+    if(mqttIsConnected()) {
+        char payload[128];
+        char topic[64];
+
+        snprintf_P(topic, sizeof(topic), PSTR("%sstate/json"), mqttNodeTopic);
+        unsigned int len =
+            snprintf_P(payload, sizeof(payload), PSTR("{\"p[%u].b[%u].%s\":\"%s\"}"), pageid, btnid, attribute, data);
+
+        mqttClient.publish(topic, (uint8_t *)payload, len, false);
+    } else {
+        return mqtt_log_no_connection();
+    }
+
+    // Log after char buffers are cleared
+    Log.notice(F("MQTT PUB: %sstate/json = {\"p[%u].b[%u].%s\":\"%s\"}"), mqttNodeTopic, pageid, btnid, attribute,
+               data);
 }
 
-void IRAM_ATTR mqttSendNewValue(uint8_t pageid, uint8_t btnid, String txt)
-{
-    mqttSendNewValue(pageid, btnid, "txt", txt);
-}
-
-void IRAM_ATTR mqttSendNewEvent(uint8_t pageid, uint8_t btnid, char * value) // int32_t val)
-{
-    // char value[128];
-    // itoa(val, value, 10);
-    mqttSendNewValue(pageid, btnid, "event", value);
-}
-
-void mqttStatusUpdate()
+void mqtt_send_statusupdate()
 { // Periodically publish a JSON string indicating system status
-    char buffer[128];
-    snprintf_P(buffer, sizeof(buffer), "%u.%u.%u", HASP_VERSION_MAJOR, HASP_VERSION_MINOR, HASP_VERSION_REVISION);
+    char data[3 * 128];
+    {
+        char buffer[128];
 
-    String mqttStatusPayload((char *)0);
-    mqttStatusPayload.reserve(512);
+        snprintf_P(data, sizeof(data), PSTR("{\"status\":\"available\",\"version\":\"%s\",\"uptime\":%lu,"),
+                   haspGetVersion().c_str(), long(millis() / 1000));
+        strcat(buffer, data);
+#if HASP_USE_WIFI
+        snprintf_P(buffer, sizeof(buffer), PSTR("\"ssid\":\"%s\",\"rssi\":%i,\"ip\":\"%s\","), WiFi.SSID().c_str(),
+                   WiFi.RSSI(), WiFi.localIP().toString().c_str());
+        strcat(data, buffer);
+#endif
+        snprintf_P(buffer, sizeof(buffer), PSTR("\"heapFree\":%u,\"heapFrag\":%u,\"espCore\":\"%s\","),
+                   halGetFreeHeap(), halGetHeapFragmentation(), halGetCoreVersion().c_str());
+        strcat(data, buffer);
+        snprintf_P(buffer, sizeof(buffer), PSTR("\"espCanUpdate\":\"false\",\"page\":%u,\"numPages\":%u,"),
+                   haspGetPage(), (HASP_NUM_PAGES));
+        strcat(data, buffer);
 
-    mqttStatusPayload += "{";
-    mqttStatusPayload += F("\"status\":\"available\",");
-    mqttStatusPayload += F("\"espVersion\":\"");
-    mqttStatusPayload += buffer;
-    mqttStatusPayload += F("\",");
+#if defined(ARDUINO_ARCH_ESP8266)
+        snprintf_P(buffer, sizeof(buffer), PSTR("\"espVcc\":%.2f,"), (float)ESP.getVcc() / 1000);
+        strcat(data, buffer);
+#endif
+
+        snprintf_P(buffer, sizeof(buffer), PSTR("\"tftDriver\":\"%s\",\"tftWidth\":%u,\"tftHeight\":%u}"),
+                   tftDriverName().c_str(), (TFT_WIDTH), (TFT_HEIGHT));
+        strcat(data, buffer);
+    }
+    mqtt_send_state(F("statusupdate"), data);
+    debugLastMillis = millis();
+
     /*    if(updateEspAvailable) {
             mqttStatusPayload += F("\"updateEspAvailable\":true,");
         } else {
@@ -177,42 +219,10 @@ void mqttStatusUpdate()
         }
     mqttStatusPayload += F("\"lcdVersion\":\"");
     mqttStatusPayload += String(lcdVersion);
-    mqttStatusPayload += F("\",");
-    if(updateLcdAvailable) {
-        mqttStatusPayload += F("\"updateLcdAvailable\":true,");
-    } else {
-        mqttStatusPayload += F("\"updateLcdAvailable\":false,");
-    }*/
-    mqttStatusPayload += F("\"espUptime\":");
-    mqttStatusPayload += String(long(millis() / 1000));
-    mqttStatusPayload += F(",");
-    mqttStatusPayload += F("\"signalStrength\":");
-    mqttStatusPayload += String(WiFi.RSSI());
-    mqttStatusPayload += F(",");
-    mqttStatusPayload += F("\"haspIP\":\"");
-    mqttStatusPayload += WiFi.localIP().toString();
-    mqttStatusPayload += F("\",");
-    mqttStatusPayload += F("\"heapFree\":");
-    mqttStatusPayload += String(ESP.getFreeHeap());
-    mqttStatusPayload += F(",");
-    mqttStatusPayload += F("\"heapFragmentation\":");
-    mqttStatusPayload += String(halGetHeapFragmentation());
-    mqttStatusPayload += F(",");
-    mqttStatusPayload += F("\"espCore\":\"");
-    mqttStatusPayload += halGetCoreVersion();
-    mqttStatusPayload += F("\"");
-
-#if defined(ARDUINO_ARCH_ESP8266)
-    mqttStatusPayload += F(",");
-    mqttStatusPayload += F("\"Vcc\":\"");
-    mqttStatusPayload += (float)ESP.getVcc() / 1000;
-    mqttStatusPayload += F("\"");
-#endif
-    mqttStatusPayload += "}";
+*/
 
     // mqttClient.publish(mqttSensorTopic, mqttStatusPayload);
     // mqttClient.publish(mqttStatusTopic, "ON", true); //, 1);
-    mqttSendState(String(F("statusupdate")).c_str(), mqttStatusPayload.c_str());
 
     // debugPrintln(String(F("MQTT: status update: ")) + String(mqttStatusPayload));
     // debugPrintln(String(F("MQTT: binary_sensor state: [")) + mqttStatusTopic + "] : [ON]");
@@ -220,14 +230,13 @@ void mqttStatusUpdate()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Receive incoming messages
-void mqttCallback(char * topic, byte * payload, unsigned int length)
+static void mqtt_message_cb(char * topic_p, byte * payload, unsigned int length)
 { // Handle incoming commands from MQTT
+    if(length >= MQTT_MAX_PACKET_SIZE) return;
     payload[length] = '\0';
-    String strTopic = topic;
 
-    // strTopic: homeassistant/haswitchplate/devicename/command/p[1].b[4].txt
-    // strPayload: "Lights On"
-    // subTopic: p[1].b[4].txt
+    // String strTopic((char *)0);
+    // strTopic.reserve(MQTT_MAX_PACKET_SIZE);
 
     // Incoming Namespace (replace /device/ with /group/ for group commands)
     // '[...]/device/command' -m '' = No command requested, respond with mqttStatusUpdate()
@@ -244,112 +253,161 @@ void mqttCallback(char * topic, byte * payload, unsigned int length)
     // '[...]/device/command/p[1].b[4].txt' -m '' = nextionGetAttr("p[1].b[4].txt")
     // '[...]/device/command/p[1].b[4].txt' -m '"Lights On"' = nextionSetAttr("p[1].b[4].txt", "\"Lights On\"")
 
-    debugPrintln(String(F("MQTT IN: '")) + strTopic + "' : '" + (char *)payload + "'");
+    char * topic = (char *)topic_p;
+    Log.notice(F("MQTT RCV: %s = %s"), topic, (char *)payload);
 
-    if(strTopic.startsWith(mqttNodeTopic)) {
-        strTopic = strTopic.substring(mqttNodeTopic.length(), strTopic.length());
-    } else if(strTopic.startsWith(mqttGroupTopic)) {
-        strTopic = strTopic.substring(mqttGroupTopic.length(), strTopic.length());
+    if(topic == strstr(topic, mqttNodeTopic)) { // startsWith mqttNodeTopic
+        topic += strlen(mqttNodeTopic);
+    } else if(topic == strstr(topic, mqttGroupTopic)) { // startsWith mqttGroupTopic
+        topic += strlen(mqttGroupTopic);
     } else {
+        Log.error(F("MQTT: Message received with invalid topic"));
         return;
     }
-    // debugPrintln(String(F("MQTT Short Topic : '")) + strTopic + "'");
+    // Log.trace(F("MQTT IN: short topic: %s"), topic);
 
-    if(strTopic == F("command")) {
+    if(!strcmp_P(topic, PSTR("command"))) {
         dispatchCommand((char *)payload);
         return;
     }
 
-    if(strTopic.startsWith(F("command/"))) {
-        strTopic = strTopic.substring(8u, strTopic.length());
-        // debugPrintln(String(F("MQTT Shorter Command Topic : '")) + strTopic + "'");
+    if(topic == strstr_P(topic, PSTR("command/"))) { // startsWith command/
+        topic += 8u;
+        // Log.trace(F("MQTT IN: command subtopic: %s"), topic);
 
-        if(strTopic == F("json")) { // '[...]/device/command/json' -m '["dim=5", "page 1"]' =
+        if(!strcmp_P(topic, PSTR("json"))) { // '[...]/device/command/json' -m '["dim=5", "page 1"]' =
             // nextionSendCmd("dim=50"), nextionSendCmd("page 1")
             dispatchJson((char *)payload); // Send to nextionParseJson()
-        } else if(strTopic == F("jsonl")) {
+        } else if(!strcmp_P(topic, PSTR("jsonl"))) {
             dispatchJsonl((char *)payload);
         } else if(length == 0) {
-            dispatchCommand(strTopic.c_str());
+            dispatchCommand(topic);
         } else { // '[...]/device/command/p[1].b[4].txt' -m '"Lights On"' ==
                  // nextionSetAttr("p[1].b[4].txt", "\"Lights On\"")
-            dispatchAttribute(strTopic, (char *)payload);
+            dispatchAttribute(topic, (char *)payload);
         }
         return;
     }
 
-    String strPayload = (char *)payload;
-
-    if(strTopic == mqttLightBrightCommandTopic) { // change the brightness from the light topic
-        int panelDim = map(strPayload.toInt(), 0, 255, 0, 100);
-        // nextionSetAttr("dim", String(panelDim));
-        // nextionSendCmd("dims=dim");
-        // mqttClient.publish(mqttLightBrightStateTopic, strPayload);
-    } else if(strTopic == mqttLightCommandTopic &&
-              strPayload == F("OFF")) { // set the panel dim OFF from the light topic, saving current dim level first
-        // nextionSendCmd("dims=dim");
-        // nextionSetAttr("dim", "0");
-        mqttClient.publish(mqttLightStateTopic.c_str(), PSTR("OFF"));
-    } else if(strTopic == mqttLightCommandTopic &&
-              strPayload == F("ON")) { // set the panel dim ON from the light topic, restoring saved dim level
-        // nextionSendCmd("dim=dims");
-        mqttClient.publish(mqttLightStateTopic.c_str(), PSTR("ON"));
+    if(topic == strstr_P(topic, PSTR("config/"))) { // startsWith command/
+        topic += 7u;
+        dispatchConfig(topic, (char *)payload);
+        return;
     }
 
-    if(strTopic == F("status") &&
-       strPayload == F("OFF")) { // catch a dangling LWT from a previous connection if it appears
+    // catch a dangling LWT from a previous connection if it appears
+    if(!strcmp_P(topic, PSTR("status")) && !strcmp_P((char *)payload, PSTR("OFF"))) {
         char topicBuffer[128];
-        snprintf_P(topicBuffer, sizeof(topicBuffer), PSTR("%sstatus"), mqttNodeTopic.c_str());
+        snprintf_P(topicBuffer, sizeof(topicBuffer), PSTR("%sstatus"), mqttNodeTopic);
         mqttClient.publish(topicBuffer, "ON", true);
-
-        snprintf_P(topicBuffer, sizeof(topicBuffer), PSTR("MQTT: binary_sensor state: [%sstatus] : ON"),
-                   mqttNodeTopic.c_str());
-        debugPrintln(topicBuffer);
+        Log.notice(F("MQTT: binary_sensor state: [status] : ON"));
         return;
+    }
+
+    /*
+    String strPayload = (char *)payload;
+
+        if(strTopic == mqttLightBrightCommandTopic) { // change the brightness from the light topic
+            int panelDim = map(strPayload.toInt(), 0, 255, 0, 100);
+            // nextionSetAttr("dim", String(panelDim));
+            // nextionSendCmd("dims=dim");
+            // mqttClient.publish(mqttLightBrightStateTopic, strPayload);
+        } else if(strTopic == mqttLightCommandTopic &&
+                  strPayload == F("OFF")) { // set the panel dim OFF from the light topic, saving current dim level
+       first
+            // nextionSendCmd("dims=dim");
+            // nextionSetAttr("dim", "0");
+            mqttClient.publish(mqttLightStateTopic.c_str(), PSTR("OFF"));
+        } else if(strTopic == mqttLightCommandTopic &&
+                  strPayload == F("ON")) { // set the panel dim ON from the light topic, restoring saved dim level
+            // nextionSendCmd("dim=dims");
+            mqttClient.publish(mqttLightStateTopic.c_str(), PSTR("ON"));
+        }
+    */
+}
+
+void mqttSubscribeTo(const char * format, const char * data)
+{
+    char topic[64];
+    snprintf_P(topic, sizeof(topic), format, data);
+    if(mqttClient.subscribe(topic)) {
+        Log.verbose(F("MQTT:    * Subscribed to %s"), topic);
+    } else {
+        Log.error(F("MQTT: Failed to subscribe to %s"), topic);
     }
 }
 
 void mqttReconnect()
 {
+    char buffer[128];
+    char mqttClientId[64];
     static uint8_t mqttReconnectCount = 0;
     bool mqttFirstConnect             = true;
-    String nodeName((char *)0);
-    nodeName.reserve(128);
-    nodeName = haspGetNodename();
-    char topicBuffer[128];
 
-    // Generate an MQTT client ID as haspNode + our MAC address
-    mqttClientId.reserve(128);
-    mqttClientId = nodeName;
-    mqttClientId += F("-");
-    mqttClientId += wifiGetMacAddress(3, "");
-    WiFi.macAddress();
-
-    snprintf_P(topicBuffer, sizeof(topicBuffer), PSTR("hasp/%s/"), mqttNodeName);
-    mqttNodeTopic = topicBuffer;
-    snprintf_P(topicBuffer, sizeof(topicBuffer), PSTR("hasp/%s/"), mqttGroupName);
-    mqttGroupTopic = topicBuffer;
-
-    // haspSetPage(0);
-    snprintf_P(topicBuffer, sizeof(topicBuffer), PSTR("MQTT: Attempting connection to broker %s as clientID %s"),
-               mqttServer, mqttClientId.c_str());
-    debugPrintln(topicBuffer);
+    {
+#if HASP_USE_WIFI>0
+        byte mac[6];
+        WiFi.macAddress(mac);
+        snprintf_P(mqttClientId, sizeof(mqttClientId), PSTR("%s-%02x%02x%02x"), mqttNodeName, mac[3], mac[4], mac[5]);
+#endif
+#if HASP_USE_ETHERNET>0
+        uint8_t * mac;
+        mac = Ethernet.MACAddress();
+        snprintf_P(mqttClientId, sizeof(mqttClientId), PSTR("%s-%02x%02x%02x"), mqttNodeName, *(mac+3), *(mac+4), *(mac+5));
+#endif
+    }
+        Log.verbose(mqttClientId);
 
     // Attempt to connect and set LWT and Clean Session
-    snprintf_P(topicBuffer, sizeof(topicBuffer), PSTR("%sstatus"), mqttNodeTopic.c_str());
-    if(!mqttClient.connect(mqttClientId.c_str(), mqttUser, mqttPassword, topicBuffer, 0, false, "OFF", true)) {
+    snprintf_P(buffer, sizeof(buffer), PSTR("%sstatus"), mqttNodeTopic);
+    if(!mqttClient.connect(mqttClientId, mqttUser, mqttPassword, buffer, 0, false, "OFF", true)) {
         // Retry until we give up and restart after connectTimeout seconds
         mqttReconnectCount++;
+        snprintf_P(buffer, sizeof(buffer), PSTR("MQTT: %%s"));
+        switch(mqttClient.state()) {
+            case MQTT_CONNECTION_TIMEOUT:
+                strcat_P(buffer, PSTR("Server didn't respond within the keepalive time"));
+                break;
+            case MQTT_CONNECTION_LOST:
+                strcat_P(buffer, PSTR("Network connection was broken"));
+                break;
+            case MQTT_CONNECT_FAILED:
+                strcat_P(buffer, PSTR("Network connection failed"));
+                break;
+            case MQTT_DISCONNECTED:
+                strcat_P(buffer, PSTR("Client is disconnected cleanly"));
+                break;
+            case MQTT_CONNECTED:
+                strcat_P(buffer, PSTR("(Client is connected"));
+                break;
+            case MQTT_CONNECT_BAD_PROTOCOL:
+                strcat_P(buffer, PSTR("Server doesn't support the requested version of MQTT"));
+                break;
+            case MQTT_CONNECT_BAD_CLIENT_ID:
+                strcat_P(buffer, PSTR("Server rejected the client identifier"));
+                break;
+            case MQTT_CONNECT_UNAVAILABLE:
+                strcat_P(buffer, PSTR("Server was unable to accept the connection"));
+                break;
+            case MQTT_CONNECT_BAD_CREDENTIALS:
+                strcat_P(buffer, PSTR("Username or Password rejected"));
+                break;
+            case MQTT_CONNECT_UNAUTHORIZED:
+                strcat_P(buffer, PSTR("Client was not authorized to connect"));
+                break;
+            default:
+                strcat_P(buffer, PSTR("Unknown failure"));
+        }
+        Log.warning(buffer);
 
-        Serial.print(String(F("failed, rc=")));
-        Serial.print(mqttClient.state());
-        // Wait 5 seconds before retrying
-        // delay(50);
+        if(mqttReconnectCount > 50) {
+            Log.error(F("MQTT: %sRetry count exceeded, rebooting..."));
+            dispatchReboot(false);
+        }
         return;
     }
 
-    debugPrintln(F("MQTT: MQTT Client is Connected"));
-    haspReconnect();
+    Log.notice(F("MQTT: [SUCCESS] Connected to broker %s as clientID %s"), mqttServer, mqttClientId);
 
     /*
         // MQTT topic string definitions
@@ -374,76 +432,55 @@ void mqttReconnect()
 
     // Attempt to connect to broker, setting last will and testament
     // Subscribe to our incoming topics
-    snprintf_P(topicBuffer, sizeof(topicBuffer), PSTR("%scommand/#"), mqttGroupTopic.c_str());
-    if(mqttClient.subscribe(topicBuffer)) {
-        snprintf_P(topicBuffer, sizeof(topicBuffer), PSTR("MQTT:    * Subscribed to %scommand/#"),
-                   mqttGroupTopic.c_str());
-        debugPrintln(topicBuffer);
-    }
+    mqttSubscribeTo(PSTR("%scommand/#"), mqttGroupTopic);
+    mqttSubscribeTo(PSTR("%scommand/#"), mqttNodeTopic);
+    mqttSubscribeTo(PSTR("%sconfig/#"), mqttGroupTopic);
+    mqttSubscribeTo(PSTR("%sconfig/#"), mqttNodeTopic);
+    mqttSubscribeTo(PSTR("%slight/#"), mqttNodeTopic);
+    mqttSubscribeTo(PSTR("%sbrightness/#"), mqttNodeTopic);
+    mqttSubscribeTo(PSTR("%sstatus"), mqttNodeTopic);
 
-    snprintf_P(topicBuffer, sizeof(topicBuffer), PSTR("%scommand/#"), mqttNodeTopic.c_str());
-    if(mqttClient.subscribe(topicBuffer)) {
-        snprintf_P(topicBuffer, sizeof(topicBuffer), PSTR("MQTT:    * Subscribed to %scommand/#"),
-                   mqttNodeTopic.c_str());
-        debugPrintln(topicBuffer);
-    }
-
-    snprintf_P(topicBuffer, sizeof(topicBuffer), PSTR("%slight/#"), mqttNodeTopic.c_str());
-    if(mqttClient.subscribe(topicBuffer)) {
-        snprintf_P(topicBuffer, sizeof(topicBuffer), PSTR("MQTT:    * Subscribed to %slight/#"), mqttNodeTopic.c_str());
-        debugPrintln(topicBuffer);
-    }
-
-    snprintf_P(topicBuffer, sizeof(topicBuffer), PSTR("%sbrightness/#"), mqttNodeTopic.c_str());
-    if(mqttClient.subscribe(topicBuffer)) {
-        snprintf_P(topicBuffer, sizeof(topicBuffer), PSTR("MQTT:    * Subscribed to %sbrightness/#"),
-                   mqttNodeTopic.c_str());
-        debugPrintln(topicBuffer);
-    }
-
-    snprintf_P(topicBuffer, sizeof(topicBuffer), PSTR("%sstatus"), mqttNodeTopic.c_str());
-    if(mqttClient.subscribe(topicBuffer)) {
-        snprintf_P(topicBuffer, sizeof(topicBuffer), PSTR("MQTT:    * Subscribed to %sstatus"), mqttNodeTopic.c_str());
-        debugPrintln(topicBuffer);
-    }
     // Force any subscribed clients to toggle OFF/ON when we first connect to
     // make sure we get a full panel refresh at power on.  Sending OFF,
     // "ON" will be sent by the mqttStatusTopic subscription action.
-    snprintf_P(topicBuffer, sizeof(topicBuffer), PSTR("%sstatus"), mqttNodeTopic.c_str());
-    mqttClient.publish(topicBuffer, mqttFirstConnect ? "OFF" : "ON", true); //, 1);
-    snprintf_P(topicBuffer, sizeof(topicBuffer), PSTR("MQTT: binary_sensor state: [%sstatus] : %s"),
-               mqttNodeTopic.c_str(), mqttFirstConnect ? PSTR("OFF") : PSTR("ON"));
-    debugPrintln(topicBuffer);
+    snprintf_P(buffer, sizeof(buffer), PSTR("%sstatus"), mqttNodeTopic);
+    mqttClient.publish(buffer, mqttFirstConnect ? "OFF" : "ON", true); //, 1);
+
+    Log.notice(F("MQTT: binary_sensor state: [%sstatus] : %s"), mqttNodeTopic,
+               mqttFirstConnect ? PSTR("OFF") : PSTR("ON"));
+
+    /* snprintf_P(buffer, sizeof(buffer), PSTR("MQTT: binary_sensor state: [%sstatus] : %s"), mqttNodeTopic,
+               mqttFirstConnect ? PSTR("OFF") : PSTR("ON"));
+    debugPrintln(buffer); */
 
     mqttFirstConnect   = false;
     mqttReconnectCount = 0;
+
+    haspReconnect();
+    dispatchPage(String(haspGetPage()));
+    mqtt_send_statusupdate();
 }
 
-void mqttSetup(const JsonObject & settings)
+void mqttSetup()
 {
-    mqttClientId.reserve(128);
-    mqttNodeTopic.reserve(128);
-    mqttGroupTopic.reserve(128);
-
-    mqttSetConfig(settings);
-
-    mqttEnabled = strcmp(mqttServer, "") != 0 && mqttPort > 0;
-    if(!mqttEnabled) return;
-
-    mqttClient.setServer(mqttServer, 1883);
-    mqttClient.setCallback(mqttCallback);
-
-    debugPrintln(F("MQTT: Setup Complete"));
+    mqttEnabled = strlen(mqttServer) > 0 && mqttPort > 0;
+    if(mqttEnabled) {
+        mqttClient.setServer(mqttServer, 1883);
+        mqttClient.setCallback(mqtt_message_cb);
+        Log.notice(F("MQTT: Setup Complete"));
+    } else {
+        Log.notice(F("MQTT: Broker not configured"));
+    }
 }
 
-void mqttLoop(bool wifiIsConnected)
+void mqttLoop()
 {
-    if(!mqttEnabled) return;
+    if(mqttEnabled) mqttClient.loop();
+}
 
-    if(wifiIsConnected && !mqttClient.connected())
-        mqttReconnect();
-    else
-        mqttClient.loop();
+void mqttEvery5Seconds(bool wifiIsConnected)
+{
+    if(mqttEnabled && wifiIsConnected && !mqttClient.connected()) mqttReconnect();
 }
 
 String mqttGetNodename()
@@ -451,42 +488,56 @@ String mqttGetNodename()
     return mqttNodeName;
 }
 
-bool mqttIsConnected()
-{
-    return mqttClient.connected();
-}
-
 void mqttStop()
 {
-    if(mqttClient.connected()) {
+    if(mqttEnabled && mqttClient.connected()) {
         char topicBuffer[128];
 
-        snprintf_P(topicBuffer, sizeof(topicBuffer), PSTR("%sstatus"), mqttNodeTopic.c_str());
+        snprintf_P(topicBuffer, sizeof(topicBuffer), PSTR("%sstatus"), mqttNodeTopic);
         mqttClient.publish(topicBuffer, "OFF");
 
-        snprintf_P(topicBuffer, sizeof(topicBuffer), PSTR("%ssensor"), mqttNodeTopic.c_str());
+        snprintf_P(topicBuffer, sizeof(topicBuffer), PSTR("%ssensor"), mqttNodeTopic);
         mqttClient.publish(topicBuffer, "{\"status\": \"unavailable\"}");
 
         mqttClient.disconnect();
-        debugPrintln(F("MQTT: Disconnected from broker"));
+        Log.notice(F("MQTT: Disconnected from broker"));
     }
 }
 
 bool mqttGetConfig(const JsonObject & settings)
 {
-    settings[FPSTR(F_CONFIG_NAME)]  = mqttNodeName;
-    settings[FPSTR(F_CONFIG_GROUP)] = mqttGroupName;
-    settings[FPSTR(F_CONFIG_HOST)]  = mqttServer;
-    settings[FPSTR(F_CONFIG_PORT)]  = mqttPort;
-    settings[FPSTR(F_CONFIG_USER)]  = mqttUser;
-    settings[FPSTR(F_CONFIG_PASS)]  = mqttPassword;
+    bool changed = false;
 
-    configOutput(settings);
-    return true;
+    if(strcmp(mqttNodeName, settings[FPSTR(F_CONFIG_NAME)].as<String>().c_str()) != 0) changed = true;
+    settings[FPSTR(F_CONFIG_NAME)] = mqttNodeName;
+
+    if(strcmp(mqttGroupName, settings[FPSTR(F_CONFIG_GROUP)].as<String>().c_str()) != 0) changed = true;
+    settings[FPSTR(F_CONFIG_GROUP)] = mqttGroupName;
+
+    if(strcmp(mqttServer, settings[FPSTR(F_CONFIG_HOST)].as<String>().c_str()) != 0) changed = true;
+    settings[FPSTR(F_CONFIG_HOST)] = mqttServer;
+
+    if(mqttPort != settings[FPSTR(F_CONFIG_PORT)].as<uint16_t>()) changed = true;
+    settings[FPSTR(F_CONFIG_PORT)] = mqttPort;
+
+    if(strcmp(mqttUser, settings[FPSTR(F_CONFIG_USER)].as<String>().c_str()) != 0) changed = true;
+    settings[FPSTR(F_CONFIG_USER)] = mqttUser;
+
+    if(strcmp(mqttPassword, settings[FPSTR(F_CONFIG_PASS)].as<String>().c_str()) != 0) changed = true;
+    settings[FPSTR(F_CONFIG_PASS)] = mqttPassword;
+
+    if(changed) configOutput(settings);
+    return changed;
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
+/** Set MQTT Configuration.
+ *
+ * Read the settings from json and sets the application variables.
+ *
+ * @note: data pixel should be formated to uint32_t RGBA. Imagemagick requirements.
+ *
+ * @param[in] settings    JsonObject with the config settings.
+ **/
 bool mqttSetConfig(const JsonObject & settings)
 {
     configOutput(settings);
@@ -500,14 +551,20 @@ bool mqttSetConfig(const JsonObject & settings)
     }
     // Prefill node name
     if(strlen(mqttNodeName) == 0) {
-        String mac = wifiGetMacAddress(3, "");
+        String mac = halGetMacAddress(3, "");
         mac.toLowerCase();
         snprintf_P(mqttNodeName, sizeof(mqttNodeName), PSTR("plate_%s"), mac.c_str());
+        changed = true;
     }
 
     if(!settings[FPSTR(F_CONFIG_GROUP)].isNull()) {
         changed |= strcmp(mqttGroupName, settings[FPSTR(F_CONFIG_GROUP)]) != 0;
         strncpy(mqttGroupName, settings[FPSTR(F_CONFIG_GROUP)], sizeof(mqttGroupName));
+    }
+
+    if(strlen(mqttGroupName) == 0) {
+        strcpy_P(mqttGroupName, PSTR("plates"));
+        changed = true;
     }
 
     if(!settings[FPSTR(F_CONFIG_HOST)].isNull()) {
@@ -526,5 +583,10 @@ bool mqttSetConfig(const JsonObject & settings)
         strncpy(mqttPassword, settings[FPSTR(F_CONFIG_PASS)], sizeof(mqttPassword));
     }
 
+    snprintf_P(mqttNodeTopic, sizeof(mqttNodeTopic), PSTR(MQTT_PREFIX "/%s/"), mqttNodeName);
+    snprintf_P(mqttGroupTopic, sizeof(mqttGroupTopic), PSTR(MQTT_PREFIX "/%s/"), mqttGroupName);
+
     return changed;
 }
+
+#endif // HASP_USE_MQTT

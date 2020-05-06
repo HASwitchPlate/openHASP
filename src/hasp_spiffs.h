@@ -4,9 +4,8 @@
 #include <Arduino.h>
 
 void spiffsSetup(void);
-void spiffsLoop(void);
 
 void spiffsList();
-String spiffsFormatBytes(size_t bytes);
+void spiffsInfo();
 
 #endif

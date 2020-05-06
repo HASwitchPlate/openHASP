@@ -1,50 +1,23 @@
-#include <EEPROM.h>
 #include <Arduino.h>
-
-#include "hasp_debug.h"
-
-void eepromWrite(char addr, std::string & data);
-std::string eepromRead(char addr);
+#include "EEPROM.h"
 
 void eepromSetup()
 {
-    EEPROM.begin(1024);
+
+#if defined(STM32Fxx)
+    eeprom_buffer_fill();
+      char buffer[] = "{\"objid\":10,\"id\":1,\"page\":0,\"x\":10,\"y\":45,\"w\":220,\"h\":55,\"toggle\":\"TRUE\",\"txt\":\"Toggle Me\"}";
+    uint size = strlen(buffer);
+    uint16_t i;
+    for(i = 0; i < size; i++) eeprom_buffered_write_byte(i+4096, buffer[i]);
+    eeprom_buffered_write_byte(i+4096, 0);
+   // eeprom_buffer_flush();
+#endif
+
+    // ESP8266 // Don't start at boot, only at write
+    // EEPROM.begin(1024);
     // debugPrintln("EEPROM: Started Eeprom");
 }
 
 void eepromLoop()
 {}
-
-void eepromUpdate(uint16_t addr, char ch)
-{
-    if(EEPROM.read(addr) != ch) {
-        EEPROM.write(addr, ch);
-    }
-}
-
-void eepromWrite(uint16_t addr, std::string & data)
-{
-    int count = data.length();
-    for(int i = 0; i < count; i++) {
-        eepromUpdate(addr + i, data[i]);
-    }
-    eepromUpdate(addr + count, '\0');
-    EEPROM.commit();
-}
-
-std::string eepromRead(uint16_t addr)
-{
-    int i;
-    char data[1024]; // Max 1024 Bytes
-    int len = 0;
-    unsigned char k;
-    k = EEPROM.read(addr);
-    while(k != '\0' && len < 1023) // Read until null character
-    {
-        k = EEPROM.read(addr + len);
-        if((uint8_t(k) < 32) || (uint8_t(k) > 127)) break; // check for printable ascii, includes '\0'
-        data[len] = k;
-        len++;
-    }
-    return std::string(data);
-}

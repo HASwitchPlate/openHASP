@@ -4,10 +4,12 @@
 #include <Arduino.h>
 #include "ArduinoJson.h"
 
-void httpSetup(const JsonObject & settings);
+void httpSetup();
 void httpLoop(void);
-void httpEverySecond(void);
+void httpEvery5Seconds(void);
 void httpReconnect(void);
+
+size_t httpClientWrite(const uint8_t *buf, size_t size); // Screenshot Write Data
 
 bool httpGetConfig(const JsonObject & settings);
 bool httpSetConfig(const JsonObject & settings);

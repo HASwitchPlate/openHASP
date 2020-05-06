@@ -1,177 +1,192 @@
-#include "hasp_conf.h"
+#include "hasp_conf.h" // load first
 #include <Arduino.h>
-#include "ArduinoJson.h"
 
-#include "TFT_eSPI.h"
-
+#include "hasp_conf.h"
 #include "hasp_debug.h"
-#include "hasp_spiffs.h"
 #include "hasp_config.h"
-#include "hasp_tft.h"
 #include "hasp_gui.h"
-#include "hasp_ota.h"
-//#include "hasp_ota.h"
 #include "hasp.h"
+#include "hasp_oobe.h"
+#include "hasp_gpio.h"
 
-#if HASP_USE_SPIFFS
-#if defined(ARDUINO_ARCH_ESP32)
-#include "SPIFFS.h"
-#endif
-#include <FS.h> // Include the SPIFFS library
-#endif
-
-#if HASP_USE_EEPROM
-#include "hasp_eeprom.h"
-#endif
-
-#if HASP_USE_WIFI
-#include "hasp_wifi.h"
-#endif
-
-#if HASP_USE_MQTT
-#include "hasp_mqtt.h"
-#endif
-
-#if HASP_USE_HTTP
-#include "hasp_http.h"
-#endif
-
-#if HASP_USE_TELNET
-#include "hasp_telnet.h"
-#endif
-
-#if HASP_USE_MDNS
-#include "hasp_mdns.h"
-#endif
-
-#if HASP_USE_BUTTON
-#include "hasp_button.h"
+#if HASP_USE_ETHERNET > 0
+#include <STM32Ethernet.h>
 #endif
 
 bool isConnected;
-uint8_t mainLoopCounter = 0;
+uint8_t mainLoopCounter        = 0;
+unsigned long mainLastLoopTime = 0;
 
 void setup()
 {
-#if defined(ARDUINO_ARCH_ESP8266)
-    pinMode(D1, OUTPUT);
-    pinMode(D2, INPUT_PULLUP);
-#endif
+
+    /****************************
+     * Constant initialzations
+     ***************************/
 
     /* Init Storage */
 #if HASP_USE_EEPROM
-    eepromSetup();
+    eepromSetup(); // Don't start at boot, only at write
 #endif
+
 #if HASP_USE_SPIFFS
     spiffsSetup();
 #endif
-
-    /* Read Config File */
-    DynamicJsonDocument settings(1024);
-    configSetup(settings);
 
 #if HASP_USE_SDCARD
     sdcardSetup();
 #endif
 
-    // debugSetup(settings[F("debug")]);
+    /****************************
+     * Read & Apply User Configuration
+     ***************************/
+    configSetup();
 
-    /* Init Graphics */
-    TFT_eSPI screen = TFT_eSPI();
-    guiSetup(screen, settings[F("gui")]);
-    tftSetup(screen, settings[F("tft")]);
+    /****************************
+     * Apply User Configuration
+     ***************************/
+    debugSetup();
 
-    /* Init GUI Application */
-    haspSetup(settings[F("hasp")]);
+#if HASP_USE_GPIO
+    gpioSetup();
+#endif
 
-    /* Init Network Services */
 #if HASP_USE_WIFI
-    wifiSetup(settings[F("wifi")]);
-
-#if HASP_USE_MQTT
-    mqttSetup(settings[F("mqtt")]);
+    wifiSetup();
 #endif
 
-#if HASP_USE_TELNET
-    telnetSetup(settings[F("telnet")]);
-#endif
+    guiSetup();
+    oobeSetup();
+    haspSetup();
 
 #if HASP_USE_MDNS
-    mdnsSetup(settings[F("mdns")]);
+    mdnsSetup();
+#endif
+
+#if HASP_USE_OTA
+    otaSetup();
+#endif
+
+#if HASP_USE_ETHERNET > 0
+    ethernetSetup();
+#endif
+
+#if HASP_USE_MQTT
+    mqttSetup();
 #endif
 
 #if HASP_USE_HTTP
-    httpSetup(settings[F("http")]);
+    httpSetup();
 #endif
 
-#if HASP_USE_BUTTON
-    buttonSetup();
+#if HASP_USE_TELNET > 0
+    telnetSetup();
 #endif
 
-    otaSetup(settings[F("ota")]);
+#if HASP_USE_TASMOTA_SLAVE
+    slaveSetup();
 #endif
+
+    mainLastLoopTime = millis() - 1000; // reset loop counter
 }
 
 void loop()
 {
     /* Storage Loops */
-#if HASP_USE_EEPROM
-    eepromLoop();
-#endif
-    // spiffsLoop();
-#if HASP_USE_SDCARD
-    // sdcardLoop();
-#endif
+    /*
+    #if HASP_USE_EEPROM
+        // eepromLoop(); // Not used
+    #endif
 
-    // configLoop();
+    #if HASP_USE_SPIFFS
+        // spiffsLoop(); // Not used
+    #endif
+
+    #if HASP_USE_SDCARD
+        // sdcardLoop(); // Not used
+    #endif
+
+        // configLoop();  // Not used
+    */
 
     /* Graphics Loops */
     // tftLoop();
     guiLoop();
-
     /* Application Loops */
     // haspLoop();
+    debugLoop();
+
+#if HASP_USE_GPIO
+    gpioLoop();
+#endif
 
     /* Network Services Loops */
-#if HASP_USE_WIFI
-    isConnected = wifiLoop();
+#if HASP_USE_ETHERNET > 0
+    ethernetLoop();
+#endif
 
 #if HASP_USE_MQTT
-    mqttLoop(isConnected);
-#endif
+    mqttLoop();
+#endif // MQTT
 
 #if HASP_USE_HTTP
     httpLoop();
-#endif
-
-#if HASP_USE_TELNET
-    telnetLoop();
-#endif
+#endif // HTTP
 
 #if HASP_USE_MDNS
     mdnsLoop();
-#endif
+#endif // MDNS
 
-#if HASP_USE_BUTTON
-    buttonLoop();
-#endif
-
+#if HASP_USE_OTA
     otaLoop();
-    debugLoop();
+#endif // OTA
+
+#if HASP_USE_TELNET > 0
+    telnetLoop();
+#endif // TELNET
+
+#if HASP_USE_TASMOTA_SLAVE
+    slaveLoop();
+#endif // TASMOTASLAVE
+
+    // digitalWrite(HASP_OUTPUT_PIN, digitalRead(HASP_INPUT_PIN)); // sets the LED to the button's value
+
+    /* Timer Loop */
+    if(millis() - mainLastLoopTime >= 1000) {
+        /* Run Every Second */
+#if HASP_USE_OTA
+        otaEverySecond();
+#endif
+        debugEverySecond();
+
+        /* Run Every 5 Seconds */
+        if(mainLoopCounter == 0 || mainLoopCounter == 5) {
+#if HASP_USE_WIFI > 0
+            isConnected = wifiEvery5Seconds();
 #endif
 
-    static unsigned long mainLastLoopTime = 0;
+#if HASP_USE_ETHERNET > 0
+            isConnected = Ethernet.linkStatus() == LinkON;
+            Serial.print(Ethernet.linkStatus());
+#endif
 
-    // Every Second Loop
-    if(millis() - mainLastLoopTime >= 1000) {
-        mainLastLoopTime += 1000;
-        httpEverySecond();
-        otaEverySecond();
-        mainLoopCounter++;
-        if(mainLoopCounter >= 10) {
-            mainLoopCounter = 0;
+#if HASP_USE_HTTP > 0
+            httpEvery5Seconds();
+#endif
+
+#if HASP_USE_MQTT > 0
+            mqttEvery5Seconds(isConnected);
+#endif
         }
+
+        /* Reset loop counter every 10 seconds */
+        if(mainLoopCounter >= 9) {
+            mainLoopCounter = 0;
+        } else {
+            mainLoopCounter++;
+        }
+        mainLastLoopTime += 1000;
     }
 
-    // delay(1);
+    delay(3);
 }
