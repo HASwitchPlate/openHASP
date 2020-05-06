@@ -31,11 +31,11 @@
 #define SERIAL_SPEED 115200
 #endif
 
-#if HASP_USE_TELNET != 0
+#if HASP_USE_TELNET > 0
 #include "hasp_telnet.h"
 #endif
 
-#if HASP_USE_SYSLOG != 0
+#if HASP_USE_SYSLOG > 0
 #include "Syslog.h"
 
 #ifndef SYSLOG_SERVER
@@ -122,7 +122,7 @@ void debugStart()
     // log/logf method)
 }
 
-#if HASP_USE_SYSLOG != 0
+#if HASP_USE_SYSLOG > 0
 void syslogSend(uint8_t priority, const char * debugText)
 {
     if(strlen(debugSyslogHost) != 0 && WiFi.isConnected()) {
@@ -133,7 +133,7 @@ void syslogSend(uint8_t priority, const char * debugText)
 
 void debugSetup()
 {
-#if HASP_USE_SYSLOG != 0
+#if HASP_USE_SYSLOG > 0
     syslog = new Syslog(syslogClient, debugSyslogProtocol == 0 ? SYSLOG_PROTO_IETF : SYSLOG_PROTO_BSD);
     syslog->server(debugSyslogHost, debugSyslogPort);
     syslog->deviceHostname(mqttNodeName);
@@ -158,7 +158,7 @@ bool debugGetConfig(const JsonObject & settings)
     if(debugTelePeriod != settings[FPSTR(F_DEBUG_TELEPERIOD)].as<uint16_t>()) changed = true;
     settings[FPSTR(F_DEBUG_TELEPERIOD)] = debugTelePeriod;
 
-#if HASP_USE_SYSLOG != 0
+#if HASP_USE_SYSLOG > 0
     if(strcmp(debugSyslogHost, settings[FPSTR(F_CONFIG_HOST)].as<String>().c_str()) != 0) changed = true;
     settings[FPSTR(F_CONFIG_HOST)] = debugSyslogHost;
 
@@ -196,7 +196,7 @@ bool debugSetConfig(const JsonObject & settings)
     changed |= configSet(debugTelePeriod, settings[FPSTR(F_DEBUG_TELEPERIOD)], PSTR("debugTelePeriod"));
 
     /* Syslog Settings*/
-#if HASP_USE_SYSLOG != 0
+#if HASP_USE_SYSLOG > 0
     if(!settings[FPSTR(F_CONFIG_HOST)].isNull()) {
         changed |= strcmp(debugSyslogHost, settings[FPSTR(F_CONFIG_HOST)]) != 0;
         strncpy(debugSyslogHost, settings[FPSTR(F_CONFIG_HOST)], sizeof(debugSyslogHost));

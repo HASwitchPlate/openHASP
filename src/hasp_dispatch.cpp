@@ -38,7 +38,7 @@ void dispatchLoop()
 
 void dispatchStatusUpdate()
 {
-#if HASP_USE_MQTT
+#if HASP_USE_MQTT>0
     mqtt_send_statusupdate();
 #endif
 }
@@ -308,7 +308,7 @@ void dispatch_button(uint8_t id, const char * event)
 #else
     Log.notice(F("OUT: input%d = %s"), id, event);
 #endif
-#if HASP_USE_TASMOTA_SLAVE
+#if HASP_USE_TASMOTA_SLAVE>0
     slave_send_input(id, event);
 #endif
 }

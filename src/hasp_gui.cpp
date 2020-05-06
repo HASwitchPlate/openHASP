@@ -18,7 +18,7 @@
 //#include "lv_ex_conf.h"
 //#include "tpcal.h"
 
-#if HASP_USE_PNGDECODE
+#if HASP_USE_PNGDECODE > 0
 #include "png_decoder.h"
 #endif
 
@@ -26,7 +26,7 @@
 #define TOUCH_DRIVER 0
 #endif
 
-#if HASP_USE_SPIFFS
+#if HASP_USE_SPIFFS > 0
 #if defined(ARDUINO_ARCH_ESP32)
 #include "SPIFFS.h"
 #endif
@@ -664,7 +664,7 @@ void guiSetup()
 #endif
 
     /* Initialize PNG decoder */
-#if HASP_USE_PNGDECODE != 0
+#if HASP_USE_PNGDECODE > 0
     png_decoder_init();
 #endif
 

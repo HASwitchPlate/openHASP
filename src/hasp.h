@@ -19,7 +19,7 @@ extern "C" {
  *      INCLUDES
  *********************/
 
-#if HASP_USE_APP
+#if HASP_USE_APP>0
 
 /*********************
  *      DEFINES
