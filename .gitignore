@@ -5,6 +5,7 @@
 .git
 .pio
 data/*
+src/user_setups/active/*
 src/user_config_override.h
 platformio_override.ini
 user_setups/active/*

@@ -41,6 +41,11 @@ File pFileOut;
 #endif
 uint8_t guiSnapshot = 0;
 
+#if defined(STM32F4xx)
+//#include <EthernetWebServer_STM32.h>
+// EthernetWebServer * webClient(0);
+#endif
+
 #if defined(ARDUINO_ARCH_ESP8266)
 #include <ESP8266WebServer.h>
 ESP8266WebServer * webClient; // for snatshot
@@ -75,10 +80,7 @@ static uint8_t guiRotation    = TFT_ROTATION;
 #if ESP32 > 0 || ESP8266 > 0
 static Ticker tick; /* timer for interrupt handler */
 #else
-static Ticker tick(lv_tick_handler,guiTickPeriod);
-uint8_t serialInputIndex   = 0;    // Empty buffer
-char serialInputBuffer[1024];
-
+static Ticker tick(lv_tick_handler, guiTickPeriod);
 #endif
 static TFT_eSPI tft; // = TFT_eSPI(); /* TFT instance */
 static uint16_t calData[5] = {0, 65535, 0, 65535, 0};
@@ -174,14 +176,15 @@ static bool guiCheckSleep()
 /* Flush VDB bytes to a stream */
 static void gui_take_screenshot(uint8_t * data_p, size_t len)
 {
-#if defined(ARDUINO_ARCH_ESP8266) || defined(ARDUINO_ARCH_ESP32)
     size_t res = 0;
     switch(guiSnapshot) {
+#if HASP_USE_SPIFFS > 0
         case 1:
             res = pFileOut.write(data_p, len);
             break;
+#endif
         case 2:
-            res = webClient->client().write(data_p, len);
+            res = httpClientWrite(data_p, len);
             break;
         default:
             res = 0; // nothing to do
@@ -189,7 +192,6 @@ static void gui_take_screenshot(uint8_t * data_p, size_t len)
     if(res != len) {
         Log.warning(F("GUI: Pixelbuffer not completely sent"));
     }
-#endif
 }
 
 /* Experimetnal Display flushing */
@@ -200,7 +202,6 @@ static void IRAM_ATTR tft_espi_flush(lv_disp_drv_t * disp, const lv_area_t * are
     /* Update TFT */
     tft.startWrite();                                      /* Start new TFT transaction */
     tft.setWindow(area->x1, area->y1, area->x2, area->y2); /* set the working window */
-    tft.setSwapBytes(true);                                /* set endianess */
     tft.pushPixels((uint16_t *)color_p, len);              /* Write words at once */
     tft.endWrite();                                        /* terminate TFT transaction */
 
@@ -620,11 +621,12 @@ void guiSetup()
 {
     /* TFT init */
     tft.begin();
+    tft.setSwapBytes(true); /* set endianess */
 
 #ifdef USE_DMA_TO_TFT
-// DMA - should work with STM32F2xx/F4xx/F7xx processors
-// NOTE: >>>>>> DMA IS FOR SPI DISPLAYS ONLY <<<<<<
-tft.initDMA(); // Initialise the DMA engine (tested with STM32F446 and STM32F767)
+    // DMA - should work with STM32F2xx/F4xx/F7xx processors
+    // NOTE: >>>>>> DMA IS FOR SPI DISPLAYS ONLY <<<<<<
+    tft.initDMA(); // Initialise the DMA engine (tested with STM32F446 and STM32F767)
 #endif
 
     tft.setRotation(guiRotation); /* 1/3=Landscape or 0/2=Portrait orientation */
@@ -655,10 +657,10 @@ tft.initDMA(); // Initialise the DMA engine (tested with STM32F446 and STM32F767
 #else
     static lv_disp_buf_t disp_buf;
     static lv_color_t guiVdbBuffer1[16 * 512u]; // 16 KBytes
-    static lv_color_t guiVdbBuffer2[16 * 512u]; // 16 KBytes
+    // static lv_color_t guiVdbBuffer2[16 * 512u]; // 16 KBytes
     guiVDBsize = sizeof(guiVdbBuffer1) / sizeof(guiVdbBuffer1[0]);
-    lv_disp_buf_init(&disp_buf, guiVdbBuffer1, guiVdbBuffer2, guiVDBsize);
-    //lv_disp_buf_init(&disp_buf, guiVdbBuffer1, NULL, guiVDBsize);
+    // lv_disp_buf_init(&disp_buf, guiVdbBuffer1, guiVdbBuffer2, guiVDBsize);
+    lv_disp_buf_init(&disp_buf, guiVdbBuffer1, NULL, guiVDBsize);
 #endif
 
     /* Initialize PNG decoder */
@@ -784,27 +786,27 @@ tft.initDMA(); // Initialise the DMA engine (tested with STM32F446 and STM32F767
     tick.attach_ms(guiTickPeriod, lv_tick_handler);
 #else
 
-/*
-#if defined(TIM1)
-    TIM_TypeDef * Instance = TIM1;
-#else
-    TIM_TypeDef * Instance = TIM2;
-#endif
-*/
+    /*
+    #if defined(TIM1)
+        TIM_TypeDef * Instance = TIM1;
+    #else
+        TIM_TypeDef * Instance = TIM2;
+    #endif
+    */
     // Instantiate HardwareTimer object. Thanks to 'new' instanciation, HardwareTimer is not destructed when setup()
     // function is finished.
-  /*  static HardwareTimer * MyTim = new HardwareTimer(Instance);
-    MyTim->pause();
-    MyTim->setPrescaleFactor(1);
-    MyTim->setMode(0, TIMER_OUTPUT_COMPARE, NC);
-    MyTim->setOverflow(1000 * guiTickPeriod, MICROSEC_FORMAT); //  MicroSec
-    MyTim->setCount(0,MICROSEC_FORMAT);
-    MyTim->refresh();
-    MyTim->detachInterrupt();
-    MyTim->attachInterrupt((void (*)(HardwareTimer *))lv_tick_handler);
-    MyTim->detachInterrupt(0);
-    MyTim->attachInterrupt(0,(void (*)(HardwareTimer *))lv_tick_handler);
-    MyTim->resume();*/
+    /*  static HardwareTimer * MyTim = new HardwareTimer(Instance);
+      MyTim->pause();
+      MyTim->setPrescaleFactor(1);
+      MyTim->setMode(0, TIMER_OUTPUT_COMPARE, NC);
+      MyTim->setOverflow(1000 * guiTickPeriod, MICROSEC_FORMAT); //  MicroSec
+      MyTim->setCount(0,MICROSEC_FORMAT);
+      MyTim->refresh();
+      MyTim->detachInterrupt();
+      MyTim->attachInterrupt((void (*)(HardwareTimer *))lv_tick_handler);
+      MyTim->detachInterrupt(0);
+      MyTim->attachInterrupt(0,(void (*)(HardwareTimer *))lv_tick_handler);
+      MyTim->resume();*/
     tick.start();
 #endif
 
@@ -817,34 +819,15 @@ void IRAM_ATTR guiLoop()
 {
 #if defined(STM32F4xx)
     tick.update();
-
-        while(Serial.available()) {
-            char ch = Serial.read();
-            Serial.print(ch);
-            if (ch == 13 ||ch == 10) {
-                serialInputBuffer[serialInputIndex] = 0;
-                if (serialInputIndex>0) dispatchCommand(serialInputBuffer);
-                serialInputIndex=0;
-            }else{
-                if(serialInputIndex < sizeof(serialInputBuffer) - 1) {
-                    serialInputBuffer[serialInputIndex++] = ch;
-                }
-                serialInputBuffer[serialInputIndex] = 0;
-                if (strcmp(serialInputBuffer,"jsonl=")==0){
-                    dispatchJsonl(Serial);
-                    serialInputIndex=0;
-                }
-            }
-        }
 #endif
-    //lv_tick_handler();
+
+    // lv_tick_handler();
     lv_task_handler(); /* let the GUI do its work */
     guiCheckSleep();
 
 #if TOUCH_DRIVER == 1
     touch.loop();
 #endif
-
 }
 
 void guiStop()
@@ -990,14 +973,15 @@ bool guiSetConfig(const JsonObject & settings)
         }
 
         if(calData[0] != 0 || calData[1] != 65535 || calData[2] != 0 || calData[3] != 65535) {
-            Log.trace(F("calData set [%u, %u, %u, %u, %u]"), calData[0], calData[1], calData[2], calData[3],calData[4]);
+            Log.trace(F("calData set [%u, %u, %u, %u, %u]"), calData[0], calData[1], calData[2], calData[3],
+                      calData[4]);
             oobeSetAutoCalibrate(false);
         } else {
             Log.notice(F("First Touch Calibration enabled"));
             oobeSetAutoCalibrate(true);
         }
-        
-        if (status) tft.setTouch(calData);
+
+        if(status) tft.setTouch(calData);
         changed |= status;
     }
 
@@ -1012,23 +996,15 @@ static void guiSetBmpHeader(uint8_t * buffer_p, int32_t data)
     *buffer_p++ = (data >> 24) & 0xFF;
 }
 
-#if defined(ARDUINO_ARCH_ESP8266)
 static void guiSendBmpHeader();
 
-void guiTakeScreenshot(ESP8266WebServer & client)
-#endif
-#if defined(ARDUINO_ARCH_ESP32)
-    static void guiSendBmpHeader();
-
-void guiTakeScreenshot(WebServer & client)
-#endif // ESP32{
-#if defined(ARDUINO_ARCH_ESP8266) || defined(ARDUINO_ARCH_ESP32)
+void guiTakeScreenshot()
 {
-    webClient        = &client;
-    lv_disp_t * disp = lv_disp_get_default();
+    // webClient        = &client;
+    // lv_disp_t * disp = lv_disp_get_default();
 
-    webClient->setContentLength(122 + disp->driver.hor_res * disp->driver.ver_res * sizeof(lv_color_t));
-    webClient->send(200, PSTR("image/bmp"), "");
+    // webClient->setContentLength(122 + disp->driver.hor_res * disp->driver.ver_res * sizeof(lv_color_t));
+    // webClient->send(200, PSTR("image/bmp"), "");
 
     guiSnapshot = 2;
     guiSendBmpHeader();
@@ -1089,15 +1065,17 @@ static void guiSendBmpHeader()
     buffer[70 + 0] = 0x20;
 
     if(guiSnapshot == 1) {
+#if HASP_USE_SPIFFS > 0
         size_t len = pFileOut.write(buffer, 122);
         if(len != sizeof(buffer)) {
             Log.warning(F("GUI: Data written does not match header size"));
         } else {
             Log.verbose(F("GUI: Bitmap header written"));
         }
+#endif
 
     } else if(guiSnapshot == 2) {
-        if(webClient->client().write(buffer, 122) != 122) {
+        if(httpClientWrite(buffer, 122) != 122) {
             Log.warning(F("GUI: Data sent does not match header size"));
         } else {
             Log.verbose(F("GUI: Bitmap header sent"));
@@ -1114,6 +1092,7 @@ static void guiSendBmpHeader()
  * @param[in] pFileName   Output binary file name.
  *
  **/
+#if HASP_USE_SPIFFS > 0
 void guiTakeScreenshot(const char * pFileName)
 {
     pFileOut = SPIFFS.open(pFileName, "w");

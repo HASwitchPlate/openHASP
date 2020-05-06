@@ -3,6 +3,7 @@
 #include "TFT_eSPI.h"
 
 #include "hasp_tft.h"
+#include "hasp_hal.h"
 
 #if defined(ARDUINO_ARCH_ESP8266)
 ADC_MODE(ADC_VCC); // tftShowConfig measures the voltage on the pin
@@ -84,11 +85,10 @@ void tftShowConfig(TFT_eSPI & tft)
     Log.verbose(F("TFT: TFT_eSPI   : v%s"), tftSetup.version.c_str());
 #if defined(ARDUINO_ARCH_ESP8266) || defined(ARDUINO_ARCH_32)
     Log.verbose(F("TFT: Processor  : ESP%x"), tftSetup.esp);
-    Log.verbose(F("TFT: CPU freq.  : %i MHz"), ESP.getCpuFreqMHz());
 #else
     Log.verbose(F("TFT: Processor  : STM%x"), tftSetup.esp);
-    Log.verbose(F("TFT: CPU freq.  : %i MHz"), F_CPU / 1000 / 1000);
 #endif
+    Log.verbose(F("TFT: CPU freq.  : %i MHz"), halGetCpuFreqMHz());
 
 #if defined(ARDUINO_ARCH_ESP8266)
     Log.verbose(F("TFT: Voltage    : %2.2f V"), ESP.getVcc() / 918.0); // 918 empirically determined

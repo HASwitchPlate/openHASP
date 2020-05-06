@@ -50,7 +50,11 @@ void ethernetSetup()
         ip = Ethernet.localIP();
         Log.notice(F("ETH: DHCP Success got IP=%d.%d.%d.%d"),ip[0], ip[1], ip[2], ip[3]);
     }
-#endif
+
+        uint8_t *mac;
+        mac = Ethernet.MACAddress();
+        Log.notice(F("ETH: MAC Address %x:%x:%x:%x:%x:%x"),*mac,*(mac+1),*(mac+2),*(mac+3),*(mac+4),*(mac+5));
+
 }
 
 void ethernetLoop(void)
