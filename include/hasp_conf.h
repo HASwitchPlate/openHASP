@@ -35,7 +35,7 @@
 #endif
 
 #ifndef HASP_USE_SYSLOG
-#define HASP_USE_SYSLOG (HASP_HAS_NETWORK)
+#define HASP_USE_SYSLOG 0
 #endif
 
 #ifndef HASP_USE_TELNET
@@ -94,7 +94,7 @@
 #include "hasp_spiffs.h"
 
 #if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
-#include "lv_zifont.h"
+//#include "lv_zifont.h"
 #endif
 #endif // SPIFFS
 
@@ -107,6 +107,19 @@
 #endif
 
 #if HASP_USE_ETHERNET>0
+#if USE_BUILTIN_ETHERNET>0
+#include <LwIP.h>
+#include <STM32Ethernet.h>
+#warning Use built-in STM32 Ethernet
+#elif USE_UIP_ETHERNET
+#include <UIPEthernet.h>
+#include <utility/logging.h>
+#warning Use ENC28J60 Ethernet shield
+#else
+#include "Ethernet.h"
+#include "EthernetClient.h"
+#warning Use W5x00 Ethernet shield
+#endif
 #include "hasp_ethernet.h"
 #endif
 

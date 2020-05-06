@@ -9,10 +9,6 @@
 #include "hasp_oobe.h"
 #include "hasp_gpio.h"
 
-#if HASP_USE_ETHERNET > 0
-#include <STM32Ethernet.h>
-#endif
-
 bool isConnected;
 uint8_t mainLoopCounter        = 0;
 unsigned long mainLastLoopTime = 0;

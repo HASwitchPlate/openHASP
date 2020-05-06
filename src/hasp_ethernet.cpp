@@ -5,15 +5,7 @@
 
 #if HASP_USE_ETHERNET > 0
 
-#if defined(W5500_MOSI) && defined(W5500_MISO) && defined(W5500_SCLK)
-#define W5500_LAN
-#include <SPI.h>
-#include <Ethernet3.h>
-#else
-#include <LwIP.h>
-#include <STM32Ethernet.h>
-#include <EthernetUdp.h>
-#endif
+
 
 EthernetClient EthClient;
 IPAddress ip;

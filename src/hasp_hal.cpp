@@ -1,8 +1,5 @@
-#if defined(STM32F4xx)
-#include <Stm32Ethernet.h>
-#endif
-
 #include "hasp_hal.h"
+#include "hasp_conf.h"
 
 #if defined(ESP8266)
 #include <ESP.h>
@@ -250,7 +247,7 @@ String halGetMacAddress(int start, const char * seperator)
 
 #if defined(STM32F4xx)
     uint8_t * mac_p;
-    mac_p = Ethernet.MACAddress();
+    //mac_p = Ethernet.MACAddress();
     for(uint8_t i = 0; i < 6; i++) mac[i] = *(mac_p + i);
 #else
     WiFi.macAddress(mac);

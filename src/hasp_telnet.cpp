@@ -9,6 +9,7 @@
 #include "hasp_config.h"
 #include "hasp_dispatch.h"
 #include "hasp_telnet.h"
+#include "hasp_conf.h"
 
 #if defined(ARDUINO_ARCH_ESP32)
 #include <Wifi.h>
@@ -19,7 +20,7 @@ static WiFiServer * telnetServer;
 WiFiClient telnetClient;
 static WiFiServer * telnetServer;
 #else
-#include <STM32Ethernet.h>
+//#include <STM32Ethernet.h>
 EthernetClient telnetClient;
 static EthernetServer telnetServer(23);
 #endif

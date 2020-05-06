@@ -18,7 +18,14 @@ WiFiClient mqttNetworkClient;
 #include <ESP.h>
 WiFiClient mqttNetworkClient;
 #else
+
+#if defined(W5500_MOSI) && defined(W5500_MISO) && defined(W5500_SCLK)
+#define W5500_LAN
+#include <Ethernet.h>
+#else
 #include <STM32Ethernet.h>
+#endif
+
 EthernetClient mqttNetworkClient;
 #endif
 
