@@ -106,8 +106,8 @@
 #include "hasp_wifi.h"
 #endif
 
-#if HASP_USE_ETHERNET>0
-#if USE_BUILTIN_ETHERNET>0
+#if HASP_USE_ETHERNET > 0
+#if USE_BUILTIN_ETHERNET > 0
 #include <LwIP.h>
 #include <STM32Ethernet.h>
 #warning Use built-in STM32 Ethernet
@@ -117,7 +117,6 @@
 #warning Use ENC28J60 Ethernet shield
 #else
 #include "Ethernet.h"
-#include "EthernetClient.h"
 #warning Use W5x00 Ethernet shield
 #endif
 #include "hasp_ethernet.h"

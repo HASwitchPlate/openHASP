@@ -137,8 +137,8 @@ bool httpIsAuthenticated(const __FlashStringHelper * page)
     Log.verbose(F("HTTP: Sending %s page to client connected from: %s"), page,
                 webServer.client().remoteIP().toString().c_str());
 #else
-    Log.verbose(F("HTTP: Sending %s page to client connected from: %s"), page,
-                String(webServer.client().remoteIP()).c_str());
+    // Log.verbose(F("HTTP: Sending %s page to client connected from: %s"), page,
+    //             String(webServer.client().remoteIP()).c_str());
 #endif
 
     return true;
@@ -503,18 +503,9 @@ void webHandleInfo()
 
         {
             char mqttClientId[64];
-#if HASP_USE_WIFI > 0
-            byte mac[6];
-            WiFi.macAddress(mac);
-            snprintf_P(mqttClientId, sizeof(mqttClientId), PSTR("%s-%02x%02x%02x"), mqttNodeName, mac[3], mac[4],
-                       mac[5]);
-#endif
-#if HASP_USE_ETHERNET > 0
-            uint8_t * mac;
-            mac = Ethernet.MACAddress();
-            snprintf_P(mqttClientId, sizeof(mqttClientId), PSTR("%s-%02x%02x%02x"), mqttNodeName, *(mac + 3),
-                       *(mac + 4), *(mac + 5));
-#endif
+            String mac = halGetMacAddress(3, "");
+            mac.toLowerCase();
+            snprintf_P(mqttNodeName, sizeof(mqttNodeName), PSTR("plate_%s"), mac.c_str());
             httpMessage += mqttClientId;
         }
 
@@ -1375,7 +1366,7 @@ void httpHandleNotFound()
 #if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
     Log.notice(F("HTTP: Sending 404 to client connected from: %s"), webServer.client().remoteIP().toString().c_str());
 #else
-    Log.notice(F("HTTP: Sending 404 to client connected from: %s"), String(webServer.client().remoteIP()).c_str());
+  // Log.notice(F("HTTP: Sending 404 to client connected from: %s"), String(webServer.client().remoteIP()).c_str());
 #endif
 
     String httpMessage((char *)0);

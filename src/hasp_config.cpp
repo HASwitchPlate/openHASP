@@ -311,6 +311,7 @@ void configWriteConfig()
     } else {
         Log.notice(F("CONF: Configuration did not change"));
     }
+    configOutput(settings);
 }
 
 void configSetup()

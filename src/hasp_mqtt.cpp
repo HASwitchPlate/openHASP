@@ -352,18 +352,11 @@ void mqttReconnect()
     bool mqttFirstConnect             = true;
 
     {
-#if HASP_USE_WIFI>0
-        byte mac[6];
-        WiFi.macAddress(mac);
-        snprintf_P(mqttClientId, sizeof(mqttClientId), PSTR("%s-%02x%02x%02x"), mqttNodeName, mac[3], mac[4], mac[5]);
-#endif
-#if HASP_USE_ETHERNET>0
-        uint8_t * mac;
-        mac = Ethernet.MACAddress();
-        snprintf_P(mqttClientId, sizeof(mqttClientId), PSTR("%s-%02x%02x%02x"), mqttNodeName, *(mac+3), *(mac+4), *(mac+5));
-#endif
-    }
+        String mac = halGetMacAddress(3, "");
+        mac.toLowerCase();
+        snprintf_P(mqttNodeName, sizeof(mqttNodeName), PSTR("plate_%s"), mac.c_str());
         Log.verbose(mqttClientId);
+    }
 
     // Attempt to connect and set LWT and Clean Session
     snprintf_P(buffer, sizeof(buffer), PSTR("%sstatus"), mqttNodeTopic);

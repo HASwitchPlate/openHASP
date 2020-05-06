@@ -2,17 +2,28 @@
 #include "ArduinoJson.h"
 #include "ArduinoLog.h"
 #include "hasp_conf.h"
+#include "hasp_hal.h"
 
 #if HASP_USE_ETHERNET > 0
-
-
 
 EthernetClient EthClient;
 IPAddress ip;
 
 void ethernetSetup()
 {
-#ifdef W5500_LAN
+#if USE_BUILTIN_ETHERNET > 0
+    // start Ethernet and UDP
+    Log.notice(F("ETH: Begin Ethernet LAN8720"));
+    if(Ethernet.begin() == 0) {
+        Log.notice(F("ETH: Failed to configure Ethernet using DHCP"));
+    } else {
+        ip = Ethernet.localIP();
+        Log.notice(F("ETH: DHCP Success got IP=%d.%d.%d.%d"), ip[0], ip[1], ip[2], ip[3]);
+    }
+
+    Log.notice(F("ETH: MAC Address %s"), halGetMacAddress(0, ":"));
+
+#else
     byte mac[6];
     uint32_t baseUID = (uint32_t)UID_BASE;
     mac[0]           = 0x00;
@@ -32,21 +43,6 @@ void ethernetSetup()
         ip = Ethernet.localIP();
         Log.notice(F("ETH: DHCP Success got IP=%d.%d.%d.%d"), ip[0], ip[1], ip[2], ip[3]);
     }
-
-#else
-    // start Ethernet and UDP
-    Log.notice(F("ETH: Begin Ethernet LAN8720"));
-    if(Ethernet.begin() == 0) {
-        Log.notice(F("ETH: Failed to configure Ethernet using DHCP"));
-    } else {
-        ip = Ethernet.localIP();
-        Log.notice(F("ETH: DHCP Success got IP=%d.%d.%d.%d"), ip[0], ip[1], ip[2], ip[3]);
-    }
-
-    uint8_t * mac;
-    mac = Ethernet.MACAddress();
-    Log.notice(F("ETH: MAC Address %x:%x:%x:%x:%x:%x"), *mac, *(mac + 1), *(mac + 2), *(mac + 3), *(mac + 4),
-               *(mac + 5));
 #endif
 }
 

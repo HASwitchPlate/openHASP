@@ -246,9 +246,13 @@ String halGetMacAddress(int start, const char * seperator)
     byte mac[6];
 
 #if defined(STM32F4xx)
-    uint8_t * mac_p;
-    //mac_p = Ethernet.MACAddress();
+    uint8_t * mac_p = nullptr;
+#if USE_BUILTIN_ETHERNET > 0
+    mac_p = Ethernet.MACAddress();
     for(uint8_t i = 0; i < 6; i++) mac[i] = *(mac_p + i);
+#else
+    Ethernet.macAddress(mac);
+#endif
 #else
     WiFi.macAddress(mac);
 #endif
