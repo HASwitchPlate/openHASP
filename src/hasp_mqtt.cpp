@@ -1,5 +1,5 @@
 #include "hasp_conf.h"
-#if HASP_USE_MQTT
+#if HASP_USE_MQTT>0
 
 #include <Arduino.h>
 #include "ArduinoJson.h"
@@ -190,7 +190,7 @@ void mqtt_send_statusupdate()
         snprintf_P(data, sizeof(data), PSTR("{\"status\":\"available\",\"version\":\"%s\",\"uptime\":%lu,"),
                    haspGetVersion().c_str(), long(millis() / 1000));
         strcat(buffer, data);
-#if HASP_USE_WIFI
+#if HASP_USE_WIFI>0
         snprintf_P(buffer, sizeof(buffer), PSTR("\"ssid\":\"%s\",\"rssi\":%i,\"ip\":\"%s\","), WiFi.SSID().c_str(),
                    WiFi.RSSI(), WiFi.localIP().toString().c_str());
         strcat(data, buffer);

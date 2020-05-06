@@ -110,7 +110,6 @@ String lcdFirmwareUrl = "http://haswitchplate.com/update/HASwitchPlate.tft";
 
 #if HASP_USE_MQTT > 0
 extern char mqttNodeName[16];
-extern char mqttNodeName[16];
 #else
 char mqttNodeName[3] = "na";
 #endif
@@ -505,7 +504,7 @@ void webHandleInfo()
             char mqttClientId[64];
             String mac = halGetMacAddress(3, "");
             mac.toLowerCase();
-            snprintf_P(mqttNodeName, sizeof(mqttNodeName), PSTR("plate_%s"), mac.c_str());
+            snprintf_P(mqttClientId, sizeof(mqttClientId), PSTR("%s-%s"), mqttNodeName, mac.c_str());
             httpMessage += mqttClientId;
         }
 

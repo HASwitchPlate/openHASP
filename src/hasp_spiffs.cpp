@@ -5,7 +5,7 @@
 #include "hasp_conf.h"
 #include "hasp_spiffs.h"
 
-#if HASP_USE_SPIFFS
+#if HASP_USE_SPIFFS>0
 #if defined(ARDUINO_ARCH_ESP32)
 #include "SPIFFS.h"
 #endif
@@ -91,7 +91,7 @@ void spiffsSetup()
 {
     // no SPIFFS settings, as settings depend on SPIFFS
 
-#if HASP_USE_SPIFFS
+#if HASP_USE_SPIFFS>0
 #if defined(ARDUINO_ARCH_ESP8266)
     if(!SPIFFS.begin()) {
 #else
