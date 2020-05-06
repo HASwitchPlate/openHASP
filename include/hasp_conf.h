@@ -18,6 +18,10 @@
 #define HASP_USE_WIFI (HASP_HAS_NETWORK)
 #endif
 
+#ifndef HASP_USE_ETHERNET
+#define HASP_USE_ETHERNET 0
+#endif
+
 #ifndef HASP_USE_MQTT
 #define HASP_USE_MQTT 1
 #endif
@@ -100,6 +104,10 @@
 
 #if HASP_USE_WIFI > 0
 #include "hasp_wifi.h"
+#endif
+
+#if HASP_USE_ETHERNET>0
+#include "hasp_ethernet.h"
 #endif
 
 #if HASP_USE_MQTT > 0
