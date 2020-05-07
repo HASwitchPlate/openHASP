@@ -1506,7 +1506,9 @@ void webStart()
     Log.notice(F("HTTP: Server started @ http://%s"),
                (WiFi.getMode() != WIFI_STA ? WiFi.softAPIP().toString().c_str() : WiFi.localIP().toString().c_str()));
 #else
-    Log.notice(F("HTTP: Server started @ http://%s"), String(Ethernet.localIP()).c_str());
+    IPAddress ip;
+    ip = Ethernet.localIP();
+    Log.notice(F("HTTP: Server started @ http://%d.%d.%d.%d"), ip[0], ip[1], ip[2], ip[3]);
 #endif
 }
 
@@ -1691,8 +1693,8 @@ size_t httpClientWrite(const uint8_t * buf, size_t size)
     size_t bytes_sent = 0;
     while(bytes_sent < size) {
         if(!webServer.client()) return bytes_sent;
-        if(size - bytes_sent >= 4096) {
-            bytes_sent += webServer.client().write(buf + bytes_sent, 4096);
+        if(size - bytes_sent >= 2048) {
+            bytes_sent += webServer.client().write(buf + bytes_sent, 2048);
         } else {
             bytes_sent += webServer.client().write(buf + bytes_sent, size - bytes_sent);
         }

@@ -354,7 +354,8 @@ void mqttReconnect()
     {
         String mac = halGetMacAddress(3, "");
         mac.toLowerCase();
-        snprintf_P(mqttNodeName, sizeof(mqttNodeName), PSTR("plate_%s"), mac.c_str());
+        memset(mqttClientId, 0 ,sizeof(mqttClientId));
+        snprintf_P(mqttClientId, sizeof(mqttClientId), PSTR("plate_%s"), mac.c_str());
         Log.verbose(mqttClientId);
     }
 
