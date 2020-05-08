@@ -4,4 +4,5 @@
 void ethernetSetup();
 void ethernetLoop(void);
 
+bool ethernetEvery5Seconds();
 #endif
