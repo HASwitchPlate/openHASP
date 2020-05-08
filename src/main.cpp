@@ -162,13 +162,7 @@ void loop()
 #endif
 
 #if HASP_USE_ETHERNET > 0
-#if USE_BUILTIN_ETHERNET > 0
-            isConnected = Ethernet.linkStatus() == LinkON;
-            Serial.print(Ethernet.linkStatus());
-#else
-            isConnected = Ethernet.link() == 1;
-            Serial.print(Ethernet.link());
-#endif
+            isConnected = ethernetEvery5Seconds();
 #endif
 
 #if HASP_USE_HTTP > 0
