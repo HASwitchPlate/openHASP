@@ -46,7 +46,7 @@
 #define HASP_HAS_FILESYSTEM (ARDUINO_ARCH_ESP32 > 0 || ARDUINO_ARCH_ESP8266 > 0)
 
 #ifndef HASP_USE_SPIFFS
-#define HASP_USE_SPIFFS (HASP_HAS_FILESYSTEM)
+#define HASP_USE_SPIFFS 1 //(HASP_HAS_FILESYSTEM)
 #endif
 
 #ifndef HASP_USE_EEPROM
@@ -87,15 +87,26 @@
 
 /* Includes */
 #if HASP_USE_SPIFFS > 0
+
+#if defined(STM32F4xx)
+#include "STM32Spiffs.h" // Include the SPIFFS library
+#endif
+
 #if defined(ARDUINO_ARCH_ESP32)
 #include "SPIFFS.h"
-#endif
 #include <FS.h> // Include the SPIFFS library
+#endif
+
+#if defined(ARDUINO_ARCH_ESP8266)
+#include <FS.h> // Include the SPIFFS library
+#endif
+
 #include "hasp_spiffs.h"
 
 #if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
 //#include "lv_zifont.h"
 #endif
+
 #endif // SPIFFS
 
 #if HASP_USE_EEPROM > 0

@@ -953,7 +953,7 @@ void haspLoadPage(const char * pages)
 
     Log.notice(F("HASP: Loading file %s"), pages);
 
-    File file = SPIFFS.open(pages, "r");
+    File file = SPIFFS.open(pages, FILE_READ);
     dispatchJsonl(file);
     file.close();
 

@@ -5,12 +5,12 @@
 #include "hasp_conf.h"
 #include "hasp_spiffs.h"
 
-#if HASP_USE_SPIFFS>0
-#if defined(ARDUINO_ARCH_ESP32)
-#include "SPIFFS.h"
-#endif
-#include <FS.h>
-#endif
+// #if HASP_USE_SPIFFS>0
+// #if defined(ARDUINO_ARCH_ESP32)
+// #include "SPIFFS.h"
+// #endif
+// #include <FS.h>
+// #endif
 
 void spiffsInfo()
 { // Get all information of your SPIFFS

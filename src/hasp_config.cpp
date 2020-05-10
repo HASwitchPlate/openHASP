@@ -14,15 +14,15 @@
 
 #include "hasp_conf.h"
 
-#if HASP_USE_SPIFFS > 0
-#include <FS.h> // Include the SPIFFS library
-#if defined(ARDUINO_ARCH_ESP32)
-#include "SPIFFS.h"
-#endif
-#endif
-#if HASP_USE_EEPROM > 0
-#include "EEPROM.h"
-#endif
+// #if HASP_USE_SPIFFS > 0
+// #include <FS.h> // Include the SPIFFS library
+// #if defined(ARDUINO_ARCH_ESP32)
+// #include "SPIFFS.h"
+// #endif
+// #endif
+// #if HASP_USE_EEPROM > 0
+// #include "EEPROM.h"
+// #endif
 
 void confDebugSet(const char * name)
 {
@@ -94,7 +94,7 @@ void configGetConfig(JsonDocument & settings, bool setupdebug = false)
     DeserializationError error;
 
 #if HASP_USE_SPIFFS > 0
-    File file = SPIFFS.open(configFile, "r");
+    File file = SPIFFS.open(configFile, FILE_READ);
 
     if(file) {
         size_t size = file.size();
@@ -268,7 +268,7 @@ void configWriteConfig()
 
     if(writefile) {
 #if HASP_USE_SPIFFS > 0
-        File file = SPIFFS.open(configFile, "w");
+        File file = SPIFFS.open(configFile, FILE_WRITE);
         if(file) {
             Log.notice(F("CONF: Writing %s"), configFile.c_str());
             size_t size = serializeJson(doc, file);

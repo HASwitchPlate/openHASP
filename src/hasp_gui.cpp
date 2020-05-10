@@ -14,6 +14,7 @@
 #include "hasp_gui.h"
 #include "hasp_oobe.h"
 #include "hasp.h"
+#include "hasp_conf.h"
 
 //#include "lv_ex_conf.h"
 //#include "tpcal.h"
@@ -26,17 +27,19 @@
 #define TOUCH_DRIVER 0
 #endif
 
-#if HASP_USE_SPIFFS > 0
-#if defined(ARDUINO_ARCH_ESP32)
-#include "SPIFFS.h"
-#endif
-#include <FS.h> // Include the SPIFFS library
-#endif
+// #if HASP_USE_SPIFFS > 0
+// #if defined(ARDUINO_ARCH_ESP32)
+// #include "SPIFFS.h"
+// #include <FS.h> // Include the SPIFFS library
+// #elif defined(ARDUINO_ARCH_ESP8266)
+// #include <FS.h> // Include the SPIFFS library
+// #endif
+// #endif
 
 #define BACKLIGHT_CHANNEL 15 // pwm channek 0-15
 
 /* ---------- Screenshot Variables ---------- */
-#if defined(ARDUINO_ARCH_ESP8266) || defined(ARDUINO_ARCH_ESP32)
+#if defined(ARDUINO_ARCH_ESP8266) || defined(ARDUINO_ARCH_ESP32)|| defined(STM32F4xx)
 File pFileOut;
 #endif
 uint8_t guiSnapshot = 0;
@@ -1095,7 +1098,7 @@ static void guiSendBmpHeader()
 #if HASP_USE_SPIFFS > 0
 void guiTakeScreenshot(const char * pFileName)
 {
-    pFileOut = SPIFFS.open(pFileName, "w");
+    pFileOut = SPIFFS.open(pFileName, FILE_WRITE);
 
     if(pFileOut == 0) {
         Log.warning(F("GUI: %s cannot be opened"), pFileName);

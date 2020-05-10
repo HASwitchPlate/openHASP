@@ -23,11 +23,12 @@
 #if defined(ARDUINO_ARCH_ESP32)
 #include "SPIFFS.h"
 #include <FS.h>
-#include <FS.h>
 #include <ESP.h>
 #elif defined(ARDUINO_ARCH_ESP8266)
 #include <FS.h>
 #include <ESP.h>
+#elif defined(STM32F4xx)
+#include "STM32Spiffs.h"
 #endif
 
 #if HASP_USE_HTTP > 0
@@ -38,6 +39,9 @@ uint16_t httpPort     = 80;
 
 #if defined(ARDUINO_ARCH_ESP8266) || defined(ARDUINO_ARCH_ESP32)
 FS * filesystem = &SPIFFS;
+File fsUploadFile;
+#elif defined(STM32F4xx)
+SpiffsFS * filesystem = &SPIFFS;
 File fsUploadFile;
 #endif
 
@@ -684,7 +688,7 @@ bool handleFileRead(String path)
     if(filesystem->exists(pathWithGz) || filesystem->exists(path)) {
         if(filesystem->exists(pathWithGz)) path += F(".gz");
 
-        File file          = filesystem->open(path, "r");
+        File file          = filesystem->open(path, FILE_READ);
         String contentType = getContentType(path);
         if(path == F("/edit.htm.gz")) {
             contentType = F("text/html");
@@ -712,7 +716,7 @@ void handleFileUpload()
             filename += upload->filename;
         }
         if(filename.length() < 32) {
-            fsUploadFile = filesystem->open(filename, "w");
+            fsUploadFile = filesystem->open(filename, FILE_WRITE);
             Log.notice(F("handleFileUpload Name: %s"), filename.c_str());
         } else {
             Log.error(F("Filename %s is too long"), filename.c_str());
@@ -777,14 +781,14 @@ void handleFileCreate()
     if(filesystem->exists(path)) {
         return webServer.send(500, PSTR("text/plain"), PSTR("FILE EXISTS"));
     }
-    File file = filesystem->open(path, "w");
+    File file = filesystem->open(path, FILE_WRITE);
     if(file) {
         file.close();
     } else {
         return webServer.send(500, PSTR("text/plain"), PSTR("CREATE FAILED"));
     }
     webServer.send(200, PSTR("text/plain"), "");
-    path.clear();
+    // path.clear();
 }
 
 void handleFileList()
@@ -796,9 +800,11 @@ void handleFileList()
         return;
     }
 
-    String path = webServer.arg(F("dir"));
-    Log.verbose(F("handleFileList: %s"), path.c_str());
-    path.clear();
+    {
+        String path = webServer.arg(F("dir"));
+        Log.verbose(F("handleFileList: %s"), path.c_str());
+        // path.clear();
+    }
 
 #if defined(ARDUINO_ARCH_ESP32)
     File root     = SPIFFS.open("/");
