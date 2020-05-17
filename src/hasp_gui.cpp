@@ -3,11 +3,21 @@
 
 #include "lv_conf.h"
 #include "lvgl.h"
+
+// Display Driver
+#include "lv_drv_conf.h"
+#include "display/tft_espi_drv.h"
+#include "display/fsmc_ili9341.h"
+
+// Touch Driver
+
+// Filesystem Driver
 #include "lv_fs_if.h"
-#include "TFT_eSPI.h"
+
+//#include "TFT_eSPI.h"
 //#include "lv_zifont.h"
 
-#include "hasp_tft.h"
+//#include "hasp_tft.h"
 #include "hasp_debug.h"
 #include "hasp_config.h"
 #include "hasp_dispatch.h"
@@ -82,7 +92,7 @@ static Ticker tick; /* timer for interrupt handler */
 #else
 static Ticker tick(lv_tick_handler, guiTickPeriod);
 #endif
-static TFT_eSPI tft; // = TFT_eSPI(); /* TFT instance */
+// static TFT_eSPI tft; // = TFT_eSPI(); /* TFT instance */
 static uint16_t calData[5] = {0, 65535, 0, 65535, 0};
 
 static bool guiCheckSleep()
@@ -195,8 +205,9 @@ static void gui_take_screenshot(uint8_t * data_p, size_t len)
 }
 
 /* Experimetnal Display flushing */
-static void IRAM_ATTR tft_espi_flush(lv_disp_drv_t * disp, const lv_area_t * area, lv_color_t * color_p)
+static void IRAM_ATTR tft_espi_flush_cb(lv_disp_drv_t * disp, const lv_area_t * area, lv_color_t * color_p)
 {
+#if 0
     size_t len = (area->x2 - area->x1 + 1) * (area->y2 - area->y1 + 1); /* Number of pixels */
 
     /* Update TFT */
@@ -209,6 +220,9 @@ static void IRAM_ATTR tft_espi_flush(lv_disp_drv_t * disp, const lv_area_t * are
     if(guiSnapshot != 0) {
         gui_take_screenshot((uint8_t *)color_p, len * sizeof(lv_color_t)); /* Number of bytes */
     }
+#endif
+
+    fsmc_ili9341_flush(area->x1, area->y1, area->x2, area->y2, color_p);
 
     /* Tell lvgl that flushing is done */
     lv_disp_flush_ready(disp);
@@ -555,14 +569,14 @@ bool IRAM_ATTR my_touchpad_read(lv_indev_drv_t * indev_driver, lv_indev_data_t *
 {
     //#ifdef TOUCH_CS
     uint16_t touchX, touchY;
-
+    bool touched;
 #if TOUCH_DRIVER == 0
-    bool touched = tft.getTouch(&touchX, &touchY, 600);
+    // touched = tft.getTouch(&touchX, &touchY, 600);
 #elif TOUCH_DRIVER == 1
     // return false;
-    bool touched = GT911_getXY(&touchX, &touchY, true);
+    touched = GT911_getXY(&touchX, &touchY, true);
 #else
-    bool touched = Touch_getXY(&touchX, &touchY, false);
+    touched = Touch_getXY(&touchX, &touchY, false);
 #endif
 
     if(!touched) return false;
@@ -571,21 +585,21 @@ bool IRAM_ATTR my_touchpad_read(lv_indev_drv_t * indev_driver, lv_indev_data_t *
 
     // Ignore first press?
 
-    if(touchX > tft.width() || touchY > tft.height()) {
-        Serial.print(F("Y or y outside of expected parameters.. x: "));
-        Serial.print(touchX);
-        Serial.print(F("  / y: "));
-        Serial.println(touchY);
-    } else {
-        /*Save the state and save the pressed coordinate*/
-        data->state   = touched ? LV_INDEV_STATE_PR : LV_INDEV_STATE_REL;
-        data->point.x = touchX;
-        data->point.y = touchY;
-        /* Serial.print("Data x");
-           Serial.println(touchX);
-           Serial.print("Data y");
-           Serial.println(touchY);*/
-    }
+    // if(touchX > tft.width() || touchY > tft.height()) {
+    //     Serial.print(F("Y or y outside of expected parameters.. x: "));
+    //     Serial.print(touchX);
+    //     Serial.print(F("  / y: "));
+    //     Serial.println(touchY);
+    // } else {
+    /*Save the state and save the pressed coordinate*/
+    data->state   = touched ? LV_INDEV_STATE_PR : LV_INDEV_STATE_REL;
+    data->point.x = touchX;
+    data->point.y = touchY;
+    /* Serial.print("Data x");
+       Serial.println(touchX);
+       Serial.print("Data y");
+       Serial.println(touchY);*/
+    //}
     //#endif
 
     return false; /*Return `false` because we are not buffering and no more data to read*/
@@ -593,7 +607,7 @@ bool IRAM_ATTR my_touchpad_read(lv_indev_drv_t * indev_driver, lv_indev_data_t *
 
 void guiCalibrate()
 {
-#if TOUCH_DRIVER == 0
+#if TOUCH_DRIVER == 0 && 0
     tft.fillScreen(TFT_BLACK);
     tft.setCursor(20, 0);
     tft.setTextFont(1);
@@ -620,6 +634,8 @@ void guiCalibrate()
 void guiSetup()
 {
     /* TFT init */
+    tft_espi_init(guiRotation);
+#if 0
     tft.begin();
     tft.setSwapBytes(true); /* set endianess */
 
@@ -632,6 +648,7 @@ void guiSetup()
     tft.setRotation(guiRotation); /* 1/3=Landscape or 0/2=Portrait orientation */
 #if TOUCH_DRIVER == 0
     tft.setTouch(calData);
+#endif
 #endif
 
     /* Initialize the Virtual Device Buffers */
@@ -675,7 +692,7 @@ void guiSetup()
 #endif
 
     /* Dump TFT Configuration */
-    tftSetup(tft);
+    // tftSetup(tft);
 #ifdef USE_DMA_TO_TFT
     Log.verbose(F("TFT: DMA        : ENABELD"));
 #else
@@ -715,7 +732,7 @@ void guiSetup()
     /* Initialize the display driver */
     lv_disp_drv_t disp_drv;
     lv_disp_drv_init(&disp_drv);
-    disp_drv.flush_cb = tft_espi_flush;
+    disp_drv.flush_cb = tft_espi_flush_cb;
     disp_drv.buffer   = &disp_buf;
     if(guiRotation == 0 || guiRotation == 2 || guiRotation == 4 || guiRotation == 6) {
         /* 1/3=Landscape or 0/2=Portrait orientation */
@@ -912,7 +929,9 @@ bool guiGetConfig(const JsonObject & settings)
             v.set(calData[i]);
         } else {
             changed = true;
+#if 0
             tft.setTouch(calData);
+#endif
         }
         i++;
     }
@@ -924,7 +943,9 @@ bool guiGetConfig(const JsonObject & settings)
             array.add(calData[i]);
         }
         changed = true;
+#if 0
         tft.setTouch(calData);
+#endif
     }
 
     if(changed) configOutput(settings);
@@ -981,7 +1002,9 @@ bool guiSetConfig(const JsonObject & settings)
             oobeSetAutoCalibrate(true);
         }
 
+#if 0
         if(status) tft.setTouch(calData);
+#endif
         changed |= status;
     }
 
