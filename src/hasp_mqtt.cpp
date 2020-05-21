@@ -208,7 +208,7 @@ void mqtt_send_statusupdate()
 #endif
 
         snprintf_P(buffer, sizeof(buffer), PSTR("\"tftDriver\":\"%s\",\"tftWidth\":%u,\"tftHeight\":%u}"),
-                   tftDriverName().c_str(), (TFT_WIDTH), (TFT_HEIGHT));
+                   halDisplayDriverName().c_str(), (TFT_WIDTH), (TFT_HEIGHT));
         strcat(data, buffer);
     }
     mqtt_send_state(F("statusupdate"), data);
