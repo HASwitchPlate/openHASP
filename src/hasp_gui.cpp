@@ -3,18 +3,25 @@
 
 #include "lv_conf.h"
 #include "lvgl.h"
+#include "lv_drv_conf.h"
+
+//#define USE_FSMC 1
 
 // Display Driver
-#include "lv_drv_conf.h"
-#include "display/tft_espi_drv.h"
+#if defined(USE_FSMC)
 #include "display/fsmc_ili9341.h"
+#else
+#include "display/tft_espi_drv.h"
+#endif
 
 // Touch Driver
+//#include "indev/XPT2046_alt_drv.h"
+#include "indev/XPT2046.h"
 
 // Filesystem Driver
 #include "lv_fs_if.h"
 
-//#include "TFT_eSPI.h"
+//#include "TFT_eSPI.h" // moved to Display Driver
 //#include "lv_zifont.h"
 
 //#include "hasp_tft.h"
@@ -33,7 +40,7 @@
 #endif
 
 #ifndef TOUCH_DRIVER
-#define TOUCH_DRIVER 0
+#define TOUCH_DRIVER 99
 #endif
 
 #if HASP_USE_SPIFFS > 0
@@ -194,7 +201,9 @@ static void gui_take_screenshot(uint8_t * data_p, size_t len)
             break;
 #endif
         case 2:
+#if HASP_USE_HTTP > 0
             res = httpClientWrite(data_p, len);
+#endif
             break;
         default:
             res = 0; // nothing to do
@@ -205,7 +214,7 @@ static void gui_take_screenshot(uint8_t * data_p, size_t len)
 }
 
 /* Experimetnal Display flushing */
-static void IRAM_ATTR tft_espi_flush_cb(lv_disp_drv_t * disp, const lv_area_t * area, lv_color_t * color_p)
+static void IRAM_ATTR my_flush_cb(lv_disp_drv_t * disp, const lv_area_t * area, lv_color_t * color_p)
 {
 #if 0
     size_t len = (area->x2 - area->x1 + 1) * (area->y2 - area->y1 + 1); /* Number of pixels */
@@ -222,8 +231,11 @@ static void IRAM_ATTR tft_espi_flush_cb(lv_disp_drv_t * disp, const lv_area_t * 
     }
 #endif
 
+#if defined(USE_FSMC)
     fsmc_ili9341_flush(area->x1, area->y1, area->x2, area->y2, color_p);
-
+#else
+    tft_espi_flush(area->x1, area->y1, area->x2, area->y2, color_p);
+#endif
     /* Tell lvgl that flushing is done */
     lv_disp_flush_ready(disp);
 }
@@ -571,12 +583,17 @@ bool IRAM_ATTR my_touchpad_read(lv_indev_drv_t * indev_driver, lv_indev_data_t *
     uint16_t touchX, touchY;
     bool touched;
 #if TOUCH_DRIVER == 0
-    // touched = tft.getTouch(&touchX, &touchY, 600);
+    touched = tft_espi_get_touch(&touchX, &touchY, 600);
 #elif TOUCH_DRIVER == 1
     // return false;
     touched = GT911_getXY(&touchX, &touchY, true);
-#else
+#elif TOUCH_DRIVER == 2
     touched = Touch_getXY(&touchX, &touchY, false);
+#else
+    // xpt2046_alt_drv_read(indev_driver, data);
+    xpt2046_read(indev_driver, data);
+    if(data->state && guiSleeping > 0) guiCheckSleep();
+    return false;
 #endif
 
     if(!touched) return false;
@@ -634,7 +651,13 @@ void guiCalibrate()
 void guiSetup()
 {
     /* TFT init */
+#if defined(USE_FSMC)
+    fsmc_ili9341_init(guiRotation);
+    xpt2046_init(guiRotation);
+#else
     tft_espi_init(guiRotation);
+#endif
+
 #if 0
     tft.begin();
     tft.setSwapBytes(true); /* set endianess */
@@ -711,7 +734,7 @@ void guiSetup()
         ledcSetup(BACKLIGHT_CHANNEL, 20000, 10);
         // attach the channel to the GPIO to be controlled
         ledcAttachPin(guiBacklightPin, BACKLIGHT_CHANNEL);
-#else
+#elif defined(ARDUINO_ARCH_ESP8266)
         pinMode(guiBacklightPin, OUTPUT);
 #endif
     }
@@ -732,7 +755,7 @@ void guiSetup()
     /* Initialize the display driver */
     lv_disp_drv_t disp_drv;
     lv_disp_drv_init(&disp_drv);
-    disp_drv.flush_cb = tft_espi_flush_cb;
+    disp_drv.flush_cb = my_flush_cb;
     disp_drv.buffer   = &disp_buf;
     if(guiRotation == 0 || guiRotation == 2 || guiRotation == 4 || guiRotation == 6) {
         /* 1/3=Landscape or 0/2=Portrait orientation */
@@ -1098,11 +1121,13 @@ static void guiSendBmpHeader()
 #endif
 
     } else if(guiSnapshot == 2) {
+#if HASP_USE_HTTP > 0
         if(httpClientWrite(buffer, 122) != 122) {
             Log.warning(F("GUI: Data sent does not match header size"));
         } else {
             Log.verbose(F("GUI: Bitmap header sent"));
         }
+#endif
     }
 }
 
