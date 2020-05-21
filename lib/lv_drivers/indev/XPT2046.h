@@ -40,7 +40,7 @@ extern "C" {
 /**********************
  * GLOBAL PROTOTYPES
  **********************/
-void xpt2046_init(void);
+void xpt2046_init(uint8_t rotation);
 bool xpt2046_read(lv_indev_drv_t * indev_drv, lv_indev_data_t * data);
 
 /**********************

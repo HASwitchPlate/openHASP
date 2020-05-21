@@ -73,8 +73,13 @@
 /*********************
  *  DISPLAY DRIVERS
  *********************/
-#define USE_TFT_ESPI 1
+#if defined(USE_FSMC)
+#define USE_TFT_ESPI 0
 #define USE_FSMC_ILI9341 1
+#else
+#define USE_TFT_ESPI 1
+#define USE_FSMC_ILI9341 0
+#endif
 
 /*-------------------
  *  Monitor of PC
@@ -238,17 +243,22 @@
 /*********************
  *  INPUT DEVICES
  *********************/
+#define USE_XPT2046_ALT_DRV 0
 
 /*--------------
  *    XPT2046
  *--------------*/
 #ifndef USE_XPT2046
+#if defined(USE_FSMC)
 #define USE_XPT2046 1
+#else
+#define USE_XPT2046 0
+#endif
 #endif
 
 #if USE_XPT2046
-#define XPT2046_HOR_RES 480
-#define XPT2046_VER_RES 320
+#define XPT2046_HOR_RES TFT_WIDTH
+#define XPT2046_VER_RES TFT_HEIGHT
 #define XPT2046_X_MIN 200
 #define XPT2046_Y_MIN 200
 #define XPT2046_X_MAX 3800

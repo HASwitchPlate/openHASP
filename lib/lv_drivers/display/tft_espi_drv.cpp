@@ -7,7 +7,6 @@
  *      INCLUDES
  *********************/
 #include "tft_espi_drv.h"
-#include "../../../src/hasp_tft.h"
 
 #if USE_TFT_ESPI != 0
 
@@ -16,6 +15,7 @@
 
 #include LV_DRV_DISP_INCLUDE
 #include LV_DRV_DELAY_INCLUDE
+#include "../../../src/hasp_tft.h"
 
 /*********************
  *      DEFINES
@@ -89,6 +89,13 @@ void tft_espi_map(int32_t x1, int32_t y1, int32_t x2, int32_t y2, const lv_color
 {
     tft_espi_flush(x1, y1, x2, y2, color_p);
 }
+
+#if defined(TOUCH_CS)
+bool tft_espi_get_touch(uint16_t * touchX, uint16_t * touchY, uint16_t threshold)
+{
+    return tft.getTouch(touchX, touchY, threshold);
+}
+#endif
 
 /**********************
  *   STATIC FUNCTIONS
