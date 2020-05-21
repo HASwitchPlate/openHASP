@@ -16,26 +16,23 @@ uint16_t gpioConfig[HASP_NUM_GPIO_CONFIG];
 using namespace ace_button;
 static AceButton * button[HASP_NUM_INPUTS];
 
-struct hasp_gpio_config_t {
-  const uint8_t pin;
-  const uint8_t group;
-  const uint8_t io_mode;
-  bool default_state;
+struct hasp_gpio_config_t
+{
+    const uint8_t pin;
+    const uint8_t group;
+    const uint8_t io_mode;
+    bool default_state;
 };
 
 // An array of button pins, led pins, and the led states. Cannot be const
 // because ledState is mutable.
- hasp_gpio_config_t  gpioConfig2[HASP_NUM_GPIO_CONFIG] = {
-  {2, 8, INPUT, LOW},
-  {3, 9, OUTPUT, LOW},
-  {4, 10, INPUT, HIGH},
-  {5, 11, OUTPUT, LOW},
-  {6, 12, INPUT, LOW},
+hasp_gpio_config_t gpioConfig2[HASP_NUM_GPIO_CONFIG] = {
+    {2, 8, INPUT, LOW}, {3, 9, OUTPUT, LOW}, {4, 10, INPUT, HIGH}, {5, 11, OUTPUT, LOW}, {6, 12, INPUT, LOW},
 };
 
 #if defined(ARDUINO_ARCH_ESP32)
 class TouchConfig : public ButtonConfig {
-    public:
+  public:
     TouchConfig();
 
   protected:
@@ -113,9 +110,8 @@ void IRAM_ATTR gpioLoop(void)
     }
 }
 
-void gpioAddButton( uint8_t pin, uint8_t input_mode, uint8_t default_state, uint8_t channel)
+void gpioAddButton(uint8_t pin, uint8_t input_mode, uint8_t default_state, uint8_t channel)
 {
-
 
     uint8_t i;
     for(i = 0; i < HASP_NUM_INPUTS; i++) {
@@ -147,7 +143,7 @@ void gpioAddButton( uint8_t pin, uint8_t input_mode, uint8_t default_state, uint
               channel, HASP_NUM_INPUTS);
 }
 
-void gpioAddTouchButton( uint8_t pin, uint8_t input_mode, uint8_t default_state, uint8_t channel)
+void gpioAddTouchButton(uint8_t pin, uint8_t input_mode, uint8_t default_state, uint8_t channel)
 {
     uint8_t i;
     for(i = 0; i < HASP_NUM_INPUTS; i++) {
@@ -182,22 +178,24 @@ void gpioSetup()
 {
     aceButtonSetup();
 
+    return;
+    
     // gpioConfig[0] = PD15 * 256 + 5 + (INPUT << 3);
 #if defined(ARDUINO_ARCH_ESP8266)
-    gpioAddButton( D2, INPUT_PULLUP, HIGH, 1);
-    pinMode(D1, OUTPUT);
+    gpioAddButton(D2, INPUT_PULLUP, HIGH, 1);
+    //pinMode(D1, OUTPUT);
 #endif
 
 #if defined(ARDUINO_ARCH_ESP32)
-    gpioAddButton( D2, INPUT, HIGH, 1);
-    pinMode(D1, OUTPUT);
+   // gpioAddButton(D2, INPUT, HIGH, 1);
+   // pinMode(D1, OUTPUT);
 #endif
 
     for(uint8_t i = 0; i < HASP_NUM_GPIO_CONFIG; i++) {
-        uint8_t pin           = (gpioConfig[i] >> 8) & 0xFF;
-        uint8_t channel       = gpioConfig[i] & 0b111;        // 3bit
-        uint8_t input_mode    = (gpioConfig[i] >> 3) & 0b11;   // 2bit gpio mode
-        //uint8_t input_mode    = gpioConfig[i].io_mode
+        uint8_t pin        = (gpioConfig[i] >> 8) & 0xFF;
+        uint8_t channel    = gpioConfig[i] & 0b111;       // 3bit
+        uint8_t input_mode = (gpioConfig[i] >> 3) & 0b11; // 2bit gpio mode
+        // uint8_t input_mode    = gpioConfig[i].io_mode
         uint8_t gpiotype      = (gpioConfig[i] >> 5) & 0b111; // 3bit
         uint8_t default_state = gpioConfig[i] & 0b1;          // 1bit: 0=LOW, 1=HIGH
 
@@ -220,7 +218,8 @@ void gpioSetup()
         switch(gpiotype) {
             case HASP_GPIO_SWITCH:
             case HASP_GPIO_BUTTON:
-                // gpioAddButton(gpioConfig[i].io_mode.pin, input_mode, gpioConfig[i].default_state, gpioConfig[i].group);
+                // gpioAddButton(gpioConfig[i].io_mode.pin, input_mode, gpioConfig[i].default_state,
+                // gpioConfig[i].group);
                 break;
 
             case HASP_GPIO_RELAY:

@@ -45,7 +45,7 @@ char httpUser[32]     = "";
 char httpPassword[32] = "";
 #define HTTP_PAGE_SIZE (6 * 256)
 
-#if defined(STM32F4xx)
+#if defined(STM32F4xx) && HASP_USE_ETHERNET>0
 #include <EthernetWebServer_STM32.h>
 EthernetWebServer webServer(80);
 #endif
