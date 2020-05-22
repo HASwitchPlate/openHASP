@@ -86,6 +86,7 @@ void haspNewObject(const JsonObject & config, uint8_t & saved_page_id);
 void haspReconnect(void);
 void haspDisconnect(void);
 void haspWakeUp(void);
+void haspProgress(uint8_t val, char * msg);
 
 bool haspGetConfig(const JsonObject & settings);
 bool haspSetConfig(const JsonObject & settings);

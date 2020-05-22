@@ -11,8 +11,6 @@
 #include "lv_conf.h"
 #include "hasp_conf.h"
 
-//#include "../lib/lvgl/src/lv_widgets/lv_roller.h"
-
 #include "lv_fs_if.h"
 #include "hasp_debug.h"
 #include "hasp_config.h"
@@ -21,7 +19,6 @@
 #include "hasp_gui.h"
 #include "hasp_tft.h"
 
-//#include "hasp_attr_get.h"
 #include "hasp_attribute.h"
 #include "hasp.h"
 
@@ -32,12 +29,6 @@
 /*********************
  *      DEFINES
  *********************/
-uint8_t haspStartDim   = 100;
-uint8_t haspStartPage  = 0;
-uint8_t haspThemeId    = 0;
-uint16_t haspThemeHue  = 200;
-char haspPagesPath[32] = "/pages.jsonl";
-char haspZiFontPath[32];
 
 /**********************
  *      TYPEDEFS
@@ -55,6 +46,13 @@ char haspZiFontPath[32];
 /**********************
  *  STATIC VARIABLES
  **********************/
+uint8_t haspStartDim   = 100;
+uint8_t haspStartPage  = 0;
+uint8_t haspThemeId    = 0;
+uint16_t haspThemeHue  = 200;
+char haspPagesPath[32] = "/pages.jsonl";
+char haspZiFontPath[32];
+
 lv_style_t style_mbox_bg; /*Black bg. style with opacity*/
 lv_obj_t * kb;
 lv_font_t * defaultFont;
@@ -62,19 +60,6 @@ lv_font_t * defaultFont;
 #if LV_DEMO_WALLPAPER
 LV_IMG_DECLARE(img_bubble_pattern)
 #endif
-
-/*
-LV_IMG_DECLARE(xmass)
-
-LV_IMG_DECLARE(frame00)
-LV_IMG_DECLARE(frame02)
-LV_IMG_DECLARE(frame04)
-LV_IMG_DECLARE(frame06)
-LV_IMG_DECLARE(frame08)
-LV_IMG_DECLARE(frame10)
-LV_IMG_DECLARE(frame12)
-LV_IMG_DECLARE(frame14)
-*/
 
 /*
 static const char * btnm_map1[] = {" ", "\n", " ", "\n", " ", "\n", " ", "\n", "P1", "P2", "P3", ""};
@@ -86,15 +71,10 @@ static const char * btnm_map2[] = {"0",  "1", "\n", "2",  "3",  "\n", "4",  "5",
 lv_obj_t * pages[HASP_NUM_PAGES];
 #if defined(ARDUINO_ARCH_ESP8266)
 static lv_font_t * haspFonts[4];
-// static lv_style_t labelStyles[4];
-// static lv_style_t rollerStyles[4];
 #else
 lv_font_t * haspFonts[8];
-// static lv_style_t labelStyles[8];
-// static lv_style_t rollerStyles[8];
 #endif
 uint8_t current_page = 0;
-// uint16_t current_style = 0;
 
 /**********************
  *      MACROS
@@ -109,13 +89,14 @@ void haspLoadPage(const char * pages);
 /**
  * Get Page Object by PageID
  */
-lv_obj_t * get_page(uint8_t pageid)
+lv_obj_t * get_page_obj(uint8_t pageid)
 {
     if(pageid == 254) return lv_layer_top();
     if(pageid == 255) return lv_layer_sys();
     if(pageid >= sizeof pages / sizeof *pages) return NULL;
     return pages[pageid];
 }
+
 bool get_page_id(lv_obj_t * obj, uint8_t * pageid)
 {
     lv_obj_t * page = lv_obj_get_screen(obj);
@@ -170,9 +151,10 @@ lv_obj_t * hasp_find_obj_from_id(lv_obj_t * parent, uint8_t objid)
     }
     return NULL;
 }
+
 lv_obj_t * hasp_find_obj_from_id(uint8_t pageid, uint8_t objid)
 {
-    return hasp_find_obj_from_id(get_page(pageid), objid);
+    return hasp_find_obj_from_id(get_page_obj(pageid), objid);
 }
 
 bool FindIdFromObj(lv_obj_t * obj, uint8_t * pageid, lv_obj_user_data_t * objid)
@@ -317,6 +299,27 @@ void haspReconnect()
         lv_obj_set_hidden(obj, true);
         obj = lv_obj_get_child(lv_disp_get_layer_sys(NULL), obj);
         lv_obj_set_hidden(obj, true);*/
+}
+
+void haspProgress(uint8_t val, char * msg)
+{
+    lv_obj_t * layer = lv_disp_get_layer_sys(NULL);
+    lv_obj_t * bar   = hasp_find_obj_from_id(255, 10);
+
+    if(val == 255) {
+        lv_obj_set_style_local_bg_opa(layer, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_0);
+        if(bar) {
+            lv_obj_set_hidden(bar, true);
+        }
+    } else {
+        lv_obj_set_style_local_bg_opa(layer, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_100);
+        if(bar) {
+            lv_obj_set_hidden(bar, false);
+            lv_bar_set_value(bar, val, LV_ANIM_OFF);
+            lv_obj_set_style_local_value_str(bar, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, msg);
+        }
+    }
+    lv_tick_inc(30);
 }
 
 /**
@@ -488,7 +491,7 @@ void haspLoop(void)
 /*
 void hasp_background(uint16_t pageid, uint16_t imageid)
 {
-    lv_obj_t * page = get_page(pageid);
+    lv_obj_t * page = get_page_obj(pageid);
     if(!page) return;
 
     return;
@@ -637,7 +640,8 @@ static void slider_event_handler(lv_obj_t * obj, lv_event_t event)
 
 static void cpicker_event_handler(lv_obj_t * obj, lv_event_t event)
 {
-    if(event == LV_EVENT_VALUE_CHANGED) hasp_send_obj_attribute_color(obj, "color", lv_cpicker_get_color(obj));
+    if(event == LV_EVENT_VALUE_CHANGED)
+        hasp_send_obj_attribute_color(obj, "color", lv_cpicker_get_color(obj)); // Literial string
 }
 
 static void roller_event_handler(lv_obj_t * obj, lv_event_t event)
@@ -661,7 +665,7 @@ String haspGetVersion()
 
 void haspClearPage(uint16_t pageid)
 {
-    lv_obj_t * page = get_page(pageid);
+    lv_obj_t * page = get_page_obj(pageid);
     if(!page) {
         Log.warning(F("HASP: Page ID %u not defined"), pageid);
     } else if(page == lv_layer_sys() || page == lv_layer_top()) {
@@ -679,9 +683,9 @@ uint8_t haspGetPage()
 
 void haspSetPage(uint8_t pageid)
 {
-    lv_obj_t * page = get_page(pageid);
+    lv_obj_t * page = get_page_obj(pageid);
     if(!page) {
-        Log.warning(F("HASP: Page ID %u not defined"), pageid);
+        Log.warning(F("HASP: Page ID %u not found"), pageid);
     } else if(page == lv_layer_sys() || page == lv_layer_top()) {
         Log.warning(F("HASP: %sCannot change to a layer"));
     } else {
@@ -701,7 +705,7 @@ void haspNewObject(const JsonObject & config, uint8_t & saved_page_id)
     uint8_t pageid = config[F("page")].isNull() ? current_page : config[F("page")].as<uint8_t>();
 
     /* Page selection */
-    lv_obj_t * page = get_page(pageid);
+    lv_obj_t * page = get_page_obj(pageid);
     if(!page) {
         Log.warning(F("HASP: Page ID %u not defined"), pageid);
         return;
@@ -725,21 +729,8 @@ void haspNewObject(const JsonObject & config, uint8_t & saved_page_id)
     }
 
     /* Input cache and validation */
-    // int16_t min = config[F("min")].as<int16_t>();
-    // int16_t max = config[F("max")].as<int16_t>();
-    // int16_t val = config[F("val")].as<int16_t>();
-    // if(min >= max) {
-    //    min = 0;
-    //    max = 100;
-    //}
-    // bool enabled      = config[F("enable")].as<bool>() | true;
-    // lv_coord_t width  = config[F("w")].as<lv_coord_t>();
-    // lv_coord_t height = config[F("h")].as<lv_coord_t>();
-    // if(width == 0) width = 32;
-    // if(height == 0) height = 32;
     uint8_t objid = config[F("objid")].as<uint8_t>();
     uint8_t id    = config[F("id")].as<uint8_t>();
-    // uint8_t styleid = config[F("styleid")].as<uint8_t>();
 
     /* Define Objects*/
     lv_obj_t * obj = hasp_find_obj_from_id(parent_obj, id);
