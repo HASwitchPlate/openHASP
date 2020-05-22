@@ -126,13 +126,14 @@ String halGetChipModel()
 {
     String model((char *)0);
     model.reserve(128);
-    model = F("STM32");
 
-#if ESP8266
+#if defined(STM32F4xx)
+    model = F("STM32F4xx");
+
+#elif defined(ARDUINO_ARCH_ESP8266)
     model = F("ESP8266");
-#endif
 
-#if ESP32
+#elif defined(ARDUINO_ARCH_ESP32)
     esp_chip_info_t chip_info;
     esp_chip_info(&chip_info);
 
@@ -152,7 +153,10 @@ String halGetChipModel()
     }
     model += F(" rev");
     model += chip_info.revision;
-#endif // ESP32
+
+#else
+    model = F("Unknown");
+#endif
 
     return model;
 }
