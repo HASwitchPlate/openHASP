@@ -21,15 +21,15 @@ void setup()
      ***************************/
 
     /* Init Storage */
-#if HASP_USE_EEPROM>0
+#if HASP_USE_EEPROM > 0
     eepromSetup(); // Don't start at boot, only at write
 #endif
 
-#if HASP_USE_SPIFFS>0
+#if HASP_USE_SPIFFS > 0
     spiffsSetup();
 #endif
 
-#if HASP_USE_SDCARD>0
+#if HASP_USE_SDCARD > 0
     sdcardSetup();
 #endif
 
@@ -42,24 +42,24 @@ void setup()
      * Apply User Configuration
      ***************************/
     debugSetup();
+    guiSetup();
 
-#if HASP_USE_GPIO>0
+#if HASP_USE_GPIO > 0
     gpioSetup();
 #endif
 
-#if HASP_USE_WIFI>0
+#if HASP_USE_WIFI > 0
     wifiSetup();
 #endif
 
-    guiSetup();
     oobeSetup();
     haspSetup();
 
-#if HASP_USE_MDNS>0
+#if HASP_USE_MDNS > 0
     mdnsSetup();
 #endif
 
-#if HASP_USE_OTA>0
+#if HASP_USE_OTA > 0
     otaSetup();
 #endif
 
@@ -67,11 +67,11 @@ void setup()
     ethernetSetup();
 #endif
 
-#if HASP_USE_MQTT>0
+#if HASP_USE_MQTT > 0
     mqttSetup();
 #endif
 
-#if HASP_USE_HTTP>0
+#if HASP_USE_HTTP > 0
     httpSetup();
 #endif
 
@@ -79,7 +79,7 @@ void setup()
     telnetSetup();
 #endif
 
-#if HASP_USE_TASMOTA_SLAVE>0
+#if HASP_USE_TASMOTA_SLAVE > 0
     slaveSetup();
 #endif
 
@@ -112,7 +112,7 @@ void loop()
     // haspLoop();
     debugLoop();
 
-#if HASP_USE_GPIO>0
+#if HASP_USE_GPIO > 0
     gpioLoop();
 #endif
 
@@ -121,19 +121,19 @@ void loop()
     ethernetLoop();
 #endif
 
-#if HASP_USE_MQTT>0
+#if HASP_USE_MQTT > 0
     mqttLoop();
 #endif // MQTT
 
-#if HASP_USE_HTTP>0
+#if HASP_USE_HTTP > 0
     httpLoop();
 #endif // HTTP
 
-#if HASP_USE_MDNS>0
+#if HASP_USE_MDNS > 0
     mdnsLoop();
 #endif // MDNS
 
-#if HASP_USE_OTA>0
+#if HASP_USE_OTA > 0
     otaLoop();
 #endif // OTA
 
@@ -141,7 +141,7 @@ void loop()
     telnetLoop();
 #endif // TELNET
 
-#if HASP_USE_TASMOTA_SLAVE>0
+#if HASP_USE_TASMOTA_SLAVE > 0
     slaveLoop();
 #endif // TASMOTASLAVE
 
@@ -150,7 +150,7 @@ void loop()
     /* Timer Loop */
     if(millis() - mainLastLoopTime >= 1000) {
         /* Run Every Second */
-#if HASP_USE_OTA>0
+#if HASP_USE_OTA > 0
         otaEverySecond();
 #endif
         debugEverySecond();
