@@ -48,6 +48,8 @@ TFT_Class tft(io, controller, TFT_WIDTH, TFT_HEIGHT);
 #include <GxCTRL/GxCTRL_ILI9341/GxCTRL_ILI9341.h> // 240x320
 #include "GxReadRegisters.h"
 
+#include "bootscreen.h" // Sketch tab header for xbm images
+
 /*********************
  *      DEFINES
  *********************/
@@ -76,18 +78,35 @@ TFT_Class tft(io, controller, TFT_WIDTH, TFT_HEIGHT);
  **********************/
 
 /**
- * Initialize the R61581 display controller
- * @return HW_RES_OK or any error from hw_res_t enum
+ * Initialize the ILI9341 display controller
  */
 void fsmc_ili9341_init(uint8_t rotation)
 {
     tft.init();
     tft.setRotation(rotation);
-    // tft.fillScreen(BLUE);
+    tft.setRotation(rotation);
+    tft.fillScreen(TFT_DARKCYAN);
+    int x = (tft.width() - logoWidth) / 2;
+    int y = (tft.height() - logoHeight) / 2;
+    // tft.drawBitmap(x, y, bootscreen, logoWidth, logoHeight, TFT_WHITE);
+
+    io.startTransaction();
+    int32_t i, j, byteWidth = (logoWidth + 7) / 8;
+
+    for(j = 0; j < logoHeight; j++) {
+        for(i = 0; i < logoWidth; i++) {
+            if(pgm_read_byte(bootscreen + j * byteWidth + i / 8) & (1 << (i & 7))) {
+                tft.drawPixel(x + i, y + j, TFT_WHITE);
+            }
+        }
+    }
+
+    io.endTransaction();
+    delay(800);
 }
 
 /* GxTFT::pushColors only supports writing up to 255 at a time */
-/* This local function circumvents this artificial limit */
+/* This *local* function circumvents this artificial limititaion */
 static inline void pushColors(uint16_t * data, uint32_t len)
 {
     io.startTransaction();
@@ -103,21 +122,9 @@ void fsmc_ili9341_flush(int32_t x1, int32_t y1, int32_t x2, int32_t y2, lv_color
     tft.setWindow(x1, y1, x2, y2);
     size_t len = (x2 - x1 + 1) * (y2 - y1 + 1); /* Number of pixels */
 
-#if 1
+#if 1 // use local version instead
     pushColors((uint16_t *)color_p, len);
 #else
-    // tft.init();
-    // Serial.print("flush ");
-    // Serial.print(x1);
-    // Serial.print(" ");
-    // Serial.print(y1);
-    // Serial.print(" ");
-    // Serial.print(x2);
-    // Serial.print(" ");
-    // Serial.print(y2);
-    // Serial.print(" ");
-    // Serial.println(len);
-
     /* Update TFT */
     while(len > 255) {
         tft.pushColors((uint16_t *)color_p, 255);
