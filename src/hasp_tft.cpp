@@ -52,11 +52,12 @@ void tftShowConfig(TFT_eSPI & tft)
     tft.getSetup(tftSetup);
 
     Log.verbose(F("TFT: TFT_eSPI   : v%s"), tftSetup.version.c_str());
-#if defined(ARDUINO_ARCH_ESP8266) || defined(ARDUINO_ARCH_32)
-    Log.verbose(F("TFT: Processor  : ESP%x"), tftSetup.esp);
-#else
-    Log.verbose(F("TFT: Processor  : STM%x"), tftSetup.esp);
-#endif
+    // #if defined(ARDUINO_ARCH_ESP8266) || defined(ARDUINO_ARCH_ESP32)
+    //     Log.verbose(F("TFT: Processor  : ESP%x"), tftSetup.esp);
+    // #else
+    //     Log.verbose(F("TFT: Processor  : STM%x"), tftSetup.esp);
+    // #endif
+    Log.verbose(F("TFT: Processor  : %s"), halGetChipModel());
     Log.verbose(F("TFT: CPU freq.  : %i MHz"), halGetCpuFreqMHz());
 
 #if defined(ARDUINO_ARCH_ESP8266)
@@ -70,7 +71,7 @@ void tftShowConfig(TFT_eSPI & tft)
 
     if(tftSetup.tft_driver != 0xE9D) // For ePaper displays the size is defined in the sketch
     {
-        Log.verbose(F("TFT: Driver     : %s"),halDisplayDriverName().c_str()); // tftSetup.tft_driver);
+        Log.verbose(F("TFT: Driver     : %s"), halDisplayDriverName().c_str()); // tftSetup.tft_driver);
         Log.verbose(F("TFT: Resolution : %ix%i"), tftSetup.tft_width, tftSetup.tft_height);
     } else if(tftSetup.tft_driver == 0xE9D)
         Log.verbose(F("Driver = ePaper"));

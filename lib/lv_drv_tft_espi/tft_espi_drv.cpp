@@ -52,6 +52,7 @@ void tft_espi_init(uint8_t rotation)
     tft.begin();
     tft.setSwapBytes(true); /* set endianess */
     tft.setRotation(rotation);
+    tft.fillScreen(TFT_DARKCYAN);
 
 #ifdef USE_DMA_TO_TFT
     // DMA - should work with STM32F2xx/F4xx/F7xx processors
@@ -91,6 +92,28 @@ void tft_espi_map(int32_t x1, int32_t y1, int32_t x2, int32_t y2, const lv_color
 }
 
 #if defined(TOUCH_CS)
+
+void tft_espi_calibrate(uint16_t * calData)
+{
+    tft.fillScreen(TFT_BLACK);
+    tft.setCursor(20, 0);
+    tft.setTextFont(1);
+    tft.setTextSize(1);
+    tft.setTextColor(TFT_WHITE, TFT_BLACK);
+
+    tft.println(PSTR("Touch corners as indicated"));
+
+    tft.setTextFont(1);
+    delay(500);
+    tft.calibrateTouch(calData, TFT_MAGENTA, TFT_BLACK, 15);
+    tft.setTouch(calData);
+}
+
+void tft_espi_set_touch(uint16_t * calData)
+{
+    tft.setTouch(calData);
+}
+
 bool tft_espi_get_touch(uint16_t * touchX, uint16_t * touchY, uint16_t threshold)
 {
     return tft.getTouch(touchX, touchY, threshold);
