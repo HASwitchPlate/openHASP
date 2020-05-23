@@ -3,8 +3,9 @@
  *********************/
 #include "hasp_conf.h"
 #include <Arduino.h>
-#include "ArduinoJson.h"
 #include "ArduinoLog.h"
+#include "ArduinoJson.h"
+#include "StreamUtils.h"
 
 #include "lvgl.h"
 #include "lv_conf.h"
@@ -23,6 +24,8 @@
 //#include "hasp_attr_get.h"
 #include "hasp_attribute.h"
 #include "hasp.h"
+
+#include "EEPROM.h"
 
 //#if LV_USE_HASP
 
@@ -665,7 +668,7 @@ void haspClearPage(uint16_t pageid)
         Log.warning(F("HASP: Cannot clear a layer"));
     } else {
         Log.notice(F("HASP: Clearing page %u"), pageid);
-        lv_page_clean(pages[pageid]);
+        lv_obj_clean(pages[pageid]);
     }
 }
 
@@ -955,6 +958,15 @@ void haspLoadPage(const char * pages)
     file.close();
 
     Log.notice(F("HASP: File %s loaded"), pages);
+#else
+
+#if HASP_USE_EEPROM > 0
+    Log.notice(F("HASP: Loading jsonl from EEPROM..."));
+    EepromStream eepromStream(4096, 1024);
+    dispatchJsonl(eepromStream);
+    Log.notice(F("HASP: Loaded jsonl from EEPROM"));
+#endif
+
 #endif
 }
 

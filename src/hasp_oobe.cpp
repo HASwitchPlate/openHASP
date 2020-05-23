@@ -14,7 +14,7 @@
 #include "hasp_config.h"
 #include "hasp_dispatch.h"
 
-#if HASP_USE_QRCODE != 0
+#if HASP_USE_QRCODE > 0
 #include "lv_qrcode.h"
 #endif
 
@@ -128,7 +128,7 @@ static void oobeSetupQR(const char * ssid, const char * pass)
     lv_obj_set_style_local_bg_opa(container, LV_ARC_PART_BG, LV_STATE_DEFAULT, 0);
     lv_obj_set_style_local_border_opa(container, LV_ARC_PART_BG, LV_STATE_DEFAULT, 0);
 
-#if HASP_USE_QRCODE != 0
+#if HASP_USE_QRCODE > 0
     snprintf_P(buffer, sizeof(buffer), PSTR("WIFI:S:%s;T:WPA;P:%s;;"), ssid, pass);
 
     lv_obj_t * qr = lv_qrcode_create(oobepage[0], 120, LV_COLOR_BLACK, LV_COLOR_WHITE);

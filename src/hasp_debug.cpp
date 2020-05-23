@@ -15,7 +15,7 @@
 #endif
 
 #include "hasp_hal.h"
-#if HASP_USE_MQTT>0
+#if HASP_USE_MQTT > 0
 #include "hasp_mqtt.h"
 #endif
 
@@ -31,11 +31,11 @@
 #define SERIAL_SPEED 115200
 #endif
 
-#if HASP_USE_TELNET != 0
+#if HASP_USE_TELNET > 0
 #include "hasp_telnet.h"
 #endif
 
-#if HASP_USE_SYSLOG != 0
+#if HASP_USE_SYSLOG > 0
 #include "Syslog.h"
 
 #ifndef SYSLOG_SERVER
@@ -71,9 +71,11 @@ Syslog * syslog;
 #endif // USE_SYSLOG
 
 // Serial Settings
+uint8_t serialInputIndex   = 0;    // Empty buffer
+char serialInputBuffer[1024];
 uint16_t debugSerialBaud = SERIAL_SPEED / 10; // Multiplied by 10
 bool debugSerialStarted  = false;
-bool debugAnsiCodes         = true;
+bool debugAnsiCodes      = true;
 
 //#define TERM_COLOR_Black "\u001b[30m"
 #define TERM_COLOR_GRAY "\e[37m"
@@ -94,11 +96,12 @@ String debugHaspHeader()
 {
     String header((char *)0);
     header.reserve(256);
-    header = F("           _____ _____ _____ _____\r\n"
-               "          |  |  |  _  |   __|  _  |\r\n"
-               "          |     |     |__   |   __|\r\n"
-               "          |__|__|__|__|_____|__|\r\n"
-               "        Home Automation Switch Plate\r\n");
+    if(debugAnsiCodes) header += TERM_COLOR_YELLOW;
+    header += F("           _____ _____ _____ _____\r\n"
+                "          |  |  |  _  |   __|  _  |\r\n"
+                "          |     |     |__   |   __|\r\n"
+                "          |__|__|__|__|_____|__|\r\n"
+                "        Home Automation Switch Plate\r\n");
     char buffer[128];
     snprintf(buffer, sizeof(buffer), PSTR("        Open Hardware edition v%u.%u.%u\r\n"), HASP_VERSION_MAJOR,
              HASP_VERSION_MINOR, HASP_VERSION_REVISION);
@@ -119,7 +122,7 @@ void debugStart()
     // log/logf method)
 }
 
-#if HASP_USE_SYSLOG != 0
+#if HASP_USE_SYSLOG > 0
 void syslogSend(uint8_t priority, const char * debugText)
 {
     if(strlen(debugSyslogHost) != 0 && WiFi.isConnected()) {
@@ -130,7 +133,7 @@ void syslogSend(uint8_t priority, const char * debugText)
 
 void debugSetup()
 {
-#if HASP_USE_SYSLOG != 0
+#if HASP_USE_SYSLOG > 0
     syslog = new Syslog(syslogClient, debugSyslogProtocol == 0 ? SYSLOG_PROTO_IETF : SYSLOG_PROTO_BSD);
     syslog->server(debugSyslogHost, debugSyslogPort);
     syslog->deviceHostname(mqttNodeName);
@@ -155,7 +158,7 @@ bool debugGetConfig(const JsonObject & settings)
     if(debugTelePeriod != settings[FPSTR(F_DEBUG_TELEPERIOD)].as<uint16_t>()) changed = true;
     settings[FPSTR(F_DEBUG_TELEPERIOD)] = debugTelePeriod;
 
-#if HASP_USE_SYSLOG != 0
+#if HASP_USE_SYSLOG > 0
     if(strcmp(debugSyslogHost, settings[FPSTR(F_CONFIG_HOST)].as<String>().c_str()) != 0) changed = true;
     settings[FPSTR(F_CONFIG_HOST)] = debugSyslogHost;
 
@@ -193,7 +196,7 @@ bool debugSetConfig(const JsonObject & settings)
     changed |= configSet(debugTelePeriod, settings[FPSTR(F_DEBUG_TELEPERIOD)], PSTR("debugTelePeriod"));
 
     /* Syslog Settings*/
-#if HASP_USE_SYSLOG != 0
+#if HASP_USE_SYSLOG > 0
     if(!settings[FPSTR(F_CONFIG_HOST)].isNull()) {
         changed |= strcmp(debugSyslogHost, settings[FPSTR(F_CONFIG_HOST)]) != 0;
         strncpy(debugSyslogHost, settings[FPSTR(F_CONFIG_HOST)], sizeof(debugSyslogHost));
@@ -216,21 +219,23 @@ static void debugPrintTimestamp(int level, Print * _logOutput)
     time_t rawtime;
     struct tm * timeinfo;
 
-    //time(&rawtime);
-    //timeinfo = localtime(&rawtime);
+    // time(&rawtime);
+    // timeinfo = localtime(&rawtime);
 
     // strftime(buffer, sizeof(buffer), "%b %d %H:%M:%S.", timeinfo);
     // Serial.println(buffer);
 
     debugSendAnsiCode(F(TERM_COLOR_CYAN), _logOutput);
 
-   /* if(timeinfo->tm_year >= 120) {
-        char buffer[64];
-        strftime(buffer, sizeof(buffer), "[%b %d %H:%M:%S.", timeinfo); // Literal String
-        _logOutput->print(buffer);
-        _logOutput->printf(PSTR("%03lu]"), millis() % 1000);
-    } else */ {
-        _logOutput->printf(PSTR("[%20.3f]"), (float)millis() / 1000);
+    /* if(timeinfo->tm_year >= 120) {
+         char buffer[64];
+         strftime(buffer, sizeof(buffer), "[%b %d %H:%M:%S.", timeinfo); // Literal String
+         _logOutput->print(buffer);
+         _logOutput->printf(PSTR("%03lu]"), millis() % 1000);
+     } else */
+    {
+        uint32_t msecs = millis();
+        _logOutput->printf(PSTR("[%16d.%03d]"), msecs / 1000, msecs % 1000);
     }
 }
 
@@ -328,15 +333,17 @@ void debugPreSetup(JsonObject settings)
 
     uint32_t baudrate = settings[FPSTR(F_CONFIG_BAUD)].as<uint32_t>() * 10;
     if(baudrate == 0) baudrate = SERIAL_SPEED;
-    if(baudrate >= 9600u) {     /* the baudrates are stored divided by 10 */
+    if(baudrate >= 9600u) { /* the baudrates are stored divided by 10 */
 
-#ifdef STM32_CORE_VERSION_MAJOR
-    Serial.setRx(PA3);  // User Serial2
-    Serial.setTx(PA2);
+#if defined(STM32F4xx)
+#ifndef STM32_SERIAL1      // Define what Serial port to use for log output
+        Serial.setRx(PA3); // User Serial2
+        Serial.setTx(PA2);
+#endif
 #endif
         Serial.begin(baudrate); /* prepare for possible serial debug */
         delay(10);
-       Log.registerOutput(0, &Serial, LOG_LEVEL_VERBOSE, true);
+        Log.registerOutput(0, &Serial, LOG_LEVEL_VERBOSE, true);
         debugSerialStarted = true;
         Serial.println();
         Log.trace(("Serial started at %u baud"), baudrate);
@@ -373,7 +380,26 @@ void debugLvgl(lv_log_level_t level, const char * file, uint32_t line, const cha
 #endif
 
 void debugLoop()
-{}
+{
+   while(Serial.available()) {
+        char ch = Serial.read();
+        Serial.print(ch);
+        if(ch == 13 || ch == 10) {
+            serialInputBuffer[serialInputIndex] = 0;
+            if(serialInputIndex > 0) dispatchCommand(serialInputBuffer);
+            serialInputIndex = 0;
+        } else {
+            if(serialInputIndex < sizeof(serialInputBuffer) - 1) {
+                serialInputBuffer[serialInputIndex++] = ch;
+            }
+            serialInputBuffer[serialInputIndex] = 0;
+            if(strcmp(serialInputBuffer, "jsonl=") == 0) {
+                dispatchJsonl(Serial);
+                serialInputIndex = 0;
+            }
+        }
+    }
+}
 
 /*void printLocalTime()
 {

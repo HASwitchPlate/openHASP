@@ -150,7 +150,7 @@ static lv_fs_res_t fs_open(lv_fs_drv_t * drv, void * file_p, const char * path, 
         Log.verbose(F("LVFS: %d"), __LINE__);
         lv_spiffs_file_t * fp = (lv_spiffs_file_t *)file_p; /*Just avoid the confusing casings*/
         // Log.verbose(F("LVFS: Copying %s"), f.name());
-        Log.verbose(F("LVFS: %d"), __LINE__);
+        Log.verbose(F("LVFS: %d - %x - %d"), __LINE__, fp, sizeof(lv_spiffs_file_t));
         if (fp != NULL) (*fp) = file;
         // memcpy(fp,&file,sizeof(lv_spiffs_file_t));
         Log.verbose(F("LVFS: %d"), __LINE__);

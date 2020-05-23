@@ -19,7 +19,7 @@ extern "C" {
  *      INCLUDES
  *********************/
 
-#if HASP_USE_APP
+#if HASP_USE_APP>0
 
 /*********************
  *      DEFINES
@@ -81,8 +81,6 @@ void hasp_send_obj_attribute_int(lv_obj_t * obj, const char * attribute, int32_t
 void hasp_send_obj_attribute_color(lv_obj_t * obj, const char * attribute, lv_color_t color);
 void hasp_process_attribute(uint8_t pageid, uint8_t objid, const char * attr, const char * payload);
 
-void haspSendCmd(String nextionCmd);
-void haspParseJson(String & strPayload);
 void haspNewObject(const JsonObject & config, uint8_t & saved_page_id);
 
 void haspReconnect(void);
@@ -101,10 +99,10 @@ void IRAM_ATTR toggle_event_handler(lv_obj_t * obj, lv_event_t event);
  *      MACROS
  **********************/
 
-#endif /*LV_USE_DEMO*/
+#endif /*HASP_USE_APP*/
 
 #ifdef __cplusplus
 } /* extern "C" */
 #endif
 
-#endif /*DEMO_H*/
+#endif /*HASP_H*/

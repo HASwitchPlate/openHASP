@@ -13,10 +13,10 @@
 #include "hasp_config.h"
 
 #include "hasp_conf.h"
-#if HASP_USE_MQTT
+#if HASP_USE_MQTT>0
 #include "hasp_mqtt.h"
 #endif
-#if HASP_USE_MDNS
+#if HASP_USE_MDNS>0
 #include "hasp_mdns.h"
 #endif
 

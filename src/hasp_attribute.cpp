@@ -84,18 +84,19 @@ static lv_color_t haspPayloadToColor(const char * payload)
         case 7:
             if(!strcmp_P(payload, PSTR("magenta"))) return haspLogColor(LV_COLOR_MAGENTA);
 
-            /* HEX format #rrggbb or #rrggbbaa */
-            int r, g, b, a;
-            if(*payload == '#' && sscanf(payload + 1, "%2x%2x%2x%2x", &r, &g, &b, &a) == 4) {
-                return haspLogColor(LV_COLOR_MAKE(r, g, b));
-            } else if(*payload == '#' && sscanf(payload + 1, "%2x%2x%2x", &r, &g, &b) == 3) {
-                return haspLogColor(LV_COLOR_MAKE(r, g, b));
-            }
         default:
             //            if(!strcmp_P(payload, PSTR("darkblue"))) return haspLogColor(LV_COLOR_MAKE(0, 51, 102));
             //            if(!strcmp_P(payload, PSTR("lightblue"))) return haspLogColor(LV_COLOR_MAKE(46, 203,
             //            203));
             break;
+    }
+
+    /* HEX format #rrggbb or #rrggbbaa */
+    int r, g, b, a;
+    if(*payload == '#' && sscanf(payload + 1, "%2x%2x%2x%2x", &r, &g, &b, &a) == 4) {
+        return haspLogColor(LV_COLOR_MAKE(r, g, b));
+    } else if(*payload == '#' && sscanf(payload + 1, "%2x%2x%2x", &r, &g, &b) == 3) {
+        return haspLogColor(LV_COLOR_MAKE(r, g, b));
     }
 
     /* 16-bit RGB565 Color Scheme*/
@@ -582,23 +583,19 @@ static void hasp_process_obj_attribute_val(lv_obj_t * obj, const char * attr, co
         lv_dropdown_set_selected(obj, val);
         return;
     } else if(check_obj_type(objtype, LV_HASP_LMETER)) {
-        lv_linemeter_set_value(obj, intval);
-        return;
+        return update ? lv_linemeter_set_value(obj, intval) : hasp_out_int(obj, attr, lv_linemeter_get_value(obj));
     } else if(check_obj_type(objtype, LV_HASP_SLIDER)) {
-        lv_slider_set_value(obj, intval, LV_ANIM_ON);
-        return;
+        return update ? lv_slider_set_value(obj, intval, LV_ANIM_ON)
+                      : hasp_out_int(obj, attr, lv_slider_get_value(obj));
     } else if(check_obj_type(objtype, LV_HASP_LED)) {
-        lv_led_set_bright(obj, (uint8_t)val);
-        return;
+        return update ? lv_led_set_bright(obj, (uint8_t)val) : hasp_out_int(obj, attr, lv_led_get_bright(obj));
     } else if(check_obj_type(objtype, LV_HASP_GAUGE)) {
-        lv_gauge_set_value(obj, 0, intval);
-        return;
+        return update ? lv_gauge_set_value(obj, 0, intval) : hasp_out_int(obj, attr, lv_gauge_get_value(obj, 0));
     } else if(check_obj_type(objtype, LV_HASP_ROLLER)) {
         lv_roller_set_selected(obj, val, LV_ANIM_ON);
         return;
     } else if(check_obj_type(objtype, LV_HASP_BAR)) {
-        lv_bar_set_value(obj, intval, LV_ANIM_OFF);
-        return;
+        return update ? lv_bar_set_value(obj, intval, LV_ANIM_ON) : hasp_out_int(obj, attr, lv_bar_get_value(obj));
     } else if(check_obj_type(objtype, LV_HASP_CPICKER)) {
         return update ? (void)lv_cpicker_set_color(obj, haspPayloadToColor(payload))
                       : hasp_out_color(obj, attr, lv_cpicker_get_color(obj));
@@ -794,9 +791,10 @@ void hasp_process_obj_attribute(lv_obj_t * obj, const char * attr_p, const char 
  * **************************/
 static inline bool is_true(const char * s)
 {
-    return (!strcmp_P(s, PSTR("true")) || !strcmp_P(s, PSTR("TRUE")) || !strcmp_P(s, PSTR("1")) ||
+    return (!strcmp_P(s, PSTR("true")) || !strcmp_P(s, PSTR("TRUE")) || !strcmp_P(s, PSTR("True")) ||
             !strcmp_P(s, PSTR("on")) || !strcmp_P(s, PSTR("ON")) || !strcmp_P(s, PSTR("On")) ||
-            !strcmp_P(s, PSTR("yes")) || !strcmp_P(s, PSTR("YES")) || !strcmp_P(s, PSTR("Yes")));
+            !strcmp_P(s, PSTR("yes")) || !strcmp_P(s, PSTR("YES")) || !strcmp_P(s, PSTR("Yes")) ||
+            !strcmp_P(s, PSTR("1")));
 }
 
 static inline bool only_digits(const char * s)
@@ -808,17 +806,17 @@ static inline bool only_digits(const char * s)
     return strlen(s) == digits;
 }
 
-void hasp_out_int(lv_obj_t * obj, const char * attr, uint32_t val)
+void inline hasp_out_int(lv_obj_t * obj, const char * attr, uint32_t val)
 {
     hasp_send_obj_attribute_int(obj, attr, val);
 }
 
-void hasp_out_str(lv_obj_t * obj, const char * attr, const char * data)
+void inline hasp_out_str(lv_obj_t * obj, const char * attr, const char * data)
 {
     hasp_send_obj_attribute_str(obj, attr, data);
 }
 
-void hasp_out_color(lv_obj_t * obj, const char * attr, lv_color_t color)
+void inline hasp_out_color(lv_obj_t * obj, const char * attr, lv_color_t color)
 {
     hasp_send_obj_attribute_color(obj, attr, color);
 }

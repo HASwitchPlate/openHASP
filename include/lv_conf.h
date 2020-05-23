@@ -80,7 +80,7 @@ typedef int16_t lv_coord_t;
 #  define LV_MEM_SIZE    (12 * 1024U) // 12KB
 #endif
 #ifndef LV_MEM_SIZE
-#  define LV_MEM_SIZE    (64 * 1024U)  // 48KB
+#  define LV_MEM_SIZE    (20 * 1024U)  // 48KB
 #endif
 
 /* Complier prefix for a big array declaration */

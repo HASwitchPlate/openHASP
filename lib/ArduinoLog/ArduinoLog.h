@@ -285,19 +285,15 @@ class Logging {
             if(_logOutput[i] == NULL || level>_level[i]) continue;
 
             if(_prefix != NULL) {
-               // _prefix(level, _logOutput[i]);
+                _prefix(level, _logOutput[i]);
             }
 
             va_list args;
             va_start(args, msg);
-#ifdef STM32_CORE_VERSION_MAJOR
-           print(_logOutput[i], msg, args);
-           Serial.println();
-#else
-           print(_logOutput[i], msg, args);
-#endif
+            print(_logOutput[i], msg, args);
+            
             if(_suffix != NULL) {
-              //  _suffix(level, _logOutput[i]);
+                _suffix(level, _logOutput[i]);
             }
         }
 

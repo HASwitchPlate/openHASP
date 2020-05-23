@@ -129,7 +129,6 @@ void Logging::print(Print * logOutput, const char * format, va_list args)
             ++format;
             printFormat(logOutput, *format, (va_list *)&args);
         } else {
-            //_logOutput->print(*format);
             logOutput->print(*format);
         }
     }

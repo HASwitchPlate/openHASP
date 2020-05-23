@@ -7,6 +7,5 @@ void spiffsSetup(void);
 
 void spiffsList();
 void spiffsInfo();
-String spiffsFormatBytes(size_t bytes);
 
 #endif

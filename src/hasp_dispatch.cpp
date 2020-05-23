@@ -38,7 +38,7 @@ void dispatchLoop()
 
 void dispatchStatusUpdate()
 {
-#if HASP_USE_MQTT
+#if HASP_USE_MQTT>0
     mqtt_send_statusupdate();
 #endif
 }
@@ -48,11 +48,15 @@ void dispatchOutput(int output, bool state)
     int pin = 0;
 
     if(pin >= 0) {
+        Log.notice(F("PIN OUTPUT STATE %d"),state);
 
 #if defined(ARDUINO_ARCH_ESP32)
         ledcWrite(99, state ? 1023 : 0); // ledChannel and value
+#elif defined(STM32F4xx)
+        digitalWrite(HASP_OUTPUT_PIN, state);
 #else
-        analogWrite(pin, state ? 1023 : 0);
+        digitalWrite(D1, state);
+        // analogWrite(pin, state ? 1023 : 0);
 #endif
     }
 }
@@ -95,11 +99,6 @@ void dispatchAttribute(String strTopic, const char * payload)
 {
     if(strTopic.startsWith("p[")) {
         dispatchButtonAttribute(strTopic, payload);
-    } else if(strTopic.startsWith(F("output"))) {
-#if defined(ARDUINO_ARCH_ESP8266)
-        uint8_t state = isON(payload) ? HIGH : LOW;
-        digitalWrite(D1, state);
-#endif
 
     } else if(strTopic == F("page")) {
         dispatchPage(payload);
@@ -138,8 +137,11 @@ void dispatchPage(String strPageid)
     String strPage((char *)0);
     strPage.reserve(128);
     strPage = haspGetPage();
-#if HASP_USE_MQTT
+#if HASP_USE_MQTT > 0
     mqtt_send_state(F("page"), strPage.c_str());
+#endif
+#if HASP_USE_TASMOTA_SLAVE > 0
+    slave_send_state(F("page"), strPage.c_str());
 #endif
 }
 
@@ -159,11 +161,15 @@ void dispatchDim(String strDimLevel)
     // Set the current state
     if(strDimLevel.length() != 0) guiSetDim(strDimLevel.toInt());
     dispatchPrintln(F("DIM"), strDimLevel);
-
-#if HASP_USE_MQTT
     char buffer[8];
+#if defined(HASP_USE_MQTT) || defined(HASP_USE_TASMOTA_SLAVE)
     itoa(guiGetDim(), buffer, DEC);
+#if HASP_USE_MQTT > 0
     mqtt_send_state(F("dim"), buffer);
+#endif
+#if HASP_USE_TASMOTA_SLAVE > 0
+    slave_send_state(F("dim"), buffer);
+#endif
 #endif
 }
 
@@ -177,14 +183,18 @@ void dispatchBacklight(String strPayload)
 
     // Return the current state
     strPayload = getOnOff(guiGetBacklight());
-#if HASP_USE_MQTT
+#if HASP_USE_MQTT > 0
     mqtt_send_state(F("light"), strPayload.c_str());
 #endif
+#if HASP_USE_TASMOTA_SLAVE > 0
+    slave_send_state(F("light"), strPayload.c_str());
+#endif
+
 }
 
 void dispatchCommand(String cmnd)
 {
-    // dispatchPrintln(F("CMND"), cmnd);
+    dispatchPrintln(F("CMND"), cmnd);
 
     if(cmnd.startsWith(F("page "))) {
         cmnd = cmnd.substring(5, cmnd.length());
@@ -266,33 +276,45 @@ void dispatchJsonl(char * payload)
 
 void dispatchIdle(const char * state)
 {
-#if HASP_USE_MQTT>0
-    mqtt_send_state(F("idle"), state);
-#else
+#if !defined(HASP_USE_MQTT) && !defined(HASP_USE_TASMOTA_SLAVE)
     Log.notice(F("OUT: idle = %s"), state);
+#else
+#if HASP_USE_MQTT > 0
+    mqtt_send_state(F("idle"), state);
+#endif
+#if HASP_USE_TASMOTA_SLAVE > 0
+    slave_send_state(F("idle"), state);
+#endif
 #endif
 }
 
 void dispatchReboot(bool saveConfig)
 {
     if(saveConfig) configWriteConfig();
-#if HASP_USE_MQTT>0
+#if HASP_USE_MQTT > 0
     mqttStop(); // Stop the MQTT Client first
 #endif
     debugStop();
-#if HASP_USE_WIFI>0
+#if HASP_USE_WIFI > 0
     wifiStop();
 #endif
     Log.verbose(F("-------------------------------------"));
     Log.notice(F("STOP: Properly Rebooting the MCU now!"));
     Serial.flush();
-    //halRestart();
+    halRestart();
 }
 
 void dispatch_button(uint8_t id, const char * event)
 {
+#if !defined(HASP_USE_MQTT) && !defined(HASP_USE_TASMOTA_SLAVE)
+    Log.notice(F("OUT: input%d = %s"), id, event);
+#else
 #if HASP_USE_MQTT > 0
     mqtt_send_input(id, event);
+#endif
+#if HASP_USE_TASMOTA_SLAVE>0
+    slave_send_input(id, event);
+#endif
 #endif
 }
 
@@ -306,10 +328,15 @@ void dispatchWebUpdate(const char * espOtaUrl)
 
 void IRAM_ATTR dispatch_obj_attribute_str(uint8_t pageid, uint8_t btnid, const char * attribute, const char * data)
 {
+#if !defined(HASP_USE_MQTT) && !defined(HASP_USE_TASMOTA_SLAVE)
+    Log.notice(F("OUT: json = {\"p[%u].b[%u].%s\":\"%s\"}"), pageid, btnid, attribute, data);
+#else
 #if HASP_USE_MQTT > 0
     mqtt_send_obj_attribute_str(pageid, btnid, attribute, data);
-#else
-    Log.notice(F("OUT: json = {\"p[%u].b[%u].%s\":\"%s\"}"), pageid, btnid, attribute, data);
+#endif
+#if HASP_USE_TASMOTA_SLAVE > 0
+    slave_send_obj_attribute_str(pageid, btnid, attribute, data);
+#endif
 #endif
 }
 
@@ -356,14 +383,14 @@ void dispatchConfig(const char * topic, const char * payload)
             haspGetConfig(settings);
     }
 
-#if HASP_USE_WIFI
+#if HASP_USE_WIFI > 0
     else if(strcmp_P(topic, PSTR("wifi")) == 0) {
         if(update)
             wifiSetConfig(settings);
         else
             wifiGetConfig(settings);
     }
-#if HASP_USE_MQTT
+#if HASP_USE_MQTT > 0
     else if(strcmp_P(topic, PSTR("mqtt")) == 0) {
         if(update)
             mqttSetConfig(settings);
@@ -371,11 +398,11 @@ void dispatchConfig(const char * topic, const char * payload)
             mqttGetConfig(settings);
     }
 #endif
-#if HASP_USE_TELNET
+#if HASP_USE_TELNET > 0
     //   else if(strcmp_P(topic, PSTR("telnet")) == 0)
     //       telnetGetConfig(settings[F("telnet")]);
 #endif
-#if HASP_USE_MDNS
+#if HASP_USE_MDNS > 0
     else if(strcmp_P(topic, PSTR("mdns")) == 0) {
         if(update)
             mdnsSetConfig(settings);
@@ -383,7 +410,7 @@ void dispatchConfig(const char * topic, const char * payload)
             mdnsGetConfig(settings);
     }
 #endif
-#if HASP_USE_HTTP
+#if HASP_USE_HTTP > 0
     else if(strcmp_P(topic, PSTR("http")) == 0) {
         if(update)
             httpSetConfig(settings);
@@ -397,10 +424,15 @@ void dispatchConfig(const char * topic, const char * payload)
     if(!update) {
         settings.remove(F("pass")); // hide password in output
         size_t size = serializeJson(doc, buffer, sizeof(buffer));
-#if HASP_USE_MQTT
-        mqtt_send_state(F("config"), buffer);
-#else
+#if !defined(HASP_USE_MQTT) && !defined(HASP_USE_TASMOTA_SLAVE)
     Log.notice(F("OUT: config %s = %s"),topic,buffer);
+#else
+#if HASP_USE_MQTT > 0
+        mqtt_send_state(F("config"), buffer);
+#endif
+#if HASP_USE_TASMOTA > 0
+        slave_send_state(F("config"), buffer);
+#endif
 #endif
     }
 }

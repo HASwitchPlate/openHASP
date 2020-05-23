@@ -1,5 +1,5 @@
 #include "hasp_conf.h"
-#if HASP_USE_MQTT
+#if HASP_USE_MQTT>0
 
 #include <Arduino.h>
 #include "ArduinoJson.h"
@@ -11,10 +11,22 @@
 
 #if defined(ARDUINO_ARCH_ESP32)
 #include <Wifi.h>
-#else
+WiFiClient mqttNetworkClient;
+#elif defined(ARDUINO_ARCH_ESP8266)
 #include <ESP8266WiFi.h>
 #include <EEPROM.h>
 #include <ESP.h>
+WiFiClient mqttNetworkClient;
+#else
+
+#if defined(W5500_MOSI) && defined(W5500_MISO) && defined(W5500_SCLK)
+#define W5500_LAN
+#include <Ethernet.h>
+#else
+#include <STM32Ethernet.h>
+#endif
+
+EthernetClient mqttNetworkClient;
 #endif
 
 #include "hasp_hal.h"
@@ -97,8 +109,7 @@ const String mqttLightSubscription        = "hasp/" + String(haspGetNodename()) 
 const String mqttLightBrightSubscription  = "hasp/" + String(haspGetNodename()) + "/brightness/#";
 */
 
-WiFiClient mqttWifiClient;
-PubSubClient mqttClient(mqttWifiClient);
+PubSubClient mqttClient(mqttNetworkClient);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Send changed values OUT
@@ -179,11 +190,13 @@ void mqtt_send_statusupdate()
         snprintf_P(data, sizeof(data), PSTR("{\"status\":\"available\",\"version\":\"%s\",\"uptime\":%lu,"),
                    haspGetVersion().c_str(), long(millis() / 1000));
         strcat(buffer, data);
+#if HASP_USE_WIFI>0
         snprintf_P(buffer, sizeof(buffer), PSTR("\"ssid\":\"%s\",\"rssi\":%i,\"ip\":\"%s\","), WiFi.SSID().c_str(),
                    WiFi.RSSI(), WiFi.localIP().toString().c_str());
         strcat(data, buffer);
+#endif
         snprintf_P(buffer, sizeof(buffer), PSTR("\"heapFree\":%u,\"heapFrag\":%u,\"espCore\":\"%s\","),
-                   ESP.getFreeHeap(), halGetHeapFragmentation(), halGetCoreVersion().c_str());
+                   halGetFreeHeap(), halGetHeapFragmentation(), halGetCoreVersion().c_str());
         strcat(data, buffer);
         snprintf_P(buffer, sizeof(buffer), PSTR("\"espCanUpdate\":\"false\",\"page\":%u,\"numPages\":%u,"),
                    haspGetPage(), (HASP_NUM_PAGES));
@@ -339,9 +352,11 @@ void mqttReconnect()
     bool mqttFirstConnect             = true;
 
     {
-        byte mac[6];
-        WiFi.macAddress(mac);
-        snprintf_P(mqttClientId, sizeof(mqttClientId), PSTR("%s-%2x%2x%2x"), mqttNodeName, mac[3], mac[4], mac[5]);
+        String mac = halGetMacAddress(3, "");
+        mac.toLowerCase();
+        memset(mqttClientId, 0 ,sizeof(mqttClientId));
+        snprintf_P(mqttClientId, sizeof(mqttClientId), PSTR("plate_%s"), mac.c_str());
+        Log.verbose(mqttClientId);
     }
 
     // Attempt to connect and set LWT and Clean Session
@@ -537,7 +552,7 @@ bool mqttSetConfig(const JsonObject & settings)
     }
     // Prefill node name
     if(strlen(mqttNodeName) == 0) {
-        String mac = wifiGetMacAddress(3, "");
+        String mac = halGetMacAddress(3, "");
         mac.toLowerCase();
         snprintf_P(mqttNodeName, sizeof(mqttNodeName), PSTR("plate_%s"), mac.c_str());
         changed = true;

@@ -5,7 +5,7 @@
 #include "hasp_conf.h"
 #include "hasp_spiffs.h"
 
-#if HASP_USE_SPIFFS
+#if HASP_USE_SPIFFS>0
 #if defined(ARDUINO_ARCH_ESP32)
 #include "SPIFFS.h"
 #endif
@@ -14,7 +14,7 @@
 
 void spiffsInfo()
 { // Get all information of your SPIFFS
-#if defined(ARDUINO_ARCH_ESP8266)
+#if 0
     FSInfo fs_info;
     SPIFFS.info(fs_info);
 
@@ -91,7 +91,7 @@ void spiffsSetup()
 {
     // no SPIFFS settings, as settings depend on SPIFFS
 
-#if HASP_USE_SPIFFS
+#if HASP_USE_SPIFFS>0
 #if defined(ARDUINO_ARCH_ESP8266)
     if(!SPIFFS.begin()) {
 #else
@@ -102,25 +102,4 @@ void spiffsSetup()
         Log.verbose(F("FILE: SPI Flash FS mounted"));
     }
 #endif
-}
-
-String spiffsFormatBytes(size_t bytes)
-{
-    String output((char *)0);
-    output.reserve(128);
-
-    if(bytes < 1024) {
-        output += bytes;
-    } else if(bytes < (1024 * 1024)) {
-        output += bytes / 1024.0;
-        output += "K";
-    } else if(bytes < (1024 * 1024 * 1024)) {
-        output += bytes / 1024.0 / 1024.0;
-        output += "M";
-    } else {
-        output += bytes / 1024.0 / 1024.0 / 1024.0;
-        output += "G";
-    }
-    output += "B";
-    return output;
 }

@@ -1,4 +1,10 @@
 # HASP - Open Hardware edition
+
+[![GitHub release](https://img.shields.io/github/release/fvanroie/hasp-lvgl.svg)](https://github.com/fvanroie/hasp-lvgl/releases)
+[![GitHub](https://img.shields.io/github/license/mashape/apistatus.svg)](https://github.com/fvanroie/hasp-lvgl/blob/master/LICENSE)
+[![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](#Contributing)
+[![GitHub issues](https://img.shields.io/github/issues/fvanroie/hasp-lvgl.svg)](http://github.com/fvanroie/hasp-lvgl/issues)
+
 This project is a re-implementation of the popular HASwitchPlate sketch created by aderusha.
 The [original HASwitchPlate][1] project uses a Wemos D1 mini and requires a Nextion/TJC HMI display.
 This rewrite removes the Nextion/TJC requirement by using the [Littlev Graphics Library][2] on the MCU to drive a cheap commodity display.
@@ -19,14 +25,14 @@ This version also adds ESP32 and STM32 support to take advantage of the addition
 | SPI display             | :white_check_mark: yes | :white_check_mark: yes | :white_check_mark: yes
 | Parallel display        | :x: no | :white_check_mark: yes | :white_check_mark: yes
 | PWM Screen dimming      | :white_check_mark: yes | :white_check_mark: yes | :white_check_mark: yes
-| Maximum Page Count      | 4       | 12 |
+| Maximum Page Count      | 4       | 12 | 12
 | Object Types / Widgets  | 14      | 15 | 15
 | Dynamic Objects         | :white_check_mark: yes | :white_check_mark: yes | :white_check_mark: yes
 | [Lvgl Theme Support][3] | basic only | all themes | tbd
 | [Custom .zi V5 font][4] | :white_check_mark: yes (latin1) | :white_check_mark: yes (latin1) | no
 | [FontAwesome Icons][5]  | :white_check_mark: 1300+ | :white_check_mark: 1300+ | no
 | PNG images              | :x: no | :grey_question: tbd | :grey_question: tbd 
-| Network                 | :white_check_mark: Wifi | :white_check_mark: Wifi | :grey_question: tbd
+| Network                 | :white_check_mark: Wifi | :white_check_mark: Wifi | :white_check_mark: Ethernet
 
 ## Cloning
 

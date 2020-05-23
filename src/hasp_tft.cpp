@@ -3,6 +3,7 @@
 #include "TFT_eSPI.h"
 
 #include "hasp_tft.h"
+#include "hasp_hal.h"
 
 #if defined(ARDUINO_ARCH_ESP8266)
 ADC_MODE(ADC_VCC); // tftShowConfig measures the voltage on the pin
@@ -84,11 +85,10 @@ void tftShowConfig(TFT_eSPI & tft)
     Log.verbose(F("TFT: TFT_eSPI   : v%s"), tftSetup.version.c_str());
 #if defined(ARDUINO_ARCH_ESP8266) || defined(ARDUINO_ARCH_32)
     Log.verbose(F("TFT: Processor  : ESP%x"), tftSetup.esp);
-    Log.verbose(F("TFT: CPU freq.  : %i MHz"), ESP.getCpuFreqMHz());
 #else
     Log.verbose(F("TFT: Processor  : STM%x"), tftSetup.esp);
-    Log.verbose(F("TFT: CPU freq.  : %i MHz"), F_CPU/1000/1000);
 #endif
+    Log.verbose(F("TFT: CPU freq.  : %i MHz"), halGetCpuFreqMHz());
 
 #if defined(ARDUINO_ARCH_ESP8266)
     Log.verbose(F("TFT: Voltage    : %2.2f V"), ESP.getVcc() / 918.0); // 918 empirically determined
@@ -98,6 +98,7 @@ void tftShowConfig(TFT_eSPI & tft)
 #if defined(ARDUINO_ARCH_ESP8266)
     Log.verbose(F("TFT: SPI overlap   : %s"), (tftSetup.overlap == 1) ? PSTR("Yes") : PSTR("No"));
 #endif
+
     if(tftSetup.tft_driver != 0xE9D) // For ePaper displays the size is defined in the sketch
     {
         Log.verbose(F("TFT: Driver     : %s"), tftDriverName().c_str()); // tftSetup.tft_driver);
@@ -155,14 +156,10 @@ void tftShowConfig(TFT_eSPI & tft)
     tftPinInfo(F("TFT_D7"), tftSetup.pin_tft_d7);
 
     if(tftSetup.serial == 1) {
-        char buffer[8];
-        snprintf_P(buffer, sizeof(buffer), "%4.2f", (float)tftSetup.tft_spi_freq / 10.0f);
-        Log.verbose(F("TFT: Display SPI freq. : %s MHz"), buffer);
+        Log.verbose(F("TFT: Display SPI freq. : %d.%d MHz"), tftSetup.tft_spi_freq / 10, tftSetup.tft_spi_freq % 10);
     }
     if(tftSetup.pin_tch_cs != -1) {
-        char buffer[8];
-        snprintf_P(buffer, sizeof(buffer), "%4.2f", (float)tftSetup.tch_spi_freq / 10.0f);
-        Log.verbose(F("TFT: Touch SPI freq.   : %s MHz"), buffer);
+        Log.verbose(F("TFT: Touch SPI freq.   : %d.%d MHz"), tftSetup.tch_spi_freq / 10, tftSetup.tch_spi_freq % 10);
     }
 }
 
