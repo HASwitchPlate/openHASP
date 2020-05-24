@@ -1166,12 +1166,16 @@ void webHandleGpioConfig()
         httpMessage += F("<form method='POST' action='/config'>");
 
         httpMessage += F("<table><tr><th>Pin</th><th>Type</th><th>Channel</th><th>Normal</th><th>Options</th></tr>");
-        httpMessage += F("<tr><td>D1</td><td>Button</td><td>1</td><td>High</td><td>Options</td><tr>");
-        httpMessage += F("<tr><td>D2</td><td>Switch</td><td>2</td><td>High</td><td>Options</td><tr>");
-        httpMessage += F("<tr><td>D4</td><td>Backligth</td><td>15</td><td>Low</td><td>Options</td><tr>");
+        // httpMessage += F("<tr><td>D1</td><td>Button</td><td>1</td><td>High</td><td>Options</td><tr>");
+        // httpMessage += F("<tr><td>D2</td><td>Switch</td><td>2</td><td>High</td><td>Options</td><tr>");
+        // httpMessage += F("<tr><td>D4</td><td>Backligth</td><td>15</td><td>Low</td><td>Options</td><tr>");
 
         for(uint8_t i = 0; i < NUM_DIGITAL_PINS; i++) {
-            httpMessage += F("<tr><td>D4</td><td>Backligth</td><td>15</td><td>Low</td><td>Options</td><tr>");
+            httpMessage += F("<tr><td>");
+            httpMessage += String(i);
+            httpMessage += F("</td><td>None</td><td>15</td><td>Low</td><td><a href='/config/gpio/options?io=");
+            httpMessage += String(i);
+            httpMessage += ("'>Options</a></td><tr>");
         }
 
         httpMessage += F("</table>");
@@ -1187,6 +1191,58 @@ void webHandleGpioConfig()
     }
     // httpMessage.clear();
     webSendFooter();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+void webHandleGpioOptions()
+{ // http://plate01/config/gpio/options
+    if(!httpIsAuthenticated(F("config/gui"))) return;
+
+    {
+        DynamicJsonDocument settings(256);
+        guiGetConfig(settings.to<JsonObject>());
+
+        String httpMessage((char *)0);
+        httpMessage.reserve(HTTP_PAGE_SIZE);
+        httpMessage += F("<h1>");
+        httpMessage += httpGetNodename();
+        httpMessage += F("</h1><hr>");
+
+        httpMessage += F("<form method='POST' action='/config/gpio'>");
+
+        httpMessage += F("<p><b>GPIO >");
+        httpMessage += webServer.arg(0);
+        httpMessage += F("< Options</b></p>");
+
+        httpMessage += F("<p><b>Type</b> <select id='ioType' name='ioType'>");
+        httpMessage += getOption(0, F("None"), false);
+        httpMessage += getOption(1, F("Switch"), false);
+        httpMessage += getOption(2, F("Button"), false);
+        httpMessage += getOption(3, F("PWM"), false);
+        httpMessage += F("</select></p>");
+
+        httpMessage += F("<p><b>Channel</b> <select id='ioChannel' name='ioChannel'>");
+        for(uint8_t i = 0; i < 15; i++) {
+            httpMessage += getOption(i, "Channel " + String(i), false);
+        }
+        httpMessage += F("</select></p>");
+
+        httpMessage += F("<p><b>State</b> <select id='ioState' name='ioState'>");
+        httpMessage += getOption(0, F("High"), false);
+        httpMessage += getOption(1, F("Low"), false);
+        httpMessage += F("</select></p>");
+
+        httpMessage += F("<p><button type='submit' name='save' value='gui'>Save Settings</button></p></form>");
+
+        httpMessage +=
+            PSTR("<p><form method='get' action='/config/gpio'><button type='submit'> GPIO Settings</button></form></p>");
+
+        webSendPage(httpGetNodename(), httpMessage.length(), false);
+        webServer.sendContent(httpMessage);
+    }
+    webSendFooter();
+
+    if(webServer.hasArg(F("action"))) dispatchCommand(webServer.arg(F("action")));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1586,6 +1642,7 @@ void httpSetup()
 #endif
 #if HASP_USE_GPIO > 0
         webServer.on(F("/config/gpio"), webHandleGpioConfig);
+        webServer.on(F("/config/gpio/options"), webHandleGpioOptions);
 #endif
         webServer.on(F("/screenshot"), webHandleScreenshot);
         webServer.on(F("/saveConfig"), webHandleSaveConfig);
