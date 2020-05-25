@@ -26,6 +26,11 @@ void dispatchStatusUpdate(void);
 
 void dispatch_button(uint8_t id, const char * event);
 
-void IRAM_ATTR dispatch_obj_attribute_str(uint8_t pageid, uint8_t btnid, const char * attribute, const char * data);
+void dispatch_send_object_event(uint8_t pageid, uint8_t objid, uint8_t eventid);
+void dispatch_send_group_event(uint8_t groupid, uint8_t eventid, bool update_hasp);
+bool dispatch_get_event_state(uint8_t eventid);
+
+void IRAM_ATTR dispatch_send_obj_attribute_str(uint8_t pageid, uint8_t btnid, const char * attribute,
+                                               const char * data);
 
 #endif

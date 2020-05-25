@@ -6,6 +6,7 @@
 #include "hasp_dispatch.h"
 #include "hasp_config.h"
 #include "hasp_debug.h"
+#include "hasp_gpio.h"
 #include "hasp_gui.h"
 #include "hasp_hal.h"
 #include "hasp.h"
@@ -38,7 +39,7 @@ void dispatchLoop()
 
 void dispatchStatusUpdate()
 {
-#if HASP_USE_MQTT>0
+#if HASP_USE_MQTT > 0
     mqtt_send_statusupdate();
 #endif
 }
@@ -48,7 +49,7 @@ void dispatchOutput(int output, bool state)
     int pin = 0;
 
     if(pin >= 0) {
-        Log.notice(F("PIN OUTPUT STATE %d"),state);
+        Log.notice(F("PIN OUTPUT STATE %d"), state);
 
 #if defined(ARDUINO_ARCH_ESP32)
         ledcWrite(99, state ? 1023 : 0); // ledChannel and value
@@ -189,7 +190,6 @@ void dispatchBacklight(String strPayload)
 #if HASP_USE_TASMOTA_SLAVE > 0
     slave_send_state(F("light"), strPayload.c_str());
 #endif
-
 }
 
 void dispatchCommand(String cmnd)
@@ -312,10 +312,95 @@ void dispatch_button(uint8_t id, const char * event)
 #if HASP_USE_MQTT > 0
     mqtt_send_input(id, event);
 #endif
-#if HASP_USE_TASMOTA_SLAVE>0
+#if HASP_USE_TASMOTA_SLAVE > 0
     slave_send_input(id, event);
 #endif
 #endif
+}
+
+// Map events to either ON or OFF (UP or DOWN)
+bool dispatch_get_event_state(uint8_t eventid)
+{
+    switch(eventid) {
+        case HASP_EVENT_ON:
+        case HASP_EVENT_DOWN:
+        case HASP_EVENT_LONG:
+        case HASP_EVENT_HOLD:
+            return true;
+        case HASP_EVENT_OFF:
+        case HASP_EVENT_UP:
+        case HASP_EVENT_SHORT:
+        case HASP_EVENT_DOUBLE:
+        case HASP_EVENT_LOST:
+        default:
+            return false;
+    }
+}
+
+// Map events to their description string
+void dispatch_get_event_name(uint8_t eventid, char * buffer, size_t size)
+{
+    switch(eventid) {
+        case HASP_EVENT_ON:
+            memcpy_P(buffer, PSTR("ON"), size);
+            break;
+        case HASP_EVENT_OFF:
+            memcpy_P(buffer, PSTR("OFF"), size);
+            break;
+        case HASP_EVENT_UP:
+            memcpy_P(buffer, PSTR("UP"), size);
+            break;
+        case HASP_EVENT_DOWN:
+            memcpy_P(buffer, PSTR("DOWN"), size);
+            break;
+        case HASP_EVENT_SHORT:
+            memcpy_P(buffer, PSTR("SHORT"), size);
+            break;
+        case HASP_EVENT_LONG:
+            memcpy_P(buffer, PSTR("LONG"), size);
+            break;
+        case HASP_EVENT_HOLD:
+            memcpy_P(buffer, PSTR("HOLD"), size);
+            break;
+        case HASP_EVENT_LOST:
+            memcpy_P(buffer, PSTR("LOST"), size);
+            break;
+        default:
+            memcpy_P(buffer, PSTR("UNKNOWN"), size);
+    }
+}
+
+void dispatch_send_group_event(uint8_t groupid, uint8_t eventid, bool update_hasp)
+{
+    // update outputs
+    gpio_set_group_outputs(groupid, eventid);
+
+    // send out value
+#if !defined(HASP_USE_MQTT) && !defined(HASP_USE_TASMOTA_SLAVE)
+    Log.notice(F("OUT: group%d = %s"), groupid, eventid);
+#else
+#if HASP_USE_MQTT > 0
+    // mqtt_send_input(id, event);
+#endif
+#if HASP_USE_TASMOTA_SLAVE > 0
+    // slave_send_input(id, event);
+#endif
+#endif
+
+    // update objects, except src_obj
+    if(update_hasp) hasp_set_group_objects(groupid, eventid, NULL);
+}
+
+void dispatch_send_object_event(uint8_t pageid, uint8_t objid, uint8_t eventid)
+{
+    if(objid < 100) {
+        char eventname[16];
+        dispatch_get_event_name(eventid, eventname, sizeof(eventname));
+        dispatch_send_obj_attribute_str(pageid, objid, "event", eventname); /* Literal String */
+    } else {
+        uint8_t groupid = (objid - 100) / 10;
+        dispatch_send_group_event(groupid, eventid, true);
+    }
 }
 
 void dispatchWebUpdate(const char * espOtaUrl)
@@ -326,7 +411,7 @@ void dispatchWebUpdate(const char * espOtaUrl)
 #endif
 }
 
-void IRAM_ATTR dispatch_obj_attribute_str(uint8_t pageid, uint8_t btnid, const char * attribute, const char * data)
+void IRAM_ATTR dispatch_send_obj_attribute_str(uint8_t pageid, uint8_t btnid, const char * attribute, const char * data)
 {
 #if !defined(HASP_USE_MQTT) && !defined(HASP_USE_TASMOTA_SLAVE)
     Log.notice(F("OUT: json = {\"p[%u].b[%u].%s\":\"%s\"}"), pageid, btnid, attribute, data);
@@ -425,7 +510,7 @@ void dispatchConfig(const char * topic, const char * payload)
         settings.remove(F("pass")); // hide password in output
         size_t size = serializeJson(doc, buffer, sizeof(buffer));
 #if !defined(HASP_USE_MQTT) && !defined(HASP_USE_TASMOTA_SLAVE)
-    Log.notice(F("OUT: config %s = %s"),topic,buffer);
+        Log.notice(F("OUT: config %s = %s"), topic, buffer);
 #else
 #if HASP_USE_MQTT > 0
         mqtt_send_state(F("config"), buffer);
