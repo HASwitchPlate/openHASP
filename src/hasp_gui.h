@@ -19,6 +19,7 @@
 void guiTakeScreenshot();
 
 void guiSetup();
+void guiStart(void);
 void guiLoop(void);
 void guiStop(void);
 

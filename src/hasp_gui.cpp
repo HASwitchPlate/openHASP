@@ -52,7 +52,7 @@
 File pFileOut;
 #endif
 
-// #define LVGL_TICK_PERIOD 30
+#define LVGL_TICK_PERIOD 20
 
 #ifndef TFT_BCKL
 #define TFT_BCKL -1 // No Backlight Control
@@ -75,7 +75,7 @@ static uint8_t guiRotation    = TFT_ROTATION;
 #if ESP32 > 0 || ESP8266 > 0
 static Ticker tick; /* timer for interrupt handler */
 #else
-static Ticker tick(lv_tick_handler, guiTickPeriod);
+static Ticker tick(lv_tick_handler, LVGL_TICK_PERIOD); // guiTickPeriod);
 #endif
 // static TFT_eSPI tft; // = TFT_eSPI(); /* TFT instance */
 static uint16_t calData[5] = {0, 65535, 0, 65535, 0};
@@ -132,10 +132,10 @@ static void IRAM_ATTR my_flush_cb(lv_disp_drv_t * disp, const lv_area_t * area, 
 }
 
 /* Interrupt driven periodic handler */
-static void IRAM_ATTR lv_tick_handler(void)
+static void ICACHE_RAM_ATTR lv_tick_handler(void)
 {
     // Serial.print(".");
-    lv_tick_inc(guiTickPeriod);
+    lv_tick_inc(LVGL_TICK_PERIOD);
 }
 
 /* Reading input device (simulated encoder here) */
@@ -388,7 +388,7 @@ bool IRAM_ATTR my_touchpad_read(lv_indev_drv_t * indev_driver, lv_indev_data_t *
     uint16_t touchX, touchY;
     bool touched;
 #if TOUCH_DRIVER == 0
-    touched = tft_espi_get_touch(&touchX, &touchY, 600);
+    touched = tft_espi_get_touch(&touchX, &touchY, 300);
 #elif TOUCH_DRIVER == 1
     // return false;
     touched = GT911_getXY(&touchX, &touchY, true);
@@ -486,7 +486,7 @@ void guiSetup()
 #elif defined(ARDUINO_ARCH_ESP8266)
     /* allocate on heap */
     static lv_disp_buf_t disp_buf;
-    static lv_color_t guiVdbBuffer1[5 * 512u]; // 5 KBytes
+    static lv_color_t guiVdbBuffer1[4 * 512u]; // 4 KBytes
     // static lv_color_t guiVdbBuffer2[3 * 1024u]; // 6 KBytes
     guiVDBsize = sizeof(guiVdbBuffer1) / sizeof(guiVdbBuffer1[0]);
     lv_disp_buf_init(&disp_buf, guiVdbBuffer1, NULL, guiVDBsize);
@@ -564,6 +564,7 @@ void guiSetup()
         disp_drv.ver_res = TFT_WIDTH;
     }
     lv_disp_drv_register(&disp_drv);
+    guiStart();
 
     /* Initialize Global progress bar*/
     lv_obj_t * bar = lv_bar_create(lv_layer_sys(), NULL);
@@ -576,17 +577,9 @@ void guiSetup()
     lv_obj_set_style_local_value_color(bar, LV_BAR_PART_BG, LV_STATE_DEFAULT, LV_COLOR_WHITE);
     lv_obj_set_style_local_value_align(bar, LV_BAR_PART_BG, LV_STATE_DEFAULT, LV_ALIGN_CENTER);
     lv_obj_set_style_local_value_ofs_y(bar, LV_BAR_PART_BG, LV_STATE_DEFAULT, 20);
-    lv_obj_set_style_local_value_font(bar, LV_BAR_PART_BG, LV_STATE_DEFAULT, &lv_font_montserrat_12);
+    lv_obj_set_style_local_value_font(bar, LV_BAR_PART_BG, LV_STATE_DEFAULT, LV_FONT_DEFAULT);
     lv_obj_set_style_local_bg_color(lv_layer_sys(), LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_BLACK);
     lv_obj_set_style_local_bg_opa(lv_layer_sys(), LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_0);
-
-    /*Initialize the graphics library's tick*/
-#if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
-    tick.attach_ms(guiTickPeriod, lv_tick_handler);
-#else
-    tick.start();
-#endif
-    lv_tick_handler();
 
     /*Initialize the touch pad*/
     lv_indev_drv_t indev_drv;
@@ -639,34 +632,6 @@ void guiSetup()
     lv_obj_set_click(cursor, false); // don't click on the cursor
     lv_indev_set_cursor(mouse_indev, cursor);
     // }*/
-
-    /*Initialize the graphics library's tick*/
-#if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
-#else
-
-    /*
-    #if defined(TIM1)
-        TIM_TypeDef * Instance = TIM1;
-    #else
-        TIM_TypeDef * Instance = TIM2;
-    #endif
-    */
-    // Instantiate HardwareTimer object. Thanks to 'new' instanciation, HardwareTimer is not destructed when setup()
-    // function is finished.
-    /*  static HardwareTimer * MyTim = new HardwareTimer(Instance);
-      MyTim->pause();
-      MyTim->setPrescaleFactor(1);
-      MyTim->setMode(0, TIMER_OUTPUT_COMPARE, NC);
-      MyTim->setOverflow(1000 * guiTickPeriod, MICROSEC_FORMAT); //  MicroSec
-      MyTim->setCount(0,MICROSEC_FORMAT);
-      MyTim->refresh();
-      MyTim->detachInterrupt();
-      MyTim->attachInterrupt((void (*)(HardwareTimer *))lv_tick_handler);
-      MyTim->detachInterrupt(0);
-      MyTim->attachInterrupt(0,(void (*)(HardwareTimer *))lv_tick_handler);
-      MyTim->resume();*/
-    tick.start();
-#endif
 }
 
 void IRAM_ATTR guiLoop()
@@ -675,8 +640,8 @@ void IRAM_ATTR guiLoop()
     tick.update();
 #endif
 
-    // lv_tick_handler();
-    lv_task_handler(); /* let the GUI do its work */
+    lv_task_handler();
+
     guiCheckSleep();
 
 #if TOUCH_DRIVER == 1
@@ -684,8 +649,25 @@ void IRAM_ATTR guiLoop()
 #endif
 }
 
+void guiStart()
+{
+    /*Initialize the graphics library's tick*/
+#if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
+    tick.attach_ms(LVGL_TICK_PERIOD, lv_tick_handler);
+#else
+    tick.start();
+#endif
+}
+
 void guiStop()
-{}
+{
+    /*Deinitialize the graphics library's tick*/
+#if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
+    tick.detach();
+#else
+    tick.stop();
+#endif
+}
 
 bool guiGetBacklight()
 {
