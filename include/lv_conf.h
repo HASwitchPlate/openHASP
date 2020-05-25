@@ -77,7 +77,7 @@ typedef int16_t lv_coord_t;
 #if LV_MEM_CUSTOM == 0
 /* Size of the memory used by `lv_mem_alloc` in bytes (>= 2kB)*/
 #ifdef ESP8266
-#  define LV_MEM_SIZE    (12 * 1024U) // 12KB
+#  define LV_MEM_SIZE    (10 * 1024U) // 12KB
 #endif
 #ifndef LV_MEM_SIZE
 #  define LV_MEM_SIZE    (20 * 1024U)  // 48KB
