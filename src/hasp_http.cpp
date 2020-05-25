@@ -45,7 +45,7 @@ char httpUser[32]     = "";
 char httpPassword[32] = "";
 #define HTTP_PAGE_SIZE (6 * 256)
 
-#if defined(STM32F4xx) && HASP_USE_ETHERNET>0
+#if defined(STM32F4xx) && HASP_USE_ETHERNET > 0
 #include <EthernetWebServer_STM32.h>
 EthernetWebServer webServer(80);
 #endif
@@ -603,10 +603,13 @@ String getContentType(String filename)
 static unsigned long htppLastLoopTime = 0;
 void webUploadProgress()
 {
+    long t = webServer.header("Content-Length").toInt();
     if(millis() - htppLastLoopTime >= 1250) {
-        Log.verbose(F("    * Uploaded %u bytes"), upload->totalSize + upload->currentSize);
+        Log.verbose(F("    * Uploaded %u bytes / %d"), upload->totalSize + upload->currentSize, t);
         htppLastLoopTime = millis();
     }
+    if(t > 0) t = (upload->totalSize + upload->currentSize) * 100 / t;
+    haspProgressVal(t);
 }
 
 #if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
@@ -617,6 +620,7 @@ void webUpdatePrintError()
     StringStream stream((String &)output);
     Update.printError(stream);
     Log.error(F("HTTP: %s"), output.c_str());
+    haspProgressMsg(output.c_str());
 }
 
 void webUpdateReboot()
@@ -648,6 +652,7 @@ void webHandleFirmwareUpdate()
     if(upload->status == UPLOAD_FILE_START) {
         if(!httpIsAuthenticated(F("update"))) return;
         Log.notice(F("Update: %s"), upload->filename.c_str());
+        haspProgressMsg(upload->filename.c_str());
         // WiFiUDP::stopAll();
         uint32_t maxSketchSpace = (ESP.getFreeSketchSpace() - 0x1000) & 0xFFFFF000;
         // if(!Update.begin(UPDATE_SIZE_UNKNOWN)) { // start with max available size
@@ -704,6 +709,7 @@ void handleFileUpload()
     upload = &webServer.upload();
     if(upload->status == UPLOAD_FILE_START) {
         if(!httpIsAuthenticated(F("fileupload"))) return;
+        Log.verbose(F("Total size: %s"), webServer.headerName(0).c_str());
         String filename((char *)0);
         filename.reserve(128);
         filename = upload->filename;
@@ -714,6 +720,7 @@ void handleFileUpload()
         if(filename.length() < 32) {
             fsUploadFile = filesystem->open(filename, "w");
             Log.notice(F("handleFileUpload Name: %s"), filename.c_str());
+            haspProgressMsg(fsUploadFile.name());
         } else {
             Log.error(F("Filename %s is too long"), filename.c_str());
         }
@@ -731,6 +738,7 @@ void handleFileUpload()
             Log.verbose(F("Uploaded %s (%u bytes)"), fsUploadFile.name(), upload->totalSize);
             fsUploadFile.close();
         }
+        haspProgressVal(255);
 
         // Redirect to /config/hasp page. This flushes the web buffer and frees the memory
         webServer.sendHeader(String(F("Location")), String(F("/config/hasp")), true);
@@ -1552,7 +1560,12 @@ void httpSetup()
         // first callback is called after the request has ended with all parsed arguments
         // second callback handles file uploads at that location
         webServer.on(
-            F("/edit"), HTTP_POST, []() { webServer.send(200, "text/plain", ""); }, handleFileUpload);
+            F("/edit"), HTTP_POST,
+            []() {
+                webServer.send(200, "text/plain", "");
+                Log.verbose(F("Headers: %d"), webServer.headers());
+            },
+            handleFileUpload);
 #endif
 
         // get heap status, analog input value and all GPIO statuses in one json call
@@ -1593,7 +1606,12 @@ void httpSetup()
         webServer.on(F("/firmware"), webHandleFirmware);
 #if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
         webServer.on(
-            F("/update"), HTTP_POST, []() { webServer.send(200, "text/plain", ""); }, webHandleFirmwareUpdate);
+            F("/update"), HTTP_POST,
+            []() {
+                webServer.send(200, "text/plain", "");
+                Log.verbose(F("Total size: %s"), webServer.hostHeader().c_str());
+            },
+            webHandleFirmwareUpdate);
         webServer.on(F("/espfirmware"), httpHandleEspFirmware);
 #endif
         webServer.on(F("/reboot"), httpHandleReboot);
@@ -1606,6 +1624,11 @@ void httpSetup()
     webServer.on(F("/about"), webHandleAbout);
     webServer.on(F("/config"), webHandleConfig);
     webServer.onNotFound(httpHandleNotFound);
+
+    // ask server to track these headers
+    const char * headerkeys[] = {"Content-Length"}; // "Authentication"
+    size_t headerkeyssize     = sizeof(headerkeys) / sizeof(char *);
+    webServer.collectHeaders(headerkeys, headerkeyssize);
 
     Log.verbose(F("HTTP: Setup Complete"));
     webStart();
