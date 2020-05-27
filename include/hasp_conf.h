@@ -154,6 +154,11 @@
 #include "hasp_ethernet.h"
 #endif
 
+#if HASP_USE_WIFI > 0 && defined(STM32F4xx)
+#include "WiFiSpi.h"
+static WiFiSpiClass WiFi;
+#endif
+
 #ifndef FPSTR
 #define FPSTR(pstr_pointer) (reinterpret_cast<const __FlashStringHelper *>(pstr_pointer))
 #endif
