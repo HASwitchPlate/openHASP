@@ -18,7 +18,10 @@ WiFiClient mqttNetworkClient;
 #include <ESP.h>
 WiFiClient mqttNetworkClient;
 #else
-
+#if defined(STM32F4xx) && HASP_USE_WIFI>0
+// #include <WiFi.h>
+WiFiSpiClient mqttNetworkClient;
+#else
 #if defined(W5500_MOSI) && defined(W5500_MISO) && defined(W5500_SCLK)
 #define W5500_LAN
 #include <Ethernet.h>
@@ -27,6 +30,7 @@ WiFiClient mqttNetworkClient;
 #endif
 
 EthernetClient mqttNetworkClient;
+#endif
 #endif
 
 #include "hasp_hal.h"
@@ -190,9 +194,18 @@ void mqtt_send_statusupdate()
         snprintf_P(data, sizeof(data), PSTR("{\"status\":\"available\",\"version\":\"%s\",\"uptime\":%lu,"),
                    haspGetVersion().c_str(), long(millis() / 1000));
         strcat(buffer, data);
-#if HASP_USE_WIFI > 0
+#if HASP_USE_WIFI>0
+#if defined(STM32F4xx)
+        IPAddress ip;
+        ip = WiFi.localIP();
+        char espIp[16];
+        memset(espIp, 0 ,sizeof(espIp));
+        snprintf_P(buffer, sizeof(buffer), PSTR("\"ssid\":\"%s\",\"rssi\":%i,\"ip\":\"%d.%d.%d.%d\","), WiFi.SSID(),
+                   WiFi.RSSI(), ip[0], ip[1], ip[2], ip[3]);
+#else
         snprintf_P(buffer, sizeof(buffer), PSTR("\"ssid\":\"%s\",\"rssi\":%i,\"ip\":\"%s\","), WiFi.SSID().c_str(),
                    WiFi.RSSI(), WiFi.localIP().toString().c_str());
+#endif
         strcat(data, buffer);
 #endif
         snprintf_P(buffer, sizeof(buffer), PSTR("\"heapFree\":%u,\"heapFrag\":%u,\"espCore\":\"%s\","),

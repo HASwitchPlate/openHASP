@@ -51,6 +51,12 @@ char httpPassword[32] = "";
 EthernetWebServer webServer(80);
 #endif
 
+#if defined(STM32F4xx) && HASP_USE_WIFI>0
+#include <EthernetWebServer_STM32.h>
+// #include <WiFi.h>
+EthernetWebServer webServer(80);
+#endif
+
 #if defined(ARDUINO_ARCH_ESP8266)
 #include <ESP8266WebServer.h>
 ESP8266WebServer webServer(80);
@@ -479,7 +485,18 @@ void webHandleInfo()
         } else {
             httpMessage += F("Very Bad)");
         }
-
+#if defined(STM32F4xx)
+        byte mac[6];
+        WiFi.macAddress(mac);
+        char macAddress[16];
+        sprintf_P(macAddress, PSTR("%02x%02x%02x"), mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+        httpMessage += F("</br><b>IP Address: </b>");
+        httpMessage += String(WiFi.localIP());
+        httpMessage += F("</br><b>Gateway: </b>");
+        httpMessage += String(WiFi.gatewayIP());
+        httpMessage += F("</br><b>MAC Address: </b>");
+        httpMessage += String(macAddress);
+#else
         httpMessage += F("</br><b>IP Address: </b>");
         httpMessage += String(WiFi.localIP().toString());
         httpMessage += F("</br><b>Gateway: </b>");
@@ -488,6 +505,7 @@ void webHandleInfo()
         httpMessage += String(WiFi.dnsIP().toString());
         httpMessage += F("</br><b>MAC Address: </b>");
         httpMessage += String(WiFi.macAddress());
+#endif
 #endif
 
 /* Mqtt Stats */
@@ -901,7 +919,7 @@ void webHandleConfig()
     }
 
 // Reboot after saving wifi config in AP mode
-#if HASP_USE_WIFI > 0
+#if HASP_USE_WIFI > 0 && !defined(STM32F4xx)
     if(WiFi.getMode() != WIFI_STA) {
         httpHandleReboot();
     }
@@ -1105,7 +1123,7 @@ void webHandleWifiConfig()
     }
     httpMessage += F("'><p><button type='submit' name='save' value='wifi'>Save Settings</button></p></form>");
 
-#if HASP_USE_WIFI > 0
+#if HASP_USE_WIFI > 0 && !defined(STM32F4xx)
     if(WiFi.getMode() == WIFI_STA) {
         httpMessage +=
             PSTR("<p><form method='get' action='/config'><button type='submit'>Configuration</button></form></p>");
@@ -1114,7 +1132,11 @@ void webHandleWifiConfig()
 
     webSendPage(httpGetNodename(), httpMessage.length(), false);
     webServer.sendContent(httpMessage);
+#if defined(STM32F4xx)
+    httpMessage = "";
+#else
     httpMessage.clear();
+#endif
     webSendFooter();
 }
 #endif
@@ -1572,8 +1594,14 @@ void webStart()
     webServer.begin();
     webServerStarted = true;
 #if HASP_USE_WIFI > 0
+#if defined(STM32F4xx)
+    IPAddress ip;
+    ip = WiFi.localIP();
+    Log.notice(F("HTTP: Server started @ http://%d.%d.%d.%d"), ip[0], ip[1], ip[2], ip[3]);
+#else
     Log.notice(F("HTTP: Server started @ http://%s"),
                (WiFi.getMode() != WIFI_STA ? WiFi.softAPIP().toString().c_str() : WiFi.localIP().toString().c_str()));
+#endif
 #else
     IPAddress ip;
     ip = Ethernet.localIP();
@@ -1594,10 +1622,12 @@ void httpSetup()
     // httpSetConfig(settings);
 
 #if HASP_USE_WIFI > 0
+#if !defined(STM32F4xx)
     if(WiFi.getMode() != WIFI_STA) {
         Log.notice(F("HTTP: Wifi access point"));
         webServer.on(F("/"), webHandleWifiConfig);
     } else {
+#endif
 #endif
 
         webServer.on(F("/page/"), []() {
@@ -1679,7 +1709,9 @@ void httpSetup()
         webServer.on(F("/reboot"), httpHandleReboot);
         webServer.onNotFound(httpHandleNotFound);
 #if HASP_USE_WIFI > 0
+#if !defined(STM32F4xx)
     }
+#endif
 #endif
 
     // Shared pages
@@ -1704,7 +1736,7 @@ void httpReconnect()
     if(webServerStarted) {
         webStop();
     } else
-#if HASP_USE_WIFI > 0
+#if HASP_USE_WIFI > 0 && !defined(STM32F4xx)
         if(WiFi.status() == WL_CONNECTED || WiFi.getMode() != WIFI_STA)
 #endif
     {
