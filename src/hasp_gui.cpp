@@ -122,13 +122,13 @@ static void IRAM_ATTR my_flush_cb(lv_disp_drv_t * disp, const lv_area_t * area, 
 #endif
 
 #if defined(USE_FSMC)
-    fsmc_ili9341_flush(area->x1, area->y1, area->x2, area->y2, color_p);
+    fsmc_ili9341_flush(disp, area, color_p);
 #else
-    tft_espi_flush(area->x1, area->y1, area->x2, area->y2, color_p);
+    tft_espi_flush(disp, area, color_p);
 #endif
 
     /* Tell lvgl that flushing is done */
-    lv_disp_flush_ready(disp);
+    // lv_disp_flush_ready(disp);
 }
 
 /* Interrupt driven periodic handler */
@@ -551,8 +551,12 @@ void guiSetup()
     /* Initialize the display driver */
     lv_disp_drv_t disp_drv;
     lv_disp_drv_init(&disp_drv);
-    disp_drv.flush_cb = my_flush_cb;
-    disp_drv.buffer   = &disp_buf;
+#if defined(USE_FSMC)
+    disp_drv.flush_cb = fsmc_ili9341_flush;
+#else
+    disp_drv.flush_cb = tft_espi_flush;
+#endif
+    disp_drv.buffer = &disp_buf;
     if(guiRotation == 0 || guiRotation == 2 || guiRotation == 4 || guiRotation == 6) {
         /* 1/3=Landscape or 0/2=Portrait orientation */
         // Normal width & height
