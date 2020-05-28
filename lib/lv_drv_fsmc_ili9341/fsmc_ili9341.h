@@ -41,9 +41,10 @@ extern "C" {
  * GLOBAL PROTOTYPES
  **********************/
 void fsmc_ili9341_init(uint8_t rotation);
-void fsmc_ili9341_flush(int32_t x1, int32_t y1, int32_t x2, int32_t y2,  lv_color_t * color_p);
-void fsmc_ili9341_fill(int32_t x1, int32_t y1, int32_t x2, int32_t y2, lv_color_t color);
-void fsmc_ili9341_map(int32_t x1, int32_t y1, int32_t x2, int32_t y2, lv_color_t * color_p);
+void fsmc_ili9341_flush(lv_disp_drv_t * disp, const lv_area_t * area, lv_color_t * color_p);
+//void fsmc_ili9341_flush(int32_t x1, int32_t y1, int32_t x2, int32_t y2,  lv_color_t * color_p);
+//void fsmc_ili9341_fill(int32_t x1, int32_t y1, int32_t x2, int32_t y2, lv_color_t color);
+//void fsmc_ili9341_map(int32_t x1, int32_t y1, int32_t x2, int32_t y2, lv_color_t * color_p);
 /**********************
  *      MACROS
  **********************/

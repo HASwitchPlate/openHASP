@@ -67,13 +67,14 @@ void tft_espi_init(uint8_t rotation)
     tftSetup(tft);
 }
 
-void tft_espi_flush(int32_t x1, int32_t y1, int32_t x2, int32_t y2, const lv_color_t * color_p)
+void tft_espi_flush(lv_disp_drv_t * disp, const lv_area_t * area, lv_color_t * color_p)
 {
-    size_t len = (x2 - x1 + 1) * (y2 - y1 + 1); /* Number of pixels */
+    size_t len = lv_area_get_size(area);
+    // size_t len = (x2 - x1 + 1) * (y2 - y1 + 1); /* Number of pixels */
 
     /* Update TFT */
-    tft.startWrite();              /* Start new TFT transaction */
-    tft.setWindow(x1, y1, x2, y2); /* set the working window */
+    tft.startWrite();                                      /* Start new TFT transaction */
+    tft.setWindow(area->x1, area->y1, area->x2, area->y2); /* set the working window */
 #ifdef USE_DMA_TO_TFT
     tft.pushPixelsDMA((uint16_t *)color_p, len); /* Write words at once */
 #else
@@ -82,18 +83,18 @@ void tft_espi_flush(int32_t x1, int32_t y1, int32_t x2, int32_t y2, const lv_col
     tft.endWrite(); /* terminate TFT transaction */
 
     /* Tell lvgl that flushing is done */
-    // lv_disp_flush_ready();
+    lv_disp_flush_ready(disp);
 }
 
-void tft_espi_fill(int32_t x1, int32_t y1, int32_t x2, int32_t y2, lv_color_t color)
-{
-    tft.fillRect(x1, y1, x2 - x1 + 1, y2 - y1 + 1, color.full);
-}
+// void tft_espi_fill(int32_t x1, int32_t y1, int32_t x2, int32_t y2, lv_color_t color)
+// {
+//     tft.fillRect(x1, y1, x2 - x1 + 1, y2 - y1 + 1, color.full);
+// }
 
-void tft_espi_map(int32_t x1, int32_t y1, int32_t x2, int32_t y2, const lv_color_t * color_p)
-{
-    tft_espi_flush(x1, y1, x2, y2, color_p);
-}
+// void tft_espi_map(int32_t x1, int32_t y1, int32_t x2, int32_t y2, const lv_color_t * color_p)
+// {
+//     tft_espi_flush(x1, y1, x2, y2, color_p);
+// }
 
 #if defined(TOUCH_CS)
 

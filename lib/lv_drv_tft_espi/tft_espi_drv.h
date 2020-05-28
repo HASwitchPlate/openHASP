@@ -33,7 +33,6 @@ extern "C" {
  *      DEFINES
  *********************/
 
-
 /**********************
  *      TYPEDEFS
  **********************/
@@ -42,7 +41,8 @@ extern "C" {
  * GLOBAL PROTOTYPES
  **********************/
 void tft_espi_init(uint8_t rotation);
-void tft_espi_flush(int32_t x1, int32_t y1, int32_t x2, int32_t y2, const lv_color_t * color_p);
+void tft_espi_flush(lv_disp_drv_t * disp, const lv_area_t * area, lv_color_t * color_p);
+// void tft_espi_flush(int32_t x1, int32_t y1, int32_t x2, int32_t y2, const lv_color_t * color_p);
 void tft_espi_fill(int32_t x1, int32_t y1, int32_t x2, int32_t y2, lv_color_t color);
 void tft_espi_map(int32_t x1, int32_t y1, int32_t x2, int32_t y2, const lv_color_t * color_p);
 

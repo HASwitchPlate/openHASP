@@ -117,36 +117,35 @@ static inline void pushColors(uint16_t * data, uint32_t len)
     io.endTransaction();
 }
 
-void fsmc_ili9341_flush(int32_t x1, int32_t y1, int32_t x2, int32_t y2, lv_color_t * color_p)
+void fsmc_ili9341_flush(lv_disp_drv_t * disp, const lv_area_t * area, lv_color_t * color_p)
 {
-    tft.setWindow(x1, y1, x2, y2);
-    size_t len = (x2 - x1 + 1) * (y2 - y1 + 1); /* Number of pixels */
+    size_t len = lv_area_get_size(area);
+    // size_t len = (x2 - x1 + 1) * (y2 - y1 + 1); /* Number of pixels */
 
-#if 1 // use local version instead
+    tft.setWindow(area->x1, area->y1, area->x2, area->y2);
     pushColors((uint16_t *)color_p, len);
-#else
+
     /* Update TFT */
-    while(len > 255) {
-        tft.pushColors((uint16_t *)color_p, 255);
-        len -= 255;
-        color_p += 255;
-    }
-    tft.pushColors((uint16_t *)color_p, len); // remainder
-#endif
+    // while(len > 255) {
+    //     tft.pushColors((uint16_t *)color_p, 255);
+    //     len -= 255;
+    //     color_p += 255;
+    // }
+    // tft.pushColors((uint16_t *)color_p, len); // remainder
 
     /* Tell lvgl that flushing is done */
-    // lv_disp_flush_ready();
+    lv_disp_flush_ready(disp);
 }
 
-void fsmc_ili9341_fill(int32_t x1, int32_t y1, int32_t x2, int32_t y2, lv_color_t color)
-{
-    tft.fillRect(x1, y1, x2 - x1 + 1, y2 - y1 + 1, color.full);
-}
+// void fsmc_ili9341_fill(int32_t x1, int32_t y1, int32_t x2, int32_t y2, lv_color_t color)
+// {
+//     tft.fillRect(x1, y1, x2 - x1 + 1, y2 - y1 + 1, color.full);
+// }
 
-void fsmc_ili9341_map(int32_t x1, int32_t y1, int32_t x2, int32_t y2, lv_color_t * color_p)
-{
-    fsmc_ili9341_flush(x1, y1, x2, y2, color_p);
-}
+// void fsmc_ili9341_map(int32_t x1, int32_t y1, int32_t x2, int32_t y2, lv_color_t * color_p)
+// {
+//     fsmc_ili9341_flush(x1, y1, x2, y2, color_p);
+// }
 
 /**********************
  *   STATIC FUNCTIONS
