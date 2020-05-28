@@ -3,6 +3,7 @@
 
 #include "lvgl.h"
 #include "hasp.h"
+#include "lv_core/lv_obj_style_dec.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -29,7 +30,7 @@ bool check_obj_type(lv_obj_t * obj, lv_hasp_obj_type_t haspobjtype);
             return lv_obj_set_style_local_##func_name(obj, part, state, (value_type)val);                              \
         } else {                                                                                                       \
             value_type temp;                                                                                           \
-            lv_obj_get_style_local_##func_name(obj, part, state, &temp);                                               \
+            temp = lv_obj_get_style_##func_name(obj, part);                                                            \
             return hasp_out_int(obj, attr, temp);                                                                      \
         }                                                                                                              \
     }

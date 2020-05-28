@@ -9,6 +9,7 @@
 #include <FS.h>
 
 #include "lvgl.h"
+#include "lv_core/lv_debug.h"
 #include "lv_zifont.h"
 #include "ArduinoLog.h"
 
@@ -86,7 +87,7 @@ static inline bool openFont(File & file, const char * filename)
 
 static inline void initCharacterFrame(size_t size)
 {
-    if(size > lv_mem_get_size(charBitmap_p)) {
+    if(size > _lv_mem_get_size(charBitmap_p)) {
         if(charBitmap_p) lv_mem_free(charBitmap_p);
         charBitmap_p = (uint8_t *)lv_mem_alloc(size);
     }
@@ -100,14 +101,14 @@ int lv_zifont_font_init(lv_font_t ** font, const char * font_path, uint16_t size
     if(!*font) {
         *font = (lv_font_t *)lv_mem_alloc(sizeof(lv_font_t));
         LV_ASSERT_MEM(*font);
-        lv_memset(*font, 0x00, sizeof(lv_font_t)); // lv_mem_alloc might be dirty
+        _lv_memset(*font, 0x00, sizeof(lv_font_t)); // lv_mem_alloc might be dirty
     }
 
     lv_font_fmt_zifont_dsc_t * dsc;
     if(!(*font)->dsc) {
         dsc = (lv_font_fmt_zifont_dsc_t *)lv_mem_alloc(sizeof(lv_font_fmt_zifont_dsc_t));
         LV_ASSERT_MEM(dsc);
-        lv_memset(dsc, 0x00, sizeof(lv_font_fmt_zifont_dsc_t)); // lv_mem_alloc might be dirty
+        _lv_memset(dsc, 0x00, sizeof(lv_font_fmt_zifont_dsc_t)); // lv_mem_alloc might be dirty
     } else {
         dsc = (lv_font_fmt_zifont_dsc_t *)(*font)->dsc;
     }
@@ -116,7 +117,7 @@ int lv_zifont_font_init(lv_font_t ** font, const char * font_path, uint16_t size
 
     /* Initialize Last Glyph DSC */
     dsc->last_glyph_dsc = (lv_zifont_char_t *)lv_mem_alloc(sizeof(lv_zifont_char_t));
-    lv_memset(dsc->last_glyph_dsc, 0x00, sizeof(lv_zifont_char_t)); // lv_mem_alloc might be dirty
+    _lv_memset(dsc->last_glyph_dsc, 0x00, sizeof(lv_zifont_char_t)); // lv_mem_alloc might be dirty
 
     if(dsc->last_glyph_dsc == NULL) return ZIFONT_ERROR_OUT_OF_MEMORY;
     dsc->last_glyph_dsc->width = 0;
@@ -155,7 +156,7 @@ int lv_zifont_font_init(lv_font_t ** font, const char * font_path, uint16_t size
     if(!dsc->ascii_glyph_dsc) {
         dsc->ascii_glyph_dsc = (lv_zifont_char_t *)lv_mem_alloc(sizeof(lv_zifont_char_t) * CHAR_CACHE_SIZE);
         LV_ASSERT_MEM(dsc->ascii_glyph_dsc);
-        lv_memset(dsc->ascii_glyph_dsc, 0x00,
+        _lv_memset(dsc->ascii_glyph_dsc, 0x00,
                   sizeof(lv_zifont_char_t) * CHAR_CACHE_SIZE); // lv_mem_alloc might be dirty
     }
     if(dsc->ascii_glyph_dsc == NULL) {

@@ -7,6 +7,7 @@
  *      INCLUDES
  *********************/
 #include "lvgl.h"
+#include "lv_core/lv_debug.h"
 #include "lv_widgets/lv_canvas.h"
 #include "lv_qrcode.h"
 #include "qrcodegen.h"
