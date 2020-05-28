@@ -1,5 +1,5 @@
 #include "hasp_conf.h"
-#if HASP_USE_MQTT>0
+#if HASP_USE_MQTT > 0
 
 #include <Arduino.h>
 #include "ArduinoJson.h"
@@ -190,7 +190,7 @@ void mqtt_send_statusupdate()
         snprintf_P(data, sizeof(data), PSTR("{\"status\":\"available\",\"version\":\"%s\",\"uptime\":%lu,"),
                    haspGetVersion().c_str(), long(millis() / 1000));
         strcat(buffer, data);
-#if HASP_USE_WIFI>0
+#if HASP_USE_WIFI > 0
         snprintf_P(buffer, sizeof(buffer), PSTR("\"ssid\":\"%s\",\"rssi\":%i,\"ip\":\"%s\","), WiFi.SSID().c_str(),
                    WiFi.RSSI(), WiFi.localIP().toString().c_str());
         strcat(data, buffer);
@@ -238,9 +238,9 @@ void mqtt_send_statusupdate()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Receive incoming messages
 static void mqtt_message_cb(char * topic_p, byte * payload, unsigned int length)
-{ // Handle incoming commands from MQTT
-    if(length >= MQTT_MAX_PACKET_SIZE) return;
-    payload[length] = '\0';
+{                                              // Handle incoming commands from MQTT
+    if(length >= MQTT_MAX_PACKET_SIZE) return; // Check if payload fits the buffer
+    payload[length] = '\0';                    // There's room in the buffer
 
     // String strTopic((char *)0);
     // strTopic.reserve(MQTT_MAX_PACKET_SIZE);
@@ -354,7 +354,7 @@ void mqttReconnect()
     {
         String mac = halGetMacAddress(3, "");
         mac.toLowerCase();
-        memset(mqttClientId, 0 ,sizeof(mqttClientId));
+        memset(mqttClientId, 0, sizeof(mqttClientId));
         snprintf_P(mqttClientId, sizeof(mqttClientId), PSTR("plate_%s"), mac.c_str());
         Log.verbose(mqttClientId);
     }
