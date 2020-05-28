@@ -13,6 +13,7 @@
 
 #include "hasp_gui.h"
 #include "hasp_hal.h"
+#include "hasp_gpio.h"
 #include "hasp_debug.h"
 #include "hasp_config.h"
 #include "hasp_dispatch.h"
@@ -1204,7 +1205,7 @@ void webHandleGpioConfig()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 void webHandleGpioOptions()
 { // http://plate01/config/gpio/options
-    if(!httpIsAuthenticated(F("config/gui"))) return;
+    if(!httpIsAuthenticated(F("config/gpio"))) return;
 
     {
         DynamicJsonDocument settings(256);
@@ -1223,10 +1224,14 @@ void webHandleGpioOptions()
         httpMessage += F("< Options</b></p>");
 
         httpMessage += F("<p><b>Type</b> <select id='ioType' name='ioType'>");
-        httpMessage += getOption(0, F("None"), false);
-        httpMessage += getOption(1, F("Switch"), false);
-        httpMessage += getOption(2, F("Button"), false);
-        httpMessage += getOption(3, F("PWM"), false);
+        httpMessage += getOption(HASP_GPIO_FREE, F("None"), false);
+        httpMessage += getOption(HASP_GPIO_SWITCH, F("Switch"), false);
+        httpMessage += getOption(HASP_GPIO_BUTTON, F("Button"), false);
+        httpMessage += getOption(HASP_GPIO_LED, F("Switch"), false);
+        httpMessage += getOption(HASP_GPIO_RELAY, F("Button"), false);
+        if(digitalPinHasPWM(webServer.arg(0).toInt())) {
+            httpMessage += getOption(HASP_GPIO_PWM, F("PWM"), false);
+        }
         httpMessage += F("</select></p>");
 
         httpMessage += F("<p><b>Channel</b> <select id='ioChannel' name='ioChannel'>");
@@ -1235,15 +1240,15 @@ void webHandleGpioOptions()
         }
         httpMessage += F("</select></p>");
 
-        httpMessage += F("<p><b>State</b> <select id='ioState' name='ioState'>");
+        httpMessage += F("<p><b>Default State</b> <select id='ioState' name='ioState'>");
         httpMessage += getOption(0, F("High"), false);
         httpMessage += getOption(1, F("Low"), false);
         httpMessage += F("</select></p>");
 
         httpMessage += F("<p><button type='submit' name='save' value='gui'>Save Settings</button></p></form>");
 
-        httpMessage +=
-            PSTR("<p><form method='get' action='/config/gpio'><button type='submit'> GPIO Settings</button></form></p>");
+        httpMessage += PSTR(
+            "<p><form method='get' action='/config/gpio'><button type='submit'> GPIO Settings</button></form></p>");
 
         webSendPage(httpGetNodename(), httpMessage.length(), false);
         webServer.sendContent(httpMessage);
