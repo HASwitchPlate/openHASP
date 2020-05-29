@@ -38,11 +38,11 @@ void configStop(void);
 void configSetConfig(JsonObject & settings);
 void configGetConfig(JsonDocument & settings);
 void configWriteConfig();
-void configClear(void);
 void configOutput(const JsonObject & settings);
 
 bool configSet(int8_t & value, const JsonVariant & setting, const char * name);
 bool configSet(uint8_t & value, const JsonVariant & setting, const char * name);
 bool configSet(uint16_t & value, const JsonVariant & setting, const char * name);
+bool configClear();
 
 #endif
