@@ -374,6 +374,25 @@ void configSetup()
     //#endif
 }
 
+void configClear()
+{
+  #if defined(STM32F4xx)
+        // Method 2
+        Log.verbose(F("CONF: Clearing EEPROM"));
+        char buffer[1024 + 128];
+        memset(buffer, 1 ,sizeof(buffer));
+        if(sizeof(buffer) > 0) {
+            uint16_t i;
+            for(i = 0; i < sizeof(buffer); i++) eeprom_buffered_write_byte(i, buffer[i]);
+            eeprom_buffered_write_byte(i, 0);
+            eeprom_buffer_flush();
+            Log.verbose(F("CONF: [SUCCESS] Cleared EEPROM"));
+        } else {
+            Log.error(F("CONF: Failed to clear to EEPROM"));
+        }
+#endif
+}
+
 void configOutput(const JsonObject & settings)
 {
     String output((char *)0);
