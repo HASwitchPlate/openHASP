@@ -23,7 +23,7 @@ static WiFiEventHandler gotIpEventHandler, disconnectedEventHandler;
 // #include <WiFi.h>
 // #include "WiFiSpi.h"
 // extern WiFiSpiClass WiFi;
-SPIClass spi2(ESPSPI_MOSI, ESPSPI_MISO, ESPSPI_SCLK);    // SPI port where esp is connected
+SPIClass espSPI(ESPSPI_MOSI, ESPSPI_MISO, ESPSPI_SCLK);    // SPI port where esp is connected
 
 #endif
 //#include "DNSserver.h"
@@ -165,7 +165,7 @@ void wifiSetup()
     //
 
     // Initialize the WifiSpi library
-    WiFiSpi.init(ESPSPI_CS, 8000000, &spi2);
+    WiFiSpi.init(ESPSPI_CS, 8000000, &espSPI);
 
     // check for the presence of the shield:
     if (WiFiSpi.status() == WL_NO_SHIELD) {
