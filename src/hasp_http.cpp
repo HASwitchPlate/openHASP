@@ -51,7 +51,7 @@ char httpPassword[32] = "";
 EthernetWebServer webServer(80);
 #endif
 
-#if defined(STM32F4xx) && HASP_USE_WIFI>0
+#if defined(STM32F4xx) && HASP_USE_WIFI > 0
 #include <EthernetWebServer_STM32.h>
 // #include <WiFi.h>
 EthernetWebServer webServer(80);
@@ -853,7 +853,7 @@ void handleFileList()
     output += "]";
     webServer.send(200, PSTR("text/json"), output);
 #elif defined(ARDUINO_ARCH_ESP8266)
-    Dir dir       = filesystem->openDir(path);
+    Dir dir = filesystem->openDir(path);
     String output = "[";
     while(dir.next()) {
         File entry = dir.openFile("r");
@@ -1367,6 +1367,9 @@ void webHandleHaspConfig()
         uint8_t themeid = settings[FPSTR(F_CONFIG_THEME)].as<uint8_t>();
         httpMessage += getOption(0, F("Built-in"), themeid == 0);
         httpMessage += getOption(8, F("Hasp"), themeid == 8);
+#if LV_USE_THEME_EMPTY == 1
+        httpMessage += getOption(0, F("Empty"), themeid == 0);
+#endif
 #if LV_USE_THEME_ALIEN == 1
         httpMessage += getOption(1, F("Alien"), themeid == 1);
 #endif
@@ -1385,7 +1388,7 @@ void webHandleHaspConfig()
 #if LV_USE_THEME_NEMO == 1
         httpMessage += getOption(6, F("Nemo"), themeid == 6);
 #endif
-#if LV_USE_THEME_TEMPL == 1
+#if LV_USE_THEME_TEMPLATE == 1
         httpMessage += getOption(7, F("Template"), themeid == 7);
 #endif
         httpMessage += F("</select></br>");

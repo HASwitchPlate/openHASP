@@ -403,22 +403,32 @@ void haspSetup()
     /* ********** Theme Initializations ********** */
     lv_theme_t * th;
     switch(haspThemeId) {
+#if(LV_USE_THEME_EMPTY == 1)
+        case 0:
+            th = lv_theme_empty_init(LV_COLOR_PURPLE, LV_COLOR_BLACK, LV_THEME_DEFAULT_FLAGS, defaultFont, defaultFont,
+                                     defaultFont, defaultFont);
+            break;
+#endif
+
 #if LV_USE_THEME_ALIEN == 1
         case 1:
             th = lv_theme_alien_init(haspThemeHue, defaultFont);
             break;
 #endif
+
 #if LV_USE_THEME_NIGHT == 1
         case 2:
             th = lv_theme_night_init(haspThemeHue, defaultFont); // heavy
             break;
 #endif
-#if(LV_USE_THEME_MONO == 1) || (LV_USE_THEME_EMPTY == 1)
+
+#if(LV_USE_THEME_MONO == 1)
         case 3:
-            th = lv_theme_empty_init(LV_COLOR_PURPLE, LV_COLOR_BLACK, LV_THEME_DEFAULT_FLAGS, defaultFont, defaultFont,
-                                     defaultFont, defaultFont);
+            th = lv_theme_mono_init(LV_COLOR_PURPLE, LV_COLOR_BLACK, LV_THEME_DEFAULT_FLAGS, defaultFont, defaultFont,
+                                    defaultFont, defaultFont);
             break;
 #endif
+
 #if LV_USE_THEME_MATERIAL == 1
         case 4:
             th = lv_theme_material_init(LV_COLOR_PURPLE, LV_COLOR_ORANGE, LV_THEME_DEFAULT_FLAGS, defaultFont,
@@ -430,23 +440,28 @@ void haspSetup()
         case 5:
             th = lv_theme_zen_init(haspThemeHue, defaultFont); // lightweight break;
 #endif
+
 #if LV_USE_THEME_NEMO == 1
         case 6:
             th =
                 // lv_theme_nemo_init(haspThemeHue, defaultFont); // heavy
                 break;
 #endif
-#if LV_USE_THEME_TEMPL == 1
+
+#if LV_USE_THEME_TEMPLATE == 1
         case 7:
-            th = lv_theme_templ_init(haspThemeHue, defaultFont); // lightweight, not for production...
+            th = lv_theme_template_init(LV_COLOR_PURPLE, LV_COLOR_ORANGE, LV_THEME_DEFAULT_FLAGS, defaultFont,
+                                        defaultFont, defaultFont, defaultFont);
             break;
 #endif
+
 #if(LV_USE_THEME_HASP == 1) || (LV_USE_THEME_TEMPLATE == 1)
         case 8:
             th = lv_theme_template_init(LV_COLOR_PURPLE, LV_COLOR_ORANGE, LV_THEME_DEFAULT_FLAGS, defaultFont,
                                         defaultFont, defaultFont, defaultFont);
             break;
 #endif
+
         /*        case 0:
         #if LV_USE_THEME_DEFAULT == 1
                     th = lv_theme_default_init(haspThemeHue, defaultFont);
