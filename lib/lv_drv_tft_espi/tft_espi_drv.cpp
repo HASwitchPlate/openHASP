@@ -16,6 +16,7 @@
 #include LV_DRV_DISP_INCLUDE
 #include LV_DRV_DELAY_INCLUDE
 #include "../../../src/hasp_tft.h"
+#include "bootscreen.h" // Sketch tab header for xbm images
 
 /*********************
  *      DEFINES
@@ -53,6 +54,9 @@ void tft_espi_init(uint8_t rotation)
     tft.setSwapBytes(true); /* set endianess */
     tft.setRotation(rotation);
     tft.fillScreen(TFT_DARKCYAN);
+    int x = (tft.width() - logoWidth) / 2;
+    int y = (tft.height() - logoHeight) / 2;
+    tft.drawXBitmap(x, y, bootscreen, logoWidth, logoHeight, TFT_WHITE);
 
 #ifdef USE_DMA_TO_TFT
     // DMA - should work with STM32F2xx/F4xx/F7xx processors

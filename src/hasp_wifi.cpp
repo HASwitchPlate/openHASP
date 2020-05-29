@@ -4,7 +4,7 @@
 
 #include "hasp_conf.h"
 
-#if HASP_USE_WIFI>0
+#if HASP_USE_WIFI > 0
 
 #include "hasp_debug.h"
 #include "hasp_config.h"
@@ -57,6 +57,7 @@ void wifiConnected(IPAddress ipaddress)
     Log.notice(F("WIFI: Received IP address %s"), ipaddress.toString().c_str());
 #endif
     Log.verbose(F("WIFI: Connected = %s"), WiFi.status() == WL_CONNECTED ? PSTR("yes") : PSTR("no"));
+    haspProgressVal(255);
 
     // if(isConnected) {
     // mqttReconnect();
@@ -69,7 +70,9 @@ void wifiConnected(IPAddress ipaddress)
 void wifiDisconnected(const char * ssid, uint8_t reason)
 {
     wifiReconnectCounter++;
-    if(wifiReconnectCounter > 45) {
+    haspProgressVal(wifiReconnectCounter * 3);
+    haspProgressMsg(F("Wifi Disconnected"));
+    if(wifiReconnectCounter > 33) {
         Log.error(F("WIFI: Retries exceed %u: Rebooting..."), wifiReconnectCounter);
         dispatchReboot(false);
     }

@@ -69,6 +69,10 @@
 #define HASP_USE_PNGDECODE 0
 #endif
 
+#ifndef HASP_NUM_GPIO_CONFIG
+#define HASP_NUM_GPIO_CONFIG 5
+#endif
+
 #ifndef HASP_NUM_INPUTS
 #define HASP_NUM_INPUTS 3 // Buttons
 #endif

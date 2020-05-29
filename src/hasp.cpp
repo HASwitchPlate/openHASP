@@ -173,7 +173,7 @@ void hasp_send_obj_attribute_str(lv_obj_t * obj, const char * attribute, const c
     uint8_t objid;
 
     if(FindIdFromObj(obj, &pageid, &objid)) {
-        dispatch_obj_attribute_str(pageid, objid, attribute, data);
+        dispatch_send_obj_attribute_str(pageid, objid, attribute, data);
     }
 }
 
@@ -301,25 +301,47 @@ void haspReconnect()
         lv_obj_set_hidden(obj, true);*/
 }
 
-void haspProgress(uint8_t val, char * msg)
+String progress_str((char *)0);
+
+void haspProgressVal(uint8_t val)
 {
     lv_obj_t * layer = lv_disp_get_layer_sys(NULL);
     lv_obj_t * bar   = hasp_find_obj_from_id(255, 10);
-
-    if(val == 255) {
-        lv_obj_set_style_local_bg_opa(layer, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_0);
-        if(bar) {
-            lv_obj_set_hidden(bar, true);
-        }
-    } else {
-        lv_obj_set_style_local_bg_opa(layer, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_100);
-        if(bar) {
-            lv_obj_set_hidden(bar, false);
+    if(layer && bar) {
+        if(val == 255) {
+            if(!lv_obj_get_hidden(bar)) {
+                lv_obj_set_hidden(bar, true);
+                lv_obj_set_style_local_bg_opa(layer, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_0);
+                lv_obj_set_style_local_value_str(bar, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, "");
+#if defined(ARCH_ARDUINO_ESP32) || defined(ARCH_ARDUINO_ESP8266)
+                progress_str.clear();
+#endif
+            }
+        } else {
+            if(lv_obj_get_hidden(bar)) {
+                lv_obj_set_hidden(bar, false);
+                lv_obj_set_style_local_bg_opa(layer, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_100);
+            }
             lv_bar_set_value(bar, val, LV_ANIM_OFF);
-            lv_obj_set_style_local_value_str(bar, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, msg);
         }
+        lv_task_handler(); /* let the GUI do its work */
     }
-    lv_tick_inc(30);
+}
+
+void haspProgressMsg(const char * msg)
+{
+    lv_obj_t * bar = hasp_find_obj_from_id(255, 10);
+    if(bar) {
+        progress_str.reserve(64);
+        progress_str = msg;
+        lv_obj_set_style_local_value_str(bar, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, progress_str.c_str());
+        lv_task_handler(); /* let the GUI do its work */
+    }
+}
+
+void haspProgressMsg(const __FlashStringHelper * msg)
+{
+    haspProgressMsg(String(msg).c_str());
 }
 
 /**
@@ -546,27 +568,34 @@ void hasp_background(uint16_t pageid, uint16_t imageid)
  */
 void IRAM_ATTR btn_event_handler(lv_obj_t * obj, lv_event_t event)
 {
+    uint8_t eventid;
     char buffer[64];
     snprintf(buffer, sizeof(buffer), PSTR("HASP: "));
 
     switch(event) {
         case LV_EVENT_PRESSED:
+            eventid = HASP_EVENT_DOWN;
             memcpy_P(buffer, PSTR("DOWN"), sizeof(buffer));
             break;
         case LV_EVENT_CLICKED:
             // UP = the same object was release then was pressed and press was not lost!
+            eventid = HASP_EVENT_UP;
             memcpy_P(buffer, PSTR("UP"), sizeof(buffer));
             break;
         case LV_EVENT_SHORT_CLICKED:
+            eventid = HASP_EVENT_SHORT;
             memcpy_P(buffer, PSTR("SHORT"), sizeof(buffer));
             break;
         case LV_EVENT_LONG_PRESSED:
+            eventid = HASP_EVENT_LONG;
             memcpy_P(buffer, PSTR("LONG"), sizeof(buffer));
             break;
         case LV_EVENT_LONG_PRESSED_REPEAT:
+            eventid = HASP_EVENT_HOLD;
             memcpy_P(buffer, PSTR("HOLD"), sizeof(buffer));
             break;
         case LV_EVENT_PRESS_LOST:
+            eventid = HASP_EVENT_LOST;
             memcpy_P(buffer, PSTR("LOST"), sizeof(buffer));
             break;
         case LV_EVENT_PRESSING:
@@ -585,7 +614,7 @@ void IRAM_ATTR btn_event_handler(lv_obj_t * obj, lv_event_t event)
             Log.notice(buffer, event);
             return;
         default:
-            strcat_P(buffer, PSTR("HASP : Unknown Event % d occured"));
+            strcat_P(buffer, PSTR("HASP : Unknown Event occured"));
             Log.warning(buffer, event);
             return;
     }
@@ -595,7 +624,8 @@ void IRAM_ATTR btn_event_handler(lv_obj_t * obj, lv_event_t event)
         mqtt_send_state(F("wakeuptouch"), buffer);
 #endif
     } else {
-        hasp_send_obj_attribute_event(obj, buffer);
+        // hasp_send_obj_attribute_event(obj, buffer);
+        dispatch_send_object_event(current_page, (uint8_t)obj->user_data, eventid);
     }
 }
 
@@ -694,6 +724,20 @@ void haspSetPage(uint8_t pageid)
         current_page = pageid;
         lv_scr_load(page);
         //}
+    }
+}
+
+void hasp_set_group_objects(uint8_t groupid, uint8_t eventid, lv_obj_t * src_obj)
+{
+    bool state = dispatch_get_event_state(eventid);
+    for(uint8_t page = 0; page < HASP_NUM_PAGES; page++) {
+        uint8_t startid = 100 + groupid * 10; // groups start at id 100
+        for(uint8_t objid = startid; objid < (startid + 10); objid++) {
+            lv_obj_t * obj = hasp_find_obj_from_id(page, objid);
+            if(obj && obj != src_obj) { // skip source object, if set
+                lv_obj_set_state(obj, state ? LV_STATE_PRESSED | LV_STATE_CHECKED : LV_STATE_DEFAULT);
+            }
+        }
     }
 }
 

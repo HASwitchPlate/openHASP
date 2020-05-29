@@ -7,28 +7,22 @@
 #include "hasp_conf.h"
 #include "hasp_gpio.h"
 #include "hasp_dispatch.h"
-
-#define HASP_NUM_GPIO_CONFIG 5
+#include "hasp.h"
 
 uint8_t gpioUsedInputCount = 0;
-uint16_t gpioConfig[HASP_NUM_GPIO_CONFIG];
 
 using namespace ace_button;
 static AceButton * button[HASP_NUM_INPUTS];
 
 struct hasp_gpio_config_t
 {
-    const uint8_t pin;
-    const uint8_t group;
-    const uint8_t io_mode;
-    bool default_state;
+    uint8_t pin;           // pin number
+    uint8_t group;         // groupid
+    uint8_t type;          // switch, button, ...
+    uint8_t gpio_function; // INPUT, OUTPUT, PULLUP, etc
 };
 
-// An array of button pins, led pins, and the led states. Cannot be const
-// because ledState is mutable.
-hasp_gpio_config_t gpioConfig2[HASP_NUM_GPIO_CONFIG] = {
-    {2, 8, INPUT, LOW}, {3, 9, OUTPUT, LOW}, {4, 10, INPUT, HIGH}, {5, 11, OUTPUT, LOW}, {6, 12, INPUT, LOW},
-};
+hasp_gpio_config_t gpioConfig[HASP_NUM_GPIO_CONFIG];
 
 #if defined(ARDUINO_ARCH_ESP32)
 class TouchConfig : public ButtonConfig {
@@ -53,39 +47,48 @@ class TouchConfig : public ButtonConfig {
 TouchConfig touchConfig();
 #endif
 
-static void gpio_event_cb(AceButton * button, uint8_t eventType, uint8_t buttonState)
+static void gpio_event_handler(AceButton * button, uint8_t eventType, uint8_t buttonState)
 {
+    uint8_t eventid;
     char buffer[16];
     switch(eventType) {
-        case 0: // AceButton::kEventPressed:
+        case AceButton::kEventPressed:
+            eventid = HASP_EVENT_DOWN;
             memcpy_P(buffer, PSTR("DOWN"), sizeof(buffer));
             break;
         case 2: // AceButton::kEventClicked:
+            eventid = HASP_EVENT_SHORT;
             memcpy_P(buffer, PSTR("SHORT"), sizeof(buffer));
             break;
         case AceButton::kEventDoubleClicked:
+            eventid = HASP_EVENT_DOUBLE;
             memcpy_P(buffer, PSTR("DOUBLE"), sizeof(buffer));
             break;
-        case 4: // AceButton::kEventLongPressed:
+        case AceButton::kEventLongPressed:
+            eventid = HASP_EVENT_LONG;
             memcpy_P(buffer, PSTR("LONG"), sizeof(buffer));
             break;
-        case 5: // AceButton::kEventRepeatPressed:
+        case AceButton::kEventRepeatPressed:
             // return; // Fix needed for switches
+            eventid = HASP_EVENT_HOLD;
             memcpy_P(buffer, PSTR("HOLD"), sizeof(buffer));
             break;
-        case 1: // AceButton::kEventReleased:
+        case AceButton::kEventReleased:
+            eventid = HASP_EVENT_UP;
             memcpy_P(buffer, PSTR("UP"), sizeof(buffer));
             break;
         default:
+            eventid = HASP_EVENT_LOST;
             memcpy_P(buffer, PSTR("UNKNOWN"), sizeof(buffer));
     }
     dispatch_button(button->getId(), buffer);
+    dispatch_send_group_event(gpioConfig[button->getId()].group, eventid, true);
 }
 
 void aceButtonSetup(void)
 {
     ButtonConfig * buttonConfig = ButtonConfig::getSystemButtonConfig();
-    buttonConfig->setEventHandler(gpio_event_cb);
+    buttonConfig->setEventHandler(gpio_event_handler);
 
     // Features
     buttonConfig->setFeature(ButtonConfig::kFeatureClick);
@@ -110,21 +113,20 @@ void IRAM_ATTR gpioLoop(void)
     }
 }
 
-void gpioAddButton(uint8_t pin, uint8_t input_mode, uint8_t default_state, uint8_t channel)
+void gpioAddButton(uint8_t pin, uint8_t input_mode, uint8_t default_state, uint8_t index)
 {
-
     uint8_t i;
     for(i = 0; i < HASP_NUM_INPUTS; i++) {
 
         if(!button[i]) {
-            button[i] = new AceButton(pin, default_state, channel);
-            // button[i]->init(pin, default_state, channel);
+            button[i] = new AceButton(pin, default_state, index);
+            // button[i]->init(pin, default_state, index);
 
             if(button[i]) {
                 pinMode(pin, input_mode);
 
                 ButtonConfig * buttonConfig = button[i]->getButtonConfig();
-                buttonConfig->setEventHandler(gpio_event_cb);
+                buttonConfig->setEventHandler(gpio_event_handler);
                 buttonConfig->setFeature(ButtonConfig::kFeatureClick);
                 buttonConfig->clearFeature(ButtonConfig::kFeatureDoubleClick);
                 buttonConfig->setFeature(ButtonConfig::kFeatureLongPress);
@@ -132,30 +134,30 @@ void gpioAddButton(uint8_t pin, uint8_t input_mode, uint8_t default_state, uint8
                 buttonConfig->clearFeature(
                     ButtonConfig::kFeatureSuppressClickBeforeDoubleClick); // Causes annoying pauses
 
-                Log.verbose(F("GPIO: Button%d created on pin %d (channel %d) mode %d default %d"), i, pin, channel,
+                Log.verbose(F("GPIO: Button%d created on pin %d (index %d) mode %d default %d"), i, pin, index,
                             input_mode, default_state);
                 gpioUsedInputCount = i + 1;
                 return;
             }
         }
     }
-    Log.error(F("GPIO: Failed to create Button%d pin %d (channel %d). All %d slots available are in use!"), i, pin,
-              channel, HASP_NUM_INPUTS);
+    Log.error(F("GPIO: Failed to create Button%d pin %d (index %d). All %d slots available are in use!"), i, pin, index,
+              HASP_NUM_INPUTS);
 }
 
-void gpioAddTouchButton(uint8_t pin, uint8_t input_mode, uint8_t default_state, uint8_t channel)
+void gpioAddTouchButton(uint8_t pin, uint8_t input_mode, uint8_t default_state, uint8_t index)
 {
     uint8_t i;
     for(i = 0; i < HASP_NUM_INPUTS; i++) {
 
         if(!button[i]) {
-            button[i] = new AceButton();
+            button[i] = new AceButton(pin, default_state, index);
 
             if(button[i]) {
                 pinMode(pin, input_mode);
 
                 ButtonConfig * buttonConfig = button[i]->getButtonConfig();
-                buttonConfig->setEventHandler(gpio_event_cb);
+                buttonConfig->setEventHandler(gpio_event_handler);
                 buttonConfig->setFeature(ButtonConfig::kFeatureClick);
                 buttonConfig->clearFeature(ButtonConfig::kFeatureDoubleClick);
                 buttonConfig->setFeature(ButtonConfig::kFeatureLongPress);
@@ -163,82 +165,38 @@ void gpioAddTouchButton(uint8_t pin, uint8_t input_mode, uint8_t default_state, 
                 buttonConfig->clearFeature(
                     ButtonConfig::kFeatureSuppressClickBeforeDoubleClick); // Causes annoying pauses
 
-                Log.verbose(F("GPIO: Button%d created on pin %d (channel %d) mode %d default %d"), i, pin, channel,
+                Log.verbose(F("GPIO: Button%d created on pin %d (index %d) mode %d default %d"), i, pin, index,
                             input_mode, default_state);
                 gpioUsedInputCount = i + 1;
                 return;
             }
         }
     }
-    Log.error(F("GPIO: Failed to create Button%d pin %d (channel %d). All %d slots available are in use!"), i, pin,
-              channel, HASP_NUM_INPUTS);
+    Log.error(F("GPIO: Failed to create Button%d pin %d (index %d). All %d slots available are in use!"), i, pin, index,
+              HASP_NUM_INPUTS);
 }
 
 void gpioSetup()
 {
     aceButtonSetup();
 
-    return;
-    
-    // gpioConfig[0] = PD15 * 256 + 5 + (INPUT << 3);
+    // return;
+
 #if defined(ARDUINO_ARCH_ESP8266)
-    gpioAddButton(D2, INPUT_PULLUP, HIGH, 1);
-    //pinMode(D1, OUTPUT);
+    gpioConfig[0] = {D2, 7, HASP_GPIO_BUTTON, INPUT_PULLUP};
+    gpioConfig[1] = {D1, 7, HASP_GPIO_LED, OUTPUT};
+
+// gpioAddButton(D2, INPUT_PULLUP, HIGH, 1);
+// pinMode(D1, OUTPUT);
 #endif
 
 #if defined(ARDUINO_ARCH_ESP32)
-   // gpioAddButton(D2, INPUT, HIGH, 1);
-   // pinMode(D1, OUTPUT);
+    //   gpioConfig[0] = {D2, 0, HASP_GPIO_SWITCH, INPUT};
+    //   gpioConfig[1] = {D1, 1, HASP_GPIO_RELAY, OUTPUT};
+
+// gpioAddButton(D2, INPUT, HIGH, 1);
+// pinMode(D1, OUTPUT);
 #endif
-
-    for(uint8_t i = 0; i < HASP_NUM_GPIO_CONFIG; i++) {
-        uint8_t pin        = (gpioConfig[i] >> 8) & 0xFF;
-        uint8_t channel    = gpioConfig[i] & 0b111;       // 3bit
-        uint8_t input_mode = (gpioConfig[i] >> 3) & 0b11; // 2bit gpio mode
-        // uint8_t input_mode    = gpioConfig[i].io_mode
-        uint8_t gpiotype      = (gpioConfig[i] >> 5) & 0b111; // 3bit
-        uint8_t default_state = gpioConfig[i] & 0b1;          // 1bit: 0=LOW, 1=HIGH
-
-        switch(input_mode) {
-            case 1:
-                input_mode = OUTPUT;
-                break;
-            case 2:
-                input_mode = INPUT_PULLUP;
-                break;
-#ifndef ARDUINO_ARCH_ESP8266
-            case 3:
-                input_mode = INPUT_PULLDOWN;
-                break;
-#endif
-            default:
-                input_mode = INPUT;
-        }
-
-        switch(gpiotype) {
-            case HASP_GPIO_SWITCH:
-            case HASP_GPIO_BUTTON:
-                // gpioAddButton(gpioConfig[i].io_mode.pin, input_mode, gpioConfig[i].default_state,
-                // gpioConfig[i].group);
-                break;
-
-            case HASP_GPIO_RELAY:
-                pinMode(pin, OUTPUT);
-                break;
-
-            // case HASP_GPIO_LED:
-            case HASP_GPIO_PWM:
-            case HASP_GPIO_BACKLIGHT:
-                pinMode(pin, OUTPUT);
-#if defined(ARDUINO_ARCH_ESP32)
-                // configure LED PWM functionalitites
-                ledcSetup(channel, 20000, 10);
-                // attach the channel to the GPIO to be controlled
-                ledcAttachPin(pin, channel);
-#endif
-                break;
-        }
-    }
 
     /*
     #if defined(ARDUINO_ARCH_ESP8266)
@@ -250,4 +208,88 @@ void gpioSetup()
         pinMode(HASP_INPUT_PIN, INPUT);
     #endif
     */
+
+    for(uint8_t i = 0; i < HASP_NUM_GPIO_CONFIG; i++) {
+        uint8_t input_mode;
+        switch(gpioConfig[i].gpio_function) {
+            case OUTPUT:
+                input_mode = OUTPUT;
+                break;
+            case INPUT_PULLUP:
+                input_mode = INPUT_PULLUP;
+                break;
+#ifndef ARDUINO_ARCH_ESP8266
+            case INPUT_PULLDOWN:
+                input_mode = INPUT_PULLDOWN;
+                break;
+#endif
+            default:
+                input_mode = INPUT;
+        }
+
+        switch(gpioConfig[i].type) {
+            case HASP_GPIO_SWITCH:
+            case HASP_GPIO_BUTTON:
+                gpioAddButton(gpioConfig[i].pin, input_mode, HIGH, i);
+                break;
+            case HASP_GPIO_SWITCH_INVERTED:
+            case HASP_GPIO_INPUT_BUTTON_INVERTED:
+                gpioAddButton(gpioConfig[i].pin, input_mode, LOW, i);
+                break;
+
+            case HASP_GPIO_RELAY:
+            case HASP_GPIO_RELAY_INVERTED:
+            case HASP_GPIO_LED:
+            case HASP_GPIO_LED_INVERTED:
+                pinMode(gpioConfig[i].pin, OUTPUT);
+                break;
+
+            case HASP_GPIO_PWM:
+            case HASP_GPIO_PWM_INVERTED:
+                // case HASP_GPIO_BACKLIGHT:
+                pinMode(gpioConfig[i].pin, OUTPUT);
+#if defined(ARDUINO_ARCH_ESP32)
+                // configure LED PWM functionalitites
+                ledcSetup(gpioConfig[i].group, 20000, 10);
+                // attach the channel to the GPIO to be controlled
+                ledcAttachPin(gpioConfig[i].pin, gpioConfig[i].group);
+#endif
+                break;
+        }
+    }
+}
+
+void gpio_set_group_outputs(uint8_t groupid, uint8_t eventid)
+{
+    bool state = dispatch_get_event_state(eventid);
+    for(uint8_t i = 0; i < HASP_NUM_GPIO_CONFIG; i++) {
+        if(gpioConfig[i].group == groupid) {
+            switch(gpioConfig[i].type) {
+                case HASP_GPIO_RELAY:
+                case HASP_GPIO_LED:
+                    digitalWrite(gpioConfig[i].pin, state ? HIGH : LOW);
+                    break;
+                case HASP_GPIO_RELAY_INVERTED:
+                case HASP_GPIO_LED_INVERTED:
+                    digitalWrite(gpioConfig[i].pin, state ? LOW : HIGH);
+                    break;
+#if defined(ARDUINO_ARCH_ESP32)
+                case HASP_GPIO_PWM:
+                    ledcWrite(groupid, map(state, 0, 1, 0, 1023)); // ledChannel and value
+                    break;
+                case HASP_GPIO_PWM_INVERTED:
+                    ledcWrite(groupid, map(!state, 0, 1, 0, 1023)); // ledChannel and value
+                    break;
+#else
+                case HASP_GPIO_PWM:
+                    analogWrite(gpioConfig[i].pin, map(state, 0, 1, 0, 1023));
+                    break;
+                case HASP_GPIO_PWM_INVERTED:
+                    analogWrite(gpioConfig[i].pin, map(!state, 0, 1, 0, 1023));
+                    break;
+#endif
+                default:;
+            }
+        }
+    }
 }
