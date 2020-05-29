@@ -1555,15 +1555,13 @@ void httpHandleResetConfig()
         httpMessage += F("</h1><hr>");
 
         if(resetConfirmed) { // User has confirmed, so reset everything
-#if HASP_USE_SPIFFS > 0
-            bool formatted = SPIFFS.format();
+            bool formatted = configClear();
             if(formatted) {
                 httpMessage += F("<b>Resetting all saved settings and restarting device into WiFi AP mode</b>");
             } else {
                 httpMessage += F("<b>Failed to format the internal flash partition</b>");
                 resetConfirmed = false;
             }
-#endif
         } else {
             httpMessage +=
                 F("<h2>Warning</h2><b>This process will reset all settings to the default values. The internal flash "

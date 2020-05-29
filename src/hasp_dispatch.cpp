@@ -119,6 +119,9 @@ void dispatchAttribute(String strTopic, const char * payload)
     } else if(strTopic == F("update")) {
         dispatchWebUpdate(payload);
 
+    } else if(strTopic == F("clearconfig")) {
+        configClear();
+
     } else if(strTopic == F("setupap")) {
         // haspDisplayAP(String(F("HASP-ABC123")).c_str(), String(F("haspadmin")).c_str());
 
