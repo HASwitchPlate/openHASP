@@ -6,6 +6,7 @@
 
 #include "hasp_conf.h"
 #include "hasp_gpio.h"
+#include "hasp_config.h"
 #include "hasp_dispatch.h"
 #include "hasp.h"
 
@@ -191,8 +192,8 @@ void gpioSetup()
 #endif
 
 #if defined(ARDUINO_ARCH_ESP32)
-    //   gpioConfig[0] = {D2, 0, HASP_GPIO_SWITCH, INPUT};
-    //   gpioConfig[1] = {D1, 1, HASP_GPIO_RELAY, OUTPUT};
+       gpioConfig[0] = {D2, 0, HASP_GPIO_SWITCH, INPUT};
+       gpioConfig[1] = {D1, 1, HASP_GPIO_RELAY, OUTPUT};
 
 // gpioAddButton(D2, INPUT, HIGH, 1);
 // pinMode(D1, OUTPUT);
@@ -292,4 +293,80 @@ void gpio_set_group_outputs(uint8_t groupid, uint8_t eventid)
             }
         }
     }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+bool gpioGetConfig(const JsonObject & settings)
+{
+    bool changed = false;
+
+    /* Check Gpio array has changed */
+    JsonArray array = settings[FPSTR(F_GPIO_CONFIG)].as<JsonArray>();
+    uint8_t i       = 0;
+    for(JsonVariant v : array) {
+        if(i < HASP_NUM_GPIO_CONFIG) {
+            uint32_t cur_val = gpioConfig[i].pin | (gpioConfig[i].group << 8) | (gpioConfig[i].type << 16) |
+                               (gpioConfig[i].gpio_function << 24);
+            Log.verbose(F("GPIO CONF: %d: %d <=> %d"), i, cur_val, v.as<uint32_t>());
+
+            if(cur_val != v.as<uint32_t>()) changed = true;
+            v.set(cur_val);
+        } else {
+            changed = true;
+        }
+        i++;
+    }
+
+    /* Build new Gpio array if the count is not correct */
+    if(i != HASP_NUM_GPIO_CONFIG) {
+        array = settings[FPSTR(F_GPIO_CONFIG)].to<JsonArray>(); // Clear JsonArray
+        for(uint8_t i = 0; i < HASP_NUM_GPIO_CONFIG; i++) {
+            uint32_t cur_val = gpioConfig[i].pin | (gpioConfig[i].group << 8) | (gpioConfig[i].type << 16) |
+                               (gpioConfig[i].gpio_function << 24);
+            array.add(cur_val);
+        }
+        changed = true;
+    }
+
+    if(changed) configOutput(settings);
+    return changed;
+}
+
+/** Set GPIO Configuration.
+ *
+ * Read the settings from json and sets the application variables.
+ *
+ * @note: data pixel should be formated to uint32_t RGBA. Imagemagick requirements.
+ *
+ * @param[in] settings    JsonObject with the config settings.
+ **/
+bool gpioSetConfig(const JsonObject & settings)
+{
+    configOutput(settings);
+    bool changed = false;
+
+    if(!settings[FPSTR(F_GPIO_CONFIG)].isNull()) {
+        bool status = false;
+        int i       = 0;
+
+        JsonArray array = settings[FPSTR(F_GPIO_CONFIG)].as<JsonArray>();
+        for(JsonVariant v : array) {
+            uint32_t new_val = v.as<uint32_t>();
+
+            if(i < HASP_NUM_GPIO_CONFIG) {
+                uint32_t cur_val = gpioConfig[i].pin | (gpioConfig[i].group << 8) | (gpioConfig[i].type << 16) |
+                                   (gpioConfig[i].gpio_function << 24);
+                if(cur_val != new_val) status = true;
+
+                gpioConfig[i].pin           = new_val & 0xFF;
+                gpioConfig[i].group         = new_val >> 8 & 0xFF;
+                gpioConfig[i].type          = new_val >> 16 & 0xFF;
+                gpioConfig[i].gpio_function = new_val >> 24 & 0xFF;
+            }
+            i++;
+        }
+        changed |= status;
+    }
+
+    return changed;
 }

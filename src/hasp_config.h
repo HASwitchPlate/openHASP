@@ -29,6 +29,7 @@ const char F_GUI_CALIBRATION[] PROGMEM  = "calibration";
 const char F_GUI_BACKLIGHTPIN[] PROGMEM = "bcklpin";
 const char F_GUI_POINTER[] PROGMEM      = "pointer";
 const char F_DEBUG_TELEPERIOD[] PROGMEM = "teleperiod";
+const char F_GPIO_CONFIG[] PROGMEM      = "config";
 
 const char HASP_CONFIG_FILE[] PROGMEM = "/config.json";
 

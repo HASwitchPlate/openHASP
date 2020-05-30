@@ -11,6 +11,9 @@ void gpioSetup(void);
 void IRAM_ATTR gpioLoop(void);
 void gpio_set_group_outputs(uint8_t groupid, uint8_t eventid);
 
+bool gpioGetConfig(const JsonObject & settings);
+bool gpioSetConfig(const JsonObject & settings);
+
 #define HASP_GPIO_FREE 0x00
 #define HASP_GPIO_USED 0x01
 #define HASP_GPIO_SWITCH 0x02

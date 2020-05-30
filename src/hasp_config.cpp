@@ -9,6 +9,7 @@
 #include "hasp_ota.h"
 #include "hasp_spiffs.h"
 #include "hasp_telnet.h"
+#include "hasp_gpio.h"
 //#include "hasp_eeprom.h"
 #include "hasp.h"
 
@@ -242,6 +243,15 @@ void configWriteConfig()
         writefile = true;
     }
 #endif
+#if HASP_USE_GPIO > 0
+    if(settings[F("gpio")].as<JsonObject>().isNull()) settings.createNestedObject(F("gpio"));
+    changed = gpioGetConfig(settings[F("gpio")]);
+    if(changed) {
+        Log.verbose(F("GPIO: Settings changed"));
+        configOutput(settings[F("gpio")]);
+        writefile = true;
+    }
+#endif
 
     if(settings[F("debug")].as<JsonObject>().isNull()) settings.createNestedObject(F("debug"));
     changed = debugGetConfig(settings[F("debug")]);
@@ -368,6 +378,10 @@ void configSetup()
         Log.verbose(F("Loading HTTP settings"));
         httpSetConfig(settings[F("http")]);
 #endif
+#if HASP_USE_GPIO > 0
+        Log.verbose(F("Loading GPIO settings"));
+        gpioSetConfig(settings[F("gpio")]);
+#endif
         //        }
         Log.notice(F("User configuration loaded"));
     }
@@ -386,11 +400,36 @@ void configOutput(const JsonObject & settings)
 
     String password((char *)0);
     password.reserve(128);
-    password = F("\"pass\":\"");
-    password += settings[F("pass")].as<String>();
-    password += F("\"");
 
-    if(password.length() > 2) output.replace(password, passmask);
+    String pass = F("pass");
+    if(!settings[pass].isNull()) {
+        password = F("\"pass\":\"");
+        password += settings[pass].as<String>();
+        password += F("\"");
+        output.replace(password, passmask);
+    }
+
+    if(!settings[F("wifi")][pass].isNull()) {
+        password = F("\"pass\":\"");
+        password += settings[F("wifi")][pass].as<String>();
+        password += F("\"");
+        output.replace(password, passmask);
+    }
+
+    if(!settings[F("mqtt")][pass].isNull()) {
+        password = F("\"pass\":\"");
+        password += settings[F("mqtt")][pass].as<String>();
+        password += F("\"");
+        output.replace(password, passmask);
+    }
+
+    if(!settings[F("http")][pass].isNull()) {
+        password = F("\"pass\":\"");
+        password += settings[F("http")][pass].as<String>();
+        password += F("\"");
+        output.replace(password, passmask);
+    }
+
     Log.trace(F("CONF: %s"), output.c_str());
 }
 
@@ -399,7 +438,7 @@ bool configClear()
 #if defined(STM32F4xx)
     Log.verbose(F("CONF: Clearing EEPROM"));
     char buffer[1024 + 128];
-    memset(buffer, 1 ,sizeof(buffer));
+    memset(buffer, 1, sizeof(buffer));
     if(sizeof(buffer) > 0) {
         uint16_t i;
         for(i = 0; i < sizeof(buffer); i++) eeprom_buffered_write_byte(i, buffer[i]);
