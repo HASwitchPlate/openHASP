@@ -7,12 +7,11 @@
 
 #include "hasp_tft.h"
 #include "hasp_hal.h"
+#include "hasp_gpio.h" // PinNames
 
 #if defined(ARDUINO_ARCH_ESP8266)
 ADC_MODE(ADC_VCC); // tftShowConfig measures the voltage on the pin
 #endif
-
-int8_t getPinName(int8_t pin);
 
 void tftSetup(TFT_eSPI & tft)
 {
@@ -41,7 +40,7 @@ void tftPinInfo(const __FlashStringHelper * pinfunction, int8_t pin)
 {
     if(pin != -1) {
         char buffer[64];
-        snprintf_P(buffer, sizeof(buffer), PSTR("TFT: %-11s: D%02d (GPIO %02d)"), pinfunction, getPinName(pin), pin);
+        snprintf_P(buffer, sizeof(buffer), PSTR("TFT: %-11s: %s (GPIO %02d)"), pinfunction, gpioName(pin).c_str(), pin);
         Log.verbose(buffer);
     }
 }
@@ -130,49 +129,6 @@ void tftShowConfig(TFT_eSPI & tft)
     }
     if(tftSetup.pin_tch_cs != -1) {
         Log.verbose(F("TFT: Touch SPI freq.   : %d.%d MHz"), tftSetup.tch_spi_freq / 10, tftSetup.tch_spi_freq % 10);
-    }
-}
-
-// Get pin name for ESP8266
-int8_t getPinName(int8_t pin)
-{
-// For ESP32 and STM32 pin labels on boards use the GPIO number
-#ifndef ARDUINO_ARCH_ESP8266
-    return pin;
-#endif
-
-    // For ESP8266 the pin labels are not the same as the GPIO number
-    // These are for the NodeMCU pin definitions:
-    //        GPIO       Dxx
-    switch(pin) {
-        case 16:
-            return 0;
-        case 5:
-            return 1;
-        case 4:
-            return 2;
-        case 0:
-            return 3;
-        case 2:
-            return 4;
-        case 14:
-            return 5;
-        case 12:
-            return 6;
-        case 13:
-            return 7;
-        case 15:
-            return 8;
-        case 3:
-            return 9;
-        case 1:
-            return 10;
-        case 9:
-            return 11;
-        case 10:
-            return 12;
-        default:
-            return -1; // Invalid pin
     }
 }
 
