@@ -1180,12 +1180,23 @@ void webHandleHttpConfig()
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+#if defined(HASP_USE_GPIO) && (HASP_USE_GPIO > 0)
 void webHandleGpioConfig()
 { // http://plate01/config/gpio
     if(!httpIsAuthenticated(F("config/gpio"))) return;
+    uint8_t configCount = 0;
 
-    DynamicJsonDocument settings(256);
-    debugGetConfig(settings.to<JsonObject>());
+    // DynamicJsonDocument settings(256);
+    // gpioGetConfig(settings.to<JsonObject>());
+
+    if(webServer.hasArg(PSTR("save"))) {
+        uint8_t id      = webServer.arg(F("id")).toInt();
+        uint8_t pin     = webServer.arg(F("pin")).toInt() + webServer.arg(F("state")).toInt();
+        uint8_t type    = webServer.arg(F("type")).toInt();
+        uint8_t group   = webServer.arg(F("chan")).toInt();
+        uint8_t pinfunc = webServer.arg(F("func")).toInt();
+        gpioSavePinConfig(id, pin, type, group, pinfunc);
+    }
 
     {
         String httpMessage((char *)0);
@@ -1196,26 +1207,64 @@ void webHandleGpioConfig()
 
         httpMessage += F("<form method='POST' action='/config'>");
 
-        httpMessage += F("<table><tr><th>Pin</th><th>Type</th><th>Channel</th><th>Normal</th><th>Options</th></tr>");
-        // httpMessage += F("<tr><td>D1</td><td>Button</td><td>1</td><td>High</td><td>Options</td><tr>");
-        // httpMessage += F("<tr><td>D2</td><td>Switch</td><td>2</td><td>High</td><td>Options</td><tr>");
-        // httpMessage += F("<tr><td>D4</td><td>Backligth</td><td>15</td><td>Low</td><td>Options</td><tr>");
+        httpMessage += F("<table><tr><th>Pin</th><th>Type</th><th>Group</th><th>Default</th><th>Action</th></tr>");
 
-        for(uint8_t i = 0; i < NUM_DIGITAL_PINS; i++) {
-            httpMessage += F("<tr><td>");
-            httpMessage += String(i);
-            httpMessage += F("</td><td>None</td><td>15</td><td>Low</td><td><a href='/config/gpio/options?io=");
-            httpMessage += String(i);
-            httpMessage += ("'>Options</a></td><tr>");
+        for(uint8_t gpio = 0; gpio < NUM_DIGITAL_PINS; gpio++) {
+            for(uint8_t id = 0; id < HASP_NUM_GPIO_CONFIG; id++) {
+                hasp_gpio_config_t conf = gpioGetPinConfig(id);
+                if((conf.pin == gpio) && gpioConfigInUse(id) && gpioInUse(gpio) && !gpioIsSystemPin(gpio)) {
+                    httpMessage += F("<tr><td>");
+                    httpMessage += gpioName(gpio);
+                    httpMessage += F("</td><td>");
+
+                    switch(conf.type) {
+                        case HASP_GPIO_SWITCH:
+                        case HASP_GPIO_SWITCH_INVERTED:
+                            httpMessage += F("Switch");
+                            break;
+                        case HASP_GPIO_BUTTON:
+                        case HASP_GPIO_BUTTON_INVERTED:
+                            httpMessage += F("Button");
+                            break;
+                        case HASP_GPIO_LED:
+                        case HASP_GPIO_LED_INVERTED:
+                            httpMessage += F("Led");
+                            break;
+                        case HASP_GPIO_RELAY:
+                        case HASP_GPIO_RELAY_INVERTED:
+                            httpMessage += F("Relay");
+                            break;
+                        case HASP_GPIO_PWM:
+                        case HASP_GPIO_PWM_INVERTED:
+                            httpMessage += F("PWM");
+                            break;
+                        default:
+                            httpMessage += F("Unknown");
+                    }
+
+                    httpMessage += F("</td><td>");
+                    httpMessage += conf.group;
+                    httpMessage += F("</td><td>Low</td><td><a href='/config/gpio/options?id=");
+                    httpMessage += id;
+                    httpMessage += ("'>Edit</a> <a href='/config/gpio?save=&id=");
+                    httpMessage += id;
+                    httpMessage += ("'>Delete</a></td><tr>");
+                    configCount++;
+                }
+            }
         }
 
-        httpMessage += F("</table>");
+        httpMessage += F("</table></form>");
 
-        //    httpMessage += F("</p><p><button type='submit' name='save' value='debug'>Save
-        //    Settings</button></p></form>");
+        if(configCount < HASP_NUM_GPIO_CONFIG) {
+            httpMessage += PSTR("<p><form method='GET' action='gpio/options'>");
+            httpMessage += F("<input type='hidden' name='id' value='");
+            httpMessage += gpioGetFreeConfigId();
+            httpMessage += PSTR("'><button type='submit'>Add New Pin</button></form></p>");
+        }
 
-        httpMessage +=
-            PSTR("<p><form method='get' action='/config'><button type='submit'>Configuration</button></form></p>");
+        httpMessage += PSTR(
+            "<p><form method='get' action='/config'><button type='submit'>&#8617; Configuration</button></form></p>");
 
         webSendPage(httpGetNodename(), httpMessage.length(), false);
         webServer.sendContent(httpMessage);
@@ -1227,11 +1276,13 @@ void webHandleGpioConfig()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 void webHandleGpioOptions()
 { // http://plate01/config/gpio/options
-    if(!httpIsAuthenticated(F("config/gpio"))) return;
+    if(!httpIsAuthenticated(F("config/gpio/options"))) return;
 
     {
         DynamicJsonDocument settings(256);
         guiGetConfig(settings.to<JsonObject>());
+
+        uint8_t config_id = webServer.arg(F("id")).toInt();
 
         String httpMessage((char *)0);
         httpMessage.reserve(HTTP_PAGE_SIZE);
@@ -1239,38 +1290,65 @@ void webHandleGpioOptions()
         httpMessage += httpGetNodename();
         httpMessage += F("</h1><hr>");
 
-        httpMessage += F("<form method='POST' action='/config/gpio'>");
+        httpMessage += F("<form method='GET' action='/config/gpio'>");
+        httpMessage += F("<input type='hidden' name='id' value='");
+        httpMessage += config_id;
+        httpMessage += F("'>");
 
-        httpMessage += F("<p><b>GPIO >");
-        httpMessage += webServer.arg(0);
-        httpMessage += F("< Options</b></p>");
+        httpMessage += F("<p><b>GPIO Options");
+        httpMessage += config_id;
+        httpMessage += F(" Options</b></p>");
 
-        httpMessage += F("<p><b>Type</b> <select id='ioType' name='ioType'>");
-        httpMessage += getOption(HASP_GPIO_FREE, F("None"), false);
-        httpMessage += getOption(HASP_GPIO_SWITCH, F("Switch"), false);
-        httpMessage += getOption(HASP_GPIO_BUTTON, F("Button"), false);
-        httpMessage += getOption(HASP_GPIO_LED, F("Switch"), false);
-        httpMessage += getOption(HASP_GPIO_RELAY, F("Button"), false);
+        httpMessage += F("<p><b>Pin</b> <select id='pin' name='pin'>");
+        hasp_gpio_config_t conf = gpioGetPinConfig(config_id);
+
+        for(uint8_t io = 0; io < NUM_DIGITAL_PINS; io++) {
+            if(((conf.pin == io) || !gpioInUse(io)) && !gpioIsSystemPin(io)) {
+                httpMessage += getOption(io, gpioName(io), conf.pin == io);
+            }
+        }
+        httpMessage += F("</select></p>");
+
+        bool selected;
+        httpMessage += F("<p><b>Type</b> <select id='type' name='type'>");
+        // httpMessage += getOption(HASP_GPIO_FREE, F("Unused"), false);
+
+        selected = (conf.type == HASP_GPIO_SWITCH) || (conf.type == HASP_GPIO_SWITCH_INVERTED);
+        httpMessage += getOption(HASP_GPIO_SWITCH, F("Switch"), selected);
+
+        selected = (conf.type == HASP_GPIO_BUTTON) || (conf.type == HASP_GPIO_BUTTON_INVERTED);
+        httpMessage += getOption(HASP_GPIO_BUTTON, F("Button"), selected);
+
+        selected = (conf.type == HASP_GPIO_LED) || (conf.type == HASP_GPIO_LED_INVERTED);
+        httpMessage += getOption(HASP_GPIO_LED, F("Led"), selected);
+
+        selected = (conf.type == HASP_GPIO_RELAY) || (conf.type == HASP_GPIO_RELAY_INVERTED);
+        httpMessage += getOption(HASP_GPIO_RELAY, F("Relay"), selected);
+
         if(digitalPinHasPWM(webServer.arg(0).toInt())) {
-            httpMessage += getOption(HASP_GPIO_PWM, F("PWM"), false);
+            selected = (conf.type == HASP_GPIO_PWM) || (conf.type == HASP_GPIO_PWM_INVERTED);
+            httpMessage += getOption(HASP_GPIO_PWM, F("PWM"), selected);
         }
         httpMessage += F("</select></p>");
 
-        httpMessage += F("<p><b>Channel</b> <select id='ioChannel' name='ioChannel'>");
+        httpMessage += F("<p><b>Channel</b> <select id='chan' name='chan'>");
         for(uint8_t i = 0; i < 15; i++) {
-            httpMessage += getOption(i, "Channel " + String(i), false);
+            httpMessage += getOption(i, "Channel " + String(i), i == conf.group);
         }
         httpMessage += F("</select></p>");
 
-        httpMessage += F("<p><b>Default State</b> <select id='ioState' name='ioState'>");
-        httpMessage += getOption(0, F("High"), false);
-        httpMessage += getOption(1, F("Low"), false);
+        httpMessage += F("<p><b>Default State</b> <select id='state' name='state'>");
+        selected = (conf.type == HASP_GPIO_BUTTON_INVERTED) || (conf.type == HASP_GPIO_SWITCH_INVERTED) ||
+                   (conf.type == HASP_GPIO_LED_INVERTED) || (conf.type == HASP_GPIO_RELAY_INVERTED) ||
+                   (conf.type == HASP_GPIO_PWM_INVERTED);
+        httpMessage += getOption(0, F("High"), !selected);
+        httpMessage += getOption(1, F("Low"), selected);
         httpMessage += F("</select></p>");
 
-        httpMessage += F("<p><button type='submit' name='save' value='gui'>Save Settings</button></p></form>");
+        httpMessage += F("<p><button type='submit' name='save' value='gpio'>Save Settings</button></p></form>");
 
-        httpMessage += PSTR(
-            "<p><form method='get' action='/config/gpio'><button type='submit'> GPIO Settings</button></form></p>");
+        httpMessage +=
+            PSTR("<p><form method='get' action='/config/gpio'><button type='submit'>&#8617; Back</button></form></p>");
 
         webSendPage(httpGetNodename(), httpMessage.length(), false);
         webServer.sendContent(httpMessage);
@@ -1279,6 +1357,7 @@ void webHandleGpioOptions()
 
     if(webServer.hasArg(F("action"))) dispatchCommand(webServer.arg(F("action")));
 }
+#endif // HASP_USE_GPIO
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 void webHandleDebugConfig()
