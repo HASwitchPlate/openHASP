@@ -21,7 +21,15 @@
  */
 #include "XPT2046_Touchscreen.h"
 
-SPIClass spi(PB15, PB14, PB13);  // SPI2
+// SPIClass spi(PB15, PB14, PB13);  // SPI2
+#if defined(STM32F407ZG)
+#include "SoftSPI.h"
+extern SoftSPI xpt2046_spi;
+SoftSPI spi = xpt2046_spi;
+#else
+extern SPIClass xpt2046_spi;
+SPIClass spi = xpt2046_spi;
+#endif
 
 #define Z_THRESHOLD     400
 #define Z_THRESHOLD_INT	75

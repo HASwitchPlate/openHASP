@@ -29,9 +29,12 @@
 // I use it with ST-LINK-V2, Upload method "STLink[Automatic serial = SerialUSB]", USB disabled.
 // For Serial I use a Serial to USB converter on PA9, PA10, "SerialUART1".
 // https://github.com/danieleff/STM32GENERIC
+#if defined(STM32F407ZG)
+#include "GxIO/STM32GENERIC/GxIO_STM32F407ZGx_FSMC/GxIO_STM32F407ZGx_FSMC.h"
+#else
 #include "GxIO/STM32DUINO/GxIO_STM32F4_FSMC/GxIO_STM32F4_FSMC.h"
 //#include "myTFTs/my_3.2_TFT_320x240_ILI9341_STM32F407ZGM4_FSMC.h"
-
+#endif
 // #include "../GxIO/STM32GENERIC/GxIO_STM32F407ZGM4_FSMC/GxIO_STM32F407ZGM4_FSMC.h"
 //#include "../GxIO/STM32DUINO/GxIO_STM32F4_FSMC/GxIO_STM32F4_FSMC.h"
 #include "GxCTRL/GxCTRL_ILI9341/GxCTRL_ILI9341.h" // 240x320
