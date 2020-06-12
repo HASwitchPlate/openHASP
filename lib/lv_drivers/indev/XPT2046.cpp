@@ -37,9 +37,14 @@ static void xpt2046_avg(int16_t * x, int16_t * y);
 int16_t avg_buf_x[XPT2046_AVG];
 int16_t avg_buf_y[XPT2046_AVG];
 uint8_t avg_last;
+#if defined(STM32F407ZG)
+#include "SoftSPI.h"
+SoftSPI xpt2046_spi(PF11, PB2, PB0);
+XPT2046_Touchscreen ts(PC13);
+#else
 SPIClass xpt2046_spi(PB15, PB14, PB13, PB12);
 XPT2046_Touchscreen ts(PB12);
-
+#endif
 /**********************
  *      MACROS
  **********************/
