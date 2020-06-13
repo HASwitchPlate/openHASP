@@ -9,7 +9,7 @@
 #include <FS.h>
 
 #include "lvgl.h"
-#include "lv_core/lv_debug.h"
+#include "lv_misc/lv_debug.h"
 #include "lv_zifont.h"
 #include "ArduinoLog.h"
 
