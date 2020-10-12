@@ -146,7 +146,7 @@ static void telnetProcessLine()
         }
         default:
             if(telnetInputIndex > 0) {
-                if(strcmp_P(telnetInputBuffer, PSTR("exit")) == 0) {
+                if(strcasecmp_P(telnetInputBuffer, PSTR("exit")) == 0) {
                     telnetClientDisconnect();
                 } else {
                     dispatchCommand(telnetInputBuffer);

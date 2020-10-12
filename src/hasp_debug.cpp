@@ -71,7 +71,7 @@ Syslog * syslog;
 #endif // USE_SYSLOG
 
 // Serial Settings
-uint8_t serialInputIndex   = 0;    // Empty buffer
+uint8_t serialInputIndex = 0; // Empty buffer
 char serialInputBuffer[1024];
 uint16_t debugSerialBaud = SERIAL_SPEED / 10; // Multiplied by 10
 bool debugSerialStarted  = false;
@@ -97,7 +97,8 @@ String debugHaspHeader()
     String header((char *)0);
     header.reserve(256);
     if(debugAnsiCodes) header += TERM_COLOR_YELLOW;
-    header += F("           _____ _____ _____ _____\r\n"
+    header += F("\r\n"
+                "           _____ _____ _____ _____\r\n"
                 "          |  |  |  _  |   __|  _  |\r\n"
                 "          |     |     |__   |   __|\r\n"
                 "          |__|__|__|__|_____|__|\r\n"
@@ -381,7 +382,7 @@ void debugLvgl(lv_log_level_t level, const char * file, uint32_t line, const cha
 
 void debugLoop()
 {
-   while(Serial.available()) {
+    while(Serial.available()) {
         char ch = Serial.read();
         Serial.print(ch);
         if(ch == 13 || ch == 10) {

@@ -19,7 +19,7 @@ inline void dispatchPrintln(String header, String & data)
 
 bool isON(const char * payload)
 {
-    return strcmp_P(payload, PSTR("ON")) == 0;
+    return strcasecmp_P(payload, PSTR("ON")) == 0;
 }
 
 String getOnOff(bool state)
@@ -362,21 +362,21 @@ void dispatchConfig(const char * topic, const char * payload)
         update   = true;
     }
 
-    if(strcmp_P(topic, PSTR("debug")) == 0) {
+    if(strcasecmp_P(topic, PSTR("debug")) == 0) {
         if(update)
             debugSetConfig(settings);
         else
             debugGetConfig(settings);
     }
 
-    else if(strcmp_P(topic, PSTR("gui")) == 0) {
+    else if(strcasecmp_P(topic, PSTR("gui")) == 0) {
         if(update)
             guiSetConfig(settings);
         else
             guiGetConfig(settings);
     }
 
-    else if(strcmp_P(topic, PSTR("hasp")) == 0) {
+    else if(strcasecmp_P(topic, PSTR("hasp")) == 0) {
         if(update)
             haspSetConfig(settings);
         else
@@ -384,14 +384,14 @@ void dispatchConfig(const char * topic, const char * payload)
     }
 
 #if HASP_USE_WIFI > 0
-    else if(strcmp_P(topic, PSTR("wifi")) == 0) {
+    else if(strcasecmp_P(topic, PSTR("wifi")) == 0) {
         if(update)
             wifiSetConfig(settings);
         else
             wifiGetConfig(settings);
     }
 #if HASP_USE_MQTT > 0
-    else if(strcmp_P(topic, PSTR("mqtt")) == 0) {
+    else if(strcasecmp_P(topic, PSTR("mqtt")) == 0) {
         if(update)
             mqttSetConfig(settings);
         else
@@ -399,11 +399,11 @@ void dispatchConfig(const char * topic, const char * payload)
     }
 #endif
 #if HASP_USE_TELNET > 0
-    //   else if(strcmp_P(topic, PSTR("telnet")) == 0)
+    //   else if(strcasecmp_P(topic, PSTR("telnet")) == 0)
     //       telnetGetConfig(settings[F("telnet")]);
 #endif
 #if HASP_USE_MDNS > 0
-    else if(strcmp_P(topic, PSTR("mdns")) == 0) {
+    else if(strcasecmp_P(topic, PSTR("mdns")) == 0) {
         if(update)
             mdnsSetConfig(settings);
         else
@@ -411,7 +411,7 @@ void dispatchConfig(const char * topic, const char * payload)
     }
 #endif
 #if HASP_USE_HTTP > 0
-    else if(strcmp_P(topic, PSTR("http")) == 0) {
+    else if(strcasecmp_P(topic, PSTR("http")) == 0) {
         if(update)
             httpSetConfig(settings);
         else

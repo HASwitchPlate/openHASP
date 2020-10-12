@@ -94,7 +94,7 @@
 #include "hasp_spiffs.h"
 
 #if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
-//#include "lv_zifont.h"
+#include "lv_zifont.h"
 #endif
 #endif // SPIFFS
 

@@ -362,12 +362,24 @@ void haspSetup()
 
     /* ********** Font Initializations ********** */
     defaultFont = LV_FONT_DEFAULT; // Use default font
+#if ESP32
+    lv_font_t * font_small    = defaultFont;
+    lv_font_t * font_normal   = &lv_font_montserrat_12;
+    lv_font_t * font_subtitle = &lv_font_montserrat_16;
+    lv_font_t * font_title    = &lv_font_montserrat_22;
+#else
+    lv_font_t * font_small    = defaultFont;
+    lv_font_t * font_normal   = defaultFont;
+    lv_font_t * font_subtitle = defaultFont;
+    lv_font_t * font_title    = defaultFont;
+#endif
+
 #if HASP_USE_SPIFFS > 0
 #if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
     lv_zifont_init();
 
     if(lv_zifont_font_init(&haspFonts[0], haspZiFontPath, 24) != 0) {
-        Log.error(F("HASP: Failed to set the custom font to %s"), haspZiFontPath);
+        Log.error(F("HASP: Failed to set font to %s"), haspZiFontPath);
     } else {
         defaultFont = haspFonts[0];
     }
@@ -390,14 +402,20 @@ void haspSetup()
 #endif
 #if(LV_USE_THEME_MONO == 1) || (LV_USE_THEME_EMPTY == 1)
         case 3:
-            th = lv_theme_empty_init(LV_COLOR_PURPLE, LV_COLOR_BLACK, LV_THEME_DEFAULT_FLAGS, defaultFont, defaultFont,
-                                     defaultFont, defaultFont);
+            th = lv_theme_mono_init(LV_COLOR_PURPLE, LV_COLOR_BLACK, LV_THEME_DEFAULT_FLAGS, font_small, font_normal,
+                                    font_subtitle, font_title);
             break;
 #endif
 #if LV_USE_THEME_MATERIAL == 1
         case 4:
-            th = lv_theme_material_init(LV_COLOR_PURPLE, LV_COLOR_ORANGE, LV_THEME_DEFAULT_FLAGS, defaultFont,
-                                        defaultFont, defaultFont, defaultFont);
+            th = lv_theme_material_init(LV_COLOR_PURPLE, LV_COLOR_ORANGE,
+                                        LV_THEME_MATERIAL_FLAG_LIGHT + LV_THEME_MATERIAL_FLAG_NO_FOCUS, font_small,
+                                        font_normal, font_subtitle, font_title);
+            break;
+        case 9:
+            th = lv_theme_material_init(LV_COLOR_PURPLE, LV_COLOR_ORANGE,
+                                        LV_THEME_MATERIAL_FLAG_DARK + LV_THEME_MATERIAL_FLAG_NO_FOCUS, font_small,
+                                        font_normal, font_subtitle, font_title);
             break;
 #endif
 
@@ -418,8 +436,8 @@ void haspSetup()
 #endif
 #if(LV_USE_THEME_HASP == 1) || (LV_USE_THEME_TEMPLATE == 1)
         case 8:
-            th = lv_theme_template_init(LV_COLOR_PURPLE, LV_COLOR_ORANGE, LV_THEME_DEFAULT_FLAGS, defaultFont,
-                                        defaultFont, defaultFont, defaultFont);
+            th = lv_theme_template_init(LV_COLOR_PURPLE, LV_COLOR_ORANGE, LV_THEME_DEFAULT_FLAGS, font_small,
+                                        font_normal, font_subtitle, font_title);
             break;
 #endif
         /*        case 0:
@@ -431,8 +449,8 @@ void haspSetup()
                     break;
         */
         default:
-            th = lv_theme_material_init(LV_COLOR_PURPLE, LV_COLOR_ORANGE, LV_THEME_DEFAULT_FLAGS, defaultFont,
-                                        defaultFont, defaultFont, defaultFont);
+            th = lv_theme_template_init(LV_COLOR_PURPLE, LV_COLOR_ORANGE, LV_THEME_DEFAULT_FLAGS, font_small,
+                                        font_normal, font_subtitle, font_title);
             Log.error(F("HASP: Unknown theme selected"));
     }
 
@@ -450,13 +468,13 @@ void haspSetup()
     lv_style_set_text_font(&pagefont, LV_STATE_DEFAULT, defaultFont);
 
     list = lv_obj_get_style_list(lv_disp_get_layer_top(NULL), LV_OBJ_PART_MAIN);
-    lv_style_list_add_style(list, &pagefont);
+    _lv_style_list_add_style(list, &pagefont);
 
     /* Create all screens using the theme */
     for(uint8_t i = 0; i < (sizeof pages / sizeof *pages); i++) {
         pages[i] = lv_obj_create(NULL, NULL);
         list     = lv_obj_get_style_list(pages[i], LV_OBJ_PART_MAIN);
-        lv_style_list_add_style(list, &pagefont);
+        _lv_style_list_add_style(list, &pagefont);
         // lv_obj_set_size(pages[0], hres, vres);
     }
 

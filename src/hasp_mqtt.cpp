@@ -303,7 +303,7 @@ static void mqtt_message_cb(char * topic_p, byte * payload, unsigned int length)
     }
 
     // catch a dangling LWT from a previous connection if it appears
-    if(!strcmp_P(topic, PSTR("status")) && !strcmp_P((char *)payload, PSTR("OFF"))) {
+    if(!strcmp_P(topic, PSTR("status")) && !strcasecmp_P((char *)payload, PSTR("OFF"))) {
         char topicBuffer[128];
         snprintf_P(topicBuffer, sizeof(topicBuffer), PSTR("%sstatus"), mqttNodeTopic);
         mqttClient.publish(topicBuffer, "ON", true);

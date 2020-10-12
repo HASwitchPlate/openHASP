@@ -1286,10 +1286,11 @@ void webHandleHaspConfig()
         httpMessage += getOption(3, F("Mono"), themeid == 3);
 #endif
 #if LV_USE_THEME_MATERIAL == 1
-        httpMessage += getOption(4, F("Material"), themeid == 4);
+        httpMessage += getOption(4, F("Material Light"), themeid == 4);
+        httpMessage += getOption(9, F("Material Dark"), themeid == 9);
 #endif
 #if LV_USE_THEME_ZEN == 1
-        httpMessage += getOption(5, F("Zen"), themeid == 5);
+        // httpMessage += getOption(5, F("Zen"), themeid == 5);
 #endif
 #if LV_USE_THEME_NEMO == 1
         httpMessage += getOption(6, F("Nemo"), themeid == 6);
