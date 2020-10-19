@@ -597,8 +597,8 @@ static void hasp_process_obj_attribute_val(lv_obj_t * obj, const char * attr, co
     lv_obj_get_type(obj, &list);
     const char * objtype = list.type[0];
 
-    if(check_obj_type(objtype, LV_HASP_BUTTON)) {
-        if(lv_btn_get_checkable(obj)) {
+    if(check_obj_type(objtype, LV_HASP_BUTTON) && lv_btn_get_checkable(obj)) {
+        if(update) {
             lv_btn_state_t state;
             switch(val) {
                 case 0:
@@ -607,11 +607,27 @@ static void hasp_process_obj_attribute_val(lv_obj_t * obj, const char * attr, co
                 case 1:
                     state = LV_BTN_STATE_CHECKED_RELEASED;
                     break;
+                case 3:
+                    state = LV_BTN_STATE_CHECKED_DISABLED;
+                    break;
                 default:
                     state = LV_BTN_STATE_DISABLED;
+            };
+            return lv_btn_set_state(obj, state);
+        } else {
+            lv_btn_state_t state = lv_btn_get_state(obj);
+            switch(state) {
+                case LV_BTN_STATE_RELEASED:
+                case LV_BTN_STATE_PRESSED:
+                    return hasp_out_int(obj, attr, 0);
+                case LV_BTN_STATE_CHECKED_RELEASED:
+                case LV_BTN_STATE_CHECKED_PRESSED:
+                    return hasp_out_int(obj, attr, 1);
+                case LV_BTN_STATE_DISABLED:
+                    return hasp_out_int(obj, attr, 2);
+                case LV_BTN_STATE_CHECKED_DISABLED:
+                    return hasp_out_int(obj, attr, 3);
             }
-            lv_btn_set_state(obj, state);
-            return;
         }
     }
     if(check_obj_type(objtype, LV_HASP_CHECKBOX)) {
@@ -661,24 +677,28 @@ static void hasp_process_obj_attribute_range(lv_obj_t * obj, const char * attr, 
     if(check_obj_type(objtype, LV_HASP_SLIDER)) {
         int16_t min = lv_slider_get_min_value(obj);
         int16_t max = lv_slider_get_max_value(obj);
+        if(update && (set_min ? val : min) <= (set_max ? val : max)) return; // prevent setting min<=max
         return update ? lv_slider_set_range(obj, set_min ? val : min, set_max ? val : max)
                       : hasp_out_int(obj, attr, set_min ? lv_slider_get_min_value(obj) : lv_slider_get_max_value(obj));
     }
     if(check_obj_type(objtype, LV_HASP_GAUGE)) {
         int16_t min = lv_gauge_get_min_value(obj);
         int16_t max = lv_gauge_get_max_value(obj);
+        if(update && (set_min ? val : min) <= (set_max ? val : max)) return; // prevent setting min<=max
         return update ? lv_gauge_set_range(obj, set_min ? val : min, set_max ? val : max)
                       : hasp_out_int(obj, attr, set_min ? lv_gauge_get_min_value(obj) : lv_gauge_get_max_value(obj));
     }
     if(check_obj_type(objtype, LV_HASP_BAR)) {
         int16_t min = lv_bar_get_min_value(obj);
         int16_t max = lv_bar_get_max_value(obj);
+        if(update && (set_min ? val : min) <= (set_max ? val : max)) return; // prevent setting min<=max
         return update ? lv_bar_set_range(obj, set_min ? val : min, set_max ? val : max)
                       : hasp_out_int(obj, attr, set_min ? lv_bar_get_min_value(obj) : lv_bar_get_max_value(obj));
     }
     if(check_obj_type(objtype, LV_HASP_LMETER)) {
         int16_t min = lv_linemeter_get_min_value(obj);
         int16_t max = lv_linemeter_get_max_value(obj);
+        if(update && (set_min ? val : min) <= (set_max ? val : max)) return; // prevent setting min<=max
         return update ? lv_linemeter_set_range(obj, set_min ? val : min, set_max ? val : max)
                       : hasp_out_int(obj, attr,
                                      set_min ? lv_linemeter_get_min_value(obj) : lv_linemeter_get_max_value(obj));
