@@ -19,6 +19,7 @@
 #include "hasp_mqtt.h"
 #endif
 
+#include "hasp_conf.h"
 #include "hasp_debug.h"
 #include "hasp_config.h"
 #include "hasp_dispatch.h"
@@ -37,6 +38,7 @@
 
 #if HASP_USE_SYSLOG > 0
 #include "Syslog.h"
+#include <WiFiUdp.h>
 
 #ifndef SYSLOG_SERVER
 #define SYSLOG_SERVER ""
@@ -280,6 +282,9 @@ static void debugPrintLvglMemory(int level, Print * _logOutput)
 
 static void debugPrintPriority(int level, Print * _logOutput)
 {
+    if(_logOutput == &syslogClient) {
+    }
+
     switch(level) {
         case LOG_LEVEL_FATAL:
         case LOG_LEVEL_ERROR:

@@ -375,10 +375,14 @@ void webHandleAbout()
             F("<p><h3>ArduinoLog</h3>Copyright&copy; 2017,2018 Thijs Elenbaas, MrRobot62, rahuldeo2047, NOX73, "
               "dhylands, Josha blemasle, mfalkvidd");
         httpMessage += FPSTR(MIT_LICENSE);
+#if HASP_USE_SYSLOG > 0
         httpMessage += F("<p><h3>Syslog</h3>Copyright&copy; 2016 Martin Sloup");
         httpMessage += FPSTR(MIT_LICENSE);
+#endif
+#if HASP_USE_QRCODE > 0
         httpMessage += F("<p><h3>QR Code generator</h3>Copyright&copy; Project Nayuki");
         httpMessage += FPSTR(MIT_LICENSE);
+#endif
         httpMessage += F("<p><h3>AceButton</h3>Copyright&copy; 2018 Brian T. Park");
         httpMessage += FPSTR(MIT_LICENSE);
 
@@ -1220,6 +1224,7 @@ void webHandleDebugConfig()
         httpMessage += settings[FPSTR(F_DEBUG_TELEPERIOD)].as<String>();
         httpMessage += F("'></p>");
 
+#if HASP_USE_SYSLOG > 0
         httpMessage += F("<b>Syslog Hostame</b> <i><small>(optional)</small></i><input id='host' "
                          "name='host' maxlength=31 placeholder='logserver' value='");
         httpMessage += settings[FPSTR(F_CONFIG_HOST)].as<String>();
@@ -1238,6 +1243,7 @@ void webHandleDebugConfig()
         httpMessage += F(">IETF (RFC 5424) &nbsp; <input id='proto' name='proto' type='radio' value='1'");
         if(settings[FPSTR(F_CONFIG_PROTOCOL)].as<uint8_t>() == 1) httpMessage += F(" checked");
         httpMessage += F(">BSD (RFC 3164)");
+#endif
 
         httpMessage += F("</p><p><button type='submit' name='save' value='debug'>Save Settings</button></p></form>");
 

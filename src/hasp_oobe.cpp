@@ -33,6 +33,7 @@ void oobeSetAutoCalibrate(bool cal)
 static inline void oobeSetPage(uint8_t pageid)
 {
     lv_scr_load(oobepage[pageid]);
+    lv_obj_invalidate(lv_disp_get_layer_sys(NULL));
 }
 
 void gotoPage1_cb(lv_obj_t * event_kb, lv_event_t event)
@@ -293,27 +294,51 @@ static void oobe_calibrate_cb(lv_obj_t * ta, lv_event_t event)
     }
 }
 
-void oobeSetup()
+bool oobeSetup()
 {
+#if HASP_USE_WIFI > 0
     char ssid[32];
     char pass[32];
 
-#if HASP_USE_WIFI>0
     if(wifiShowAP(ssid, pass)) {
         guiSetDim(100);
         oobeSetupQR(ssid, pass);
         oobeSetupSsid();
-        oobeSetPage(0);
-        lv_obj_set_click(lv_disp_get_layer_sys(NULL), true);
-        lv_obj_set_event_cb(lv_disp_get_layer_sys(NULL), gotoPage1_cb);
 
         if(oobeAutoCalibrate) {
             lv_obj_set_click(lv_disp_get_layer_sys(NULL), true);
             lv_obj_set_event_cb(lv_disp_get_layer_sys(NULL), oobe_calibrate_cb);
             Log.verbose(F("OOBE: Enabled Auto Calibrate on touch"));
         } else {
+            lv_obj_set_click(lv_disp_get_layer_sys(NULL), false);
+            lv_obj_set_event_cb(lv_disp_get_layer_sys(NULL), gotoPage1_cb);
             Log.verbose(F("OOBE: Already calibrated"));
         }
+        oobeSetPage(0);
+        return true;
+    } else {
+        return false;
     }
 #endif
+}
+
+void oobeFakeSetup()
+{
+    char ssid[32] = "HASP-ABCDEF";
+    char pass[32] = "haspadmin";
+
+    guiSetDim(100);
+    oobeSetupQR(ssid, pass);
+    oobeSetupSsid();
+    oobeSetPage(0);
+    lv_obj_set_click(lv_disp_get_layer_sys(NULL), true);
+    lv_obj_set_event_cb(lv_disp_get_layer_sys(NULL), gotoPage1_cb);
+
+    if(oobeAutoCalibrate) {
+        lv_obj_set_click(lv_disp_get_layer_sys(NULL), true);
+        lv_obj_set_event_cb(lv_disp_get_layer_sys(NULL), oobe_calibrate_cb);
+        Log.verbose(F("OOBE: Enabled Auto Calibrate on touch"));
+    } else {
+        Log.verbose(F("OOBE: Already calibrated"));
+    }
 }

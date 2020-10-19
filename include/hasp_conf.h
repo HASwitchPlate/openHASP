@@ -2,8 +2,8 @@
 #define HASP_CONF_H
 
 #define HASP_VERSION_MAJOR 0
-#define HASP_VERSION_MINOR 1
-#define HASP_VERSION_REVISION 0
+#define HASP_VERSION_MINOR 2
+#define HASP_VERSION_REVISION 1014
 
 #define HASP_USE_APP 1
 
@@ -35,7 +35,7 @@
 #endif
 
 #ifndef HASP_USE_SYSLOG
-#define HASP_USE_SYSLOG 0
+#define HASP_USE_SYSLOG 1
 #endif
 
 #ifndef HASP_USE_TELNET

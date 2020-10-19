@@ -682,8 +682,8 @@ void haspClearPage(uint16_t pageid)
     lv_obj_t * page = get_page(pageid);
     if(!page) {
         Log.warning(F("HASP: Page ID %u not defined"), pageid);
-    } else if(page == lv_layer_sys() || page == lv_layer_top()) {
-        Log.warning(F("HASP: Cannot clear a layer"));
+    } else if(page == lv_layer_sys() /*|| page == lv_layer_top()*/) {
+        Log.warning(F("HASP: Cannot clear system layer"));
     } else {
         Log.notice(F("HASP: Clearing page %u"), pageid);
         lv_obj_clean(pages[pageid]);

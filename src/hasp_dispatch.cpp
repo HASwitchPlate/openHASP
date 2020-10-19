@@ -7,6 +7,7 @@
 #include "hasp_config.h"
 #include "hasp_debug.h"
 #include "hasp_gui.h"
+#include "hasp_oobe.h"
 #include "hasp_hal.h"
 #include "hasp.h"
 
@@ -119,7 +120,7 @@ void dispatchAttribute(String strTopic, const char * payload)
         dispatchWebUpdate(payload);
 
     } else if(strTopic == F("setupap")) {
-        // haspDisplayAP(String(F("HASP-ABC123")).c_str(), String(F("haspadmin")).c_str());
+        oobeFakeSetup();
 
     } else if(strTopic.length() == 7 && strTopic.startsWith(F("output"))) {
         dispatchOutput(strTopic, payload);
