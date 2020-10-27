@@ -47,6 +47,14 @@ void setup()
     gpioSetup();
 #endif
 
+#if HASP_USE_ETHERNET > 0
+    ethernetSetup();
+#endif
+
+#if HASP_USE_MQTT > 0
+    mqttSetup(); // Load Hostname before starting WiFi
+#endif
+
 #if HASP_USE_WIFI > 0
     wifiSetup();
 #endif
@@ -62,14 +70,6 @@ void setup()
 
 #if HASP_USE_OTA > 0
     otaSetup();
-#endif
-
-#if HASP_USE_ETHERNET > 0
-    ethernetSetup();
-#endif
-
-#if HASP_USE_MQTT > 0
-    mqttSetup();
 #endif
 
 #if HASP_USE_HTTP > 0
