@@ -677,9 +677,9 @@ void guiSetup()
     /* Dump TFT Configuration */
     tftSetup(tft);
 #ifdef USE_DMA_TO_TFT
-    Log.verbose(F("TFT: DMA        : ENABELD"));
+    Log.verbose(F("TFT: DMA        : ENABLED"));
 #else
-    Log.verbose(F("TFT: DMA        : DISABELD"));
+    Log.verbose(F("TFT: DMA        : DISABLED"));
 #endif
 
     /* Load User Settings */
