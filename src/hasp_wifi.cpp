@@ -4,7 +4,7 @@
 
 #include "hasp_conf.h"
 
-#if HASP_USE_WIFI>0
+#if HASP_USE_WIFI > 0
 
 #include "hasp_debug.h"
 #include "hasp_config.h"
@@ -153,7 +153,12 @@ void wifiSetup()
         WiFi.onEvent(wifi_callback);
         WiFi.setSleep(false);
 #endif
+
+        WiFi.disconnect(true);
+        WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE);
+        WiFi.setHostname(mqttGetNodename().c_str());
         WiFi.begin(wifiSsid, wifiPassword);
+
         Log.notice(F("WIFI: Connecting to : %s"), wifiSsid);
     }
 }
@@ -171,7 +176,12 @@ bool wifiEvery5Seconds()
             dispatchReboot(false);
         }
         Log.warning(F("WIFI: No Connection... retry %u"), wifiReconnectCounter);
-        if(wifiReconnectCounter % 6 == 0) WiFi.begin(wifiSsid, wifiPassword);
+        if(wifiReconnectCounter % 6 == 0) {
+            WiFi.disconnect(true);
+            WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE);
+            WiFi.setHostname(mqttGetNodename().c_str());
+            WiFi.begin(wifiSsid, wifiPassword);
+        }
         return false;
     }
 }
