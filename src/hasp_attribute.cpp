@@ -120,9 +120,15 @@ static lv_color_t haspPayloadToColor(const char * payload)
 
 static lv_font_t * haspPayloadToFont(const char * payload)
 {
-    int16_t var = atoi(payload);
+    uint8_t var = atoi(payload);
 
     switch(var) {
+        case 0:
+        case 1:
+        case 2:
+        case 3:
+            return hasp_get_font(var);
+
         case 8:
             return &unscii_8_icon;
 
@@ -414,7 +420,7 @@ static void hasp_local_style_attr(lv_obj_t * obj, const char * attr_p, uint16_t 
             if(font) {
                 return lv_obj_set_style_local_text_font(obj, part, state, font);
             } else {
-                return Log.warning(F("HASP: Unknown Font ID %s"), attr_p);
+                return Log.warning(F("HASP: Unknown Font ID %s"), payload);
             }
         }
 
