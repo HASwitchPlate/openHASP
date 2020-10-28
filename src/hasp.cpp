@@ -24,6 +24,7 @@
 //#include "hasp_attr_get.h"
 #include "hasp_attribute.h"
 #include "hasp.h"
+#include "lv_theme_hasp.h"
 
 #include "EEPROM.h"
 
@@ -358,7 +359,7 @@ void haspSetup()
 #if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
     lv_zifont_init();
 
-    if(lv_zifont_font_init(&haspFonts[0], haspZiFontPath, 24) != 0) {
+    if(lv_zifont_font_init(&haspFonts[0], haspZiFontPath, 32) != 0) {
         Log.error(F("HASP: Failed to set font to %s"), haspZiFontPath);
         haspFonts[0] = LV_FONT_DEFAULT;
     } else {
@@ -416,10 +417,11 @@ void haspSetup()
             th = lv_theme_templ_init(haspThemeHue, defaultFont); // lightweight, not for production...
             break;
 #endif
-#if(LV_USE_THEME_HASP == 1) || (LV_USE_THEME_TEMPLATE == 1)
+#if(LV_USE_THEME_HASP == 1)
         case 8:
-            th = lv_theme_template_init(LV_COLOR_PURPLE, LV_COLOR_ORANGE, LV_THEME_DEFAULT_FLAGS, haspFonts[0],
-                                        haspFonts[1], haspFonts[2], haspFonts[3]);
+            th = lv_theme_hasp_init(lv_color_hsv_to_rgb(haspThemeHue, 100, 100),
+                                    lv_color_hsv_to_rgb(haspThemeHue, 100, 100), LV_THEME_DEFAULT_FLAGS, haspFonts[0],
+                                    haspFonts[1], haspFonts[2], haspFonts[3]);
             break;
 #endif
         /*        case 0:

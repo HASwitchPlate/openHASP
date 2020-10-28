@@ -402,6 +402,7 @@ typedef void* lv_font_user_data_t;
 
 #define LV_USE_THEME_EMPTY 1
 #define LV_USE_THEME_TEMPLATE 1
+#define LV_USE_THEME_HASP 1
 
 /*=================
  *  Text settings
