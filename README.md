@@ -4,6 +4,7 @@
 [![GitHub](https://img.shields.io/github/license/mashape/apistatus.svg)](https://github.com/fvanroie/hasp-lvgl/blob/master/LICENSE)
 [![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](#Contributing)
 [![GitHub issues](https://img.shields.io/github/issues/fvanroie/hasp-lvgl.svg)](http://github.com/fvanroie/hasp-lvgl/issues)
+[![Discord](https://img.shields.io/discord/538814618106331137?color=%237289DA&label=support&logo=discord&logoColor=white)][6]
 
 This project is a re-implementation of the popular HASwitchPlate sketch created by aderusha.
 The [original HASwitchPlate][1] project uses a Wemos D1 mini and requires a Nextion/TJC HMI display.
@@ -61,8 +62,15 @@ git submodule update --init --recursive
 
 Check out the [wiki](https://github.com/fvanroie/hasp-lvgl/wiki) for how-to's, information and frequently asked questions.
 
+Support
+---------------------------
+For support using hasp-lvgl, please join the [#hasp-lvgl channel][6] on Discord.
+
+
+
 [1]: https://github.com/aderusha/HASwitchPlate
 [2]: https://github.com/littlevgl/lvgl
 [3]: https://littlevgl.com/themes
 [4]: https://github.com/fvanroie/HMI-Font-Pack/releases
 [5]: https://fontawesome.com/cheatsheet/
+[6]: https://discord.gg/VCWyuhF
