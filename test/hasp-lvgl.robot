@@ -9,8 +9,8 @@
 | | ...         | ${property}=${property}       | ${data}=${data}
 | | ${time}     | Get Time      | epoch
 | | ${client}   | Catenate      | SEPARATOR=.   | robot.mqtt | ${time}
-| | ${topic}    | Set Variable  | hasp/plate35/command
-| | ${restopic} | Set Variable  | hasp/plate35/state/json
+| | ${topic}    | Set Variable  | hasp/plate37/command
+| | ${restopic} | Set Variable  | hasp/plate37/state/json
 | | ${qos}      | Set Variable  | 1
 | | ${message}  | Set Variable  | ${property}=${data}
 | | ${result}   | Set Variable  | {"${property}":"${data}"}
@@ -31,8 +31,8 @@
 | | ...         | ${property}=${property}       | ${data}=${data}
 | | ${time}     | Get Time      | epoch
 | | ${client}   | Catenate      | SEPARATOR=.   | robot.mqtt | ${time}
-| | ${topic}    | Set Variable  | hasp/plate35/command
-| | ${restopic} | Set Variable  | hasp/plate35/state/page
+| | ${topic}    | Set Variable  | hasp/plate37/command
+| | ${restopic} | Set Variable  | hasp/plate37/state/page
 | | ${qos}      | Set Variable  | 1
 | | ${message}  | Set Variable  | ${property}=${data}
 | | Subscribe Async  | client.id=${client}   | topic=${restopic}
@@ -44,12 +44,26 @@
 | | Length Should Be            | ${messages}       | 1
 | | Should Be Equal As Strings  | ${messages}[0]    | ${data}
 
+| Hasp Command
+| | [Arguments] | ${broker.uri}=${broker.uri}   | ${port}=${broker.port}
+| | ...         | ${client.id}=${client.id}     | ${clean_session}=${true}
+| | ...         | ${property}=${property}       | ${data}=${data}
+| | ${time}     | Get Time      | epoch
+| | ${client}   | Catenate      | SEPARATOR=.   | robot.mqtt | ${time}
+| | ${topic}    | Set Variable  | hasp/plate37/command/${property}
+| | ${restopic} | Set Variable  | hasp/plate37/state/page
+| | ${qos}      | Set Variable  | 1
+| | ${message}  | Set Variable  | ${data}
+| | Connect     | ${broker.uri} | ${port}       | ${client.id}    | ${clean_session}
+| | Publish | ${topic}    | ${message}   | 1
 
 | *Test Cases*
 
 | Test Color Picker\n
 | | ${obj}      | Set Variable  | p[1].b[4]
 | | Test Page | property=page | data=1
+| | Hasp Command | property=clearpage | data=1
+| | Hasp Command | property=jsonl | data={"page":1,"id":4,"objid":20}
 #| | Test Property | property=${obj}.txt | data=ABC
 #| | Test Property | property=${obj}.txt | data=1234
 | | Test Property | property=${obj}.x | data=50
@@ -80,6 +94,8 @@
 | Test Text Field\n
 | | ${obj}      | Set Variable  | p[1].b[1]
 | | Test Page | property=page | data=1
+| | Hasp Command | property=clearpage | data=1
+| | Hasp Command | property=jsonl | data={"page":1,"id":1,"objid":12}
 | | Test Property | property=${obj}.txt | data=ABC
 | | Test Property | property=${obj}.txt | data=123
 | | Test Property | property=${obj}.x | data=20
@@ -103,8 +119,10 @@
 
 
 | Test Button\n
-| | ${obj}      | Set Variable  | p[0].b[1]
-| | Test Page | property=page | data=0
+| | ${obj}      | Set Variable  | p[1].b[1]
+| | Test Page | property=page | data=1
+| | Hasp Command | property=clearpage | data=1
+| | Hasp Command | property=jsonl | data={"page":1,"id":1,"objid":10}
 #| | Test Property | property=${obj}.txt | data=ABC
 #| | Test Property | property=${obj}.txt | data=1234
 | | Test Property | property=${obj}.x | data=20
@@ -133,8 +151,10 @@
 | | Test Property | property=${obj}.val | data=3
 
 | Test Slider\n
-| | ${obj}      | Set Variable  | p[1].b[3]
+| | ${obj}      | Set Variable  | p[1].b[4]
 | | Test Page | property=page | data=1
+| | Hasp Command | property=clearpage | data=1
+| | Hasp Command | property=jsonl | data={"page":1,"id":4,"objid":30}
 #| | Test Property | property=${obj}.txt | data=ABC
 #| | Test Property | property=${obj}.txt | data=1234
 | | Test Property | property=${obj}.x | data=20

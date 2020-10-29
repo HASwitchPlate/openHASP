@@ -1,5 +1,5 @@
 /**
- * @file lv_theme_hasp.c
+ * @file lv_theme_hasp.cpp
  *
  */
 
@@ -11,6 +11,7 @@
 #if LV_USE_THEME_HASP
 
 #include "lv_misc/lv_gc.h"
+#include "lv_theme_hasp.h"
 
 #if defined(LV_GC_INCLUDE)
 #include LV_GC_INCLUDE
@@ -350,7 +351,7 @@ lv_theme_t * lv_theme_hasp_init(lv_color_t color_primary, lv_color_t color_secon
         LV_GC_ROOT(_lv_theme_template_styles) = lv_mem_alloc(sizeof(theme_styles_t));
         styles                                = (theme_styles_t *)LV_GC_ROOT(_lv_theme_template_styles);
 #else
-        styles = lv_mem_alloc(sizeof(theme_styles_t));
+        styles = (theme_styles_t*)lv_mem_alloc(sizeof(theme_styles_t));
 #endif
     }
 
