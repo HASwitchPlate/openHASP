@@ -21,6 +21,7 @@ void guiTakeScreenshot();
 void guiSetup();
 void guiLoop(void);
 void guiStop(void);
+void guiEverySecond(void);
 
 void guiCalibrate();
 void guiTakeScreenshot(const char * pFileName);

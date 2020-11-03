@@ -260,6 +260,7 @@ void dispatchJsonl(Stream & stream)
     uint8_t savedPage = haspGetPage();
 
     Log.notice(F("DISPATCH: jsonl"));
+    Serial.println(F("DISPATCH: jsonl"));
 
     while(deserializeJson(jsonl, stream) == DeserializationError::Ok) {
         // serializeJson(jsonl, Serial);

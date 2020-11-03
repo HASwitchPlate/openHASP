@@ -40,7 +40,9 @@
 
 /* ---------- Screenshot Variables ---------- */
 #if defined(ARDUINO_ARCH_ESP8266) || defined(ARDUINO_ARCH_ESP32)|| defined(STM32F4xx)
+#if HASP_USE_SPIFFS>0
 File pFileOut;
+#endif
 #endif
 uint8_t guiSnapshot = 0;
 
@@ -558,14 +560,14 @@ bool IRAM_ATTR my_touchpad_read(lv_indev_drv_t * indev_driver, lv_indev_data_t *
 {
     //#ifdef TOUCH_CS
     uint16_t touchX, touchY;
-
+bool touched;
 #if TOUCH_DRIVER == 0
-    bool touched = tft.getTouch(&touchX, &touchY, 600);
+     touched = tft.getTouch(&touchX, &touchY, 600);
 #elif TOUCH_DRIVER == 1
     // return false;
-    bool touched = GT911_getXY(&touchX, &touchY, true);
-#else
-    bool touched = Touch_getXY(&touchX, &touchY, false);
+     touched = GT911_getXY(&touchX, &touchY, true);
+#elif TOUCH_DRIVER == 2
+     touched = Touch_getXY(&touchX, &touchY, false);
 #endif
 
     if(!touched) return false;
@@ -826,11 +828,16 @@ void IRAM_ATTR guiLoop()
 
     // lv_tick_handler();
     lv_task_handler(); /* let the GUI do its work */
-    guiCheckSleep();
+    // guiCheckSleep();
 
 #if TOUCH_DRIVER == 1
     touch.loop();
 #endif
+}
+
+void guiEverySecond()
+{
+    guiCheckSleep();
 }
 
 void guiStop()
@@ -952,7 +959,9 @@ bool guiSetConfig(const JsonObject & settings)
     changed |= configSet(guiSleepTime1, settings[FPSTR(F_GUI_IDLEPERIOD1)], PSTR("guiSleepTime1"));
     changed |= configSet(guiSleepTime2, settings[FPSTR(F_GUI_IDLEPERIOD2)], PSTR("guiSleepTime2"));
     changed |= configSet(guiRotation, settings[FPSTR(F_GUI_ROTATION)], PSTR("guiRotation"));
-
+    Serial.print("Backlight = ");
+    Serial.println(guiBacklightPin);
+    
     if(!settings[FPSTR(F_GUI_POINTER)].isNull()) {
         if(guiShowPointer != settings[FPSTR(F_GUI_POINTER)].as<bool>()) {
             Log.trace(F("guiShowPointer set"));

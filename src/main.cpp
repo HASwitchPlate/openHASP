@@ -15,7 +15,8 @@ unsigned long mainLastLoopTime = 0;
 
 void setup()
 {
-
+        Serial.begin(115200); /* prepare for possible serial debug */
+        delay(10);
     /****************************
      * Constant initialzations
      ***************************/
@@ -149,6 +150,8 @@ void loop()
 
     /* Timer Loop */
     if(millis() - mainLastLoopTime >= 1000) {
+        guiEverySecond();
+
         /* Run Every Second */
 #if HASP_USE_OTA>0
         otaEverySecond();
