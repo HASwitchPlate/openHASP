@@ -636,9 +636,11 @@ static void hasp_process_obj_attribute_val(lv_obj_t * obj, const char * attr, co
             }
         }
     }
+
     if(check_obj_type(objtype, LV_HASP_CHECKBOX)) {
         return update ? lv_checkbox_set_checked(obj, is_true(payload))
                       : hasp_out_int(obj, attr, lv_checkbox_is_checked(obj));
+
     }
     if(check_obj_type(objtype, LV_HASP_SWITCH)) {
         if(update) {
@@ -646,25 +648,34 @@ static void hasp_process_obj_attribute_val(lv_obj_t * obj, const char * attr, co
         } else {
             return hasp_out_int(obj, attr, lv_switch_get_state(obj));
         }
+
     } else if(check_obj_type(objtype, LV_HASP_DDLIST)) {
         lv_dropdown_set_selected(obj, val);
         return;
+
     } else if(check_obj_type(objtype, LV_HASP_LMETER)) {
         return update ? lv_linemeter_set_value(obj, intval) : hasp_out_int(obj, attr, lv_linemeter_get_value(obj));
+
     } else if(check_obj_type(objtype, LV_HASP_SLIDER)) {
         return update ? lv_slider_set_value(obj, intval, LV_ANIM_ON)
                       : hasp_out_int(obj, attr, lv_slider_get_value(obj));
+
     } else if(check_obj_type(objtype, LV_HASP_LED)) {
         return update ? lv_led_set_bright(obj, (uint8_t)val) : hasp_out_int(obj, attr, lv_led_get_bright(obj));
+
     } else if(check_obj_type(objtype, LV_HASP_ARC)) {
         return update ? lv_arc_set_value(obj, intval) : hasp_out_int(obj, attr, lv_arc_get_value(obj));
+
     } else if(check_obj_type(objtype, LV_HASP_GAUGE)) {
         return update ? lv_gauge_set_value(obj, 0, intval) : hasp_out_int(obj, attr, lv_gauge_get_value(obj, 0));
+
     } else if(check_obj_type(objtype, LV_HASP_ROLLER)) {
         lv_roller_set_selected(obj, val, LV_ANIM_ON);
         return;
+
     } else if(check_obj_type(objtype, LV_HASP_BAR)) {
         return update ? lv_bar_set_value(obj, intval, LV_ANIM_ON) : hasp_out_int(obj, attr, lv_bar_get_value(obj));
+
     } else if(check_obj_type(objtype, LV_HASP_CPICKER)) {
         return update ? (void)lv_cpicker_set_color(obj, haspPayloadToColor(payload))
                       : hasp_out_color(obj, attr, lv_cpicker_get_color(obj));
@@ -689,6 +700,7 @@ static void hasp_process_obj_attribute_range(lv_obj_t * obj, const char * attr, 
         return update ? lv_slider_set_range(obj, set_min ? val : min, set_max ? val : max)
                       : hasp_out_int(obj, attr, set_min ? lv_slider_get_min_value(obj) : lv_slider_get_max_value(obj));
     }
+
     if(check_obj_type(objtype, LV_HASP_GAUGE)) {
         int16_t min = lv_gauge_get_min_value(obj);
         int16_t max = lv_gauge_get_max_value(obj);
@@ -696,6 +708,7 @@ static void hasp_process_obj_attribute_range(lv_obj_t * obj, const char * attr, 
         return update ? lv_gauge_set_range(obj, set_min ? val : min, set_max ? val : max)
                       : hasp_out_int(obj, attr, set_min ? lv_gauge_get_min_value(obj) : lv_gauge_get_max_value(obj));
     }
+
     if(check_obj_type(objtype, LV_HASP_ARC)) {
         int16_t min = lv_arc_get_min_value(obj);
         int16_t max = lv_arc_get_max_value(obj);
@@ -703,6 +716,7 @@ static void hasp_process_obj_attribute_range(lv_obj_t * obj, const char * attr, 
         return update ? lv_arc_set_range(obj, set_min ? val : min, set_max ? val : max)
                       : hasp_out_int(obj, attr, set_min ? lv_arc_get_min_value(obj) : lv_arc_get_max_value(obj));
     }
+
     if(check_obj_type(objtype, LV_HASP_BAR)) {
         int16_t min = lv_bar_get_min_value(obj);
         int16_t max = lv_bar_get_max_value(obj);
@@ -710,6 +724,7 @@ static void hasp_process_obj_attribute_range(lv_obj_t * obj, const char * attr, 
         return update ? lv_bar_set_range(obj, set_min ? val : min, set_max ? val : max)
                       : hasp_out_int(obj, attr, set_min ? lv_bar_get_min_value(obj) : lv_bar_get_max_value(obj));
     }
+    
     if(check_obj_type(objtype, LV_HASP_LMETER)) {
         int16_t min = lv_linemeter_get_min_value(obj);
         int16_t max = lv_linemeter_get_max_value(obj);
