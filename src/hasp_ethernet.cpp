@@ -4,7 +4,7 @@
 #include "hasp_conf.h"
 #include "hasp_hal.h"
 
-#if HASP_USE_ETHERNET > 0
+#if HASP_USE_ETHERNET > 0 && !defined(ARDUINO_ARCH_ESP32)
 
 EthernetClient EthClient;
 IPAddress ip;

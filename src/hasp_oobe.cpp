@@ -73,13 +73,14 @@ static void kb_event_cb(lv_obj_t * event_kb, lv_event_t event)
             strncpy(pass, lv_textarea_get_text(obj), sizeof(pass));
             settings[FPSTR(F_CONFIG_PASS)] = pass;
         }
-
+        #if HASP_USE_WIFI > 0
         if(strlen(ssid) > 0) {
             wifiSetConfig(settings.as<JsonObject>());
             if(wifiTestConnection()) {
                 dispatchReboot(true);
             }
         }
+        #endif
 
     } else if(event == LV_EVENT_CANCEL) {
         oobeSetPage(0);
@@ -296,6 +297,9 @@ static void oobe_calibrate_cb(lv_obj_t * ta, lv_event_t event)
 
 bool oobeSetup()
 {
+#if HASP_USE_ETHERNET > 0
+if (eth_connected) return false;
+#endif
 #if HASP_USE_WIFI > 0
     char ssid[32];
     char pass[32];

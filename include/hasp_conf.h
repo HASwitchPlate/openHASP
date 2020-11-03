@@ -107,6 +107,21 @@
 #endif
 
 #if HASP_USE_ETHERNET > 0
+#if defined(ARDUINO_ARCH_ESP32)
+#include <ETH.h>
+
+#define ETH_ADDR        0
+#define ETH_POWER_PIN   -1
+#define ETH_MDC_PIN     23
+#define ETH_MDIO_PIN    18
+#define NRST            5
+#define ETH_TYPE        ETH_PHY_LAN8720
+#define ETH_CLKMODE     ETH_CLOCK_GPIO17_OUT
+
+#include "hasp_ethernet_esp32.h"
+#warning Using ESP32 Ethernet LAN8720
+
+#else
 #if USE_BUILTIN_ETHERNET > 0
 #include <LwIP.h>
 #include <STM32Ethernet.h>
@@ -120,6 +135,7 @@
 #warning Use W5x00 Ethernet shield
 #endif
 #include "hasp_ethernet.h"
+#endif
 #endif
 
 #if HASP_USE_MQTT > 0
