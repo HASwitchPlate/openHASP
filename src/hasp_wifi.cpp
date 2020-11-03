@@ -136,6 +136,18 @@ bool wifiShowAP(char * ssid, char * pass)
     return true;
 }
 
+void wifiReconnect()
+{
+    WiFi.disconnect(true);
+    WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE);
+#if defined(ARDUINO_ARCH_ESP8266)
+    WiFi.hostname(mqttGetNodename().c_str());
+#elif defined(ARDUINO_ARCH_ESP32)
+    WiFi.setHostname(mqttGetNodename().c_str());
+#endif
+    WiFi.begin(wifiSsid, wifiPassword);
+}
+
 void wifiSetup()
 {
     if(wifiShowAP()) {
@@ -148,17 +160,12 @@ void wifiSetup()
         gotIpEventHandler        = WiFi.onStationModeGotIP(wifiSTAGotIP); // As soon WiFi is connected, start NTP Client
         disconnectedEventHandler = WiFi.onStationModeDisconnected(wifiSTADisconnected);
         WiFi.setSleepMode(WIFI_NONE_SLEEP);
-#endif
-#if defined(ARDUINO_ARCH_ESP32)
+#elif defined(ARDUINO_ARCH_ESP32)
         WiFi.onEvent(wifi_callback);
         WiFi.setSleep(false);
 #endif
 
-        WiFi.disconnect(true);
-        WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE);
-        WiFi.setHostname(mqttGetNodename().c_str());
-        WiFi.begin(wifiSsid, wifiPassword);
-
+        wifiReconnect();
         Log.notice(F("WIFI: Connecting to : %s"), wifiSsid);
     }
 }
@@ -177,10 +184,7 @@ bool wifiEvery5Seconds()
         }
         Log.warning(F("WIFI: No Connection... retry %u"), wifiReconnectCounter);
         if(wifiReconnectCounter % 6 == 0) {
-            WiFi.disconnect(true);
-            WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE);
-            WiFi.setHostname(mqttGetNodename().c_str());
-            WiFi.begin(wifiSsid, wifiPassword);
+            wifiReconnect();
         }
         return false;
     }
