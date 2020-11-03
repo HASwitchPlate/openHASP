@@ -312,18 +312,25 @@ void haspReconnect()
         lv_obj_set_hidden(obj, true);*/
 }
 
+/*Add a custom apply callback*/
+static void custom_font_apply_cb(lv_theme_t * th, lv_obj_t * obj, lv_theme_style_t name)
+{
+    lv_style_list_t * list;
+
+    switch(name) {
+        case LV_THEME_BTN:
+            list = lv_obj_get_style_list(obj, LV_BTN_PART_MAIN);
+            // _lv_style_list_add_style(list, &my_style);
+            break;
+    }
+}
+
 /**
  * Create a demo application
  */
 void haspSetup()
 {
     guiSetDim(haspStartDim);
-
-    // lv_coord_t hres = lv_disp_get_hor_res(NULL);
-    // lv_coord_t vres = lv_disp_get_ver_res(NULL);
-
-    // static lv_font_t *
-    //    my_font = (lv_font_t *)lv_mem_alloc(sizeof(lv_font_t));
 
     /******* File System Test ********************************************************************/
     lv_fs_file_t f;
@@ -867,7 +874,6 @@ void haspNewObject(const JsonObject & config, uint8_t & saved_page_id)
         }
         case LV_HASP_ROLLER: {
             obj           = lv_roller_create(parent_obj, NULL);
-            bool infinite = config[F("infinite")].as<bool>();
             // lv_roller_set_fix_width(obj, width);
             // lv_obj_align(obj, NULL, LV_ALIGN_IN_TOP_MID, 0, 20);
             lv_obj_set_event_cb(obj, roller_event_handler);

@@ -109,18 +109,19 @@ void loop()
     /* Graphics Loops */
     // tftLoop();
     guiLoop();
+
     /* Application Loops */
     // haspLoop();
     debugLoop();
 
 #if HASP_USE_GPIO > 0
     gpioLoop();
-#endif
+#endif // GPIO
 
     /* Network Services Loops */
 #if HASP_USE_ETHERNET > 0
     ethernetLoop();
-#endif
+#endif // ETHERNET
 
 #if HASP_USE_MQTT > 0
     mqttLoop();
@@ -145,8 +146,6 @@ void loop()
 #if HASP_USE_TASMOTA_SLAVE > 0
     slaveLoop();
 #endif // TASMOTASLAVE
-
-    // digitalWrite(HASP_OUTPUT_PIN, digitalRead(HASP_INPUT_PIN)); // sets the LED to the button's value
 
     /* Timer Loop */
     if(millis() - mainLastLoopTime >= 1000) {
