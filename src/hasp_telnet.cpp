@@ -77,7 +77,7 @@ void telnetAcceptClient()
         telnetClient.stop();     // client disconnected
         Log.unregisterOutput(1); // telnetClient
     }
-    telnetClient = telnetServer.available(); // ready for new client
+    telnetClient = telnetServer->available(); // ready for new client
     // Log.notice(F("Client connected from %s"), telnetClient.remoteIP().toString().c_str());
     if(!telnetClient) {
         Log.notice(F("Client NOT connected"));
@@ -199,7 +199,7 @@ void telnetSetup()
 #if defined(STM32F4xx)
         // if(!telnetServer) telnetServer = new EthernetServer(telnetPort);
         // if(telnetServer) {
-        telnetServer.begin();
+        telnetServer->begin();
         Log.notice(F("Debug telnet console started"));
         // } else {
         //    Log.error(F("Failed to start telnet server"));
@@ -232,7 +232,7 @@ void IRAM_ATTR telnetLoop()
 Ethernet.schedule();
   // if(telnetServer)
     { // client is connected
-        EthernetClient client = telnetServer.available();
+        EthernetClient client = telnetServer->available();
         if(client) {
             if(!telnetClient || !telnetClient.connected()) {
                 //telnetAcceptClient(client);

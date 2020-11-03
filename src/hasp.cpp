@@ -148,7 +148,8 @@ bool get_page_id(lv_obj_t * obj, uint8_t * pageid)
 
 lv_obj_t * hasp_find_obj_from_id(lv_obj_t * parent, uint8_t objid)
 {
-    if(objid == 0) return parent;
+    if(objid == 0 || parent == nullptr) return parent;
+
     lv_obj_t * child;
     child = lv_obj_get_child(parent, NULL);
     while(child) {
@@ -873,7 +874,7 @@ void haspNewObject(const JsonObject & config, uint8_t & saved_page_id)
             break;
         }
         case LV_HASP_ROLLER: {
-            obj           = lv_roller_create(parent_obj, NULL);
+            obj = lv_roller_create(parent_obj, NULL);
             // lv_roller_set_fix_width(obj, width);
             // lv_obj_align(obj, NULL, LV_ALIGN_IN_TOP_MID, 0, 20);
             lv_obj_set_event_cb(obj, roller_event_handler);
