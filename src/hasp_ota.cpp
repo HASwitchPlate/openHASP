@@ -34,7 +34,8 @@ static WiFiClient otaClient;
 
 std::string otaUrl           = "http://10.1.0.3";
 int8_t otaPrecentageComplete = -1;
-int16_t otaPort              = 3232;
+
+int16_t otaPort              = HASP_OTA_PORT;
 
 void otaProgress()
 {

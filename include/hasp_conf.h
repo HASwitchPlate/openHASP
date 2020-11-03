@@ -144,6 +144,13 @@
 
 #if HASP_USE_OTA > 0
 #include "hasp_ota.h"
+
+#ifndef HASP_OTA_PORT
+#if defined(ARDUINO_ARCH_ESP32)
+#define HASP_OTA_PORT 3232
+#elif defined(ARDUINO_ARCH_ESP8266)
+#define HASP_OTA_PORT 8266
+#endif
 #endif
 
 #if HASP_USE_TASMOTA_SLAVE > 0
