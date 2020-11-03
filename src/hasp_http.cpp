@@ -1514,7 +1514,11 @@ void webStart()
                (WiFi.getMode() != WIFI_STA ? WiFi.softAPIP().toString().c_str() : WiFi.localIP().toString().c_str()));
 #else
     IPAddress ip;
+#if defined(ARDUINO_ARCH_ESP32)
+    ip = ETH.localIP();
+#else
     ip = Ethernet.localIP();
+#endif
     Log.notice(F("HTTP: Server started @ http://%d.%d.%d.%d"), ip[0], ip[1], ip[2], ip[3]);
 #endif
 }

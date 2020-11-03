@@ -9,8 +9,8 @@
 | | ...         | ${property}=${property}       | ${data}=${data}
 | | ${time}     | Get Time      | epoch
 | | ${client}   | Catenate      | SEPARATOR=.   | robot.mqtt | ${time}
-| | ${topic}    | Set Variable  | hasp/plate37/command
-| | ${restopic} | Set Variable  | hasp/plate37/state/json
+| | ${topic}    | Set Variable  | hasp/platetelemetry/command
+| | ${restopic} | Set Variable  | hasp/platetelemetry/state/json
 | | ${qos}      | Set Variable  | 1
 | | ${message}  | Set Variable  | ${property}=${data}
 | | ${result}   | Set Variable  | {"${property}":"${data}"}
@@ -31,8 +31,8 @@
 | | ...         | ${property}=${property}       | ${data}=${data}
 | | ${time}     | Get Time      | epoch
 | | ${client}   | Catenate      | SEPARATOR=.   | robot.mqtt | ${time}
-| | ${topic}    | Set Variable  | hasp/plate37/command
-| | ${restopic} | Set Variable  | hasp/plate37/state/page
+| | ${topic}    | Set Variable  | hasp/platetelemetry/command
+| | ${restopic} | Set Variable  | hasp/platetelemetry/state/page
 | | ${qos}      | Set Variable  | 1
 | | ${message}  | Set Variable  | ${property}=${data}
 | | Subscribe Async  | client.id=${client}   | topic=${restopic}
@@ -50,8 +50,8 @@
 | | ...         | ${property}=${property}       | ${data}=${data}
 | | ${time}     | Get Time      | epoch
 | | ${client}   | Catenate      | SEPARATOR=.   | robot.mqtt | ${time}
-| | ${topic}    | Set Variable  | hasp/plate37/command/${property}
-| | ${restopic} | Set Variable  | hasp/plate37/state/page
+| | ${topic}    | Set Variable  | hasp/platetelemetry/command/${property}
+| | ${restopic} | Set Variable  | hasp/platetelemetry/state/page
 | | ${qos}      | Set Variable  | 1
 | | ${message}  | Set Variable  | ${data}
 | | Connect     | ${broker.uri} | ${port}       | ${client.id}    | ${clean_session}
