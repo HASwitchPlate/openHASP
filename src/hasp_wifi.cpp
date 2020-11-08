@@ -139,10 +139,10 @@ bool wifiShowAP(char * ssid, char * pass)
 void wifiReconnect()
 {
     WiFi.disconnect(true);
-    WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE);
 #if defined(ARDUINO_ARCH_ESP8266)
     WiFi.hostname(mqttGetNodename().c_str());
 #elif defined(ARDUINO_ARCH_ESP32)
+    WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE);
     WiFi.setHostname(mqttGetNodename().c_str());
 #endif
     WiFi.begin(wifiSsid, wifiPassword);
