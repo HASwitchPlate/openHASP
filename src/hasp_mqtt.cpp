@@ -239,7 +239,10 @@ void mqtt_send_statusupdate()
 // Receive incoming messages
 static void mqtt_message_cb(char * topic_p, byte * payload, unsigned int length)
 { // Handle incoming commands from MQTT
-    if(length >= MQTT_MAX_PACKET_SIZE) return;
+    if(length >= MQTT_MAX_PACKET_SIZE) {
+        Log.error(F("MQTT RCV: Payload too long (%d bytes)"), length);
+        return;
+    }
     payload[length] = '\0';
 
     // String strTopic((char *)0);
@@ -271,36 +274,6 @@ static void mqtt_message_cb(char * topic_p, byte * payload, unsigned int length)
         Log.error(F("MQTT: Message received with invalid topic"));
         return;
     }
-    // Log.trace(F("MQTT IN: short topic: %s"), topic);
-
-    if(!strcmp_P(topic, PSTR("command"))) {
-        dispatchCommand((char *)payload);
-        return;
-    }
-
-    if(topic == strstr_P(topic, PSTR("command/"))) { // startsWith command/
-        topic += 8u;
-        // Log.trace(F("MQTT IN: command subtopic: %s"), topic);
-
-        if(!strcmp_P(topic, PSTR("json"))) { // '[...]/device/command/json' -m '["dim=5", "page 1"]' =
-            // nextionSendCmd("dim=50"), nextionSendCmd("page 1")
-            dispatchJson((char *)payload); // Send to nextionParseJson()
-        } else if(!strcmp_P(topic, PSTR("jsonl"))) {
-            dispatchJsonl((char *)payload);
-        } else if(length == 0) {
-            dispatchCommand(topic);
-        } else { // '[...]/device/command/p[1].b[4].txt' -m '"Lights On"' ==
-                 // nextionSetAttr("p[1].b[4].txt", "\"Lights On\"")
-            dispatchAttribute(topic, (char *)payload);
-        }
-        return;
-    }
-
-    if(topic == strstr_P(topic, PSTR("config/"))) { // startsWith command/
-        topic += 7u;
-        dispatchConfig(topic, (char *)payload);
-        return;
-    }
 
     // catch a dangling LWT from a previous connection if it appears
     if(!strcmp_P(topic, PSTR("status")) && !strcasecmp_P((char *)payload, PSTR("OFF"))) {
@@ -308,7 +281,9 @@ static void mqtt_message_cb(char * topic_p, byte * payload, unsigned int length)
         snprintf_P(topicBuffer, sizeof(topicBuffer), PSTR("%sstatus"), mqttNodeTopic);
         mqttClient.publish(topicBuffer, "ON", true);
         Log.notice(F("MQTT: binary_sensor state: [status] : ON"));
-        return;
+        // return;
+    } else {
+        dispatchTopicPayload(topic, (char *)payload);
     }
 
     /*
@@ -458,7 +433,9 @@ void mqttReconnect()
     mqttReconnectCount = 0;
 
     haspReconnect();
-    dispatchPage(String(haspGetPage()));
+    char page[4] = "999";
+    itoa(haspGetPage(), page, DEC);
+    dispatchPage(page);
     mqtt_send_statusupdate();
 }
 

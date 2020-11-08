@@ -1071,7 +1071,7 @@ void webHandleGuiConfig()
     }
     webSendFooter();
 
-    if(webServer.hasArg(F("action"))) dispatchCommand(webServer.arg(F("action")));
+    if(webServer.hasArg(F("action"))) dispatchTextLine(webServer.arg(F("action")).c_str());
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1471,7 +1471,7 @@ void httpHandleResetConfig()
 #if HASP_USE_SPIFFS > 0
             bool formatted = SPIFFS.format();
             if(formatted) {
-                httpMessage += F("<b>Resetting all saved settings and restarting device into WiFi AP mode</b>");
+                httpMessage += F("<b>Resetting all saved settings and restarting device</b>");
             } else {
                 httpMessage += F("<b>Failed to format the internal flash partition</b>");
                 resetConfirmed = false;

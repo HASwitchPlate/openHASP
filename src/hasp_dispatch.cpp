@@ -13,22 +13,9 @@
 
 #include "hasp_conf.h"
 
-inline void dispatchPrintln(String header, String & data)
-{
-    Log.notice(F("%s: %s"), header.c_str(), data.c_str());
-}
-
-bool isON(const char * payload)
+inline bool isON(const char * payload)
 {
     return strcasecmp_P(payload, PSTR("ON")) == 0;
-}
-
-String getOnOff(bool state)
-{
-    String result((char *)0);
-    result.reserve(128);
-    result = state ? F("ON") : F("OFF");
-    return result;
 }
 
 void dispatchSetup()
@@ -37,19 +24,36 @@ void dispatchSetup()
 void dispatchLoop()
 {}
 
-void dispatchStatusUpdate()
+// Send status update message to the client
+void dispatch_output_statusupdate()
 {
-#if HASP_USE_MQTT>0
+#if HASP_USE_MQTT > 0
     mqtt_send_statusupdate();
 #endif
 }
 
-void dispatchOutput(int output, bool state)
+// Format filesystem and erase EEPROM
+bool dispatch_factory_reset()
+{
+    bool formated, erased = true;
+
+#if HASP_USE_SPIFFS > 0
+    formated = SPIFFS.format();
+#endif
+
+#if HASP_USE_EEPROM > 0
+    erased = false;
+#endif
+
+    return formated && erased;
+}
+
+void dispatchGpioOutput(int output, bool state)
 {
     int pin = 0;
 
     if(pin >= 0) {
-        Log.notice(F("PIN OUTPUT STATE %d"),state);
+        Log.notice(F("PIN OUTPUT STATE %d"), state);
 
 #if defined(ARDUINO_ARCH_ESP32)
         ledcWrite(99, state ? 1023 : 0); // ledChannel and value
@@ -62,16 +66,63 @@ void dispatchOutput(int output, bool state)
     }
 }
 
-void dispatchOutput(String strTopic, const char * payload)
+void dispatchGpioOutput(String strTopic, const char * payload)
 {
     String strTemp((char *)0);
     strTemp.reserve(128);
     strTemp = strTopic.substring(7, strTopic.length());
-    dispatchOutput(strTemp.toInt(), isON(payload));
+    dispatchGpioOutput(strTemp.toInt(), isON(payload));
 }
 
-void dispatchButtonAttribute(String & strTopic, const char * payload)
+void dispatchParseJson(char * payload)
+{ // Parse an incoming JSON array into individual commands
+    /*  if(strPayload.endsWith(",]")) {
+          // Trailing null array elements are an artifact of older Home Assistant automations
+          // and need to be removed before parsing by ArduinoJSON 6+
+          strPayload.remove(strPayload.length() - 2, 2);
+          strPayload.concat("]");
+      }*/
+    size_t maxsize = (128u * ((strlen(payload) / 128) + 1)) + 256;
+    DynamicJsonDocument haspCommands(maxsize);
+    DeserializationError jsonError = deserializeJson(haspCommands, payload);
+    // haspCommands.shrinkToFit();
+
+    if(jsonError) { // Couldn't parse incoming JSON command
+        Log.warning(F("JSON: Failed to parse incoming JSON command with error: %s"), jsonError.c_str());
+    } else {
+
+        JsonArray arr = haspCommands.as<JsonArray>();
+        for(JsonVariant command : arr) {
+            dispatchTextLine(command.as<String>().c_str());
+        }
+    }
+}
+
+void dispatchParseJsonl(Stream & stream)
 {
+    DynamicJsonDocument jsonl(3 * 128u);
+    uint8_t savedPage = haspGetPage();
+
+    // Log.notice(F("DISPATCH: jsonl"));
+
+    while(deserializeJson(jsonl, stream) == DeserializationError::Ok) {
+        // serializeJson(jsonl, Serial);
+        // Serial.println();
+        haspNewObject(jsonl.as<JsonObject>(), savedPage);
+    }
+}
+
+void dispatchParseJsonl(char * payload)
+{
+    CharStream stream(payload);
+    dispatchParseJsonl(stream);
+}
+
+// p[x].b[y]=value
+inline void dispatch_process_button_attribute(String strTopic, const char * payload)
+{
+    // Log.trace(F("BTN ATTR: %s = %s"), strTopic.c_str(), payload);
+
     String strPageId((char *)0);
     String strTemp((char *)0);
 
@@ -96,199 +147,246 @@ void dispatchButtonAttribute(String & strTopic, const char * payload)
 }
 
 // objectattribute=value
-void dispatchAttribute(String strTopic, const char * payload)
+void dispatchCommand(const char * topic, const char * payload)
 {
-    if(strTopic.startsWith("p[")) {
-        dispatchButtonAttribute(strTopic, payload);
+    if(!strcmp_P(topic, PSTR("json"))) { // '[...]/device/command/json' -m '["dim=5", "page 1"]' =
+        // nextionSendCmd("dim=50"), nextionSendCmd("page 1")
+        dispatchParseJson((char *)payload);
 
-    } else if(strTopic == F("page")) {
+    } else if(!strcmp_P(topic, PSTR("jsonl"))) {
+        dispatchParseJsonl((char *)payload);
+
+    } else if(!strcmp_P(topic, PSTR("page"))) {
         dispatchPage(payload);
 
-    } else if(strTopic == F("dim") || strTopic == F("brightness")) {
+    } else if(!strcmp_P(topic, PSTR("dim")) || !strcmp_P(topic, PSTR("brightness"))) {
         dispatchDim(payload);
 
-    } else if(strTopic == F("light")) {
+    } else if(!strcmp_P(topic, PSTR("light"))) {
         dispatchBacklight(payload);
 
-    } else if(strTopic == F("reboot") || strTopic == F("restart")) {
+    } else if(!strcmp_P(topic, PSTR("reboot")) || !strcmp_P(topic, PSTR("restart"))) {
         dispatchReboot(true);
 
-    } else if(strTopic == F("clearpage")) {
+    } else if(!strcmp_P(topic, PSTR("factoryreset"))) {
+        dispatch_factory_reset();
+        delay(250);
+        dispatchReboot(false); // don't save config
+
+    } else if(!strcmp_P(topic, PSTR("clearpage"))) {
         dispatchClearPage(payload);
 
-    } else if(strTopic == F("update")) {
+    } else if(!strcmp_P(topic, PSTR("update"))) {
         dispatchWebUpdate(payload);
 
-    } else if(strTopic == F("setupap")) {
+    } else if(!strcmp_P(topic, PSTR("setupap"))) {
         oobeFakeSetup();
 
-    } else if(strTopic.length() == 7 && strTopic.startsWith(F("output"))) {
-        dispatchOutput(strTopic, payload);
-    }
-}
+    } else if(strlen(topic) == 7 && topic == strstr_P(topic, PSTR("output"))) {
+        dispatchGpioOutput(topic, payload);
 
-void dispatchPage(String strPageid)
-{
-    dispatchPrintln(F("PAGE"), strPageid);
+    } else if(strcasecmp_P(topic, PSTR("calibrate")) == 0) {
+        guiCalibrate();
 
-    if(strPageid.length() == 0) {
+    } else if(strcasecmp_P(topic, PSTR("wakeup")) == 0) {
+        haspWakeUp();
+
+    } else if(strcasecmp_P(topic, PSTR("screenshot")) == 0) {
+        guiTakeScreenshot("/screenhot.bmp");
+
+    } else if(strcasecmp_P(topic, PSTR("")) == 0 || strcasecmp_P(topic, PSTR("statusupdate")) == 0) {
+        dispatch_output_statusupdate();
+
+    } else if(topic == strstr_P(topic, PSTR("p["))) {
+        dispatch_process_button_attribute(topic, payload);
+
+    } else if(!strcmp_P(topic, F_CONFIG_SSID) || !strcmp_P(topic, F_CONFIG_PASS)) {
+        DynamicJsonDocument settings(45);
+        settings[topic] = payload;
+        wifiSetConfig(settings.as<JsonObject>());
+
+    } else if(!strcmp_P(topic, PSTR("mqtthost")) || !strcmp_P(topic, PSTR("mqttport")) ||
+              !strcmp_P(topic, PSTR("mqttuser")) || !strcmp_P(topic, PSTR("mqttpass"))) {
+        char item[5];
+        memset(item, 0, sizeof(item));
+        strncpy(item, topic + 4, 4);
+        DynamicJsonDocument settings(45);
+        settings[item] = payload;
+        mqttSetConfig(settings.as<JsonObject>());
+
     } else {
-        if(strPageid.toInt() <= 250) haspSetPage(strPageid.toInt());
+        if(strlen(payload) == 0) {
+            //    dispatchTextLine(topic); // Could cause an infinite loop!
+        }
+        Log.warning(F(LOG_CMND_CTR "Command not found %s => %s"), topic, payload);
     }
-    String strPage((char *)0);
-    strPage.reserve(128);
-    strPage = haspGetPage();
+}
+
+// Get or Set a page
+void dispatchPage(const char * page)
+{
+    // dispatchPrintln(F("PAGE"), strPageid);
+
+    if(strlen(page) > 0 && atoi(page) <= 250) {
+        haspSetPage(atoi(page));
+    }
+
+    // Log result
+    char buffer[4];
+    itoa(haspGetPage(), buffer, DEC);
+
 #if HASP_USE_MQTT > 0
-    mqtt_send_state(F("page"), strPage.c_str());
+    mqtt_send_state(F("page"), buffer);
 #endif
+
 #if HASP_USE_TASMOTA_SLAVE > 0
-    slave_send_state(F("page"), strPage.c_str());
+    slave_send_state(F("page"), buffer);
 #endif
 }
 
-void dispatchClearPage(String strPageid)
+// Clears a page id or the current page if empty
+void dispatchClearPage(const char * page)
 {
-    dispatchPrintln(F("CLEAR"), strPageid);
-
-    if(strPageid.length() == 0) {
+    if(strlen(page) == 0) {
         haspClearPage(haspGetPage());
     } else {
-        haspClearPage(strPageid.toInt());
+        haspClearPage(atoi(page));
     }
 }
 
-void dispatchDim(String strDimLevel)
+void dispatchDim(const char * level)
 {
     // Set the current state
-    if(strDimLevel.length() != 0) guiSetDim(strDimLevel.toInt());
-    dispatchPrintln(F("DIM"), strDimLevel);
-    char buffer[8];
+    if(strlen(level) != 0) guiSetDim(atoi(level));
+    //  dispatchPrintln(F("DIM"), strDimLevel);
+    char buffer[4];
+
 #if defined(HASP_USE_MQTT) || defined(HASP_USE_TASMOTA_SLAVE)
     itoa(guiGetDim(), buffer, DEC);
+
 #if HASP_USE_MQTT > 0
     mqtt_send_state(F("dim"), buffer);
 #endif
+
 #if HASP_USE_TASMOTA_SLAVE > 0
     slave_send_state(F("dim"), buffer);
 #endif
+
 #endif
 }
 
-void dispatchBacklight(String strPayload)
+void dispatchBacklight(const char * payload)
 {
-    strPayload.toUpperCase();
-    dispatchPrintln(F("LIGHT"), strPayload);
+    // strPayload.toUpperCase();
+    // dispatchPrintln(F("LIGHT"), strPayload);
 
     // Set the current state
-    if(strPayload.length() != 0) guiSetBacklight(isON(strPayload.c_str()));
+    if(strlen(payload) != 0) guiSetBacklight(isON(payload));
 
-    // Return the current state
-    strPayload = getOnOff(guiGetBacklight());
+        // Return the current state
 #if HASP_USE_MQTT > 0
-    mqtt_send_state(F("light"), strPayload.c_str());
-#endif
-#if HASP_USE_TASMOTA_SLAVE > 0
-    slave_send_state(F("light"), strPayload.c_str());
+    mqtt_send_state(F("light"), guiGetBacklight() ? PSTR("ON") : PSTR("OFF"));
 #endif
 
+#if HASP_USE_TASMOTA_SLAVE > 0
+    slave_send_state(F("light"), guiGetBacklight() ? PSTR("ON") : PSTR("OFF"));
+#endif
 }
 
-void dispatchCommand(String cmnd)
+// Strip command/config prefix from the topic and process the payload
+void dispatchTopicPayload(const char * topic, const char * payload)
 {
-    dispatchPrintln(F("CMND"), cmnd);
+    // Log.trace(F("TOPIC: short topic: %s"), topic);
 
-    if(cmnd.startsWith(F("page "))) {
-        cmnd = cmnd.substring(5, cmnd.length());
-        String strTopic((char *)0);
-        strTopic.reserve(128);
-        strTopic = F("page");
-        dispatchAttribute(strTopic, cmnd.c_str());
-    } else if(cmnd == F("calibrate")) {
-        guiCalibrate();
-    } else if(cmnd == F("wakeup")) {
-        haspWakeUp();
-    } else if(cmnd == F("screenshot")) {
-        // guiTakeScreenshot("/screenhot.bmp");
-    } else if(cmnd == F("") || cmnd == F("statusupdate")) {
-        dispatchStatusUpdate();
+    if(!strcmp_P(topic, PSTR("command"))) {
+        dispatchTextLine((char *)payload);
+        return;
+    }
+
+    if(topic == strstr_P(topic, PSTR("command/"))) { // startsWith command/
+        topic += 8u;
+        // Log.trace(F("MQTT IN: command subtopic: %s"), topic);
+
+        // '[...]/device/command/p[1].b[4].txt' -m '"Lights On"' ==
+        // nextionSetAttr("p[1].b[4].txt", "\"Lights On\"")
+        dispatchCommand(topic, (char *)payload);
+
+        return;
+    }
+
+    if(topic == strstr_P(topic, PSTR("config/"))) { // startsWith command/
+        topic += 7u;
+        dispatchConfig(topic, (char *)payload);
+        return;
+    }
+
+    dispatchCommand(topic, (char *)payload); // dispatch as is
+}
+
+// Parse one line of text and execute the command(s)
+void dispatchTextLine(const char * cmnd)
+{
+    // dispatchPrintln(F("CMND"), cmnd);
+
+    if(cmnd == strstr_P(cmnd, PSTR("page "))) { // startsWith command/
+        dispatchPage(cmnd + 5);
+
     } else {
+        size_t pos1 = std::string(cmnd).find("=");
+        size_t pos2 = std::string(cmnd).find(" ");
+        int pos     = 0;
 
-        int pos = cmnd.indexOf("=");
+        if(pos1 != std::string::npos) {
+            if(pos2 != std::string::npos) {
+                pos = (pos1 < pos2 ? pos1 : pos2);
+            } else {
+                pos = pos1;
+            }
+
+        } else if(pos2 != std::string::npos) {
+            pos = pos2;
+        } else {
+            pos = 0;
+        }
+
         if(pos > 0) {
             String strTopic((char *)0);
-            String strPayload((char *)0);
+            // String strPayload((char *)0);
 
-            strTopic.reserve(128);
-            strPayload.reserve(128);
+            strTopic.reserve(pos + 1);
+            // strPayload.reserve(128);
 
-            strTopic   = cmnd.substring(0, pos);
-            strPayload = cmnd.substring(pos + 1, cmnd.length());
+            strTopic = String(cmnd).substring(0, pos);
+            // strPayload = cmnd.substring(pos + 1, cmnd.length());
+            // cmnd[pos] = 0; // change '=' character into '\0'
 
-            dispatchAttribute(strTopic, strPayload.c_str());
+            dispatchTopicPayload(strTopic.c_str(),
+                                 cmnd + pos + 1); // topic is before '=', payload is after '=' position
         } else {
-            dispatchAttribute(cmnd, "");
+            dispatchTopicPayload(cmnd, "");
         }
     }
 }
 
-void dispatchJson(char * payload)
-{ // Parse an incoming JSON array into individual commands
-    /*  if(strPayload.endsWith(",]")) {
-          // Trailing null array elements are an artifact of older Home Assistant automations
-          // and need to be removed before parsing by ArduinoJSON 6+
-          strPayload.remove(strPayload.length() - 2, 2);
-          strPayload.concat("]");
-      }*/
-    size_t maxsize = (128u * ((strlen(payload) / 128) + 1)) + 256;
-    DynamicJsonDocument haspCommands(maxsize);
-    DeserializationError jsonError = deserializeJson(haspCommands, payload);
-    // haspCommands.shrinkToFit();
-
-    if(jsonError) { // Couldn't parse incoming JSON command
-        Log.warning(F("JSON: Failed to parse incoming JSON command with error: %s"), jsonError.c_str());
-    } else {
-
-        JsonArray arr = haspCommands.as<JsonArray>();
-        for(JsonVariant command : arr) {
-            dispatchCommand(command.as<String>());
-        }
-    }
-}
-
-void dispatchJsonl(Stream & stream)
-{
-    DynamicJsonDocument jsonl(3 * 128u);
-    uint8_t savedPage = haspGetPage();
-
-    Log.notice(F("DISPATCH: jsonl"));
-
-    while(deserializeJson(jsonl, stream) == DeserializationError::Ok) {
-        // serializeJson(jsonl, Serial);
-        // Serial.println();
-        haspNewObject(jsonl.as<JsonObject>(), savedPage);
-    }
-}
-
-void dispatchJsonl(char * payload)
-{
-    CharStream stream(payload);
-    dispatchJsonl(stream);
-}
-
-void dispatchIdle(const char * state)
+// send idle state to the client
+void dispatch_output_idle_state(const char * state)
 {
 #if !defined(HASP_USE_MQTT) && !defined(HASP_USE_TASMOTA_SLAVE)
     Log.notice(F("OUT: idle = %s"), state);
 #else
+
 #if HASP_USE_MQTT > 0
     mqtt_send_state(F("idle"), state);
 #endif
+
 #if HASP_USE_TASMOTA_SLAVE > 0
     slave_send_state(F("idle"), state);
 #endif
+
 #endif
 }
 
+// restart the device
 void dispatchReboot(bool saveConfig)
 {
     if(saveConfig) configWriteConfig();
@@ -313,7 +411,7 @@ void dispatch_button(uint8_t id, const char * event)
 #if HASP_USE_MQTT > 0
     mqtt_send_input(id, event);
 #endif
-#if HASP_USE_TASMOTA_SLAVE>0
+#if HASP_USE_TASMOTA_SLAVE > 0
     slave_send_input(id, event);
 #endif
 #endif
@@ -327,6 +425,7 @@ void dispatchWebUpdate(const char * espOtaUrl)
 #endif
 }
 
+// send return output back to the client
 void IRAM_ATTR dispatch_obj_attribute_str(uint8_t pageid, uint8_t btnid, const char * attribute, const char * data)
 {
 #if !defined(HASP_USE_MQTT) && !defined(HASP_USE_TASMOTA_SLAVE)
@@ -341,6 +440,7 @@ void IRAM_ATTR dispatch_obj_attribute_str(uint8_t pageid, uint8_t btnid, const c
 #endif
 }
 
+// Get or Set a part of the config.json file
 void dispatchConfig(const char * topic, const char * payload)
 {
     DynamicJsonDocument doc(128 * 2);
@@ -426,7 +526,7 @@ void dispatchConfig(const char * topic, const char * payload)
         settings.remove(F("pass")); // hide password in output
         size_t size = serializeJson(doc, buffer, sizeof(buffer));
 #if !defined(HASP_USE_MQTT) && !defined(HASP_USE_TASMOTA_SLAVE)
-    Log.notice(F("OUT: config %s = %s"),topic,buffer);
+        Log.notice(F("OUT: config %s = %s"), topic, buffer);
 #else
 #if HASP_USE_MQTT > 0
         mqtt_send_state(F("config"), buffer);

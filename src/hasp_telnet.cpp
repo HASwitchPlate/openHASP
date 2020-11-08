@@ -149,7 +149,7 @@ static void telnetProcessLine()
                 if(strcasecmp_P(telnetInputBuffer, PSTR("exit")) == 0) {
                     telnetClientDisconnect();
                 } else {
-                    dispatchCommand(telnetInputBuffer);
+                    dispatchTextLine(telnetInputBuffer);
                 }
             }
     }

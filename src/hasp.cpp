@@ -122,6 +122,7 @@ lv_obj_t * get_page(uint8_t pageid)
     if(pageid >= sizeof pages / sizeof *pages) return NULL;
     return pages[pageid];
 }
+
 bool get_page_id(lv_obj_t * obj, uint8_t * pageid)
 {
     lv_obj_t * page = lv_obj_get_screen(obj);
@@ -671,7 +672,7 @@ String haspGetVersion()
 void haspClearPage(uint16_t pageid)
 {
     lv_obj_t * page = get_page(pageid);
-    if(!page) {
+    if(!page || pageid > 255) {
         Log.warning(F("HASP: Page ID %u not defined"), pageid);
     } else if(page == lv_layer_sys() /*|| page == lv_layer_top()*/) {
         Log.warning(F("HASP: Cannot clear system layer"));
@@ -946,7 +947,7 @@ void haspLoadPage(const char * pages)
     Log.notice(F("HASP: Loading file %s"), pages);
 
     File file = SPIFFS.open(pages, "r");
-    dispatchJsonl(file);
+    dispatchParseJsonl(file);
     file.close();
 
     Log.notice(F("HASP: File %s loaded"), pages);

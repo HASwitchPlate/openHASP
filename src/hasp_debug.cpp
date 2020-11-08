@@ -392,18 +392,18 @@ void debugLoop()
         Serial.print(ch);
         if(ch == 13 || ch == 10) {
             serialInputBuffer[serialInputIndex] = 0;
-            if(serialInputIndex > 0) dispatchCommand(serialInputBuffer);
+            if(serialInputIndex > 0) dispatchTextLine(serialInputBuffer);
             serialInputIndex = 0;
         } else {
             if(serialInputIndex < sizeof(serialInputBuffer) - 1) {
                 serialInputBuffer[serialInputIndex++] = ch;
             }
-            serialInputBuffer[serialInputIndex] = 0;
-            if(strcmp(serialInputBuffer, "jsonl=") == 0) {
-                dispatchJsonl(Serial);
-                serialInputIndex = 0;
-            }
+            // if(strcmp(serialInputBuffer, "jsonl=") == 0) {
+            //     dispatchJsonl(Serial);
+            //     serialInputIndex = 0;
+            // }
         }
+        serialInputBuffer[serialInputIndex] = 0;
     }
 }
 
@@ -448,7 +448,7 @@ void debugLoop()
 void debugEverySecond()
 {
     if(debugTelePeriod > 0 && (millis() - debugLastMillis) >= debugTelePeriod * 1000) {
-        dispatchStatusUpdate();
+        dispatch_output_statusupdate();
         debugLastMillis = millis();
     }
     // printLocalTime();
