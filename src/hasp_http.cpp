@@ -1359,7 +1359,7 @@ void webHandleGpioOptions()
     }
     webSendFooter();
 
-    if(webServer.hasArg(F("action"))) dispatchCommand(webServer.arg(F("action")));
+    if(webServer.hasArg(F("action"))) dispatchTextLine(webServer.arg(F("action")).c_str());
 }
 #endif // HASP_USE_GPIO
 
