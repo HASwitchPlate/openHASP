@@ -17,10 +17,8 @@ void setup()
 {
 
     /****************************
-     * Constant initialzations
+     * Storage initializations
      ***************************/
-
-    /* Init Storage */
 #if HASP_USE_EEPROM > 0
     eepromSetup(); // Don't start at boot, only at write
 #endif
@@ -183,5 +181,5 @@ void loop()
         mainLastLoopTime += 1000;
     }
 
-    delay(1);
+    delay(2);
 }

@@ -15,8 +15,6 @@ uint8_t gpioUsedInputCount = 0;
 using namespace ace_button;
 static AceButton * button[HASP_NUM_INPUTS];
 
-
-
 // An array of button pins, led pins, and the led states. Cannot be const
 // because ledState is mutable.
 hasp_gpio_config_t gpioConfig[HASP_NUM_GPIO_CONFIG] = {
@@ -377,7 +375,13 @@ bool gpioIsSystemPin(uint8_t gpio)
     // To-do:
     // Network GPIOs
     // Serial GPIOs
-    // Tasmota GPIOs
+    // Tasmota Slave GPIOs
+
+#ifdef ARDUINO_ARCH_ESP32
+    if(psramFound()) {
+        if((gpio >= 16) && (gpio <= 17)) return true; // PSRAM
+    }
+#endif
 
 #ifdef ARDUINO_ARCH_ESP8266
     if((gpio >= 6) && (gpio <= 11)) return true; // VSPI
@@ -517,7 +521,7 @@ String gpioName(uint8_t gpio)
 
 // For ESP32 pin labels on boards use the GPIO number
 #ifdef ARDUINO_ARCH_ESP32
-    return String(F("gpio")) + gpio;
+    return /*String(F("gpio")) +*/ String(gpio);
 #endif
 
 #ifdef ARDUINO_ARCH_ESP8266
