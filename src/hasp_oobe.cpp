@@ -14,6 +14,10 @@
 #include "hasp_config.h"
 #include "hasp_dispatch.h"
 
+static bool oobeAutoCalibrate = true;
+
+#if HASP_USE_WIFI > 0
+
 #if HASP_USE_QRCODE > 0
 #include "lv_qrcode.h"
 #endif
@@ -21,18 +25,13 @@
 static lv_obj_t * oobepage[2];
 static lv_obj_t * oobekb;
 extern lv_font_t * defaultFont;
-static bool oobeAutoCalibrate = true;
 
 lv_obj_t * pwd_ta;
-
-void oobeSetAutoCalibrate(bool cal)
-{
-    oobeAutoCalibrate = cal;
-}
 
 static inline void oobeSetPage(uint8_t pageid)
 {
     lv_scr_load(oobepage[pageid]);
+    lv_obj_invalidate(lv_disp_get_layer_sys(NULL));
 }
 
 void gotoPage1_cb(lv_obj_t * event_kb, lv_event_t event)
@@ -292,28 +291,64 @@ static void oobe_calibrate_cb(lv_obj_t * ta, lv_event_t event)
         }
     }
 }
+#endif // HASP_USE_WIFI
 
-void oobeSetup()
+void oobeSetAutoCalibrate(bool cal)
 {
+    oobeAutoCalibrate = cal;
+}
+
+bool oobeSetup()
+{
+#if HASP_USE_ETHERNET > 0
+    if(eth_connected) return false;
+#endif
+#if HASP_USE_WIFI > 0
     char ssid[32];
     char pass[32];
 
-#if HASP_USE_WIFI>0
     if(wifiShowAP(ssid, pass)) {
         guiSetDim(100);
         oobeSetupQR(ssid, pass);
         oobeSetupSsid();
-        oobeSetPage(0);
-        lv_obj_set_click(lv_disp_get_layer_sys(NULL), true);
-        lv_obj_set_event_cb(lv_disp_get_layer_sys(NULL), gotoPage1_cb);
 
         if(oobeAutoCalibrate) {
             lv_obj_set_click(lv_disp_get_layer_sys(NULL), true);
             lv_obj_set_event_cb(lv_disp_get_layer_sys(NULL), oobe_calibrate_cb);
             Log.verbose(F("OOBE: Enabled Auto Calibrate on touch"));
         } else {
+            lv_obj_set_click(lv_disp_get_layer_sys(NULL), false);
+            lv_obj_set_event_cb(lv_disp_get_layer_sys(NULL), gotoPage1_cb);
             Log.verbose(F("OOBE: Already calibrated"));
         }
+        oobeSetPage(0);
+        return true;
+    } else {
+        return false;
+    }
+#endif
+    return false;
+}
+
+void oobeFakeSetup()
+{
+#if HASP_USE_WIFI > 0
+    char ssid[32] = "HASP-ABCDEF";
+    char pass[32] = "haspadmin";
+
+    guiSetDim(100);
+    oobeSetupQR(ssid, pass);
+    oobeSetupSsid();
+    oobeSetPage(0);
+    lv_obj_set_click(lv_disp_get_layer_sys(NULL), true);
+    lv_obj_set_event_cb(lv_disp_get_layer_sys(NULL), gotoPage1_cb);
+
+    if(oobeAutoCalibrate) {
+        lv_obj_set_click(lv_disp_get_layer_sys(NULL), true);
+        lv_obj_set_event_cb(lv_disp_get_layer_sys(NULL), oobe_calibrate_cb);
+        Log.verbose(F("OOBE: Enabled Auto Calibrate on touch"));
+    } else {
+        Log.verbose(F("OOBE: Already calibrated"));
     }
 #endif
 }

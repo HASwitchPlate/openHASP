@@ -15,7 +15,13 @@ uint8_t gpioUsedInputCount = 0;
 using namespace ace_button;
 static AceButton * button[HASP_NUM_INPUTS];
 
-hasp_gpio_config_t gpioConfig[HASP_NUM_GPIO_CONFIG];
+
+
+// An array of button pins, led pins, and the led states. Cannot be const
+// because ledState is mutable.
+hasp_gpio_config_t gpioConfig[HASP_NUM_GPIO_CONFIG] = {
+    {2, 8, INPUT, LOW}, {3, 9, OUTPUT, LOW}, {4, 10, INPUT, HIGH}, {5, 11, OUTPUT, LOW}, {6, 12, INPUT, LOW},
+};
 
 #if defined(ARDUINO_ARCH_ESP32)
 class TouchConfig : public ButtonConfig {
@@ -176,19 +182,13 @@ void gpioSetup()
     // return;
 
 #if defined(ARDUINO_ARCH_ESP8266)
-    gpioConfig[0] = {D2, 7, HASP_GPIO_BUTTON, INPUT_PULLUP};
-    gpioConfig[1] = {D1, 7, HASP_GPIO_LED, OUTPUT};
-
-// gpioAddButton(D2, INPUT_PULLUP, HIGH, 1);
-// pinMode(D1, OUTPUT);
+    gpioAddButton(D2, INPUT_PULLUP, HIGH, 1);
+    pinMode(D1, OUTPUT);
 #endif
 
 #if defined(ARDUINO_ARCH_ESP32)
-    gpioConfig[0] = {D2, 0, HASP_GPIO_SWITCH, INPUT};
-    gpioConfig[1] = {D1, 1, HASP_GPIO_RELAY, OUTPUT};
-
-// gpioAddButton(D2, INPUT, HIGH, 1);
-// pinMode(D1, OUTPUT);
+    // gpioAddButton( D2, INPUT, HIGH, 1);
+    // pinMode(D1, OUTPUT);
 #endif
 
     /*

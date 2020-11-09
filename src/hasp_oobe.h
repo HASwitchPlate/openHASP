@@ -1,2 +1,3 @@
 void oobeSetAutoCalibrate(bool cal);
-void oobeSetup();
+bool oobeSetup();
+void oobeFakeSetup();

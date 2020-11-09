@@ -5,7 +5,7 @@
 #include "hasp_conf.h"
 #include "hasp_spiffs.h"
 
-#if HASP_USE_SPIFFS>0
+#if HASP_USE_SPIFFS > 0
 #if defined(ARDUINO_ARCH_ESP32)
 #include "SPIFFS.h"
 #endif
@@ -69,20 +69,31 @@ void spiffsInfo()
 
 void spiffsList()
 {
-    Log.verbose(F("FILE: Listing files on the internal flash:"));
+#if HASP_USE_SPIFFS > 0
+#if defined(ARDUINO_ARCH_ESP8266)
+    if(!SPIFFS.begin()) {
+#else
+    if(!SPIFFS.begin(true)) {
+#endif
+        Log.error(F("FILE: Flash file system not mouted."));
+    } else {
+
+        Log.verbose(F("FILE: Listing files on the internal flash:"));
 
 #if defined(ARDUINO_ARCH_ESP32)
-    File root = SPIFFS.open("/");
-    File file = root.openNextFile();
-    while(file) {
-        Log.verbose(F("FILE:    * %s  (%u bytes)"), file.name(), (uint32_t)file.size());
-        file = root.openNextFile();
-    }
+        File root = SPIFFS.open("/");
+        File file = root.openNextFile();
+        while(file) {
+            Log.verbose(F("FILE:    * %s  (%u bytes)"), file.name(), (uint32_t)file.size());
+            file = root.openNextFile();
+        }
 #endif
 #if defined(ARDUINO_ARCH_ESP8266)
-    Dir dir = SPIFFS.openDir("/");
-    while(dir.next()) {
-        Log.notice(F("FILE:    * %s  (%u bytes)"), dir.fileName().c_str(), (uint32_t)dir.fileSize());
+        Dir dir = SPIFFS.openDir("/");
+        while(dir.next()) {
+            Log.notice(F("FILE:    * %s  (%u bytes)"), dir.fileName().c_str(), (uint32_t)dir.fileSize());
+        }
+#endif
     }
 #endif
 }
@@ -91,7 +102,7 @@ void spiffsSetup()
 {
     // no SPIFFS settings, as settings depend on SPIFFS
 
-#if HASP_USE_SPIFFS>0
+#if HASP_USE_SPIFFS > 0
 #if defined(ARDUINO_ARCH_ESP8266)
     if(!SPIFFS.begin()) {
 #else

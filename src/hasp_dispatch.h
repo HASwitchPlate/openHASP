@@ -3,26 +3,29 @@
 
 #include "ArduinoJson.h"
 
+#define LOG_CMND_CTR "CMND: "
+
 void dispatchSetup(void);
 void dispatchLoop(void);
 
-void dispatchAttribute(String strTopic, const char * strPayload);
-void dispatchCommand(String cmnd);
+// void dispatchCommand(const char * topic, const char * payload); // intenal
 void dispatchConfig(const char * topic, const char * payload);
+void dispatchTopicPayload(const char * topic, const char * payload);
+void dispatchTextLine(const char * cmnd);
 
-void dispatchJson(char * strPayload);
-void dispatchJsonl(char * strPayload);
-void dispatchJsonl(Stream & stream);
+// void dispatchParseJson(char * strPayload);
+// void dispatchParseJsonl(char * strPayload);
+void dispatchParseJsonl(Stream & stream);
 
-void dispatchPage(String strPageid);
-void dispatchClearPage(String strPageid);
-void dispatchDim(String strDimLevel);
-void dispatchBacklight(String strPayload);
+void dispatchPage(const char * page);
+void dispatchClearPage(const char * page);
+void dispatchDim(const char * level);
+void dispatchBacklight(const char * payload);
 
 void dispatchWebUpdate(const char * espOtaUrl);
-void dispatchIdle(const char * state);
+void dispatch_output_idle_state(const char * state);
 void dispatchReboot(bool saveConfig);
-void dispatchStatusUpdate(void);
+void dispatch_output_statusupdate(void);
 
 void dispatch_button(uint8_t id, const char * event);
 

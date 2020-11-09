@@ -98,7 +98,7 @@ void TASMO_DATA_RECEIVE(char *data)
   Log.verbose(F("TAS: dataType [%s]"), dataType);
 
   if (!strcmp(dataType, "p[")){   //
-    dispatchCommand(data);
+    dispatchTextLine(data);
   } else if (!strcmp(dataType, "[\"")) {
     dispatchJson(data);
   } else {
@@ -123,7 +123,7 @@ void TASMO_DATA_RECEIVE(char *data)
     } else if (!strcmp(slvCmd, "clearpage")) {
       dispatchClearPage(slvVal);
     } else {
-      dispatchCommand(data);
+      dispatchTextLine(data);
     }
   }
 }

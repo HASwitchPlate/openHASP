@@ -85,19 +85,19 @@ static bool guiCheckSleep()
     uint32_t idle = lv_disp_get_inactive_time(NULL);
     if(idle >= (guiSleepTime1 + guiSleepTime2) * 1000U) {
         if(guiSleeping != 2) {
-            dispatchIdle(("LONG")); // Literal string
+            dispatch_output_idle_state(("LONG")); // Literal string
             guiSleeping = 2;
         }
         return true;
     } else if(idle >= guiSleepTime1 * 1000U) {
         if(guiSleeping != 1) {
-            dispatchIdle(("SHORT")); // Literal string
+            dispatch_output_idle_state(("SHORT")); // Literal string
             guiSleeping = 1;
         }
         return true;
     }
     if(guiSleeping != 0) {
-        dispatchIdle(("OFF")); // Literal string
+        dispatch_output_idle_state(("OFF")); // Literal string
         guiSleeping = 0;
     }
     return false;
@@ -513,9 +513,9 @@ void guiSetup()
     /* Dump TFT Configuration */
     // tftSetup(tft);
 #ifdef USE_DMA_TO_TFT
-    Log.verbose(F("TFT: DMA        : ENABELD"));
+    Log.verbose(F("TFT: DMA        : ENABLED"));
 #else
-    Log.verbose(F("TFT: DMA        : DISABELD"));
+    Log.verbose(F("TFT: DMA        : DISABLED"));
 #endif
 
     /* Load User Settings */

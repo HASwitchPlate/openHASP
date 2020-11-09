@@ -1,6 +1,10 @@
 #ifndef HASP_CONF_H
 #define HASP_CONF_H
 
+#define HASP_VERSION_MAJOR 0
+#define HASP_VERSION_MINOR 2
+#define HASP_VERSION_REVISION 1108
+
 #define HASP_USE_APP 1
 
 /* Network Services */
@@ -31,7 +35,7 @@
 #endif
 
 #ifndef HASP_USE_SYSLOG
-#define HASP_USE_SYSLOG 0
+#define HASP_USE_SYSLOG 1
 #endif
 
 #ifndef HASP_USE_TELNET
@@ -107,6 +111,21 @@
 #endif
 
 #if HASP_USE_ETHERNET > 0
+#if defined(ARDUINO_ARCH_ESP32)
+#include <ETH.h>
+
+#define ETH_ADDR        0
+#define ETH_POWER_PIN   -1
+#define ETH_MDC_PIN     23
+#define ETH_MDIO_PIN    18
+#define NRST            5
+#define ETH_TYPE        ETH_PHY_LAN8720
+#define ETH_CLKMODE     ETH_CLOCK_GPIO17_OUT
+
+#include "hasp_ethernet_esp32.h"
+#warning Using ESP32 Ethernet LAN8720
+
+#else
 #if USE_BUILTIN_ETHERNET > 0
 #include <LwIP.h>
 #include <STM32Ethernet.h>
@@ -120,6 +139,7 @@
 #warning Use W5x00 Ethernet shield
 #endif
 #include "hasp_ethernet.h"
+#endif
 #endif
 
 #if HASP_USE_MQTT > 0
@@ -144,6 +164,13 @@
 
 #if HASP_USE_OTA > 0
 #include "hasp_ota.h"
+#ifndef HASP_OTA_PORT
+#if defined(ARDUINO_ARCH_ESP32)
+#define HASP_OTA_PORT 3232
+#elif defined(ARDUINO_ARCH_ESP8266)
+#define HASP_OTA_PORT 8266
+#endif
+#endif
 #endif
 
 #if HASP_USE_TASMOTA_SLAVE > 0

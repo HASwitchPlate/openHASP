@@ -106,6 +106,7 @@ bool haspGetConfig(const JsonObject & settings);
 bool haspSetConfig(const JsonObject & settings);
 
 lv_obj_t * hasp_find_obj_from_id(lv_obj_t * parent, uint8_t objid);
+lv_font_t * hasp_get_font(uint8_t fontid);
 
 void IRAM_ATTR btn_event_handler(lv_obj_t * obj, lv_event_t event);
 void IRAM_ATTR toggle_event_handler(lv_obj_t * obj, lv_event_t event);

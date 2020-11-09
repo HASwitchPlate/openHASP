@@ -42,25 +42,9 @@ void setup()
      * Apply User Configuration
      ***************************/
     debugSetup();
-    guiSetup();
 
 #if HASP_USE_GPIO > 0
     gpioSetup();
-#endif
-
-#if HASP_USE_WIFI > 0
-    wifiSetup();
-#endif
-
-    oobeSetup();
-    haspSetup();
-
-#if HASP_USE_MDNS > 0
-    mdnsSetup();
-#endif
-
-#if HASP_USE_OTA > 0
-    otaSetup();
 #endif
 
 #if HASP_USE_ETHERNET > 0
@@ -68,7 +52,24 @@ void setup()
 #endif
 
 #if HASP_USE_MQTT > 0
-    mqttSetup();
+    mqttSetup(); // Load Hostname before starting WiFi
+#endif
+
+#if HASP_USE_WIFI > 0
+    wifiSetup();
+#endif
+
+    guiSetup();
+    if(!oobeSetup()) {
+        haspSetup();
+    }
+
+#if HASP_USE_MDNS > 0
+    mdnsSetup();
+#endif
+
+#if HASP_USE_OTA > 0
+    otaSetup();
 #endif
 
 #if HASP_USE_HTTP > 0
@@ -108,18 +109,19 @@ void loop()
     /* Graphics Loops */
     // tftLoop();
     guiLoop();
+
     /* Application Loops */
     // haspLoop();
     debugLoop();
 
 #if HASP_USE_GPIO > 0
     gpioLoop();
-#endif
+#endif // GPIO
 
     /* Network Services Loops */
 #if HASP_USE_ETHERNET > 0
     ethernetLoop();
-#endif
+#endif // ETHERNET
 
 #if HASP_USE_MQTT > 0
     mqttLoop();
@@ -144,8 +146,6 @@ void loop()
 #if HASP_USE_TASMOTA_SLAVE > 0
     slaveLoop();
 #endif // TASMOTASLAVE
-
-    // digitalWrite(HASP_OUTPUT_PIN, digitalRead(HASP_INPUT_PIN)); // sets the LED to the button's value
 
     /* Timer Loop */
     if(millis() - mainLastLoopTime >= 1000) {

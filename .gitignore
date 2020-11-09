@@ -10,6 +10,10 @@ src/user_config_override.h
 platformio_override.ini
 user_setups/active/*
 
+## Test result files
+*.html
+*.xml
+
 ## Visual Studio Code specific ######
 .vscode
 .vscode/.browse.c_cpp.db*

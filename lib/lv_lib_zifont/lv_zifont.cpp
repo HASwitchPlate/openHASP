@@ -79,8 +79,8 @@ static inline bool openFont(File & file, const char * filename)
 
     file = SPIFFS.open(filename, "r");
     if(!file) {
-        // Log.error(F("FONT: %sOpening font: %s"), filename);
-        // return false;
+         Log.error(F("FONT: %sOpening font: %s"), filename);
+         return false;
     }
     return file;
 }
@@ -117,7 +117,7 @@ int lv_zifont_font_init(lv_font_t ** font, const char * font_path, uint16_t size
 
     /* Initialize Last Glyph DSC */
     dsc->last_glyph_dsc = (lv_zifont_char_t *)lv_mem_alloc(sizeof(lv_zifont_char_t));
-    _lv_memset(dsc->last_glyph_dsc, 0x00, sizeof(lv_zifont_char_t)); // lv_mem_alloc might be dirty
+    memset(dsc->last_glyph_dsc, 0x00, sizeof(lv_zifont_char_t)); // lv_mem_alloc might be dirty
 
     if(dsc->last_glyph_dsc == NULL) return ZIFONT_ERROR_OUT_OF_MEMORY;
     dsc->last_glyph_dsc->width = 0;
@@ -156,8 +156,8 @@ int lv_zifont_font_init(lv_font_t ** font, const char * font_path, uint16_t size
     if(!dsc->ascii_glyph_dsc) {
         dsc->ascii_glyph_dsc = (lv_zifont_char_t *)lv_mem_alloc(sizeof(lv_zifont_char_t) * CHAR_CACHE_SIZE);
         LV_ASSERT_MEM(dsc->ascii_glyph_dsc);
-        _lv_memset(dsc->ascii_glyph_dsc, 0x00,
-                  sizeof(lv_zifont_char_t) * CHAR_CACHE_SIZE); // lv_mem_alloc might be dirty
+        memset(dsc->ascii_glyph_dsc, 0x00,
+               sizeof(lv_zifont_char_t) * CHAR_CACHE_SIZE); // lv_mem_alloc might be dirty
     }
     if(dsc->ascii_glyph_dsc == NULL) {
         file.close();
@@ -407,8 +407,10 @@ bool IRAM_ATTR lv_font_get_glyph_dsc_fmt_zifont(const lv_font_t * font, lv_font_
                                                 uint32_t unicode_letter, uint32_t unicode_letter_next)
 {
     /* Only ascii characteres supported for now */
-    if(unicode_letter < 0x20) return false;
-    if(unicode_letter > 0xff && unicode_letter < 0xf000) return false;
+    // returning true with a box_h of 0 does not display an error
+    dsc_out->box_w = dsc_out->box_h = 0; // Prevents glyph not found error messages when true is returned
+    if(unicode_letter < 0x20) return true;
+    if(unicode_letter > 0xff && unicode_letter < 0xf000) return true;
     // if(unicode_letter > 0xff) Serial.printf("Char# %u\n", unicode_letter);
 
     // ulong startMillis               = millis();
@@ -439,7 +441,7 @@ bool IRAM_ATTR lv_font_get_glyph_dsc_fmt_zifont(const lv_font_t * font, lv_font_
         if(unicode_letter >= 0xF000) {
             char filename[32];
             sprintf_P(filename, PSTR("/fontawesome%u.zi"), fdsc->CharHeight);
-            if(!openFont(file, filename)) return false;
+            if(!openFont(file, filename)) return true; // suppress glyph not found errors for icon font
         } else {
             if(!openFont(file, (char *)font->user_data)) return false;
         }

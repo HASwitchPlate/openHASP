@@ -21,6 +21,7 @@
 
 #include "hasp_attribute.h"
 #include "hasp.h"
+#include "lv_theme_hasp.h"
 
 #include "EEPROM.h"
 
@@ -55,7 +56,7 @@ char haspZiFontPath[32];
 
 lv_style_t style_mbox_bg; /*Black bg. style with opacity*/
 lv_obj_t * kb;
-lv_font_t * defaultFont;
+// lv_font_t * defaultFont;
 
 #if LV_DEMO_WALLPAPER
 LV_IMG_DECLARE(img_bubble_pattern)
@@ -69,12 +70,9 @@ static const char * btnm_map2[] = {"0",  "1", "\n", "2",  "3",  "\n", "4",  "5",
 */
 
 lv_obj_t * pages[HASP_NUM_PAGES];
-#if defined(ARDUINO_ARCH_ESP8266)
-static lv_font_t * haspFonts[4];
-#else
-lv_font_t * haspFonts[8];
-#endif
-uint8_t current_page = 0;
+static lv_font_t * haspFonts[4] = {nullptr, LV_THEME_DEFAULT_FONT_NORMAL, LV_THEME_DEFAULT_FONT_SUBTITLE,
+                                   LV_THEME_DEFAULT_FONT_TITLE};
+uint8_t current_page            = 0;
 
 /**********************
  *      MACROS
@@ -84,6 +82,19 @@ uint8_t current_page = 0;
  *   GLOBAL FUNCTIONS
  **********************/
 void haspLoadPage(const char * pages);
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/**
+ * Get Font ID
+ */
+lv_font_t * hasp_get_font(uint8_t fontid)
+{
+    if(fontid >= 4) {
+        return nullptr;
+    } else {
+        return haspFonts[fontid];
+    }
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /**
@@ -123,7 +134,8 @@ bool get_page_id(lv_obj_t * obj, uint8_t * pageid)
 
 lv_obj_t * hasp_find_obj_from_id(lv_obj_t * parent, uint8_t objid)
 {
-    if(objid == 0) return parent;
+    if(objid == 0 || parent == nullptr) return parent;
+
     lv_obj_t * child;
     child = lv_obj_get_child(parent, NULL);
     while(child) {
@@ -239,26 +251,13 @@ static inline void hasp_send_obj_attribute_txt(lv_obj_t * obj, const char * txt)
 void hasp_process_attribute(uint8_t pageid, uint8_t objid, const char * attr, const char * payload)
 {
     hasp_process_obj_attribute(hasp_find_obj_from_id(pageid, objid), attr, payload, strlen(payload) > 0);
-
-    /*        else {
-                // publish the change
-                std::string strValue = "";
-                if(haspGetObjAttribute(obj, strAttr, strValue)) {
-    #if HASP_USE_MQTT > 0
-                    mqtt_send_attribute(pageid, objid, strAttr.c_str(), strValue.c_str());
-    #endif
-                } else {
-                    Log.warning(F("HASP: Unknown property: %s"), strAttr.c_str());
-                }
-            } // payload */
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /**
- * Connection lost GUI
+ * WakeUp the display using a command instead of touch
  */
-
 void haspWakeUp()
 {
     lv_disp_trig_activity(NULL);
@@ -344,18 +343,25 @@ void haspProgressMsg(const __FlashStringHelper * msg)
     haspProgressMsg(String(msg).c_str());
 }
 
+/*Add a custom apply callback*/
+static void custom_font_apply_cb(lv_theme_t * th, lv_obj_t * obj, lv_theme_style_t name)
+{
+    lv_style_list_t * list;
+
+    switch(name) {
+        case LV_THEME_BTN:
+            list = lv_obj_get_style_list(obj, LV_BTN_PART_MAIN);
+            // _lv_style_list_add_style(list, &my_style);
+            break;
+    }
+}
+
 /**
  * Create a demo application
  */
 void haspSetup()
 {
     guiSetDim(haspStartDim);
-
-    // lv_coord_t hres = lv_disp_get_hor_res(NULL);
-    // lv_coord_t vres = lv_disp_get_ver_res(NULL);
-
-    // static lv_font_t *
-    //    my_font = (lv_font_t *)lv_mem_alloc(sizeof(lv_font_t));
 
     /******* File System Test ********************************************************************/
     lv_fs_file_t f;
@@ -383,21 +389,23 @@ void haspSetup()
         Log.error(F("Closing pages.json OK"));
     else
         Log.verbose(F("Closing pages.json on FS failed %d"), res);
-    /******* File System Test ********************************************************************/
+        /******* File System Test ********************************************************************/
 
-    /* ********** Font Initializations ********** */
-    defaultFont = LV_FONT_DEFAULT; // Use default font
+        /* ********** Font Initializations ********** */
+
 #if HASP_USE_SPIFFS > 0
 #if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
     lv_zifont_init();
 
-    if(lv_zifont_font_init(&haspFonts[0], haspZiFontPath, 24) != 0) {
-        Log.error(F("HASP: Failed to set the custom font to %s"), haspZiFontPath);
+    if(lv_zifont_font_init(&haspFonts[0], haspZiFontPath, 32) != 0) {
+        Log.error(F("HASP: Failed to set font to %s"), haspZiFontPath);
+        haspFonts[0] = LV_FONT_DEFAULT;
     } else {
-        defaultFont = haspFonts[0];
+        // defaultFont = haspFonts[0];
     }
 #endif
 #endif
+
     /* ********** Font Initializations ********** */
 
     /* ********** Theme Initializations ********** */
@@ -405,8 +413,8 @@ void haspSetup()
     switch(haspThemeId) {
 #if(LV_USE_THEME_EMPTY == 1)
         case 0:
-            th = lv_theme_empty_init(LV_COLOR_PURPLE, LV_COLOR_BLACK, LV_THEME_DEFAULT_FLAGS, defaultFont, defaultFont,
-                                     defaultFont, defaultFont);
+            th = lv_theme_empty_init(LV_COLOR_PURPLE, LV_COLOR_BLACK, LV_THEME_DEFAULT_FLAGS,  haspFonts[0], haspFonts[1],
+                                    haspFonts[2], haspFonts[3]);
             break;
 #endif
 
@@ -424,15 +432,21 @@ void haspSetup()
 
 #if(LV_USE_THEME_MONO == 1)
         case 3:
-            th = lv_theme_mono_init(LV_COLOR_PURPLE, LV_COLOR_BLACK, LV_THEME_DEFAULT_FLAGS, defaultFont, defaultFont,
-                                    defaultFont, defaultFont);
+            th = lv_theme_mono_init(LV_COLOR_PURPLE, LV_COLOR_BLACK, LV_THEME_DEFAULT_FLAGS, haspFonts[0], haspFonts[1],
+                                    haspFonts[2], haspFonts[3]);
             break;
 #endif
 
 #if LV_USE_THEME_MATERIAL == 1
         case 4:
-            th = lv_theme_material_init(LV_COLOR_PURPLE, LV_COLOR_ORANGE, LV_THEME_DEFAULT_FLAGS, defaultFont,
-                                        defaultFont, defaultFont, defaultFont);
+            th = lv_theme_material_init(LV_COLOR_PURPLE, LV_COLOR_ORANGE,
+                                        LV_THEME_MATERIAL_FLAG_LIGHT + LV_THEME_MATERIAL_FLAG_NO_FOCUS, haspFonts[0],
+                                        haspFonts[1], haspFonts[2], haspFonts[3]);
+            break;
+        case 9:
+            th = lv_theme_material_init(LV_COLOR_PURPLE, LV_COLOR_ORANGE,
+                                        LV_THEME_MATERIAL_FLAG_DARK + LV_THEME_MATERIAL_FLAG_NO_FOCUS, haspFonts[0],
+                                        haspFonts[1], haspFonts[2], haspFonts[3]);
             break;
 #endif
 
@@ -450,15 +464,15 @@ void haspSetup()
 
 #if LV_USE_THEME_TEMPLATE == 1
         case 7:
-            th = lv_theme_template_init(LV_COLOR_PURPLE, LV_COLOR_ORANGE, LV_THEME_DEFAULT_FLAGS, defaultFont,
-                                        defaultFont, defaultFont, defaultFont);
+            th = lv_theme_template_init(LV_COLOR_PURPLE, LV_COLOR_ORANGE, LV_THEME_DEFAULT_FLAGS,  haspFonts[0], haspFonts[1],
+                                    haspFonts[2], haspFonts[3]);
             break;
 #endif
-
-#if(LV_USE_THEME_HASP == 1) || (LV_USE_THEME_TEMPLATE == 1)
+#if(LV_USE_THEME_HASP == 1)
         case 8:
-            th = lv_theme_template_init(LV_COLOR_PURPLE, LV_COLOR_ORANGE, LV_THEME_DEFAULT_FLAGS, defaultFont,
-                                        defaultFont, defaultFont, defaultFont);
+            th = lv_theme_hasp_init(lv_color_hsv_to_rgb(haspThemeHue, 100, 100),
+                                    lv_color_hsv_to_rgb(haspThemeHue, 100, 100), LV_THEME_DEFAULT_FLAGS, haspFonts[0],
+                                    haspFonts[1], haspFonts[2], haspFonts[3]);
             break;
 #endif
 
@@ -471,8 +485,8 @@ void haspSetup()
                     break;
         */
         default:
-            th = lv_theme_material_init(LV_COLOR_PURPLE, LV_COLOR_ORANGE, LV_THEME_DEFAULT_FLAGS, defaultFont,
-                                        defaultFont, defaultFont, defaultFont);
+            th = lv_theme_template_init(LV_COLOR_PURPLE, LV_COLOR_ORANGE, LV_THEME_DEFAULT_FLAGS, haspFonts[0],
+                                        haspFonts[1], haspFonts[2], haspFonts[3]);
             Log.error(F("HASP: Unknown theme selected"));
     }
 
@@ -484,20 +498,19 @@ void haspSetup()
     // lv_theme_set_current(th);
     /* ********** Theme Initializations ********** */
 
-    lv_style_list_t * list;
-    static lv_style_t pagefont;
-    lv_style_init(&pagefont);
-    lv_style_set_text_font(&pagefont, LV_STATE_DEFAULT, defaultFont);
+    // lv_style_list_t * list;
+    // static lv_style_t pagefont;
+    // lv_style_init(&pagefont);
+    // lv_style_set_text_font(&pagefont, LV_STATE_DEFAULT, defaultFont);
 
-    list = lv_obj_get_style_list(lv_disp_get_layer_top(NULL), LV_OBJ_PART_MAIN);
-    _lv_style_list_add_style(list, &pagefont);
+    // list = lv_obj_get_style_list(lv_disp_get_layer_top(NULL), LV_OBJ_PART_MAIN);
+    // _lv_style_list_add_style(list, &pagefont);
 
     /* Create all screens using the theme */
     for(uint8_t i = 0; i < (sizeof pages / sizeof *pages); i++) {
         pages[i] = lv_obj_create(NULL, NULL);
-        list     = lv_obj_get_style_list(pages[i], LV_OBJ_PART_MAIN);
-        _lv_style_list_add_style(list, &pagefont);
-        // lv_obj_set_size(pages[0], hres, vres);
+        //  list     = lv_obj_get_style_list(pages[i], LV_OBJ_PART_MAIN);
+        // _lv_style_list_add_style(list, &pagefont);
     }
 
 #if HASP_USE_WIFI > 0
@@ -711,10 +724,10 @@ String haspGetVersion()
 void haspClearPage(uint16_t pageid)
 {
     lv_obj_t * page = get_page_obj(pageid);
-    if(!page) {
+    if(!page || pageid > 255) {
         Log.warning(F("HASP: Page ID %u not defined"), pageid);
-    } else if(page == lv_layer_sys() || page == lv_layer_top()) {
-        Log.warning(F("HASP: Cannot clear a layer"));
+    } else if(page == lv_layer_sys() /*|| page == lv_layer_top()*/) {
+        Log.warning(F("HASP: Cannot clear system layer"));
     } else {
         Log.notice(F("HASP: Clearing page %u"), pageid);
         lv_obj_clean(pages[pageid]);
@@ -787,7 +800,6 @@ void haspNewObject(const JsonObject & config, uint8_t & saved_page_id)
         }
     }
 
-    /* Input cache and validation */
     uint8_t objid = config[F("objid")].as<uint8_t>();
     uint8_t id    = config[F("id")].as<uint8_t>();
 
@@ -802,9 +814,7 @@ void haspNewObject(const JsonObject & config, uint8_t & saved_page_id)
         /* ----- Basic Objects ------ */
         case LV_HASP_BUTTON: {
             obj = lv_btn_create(parent_obj, NULL);
-            /* lv_obj_t * label ; */
             lv_label_create(obj, NULL);
-            // haspSetOpacity(obj, LV_OPA_COVER);
             lv_obj_set_event_cb(obj, btn_event_handler);
             break;
         }
@@ -931,8 +941,7 @@ void haspNewObject(const JsonObject & config, uint8_t & saved_page_id)
             break;
         }
         case LV_HASP_ROLLER: {
-            obj           = lv_roller_create(parent_obj, NULL);
-            bool infinite = config[F("infinite")].as<bool>();
+            obj = lv_roller_create(parent_obj, NULL);
             // lv_roller_set_fix_width(obj, width);
             // lv_obj_align(obj, NULL, LV_ALIGN_IN_TOP_MID, 0, 20);
             lv_obj_set_event_cb(obj, roller_event_handler);
@@ -1004,7 +1013,7 @@ void haspLoadPage(const char * pages)
     Log.notice(F("HASP: Loading file %s"), pages);
 
     File file = SPIFFS.open(pages, "r");
-    dispatchJsonl(file);
+    dispatchParseJsonl(file);
     file.close();
 
     Log.notice(F("HASP: File %s loaded"), pages);

@@ -19,6 +19,7 @@
 #include "hasp_mqtt.h"
 #endif
 
+#include "hasp_conf.h"
 #include "hasp_debug.h"
 #include "hasp_config.h"
 #include "hasp_dispatch.h"
@@ -37,6 +38,7 @@
 
 #if HASP_USE_SYSLOG > 0
 #include "Syslog.h"
+#include <WiFiUdp.h>
 
 #ifndef SYSLOG_SERVER
 #define SYSLOG_SERVER ""
@@ -71,7 +73,7 @@ Syslog * syslog;
 #endif // USE_SYSLOG
 
 // Serial Settings
-uint8_t serialInputIndex   = 0;    // Empty buffer
+uint8_t serialInputIndex = 0; // Empty buffer
 char serialInputBuffer[1024];
 uint16_t debugSerialBaud = SERIAL_SPEED / 10; // Multiplied by 10
 bool debugSerialStarted  = false;
@@ -97,7 +99,8 @@ String debugHaspHeader()
     String header((char *)0);
     header.reserve(256);
     if(debugAnsiCodes) header += TERM_COLOR_YELLOW;
-    header += F("           _____ _____ _____ _____\r\n"
+    header += F("\r\n"
+                "           _____ _____ _____ _____\r\n"
                 "          |  |  |  _  |   __|  _  |\r\n"
                 "          |     |     |__   |   __|\r\n"
                 "          |__|__|__|__|_____|__|\r\n"
@@ -279,6 +282,9 @@ static void debugPrintLvglMemory(int level, Print * _logOutput)
 
 static void debugPrintPriority(int level, Print * _logOutput)
 {
+    if(_logOutput == &syslogClient) {
+    }
+
     switch(level) {
         case LOG_LEVEL_FATAL:
         case LOG_LEVEL_ERROR:
@@ -381,23 +387,23 @@ void debugLvgl(lv_log_level_t level, const char * file, uint32_t line, const cha
 
 void debugLoop()
 {
-   while(Serial.available()) {
+    while(Serial.available()) {
         char ch = Serial.read();
         Serial.print(ch);
         if(ch == 13 || ch == 10) {
             serialInputBuffer[serialInputIndex] = 0;
-            if(serialInputIndex > 0) dispatchCommand(serialInputBuffer);
+            if(serialInputIndex > 0) dispatchTextLine(serialInputBuffer);
             serialInputIndex = 0;
         } else {
             if(serialInputIndex < sizeof(serialInputBuffer) - 1) {
                 serialInputBuffer[serialInputIndex++] = ch;
             }
-            serialInputBuffer[serialInputIndex] = 0;
-            if(strcmp(serialInputBuffer, "jsonl=") == 0) {
-                dispatchJsonl(Serial);
-                serialInputIndex = 0;
-            }
+            // if(strcmp(serialInputBuffer, "jsonl=") == 0) {
+            //     dispatchJsonl(Serial);
+            //     serialInputIndex = 0;
+            // }
         }
+        serialInputBuffer[serialInputIndex] = 0;
     }
 }
 
@@ -442,7 +448,7 @@ void debugLoop()
 void debugEverySecond()
 {
     if(debugTelePeriod > 0 && (millis() - debugLastMillis) >= debugTelePeriod * 1000) {
-        dispatchStatusUpdate();
+        dispatch_output_statusupdate();
         debugLastMillis = millis();
     }
     // printLocalTime();

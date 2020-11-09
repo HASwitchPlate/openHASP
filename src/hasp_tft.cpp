@@ -51,12 +51,11 @@ void tftShowConfig(TFT_eSPI & tft)
     tft.getSetup(tftSetup);
 
     Log.verbose(F("TFT: TFT_eSPI   : v%s"), tftSetup.version.c_str());
-    // #if defined(ARDUINO_ARCH_ESP8266) || defined(ARDUINO_ARCH_ESP32)
-    //     Log.verbose(F("TFT: Processor  : ESP%x"), tftSetup.esp);
-    // #else
-    //     Log.verbose(F("TFT: Processor  : STM%x"), tftSetup.esp);
-    // #endif
-    Log.verbose(F("TFT: Processor  : %s"), halGetChipModel().c_str());
+#if defined(ARDUINO_ARCH_ESP8266) || defined(ARDUINO_ARCH_ESP32)
+    Log.verbose(F("TFT: Processor  : ESP%x"), tftSetup.esp);
+#else
+    Log.verbose(F("TFT: Processor  : STM%x"), tftSetup.esp);
+#endif
     Log.verbose(F("TFT: CPU freq.  : %i MHz"), halGetCpuFreqMHz());
 
 #if defined(ARDUINO_ARCH_ESP8266)
