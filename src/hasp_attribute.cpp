@@ -48,7 +48,7 @@ static inline lv_color_t haspLogColor(lv_color_t color)
     // uint8_t r = (LV_COLOR_GET_R(color) * 263 + 7) >> 5;
     // uint8_t g = (LV_COLOR_GET_G(color) * 259 + 3) >> 6;
     // uint8_t b = (LV_COLOR_GET_B(color) * 263 + 7) >> 5;
-    // Log.trace(F("Color: R%u G%u B%u"), r, g, b);
+    // Log.trace(TAG_ATTR,F("Color: R%u G%u B%u"), r, g, b);
     return color;
 }
 
@@ -114,7 +114,7 @@ static lv_color_t haspPayloadToColor(const char * payload)
     }
 
     /* Unknown format */
-    Log.warning(F("Invalid color %s"), payload);
+    Log.warning(TAG_ATTR, F("Invalid color %s"), payload);
     return LV_COLOR_BLACK;
 }
 
@@ -163,7 +163,7 @@ static void hasp_process_label_long_mode(lv_obj_t * obj, const char * payload, b
         } else if(!strcasecmp_P(payload, PSTR("loop"))) {
             mode = LV_LABEL_LONG_SROLL_CIRC;
         } else {
-            return Log.warning(F("Invalid long mode"));
+            return Log.warning(TAG_ATTR, F("Invalid long mode"));
         }
         lv_label_set_long_mode(obj, mode);
     } else {
@@ -186,10 +186,10 @@ lv_obj_t * FindButtonLabel(lv_obj_t * btn)
             }
 
         } else {
-            Log.error(F("HASP: FindButtonLabel NULL Pointer encountered"));
+            Log.error(TAG_ATTR, F("HASP: FindButtonLabel NULL Pointer encountered"));
         }
     } else {
-        Log.warning(F("HASP: Button not defined"));
+        Log.warning(TAG_ATTR, F("HASP: Button not defined"));
     }
     return NULL;
 }
@@ -207,7 +207,7 @@ static inline void haspSetLabelText(lv_obj_t * obj, const char * value)
 static inline bool haspGetLabelText(lv_obj_t * obj, char * text)
 {
     if(!obj) {
-        Log.warning(F("HASP: Button not defined"));
+        Log.warning(TAG_ATTR, F("HASP: Button not defined"));
         return false;
     }
 
@@ -222,7 +222,7 @@ static inline bool haspGetLabelText(lv_obj_t * obj, char * text)
         }
 
     } else {
-        Log.warning(F("HASP: haspGetLabelText NULL Pointer encountered"));
+        Log.warning(TAG_ATTR, F("HASP: haspGetLabelText NULL Pointer encountered"));
     }
 
     return false;
@@ -420,7 +420,7 @@ static void hasp_local_style_attr(lv_obj_t * obj, const char * attr_p, uint16_t 
             if(font) {
                 return lv_obj_set_style_local_text_font(obj, part, state, font);
             } else {
-                return Log.warning(F("HASP: Unknown Font ID %s"), payload);
+                return Log.warning(TAG_ATTR, F("HASP: Unknown Font ID %s"), payload);
             }
         }
 
@@ -527,7 +527,7 @@ static void hasp_local_style_attr(lv_obj_t * obj, const char * attr_p, uint16_t 
             if(font) {
                 return lv_obj_set_style_local_value_font(obj, part, state, font);
             } else {
-                return Log.warning(F("HASP: Unknown Font ID %s"), attr_p);
+                return Log.warning(TAG_ATTR, F("HASP: Unknown Font ID %s"), attr_p);
             }
         }
 
@@ -555,7 +555,7 @@ static void hasp_local_style_attr(lv_obj_t * obj, const char * attr_p, uint16_t 
             /* Transition attributes */
             // Todo
     }
-    Log.warning(F("HASP: Unknown property %s"), attr_p);
+    Log.warning(TAG_ATTR, F("HASP: Unknown property %s"), attr_p);
 }
 
 // OK
@@ -640,7 +640,6 @@ static void hasp_process_obj_attribute_val(lv_obj_t * obj, const char * attr, co
     if(check_obj_type(objtype, LV_HASP_CHECKBOX)) {
         return update ? lv_checkbox_set_checked(obj, is_true(payload))
                       : hasp_out_int(obj, attr, lv_checkbox_is_checked(obj));
-
     }
     if(check_obj_type(objtype, LV_HASP_SWITCH)) {
         if(update) {
@@ -724,7 +723,7 @@ static void hasp_process_obj_attribute_range(lv_obj_t * obj, const char * attr, 
         return update ? lv_bar_set_range(obj, set_min ? val : min, set_max ? val : max)
                       : hasp_out_int(obj, attr, set_min ? lv_bar_get_min_value(obj) : lv_bar_get_max_value(obj));
     }
-    
+
     if(check_obj_type(objtype, LV_HASP_LMETER)) {
         int16_t min = lv_linemeter_get_min_value(obj);
         int16_t max = lv_linemeter_get_max_value(obj);
@@ -746,14 +745,14 @@ static void hasp_process_obj_attribute_range(lv_obj_t * obj, const char * attr, 
 void hasp_process_obj_attribute(lv_obj_t * obj, const char * attr_p, const char * payload, bool update)
 {
     unsigned long start = millis();
-    if(!obj) return Log.warning(F("HASP: Unknown object"));
+    if(!obj) return Log.warning(TAG_ATTR, F("Unknown object"));
     int16_t val = atoi(payload);
 
     char * attr = (char *)attr_p;
     if(*attr == '.') attr++; // strip leading '.'
 
     uint16_t attr_hash = sdbm(attr);
-    //    Log.trace("ATTR: %s => %d", attr, attr_hash);
+    //    Log.trace(TAG_ATTR,"%s => %d", attr, attr_hash);
 
     /* 16-bit Hash Lookup Table */
     switch(attr_hash) {
@@ -904,7 +903,7 @@ void hasp_process_obj_attribute(lv_obj_t * obj, const char * attr_p, const char 
     }
 
     hasp_local_style_attr(obj, attr, attr_hash, payload, update);
-    Log.trace(F("ATTR: %s (%d)took %d millis"), attr_p, attr_hash, millis() - start);
+    Log.trace(TAG_ATTR, F("%s (%d) took %d ms."), attr_p, attr_hash, millis() - start);
 }
 
 /* **************************

@@ -1,10 +1,6 @@
 #ifndef HASP_CONF_H
 #define HASP_CONF_H
 
-#define HASP_VERSION_MAJOR 0
-#define HASP_VERSION_MINOR 2
-#define HASP_VERSION_REVISION 1108
-
 #define HASP_USE_APP 1
 
 /* Network Services */

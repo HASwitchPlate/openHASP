@@ -28,9 +28,9 @@
 void confDebugSet(const char * name)
 {
     /*char buffer[128];
-    snprintf(buffer, sizeof(buffer), PSTR("CONF:    * %s set"), name);
+    snprintf(buffer, sizeof(buffer), PSTR("   * %s set"), name);
     debugPrintln(buffer);*/
-    Log.trace(F("CONF:    * %s set"), name);
+    Log.trace(TAG_CONF, F("   * %s set"), name);
 }
 
 bool configSet(int8_t & value, const JsonVariant & setting, const char * name)
@@ -75,15 +75,15 @@ void configStartDebug(bool setupdebug, String & configFile)
     if(setupdebug) {
         debugStart(); // Debug started, now we can use it; HASP header sent
 #if HASP_USE_SPIFFS > 0
-        Log.notice(F("FILE: [SUCCESS] SPI flash FS mounted"));
+        Log.notice(TAG_CONF, F("FILE: [SUCCESS] SPI flash FS mounted"));
         spiffsInfo();
         spiffsList();
 #endif
     }
 #if HASP_USE_SPIFFS > 0
-    Log.notice(F("CONF: Loading %s"), configFile.c_str());
+    Log.notice(TAG_CONF, F("Loading %s"), configFile.c_str());
 #else
-    Log.notice(F("CONF: reading EEPROM"));
+    Log.notice(TAG_CONF, F("reading EEPROM"));
 #endif
 }
 
@@ -100,7 +100,7 @@ void configGetConfig(JsonDocument & settings, bool setupdebug = false)
     if(file) {
         size_t size = file.size();
         if(size > 1024) {
-            Log.error(F("CONF: Config file size is too large"));
+            Log.error(TAG_CONF, F("Config file size is too large"));
             return;
         }
 
@@ -121,8 +121,8 @@ void configGetConfig(JsonDocument & settings, bool setupdebug = false)
             output.replace(settings[F("http")][F("pass")].as<String>(), passmask);
             output.replace(settings[F("mqtt")][F("pass")].as<String>(), passmask);
             output.replace(settings[F("wifi")][F("pass")].as<String>(), passmask);
-            Log.verbose(F("CONF: %s"), output.c_str());
-            Log.notice(F("CONF: [SUCCESS] Loaded %s"), configFile.c_str());
+            Log.verbose(TAG_CONF, output.c_str());
+            Log.notice(TAG_CONF, F("[SUCCESS] Loaded %s"), configFile.c_str());
 
             if(setupdebug) debugSetup();
             return;
@@ -144,7 +144,7 @@ void configGetConfig(JsonDocument & settings, bool setupdebug = false)
     configStartDebug(setupdebug, configFile);
 
 #if HASP_USE_SPIFFS > 0
-    Log.error(F("CONF: Failed to load %s"), configFile.c_str());
+    Log.error(TAG_CONF, F("Failed to load %s"), configFile.c_str());
 #endif
 }
 /*
@@ -172,7 +172,7 @@ void configBackupToEeprom()
         file.close();
         EEPROM.commit();
 
-        Log.verbose(F("CONF: Written %u to EEPROM"), index);
+        Log.verbose(TAG_CONF,F("Written %u to EEPROM"), index);
     }
 #endif
 }
@@ -183,11 +183,15 @@ void configWriteConfig()
     configFile.reserve(128);
     configFile = String(FPSTR(HASP_CONFIG_FILE));
 
+    String settingsChanged((char *)0);
+    settingsChanged.reserve(128);
+    settingsChanged = F("Settings changed!");
+
     /* Read Config File */
     DynamicJsonDocument doc(8 * 256);
-    Log.notice(F("CONF: Config LOADING first %s"), configFile.c_str());
+    Log.notice(TAG_CONF, F("Config LOADING first %s"), configFile.c_str());
     configGetConfig(doc, false);
-    Log.trace(F("CONF: Config LOADED first %s"), configFile.c_str());
+    Log.trace(TAG_CONF, F("Config LOADED first %s"), configFile.c_str());
 
     // Make sure we have a valid JsonObject to start from
     JsonObject settings;
@@ -204,7 +208,7 @@ void configWriteConfig()
     if(settings[F("wifi")].as<JsonObject>().isNull()) settings.createNestedObject(F("wifi"));
     changed = wifiGetConfig(settings[F("wifi")]);
     if(changed) {
-        Log.verbose(F("WIFI: Settings changed"));
+        Log.verbose(TAG_WIFI, settingsChanged.c_str());
         writefile = true;
     }
 #endif
@@ -212,7 +216,7 @@ void configWriteConfig()
     if(settings[F("mqtt")].as<JsonObject>().isNull()) settings.createNestedObject(F("mqtt"));
     changed = mqttGetConfig(settings[F("mqtt")]);
     if(changed) {
-        Log.verbose(F("MQTT: Settings changed"));
+        Log.verbose(TAG_MQTT, settingsChanged.c_str());
         configOutput(settings[F("mqtt")]);
         writefile = true;
     }
@@ -221,7 +225,7 @@ void configWriteConfig()
     if(settings[F("telnet")].as<JsonObject>().isNull()) settings.createNestedObject(F("telnet"));
     changed = telnetGetConfig(settings[F("telnet")]);
     if(changed) {
-        Log.verbose(F("TELNET: Settings changed"));
+        Log.verbose(TAG_TELN, settingsChanged.c_str());
         configOutput(settings[F("telnet")]);
         writefile = true;
     }
@@ -230,7 +234,7 @@ void configWriteConfig()
     if(settings[F("mdns")].as<JsonObject>().isNull()) settings.createNestedObject(F("mdns"));
     changed = mdnsGetConfig(settings[F("mdns")]);
     if(changed) {
-        Log.verbose(F("MDNS: Settings changed"));
+        Log.verbose(TAG_MDNS, settingsChanged.c_str());
         writefile = true;
     }
 #endif
@@ -238,7 +242,7 @@ void configWriteConfig()
     if(settings[F("http")].as<JsonObject>().isNull()) settings.createNestedObject(F("http"));
     changed = httpGetConfig(settings[F("http")]);
     if(changed) {
-        Log.verbose(F("HTTP: Settings changed"));
+        Log.verbose(TAG_HTTP, settingsChanged.c_str());
         configOutput(settings[F("http")]);
         writefile = true;
     }
@@ -247,7 +251,7 @@ void configWriteConfig()
     if(settings[F("gpio")].as<JsonObject>().isNull()) settings.createNestedObject(F("gpio"));
     changed = gpioGetConfig(settings[F("gpio")]);
     if(changed) {
-        Log.verbose(F("GPIO: Settings changed"));
+        Log.verbose(TAG_GPIO, settingsChanged.c_str());
         configOutput(settings[F("gpio")]);
         writefile = true;
     }
@@ -256,21 +260,21 @@ void configWriteConfig()
     if(settings[F("debug")].as<JsonObject>().isNull()) settings.createNestedObject(F("debug"));
     changed = debugGetConfig(settings[F("debug")]);
     if(changed) {
-        Log.verbose(F("DEBUG: Settings changed"));
+        Log.verbose(TAG_DEBG, settingsChanged.c_str());
         writefile = true;
     }
 
     if(settings[F("gui")].as<JsonObject>().isNull()) settings.createNestedObject(F("gui"));
     changed = guiGetConfig(settings[F("gui")]);
     if(changed) {
-        Log.verbose(F("GUI: Settings changed"));
+        Log.verbose(TAG_GUI,settingsChanged.c_str());
         writefile = true;
     }
 
     if(settings[F("hasp")].as<JsonObject>().isNull()) settings.createNestedObject(F("hasp"));
     changed = haspGetConfig(settings[F("hasp")]);
     if(changed) {
-        Log.verbose(F("HASP: Settings changed"));
+        Log.verbose(TAG_HASP, settingsChanged.c_str());
         writefile = true;
     }
 
@@ -280,22 +284,22 @@ void configWriteConfig()
 #if HASP_USE_SPIFFS > 0
         File file = SPIFFS.open(configFile, "w");
         if(file) {
-            Log.notice(F("CONF: Writing %s"), configFile.c_str());
+            Log.notice(TAG_CONF, F("Writing %s"), configFile.c_str());
             size_t size = serializeJson(doc, file);
             file.close();
             if(size > 0) {
-                Log.verbose(F("CONF: [SUCCESS] Saved %s"), configFile.c_str());
+                Log.verbose(TAG_CONF, F("[SUCCESS] Saved %s"), configFile.c_str());
                 // configBackupToEeprom();
             } else {
-                Log.error(F("CONF: Failed to write %s"), configFile.c_str());
+                Log.error(TAG_CONF, F("Failed to write %s"), configFile.c_str());
             }
         } else {
-            Log.error(F("CONF: Failed to write %s"), configFile.c_str());
+            Log.error(TAG_CONF, F("Failed to write %s"), configFile.c_str());
         }
 #endif
 
         // Method 1
-        // Log.verbose(F("CONF: Writing to EEPROM"));
+        // Log.verbose(TAG_CONF,F("Writing to EEPROM"));
         // EepromStream eepromStream(0, 1024);
         // WriteBufferingStream bufferedWifiClient{eepromStream, 512};
         // serializeJson(doc, bufferedWifiClient);
@@ -304,7 +308,7 @@ void configWriteConfig()
 
 #if defined(STM32F4xx)
         // Method 2
-        Log.verbose(F("CONF: Writing to EEPROM"));
+        Log.verbose(TAG_CONF, F("Writing to EEPROM"));
         char buffer[1024 + 128];
         size_t size = serializeJson(doc, buffer, sizeof(buffer));
         if(size > 0) {
@@ -312,14 +316,14 @@ void configWriteConfig()
             for(i = 0; i < size; i++) eeprom_buffered_write_byte(i, buffer[i]);
             eeprom_buffered_write_byte(i, 0);
             eeprom_buffer_flush();
-            Log.verbose(F("CONF: [SUCCESS] Saved EEPROM"));
+            Log.verbose(TAG_CONF, F("[SUCCESS] Saved EEPROM"));
         } else {
-            Log.error(F("CONF: Failed to save config to EEPROM"));
+            Log.error(TAG_CONF, F("Failed to save config to EEPROM"));
         }
 #endif
 
     } else {
-        Log.notice(F("CONF: Configuration did not change"));
+        Log.notice(TAG_CONF, F("Configuration did not change"));
     }
     configOutput(settings);
 }
@@ -342,7 +346,7 @@ void configSetup()
         } else {
 #if HASP_USE_SPIFFS > 0
             if(!SPIFFS.begin()) {
-                Log.error(F("FILE: SPI flash init failed. Unable to mount FS: Using default settings..."));
+                Log.error(TAG_CONF, F("FILE: SPI flash init failed. Unable to mount FS: Using default settings..."));
                 return;
             }
 #endif
@@ -350,40 +354,40 @@ void configSetup()
         }
 
         //#if HASP_USE_SPIFFS > 0
-        Log.verbose(F("Loading debug settings"));
+        Log.verbose(TAG_CONF, F("Loading debug settings"));
         debugSetConfig(settings[F("debug")]);
-        Log.verbose(F("Loading GUI settings"));
+        Log.verbose(TAG_CONF, F("Loading GUI settings"));
         guiSetConfig(settings[F("gui")]);
-        Log.verbose(F("Loading HASP settings"));
+        Log.verbose(TAG_CONF, F("Loading HASP settings"));
         haspSetConfig(settings[F("hasp")]);
         // otaGetConfig(settings[F("ota")]);
 
 #if HASP_USE_WIFI > 0
-        Log.verbose(F("Loading WiFi settings"));
+        Log.verbose(TAG_CONF, F("Loading WiFi settings"));
         wifiSetConfig(settings[F("wifi")]);
 #endif
 #if HASP_USE_MQTT > 0
-        Log.verbose(F("Loading MQTT settings"));
+        Log.verbose(TAG_CONF, F("Loading MQTT settings"));
         mqttSetConfig(settings[F("mqtt")]);
 #endif
 #if HASP_USE_TELNET > 0
-        Log.verbose(F("Loading Telnet settings"));
+        Log.verbose(TAG_CONF, F("Loading Telnet settings"));
         telnetSetConfig(settings[F("telnet")]);
 #endif
 #if HASP_USE_MDNS > 0
-        Log.verbose(F("Loading MDNS settings"));
+        Log.verbose(TAG_CONF, F("Loading MDNS settings"));
         mdnsSetConfig(settings[F("mdns")]);
 #endif
 #if HASP_USE_HTTP > 0
-        Log.verbose(F("Loading HTTP settings"));
+        Log.verbose(TAG_CONF, F("Loading HTTP settings"));
         httpSetConfig(settings[F("http")]);
 #endif
 #if HASP_USE_GPIO > 0
-        Log.verbose(F("Loading GPIO settings"));
+        Log.verbose(TAG_CONF, F("Loading GPIO settings"));
         gpioSetConfig(settings[F("gpio")]);
 #endif
         //        }
-        Log.notice(F("User configuration loaded"));
+        Log.notice(TAG_CONF, F("User configuration loaded"));
     }
     //#endif
 }
@@ -430,13 +434,13 @@ void configOutput(const JsonObject & settings)
         output.replace(password, passmask);
     }
 
-    Log.trace(F("CONF: %s"), output.c_str());
+    Log.trace(TAG_CONF, output.c_str());
 }
 
 bool configClear()
 {
 #if defined(STM32F4xx)
-    Log.verbose(F("CONF: Clearing EEPROM"));
+    Log.verbose(TAG_CONF, F("Clearing EEPROM"));
     char buffer[1024 + 128];
     memset(buffer, 1, sizeof(buffer));
     if(sizeof(buffer) > 0) {
@@ -444,10 +448,10 @@ bool configClear()
         for(i = 0; i < sizeof(buffer); i++) eeprom_buffered_write_byte(i, buffer[i]);
         eeprom_buffered_write_byte(i, 0);
         eeprom_buffer_flush();
-        Log.verbose(F("CONF: [SUCCESS] Cleared EEPROM"));
+        Log.verbose(TAG_CONF, F("[SUCCESS] Cleared EEPROM"));
         return true;
     } else {
-        Log.error(F("CONF: Failed to clear to EEPROM"));
+        Log.error(TAG_CONF, F("Failed to clear to EEPROM"));
         return false;
     }
 #elif HASP_USE_SPIFFS > 0

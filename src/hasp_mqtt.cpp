@@ -18,7 +18,7 @@ WiFiClient mqttNetworkClient;
 #include <ESP.h>
 WiFiClient mqttNetworkClient;
 #else
-#if defined(STM32F4xx) && HASP_USE_WIFI>0
+#if defined(STM32F4xx) && HASP_USE_WIFI > 0
 // #include <WiFi.h>
 WiFiSpiClient mqttNetworkClient;
 #else
@@ -120,7 +120,7 @@ PubSubClient mqttClient(mqttNetworkClient);
 
 void mqtt_log_no_connection()
 {
-    Log.error(F("MQTT: Not connected"));
+    Log.error(TAG_MQTT, F("Not connected"));
 }
 
 bool IRAM_ATTR mqttIsConnected()
@@ -146,12 +146,12 @@ void IRAM_ATTR mqtt_send_state(const __FlashStringHelper * subtopic, const char 
     }
 
     // Log after char buffers are cleared
-    Log.notice(F("MQTT PUB: %sstate/%S = %s"), mqttNodeTopic, subtopic, payload);
+    Log.notice(TAG_MQTT_PUB, F("%sstate/%S = %s"), mqttNodeTopic, subtopic, payload);
 }
 
 void mqtt_send_input(uint8_t id, const char * payload)
 {
-    // Log.trace(F("MQTT TST: %sstate/input%u = %s"), mqttNodeTopic, id, payload); // to be removed
+    // Log.trace(TAG_MQTT,F("TST: %sstate/input%u = %s"), mqttNodeTopic, id, payload); // to be removed
 
     if(mqttIsConnected()) {
         char topic[64];
@@ -162,7 +162,7 @@ void mqtt_send_input(uint8_t id, const char * payload)
     }
 
     // Log after char buffers are cleared
-    Log.notice(F("MQTT PUB: %sstate/input%u = %s"), mqttNodeTopic, id, payload);
+    Log.notice(TAG_MQTT_PUB, F("%sstate/input%u = %s"), mqttNodeTopic, id, payload);
 }
 
 void IRAM_ATTR mqtt_send_obj_attribute_str(uint8_t pageid, uint8_t btnid, const char * attribute, const char * data)
@@ -181,7 +181,7 @@ void IRAM_ATTR mqtt_send_obj_attribute_str(uint8_t pageid, uint8_t btnid, const 
     }
 
     // Log after char buffers are cleared
-    Log.notice(F("MQTT PUB: %sstate/json = {\"p[%u].b[%u].%s\":\"%s\"}"), mqttNodeTopic, pageid, btnid, attribute,
+    Log.notice(TAG_MQTT_PUB, F("%sstate/json = {\"p[%u].b[%u].%s\":\"%s\"}"), mqttNodeTopic, pageid, btnid, attribute,
                data);
 }
 
@@ -194,12 +194,12 @@ void mqtt_send_statusupdate()
         snprintf_P(data, sizeof(data), PSTR("{\"status\":\"available\",\"version\":\"%s\",\"uptime\":%lu,"),
                    haspGetVersion().c_str(), long(millis() / 1000));
         strcat(buffer, data);
-#if HASP_USE_WIFI>0
+#if HASP_USE_WIFI > 0
 #if defined(STM32F4xx)
         IPAddress ip;
         ip = WiFi.localIP();
         char espIp[16];
-        memset(espIp, 0 ,sizeof(espIp));
+        memset(espIp, 0, sizeof(espIp));
         snprintf_P(buffer, sizeof(buffer), PSTR("\"ssid\":\"%s\",\"rssi\":%i,\"ip\":\"%d.%d.%d.%d\","), WiFi.SSID(),
                    WiFi.RSSI(), ip[0], ip[1], ip[2], ip[3]);
 #else
@@ -244,8 +244,8 @@ void mqtt_send_statusupdate()
     // mqttClient.publish(mqttSensorTopic, mqttStatusPayload);
     // mqttClient.publish(mqttStatusTopic, "ON", true); //, 1);
 
-    // debugPrintln(String(F("MQTT: status update: ")) + String(mqttStatusPayload));
-    // debugPrintln(String(F("MQTT: binary_sensor state: [")) + mqttStatusTopic + "] : [ON]");
+    // debugPrintln(String(F("status update: ")) + String(mqttStatusPayload));
+    // debugPrintln(String(F("binary_sensor state: [")) + mqttStatusTopic + "] : [ON]");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -253,7 +253,7 @@ void mqtt_send_statusupdate()
 static void mqtt_message_cb(char * topic_p, byte * payload, unsigned int length)
 { // Handle incoming commands from MQTT
     if(length >= MQTT_MAX_PACKET_SIZE) {
-        Log.error(F("MQTT RCV: Payload too long (%d bytes)"), length);
+        Log.error(TAG_MQTT_RCV, F("Payload too long (%d bytes)"), length);
         return;
     }
     payload[length] = '\0';
@@ -277,24 +277,27 @@ static void mqtt_message_cb(char * topic_p, byte * payload, unsigned int length)
     // '[...]/device/command/p[1].b[4].txt' -m '"Lights On"' = nextionSetAttr("p[1].b[4].txt", "\"Lights On\"")
 
     char * topic = (char *)topic_p;
-    Log.notice(F("MQTT RCV: %s = %s"), topic, (char *)payload);
+    Log.notice(TAG_MQTT_RCV, F("%s = %s"), topic, (char *)payload);
 
     if(topic == strstr(topic, mqttNodeTopic)) { // startsWith mqttNodeTopic
         topic += strlen(mqttNodeTopic);
     } else if(topic == strstr(topic, mqttGroupTopic)) { // startsWith mqttGroupTopic
         topic += strlen(mqttGroupTopic);
     } else {
-        Log.error(F("MQTT: Message received with invalid topic"));
+        Log.error(TAG_MQTT, F("Message received with invalid topic"));
         return;
     }
 
     // catch a dangling LWT from a previous connection if it appears
-    if(!strcmp_P(topic, PSTR("status")) && !strcasecmp_P((char *)payload, PSTR("OFF"))) {
-        char topicBuffer[128];
-        snprintf_P(topicBuffer, sizeof(topicBuffer), PSTR("%sstatus"), mqttNodeTopic);
-        mqttClient.publish(topicBuffer, "ON", true);
-        Log.notice(F("MQTT: binary_sensor state: [status] : ON"));
-        // return;
+    if(!strcmp_P(topic, PSTR("status"))) {
+        if(!strcasecmp_P((char *)payload, PSTR("OFF"))) {
+            char topicBuffer[128];
+            snprintf_P(topicBuffer, sizeof(topicBuffer), PSTR("%sstatus"), mqttNodeTopic);
+            mqttClient.publish(topicBuffer, "ON", true);
+            Log.notice(TAG_MQTT, F("binary_sensor state: [status] : ON"));
+        } else {
+            // already ON
+        }
     } else {
         dispatchTopicPayload(topic, (char *)payload);
     }
@@ -326,9 +329,9 @@ void mqttSubscribeTo(const char * format, const char * data)
     char topic[64];
     snprintf_P(topic, sizeof(topic), format, data);
     if(mqttClient.subscribe(topic)) {
-        Log.verbose(F("MQTT:    * Subscribed to %s"), topic);
+        Log.verbose(TAG_MQTT, F("   * Subscribed to %s"), topic);
     } else {
-        Log.error(F("MQTT: Failed to subscribe to %s"), topic);
+        Log.error(TAG_MQTT, F("Failed to subscribe to %s"), topic);
     }
 }
 
@@ -344,7 +347,7 @@ void mqttReconnect()
         mac.toLowerCase();
         memset(mqttClientId, 0, sizeof(mqttClientId));
         snprintf_P(mqttClientId, sizeof(mqttClientId), PSTR("plate_%s"), mac.c_str());
-        Log.verbose(mqttClientId);
+        Log.verbose(TAG_MQTT, mqttClientId);
     }
 
     // Attempt to connect and set LWT and Clean Session
@@ -352,7 +355,7 @@ void mqttReconnect()
     if(!mqttClient.connect(mqttClientId, mqttUser, mqttPassword, buffer, 0, false, "OFF", true)) {
         // Retry until we give up and restart after connectTimeout seconds
         mqttReconnectCount++;
-        snprintf_P(buffer, sizeof(buffer), PSTR("MQTT: %%s"));
+        snprintf_P(buffer, sizeof(buffer), PSTR("%%s"));
         switch(mqttClient.state()) {
             case MQTT_CONNECTION_TIMEOUT:
                 strcat_P(buffer, PSTR("Server didn't respond within the keepalive time"));
@@ -387,16 +390,16 @@ void mqttReconnect()
             default:
                 strcat_P(buffer, PSTR("Unknown failure"));
         }
-        Log.warning(buffer);
+        Log.warning(TAG_MQTT, buffer);
 
         if(mqttReconnectCount > 50) {
-            Log.error(F("MQTT: %sRetry count exceeded, rebooting..."));
+            Log.error(TAG_MQTT, F("Retry count exceeded, rebooting..."));
             dispatchReboot(false);
         }
         return;
     }
 
-    Log.notice(F("MQTT: [SUCCESS] Connected to broker %s as clientID %s"), mqttServer, mqttClientId);
+    Log.notice(TAG_MQTT, F("[SUCCESS] Connected to broker %s as clientID %s"), mqttServer, mqttClientId);
 
     /*
         // MQTT topic string definitions
@@ -435,10 +438,10 @@ void mqttReconnect()
     snprintf_P(buffer, sizeof(buffer), PSTR("%sstatus"), mqttNodeTopic);
     mqttClient.publish(buffer, mqttFirstConnect ? "OFF" : "ON", true); //, 1);
 
-    Log.notice(F("MQTT: binary_sensor state: [%sstatus] : %s"), mqttNodeTopic,
+    Log.notice(TAG_MQTT, F("binary_sensor state: [%sstatus] : %s"), mqttNodeTopic,
                mqttFirstConnect ? PSTR("OFF") : PSTR("ON"));
 
-    /* snprintf_P(buffer, sizeof(buffer), PSTR("MQTT: binary_sensor state: [%sstatus] : %s"), mqttNodeTopic,
+    /* snprintf_P(buffer, sizeof(buffer), PSTR("binary_sensor state: [%sstatus] : %s"), mqttNodeTopic,
                mqttFirstConnect ? PSTR("OFF") : PSTR("ON"));
     debugPrintln(buffer); */
 
@@ -458,9 +461,9 @@ void mqttSetup()
     if(mqttEnabled) {
         mqttClient.setServer(mqttServer, 1883);
         mqttClient.setCallback(mqtt_message_cb);
-        Log.notice(F("MQTT: Setup Complete"));
+        Log.notice(TAG_MQTT, F("Setup Complete"));
     } else {
-        Log.notice(F("MQTT: Broker not configured"));
+        Log.notice(TAG_MQTT, F("Broker not configured"));
     }
 }
 
@@ -491,7 +494,7 @@ void mqttStop()
         mqttClient.publish(topicBuffer, "{\"status\": \"unavailable\"}");
 
         mqttClient.disconnect();
-        Log.notice(F("MQTT: Disconnected from broker"));
+        Log.notice(TAG_MQTT, F("Disconnected from broker"));
     }
 }
 

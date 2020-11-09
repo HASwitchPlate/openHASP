@@ -140,10 +140,10 @@ bool httpIsAuthenticated(const __FlashStringHelper * page)
     }
 
 #if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
-    Log.verbose(F("HTTP: Sending %s page to client connected from: %s"), page,
+    Log.verbose(TAG_HTTP, F("Sending %s page to client connected from: %s"), page,
                 webServer.client().remoteIP().toString().c_str());
 #else
-    // Log.verbose(F("HTTP: Sending %s page to client connected from: %s"), page,
+    // Log.verbose(TAG_HTTP,F("Sending %s page to client connected from: %s"), page,
     //             String(webServer.client().remoteIP()).c_str());
 #endif
 
@@ -200,7 +200,7 @@ void webSendPage(char * nodename, uint32_t httpdatalength, bool gohome = false)
         contentLength += sizeof(HTTP_FOOTER) - 1;
 
         if(httpdatalength > HTTP_PAGE_SIZE) {
-            Log.warning(F("HTTP: Sending page with %u static and %u dynamic bytes"), contentLength, httpdatalength);
+            Log.warning(TAG_HTTP, F("Sending page with %u static and %u dynamic bytes"), contentLength, httpdatalength);
         }
 
         webServer.setContentLength(contentLength + httpdatalength);
@@ -329,12 +329,17 @@ void webHandleScreenshot()
             httpMessage += F("</h1><hr>");
 
             httpMessage +=
-                F("<script>function ref(a){ var timestamp=new Date().getTime();var el=document.getElementById('bmp');"
-                  "el.src='?a='+a+'&q='+timestamp;return false;}</script>");
-            httpMessage += F("<p class='c'><img id='bmp' src='?q=0'></p>");
-            httpMessage += F(
-                "<p><form method='get' onsubmit=\"return ref('');\"><button type='submit'>Refresh</button></form></p>");
-            httpMessage += F("<p><form method='get' onsubmit=\"return ref('prev');\"><button type='submit'>Previous "
+                F("<script>function aref(t){setTimeout(function() {ref('');}, t*1000)} function ref(a){ var t=new "
+                  "Date().getTime();document.getElementById('bmp').src='?a='+a+'&q='+t;return false;}</script>");
+            httpMessage += F("<p class='c'><img id='bmp' src='?q=0'");
+
+            // Automatic refresh
+            httpMessage += F(" onload=\"aref(5)\" onerror=\"aref(5)\"/></p>");
+
+            httpMessage += F("<p><form method='get' onsubmit=\"return ref('')\"><button "
+                             "type='submit'>Refresh</button></form></p>");
+            httpMessage += F("<p><form method='get' onsubmit=\"return ref('prev');\"><button "
+                             "type='submit'>Previous "
                              "Page</button></form></p>");
             httpMessage += F("<p><form method='get' onsubmit=\"return ref('next');\"><button type='submit'>Next "
                              "Page</button></form></p>");
@@ -628,7 +633,7 @@ void webUploadProgress()
 {
     long t = webServer.header("Content-Length").toInt();
     if(millis() - htppLastLoopTime >= 1250) {
-        Log.verbose(F("    * Uploaded %u bytes / %d"), upload->totalSize + upload->currentSize, t);
+        Log.verbose(TAG_HTTP, F("    * Uploaded %u bytes / %d"), upload->totalSize + upload->currentSize, t);
         htppLastLoopTime = millis();
     }
     if(t > 0) t = (upload->totalSize + upload->currentSize) * 100 / t;
@@ -642,13 +647,13 @@ void webUpdatePrintError()
     output.reserve(128);
     StringStream stream((String &)output);
     Update.printError(stream);
-    Log.error(F("HTTP: %s"), output.c_str());
+    Log.error(TAG_HTTP, output.c_str());
     haspProgressMsg(output.c_str());
 }
 
 void webUpdateReboot()
 {
-    Log.notice(F("Update Success: %u bytes received. Rebooting..."), upload->totalSize);
+    Log.notice(TAG_HTTP, F("Update Success: %u bytes received. Rebooting..."), upload->totalSize);
 
     {
         String httpMessage((char *)0);
@@ -674,7 +679,7 @@ void webHandleFirmwareUpdate()
     upload = &webServer.upload();
     if(upload->status == UPLOAD_FILE_START) {
         if(!httpIsAuthenticated(F("update"))) return;
-        Log.notice(F("Update: %s"), upload->filename.c_str());
+        Log.notice(TAG_HTTP, F("Update: %s"), upload->filename.c_str());
         haspProgressMsg(upload->filename.c_str());
         // WiFiUDP::stopAll();
         uint32_t maxSketchSpace = (ESP.getFreeSketchSpace() - 0x1000) & 0xFFFFF000;
@@ -732,7 +737,7 @@ void handleFileUpload()
     upload = &webServer.upload();
     if(upload->status == UPLOAD_FILE_START) {
         if(!httpIsAuthenticated(F("fileupload"))) return;
-        Log.verbose(F("Total size: %s"), webServer.headerName(0).c_str());
+        Log.verbose(TAG_HTTP, F("Total size: %s"), webServer.headerName(0).c_str());
         String filename((char *)0);
         filename.reserve(128);
         filename = upload->filename;
@@ -742,23 +747,23 @@ void handleFileUpload()
         }
         if(filename.length() < 32) {
             fsUploadFile = filesystem->open(filename, "w");
-            Log.notice(F("handleFileUpload Name: %s"), filename.c_str());
+            Log.notice(TAG_HTTP, F("handleFileUpload Name: %s"), filename.c_str());
             haspProgressMsg(fsUploadFile.name());
         } else {
-            Log.error(F("Filename %s is too long"), filename.c_str());
+            Log.error(TAG_HTTP, F("Filename %s is too long"), filename.c_str());
         }
     } else if(upload->status == UPLOAD_FILE_WRITE) {
         // DBG_OUTPUT_PORT.print("handleFileUpload Data: "); debugPrintln(upload.currentSize);
         if(fsUploadFile) {
             if(fsUploadFile.write(upload->buf, upload->currentSize) != upload->currentSize) {
-                Log.error(F("HTTP: Failed to write received data to file"));
+                Log.error(TAG_HTTP, F("Failed to write received data to file"));
             } else {
                 webUploadProgress(); // Moved to httpEverySecond Loop
             }
         }
     } else if(upload->status == UPLOAD_FILE_END) {
         if(fsUploadFile) {
-            Log.verbose(F("Uploaded %s (%u bytes)"), fsUploadFile.name(), upload->totalSize);
+            Log.verbose(TAG_HTTP, F("Uploaded %s (%u bytes)"), fsUploadFile.name(), upload->totalSize);
             fsUploadFile.close();
         }
         haspProgressVal(255);
@@ -781,7 +786,7 @@ void handleFileDelete()
         return webServer.send_P(500, mimetype, PSTR("BAD ARGS"));
     }
     String path = webServer.arg(0);
-    Log.verbose(F("handleFileDelete: %s"), path.c_str());
+    Log.verbose(TAG_HTTP, F("handleFileDelete: %s"), path.c_str());
     if(path == "/") {
         return webServer.send_P(500, mimetype, PSTR("BAD PATH"));
     }
@@ -801,7 +806,7 @@ void handleFileCreate()
         return webServer.send(500, PSTR("text/plain"), PSTR("BAD ARGS"));
     }
     String path = webServer.arg(0);
-    Log.verbose(F("handleFileCreate: %s"), path.c_str());
+    Log.verbose(TAG_HTTP, F("handleFileCreate: %s"), path.c_str());
     if(path == "/") {
         return webServer.send(500, PSTR("text/plain"), PSTR("BAD PATH"));
     }
@@ -828,7 +833,7 @@ void handleFileList()
     }
 
     String path = webServer.arg(F("dir"));
-    Log.verbose(F("handleFileList: %s"), path.c_str());
+    Log.verbose(TAG_HTTP, F("handleFileList: %s"), path.c_str());
     path.clear();
 
 #if defined(ARDUINO_ARCH_ESP32)
@@ -1543,9 +1548,10 @@ void httpHandleNotFound()
 #endif
 
 #if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
-    Log.notice(F("HTTP: Sending 404 to client connected from: %s"), webServer.client().remoteIP().toString().c_str());
+    Log.notice(TAG_HTTP, F("Sending 404 to client connected from: %s"),
+               webServer.client().remoteIP().toString().c_str());
 #else
-  // Log.notice(F("HTTP: Sending 404 to client connected from: %s"), String(webServer.client().remoteIP()).c_str());
+  // Log.notice(TAG_HTTP,F("Sending 404 to client connected from: %s"), String(webServer.client().remoteIP()).c_str());
 #endif
 
     String httpMessage((char *)0);
@@ -1622,7 +1628,7 @@ void httpHandleEspFirmware()
     }
     webSendFooter();
 
-    Log.notice(F("HTTP: Attempting ESP firmware update from: %s"), webServer.arg("espFirmware").c_str());
+    Log.notice(TAG_HTTP, F("Attempting ESP firmware update from: %s"), webServer.arg("espFirmware").c_str());
     // espStartOta(webServer.arg("espFirmware"));
 }
 
@@ -1684,9 +1690,9 @@ void webStart()
 #if defined(STM32F4xx)
     IPAddress ip;
     ip = WiFi.localIP();
-    Log.notice(F("HTTP: Server started @ http://%d.%d.%d.%d"), ip[0], ip[1], ip[2], ip[3]);
+    Log.notice(TAG_HTTP, F("Server started @ http://%d.%d.%d.%d"), ip[0], ip[1], ip[2], ip[3]);
 #else
-    Log.notice(F("HTTP: Server started @ http://%s"),
+    Log.notice(TAG_HTTP, F("Server started @ http://%s"),
                (WiFi.getMode() != WIFI_STA ? WiFi.softAPIP().toString().c_str() : WiFi.localIP().toString().c_str()));
 #endif
 #else
@@ -1696,7 +1702,7 @@ void webStart()
 #else
     ip = Ethernet.localIP();
 #endif
-    Log.notice(F("HTTP: Server started @ http://%d.%d.%d.%d"), ip[0], ip[1], ip[2], ip[3]);
+    Log.notice(TAG_HTTP, F("Server started @ http://%d.%d.%d.%d"), ip[0], ip[1], ip[2], ip[3]);
 #endif
 }
 
@@ -1704,7 +1710,7 @@ void webStop()
 {
     webServer.stop();
     webServerStarted = false;
-    Log.warning(F("HTTP: Server stoped"));
+    Log.warning(TAG_HTTP, F("Server stoped"));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1715,7 +1721,7 @@ void httpSetup()
 #if HASP_USE_WIFI > 0
 #if !defined(STM32F4xx)
     if(WiFi.getMode() != WIFI_STA) {
-        Log.notice(F("HTTP: Wifi access point"));
+        Log.notice(TAG_HTTP, F("Wifi access point"));
         webServer.on(F("/"), webHandleWifiConfig);
     } else {
 #endif
@@ -1745,7 +1751,7 @@ void httpSetup()
             F("/edit"), HTTP_POST,
             []() {
                 webServer.send(200, "text/plain", "");
-                Log.verbose(F("Headers: %d"), webServer.headers());
+                Log.verbose(TAG_HTTP, F("Headers: %d"), webServer.headers());
             },
             handleFileUpload);
 #endif
@@ -1792,7 +1798,7 @@ void httpSetup()
             F("/update"), HTTP_POST,
             []() {
                 webServer.send(200, "text/plain", "");
-                Log.verbose(F("Total size: %s"), webServer.hostHeader().c_str());
+                Log.verbose(TAG_HTTP, F("Total size: %s"), webServer.hostHeader().c_str());
             },
             webHandleFirmwareUpdate);
         webServer.on(F("/espfirmware"), httpHandleEspFirmware);
@@ -1815,7 +1821,7 @@ void httpSetup()
     size_t headerkeyssize     = sizeof(headerkeys) / sizeof(char *);
     webServer.collectHeaders(headerkeys, headerkeyssize);
 
-    Log.verbose(F("HTTP: Setup Complete"));
+    Log.verbose(TAG_HTTP, F("Setup Complete"));
     webStart();
 }
 

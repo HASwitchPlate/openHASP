@@ -11,12 +11,13 @@
 #include "hasp_conf.h"
 
 #include "hasp_config.h"
+#include "hasp_debug.h"
 
 #include "hasp_conf.h"
-#if HASP_USE_MQTT>0
+#if HASP_USE_MQTT > 0
 #include "hasp_mqtt.h"
 #endif
-#if HASP_USE_MDNS>0
+#if HASP_USE_MDNS > 0
 #include "hasp_mdns.h"
 #endif
 
@@ -25,7 +26,7 @@ uint8_t mdnsEnabled = true;
 void mdnsSetup()
 {
     // mdnsSetConfig(settings);
-    Log.verbose(F("MDNS: Setup Complete"));
+    Log.verbose(TAG_MDNS, F("Setup Complete"));
 }
 
 void mdnsStart()
@@ -56,9 +57,9 @@ void mdnsStart()
                         addServiceTxt("arduino", "tcp", "ssh_upload", "no");
                         addServiceTxt("arduino", "tcp", "board", ARDUINO_BOARD);
                         addServiceTxt("arduino", "tcp", "auth_upload", (auth) ? "yes" : "no");*/
-            Log.notice(F("MDNS: Responder started"));
+            Log.notice(TAG_MDNS, F("Responder started"));
         } else {
-            Log.error(F("MDNS: Responder failed to start %s"), hasp2Node.c_str());
+            Log.error(TAG_MDNS, F("Responder failed to start %s"), hasp2Node.c_str());
         };
     }
 #endif

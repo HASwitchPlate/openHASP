@@ -47,7 +47,7 @@ char telnetInputBuffer[128];
 
 void telnetClientDisconnect()
 {
-    // Log.notice(F("Closing session from %s"), telnetClient.remoteIP().toString().c_str());
+    // Log.notice(TAG_TELN,F("Closing session from %s"), telnetClient.remoteIP().toString().c_str());
     telnetClient.stop();
     Log.unregisterOutput(1); // telnetClient
     telnetLoginState   = TELNET_UNAUTHENTICATED;
@@ -62,7 +62,7 @@ void telnetClientLogon()
     telnetLoginState   = TELNET_AUTHENTICATED;       // User and Pass are correct
     telnetLoginAttempt = 0;                          // Reset attempt counter
     Log.registerOutput(1, &telnetClient, LOG_LEVEL_VERBOSE, true);
-    // Log.notice(F("Client login from %s"), telnetClient.remoteIP().toString().c_str());
+    // Log.notice(TAG_TELN,F("Client login from %s"), telnetClient.remoteIP().toString().c_str());
     telnetClient.flush();
     /* Echo locally as separate string */
     // telnetClient.print(F("TELNET: Client login from "));
@@ -78,12 +78,12 @@ void telnetAcceptClient()
         Log.unregisterOutput(1); // telnetClient
     }
     telnetClient = telnetServer->available(); // ready for new client
-    // Log.notice(F("Client connected from %s"), telnetClient.remoteIP().toString().c_str());
+    // Log.notice(TAG_TELN,F("Client connected from %s"), telnetClient.remoteIP().toString().c_str());
     if(!telnetClient) {
-        Log.notice(F("Client NOT connected"));
+        Log.notice(TAG_TELN,F("Client NOT connected"));
         return;
     }
-    Log.notice(F("Client connected"));
+    Log.notice(TAG_TELN,F("Client connected"));
 
     /* Avoid a buffer here */
     telnetClient.print(0xFF); // DO TERMINAL-TYPE
@@ -132,7 +132,7 @@ static void telnetProcessLine()
                 telnetLoginState = TELNET_UNAUTHENTICATED;
                 telnetLoginAttempt++; // Subsequent attempt
                 telnetClient.println(F("Authorization failed!\r\n"));
-                // Log.warning(F("Incorrect login attempt from %s"), telnetClient.remoteIP().toString().c_str());
+                // Log.warning(TAG_TELN,F("Incorrect login attempt from %s"), telnetClient.remoteIP().toString().c_str());
                 if(telnetLoginAttempt >= 3) {
                     telnetClientDisconnect();
                 } else {
@@ -200,9 +200,9 @@ void telnetSetup()
         // if(!telnetServer) telnetServer = new EthernetServer(telnetPort);
         // if(telnetServer) {
         telnetServer->begin();
-        Log.notice(F("Debug telnet console started"));
+        Log.notice(TAG_TELN,F("Debug telnet console started"));
         // } else {
-        //    Log.error(F("Failed to start telnet server"));
+        //    Log.error(TAG_TELN,F("Failed to start telnet server"));
         //}
 #else
         if(!telnetServer) telnetServer = new WiFiServer(telnetPort);
@@ -212,14 +212,14 @@ void telnetSetup()
 
             // if(!telnetClient) telnetClient = new WiFiClient;
             // if(!telnetClient) {
-            //    Log.error(F("Failed to start telnet client"));
+            //    Log.error(TAG_TELN,F("Failed to start telnet client"));
             //} else {
             telnetClient.setNoDelay(true);
             //}
 
-            Log.notice(F("Debug telnet console started"));
+            Log.notice(TAG_TELN,F("Debug telnet console started"));
         } else {
-            Log.error(F("Failed to start telnet server"));
+            Log.error(TAG_TELN,F("Failed to start telnet server"));
         }
 #endif
     }
@@ -238,12 +238,12 @@ Ethernet.schedule();
                 //telnetAcceptClient(client);
 
                 telnetClient = client; // ready for new client
-                // Log.notice(F("Client connected from %s"), telnetClient.remoteIP().toString().c_str());
+                // Log.notice(TAG_TELN,F("Client connected from %s"), telnetClient.remoteIP().toString().c_str());
                 if(!telnetClient) {
-                    Log.notice(F("Client NOT connected"));
+                    Log.notice(TAG_TELN,F("Client NOT connected"));
                     return;
                 }
-                Log.notice(F("Client connected"));
+                Log.notice(TAG_TELN,F("Client connected"));
 
                 /* Avoid a buffer here */
                 // telnetClient.print(0xFF); // DO TERMINAL-TYPE

@@ -3,6 +3,7 @@
 #include "ArduinoLog.h"
 
 #include "hasp_conf.h"
+#include "hasp_debug.h"
 #include "hasp_spiffs.h"
 
 #if HASP_USE_SPIFFS > 0
@@ -75,23 +76,23 @@ void spiffsList()
 #else
     if(!SPIFFS.begin(true)) {
 #endif
-        Log.error(F("FILE: Flash file system not mouted."));
+        Log.error(TAG_FILE,F("Flash file system not mouted."));
     } else {
 
-        Log.verbose(F("FILE: Listing files on the internal flash:"));
+        Log.verbose(TAG_FILE,F("Listing files on the internal flash:"));
 
 #if defined(ARDUINO_ARCH_ESP32)
         File root = SPIFFS.open("/");
         File file = root.openNextFile();
         while(file) {
-            Log.verbose(F("FILE:    * %s  (%u bytes)"), file.name(), (uint32_t)file.size());
+            Log.verbose(TAG_FILE,F("   * %s  (%u bytes)"), file.name(), (uint32_t)file.size());
             file = root.openNextFile();
         }
 #endif
 #if defined(ARDUINO_ARCH_ESP8266)
         Dir dir = SPIFFS.openDir("/");
         while(dir.next()) {
-            Log.notice(F("FILE:    * %s  (%u bytes)"), dir.fileName().c_str(), (uint32_t)dir.fileSize());
+            Log.notice(TAG_FILE,F("   * %s  (%u bytes)"), dir.fileName().c_str(), (uint32_t)dir.fileSize());
         }
 #endif
     }
@@ -108,9 +109,9 @@ void spiffsSetup()
 #else
     if(!SPIFFS.begin(true)) {
 #endif
-        Log.error(F("FILE: SPI flash init failed. Unable to mount FS."));
+        Log.error(TAG_FILE,F("SPI flash init failed. Unable to mount FS."));
     } else {
-        Log.verbose(F("FILE: SPI Flash FS mounted"));
+        Log.verbose(TAG_FILE,F("SPI Flash FS mounted"));
     }
 #endif
 }

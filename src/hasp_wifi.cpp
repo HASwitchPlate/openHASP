@@ -52,11 +52,11 @@ void wifiConnected(IPAddress ipaddress)
 #if defined(STM32F4xx)
     IPAddress ip;
     ip = WiFi.localIP();
-    Log.notice(F("WIFI: Received IP address %d.%d.%d.%d"), ip[0], ip[1], ip[2], ip[3]);
+    Log.notice(TAG_WIFI,F("Received IP address %d.%d.%d.%d"), ip[0], ip[1], ip[2], ip[3]);
 #else
-    Log.notice(F("WIFI: Received IP address %s"), ipaddress.toString().c_str());
+    Log.notice(TAG_WIFI,F("Received IP address %s"), ipaddress.toString().c_str());
 #endif
-    Log.verbose(F("WIFI: Connected = %s"), WiFi.status() == WL_CONNECTED ? PSTR("yes") : PSTR("no"));
+    Log.verbose(TAG_WIFI,F("Connected = %s"), WiFi.status() == WL_CONNECTED ? PSTR("yes") : PSTR("no"));
     haspProgressVal(255);
 
     // if(isConnected) {
@@ -73,15 +73,15 @@ void wifiDisconnected(const char * ssid, uint8_t reason)
     haspProgressVal(wifiReconnectCounter * 3);
     haspProgressMsg(F("Wifi Disconnected"));
     if(wifiReconnectCounter > 33) {
-        Log.error(F("WIFI: Retries exceed %u: Rebooting..."), wifiReconnectCounter);
+        Log.error(TAG_WIFI,F("Retries exceed %u: Rebooting..."), wifiReconnectCounter);
         dispatchReboot(false);
     }
-    Log.warning(F("WIFI: Disconnected from %s (Reason: %d)"), ssid, reason);
+    Log.warning(TAG_WIFI,F("Disconnected from %s (Reason: %d)"), ssid, reason);
 }
 
 void wifiSsidConnected(const char * ssid)
 {
-    Log.notice(F("WIFI: Connected to SSID %s. Requesting IP..."), ssid);
+    Log.notice(TAG_WIFI,F("Connected to SSID %s. Requesting IP..."), ssid);
     wifiReconnectCounter = 0;
 }
 
@@ -138,7 +138,7 @@ bool wifiShowAP(char * ssid, char * pass)
     sprintf_P(ssid, PSTR("HASP-%02x%02x%02x"), mac[3], mac[4], mac[5]);
     sprintf_P(pass, PSTR("haspadmin"));
 #if defined(STM32F4xx)
-    Log.warning(F("WIFI: We should setup Temporary Access Point %s password: %s"), ssid, pass);
+    Log.warning(TAG_WIFI,F("We should setup Temporary Access Point %s password: %s"), ssid, pass);
 #else
     WiFi.softAP(ssid, pass);
 
@@ -146,8 +146,8 @@ bool wifiShowAP(char * ssid, char * pass)
     // dnsServer.setErrorReplyCode(DNSReplyCode::NoError);
     // dnsServer.start(DNS_PORT, "*", apIP);
 
-    Log.warning(F("WIFI: Temporary Access Point %s password: %s"), ssid, pass);
-    Log.warning(F("WIFI: AP IP address : %s"), WiFi.softAPIP().toString().c_str());
+    Log.warning(TAG_WIFI,F("Temporary Access Point %s password: %s"), ssid, pass);
+    Log.warning(TAG_WIFI,F("AP IP address : %s"), WiFi.softAPIP().toString().c_str());
     // httpReconnect();}
 #endif
     return true;
@@ -181,13 +181,13 @@ void wifiSetup()
 
     // check for the presence of the shield:
     if (WiFiSpi.status() == WL_NO_SHIELD) {
-        Log.notice(F("WIFI: WiFi shield not present"));
+        Log.notice(TAG_WIFI,F("WiFi shield not present"));
         // don't continue:
         while (true);
     }
 
     if (!WiFiSpi.checkProtocolVersion()) {
-        Log.notice(F("WIFI: Protocol version mismatch. Please upgrade the firmware"));
+        Log.notice(TAG_WIFI,F("Protocol version mismatch. Please upgrade the firmware"));
         // don't continue:
         while (true);
     }
@@ -196,7 +196,7 @@ void wifiSetup()
     // int status = WL_IDLE_STATUS;     // the Wifi radio's status
     if(!wifiShowAP()) {
     // while (status != WL_CONNECTED) {
-        Log.notice(F("WIFI: Connecting to : %s"), wifiSsid);
+        Log.notice(TAG_WIFI,F("Connecting to : %s"), wifiSsid);
         // Connect to WPA/WPA2 network
         // status = WiFi.begin(wifiSsid, wifiPassword);
         WiFi.begin(wifiSsid, wifiPassword);
@@ -220,7 +220,7 @@ void wifiSetup()
 #endif
 
         wifiReconnect();
-        Log.notice(F("WIFI: Connecting to : %s"), wifiSsid);
+        Log.notice(TAG_WIFI,F("Connecting to : %s"), wifiSsid);
     }
 #endif
 }
@@ -240,10 +240,10 @@ bool wifiEvery5Seconds()
     } else {
         wifiReconnectCounter++;
         if(wifiReconnectCounter > 45) {
-            Log.error(F("WIFI: Retries exceed %u: Rebooting..."), wifiReconnectCounter);
+            Log.error(TAG_WIFI,F("Retries exceed %u: Rebooting..."), wifiReconnectCounter);
             dispatchReboot(false);
         }
-        Log.warning(F("WIFI: No Connection... retry %u"), wifiReconnectCounter);
+        Log.warning(TAG_WIFI,F("No Connection... retry %u"), wifiReconnectCounter);
         if(wifiReconnectCounter % 6 == 0) {
             wifiReconnect();
         }
@@ -307,14 +307,14 @@ bool wifiTestConnection()
     while(attempt < 10 && (WiFi.status() != WL_CONNECTED || WiFi.localIP().toString() == F("0.0.0.0"))) {
 #endif
         attempt++;
-        Log.verbose(F("WIFI: Trying to connect to %s... %u"), wifiSsid, attempt);
+        Log.verbose(TAG_WIFI,F("Trying to connect to %s... %u"), wifiSsid, attempt);
         delay(1000);
     }
 #if defined(STM32F4xx)
-    Log.verbose(F("WIFI: Received IP addres %s"), espIp);
+    Log.verbose(TAG_WIFI,F("Received IP addres %s"), espIp);
     if((WiFi.status() == WL_CONNECTED && String(espIp) != F("0.0.0.0"))) return true;
 #else
-    Log.verbose(F("WIFI: Received IP addres %s"), WiFi.localIP().toString().c_str());
+    Log.verbose(TAG_WIFI,F("Received IP addres %s"), WiFi.localIP().toString().c_str());
     if((WiFi.status() == WL_CONNECTED && WiFi.localIP().toString() != F("0.0.0.0"))) return true;
 #endif
     WiFi.disconnect();
@@ -328,7 +328,7 @@ void wifiStop()
 #if !defined(STM32F4xx)
     WiFi.mode(WIFI_OFF);
 #endif
-    Log.warning(F("WIFI: Stopped"));
+    Log.warning(TAG_WIFI,F("Stopped"));
 }
 
 #endif

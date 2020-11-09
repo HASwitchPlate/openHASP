@@ -39,7 +39,6 @@ void setup()
     /****************************
      * Apply User Configuration
      ***************************/
-    debugSetup();
 
 #if HASP_USE_GPIO > 0
     gpioSetup();
@@ -56,6 +55,9 @@ void setup()
 #if HASP_USE_WIFI > 0
     wifiSetup();
 #endif
+
+    // The network stack needs to be initialized before calling debugSetup, cause syslog needs lwip
+    debugSetup();
 
     guiSetup();
     if(!oobeSetup()) {

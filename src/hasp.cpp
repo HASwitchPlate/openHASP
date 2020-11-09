@@ -150,7 +150,7 @@ lv_obj_t * hasp_find_obj_from_id(lv_obj_t * parent, uint8_t objid)
             uint16_t tabcount = lv_tabview_get_tab_count(child);
             for(uint16_t i = 0; i < tabcount; i++) {
                 lv_obj_t * tab = lv_tabview_get_tab(child, i);
-                Log.verbose("Found tab %i", i);
+                Log.verbose(TAG_HASP, "Found tab %i", i);
                 if(tab->user_data && (lv_obj_user_data_t)objid == tab->user_data) return tab; // object found
 
                 grandchild = hasp_find_obj_from_id(tab, objid);
@@ -250,7 +250,11 @@ static inline void hasp_send_obj_attribute_txt(lv_obj_t * obj, const char * txt)
 // Used in the dispatcher
 void hasp_process_attribute(uint8_t pageid, uint8_t objid, const char * attr, const char * payload)
 {
-    hasp_process_obj_attribute(hasp_find_obj_from_id(pageid, objid), attr, payload, strlen(payload) > 0);
+    if(lv_obj_t * obj = hasp_find_obj_from_id(pageid, objid)) {
+        hasp_process_obj_attribute(obj, attr, payload, strlen(payload) > 0);
+    } else {
+        Log.warning(TAG_HASP, F("Unknown object p[%d].b[%d]"), pageid, objid);
+    }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -368,9 +372,9 @@ void haspSetup()
     lv_fs_res_t res;
     res = lv_fs_open(&f, "F:/pages.jsonl", LV_FS_MODE_RD);
     if(res == LV_FS_RES_OK)
-        Log.error(F("Opening pages.json OK"));
+        Log.error(TAG_HASP, F("Opening pages.json OK"));
     else
-        Log.verbose(F("Opening pages.json from FS failed %d"), res);
+        Log.verbose(TAG_HASP, F("Opening pages.json from FS failed %d"), res);
 
     uint32_t btoread = 128;
     uint32_t bread   = 0;
@@ -378,17 +382,17 @@ void haspSetup()
 
     res = lv_fs_read(&f, &buffer, btoread, &bread);
     if(res == LV_FS_RES_OK) {
-        Log.error(F("Reading pages.json OK %u"), bread);
+        Log.error(TAG_HASP, F("Reading pages.json OK %u"), bread);
         buffer[127] = '\0';
-        Log.verbose(buffer);
+        Log.verbose(TAG_HASP, buffer);
     } else
-        Log.verbose(F("Reading pages.json from FS failed %d"), res);
+        Log.verbose(TAG_HASP, F("Reading pages.json from FS failed %d"), res);
 
     res = lv_fs_close(&f);
     if(res == LV_FS_RES_OK)
-        Log.error(F("Closing pages.json OK"));
+        Log.error(TAG_HASP, F("Closing pages.json OK"));
     else
-        Log.verbose(F("Closing pages.json on FS failed %d"), res);
+        Log.verbose(TAG_HASP, F("Closing pages.json on FS failed %d"), res);
         /******* File System Test ********************************************************************/
 
         /* ********** Font Initializations ********** */
@@ -398,7 +402,7 @@ void haspSetup()
     lv_zifont_init();
 
     if(lv_zifont_font_init(&haspFonts[0], haspZiFontPath, 32) != 0) {
-        Log.error(F("HASP: Failed to set font to %s"), haspZiFontPath);
+        Log.error(TAG_HASP, F("Failed to set font to %s"), haspZiFontPath);
         haspFonts[0] = LV_FONT_DEFAULT;
     } else {
         // defaultFont = haspFonts[0];
@@ -413,8 +417,8 @@ void haspSetup()
     switch(haspThemeId) {
 #if(LV_USE_THEME_EMPTY == 1)
         case 0:
-            th = lv_theme_empty_init(LV_COLOR_PURPLE, LV_COLOR_BLACK, LV_THEME_DEFAULT_FLAGS,  haspFonts[0], haspFonts[1],
-                                    haspFonts[2], haspFonts[3]);
+            th = lv_theme_empty_init(LV_COLOR_PURPLE, LV_COLOR_BLACK, LV_THEME_DEFAULT_FLAGS, haspFonts[0],
+                                     haspFonts[1], haspFonts[2], haspFonts[3]);
             break;
 #endif
 
@@ -464,8 +468,8 @@ void haspSetup()
 
 #if LV_USE_THEME_TEMPLATE == 1
         case 7:
-            th = lv_theme_template_init(LV_COLOR_PURPLE, LV_COLOR_ORANGE, LV_THEME_DEFAULT_FLAGS,  haspFonts[0], haspFonts[1],
-                                    haspFonts[2], haspFonts[3]);
+            th = lv_theme_template_init(LV_COLOR_PURPLE, LV_COLOR_ORANGE, LV_THEME_DEFAULT_FLAGS, haspFonts[0],
+                                        haspFonts[1], haspFonts[2], haspFonts[3]);
             break;
 #endif
 #if(LV_USE_THEME_HASP == 1)
@@ -487,13 +491,13 @@ void haspSetup()
         default:
             th = lv_theme_template_init(LV_COLOR_PURPLE, LV_COLOR_ORANGE, LV_THEME_DEFAULT_FLAGS, haspFonts[0],
                                         haspFonts[1], haspFonts[2], haspFonts[3]);
-            Log.error(F("HASP: Unknown theme selected"));
+            Log.error(TAG_HASP, F("Unknown theme selected"));
     }
 
     if(th) {
-        Log.verbose(F("HASP: Custom theme loaded"));
+        Log.verbose(TAG_HASP, F("Custom theme loaded"));
     } else {
-        Log.error(F("HASP: No theme could be loaded"));
+        Log.error(TAG_HASP, F("No theme could be loaded"));
     }
     // lv_theme_set_current(th);
     /* ********** Theme Initializations ********** */
@@ -634,16 +638,16 @@ void IRAM_ATTR btn_event_handler(lv_obj_t * obj, lv_event_t event)
 
         case LV_EVENT_VALUE_CHANGED:
             strcat_P(buffer, PSTR("Value Changed"));
-            Log.notice(buffer);
+            Log.notice(TAG_HASP, buffer);
             return;
 
         case LV_EVENT_DELETE:
             strcat_P(buffer, PSTR("Object deleted"));
-            Log.notice(buffer, event);
+            Log.notice(TAG_HASP, buffer, event);
             return;
         default:
             strcat_P(buffer, PSTR("HASP : Unknown Event occured"));
-            Log.warning(buffer, event);
+            Log.warning(TAG_HASP, buffer, event);
             return;
     }
 
@@ -725,11 +729,11 @@ void haspClearPage(uint16_t pageid)
 {
     lv_obj_t * page = get_page_obj(pageid);
     if(!page || pageid > 255) {
-        Log.warning(F("HASP: Page ID %u not defined"), pageid);
+        Log.warning(TAG_HASP, F("Page ID %u not defined"), pageid);
     } else if(page == lv_layer_sys() /*|| page == lv_layer_top()*/) {
-        Log.warning(F("HASP: Cannot clear system layer"));
+        Log.warning(TAG_HASP, F("Cannot clear system layer"));
     } else {
-        Log.notice(F("HASP: Clearing page %u"), pageid);
+        Log.notice(TAG_HASP, F("Clearing page %u"), pageid);
         lv_obj_clean(pages[pageid]);
     }
 }
@@ -743,12 +747,12 @@ void haspSetPage(uint8_t pageid)
 {
     lv_obj_t * page = get_page_obj(pageid);
     if(!page) {
-        Log.warning(F("HASP: Page ID %u not found"), pageid);
+        Log.warning(TAG_HASP, F("Page ID %u not found"), pageid);
     } else if(page == lv_layer_sys() || page == lv_layer_top()) {
-        Log.warning(F("HASP: %sCannot change to a layer"));
+        Log.warning(TAG_HASP, F("%sCannot change to a layer"));
     } else {
         // if(pageid != current_page) {
-        Log.notice(F("HASP: Changing page to %u"), pageid);
+        Log.notice(TAG_HASP, F("Changing page to %u"), pageid);
         current_page = pageid;
         lv_scr_load(page);
         //}
@@ -779,7 +783,7 @@ void haspNewObject(const JsonObject & config, uint8_t & saved_page_id)
     /* Page selection */
     lv_obj_t * page = get_page_obj(pageid);
     if(!page) {
-        Log.warning(F("HASP: Page ID %u not defined"), pageid);
+        Log.warning(TAG_HASP, F("Page ID %u not defined"), pageid);
         return;
     }
     /* save the current pageid */
@@ -793,10 +797,10 @@ void haspNewObject(const JsonObject & config, uint8_t & saved_page_id)
         uint8_t parentid = config[F("parentid")].as<uint8_t>();
         parent_obj       = hasp_find_obj_from_id(page, parentid);
         if(!parent_obj) {
-            Log.warning(F("HASP: Parent ID p[%u].b[%u] not found"), pageid, parentid);
+            Log.warning(TAG_HASP, F("Parent ID p[%u].b[%u] not found"), pageid, parentid);
             parent_obj = page; // create on the page instead ??
         } else {
-            Log.trace(F("HASP: Parent ID p[%u].b[%u] found"), pageid, parentid);
+            Log.trace(TAG_HASP, F("Parent ID p[%u].b[%u] found"), pageid, parentid);
         }
     }
 
@@ -806,7 +810,7 @@ void haspNewObject(const JsonObject & config, uint8_t & saved_page_id)
     /* Define Objects*/
     lv_obj_t * obj = hasp_find_obj_from_id(parent_obj, id);
     if(obj) {
-        Log.warning(F("HASP: Object ID %u already exists!"), id);
+        Log.warning(TAG_HASP, F("Object ID %u already exists!"), id);
         return;
     }
 
@@ -950,12 +954,12 @@ void haspNewObject(const JsonObject & config, uint8_t & saved_page_id)
 
         /* ----- Other Object ------ */
         default:
-            Log.warning(F("HASP: Unsupported Object ID %u"), objid);
+            Log.warning(TAG_HASP, F("Unsupported Object ID %u"), objid);
             return;
     }
 
     if(!obj) {
-        Log.warning(F("HASP: Object is NULL, skipping..."));
+        Log.warning(TAG_HASP, F("Object is NULL, skipping..."));
         return;
     }
 
@@ -971,27 +975,27 @@ void haspNewObject(const JsonObject & config, uint8_t & saved_page_id)
     for(JsonPair keyValue : config) {
         v = keyValue.value().as<String>();
         hasp_process_obj_attribute(obj, keyValue.key().c_str(), v.c_str(), true);
-        // Log.trace(F("     * %s => %s"), keyValue.key().c_str(), v.c_str());
+        // Log.trace(TAG_HASP,F("     * %s => %s"), keyValue.key().c_str(), v.c_str());
     }
 
     /** testing start **/
     lv_obj_user_data_t temp;
     if(!FindIdFromObj(obj, &pageid, &temp)) {
-        Log.error(F("HASP: Lost track of the created object, not found!"));
+        Log.error(TAG_HASP, F("Lost track of the created object, not found!"));
         return;
     }
     /** testing end **/
 
     lv_obj_type_t list;
     lv_obj_get_type(obj, &list);
-    Log.verbose(F("HASP:     * p[%u].b[%u] = %s"), pageid, temp, list.type[0]);
+    Log.verbose(TAG_HASP, F("    * p[%u].b[%u] = %s"), pageid, temp, list.type[0]);
 
     /* Double-check */
     lv_obj_t * test = hasp_find_obj_from_id(pageid, (uint8_t)temp);
     if(test != obj) {
-        Log.error(F("HASP: Objects DO NOT match!"));
+        Log.error(TAG_HASP, F("Objects DO NOT match!"));
     } else {
-        // Log.trace(F("Objects match!"));
+        // Log.trace(TAG_HASP,F("Objects match!"));
     }
 }
 
@@ -1001,29 +1005,29 @@ void haspLoadPage(const char * pages)
     if(pages[0] == '\0') return;
 
     if(!SPIFFS.begin()) {
-        Log.error(F("HASP: FS not mounted. Failed to load %s"), pages);
+        Log.error(TAG_HASP, F("FS not mounted. Failed to load %s"), pages);
         return;
     }
 
     if(!SPIFFS.exists(pages)) {
-        Log.error(F("HASP: Non existing file %s"), pages);
+        Log.error(TAG_HASP, F("Non existing file %s"), pages);
         return;
     }
 
-    Log.notice(F("HASP: Loading file %s"), pages);
+    Log.notice(TAG_HASP, F("Loading file %s"), pages);
 
     File file = SPIFFS.open(pages, "r");
     dispatchParseJsonl(file);
     file.close();
 
-    Log.notice(F("HASP: File %s loaded"), pages);
+    Log.notice(TAG_HASP, F("File %s loaded"), pages);
 #else
 
 #if HASP_USE_EEPROM > 0
-    Log.notice(F("HASP: Loading jsonl from EEPROM..."));
+    Log.notice(TAG_HASP, F("Loading jsonl from EEPROM..."));
     EepromStream eepromStream(4096, 1024);
     dispatchJsonl(eepromStream);
-    Log.notice(F("HASP: Loaded jsonl from EEPROM"));
+    Log.notice(TAG_HASP, F("Loaded jsonl from EEPROM"));
 #endif
 
 #endif

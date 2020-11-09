@@ -22,7 +22,7 @@ Licensed under the MIT License <http://opensource.org/licenses/MIT>.
 #include "WProgram.h"
 #endif
 #include "StringStream.h"
-typedef void (*printfunction)(int level, Print *);
+typedef void (*printfunction)(uint8_t tag, int level, Print *);
 
 //#include <stdint.h>
 //#include <stddef.h>
@@ -31,13 +31,18 @@ typedef void (*printfunction)(int level, Print *);
 // ************************************************************************
 //#define DISABLE_LOGGING
 
-#define LOG_LEVEL_SILENT 0
-#define LOG_LEVEL_FATAL 1
-#define LOG_LEVEL_ERROR 2
-#define LOG_LEVEL_WARNING 3
-#define LOG_LEVEL_NOTICE 4
-#define LOG_LEVEL_TRACE 5
-#define LOG_LEVEL_VERBOSE 6
+#define LOG_LEVEL_SILENT -1
+
+#define LOG_LEVEL_FATAL 0
+#define LOG_LEVEL_ALERT 1
+#define LOG_LEVEL_CRITICAL 2
+#define LOG_LEVEL_ERROR 3
+#define LOG_LEVEL_WARNING 4
+#define LOG_LEVEL_NOTICE 5
+#define LOG_LEVEL_INFO 6
+#define LOG_LEVEL_TRACE 6
+#define LOG_LEVEL_VERBOSE 7
+#define LOG_LEVEL_DEBUG 7
 
 #define CR "\n"
 #define LOGGING_VERSION 1_0_3
@@ -85,7 +90,7 @@ class Logging {
      */
     Logging()
 #ifndef DISABLE_LOGGING
-     //   : _level(LOG_LEVEL_SILENT), _showLevel(true)
+    //   : _level(LOG_LEVEL_SILENT), _showLevel(true)
 #endif
     {}
 
@@ -126,7 +131,7 @@ class Logging {
      * \param level - The new log level.
      * \return void
      */
-    void setLevel(uint8_t slot,int level);
+    void setLevel(uint8_t slot, int level);
 
     /**
      * Get the log level.
@@ -142,7 +147,7 @@ class Logging {
      *                    false otherwise.
      * \return void
      */
-    void setShowLevel(uint8_t slot,bool showLevel);
+    void setShowLevel(uint8_t slot, bool showLevel);
 
     /**
      * Get whether the log level is shown during logging
@@ -178,10 +183,10 @@ class Logging {
      * \param ... any number of variables
      * \return void
      */
-    template <class T, typename... Args> void fatal(T msg, Args... args)
+    template <class T, typename... Args> void fatal(uint8_t tag, T msg, Args... args)
     {
 #ifndef DISABLE_LOGGING
-        printLevel(LOG_LEVEL_FATAL, msg, args...);
+        printLevel(tag, LOG_LEVEL_FATAL, msg, args...);
 #endif
     }
 
@@ -195,10 +200,10 @@ class Logging {
      * \param ... any number of variables
      * \return void
      */
-    template <class T, typename... Args> void error(T msg, Args... args)
+    template <class T, typename... Args> void error(uint8_t tag, T msg, Args... args)
     {
 #ifndef DISABLE_LOGGING
-        printLevel(LOG_LEVEL_ERROR, msg, args...);
+        printLevel(tag, LOG_LEVEL_ERROR, msg, args...);
 #endif
     }
 
@@ -212,10 +217,10 @@ class Logging {
      * \param ... any number of variables
      * \return void
      */
-    template <class T, typename... Args> void warning(T msg, Args... args)
+    template <class T, typename... Args> void warning(uint8_t tag, T msg, Args... args)
     {
 #ifndef DISABLE_LOGGING
-        printLevel(LOG_LEVEL_WARNING, msg, args...);
+        printLevel(tag, LOG_LEVEL_WARNING, msg, args...);
 #endif
     }
 
@@ -229,10 +234,10 @@ class Logging {
      * \param ... any number of variables
      * \return void
      */
-    template <class T, typename... Args> void notice(T msg, Args... args)
+    template <class T, typename... Args> void notice(uint8_t tag, T msg, Args... args)
     {
 #ifndef DISABLE_LOGGING
-        printLevel(LOG_LEVEL_NOTICE, msg, args...);
+        printLevel(tag, LOG_LEVEL_NOTICE, msg, args...);
 #endif
     }
 
@@ -246,10 +251,10 @@ class Logging {
      * \param ... any number of variables
      * \return void
      */
-    template <class T, typename... Args> void trace(T msg, Args... args)
+    template <class T, typename... Args> void trace(uint8_t tag, T msg, Args... args)
     {
 #ifndef DISABLE_LOGGING
-        printLevel(LOG_LEVEL_TRACE, msg, args...);
+        printLevel(tag, LOG_LEVEL_TRACE, msg, args...);
 #endif
     }
 
@@ -263,10 +268,10 @@ class Logging {
      * \param ... any number of variables
      * \return void
      */
-    template <class T, typename... Args> void verbose(T msg, Args... args)
+    template <class T, typename... Args> void verbose(uint8_t tag, T msg, Args... args)
     {
 #ifndef DISABLE_LOGGING
-        printLevel(LOG_LEVEL_VERBOSE, msg, args...);
+        printLevel(tag, LOG_LEVEL_VERBOSE, msg, args...);
 #endif
     }
 
@@ -277,23 +282,23 @@ class Logging {
 
     void printFormat(Print * logOutput, const char format, va_list * args);
 
-    template <class T> void printLevel(int level, T msg, ...)
+    template <class T> void printLevel(uint8_t tag, int level, T msg, ...)
     {
 #ifndef DISABLE_LOGGING
 
         for(uint8_t i = 0; i < 3; i++) {
-            if(_logOutput[i] == NULL || level>_level[i]) continue;
+            if(_logOutput[i] == NULL || level > _level[i]) continue;
 
             if(_prefix != NULL) {
-                _prefix(level, _logOutput[i]);
+                _prefix(tag, level, _logOutput[i]);
             }
 
             va_list args;
             va_start(args, msg);
             print(_logOutput[i], msg, args);
-            
+
             if(_suffix != NULL) {
-                _suffix(level, _logOutput[i]);
+                _suffix(tag, level, _logOutput[i]);
             }
         }
 

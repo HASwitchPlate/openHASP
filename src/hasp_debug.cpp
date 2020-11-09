@@ -56,7 +56,7 @@
 // static String debugOutput((char *)0);
 // static StringStream debugStream((String &)debugOutput);
 
-extern char mqttNodeName[16];
+// extern char mqttNodeName[16];
 const char * syslogAppName  = APP_NAME;
 char debugSyslogHost[32]    = SYSLOG_SERVER;
 uint16_t debugSyslogPort    = SYSLOG_PORT;
@@ -64,12 +64,13 @@ uint8_t debugSyslogFacility = 0;
 uint8_t debugSyslogProtocol = 0;
 
 // A UDP instance to let us send and receive packets over UDP
-WiFiUDP syslogClient;
+WiFiUDP * syslogClient;
+#define SYSLOG_PROTO_IETF 0
 
 // Create a new syslog instance with LOG_KERN facility
 // Syslog syslog(syslogClient, SYSLOG_SERVER, SYSLOG_PORT, MQTT_CLIENT, APP_NAME, LOG_KERN);
 // Create a new empty syslog instance
-Syslog * syslog;
+// Syslog * syslog;
 #endif // USE_SYSLOG
 
 // Serial Settings
@@ -116,33 +117,43 @@ void debugStart()
 {
     if(debugSerialStarted) {
         Serial.flush();
-        Serial.println();
-        Serial.println(debugHaspHeader());
-        Serial.flush();
+        // Serial.println();
+        // Serial.println(debugHaspHeader());
+        // Serial.flush();
     }
 
     // prepare syslog configuration here (can be anywhere before first call of
     // log/logf method)
 }
 
-#if HASP_USE_SYSLOG > 0
-void syslogSend(uint8_t priority, const char * debugText)
-{
-    if(strlen(debugSyslogHost) != 0 && WiFi.isConnected()) {
-        syslog->log(priority, debugText);
-    }
-}
-#endif
+// #if HASP_USE_SYSLOG > 0
+// void syslogSend(uint8_t priority, const char * debugText)
+// {
+//     if(strlen(debugSyslogHost) != 0 && WiFi.isConnected()) {
+//         syslog->log(priority, debugText);
+//     }
+// }
+// #endif
 
 void debugSetup()
 {
 #if HASP_USE_SYSLOG > 0
-    syslog = new Syslog(syslogClient, debugSyslogProtocol == 0 ? SYSLOG_PROTO_IETF : SYSLOG_PROTO_BSD);
-    syslog->server(debugSyslogHost, debugSyslogPort);
-    syslog->deviceHostname(mqttNodeName);
-    syslog->appName(syslogAppName);
-    uint16_t priority = (uint16_t)(debugSyslogFacility + 16) << 3; // localx facility, x = 0-7
-    syslog->defaultPriority(priority);
+    // syslog = new Syslog(syslogClient, debugSyslogProtocol == 0 ? SYSLOG_PROTO_IETF : SYSLOG_PROTO_BSD);
+    // syslog->server(debugSyslogHost, debugSyslogPort);
+    // syslog->deviceHostname(mqttNodeName);
+    // syslog->appName(syslogAppName);
+    // uint16_t priority = (uint16_t)(debugSyslogFacility + 16) << 3; // localx facility, x = 0-7
+    // syslog->defaultPriority(priority);
+
+    if(strlen(debugSyslogHost) > 0) {
+        syslogClient = new WiFiUDP();
+        if(syslogClient) {
+            syslogClient->beginPacket(debugSyslogHost, debugSyslogPort);
+            {
+                Log.registerOutput(2, syslogClient, LOG_LEVEL_VERBOSE, true);
+            }
+        }
+    }
 #endif
 }
 
@@ -307,23 +318,159 @@ static void debugPrintPriority(int level, Print * _logOutput)
     }
 }
 
-void debugPrintPrefix(int level, Print * _logOutput)
+static void debugPrintTag(uint8_t tag, Print * _logOutput)
 {
+    switch(tag) {
+        case TAG_MAIN:
+            _logOutput->print(F("MAIN"));
+            break;
+
+        case TAG_HASP:
+            _logOutput->print(F("HASP"));
+            break;
+
+        case TAG_ATTR:
+            _logOutput->print(F("ATTR"));
+            break;
+
+        case TAG_MSGR:
+            _logOutput->print(F("MSGR"));
+            break;
+
+        case TAG_OOBE:
+            _logOutput->print(F("OOBE"));
+            break;
+        case TAG_HAL:
+            _logOutput->print(F("HAL "));
+            break;
+
+        case TAG_DEBG:
+            _logOutput->print(F("DEBG"));
+            break;
+        case TAG_TELN:
+            _logOutput->print(F("TELN"));
+            break;
+        case TAG_SYSL:
+            _logOutput->print(F("SYSL"));
+            break;
+        case TAG_TASM:
+            _logOutput->print(F("TASM"));
+            break;
+
+        case TAG_CONF:
+            _logOutput->print(F("CONF"));
+            break;
+        case TAG_GUI:
+            _logOutput->print(F("GUI "));
+            break;
+        case TAG_TFT:
+            _logOutput->print(F("TFT "));
+            break;
+
+        case TAG_EPRM:
+            _logOutput->print(F("EPRM"));
+            break;
+        case TAG_FILE:
+            _logOutput->print(F("FILE"));
+            break;
+        case TAG_GPIO:
+            _logOutput->print(F("GPIO"));
+            break;
+
+        case TAG_ETH:
+            _logOutput->print(F("ETH "));
+            break;
+        case TAG_WIFI:
+            _logOutput->print(F("WIFI"));
+            break;
+        case TAG_HTTP:
+            _logOutput->print(F("HTTP"));
+            break;
+        case TAG_MDNS:
+            _logOutput->print(F("MDNS"));
+            break;
+        case TAG_MQTT:
+            _logOutput->print(F("MQTT"));
+            break;
+        case TAG_MQTT_PUB:
+            _logOutput->print(F("MQTT PUB"));
+            break;
+        case TAG_MQTT_RCV:
+            _logOutput->print(F("MQTT RCV"));
+            break;
+
+        case TAG_OTA:
+            _logOutput->print(F("OTA"));
+            break;
+        case TAG_FWUP:
+            _logOutput->print(F("FWUP"));
+            break;
+
+        case TAG_LVGL:
+            _logOutput->print(F("LVGL"));
+            break;
+        case TAG_LVFS:
+            _logOutput->print(F("LVFS"));
+            break;
+        case TAG_FONT:
+            _logOutput->print(F("FONT"));
+            break;
+
+        default:
+            _logOutput->print(F("----"));
+            break;
+    }
+}
+
+void debugPrintPrefix(uint8_t tag, int level, Print * _logOutput)
+{
+    if(_logOutput == syslogClient) {
+        syslogClient->beginPacket();
+
+        // IETF Doc: https://tools.ietf.org/html/rfc5424 - The Syslog Protocol
+        // BSD Doc: https://tools.ietf.org/html/rfc3164 - The BSD syslog Protocol
+
+        syslogClient->print('<');
+        syslogClient->print((16 + debugSyslogFacility) * 8 + level);
+        syslogClient->print('>');
+
+        if(debugSyslogProtocol == SYSLOG_PROTO_IETF) {
+            syslogClient->print(F("1 - "));
+        }
+
+        syslogClient->print(mqttGetNodename());
+        syslogClient->print(' ');
+        syslogClient->print(syslogAppName);
+
+        if(debugSyslogProtocol == SYSLOG_PROTO_IETF) {
+            syslogClient->print(F(" - - - \xEF\xBB\xBF")); // include UTF-8 BOM
+        } else {
+            syslogClient->print(F(": "));
+        }
+    }
+
     debugPrintTimestamp(level, _logOutput);
     debugPrintHaspMemory(level, _logOutput);
 #if LV_MEM_CUSTOM == 0
     debugPrintLvglMemory(level, _logOutput);
 #endif
     debugPrintPriority(level, _logOutput);
+    _logOutput->print(F(" "));
+    debugPrintTag(tag, _logOutput);
+    _logOutput->print(F(": "));
 }
 
-void debugPrintSuffix(int level, Print * _logOutput)
+void debugPrintSuffix(uint8_t tag, int level, Print * _logOutput)
 {
     if(debugAnsiCodes)
         _logOutput->println(F(TERM_COLOR_RESET));
     else
         _logOutput->println();
     if(debugAnsiCodes) _logOutput->print(F(TERM_COLOR_MAGENTA));
+
+    if(_logOutput == syslogClient && strlen(debugSyslogHost) > 0) {
+        syslogClient->endPacket();
+    }
 
     // syslogSend(level, debugOutput);
 }
@@ -351,8 +498,14 @@ void debugPreSetup(JsonObject settings)
         delay(10);
         Log.registerOutput(0, &Serial, LOG_LEVEL_VERBOSE, true);
         debugSerialStarted = true;
+
+        // Print Header
         Serial.println();
-        Log.trace(("Serial started at %u baud"), baudrate);
+        Serial.println(debugHaspHeader());
+        Serial.println();
+        Serial.flush();
+
+        Log.trace(TAG_DEBG, ("Serial started at %u baud"), baudrate);
     }
 }
 
@@ -368,16 +521,16 @@ void debugLvgl(lv_log_level_t level, const char * file, uint32_t line, const cha
     if(line != lastDbgLine || mem_mon.free_biggest_size != lastDbgFree) {
         switch(level) {
             case LV_LOG_LEVEL_TRACE:
-                Log.trace(descr);
+                Log.trace(TAG_LVGL, descr);
                 break;
             case LV_LOG_LEVEL_WARN:
-                Log.warning(descr);
+                Log.warning(TAG_LVGL, descr);
                 break;
             case LV_LOG_LEVEL_ERROR:
-                Log.error(descr);
+                Log.error(TAG_LVGL, descr);
                 break;
             default:
-                Log.notice(descr);
+                Log.notice(TAG_LVGL, descr);
         }
         lastDbgLine = line;
         lastDbgFree = mem_mon.free_biggest_size;

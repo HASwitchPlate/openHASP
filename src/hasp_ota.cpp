@@ -36,18 +36,18 @@ static WiFiClient otaClient;
 std::string otaUrl           = "http://10.1.0.3";
 int8_t otaPrecentageComplete = -1;
 
-int16_t otaPort              = HASP_OTA_PORT;
+int16_t otaPort = HASP_OTA_PORT;
 
 void otaProgress()
 {
-    Log.verbose(F("OTA: %s update in progress... %3u%"),
+    Log.verbose(TAG_OTA, F("%s update in progress... %3u%"),
                 (ArduinoOTA.getCommand() == U_FLASH ? PSTR("Firmware") : PSTR("Filesystem")), otaPrecentageComplete);
 }
 
 void otaSetup()
 {
     if(strlen(otaUrl.c_str())) {
-        Log.verbose(F("OTA: %s"), otaUrl.c_str());
+        Log.verbose(TAG_OTA, otaUrl.c_str());
     }
 
     if(otaPort > 0) {
@@ -57,9 +57,9 @@ void otaSetup()
                 // NOTE: if updating SPIFFS this would be the place to unmount SPIFFS using SPIFFS.end()
             }
 
-            Log.notice(F("OTA: Start update"));
+            Log.notice(TAG_OTA, F("Start update"));
             haspProgressVal(0);
-            haspProgressMsg(F("OTA: Firmware Update"));
+            haspProgressMsg(F("Firmware Update"));
             // dispatchPage("0");
             otaPrecentageComplete = 0;
             // haspSetAttr("p[0].b[1].txt", "\"ESP OTA Update\"");
@@ -73,7 +73,7 @@ void otaSetup()
             // dispatchPage("0");
             // haspSetAttr("p[0].b[1].txt", "\"ESP OTA Update\\rComplete!\"");
             setup();
-            //dispatchReboot(true);
+            // dispatchReboot(true);
         });
         ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
             if(total != 0) {
@@ -85,17 +85,17 @@ void otaSetup()
         });
         ArduinoOTA.onError([](ota_error_t error) {
             otaPrecentageComplete = -1;
-            Log.error(F("OTA: ERROR code %u"), error);
+            Log.error(TAG_OTA, F("ERROR code %u"), error);
             if(error == OTA_AUTH_ERROR)
-                Log.error(F("OTA: ERROR - Auth Failed"));
+                Log.error(TAG_OTA, F("ERROR - Auth Failed"));
             else if(error == OTA_BEGIN_ERROR)
-                Log.error(F("OTA: ERROR - Begin Failed"));
+                Log.error(TAG_OTA, F("ERROR - Begin Failed"));
             else if(error == OTA_CONNECT_ERROR)
-                Log.error(F("OTA: ERROR - Connect Failed"));
+                Log.error(TAG_OTA, F("ERROR - Connect Failed"));
             else if(error == OTA_RECEIVE_ERROR)
-                Log.error(F("OTA: ERROR - Receive Failed"));
+                Log.error(TAG_OTA, F("ERROR - Receive Failed"));
             else if(error == OTA_END_ERROR)
-                Log.error(F("OTA: ERROR - End Failed"));
+                Log.error(TAG_OTA, F("ERROR - End Failed"));
             // haspSetAttr("p[0].b[1].txt", "\"ESP OTA FAILED\"");
             // delay(5000);
             // haspSendCmd("page " + String(nextionActivePage));
@@ -120,9 +120,9 @@ void otaSetup()
         ArduinoOTA.setRebootOnSuccess(false); // We do that
 
         ArduinoOTA.begin();
-        Log.notice(F("OTA: Over the Air firmware update ready"));
+        Log.notice(TAG_OTA, F("Over the Air firmware update ready"));
     } else {
-        Log.notice(F("OTA: Disabled"));
+        Log.notice(TAG_OTA, F("Disabled"));
     }
 }
 
@@ -153,18 +153,18 @@ void otaHttpUpdate(const char * espOtaUrl)
 
     switch(returnCode) {
         case HTTP_UPDATE_FAILED:
-            Log.error("FWUP: HTTP_UPDATE_FAILED error %d %s", ESPhttpUpdate.getLastError(),
+            Log.error(TAG_FWUP, "FWUP: HTTP_UPDATE_FAILED error %d %s", ESPhttpUpdate.getLastError(),
                       ESPhttpUpdate.getLastErrorString().c_str());
             // nextionSetAttr("p[0].b[1].txt", "\"HTTP Update\\rFAILED\"");
             break;
 
         case HTTP_UPDATE_NO_UPDATES:
-            Log.notice(F("FWUP: HTTP_UPDATE_NO_UPDATES"));
+            Log.notice(TAG_FWUP, F("HTTP_UPDATE_NO_UPDATES"));
             // nextionSetAttr("p[0].b[1].txt", "\"HTTP Update\\rNo update\"");
             break;
 
         case HTTP_UPDATE_OK:
-            Log.notice(F("FWUP: HTTP_UPDATE_OK"));
+            Log.notice(TAG_FWUP, F("HTTP_UPDATE_OK"));
             // nextionSetAttr("p[0].b[1].txt", "\"HTTP Update\\rcomplete!\\r\\rRestarting.\"");
             dispatchReboot(true);
             delay(5000);
@@ -175,18 +175,18 @@ void otaHttpUpdate(const char * espOtaUrl)
 
     switch(returnCode) {
         case HTTP_UPDATE_FAILED:
-            Log.error("FWUP: HTTP_UPDATE_FAILED error %i %s", httpUpdate.getLastError(),
+            Log.error(TAG_FWUP, F("HTTP_UPDATE_FAILED error %i %s"), httpUpdate.getLastError(),
                       httpUpdate.getLastErrorString().c_str());
             // nextionSetAttr("p[0].b[1].txt", "\"HTTP Update\\rFAILED\"");
             break;
 
         case HTTP_UPDATE_NO_UPDATES:
-            Log.notice(F("FWUP: HTTP_UPDATE_NO_UPDATES"));
+            Log.notice(TAG_FWUP, F("HTTP_UPDATE_NO_UPDATES"));
             // nextionSetAttr("p[0].b[1].txt", "\"HTTP Update\\rNo update\"");
             break;
 
         case HTTP_UPDATE_OK:
-            Log.notice(F("FWUP: HTTP_UPDATE_OK"));
+            Log.notice(TAG_FWUP, F("HTTP_UPDATE_OK"));
             // nextionSetAttr("p[0].b[1].txt", "\"HTTP Update\\rcomplete!\\r\\rRestarting.\"");
             dispatchReboot(true);
             delay(5000);
