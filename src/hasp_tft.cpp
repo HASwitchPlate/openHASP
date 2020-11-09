@@ -1,15 +1,17 @@
 #include "ArduinoJson.h"
 #include "ArduinoLog.h"
+
+#ifndef USE_FSMC
+
 #include "TFT_eSPI.h"
 
 #include "hasp_tft.h"
 #include "hasp_hal.h"
+#include "hasp_gpio.h" // PinNames
 
 #if defined(ARDUINO_ARCH_ESP8266)
 ADC_MODE(ADC_VCC); // tftShowConfig measures the voltage on the pin
 #endif
-
-int8_t getPinName(int8_t pin);
 
 void tftSetup(TFT_eSPI & tft)
 {
@@ -23,40 +25,6 @@ void tftLoop()
 
 void tftStop()
 {}
-
-String tftDriverName()
-{
-#if defined(ILI9341_DRIVER)
-    return F("ILI9341");
-#elif defined(ST7735_DRIVER)
-    return F("ST7735");
-#elif defined(ILI9163_DRIVER)
-    return F("ILI9163");
-#elif defined(S6D02A1_DRIVER)
-    return F("S6D02A1");
-#elif defined(ST7796_DRIVER)
-    return F("ST7796");
-#elif defined(ILI9486_DRIVER)
-    return F("ILI9486");
-#elif defined(ILI9481_DRIVER)
-    return F("ILI9481");
-#elif defined(ILI9488_DRIVER)
-    return F("ILI9488");
-#elif defined(HX8357D_DRIVER)
-    return F("HX8357D");
-#elif defined(EPD_DRIVER)
-    return F("EPD");
-#elif defined(ST7789_DRIVER)
-    return F("ST7789");
-#elif defined(R61581_DRIVER)
-    return F("R61581");
-#elif defined(ST7789_2_DRIVER)
-    return F("ST7789_2");
-#elif defined(RM68140_DRIVER)
-    return F("RM68140");
-#endif
-    return F("Unknown");
-}
 
 void tftOffsetInfo(uint8_t pin, uint8_t x_offset, uint8_t y_offset)
 {
@@ -72,7 +40,7 @@ void tftPinInfo(const __FlashStringHelper * pinfunction, int8_t pin)
 {
     if(pin != -1) {
         char buffer[64];
-        snprintf_P(buffer, sizeof(buffer), PSTR("TFT: %-11s: D%02d (GPIO %02d)"), pinfunction, getPinName(pin), pin);
+        snprintf_P(buffer, sizeof(buffer), PSTR("TFT: %-11s: %s (GPIO %02d)"), pinfunction, gpioName(pin).c_str(), pin);
         Log.verbose(buffer);
     }
 }
@@ -101,7 +69,7 @@ void tftShowConfig(TFT_eSPI & tft)
 
     if(tftSetup.tft_driver != 0xE9D) // For ePaper displays the size is defined in the sketch
     {
-        Log.verbose(F("TFT: Driver     : %s"), tftDriverName().c_str()); // tftSetup.tft_driver);
+        Log.verbose(F("TFT: Driver     : %s"), halDisplayDriverName().c_str()); // tftSetup.tft_driver);
         Log.verbose(F("TFT: Resolution : %ix%i"), tftSetup.tft_width, tftSetup.tft_height);
     } else if(tftSetup.tft_driver == 0xE9D)
         Log.verbose(F("Driver = ePaper"));
@@ -163,45 +131,4 @@ void tftShowConfig(TFT_eSPI & tft)
     }
 }
 
-// Get pin name for ESP8266
-int8_t getPinName(int8_t pin)
-{
-// For ESP32 and STM32 pin labels on boards use the GPIO number
-#ifndef ARDUINO_ARCH_ESP8266
-    return pin;
 #endif
-
-    // For ESP8266 the pin labels are not the same as the GPIO number
-    // These are for the NodeMCU pin definitions:
-    //        GPIO       Dxx
-    switch(pin) {
-        case 16:
-            return 0;
-        case 5:
-            return 1;
-        case 4:
-            return 2;
-        case 0:
-            return 3;
-        case 2:
-            return 4;
-        case 14:
-            return 5;
-        case 12:
-            return 6;
-        case 13:
-            return 7;
-        case 15:
-            return 8;
-        case 3:
-            return 9;
-        case 1:
-            return 10;
-        case 9:
-            return 11;
-        case 10:
-            return 12;
-        default:
-            return -1; // Invalid pin
-    }
-}

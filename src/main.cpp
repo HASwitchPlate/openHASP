@@ -183,5 +183,5 @@ void loop()
         mainLastLoopTime += 1000;
     }
 
-    delay(3);
+    delay(1);
 }

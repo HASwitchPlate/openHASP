@@ -1,7 +1,7 @@
 #ifndef HASP_GUI_H
 #define HASP_GUI_H
 
-#include "TFT_eSPI.h"
+//#include "TFT_eSPI.h"
 #include "ArduinoJson.h"
 
 #include "lvgl.h"
@@ -19,6 +19,7 @@
 void guiTakeScreenshot();
 
 void guiSetup();
+void guiStart(void);
 void guiLoop(void);
 void guiStop(void);
 

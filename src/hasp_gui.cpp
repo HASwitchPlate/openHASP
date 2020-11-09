@@ -3,11 +3,24 @@
 
 #include "lv_conf.h"
 #include "lvgl.h"
+#include "lv_drv_conf.h"
+
+// Select Display Driver
+#if defined(USE_FSMC)
+#include "fsmc_ili9341.h"
+#else
+#include "tft_espi_drv.h"
+#endif
+
+// Touch Driver
+//#include "indev/XPT2046_alt_drv.h"
+#include "indev/XPT2046.h"
+
+// Filesystem Driver
 #include "lv_fs_if.h"
-#include "TFT_eSPI.h"
+
 //#include "lv_zifont.h"
 
-#include "hasp_tft.h"
 #include "hasp_debug.h"
 #include "hasp_config.h"
 #include "hasp_dispatch.h"
@@ -23,7 +36,7 @@
 #endif
 
 #ifndef TOUCH_DRIVER
-#define TOUCH_DRIVER 0
+#define TOUCH_DRIVER 99
 #endif
 
 #if HASP_USE_SPIFFS > 0
@@ -33,31 +46,13 @@
 #include <FS.h> // Include the SPIFFS library
 #endif
 
-#define BACKLIGHT_CHANNEL 15 // pwm channek 0-15
+#define BACKLIGHT_CHANNEL 15 // pwm channel 0-15
 
-/* ---------- Screenshot Variables ---------- */
-#if defined(ARDUINO_ARCH_ESP8266) || defined(ARDUINO_ARCH_ESP32)
+#if HASP_USE_SPIFFS > 0
 File pFileOut;
 #endif
-uint8_t guiSnapshot = 0;
 
-#if defined(STM32F4xx)
-//#include <EthernetWebServer_STM32.h>
-// EthernetWebServer * webClient(0);
-#endif
-
-#if defined(ARDUINO_ARCH_ESP8266)
-#include <ESP8266WebServer.h>
-ESP8266WebServer * webClient; // for snatshot
-#endif
-
-#if defined(ARDUINO_ARCH_ESP32)
-#include <WebServer.h>
-WebServer * webClient; // for snatshot
-#endif                 // ESP32
-/* ------------------------------------------- */
-
-// #define LVGL_TICK_PERIOD 30
+#define LVGL_TICK_PERIOD 20
 
 #ifndef TFT_BCKL
 #define TFT_BCKL -1 // No Backlight Control
@@ -80,9 +75,9 @@ static uint8_t guiRotation    = TFT_ROTATION;
 #if ESP32 > 0 || ESP8266 > 0
 static Ticker tick; /* timer for interrupt handler */
 #else
-static Ticker tick(lv_tick_handler, guiTickPeriod);
+static Ticker tick(lv_tick_handler, LVGL_TICK_PERIOD); // guiTickPeriod);
 #endif
-static TFT_eSPI tft; // = TFT_eSPI(); /* TFT instance */
+// static TFT_eSPI tft; // = TFT_eSPI(); /* TFT instance */
 static uint16_t calData[5] = {0, 65535, 0, 65535, 0};
 
 static bool guiCheckSleep()
@@ -108,95 +103,10 @@ static bool guiCheckSleep()
     return false;
 }
 
-// static void gui_take_screenshot(lv_disp_drv_t * disp, const lv_area_t * area, lv_color_t * color_p)
-// {
-//     uint i = 0;
-//     uint16_t c;
-//     uint8_t pixel[1024];
-
-//     for(int y = area->y1; y <= area->y2; y++) {
-//         for(int x = area->x1; x <= area->x2; x++) {
-//             /* Function for converting LittlevGL pixel format to RGB888 */
-//             // data = DISP_IMPL_lvgl_formatPixel(*color_p);
-
-//             // Complex 32 bpp
-//             /* pixel[i++] = (LV_COLOR_GET_B(*color_p) * 263 + 7) >> 5;
-//              pixel[i++] = (LV_COLOR_GET_G(*color_p) * 259 + 3) >> 6;
-//              pixel[i++] = (LV_COLOR_GET_R(*color_p) * 263 + 7) >> 5;
-//              pixel[i++] = 0xFF;*/
-
-//             // Simple 32 bpp
-//             // pixel[i++] = (LV_COLOR_GET_B(*color_p) << 3);
-//             // pixel[i++] = (LV_COLOR_GET_G(*color_p) << 2);
-//             // pixel[i++] = (LV_COLOR_GET_R(*color_p) << 3);
-//             // pixel[i++] = 0xFF;
-
-//             c = color_p->full;
-
-//             // Simple 16 bpp
-//             pixel[i++] = c & 0xFF;
-//             pixel[i++] = (c >> 8) & 0xFF;
-
-//             color_p++;
-
-//             if(i + 4 >= sizeof(pixel)) {
-//                 switch(guiSnapshot) {
-//                     case 1:
-//                         // Save to local file
-//                         pFileOut.write(pixel, i);
-//                         break;
-//                     case 2:
-//                         // Send to remote client
-//                         if(webClient->client().write(pixel, i) != i) {
-//                             Log.warning(F("GUI: Pixelbuffer not completely sent"));
-//                             lv_disp_flush_ready(disp); /* tell lvgl that flushing is done */
-//                             return;
-//                         }
-//                 }
-//                 i = 0;
-//             }
-//         }
-//     }
-
-//     if(i > 0) {
-//         switch(guiSnapshot) {
-//             case 1:
-//                 // Save to local file
-//                 pFileOut.write(pixel, i);
-//                 break;
-//             case 2:
-//                 // Send to remote client
-//                 if(webClient->client().write(pixel, i) != i) {
-//                     Log.warning(F("GUI: Pixelbuffer not completely sent"));
-//                 }
-//         }
-//     }
-// }
-
-/* Flush VDB bytes to a stream */
-static void gui_take_screenshot(uint8_t * data_p, size_t len)
+/* Experimental Display flushing */
+static void IRAM_ATTR my_flush_cb(lv_disp_drv_t * disp, const lv_area_t * area, lv_color_t * color_p)
 {
-    size_t res = 0;
-    switch(guiSnapshot) {
-#if HASP_USE_SPIFFS > 0
-        case 1:
-            res = pFileOut.write(data_p, len);
-            break;
-#endif
-        case 2:
-            res = httpClientWrite(data_p, len);
-            break;
-        default:
-            res = 0; // nothing to do
-    }
-    if(res != len) {
-        Log.warning(F("GUI: Pixelbuffer not completely sent"));
-    }
-}
-
-/* Experimetnal Display flushing */
-static void IRAM_ATTR tft_espi_flush(lv_disp_drv_t * disp, const lv_area_t * area, lv_color_t * color_p)
-{
+#if 0
     size_t len = (area->x2 - area->x1 + 1) * (area->y2 - area->y1 + 1); /* Number of pixels */
 
     /* Update TFT */
@@ -206,105 +116,26 @@ static void IRAM_ATTR tft_espi_flush(lv_disp_drv_t * disp, const lv_area_t * are
     tft.endWrite();                                        /* terminate TFT transaction */
 
     /* Send Screenshot data */
-    if(guiSnapshot != 0) {
-        gui_take_screenshot((uint8_t *)color_p, len * sizeof(lv_color_t)); /* Number of bytes */
-    }
+    // if(guiSnapshot != 0) {
+    // gui_take_screenshot(disp, area, color_p);
+    //}
+#endif
+
+#if defined(USE_FSMC)
+    fsmc_ili9341_flush(disp, area, color_p);
+#else
+    tft_espi_flush(disp, area, color_p);
+#endif
 
     /* Tell lvgl that flushing is done */
-    lv_disp_flush_ready(disp);
+    // lv_disp_flush_ready(disp);
 }
 
-/* Display flushing */
-/*
-void tft_espi_flush(lv_disp_drv_t * disp, const lv_area_t * area, lv_color_t * color_p)
-{
-    uint16_t c;
-
-    tft.startWrite(); // Start new TFT transaction
-    tft.setAddrWindow(area->x1, area->y1, (area->x2 - area->x1 + 1),
-                      (area->y2 - area->y1 + 1)); // set the working window
-
-    if(guiSnapshot != 0) {
-        uint i = 0;
-        uint8_t pixel[1024];
-
-        for(int y = area->y1; y <= area->y2; y++) {
-            for(int x = area->x1; x <= area->x2; x++) {
-                // Function for converting LittlevGL pixel format to RGB888
-                // data = DISP_IMPL_lvgl_formatPixel(*color_p);
-
-                // Complex 32 bpp
-                // pixel[i++] = (LV_COLOR_GET_B(*color_p) * 263 + 7) >> 5;
-                // pixel[i++] = (LV_COLOR_GET_G(*color_p) * 259 + 3) >> 6;
-                // pixel[i++] = (LV_COLOR_GET_R(*color_p) * 263 + 7) >> 5;
-                // pixel[i++] = 0xFF;
-
-                // Simple 32 bpp
-                // pixel[i++] = (LV_COLOR_GET_B(*color_p) << 3);
-                // pixel[i++] = (LV_COLOR_GET_G(*color_p) << 2);
-                // pixel[i++] = (LV_COLOR_GET_R(*color_p) << 3);
-                // pixel[i++] = 0xFF;
-
-                c = color_p->full;
-                tft.writeColor(c, 1); // also update tft
-
-                // Simple 16 bpp
-                pixel[i++] = c & 0xFF;
-                pixel[i++] = (c >> 8) & 0xFF;
-
-                color_p++;
-
-                if(i + 4 >= sizeof(pixel)) {
-                    switch(guiSnapshot) {
-                        case 1:
-                            // Save to local file
-                            pFileOut.write(pixel, i);
-                            break;
-                        case 2:
-                            // Send to remote client
-                            if(webClient->client().write(pixel, i) != i) {
-                                Log.warning(F("GUI: Pixelbuffer not completely sent"));
-                                lv_disp_flush_ready(disp); // tell lvgl that flushing is done
-                                return;
-                            }
-                    }
-                    i = 0;
-                }
-            }
-        }
-
-        if(i > 0) {
-            switch(guiSnapshot) {
-                case 1:
-                    // Save to local file
-                    pFileOut.write(pixel, i);
-                    break;
-                case 2:
-                    // Send to remote client
-                    if(webClient->client().write(pixel, i) != i) {
-                        Log.warning(F("GUI: Pixelbuffer not completely sent"));
-                    }
-            }
-        }
-    } else {
-        for(int y = area->y1; y <= area->y2; y++) {
-            for(int x = area->x1; x <= area->x2; x++) {
-                c = color_p->full;
-                tft.writeColor(c, 1);
-                color_p++;
-            }
-        }
-    }
-    tft.endWrite(); // terminate TFT transaction
-
-    lv_disp_flush_ready(disp); // tell lvgl that flushing is done
-} */
-
 /* Interrupt driven periodic handler */
-static void IRAM_ATTR lv_tick_handler(void)
+static void ICACHE_RAM_ATTR lv_tick_handler(void)
 {
     // Serial.print(".");
-    lv_tick_inc(guiTickPeriod);
+    lv_tick_inc(LVGL_TICK_PERIOD);
 }
 
 /* Reading input device (simulated encoder here) */
@@ -555,37 +386,40 @@ bool IRAM_ATTR my_touchpad_read(lv_indev_drv_t * indev_driver, lv_indev_data_t *
 {
     //#ifdef TOUCH_CS
     uint16_t touchX, touchY;
-
+    bool touched;
 #if TOUCH_DRIVER == 0
-    bool touched = tft.getTouch(&touchX, &touchY, 600);
+    touched = tft_espi_get_touch(&touchX, &touchY, 300);
 #elif TOUCH_DRIVER == 1
     // return false;
-    bool touched = GT911_getXY(&touchX, &touchY, true);
+    touched = GT911_getXY(&touchX, &touchY, true);
+#elif TOUCH_DRIVER == 2
+    touched = Touch_getXY(&touchX, &touchY, false);
 #else
-    bool touched = Touch_getXY(&touchX, &touchY, false);
+    // xpt2046_alt_drv_read(indev_driver, data);
+    xpt2046_read(indev_driver, data);
+    if(data->state && guiSleeping > 0) guiCheckSleep();
+    return false;
 #endif
 
-    if(!touched) return false;
-
-    if(guiSleeping > 0) guiCheckSleep(); // update Idle
+    if(touched && guiSleeping > 0) guiCheckSleep(); // update Idle
 
     // Ignore first press?
 
-    if(touchX > tft.width() || touchY > tft.height()) {
-        Serial.print(F("Y or y outside of expected parameters.. x: "));
-        Serial.print(touchX);
-        Serial.print(F("  / y: "));
-        Serial.println(touchY);
-    } else {
-        /*Save the state and save the pressed coordinate*/
-        data->state   = touched ? LV_INDEV_STATE_PR : LV_INDEV_STATE_REL;
-        data->point.x = touchX;
-        data->point.y = touchY;
-        /* Serial.print("Data x");
-           Serial.println(touchX);
-           Serial.print("Data y");
-           Serial.println(touchY);*/
-    }
+    // if(touchX > tft.width() || touchY > tft.height()) {
+    //     Serial.print(F("Y or y outside of expected parameters.. x: "));
+    //     Serial.print(touchX);
+    //     Serial.print(F("  / y: "));
+    //     Serial.println(touchY);
+    // } else {
+    /*Save the state and save the pressed coordinate*/
+    data->state   = touched ? LV_INDEV_STATE_PR : LV_INDEV_STATE_REL;
+    data->point.x = touchX;
+    data->point.y = touchY;
+    /* Serial.print("Data x");
+       Serial.println(touchX);
+       Serial.print("Data y");
+       Serial.println(touchY);*/
+    //}
     //#endif
 
     return false; /*Return `false` because we are not buffering and no more data to read*/
@@ -593,25 +427,14 @@ bool IRAM_ATTR my_touchpad_read(lv_indev_drv_t * indev_driver, lv_indev_data_t *
 
 void guiCalibrate()
 {
-#if TOUCH_DRIVER == 0
-    tft.fillScreen(TFT_BLACK);
-    tft.setCursor(20, 0);
-    tft.setTextFont(1);
-    tft.setTextSize(1);
-    tft.setTextColor(TFT_WHITE, TFT_BLACK);
-
-    tft.println(PSTR("Touch corners as indicated"));
-
-    tft.setTextFont(1);
-    delay(500);
-    tft.calibrateTouch(calData, TFT_MAGENTA, TFT_BLACK, 15);
+#if TOUCH_DRIVER == 0 && USE_TFT_ESPI > 0
+    tft_espi_calibrate(calData);
 
     for(uint8_t i = 0; i < 5; i++) {
         Serial.print(calData[i]);
         if(i < 4) Serial.print(", ");
     }
 
-    tft.setTouch(calData);
     delay(500);
     lv_obj_invalidate(lv_disp_get_layer_sys(NULL));
 #endif
@@ -620,6 +443,18 @@ void guiCalibrate()
 void guiSetup()
 {
     /* TFT init */
+#if defined(USE_FSMC)
+    fsmc_ili9341_init(guiRotation);
+    xpt2046_init(guiRotation);
+#else
+    tft_espi_init(guiRotation);
+#endif
+
+#if TOUCH_DRIVER == 1
+    GT911_setup();
+#endif
+
+#if 0
     tft.begin();
     tft.setSwapBytes(true); /* set endianess */
 
@@ -630,8 +465,9 @@ void guiSetup()
 #endif
 
     tft.setRotation(guiRotation); /* 1/3=Landscape or 0/2=Portrait orientation */
-#if TOUCH_DRIVER == 0
-    tft.setTouch(calData);
+#if TOUCH_DRIVER == 0 && USE_TFT_ESPI > 0
+    tft_espi_set_touch(calData);
+#endif
 #endif
 
     /* Initialize the Virtual Device Buffers */
@@ -650,7 +486,7 @@ void guiSetup()
 #elif defined(ARDUINO_ARCH_ESP8266)
     /* allocate on heap */
     static lv_disp_buf_t disp_buf;
-    static lv_color_t guiVdbBuffer1[5 * 512u]; // 5 KBytes
+    static lv_color_t guiVdbBuffer1[4 * 512u]; // 4 KBytes
     // static lv_color_t guiVdbBuffer2[3 * 1024u]; // 6 KBytes
     guiVDBsize = sizeof(guiVdbBuffer1) / sizeof(guiVdbBuffer1[0]);
     lv_disp_buf_init(&disp_buf, guiVdbBuffer1, NULL, guiVDBsize);
@@ -675,7 +511,7 @@ void guiSetup()
 #endif
 
     /* Dump TFT Configuration */
-    tftSetup(tft);
+    // tftSetup(tft);
 #ifdef USE_DMA_TO_TFT
     Log.verbose(F("TFT: DMA        : ENABLED"));
 #else
@@ -694,7 +530,7 @@ void guiSetup()
         ledcSetup(BACKLIGHT_CHANNEL, 20000, 10);
         // attach the channel to the GPIO to be controlled
         ledcAttachPin(guiBacklightPin, BACKLIGHT_CHANNEL);
-#else
+#elif defined(ARDUINO_ARCH_ESP8266)
         pinMode(guiBacklightPin, OUTPUT);
 #endif
     }
@@ -715,8 +551,12 @@ void guiSetup()
     /* Initialize the display driver */
     lv_disp_drv_t disp_drv;
     lv_disp_drv_init(&disp_drv);
+#if defined(USE_FSMC)
+    disp_drv.flush_cb = fsmc_ili9341_flush;
+#else
     disp_drv.flush_cb = tft_espi_flush;
-    disp_drv.buffer   = &disp_buf;
+#endif
+    disp_drv.buffer = &disp_buf;
     if(guiRotation == 0 || guiRotation == 2 || guiRotation == 4 || guiRotation == 6) {
         /* 1/3=Landscape or 0/2=Portrait orientation */
         // Normal width & height
@@ -728,6 +568,22 @@ void guiSetup()
         disp_drv.ver_res = TFT_WIDTH;
     }
     lv_disp_drv_register(&disp_drv);
+    guiStart();
+
+    /* Initialize Global progress bar*/
+    lv_obj_t * bar = lv_bar_create(lv_layer_sys(), NULL);
+    lv_obj_set_hidden(bar, true);
+    lv_bar_set_range(bar, 0, 100);
+    lv_bar_set_value(bar, 10, LV_ANIM_OFF);
+    lv_obj_set_size(bar, 200, 15);
+    lv_obj_align(bar, lv_layer_sys(), LV_ALIGN_CENTER, 0, -10);
+    lv_obj_set_user_data(bar, 10);
+    lv_obj_set_style_local_value_color(bar, LV_BAR_PART_BG, LV_STATE_DEFAULT, LV_COLOR_WHITE);
+    lv_obj_set_style_local_value_align(bar, LV_BAR_PART_BG, LV_STATE_DEFAULT, LV_ALIGN_CENTER);
+    lv_obj_set_style_local_value_ofs_y(bar, LV_BAR_PART_BG, LV_STATE_DEFAULT, 20);
+    lv_obj_set_style_local_value_font(bar, LV_BAR_PART_BG, LV_STATE_DEFAULT, LV_FONT_DEFAULT);
+    lv_obj_set_style_local_bg_color(lv_layer_sys(), LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_BLACK);
+    lv_obj_set_style_local_bg_opa(lv_layer_sys(), LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_0);
 
     /*Initialize the touch pad*/
     lv_indev_drv_t indev_drv;
@@ -780,39 +636,6 @@ void guiSetup()
     lv_obj_set_click(cursor, false); // don't click on the cursor
     lv_indev_set_cursor(mouse_indev, cursor);
     // }*/
-
-    /*Initialize the graphics library's tick*/
-#if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
-    tick.attach_ms(guiTickPeriod, lv_tick_handler);
-#else
-
-    /*
-    #if defined(TIM1)
-        TIM_TypeDef * Instance = TIM1;
-    #else
-        TIM_TypeDef * Instance = TIM2;
-    #endif
-    */
-    // Instantiate HardwareTimer object. Thanks to 'new' instanciation, HardwareTimer is not destructed when setup()
-    // function is finished.
-    /*  static HardwareTimer * MyTim = new HardwareTimer(Instance);
-      MyTim->pause();
-      MyTim->setPrescaleFactor(1);
-      MyTim->setMode(0, TIMER_OUTPUT_COMPARE, NC);
-      MyTim->setOverflow(1000 * guiTickPeriod, MICROSEC_FORMAT); //  MicroSec
-      MyTim->setCount(0,MICROSEC_FORMAT);
-      MyTim->refresh();
-      MyTim->detachInterrupt();
-      MyTim->attachInterrupt((void (*)(HardwareTimer *))lv_tick_handler);
-      MyTim->detachInterrupt(0);
-      MyTim->attachInterrupt(0,(void (*)(HardwareTimer *))lv_tick_handler);
-      MyTim->resume();*/
-    tick.start();
-#endif
-
-#if TOUCH_DRIVER == 1
-    GT911_setup();
-#endif
 }
 
 void IRAM_ATTR guiLoop()
@@ -821,8 +644,8 @@ void IRAM_ATTR guiLoop()
     tick.update();
 #endif
 
-    // lv_tick_handler();
-    lv_task_handler(); /* let the GUI do its work */
+    lv_task_handler();
+
     guiCheckSleep();
 
 #if TOUCH_DRIVER == 1
@@ -830,8 +653,25 @@ void IRAM_ATTR guiLoop()
 #endif
 }
 
+void guiStart()
+{
+    /*Initialize the graphics library's tick*/
+#if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
+    tick.attach_ms(LVGL_TICK_PERIOD, lv_tick_handler);
+#else
+    tick.start();
+#endif
+}
+
 void guiStop()
-{}
+{
+    /*Deinitialize the graphics library's tick*/
+#if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
+    tick.detach();
+#else
+    tick.stop();
+#endif
+}
 
 bool guiGetBacklight()
 {
@@ -912,7 +752,10 @@ bool guiGetConfig(const JsonObject & settings)
             v.set(calData[i]);
         } else {
             changed = true;
-            tft.setTouch(calData);
+
+#if TOUCH_DRIVER == 0 && USE_TFT_ESPI > 0
+            tft_espi_set_touch(calData);
+#endif
         }
         i++;
     }
@@ -924,7 +767,10 @@ bool guiGetConfig(const JsonObject & settings)
             array.add(calData[i]);
         }
         changed = true;
-        tft.setTouch(calData);
+
+#if TOUCH_DRIVER == 0 && USE_TFT_ESPI > 0
+        tft_espi_set_touch(calData);
+#endif
     }
 
     if(changed) configOutput(settings);
@@ -981,12 +827,17 @@ bool guiSetConfig(const JsonObject & settings)
             oobeSetAutoCalibrate(true);
         }
 
-        if(status) tft.setTouch(calData);
+#if TOUCH_DRIVER == 0 && USE_TFT_ESPI > 0
+        if(status) tft_espi_set_touch(calData);
+#endif
         changed |= status;
     }
 
     return changed;
 }
+
+/* **************************** SCREENSHOTS ************************************** */
+#if HASP_USE_SPIFFS > 0 || HASP_USE_HTTP > 0
 
 static void guiSetBmpHeader(uint8_t * buffer_p, int32_t data)
 {
@@ -996,25 +847,6 @@ static void guiSetBmpHeader(uint8_t * buffer_p, int32_t data)
     *buffer_p++ = (data >> 24) & 0xFF;
 }
 
-static void guiSendBmpHeader();
-
-void guiTakeScreenshot()
-{
-    // webClient        = &client;
-    // lv_disp_t * disp = lv_disp_get_default();
-
-    // webClient->setContentLength(122 + disp->driver.hor_res * disp->driver.ver_res * sizeof(lv_color_t));
-    // webClient->send(200, PSTR("image/bmp"), "");
-
-    guiSnapshot = 2;
-    guiSendBmpHeader();
-    lv_obj_invalidate(lv_scr_act());
-    lv_refr_now(NULL); /* Will call our disp_drv.disp_flush function */
-    guiSnapshot = 0;
-
-    Log.verbose(F("GUI: Bitmap data flushed to webclient"));
-}
-
 /** Send Bitmap Header.
  *
  * Sends a header in BMP format for the size of the screen.
@@ -1022,10 +854,11 @@ void guiTakeScreenshot()
  * @note: send header before refreshing the whole screen
  *
  **/
-static void guiSendBmpHeader()
+static void gui_get_bitmap_header(uint8_t * buffer, size_t bufsize)
 {
-    uint8_t buffer[128];
-    memset(buffer, 0, sizeof(buffer));
+    // uint8_t buffer[128];
+    // memset(buffer, 0, sizeof(buffer));
+    memset(buffer, 0, bufsize);
 
     lv_disp_t * disp = lv_disp_get_default();
     buffer[0]        = 0x42; // B
@@ -1063,53 +896,106 @@ static void guiSendBmpHeader()
     buffer[70 + 2] = 0x69;
     buffer[70 + 1] = 0x6E;
     buffer[70 + 0] = 0x20;
+}
 
-    if(guiSnapshot == 1) {
+void gui_flush_not_complete()
+{
+    Log.warning(F("GUI: Pixelbuffer not completely sent"));
+}
+#endif // HASP_USE_SPIFFS > 0 || HASP_USE_HTTP > 0
+
 #if HASP_USE_SPIFFS > 0
-        size_t len = pFileOut.write(buffer, 122);
-        if(len != sizeof(buffer)) {
-            Log.warning(F("GUI: Data written does not match header size"));
-        } else {
-            Log.verbose(F("GUI: Bitmap header written"));
-        }
-#endif
-
-    } else if(guiSnapshot == 2) {
-        if(httpClientWrite(buffer, 122) != 122) {
-            Log.warning(F("GUI: Data sent does not match header size"));
-        } else {
-            Log.verbose(F("GUI: Bitmap header sent"));
-        }
-    }
+/* Flush VDB bytes to a file */
+static void gui_screenshot_to_file(lv_disp_drv_t * disp, const lv_area_t * area, lv_color_t * color_p)
+{
+    size_t len = (area->x2 - area->x1 + 1) * (area->y2 - area->y1 + 1); /* Number of pixels */
+    len *= sizeof(lv_color_t);                                          /* Number of bytes */
+    size_t res = pFileOut.write((uint8_t *)color_p, len);
+    if(res != len) gui_flush_not_complete();
+    my_flush_cb(disp, area, color_p);
 }
 
 /** Take Screenshot.
  *
  * Flush buffer into a binary file.
  *
- * @note: data pixel should be formated to uint32_t RGBA. Imagemagick requirements.
+ * @note: data pixel should be formated to uint16_t RGB. Set by Bitmap header.
  *
  * @param[in] pFileName   Output binary file name.
  *
  **/
-#if HASP_USE_SPIFFS > 0
 void guiTakeScreenshot(const char * pFileName)
 {
+    uint8_t buffer[128];
+    gui_get_bitmap_header(buffer, sizeof(buffer));
+
     pFileOut = SPIFFS.open(pFileName, "w");
+    if(pFileOut) {
 
-    if(pFileOut == 0) {
+        size_t len = pFileOut.write(buffer, 122);
+        if(len == 122) {
+            Log.verbose(F("GUI: Bitmap header written"));
+
+            /* Refresh screen to screenshot callback */
+            lv_disp_t * disp = lv_disp_get_default();
+            void (*flush_cb)(struct _disp_drv_t * disp_drv, const lv_area_t * area, lv_color_t * color_p);
+            flush_cb              = disp->driver.flush_cb; /* store callback */
+            disp->driver.flush_cb = gui_screenshot_to_file;
+            lv_obj_invalidate(lv_scr_act());
+            lv_refr_now(NULL);                /* Will call our disp_drv.disp_flush function */
+            disp->driver.flush_cb = flush_cb; /* restore callback */
+
+            Log.verbose(F("GUI: Birmap data flushed to %s"), pFileName);
+
+        } else {
+            Log.error(F("GUI: Data written does not match header size"));
+        }
+        pFileOut.close();
+
+    } else {
         Log.warning(F("GUI: %s cannot be opened"), pFileName);
-        return;
     }
+}
+#endif
 
-    guiSnapshot = 1;
-    guiSendBmpHeader();
+#if HASP_USE_HTTP > 0
+/* Flush VDB bytes to a webclient */
+static void gui_screenshot_to_http(lv_disp_drv_t * disp, const lv_area_t * area, lv_color_t * color_p)
+{
+    size_t len = (area->x2 - area->x1 + 1) * (area->y2 - area->y1 + 1); /* Number of pixels */
+    len *= sizeof(lv_color_t);                                          /* Number of bytes */
+    size_t res = httpClientWrite((uint8_t *)color_p, len);
+    if(res != len) gui_flush_not_complete();
+    my_flush_cb(disp, area, color_p);
+}
 
-    lv_obj_invalidate(lv_scr_act());
-    lv_refr_now(NULL); /* Will call our disp_drv.disp_flush function */
-    guiSnapshot = 0;
+/** Take Screenshot.
+ *
+ * Flush buffer into a http client.
+ *
+ * @note: data pixel should be formated to uint16_t RGB. Set by Bitmap header.
+ *
+ **/
+void guiTakeScreenshot()
+{
+    uint8_t buffer[128];
+    gui_get_bitmap_header(buffer, sizeof(buffer));
 
-    pFileOut.close();
-    Log.verbose(F("[Display] data flushed to %s"), pFileName);
+    if(httpClientWrite(buffer, 122) == 122) {
+        Log.verbose(F("GUI: Bitmap header sent"));
+
+        /* Refresh screen to screenshot callback */
+        lv_disp_t * disp = lv_disp_get_default();
+        void (*flush_cb)(struct _disp_drv_t * disp_drv, const lv_area_t * area, lv_color_t * color_p);
+        flush_cb              = disp->driver.flush_cb; /* store callback */
+        disp->driver.flush_cb = gui_screenshot_to_http;
+        lv_obj_invalidate(lv_scr_act());
+        lv_refr_now(NULL);                /* Will call our disp_drv.disp_flush function */
+        disp->driver.flush_cb = flush_cb; /* restore callback */
+
+        Log.verbose(F("GUI: Bitmap data flushed to webclient"));
+    } else {
+        Log.error(F("GUI: Data sent does not match header size"));
+    }
 }
 #endif

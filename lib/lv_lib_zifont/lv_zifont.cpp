@@ -9,6 +9,7 @@
 #include <FS.h>
 
 #include "lvgl.h"
+#include "lv_misc/lv_debug.h"
 #include "lv_zifont.h"
 #include "ArduinoLog.h"
 
@@ -100,14 +101,14 @@ int lv_zifont_font_init(lv_font_t ** font, const char * font_path, uint16_t size
     if(!*font) {
         *font = (lv_font_t *)lv_mem_alloc(sizeof(lv_font_t));
         LV_ASSERT_MEM(*font);
-        memset(*font, 0x00, sizeof(lv_font_t)); // lv_mem_alloc might be dirty
+        _lv_memset(*font, 0x00, sizeof(lv_font_t)); // lv_mem_alloc might be dirty
     }
 
     lv_font_fmt_zifont_dsc_t * dsc;
     if(!(*font)->dsc) {
         dsc = (lv_font_fmt_zifont_dsc_t *)lv_mem_alloc(sizeof(lv_font_fmt_zifont_dsc_t));
         LV_ASSERT_MEM(dsc);
-        memset(dsc, 0x00, sizeof(lv_font_fmt_zifont_dsc_t)); // lv_mem_alloc might be dirty
+        _lv_memset(dsc, 0x00, sizeof(lv_font_fmt_zifont_dsc_t)); // lv_mem_alloc might be dirty
     } else {
         dsc = (lv_font_fmt_zifont_dsc_t *)(*font)->dsc;
     }

@@ -282,8 +282,8 @@ static void debugPrintLvglMemory(int level, Print * _logOutput)
 
 static void debugPrintPriority(int level, Print * _logOutput)
 {
-    if(_logOutput == &syslogClient) {
-    }
+    // if(_logOutput == &syslogClient) {
+    // }
 
     switch(level) {
         case LOG_LEVEL_FATAL:

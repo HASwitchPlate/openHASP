@@ -9,6 +9,7 @@
 #include "hasp_ota.h"
 #include "hasp_spiffs.h"
 #include "hasp_telnet.h"
+#include "hasp_gpio.h"
 //#include "hasp_eeprom.h"
 #include "hasp.h"
 
@@ -199,7 +200,7 @@ void configWriteConfig()
     bool writefile = false;
     bool changed   = false;
 
-#if HASP_USE_WIFI>0
+#if HASP_USE_WIFI > 0
     if(settings[F("wifi")].as<JsonObject>().isNull()) settings.createNestedObject(F("wifi"));
     changed = wifiGetConfig(settings[F("wifi")]);
     if(changed) {
@@ -207,7 +208,7 @@ void configWriteConfig()
         writefile = true;
     }
 #endif
-#if HASP_USE_MQTT>0
+#if HASP_USE_MQTT > 0
     if(settings[F("mqtt")].as<JsonObject>().isNull()) settings.createNestedObject(F("mqtt"));
     changed = mqttGetConfig(settings[F("mqtt")]);
     if(changed) {
@@ -216,7 +217,7 @@ void configWriteConfig()
         writefile = true;
     }
 #endif
-#if HASP_USE_TELNET>0
+#if HASP_USE_TELNET > 0
     if(settings[F("telnet")].as<JsonObject>().isNull()) settings.createNestedObject(F("telnet"));
     changed = telnetGetConfig(settings[F("telnet")]);
     if(changed) {
@@ -225,7 +226,7 @@ void configWriteConfig()
         writefile = true;
     }
 #endif
-#if HASP_USE_MDNS>0
+#if HASP_USE_MDNS > 0
     if(settings[F("mdns")].as<JsonObject>().isNull()) settings.createNestedObject(F("mdns"));
     changed = mdnsGetConfig(settings[F("mdns")]);
     if(changed) {
@@ -233,12 +234,21 @@ void configWriteConfig()
         writefile = true;
     }
 #endif
-#if HASP_USE_HTTP>0
+#if HASP_USE_HTTP > 0
     if(settings[F("http")].as<JsonObject>().isNull()) settings.createNestedObject(F("http"));
     changed = httpGetConfig(settings[F("http")]);
     if(changed) {
         Log.verbose(F("HTTP: Settings changed"));
         configOutput(settings[F("http")]);
+        writefile = true;
+    }
+#endif
+#if HASP_USE_GPIO > 0
+    if(settings[F("gpio")].as<JsonObject>().isNull()) settings.createNestedObject(F("gpio"));
+    changed = gpioGetConfig(settings[F("gpio")]);
+    if(changed) {
+        Log.verbose(F("GPIO: Settings changed"));
+        configOutput(settings[F("gpio")]);
         writefile = true;
     }
 #endif
@@ -325,7 +335,7 @@ void configSetup()
         if(i == 0) {
 #if HASP_USE_SPIFFS > 0
             EepromStream eepromStream(0, 2048);
-            DeserializationError error = deserializeJson(settings, eepromStream);
+            DeserializationError err = deserializeJson(settings, eepromStream);
 #else
             continue;
 #endif
@@ -348,25 +358,29 @@ void configSetup()
         haspSetConfig(settings[F("hasp")]);
         // otaGetConfig(settings[F("ota")]);
 
-#if HASP_USE_WIFI>0
+#if HASP_USE_WIFI > 0
         Log.verbose(F("Loading WiFi settings"));
         wifiSetConfig(settings[F("wifi")]);
 #endif
-#if HASP_USE_MQTT>0
+#if HASP_USE_MQTT > 0
         Log.verbose(F("Loading MQTT settings"));
         mqttSetConfig(settings[F("mqtt")]);
 #endif
-#if HASP_USE_TELNET>0
+#if HASP_USE_TELNET > 0
         Log.verbose(F("Loading Telnet settings"));
         telnetSetConfig(settings[F("telnet")]);
 #endif
-#if HASP_USE_MDNS>0
+#if HASP_USE_MDNS > 0
         Log.verbose(F("Loading MDNS settings"));
         mdnsSetConfig(settings[F("mdns")]);
 #endif
-#if HASP_USE_HTTP>0
+#if HASP_USE_HTTP > 0
         Log.verbose(F("Loading HTTP settings"));
         httpSetConfig(settings[F("http")]);
+#endif
+#if HASP_USE_GPIO > 0
+        Log.verbose(F("Loading GPIO settings"));
+        gpioSetConfig(settings[F("gpio")]);
 #endif
         //        }
         Log.notice(F("User configuration loaded"));
@@ -386,10 +400,59 @@ void configOutput(const JsonObject & settings)
 
     String password((char *)0);
     password.reserve(128);
-    password = F("\"pass\":\"");
-    password += settings[F("pass")].as<String>();
-    password += F("\"");
 
-    if(password.length() > 2) output.replace(password, passmask);
+    String pass = F("pass");
+    if(!settings[pass].isNull()) {
+        password = F("\"pass\":\"");
+        password += settings[pass].as<String>();
+        password += F("\"");
+        output.replace(password, passmask);
+    }
+
+    if(!settings[F("wifi")][pass].isNull()) {
+        password = F("\"pass\":\"");
+        password += settings[F("wifi")][pass].as<String>();
+        password += F("\"");
+        output.replace(password, passmask);
+    }
+
+    if(!settings[F("mqtt")][pass].isNull()) {
+        password = F("\"pass\":\"");
+        password += settings[F("mqtt")][pass].as<String>();
+        password += F("\"");
+        output.replace(password, passmask);
+    }
+
+    if(!settings[F("http")][pass].isNull()) {
+        password = F("\"pass\":\"");
+        password += settings[F("http")][pass].as<String>();
+        password += F("\"");
+        output.replace(password, passmask);
+    }
+
     Log.trace(F("CONF: %s"), output.c_str());
+}
+
+bool configClear()
+{
+#if defined(STM32F4xx)
+    Log.verbose(F("CONF: Clearing EEPROM"));
+    char buffer[1024 + 128];
+    memset(buffer, 1, sizeof(buffer));
+    if(sizeof(buffer) > 0) {
+        uint16_t i;
+        for(i = 0; i < sizeof(buffer); i++) eeprom_buffered_write_byte(i, buffer[i]);
+        eeprom_buffered_write_byte(i, 0);
+        eeprom_buffer_flush();
+        Log.verbose(F("CONF: [SUCCESS] Cleared EEPROM"));
+        return true;
+    } else {
+        Log.error(F("CONF: Failed to clear to EEPROM"));
+        return false;
+    }
+#elif HASP_USE_SPIFFS > 0
+    return SPIFFS.format();
+#else
+    return false;
+#endif
 }

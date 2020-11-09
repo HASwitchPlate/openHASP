@@ -80,7 +80,7 @@ void TASMO_TELE_JSON()
                   haspGetPage(), (HASP_NUM_PAGES));
       strcat(data, buffer);
       snprintf_P(buffer, sizeof(buffer), PSTR("\"tftDriver\":\"%s\",\"tftWidth\":%u,\"tftHeight\":%u}"),
-                  tftDriverName().c_str(), (TFT_WIDTH), (TFT_HEIGHT));
+                  halDisplayDriverName().c_str(), (TFT_WIDTH), (TFT_HEIGHT));
       strcat(data, buffer);
   }
   slave.sendJSON((char*)data);

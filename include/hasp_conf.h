@@ -23,11 +23,11 @@
 #endif
 
 #ifndef HASP_USE_MQTT
-#define HASP_USE_MQTT 1
+#define HASP_USE_MQTT 0
 #endif
 
 #ifndef HASP_USE_HTTP
-#define HASP_USE_HTTP 1
+#define HASP_USE_HTTP 0
 #endif
 
 #ifndef HASP_USE_MDNS
@@ -58,7 +58,7 @@
 #endif
 
 #ifndef HASP_USE_GPIO
-#define HASP_USE_GPIO 1
+#define HASP_USE_GPIO 0
 #endif
 
 #ifndef HASP_USE_QRCODE
@@ -67,6 +67,10 @@
 
 #ifndef HASP_USE_PNGDECODE
 #define HASP_USE_PNGDECODE 0
+#endif
+
+#ifndef HASP_NUM_GPIO_CONFIG
+#define HASP_NUM_GPIO_CONFIG 5
 #endif
 
 #ifndef HASP_NUM_INPUTS
@@ -175,6 +179,11 @@
 
 #if HASP_USE_ETHERNET > 0
 #include "hasp_ethernet.h"
+#endif
+
+#if HASP_USE_WIFI > 0 && defined(STM32F4xx)
+#include "WiFiSpi.h"
+static WiFiSpiClass WiFi;
 #endif
 
 #ifndef FPSTR

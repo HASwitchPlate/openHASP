@@ -3,6 +3,7 @@
 
 #include "lvgl.h"
 #include "hasp.h"
+#include "lv_core/lv_obj_style_dec.h"
 
 #ifdef __cplusplus
 extern "C" {

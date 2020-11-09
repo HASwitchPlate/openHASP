@@ -13,5 +13,6 @@ String halGetChipModel();
 String halGetMacAddress(int start, const char * seperator);
 uint16_t halGetCpuFreqMHz(void);
 String halFormatBytes(size_t bytes);
+String halDisplayDriverName(void);
 
 #endif

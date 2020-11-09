@@ -19,7 +19,7 @@ extern "C" {
  *      INCLUDES
  *********************/
 
-#if HASP_USE_APP>0
+#if HASP_USE_APP > 0
 
 /*********************
  *      DEFINES
@@ -28,6 +28,19 @@ extern "C" {
 /**********************
  *      TYPEDEFS
  **********************/
+
+enum hasp_event_t { // even = released, odd = pressed
+    HASP_EVENT_OFF  = 0,
+    HASP_EVENT_ON   = 1,
+    HASP_EVENT_UP   = 2,
+    HASP_EVENT_DOWN = 3,
+
+    HASP_EVENT_SHORT  = 4,
+    HASP_EVENT_LONG   = 5,
+    HASP_EVENT_LOST   = 6,
+    HASP_EVENT_HOLD   = 7,
+    HASP_EVENT_DOUBLE = 8
+};
 
 enum lv_hasp_obj_type_t {
     LV_HASP_BUTTON   = 10,
@@ -51,12 +64,12 @@ enum lv_hasp_obj_type_t {
 
     LV_HASP_IMAGE = 60,
 
-    LV_HASP_TABVIEW = 70,
+    LV_HASP_TABVIEW  = 70,
     LV_HASP_TILEVIEW = 71,
 
     LV_HASP_CONTAINER = 90,
-    LV_HASP_OBJECT = 91,
-    LV_HASP_PAGE = 92,
+    LV_HASP_OBJECT    = 91,
+    LV_HASP_PAGE      = 92,
 };
 
 /**********************
@@ -80,12 +93,14 @@ void hasp_send_obj_attribute_str(lv_obj_t * obj, const char * attribute, const c
 void hasp_send_obj_attribute_int(lv_obj_t * obj, const char * attribute, int32_t val);
 void hasp_send_obj_attribute_color(lv_obj_t * obj, const char * attribute, lv_color_t color);
 void hasp_process_attribute(uint8_t pageid, uint8_t objid, const char * attr, const char * payload);
+void hasp_set_group_objects(uint8_t groupid, uint8_t eventid, lv_obj_t * src_obj);
 
 void haspNewObject(const JsonObject & config, uint8_t & saved_page_id);
 
 void haspReconnect(void);
 void haspDisconnect(void);
 void haspWakeUp(void);
+void haspProgressVal(uint8_t val);
 
 bool haspGetConfig(const JsonObject & settings);
 bool haspSetConfig(const JsonObject & settings);
@@ -105,5 +120,8 @@ void IRAM_ATTR toggle_event_handler(lv_obj_t * obj, lv_event_t event);
 #ifdef __cplusplus
 } /* extern "C" */
 #endif
+
+void haspProgressMsg(const char * msg);
+void haspProgressMsg(const __FlashStringHelper * msg);
 
 #endif /*HASP_H*/

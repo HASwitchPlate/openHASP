@@ -7,14 +7,15 @@
 #include "hasp_debug.h"
 #include "hasp_dispatch.h"
 #include "hasp_ota.h"
+#include "hasp.h"
 
 #include "hasp_conf.h"
 
-#if HASP_USE_MQTT>0
+#if HASP_USE_MQTT > 0
 #include "hasp_mqtt.h"
 #endif
 
-#if HASP_USE_MDNS>0
+#if HASP_USE_MDNS > 0
 #include "hasp_mdns.h"
 #endif
 
@@ -57,20 +58,28 @@ void otaSetup()
             }
 
             Log.notice(F("OTA: Start update"));
+            haspProgressVal(0);
+            haspProgressMsg(F("OTA: Firmware Update"));
             // dispatchPage("0");
             otaPrecentageComplete = 0;
             // haspSetAttr("p[0].b[1].txt", "\"ESP OTA Update\"");
         });
         ArduinoOTA.onEnd([]() {
             otaPrecentageComplete = 100;
+            haspProgressMsg(F("Applying Firmware & Reboot"));
+            haspProgressVal(100);
             otaProgress();
             otaPrecentageComplete = -1;
             // dispatchPage("0");
             // haspSetAttr("p[0].b[1].txt", "\"ESP OTA Update\\rComplete!\"");
-            dispatchReboot(true);
+            setup();
+            //dispatchReboot(true);
         });
         ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
-            if(total != 0) otaPrecentageComplete = progress * 100 / total;
+            if(total != 0) {
+                otaPrecentageComplete = progress * 100 / total;
+                haspProgressVal(otaPrecentageComplete);
+            }
 
             // haspSetAttr("p[0].b[1].txt", "\"ESP OTA Update\\rProgress: " + String(progress / (total / 100)) + "%\"");
         });
@@ -88,7 +97,7 @@ void otaSetup()
             else if(error == OTA_END_ERROR)
                 Log.error(F("OTA: ERROR - End Failed"));
             // haspSetAttr("p[0].b[1].txt", "\"ESP OTA FAILED\"");
-            delay(5000);
+            // delay(5000);
             // haspSendCmd("page " + String(nextionActivePage));
         });
 
@@ -108,7 +117,7 @@ void otaSetup()
 #endif
         // ArduinoOTA.setTimeout(1000);
 #endif
-        ArduinoOTA.setRebootOnSuccess(true);
+        ArduinoOTA.setRebootOnSuccess(false); // We do that
 
         ArduinoOTA.begin();
         Log.notice(F("OTA: Over the Air firmware update ready"));

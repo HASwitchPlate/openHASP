@@ -11,8 +11,6 @@
 #include "lv_conf.h"
 #include "hasp_conf.h"
 
-//#include "../lib/lvgl/src/lv_widgets/lv_roller.h"
-
 #include "lv_fs_if.h"
 #include "hasp_debug.h"
 #include "hasp_config.h"
@@ -21,7 +19,6 @@
 #include "hasp_gui.h"
 #include "hasp_tft.h"
 
-//#include "hasp_attr_get.h"
 #include "hasp_attribute.h"
 #include "hasp.h"
 #include "lv_theme_hasp.h"
@@ -33,12 +30,6 @@
 /*********************
  *      DEFINES
  *********************/
-uint8_t haspStartDim   = 100;
-uint8_t haspStartPage  = 0;
-uint8_t haspThemeId    = 0;
-uint16_t haspThemeHue  = 200;
-char haspPagesPath[32] = "/pages.jsonl";
-char haspZiFontPath[32];
 
 /**********************
  *      TYPEDEFS
@@ -56,6 +47,13 @@ char haspZiFontPath[32];
 /**********************
  *  STATIC VARIABLES
  **********************/
+uint8_t haspStartDim   = 100;
+uint8_t haspStartPage  = 0;
+uint8_t haspThemeId    = 0;
+uint16_t haspThemeHue  = 200;
+char haspPagesPath[32] = "/pages.jsonl";
+char haspZiFontPath[32];
+
 lv_style_t style_mbox_bg; /*Black bg. style with opacity*/
 lv_obj_t * kb;
 // lv_font_t * defaultFont;
@@ -63,19 +61,6 @@ lv_obj_t * kb;
 #if LV_DEMO_WALLPAPER
 LV_IMG_DECLARE(img_bubble_pattern)
 #endif
-
-/*
-LV_IMG_DECLARE(xmass)
-
-LV_IMG_DECLARE(frame00)
-LV_IMG_DECLARE(frame02)
-LV_IMG_DECLARE(frame04)
-LV_IMG_DECLARE(frame06)
-LV_IMG_DECLARE(frame08)
-LV_IMG_DECLARE(frame10)
-LV_IMG_DECLARE(frame12)
-LV_IMG_DECLARE(frame14)
-*/
 
 /*
 static const char * btnm_map1[] = {" ", "\n", " ", "\n", " ", "\n", " ", "\n", "P1", "P2", "P3", ""};
@@ -115,7 +100,7 @@ lv_font_t * hasp_get_font(uint8_t fontid)
 /**
  * Get Page Object by PageID
  */
-lv_obj_t * get_page(uint8_t pageid)
+lv_obj_t * get_page_obj(uint8_t pageid)
 {
     if(pageid == 254) return lv_layer_top();
     if(pageid == 255) return lv_layer_sys();
@@ -178,9 +163,10 @@ lv_obj_t * hasp_find_obj_from_id(lv_obj_t * parent, uint8_t objid)
     }
     return NULL;
 }
+
 lv_obj_t * hasp_find_obj_from_id(uint8_t pageid, uint8_t objid)
 {
-    return hasp_find_obj_from_id(get_page(pageid), objid);
+    return hasp_find_obj_from_id(get_page_obj(pageid), objid);
 }
 
 bool FindIdFromObj(lv_obj_t * obj, uint8_t * pageid, lv_obj_user_data_t * objid)
@@ -199,7 +185,7 @@ void hasp_send_obj_attribute_str(lv_obj_t * obj, const char * attribute, const c
     uint8_t objid;
 
     if(FindIdFromObj(obj, &pageid, &objid)) {
-        dispatch_obj_attribute_str(pageid, objid, attribute, data);
+        dispatch_send_obj_attribute_str(pageid, objid, attribute, data);
     }
 }
 
@@ -314,6 +300,49 @@ void haspReconnect()
         lv_obj_set_hidden(obj, true);*/
 }
 
+String progress_str((char *)0);
+
+void haspProgressVal(uint8_t val)
+{
+    lv_obj_t * layer = lv_disp_get_layer_sys(NULL);
+    lv_obj_t * bar   = hasp_find_obj_from_id(255, 10);
+    if(layer && bar) {
+        if(val == 255) {
+            if(!lv_obj_get_hidden(bar)) {
+                lv_obj_set_hidden(bar, true);
+                lv_obj_set_style_local_bg_opa(layer, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_0);
+                lv_obj_set_style_local_value_str(bar, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, "");
+#if defined(ARCH_ARDUINO_ESP32) || defined(ARCH_ARDUINO_ESP8266)
+                progress_str.clear();
+#endif
+            }
+        } else {
+            if(lv_obj_get_hidden(bar)) {
+                lv_obj_set_hidden(bar, false);
+                lv_obj_set_style_local_bg_opa(layer, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_100);
+            }
+            lv_bar_set_value(bar, val, LV_ANIM_OFF);
+        }
+        lv_task_handler(); /* let the GUI do its work */
+    }
+}
+
+void haspProgressMsg(const char * msg)
+{
+    lv_obj_t * bar = hasp_find_obj_from_id(255, 10);
+    if(bar) {
+        progress_str.reserve(64);
+        progress_str = msg;
+        lv_obj_set_style_local_value_str(bar, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, progress_str.c_str());
+        lv_task_handler(); /* let the GUI do its work */
+    }
+}
+
+void haspProgressMsg(const __FlashStringHelper * msg)
+{
+    haspProgressMsg(String(msg).c_str());
+}
+
 /*Add a custom apply callback*/
 static void custom_font_apply_cb(lv_theme_t * th, lv_obj_t * obj, lv_theme_style_t name)
 {
@@ -382,22 +411,32 @@ void haspSetup()
     /* ********** Theme Initializations ********** */
     lv_theme_t * th;
     switch(haspThemeId) {
+#if(LV_USE_THEME_EMPTY == 1)
+        case 0:
+            th = lv_theme_empty_init(LV_COLOR_PURPLE, LV_COLOR_BLACK, LV_THEME_DEFAULT_FLAGS,  haspFonts[0], haspFonts[1],
+                                    haspFonts[2], haspFonts[3]);
+            break;
+#endif
+
 #if LV_USE_THEME_ALIEN == 1
         case 1:
             th = lv_theme_alien_init(haspThemeHue, defaultFont);
             break;
 #endif
+
 #if LV_USE_THEME_NIGHT == 1
         case 2:
             th = lv_theme_night_init(haspThemeHue, defaultFont); // heavy
             break;
 #endif
-#if(LV_USE_THEME_MONO == 1) || (LV_USE_THEME_EMPTY == 1)
+
+#if(LV_USE_THEME_MONO == 1)
         case 3:
             th = lv_theme_mono_init(LV_COLOR_PURPLE, LV_COLOR_BLACK, LV_THEME_DEFAULT_FLAGS, haspFonts[0], haspFonts[1],
                                     haspFonts[2], haspFonts[3]);
             break;
 #endif
+
 #if LV_USE_THEME_MATERIAL == 1
         case 4:
             th = lv_theme_material_init(LV_COLOR_PURPLE, LV_COLOR_ORANGE,
@@ -415,15 +454,18 @@ void haspSetup()
         case 5:
             th = lv_theme_zen_init(haspThemeHue, defaultFont); // lightweight break;
 #endif
+
 #if LV_USE_THEME_NEMO == 1
         case 6:
             th =
                 // lv_theme_nemo_init(haspThemeHue, defaultFont); // heavy
                 break;
 #endif
-#if LV_USE_THEME_TEMPL == 1
+
+#if LV_USE_THEME_TEMPLATE == 1
         case 7:
-            th = lv_theme_templ_init(haspThemeHue, defaultFont); // lightweight, not for production...
+            th = lv_theme_template_init(LV_COLOR_PURPLE, LV_COLOR_ORANGE, LV_THEME_DEFAULT_FLAGS,  haspFonts[0], haspFonts[1],
+                                    haspFonts[2], haspFonts[3]);
             break;
 #endif
 #if(LV_USE_THEME_HASP == 1)
@@ -433,6 +475,7 @@ void haspSetup()
                                     haspFonts[1], haspFonts[2], haspFonts[3]);
             break;
 #endif
+
         /*        case 0:
         #if LV_USE_THEME_DEFAULT == 1
                     th = lv_theme_default_init(haspThemeHue, defaultFont);
@@ -498,7 +541,7 @@ void haspLoop(void)
 /*
 void hasp_background(uint16_t pageid, uint16_t imageid)
 {
-    lv_obj_t * page = get_page(pageid);
+    lv_obj_t * page = get_page_obj(pageid);
     if(!page) return;
 
     return;
@@ -553,27 +596,34 @@ void hasp_background(uint16_t pageid, uint16_t imageid)
  */
 void IRAM_ATTR btn_event_handler(lv_obj_t * obj, lv_event_t event)
 {
+    uint8_t eventid;
     char buffer[64];
     snprintf(buffer, sizeof(buffer), PSTR("HASP: "));
 
     switch(event) {
         case LV_EVENT_PRESSED:
+            eventid = HASP_EVENT_DOWN;
             memcpy_P(buffer, PSTR("DOWN"), sizeof(buffer));
             break;
         case LV_EVENT_CLICKED:
             // UP = the same object was release then was pressed and press was not lost!
+            eventid = HASP_EVENT_UP;
             memcpy_P(buffer, PSTR("UP"), sizeof(buffer));
             break;
         case LV_EVENT_SHORT_CLICKED:
+            eventid = HASP_EVENT_SHORT;
             memcpy_P(buffer, PSTR("SHORT"), sizeof(buffer));
             break;
         case LV_EVENT_LONG_PRESSED:
+            eventid = HASP_EVENT_LONG;
             memcpy_P(buffer, PSTR("LONG"), sizeof(buffer));
             break;
         case LV_EVENT_LONG_PRESSED_REPEAT:
+            eventid = HASP_EVENT_HOLD;
             memcpy_P(buffer, PSTR("HOLD"), sizeof(buffer));
             break;
         case LV_EVENT_PRESS_LOST:
+            eventid = HASP_EVENT_LOST;
             memcpy_P(buffer, PSTR("LOST"), sizeof(buffer));
             break;
         case LV_EVENT_PRESSING:
@@ -592,7 +642,7 @@ void IRAM_ATTR btn_event_handler(lv_obj_t * obj, lv_event_t event)
             Log.notice(buffer, event);
             return;
         default:
-            strcat_P(buffer, PSTR("HASP : Unknown Event % d occured"));
+            strcat_P(buffer, PSTR("HASP : Unknown Event occured"));
             Log.warning(buffer, event);
             return;
     }
@@ -602,7 +652,8 @@ void IRAM_ATTR btn_event_handler(lv_obj_t * obj, lv_event_t event)
         mqtt_send_state(F("wakeuptouch"), buffer);
 #endif
     } else {
-        hasp_send_obj_attribute_event(obj, buffer);
+        // hasp_send_obj_attribute_event(obj, buffer);
+        dispatch_send_object_event(current_page, (uint8_t)obj->user_data, eventid);
     }
 }
 
@@ -647,7 +698,8 @@ static void slider_event_handler(lv_obj_t * obj, lv_event_t event)
 
 static void cpicker_event_handler(lv_obj_t * obj, lv_event_t event)
 {
-    if(event == LV_EVENT_VALUE_CHANGED) hasp_send_obj_attribute_color(obj, "color", lv_cpicker_get_color(obj));
+    if(event == LV_EVENT_VALUE_CHANGED)
+        hasp_send_obj_attribute_color(obj, "color", lv_cpicker_get_color(obj)); // Literial string
 }
 
 static void roller_event_handler(lv_obj_t * obj, lv_event_t event)
@@ -671,7 +723,7 @@ String haspGetVersion()
 
 void haspClearPage(uint16_t pageid)
 {
-    lv_obj_t * page = get_page(pageid);
+    lv_obj_t * page = get_page_obj(pageid);
     if(!page || pageid > 255) {
         Log.warning(F("HASP: Page ID %u not defined"), pageid);
     } else if(page == lv_layer_sys() /*|| page == lv_layer_top()*/) {
@@ -689,9 +741,9 @@ uint8_t haspGetPage()
 
 void haspSetPage(uint8_t pageid)
 {
-    lv_obj_t * page = get_page(pageid);
+    lv_obj_t * page = get_page_obj(pageid);
     if(!page) {
-        Log.warning(F("HASP: Page ID %u not defined"), pageid);
+        Log.warning(F("HASP: Page ID %u not found"), pageid);
     } else if(page == lv_layer_sys() || page == lv_layer_top()) {
         Log.warning(F("HASP: %sCannot change to a layer"));
     } else {
@@ -703,6 +755,20 @@ void haspSetPage(uint8_t pageid)
     }
 }
 
+void hasp_set_group_objects(uint8_t groupid, uint8_t eventid, lv_obj_t * src_obj)
+{
+    bool state = dispatch_get_event_state(eventid);
+    for(uint8_t page = 0; page < HASP_NUM_PAGES; page++) {
+        uint8_t startid = 100 + groupid * 10; // groups start at id 100
+        for(uint8_t objid = startid; objid < (startid + 10); objid++) {
+            lv_obj_t * obj = hasp_find_obj_from_id(page, objid);
+            if(obj && obj != src_obj) { // skip source object, if set
+                lv_obj_set_state(obj, state ? LV_STATE_PRESSED | LV_STATE_CHECKED : LV_STATE_DEFAULT);
+            }
+        }
+    }
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void haspNewObject(const JsonObject & config, uint8_t & saved_page_id)
@@ -711,7 +777,7 @@ void haspNewObject(const JsonObject & config, uint8_t & saved_page_id)
     uint8_t pageid = config[F("page")].isNull() ? current_page : config[F("page")].as<uint8_t>();
 
     /* Page selection */
-    lv_obj_t * page = get_page(pageid);
+    lv_obj_t * page = get_page_obj(pageid);
     if(!page) {
         Log.warning(F("HASP: Page ID %u not defined"), pageid);
         return;
