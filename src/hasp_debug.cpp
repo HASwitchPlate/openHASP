@@ -37,7 +37,6 @@
 #endif
 
 #if HASP_USE_SYSLOG > 0
-#include "Syslog.h"
 #include <WiFiUdp.h>
 
 #ifndef SYSLOG_SERVER
@@ -71,6 +70,7 @@ WiFiUDP * syslogClient;
 // Syslog syslog(syslogClient, SYSLOG_SERVER, SYSLOG_PORT, MQTT_CLIENT, APP_NAME, LOG_KERN);
 // Create a new empty syslog instance
 // Syslog * syslog;
+
 #endif // USE_SYSLOG
 
 // Serial Settings
@@ -425,9 +425,10 @@ static void debugPrintTag(uint8_t tag, Print * _logOutput)
 void debugPrintPrefix(uint8_t tag, int level, Print * _logOutput)
 {
 #if HASP_USE_SYSLOG > 0
+    if(!syslogClient) return;
 
     if(_logOutput == syslogClient) {
-        syslogClient->beginPacket();
+        syslogClient->beginPacket(debugSyslogHost, debugSyslogPort);
 
         // IETF Doc: https://tools.ietf.org/html/rfc5424 - The Syslog Protocol
         // BSD Doc: https://tools.ietf.org/html/rfc3164 - The BSD syslog Protocol
@@ -472,7 +473,7 @@ void debugPrintSuffix(uint8_t tag, int level, Print * _logOutput)
     if(debugAnsiCodes) _logOutput->print(F(TERM_COLOR_MAGENTA));
 
 #if HASP_USE_SYSLOG > 0
-    if(_logOutput == syslogClient && strlen(debugSyslogHost) > 0) {
+    if(_logOutput == syslogClient && syslogClient) {
         syslogClient->endPacket();
     }
 #endif
