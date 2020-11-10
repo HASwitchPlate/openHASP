@@ -388,8 +388,9 @@ void webHandleAbout()
               "dhylands, Josha blemasle, mfalkvidd");
         httpMessage += FPSTR(MIT_LICENSE);
 #if HASP_USE_SYSLOG > 0
-        httpMessage += F("<p><h3>Syslog</h3>Copyright&copy; 2016 Martin Sloup");
-        httpMessage += FPSTR(MIT_LICENSE);
+        // Replaced with WiFiUDP client
+        // httpMessage += F("<p><h3>Syslog</h3>Copyright&copy; 2016 Martin Sloup");
+        // httpMessage += FPSTR(MIT_LICENSE);
 #endif
 #if HASP_USE_QRCODE > 0
         httpMessage += F("<p><h3>QR Code generator</h3>Copyright&copy; Project Nayuki");
