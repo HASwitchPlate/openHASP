@@ -424,6 +424,8 @@ static void debugPrintTag(uint8_t tag, Print * _logOutput)
 
 void debugPrintPrefix(uint8_t tag, int level, Print * _logOutput)
 {
+#if HASP_USE_SYSLOG > 0
+
     if(_logOutput == syslogClient) {
         syslogClient->beginPacket();
 
@@ -440,7 +442,7 @@ void debugPrintPrefix(uint8_t tag, int level, Print * _logOutput)
 
         syslogClient->print(mqttGetNodename());
         syslogClient->print(' ');
-        syslogClient->print(syslogAppName);
+        debugPrintTag(tag, _logOutput);
 
         if(debugSyslogProtocol == SYSLOG_PROTO_IETF) {
             syslogClient->print(F(" - - - \xEF\xBB\xBF")); // include UTF-8 BOM
@@ -448,6 +450,7 @@ void debugPrintPrefix(uint8_t tag, int level, Print * _logOutput)
             syslogClient->print(F(": "));
         }
     }
+#endif
 
     debugPrintTimestamp(level, _logOutput);
     debugPrintHaspMemory(level, _logOutput);
@@ -468,9 +471,11 @@ void debugPrintSuffix(uint8_t tag, int level, Print * _logOutput)
         _logOutput->println();
     if(debugAnsiCodes) _logOutput->print(F(TERM_COLOR_MAGENTA));
 
+#if HASP_USE_SYSLOG > 0
     if(_logOutput == syslogClient && strlen(debugSyslogHost) > 0) {
         syslogClient->endPacket();
     }
+#endif
 
     // syslogSend(level, debugOutput);
 }

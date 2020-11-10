@@ -16,6 +16,7 @@
 #include <Wifi.h>
 #elif defined(ARDUINO_ARCH_ESP8266)
 #include <ESP8266WiFi.h>
+#include "user_interface.h" // Wifi Reasons
 
 static WiFiEventHandler gotIpEventHandler, disconnectedEventHandler;
 
@@ -23,7 +24,7 @@ static WiFiEventHandler gotIpEventHandler, disconnectedEventHandler;
 // #include <WiFi.h>
 // #include "WiFiSpi.h"
 // extern WiFiSpiClass WiFi;
-SPIClass espSPI(ESPSPI_MOSI, ESPSPI_MISO, ESPSPI_SCLK);    // SPI port where esp is connected
+SPIClass espSPI(ESPSPI_MOSI, ESPSPI_MISO, ESPSPI_SCLK); // SPI port where esp is connected
 
 #endif
 //#include "DNSserver.h"
@@ -52,11 +53,11 @@ void wifiConnected(IPAddress ipaddress)
 #if defined(STM32F4xx)
     IPAddress ip;
     ip = WiFi.localIP();
-    Log.notice(TAG_WIFI,F("Received IP address %d.%d.%d.%d"), ip[0], ip[1], ip[2], ip[3]);
+    Log.notice(TAG_WIFI, F("Received IP address %d.%d.%d.%d"), ip[0], ip[1], ip[2], ip[3]);
 #else
-    Log.notice(TAG_WIFI,F("Received IP address %s"), ipaddress.toString().c_str());
+    Log.notice(TAG_WIFI, F("Received IP address %s"), ipaddress.toString().c_str());
 #endif
-    Log.verbose(TAG_WIFI,F("Connected = %s"), WiFi.status() == WL_CONNECTED ? PSTR("yes") : PSTR("no"));
+    Log.verbose(TAG_WIFI, F("Connected = %s"), WiFi.status() == WL_CONNECTED ? PSTR("yes") : PSTR("no"));
     haspProgressVal(255);
 
     // if(isConnected) {
@@ -73,15 +74,202 @@ void wifiDisconnected(const char * ssid, uint8_t reason)
     haspProgressVal(wifiReconnectCounter * 3);
     haspProgressMsg(F("Wifi Disconnected"));
     if(wifiReconnectCounter > 33) {
-        Log.error(TAG_WIFI,F("Retries exceed %u: Rebooting..."), wifiReconnectCounter);
+        Log.error(TAG_WIFI, F("Retries exceed %u: Rebooting..."), wifiReconnectCounter);
         dispatchReboot(false);
     }
-    Log.warning(TAG_WIFI,F("Disconnected from %s (Reason: %d)"), ssid, reason);
+
+    char buffer[128];
+
+    switch(reason) {
+#if defined(ARDUINO_ARCH_ESP8266)
+        case REASON_UNSPECIFIED:
+            snprintf_P(buffer, sizeof(buffer), PSTR("unspecified"));
+            break;
+        case REASON_AUTH_EXPIRE:
+            snprintf_P(buffer, sizeof(buffer), PSTR("authentication expired"));
+            break;
+        case REASON_AUTH_LEAVE:
+            snprintf_P(buffer, sizeof(buffer), PSTR("authentication leave"));
+            break;
+        case REASON_ASSOC_EXPIRE:
+            snprintf_P(buffer, sizeof(buffer), PSTR("association expired"));
+            break;
+        case REASON_ASSOC_TOOMANY:
+            snprintf_P(buffer, sizeof(buffer), PSTR("too many associations"));
+            break;
+        case REASON_NOT_AUTHED:
+            snprintf_P(buffer, sizeof(buffer), PSTR("not authenticated"));
+            break;
+        case REASON_NOT_ASSOCED:
+            snprintf_P(buffer, sizeof(buffer), PSTR("not associated"));
+            break;
+        case REASON_ASSOC_LEAVE:
+            snprintf_P(buffer, sizeof(buffer), PSTR("associaction leave"));
+            break;
+        case REASON_ASSOC_NOT_AUTHED:
+            snprintf_P(buffer, sizeof(buffer), PSTR("association not authenticated"));
+            break;
+        case REASON_DISASSOC_PWRCAP_BAD:
+            snprintf_P(buffer, sizeof(buffer), PSTR("bad powercap"));
+            break;
+        case REASON_DISASSOC_SUPCHAN_BAD:
+            snprintf_P(buffer, sizeof(buffer), PSTR("bad supchan"));
+            break;
+        case REASON_IE_INVALID:
+            snprintf_P(buffer, sizeof(buffer), PSTR("ie invalid"));
+            break;
+        case REASON_MIC_FAILURE:
+            snprintf_P(buffer, sizeof(buffer), PSTR("mic failure"));
+            break;
+        case REASON_4WAY_HANDSHAKE_TIMEOUT:
+            snprintf_P(buffer, sizeof(buffer), PSTR("handshake timeout"));
+            break;
+        case REASON_GROUP_KEY_UPDATE_TIMEOUT:
+            snprintf_P(buffer, sizeof(buffer), PSTR("key update timeout"));
+            break;
+        case REASON_IE_IN_4WAY_DIFFERS:
+            snprintf_P(buffer, sizeof(buffer), PSTR("ie handshake differs"));
+            break;
+        case REASON_GROUP_CIPHER_INVALID:
+            snprintf_P(buffer, sizeof(buffer), PSTR("group cipher invalid"));
+            break;
+        case REASON_PAIRWISE_CIPHER_INVALID:
+            snprintf_P(buffer, sizeof(buffer), PSTR("pairwise cipher invalid"));
+            break;
+        case REASON_AKMP_INVALID:
+            snprintf_P(buffer, sizeof(buffer), PSTR("akmp invalid"));
+            break;
+        case REASON_UNSUPP_RSN_IE_VERSION:
+            snprintf_P(buffer, sizeof(buffer), PSTR("bad powercap"));
+            break;
+        case REASON_INVALID_RSN_IE_CAP:
+            snprintf_P(buffer, sizeof(buffer), PSTR("INVALID_RSN_IE_CAP"));
+            break;
+        case REASON_802_1X_AUTH_FAILED:
+            snprintf_P(buffer, sizeof(buffer), PSTR("802.1x auth failed"));
+            break;
+        case REASON_CIPHER_SUITE_REJECTED:
+            snprintf_P(buffer, sizeof(buffer), PSTR("cipher suite rejected"));
+            break;
+
+        case REASON_BEACON_TIMEOUT:
+            snprintf_P(buffer, sizeof(buffer), PSTR("beacon timeout"));
+            break;
+        case REASON_NO_AP_FOUND:
+            snprintf_P(buffer, sizeof(buffer), PSTR("no AP found"));
+            break;
+        case REASON_AUTH_FAIL:
+            snprintf_P(buffer, sizeof(buffer), PSTR("auth failed"));
+            break;
+        case REASON_ASSOC_FAIL:
+            snprintf_P(buffer, sizeof(buffer), PSTR("assoc failed"));
+            break;
+        case REASON_HANDSHAKE_TIMEOUT:
+            snprintf_P(buffer, sizeof(buffer), PSTR("handshake timeout"));
+            break;
+#endif
+
+#if defined(ARDUINO_ARCH_ESP32)
+        case WIFI_REASON_UNSPECIFIED:
+            snprintf_P(buffer, sizeof(buffer), PSTR("unspecified"));
+            break;
+        case WIFI_REASON_AUTH_EXPIRE:
+            snprintf_P(buffer, sizeof(buffer), PSTR("authentication expired"));
+            break;
+        case WIFI_REASON_AUTH_LEAVE:
+            snprintf_P(buffer, sizeof(buffer), PSTR("authentication leave"));
+            break;
+        case WIFI_REASON_ASSOC_EXPIRE:
+            snprintf_P(buffer, sizeof(buffer), PSTR("association expired"));
+            break;
+        case WIFI_REASON_ASSOC_TOOMANY:
+            snprintf_P(buffer, sizeof(buffer), PSTR("too many associations"));
+            break;
+        case WIFI_REASON_NOT_AUTHED:
+            snprintf_P(buffer, sizeof(buffer), PSTR("not authenticated"));
+            break;
+        case WIFI_REASON_NOT_ASSOCED:
+            snprintf_P(buffer, sizeof(buffer), PSTR("not associated"));
+            break;
+        case WIFI_REASON_ASSOC_LEAVE:
+            snprintf_P(buffer, sizeof(buffer), PSTR("associaction leave"));
+            break;
+        case WIFI_REASON_ASSOC_NOT_AUTHED:
+            snprintf_P(buffer, sizeof(buffer), PSTR("association not authenticated"));
+            break;
+        case WIFI_REASON_DISASSOC_PWRCAP_BAD:
+            snprintf_P(buffer, sizeof(buffer), PSTR("bad powercap"));
+            break;
+        case WIFI_REASON_DISASSOC_SUPCHAN_BAD:
+            snprintf_P(buffer, sizeof(buffer), PSTR("bad supchan"));
+            break;
+        case WIFI_REASON_IE_INVALID:
+            snprintf_P(buffer, sizeof(buffer), PSTR("ie invalid"));
+            break;
+        case WIFI_REASON_MIC_FAILURE:
+            snprintf_P(buffer, sizeof(buffer), PSTR("mic failure"));
+            break;
+        case WIFI_REASON_4WAY_HANDSHAKE_TIMEOUT:
+            snprintf_P(buffer, sizeof(buffer), PSTR("handshake timeout"));
+            break;
+        case WIFI_REASON_GROUP_KEY_UPDATE_TIMEOUT:
+            snprintf_P(buffer, sizeof(buffer), PSTR("key update timeout"));
+            break;
+        case WIFI_REASON_IE_IN_4WAY_DIFFERS:
+            snprintf_P(buffer, sizeof(buffer), PSTR("ie handshake differs"));
+            break;
+        case WIFI_REASON_GROUP_CIPHER_INVALID:
+            snprintf_P(buffer, sizeof(buffer), PSTR("group cipher invalid"));
+            break;
+        case WIFI_REASON_PAIRWISE_CIPHER_INVALID:
+            snprintf_P(buffer, sizeof(buffer), PSTR("pairwise cipher invalid"));
+            break;
+        case WIFI_REASON_AKMP_INVALID:
+            snprintf_P(buffer, sizeof(buffer), PSTR("akmp invalid"));
+            break;
+        case WIFI_REASON_UNSUPP_RSN_IE_VERSION:
+            snprintf_P(buffer, sizeof(buffer), PSTR("bad powercap"));
+            break;
+        case WIFI_REASON_INVALID_RSN_IE_CAP:
+            snprintf_P(buffer, sizeof(buffer), PSTR("INVALID_RSN_IE_CAP"));
+            break;
+        case WIFI_REASON_802_1X_AUTH_FAILED:
+            snprintf_P(buffer, sizeof(buffer), PSTR("802.1x auth failed"));
+            break;
+        case WIFI_REASON_CIPHER_SUITE_REJECTED:
+            snprintf_P(buffer, sizeof(buffer), PSTR("cipher suite rejected"));
+            break;
+
+        case WIFI_REASON_BEACON_TIMEOUT:
+            snprintf_P(buffer, sizeof(buffer), PSTR("beacon timeout"));
+            break;
+        case WIFI_REASON_NO_AP_FOUND:
+            snprintf_P(buffer, sizeof(buffer), PSTR("no AP found"));
+            break;
+        case WIFI_REASON_AUTH_FAIL:
+            snprintf_P(buffer, sizeof(buffer), PSTR("auth powercap"));
+            break;
+        case WIFI_REASON_ASSOC_FAIL:
+            snprintf_P(buffer, sizeof(buffer), PSTR("assoc failed"));
+            break;
+        case WIFI_REASON_HANDSHAKE_TIMEOUT:
+            snprintf_P(buffer, sizeof(buffer), PSTR("handshake failed"));
+            break;
+        case WIFI_REASON_CONNECTION_FAIL:
+            snprintf_P(buffer, sizeof(buffer), PSTR("connection failed"));
+            break;
+#endif
+
+        default:
+            snprintf_P(buffer, sizeof(buffer), PSTR("unknown"));
+    }
+
+    Log.warning(TAG_WIFI, F("Disconnected from %s (Reason: %s [%d])"), ssid, buffer, reason);
 }
 
 void wifiSsidConnected(const char * ssid)
 {
-    Log.notice(TAG_WIFI,F("Connected to SSID %s. Requesting IP..."), ssid);
+    Log.notice(TAG_WIFI, F("Connected to SSID %s. Requesting IP..."), ssid);
     wifiReconnectCounter = 0;
 }
 
@@ -138,7 +326,7 @@ bool wifiShowAP(char * ssid, char * pass)
     sprintf_P(ssid, PSTR("HASP-%02x%02x%02x"), mac[3], mac[4], mac[5]);
     sprintf_P(pass, PSTR("haspadmin"));
 #if defined(STM32F4xx)
-    Log.warning(TAG_WIFI,F("We should setup Temporary Access Point %s password: %s"), ssid, pass);
+    Log.warning(TAG_WIFI, F("We should setup Temporary Access Point %s password: %s"), ssid, pass);
 #else
     WiFi.softAP(ssid, pass);
 
@@ -146,8 +334,8 @@ bool wifiShowAP(char * ssid, char * pass)
     // dnsServer.setErrorReplyCode(DNSReplyCode::NoError);
     // dnsServer.start(DNS_PORT, "*", apIP);
 
-    Log.warning(TAG_WIFI,F("Temporary Access Point %s password: %s"), ssid, pass);
-    Log.warning(TAG_WIFI,F("AP IP address : %s"), WiFi.softAPIP().toString().c_str());
+    Log.warning(TAG_WIFI, F("Temporary Access Point %s password: %s"), ssid, pass);
+    Log.warning(TAG_WIFI, F("AP IP address : %s"), WiFi.softAPIP().toString().c_str());
     // httpReconnect();}
 #endif
     return true;
@@ -180,23 +368,25 @@ void wifiSetup()
     WiFiSpi.init(ESPSPI_CS, 8000000, &espSPI);
 
     // check for the presence of the shield:
-    if (WiFiSpi.status() == WL_NO_SHIELD) {
-        Log.notice(TAG_WIFI,F("WiFi shield not present"));
+    if(WiFiSpi.status() == WL_NO_SHIELD) {
+        Log.notice(TAG_WIFI, F("WiFi shield not present"));
         // don't continue:
-        while (true);
+        while(true)
+            ;
     }
 
-    if (!WiFiSpi.checkProtocolVersion()) {
-        Log.notice(TAG_WIFI,F("Protocol version mismatch. Please upgrade the firmware"));
+    if(!WiFiSpi.checkProtocolVersion()) {
+        Log.notice(TAG_WIFI, F("Protocol version mismatch. Please upgrade the firmware"));
         // don't continue:
-        while (true);
+        while(true)
+            ;
     }
 
     // attempt to connect to Wifi network
     // int status = WL_IDLE_STATUS;     // the Wifi radio's status
     if(!wifiShowAP()) {
-    // while (status != WL_CONNECTED) {
-        Log.notice(TAG_WIFI,F("Connecting to : %s"), wifiSsid);
+        // while (status != WL_CONNECTED) {
+        Log.notice(TAG_WIFI, F("Connecting to : %s"), wifiSsid);
         // Connect to WPA/WPA2 network
         // status = WiFi.begin(wifiSsid, wifiPassword);
         WiFi.begin(wifiSsid, wifiPassword);
@@ -220,7 +410,7 @@ void wifiSetup()
 #endif
 
         wifiReconnect();
-        Log.notice(TAG_WIFI,F("Connecting to : %s"), wifiSsid);
+        Log.notice(TAG_WIFI, F("Connecting to : %s"), wifiSsid);
     }
 #endif
 }
@@ -240,10 +430,10 @@ bool wifiEvery5Seconds()
     } else {
         wifiReconnectCounter++;
         if(wifiReconnectCounter > 45) {
-            Log.error(TAG_WIFI,F("Retries exceed %u: Rebooting..."), wifiReconnectCounter);
+            Log.error(TAG_WIFI, F("Retries exceed %u: Rebooting..."), wifiReconnectCounter);
             dispatchReboot(false);
         }
-        Log.warning(TAG_WIFI,F("No Connection... retry %u"), wifiReconnectCounter);
+        Log.warning(TAG_WIFI, F("No Connection... retry %u"), wifiReconnectCounter);
         if(wifiReconnectCounter % 6 == 0) {
             wifiReconnect();
         }
@@ -300,21 +490,21 @@ bool wifiTestConnection()
     IPAddress ip;
     ip = WiFi.localIP();
     char espIp[16];
-    memset(espIp, 0 ,sizeof(espIp));
+    memset(espIp, 0, sizeof(espIp));
     snprintf_P(espIp, sizeof(espIp), PSTR("%d.%d.%d.%d"), ip[0], ip[1], ip[2], ip[3]);
     while(attempt < 10 && (WiFi.status() != WL_CONNECTED || String(espIp) == F("0.0.0.0"))) {
 #else
     while(attempt < 10 && (WiFi.status() != WL_CONNECTED || WiFi.localIP().toString() == F("0.0.0.0"))) {
 #endif
         attempt++;
-        Log.verbose(TAG_WIFI,F("Trying to connect to %s... %u"), wifiSsid, attempt);
+        Log.verbose(TAG_WIFI, F("Trying to connect to %s... %u"), wifiSsid, attempt);
         delay(1000);
     }
 #if defined(STM32F4xx)
-    Log.verbose(TAG_WIFI,F("Received IP addres %s"), espIp);
+    Log.verbose(TAG_WIFI, F("Received IP addres %s"), espIp);
     if((WiFi.status() == WL_CONNECTED && String(espIp) != F("0.0.0.0"))) return true;
 #else
-    Log.verbose(TAG_WIFI,F("Received IP addres %s"), WiFi.localIP().toString().c_str());
+    Log.verbose(TAG_WIFI, F("Received IP addres %s"), WiFi.localIP().toString().c_str());
     if((WiFi.status() == WL_CONNECTED && WiFi.localIP().toString() != F("0.0.0.0"))) return true;
 #endif
     WiFi.disconnect();
@@ -328,7 +518,7 @@ void wifiStop()
 #if !defined(STM32F4xx)
     WiFi.mode(WIFI_OFF);
 #endif
-    Log.warning(TAG_WIFI,F("Stopped"));
+    Log.warning(TAG_WIFI, F("Stopped"));
 }
 
 #endif
