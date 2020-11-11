@@ -21,7 +21,7 @@ Licensed under the MIT License <http://opensource.org/licenses/MIT>.
 #else
 #include "WProgram.h"
 #endif
-#include "StringStream.h"
+//#include "StringStream.h"
 typedef void (*printfunction)(uint8_t tag, int level, Print *);
 
 //#include <stdint.h>

@@ -60,9 +60,7 @@ void otaSetup()
             Log.notice(TAG_OTA, F("Start update"));
             haspProgressVal(0);
             haspProgressMsg(F("Firmware Update"));
-            // dispatchPage("0");
             otaPrecentageComplete = 0;
-            // haspSetAttr("p[0].b[1].txt", "\"ESP OTA Update\"");
         });
         ArduinoOTA.onEnd([]() {
             otaPrecentageComplete = 100;
@@ -70,33 +68,40 @@ void otaSetup()
             haspProgressVal(100);
             otaProgress();
             otaPrecentageComplete = -1;
-            // dispatchPage("0");
-            // haspSetAttr("p[0].b[1].txt", "\"ESP OTA Update\\rComplete!\"");
-            setup();
-            // dispatchReboot(true);
+            // setup();
+            dispatchReboot(true);
         });
         ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
             if(total != 0) {
                 otaPrecentageComplete = progress * 100 / total;
                 haspProgressVal(otaPrecentageComplete);
             }
-
-            // haspSetAttr("p[0].b[1].txt", "\"ESP OTA Update\\rProgress: " + String(progress / (total / 100)) + "%\"");
         });
         ArduinoOTA.onError([](ota_error_t error) {
+            char buffer[16];
+            switch(error) {
+                case OTA_AUTH_ERROR:
+                    snprintf_P(buffer, sizeof(buffer), PSTR("Auth"));
+                    break;
+                case OTA_BEGIN_ERROR:
+                    snprintf_P(buffer, sizeof(buffer), PSTR("Begin"));
+                    break;
+                case OTA_CONNECT_ERROR:
+                    snprintf_P(buffer, sizeof(buffer), PSTR("Connect"));
+                    break;
+                case OTA_RECEIVE_ERROR:
+                    snprintf_P(buffer, sizeof(buffer), PSTR("Receive"));
+                    break;
+                case OTA_END_ERROR:
+                    snprintf_P(buffer, sizeof(buffer), PSTR("End"));
+                    break;
+                default:
+                    snprintf_P(buffer, sizeof(buffer), PSTR("Something"));
+            }
+
             otaPrecentageComplete = -1;
-            Log.error(TAG_OTA, F("ERROR code %u"), error);
-            if(error == OTA_AUTH_ERROR)
-                Log.error(TAG_OTA, F("ERROR - Auth Failed"));
-            else if(error == OTA_BEGIN_ERROR)
-                Log.error(TAG_OTA, F("ERROR - Begin Failed"));
-            else if(error == OTA_CONNECT_ERROR)
-                Log.error(TAG_OTA, F("ERROR - Connect Failed"));
-            else if(error == OTA_RECEIVE_ERROR)
-                Log.error(TAG_OTA, F("ERROR - Receive Failed"));
-            else if(error == OTA_END_ERROR)
-                Log.error(TAG_OTA, F("ERROR - End Failed"));
-            // haspSetAttr("p[0].b[1].txt", "\"ESP OTA FAILED\"");
+            Log.error(TAG_OTA, F("ERROR - %s failed (%s)"), buffer, error);
+            haspProgressMsg(F("ESP OTA FAILED"));
             // delay(5000);
             // haspSendCmd("page " + String(nextionActivePage));
         });

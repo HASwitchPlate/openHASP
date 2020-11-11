@@ -301,9 +301,9 @@ void handleTouch(int8_t contacts, GTPoint * points)
     GT911_num_touches = contacts;
     GT911_points      = points;
 
-    Log.trace(TAG_GUI,"Contacts: %d", contacts);
+    Log.trace(TAG_GUI, "Contacts: %d", contacts);
     for(uint8_t i = 0; i < contacts; i++) {
-        Log.trace(TAG_GUI,"C%d: #%d %d,%d s:%d", i, points[i].trackId, points[i].x, points[i].y, points[i].area);
+        Log.trace(TAG_GUI, "C%d: #%d %d,%d s:%d", i, points[i].trackId, points[i].x, points[i].y, points[i].area);
         yield();
     }
 }
@@ -378,7 +378,7 @@ void GT911_setup()
 
     touch.setHandler(handleTouch);
     touchStart();
-    Log.verbose(TAG_GUI,F("Goodix GT911x touch driver started"));
+    Log.verbose(TAG_GUI, F("Goodix GT911x touch driver started"));
 }
 #endif
 
@@ -513,16 +513,16 @@ void guiSetup()
     /* Dump TFT Configuration */
     // tftSetup(tft);
 #ifdef USE_DMA_TO_TFT
-    Log.verbose(TAG_GUI,F("DMA        : ENABLED"));
+    Log.verbose(TAG_GUI, F("DMA        : ENABLED"));
 #else
-    Log.verbose(TAG_GUI,F("DMA        : DISABLED"));
+    Log.verbose(TAG_GUI, F("DMA        : DISABLED"));
 #endif
 
     /* Load User Settings */
     // guiSetConfig(settings);
     /* Setup Backlight Control Pin */
     if(guiBacklightPin >= 0) {
-        Log.verbose(TAG_LVGL,F("Backlight: Pin %d"), guiBacklightPin);
+        Log.verbose(TAG_LVGL, F("Backlight: Pin %d"), guiBacklightPin);
 
 #if defined(ARDUINO_ARCH_ESP32)
         // pinMode(guiBacklightPin, OUTPUT);
@@ -535,16 +535,17 @@ void guiSetup()
 #endif
     }
 
-    Log.verbose(TAG_LVGL,F("Version  : %u.%u.%u %s"), LVGL_VERSION_MAJOR, LVGL_VERSION_MINOR, LVGL_VERSION_PATCH,
+    Log.verbose(TAG_LVGL, F("Version  : %u.%u.%u %s"), LVGL_VERSION_MAJOR, LVGL_VERSION_MINOR, LVGL_VERSION_PATCH,
                 PSTR(LVGL_VERSION_INFO));
-    Log.verbose(TAG_LVGL,F("Rotation : %d"), guiRotation);
+
+    Log.verbose(TAG_LVGL, F("Rotation : %d"), guiRotation);
 #ifdef LV_MEM_SIZE
-    Log.verbose(TAG_LVGL,F("MEM size : %d"), LV_MEM_SIZE);
+    Log.verbose(TAG_LVGL, F("MEM size : %d"), LV_MEM_SIZE);
 #endif
-    Log.verbose(TAG_LVGL,F("VFB size : %d"), (size_t)sizeof(lv_color_t) * guiVDBsize);
+    Log.verbose(TAG_LVGL, F("VFB size : %d"), (size_t)sizeof(lv_color_t) * guiVDBsize);
 
 #if LV_USE_LOG != 0
-    Log.verbose(TAG_LVGL,F("Registering lvgl logging handler"));
+    Log.verbose(TAG_LVGL, F("Registering lvgl logging handler"));
     lv_log_register_print_cb(debugLvgl); /* register print function for debugging */
 #endif
 
@@ -746,7 +747,7 @@ bool guiGetConfig(const JsonObject & settings)
     JsonArray array = settings[FPSTR(F_GUI_CALIBRATION)].as<JsonArray>();
     uint8_t i       = 0;
     for(JsonVariant v : array) {
-        Log.verbose(TAG_GUI,F("GUI CONF: %d: %d <=> %d"), i, calData[i], v.as<uint16_t>());
+        Log.verbose(TAG_GUI, F("GUI CONF: %d: %d <=> %d"), i, calData[i], v.as<uint16_t>());
         if(i < 5) {
             if(calData[i] != v.as<uint16_t>()) changed = true;
             v.set(calData[i]);
@@ -798,7 +799,7 @@ bool guiSetConfig(const JsonObject & settings)
 
     if(!settings[FPSTR(F_GUI_POINTER)].isNull()) {
         if(guiShowPointer != settings[FPSTR(F_GUI_POINTER)].as<bool>()) {
-            Log.trace(TAG_GUI,F("guiShowPointer set"));
+            Log.trace(TAG_GUI, F("guiShowPointer set"));
         }
         changed |= guiShowPointer != settings[FPSTR(F_GUI_POINTER)].as<bool>();
 
@@ -819,11 +820,11 @@ bool guiSetConfig(const JsonObject & settings)
         }
 
         if(calData[0] != 0 || calData[1] != 65535 || calData[2] != 0 || calData[3] != 65535) {
-            Log.trace(TAG_GUI,F("calData set [%u, %u, %u, %u, %u]"), calData[0], calData[1], calData[2], calData[3],
+            Log.trace(TAG_GUI, F("calData set [%u, %u, %u, %u, %u]"), calData[0], calData[1], calData[2], calData[3],
                       calData[4]);
             oobeSetAutoCalibrate(false);
         } else {
-            Log.notice(TAG_GUI,F("First Touch Calibration enabled"));
+            Log.notice(TAG_GUI, F("First Touch Calibration enabled"));
             oobeSetAutoCalibrate(true);
         }
 
@@ -900,7 +901,7 @@ static void gui_get_bitmap_header(uint8_t * buffer, size_t bufsize)
 
 void gui_flush_not_complete()
 {
-    Log.warning(TAG_GUI,F("GUI: Pixelbuffer not completely sent"));
+    Log.warning(TAG_GUI, F("GUI: Pixelbuffer not completely sent"));
 }
 #endif // HASP_USE_SPIFFS > 0 || HASP_USE_HTTP > 0
 
@@ -934,7 +935,7 @@ void guiTakeScreenshot(const char * pFileName)
 
         size_t len = pFileOut.write(buffer, 122);
         if(len == 122) {
-            Log.verbose(TAG_GUI,F("GUI: Bitmap header written"));
+            Log.verbose(TAG_GUI, F("GUI: Bitmap header written"));
 
             /* Refresh screen to screenshot callback */
             lv_disp_t * disp = lv_disp_get_default();
@@ -945,15 +946,15 @@ void guiTakeScreenshot(const char * pFileName)
             lv_refr_now(NULL);                /* Will call our disp_drv.disp_flush function */
             disp->driver.flush_cb = flush_cb; /* restore callback */
 
-            Log.verbose(TAG_GUI,F("GUI: Bitmap data flushed to %s"), pFileName);
+            Log.verbose(TAG_GUI, F("GUI: Bitmap data flushed to %s"), pFileName);
 
         } else {
-            Log.error(TAG_GUI,F("GUI: Data written does not match header size"));
+            Log.error(TAG_GUI, F("GUI: Data written does not match header size"));
         }
         pFileOut.close();
 
     } else {
-        Log.warning(TAG_GUI,F("GUI: %s cannot be opened"), pFileName);
+        Log.warning(TAG_GUI, F("GUI: %s cannot be opened"), pFileName);
     }
 }
 #endif
@@ -982,7 +983,7 @@ void guiTakeScreenshot()
     gui_get_bitmap_header(buffer, sizeof(buffer));
 
     if(httpClientWrite(buffer, 122) == 122) {
-        Log.verbose(TAG_GUI,F("GUI: Bitmap header sent"));
+        Log.verbose(TAG_GUI, F("GUI: Bitmap header sent"));
 
         /* Refresh screen to screenshot callback */
         lv_disp_t * disp = lv_disp_get_default();
@@ -993,9 +994,9 @@ void guiTakeScreenshot()
         lv_refr_now(NULL);                /* Will call our disp_drv.disp_flush function */
         disp->driver.flush_cb = flush_cb; /* restore callback */
 
-        Log.verbose(TAG_GUI,F("GUI: Bitmap data flushed to webclient"));
+        Log.verbose(TAG_GUI, F("GUI: Bitmap data flushed to webclient"));
     } else {
-        Log.error(TAG_GUI,F("GUI: Data sent does not match header size"));
+        Log.error(TAG_GUI, F("GUI: Data sent does not match header size"));
     }
 }
 #endif

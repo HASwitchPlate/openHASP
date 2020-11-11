@@ -304,8 +304,9 @@ void haspReconnect()
         lv_obj_set_hidden(obj, true);*/
 }
 
-String progress_str((char *)0);
+// String progress_str((char *)0);
 
+// Shows/hides the the global progress bar and updates the value
 void haspProgressVal(uint8_t val)
 {
     lv_obj_t * layer = lv_disp_get_layer_sys(NULL);
@@ -316,8 +317,8 @@ void haspProgressVal(uint8_t val)
                 lv_obj_set_hidden(bar, true);
                 lv_obj_set_style_local_bg_opa(layer, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_0);
                 lv_obj_set_style_local_value_str(bar, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, "");
-#if defined(ARCH_ARDUINO_ESP32) || defined(ARCH_ARDUINO_ESP8266)
-                progress_str.clear();
+#if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
+                // progress_str.clear();
 #endif
             }
         } else {
@@ -331,17 +332,23 @@ void haspProgressVal(uint8_t val)
     }
 }
 
+// Sets the value string of the global progress bar
 void haspProgressMsg(const char * msg)
 {
     lv_obj_t * bar = hasp_find_obj_from_id(255, 10);
-    if(bar) {
-        progress_str.reserve(64);
-        progress_str = msg;
-        lv_obj_set_style_local_value_str(bar, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, progress_str.c_str());
-        lv_task_handler(); /* let the GUI do its work */
-    }
+    hasp_process_obj_attribute(bar, "value_str", msg, true); // literal string
+    lv_task_handler();                                       /* let the GUI do its work */
+
+    /* if(bar) {
+         progress_str.reserve(64);
+         progress_str = msg;
+         lv_obj_set_style_local_value_str(bar, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, progress_str.c_str());
+
+        lv_task_handler(); // let the GUI do its work
+     } */
 }
 
+// Sets the value string of the global progress bar
 void haspProgressMsg(const __FlashStringHelper * msg)
 {
     haspProgressMsg(String(msg).c_str());

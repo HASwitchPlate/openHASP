@@ -696,7 +696,9 @@ void webHandleFirmwareUpdate()
             webUploadProgress();
         }
     } else if(upload->status == UPLOAD_FILE_END) {
+        haspProgressVal(100);
         if(Update.end(true)) { // true to set the size to the current progress
+            haspProgressMsg(F("Applying Firmware & Reboot"));
             webUpdateReboot();
         } else {
             webUpdatePrintError();
