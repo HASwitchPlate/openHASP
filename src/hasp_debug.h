@@ -27,12 +27,12 @@ enum {
 
     TAG_FWUP = 50,
 
-    TAG_ETH  = 60,
-    TAG_WIFI = 61,
-    TAG_HTTP = 62,
-    TAG_OTA  = 63,
-    TAG_MDNS = 64,
-    TAG_MQTT = 65,
+    TAG_ETH      = 60,
+    TAG_WIFI     = 61,
+    TAG_HTTP     = 62,
+    TAG_OTA      = 63,
+    TAG_MDNS     = 64,
+    TAG_MQTT     = 65,
     TAG_MQTT_PUB = 66,
     TAG_MQTT_RCV = 67,
 
@@ -41,7 +41,7 @@ enum {
     TAG_FONT = 92
 };
 
-String debugHaspHeader(void);
+void debugHaspHeader(Print * output);
 
 void debugPreSetup(JsonObject settings);
 void debugSetup();

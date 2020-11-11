@@ -54,7 +54,7 @@ void dispatchGpioOutput(int output, bool state)
     int pin = 0;
 
     if(pin >= 0) {
-        Log.notice(TAG_MSGR,F("PIN OUTPUT STATE %d"), state);
+        Log.notice(TAG_MSGR, F("PIN OUTPUT STATE %d"), state);
 
 #if defined(ARDUINO_ARCH_ESP32)
         ledcWrite(99, state ? 1023 : 0); // ledChannel and value
@@ -89,7 +89,7 @@ void dispatchParseJson(char * payload)
     // haspCommands.shrinkToFit();
 
     if(jsonError) { // Couldn't parse incoming JSON command
-        Log.warning(TAG_MSGR,F("JSON: Failed to parse incoming JSON command with error: %s"), jsonError.c_str());
+        Log.warning(TAG_MSGR, F("JSON: Failed to parse incoming JSON command with error: %s"), jsonError.c_str());
     } else {
 
         JsonArray arr = haspCommands.as<JsonArray>();
@@ -201,10 +201,12 @@ void dispatchCommand(const char * topic, const char * payload)
     } else if(topic == strstr_P(topic, PSTR("p["))) {
         dispatch_process_button_attribute(topic, payload);
 
+#if HASP_USE_WIFI > 0
     } else if(!strcmp_P(topic, F_CONFIG_SSID) || !strcmp_P(topic, F_CONFIG_PASS)) {
         DynamicJsonDocument settings(45);
         settings[topic] = payload;
         wifiSetConfig(settings.as<JsonObject>());
+#endif
 
     } else if(!strcmp_P(topic, PSTR("mqtthost")) || !strcmp_P(topic, PSTR("mqttport")) ||
               !strcmp_P(topic, PSTR("mqttuser")) || !strcmp_P(topic, PSTR("mqttpass"))) {
@@ -219,7 +221,7 @@ void dispatchCommand(const char * topic, const char * payload)
         if(strlen(payload) == 0) {
             //    dispatchTextLine(topic); // Could cause an infinite loop!
         }
-        Log.warning(TAG_MSGR,F(LOG_CMND_CTR "Command not found %s => %s"), topic, payload);
+        Log.warning(TAG_MSGR, F(LOG_CMND_CTR "Command not found %s => %s"), topic, payload);
     }
 }
 
@@ -373,7 +375,7 @@ void dispatchTextLine(const char * cmnd)
 void dispatch_output_idle_state(const char * state)
 {
 #if !defined(HASP_USE_MQTT) && !defined(HASP_USE_TASMOTA_SLAVE)
-    Log.notice(TAG_MSGR,F("idle = %s"), state);
+    Log.notice(TAG_MSGR, F("idle = %s"), state);
 #else
 
 #if HASP_USE_MQTT > 0
@@ -398,8 +400,8 @@ void dispatchReboot(bool saveConfig)
 #if HASP_USE_WIFI > 0
     wifiStop();
 #endif
-    Log.verbose(TAG_MSGR,F("-------------------------------------"));
-    Log.notice(TAG_MSGR,F("STOP: Properly Rebooting the MCU now!"));
+    Log.verbose(TAG_MSGR, F("-------------------------------------"));
+    Log.notice(TAG_MSGR, F("STOP: Properly Rebooting the MCU now!"));
     Serial.flush();
     halRestart();
 }
@@ -407,7 +409,7 @@ void dispatchReboot(bool saveConfig)
 void dispatch_button(uint8_t id, const char * event)
 {
 #if !defined(HASP_USE_MQTT) && !defined(HASP_USE_TASMOTA_SLAVE)
-    Log.notice(TAG_MSGR,F("input%d = %s"), id, event);
+    Log.notice(TAG_MSGR, F("input%d = %s"), id, event);
 #else
 #if HASP_USE_MQTT > 0
     mqtt_send_input(id, event);
@@ -477,7 +479,7 @@ void dispatch_send_group_event(uint8_t groupid, uint8_t eventid, bool update_has
 
     // send out value
 #if !defined(HASP_USE_MQTT) && !defined(HASP_USE_TASMOTA_SLAVE)
-    Log.notice(TAG_MSGR,F("group%d = %s"), groupid, eventid);
+    Log.notice(TAG_MSGR, F("group%d = %s"), groupid, eventid);
 #else
 #if HASP_USE_MQTT > 0
     // mqtt_send_input(id, event);
@@ -494,7 +496,7 @@ void dispatch_send_group_event(uint8_t groupid, uint8_t eventid, bool update_has
 void IRAM_ATTR dispatch_send_obj_attribute_str(uint8_t pageid, uint8_t btnid, const char * attribute, const char * data)
 {
 #if !defined(HASP_USE_MQTT) && !defined(HASP_USE_TASMOTA_SLAVE)
-    Log.notice(TAG_MSGR,F("json = {\"p[%u].b[%u].%s\":\"%s\"}"), pageid, btnid, attribute, data);
+    Log.notice(TAG_MSGR, F("json = {\"p[%u].b[%u].%s\":\"%s\"}"), pageid, btnid, attribute, data);
 #else
 #if HASP_USE_MQTT > 0
     mqtt_send_obj_attribute_str(pageid, btnid, attribute, data);
@@ -520,7 +522,7 @@ void dispatch_send_object_event(uint8_t pageid, uint8_t objid, uint8_t eventid)
 void dispatchWebUpdate(const char * espOtaUrl)
 {
 #if HASP_USE_OTA > 0
-    Log.verbose(TAG_MSGR,F("Checking for updates at URL: %s"), espOtaUrl);
+    Log.verbose(TAG_MSGR, F("Checking for updates at URL: %s"), espOtaUrl);
     otaHttpUpdate(espOtaUrl);
 #endif
 }
@@ -529,7 +531,7 @@ void dispatchWebUpdate(const char * espOtaUrl)
 void IRAM_ATTR dispatch_obj_attribute_str(uint8_t pageid, uint8_t btnid, const char * attribute, const char * data)
 {
 #if !defined(HASP_USE_MQTT) && !defined(HASP_USE_TASMOTA_SLAVE)
-    Log.notice(TAG_MSGR,F("json = {\"p[%u].b[%u].%s\":\"%s\"}"), pageid, btnid, attribute, data);
+    Log.notice(TAG_MSGR, F("json = {\"p[%u].b[%u].%s\":\"%s\"}"), pageid, btnid, attribute, data);
 #else
 #if HASP_USE_MQTT > 0
     mqtt_send_obj_attribute_str(pageid, btnid, attribute, data);
@@ -556,7 +558,7 @@ void dispatchConfig(const char * topic, const char * payload)
     } else {
         DeserializationError jsonError = deserializeJson(doc, payload);
         if(jsonError) { // Couldn't parse incoming JSON command
-            Log.warning(TAG_MSGR,F("JSON: Failed to parse incoming JSON command with error: %s"), jsonError.c_str());
+            Log.warning(TAG_MSGR, F("JSON: Failed to parse incoming JSON command with error: %s"), jsonError.c_str());
             return;
         }
         settings = doc.as<JsonObject>();
@@ -626,7 +628,7 @@ void dispatchConfig(const char * topic, const char * payload)
         settings.remove(F("pass")); // hide password in output
         size_t size = serializeJson(doc, buffer, sizeof(buffer));
 #if !defined(HASP_USE_MQTT) && !defined(HASP_USE_TASMOTA_SLAVE)
-        Log.notice(TAG_MSGR,F("config %s = %s"), topic, buffer);
+        Log.notice(TAG_MSGR, F("config %s = %s"), topic, buffer);
 #else
 #if HASP_USE_MQTT > 0
         mqtt_send_state(F("config"), buffer);
