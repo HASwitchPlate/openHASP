@@ -22,3 +22,6 @@ build_output/firmware/*.bin
 .vscode/c_cpp_properties.json
 .vscode/launch.json
 *.bak
+
+build_output/firmware/d1mini-lolintft24_v0.2.1111.bin
+build_output/firmware/d1mini32-lolintft24_v0.2.1111.bin
