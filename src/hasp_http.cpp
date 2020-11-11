@@ -130,7 +130,7 @@ static inline char * httpGetNodename()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-bool httpIsAuthenticated(const __FlashStringHelper * page)
+bool httpIsAuthenticated(const __FlashStringHelper * fstr_page)
 {
     if(httpPassword[0] != '\0') { // Request HTTP auth if httpPassword is set
         if(!webServer.authenticate(httpUser, httpPassword)) {
@@ -140,7 +140,7 @@ bool httpIsAuthenticated(const __FlashStringHelper * page)
     }
 
 #if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
-    Log.verbose(TAG_HTTP, F("Sending %s page to client connected from: %s"), page,
+    Log.verbose(TAG_HTTP, F("Sending %S page to client connected from: %s"), fstr_page,
                 webServer.client().remoteIP().toString().c_str());
 #else
     // Log.verbose(TAG_HTTP,F("Sending %s page to client connected from: %s"), page,
