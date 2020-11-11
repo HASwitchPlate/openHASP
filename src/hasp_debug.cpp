@@ -425,9 +425,9 @@ static void debugPrintTag(uint8_t tag, Print * _logOutput)
 void debugPrintPrefix(uint8_t tag, int level, Print * _logOutput)
 {
 #if HASP_USE_SYSLOG > 0
-    if(!syslogClient) return;
+    // if(!syslogClient) return;
 
-    if(_logOutput == syslogClient) {
+    if(_logOutput == syslogClient && syslogClient) {
         syslogClient->beginPacket(debugSyslogHost, debugSyslogPort);
 
         // IETF Doc: https://tools.ietf.org/html/rfc5424 - The Syslog Protocol

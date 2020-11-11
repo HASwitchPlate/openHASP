@@ -438,8 +438,8 @@ void mqttReconnect()
     snprintf_P(buffer, sizeof(buffer), PSTR("%sstatus"), mqttNodeTopic);
     mqttClient.publish(buffer, mqttFirstConnect ? "OFF" : "ON", true); //, 1);
 
-    Log.notice(TAG_MQTT, F("binary_sensor state: [%sstatus] : %s"), mqttNodeTopic,
-               mqttFirstConnect ? PSTR("OFF") : PSTR("ON"));
+    Log.notice(TAG_MQTT, F("binary_sensor state: [%sstatus] : %S"), mqttNodeTopic,
+               mqttFirstConnect ? F("OFF") : F("ON"));
 
     /* snprintf_P(buffer, sizeof(buffer), PSTR("binary_sensor state: [%sstatus] : %s"), mqttNodeTopic,
                mqttFirstConnect ? PSTR("OFF") : PSTR("ON"));

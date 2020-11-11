@@ -57,7 +57,7 @@ void setup()
 #endif
 
     // The network stack needs to be initialized before calling debugSetup, cause syslog needs lwip
-    debugSetup();
+    // debugSetup();
 
     guiSetup();
     if(!oobeSetup()) {

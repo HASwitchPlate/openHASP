@@ -244,7 +244,7 @@ void webHandleRoot()
         httpMessage +=
             F("<p><form method='get' action='screenshot'><button type='submit'>Screenshot</button></form></p>");
         httpMessage +=
-            PSTR("<p><form method='get' action='config'><button type='submit'>Configuration</button></form></p>");
+            F("<p><form method='get' action='config'><button type='submit'>Configuration</button></form></p>");
 
         httpMessage +=
             F("<p><form method='get' action='firmware'><button type='submit'>Firmware Upgrade</button></form></p>");
