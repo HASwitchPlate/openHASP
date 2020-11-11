@@ -95,22 +95,21 @@ bool debugAnsiCodes      = true;
 unsigned long debugLastMillis = 0;
 uint16_t debugTelePeriod      = 300;
 
-String debugHaspHeader()
+/* Send the HASP header and version to the output device specified
+ */
+void debugHaspHeader(Print * output)
 {
-    String header((char *)0);
-    header.reserve(256);
-    if(debugAnsiCodes) header += TERM_COLOR_YELLOW;
-    header += F("\r\n"
-                "           _____ _____ _____ _____\r\n"
-                "          |  |  |  _  |   __|  _  |\r\n"
-                "          |     |     |__   |   __|\r\n"
-                "          |__|__|__|__|_____|__|\r\n"
-                "        Home Automation Switch Plate\r\n");
+    if(debugAnsiCodes) output->println(TERM_COLOR_YELLOW);
+    output->println(F(""
+                      "           _____ _____ _____ _____\r\n"
+                      "          |  |  |  _  |   __|  _  |\r\n"
+                      "          |     |     |__   |   __|\r\n"
+                      "          |__|__|__|__|_____|__|\r\n"
+                      "        Home Automation Switch Plate"));
     char buffer[128];
     snprintf(buffer, sizeof(buffer), PSTR("        Open Hardware edition v%u.%u.%u\r\n"), HASP_VERSION_MAJOR,
              HASP_VERSION_MINOR, HASP_VERSION_REVISION);
-    header += buffer;
-    return header;
+    output->println(buffer);
 }
 
 void debugStart()
@@ -204,10 +203,10 @@ bool debugSetConfig(const JsonObject & settings)
     bool changed = false;
 
     /* Serial Settings*/
-    changed |= configSet(debugSerialBaud, settings[FPSTR(F_CONFIG_BAUD)], PSTR("debugSerialBaud"));
+    changed |= configSet(debugSerialBaud, settings[FPSTR(F_CONFIG_BAUD)], F("debugSerialBaud"));
 
     /* Teleperiod Settings*/
-    changed |= configSet(debugTelePeriod, settings[FPSTR(F_DEBUG_TELEPERIOD)], PSTR("debugTelePeriod"));
+    changed |= configSet(debugTelePeriod, settings[FPSTR(F_DEBUG_TELEPERIOD)], F("debugTelePeriod"));
 
     /* Syslog Settings*/
 #if HASP_USE_SYSLOG > 0
@@ -215,9 +214,9 @@ bool debugSetConfig(const JsonObject & settings)
         changed |= strcmp(debugSyslogHost, settings[FPSTR(F_CONFIG_HOST)]) != 0;
         strncpy(debugSyslogHost, settings[FPSTR(F_CONFIG_HOST)], sizeof(debugSyslogHost));
     }
-    changed |= configSet(debugSyslogPort, settings[FPSTR(F_CONFIG_PORT)], PSTR("debugSyslogPort"));
-    changed |= configSet(debugSyslogProtocol, settings[FPSTR(F_CONFIG_PROTOCOL)], PSTR("debugSyslogProtocol"));
-    changed |= configSet(debugSyslogFacility, settings[FPSTR(F_CONFIG_LOG)], PSTR("debugSyslogFacility"));
+    changed |= configSet(debugSyslogPort, settings[FPSTR(F_CONFIG_PORT)], F("debugSyslogPort"));
+    changed |= configSet(debugSyslogProtocol, settings[FPSTR(F_CONFIG_PROTOCOL)], F("debugSyslogProtocol"));
+    changed |= configSet(debugSyslogFacility, settings[FPSTR(F_CONFIG_LOG)], F("debugSyslogFacility"));
 #endif
 
     return changed;
@@ -507,8 +506,9 @@ void debugPreSetup(JsonObject settings)
 
         // Print Header
         Serial.println();
-        Serial.println(debugHaspHeader());
-        Serial.println();
+        debugHaspHeader(&Serial);
+        // Serial.println(debugHaspHeader());
+        // Serial.println();
         Serial.flush();
 
         Log.trace(TAG_DEBG, ("Serial started at %u baud"), baudrate);

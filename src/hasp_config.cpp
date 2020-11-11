@@ -25,44 +25,44 @@
 #include "EEPROM.h"
 #endif
 
-void confDebugSet(const char * name)
+void confDebugSet(const __FlashStringHelper * fstr_name)
 {
     /*char buffer[128];
     snprintf(buffer, sizeof(buffer), PSTR("   * %s set"), name);
     debugPrintln(buffer);*/
-    Log.trace(TAG_CONF, F("   * %s set"), name);
+    Log.trace(TAG_CONF, F("   * %S set"), fstr_name);
 }
 
-bool configSet(int8_t & value, const JsonVariant & setting, const char * name)
+bool configSet(int8_t & value, const JsonVariant & setting, const __FlashStringHelper * fstr_name)
 {
     if(!setting.isNull()) {
         int8_t val = setting.as<int8_t>();
         if(value != val) {
-            confDebugSet(name);
+            confDebugSet(fstr_name);
             value = val;
             return true;
         }
     }
     return false;
 }
-bool configSet(uint8_t & value, const JsonVariant & setting, const char * name)
+bool configSet(uint8_t & value, const JsonVariant & setting, const __FlashStringHelper * fstr_name)
 {
     if(!setting.isNull()) {
         uint8_t val = setting.as<uint8_t>();
         if(value != val) {
-            confDebugSet(name);
+            confDebugSet(fstr_name);
             value = val;
             return true;
         }
     }
     return false;
 }
-bool configSet(uint16_t & value, const JsonVariant & setting, const char * name)
+bool configSet(uint16_t & value, const JsonVariant & setting, const __FlashStringHelper * fstr_name)
 {
     if(!setting.isNull()) {
         uint16_t val = setting.as<uint16_t>();
         if(value != val) {
-            confDebugSet(name);
+            confDebugSet(fstr_name);
             value = val;
             return true;
         }
@@ -267,7 +267,7 @@ void configWriteConfig()
     if(settings[F("gui")].as<JsonObject>().isNull()) settings.createNestedObject(F("gui"));
     changed = guiGetConfig(settings[F("gui")]);
     if(changed) {
-        Log.verbose(TAG_GUI,settingsChanged.c_str());
+        Log.verbose(TAG_GUI, settingsChanged.c_str());
         writefile = true;
     }
 

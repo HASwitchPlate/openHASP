@@ -537,7 +537,7 @@ bool mqttSetConfig(const JsonObject & settings)
     configOutput(settings);
     bool changed = false;
 
-    changed |= configSet(mqttPort, settings[FPSTR(F_CONFIG_PORT)], PSTR("mqttPort"));
+    changed |= configSet(mqttPort, settings[FPSTR(F_CONFIG_PORT)], F("mqttPort"));
 
     if(!settings[FPSTR(F_CONFIG_NAME)].isNull()) {
         changed |= strcmp(mqttNodeName, settings[FPSTR(F_CONFIG_NAME)]) != 0;

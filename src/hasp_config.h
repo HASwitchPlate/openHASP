@@ -41,9 +41,9 @@ void configGetConfig(JsonDocument & settings);
 void configWriteConfig();
 void configOutput(const JsonObject & settings);
 
-bool configSet(int8_t & value, const JsonVariant & setting, const char * name);
-bool configSet(uint8_t & value, const JsonVariant & setting, const char * name);
-bool configSet(uint16_t & value, const JsonVariant & setting, const char * name);
+bool configSet(int8_t & value, const JsonVariant & setting, const __FlashStringHelper * fstr_name);
+bool configSet(uint8_t & value, const JsonVariant & setting, const __FlashStringHelper * fstr_name);
+bool configSet(uint16_t & value, const JsonVariant & setting, const __FlashStringHelper * fstr_name);
 bool configClear();
 
 #endif

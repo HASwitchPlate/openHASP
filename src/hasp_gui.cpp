@@ -791,11 +791,11 @@ bool guiSetConfig(const JsonObject & settings)
     configOutput(settings);
     bool changed = false;
 
-    changed |= configSet(guiTickPeriod, settings[FPSTR(F_GUI_TICKPERIOD)], PSTR("guiTickPeriod"));
-    changed |= configSet(guiBacklightPin, settings[FPSTR(F_GUI_BACKLIGHTPIN)], PSTR("guiBacklightPin"));
-    changed |= configSet(guiSleepTime1, settings[FPSTR(F_GUI_IDLEPERIOD1)], PSTR("guiSleepTime1"));
-    changed |= configSet(guiSleepTime2, settings[FPSTR(F_GUI_IDLEPERIOD2)], PSTR("guiSleepTime2"));
-    changed |= configSet(guiRotation, settings[FPSTR(F_GUI_ROTATION)], PSTR("guiRotation"));
+    changed |= configSet(guiTickPeriod, settings[FPSTR(F_GUI_TICKPERIOD)], F("guiTickPeriod"));
+    changed |= configSet(guiBacklightPin, settings[FPSTR(F_GUI_BACKLIGHTPIN)], F("guiBacklightPin"));
+    changed |= configSet(guiSleepTime1, settings[FPSTR(F_GUI_IDLEPERIOD1)], F("guiSleepTime1"));
+    changed |= configSet(guiSleepTime2, settings[FPSTR(F_GUI_IDLEPERIOD2)], F("guiSleepTime2"));
+    changed |= configSet(guiRotation, settings[FPSTR(F_GUI_ROTATION)], F("guiRotation"));
 
     if(!settings[FPSTR(F_GUI_POINTER)].isNull()) {
         if(guiShowPointer != settings[FPSTR(F_GUI_POINTER)].as<bool>()) {
@@ -916,7 +916,7 @@ static void gui_screenshot_to_file(lv_disp_drv_t * disp, const lv_area_t * area,
     my_flush_cb(disp, area, color_p);
 }
 
-/** Take Screenshot.
+/** Take Screenshot. 
  *
  * Flush buffer into a binary file.
  *

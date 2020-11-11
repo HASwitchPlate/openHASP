@@ -1889,7 +1889,7 @@ bool httpSetConfig(const JsonObject & settings)
     configOutput(settings);
     bool changed = false;
 
-    changed |= configSet(httpPort, settings[FPSTR(F_CONFIG_PORT)], PSTR("httpPort"));
+    changed |= configSet(httpPort, settings[FPSTR(F_CONFIG_PORT)], F("httpPort"));
 
     if(!settings[FPSTR(F_CONFIG_USER)].isNull()) {
         changed |= strcmp(httpUser, settings[FPSTR(F_CONFIG_USER)]) != 0;

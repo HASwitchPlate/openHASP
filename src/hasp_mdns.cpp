@@ -105,7 +105,7 @@ bool mdnsSetConfig(const JsonObject & settings)
     configOutput(settings);
     bool changed = false;
 
-    changed |= configSet(mdnsEnabled, settings[FPSTR(F_CONFIG_ENABLE)], PSTR("mdnsEnabled"));
+    changed |= configSet(mdnsEnabled, settings[FPSTR(F_CONFIG_ENABLE)], F("mdnsEnabled"));
 
     return changed;
 }

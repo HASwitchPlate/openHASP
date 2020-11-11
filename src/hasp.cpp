@@ -1081,10 +1081,10 @@ bool haspSetConfig(const JsonObject & settings)
     configOutput(settings);
     bool changed = false;
 
-    changed |= configSet(haspStartPage, settings[FPSTR(F_CONFIG_STARTPAGE)], PSTR("haspStartPage"));
-    changed |= configSet(haspStartDim, settings[FPSTR(F_CONFIG_STARTDIM)], PSTR("haspStartDim"));
-    changed |= configSet(haspThemeId, settings[FPSTR(F_CONFIG_THEME)], PSTR("haspThemeId"));
-    changed |= configSet(haspThemeHue, settings[FPSTR(F_CONFIG_HUE)], PSTR("haspThemeHue"));
+    changed |= configSet(haspStartPage, settings[FPSTR(F_CONFIG_STARTPAGE)], F("haspStartPage"));
+    changed |= configSet(haspStartDim, settings[FPSTR(F_CONFIG_STARTDIM)], F("haspStartDim"));
+    changed |= configSet(haspThemeId, settings[FPSTR(F_CONFIG_THEME)], F("haspThemeId"));
+    changed |= configSet(haspThemeHue, settings[FPSTR(F_CONFIG_HUE)], F("haspThemeHue"));
 
     if(!settings[FPSTR(F_CONFIG_PAGES)].isNull()) {
         changed |= strcmp(haspPagesPath, settings[FPSTR(F_CONFIG_PAGES)]) != 0;
