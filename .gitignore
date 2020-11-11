@@ -9,6 +9,8 @@ src/user_setups/active/*
 src/user_config_override.h
 platformio_override.ini
 user_setups/active/*
+build_output/*
+build_output/firmware/*.bin
 
 ## Test result files
 *.html
