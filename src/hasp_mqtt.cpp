@@ -279,22 +279,32 @@ static void mqtt_message_cb(char * topic, byte * payload, unsigned int length)
     // char * topic = (char *)topic_p;
     Log.notice(TAG_MQTT_RCV, F("%s = %s"), topic, (char *)payload);
 
+    // Node topic
     if(topic == strstr(topic, mqttNodeTopic)) { // startsWith mqttNodeTopic
-        topic += strlen(mqttNodeTopic);
+        topic += strlen(mqttNodeTopic);         // short topic
+
+        // Group topic
     } else if(topic == strstr(topic, mqttGroupTopic)) { // startsWith mqttGroupTopic
-        topic += strlen(mqttGroupTopic);
+        topic += strlen(mqttGroupTopic);                // short topic
+        dispatchTopicPayload(topic, (char *)payload);
+        return;
+
+        // Other topic
     } else {
         Log.error(TAG_MQTT, F("Message received with invalid topic"));
         return;
     }
 
     // catch a dangling LWT from a previous connection if it appears
-    if(!strcmp_P(topic, PSTR("status"))) {
+    if(!strcmp_P(topic, PSTR("status"))) { // endsWith status
         if(!strcasecmp_P((char *)payload, PSTR("OFF"))) {
-            char topicBuffer[128];
-            snprintf_P(topicBuffer, sizeof(topicBuffer), PSTR("%sstatus"), mqttNodeTopic);
-            mqttClient.publish(topicBuffer, "ON", true); // Literal String
+            {
+                char topicBuffer[128];
+                snprintf_P(topicBuffer, sizeof(topicBuffer), PSTR("%sstatus"), mqttNodeTopic);
+                mqttClient.publish(topicBuffer, "ON", true); // Literal String
+            }
             Log.notice(TAG_MQTT, F("binary_sensor state: [status] : ON"));
+
         } else {
             // already ON
         }
