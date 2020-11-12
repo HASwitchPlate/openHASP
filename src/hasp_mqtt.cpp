@@ -250,7 +250,7 @@ void mqtt_send_statusupdate()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Receive incoming messages
-static void mqtt_message_cb(char * topic_p, byte * payload, unsigned int length)
+static void mqtt_message_cb(char * topic, byte * payload, unsigned int length)
 { // Handle incoming commands from MQTT
     if(length >= MQTT_MAX_PACKET_SIZE) {
         Log.error(TAG_MQTT_RCV, F("Payload too long (%d bytes)"), length);
@@ -276,7 +276,7 @@ static void mqtt_message_cb(char * topic_p, byte * payload, unsigned int length)
     // '[...]/device/command/p[1].b[4].txt' -m '' = nextionGetAttr("p[1].b[4].txt")
     // '[...]/device/command/p[1].b[4].txt' -m '"Lights On"' = nextionSetAttr("p[1].b[4].txt", "\"Lights On\"")
 
-    char * topic = (char *)topic_p;
+    // char * topic = (char *)topic_p;
     Log.notice(TAG_MQTT_RCV, F("%s = %s"), topic, (char *)payload);
 
     if(topic == strstr(topic, mqttNodeTopic)) { // startsWith mqttNodeTopic
@@ -293,7 +293,7 @@ static void mqtt_message_cb(char * topic_p, byte * payload, unsigned int length)
         if(!strcasecmp_P((char *)payload, PSTR("OFF"))) {
             char topicBuffer[128];
             snprintf_P(topicBuffer, sizeof(topicBuffer), PSTR("%sstatus"), mqttNodeTopic);
-            mqttClient.publish(topicBuffer, "ON", true);
+            mqttClient.publish(topicBuffer, "ON", true); // Literal String
             Log.notice(TAG_MQTT, F("binary_sensor state: [status] : ON"));
         } else {
             // already ON
@@ -436,14 +436,13 @@ void mqttReconnect()
     // make sure we get a full panel refresh at power on.  Sending OFF,
     // "ON" will be sent by the mqttStatusTopic subscription action.
     snprintf_P(buffer, sizeof(buffer), PSTR("%sstatus"), mqttNodeTopic);
-    mqttClient.publish(buffer, mqttFirstConnect ? "OFF" : "ON", true); //, 1);
+    {
+        char msg[8];
+        snprintf_P(msg, sizeof(msg), mqttFirstConnect ? PSTR("OFF") : PSTR("ON"));
+        mqttClient.publish(buffer, msg, true); // Literal String
 
-    Log.notice(TAG_MQTT, F("binary_sensor state: [%sstatus] : %S"), mqttNodeTopic,
-               mqttFirstConnect ? F("OFF") : F("ON"));
-
-    /* snprintf_P(buffer, sizeof(buffer), PSTR("binary_sensor state: [%sstatus] : %s"), mqttNodeTopic,
-               mqttFirstConnect ? PSTR("OFF") : PSTR("ON"));
-    debugPrintln(buffer); */
+        Log.notice(TAG_MQTT, F("binary_sensor state: [%sstatus] : %s"), mqttNodeTopic, msg);
+    }
 
     mqttFirstConnect   = false;
     mqttReconnectCount = 0;
