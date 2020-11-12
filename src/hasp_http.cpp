@@ -911,6 +911,7 @@ void webHandleConfig()
 #endif
 
             } else if(save == String(PSTR("gui"))) {
+                settings[FPSTR(F_GUI_POINTER)] = webServer.hasArg(PSTR("pointer"));
                 guiSetConfig(settings.as<JsonObject>());
 
             } else if(save == String(PSTR("debug"))) {
@@ -1072,6 +1073,10 @@ void webHandleGuiConfig()
         httpMessage += getOption(4, F("180 degrees - mirrored"), rotation == 4);
         httpMessage += getOption(5, F("270 degrees - mirrored"), rotation == 5);
         httpMessage += F("</select></p>");
+
+        httpMessage += F("<p><input id='pointer' name='pointer' type='checkbox' ");
+        if(settings[FPSTR(F_GUI_POINTER)].as<bool>()) httpMessage += F(" checked");
+        httpMessage += F("><b>Show Pointer</b>");
 
         int8_t bcklpin = settings[FPSTR(F_GUI_BACKLIGHTPIN)].as<int8_t>();
         httpMessage += F("<p><b>Backlight Control</b> <select id='bcklpin' name='bcklpin'>");

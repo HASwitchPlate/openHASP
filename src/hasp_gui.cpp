@@ -411,10 +411,12 @@ bool IRAM_ATTR my_touchpad_read(lv_indev_drv_t * indev_driver, lv_indev_data_t *
     //     Serial.print(F("  / y: "));
     //     Serial.println(touchY);
     // } else {
-    /*Save the state and save the pressed coordinate*/
-    data->state   = touched ? LV_INDEV_STATE_PR : LV_INDEV_STATE_REL;
-    data->point.x = touchX;
-    data->point.y = touchY;
+    /*Save the state and save the pressed coordinate for cursor position */
+    data->state = touched ? LV_INDEV_STATE_PR : LV_INDEV_STATE_REL;
+    if(touched) {
+        data->point.x = touchX;
+        data->point.y = touchY;
+    }
     /* Serial.print("Data x");
        Serial.println(touchX);
        Serial.print("Data y");
@@ -594,49 +596,31 @@ void guiSetup()
     indev_drv.type           = LV_INDEV_TYPE_POINTER;
     indev_drv.read_cb        = my_touchpad_read;
     lv_indev_t * mouse_indev = lv_indev_drv_register(&indev_drv);
+    mouse_indev->driver.type = LV_INDEV_TYPE_POINTER;
 
+    /*Set a cursor for the mouse*/
     if(guiShowPointer) {
-        lv_obj_t * label = lv_label_create(lv_layer_sys(), NULL);
-        lv_label_set_text(label, "<");
-        lv_indev_set_cursor(mouse_indev, label); // connect the object to the driver
+        // lv_obj_t * label = lv_label_create(lv_layer_sys(), NULL);
+        // lv_label_set_text(label, "<");
+        // lv_indev_set_cursor(mouse_indev, label); // connect the object to the driver
 
-        /*Set a cursor for the mouse*/
-        // LV_IMG_DECLARE(mouse_cursor_icon); /*Declare the image file.*/
-        // lv_obj_t * cursor_obj =
-        //     lv_img_create(lv_disp_get_scr_act(NULL), NULL); /*Create an image object for the cursor */
-        // lv_img_set_src(cursor_obj, &mouse_cursor_icon);     /*Set the image source*/
-        // lv_indev_set_cursor(mouse_indev, cursor_obj);       /*Connect the image  object to the driver*/
-    }
+        Log.verbose(TAG_GUI, F("Initialize Cursor"));
+        lv_obj_t * cursor;
+        lv_obj_t * mouse_layer = lv_disp_get_layer_sys(NULL); // default display
 
-    /*
-        lv_obj_t * cursor = lv_obj_create(lv_layer_sys(), NULL); // show on every page
+#if defined(ARDUINO_ARCH_ESP32)
+        LV_IMG_DECLARE(mouse_cursor_icon);              /*Declare the image file.*/
+        cursor = lv_img_create(mouse_layer, NULL);      /*Create an image object for the cursor */
+        lv_img_set_src(cursor_obj, &mouse_cursor_icon); /*Set the image source*/
+#else
+        cursor = lv_obj_create(mouse_layer, NULL); // show cursor object on every page
         lv_obj_set_size(cursor, 9, 9);
-        static lv_style_t style_cursor;
-        lv_style_copy(&style_cursor, &lv_style_pretty);
-        style_cursor.body.radius     = LV_RADIUS_CIRCLE;
-        style_cursor.body.main_color = LV_COLOR_RED;
-        style_cursor.body.opa        = LV_OPA_COVER;
-        lv_obj_set_style(cursor, &style_cursor);
-        // lv_obj_set_click(cursor, false);
-        lv_indev_set_cursor(mouse_indev, cursor); // connect the object to the driver
-    */
-    /* Initialize mouse pointer */
-    /*// if(true) {
-    debugPrintln(PSTR("Initialize Cursor"));
-    lv_obj_t * cursor;
-    lv_obj_t * mouse_layer = lv_disp_get_layer_sys(NULL); // default display
-    // cursor               = lv_obj_create(lv_scr_act(), NULL);
-    cursor = lv_obj_create(mouse_layer, NULL); // show on every page
-    lv_obj_set_size(cursor, 9, 9);
-    static lv_style_t style_round;
-    lv_style_copy(&style_round, &lv_style_plain);
-    style_round.body.radius     = LV_RADIUS_CIRCLE;
-    style_round.body.main_color = LV_COLOR_RED;
-    style_round.body.opa        = LV_OPA_COVER;
-    lv_obj_set_style(cursor, &style_round);
-    lv_obj_set_click(cursor, false); // don't click on the cursor
-    lv_indev_set_cursor(mouse_indev, cursor);
-    // }*/
+        lv_obj_set_style_local_radius(cursor, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_RADIUS_CIRCLE);
+        lv_obj_set_style_local_bg_color(cursor, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_RED);
+        lv_obj_set_style_local_bg_opa(cursor, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_COVER);
+#endif
+        lv_indev_set_cursor(mouse_indev, cursor); /*Connect the image  object to the driver*/
+    }
 }
 
 void IRAM_ATTR guiLoop()
@@ -916,7 +900,7 @@ static void gui_screenshot_to_file(lv_disp_drv_t * disp, const lv_area_t * area,
     my_flush_cb(disp, area, color_p);
 }
 
-/** Take Screenshot. 
+/** Take Screenshot.
  *
  * Flush buffer into a binary file.
  *
