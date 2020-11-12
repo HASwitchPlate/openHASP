@@ -26,6 +26,7 @@ uint8_t mdnsEnabled = true;
 void mdnsSetup()
 {
     // mdnsSetConfig(settings);
+    mdnsStart();
     Log.verbose(TAG_MDNS, F("Setup Complete"));
 }
 
