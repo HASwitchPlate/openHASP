@@ -38,12 +38,12 @@ extern char httpPassword[32];
 uint8_t telnetLoginState = TELNET_UNAUTHENTICATED;
 // WiFiClient telnetClient;
 // static WiFiServer * telnetServer;
-uint16_t telnetPort        = 23;
-bool telnetInCommandMode   = false;
-uint8_t telnetEnabled      = true; // Enable telnet debug output
-uint8_t telnetLoginAttempt = 0;    // Initial attempt
-uint8_t telnetInputIndex   = 0;    // Empty buffer
-char telnetInputBuffer[128];
+uint16_t telnetPort         = 23;
+bool telnetInCommandMode    = false;
+uint8_t telnetEnabled       = true; // Enable telnet debug output
+uint8_t telnetLoginAttempt  = 0;    // Initial attempt
+uint8_t telnetInputIndex    = 0;    // Empty buffer
+char telnetInputBuffer[128] = "";
 
 void telnetClientDisconnect()
 {
@@ -113,7 +113,7 @@ void telnetProcessCommand(char ch)
     }
 }
 
-static void telnetProcessLine()
+static inline void telnetProcessLine()
 {
     telnetInputBuffer[telnetInputIndex] = 0; // null terminate our char array
 
@@ -159,17 +159,17 @@ static void telnetProcessLine()
     telnetInputIndex = 0; // reset input buffer index
 }
 
-static void telnetProcessData(char ch)
+static inline void telnetProcessData(char ch)
 {
 
     switch(ch) {
-        case 10:
+        case 10: // Linefeed
             telnetInputIndex = 0;
             break;
         case 8: // Backspace
             if(telnetInputIndex > 0) telnetInputIndex--;
             break;
-        case 13:
+        case 13: // Cariage Return
             telnetProcessLine();
             break;
         case 32 ... 250:
@@ -179,8 +179,12 @@ static void telnetProcessData(char ch)
             // If we have room left in our buffer add the current byte
             if(telnetInputIndex < sizeof(telnetInputBuffer) - 1) {
                 telnetInputBuffer[telnetInputIndex++] = ch;
-                // telnetInputIndex++;
             }
+    }
+
+    // Properly terminate buffer string
+    if(telnetInputIndex < sizeof(telnetInputBuffer)) {
+        telnetInputBuffer[telnetInputIndex] = 0;
     }
 }
 
