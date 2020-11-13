@@ -377,11 +377,11 @@ void haspSetup()
     /******* File System Test ********************************************************************/
     lv_fs_file_t f;
     lv_fs_res_t res;
-    res = lv_fs_open(&f, "F:/pages.jsonl", LV_FS_MODE_RD);
+    res = lv_fs_open(&f, "F:/test.jsonl", LV_FS_MODE_RD);
     if(res == LV_FS_RES_OK)
-        Log.error(TAG_HASP, F("Opening pages.json OK"));
+        Log.error(TAG_HASP, F("Opening test.json OK"));
     else
-        Log.verbose(TAG_HASP, F("Opening pages.json from FS failed %d"), res);
+        Log.verbose(TAG_HASP, F("Opening test.json from FS failed %d"), res);
 
     uint32_t btoread = 128;
     uint32_t bread   = 0;
@@ -389,17 +389,17 @@ void haspSetup()
 
     res = lv_fs_read(&f, &buffer, btoread, &bread);
     if(res == LV_FS_RES_OK) {
-        Log.error(TAG_HASP, F("Reading pages.json OK %u"), bread);
+        Log.error(TAG_HASP, F("Reading test.json OK %u"), bread);
         buffer[127] = '\0';
         Log.verbose(TAG_HASP, buffer);
     } else
-        Log.verbose(TAG_HASP, F("Reading pages.json from FS failed %d"), res);
+        Log.verbose(TAG_HASP, F("Reading test.json from FS failed %d"), res);
 
     res = lv_fs_close(&f);
     if(res == LV_FS_RES_OK)
-        Log.error(TAG_HASP, F("Closing pages.json OK"));
+        Log.error(TAG_HASP, F("Closing test.json OK"));
     else
-        Log.verbose(TAG_HASP, F("Closing pages.json on FS failed %d"), res);
+        Log.verbose(TAG_HASP, F("Closing test.json on FS failed %d"), res);
         /******* File System Test ********************************************************************/
 
         /* ********** Font Initializations ********** */
@@ -408,16 +408,14 @@ void haspSetup()
 #if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
     lv_zifont_init();
 
-    if(lv_zifont_font_init(&haspFonts[0], haspZiFontPath, 32) != 0) {
+    if(lv_zifont_font_init(&haspFonts[1], haspZiFontPath, 32) != 0) {
         Log.error(TAG_HASP, F("Failed to set font to %s"), haspZiFontPath);
-        haspFonts[0] = LV_FONT_DEFAULT;
+        haspFonts[1] = LV_FONT_DEFAULT;
     } else {
         // defaultFont = haspFonts[0];
     }
 #endif
 #endif
-
-    /* ********** Font Initializations ********** */
 
     /* ********** Theme Initializations ********** */
     lv_theme_t * th;
