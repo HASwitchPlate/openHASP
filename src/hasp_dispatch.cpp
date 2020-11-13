@@ -225,15 +225,8 @@ void dispatchCommand(const char * topic, const char * payload)
     }
 }
 
-// Get or Set a page
-void dispatchPage(const char * page)
+void dispatchCurrentPage()
 {
-    // dispatchPrintln(F("PAGE"), strPageid);
-
-    if(strlen(page) > 0 && atoi(page) <= 250) {
-        haspSetPage(atoi(page));
-    }
-
     // Log result
     char buffer[4];
     itoa(haspGetPage(), buffer, DEC);
@@ -245,6 +238,40 @@ void dispatchPage(const char * page)
 #if HASP_USE_TASMOTA_SLAVE > 0
     slave_send_state(F("page"), buffer);
 #endif
+}
+
+// Get or Set a page
+void dispatchPage(const char * page)
+{
+    if(strlen(page) > 0 && atoi(page) < HASP_NUM_PAGES) {
+        haspSetPage(atoi(page));
+    }
+
+    dispatchCurrentPage();
+}
+
+void dispatchPageNext()
+{
+    uint8_t page = haspGetPage();
+    if(page + 1 >= HASP_NUM_PAGES) {
+        page = 0;
+    } else {
+        page++;
+    }
+    haspSetPage(page);
+    dispatchCurrentPage();
+}
+
+void dispatchPagePrev()
+{
+    uint8_t page = haspGetPage();
+    if(page == 0) {
+        page = HASP_NUM_PAGES - 1;
+    } else {
+        page--;
+    }
+    haspSetPage(page);
+    dispatchCurrentPage();
 }
 
 // Clears a page id or the current page if empty
