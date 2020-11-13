@@ -87,9 +87,10 @@ void telnetAcceptClient()
     Log.notice(TAG_TELN, F("Client connected"));
 
     /* Avoid a buffer here */
-    telnetClient.print(0xFF); // DO TERMINAL-TYPE
-    telnetClient.print(0xFD);
-    telnetClient.print(0x1B);
+    telnetClient.print((char)0xFF); // DO TERMINAL-TYPE
+    telnetClient.print((char)0xFD);
+    telnetClient.print((char)0x1B);
+
 #if HASP_USE_HTTP > 0
     if(strlen(httpUser) != 0 || strlen(httpPassword) != 0) {
         telnetClient.print(F("\r\nUsername: "));
