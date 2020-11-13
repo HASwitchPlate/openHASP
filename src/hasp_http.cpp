@@ -294,23 +294,12 @@ void webHandleScreenshot()
 { // http://plate01/screenshot
     if(!httpIsAuthenticated(F("screenshot"))) return;
 
-    if(webServer.hasArg(F("a")) && webServer.arg(F("a")) == F("next")) {
-        uint8_t page = haspGetPage();
-        if(page + 1 >= HASP_NUM_PAGES) {
-            page = 0;
-        } else {
-            page++;
+    if(webServer.hasArg(F("a"))) {
+        if(webServer.arg(F("a")) == F("next")) {
+            dispatchPageNext();
+        } else if(webServer.arg(F("a")) == F("prev")) {
+            dispatchPagePrev();
         }
-        haspSetPage(page);
-    }
-    if(webServer.hasArg(F("a")) && webServer.arg(F("a")) == F("prev")) {
-        uint8_t page = haspGetPage();
-        if(page == 0) {
-            page = HASP_NUM_PAGES - 1;
-        } else {
-            page--;
-        }
-        haspSetPage(page);
     }
 
     if(webServer.hasArg(F("q"))) {

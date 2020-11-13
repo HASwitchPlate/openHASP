@@ -611,7 +611,7 @@ void guiSetup()
 #if defined(ARDUINO_ARCH_ESP32)
         LV_IMG_DECLARE(mouse_cursor_icon);              /*Declare the image file.*/
         cursor = lv_img_create(mouse_layer, NULL);      /*Create an image object for the cursor */
-        lv_img_set_src(cursor_obj, &mouse_cursor_icon); /*Set the image source*/
+        lv_img_set_src(cursor, &mouse_cursor_icon); /*Set the image source*/
 #else
         cursor = lv_obj_create(mouse_layer, NULL); // show cursor object on every page
         lv_obj_set_size(cursor, 9, 9);
