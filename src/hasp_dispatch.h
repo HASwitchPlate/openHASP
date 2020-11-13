@@ -18,6 +18,9 @@ void dispatchTextLine(const char * cmnd);
 void dispatchParseJsonl(Stream & stream);
 
 void dispatchPage(const char * page);
+void dispatchPageNext();
+void dispatchPagePrev();
+
 void dispatchClearPage(const char * page);
 void dispatchDim(const char * level);
 void dispatchBacklight(const char * payload);
