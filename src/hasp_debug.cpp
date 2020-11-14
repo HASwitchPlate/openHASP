@@ -602,14 +602,14 @@ void debugLoop()
                                     nextchar = Serial.read();
                                 }
                                 if(nextchar == 126) {
-                                    dispatchPagePrev();
+                                    dispatchPageNext();
                                 }
                                 break;
                             case 54: // Page Down
                                 /*if(Serial.peek() >= 0)*/ {
                                     nextchar = Serial.read();
                                     if(nextchar == 126) {
-                                        dispatchPageNext();
+                                        dispatchPagePrev();
                                     }
                                 }
                                 break;
