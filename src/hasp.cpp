@@ -608,7 +608,6 @@ void IRAM_ATTR btn_event_handler(lv_obj_t * obj, lv_event_t event)
 {
     uint8_t eventid;
     char buffer[64];
-    snprintf(buffer, sizeof(buffer), PSTR("HASP: "));
 
     switch(event) {
         case LV_EVENT_PRESSED:
@@ -643,17 +642,14 @@ void IRAM_ATTR btn_event_handler(lv_obj_t * obj, lv_event_t event)
             return;
 
         case LV_EVENT_VALUE_CHANGED:
-            strcat_P(buffer, PSTR("Value Changed"));
-            Log.notice(TAG_HASP, buffer);
+            Log.warning(TAG_HASP, F("Value changed Event %d occured"), event);
             return;
 
         case LV_EVENT_DELETE:
-            strcat_P(buffer, PSTR("Object deleted"));
-            Log.notice(TAG_HASP, buffer, event);
+            Log.warning(TAG_HASP, F("Object deleted Event %d occured"), event);
             return;
         default:
-            strcat_P(buffer, PSTR("HASP : Unknown Event occured"));
-            Log.warning(TAG_HASP, buffer, event);
+            Log.warning(TAG_HASP, F("Unknown Event %d occured"), event);
             return;
     }
 
