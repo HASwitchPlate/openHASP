@@ -90,8 +90,10 @@ static inline bool openFont(File & file, const char * filename)
 static inline void initCharacterFrame(size_t size)
 {
     if(size > _lv_mem_get_size(charBitmap_p)) {
-        if(charBitmap_p) lv_mem_free(charBitmap_p);
-        charBitmap_p = (uint8_t *)lv_mem_alloc(size);
+        if(charBitmap_p)
+            lv_mem_realloc(charBitmap_p, size);
+        else
+            charBitmap_p = (uint8_t *)lv_mem_alloc(size);
     }
     _lv_memset_00(charBitmap_p, size); // init the bitmap to white
 }
