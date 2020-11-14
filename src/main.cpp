@@ -5,9 +5,8 @@
 #include "hasp_debug.h"
 #include "hasp_config.h"
 #include "hasp_gui.h"
-#include "hasp.h"
 #include "hasp_oobe.h"
-#include "hasp_gpio.h"
+#include "hasp.h"
 
 bool isConnected;
 uint8_t mainLoopCounter        = 0;

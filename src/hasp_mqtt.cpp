@@ -6,7 +6,6 @@
 #include "ArduinoLog.h"
 #include "PubSubClient.h"
 
-#include "hasp_conf.h"
 #include "hasp_mqtt.h"
 
 #if defined(ARDUINO_ARCH_ESP32)
@@ -37,7 +36,6 @@ EthernetClient mqttNetworkClient;
 #include "hasp_tft.h"
 #include "hasp_debug.h"
 #include "hasp_config.h"
-#include "hasp_mqtt.h"
 #include "hasp_wifi.h"
 #include "hasp_dispatch.h"
 #include "hasp.h"

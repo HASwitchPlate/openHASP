@@ -4,20 +4,12 @@
 #include "ArduinoJson.h"
 #include "ArduinoLog.h"
 
+#include "hasp_conf.h"
+
 #include "hasp_debug.h"
 #include "hasp_dispatch.h"
 #include "hasp_ota.h"
 #include "hasp.h"
-
-#include "hasp_conf.h"
-
-#if HASP_USE_MQTT > 0
-#include "hasp_mqtt.h"
-#endif
-
-#if HASP_USE_MDNS > 0
-#include "hasp_mdns.h"
-#endif
 
 #if defined(ARDUINO_ARCH_ESP8266)
 #include <ESP8266HTTPClient.h>
