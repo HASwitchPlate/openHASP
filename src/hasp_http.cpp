@@ -13,23 +13,10 @@
 
 #include "hasp_gui.h"
 #include "hasp_hal.h"
-#include "hasp_gpio.h"
 #include "hasp_debug.h"
 #include "hasp_config.h"
 #include "hasp_dispatch.h"
 #include "hasp.h"
-
-#include "hasp_conf.h"
-
-#if defined(ARDUINO_ARCH_ESP32)
-#include "SPIFFS.h"
-#include <FS.h>
-#include <FS.h>
-#include <ESP.h>
-#elif defined(ARDUINO_ARCH_ESP8266)
-#include <FS.h>
-#include <ESP.h>
-#endif
 
 #if HASP_USE_HTTP > 0
 
@@ -38,7 +25,6 @@ bool webServerStarted = false;
 uint16_t httpPort     = 80;
 
 #if defined(ARDUINO_ARCH_ESP8266) || defined(ARDUINO_ARCH_ESP32)
-FS * filesystem = &SPIFFS;
 File fsUploadFile;
 #endif
 
@@ -249,8 +235,8 @@ void webHandleRoot()
         httpMessage +=
             F("<p><form method='get' action='firmware'><button type='submit'>Firmware Upgrade</button></form></p>");
 
-#if HASP_USE_SPIFFS > 0
-        if(SPIFFS.exists(F("/edit.htm.gz"))) {
+#if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
+        if(HASP_FS.exists(F("/edit.htm.gz"))) {
             httpMessage += F("<p><form method='get' action='edit.htm.gz?path=/'><button type='submit'>File "
                              "Browser</button></form></p>");
         }
@@ -446,6 +432,15 @@ void webHandleInfo()
         httpMessage += halFormatBytes(halGetFreeHeap());
         httpMessage += F("<br/><b>Memory Fragmentation: </b>");
         httpMessage += String(halGetHeapFragmentation());
+
+#if ARDUINO_ARCH_ESP32
+        if(psramFound()) {
+            httpMessage += F("<br/><b>Free PSRam: </b>");
+            httpMessage += halFormatBytes(ESP.getFreePsram());
+            httpMessage += F("<br/><b>PSRam Size: </b>");
+            httpMessage += halFormatBytes(ESP.getPsramSize());
+        }
+#endif
 
         /* LVGL Stats */
         lv_mem_monitor_t mem_mon;
@@ -696,7 +691,7 @@ void webHandleFirmwareUpdate()
 }
 #endif
 
-#if HASP_USE_SPIFFS > 0
+#if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
 bool handleFileRead(String path)
 {
     if(!httpIsAuthenticated(F("fileread"))) return false;
@@ -706,10 +701,10 @@ bool handleFileRead(String path)
         path += F("index.htm");
     }
     String pathWithGz = path + F(".gz");
-    if(filesystem->exists(pathWithGz) || filesystem->exists(path)) {
-        if(filesystem->exists(pathWithGz)) path += F(".gz");
+    if(HASP_FS.exists(pathWithGz) || HASP_FS.exists(path)) {
+        if(HASP_FS.exists(pathWithGz)) path += F(".gz");
 
-        File file          = filesystem->open(path, "r");
+        File file          = HASP_FS.open(path, "r");
         String contentType = getContentType(path);
         if(path == F("/edit.htm.gz")) {
             contentType = F("text/html");
@@ -738,7 +733,7 @@ void handleFileUpload()
             filename += upload->filename;
         }
         if(filename.length() < 32) {
-            fsUploadFile = filesystem->open(filename, "w");
+            fsUploadFile = HASP_FS.open(filename, "w");
             Log.notice(TAG_HTTP, F("handleFileUpload Name: %s"), filename.c_str());
             haspProgressMsg(fsUploadFile.name());
         } else {
@@ -782,10 +777,10 @@ void handleFileDelete()
     if(path == "/") {
         return webServer.send_P(500, mimetype, PSTR("BAD PATH"));
     }
-    if(!filesystem->exists(path)) {
+    if(!HASP_FS.exists(path)) {
         return webServer.send_P(404, mimetype, PSTR("FileNotFound"));
     }
-    filesystem->remove(path);
+    HASP_FS.remove(path);
     webServer.send_P(200, mimetype, PSTR(""));
     // path.clear();
 }
@@ -802,10 +797,10 @@ void handleFileCreate()
     if(path == "/") {
         return webServer.send(500, PSTR("text/plain"), PSTR("BAD PATH"));
     }
-    if(filesystem->exists(path)) {
+    if(HASP_FS.exists(path)) {
         return webServer.send(500, PSTR("text/plain"), PSTR("FILE EXISTS"));
     }
-    File file = filesystem->open(path, "w");
+    File file = HASP_FS.open(path, "w");
     if(file) {
         file.close();
     } else {
@@ -829,7 +824,7 @@ void handleFileList()
     path.clear();
 
 #if defined(ARDUINO_ARCH_ESP32)
-    File root     = SPIFFS.open("/");
+    File root     = HASP_FS.open("/", FILE_READ);
     File file     = root.openNextFile();
     String output = "[";
 
@@ -854,7 +849,7 @@ void handleFileList()
     output += "]";
     webServer.send(200, PSTR("text/json"), output);
 #elif defined(ARDUINO_ARCH_ESP8266)
-    Dir dir = filesystem->openDir(path);
+    Dir dir = HASP_FS.openDir(path);
     String output = "[";
     while(dir.next()) {
         File entry = dir.openFile("r");
@@ -1489,7 +1484,7 @@ void webHandleHaspConfig()
         httpMessage += F("<p><b>Default Font</b><select id='font' name='font'><option value=''>None</option>");
 
 #if defined(ARDUINO_ARCH_ESP32)
-        File root = SPIFFS.open("/");
+        File root = HASP_FS.open("/");
         File file = root.openNextFile();
 
         while(file) {
@@ -1500,7 +1495,7 @@ void webHandleHaspConfig()
             file = root.openNextFile();
         }
 #elif defined(ARDUINO_ARCH_ESP8266)
-        Dir dir = filesystem->openDir("/");
+        Dir dir = HASP_FS.openDir("/");
         while(dir.next()) {
             File file       = dir.openFile("r");
             String filename = file.name();
@@ -1540,7 +1535,7 @@ void webHandleHaspConfig()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 void httpHandleNotFound()
 { // webServer 404
-#if HASP_USE_SPIFFS > 0
+#if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
     if(handleFileRead(webServer.uri())) return;
 #endif
 
@@ -1730,7 +1725,7 @@ void httpSetup()
             haspSetPage(pageid.toInt());
         });
 
-#if HASP_USE_SPIFFS > 0
+#if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
         webServer.on(F("/list"), HTTP_GET, handleFileList);
         // load editor
         webServer.on(F("/edit"), HTTP_GET, []() {

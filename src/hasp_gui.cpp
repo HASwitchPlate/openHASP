@@ -21,6 +21,7 @@
 
 //#include "lv_zifont.h"
 
+#include "hasp_conf.h"
 #include "hasp_debug.h"
 #include "hasp_config.h"
 #include "hasp_dispatch.h"
@@ -39,16 +40,9 @@
 #define TOUCH_DRIVER 99
 #endif
 
-#if HASP_USE_SPIFFS > 0
-#if defined(ARDUINO_ARCH_ESP32)
-#include "SPIFFS.h"
-#endif
-#include <FS.h> // Include the SPIFFS library
-#endif
-
 #define BACKLIGHT_CHANNEL 15 // pwm channel 0-15
 
-#if HASP_USE_SPIFFS > 0
+#if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
 File pFileOut;
 #endif
 
@@ -609,8 +603,8 @@ void guiSetup()
         lv_obj_t * mouse_layer = lv_disp_get_layer_sys(NULL); // default display
 
 #if defined(ARDUINO_ARCH_ESP32)
-        LV_IMG_DECLARE(mouse_cursor_icon);              /*Declare the image file.*/
-        cursor = lv_img_create(mouse_layer, NULL);      /*Create an image object for the cursor */
+        LV_IMG_DECLARE(mouse_cursor_icon);          /*Declare the image file.*/
+        cursor = lv_img_create(mouse_layer, NULL);  /*Create an image object for the cursor */
         lv_img_set_src(cursor, &mouse_cursor_icon); /*Set the image source*/
 #else
         cursor = lv_obj_create(mouse_layer, NULL); // show cursor object on every page
@@ -822,7 +816,7 @@ bool guiSetConfig(const JsonObject & settings)
 }
 
 /* **************************** SCREENSHOTS ************************************** */
-#if HASP_USE_SPIFFS > 0 || HASP_USE_HTTP > 0
+#if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0 || HASP_USE_HTTP > 0
 
 static void guiSetBmpHeader(uint8_t * buffer_p, int32_t data)
 {
@@ -887,9 +881,9 @@ void gui_flush_not_complete()
 {
     Log.warning(TAG_GUI, F("GUI: Pixelbuffer not completely sent"));
 }
-#endif // HASP_USE_SPIFFS > 0 || HASP_USE_HTTP > 0
+#endif // HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0 || HASP_USE_HTTP > 0
 
-#if HASP_USE_SPIFFS > 0
+#if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
 /* Flush VDB bytes to a file */
 static void gui_screenshot_to_file(lv_disp_drv_t * disp, const lv_area_t * area, lv_color_t * color_p)
 {
@@ -914,7 +908,7 @@ void guiTakeScreenshot(const char * pFileName)
     uint8_t buffer[128];
     gui_get_bitmap_header(buffer, sizeof(buffer));
 
-    pFileOut = SPIFFS.open(pFileName, "w");
+    pFileOut = HASP_FS.open(pFileName, "w");
     if(pFileOut) {
 
         size_t len = pFileOut.write(buffer, 122);

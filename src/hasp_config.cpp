@@ -3,24 +3,20 @@
 #include "ArduinoJson.h"
 #include "StreamUtils.h"
 
+#include "hasp_conf.h"
+
 #include "hasp_config.h"
 #include "hasp_debug.h"
 #include "hasp_gui.h"
-#include "hasp_ota.h"
-#include "hasp_spiffs.h"
-#include "hasp_telnet.h"
-#include "hasp_gpio.h"
+
+//#include "hasp_ota.h" included in conf
+//#include "hasp_filesystem.h" included in conf
+//#include "hasp_telnet.h" included in conf
+//#include "hasp_gpio.h" included in conf
+
 //#include "hasp_eeprom.h"
 #include "hasp.h"
 
-#include "hasp_conf.h"
-
-#if HASP_USE_SPIFFS > 0
-#include <FS.h> // Include the SPIFFS library
-#if defined(ARDUINO_ARCH_ESP32)
-#include "SPIFFS.h"
-#endif
-#endif
 #if HASP_USE_EEPROM > 0
 #include "EEPROM.h"
 #endif
@@ -74,13 +70,13 @@ void configStartDebug(bool setupdebug, String & configFile)
 {
     if(setupdebug) {
         debugStart(); // Debug started, now we can use it; HASP header sent
-#if HASP_USE_SPIFFS > 0
-        Log.notice(TAG_CONF, F("FILE: [SUCCESS] SPI flash FS mounted"));
-        spiffsInfo();
-        spiffsList();
+#if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
+        Log.notice(TAG_CONF, F("[SUCCESS] SPI flash FS mounted"));
+        filesystemInfo();
+        filesystemList();
 #endif
     }
-#if HASP_USE_SPIFFS > 0
+#if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
     Log.notice(TAG_CONF, F("Loading %s"), configFile.c_str());
 #else
     Log.notice(TAG_CONF, F("reading EEPROM"));
@@ -94,8 +90,8 @@ void configGetConfig(JsonDocument & settings, bool setupdebug = false)
     configFile = String(FPSTR(HASP_CONFIG_FILE));
     DeserializationError error;
 
-#if HASP_USE_SPIFFS > 0
-    File file = SPIFFS.open(configFile, "r");
+#if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
+    File file = HASP_FS.open(configFile, "r");
 
     if(file) {
         size_t size = file.size();
@@ -143,14 +139,14 @@ void configGetConfig(JsonDocument & settings, bool setupdebug = false)
     }
     configStartDebug(setupdebug, configFile);
 
-#if HASP_USE_SPIFFS > 0
+#if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
     Log.error(TAG_CONF, F("Failed to load %s"), configFile.c_str());
 #endif
 }
 /*
 void configBackupToEeprom()
 {
-#if HASP_USE_SPIFFS>0
+#if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
     String configFile((char *)0);
     configFile.reserve(128);
     configFile = String(FPSTR(HASP_CONFIG_FILE));
@@ -159,7 +155,7 @@ void configBackupToEeprom()
     uint8_t buffer[128];
     size_t index = 0;
 
-    File file = SPIFFS.open(configFile, "r");
+    File file = HASP_FS.open(configFile, "r");
     if(file) {
 
         while(size_t count = file.read(buffer, sizeof(buffer)) > 0) {
@@ -281,8 +277,8 @@ void configWriteConfig()
     // changed |= otaGetConfig(settings[F("ota")].as<JsonObject>());
 
     if(writefile) {
-#if HASP_USE_SPIFFS > 0
-        File file = SPIFFS.open(configFile, "w");
+#if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
+        File file = HASP_FS.open(configFile, "w");
         if(file) {
             Log.notice(TAG_CONF, F("Writing %s"), configFile.c_str());
             size_t size = serializeJson(doc, file);
@@ -344,8 +340,8 @@ void configSetup()
             continue;
 #endif
         } else {
-#if HASP_USE_SPIFFS > 0
-            if(!SPIFFS.begin()) {
+#if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
+            if(!filesystemSetup()) {
                 Log.error(TAG_CONF, F("FILE: SPI flash init failed. Unable to mount FS: Using default settings..."));
                 return;
             }
@@ -454,8 +450,8 @@ bool configClear()
         Log.error(TAG_CONF, F("Failed to clear to EEPROM"));
         return false;
     }
-#elif HASP_USE_SPIFFS > 0
-    return SPIFFS.format();
+#elif HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
+    return HASP_FS.format();
 #else
     return false;
 #endif

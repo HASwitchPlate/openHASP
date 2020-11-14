@@ -42,7 +42,15 @@
 #define HASP_HAS_FILESYSTEM (ARDUINO_ARCH_ESP32 > 0 || ARDUINO_ARCH_ESP8266 > 0)
 
 #ifndef HASP_USE_SPIFFS
+#ifndef HASP_USE_LITTLEFS
 #define HASP_USE_SPIFFS (HASP_HAS_FILESYSTEM)
+#else
+#define HASP_USE_SPIFFS (HASP_USE_LITTLEFS <= 0)
+#endif
+#endif
+
+#ifndef HASP_USE_LITTLEFS
+#define HASP_USE_LITTLEFS (HASP_USE_SPIFFS <= 0)
 #endif
 
 #ifndef HASP_USE_EEPROM
@@ -91,12 +99,22 @@
 #include "SPIFFS.h"
 #endif
 #include <FS.h> // Include the SPIFFS library
-#include "hasp_spiffs.h"
+#include "hasp_filesystem.h"
+#endif
 
+#if HASP_USE_LITTLEFS > 0
+#if defined(ARDUINO_ARCH_ESP32)
+#include <LITTLEFS.h>
+#endif
+#include <FS.h> // Include the FS library
+#include "hasp_filesystem.h"
+#endif
+
+#if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
 #if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
 #include "lv_zifont.h"
 #endif
-#endif // SPIFFS
+#endif
 
 #if HASP_USE_EEPROM > 0
 #include "hasp_eeprom.h"
@@ -110,13 +128,13 @@
 #if defined(ARDUINO_ARCH_ESP32)
 #include <ETH.h>
 
-#define ETH_ADDR        0
-#define ETH_POWER_PIN   -1
-#define ETH_MDC_PIN     23
-#define ETH_MDIO_PIN    18
-#define NRST            5
-#define ETH_TYPE        ETH_PHY_LAN8720
-#define ETH_CLKMODE     ETH_CLOCK_GPIO17_OUT
+#define ETH_ADDR 0
+#define ETH_POWER_PIN -1
+#define ETH_MDC_PIN 23
+#define ETH_MDIO_PIN 18
+#define NRST 5
+#define ETH_TYPE ETH_PHY_LAN8720
+#define ETH_CLKMODE ETH_CLOCK_GPIO17_OUT
 
 #include "hasp_ethernet_esp32.h"
 #warning Using ESP32 Ethernet LAN8720
@@ -140,6 +158,10 @@
 
 #if HASP_USE_MQTT > 0
 #include "hasp_mqtt.h"
+#endif
+
+#if HASP_USE_GPIO > 0
+#include "hasp_gpio.h"
 #endif
 
 #if HASP_USE_HTTP > 0

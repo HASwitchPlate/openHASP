@@ -4,16 +4,9 @@
 
 #include "hasp_conf.h"
 #include "hasp_debug.h"
-#include "hasp_spiffs.h"
+#include "hasp_filesystem.h"
 
-#if HASP_USE_SPIFFS > 0
-#if defined(ARDUINO_ARCH_ESP32)
-#include "SPIFFS.h"
-#endif
-#include <FS.h>
-#endif
-
-void spiffsInfo()
+void filesystemInfo()
 { // Get all information of your SPIFFS
 #if 0
     FSInfo fs_info;
@@ -68,7 +61,7 @@ void spiffsInfo()
 #endif
 }
 
-void spiffsList()
+void filesystemList()
 {
 #if HASP_USE_SPIFFS > 0
 #if defined(ARDUINO_ARCH_ESP8266)
@@ -76,42 +69,46 @@ void spiffsList()
 #else
     if(!SPIFFS.begin(true)) {
 #endif
-        Log.error(TAG_FILE,F("Flash file system not mouted."));
+        Log.error(TAG_FILE, F("Flash file system not mouted."));
     } else {
 
-        Log.verbose(TAG_FILE,F("Listing files on the internal flash:"));
+        Log.verbose(TAG_FILE, F("Listing files on the internal flash:"));
 
 #if defined(ARDUINO_ARCH_ESP32)
         File root = SPIFFS.open("/");
         File file = root.openNextFile();
         while(file) {
-            Log.verbose(TAG_FILE,F("   * %s  (%u bytes)"), file.name(), (uint32_t)file.size());
+            Log.verbose(TAG_FILE, F("   * %s  (%u bytes)"), file.name(), (uint32_t)file.size());
             file = root.openNextFile();
         }
 #endif
 #if defined(ARDUINO_ARCH_ESP8266)
         Dir dir = SPIFFS.openDir("/");
         while(dir.next()) {
-            Log.notice(TAG_FILE,F("   * %s  (%u bytes)"), dir.fileName().c_str(), (uint32_t)dir.fileSize());
+            Log.notice(TAG_FILE, F("   * %s  (%u bytes)"), dir.fileName().c_str(), (uint32_t)dir.fileSize());
         }
 #endif
     }
 #endif
 }
 
-void spiffsSetup()
+bool filesystemSetup()
 {
     // no SPIFFS settings, as settings depend on SPIFFS
 
-#if HASP_USE_SPIFFS > 0
+#if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
 #if defined(ARDUINO_ARCH_ESP8266)
-    if(!SPIFFS.begin()) {
+    if(!HASP_FS.begin()) {
 #else
-    if(!SPIFFS.begin(true)) {
+    if(!HASP_FS.begin(true)) {
 #endif
-        Log.error(TAG_FILE,F("SPI flash init failed. Unable to mount FS."));
+        Log.error(TAG_FILE, F("SPI flash init failed. Unable to mount FS."));
+        return false;
     } else {
-        Log.verbose(TAG_FILE,F("SPI Flash FS mounted"));
+        Log.verbose(TAG_FILE, F("SPI Flash FS mounted"));
+        return true;
     }
 #endif
+
+    return false;
 }

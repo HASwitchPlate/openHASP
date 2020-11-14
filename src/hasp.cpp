@@ -15,6 +15,7 @@
 #include "hasp_debug.h"
 #include "hasp_config.h"
 #include "hasp_dispatch.h"
+//#include "hasp_filesystem.h" included in hasp_conf.h
 #include "hasp_wifi.h"
 #include "hasp_gui.h"
 #include "hasp_tft.h"
@@ -404,7 +405,7 @@ void haspSetup()
 
         /* ********** Font Initializations ********** */
 
-#if HASP_USE_SPIFFS > 0
+#if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
 #if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
     lv_zifont_init();
 
@@ -1006,22 +1007,22 @@ void haspNewObject(const JsonObject & config, uint8_t & saved_page_id)
 
 void haspLoadPage(const char * pages)
 {
-#if HASP_USE_SPIFFS > 0
+#if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
     if(pages[0] == '\0') return;
 
-    if(!SPIFFS.begin()) {
+    if(!filesystemSetup()) {
         Log.error(TAG_HASP, F("FS not mounted. Failed to load %s"), pages);
         return;
     }
 
-    if(!SPIFFS.exists(pages)) {
+    if(!HASP_FS.exists(pages)) {
         Log.error(TAG_HASP, F("Non existing file %s"), pages);
         return;
     }
 
     Log.notice(TAG_HASP, F("Loading file %s"), pages);
 
-    File file = SPIFFS.open(pages, "r");
+    File file = HASP_FS.open(pages, "r");
     dispatchParseJsonl(file);
     file.close();
 

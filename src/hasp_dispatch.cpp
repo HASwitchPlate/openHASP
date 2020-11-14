@@ -3,16 +3,15 @@
 #include "StringStream.h"
 #include "CharStream.h"
 
+#include "hasp_conf.h"
+
 #include "hasp_dispatch.h"
 #include "hasp_config.h"
 #include "hasp_debug.h"
-#include "hasp_gpio.h"
 #include "hasp_gui.h"
 #include "hasp_oobe.h"
 #include "hasp_hal.h"
 #include "hasp.h"
-
-#include "hasp_conf.h"
 
 inline bool isON(const char * payload)
 {
@@ -38,8 +37,8 @@ bool dispatch_factory_reset()
 {
     bool formated, erased = true;
 
-#if HASP_USE_SPIFFS > 0
-    formated = SPIFFS.format();
+#if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
+    formated = HASP_FS.format();
 #endif
 
 #if HASP_USE_EEPROM > 0
@@ -209,12 +208,13 @@ void dispatchCommand(const char * topic, const char * payload)
 #endif
 
     } else if(!strcmp_P(topic, PSTR("mqtthost")) || !strcmp_P(topic, PSTR("mqttport")) ||
-              !strcmp_P(topic, PSTR("mqttuser")) || !strcmp_P(topic, PSTR("mqttpass"))) {
-        char item[5];
-        memset(item, 0, sizeof(item));
-        strncpy(item, topic + 4, 4);
+              !strcmp_P(topic, PSTR("mqttport")) || !strcmp_P(topic, PSTR("mqttuser")) ||
+              !strcmp_P(topic, PSTR("hostname"))) {
+        // char item[5];
+        // memset(item, 0, sizeof(item));
+        // strncpy(item, topic + 4, 4);
         DynamicJsonDocument settings(45);
-        settings[item] = payload;
+        settings[topic + 4] = payload;
         mqttSetConfig(settings.as<JsonObject>());
 
     } else {
