@@ -2,6 +2,7 @@
 #include <Arduino.h>
 
 #include "hasp_conf.h"
+
 #include "hasp_debug.h"
 #include "hasp_config.h"
 #include "hasp_gui.h"
@@ -22,8 +23,8 @@ void setup()
     eepromSetup(); // Don't start at boot, only at write
 #endif
 
-#if HASP_USE_SPIFFS > 0
-    spiffsSetup();
+#if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
+    filesystemSetup();
 #endif
 
 #if HASP_USE_SDCARD > 0
