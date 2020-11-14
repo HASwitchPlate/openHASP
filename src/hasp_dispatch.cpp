@@ -13,9 +13,10 @@
 #include "hasp_hal.h"
 #include "hasp.h"
 
-inline bool isON(const char * payload)
+ bool is_true(const char * s)
 {
-    return strcasecmp_P(payload, PSTR("ON")) == 0;
+    return (!strcasecmp_P(s, PSTR("true")) || !strcasecmp_P(s, PSTR("on")) || !strcasecmp_P(s, PSTR("yes")) ||
+            !strcmp_P(s, PSTR("1")));
 }
 
 void dispatchSetup()
@@ -71,7 +72,7 @@ void dispatchGpioOutput(String strTopic, const char * payload)
     String strTemp((char *)0);
     strTemp.reserve(128);
     strTemp = strTopic.substring(7, strTopic.length());
-    dispatchGpioOutput(strTemp.toInt(), isON(payload));
+    dispatchGpioOutput(strTemp.toInt(), is_true(payload));
 }
 
 void dispatchParseJson(char * payload)
@@ -311,15 +312,18 @@ void dispatchBacklight(const char * payload)
     // dispatchPrintln(F("LIGHT"), strPayload);
 
     // Set the current state
-    if(strlen(payload) != 0) guiSetBacklight(isON(payload));
+    if(strlen(payload) != 0) guiSetBacklight(is_true(payload));
 
-        // Return the current state
+    // Return the current state
+    char buffer[4];
+    memcpy_P(buffer, guiGetBacklight() ? PSTR("ON") : PSTR("OFF"), sizeof(buffer));
+
 #if HASP_USE_MQTT > 0
-    mqtt_send_state(F("light"), guiGetBacklight() ? PSTR("ON") : PSTR("OFF"));
+    mqtt_send_state(F("light"), buffer);
 #endif
 
 #if HASP_USE_TASMOTA_SLAVE > 0
-    slave_send_state(F("light"), guiGetBacklight() ? PSTR("ON") : PSTR("OFF"));
+    slave_send_state(F("light"), buffer);
 #endif
 }
 

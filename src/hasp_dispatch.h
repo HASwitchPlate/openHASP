@@ -5,6 +5,8 @@
 
 #define LOG_CMND_CTR "CMND: "
 
+bool is_true(const char * s);
+
 void dispatchSetup(void);
 void dispatchLoop(void);
 

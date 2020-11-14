@@ -11,7 +11,6 @@
 LV_FONT_DECLARE(unscii_8_icon);
 extern lv_font_t * haspFonts[8];
 
-static bool is_true(const char * s);
 static inline bool only_digits(const char * s);
 
 /* 16-bit hashing function http://www.cse.yorku.ca/~oz/hash.html */
@@ -909,12 +908,6 @@ void hasp_process_obj_attribute(lv_obj_t * obj, const char * attr_p, const char 
 /* **************************
  * Static Inline functions
  * **************************/
-static bool is_true(const char * s)
-{
-    return (!strcasecmp_P(s, PSTR("true")) || !strcasecmp_P(s, PSTR("on")) || !strcasecmp_P(s, PSTR("yes")) ||
-            !strcmp_P(s, PSTR("1")));
-}
-
 static inline bool only_digits(const char * s)
 {
     size_t digits = 0;
