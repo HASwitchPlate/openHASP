@@ -15,9 +15,6 @@
 #endif
 
 #include "hasp_hal.h"
-#if HASP_USE_MQTT > 0
-#include "hasp_mqtt.h"
-#endif
 
 #include "hasp_conf.h"
 #include "hasp_debug.h"
@@ -30,10 +27,6 @@
 
 #ifndef SERIAL_SPEED
 #define SERIAL_SPEED 115200
-#endif
-
-#if HASP_USE_TELNET > 0
-#include "hasp_telnet.h"
 #endif
 
 #if HASP_USE_SYSLOG > 0
@@ -74,11 +67,11 @@ WiFiUDP * syslogClient;
 #endif // USE_SYSLOG
 
 // Serial Settings
-uint8_t serialInputIndex = 0; // Empty buffer
-char serialInputBuffer[1024];
-uint16_t debugSerialBaud = SERIAL_SPEED / 10; // Multiplied by 10
-bool debugSerialStarted  = false;
-bool debugAnsiCodes      = true;
+uint16_t serialInputIndex    = 0; // Empty buffer
+char serialInputBuffer[1024] = "";
+uint16_t debugSerialBaud     = SERIAL_SPEED / 10; // Multiplied by 10
+bool debugSerialStarted      = false;
+bool debugAnsiCodes          = true;
 
 //#define TERM_COLOR_Black "\u001b[30m"
 #define TERM_COLOR_GRAY "\e[37m"
@@ -91,25 +84,26 @@ bool debugAnsiCodes      = true;
 #define TERM_COLOR_CYAN "\e[96m"
 #define TERM_COLOR_WHITE "\e[97m"
 #define TERM_COLOR_RESET "\e[0m"
+#define TERM_CLEAR_LINE "\e[1000D\e[0K"
 
 unsigned long debugLastMillis = 0;
 uint16_t debugTelePeriod      = 300;
 
-/* Send the HASP header and version to the output device specified
- */
+// Send the HASP header and version to the output device specified
 void debugHaspHeader(Print * output)
 {
     if(debugAnsiCodes) output->println(TERM_COLOR_YELLOW);
-    output->println(F(""
-                      "           _____ _____ _____ _____\r\n"
-                      "          |  |  |  _  |   __|  _  |\r\n"
-                      "          |     |     |__   |   __|\r\n"
-                      "          |__|__|__|__|_____|__|\r\n"
-                      "        Home Automation Switch Plate"));
-    char buffer[128];
-    snprintf(buffer, sizeof(buffer), PSTR("        Open Hardware edition v%u.%u.%u\r\n"), HASP_VERSION_MAJOR,
-             HASP_VERSION_MINOR, HASP_VERSION_REVISION);
+    output->print(F(""
+                    "           _____ _____ _____ _____\r\n"
+                    "          |  |  |  _  |   __|  _  |\r\n"
+                    "          |     |     |__   |   __|\r\n"
+                    "          |__|__|__|__|_____|__|\r\n"
+                    "        Home Automation Switch Plate\r\n"
+                    "        Open Hardware edition v"));
+    char buffer[32];
+    snprintf(buffer, sizeof(buffer), PSTR("%u.%u.%u"), HASP_VERSION_MAJOR, HASP_VERSION_MINOR, HASP_VERSION_REVISION);
     output->println(buffer);
+    output->println();
 }
 
 void debugStart()
@@ -147,8 +141,7 @@ void debugSetup()
     if(strlen(debugSyslogHost) > 0) {
         syslogClient = new WiFiUDP();
         if(syslogClient) {
-            syslogClient->beginPacket(debugSyslogHost, debugSyslogPort);
-            {
+            if(syslogClient->beginPacket(debugSyslogHost, debugSyslogPort)) {
                 Log.registerOutput(2, syslogClient, LOG_LEVEL_VERBOSE, true);
             }
         }
@@ -427,31 +420,33 @@ void debugPrintPrefix(uint8_t tag, int level, Print * _logOutput)
     // if(!syslogClient) return;
 
     if(_logOutput == syslogClient && syslogClient) {
-        syslogClient->beginPacket(debugSyslogHost, debugSyslogPort);
+        if(syslogClient->beginPacket(debugSyslogHost, debugSyslogPort)) {
 
-        // IETF Doc: https://tools.ietf.org/html/rfc5424 - The Syslog Protocol
-        // BSD Doc: https://tools.ietf.org/html/rfc3164 - The BSD syslog Protocol
+            // IETF Doc: https://tools.ietf.org/html/rfc5424 - The Syslog Protocol
+            // BSD Doc: https://tools.ietf.org/html/rfc3164 - The BSD syslog Protocol
 
-        syslogClient->print('<');
-        syslogClient->print((16 + debugSyslogFacility) * 8 + level);
-        syslogClient->print('>');
+            syslogClient->print(F("<"));
+            syslogClient->print((16 + debugSyslogFacility) * 8 + level);
+            syslogClient->print(F(">"));
 
-        if(debugSyslogProtocol == SYSLOG_PROTO_IETF) {
-            syslogClient->print(F("1 - "));
-        }
+            if(debugSyslogProtocol == SYSLOG_PROTO_IETF) {
+                syslogClient->print(F("1 - "));
+            }
 
-        syslogClient->print(mqttGetNodename());
-        syslogClient->print(' ');
-        debugPrintTag(tag, _logOutput);
+            syslogClient->print(mqttGetNodename());
+            syslogClient->print(F(" "));
+            debugPrintTag(tag, _logOutput);
 
-        if(debugSyslogProtocol == SYSLOG_PROTO_IETF) {
-            syslogClient->print(F(" - - - \xEF\xBB\xBF")); // include UTF-8 BOM
-        } else {
-            syslogClient->print(F(": "));
+            if(debugSyslogProtocol == SYSLOG_PROTO_IETF) {
+                syslogClient->print(F(" - - - \xEF\xBB\xBF")); // include UTF-8 BOM
+            } else {
+                syslogClient->print(F(": "));
+            }
         }
     }
 #endif
 
+    debugSendAnsiCode(F(TERM_CLEAR_LINE), _logOutput);
     debugPrintTimestamp(level, _logOutput);
     debugPrintHaspMemory(level, _logOutput);
 #if LV_MEM_CUSTOM == 0
@@ -465,17 +460,20 @@ void debugPrintPrefix(uint8_t tag, int level, Print * _logOutput)
 
 void debugPrintSuffix(uint8_t tag, int level, Print * _logOutput)
 {
+#if HASP_USE_SYSLOG > 0
+    if(_logOutput == syslogClient && syslogClient) {
+        syslogClient->endPacket();
+        return;
+    }
+#endif
+
     if(debugAnsiCodes)
         _logOutput->println(F(TERM_COLOR_RESET));
     else
         _logOutput->println();
-    if(debugAnsiCodes) _logOutput->print(F(TERM_COLOR_MAGENTA));
 
-#if HASP_USE_SYSLOG > 0
-    if(_logOutput == syslogClient && syslogClient) {
-        syslogClient->endPacket();
-    }
-#endif
+    _logOutput->print("hasp > ");
+    _logOutput->print(serialInputBuffer);
 
     // syslogSend(level, debugOutput);
 }
@@ -548,21 +546,128 @@ void debugLoop()
 {
     while(Serial.available()) {
         char ch = Serial.read();
-        Serial.print(ch);
-        if(ch == 13 || ch == 10) {
-            serialInputBuffer[serialInputIndex] = 0;
-            if(serialInputIndex > 0) dispatchTextLine(serialInputBuffer);
-            serialInputIndex = 0;
-        } else {
-            if(serialInputIndex < sizeof(serialInputBuffer) - 1) {
-                serialInputBuffer[serialInputIndex++] = ch;
-            }
-            // if(strcmp(serialInputBuffer, "jsonl=") == 0) {
-            //     dispatchJsonl(Serial);
-            //     serialInputIndex = 0;
-            // }
+        // Serial.println((byte)ch);
+        switch(ch) {
+            case 1: // ^A = goto begin
+                serialInputIndex = 0;
+                break;
+            case 3: // ^C
+                serialInputIndex = 0;
+                break;
+            case 5: // ^E = goto end
+                serialInputIndex = strlen(serialInputBuffer);
+                break;
+            case 8: // Backspace
+            {
+                if(serialInputIndex > 0) {
+                    serialInputIndex--;
+                    size_t len      = strlen(serialInputBuffer);
+                    char * currchar = serialInputBuffer + serialInputIndex;
+                    memmove(currchar, currchar + 1, len - serialInputIndex);
+                }
+            } break;
+            case 9: // Delete
+            {
+                size_t len            = strlen(serialInputBuffer);
+                char * nextchar       = serialInputBuffer + serialInputIndex;
+                char * remainingchars = serialInputBuffer + serialInputIndex + 1;
+                memmove(nextchar, remainingchars, len - serialInputIndex);
+            } break;
+            case 10 ... 13: // LF, VT, FF, CR
+                Serial.println();
+                if(serialInputBuffer[0] != 0) dispatchTextLine(serialInputBuffer);
+                serialInputIndex     = 0;
+                serialInputBuffer[0] = 0;
+                break;
+
+            case 27:
+                /*if(Serial.peek() >= 0)*/ {
+                    char nextchar = Serial.read();
+                    if(nextchar == 91 /*&& Serial.peek() >= 0*/) {
+                        nextchar = Serial.read();
+                        switch(nextchar) {
+                            case 51: // Del
+                                /*if(Serial.peek() >= 0)*/ {
+                                    nextchar = Serial.read();
+                                }
+                                if(nextchar == 126) {
+                                    size_t len            = strlen(serialInputBuffer);
+                                    char * nextchar       = serialInputBuffer + serialInputIndex;
+                                    char * remainingchars = serialInputBuffer + serialInputIndex + 1;
+                                    memmove(nextchar, remainingchars, len - serialInputIndex);
+                                }
+                                break;
+                            case 53: // Page Up
+                                /*if(Serial.peek() >= 0)*/ {
+                                    nextchar = Serial.read();
+                                }
+                                if(nextchar == 126) {
+                                    dispatchPagePrev();
+                                }
+                                break;
+                            case 54: // Page Down
+                                /*if(Serial.peek() >= 0)*/ {
+                                    nextchar = Serial.read();
+                                    if(nextchar == 126) {
+                                        dispatchPageNext();
+                                    }
+                                }
+                                break;
+                            case 65:
+                                break;
+                            case 66:
+                                break;
+                            case 68: // Left
+                                if(serialInputIndex > 0) {
+                                    serialInputIndex--;
+                                }
+                                break;
+                            case 67: // Right
+                                if(serialInputIndex < strlen(serialInputBuffer)) {
+                                    serialInputIndex++;
+                                }
+                                break;
+                                //  default:
+                                //      Serial.println((byte)nextchar);
+                        }
+                    }
+                    /* } else { // ESC, clear buffer
+                         serialInputIndex                    = 0;
+                         serialInputBuffer[serialInputIndex] = 0;*/
+                }
+                break;
+
+            case 32 ... 127:
+                Serial.print(ch);
+                if(serialInputIndex < sizeof(serialInputBuffer) - 2) {
+                    if((size_t)1 + serialInputIndex >= strlen(serialInputBuffer))
+                        serialInputBuffer[serialInputIndex + 1] = 0;
+                    serialInputBuffer[serialInputIndex++] = ch;
+                }
+                break;
+
+            case 177: // DEL
+                break;
+                // default:
+
+                // if(strcmp(serialInputBuffer, "jsonl=") == 0) {
+                //     dispatchJsonl(Serial);
+                //     serialInputIndex = 0;
+                // }
         }
-        serialInputBuffer[serialInputIndex] = 0;
+
+        // Print current input - string
+
+        Serial.print(F(TERM_CLEAR_LINE)); // Move all the way left + Clear the line
+        Serial.print("hasp > ");
+        Serial.print(serialInputBuffer);
+        Serial.print("\e[1000D"); // Move all the way left again
+        /*if(serialInputIndex > 0)*/ {
+            Serial.print("\e[");
+            Serial.print(serialInputIndex + 7); // Move cursor too index
+            Serial.print("C");
+        }
+        // Serial.flush();
     }
 }
 
