@@ -740,7 +740,7 @@ void haspClearPage(uint16_t pageid)
         Log.warning(TAG_HASP, F("Cannot clear system layer"));
     } else {
         Log.notice(TAG_HASP, F("Clearing page %u"), pageid);
-        lv_obj_clean(pages[pageid]);
+        lv_obj_clean(page);
     }
 }
 
