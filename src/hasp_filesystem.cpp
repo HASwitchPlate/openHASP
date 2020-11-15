@@ -85,7 +85,7 @@ void filesystemList()
 #if defined(ARDUINO_ARCH_ESP8266)
         Dir dir = SPIFFS.openDir("/");
         while(dir.next()) {
-            Log.notice(TAG_FILE, F("   * %s  (%u bytes)"), dir.fileName().c_str(), (uint32_t)dir.fileSize());
+            Log.verbose(TAG_FILE, F("   * %s  (%u bytes)"), dir.fileName().c_str(), (uint32_t)dir.fileSize());
         }
 #endif
     }
@@ -105,7 +105,7 @@ bool filesystemSetup()
         Log.error(TAG_FILE, F("SPI flash init failed. Unable to mount FS."));
         return false;
     } else {
-        Log.verbose(TAG_FILE, F("SPI Flash FS mounted"));
+        Log.trace(TAG_FILE, F("SPI Flash FS mounted"));
         return true;
     }
 #endif

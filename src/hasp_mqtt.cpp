@@ -149,7 +149,7 @@ void IRAM_ATTR mqtt_send_state(const __FlashStringHelper * subtopic, const char 
 
 void mqtt_send_input(uint8_t id, const char * payload)
 {
-    // Log.trace(TAG_MQTT,F("TST: %sstate/input%u = %s"), mqttNodeTopic, id, payload); // to be removed
+    // Log.verbose(TAG_MQTT,F("TST: %sstate/input%u = %s"), mqttNodeTopic, id, payload); // to be removed
 
     if(mqttIsConnected()) {
         char topic[64];
@@ -355,7 +355,7 @@ void mqttReconnect()
         mac.toLowerCase();
         memset(mqttClientId, 0, sizeof(mqttClientId));
         snprintf_P(mqttClientId, sizeof(mqttClientId), PSTR("plate_%s"), mac.c_str());
-        Log.verbose(TAG_MQTT, mqttClientId);
+        Log.trace(TAG_MQTT, mqttClientId);
     }
 
     // Attempt to connect and set LWT and Clean Session
@@ -407,7 +407,7 @@ void mqttReconnect()
         return;
     }
 
-    Log.notice(TAG_MQTT, F("[SUCCESS] Connected to broker %s as clientID %s"), mqttServer, mqttClientId);
+    Log.trace(TAG_MQTT, F("[SUCCESS] Connected to broker %s as clientID %s"), mqttServer, mqttClientId);
 
     /*
         // MQTT topic string definitions
@@ -468,9 +468,9 @@ void mqttSetup()
     if(mqttEnabled) {
         mqttClient.setServer(mqttServer, 1883);
         mqttClient.setCallback(mqtt_message_cb);
-        Log.notice(TAG_MQTT, F("Setup Complete"));
+        Log.trace(TAG_MQTT, F("Setup Complete"));
     } else {
-        Log.notice(TAG_MQTT, F("Broker not configured"));
+        Log.warning(TAG_MQTT, F("Broker not configured"));
     }
 }
 
@@ -501,7 +501,7 @@ void mqttStop()
         mqttClient.publish(topicBuffer, "{\"status\": \"unavailable\"}");
 
         mqttClient.disconnect();
-        Log.notice(TAG_MQTT, F("Disconnected from broker"));
+        Log.trace(TAG_MQTT, F("Disconnected from broker"));
     }
 }
 
@@ -527,7 +527,7 @@ bool mqttGetConfig(const JsonObject & settings)
     if(strcmp(mqttPassword, settings[FPSTR(F_CONFIG_PASS)].as<String>().c_str()) != 0) changed = true;
     settings[FPSTR(F_CONFIG_PASS)] = mqttPassword;
 
-    if(changed) configOutput(settings);
+    if(changed) configOutput(settings, TAG_MQTT);
     return changed;
 }
 
@@ -541,7 +541,7 @@ bool mqttGetConfig(const JsonObject & settings)
  **/
 bool mqttSetConfig(const JsonObject & settings)
 {
-    configOutput(settings);
+    configOutput(settings, TAG_MQTT);
     bool changed = false;
 
     changed |= configSet(mqttPort, settings[FPSTR(F_CONFIG_PORT)], F("mqttPort"));

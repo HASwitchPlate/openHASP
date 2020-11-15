@@ -57,7 +57,7 @@ void wifiConnected(IPAddress ipaddress)
 #else
     Log.notice(TAG_WIFI, F("Received IP address %s"), ipaddress.toString().c_str());
 #endif
-    Log.verbose(TAG_WIFI, F("Connected = %s"), WiFi.status() == WL_CONNECTED ? PSTR("yes") : PSTR("no"));
+    Log.trace(TAG_WIFI, F("Connected = %s"), WiFi.status() == WL_CONNECTED ? PSTR("yes") : PSTR("no"));
     haspProgressVal(255);
     debugSetup();
     // if(isConnected) {
@@ -369,14 +369,14 @@ void wifiSetup()
 
     // check for the presence of the shield:
     if(WiFiSpi.status() == WL_NO_SHIELD) {
-        Log.notice(TAG_WIFI, F("WiFi shield not present"));
+        Log.fatal(TAG_WIFI, F("WiFi shield not present"));
         // don't continue:
         while(true)
             ;
     }
 
     if(!WiFiSpi.checkProtocolVersion()) {
-        Log.notice(TAG_WIFI, F("Protocol version mismatch. Please upgrade the firmware"));
+        Log.fatal(TAG_WIFI, F("Protocol version mismatch. Please upgrade the firmware"));
         // don't continue:
         while(true)
             ;
@@ -451,7 +451,7 @@ bool wifiGetConfig(const JsonObject & settings)
     if(strcmp(wifiPassword, settings[FPSTR(F_CONFIG_PASS)].as<String>().c_str()) != 0) changed = true;
     settings[FPSTR(F_CONFIG_PASS)] = wifiPassword;
 
-    if(changed) configOutput(settings);
+    if(changed) configOutput(settings, TAG_WIFI);
     return changed;
 }
 
@@ -465,7 +465,7 @@ bool wifiGetConfig(const JsonObject & settings)
  **/
 bool wifiSetConfig(const JsonObject & settings)
 {
-    configOutput(settings);
+    configOutput(settings, TAG_WIFI);
     bool changed = false;
 
     if(!settings[FPSTR(F_CONFIG_SSID)].isNull()) {
@@ -497,14 +497,14 @@ bool wifiTestConnection()
     while(attempt < 10 && (WiFi.status() != WL_CONNECTED || WiFi.localIP().toString() == F("0.0.0.0"))) {
 #endif
         attempt++;
-        Log.verbose(TAG_WIFI, F("Trying to connect to %s... %u"), wifiSsid, attempt);
+        Log.trace(TAG_WIFI, F("Trying to connect to %s... %u"), wifiSsid, attempt);
         delay(1000);
     }
 #if defined(STM32F4xx)
-    Log.verbose(TAG_WIFI, F("Received IP addres %s"), espIp);
+    Log.trace(TAG_WIFI, F("Received IP addres %s"), espIp);
     if((WiFi.status() == WL_CONNECTED && String(espIp) != F("0.0.0.0"))) return true;
 #else
-    Log.verbose(TAG_WIFI, F("Received IP addres %s"), WiFi.localIP().toString().c_str());
+    Log.notice(TAG_WIFI, F("Received IP addres %s"), WiFi.localIP().toString().c_str());
     if((WiFi.status() == WL_CONNECTED && WiFi.localIP().toString() != F("0.0.0.0"))) return true;
 #endif
     WiFi.disconnect();

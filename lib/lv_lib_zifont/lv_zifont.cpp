@@ -177,8 +177,8 @@ int lv_zifont_font_init(lv_font_t ** font, const char * font_path, uint16_t size
         return ZIFONT_ERROR_READING_DATA;
     }
 
-    Log.notice(TAG_FONT, F("Loaded V%d Font File: %s containing %d characters"), header.Version, font_path,
-               header.Maximumnumchars);
+    Log.verbose(TAG_FONT, F("Loaded V%d Font File: %s containing %d characters"), header.Version, font_path,
+                header.Maximumnumchars);
 
     file.close();
 

@@ -126,10 +126,10 @@ bool httpIsAuthenticated(const __FlashStringHelper * fstr_page)
     }
 
 #if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
-    Log.verbose(TAG_HTTP, F("Sending %S page to client connected from: %s"), fstr_page,
+    Log.notice(TAG_HTTP, F("Sending %S page to client connected from: %s"), fstr_page,
                 webServer.client().remoteIP().toString().c_str());
 #else
-    // Log.verbose(TAG_HTTP,F("Sending %s page to client connected from: %s"), page,
+    // Log.trace(TAG_HTTP,F("Sending %s page to client connected from: %s"), page,
     //             String(webServer.client().remoteIP()).c_str());
 #endif
 
@@ -638,7 +638,7 @@ void webUpdatePrintError()
 
 void webUpdateReboot()
 {
-    Log.notice(TAG_HTTP, F("Update Success: %u bytes received. Rebooting..."), upload->totalSize);
+    Log.trace(TAG_HTTP, F("Update Success: %u bytes received. Rebooting..."), upload->totalSize);
 
     {
         String httpMessage((char *)0);
@@ -724,7 +724,7 @@ void handleFileUpload()
     upload = &webServer.upload();
     if(upload->status == UPLOAD_FILE_START) {
         if(!httpIsAuthenticated(F("fileupload"))) return;
-        Log.verbose(TAG_HTTP, F("Total size: %s"), webServer.headerName(0).c_str());
+        Log.trace(TAG_HTTP, F("Total size: %s"), webServer.headerName(0).c_str());
         String filename((char *)0);
         filename.reserve(128);
         filename = upload->filename;
@@ -750,7 +750,7 @@ void handleFileUpload()
         }
     } else if(upload->status == UPLOAD_FILE_END) {
         if(fsUploadFile) {
-            Log.verbose(TAG_HTTP, F("Uploaded %s (%u bytes)"), fsUploadFile.name(), upload->totalSize);
+            Log.trace(TAG_HTTP, F("Uploaded %s (%u bytes)"), fsUploadFile.name(), upload->totalSize);
             fsUploadFile.close();
         }
         haspProgressVal(255);
@@ -773,7 +773,7 @@ void handleFileDelete()
         return webServer.send_P(500, mimetype, PSTR("BAD ARGS"));
     }
     String path = webServer.arg(0);
-    Log.verbose(TAG_HTTP, F("handleFileDelete: %s"), path.c_str());
+    Log.notice(TAG_HTTP, F("handleFileDelete: %s"), path.c_str());
     if(path == "/") {
         return webServer.send_P(500, mimetype, PSTR("BAD PATH"));
     }
@@ -793,7 +793,7 @@ void handleFileCreate()
         return webServer.send(500, PSTR("text/plain"), PSTR("BAD ARGS"));
     }
     String path = webServer.arg(0);
-    Log.verbose(TAG_HTTP, F("handleFileCreate: %s"), path.c_str());
+    Log.notice(TAG_HTTP, F("handleFileCreate: %s"), path.c_str());
     if(path == "/") {
         return webServer.send(500, PSTR("text/plain"), PSTR("BAD PATH"));
     }
@@ -820,7 +820,7 @@ void handleFileList()
     }
 
     String path = webServer.arg(F("dir"));
-    Log.verbose(TAG_HTTP, F("handleFileList: %s"), path.c_str());
+    Log.notice(TAG_HTTP, F("handleFileList: %s"), path.c_str());
     path.clear();
 
 #if defined(ARDUINO_ARCH_ESP32)
@@ -1682,9 +1682,9 @@ void webStart()
 #if defined(STM32F4xx)
     IPAddress ip;
     ip = WiFi.localIP();
-    Log.notice(TAG_HTTP, F("Server started @ http://%d.%d.%d.%d"), ip[0], ip[1], ip[2], ip[3]);
+    Log.trace(TAG_HTTP, F("Server started @ http://%d.%d.%d.%d"), ip[0], ip[1], ip[2], ip[3]);
 #else
-    Log.notice(TAG_HTTP, F("Server started @ http://%s"),
+    Log.trace(TAG_HTTP, F("Server started @ http://%s"),
                (WiFi.getMode() != WIFI_STA ? WiFi.softAPIP().toString().c_str() : WiFi.localIP().toString().c_str()));
 #endif
 #else
@@ -1694,7 +1694,7 @@ void webStart()
 #else
     ip = Ethernet.localIP();
 #endif
-    Log.notice(TAG_HTTP, F("Server started @ http://%d.%d.%d.%d"), ip[0], ip[1], ip[2], ip[3]);
+    Log.trace(TAG_HTTP, F("Server started @ http://%d.%d.%d.%d"), ip[0], ip[1], ip[2], ip[3]);
 #endif
 }
 
@@ -1813,7 +1813,7 @@ void httpSetup()
     size_t headerkeyssize     = sizeof(headerkeys) / sizeof(char *);
     webServer.collectHeaders(headerkeys, headerkeyssize);
 
-    Log.verbose(TAG_HTTP, F("Setup Complete"));
+    Log.trace(TAG_HTTP, F("Setup Complete"));
     webStart();
 }
 
@@ -1861,7 +1861,7 @@ bool httpGetConfig(const JsonObject & settings)
     if(strcmp(httpPassword, settings[FPSTR(F_CONFIG_PASS)].as<String>().c_str()) != 0) changed = true;
     settings[FPSTR(F_CONFIG_PASS)] = httpPassword;
 
-    if(changed) configOutput(settings);
+    if(changed) configOutput(settings, TAG_HTTP);
     return changed;
 }
 
@@ -1875,7 +1875,7 @@ bool httpGetConfig(const JsonObject & settings)
  **/
 bool httpSetConfig(const JsonObject & settings)
 {
-    configOutput(settings);
+    configOutput(settings, TAG_HTTP);
     bool changed = false;
 
     changed |= configSet(httpPort, settings[FPSTR(F_CONFIG_PORT)], F("httpPort"));

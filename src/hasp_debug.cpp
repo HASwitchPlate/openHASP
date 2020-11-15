@@ -178,7 +178,7 @@ bool debugGetConfig(const JsonObject & settings)
     settings[FPSTR(F_CONFIG_LOG)] = debugSyslogFacility;
 #endif
 
-    if(changed) configOutput(settings);
+    if(changed) configOutput(settings, TAG_DEBG);
     return changed;
 }
 
@@ -192,7 +192,7 @@ bool debugGetConfig(const JsonObject & settings)
  **/
 bool debugSetConfig(const JsonObject & settings)
 {
-    configOutput(settings);
+    configOutput(settings, TAG_DEBG);
     bool changed = false;
 
     /* Serial Settings*/
@@ -299,11 +299,11 @@ static void debugPrintPriority(int level, Print * _logOutput)
         case LOG_LEVEL_NOTICE:
             debugSendAnsiCode(F(TERM_COLOR_WHITE), _logOutput);
             break;
-        case LOG_LEVEL_VERBOSE:
-            debugSendAnsiCode(F(TERM_COLOR_CYAN), _logOutput);
-            break;
         case LOG_LEVEL_TRACE:
             debugSendAnsiCode(F(TERM_COLOR_GRAY), _logOutput);
+            break;
+        case LOG_LEVEL_VERBOSE:
+            debugSendAnsiCode(F(TERM_COLOR_CYAN), _logOutput);
             break;
         default:
             debugSendAnsiCode(F(TERM_COLOR_RESET), _logOutput);
@@ -525,7 +525,7 @@ void debugLvgl(lv_log_level_t level, const char * file, uint32_t line, const cha
     if(line != lastDbgLine || mem_mon.free_biggest_size != lastDbgFree) {
         switch(level) {
             case LV_LOG_LEVEL_TRACE:
-                Log.trace(TAG_LVGL, descr);
+                Log.verbose(TAG_LVGL, descr);
                 break;
             case LV_LOG_LEVEL_WARN:
                 Log.warning(TAG_LVGL, descr);

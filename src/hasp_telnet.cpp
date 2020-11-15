@@ -46,7 +46,7 @@ char telnetInputBuffer[128] = "";
 
 void telnetClientDisconnect()
 {
-    // Log.notice(TAG_TELN,F("Closing session from %s"), telnetClient.remoteIP().toString().c_str());
+    Log.notice(TAG_TELN, F("Closing session from %s"), telnetClient.remoteIP().toString().c_str());
     telnetClient.stop();
     Log.unregisterOutput(1); // telnetClient
     telnetLoginState   = TELNET_UNAUTHENTICATED;
@@ -62,8 +62,8 @@ void telnetClientLogon()
     telnetLoginState   = TELNET_AUTHENTICATED; // User and Pass are correct
     telnetLoginAttempt = 0;                    // Reset attempt counter
     Log.registerOutput(1, &telnetClient, LOG_LEVEL_VERBOSE, true);
-    // Log.notice(TAG_TELN,F("Client login from %s"), telnetClient.remoteIP().toString().c_str());
     telnetClient.flush();
+    Log.notice(TAG_TELN, F("Client login from %s"), telnetClient.remoteIP().toString().c_str());
     /* Echo locally as separate string */
     // telnetClient.print(F("TELNET: Client login from "));
     // telnetClient.println(telnetClient.remoteIP().toString().c_str());
@@ -80,10 +80,10 @@ void telnetAcceptClient()
     telnetClient = telnetServer->available(); // ready for new client
     // Log.notice(TAG_TELN,F("Client connected from %s"), telnetClient.remoteIP().toString().c_str());
     if(!telnetClient) {
-        Log.notice(TAG_TELN, F("Client NOT connected"));
+        Log.verbose(TAG_TELN, F("Client NOT connected"));
         return;
     }
-    Log.notice(TAG_TELN, F("Client connected"));
+    Log.verbose(TAG_TELN, F("Client connected"));
 
     /* Avoid a buffer here */
     telnetClient.print((char)0xFF); // DO TERMINAL-TYPE
@@ -133,8 +133,7 @@ static inline void telnetProcessLine()
                 telnetLoginState = TELNET_UNAUTHENTICATED;
                 telnetLoginAttempt++; // Subsequent attempt
                 telnetClient.println(F("Authorization failed!\r\n"));
-                // Log.warning(TAG_TELN,F("Incorrect login attempt from %s"),
-                // telnetClient.remoteIP().toString().c_str());
+                Log.warning(TAG_TELN, F("Incorrect login attempt from %s"), telnetClient.remoteIP().toString().c_str());
                 if(telnetLoginAttempt >= 3) {
                     telnetClientDisconnect();
                 } else {
@@ -206,7 +205,7 @@ void telnetSetup()
         // if(!telnetServer) telnetServer = new EthernetServer(telnetPort);
         // if(telnetServer) {
         telnetServer->begin();
-        Log.notice(TAG_TELN, F("Debug telnet console started"));
+        Log.trace(TAG_TELN, F("Debug telnet console started"));
         // } else {
         //    Log.error(TAG_TELN,F("Failed to start telnet server"));
         //}
@@ -223,7 +222,7 @@ void telnetSetup()
             telnetClient.setNoDelay(true);
             //}
 
-            Log.notice(TAG_TELN, F("Debug telnet console started"));
+            Log.trace(TAG_TELN, F("Debug telnet console started"));
         } else {
             Log.error(TAG_TELN, F("Failed to start telnet server"));
         }
@@ -246,7 +245,7 @@ void IRAM_ATTR telnetLoop()
                 telnetClient = client; // ready for new client
                 // Log.notice(TAG_TELN,F("Client connected from %s"), telnetClient.remoteIP().toString().c_str());
                 if(!telnetClient) {
-                    Log.notice(TAG_TELN, F("Client NOT connected"));
+                    Log.warning(TAG_TELN, F("Client NOT connected"));
                     return;
                 }
                 Log.notice(TAG_TELN, F("Client connected"));
@@ -289,7 +288,7 @@ bool telnetGetConfig(const JsonObject & settings)
     if(telnetPort != settings[FPSTR(F_CONFIG_PORT)].as<uint16_t>()) changed = true;
     settings[FPSTR(F_CONFIG_PORT)] = telnetPort;
 
-    if(changed) configOutput(settings);
+    if(changed) configOutput(settings, TAG_TELN);
     return changed;
 }
 
@@ -303,7 +302,7 @@ bool telnetGetConfig(const JsonObject & settings)
  **/
 bool telnetSetConfig(const JsonObject & settings)
 {
-    configOutput(settings);
+    configOutput(settings, TAG_TELN);
     bool changed = false;
 
     changed |= configSet(telnetEnabled, settings[FPSTR(F_CONFIG_ENABLE)], F("telnetEnabled"));

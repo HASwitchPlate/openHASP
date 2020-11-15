@@ -217,7 +217,7 @@ static void ICACHE_RAM_ATTR lv_tick_handler(void)
 //     data->point.x = touchX; // 20 + (disp->driver.hor_res - 40) * (touchCorner % 2);
 //     data->point.y = touchY; // 20 + (disp->driver.ver_res - 40) * (touchCorner / 2);
 
-//     Log.trace(TAG_GUI,F("Calibrate touch %u / %u"), touchX, touchY);
+//     Log.verbose(TAG_GUI,F("Calibrate touch %u / %u"), touchX, touchY);
 
 // #endif
 
@@ -295,9 +295,9 @@ void handleTouch(int8_t contacts, GTPoint * points)
     GT911_num_touches = contacts;
     GT911_points      = points;
 
-    Log.trace(TAG_GUI, "Contacts: %d", contacts);
+    Log.verbose(TAG_GUI, "Contacts: %d", contacts);
     for(uint8_t i = 0; i < contacts; i++) {
-        Log.trace(TAG_GUI, "C%d: #%d %d,%d s:%d", i, points[i].trackId, points[i].x, points[i].y, points[i].area);
+        Log.verbose(TAG_GUI, "C%d: #%d %d,%d s:%d", i, points[i].trackId, points[i].x, points[i].y, points[i].area);
         yield();
     }
 }
@@ -372,13 +372,13 @@ void GT911_setup()
 
     touch.setHandler(handleTouch);
     touchStart();
-    Log.verbose(TAG_GUI, F("Goodix GT911x touch driver started"));
+    Log.trace(TAG_GUI, F("Goodix GT911x touch driver started"));
 }
 #endif
 
 bool IRAM_ATTR my_touchpad_read(lv_indev_drv_t * indev_driver, lv_indev_data_t * data)
 {
-    //#ifdef TOUCH_CS
+#ifdef TOUCH_CS
     uint16_t touchX, touchY;
     bool touched;
 #if TOUCH_DRIVER == 0
@@ -411,12 +411,12 @@ bool IRAM_ATTR my_touchpad_read(lv_indev_drv_t * indev_driver, lv_indev_data_t *
         data->point.x = touchX;
         data->point.y = touchY;
     }
-    /* Serial.print("Data x");
-       Serial.println(touchX);
-       Serial.print("Data y");
-       Serial.println(touchY);*/
-    //}
-    //#endif
+/* Serial.print("Data x");
+   Serial.println(touchX);
+   Serial.print("Data y");
+   Serial.println(touchY);*/
+//}
+#endif
 
     return false; /*Return `false` because we are not buffering and no more data to read*/
 }
@@ -424,7 +424,9 @@ bool IRAM_ATTR my_touchpad_read(lv_indev_drv_t * indev_driver, lv_indev_data_t *
 void guiCalibrate()
 {
 #if TOUCH_DRIVER == 0 && USE_TFT_ESPI > 0
+#ifdef TOUCH_CS
     tft_espi_calibrate(calData);
+#endif
 
     for(uint8_t i = 0; i < 5; i++) {
         Serial.print(calData[i]);
@@ -472,13 +474,23 @@ void guiSetup()
 
 #if defined(ARDUINO_ARCH_ESP32)
     /* allocate on iram (or psram ?) */
-    guiVDBsize = 16 * 1024u; // 32 KBytes * 2
     static lv_disp_buf_t disp_buf;
-    static lv_color_t * guiVdbBuffer1 =
-        (lv_color_t *)heap_caps_malloc(sizeof(lv_color_t) * guiVDBsize, MALLOC_CAP_8BIT);
+
+#ifdef USE_DMA_TO_TFT
+    static lv_color_t *guiVdbBuffer1, *guiVdbBuffer2 = NULL;
+    guiVDBsize    = 4 * 1024u; // 16 KBytes * 2
+    guiVdbBuffer1 = (lv_color_t *)heap_caps_malloc(sizeof(lv_color_t) * guiVDBsize, MALLOC_CAP_DMA);
+    guiVdbBuffer2 = (lv_color_t *)heap_caps_malloc(sizeof(lv_color_t) * guiVDBsize, MALLOC_CAP_DMA);
+    lv_disp_buf_init(&disp_buf, guiVdbBuffer1, guiVdbBuffer2, guiVDBsize);
+#else
+    static lv_color_t * guiVdbBuffer1;
+    guiVDBsize    = 16 * 1024u; // 32 KBytes * 2
+    guiVdbBuffer1 = (lv_color_t *)heap_caps_malloc(sizeof(lv_color_t) * guiVDBsize, MALLOC_CAP_8BIT);
+    lv_disp_buf_init(&disp_buf, guiVdbBuffer1, NULL, guiVDBsize);
+#endif
+
     // static lv_color_t * guiVdbBuffer2 = (lv_color_t *)malloc(sizeof(lv_color_t) * guiVDBsize);
     // lv_disp_buf_init(&disp_buf, guiVdbBuffer1, guiVdbBuffer2, guiVDBsize);
-    lv_disp_buf_init(&disp_buf, guiVdbBuffer1, NULL, guiVDBsize);
 #elif defined(ARDUINO_ARCH_ESP8266)
     /* allocate on heap */
     static lv_disp_buf_t disp_buf;
@@ -541,7 +553,7 @@ void guiSetup()
     Log.verbose(TAG_LVGL, F("VFB size : %d"), (size_t)sizeof(lv_color_t) * guiVDBsize);
 
 #if LV_USE_LOG != 0
-    Log.verbose(TAG_LVGL, F("Registering lvgl logging handler"));
+    Log.notice(TAG_LVGL, F("Registering lvgl logging handler"));
     lv_log_register_print_cb(debugLvgl); /* register print function for debugging */
 #endif
 
@@ -598,7 +610,7 @@ void guiSetup()
         // lv_label_set_text(label, "<");
         // lv_indev_set_cursor(mouse_indev, label); // connect the object to the driver
 
-        Log.verbose(TAG_GUI, F("Initialize Cursor"));
+        Log.notice(TAG_GUI, F("Initialize Cursor"));
         lv_obj_t * cursor;
         lv_obj_t * mouse_layer = lv_disp_get_layer_sys(NULL); // default display
 
@@ -732,7 +744,7 @@ bool guiGetConfig(const JsonObject & settings)
         } else {
             changed = true;
 
-#if TOUCH_DRIVER == 0 && USE_TFT_ESPI > 0
+#if TOUCH_DRIVER == 0 && USE_TFT_ESPI > 0 && defined(TOUCH_CS)
             tft_espi_set_touch(calData);
 #endif
         }
@@ -747,12 +759,12 @@ bool guiGetConfig(const JsonObject & settings)
         }
         changed = true;
 
-#if TOUCH_DRIVER == 0 && USE_TFT_ESPI > 0
+#if TOUCH_DRIVER == 0 && USE_TFT_ESPI > 0 && defined(TOUCH_CS)
         tft_espi_set_touch(calData);
 #endif
     }
 
-    if(changed) configOutput(settings);
+    if(changed) configOutput(settings, TAG_GUI);
     return changed;
 }
 
@@ -766,7 +778,7 @@ bool guiGetConfig(const JsonObject & settings)
  **/
 bool guiSetConfig(const JsonObject & settings)
 {
-    configOutput(settings);
+    configOutput(settings, TAG_GUI);
     bool changed = false;
 
     changed |= configSet(guiTickPeriod, settings[FPSTR(F_GUI_TICKPERIOD)], F("guiTickPeriod"));
@@ -777,7 +789,7 @@ bool guiSetConfig(const JsonObject & settings)
 
     if(!settings[FPSTR(F_GUI_POINTER)].isNull()) {
         if(guiShowPointer != settings[FPSTR(F_GUI_POINTER)].as<bool>()) {
-            Log.trace(TAG_GUI, F("guiShowPointer set"));
+            Log.verbose(TAG_GUI, F("guiShowPointer set"));
         }
         changed |= guiShowPointer != settings[FPSTR(F_GUI_POINTER)].as<bool>();
 
@@ -798,7 +810,7 @@ bool guiSetConfig(const JsonObject & settings)
         }
 
         if(calData[0] != 0 || calData[1] != 65535 || calData[2] != 0 || calData[3] != 65535) {
-            Log.trace(TAG_GUI, F("calData set [%u, %u, %u, %u, %u]"), calData[0], calData[1], calData[2], calData[3],
+            Log.verbose(TAG_GUI, F("calData set [%u, %u, %u, %u, %u]"), calData[0], calData[1], calData[2], calData[3],
                       calData[4]);
             oobeSetAutoCalibrate(false);
         } else {
@@ -806,7 +818,7 @@ bool guiSetConfig(const JsonObject & settings)
             oobeSetAutoCalibrate(true);
         }
 
-#if TOUCH_DRIVER == 0 && USE_TFT_ESPI > 0
+#if TOUCH_DRIVER == 0 && USE_TFT_ESPI > 0 && defined(TOUCH_CS)
         if(status) tft_espi_set_touch(calData);
 #endif
         changed |= status;
@@ -879,7 +891,7 @@ static void gui_get_bitmap_header(uint8_t * buffer, size_t bufsize)
 
 void gui_flush_not_complete()
 {
-    Log.warning(TAG_GUI, F("GUI: Pixelbuffer not completely sent"));
+    Log.warning(TAG_GUI, F("Pixelbuffer not completely sent"));
 }
 #endif // HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0 || HASP_USE_HTTP > 0
 
@@ -913,7 +925,7 @@ void guiTakeScreenshot(const char * pFileName)
 
         size_t len = pFileOut.write(buffer, 122);
         if(len == 122) {
-            Log.verbose(TAG_GUI, F("GUI: Bitmap header written"));
+            Log.verbose(TAG_GUI, F("Bitmap header written"));
 
             /* Refresh screen to screenshot callback */
             lv_disp_t * disp = lv_disp_get_default();
@@ -924,15 +936,15 @@ void guiTakeScreenshot(const char * pFileName)
             lv_refr_now(NULL);                /* Will call our disp_drv.disp_flush function */
             disp->driver.flush_cb = flush_cb; /* restore callback */
 
-            Log.verbose(TAG_GUI, F("GUI: Bitmap data flushed to %s"), pFileName);
+            Log.verbose(TAG_GUI, F("Bitmap data flushed to %s"), pFileName);
 
         } else {
-            Log.error(TAG_GUI, F("GUI: Data written does not match header size"));
+            Log.error(TAG_GUI, F("Data written does not match header size"));
         }
         pFileOut.close();
 
     } else {
-        Log.warning(TAG_GUI, F("GUI: %s cannot be opened"), pFileName);
+        Log.warning(TAG_GUI, F("%s cannot be opened"), pFileName);
     }
 }
 #endif
@@ -961,7 +973,7 @@ void guiTakeScreenshot()
     gui_get_bitmap_header(buffer, sizeof(buffer));
 
     if(httpClientWrite(buffer, 122) == 122) {
-        Log.verbose(TAG_GUI, F("GUI: Bitmap header sent"));
+        Log.verbose(TAG_GUI, F("Bitmap header sent"));
 
         /* Refresh screen to screenshot callback */
         lv_disp_t * disp = lv_disp_get_default();
@@ -972,9 +984,9 @@ void guiTakeScreenshot()
         lv_refr_now(NULL);                /* Will call our disp_drv.disp_flush function */
         disp->driver.flush_cb = flush_cb; /* restore callback */
 
-        Log.verbose(TAG_GUI, F("GUI: Bitmap data flushed to webclient"));
+        Log.verbose(TAG_GUI, F("Bitmap data flushed to webclient"));
     } else {
-        Log.error(TAG_GUI, F("GUI: Data sent does not match header size"));
+        Log.error(TAG_GUI, F("Data sent does not match header size"));
     }
 }
 #endif

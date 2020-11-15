@@ -57,7 +57,7 @@ void IRAM_ATTR slave_send_obj_attribute_str(uint8_t pageid, uint8_t btnid, const
 
 void slave_send_input(uint8_t id, const char * payload)
 {
-  // Log.trace(TAG_TASM,F("MQTT TST: %sstate/input%u = %s"), mqttNodeTopic, id, payload); // to be removed
+  // Log.verbose(TAG_TASM,F("MQTT TST: %sstate/input%u = %s"), mqttNodeTopic, id, payload); // to be removed
 
   char cBuffer[strlen(payload) + 64];
   memset(cBuffer, 0 ,sizeof(cBuffer));
@@ -90,12 +90,12 @@ void TASMO_TELE_JSON()
 
 void TASMO_DATA_RECEIVE(char *data)
 {
-  Log.verbose(TAG_TASM,F("Slave IN [%s]"), data);
+  Log.trace(TAG_TASM,F("Slave IN [%s]"), data);
 
   char dataType[3];
   memset(dataType, 0 ,sizeof(dataType));
   snprintf_P(dataType, sizeof(dataType), data);
-  Log.verbose(TAG_TASM,F("dataType [%s]"), dataType);
+  Log.trace(TAG_TASM,F("dataType [%s]"), dataType);
 
   if (!strcmp(dataType, "p[")){   //
     dispatchTextLine(data);
@@ -107,7 +107,7 @@ void TASMO_DATA_RECEIVE(char *data)
     memset(slvVal, 0 ,sizeof(slvVal));
     sscanf(data,"%[^=] =%s", slvCmd, slvVal);
 
-    Log.verbose(TAG_TASM,F("Cmd[%s] Val[%s]"), slvCmd, slvVal);
+    Log.trace(TAG_TASM,F("Cmd[%s] Val[%s]"), slvCmd, slvVal);
 
     if (!strcmp(slvCmd, "calData")){
       if (strlen(slvVal) != 0) {
@@ -133,11 +133,11 @@ void TASMO_EVERY_SECOND(void)
   if (ledstate) {
     ledstate = false;
     //digitalWrite(HASP_OUTPUT_PIN, 1);
-    // Log.verbose(TAG_TASM,F("LED OFF"));
+    // Log.trace(TAG_TASM,F("LED OFF"));
   } else {
     ledstate = true;
     //digitalWrite(HASP_OUTPUT_PIN, 0);
-    // Log.verbose(TAG_TASM,F("LED ON"));
+    // Log.trace(TAG_TASM,F("LED ON"));
   }
 }
 

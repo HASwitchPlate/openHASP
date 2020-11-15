@@ -380,9 +380,9 @@ void haspSetup()
     lv_fs_res_t res;
     res = lv_fs_open(&f, "F:/test.jsonl", LV_FS_MODE_RD);
     if(res == LV_FS_RES_OK)
-        Log.error(TAG_HASP, F("Opening test.json OK"));
+        Log.verbose(TAG_HASP, F("Opening test.json OK"));
     else
-        Log.verbose(TAG_HASP, F("Opening test.json from FS failed %d"), res);
+        Log.error(TAG_HASP, F("Opening test.json from FS failed %d"), res);
 
     uint32_t btoread = 128;
     uint32_t bread   = 0;
@@ -390,17 +390,17 @@ void haspSetup()
 
     res = lv_fs_read(&f, &buffer, btoread, &bread);
     if(res == LV_FS_RES_OK) {
-        Log.error(TAG_HASP, F("Reading test.json OK %u"), bread);
+        Log.verbose(TAG_HASP, F("Reading test.json OK %u"), bread);
         buffer[127] = '\0';
-        Log.verbose(TAG_HASP, buffer);
+        Log.trace(TAG_HASP, buffer);
     } else
-        Log.verbose(TAG_HASP, F("Reading test.json from FS failed %d"), res);
+        Log.error(TAG_HASP, F("Reading test.json from FS failed %d"), res);
 
     res = lv_fs_close(&f);
     if(res == LV_FS_RES_OK)
-        Log.error(TAG_HASP, F("Closing test.json OK"));
+        Log.verbose(TAG_HASP, F("Closing test.json OK"));
     else
-        Log.verbose(TAG_HASP, F("Closing test.json on FS failed %d"), res);
+        Log.error(TAG_HASP, F("Closing test.json on FS failed %d"), res);
         /******* File System Test ********************************************************************/
 
         /* ********** Font Initializations ********** */
@@ -501,7 +501,7 @@ void haspSetup()
     }
 
     if(th) {
-        Log.verbose(TAG_HASP, F("Custom theme loaded"));
+        Log.trace(TAG_HASP, F("Custom theme loaded"));
     } else {
         Log.error(TAG_HASP, F("No theme could be loaded"));
     }
@@ -646,7 +646,7 @@ void IRAM_ATTR btn_event_handler(lv_obj_t * obj, lv_event_t event)
             return;
 
         case LV_EVENT_DELETE:
-            Log.warning(TAG_HASP, F("Object deleted Event %d occured"), event);
+            Log.verbose(TAG_HASP, F("Object deleted Event %d occured"), event);
             return;
         default:
             Log.warning(TAG_HASP, F("Unknown Event %d occured"), event);
@@ -802,7 +802,7 @@ void haspNewObject(const JsonObject & config, uint8_t & saved_page_id)
             Log.warning(TAG_HASP, F("Parent ID p[%u].b[%u] not found"), pageid, parentid);
             parent_obj = page; // create on the page instead ??
         } else {
-            Log.trace(TAG_HASP, F("Parent ID p[%u].b[%u] found"), pageid, parentid);
+            Log.verbose(TAG_HASP, F("Parent ID p[%u].b[%u] found"), pageid, parentid);
         }
     }
 
@@ -890,6 +890,7 @@ void haspNewObject(const JsonObject & config, uint8_t & saved_page_id)
             lv_obj_set_event_cb(obj, cpicker_event_handler);
             break;
         }
+
 #if LV_USE_PRELOAD != 0
         case LV_HASP_PRELOADER: {
             obj = lv_spinner_create(parent_obj, NULL);
@@ -921,6 +922,23 @@ void haspNewObject(const JsonObject & config, uint8_t & saved_page_id)
             obj = lv_linemeter_create(parent_obj, NULL);
             lv_linemeter_set_range(obj, 0, 100);
             lv_obj_set_event_cb(obj, btn_event_handler);
+            break;
+        }
+        case LV_HASP_CHART: {
+            obj = lv_chart_create(parent_obj, NULL);
+            lv_chart_set_range(obj, 0, 100);
+            lv_obj_set_event_cb(obj, btn_event_handler);
+
+            lv_chart_add_series(obj, LV_COLOR_RED);
+            lv_chart_add_series(obj, LV_COLOR_GREEN);
+            lv_chart_add_series(obj, LV_COLOR_BLUE);
+
+            lv_chart_series_t * ser = lv_chart_get_series(obj, 2);
+            lv_chart_set_next(obj, ser, 10);
+            lv_chart_set_next(obj, ser, 20);
+            lv_chart_set_next(obj, ser, 30);
+            lv_chart_set_next(obj, ser, 40);
+
             break;
         }
 
@@ -977,7 +995,7 @@ void haspNewObject(const JsonObject & config, uint8_t & saved_page_id)
     for(JsonPair keyValue : config) {
         v = keyValue.value().as<String>();
         hasp_process_obj_attribute(obj, keyValue.key().c_str(), v.c_str(), true);
-        // Log.trace(TAG_HASP,F("     * %s => %s"), keyValue.key().c_str(), v.c_str());
+        // Log.verbose(TAG_HASP,F("     * %s => %s"), keyValue.key().c_str(), v.c_str());
     }
 
     /** testing start **/
@@ -997,7 +1015,7 @@ void haspNewObject(const JsonObject & config, uint8_t & saved_page_id)
     if(test != obj) {
         Log.error(TAG_HASP, F("Objects DO NOT match!"));
     } else {
-        // Log.trace(TAG_HASP,F("Objects match!"));
+        // Log.verbose(TAG_HASP,F("Objects match!"));
     }
 }
 
@@ -1022,14 +1040,14 @@ void haspLoadPage(const char * pages)
     dispatchParseJsonl(file);
     file.close();
 
-    Log.notice(TAG_HASP, F("File %s loaded"), pages);
+    Log.trace(TAG_HASP, F("File %s loaded"), pages);
 #else
 
 #if HASP_USE_EEPROM > 0
     Log.notice(TAG_HASP, F("Loading jsonl from EEPROM..."));
     EepromStream eepromStream(4096, 1024);
     dispatchJsonl(eepromStream);
-    Log.notice(TAG_HASP, F("Loaded jsonl from EEPROM"));
+    Log.tr  (TAG_HASP, F("Loaded jsonl from EEPROM"));
 #endif
 
 #endif
@@ -1059,7 +1077,7 @@ bool haspGetConfig(const JsonObject & settings)
     if(strcmp(haspPagesPath, settings[FPSTR(F_CONFIG_PAGES)].as<String>().c_str()) != 0) changed = true;
     settings[FPSTR(F_CONFIG_PAGES)] = haspPagesPath;
 
-    if(changed) configOutput(settings);
+    if(changed) configOutput(settings,TAG_HASP);
     return changed;
 }
 
@@ -1073,7 +1091,7 @@ bool haspGetConfig(const JsonObject & settings)
  **/
 bool haspSetConfig(const JsonObject & settings)
 {
-    configOutput(settings);
+    configOutput(settings, TAG_HASP);
     bool changed = false;
 
     changed |= configSet(haspStartPage, settings[FPSTR(F_CONFIG_STARTPAGE)], F("haspStartPage"));

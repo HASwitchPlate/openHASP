@@ -315,11 +315,11 @@ bool oobeSetup()
         if(oobeAutoCalibrate) {
             lv_obj_set_click(lv_disp_get_layer_sys(NULL), true);
             lv_obj_set_event_cb(lv_disp_get_layer_sys(NULL), oobe_calibrate_cb);
-            Log.verbose(TAG_OOBE,F("Enabled Auto Calibrate on touch"));
+            Log.trace(TAG_OOBE,F("Enabled Auto Calibrate on touch"));
         } else {
             lv_obj_set_click(lv_disp_get_layer_sys(NULL), false);
             lv_obj_set_event_cb(lv_disp_get_layer_sys(NULL), gotoPage1_cb);
-            Log.verbose(TAG_OOBE,F("Already calibrated"));
+            Log.trace(TAG_OOBE,F("Already calibrated"));
         }
         oobeSetPage(0);
         return true;
@@ -346,9 +346,9 @@ void oobeFakeSetup()
     if(oobeAutoCalibrate) {
         lv_obj_set_click(lv_disp_get_layer_sys(NULL), true);
         lv_obj_set_event_cb(lv_disp_get_layer_sys(NULL), oobe_calibrate_cb);
-        Log.verbose(TAG_OOBE,F("Enabled Auto Calibrate on touch"));
+        Log.trace(TAG_OOBE,F("Enabled Auto Calibrate on touch"));
     } else {
-        Log.verbose(TAG_OOBE,F("Already calibrated"));
+        Log.trace(TAG_OOBE,F("Already calibrated"));
     }
 #endif
 }

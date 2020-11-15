@@ -131,7 +131,7 @@ void gpioAddButton(uint8_t pin, uint8_t input_mode, uint8_t default_state, uint8
                 buttonConfig->clearFeature(
                     ButtonConfig::kFeatureSuppressClickBeforeDoubleClick); // Causes annoying pauses
 
-                Log.verbose(TAG_GPIO,F("Button%d created on pin %d (index %d) mode %d default %d"), i, pin, index,
+                Log.trace(TAG_GPIO,F("Button%d created on pin %d (index %d) mode %d default %d"), i, pin, index,
                             input_mode, default_state);
                 gpioUsedInputCount = i + 1;
                 return;
@@ -162,7 +162,7 @@ void gpioAddTouchButton(uint8_t pin, uint8_t input_mode, uint8_t default_state, 
                 buttonConfig->clearFeature(
                     ButtonConfig::kFeatureSuppressClickBeforeDoubleClick); // Causes annoying pauses
 
-                Log.verbose(TAG_GPIO,F("Button%d created on pin %d (index %d) mode %d default %d"), i, pin, index,
+                Log.trace(TAG_GPIO,F("Button%d created on pin %d (index %d) mode %d default %d"), i, pin, index,
                             input_mode, default_state);
                 gpioUsedInputCount = i + 1;
                 return;
@@ -573,7 +573,7 @@ bool gpioGetConfig(const JsonObject & settings)
         if(i < HASP_NUM_GPIO_CONFIG) {
             uint32_t cur_val = gpioConfig[i].pin | (gpioConfig[i].group << 8) | (gpioConfig[i].type << 16) |
                                (gpioConfig[i].gpio_function << 24);
-            Log.verbose(TAG_GPIO,F("GPIO CONF: %d: %d <=> %d"), i, cur_val, v.as<uint32_t>());
+            Log.trace(TAG_GPIO,F("GPIO CONF: %d: %d <=> %d"), i, cur_val, v.as<uint32_t>());
 
             if(cur_val != v.as<uint32_t>()) changed = true;
             v.set(cur_val);

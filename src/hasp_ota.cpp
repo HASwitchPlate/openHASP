@@ -39,7 +39,7 @@ void otaProgress()
 void otaSetup()
 {
     if(strlen(otaUrl.c_str())) {
-        Log.verbose(TAG_OTA, otaUrl.c_str());
+        Log.trace(TAG_OTA, otaUrl.c_str());
     }
 
     if(otaPort > 0) {
@@ -49,15 +49,16 @@ void otaSetup()
                 // NOTE: if updating SPIFFS this would be the place to unmount SPIFFS using SPIFFS.end()
             }
 
-            Log.notice(TAG_OTA, F("Start update"));
+            Log.notice(TAG_OTA, F("Starting OTA update"));
             haspProgressVal(0);
             haspProgressMsg(F("Firmware Update"));
             otaPrecentageComplete = 0;
         });
         ArduinoOTA.onEnd([]() {
             otaPrecentageComplete = 100;
-            haspProgressMsg(F("Applying Firmware & Reboot"));
+            Log.notice(TAG_OTA, F("OTA update complete"));
             haspProgressVal(100);
+            haspProgressMsg(F("Applying Firmware & Reboot"));
             otaProgress();
             otaPrecentageComplete = -1;
             // setup();
@@ -117,9 +118,9 @@ void otaSetup()
         ArduinoOTA.setRebootOnSuccess(false); // We do that
 
         ArduinoOTA.begin();
-        Log.notice(TAG_OTA, F("Over the Air firmware update ready"));
+        Log.trace(TAG_OTA, F("Over the Air firmware update ready"));
     } else {
-        Log.notice(TAG_OTA, F("Disabled"));
+        Log.warning(TAG_OTA, F("Disabled"));
     }
 }
 

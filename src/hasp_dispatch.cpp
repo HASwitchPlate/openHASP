@@ -13,7 +13,7 @@
 #include "hasp_hal.h"
 #include "hasp.h"
 
- bool is_true(const char * s)
+bool is_true(const char * s)
 {
     return (!strcasecmp_P(s, PSTR("true")) || !strcasecmp_P(s, PSTR("on")) || !strcasecmp_P(s, PSTR("yes")) ||
             !strcmp_P(s, PSTR("1")));
@@ -122,7 +122,7 @@ void dispatchParseJsonl(char * payload)
 // p[x].b[y]=value
 inline void dispatch_process_button_attribute(String strTopic, const char * payload)
 {
-    // Log.trace(TAG_MSGR,F("BTN ATTR: %s = %s"), strTopic.c_str(), payload);
+    // Log.verbose(TAG_MSGR,F("BTN ATTR: %s = %s"), strTopic.c_str(), payload);
 
     String strPageId((char *)0);
     String strTemp((char *)0);
@@ -193,7 +193,7 @@ void dispatchCommand(const char * topic, const char * payload)
         haspWakeUp();
 
     } else if(strcasecmp_P(topic, PSTR("screenshot")) == 0) {
-        guiTakeScreenshot("/screenhot.bmp");
+        guiTakeScreenshot("/screenshot.bmp"); // Literal String
 
     } else if(strcasecmp_P(topic, PSTR("")) == 0 || strcasecmp_P(topic, PSTR("statusupdate")) == 0) {
         dispatch_output_statusupdate();
@@ -330,7 +330,7 @@ void dispatchBacklight(const char * payload)
 // Strip command/config prefix from the topic and process the payload
 void dispatchTopicPayload(const char * topic, const char * payload)
 {
-    // Log.trace(TAG_MSGR,F("TOPIC: short topic: %s"), topic);
+    // Log.verbose(TAG_MSGR,F("TOPIC: short topic: %s"), topic);
 
     if(!strcmp_P(topic, PSTR("command"))) {
         dispatchTextLine((char *)payload);
@@ -339,7 +339,7 @@ void dispatchTopicPayload(const char * topic, const char * payload)
 
     if(topic == strstr_P(topic, PSTR("command/"))) { // startsWith command/
         topic += 8u;
-        // Log.trace(TAG_MSGR,F("MQTT IN: command subtopic: %s"), topic);
+        // Log.verbose(TAG_MSGR,F("MQTT IN: command subtopic: %s"), topic);
 
         // '[...]/device/command/p[1].b[4].txt' -m '"Lights On"' ==
         // nextionSetAttr("p[1].b[4].txt", "\"Lights On\"")
@@ -432,7 +432,7 @@ void dispatchReboot(bool saveConfig)
     wifiStop();
 #endif
     Log.verbose(TAG_MSGR, F("-------------------------------------"));
-    Log.notice(TAG_MSGR, F("STOP: Properly Rebooting the MCU now!"));
+    Log.notice(TAG_MSGR, F("HALT: Properly Rebooting the MCU now!"));
     Serial.flush();
     halRestart();
 }
@@ -553,7 +553,7 @@ void dispatch_send_object_event(uint8_t pageid, uint8_t objid, uint8_t eventid)
 void dispatchWebUpdate(const char * espOtaUrl)
 {
 #if HASP_USE_OTA > 0
-    Log.verbose(TAG_MSGR, F("Checking for updates at URL: %s"), espOtaUrl);
+    Log.notice(TAG_MSGR, F("Checking for updates at URL: %s"), espOtaUrl);
     otaHttpUpdate(espOtaUrl);
 #endif
 }

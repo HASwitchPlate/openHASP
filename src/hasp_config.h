@@ -2,6 +2,7 @@
 #define HASP_CONFIG_H
 
 #include "ArduinoJson.h"
+#include "hasp_debug.h" // for TAG_CONF
 
 /* json keys used in the configfile */
 const char F_CONFIG_STARTPAGE[] PROGMEM = "startpage";
@@ -39,7 +40,7 @@ void configStop(void);
 void configSetConfig(JsonObject & settings);
 void configGetConfig(JsonDocument & settings);
 void configWriteConfig();
-void configOutput(const JsonObject & settings);
+void configOutput(const JsonObject & settings, uint8_t tag = TAG_CONF);
 
 bool configSet(int8_t & value, const JsonVariant & setting, const __FlashStringHelper * fstr_name);
 bool configSet(uint8_t & value, const JsonVariant & setting, const __FlashStringHelper * fstr_name);

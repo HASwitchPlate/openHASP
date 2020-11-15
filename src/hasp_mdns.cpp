@@ -19,7 +19,7 @@ void mdnsSetup()
 {
     // mdnsSetConfig(settings);
     mdnsStart();
-    Log.verbose(TAG_MDNS, F("Setup Complete"));
+    Log.trace(TAG_MDNS, F("Setup Complete"));
 }
 
 void mdnsStart()
@@ -50,7 +50,7 @@ void mdnsStart()
                         addServiceTxt("arduino", "tcp", "ssh_upload", "no");
                         addServiceTxt("arduino", "tcp", "board", ARDUINO_BOARD);
                         addServiceTxt("arduino", "tcp", "auth_upload", (auth) ? "yes" : "no");*/
-            Log.notice(TAG_MDNS, F("Responder started"));
+            Log.trace(TAG_MDNS, F("Responder started"));
         } else {
             Log.error(TAG_MDNS, F("Responder failed to start %s"), hasp2Node.c_str());
         };
@@ -81,7 +81,7 @@ bool mdnsGetConfig(const JsonObject & settings)
     if(mdnsEnabled != settings[FPSTR(F_CONFIG_ENABLE)].as<bool>()) changed = true;
     settings[FPSTR(F_CONFIG_ENABLE)] = mdnsEnabled;
 
-    if(changed) configOutput(settings);
+    if(changed) configOutput(settings, TAG_MDNS);
     return changed;
 }
 
@@ -95,7 +95,7 @@ bool mdnsGetConfig(const JsonObject & settings)
  **/
 bool mdnsSetConfig(const JsonObject & settings)
 {
-    configOutput(settings);
+    configOutput(settings, TAG_MDNS);
     bool changed = false;
 
     changed |= configSet(mdnsEnabled, settings[FPSTR(F_CONFIG_ENABLE)], F("mdnsEnabled"));
