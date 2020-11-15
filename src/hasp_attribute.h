@@ -9,6 +9,9 @@
 extern "C" {
 #endif
 
+// test
+lv_chart_series_t * lv_chart_get_series(lv_obj_t * chart, uint8_t ser_num);
+
 void hasp_process_obj_attribute(lv_obj_t * obj, const char * attr_p, const char * payload, bool update);
 
 #ifdef __cplusplus
@@ -256,5 +259,12 @@ _HASP_ATTRIBUTE(SCALE_END_LINE_WIDTH, scale_end_line_width, lv_style_int_t)
 #define ATTR_TXT 9328
 #define ATTR_SRC 4964
 #define ATTR_ID 6715
+#define ATTR_DELETE 50027
 
+// Gauge
+#define ATTR_CRITICAL_VALUE 39281
+#define ATTR_ANGLE 2387
+#define ATTR_LABEL_COUNT 20356
+#define ATTR_LINE_COUNT 57860
+#define ATTR_FORMAT 38871
 #endif
