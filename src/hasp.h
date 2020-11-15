@@ -43,6 +43,9 @@ enum hasp_event_t { // even = released, odd = pressed
 };
 
 enum lv_hasp_obj_type_t {
+    LV_HASP_BTNMATRIX = 1,
+    LV_HASP_TABLE     = 2,
+
     LV_HASP_BUTTON   = 10,
     LV_HASP_CHECKBOX = 11,
     LV_HASP_LABEL    = 12,
@@ -62,14 +65,22 @@ enum lv_hasp_obj_type_t {
     LV_HASP_DDLIST = 50,
     LV_HASP_ROLLER = 51,
 
-    LV_HASP_IMAGE = 60,
+    LV_HASP_IMAGE  = 60,
+    LV_HASP_IMGBTN = 61,
+    LV_HASP_CANVAS = 62,
 
-    LV_HASP_TABVIEW  = 70,
-    LV_HASP_TILEVIEW = 71,
+    LV_HASP_TILEVIEW = 70,
+    LV_HASP_TABVIEW  = 71,
+    LV_HASP_TAB      = 72,
+
+    LV_HASP_CHART    = 80,
+    LV_HASP_CALENDER = 81,
 
     LV_HASP_CONTAINER = 90,
     LV_HASP_OBJECT    = 91,
     LV_HASP_PAGE      = 92,
+    LV_HASP_MSGBOX    = 93,
+    LV_HASP_WINDOW    = 94,
 };
 
 /**********************
