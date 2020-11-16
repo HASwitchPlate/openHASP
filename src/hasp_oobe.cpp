@@ -8,7 +8,7 @@
 
 #include "lvgl.h"
 
-#include "hasp.h"
+#include "hasp_object.h"
 #include "hasp_gui.h"
 #include "hasp_wifi.h"
 #include "hasp_config.h"
