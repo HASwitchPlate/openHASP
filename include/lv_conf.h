@@ -11,7 +11,7 @@
 
 #include <stdint.h>
 
-#ifdef ESP8266
+#if defined(ARDUINO_ARCH_ESP8266)
 #define LV_HIGH_RESOURCE_MCU  0
 #endif
 
@@ -76,11 +76,14 @@ typedef int16_t lv_coord_t;
 #define LV_MEM_CUSTOM      0
 #if LV_MEM_CUSTOM == 0
 /* Size of the memory used by `lv_mem_alloc` in bytes (>= 2kB)*/
-#ifdef ESP8266
-#  define LV_MEM_SIZE    (10 * 1024U) // 12KB
-#endif
+
 #ifndef LV_MEM_SIZE
-#  define LV_MEM_SIZE    (20 * 1024U)  // 48KB
+
+#if defined(ARDUINO_ARCH_ESP8266)
+#  define LV_MEM_SIZE    (10 * 1024U) // Minimum 10 Kb
+#else
+#  define LV_MEM_SIZE    (20 * 1024U)  // 20Kb is much better
+#endif
 #endif
 
 /* Complier prefix for a big array declaration */
