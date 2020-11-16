@@ -8,6 +8,7 @@
 #include "hasp_dispatch.h"
 #include "hasp_config.h"
 #include "hasp_debug.h"
+#include "hasp_object.h"
 #include "hasp_gui.h"
 #include "hasp_oobe.h"
 #include "hasp_hal.h"
@@ -109,7 +110,7 @@ void dispatchParseJsonl(Stream & stream)
     while(deserializeJson(jsonl, stream) == DeserializationError::Ok) {
         // serializeJson(jsonl, Serial);
         // Serial.println();
-        haspNewObject(jsonl.as<JsonObject>(), savedPage);
+        hasp_new_object(jsonl.as<JsonObject>(), savedPage);
     }
 }
 

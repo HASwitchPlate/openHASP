@@ -5,6 +5,7 @@
 #include "lv_conf.h"
 
 #include "hasp.h"
+#include "hasp_object.h"
 #include "hasp_dispatch.h"
 #include "hasp_attribute.h"
 
@@ -12,6 +13,9 @@ LV_FONT_DECLARE(unscii_8_icon);
 extern lv_font_t * haspFonts[8];
 
 static inline bool only_digits(const char * s);
+static inline void hasp_out_int(lv_obj_t * obj, const char * attr, uint32_t val);
+static inline void hasp_out_str(lv_obj_t * obj, const char * attr, const char * data);
+static inline void hasp_out_color(lv_obj_t * obj, const char * attr, lv_color_t color);
 
 /* 16-bit hashing function http://www.cse.yorku.ca/~oz/hash.html */
 /* all possible attributes are hashed and checked if they are unique */
@@ -614,6 +618,86 @@ static void hasp_process_gauge_attribute(lv_obj_t * obj, const char * attr_p, ui
     Log.warning(TAG_ATTR, F("Unknown property %s"), attr_p);
 }
 
+static void hasp_process_btnmatrix_attribute(lv_obj_t * obj, const char * attr_p, uint16_t attr_hash,
+                                             const char * payload, bool update)
+{
+    char * attr = (char *)attr_p;
+    if(*attr == '.') attr++; // strip leading '.'
+
+    switch(attr_hash) {
+        case ATTR_MAP: {
+            const char ** map_p = lv_btnmatrix_get_map_array(obj);
+            if(update) {
+                // Free previous map
+                // lv_mem_free(*map_p);
+
+                // if(map_p != lv_btnmatrix_def_map) {
+                // }
+
+                // Create new map
+
+                // Reserve memory for JsonDocument
+                size_t maxsize = (128u * ((strlen(payload) / 128) + 1)) + 256;
+                DynamicJsonDocument map_doc(maxsize);
+                DeserializationError jsonError = deserializeJson(map_doc, payload);
+
+                if(jsonError) { // Couldn't parse incoming JSON payload
+                    return Log.warning(TAG_ATTR, F("JSON: Failed to parse incoming button map with error: %s"),
+                                       jsonError.c_str());
+                }
+
+                JsonArray arr = map_doc.as<JsonArray>(); // Parse payload
+
+                size_t tot_len        = sizeof(char *) * (arr.size() + 1);
+                const char ** map_arr = (const char **)lv_mem_alloc(tot_len);
+                if(map_arr == NULL) {
+                    return Log.error(TAG_ATTR, F("Out of memory while creating button map"));
+                }
+                memset(map_arr, 0, tot_len);
+
+                // Create buffer
+                tot_len    = 0;
+                size_t pos = 0;
+                for(JsonVariant btn : arr) {
+                    tot_len += btn.as<String>().length() + 1;
+                }
+                tot_len++; // trailing '\0'
+                Log.verbose(TAG_ATTR, F("Array Size = %d, Map Length = %d"), arr.size(), tot_len);
+
+                char * buffer = (char *)lv_mem_alloc(tot_len);
+                if(map_arr == NULL) {
+                    lv_mem_free(map_arr);
+                    return Log.error(TAG_ATTR, F("Out of memory while creating button map"));
+                }
+                memset(buffer, 0, tot_len); // Important, last index needs to be 0
+
+                // Fill buffer
+                size_t index = 0;
+                for(JsonVariant btn : arr) {
+                    size_t len = btn.as<String>().length() + 1;
+                    Log.verbose(TAG_ATTR, F("    * Adding button: %s (%d bytes)"), btn.as<String>().c_str(), len);
+                    memccpy(buffer + pos, btn.as<String>().c_str(), 0, len); // Copy the labels into the buffer
+                    map_arr[index++] = buffer + pos;                         // save pointer to start of the label
+                    pos += len;
+                }
+                map_arr[index] = buffer + pos; // save pointer to the last \0 byte
+
+                lv_btnmatrix_set_map(obj, map_arr);
+
+                // TO DO : free & destroy previous buttonmap!
+
+            } else {
+                hasp_out_str(obj, attr, *map_p);
+            }
+            return;
+        } // ATTR_MAP
+    }
+
+    Log.warning(TAG_ATTR, F("Unknown property %s"), attr_p);
+}
+
+// ##################### Common Attributes ########################################################
+
 // OK
 static void hasp_process_obj_attribute_txt(lv_obj_t * obj, const char * attr, const char * payload, bool update)
 {
@@ -800,9 +884,11 @@ static void hasp_process_obj_attribute_range(lv_obj_t * obj, const char * attr, 
         return update ? lv_chart_set_range(obj, set_min ? val : min, set_max ? val : max)
                       : hasp_out_int(obj, attr, set_min ? min : max);
     }
-    
+
     Log.warning(TAG_ATTR, F("Unknown property %s"), attr);
 }
+
+// ##################### Default Attributes ########################################################
 
 /**
  * Change or Retrieve the value of the attribute of an object
@@ -902,6 +988,18 @@ void hasp_process_obj_attribute(lv_obj_t * obj, const char * attr_p, const char 
                 return update ? lv_roller_set_visible_row_count(obj, (uint8_t)val)
                               : hasp_out_int(obj, attr, lv_roller_get_visible_row_count(obj));
             }
+
+            if(check_obj_type(obj, LV_HASP_TABLE)) {
+                return update ? lv_table_set_row_cnt(obj, (uint8_t)val)
+                              : hasp_out_int(obj, attr, lv_table_get_row_cnt(obj));
+            }
+            break;
+
+        case ATTR_COLS:
+            if(check_obj_type(obj, LV_HASP_TABLE)) {
+                return update ? lv_table_set_col_cnt(obj, (uint8_t)val)
+                              : hasp_out_int(obj, attr, lv_table_get_col_cnt(obj));
+            }
             break;
 
             // case ATTR_RECT:
@@ -980,6 +1078,10 @@ void hasp_process_obj_attribute(lv_obj_t * obj, const char * attr_p, const char 
         case ATTR_DELETE:
             return lv_obj_del_async(obj);
 
+        case ATTR_MAP:
+            if(check_obj_type(obj, LV_HASP_BTNMATRIX)) {
+                return hasp_process_btnmatrix_attribute(obj, attr_p, attr_hash, payload, update);
+            }
             // default:
             // hasp_local_style_attr(obj, attr, payload, update);
     }
@@ -1000,106 +1102,19 @@ static inline bool only_digits(const char * s)
     return strlen(s) == digits;
 }
 
-void inline hasp_out_int(lv_obj_t * obj, const char * attr, uint32_t val)
+// ##################### Value Senders ########################################################
+
+static inline void hasp_out_int(lv_obj_t * obj, const char * attr, uint32_t val)
 {
     hasp_send_obj_attribute_int(obj, attr, val);
 }
 
-void inline hasp_out_str(lv_obj_t * obj, const char * attr, const char * data)
+static inline void hasp_out_str(lv_obj_t * obj, const char * attr, const char * data)
 {
     hasp_send_obj_attribute_str(obj, attr, data);
 }
 
-void inline hasp_out_color(lv_obj_t * obj, const char * attr, lv_color_t color)
+static inline void hasp_out_color(lv_obj_t * obj, const char * attr, lv_color_t color)
 {
     hasp_send_obj_attribute_color(obj, attr, color);
-}
-
-/**
- * Check if an lvgl object typename corresponds to a given HASP object ID
- * @param lvobjtype a char* to a string
- * @param haspobjtype the HASP object ID to check against
- * @return true or false wether the types match
- * @note
- */
-bool check_obj_type(const char * lvobjtype, lv_hasp_obj_type_t haspobjtype)
-{
-    lvobjtype += 3; // skip "lv_"
-
-    switch(haspobjtype) {
-        case LV_HASP_BTNMATRIX:
-            return (strcmp_P(lvobjtype, PSTR("btnmatrix")) == 0);
-        case LV_HASP_TABLE:
-            return (strcmp_P(lvobjtype, PSTR("table")) == 0);
-        case LV_HASP_BUTTON:
-            return (strcmp_P(lvobjtype, PSTR("btn")) == 0);
-        case LV_HASP_LABEL:
-            return (strcmp_P(lvobjtype, PSTR("label")) == 0);
-        case LV_HASP_CHECKBOX:
-            return (strcmp_P(lvobjtype, PSTR("checkbox")) == 0); // || (strcmp_P(lvobjtype, PSTR("lv_cb")) == 0);
-        case LV_HASP_DDLIST:
-            return (strcmp_P(lvobjtype, PSTR("dropdown")) == 0); // || (strcmp_P(lvobjtype, PSTR("lv_ddlist")) == 0);
-        case LV_HASP_CPICKER:
-            return (strcmp_P(lvobjtype, PSTR("cpicker")) == 0);
-        case LV_HASP_PRELOADER:
-            return (strcmp_P(lvobjtype, PSTR("spinner")) == 0); // || (strcmp_P(lvobjtype, PSTR("lv_preload")) == 0);
-        case LV_HASP_SLIDER:
-            return (strcmp_P(lvobjtype, PSTR("slider")) == 0);
-        case LV_HASP_GAUGE:
-            return (strcmp_P(lvobjtype, PSTR("gauge")) == 0);
-        case LV_HASP_ARC:
-            return (strcmp_P(lvobjtype, PSTR("arc")) == 0);
-        case LV_HASP_BAR:
-            return (strcmp_P(lvobjtype, PSTR("bar")) == 0);
-        case LV_HASP_LMETER:
-            return (strcmp_P(lvobjtype, PSTR("linemeter")) == 0); // || (strcmp_P(lvobjtype, PSTR("lv_lmeter")) == 0)
-        case LV_HASP_ROLLER:
-            return (strcmp_P(lvobjtype, PSTR("roller")) == 0);
-        case LV_HASP_SWITCH:
-            return (strcmp_P(lvobjtype, PSTR("switch")) == 0); // || (strcmp_P(lvobjtype, PSTR("lv_sw")) == 0)
-        case LV_HASP_LED:
-            return (strcmp_P(lvobjtype, PSTR("led")) == 0);
-        case LV_HASP_IMAGE:
-            return (strcmp_P(lvobjtype, PSTR("img")) == 0);
-        case LV_HASP_IMGBTN:
-            return (strcmp_P(lvobjtype, PSTR("imgbtn")) == 0);
-        case LV_HASP_CONTAINER:
-            return (strcmp_P(lvobjtype, PSTR("container")) == 0); // || (strcmp_P(lvobjtype, PSTR("lv_cont")) == 0)
-        case LV_HASP_OBJECT:
-            return (strcmp_P(lvobjtype, PSTR("page")) == 0); // || (strcmp_P(lvobjtype, PSTR("lv_cont")) == 0)
-        case LV_HASP_PAGE:
-            return (strcmp_P(lvobjtype, PSTR("obj")) == 0); // || (strcmp_P(lvobjtype, PSTR("lv_cont")) == 0)
-        case LV_HASP_TABVIEW:
-            return (strcmp_P(lvobjtype, PSTR("tabview")) == 0);
-        case LV_HASP_TILEVIEW:
-            return (strcmp_P(lvobjtype, PSTR("tileview")) == 0);
-        case LV_HASP_CHART:
-            return (strcmp_P(lvobjtype, PSTR("chart")) == 0);
-        case LV_HASP_CANVAS:
-            return (strcmp_P(lvobjtype, PSTR("canvas")) == 0);
-        case LV_HASP_CALENDER:
-            return (strcmp_P(lvobjtype, PSTR("calender")) == 0);
-        case LV_HASP_MSGBOX:
-            return (strcmp_P(lvobjtype, PSTR("msgbox")) == 0);
-        case LV_HASP_WINDOW:
-            return (strcmp_P(lvobjtype, PSTR("window")) == 0);
-
-        default:
-            return false;
-    }
-}
-
-/**
- * Check if an lvgl objecttype name corresponds to a given HASP object ID
- * @param obj an lv_obj_t* of the object to check its type
- * @param haspobjtype the HASP object ID to check against
- * @return true or false wether the types match
- * @note
- */
-bool check_obj_type(lv_obj_t * obj, lv_hasp_obj_type_t haspobjtype)
-{
-    lv_obj_type_t list;
-    lv_obj_get_type(obj, &list);
-    const char * objtype = list.type[0];
-    return check_obj_type(objtype, haspobjtype);
 }

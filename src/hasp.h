@@ -42,47 +42,6 @@ enum hasp_event_t { // even = released, odd = pressed
     HASP_EVENT_DOUBLE = 8
 };
 
-enum lv_hasp_obj_type_t {
-    LV_HASP_BTNMATRIX = 1,
-    LV_HASP_TABLE     = 2,
-
-    LV_HASP_BUTTON   = 10,
-    LV_HASP_CHECKBOX = 11,
-    LV_HASP_LABEL    = 12,
-
-    LV_HASP_CPICKER   = 20,
-    LV_HASP_PRELOADER = 21,
-    LV_HASP_ARC       = 22,
-
-    LV_HASP_SLIDER = 30,
-    LV_HASP_GAUGE  = 31,
-    LV_HASP_BAR    = 32,
-    LV_HASP_LMETER = 33,
-
-    LV_HASP_SWITCH = 40,
-    LV_HASP_LED    = 41,
-
-    LV_HASP_DDLIST = 50,
-    LV_HASP_ROLLER = 51,
-
-    LV_HASP_IMAGE  = 60,
-    LV_HASP_IMGBTN = 61,
-    LV_HASP_CANVAS = 62,
-
-    LV_HASP_TILEVIEW = 70,
-    LV_HASP_TABVIEW  = 71,
-    LV_HASP_TAB      = 72,
-
-    LV_HASP_CHART    = 80,
-    LV_HASP_CALENDER = 81,
-
-    LV_HASP_CONTAINER = 90,
-    LV_HASP_OBJECT    = 91,
-    LV_HASP_PAGE      = 92,
-    LV_HASP_MSGBOX    = 93,
-    LV_HASP_WINDOW    = 94,
-};
-
 /**********************
  * GLOBAL PROTOTYPES
  **********************/
@@ -93,17 +52,17 @@ enum lv_hasp_obj_type_t {
 void haspSetup();
 void haspLoop(void);
 
+lv_obj_t * get_page_obj(uint8_t pageid);
+bool get_page_id(lv_obj_t * obj, uint8_t * pageid);
+
 void haspSetPage(uint8_t id);
 uint8_t haspGetPage();
 void haspClearPage(uint16_t pageid);
+
 String haspGetNodename();
 String haspGetVersion();
 void haspBackground(uint16_t pageid, uint16_t imageid);
 
-void hasp_send_obj_attribute_str(lv_obj_t * obj, const char * attribute, const char * data);
-void hasp_send_obj_attribute_int(lv_obj_t * obj, const char * attribute, int32_t val);
-void hasp_send_obj_attribute_color(lv_obj_t * obj, const char * attribute, lv_color_t color);
-void hasp_process_attribute(uint8_t pageid, uint8_t objid, const char * attr, const char * payload);
 void hasp_set_group_objects(uint8_t groupid, uint8_t eventid, lv_obj_t * src_obj);
 
 void haspNewObject(const JsonObject & config, uint8_t & saved_page_id);
@@ -116,11 +75,7 @@ void haspProgressVal(uint8_t val);
 bool haspGetConfig(const JsonObject & settings);
 bool haspSetConfig(const JsonObject & settings);
 
-lv_obj_t * hasp_find_obj_from_id(lv_obj_t * parent, uint8_t objid);
 lv_font_t * hasp_get_font(uint8_t fontid);
-
-void IRAM_ATTR btn_event_handler(lv_obj_t * obj, lv_event_t event);
-void IRAM_ATTR toggle_event_handler(lv_obj_t * obj, lv_event_t event);
 
 /**********************
  *      MACROS

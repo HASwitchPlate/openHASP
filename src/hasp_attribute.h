@@ -18,13 +18,6 @@ void hasp_process_obj_attribute(lv_obj_t * obj, const char * attr_p, const char 
 } /* extern "C" */
 #endif
 
-void hasp_out_int(lv_obj_t * obj, const char * attr, uint32_t val);
-void hasp_out_str(lv_obj_t * obj, const char * attr, const char * data);
-void hasp_out_color(lv_obj_t * obj, const char * attr, lv_color_t color);
-
-bool check_obj_type(const char * lvobjtype, lv_hasp_obj_type_t haspobjtype);
-bool check_obj_type(lv_obj_t * obj, lv_hasp_obj_type_t haspobjtype);
-
 #define _HASP_ATTRIBUTE(prop_name, func_name, value_type)                                                              \
     static inline void attribute_##func_name(lv_obj_t * obj, uint8_t part, lv_state_t state, bool update,              \
                                              const char * attr, value_type val)                                        \
@@ -34,7 +27,7 @@ bool check_obj_type(lv_obj_t * obj, lv_hasp_obj_type_t haspobjtype);
         } else {                                                                                                       \
             value_type temp = lv_obj_get_style_##func_name(obj, part);                                                 \
             /*lv_obj_get_style_##func_name(obj, part, state, &temp);*/                                                 \
-            return hasp_out_int(obj, attr, temp);                                                                      \
+            return hasp_send_obj_attribute_int(obj, attr, temp);                                                       \
         }                                                                                                              \
     }
 
@@ -253,6 +246,7 @@ _HASP_ATTRIBUTE(SCALE_END_LINE_WIDTH, scale_end_line_width, lv_style_int_t)
 #define ATTR_MODE 45891
 // #define ATTR_RECT 11204
 #define ATTR_ROWS 52153
+#define ATTR_COLS 36307
 #define ATTR_MIN 46130
 #define ATTR_MAX 45636
 #define ATTR_VAL 15809
@@ -267,4 +261,7 @@ _HASP_ATTRIBUTE(SCALE_END_LINE_WIDTH, scale_end_line_width, lv_style_int_t)
 #define ATTR_LABEL_COUNT 20356
 #define ATTR_LINE_COUNT 57860
 #define ATTR_FORMAT 38871
+
+// Buttonmatric
+#define ATTR_MAP 45628
 #endif
