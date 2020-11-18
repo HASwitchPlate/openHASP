@@ -63,7 +63,7 @@ static int8_t guiDimLevel     = -1;
 static int8_t guiBacklightPin = TFT_BCKL;
 static uint16_t guiSleepTime1 = 60;  // 1 second resolution
 static uint16_t guiSleepTime2 = 120; // 1 second resolution
-static uint8_t guiSleeping    = 0;   // 0 = off, 1 = short, 2 = long
+static uint8_t guiSleeping    = HASP_SLEEP_OFF;
 static uint8_t guiTickPeriod  = 20;
 static uint8_t guiRotation    = TFT_ROTATION;
 #if ESP32 > 0 || ESP8266 > 0
@@ -74,27 +74,32 @@ static Ticker tick(lv_tick_handler, LVGL_TICK_PERIOD); // guiTickPeriod);
 // static TFT_eSPI tft; // = TFT_eSPI(); /* TFT instance */
 static uint16_t calData[5] = {0, 65535, 0, 65535, 0};
 
-static bool guiCheckSleep()
+bool guiCheckSleep()
 {
+    char idle_state[6];
     uint32_t idle = lv_disp_get_inactive_time(NULL);
+
     if(idle >= (guiSleepTime1 + guiSleepTime2) * 1000U) {
-        if(guiSleeping != 2) {
-            dispatch_output_idle_state(("LONG")); // Literal string
-            guiSleeping = 2;
+        if(guiSleeping != HASP_SLEEP_SHORT) {
+            snprintf_P(idle_state, sizeof(idle_state), PSTR("LONG"));
+            dispatch_output_idle_state(idle_state);
+            guiSleeping = HASP_SLEEP_LONG;
         }
-        return true;
     } else if(idle >= guiSleepTime1 * 1000U) {
-        if(guiSleeping != 1) {
-            dispatch_output_idle_state(("SHORT")); // Literal string
-            guiSleeping = 1;
+        if(guiSleeping != HASP_SLEEP_SHORT) {
+            snprintf_P(idle_state, sizeof(idle_state), PSTR("SHORT"));
+            dispatch_output_idle_state(idle_state);
+            guiSleeping = HASP_SLEEP_SHORT;
         }
-        return true;
+    } else {
+        if(guiSleeping != HASP_SLEEP_OFF) {
+            snprintf_P(idle_state, sizeof(idle_state), PSTR("OFF"));
+            dispatch_output_idle_state(idle_state);
+            guiSleeping = HASP_SLEEP_OFF;
+        }
     }
-    if(guiSleeping != 0) {
-        dispatch_output_idle_state(("OFF")); // Literal string
-        guiSleeping = 0;
-    }
-    return false;
+
+    return (guiSleeping != HASP_SLEEP_OFF);
 }
 
 /* Experimental Display flushing */
@@ -391,11 +396,11 @@ bool IRAM_ATTR my_touchpad_read(lv_indev_drv_t * indev_driver, lv_indev_data_t *
 #else
     // xpt2046_alt_drv_read(indev_driver, data);
     xpt2046_read(indev_driver, data);
-    if(data->state && guiSleeping > 0) guiCheckSleep();
+    if(data->state && guiSleeping != HASP_SLEEP_OFF) guiCheckSleep();
     return false;
 #endif
 
-    if(touched && guiSleeping > 0) guiCheckSleep(); // update Idle
+    if(touched && guiSleeping != HASP_SLEEP_OFF) guiCheckSleep(); // update Idle
 
     // Ignore first press?
 
@@ -811,7 +816,7 @@ bool guiSetConfig(const JsonObject & settings)
 
         if(calData[0] != 0 || calData[1] != 65535 || calData[2] != 0 || calData[3] != 65535) {
             Log.verbose(TAG_GUI, F("calData set [%u, %u, %u, %u, %u]"), calData[0], calData[1], calData[2], calData[3],
-                      calData[4]);
+                        calData[4]);
             oobeSetAutoCalibrate(false);
         } else {
             Log.notice(TAG_GUI, F("First Touch Calibration enabled"));

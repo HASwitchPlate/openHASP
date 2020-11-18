@@ -13,6 +13,7 @@
 #include "ArduinoLog.h"
 
 #include "hasp.h"
+#include "hasp_gui.h"
 #include "hasp_object.h"
 #include "hasp_dispatch.h"
 #include "hasp_attribute.h"
@@ -221,7 +222,7 @@ static inline void hasp_send_obj_attribute_txt(lv_obj_t * obj, const char * txt)
 void IRAM_ATTR btn_event_handler(lv_obj_t * obj, lv_event_t event)
 {
     uint8_t eventid;
-    char buffer[64];
+    char buffer[6];
 
     switch(event) {
         case LV_EVENT_PRESSED:
@@ -268,9 +269,11 @@ void IRAM_ATTR btn_event_handler(lv_obj_t * obj, lv_event_t event)
             return;
     }
 
+    guiCheckSleep();
+
     if(obj == lv_disp_get_layer_sys(NULL)) {
 #if HASP_USE_MQTT > 0
-        mqtt_send_state(F("wakeuptouch"), buffer);
+        mqtt_send_state(F("wakeuptouch"), buffer); // TODO: enable wakeuptouch
 #endif
     } else {
         // hasp_send_obj_attribute_event(obj, buffer);
@@ -298,9 +301,9 @@ static void table_event_handler(lv_obj_t * obj, lv_event_t event)
     if(event == LV_EVENT_VALUE_CHANGED) {
         uint16_t row;
         uint16_t col;
-        if(lv_table_get_pressed_cell(obj, &row, &col) == LV_RES_OK) {
-            hasp_send_obj_attribute_val(obj, row);
-        }
+        guiCheckSleep();
+
+        if(lv_table_get_pressed_cell(obj, &row, &col) == LV_RES_OK) hasp_send_obj_attribute_val(obj, row);
     }
 }
 
@@ -311,9 +314,13 @@ static void table_event_handler(lv_obj_t * obj, lv_event_t event)
  */
 void IRAM_ATTR toggle_event_handler(lv_obj_t * obj, lv_event_t event)
 {
-    bool toggled =
-        lv_btn_get_state(obj) == LV_BTN_STATE_CHECKED_PRESSED || lv_btn_get_state(obj) == LV_BTN_STATE_CHECKED_RELEASED;
-    if(event == LV_EVENT_VALUE_CHANGED) hasp_send_obj_attribute_val(obj, toggled);
+    if(event == LV_EVENT_VALUE_CHANGED) {
+        bool toggled = lv_btn_get_state(obj) == LV_BTN_STATE_CHECKED_PRESSED ||
+                       lv_btn_get_state(obj) == LV_BTN_STATE_CHECKED_RELEASED;
+        guiCheckSleep();
+
+        hasp_send_obj_attribute_val(obj, toggled);
+    }
 }
 
 /**
@@ -368,8 +375,10 @@ static void slider_event_handler(lv_obj_t * obj, lv_event_t event)
  */
 static void cpicker_event_handler(lv_obj_t * obj, lv_event_t event)
 {
-    if(event == LV_EVENT_VALUE_CHANGED)
-        hasp_send_obj_attribute_color(obj, "color", lv_cpicker_get_color(obj)); // Literial string
+    char color[6];
+    snprintf_P(color, sizeof(color), PSTR("color"));
+
+    if(event == LV_EVENT_VALUE_CHANGED) hasp_send_obj_attribute_color(obj, color, lv_cpicker_get_color(obj));
 }
 
 /**
