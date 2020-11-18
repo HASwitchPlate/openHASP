@@ -1,3 +1,6 @@
+/* MIT License - Copyright (c) 2020 Francis Van Roie
+   For full license information read the LICENSE file in the project folder */
+
 #ifndef HASP_FILESYSTEM_H
 #define HASP_FILESYSTEM_H
 
@@ -20,7 +23,7 @@ void filesystemInfo();
 
 #if defined(ARDUINO_ARCH_ESP8266) || defined(ARDUINO_ARCH_ESP32)
 #include <FS.h>
-#include <ESP.h>
+#include <Esp.h>
 
 #if HASP_USE_SPIFFS > 0
 #define HASP_FS SPIFFS

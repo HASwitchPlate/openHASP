@@ -1,13 +1,16 @@
+/* MIT License - Copyright (c) 2020 Francis Van Roie
+   For full license information read the LICENSE file in the project folder */
+
 #include "hasp_hal.h"
 #include "hasp_conf.h"
 
 #if defined(ESP8266)
-#include <ESP.h>
+#include <Esp.h>
 #include <ESP8266WiFi.h>
 #endif
 
 #if defined(ESP32)
-#include <ESP.h>
+#include <Esp.h>
 #include <Wifi.h>
 #include "esp_system.h"
 #endif

@@ -1,3 +1,6 @@
+/* MIT License - Copyright (c) 2020 Francis Van Roie
+   For full license information read the LICENSE file in the project folder */
+
 #include "hasp_conf.h"
 #if HASP_USE_MQTT > 0
 
@@ -14,7 +17,7 @@ WiFiClient mqttNetworkClient;
 #elif defined(ARDUINO_ARCH_ESP8266)
 #include <ESP8266WiFi.h>
 #include <EEPROM.h>
-#include <ESP.h>
+#include <Esp.h>
 WiFiClient mqttNetworkClient;
 #else
 #if defined(STM32F4xx) && HASP_USE_WIFI > 0
