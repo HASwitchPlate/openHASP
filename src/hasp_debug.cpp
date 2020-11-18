@@ -67,11 +67,12 @@ WiFiUDP * syslogClient;
 #endif // USE_SYSLOG
 
 // Serial Settings
-uint16_t serialInputIndex    = 0; // Empty buffer
-char serialInputBuffer[1024] = "";
-uint16_t debugSerialBaud     = SERIAL_SPEED / 10; // Multiplied by 10
-bool debugSerialStarted      = false;
-bool debugAnsiCodes          = true;
+uint16_t serialInputIndex   = 0; // Empty buffer
+char serialInputBuffer[220] = "";
+uint16_t historyIndex       = sizeof(serialInputBuffer) - 1; // Empty buffer
+uint16_t debugSerialBaud    = SERIAL_SPEED / 10;             // Multiplied by 10
+bool debugSerialStarted     = false;
+bool debugAnsiCodes         = true;
 
 //#define TERM_COLOR_Black "\u001b[30m"
 #define TERM_COLOR_GRAY "\e[37m"
@@ -130,6 +131,9 @@ void debugStart()
 
 void debugSetup()
 {
+    memset(serialInputBuffer, 0, sizeof(serialInputBuffer));
+    serialInputIndex = 0;
+
 #if HASP_USE_SYSLOG > 0
     // syslog = new Syslog(syslogClient, debugSyslogProtocol == 0 ? SYSLOG_PROTO_IETF : SYSLOG_PROTO_BSD);
     // syslog->server(debugSyslogHost, debugSyslogPort);
@@ -218,6 +222,95 @@ bool debugSetConfig(const JsonObject & settings)
 inline void debugSendAnsiCode(const __FlashStringHelper * code, Print * _logOutput)
 {
     if(debugAnsiCodes) _logOutput->print(code);
+}
+
+size_t debugHistorycount()
+{
+    size_t count = 0;
+    for(size_t i = 1; i < sizeof(serialInputBuffer); i++) {
+        if(serialInputBuffer[i] == 0 && serialInputBuffer[i - 1] != 0) count++;
+    }
+    return count;
+}
+
+size_t debugHistoryIndex(size_t num)
+{
+    size_t pos = 0;
+    while(num > 0 && pos < sizeof(serialInputBuffer) - 2) {
+        if(serialInputBuffer[pos] == 0) {
+            num--;
+            // skip extra \0s
+            while(serialInputBuffer[pos] == 0) {
+                pos++;
+            }
+        } else {
+            pos++;
+        }
+    }
+
+    return pos;
+}
+
+void debugShowHistory()
+{
+    size_t num = debugHistorycount();
+    Serial.println();
+    for(int i = 0; i <= num; i++) {
+        Serial.print("[");
+        Serial.print(i);
+        Serial.print("] ");
+        size_t pos = debugHistoryIndex(i);
+        if(pos < sizeof(serialInputBuffer)) Serial.println((char *)(serialInputBuffer + pos));
+    }
+}
+
+void debugGetHistoryLine(size_t num)
+{
+    size_t pos    = debugHistoryIndex(num);
+    size_t len    = strlen(serialInputBuffer);
+    char * dst    = serialInputBuffer;
+    char * src    = serialInputBuffer + pos;
+    size_t newlen = strlen(src);
+    if(len < newlen) {
+        // make room, shift whole buffer right
+        dst = serialInputBuffer + newlen - len;
+        src = serialInputBuffer;
+        memmove(dst, src, sizeof(serialInputBuffer) - newlen + len);
+
+        dst = serialInputBuffer;
+        memset(dst, 0, newlen);
+    } else {
+        memset(dst, 0, len);
+    }
+    dst = serialInputBuffer;
+    src = serialInputBuffer + pos + newlen - len;
+    memmove(dst, src, newlen);
+}
+
+void debugPrintPrompt()
+{ // Print current input - string
+
+    Serial.print(F(TERM_CLEAR_LINE)); // Move all the way left + Clear the line
+    Serial.print(F("hasp > "));
+
+    for(uint i = 0; i < sizeof(serialInputBuffer); i++) {
+        if(serialInputBuffer[i] == 0) {
+            Serial.print("|");
+        } else {
+            Serial.print((char)serialInputBuffer[i]);
+        }
+    }
+    Serial.print(historyIndex);
+    Serial.print("/");
+    Serial.print(debugHistorycount());
+    //        Serial.print(serialInputBuffer);
+    Serial.print("\e[1000D"); // Move all the way left again
+    /*if(serialInputIndex > 0)*/ {
+        Serial.print("\e[");
+        Serial.print(serialInputIndex + 7); // Move cursor too index
+        Serial.print("C");
+    }
+    // Serial.flush();
 }
 
 static void debugPrintTimestamp(int level, Print * _logOutput)
@@ -417,7 +510,6 @@ static void debugPrintTag(uint8_t tag, Print * _logOutput)
 void debugPrintPrefix(uint8_t tag, int level, Print * _logOutput)
 {
 #if HASP_USE_SYSLOG > 0
-    // if(!syslogClient) return;
 
     if(_logOutput == syslogClient && syslogClient) {
         if(syslogClient->beginPacket(debugSyslogHost, debugSyslogPort)) {
@@ -442,9 +534,15 @@ void debugPrintPrefix(uint8_t tag, int level, Print * _logOutput)
             } else {
                 syslogClient->print(F(": "));
             }
-        }
-    }
+
+            debugPrintHaspMemory(level, _logOutput);
+#if LV_MEM_CUSTOM == 0
+            debugPrintLvglMemory(level, _logOutput);
 #endif
+        }
+        return;
+    }
+#endif // HASP_USE_SYSLOG
 
     debugSendAnsiCode(F(TERM_CLEAR_LINE), _logOutput);
     debugPrintTimestamp(level, _logOutput);
@@ -452,7 +550,16 @@ void debugPrintPrefix(uint8_t tag, int level, Print * _logOutput)
 #if LV_MEM_CUSTOM == 0
     debugPrintLvglMemory(level, _logOutput);
 #endif
-    debugPrintPriority(level, _logOutput);
+    switch(tag) {
+        case TAG_MQTT_PUB:
+            debugSendAnsiCode(F(TERM_COLOR_GREEN), _logOutput);
+            break;
+        case TAG_MQTT_RCV:
+            debugSendAnsiCode(F(TERM_COLOR_ORANGE), _logOutput);
+            break;
+        default:
+            debugPrintPriority(level, _logOutput);
+    }
     _logOutput->print(F(" "));
     debugPrintTag(tag, _logOutput);
     _logOutput->print(F(": "));
@@ -473,8 +580,8 @@ void debugPrintSuffix(uint8_t tag, int level, Print * _logOutput)
         _logOutput->println();
 
     _logOutput->print("hasp > ");
-    _logOutput->print(serialInputBuffer);
 
+    if(_logOutput == &Serial) debugPrintPrompt();
     // syslogSend(level, debugOutput);
 }
 
@@ -550,21 +657,29 @@ void debugLoop()
         switch(ch) {
             case 1: // ^A = goto begin
                 serialInputIndex = 0;
+                historyIndex     = 0;
                 break;
             case 3: // ^C
                 serialInputIndex = 0;
+                historyIndex     = 0;
                 break;
             case 5: // ^E = goto end
                 serialInputIndex = strlen(serialInputBuffer);
+                historyIndex     = 0;
                 break;
             case 8: // Backspace
             {
+                if(serialInputIndex > strlen(serialInputBuffer)) {
+                    serialInputIndex = strlen(serialInputBuffer);
+                }
+
                 if(serialInputIndex > 0) {
                     serialInputIndex--;
                     size_t len      = strlen(serialInputBuffer);
                     char * currchar = serialInputBuffer + serialInputIndex;
                     memmove(currchar, currchar + 1, len - serialInputIndex);
                 }
+                historyIndex = 0;
             } break;
             case 9: // Delete
             {
@@ -572,12 +687,21 @@ void debugLoop()
                 char * nextchar       = serialInputBuffer + serialInputIndex;
                 char * remainingchars = serialInputBuffer + serialInputIndex + 1;
                 memmove(nextchar, remainingchars, len - serialInputIndex);
+                historyIndex = 0;
             } break;
             case 10 ... 13: // LF, VT, FF, CR
-                Serial.println();
-                if(serialInputBuffer[0] != 0) dispatchTextLine(serialInputBuffer);
+                if(serialInputBuffer[0] != 0) {
+                    Serial.println();
+                    dispatchTextLine(serialInputBuffer);
+
+                    size_t numchars = 1;
+                    memmove(serialInputBuffer + numchars, serialInputBuffer,
+                            sizeof(serialInputBuffer) - numchars); // Shift chars right
+                }
                 serialInputIndex     = 0;
                 serialInputBuffer[0] = 0;
+                historyIndex         = 0;
+                debugShowHistory();
                 break;
 
             case 27:
@@ -604,6 +728,7 @@ void debugLoop()
                                 if(nextchar == 126) {
                                     dispatchPageNext();
                                 }
+                                historyIndex = 0;
                                 break;
                             case 54: // Page Down
                                 /*if(Serial.peek() >= 0)*/ {
@@ -612,20 +737,33 @@ void debugLoop()
                                         dispatchPagePrev();
                                     }
                                 }
+                                historyIndex = 0;
                                 break;
-                            case 65:
+                            case 65: {
+                                size_t count = debugHistorycount();
+                                if(historyIndex < count) {
+                                    historyIndex++;
+                                    debugGetHistoryLine(historyIndex);
+                                }
                                 break;
+                            }
                             case 66:
+                                if(historyIndex > 0) {
+                                    historyIndex--;
+                                    debugGetHistoryLine(historyIndex);
+                                }
                                 break;
                             case 68: // Left
                                 if(serialInputIndex > 0) {
                                     serialInputIndex--;
                                 }
+                                historyIndex = 0;
                                 break;
                             case 67: // Right
                                 if(serialInputIndex < strlen(serialInputBuffer)) {
                                     serialInputIndex++;
                                 }
+                                historyIndex = 0;
                                 break;
                                 //  default:
                                 //      Serial.println((byte)nextchar);
@@ -637,16 +775,30 @@ void debugLoop()
                 }
                 break;
 
-            case 32 ... 127:
+            case 32 ... 126:
+            case 128 ... 254: {
                 Serial.print(ch);
+                size_t len = strlen(serialInputBuffer);
+                if(serialInputIndex > len) serialInputIndex = len;
+
+                if(serialInputIndex == len && serialInputIndex < sizeof(serialInputBuffer) - 2) {
+                    // expand needed
+                    if(serialInputBuffer[serialInputIndex + 1] != 0) {
+                        // shift right needed
+                        char * dst = serialInputBuffer + len + 1;
+                        char * src = serialInputBuffer + len;
+                        memmove(dst, src, sizeof(serialInputBuffer) - len - 1);
+                    }
+                }
+
                 if(serialInputIndex < sizeof(serialInputBuffer) - 2) {
                     if((size_t)1 + serialInputIndex >= strlen(serialInputBuffer))
                         serialInputBuffer[serialInputIndex + 1] = 0;
                     serialInputBuffer[serialInputIndex++] = ch;
                 }
-                break;
+            } break;
 
-            case 177: // DEL
+            case 127: // DEL
                 break;
                 // default:
 
@@ -656,18 +808,7 @@ void debugLoop()
                 // }
         }
 
-        // Print current input - string
-
-        Serial.print(F(TERM_CLEAR_LINE)); // Move all the way left + Clear the line
-        Serial.print("hasp > ");
-        Serial.print(serialInputBuffer);
-        Serial.print("\e[1000D"); // Move all the way left again
-        /*if(serialInputIndex > 0)*/ {
-            Serial.print("\e[");
-            Serial.print(serialInputIndex + 7); // Move cursor too index
-            Serial.print("C");
-        }
-        // Serial.flush();
+        debugPrintPrompt();
     }
 }
 
