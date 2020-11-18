@@ -13,7 +13,7 @@
 #include <ESP8266WiFi.h>
 #include <WiFiUdp.h>
 #elif defined(ARDUINO_ARCH_ESP32)
-#include <Wifi.h>
+#include <WiFi.h>
 #include <WiFiUdp.h>
 #endif
 
