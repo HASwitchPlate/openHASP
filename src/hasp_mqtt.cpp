@@ -12,7 +12,7 @@
 #include "hasp_mqtt.h"
 
 #if defined(ARDUINO_ARCH_ESP32)
-#include <Wifi.h>
+#include <WiFi.h>
 WiFiClient mqttNetworkClient;
 #elif defined(ARDUINO_ARCH_ESP8266)
 #include <ESP8266WiFi.h>

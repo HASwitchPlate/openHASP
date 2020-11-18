@@ -14,7 +14,7 @@
 #include "hasp_telnet.h"
 
 #if defined(ARDUINO_ARCH_ESP32)
-#include <Wifi.h>
+#include <WiFi.h>
 WiFiClient telnetClient;
 static WiFiServer * telnetServer;
 #elif defined(ARDUINO_ARCH_ESP8266)

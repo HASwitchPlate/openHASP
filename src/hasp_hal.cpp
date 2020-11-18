@@ -11,7 +11,7 @@
 
 #if defined(ESP32)
 #include <Esp.h>
-#include <Wifi.h>
+#include <WiFi.h>
 #include "esp_system.h"
 #endif
 
