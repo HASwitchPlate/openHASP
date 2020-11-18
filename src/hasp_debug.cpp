@@ -3,6 +3,7 @@
 
 #include "ArduinoJson.h"
 #include "ArduinoLog.h"
+#include "Console.h"
 #include "lvgl.h"
 //#include "time.h"
 
@@ -13,7 +14,7 @@
 #include <ESP8266WiFi.h>
 #include <WiFiUdp.h>
 #elif defined(ARDUINO_ARCH_ESP32)
-#include <Wifi.h>
+#include <WiFi.h>
 #include <WiFiUdp.h>
 #endif
 
@@ -70,12 +71,14 @@ WiFiUDP * syslogClient;
 #endif // USE_SYSLOG
 
 // Serial Settings
-uint16_t serialInputIndex   = 0; // Empty buffer
-char serialInputBuffer[220] = "";
-uint16_t historyIndex       = sizeof(serialInputBuffer) - 1; // Empty buffer
-uint16_t debugSerialBaud    = SERIAL_SPEED / 10;             // Multiplied by 10
-bool debugSerialStarted     = false;
-bool debugAnsiCodes         = true;
+// uint16_t serialInputIndex   = 0; // Empty buffer
+// char serialInputBuffer[220] = "";
+// uint16_t historyIndex       = sizeof(serialInputBuffer) - 1; // Empty buffer
+uint16_t debugSerialBaud = SERIAL_SPEED / 10; // Multiplied by 10
+bool debugSerialStarted  = false;
+bool debugAnsiCodes      = true;
+
+Console console(&Serial);
 
 //#define TERM_COLOR_Black "\u001b[30m"
 #define TERM_COLOR_GRAY "\e[37m"
@@ -134,8 +137,8 @@ void debugStart()
 
 void debugSetup()
 {
-    memset(serialInputBuffer, 0, sizeof(serialInputBuffer));
-    serialInputIndex = 0;
+    // memset(serialInputBuffer, 0, sizeof(serialInputBuffer));
+    // serialInputIndex = 0;
 
 #if HASP_USE_SYSLOG > 0
     // syslog = new Syslog(syslogClient, debugSyslogProtocol == 0 ? SYSLOG_PROTO_IETF : SYSLOG_PROTO_BSD);
@@ -226,7 +229,7 @@ inline void debugSendAnsiCode(const __FlashStringHelper * code, Print * _logOutp
 {
     if(debugAnsiCodes) _logOutput->print(code);
 }
-
+/*
 size_t debugHistorycount()
 {
     size_t count = 0;
@@ -308,14 +311,15 @@ void debugPrintPrompt()
     Serial.print(debugHistorycount());
     //        Serial.print(serialInputBuffer);
     Serial.print("\e[1000D"); // Move all the way left again
-    /*if(serialInputIndex > 0)*/ {
-        Serial.print("\e[");
-        Serial.print(serialInputIndex + 7); // Move cursor too index
-        Serial.print("C");
-    }
-    // Serial.flush();
+    /*if(serialInputIndex > 0)*/
+/*{
+    Serial.print("\e[");
+    Serial.print(serialInputIndex + 7); // Move cursor too index
+    Serial.print("C");
 }
-
+// Serial.flush();
+}
+*/
 static void debugPrintTimestamp(int level, Print * _logOutput)
 { /* Print Current Time */
     time_t rawtime;
@@ -584,7 +588,7 @@ void debugPrintSuffix(uint8_t tag, int level, Print * _logOutput)
 
     _logOutput->print("hasp > ");
 
-    if(_logOutput == &Serial) debugPrintPrompt();
+    //  if(_logOutput == &Serial) debugPrintPrompt();
     // syslogSend(level, debugOutput);
 }
 
@@ -654,165 +658,195 @@ void debugLvgl(lv_log_level_t level, const char * file, uint32_t line, const cha
 
 void debugLoop()
 {
-    while(Serial.available()) {
-        char ch = Serial.read();
-        // Serial.println((byte)ch);
-        switch(ch) {
-            case 1: // ^A = goto begin
-                serialInputIndex = 0;
-                historyIndex     = 0;
-                break;
-            case 3: // ^C
-                serialInputIndex = 0;
-                historyIndex     = 0;
-                break;
-            case 5: // ^E = goto end
-                serialInputIndex = strlen(serialInputBuffer);
-                historyIndex     = 0;
-                break;
-            case 8: // Backspace
-            {
-                if(serialInputIndex > strlen(serialInputBuffer)) {
-                    serialInputIndex = strlen(serialInputBuffer);
-                }
 
-                if(serialInputIndex > 0) {
-                    serialInputIndex--;
-                    size_t len      = strlen(serialInputBuffer);
-                    char * currchar = serialInputBuffer + serialInputIndex;
-                    memmove(currchar, currchar + 1, len - serialInputIndex);
-                }
-                historyIndex = 0;
-            } break;
-            case 9: // Delete
-            {
-                size_t len            = strlen(serialInputBuffer);
-                char * nextchar       = serialInputBuffer + serialInputIndex;
-                char * remainingchars = serialInputBuffer + serialInputIndex + 1;
-                memmove(nextchar, remainingchars, len - serialInputIndex);
-                historyIndex = 0;
-            } break;
-            case 10 ... 13: // LF, VT, FF, CR
-                if(serialInputBuffer[0] != 0) {
-                    Serial.println();
-                    dispatchTextLine(serialInputBuffer);
+    uint16_t key = console.getKey();
 
-                    size_t numchars = 1;
-                    memmove(serialInputBuffer + numchars, serialInputBuffer,
-                            sizeof(serialInputBuffer) - numchars); // Shift chars right
-                }
-                serialInputIndex     = 0;
-                serialInputBuffer[0] = 0;
-                historyIndex         = 0;
-                debugShowHistory();
-                break;
+    switch(key) {
 
-            case 27:
-                /*if(Serial.peek() >= 0)*/ {
-                    char nextchar = Serial.read();
-                    if(nextchar == 91 /*&& Serial.peek() >= 0*/) {
-                        nextchar = Serial.read();
-                        switch(nextchar) {
-                            case 51: // Del
-                                /*if(Serial.peek() >= 0)*/ {
-                                    nextchar = Serial.read();
-                                }
-                                if(nextchar == 126) {
-                                    size_t len            = strlen(serialInputBuffer);
-                                    char * nextchar       = serialInputBuffer + serialInputIndex;
-                                    char * remainingchars = serialInputBuffer + serialInputIndex + 1;
-                                    memmove(nextchar, remainingchars, len - serialInputIndex);
-                                }
-                                break;
-                            case 53: // Page Up
-                                /*if(Serial.peek() >= 0)*/ {
-                                    nextchar = Serial.read();
-                                }
-                                if(nextchar == 126) {
-                                    dispatchPageNext();
-                                }
-                                historyIndex = 0;
-                                break;
-                            case 54: // Page Down
-                                /*if(Serial.peek() >= 0)*/ {
-                                    nextchar = Serial.read();
-                                    if(nextchar == 126) {
-                                        dispatchPagePrev();
-                                    }
-                                }
-                                historyIndex = 0;
-                                break;
-                            case 65: {
-                                size_t count = debugHistorycount();
-                                if(historyIndex < count) {
-                                    historyIndex++;
-                                    debugGetHistoryLine(historyIndex);
-                                }
-                                break;
-                            }
-                            case 66:
-                                if(historyIndex > 0) {
-                                    historyIndex--;
-                                    debugGetHistoryLine(historyIndex);
-                                }
-                                break;
-                            case 68: // Left
-                                if(serialInputIndex > 0) {
-                                    serialInputIndex--;
-                                }
-                                historyIndex = 0;
-                                break;
-                            case 67: // Right
-                                if(serialInputIndex < strlen(serialInputBuffer)) {
-                                    serialInputIndex++;
-                                }
-                                historyIndex = 0;
-                                break;
-                                //  default:
-                                //      Serial.println((byte)nextchar);
-                        }
-                    }
-                    /* } else { // ESC, clear buffer
-                         serialInputIndex                    = 0;
-                         serialInputBuffer[serialInputIndex] = 0;*/
-                }
-                break;
+        case Console::KEY_LF... Console::KEY_CR:
+            console.print("You typed :");
+            console.println(console.getLine());
+            console.clearLine();
+            break;
 
-            case 32 ... 126:
-            case 128 ... 254: {
-                Serial.print(ch);
-                size_t len = strlen(serialInputBuffer);
-                if(serialInputIndex > len) serialInputIndex = len;
+        case Console::KEY_PAGE_UP:
+            console.println("PAGE_UP pressed");
+            break;
 
-                if(serialInputIndex == len && serialInputIndex < sizeof(serialInputBuffer) - 2) {
-                    // expand needed
-                    if(serialInputBuffer[serialInputIndex + 1] != 0) {
-                        // shift right needed
-                        char * dst = serialInputBuffer + len + 1;
-                        char * src = serialInputBuffer + len;
-                        memmove(dst, src, sizeof(serialInputBuffer) - len - 1);
-                    }
-                }
-
-                if(serialInputIndex < sizeof(serialInputBuffer) - 2) {
-                    if((size_t)1 + serialInputIndex >= strlen(serialInputBuffer))
-                        serialInputBuffer[serialInputIndex + 1] = 0;
-                    serialInputBuffer[serialInputIndex++] = ch;
-                }
-            } break;
-
-            case 127: // DEL
-                break;
-                // default:
-
-                // if(strcmp(serialInputBuffer, "jsonl=") == 0) {
-                //     dispatchJsonl(Serial);
-                //     serialInputIndex = 0;
-                // }
-        }
-
-        debugPrintPrompt();
+        case Console::KEY_PAGE_DOWN:
+            console.println("PAGE_DOWN pressed");
+            break;
     }
+
+    if(key == Console::KEY_LF) {
+        console.print("You typed :");
+        console.println(console.getLine());
+        console.clearLine();
+    }
+
+    dispatchTextLine
+
+    if(key > 0) console.update();
+
+    // while(Serial.available()) {
+    //     char ch = Serial.read();
+    //     // Serial.println((byte)ch);
+    //     switch(ch) {
+    //         case 1: // ^A = goto begin
+    //             serialInputIndex = 0;
+    //             historyIndex     = 0;
+    //             break;
+    //         case 3: // ^C
+    //             serialInputIndex = 0;
+    //             historyIndex     = 0;
+    //             break;
+    //         case 5: // ^E = goto end
+    //             serialInputIndex = strlen(serialInputBuffer);
+    //             historyIndex     = 0;
+    //             break;
+    //         case 8: // Backspace
+    //         {
+    //             if(serialInputIndex > strlen(serialInputBuffer)) {
+    //                 serialInputIndex = strlen(serialInputBuffer);
+    //             }
+
+    //             if(serialInputIndex > 0) {
+    //                 serialInputIndex--;
+    //                 size_t len      = strlen(serialInputBuffer);
+    //                 char * currchar = serialInputBuffer + serialInputIndex;
+    //                 memmove(currchar, currchar + 1, len - serialInputIndex);
+    //             }
+    //             historyIndex = 0;
+    //         } break;
+    //         case 9: // Delete
+    //         {
+    //             size_t len            = strlen(serialInputBuffer);
+    //             char * nextchar       = serialInputBuffer + serialInputIndex;
+    //             char * remainingchars = serialInputBuffer + serialInputIndex + 1;
+    //             memmove(nextchar, remainingchars, len - serialInputIndex);
+    //             historyIndex = 0;
+    //         } break;
+    //         case 10 ... 13: // LF, VT, FF, CR
+    //             if(serialInputBuffer[0] != 0) {
+    //                 Serial.println();
+    //                 dispatchTextLine(serialInputBuffer);
+
+    //                 size_t numchars = 1;
+    //                 memmove(serialInputBuffer + numchars, serialInputBuffer,
+    //                         sizeof(serialInputBuffer) - numchars); // Shift chars right
+    //             }
+    //             serialInputIndex     = 0;
+    //             serialInputBuffer[0] = 0;
+    //             historyIndex         = 0;
+    //             debugShowHistory();
+    //             break;
+
+    //         case 27:
+    //             /*if(Serial.peek() >= 0)*/ {
+    //                 char nextchar = Serial.read();
+    //                 if(nextchar == 91 /*&& Serial.peek() >= 0*/) {
+    //                     nextchar = Serial.read();
+    //                     switch(nextchar) {
+    //                         case 51: // Del
+    //                             /*if(Serial.peek() >= 0)*/ {
+    //                                 nextchar = Serial.read();
+    //                             }
+    //                             if(nextchar == 126) {
+    //                                 size_t len            = strlen(serialInputBuffer);
+    //                                 char * nextchar       = serialInputBuffer + serialInputIndex;
+    //                                 char * remainingchars = serialInputBuffer + serialInputIndex + 1;
+    //                                 memmove(nextchar, remainingchars, len - serialInputIndex);
+    //                             }
+    //                             break;
+    //                         case 53: // Page Up
+    //                             /*if(Serial.peek() >= 0)*/ {
+    //                                 nextchar = Serial.read();
+    //                             }
+    //                             if(nextchar == 126) {
+    //                                 dispatchPageNext();
+    //                             }
+    //                             historyIndex = 0;
+    //                             break;
+    //                         case 54: // Page Down
+    //                             /*if(Serial.peek() >= 0)*/ {
+    //                                 nextchar = Serial.read();
+    //                                 if(nextchar == 126) {
+    //                                     dispatchPagePrev();
+    //                                 }
+    //                             }
+    //                             historyIndex = 0;
+    //                             break;
+    //                         case 65: {
+    //                             size_t count = debugHistorycount();
+    //                             if(historyIndex < count) {
+    //                                 historyIndex++;
+    //                                 debugGetHistoryLine(historyIndex);
+    //                             }
+    //                             break;
+    //                         }
+    //                         case 66:
+    //                             if(historyIndex > 0) {
+    //                                 historyIndex--;
+    //                                 debugGetHistoryLine(historyIndex);
+    //                             }
+    //                             break;
+    //                         case 68: // Left
+    //                             if(serialInputIndex > 0) {
+    //                                 serialInputIndex--;
+    //                             }
+    //                             historyIndex = 0;
+    //                             break;
+    //                         case 67: // Right
+    //                             if(serialInputIndex < strlen(serialInputBuffer)) {
+    //                                 serialInputIndex++;
+    //                             }
+    //                             historyIndex = 0;
+    //                             break;
+    //                             //  default:
+    //                             //      Serial.println((byte)nextchar);
+    //                     }
+    //                 }
+    //                 /* } else { // ESC, clear buffer
+    //                      serialInputIndex                    = 0;
+    //                      serialInputBuffer[serialInputIndex] = 0;*/
+    //             }
+    //             break;
+
+    //         case 32 ... 126:
+    //         case 128 ... 254: {
+    //             Serial.print(ch);
+    //             size_t len = strlen(serialInputBuffer);
+    //             if(serialInputIndex > len) serialInputIndex = len;
+
+    //             if(serialInputIndex == len && serialInputIndex < sizeof(serialInputBuffer) - 2) {
+    //                 // expand needed
+    //                 if(serialInputBuffer[serialInputIndex + 1] != 0) {
+    //                     // shift right needed
+    //                     char * dst = serialInputBuffer + len + 1;
+    //                     char * src = serialInputBuffer + len;
+    //                     memmove(dst, src, sizeof(serialInputBuffer) - len - 1);
+    //                 }
+    //             }
+
+    //             if(serialInputIndex < sizeof(serialInputBuffer) - 2) {
+    //                 if((size_t)1 + serialInputIndex >= strlen(serialInputBuffer))
+    //                     serialInputBuffer[serialInputIndex + 1] = 0;
+    //                 serialInputBuffer[serialInputIndex++] = ch;
+    //             }
+    //         } break;
+
+    //         case 127: // DEL
+    //             break;
+    //             // default:
+
+    //             // if(strcmp(serialInputBuffer, "jsonl=") == 0) {
+    //             //     dispatchJsonl(Serial);
+    //             //     serialInputIndex = 0;
+    //             // }
+    //     }
+
+    //     debugPrintPrompt();
+    // }
 }
 
 /*void printLocalTime()
