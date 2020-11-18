@@ -14,24 +14,13 @@
 #include "hasp_hal.h"
 #include "hasp.h"
 
+uint8_t nCommands = 0;
+haspCommand_t commands[15];
+
 bool is_true(const char * s)
 {
     return (!strcasecmp_P(s, PSTR("true")) || !strcasecmp_P(s, PSTR("on")) || !strcasecmp_P(s, PSTR("yes")) ||
             !strcmp_P(s, PSTR("1")));
-}
-
-void dispatchSetup()
-{}
-
-void dispatchLoop()
-{}
-
-// Send status update message to the client
-void dispatch_output_statusupdate()
-{
-#if HASP_USE_MQTT > 0
-    mqtt_send_statusupdate();
-#endif
 }
 
 // Format filesystem and erase EEPROM
@@ -76,50 +65,6 @@ void dispatchGpioOutput(String strTopic, const char * payload)
     dispatchGpioOutput(strTemp.toInt(), is_true(payload));
 }
 
-void dispatchParseJson(char * payload)
-{ // Parse an incoming JSON array into individual commands
-    /*  if(strPayload.endsWith(",]")) {
-          // Trailing null array elements are an artifact of older Home Assistant automations
-          // and need to be removed before parsing by ArduinoJSON 6+
-          strPayload.remove(strPayload.length() - 2, 2);
-          strPayload.concat("]");
-      }*/
-    size_t maxsize = (128u * ((strlen(payload) / 128) + 1)) + 256;
-    DynamicJsonDocument haspCommands(maxsize);
-    DeserializationError jsonError = deserializeJson(haspCommands, payload);
-    // haspCommands.shrinkToFit();
-
-    if(jsonError) { // Couldn't parse incoming JSON command
-        Log.warning(TAG_MSGR, F("JSON: Failed to parse incoming JSON command with error: %s"), jsonError.c_str());
-    } else {
-
-        JsonArray arr = haspCommands.as<JsonArray>();
-        for(JsonVariant command : arr) {
-            dispatchTextLine(command.as<String>().c_str());
-        }
-    }
-}
-
-void dispatchParseJsonl(Stream & stream)
-{
-    DynamicJsonDocument jsonl(3 * 128u);
-    uint8_t savedPage = haspGetPage();
-
-    // Log.notice(TAG_MSGR,F("DISPATCH: jsonl"));
-
-    while(deserializeJson(jsonl, stream) == DeserializationError::Ok) {
-        // serializeJson(jsonl, Serial);
-        // Serial.println();
-        hasp_new_object(jsonl.as<JsonObject>(), savedPage);
-    }
-}
-
-void dispatchParseJsonl(char * payload)
-{
-    CharStream stream(payload);
-    dispatchParseJsonl(stream);
-}
-
 // p[x].b[y]=value
 inline void dispatch_process_button_attribute(String strTopic, const char * payload)
 {
@@ -151,53 +96,24 @@ inline void dispatch_process_button_attribute(String strTopic, const char * payl
 // objectattribute=value
 void dispatchCommand(const char * topic, const char * payload)
 {
-    if(!strcmp_P(topic, PSTR("json"))) { // '[...]/device/command/json' -m '["dim=5", "page 1"]' =
-        // nextionSendCmd("dim=50"), nextionSendCmd("page 1")
-        dispatchParseJson((char *)payload);
+    /* ================================= Standard payload commands ======================================= */
 
-    } else if(!strcmp_P(topic, PSTR("jsonl"))) {
-        dispatchParseJsonl((char *)payload);
+    // check and execute commands from commands array
+    for(int i = 0; i < nCommands; i++) {
+        if(!strcasecmp_P(topic, commands[i].p_cmdstr)) {
+            Log.warning(TAG_MSGR, F("Command %d found in array !!!"), i);
+            /*exec*/ commands[i].func((char *)payload);
+            return;
+        }
+    }
 
-    } else if(!strcmp_P(topic, PSTR("page"))) {
-        dispatchPage(payload);
+    /* =============================== Not standard payload commands ===================================== */
 
-    } else if(!strcmp_P(topic, PSTR("dim")) || !strcmp_P(topic, PSTR("brightness"))) {
-        dispatchDim(payload);
-
-    } else if(!strcmp_P(topic, PSTR("light"))) {
-        dispatchBacklight(payload);
-
-    } else if(!strcmp_P(topic, PSTR("reboot")) || !strcmp_P(topic, PSTR("restart"))) {
-        dispatchReboot(true);
-
-    } else if(!strcmp_P(topic, PSTR("factoryreset"))) {
-        dispatch_factory_reset();
-        delay(250);
-        dispatchReboot(false); // don't save config
-
-    } else if(!strcmp_P(topic, PSTR("clearpage"))) {
-        dispatchClearPage(payload);
-
-    } else if(!strcmp_P(topic, PSTR("update"))) {
-        dispatchWebUpdate(payload);
-
-    } else if(!strcmp_P(topic, PSTR("setupap"))) {
-        oobeFakeSetup();
-
-    } else if(strlen(topic) == 7 && topic == strstr_P(topic, PSTR("output"))) {
+    if(strlen(topic) == 7 && topic == strstr_P(topic, PSTR("output"))) {
         dispatchGpioOutput(topic, payload);
-
-    } else if(strcasecmp_P(topic, PSTR("calibrate")) == 0) {
-        guiCalibrate();
-
-    } else if(strcasecmp_P(topic, PSTR("wakeup")) == 0) {
-        haspWakeUp();
 
     } else if(strcasecmp_P(topic, PSTR("screenshot")) == 0) {
         guiTakeScreenshot("/screenshot.bmp"); // Literal String
-
-    } else if(strcasecmp_P(topic, PSTR("")) == 0 || strcasecmp_P(topic, PSTR("statusupdate")) == 0) {
-        dispatch_output_statusupdate();
 
     } else if(topic == strstr_P(topic, PSTR("p["))) {
         dispatch_process_button_attribute(topic, payload);
@@ -225,107 +141,6 @@ void dispatchCommand(const char * topic, const char * payload)
         }
         Log.warning(TAG_MSGR, F(LOG_CMND_CTR "Command not found %s => %s"), topic, payload);
     }
-}
-
-void dispatchCurrentPage()
-{
-    // Log result
-    char buffer[4];
-    itoa(haspGetPage(), buffer, DEC);
-
-#if HASP_USE_MQTT > 0
-    mqtt_send_state(F("page"), buffer);
-#endif
-
-#if HASP_USE_TASMOTA_SLAVE > 0
-    slave_send_state(F("page"), buffer);
-#endif
-}
-
-// Get or Set a page
-void dispatchPage(const char * page)
-{
-    if(strlen(page) > 0 && atoi(page) < HASP_NUM_PAGES) {
-        haspSetPage(atoi(page));
-    }
-
-    dispatchCurrentPage();
-}
-
-void dispatchPageNext()
-{
-    uint8_t page = haspGetPage();
-    if(page + 1 >= HASP_NUM_PAGES) {
-        page = 0;
-    } else {
-        page++;
-    }
-    haspSetPage(page);
-    dispatchCurrentPage();
-}
-
-void dispatchPagePrev()
-{
-    uint8_t page = haspGetPage();
-    if(page == 0) {
-        page = HASP_NUM_PAGES - 1;
-    } else {
-        page--;
-    }
-    haspSetPage(page);
-    dispatchCurrentPage();
-}
-
-// Clears a page id or the current page if empty
-void dispatchClearPage(const char * page)
-{
-    if(strlen(page) == 0) {
-        haspClearPage(haspGetPage());
-    } else {
-        haspClearPage(atoi(page));
-    }
-}
-
-void dispatchDim(const char * level)
-{
-    // Set the current state
-    if(strlen(level) != 0) guiSetDim(atoi(level));
-    //  dispatchPrintln(F("DIM"), strDimLevel);
-    char buffer[4];
-
-#if defined(HASP_USE_MQTT) || defined(HASP_USE_TASMOTA_SLAVE)
-    itoa(guiGetDim(), buffer, DEC);
-
-#if HASP_USE_MQTT > 0
-    mqtt_send_state(F("dim"), buffer);
-#endif
-
-#if HASP_USE_TASMOTA_SLAVE > 0
-    slave_send_state(F("dim"), buffer);
-#endif
-
-#endif
-}
-
-void dispatchBacklight(const char * payload)
-{
-    // strPayload.toUpperCase();
-    // dispatchPrintln(F("LIGHT"), strPayload);
-
-    // Set the current state
-    if(strlen(payload) != 0) guiSetBacklight(is_true(payload));
-
-    // Return the current state
-    char buffer[4];
-    memcpy_P(buffer, guiGetBacklight() ? PSTR("ON") : PSTR("OFF"), sizeof(buffer));
-
-#if HASP_USE_MQTT > 0
-    mqtt_send_state(F("light"), buffer);
-#endif
-
-#if HASP_USE_TASMOTA_SLAVE > 0
-    slave_send_state(F("light"), buffer);
-#endif
 }
 
 // Strip command/config prefix from the topic and process the payload
@@ -551,14 +366,6 @@ void dispatch_send_object_event(uint8_t pageid, uint8_t objid, uint8_t eventid)
     }
 }
 
-void dispatchWebUpdate(const char * espOtaUrl)
-{
-#if HASP_USE_OTA > 0
-    Log.notice(TAG_MSGR, F("Checking for updates at URL: %s"), espOtaUrl);
-    otaHttpUpdate(espOtaUrl);
-#endif
-}
-
 // send return output back to the client
 void IRAM_ATTR dispatch_obj_attribute_str(uint8_t pageid, uint8_t btnid, const char * attribute, const char * data)
 {
@@ -657,7 +464,7 @@ void dispatchConfig(const char * topic, const char * payload)
 
     // Send output
     if(!update) {
-        settings.remove(F("pass")); // hide password in output
+        settings.remove(F(F_CONFIG_PASS)); // hide password in output
         size_t size = serializeJson(doc, buffer, sizeof(buffer));
 #if !defined(HASP_USE_MQTT) && !defined(HASP_USE_TASMOTA_SLAVE)
         Log.notice(TAG_MSGR, F("config %s = %s"), topic, buffer);
@@ -670,4 +477,240 @@ void dispatchConfig(const char * topic, const char * payload)
 #endif
 #endif
     }
+}
+
+/********************************************** Native Commands ****************************************/
+
+void dispatchParseJson(const char * payload)
+{ // Parse an incoming JSON array into individual commands
+    /*  if(strPayload.endsWith(",]")) {
+          // Trailing null array elements are an artifact of older Home Assistant automations
+          // and need to be removed before parsing by ArduinoJSON 6+
+          strPayload.remove(strPayload.length() - 2, 2);
+          strPayload.concat("]");
+      }*/
+    size_t maxsize = (128u * ((strlen(payload) / 128) + 1)) + 256;
+    DynamicJsonDocument haspCommands(maxsize);
+    DeserializationError jsonError = deserializeJson(haspCommands, payload);
+    // haspCommands.shrinkToFit();
+
+    if(jsonError) { // Couldn't parse incoming JSON command
+        Log.warning(TAG_MSGR, F("JSON: Failed to parse incoming JSON command with error: %s"), jsonError.c_str());
+    } else {
+
+        JsonArray arr = haspCommands.as<JsonArray>();
+        for(JsonVariant command : arr) {
+            dispatchTextLine(command.as<String>().c_str());
+        }
+    }
+}
+
+void dispatchParseJsonl(Stream & stream)
+{
+    DynamicJsonDocument jsonl(3 * 128u);
+    uint8_t savedPage = haspGetPage();
+
+    // Log.notice(TAG_MSGR,F("DISPATCH: jsonl"));
+
+    while(deserializeJson(jsonl, stream) == DeserializationError::Ok) {
+        // serializeJson(jsonl, Serial);
+        // Serial.println();
+        hasp_new_object(jsonl.as<JsonObject>(), savedPage);
+    }
+}
+
+void dispatchParseJsonl(const char * payload)
+{
+    CharStream stream((char *)payload);
+    dispatchParseJsonl(stream);
+}
+
+void dispatchCurrentPage()
+{
+    // Log result
+    char buffer[4];
+    itoa(haspGetPage(), buffer, DEC);
+
+#if HASP_USE_MQTT > 0
+    mqtt_send_state(F("page"), buffer);
+#endif
+
+#if HASP_USE_TASMOTA_SLAVE > 0
+    slave_send_state(F("page"), buffer);
+#endif
+}
+
+// Get or Set a page
+void dispatchPage(const char * page)
+{
+    if(strlen(page) > 0 && atoi(page) < HASP_NUM_PAGES) {
+        haspSetPage(atoi(page));
+    }
+
+    dispatchCurrentPage();
+}
+
+void dispatchPageNext()
+{
+    uint8_t page = haspGetPage();
+    if(page + 1 >= HASP_NUM_PAGES) {
+        page = 0;
+    } else {
+        page++;
+    }
+    haspSetPage(page);
+    dispatchCurrentPage();
+}
+
+void dispatchPagePrev()
+{
+    uint8_t page = haspGetPage();
+    if(page == 0) {
+        page = HASP_NUM_PAGES - 1;
+    } else {
+        page--;
+    }
+    haspSetPage(page);
+    dispatchCurrentPage();
+}
+
+// Clears a page id or the current page if empty
+void dispatchClearPage(const char * page)
+{
+    if(strlen(page) == 0) {
+        haspClearPage(haspGetPage());
+    } else {
+        haspClearPage(atoi(page));
+    }
+}
+
+void dispatchDim(const char * level)
+{
+    // Set the current state
+    if(strlen(level) != 0) guiSetDim(atoi(level));
+    //  dispatchPrintln(F("DIM"), strDimLevel);
+    char buffer[4];
+
+#if defined(HASP_USE_MQTT) || defined(HASP_USE_TASMOTA_SLAVE)
+    itoa(guiGetDim(), buffer, DEC);
+
+#if HASP_USE_MQTT > 0
+    mqtt_send_state(F("dim"), buffer);
+#endif
+
+#if HASP_USE_TASMOTA_SLAVE > 0
+    slave_send_state(F("dim"), buffer);
+#endif
+
+#endif
+}
+
+void dispatchBacklight(const char * payload)
+{
+    // strPayload.toUpperCase();
+    // dispatchPrintln(F("LIGHT"), strPayload);
+
+    // Set the current state
+    if(strlen(payload) != 0) guiSetBacklight(is_true(payload));
+
+    // Return the current state
+    char buffer[4];
+    memcpy_P(buffer, guiGetBacklight() ? PSTR("ON") : PSTR("OFF"), sizeof(buffer));
+
+#if HASP_USE_MQTT > 0
+    mqtt_send_state(F("light"), buffer);
+#endif
+
+#if HASP_USE_TASMOTA_SLAVE > 0
+    slave_send_state(F("light"), buffer);
+#endif
+}
+
+// Send status update message to the client
+void dispatch_output_statusupdate()
+{
+#if HASP_USE_MQTT > 0
+    mqtt_send_statusupdate();
+#endif
+}
+
+void dispatchWebUpdate(const char * espOtaUrl)
+{
+#if HASP_USE_OTA > 0
+    Log.notice(TAG_MSGR, F("Checking for updates at URL: %s"), espOtaUrl);
+    otaHttpUpdate(espOtaUrl);
+#endif
+}
+
+/******************************************* Command Wrapper Functions *********************************/
+
+void dispatch_output_statusupdate(const char *)
+{
+    dispatch_output_statusupdate();
+}
+
+void dispatchCalibrate(const char *)
+{
+    guiCalibrate();
+}
+
+void dispatchWakeup(const char *)
+{
+    haspWakeUp();
+}
+
+void dispatchReboot(const char *)
+{
+    dispatchReboot(true);
+}
+
+void dispatch_factory_reset(const char *)
+{
+    dispatch_factory_reset();
+    delay(250);
+    dispatchReboot(false); // don't save config
+}
+
+/******************************************* Commands builder *******************************************/
+
+static void dispatch_add_command(const char * p_cmdstr, void (*func)(const char *))
+{
+    if(nCommands >= sizeof(commands) / sizeof(haspCommand_t)) {
+        Log.fatal(TAG_MSGR, F("Dispatchcer command array overflow: %d"), nCommands);
+        while(1) {
+        }
+    } else {
+        commands[nCommands].p_cmdstr = p_cmdstr;
+        commands[nCommands].func     = func;
+        nCommands++;
+    }
+}
+
+void dispatchSetup()
+{
+    // In order of importance : commands are NOT case-sensitive
+    // The command.func() call will receive the full payload as ONLY parameter!
+
+    /* WARNING: remember to expand the commands array when adding new commands */
+
+    dispatch_add_command(PSTR("json"), dispatchParseJson);
+    dispatch_add_command(PSTR("page"), dispatchPage);
+    dispatch_add_command(PSTR("wakeup"), dispatchWakeup);
+    dispatch_add_command(PSTR("statusupdate"), dispatch_output_statusupdate);
+    dispatch_add_command(PSTR("clearpage"), dispatchClearPage);
+    dispatch_add_command(PSTR("jsonl"), dispatchParseJsonl);
+    dispatch_add_command(PSTR("dim"), dispatchDim);
+    dispatch_add_command(PSTR("brightness"), dispatchDim);
+    dispatch_add_command(PSTR("light"), dispatchBacklight);
+    dispatch_add_command(PSTR("calibrate"), dispatchCalibrate);
+    dispatch_add_command(PSTR("update"), dispatchWebUpdate);
+    dispatch_add_command(PSTR("reboot"), dispatchReboot);
+    dispatch_add_command(PSTR("restart"), dispatchReboot);
+    dispatch_add_command(PSTR("factoryreset"), dispatch_factory_reset);
+    dispatch_add_command(PSTR("setupap"), oobeFakeSetup);
+}
+
+void dispatchLoop()
+{
+    // Not used
 }

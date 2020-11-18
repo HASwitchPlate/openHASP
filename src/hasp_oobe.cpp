@@ -315,11 +315,11 @@ bool oobeSetup()
         if(oobeAutoCalibrate) {
             lv_obj_set_click(lv_disp_get_layer_sys(NULL), true);
             lv_obj_set_event_cb(lv_disp_get_layer_sys(NULL), oobe_calibrate_cb);
-            Log.trace(TAG_OOBE,F("Enabled Auto Calibrate on touch"));
+            Log.trace(TAG_OOBE, F("Enabled Auto Calibrate on touch"));
         } else {
             lv_obj_set_click(lv_disp_get_layer_sys(NULL), false);
             lv_obj_set_event_cb(lv_disp_get_layer_sys(NULL), gotoPage1_cb);
-            Log.trace(TAG_OOBE,F("Already calibrated"));
+            Log.trace(TAG_OOBE, F("Already calibrated"));
         }
         oobeSetPage(0);
         return true;
@@ -330,7 +330,8 @@ bool oobeSetup()
     return false;
 }
 
-void oobeFakeSetup()
+// Thist is used for testing only !!
+void oobeFakeSetup(const char *)
 {
 #if HASP_USE_WIFI > 0
     char ssid[32] = "HASP-ABCDEF";
@@ -346,9 +347,9 @@ void oobeFakeSetup()
     if(oobeAutoCalibrate) {
         lv_obj_set_click(lv_disp_get_layer_sys(NULL), true);
         lv_obj_set_event_cb(lv_disp_get_layer_sys(NULL), oobe_calibrate_cb);
-        Log.trace(TAG_OOBE,F("Enabled Auto Calibrate on touch"));
+        Log.trace(TAG_OOBE, F("Enabled Auto Calibrate on touch"));
     } else {
-        Log.trace(TAG_OOBE,F("Already calibrated"));
+        Log.trace(TAG_OOBE, F("Already calibrated"));
     }
 #endif
 }

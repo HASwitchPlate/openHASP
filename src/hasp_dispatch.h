@@ -41,4 +41,10 @@ bool dispatch_get_event_state(uint8_t eventid);
 void IRAM_ATTR dispatch_send_obj_attribute_str(uint8_t pageid, uint8_t btnid, const char * attribute,
                                                const char * data);
 
+struct haspCommand_t
+{
+    void (*func)(const char *);
+    const char * p_cmdstr;
+};
+
 #endif

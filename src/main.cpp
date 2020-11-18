@@ -7,6 +7,7 @@
 #include "hasp_config.h"
 #include "hasp_gui.h"
 #include "hasp_oobe.h"
+#include "hasp_dispatch.h"
 #include "hasp.h"
 
 bool isConnected;
@@ -15,7 +16,6 @@ unsigned long mainLastLoopTime = 0;
 
 void setup()
 {
-
     /****************************
      * Storage initializations
      ***************************/
@@ -35,6 +35,8 @@ void setup()
      * Read & Apply User Configuration
      ***************************/
     configSetup();
+    
+    dispatchSetup();
 
     /****************************
      * Apply User Configuration
