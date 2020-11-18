@@ -101,8 +101,8 @@ void dispatchCommand(const char * topic, const char * payload)
     // check and execute commands from commands array
     for(int i = 0; i < nCommands; i++) {
         if(!strcasecmp_P(topic, commands[i].p_cmdstr)) {
-            Log.warning(TAG_MSGR, F("Command %d found in array !!!"), i);
-            /*exec*/ commands[i].func((char *)payload);
+            // Log.warning(TAG_MSGR, F("Command %d found in array !!!"), i);
+            commands[i].func((char *)payload); /* execute command */
             return;
         }
     }
@@ -464,7 +464,7 @@ void dispatchConfig(const char * topic, const char * payload)
 
     // Send output
     if(!update) {
-        settings.remove(F(F_CONFIG_PASS)); // hide password in output
+        settings.remove(F("pass")); // hide password in output
         size_t size = serializeJson(doc, buffer, sizeof(buffer));
 #if !defined(HASP_USE_MQTT) && !defined(HASP_USE_TASMOTA_SLAVE)
         Log.notice(TAG_MSGR, F("config %s = %s"), topic, buffer);
