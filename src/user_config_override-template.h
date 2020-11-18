@@ -1,9 +1,14 @@
+/* MIT License - Copyright (c) 2020 Francis Van Roie
+   For full license information read the LICENSE file in the project folder */
+
+/*************************************************** 
 // This file contains the default settings that are
 // burned into the compiled firmware.
 //
 // These default settings can be changed at runtime
 //
 // To use: Save a copy as user_config_override.h
+***************************************************/
 
 #define SERIAL_SPEED 115200
 

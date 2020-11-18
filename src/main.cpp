@@ -1,3 +1,6 @@
+/* MIT License - Copyright (c) 2020 Francis Van Roie
+   For full license information read the LICENSE file in the project folder */
+
 #include "hasp_conf.h" // load first
 #include <Arduino.h>
 
@@ -35,7 +38,7 @@ void setup()
      * Read & Apply User Configuration
      ***************************/
     configSetup();
-    
+
     dispatchSetup();
 
     /****************************

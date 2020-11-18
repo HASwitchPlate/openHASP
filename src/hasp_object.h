@@ -1,3 +1,6 @@
+/* MIT License - Copyright (c) 2020 Francis Van Roie
+   For full license information read the LICENSE file in the project folder */
+
 #ifndef HASP_OBJECT_H
 #define HASP_OBJECT_H
 
@@ -52,6 +55,7 @@ lv_obj_t * hasp_find_obj_from_id(uint8_t pageid, uint8_t objid);
 bool hasp_find_id_from_obj(lv_obj_t * obj, uint8_t * pageid, lv_obj_user_data_t * objid);
 bool check_obj_type(const char * lvobjtype, lv_hasp_obj_type_t haspobjtype);
 bool check_obj_type(lv_obj_t * obj, lv_hasp_obj_type_t haspobjtype);
+void hasp_object_tree(lv_obj_t * parent, uint8_t pageid, uint16_t level);
 
 void hasp_send_obj_attribute_str(lv_obj_t * obj, const char * attribute, const char * data);
 void hasp_send_obj_attribute_int(lv_obj_t * obj, const char * attribute, int32_t val);

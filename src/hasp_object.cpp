@@ -1,3 +1,6 @@
+/* MIT License - Copyright (c) 2020 Francis Van Roie
+   For full license information read the LICENSE file in the project folder */
+
 /* ********************************************************************************************
  *
  *  HASP Object Handlers
@@ -154,6 +157,37 @@ bool check_obj_type(lv_obj_t * obj, lv_hasp_obj_type_t haspobjtype)
     lv_obj_get_type(obj, &list);
     const char * objtype = list.type[0];
     return check_obj_type(objtype, haspobjtype);
+}
+
+void hasp_object_tree(lv_obj_t * parent, uint8_t pageid, uint16_t level)
+{
+    if(parent == nullptr) return;
+
+    /* Output parent info */
+    lv_obj_type_t list;
+    lv_obj_get_type(parent, &list);
+    const char * objtype = list.type[0];
+    Log.verbose(TAG_HASP, F("[%d] p[%d].b[%d] %s"), level, pageid, parent->user_data, objtype);
+
+    lv_obj_t * child;
+    child = lv_obj_get_child(parent, NULL);
+    while(child) {
+        /* child found, process it */
+        if(child->user_data) hasp_object_tree(child, pageid, level + 1);
+
+        /* try next sibling */
+        child = lv_obj_get_child(parent, child);
+    }
+
+    /* check tabs */
+    if(check_obj_type(parent, LV_HASP_TABVIEW)) {
+        uint16_t tabcount = lv_tabview_get_tab_count(parent);
+        for(uint16_t i = 0; i < tabcount; i++) {
+            lv_obj_t * tab = lv_tabview_get_tab(child, i);
+            Log.verbose(TAG_HASP, "Found tab %i", i);
+            if(tab->user_data) hasp_object_tree(tab, pageid, level + 1);
+        }
+    }
 }
 
 // ##################### Value Dispatchers ########################################################

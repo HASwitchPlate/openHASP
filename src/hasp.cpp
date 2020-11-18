@@ -1,6 +1,6 @@
-/*********************
- *      INCLUDES
- *********************/
+/* MIT License - Copyright (c) 2020 Francis Van Roie
+   For full license information read the LICENSE file in the project folder */
+
 #include "hasp_conf.h"
 #include <Arduino.h>
 #include "ArduinoLog.h"
@@ -518,6 +518,9 @@ void haspSetPage(uint8_t pageid)
         Log.notice(TAG_HASP, F("Changing page to %u"), pageid);
         current_page = pageid;
         lv_scr_load(page);
+
+        hasp_object_tree(page, pageid, 0);
+
         //}
     }
 }
