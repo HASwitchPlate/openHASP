@@ -5,7 +5,7 @@
 #include <Arduino.h>
 #include "ArduinoLog.h"
 #include "ArduinoJson.h"
-#include "StreamUtils.h"
+#include "StreamUtils.h" // For EEPromStream
 
 #include "lvgl.h"
 #include "lv_conf.h"
@@ -213,8 +213,12 @@ void haspProgressVal(uint8_t val)
 void haspProgressMsg(const char * msg)
 {
     lv_obj_t * bar = hasp_find_obj_from_id(255, 10);
-    hasp_process_obj_attribute(bar, "value_str", msg, true); // literal string
-    lv_task_handler();                                       /* let the GUI do its work */
+
+    char value_str[10];
+    snprintf_P(value_str, sizeof(value_str), PSTR("value_str"));
+    hasp_process_obj_attribute(bar, value_str, msg, true);
+
+    lv_task_handler(); /* let the GUI do its work */
 
     /* if(bar) {
          progress_str.reserve(64);

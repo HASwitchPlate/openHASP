@@ -1,7 +1,7 @@
 #include "Arduino.h"
 #include "ArduinoLog.h"
 #include "ArduinoJson.h"
-#include "StreamUtils.h"
+#include "StreamUtils.h" // For EEPromStream
 
 #include "hasp_conf.h"
 
