@@ -1,6 +1,6 @@
 [submodule "lib/lv_lib_qrlodepng"]
 	path = lib/lv_lib_qrlodepng
 	url = https://github.com/littlevgl/lv_lib_lodepng
-[submodule "lib/lvgl"]
-	path = lib/lvgl
-	url = https://github.com/fvanroie/lvgl.git
+##[submodule "lib/lvgl"]
+##	path = lib/lvgl
+##	url = https://github.com/fvanroie/lvgl.git
