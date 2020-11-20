@@ -57,13 +57,11 @@ String mqttStateJSONTopic;          // MQTT topic for outgoing panel interaction
 String mqttCommandTopic;            // MQTT topic for incoming panel commands
 String mqttGroupCommandTopic;       // MQTT topic for incoming group panel commands
 String mqttStatusTopic;             // MQTT topic for publishing device connectivity state
-String mqttSensorTopic;             // MQTT topic for publishing device information in JSON format
 
 String mqttLightCommandTopic;       // MQTT topic for incoming panel backlight on/off commands
 String mqttLightStateTopic;         // MQTT topic for outgoing panel backlight on/off state
 String mqttLightBrightCommandTopic; // MQTT topic for incoming panel backlight dimmer commands
 String mqttLightBrightStateTopic;   // MQTT topic for outgoing panel backlight dimmer state
-// String mqttMotionStateTopic;        // MQTT topic for outgoing motion sensor state
 */
 
 // String mqttClientId((char *)0); // Auto-generated MQTT ClientID
@@ -391,7 +389,7 @@ void mqttReconnect()
         return;
     }
 
-    Log.trace(TAG_MQTT, F("[SUCCESS] Connected to broker %s as clientID %s"), mqttServer, mqttClientId);
+    Log.trace(TAG_MQTT, F("Connected to broker %s as clientID %s"), mqttServer, mqttClientId);
 
     /*
         // MQTT topic string definitions
@@ -489,10 +487,6 @@ void mqttStop()
         size_t len;
         snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%sstatus"), mqttNodeTopic);
         len = snprintf_P(tmp_payload, sizeof(tmp_payload), PSTR("OFF"), mqttNodeTopic);
-        mqttPublish(tmp_topic, tmp_payload, len);
-
-        snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%ssensor"), mqttNodeTopic);
-        len = snprintf_P(tmp_payload, sizeof(tmp_payload), PSTR("{\"status\": \"unavailable\"}"), mqttNodeTopic);
         mqttPublish(tmp_topic, tmp_payload, len);
 
         mqttClient.disconnect();
