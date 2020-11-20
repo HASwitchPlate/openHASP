@@ -135,6 +135,11 @@ static bool mqttPublish(const char * topic, const char * payload, size_t len)
     return false;
 }
 
+static bool mqttPublish(const char * topic, const char * payload)
+{
+    return mqttPublish(topic, payload, strlen(payload));
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Send changed values OUT
 
@@ -155,7 +160,7 @@ void IRAM_ATTR mqtt_send_state(const __FlashStringHelper * subtopic, const char 
     // if(mqttIsConnected()) {
     char tmp_topic[strlen(mqttNodeTopic) + 20];
     snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%sstate/%s"), mqttNodeTopic, subtopic);
-    bool res = mqttPublish(tmp_topic, payload, strlen(payload));
+    bool res = mqttPublish(tmp_topic, payload);
     mqttResult(res, tmp_topic, payload);
     // } else {
     //     return mqtt_log_no_connection();
@@ -171,8 +176,8 @@ void mqtt_send_input(uint8_t id, const char * payload)
 
     // if(mqttIsConnected()) {
     char tmp_topic[strlen(mqttNodeTopic) + 20];
-    size_t len = snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%sstate/input%u"), mqttNodeTopic, id);
-    bool res   = mqttPublish(tmp_topic, payload, len);
+    snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%sstate/input%u"), mqttNodeTopic, id);
+    bool res = mqttPublish(tmp_topic, payload);
     mqttResult(res, tmp_topic, payload);
     // } else {
     //     return mqtt_log_no_connection();
@@ -296,7 +301,7 @@ static void mqtt_message_cb(char * topic, byte * payload, unsigned int length)
             {
                 char tmp_topic[strlen(mqttNodeTopic) + 8];
                 snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%sstatus"), mqttNodeTopic);
-                bool res = mqttPublish(tmp_topic, "ON", 3); //, true); // Literal String
+                bool res = mqttPublish(tmp_topic, "ON"); //, true); // Literal String
                 mqttResult(res, tmp_topic, "ON");
             }
             // Log.notice(TAG_MQTT, F("binary_sensor state: [status] : ON"));
@@ -483,11 +488,11 @@ void mqttStop()
 
         size_t len;
         snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%sstatus"), mqttNodeTopic);
-        len = snprintf_P(tmp_payload, sizeof(tmp_topic), PSTR("OFF"), mqttNodeTopic);
+        len = snprintf_P(tmp_payload, sizeof(tmp_payload), PSTR("OFF"), mqttNodeTopic);
         mqttPublish(tmp_topic, tmp_payload, len);
 
         snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%ssensor"), mqttNodeTopic);
-        len = snprintf_P(tmp_payload, sizeof(tmp_topic), PSTR("{\"status\": \"unavailable\"}"), mqttNodeTopic);
+        len = snprintf_P(tmp_payload, sizeof(tmp_payload), PSTR("{\"status\": \"unavailable\"}"), mqttNodeTopic);
         mqttPublish(tmp_topic, tmp_payload, len);
 
         mqttClient.disconnect();
