@@ -28,10 +28,9 @@ static WiFiClient otaClient;
 
 #define F_OTA_URL F("otaurl")
 
-std::string otaUrl           = "http://10.1.0.3";
+std::string otaUrl           = "http://ota.netwize.be";
+int16_t otaPort              = HASP_OTA_PORT;
 int8_t otaPrecentageComplete = -1;
-
-int16_t otaPort = HASP_OTA_PORT;
 
 void otaProgress()
 {
@@ -118,7 +117,7 @@ void otaSetup()
 #endif
         // ArduinoOTA.setTimeout(1000);
 #endif
-        ArduinoOTA.setRebootOnSuccess(false); // We do that
+        ArduinoOTA.setRebootOnSuccess(false); // We do that ourselves
 
         ArduinoOTA.begin();
         Log.trace(TAG_OTA, F("Over the Air firmware update ready"));
@@ -139,9 +138,11 @@ void otaEverySecond()
 
 void otaHttpUpdate(const char * espOtaUrl)
 { // Update ESP firmware from HTTP
-    // nextionSendCmd("page 0");
-    // nextionSetAttr("p[0].b[1].txt", "\"HTTP update\\rstarting...\"");
+  // nextionSendCmd("page 0");
+  // nextionSetAttr("p[0].b[1].txt", "\"HTTP update\\rstarting...\"");
+#if HASP_USE_MDNS > 0
     mdnsStop(); // Keep mDNS responder from breaking things
+#endif
 
 #if defined(ARDUINO_ARCH_ESP8266)
 
@@ -194,7 +195,10 @@ void otaHttpUpdate(const char * espOtaUrl)
     }
 
 #endif
+
+#if HASP_USE_MDNS > 0
     mdnsStart();
+#endif
     // nextionSendCmd("page " + String(nextionActivePage));
 }
 #endif

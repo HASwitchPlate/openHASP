@@ -443,12 +443,6 @@ void mqttReconnect()
     mqtt_send_statusupdate();
 }
 
-void mqttPreSetup()
-{
-    // mqttClient.setCallback(mqtt_message_cb);
-    // mqttClient.setBufferSize(1024);
-}
-
 void mqttSetup()
 {
     mqttEnabled = strlen(mqttServer) > 0 && mqttPort > 0;

@@ -45,10 +45,6 @@ void setup()
      * Apply User Configuration
      ***************************/
 
-#if HASP_USE_GPIO > 0
-    gpioSetup();
-#endif
-
 #if HASP_USE_ETHERNET > 0
     ethernetSetup();
 #endif
@@ -61,8 +57,7 @@ void setup()
     wifiSetup();
 #endif
 
-    // The network stack needs to be initialized before calling debugSetup, cause syslog needs lwip
-    // debugSetup();
+    debugSetup();
 
     guiSetup();
     if(!oobeSetup()) {
@@ -89,7 +84,12 @@ void setup()
     slaveSetup();
 #endif
 
+#if HASP_USE_GPIO > 0
+    gpioSetup();
+#endif
+
     mainLastLoopTime = millis() - 1000; // reset loop counter
+    delay(250);
 }
 
 void loop()

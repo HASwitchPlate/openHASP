@@ -73,8 +73,9 @@ static void kb_event_cb(lv_obj_t * event_kb, lv_event_t event)
         }
 
         if(strlen(ssid) > 0) {
-            wifiSetConfig(settings.as<JsonObject>());
-            if(wifiTestConnection()) {
+            if(wifiValidateSsid(ssid, pass)) {
+                wifiSetConfig(settings.as<JsonObject>());
+                Log.notice(TAG_OOBE, F("SSID validated, rebooting..."));
                 dispatchReboot(true);
             }
         }
@@ -312,12 +313,11 @@ bool oobeSetup()
         oobeSetupQR(ssid, pass);
         oobeSetupSsid();
 
+        lv_obj_set_click(lv_disp_get_layer_sys(NULL), true);
         if(oobeAutoCalibrate) {
-            lv_obj_set_click(lv_disp_get_layer_sys(NULL), true);
             lv_obj_set_event_cb(lv_disp_get_layer_sys(NULL), oobe_calibrate_cb);
             Log.trace(TAG_OOBE, F("Enabled Auto Calibrate on touch"));
         } else {
-            lv_obj_set_click(lv_disp_get_layer_sys(NULL), false);
             lv_obj_set_event_cb(lv_disp_get_layer_sys(NULL), gotoPage1_cb);
             Log.trace(TAG_OOBE, F("Already calibrated"));
         }
