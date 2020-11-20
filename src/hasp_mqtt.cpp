@@ -154,8 +154,8 @@ void IRAM_ATTR mqtt_send_state(const __FlashStringHelper * subtopic, const char 
 
     // if(mqttIsConnected()) {
     char tmp_topic[strlen(mqttNodeTopic) + 20];
-    size_t len = snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%sstate/%s"), mqttNodeTopic, subtopic);
-    bool res   = mqttPublish(tmp_topic, payload, len);
+    snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%sstate/%s"), mqttNodeTopic, subtopic);
+    bool res = mqttPublish(tmp_topic, payload, strlen(payload));
     mqttResult(res, tmp_topic, payload);
     // } else {
     //     return mqtt_log_no_connection();
