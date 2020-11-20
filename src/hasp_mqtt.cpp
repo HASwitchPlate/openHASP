@@ -116,13 +116,27 @@ const String mqttLightBrightSubscription  = "hasp/" + String(haspGetNodename()) 
 
 PubSubClient mqttClient(mqttNetworkClient);
 
+static void mqttResult(bool result, const char * topic, const char * payload)
+{
+    if(result) {
+        Log.notice(TAG_MQTT_PUB, F("%s => %s"), topic, payload);
+    } else {
+        Log.error(TAG_MQTT_PUB, F("Failed : %s => %s"), topic, payload);
+    }
+}
+
+static bool mqttPublish(const char * topic, const char * payload, size_t len)
+{
+    if(mqttIsConnected()) {
+        return mqttClient.publish(topic, (uint8_t *)payload, len, false);
+    }
+
+    Log.error(TAG_MQTT, F("Not connected"));
+    return false;
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Send changed values OUT
-
-void mqtt_log_no_connection()
-{
-    Log.error(TAG_MQTT, F("Not connected"));
-}
 
 bool IRAM_ATTR mqttIsConnected()
 {
@@ -138,52 +152,57 @@ void IRAM_ATTR mqtt_send_state(const __FlashStringHelper * subtopic, const char 
     // light = 0/1
     // brightness = 100
 
-    if(mqttIsConnected()) {
-        char topic[64];
-        snprintf_P(topic, sizeof(topic), PSTR("%sstate/%s"), mqttNodeTopic, subtopic);
-        mqttClient.publish(topic, payload);
-    } else {
-        return mqtt_log_no_connection();
-    }
+    // if(mqttIsConnected()) {
+    char tmp_topic[strlen(mqttNodeTopic) + 20];
+    size_t len = snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%sstate/%s"), mqttNodeTopic, subtopic);
+    bool res   = mqttPublish(tmp_topic, payload, len);
+    mqttResult(res, tmp_topic, payload);
+    // } else {
+    //     return mqtt_log_no_connection();
+    // }
 
     // Log after char buffers are cleared
-    Log.notice(TAG_MQTT_PUB, F("%sstate/%S = %s"), mqttNodeTopic, subtopic, payload);
+    // Log.notice(TAG_MQTT_PUB, F("%sstate/%S = %s"), mqttNodeTopic, subtopic, payload);
 }
 
 void mqtt_send_input(uint8_t id, const char * payload)
 {
     // Log.verbose(TAG_MQTT,F("TST: %sstate/input%u = %s"), mqttNodeTopic, id, payload); // to be removed
 
-    if(mqttIsConnected()) {
-        char topic[64];
-        snprintf_P(topic, sizeof(topic), PSTR("%sstate/input%u"), mqttNodeTopic, id);
-        mqttClient.publish(topic, payload);
-    } else {
-        return mqtt_log_no_connection();
-    }
+    // if(mqttIsConnected()) {
+    char tmp_topic[strlen(mqttNodeTopic) + 20];
+    size_t len = snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%sstate/input%u"), mqttNodeTopic, id);
+    bool res   = mqttPublish(tmp_topic, payload, len);
+    mqttResult(res, tmp_topic, payload);
+    // } else {
+    //     return mqtt_log_no_connection();
+    // }
 
     // Log after char buffers are cleared
-    Log.notice(TAG_MQTT_PUB, F("%sstate/input%u = %s"), mqttNodeTopic, id, payload);
+    // Log.notice(TAG_MQTT_PUB, F("%sstate/input%u = %s"), mqttNodeTopic, id, payload);
 }
 
 void IRAM_ATTR mqtt_send_obj_attribute_str(uint8_t pageid, uint8_t btnid, const char * attribute, const char * data)
 {
-    if(mqttIsConnected()) {
-        char payload[128];
-        char topic[64];
+    // if(mqttIsConnected()) {
+    char tmp_topic[strlen(mqttNodeTopic) + 12];
+    char payload[25 + strlen(data) + strlen(attribute)];
 
-        snprintf_P(topic, sizeof(topic), PSTR("%sstate/json"), mqttNodeTopic);
-        unsigned int len =
-            snprintf_P(payload, sizeof(payload), PSTR("{\"p[%u].b[%u].%s\":\"%s\"}"), pageid, btnid, attribute, data);
+    snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%sstate/json"), mqttNodeTopic);
+    unsigned int len =
+        snprintf_P(payload, sizeof(payload), PSTR("{\"p[%u].b[%u].%s\":\"%s\"}"), pageid, btnid, attribute, data);
 
-        mqttClient.publish(topic, (uint8_t *)payload, len, false);
-    } else {
-        return mqtt_log_no_connection();
-    }
+    bool res = mqttPublish(tmp_topic, payload, len); //, false);
+    mqttResult(res, tmp_topic, payload);
+
+    // } else {
+    //     return mqtt_log_no_connection();
+    // }
 
     // Log after char buffers are cleared
-    Log.notice(TAG_MQTT_PUB, F("%sstate/json = {\"p[%u].b[%u].%s\":\"%s\"}"), mqttNodeTopic, pageid, btnid, attribute,
-               data);
+    // Log.notice(TAG_MQTT_PUB, F("%sstate/json = {\"p[%u].b[%u].%s\":\"%s\"}"), mqttNodeTopic, pageid, btnid,
+    // attribute,
+    //           data);
 }
 
 void mqtt_send_statusupdate()
@@ -228,70 +247,45 @@ void mqtt_send_statusupdate()
     mqtt_send_state(F("statusupdate"), data);
     debugLastMillis = millis();
 
-    /*    if(updateEspAvailable) {
+    /* if(updateEspAvailable) {
             mqttStatusPayload += F("\"updateEspAvailable\":true,");
         } else {
             mqttStatusPayload += F("\"updateEspAvailable\":false,");
         }
-        if(lcdConnected) {
-            mqttStatusPayload += F("\"lcdConnected\":true,");
-        } else {
-            mqttStatusPayload += F("\"lcdConnected\":false,");
-        }
-    mqttStatusPayload += F("\"lcdVersion\":\"");
-    mqttStatusPayload += String(lcdVersion);
-*/
-
-    // mqttClient.publish(mqttSensorTopic, mqttStatusPayload);
-    // mqttClient.publish(mqttStatusTopic, "ON", true); //, 1);
-
-    // debugPrintln(String(F("status update: ")) + String(mqttStatusPayload));
-    // debugPrintln(String(F("binary_sensor state: [")) + mqttStatusTopic + "] : [ON]");
+    */
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Receive incoming messages
 static void mqtt_message_cb(char * topic, byte * payload, unsigned int length)
 { // Handle incoming commands from MQTT
-    if(length >= MQTT_MAX_PACKET_SIZE) {
+    if(length >= mqttClient.getBufferSize()) {
         Log.error(TAG_MQTT_RCV, F("Payload too long (%d bytes)"), length);
         return;
+    } else {
+        payload[length] = '\0';
     }
-    payload[length] = '\0';
-
-    // String strTopic((char *)0);
-    // strTopic.reserve(MQTT_MAX_PACKET_SIZE);
 
     // Incoming Namespace (replace /device/ with /group/ for group commands)
     // '[...]/device/command' -m '' = No command requested, respond with mqttStatusUpdate()
     // '[...]/device/command' -m 'dim=50' = nextionSendCmd("dim=50")
-    // '[...]/device/command/json' -m '["dim=5", "page 1"]' = nextionSendCmd("dim=50"), nextionSendCmd("page 1")
-    // '[...]/device/command/page' -m '1' = nextionSendCmd("page 1")
-    // '[...]/device/command/statusupdate' -m '' = mqttStatusUpdate()
-    // '[...]/device/command/lcdupdate' -m 'http://192.168.0.10/local/HASwitchPlate.tft' =
-    // nextionStartOtaDownload("http://192.168.0.10/local/HASwitchPlate.tft")
-    // '[...]/device/command/lcdupdate' -m '' = nextionStartOtaDownload("lcdFirmwareUrl")
-    // '[...]/device/command/espupdate' -m 'http://192.168.0.10/local/HASwitchPlate.ino.d1_mini.bin' =
-    // espStartOta("http://192.168.0.10/local/HASwitchPlate.ino.d1_mini.bin")
-    // '[...]/device/command/espupdate' -m '' = espStartOta("espFirmwareUrl")
-    // '[...]/device/command/p[1].b[4].txt' -m '' = nextionGetAttr("p[1].b[4].txt")
-    // '[...]/device/command/p[1].b[4].txt' -m '"Lights On"' = nextionSetAttr("p[1].b[4].txt", "\"Lights On\"")
 
-    // char * topic = (char *)topic_p;
     Log.notice(TAG_MQTT_RCV, F("%s = %s"), topic, (char *)payload);
 
-    // Node topic
     if(topic == strstr(topic, mqttNodeTopic)) { // startsWith mqttNodeTopic
-        topic += strlen(mqttNodeTopic);         // short topic
+
+        // Node topic
+        topic += strlen(mqttNodeTopic); // shorten topic
+
+    } else if(topic == strstr(topic, mqttGroupTopic)) { // startsWith mqttGroupTopic
 
         // Group topic
-    } else if(topic == strstr(topic, mqttGroupTopic)) { // startsWith mqttGroupTopic
-        topic += strlen(mqttGroupTopic);                // short topic
+        topic += strlen(mqttGroupTopic); // shorten topic
         dispatchTopicPayload(topic, (char *)payload);
         return;
 
-        // Other topic
     } else {
+        // Other topic
         Log.error(TAG_MQTT, F("Message received with invalid topic"));
         return;
     }
@@ -300,11 +294,12 @@ static void mqtt_message_cb(char * topic, byte * payload, unsigned int length)
     if(!strcmp_P(topic, PSTR("status"))) { // endsWith status
         if(!strcasecmp_P((char *)payload, PSTR("OFF"))) {
             {
-                char topicBuffer[128];
-                snprintf_P(topicBuffer, sizeof(topicBuffer), PSTR("%sstatus"), mqttNodeTopic);
-                mqttClient.publish(topicBuffer, "ON", true); // Literal String
+                char tmp_topic[strlen(mqttNodeTopic) + 8];
+                snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%sstatus"), mqttNodeTopic);
+                bool res = mqttPublish(tmp_topic, "ON", 3); //, true); // Literal String
+                mqttResult(res, tmp_topic, "ON");
             }
-            Log.notice(TAG_MQTT, F("binary_sensor state: [status] : ON"));
+            // Log.notice(TAG_MQTT, F("binary_sensor state: [status] : ON"));
 
         } else {
             // already ON
@@ -312,37 +307,16 @@ static void mqtt_message_cb(char * topic, byte * payload, unsigned int length)
     } else {
         dispatchTopicPayload(topic, (char *)payload);
     }
-
-    /*
-    String strPayload = (char *)payload;
-
-        if(strTopic == mqttLightBrightCommandTopic) { // change the brightness from the light topic
-            int panelDim = map(strPayload.toInt(), 0, 255, 0, 100);
-            // nextionSetAttr("dim", String(panelDim));
-            // nextionSendCmd("dims=dim");
-            // mqttClient.publish(mqttLightBrightStateTopic, strPayload);
-        } else if(strTopic == mqttLightCommandTopic &&
-                  strPayload == F("OFF")) { // set the panel dim OFF from the light topic, saving current dim level
-       first
-            // nextionSendCmd("dims=dim");
-            // nextionSetAttr("dim", "0");
-            mqttClient.publish(mqttLightStateTopic.c_str(), PSTR("OFF"));
-        } else if(strTopic == mqttLightCommandTopic &&
-                  strPayload == F("ON")) { // set the panel dim ON from the light topic, restoring saved dim level
-            // nextionSendCmd("dim=dims");
-            mqttClient.publish(mqttLightStateTopic.c_str(), PSTR("ON"));
-        }
-    */
 }
 
 void mqttSubscribeTo(const char * format, const char * data)
 {
-    char topic[64];
-    snprintf_P(topic, sizeof(topic), format, data);
-    if(mqttClient.subscribe(topic)) {
-        Log.verbose(TAG_MQTT, F("   * Subscribed to %s"), topic);
+    char tmp_topic[strlen(format) + 2 + strlen(data)];
+    snprintf_P(tmp_topic, sizeof(tmp_topic), format, data);
+    if(mqttClient.subscribe(tmp_topic)) {
+        Log.verbose(TAG_MQTT, F("   * Subscribed to %s"), tmp_topic);
     } else {
-        Log.error(TAG_MQTT, F("Failed to subscribe to %s"), topic);
+        Log.error(TAG_MQTT, F("Failed to subscribe to %s"), tmp_topic);
     }
 }
 
@@ -361,45 +335,47 @@ void mqttReconnect()
         Log.trace(TAG_MQTT, mqttClientId);
     }
 
+    mqttClient.setServer(mqttServer, 1883);
+
     // Attempt to connect and set LWT and Clean Session
     snprintf_P(buffer, sizeof(buffer), PSTR("%sstatus"), mqttNodeTopic);
     if(!mqttClient.connect(mqttClientId, mqttUser, mqttPassword, buffer, 0, false, "OFF", true)) {
         // Retry until we give up and restart after connectTimeout seconds
         mqttReconnectCount++;
-        snprintf_P(buffer, sizeof(buffer), PSTR("%%s"));
+
         switch(mqttClient.state()) {
             case MQTT_CONNECTION_TIMEOUT:
-                strcat_P(buffer, PSTR("Server didn't respond within the keepalive time"));
+                snprintf_P(buffer, sizeof(buffer), PSTR("Server didn't respond within the keepalive time"));
                 break;
             case MQTT_CONNECTION_LOST:
-                strcat_P(buffer, PSTR("Network connection was broken"));
+                snprintf_P(buffer, sizeof(buffer), PSTR("Network connection was broken"));
                 break;
             case MQTT_CONNECT_FAILED:
-                strcat_P(buffer, PSTR("Network connection failed"));
+                snprintf_P(buffer, sizeof(buffer), PSTR("Network connection failed"));
                 break;
             case MQTT_DISCONNECTED:
-                strcat_P(buffer, PSTR("Client is disconnected cleanly"));
+                snprintf_P(buffer, sizeof(buffer), PSTR("Client is disconnected cleanly"));
                 break;
             case MQTT_CONNECTED:
-                strcat_P(buffer, PSTR("(Client is connected"));
+                snprintf_P(buffer, sizeof(buffer), PSTR("(Client is connected"));
                 break;
             case MQTT_CONNECT_BAD_PROTOCOL:
-                strcat_P(buffer, PSTR("Server doesn't support the requested version of MQTT"));
+                snprintf_P(buffer, sizeof(buffer), PSTR("Server doesn't support the requested version of MQTT"));
                 break;
             case MQTT_CONNECT_BAD_CLIENT_ID:
-                strcat_P(buffer, PSTR("Server rejected the client identifier"));
+                snprintf_P(buffer, sizeof(buffer), PSTR("Server rejected the client identifier"));
                 break;
             case MQTT_CONNECT_UNAVAILABLE:
-                strcat_P(buffer, PSTR("Server was unable to accept the connection"));
+                snprintf_P(buffer, sizeof(buffer), PSTR("Server was unable to accept the connection"));
                 break;
             case MQTT_CONNECT_BAD_CREDENTIALS:
-                strcat_P(buffer, PSTR("Username or Password rejected"));
+                snprintf_P(buffer, sizeof(buffer), PSTR("Username or Password rejected"));
                 break;
             case MQTT_CONNECT_UNAUTHORIZED:
-                strcat_P(buffer, PSTR("Client was not authorized to connect"));
+                snprintf_P(buffer, sizeof(buffer), PSTR("Client was not authorized to connect"));
                 break;
             default:
-                strcat_P(buffer, PSTR("Unknown failure"));
+                snprintf_P(buffer, sizeof(buffer), PSTR("Unknown failure"));
         }
         Log.warning(TAG_MQTT, buffer);
 
@@ -418,8 +394,7 @@ void mqttReconnect()
         mqttStateJSONTopic          = prefix + F("/state/json");
         mqttCommandTopic            = prefix + F("/page");
         mqttGroupCommandTopic       = "hasp/" + mqttGroupName + "/page";
-        mqttCommandTopic            = prefix + F("/command");
-        mqttGroupCommandTopic       = "hasp/" + mqttGroupName + "/command";
+
         mqttSensorTopic             = prefix + F("/sensor");
         mqttLightCommandTopic       = prefix + F("/light/switch");
         mqttLightStateTopic         = prefix + F("/light/state");
@@ -427,8 +402,11 @@ void mqttReconnect()
         mqttLightBrightStateTopic   = prefix + F("/brightness/state");
         mqttMotionStateTopic        = prefix + F("/motion/state");
     */
+
     // Set keepAlive, cleanSession, timeout
     // mqttClient.setOptions(30, true, 5000);
+    mqttClient.setKeepAlive(30);
+    mqttClient.setSocketTimeout(5000);
 
     // declare LWT
     // mqttClient.setWill(mqttStatusTopic.c_str(), "OFF");
@@ -465,13 +443,23 @@ void mqttReconnect()
     mqtt_send_statusupdate();
 }
 
+void mqttPreSetup()
+{
+    // mqttClient.setCallback(mqtt_message_cb);
+    // mqttClient.setBufferSize(1024);
+}
+
 void mqttSetup()
 {
     mqttEnabled = strlen(mqttServer) > 0 && mqttPort > 0;
     if(mqttEnabled) {
         mqttClient.setServer(mqttServer, 1883);
         mqttClient.setCallback(mqtt_message_cb);
-        Log.trace(TAG_MQTT, F("Setup Complete"));
+        //  if(!mqttClient.setBufferSize(1024)) {
+        //      Log.error(TAG_MQTT, F("Buffer allocation failed"));
+        //  } else {
+        Log.trace(TAG_MQTT, F("Setup Complete: %d bytes"), mqttClient.getBufferSize());
+        // }
     } else {
         Log.warning(TAG_MQTT, F("Broker not configured"));
     }
@@ -495,13 +483,18 @@ String mqttGetNodename()
 void mqttStop()
 {
     if(mqttEnabled && mqttClient.connected()) {
-        char topicBuffer[128];
+        char tmp_topic[strlen(mqttNodeTopic) + 8];
+        char tmp_payload[32];
+        Log.notice(TAG_MQTT, F("Disconnecting from broker..."));
 
-        snprintf_P(topicBuffer, sizeof(topicBuffer), PSTR("%sstatus"), mqttNodeTopic);
-        mqttClient.publish(topicBuffer, "OFF");
+        size_t len;
+        snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%sstatus"), mqttNodeTopic);
+        len = snprintf_P(tmp_payload, sizeof(tmp_topic), PSTR("OFF"), mqttNodeTopic);
+        mqttPublish(tmp_topic, tmp_payload, len);
 
-        snprintf_P(topicBuffer, sizeof(topicBuffer), PSTR("%ssensor"), mqttNodeTopic);
-        mqttClient.publish(topicBuffer, "{\"status\": \"unavailable\"}");
+        snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%ssensor"), mqttNodeTopic);
+        len = snprintf_P(tmp_payload, sizeof(tmp_topic), PSTR("{\"status\": \"unavailable\"}"), mqttNodeTopic);
+        mqttPublish(tmp_topic, tmp_payload, len);
 
         mqttClient.disconnect();
         Log.trace(TAG_MQTT, F("Disconnected from broker"));

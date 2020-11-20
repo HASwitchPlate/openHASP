@@ -1,6 +1,8 @@
 /* MIT License - Copyright (c) 2020 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
+#if HASP_USE_MDNS > 0
+
 #include "ArduinoJson.h"
 #include "ArduinoLog.h"
 
@@ -21,44 +23,57 @@ uint8_t mdnsEnabled = true;
 void mdnsSetup()
 {
     // mdnsSetConfig(settings);
-    mdnsStart();
-    Log.trace(TAG_MDNS, F("Setup Complete"));
+    // mdnsStart(); // Wifis need to call this at connection time!
 }
 
 void mdnsStart()
 {
-#if HASP_USE_MDNS > 0
-    if(mdnsEnabled) {
+    if(!mdnsEnabled) {
+        Log.notice(TAG_MDNS, F("MDNS Responder is disabled"));
+        return;
+    }
+
+    Log.notice(TAG_MDNS, F("Starting MDNS Responder..."));
 
 #if HASP_USE_MQTT > 0
-        String hasp2Node = mqttGetNodename();
+    String hasp2Node = mqttGetNodename();
 #else
-        String hasp2Node = "unknown";
+    String hasp2Node = "unknown";
 #endif
-        // Setup mDNS service discovery if enabled
-        /*if(debugTelnetEnabled) {
-        }
-        return;
-        char buffer[128];
-        snprintf_P(buffer, sizeof(buffer), PSTR("%u.%u.%u"), HASP_VERSION_MAJOR, HASP_VERSION_MINOR,
-                   HASP_VERSION_REVISION);
-        MDNS.addServiceTxt(hasp2Node, "tcp", "app_version", buffer); */
-        if(MDNS.begin(hasp2Node.c_str())) {
-            MDNS.addService(F("http"), F("tcp"), 80);
-            MDNS.addService(F("telnet"), F("tcp"), 23);
-            MDNS.addServiceTxt(hasp2Node, F("tcp"), F("app_name"), F("HASP-lvgl"));
-            /*
-                        addService("arduino", "tcp", port);
-                        addServiceTxt("arduino", "tcp", "tcp_check", "no");
-                        addServiceTxt("arduino", "tcp", "ssh_upload", "no");
-                        addServiceTxt("arduino", "tcp", "board", ARDUINO_BOARD);
-                        addServiceTxt("arduino", "tcp", "auth_upload", (auth) ? "yes" : "no");*/
-            Log.trace(TAG_MDNS, F("Responder started"));
-        } else {
+
+    // Setup mDNS service discovery if enabled
+    char buffer[32];
+    snprintf_P(buffer, sizeof(buffer), PSTR("%u.%u.%u"), HASP_VERSION_MAJOR, HASP_VERSION_MINOR, HASP_VERSION_REVISION);
+    uint8_t attempt = 0;
+
+    while(!MDNS.begin(hasp2Node.c_str())) {
+        if(attempt++ >= 3) {
             Log.error(TAG_MDNS, F("Responder failed to start %s"), hasp2Node.c_str());
-        };
-    }
-#endif
+            return;
+        }
+
+        // try another hostname
+        hasp2Node = mqttGetNodename();
+        hasp2Node += F("_");
+        hasp2Node += String(attempt);
+        Log.verbose(TAG_MDNS, F("Trying hostname %s"), hasp2Node.c_str());
+    };
+
+    MDNS.addService(F("http"), F("tcp"), 80);
+    MDNS.addServiceTxt(F("http"), F("tcp"), F("app_version"), buffer);
+    MDNS.addServiceTxt(F("http"), F("tcp"), F("app_name"), F("HASP-lvgl"));
+
+    // if(debugTelnetEnabled) {
+    MDNS.addService(F("telnet"), F("tcp"), 23);
+    // }
+
+    // MDNS.addService(F("arduino"), F("tcp"), port);
+    // MDNS.addServiceTxt(F("arduino"), F("tcp"), "tcp_check", "no");
+    // MDNS.addServiceTxt(F("arduino"), F("tcp"), "ssh_upload", "no");
+    // MDNS.addServiceTxt(F("arduino"), F("tcp"), "board", ARDUINO_BOARD);
+    // addServiceTxt("arduino", F("tcp"), "auth_upload", (auth) ? "yes" : "no");
+
+    Log.trace(TAG_MDNS, F("Responder started"));
 }
 
 void mdnsLoop()
@@ -88,12 +103,9 @@ bool mdnsGetConfig(const JsonObject & settings)
     return changed;
 }
 
-/** Set MDNS Configuration.
- *
- * Read the settings from json and sets the application variables.
- *
+/**
+ * Reads the settings from json and sets the application variables.
  * @note: data pixel should be formated to uint32_t RGBA. Imagemagick requirements.
- *
  * @param[in] settings    JsonObject with the config settings.
  **/
 bool mdnsSetConfig(const JsonObject & settings)
@@ -105,3 +117,5 @@ bool mdnsSetConfig(const JsonObject & settings)
 
     return changed;
 }
+
+#endif // HASP_USE_MDNS
