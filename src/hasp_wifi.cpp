@@ -51,7 +51,9 @@ uint8_t wifiReconnectCounter = 0;
 // const byte DNS_PORT = 53;
 // DNSServer dnsServer;
 
-void wifiConnected(IPAddress ipaddress)
+/* ============ Connection Event Handlers =============================================================== */
+
+static void wifiConnected(IPAddress ipaddress)
 {
 #if defined(STM32F4xx)
     IPAddress ip;
@@ -60,28 +62,33 @@ void wifiConnected(IPAddress ipaddress)
 #else
     Log.notice(TAG_WIFI, F("Received IP address %s"), ipaddress.toString().c_str());
 #endif
-    Log.trace(TAG_WIFI, F("Connected = %s"), WiFi.status() == WL_CONNECTED ? PSTR("yes") : PSTR("no"));
+
+    Log.verbose(TAG_WIFI, F("Connected = %s"), WiFi.status() == WL_CONNECTED ? PSTR("yes") : PSTR("no"));
     haspProgressVal(255);
-    debugSetup();
-    // if(isConnected) {
+
+    debugStartSyslog();
     // mqttReconnect();
-    // haspReconnect();
     // httpReconnect();
-    // mdnsStart();
-    //}
+    mdnsStart();
+    haspReconnect();
 }
 
-void wifiDisconnected(const char * ssid, uint8_t reason)
+static void wifiDisconnected(const char * ssid, uint8_t reason)
 {
     wifiReconnectCounter++;
+
     haspProgressVal(wifiReconnectCounter * 3);
     haspProgressMsg(F("Wifi Disconnected"));
+
+    debugStopSyslog();
+    mdnsStop();
+
     if(wifiReconnectCounter > 33) {
         Log.error(TAG_WIFI, F("Retries exceed %u: Rebooting..."), wifiReconnectCounter);
         dispatchReboot(false);
     }
 
-    char buffer[128];
+    char buffer[64];
 
     switch(reason) {
 #if defined(ARDUINO_ARCH_ESP8266)
@@ -107,7 +114,7 @@ void wifiDisconnected(const char * ssid, uint8_t reason)
             snprintf_P(buffer, sizeof(buffer), PSTR("not associated"));
             break;
         case REASON_ASSOC_LEAVE:
-            snprintf_P(buffer, sizeof(buffer), PSTR("associaction leave"));
+            snprintf_P(buffer, sizeof(buffer), PSTR("association leave"));
             break;
         case REASON_ASSOC_NOT_AUTHED:
             snprintf_P(buffer, sizeof(buffer), PSTR("association not authenticated"));
@@ -195,7 +202,7 @@ void wifiDisconnected(const char * ssid, uint8_t reason)
             snprintf_P(buffer, sizeof(buffer), PSTR("not associated"));
             break;
         case WIFI_REASON_ASSOC_LEAVE:
-            snprintf_P(buffer, sizeof(buffer), PSTR("associaction leave"));
+            snprintf_P(buffer, sizeof(buffer), PSTR("association leave"));
             break;
         case WIFI_REASON_ASSOC_NOT_AUTHED:
             snprintf_P(buffer, sizeof(buffer), PSTR("association not authenticated"));
@@ -270,14 +277,14 @@ void wifiDisconnected(const char * ssid, uint8_t reason)
     Log.warning(TAG_WIFI, F("Disconnected from %s (Reason: %s [%d])"), ssid, buffer, reason);
 }
 
-void wifiSsidConnected(const char * ssid)
+static void wifiSsidConnected(const char * ssid)
 {
     Log.notice(TAG_WIFI, F("Connected to SSID %s. Requesting IP..."), ssid);
     wifiReconnectCounter = 0;
 }
 
 #if defined(ARDUINO_ARCH_ESP32)
-void wifi_callback(system_event_id_t event, system_event_info_t info)
+static void wifi_callback(system_event_id_t event, system_event_info_t info)
 {
     switch(event) {
         case SYSTEM_EVENT_STA_CONNECTED:
@@ -297,27 +304,32 @@ void wifi_callback(system_event_id_t event, system_event_info_t info)
 #endif
 
 #if defined(ARDUINO_ARCH_ESP8266)
-void wifiSTAConnected(WiFiEventStationModeConnected info)
+static void wifiSTAConnected(WiFiEventStationModeConnected info)
 {
     wifiSsidConnected(info.ssid.c_str());
 }
 
 // Start NTP only after IP network is connected
-void wifiSTAGotIP(WiFiEventStationModeGotIP info)
+static void wifiSTAGotIP(WiFiEventStationModeGotIP info)
 {
     wifiConnected(IPAddress(info.ip));
 }
 
 // Manage network disconnection
-void wifiSTADisconnected(WiFiEventStationModeDisconnected info)
+static void wifiSTADisconnected(WiFiEventStationModeDisconnected info)
 {
     wifiDisconnected(info.ssid.c_str(), info.reason);
 }
 #endif
 
+/* ================================================================================================ */
+
 bool wifiShowAP()
 {
-    return (strlen(wifiSsid) == 0);
+    if(strlen(wifiSsid) != 0)
+        return false;
+    else
+        return true;
 }
 
 bool wifiShowAP(char * ssid, char * pass)
@@ -339,7 +351,7 @@ bool wifiShowAP(char * ssid, char * pass)
 
     Log.warning(TAG_WIFI, F("Temporary Access Point %s password: %s"), ssid, pass);
     Log.warning(TAG_WIFI, F("AP IP address : %s"), WiFi.softAPIP().toString().c_str());
-    // httpReconnect();}
+// httpReconnect();}
 #endif
     return true;
 }
@@ -355,6 +367,8 @@ void wifiReconnect()
 #endif
     WiFi.begin(wifiSsid, wifiPassword);
 }
+
+/* ============ Setup, Loop, Start, Stop =================================================== */
 
 void wifiSetup()
 {
@@ -444,6 +458,50 @@ bool wifiEvery5Seconds()
     }
 }
 
+bool wifiValidateSsid(const char * ssid, const char * pass)
+{
+    uint8_t attempt = 0;
+    WiFi.begin(ssid, pass);
+
+#if defined(STM32F4xx)
+    IPAddress ip;
+    ip = WiFi.localIP();
+    char espIp[16];
+    memset(espIp, 0, sizeof(espIp));
+    snprintf_P(espIp, sizeof(espIp), PSTR("%d.%d.%d.%d"), ip[0], ip[1], ip[2], ip[3]);
+    while(attempt < 15 && (WiFi.status() != WL_CONNECTED || String(espIp) == F("0.0.0.0"))) {
+#else
+    while(attempt < 15 && (WiFi.status() != WL_CONNECTED || WiFi.localIP().toString() == F("0.0.0.0"))) {
+#endif
+        attempt++;
+        Log.trace(TAG_WIFI, F("Trying to connect to %s... %u"), wifiSsid, attempt);
+        delay(500);
+    }
+#if defined(STM32F4xx)
+    Log.trace(TAG_WIFI, F("Received IP addres %s"), espIp);
+    if((WiFi.status() == WL_CONNECTED && String(espIp) != F("0.0.0.0"))) return true;
+#else
+    Log.trace(TAG_WIFI, F("Received IP addres %s"), WiFi.localIP().toString().c_str());
+    if((WiFi.status() == WL_CONNECTED && WiFi.localIP().toString() != F("0.0.0.0"))) return true;
+#endif
+
+    Log.warning(TAG_WIFI, F("Received IP addres %s"), WiFi.localIP().toString().c_str());
+    WiFi.disconnect();
+    return false;
+}
+
+void wifiStop()
+{
+    wifiReconnectCounter = 0; // Prevent endless loop in wifiDisconnected
+    WiFi.disconnect();
+#if !defined(STM32F4xx)
+    WiFi.mode(WIFI_OFF);
+#endif
+    Log.warning(TAG_WIFI, F("Stopped"));
+}
+
+/* ============ Confiuration =============================================================== */
+
 bool wifiGetConfig(const JsonObject & settings)
 {
     bool changed = false;
@@ -483,45 +541,6 @@ bool wifiSetConfig(const JsonObject & settings)
     }
 
     return changed;
-}
-
-bool wifiTestConnection()
-{
-    uint8_t attempt = 0;
-    WiFi.begin(wifiSsid, wifiPassword);
-#if defined(STM32F4xx)
-    IPAddress ip;
-    ip = WiFi.localIP();
-    char espIp[16];
-    memset(espIp, 0, sizeof(espIp));
-    snprintf_P(espIp, sizeof(espIp), PSTR("%d.%d.%d.%d"), ip[0], ip[1], ip[2], ip[3]);
-    while(attempt < 10 && (WiFi.status() != WL_CONNECTED || String(espIp) == F("0.0.0.0"))) {
-#else
-    while(attempt < 10 && (WiFi.status() != WL_CONNECTED || WiFi.localIP().toString() == F("0.0.0.0"))) {
-#endif
-        attempt++;
-        Log.trace(TAG_WIFI, F("Trying to connect to %s... %u"), wifiSsid, attempt);
-        delay(1000);
-    }
-#if defined(STM32F4xx)
-    Log.trace(TAG_WIFI, F("Received IP addres %s"), espIp);
-    if((WiFi.status() == WL_CONNECTED && String(espIp) != F("0.0.0.0"))) return true;
-#else
-    Log.notice(TAG_WIFI, F("Received IP addres %s"), WiFi.localIP().toString().c_str());
-    if((WiFi.status() == WL_CONNECTED && WiFi.localIP().toString() != F("0.0.0.0"))) return true;
-#endif
-    WiFi.disconnect();
-    return false;
-}
-
-void wifiStop()
-{
-    wifiReconnectCounter = 0; // Prevent endless loop in wifiDisconnected
-    WiFi.disconnect();
-#if !defined(STM32F4xx)
-    WiFi.mode(WIFI_OFF);
-#endif
-    Log.warning(TAG_WIFI, F("Stopped"));
 }
 
 #endif

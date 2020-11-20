@@ -11,7 +11,7 @@ bool wifiShowAP();
 bool wifiShowAP(char * ssid, char * pass);
 bool wifiEvery5Seconds(void);
 void wifiStop(void);
-bool wifiTestConnection();
+bool wifiValidateSsid(const char * ssid, const char * pass);
 
 bool wifiGetConfig(const JsonObject & settings);
 bool wifiSetConfig(const JsonObject & settings);
