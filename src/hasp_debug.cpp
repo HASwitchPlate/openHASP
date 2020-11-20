@@ -1,6 +1,18 @@
 /* MIT License - Copyright (c) 2020 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
+/* ===========================================================================
+
+- Log.fatal() - A fatal exception is caught, the program should halt with while(1){}
+- Log.error() - An important but non-fatal error occured, this error should be checked and not ignored
+- Log.warning() - Send at the end of a function to indicate failure of the sub process, can be ignored
+
+- Log.notice() - Information at the START of an action to notify another function is now running
+    - Log.trace()   - Send at the END of a function to indicate successful completion of the sub process
+    - Log.verbose() - Send DEBUG information DURING a subprocess
+
+=========================================================================== */
+
 #include "ArduinoJson.h"
 #include "ArduinoLog.h"
 #include "ConsoleInput.h"
@@ -139,7 +151,12 @@ void debugSetup()
 {
     // memset(serialInputBuffer, 0, sizeof(serialInputBuffer));
     // serialInputIndex = 0;
+    Log.error(TAG_DEBG, F("Setting the console parser"));
     console.setLineCallback(dispatchTextLine);
+}
+
+void debugStartSyslog()
+{
 
 #if HASP_USE_SYSLOG > 0
     // syslog = new Syslog(syslogClient, debugSyslogProtocol == 0 ? SYSLOG_PROTO_IETF : SYSLOG_PROTO_BSD);
@@ -150,12 +167,25 @@ void debugSetup()
     // syslog->defaultPriority(priority);
 
     if(strlen(debugSyslogHost) > 0) {
-        syslogClient = new WiFiUDP();
+        if(!syslogClient) syslogClient = new WiFiUDP();
+
         if(syslogClient) {
             if(syslogClient->beginPacket(debugSyslogHost, debugSyslogPort)) {
                 Log.registerOutput(2, syslogClient, LOG_LEVEL_VERBOSE, true);
+                Log.trace(TAG_DEBG, F("Syslog client started"));
             }
+        } else {
+            Log.error(TAG_DEBG, F("Failed to start syslog client"));
         }
+    }
+#endif
+}
+
+void debugStopSyslog()
+{
+#if HASP_USE_SYSLOG > 0
+    if(strlen(debugSyslogHost) > 0) {
+        Log.unregisterOutput(2);
     }
 #endif
 }
@@ -561,7 +591,11 @@ void debugPrintSuffix(uint8_t tag, int level, Print * _logOutput)
     else
         _logOutput->println();
 
-    _logOutput->print("hasp > ");
+    if(_logOutput == &Serial) {
+        console.update();
+    } else {
+        _logOutput->print("hasp > ");
+    }
 
     //  if(_logOutput == &Serial) debugPrintPrompt();
     // syslogSend(level, debugOutput);
@@ -638,19 +672,14 @@ void debugLoop()
     switch(keypress) {
 
         case ConsoleInput::KEY_PAGE_UP:
-            console.println(F("PAGE_UP pressed"));
-            dispatchPagePrev();
-            break;
-
-        case ConsoleInput::KEY_PAGE_DOWN:
-            console.println(F("PAGE_DOWN pressed"));
             dispatchPageNext();
             break;
 
+        case ConsoleInput::KEY_PAGE_DOWN:
+            dispatchPagePrev();
+            break;
+
         case(ConsoleInput::KEY_FN)...(ConsoleInput::KEY_FN + 12):
-            console.print(F("F"));
-            console.print(keypress - ConsoleInput::KEY_FN);
-            console.println(F(" pressed"));
             haspSetPage(keypress - ConsoleInput::KEY_FN - 1);
             break;
     }

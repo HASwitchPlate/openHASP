@@ -142,7 +142,7 @@ void dispatchCommand(const char * topic, const char * payload)
         if(strlen(payload) == 0) {
             //    dispatchTextLine(topic); // Could cause an infinite loop!
         }
-        Log.warning(TAG_MSGR, F(LOG_CMND_CTR "Command not found %s => %s"), topic, payload);
+        Log.warning(TAG_MSGR, F("Command '%s' not found => %s"), topic, payload);
     }
 }
 

@@ -119,6 +119,9 @@ void gpioAddButton(uint8_t pin, uint8_t input_mode, uint8_t default_state, uint8
     for(i = 0; i < HASP_NUM_INPUTS; i++) {
 
         if(!button[i]) {
+            Log.notice(TAG_GPIO, F("Creating Button%d on pin %d (index %d) mode %d default %d"), i, pin, index,
+                       input_mode, default_state);
+
             button[i] = new AceButton(pin, default_state, index);
             // button[i]->init(pin, default_state, index);
 
@@ -134,15 +137,15 @@ void gpioAddButton(uint8_t pin, uint8_t input_mode, uint8_t default_state, uint8
                 buttonConfig->clearFeature(
                     ButtonConfig::kFeatureSuppressClickBeforeDoubleClick); // Causes annoying pauses
 
-                Log.trace(TAG_GPIO,F("Button%d created on pin %d (index %d) mode %d default %d"), i, pin, index,
-                            input_mode, default_state);
+                Log.trace(TAG_GPIO, F("Button%d created on pin %d (index %d) mode %d default %d"), i, pin, index,
+                          input_mode, default_state);
                 gpioUsedInputCount = i + 1;
                 return;
             }
         }
     }
-    Log.error(TAG_GPIO,F("Failed to create Button%d pin %d (index %d). All %d slots available are in use!"), i, pin, index,
-              HASP_NUM_INPUTS);
+    Log.error(TAG_GPIO, F("Failed to create Button%d pin %d (index %d). All %d slots available are in use!"), i, pin,
+              index, HASP_NUM_INPUTS);
 }
 
 void gpioAddTouchButton(uint8_t pin, uint8_t input_mode, uint8_t default_state, uint8_t index)
@@ -165,15 +168,15 @@ void gpioAddTouchButton(uint8_t pin, uint8_t input_mode, uint8_t default_state, 
                 buttonConfig->clearFeature(
                     ButtonConfig::kFeatureSuppressClickBeforeDoubleClick); // Causes annoying pauses
 
-                Log.trace(TAG_GPIO,F("Button%d created on pin %d (index %d) mode %d default %d"), i, pin, index,
-                            input_mode, default_state);
+                Log.trace(TAG_GPIO, F("Button%d created on pin %d (index %d) mode %d default %d"), i, pin, index,
+                          input_mode, default_state);
                 gpioUsedInputCount = i + 1;
                 return;
             }
         }
     }
-    Log.error(TAG_GPIO,F("Failed to create Button%d pin %d (index %d). All %d slots available are in use!"), i, pin, index,
-              HASP_NUM_INPUTS);
+    Log.error(TAG_GPIO, F("Failed to create Button%d pin %d (index %d). All %d slots available are in use!"), i, pin,
+              index, HASP_NUM_INPUTS);
 }
 
 void gpioSetup()
@@ -420,8 +423,8 @@ bool gpioSavePinConfig(uint8_t config_num, uint8_t pin, uint8_t type, uint8_t gr
         gpioConfig[config_num].type          = type;
         gpioConfig[config_num].group         = group;
         gpioConfig[config_num].gpio_function = pinfunc;
-        Log.notice(TAG_GPIO,F("Saving Pin config #%d pin %d - type %d - group %d - func %d"), config_num, pin, type, group,
-                   pinfunc);
+        Log.notice(TAG_GPIO, F("Saving Pin config #%d pin %d - type %d - group %d - func %d"), config_num, pin, type,
+                   group, pinfunc);
         return true;
     }
 
@@ -576,7 +579,7 @@ bool gpioGetConfig(const JsonObject & settings)
         if(i < HASP_NUM_GPIO_CONFIG) {
             uint32_t cur_val = gpioConfig[i].pin | (gpioConfig[i].group << 8) | (gpioConfig[i].type << 16) |
                                (gpioConfig[i].gpio_function << 24);
-            Log.trace(TAG_GPIO,F("GPIO CONF: %d: %d <=> %d"), i, cur_val, v.as<uint32_t>());
+            Log.trace(TAG_GPIO, F("GPIO CONF: %d: %d <=> %d"), i, cur_val, v.as<uint32_t>());
 
             if(cur_val != v.as<uint32_t>()) changed = true;
             v.set(cur_val);
