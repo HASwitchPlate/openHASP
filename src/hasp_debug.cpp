@@ -3,7 +3,7 @@
 
 #include "ArduinoJson.h"
 #include "ArduinoLog.h"
-#include "Console.h"
+#include "ConsoleInput.h"
 #include "lvgl.h"
 //#include "time.h"
 
@@ -18,8 +18,8 @@
 #include <WiFiUdp.h>
 #endif
 
+#include "hasp.h"
 #include "hasp_hal.h"
-
 #include "hasp_conf.h"
 #include "hasp_debug.h"
 #include "hasp_config.h"
@@ -78,7 +78,7 @@ uint16_t debugSerialBaud = SERIAL_SPEED / 10; // Multiplied by 10
 bool debugSerialStarted  = false;
 bool debugAnsiCodes      = true;
 
-Console console(&Serial);
+ConsoleInput console(&Serial, 220);
 
 //#define TERM_COLOR_Black "\u001b[30m"
 #define TERM_COLOR_GRAY "\e[37m"
@@ -139,6 +139,7 @@ void debugSetup()
 {
     // memset(serialInputBuffer, 0, sizeof(serialInputBuffer));
     // serialInputIndex = 0;
+    console.setLineCallback(dispatchTextLine);
 
 #if HASP_USE_SYSLOG > 0
     // syslog = new Syslog(syslogClient, debugSyslogProtocol == 0 ? SYSLOG_PROTO_IETF : SYSLOG_PROTO_BSD);
@@ -292,34 +293,8 @@ void debugGetHistoryLine(size_t num)
     src = serialInputBuffer + pos + newlen - len;
     memmove(dst, src, newlen);
 }
-
-void debugPrintPrompt()
-{ // Print current input - string
-
-    Serial.print(F(TERM_CLEAR_LINE)); // Move all the way left + Clear the line
-    Serial.print(F("hasp > "));
-
-    for(uint i = 0; i < sizeof(serialInputBuffer); i++) {
-        if(serialInputBuffer[i] == 0) {
-            Serial.print("|");
-        } else {
-            Serial.print((char)serialInputBuffer[i]);
-        }
-    }
-    Serial.print(historyIndex);
-    Serial.print("/");
-    Serial.print(debugHistorycount());
-    //        Serial.print(serialInputBuffer);
-    Serial.print("\e[1000D"); // Move all the way left again
-    /*if(serialInputIndex > 0)*/
-/*{
-    Serial.print("\e[");
-    Serial.print(serialInputIndex + 7); // Move cursor too index
-    Serial.print("C");
-}
-// Serial.flush();
-}
 */
+
 static void debugPrintTimestamp(int level, Print * _logOutput)
 { /* Print Current Time */
     time_t rawtime;
@@ -658,35 +633,27 @@ void debugLvgl(lv_log_level_t level, const char * file, uint32_t line, const cha
 
 void debugLoop()
 {
+    int16_t keypress = console.readKey();
 
-    uint16_t key = console.getKey();
+    switch(keypress) {
 
-    switch(key) {
-
-        case Console::KEY_LF... Console::KEY_CR:
-            console.print("You typed :");
-            console.println(console.getLine());
-            console.clearLine();
+        case ConsoleInput::KEY_PAGE_UP:
+            console.println(F("PAGE_UP pressed"));
+            dispatchPagePrev();
             break;
 
-        case Console::KEY_PAGE_UP:
-            console.println("PAGE_UP pressed");
+        case ConsoleInput::KEY_PAGE_DOWN:
+            console.println(F("PAGE_DOWN pressed"));
+            dispatchPageNext();
             break;
 
-        case Console::KEY_PAGE_DOWN:
-            console.println("PAGE_DOWN pressed");
+        case(ConsoleInput::KEY_FN)...(ConsoleInput::KEY_FN + 12):
+            console.print(F("F"));
+            console.print(keypress - ConsoleInput::KEY_FN);
+            console.println(F(" pressed"));
+            haspSetPage(keypress - ConsoleInput::KEY_FN - 1);
             break;
     }
-
-    if(key == Console::KEY_LF) {
-        console.print("You typed :");
-        console.println(console.getLine());
-        console.clearLine();
-    }
-
-    dispatchTextLine
-
-    if(key > 0) console.update();
 
     // while(Serial.available()) {
     //     char ch = Serial.read();
@@ -834,21 +801,7 @@ void debugLoop()
     //                 serialInputBuffer[serialInputIndex++] = ch;
     //             }
     //         } break;
-
-    //         case 127: // DEL
-    //             break;
-    //             // default:
-
-    //             // if(strcmp(serialInputBuffer, "jsonl=") == 0) {
-    //             //     dispatchJsonl(Serial);
-    //             //     serialInputIndex = 0;
-    //             // }
-    //     }
-
-    //     debugPrintPrompt();
-    // }
 }
-
 /*void printLocalTime()
 {
     char buffer[128];

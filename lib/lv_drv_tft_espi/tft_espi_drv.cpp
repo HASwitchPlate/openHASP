@@ -15,7 +15,7 @@
 
 #include LV_DRV_DISP_INCLUDE
 #include LV_DRV_DELAY_INCLUDE
-#include "../../../src/hasp_tft.h"
+#include "../../src/hasp_tft.h"
 #include "bootscreen.h" // Sketch tab header for xbm images
 
 /*********************
