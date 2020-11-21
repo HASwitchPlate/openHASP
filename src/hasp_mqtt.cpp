@@ -486,7 +486,7 @@ void mqttStop()
 
         size_t len;
         snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%sstatus"), mqttNodeTopic);
-        len = snprintf_P(tmp_payload, sizeof(tmp_payload), PSTR("OFF"), mqttNodeTopic);
+        len = snprintf_P(tmp_payload, sizeof(tmp_payload), PSTR("OFF"));
         mqttPublish(tmp_topic, tmp_payload, len);
 
         mqttClient.disconnect();
