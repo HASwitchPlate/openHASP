@@ -67,11 +67,6 @@ void mdnsStart()
     MDNS.addService(F("telnet"), F("tcp"), 23);
     // }
 
-    // MDNS.addService(F("arduino"), F("tcp"), port);
-    // MDNS.addServiceTxt(F("arduino"), F("tcp"), "tcp_check", "no");
-    // MDNS.addServiceTxt(F("arduino"), F("tcp"), "ssh_upload", "no");
-    // MDNS.addServiceTxt(F("arduino"), F("tcp"), "board", ARDUINO_BOARD);
-    // addServiceTxt("arduino", F("tcp"), "auth_upload", (auth) ? "yes" : "no");
 
     Log.trace(TAG_MDNS, F("Responder started"));
 }

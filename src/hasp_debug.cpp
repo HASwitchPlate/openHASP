@@ -151,7 +151,7 @@ void debugSetup()
 {
     // memset(serialInputBuffer, 0, sizeof(serialInputBuffer));
     // serialInputIndex = 0;
-    Log.error(TAG_DEBG, F("Setting the console parser"));
+    Log.notice(TAG_DEBG, F("Setting the console parser"));
     console.setLineCallback(dispatchTextLine);
 }
 

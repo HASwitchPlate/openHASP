@@ -87,13 +87,21 @@ static inline bool openFont(File & file, const char * filename)
     return file;
 }
 
-static inline void initCharacterFrame(size_t size)
+static inline bool initCharacterFrame(size_t size)
 {
     if(size > _lv_mem_get_size(charBitmap_p)) {
-        if(charBitmap_p) lv_mem_free(charBitmap_p);
+        lv_mem_free(charBitmap_p);
         charBitmap_p = (uint8_t *)lv_mem_alloc(size);
+        Log.warning(TAG_FONT, F("Pixel buffer is %d bytes"), _lv_mem_get_size(charBitmap_p));
     }
-    _lv_memset_00(charBitmap_p, size); // init the bitmap to white
+
+    if(charBitmap_p != NULL) {
+        _lv_memset_00(charBitmap_p, size); // init the bitmap to white
+        return true;
+    } else {
+        Log.error(TAG_FONT, F("Failed to allocate pixel buffer"));
+        return false;
+    }
 }
 
 int lv_zifont_font_init(lv_font_t ** font, const char * font_path, uint16_t size)
@@ -243,8 +251,11 @@ const uint8_t * IRAM_ATTR lv_font_get_bitmap_fmt_zifont(const lv_font_t * font, 
     if(unicode_letter == 0x20) {
         charInfo    = &fdsc->ascii_glyph_dsc[0];
         size_t size = (charInfo->width * fdsc->CharHeight + 1) / 2; // add 1 for rounding up
-        initCharacterFrame(size);
-        charInBuffer = unicode_letter;
+        if(initCharacterFrame(size)) {
+            charInBuffer = unicode_letter;
+        } else {
+            charInBuffer = 0;
+        }
         return charBitmap_p;
     }
 
@@ -254,6 +265,7 @@ const uint8_t * IRAM_ATTR lv_font_get_bitmap_fmt_zifont(const lv_font_t * font, 
     uint16_t charmap_position;
 
     if(unicode_letter >= 0xF000) {
+        //return NULL;
         sprintf_P(filename, PSTR("/fontawesome%u.zi"), fdsc->CharHeight);
         charmap_position = 25 + sizeof(zi_font_header_t);
         glyphID          = unicode_letter - 0xf000; // start of fontawesome
@@ -299,7 +311,9 @@ const uint8_t * IRAM_ATTR lv_font_get_bitmap_fmt_zifont(const lv_font_t * font, 
 
     /* Allocate & Initialize Buffer for 4bpp */
     uint32_t size = (charInfo->width * fdsc->CharHeight + 1) / 2; // add 1 for rounding up
-    initCharacterFrame(size);
+    if(!initCharacterFrame(size)) {
+        return NULL;
+    }
 
     char data[256];
     file.seek(datapos + 1, SeekSet); // +1 for skipping bpp byte
@@ -440,6 +454,7 @@ bool IRAM_ATTR lv_font_get_glyph_dsc_fmt_zifont(const lv_font_t * font, lv_font_
 
         /* Open the font for reading */
         if(unicode_letter >= 0xF000) {
+           // return false;
             char filename[32];
             sprintf_P(filename, PSTR("/fontawesome%u.zi"), fdsc->CharHeight);
             if(!openFont(file, filename)) return false;

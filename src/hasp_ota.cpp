@@ -95,7 +95,7 @@ void otaSetup()
             }
 
             otaPrecentageComplete = -1;
-            Log.error(TAG_OTA, F("ERROR - %s failed (%s)"), buffer, error);
+            Log.error(TAG_OTA, F("%s failed (%s)"), buffer, error);
             haspProgressMsg(F("ESP OTA FAILED"));
             // delay(5000);
             // haspSendCmd("page " + String(nextionActivePage));
