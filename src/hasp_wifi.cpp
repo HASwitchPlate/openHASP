@@ -65,7 +65,7 @@ static void wifiConnected(IPAddress ipaddress)
 #endif
 
     Log.verbose(TAG_WIFI, F("Connected = %s"), WiFi.status() == WL_CONNECTED ? PSTR("yes") : PSTR("no"));
-    networkEvent(true);
+    networkStart();
 }
 
 static void wifiDisconnected(const char * ssid, uint8_t reason)
@@ -73,7 +73,7 @@ static void wifiDisconnected(const char * ssid, uint8_t reason)
     wifiReconnectCounter++;
 
     haspProgressVal(wifiReconnectCounter * 3);
-    networkEvent(false);
+    networkStop();
 
     if(wifiReconnectCounter > 33) {
         Log.error(TAG_WIFI, F("Retries exceed %u: Rebooting..."), wifiReconnectCounter);
