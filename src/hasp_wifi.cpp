@@ -64,13 +64,7 @@ static void wifiConnected(IPAddress ipaddress)
 #endif
 
     Log.verbose(TAG_WIFI, F("Connected = %s"), WiFi.status() == WL_CONNECTED ? PSTR("yes") : PSTR("no"));
-    haspProgressVal(255);
-
-    haspReconnect();
-    debugStartSyslog();
-    //mqttStart();
-    httpStart();
-    mdnsStart();
+    networkEvent(true);
 }
 
 static void wifiDisconnected(const char * ssid, uint8_t reason)
@@ -78,12 +72,7 @@ static void wifiDisconnected(const char * ssid, uint8_t reason)
     wifiReconnectCounter++;
 
     haspProgressVal(wifiReconnectCounter * 3);
-    haspProgressMsg(F("Wifi Disconnected"));
-
-    debugStopSyslog();
-    mqttStop();
-    httpStop();
-    mdnsStop();
+    networkEvent(false);
 
     if(wifiReconnectCounter > 33) {
         Log.error(TAG_WIFI, F("Retries exceed %u: Rebooting..."), wifiReconnectCounter);

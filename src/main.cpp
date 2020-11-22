@@ -11,6 +11,7 @@
 #include "hasp_gui.h"
 #include "hasp_oobe.h"
 #include "hasp_dispatch.h"
+#include "hasp_network.h"
 #include "hasp.h"
 
 bool isConnected;
@@ -27,17 +28,17 @@ void setup()
 #endif
 
 // #if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
-//     filesystemSetup();  // Done in configSetup()
+//     filesystemSetup();  // FS mount is done in configSetup()
 // #endif
 
-#if HASP_USE_SDCARD > 0
-    sdcardSetup();
-#endif
+// #if HASP_USE_SDCARD > 0
+//     sdcardSetup();
+// #endif
 
     /****************************
      * Read & Apply User Configuration
      ***************************/
-    configSetup();
+    configSetup(); // also runs debugPreSetup(), debugSetup() and debugStart()
 
     dispatchSetup();
 
@@ -45,19 +46,15 @@ void setup()
      * Apply User Configuration
      ***************************/
 
-#if HASP_USE_ETHERNET > 0
-    ethernetSetup();
-#endif
-
 #if HASP_USE_MQTT > 0
     mqttSetup(); // Load Hostname before starting WiFi
 #endif
 
-#if HASP_USE_WIFI > 0
-    wifiSetup();
+#if HASP_USE_WIFI > 0 || HASP_USE_ETHERNET > 0
+    networkSetup();
 #endif
 
-    debugSetup();
+    // debugSetup();
 
     guiSetup();
     if(!oobeSetup()) {
@@ -155,11 +152,11 @@ void loop()
     /* Timer Loop */
     if(millis() - mainLastLoopTime >= 1000) {
         /* Runs Every Second */
+        guiEverySecond();   // sleep timer
+        debugEverySecond(); // statusupdate
 #if HASP_USE_OTA > 0
         otaEverySecond(); // progressbar
 #endif
-        guiEverySecond();   // sleep timer
-        debugEverySecond(); // statusupdate
 
         /* Runs Every 5 Seconds */
         if(mainLoopCounter == 0 || mainLoopCounter == 5) {

@@ -8,6 +8,7 @@
 #include "hasp_conf.h"
 #include "hasp_hal.h"
 #include "hasp_debug.h"
+#include "hasp_network.h"
 
 #if HASP_USE_ETHERNET > 0
 
@@ -34,10 +35,12 @@ void EthernetEvent(WiFiEvent_t event)
             }
             Log.notice(TAG_ETH, F("LINK_SPEED %d Mbps"), ETH.linkSpeed());
             eth_connected = true;
+            networkStart();// Start network services
             break;
         case SYSTEM_EVENT_ETH_DISCONNECTED:
             Log.notice(TAG_ETH, F("Disconnected"));
             eth_connected = false;
+            networkStop(); // Stop network services
             break;
         case SYSTEM_EVENT_ETH_STOP:
             Log.notice(TAG_ETH, F("Stopped"));
