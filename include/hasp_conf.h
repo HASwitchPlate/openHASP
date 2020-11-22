@@ -122,7 +122,12 @@
 
 #if HASP_USE_WIFI > 0
 #include "hasp_wifi.h"
+
+#if defined(STM32F4xx)
+#include "WiFiSpi.h"
+static WiFiSpiClass WiFi;
 #endif
+#endif // HASP_USE_WIFI
 
 #if HASP_USE_ETHERNET > 0
 #if defined(ARDUINO_ARCH_ESP32)
@@ -152,7 +157,7 @@
 #include "Ethernet.h"
 #warning Use W5x00 Ethernet shield
 #endif
-#include "hasp_ethernet.h"
+#include "hasp_ethernet_stm32.h"
 #endif
 #endif
 
@@ -193,15 +198,6 @@
 
 #if HASP_USE_TASMOTA_SLAVE > 0
 #include "hasp_slave.h"
-#endif
-
-#if HASP_USE_ETHERNET > 0
-#include "hasp_ethernet.h"
-#endif
-
-#if HASP_USE_WIFI > 0 && defined(STM32F4xx)
-#include "WiFiSpi.h"
-static WiFiSpiClass WiFi;
 #endif
 
 #ifndef FPSTR
