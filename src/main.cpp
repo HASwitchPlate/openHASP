@@ -26,9 +26,9 @@ void setup()
     eepromSetup(); // Don't start at boot, only at write
 #endif
 
-#if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
-    filesystemSetup();
-#endif
+// #if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
+//     filesystemSetup();  // Done in configSetup()
+// #endif
 
 #if HASP_USE_SDCARD > 0
     sdcardSetup();
@@ -154,13 +154,14 @@ void loop()
 
     /* Timer Loop */
     if(millis() - mainLastLoopTime >= 1000) {
-        /* Run Every Second */
+        /* Runs Every Second */
 #if HASP_USE_OTA > 0
-        otaEverySecond();
+        otaEverySecond(); // progressbar
 #endif
-        debugEverySecond();
+        guiEverySecond();   // sleep timer
+        debugEverySecond(); // statusupdate
 
-        /* Run Every 5 Seconds */
+        /* Runs Every 5 Seconds */
         if(mainLoopCounter == 0 || mainLoopCounter == 5) {
 #if HASP_USE_WIFI > 0
             isConnected = wifiEvery5Seconds();
@@ -171,11 +172,11 @@ void loop()
 #endif
 
 #if HASP_USE_HTTP > 0
-            httpEvery5Seconds();
+            // httpEvery5Seconds();
 #endif
 
 #if HASP_USE_MQTT > 0
-            mqttEvery5Seconds(isConnected);
+             mqttEvery5Seconds(isConnected);
 #endif
         }
 
@@ -188,5 +189,5 @@ void loop()
         mainLastLoopTime += 1000;
     }
 
-    delay(2);
+    delay(3);
 }

@@ -49,6 +49,8 @@ enum hasp_event_t { // even = released, odd = pressed
  */
 void haspSetup();
 void haspLoop(void);
+void haspReconnect(void);
+void haspDisconnect(void);
 
 lv_obj_t * get_page_obj(uint8_t pageid);
 bool get_page_id(lv_obj_t * obj, uint8_t * pageid);
@@ -63,10 +65,8 @@ void haspBackground(uint16_t pageid, uint16_t imageid);
 
 void hasp_set_group_objects(uint8_t groupid, uint8_t eventid, lv_obj_t * src_obj);
 
-void haspNewObject(const JsonObject & config, uint8_t & saved_page_id);
+// void haspNewObject(const JsonObject & config, uint8_t & saved_page_id);
 
-void haspReconnect(void);
-void haspDisconnect(void);
 void haspWakeUp(void);
 void haspProgressVal(uint8_t val);
 

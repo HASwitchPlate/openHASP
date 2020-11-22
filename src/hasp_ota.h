@@ -8,9 +8,12 @@
 
 #include "ArduinoJson.h"
 
-void otaSetup();
+/* ===== Default Event Processors ===== */
+void otaSetup(void);
 void otaLoop(void);
 void otaEverySecond(void);
+
+/* ===== Special Event Processors ===== */
 void otaHttpUpdate(const char * espOtaUrl);
 
 #endif

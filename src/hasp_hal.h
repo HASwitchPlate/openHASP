@@ -6,7 +6,7 @@
 
 #include <Arduino.h>
 
-void halRestart(void);
+void halRestartMcu(void);
 uint8_t halGetHeapFragmentation(void);
 String halGetResetInfo(void);
 size_t halGetMaxFreeBlock(void);

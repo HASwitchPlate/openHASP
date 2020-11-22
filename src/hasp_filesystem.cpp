@@ -95,9 +95,13 @@ void filesystemList()
 #endif
 }
 
-bool filesystemSetup()
+bool filesystemSetup(void)
 {
     // no SPIFFS settings, as settings depend on SPIFFS
+    // no Logging, because it depends on the configuration file
+    
+    // Logging is defered until debugging has started
+    // FS success or failure is printed at that time !
 
 #if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
 #if defined(ARDUINO_ARCH_ESP8266)
@@ -105,10 +109,10 @@ bool filesystemSetup()
 #else
     if(!HASP_FS.begin(true)) {
 #endif
-        Log.error(TAG_FILE, F("SPI flash init failed. Unable to mount FS."));
+        // Log.error(TAG_FILE, F("SPI flash init failed. Unable to mount FS."));
         return false;
     } else {
-        Log.trace(TAG_FILE, F("SPI Flash FS mounted"));
+        // Log.trace(TAG_FILE, F("SPI Flash FS mounted"));
         return true;
     }
 #endif

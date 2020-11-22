@@ -15,7 +15,7 @@
 #include "tft_espi_drv.h"
 #endif
 
-// Touch Driver
+// Select Touch Driver
 //#include "indev/XPT2046_alt_drv.h"
 #include "indev/XPT2046.h"
 
@@ -69,13 +69,14 @@ static uint16_t guiSleepTime2 = 120; // 1 second resolution
 static uint8_t guiSleeping    = HASP_SLEEP_OFF;
 static uint8_t guiTickPeriod  = 20;
 static uint8_t guiRotation    = TFT_ROTATION;
-#if ESP32 > 0 || ESP8266 > 0
+// static TFT_eSPI tft; // = TFT_eSPI(); /* TFT instance */
+static uint16_t calData[5] = {0, 65535, 0, 65535, 0};
+
+#if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
 static Ticker tick; /* timer for interrupt handler */
 #else
 static Ticker tick(lv_tick_handler, LVGL_TICK_PERIOD); // guiTickPeriod);
 #endif
-// static TFT_eSPI tft; // = TFT_eSPI(); /* TFT instance */
-static uint16_t calData[5] = {0, 65535, 0, 65535, 0};
 
 bool guiCheckSleep()
 {
@@ -136,7 +137,6 @@ static void IRAM_ATTR my_flush_cb(lv_disp_drv_t * disp, const lv_area_t * area, 
 /* Interrupt driven periodic handler */
 static void ICACHE_RAM_ATTR lv_tick_handler(void)
 {
-    // Serial.print(".");
     lv_tick_inc(LVGL_TICK_PERIOD);
 }
 
@@ -562,7 +562,7 @@ void guiSetup()
 
 #if LV_USE_LOG != 0
     Log.notice(TAG_LVGL, F("Registering lvgl logging handler"));
-    lv_log_register_print_cb(debugLvgl); /* register print function for debugging */
+    lv_log_register_print_cb(debugLvglLogEvent); /* register print function for debugging */
 #endif
 
     /* Initialize the display driver */
@@ -639,17 +639,21 @@ void guiSetup()
 
 void IRAM_ATTR guiLoop()
 {
+    lv_task_handler(); // process animations
+
 #if defined(STM32F4xx)
     tick.update();
 #endif
 
-    lv_task_handler();
-
-    guiCheckSleep();
-
 #if TOUCH_DRIVER == 1
     touch.loop();
 #endif
+}
+
+void guiEverySecond(void)
+{
+    // check if we went to sleep, wake up is handled in the event handlers
+    guiCheckSleep();
 }
 
 void guiStart()

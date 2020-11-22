@@ -6,11 +6,13 @@
 
 #include "ArduinoJson.h"
 
+/* ===== Default Event Processors ===== */
 void mdnsSetup();
 void mdnsLoop(void);
 void mdnsStart(void);
 void mdnsStop(void);
 
+/* ===== Read/Write Configuration ===== */
 bool mdnsGetConfig(const JsonObject & settings);
 bool mdnsSetConfig(const JsonObject & settings);
 

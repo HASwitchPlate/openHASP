@@ -458,13 +458,6 @@ typedef void* lv_font_user_data_t;
 #endif  /*LV_SPRINTF_CUSTOM*/
 
 
-//*********************** 7.0 BETA defines, Remove when final version is ready !!
-#define LV_USE_TA 1 // TEMPORARY FIX for 7.0 beta
-#define LV_USE_DDLIST 1 // TEMPORARY FIX for 7.0 beta
-#  define LV_DSLIST_DEF_ANIM_TIME     200
-#define LV_USE_BTNM 1 // TEMPORARY FIX for 7.0 beta
-
-
 /*===================
  *  LV_OBJ SETTINGS
  *==================*/

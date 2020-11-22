@@ -130,7 +130,7 @@ bool httpIsAuthenticated(const __FlashStringHelper * fstr_page)
 
 #if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
     Log.notice(TAG_HTTP, F("Sending %S page to client connected from: %s"), fstr_page,
-                webServer.client().remoteIP().toString().c_str());
+               webServer.client().remoteIP().toString().c_str());
 #else
     // Log.trace(TAG_HTTP,F("Sending %s page to client connected from: %s"), page,
     //             String(webServer.client().remoteIP()).c_str());
@@ -1642,7 +1642,7 @@ void httpHandleResetConfig()
         httpMessage += F("</h1><hr>");
 
         if(resetConfirmed) { // User has confirmed, so reset everything
-            bool formatted = configClear();
+            bool formatted = configClearEeprom();
             if(formatted) {
                 httpMessage += F("<b>Resetting all saved settings and restarting device</b>");
             } else {
@@ -1677,7 +1677,7 @@ void httpHandleResetConfig()
     }
 }
 
-void webStart()
+void httpStart()
 {
     webServer.begin();
     webServerStarted = true;
@@ -1688,7 +1688,7 @@ void webStart()
     Log.trace(TAG_HTTP, F("Server started @ http://%d.%d.%d.%d"), ip[0], ip[1], ip[2], ip[3]);
 #else
     Log.trace(TAG_HTTP, F("Server started @ http://%s"),
-               (WiFi.getMode() != WIFI_STA ? WiFi.softAPIP().toString().c_str() : WiFi.localIP().toString().c_str()));
+              (WiFi.getMode() != WIFI_STA ? WiFi.softAPIP().toString().c_str() : WiFi.localIP().toString().c_str()));
 #endif
 #else
     IPAddress ip;
@@ -1701,7 +1701,7 @@ void webStart()
 #endif
 }
 
-void webStop()
+void httpStop()
 {
     webServer.stop();
     webServerStarted = false;
@@ -1817,7 +1817,7 @@ void httpSetup()
     webServer.collectHeaders(headerkeys, headerkeyssize);
 
     Log.trace(TAG_HTTP, F("Setup Complete"));
-    webStart();
+    // webStart();  Wait for network connection
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1826,13 +1826,13 @@ void httpReconnect()
     if(!httpEnable) return;
 
     if(webServerStarted) {
-        webStop();
+        httpStop();
     } else
 #if HASP_USE_WIFI > 0 && !defined(STM32F4xx)
         if(WiFi.status() == WL_CONNECTED || WiFi.getMode() != WIFI_STA)
 #endif
     {
-        webStart();
+        httpStart();
     }
 }
 
@@ -1845,7 +1845,7 @@ void httpLoop()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 void httpEvery5Seconds()
 {
-    if(httpEnable && !webServerStarted) httpReconnect();
+    //  if(httpEnable && !webServerStarted) httpReconnect();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

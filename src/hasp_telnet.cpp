@@ -60,7 +60,7 @@ void telnetClientDisconnect()
 void telnetClientLogon()
 {
     telnetClient.println();
-    debugHaspHeader(&telnetClient);
+    debugPrintHaspHeader(&telnetClient);
     // telnetClient.println(debugHaspHeader().c_str()); // Send version header
     telnetLoginState   = TELNET_AUTHENTICATED; // User and Pass are correct
     telnetLoginAttempt = 0;                    // Reset attempt counter

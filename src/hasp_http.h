@@ -10,9 +10,11 @@
 void httpSetup();
 void httpLoop(void);
 void httpEvery5Seconds(void);
-void httpReconnect(void);
+// void httpReconnect(void);
+void httpStart(void);
+void httpStop(void);
 
-size_t httpClientWrite(const uint8_t *buf, size_t size); // Screenshot Write Data
+size_t httpClientWrite(const uint8_t * buf, size_t size); // Screenshot Write Data
 
 bool httpGetConfig(const JsonObject & settings);
 bool httpSetConfig(const JsonObject & settings);

@@ -66,11 +66,11 @@ static void wifiConnected(IPAddress ipaddress)
     Log.verbose(TAG_WIFI, F("Connected = %s"), WiFi.status() == WL_CONNECTED ? PSTR("yes") : PSTR("no"));
     haspProgressVal(255);
 
-    debugStartSyslog();
-    // mqttReconnect();
-    // httpReconnect();
-    mdnsStart();
     haspReconnect();
+    debugStartSyslog();
+    //mqttStart();
+    httpStart();
+    mdnsStart();
 }
 
 static void wifiDisconnected(const char * ssid, uint8_t reason)
@@ -81,6 +81,8 @@ static void wifiDisconnected(const char * ssid, uint8_t reason)
     haspProgressMsg(F("Wifi Disconnected"));
 
     debugStopSyslog();
+    mqttStop();
+    httpStop();
     mdnsStop();
 
     if(wifiReconnectCounter > 33) {
@@ -356,7 +358,7 @@ bool wifiShowAP(char * ssid, char * pass)
     return true;
 }
 
-void wifiReconnect()
+static void wifiReconnect(void)
 {
     WiFi.disconnect(true);
 #if defined(ARDUINO_ARCH_ESP8266)

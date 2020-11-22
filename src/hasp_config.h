@@ -7,6 +7,27 @@
 #include "ArduinoJson.h"
 #include "hasp_debug.h" // for TAG_CONF
 
+/* ===== Default Event Processors ===== */
+void configSetup(void);
+void configLoop(void);
+void configEverySecond(void);
+void configStart(void);
+void configStop(void);
+
+/* ===== Special Event Processors ===== */
+void configWriteConfig(void);
+void configOutput(const JsonObject & settings, uint8_t tag = TAG_CONF);
+bool configClearEeprom(void);
+
+/* ===== Getter and Setter Functions ===== */
+bool configSet(int8_t & value, const JsonVariant & setting, const __FlashStringHelper * fstr_name);
+bool configSet(uint8_t & value, const JsonVariant & setting, const __FlashStringHelper * fstr_name);
+bool configSet(uint16_t & value, const JsonVariant & setting, const __FlashStringHelper * fstr_name);
+
+/* ===== Read/Write Configuration ===== */
+void configSetConfig(JsonObject & settings);
+void configGetConfig(JsonDocument & settings);
+
 /* json keys used in the configfile */
 const char F_CONFIG_STARTPAGE[] PROGMEM = "startpage";
 const char F_CONFIG_STARTDIM[] PROGMEM  = "startdim";
@@ -36,18 +57,5 @@ const char F_DEBUG_TELEPERIOD[] PROGMEM = "teleperiod";
 const char F_GPIO_CONFIG[] PROGMEM      = "config";
 
 const char HASP_CONFIG_FILE[] PROGMEM = "/config.json";
-
-void configSetup();
-void configStop(void);
-
-void configSetConfig(JsonObject & settings);
-void configGetConfig(JsonDocument & settings);
-void configWriteConfig();
-void configOutput(const JsonObject & settings, uint8_t tag = TAG_CONF);
-
-bool configSet(int8_t & value, const JsonVariant & setting, const __FlashStringHelper * fstr_name);
-bool configSet(uint8_t & value, const JsonVariant & setting, const __FlashStringHelper * fstr_name);
-bool configSet(uint16_t & value, const JsonVariant & setting, const __FlashStringHelper * fstr_name);
-bool configClear();
 
 #endif

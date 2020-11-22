@@ -109,7 +109,7 @@ unsigned long debugLastMillis = 0;
 uint16_t debugTelePeriod      = 300;
 
 // Send the HASP header and version to the output device specified
-void debugHaspHeader(Print * output)
+void debugPrintHaspHeader(Print * output)
 {
     if(debugAnsiCodes) output->println(TERM_COLOR_YELLOW);
     output->print(F(""
@@ -559,19 +559,19 @@ void debugPrintPrefix(uint8_t tag, int level, Print * _logOutput)
     debugSendAnsiCode(F(TERM_CLEAR_LINE), _logOutput);
     debugPrintTimestamp(level, _logOutput);
     debugPrintHaspMemory(level, _logOutput);
+
 #if LV_MEM_CUSTOM == 0
     debugPrintLvglMemory(level, _logOutput);
 #endif
-    switch(tag) {
-        case TAG_MQTT_PUB:
-            debugSendAnsiCode(F(TERM_COLOR_GREEN), _logOutput);
-            break;
-        case TAG_MQTT_RCV:
-            debugSendAnsiCode(F(TERM_COLOR_ORANGE), _logOutput);
-            break;
-        default:
-            debugPrintPriority(level, _logOutput);
+
+    if(tag == TAG_MQTT_PUB && level == LOG_LEVEL_NOTICE) {
+        debugSendAnsiCode(F(TERM_COLOR_GREEN), _logOutput);
+    } else if(tag == TAG_MQTT_RCV && level == LOG_LEVEL_NOTICE) {
+        debugSendAnsiCode(F(TERM_COLOR_ORANGE), _logOutput);
+    } else {
+        debugPrintPriority(level, _logOutput);
     }
+
     _logOutput->print(F(" "));
     debugPrintTag(tag, _logOutput);
     _logOutput->print(F(": "));
@@ -627,7 +627,7 @@ void debugPreSetup(JsonObject settings)
 
         // Print Header
         Serial.println();
-        debugHaspHeader(&Serial);
+        debugPrintHaspHeader(&Serial);
         // Serial.println(debugHaspHeader());
         // Serial.println();
         Serial.flush();
@@ -637,15 +637,18 @@ void debugPreSetup(JsonObject settings)
 }
 
 #if LV_USE_LOG != 0
-static uint32_t lastDbgLine;
-static uint16_t lastDbgFree;
-void debugLvgl(lv_log_level_t level, const char * file, uint32_t line, const char * funcname, const char * descr)
+void debugLvglLogEvent(lv_log_level_t level, const char * file, uint32_t line, const char * funcname,
+                       const char * descr)
 {
+    /* used for duplicate detection */
+    static uint32_t lastDbgLine;
+    static uint16_t lastDbgFreeMem;
+
     lv_mem_monitor_t mem_mon;
     lv_mem_monitor(&mem_mon);
 
     /* Reduce the number of reepeated debug message */
-    if(line != lastDbgLine || mem_mon.free_biggest_size != lastDbgFree) {
+    if(line != lastDbgLine || mem_mon.free_biggest_size != lastDbgFreeMem) {
         switch(level) {
             case LV_LOG_LEVEL_TRACE:
                 Log.verbose(TAG_LVGL, descr);
@@ -659,8 +662,8 @@ void debugLvgl(lv_log_level_t level, const char * file, uint32_t line, const cha
             default:
                 Log.notice(TAG_LVGL, descr);
         }
-        lastDbgLine = line;
-        lastDbgFree = mem_mon.free_biggest_size;
+        lastDbgLine    = line;
+        lastDbgFreeMem = mem_mon.free_biggest_size;
     }
 }
 #endif

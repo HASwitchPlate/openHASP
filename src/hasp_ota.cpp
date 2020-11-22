@@ -32,13 +32,13 @@ std::string otaUrl           = "http://ota.netwize.be";
 int16_t otaPort              = HASP_OTA_PORT;
 int8_t otaPrecentageComplete = -1;
 
-void otaProgress()
+static inline void otaProgress(void)
 {
     Log.verbose(TAG_OTA, F("%s update in progress... %3u%"),
                 (ArduinoOTA.getCommand() == U_FLASH ? PSTR("Firmware") : PSTR("Filesystem")), otaPrecentageComplete);
 }
 
-void otaSetup()
+void otaSetup(void)
 {
     if(strlen(otaUrl.c_str())) {
         Log.trace(TAG_OTA, otaUrl.c_str());
@@ -126,12 +126,12 @@ void otaSetup()
     }
 }
 
-void otaLoop()
+void otaLoop(void)
 {
     ArduinoOTA.handle();
 }
 
-void otaEverySecond()
+void otaEverySecond(void)
 {
     if(otaPrecentageComplete >= 0) otaProgress();
 }

@@ -9,8 +9,8 @@
 void mqttSetup();
 void mqttLoop();
 void mqttEvery5Seconds(bool wifiIsConnected);
+void mqttStart();
 void mqttStop();
-void mqttReconnect();
 
 void IRAM_ATTR mqtt_send_state(const __FlashStringHelper * subtopic, const char * payload);
 void mqtt_send_input(uint8_t id, const char * payload);

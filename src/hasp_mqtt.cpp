@@ -323,7 +323,7 @@ void mqttSubscribeTo(const char * format, const char * data)
     }
 }
 
-void mqttReconnect()
+void mqttStart()
 {
     char buffer[128];
     char mqttClientId[64];
@@ -342,7 +342,7 @@ void mqttReconnect()
 
     // Attempt to connect and set LWT and Clean Session
     snprintf_P(buffer, sizeof(buffer), PSTR("%sstatus"), mqttNodeTopic);
-    if(!mqttClient.connect(mqttClientId, mqttUser, mqttPassword, buffer, 0, false, "OFF", true)) {
+    if(!mqttClient.connect(mqttClientId, mqttUser, mqttPassword, buffer, 0, false, "OFF", true)) { // Literal String
         // Retry until we give up and restart after connectTimeout seconds
         mqttReconnectCount++;
 
@@ -398,12 +398,10 @@ void mqttReconnect()
         mqttCommandTopic            = prefix + F("/page");
         mqttGroupCommandTopic       = "hasp/" + mqttGroupName + "/page";
 
-        mqttSensorTopic             = prefix + F("/sensor");
         mqttLightCommandTopic       = prefix + F("/light/switch");
         mqttLightStateTopic         = prefix + F("/light/state");
         mqttLightBrightCommandTopic = prefix + F("/brightness/set");
         mqttLightBrightStateTopic   = prefix + F("/brightness/state");
-        mqttMotionStateTopic        = prefix + F("/motion/state");
     */
 
     // Set keepAlive, cleanSession, timeout
@@ -469,7 +467,7 @@ void mqttLoop()
 
 void mqttEvery5Seconds(bool networkIsConnected)
 {
-    if(mqttEnabled && networkIsConnected && !mqttClient.connected()) mqttReconnect();
+    if(mqttEnabled && networkIsConnected && !mqttClient.connected()) mqttStart();
 }
 
 String mqttGetNodename()

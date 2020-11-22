@@ -370,11 +370,11 @@ void configSetup()
         }
 
         //#if HASP_USE_SPIFFS > 0
-        Log.notice(TAG_DEBG, F("Loading debug settings"));
+        Log.trace(TAG_DEBG, F("Loading debug settings"));
         debugSetConfig(settings[F("debug")]);
-        Log.notice(TAG_GPIO, F("Loading GUI settings"));
+        Log.trace(TAG_GPIO, F("Loading GUI settings"));
         guiSetConfig(settings[F("gui")]);
-        Log.notice(TAG_HASP, F("Loading HASP settings"));
+        Log.trace(TAG_HASP, F("Loading HASP settings"));
         haspSetConfig(settings[F("hasp")]);
         // otaGetConfig(settings[F("ota")]);
 
@@ -458,7 +458,7 @@ void configOutput(const JsonObject & settings, uint8_t tag)
     Log.verbose(tag, output.c_str());
 }
 
-bool configClear()
+bool configClearEeprom()
 {
 #if defined(STM32F4xx)
     Log.notice(TAG_CONF, F("Clearing EEPROM"));
