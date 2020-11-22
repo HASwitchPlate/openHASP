@@ -19,10 +19,11 @@ void EthernetEvent(WiFiEvent_t event)
         case SYSTEM_EVENT_ETH_START:
             Log.notice(TAG_ETH, F("Started"));
             // set eth hostname here
-            ETH.setHostname("esp32-ethernet");
+            ETH.setHostname(mqttGetNodename().c_str());
             break;
         case SYSTEM_EVENT_ETH_CONNECTED:
             Log.notice(TAG_ETH, F("Connected"));
+            eth_connected = true;
             break;
         case SYSTEM_EVENT_ETH_GOT_IP:
             Log.notice(TAG_ETH, F("MAC Address %s"), ETH.macAddress().c_str());
@@ -60,7 +61,7 @@ void ethernetLoop(void)
 
 bool ethernetEvery5Seconds()
 {
-    Log.warning(TAG_ETH, eth_connected ? F("ONLINE") : F("OFFLINE"));
+    // Log.warning(TAG_ETH, eth_connected ? F("ONLINE") : F("OFFLINE"));
     return eth_connected;
 }
 
