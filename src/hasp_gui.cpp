@@ -106,8 +106,8 @@ bool guiCheckSleep()
     return (guiSleeping != HASP_SLEEP_OFF);
 }
 
-/* Experimental Display flushing */
-static void IRAM_ATTR my_flush_cb(lv_disp_drv_t * disp, const lv_area_t * area, lv_color_t * color_p)
+/* After flusing to the file stream or web client, we also send the buffer to the tft */
+static void IRAM_ATTR printscreen_flush_cb(lv_disp_drv_t * disp, const lv_area_t * area, lv_color_t * color_p)
 {
 #if 0
     size_t len = (area->x2 - area->x1 + 1) * (area->y2 - area->y1 + 1); /* Number of pixels */
@@ -131,7 +131,7 @@ static void IRAM_ATTR my_flush_cb(lv_disp_drv_t * disp, const lv_area_t * area, 
 #endif
 
     /* Tell lvgl that flushing is done */
-    // lv_disp_flush_ready(disp);
+    // lv_disp_flush_ready(disp);  ===> moved into the drivers
 }
 
 /* Interrupt driven periodic handler */
@@ -915,7 +915,7 @@ static void gui_screenshot_to_file(lv_disp_drv_t * disp, const lv_area_t * area,
     len *= sizeof(lv_color_t);                                          /* Number of bytes */
     size_t res = pFileOut.write((uint8_t *)color_p, len);
     if(res != len) gui_flush_not_complete();
-    my_flush_cb(disp, area, color_p);
+    printscreen_flush_cb(disp, area, color_p);
 }
 
 /** Take Screenshot.
@@ -969,7 +969,7 @@ static void gui_screenshot_to_http(lv_disp_drv_t * disp, const lv_area_t * area,
     len *= sizeof(lv_color_t);                                          /* Number of bytes */
     size_t res = httpClientWrite((uint8_t *)color_p, len);
     if(res != len) gui_flush_not_complete();
-    my_flush_cb(disp, area, color_p);
+    printscreen_flush_cb(disp, area, color_p);
 }
 
 /** Take Screenshot.

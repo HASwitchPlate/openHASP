@@ -504,7 +504,24 @@ void webHandleInfo()
         httpMessage += String(WiFi.macAddress());
 #endif
 #endif
-
+#if HASP_USE_ETHERNET > 0
+#if defined(ARDUINO_ARCH_ESP32)
+        httpMessage += F("</p/><p><b>Ethernet: </b>");
+        httpMessage += String(ETH.linkSpeed());
+        httpMessage += F(" Mbps");
+        if(ETH.fullDuplex()) {
+            httpMessage += F(" FULL_DUPLEX");
+        }
+        httpMessage += F("</br><b>IP Address: </b>");
+        httpMessage += String(ETH.localIP().toString());
+        httpMessage += F("</br><b>Gateway: </b>");
+        httpMessage += String(ETH.gatewayIP().toString());
+        httpMessage += F("</br><b>DNS Server: </b>");
+        httpMessage += String(ETH.dnsIP().toString());
+        httpMessage += F("</br><b>MAC Address: </b>");
+        httpMessage += String(ETH.macAddress());
+#endif
+#endif
 /* Mqtt Stats */
 #if HASP_USE_MQTT > 0
         httpMessage += F("</p/><p><b>MQTT Status: </b>");
