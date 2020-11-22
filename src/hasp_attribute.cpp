@@ -123,10 +123,16 @@ static lv_color_t haspPayloadToColor(const char * payload)
     }
 
     /* HEX format #rrggbb or #rrggbbaa */
+    char pattern[4];
+    snprintf_P(pattern, sizeof(pattern), PSTR(" 2x")); // % cannot be escaped, so we build our own pattern
+    pattern[0]='%';
+    char buffer[13];
+    snprintf_P(buffer, sizeof(buffer), PSTR("%s%s%s%s"), pattern, pattern, pattern, pattern);
     int r, g, b, a;
-    if(*payload == '#' && sscanf(payload + 1, "%2x%2x%2x%2x", &r, &g, &b, &a) == 4) {
+    
+    if(*payload == '#' && sscanf(payload + 1, buffer, &r, &g, &b, &a) == 4) {
         return haspLogColor(LV_COLOR_MAKE(r, g, b));
-    } else if(*payload == '#' && sscanf(payload + 1, "%2x%2x%2x", &r, &g, &b) == 3) {
+    } else if(*payload == '#' && sscanf(payload + 1, buffer, &r, &g, &b) == 3) {
         return haspLogColor(LV_COLOR_MAKE(r, g, b));
     }
 

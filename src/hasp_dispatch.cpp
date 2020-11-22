@@ -216,7 +216,8 @@ void dispatchTextLine(const char * cmnd)
             dispatchTopicPayload(strTopic.c_str(),
                                  cmnd + pos + 1); // topic is before '=', payload is after '=' position
         } else {
-            dispatchTopicPayload(cmnd, "");
+            char buf[1] = {0};
+            dispatchTopicPayload(cmnd, buf);
         }
     }
 }
@@ -253,7 +254,7 @@ void dispatchReboot(bool saveConfig)
     Log.verbose(TAG_MSGR, F("-------------------------------------"));
     Log.notice(TAG_MSGR, F("HALT: Properly Rebooting the MCU now!"));
     Serial.flush();
-    halRestart();
+    halRestartMcu();
 }
 
 void dispatch_button(uint8_t id, const char * event)
@@ -360,9 +361,11 @@ void IRAM_ATTR dispatch_send_obj_attribute_str(uint8_t pageid, uint8_t btnid, co
 void dispatch_send_object_event(uint8_t pageid, uint8_t objid, uint8_t eventid)
 {
     if(objid < 100) {
-        char eventname[16];
-        dispatch_get_event_name(eventid, eventname, sizeof(eventname));
-        dispatch_send_obj_attribute_str(pageid, objid, "event", eventname); /* Literal String */
+        char topic[8];
+        char payload[8];
+        snprintf_P(topic, sizeof(topic), PSTR("event"));
+        dispatch_get_event_name(eventid, payload, sizeof(payload));
+        dispatch_send_obj_attribute_str(pageid, objid, topic, payload);
     } else {
         uint8_t groupid = (objid - 100) / 10;
         dispatch_send_group_event(groupid, eventid, true);
