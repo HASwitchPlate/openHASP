@@ -41,6 +41,11 @@ void setup()
     configSetup(); // also runs debugPreSetup(), debugSetup() and debugStart()
 
     dispatchSetup();
+    guiSetup();
+    debugSetup(); // Init the console
+#if HASP_USE_GPIO > 0
+    gpioSetup();
+#endif
 
     /****************************
      * Apply User Configuration
@@ -54,9 +59,6 @@ void setup()
     networkSetup();
 #endif
 
-    debugSetup(); // Init the console
-
-    guiSetup();
     if(!oobeSetup()) {
         haspSetup();
     }
@@ -79,10 +81,6 @@ void setup()
 
 #if HASP_USE_TASMOTA_SLAVE > 0
     slaveSetup();
-#endif
-
-#if HASP_USE_GPIO > 0
-    gpioSetup();
 #endif
 
     mainLastLoopTime = millis() - 1000; // reset loop counter

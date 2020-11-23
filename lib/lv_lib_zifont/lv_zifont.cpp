@@ -260,13 +260,13 @@ const uint8_t * IRAM_ATTR lv_font_get_bitmap_fmt_zifont(const lv_font_t * font, 
     }
 
     File file;
-    char filename[128];
+    char filename[32];
     uint32_t glyphID;
     uint16_t charmap_position;
 
     if(unicode_letter >= 0xF000) {
-        //return NULL;
-        sprintf_P(filename, PSTR("/fontawesome%u.zi"), fdsc->CharHeight);
+        // return NULL;
+        snprintf_P(filename, sizeof(filename), PSTR("/fontawesome%u.zi"), fdsc->CharHeight);
         charmap_position = 25 + sizeof(zi_font_header_t);
         glyphID          = unicode_letter - 0xf000; // start of fontawesome
     } else {
@@ -454,9 +454,9 @@ bool IRAM_ATTR lv_font_get_glyph_dsc_fmt_zifont(const lv_font_t * font, lv_font_
 
         /* Open the font for reading */
         if(unicode_letter >= 0xF000) {
-           // return false;
+            // return false;
             char filename[32];
-            sprintf_P(filename, PSTR("/fontawesome%u.zi"), fdsc->CharHeight);
+            snprintf_P(filename, sizeof(filename), PSTR("/fontawesome%u.zi"), fdsc->CharHeight);
             if(!openFont(file, filename)) return false;
         } else {
             if(!openFont(file, (char *)font->user_data)) return false;

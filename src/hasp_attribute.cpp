@@ -241,7 +241,7 @@ static inline void haspSetLabelText(lv_obj_t * obj, const char * value)
 }
 
 // OK
-static inline bool haspGetLabelText(lv_obj_t * obj, char * text)
+static bool haspGetLabelText(lv_obj_t * obj, char * text)
 {
     if(!obj) {
         Log.warning(TAG_ATTR, F("Button not defined"));
@@ -909,7 +909,7 @@ static void hasp_process_obj_attribute_range(lv_obj_t * obj, const char * attr, 
  */
 void hasp_process_obj_attribute(lv_obj_t * obj, const char * attr_p, const char * payload, bool update)
 {
-    unsigned long start = millis();
+    // unsigned long start = millis();
     if(!obj) return Log.warning(TAG_ATTR, F("Unknown object"));
     int16_t val = atoi(payload);
 
@@ -1096,7 +1096,8 @@ void hasp_process_obj_attribute(lv_obj_t * obj, const char * attr_p, const char 
     }
 
     hasp_local_style_attr(obj, attr, attr_hash, payload, update);
-    Log.verbose(TAG_ATTR, F("%s (%d) took %d ms."), attr_p, attr_hash, millis() - start);
+    Log.verbose(TAG_ATTR, F("%s (%d)"), attr_p, attr_hash);
+    // Log.verbose(TAG_ATTR, F("%s (%d) took %d ms."), attr_p, attr_hash, millis() - start);
 }
 
 /* **************************

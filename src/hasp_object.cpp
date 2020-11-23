@@ -211,7 +211,7 @@ void hasp_send_obj_attribute_int(lv_obj_t * obj, const char * attribute, int32_t
 
 void hasp_send_obj_attribute_color(lv_obj_t * obj, const char * attribute, lv_color_t color)
 {
-    char buffer[128];
+    char buffer[16];
     lv_color32_t c32;
     c32.full = lv_color_to32(color);
     snprintf(buffer, sizeof(buffer), PSTR("#%02x%02x%02x"), c32.ch.red, c32.ch.green, c32.ch.blue);
