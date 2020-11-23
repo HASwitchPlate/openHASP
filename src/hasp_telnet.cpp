@@ -7,6 +7,7 @@
 #include "Arduino.h"
 #include "ArduinoJson.h"
 #include "ArduinoLog.h"
+#include "ConsoleInput.h"
 
 #include "hasp_debug.h"
 #include "hasp_config.h"
@@ -27,95 +28,75 @@ EthernetClient telnetClient;
 static EthernetServer telnetServer(23);
 #endif
 
-#define TELNET_UNAUTHENTICATED 0
-#define TELNET_USERNAME_OK 10
-#define TELNET_USERNAME_NOK 99
-#define TELNET_AUTHENTICATED 255
-
 #if HASP_USE_HTTP > 0
 extern char httpUser[32];
 extern char httpPassword[32];
 #endif
 
-uint8_t telnetLoginState = TELNET_UNAUTHENTICATED;
-// WiFiClient telnetClient;
-// static WiFiServer * telnetServer;
-uint16_t telnetPort         = 23;
-bool telnetInCommandMode    = false;
-uint8_t telnetEnabled       = true; // Enable telnet debug output
-uint8_t telnetLoginAttempt  = 0;    // Initial attempt
-uint8_t telnetInputIndex    = 0;    // Empty buffer
-char telnetInputBuffer[128] = "";
+uint8_t telnetLoginState   = TELNET_UNAUTHENTICATED;
+uint16_t telnetPort        = 23;
+uint8_t telnetEnabled      = true; // Enable telnet debug output
+uint8_t telnetLoginAttempt = 0;    // Initial attempt
+ConsoleInput * telnetConsole;
 
 void telnetClientDisconnect()
 {
     Log.notice(TAG_TELN, F("Closing session from %s"), telnetClient.remoteIP().toString().c_str());
-    telnetClient.stop();
     Log.unregisterOutput(1); // telnetClient
     telnetLoginState   = TELNET_UNAUTHENTICATED;
-    telnetInputIndex   = 0; // Empty buffer
     telnetLoginAttempt = 0; // Initial attempt
+    delete telnetConsole;
+    telnetConsole = NULL;
+    telnetClient.stop();
 }
 
 void telnetClientLogon()
 {
     telnetClient.println();
     debugPrintHaspHeader(&telnetClient);
-    // telnetClient.println(debugHaspHeader().c_str()); // Send version header
     telnetLoginState   = TELNET_AUTHENTICATED; // User and Pass are correct
     telnetLoginAttempt = 0;                    // Reset attempt counter
-    Log.registerOutput(1, &telnetClient, LOG_LEVEL_VERBOSE, true);
-    telnetClient.flush();
-    Log.notice(TAG_TELN, F("Client login from %s"), telnetClient.remoteIP().toString().c_str());
-    /* Echo locally as separate string */
-    // telnetClient.print(F("TELNET: Client login from "));
-    // telnetClient.println(telnetClient.remoteIP().toString().c_str());
 
     /* Now register logger for telnet */
+    Log.registerOutput(1, &telnetClient, LOG_LEVEL_VERBOSE, true);
+    telnetClient.flush();
+    telnetClient.setTimeout(10);
+
+    Log.notice(TAG_TELN, F("Client login from %s"), telnetClient.remoteIP().toString().c_str());
 }
 
 void telnetAcceptClient()
 {
     if(telnetClient) {
-        telnetClient.stop();     // client disconnected
+        telnetClient.stop();     // previous client has disconnected
         Log.unregisterOutput(1); // telnetClient
     }
     telnetClient = telnetServer->available(); // ready for new client
-    // Log.notice(TAG_TELN,F("Client connected from %s"), telnetClient.remoteIP().toString().c_str());
     if(!telnetClient) {
         Log.verbose(TAG_TELN, F("Client NOT connected"));
         return;
     }
-    Log.verbose(TAG_TELN, F("Client connected"));
+    Log.trace(TAG_TELN, F("Client connected from %s"), telnetClient.remoteIP().toString().c_str());
+    telnetClient.setNoDelay(true);
 
     /* Avoid a buffer here */
-    telnetClient.print((char)0xFF); // DO TERMINAL-TYPE
-    telnetClient.print((char)0xFD);
-    telnetClient.print((char)0x1B);
+    // telnetClient.print((char)0xFF); // DO TERMINAL-TYPE
+    // telnetClient.print((char)0xFD);
+    // telnetClient.print((char)0x1B);
 
 #if HASP_USE_HTTP > 0
     if(strlen(httpUser) != 0 || strlen(httpPassword) != 0) {
-        telnetClient.print(F("\r\nUsername: "));
+        telnetClient.println(F("\r\nUsername: "));
         telnetLoginState = TELNET_UNAUTHENTICATED;
     } else
 #endif
     {
         telnetClientLogon();
     }
-    telnetInputIndex   = 0; // reset input buffer index
     telnetLoginAttempt = 0; // Initial attempt
 }
 
-void telnetProcessCommand(char ch)
-{
-    switch(ch) {
-        case 255:
-            if(telnetInCommandMode) {
-                telnetInCommandMode = true;
-            }
-    }
-}
-
+#if 0
 static inline void telnetProcessLine()
 {
     telnetInputBuffer[telnetInputIndex] = 0; // null terminate our char array
@@ -172,7 +153,7 @@ static inline void telnetProcessData(char ch)
             if(telnetInputIndex > 0) telnetInputIndex--;
             break;
         case 13: // Cariage Return
-            telnetProcessLine();
+            telnetProcessLine("");
             break;
         case 32 ... 250:
             if(!isprint(ch)) {
@@ -199,6 +180,52 @@ static inline void telnetProcessCharacter(char ch)
     //}
 }
 
+#endif
+
+static inline void telnetProcessLine(const char * input)
+{
+    switch(telnetLoginState) {
+        case TELNET_UNAUTHENTICATED: {
+            char buffer[20];
+            snprintf_P(buffer, sizeof(buffer), PSTR("Password: %c%c%c\n"), 0xFF, 0xFB, 0x01); // Hide characters
+            telnetClient.print(buffer);
+#if HASP_USE_HTTP > 0
+            telnetLoginState = strcmp(input, httpUser) == 0 ? TELNET_USERNAME_OK : TELNET_USERNAME_NOK;
+            break;
+        }
+        case TELNET_USERNAME_OK:
+        case TELNET_USERNAME_NOK: {
+            telnetClient.printf(PSTR("%c%c%c\n"), 0xFF, 0xFC, 0x01); // Show characters
+            if(telnetLoginState == TELNET_USERNAME_OK && strcmp(input, httpPassword) == 0) {
+                telnetClientLogon();
+            } else {
+                telnetLoginState = TELNET_UNAUTHENTICATED;
+                telnetLoginAttempt++; // Subsequent attempt
+                telnetClient.println(F("Authorization failed!\r\n"));
+                Log.warning(TAG_TELN, F("Incorrect login attempt from %s"), telnetClient.remoteIP().toString().c_str());
+                if(telnetLoginAttempt >= 3) {
+                    telnetClientDisconnect();
+                } else {
+                    telnetClient.print(F("Username: "));
+                }
+            }
+#else
+            telnetClientLogon();
+#endif
+            break;
+        }
+        default:
+            if(strcasecmp_P(input, PSTR("exit")) == 0) {
+                telnetClientDisconnect();
+            } else if(strcasecmp_P(input, PSTR("logoff")) == 0) {
+                telnetClient.println(F("\r\nUsername: "));
+                telnetLoginState = TELNET_UNAUTHENTICATED;
+            } else {
+                dispatchTextLine(input);
+            }
+    }
+}
+
 void telnetSetup()
 {
     // telnetSetConfig(settings);
@@ -208,7 +235,7 @@ void telnetSetup()
         // if(!telnetServer) telnetServer = new EthernetServer(telnetPort);
         // if(telnetServer) {
         telnetServer->begin();
-        Log.trace(TAG_TELN, F("Debug telnet console started"));
+        Log.trace(TAG_TELN, F("Remote console started"));
         // } else {
         //    Log.error(TAG_TELN,F("Failed to start telnet server"));
         //}
@@ -218,23 +245,22 @@ void telnetSetup()
             telnetServer->setNoDelay(true);
             telnetServer->begin();
 
-            // if(!telnetClient) telnetClient = new WiFiClient;
-            // if(!telnetClient) {
-            //    Log.error(TAG_TELN,F("Failed to start telnet client"));
-            //} else {
-            telnetClient.setNoDelay(true);
-            //}
-
-            Log.trace(TAG_TELN, F("Debug telnet console started"));
-        } else {
-            Log.error(TAG_TELN, F("Failed to start telnet server"));
+            telnetConsole = new ConsoleInput(&telnetClient, 220);
+            if(telnetConsole != NULL) {
+                telnetConsole->setLineCallback(telnetProcessLine);
+                Log.trace(TAG_TELN, F("Remote console started"));
+                return;
+            }
         }
+
+        Log.error(TAG_TELN, F("Failed to start telnet console"));
 #endif
     }
 }
 
 void IRAM_ATTR telnetLoop()
-{ // Basic telnet client handling code from: https://gist.github.com/tablatronix/4793677ca748f5f584c95ec4a2b10303
+{
+    // Basic telnet client handling code from: https://gist.github.com/tablatronix/4793677ca748f5f584c95ec4a2b10303
 
 #if defined(STM32F4xx)
     Ethernet.schedule();
@@ -264,21 +290,24 @@ void IRAM_ATTR telnetLoop()
         }
     }
 #else
-    if(telnetServer && telnetServer->hasClient()) { // client is connected
-        if(!telnetClient || !telnetClient.connected()) {
-            telnetAcceptClient();
+    if(telnetServer && telnetServer->hasClient()) { // a new client has connected
+        if(!telnetClient.connected()) {             // nobody is already connected
+            telnetAcceptClient();                   // allow the new client
         } else {
-            telnetServer->available().stop(); // have client, block new connections
-        }
-    }
-
-    // Handle client input from telnet connection.
-    if(telnetClient && telnetClient.connected()) {
-        while(telnetClient.available()) {
-            telnetProcessCharacter(telnetClient.read()); // client input processing
+            Log.warning(TAG_TELN, F("Rejecting client, another connection is already active"));
+            telnetServer->available().stop(); // already have a client, block new connections
         }
     }
 #endif
+
+    /* Process user input */
+    if(telnetConsole) {
+        int16_t keypress = telnetConsole->readKey();
+        switch(keypress) {
+            case ConsoleInput::KEY_PAUSE:
+                break;
+        }
+    }
 }
 
 bool telnetGetConfig(const JsonObject & settings)

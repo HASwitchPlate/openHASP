@@ -54,7 +54,7 @@ void setup()
     networkSetup();
 #endif
 
-    // debugSetup();
+    debugSetup(); // Init the console
 
     guiSetup();
     if(!oobeSetup()) {
