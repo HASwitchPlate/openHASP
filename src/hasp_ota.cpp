@@ -35,6 +35,14 @@ static inline void otaProgress(void)
                 (ArduinoOTA.getCommand() == U_FLASH ? PSTR("Firmware") : PSTR("Filesystem")), otaPrecentageComplete);
 }
 
+void otaOnProgress(unsigned int progress, unsigned int total)
+{
+    if(total != 0) {
+        otaPrecentageComplete = progress * 100 / total;
+        haspProgressVal(otaPrecentageComplete);
+    }
+}
+
 void otaSetup(void)
 {
     if(strlen(otaUrl.c_str())) {
@@ -63,12 +71,7 @@ void otaSetup(void)
             // setup();
             dispatchReboot(true);
         });
-        ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
-            if(total != 0) {
-                otaPrecentageComplete = progress * 100 / total;
-                haspProgressVal(otaPrecentageComplete);
-            }
-        });
+        ArduinoOTA.onProgress(otaOnProgress);
         ArduinoOTA.onError([](ota_error_t error) {
             char buffer[16];
             switch(error) {
