@@ -27,7 +27,7 @@ void networkStop(void)
     haspProgressMsg(F("Network Disconnected"));
 
     debugStopSyslog();
-    mqttStop();
+    // mqttStop();
     httpStop();
     mdnsStop();
 }
@@ -43,14 +43,14 @@ void networkSetup()
 #endif
 }
 
-void networkLoop(void)
+void IRAM_ATTR networkLoop(void)
 {
 #if HASP_USE_ETHERNET > 0
-    ethernetSetup();
+    ethernetLoop();
 #endif
 
 #if HASP_USE_WIFI > 0
-    wifiSetup();
+    // wifiLoop();
 #endif
 }
 

@@ -22,5 +22,5 @@ void eepromSetup()
     // debugPrintln("EEPROM: Started Eeprom");
 }
 
-void eepromLoop()
+void IRAM_ATTR eepromLoop()
 {}

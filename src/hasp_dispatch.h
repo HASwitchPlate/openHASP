@@ -10,7 +10,7 @@
 
 /* ===== Default Event Processors ===== */
 void dispatchSetup(void);
-void dispatchLoop(void);
+void IRAM_ATTR dispatchLoop(void);
 void dispatchEverySecond(void);
 void dispatchStart(void);
 void dispatchStop(void);

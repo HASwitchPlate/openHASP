@@ -716,7 +716,7 @@ void dispatchSetup()
     dispatch_add_command(PSTR("setupap"), oobeFakeSetup);
 }
 
-void dispatchLoop()
+void IRAM_ATTR dispatchLoop()
 {
     // Not used
 }

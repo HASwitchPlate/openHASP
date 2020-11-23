@@ -425,7 +425,7 @@ void haspSetup()
  *   STATIC FUNCTIONS
  **********************/
 
-void haspLoop(void)
+void IRAM_ATTR haspLoop(void)
 {}
 
 /*
@@ -483,7 +483,7 @@ void hasp_background(uint16_t pageid, uint16_t imageid)
 
 String haspGetVersion()
 {
-    char buffer[128];
+    char buffer[16];
     snprintf_P(buffer, sizeof(buffer), "%u.%u.%u", HASP_VERSION_MAJOR, HASP_VERSION_MINOR, HASP_VERSION_REVISION);
     return buffer;
 }

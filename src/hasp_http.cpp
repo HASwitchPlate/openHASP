@@ -155,7 +155,7 @@ String getOption(String value, String label, bool selected)
 }
 void webSendFooter()
 {
-    char buffer[128];
+    char buffer[16];
     snprintf_P(buffer, sizeof(buffer), PSTR("%u.%u.%u"), HASP_VERSION_MAJOR, HASP_VERSION_MINOR, HASP_VERSION_REVISION);
 
 #if defined(STM32F4xx)
@@ -199,7 +199,7 @@ void webSendPage(char * nodename, uint32_t httpdatalength, bool gohome = false)
         webServer.send(200, ("text/html"), HTTP_DOCTYPE);  // 122
 #endif
 
-        sprintf_P(buffer, HTTP_HEADER, nodename);
+        snprintf_P(buffer, sizeof(buffer), HTTP_HEADER, nodename);
         webServer.sendContent(buffer); // 17-2+len
     }
 
@@ -486,7 +486,8 @@ void webHandleInfo()
         byte mac[6];
         WiFi.macAddress(mac);
         char macAddress[16];
-        sprintf_P(macAddress, PSTR("%02x%02x%02x"), mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+        snprintf_P(macAddress, sizeof(macAddress), PSTR("%02x%02x%02x"), mac[0], mac[1], mac[2], mac[3], mac[4],
+                   mac[5]);
         httpMessage += F("</br><b>IP Address: </b>");
         httpMessage += String(WiFi.localIP());
         httpMessage += F("</br><b>Gateway: </b>");
@@ -786,8 +787,8 @@ void handleFileDelete()
 {
     if(!httpIsAuthenticated(F("filedelete"))) return;
 
-    char mimetype[128];
-    sprintf(mimetype, PSTR("text/plain"));
+    char mimetype[16];
+    snprintf(mimetype, sizeof(mimetype), PSTR("text/plain"));
 
     if(webServer.args() == 0) {
         return webServer.send_P(500, mimetype, PSTR("BAD ARGS"));
@@ -1750,8 +1751,8 @@ void httpSetup()
         // load editor
         webServer.on(F("/edit"), HTTP_GET, []() {
             if(!handleFileRead("/edit.htm")) {
-                char mimetype[128];
-                sprintf(mimetype, PSTR("text/plain"));
+                char mimetype[16];
+                snprintf(mimetype, sizeof(mimetype), PSTR("text/plain"));
                 webServer.send_P(404, mimetype, PSTR("FileNotFound"));
             }
         });
@@ -1854,7 +1855,7 @@ void httpReconnect()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-void httpLoop()
+void IRAM_ATTR httpLoop(void)
 {
     if(httpEnable) webServer.handleClient();
 }

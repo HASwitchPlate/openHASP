@@ -67,11 +67,10 @@ void mdnsStart()
     MDNS.addService(F("telnet"), F("tcp"), 23);
     // }
 
-
     Log.trace(TAG_MDNS, F("Responder started"));
 }
 
-void mdnsLoop()
+void IRAM_ATTR mdnsLoop(void)
 {
 #if defined(ARDUINO_ARCH_ESP8266)
     if(mdnsEnabled) {

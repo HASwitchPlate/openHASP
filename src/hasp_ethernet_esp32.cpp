@@ -35,7 +35,7 @@ void EthernetEvent(WiFiEvent_t event)
             }
             Log.notice(TAG_ETH, F("LINK_SPEED %d Mbps"), ETH.linkSpeed());
             eth_connected = true;
-            networkStart();// Start network services
+            networkStart(); // Start network services
             break;
         case SYSTEM_EVENT_ETH_DISCONNECTED:
             Log.notice(TAG_ETH, F("Disconnected"));
@@ -57,10 +57,8 @@ void ethernetSetup()
     ETH.begin(ETH_ADDR, ETH_POWER_PIN, ETH_MDC_PIN, ETH_MDIO_PIN, ETH_TYPE, ETH_CLKMODE);
 }
 
-void ethernetLoop(void)
-{
-    //
-}
+void IRAM_ATTR ethernetLoop(void)
+{}
 
 bool ethernetEvery5Seconds()
 {

@@ -302,17 +302,16 @@ static void mqtt_message_cb(char * topic, byte * payload, unsigned int length)
                 bool res = mqttPublish(tmp_topic, "ON"); //, true); // Literal String
                 mqttResult(res, tmp_topic, "ON");
             }
-            // Log.notice(TAG_MQTT, F("binary_sensor state: [status] : ON"));
 
         } else {
-            // already ON
+            // Log.notice(TAG_MQTT, F("ignoring status = ON"));
         }
     } else {
         dispatchTopicPayload(topic, (char *)payload);
     }
 }
 
-void mqttSubscribeTo(const char * format, const char * data)
+static void mqttSubscribeTo(const char * format, const char * data)
 {
     char tmp_topic[strlen(format) + 2 + strlen(data)];
     snprintf_P(tmp_topic, sizeof(tmp_topic), format, data);
@@ -325,11 +324,15 @@ void mqttSubscribeTo(const char * format, const char * data)
 
 void mqttStart()
 {
-    char buffer[128];
+    char buffer[64];
     char mqttClientId[64];
+    char lastWillPayload[4];
     static uint8_t mqttReconnectCount = 0;
     bool mqttFirstConnect             = true;
 
+    mqttClient.setServer(mqttServer, 1883);
+
+    /* Construct unique Client ID*/
     {
         String mac = halGetMacAddress(3, "");
         mac.toLowerCase();
@@ -338,11 +341,11 @@ void mqttStart()
         Log.trace(TAG_MQTT, mqttClientId);
     }
 
-    mqttClient.setServer(mqttServer, 1883);
-
     // Attempt to connect and set LWT and Clean Session
-    snprintf_P(buffer, sizeof(buffer), PSTR("%sstatus"), mqttNodeTopic);
-    if(!mqttClient.connect(mqttClientId, mqttUser, mqttPassword, buffer, 0, false, "OFF", true)) { // Literal String
+    snprintf_P(buffer, sizeof(buffer), PSTR("%sstatus"), mqttNodeTopic); // lastWillTopic
+    snprintf_P(lastWillPayload, sizeof(lastWillPayload), PSTR("OFF"));   // lastWillPayload
+
+    if(!mqttClient.connect(mqttClientId, mqttUser, mqttPassword, buffer, 2, false, lastWillPayload, true)) {
         // Retry until we give up and restart after connectTimeout seconds
         mqttReconnectCount++;
 
@@ -404,15 +407,6 @@ void mqttStart()
         mqttLightBrightStateTopic   = prefix + F("/brightness/state");
     */
 
-    // Set keepAlive, cleanSession, timeout
-    // mqttClient.setOptions(30, true, 5000);
-    mqttClient.setKeepAlive(30);
-    mqttClient.setSocketTimeout(5000);
-
-    // declare LWT
-    // mqttClient.setWill(mqttStatusTopic.c_str(), "OFF");
-
-    // Attempt to connect to broker, setting last will and testament
     // Subscribe to our incoming topics
     mqttSubscribeTo(PSTR("%scommand/#"), mqttGroupTopic);
     mqttSubscribeTo(PSTR("%scommand/#"), mqttNodeTopic);
@@ -460,14 +454,17 @@ void mqttSetup()
     }
 }
 
-void mqttLoop()
+void IRAM_ATTR mqttLoop(void)
 {
     if(mqttEnabled) mqttClient.loop();
 }
 
 void mqttEvery5Seconds(bool networkIsConnected)
 {
-    if(mqttEnabled && networkIsConnected && !mqttClient.connected()) mqttStart();
+    if(mqttEnabled && networkIsConnected && !mqttClient.connected()) {
+        Log.notice(TAG_MQTT, F("Disconnected from broker, reconnection..."));
+        mqttStart();
+    }
 }
 
 String mqttGetNodename()

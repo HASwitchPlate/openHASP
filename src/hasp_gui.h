@@ -13,7 +13,7 @@
 
 /* ===== Default Event Processors ===== */
 void guiSetup();
-void guiLoop(void);
+void IRAM_ATTR guiLoop(void);
 void guiEverySecond(void);
 void guiStart(void);
 void guiStop(void);

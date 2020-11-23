@@ -7,7 +7,7 @@
 #include "ArduinoJson.h"
 
 void mqttSetup();
-void mqttLoop();
+void IRAM_ATTR mqttLoop();
 void mqttEvery5Seconds(bool wifiIsConnected);
 void mqttStart();
 void mqttStop();

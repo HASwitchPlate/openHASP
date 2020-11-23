@@ -8,7 +8,7 @@
 #include "ArduinoJson.h"
 
 void httpSetup();
-void httpLoop(void);
+void IRAM_ATTR httpLoop(void);
 void httpEvery5Seconds(void);
 // void httpReconnect(void);
 void httpStart(void);

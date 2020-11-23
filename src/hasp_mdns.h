@@ -8,7 +8,7 @@
 
 /* ===== Default Event Processors ===== */
 void mdnsSetup();
-void mdnsLoop(void);
+void IRAM_ATTR mdnsLoop(void);
 void mdnsStart(void);
 void mdnsStop(void);
 

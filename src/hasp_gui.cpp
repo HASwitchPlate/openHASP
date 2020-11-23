@@ -637,7 +637,7 @@ void guiSetup()
     }
 }
 
-void IRAM_ATTR guiLoop()
+void IRAM_ATTR guiLoop(void)
 {
     lv_task_handler(); // process animations
 
@@ -859,8 +859,6 @@ static void guiSetBmpHeader(uint8_t * buffer_p, int32_t data)
  **/
 static void gui_get_bitmap_header(uint8_t * buffer, size_t bufsize)
 {
-    // uint8_t buffer[128];
-    // memset(buffer, 0, sizeof(buffer));
     memset(buffer, 0, bufsize);
 
     lv_disp_t * disp = lv_disp_get_default();

@@ -25,9 +25,6 @@
 #endif
 
 static WiFiClient otaClient;
-
-#define F_OTA_URL F("otaurl")
-
 std::string otaUrl           = "http://ota.netwize.be";
 int16_t otaPort              = HASP_OTA_PORT;
 int8_t otaPrecentageComplete = -1;
@@ -126,7 +123,7 @@ void otaSetup(void)
     }
 }
 
-void otaLoop(void)
+void IRAM_ATTR otaLoop(void)
 {
     ArduinoOTA.handle();
 }

@@ -48,7 +48,7 @@ enum hasp_event_t { // even = released, odd = pressed
  * Create a hasp application
  */
 void haspSetup();
-void haspLoop(void);
+void IRAM_ATTR haspLoop(void);
 void haspReconnect(void);
 void haspDisconnect(void);
 

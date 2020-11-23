@@ -9,7 +9,7 @@
 
 /* ===== Default Event Processors ===== */
 void configSetup(void);
-void configLoop(void);
+void IRAM_ATTR configLoop(void);
 void configEverySecond(void);
 void configStart(void);
 void configStop(void);

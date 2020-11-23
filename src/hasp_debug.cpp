@@ -90,7 +90,7 @@ uint16_t debugSerialBaud = SERIAL_SPEED / 10; // Multiplied by 10
 bool debugSerialStarted  = false;
 bool debugAnsiCodes      = true;
 
-ConsoleInput console(&Serial, 220);
+ConsoleInput debugConsole(&Serial, 220);
 
 //#define TERM_COLOR_Black "\u001b[30m"
 #define TERM_COLOR_GRAY "\e[37m"
@@ -111,7 +111,8 @@ uint16_t debugTelePeriod      = 300;
 // Send the HASP header and version to the output device specified
 void debugPrintHaspHeader(Print * output)
 {
-    if(debugAnsiCodes) output->println(TERM_COLOR_YELLOW);
+    if(debugAnsiCodes) output->print(TERM_COLOR_YELLOW);
+    output->println();
     output->print(F(""
                     "           _____ _____ _____ _____\r\n"
                     "          |  |  |  _  |   __|  _  |\r\n"
@@ -152,7 +153,7 @@ void debugSetup()
     // memset(serialInputBuffer, 0, sizeof(serialInputBuffer));
     // serialInputIndex = 0;
     Log.notice(TAG_DEBG, F("Setting the console parser"));
-    console.setLineCallback(dispatchTextLine);
+    debugConsole.setLineCallback(dispatchTextLine);
 }
 
 void debugStartSyslog()
@@ -592,13 +593,10 @@ void debugPrintSuffix(uint8_t tag, int level, Print * _logOutput)
         _logOutput->println();
 
     if(_logOutput == &Serial) {
-        console.update();
+        debugConsole.update();
     } else {
         _logOutput->print("hasp > ");
     }
-
-    //  if(_logOutput == &Serial) debugPrintPrompt();
-    // syslogSend(level, debugOutput);
 }
 
 void debugPreSetup(JsonObject settings)
@@ -668,9 +666,9 @@ void debugLvglLogEvent(lv_log_level_t level, const char * file, uint32_t line, c
 }
 #endif
 
-void debugLoop()
+void IRAM_ATTR debugLoop(void)
 {
-    int16_t keypress = console.readKey();
+    int16_t keypress = debugConsole.readKey();
 
     switch(keypress) {
 

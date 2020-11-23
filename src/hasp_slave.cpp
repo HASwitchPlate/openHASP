@@ -27,7 +27,7 @@ unsigned long updatLedPeriod = 1000;  // timer in msec for tele mqtt send
 bool ledstate = false;
 
 
-void IRAM_ATTR slave_send_state(const __FlashStringHelper * subtopic, const char * payload)
+void slave_send_state(const __FlashStringHelper * subtopic, const char * payload)
 {
   // page = 0
   // p[0].b[0].attr = abc
@@ -45,7 +45,7 @@ void IRAM_ATTR slave_send_state(const __FlashStringHelper * subtopic, const char
   Log.notice(TAG_TASM,F("TAS PUB: %sstate/%S = %s"), slaveNodeTopic, subtopic, payload);
 }
 
-void IRAM_ATTR slave_send_obj_attribute_str(uint8_t pageid, uint8_t btnid, const char * attribute, const char * data)
+void slave_send_obj_attribute_str(uint8_t pageid, uint8_t btnid, const char * attribute, const char * data)
 {
   char cBuffer[192];
   memset(cBuffer, 0 ,sizeof(cBuffer));
@@ -151,7 +151,7 @@ void slaveSetup()
   Log.notice(TAG_TASM,F("HASP SLAVE LOADED"));
 }
 
-void slaveLoop(void)
+void IRAM_ATTR slaveLoop(void)
 {
   slave.loop();
   // demo code to run the led without tasmota

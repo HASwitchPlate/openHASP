@@ -9,7 +9,7 @@
 #include "TFT_eSPI.h"
 
 void tftSetup(TFT_eSPI & screen);
-void tftLoop(void);
+void IRAM_ATTR tftLoop(void);
 void tftStop(void);
 
 void tftShowConfig(TFT_eSPI & tft);
