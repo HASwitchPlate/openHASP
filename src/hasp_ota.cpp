@@ -145,34 +145,16 @@ void otaHttpUpdate(const char * espOtaUrl)
 #endif
 
 #if defined(ARDUINO_ARCH_ESP8266)
-
     // ESPhttpUpdate.onStart(update_started);
     // ESPhttpUpdate.onEnd(update_finished);
     // ESPhttpUpdate.onProgress(update_progress);
     // ESPhttpUpdate.onError(update_error);
-
-    t_httpUpdate_return returnCode = ESPhttpUpdate.update(otaClient, espOtaUrl);
-
-    switch(returnCode) {
-        case HTTP_UPDATE_FAILED:
-            Log.error(TAG_FWUP, "FWUP: HTTP_UPDATE_FAILED error %d %s", ESPhttpUpdate.getLastError(),
-                      ESPhttpUpdate.getLastErrorString().c_str());
-            // nextionSetAttr("p[0].b[1].txt", "\"HTTP Update\\rFAILED\"");
-            break;
-
-        case HTTP_UPDATE_NO_UPDATES:
-            Log.notice(TAG_FWUP, F("HTTP_UPDATE_NO_UPDATES"));
-            // nextionSetAttr("p[0].b[1].txt", "\"HTTP Update\\rNo update\"");
-            break;
-
-        case HTTP_UPDATE_OK:
-            Log.notice(TAG_FWUP, F("HTTP_UPDATE_OK"));
-            // nextionSetAttr("p[0].b[1].txt", "\"HTTP Update\\rcomplete!\\r\\rRestarting.\"");
-            dispatchReboot(true);
-            delay(5000);
-    }
-
+    ESP8266HTTPUpdate httpUpdate;
 #else
+    HTTPUpdate httpUpdate;
+#endif
+
+    httpUpdate.rebootOnUpdate(false);
     t_httpUpdate_return returnCode = httpUpdate.update(otaClient, espOtaUrl);
 
     switch(returnCode) {
@@ -193,8 +175,6 @@ void otaHttpUpdate(const char * espOtaUrl)
             dispatchReboot(true);
             delay(5000);
     }
-
-#endif
 
 #if HASP_USE_MDNS > 0
     mdnsStart();
