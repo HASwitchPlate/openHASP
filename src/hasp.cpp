@@ -327,16 +327,25 @@ void haspSetup()
             break;
 #endif
 
+            /*
+             * LV_THEME_MATERIAL_FLAG_LIGHT: light theme
+             * LV_THEME_MATERIAL_FLAG_DARK: dark theme
+             * LV_THEME_MATERIAL_FLAG_NO_TRANSITION: disable transitions (state change animations)
+             * LV_THEME_MATERIAL_FLAG_NO_FOCUS: disable indication of focused state)
+             * */
+
 #if LV_USE_THEME_MATERIAL == 1
         case 4:
             th = lv_theme_material_init(LV_COLOR_PURPLE, LV_COLOR_ORANGE,
-                                        LV_THEME_MATERIAL_FLAG_LIGHT + LV_THEME_MATERIAL_FLAG_NO_FOCUS, haspFonts[0],
-                                        haspFonts[1], haspFonts[2], haspFonts[3]);
+                                        LV_THEME_MATERIAL_FLAG_LIGHT + LV_THEME_MATERIAL_FLAG_NO_FOCUS +
+                                            LV_THEME_MATERIAL_FLAG_NO_TRANSITION,
+                                        haspFonts[0], haspFonts[1], haspFonts[2], haspFonts[3]);
             break;
         case 9:
             th = lv_theme_material_init(LV_COLOR_PURPLE, LV_COLOR_ORANGE,
-                                        LV_THEME_MATERIAL_FLAG_DARK + LV_THEME_MATERIAL_FLAG_NO_FOCUS, haspFonts[0],
-                                        haspFonts[1], haspFonts[2], haspFonts[3]);
+                                        LV_THEME_MATERIAL_FLAG_DARK + LV_THEME_MATERIAL_FLAG_NO_FOCUS +
+                                            LV_THEME_MATERIAL_FLAG_NO_TRANSITION,
+                                        haspFonts[0], haspFonts[1], haspFonts[2], haspFonts[3]);
             break;
 #endif
 
@@ -358,6 +367,7 @@ void haspSetup()
                                         haspFonts[1], haspFonts[2], haspFonts[3]);
             break;
 #endif
+
 #if(LV_USE_THEME_HASP == 1)
         case 8:
             th = lv_theme_hasp_init(lv_color_hsv_to_rgb(haspThemeHue, 100, 100),

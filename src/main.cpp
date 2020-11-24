@@ -27,13 +27,13 @@ void setup()
     eepromSetup(); // Don't start at boot, only at write
 #endif
 
-// #if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
-//     filesystemSetup();  // FS mount is done in configSetup()
-// #endif
+    // #if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
+    //     filesystemSetup();  // FS mount is done in configSetup()
+    // #endif
 
-// #if HASP_USE_SDCARD > 0
-//     sdcardSetup();
-// #endif
+    // #if HASP_USE_SDCARD > 0
+    //     sdcardSetup();
+    // #endif
 
     /****************************
      * Read & Apply User Configuration
@@ -171,7 +171,7 @@ void loop()
 #endif
 
 #if HASP_USE_MQTT > 0
-             mqttEvery5Seconds(isConnected);
+            mqttEvery5Seconds(isConnected);
 #endif
         }
 
@@ -184,5 +184,9 @@ void loop()
         mainLastLoopTime += 1000;
     }
 
-    delay(3);
+#ifdef ARDUINO_ARCH_ESP8266
+    delay(2);
+#else
+    delay(6);
+#endif
 }
