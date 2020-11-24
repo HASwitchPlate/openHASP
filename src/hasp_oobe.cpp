@@ -257,14 +257,19 @@ static void oobeSetupSsid(void)
     /* Create a keyboard and make it fill the width of the above text areas */
     oobekb = lv_keyboard_create(oobepage[1], NULL);
 
+    lv_obj_set_style_local_pad_inner(oobekb, LV_BTNMATRIX_PART_BG, LV_STATE_DEFAULT, 0);
+    lv_obj_set_style_local_border_width(oobekb, LV_BTNMATRIX_PART_BG, LV_STATE_DEFAULT, 0);
+    lv_obj_set_style_local_border_width(oobekb, LV_BTNMATRIX_PART_BTN, LV_STATE_DEFAULT, 1);
+    lv_obj_set_style_local_radius(oobekb, LV_BTNMATRIX_PART_BTN, LV_STATE_DEFAULT, 0);
+
     lv_obj_set_style_local_text_font(oobekb, LV_KEYBOARD_PART_BG, LV_STATE_DEFAULT, defaultfont);
     lv_obj_set_style_local_radius(oobekb, LV_KEYBOARD_PART_BG, LV_STATE_DEFAULT, 0);
     lv_obj_set_style_local_border_color(oobekb, LV_KEYBOARD_PART_BTN, LV_STATE_DEFAULT, LV_COLOR_SILVER);
     lv_obj_set_style_local_border_color(oobekb, LV_KEYBOARD_PART_BTN, LV_STATE_PRESSED, LV_COLOR_PURPLE);
     lv_obj_set_style_local_bg_color(oobekb, LV_KEYBOARD_PART_BTN, LV_BTN_STATE_PRESSED, LV_COLOR_PURPLE);
-    lv_obj_set_style_local_pad_inner(oobekb, LV_KEYBOARD_PART_BG, LV_STATE_DEFAULT, 1);
-    lv_obj_set_style_local_pad_left(oobekb, LV_KEYBOARD_PART_BG, LV_STATE_DEFAULT, 0);
-    lv_obj_set_style_local_pad_right(oobekb, LV_KEYBOARD_PART_BG, LV_STATE_DEFAULT, 0);
+    // lv_obj_set_style_local_pad_inner(oobekb, LV_KEYBOARD_PART_BG, LV_STATE_DEFAULT, 1);
+    // lv_obj_set_style_local_pad_left(oobekb, LV_KEYBOARD_PART_BG, LV_STATE_DEFAULT, 0);
+    // lv_obj_set_style_local_pad_right(oobekb, LV_KEYBOARD_PART_BG, LV_STATE_DEFAULT, 0);
 
     // lv_obj_set_pos(oobekb, 5, 90);
     lv_obj_set_event_cb(oobekb, kb_event_cb);
