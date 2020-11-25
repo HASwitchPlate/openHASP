@@ -297,10 +297,12 @@ static void mqtt_message_cb(char * topic, byte * payload, unsigned int length)
     if(!strcmp_P(topic, PSTR("status"))) { // endsWith status
         if(!strcasecmp_P((char *)payload, PSTR("OFF"))) {
             {
+                char msg[4];
                 char tmp_topic[strlen(mqttNodeTopic) + 8];
                 snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%sstatus"), mqttNodeTopic);
-                bool res = mqttPublish(tmp_topic, "ON"); //, true); // Literal String
-                mqttResult(res, tmp_topic, "ON");
+                snprintf_P(msg, sizeof(msg), PSTR("ON"));
+
+                bool res = mqttClient.publish(tmp_topic, msg, true);
             }
 
         } else {
