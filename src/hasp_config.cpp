@@ -104,9 +104,9 @@ void configGetConfig(JsonDocument & settings, bool setupdebug = false)
         }
 
         error = deserializeJson(settings, file);
-        if(!error) {
-            file.close();
+        file.close();
 
+        if(!error) {
             /* Load Debug params */
             if(setupdebug) {
                 debugPreSetup(settings[F("debug")]);

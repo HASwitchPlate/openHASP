@@ -181,11 +181,11 @@ typedef void* lv_group_user_data_t;
 typedef void* lv_fs_drv_user_data_t;
 
 /*File system interface*/
-#define LV_USE_FS_IF	      0
+#define LV_USE_FS_IF	      1
 #if LV_USE_FS_IF
 #  define LV_FS_IF_FATFS    '\0'
 #  define LV_FS_IF_PC       '\0'
-#  define LV_FS_IF_SPIFFS   'F'  // internal Flash
+#  define LV_FS_IF_SPIFFS   'E'  // internal esp Flash
 #endif  /*LV_USE_FS_IF*/
 
 #endif
@@ -338,7 +338,7 @@ typedef void* lv_indev_drv_user_data_t;            /*Type of user data in the in
 
    /* Demonstrate special features */
 #define LV_FONT_MONTSERRAT_12_SUBPX 0
-#define LV_FONT_MONTSERRAT_28_COMPRESSED LV_HIGH_RESOURCE_MCU  /*bpp = 3*/
+#define LV_FONT_MONTSERRAT_28_COMPRESSED 0 // LV_HIGH_RESOURCE_MCU  /*bpp = 3*/
 
 /*Pixel perfect monospace font
  * http://pelulamu.net/unscii/ */
@@ -395,7 +395,7 @@ typedef void* lv_font_user_data_t;
 #define LV_THEME_DEFAULT_FONT_SMALL         &lv_font_montserrat_12
 #define LV_THEME_DEFAULT_FONT_NORMAL        &lv_font_montserrat_16
 #define LV_THEME_DEFAULT_FONT_SUBTITLE      &lv_font_montserrat_22
-#define LV_THEME_DEFAULT_FONT_TITLE         &lv_font_montserrat_28_compressed
+#define LV_THEME_DEFAULT_FONT_TITLE         &lv_font_montserrat_22 //&lv_font_montserrat_28_compressed
 #else
 #define LV_THEME_DEFAULT_FONT_SMALL         LV_FONT_DEFAULT // &lv_font_montserrat_12
 #define LV_THEME_DEFAULT_FONT_NORMAL        LV_FONT_DEFAULT // &lv_font_montserrat_16

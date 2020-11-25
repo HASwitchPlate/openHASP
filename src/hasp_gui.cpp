@@ -8,6 +8,10 @@
 #include "lvgl.h"
 #include "lv_drv_conf.h"
 
+// Filesystem Driver
+#include "lv_misc/lv_fs.h"
+#include "lv_fs_if.h"
+
 // Select Display Driver
 #if defined(USE_FSMC)
 #include "fsmc_ili9341.h"
@@ -18,9 +22,6 @@
 // Select Touch Driver
 //#include "indev/XPT2046_alt_drv.h"
 #include "indev/XPT2046.h"
-
-// Filesystem Driver
-#include "lv_fs_if.h"
 
 //#include "lv_zifont.h"
 
@@ -527,7 +528,7 @@ void guiSetup()
 
     /* Initialize Filesystems */
 #if LV_USE_FS_IF != 0
-    lv_fs_init();    // lvgl File System
+    _lv_fs_init();   // lvgl File System
     lv_fs_if_init(); // auxilary file system drivers
 #endif
 
