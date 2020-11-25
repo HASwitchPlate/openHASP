@@ -125,11 +125,11 @@ static lv_color_t haspPayloadToColor(const char * payload)
     /* HEX format #rrggbb or #rrggbbaa */
     char pattern[4];
     snprintf_P(pattern, sizeof(pattern), PSTR(" 2x")); // % cannot be escaped, so we build our own pattern
-    pattern[0]='%';
+    pattern[0] = '%';
     char buffer[13];
     snprintf_P(buffer, sizeof(buffer), PSTR("%s%s%s%s"), pattern, pattern, pattern, pattern);
     int r, g, b, a;
-    
+
     if(*payload == '#' && sscanf(payload + 1, buffer, &r, &g, &b, &a) == 4) {
         return haspLogColor(LV_COLOR_MAKE(r, g, b));
     } else if(*payload == '#' && sscanf(payload + 1, buffer, &r, &g, &b) == 3) {
@@ -170,14 +170,27 @@ static lv_font_t * haspPayloadToFont(const char * payload)
             return &unscii_8_icon;
 
 #if ESP32
+
+#if LV_FONT_MONTSERRAT_12 > 0
         case 12:
             return &lv_font_montserrat_12;
+#endif
+
+#if LV_FONT_MONTSERRAT_16 > 0
         case 16:
             return &lv_font_montserrat_16;
+#endif
+
+#if LV_FONT_MONTSERRAT_22 > 0
         case 22:
             return &lv_font_montserrat_22;
+#endif
+
+#if LV_FONT_MONTSERRAT_28 > 0
         case 28:
             return &lv_font_montserrat_28_compressed;
+#endif
+
 #endif
 
         default:
@@ -536,19 +549,20 @@ static void hasp_local_style_attr(lv_obj_t * obj, const char * attr_p, uint16_t 
             return attribute_value_opa(obj, part, state, update, attr_p, (lv_opa_t)var);
         case ATTR_VALUE_STR: {
             if(update) {
-                // Free previous string
-                const char * str = lv_obj_get_style_value_str(obj, part);
-                lv_obj_set_style_local_value_str(obj, part, state, NULL);
-                lv_mem_free(str);
 
-                // Create new string
                 size_t len = strlen(payload);
                 if(len > 0) {
+                    // Free previous string
+                    const char * str = lv_obj_get_style_value_str(obj, part);
+
+                    // Create new string
                     len++;
                     char * str_p = (char *)lv_mem_alloc(len);
                     memset(str_p, 0, len);
                     memccpy(str_p, payload, 0, len);
                     lv_obj_set_style_local_value_str(obj, part, state, str_p);
+
+                    // if(strlen(str) > 0) lv_mem_free(str); // BIG : Memory Leak ! / crashes
                 }
             } else {
                 hasp_out_str(obj, attr, lv_obj_get_style_value_str(obj, part));
