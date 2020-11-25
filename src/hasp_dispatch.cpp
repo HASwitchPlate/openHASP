@@ -501,7 +501,7 @@ void dispatchParseJson(const char * payload)
     // json.shrinkToFit();
 
     if(jsonError) { // Couldn't parse incoming JSON command
-        Log.warning(TAG_MSGR, F("JSON: Failed to parse incoming JSON command with error: %s"), jsonError.c_str());
+        Log.warning(TAG_MSGR, F("Failed to parse incoming JSON command with error: %s"), jsonError.c_str());
     } else {
 
         if(json.is<JsonArray>()) {
@@ -514,9 +514,17 @@ void dispatchParseJson(const char * payload)
             // handle json as a jsonl
             uint8_t savedPage = haspGetPage();
             hasp_new_object(json.as<JsonObject>(), savedPage);
-        } else {
+        } else if(json.is<const char *>()) {
             // handle json as a single command
             dispatchTextLine(json.as<const char *>());
+        } else if(json.is<char *>()) {
+            // handle json as a single command
+            dispatchTextLine(json.as<char *>());
+        } else if(json.is<String>()) {
+            // handle json as a single command
+            dispatchTextLine(json.as<String>().c_str());
+        } else {
+            Log.warning(TAG_MSGR, F("Failed to parse incoming JSON command"));
         }
     }
 }
