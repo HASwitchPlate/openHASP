@@ -258,29 +258,29 @@ void haspSetup()
     /******* File System Test ********************************************************************/
     lv_fs_file_t f;
     lv_fs_res_t res;
-    res = lv_fs_open(&f, "F:/test.jsonl", LV_FS_MODE_RD);
+    res = lv_fs_open(&f, "E:/config.json", LV_FS_MODE_RD);
     if(res == LV_FS_RES_OK)
-        Log.verbose(TAG_HASP, F("Opening test.json OK"));
+        Log.verbose(TAG_HASP, F("Opening config.json OK"));
     else
-        Log.error(TAG_HASP, F("Opening test.json from FS failed %d"), res);
+        Log.error(TAG_HASP, F("Opening config.json from FS failed %d"), res);
 
     uint32_t btoread = 128;
     uint32_t bread   = 0;
-    char buffer[128];
+    char buffer[129];
 
-    res = lv_fs_read(&f, &buffer, btoread, &bread);
+    // res = lv_fs_read(&f, buffer, btoread, &bread);
     if(res == LV_FS_RES_OK) {
-        Log.verbose(TAG_HASP, F("Reading test.json OK %u"), bread);
+        Log.verbose(TAG_HASP, F("Reading config.json OK %u"), bread);
         buffer[127] = '\0';
         Log.trace(TAG_HASP, buffer);
     } else
-        Log.error(TAG_HASP, F("Reading test.json from FS failed %d"), res);
+        Log.error(TAG_HASP, F("Reading config.json from FS failed %d"), res);
 
     res = lv_fs_close(&f);
     if(res == LV_FS_RES_OK)
-        Log.verbose(TAG_HASP, F("Closing test.json OK"));
+        Log.verbose(TAG_HASP, F("Closing config.json OK"));
     else
-        Log.error(TAG_HASP, F("Closing test.json on FS failed %d"), res);
+        Log.error(TAG_HASP, F("Closing config.json on FS failed %d"), res);
         /******* File System Test ********************************************************************/
 
         /* ********** Font Initializations ********** */
@@ -297,6 +297,10 @@ void haspSetup()
     }
 #endif
 #endif
+
+    haspFonts[0] = lv_font_load("E:/font_1.fnt");
+    //  haspFonts[2] = lv_font_load("E:/font_2.fnt");
+    //  haspFonts[3] = lv_font_load("E:/font_3.fnt");
 
     /* ********** Theme Initializations ********** */
     lv_theme_t * th;
