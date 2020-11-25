@@ -496,24 +496,34 @@ void dispatchParseJson(const char * payload)
           strPayload.concat("]");
       }*/
     size_t maxsize = (128u * ((strlen(payload) / 128) + 1)) + 256;
-    DynamicJsonDocument haspCommands(maxsize);
-    DeserializationError jsonError = deserializeJson(haspCommands, payload);
-    // haspCommands.shrinkToFit();
+    DynamicJsonDocument json(maxsize);
+    DeserializationError jsonError = deserializeJson(json, (char *)payload);
+    // json.shrinkToFit();
 
     if(jsonError) { // Couldn't parse incoming JSON command
         Log.warning(TAG_MSGR, F("JSON: Failed to parse incoming JSON command with error: %s"), jsonError.c_str());
     } else {
 
-        JsonArray arr = haspCommands.as<JsonArray>();
-        for(JsonVariant command : arr) {
-            dispatchTextLine(command.as<String>().c_str());
+        if(json.is<JsonArray>()) {
+            // handle json as an array of commands
+            JsonArray arr = json.as<JsonArray>();
+            for(JsonVariant command : arr) {
+                dispatchTextLine(command.as<String>().c_str());
+            }
+        } else if(json.is<JsonObject>()) {
+            // handle json as a jsonl
+            uint8_t savedPage = haspGetPage();
+            hasp_new_object(json.as<JsonObject>(), savedPage);
+        } else {
+            // handle json as a single command
+            dispatchTextLine(json.as<const char *>());
         }
     }
 }
 
 void dispatchParseJsonl(Stream & stream)
 {
-    DynamicJsonDocument jsonl(3 * 128u);
+    DynamicJsonDocument jsonl(4 * 128u);
     uint8_t savedPage = haspGetPage();
 
     // Log.notice(TAG_MSGR,F("DISPATCH: jsonl"));
