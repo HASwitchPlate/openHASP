@@ -81,6 +81,7 @@ void IRAM_ATTR mdnsLoop(void)
 
 void mdnsStop()
 {
+    return;
 #if HASP_USE_MDNS > 0
     MDNS.end();
 #endif
