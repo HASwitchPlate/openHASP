@@ -94,6 +94,8 @@
 #endif
 
 /* Includes */
+#include <Arduino.h>
+
 #if HASP_USE_SPIFFS > 0
 #if defined(ARDUINO_ARCH_ESP32)
 #include "SPIFFS.h"
@@ -104,7 +106,7 @@
 
 #if HASP_USE_LITTLEFS > 0
 #if defined(ARDUINO_ARCH_ESP32)
-#include <LITTLEFS.h>
+#include "LITTLEFS.h"
 #endif
 #include <FS.h> // Include the FS library
 #include "hasp_filesystem.h"
