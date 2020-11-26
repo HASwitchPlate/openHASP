@@ -214,9 +214,10 @@ void mqtt_send_statusupdate()
     {
         char buffer[128];
 
-        snprintf_P(data, sizeof(data), PSTR("{\"status\":\"available\",\"version\":\"%s\",\"uptime\":%lu,"),
-                   haspGetVersion().c_str(), long(millis() / 1000));
-        strcat(buffer, data);
+        haspGetVersion(buffer, sizeof(buffer));
+        snprintf_P(data, sizeof(data), PSTR("{\"status\":\"available\",\"version\":\"%s\",\"uptime\":%lu,"), buffer,
+                   long(millis() / 1000));
+
 #if HASP_USE_WIFI > 0
 #if defined(STM32F4xx)
         IPAddress ip;

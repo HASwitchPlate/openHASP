@@ -60,7 +60,7 @@ uint8_t haspGetPage();
 void haspClearPage(uint16_t pageid);
 
 String haspGetNodename();
-String haspGetVersion();
+void haspGetVersion(char* version,size_t len);
 void haspBackground(uint16_t pageid, uint16_t imageid);
 
 void hasp_set_group_objects(uint8_t groupid, uint8_t eventid, lv_obj_t * src_obj);

@@ -395,6 +395,7 @@ void haspSetup()
     }
 
     if(th) {
+        lv_theme_set_act(th);
         Log.trace(TAG_HASP, F("Custom theme loaded"));
     } else {
         Log.error(TAG_HASP, F("No theme could be loaded"));
@@ -495,11 +496,11 @@ void hasp_background(uint16_t pageid, uint16_t imageid)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-String haspGetVersion()
+void haspGetVersion(char * version, size_t len)
 {
-    char buffer[16];
-    snprintf_P(buffer, sizeof(buffer), "%u.%u.%u", HASP_VERSION_MAJOR, HASP_VERSION_MINOR, HASP_VERSION_REVISION);
-    return buffer;
+    // char buffer[16];
+    snprintf_P(version, len, "%u.%u.%u", HASP_VERSION_MAJOR, HASP_VERSION_MINOR, HASP_VERSION_REVISION);
+    // return buffer;
 }
 
 void haspClearPage(uint16_t pageid)

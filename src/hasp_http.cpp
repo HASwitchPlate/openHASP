@@ -400,7 +400,11 @@ void webHandleInfo()
 
         /* HASP Stats */
         httpMessage += F("<b>HASP Version: </b>");
-        httpMessage += String(haspGetVersion());
+        {
+            char version[32];
+            haspGetVersion(version, sizeof(version));
+            httpMessage += version;
+        }
         httpMessage += F("<br/><b>Build DateTime: </b>");
         httpMessage += __DATE__;
         httpMessage += F(" ");
