@@ -387,7 +387,7 @@ typedef void* lv_font_user_data_t;
  /*Always enable at least on theme*/
 #define LV_USE_THEME_MATERIAL    1   /*A fast and impressive theme*/
 
-#define LV_THEME_DEFAULT_INIT               lv_theme_material_init
+#define LV_THEME_DEFAULT_INIT               lv_theme_hasp_init // We init the theme ourselves
 #define LV_THEME_DEFAULT_COLOR_PRIMARY      LV_COLOR_RED
 #define LV_THEME_DEFAULT_COLOR_SECONDARY    LV_COLOR_BLUE
 #define LV_THEME_DEFAULT_FLAGS              0 //LV_THEME_MATERIAL_FLAG_NONE
@@ -642,7 +642,7 @@ typedef uint8_t lv_obj_user_data_t;
 #endif
 
 /*Window (dependencies: lv_cont, lv_btn, lv_label, lv_img, lv_page)*/
-#define LV_USE_WIN      (LV_HIGH_RESOURCE_MCU)
+#define LV_USE_WIN      1
 
 /*==================
  * Non-user section

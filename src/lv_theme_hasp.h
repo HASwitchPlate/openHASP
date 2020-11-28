@@ -13,13 +13,20 @@ extern "C" {
 /*********************
  *      INCLUDES
  *********************/
-#include "lv_conf.h"
+#include "./lv_conf.h"
+#include "lvgl.h" /*To see all the widgets*/
 
-#if LV_USE_THEME_HASP
+//#if LV_USE_THEME_HASP
 
 /*********************
  *      DEFINES
  *********************/
+typedef enum {
+    LV_THEME_HASP_FLAG_DARK =  0x01,
+    LV_THEME_HASP_FLAG_LIGHT = 0x02,
+    LV_THEME_HASP_FLAG_NO_TRANSITION  = 0x10,
+    LV_THEME_HASP_FLAG_NO_FOCUS  = 0x20,
+} lv_theme_hasp_flag_t;
 
 /**********************
  *      TYPEDEFS
@@ -53,4 +60,4 @@ lv_theme_t * lv_theme_hasp_init(lv_color_t color_primary, lv_color_t color_secon
 } /* extern "C" */
 #endif
 
-#endif /*LV_THEME_HASP_H*/
+//#endif /*LV_THEME_HASP_H*/
