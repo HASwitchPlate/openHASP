@@ -137,7 +137,7 @@ bool check_obj_type(const char * lvobjtype, lv_hasp_obj_type_t haspobjtype)
         case LV_HASP_MSGBOX:
             return (strcmp_P(lvobjtype, PSTR("msgbox")) == 0);
         case LV_HASP_WINDOW:
-            return (strcmp_P(lvobjtype, PSTR("window")) == 0);
+            return (strcmp_P(lvobjtype, PSTR("win")) == 0);
 
         default:
             return false;
@@ -549,6 +549,13 @@ void hasp_new_object(const JsonObject & config, uint8_t & saved_page_id)
             // No event handler for pages
             break;
         }
+#if LV_USE_WIN
+        case LV_HASP_WINDOW: {
+            obj = lv_win_create(parent_obj, NULL);
+            // No event handler for pages
+            break;
+        }
+#endif
         case LV_HASP_TABVIEW: {
             obj = lv_tabview_create(parent_obj, NULL);
             // No event handler for tabs
@@ -566,7 +573,6 @@ void hasp_new_object(const JsonObject & config, uint8_t & saved_page_id)
             // No event handler for tileviews
             break;
         }
-
         /* ----- Color Objects ------ */
         case LV_HASP_CPICKER: {
             obj = lv_cpicker_create(parent_obj, NULL);
@@ -671,7 +677,8 @@ void hasp_new_object(const JsonObject & config, uint8_t & saved_page_id)
     config.remove(F("id"));
     config.remove(F("objid"));
     config.remove(F("parentid"));
-    String v;
+    String v((char *)0);
+    v.reserve(64);
 
     for(JsonPair keyValue : config) {
         v = keyValue.value().as<String>();
