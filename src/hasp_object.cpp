@@ -491,57 +491,60 @@ void hasp_new_object(const JsonObject & config, uint8_t & saved_page_id)
         /* ----- Basic Objects ------ */
         case LV_HASP_BTNMATRIX:
             obj = lv_btnmatrix_create(parent_obj, NULL);
-            lv_obj_set_event_cb(obj, btnmap_event_handler);
+            if(obj) lv_obj_set_event_cb(obj, btnmap_event_handler);
             break;
         case LV_HASP_TABLE:
             obj = lv_table_create(parent_obj, NULL);
-            lv_obj_set_event_cb(obj, table_event_handler);
+            if(obj) lv_obj_set_event_cb(obj, table_event_handler);
             break;
 
         case LV_HASP_BUTTON:
             obj = lv_btn_create(parent_obj, NULL);
-            lv_label_create(obj, NULL);
-            lv_obj_set_event_cb(obj, btn_event_handler);
+            if(obj) {
+                lv_obj_t * lbl = lv_label_create(obj, NULL);
+                if(lbl) lv_label_set_text(lbl, "");
+                lv_obj_set_event_cb(obj, btn_event_handler);
+            }
             break;
 
         case LV_HASP_CHECKBOX:
             obj = lv_checkbox_create(parent_obj, NULL);
-            lv_obj_set_event_cb(obj, checkbox_event_handler);
+            if(obj) lv_obj_set_event_cb(obj, checkbox_event_handler);
             break;
 
         case LV_HASP_LABEL: {
             obj = lv_label_create(parent_obj, NULL);
             /* click area padding */
-            uint8_t padh = config[F("padh")].as<uint8_t>();
-            uint8_t padv = config[F("padv")].as<uint8_t>();
+            //  uint8_t padh = config[F("padh")].as<uint8_t>();
+            //  uint8_t padv = config[F("padv")].as<uint8_t>();
             /* text align */
-            if(padh > 0 || padv > 0) {
-                lv_obj_set_ext_click_area(obj, padh, padh, padv, padv);
-            }
-            if(!config[F("align")].isNull()) {
-                lv_label_set_align(obj, LV_LABEL_ALIGN_CENTER);
-            }
-            lv_obj_set_event_cb(obj, btn_event_handler);
+            // if(padh > 0 || padv > 0) {
+            //     lv_obj_set_ext_click_area(obj, padh, padh, padv, padv);
+            // }
+            // if(!config[F("align")].isNull()) {
+            //     lv_label_set_align(obj, LV_LABEL_ALIGN_CENTER);
+            // }
+            if(obj) lv_obj_set_event_cb(obj, btn_event_handler);
             break;
         }
         case LV_HASP_IMAGE: {
             obj = lv_img_create(parent_obj, NULL);
-            lv_obj_set_event_cb(obj, btn_event_handler);
+            if(obj) lv_obj_set_event_cb(obj, btn_event_handler);
             break;
         }
         case LV_HASP_ARC: {
             obj = lv_arc_create(parent_obj, NULL);
-            lv_obj_set_event_cb(obj, btn_event_handler);
+            if(obj) lv_obj_set_event_cb(obj, btn_event_handler);
             break;
         }
         case LV_HASP_CONTAINER: {
             obj = lv_cont_create(parent_obj, NULL);
-            lv_obj_set_event_cb(obj, btn_event_handler);
+            if(obj) lv_obj_set_event_cb(obj, btn_event_handler);
             break;
         }
         case LV_HASP_OBJECT: {
             obj = lv_obj_create(parent_obj, NULL);
-            lv_obj_set_event_cb(obj, btn_event_handler);
+            if(obj) lv_obj_set_event_cb(obj, btn_event_handler);
             break;
         }
         case LV_HASP_PAGE: {
@@ -559,13 +562,15 @@ void hasp_new_object(const JsonObject & config, uint8_t & saved_page_id)
         case LV_HASP_TABVIEW: {
             obj = lv_tabview_create(parent_obj, NULL);
             // No event handler for tabs
-            lv_obj_t * tab;
-            tab = lv_tabview_add_tab(obj, "tab 1");
-            lv_obj_set_user_data(tab, id + 1);
-            tab = lv_tabview_add_tab(obj, "tab 2");
-            lv_obj_set_user_data(tab, id + 2);
-            tab = lv_tabview_add_tab(obj, "tab 3");
-            lv_obj_set_user_data(tab, id + 3);
+            if(obj) {
+                lv_obj_t * tab;
+                tab = lv_tabview_add_tab(obj, "tab 1");
+                lv_obj_set_user_data(tab, id + 1);
+                tab = lv_tabview_add_tab(obj, "tab 2");
+                lv_obj_set_user_data(tab, id + 2);
+                tab = lv_tabview_add_tab(obj, "tab 3");
+                lv_obj_set_user_data(tab, id + 3);
+            }
             break;
         }
         case LV_HASP_TILEVIEW: {
@@ -576,7 +581,7 @@ void hasp_new_object(const JsonObject & config, uint8_t & saved_page_id)
         /* ----- Color Objects ------ */
         case LV_HASP_CPICKER: {
             obj = lv_cpicker_create(parent_obj, NULL);
-            lv_obj_set_event_cb(obj, cpicker_event_handler);
+            if(obj) lv_obj_set_event_cb(obj, cpicker_event_handler);
             break;
         }
 
@@ -589,73 +594,87 @@ void hasp_new_object(const JsonObject & config, uint8_t & saved_page_id)
         /* ----- Range Objects ------ */
         case LV_HASP_SLIDER: {
             obj = lv_slider_create(parent_obj, NULL);
-            lv_slider_set_range(obj, 0, 100);
-            lv_obj_set_event_cb(obj, slider_event_handler);
+            if(obj) {
+                lv_slider_set_range(obj, 0, 100);
+                lv_obj_set_event_cb(obj, slider_event_handler);
+            }
             // bool knobin = config[F("knobin")].as<bool>() | true;
             // lv_slider_set_knob_in(obj, knobin);
             break;
         }
         case LV_HASP_GAUGE: {
             obj = lv_gauge_create(parent_obj, NULL);
-            lv_gauge_set_range(obj, 0, 100);
-            lv_obj_set_event_cb(obj, btn_event_handler);
+            if(obj) {
+                lv_gauge_set_range(obj, 0, 100);
+                lv_obj_set_event_cb(obj, btn_event_handler);
+            }
             break;
         }
         case LV_HASP_BAR: {
             obj = lv_bar_create(parent_obj, NULL);
-            lv_bar_set_range(obj, 0, 100);
-            lv_obj_set_event_cb(obj, btn_event_handler);
+            if(obj) {
+                lv_bar_set_range(obj, 0, 100);
+                lv_obj_set_event_cb(obj, btn_event_handler);
+            }
             break;
         }
         case LV_HASP_LMETER: {
             obj = lv_linemeter_create(parent_obj, NULL);
-            lv_linemeter_set_range(obj, 0, 100);
-            lv_obj_set_event_cb(obj, btn_event_handler);
+            if(obj) {
+                lv_linemeter_set_range(obj, 0, 100);
+                lv_obj_set_event_cb(obj, btn_event_handler);
+            }
             break;
         }
         case LV_HASP_CHART: {
             obj = lv_chart_create(parent_obj, NULL);
-            lv_chart_set_range(obj, 0, 100);
-            lv_obj_set_event_cb(obj, btn_event_handler);
+            if(obj) {
+                lv_chart_set_range(obj, 0, 100);
+                lv_obj_set_event_cb(obj, btn_event_handler);
 
-            lv_chart_add_series(obj, LV_COLOR_RED);
-            lv_chart_add_series(obj, LV_COLOR_GREEN);
-            lv_chart_add_series(obj, LV_COLOR_BLUE);
+                lv_chart_add_series(obj, LV_COLOR_RED);
+                lv_chart_add_series(obj, LV_COLOR_GREEN);
+                lv_chart_add_series(obj, LV_COLOR_BLUE);
 
-            lv_chart_series_t * ser = lv_chart_get_series(obj, 2);
-            lv_chart_set_next(obj, ser, 10);
-            lv_chart_set_next(obj, ser, 20);
-            lv_chart_set_next(obj, ser, 30);
-            lv_chart_set_next(obj, ser, 40);
-
+                lv_chart_series_t * ser = lv_chart_get_series(obj, 2);
+                lv_chart_set_next(obj, ser, 10);
+                lv_chart_set_next(obj, ser, 20);
+                lv_chart_set_next(obj, ser, 30);
+                lv_chart_set_next(obj, ser, 40);
+            }
             break;
         }
 
         /* ----- On/Off Objects ------ */
         case LV_HASP_SWITCH: {
             obj = lv_switch_create(parent_obj, NULL);
-            lv_obj_set_event_cb(obj, switch_event_handler);
+            if(obj) lv_obj_set_event_cb(obj, switch_event_handler);
             break;
         }
         case LV_HASP_LED: {
             obj = lv_led_create(parent_obj, NULL);
-            lv_obj_set_event_cb(obj, btn_event_handler);
+            if(obj) lv_obj_set_event_cb(obj, btn_event_handler);
             break;
         }
         /* ----- List Object ------- */
         case LV_HASP_DDLIST: {
             obj = lv_dropdown_create(parent_obj, NULL);
-            lv_dropdown_set_draw_arrow(obj, true);
-            // lv_dropdown_set_anim_time(obj, 200);
-            lv_obj_set_top(obj, true);
-            // lv_obj_align(obj, NULL, LV_ALIGN_IN_TOP_MID, 0, 20);
-            lv_obj_set_event_cb(obj, ddlist_event_handler);
+            if(obj) {
+                lv_dropdown_set_draw_arrow(obj, true);
+                // lv_dropdown_set_anim_time(obj, 200);
+                lv_obj_set_top(obj, true);
+                // lv_obj_align(obj, NULL, LV_ALIGN_IN_TOP_MID, 0, 20);
+                lv_obj_set_event_cb(obj, ddlist_event_handler);
+            }
             break;
         }
         case LV_HASP_ROLLER: {
             obj = lv_roller_create(parent_obj, NULL);
             // lv_obj_align(obj, NULL, LV_ALIGN_IN_TOP_MID, 0, 20);
-            lv_obj_set_event_cb(obj, roller_event_handler);
+            if(obj) {
+                lv_roller_set_auto_fit(obj, false);
+                lv_obj_set_event_cb(obj, roller_event_handler);
+            }
             break;
         }
 
