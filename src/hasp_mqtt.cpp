@@ -303,7 +303,7 @@ static void mqtt_message_cb(char * topic, byte * payload, unsigned int length)
                 snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%sstatus"), mqttNodeTopic);
                 snprintf_P(msg, sizeof(msg), PSTR("ON"));
 
-                bool res = mqttClient.publish(tmp_topic, msg, true);
+                /*bool res =*/ mqttClient.publish(tmp_topic, msg, true);
             }
 
         } else {

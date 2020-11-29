@@ -59,7 +59,6 @@ void haspSetPage(uint8_t id);
 uint8_t haspGetPage();
 void haspClearPage(uint16_t pageid);
 
-String haspGetNodename();
 void haspGetVersion(char* version,size_t len);
 void haspBackground(uint16_t pageid, uint16_t imageid);
 

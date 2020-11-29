@@ -4,6 +4,8 @@
 #include <Arduino.h>
 #include "ArduinoJson.h"
 #include "ArduinoLog.h"
+
+#include "hasp_debug.h"
 #include "hasp_conf.h"
 #include "hasp_hal.h"
 

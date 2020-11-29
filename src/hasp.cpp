@@ -580,8 +580,8 @@ void haspLoadPage(const char * pages)
 #if HASP_USE_EEPROM > 0
     Log.notice(TAG_HASP, F("Loading jsonl from EEPROM..."));
     EepromStream eepromStream(4096, 1024);
-    dispatchJsonl(eepromStream);
-    Log.tr(TAG_HASP, F("Loaded jsonl from EEPROM"));
+    dispatch_parse_jsonl(eepromStream);
+    Log.trace(TAG_HASP, F("Loaded jsonl from EEPROM"));
 #endif
 
 #endif

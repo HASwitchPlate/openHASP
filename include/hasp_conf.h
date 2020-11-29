@@ -107,9 +107,10 @@
 #if HASP_USE_LITTLEFS > 0
 #if defined(ARDUINO_ARCH_ESP32)
 #include "LITTLEFS.h"
-#endif
+#elif defined(ARDUINO_ARCH_ESP8266)
 #include <FS.h> // Include the FS library
 #include "hasp_filesystem.h"
+#endif
 #endif
 
 #if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0

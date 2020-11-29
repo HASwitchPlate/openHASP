@@ -10,7 +10,7 @@
 #include "hasp_debug.h"
 #include "hasp_network.h"
 
-#if HASP_USE_ETHERNET > 0
+#if HASP_USE_ETHERNET > 0 && defined(ARDUINO_ARCH_ESP32)
 
 IPAddress ip;
 

@@ -14,6 +14,8 @@
 #include "hasp_object.h"
 #include "hasp_gui.h"
 #include "hasp_oobe.h"
+#include "hasp_mqtt.h"
+#include "hasp_gpio.h"
 #include "hasp_hal.h"
 #include "hasp.h"
 
@@ -30,6 +32,8 @@ bool is_true(const char * s)
 
 void dispatch_screenshot(const char *, const char * filename)
 {
+#if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
+
     if(strlen(filename) == 0) { // no filename given
         char tempfile[32];
         memcpy_P(tempfile, PSTR("/screenshot.bmp"), sizeof(tempfile));
@@ -39,12 +43,17 @@ void dispatch_screenshot(const char *, const char * filename)
     } else { // Valid filename
         guiTakeScreenshot(filename);
     }
+
+#else
+    Log.warning(TAG_MSGR, "Failed to save %s, no storage", filename);
+#endif
 }
 
 // Format filesystem and erase EEPROM
 bool dispatch_factory_reset()
 {
-    bool formated, erased = true;
+    bool formated = true;
+    bool erased   = true;
 
 #if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
     formated = HASP_FS.format();
@@ -149,9 +158,12 @@ void dispatch_command(const char * topic, const char * payload)
         // char item[5];
         // memset(item, 0, sizeof(item));
         // strncpy(item, topic + 4, 4);
+
+#if HASP_USE_MQTT > 0
         DynamicJsonDocument settings(45);
         settings[topic + 4] = payload;
         mqttSetConfig(settings.as<JsonObject>());
+#endif
 
     } else {
         if(strlen(payload) == 0) {
