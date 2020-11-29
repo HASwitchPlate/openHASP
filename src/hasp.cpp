@@ -51,7 +51,7 @@
  **********************/
 uint8_t haspStartDim   = 100;
 uint8_t haspStartPage  = 0;
-uint8_t haspThemeId    = 0;
+uint8_t haspThemeId    = 2;
 uint16_t haspThemeHue  = 200;
 char haspPagesPath[32] = "/pages.jsonl";
 char haspZiFontPath[32];
@@ -256,34 +256,34 @@ void haspSetup()
     guiSetDim(haspStartDim);
 
     /******* File System Test ********************************************************************/
-    lv_fs_file_t f;
-    lv_fs_res_t res;
-    res = lv_fs_open(&f, "E:/config.json", LV_FS_MODE_RD);
-    if(res == LV_FS_RES_OK)
-        Log.verbose(TAG_HASP, F("Opening config.json OK"));
-    else
-        Log.error(TAG_HASP, F("Opening config.json from FS failed %d"), res);
+    // lv_fs_file_t f;
+    // lv_fs_res_t res;
+    // res = lv_fs_open(&f, "E:/config.json", LV_FS_MODE_RD);
+    // if(res == LV_FS_RES_OK)
+    //     Log.verbose(TAG_HASP, F("Opening config.json OK"));
+    // else
+    //     Log.error(TAG_HASP, F("Opening config.json from FS failed %d"), res);
 
-    uint32_t btoread = 128;
-    uint32_t bread   = 0;
-    char buffer[129];
+    // uint32_t btoread = 128;
+    // uint32_t bread   = 0;
+    // char buffer[129];
 
     // res = lv_fs_read(&f, buffer, btoread, &bread);
-    if(res == LV_FS_RES_OK) {
-        Log.verbose(TAG_HASP, F("Reading config.json OK %u"), bread);
-        buffer[127] = '\0';
-        Log.trace(TAG_HASP, buffer);
-    } else
-        Log.error(TAG_HASP, F("Reading config.json from FS failed %d"), res);
+    // if(res == LV_FS_RES_OK) {
+    //     Log.verbose(TAG_HASP, F("Reading config.json OK %u"), bread);
+    //     buffer[127] = '\0';
+    //     Log.trace(TAG_HASP, buffer);
+    // } else
+    //     Log.error(TAG_HASP, F("Reading config.json from FS failed %d"), res);
 
-    res = lv_fs_close(&f);
-    if(res == LV_FS_RES_OK)
-        Log.verbose(TAG_HASP, F("Closing config.json OK"));
-    else
-        Log.error(TAG_HASP, F("Closing config.json on FS failed %d"), res);
-        /******* File System Test ********************************************************************/
+    // res = lv_fs_close(&f);
+    // if(res == LV_FS_RES_OK)
+    //     Log.verbose(TAG_HASP, F("Closing config.json OK"));
+    // else
+    //     Log.error(TAG_HASP, F("Closing config.json on FS failed %d"), res);
+    /******* File System Test ********************************************************************/
 
-        /* ********** Font Initializations ********** */
+    /* ********** Font Initializations ********** */
 
 #if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
 #if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
@@ -298,17 +298,32 @@ void haspSetup()
 #endif
 #endif
 
-    haspFonts[0] = lv_font_load("E:/font_1.fnt");
+    // haspFonts[0] = lv_font_load("E:/font_1.fnt");
     //  haspFonts[2] = lv_font_load("E:/font_2.fnt");
     //  haspFonts[3] = lv_font_load("E:/font_3.fnt");
 
     /* ********** Theme Initializations ********** */
-    lv_theme_t * th;
+    if(haspThemeId == 8) haspThemeId = 1;                    // update old HASP id
+    if(haspThemeId == 9) haspThemeId = 5;                    // update old material id
+    if(haspThemeId <= 0 || haspThemeId > 5) haspThemeId = 1; // check bounds
+
+    lv_theme_t * th = NULL;
     switch(haspThemeId) {
 #if(LV_USE_THEME_EMPTY == 1)
         case 0:
             th = lv_theme_empty_init(LV_COLOR_PURPLE, LV_COLOR_BLACK, LV_THEME_DEFAULT_FLAGS, haspFonts[0],
                                      haspFonts[1], haspFonts[2], haspFonts[3]);
+            break;
+#endif
+
+#if(LV_USE_THEME_HASP == 1)
+        case 2: // Dark
+        case 1: // Light
+        case 8: // Light (old id)
+            th = lv_theme_hasp_init(lv_color_hsv_to_rgb(haspThemeHue, 100, 100),
+                                    lv_color_hsv_to_rgb(haspThemeHue, 100, 100),
+                                    LV_THEME_HASP_FLAG_DARK + LV_THEME_HASP_FLAG_NO_FOCUS, haspFonts[0], haspFonts[1],
+                                    haspFonts[2], haspFonts[3]);
             break;
 #endif
 
@@ -345,7 +360,8 @@ void haspSetup()
                                             LV_THEME_MATERIAL_FLAG_NO_TRANSITION,
                                         haspFonts[0], haspFonts[1], haspFonts[2], haspFonts[3]);
             break;
-        case 9:
+        case 5:
+        case 9: // Light (old id)
             th = lv_theme_material_init(LV_COLOR_PURPLE, LV_COLOR_ORANGE,
                                         LV_THEME_MATERIAL_FLAG_DARK + LV_THEME_MATERIAL_FLAG_NO_FOCUS +
                                             LV_THEME_MATERIAL_FLAG_NO_TRANSITION,
@@ -372,25 +388,8 @@ void haspSetup()
             break;
 #endif
 
-#if(LV_USE_THEME_HASP == 1)
-        case 8:
-            th = lv_theme_hasp_init(lv_color_hsv_to_rgb(haspThemeHue, 100, 100),
-                                    lv_color_hsv_to_rgb(haspThemeHue, 100, 100), LV_THEME_DEFAULT_FLAGS, haspFonts[0],
-                                    haspFonts[1], haspFonts[2], haspFonts[3]);
-            break;
-#endif
-
-        /*        case 0:
-        #if LV_USE_THEME_DEFAULT == 1
-                    th = lv_theme_default_init(haspThemeHue, defaultFont);
-        #else
-                    th = lv_theme_hasp_init(512, defaultFont);
-        #endif
-                    break;
-        */
         default:
-            th = lv_theme_template_init(LV_COLOR_PURPLE, LV_COLOR_ORANGE, LV_THEME_DEFAULT_FLAGS, haspFonts[0],
-                                        haspFonts[1], haspFonts[2], haspFonts[3]);
+
             Log.error(TAG_HASP, F("Unknown theme selected"));
     }
 
@@ -398,7 +397,7 @@ void haspSetup()
         lv_theme_set_act(th);
         Log.trace(TAG_HASP, F("Custom theme loaded"));
     } else {
-        Log.error(TAG_HASP, F("No theme could be loaded"));
+        Log.error(TAG_HASP, F("Theme could not be loaded"));
     }
     // lv_theme_set_current(th);
     /* ********** Theme Initializations ********** */

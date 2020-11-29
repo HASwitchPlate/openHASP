@@ -403,8 +403,8 @@ typedef void* lv_font_user_data_t;
 #define LV_THEME_DEFAULT_FONT_TITLE         LV_FONT_DEFAULT // &lv_font_montserrat_28_compressed
 #endif
 
-#define LV_USE_THEME_EMPTY 1
-#define LV_USE_THEME_TEMPLATE 1
+#define LV_USE_THEME_EMPTY 0
+#define LV_USE_THEME_TEMPLATE 0
 #define LV_USE_THEME_HASP 1
 
 /*=================

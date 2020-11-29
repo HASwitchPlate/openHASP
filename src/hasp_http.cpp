@@ -1472,8 +1472,11 @@ void webHandleHaspConfig()
         httpMessage += F("<p><b>UI Theme</b> <i><small>(required)</small></i><select id='theme' name='theme'>");
 
         uint8_t themeid = settings[FPSTR(F_CONFIG_THEME)].as<uint8_t>();
-        httpMessage += getOption(0, F("Built-in"), themeid == 0);
-        httpMessage += getOption(8, F("Hasp"), themeid == 8);
+        // httpMessage += getOption(0, F("Built-in"), themeid == 0);
+#if LV_USE_THEME_HASP == 1
+        httpMessage += getOption(2, F("Hasp Dark"), themeid == 2);
+        httpMessage += getOption(1, F("Hasp Light"), themeid == 1);
+#endif
 #if LV_USE_THEME_EMPTY == 1
         httpMessage += getOption(0, F("Empty"), themeid == 0);
 #endif
@@ -1487,8 +1490,8 @@ void webHandleHaspConfig()
         httpMessage += getOption(3, F("Mono"), themeid == 3);
 #endif
 #if LV_USE_THEME_MATERIAL == 1
+        httpMessage += getOption(5, F("Material Dark"), themeid == 5);
         httpMessage += getOption(4, F("Material Light"), themeid == 4);
-        httpMessage += getOption(9, F("Material Dark"), themeid == 9);
 #endif
 #if LV_USE_THEME_ZEN == 1
         // httpMessage += getOption(5, F("Zen"), themeid == 5);
