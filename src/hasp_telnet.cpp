@@ -221,7 +221,7 @@ static inline void telnetProcessLine(const char * input)
                 telnetClient.println(F("\r\nUsername: "));
                 telnetLoginState = TELNET_UNAUTHENTICATED;
             } else {
-                dispatchTextLine(input);
+                dispatch_text_line(input);
             }
     }
 }

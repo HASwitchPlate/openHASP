@@ -95,6 +95,8 @@ void halRestartMcu(void)
 #else
     NVIC_SystemReset();
 #endif
+    for(;;) {
+    } // halt
 }
 
 String halGetResetInfo()

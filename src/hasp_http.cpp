@@ -275,7 +275,7 @@ void httpHandleReboot()
     webSendFooter();
 
     delay(200);
-    dispatchReboot(true);
+    dispatch_reboot(true);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -285,9 +285,9 @@ void webHandleScreenshot()
 
     if(webServer.hasArg(F("a"))) {
         if(webServer.arg(F("a")) == F("next")) {
-            dispatchPageNext();
+            dispatch_page_next();
         } else if(webServer.arg(F("a")) == F("prev")) {
-            dispatchPagePrev();
+            dispatch_page_prev();
         }
     }
 
@@ -680,8 +680,7 @@ void webUpdateReboot()
     webSendFooter();
 
     delay(250);
-    dispatchReboot(true); // Save the current config
-    delay(5000);
+    dispatch_reboot(true); // Save the current config
 }
 
 void webHandleFirmwareUpdate()
@@ -1120,7 +1119,7 @@ void webHandleGuiConfig()
     }
     webSendFooter();
 
-    if(webServer.hasArg(F("action"))) dispatchTextLine(webServer.arg(F("action")).c_str());
+    if(webServer.hasArg(F("action"))) dispatch_text_line(webServer.arg(F("action")).c_str());
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1381,7 +1380,7 @@ void webHandleGpioOptions()
     }
     webSendFooter();
 
-    if(webServer.hasArg(F("action"))) dispatchTextLine(webServer.arg(F("action")).c_str());
+    if(webServer.hasArg(F("action"))) dispatch_text_line(webServer.arg(F("action")).c_str()); // Security check
 }
 #endif // HASP_USE_GPIO
 
@@ -1698,7 +1697,7 @@ void httpHandleResetConfig()
     if(resetConfirmed) {
         delay(250);
         // configClearSaved();
-        dispatchReboot(false); // Do not save the current config
+        dispatch_reboot(false); // Do not save the current config
     }
 }
 

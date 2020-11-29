@@ -16,24 +16,24 @@ void dispatchStart(void);
 void dispatchStop(void);
 
 /* ===== Special Event Processors ===== */
-void dispatchConfig(const char * topic, const char * payload);
-void dispatchTopicPayload(const char * topic, const char * payload);
-void dispatchTextLine(const char * cmnd);
-void dispatchParseJsonl(Stream & stream);
-void dispatchClearPage(const char * page);
+void dispatch_topic_payload(const char * topic, const char * payload);
+void dispatch_text_line(const char * cmnd);
+void dispatch_parse_jsonl(Stream & stream);
+void dispatch_clear_page(const char * page);
 
-void dispatchPage(const char * page);
-void dispatchPageNext();
-void dispatchPagePrev();
+// void dispatchPage(uint8_t page);
+void dispatch_page_next();
+void dispatch_page_prev();
 
-void dispatchDim(const char * level);
-void dispatchBacklight(const char * payload);
+void dispatch_dim(const char * level);
+void dispatch_backlight(const char * payload);
 
-void dispatchWebUpdate(const char * espOtaUrl);
-void dispatchReboot(bool saveConfig);
+void dispatch_web_update(const char * espOtaUrl);
+void dispatch_reboot(bool saveConfig);
 
 void dispatch_output_idle_state(const char * state);
 void dispatch_output_statusupdate(void);
+void dispatch_output_current_page();
 
 void dispatch_button(uint8_t id, const char * event);
 
@@ -52,7 +52,7 @@ void IRAM_ATTR dispatch_send_obj_attribute_str(uint8_t pageid, uint8_t btnid, co
 /* ===== Structs and Constants ===== */
 struct haspCommand_t
 {
-    void (*func)(const char *);
+    void (*func)(const char *, const char *);
     const char * p_cmdstr;
 };
 

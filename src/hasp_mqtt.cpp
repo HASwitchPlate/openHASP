@@ -285,7 +285,7 @@ static void mqtt_message_cb(char * topic, byte * payload, unsigned int length)
 
         // Group topic
         topic += strlen(mqttGroupTopic); // shorten topic
-        dispatchTopicPayload(topic, (char *)payload);
+        dispatch_topic_payload(topic, (const char *)payload);
         return;
 
     } else {
@@ -310,7 +310,7 @@ static void mqtt_message_cb(char * topic, byte * payload, unsigned int length)
             // Log.notice(TAG_MQTT, F("ignoring status = ON"));
         }
     } else {
-        dispatchTopicPayload(topic, (char *)payload);
+        dispatch_topic_payload(topic, (const char *)payload);
     }
 }
 
@@ -390,7 +390,7 @@ void mqttStart()
 
         if(mqttReconnectCount > 50) {
             Log.error(TAG_MQTT, F("Retry count exceeded, rebooting..."));
-            dispatchReboot(false);
+            dispatch_reboot(false);
         }
         return;
     }
@@ -435,10 +435,8 @@ void mqttStart()
     mqttReconnectCount = 0;
 
     haspReconnect();
-    char page[4] = "999";
-    itoa(haspGetPage(), page, DEC);
-    dispatchPage(page);
-    mqtt_send_statusupdate();
+    dispatch_output_current_page();
+    dispatch_output_statusupdate();
 }
 
 void mqttSetup()

@@ -571,7 +571,7 @@ void haspLoadPage(const char * pages)
     Log.notice(TAG_HASP, F("Loading file %s"), pages);
 
     File file = HASP_FS.open(pages, "r");
-    dispatchParseJsonl(file);
+    dispatch_parse_jsonl(file);
     file.close();
 
     Log.trace(TAG_HASP, F("File %s loaded"), pages);

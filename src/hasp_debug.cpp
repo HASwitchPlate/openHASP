@@ -153,7 +153,7 @@ void debugSetup()
     // memset(serialInputBuffer, 0, sizeof(serialInputBuffer));
     // serialInputIndex = 0;
     Log.notice(TAG_DEBG, F("Setting the console parser"));
-    debugConsole.setLineCallback(dispatchTextLine);
+    debugConsole.setLineCallback(dispatch_text_line);
 }
 
 void debugStartSyslog()
@@ -673,11 +673,11 @@ void IRAM_ATTR debugLoop(void)
     switch(keypress) {
 
         case ConsoleInput::KEY_PAGE_UP:
-            dispatchPageNext();
+            dispatch_page_next();
             break;
 
         case ConsoleInput::KEY_PAGE_DOWN:
-            dispatchPagePrev();
+            dispatch_page_prev();
             break;
 
         case(ConsoleInput::KEY_FN)...(ConsoleInput::KEY_FN + 12):

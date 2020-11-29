@@ -76,7 +76,7 @@ static void kb_event_cb(lv_obj_t * event_kb, lv_event_t event)
             if(wifiValidateSsid(ssid, pass)) {
                 wifiSetConfig(settings.as<JsonObject>());
                 Log.notice(TAG_OOBE, F("SSID validated, rebooting..."));
-                dispatchReboot(true);
+                dispatch_reboot(true);
             }
         }
 
@@ -336,7 +336,7 @@ bool oobeSetup()
 }
 
 // Thist is used for testing only !!
-void oobeFakeSetup(const char *)
+void oobeFakeSetup(const char *, const char *)
 {
 #if HASP_USE_WIFI > 0
     char ssid[32] = "HASP-ABCDEF";

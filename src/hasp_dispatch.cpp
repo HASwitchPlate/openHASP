@@ -18,12 +18,27 @@
 #include "hasp.h"
 
 uint8_t nCommands = 0;
-haspCommand_t commands[15];
+haspCommand_t commands[16];
+
+static void dispatch_config(const char * topic, const char * payload);
 
 bool is_true(const char * s)
 {
     return (!strcasecmp_P(s, PSTR("true")) || !strcasecmp_P(s, PSTR("on")) || !strcasecmp_P(s, PSTR("yes")) ||
             !strcmp_P(s, PSTR("1")));
+}
+
+void dispatch_screenshot(const char *, const char * filename)
+{
+    if(strlen(filename) == 0) { // no filename given
+        char tempfile[32];
+        memcpy_P(tempfile, PSTR("/screenshot.bmp"), sizeof(tempfile));
+        guiTakeScreenshot(tempfile);
+    } else if(strlen(filename) > 31 || filename[0] != '/') { // Invalid filename
+        Log.warning(TAG_MSGR, "Invalid filename %s", filename);
+    } else { // Valid filename
+        guiTakeScreenshot(filename);
+    }
 }
 
 // Format filesystem and erase EEPROM
@@ -68,7 +83,7 @@ void dispatchGpioOutput(String strTopic, const char * payload)
     dispatchGpioOutput(strTemp.toInt(), is_true(payload));
 }
 
-// p[x].b[y]=value
+// p[x].b[y].attr=value
 inline void dispatch_process_button_attribute(String strTopic, const char * payload)
 {
     // Log.verbose(TAG_MSGR,F("BTN ATTR: %s = %s"), strTopic.c_str(), payload);
@@ -97,7 +112,7 @@ inline void dispatch_process_button_attribute(String strTopic, const char * payl
 }
 
 // objectattribute=value
-void dispatchCommand(const char * topic, const char * payload)
+void dispatch_command(const char * topic, const char * payload)
 {
     /* ================================= Standard payload commands ======================================= */
 
@@ -105,7 +120,7 @@ void dispatchCommand(const char * topic, const char * payload)
     for(int i = 0; i < nCommands; i++) {
         if(!strcasecmp_P(topic, commands[i].p_cmdstr)) {
             // Log.warning(TAG_MSGR, F("Command %d found in array !!!"), i);
-            commands[i].func((char *)payload); /* execute command */
+            commands[i].func(topic, payload); /* execute command */
             return;
         }
     }
@@ -115,8 +130,8 @@ void dispatchCommand(const char * topic, const char * payload)
     if(strlen(topic) == 7 && topic == strstr_P(topic, PSTR("output"))) {
         dispatchGpioOutput(topic, payload);
 
-    } else if(strcasecmp_P(topic, PSTR("screenshot")) == 0) {
-        guiTakeScreenshot("/screenshot.bmp"); // Literal String
+        // } else if(strcasecmp_P(topic, PSTR("screenshot")) == 0) {
+        //     guiTakeScreenshot("/screenshot.bmp"); // Literal String
 
     } else if(topic == strstr_P(topic, PSTR("p["))) {
         dispatch_process_button_attribute(topic, payload);
@@ -140,19 +155,19 @@ void dispatchCommand(const char * topic, const char * payload)
 
     } else {
         if(strlen(payload) == 0) {
-            //    dispatchTextLine(topic); // Could cause an infinite loop!
+            //    dispatch_text_line(topic); // Could cause an infinite loop!
         }
         Log.warning(TAG_MSGR, F("Command '%s' not found => %s"), topic, payload);
     }
 }
 
 // Strip command/config prefix from the topic and process the payload
-void dispatchTopicPayload(const char * topic, const char * payload)
+void dispatch_topic_payload(const char * topic, const char * payload)
 {
     // Log.verbose(TAG_MSGR,F("TOPIC: short topic: %s"), topic);
 
     if(!strcmp_P(topic, PSTR("command"))) {
-        dispatchTextLine((char *)payload);
+        dispatch_text_line((char *)payload);
         return;
     }
 
@@ -162,63 +177,54 @@ void dispatchTopicPayload(const char * topic, const char * payload)
 
         // '[...]/device/command/p[1].b[4].txt' -m '"Lights On"' ==
         // nextionSetAttr("p[1].b[4].txt", "\"Lights On\"")
-        dispatchCommand(topic, (char *)payload);
+        dispatch_command(topic, (char *)payload);
 
         return;
     }
 
     if(topic == strstr_P(topic, PSTR("config/"))) { // startsWith command/
         topic += 7u;
-        dispatchConfig(topic, (char *)payload);
+        dispatch_config(topic, (char *)payload);
         return;
     }
 
-    dispatchCommand(topic, (char *)payload); // dispatch as is
+    dispatch_command(topic, (char *)payload); // dispatch as is
 }
 
-// Parse one line of text and execute the command(s)
-void dispatchTextLine(const char * cmnd)
+// Parse one line of text and execute the command
+void dispatch_text_line(const char * cmnd)
 {
-    // dispatchPrintln(F("CMND"), cmnd);
+    size_t pos1 = std::string(cmnd).find("=");
+    size_t pos2 = std::string(cmnd).find(" ");
+    size_t pos  = 0;
 
-    if(cmnd == strstr_P(cmnd, PSTR("page "))) { // startsWith command/
-        dispatchPage(cmnd + 5);
+    // Find what comes first, ' ' or '='
+    if(pos1 != std::string::npos) {
+        if(pos2 != std::string::npos) {
+            pos = (pos1 < pos2 ? pos1 : pos2);
+        } else {
+            pos = pos1;
+        }
 
     } else {
-        size_t pos1 = std::string(cmnd).find("=");
-        size_t pos2 = std::string(cmnd).find(" ");
-        int pos     = 0;
+        pos = (pos2 != std::string::npos) ? pos2 : 0;
+    }
 
-        if(pos1 != std::string::npos) {
-            if(pos2 != std::string::npos) {
-                pos = (pos1 < pos2 ? pos1 : pos2);
-            } else {
-                pos = pos1;
-            }
+    if(pos > 0) { // ' ' or '=' found
+        char topic[64];
+        memset(topic, 0, sizeof(topic));
+        if(pos < sizeof(topic))
+            memcpy(topic, cmnd, pos);
+        else
+            memcpy(topic, cmnd, sizeof(topic) - 1);
 
-        } else if(pos2 != std::string::npos) {
-            pos = pos2;
-        } else {
-            pos = 0;
-        }
-
-        if(pos > 0) {
-            String strTopic((char *)0);
-            // String strPayload((char *)0);
-
-            strTopic.reserve(pos + 1);
-            // strPayload.reserve(128);
-
-            strTopic = String(cmnd).substring(0, pos);
-            // strPayload = cmnd.substring(pos + 1, cmnd.length());
-            // cmnd[pos] = 0; // change '=' character into '\0'
-
-            dispatchTopicPayload(strTopic.c_str(),
-                                 cmnd + pos + 1); // topic is before '=', payload is after '=' position
-        } else {
-            char buf[1] = {0};
-            dispatchTopicPayload(cmnd, buf);
-        }
+        // topic is before '=', payload is after '=' position
+        Log.notice(TAG_MSGR, F("%s = %s"), topic, cmnd + pos + 1);
+        dispatch_topic_payload(topic, cmnd + pos + 1);
+    } else {
+        char empty_payload[1] = {0};
+        Log.notice(TAG_MSGR, F("%s = %s"), cmnd, empty_payload);
+        dispatch_topic_payload(cmnd, empty_payload);
     }
 }
 
@@ -238,23 +244,6 @@ void dispatch_output_idle_state(const char * state)
 #endif
 
 #endif
-}
-
-// restart the device
-void dispatchReboot(bool saveConfig)
-{
-    if(saveConfig) configWriteConfig();
-#if HASP_USE_MQTT > 0
-    mqttStop(); // Stop the MQTT Client first
-#endif
-    debugStop();
-#if HASP_USE_WIFI > 0
-    wifiStop();
-#endif
-    Log.verbose(TAG_MSGR, F("-------------------------------------"));
-    Log.notice(TAG_MSGR, F("HALT: Properly Rebooting the MCU now!"));
-    Serial.flush();
-    halRestartMcu();
 }
 
 void dispatch_button(uint8_t id, const char * event)
@@ -388,7 +377,7 @@ void IRAM_ATTR dispatch_obj_attribute_str(uint8_t pageid, uint8_t btnid, const c
 }
 
 // Get or Set a part of the config.json file
-void dispatchConfig(const char * topic, const char * payload)
+static void dispatch_config(const char * topic, const char * payload)
 {
     DynamicJsonDocument doc(128 * 2);
     char buffer[128 * 2];
@@ -487,7 +476,7 @@ void dispatchConfig(const char * topic, const char * payload)
 
 /********************************************** Native Commands ****************************************/
 
-void dispatchParseJson(const char * payload)
+void dispatch_parse_json(const char *, const char * payload)
 { // Parse an incoming JSON array into individual commands
     /*  if(strPayload.endsWith(",]")) {
           // Trailing null array elements are an artifact of older Home Assistant automations
@@ -502,54 +491,68 @@ void dispatchParseJson(const char * payload)
 
     if(jsonError) { // Couldn't parse incoming JSON command
         Log.warning(TAG_MSGR, F("Failed to parse incoming JSON command with error: %s"), jsonError.c_str());
-    } else {
 
-        if(json.is<JsonArray>()) {
-            // handle json as an array of commands
-            JsonArray arr = json.as<JsonArray>();
-            for(JsonVariant command : arr) {
-                dispatchTextLine(command.as<String>().c_str());
-            }
-        } else if(json.is<JsonObject>()) {
-            // handle json as a jsonl
-            uint8_t savedPage = haspGetPage();
-            hasp_new_object(json.as<JsonObject>(), savedPage);
-        } else if(json.is<const char *>()) {
-            // handle json as a single command
-            dispatchTextLine(json.as<const char *>());
-        } else if(json.is<char *>()) {
-            // handle json as a single command
-            dispatchTextLine(json.as<char *>());
-        } else if(json.is<String>()) {
-            // handle json as a single command
-            dispatchTextLine(json.as<String>().c_str());
-        } else {
-            Log.warning(TAG_MSGR, F("Failed to parse incoming JSON command"));
+    } else if(json.is<JsonArray>()) { // handle json as an array of commands
+        JsonArray arr = json.as<JsonArray>();
+        for(JsonVariant command : arr) {
+            dispatch_text_line(command.as<String>().c_str());
         }
+    } else if(json.is<JsonObject>()) { // handle json as a jsonl
+        uint8_t savedPage = haspGetPage();
+        hasp_new_object(json.as<JsonObject>(), savedPage);
+
+    } else if(json.is<const char *>()) { // handle json as a single command
+        dispatch_text_line(json.as<const char *>());
+
+    } else if(json.is<char *>()) { // handle json as a single command
+        dispatch_text_line(json.as<char *>());
+
+    } else if(json.is<String>()) { // handle json as a single command
+        dispatch_text_line(json.as<String>().c_str());
+
+    } else {
+        Log.warning(TAG_MSGR, F("Failed to parse incoming JSON command"));
     }
 }
 
-void dispatchParseJsonl(Stream & stream)
+void dispatch_parse_jsonl(Stream & stream)
 {
-    DynamicJsonDocument jsonl(4 * 128u);
     uint8_t savedPage = haspGetPage();
+    size_t line       = 1;
+    DynamicJsonDocument jsonl(4 * 128u); // max ~256 characters per line
+    DeserializationError err = deserializeJson(jsonl, stream);
 
-    // Log.notice(TAG_MSGR,F("DISPATCH: jsonl"));
-
-    while(deserializeJson(jsonl, stream) == DeserializationError::Ok) {
-        // serializeJson(jsonl, Serial);
-        // Serial.println();
+    while(err == DeserializationError::Ok) {
         hasp_new_object(jsonl.as<JsonObject>(), savedPage);
+        err = deserializeJson(jsonl, stream);
+        line++;
+    }
+
+    /* For debugging pourposes */
+    if(err == DeserializationError::EmptyInput) {
+        Log.trace(TAG_MSGR, F("Jsonl parsed successfully"));
+
+    } else if(err == DeserializationError::InvalidInput || err == DeserializationError::IncompleteInput) {
+        Log.error(TAG_MSGR, F("Jsonl: Invalid Input at object %d"), line);
+
+    } else if(err == DeserializationError::NoMemory) {
+        Log.error(TAG_MSGR, F("Jsonl: No Memory at object %d"), line);
+
+    } else if(err == DeserializationError::NotSupported) {
+        Log.error(TAG_MSGR, F("Jsonl: Not Supported at object %d"), line);
+
+    } else if(err == DeserializationError::TooDeep) {
+        Log.error(TAG_MSGR, F("Jsonl: Too Deep at object %d"), line);
     }
 }
 
-void dispatchParseJsonl(const char * payload)
+void dispatch_parse_jsonl(const char *, const char * payload)
 {
     CharStream stream((char *)payload);
-    dispatchParseJsonl(stream);
+    dispatch_parse_jsonl(stream);
 }
 
-void dispatchCurrentPage()
+void dispatch_output_current_page()
 {
     // Log result
     char buffer[4];
@@ -565,16 +568,16 @@ void dispatchCurrentPage()
 }
 
 // Get or Set a page
-void dispatchPage(const char * page)
+void dispatch_page(const char *, const char * page)
 {
     if(strlen(page) > 0 && atoi(page) < HASP_NUM_PAGES) {
         haspSetPage(atoi(page));
     }
 
-    dispatchCurrentPage();
+    dispatch_output_current_page();
 }
 
-void dispatchPageNext()
+void dispatch_page_next()
 {
     uint8_t page = haspGetPage();
     if(page + 1 >= HASP_NUM_PAGES) {
@@ -583,10 +586,10 @@ void dispatchPageNext()
         page++;
     }
     haspSetPage(page);
-    dispatchCurrentPage();
+    dispatch_output_current_page();
 }
 
-void dispatchPagePrev()
+void dispatch_page_prev()
 {
     uint8_t page = haspGetPage();
     if(page == 0) {
@@ -595,11 +598,11 @@ void dispatchPagePrev()
         page--;
     }
     haspSetPage(page);
-    dispatchCurrentPage();
+    dispatch_output_current_page();
 }
 
 // Clears a page id or the current page if empty
-void dispatchClearPage(const char * page)
+void dispatch_clear_page(const char *, const char * page)
 {
     if(strlen(page) == 0) {
         haspClearPage(haspGetPage());
@@ -608,14 +611,13 @@ void dispatchClearPage(const char * page)
     }
 }
 
-void dispatchDim(const char * level)
+void dispatch_dim(const char *, const char * level)
 {
     // Set the current state
     if(strlen(level) != 0) guiSetDim(atoi(level));
-    //  dispatchPrintln(F("DIM"), strDimLevel);
-    char buffer[4];
 
 #if defined(HASP_USE_MQTT) || defined(HASP_USE_TASMOTA_SLAVE)
+    char buffer[4];
     itoa(guiGetDim(), buffer, DEC);
 
 #if HASP_USE_MQTT > 0
@@ -629,11 +631,8 @@ void dispatchDim(const char * level)
 #endif
 }
 
-void dispatchBacklight(const char * payload)
+void dispatch_backlight(const char *, const char * payload)
 {
-    // strPayload.toUpperCase();
-    // dispatchPrintln(F("LIGHT"), strPayload);
-
     // Set the current state
     if(strlen(payload) != 0) guiSetBacklight(is_true(payload));
 
@@ -658,7 +657,7 @@ void dispatch_output_statusupdate()
 #endif
 }
 
-void dispatchWebUpdate(const char * espOtaUrl)
+void dispatch_web_update(const char *, const char * espOtaUrl)
 {
 #if HASP_USE_OTA > 0
     Log.notice(TAG_MSGR, F("Checking for updates at URL: %s"), espOtaUrl);
@@ -666,38 +665,55 @@ void dispatchWebUpdate(const char * espOtaUrl)
 #endif
 }
 
+// restart the device
+void dispatch_reboot(bool saveConfig)
+{
+    if(saveConfig) configWriteConfig();
+#if HASP_USE_MQTT > 0
+    mqttStop(); // Stop the MQTT Client first
+#endif
+    debugStop();
+#if HASP_USE_WIFI > 0
+    wifiStop();
+#endif
+    Log.verbose(TAG_MSGR, F("-------------------------------------"));
+    Log.notice(TAG_MSGR, F("HALT: Properly Rebooting the MCU now!"));
+    Serial.flush();
+    halRestartMcu();
+}
+
 /******************************************* Command Wrapper Functions *********************************/
 
-void dispatch_output_statusupdate(const char *)
+void dispatch_output_statusupdate(const char *, const char *)
 {
     dispatch_output_statusupdate();
 }
 
-void dispatchCalibrate(const char *)
+void dispatch_calibrate(const char *, const char *)
 {
     guiCalibrate();
 }
 
-void dispatchWakeup(const char *)
+void dispatch_wakeup(const char *, const char *)
 {
     haspWakeUp();
 }
 
-void dispatchReboot(const char *)
+void dispatch_reboot(const char *, const char *)
 {
-    dispatchReboot(true);
+    dispatch_reboot(true);
 }
 
-void dispatch_factory_reset(const char *)
+void dispatch_factory_reset(const char *, const char *)
 {
     dispatch_factory_reset();
-    delay(250);
-    dispatchReboot(false); // don't save config
+    delay(500);
+    dispatch_reboot(false); // don't save config
 }
 
 /******************************************* Commands builder *******************************************/
 
-static void dispatch_add_command(const char * p_cmdstr, void (*func)(const char *))
+static void dispatch_add_command(const char * p_cmdstr, void (*func)(const char *, const char *))
 {
     if(nCommands >= sizeof(commands) / sizeof(haspCommand_t)) {
         Log.fatal(TAG_MSGR, F("Dispatchcer command array overflow: %d"), nCommands);
@@ -716,22 +732,23 @@ void dispatchSetup()
     // The command.func() call will receive the full payload as ONLY parameter!
 
     /* WARNING: remember to expand the commands array when adding new commands */
-
-    dispatch_add_command(PSTR("json"), dispatchParseJson);
-    dispatch_add_command(PSTR("page"), dispatchPage);
-    dispatch_add_command(PSTR("wakeup"), dispatchWakeup);
+    dispatch_add_command(PSTR("json"), dispatch_parse_json);
+    dispatch_add_command(PSTR("page"), dispatch_page);
+    dispatch_add_command(PSTR("wakeup"), dispatch_wakeup);
     dispatch_add_command(PSTR("statusupdate"), dispatch_output_statusupdate);
-    dispatch_add_command(PSTR("clearpage"), dispatchClearPage);
-    dispatch_add_command(PSTR("jsonl"), dispatchParseJsonl);
-    dispatch_add_command(PSTR("dim"), dispatchDim);
-    dispatch_add_command(PSTR("brightness"), dispatchDim);
-    dispatch_add_command(PSTR("light"), dispatchBacklight);
-    dispatch_add_command(PSTR("calibrate"), dispatchCalibrate);
-    dispatch_add_command(PSTR("update"), dispatchWebUpdate);
-    dispatch_add_command(PSTR("reboot"), dispatchReboot);
-    dispatch_add_command(PSTR("restart"), dispatchReboot);
+    dispatch_add_command(PSTR("clearpage"), dispatch_clear_page);
+    dispatch_add_command(PSTR("jsonl"), dispatch_parse_jsonl);
+    dispatch_add_command(PSTR("dim"), dispatch_dim);
+    dispatch_add_command(PSTR("brightness"), dispatch_dim);
+    dispatch_add_command(PSTR("light"), dispatch_backlight);
+    dispatch_add_command(PSTR("calibrate"), dispatch_calibrate);
+    dispatch_add_command(PSTR("update"), dispatch_web_update);
+    dispatch_add_command(PSTR("reboot"), dispatch_reboot);
+    dispatch_add_command(PSTR("restart"), dispatch_reboot);
+    dispatch_add_command(PSTR("screenshot"), dispatch_screenshot);
     dispatch_add_command(PSTR("factoryreset"), dispatch_factory_reset);
     dispatch_add_command(PSTR("setupap"), oobeFakeSetup);
+    /* WARNING: remember to expand the commands array when adding new commands */
 }
 
 void IRAM_ATTR dispatchLoop()

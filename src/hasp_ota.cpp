@@ -69,7 +69,7 @@ void otaSetup(void)
             otaProgress();
             otaPrecentageComplete = -1;
             // setup();
-            dispatchReboot(true);
+            dispatch_reboot(true);
         });
         ArduinoOTA.onProgress(otaOnProgress);
         ArduinoOTA.onError([](ota_error_t error) {
@@ -172,8 +172,7 @@ void otaHttpUpdate(const char * espOtaUrl)
         case HTTP_UPDATE_OK:
             Log.notice(TAG_FWUP, F("HTTP_UPDATE_OK"));
             // nextionSetAttr("p[0].b[1].txt", "\"HTTP Update\\rcomplete!\\r\\rRestarting.\"");
-            dispatchReboot(true);
-            delay(5000);
+            dispatch_reboot(true);
     }
 
 #if HASP_USE_MDNS > 0

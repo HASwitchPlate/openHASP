@@ -73,11 +73,11 @@ static void wifiDisconnected(const char * ssid, uint8_t reason)
     wifiReconnectCounter++;
 
     haspProgressVal(wifiReconnectCounter * 3);
-   // networkStop();
+    // networkStop();
 
     if(wifiReconnectCounter > 33) {
         Log.error(TAG_WIFI, F("Retries exceed %u: Rebooting..."), wifiReconnectCounter);
-        dispatchReboot(false);
+        dispatch_reboot(false);
     }
 
     char buffer[64];
@@ -440,7 +440,7 @@ bool wifiEvery5Seconds()
         wifiReconnectCounter++;
         if(wifiReconnectCounter > 45) {
             Log.error(TAG_WIFI, F("Retries exceed %u: Rebooting..."), wifiReconnectCounter);
-            dispatchReboot(false);
+            dispatch_reboot(false);
         }
         Log.warning(TAG_WIFI, F("No Connection... retry %u"), wifiReconnectCounter);
         if(wifiReconnectCounter % 6 == 0) {

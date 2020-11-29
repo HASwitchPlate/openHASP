@@ -3,4 +3,4 @@
 
 void oobeSetAutoCalibrate(bool cal);
 bool oobeSetup();
-void oobeFakeSetup(const char *);
+void oobeFakeSetup(const char *, const char *); // for testing purposes only
