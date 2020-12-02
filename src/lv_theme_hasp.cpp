@@ -9,6 +9,9 @@
 #include "lvgl.h"          /*To see all the widgets*/
 #include "lv_conf.h"       /*To see all the widgets*/
 #include "lv_theme_hasp.h" /*To see all the widgets*/
+#if LVGL_VERSION_MAJOR != 7
+#include "../lv_components/lv_components.h"
+#endif
 
 //#if LV_USE_THEME_HASP
 
@@ -157,8 +160,8 @@ typedef struct
     lv_style_t mbox_bg;
 #endif
 
-#if LV_USE_PAGE
     lv_style_t sb;
+#if LV_USE_PAGE
 #if LV_USE_ANIMATION
     lv_style_t edge_flash;
 #endif
@@ -366,7 +369,9 @@ static void basic_init(void)
     lv_style_set_pad_right(&styles->btn, LV_STATE_DEFAULT, LV_DPX(40));
     lv_style_set_pad_top(&styles->btn, LV_STATE_DEFAULT, LV_DPX(15));
     lv_style_set_pad_bottom(&styles->btn, LV_STATE_DEFAULT, LV_DPX(15));
+#if LVGL_VERSION_MAJOR == 7
     lv_style_set_pad_inner(&styles->btn, LV_STATE_DEFAULT, LV_DPX(20));
+#endif
 
     lv_style_set_outline_width(&styles->btn, LV_STATE_DEFAULT, OUTLINE_WIDTH);
     if(!NO_FOCUS) {
@@ -384,13 +389,17 @@ static void basic_init(void)
     lv_style_set_transition_delay(&styles->btn, LV_STATE_PRESSED, 0);
 
     style_init_reset(&styles->pad_inner);
+#if LVGL_VERSION_MAJOR == 7
     lv_style_set_pad_inner(&styles->pad_inner, LV_STATE_DEFAULT,
                            lv_disp_get_size_category(NULL) <= LV_DISP_MEDIUM_LIMIT ? LV_DPX(20) : LV_DPX(40));
+#endif
 
     style_init_reset(&styles->pad_small);
     lv_style_int_t pad_small_value = lv_disp_get_size_category(NULL) <= LV_DISP_MEDIUM_LIMIT ? LV_DPX(10) : LV_DPX(20);
     lv_style_set_pad_all(&styles->pad_small, LV_STATE_DEFAULT, pad_small_value);
+#if LVGL_VERSION_MAJOR == 7
     lv_style_set_pad_inner(&styles->pad_small, LV_STATE_DEFAULT, pad_small_value);
+#endif
 
 #if LV_USE_DROPDOWN || LV_USE_ROLLER
     style_init_reset(&styles->line_space);
@@ -530,7 +539,9 @@ static void linemeter_init(void)
     lv_style_set_pad_left(&styles->lmeter, LV_STATE_DEFAULT, LV_DPX(20));
     lv_style_set_pad_right(&styles->lmeter, LV_STATE_DEFAULT, LV_DPX(20));
     lv_style_set_pad_top(&styles->lmeter, LV_STATE_DEFAULT, LV_DPX(20));
+#if LVGL_VERSION_MAJOR == 7
     lv_style_set_pad_inner(&styles->lmeter, LV_STATE_DEFAULT, LV_DPX(30));
+#endif
     lv_style_set_scale_width(&styles->lmeter, LV_STATE_DEFAULT, LV_DPX(25));
 
     lv_style_set_line_color(&styles->lmeter, LV_STATE_DEFAULT, theme.color_primary);
@@ -552,10 +563,12 @@ static void gauge_init(void)
     lv_style_set_scale_end_line_width(&styles->gauge_main, LV_STATE_DEFAULT,
                                       LV_DPX(2)); // strong scale minor tick width
     lv_style_set_scale_end_border_width(&styles->gauge_main, LV_STATE_DEFAULT, LV_DPX(3));
-    lv_style_set_pad_left(&styles->gauge_main, LV_STATE_DEFAULT, LV_DPX(20));    // left margin
-    lv_style_set_pad_right(&styles->gauge_main, LV_STATE_DEFAULT, LV_DPX(20));   // right margin
-    lv_style_set_pad_top(&styles->gauge_main, LV_STATE_DEFAULT, LV_DPX(20));     // top margin
-    lv_style_set_pad_inner(&styles->gauge_main, LV_STATE_DEFAULT, LV_DPX(15));   // position of the labels
+    lv_style_set_pad_left(&styles->gauge_main, LV_STATE_DEFAULT, LV_DPX(20));  // left margin
+    lv_style_set_pad_right(&styles->gauge_main, LV_STATE_DEFAULT, LV_DPX(20)); // right margin
+    lv_style_set_pad_top(&styles->gauge_main, LV_STATE_DEFAULT, LV_DPX(20));   // top margin
+#if LVGL_VERSION_MAJOR == 7
+    lv_style_set_pad_inner(&styles->gauge_main, LV_STATE_DEFAULT, LV_DPX(15)); // position of the labels
+#endif
     lv_style_set_scale_width(&styles->gauge_main, LV_STATE_DEFAULT, LV_DPX(10)); // minor thick length
     lv_style_set_radius(&styles->gauge_main, LV_STATE_DEFAULT, LV_RADIUS_CIRCLE);
 
@@ -575,7 +588,10 @@ static void gauge_init(void)
     lv_style_set_bg_color(&styles->gauge_needle, LV_STATE_DEFAULT, IS_LIGHT ? lv_color_hex(0x464b5b) : LV_COLOR_WHITE);
     lv_style_set_radius(&styles->gauge_needle, LV_STATE_DEFAULT, LV_RADIUS_CIRCLE);
     lv_style_set_size(&styles->gauge_needle, LV_STATE_DEFAULT, LV_DPX(30));
+#if LVGL_VERSION_MAJOR == 7
     lv_style_set_pad_inner(&styles->gauge_needle, LV_STATE_DEFAULT, LV_DPX(10));
+#endif
+
 #endif
 }
 
@@ -631,7 +647,9 @@ static void chart_init(void)
     style_init_reset(&styles->chart_series);
     lv_style_set_line_width(&styles->chart_series, LV_STATE_DEFAULT, LV_DPX(3));
     lv_style_set_size(&styles->chart_series, LV_STATE_DEFAULT, LV_DPX(4));
+#if LVGL_VERSION_MAJOR == 7
     lv_style_set_pad_inner(&styles->chart_series, LV_STATE_DEFAULT, LV_DPX(2)); /*Space between columns*/
+#endif
     lv_style_set_radius(&styles->chart_series, LV_STATE_DEFAULT, LV_DPX(1));
 
 #endif
@@ -674,7 +692,9 @@ static void calendar_init(void)
     lv_style_set_border_width(&styles->calendar_date_nums, LV_STATE_CHECKED, 2);
     lv_style_set_border_side(&styles->calendar_date_nums, LV_STATE_CHECKED, LV_BORDER_SIDE_LEFT);
     lv_style_set_border_color(&styles->calendar_date_nums, LV_STATE_CHECKED, theme.color_primary);
+#if LVGL_VERSION_MAJOR == 7
     lv_style_set_pad_inner(&styles->calendar_date_nums, LV_STATE_DEFAULT, LV_DPX(3));
+#endif
     lv_style_set_pad_left(&styles->calendar_date_nums, LV_STATE_DEFAULT, PAD_DEF);
     lv_style_set_pad_right(&styles->calendar_date_nums, LV_STATE_DEFAULT, PAD_DEF);
     lv_style_set_pad_bottom(&styles->calendar_date_nums, LV_STATE_DEFAULT, PAD_DEF);
@@ -688,7 +708,9 @@ static void cpicker_init(void)
     lv_style_set_scale_width(&styles->cpicker_bg, LV_STATE_DEFAULT, LV_DPX(30));
     lv_style_set_bg_opa(&styles->cpicker_bg, LV_STATE_DEFAULT, LV_OPA_COVER);
     lv_style_set_bg_color(&styles->cpicker_bg, LV_STATE_DEFAULT, COLOR_SCR);
+#if LVGL_VERSION_MAJOR == 7
     lv_style_set_pad_inner(&styles->cpicker_bg, LV_STATE_DEFAULT, LV_DPX(20));
+#endif
     lv_style_set_radius(&styles->cpicker_bg, LV_STATE_DEFAULT, LV_RADIUS_CIRCLE);
 
     style_init_reset(&styles->cpicker_indic);
@@ -752,7 +774,10 @@ static void keyboard_init(void)
     lv_style_set_pad_right(&styles->kb_bg, LV_STATE_DEFAULT, LV_DPX(5));
     lv_style_set_pad_top(&styles->kb_bg, LV_STATE_DEFAULT, LV_DPX(5));
     lv_style_set_pad_bottom(&styles->kb_bg, LV_STATE_DEFAULT, LV_DPX(5));
+#if LVGL_VERSION_MAJOR == 7
     lv_style_set_pad_inner(&styles->kb_bg, LV_STATE_DEFAULT, LV_DPX(3));
+#endif
+
 #endif
 }
 
@@ -855,7 +880,9 @@ static void list_init(void)
     lv_style_set_pad_right(&styles->list_btn, LV_STATE_DEFAULT, PAD_DEF);
     lv_style_set_pad_top(&styles->list_btn, LV_STATE_DEFAULT, PAD_DEF);
     lv_style_set_pad_bottom(&styles->list_btn, LV_STATE_DEFAULT, PAD_DEF);
+#if LVGL_VERSION_MAJOR == 7
     lv_style_set_pad_inner(&styles->list_btn, LV_STATE_DEFAULT, PAD_DEF);
+#endif
 
     lv_style_set_transform_width(&styles->list_btn, LV_STATE_DEFAULT, -PAD_DEF);
     lv_style_set_transform_width(&styles->list_btn, LV_STATE_PRESSED, -BORDER_WIDTH);
@@ -968,7 +995,10 @@ static void tabview_win_shared_init(void)
     lv_style_set_pad_bottom(&styles->tabview_page_scrl, LV_STATE_DEFAULT, PAD_DEF);
     lv_style_set_pad_left(&styles->tabview_page_scrl, LV_STATE_DEFAULT, PAD_DEF);
     lv_style_set_pad_right(&styles->tabview_page_scrl, LV_STATE_DEFAULT, PAD_DEF);
+#if LVGL_VERSION_MAJOR == 7
     lv_style_set_pad_inner(&styles->tabview_page_scrl, LV_STATE_DEFAULT, PAD_DEF);
+#endif
+
 #endif
 }
 
@@ -1071,7 +1101,7 @@ static void theme_apply(lv_theme_t * th, lv_obj_t * obj, lv_theme_style_t name)
             _lv_style_list_add_style(list, &styles->pretty);
             break;
 
-#if LV_USE_CONT
+#if LV_USE_CONT && LVGL_VERSION_MAJOR == 7
         case LV_THEME_CONT:
             list = lv_obj_get_style_list(obj, LV_CONT_PART_MAIN);
             _lv_style_list_add_style(list, &styles->transparent);
@@ -1099,7 +1129,7 @@ static void theme_apply(lv_theme_t * th, lv_obj_t * obj, lv_theme_style_t name)
             break;
 #endif
 
-#if LV_USE_KEYBOARD
+#if LV_USE_KEYBOARD && LVGL_VERSION_MAJOR == 7
         case LV_THEME_KEYBOARD:
             list = lv_obj_get_style_list(obj, LV_KEYBOARD_PART_BG);
             _lv_style_list_add_style(list, &styles->pretty);
@@ -1179,7 +1209,7 @@ static void theme_apply(lv_theme_t * th, lv_obj_t * obj, lv_theme_style_t name)
             break;
 #endif
 
-#if LV_USE_SPINNER
+#if LV_USE_SPINNER && LVGL_VERSION_MAJOR == 7
         case LV_THEME_SPINNER:
             list = lv_obj_get_style_list(obj, LV_SPINNER_PART_BG);
             _lv_style_list_add_style(list, &styles->pretty);
@@ -1215,7 +1245,7 @@ static void theme_apply(lv_theme_t * th, lv_obj_t * obj, lv_theme_style_t name)
             break;
 #endif
 
-#if LV_USE_MSGBOX
+#if LV_USE_MSGBOX && LVGL_VERSION_MAJOR == 7
         case LV_THEME_MSGBOX:
             list = lv_obj_get_style_list(obj, LV_MSGBOX_PART_BG);
             _lv_style_list_add_style(list, &styles->pretty);
@@ -1232,7 +1262,7 @@ static void theme_apply(lv_theme_t * th, lv_obj_t * obj, lv_theme_style_t name)
             break;
 
 #endif
-#if LV_USE_LED
+#if LV_USE_LED && LVGL_VERSION_MAJOR == 7
         case LV_THEME_LED:
             list = lv_obj_get_style_list(obj, LV_LED_PART_MAIN);
             _lv_style_list_add_style(list, &styles->led);
@@ -1255,7 +1285,7 @@ static void theme_apply(lv_theme_t * th, lv_obj_t * obj, lv_theme_style_t name)
 #endif
             break;
 #endif
-#if LV_USE_TABVIEW
+#if LV_USE_TABVIEW && LVGL_VERSION_MAJOR == 7
         case LV_THEME_TABVIEW:
             list = lv_obj_get_style_list(obj, LV_TABVIEW_PART_BG);
             _lv_style_list_add_style(list, &styles->pretty);
@@ -1277,7 +1307,7 @@ static void theme_apply(lv_theme_t * th, lv_obj_t * obj, lv_theme_style_t name)
             break;
 #endif
 
-#if LV_USE_TILEVIEW
+#if LV_USE_TILEVIEW && LVGL_VERSION_MAJOR == 7
         case LV_THEME_TILEVIEW:
             list = lv_obj_get_style_list(obj, LV_TILEVIEW_PART_BG);
             _lv_style_list_add_style(list, &styles->pretty);
@@ -1311,7 +1341,7 @@ static void theme_apply(lv_theme_t * th, lv_obj_t * obj, lv_theme_style_t name)
             break;
 #endif
 
-#if LV_USE_LIST
+#if LV_USE_LIST && LVGL_VERSION_MAJOR == 7
         case LV_THEME_LIST:
             list = lv_obj_get_style_list(obj, LV_LIST_PART_BG);
             _lv_style_list_add_style(list, &styles->pretty);
@@ -1384,7 +1414,7 @@ static void theme_apply(lv_theme_t * th, lv_obj_t * obj, lv_theme_style_t name)
         }
 #endif
 
-#if LV_USE_WIN
+#if LV_USE_WIN && LVGL_VERSION_MAJOR == 7
         case LV_THEME_WIN:
             list = lv_obj_get_style_list(obj, LV_WIN_PART_BG);
             _lv_style_list_add_style(list, &styles->pretty);
@@ -1423,7 +1453,7 @@ static void theme_apply(lv_theme_t * th, lv_obj_t * obj, lv_theme_style_t name)
 
 #endif
 
-#if LV_USE_SPINBOX
+#if LV_USE_SPINBOX && LVGL_VERSION_MAJOR == 7
         case LV_THEME_SPINBOX:
             list = lv_obj_get_style_list(obj, LV_SPINBOX_PART_BG);
             _lv_style_list_add_style(list, &styles->pretty);
@@ -1440,7 +1470,7 @@ static void theme_apply(lv_theme_t * th, lv_obj_t * obj, lv_theme_style_t name)
             break;
 #endif
 
-#if LV_USE_CALENDAR
+#if LV_USE_CALENDAR && LVGL_VERSION_MAJOR == 7
         case LV_THEME_CALENDAR:
             list = lv_obj_get_style_list(obj, LV_CALENDAR_PART_BG);
             _lv_style_list_add_style(list, &styles->pretty);

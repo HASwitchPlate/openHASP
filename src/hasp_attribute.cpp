@@ -4,8 +4,12 @@
 #include "ArduinoJson.h"
 #include "ArduinoLog.h"
 
+#if LVGL_VERSION_MAJOR != 7
+#include "../lv_components/lv_components.h"
+#endif
 #include "lvgl.h"
 #include "lv_conf.h"
+#include "hasp_conf.h"
 
 #include "hasp.h"
 #include "hasp_object.h"
@@ -426,10 +430,9 @@ static void hasp_local_style_attr(lv_obj_t * obj, const char * attr_p, uint16_t 
             return attribute_bg_grad_dir(obj, part, state, update, attr_p, (lv_grad_dir_t)var);
         case ATTR_BG_COLOR: {
             lv_color_t color = haspPayloadToColor(payload);
-            if(part != 64)
-                return lv_obj_set_style_local_bg_color(obj, part, state, color);
-            else
-                return lv_obj_set_style_local_bg_color(obj, LV_PAGE_PART_SCROLLBAR, LV_STATE_CHECKED, color);
+            if(part != 64) return lv_obj_set_style_local_bg_color(obj, part, state, color);
+            // else
+            //     return lv_obj_set_style_local_bg_color(obj, LV_PAGE_PART_SCROLLBAR, LV_STATE_CHECKED, color);
         }
         case ATTR_BG_GRAD_COLOR:
             return lv_obj_set_style_local_bg_grad_color(obj, part, state, haspPayloadToColor(payload));
@@ -445,8 +448,10 @@ static void hasp_local_style_attr(lv_obj_t * obj, const char * attr_p, uint16_t 
             return attribute_pad_left(obj, part, state, update, attr_p, (lv_style_int_t)var);
         case ATTR_PAD_RIGHT:
             return attribute_pad_right(obj, part, state, update, attr_p, (lv_style_int_t)var);
+#if LVGL_VERSION_MAJOR == 7
         case ATTR_PAD_INNER:
             return attribute_pad_inner(obj, part, state, update, attr_p, (lv_style_int_t)var);
+#endif
 
         /* Text attributes */
         case ATTR_TEXT_LETTER_SPACE:
@@ -945,8 +950,10 @@ void hasp_process_obj_attribute(lv_obj_t * obj, const char * attr_p, const char 
             if(update) {
                 lv_obj_set_width(obj, val);
                 if(check_obj_type(obj, LV_HASP_CPICKER)) {
+#if LVGL_VERSION_MAJOR == 7
                     lv_cpicker_set_type(obj, lv_obj_get_width(obj) == lv_obj_get_height(obj) ? LV_CPICKER_TYPE_DISC
                                                                                              : LV_CPICKER_TYPE_RECT);
+#endif
                 }
             } else {
                 hasp_out_int(obj, attr, lv_obj_get_width(obj));
@@ -958,8 +965,10 @@ void hasp_process_obj_attribute(lv_obj_t * obj, const char * attr_p, const char 
             if(update) {
                 lv_obj_set_height(obj, val);
                 if(check_obj_type(obj, LV_HASP_CPICKER)) {
+#if LVGL_VERSION_MAJOR == 7
                     lv_cpicker_set_type(obj, lv_obj_get_width(obj) == lv_obj_get_height(obj) ? LV_CPICKER_TYPE_DISC
                                                                                              : LV_CPICKER_TYPE_RECT);
+#endif
                 }
             } else {
                 hasp_out_int(obj, attr, lv_obj_get_height(obj));

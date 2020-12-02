@@ -15,6 +15,11 @@
 
 #include "ArduinoLog.h"
 
+#include "lvgl.h"
+#if LVGL_VERSION_MAJOR != 7
+#include "../lv_components/lv_components.h"
+#endif
+
 #include "hasp.h"
 #include "hasp_gui.h"
 #include "hasp_object.h"
@@ -39,6 +44,7 @@ lv_obj_t * hasp_find_obj_from_id(lv_obj_t * parent, uint8_t objid)
 
         /* check tabs */
         if(check_obj_type(child, LV_HASP_TABVIEW)) {
+#if LVGL_VERSION_MAJOR == 7
             uint16_t tabcount = lv_tabview_get_tab_count(child);
             for(uint16_t i = 0; i < tabcount; i++) {
                 lv_obj_t * tab = lv_tabview_get_tab(child, i);
@@ -49,6 +55,7 @@ lv_obj_t * hasp_find_obj_from_id(lv_obj_t * parent, uint8_t objid)
                 grandchild = hasp_find_obj_from_id(tab, objid);
                 if(grandchild) return grandchild; /* grandchild found, return it */
             }
+#endif
         }
 
         /* try next sibling */
@@ -181,12 +188,14 @@ void hasp_object_tree(lv_obj_t * parent, uint8_t pageid, uint16_t level)
 
     /* check tabs */
     if(check_obj_type(parent, LV_HASP_TABVIEW)) {
+#if LVGL_VERSION_MAJOR == 7
         uint16_t tabcount = lv_tabview_get_tab_count(parent);
         for(uint16_t i = 0; i < tabcount; i++) {
             lv_obj_t * tab = lv_tabview_get_tab(child, i);
             Log.verbose(TAG_HASP, "Found tab %i", i);
             if(tab->user_data) hasp_object_tree(tab, pageid, level + 1);
         }
+#endif
     }
 }
 
@@ -349,11 +358,11 @@ static void table_event_handler(lv_obj_t * obj, lv_event_t event)
 void IRAM_ATTR toggle_event_handler(lv_obj_t * obj, lv_event_t event)
 {
     if(event == LV_EVENT_VALUE_CHANGED) {
-        bool toggled = lv_btn_get_state(obj) == LV_BTN_STATE_CHECKED_PRESSED ||
-                       lv_btn_get_state(obj) == LV_BTN_STATE_CHECKED_RELEASED;
+        // bool toggled = lv_btn_get_state(obj) == LV_BTN_STATE_CHECKED_PRESSED ||
+        //                lv_btn_get_state(obj) == LV_BTN_STATE_CHECKED_RELEASED;
         guiCheckSleep();
 
-        hasp_send_obj_attribute_val(obj, toggled);
+        hasp_send_obj_attribute_val(obj, lv_checkbox_is_checked(obj));
     }
 }
 
@@ -552,13 +561,49 @@ void hasp_new_object(const JsonObject & config, uint8_t & saved_page_id)
             // No event handler for pages
             break;
         }
-#if LV_USE_WIN
+#if LV_USE_WIN && LVGL_VERSION_MAJOR == 7
         case LV_HASP_WINDOW: {
             obj = lv_win_create(parent_obj, NULL);
             // No event handler for pages
             break;
         }
 #endif
+#if LVGL_VERSION_MAJOR == 8
+        case LV_HASP_LED: {
+            obj = lv_led_create(parent_obj);
+            if(obj) lv_obj_set_event_cb(obj, btn_event_handler);
+            break;
+        }
+        case LV_HASP_TILEVIEW: {
+            obj = lv_tileview_create(parent_obj);
+            // No event handler for tileviews
+            break;
+        }
+        case LV_HASP_TABVIEW: {
+            obj = lv_tabview_create(parent_obj, LV_DIR_TOP, 100);
+            // No event handler for tabs
+            if(obj) {
+                lv_obj_t * tab;
+                tab = lv_tabview_add_tab(obj, "tab 1");
+                lv_obj_set_user_data(tab, id + 1);
+                tab = lv_tabview_add_tab(obj, "tab 2");
+                lv_obj_set_user_data(tab, id + 2);
+                tab = lv_tabview_add_tab(obj, "tab 3");
+                lv_obj_set_user_data(tab, id + 3);
+            }
+            break;
+        }
+#else
+        case LV_HASP_LED: {
+            obj = lv_led_create(parent_obj, NULL);
+            if(obj) lv_obj_set_event_cb(obj, btn_event_handler);
+            break;
+        }
+        case LV_HASP_TILEVIEW: {
+            obj = lv_tileview_create(parent_obj, NULL);
+            // No event handler for tileviews
+            break;
+        }
         case LV_HASP_TABVIEW: {
             obj = lv_tabview_create(parent_obj, NULL);
             // No event handler for tabs
@@ -573,11 +618,7 @@ void hasp_new_object(const JsonObject & config, uint8_t & saved_page_id)
             }
             break;
         }
-        case LV_HASP_TILEVIEW: {
-            obj = lv_tileview_create(parent_obj, NULL);
-            // No event handler for tileviews
-            break;
-        }
+#endif
         /* ----- Color Objects ------ */
         case LV_HASP_CPICKER: {
             obj = lv_cpicker_create(parent_obj, NULL);
@@ -593,7 +634,7 @@ void hasp_new_object(const JsonObject & config, uint8_t & saved_page_id)
 #endif
         /* ----- Range Objects ------ */
         case LV_HASP_SLIDER: {
-            obj = lv_slider_create(parent_obj, NULL);
+           // obj = lv_slider_create(parent_obj, NULL);
             if(obj) {
                 lv_slider_set_range(obj, 0, 100);
                 lv_obj_set_event_cb(obj, slider_event_handler);
@@ -649,11 +690,6 @@ void hasp_new_object(const JsonObject & config, uint8_t & saved_page_id)
         case LV_HASP_SWITCH: {
             obj = lv_switch_create(parent_obj, NULL);
             if(obj) lv_obj_set_event_cb(obj, switch_event_handler);
-            break;
-        }
-        case LV_HASP_LED: {
-            obj = lv_led_create(parent_obj, NULL);
-            if(obj) lv_obj_set_event_cb(obj, btn_event_handler);
             break;
         }
         /* ----- List Object ------- */

@@ -7,6 +7,9 @@
 #include "ArduinoLog.h"
 
 #include "lvgl.h"
+#if LVGL_VERSION_MAJOR != 7
+#include "../lv_components/lv_components.h"
+#endif
 
 #include "hasp_object.h"
 #include "hasp_gui.h"
@@ -255,7 +258,11 @@ static void oobeSetupSsid(void)
     lv_obj_align(oneline_label, oneline_ta, labelpos, 0, 0);
 
     /* Create a keyboard and make it fill the width of the above text areas */
-    oobekb = lv_keyboard_create(oobepage[1], NULL);
+#if LVGL_VERSION_MAJOR == 8
+    oobekb = lv_keyboard_create(oobepage[1]);
+#else
+    oobekb      = lv_keyboard_create(oobepage[1], NULL);
+#endif
 
     lv_obj_set_style_local_pad_inner(oobekb, LV_BTNMATRIX_PART_BG, LV_STATE_DEFAULT, 0);
     lv_obj_set_style_local_border_width(oobekb, LV_BTNMATRIX_PART_BG, LV_STATE_DEFAULT, 0);
