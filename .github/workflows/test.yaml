@@ -41,5 +41,16 @@ jobs:
     - name: Upload output file
       uses: actions/upload-artifact@v2
       with:
-        name: Upload firmware
+        name: hasp-lvgl firmware.zip
         path: build_output/firmware/*.bin
+    - name: Create release and upload firmware
+      run: |
+        set -x
+        assets=()
+        for asset in build_output/firmware/*.bin; do
+          assets+=("-a" "$asset")
+        done
+        tag_name="${GITHUB_REF##*/}"
+        hub release create "${assets[@]}" -m "$tag_name" "$tag_name"
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
