@@ -6,7 +6,7 @@
 
 #ifdef LV_THEME_DEFAULT_FLAG
 
-#define lv_task_handler lv_timer_handler
+//#define lv_task_handler lv_timer_handler
 
 #define lv_obj_set_click(obj, en)                                                                                      \
     ((en) ? lv_obj_add_flag(obj, LV_OBJ_FLAG_CLICKABLE) : lv_obj_clear_flag(obj, LV_OBJ_FLAG_CLICKABLE))

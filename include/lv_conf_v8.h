@@ -15,13 +15,21 @@
 
 #include <stdint.h>
 
+#if defined(ARDUINO_ARCH_ESP8266)
+#define LV_HIGH_RESOURCE_MCU  0
+#endif
+
+#ifndef LV_HIGH_RESOURCE_MCU
+#define LV_HIGH_RESOURCE_MCU  1
+#endif
+
 /*====================
    Graphical settings
  *====================*/
 
 /* Maximal horizontal and vertical resolution to support by the library.*/
-#define LV_HOR_RES_DEF          (480)
-#define LV_VER_RES_DEF          (320)
+#define LV_HOR_RES_DEF          (TFT_WIDTH)
+#define LV_VER_RES_DEF          (TFT_HEIGHT)
 #define LV_HOR_RES_MAX          (TFT_WIDTH)
 #define LV_VER_RES_MAX          (TFT_HEIGHT)
 
@@ -157,7 +165,7 @@ typedef void * lv_anim_user_data_t;
 #endif
 
 /* 1: Enable shadow drawing on rectangles*/
-#define LV_USE_SHADOW           1
+#define LV_USE_SHADOW           (LV_HIGH_RESOURCE_MCU)
 #if LV_USE_SHADOW
 /* Allow buffering some shadow calculation
  * LV_SHADOW_CACHE_SIZE is the max. shadow size to buffer,
@@ -383,12 +391,12 @@ typedef void * lv_indev_drv_user_data_t;            /*Type of user data in the i
  * https://fonts.google.com/specimen/Montserrat  */
 #define LV_FONT_MONTSERRAT_8     0
 #define LV_FONT_MONTSERRAT_10    0
-#define LV_FONT_MONTSERRAT_12    1
+#define LV_FONT_MONTSERRAT_12    (LV_HIGH_RESOURCE_MCU)
 #define LV_FONT_MONTSERRAT_14    0
-#define LV_FONT_MONTSERRAT_16    1
+#define LV_FONT_MONTSERRAT_16    (LV_HIGH_RESOURCE_MCU)
 #define LV_FONT_MONTSERRAT_18    0
 #define LV_FONT_MONTSERRAT_20    0
-#define LV_FONT_MONTSERRAT_22    1
+#define LV_FONT_MONTSERRAT_22    (LV_HIGH_RESOURCE_MCU)
 #define LV_FONT_MONTSERRAT_24    0
 #define LV_FONT_MONTSERRAT_26    0
 #define LV_FONT_MONTSERRAT_28    0
@@ -413,6 +421,9 @@ typedef void * lv_indev_drv_user_data_t;            /*Type of user data in the i
  * http://pelulamu.net/unscii/ */
 #define LV_FONT_UNSCII_8     0
 #define LV_FONT_UNSCII_16     0
+
+/*Custom font*/
+#define UNSCII_8_ICON 1
 
 /* Optionally declare your custom fonts here.
  * You can use these fonts as default font too
@@ -485,10 +496,17 @@ typedef void * lv_font_user_data_t;
 #define LV_THEME_DEFAULT_COLOR_PRIMARY      lv_color_hex(0x01a2b1)
 #define LV_THEME_DEFAULT_COLOR_SECONDARY    lv_color_hex(0x44d1b6)
 #define LV_THEME_DEFAULT_FLAG               LV_THEME_MATERIAL_FLAG_LIGHT
+#if LV_HIGH_RESOURCE_MCU
 #define LV_THEME_DEFAULT_FONT_SMALL         &lv_font_montserrat_12
 #define LV_THEME_DEFAULT_FONT_NORMAL        &lv_font_montserrat_16
 #define LV_THEME_DEFAULT_FONT_SUBTITLE      &lv_font_montserrat_22
 #define LV_THEME_DEFAULT_FONT_TITLE         &lv_font_montserrat_22 //&lv_font_montserrat_28_compressed
+#else
+#define LV_THEME_DEFAULT_FONT_SMALL         LV_FONT_DEFAULT // &lv_font_montserrat_12
+#define LV_THEME_DEFAULT_FONT_NORMAL        LV_FONT_DEFAULT // &lv_font_montserrat_16
+#define LV_THEME_DEFAULT_FONT_SUBTITLE      LV_FONT_DEFAULT // &lv_font_montserrat_22
+#define LV_THEME_DEFAULT_FONT_TITLE         LV_FONT_DEFAULT // &lv_font_montserrat_28_compressed
+#endif
 
 /*=================
  *  Text settings
