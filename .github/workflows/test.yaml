@@ -27,14 +27,19 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install --upgrade platformio
-    - name: Setup Environments
+    - name: Enable ESP platforms from platformio_override-template.ini
       run: |
         sed 's/; user_setups\/esp/user_setups\/esp/g' platformio_override-template.ini > platformio_override.ini
-    - name: Dir
+    - name: List all files in current folder
       run: |
         ls -la
-    - name: Cat
+    - name: Cat platformio_override.ini
       run: |
         cat platformio_override.ini
     - name: Run PlatformIO
       run: pio run -e d1-mini-esp32_ili9341 -e d1-mini-esp8266_ili9341
+    - name: Upload output file
+      uses: actions/upload-artifact@v2
+      with:
+        name: Upload firmware
+        path: build_output/firmware/*.bin
