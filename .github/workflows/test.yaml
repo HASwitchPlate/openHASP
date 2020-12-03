@@ -29,7 +29,7 @@ jobs:
         pip install --upgrade platformio
     - name: Setup Environments
       run: |
-        sed 's/; user_setups\/esp/user_setups\/esp/g' platformio_override-template.ini > platformio_override.ini
+        sed 's/; user_setups\/esp82/user_setups\/esp82/g' platformio_override-template.ini > platformio_override.ini
     - name: Dir
       run: |
         ls -la
