@@ -30,5 +30,11 @@ jobs:
     - name: Setup Environments
       run: |
         sed -i 's/; user_setups/user_setups/g' platformio_override-template.ini > platformio_override.ini
+    - name: Dir
+      run: |
+        ls -la
+    - name: Cat
+      run: |
+        cat platformio_override.ini
     - name: Run PlatformIO
       run: pio run
