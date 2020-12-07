@@ -241,18 +241,31 @@ void dispatch_text_line(const char * cmnd)
 }
 
 // send idle state to the client
-void dispatch_output_idle_state(const char * state)
+void dispatch_output_idle_state(uint8_t state)
 {
+    char buffer[6];
+
+    switch(state) {
+        case HASP_SLEEP_LONG:
+            memcpy_P(buffer, PSTR("LONG"), sizeof(buffer));
+            break;
+        case HASP_SLEEP_SHORT:
+            memcpy_P(buffer, PSTR("SHORT"), sizeof(buffer));
+            break;
+        default:
+            memcpy_P(buffer, PSTR("OFF"), sizeof(buffer));
+    }
+
 #if !defined(HASP_USE_MQTT) && !defined(HASP_USE_TASMOTA_SLAVE)
-    Log.notice(TAG_MSGR, F("idle = %s"), state);
+    Log.notice(TAG_MSGR, F("idle = %s"), buffer);
 #else
 
 #if HASP_USE_MQTT > 0
-    mqtt_send_state(F("idle"), state);
+    mqtt_send_state(F("idle"), buffer);
 #endif
 
 #if HASP_USE_TASMOTA_SLAVE > 0
-    slave_send_state(F("idle"), state);
+    slave_send_state(F("idle"), buffer);
 #endif
 
 #endif

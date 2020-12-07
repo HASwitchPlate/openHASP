@@ -31,7 +31,7 @@ void dispatch_backlight(const char * payload);
 void dispatch_web_update(const char * espOtaUrl);
 void dispatch_reboot(bool saveConfig);
 
-void dispatch_output_idle_state(const char * state);
+void dispatch_output_idle_state(uint8_t state);
 void dispatch_output_statusupdate(void);
 void dispatch_output_current_page();
 
