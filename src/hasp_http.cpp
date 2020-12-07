@@ -1090,14 +1090,15 @@ void webHandleGuiConfig()
         httpMessage += F("<p><b>Backlight Control</b> <select id='bcklpin' name='bcklpin'>");
         httpMessage += getOption(-1, F("None"), bcklpin == -1);
 #if defined(ARDUINO_ARCH_ESP32)
-        httpMessage += getOption(5, F("GPIO 5"), bcklpin == 5);
+        httpMessage += getOption(5, F("GPIO 5"), bcklpin == 5);    // D8 on ESP32 for D1 mini 32
         httpMessage += getOption(16, F("GPIO 16"), bcklpin == 16); // D4 on ESP32 for D1 mini 32
-        httpMessage += getOption(17, F("GPIO 17"), bcklpin == 17);
-        httpMessage += getOption(18, F("GPIO 18"), bcklpin == 18);
-        httpMessage += getOption(19, F("GPIO 19"), bcklpin == 19);
-        httpMessage += getOption(21, F("GPIO 21"), bcklpin == 21);
-        httpMessage += getOption(22, F("GPIO 22"), bcklpin == 22);
-        httpMessage += getOption(23, F("GPIO 23"), bcklpin == 23);
+        httpMessage += getOption(17, F("GPIO 17"), bcklpin == 17); // D3 on ESP32 for D1 mini 32
+        httpMessage += getOption(18, F("GPIO 18"), bcklpin == 18); // D5 on ESP32 for D1 mini 32
+        httpMessage += getOption(19, F("GPIO 19"), bcklpin == 19); // D6 on ESP32 for D1 mini 32
+        httpMessage += getOption(21, F("GPIO 21"), bcklpin == 21); // D1 on ESP32 for D1 mini 32
+        httpMessage += getOption(22, F("GPIO 22"), bcklpin == 22); // D2 on ESP32 for D1 mini 32
+        httpMessage += getOption(23, F("GPIO 23"), bcklpin == 23); // D7 on ESP32 for D1 mini 32
+        httpMessage += getOption(32, F("GPIO 32"), bcklpin == 32); // TFT_LED on the Lolin D32 Pro
 #else
         httpMessage += getOption(5, F("D1 - GPIO 5"), bcklpin == 5);
         httpMessage += getOption(4, F("D2 - GPIO 4"), bcklpin == 4);
