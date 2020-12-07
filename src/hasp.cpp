@@ -187,7 +187,7 @@ void haspReconnect()
 void haspProgressVal(uint8_t val)
 {
     lv_obj_t * layer = lv_disp_get_layer_sys(NULL);
-    lv_obj_t * bar   = hasp_find_obj_from_id(255, 10);
+    lv_obj_t * bar   = hasp_find_obj_from_parent_id(get_page_obj(255), (uint8_t)10);
     if(layer && bar) {
         if(val == 255) {
             if(!lv_obj_get_hidden(bar)) {
@@ -212,7 +212,7 @@ void haspProgressVal(uint8_t val)
 // Sets the value string of the global progress bar
 void haspProgressMsg(const char * msg)
 {
-    lv_obj_t * bar = hasp_find_obj_from_id(255, 10);
+    lv_obj_t * bar = hasp_find_obj_from_parent_id(get_page_obj(255), (uint8_t)10);
 
     char value_str[10];
     snprintf_P(value_str, sizeof(value_str), PSTR("value_str"));
@@ -539,13 +539,14 @@ void haspSetPage(uint8_t pageid)
     }
 }
 
+// TODO make this a recursicee function
 void hasp_set_group_objects(uint8_t groupid, uint8_t eventid, lv_obj_t * src_obj)
 {
     bool state = dispatch_get_event_state(eventid);
     for(uint8_t page = 0; page < HASP_NUM_PAGES; page++) {
         uint8_t startid = 100 + groupid * 10; // groups start at id 100
         for(uint8_t objid = startid; objid < (startid + 10); objid++) {
-            lv_obj_t * obj = hasp_find_obj_from_id(page, objid);
+            lv_obj_t * obj = hasp_find_obj_from_parent_id(get_page_obj(page), objid);
             if(obj && obj != src_obj) { // skip source object, if set
                 lv_obj_set_state(obj, state ? LV_STATE_PRESSED | LV_STATE_CHECKED : LV_STATE_DEFAULT);
             }

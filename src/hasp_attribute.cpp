@@ -5,7 +5,7 @@
 #include "ArduinoLog.h"
 
 #if LVGL_VERSION_MAJOR != 7
-#include "../lv_components/lv_components.h"
+#include "../lv_components.h"
 #endif
 #include "lvgl.h"
 #include "lv_conf.h"
@@ -977,7 +977,7 @@ void hasp_process_obj_attribute(lv_obj_t * obj, const char * attr_p, const char 
         }
 
         case ATTR_ID:
-            return update ? (void)(obj->user_data = (uint8_t)val) : hasp_out_int(obj, attr, obj->user_data);
+            return update ? (void)(obj->user_data.id = (uint8_t)val) : hasp_out_int(obj, attr, obj->user_data.id);
 
         case ATTR_VIS:
             return update ? lv_obj_set_hidden(obj, !is_true(payload))

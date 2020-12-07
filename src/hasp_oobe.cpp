@@ -8,7 +8,7 @@
 
 #include "lvgl.h"
 #if LVGL_VERSION_MAJOR != 7
-#include "../lv_components/lv_components.h"
+#include "../lv_components.h"
 #endif
 
 #include "hasp_object.h"
@@ -62,14 +62,14 @@ static void kb_event_cb(lv_obj_t * event_kb, lv_event_t event)
         char pass[32];
         lv_obj_t * obj;
 
-        obj = hasp_find_obj_from_id(oobepage[1], 10);
+        obj = hasp_find_obj_from_parent_id(oobepage[1], (uint8_t)10);
         if(obj) {
             strncpy(ssid, lv_textarea_get_text(obj), sizeof(ssid));
             settings[FPSTR(F_CONFIG_SSID)] = ssid;
             if(oobekb != NULL) lv_keyboard_set_textarea(oobekb, obj);
         }
 
-        obj = hasp_find_obj_from_id(oobepage[1], 20);
+        obj = hasp_find_obj_from_parent_id(oobepage[1],(uint8_t) 20);
         if(obj) {
             strncpy(pass, lv_textarea_get_text(obj), sizeof(pass));
             settings[FPSTR(F_CONFIG_PASS)] = pass;
@@ -106,9 +106,9 @@ static void ta_event_cb(lv_obj_t * ta, lv_event_t event)
         if(str[0] == '\n') {
             lv_obj_t * obj;
 
-            obj = hasp_find_obj_from_id(oobepage[1], 10);
+            obj = hasp_find_obj_from_parent_id(oobepage[1], (uint8_t)10);
             if(ta == obj) { // now ssid, goto pass
-                obj = hasp_find_obj_from_id(oobepage[1], 20);
+                obj = hasp_find_obj_from_parent_id(oobepage[1], (uint8_t)20);
             }
 
             if(oobekb && obj) {
@@ -222,7 +222,8 @@ static void oobeSetupSsid(void)
     lv_textarea_set_pwd_mode(pwd_ta, true);
     lv_textarea_set_one_line(pwd_ta, true);
     lv_textarea_set_cursor_hidden(pwd_ta, true);
-    lv_obj_set_user_data(pwd_ta, 20);
+    lv_obj_user_data_t udata = (lv_obj_user_data_t){20, 1, 0};
+    lv_obj_set_user_data(pwd_ta, udata);
     lv_obj_set_width(pwd_ta, disp->driver.hor_res - leftmargin - 20 - lv_obj_get_height(pwd_ta));
     lv_obj_set_event_cb(pwd_ta, ta_event_cb);
     lv_obj_align(pwd_ta, NULL, LV_ALIGN_CENTER, leftmargin / 2 - lv_obj_get_height(pwd_ta) / 2, topmargin - voffset);
@@ -242,7 +243,7 @@ static void oobeSetupSsid(void)
     lv_obj_set_style_local_text_font(oneline_ta, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, defaultfont);
 
     lv_textarea_set_pwd_mode(oneline_ta, false);
-    lv_obj_set_user_data(oneline_ta, 10);
+    lv_obj_set_user_data(oneline_ta, (lv_obj_user_data_t){10, 1, 0});
     lv_obj_align(oneline_ta, pwd_ta, LV_ALIGN_OUT_TOP_MID, 0, topmargin);
 
     /* Create a label and position it above the text box */

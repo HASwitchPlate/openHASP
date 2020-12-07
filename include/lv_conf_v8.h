@@ -581,9 +581,15 @@ typedef void * lv_font_user_data_t;
  *  LV_OBJ SETTINGS
  *==================*/
 
+typedef struct {
+  uint8_t objid:5;
+  uint8_t groupid:3;
+  uint8_t id;
+} lv_obj_user_data_t;
+
 #if LV_USE_USER_DATA
 /*Declare the type of the user data of object (can be e.g. `void *`, `int`, `struct`)*/
-typedef uint8_t lv_obj_user_data_t;
+//typedef hasp_obj_user_data_t lv_obj_user_data_t;
 /*Provide a function to free user data*/
 #define LV_USE_USER_DATA_FREE 0
 #if LV_USE_USER_DATA_FREE

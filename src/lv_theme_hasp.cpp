@@ -10,7 +10,7 @@
 #include "lv_conf.h"       /*To see all the widgets*/
 #include "lv_theme_hasp.h" /*To see all the widgets*/
 #if LVGL_VERSION_MAJOR != 7
-#include "../lv_components/lv_components.h"
+#include "../lv_components.h"
 #endif
 
 //#if LV_USE_THEME_HASP
