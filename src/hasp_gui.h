@@ -1,31 +1,36 @@
+/* MIT License - Copyright (c) 2020 Francis Van Roie
+   For full license information read the LICENSE file in the project folder */
+
 #ifndef HASP_GUI_H
 #define HASP_GUI_H
 
-#include "TFT_eSPI.h"
 #include "ArduinoJson.h"
-
 #include "lvgl.h"
 
-#if defined(ARDUINO_ARCH_ESP8266)
-#include <ESP8266WebServer.h>
-void guiTakeScreenshot(ESP8266WebServer & client);
-#endif
+#define HASP_SLEEP_OFF 0
+#define HASP_SLEEP_SHORT 1
+#define HASP_SLEEP_LONG 2
 
-#if defined(ARDUINO_ARCH_ESP32)
-#include <WebServer.h>
-void guiTakeScreenshot(WebServer & client);
-#endif // ESP32
-
-void guiSetup(TFT_eSPI & screen, JsonObject settings);
-void guiLoop(void);
+/* ===== Default Event Processors ===== */
+void guiSetup();
+void IRAM_ATTR guiLoop(void);
+void guiEverySecond(void);
+void guiStart(void);
 void guiStop(void);
 
+/* ===== Special Event Processors ===== */
 void guiCalibrate();
-void guiTakeScreenshot(const char * pFileName);
+void guiTakeScreenshot(const char * pFileName); // to file
+void guiTakeScreenshot();                       // webclient
 
-void guiSetDim(uint8_t level);
+/* ===== Getter and Setter Functions ===== */
+void guiSetDim(int8_t level);
 int8_t guiGetDim(void);
+void guiSetBacklight(bool lighton);
+bool guiGetBacklight();
+bool guiCheckSleep();
 
+/* ===== Read/Write Configuration ===== */
 bool guiGetConfig(const JsonObject & settings);
 bool guiSetConfig(const JsonObject & settings);
 

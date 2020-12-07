@@ -1,9 +1,16 @@
+/* MIT License - Copyright (c) 2020 Francis Van Roie
+   For full license information read the LICENSE file in the project folder */
+
+/*************************************************** 
 // This file contains the default settings that are
 // burned into the compiled firmware.
 //
 // These default settings can be changed at runtime
 //
 // To use: Save a copy as user_config_override.h
+***************************************************/
+
+#define SERIAL_SPEED 115200
 
 /***************************************************
           WiFi Settings
@@ -18,8 +25,9 @@
 #define MQTT_PORT 1883
 #define MQTT_USER ""
 #define MQTT_PASSW ""
-#define MQTT_TOPIC "plates"
-#define MQTT_CLIENTID "plate01"
+#define MQTT_PREFIX "hasp"
+#define MQTT_NODENAME "plate01"
+#define MQTT_GROUPNAME "plates"
 
 #define MQTT_TELEPERIOD 60000
 #define MQTT_STATEPERIOD 300000

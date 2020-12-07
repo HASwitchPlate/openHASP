@@ -1,10 +1,13 @@
-/**
- * @file hasp.h
- *
- */
+/* MIT License - Copyright (c) 2020 Francis Van Roie
+   For full license information read the LICENSE file in the project folder */
 
 #ifndef HASP_H
 #define HASP_H
+
+#include <Arduino.h>
+#include "lvgl.h"
+#include "hasp_conf.h"
+#include "hasp_debug.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -14,22 +17,7 @@ extern "C" {
  *      INCLUDES
  *********************/
 
-#include <Arduino.h>
-#include "lvgl.h"
-
-#include "hasp_conf.h"
-
-#include "hasp_debug.h"
-
-/* #ifdef LV_CONF_INCLUDE_SIMPLE
-#include "lvgl.h"
-#include "hasp_conf.h"
-#else
-#include "../lvgl/lvgl.h"
-#include "hasp_conf.h"
-#endif */
-
-#if HASP_USE_APP
+#if HASP_USE_APP > 0
 
 /*********************
  *      DEFINES
@@ -39,26 +27,17 @@ extern "C" {
  *      TYPEDEFS
  **********************/
 
-enum lv_hasp_obj_type_t {
-    LV_HASP_BUTTON    = 10,
-    LV_HASP_CHECKBOX  = 11,
-    LV_HASP_LABEL     = 12,
-    LV_HASP_CONTAINER = 13,
+enum hasp_event_t { // even = released, odd = pressed
+    HASP_EVENT_OFF  = 0,
+    HASP_EVENT_ON   = 1,
+    HASP_EVENT_UP   = 2,
+    HASP_EVENT_DOWN = 3,
 
-    LV_HASP_CPICKER   = 20,
-    LV_HASP_PRELOADER = 21,
-    LV_HASP_ARC       = 22,
-
-    LV_HASP_SLIDER = 30,
-    LV_HASP_GAUGE  = 31,
-    LV_HASP_BAR    = 32,
-    LV_HASP_LMETER = 33,
-
-    LV_HASP_SWITCH = 40,
-    LV_HASP_LED    = 41,
-
-    LV_HASP_DDLIST = 50,
-    LV_HASP_ROLLER = 51,
+    HASP_EVENT_SHORT  = 4,
+    HASP_EVENT_LONG   = 5,
+    HASP_EVENT_LOST   = 6,
+    HASP_EVENT_HOLD   = 7,
+    HASP_EVENT_DOUBLE = 8
 };
 
 /**********************
@@ -68,38 +47,44 @@ enum lv_hasp_obj_type_t {
 /**
  * Create a hasp application
  */
-void haspSetup(JsonObject settings);
-void haspLoop(void);
-void haspFirstSetup(void);
-
-void haspSetPage(uint16_t id);
-uint16_t haspGetPage();
-void haspSetNodename(String name);
-String haspGetNodename();
-String haspGetVersion();
-void haspBackground(uint16_t pageid, uint16_t imageid);
-
-void haspProcessAttribute(uint8_t pageid, uint8_t objid, String strAttr, String strPayload);
-void haspSendCmd(String nextionCmd);
-void haspParseJson(String & strPayload);
-void haspNewObject(const JsonObject & settings);
-
+void haspSetup();
+void IRAM_ATTR haspLoop(void);
 void haspReconnect(void);
 void haspDisconnect(void);
-void haspDisplayAP(const char * ssid, const char * pass);
+
+lv_obj_t * get_page_obj(uint8_t pageid);
+bool get_page_id(lv_obj_t * obj, uint8_t * pageid);
+
+void haspSetPage(uint8_t id);
+uint8_t haspGetPage();
+void haspClearPage(uint16_t pageid);
+
+void haspGetVersion(char* version,size_t len);
+void haspBackground(uint16_t pageid, uint16_t imageid);
+
+void hasp_set_group_objects(uint8_t groupid, uint8_t eventid, lv_obj_t * src_obj);
+
+// void haspNewObject(const JsonObject & config, uint8_t & saved_page_id);
+
 void haspWakeUp(void);
+void haspProgressVal(uint8_t val);
 
 bool haspGetConfig(const JsonObject & settings);
 bool haspSetConfig(const JsonObject & settings);
+
+lv_font_t * hasp_get_font(uint8_t fontid);
 
 /**********************
  *      MACROS
  **********************/
 
-#endif /*LV_USE_DEMO*/
+#endif /*HASP_USE_APP*/
 
 #ifdef __cplusplus
 } /* extern "C" */
 #endif
 
-#endif /*DEMO_H*/
+void haspProgressMsg(const char * msg);
+void haspProgressMsg(const __FlashStringHelper * msg);
+
+#endif /*HASP_H*/
