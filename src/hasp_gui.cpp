@@ -79,27 +79,23 @@ static Ticker tick; /* timer for interrupt handler */
 static Ticker tick(lv_tick_handler, LVGL_TICK_PERIOD); // guiTickPeriod);
 #endif
 
-bool guiCheckSleep()
+bool IRAM_ATTR guiCheckSleep()
 {
-    char idle_state[6];
     uint32_t idle = lv_disp_get_inactive_time(NULL);
 
     if(idle >= (guiSleepTime1 + guiSleepTime2) * 1000U) {
-        if(guiSleeping != HASP_SLEEP_SHORT) {
-            snprintf_P(idle_state, sizeof(idle_state), PSTR("LONG"));
-            dispatch_output_idle_state(idle_state);
+        if(guiSleeping != HASP_SLEEP_LONG) {
+            dispatch_output_idle_state(HASP_SLEEP_LONG);
             guiSleeping = HASP_SLEEP_LONG;
         }
     } else if(idle >= guiSleepTime1 * 1000U) {
         if(guiSleeping != HASP_SLEEP_SHORT) {
-            snprintf_P(idle_state, sizeof(idle_state), PSTR("SHORT"));
-            dispatch_output_idle_state(idle_state);
+            dispatch_output_idle_state(HASP_SLEEP_SHORT);
             guiSleeping = HASP_SLEEP_SHORT;
         }
     } else {
         if(guiSleeping != HASP_SLEEP_OFF) {
-            snprintf_P(idle_state, sizeof(idle_state), PSTR("OFF"));
-            dispatch_output_idle_state(idle_state);
+            dispatch_output_idle_state(HASP_SLEEP_OFF);
             guiSleeping = HASP_SLEEP_OFF;
         }
     }
@@ -600,7 +596,8 @@ void guiSetup()
     lv_bar_set_value(bar, 10, LV_ANIM_OFF);
     lv_obj_set_size(bar, 200, 15);
     lv_obj_align(bar, lv_layer_sys(), LV_ALIGN_CENTER, 0, -10);
-    lv_obj_set_user_data(bar, 10);
+    lv_obj_user_data_t udata = (lv_obj_user_data_t){10, 1, 0};
+    lv_obj_set_user_data(bar, udata);
     lv_obj_set_style_local_value_color(bar, LV_BAR_PART_BG, LV_STATE_DEFAULT, LV_COLOR_WHITE);
     lv_obj_set_style_local_value_align(bar, LV_BAR_PART_BG, LV_STATE_DEFAULT, LV_ALIGN_CENTER);
     lv_obj_set_style_local_value_ofs_y(bar, LV_BAR_PART_BG, LV_STATE_DEFAULT, 20);
