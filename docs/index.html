@@ -30,7 +30,7 @@
 
 
   <link rel="stylesheet" href="https://unpkg.com/docsify-toc@1.0.0/dist/toc.css">
-  
+
 </head>
 
 <body>
@@ -56,10 +56,11 @@
         crossChapterText: false,
       },
 
-      'page-toc': {
-        tocMaxLevel: 3,
-        target: 'h1, h2, h3'
-      },
+      toc: {
+    scope: '.markdown-section',
+    headings: 'h1, h2, h3, h4, h5, h6',
+    title: 'Table of Contents',
+  },
     }
   </script>
   <!-- Docsify v4 -->
@@ -76,7 +77,7 @@
 
   <script src="https://unpkg.com/docsify-pagination/dist/docsify-pagination.min.js"></script>
 
-  <script src="https://unpkg.com/docsify-page-toc/dist/docsify-page-toc.js"></script>
+  <script src="https://unpkg.com/docsify-toc@1.0.0/dist/toc.js"></script>
 </body>
 
 </html>
