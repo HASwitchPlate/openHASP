@@ -146,6 +146,7 @@ String getOption(int value, String label, bool selected)
                (selected ? PSTR(" selected") : ""), label.c_str());
     return buffer;
 }
+
 String getOption(String value, String label, bool selected)
 {
     char buffer[128];
@@ -153,6 +154,7 @@ String getOption(String value, String label, bool selected)
                (selected ? PSTR(" selected") : ""), label.c_str());
     return buffer;
 }
+
 void webSendFooter()
 {
     char buffer[16];
@@ -179,7 +181,7 @@ void webSendPage(char * nodename, uint32_t httpdatalength, bool gohome = false)
         /* Calculate Content Length upfront */
         uint16_t contentLength = strlen(buffer); // verion length
         contentLength += sizeof(HTTP_DOCTYPE) - 1;
-        contentLength += sizeof(HTTP_HEADER) - 1 - 2 + strlen(nodename);
+        contentLength += sizeof(HTTP_HEADER) - 1 - 2 + strlen(nodename); // -2 for %s
         contentLength += sizeof(HTTP_SCRIPT) - 1;
         contentLength += sizeof(HTTP_STYLE) - 1;
         contentLength += sizeof(HASP_STYLE) - 1;
