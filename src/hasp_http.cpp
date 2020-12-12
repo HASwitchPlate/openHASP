@@ -1219,9 +1219,9 @@ void webHandleGpioConfig()
 
     if(webServer.hasArg(PSTR("save"))) {
         uint8_t id      = webServer.arg(F("id")).toInt();
-        uint8_t pin     = webServer.arg(F("pin")).toInt() + webServer.arg(F("state")).toInt();
-        uint8_t type    = webServer.arg(F("type")).toInt();
-        uint8_t group   = webServer.arg(F("chan")).toInt();
+        uint8_t pin     = webServer.arg(F("pin")).toInt();
+        uint8_t type    = webServer.arg(F("type")).toInt() + webServer.arg(F("state")).toInt();
+        uint8_t group   = webServer.arg(F("group")).toInt();
         uint8_t pinfunc = webServer.arg(F("func")).toInt();
         gpioSavePinConfig(id, pin, type, group, pinfunc);
     }
@@ -1272,7 +1272,18 @@ void webHandleGpioConfig()
 
                     httpMessage += F("</td><td>");
                     httpMessage += conf.group;
-                    httpMessage += F("</td><td>Low</td><td><a href='/config/gpio/options?id=");
+                    httpMessage += F("</td><td>");
+
+                    bool inverted = (conf.type == HASP_GPIO_BUTTON_INVERTED) ||
+                                    (conf.type == HASP_GPIO_SWITCH_INVERTED) || (conf.type == HASP_GPIO_LED_INVERTED) ||
+                                    (conf.type == HASP_GPIO_RELAY_INVERTED) || (conf.type == HASP_GPIO_PWM_INVERTED);
+                    if(inverted) {
+                        httpMessage += F("High");
+                    } else {
+                        httpMessage += F("Low");
+                    }
+
+                    httpMessage += F("</td><td><a href='/config/gpio/options?id=");
                     httpMessage += id;
                     httpMessage += ("'>Edit</a> <a href='/config/gpio?save=&id=");
                     httpMessage += id;
@@ -1359,18 +1370,18 @@ void webHandleGpioOptions()
         }
         httpMessage += F("</select></p>");
 
-        httpMessage += F("<p><b>Channel</b> <select id='chan' name='chan'>");
+        httpMessage += F("<p><b>Group</b> <select id='group' name='group'>");
         for(uint8_t i = 0; i < 15; i++) {
-            httpMessage += getOption(i, "Channel " + String(i), i == conf.group);
+            httpMessage += getOption(i, "Group " + String(i), i == conf.group);
         }
         httpMessage += F("</select></p>");
 
         httpMessage += F("<p><b>Default State</b> <select id='state' name='state'>");
-        selected = (conf.type == HASP_GPIO_BUTTON_INVERTED) || (conf.type == HASP_GPIO_SWITCH_INVERTED) ||
-                   (conf.type == HASP_GPIO_LED_INVERTED) || (conf.type == HASP_GPIO_RELAY_INVERTED) ||
-                   (conf.type == HASP_GPIO_PWM_INVERTED);
-        httpMessage += getOption(0, F("High"), !selected);
-        httpMessage += getOption(1, F("Low"), selected);
+        bool inverted = (conf.type == HASP_GPIO_BUTTON_INVERTED) || (conf.type == HASP_GPIO_SWITCH_INVERTED) ||
+                        (conf.type == HASP_GPIO_LED_INVERTED) || (conf.type == HASP_GPIO_RELAY_INVERTED) ||
+                        (conf.type == HASP_GPIO_PWM_INVERTED);
+        httpMessage += getOption(1, F("High"), inverted);
+        httpMessage += getOption(0, F("Low"), !inverted);
         httpMessage += F("</select></p>");
 
         httpMessage += F("<p><button type='submit' name='save' value='gpio'>Save Settings</button></p></form>");
