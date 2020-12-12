@@ -393,7 +393,7 @@ lv_obj_t * FindButtonLabel(lv_obj_t * btn)
 {
     if(btn) {
         lv_obj_t * label = lv_obj_get_child_back(btn, NULL);
-#if LVGL_VERSION_MAJOR != 7
+#if 1
         if(label) {
             if(check_obj_type(label, LV_HASP_LABEL)) {
                 return label;
@@ -437,7 +437,7 @@ static bool haspGetLabelText(lv_obj_t * obj, char * text)
 
     lv_obj_t * label = lv_obj_get_child_back(obj, NULL);
     if(label) {
-#if LVGL_VERSION_MAJOR != 7
+#if 1
         if(check_obj_type(label, LV_HASP_LABEL)) {
             text = lv_label_get_text(label);
             return true;
@@ -627,7 +627,7 @@ static void hasp_local_style_attr(lv_obj_t * obj, const char * attr_p, uint16_t 
             return attribute_pad_left(obj, part, state, update, attr_p, (lv_style_int_t)var);
         case ATTR_PAD_RIGHT:
             return attribute_pad_right(obj, part, state, update, attr_p, (lv_style_int_t)var);
-#if LVGL_VERSION_MAJOR == 7
+#if 0
         case ATTR_PAD_INNER:
             return attribute_pad_inner(obj, part, state, update, attr_p, (lv_style_int_t)var);
 #endif

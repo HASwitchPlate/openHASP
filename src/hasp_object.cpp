@@ -44,18 +44,18 @@ lv_obj_t * hasp_find_obj_from_parent_id(lv_obj_t * parent, uint8_t objid)
 
         /* check tabs */
         if(check_obj_type(child, LV_HASP_TABVIEW)) {
-#if LVGL_VERSION_MAJOR == 7
+            //#if LVGL_VERSION_MAJOR == 7
             uint16_t tabcount = lv_tabview_get_tab_count(child);
             for(uint16_t i = 0; i < tabcount; i++) {
                 lv_obj_t * tab = lv_tabview_get_tab(child, i);
                 Log.verbose(TAG_HASP, "Found tab %i", i);
-                if(tab->user_data && (lv_obj_user_data_t)objid == tab->user_data) return tab; /* tab found, return it */
+                if(tab->user_data.objid && objid == tab->user_data.objid) return tab; /* tab found, return it */
 
                 /* check grandchildren */
                 grandchild = hasp_find_obj_from_parent_id(tab, objid);
                 if(grandchild) return grandchild; /* grandchild found, return it */
             }
-#endif
+            //#endif
         }
 
         /* try next sibling */
@@ -161,7 +161,7 @@ bool check_obj_type_str(const char * lvobjtype, lv_hasp_obj_type_t haspobjtype)
  */
 bool check_obj_type(lv_obj_t * obj, lv_hasp_obj_type_t haspobjtype)
 {
-#if LVGL_VERSION_MAJOR != 7
+#if 1
     return obj->user_data.objid == (uint8_t)haspobjtype;
 #else
     lv_obj_type_t list;
@@ -193,12 +193,12 @@ void hasp_object_tree(lv_obj_t * parent, uint8_t pageid, uint16_t level)
 
     /* check tabs */
     if(check_obj_type(parent, LV_HASP_TABVIEW)) {
-#if LVGL_VERSION_MAJOR == 7
+#if 1
         uint16_t tabcount = lv_tabview_get_tab_count(parent);
         for(uint16_t i = 0; i < tabcount; i++) {
             lv_obj_t * tab = lv_tabview_get_tab(child, i);
             Log.verbose(TAG_HASP, "Found tab %i", i);
-            if(tab->user_data) hasp_object_tree(tab, pageid, level + 1);
+            if(tab->user_data.objid) hasp_object_tree(tab, pageid, level + 1);
         }
 #endif
     }
@@ -623,11 +623,11 @@ void hasp_new_object(const JsonObject & config, uint8_t & saved_page_id)
             if(obj) {
                 lv_obj_t * tab;
                 tab = lv_tabview_add_tab(obj, "tab 1");
-                lv_obj_set_user_data(tab, id + 1);
+                //lv_obj_set_user_data(tab, id + 1);
                 tab = lv_tabview_add_tab(obj, "tab 2");
-                lv_obj_set_user_data(tab, id + 2);
+                //lv_obj_set_user_data(tab, id + 2);
                 tab = lv_tabview_add_tab(obj, "tab 3");
-                lv_obj_set_user_data(tab, id + 3);
+                //lv_obj_set_user_data(tab, id + 3);
             }
             break;
         }
