@@ -303,7 +303,7 @@ static void mqtt_message_cb(char * topic, byte * payload, unsigned int length)
                 snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%sstatus"), mqttNodeTopic);
                 snprintf_P(msg, sizeof(msg), PSTR("ON"));
 
-                /*bool res =*/ mqttClient.publish(tmp_topic, msg, true);
+                /*bool res =*/mqttClient.publish(tmp_topic, msg, true);
             }
 
         } else {
@@ -334,6 +334,7 @@ void mqttStart()
     bool mqttFirstConnect             = true;
 
     mqttClient.setServer(mqttServer, 1883);
+    // mqttClient.setSocketTimeout(10); //in seconds
 
     /* Construct unique Client ID*/
     {
@@ -348,6 +349,8 @@ void mqttStart()
     snprintf_P(buffer, sizeof(buffer), PSTR("%sstatus"), mqttNodeTopic); // lastWillTopic
     snprintf_P(lastWillPayload, sizeof(lastWillPayload), PSTR("OFF"));   // lastWillPayload
 
+    haspProgressMsg(F("Connecting MQTT..."));
+    haspProgressVal(mqttReconnectCount * 5);
     if(!mqttClient.connect(mqttClientId, mqttUser, mqttPassword, buffer, 2, false, lastWillPayload, true)) {
         // Retry until we give up and restart after connectTimeout seconds
         mqttReconnectCount++;
@@ -388,7 +391,7 @@ void mqttStart()
         }
         Log.warning(TAG_MQTT, buffer);
 
-        if(mqttReconnectCount > 50) {
+        if(mqttReconnectCount > 20) {
             Log.error(TAG_MQTT, F("Retry count exceeded, rebooting..."));
             dispatch_reboot(false);
         }

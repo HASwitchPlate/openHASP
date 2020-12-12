@@ -76,6 +76,7 @@ bool networkEverySecond(void)
 #if HASP_USE_WIFI > 0
     // return wifiEverySecond();
 #endif
+return true;
 }
 
 #endif

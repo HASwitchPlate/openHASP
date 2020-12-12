@@ -27,19 +27,6 @@ extern "C" {
  *      TYPEDEFS
  **********************/
 
-enum hasp_event_t { // even = released, odd = pressed
-    HASP_EVENT_OFF  = 0,
-    HASP_EVENT_ON   = 1,
-    HASP_EVENT_UP   = 2,
-    HASP_EVENT_DOWN = 3,
-
-    HASP_EVENT_SHORT  = 4,
-    HASP_EVENT_LONG   = 5,
-    HASP_EVENT_LOST   = 6,
-    HASP_EVENT_HOLD   = 7,
-    HASP_EVENT_DOUBLE = 8
-};
-
 /**********************
  * GLOBAL PROTOTYPES
  **********************/
@@ -60,13 +47,12 @@ uint8_t haspGetPage();
 void haspClearPage(uint16_t pageid);
 
 void haspGetVersion(char* version,size_t len);
-void haspBackground(uint16_t pageid, uint16_t imageid);
+//void haspBackground(uint16_t pageid, uint16_t imageid);
 
 void hasp_set_group_objects(uint8_t groupid, uint8_t eventid, lv_obj_t * src_obj);
 
 // void haspNewObject(const JsonObject & config, uint8_t & saved_page_id);
 
-void haspWakeUp(void);
 void haspProgressVal(uint8_t val);
 
 bool haspGetConfig(const JsonObject & settings);

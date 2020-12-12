@@ -5,6 +5,7 @@
 #define HASP_DEBUG_H
 
 #include "ArduinoJson.h"
+#include "ArduinoLog.h"
 #include "lvgl.h"
 
 /* ===== Default Event Processors ===== */

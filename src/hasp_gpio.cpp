@@ -21,7 +21,7 @@ static AceButton * button[HASP_NUM_INPUTS];
 // An array of button pins, led pins, and the led states. Cannot be const
 // because ledState is mutable.
 hasp_gpio_config_t gpioConfig[HASP_NUM_GPIO_CONFIG] = {
-//    {2, 8, INPUT, LOW}, {3, 9, OUTPUT, LOW}, {4, 10, INPUT, HIGH}, {5, 11, OUTPUT, LOW}, {6, 12, INPUT, LOW},
+    //    {2, 8, INPUT, LOW}, {3, 9, OUTPUT, LOW}, {4, 10, INPUT, HIGH}, {5, 11, OUTPUT, LOW}, {6, 12, INPUT, LOW},
 };
 
 #if defined(ARDUINO_ARCH_ESP32)
@@ -379,13 +379,14 @@ bool gpioIsSystemPin(uint8_t gpio)
     } // if tft_espi pins
 
     // To-do:
+    // Backlight GPIO
     // Network GPIOs
     // Serial GPIOs
     // Tasmota Slave GPIOs
 
 #ifdef ARDUINO_ARCH_ESP32
     if(psramFound()) {
-        if((gpio >= 16) && (gpio <= 17)) return true; // PSRAM
+        if((gpio == 16) || (gpio == 17)) return true; // PSRAM
     }
 #endif
 

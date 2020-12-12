@@ -13,7 +13,6 @@ build_output/*
 build_output/firmware/*.bin
 
 ## Test result files
-*.html
 *.xml
 *.bin
 
