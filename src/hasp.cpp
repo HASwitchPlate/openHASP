@@ -42,39 +42,16 @@
  **********************/
 // void hasp_background(uint16_t pageid, uint16_t imageid);
 
+/**********************
+ *  STATIC VARIABLES
+ **********************/
 #if LV_USE_ANIMATION
 // static void kb_hide_anim_end(lv_anim_t * a);
 #endif
 
-/**********************
- *  STATIC VARIABLES
- **********************/
-uint8_t haspStartDim   = 100;
-uint8_t haspStartPage  = 0;
-uint8_t haspThemeId    = 2;
-uint16_t haspThemeHue  = 200;
-char haspPagesPath[32] = "/pages.jsonl";
-char haspZiFontPath[32];
-
-lv_style_t style_mbox_bg; /*Black bg. style with opacity*/
-lv_obj_t * kb;
-// lv_font_t * defaultFont;
-
 #if LV_DEMO_WALLPAPER
 LV_IMG_DECLARE(img_bubble_pattern)
 #endif
-
-/*
-static const char * btnm_map1[] = {" ", "\n", " ", "\n", " ", "\n", " ", "\n", "P1", "P2", "P3", ""};
-
-static const char * btnm_map2[] = {"0",  "1", "\n", "2",  "3",  "\n", "4",  "5",
-                                   "\n", "6", "7",  "\n", "P1", "P2", "P3", ""};
-*/
-
-lv_obj_t * pages[HASP_NUM_PAGES];
-static lv_font_t * haspFonts[4] = {nullptr, LV_THEME_DEFAULT_FONT_NORMAL, LV_THEME_DEFAULT_FONT_SUBTITLE,
-                                   LV_THEME_DEFAULT_FONT_TITLE};
-uint8_t current_page            = 0;
 
 /**********************
  *      MACROS
@@ -86,6 +63,23 @@ uint8_t current_page            = 0;
 void haspLoadPage(const char * pages);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+
+uint8_t haspStartDim   = 100;
+uint8_t haspStartPage  = 0;
+uint8_t haspThemeId    = 2;
+uint16_t haspThemeHue  = 200;
+char haspPagesPath[32] = "/pages.jsonl";
+char haspZiFontPath[32];
+
+lv_style_t style_mbox_bg; /*Black bg. style with opacity*/
+lv_obj_t * kb;
+// lv_font_t * defaultFont;
+
+lv_obj_t * pages[HASP_NUM_PAGES];
+static lv_font_t * haspFonts[4] = {nullptr, LV_THEME_DEFAULT_FONT_NORMAL, LV_THEME_DEFAULT_FONT_SUBTITLE,
+                                   LV_THEME_DEFAULT_FONT_TITLE};
+uint8_t current_page            = 0;
+
 /**
  * Get Font ID
  */
@@ -136,13 +130,6 @@ bool get_page_id(lv_obj_t * obj, uint8_t * pageid)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/**
- * WakeUp the display using a command instead of touch
- */
-void haspWakeUp()
-{
-    lv_disp_trig_activity(NULL);
-}
 
 void haspDisconnect()
 {
@@ -399,9 +386,8 @@ void haspSetup()
     } else {
         Log.error(TAG_HASP, F("Theme could not be loaded"));
     }
-    // lv_theme_set_current(th);
-    /* ********** Theme Initializations ********** */
 
+    /* ********** Theme Initializations ********** */
     // lv_style_list_t * list;
     // static lv_style_t pagefont;
     // lv_style_init(&pagefont);
@@ -425,14 +411,6 @@ void haspSetup()
 
     haspLoadPage(haspPagesPath);
     haspSetPage(haspStartPage);
-
-    // lv_obj_t * obj = lv_btn_create(pages[0], NULL);
-    // lv_obj_set_size(obj, 100, 100);
-    // lv_obj_set_user_data(obj, (lv_obj_user_data_t)15);
-    // /* lv_obj_t * label ; */
-    // lv_label_create(obj, NULL);
-    // // haspSetOpacity(obj, LV_OPA_COVER);
-    // lv_obj_set_event_cb(obj, btn_event_handler);
 }
 
 /**********************
@@ -493,13 +471,9 @@ void hasp_background(uint16_t pageid, uint16_t imageid)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 void haspGetVersion(char * version, size_t len)
 {
-    // char buffer[16];
     snprintf_P(version, len, "%u.%u.%u", HASP_VERSION_MAJOR, HASP_VERSION_MINOR, HASP_VERSION_REVISION);
-    // return buffer;
 }
 
 void haspClearPage(uint16_t pageid)

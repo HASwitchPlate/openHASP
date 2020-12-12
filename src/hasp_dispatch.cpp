@@ -721,7 +721,7 @@ void dispatch_calibrate(const char *, const char *)
 
 void dispatch_wakeup(const char *, const char *)
 {
-    haspWakeUp();
+    guiWakeUp();
 }
 
 void dispatch_reboot(const char *, const char *)
