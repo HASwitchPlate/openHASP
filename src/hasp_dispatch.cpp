@@ -66,21 +66,11 @@ bool dispatch_factory_reset()
     return formated && erased;
 }
 
-void dispatchGpioOutput(int output, bool state)
+void dispatchGpioOutput(int groupid, bool state)
 {
-    int pin = 0;
-
-    if(pin >= 0) {
-        Log.notice(TAG_MSGR, F("PIN OUTPUT STATE %d"), state);
-
-#if defined(ARDUINO_ARCH_ESP32)
-        ledcWrite(99, state ? 1023 : 0); // ledChannel and value
-#elif defined(STM32F4xx)
-        digitalWrite(HASP_OUTPUT_PIN, state);
-#else
-        digitalWrite(D1, state);
-        // analogWrite(pin, state ? 1023 : 0);
-#endif
+    if(groupid >= 0) {
+        Log.notice(TAG_MSGR, F("GROUP %d OUTPUT STATE %d"), groupid, state);
+        gpio_set_group_outputs(groupid, state ? HASP_EVENT_ON : HASP_EVENT_OFF);
     }
 }
 
@@ -88,7 +78,7 @@ void dispatchGpioOutput(String strTopic, const char * payload)
 {
     String strTemp((char *)0);
     strTemp.reserve(128);
-    strTemp = strTopic.substring(7, strTopic.length());
+    strTemp = strTopic.substring(6, strTopic.length());
     dispatchGpioOutput(strTemp.toInt(), is_true(payload));
 }
 
