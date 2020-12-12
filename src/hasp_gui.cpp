@@ -79,6 +79,7 @@ static Ticker tick; /* timer for interrupt handler */
 static Ticker tick(lv_tick_handler, LVGL_TICK_PERIOD); // guiTickPeriod);
 #endif
 
+/* **************************** SLEEP & WAKEUP ************************************** */
 bool IRAM_ATTR guiCheckSleep()
 {
     uint32_t idle = lv_disp_get_inactive_time(NULL);
@@ -102,6 +103,16 @@ bool IRAM_ATTR guiCheckSleep()
 
     return (guiSleeping != HASP_SLEEP_OFF);
 }
+
+/**
+ * WakeUp the display using a command instead of touch
+ */
+void guiWakeUp()
+{
+    lv_disp_trig_activity(NULL);
+}
+
+/* **************************** SCREENSHOTS ************************************** */
 
 /* After flusing to the file stream or web client, we also send the buffer to the tft */
 static void IRAM_ATTR printscreen_flush_cb(lv_disp_drv_t * disp, const lv_area_t * area, lv_color_t * color_p)
@@ -130,6 +141,8 @@ static void IRAM_ATTR printscreen_flush_cb(lv_disp_drv_t * disp, const lv_area_t
     /* Tell lvgl that flushing is done */
     // lv_disp_flush_ready(disp);  ===> moved into the drivers
 }
+
+/* **************************** GUI TICKER ************************************** */
 
 /* Interrupt driven periodic handler */
 static void ICACHE_RAM_ATTR lv_tick_handler(void)
@@ -404,23 +417,12 @@ bool IRAM_ATTR my_touchpad_read(lv_indev_drv_t * indev_driver, lv_indev_data_t *
 
     // Ignore first press?
 
-    // if(touchX > tft.width() || touchY > tft.height()) {
-    //     Serial.print(F("Y or y outside of expected parameters.. x: "));
-    //     Serial.print(touchX);
-    //     Serial.print(F("  / y: "));
-    //     Serial.println(touchY);
-    // } else {
     /*Save the state and save the pressed coordinate for cursor position */
     data->state = touched ? LV_INDEV_STATE_PR : LV_INDEV_STATE_REL;
     if(touched) {
         data->point.x = touchX;
         data->point.y = touchY;
     }
-/* Serial.print("Data x");
-   Serial.println(touchX);
-   Serial.print("Data y");
-   Serial.println(touchY);*/
-//}
 #endif
 
     return false; /*Return `false` because we are not buffering and no more data to read*/
@@ -679,6 +681,7 @@ void guiStop()
 #endif
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
 bool guiGetBacklight()
 {
     return guiBacklightIsOn;
