@@ -156,10 +156,10 @@ static lv_fs_res_t fs_open(lv_fs_drv_t * drv, void * file_p, const char * path, 
     if(fp == NULL) return LV_FS_RES_INV_PARAM;
 
     Log.verbose(TAG_LVFS, F("Opening %s"), filename);
-    *fp = LV_FS_SPIFFS.open(filename, mode == LV_FS_MODE_WR ? FILE_WRITE : FILE_READ);
+    lv_spiffs_file_t file = LV_FS_SPIFFS.open(filename, mode == LV_FS_MODE_WR ? FILE_WRITE : FILE_READ);
 
     Log.verbose(TAG_LVFS, F("%d"), __LINE__);
-    if(!(*fp)) {
+    if(!file) {
         Log.verbose(TAG_LVFS, F("Invalid file"));
         return LV_FS_RES_NOT_EX;
 
@@ -175,6 +175,7 @@ static lv_fs_res_t fs_open(lv_fs_drv_t * drv, void * file_p, const char * path, 
         Log.verbose(TAG_LVFS, F("%d - %x - %d"), __LINE__, fp, sizeof(lv_spiffs_file_t));
         // memcpy(fp,&file,sizeof(lv_spiffs_file_t));
         Log.verbose(TAG_LVFS, F("%d"), __LINE__);
+        *fp = file;
         return LV_FS_RES_OK;
     }
 }
@@ -230,7 +231,7 @@ static lv_fs_res_t fs_read(lv_fs_drv_t * drv, void * file_p, void * buf, uint32_
         return LV_FS_RES_NOT_EX;
 
     } else {
-        //Log.verbose(TAG_LVFS, F("Reading %u bytes from %s at position %u"), btr, file.name(), file.position());
+        // Log.verbose(TAG_LVFS, F("Reading %u bytes from %s at position %u"), btr, file.name(), file.position());
         uint32_t len = 0;
         char * chp   = (char *)buf;
         if(chp != NULL && btr > 0)
@@ -243,7 +244,7 @@ static lv_fs_res_t fs_read(lv_fs_drv_t * drv, void * file_p, void * buf, uint32_
         else
             Log.verbose(TAG_LVFS, F("BYTESREAD is NULL"), btr, file.name(), file.position());
 
-         Serial.print("!");
+        Serial.print("!");
         return LV_FS_RES_OK;
     }
 }
