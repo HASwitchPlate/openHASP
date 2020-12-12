@@ -30,16 +30,12 @@
 
 
   <link rel="stylesheet" href="https://unpkg.com/docsify-toc@1.0.0/dist/toc.css">
+  <style>.page_toc {margin: 50 50px;}</style>
 
 </head>
 
 <body>
   
-  <nav>
-    <a href="#/">EN</a>
-    <a href="#/zh-cn/">中文</a>
-  </nav>
-
   <div id="app"></div>
 
   <script>
@@ -51,7 +47,7 @@
       name: 'hasp-lvgl',
       autoHeader: true,
       loadSidebar: true,
-      loadNavbar: false,
+      loadNavbar: true,
       search: 'auto',
       alias: {
         '/.*/_sidebar.md': '/_sidebar.md',
