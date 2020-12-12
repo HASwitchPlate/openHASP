@@ -582,8 +582,8 @@ typedef void * lv_font_user_data_t;
  *==================*/
 
 typedef struct {
-  uint8_t objid:5;
-  uint8_t groupid:3;
+  uint8_t objid:8;
+  uint8_t groupid:8;
   uint8_t id;
 } lv_obj_user_data_t;
 
@@ -598,6 +598,8 @@ typedef struct {
 #  define LV_USER_DATA_FREE  (user_data_free)       /*Invoking for user data free function*/
 #endif
 #endif
+
+#define LV_USE_OBJ_REALIGN          1
 
 /* Enable to make the object clickable on a larger area.
  * LV_EXT_CLICK_AREA_OFF or 0: Disable this feature
@@ -643,6 +645,7 @@ typedef struct {
 /*Open and close default animation time [ms] (0: no animation)*/
 #  define LV_DROPDOWN_DEF_ANIM_TIME     200
 #endif
+
 
 /*Gauge (dependencies:lv_bar, lv_linemeter)*/
 #define LV_USE_GAUGE    1

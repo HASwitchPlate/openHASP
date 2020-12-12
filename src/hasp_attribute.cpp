@@ -4,11 +4,11 @@
 #include "ArduinoJson.h"
 #include "ArduinoLog.h"
 
+#include "lvgl.h"
 #if LVGL_VERSION_MAJOR != 7
 #include "../lv_components.h"
 #endif
-#include "lvgl.h"
-#include "lv_conf.h"
+
 #include "hasp_conf.h"
 
 #include "hasp.h"
@@ -29,7 +29,7 @@ static inline void hasp_out_color(lv_obj_t * obj, const char * attr, lv_color_t 
 static uint16_t sdbm(const char * str)
 {
     uint16_t hash = 0;
-    char     c;
+    char c;
 
     // while(c = *str++) hash = c + (hash << 6) + (hash << 16) - hash;
     while((c = *str++)) {
@@ -205,9 +205,9 @@ static bool attribute_update_lv_property(lv_obj_t * obj, const char * attr_p, ui
 // OK - this function is missing in lvgl
 static uint8_t lv_roller_get_visible_row_count(lv_obj_t * roller)
 {
-    const lv_font_t * font       = lv_obj_get_style_text_font(roller, LV_ROLLER_PART_BG);
-    lv_style_int_t    line_space = lv_obj_get_style_text_line_space(roller, LV_ROLLER_PART_BG);
-    lv_coord_t        h          = lv_obj_get_height(roller);
+    const lv_font_t * font    = lv_obj_get_style_text_font(roller, LV_ROLLER_PART_BG);
+    lv_style_int_t line_space = lv_obj_get_style_text_line_space(roller, LV_ROLLER_PART_BG);
+    lv_coord_t h              = lv_obj_get_height(roller);
 
     if((lv_font_get_line_height(font) + line_space) != 0)
         return (uint8_t)(h / (lv_font_get_line_height(font) + line_space));
@@ -231,7 +231,7 @@ static inline int16_t lv_chart_get_max_value(lv_obj_t * chart)
 
 lv_chart_series_t * lv_chart_get_series(lv_obj_t * chart, uint8_t ser_num)
 {
-    lv_chart_ext_t *    ext = (lv_chart_ext_t *)lv_obj_get_ext_attr(chart);
+    lv_chart_ext_t * ext    = (lv_chart_ext_t *)lv_obj_get_ext_attr(chart);
     lv_chart_series_t * ser = (lv_chart_series_t *)_lv_ll_get_tail(&ext->series_ll);
     while(ser_num > 0 && ser) {
         ser = (lv_chart_series_t *)_lv_ll_get_prev(&ext->series_ll, ser);
@@ -393,6 +393,12 @@ lv_obj_t * FindButtonLabel(lv_obj_t * btn)
 {
     if(btn) {
         lv_obj_t * label = lv_obj_get_child_back(btn, NULL);
+#if LVGL_VERSION_MAJOR != 7
+        if(label) {
+            if(check_obj_type(label, LV_HASP_LABEL)) {
+                return label;
+            }
+#else
         if(label) {
             lv_obj_type_t list;
             lv_obj_get_type(label, &list);
@@ -401,6 +407,7 @@ lv_obj_t * FindButtonLabel(lv_obj_t * btn)
             if(check_obj_type(objtype, LV_HASP_LABEL)) {
                 return label;
             }
+#endif
 
         } else {
             Log.error(TAG_ATTR, F("FindButtonLabel NULL Pointer encountered"));
@@ -430,6 +437,12 @@ static bool haspGetLabelText(lv_obj_t * obj, char * text)
 
     lv_obj_t * label = lv_obj_get_child_back(obj, NULL);
     if(label) {
+#if LVGL_VERSION_MAJOR != 7
+        if(check_obj_type(label, LV_HASP_LABEL)) {
+            text = lv_label_get_text(label);
+            return true;
+        }
+#else
         lv_obj_type_t list;
         lv_obj_get_type(label, &list);
 
@@ -437,6 +450,7 @@ static bool haspGetLabelText(lv_obj_t * obj, char * text)
             text = lv_label_get_text(label);
             return true;
         }
+#endif
 
     } else {
         Log.warning(TAG_ATTR, F("haspGetLabelText NULL Pointer encountered"));
@@ -466,11 +480,11 @@ static void hasp_attribute_get_part_state(lv_obj_t * obj, const char * attr_in, 
     attr_out[len] = 0;
 
     /* Attributes depending on objecttype */
-    lv_obj_type_t list;
-    lv_obj_get_type(obj, &list);
-    const char * objtype = list.type[0];
+    //lv_obj_type_t list;
+    //lv_obj_get_type(obj, &list);
+    //const char * objtype = list.type[0];
 
-    if(check_obj_type(objtype, LV_HASP_BUTTON)) {
+    if(check_obj_type(obj, LV_HASP_BUTTON)) {
         switch(index) {
             case 1:
                 state = LV_BTN_STATE_PRESSED;
@@ -494,7 +508,7 @@ static void hasp_attribute_get_part_state(lv_obj_t * obj, const char * attr_in, 
         return;
     }
 
-    if(check_obj_type(objtype, LV_HASP_BAR)) {
+    if(check_obj_type(obj, LV_HASP_BAR)) {
         if(index == 1) {
             part = LV_BAR_PART_INDIC;
         } else {
@@ -504,7 +518,7 @@ static void hasp_attribute_get_part_state(lv_obj_t * obj, const char * attr_in, 
         return;
     }
 
-    if(check_obj_type(objtype, LV_HASP_CHECKBOX)) {
+    if(check_obj_type(obj, LV_HASP_CHECKBOX)) {
         if(index == 1) {
             part = LV_CHECKBOX_PART_BULLET;
         } else {
@@ -514,7 +528,7 @@ static void hasp_attribute_get_part_state(lv_obj_t * obj, const char * attr_in, 
         return;
     }
 
-    if(check_obj_type(objtype, LV_HASP_CPICKER)) {
+    if(check_obj_type(obj, LV_HASP_CPICKER)) {
         if(index == 1) {
             part = LV_CPICKER_PART_KNOB;
         } else {
@@ -537,7 +551,7 @@ static void hasp_attribute_get_part_state(lv_obj_t * obj, const char * attr_in, 
 static void hasp_local_style_attr(lv_obj_t * obj, const char * attr_p, uint16_t attr_hash, const char * payload,
                                   bool update)
 {
-    char    attr[32];
+    char attr[32];
     uint8_t part  = LV_OBJ_PART_MAIN;
     uint8_t state = LV_STATE_DEFAULT;
     int16_t var   = atoi(payload);
@@ -783,12 +797,12 @@ static void hasp_process_gauge_attribute(lv_obj_t * obj, const char * attr_p, ui
                                          bool update)
 {
     // We already know it's a gauge object
-    int16_t  intval = atoi(payload);
-    uint16_t val    = atoi(payload);
+    int16_t intval = atoi(payload);
+    uint16_t val   = atoi(payload);
 
-    uint8_t  label_count = lv_gauge_get_label_count(obj);
-    uint16_t line_count  = lv_gauge_get_line_count(obj);
-    uint16_t angle       = lv_gauge_get_scale_angle(obj);
+    uint8_t label_count = lv_gauge_get_label_count(obj);
+    uint16_t line_count = lv_gauge_get_line_count(obj);
+    uint16_t angle      = lv_gauge_get_scale_angle(obj);
 
     char * attr = (char *)attr_p;
     if(*attr == '.') attr++; // strip leading '.'
@@ -830,8 +844,8 @@ static void hasp_process_btnmatrix_attribute(lv_obj_t * obj, const char * attr_p
                 // Create new map
 
                 // Reserve memory for JsonDocument
-                size_t               maxsize = (128u * ((strlen(payload) / 128) + 1)) + 256;
-                DynamicJsonDocument  map_doc(maxsize);
+                size_t maxsize = (128u * ((strlen(payload) / 128) + 1)) + 256;
+                DynamicJsonDocument map_doc(maxsize);
                 DeserializationError jsonError = deserializeJson(map_doc, payload);
 
                 if(jsonError) { // Couldn't parse incoming JSON payload
@@ -841,7 +855,7 @@ static void hasp_process_btnmatrix_attribute(lv_obj_t * obj, const char * attr_p
 
                 JsonArray arr = map_doc.as<JsonArray>(); // Parse payload
 
-                size_t        tot_len = sizeof(char *) * (arr.size() + 1);
+                size_t tot_len        = sizeof(char *) * (arr.size() + 1);
                 const char ** map_arr = (const char **)lv_mem_alloc(tot_len);
                 if(map_arr == NULL) {
                     return Log.error(TAG_ATTR, F("Out of memory while creating button map"));
@@ -895,11 +909,11 @@ static void hasp_process_btnmatrix_attribute(lv_obj_t * obj, const char * attr_p
 static void hasp_process_obj_attribute_txt(lv_obj_t * obj, const char * attr, const char * payload, bool update)
 {
     /* Attributes depending on objecttype */
-    lv_obj_type_t list;
-    lv_obj_get_type(obj, &list);
-    const char * objtype = list.type[0];
+    //lv_obj_type_t list;
+    //lv_obj_get_type(obj, &list);
+    //const char * objtype = list.type[0];
 
-    if(check_obj_type(objtype, LV_HASP_BUTTON)) {
+    if(check_obj_type(obj, LV_HASP_BUTTON)) {
         if(update) {
             haspSetLabelText(obj, payload);
         } else {
@@ -908,40 +922,43 @@ static void hasp_process_obj_attribute_txt(lv_obj_t * obj, const char * attr, co
         }
         return;
     }
-    if(check_obj_type(objtype, LV_HASP_LABEL)) {
+    if(check_obj_type(obj, LV_HASP_LABEL)) {
         return update ? lv_label_set_text(obj, payload) : hasp_out_str(obj, attr, lv_label_get_text(obj));
     }
-    if(check_obj_type(objtype, LV_HASP_CHECKBOX)) {
+    if(check_obj_type(obj, LV_HASP_CHECKBOX)) {
         return update ? lv_checkbox_set_text(obj, payload) : hasp_out_str(obj, attr, lv_checkbox_get_text(obj));
     }
-    if(check_obj_type(objtype, LV_HASP_DDLIST)) {
+    if(check_obj_type(obj, LV_HASP_DDLIST)) {
         char buffer[128];
         lv_dropdown_get_selected_str(obj, buffer, sizeof(buffer));
         return hasp_out_str(obj, attr, buffer);
     }
-    if(check_obj_type(objtype, LV_HASP_ROLLER)) {
+    if(check_obj_type(obj, LV_HASP_ROLLER)) {
         char buffer[128];
         lv_roller_get_selected_str(obj, buffer, sizeof(buffer));
         return hasp_out_str(obj, attr, buffer);
     }
-    if(check_obj_type(objtype, LV_HASP_WINDOW)) {
-        return update ? lv_win_set_title(obj, payload) : hasp_out_str(obj, attr, lv_win_get_title(obj));
+#if LV_USE_WIN != 0
+    if(check_obj_type(obj, LV_HASP_WINDOW)) {
+        // return update ? lv_win_set_title(obj, (const char *)payload) : hasp_out_str(obj, attr,
+        // lv_win_get_title(obj));
     }
+#endif
 
     Log.warning(TAG_ATTR, F("Unknown property %s"), attr);
 }
 
 static void hasp_process_obj_attribute_val(lv_obj_t * obj, const char * attr, const char * payload, bool update)
 {
-    int16_t  intval = atoi(payload);
-    uint16_t val    = atoi(payload);
+    int16_t intval = atoi(payload);
+    uint16_t val   = atoi(payload);
 
     /* Attributes depending on objecttype */
-    lv_obj_type_t list;
-    lv_obj_get_type(obj, &list);
-    const char * objtype = list.type[0];
+    //lv_obj_type_t list;
+    //lv_obj_get_type(obj, &list);
+    //const char * objtype = list.type[0];
 
-    if(check_obj_type(objtype, LV_HASP_BUTTON) && lv_btn_get_checkable(obj)) {
+    if(check_obj_type(obj, LV_HASP_BUTTON) && lv_btn_get_checkable(obj)) {
         if(update) {
             lv_btn_state_t state;
             switch(val) {
@@ -975,45 +992,45 @@ static void hasp_process_obj_attribute_val(lv_obj_t * obj, const char * attr, co
         }
     }
 
-    if(check_obj_type(objtype, LV_HASP_CHECKBOX)) {
+    if(check_obj_type(obj, LV_HASP_CHECKBOX)) {
         return update ? lv_checkbox_set_checked(obj, is_true(payload))
                       : hasp_out_int(obj, attr, lv_checkbox_is_checked(obj));
     }
-    if(check_obj_type(objtype, LV_HASP_SWITCH)) {
+    if(check_obj_type(obj, LV_HASP_SWITCH)) {
         if(update) {
             return is_true(payload) ? lv_switch_on(obj, LV_ANIM_ON) : lv_switch_off(obj, LV_ANIM_ON);
         } else {
             return hasp_out_int(obj, attr, lv_switch_get_state(obj));
         }
 
-    } else if(check_obj_type(objtype, LV_HASP_DDLIST)) {
+    } else if(check_obj_type(obj, LV_HASP_DDLIST)) {
         lv_dropdown_set_selected(obj, val);
         return;
 
-    } else if(check_obj_type(objtype, LV_HASP_LMETER)) {
+    } else if(check_obj_type(obj, LV_HASP_LMETER)) {
         return update ? lv_linemeter_set_value(obj, intval) : hasp_out_int(obj, attr, lv_linemeter_get_value(obj));
 
-    } else if(check_obj_type(objtype, LV_HASP_SLIDER)) {
+    } else if(check_obj_type(obj, LV_HASP_SLIDER)) {
         return update ? lv_slider_set_value(obj, intval, LV_ANIM_ON)
                       : hasp_out_int(obj, attr, lv_slider_get_value(obj));
 
-    } else if(check_obj_type(objtype, LV_HASP_LED)) {
+    } else if(check_obj_type(obj, LV_HASP_LED)) {
         return update ? lv_led_set_bright(obj, (uint8_t)val) : hasp_out_int(obj, attr, lv_led_get_bright(obj));
 
-    } else if(check_obj_type(objtype, LV_HASP_ARC)) {
+    } else if(check_obj_type(obj, LV_HASP_ARC)) {
         return update ? lv_arc_set_value(obj, intval) : hasp_out_int(obj, attr, lv_arc_get_value(obj));
 
-    } else if(check_obj_type(objtype, LV_HASP_GAUGE)) {
+    } else if(check_obj_type(obj, LV_HASP_GAUGE)) {
         return update ? lv_gauge_set_value(obj, 0, intval) : hasp_out_int(obj, attr, lv_gauge_get_value(obj, 0));
 
-    } else if(check_obj_type(objtype, LV_HASP_ROLLER)) {
+    } else if(check_obj_type(obj, LV_HASP_ROLLER)) {
         lv_roller_set_selected(obj, val, LV_ANIM_ON);
         return;
 
-    } else if(check_obj_type(objtype, LV_HASP_BAR)) {
+    } else if(check_obj_type(obj, LV_HASP_BAR)) {
         return update ? lv_bar_set_value(obj, intval, LV_ANIM_ON) : hasp_out_int(obj, attr, lv_bar_get_value(obj));
 
-    } else if(check_obj_type(objtype, LV_HASP_CPICKER)) {
+    } else if(check_obj_type(obj, LV_HASP_CPICKER)) {
         return update ? (void)lv_cpicker_set_color(obj, haspPayloadToColor(payload))
                       : hasp_out_color(obj, attr, lv_cpicker_get_color(obj));
     }
@@ -1029,11 +1046,11 @@ static void hasp_process_obj_attribute_range(lv_obj_t * obj, const char * attr, 
     int32_t val32 = strtol(payload, nullptr, DEC);
 
     /* Attributes depending on objecttype */
-    lv_obj_type_t list;
-    lv_obj_get_type(obj, &list);
-    const char * objtype = list.type[0];
+    //lv_obj_type_t list;
+    //lv_obj_get_type(obj, &list);
+    //const char * objtype = list.type[0];
 
-    if(check_obj_type(objtype, LV_HASP_SLIDER)) {
+    if(check_obj_type(obj, LV_HASP_SLIDER)) {
         int16_t min = lv_slider_get_min_value(obj);
         int16_t max = lv_slider_get_max_value(obj);
         if(update && (set_min ? val : min) >= (set_max ? val : max)) return; // prevent setting min>=max
@@ -1041,7 +1058,7 @@ static void hasp_process_obj_attribute_range(lv_obj_t * obj, const char * attr, 
                       : hasp_out_int(obj, attr, set_min ? min : max);
     }
 
-    if(check_obj_type(objtype, LV_HASP_GAUGE)) {
+    if(check_obj_type(obj, LV_HASP_GAUGE)) {
         int32_t min = lv_gauge_get_min_value(obj);
         int32_t max = lv_gauge_get_max_value(obj);
         if(update && (set_min ? val32 : min) >= (set_max ? val32 : max)) return; // prevent setting min>=max
@@ -1049,7 +1066,7 @@ static void hasp_process_obj_attribute_range(lv_obj_t * obj, const char * attr, 
                       : hasp_out_int(obj, attr, set_min ? min : max);
     }
 
-    if(check_obj_type(objtype, LV_HASP_ARC)) {
+    if(check_obj_type(obj, LV_HASP_ARC)) {
         int16_t min = lv_arc_get_min_value(obj);
         int16_t max = lv_arc_get_max_value(obj);
         if(update && (set_min ? val : min) >= (set_max ? val : max)) return; // prevent setting min>=max
@@ -1057,7 +1074,7 @@ static void hasp_process_obj_attribute_range(lv_obj_t * obj, const char * attr, 
                       : hasp_out_int(obj, attr, set_min ? min : max);
     }
 
-    if(check_obj_type(objtype, LV_HASP_BAR)) {
+    if(check_obj_type(obj, LV_HASP_BAR)) {
         int16_t min = lv_bar_get_min_value(obj);
         int16_t max = lv_bar_get_max_value(obj);
         if(update && (set_min ? val : min) >= (set_max ? val : max)) return; // prevent setting min>=max
@@ -1065,7 +1082,7 @@ static void hasp_process_obj_attribute_range(lv_obj_t * obj, const char * attr, 
                       : hasp_out_int(obj, attr, set_min ? min : max);
     }
 
-    if(check_obj_type(objtype, LV_HASP_LMETER)) {
+    if(check_obj_type(obj, LV_HASP_LMETER)) {
         int32_t min = lv_linemeter_get_min_value(obj);
         int32_t max = lv_linemeter_get_max_value(obj);
         if(update && (set_min ? val32 : min) >= (set_max ? val32 : max)) return; // prevent setting min>=max
@@ -1073,7 +1090,7 @@ static void hasp_process_obj_attribute_range(lv_obj_t * obj, const char * attr, 
                       : hasp_out_int(obj, attr, set_min ? min : max);
     }
 
-    if(check_obj_type(objtype, LV_HASP_CHART)) {
+    if(check_obj_type(obj, LV_HASP_CHART)) {
         int16_t min = lv_chart_get_min_value(obj);
         int16_t max = lv_chart_get_max_value(obj);
         if(update && (set_min ? val : min) >= (set_max ? val : max)) return; // prevent setting min>=max

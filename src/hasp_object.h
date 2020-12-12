@@ -53,7 +53,7 @@ void hasp_new_object(const JsonObject & config, uint8_t & saved_page_id);
 lv_obj_t * hasp_find_obj_from_parent_id(lv_obj_t * parent, uint8_t objid);
 // lv_obj_t * hasp_find_obj_from_page_id(uint8_t pageid, uint8_t objid);
 bool hasp_find_id_from_obj(lv_obj_t * obj, uint8_t * pageid, uint8_t * objid);
-bool check_obj_type(const char * lvobjtype, lv_hasp_obj_type_t haspobjtype);
+bool check_obj_type_str(const char * lvobjtype, lv_hasp_obj_type_t haspobjtype);
 bool check_obj_type(lv_obj_t * obj, lv_hasp_obj_type_t haspobjtype);
 void hasp_object_tree(lv_obj_t * parent, uint8_t pageid, uint16_t level);
 

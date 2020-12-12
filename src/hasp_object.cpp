@@ -85,7 +85,7 @@ bool hasp_find_id_from_obj(lv_obj_t * obj, uint8_t * pageid, uint8_t * objid)
  * @return true or false wether the types match
  * @note
  */
-bool check_obj_type(const char * lvobjtype, lv_hasp_obj_type_t haspobjtype)
+bool check_obj_type_str(const char * lvobjtype, lv_hasp_obj_type_t haspobjtype)
 {
     lvobjtype += 3; // skip "lv_"
 
@@ -161,10 +161,14 @@ bool check_obj_type(const char * lvobjtype, lv_hasp_obj_type_t haspobjtype)
  */
 bool check_obj_type(lv_obj_t * obj, lv_hasp_obj_type_t haspobjtype)
 {
+#if LVGL_VERSION_MAJOR != 7
+    return obj->user_data.objid == (uint8_t)haspobjtype;
+#else
     lv_obj_type_t list;
     lv_obj_get_type(obj, &list);
     const char * objtype = list.type[0];
     return check_obj_type(objtype, haspobjtype);
+#endif
 }
 
 void hasp_object_tree(lv_obj_t * parent, uint8_t pageid, uint16_t level)
@@ -515,7 +519,11 @@ void hasp_new_object(const JsonObject & config, uint8_t & saved_page_id)
             obj = lv_btn_create(parent_obj, NULL);
             if(obj) {
                 lv_obj_t * lbl = lv_label_create(obj, NULL);
-                if(lbl) lv_label_set_text(lbl, "");
+                if(lbl) {
+                    lv_label_set_text(lbl, "");
+                    lbl->user_data.objid = LV_HASP_LABEL;
+                    lv_obj_align(lbl, NULL, LV_ALIGN_CENTER, 0, 0);
+                }
                 lv_obj_set_event_cb(obj, btn_event_handler);
             }
             break;
@@ -638,7 +646,7 @@ void hasp_new_object(const JsonObject & config, uint8_t & saved_page_id)
 #endif
         /* ----- Range Objects ------ */
         case LV_HASP_SLIDER: {
-            // obj = lv_slider_create(parent_obj, NULL);
+             obj = lv_slider_create(parent_obj, NULL);
             if(obj) {
                 lv_slider_set_range(obj, 0, 100);
                 lv_obj_set_event_cb(obj, slider_event_handler);
@@ -731,8 +739,8 @@ void hasp_new_object(const JsonObject & config, uint8_t & saved_page_id)
     /* id tag the object */
     // lv_obj_set_user_data(obj, id);
     obj->user_data.id      = id;
-    obj->user_data.objid   = objid & 0b11111;
-    obj->user_data.groupid = groupid & 0b111;
+    obj->user_data.objid   = objid;   //& 0b11111;
+    obj->user_data.groupid = groupid; // & 0b111;
 
     /* do not process these attributes */
     config.remove(F("page"));

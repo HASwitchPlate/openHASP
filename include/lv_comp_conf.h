@@ -20,6 +20,8 @@
 #define LV_USE_KEYBOARD     1
 
 #define LV_USE_LED          1
+#define LV_LED_BRIGHT_MIN   0
+#define LV_LED_BRIGHT_MAX   255
 
 #define LV_USE_LIST         1
 
