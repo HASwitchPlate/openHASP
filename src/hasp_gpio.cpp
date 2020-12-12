@@ -81,7 +81,7 @@ static void gpio_event_handler(AceButton * button, uint8_t eventType, uint8_t bu
             eventid = HASP_EVENT_LOST;
             memcpy_P(buffer, PSTR("UNKNOWN"), sizeof(buffer));
     }
-    dispatch_button(button->getId(), buffer);
+    dispatch_button(gpioConfig[button->getId()].group, buffer);
     dispatch_send_group_event(gpioConfig[button->getId()].group, eventid, true);
 }
 
@@ -183,37 +183,14 @@ void gpioSetup()
 {
     aceButtonSetup();
 
-    // return;
-
-#if defined(ARDUINO_ARCH_ESP8266)
-    gpioAddButton(D2, INPUT_PULLUP, HIGH, 1);
-    pinMode(D1, OUTPUT);
-#endif
-
-#if defined(ARDUINO_ARCH_ESP32)
-    // gpioAddButton( D2, INPUT, HIGH, 1);
-    // pinMode(D1, OUTPUT);
-#endif
-
-    /*
-    #if defined(ARDUINO_ARCH_ESP8266)
-        pinMode(D1, OUTPUT);
-        pinMode(D2, INPUT_PULLUP);
-    #endif
-    #if defined(STM32F4xx)
-        pinMode(HASP_OUTPUT_PIN, OUTPUT);
-        pinMode(HASP_INPUT_PIN, INPUT);
-    #endif
-    */
-
     for(uint8_t i = 0; i < HASP_NUM_GPIO_CONFIG; i++) {
         uint8_t input_mode;
         switch(gpioConfig[i].gpio_function) {
             case OUTPUT:
                 input_mode = OUTPUT;
                 break;
-            case INPUT_PULLUP:
-                input_mode = INPUT_PULLUP;
+            case INPUT:
+                input_mode = INPUT;
                 break;
 #ifndef ARDUINO_ARCH_ESP8266
             case INPUT_PULLDOWN:
@@ -221,7 +198,7 @@ void gpioSetup()
                 break;
 #endif
             default:
-                input_mode = INPUT;
+                input_mode = INPUT_PULLUP;
         }
 
         switch(gpioConfig[i].type) {
