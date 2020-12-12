@@ -469,7 +469,8 @@ void hasp_process_attribute(uint8_t pageid, uint8_t objid, const char * attr, co
 void hasp_new_object(const JsonObject & config, uint8_t & saved_page_id)
 {
     /* Validate page */
-    uint8_t pageid = config[F("page")].isNull() ? haspGetPage() : config[F("page")].as<uint8_t>();
+    // uint8_t pageid = config[F("page")].isNull() ? haspGetPage() : config[F("page")].as<uint8_t>();
+    uint8_t pageid = config[F("page")].isNull() ? saved_page_id : config[F("page")].as<uint8_t>();
 
     /* Page selection */
     lv_obj_t * page = get_page_obj(pageid);
@@ -646,7 +647,7 @@ void hasp_new_object(const JsonObject & config, uint8_t & saved_page_id)
 #endif
         /* ----- Range Objects ------ */
         case LV_HASP_SLIDER: {
-             obj = lv_slider_create(parent_obj, NULL);
+            obj = lv_slider_create(parent_obj, NULL);
             if(obj) {
                 lv_slider_set_range(obj, 0, 100);
                 lv_obj_set_event_cb(obj, slider_event_handler);

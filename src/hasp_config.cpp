@@ -346,7 +346,7 @@ void configWriteConfig()
 
 void configSetup()
 {
-    DynamicJsonDocument settings(1024 + 128);
+    DynamicJsonDocument settings(1024 + 512);
 
     for(uint8_t i = 0; i < 2; i++) {
         Serial.print(__FILE__);
