@@ -146,6 +146,7 @@ String getOption(int value, String label, bool selected)
                (selected ? PSTR(" selected") : ""), label.c_str());
     return buffer;
 }
+
 String getOption(String value, String label, bool selected)
 {
     char buffer[128];
@@ -153,6 +154,7 @@ String getOption(String value, String label, bool selected)
                (selected ? PSTR(" selected") : ""), label.c_str());
     return buffer;
 }
+
 void webSendFooter()
 {
     char buffer[16];
@@ -179,7 +181,7 @@ void webSendPage(char * nodename, uint32_t httpdatalength, bool gohome = false)
         /* Calculate Content Length upfront */
         uint16_t contentLength = strlen(buffer); // verion length
         contentLength += sizeof(HTTP_DOCTYPE) - 1;
-        contentLength += sizeof(HTTP_HEADER) - 1 - 2 + strlen(nodename);
+        contentLength += sizeof(HTTP_HEADER) - 1 - 2 + strlen(nodename); // -2 for %s
         contentLength += sizeof(HTTP_SCRIPT) - 1;
         contentLength += sizeof(HTTP_STYLE) - 1;
         contentLength += sizeof(HASP_STYLE) - 1;
@@ -1090,14 +1092,15 @@ void webHandleGuiConfig()
         httpMessage += F("<p><b>Backlight Control</b> <select id='bcklpin' name='bcklpin'>");
         httpMessage += getOption(-1, F("None"), bcklpin == -1);
 #if defined(ARDUINO_ARCH_ESP32)
-        httpMessage += getOption(5, F("GPIO 5"), bcklpin == 5);
+        httpMessage += getOption(5, F("GPIO 5"), bcklpin == 5);    // D8 on ESP32 for D1 mini 32
         httpMessage += getOption(16, F("GPIO 16"), bcklpin == 16); // D4 on ESP32 for D1 mini 32
-        httpMessage += getOption(17, F("GPIO 17"), bcklpin == 17);
-        httpMessage += getOption(18, F("GPIO 18"), bcklpin == 18);
-        httpMessage += getOption(19, F("GPIO 19"), bcklpin == 19);
-        httpMessage += getOption(21, F("GPIO 21"), bcklpin == 21);
-        httpMessage += getOption(22, F("GPIO 22"), bcklpin == 22);
-        httpMessage += getOption(23, F("GPIO 23"), bcklpin == 23);
+        httpMessage += getOption(17, F("GPIO 17"), bcklpin == 17); // D3 on ESP32 for D1 mini 32
+        httpMessage += getOption(18, F("GPIO 18"), bcklpin == 18); // D5 on ESP32 for D1 mini 32
+        httpMessage += getOption(19, F("GPIO 19"), bcklpin == 19); // D6 on ESP32 for D1 mini 32
+        httpMessage += getOption(21, F("GPIO 21"), bcklpin == 21); // D1 on ESP32 for D1 mini 32
+        httpMessage += getOption(22, F("GPIO 22"), bcklpin == 22); // D2 on ESP32 for D1 mini 32
+        httpMessage += getOption(23, F("GPIO 23"), bcklpin == 23); // D7 on ESP32 for D1 mini 32
+        httpMessage += getOption(32, F("GPIO 32"), bcklpin == 32); // TFT_LED on the Lolin D32 Pro
 #else
         httpMessage += getOption(5, F("D1 - GPIO 5"), bcklpin == 5);
         httpMessage += getOption(4, F("D2 - GPIO 4"), bcklpin == 4);
@@ -1216,9 +1219,9 @@ void webHandleGpioConfig()
 
     if(webServer.hasArg(PSTR("save"))) {
         uint8_t id      = webServer.arg(F("id")).toInt();
-        uint8_t pin     = webServer.arg(F("pin")).toInt() + webServer.arg(F("state")).toInt();
-        uint8_t type    = webServer.arg(F("type")).toInt();
-        uint8_t group   = webServer.arg(F("chan")).toInt();
+        uint8_t pin     = webServer.arg(F("pin")).toInt();
+        uint8_t type    = webServer.arg(F("type")).toInt() + webServer.arg(F("state")).toInt();
+        uint8_t group   = webServer.arg(F("group")).toInt();
         uint8_t pinfunc = webServer.arg(F("func")).toInt();
         gpioSavePinConfig(id, pin, type, group, pinfunc);
     }
@@ -1269,7 +1272,18 @@ void webHandleGpioConfig()
 
                     httpMessage += F("</td><td>");
                     httpMessage += conf.group;
-                    httpMessage += F("</td><td>Low</td><td><a href='/config/gpio/options?id=");
+                    httpMessage += F("</td><td>");
+
+                    bool inverted = (conf.type == HASP_GPIO_BUTTON_INVERTED) ||
+                                    (conf.type == HASP_GPIO_SWITCH_INVERTED) || (conf.type == HASP_GPIO_LED_INVERTED) ||
+                                    (conf.type == HASP_GPIO_RELAY_INVERTED) || (conf.type == HASP_GPIO_PWM_INVERTED);
+                    if(inverted) {
+                        httpMessage += F("High");
+                    } else {
+                        httpMessage += F("Low");
+                    }
+
+                    httpMessage += F("</td><td><a href='/config/gpio/options?id=");
                     httpMessage += id;
                     httpMessage += ("'>Edit</a> <a href='/config/gpio?save=&id=");
                     httpMessage += id;
@@ -1356,18 +1370,18 @@ void webHandleGpioOptions()
         }
         httpMessage += F("</select></p>");
 
-        httpMessage += F("<p><b>Channel</b> <select id='chan' name='chan'>");
+        httpMessage += F("<p><b>Group</b> <select id='group' name='group'>");
         for(uint8_t i = 0; i < 15; i++) {
-            httpMessage += getOption(i, "Channel " + String(i), i == conf.group);
+            httpMessage += getOption(i, "Group " + String(i), i == conf.group);
         }
         httpMessage += F("</select></p>");
 
         httpMessage += F("<p><b>Default State</b> <select id='state' name='state'>");
-        selected = (conf.type == HASP_GPIO_BUTTON_INVERTED) || (conf.type == HASP_GPIO_SWITCH_INVERTED) ||
-                   (conf.type == HASP_GPIO_LED_INVERTED) || (conf.type == HASP_GPIO_RELAY_INVERTED) ||
-                   (conf.type == HASP_GPIO_PWM_INVERTED);
-        httpMessage += getOption(0, F("High"), !selected);
-        httpMessage += getOption(1, F("Low"), selected);
+        bool inverted = (conf.type == HASP_GPIO_BUTTON_INVERTED) || (conf.type == HASP_GPIO_SWITCH_INVERTED) ||
+                        (conf.type == HASP_GPIO_LED_INVERTED) || (conf.type == HASP_GPIO_RELAY_INVERTED) ||
+                        (conf.type == HASP_GPIO_PWM_INVERTED);
+        httpMessage += getOption(1, F("High"), inverted);
+        httpMessage += getOption(0, F("Low"), !inverted);
         httpMessage += F("</select></p>");
 
         httpMessage += F("<p><button type='submit' name='save' value='gpio'>Save Settings</button></p></form>");

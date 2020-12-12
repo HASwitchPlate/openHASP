@@ -58,12 +58,13 @@ void IRAM_ATTR networkLoop(void)
 bool networkEvery5Seconds(void)
 {
 #if HASP_USE_ETHERNET > 0
-    ethernetEvery5Seconds();
+    return ethernetEvery5Seconds();
 #endif
 
 #if HASP_USE_WIFI > 0
-    wifiEvery5Seconds();
+    return wifiEvery5Seconds();
 #endif
+    return false;
 }
 
 bool networkEverySecond(void)
@@ -75,6 +76,7 @@ bool networkEverySecond(void)
 #if HASP_USE_WIFI > 0
     // return wifiEverySecond();
 #endif
+return true;
 }
 
 #endif

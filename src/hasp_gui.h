@@ -24,11 +24,12 @@ void guiTakeScreenshot(const char * pFileName); // to file
 void guiTakeScreenshot();                       // webclient
 
 /* ===== Getter and Setter Functions ===== */
+void guiWakeUp(void);
 void guiSetDim(int8_t level);
 int8_t guiGetDim(void);
 void guiSetBacklight(bool lighton);
 bool guiGetBacklight();
-bool guiCheckSleep();
+bool IRAM_ATTR guiCheckSleep();
 
 /* ===== Read/Write Configuration ===== */
 bool guiGetConfig(const JsonObject & settings);

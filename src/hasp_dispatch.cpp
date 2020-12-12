@@ -66,21 +66,11 @@ bool dispatch_factory_reset()
     return formated && erased;
 }
 
-void dispatchGpioOutput(int output, bool state)
+void dispatchGpioOutput(int groupid, bool state)
 {
-    int pin = 0;
-
-    if(pin >= 0) {
-        Log.notice(TAG_MSGR, F("PIN OUTPUT STATE %d"), state);
-
-#if defined(ARDUINO_ARCH_ESP32)
-        ledcWrite(99, state ? 1023 : 0); // ledChannel and value
-#elif defined(STM32F4xx)
-        digitalWrite(HASP_OUTPUT_PIN, state);
-#else
-        digitalWrite(D1, state);
-        // analogWrite(pin, state ? 1023 : 0);
-#endif
+    if(groupid >= 0) {
+        Log.notice(TAG_MSGR, F("GROUP %d OUTPUT STATE %d"), groupid, state);
+        gpio_set_group_outputs(groupid, state ? HASP_EVENT_ON : HASP_EVENT_OFF);
     }
 }
 
@@ -88,7 +78,7 @@ void dispatchGpioOutput(String strTopic, const char * payload)
 {
     String strTemp((char *)0);
     strTemp.reserve(128);
-    strTemp = strTopic.substring(7, strTopic.length());
+    strTemp = strTopic.substring(6, strTopic.length());
     dispatchGpioOutput(strTemp.toInt(), is_true(payload));
 }
 
@@ -241,18 +231,31 @@ void dispatch_text_line(const char * cmnd)
 }
 
 // send idle state to the client
-void dispatch_output_idle_state(const char * state)
+void dispatch_output_idle_state(uint8_t state)
 {
+    char buffer[6];
+
+    switch(state) {
+        case HASP_SLEEP_LONG:
+            memcpy_P(buffer, PSTR("LONG"), sizeof(buffer));
+            break;
+        case HASP_SLEEP_SHORT:
+            memcpy_P(buffer, PSTR("SHORT"), sizeof(buffer));
+            break;
+        default:
+            memcpy_P(buffer, PSTR("OFF"), sizeof(buffer));
+    }
+
 #if !defined(HASP_USE_MQTT) && !defined(HASP_USE_TASMOTA_SLAVE)
-    Log.notice(TAG_MSGR, F("idle = %s"), state);
+    Log.notice(TAG_MSGR, F("idle = %s"), buffer);
 #else
 
 #if HASP_USE_MQTT > 0
-    mqtt_send_state(F("idle"), state);
+    mqtt_send_state(F("idle"), buffer);
 #endif
 
 #if HASP_USE_TASMOTA_SLAVE > 0
-    slave_send_state(F("idle"), state);
+    slave_send_state(F("idle"), buffer);
 #endif
 
 #endif
@@ -708,7 +711,7 @@ void dispatch_calibrate(const char *, const char *)
 
 void dispatch_wakeup(const char *, const char *)
 {
-    haspWakeUp();
+    guiWakeUp();
 }
 
 void dispatch_reboot(const char *, const char *)

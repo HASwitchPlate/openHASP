@@ -74,16 +74,16 @@
 #endif
 
 #ifndef HASP_NUM_GPIO_CONFIG
-#define HASP_NUM_GPIO_CONFIG 5
+#define HASP_NUM_GPIO_CONFIG 8
 #endif
 
 #ifndef HASP_NUM_INPUTS
-#define HASP_NUM_INPUTS 3 // Buttons
+#define HASP_NUM_INPUTS 4 // Number of ACE Buttons
 #endif
 
-#ifndef HASP_NUM_OUTPUTS
-#define HASP_NUM_OUTPUTS 3
-#endif
+// #ifndef HASP_NUM_OUTPUTS
+// #define HASP_NUM_OUTPUTS 3
+// #endif
 
 #ifndef HASP_NUM_PAGES
 #if defined(ARDUINO_ARCH_ESP8266)

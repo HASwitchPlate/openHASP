@@ -2,10 +2,10 @@
    For full license information read the LICENSE file in the project folder */
 
 #if defined(ARDUINO_ARCH_ESP8266) || defined(ARDUINO_ARCH_ESP32)
+
 #include <Arduino.h>
 #include <ArduinoOTA.h>
 #include "ArduinoJson.h"
-#include "ArduinoLog.h"
 
 #include "hasp_conf.h"
 
@@ -98,7 +98,6 @@ void otaSetup(void)
             Log.error(TAG_OTA, F("%s failed (%s)"), buffer, error);
             haspProgressMsg(F("ESP OTA FAILED"));
             // delay(5000);
-            // haspSendCmd("page " + String(nextionActivePage));
         });
 
 #if HASP_USE_MQTT > 0
@@ -154,30 +153,27 @@ void otaHttpUpdate(const char * espOtaUrl)
     HTTPUpdate httpUpdate;
 #endif
 
-    httpUpdate.rebootOnUpdate(false);
+    httpUpdate.rebootOnUpdate(false); // We do that ourselves
     t_httpUpdate_return returnCode = httpUpdate.update(otaClient, espOtaUrl);
 
     switch(returnCode) {
         case HTTP_UPDATE_FAILED:
             Log.error(TAG_FWUP, F("HTTP_UPDATE_FAILED error %i %s"), httpUpdate.getLastError(),
                       httpUpdate.getLastErrorString().c_str());
-            // nextionSetAttr("p[0].b[1].txt", "\"HTTP Update\\rFAILED\"");
             break;
 
         case HTTP_UPDATE_NO_UPDATES:
             Log.notice(TAG_FWUP, F("HTTP_UPDATE_NO_UPDATES"));
-            // nextionSetAttr("p[0].b[1].txt", "\"HTTP Update\\rNo update\"");
             break;
 
         case HTTP_UPDATE_OK:
             Log.notice(TAG_FWUP, F("HTTP_UPDATE_OK"));
-            // nextionSetAttr("p[0].b[1].txt", "\"HTTP Update\\rcomplete!\\r\\rRestarting.\"");
             dispatch_reboot(true);
     }
 
 #if HASP_USE_MDNS > 0
     mdnsStart();
-#endif
-    // nextionSendCmd("page " + String(nextionActivePage));
+#endif // HASP_USE_MDNS
 }
-#endif
+
+#endif // ARDUINO_ARCH_ESP8266 || ARDUINO_ARCH_ESP32

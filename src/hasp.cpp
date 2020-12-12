@@ -42,39 +42,16 @@
  **********************/
 // void hasp_background(uint16_t pageid, uint16_t imageid);
 
+/**********************
+ *  STATIC VARIABLES
+ **********************/
 #if LV_USE_ANIMATION
 // static void kb_hide_anim_end(lv_anim_t * a);
 #endif
 
-/**********************
- *  STATIC VARIABLES
- **********************/
-uint8_t haspStartDim   = 100;
-uint8_t haspStartPage  = 0;
-uint8_t haspThemeId    = 2;
-uint16_t haspThemeHue  = 200;
-char haspPagesPath[32] = "/pages.jsonl";
-char haspZiFontPath[32];
-
-lv_style_t style_mbox_bg; /*Black bg. style with opacity*/
-lv_obj_t * kb;
-// lv_font_t * defaultFont;
-
 #if LV_DEMO_WALLPAPER
 LV_IMG_DECLARE(img_bubble_pattern)
 #endif
-
-/*
-static const char * btnm_map1[] = {" ", "\n", " ", "\n", " ", "\n", " ", "\n", "P1", "P2", "P3", ""};
-
-static const char * btnm_map2[] = {"0",  "1", "\n", "2",  "3",  "\n", "4",  "5",
-                                   "\n", "6", "7",  "\n", "P1", "P2", "P3", ""};
-*/
-
-lv_obj_t * pages[HASP_NUM_PAGES];
-static lv_font_t * haspFonts[4] = {nullptr, LV_THEME_DEFAULT_FONT_NORMAL, LV_THEME_DEFAULT_FONT_SUBTITLE,
-                                   LV_THEME_DEFAULT_FONT_TITLE};
-uint8_t current_page            = 0;
 
 /**********************
  *      MACROS
@@ -86,6 +63,23 @@ uint8_t current_page            = 0;
 void haspLoadPage(const char * pages);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+
+uint8_t haspStartDim   = 100;
+uint8_t haspStartPage  = 0;
+uint8_t haspThemeId    = 2;
+uint16_t haspThemeHue  = 200;
+char haspPagesPath[32] = "/pages.jsonl";
+char haspZiFontPath[32];
+
+lv_style_t style_mbox_bg; /*Black bg. style with opacity*/
+lv_obj_t * kb;
+// lv_font_t * defaultFont;
+
+lv_obj_t * pages[HASP_NUM_PAGES];
+static lv_font_t * haspFonts[4] = {nullptr, LV_THEME_DEFAULT_FONT_NORMAL, LV_THEME_DEFAULT_FONT_SUBTITLE,
+                                   LV_THEME_DEFAULT_FONT_TITLE};
+uint8_t current_page            = 0;
+
 /**
  * Get Font ID
  */
@@ -136,13 +130,6 @@ bool get_page_id(lv_obj_t * obj, uint8_t * pageid)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/**
- * WakeUp the display using a command instead of touch
- */
-void haspWakeUp()
-{
-    lv_disp_trig_activity(NULL);
-}
 
 void haspDisconnect()
 {
@@ -187,7 +174,7 @@ void haspReconnect()
 void haspProgressVal(uint8_t val)
 {
     lv_obj_t * layer = lv_disp_get_layer_sys(NULL);
-    lv_obj_t * bar   = hasp_find_obj_from_id(255, 10);
+    lv_obj_t * bar   = hasp_find_obj_from_parent_id(get_page_obj(255), (uint8_t)10);
     if(layer && bar) {
         if(val == 255) {
             if(!lv_obj_get_hidden(bar)) {
@@ -212,7 +199,7 @@ void haspProgressVal(uint8_t val)
 // Sets the value string of the global progress bar
 void haspProgressMsg(const char * msg)
 {
-    lv_obj_t * bar = hasp_find_obj_from_id(255, 10);
+    lv_obj_t * bar = hasp_find_obj_from_parent_id(get_page_obj(255), (uint8_t)10);
 
     char value_str[10];
     snprintf_P(value_str, sizeof(value_str), PSTR("value_str"));
@@ -399,9 +386,8 @@ void haspSetup()
     } else {
         Log.error(TAG_HASP, F("Theme could not be loaded"));
     }
-    // lv_theme_set_current(th);
-    /* ********** Theme Initializations ********** */
 
+    /* ********** Theme Initializations ********** */
     // lv_style_list_t * list;
     // static lv_style_t pagefont;
     // lv_style_init(&pagefont);
@@ -425,14 +411,6 @@ void haspSetup()
 
     haspLoadPage(haspPagesPath);
     haspSetPage(haspStartPage);
-
-    // lv_obj_t * obj = lv_btn_create(pages[0], NULL);
-    // lv_obj_set_size(obj, 100, 100);
-    // lv_obj_set_user_data(obj, (lv_obj_user_data_t)15);
-    // /* lv_obj_t * label ; */
-    // lv_label_create(obj, NULL);
-    // // haspSetOpacity(obj, LV_OPA_COVER);
-    // lv_obj_set_event_cb(obj, btn_event_handler);
 }
 
 /**********************
@@ -493,13 +471,9 @@ void hasp_background(uint16_t pageid, uint16_t imageid)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 void haspGetVersion(char * version, size_t len)
 {
-    // char buffer[16];
     snprintf_P(version, len, "%u.%u.%u", HASP_VERSION_MAJOR, HASP_VERSION_MINOR, HASP_VERSION_REVISION);
-    // return buffer;
 }
 
 void haspClearPage(uint16_t pageid)
@@ -539,13 +513,14 @@ void haspSetPage(uint8_t pageid)
     }
 }
 
+// TODO make this a recursicee function
 void hasp_set_group_objects(uint8_t groupid, uint8_t eventid, lv_obj_t * src_obj)
 {
     bool state = dispatch_get_event_state(eventid);
     for(uint8_t page = 0; page < HASP_NUM_PAGES; page++) {
         uint8_t startid = 100 + groupid * 10; // groups start at id 100
         for(uint8_t objid = startid; objid < (startid + 10); objid++) {
-            lv_obj_t * obj = hasp_find_obj_from_id(page, objid);
+            lv_obj_t * obj = hasp_find_obj_from_parent_id(get_page_obj(page), objid);
             if(obj && obj != src_obj) { // skip source object, if set
                 lv_obj_set_state(obj, state ? LV_STATE_PRESSED | LV_STATE_CHECKED : LV_STATE_DEFAULT);
             }
