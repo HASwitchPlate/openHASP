@@ -29,7 +29,7 @@ static inline void hasp_out_color(lv_obj_t * obj, const char * attr, lv_color_t 
 static uint16_t sdbm(const char * str)
 {
     uint16_t hash = 0;
-    char c;
+    char     c;
 
     // while(c = *str++) hash = c + (hash << 6) + (hash << 16) - hash;
     while((c = *str++)) {
@@ -39,12 +39,175 @@ static uint16_t sdbm(const char * str)
     return hash;
 }
 
+#if 0
+static bool attribute_lookup_lv_property(uint16_t hash, uint8_t * prop)
+{
+    struct prop_hash_map
+    {
+        uint16_t hash;
+        uint8_t  prop;
+    };
+
+    /* in order of prevalence */
+    prop_hash_map props[] = {
+        {ATTR_PAD_TOP, LV_STYLE_PAD_TOP & LV_STYLE_PROP_ALL},
+        {ATTR_BORDER_WIDTH, LV_STYLE_BORDER_WIDTH & LV_STYLE_PROP_ALL},
+        {ATTR_OUTLINE_WIDTH, LV_STYLE_OUTLINE_WIDTH & LV_STYLE_PROP_ALL},
+        {ATTR_VALUE_LETTER_SPACE, LV_STYLE_VALUE_LETTER_SPACE & LV_STYLE_PROP_ALL},
+        {ATTR_TEXT_LETTER_SPACE, LV_STYLE_TEXT_LETTER_SPACE & LV_STYLE_PROP_ALL},
+        {ATTR_LINE_WIDTH, LV_STYLE_LINE_WIDTH & LV_STYLE_PROP_ALL},
+        {ATTR_TRANSITION_TIME, LV_STYLE_TRANSITION_TIME & LV_STYLE_PROP_ALL},
+        {ATTR_SCALE_WIDTH, LV_STYLE_SCALE_WIDTH & LV_STYLE_PROP_ALL},
+        {ATTR_RADIUS, LV_STYLE_RADIUS & LV_STYLE_PROP_ALL},
+        {ATTR_PAD_BOTTOM, LV_STYLE_PAD_BOTTOM & LV_STYLE_PROP_ALL},
+        {ATTR_BG_MAIN_STOP, LV_STYLE_BG_MAIN_STOP & LV_STYLE_PROP_ALL},
+        {ATTR_BORDER_SIDE, LV_STYLE_BORDER_SIDE & LV_STYLE_PROP_ALL},
+        {ATTR_OUTLINE_PAD, LV_STYLE_OUTLINE_PAD & LV_STYLE_PROP_ALL},
+        {ATTR_PATTERN_REPEAT, LV_STYLE_PATTERN_REPEAT & LV_STYLE_PROP_ALL},
+        {ATTR_VALUE_LINE_SPACE, LV_STYLE_VALUE_LINE_SPACE & LV_STYLE_PROP_ALL},
+        {ATTR_TEXT_LINE_SPACE, LV_STYLE_TEXT_LINE_SPACE & LV_STYLE_PROP_ALL},
+        {ATTR_TRANSITION_DELAY, LV_STYLE_TRANSITION_DELAY & LV_STYLE_PROP_ALL},
+        {ATTR_SCALE_BORDER_WIDTH, LV_STYLE_SCALE_BORDER_WIDTH & LV_STYLE_PROP_ALL},
+        {ATTR_CLIP_CORNER, LV_STYLE_CLIP_CORNER & LV_STYLE_PROP_ALL},
+        {ATTR_PAD_LEFT, LV_STYLE_PAD_LEFT & LV_STYLE_PROP_ALL},
+        {ATTR_BG_GRAD_STOP, LV_STYLE_BG_GRAD_STOP & LV_STYLE_PROP_ALL},
+        {ATTR_TEXT_DECOR, LV_STYLE_TEXT_DECOR & LV_STYLE_PROP_ALL},
+        {ATTR_LINE_DASH_WIDTH, LV_STYLE_LINE_DASH_WIDTH & LV_STYLE_PROP_ALL},
+        {ATTR_TRANSITION_PROP_1, LV_STYLE_TRANSITION_PROP_1 & LV_STYLE_PROP_ALL},
+        {ATTR_SCALE_END_BORDER_WIDTH, LV_STYLE_SCALE_END_BORDER_WIDTH & LV_STYLE_PROP_ALL},
+        {ATTR_SIZE, LV_STYLE_SIZE & LV_STYLE_PROP_ALL},
+        {ATTR_PAD_RIGHT, LV_STYLE_PAD_RIGHT & LV_STYLE_PROP_ALL},
+        {ATTR_BG_GRAD_DIR, LV_STYLE_BG_GRAD_DIR & LV_STYLE_PROP_ALL},
+        {ATTR_BORDER_POST, LV_STYLE_BORDER_POST & LV_STYLE_PROP_ALL},
+        {ATTR_VALUE_OFS_X, LV_STYLE_VALUE_OFS_X & LV_STYLE_PROP_ALL},
+        {ATTR_LINE_DASH_GAP, LV_STYLE_LINE_DASH_GAP & LV_STYLE_PROP_ALL},
+        {ATTR_TRANSITION_PROP_2, LV_STYLE_TRANSITION_PROP_2 & LV_STYLE_PROP_ALL},
+        {ATTR_SCALE_END_LINE_WIDTH, LV_STYLE_SCALE_END_LINE_WIDTH & LV_STYLE_PROP_ALL},
+        {ATTR_TRANSFORM_WIDTH, LV_STYLE_TRANSFORM_WIDTH & LV_STYLE_PROP_ALL},
+        {ATTR_PAD_INNER, LV_STYLE_PAD_INNER & LV_STYLE_PROP_ALL},
+        {ATTR_VALUE_OFS_Y, LV_STYLE_VALUE_OFS_Y & LV_STYLE_PROP_ALL},
+        {ATTR_LINE_ROUNDED, LV_STYLE_LINE_ROUNDED & LV_STYLE_PROP_ALL},
+        {ATTR_TRANSITION_PROP_3, LV_STYLE_TRANSITION_PROP_3 & LV_STYLE_PROP_ALL},
+        {ATTR_TRANSFORM_HEIGHT, LV_STYLE_TRANSFORM_HEIGHT & LV_STYLE_PROP_ALL},
+        // {ATTR_MARGIN_TOP, LV_STYLE_MARGIN_TOP & LV_STYLE_PROP_ALL},
+        {ATTR_VALUE_ALIGN, LV_STYLE_VALUE_ALIGN & LV_STYLE_PROP_ALL},
+        {ATTR_TRANSITION_PROP_4, LV_STYLE_TRANSITION_PROP_4 & LV_STYLE_PROP_ALL},
+        // {ATTR_TRANSFORM_ANGLE, LV_STYLE_TRANSFORM_ANGLE & LV_STYLE_PROP_ALL},
+        // {ATTR_MARGIN_BOTTOM, LV_STYLE_MARGIN_BOTTOM & LV_STYLE_PROP_ALL},
+        {ATTR_TRANSITION_PROP_5, LV_STYLE_TRANSITION_PROP_5 & LV_STYLE_PROP_ALL},
+        // {ATTR_TRANSFORM_ZOOM, LV_STYLE_TRANSFORM_ZOOM & LV_STYLE_PROP_ALL},
+        // {ATTR_MARGIN_LEFT, LV_STYLE_MARGIN_LEFT & LV_STYLE_PROP_ALL},
+        {ATTR_TRANSITION_PROP_6, LV_STYLE_TRANSITION_PROP_6 & LV_STYLE_PROP_ALL},
+        // {ATTR_MARGIN_RIGHT, LV_STYLE_MARGIN_RIGHT & LV_STYLE_PROP_ALL},
+        {ATTR_BG_COLOR, LV_STYLE_BG_COLOR & LV_STYLE_PROP_ALL},
+        {ATTR_BORDER_COLOR, LV_STYLE_BORDER_COLOR & LV_STYLE_PROP_ALL},
+        {ATTR_OUTLINE_COLOR, LV_STYLE_OUTLINE_COLOR & LV_STYLE_PROP_ALL},
+        {ATTR_PATTERN_RECOLOR, LV_STYLE_PATTERN_RECOLOR & LV_STYLE_PROP_ALL},
+        {ATTR_VALUE_COLOR, LV_STYLE_VALUE_COLOR & LV_STYLE_PROP_ALL},
+        {ATTR_TEXT_COLOR, LV_STYLE_TEXT_COLOR & LV_STYLE_PROP_ALL},
+        {ATTR_LINE_COLOR, LV_STYLE_LINE_COLOR & LV_STYLE_PROP_ALL},
+        {ATTR_IMAGE_RECOLOR, LV_STYLE_IMAGE_RECOLOR & LV_STYLE_PROP_ALL},
+        {ATTR_SCALE_GRAD_COLOR, LV_STYLE_SCALE_GRAD_COLOR & LV_STYLE_PROP_ALL},
+        {ATTR_BG_GRAD_COLOR, LV_STYLE_BG_GRAD_COLOR & LV_STYLE_PROP_ALL},
+        {ATTR_TEXT_SEL_COLOR, LV_STYLE_TEXT_SEL_COLOR & LV_STYLE_PROP_ALL},
+        {ATTR_SCALE_END_COLOR, LV_STYLE_SCALE_END_COLOR & LV_STYLE_PROP_ALL},
+        // {ATTR_TEXT_SEL_BG_COLOR, LV_STYLE_TEXT_SEL_BG_COLOR & LV_STYLE_PROP_ALL},
+        {ATTR_OPA_SCALE, LV_STYLE_OPA_SCALE & LV_STYLE_PROP_ALL},
+        {ATTR_BG_OPA, LV_STYLE_BG_OPA & LV_STYLE_PROP_ALL},
+        {ATTR_BORDER_OPA, LV_STYLE_BORDER_OPA & LV_STYLE_PROP_ALL},
+        {ATTR_OUTLINE_OPA, LV_STYLE_OUTLINE_OPA & LV_STYLE_PROP_ALL},
+        {ATTR_PATTERN_OPA, LV_STYLE_PATTERN_OPA & LV_STYLE_PROP_ALL},
+        {ATTR_VALUE_OPA, LV_STYLE_VALUE_OPA & LV_STYLE_PROP_ALL},
+        {ATTR_TEXT_OPA, LV_STYLE_TEXT_OPA & LV_STYLE_PROP_ALL},
+        {ATTR_LINE_OPA, LV_STYLE_LINE_OPA & LV_STYLE_PROP_ALL},
+        {ATTR_IMAGE_OPA, LV_STYLE_IMAGE_OPA & LV_STYLE_PROP_ALL},
+        {ATTR_PATTERN_RECOLOR_OPA, LV_STYLE_PATTERN_RECOLOR_OPA & LV_STYLE_PROP_ALL},
+        {ATTR_IMAGE_RECOLOR_OPA, LV_STYLE_IMAGE_RECOLOR_OPA & LV_STYLE_PROP_ALL},
+        {ATTR_PATTERN_IMAGE, LV_STYLE_PATTERN_IMAGE & LV_STYLE_PROP_ALL},
+        {ATTR_VALUE_FONT, LV_STYLE_VALUE_FONT & LV_STYLE_PROP_ALL},
+        {ATTR_TEXT_FONT, LV_STYLE_TEXT_FONT & LV_STYLE_PROP_ALL},
+        {ATTR_TRANSITION_PATH, LV_STYLE_TRANSITION_PATH & LV_STYLE_PROP_ALL},
+        {ATTR_VALUE_STR, LV_STYLE_VALUE_STR & LV_STYLE_PROP_ALL},
+
+#if LV_USE_SHADOW
+        {ATTR_SHADOW_WIDTH, LV_STYLE_SHADOW_WIDTH & LV_STYLE_PROP_ALL},
+        {ATTR_SHADOW_OFS_X, LV_STYLE_SHADOW_OFS_X & LV_STYLE_PROP_ALL},
+        {ATTR_SHADOW_OFS_Y, LV_STYLE_SHADOW_OFS_Y & LV_STYLE_PROP_ALL},
+        {ATTR_SHADOW_SPREAD, LV_STYLE_SHADOW_SPREAD & LV_STYLE_PROP_ALL},
+        {ATTR_SHADOW_COLOR, LV_STYLE_SHADOW_COLOR & LV_STYLE_PROP_ALL},
+        {ATTR_SHADOW_OPA, LV_STYLE_SHADOW_OPA & LV_STYLE_PROP_ALL},
+#endif
+
+#if LV_USE_BLEND_MODES && LV_USE_SHADOW
+        {ATTR_SHADOW_BLEND_MODE, LV_STYLE_SHADOW_BLEND_MODE & LV_STYLE_PROP_ALL},
+#endif
+
+#if LV_USE_BLEND_MODES
+        {ATTR_BG_BLEND_MODE, LV_STYLE_BG_BLEND_MODE & LV_STYLE_PROP_ALL},
+        {ATTR_PATTERN_BLEND_MODE, LV_STYLE_PATTERN_BLEND_MODE & LV_STYLE_PROP_ALL},
+        {ATTR_IMAGE_BLEND_MODE, LV_STYLE_IMAGE_BLEND_MODE & LV_STYLE_PROP_ALL},
+        {ATTR_LINE_BLEND_MODE, LV_STYLE_LINE_BLEND_MODE & LV_STYLE_PROP_ALL},
+        {ATTR_BORDER_BLEND_MODE, LV_STYLE_BORDER_BLEND_MODE & LV_STYLE_PROP_ALL},
+        {ATTR_OUTLINE_BLEND_MODE, LV_STYLE_OUTLINE_BLEND_MODE & LV_STYLE_PROP_ALL},
+        {ATTR_VALUE_BLEND_MODE, LV_STYLE_VALUE_BLEND_MODE & LV_STYLE_PROP_ALL},
+        {ATTR_TEXT_BLEND_MODE, LV_STYLE_TEXT_BLEND_MODE & LV_STYLE_PROP_ALL},
+#endif
+    };
+
+    for(uint8_t i = 0; i < sizeof(props) / sizeof(props[0]); i++) {
+        if(props[i].hash == hash) {
+            *prop = props[1].prop;
+            Log.warning(TAG_ATTR, F("%d found and has propery %d"), hash, props[i].prop);
+            return true;
+        }
+    }
+    Log.error(TAG_ATTR, F("%d has no property id"), hash);
+    return false;
+}
+
+static bool attribute_get_lv_property()
+{
+    lv_res_t res _lv_style_get_int(const lv_style_t * style, lv_style_property_t prop, void * res);
+    return res == LV_RES_OK
+}
+
+static bool attribute_set_lv_property()
+{
+    lv_res_t res _lv_style_get_int(const lv_style_t * style, lv_style_property_t prop, void * res);
+    return res == LV_RES_OK
+}
+
+static bool attribute_update_lv_property(lv_obj_t * obj, const char * attr_p, uint16_t attr_hash, const char * payload,
+                                         bool update)
+{
+    uint8_t prop;
+    uint8_t prop_type;
+
+    // convert sdbm hash to lv property number
+    if(!attribute_lookup_lv_property(attr_hash, &prop)) return false;
+
+    // find the parameter type for this property
+    prop_type = prop & 0xF;
+
+    if(prop_type < LV_STYLE_ID_COLOR) {
+        if(update) {
+            _lv_obj_set_style_local_int(obj, part, prop | (state << LV_STYLE_STATE_POS), atoi(payload))
+        } else {
+            hasp_out_str(obj, attr_p, lv_obj_get_style_value_str(obj, part));
+        }
+    } else if(prop_type < LV_STYLE_ID_OPA) {
+    } else if(prop_type < LV_STYLE_ID_PTR) {
+    } else {
+    }
+}
+#endif
+
 // OK - this function is missing in lvgl
 static uint8_t lv_roller_get_visible_row_count(lv_obj_t * roller)
 {
-    const lv_font_t * font    = lv_obj_get_style_text_font(roller, LV_ROLLER_PART_BG);
-    lv_style_int_t line_space = lv_obj_get_style_text_line_space(roller, LV_ROLLER_PART_BG);
-    lv_coord_t h              = lv_obj_get_height(roller);
+    const lv_font_t * font       = lv_obj_get_style_text_font(roller, LV_ROLLER_PART_BG);
+    lv_style_int_t    line_space = lv_obj_get_style_text_line_space(roller, LV_ROLLER_PART_BG);
+    lv_coord_t        h          = lv_obj_get_height(roller);
 
     if((lv_font_get_line_height(font) + line_space) != 0)
         return (uint8_t)(h / (lv_font_get_line_height(font) + line_space));
@@ -68,7 +231,7 @@ static inline int16_t lv_chart_get_max_value(lv_obj_t * chart)
 
 lv_chart_series_t * lv_chart_get_series(lv_obj_t * chart, uint8_t ser_num)
 {
-    lv_chart_ext_t * ext    = (lv_chart_ext_t *)lv_obj_get_ext_attr(chart);
+    lv_chart_ext_t *    ext = (lv_chart_ext_t *)lv_obj_get_ext_attr(chart);
     lv_chart_series_t * ser = (lv_chart_series_t *)_lv_ll_get_tail(&ext->series_ll);
     while(ser_num > 0 && ser) {
         ser = (lv_chart_series_t *)_lv_ll_get_prev(&ext->series_ll, ser);
@@ -374,10 +537,12 @@ static void hasp_attribute_get_part_state(lv_obj_t * obj, const char * attr_in, 
 static void hasp_local_style_attr(lv_obj_t * obj, const char * attr_p, uint16_t attr_hash, const char * payload,
                                   bool update)
 {
-    char attr[32];
+    char    attr[32];
     uint8_t part  = LV_OBJ_PART_MAIN;
     uint8_t state = LV_STATE_DEFAULT;
     int16_t var   = atoi(payload);
+
+    // test_prop(attr_hash);
 
     hasp_attribute_get_part_state(obj, attr_p, attr, part, state);
     attr_hash = sdbm(attr); // attribute name without the index number
@@ -618,12 +783,12 @@ static void hasp_process_gauge_attribute(lv_obj_t * obj, const char * attr_p, ui
                                          bool update)
 {
     // We already know it's a gauge object
-    int16_t intval = atoi(payload);
-    uint16_t val   = atoi(payload);
+    int16_t  intval = atoi(payload);
+    uint16_t val    = atoi(payload);
 
-    uint8_t label_count = lv_gauge_get_label_count(obj);
-    uint16_t line_count = lv_gauge_get_line_count(obj);
-    uint16_t angle      = lv_gauge_get_scale_angle(obj);
+    uint8_t  label_count = lv_gauge_get_label_count(obj);
+    uint16_t line_count  = lv_gauge_get_line_count(obj);
+    uint16_t angle       = lv_gauge_get_scale_angle(obj);
 
     char * attr = (char *)attr_p;
     if(*attr == '.') attr++; // strip leading '.'
@@ -665,8 +830,8 @@ static void hasp_process_btnmatrix_attribute(lv_obj_t * obj, const char * attr_p
                 // Create new map
 
                 // Reserve memory for JsonDocument
-                size_t maxsize = (128u * ((strlen(payload) / 128) + 1)) + 256;
-                DynamicJsonDocument map_doc(maxsize);
+                size_t               maxsize = (128u * ((strlen(payload) / 128) + 1)) + 256;
+                DynamicJsonDocument  map_doc(maxsize);
                 DeserializationError jsonError = deserializeJson(map_doc, payload);
 
                 if(jsonError) { // Couldn't parse incoming JSON payload
@@ -676,7 +841,7 @@ static void hasp_process_btnmatrix_attribute(lv_obj_t * obj, const char * attr_p
 
                 JsonArray arr = map_doc.as<JsonArray>(); // Parse payload
 
-                size_t tot_len        = sizeof(char *) * (arr.size() + 1);
+                size_t        tot_len = sizeof(char *) * (arr.size() + 1);
                 const char ** map_arr = (const char **)lv_mem_alloc(tot_len);
                 if(map_arr == NULL) {
                     return Log.error(TAG_ATTR, F("Out of memory while creating button map"));
@@ -759,14 +924,17 @@ static void hasp_process_obj_attribute_txt(lv_obj_t * obj, const char * attr, co
         lv_roller_get_selected_str(obj, buffer, sizeof(buffer));
         return hasp_out_str(obj, attr, buffer);
     }
+    if(check_obj_type(objtype, LV_HASP_WINDOW)) {
+        return update ? lv_win_set_title(obj, payload) : hasp_out_str(obj, attr, lv_win_get_title(obj));
+    }
 
     Log.warning(TAG_ATTR, F("Unknown property %s"), attr);
 }
 
 static void hasp_process_obj_attribute_val(lv_obj_t * obj, const char * attr, const char * payload, bool update)
 {
-    int16_t intval = atoi(payload);
-    uint16_t val   = atoi(payload);
+    int16_t  intval = atoi(payload);
+    uint16_t val    = atoi(payload);
 
     /* Attributes depending on objecttype */
     lv_obj_type_t list;
