@@ -19,11 +19,11 @@
 #endif
 
 #ifndef HASP_USE_MQTT
-#define HASP_USE_MQTT 0
+#define HASP_USE_MQTT (HASP_HAS_NETWORK)
 #endif
 
 #ifndef HASP_USE_HTTP
-#define HASP_USE_HTTP 0
+#define HASP_USE_HTTP (HASP_HAS_NETWORK)
 #endif
 
 #ifndef HASP_USE_MDNS
@@ -31,7 +31,7 @@
 #endif
 
 #ifndef HASP_USE_SYSLOG
-#define HASP_USE_SYSLOG 1
+#define HASP_USE_SYSLOG (HASP_HAS_NETWORK)
 #endif
 
 #ifndef HASP_USE_TELNET
@@ -62,7 +62,7 @@
 #endif
 
 #ifndef HASP_USE_GPIO
-#define HASP_USE_GPIO 0
+#define HASP_USE_GPIO 1
 #endif
 
 #ifndef HASP_USE_QRCODE
