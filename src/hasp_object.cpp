@@ -44,7 +44,8 @@ lv_obj_t * hasp_find_obj_from_parent_id(lv_obj_t * parent, uint8_t objid)
 
         /* check tabs */
         if(check_obj_type(child, LV_HASP_TABVIEW)) {
-            //#if LVGL_VERSION_MAJOR == 7
+
+          //#if LVGL_VERSION_MAJOR == 7
             uint16_t tabcount = lv_tabview_get_tab_count(child);
             for(uint16_t i = 0; i < tabcount; i++) {
                 lv_obj_t * tab = lv_tabview_get_tab(child, i);

@@ -393,6 +393,7 @@ lv_obj_t * FindButtonLabel(lv_obj_t * btn)
 {
     if(btn) {
         lv_obj_t * label = lv_obj_get_child_back(btn, NULL);
+
 #if 1
         if(label) {
             if(check_obj_type(label, LV_HASP_LABEL)) {
@@ -437,6 +438,7 @@ static bool haspGetLabelText(lv_obj_t * obj, char * text)
 
     lv_obj_t * label = lv_obj_get_child_back(obj, NULL);
     if(label) {
+
 #if 1
         if(check_obj_type(label, LV_HASP_LABEL)) {
             text = lv_label_get_text(label);
