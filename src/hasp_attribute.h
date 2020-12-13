@@ -48,7 +48,9 @@ _HASP_ATTRIBUTE(PAD_TOP, pad_top, lv_style_int_t)
 _HASP_ATTRIBUTE(PAD_BOTTOM, pad_bottom, lv_style_int_t)
 _HASP_ATTRIBUTE(PAD_LEFT, pad_left, lv_style_int_t)
 _HASP_ATTRIBUTE(PAD_RIGHT, pad_right, lv_style_int_t)
-//_HASP_ATTRIBUTE(PAD_INNER, pad_inner, lv_style_int_t)
+#if LVGL_VERSION_MAJOR == 7
+_HASP_ATTRIBUTE(PAD_INNER, pad_inner, lv_style_int_t)
+#endif
 #if LV_USE_BLEND_MODES
 _HASP_ATTRIBUTE(BG_BLEND_MODE, bg_blend_mode, lv_blend_mode_t)
 _HASP_ATTRIBUTE(BORDER_BLEND_MODE, border_blend_mode, lv_blend_mode_t)

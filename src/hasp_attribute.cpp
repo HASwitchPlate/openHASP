@@ -624,7 +624,7 @@ static void hasp_local_style_attr(lv_obj_t * obj, const char * attr_p, uint16_t 
             return attribute_pad_left(obj, part, state, update, attr_p, (lv_style_int_t)var);
         case ATTR_PAD_RIGHT:
             return attribute_pad_right(obj, part, state, update, attr_p, (lv_style_int_t)var);
-#if 0
+#if LVGL_VERSION_MAJOR == 7
         case ATTR_PAD_INNER:
             return attribute_pad_inner(obj, part, state, update, attr_p, (lv_style_int_t)var);
 #endif
