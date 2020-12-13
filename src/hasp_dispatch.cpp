@@ -330,15 +330,18 @@ void dispatch_send_group_event(uint8_t groupid, uint8_t eventid, bool update_has
     // update outputs
     gpio_set_group_outputs(groupid, eventid);
 
+    char payload[8];
+    dispatch_get_event_name(eventid, payload, sizeof(payload));
+
     // send out value
 #if !defined(HASP_USE_MQTT) && !defined(HASP_USE_TASMOTA_SLAVE)
-    Log.notice(TAG_MSGR, F("group%d = %s"), groupid, eventid);
+    Log.notice(TAG_MSGR, F("group%d = %s"), groupid, payload);
 #else
 #if HASP_USE_MQTT > 0
-    // mqtt_send_input(id, event);
+    mqtt_send_input(groupid, payload);
 #endif
 #if HASP_USE_TASMOTA_SLAVE > 0
-    // slave_send_input(id, event);
+    slave_send_input(groupid, payload);
 #endif
 #endif
 
