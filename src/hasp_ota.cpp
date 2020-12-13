@@ -3,10 +3,6 @@
 
 #if defined(ARDUINO_ARCH_ESP8266) || defined(ARDUINO_ARCH_ESP32)
 
-#include <Arduino.h>
-#include <ArduinoOTA.h>
-#include "ArduinoJson.h"
-
 #include "hasp_conf.h"
 
 #include "hasp_debug.h"
@@ -23,6 +19,8 @@
 #include <HTTPUpdate.h>
 #include <WiFi.h>
 #endif
+
+#include <ArduinoOTA.h>
 
 static WiFiClient otaClient;
 std::string otaUrl           = "http://ota.netwize.be";

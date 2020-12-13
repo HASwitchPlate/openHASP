@@ -6,8 +6,6 @@
 
 #include "ArduinoJson.h"
 
-#define LOG_CMND_CTR "CMND: "
-
 enum hasp_event_t { // even = released, odd = pressed
     HASP_EVENT_OFF  = 0,
     HASP_EVENT_ON   = 1,

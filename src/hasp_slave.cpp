@@ -1,12 +1,12 @@
 /* MIT License - Copyright (c) 2020 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
+#include "hasp_conf.h"
 #if HASP_USE_TASMOTA_SLAVE > 0
 
 #include "hasp_slave.h"
-#include <Arduino.h>
 #include "ArduinoJson.h"
-#include "ArduinoLog.h"
+
 #include "hasp_dispatch.h"
 #include "hasp_gui.h"
 #include "hasp_hal.h"

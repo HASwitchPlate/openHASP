@@ -15,7 +15,6 @@ void slave_send_obj_attribute_str(uint8_t pageid, uint8_t btnid, const char * at
 void slave_send_input(uint8_t id, const char * payload);
 void slave_send_statusupdate();
 
-
 void slaveSetup();
 void IRAM_ATTR slaveLoop(void);
 

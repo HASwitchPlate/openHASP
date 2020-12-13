@@ -4,9 +4,7 @@
 #include "hasp_conf.h"
 #if HASP_USE_TELNET > 0
 
-#include "Arduino.h"
 #include "ArduinoJson.h"
-#include "ArduinoLog.h"
 #include "ConsoleInput.h"
 
 #include "hasp_debug.h"

@@ -2,9 +2,6 @@
    For full license information read the LICENSE file in the project folder */
 
 #include "hasp_conf.h"
-#include <Arduino.h>
-#include "ArduinoJson.h"
-#include "ArduinoLog.h"
 
 #include "lvgl.h"
 #if LVGL_VERSION_MAJOR != 7

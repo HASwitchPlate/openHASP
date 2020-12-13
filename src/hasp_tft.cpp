@@ -2,16 +2,16 @@
    For full license information read the LICENSE file in the project folder */
 
 #include "ArduinoJson.h"
-#include "ArduinoLog.h"
 
 #ifndef USE_FSMC
 
-#include "TFT_eSPI.h"
-
+#include "hasp_conf.h"
 #include "hasp_tft.h"
 #include "hasp_hal.h"
 #include "hasp_gpio.h" // PinNames
 #include "hasp_debug.h"
+
+#include "TFT_eSPI.h"
 
 #if defined(ARDUINO_ARCH_ESP8266)
 ADC_MODE(ADC_VCC); // tftShowConfig measures the voltage on the pin

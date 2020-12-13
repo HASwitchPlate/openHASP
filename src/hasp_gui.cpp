@@ -1,8 +1,7 @@
 /* MIT License - Copyright (c) 2020 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
-#include "Ticker.h"
-#include "ArduinoLog.h"
+#include "hasp_conf.h"
 
 #include "lv_conf.h"
 #include "lvgl.h"
@@ -25,7 +24,6 @@
 
 //#include "lv_zifont.h"
 
-#include "hasp_conf.h"
 #include "hasp_debug.h"
 #include "hasp_config.h"
 #include "hasp_dispatch.h"
@@ -35,6 +33,8 @@
 
 //#include "lv_ex_conf.h"
 //#include "tpcal.h"
+
+#include "Ticker.h"
 
 #if HASP_USE_PNGDECODE > 0
 #include "png_decoder.h"
@@ -408,8 +408,8 @@ bool IRAM_ATTR my_touchpad_read(lv_indev_drv_t * indev_driver, lv_indev_data_t *
     touched = Touch_getXY(&touchX, &touchY, false);
 #else
     // xpt2046_alt_drv_read(indev_driver, data);
-    xpt2046_read(indev_driver, data);
-    if(data->state && guiSleeping != HASP_SLEEP_OFF) guiCheckSleep();
+    // xpt2046_read(indev_driver, data);
+    // if(data->state && guiSleeping != HASP_SLEEP_OFF) guiCheckSleep();
     return false;
 #endif
 

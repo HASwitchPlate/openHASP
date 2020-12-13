@@ -4,8 +4,7 @@
 #ifndef HASP_HTTP_H
 #define HASP_HTTP_H
 
-#include <Arduino.h>
-#include "ArduinoJson.h"
+#include "hasp_conf.h"
 
 void httpSetup();
 void IRAM_ATTR httpLoop(void);

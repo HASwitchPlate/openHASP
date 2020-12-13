@@ -6,9 +6,10 @@
 /*********************
  *      INCLUDES
  *********************/
-#include "fsmc_ili9341.h"
 
 #if USE_FSMC_ILI9341 > 0
+
+#include "fsmc_ili9341.h"
 
 #include <stdbool.h>
 #include <Arduino.h>

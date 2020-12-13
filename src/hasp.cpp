@@ -2,8 +2,7 @@
    For full license information read the LICENSE file in the project folder */
 
 #include "hasp_conf.h"
-#include <Arduino.h>
-#include "ArduinoLog.h"
+
 #include "ArduinoJson.h"
 #include "StreamUtils.h" // For EEPromStream
 

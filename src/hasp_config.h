@@ -4,6 +4,7 @@
 #ifndef HASP_CONFIG_H
 #define HASP_CONFIG_H
 
+#include "hasp_conf.h"
 #include "ArduinoJson.h"
 #include "hasp_debug.h" // for TAG_CONF
 

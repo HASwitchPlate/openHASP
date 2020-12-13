@@ -1,10 +1,8 @@
 /* MIT License - Copyright (c) 2020 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
-#include "hasp_conf.h" // load first
 #include <Arduino.h>
-
-#include "hasp_conf.h"
+#include "hasp_conf.h" // load first
 
 #include "hasp_debug.h"
 #include "hasp_config.h"

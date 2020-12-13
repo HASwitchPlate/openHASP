@@ -13,13 +13,10 @@
 
 =========================================================================== */
 
-#include "ArduinoJson.h"
-#include "ArduinoLog.h"
+#include "hasp_conf.h"
 #include "ConsoleInput.h"
 #include "lvgl.h"
 //#include "time.h"
-
-#include "hasp_conf.h"
 
 #if defined(ARDUINO_ARCH_ESP8266)
 #include <sntp.h> // sntp_servermode_dhcp()

@@ -4,9 +4,6 @@
 #include "hasp_conf.h"
 #if HASP_USE_MQTT > 0
 
-#include <Arduino.h>
-#include "ArduinoJson.h"
-#include "ArduinoLog.h"
 #include "PubSubClient.h"
 
 #include "hasp_mqtt.h"

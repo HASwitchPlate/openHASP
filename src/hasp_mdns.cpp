@@ -1,10 +1,8 @@
 /* MIT License - Copyright (c) 2020 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
+#include "hasp_conf.h"
 #if HASP_USE_MDNS > 0
-
-#include "ArduinoJson.h"
-#include "ArduinoLog.h"
 
 #if defined(ARDUINO_ARCH_ESP32)
 #include <ESPmDNS.h>
@@ -12,8 +10,6 @@
 #include <ESP8266mDNS.h>
 // MDNSResponder::hMDNSService hMDNSService;
 #endif
-
-#include "hasp_conf.h"
 
 #include "hasp_config.h"
 #include "hasp_debug.h"
