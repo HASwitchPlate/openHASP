@@ -10,7 +10,6 @@
 #include "hasp_dispatch.h"
 #include "hasp_gui.h"
 #include "hasp_hal.h"
-#include "hasp_tft.h"
 #include "hasp_config.h"
 #include "hasp.h"
 #include "tasmotaSlave.h"

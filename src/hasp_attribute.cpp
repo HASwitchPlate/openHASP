@@ -1,15 +1,12 @@
 /* MIT License - Copyright (c) 2020 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
-#include "ArduinoJson.h"
-#include "ArduinoLog.h"
-
 #include "lvgl.h"
 #if LVGL_VERSION_MAJOR != 7
 #include "../lv_components.h"
 #endif
 
-#include "hasp_conf.h"
+//#include "hasp_conf.h"
 
 #include "hasp.h"
 #include "hasp_object.h"
