@@ -347,3 +347,119 @@ String halDisplayDriverName()
 #endif
     return F("Unknown");
 }
+
+
+String halGpioName(uint8_t gpio)
+{
+#if defined(STM32F4xx)
+    String ioName;
+    uint16_t name = digitalPin[gpio];
+    uint8_t num   = name % 16;
+    switch(name / 16) {
+        case PortName::PortA:
+            ioName = F("PA");
+            break;
+        case PortName::PortB:
+            ioName = F("PB");
+            break;
+#if defined GPIOC_BASE
+        case PortName::PortC:
+            ioName = F("PC");
+            break;
+#endif
+#if defined GPIOD_BASE
+        case PortName::PortD:
+            ioName = F("PD");
+            break;
+#endif
+#if defined GPIOE_BASE
+        case PortName::PortE:
+            ioName = F("PE");
+            break;
+#endif
+#if defined GPIOF_BASE
+        case PortName::PortF:
+            ioName = F("PF");
+            break;
+#endif
+#if defined GPIOG_BASE
+        case PortName::PortG:
+            ioName = F("PG");
+            break;
+#endif
+#if defined GPIOH_BASE
+        case PortName::PortH:
+            ioName = F("PH");
+            break;
+#endif
+#if defined GPIOI_BASE
+        case PortName::PortI:
+            ioName = F("PI");
+            break;
+#endif
+#if defined GPIOJ_BASE
+        case PortName::PortJ:
+            ioName = F("PJ");
+            break;
+#endif
+#if defined GPIOK_BASE
+        case PortName::PortK:
+            ioName = F("PK");
+            break;
+#endif
+#if defined GPIOZ_BASE
+        case PortName::PortZ:
+            ioName = F("PZ");
+            break;
+#endif
+        default:
+            ioName = F("P?");
+    }
+    ioName += num;
+    ioName += F(" (io");
+    ioName += gpio;
+    ioName += F(")");
+    return ioName;
+#endif
+
+// For ESP32 pin labels on boards use the GPIO number
+#ifdef ARDUINO_ARCH_ESP32
+    return /*String(F("gpio")) +*/ String(gpio);
+#endif
+
+#ifdef ARDUINO_ARCH_ESP8266
+    // For ESP8266 the pin labels are not the same as the GPIO number
+    // These are for the NodeMCU pin definitions:
+    //        GPIO       Dxx
+    switch(gpio) {
+        case 16:
+            return F("D0");
+        case 5:
+            return F("D1");
+        case 4:
+            return F("D2");
+        case 0:
+            return F("D3");
+        case 2:
+            return F("D4");
+        case 14:
+            return F("D5");
+        case 12:
+            return F("D6");
+        case 13:
+            return F("D7");
+        case 15:
+            return F("D8");
+        case 3:
+            return F("TX");
+        case 1:
+            return F("RX");
+        // case 9:
+        //     return F("D11");
+        // case 10:
+        //     return F("D12");
+        default:
+            return F("D?"); // Invalid pin
+    }
+#endif
+}

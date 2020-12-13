@@ -1241,7 +1241,7 @@ void webHandleGpioConfig()
                 hasp_gpio_config_t conf = gpioGetPinConfig(id);
                 if((conf.pin == gpio) && gpioConfigInUse(id) && gpioInUse(gpio) && !gpioIsSystemPin(gpio)) {
                     httpMessage += F("<tr><td>");
-                    httpMessage += gpioName(gpio);
+                    httpMessage += halGpioName(gpio);
                     httpMessage += F("</td><td>");
 
                     switch(conf.type) {
@@ -1342,7 +1342,7 @@ void webHandleGpioOptions()
 
         for(uint8_t io = 0; io < NUM_DIGITAL_PINS; io++) {
             if(((conf.pin == io) || !gpioInUse(io)) && !gpioIsSystemPin(io)) {
-                httpMessage += getOption(io, gpioName(io), conf.pin == io);
+                httpMessage += getOption(io, halGpioName(io), conf.pin == io);
             }
         }
         httpMessage += F("</select></p>");

@@ -22,7 +22,6 @@ void gpioSetup(void);
 void IRAM_ATTR gpioLoop(void);
 void gpio_set_group_outputs(uint8_t groupid, uint8_t eventid);
 
-String gpioName(uint8_t gpio);
 bool gpioSavePinConfig(uint8_t config_num, uint8_t pin, uint8_t type, uint8_t group, uint8_t pinfunc);
 bool gpioIsSystemPin(uint8_t gpio);
 bool gpioInUse(uint8_t gpio);
