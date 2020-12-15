@@ -511,21 +511,6 @@ void haspSetPage(uint8_t pageid)
     }
 }
 
-// TODO make this a recursicee function
-void hasp_set_group_objects(uint8_t groupid, uint8_t eventid, lv_obj_t * src_obj)
-{
-    bool state = dispatch_get_event_state(eventid);
-    for(uint8_t page = 0; page < HASP_NUM_PAGES; page++) {
-        uint8_t startid = 100 + groupid * 10; // groups start at id 100
-        for(uint8_t objid = startid; objid < (startid + 10); objid++) {
-            lv_obj_t * obj = hasp_find_obj_from_parent_id(get_page_obj(page), objid);
-            if(obj && obj != src_obj) { // skip source object, if set
-                lv_obj_set_state(obj, state ? LV_STATE_PRESSED | LV_STATE_CHECKED : LV_STATE_DEFAULT);
-            }
-        }
-    }
-}
-
 void haspLoadPage(const char * pages)
 {
 #if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0

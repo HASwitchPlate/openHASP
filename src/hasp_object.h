@@ -62,6 +62,8 @@ void hasp_send_obj_attribute_int(lv_obj_t * obj, const char * attribute, int32_t
 void hasp_send_obj_attribute_color(lv_obj_t * obj, const char * attribute, lv_color_t color);
 void hasp_process_attribute(uint8_t pageid, uint8_t objid, const char * attr, const char * payload);
 
+void object_set_group_state(uint8_t groupid, uint8_t eventid, lv_obj_t * src_obj);
+
 void IRAM_ATTR btn_event_handler(lv_obj_t * obj, lv_event_t event);
 void IRAM_ATTR toggle_event_handler(lv_obj_t * obj, lv_event_t event);
 void wakeup_event_handler(lv_obj_t * obj, lv_event_t event);

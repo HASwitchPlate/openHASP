@@ -20,7 +20,9 @@ struct hasp_gpio_config_t
 
 void gpioSetup(void);
 void IRAM_ATTR gpioLoop(void);
-void gpio_set_group_outputs(uint8_t groupid, uint8_t eventid);
+
+void gpio_set_group_state(uint8_t groupid, uint8_t eventid);
+void gpio_set_gpio_state(uint8_t pin, uint8_t eventid);
 
 bool gpioSavePinConfig(uint8_t config_num, uint8_t pin, uint8_t type, uint8_t group, uint8_t pinfunc);
 bool gpioIsSystemPin(uint8_t gpio);

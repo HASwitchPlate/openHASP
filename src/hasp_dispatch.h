@@ -46,10 +46,8 @@ void dispatch_output_idle_state(uint8_t state);
 void dispatch_output_statusupdate(void);
 void dispatch_output_current_page();
 
-void dispatch_button(uint8_t id, const char * event);
-
-void dispatch_send_object_event(uint8_t pageid, uint8_t objid, uint8_t eventid);
-void dispatch_send_group_event(uint8_t groupid, uint8_t eventid, bool update_hasp);
+void dispatch_gpio_event(uint8_t pin, uint8_t group, uint8_t eventid);
+void dispatch_object_event(lv_obj_t * obj, uint8_t eventid);
 bool dispatch_get_event_state(uint8_t eventid);
 
 bool is_true(const char * s);

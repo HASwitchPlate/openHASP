@@ -165,21 +165,11 @@ void IRAM_ATTR mqtt_send_state(const __FlashStringHelper * subtopic, const char 
     // Log.notice(TAG_MQTT_PUB, F("%sstate/%S = %s"), mqttNodeTopic, subtopic, payload);
 }
 
-void mqtt_send_input(uint8_t id, const char * payload)
+void mqtt_send_gpio_event(uint8_t pin, uint8_t group, const char * event)
 {
-    // Log.verbose(TAG_MQTT,F("TST: %sstate/input%u = %s"), mqttNodeTopic, id, payload); // to be removed
-
-    // if(mqttIsConnected()) {
-    char tmp_topic[strlen(mqttNodeTopic) + 20];
-    snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%sstate/input%u"), mqttNodeTopic, id);
-    bool res = mqttPublish(tmp_topic, payload);
-    mqttResult(res, tmp_topic, payload);
-    // } else {
-    //     return mqtt_log_no_connection();
-    // }
-
-    // Log after char buffers are cleared
-    // Log.notice(TAG_MQTT_PUB, F("%sstate/input%u = %s"), mqttNodeTopic, id, payload);
+    char payload[64];
+    snprintf_P(payload, sizeof(payload), PSTR("{\"pin\":%d,\"group\":%d,\"event\":\"%s\"}"), pin, group, event);
+    mqtt_send_state(F("input"), payload);
 }
 
 void IRAM_ATTR mqtt_send_obj_attribute_str(uint8_t pageid, uint8_t btnid, const char * attribute, const char * data)

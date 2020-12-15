@@ -311,8 +311,8 @@ void IRAM_ATTR btn_event_handler(lv_obj_t * obj, lv_event_t event)
             return;
     }
 
-    guiCheckSleep(); // wakeup?
-    dispatch_send_object_event(haspGetPage(), (uint8_t)obj->user_data.id, eventid);
+    guiCheckSleep();                          // wakeup?
+    dispatch_object_event(obj, eventid); // send object event
 }
 
 /**
@@ -446,6 +446,23 @@ static void roller_event_handler(lv_obj_t * obj, lv_event_t event)
     }
 }
 
+// ##################### State Changers ########################################################
+
+// TODO make this a recursive function that goes over all objects only ONCE
+void object_set_group_state(uint8_t groupid, uint8_t eventid, lv_obj_t * src_obj)
+{
+    bool state = dispatch_get_event_state(eventid);
+    for(uint8_t page = 0; page < HASP_NUM_PAGES; page++) {
+        uint8_t startid = 100 + groupid * 10; // groups start at id 100
+        for(uint8_t objid = startid; objid < (startid + 10); objid++) {
+            lv_obj_t * obj = hasp_find_obj_from_parent_id(get_page_obj(page), objid);
+            if(obj && obj != src_obj) { // skip source object, if set
+                lv_obj_set_state(obj, state ? LV_STATE_PRESSED | LV_STATE_CHECKED : LV_STATE_DEFAULT);
+            }
+        }
+    }
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // Used in the dispatcher & hasp_new_object
@@ -458,7 +475,7 @@ void hasp_process_attribute(uint8_t pageid, uint8_t objid, const char * attr, co
     }
 }
 
-// ##################### Obhject Creator ########################################################
+// ##################### Object Creator ########################################################
 
 /**
  * Create a new object according to the json config
@@ -623,11 +640,11 @@ void hasp_new_object(const JsonObject & config, uint8_t & saved_page_id)
             if(obj) {
                 lv_obj_t * tab;
                 tab = lv_tabview_add_tab(obj, "tab 1");
-                //lv_obj_set_user_data(tab, id + 1);
+                // lv_obj_set_user_data(tab, id + 1);
                 tab = lv_tabview_add_tab(obj, "tab 2");
-                //lv_obj_set_user_data(tab, id + 2);
+                // lv_obj_set_user_data(tab, id + 2);
                 tab = lv_tabview_add_tab(obj, "tab 3");
-                //lv_obj_set_user_data(tab, id + 3);
+                // lv_obj_set_user_data(tab, id + 3);
             }
             break;
         }

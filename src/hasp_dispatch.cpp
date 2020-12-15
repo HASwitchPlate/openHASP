@@ -21,6 +21,7 @@ uint8_t nCommands = 0;
 haspCommand_t commands[16];
 
 static void dispatch_config(const char * topic, const char * payload);
+static void dispatch_group_state(uint8_t groupid, uint8_t eventid, lv_obj_t * obj);
 
 bool is_true(const char * s)
 {
@@ -62,22 +63,6 @@ bool dispatch_factory_reset()
 #endif
 
     return formated && erased;
-}
-
-void dispatchGpioOutput(int groupid, bool state)
-{
-    if(groupid >= 0) {
-        Log.notice(TAG_MSGR, F("GROUP %d OUTPUT STATE %d"), groupid, state);
-        gpio_set_group_outputs(groupid, state ? HASP_EVENT_ON : HASP_EVENT_OFF);
-    }
-}
-
-void dispatchGpioOutput(String strTopic, const char * payload)
-{
-    String strTemp((char *)0);
-    strTemp.reserve(128);
-    strTemp = strTopic.substring(6, strTopic.length());
-    dispatchGpioOutput(strTemp.toInt(), is_true(payload));
 }
 
 // p[x].b[y].attr=value
@@ -125,7 +110,8 @@ void dispatch_command(const char * topic, const char * payload)
     /* =============================== Not standard payload commands ===================================== */
 
     if(strlen(topic) == 7 && topic == strstr_P(topic, PSTR("output"))) {
-        dispatchGpioOutput(topic, payload);
+        dispatch_group_state(atoi(topic + 6), is_true(payload) ? HASP_EVENT_ON : HASP_EVENT_OFF,
+                             NULL); // + 6 => trim 'output' from the topic
 
         // } else if(strcasecmp_P(topic, PSTR("screenshot")) == 0) {
         //     guiTakeScreenshot("/screenshot.bmp"); // Literal String
@@ -259,96 +245,6 @@ void dispatch_output_idle_state(uint8_t state)
 #endif
 }
 
-void dispatch_button(uint8_t id, const char * event)
-{
-#if !defined(HASP_USE_MQTT) && !defined(HASP_USE_TASMOTA_SLAVE)
-    Log.notice(TAG_MSGR, F("input%d = %s"), id, event);
-#else
-#if HASP_USE_MQTT > 0
-    mqtt_send_input(id, event);
-#endif
-#if HASP_USE_TASMOTA_SLAVE > 0
-    slave_send_input(id, event);
-#endif
-#endif
-}
-
-// Map events to either ON or OFF (UP or DOWN)
-bool dispatch_get_event_state(uint8_t eventid)
-{
-    switch(eventid) {
-        case HASP_EVENT_ON:
-        case HASP_EVENT_DOWN:
-        case HASP_EVENT_LONG:
-        case HASP_EVENT_HOLD:
-            return true;
-        case HASP_EVENT_OFF:
-        case HASP_EVENT_UP:
-        case HASP_EVENT_SHORT:
-        case HASP_EVENT_DOUBLE:
-        case HASP_EVENT_LOST:
-        default:
-            return false;
-    }
-}
-
-// Map events to their description string
-void dispatch_get_event_name(uint8_t eventid, char * buffer, size_t size)
-{
-    switch(eventid) {
-        case HASP_EVENT_ON:
-            memcpy_P(buffer, PSTR("ON"), size);
-            break;
-        case HASP_EVENT_OFF:
-            memcpy_P(buffer, PSTR("OFF"), size);
-            break;
-        case HASP_EVENT_UP:
-            memcpy_P(buffer, PSTR("UP"), size);
-            break;
-        case HASP_EVENT_DOWN:
-            memcpy_P(buffer, PSTR("DOWN"), size);
-            break;
-        case HASP_EVENT_SHORT:
-            memcpy_P(buffer, PSTR("SHORT"), size);
-            break;
-        case HASP_EVENT_LONG:
-            memcpy_P(buffer, PSTR("LONG"), size);
-            break;
-        case HASP_EVENT_HOLD:
-            memcpy_P(buffer, PSTR("HOLD"), size);
-            break;
-        case HASP_EVENT_LOST:
-            memcpy_P(buffer, PSTR("LOST"), size);
-            break;
-        default:
-            memcpy_P(buffer, PSTR("UNKNOWN"), size);
-    }
-}
-
-void dispatch_send_group_event(uint8_t groupid, uint8_t eventid, bool update_hasp)
-{
-    // update outputs
-    gpio_set_group_outputs(groupid, eventid);
-
-    char payload[8];
-    dispatch_get_event_name(eventid, payload, sizeof(payload));
-
-    // send out value
-#if !defined(HASP_USE_MQTT) && !defined(HASP_USE_TASMOTA_SLAVE)
-    Log.notice(TAG_MSGR, F("group%d = %s"), groupid, payload);
-#else
-#if HASP_USE_MQTT > 0
-    mqtt_send_input(groupid, payload);
-#endif
-#if HASP_USE_TASMOTA_SLAVE > 0
-    slave_send_input(groupid, payload);
-#endif
-#endif
-
-    // update objects, except src_obj
-    if(update_hasp) hasp_set_group_objects(groupid, eventid, NULL);
-}
-
 void IRAM_ATTR dispatch_send_obj_attribute_str(uint8_t pageid, uint8_t btnid, const char * attribute, const char * data)
 {
 #if !defined(HASP_USE_MQTT) && !defined(HASP_USE_TASMOTA_SLAVE)
@@ -361,20 +257,6 @@ void IRAM_ATTR dispatch_send_obj_attribute_str(uint8_t pageid, uint8_t btnid, co
     slave_send_obj_attribute_str(pageid, btnid, attribute, data);
 #endif
 #endif
-}
-
-void dispatch_send_object_event(uint8_t pageid, uint8_t objid, uint8_t eventid)
-{
-    if(objid < 100) {
-        char topic[8];
-        char payload[8];
-        snprintf_P(topic, sizeof(topic), PSTR("event"));
-        dispatch_get_event_name(eventid, payload, sizeof(payload));
-        dispatch_send_obj_attribute_str(pageid, objid, topic, payload);
-    } else {
-        uint8_t groupid = (objid - 100) / 10;
-        dispatch_send_group_event(groupid, eventid, true);
-    }
 }
 
 // send return output back to the client
@@ -489,6 +371,137 @@ static void dispatch_config(const char * topic, const char * payload)
 #endif
     }
 }
+
+/********************************************** Input Events *******************************************/
+// Map events to either ON or OFF (UP or DOWN)
+bool dispatch_get_event_state(uint8_t eventid)
+{
+    switch(eventid) {
+        case HASP_EVENT_ON:
+        case HASP_EVENT_DOWN:
+        case HASP_EVENT_LONG:
+        case HASP_EVENT_HOLD:
+            return true;
+        case HASP_EVENT_OFF:
+        case HASP_EVENT_UP:
+        case HASP_EVENT_SHORT:
+        case HASP_EVENT_DOUBLE:
+        case HASP_EVENT_LOST:
+        default:
+            return false;
+    }
+}
+
+// Map events to their description string
+static void dispatch_get_event_name(uint8_t eventid, char * buffer, size_t size)
+{
+    switch(eventid) {
+        case HASP_EVENT_ON:
+            memcpy_P(buffer, PSTR("ON"), size);
+            break;
+        case HASP_EVENT_OFF:
+            memcpy_P(buffer, PSTR("OFF"), size);
+            break;
+        case HASP_EVENT_UP:
+            memcpy_P(buffer, PSTR("UP"), size);
+            break;
+        case HASP_EVENT_DOWN:
+            memcpy_P(buffer, PSTR("DOWN"), size);
+            break;
+        case HASP_EVENT_SHORT:
+            memcpy_P(buffer, PSTR("SHORT"), size);
+            break;
+        case HASP_EVENT_LONG:
+            memcpy_P(buffer, PSTR("LONG"), size);
+            break;
+        case HASP_EVENT_HOLD:
+            memcpy_P(buffer, PSTR("HOLD"), size);
+            break;
+        case HASP_EVENT_LOST:
+            memcpy_P(buffer, PSTR("LOST"), size);
+            break;
+        default:
+            memcpy_P(buffer, PSTR("UNKNOWN"), size);
+    }
+}
+
+void dispatch_gpio_event(uint8_t pin, uint8_t group, uint8_t eventid)
+{
+    dispatch_group_state(group, dispatch_get_event_state(eventid), NULL);
+
+    char payload[8];
+    dispatch_get_event_name(eventid, payload, sizeof(payload));
+#if !defined(HASP_USE_MQTT) && !defined(HASP_USE_TASMOTA_SLAVE)
+    Log.notice(TAG_MSGR, F("gpio%d = %s"), id, event);
+#else
+#if HASP_USE_MQTT > 0
+    mqtt_send_gpio_event(pin, group, payload);
+#endif
+#if HASP_USE_TASMOTA_SLAVE > 0
+    slave_send_input(pin, event);
+#endif
+#endif
+}
+
+void dispatch_object_event(lv_obj_t * obj, uint8_t eventid)
+{
+    char topic[8];
+    char payload[8];
+    uint8_t pageid, objid;
+
+    snprintf_P(topic, sizeof(topic), PSTR("event"));
+    dispatch_get_event_name(eventid, payload, sizeof(payload));
+
+    if(hasp_find_id_from_obj(obj, &pageid, &objid)) {
+        dispatch_send_obj_attribute_str(pageid, objid, topic, payload);
+    }
+
+    if(obj->user_data.groupid > 0) {
+        dispatch_group_state(obj->user_data.groupid, eventid, obj);
+    }
+}
+
+/********************************************** Output Events ******************************************/
+// void dispatch_group_event(uint8_t groupid, uint8_t eventid)
+// {
+//     // update outputs
+//     gpio_set_group_state(groupid, eventid);
+
+//     char payload[8];
+//     dispatch_get_event_name(eventid, payload, sizeof(payload));
+
+//     // send out value
+// #if !defined(HASP_USE_MQTT) && !defined(HASP_USE_TASMOTA_SLAVE)
+//     Log.notice(TAG_MSGR, F("group%d = %s"), groupid, payload);
+// #else
+// #if HASP_USE_MQTT > 0
+//     mqtt_send_input(groupid, payload);
+// #endif
+// #if HASP_USE_TASMOTA_SLAVE > 0
+//     slave_send_input(groupid, payload);
+// #endif
+// #endif
+
+//     // update objects, except src_obj
+//     // if(update_hasp)
+// }
+
+void dispatch_group_state(uint8_t groupid, uint8_t eventid, lv_obj_t * obj)
+{
+    char payload[8];
+    dispatch_get_event_name(eventid, payload, sizeof(payload));
+    Log.notice(TAG_MSGR, F("GROUP %d => OUTPUT EVENT: %s"), groupid, payload);
+
+    if(groupid >= 0) {
+        gpio_set_group_state(groupid, eventid);
+        object_set_group_state(groupid, eventid, obj);
+    }
+}
+
+// void dispatch_group_state(const char * group_str, const char * payload)
+// {
+//     dispatch_group_state(atoi(group_str), is_true(payload));
+// }
 
 /********************************************** Native Commands ****************************************/
 
