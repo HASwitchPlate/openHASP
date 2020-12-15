@@ -384,7 +384,7 @@ const uint8_t * IRAM_ATTR lv_font_get_bitmap_fmt_zifont(const lv_font_t * font, 
                     break;
 
                 case(0b001):
-                    for(uint8_t i = 0; i < repeats; i++) { // repeats are black
+                    for(int i = 0; i < repeats; i++) { // repeats are black
                         blackAdd(charBitmap_p, arrindex++);
                     }
                     break;
@@ -547,28 +547,16 @@ static void IRAM_ATTR blackAdd(uint8_t * charBitmap_p, uint16_t pos)
     }
 }
 
-static void IRAM_ATTR colorsAdd(uint8_t * charBitmap_p, uint8_t color1, uint16_t pos)
+static inline void IRAM_ATTR colorsAdd(uint8_t * charBitmap_p, uint8_t color1, uint16_t pos)
 {
-    uint8_t col    = pos & 0x0001; // remainder
-    uint16_t map_p = pos >> 1;     // devide by 2
+    uint32_t col   = pos & 0x0001; // remainder
+    uint32_t map_p = pos >> 1;     // devide by 2
 
-    // if(color1 == ColorBlack) {
-    //     //  && color1 != ColorWhite) { // Don't check white, as the function is only used for colors
-    //     if(col == 0) {
-    //         charBitmap_p[map_p] = 0xf0;
-    //     } else {
-    //         charBitmap_p[map_p] |= color1;
-    //     }
-    // } else {
-    // Serial.printf("%u color %u\n", pos, color1);
     if(col == 0) {
         charBitmap_p[map_p] = color1 << 5;
     } else {
         charBitmap_p[map_p] |= color1 << 1;
     }
-    // }
-
-    // return 1; // shift 1 position
 }
 
 /*
@@ -610,8 +598,8 @@ void printBuffer(uint8_t * charBitmap_p, uint8_t w, uint8_t h)
     uint8_t cols = w + w % 2;
     cols /= 2;
 
-    for(uint8_t i = 0; i < h; i++) {
-        for(uint8_t j = 0; j < cols; j++) {
+    for(int i = 0; i < h; i++) {
+        for(int j = 0; j < cols; j++) {
             uint8_t b = charBitmap_p[i * cols + j];
             printPixel(b >> 4);
             printPixel(b & 0b1111);

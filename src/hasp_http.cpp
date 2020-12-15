@@ -1370,7 +1370,7 @@ void webHandleGpioOptions()
         httpMessage += F("</select></p>");
 
         httpMessage += F("<p><b>Group</b> <select id='group' name='group'>");
-        for(uint8_t i = 0; i < 15; i++) {
+        for(int i = 0; i < 15; i++) {
             httpMessage += getOption(i, "Group " + String(i), i == conf.group);
         }
         httpMessage += F("</select></p>");
@@ -1438,7 +1438,7 @@ void webHandleDebugConfig()
 
         httpMessage += F("'><b>Syslog Facility</b> <select id='log' name='log'>");
         uint8_t logid = settings[FPSTR(F_CONFIG_LOG)].as<uint8_t>();
-        for(uint8_t i = 0; i < 8; i++) {
+        for(int i = 0; i < 8; i++) {
             httpMessage += getOption(i, String(F("Local")) + i, i == logid);
         }
 
@@ -1596,7 +1596,7 @@ void httpHandleNotFound()
     httpMessage += F("\nArguments: ");
     httpMessage += webServer.args();
     httpMessage += "\n";
-    for(uint8_t i = 0; i < webServer.args(); i++) {
+    for(int i = 0; i < webServer.args(); i++) {
         httpMessage += " " + webServer.argName(i) + ": " + webServer.arg(i) + "\n";
     }
     webServer.send(404, PSTR("text/plain"), httpMessage.c_str());

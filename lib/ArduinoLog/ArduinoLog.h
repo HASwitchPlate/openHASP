@@ -286,7 +286,7 @@ class Logging {
     {
 #ifndef DISABLE_LOGGING
 
-        for(uint8_t i = 0; i < 3; i++) {
+        for(int i = 0; i < 3; i++) {
             if(_logOutput[i] == NULL || level > _level[i]) continue;
 
             if(_prefix != NULL) {

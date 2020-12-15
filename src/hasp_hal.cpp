@@ -263,7 +263,7 @@ String halGetMacAddress(int start, const char * seperator)
 #if HASP_USE_ETHERNET > 0
 #if USE_BUILTIN_ETHERNET > 0
     mac_p = Ethernet.MACAddress();
-    for(uint8_t i = 0; i < 6; i++) mac[i] = *(mac_p + i);
+    for(int i = 0; i < 6; i++) mac[i] = *(mac_p + i);
 #else
     Ethernet.macAddress(mac);
 #endif

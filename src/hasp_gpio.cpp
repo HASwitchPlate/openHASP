@@ -97,7 +97,7 @@ void aceButtonSetup(void)
 void IRAM_ATTR gpioLoop(void)
 {
     // Should be called every 4-5ms or faster, for the default debouncing time of ~20ms.
-    for(uint8_t i = 0; i < gpioUsedInputCount; i++) {
+    for(uint32_t i = 0; i < gpioUsedInputCount; i++) {
         if(button[i]) button[i]->check();
     }
 }
@@ -172,7 +172,7 @@ void gpioSetup()
 {
     aceButtonSetup();
 
-    for(uint8_t i = 0; i < HASP_NUM_GPIO_CONFIG; i++) {
+    for(uint32_t i = 0; i < HASP_NUM_GPIO_CONFIG; i++) {
         uint8_t input_mode;
         switch(gpioConfig[i].gpio_function) {
             case OUTPUT:
@@ -256,7 +256,7 @@ void gpio_set_state(hasp_gpio_config_t gpio, bool state)
 void gpio_set_group_state(uint8_t groupid, uint8_t eventid)
 {
     bool state = dispatch_get_event_state(eventid);
-    for(uint8_t i = 0; i < HASP_NUM_GPIO_CONFIG; i++) {
+    for(uint32_t i = 0; i < HASP_NUM_GPIO_CONFIG; i++) {
         if(gpioConfig[i].group == groupid) {
             gpio_set_state(gpioConfig[i], state);
         }
@@ -266,7 +266,7 @@ void gpio_set_group_state(uint8_t groupid, uint8_t eventid)
 void gpio_set_gpio_state(uint8_t pin, uint8_t eventid)
 {
     bool state = dispatch_get_event_state(eventid);
-    for(uint8_t i = 0; i < HASP_NUM_GPIO_CONFIG; i++) {
+    for(uint32_t i = 0; i < HASP_NUM_GPIO_CONFIG; i++) {
         if(gpioConfig[i].pin == pin) {
             gpio_set_state(gpioConfig[i], state);
             return;
@@ -385,7 +385,7 @@ bool gpioIsSystemPin(uint8_t gpio)
 
 bool gpioInUse(uint8_t gpio)
 {
-    for(uint8_t i = 0; i < HASP_NUM_GPIO_CONFIG; i++) {
+    for(uint32_t i = 0; i < HASP_NUM_GPIO_CONFIG; i++) {
         if(gpioConfigInUse(i) && (gpioConfig[i].pin == gpio)) {
             return true; // pin matches and is in use
         }
@@ -461,7 +461,7 @@ bool gpioGetConfig(const JsonObject & settings)
     /* Build new Gpio array if the count is not correct */
     if(i != HASP_NUM_GPIO_CONFIG) {
         array = settings[FPSTR(F_GPIO_CONFIG)].to<JsonArray>(); // Clear JsonArray
-        for(uint8_t i = 0; i < HASP_NUM_GPIO_CONFIG; i++) {
+        for(uint32_t i = 0; i < HASP_NUM_GPIO_CONFIG; i++) {
             uint32_t cur_val = gpioConfig[i].pin | (gpioConfig[i].group << 8) | (gpioConfig[i].type << 16) |
                                (gpioConfig[i].gpio_function << 24);
             array.add(cur_val);

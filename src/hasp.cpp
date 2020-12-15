@@ -395,7 +395,7 @@ void haspSetup()
     // _lv_style_list_add_style(list, &pagefont);
 
     /* Create all screens using the theme */
-    for(uint8_t i = 0; i < (sizeof pages / sizeof *pages); i++) {
+    for(int i = 0; i < (sizeof pages / sizeof *pages); i++) {
         pages[i] = lv_obj_create(NULL, NULL);
         //  list     = lv_obj_get_style_list(pages[i], LV_OBJ_PART_MAIN);
         // _lv_style_list_add_style(list, &pagefont);

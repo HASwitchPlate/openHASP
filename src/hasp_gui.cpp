@@ -314,7 +314,7 @@ void handleTouch(int8_t contacts, GTPoint * points)
     GT911_points      = points;
 
     Log.verbose(TAG_GUI, "Contacts: %d", contacts);
-    for(uint8_t i = 0; i < contacts; i++) {
+    for(int i = 0; i < contacts; i++) {
         Log.verbose(TAG_GUI, "C%d: #%d %d,%d s:%d", i, points[i].trackId, points[i].x, points[i].y, points[i].area);
         yield();
     }
@@ -435,7 +435,7 @@ void guiCalibrate()
     tft_espi_calibrate(calData);
 #endif
 
-    for(uint8_t i = 0; i < 5; i++) {
+    for(int i = 0; i < 5; i++) {
         Serial.print(calData[i]);
         if(i < 4) Serial.print(", ");
     }
@@ -772,7 +772,7 @@ bool guiGetConfig(const JsonObject & settings)
     /* Build new CalData array if the count is not correct */
     if(i != 5) {
         array = settings[FPSTR(F_GUI_CALIBRATION)].to<JsonArray>(); // Clear JsonArray
-        for(uint8_t i = 0; i < 5; i++) {
+        for(int i = 0; i < 5; i++) {
             array.add(calData[i]);
         }
         changed = true;
