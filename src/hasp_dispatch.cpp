@@ -237,31 +237,9 @@ void dispatch_output_idle_state(uint8_t state)
 
 void IRAM_ATTR dispatch_send_obj_attribute_str(uint8_t pageid, uint8_t btnid, const char * attribute, const char * data)
 {
-#if !defined(HASP_USE_MQTT) && !defined(HASP_USE_TASMOTA_SLAVE)
-    Log.notice(TAG_MSGR, F("json = {\"p[%u].b[%u].%s\":\"%s\"}"), pageid, btnid, attribute, data);
-#else
-#if HASP_USE_MQTT > 0
-    mqtt_send_obj_attribute_str(pageid, btnid, attribute, data);
-#endif
-#if HASP_USE_TASMOTA_SLAVE > 0
-    slave_send_obj_attribute_str(pageid, btnid, attribute, data);
-#endif
-#endif
-}
-
-// send return output back to the client
-void IRAM_ATTR dispatch_obj_attribute_str(uint8_t pageid, uint8_t btnid, const char * attribute, const char * data)
-{
-#if !defined(HASP_USE_MQTT) && !defined(HASP_USE_TASMOTA_SLAVE)
-    Log.notice(TAG_MSGR, F("json = {\"p[%u].b[%u].%s\":\"%s\"}"), pageid, btnid, attribute, data);
-#else
-#if HASP_USE_MQTT > 0
-    mqtt_send_obj_attribute_str(pageid, btnid, attribute, data);
-#endif
-#if HASP_USE_TASMOTA_SLAVE > 0
-    slave_send_obj_attribute_str(pageid, btnid, attribute, data);
-#endif
-#endif
+    char payload[44 + strlen(data) + strlen(attribute)];
+    snprintf_P(payload, sizeof(payload), PSTR("{\"page\":%u,\"id\":%u,\"%s\":\"%s\"}"), pageid, btnid, attribute, data);
+    dispatch_state_msg(F("json"), payload);
 }
 
 // Get or Set a part of the config.json file
