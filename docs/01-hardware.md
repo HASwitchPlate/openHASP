@@ -48,6 +48,8 @@ table th:last-of-type {
 ## Recommended Display
 #### Lolin TFT 2.4"
 
+![TFT-LED PWM dimming](assets/images/lolin24tft.png)
+
 ILI9341 SPI touchscreens with backlight dimming via PWM are quite cheap to get.
 An ILI9341 TFT display with SPI is required when using a pre-built binary.
 The touchcontroller needs to be the XPT2046 Resistive Touch driver.
@@ -62,13 +64,15 @@ Therefor the Lolin TFT 2.4 Touch Shield is used as the development display of ch
 To use PWM dimming on the Lolin TFT 2.4" you must solder the TFT-LED pin to either D1, D2 or D4.
 **D1 is recommended** for backlight control and configured by default.
 
-![TFT-LED PWM dimming](https://github.com/fvanroie/hasp-lvgl/blob/master/docs/img/tft-led-pwm.png)
+![TFT-LED PWM dimming](assets/images/tft-led-pwm.png)
 
 !> **Warning:**</br>Do *not* use D3 for backlight control because it is already in use for touch!
 
 > **Note:**</br>It is also *not* recommended to use D4 for backlight control because it is already in use for PSram on the ESP32-Wrover.
 
 ##### Compatible ESP boards
+
+![TFT-LED PWM dimming](assets/images/esp_boards.png)
 
 The Lolin TFT 2.4" header is **plug-and-play** compatible with these development boards,
 no need to use any jumper cables:
