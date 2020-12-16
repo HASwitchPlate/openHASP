@@ -870,7 +870,7 @@ void IRAM_ATTR debugLoop(void)
 void debugEverySecond()
 {
     if(debugTelePeriod > 0 && (millis() - debugLastMillis) >= debugTelePeriod * 1000) {
-        dispatch_output_statusupdate();
+        dispatch_output_statusupdate(NULL, NULL);
         debugLastMillis = millis();
     }
     // printLocalTime();

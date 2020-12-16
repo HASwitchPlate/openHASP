@@ -36,15 +36,12 @@ EthernetClient mqttNetworkClient;
 //#include "hasp_tft.h"
 #include "hasp_debug.h"
 #include "hasp_config.h"
-#include "hasp_wifi.h"
 #include "hasp_dispatch.h"
 #include "hasp.h"
 
 #ifdef USE_CONFIG_OVERRIDE
 #include "user_config_override.h"
 #endif
-
-extern unsigned long debugLastMillis; // UpdateStatus timer
 
 /*
 String mqttGetSubtopic;             // MQTT subtopic for incoming commands requesting .val
@@ -165,13 +162,6 @@ void IRAM_ATTR mqtt_send_state(const __FlashStringHelper * subtopic, const char 
     // Log.notice(TAG_MQTT_PUB, F("%sstate/%S = %s"), mqttNodeTopic, subtopic, payload);
 }
 
-void mqtt_send_gpio_event(uint8_t pin, uint8_t group, const char * event)
-{
-    char payload[64];
-    snprintf_P(payload, sizeof(payload), PSTR("{\"pin\":%d,\"group\":%d,\"event\":\"%s\"}"), pin, group, event);
-    mqtt_send_state(F("input"), payload);
-}
-
 void IRAM_ATTR mqtt_send_obj_attribute_str(uint8_t pageid, uint8_t btnid, const char * attribute, const char * data)
 {
     // if(mqttIsConnected()) {
@@ -193,57 +183,6 @@ void IRAM_ATTR mqtt_send_obj_attribute_str(uint8_t pageid, uint8_t btnid, const 
     // Log.notice(TAG_MQTT_PUB, F("%sstate/json = {\"p[%u].b[%u].%s\":\"%s\"}"), mqttNodeTopic, pageid, btnid,
     // attribute,
     //           data);
-}
-
-void mqtt_send_statusupdate()
-{ // Periodically publish a JSON string indicating system status
-    char data[3 * 128];
-    {
-        char buffer[128];
-
-        haspGetVersion(buffer, sizeof(buffer));
-        snprintf_P(data, sizeof(data), PSTR("{\"status\":\"available\",\"version\":\"%s\",\"uptime\":%lu,"), buffer,
-                   long(millis() / 1000));
-
-#if HASP_USE_WIFI > 0
-#if defined(STM32F4xx)
-        IPAddress ip;
-        ip = WiFi.localIP();
-        char espIp[16];
-        memset(espIp, 0, sizeof(espIp));
-        snprintf_P(buffer, sizeof(buffer), PSTR("\"ssid\":\"%s\",\"rssi\":%i,\"ip\":\"%d.%d.%d.%d\","), WiFi.SSID(),
-                   WiFi.RSSI(), ip[0], ip[1], ip[2], ip[3]);
-#else
-        snprintf_P(buffer, sizeof(buffer), PSTR("\"ssid\":\"%s\",\"rssi\":%i,\"ip\":\"%s\","), WiFi.SSID().c_str(),
-                   WiFi.RSSI(), WiFi.localIP().toString().c_str());
-#endif
-        strcat(data, buffer);
-#endif
-        snprintf_P(buffer, sizeof(buffer), PSTR("\"heapFree\":%u,\"heapFrag\":%u,\"espCore\":\"%s\","),
-                   halGetFreeHeap(), halGetHeapFragmentation(), halGetCoreVersion().c_str());
-        strcat(data, buffer);
-        snprintf_P(buffer, sizeof(buffer), PSTR("\"espCanUpdate\":\"false\",\"page\":%u,\"numPages\":%u,"),
-                   haspGetPage(), (HASP_NUM_PAGES));
-        strcat(data, buffer);
-
-#if defined(ARDUINO_ARCH_ESP8266)
-        snprintf_P(buffer, sizeof(buffer), PSTR("\"espVcc\":%.2f,"), (float)ESP.getVcc() / 1000);
-        strcat(data, buffer);
-#endif
-
-        snprintf_P(buffer, sizeof(buffer), PSTR("\"tftDriver\":\"%s\",\"tftWidth\":%u,\"tftHeight\":%u}"),
-                   halDisplayDriverName().c_str(), (TFT_WIDTH), (TFT_HEIGHT));
-        strcat(data, buffer);
-    }
-    mqtt_send_state(F("statusupdate"), data);
-    debugLastMillis = millis();
-
-    /* if(updateEspAvailable) {
-            mqttStatusPayload += F("\"updateEspAvailable\":true,");
-        } else {
-            mqttStatusPayload += F("\"updateEspAvailable\":false,");
-        }
-    */
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -426,7 +365,7 @@ void mqttStart()
 
     haspReconnect();
     dispatch_output_current_page();
-    dispatch_output_statusupdate();
+    dispatch_output_statusupdate(NULL, NULL);
 }
 
 void mqttSetup()

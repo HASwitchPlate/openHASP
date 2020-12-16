@@ -76,7 +76,18 @@ bool networkEverySecond(void)
 #if HASP_USE_WIFI > 0
     // return wifiEverySecond();
 #endif
-return true;
+    return true;
+}
+
+void network_get_status(char * buffer, size_t len)
+{
+#if HASP_USE_ETHERNET > 0
+    network_get_status(buffer, len);
+#endif
+
+#if HASP_USE_WIFI > 0
+    wifi_get_status(buffer, len);
+#endif
 }
 
 #endif

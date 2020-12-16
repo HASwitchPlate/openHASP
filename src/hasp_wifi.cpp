@@ -492,6 +492,21 @@ void wifiStop()
     Log.warning(TAG_WIFI, F("Stopped"));
 }
 
+void wifi_get_status(char * buffer, size_t len)
+{
+#if defined(STM32F4xx)
+    IPAddress ip;
+    ip = WiFi.localIP();
+    char espIp[16];
+    memset(espIp, 0, sizeof(espIp));
+    snprintf_P(buffer, len, PSTR("\"ssid\":\"%s\",\"rssi\":%i,\"ip\":\"%d.%d.%d.%d\","), WiFi.SSID(), WiFi.RSSI(),
+               ip[0], ip[1], ip[2], ip[3]);
+#else
+    snprintf_P(buffer, len, PSTR("\"ssid\":\"%s\",\"rssi\":%i,\"ip\":\"%s\","), WiFi.SSID().c_str(), WiFi.RSSI(),
+               WiFi.localIP().toString().c_str());
+#endif
+}
+
 /* ============ Confiuration =============================================================== */
 
 bool wifiGetConfig(const JsonObject & settings)
