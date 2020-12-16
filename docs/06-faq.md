@@ -1,9 +1,9 @@
 
-#### Q: HASP Settings
+#### :question: HASP Settings
 
 A:
 
-#### Q: Is there a file browser built-in?
+#### :question: Is there a file browser built-in?
 
 *A:* There is no native file browser included yet, as this currently is low on the priority list.
 

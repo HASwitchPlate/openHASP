@@ -69,7 +69,7 @@ To use PWM dimming on the Lolin TFT 2.4" you must solder the TFT-LED pin to eith
 ![TFT-LED PWM dimming](assets/images/tft-led-pwm.png)
 
 > [!WARNING]
-> **Warning:**</br>Do *not* use D3 for backlight control because it is already in use for touch!
+> Do *not* use D3 for backlight control because it is already in use for touch!
 
 > [!ATTENTION]
 > It is also *not* recommended to use D4 for backlight control because it is already in use for PSram on the ESP32-Wrover.
@@ -90,7 +90,8 @@ no need to use any jumper cables:
 - Wemos D1 Mini ESP8266
 - Lolin D1 Mini Pro ESP8266 V2.0.0
 
-> **Note:**</br>If you have a Lolin TFT 2.4" Display and a compatible ESP development board, you have all the hardware that is needed.
+> [!NOTE]
+> If you have a Lolin TFT 2.4" Display and a compatible ESP development board, you have all the hardware that is needed.
 > In that case you can skip ahead to the [Firmware Installation](./installation.md).
 
 ## Alternative SPI Display
