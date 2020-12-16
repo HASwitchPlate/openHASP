@@ -554,10 +554,10 @@ typedef struct {
 #define LV_USE_LABEL    1
 #if LV_USE_LABEL != 0
 /*Hor, or ver. scroll speed [px/sec] in 'LV_LABEL_LONG_ROLL/ROLL_CIRC' mode*/
-#  define LV_LABEL_DEF_SCROLL_SPEED       25
+#  define LV_LABEL_DEF_SCROLL_SPEED       20 // default 25
 
 /* Waiting period at beginning/end of animation cycle */
-#  define LV_LABEL_WAIT_CHAR_COUNT        3
+#  define LV_LABEL_WAIT_CHAR_COUNT        5  // default 3
 
 /*Enable selecting text of the label */
 #  define LV_LABEL_TEXT_SEL               0
