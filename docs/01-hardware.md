@@ -64,11 +64,9 @@ To use PWM dimming on the Lolin TFT 2.4" you must solder the TFT-LED pin to eith
 
 ![TFT-LED PWM dimming](https://github.com/fvanroie/hasp-lvgl/blob/master/docs/img/tft-led-pwm.png)
 
-**Warning** Do *not* use D3 for backlight control because it is already in use for touch!
-{: .notice--warning}
+!> **Warning:**</br>Do *not* use D3 for backlight control because it is already in use for touch!
 
-**Note** It is also *not* recommended to use D4 for backlight control because it is already in use for PSram on the ESP32-Wrover.
-{: .notice--info}
+> **Note:**</br>It is also *not* recommended to use D4 for backlight control because it is already in use for PSram on the ESP32-Wrover.
 
 ##### Compatible ESP boards
 
@@ -146,7 +144,6 @@ The following boards are being tested:
     - Documentation can be found on [GitHub](https://github.com/mcauser/BLACK_F407ZG) 
 
 
-**Info** The STM32F4 boards do not have network connectivity. You can use a compatible network adapter and configure it in PlatformIO.
-{: .notice--info}
+> **Note:**</br>The STM32F4 boards do not have network connectivity. You can use a compatible network adapter and configure it in PlatformIO.
 
 <sub>Images of STM32 boards are [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/) from https://stm32-base.org/</sub>

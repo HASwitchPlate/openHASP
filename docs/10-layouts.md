@@ -10,7 +10,7 @@ The base layout all other layouts inherit from. There's not much to this layout 
 * page footer
 * scripts
 
-**Note:** You won't ever assign this layout directly to a post or page. Instead all other layouts will build off of it by setting `layout: default` in their YAML Front Matter.
+> **Note:**</br>You won't ever assign this layout directly to a post or page. Instead all other layouts will build off of it by setting `layout: default` in their YAML Front Matter.
 {: .notice--warning}
 
 ### Layout based and user-defined classes
@@ -70,7 +70,7 @@ This will generate the following in the `<head>` of your page:
 
 A Jekyll layout that compresses HTML in pure Liquid. To enable add `layout: compress` to `_layouts/default.html`.
 
-**Note:** Has been known to mangle markup and break JavaScript... especially if inline `// comments` are present. For this reason it has been disabled by default.
+> **Note:**</br>Has been known to mangle markup and break JavaScript... especially if inline `// comments` are present. For this reason it has been disabled by default.
 {: .notice--danger}
 
 * [Documentation](http://jch.penibelst.de/)
@@ -100,8 +100,8 @@ To expand the main content to the right, filling the space of what is normally o
 classes: wide
 ```
 
-**Note:** If the page contains a table of contents, it will no longer appear to the right. Instead it will be forced into the main content container directly following the page's title.
-{: .notice--info}
+> **Note:**</br>If the page contains a table of contents, it will no longer appear to the right. Instead it will be forced into the main content container directly following the page's title.
+
 
 ### Table of contents
 
@@ -191,8 +191,8 @@ header:
   teaser: path-to-teaser-image.jpg
 ```
 
-**Note:** More information on using this `_include` can be found under [**Helpers**]({{ "/docs/helpers/" | relative_url }}).
-{: .notice--info}
+> **Note:**</br>More information on using this `_include` can be found under [**Helpers**]({{ "/docs/helpers/" | relative_url }}).
+
 
 ## Taxonomy archives
 
@@ -211,8 +211,8 @@ If you're not using the `jekyll-archives` plugin then you need to create archive
 | [Tag Archive](https://mmistakes.github.io/minimal-mistakes/tags/markup/) | `layout: tag` | [markup.md](https://github.com/mmistakes/minimal-mistakes/blob/master/docs/_pages/markup.md) |
 | [Collection Archive](https://mmistakes.github.io/minimal-mistakes/recipes-archive/) | `layout: collection` | [recipes-archive.md](https://github.com/mmistakes/minimal-mistakes/blob/master/docs/_pages/recipes-archive.md) |
 
-**Note:** By default, documents are shown in a list view. To change to a grid view add `entries_layout: grid` to the page's front matter.
-{: .notice--info}
+> **Note:**</br>By default, documents are shown in a list view. To change to a grid view add `entries_layout: grid` to the page's front matter.
+
 
 ### `layout: posts`
 
@@ -319,8 +319,8 @@ Then adjust the `paginate_path` in **_config.yml** to match.
 paginate_path: /blog/page:num
 ``` 
 
-**Note:** Jekyll can only paginate a single `index.html` file. If you'd like to paginate more pages (e.g. category indexes) you'll need the help of a custom plugin. For more pagination related settings check the [**Configuration**]({{ "/docs/configuration/#paginate" | relative_url }}) section.
-{: .notice--info}
+> **Note:**</br>Jekyll can only paginate a single `index.html` file. If you'd like to paginate more pages (e.g. category indexes) you'll need the help of a custom plugin. For more pagination related settings check the [**Configuration**]({{ "/docs/configuration/#paginate" | relative_url }}) section.
+
 
 ## Splash page layout
 
@@ -342,7 +342,7 @@ A page with a search form. Add `layout: search` to the YAML Front Matter similar
 
 ![search page layout example]({{ "/assets/images/search-layout-example.png" | relative_url }})
 
-**Note:** A page using the `layout: search` isn't compatible with the new [site search feature]({{ "/docs/configuration/#site-search" | relative_url }}) incorporated in the masthead.
+> **Note:**</br>A page using the `layout: search` isn't compatible with the new [site search feature]({{ "/docs/configuration/#site-search" | relative_url }}) incorporated in the masthead.
 {: .notice--warning}
 
 ### Exclusions
@@ -354,7 +354,7 @@ search: false
 ```
 
 **ProTip:** Add a link to this page in the masthead navigation.
-{: .notice--info}
+
 
 ---
 
@@ -400,7 +400,7 @@ header:
 ```
 
 **ProTip:** Captions written in Markdown are supported, so feel free to add links, or style text. Just be sure to wrap it in quotes.
-{: .notice--info}
+
 
 ### Header overlay
 
@@ -498,7 +498,7 @@ header:
 ```
 
 **ProTip:** `og_image` is useful for setting OpenGraph images on pages that don't have a header or overlay image.
-{: .notice--info}
+
 
 ---
 
@@ -524,7 +524,7 @@ defaults:
       author_profile: true
 ```
 
-**Note:** To disable the author sidebar profile for a specific post or page, add `author_profile: false` to the YAML Front Matter instead.
+> **Note:**</br>To disable the author sidebar profile for a specific post or page, add `author_profile: false` to the YAML Front Matter instead.
 {: .notice--warning}
 
 To assign more author links, add to the `author.links` array  in [`_config.yml`]({{ "/docs/configuration/" | relative_url }}) link so. Any of [Font Awesome's icons](https://fontawesome.com/icons?d=gallery) are available for use.
@@ -550,8 +550,8 @@ author:
       url: "https://instagram.com/mmistakes"
 ```
 
-**Note:** Depending on the icon and theme skin used, colors may not be used. Popular social networks like Twitter, Facebook, Instagram, etc. have the appropriate brand color set in CSS. To change or add missing colors edit [`_utilities.scss`](https://github.com/mmistakes/minimal-mistakes/blob/master/_sass/minimal-mistakes/_utilities.scss) in `<site root>/_sass/minimal-mistakes/`.
-{: .notice--info}
+> **Note:**</br>Depending on the icon and theme skin used, colors may not be used. Popular social networks like Twitter, Facebook, Instagram, etc. have the appropriate brand color set in CSS. To change or add missing colors edit [`_utilities.scss`](https://github.com/mmistakes/minimal-mistakes/blob/master/_sass/minimal-mistakes/_utilities.scss) in `<site root>/_sass/minimal-mistakes/`.
+
 
 For example, to color a Reddit icon, simply add a `color` declaration and the corresponding hex code like so:
 
@@ -593,8 +593,8 @@ sidebar:
   <figcaption>Example of custom sidebar content added as YAML Front Matter.</figcaption>
 </figure>
 
-**Note:** Custom sidebar content added to a post or page's YAML Front Matter will appear below the author profile if enabled with `author_profile: true`.
-{: .notice--info}
+> **Note:**</br>Custom sidebar content added to a post or page's YAML Front Matter will appear below the author profile if enabled with `author_profile: true`.
+
 
 ### Custom sidebar navigation menu
 
@@ -665,8 +665,8 @@ sidebar:
   nav: "docs"
 ```
 
-**Note:** `nav: "docs"` references the `docs` key in `_data/navigation.yml` so make sure they match.
-{: .notice--info}
+> **Note:**</br>`nav: "docs"` references the `docs` key in `_data/navigation.yml` so make sure they match.
+
 
 If you're adding a sidebar navigation menu to several pages the use of Front Matter Defaults is a better option. You can define them in `_config.yml` to avoid adding it to every page or post.
 
@@ -723,7 +723,7 @@ $social:
 ```
 
 **ProTip:** For bonus points you can add it as a Sass `$variable` that you set in `_variables.scss` like the other ["brand" colors](http://brandcolors.net/).
-{: .notice--info}
+
 
 Add the new `.btn--reddit` class to the `<a>` element from earlier, [compile `main.css`]({{ "/docs/stylesheets/" | relative_url }}) and away you go.
 
