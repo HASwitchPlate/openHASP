@@ -38,5 +38,6 @@ pass myWifiPassword
 reboot
 ```
 
-> **Note:**</br>To skip this step, wifi credentials can be saved into the .bin file when you compile the firmware yourself.
+> [!TIP]
+> To skip this step, wifi credentials can be saved into the .bin file when you compile the firmware yourself.
 

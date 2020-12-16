@@ -8,7 +8,8 @@ There are currently 2 download options, pick the one appropriate for your hardwa
 - hasp-lvgl-0.2.0-esp32_ili9341_spi.bin
 - hasp-lvgl-0.2.0-esp8266_ili9341_spi.bin + boot files
 
-> **Note:**</br>If no precompiled firmware file is available for your board you can configure, compile and upload the firmware yourself using PlatformIO.
+> [!NOTE]
+> If no precompiled firmware file is available for your board you can configure, compile and upload the firmware yourself using PlatformIO.
 
 
 ## Install the firmware
@@ -55,7 +56,8 @@ Change `COM1` to the correct port on your computer and `4m` to the correct size 
 
 ### STM32F407 devEbox
 
-> **Note:**</br>There is no precompiled firmware file available for STM32F4 boards. You will need to configure, compile and upload the firmware yourself using PlatformIO.
+> [!NOTE]
+> There is no precompiled firmware file available for STM32F4 boards. You will need to configure, compile and upload the firmware yourself using PlatformIO.
 
 #### Using Serial
 
