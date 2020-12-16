@@ -7,6 +7,7 @@
 #include "hasp_conf.h"
 
 #include "hasp_dispatch.h"
+#include "hasp_network.h" // for network_get_status()
 #include "hasp_config.h"
 #include "hasp_debug.h"
 #include "hasp_object.h"
@@ -17,11 +18,14 @@
 #include "hasp_hal.h"
 #include "hasp.h"
 
+extern unsigned long debugLastMillis; // UpdateStatus timer
+
 uint8_t nCommands = 0;
 haspCommand_t commands[16];
 
 static void dispatch_config(const char * topic, const char * payload);
 static void dispatch_group_state(uint8_t groupid, uint8_t eventid, lv_obj_t * obj);
+static inline void dispatch_state_msg(const __FlashStringHelper * subtopic, const char * payload);
 
 bool is_true(const char * s)
 {
@@ -217,32 +221,18 @@ void dispatch_text_line(const char * cmnd)
 // send idle state to the client
 void dispatch_output_idle_state(uint8_t state)
 {
-    char buffer[6];
-
+    char payload[6];
     switch(state) {
         case HASP_SLEEP_LONG:
-            memcpy_P(buffer, PSTR("LONG"), sizeof(buffer));
+            memcpy_P(payload, PSTR("LONG"), sizeof(payload));
             break;
         case HASP_SLEEP_SHORT:
-            memcpy_P(buffer, PSTR("SHORT"), sizeof(buffer));
+            memcpy_P(payload, PSTR("SHORT"), sizeof(payload));
             break;
         default:
-            memcpy_P(buffer, PSTR("OFF"), sizeof(buffer));
+            memcpy_P(payload, PSTR("OFF"), sizeof(payload));
     }
-
-#if !defined(HASP_USE_MQTT) && !defined(HASP_USE_TASMOTA_SLAVE)
-    Log.notice(TAG_MSGR, F("idle = %s"), buffer);
-#else
-
-#if HASP_USE_MQTT > 0
-    mqtt_send_state(F("idle"), buffer);
-#endif
-
-#if HASP_USE_TASMOTA_SLAVE > 0
-    slave_send_state(F("idle"), buffer);
-#endif
-
-#endif
+    dispatch_state_msg(F("idle"), payload);
 }
 
 void IRAM_ATTR dispatch_send_obj_attribute_str(uint8_t pageid, uint8_t btnid, const char * attribute, const char * data)
@@ -359,16 +349,7 @@ static void dispatch_config(const char * topic, const char * payload)
     if(!update) {
         settings.remove(F("pass")); // hide password in output
         size_t size = serializeJson(doc, buffer, sizeof(buffer));
-#if !defined(HASP_USE_MQTT) && !defined(HASP_USE_TASMOTA_SLAVE)
-        Log.notice(TAG_MSGR, F("config %s = %s"), topic, buffer);
-#else
-#if HASP_USE_MQTT > 0
-        mqtt_send_state(F("config"), buffer);
-#endif
-#if HASP_USE_TASMOTA > 0
-        slave_send_state(F("config"), buffer);
-#endif
-#endif
+        dispatch_state_msg(F("config"), buffer);
     }
 }
 
@@ -427,20 +408,14 @@ static void dispatch_get_event_name(uint8_t eventid, char * buffer, size_t size)
 
 void dispatch_gpio_event(uint8_t pin, uint8_t group, uint8_t eventid)
 {
-    dispatch_group_state(group, dispatch_get_event_state(eventid), NULL);
+    char payload[64];
+    char event[8];
+    dispatch_get_event_name(eventid, event, sizeof(event));
+    snprintf_P(payload, sizeof(payload), PSTR("{\"pin\":%d,\"group\":%d,\"event\":\"%s\"}"), pin, group, event);
+    mqtt_send_state(F("input"), payload);
 
-    char payload[8];
-    dispatch_get_event_name(eventid, payload, sizeof(payload));
-#if !defined(HASP_USE_MQTT) && !defined(HASP_USE_TASMOTA_SLAVE)
-    Log.notice(TAG_MSGR, F("gpio%d = %s"), id, event);
-#else
-#if HASP_USE_MQTT > 0
-    mqtt_send_gpio_event(pin, group, payload);
-#endif
-#if HASP_USE_TASMOTA_SLAVE > 0
-    slave_send_input(pin, event);
-#endif
-#endif
+    // update outputstates
+    dispatch_group_state(group, dispatch_get_event_state(eventid), NULL);
 }
 
 void dispatch_object_event(lv_obj_t * obj, uint8_t eventid)
@@ -461,47 +436,37 @@ void dispatch_object_event(lv_obj_t * obj, uint8_t eventid)
     }
 }
 
-/********************************************** Output Events ******************************************/
-// void dispatch_group_event(uint8_t groupid, uint8_t eventid)
-// {
-//     // update outputs
-//     gpio_set_group_state(groupid, eventid);
-
-//     char payload[8];
-//     dispatch_get_event_name(eventid, payload, sizeof(payload));
-
-//     // send out value
-// #if !defined(HASP_USE_MQTT) && !defined(HASP_USE_TASMOTA_SLAVE)
-//     Log.notice(TAG_MSGR, F("group%d = %s"), groupid, payload);
-// #else
-// #if HASP_USE_MQTT > 0
-//     mqtt_send_input(groupid, payload);
-// #endif
-// #if HASP_USE_TASMOTA_SLAVE > 0
-//     slave_send_input(groupid, payload);
-// #endif
-// #endif
-
-//     // update objects, except src_obj
-//     // if(update_hasp)
-// }
+/********************************************** Output States ******************************************/
+static inline void dispatch_state_msg(const __FlashStringHelper * subtopic, const char * payload)
+{
+#if !defined(HASP_USE_MQTT) && !defined(HASP_USE_TASMOTA_SLAVE)
+    Log.notice(TAG_MSGR, F("%s => %s"), String(subtopic).c_str(), payload);
+#else
+#if HASP_USE_MQTT > 0
+    mqtt_send_state(subtopic, payload);
+#endif
+#if HASP_USE_TASMOTA_SLAVE > 0
+    slave_send_state(subtopic, payload);
+#endif
+#endif
+}
 
 void dispatch_group_state(uint8_t groupid, uint8_t eventid, lv_obj_t * obj)
 {
-    char payload[8];
-    dispatch_get_event_name(eventid, payload, sizeof(payload));
-    Log.notice(TAG_MSGR, F("GROUP %d => OUTPUT EVENT: %s"), groupid, payload);
+    if((eventid == HASP_EVENT_LONG) || (eventid == HASP_EVENT_HOLD)) return; // don't send repeat events
 
     if(groupid >= 0) {
         gpio_set_group_state(groupid, eventid);
         object_set_group_state(groupid, eventid, obj);
     }
-}
 
-// void dispatch_group_state(const char * group_str, const char * payload)
-// {
-//     dispatch_group_state(atoi(group_str), is_true(payload));
-// }
+    char payload[64];
+    char state[4]; // Return the current state
+    memcpy_P(state, dispatch_get_event_state(eventid) ? PSTR("ON") : PSTR("OFF"), sizeof(state));
+    snprintf_P(payload, sizeof(payload), PSTR("{\"group\":%d,\"state\":\"%s\"}"), groupid, state);
+
+    dispatch_state_msg(F("output"), payload);
+}
 
 /********************************************** Native Commands ****************************************/
 
@@ -584,16 +549,9 @@ void dispatch_parse_jsonl(const char *, const char * payload)
 void dispatch_output_current_page()
 {
     // Log result
-    char buffer[4];
-    itoa(haspGetPage(), buffer, DEC);
-
-#if HASP_USE_MQTT > 0
-    mqtt_send_state(F("page"), buffer);
-#endif
-
-#if HASP_USE_TASMOTA_SLAVE > 0
-    slave_send_state(F("page"), buffer);
-#endif
+    char payload[4];
+    itoa(haspGetPage(), payload, DEC);
+    dispatch_state_msg(F("page"), payload);
 }
 
 // Get or Set a page
@@ -645,19 +603,9 @@ void dispatch_dim(const char *, const char * level)
     // Set the current state
     if(strlen(level) != 0) guiSetDim(atoi(level));
 
-#if defined(HASP_USE_MQTT) || defined(HASP_USE_TASMOTA_SLAVE)
-    char buffer[4];
-    itoa(guiGetDim(), buffer, DEC);
-
-#if HASP_USE_MQTT > 0
-    mqtt_send_state(F("dim"), buffer);
-#endif
-
-#if HASP_USE_TASMOTA_SLAVE > 0
-    slave_send_state(F("dim"), buffer);
-#endif
-
-#endif
+    char payload[4];
+    itoa(guiGetDim(), payload, DEC);
+    dispatch_state_msg(F("dim"), payload);
 }
 
 void dispatch_backlight(const char *, const char * payload)
@@ -668,22 +616,7 @@ void dispatch_backlight(const char *, const char * payload)
     // Return the current state
     char buffer[4];
     memcpy_P(buffer, guiGetBacklight() ? PSTR("ON") : PSTR("OFF"), sizeof(buffer));
-
-#if HASP_USE_MQTT > 0
-    mqtt_send_state(F("light"), buffer);
-#endif
-
-#if HASP_USE_TASMOTA_SLAVE > 0
-    slave_send_state(F("light"), buffer);
-#endif
-}
-
-// Send status update message to the client
-void dispatch_output_statusupdate()
-{
-#if HASP_USE_MQTT > 0
-    mqtt_send_statusupdate();
-#endif
+    dispatch_state_msg(F("light"), buffer);
 }
 
 void dispatch_web_update(const char *, const char * espOtaUrl)
@@ -713,9 +646,50 @@ void dispatch_reboot(bool saveConfig)
 
 /******************************************* Command Wrapper Functions *********************************/
 
+// Periodically publish a JSON string indicating system status
 void dispatch_output_statusupdate(const char *, const char *)
 {
-    dispatch_output_statusupdate();
+#if HASP_USE_MQTT > 0
+
+    char data[3 * 128];
+    {
+        char buffer[128];
+
+        haspGetVersion(buffer, sizeof(buffer));
+        snprintf_P(data, sizeof(data), PSTR("{\"status\":\"available\",\"version\":\"%s\",\"uptime\":%lu,"), buffer,
+                   long(millis() / 1000));
+
+#if HASP_USE_WIFI > 0
+        network_get_status(buffer, sizeof(buffer));
+        strcat(data, buffer);
+#endif
+        snprintf_P(buffer, sizeof(buffer), PSTR("\"heapFree\":%u,\"heapFrag\":%u,\"espCore\":\"%s\","),
+                   halGetFreeHeap(), halGetHeapFragmentation(), halGetCoreVersion().c_str());
+        strcat(data, buffer);
+        snprintf_P(buffer, sizeof(buffer), PSTR("\"espCanUpdate\":\"false\",\"page\":%u,\"numPages\":%u,"),
+                   haspGetPage(), (HASP_NUM_PAGES));
+        strcat(data, buffer);
+
+#if defined(ARDUINO_ARCH_ESP8266)
+        snprintf_P(buffer, sizeof(buffer), PSTR("\"espVcc\":%.2f,"), (float)ESP.getVcc() / 1000);
+        strcat(data, buffer);
+#endif
+
+        snprintf_P(buffer, sizeof(buffer), PSTR("\"tftDriver\":\"%s\",\"tftWidth\":%u,\"tftHeight\":%u}"),
+                   halDisplayDriverName().c_str(), (TFT_WIDTH), (TFT_HEIGHT));
+        strcat(data, buffer);
+    }
+    mqtt_send_state(F("statusupdate"), data);
+    debugLastMillis = millis();
+
+    /* if(updateEspAvailable) {
+            mqttStatusPayload += F("\"updateEspAvailable\":true,");
+        } else {
+            mqttStatusPayload += F("\"updateEspAvailable\":false,");
+        }
+    */
+
+#endif
 }
 
 void dispatch_calibrate(const char *, const char *)
