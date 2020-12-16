@@ -1370,8 +1370,13 @@ void webHandleGpioOptions()
         httpMessage += F("</select></p>");
 
         httpMessage += F("<p><b>Group</b> <select id='group' name='group'>");
-        for(int i = 0; i < 15; i++) {
-            httpMessage += getOption(i, "Group " + String(i), i == conf.group);
+        httpMessage += getOption(0, F("None"), conf.group == 0);
+        String group((char *)0);
+        group.reserve(10);
+        for(int i = 1; i < 15; i++) {
+            group = F("Group ");
+            group += i;
+            httpMessage += getOption(i, group, conf.group == i);
         }
         httpMessage += F("</select></p>");
 

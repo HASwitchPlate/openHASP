@@ -11,7 +11,7 @@ This project is a re-implementation of the popular HASwitchPlate sketch created 
 The [original HASwitchPlate][1] project uses a Wemos D1 mini and requires a Nextion/TJC HMI display.
 This rewrite removes the Nextion/TJC requirement by using the [Littlev Graphics Library][2] on the MCU to drive a cheap commodity display.
 
-This version also adds ESP32 and STM32 support to take advantage of the additional hardware capabilities.
+This version also adds ESP32 and STM32F4 support to take advantage of the additional hardware capabilities.
 
 
 ## Demo Screens
