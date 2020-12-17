@@ -43,8 +43,8 @@ void telnetClientDisconnect()
     Log.unregisterOutput(1); // telnetClient
     telnetLoginState   = TELNET_UNAUTHENTICATED;
     telnetLoginAttempt = 0; // Initial attempt
-    delete telnetConsole;
-    telnetConsole = NULL;
+    // delete telnetConsole;
+    // telnetConsole = NULL;
     telnetClient.stop();
 }
 
@@ -295,17 +295,23 @@ void IRAM_ATTR telnetLoop()
             Log.warning(TAG_TELN, F("Rejecting client, another connection is already active"));
             telnetServer->available().stop(); // already have a client, block new connections
         }
-    }
-#endif
+    } else {
+        if(!telnetClient.connected() && telnetLoginState != TELNET_UNAUTHENTICATED) {
+            telnetClientDisconnect(); // active client disconnected
+        } else {
 
-    /* Process user input */
-    if(telnetConsole) {
-        int16_t keypress = telnetConsole->readKey();
-        switch(keypress) {
-            case ConsoleInput::KEY_PAUSE:
-                break;
+            /* Active Client: Process user input */
+            if(telnetConsole) {
+                int16_t keypress = telnetConsole->readKey();
+                switch(keypress) {
+                    case ConsoleInput::KEY_PAUSE:
+                        break;
+                }
+            }
+
         }
     }
+#endif
 }
 
 bool telnetGetConfig(const JsonObject & settings)
