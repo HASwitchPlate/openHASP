@@ -41,7 +41,7 @@
 #endif
 
 #ifndef TOUCH_DRIVER
-#define TOUCH_DRIVER 99
+#define TOUCH_DRIVER -1 // No Touch
 #endif
 
 #define BACKLIGHT_CHANNEL 15 // pwm channel 0-15
@@ -242,8 +242,8 @@ static void ICACHE_RAM_ATTR lv_tick_handler(void)
 //     return false; /*Return `false` because we are not buffering and no more data to read*/
 // }
 
-#if TOUCH_DRIVER == 2
-#include "Touchscreen.h" // For Uno Shield or ADC based resistive touchscreens
+#if TOUCH_DRIVER == 0xADC // Analog Digital Touch Conroller
+#include "Touchscreen.h"  // For Uno Shield or ADC based resistive touchscreens
 
 boolean Touch_getXY(uint16_t * x, uint16_t * y, boolean showTouch)
 {
@@ -297,7 +297,7 @@ boolean Touch_getXY(uint16_t * x, uint16_t * y, boolean showTouch)
 }
 #endif
 
-#if TOUCH_DRIVER == 1
+#if TOUCH_DRIVER == 911
 
 #include <Wire.h>
 #include "Goodix.h"
@@ -399,12 +399,12 @@ bool IRAM_ATTR my_touchpad_read(lv_indev_drv_t * indev_driver, lv_indev_data_t *
 #ifdef TOUCH_CS
     uint16_t touchX, touchY;
     bool touched;
-#if TOUCH_DRIVER == 0
+#if TOUCH_DRIVER == 2046 // XPT2046 Resistive touch panel driver
     touched = tft_espi_get_touch(&touchX, &touchY, 300);
-#elif TOUCH_DRIVER == 1
+#elif TOUCH_DRIVER == 911
     // return false;
     touched = GT911_getXY(&touchX, &touchY, true);
-#elif TOUCH_DRIVER == 2
+#elif TOUCH_DRIVER == 0xADC // Analog Digital Touch Conroller
     touched = Touch_getXY(&touchX, &touchY, false);
 #else
     // xpt2046_alt_drv_read(indev_driver, data);
@@ -430,7 +430,7 @@ bool IRAM_ATTR my_touchpad_read(lv_indev_drv_t * indev_driver, lv_indev_data_t *
 
 void guiCalibrate()
 {
-#if TOUCH_DRIVER == 0 && USE_TFT_ESPI > 0
+#if TOUCH_DRIVER == 2046 && USE_TFT_ESPI > 0
 #ifdef TOUCH_CS
     tft_espi_calibrate(calData);
 #endif
@@ -455,7 +455,7 @@ void guiSetup()
     tft_espi_init(guiRotation);
 #endif
 
-#if TOUCH_DRIVER == 1
+#if TOUCH_DRIVER == 911
     GT911_setup();
 #endif
 
@@ -470,7 +470,7 @@ void guiSetup()
 #endif
 
     tft.setRotation(guiRotation); /* 1/3=Landscape or 0/2=Portrait orientation */
-#if TOUCH_DRIVER == 0 && USE_TFT_ESPI > 0
+#if TOUCH_DRIVER == 2046 && USE_TFT_ESPI > 0
     tft_espi_set_touch(calData);
 #endif
 #endif
@@ -650,7 +650,7 @@ void IRAM_ATTR guiLoop(void)
     tick.update();
 #endif
 
-#if TOUCH_DRIVER == 1
+#if TOUCH_DRIVER == 911
     touch.loop();
 #endif
 }
@@ -762,7 +762,7 @@ bool guiGetConfig(const JsonObject & settings)
         } else {
             changed = true;
 
-#if TOUCH_DRIVER == 0 && USE_TFT_ESPI > 0 && defined(TOUCH_CS)
+#if TOUCH_DRIVER == 2046 && USE_TFT_ESPI > 0 && defined(TOUCH_CS)
             tft_espi_set_touch(calData);
 #endif
         }
@@ -777,7 +777,7 @@ bool guiGetConfig(const JsonObject & settings)
         }
         changed = true;
 
-#if TOUCH_DRIVER == 0 && USE_TFT_ESPI > 0 && defined(TOUCH_CS)
+#if TOUCH_DRIVER == 2046 && USE_TFT_ESPI > 0 && defined(TOUCH_CS)
         tft_espi_set_touch(calData);
 #endif
     }
@@ -836,7 +836,7 @@ bool guiSetConfig(const JsonObject & settings)
             oobeSetAutoCalibrate(true);
         }
 
-#if TOUCH_DRIVER == 0 && USE_TFT_ESPI > 0 && defined(TOUCH_CS)
+#if TOUCH_DRIVER == 2046 && USE_TFT_ESPI > 0 && defined(TOUCH_CS)
         if(status) tft_espi_set_touch(calData);
 #endif
         changed |= status;
