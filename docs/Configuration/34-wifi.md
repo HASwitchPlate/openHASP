@@ -1,9 +1,7 @@
 
-## Wifi
-
 When using a wireless network adapter, you need to configure the SSID to connect.
 
-![HASP Settings](assets/images/settings/wifi_settings.png "Wifi Settings")
+![HASP Settings](../assets/images/settings/wifi_settings.png "Wifi Settings")
 
 ### Wifi Settings
 

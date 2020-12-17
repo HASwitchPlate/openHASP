@@ -1,8 +1,6 @@
-## Display
-
 You can configure the general look and feel for the interface by uploading you favorite fonts and selecting your favorite theme and color.
 
-![HASP Settings](assets/images/settings/hasp_settings.png "HASP Settings")
+![HASP Settings](../assets/images/settings/hasp_settings.png "HASP Settings")
 
 ### HASP Settings
 

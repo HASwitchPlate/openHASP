@@ -40,11 +40,9 @@ table th:last-of-type {
 [4]: https://www.aliexpress.com/item/32815530502.html
 [5]: https://www.aliexpress.com/item/32977375539.html
 
-> [!WARNING]
-> \* *Due to the large number of possible hardware options a selection of 3 popular ESP development boards has been made for the precompiled binaries.*
+!> \* *Due to the large number of possible hardware options a selection of 3 popular ESP development boards has been made for the precompiled binaries.*
 
-> [!NOTE]
-> Advanced users can build and compile custom configurations using PlatformIO, however this is not currently supported.
+?> Advanced users can build and compile custom configurations using PlatformIO, however this is not currently supported.
 
 
 ## Recommended Display
@@ -68,8 +66,7 @@ To use PWM dimming on the Lolin TFT 2.4" you must solder the TFT-LED pin to eith
 
 ![TFT-LED PWM dimming](assets/images/tft-led-pwm.png)
 
-> [!WARNING]
-> Do *not* use D3 for backlight control because it is already in use for touch!
+!> Do *not* use D3 for backlight control because it is already in use for touch!
 
 > [!ATTENTION]
 > It is also *not* recommended to use D4 for backlight control because it is already in use for PSram on the ESP32-Wrover.
@@ -90,9 +87,8 @@ no need to use any jumper cables:
 - Wemos D1 Mini ESP8266
 - Lolin D1 Mini Pro ESP8266 V2.0.0
 
-> [!NOTE]
-> If you have a Lolin TFT 2.4" Display and a compatible ESP development board, you have all the hardware that is needed.
-> In that case you can skip ahead to the [Firmware Installation](./installation.md).
+?> If you have a Lolin TFT 2.4" Display and a compatible ESP development board, you have all the hardware that is needed.
+?> In that case you can skip ahead to the [Firmware Installation](./installation.md).
 
 ## Alternative SPI Display
 
@@ -153,7 +149,6 @@ The following boards are being tested:
     - Documentation can be found on [GitHub](https://github.com/mcauser/BLACK_F407ZG) 
 
 
-> [!NOTE]
-> The STM32F4 boards do not have network connectivity. You can use a compatible network adapter and configure it in PlatformIO.
+?> The STM32F4 boards do not have network connectivity. You can use a compatible network adapter and configure it in PlatformIO.
 
 <sub>Images of STM32 boards are [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/) from https://stm32-base.org/</sub>

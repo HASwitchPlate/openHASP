@@ -1,11 +1,9 @@
 
-## MQTT
-
 All communication between **HASP Open Display** and your Home Automation service is done over MQTT. You will need an already working MQTT Broker.
 
 :question: If you do not know what MQTT is you can find more about the protocol on [MQTT Essentials](http://www.hivemq.com/mqtt-essentials/)
 
-![MQTT Settings](assets/images/settings/mqtt_settings.png "MQTT Settings")
+![MQTT Settings](../assets/images/settings/mqtt_settings.png "MQTT Settings")
 
 
 ### MQTT Settings
