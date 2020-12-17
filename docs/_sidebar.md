@@ -3,11 +3,6 @@
 - **Getting Started**
 
   - [Hardware](./01-hardware.md)
-
-      - Display Pinout
-        - [MHS4001](displays/MHS4001.md)
-        - [MRB3511](displays/MRB3511.md)
-
   - [Firmware Install](./02-installation.md)
   - [Initial Setup](./03-wifi-setup.md)
 
@@ -16,15 +11,15 @@
   - [Command Reference](./05-commands.md)
   - [Frequently Asked Questions](./06-faq.md)
 
-- **Configuration**
+- **settings**
 
-  - [Http](Configuration/30-http.md)
-  - [Mqtt](Configuration/32-mqtt.md)
-  - [Hasp](Configuration/33-hasp.md)
-  - [Wifi](Configuration/34-wifi.md)
-  - [Display](Configuration/35-display.md)
-  - [Gpio](Configuration/36-gpio.md)
-  - [Debug](Configuration/37-debug.md)
+  - [Http](settings/30-http.md)
+  - [Mqtt](settings/32-mqtt.md)
+  - [Hasp](settings/33-hasp.md)
+  - [Wifi](settings/34-wifi.md)
+  - [Display](settings/35-display.md)
+  - [Gpio](settings/36-gpio.md)
+  - [Debug](settings/37-debug.md)
 
 
 - **Design Pages**
@@ -42,3 +37,11 @@
   - [ESP32](./38-firmware-esp.md)
   - [ESP8266](./38-firmware-esp.md)
   - [STM32F4xx](./39-firmware-stm32.md)
+
+- **Hardware**
+  - Alternate Dev Boards
+  
+  - Tested Displays
+    - [MHS4001](displays/MHS4001.md)
+    - [WaveShare RPi 4(C)](displays/Waveshare_40RPi_LCD(C).md)
+    - [MRB3511](displays/MRB3511.md)
