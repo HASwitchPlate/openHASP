@@ -1,7 +1,17 @@
 
-#### :question: HASP Settings
+#### :question: The font looks tiny
 
-A:
+On ESP8266, the out-of-the box font is Unscii 8pt because this font takes up very little space in memory and on flash.
+This default font is just intended to get the device setup, then you can Upload your own .zi font.
+
+On ESP32, the default font is Monserrat 12.
+
+
+#### :question: How to use Fontawesome icons?
+
+Upload another .zi file named fontawesome*xx*.zi of the same point size as the normal text .zi font.
+e.g. If your custom font is `arial24.zi´, you should also add a `fontawesome24.zi` file.
+
 
 #### :question: Is there a file browser built-in?
 
@@ -15,3 +25,7 @@ When the `edit.htm.gz` file is present on Spiffs you will see an additional File
 
 Using that webpage, you can right-click and delete files:
 ![HTTP configuration](assets/images/faq/faq_file_delete.png "Delete file")
+
+#### :question: Is there a file browser built-in?
+
+*See: Is there a file browser built-in?*

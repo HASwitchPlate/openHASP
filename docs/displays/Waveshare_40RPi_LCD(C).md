@@ -43,7 +43,7 @@ raspberrypi =
     -D SPI_FREQUENCY=80000000
     -D SPI_TOUCH_FREQUENCY=2500000
     -D USER_SETUP_LOADED=1
-    -D TOUCH_DRIVER=0 ; XPT2606 Resistive touch panel driver
+    -D TOUCH_DRIVER=2046 ; XPT2046 Resistive touch panel driver
     -D SUPPORT_TRANSACTIONS
 ```
 
