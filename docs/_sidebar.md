@@ -3,9 +3,11 @@
 - **Getting Started**
 
   - [Hardware](./01-hardware.md)
-    - Display Pinout
-      - [MHS4001](displays/MHS4001.md)
-      - [MRB3511](displays/MRB3511.md)
+
+      - Display Pinout
+        - [MHS4001](displays/MHS4001.md)
+        - [MRB3511](displays/MRB3511.md)
+
   - [Firmware Install](./02-installation.md)
   - [Initial Setup](./03-wifi-setup.md)
 
