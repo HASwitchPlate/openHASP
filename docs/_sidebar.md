@@ -9,6 +9,8 @@
 - [Command Reference](./05-commands.md)
 - [Frequently Asked Questions](./06-faq.md)
 
+- **Configuration**(./Configuration/)
+
 - **Design Pages**
 - [Pages](./12-pages.md)
 - [Objects](./13-objects.md)
