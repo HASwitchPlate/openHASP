@@ -39,8 +39,8 @@ ConsoleInput * telnetConsole;
 
 void telnetClientDisconnect()
 {
-    Log.notice(TAG_TELN, F("Closing session from %s"), telnetClient.remoteIP().toString().c_str());
     Log.unregisterOutput(1); // telnetClient
+    Log.notice(TAG_TELN, F("Closing session from %s"), telnetClient.remoteIP().toString().c_str());
     telnetLoginState   = TELNET_UNAUTHENTICATED;
     telnetLoginAttempt = 0; // Initial attempt
     // delete telnetConsole;
@@ -58,7 +58,7 @@ void telnetClientLogon()
     /* Now register logger for telnet */
     Log.registerOutput(1, &telnetClient, LOG_LEVEL_VERBOSE, true);
     telnetClient.flush();
-    telnetClient.setTimeout(10);
+   // telnetClient.setTimeout(10);
 
     Log.notice(TAG_TELN, F("Client login from %s"), telnetClient.remoteIP().toString().c_str());
 }
@@ -301,14 +301,13 @@ void IRAM_ATTR telnetLoop()
         } else {
 
             /* Active Client: Process user input */
-            if(telnetConsole) {
+            if(telnetConsole && telnetClient.connected()) {
                 int16_t keypress = telnetConsole->readKey();
                 switch(keypress) {
                     case ConsoleInput::KEY_PAUSE:
                         break;
                 }
             }
-
         }
     }
 #endif
