@@ -3,7 +3,7 @@
 
 #include "lvgl.h"
 #if LVGL_VERSION_MAJOR != 7
-#include "../lv_components.h"
+    #include "../lv_components.h"
 #endif
 
 //#include "hasp_conf.h"
@@ -126,20 +126,20 @@ static bool attribute_lookup_lv_property(uint16_t hash, uint8_t * prop)
         {ATTR_TRANSITION_PATH, LV_STYLE_TRANSITION_PATH & LV_STYLE_PROP_ALL},
         {ATTR_VALUE_STR, LV_STYLE_VALUE_STR & LV_STYLE_PROP_ALL},
 
-#if LV_USE_SHADOW
+    #if LV_USE_SHADOW
         {ATTR_SHADOW_WIDTH, LV_STYLE_SHADOW_WIDTH & LV_STYLE_PROP_ALL},
         {ATTR_SHADOW_OFS_X, LV_STYLE_SHADOW_OFS_X & LV_STYLE_PROP_ALL},
         {ATTR_SHADOW_OFS_Y, LV_STYLE_SHADOW_OFS_Y & LV_STYLE_PROP_ALL},
         {ATTR_SHADOW_SPREAD, LV_STYLE_SHADOW_SPREAD & LV_STYLE_PROP_ALL},
         {ATTR_SHADOW_COLOR, LV_STYLE_SHADOW_COLOR & LV_STYLE_PROP_ALL},
         {ATTR_SHADOW_OPA, LV_STYLE_SHADOW_OPA & LV_STYLE_PROP_ALL},
-#endif
+    #endif
 
-#if LV_USE_BLEND_MODES && LV_USE_SHADOW
+    #if LV_USE_BLEND_MODES && LV_USE_SHADOW
         {ATTR_SHADOW_BLEND_MODE, LV_STYLE_SHADOW_BLEND_MODE & LV_STYLE_PROP_ALL},
-#endif
+    #endif
 
-#if LV_USE_BLEND_MODES
+    #if LV_USE_BLEND_MODES
         {ATTR_BG_BLEND_MODE, LV_STYLE_BG_BLEND_MODE & LV_STYLE_PROP_ALL},
         {ATTR_PATTERN_BLEND_MODE, LV_STYLE_PATTERN_BLEND_MODE & LV_STYLE_PROP_ALL},
         {ATTR_IMAGE_BLEND_MODE, LV_STYLE_IMAGE_BLEND_MODE & LV_STYLE_PROP_ALL},
@@ -148,7 +148,7 @@ static bool attribute_lookup_lv_property(uint16_t hash, uint8_t * prop)
         {ATTR_OUTLINE_BLEND_MODE, LV_STYLE_OUTLINE_BLEND_MODE & LV_STYLE_PROP_ALL},
         {ATTR_VALUE_BLEND_MODE, LV_STYLE_VALUE_BLEND_MODE & LV_STYLE_PROP_ALL},
         {ATTR_TEXT_BLEND_MODE, LV_STYLE_TEXT_BLEND_MODE & LV_STYLE_PROP_ALL},
-#endif
+    #endif
     };
 
     for(uint32_t i = 0; i < sizeof(props) / sizeof(props[0]); i++) {
@@ -335,25 +335,25 @@ static lv_font_t * haspPayloadToFont(const char * payload)
 
 #if ESP32
 
-#if LV_FONT_MONTSERRAT_12 > 0
+    #if LV_FONT_MONTSERRAT_12 > 0
         case 12:
             return &lv_font_montserrat_12;
-#endif
+    #endif
 
-#if LV_FONT_MONTSERRAT_16 > 0
+    #if LV_FONT_MONTSERRAT_16 > 0
         case 16:
             return &lv_font_montserrat_16;
-#endif
+    #endif
 
-#if LV_FONT_MONTSERRAT_22 > 0
+    #if LV_FONT_MONTSERRAT_22 > 0
         case 22:
             return &lv_font_montserrat_22;
-#endif
+    #endif
 
-#if LV_FONT_MONTSERRAT_28 > 0
+    #if LV_FONT_MONTSERRAT_28 > 0
         case 28:
             return &lv_font_montserrat_28_compressed;
-#endif
+    #endif
 
 #endif
 
@@ -477,9 +477,9 @@ static void hasp_attribute_get_part_state(lv_obj_t * obj, const char * attr_in, 
     attr_out[len] = 0;
 
     /* Attributes depending on objecttype */
-    //lv_obj_type_t list;
-    //lv_obj_get_type(obj, &list);
-    //const char * objtype = list.type[0];
+    // lv_obj_type_t list;
+    // lv_obj_get_type(obj, &list);
+    // const char * objtype = list.type[0];
 
     if(check_obj_type(obj, LV_HASP_BUTTON)) {
         switch(index) {
@@ -906,9 +906,9 @@ static void hasp_process_btnmatrix_attribute(lv_obj_t * obj, const char * attr_p
 static void hasp_process_obj_attribute_txt(lv_obj_t * obj, const char * attr, const char * payload, bool update)
 {
     /* Attributes depending on objecttype */
-    //lv_obj_type_t list;
-    //lv_obj_get_type(obj, &list);
-    //const char * objtype = list.type[0];
+    // lv_obj_type_t list;
+    // lv_obj_get_type(obj, &list);
+    // const char * objtype = list.type[0];
 
     if(check_obj_type(obj, LV_HASP_BUTTON)) {
         if(update) {
@@ -951,9 +951,9 @@ static void hasp_process_obj_attribute_val(lv_obj_t * obj, const char * attr, co
     uint16_t val   = atoi(payload);
 
     /* Attributes depending on objecttype */
-    //lv_obj_type_t list;
-    //lv_obj_get_type(obj, &list);
-    //const char * objtype = list.type[0];
+    // lv_obj_type_t list;
+    // lv_obj_get_type(obj, &list);
+    // const char * objtype = list.type[0];
 
     if(check_obj_type(obj, LV_HASP_BUTTON) && lv_btn_get_checkable(obj)) {
         if(update) {
@@ -1043,9 +1043,9 @@ static void hasp_process_obj_attribute_range(lv_obj_t * obj, const char * attr, 
     int32_t val32 = strtol(payload, nullptr, DEC);
 
     /* Attributes depending on objecttype */
-    //lv_obj_type_t list;
-    //lv_obj_get_type(obj, &list);
-    //const char * objtype = list.type[0];
+    // lv_obj_type_t list;
+    // lv_obj_get_type(obj, &list);
+    // const char * objtype = list.type[0];
 
     if(check_obj_type(obj, LV_HASP_SLIDER)) {
         int16_t min = lv_slider_get_min_value(obj);
