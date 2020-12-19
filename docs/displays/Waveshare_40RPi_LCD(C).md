@@ -32,6 +32,9 @@ Other revisions of this board do not have this feature.
 SPI MISO, MOSI and SCLK are shared between the touch controller and the lcd controller.
 
 ## LCD Configuration
+
+The `lcd_config.ini` file specifies the different properties of the display, except for the actual pin configuration:
+
 ```ini
 raspberrypi =
     -D RPI_DISPLAY_TYPE=1
@@ -47,6 +50,9 @@ raspberrypi =
 ```
 
 ## HASP build_flags
+
+Specify the LCD Configuration to use and define the 7 GPIOs in the environment build flags:
+
 ```
 build_flags =
     ${flags.esp32_flags}
