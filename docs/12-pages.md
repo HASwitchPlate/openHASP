@@ -53,7 +53,7 @@ Example 2: Set the default `page` for next object(s) to `3` besides adding a com
 
 If you then omit the `page` parameter in the lines below this comment, those objects will appear by default on page `3`.
 
-> Note: If the line is not valid json, the parsing of the rest of the file is also stopped.
+?> If the line is not valid json, the parsing of the rest of the file is also stopped.
 
 ## Blank Lines
 Blank lines are allowed for readability and are ignored.

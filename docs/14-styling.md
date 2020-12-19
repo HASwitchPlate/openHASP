@@ -276,7 +276,7 @@ When the item is changed both `val` and `txt` of the newly selected item are sen
 | txt      | string     | no       | ""      | *Read-only* The text of the selected item
 | rows     | int8       | no       | 3       | The number ow rows that are visible
 
-Note: A roller does not use the `h` attribute to set its height, but uses the rows to set the visible number of rows instead.
+?> A roller does not use the `h` attribute to set its height, but uses the rows to set the visible number of rows instead.
 
 To change the currently selected item, use the `val` attribute.
 To change the items in the list, use the `options` attribute.
