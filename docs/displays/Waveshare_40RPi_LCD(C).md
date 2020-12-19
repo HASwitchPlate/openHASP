@@ -31,7 +31,7 @@ Other revisions of this board do not have this feature.
 
 SPI MISO, MOSI and SCLK are shared between the touch controller and the lcd controller.
 
-## lcd_mhs4001 config:
+## LCD Configuration
 ```ini
 raspberrypi =
     -D RPI_DISPLAY_TYPE=1

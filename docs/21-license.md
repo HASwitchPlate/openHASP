@@ -1,7 +1,7 @@
 
 The MIT License (MIT)
 
-Hasp-lvgl is Copyright (c) 2019-{{ site.time | date: '%Y' }} fvanroie, netwize.be and contributors
+Hasp-lvgl is Copyright (c) 2019-2020 fvanroie, netwize.be and contributors
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 -------------------------------------------
-Hasp-lvgl is based on the previous work of the following open source developers:
+Hasp-lvgl is based on the existing work of the following open source developers:
 
 - [HASwitchPlate](https://github.com/aderusha/HASwitchPlate), the original Arduino project,
   Copyright© 2019 Allen Derusha.
@@ -57,10 +57,6 @@ Hasp-lvgl is based on the previous work of the following open source developers:
   with modifications by fvanroie, netwize.be.
   ArduinoLog is distributed under the terms of the [MIT License](http://opensource.org/licenses/MIT).
 
-- [Syslog library](https://github.com/arcao/Syslog),
-  Copyright© 2016 Martin Sloup
-  [MIT License](http://opensource.org/licenses/MIT).
-
 - [QR Code generator](https://github.com/nayuki/QR-Code-generator)
   Copyright© Project Nayuki
   [MIT License](http://opensource.org/licenses/MIT).
@@ -78,6 +74,6 @@ Hasp-lvgl is based on the previous work of the following open source developers:
   Copyright© 2014, Austin Andrews (http://materialdesignicons.com/),
   MaterialDesign Icons font is licensed under the SIL Open Font License, Version 1.1.
 
-- This website theme is based on [Minimal Mistakes](https://mmistakes.github.io/minimal-mistakes/),
-  Copyright© 2013-2020 Michael Rose and contributors
+- This website is created with [Docsify](https://docsify.js.org/),
+  Copyright© 2016 - present cinwell.li
   [MIT License](http://opensource.org/licenses/MIT).
