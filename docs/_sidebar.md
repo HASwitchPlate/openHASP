@@ -43,5 +43,7 @@
   
   - Tested Displays
     - [MHS4001](displays/MHS4001.md)
-    - [WaveShare RPi 4(C)](displays/Waveshare_40RPi_LCD(C).md)
+    - [WaveShare 4.0" RPi LCD (rev C)](displays/Waveshare_40RPi_LCD(C).md)
     - [MRB3511](displays/MRB3511.md)
+
+- [**License**](21-license.md)
