@@ -128,7 +128,6 @@ bool get_page_id(lv_obj_t * obj, uint8_t * pageid)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
 void haspDisconnect()
 {
 
@@ -271,7 +270,7 @@ void haspSetup()
     /* ********** Font Initializations ********** */
 
 #if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
-#if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
+    #if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
     lv_zifont_init();
 
     if(lv_zifont_font_init(&haspFonts[1], haspZiFontPath, 32) != 0) {
@@ -280,7 +279,7 @@ void haspSetup()
     } else {
         // defaultFont = haspFonts[0];
     }
-#endif
+    #endif
 #endif
 
     // haspFonts[0] = lv_font_load("E:/font_1.fnt");
@@ -292,7 +291,9 @@ void haspSetup()
     if(haspThemeId == 9) haspThemeId = 5;                    // update old material id
     if(haspThemeId <= 0 || haspThemeId > 5) haspThemeId = 1; // check bounds
 
-    lv_theme_t * th = NULL;
+    lv_theme_t * th            = NULL;
+    lv_theme_hasp_flag_t flags = LV_THEME_HASP_FLAG_LIGHT;
+
     switch(haspThemeId) {
 #if(LV_USE_THEME_EMPTY == 1)
         case 0:
@@ -303,12 +304,12 @@ void haspSetup()
 
 #if(LV_USE_THEME_HASP == 1)
         case 2: // Dark
+            flags = LV_THEME_HASP_FLAG_DARK;
         case 1: // Light
         case 8: // Light (old id)
             th = lv_theme_hasp_init(lv_color_hsv_to_rgb(haspThemeHue, 100, 100),
-                                    lv_color_hsv_to_rgb(haspThemeHue, 100, 100),
-                                    LV_THEME_HASP_FLAG_DARK + LV_THEME_HASP_FLAG_NO_FOCUS, haspFonts[0], haspFonts[1],
-                                    haspFonts[2], haspFonts[3]);
+                                    lv_color_hsv_to_rgb(haspThemeHue, 100, 100), flags + LV_THEME_HASP_FLAG_NO_FOCUS,
+                                    haspFonts[0], haspFonts[1], haspFonts[2], haspFonts[3]);
             break;
 #endif
 
@@ -535,12 +536,12 @@ void haspLoadPage(const char * pages)
     Log.trace(TAG_HASP, F("File %s loaded"), pages);
 #else
 
-#if HASP_USE_EEPROM > 0
+    #if HASP_USE_EEPROM > 0
     Log.notice(TAG_HASP, F("Loading jsonl from EEPROM..."));
     EepromStream eepromStream(4096, 1024);
     dispatch_parse_jsonl(eepromStream);
     Log.trace(TAG_HASP, F("Loaded jsonl from EEPROM"));
-#endif
+    #endif
 
 #endif
 }
