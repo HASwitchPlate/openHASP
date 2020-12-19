@@ -36,7 +36,7 @@ Example: `light on` acepted values: on/off, true/false, 0/1, yes/no
 
 Tip: this can be used in conjunction with the idle event, e.g. to turn the backlight off after a long period of inactivity.
 
-Note: The `dim`and `light` command depends on a GPIO pin to be connected to control the the TFT_LED backlight via a transistor.
+?> The `dim`and `light` command depends on a GPIO pin to be connected to control the the TFT_LED backlight via a transistor.
 
 `wakeup`
 
@@ -48,7 +48,7 @@ Clears the idle state of the device and publishes an `state/idle = OFF` status m
 
 Start on-screen touch calibration.
 
-Note: You need to issue a soft reboot command to save the new calibration settings. If you do a hard reset of the device, the calibration settings will be lost.
+?> You need to issue a soft reboot command to save the new calibration settings. If you do a hard reset of the device, the calibration settings will be lost.
 
 `screenshot`
 
