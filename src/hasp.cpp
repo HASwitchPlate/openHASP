@@ -291,8 +291,9 @@ void haspSetup()
     if(haspThemeId == 9) haspThemeId = 5;                    // update old material id
     if(haspThemeId <= 0 || haspThemeId > 5) haspThemeId = 1; // check bounds
 
-    lv_theme_t * th            = NULL;
-    lv_theme_hasp_flag_t flags = LV_THEME_HASP_FLAG_LIGHT;
+    lv_theme_t * th                         = NULL;
+    lv_theme_hasp_flag_t hasp_flags         = LV_THEME_HASP_FLAG_LIGHT;
+    lv_theme_material_flag_t material_flags = LV_THEME_MATERIAL_FLAG_LIGHT;
 
     switch(haspThemeId) {
 #if(LV_USE_THEME_EMPTY == 1)
@@ -304,12 +305,12 @@ void haspSetup()
 
 #if(LV_USE_THEME_HASP == 1)
         case 2: // Dark
-            flags = LV_THEME_HASP_FLAG_DARK;
+            hasp_flags = LV_THEME_HASP_FLAG_DARK;
         case 1: // Light
         case 8: // Light (old id)
-            th = lv_theme_hasp_init(lv_color_hsv_to_rgb(haspThemeHue, 100, 100),
-                                    lv_color_hsv_to_rgb(haspThemeHue, 100, 100), flags + LV_THEME_HASP_FLAG_NO_FOCUS,
-                                    haspFonts[0], haspFonts[1], haspFonts[2], haspFonts[3]);
+            th = lv_theme_hasp_init(
+                lv_color_hsv_to_rgb(haspThemeHue, 100, 100), lv_color_hsv_to_rgb(haspThemeHue, 100, 100),
+                hasp_flags + LV_THEME_HASP_FLAG_NO_FOCUS, haspFonts[0], haspFonts[1], haspFonts[2], haspFonts[3]);
             break;
 #endif
 
@@ -332,39 +333,18 @@ void haspSetup()
             break;
 #endif
 
-            /*
-             * LV_THEME_MATERIAL_FLAG_LIGHT: light theme
-             * LV_THEME_MATERIAL_FLAG_DARK: dark theme
-             * LV_THEME_MATERIAL_FLAG_NO_TRANSITION: disable transitions (state change animations)
-             * LV_THEME_MATERIAL_FLAG_NO_FOCUS: disable indication of focused state)
-             * */
-
+            // LV_THEME_MATERIAL_FLAG_NO_TRANSITION : disable transitions(state change animations)
+            // LV_THEME_MATERIAL_FLAG_NO_FOCUS: disable indication of focused state)
 #if LV_USE_THEME_MATERIAL == 1
-        case 4:
-            th = lv_theme_material_init(LV_COLOR_PURPLE, LV_COLOR_ORANGE,
-                                        LV_THEME_MATERIAL_FLAG_LIGHT + LV_THEME_MATERIAL_FLAG_NO_FOCUS +
-                                            LV_THEME_MATERIAL_FLAG_NO_TRANSITION,
-                                        haspFonts[0], haspFonts[1], haspFonts[2], haspFonts[3]);
-            break;
-        case 5:
+        case 5: // Dark
+            material_flags = LV_THEME_MATERIAL_FLAG_DARK;
+        case 4: // Light
         case 9: // Light (old id)
             th = lv_theme_material_init(LV_COLOR_PURPLE, LV_COLOR_ORANGE,
-                                        LV_THEME_MATERIAL_FLAG_DARK + LV_THEME_MATERIAL_FLAG_NO_FOCUS +
+                                        material_flags + LV_THEME_MATERIAL_FLAG_NO_FOCUS +
                                             LV_THEME_MATERIAL_FLAG_NO_TRANSITION,
                                         haspFonts[0], haspFonts[1], haspFonts[2], haspFonts[3]);
             break;
-#endif
-
-#if LV_USE_THEME_ZEN == 1
-        case 5:
-            th = lv_theme_zen_init(haspThemeHue, defaultFont); // lightweight break;
-#endif
-
-#if LV_USE_THEME_NEMO == 1
-        case 6:
-            th =
-                // lv_theme_nemo_init(haspThemeHue, defaultFont); // heavy
-                break;
 #endif
 
 #if LV_USE_THEME_TEMPLATE == 1

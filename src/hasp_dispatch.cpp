@@ -163,12 +163,7 @@ void dispatch_topic_payload(const char * topic, const char * payload)
 
     if(topic == strstr_P(topic, PSTR("command/"))) { // startsWith command/
         topic += 8u;
-        // Log.verbose(TAG_MSGR,F("MQTT IN: command subtopic: %s"), topic);
-
-        // '[...]/device/command/p[1].b[4].txt' -m '"Lights On"' ==
-        // nextionSetAttr("p[1].b[4].txt", "\"Lights On\"")
         dispatch_command(topic, (char *)payload);
-
         return;
     }
 

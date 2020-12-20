@@ -33,7 +33,6 @@ EthernetClient mqttNetworkClient;
 #endif
 
 #include "hasp_hal.h"
-//#include "hasp_tft.h"
 #include "hasp_debug.h"
 #include "hasp_config.h"
 #include "hasp_dispatch.h"
@@ -100,11 +99,6 @@ char mqttGroupName[16] = "";
 #ifndef MQTT_PREFIX
 #define MQTT_PREFIX "hasp"
 #endif
-
-/*
-const String mqttLightSubscription        = "hasp/" + String(haspGetNodename()) + "/light/#";
-const String mqttLightBrightSubscription  = "hasp/" + String(haspGetNodename()) + "/brightness/#";
-*/
 
 PubSubClient mqttClient(mqttNetworkClient);
 
@@ -195,10 +189,6 @@ static void mqtt_message_cb(char * topic, byte * payload, unsigned int length)
     } else {
         payload[length] = '\0';
     }
-
-    // Incoming Namespace (replace /device/ with /group/ for group commands)
-    // '[...]/device/command' -m '' = No command requested, respond with mqttStatusUpdate()
-    // '[...]/device/command' -m 'dim=50' = nextionSendCmd("dim=50")
 
     Log.notice(TAG_MQTT_RCV, F("%s = %s"), topic, (char *)payload);
 
