@@ -9,16 +9,13 @@
 #include "lvgl.h"          /*To see all the widgets*/
 #include "lv_conf.h"       /*To see all the widgets*/
 #include "lv_theme_hasp.h" /*To see all the widgets*/
-#if LVGL_VERSION_MAJOR != 7
-#include "../lv_components.h"
-#endif
 
 //#if LV_USE_THEME_HASP
 
 #include "src/lv_misc/lv_gc.h"
 
 #if defined(LV_GC_INCLUDE)
-#include LV_GC_INCLUDE
+    #include LV_GC_INCLUDE
 #endif /* LV_ENABLE_GC */
 
 /*********************
@@ -32,26 +29,27 @@
 #define COLOR_SCR_TEXT (IS_LIGHT ? lv_color_hex(0x3b3e42) : lv_color_hex(0xefefef))
 
 /*BUTTON*/
-#define COLOR_BTN (IS_LIGHT ? lv_color_hex(0xffffff) : lv_color_hex(0x586273))
-#define COLOR_BTN_PR                                                                                                   \
-    (IS_LIGHT ? lv_color_mix(theme.color_primary, COLOR_BTN, LV_OPA_10)                                                \
-              : lv_color_mix(theme.color_primary, COLOR_BTN, LV_OPA_30))
-
-#define COLOR_BTN_CHK (theme.color_primary)
-#define COLOR_BTN_CHK_PR (lv_color_darken(theme.color_primary, LV_OPA_30))
+#define COLOR_BTN (IS_LIGHT ? lv_color_hex(0x81a8cb) : lv_color_hex(0x81a8cb))
+#define COLOR_BTN_GRAD (IS_LIGHT ? lv_color_hex(0x4477a1) : lv_color_hex(0x4477a1))
+#define COLOR_BTN_PR (lv_color_darken(COLOR_BTN_CHK, LV_OPA_20))
+#define COLOR_BTN_PR_GRAD lv_color_darken(COLOR_BTN_GRAD, LV_OPA_20)
+#define COLOR_BTN_CHK lv_color_darken(COLOR_BTN_GRAD, LV_OPA_20)
+#define COLOR_BTN_CHK_GRAD lv_color_darken(COLOR_BTN_GRAD, LV_OPA_10)
+#define COLOR_BTN_CHK_PR (lv_color_darken(COLOR_BTN_CHK, LV_OPA_20))
+#define COLOR_BTN_CHK_PR_GRAD (lv_color_darken(COLOR_BTN_CHK_GRAD, LV_OPA_30))
 #define COLOR_BTN_DIS (IS_LIGHT ? lv_color_hex3(0xccc) : lv_color_hex3(0x888))
 
-#define COLOR_BTN_BORDER theme.color_primary
-#define COLOR_BTN_BORDER_PR theme.color_primary
-#define COLOR_BTN_BORDER_CHK theme.color_primary
-#define COLOR_BTN_BORDER_CHK_PR theme.color_primary
+#define COLOR_BTN_BORDER (IS_LIGHT ? lv_color_hex(0xd6dde3) : lv_color_hex(0x808a97))
+#define COLOR_BTN_BORDER_PR (IS_LIGHT ? lv_color_hex3(0xccc) : lv_color_hex(0x5f656e))
+#define COLOR_BTN_BORDER_CHK (IS_LIGHT ? lv_color_hex(0x3b3e42) : lv_color_hex(0x5f656e))
+#define COLOR_BTN_BORDER_CHK_PR (IS_LIGHT ? lv_color_hex(0x3b3e42) : lv_color_hex(0x5f656e))
 #define COLOR_BTN_BORDER_INA (IS_LIGHT ? lv_color_hex3(0x888) : lv_color_hex(0x404040))
 
 /*BACKGROUND*/
-#define COLOR_BG (IS_LIGHT ? lv_color_hex(0xffffff) : lv_color_hex(0x586273))
-#define COLOR_BG_PR (IS_LIGHT ? lv_color_hex(0xeeeeee) : lv_color_hex(0x494f57))
-#define COLOR_BG_CHK theme.color_primary
-#define COLOR_BG_PR_CHK lv_color_darken(theme.color_primary, LV_OPA_20)
+#define COLOR_BG COLOR_BTN
+#define COLOR_BG_PR COLOR_BTN_PR
+#define COLOR_BG_CHK COLOR_BTN_CHK
+#define COLOR_BG_PR_CHK COLOR_BTN_CHK_PR
 #define COLOR_BG_DIS COLOR_BG
 
 #define COLOR_BG_BORDER (IS_LIGHT ? lv_color_hex(0xd6dde3) : lv_color_hex(0x808a97)) /*dfe7ed*/
@@ -60,22 +58,22 @@
 #define COLOR_BG_BORDER_CHK_PR (IS_LIGHT ? lv_color_hex(0x3b3e42) : lv_color_hex(0x5f656e))
 #define COLOR_BG_BORDER_DIS (IS_LIGHT ? lv_color_hex(0xd6dde3) : lv_color_hex(0x5f656e))
 
-#define COLOR_BG_TEXT (IS_LIGHT ? lv_color_hex(0x3b3e42) : lv_color_hex(0xffffff))
-#define COLOR_BG_TEXT_PR (IS_LIGHT ? lv_color_hex(0x3b3e42) : lv_color_hex(0xffffff))
+#define COLOR_BG_TEXT (IS_LIGHT ? lv_color_hex(0xeeeeee) : lv_color_hex(0xeeeeee))
+#define COLOR_BG_TEXT_PR (IS_LIGHT ? lv_color_hex(0xffffff) : lv_color_hex(0xffffff))
 #define COLOR_BG_TEXT_CHK (IS_LIGHT ? lv_color_hex(0xffffff) : lv_color_hex(0xffffff))
 #define COLOR_BG_TEXT_CHK_PR (IS_LIGHT ? lv_color_hex(0xffffff) : lv_color_hex(0xffffff))
 #define COLOR_BG_TEXT_DIS (IS_LIGHT ? lv_color_hex3(0xaaa) : lv_color_hex3(0x999))
 
 /*SECONDARY BACKGROUND*/
 #define COLOR_BG_SEC lv_color_lighten(theme.color_primary, LV_OPA_30)
-#define COLOR_BG_GRAD theme.color_primary
+#define COLOR_BG_GRAD COLOR_BTN_GRAD
 #define COLOR_BG_SEC_BORDER (IS_LIGHT ? lv_color_hex(0xdfe7ed) : lv_color_hex(0x404040))
 #define COLOR_BG_SEC_TEXT (IS_LIGHT ? lv_color_hex(0x31404f) : lv_color_hex(0xa5a8ad))
 #define COLOR_BG_SEC_TEXT_DIS (IS_LIGHT ? lv_color_hex(0xaaaaaa) : lv_color_hex(0xa5a8ad))
 
-#define TRANSITION_TIME 0 /*((theme.flags & LV_THEME_MATERIAL_FLAG_NO_TRANSITION) ? 0 : 150)*/
+#define TRANSITION_TIME 0 /*((theme.flags & LV_THEME_HASP_FLAG_NO_TRANSITION) ? 0 : 150)*/
 #define BORDER_WIDTH LV_DPX(2)
-#define BORDER_COLOR lv_color_hex3(0x8888)
+#define BORDER_COLOR ((theme.flags & IS_LIGHT) ? lv_color_make(0x40, 0x40, 0x40) : lv_color_make(0xb0, 0xb0, 0xb0))
 #define OUTLINE_WIDTH ((theme.flags & LV_THEME_HASP_FLAG_NO_FOCUS) ? 0 : LV_DPX(3))
 #define OUTLINE_COLOR ((theme.flags & LV_THEME_HASP_FLAG_NO_FOCUS) ? BORDER_COLOR : theme.color_secondary)
 
@@ -98,8 +96,8 @@ typedef struct
     lv_style_t transparent;  // Objects with transparent background, like Checkbox, container
     lv_style_t pretty;       // Background gradient
     lv_style_t pretty_color; // Primary Colored gradient
-    lv_style_t bg_click;
-    lv_style_t bg_sec;
+    // lv_style_t bg_click;
+    // lv_style_t bg_sec;
     lv_style_t btn;
     lv_style_t pad_inner; // Space inner objects
     lv_style_t pad_small; // Inner margin and space inner objects
@@ -116,12 +114,12 @@ typedef struct
 #endif
 
 #if LV_USE_BAR
-    lv_style_t bar_bg;
-    lv_style_t bar_indic;
+//    lv_style_t bar_bg;
+//    lv_style_t bar_indic;
 #endif
 
 #if LV_USE_CALENDAR
-    lv_style_t calendar_date_nums, calendar_header, calendar_daynames;
+    lv_style_t calendar_date_nums;
 #endif
 
 #if LV_USE_CPICKER
@@ -160,11 +158,11 @@ typedef struct
     lv_style_t mbox_bg;
 #endif
 
-    lv_style_t sb;
 #if LV_USE_PAGE
-#if LV_USE_ANIMATION
+    lv_style_t sb;
+    #if LV_USE_ANIMATION
     lv_style_t edge_flash;
-#endif
+    #endif
 #endif
 
 #if LV_USE_SLIDER
@@ -230,7 +228,7 @@ static void basic_init(void)
     // Background gradient
     style_init_reset(&styles->pretty);
 
-    lv_style_set_radius(&styles->pretty, LV_STATE_DEFAULT, LV_DPI / 30);
+    lv_style_set_radius(&styles->pretty, LV_STATE_DEFAULT, LV_DPI / 15);
 
     lv_style_set_bg_color(&styles->pretty, LV_STATE_DEFAULT, COLOR_SCR);
     lv_style_set_bg_grad_color(&styles->pretty, LV_STATE_DEFAULT, COLOR_SCR_GRAD);
@@ -249,7 +247,7 @@ static void basic_init(void)
     lv_style_set_value_color(&styles->pretty, LV_STATE_DEFAULT, COLOR_SCR_TEXT);
     lv_style_set_value_font(&styles->pretty, LV_STATE_DEFAULT, theme.font_subtitle);
 
-    lv_style_set_border_opa(&styles->pretty, LV_STATE_DEFAULT, LV_OPA_60);
+    lv_style_set_border_opa(&styles->pretty, LV_STATE_DEFAULT, LV_OPA_30);
     lv_style_set_border_width(&styles->pretty, LV_STATE_DEFAULT, BORDER_WIDTH);
     lv_style_set_border_color(&styles->pretty, LV_STATE_DEFAULT, BORDER_COLOR);
     lv_style_set_border_color(&styles->pretty, LV_STATE_EDITED, lv_color_darken(theme.color_secondary, LV_OPA_30));
@@ -263,7 +261,7 @@ static void basic_init(void)
 
     // Primary Colored gradient
     style_init_reset(&styles->pretty_color);
-    lv_style_set_radius(&styles->pretty_color, LV_STATE_DEFAULT, LV_DPI / 30);
+    lv_style_set_radius(&styles->pretty_color, LV_STATE_DEFAULT, LV_DPI / 15);
     lv_style_set_bg_color(&styles->pretty_color, LV_STATE_DEFAULT, COLOR_BG);
     lv_style_set_bg_grad_color(&styles->pretty_color, LV_STATE_DEFAULT, COLOR_BG_GRAD);
     lv_style_set_bg_grad_dir(&styles->pretty_color, LV_STATE_DEFAULT, LV_GRAD_DIR_VER);
@@ -279,7 +277,7 @@ static void basic_init(void)
     lv_style_set_value_font(&styles->pretty_color, LV_STATE_DEFAULT, theme.font_subtitle);
     lv_style_set_value_color(&styles->pretty_color, LV_STATE_DEFAULT, COLOR_SCR_TEXT);
 
-    lv_style_set_border_opa(&styles->pretty_color, LV_STATE_DEFAULT, LV_OPA_60);
+    lv_style_set_border_opa(&styles->pretty_color, LV_STATE_DEFAULT, 3);
     lv_style_set_border_width(&styles->pretty_color, LV_STATE_DEFAULT, BORDER_WIDTH);
     lv_style_set_border_color(&styles->pretty_color, LV_STATE_DEFAULT, BORDER_COLOR);
     lv_style_set_border_color(&styles->pretty_color, LV_STATE_EDITED,
@@ -291,18 +289,20 @@ static void basic_init(void)
         lv_style_set_border_width(&styles->pretty_color, LV_STATE_FOCUSED, OUTLINE_WIDTH);
     }
 
-    style_init_reset(&styles->bg_sec);
-    lv_style_copy(&styles->bg_sec, &styles->pretty_color);
-    lv_style_set_bg_color(&styles->bg_sec, LV_STATE_DEFAULT, COLOR_BG_SEC);
-    lv_style_set_bg_grad_color(&styles->bg_sec, LV_STATE_DEFAULT, COLOR_BG_SEC_BORDER);
-    lv_style_set_bg_grad_dir(&styles->bg_sec, LV_STATE_DEFAULT, LV_GRAD_DIR_VER);
+    /*    style_init_reset(&styles->bg_sec);
+        lv_style_copy(&styles->bg_sec, &styles->pretty_color);
+        lv_style_set_bg_color(&styles->bg_sec, LV_STATE_DEFAULT, COLOR_BG_SEC);
+        lv_style_set_bg_grad_color(&styles->bg_sec, LV_STATE_DEFAULT, COLOR_BG_SEC_BORDER);
+        lv_style_set_bg_grad_dir(&styles->bg_sec, LV_STATE_DEFAULT, LV_GRAD_DIR_VER);
 
-    lv_style_set_border_color(&styles->bg_sec, LV_STATE_DEFAULT, COLOR_BG_BORDER);
-    lv_style_set_text_color(&styles->bg_sec, LV_STATE_DEFAULT, COLOR_BG_SEC_TEXT);
-    lv_style_set_value_color(&styles->bg_sec, LV_STATE_DEFAULT, COLOR_BG_SEC_TEXT);
-    lv_style_set_image_recolor(&styles->bg_sec, LV_STATE_DEFAULT, COLOR_BG_SEC_TEXT);
-    lv_style_set_line_color(&styles->bg_sec, LV_STATE_DEFAULT, COLOR_BG_SEC_TEXT);
+        lv_style_set_border_color(&styles->bg_sec, LV_STATE_DEFAULT, COLOR_BG_BORDER);
+        lv_style_set_text_color(&styles->bg_sec, LV_STATE_DEFAULT, COLOR_BG_SEC_TEXT);
+        lv_style_set_value_color(&styles->bg_sec, LV_STATE_DEFAULT, COLOR_BG_SEC_TEXT);
+        lv_style_set_image_recolor(&styles->bg_sec, LV_STATE_DEFAULT, COLOR_BG_SEC_TEXT);
+        lv_style_set_line_color(&styles->bg_sec, LV_STATE_DEFAULT, COLOR_BG_SEC_TEXT);
+    */
 
+    /*
     style_init_reset(&styles->bg_click);
     lv_style_set_bg_color(&styles->bg_click, LV_STATE_PRESSED, COLOR_BG_PR);
     lv_style_set_bg_color(&styles->bg_click, LV_STATE_CHECKED, COLOR_BG_CHK);
@@ -310,7 +310,7 @@ static void basic_init(void)
     lv_style_set_bg_color(&styles->bg_click, LV_STATE_DISABLED, COLOR_BG_DIS);
     lv_style_set_border_width(&styles->bg_click, LV_STATE_CHECKED, 0);
     lv_style_set_border_color(&styles->bg_click, LV_STATE_FOCUSED | LV_STATE_PRESSED,
-                              lv_color_darken(theme.color_primary, LV_OPA_20));
+        lv_color_darken(theme.color_primary, LV_OPA_20));
     lv_style_set_border_color(&styles->bg_click, LV_STATE_PRESSED, COLOR_BG_BORDER_PR);
     lv_style_set_border_color(&styles->bg_click, LV_STATE_CHECKED, COLOR_BG_BORDER_CHK);
     lv_style_set_border_color(&styles->bg_click, LV_STATE_PRESSED | LV_STATE_CHECKED, COLOR_BG_BORDER_CHK_PR);
@@ -323,29 +323,42 @@ static void basic_init(void)
     lv_style_set_image_recolor(&styles->bg_click, LV_STATE_CHECKED, COLOR_BG_TEXT_CHK);
     lv_style_set_image_recolor(&styles->bg_click, LV_STATE_PRESSED | LV_STATE_CHECKED, COLOR_BG_TEXT_CHK_PR);
     lv_style_set_image_recolor(&styles->bg_click, LV_STATE_DISABLED, COLOR_BG_TEXT_DIS);
-    lv_style_set_transition_prop_5(&styles->bg_click, LV_STATE_DEFAULT, LV_STYLE_BG_COLOR);
+    lv_style_set_transition_prop_5(&styles->bg_click, LV_STATE_DEFAULT, LV_STYLE_BG_COLOR);*/
 
     style_init_reset(&styles->btn);
-    lv_style_set_radius(&styles->btn, LV_STATE_DEFAULT, LV_RADIUS_CIRCLE);
+    lv_style_set_radius(&styles->btn, LV_STATE_DEFAULT, LV_DPI / 12);
     lv_style_set_bg_opa(&styles->btn, LV_STATE_DEFAULT, LV_OPA_COVER);
+
     lv_style_set_bg_color(&styles->btn, LV_STATE_DEFAULT, COLOR_BTN);
     lv_style_set_bg_color(&styles->btn, LV_STATE_PRESSED, COLOR_BTN_PR);
+
+    lv_style_set_bg_grad_color(&styles->btn, LV_STATE_DEFAULT, COLOR_BTN_GRAD);
+    lv_style_set_bg_grad_color(&styles->btn, LV_STATE_PRESSED, COLOR_BTN_CHK_GRAD);
+
+    lv_style_set_bg_grad_dir(&styles->btn, LV_STATE_DEFAULT, LV_GRAD_DIR_VER);
+    //    lv_style_set_bg_color(&styles->btn, LV_STATE_DEFAULT, COLOR_BTN);
+    //    lv_style_set_bg_color(&styles->btn, LV_STATE_PRESSED, COLOR_BTN_PR);
+
     lv_style_set_bg_color(&styles->btn, LV_STATE_CHECKED, COLOR_BTN_CHK);
+    lv_style_set_bg_grad_color(&styles->btn, LV_STATE_CHECKED, COLOR_BTN_CHK_GRAD);
     lv_style_set_bg_color(&styles->btn, LV_STATE_CHECKED | LV_STATE_PRESSED, COLOR_BTN_CHK_PR);
+    lv_style_set_bg_grad_color(&styles->btn, LV_STATE_CHECKED | LV_STATE_PRESSED, COLOR_BTN_CHK_PR_GRAD);
+
     lv_style_set_bg_color(&styles->btn, LV_STATE_DISABLED, COLOR_BTN);
     lv_style_set_bg_color(&styles->btn, LV_STATE_DISABLED | LV_STATE_CHECKED, COLOR_BTN_DIS);
+
     lv_style_set_border_color(&styles->btn, LV_STATE_DEFAULT, COLOR_BTN_BORDER);
-    lv_style_set_border_color(&styles->btn, LV_STATE_PRESSED, COLOR_BTN_BORDER_PR);
+    lv_style_set_border_color(&styles->btn, LV_STATE_CHECKED, COLOR_BTN_BORDER_CHK);
     lv_style_set_border_color(&styles->btn, LV_STATE_DISABLED, COLOR_BTN_BORDER_INA);
     lv_style_set_border_width(&styles->btn, LV_STATE_DEFAULT, BORDER_WIDTH);
-    lv_style_set_border_opa(&styles->btn, LV_STATE_CHECKED, LV_OPA_TRANSP);
+    lv_style_set_border_opa(&styles->btn, LV_STATE_DEFAULT, LV_OPA_30);
+    // lv_style_set_border_opa(&styles->btn, LV_STATE_CHECKED, LV_OPA_40);
 
-    lv_style_set_text_color(&styles->btn, LV_STATE_DEFAULT, IS_LIGHT ? lv_color_hex(0x31404f) : lv_color_hex(0xffffff));
-    lv_style_set_text_color(&styles->btn, LV_STATE_PRESSED, IS_LIGHT ? lv_color_hex(0x31404f) : lv_color_hex(0xffffff));
-    lv_style_set_text_color(&styles->btn, LV_STATE_CHECKED, lv_color_hex(0xffffff));
-    lv_style_set_text_color(&styles->btn, LV_STATE_CHECKED | LV_STATE_PRESSED, lv_color_hex(0xffffff));
-    lv_style_set_text_color(&styles->btn, LV_STATE_DISABLED,
-                            IS_LIGHT ? lv_color_hex(0x888888) : lv_color_hex(0x888888));
+    lv_style_set_text_color(&styles->btn, LV_STATE_DEFAULT, COLOR_BG_TEXT);
+    lv_style_set_text_color(&styles->btn, LV_STATE_PRESSED, COLOR_BG_TEXT_PR);
+    lv_style_set_text_color(&styles->btn, LV_STATE_CHECKED, COLOR_BG_TEXT_CHK);
+    lv_style_set_text_color(&styles->btn, LV_STATE_CHECKED | LV_STATE_PRESSED, COLOR_BG_TEXT_CHK_PR);
+    lv_style_set_text_color(&styles->btn, LV_STATE_DISABLED, COLOR_BG_TEXT_DIS);
 
     lv_style_set_image_recolor(&styles->btn, LV_STATE_DEFAULT,
                                IS_LIGHT ? lv_color_hex(0x31404f) : lv_color_hex(0xffffff));
@@ -369,9 +382,7 @@ static void basic_init(void)
     lv_style_set_pad_right(&styles->btn, LV_STATE_DEFAULT, LV_DPX(40));
     lv_style_set_pad_top(&styles->btn, LV_STATE_DEFAULT, LV_DPX(15));
     lv_style_set_pad_bottom(&styles->btn, LV_STATE_DEFAULT, LV_DPX(15));
-#if LVGL_VERSION_MAJOR == 7
     lv_style_set_pad_inner(&styles->btn, LV_STATE_DEFAULT, LV_DPX(20));
-#endif
 
     lv_style_set_outline_width(&styles->btn, LV_STATE_DEFAULT, OUTLINE_WIDTH);
     if(!NO_FOCUS) {
@@ -389,27 +400,21 @@ static void basic_init(void)
     lv_style_set_transition_delay(&styles->btn, LV_STATE_PRESSED, 0);
 
     style_init_reset(&styles->pad_inner);
-#if LVGL_VERSION_MAJOR == 7
     lv_style_set_pad_inner(&styles->pad_inner, LV_STATE_DEFAULT,
                            lv_disp_get_size_category(NULL) <= LV_DISP_MEDIUM_LIMIT ? LV_DPX(20) : LV_DPX(40));
-#endif
 
     style_init_reset(&styles->pad_small);
     lv_style_int_t pad_small_value = lv_disp_get_size_category(NULL) <= LV_DISP_MEDIUM_LIMIT ? LV_DPX(10) : LV_DPX(20);
     lv_style_set_pad_all(&styles->pad_small, LV_STATE_DEFAULT, pad_small_value);
-#if LVGL_VERSION_MAJOR == 7
     lv_style_set_pad_inner(&styles->pad_small, LV_STATE_DEFAULT, pad_small_value);
-#endif
 
 #if LV_USE_DROPDOWN || LV_USE_ROLLER
     style_init_reset(&styles->line_space);
     lv_style_set_text_line_space(&styles->line_space, LV_STATE_DEFAULT, LV_DPX(20));
-    // lv_style_set_clip_corner(&styles->line_space, LV_STATE_DEFAULT, true);
+    lv_style_set_clip_corner(&styles->line_space, LV_STATE_DEFAULT, true);
 
     style_init_reset(&styles->selected);
     lv_style_set_radius(&styles->selected, LV_STATE_DEFAULT, 0);
-    // lv_style_set_bg_opa(&styles->selected, LV_STATE_DEFAULT, LV_OPA_COVER);
-    // lv_style_set_bg_color(&styles->selected, LV_STATE_DEFAULT, theme.color_primary);
     lv_style_set_text_color(&styles->selected, LV_STATE_DEFAULT,
                             IS_LIGHT ? lv_color_hex3(0xfff) : lv_color_hex3(0xfff));
     lv_style_set_bg_color(&styles->selected, LV_STATE_PRESSED, COLOR_BG_PR);
@@ -441,7 +446,7 @@ static void label_init(void)
 static void bar_init(void)
 {
 #if LV_USE_BAR
-    style_init_reset(&styles->bar_bg);
+/*    style_init_reset(&styles->bar_bg);
     lv_style_set_radius(&styles->bar_bg, LV_STATE_DEFAULT, LV_RADIUS_CIRCLE);
     lv_style_set_bg_opa(&styles->bar_bg, LV_STATE_DEFAULT, LV_OPA_COVER);
     lv_style_set_bg_color(&styles->bar_bg, LV_STATE_DEFAULT, COLOR_BG_SEC);
@@ -449,7 +454,6 @@ static void bar_init(void)
     lv_style_set_outline_color(&styles->bar_bg, LV_STATE_DEFAULT, theme.color_primary);
     lv_style_set_outline_color(&styles->bar_bg, LV_STATE_EDITED, theme.color_secondary);
     lv_style_set_outline_opa(&styles->bar_bg, LV_STATE_DEFAULT, LV_OPA_TRANSP);
-    // lv_style_set_outline_opa(&styles->bar_bg, LV_STATE_FOCUSED, LV_OPA_50);
     lv_style_set_outline_width(&styles->bar_bg, LV_STATE_DEFAULT, OUTLINE_WIDTH);
     lv_style_set_transition_time(&styles->bar_bg, LV_STATE_DEFAULT, TRANSITION_TIME);
     lv_style_set_transition_prop_6(&styles->bar_bg, LV_STATE_DEFAULT, LV_STYLE_OUTLINE_OPA);
@@ -459,7 +463,8 @@ static void bar_init(void)
     lv_style_set_radius(&styles->bar_indic, LV_STATE_DEFAULT, LV_RADIUS_CIRCLE);
     lv_style_set_bg_color(&styles->bar_indic, LV_STATE_DEFAULT, theme.color_primary);
     lv_style_set_bg_color(&styles->bar_indic, LV_STATE_DISABLED, lv_color_hex3(0x888));
-    lv_style_set_value_color(&styles->bar_indic, LV_STATE_DEFAULT, IS_LIGHT ? lv_color_hex(0x41404f) : LV_COLOR_WHITE);
+    lv_style_set_value_color(&styles->bar_indic, LV_STATE_DEFAULT, IS_LIGHT ? lv_color_hex(0x41404f) :
+   LV_COLOR_WHITE);*/
 #endif
 }
 
@@ -539,9 +544,7 @@ static void linemeter_init(void)
     lv_style_set_pad_left(&styles->lmeter, LV_STATE_DEFAULT, LV_DPX(20));
     lv_style_set_pad_right(&styles->lmeter, LV_STATE_DEFAULT, LV_DPX(20));
     lv_style_set_pad_top(&styles->lmeter, LV_STATE_DEFAULT, LV_DPX(20));
-#if LVGL_VERSION_MAJOR == 7
     lv_style_set_pad_inner(&styles->lmeter, LV_STATE_DEFAULT, LV_DPX(30));
-#endif
     lv_style_set_scale_width(&styles->lmeter, LV_STATE_DEFAULT, LV_DPX(25));
 
     lv_style_set_line_color(&styles->lmeter, LV_STATE_DEFAULT, theme.color_primary);
@@ -563,12 +566,10 @@ static void gauge_init(void)
     lv_style_set_scale_end_line_width(&styles->gauge_main, LV_STATE_DEFAULT,
                                       LV_DPX(2)); // strong scale minor tick width
     lv_style_set_scale_end_border_width(&styles->gauge_main, LV_STATE_DEFAULT, LV_DPX(3));
-    lv_style_set_pad_left(&styles->gauge_main, LV_STATE_DEFAULT, LV_DPX(20));  // left margin
-    lv_style_set_pad_right(&styles->gauge_main, LV_STATE_DEFAULT, LV_DPX(20)); // right margin
-    lv_style_set_pad_top(&styles->gauge_main, LV_STATE_DEFAULT, LV_DPX(20));   // top margin
-#if LVGL_VERSION_MAJOR == 7
-    lv_style_set_pad_inner(&styles->gauge_main, LV_STATE_DEFAULT, LV_DPX(15)); // position of the labels
-#endif
+    lv_style_set_pad_left(&styles->gauge_main, LV_STATE_DEFAULT, LV_DPX(20));    // left margin
+    lv_style_set_pad_right(&styles->gauge_main, LV_STATE_DEFAULT, LV_DPX(20));   // right margin
+    lv_style_set_pad_top(&styles->gauge_main, LV_STATE_DEFAULT, LV_DPX(20));     // top margin
+    lv_style_set_pad_inner(&styles->gauge_main, LV_STATE_DEFAULT, LV_DPX(15));   // position of the labels
     lv_style_set_scale_width(&styles->gauge_main, LV_STATE_DEFAULT, LV_DPX(10)); // minor thick length
     lv_style_set_radius(&styles->gauge_main, LV_STATE_DEFAULT, LV_RADIUS_CIRCLE);
 
@@ -588,10 +589,7 @@ static void gauge_init(void)
     lv_style_set_bg_color(&styles->gauge_needle, LV_STATE_DEFAULT, IS_LIGHT ? lv_color_hex(0x464b5b) : LV_COLOR_WHITE);
     lv_style_set_radius(&styles->gauge_needle, LV_STATE_DEFAULT, LV_RADIUS_CIRCLE);
     lv_style_set_size(&styles->gauge_needle, LV_STATE_DEFAULT, LV_DPX(30));
-#if LVGL_VERSION_MAJOR == 7
     lv_style_set_pad_inner(&styles->gauge_needle, LV_STATE_DEFAULT, LV_DPX(10));
-#endif
-
 #endif
 }
 
@@ -647,9 +645,7 @@ static void chart_init(void)
     style_init_reset(&styles->chart_series);
     lv_style_set_line_width(&styles->chart_series, LV_STATE_DEFAULT, LV_DPX(3));
     lv_style_set_size(&styles->chart_series, LV_STATE_DEFAULT, LV_DPX(4));
-#if LVGL_VERSION_MAJOR == 7
     lv_style_set_pad_inner(&styles->chart_series, LV_STATE_DEFAULT, LV_DPX(2)); /*Space between columns*/
-#endif
     lv_style_set_radius(&styles->chart_series, LV_STATE_DEFAULT, LV_DPX(1));
 
 #endif
@@ -658,24 +654,6 @@ static void chart_init(void)
 static void calendar_init(void)
 {
 #if LV_USE_CALENDAR
-
-    style_init_reset(&styles->calendar_header);
-    lv_style_set_pad_top(&styles->calendar_header, LV_STATE_DEFAULT, 0);
-    lv_style_set_pad_left(&styles->calendar_header, LV_STATE_DEFAULT, PAD_DEF);
-    lv_style_set_pad_right(&styles->calendar_header, LV_STATE_DEFAULT, PAD_DEF);
-    lv_style_set_pad_bottom(&styles->calendar_header, LV_STATE_DEFAULT, 0);
-    lv_style_set_margin_top(&styles->calendar_header, LV_STATE_DEFAULT, PAD_DEF);
-    lv_style_set_margin_bottom(&styles->calendar_header, LV_STATE_DEFAULT, PAD_DEF);
-    lv_style_set_text_color(&styles->calendar_header, LV_STATE_PRESSED,
-                            IS_LIGHT ? lv_color_hex(0x888888) : LV_COLOR_WHITE);
-
-    style_init_reset(&styles->calendar_daynames);
-    lv_style_set_text_color(&styles->calendar_daynames, LV_STATE_DEFAULT,
-                            IS_LIGHT ? lv_color_hex(0x31404f) : lv_color_hex3(0xeee));
-    lv_style_set_pad_left(&styles->calendar_daynames, LV_STATE_DEFAULT, PAD_DEF);
-    lv_style_set_pad_right(&styles->calendar_daynames, LV_STATE_DEFAULT, PAD_DEF);
-    lv_style_set_pad_bottom(&styles->calendar_daynames, LV_STATE_DEFAULT, PAD_DEF);
-
     style_init_reset(&styles->calendar_date_nums);
     lv_style_set_radius(&styles->calendar_date_nums, LV_STATE_DEFAULT, LV_DPX(4));
     lv_style_set_text_color(&styles->calendar_date_nums, LV_STATE_CHECKED,
@@ -692,9 +670,7 @@ static void calendar_init(void)
     lv_style_set_border_width(&styles->calendar_date_nums, LV_STATE_CHECKED, 2);
     lv_style_set_border_side(&styles->calendar_date_nums, LV_STATE_CHECKED, LV_BORDER_SIDE_LEFT);
     lv_style_set_border_color(&styles->calendar_date_nums, LV_STATE_CHECKED, theme.color_primary);
-#if LVGL_VERSION_MAJOR == 7
     lv_style_set_pad_inner(&styles->calendar_date_nums, LV_STATE_DEFAULT, LV_DPX(3));
-#endif
     lv_style_set_pad_left(&styles->calendar_date_nums, LV_STATE_DEFAULT, PAD_DEF);
     lv_style_set_pad_right(&styles->calendar_date_nums, LV_STATE_DEFAULT, PAD_DEF);
     lv_style_set_pad_bottom(&styles->calendar_date_nums, LV_STATE_DEFAULT, PAD_DEF);
@@ -708,9 +684,7 @@ static void cpicker_init(void)
     lv_style_set_scale_width(&styles->cpicker_bg, LV_STATE_DEFAULT, LV_DPX(30));
     lv_style_set_bg_opa(&styles->cpicker_bg, LV_STATE_DEFAULT, LV_OPA_COVER);
     lv_style_set_bg_color(&styles->cpicker_bg, LV_STATE_DEFAULT, COLOR_SCR);
-#if LVGL_VERSION_MAJOR == 7
     lv_style_set_pad_inner(&styles->cpicker_bg, LV_STATE_DEFAULT, LV_DPX(20));
-#endif
     lv_style_set_radius(&styles->cpicker_bg, LV_STATE_DEFAULT, LV_RADIUS_CIRCLE);
 
     style_init_reset(&styles->cpicker_indic);
@@ -755,6 +729,21 @@ static void checkbox_init(void)
     lv_style_set_pad_right(&styles->cb_bullet, LV_STATE_DEFAULT, LV_DPX(3));
     lv_style_set_pad_top(&styles->cb_bullet, LV_STATE_DEFAULT, LV_DPX(3));
     lv_style_set_pad_bottom(&styles->cb_bullet, LV_STATE_DEFAULT, LV_DPX(3));
+
+    lv_style_set_bg_color(&styles->cb_bullet, LV_STATE_PRESSED, COLOR_BTN_PR);
+    lv_style_set_bg_grad_color(&styles->cb_bullet, LV_STATE_PRESSED, COLOR_BTN_CHK_GRAD);
+    lv_style_set_text_color(&styles->cb_bullet, LV_STATE_PRESSED, COLOR_BG_TEXT_PR);
+
+    lv_style_set_bg_color(&styles->cb_bullet, LV_STATE_CHECKED, COLOR_BTN);
+    lv_style_set_bg_grad_color(&styles->cb_bullet, LV_STATE_CHECKED, COLOR_BTN_GRAD);
+    lv_style_set_bg_color(&styles->cb_bullet, LV_STATE_CHECKED | LV_STATE_PRESSED, COLOR_BTN_CHK_PR);
+    lv_style_set_bg_grad_color(&styles->cb_bullet, LV_STATE_CHECKED | LV_STATE_PRESSED, COLOR_BTN_CHK_PR_GRAD);
+
+    lv_style_set_bg_color(&styles->cb_bullet, LV_STATE_DISABLED, COLOR_BTN);
+    lv_style_set_bg_color(&styles->cb_bullet, LV_STATE_DISABLED | LV_STATE_CHECKED, COLOR_BTN_DIS);
+
+    lv_style_set_border_color(&styles->cb_bullet, LV_STATE_CHECKED, COLOR_BTN_BORDER_CHK);
+    lv_style_set_border_color(&styles->cb_bullet, LV_STATE_DISABLED, COLOR_BTN_BORDER_INA);
 #endif
 }
 
@@ -774,10 +763,7 @@ static void keyboard_init(void)
     lv_style_set_pad_right(&styles->kb_bg, LV_STATE_DEFAULT, LV_DPX(5));
     lv_style_set_pad_top(&styles->kb_bg, LV_STATE_DEFAULT, LV_DPX(5));
     lv_style_set_pad_bottom(&styles->kb_bg, LV_STATE_DEFAULT, LV_DPX(5));
-#if LVGL_VERSION_MAJOR == 7
     lv_style_set_pad_inner(&styles->kb_bg, LV_STATE_DEFAULT, LV_DPX(3));
-#endif
-
 #endif
 }
 
@@ -802,11 +788,11 @@ static void page_init(void)
     lv_style_set_pad_right(&styles->sb, LV_STATE_DEFAULT, LV_DPX(7));
     lv_style_set_pad_bottom(&styles->sb, LV_STATE_DEFAULT, LV_DPX(7));
 
-#if LV_USE_ANIMATION
+    #if LV_USE_ANIMATION
     style_init_reset(&styles->edge_flash);
     lv_style_set_bg_opa(&styles->edge_flash, LV_STATE_DEFAULT, LV_OPA_COVER);
     lv_style_set_bg_color(&styles->edge_flash, LV_STATE_DEFAULT, lv_color_hex3(0x888));
-#endif
+    #endif
 #endif
 }
 
@@ -880,9 +866,7 @@ static void list_init(void)
     lv_style_set_pad_right(&styles->list_btn, LV_STATE_DEFAULT, PAD_DEF);
     lv_style_set_pad_top(&styles->list_btn, LV_STATE_DEFAULT, PAD_DEF);
     lv_style_set_pad_bottom(&styles->list_btn, LV_STATE_DEFAULT, PAD_DEF);
-#if LVGL_VERSION_MAJOR == 7
     lv_style_set_pad_inner(&styles->list_btn, LV_STATE_DEFAULT, PAD_DEF);
-#endif
 
     lv_style_set_transform_width(&styles->list_btn, LV_STATE_DEFAULT, -PAD_DEF);
     lv_style_set_transform_width(&styles->list_btn, LV_STATE_PRESSED, -BORDER_WIDTH);
@@ -900,19 +884,19 @@ static void ddlist_init(void)
 {
 #if LV_USE_DROPDOWN != 0
 
-/*    style_init_reset(&styles->ddlist_page);
-    lv_style_set_text_line_space(&styles->ddlist_page, LV_STATE_DEFAULT, LV_DPX(20));
-    lv_style_set_clip_corner(&styles->ddlist_page, LV_STATE_DEFAULT, true);
+    /*    style_init_reset(&styles->ddlist_page);
+        lv_style_set_text_line_space(&styles->ddlist_page, LV_STATE_DEFAULT, LV_DPX(20));
+        lv_style_set_clip_corner(&styles->ddlist_page, LV_STATE_DEFAULT, true);
 
-    style_init_reset(&styles->ddlist_sel);
-    lv_style_set_radius(&styles->ddlist_sel, LV_STATE_DEFAULT, 0);
-   // lv_style_set_bg_opa(&styles->ddlist_sel, LV_STATE_DEFAULT, LV_OPA_COVER);
-   // lv_style_set_bg_color(&styles->ddlist_sel, LV_STATE_DEFAULT, theme.color_primary);
-    lv_style_set_text_color(&styles->ddlist_sel, LV_STATE_DEFAULT,
-                            IS_LIGHT ? lv_color_hex3(0xfff) : lv_color_hex3(0xfff));
-    lv_style_set_bg_color(&styles->ddlist_sel, LV_STATE_PRESSED, COLOR_BG_PR);
-    lv_style_set_text_color(&styles->ddlist_sel, LV_STATE_PRESSED, COLOR_BG_TEXT_PR);
-    */
+        style_init_reset(&styles->ddlist_sel);
+        lv_style_set_radius(&styles->ddlist_sel, LV_STATE_DEFAULT, 0);
+       // lv_style_set_bg_opa(&styles->ddlist_sel, LV_STATE_DEFAULT, LV_OPA_COVER);
+       // lv_style_set_bg_color(&styles->ddlist_sel, LV_STATE_DEFAULT, theme.color_primary);
+        lv_style_set_text_color(&styles->ddlist_sel, LV_STATE_DEFAULT,
+                                IS_LIGHT ? lv_color_hex3(0xfff) : lv_color_hex3(0xfff));
+        lv_style_set_bg_color(&styles->ddlist_sel, LV_STATE_PRESSED, COLOR_BG_PR);
+        lv_style_set_text_color(&styles->ddlist_sel, LV_STATE_PRESSED, COLOR_BG_TEXT_PR);
+        */
 #endif
 }
 
@@ -995,10 +979,7 @@ static void tabview_win_shared_init(void)
     lv_style_set_pad_bottom(&styles->tabview_page_scrl, LV_STATE_DEFAULT, PAD_DEF);
     lv_style_set_pad_left(&styles->tabview_page_scrl, LV_STATE_DEFAULT, PAD_DEF);
     lv_style_set_pad_right(&styles->tabview_page_scrl, LV_STATE_DEFAULT, PAD_DEF);
-#if LVGL_VERSION_MAJOR == 7
     lv_style_set_pad_inner(&styles->tabview_page_scrl, LV_STATE_DEFAULT, PAD_DEF);
-#endif
-
 #endif
 }
 
@@ -1101,7 +1082,7 @@ static void theme_apply(lv_theme_t * th, lv_obj_t * obj, lv_theme_style_t name)
             _lv_style_list_add_style(list, &styles->pretty);
             break;
 
-#if LV_USE_CONT && LVGL_VERSION_MAJOR == 7
+#if LV_USE_CONT
         case LV_THEME_CONT:
             list = lv_obj_get_style_list(obj, LV_CONT_PART_MAIN);
             _lv_style_list_add_style(list, &styles->transparent);
@@ -1113,7 +1094,7 @@ static void theme_apply(lv_theme_t * th, lv_obj_t * obj, lv_theme_style_t name)
         case LV_THEME_BTN:
             list = lv_obj_get_style_list(obj, LV_BTN_PART_MAIN);
             _lv_style_list_add_style(list, &styles->btn);
-            _lv_style_list_add_style(list, &styles->bg_sec);
+            //_lv_style_list_add_style(list, &styles->bg_sec);
             break;
 #endif
 
@@ -1125,19 +1106,20 @@ static void theme_apply(lv_theme_t * th, lv_obj_t * obj, lv_theme_style_t name)
 
             list = lv_obj_get_style_list(obj, LV_BTNMATRIX_PART_BTN);
             _lv_style_list_add_style(list, &styles->pretty_color);
-            _lv_style_list_add_style(list, &styles->bg_click);
+            //_lv_style_list_add_style(list, &styles->bg_click);
             break;
 #endif
 
-#if LV_USE_KEYBOARD && LVGL_VERSION_MAJOR == 7
+#if LV_USE_KEYBOARD
         case LV_THEME_KEYBOARD:
             list = lv_obj_get_style_list(obj, LV_KEYBOARD_PART_BG);
             _lv_style_list_add_style(list, &styles->pretty);
             _lv_style_list_add_style(list, &styles->kb_bg);
 
             list = lv_obj_get_style_list(obj, LV_KEYBOARD_PART_BTN);
+            _lv_style_list_add_style(list, &styles->btn);
             _lv_style_list_add_style(list, &styles->pretty);
-            _lv_style_list_add_style(list, &styles->bg_click);
+            // _lv_style_list_add_style(list, &styles->bg_click);
             break;
 #endif
 
@@ -1204,12 +1186,12 @@ static void theme_apply(lv_theme_t * th, lv_obj_t * obj, lv_theme_style_t name)
 
             list = lv_obj_get_style_list(obj, LV_ARC_PART_KNOB);
             _lv_style_list_add_style(list, &styles->pretty);
-            _lv_style_list_add_style(list, &styles->bg_click);
+            //_lv_style_list_add_style(list, &styles->bg_click);
             _lv_style_list_add_style(list, &styles->arc_knob);
             break;
 #endif
 
-#if LV_USE_SPINNER && LVGL_VERSION_MAJOR == 7
+#if LV_USE_SPINNER
         case LV_THEME_SPINNER:
             list = lv_obj_get_style_list(obj, LV_SPINNER_PART_BG);
             _lv_style_list_add_style(list, &styles->pretty);
@@ -1240,12 +1222,13 @@ static void theme_apply(lv_theme_t * th, lv_obj_t * obj, lv_theme_style_t name)
             _lv_style_list_add_style(list, &styles->transparent);
 
             list = lv_obj_get_style_list(obj, LV_CHECKBOX_PART_BULLET);
+            //_lv_style_list_add_style(list, &styles->btn);
             _lv_style_list_add_style(list, &styles->pretty);
             _lv_style_list_add_style(list, &styles->cb_bullet);
             break;
 #endif
 
-#if LV_USE_MSGBOX && LVGL_VERSION_MAJOR == 7
+#if LV_USE_MSGBOX
         case LV_THEME_MSGBOX:
             list = lv_obj_get_style_list(obj, LV_MSGBOX_PART_BG);
             _lv_style_list_add_style(list, &styles->pretty);
@@ -1262,7 +1245,7 @@ static void theme_apply(lv_theme_t * th, lv_obj_t * obj, lv_theme_style_t name)
             break;
 
 #endif
-#if LV_USE_LED && LVGL_VERSION_MAJOR == 7
+#if LV_USE_LED
         case LV_THEME_LED:
             list = lv_obj_get_style_list(obj, LV_LED_PART_MAIN);
             _lv_style_list_add_style(list, &styles->led);
@@ -1279,13 +1262,13 @@ static void theme_apply(lv_theme_t * th, lv_obj_t * obj, lv_theme_style_t name)
             list = lv_obj_get_style_list(obj, LV_PAGE_PART_SCROLLBAR);
             _lv_style_list_add_style(list, &styles->sb);
 
-#if LV_USE_ANIMATION
+    #if LV_USE_ANIMATION
             list = lv_obj_get_style_list(obj, LV_PAGE_PART_EDGE_FLASH);
             _lv_style_list_add_style(list, &styles->edge_flash);
-#endif
+    #endif
             break;
 #endif
-#if LV_USE_TABVIEW && LVGL_VERSION_MAJOR == 7
+#if LV_USE_TABVIEW
         case LV_THEME_TABVIEW:
             list = lv_obj_get_style_list(obj, LV_TABVIEW_PART_BG);
             _lv_style_list_add_style(list, &styles->pretty);
@@ -1307,7 +1290,7 @@ static void theme_apply(lv_theme_t * th, lv_obj_t * obj, lv_theme_style_t name)
             break;
 #endif
 
-#if LV_USE_TILEVIEW && LVGL_VERSION_MAJOR == 7
+#if LV_USE_TILEVIEW
         case LV_THEME_TILEVIEW:
             list = lv_obj_get_style_list(obj, LV_TILEVIEW_PART_BG);
             _lv_style_list_add_style(list, &styles->pretty);
@@ -1315,10 +1298,10 @@ static void theme_apply(lv_theme_t * th, lv_obj_t * obj, lv_theme_style_t name)
             list = lv_obj_get_style_list(obj, LV_TILEVIEW_PART_SCROLLBAR);
             _lv_style_list_add_style(list, &styles->sb);
 
-#if LV_USE_ANIMATION
+    #if LV_USE_ANIMATION
             list = lv_obj_get_style_list(obj, LV_TILEVIEW_PART_EDGE_FLASH);
             _lv_style_list_add_style(list, &styles->edge_flash);
-#endif
+    #endif
             break;
 #endif
 
@@ -1327,7 +1310,6 @@ static void theme_apply(lv_theme_t * th, lv_obj_t * obj, lv_theme_style_t name)
             list = lv_obj_get_style_list(obj, LV_ROLLER_PART_BG);
             _lv_style_list_add_style(list, &styles->pretty);
             _lv_style_list_add_style(list, &styles->line_space); // clip and linespace
-                                                                 //_lv_style_list_add_style(list, &styles->roller_bg);
 
             list = lv_obj_get_style_list(obj, LV_ROLLER_PART_SELECTED);
             _lv_style_list_add_style(list, &styles->pretty_color);
@@ -1341,11 +1323,10 @@ static void theme_apply(lv_theme_t * th, lv_obj_t * obj, lv_theme_style_t name)
             break;
 #endif
 
-#if LV_USE_LIST && LVGL_VERSION_MAJOR == 7
+#if LV_USE_LIST
         case LV_THEME_LIST:
             list = lv_obj_get_style_list(obj, LV_LIST_PART_BG);
             _lv_style_list_add_style(list, &styles->pretty);
-            // _lv_style_list_add_style(list, &styles->list_bg);
 
             list = lv_obj_get_style_list(obj, LV_LIST_PART_SCROLLBAR);
             _lv_style_list_add_style(list, &styles->sb);
@@ -1361,11 +1342,13 @@ static void theme_apply(lv_theme_t * th, lv_obj_t * obj, lv_theme_style_t name)
         case LV_THEME_DROPDOWN:
             list = lv_obj_get_style_list(obj, LV_DROPDOWN_PART_MAIN);
             _lv_style_list_add_style(list, &styles->pretty);
-            _lv_style_list_add_style(list, &styles->bg_click);
+            _lv_style_list_add_style(list, &styles->cb_bullet);
+            //_lv_style_list_add_style(list, &styles->bg_click);
             _lv_style_list_add_style(list, &styles->pad_small);
 
             list = lv_obj_get_style_list(obj, LV_DROPDOWN_PART_LIST);
             _lv_style_list_add_style(list, &styles->pretty);
+            //_lv_style_list_add_style(list, &styles->cb_bullet);
             _lv_style_list_add_style(list, &styles->pad_small);
             _lv_style_list_add_style(list, &styles->line_space); // clip and linespace
 
@@ -1405,7 +1388,7 @@ static void theme_apply(lv_theme_t * th, lv_obj_t * obj, lv_theme_style_t name)
             int idx = 1; /* start value should be 1, not zero, since cell styles
                         start at 1 due to presence of LV_TABLE_PART_BG=0
                         in the enum (lv_table.h) */
-            /* declaring idx outside loop to work with older compilers */
+                         /* declaring idx outside loop to work with older compilers */
             for(; idx <= LV_TABLE_CELL_STYLE_CNT; idx++) {
                 list = lv_obj_get_style_list(obj, idx);
                 _lv_style_list_add_style(list, &styles->table_cell);
@@ -1414,7 +1397,7 @@ static void theme_apply(lv_theme_t * th, lv_obj_t * obj, lv_theme_style_t name)
         }
 #endif
 
-#if LV_USE_WIN && LVGL_VERSION_MAJOR == 7
+#if LV_USE_WIN
         case LV_THEME_WIN:
             list = lv_obj_get_style_list(obj, LV_WIN_PART_BG);
             _lv_style_list_add_style(list, &styles->pretty);
@@ -1453,7 +1436,7 @@ static void theme_apply(lv_theme_t * th, lv_obj_t * obj, lv_theme_style_t name)
 
 #endif
 
-#if LV_USE_SPINBOX && LVGL_VERSION_MAJOR == 7
+#if LV_USE_SPINBOX
         case LV_THEME_SPINBOX:
             list = lv_obj_get_style_list(obj, LV_SPINBOX_PART_BG);
             _lv_style_list_add_style(list, &styles->pretty);
@@ -1466,11 +1449,11 @@ static void theme_apply(lv_theme_t * th, lv_obj_t * obj, lv_theme_style_t name)
         case LV_THEME_SPINBOX_BTN:
             list = lv_obj_get_style_list(obj, LV_BTN_PART_MAIN);
             _lv_style_list_add_style(list, &styles->pretty_color);
-            _lv_style_list_add_style(list, &styles->bg_click);
+            // _lv_style_list_add_style(list, &styles->bg_click);
             break;
 #endif
 
-#if LV_USE_CALENDAR && LVGL_VERSION_MAJOR == 7
+#if LV_USE_CALENDAR
         case LV_THEME_CALENDAR:
             list = lv_obj_get_style_list(obj, LV_CALENDAR_PART_BG);
             _lv_style_list_add_style(list, &styles->pretty);
