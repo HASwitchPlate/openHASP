@@ -1504,24 +1504,12 @@ void webHandleHaspConfig()
     #if LV_USE_THEME_EMPTY == 1
         httpMessage += getOption(0, F("Empty"), themeid == 0);
     #endif
-    #if LV_USE_THEME_ALIEN == 1
-        httpMessage += getOption(1, F("Alien"), themeid == 1);
-    #endif
-    #if LV_USE_THEME_NIGHT == 1
-        httpMessage += getOption(2, F("Night"), themeid == 2);
-    #endif
     #if LV_USE_THEME_MONO == 1
         httpMessage += getOption(3, F("Mono"), themeid == 3);
     #endif
     #if LV_USE_THEME_MATERIAL == 1
         httpMessage += getOption(5, F("Material Dark"), themeid == 5);
         httpMessage += getOption(4, F("Material Light"), themeid == 4);
-    #endif
-    #if LV_USE_THEME_ZEN == 1
-            // httpMessage += getOption(5, F("Zen"), themeid == 5);
-    #endif
-    #if LV_USE_THEME_NEMO == 1
-        httpMessage += getOption(6, F("Nemo"), themeid == 6);
     #endif
     #if LV_USE_THEME_TEMPLATE == 1
         httpMessage += getOption(7, F("Template"), themeid == 7);
