@@ -79,14 +79,14 @@ bool networkEverySecond(void)
     return true;
 }
 
-void network_get_status(char * buffer, size_t len)
+void network_get_statusupdate(char * buffer, size_t len)
 {
 #if HASP_USE_ETHERNET > 0
-    network_get_status(buffer, len);
+    ethernet_get_statusupdate(buffer, len);
 #endif
 
 #if HASP_USE_WIFI > 0
-    wifi_get_status(buffer, len);
+    wifi_get_statusupdate(buffer, len);
 #endif
 }
 

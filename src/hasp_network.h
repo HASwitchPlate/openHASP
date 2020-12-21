@@ -15,7 +15,7 @@ void networkStop(void);
 /* ===== Special Event Processors ===== */
 
 /* ===== Getter and Setter Functions ===== */
-void network_get_status(char * buffer, size_t len);
+void network_get_statusupdate(char * buffer, size_t len);
 
 /* ===== Read/Write Configuration ===== */
 
