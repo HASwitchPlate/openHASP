@@ -6,26 +6,28 @@
 #include "hasp_debug.h"
 #include "hasp_hal.h"
 
-#if HASP_USE_ETHERNET > 0 && !defined(ARDUINO_ARCH_ESP32)
+#if HASP_USE_ETHERNET > 0 && defined(STM32F4xx)
 
 EthernetClient EthClient;
 IPAddress ip;
 
 void ethernetSetup()
 {
-#if USE_BUILTIN_ETHERNET > 0
+    #if USE_BUILTIN_ETHERNET > 0
     // start Ethernet and UDP
     Log.notice(TAG_ETH, F("Begin Ethernet LAN8720"));
     if(Ethernet.begin() == 0) {
         Log.notice(TAG_ETH, F("Failed to configure Ethernet using DHCP"));
+        eth_connected = false;
     } else {
         ip = Ethernet.localIP();
         Log.notice(TAG_ETH, F("DHCP Success got IP %d.%d.%d.%d"), ip[0], ip[1], ip[2], ip[3]);
+        eth_connected = true;
     }
 
     Log.notice(TAG_ETH, F("MAC Address %s"), halGetMacAddress(0, ":"));
 
-#else
+    #else
     byte mac[6];
     uint32_t baseUID = (uint32_t)UID_BASE;
     mac[0]           = 0x00;
@@ -49,7 +51,7 @@ void ethernetSetup()
         ip = Ethernet.localIP();
         Log.notice(TAG_ETH, F("DHCP Success got IP %d.%d.%d.%d"), ip[0], ip[1], ip[2], ip[3]);
     }
-#endif
+    #endif
 }
 
 void ethernetLoop(void)
@@ -86,13 +88,25 @@ void ethernetLoop(void)
 bool ethernetEvery5Seconds()
 {
     bool state;
-#if USE_BUILTIN_ETHERNET > 0
+    #if USE_BUILTIN_ETHERNET > 0
     state = Ethernet.linkStatus() == LinkON;
-#else
-    state = Ethernet.link() == 1;
-#endif
+    #else
+    state      = Ethernet.link() == 1;
+    #endif
     Log.warning(TAG_ETH, state ? F("ONLINE") : F("OFFLINE"));
     return state;
 }
 
+void ethernet_get_statusupdate(char * buffer, size_t len)
+{
+    #if USE_BUILTIN_ETHERNET > 0
+    bool state = Ethernet.linkStatus() == LinkON;
+    #else
+    bool state = Ethernet.link() == 1;
+    #endif
+
+    IPAddress ip = Ethernet.localIP();
+    snprintf_P(buffer, len, PSTR("\"eth\":\"%s\",\"link\":%d,\"ip\":\"%d.%d.%d.%d\","), state ? F("ON") : F("OFF"), 10,
+               ip[0], ip[1], ip[2], ip[3]);
+}
 #endif

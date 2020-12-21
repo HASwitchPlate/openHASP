@@ -44,7 +44,7 @@ typedef void (*printfunction)(uint8_t tag, int level, Print *);
 #define LOG_LEVEL_VERBOSE 7
 #define LOG_LEVEL_DEBUG 7
 
-#define CR "\n"
+//#define CR "\n"
 #define LOGGING_VERSION 1_0_3
 
 /**

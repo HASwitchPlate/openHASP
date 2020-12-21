@@ -7,6 +7,8 @@
  *      INCLUDES
  *********************/
 
+#include "lv_drv_conf.h"
+
 #if USE_FSMC_ILI9341 > 0
 
 #include "fsmc_ili9341.h"

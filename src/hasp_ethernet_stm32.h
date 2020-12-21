@@ -4,8 +4,12 @@
 #ifndef HASP_ETHERNET_STM32_H
 #define HASP_ETHERNET_STM32_H
 
+static bool eth_connected = false;
+
 void ethernetSetup();
 void ethernetLoop(void);
 
 bool ethernetEvery5Seconds();
+void ethernet_get_statusupdate(char * buffer, size_t len);
+
 #endif
