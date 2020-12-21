@@ -487,8 +487,9 @@ void guiSetup()
     static lv_color_t *guiVdbBuffer1, *guiVdbBuffer2 = NULL;
     guiVDBsize    = 4 * 1024u; // 16 KBytes * 2
     guiVdbBuffer1 = (lv_color_t *)heap_caps_malloc(sizeof(lv_color_t) * guiVDBsize, MALLOC_CAP_DMA);
-    guiVdbBuffer2 = (lv_color_t *)heap_caps_malloc(sizeof(lv_color_t) * guiVDBsize, MALLOC_CAP_DMA);
-    lv_disp_buf_init(&disp_buf, guiVdbBuffer1, guiVdbBuffer2, guiVDBsize);
+    lv_disp_buf_init(&disp_buf, guiVdbBuffer1, NULL, guiVDBsize);
+    //guiVdbBuffer2 = (lv_color_t *)heap_caps_malloc(sizeof(lv_color_t) * guiVDBsize, MALLOC_CAP_DMA);
+    //lv_disp_buf_init(&disp_buf, guiVdbBuffer1, guiVdbBuffer2, guiVDBsize);
 #else
     static lv_color_t * guiVdbBuffer1;
     guiVDBsize    = 16 * 1024u; // 32 KBytes * 2
