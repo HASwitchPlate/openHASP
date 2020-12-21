@@ -63,4 +63,10 @@ bool ethernetEvery5Seconds()
     return eth_connected;
 }
 
+void ethernet_get_statusupdate(char * buffer, size_t len)
+{
+    snprintf_P(buffer, len, PSTR("\"eth\":\"%s\",\"link\":\"%d Mbps\",\"ip\":\"%s\","), eth_connected ? F("ON") : F("OFF"), ETH.linkSpeed(),
+               ETH.localIP().toString().c_str());
+}
+
 #endif

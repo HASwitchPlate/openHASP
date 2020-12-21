@@ -633,7 +633,7 @@ void dispatch_output_statusupdate(const char *, const char *)
                    long(millis() / 1000));
 
 #if HASP_USE_WIFI > 0
-        network_get_status(buffer, sizeof(buffer));
+        network_get_statusupdate(buffer, sizeof(buffer));
         strcat(data, buffer);
 #endif
         snprintf_P(buffer, sizeof(buffer), PSTR("\"heapFree\":%u,\"heapFrag\":%u,\"espCore\":\"%s\","),

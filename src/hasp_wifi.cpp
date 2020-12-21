@@ -492,7 +492,7 @@ void wifiStop()
     Log.warning(TAG_WIFI, F("Stopped"));
 }
 
-void wifi_get_status(char * buffer, size_t len)
+void wifi_get_statusupdate(char * buffer, size_t len)
 {
 #if defined(STM32F4xx)
     IPAddress ip;

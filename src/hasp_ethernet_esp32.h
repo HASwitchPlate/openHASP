@@ -10,5 +10,6 @@ void ethernetSetup();
 void IRAM_ATTR ethernetLoop(void);
 
 bool ethernetEvery5Seconds();
+void ethernet_get_statusupdate(char * buffer, size_t len);
 
 #endif
