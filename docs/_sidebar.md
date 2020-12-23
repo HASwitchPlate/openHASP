@@ -11,7 +11,7 @@
   - [Command Reference](./05-commands.md)
   - [Frequently Asked Questions](./06-faq.md)
 
-- **settings**
+- **Settings**
 
   - [Http](settings/30-http.md)
   - [Mqtt](settings/32-mqtt.md)
