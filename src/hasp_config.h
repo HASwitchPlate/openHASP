@@ -1,6 +1,8 @@
 /* MIT License - Copyright (c) 2020 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
+#if HASP_USE_CONFIG > 0
+
 #ifndef HASP_CONFIG_H
 #define HASP_CONFIG_H
 
@@ -60,3 +62,5 @@ const char F_GPIO_CONFIG[] PROGMEM      = "config";
 const char HASP_CONFIG_FILE[] PROGMEM = "/config.json";
 
 #endif
+
+#endif // HASP_USE_CONFIG

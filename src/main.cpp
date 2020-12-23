@@ -36,7 +36,9 @@ void setup()
     /****************************
      * Read & Apply User Configuration
      ***************************/
+#if HASP_USE_CONFIG > 0
     configSetup(); // also runs debugPreSetup(), debugSetup() and debugStart()
+#endif
 
     dispatchSetup();
     guiSetup();
@@ -57,7 +59,10 @@ void setup()
     networkSetup();
 #endif
 
-    if(!oobeSetup()) {
+#if HASP_USE_CONFIG > 0
+    if(!oobeSetup())
+#endif
+    {
         haspSetup();
     }
 

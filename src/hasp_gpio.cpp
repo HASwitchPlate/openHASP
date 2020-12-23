@@ -437,6 +437,7 @@ hasp_gpio_config_t gpioGetPinConfig(uint8_t num)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+#if HASP_USE_CONFIG > 0
 bool gpioGetConfig(const JsonObject & settings)
 {
     bool changed = false;
@@ -511,3 +512,4 @@ bool gpioSetConfig(const JsonObject & settings)
 
     return changed;
 }
+#endif // HASP_USE_CONFIG

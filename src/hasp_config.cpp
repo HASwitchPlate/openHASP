@@ -1,6 +1,8 @@
 /* MIT License - Copyright (c) 2020 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
+#if HASP_USE_CONFIG > 0
+
 #include "ArduinoJson.h"
 #include "StreamUtils.h" // For EEPromStream
 
@@ -479,3 +481,5 @@ bool configClearEeprom()
     return false;
 #endif
 }
+
+#endif // HAS_USE_CONFIG

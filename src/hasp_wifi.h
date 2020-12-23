@@ -15,7 +15,9 @@ void wifiStop(void);
 bool wifiValidateSsid(const char * ssid, const char * pass);
 void wifi_get_statusupdate(char * buffer, size_t len);
 
+#if HASP_USE_CONFIG > 0
 bool wifiGetConfig(const JsonObject & settings);
 bool wifiSetConfig(const JsonObject & settings);
+#endif
 
 #endif

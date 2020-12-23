@@ -19,12 +19,12 @@
 //#include "time.h"
 
 #if defined(ARDUINO_ARCH_ESP8266)
-#include <sntp.h> // sntp_servermode_dhcp()
-#include <ESP8266WiFi.h>
-#include <WiFiUdp.h>
+    #include <sntp.h> // sntp_servermode_dhcp()
+    #include <ESP8266WiFi.h>
+    #include <WiFiUdp.h>
 #elif defined(ARDUINO_ARCH_ESP32)
-#include <WiFi.h>
-#include <WiFiUdp.h>
+    #include <WiFi.h>
+    #include <WiFiUdp.h>
 #endif
 
 #include "hasp.h"
@@ -35,27 +35,27 @@
 #include "hasp_dispatch.h"
 
 #ifdef USE_CONFIG_OVERRIDE
-#include "user_config_override.h"
+    #include "user_config_override.h"
 #endif
 
 #ifndef SERIAL_SPEED
-#define SERIAL_SPEED 115200
+    #define SERIAL_SPEED 115200
 #endif
 
 #if HASP_USE_SYSLOG > 0
-#include <WiFiUdp.h>
+    #include <WiFiUdp.h>
 
-#ifndef SYSLOG_SERVER
-#define SYSLOG_SERVER ""
-#endif
+    #ifndef SYSLOG_SERVER
+        #define SYSLOG_SERVER ""
+    #endif
 
-#ifndef SYSLOG_PORT
-#define SYSLOG_PORT 514
-#endif
+    #ifndef SYSLOG_PORT
+        #define SYSLOG_PORT 514
+    #endif
 
-#ifndef APP_NAME
-#define APP_NAME "HASP"
-#endif
+    #ifndef APP_NAME
+        #define APP_NAME "HASP"
+    #endif
 
 // variables for debug stream writer
 // static String debugOutput((char *)0);
@@ -70,7 +70,7 @@ uint8_t debugSyslogProtocol = 0;
 
 // A UDP instance to let us send and receive packets over UDP
 WiFiUDP * syslogClient;
-#define SYSLOG_PROTO_IETF 0
+    #define SYSLOG_PROTO_IETF 0
 
 // Create a new syslog instance with LOG_KERN facility
 // Syslog syslog(syslogClient, SYSLOG_SERVER, SYSLOG_PORT, MQTT_CLIENT, APP_NAME, LOG_KERN);
@@ -193,6 +193,7 @@ void debugStop()
     if(debugSerialStarted) Serial.flush();
 }
 
+#if HASP_USE_CONFIG > 0
 bool debugGetConfig(const JsonObject & settings)
 {
     bool changed = false;
@@ -203,7 +204,7 @@ bool debugGetConfig(const JsonObject & settings)
     if(debugTelePeriod != settings[FPSTR(F_DEBUG_TELEPERIOD)].as<uint16_t>()) changed = true;
     settings[FPSTR(F_DEBUG_TELEPERIOD)] = debugTelePeriod;
 
-#if HASP_USE_SYSLOG > 0
+    #if HASP_USE_SYSLOG > 0
     if(strcmp(debugSyslogHost, settings[FPSTR(F_CONFIG_HOST)].as<String>().c_str()) != 0) changed = true;
     settings[FPSTR(F_CONFIG_HOST)] = debugSyslogHost;
 
@@ -215,7 +216,7 @@ bool debugGetConfig(const JsonObject & settings)
 
     if(debugSyslogFacility != settings[FPSTR(F_CONFIG_LOG)].as<uint8_t>()) changed = true;
     settings[FPSTR(F_CONFIG_LOG)] = debugSyslogFacility;
-#endif
+    #endif
 
     if(changed) configOutput(settings, TAG_DEBG);
     return changed;
@@ -241,7 +242,7 @@ bool debugSetConfig(const JsonObject & settings)
     changed |= configSet(debugTelePeriod, settings[FPSTR(F_DEBUG_TELEPERIOD)], F("debugTelePeriod"));
 
     /* Syslog Settings*/
-#if HASP_USE_SYSLOG > 0
+    #if HASP_USE_SYSLOG > 0
     if(!settings[FPSTR(F_CONFIG_HOST)].isNull()) {
         changed |= strcmp(debugSyslogHost, settings[FPSTR(F_CONFIG_HOST)]) != 0;
         strncpy(debugSyslogHost, settings[FPSTR(F_CONFIG_HOST)], sizeof(debugSyslogHost));
@@ -249,10 +250,11 @@ bool debugSetConfig(const JsonObject & settings)
     changed |= configSet(debugSyslogPort, settings[FPSTR(F_CONFIG_PORT)], F("debugSyslogPort"));
     changed |= configSet(debugSyslogProtocol, settings[FPSTR(F_CONFIG_PROTOCOL)], F("debugSyslogProtocol"));
     changed |= configSet(debugSyslogFacility, settings[FPSTR(F_CONFIG_LOG)], F("debugSyslogFacility"));
-#endif
+    #endif
 
     return changed;
 }
+#endif // HASP_USE_CONFIG
 
 inline void debugSendAnsiCode(const __FlashStringHelper * code, Print * _logOutput)
 {
@@ -546,9 +548,9 @@ void debugPrintPrefix(uint8_t tag, int level, Print * _logOutput)
             }
 
             debugPrintHaspMemory(level, _logOutput);
-#if LV_MEM_CUSTOM == 0
+    #if LV_MEM_CUSTOM == 0
             debugPrintLvglMemory(level, _logOutput);
-#endif
+    #endif
         }
         return;
     }
@@ -605,15 +607,19 @@ void debugPreSetup(JsonObject settings)
     Log.setPrefix(debugPrintPrefix); // Uncomment to get timestamps as prefix
     Log.setSuffix(debugPrintSuffix); // Uncomment to get newline as suffix
 
-    uint32_t baudrate = settings[FPSTR(F_CONFIG_BAUD)].as<uint32_t>() * 10;
+    uint32_t baudrate = 0;
+#if HASP_USE_CONFIG > 0
+    baudrate = settings[FPSTR(F_CONFIG_BAUD)].as<uint32_t>() * 10;
+#endif
+
     if(baudrate == 0) baudrate = SERIAL_SPEED;
     if(baudrate >= 9600u) { /* the baudrates are stored divided by 10 */
 
 #if defined(STM32F4xx)
-#ifndef STM32_SERIAL1      // Define what Serial port to use for log output
+    #ifndef STM32_SERIAL1  // Define what Serial port to use for log output
         Serial.setRx(PA3); // User Serial2
         Serial.setTx(PA2);
-#endif
+    #endif
 #endif
         Serial.begin(baudrate); /* prepare for possible serial debug */
         delay(10);

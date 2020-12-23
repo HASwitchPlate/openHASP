@@ -17,8 +17,10 @@ void IRAM_ATTR mqtt_send_obj_attribute_str(uint8_t pageid, uint8_t btnid, const 
 
 bool IRAM_ATTR mqttIsConnected();
 
+#if HASP_USE_CONFIG > 0
 bool mqttGetConfig(const JsonObject & settings);
 bool mqttSetConfig(const JsonObject & settings);
+#endif
 
 String mqttGetNodename(void);
 

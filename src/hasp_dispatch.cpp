@@ -8,7 +8,6 @@
 
 #include "hasp_dispatch.h"
 #include "hasp_network.h" // for network_get_status()
-#include "hasp_config.h"
 #include "hasp_debug.h"
 #include "hasp_object.h"
 #include "hasp_gui.h"
@@ -17,6 +16,10 @@
 #include "hasp_gpio.h"
 #include "hasp_hal.h"
 #include "hasp.h"
+
+#if HASP_USE_CONFIG > 0
+    #include "hasp_config.h"
+#endif
 
 extern unsigned long debugLastMillis; // UpdateStatus timer
 
@@ -123,13 +126,16 @@ void dispatch_command(const char * topic, const char * payload)
     } else if(topic == strstr_P(topic, PSTR("p["))) {
         dispatch_process_button_attribute(topic, payload);
 
-#if HASP_USE_WIFI > 0
+#if HASP_USE_CONFIG > 0
+
+    #if HASP_USE_WIFI > 0
     } else if(!strcmp_P(topic, F_CONFIG_SSID) || !strcmp_P(topic, F_CONFIG_PASS)) {
         DynamicJsonDocument settings(45);
         settings[topic] = payload;
         wifiSetConfig(settings.as<JsonObject>());
-#endif
+    #endif // HASP_USE_WIFI
 
+    #if HASP_USE_MQTT > 0
     } else if(!strcmp_P(topic, PSTR("mqtthost")) || !strcmp_P(topic, PSTR("mqttport")) ||
               !strcmp_P(topic, PSTR("mqttport")) || !strcmp_P(topic, PSTR("mqttuser")) ||
               !strcmp_P(topic, PSTR("hostname"))) {
@@ -137,11 +143,12 @@ void dispatch_command(const char * topic, const char * payload)
         // memset(item, 0, sizeof(item));
         // strncpy(item, topic + 4, 4);
 
-#if HASP_USE_MQTT > 0
         DynamicJsonDocument settings(45);
         settings[topic + 4] = payload;
         mqttSetConfig(settings.as<JsonObject>());
-#endif
+    #endif // HASP_USE_MQTT
+
+#endif // HASP_USE_CONFIG
 
     } else {
         if(strlen(payload) == 0) {
@@ -167,11 +174,13 @@ void dispatch_topic_payload(const char * topic, const char * payload)
         return;
     }
 
+#if HASP_USE_CONFIG > 0
     if(topic == strstr_P(topic, PSTR("config/"))) { // startsWith command/
         topic += 7u;
         dispatch_config(topic, (char *)payload);
         return;
     }
+#endif
 
     dispatch_command(topic, (char *)payload); // dispatch as is
 }
@@ -237,6 +246,7 @@ void IRAM_ATTR dispatch_send_obj_attribute_str(uint8_t pageid, uint8_t btnid, co
     dispatch_state_msg(F("json"), payload);
 }
 
+#if HASP_USE_CONFIG > 0
 // Get or Set a part of the config.json file
 static void dispatch_config(const char * topic, const char * payload)
 {
@@ -281,42 +291,42 @@ static void dispatch_config(const char * topic, const char * payload)
             haspGetConfig(settings);
     }
 
-#if HASP_USE_WIFI > 0
+    #if HASP_USE_WIFI > 0
     else if(strcasecmp_P(topic, PSTR("wifi")) == 0) {
         if(update)
             wifiSetConfig(settings);
         else
             wifiGetConfig(settings);
     }
-#if HASP_USE_MQTT > 0
+        #if HASP_USE_MQTT > 0
     else if(strcasecmp_P(topic, PSTR("mqtt")) == 0) {
         if(update)
             mqttSetConfig(settings);
         else
             mqttGetConfig(settings);
     }
-#endif
-#if HASP_USE_TELNET > 0
-    //   else if(strcasecmp_P(topic, PSTR("telnet")) == 0)
-    //       telnetGetConfig(settings[F("telnet")]);
-#endif
-#if HASP_USE_MDNS > 0
+        #endif
+        #if HASP_USE_TELNET > 0
+            //   else if(strcasecmp_P(topic, PSTR("telnet")) == 0)
+            //       telnetGetConfig(settings[F("telnet")]);
+        #endif
+        #if HASP_USE_MDNS > 0
     else if(strcasecmp_P(topic, PSTR("mdns")) == 0) {
         if(update)
             mdnsSetConfig(settings);
         else
             mdnsGetConfig(settings);
     }
-#endif
-#if HASP_USE_HTTP > 0
+        #endif
+        #if HASP_USE_HTTP > 0
     else if(strcasecmp_P(topic, PSTR("http")) == 0) {
         if(update)
             httpSetConfig(settings);
         else
             httpGetConfig(settings);
     }
-#endif
-#endif
+        #endif
+    #endif
 
     // Send output
     if(!update) {
@@ -325,6 +335,7 @@ static void dispatch_config(const char * topic, const char * payload)
         dispatch_state_msg(F("config"), buffer);
     }
 }
+#endif // HASP_USE_CONFIG
 
 /********************************************** Input Events *******************************************/
 // Map events to either ON or OFF (UP or DOWN)
@@ -415,12 +426,12 @@ static inline void dispatch_state_msg(const __FlashStringHelper * subtopic, cons
 #if !defined(HASP_USE_MQTT) && !defined(HASP_USE_TASMOTA_SLAVE)
     Log.notice(TAG_MSGR, F("%s => %s"), String(subtopic).c_str(), payload);
 #else
-#if HASP_USE_MQTT > 0
+    #if HASP_USE_MQTT > 0
     mqtt_send_state(subtopic, payload);
-#endif
-#if HASP_USE_TASMOTA_SLAVE > 0
+    #endif
+    #if HASP_USE_TASMOTA_SLAVE > 0
     slave_send_state(subtopic, payload);
-#endif
+    #endif
 #endif
 }
 
@@ -603,7 +614,9 @@ void dispatch_web_update(const char *, const char * espOtaUrl)
 // restart the device
 void dispatch_reboot(bool saveConfig)
 {
+#if HASP_USE_CONFIG > 0
     if(saveConfig) configWriteConfig();
+#endif
 #if HASP_USE_MQTT > 0
     mqttStop(); // Stop the MQTT Client first
 #endif
@@ -632,10 +645,10 @@ void dispatch_output_statusupdate(const char *, const char *)
         snprintf_P(data, sizeof(data), PSTR("{\"status\":\"available\",\"version\":\"%s\",\"uptime\":%lu,"), buffer,
                    long(millis() / 1000));
 
-#if HASP_USE_WIFI > 0
+    #if HASP_USE_WIFI > 0
         network_get_statusupdate(buffer, sizeof(buffer));
         strcat(data, buffer);
-#endif
+    #endif
         snprintf_P(buffer, sizeof(buffer), PSTR("\"heapFree\":%u,\"heapFrag\":%u,\"espCore\":\"%s\","),
                    halGetFreeHeap(), halGetHeapFragmentation(), halGetCoreVersion().c_str());
         strcat(data, buffer);
@@ -643,10 +656,10 @@ void dispatch_output_statusupdate(const char *, const char *)
                    haspGetPage(), (HASP_NUM_PAGES));
         strcat(data, buffer);
 
-#if defined(ARDUINO_ARCH_ESP8266)
+    #if defined(ARDUINO_ARCH_ESP8266)
         snprintf_P(buffer, sizeof(buffer), PSTR("\"espVcc\":%.2f,"), (float)ESP.getVcc() / 1000);
         strcat(data, buffer);
-#endif
+    #endif
 
         snprintf_P(buffer, sizeof(buffer), PSTR("\"tftDriver\":\"%s\",\"tftWidth\":%u,\"tftHeight\":%u}"),
                    halDisplayDriverName().c_str(), (TFT_WIDTH), (TFT_HEIGHT));
@@ -723,7 +736,9 @@ void dispatchSetup()
     dispatch_add_command(PSTR("restart"), dispatch_reboot);
     dispatch_add_command(PSTR("screenshot"), dispatch_screenshot);
     dispatch_add_command(PSTR("factoryreset"), dispatch_factory_reset);
+#if HASP_USE_CONFIG > 0
     dispatch_add_command(PSTR("setupap"), oobeFakeSetup);
+#endif
     /* WARNING: remember to expand the commands array when adding new commands */
 }
 

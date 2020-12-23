@@ -22,9 +22,10 @@ void telnetStop(void);
 /* ===== Getter and Setter Functions ===== */
 
 /* ===== Read/Write Configuration ===== */
-
+#if HASP_USE_CONFIG > 0
 bool telnetSetConfig(const JsonObject & settings);
 bool telnetGetConfig(const JsonObject & settings);
+#endif
 
 #define TELNET_UNAUTHENTICATED 0
 #define TELNET_USERNAME_OK 10

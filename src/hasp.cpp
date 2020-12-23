@@ -527,7 +527,7 @@ void haspLoadPage(const char * pages)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
+#if HASP_USE_CONFIG > 0
 bool haspGetConfig(const JsonObject & settings)
 {
     bool changed = false;
@@ -584,3 +584,4 @@ bool haspSetConfig(const JsonObject & settings)
 
     return changed;
 }
+#endif // HASP_USE_CONFIG
