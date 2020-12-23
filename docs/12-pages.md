@@ -13,9 +13,9 @@ When a malformed line is encountered, the processing of the rest of the file sto
 If you are missing objects, check the logs to see which line was processed last.
 You probably have a typo in the following line which blocks parsing the rest of the file.
 
-> **Note**</br>The complete file in its entirety is *not* a valid json file.
-> Each individual line however must be a valid json object.
-> The file extension is `.jsonl` and not `.json`.
+?> The complete file in its entirety is *not* a valid json file.
+?> Each individual line however must be a valid json object.
+?> The file extension is `.jsonl` and not `.json`.
 
 ### Objects
 Each line in `pages.jsonl` creates **one object** on a page and has to be in the json format.
