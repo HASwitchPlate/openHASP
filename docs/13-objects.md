@@ -1,3 +1,7 @@
+There are 2 ways to create an object on the screen:
+- Uploading a pages.jsonl file onto the internal flash
+- Use the `jsonl` command, via MQTT, serial or telnet console
+
 ## Common Properties
 
 These are the common properties shared among all objects:
@@ -46,6 +50,23 @@ You can still hide the object on select pages if needed. Objects on this page ap
 Each object type is an ID that indicates which object type that line represents.
 Besides the common properties listed above, each object type can have specific properties.
 
+### Cheatsheet
+
+| objid | Type       |
+|:-----:|:-----------|
+| 10    | [Button](13-objects?id=button)     |
+| 11    | [Checkbox](13-objects?id=checkbox)     |
+| 12    | [Label](13-objects?id=text-label)     |
+| 20    | [Colorpicker](13-objects?id=colorpicker)     |
+| 21    | [Spinner](13-objects?id=spinner)     |
+| 22    | [Arc](13-objects?id=arc)     |
+| 30    | [Slider](13-objects?id=slider)     |
+| 31    | [Gauge](13-objects?id=gauge)     |
+| 32    | [Progressbar](13-objects?id=progressbar)     |
+| 40    | [Switch](13-objects?id=switch)     |
+| 41    | [LED](13-objects?id=led-indicator)     |
+| 50    | [Dropdown List](13-objects?id=dropdown-list)     |
+| 51    | [Roller](13-objects?id=roller)     |
 
 ### Button
 **objid:10**
@@ -239,7 +260,7 @@ When the item is changed both `val` and `txt` of the newly selected item are sen
 | txt      | string     | no       | ""      | *Read-only* The text of the selected item
 | rows     | int8       | no       | 3       | The number ow rows that are visible
 
-?> A roller does not use the `h` attribute to set its height, but uses the rows to set the visible number of rows instead.
+!> A roller does not use the `h` attribute to set its height but uses the `rows` attribute instead.
 
 To change the currently selected item, use the `val` attribute.
 To change the items in the list, use the `options` attribute.

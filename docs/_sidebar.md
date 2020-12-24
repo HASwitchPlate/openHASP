@@ -39,11 +39,16 @@
   - [STM32F4xx](./39-firmware-stm32.md)
 
 - **Hardware**
-  - Alternate Dev Boards
-  
+<!--
+  - Devices to be tested
+    - [Lanbon L8 Switch](displays/lanbon-l8.md)
+    - [Wireless-Tag](displays/wt32-sc01.md)
+    - [BTT TFT70 V3.0](displays/btt-tft70-v3.0.md)
+-->
+
   - Tested Displays
-    - [MHS4001](displays/MHS4001.md)
-    - [WaveShare 4.0" RPi LCD (rev C)](displays/Waveshare_40RPi_LCD(C).md)
-    - [MRB3511](displays/MRB3511.md)
+    * [MHS4001](displays/MHS4001.md)
+    * [MRB3511](displays/MRB3511.md)
+    * [WaveShare 4.0" RPi LCD (rev C)](displays/Waveshare_40RPi_LCD(C).md)
 
 - [**License**](21-license.md)

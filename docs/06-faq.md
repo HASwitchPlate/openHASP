@@ -26,6 +26,6 @@ When the `edit.htm.gz` file is present on Spiffs you will see an additional File
 Using that webpage, you can right-click and delete files:
 ![HTTP configuration](assets/images/faq/faq_file_delete.png "Delete file")
 
-#### :question: Is there a file browser built-in?
+#### :question: How to delete files from flash?
 
 *See: Is there a file browser built-in?*
