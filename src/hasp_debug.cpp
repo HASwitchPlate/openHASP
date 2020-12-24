@@ -600,9 +600,6 @@ void debugPrintSuffix(uint8_t tag, int level, Print * _logOutput)
 
 void debugPreSetup(JsonObject settings)
 {
-    // Link stream to debugOutput
-    // debugOutput.reserve(512);
-
     Log.begin(LOG_LEVEL_WARNING, true);
     Log.setPrefix(debugPrintPrefix); // Uncomment to get timestamps as prefix
     Log.setSuffix(debugPrintSuffix); // Uncomment to get newline as suffix
