@@ -1,6 +1,8 @@
 /* MIT License - Copyright (c) 2020 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
+#if HASP_USE_CONFIG > 0
+
 #include "hasp_conf.h"
 
 #include "lvgl.h"
@@ -363,3 +365,4 @@ void oobeFakeSetup(const char *, const char *)
     }
 #endif
 }
+#endif // HASP_USE_CONFIG

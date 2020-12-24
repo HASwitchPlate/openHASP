@@ -2,10 +2,9 @@
 
 * Getting started
 
-  * [Quick start](quickstart.md)
-  * [Writing more pages](more-pages.md)
-  * [Custom navbar](custom-navbar.md)
-  * [Cover page](cover.md)
+  - [Hardware](./01-hardware.md)
+  - [Firmware Install](./02-installation.md)
+  - [Initial Setup](./03-wifi-setup.md)
 
 * Objects
   * [Button](13-objects?id=button)

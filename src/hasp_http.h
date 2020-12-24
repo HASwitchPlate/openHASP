@@ -15,7 +15,9 @@ void httpStop(void);
 
 size_t httpClientWrite(const uint8_t * buf, size_t size); // Screenshot Write Data
 
+#if HASP_USE_CONFIG > 0
 bool httpGetConfig(const JsonObject & settings);
 bool httpSetConfig(const JsonObject & settings);
+#endif // HASP_USE_CONFIG
 
 #endif

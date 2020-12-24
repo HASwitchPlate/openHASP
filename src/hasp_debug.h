@@ -24,8 +24,10 @@ void debugStopSyslog(void);
 // void syslogSend(uint8_t log, const char * debugText);
 
 /* ===== Read/Write Configuration ===== */
+#if HASP_USE_CONFIG > 0
 bool debugGetConfig(const JsonObject & settings);
 bool debugSetConfig(const JsonObject & settings);
+#endif
 
 // void debugPrintPrefix(int level, Print * _logOutput);
 // void debugPrintSuffix(int level, Print * _logOutput);

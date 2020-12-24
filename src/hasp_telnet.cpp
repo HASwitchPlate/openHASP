@@ -313,6 +313,7 @@ void IRAM_ATTR telnetLoop()
 #endif
 }
 
+#if HASP_USE_CONFIG > 0
 bool telnetGetConfig(const JsonObject & settings)
 {
     bool changed = false;
@@ -345,5 +346,6 @@ bool telnetSetConfig(const JsonObject & settings)
 
     return changed;
 }
+#endif // HASP_USE_CONFIG
 
 #endif

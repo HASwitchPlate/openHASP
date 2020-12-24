@@ -730,6 +730,7 @@ int8_t guiGetDim()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+#if HASP_USE_CONFIG > 0
 bool guiGetConfig(const JsonObject & settings)
 {
     bool changed = false;
@@ -845,6 +846,7 @@ bool guiSetConfig(const JsonObject & settings)
 
     return changed;
 }
+#endif // HASP_USE_CONFIG
 
 /* **************************** SCREENSHOTS ************************************** */
 #if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0 || HASP_USE_HTTP > 0

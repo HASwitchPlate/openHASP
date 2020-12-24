@@ -30,8 +30,11 @@ bool gpioInUse(uint8_t gpio);
 bool gpioConfigInUse(uint8_t num);
 int8_t gpioGetFreeConfigId();
 hasp_gpio_config_t gpioGetPinConfig(uint8_t num);
+
+#if HASP_USE_CONFIG > 0
 bool gpioGetConfig(const JsonObject & settings);
 bool gpioSetConfig(const JsonObject & settings);
+#endif
 
 #define HASP_GPIO_FREE 0x00
 #define HASP_GPIO_USED 0x01

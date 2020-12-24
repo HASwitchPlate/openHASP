@@ -13,7 +13,9 @@ void mdnsStart(void);
 void mdnsStop(void);
 
 /* ===== Read/Write Configuration ===== */
+#if HASP_USE_CONFIG > 0
 bool mdnsGetConfig(const JsonObject & settings);
 bool mdnsSetConfig(const JsonObject & settings);
+#endif
 
 #endif

@@ -508,7 +508,7 @@ void wifi_get_statusupdate(char * buffer, size_t len)
 }
 
 /* ============ Confiuration =============================================================== */
-
+#if HASP_USE_CONFIG > 0
 bool wifiGetConfig(const JsonObject & settings)
 {
     bool changed = false;
@@ -549,5 +549,6 @@ bool wifiSetConfig(const JsonObject & settings)
 
     return changed;
 }
+#endif // HASP_USE_CONFIG
 
 #endif

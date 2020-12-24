@@ -83,6 +83,7 @@ void mdnsStop()
 #endif
 }
 
+    #if HASP_USE_CONFIG > 0
 bool mdnsGetConfig(const JsonObject & settings)
 {
     bool changed = false;
@@ -108,5 +109,6 @@ bool mdnsSetConfig(const JsonObject & settings)
 
     return changed;
 }
+    #endif // HASP_USE_CONFIG
 
 #endif // HASP_USE_MDNS

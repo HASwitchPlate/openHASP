@@ -409,6 +409,7 @@ void mqttStop()
     }
 }
 
+#if HASP_USE_CONFIG > 0
 bool mqttGetConfig(const JsonObject & settings)
 {
     bool changed = false;
@@ -493,5 +494,6 @@ bool mqttSetConfig(const JsonObject & settings)
 
     return changed;
 }
+#endif // HASP_USE_CONFIG
 
 #endif // HASP_USE_MQTT
