@@ -7,8 +7,9 @@
 #include "hasp_conf.h"
 #include "hasp_hal.h"
 #include "hasp_debug.h"
-#include "hasp_mdns.h"
-#include "hasp.h"
+
+#include "../hasp/hasp.h"
+#include "../svc/hasp_mdns.h"
 
 #if HASP_USE_ETHERNET > 0 || HASP_USE_WIFI > 0
 

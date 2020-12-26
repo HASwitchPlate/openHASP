@@ -27,12 +27,14 @@
     #include <WiFiUdp.h>
 #endif
 
-#include "hasp.h"
-#include "hasp_hal.h"
 #include "hasp_conf.h"
+
+#include "hasp_hal.h"
 #include "hasp_debug.h"
 #include "hasp_config.h"
-#include "hasp_dispatch.h"
+
+#include "hasp/hasp_dispatch.h"
+#include "hasp/hasp.h"
 
 #ifdef USE_CONFIG_OVERRIDE
     #include "user_config_override.h"
@@ -424,6 +426,10 @@ static void debugPrintTag(uint8_t tag, Print * _logOutput)
 
         case TAG_HASP:
             _logOutput->print(F("HASP"));
+            break;
+
+        case TAG_DRVR:
+            _logOutput->print(F("DRVR"));
             break;
 
         case TAG_ATTR:

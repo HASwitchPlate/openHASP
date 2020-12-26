@@ -7,7 +7,8 @@
 #include <Arduino.h>
 #include "lvgl.h"
 #include "hasp_conf.h"
-#include "hasp_debug.h"
+
+#include "../hasp_debug.h"
 
 #ifdef __cplusplus
 extern "C" {

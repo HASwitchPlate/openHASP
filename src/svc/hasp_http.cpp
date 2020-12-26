@@ -17,8 +17,9 @@
 #include "hasp_hal.h"
 #include "hasp_debug.h"
 #include "hasp_config.h"
-#include "hasp_dispatch.h"
-#include "hasp.h"
+
+#include "hasp/hasp_dispatch.h"
+#include "hasp/hasp.h"
 
 #if HASP_USE_HTTP > 0
 
@@ -1620,9 +1621,9 @@ void webHandleFirmware()
                          "name='filename' accept='.bin'>");
         httpMessage += F("<button type='submit'>Update Firmware</button></form></p>");
 
-        httpMessage += F("<p><form action='/update' method='post' enctype='multipart/form-data'><input type='file' "
-                         "name='filename' accept='.spiffs'>");
-        httpMessage += F("<button type='submit'>Replace Filesystem Image</button></form></p>");
+        // httpMessage += F("<p><form action='/update' method='post' enctype='multipart/form-data'><input type='file' "
+        //                  "name='filename' accept='.spiffs'>");
+        // httpMessage += F("<button type='submit'>Replace Filesystem Image</button></form></p>");
 
         httpMessage += FPSTR(MAIN_MENU_BUTTON);
 

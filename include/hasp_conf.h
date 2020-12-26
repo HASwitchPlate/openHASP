@@ -4,18 +4,18 @@
 #define HASP_USE_APP 1
 
 /* Network Services */
-#define HASP_HAS_NETWORK (ARDUINO_ARCH_ESP32 > 0 || ARDUINO_ARCH_ESP8266 > 0)
-
-#ifndef HASP_USE_OTA
-#define HASP_USE_OTA (HASP_HAS_NETWORK)
+#ifndef HASP_USE_ETHERNET
+#define HASP_USE_ETHERNET 0
 #endif
 
 #ifndef HASP_USE_WIFI
-#define HASP_USE_WIFI (HASP_HAS_NETWORK)
+#define HASP_USE_WIFI (ARDUINO_ARCH_ESP32 > 0 || ARDUINO_ARCH_ESP8266 > 0 || HASP_USE_WIFI > 0)
 #endif
 
-#ifndef HASP_USE_ETHERNET
-#define HASP_USE_ETHERNET 0
+#define HASP_HAS_NETWORK (ARDUINO_ARCH_ESP32 > 0 || ARDUINO_ARCH_ESP8266 > 0 || HASP_USE_ETHERNET > 0 || HASP_USE_WIFI > 0)
+
+#ifndef HASP_USE_OTA
+#define HASP_USE_OTA (HASP_HAS_NETWORK)
 #endif
 
 #ifndef HASP_USE_MQTT
@@ -124,7 +124,7 @@
 #endif
 
 #if HASP_USE_WIFI > 0
-#include "hasp_wifi.h"
+#include "net/hasp_wifi.h"
 
 #if defined(STM32F4xx)
 #include "WiFiSpi.h"
@@ -144,7 +144,7 @@ static WiFiSpiClass WiFi;
 #define ETH_TYPE ETH_PHY_LAN8720
 #define ETH_CLKMODE ETH_CLOCK_GPIO17_OUT
 
-#include "hasp_ethernet_esp32.h"
+#include "net/hasp_ethernet_esp32.h"
 #warning Using ESP32 Ethernet LAN8720
 
 #else
@@ -160,12 +160,12 @@ static WiFiSpiClass WiFi;
 #include "Ethernet.h"
 #warning Use W5x00 Ethernet shield
 #endif
-#include "hasp_ethernet_stm32.h"
+#include "net/hasp_ethernet_stm32.h"
 #endif
 #endif
 
 #if HASP_USE_MQTT > 0
-#include "hasp_mqtt.h"
+#include "svc/hasp_mqtt.h"
 #endif
 
 #if HASP_USE_GPIO > 0
@@ -173,23 +173,19 @@ static WiFiSpiClass WiFi;
 #endif
 
 #if HASP_USE_HTTP > 0
-#include "hasp_http.h"
+#include "svc/hasp_http.h"
 #endif
 
 #if HASP_USE_TELNET > 0
-#include "hasp_telnet.h"
+#include "svc/hasp_telnet.h"
 #endif
 
 #if HASP_USE_MDNS > 0
-#include "hasp_mdns.h"
-#endif
-
-#if HASP_USE_BUTTON > 0
-#include "hasp_button.h"
+#include "svc/hasp_mdns.h"
 #endif
 
 #if HASP_USE_OTA > 0
-#include "hasp_ota.h"
+#include "svc/hasp_ota.h"
 #ifndef HASP_OTA_PORT
 #if defined(ARDUINO_ARCH_ESP32)
 #define HASP_OTA_PORT 3232
@@ -200,7 +196,7 @@ static WiFiSpiClass WiFi;
 #endif
 
 #if HASP_USE_TASMOTA_SLAVE > 0
-#include "hasp_slave.h"
+#include "svc/hasp_slave.h"
 #endif
 
 #ifndef FPSTR

@@ -18,7 +18,7 @@
 //#include "hasp_gpio.h" included in conf
 
 //#include "hasp_eeprom.h"
-#include "hasp.h"
+#include "hasp/hasp.h"
 
 #if HASP_USE_EEPROM > 0
 #include "EEPROM.h"

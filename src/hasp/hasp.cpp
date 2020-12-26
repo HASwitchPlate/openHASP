@@ -16,7 +16,6 @@
 #include "hasp_object.h"
 #include "hasp_dispatch.h"
 //#include "hasp_filesystem.h" included in hasp_conf.h
-#include "hasp_wifi.h"
 #include "hasp_gui.h"
 
 #include "hasp_attribute.h"
