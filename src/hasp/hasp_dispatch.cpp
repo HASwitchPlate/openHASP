@@ -8,7 +8,6 @@
 
 #include "hasp_dispatch.h"
 #include "hasp_object.h"
-#include "hasp_sleep.h"
 #include "hasp.h"
 
 #include "hasp_debug.h"
@@ -693,7 +692,7 @@ void dispatch_calibrate(const char *, const char *)
 
 void dispatch_wakeup(const char *, const char *)
 {
-    sleep_wakeup();
+    hasp_wakeup();
 }
 
 void dispatch_reboot(const char *, const char *)

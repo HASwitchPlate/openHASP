@@ -10,7 +10,6 @@
 #include "hasp_oobe.h"
 
 #include "hasp/hasp_dispatch.h"
-#include "hasp/hasp_sleep.h"
 #include "hasp/hasp.h"
 
 #include "net/hasp_network.h"
@@ -156,7 +155,7 @@ void loop()
     /* Timer Loop */
     if(millis() - mainLastLoopTime >= 1000) {
         /* Runs Every Second */
-        sleepEverySecond();
+        haspEverySecond();
         debugEverySecond(); // statusupdate
 #if HASP_USE_OTA > 0
         otaEverySecond(); // progressbar

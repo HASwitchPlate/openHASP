@@ -20,8 +20,8 @@
 //#include "ft6x36.h"
 #endif
 
-#include "../hasp/hasp_sleep.h"
-extern uint8_t sleep_state;
+#include "../hasp/hasp.h" // for hasp_sleep_state
+extern uint8_t hasp_sleep_state;
 
 void drv_touch_init(uint8_t rotation)
 {
@@ -76,7 +76,7 @@ bool drv_touch_read(lv_indev_drv_t * indev_driver, lv_indev_data_t * data)
 #ifdef TOUCH_CS
     uint16_t touchX, touchY;
     bool touched = drv_touchpad_getXY(&touchX, &touchY);
-    if(touched && sleep_state != HASP_SLEEP_OFF) sleep_check_state(); // update Idle
+    if(touched && hasp_sleep_state != HASP_SLEEP_OFF) hasp_update_sleep_state(); // update Idle
 
     // Ignore first press?
 
