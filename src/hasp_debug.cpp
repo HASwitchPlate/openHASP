@@ -27,12 +27,14 @@
     #include <WiFiUdp.h>
 #endif
 
-#include "hasp.h"
-#include "hasp_hal.h"
 #include "hasp_conf.h"
+
+#include "hasp_hal.h"
 #include "hasp_debug.h"
 #include "hasp_config.h"
-#include "hasp_dispatch.h"
+
+#include "hasp/hasp_dispatch.h"
+#include "hasp/hasp.h"
 
 #ifdef USE_CONFIG_OVERRIDE
     #include "user_config_override.h"
@@ -426,6 +428,10 @@ static void debugPrintTag(uint8_t tag, Print * _logOutput)
             _logOutput->print(F("HASP"));
             break;
 
+        case TAG_DRVR:
+            _logOutput->print(F("DRVR"));
+            break;
+
         case TAG_ATTR:
             _logOutput->print(F("ATTR"));
             break;
@@ -600,9 +606,6 @@ void debugPrintSuffix(uint8_t tag, int level, Print * _logOutput)
 
 void debugPreSetup(JsonObject settings)
 {
-    // Link stream to debugOutput
-    // debugOutput.reserve(512);
-
     Log.begin(LOG_LEVEL_WARNING, true);
     Log.setPrefix(debugPrintPrefix); // Uncomment to get timestamps as prefix
     Log.setSuffix(debugPrintSuffix); // Uncomment to get newline as suffix

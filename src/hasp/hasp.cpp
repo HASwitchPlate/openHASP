@@ -16,7 +16,6 @@
 #include "hasp_object.h"
 #include "hasp_dispatch.h"
 //#include "hasp_filesystem.h" included in hasp_conf.h
-#include "hasp_wifi.h"
 #include "hasp_gui.h"
 
 #include "hasp_attribute.h"
@@ -61,6 +60,9 @@ LV_IMG_DECLARE(img_bubble_pattern)
 void haspLoadPage(const char * pages);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+uint8_t hasp_sleep_state = HASP_SLEEP_OFF; // Used in hasp_drv_touch.cpp
+static uint16_t sleepTimeShort = 60;  // 1 second resolution
+static uint16_t sleepTimeLong = 120; // 1 second resolution
 
 uint8_t haspStartDim   = 100;
 uint8_t haspStartPage  = 0;
@@ -89,6 +91,49 @@ lv_font_t * hasp_get_font(uint8_t fontid)
         return haspFonts[fontid];
     }
 }
+
+/**
+ * WakeUp the display using a command instead of touch
+ */
+void hasp_wakeup()
+{
+    lv_disp_trig_activity(NULL);
+}
+
+/**
+ * Check if sleep state needs to be updated
+ */
+bool IRAM_ATTR hasp_update_sleep_state()
+{
+    uint32_t idle = lv_disp_get_inactive_time(NULL);
+
+    if(idle >= (sleepTimeShort + sleepTimeLong) * 1000U) {
+        if(hasp_sleep_state != HASP_SLEEP_LONG) {
+            dispatch_output_idle_state(HASP_SLEEP_LONG);
+            hasp_sleep_state = HASP_SLEEP_LONG;
+        }
+    } else if(idle >= sleepTimeShort * 1000U) {
+        if(hasp_sleep_state != HASP_SLEEP_SHORT) {
+            dispatch_output_idle_state(HASP_SLEEP_SHORT);
+            hasp_sleep_state = HASP_SLEEP_SHORT;
+        }
+    } else {
+        if(hasp_sleep_state != HASP_SLEEP_OFF) {
+            dispatch_output_idle_state(HASP_SLEEP_OFF);
+            hasp_sleep_state = HASP_SLEEP_OFF;
+        }
+    }
+
+    return (hasp_sleep_state != HASP_SLEEP_OFF);
+}
+
+/**
+ * Checks if we went to sleep, wake up is handled in the event handlers
+ */
+// void haspEverySecond()
+// {
+//     hasp_update_sleep_state();
+// }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /**
@@ -235,7 +280,7 @@ static void custom_font_apply_cb(lv_theme_t * th, lv_obj_t * obj, lv_theme_style
 /**
  * Create a demo application
  */
-void haspSetup()
+void haspSetup(void)
 {
     guiSetDim(haspStartDim);
 

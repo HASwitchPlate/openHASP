@@ -11,10 +11,11 @@
 
 #include "hasp_debug.h"
 #include "hasp_config.h"
-#include "hasp_dispatch.h"
 #include "hasp_network.h"
 #include "hasp_gui.h"
-#include "hasp.h"
+
+#include "hasp/hasp_dispatch.h"
+#include "hasp/hasp.h"
 
 #if defined(ARDUINO_ARCH_ESP32)
 #include <WiFi.h>

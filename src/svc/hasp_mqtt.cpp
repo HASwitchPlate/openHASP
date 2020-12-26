@@ -35,8 +35,9 @@ EthernetClient mqttNetworkClient;
 #include "hasp_hal.h"
 #include "hasp_debug.h"
 #include "hasp_config.h"
-#include "hasp_dispatch.h"
-#include "hasp.h"
+
+#include "../hasp/hasp_dispatch.h"
+#include "../hasp/hasp.h"
 
 #ifdef USE_CONFIG_OVERRIDE
 #include "user_config_override.h"

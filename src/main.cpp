@@ -8,9 +8,11 @@
 #include "hasp_config.h"
 #include "hasp_gui.h"
 #include "hasp_oobe.h"
-#include "hasp_dispatch.h"
-#include "hasp_network.h"
-#include "hasp.h"
+
+#include "hasp/hasp_dispatch.h"
+#include "hasp/hasp.h"
+
+#include "net/hasp_network.h"
 
 bool isConnected;
 uint8_t mainLoopCounter        = 0;
@@ -153,7 +155,7 @@ void loop()
     /* Timer Loop */
     if(millis() - mainLastLoopTime >= 1000) {
         /* Runs Every Second */
-        guiEverySecond();   // sleep timer
+        haspEverySecond();
         debugEverySecond(); // statusupdate
 #if HASP_USE_OTA > 0
         otaEverySecond(); // progressbar

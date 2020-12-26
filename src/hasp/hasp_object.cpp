@@ -21,7 +21,6 @@
 #endif
 
 #include "hasp.h"
-#include "hasp_gui.h"
 #include "hasp_object.h"
 #include "hasp_dispatch.h"
 #include "hasp_attribute.h"
@@ -311,7 +310,7 @@ void IRAM_ATTR btn_event_handler(lv_obj_t * obj, lv_event_t event)
             return;
     }
 
-    guiCheckSleep();                          // wakeup?
+    hasp_update_sleep_state();                          // wakeup?
     dispatch_object_event(obj, eventid); // send object event
 }
 
@@ -323,7 +322,7 @@ void IRAM_ATTR btn_event_handler(lv_obj_t * obj, lv_event_t event)
 void wakeup_event_handler(lv_obj_t * obj, lv_event_t event)
 {
     if(obj == lv_disp_get_layer_sys(NULL)) {
-        guiCheckSleep();              // wakeup?
+        hasp_update_sleep_state();              // wakeup?
         lv_obj_set_click(obj, false); // disable fist click
     }
 }
@@ -336,7 +335,7 @@ void wakeup_event_handler(lv_obj_t * obj, lv_event_t event)
 static void btnmap_event_handler(lv_obj_t * obj, lv_event_t event)
 {
     if(event == LV_EVENT_VALUE_CHANGED) {
-        guiCheckSleep(); // wakeup?
+        hasp_update_sleep_state(); // wakeup?
         hasp_send_obj_attribute_val(obj, lv_btnmatrix_get_active_btn(obj));
     }
 }
@@ -349,7 +348,7 @@ static void btnmap_event_handler(lv_obj_t * obj, lv_event_t event)
 static void table_event_handler(lv_obj_t * obj, lv_event_t event)
 {
     if(event == LV_EVENT_VALUE_CHANGED) {
-        guiCheckSleep(); // wakeup?
+        hasp_update_sleep_state(); // wakeup?
 
         uint16_t row;
         uint16_t col;
@@ -365,7 +364,7 @@ static void table_event_handler(lv_obj_t * obj, lv_event_t event)
 void IRAM_ATTR toggle_event_handler(lv_obj_t * obj, lv_event_t event)
 {
     if(event == LV_EVENT_VALUE_CHANGED) {
-        guiCheckSleep(); // wakeup?
+        hasp_update_sleep_state(); // wakeup?
         hasp_send_obj_attribute_val(obj, lv_checkbox_is_checked(obj));
     }
 }
@@ -378,7 +377,7 @@ void IRAM_ATTR toggle_event_handler(lv_obj_t * obj, lv_event_t event)
 static void switch_event_handler(lv_obj_t * obj, lv_event_t event)
 {
     if(event == LV_EVENT_VALUE_CHANGED) {
-        guiCheckSleep(); // wakeup?
+        hasp_update_sleep_state(); // wakeup?
         hasp_send_obj_attribute_val(obj, lv_switch_get_state(obj));
     }
 }

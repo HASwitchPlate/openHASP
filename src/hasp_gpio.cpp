@@ -7,8 +7,9 @@
 #include "hasp_conf.h"
 #include "hasp_gpio.h"
 #include "hasp_config.h"
-#include "hasp_dispatch.h"
-#include "hasp.h"
+
+#include "hasp/hasp_dispatch.h"
+#include "hasp/hasp.h"
 
 uint8_t gpioUsedInputCount = 0;
 

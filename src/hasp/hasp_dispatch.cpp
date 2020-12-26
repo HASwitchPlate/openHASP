@@ -7,15 +7,18 @@
 #include "hasp_conf.h"
 
 #include "hasp_dispatch.h"
-#include "hasp_network.h" // for network_get_status()
-#include "hasp_debug.h"
 #include "hasp_object.h"
+#include "hasp.h"
+
+#include "hasp_debug.h"
 #include "hasp_gui.h"
 #include "hasp_oobe.h"
-#include "hasp_mqtt.h"
 #include "hasp_gpio.h"
 #include "hasp_hal.h"
-#include "hasp.h"
+
+#include "svc/hasp_ota.h"
+#include "svc/hasp_mqtt.h"
+#include "net/hasp_network.h" // for network_get_status()
 
 #if HASP_USE_CONFIG > 0
     #include "hasp_config.h"
@@ -472,9 +475,11 @@ void dispatch_parse_json(const char *, const char * payload)
 
     } else if(json.is<JsonArray>()) { // handle json as an array of commands
         JsonArray arr = json.as<JsonArray>();
+        guiStop();
         for(JsonVariant command : arr) {
             dispatch_text_line(command.as<String>().c_str());
         }
+        guiStart();
     } else if(json.is<JsonObject>()) { // handle json as a jsonl
         uint8_t savedPage = haspGetPage();
         hasp_new_object(json.as<JsonObject>(), savedPage);
@@ -500,11 +505,13 @@ void dispatch_parse_jsonl(Stream & stream)
     DynamicJsonDocument jsonl(4 * 128u); // max ~256 characters per line
     DeserializationError err = deserializeJson(jsonl, stream);
 
+    guiStop();
     while(err == DeserializationError::Ok) {
         hasp_new_object(jsonl.as<JsonObject>(), savedPage);
         err = deserializeJson(jsonl, stream);
         line++;
     }
+    guiStart();
 
     /* For debugging pourposes */
     if(err == DeserializationError::EmptyInput) {
@@ -685,7 +692,7 @@ void dispatch_calibrate(const char *, const char *)
 
 void dispatch_wakeup(const char *, const char *)
 {
-    guiWakeUp();
+    hasp_wakeup();
 }
 
 void dispatch_reboot(const char *, const char *)

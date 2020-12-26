@@ -10,11 +10,12 @@
 #include "../lv_components.h"
 #endif
 
-#include "hasp_object.h"
 #include "hasp_gui.h"
-#include "hasp_wifi.h"
 #include "hasp_config.h"
-#include "hasp_dispatch.h"
+
+#include "net/hasp_wifi.h"
+#include "hasp/hasp_dispatch.h"
+#include "hasp/hasp_object.h"
 
 static bool oobeAutoCalibrate = true;
 

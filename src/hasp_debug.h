@@ -40,6 +40,7 @@ enum {
     TAG_MSGR = 3,
     TAG_OOBE = 4,
     TAG_HAL  = 5,
+    TAG_DRVR  = 6,
 
     TAG_DEBG = 10,
     TAG_TELN = 11,

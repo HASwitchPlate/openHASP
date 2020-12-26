@@ -109,7 +109,7 @@ void tft_espi_calibrate(uint16_t * calData)
     tft.setTextSize(1);
     tft.setTextColor(TFT_WHITE, TFT_BLACK);
 
-    tft.println(PSTR("Touch corners as indicated"));
+    // tft.println(PSTR("Touch corners as indicated"));
 
     tft.setTextFont(1);
     delay(500);

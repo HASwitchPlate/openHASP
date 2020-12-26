@@ -7,7 +7,8 @@
 #include <Arduino.h>
 #include "lvgl.h"
 #include "hasp_conf.h"
-#include "hasp_debug.h"
+
+#include "../hasp_debug.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -22,6 +23,9 @@ extern "C" {
 /*********************
  *      DEFINES
  *********************/
+#define HASP_SLEEP_OFF 0
+#define HASP_SLEEP_SHORT 1
+#define HASP_SLEEP_LONG 2
 
 /**********************
  *      TYPEDEFS
@@ -34,8 +38,10 @@ extern "C" {
 /**
  * Create a hasp application
  */
-void haspSetup();
+void haspSetup(void);
 void IRAM_ATTR haspLoop(void);
+//void haspEverySecond(void); // See MACROS
+
 void haspReconnect(void);
 void haspDisconnect(void);
 
@@ -58,9 +64,13 @@ bool haspSetConfig(const JsonObject & settings);
 
 lv_font_t * hasp_get_font(uint8_t fontid);
 
+bool IRAM_ATTR hasp_update_sleep_state();
+void hasp_wakeup(void);
+
 /**********************
  *      MACROS
  **********************/
+#define haspEverySecond hasp_update_sleep_state
 
 #endif /*HASP_USE_APP*/
 
