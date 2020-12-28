@@ -3,6 +3,10 @@
 
 #define HASP_USE_APP 1
 
+#ifndef HASP_USE_DEBUG
+#define HASP_USE_DEBUG 1
+#endif
+
 /* Network Services */
 #ifndef HASP_USE_ETHERNET
 #define HASP_USE_ETHERNET 0

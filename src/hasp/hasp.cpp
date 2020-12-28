@@ -4,19 +4,23 @@
 #include "hasp_conf.h"
 
 #include "ArduinoJson.h"
-#include "StreamUtils.h" // For EEPromStream
+#include "ArduinoLog.h"
+// #include "StreamUtils.h" // For EEPromStream
 
 #include "lvgl.h"
 #include "lv_conf.h"
 #include "hasp_conf.h"
 
+#if HASP_USE_DEBUG > 0
 #include "lv_fs_if.h"
 #include "hasp_debug.h"
 #include "hasp_config.h"
+#include "hasp_gui.h"
+//#include "hasp_filesystem.h" included in hasp_conf.h
+#endif
+
 #include "hasp_object.h"
 #include "hasp_dispatch.h"
-//#include "hasp_filesystem.h" included in hasp_conf.h
-#include "hasp_gui.h"
 
 #include "hasp_attribute.h"
 #include "hasp.h"

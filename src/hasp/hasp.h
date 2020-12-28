@@ -8,7 +8,9 @@
 #include "lvgl.h"
 #include "hasp_conf.h"
 
+#if HASP_USE_DEBUG > 0
 #include "../hasp_debug.h"
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -59,8 +61,10 @@ void haspGetVersion(char* version,size_t len);
 
 void haspProgressVal(uint8_t val);
 
+#if HASP_USE_CONFIG > 0
 bool haspGetConfig(const JsonObject & settings);
 bool haspSetConfig(const JsonObject & settings);
+#endif
 
 lv_font_t * hasp_get_font(uint8_t fontid);
 

@@ -1,24 +1,30 @@
 /* MIT License - Copyright (c) 2020 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
-#include "StringStream.h"
-#include "CharStream.h"
-
+#include "ArduinoLog.h"
 #include "hasp_conf.h"
 
 #include "hasp_dispatch.h"
 #include "hasp_object.h"
 #include "hasp.h"
 
-#include "hasp_debug.h"
-#include "hasp_gui.h"
-#include "hasp_oobe.h"
-#include "hasp_gpio.h"
-#include "hasp_hal.h"
+#if HASP_USE_DEBUG > 0
+    #include "StringStream.h"
+    #include "CharStream.h"
 
-#include "svc/hasp_ota.h"
-#include "svc/hasp_mqtt.h"
-#include "net/hasp_network.h" // for network_get_status()
+    #include "hasp_debug.h"
+    #include "hasp_gui.h"
+    #include "hasp_oobe.h"
+    #include "hasp_gpio.h"
+    #include "hasp_hal.h"
+
+    #include "svc/hasp_ota.h"
+    #include "svc/hasp_mqtt.h"
+    #include "net/hasp_network.h" // for network_get_status()
+#else
+    #include <iostream>
+    #include <sstream>
+#endif
 
 #if HASP_USE_CONFIG > 0
     #include "hasp_config.h"
@@ -393,17 +399,22 @@ static void dispatch_get_event_name(uint8_t eventid, char * buffer, size_t size)
     }
 }
 
+#if HASP_USE_GPIO > 0
 void dispatch_gpio_event(uint8_t pin, uint8_t group, uint8_t eventid)
 {
     char payload[64];
     char event[8];
     dispatch_get_event_name(eventid, event, sizeof(event));
     snprintf_P(payload, sizeof(payload), PSTR("{\"pin\":%d,\"group\":%d,\"event\":\"%s\"}"), pin, group, event);
+
+    #if HASP_USE_MQTT > 0
     mqtt_send_state(F("input"), payload);
+    #endif
 
     // update outputstates
     dispatch_group_state(group, dispatch_get_event_state(eventid), NULL);
 }
+#endif
 
 void dispatch_object_event(lv_obj_t * obj, uint8_t eventid)
 {
@@ -498,7 +509,11 @@ void dispatch_parse_json(const char *, const char * payload)
     }
 }
 
+#if HASP_USE_CONFIG > 0
 void dispatch_parse_jsonl(Stream & stream)
+#else
+void dispatch_parse_jsonl(std::istringstream & stream)
+#endif
 {
     uint8_t savedPage = haspGetPage();
     size_t line       = 1;
@@ -533,8 +548,13 @@ void dispatch_parse_jsonl(Stream & stream)
 
 void dispatch_parse_jsonl(const char *, const char * payload)
 {
+#if HASP_USE_CONFIG > 0
     CharStream stream((char *)payload);
     dispatch_parse_jsonl(stream);
+#else
+    std::istringstream stream((char *)payload);
+    dispatch_parse_jsonl(stream);
+#endif
 }
 
 void dispatch_output_current_page()
@@ -627,7 +647,9 @@ void dispatch_reboot(bool saveConfig)
 #if HASP_USE_MQTT > 0
     mqttStop(); // Stop the MQTT Client first
 #endif
+#if HASP_USE_CONFIG > 0
     debugStop();
+#endif
 #if HASP_USE_WIFI > 0
     wifiStop();
 #endif
