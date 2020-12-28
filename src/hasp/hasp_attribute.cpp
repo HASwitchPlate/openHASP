@@ -6,6 +6,7 @@
     #include "../lv_components.h"
 #endif
 
+#include "ArduinoLog.h"
 //#include "hasp_conf.h"
 
 #include "hasp.h"
