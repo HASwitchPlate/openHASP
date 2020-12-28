@@ -17,7 +17,7 @@
 
 #include "lvgl.h"
 #if LVGL_VERSION_MAJOR != 7
-#include "../lv_components.h"
+    #include "../lv_components.h"
 #endif
 
 #include "hasp.h"
@@ -224,10 +224,11 @@ void hasp_send_obj_attribute_int(lv_obj_t * obj, const char * attribute, int32_t
 
 void hasp_send_obj_attribute_color(lv_obj_t * obj, const char * attribute, lv_color_t color)
 {
-    char buffer[16];
+    char buffer[32];
     lv_color32_t c32;
     c32.full = lv_color_to32(color);
-    snprintf(buffer, sizeof(buffer), PSTR("#%02x%02x%02x"), c32.ch.red, c32.ch.green, c32.ch.blue);
+    snprintf(buffer, sizeof(buffer), PSTR("#%02x%02x%02x\",\"r\":\"%d\",\"g\":\"%d\",\"b\":\"%d"), c32.ch.red, c32.ch.green, c32.ch.blue, c32.ch.red,
+             c32.ch.green, c32.ch.blue);
     hasp_send_obj_attribute_str(obj, attribute, buffer);
 }
 
@@ -261,6 +262,8 @@ static inline void hasp_send_obj_attribute_txt(lv_obj_t * obj, const char * txt)
 
 // ##################### Event Handlers ########################################################
 
+static bool last_press_was_short = false; // Avoid SHORT + UP double events
+
 /**
  * Called when a button-style object is clicked
  * @param obj pointer to a button object
@@ -272,24 +275,33 @@ void IRAM_ATTR btn_event_handler(lv_obj_t * obj, lv_event_t event)
 
     switch(event) {
         case LV_EVENT_PRESSED:
-            eventid = HASP_EVENT_DOWN;
+            eventid              = HASP_EVENT_DOWN;
+            last_press_was_short = false;
             break;
         case LV_EVENT_CLICKED:
             // UP = the same object was release then was pressed and press was not lost!
-            eventid = HASP_EVENT_UP;
+            if(last_press_was_short)
+                eventid = HASP_EVENT_SHORT;
+            else
+                eventid = HASP_EVENT_UP;
             break;
         case LV_EVENT_SHORT_CLICKED:
-            eventid = HASP_EVENT_SHORT;
-            break;
+            last_press_was_short = true; // Avoid SHORT + UP double events
+            return;
+            // eventid = HASP_EVENT_SHORT;
+            // break;
         case LV_EVENT_LONG_PRESSED:
-            eventid = HASP_EVENT_LONG;
+            eventid              = HASP_EVENT_LONG;
+            last_press_was_short = false;
             break;
         case LV_EVENT_LONG_PRESSED_REPEAT:
+            // last_press_was_short = false;
             return; // we don't care about hold
                     // eventid = HASP_EVENT_HOLD;
                     // break;
         case LV_EVENT_PRESS_LOST:
-            eventid = HASP_EVENT_LOST;
+            eventid              = HASP_EVENT_LOST;
+            last_press_was_short = false;
             break;
         case LV_EVENT_PRESSING:
         case LV_EVENT_FOCUSED:
@@ -299,18 +311,21 @@ void IRAM_ATTR btn_event_handler(lv_obj_t * obj, lv_event_t event)
 
         case LV_EVENT_VALUE_CHANGED:
             Log.warning(TAG_HASP, F("Value changed Event %d occured"), event);
+            last_press_was_short = false;
             return;
 
         case LV_EVENT_DELETE:
             Log.verbose(TAG_HASP, F("Object deleted Event %d occured"), event);
             // TODO:free and destroy persistent memory allocated for certain objects
+            last_press_was_short = false;
             return;
         default:
             Log.warning(TAG_HASP, F("Unknown Event %d occured"), event);
+            last_press_was_short = false;
             return;
     }
 
-    hasp_update_sleep_state();                          // wakeup?
+    hasp_update_sleep_state();           // wakeup?
     dispatch_object_event(obj, eventid); // send object event
 }
 
@@ -322,7 +337,7 @@ void IRAM_ATTR btn_event_handler(lv_obj_t * obj, lv_event_t event)
 void wakeup_event_handler(lv_obj_t * obj, lv_event_t event)
 {
     if(obj == lv_disp_get_layer_sys(NULL)) {
-        hasp_update_sleep_state();              // wakeup?
+        hasp_update_sleep_state();    // wakeup?
         lv_obj_set_click(obj, false); // disable fist click
     }
 }
@@ -427,7 +442,8 @@ static void cpicker_event_handler(lv_obj_t * obj, lv_event_t event)
     char color[6];
     snprintf_P(color, sizeof(color), PSTR("color"));
 
-    if(event == LV_EVENT_VALUE_CHANGED) hasp_send_obj_attribute_color(obj, color, lv_cpicker_get_color(obj));
+    // if(event == LV_EVENT_VALUE_CHANGED) hasp_send_obj_attribute_color(obj, color, lv_cpicker_get_color(obj));
+    if(event == LV_EVENT_RELEASED) hasp_send_obj_attribute_color(obj, color, lv_cpicker_get_color(obj));
 }
 
 /**
@@ -752,6 +768,10 @@ void hasp_new_object(const JsonObject & config, uint8_t & saved_page_id)
     if(!obj) {
         return Log.warning(TAG_HASP, F("Object ID %u is NULL, skipping..."), id);
     }
+
+    // Prevent losing press when the press is slid out of the objects.
+    // (E.g. a Button can be released out of it if it was being pressed)
+    lv_obj_add_protect(obj, LV_PROTECT_PRESS_LOST);
 
     /* id tag the object */
     // lv_obj_set_user_data(obj, id);
