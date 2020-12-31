@@ -5,17 +5,20 @@
 
 #include "ArduinoJson.h"
 #include "ArduinoLog.h"
-// #include "StreamUtils.h" // For EEPromStream
+
+#if HASP_USE_EEPROM > 0
+    #include "StreamUtils.h" // For EEPromStream
+#endif
 
 #include "lvgl.h"
 #include "lv_conf.h"
 #include "hasp_conf.h"
 
 #if HASP_USE_DEBUG > 0
-#include "lv_fs_if.h"
-#include "hasp_debug.h"
-#include "hasp_config.h"
-#include "hasp_gui.h"
+    #include "lv_fs_if.h"
+    #include "hasp_debug.h"
+    #include "hasp_config.h"
+    #include "hasp_gui.h"
 //#include "hasp_filesystem.h" included in hasp_conf.h
 #endif
 
@@ -64,9 +67,9 @@ LV_IMG_DECLARE(img_bubble_pattern)
 void haspLoadPage(const char * pages);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-uint8_t hasp_sleep_state = HASP_SLEEP_OFF; // Used in hasp_drv_touch.cpp
-static uint16_t sleepTimeShort = 60;  // 1 second resolution
-static uint16_t sleepTimeLong = 120; // 1 second resolution
+uint8_t hasp_sleep_state       = HASP_SLEEP_OFF; // Used in hasp_drv_touch.cpp
+static uint16_t sleepTimeShort = 60;             // 1 second resolution
+static uint16_t sleepTimeLong  = 120;            // 1 second resolution
 
 uint8_t haspStartDim   = 100;
 uint8_t haspStartPage  = 0;
@@ -336,9 +339,9 @@ void haspSetup(void)
     //  haspFonts[3] = lv_font_load("E:/font_3.fnt");
 
     /* ********** Theme Initializations ********** */
-    if(haspThemeId == 8) haspThemeId = 1;                    // update old HASP id
-    if(haspThemeId == 9) haspThemeId = 5;                    // update old material id
-    if(haspThemeId <= 0 || haspThemeId > 5) haspThemeId = 1; // check bounds
+    if(haspThemeId == 8) haspThemeId = 1;                   // update old HASP id
+    if(haspThemeId == 9) haspThemeId = 5;                   // update old material id
+    if(haspThemeId < 0 || haspThemeId > 5) haspThemeId = 1; // check bounds
 
     lv_theme_t * th                         = NULL;
     lv_theme_hasp_flag_t hasp_flags         = LV_THEME_HASP_FLAG_LIGHT;
