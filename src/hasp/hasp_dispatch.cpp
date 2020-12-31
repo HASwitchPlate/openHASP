@@ -536,7 +536,7 @@ void dispatch_parse_jsonl(std::istringstream & stream)
         Log.error(TAG_MSGR, F("Jsonl: Invalid Input at object %d"), line);
 
     } else if(err == DeserializationError::NoMemory) {
-        Log.error(TAG_MSGR, F("Jsonl: No Memory at object %d"), line);
+        Log.error(TAG_MSGR, F("Jsonl: Object line %d is too long"), line);
 
     } else if(err == DeserializationError::NotSupported) {
         Log.error(TAG_MSGR, F("Jsonl: Not Supported at object %d"), line);
