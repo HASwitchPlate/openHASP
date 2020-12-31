@@ -271,6 +271,15 @@ _HASP_ATTRIBUTE(SCALE_END_LINE_WIDTH, scale_end_line_width, lv_style_int_t)
 #define ATTR_LINE_COUNT 57860
 #define ATTR_FORMAT 38871
 
+// Arc
+#define ATTR_TYPE 1658
+#define ATTR_ROTATION 44830
+#define ATTR_ADJUSTABLE 19145
+#define ATTR_START_ANGLE 44310
+#define ATTR_END_ANGLE 41103
+#define ATTR_START_ANGLE1 39067
+#define ATTR_END_ANGLE1 33634
+
 // Buttonmatric
 #define ATTR_MAP 45628
 #endif

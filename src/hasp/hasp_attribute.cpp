@@ -214,6 +214,41 @@ static uint8_t lv_roller_get_visible_row_count(lv_obj_t * roller)
 }
 
 // OK - this function is missing in lvgl
+static inline int16_t lv_arc_get_rotation(lv_obj_t * arc)
+{
+    lv_arc_ext_t * ext = (lv_arc_ext_t *)lv_obj_get_ext_attr(arc);
+    return ext->rotation_angle;
+}
+
+// OK - this function is missing in lvgl
+static inline int16_t lv_arc_get_bg_start_angle(lv_obj_t * arc)
+{
+    lv_arc_ext_t * ext = (lv_arc_ext_t *)lv_obj_get_ext_attr(arc);
+    return ext->bg_angle_start;
+}
+
+// OK - this function is missing in lvgl
+static inline int16_t lv_arc_get_bg_end_angle(lv_obj_t * arc)
+{
+    lv_arc_ext_t * ext = (lv_arc_ext_t *)lv_obj_get_ext_attr(arc);
+    return ext->bg_angle_end;
+}
+
+// OK - this function is missing in lvgl
+static inline int16_t lv_arc_get_start_angle(lv_obj_t * arc)
+{
+    lv_arc_ext_t * ext = (lv_arc_ext_t *)lv_obj_get_ext_attr(arc);
+    return ext->arc_angle_start;
+}
+
+// OK - this function is missing in lvgl
+static inline int16_t lv_arc_get_end_angle(lv_obj_t * arc)
+{
+    lv_arc_ext_t * ext = (lv_arc_ext_t *)lv_obj_get_ext_attr(arc);
+    return ext->arc_angle_end;
+}
+
+// OK - this function is missing in lvgl
 static inline int16_t lv_chart_get_min_value(lv_obj_t * chart)
 {
     lv_chart_ext_t * ext = (lv_chart_ext_t *)lv_obj_get_ext_attr(chart);
@@ -279,6 +314,7 @@ static lv_color_t haspPayloadToColor(const char * payload)
             break;
         case 7:
             if(!strcasecmp_P(payload, PSTR("magenta"))) return haspLogColor(LV_COLOR_MAGENTA);
+            break;
 
         default:
             //            if(!strcmp_P(payload, PSTR("darkblue"))) return haspLogColor(LV_COLOR_MAKE(0, 51, 102));
@@ -803,6 +839,43 @@ static void hasp_local_style_attr(lv_obj_t * obj, const char * attr_p, uint16_t 
     Log.warning(TAG_ATTR, F("Unknown property %s"), attr_p);
 }
 
+static void hasp_process_arc_attribute(lv_obj_t * obj, const char * attr_p, uint16_t attr_hash, const char * payload,
+                                       bool update)
+{
+    // We already know it's a gauge object
+    int16_t intval = atoi(payload);
+    uint16_t val   = atoi(payload);
+
+    char * attr = (char *)attr_p;
+    if(*attr == '.') attr++; // strip leading '.'
+
+    switch(attr_hash) {
+        case ATTR_TYPE:
+            return (update) ? lv_arc_set_type(obj, val % 3) : hasp_out_int(obj, attr, lv_arc_get_type(obj));
+
+        case ATTR_ROTATION:
+            return (update) ? lv_arc_set_rotation(obj, val) : hasp_out_int(obj, attr, lv_arc_get_rotation(obj));
+
+        case ATTR_ADJUSTABLE:
+            return (update) ? lv_arc_set_adjustable(obj, val != 0)
+                            : hasp_out_int(obj, attr, lv_arc_get_adjustable(obj));
+
+        case ATTR_START_ANGLE:
+            return (update) ? lv_arc_set_bg_start_angle(obj, val)
+                            : hasp_out_int(obj, attr, lv_arc_get_bg_start_angle(obj));
+
+        case ATTR_END_ANGLE:
+            return (update) ? lv_arc_set_bg_end_angle(obj, val) : hasp_out_int(obj, attr, lv_arc_get_bg_end_angle(obj));
+
+        case ATTR_START_ANGLE1:
+            return (update) ? lv_arc_set_start_angle(obj, val) : hasp_out_int(obj, attr, lv_arc_get_start_angle(obj));
+
+        case ATTR_END_ANGLE1:
+            return (update) ? lv_arc_set_end_angle(obj, val) : hasp_out_int(obj, attr, lv_arc_get_end_angle(obj));
+    }
+
+    Log.warning(TAG_ATTR, F("Unknown property %s"), attr_p);
+}
 static void hasp_process_gauge_attribute(lv_obj_t * obj, const char * attr_p, uint16_t attr_hash, const char * payload,
                                          bool update)
 {
@@ -1302,8 +1375,23 @@ void hasp_process_obj_attribute(lv_obj_t * obj, const char * attr_p, const char 
                 return hasp_process_gauge_attribute(obj, attr_p, attr_hash, payload, update);
             }
 
+        case ATTR_TYPE:
+        case ATTR_ROTATION:
+        case ATTR_ADJUSTABLE:
+        case ATTR_START_ANGLE:
+        case ATTR_END_ANGLE:
+        case ATTR_START_ANGLE1:
+        case ATTR_END_ANGLE1:
+            if(check_obj_type(obj, LV_HASP_ARC)) {
+                return hasp_process_arc_attribute(obj, attr_p, attr_hash, payload, update);
+            }
+
         case ATTR_DELETE:
-            return lv_obj_del_async(obj);
+            if(obj->user_data.id > 0) {
+                return lv_obj_del_async(obj);
+            } else {
+                return Log.error(TAG_ATTR, F("Unable to delete a page"));
+            }
 
         case ATTR_MAP:
             if(check_obj_type(obj, LV_HASP_BTNMATRIX)) {
