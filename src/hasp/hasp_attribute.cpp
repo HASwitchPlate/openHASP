@@ -944,16 +944,16 @@ static void hasp_process_gauge_attribute(lv_obj_t * obj, const char * attr_p, ui
         case ATTR_FORMAT:
             if(update) {
                 switch(val) {
-                    case 10:
+                    case 1:
                         lv_gauge_set_formatter_cb(obj, gauge_format_10);
                         break;
-                    case 100:
+                    case 2:
                         lv_gauge_set_formatter_cb(obj, gauge_format_100);
                         break;
-                    case 1000:
+                    case 3:
                         lv_gauge_set_formatter_cb(obj, gauge_format_1k);
                         break;
-                    case 10000:
+                    case 4:
                         lv_gauge_set_formatter_cb(obj, gauge_format_10k);
                         break;
                     default:
