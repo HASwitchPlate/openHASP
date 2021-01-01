@@ -519,14 +519,15 @@ void dispatch_parse_jsonl(std::istringstream & stream)
     size_t line       = 1;
     DynamicJsonDocument jsonl(4 * 128u); // max ~256 characters per line
     DeserializationError err = deserializeJson(jsonl, stream);
+    stream.setTimeout(25);
 
-    guiStop();
+    // guiStop();
     while(err == DeserializationError::Ok) {
         hasp_new_object(jsonl.as<JsonObject>(), savedPage);
         err = deserializeJson(jsonl, stream);
         line++;
     }
-    guiStart();
+    // guiStart();
 
     /* For debugging pourposes */
     if(err == DeserializationError::EmptyInput) {
@@ -550,6 +551,7 @@ void dispatch_parse_jsonl(const char *, const char * payload)
 {
 #if HASP_USE_CONFIG > 0
     CharStream stream((char *)payload);
+    // stream.setTimeout(10);
     dispatch_parse_jsonl(stream);
 #else
     std::istringstream stream((char *)payload);

@@ -11,6 +11,7 @@
 
 #include "hasp_conf.h"
 #include "hasp.h"
+#include "hasp_object.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -280,6 +281,6 @@ _HASP_ATTRIBUTE(SCALE_END_LINE_WIDTH, scale_end_line_width, lv_style_int_t)
 #define ATTR_START_ANGLE1 39067
 #define ATTR_END_ANGLE1 33634
 
-// Buttonmatric
+// Buttonmatrix
 #define ATTR_MAP 45628
 #endif

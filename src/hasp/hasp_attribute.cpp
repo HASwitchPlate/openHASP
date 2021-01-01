@@ -5,9 +5,7 @@
 #if LVGL_VERSION_MAJOR != 7
     #include "../lv_components.h"
 #endif
-
 #include "ArduinoLog.h"
-//#include "hasp_conf.h"
 
 #include "hasp.h"
 #include "hasp_object.h"
@@ -399,6 +397,26 @@ static lv_font_t * haspPayloadToFont(const char * payload)
     }
 }
 
+static void gauge_format_10(lv_obj_t * gauge, char * buf, int bufsize, int32_t value)
+{
+    snprintf(buf, bufsize, PSTR("%d"), value / 10);
+}
+
+static void gauge_format_100(lv_obj_t * gauge, char * buf, int bufsize, int32_t value)
+{
+    snprintf(buf, bufsize, PSTR("%d"), value / 100);
+}
+
+static void gauge_format_1k(lv_obj_t * gauge, char * buf, int bufsize, int32_t value)
+{
+    snprintf(buf, bufsize, PSTR("%d"), value / 1000);
+}
+
+static void gauge_format_10k(lv_obj_t * gauge, char * buf, int bufsize, int32_t value)
+{
+    snprintf_P(buf, bufsize, PSTR("%d"), value / 10000);
+}
+
 static void hasp_process_label_long_mode(lv_obj_t * obj, const char * payload, bool update)
 {
     if(update) {
@@ -559,6 +577,18 @@ static void hasp_attribute_get_part_state(lv_obj_t * obj, const char * attr_in, 
             part = LV_SLIDER_PART_KNOB;
         } else {
             part = LV_SLIDER_PART_BG;
+        }
+        state = LV_STATE_DEFAULT;
+        return;
+    }
+
+    if(check_obj_type(obj, LV_HASP_ARC)) {
+        if(index == 1) {
+            part = LV_ARC_PART_INDIC;
+        } else if(index == 2) {
+            part = LV_ARC_PART_KNOB;
+        } else {
+            part = LV_ARC_PART_BG;
         }
         state = LV_STATE_DEFAULT;
         return;
@@ -857,8 +887,14 @@ static void hasp_process_arc_attribute(lv_obj_t * obj, const char * attr_p, uint
             return (update) ? lv_arc_set_rotation(obj, val) : hasp_out_int(obj, attr, lv_arc_get_rotation(obj));
 
         case ATTR_ADJUSTABLE:
-            return (update) ? lv_arc_set_adjustable(obj, val != 0)
-                            : hasp_out_int(obj, attr, lv_arc_get_adjustable(obj));
+            if(update) {
+                bool toggle = is_true(payload);
+                lv_arc_set_adjustable(obj, toggle);
+                lv_obj_set_event_cb(obj, toggle ? slider_event_handler : btn_event_handler);
+            } else {
+                hasp_out_int(obj, attr, lv_arc_get_adjustable(obj));
+            }
+            return;
 
         case ATTR_START_ANGLE:
             return (update) ? lv_arc_set_bg_start_angle(obj, val)
@@ -876,6 +912,7 @@ static void hasp_process_arc_attribute(lv_obj_t * obj, const char * attr_p, uint
 
     Log.warning(TAG_ATTR, F("Unknown property %s"), attr_p);
 }
+
 static void hasp_process_gauge_attribute(lv_obj_t * obj, const char * attr_p, uint16_t attr_hash, const char * payload,
                                          bool update)
 {
@@ -903,6 +940,27 @@ static void hasp_process_gauge_attribute(lv_obj_t * obj, const char * attr_p, ui
 
         case ATTR_LABEL_COUNT:
             return (update) ? lv_gauge_set_scale(obj, angle, line_count, val) : hasp_out_int(obj, attr, label_count);
+
+        case ATTR_FORMAT:
+            if(update) {
+                switch(val) {
+                    case 10:
+                        lv_gauge_set_formatter_cb(obj, gauge_format_10);
+                        break;
+                    case 100:
+                        lv_gauge_set_formatter_cb(obj, gauge_format_100);
+                        break;
+                    case 1000:
+                        lv_gauge_set_formatter_cb(obj, gauge_format_1k);
+                        break;
+                    case 10000:
+                        lv_gauge_set_formatter_cb(obj, gauge_format_10k);
+                        break;
+                    default:
+                        lv_gauge_set_formatter_cb(obj, NULL);
+                }
+            }
+            return;
     }
 
     Log.warning(TAG_ATTR, F("Unknown property %s"), attr_p);

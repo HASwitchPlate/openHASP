@@ -12,14 +12,14 @@ enum lv_hasp_obj_type_t {
     LV_HASP_OBJECT    = 91,
     LV_HASP_PAGE      = 92,
 
-    LV_HASP_LABEL    = 12,
+    LV_HASP_LABEL  = 12,
     LV_HASP_DDLIST = 50,
     LV_HASP_ROLLER = 51,
 
     LV_HASP_BUTTON   = 10,
     LV_HASP_CHECKBOX = 11,
-    LV_HASP_SWITCH = 40,
-    LV_HASP_LED    = 41,
+    LV_HASP_SWITCH   = 40,
+    LV_HASP_LED      = 41,
 
     LV_HASP_SLIDER = 30,
     LV_HASP_GAUGE  = 31,
@@ -36,11 +36,11 @@ enum lv_hasp_obj_type_t {
 
     LV_HASP_BTNMATRIX = 1,
     LV_HASP_TABLE     = 2,
-    LV_HASP_CALENDER = 81,
-    LV_HASP_CHART    = 80,
-    LV_HASP_TILEVIEW = 70,
-    LV_HASP_TABVIEW  = 71,
-    LV_HASP_TAB      = 72,
+    LV_HASP_CALENDER  = 81,
+    LV_HASP_CHART     = 80,
+    LV_HASP_TILEVIEW  = 70,
+    LV_HASP_TABVIEW   = 71,
+    LV_HASP_TAB       = 72,
     LV_HASP_WINDOW    = 94,
     LV_HASP_MSGBOX    = 93,
 };
@@ -50,7 +50,7 @@ void hasp_new_object(const JsonObject & config, uint8_t & saved_page_id);
 lv_obj_t * hasp_find_obj_from_parent_id(lv_obj_t * parent, uint8_t objid);
 // lv_obj_t * hasp_find_obj_from_page_id(uint8_t pageid, uint8_t objid);
 bool hasp_find_id_from_obj(lv_obj_t * obj, uint8_t * pageid, uint8_t * objid);
-bool check_obj_type_str(const char * lvobjtype, lv_hasp_obj_type_t haspobjtype);
+//bool check_obj_type_str(const char * lvobjtype, lv_hasp_obj_type_t haspobjtype);
 bool check_obj_type(lv_obj_t * obj, lv_hasp_obj_type_t haspobjtype);
 void hasp_object_tree(lv_obj_t * parent, uint8_t pageid, uint16_t level);
 
@@ -63,6 +63,7 @@ void object_set_group_state(uint8_t groupid, uint8_t eventid, lv_obj_t * src_obj
 
 void IRAM_ATTR btn_event_handler(lv_obj_t * obj, lv_event_t event);
 void IRAM_ATTR toggle_event_handler(lv_obj_t * obj, lv_event_t event);
+void slider_event_handler(lv_obj_t * obj, lv_event_t event);
 void wakeup_event_handler(lv_obj_t * obj, lv_event_t event);
 
 #endif

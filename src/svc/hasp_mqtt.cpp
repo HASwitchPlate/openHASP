@@ -4,44 +4,44 @@
 #include "hasp_conf.h"
 #if HASP_USE_MQTT > 0
 
-#include "PubSubClient.h"
+    #include "PubSubClient.h"
 
-#include "hasp_mqtt.h"
+    #include "hasp_mqtt.h"
 
-#if defined(ARDUINO_ARCH_ESP32)
-#include <WiFi.h>
+    #if defined(ARDUINO_ARCH_ESP32)
+        #include <WiFi.h>
 WiFiClient mqttNetworkClient;
-#elif defined(ARDUINO_ARCH_ESP8266)
-#include <ESP8266WiFi.h>
-#include <EEPROM.h>
-#include <Esp.h>
+    #elif defined(ARDUINO_ARCH_ESP8266)
+        #include <ESP8266WiFi.h>
+        #include <EEPROM.h>
+        #include <Esp.h>
 WiFiClient mqttNetworkClient;
-#else
-#if defined(STM32F4xx) && HASP_USE_WIFI > 0
+    #else
+        #if defined(STM32F4xx) && HASP_USE_WIFI > 0
 // #include <WiFi.h>
 WiFiSpiClient mqttNetworkClient;
-#else
-#if defined(W5500_MOSI) && defined(W5500_MISO) && defined(W5500_SCLK)
-#define W5500_LAN
-#include <Ethernet.h>
-#else
-#include <STM32Ethernet.h>
-#endif
+        #else
+            #if defined(W5500_MOSI) && defined(W5500_MISO) && defined(W5500_SCLK)
+                #define W5500_LAN
+                #include <Ethernet.h>
+            #else
+                #include <STM32Ethernet.h>
+            #endif
 
 EthernetClient mqttNetworkClient;
-#endif
-#endif
+        #endif
+    #endif
 
-#include "hasp_hal.h"
-#include "hasp_debug.h"
-#include "hasp_config.h"
+    #include "hasp_hal.h"
+    #include "hasp_debug.h"
+    #include "hasp_config.h"
 
-#include "../hasp/hasp_dispatch.h"
-#include "../hasp/hasp.h"
+    #include "../hasp/hasp_dispatch.h"
+    #include "../hasp/hasp.h"
 
-#ifdef USE_CONFIG_OVERRIDE
-#include "user_config_override.h"
-#endif
+    #ifdef USE_CONFIG_OVERRIDE
+        #include "user_config_override.h"
+    #endif
 
 /*
 String mqttGetSubtopic;             // MQTT subtopic for incoming commands requesting .val
@@ -65,41 +65,41 @@ char mqttNodeTopic[24];
 char mqttGroupTopic[24];
 bool mqttEnabled;
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
-// These defaults may be overwritten with values saved by the web interface
-#ifdef MQTT_HOST
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    // These defaults may be overwritten with values saved by the web interface
+    #ifdef MQTT_HOST
 char mqttServer[16] = MQTT_HOST;
-#else
+    #else
 char mqttServer[16]    = "";
-#endif
-#ifdef MQTT_PORT
+    #endif
+    #ifdef MQTT_PORT
 uint16_t mqttPort = MQTT_PORT;
-#else
+    #else
 uint16_t mqttPort      = 1883;
-#endif
-#ifdef MQTT_USER
+    #endif
+    #ifdef MQTT_USER
 char mqttUser[23] = MQTT_USER;
-#else
+    #else
 char mqttUser[23]      = "";
-#endif
-#ifdef MQTT_PASSW
+    #endif
+    #ifdef MQTT_PASSW
 char mqttPassword[32] = MQTT_PASSW;
-#else
+    #else
 char mqttPassword[32]  = "";
-#endif
-#ifdef MQTT_NODENAME
+    #endif
+    #ifdef MQTT_NODENAME
 char mqttNodeName[16] = MQTT_NODENAME;
-#else
+    #else
 char mqttNodeName[16]  = "";
-#endif
-#ifdef MQTT_GROUPNAME
+    #endif
+    #ifdef MQTT_GROUPNAME
 char mqttGroupName[16] = MQTT_GROUPNAME;
-#else
+    #else
 char mqttGroupName[16] = "";
-#endif
-#ifndef MQTT_PREFIX
-#define MQTT_PREFIX "hasp"
-#endif
+    #endif
+    #ifndef MQTT_PREFIX
+        #define MQTT_PREFIX "hasp"
+    #endif
 
 PubSubClient mqttClient(mqttNetworkClient);
 
@@ -355,6 +355,8 @@ void mqttStart()
     mqttReconnectCount = 0;
 
     haspReconnect();
+    haspProgressVal(255);
+
     dispatch_output_current_page();
     dispatch_output_statusupdate(NULL, NULL);
 }
@@ -410,7 +412,7 @@ void mqttStop()
     }
 }
 
-#if HASP_USE_CONFIG > 0
+    #if HASP_USE_CONFIG > 0
 bool mqttGetConfig(const JsonObject & settings)
 {
     bool changed = false;
@@ -495,6 +497,6 @@ bool mqttSetConfig(const JsonObject & settings)
 
     return changed;
 }
-#endif // HASP_USE_CONFIG
+    #endif // HASP_USE_CONFIG
 
 #endif // HASP_USE_MQTT

@@ -84,72 +84,72 @@ bool hasp_find_id_from_obj(lv_obj_t * obj, uint8_t * pageid, uint8_t * objid)
  * @return true or false wether the types match
  * @note
  */
-bool check_obj_type_str(const char * lvobjtype, lv_hasp_obj_type_t haspobjtype)
-{
-    lvobjtype += 3; // skip "lv_"
+// bool check_obj_type_str(const char * lvobjtype, lv_hasp_obj_type_t haspobjtype)
+// {
+//     lvobjtype += 3; // skip "lv_"
 
-    switch(haspobjtype) {
-        case LV_HASP_BTNMATRIX:
-            return (strcmp_P(lvobjtype, PSTR("btnmatrix")) == 0);
-        case LV_HASP_TABLE:
-            return (strcmp_P(lvobjtype, PSTR("table")) == 0);
-        case LV_HASP_BUTTON:
-            return (strcmp_P(lvobjtype, PSTR("btn")) == 0);
-        case LV_HASP_LABEL:
-            return (strcmp_P(lvobjtype, PSTR("label")) == 0);
-        case LV_HASP_CHECKBOX:
-            return (strcmp_P(lvobjtype, PSTR("checkbox")) == 0); // || (strcmp_P(lvobjtype, PSTR("lv_cb")) == 0);
-        case LV_HASP_DDLIST:
-            return (strcmp_P(lvobjtype, PSTR("dropdown")) == 0); // || (strcmp_P(lvobjtype, PSTR("lv_ddlist")) == 0);
-        case LV_HASP_CPICKER:
-            return (strcmp_P(lvobjtype, PSTR("cpicker")) == 0);
-        case LV_HASP_PRELOADER:
-            return (strcmp_P(lvobjtype, PSTR("spinner")) == 0); // || (strcmp_P(lvobjtype, PSTR("lv_preload")) == 0);
-        case LV_HASP_SLIDER:
-            return (strcmp_P(lvobjtype, PSTR("slider")) == 0);
-        case LV_HASP_GAUGE:
-            return (strcmp_P(lvobjtype, PSTR("gauge")) == 0);
-        case LV_HASP_ARC:
-            return (strcmp_P(lvobjtype, PSTR("arc")) == 0);
-        case LV_HASP_BAR:
-            return (strcmp_P(lvobjtype, PSTR("bar")) == 0);
-        case LV_HASP_LMETER:
-            return (strcmp_P(lvobjtype, PSTR("linemeter")) == 0); // || (strcmp_P(lvobjtype, PSTR("lv_lmeter")) == 0)
-        case LV_HASP_ROLLER:
-            return (strcmp_P(lvobjtype, PSTR("roller")) == 0);
-        case LV_HASP_SWITCH:
-            return (strcmp_P(lvobjtype, PSTR("switch")) == 0); // || (strcmp_P(lvobjtype, PSTR("lv_sw")) == 0)
-        case LV_HASP_LED:
-            return (strcmp_P(lvobjtype, PSTR("led")) == 0);
-        case LV_HASP_IMAGE:
-            return (strcmp_P(lvobjtype, PSTR("img")) == 0);
-        case LV_HASP_IMGBTN:
-            return (strcmp_P(lvobjtype, PSTR("imgbtn")) == 0);
-        case LV_HASP_CONTAINER:
-            return (strcmp_P(lvobjtype, PSTR("container")) == 0); // || (strcmp_P(lvobjtype, PSTR("lv_cont")) == 0)
-        case LV_HASP_OBJECT:
-            return (strcmp_P(lvobjtype, PSTR("page")) == 0); // || (strcmp_P(lvobjtype, PSTR("lv_cont")) == 0)
-        case LV_HASP_PAGE:
-            return (strcmp_P(lvobjtype, PSTR("obj")) == 0); // || (strcmp_P(lvobjtype, PSTR("lv_cont")) == 0)
-        case LV_HASP_TABVIEW:
-            return (strcmp_P(lvobjtype, PSTR("tabview")) == 0);
-        case LV_HASP_TILEVIEW:
-            return (strcmp_P(lvobjtype, PSTR("tileview")) == 0);
-        case LV_HASP_CHART:
-            return (strcmp_P(lvobjtype, PSTR("chart")) == 0);
-        case LV_HASP_CANVAS:
-            return (strcmp_P(lvobjtype, PSTR("canvas")) == 0);
-        case LV_HASP_CALENDER:
-            return (strcmp_P(lvobjtype, PSTR("calender")) == 0);
-        case LV_HASP_MSGBOX:
-            return (strcmp_P(lvobjtype, PSTR("msgbox")) == 0);
-        case LV_HASP_WINDOW:
-            return (strcmp_P(lvobjtype, PSTR("win")) == 0);
+//     switch(haspobjtype) {
+//         case LV_HASP_BTNMATRIX:
+//             return (strcmp_P(lvobjtype, PSTR("btnmatrix")) == 0);
+//         case LV_HASP_TABLE:
+//             return (strcmp_P(lvobjtype, PSTR("table")) == 0);
+//         case LV_HASP_BUTTON:
+//             return (strcmp_P(lvobjtype, PSTR("btn")) == 0);
+//         case LV_HASP_LABEL:
+//             return (strcmp_P(lvobjtype, PSTR("label")) == 0);
+//         case LV_HASP_CHECKBOX:
+//             return (strcmp_P(lvobjtype, PSTR("checkbox")) == 0); // || (strcmp_P(lvobjtype, PSTR("lv_cb")) == 0);
+//         case LV_HASP_DDLIST:
+//             return (strcmp_P(lvobjtype, PSTR("dropdown")) == 0); // || (strcmp_P(lvobjtype, PSTR("lv_ddlist")) == 0);
+//         case LV_HASP_CPICKER:
+//             return (strcmp_P(lvobjtype, PSTR("cpicker")) == 0);
+//         case LV_HASP_PRELOADER:
+//             return (strcmp_P(lvobjtype, PSTR("spinner")) == 0); // || (strcmp_P(lvobjtype, PSTR("lv_preload")) == 0);
+//         case LV_HASP_SLIDER:
+//             return (strcmp_P(lvobjtype, PSTR("slider")) == 0);
+//         case LV_HASP_GAUGE:
+//             return (strcmp_P(lvobjtype, PSTR("gauge")) == 0);
+//         case LV_HASP_ARC:
+//             return (strcmp_P(lvobjtype, PSTR("arc")) == 0);
+//         case LV_HASP_BAR:
+//             return (strcmp_P(lvobjtype, PSTR("bar")) == 0);
+//         case LV_HASP_LMETER:
+//             return (strcmp_P(lvobjtype, PSTR("linemeter")) == 0); // || (strcmp_P(lvobjtype, PSTR("lv_lmeter")) == 0)
+//         case LV_HASP_ROLLER:
+//             return (strcmp_P(lvobjtype, PSTR("roller")) == 0);
+//         case LV_HASP_SWITCH:
+//             return (strcmp_P(lvobjtype, PSTR("switch")) == 0); // || (strcmp_P(lvobjtype, PSTR("lv_sw")) == 0)
+//         case LV_HASP_LED:
+//             return (strcmp_P(lvobjtype, PSTR("led")) == 0);
+//         case LV_HASP_IMAGE:
+//             return (strcmp_P(lvobjtype, PSTR("img")) == 0);
+//         case LV_HASP_IMGBTN:
+//             return (strcmp_P(lvobjtype, PSTR("imgbtn")) == 0);
+//         case LV_HASP_CONTAINER:
+//             return (strcmp_P(lvobjtype, PSTR("container")) == 0); // || (strcmp_P(lvobjtype, PSTR("lv_cont")) == 0)
+//         case LV_HASP_OBJECT:
+//             return (strcmp_P(lvobjtype, PSTR("page")) == 0); // || (strcmp_P(lvobjtype, PSTR("lv_cont")) == 0)
+//         case LV_HASP_PAGE:
+//             return (strcmp_P(lvobjtype, PSTR("obj")) == 0); // || (strcmp_P(lvobjtype, PSTR("lv_cont")) == 0)
+//         case LV_HASP_TABVIEW:
+//             return (strcmp_P(lvobjtype, PSTR("tabview")) == 0);
+//         case LV_HASP_TILEVIEW:
+//             return (strcmp_P(lvobjtype, PSTR("tileview")) == 0);
+//         case LV_HASP_CHART:
+//             return (strcmp_P(lvobjtype, PSTR("chart")) == 0);
+//         case LV_HASP_CANVAS:
+//             return (strcmp_P(lvobjtype, PSTR("canvas")) == 0);
+//         case LV_HASP_CALENDER:
+//             return (strcmp_P(lvobjtype, PSTR("calender")) == 0);
+//         case LV_HASP_MSGBOX:
+//             return (strcmp_P(lvobjtype, PSTR("msgbox")) == 0);
+//         case LV_HASP_WINDOW:
+//             return (strcmp_P(lvobjtype, PSTR("win")) == 0);
 
-        default:
-            return false;
-    }
-}
+//         default:
+//             return false;
+//     }
+// }
 
 /**
  * Check if an lvgl objecttype name corresponds to a given HASP object ID
@@ -178,7 +178,7 @@ void hasp_object_tree(lv_obj_t * parent, uint8_t pageid, uint16_t level)
     lv_obj_type_t list;
     lv_obj_get_type(parent, &list);
     const char * objtype = list.type[0];
-    Log.verbose(TAG_HASP, F("[%d] p[%d].b[%d] %s"), level, pageid, parent->user_data, objtype);
+    Log.verbose(TAG_HASP, F("[%d] p[%d].b[%d] %s"), level, pageid, parent->user_data.id, objtype);
 
     lv_obj_t * child;
     child = lv_obj_get_child(parent, NULL);
@@ -427,7 +427,7 @@ static void ddlist_event_handler(lv_obj_t * obj, lv_event_t event)
  * @param obj pointer to a slider
  * @param event type of event that occured
  */
-static void slider_event_handler(lv_obj_t * obj, lv_event_t event)
+void slider_event_handler(lv_obj_t * obj, lv_event_t event)
 {
     if(event == LV_EVENT_VALUE_CHANGED) hasp_send_obj_attribute_val(obj, lv_slider_get_value(obj));
 }
