@@ -16,9 +16,6 @@ LV_FONT_DECLARE(unscii_8_icon);
 extern lv_font_t * haspFonts[8];
 
 static inline bool only_digits(const char * s);
-static inline void hasp_out_int(lv_obj_t * obj, const char * attr, uint32_t val);
-static inline void hasp_out_str(lv_obj_t * obj, const char * attr, const char * data);
-static inline void hasp_out_color(lv_obj_t * obj, const char * attr, lv_color_t color);
 
 /* 16-bit hashing function http://www.cse.yorku.ca/~oz/hash.html */
 /* all possible attributes are hashed and checked if they are unique */
@@ -431,12 +428,15 @@ static void hasp_process_label_long_mode(lv_obj_t * obj, const char * payload, b
             mode = LV_LABEL_LONG_SROLL;
         } else if(!strcasecmp_P(payload, PSTR("loop"))) {
             mode = LV_LABEL_LONG_SROLL_CIRC;
+        } else if(!strcasecmp_P(payload, PSTR("crop"))) {
+            mode = LV_LABEL_LONG_CROP;
         } else {
             return Log.warning(TAG_ATTR, F("Invalid long mode"));
         }
         lv_label_set_long_mode(obj, mode);
     } else {
         // Getter needed
+        hasp_out_int(obj, "mode", lv_label_get_long_mode(obj));
     }
 }
 
@@ -872,7 +872,7 @@ static void hasp_local_style_attr(lv_obj_t * obj, const char * attr_p, uint16_t 
 static void hasp_process_arc_attribute(lv_obj_t * obj, const char * attr_p, uint16_t attr_hash, const char * payload,
                                        bool update)
 {
-    // We already know it's a gauge object
+    // We already know it's a arc object
     int16_t intval = atoi(payload);
     uint16_t val   = atoi(payload);
 
@@ -913,6 +913,38 @@ static void hasp_process_arc_attribute(lv_obj_t * obj, const char * attr_p, uint
     Log.warning(TAG_ATTR, F("Unknown property %s"), attr_p);
 }
 
+static void hasp_process_lmeter_attribute(lv_obj_t * obj, const char * attr_p, uint16_t attr_hash, const char * payload,
+                                          bool update)
+{
+    // We already know it's a linemeter object
+    int16_t intval = atoi(payload);
+    uint16_t val   = atoi(payload);
+
+    uint16_t line_count = lv_linemeter_get_line_count(obj);
+    uint16_t angle      = lv_linemeter_get_scale_angle(obj);
+
+    char * attr = (char *)attr_p;
+    if(*attr == '.') attr++; // strip leading '.'
+
+    switch(attr_hash) {
+        case ATTR_TYPE:
+            return (update) ? lv_linemeter_set_mirror(obj, val != 0)
+                            : hasp_out_int(obj, attr, lv_linemeter_get_mirror(obj));
+
+        case ATTR_ROTATION:
+            return (update) ? lv_linemeter_set_angle_offset(obj, val)
+                            : hasp_out_int(obj, attr, lv_linemeter_get_angle_offset(obj));
+
+        case ATTR_LINE_COUNT:
+            return (update) ? lv_linemeter_set_scale(obj, angle, val) : hasp_out_int(obj, attr, line_count);
+
+        case ATTR_ANGLE:
+            return (update) ? lv_linemeter_set_scale(obj, val, line_count) : hasp_out_int(obj, attr, angle);
+    }
+
+    Log.warning(TAG_ATTR, F("Unknown property %s"), attr_p);
+}
+
 static void hasp_process_gauge_attribute(lv_obj_t * obj, const char * attr_p, uint16_t attr_hash, const char * payload,
                                          bool update)
 {
@@ -940,6 +972,10 @@ static void hasp_process_gauge_attribute(lv_obj_t * obj, const char * attr_p, ui
 
         case ATTR_LABEL_COUNT:
             return (update) ? lv_gauge_set_scale(obj, angle, line_count, val) : hasp_out_int(obj, attr, label_count);
+
+        case ATTR_ROTATION:
+            return (update) ? lv_gauge_set_angle_offset(obj, val)
+                            : hasp_out_int(obj, attr, lv_gauge_get_angle_offset(obj));
 
         case ATTR_FORMAT:
             if(update) {
@@ -969,6 +1005,7 @@ static void hasp_process_gauge_attribute(lv_obj_t * obj, const char * attr_p, ui
 static void hasp_process_btnmatrix_attribute(lv_obj_t * obj, const char * attr_p, uint16_t attr_hash,
                                              const char * payload, bool update)
 {
+    // We already know it's a btnmatrix object
     char * attr = (char *)attr_p;
     if(*attr == '.') attr++; // strip leading '.'
 
@@ -1046,7 +1083,6 @@ static void hasp_process_btnmatrix_attribute(lv_obj_t * obj, const char * attr_p
 
 // ##################### Common Attributes ########################################################
 
-// OK
 static void hasp_process_obj_attribute_txt(lv_obj_t * obj, const char * attr, const char * payload, bool update)
 {
     /* Attributes depending on objecttype */
@@ -1179,7 +1215,6 @@ static void hasp_process_obj_attribute_val(lv_obj_t * obj, const char * attr, co
     Log.warning(TAG_ATTR, F("Unknown property %s"), attr);
 }
 
-// OK
 static void hasp_process_obj_attribute_range(lv_obj_t * obj, const char * attr, const char * payload, bool update,
                                              bool set_min, bool set_max)
 {
@@ -1272,7 +1307,7 @@ void hasp_process_obj_attribute(lv_obj_t * obj, const char * attr_p, const char 
         case ATTR_Y:
             return update ? lv_obj_set_y(obj, val) : hasp_out_int(obj, attr, lv_obj_get_y(obj));
 
-        case ATTR_W: {
+        case ATTR_W:
             if(update) {
                 lv_obj_set_width(obj, val);
                 if(check_obj_type(obj, LV_HASP_CPICKER)) {
@@ -1285,9 +1320,8 @@ void hasp_process_obj_attribute(lv_obj_t * obj, const char * attr_p, const char 
                 hasp_out_int(obj, attr, lv_obj_get_width(obj));
             }
             return;
-        }
 
-        case ATTR_H: {
+        case ATTR_H:
             if(update) {
                 lv_obj_set_height(obj, val);
                 if(check_obj_type(obj, LV_HASP_CPICKER)) {
@@ -1300,7 +1334,6 @@ void hasp_process_obj_attribute(lv_obj_t * obj, const char * attr_p, const char 
                 hasp_out_int(obj, attr, lv_obj_get_height(obj));
             }
             return;
-        }
 
         case ATTR_ID:
             return update ? (void)(obj->user_data.id = (uint8_t)val) : hasp_out_int(obj, attr, obj->user_data.id);
@@ -1339,7 +1372,7 @@ void hasp_process_obj_attribute(lv_obj_t * obj, const char * attr_p, const char 
                     }
                 }
             }
-            break;
+            return; // don't try local attributes anymore
 
         case ATTR_ROWS:
             if(check_obj_type(obj, LV_HASP_ROLLER)) {
@@ -1351,14 +1384,14 @@ void hasp_process_obj_attribute(lv_obj_t * obj, const char * attr_p, const char 
                 return update ? lv_table_set_row_cnt(obj, (uint8_t)val)
                               : hasp_out_int(obj, attr, lv_table_get_row_cnt(obj));
             }
-            break;
+            return; // don't try local attributes anymore
 
         case ATTR_COLS:
             if(check_obj_type(obj, LV_HASP_TABLE)) {
                 return update ? lv_table_set_col_cnt(obj, (uint8_t)val)
                               : hasp_out_int(obj, attr, lv_table_get_col_cnt(obj));
             }
-            break;
+            return; // don't try local attributes anymore
 
             // case ATTR_RECT:
             //     if(check_obj_type(obj, LV_HASP_CPICKER)) {
@@ -1381,7 +1414,7 @@ void hasp_process_obj_attribute(lv_obj_t * obj, const char * attr_p, const char 
                 hasp_process_label_long_mode(obj, payload, update);
                 return;
             }
-            break;
+            return; // don't try local attributes anymore
 
         case ATTR_TOGGLE:
             if(check_obj_type(obj, LV_HASP_BUTTON)) {
@@ -1394,7 +1427,7 @@ void hasp_process_obj_attribute(lv_obj_t * obj, const char * attr_p, const char 
                 }
                 return;
             }
-            break; // not a toggle object
+            return; // don't try local attributes anymore
 
         case ATTR_OPACITY:
             return update ? lv_obj_set_style_local_opa_scale(obj, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, val)
@@ -1422,17 +1455,13 @@ void hasp_process_obj_attribute(lv_obj_t * obj, const char * attr_p, const char 
                 }
                 return;
             }
-            break; // not a options object
+            return; // don't try local attributes anymore
 
         case ATTR_CRITICAL_VALUE:
         case ATTR_ANGLE:
         case ATTR_LABEL_COUNT:
         case ATTR_LINE_COUNT:
         case ATTR_FORMAT:
-            if(check_obj_type(obj, LV_HASP_GAUGE)) {
-                return hasp_process_gauge_attribute(obj, attr_p, attr_hash, payload, update);
-            }
-
         case ATTR_TYPE:
         case ATTR_ROTATION:
         case ATTR_ADJUSTABLE:
@@ -1443,6 +1472,13 @@ void hasp_process_obj_attribute(lv_obj_t * obj, const char * attr_p, const char 
             if(check_obj_type(obj, LV_HASP_ARC)) {
                 return hasp_process_arc_attribute(obj, attr_p, attr_hash, payload, update);
             }
+            if(check_obj_type(obj, LV_HASP_GAUGE)) {
+                return hasp_process_gauge_attribute(obj, attr_p, attr_hash, payload, update);
+            }
+            if(check_obj_type(obj, LV_HASP_LMETER)) {
+                return hasp_process_lmeter_attribute(obj, attr_p, attr_hash, payload, update);
+            }
+            return; // don't try local attributes anymore
 
         case ATTR_DELETE:
             if(obj->user_data.id > 0) {
@@ -1455,8 +1491,9 @@ void hasp_process_obj_attribute(lv_obj_t * obj, const char * attr_p, const char 
             if(check_obj_type(obj, LV_HASP_BTNMATRIX)) {
                 return hasp_process_btnmatrix_attribute(obj, attr_p, attr_hash, payload, update);
             }
-            // default:
-            // hasp_local_style_attr(obj, attr, payload, update);
+            return; // don't try local attributes anymore
+                    // default:
+                    // hasp_local_style_attr(obj, attr, payload, update);
     }
 
     hasp_local_style_attr(obj, attr, attr_hash, payload, update);
@@ -1474,21 +1511,4 @@ static inline bool only_digits(const char * s)
         digits++;
     }
     return strlen(s) == digits;
-}
-
-// ##################### Value Senders ########################################################
-
-static inline void hasp_out_int(lv_obj_t * obj, const char * attr, uint32_t val)
-{
-    hasp_send_obj_attribute_int(obj, attr, val);
-}
-
-static inline void hasp_out_str(lv_obj_t * obj, const char * attr, const char * data)
-{
-    hasp_send_obj_attribute_str(obj, attr, data);
-}
-
-static inline void hasp_out_color(lv_obj_t * obj, const char * attr, lv_color_t color)
-{
-    hasp_send_obj_attribute_color(obj, attr, color);
 }

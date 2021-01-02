@@ -26,6 +26,11 @@ void hasp_process_obj_attribute(lv_obj_t * obj, const char * attr_p, const char 
 } /* extern "C" */
 #endif
 
+// use shorter name for readability
+#define hasp_out_int hasp_send_obj_attribute_int
+#define hasp_out_str hasp_send_obj_attribute_str
+#define hasp_out_color hasp_send_obj_attribute_color
+
 #define _HASP_ATTRIBUTE(prop_name, func_name, value_type)                                                              \
     static inline void attribute_##func_name(lv_obj_t * obj, uint8_t part, lv_state_t state, bool update,              \
                                              const char * attr, value_type val)                                        \
