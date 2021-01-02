@@ -565,6 +565,9 @@ void hasp_new_object(const JsonObject & config, uint8_t & saved_page_id)
 
             case LV_HASP_LABEL: {
                 obj = lv_label_create(parent_obj, NULL);
+                if(obj) {
+                    lv_label_set_long_mode(obj, LV_LABEL_LONG_CROP);
+                }
                 /* click area padding */
                 //  uint8_t padh = config[F("padh")].as<uint8_t>();
                 //  uint8_t padv = config[F("padv")].as<uint8_t>();
