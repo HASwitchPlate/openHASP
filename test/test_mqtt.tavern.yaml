@@ -1,0 +1,135 @@
+# test_page.tavern.yaml
+---
+
+test_name: Page command
+
+includes:
+  - !include config.yaml
+
+paho-mqtt:
+  client:
+    transport: tcp
+    client_id: tavern-tester
+  connect:
+    host: "{host}"
+    port: !int "{port:d}"
+    timeout: 3
+
+stages:
+  - name: step 1 - Page test
+    mqtt_publish:
+      topic: hasp/{plate}/command/page
+      payload: "1"
+    mqtt_response:
+      topic: hasp/{plate}/state/page
+      payload: "1"
+      timeout: 5
+    delay_after: 1
+  - name: step 2 - Page test
+    mqtt_publish:
+      topic: hasp/{plate}/command
+      payload: "page 2"
+    mqtt_response:
+      topic: hasp/{plate}/state/page
+      payload: "2"
+      timeout: 5
+    delay_after: 1
+  - name: step 3 - Page test
+    mqtt_publish:
+      topic: hasp/{plate}/command
+      payload: "page=3"
+    mqtt_response:
+      topic: hasp/{plate}/state/page
+      payload: "3"
+      timeout: 5
+    delay_after: 1
+  - name: step 4 - Page test
+    mqtt_publish:
+      topic: hasp/{plate}/command/json
+      payload: "[\"page=0\"]"
+    mqtt_response:
+      topic: hasp/{plate}/state/page
+      payload: "0"
+      timeout: 3
+    delay_after: 1
+  - name: step 5 - Page test
+    mqtt_publish:
+      topic: hasp/{plate}/command/json
+      payload: "[\"page 300\"]"
+    mqtt_response:
+      topic: hasp/{plate}/state/page
+      payload: "0"
+      timeout: 3
+    delay_after: 1
+
+---
+test_name: Reboot Command
+
+includes:
+  - !include config.yaml
+
+paho-mqtt:
+  client:
+    transport: tcp
+    client_id: tavern-tester
+  connect:
+    host: "{host}"
+    port: !int "{port:d}"
+    timeout: 3
+
+stages:
+  - name: Test reboot command
+    mqtt_publish:
+      topic: hasp/{plate}/command/reboot
+      payload: ""
+    mqtt_response:
+      topic: hasp/{plate}/status
+      payload: "OFF"
+      timeout: 20
+    delay_after: 1
+
+---
+test_name: Idle States
+
+includes:
+  - !include config.yaml
+
+paho-mqtt:
+  client:
+    transport: tcp
+    client_id: tavern-tester
+  connect:
+    host: "{host}"
+    port: !int "{port:d}"
+    timeout: 3
+
+stages:
+  - name: Test idle
+    mqtt_publish:
+      topic: hasp/{plate}/command
+      payload: "wakeup"
+    mqtt_response:
+      topic: hasp/{plate}/state/idle
+      payload: "LONG"
+      timeout: 190
+    delay_after: 1
+
+  - name: Test idle
+    mqtt_publish:
+      topic: hasp/{plate}/command
+      payload: "wakeup"
+    mqtt_response:
+      topic: hasp/{plate}/state/idle
+      payload: "SHORT"
+      timeout: 70
+    delay_after: 1
+
+  - name: Test idle
+    mqtt_publish:
+      topic: hasp/{plate}/command
+      payload: "wakeup"
+    mqtt_response:
+      topic: hasp/{plate}/state/idle
+      payload: "OFF"
+      timeout: 3
+    delay_after: 1

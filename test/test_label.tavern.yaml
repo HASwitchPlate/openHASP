@@ -1,0 +1,392 @@
+# test_page.tavern.yaml
+---
+
+test_name: Label Standard Properties
+
+includes:
+  - !include config.yaml
+
+paho-mqtt: &mqtt_spec
+  client:
+    transport: tcp
+    client_id: tavern-tester
+  connect:
+    host: "{host}"
+    port: !int "{port:d}"
+    timeout: 3
+
+stages:
+  - name: Page 1
+    mqtt_publish:
+      topic: hasp/{plate}/command
+      payload: "page 1"
+    mqtt_response:
+      topic: hasp/{plate}/state/page
+      payload: "1"
+      timeout: 5
+    delay_after: 0.1
+
+  - name: Clear page
+    mqtt_publish:
+      topic: hasp/{plate}/command/clearpage
+      payload: ""
+    delay_after: 0.1
+
+  - name: Create object
+    mqtt_publish:
+      topic: hasp/{plate}/command/jsonl
+      json:
+        objid: 12
+        id: 1
+    delay_after: 0.1
+
+  - name: Set x
+    mqtt_publish:
+      topic: hasp/{plate}/command
+      payload: "p[1].b[1].x=50"
+    delay_after: 0.1
+  - name: Get x
+    mqtt_publish:
+      topic: hasp/{plate}/command
+      payload: "p[1].b[1].x"
+    mqtt_response:
+      topic: hasp/{plate}/state/json
+      json:
+        page: 1
+        id: 1
+        x: "50"
+      timeout: 5
+  - name: Set x
+    mqtt_publish:
+      topic: hasp/{plate}/command
+      payload: "p[1].b[1].x=25"
+  - name: Get x
+    mqtt_publish:
+      topic: hasp/{plate}/command
+      payload: "p[1].b[1].x"
+    mqtt_response:
+      topic: hasp/{plate}/state/json
+      json:
+        page: 1
+        id: 1
+        x: "25"
+      timeout: 5
+
+  - name: Set y
+    mqtt_publish:
+      topic: hasp/{plate}/command
+      payload: "p[1].b[1].y=50"
+    delay_after: 0.1
+  - name: Get y
+    mqtt_publish:
+      topic: hasp/{plate}/command
+      payload: "p[1].b[1].y"
+    mqtt_response:
+      topic: hasp/{plate}/state/json
+      json:
+        page: 1
+        id: 1
+        y: "50"
+      timeout: 5
+  - name: Set y
+    mqtt_publish:
+      topic: hasp/{plate}/command
+      payload: "p[1].b[1].y=25"
+    delay_after: 0.1
+  - name: Get y
+    mqtt_publish:
+      topic: hasp/{plate}/command
+      payload: "p[1].b[1].y"
+    mqtt_response:
+      topic: hasp/{plate}/state/json
+      json:
+        page: 1
+        id: 1
+        y: "25"
+      timeout: 5
+
+  - name: Set w
+    mqtt_publish:
+      topic: hasp/{plate}/command
+      payload: "p[1].b[1].w=50"
+    delay_after: 0.1
+  - name: Get w
+    mqtt_publish:
+      topic: hasp/{plate}/command
+      payload: "p[1].b[1].w"
+    mqtt_response:
+      topic: hasp/{plate}/state/json
+      json:
+        page: 1
+        id: 1
+        w: !anything
+      timeout: 5
+  - name: Set w
+    mqtt_publish:
+      topic: hasp/{plate}/command
+      payload: "p[1].b[1].w=25"
+  - name: Get w
+    mqtt_publish:
+      topic: hasp/{plate}/command
+      payload: "p[1].b[1].w"
+    mqtt_response:
+      topic: hasp/{plate}/state/json
+      json:
+        page: 1
+        id: 1
+        w: !anything
+      timeout: 5
+
+  - name: Set h
+    mqtt_publish:
+      topic: hasp/{plate}/command
+      payload: "p[1].b[1].h=50"
+    delay_after: 0.1
+  - name: Get h
+    mqtt_publish:
+      topic: hasp/{plate}/command
+      payload: "p[1].b[1].h"
+    mqtt_response:
+      topic: hasp/{plate}/state/json
+      json:
+        page: 1
+        id: 1
+        h: !anything
+      timeout: 5
+  - name: Set h
+    mqtt_publish:
+      topic: hasp/{plate}/command
+      payload: "p[1].b[1].h=25"
+    delay_after: 0.1
+  - name: Get h
+    mqtt_publish:
+      topic: hasp/{plate}/command
+      payload: "p[1].b[1].h"
+    mqtt_response:
+      topic: hasp/{plate}/state/json
+      json:
+        page: 1
+        id: 1
+        h: !anything
+      timeout: 5
+
+  - name: Set mode
+    mqtt_publish:
+      topic: hasp/{plate}/command
+      payload: "p[1].b[1].mode=crop"
+    delay_after: 0.1
+  - name: Get mode
+    mqtt_publish:
+      topic: hasp/{plate}/command
+      payload: "p[1].b[1].mode"
+
+  - name: Set w
+    mqtt_publish:
+      topic: hasp/{plate}/command
+      payload: "p[1].b[1].w=50"
+    delay_after: 0.1
+  - name: Get w
+    mqtt_publish:
+      topic: hasp/{plate}/command
+      payload: "p[1].b[1].w"
+    mqtt_response:
+      topic: hasp/{plate}/state/json
+      json:
+        page: 1
+        id: 1
+        w: "50"
+      timeout: 5
+  - name: Set w
+    mqtt_publish:
+      topic: hasp/{plate}/command
+      payload: "p[1].b[1].w=25"
+  - name: Get w
+    mqtt_publish:
+      topic: hasp/{plate}/command
+      payload: "p[1].b[1].w"
+    mqtt_response:
+      topic: hasp/{plate}/state/json
+      json:
+        page: 1
+        id: 1
+        w: "25"
+      timeout: 5
+
+  - name: Set h
+    mqtt_publish:
+      topic: hasp/{plate}/command
+      payload: "p[1].b[1].h=50"
+    delay_after: 0.1
+  - name: Get h
+    mqtt_publish:
+      topic: hasp/{plate}/command
+      payload: "p[1].b[1].h"
+    mqtt_response:
+      topic: hasp/{plate}/state/json
+      json:
+        page: 1
+        id: 1
+        h: "50"
+      timeout: 5
+  - name: Set h
+    mqtt_publish:
+      topic: hasp/{plate}/command
+      payload: "p[1].b[1].h=45"
+    delay_after: 0.1
+  - name: Get h
+    mqtt_publish:
+      topic: hasp/{plate}/command
+      payload: "p[1].b[1].h"
+    mqtt_response:
+      topic: hasp/{plate}/state/json
+      json:
+        page: 1
+        id: 1
+        h: "45"
+      timeout: 5
+
+  - name: Set enabled
+    mqtt_publish:
+      topic: hasp/{plate}/command
+      payload: "p[1].b[1].enabled=0"
+    delay_after: 0.1
+  - name: Get enabled
+    mqtt_publish:
+      topic: hasp/{plate}/command
+      payload: "p[1].b[1].enabled"
+    mqtt_response:
+      topic: hasp/{plate}/state/json
+      json:
+        page: 1
+        id: 1
+        enabled: "0"
+      timeout: 5
+  - name: Set enabled
+    mqtt_publish:
+      topic: hasp/{plate}/command
+      payload: "p[1].b[1].enabled=1"
+    delay_after: 0.1
+  - name: Get enabled
+    mqtt_publish:
+      topic: hasp/{plate}/command
+      payload: "p[1].b[1].enabled"
+    mqtt_response:
+      topic: hasp/{plate}/state/json
+      json:
+        page: 1
+        id: 1
+        enabled: "1"
+      timeout: 5
+
+  - name: Set hidden
+    mqtt_publish:
+      topic: hasp/{plate}/command
+      payload: "p[1].b[1].hidden=1"
+    delay_after: 0.1
+  - name: Get hidden
+    mqtt_publish:
+      topic: hasp/{plate}/command
+      payload: "p[1].b[1].hidden"
+    mqtt_response:
+      topic: hasp/{plate}/state/json
+      json:
+        page: 1
+        id: 1
+        hidden: "1"
+      timeout: 5
+  - name: Get vis
+    mqtt_publish:
+      topic: hasp/{plate}/command
+      payload: "p[1].b[1].vis"
+    mqtt_response:
+      topic: hasp/{plate}/state/json
+      json:
+        page: 1
+        id: 1
+        vis: "0"
+      timeout: 5
+
+  - name: Set hidden
+    mqtt_publish:
+      topic: hasp/{plate}/command
+      payload: "p[1].b[1].hidden=0"
+    delay_after: 0.1
+  - name: Get hidden
+    mqtt_publish:
+      topic: hasp/{plate}/command
+      payload: "p[1].b[1].hidden"
+    mqtt_response:
+      topic: hasp/{plate}/state/json
+      json:
+        page: 1
+        id: 1
+        hidden: "0"
+      timeout: 5
+  - name: Get vis
+    mqtt_publish:
+      topic: hasp/{plate}/command
+      payload: "p[1].b[1].vis"
+    mqtt_response:
+      topic: hasp/{plate}/state/json
+      json:
+        page: 1
+        id: 1
+        vis: "1"
+      timeout: 5
+
+  - name: Set vis
+    mqtt_publish:
+      topic: hasp/{plate}/command
+      payload: "p[1].b[1].vis=0"
+    delay_after: 0.1
+  - name: Get hidden
+    mqtt_publish:
+      topic: hasp/{plate}/command
+      payload: "p[1].b[1].hidden"
+    mqtt_response:
+      topic: hasp/{plate}/state/json
+      json:
+        page: 1
+        id: 1
+        hidden: "1"
+      timeout: 5
+  - name: Get vis
+    mqtt_publish:
+      topic: hasp/{plate}/command
+      payload: "p[1].b[1].vis"
+    mqtt_response:
+      topic: hasp/{plate}/state/json
+      json:
+        page: 1
+        id: 1
+        vis: "0"
+      timeout: 5
+
+  - name: Set vis
+    mqtt_publish:
+      topic: hasp/{plate}/command
+      payload: "p[1].b[1].vis=1"
+    delay_after: 0.1
+  - name: Get hidden
+    mqtt_publish:
+      topic: hasp/{plate}/command
+      payload: "p[1].b[1].hidden"
+    mqtt_response:
+      topic: hasp/{plate}/state/json
+      json:
+        page: 1
+        id: 1
+        hidden: "0"
+      timeout: 5
+  - name: Get vis
+    mqtt_publish:
+      topic: hasp/{plate}/command
+      payload: "p[1].b[1].vis"
+    mqtt_response:
+      topic: hasp/{plate}/state/json
+      json:
+        page: 1
+        id: 1
+        vis: "1"
+      timeout: 5
+
