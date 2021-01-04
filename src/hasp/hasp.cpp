@@ -250,9 +250,11 @@ void haspProgressMsg(const char * msg)
 {
     lv_obj_t * bar = hasp_find_obj_from_parent_id(get_page_obj(255), (uint8_t)10);
 
-    char value_str[10];
-    snprintf_P(value_str, sizeof(value_str), PSTR("value_str"));
-    hasp_process_obj_attribute(bar, value_str, msg, true);
+    if(bar) {
+        char value_str[10];
+        snprintf_P(value_str, sizeof(value_str), PSTR("value_str"));
+        hasp_process_obj_attribute(bar, value_str, msg, true);
+    }
 
     lv_task_handler(); /* let the GUI do its work */
 
@@ -343,9 +345,13 @@ void haspSetup(void)
     if(haspThemeId == 9) haspThemeId = 5;                   // update old material id
     if(haspThemeId < 0 || haspThemeId > 5) haspThemeId = 1; // check bounds
 
-    lv_theme_t * th                         = NULL;
-    lv_theme_hasp_flag_t hasp_flags         = LV_THEME_HASP_FLAG_LIGHT;
+    lv_theme_t * th = NULL;
+#if(LV_USE_THEME_HASP == 1)
+    lv_theme_hasp_flag_t hasp_flags = LV_THEME_HASP_FLAG_LIGHT;
+#endif
+#if(LV_USE_THEME_MATERIAL == 1)
     lv_theme_material_flag_t material_flags = LV_THEME_MATERIAL_FLAG_LIGHT;
+#endif
 
     switch(haspThemeId) {
 #if(LV_USE_THEME_EMPTY == 1)
@@ -418,20 +424,9 @@ void haspSetup(void)
         Log.error(TAG_HASP, F("Theme could not be loaded"));
     }
 
-    /* ********** Theme Initializations ********** */
-    // lv_style_list_t * list;
-    // static lv_style_t pagefont;
-    // lv_style_init(&pagefont);
-    // lv_style_set_text_font(&pagefont, LV_STATE_DEFAULT, defaultFont);
-
-    // list = lv_obj_get_style_list(lv_disp_get_layer_top(NULL), LV_OBJ_PART_MAIN);
-    // _lv_style_list_add_style(list, &pagefont);
-
     /* Create all screens using the theme */
     for(int i = 0; i < (sizeof pages / sizeof *pages); i++) {
         pages[i] = lv_obj_create(NULL, NULL);
-        //  list     = lv_obj_get_style_list(pages[i], LV_OBJ_PART_MAIN);
-        // _lv_style_list_add_style(list, &pagefont);
     }
 
 #if HASP_USE_WIFI > 0

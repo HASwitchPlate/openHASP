@@ -11,26 +11,13 @@
 #include "hasp_object.h"
 #include "hasp_dispatch.h"
 #include "hasp_attribute.h"
+#include "hasp_utilities.h"
 
 LV_FONT_DECLARE(unscii_8_icon);
 extern lv_font_t * haspFonts[8];
+extern const char ** btnmatrix_default_map; // memory pointer to lvgl default btnmatrix map
 
 static inline bool only_digits(const char * s);
-
-/* 16-bit hashing function http://www.cse.yorku.ca/~oz/hash.html */
-/* all possible attributes are hashed and checked if they are unique */
-static uint16_t sdbm(const char * str)
-{
-    uint16_t hash = 0;
-    char c;
-
-    // while(c = *str++) hash = c + (hash << 6) + (hash << 16) - hash;
-    while((c = *str++)) {
-        hash = tolower(c) + (hash << 6) - hash;
-    }
-
-    return hash;
-}
 
 #if 0
 static bool attribute_lookup_lv_property(uint16_t hash, uint8_t * prop)
@@ -266,6 +253,67 @@ lv_chart_series_t * lv_chart_get_series(lv_obj_t * chart, uint8_t ser_num)
         ser_num--;
     }
     return ser;
+}
+
+void btnmatrix_clear_map(lv_obj_t * obj)
+{
+    lv_btnmatrix_ext_t * ext = (lv_btnmatrix_ext_t *)lv_obj_get_ext_attr(obj);
+    if(ext->map_p && (ext->btn_cnt > 0)) {
+        const char ** ptr = ext->map_p;
+
+        // The map exists and is not the default lvgl map anymore
+        if(ptr && btnmatrix_default_map && (ptr != btnmatrix_default_map)) {
+            lv_btnmatrix_set_map(obj, btnmatrix_default_map); // reset default btnmap
+            lv_mem_free(ptr);                                 // destroy custom btnmap
+        }
+    }
+}
+
+void line_clear_points(lv_obj_t * obj)
+{
+    lv_line_ext_t * ext = (lv_line_ext_t *)lv_obj_get_ext_attr(obj);
+    if(ext->point_array && (ext->point_num > 0)) {
+        const lv_point_t * ptr = ext->point_array;
+        lv_line_set_points(obj, NULL, 0);
+        lv_mem_free(ptr);
+    }
+}
+
+static void line_set_points(lv_obj_t * obj, const char * payload)
+{
+    line_clear_points(obj); // delete pointmap
+
+    // Create new points
+    // Reserve memory for JsonDocument
+    size_t maxsize = (128u * ((strlen(payload) / 128) + 1)) + 256;
+    DynamicJsonDocument doc(maxsize);
+    DeserializationError jsonError = deserializeJson(doc, payload);
+
+    if(jsonError) { // Couldn't parse incoming JSON payload
+        return Log.warning(TAG_ATTR, F("JSON: Failed to parse incoming line points with error: %s"), jsonError.c_str());
+    }
+
+    JsonArray arr = doc.as<JsonArray>(); // Parse payload
+
+    size_t tot_len         = sizeof(lv_point_t *) * (arr.size());
+    lv_point_t * point_arr = (lv_point_t *)lv_mem_alloc(tot_len);
+    if(point_arr == NULL) {
+        return Log.error(TAG_ATTR, F("Out of memory while creating line points"));
+    }
+    memset(point_arr, 0, tot_len);
+
+    size_t index = 0;
+    for(JsonVariant v : arr) {
+        JsonArray point    = v.as<JsonArray>(); // Parse point
+        point_arr[index].x = point[0].as<int16_t>();
+        point_arr[index].y = point[1].as<int16_t>();
+        Log.verbose(TAG_ATTR, F("    * Adding point %d: %d,%d"), index, point_arr[index].x, point_arr[index].y);
+        index++;
+    }
+
+    lv_line_set_points(obj, point_arr, arr.size());
+
+    // TO DO : free & destroy previous pointlist!
 }
 
 // OK
@@ -822,7 +870,9 @@ static void hasp_local_style_attr(lv_obj_t * obj, const char * attr_p, uint16_t 
                     memccpy(str_p, payload, 0, len);
                     lv_obj_set_style_local_value_str(obj, part, state, str_p);
 
-                    // if(strlen(str) > 0) lv_mem_free(str); // BIG : Memory Leak ! / crashes
+                    if(str != NULL) {
+//lv_mem_free(str); // TODO : BIG Memory Leak ! / crashes
+                    }
                 }
             } else {
                 hasp_out_str(obj, attr, lv_obj_get_style_value_str(obj, part));
@@ -1014,10 +1064,7 @@ static void hasp_process_btnmatrix_attribute(lv_obj_t * obj, const char * attr_p
             const char ** map_p = lv_btnmatrix_get_map_array(obj);
             if(update) {
                 // Free previous map
-                // lv_mem_free(*map_p);
-
-                // if(map_p != lv_btnmatrix_def_map) {
-                // }
+                btnmatrix_clear_map(obj); // delete btnmap
 
                 // Create new map
 

@@ -6,7 +6,7 @@
 
 #include "lvgl.h"
 #if LVGL_VERSION_MAJOR != 7
-#include "../lv_components.h"
+    #include "../lv_components.h"
 #endif
 
 #include "hasp_conf.h"
@@ -19,6 +19,9 @@ extern "C" {
 
 // test
 lv_chart_series_t * lv_chart_get_series(lv_obj_t * chart, uint8_t ser_num);
+
+void btnmatrix_clear_map(lv_obj_t * obj);
+void line_clear_points(lv_obj_t * obj);
 
 void hasp_process_obj_attribute(lv_obj_t * obj, const char * attr_p, const char * payload, bool update);
 

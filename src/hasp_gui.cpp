@@ -281,12 +281,13 @@ void guiSetup()
     size_t guiVDBsize = 4 * 1024u; // 16 KBytes * 2
     guiVdbBuffer1     = (lv_color_t *)heap_caps_malloc(sizeof(lv_color_t) * guiVDBsize, MALLOC_CAP_DMA);
     lv_disp_buf_init(&disp_buf, guiVdbBuffer1, NULL, guiVDBsize);
-        // guiVdbBuffer2 = (lv_color_t *)heap_caps_malloc(sizeof(lv_color_t) * guiVDBsize, MALLOC_CAP_DMA);
+        // guiVdbBuffer2 = (lv_color_t *)heap_caps_malloc(sizeof(lv_color_t) * guiVDBsize,   MALLOC_CAP_DMA);
         // lv_disp_buf_init(&disp_buf, guiVdbBuffer1, guiVdbBuffer2, guiVDBsize);
     #else
     static lv_color_t * guiVdbBuffer1;
     size_t guiVDBsize = 16 * 1024u; // 32 KBytes * 2
-    guiVdbBuffer1     = (lv_color_t *)heap_caps_malloc(sizeof(lv_color_t) * guiVDBsize, MALLOC_CAP_8BIT);
+    guiVdbBuffer1 =
+        (lv_color_t *)heap_caps_malloc(sizeof(lv_color_t) * guiVDBsize, /*MALLOC_CAP_SPIRAM |*/ MALLOC_CAP_8BIT);
     lv_disp_buf_init(&disp_buf, guiVdbBuffer1, NULL, guiVDBsize);
     #endif
 
@@ -365,12 +366,6 @@ void guiSetup()
     disp_drv.buffer   = &disp_buf;
     disp_drv.flush_cb = gui_flush_cb; // static void that uses the appropriate driver
 
-    // #if defined(USE_FSMC)
-    //     disp_drv.flush_cb = fsmc_ili9341_flush;
-    // #else
-    //     disp_drv.flush_cb = tft_espi_flush;
-    // #endif
-
     if(guiRotation == 0 || guiRotation == 2 || guiRotation == 4 || guiRotation == 6) {
         /* 1/3=Landscape or 0/2=Portrait orientation */
         // Normal width & height
@@ -382,7 +377,6 @@ void guiSetup()
         disp_drv.ver_res = TFT_WIDTH;
     }
     lv_disp_drv_register(&disp_drv);
-    guiStart(); // Ticker
 
     /* Initialize Global progress bar*/
     lv_obj_t * bar = lv_bar_create(lv_layer_sys(), NULL);
@@ -391,7 +385,7 @@ void guiSetup()
     lv_bar_set_value(bar, 10, LV_ANIM_OFF);
     lv_obj_set_size(bar, 200, 15);
     lv_obj_align(bar, lv_layer_sys(), LV_ALIGN_CENTER, 0, -10);
-    lv_obj_user_data_t udata = (lv_obj_user_data_t){10, 1, 0};
+    lv_obj_user_data_t udata = (lv_obj_user_data_t){10, 0, 10};
     lv_obj_set_user_data(bar, udata);
     lv_obj_set_style_local_value_color(bar, LV_BAR_PART_BG, LV_STATE_DEFAULT, LV_COLOR_WHITE);
     lv_obj_set_style_local_value_align(bar, LV_BAR_PART_BG, LV_STATE_DEFAULT, LV_ALIGN_CENTER);
@@ -431,6 +425,8 @@ void guiSetup()
 #endif
         lv_indev_set_cursor(mouse_indev, cursor); /*Connect the image  object to the driver*/
     }
+
+    // guiStart(); // Ticker
 }
 
 void IRAM_ATTR guiLoop(void)
