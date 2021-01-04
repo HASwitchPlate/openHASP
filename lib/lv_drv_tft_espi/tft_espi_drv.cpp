@@ -122,9 +122,9 @@ void tft_espi_set_touch(uint16_t * calData)
     tft.setTouch(calData);
 }
 
-bool tft_espi_get_touch(uint16_t * touchX, uint16_t * touchY, uint16_t threshold)
+bool tft_espi_get_touch(int16_t * touchX, int16_t * touchY, uint16_t threshold)
 {
-    return tft.getTouch(touchX, touchY, threshold);
+    return tft.getTouch((uint16_t*)touchX, (uint16_t*)touchY, threshold);
 }
 #endif
 

@@ -28,7 +28,7 @@ extern SoftSPI xpt2046_spi;
 SoftSPI spi = xpt2046_spi;
 #else
 extern SPIClass xpt2046_spi;
-SPIClass spi = xpt2046_spi;
+static SPIClass spi = xpt2046_spi;
 #endif
 
 #define Z_THRESHOLD     400
@@ -77,7 +77,7 @@ bool XPT2046_Touchscreen::touched()
 	return (zraw >= Z_THRESHOLD);
 }
 
-void XPT2046_Touchscreen::readData(uint16_t *x, uint16_t *y, uint8_t *z)
+void XPT2046_Touchscreen::readData(int16_t *x, int16_t *y, int16_t *z)
 {
 	update();
 	*x = xraw;
@@ -111,7 +111,7 @@ void XPT2046_Touchscreen::update()
 {
 	int16_t data[6];
 
-	if (!isrWake) return;
+	//if (!isrWake) return;
 	uint32_t now = millis();
 	if (now - msraw < MSEC_THRESHOLD) return;
 	
@@ -134,7 +134,7 @@ void XPT2046_Touchscreen::update()
 	data[5] = spi.transfer16(0) >> 3;
 	digitalWrite(csPin, HIGH);
 	spi.endTransaction();
-	//Serial.printf("z=%d  ::  z1=%d,  z2=%d  ", z, z1, z2);
+	Serial.printf("z=%d  ::  z1=%d,  z2=%d  ", z, z1, z2);
 	if (z < 0) z = 0;
 	if (z < Z_THRESHOLD) { //	if ( !touched ) {
 		// Serial.println();

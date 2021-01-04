@@ -1,4 +1,5 @@
 #include "hasp_drv_touch.h"
+#include "hasp/hasp.h"
 #include "lvgl.h"
 
 #if TOUCH_DRIVER == 2046
@@ -9,10 +10,14 @@
 
 #elif TOUCH_DRIVER == 2046
     #include "indev/XPT2046.h"
+#elif TOUCH_DRIVER == 0x2046B
+    #include "hasp_drv_xpt2046.h"
 #elif TOUCH_DRIVER == 911
-    #include "hasp_drv_911.h"
+    #include "hasp_drv_gt911.h"
 #elif TOUCH_DRIVER == 0xADC
     #include "hasp_drv_ft6336u.h"
+#elif TOUCH_DRIVER == 5206
+    #include "hasp_drv_ft5206.h"
 #elif TOUCH_DRIVER == 6336
     #include "hasp_drv_ft6336u.h"
 #else
@@ -39,6 +44,9 @@ void drv_touch_init(uint8_t rotation)
 #elif TOUCH_DRIVER == 0xADC // Analog Digital Touch Conroller
     // Touch_init();
 
+#elif TOUCH_DRIVER == 5206
+    FT5206_init();
+
 #elif TOUCH_DRIVER == 6336
     FT6336U_init();
 
@@ -49,16 +57,22 @@ void drv_touch_init(uint8_t rotation)
 #endif
 }
 
-static inline bool drv_touchpad_getXY(uint16_t * touchX, uint16_t * touchY)
+static inline bool drv_touchpad_getXY(int16_t * touchX, int16_t * touchY)
 {
 #if TOUCH_DRIVER == 2046 // XPT2046 Resistive touch panel driver
-    return tft_espi_get_touch(touchX, touchY, 300);
+    return tft_espi_get_touch(touchX, touchY, 300u);
+
+#elif TOUCH_DRIVER == 0x2046B
+    return XPT2046_getXY(touchX, touchY, true);
 
 #elif TOUCH_DRIVER == 911
     return GT911_getXY(touchX, touchY, true);
 
 #elif TOUCH_DRIVER == 0xADC // Analog Digital Touch Conroller
     return Touch_getXY(touchX, touchY, false);
+
+#elif TOUCH_DRIVER == 5206
+    return FT5206_getXY(touchX, touchY, true);
 
 #elif TOUCH_DRIVER == 6336
     return FT6336U_getXY(touchX, touchY, true);
@@ -71,10 +85,10 @@ static inline bool drv_touchpad_getXY(uint16_t * touchX, uint16_t * touchY)
 #endif
 }
 
-bool drv_touch_read(lv_indev_drv_t * indev_driver, lv_indev_data_t * data)
+bool IRAM_ATTR drv_touch_read(lv_indev_drv_t * indev_driver, lv_indev_data_t * data)
 {
-#ifdef TOUCH_CS
-    uint16_t touchX, touchY;
+#if TOUCH_DRIVER > 0
+    int16_t touchX, touchY;
     bool touched = drv_touchpad_getXY(&touchX, &touchY);
     if(touched && hasp_sleep_state != HASP_SLEEP_OFF) hasp_update_sleep_state(); // update Idle
 

@@ -4,7 +4,7 @@
     #include "Goodix.h"
     #include "ArduinoLog.h"
 
-    #include "hasp_drv_911.h"
+    #include "hasp_drv_gt911.h"
 
     #define INT_PIN (TOUCH_IRQ)
     #define RST_PIN (TOUCH_RST) // -1 if pin is connected to VCC else set pin number

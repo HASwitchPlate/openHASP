@@ -11,7 +11,7 @@
 static FT6336U ft6336u(TOUCH_SDA, TOUCH_SCL, TOUCH_RST, TOUCH_IRQ);
 
 // Read touch points
-bool IRAM_ATTR FT6336U_getXY(uint16_t * touchX, uint16_t * touchY, bool debug)
+bool IRAM_ATTR FT6336U_getXY(int16_t * touchX, int16_t * touchY, bool debug)
 {
     FT6336U_TouchPointType tp = ft6336u.scan();
 

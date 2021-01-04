@@ -7,6 +7,7 @@
 #include "hasp_conf.h"
 #include "hasp_hal.h"
 #include "hasp_debug.h"
+#include "hasp_network.h"
 
 #include "../hasp/hasp.h"
 #include "../svc/hasp_mdns.h"
@@ -36,59 +37,60 @@ void networkStop(void)
 
 void networkSetup()
 {
-#if HASP_USE_ETHERNET > 0
+    #if HASP_USE_ETHERNET > 0
     ethernetSetup();
-#endif
+    #endif
 
-#if HASP_USE_WIFI > 0
+    #if HASP_USE_WIFI > 0
     wifiSetup();
-#endif
+    #endif
 }
 
 void IRAM_ATTR networkLoop(void)
 {
-#if HASP_USE_ETHERNET > 0
+    #if HASP_USE_ETHERNET > 0
     ethernetLoop();
-#endif
+    #endif
 
-#if HASP_USE_WIFI > 0
-    // wifiLoop();
-#endif
+    #if HASP_USE_WIFI > 0
+        // wifiLoop();
+    #endif
 }
 
 bool networkEvery5Seconds(void)
 {
-#if HASP_USE_ETHERNET > 0
+    #if HASP_USE_ETHERNET > 0
     return ethernetEvery5Seconds();
-#endif
+    #endif
 
-#if HASP_USE_WIFI > 0
+    #if HASP_USE_WIFI > 0
     return wifiEvery5Seconds();
-#endif
+    #endif
+
     return false;
 }
 
 bool networkEverySecond(void)
 {
-#if HASP_USE_ETHERNET > 0
-    // ethernetEverySecond();
-#endif
+    #if HASP_USE_ETHERNET > 0
+        // return ethernetEverySecond();
+    #endif
 
-#if HASP_USE_WIFI > 0
-    // return wifiEverySecond();
-#endif
+    #if HASP_USE_WIFI > 0
+        // return wifiEverySecond();
+    #endif
     return true;
 }
 
 void network_get_statusupdate(char * buffer, size_t len)
 {
-#if HASP_USE_ETHERNET > 0
+    #if HASP_USE_ETHERNET > 0
     ethernet_get_statusupdate(buffer, len);
-#endif
+    #endif
 
-#if HASP_USE_WIFI > 0
+    #if HASP_USE_WIFI > 0
     wifi_get_statusupdate(buffer, len);
-#endif
+    #endif
 }
 
 #endif
