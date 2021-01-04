@@ -25,6 +25,8 @@
 #include "hasp_dispatch.h"
 #include "hasp_attribute.h"
 
+const char ** btnmatrix_default_map; // memory pointer to lvgl default btnmatrix map
+
 // ##################### Object Finders ########################################################
 
 lv_obj_t * hasp_find_obj_from_parent_id(lv_obj_t * parent, uint8_t objid)
@@ -316,7 +318,7 @@ void IRAM_ATTR btn_event_handler(lv_obj_t * obj, lv_event_t event)
 
         case LV_EVENT_DELETE:
             Log.verbose(TAG_HASP, F("Object deleted Event %d occured"), event);
-            // TODO:free and destroy persistent memory allocated for certain objects
+            hasp_object_delete(obj); // free and destroy persistent memory allocated for certain objects
             last_press_was_short = false;
             return;
         default:
@@ -538,7 +540,12 @@ void hasp_new_object(const JsonObject & config, uint8_t & saved_page_id)
             /* ----- Basic Objects ------ */
             case LV_HASP_BTNMATRIX:
                 obj = lv_btnmatrix_create(parent_obj, NULL);
-                if(obj) lv_obj_set_event_cb(obj, btnmap_event_handler);
+                if(obj) {
+                    lv_obj_set_event_cb(obj, btnmap_event_handler);
+
+                    lv_btnmatrix_ext_t * ext = (lv_btnmatrix_ext_t *)lv_obj_get_ext_attr(obj);
+                    btnmatrix_default_map    = ext->map_p; // store the pointer to the default lvgl btnmap
+                }
                 break;
             case LV_HASP_TABLE:
                 obj = lv_table_create(parent_obj, NULL);
@@ -811,4 +818,19 @@ void hasp_new_object(const JsonObject & config, uint8_t & saved_page_id)
         hasp_process_obj_attribute(obj, keyValue.key().c_str(), v.c_str(), true);
         // Log.verbose(TAG_HASP,F("     * %s => %s"), keyValue.key().c_str(), v.c_str());
     }
+}
+
+void hasp_object_delete(lv_obj_t * obj)
+{
+    switch(obj->user_data.objid) {
+        case LV_HASP_LINE: {
+            line_clear_points(obj);
+            break;
+        }
+        case LV_HASP_BTNMATRIX:
+            btnmatrix_clear_map(obj);
+            break;
+    }
+
+    // TODO: delete value_str data for all parts
 }

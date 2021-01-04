@@ -51,7 +51,6 @@ void dispatch_gpio_event(uint8_t pin, uint8_t group, uint8_t eventid);
 void dispatch_object_event(lv_obj_t * obj, uint8_t eventid);
 bool dispatch_get_event_state(uint8_t eventid);
 
-bool is_true(const char * s);
 void IRAM_ATTR dispatch_send_obj_attribute_str(uint8_t pageid, uint8_t btnid, const char * attribute,
                                                const char * data);
 

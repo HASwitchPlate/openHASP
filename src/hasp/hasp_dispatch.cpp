@@ -7,6 +7,7 @@
 #include "hasp_dispatch.h"
 #include "hasp_object.h"
 #include "hasp.h"
+#include "hasp_utilities.h"
 
 #if HASP_USE_DEBUG > 0
     #include "StringStream.h"
@@ -38,12 +39,6 @@ haspCommand_t commands[16];
 static void dispatch_config(const char * topic, const char * payload);
 static void dispatch_group_state(uint8_t groupid, uint8_t eventid, lv_obj_t * obj);
 static inline void dispatch_state_msg(const __FlashStringHelper * subtopic, const char * payload);
-
-bool is_true(const char * s)
-{
-    return (!strcasecmp_P(s, PSTR("true")) || !strcasecmp_P(s, PSTR("on")) || !strcasecmp_P(s, PSTR("yes")) ||
-            !strcmp_P(s, PSTR("1")));
-}
 
 void dispatch_screenshot(const char *, const char * filename)
 {

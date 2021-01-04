@@ -90,86 +90,58 @@ void setup()
 
     mainLastLoopTime = millis() - 1000; // reset loop counter
     delay(250);
+    guiStart();
 }
 
 void loop()
 {
-    /* Storage Loops */
-    /*
-    #if HASP_USE_EEPROM>0
-        // eepromLoop(); // Not used
-    #endif
-
-    #if HASP_USE_SPIFFS>0
-        // spiffsLoop(); // Not used
-    #endif
-
-    #if HASP_USE_SDCARD>0
-        // sdcardLoop(); // Not used
-    #endif
-
-        // configLoop();  // Not used
-    */
-
-    /* Graphics Loops */
-    // tftLoop();
+    networkLoop();
     guiLoop();
-
-    /* Application Loops */
-    // haspLoop();
-    debugLoop();
-
-#if HASP_USE_GPIO > 0
-    gpioLoop();
-#endif // GPIO
-
-    /* Network Services Loops */
-#if HASP_USE_ETHERNET > 0
-    ethernetLoop();
-#endif // ETHERNET
+    haspLoop();
 
 #if HASP_USE_MQTT > 0
     mqttLoop();
 #endif // MQTT
 
+#if HASP_USE_TASMOTA_SLAVE > 0
+    slaveLoop();
+#endif // TASMOTASLAVE
+
 #if HASP_USE_HTTP > 0
     httpLoop();
 #endif // HTTP
 
-#if HASP_USE_MDNS > 0
-    mdnsLoop();
-#endif // MDNS
+#if HASP_USE_GPIO > 0
+    gpioLoop();
+#endif // GPIO
 
 #if HASP_USE_OTA > 0
     otaLoop();
 #endif // OTA
 
-#if HASP_USE_TELNET > 0
-    telnetLoop();
-#endif // TELNET
+#if HASP_USE_MDNS > 0
+    mdnsLoop();
+#endif // MDNS
 
-#if HASP_USE_TASMOTA_SLAVE > 0
-    slaveLoop();
-#endif // TASMOTASLAVE
+#if HASP_USE_TELNET > 0
+    telnetLoop(); // Console
+#endif            // TELNET
+
+    debugLoop(); // Console
 
     /* Timer Loop */
     if(millis() - mainLastLoopTime >= 1000) {
         /* Runs Every Second */
         haspEverySecond();
         debugEverySecond(); // statusupdate
+
 #if HASP_USE_OTA > 0
         otaEverySecond(); // progressbar
 #endif
 
         /* Runs Every 5 Seconds */
         if(mainLoopCounter == 0 || mainLoopCounter == 5) {
-#if HASP_USE_WIFI > 0
-            isConnected = wifiEvery5Seconds();
-#endif
-
-#if HASP_USE_ETHERNET > 0
-            isConnected = ethernetEvery5Seconds();
-#endif
+            isConnected = networkEvery5Seconds(); // Check connection
 
 #if HASP_USE_HTTP > 0
             // httpEvery5Seconds();
