@@ -27,10 +27,11 @@
 #define COLOR_SCR (IS_LIGHT ? LV_COLOR_WHITE : lv_color_hex(0x545b6a))
 #define COLOR_SCR_GRAD (IS_LIGHT ? LV_COLOR_SILVER : lv_color_hex(0x222b3a))
 #define COLOR_SCR_TEXT (IS_LIGHT ? lv_color_hex(0x3b3e42) : lv_color_hex(0xefefef))
+#define HUE_COLOR lv_color_hex(0x2F8CD8)
 
 /*BUTTON*/
-#define COLOR_BTN (IS_LIGHT ? lv_color_hex(0x81a8cb) : lv_color_hex(0x81a8cb))
-#define COLOR_BTN_GRAD (IS_LIGHT ? lv_color_hex(0x4477a1) : lv_color_hex(0x4477a1))
+#define COLOR_BTN (lv_color_lighten(HUE_COLOR, LV_OPA_30))
+#define COLOR_BTN_GRAD (lv_color_darken(HUE_COLOR, LV_OPA_30))
 #define COLOR_BTN_PR (lv_color_darken(COLOR_BTN_CHK, LV_OPA_20))
 #define COLOR_BTN_PR_GRAD lv_color_darken(COLOR_BTN_GRAD, LV_OPA_20)
 #define COLOR_BTN_CHK lv_color_darken(COLOR_BTN_GRAD, LV_OPA_20)
@@ -39,7 +40,7 @@
 #define COLOR_BTN_CHK_PR_GRAD (lv_color_darken(COLOR_BTN_CHK_GRAD, LV_OPA_30))
 #define COLOR_BTN_DIS (IS_LIGHT ? lv_color_hex3(0xccc) : lv_color_hex3(0x888))
 
-#define COLOR_BTN_BORDER (IS_LIGHT ? lv_color_hex(0xd6dde3) : lv_color_hex(0x808a97))
+#define COLOR_BTN_BORDER (IS_LIGHT ? (lv_color_darken(HUE_COLOR, LV_OPA_50)) : (lv_color_lighten(HUE_COLOR, LV_OPA_40)))
 #define COLOR_BTN_BORDER_PR (IS_LIGHT ? lv_color_hex3(0xccc) : lv_color_hex(0x5f656e))
 #define COLOR_BTN_BORDER_CHK (IS_LIGHT ? lv_color_hex(0x3b3e42) : lv_color_hex(0x5f656e))
 #define COLOR_BTN_BORDER_CHK_PR (IS_LIGHT ? lv_color_hex(0x3b3e42) : lv_color_hex(0x5f656e))
@@ -114,8 +115,8 @@ typedef struct
 #endif
 
 #if LV_USE_BAR
-//    lv_style_t bar_bg;
-//    lv_style_t bar_indic;
+    //    lv_style_t bar_bg;
+    //    lv_style_t bar_indic;
 #endif
 
 #if LV_USE_CALENDAR
@@ -277,7 +278,7 @@ static void basic_init(void)
     lv_style_set_value_font(&styles->pretty_color, LV_STATE_DEFAULT, theme.font_subtitle);
     lv_style_set_value_color(&styles->pretty_color, LV_STATE_DEFAULT, COLOR_SCR_TEXT);
 
-    lv_style_set_border_opa(&styles->pretty_color, LV_STATE_DEFAULT, 3);
+    lv_style_set_border_opa(&styles->pretty_color, LV_STATE_DEFAULT, LV_OPA_50);
     lv_style_set_border_width(&styles->pretty_color, LV_STATE_DEFAULT, BORDER_WIDTH);
     lv_style_set_border_color(&styles->pretty_color, LV_STATE_DEFAULT, BORDER_COLOR);
     lv_style_set_border_color(&styles->pretty_color, LV_STATE_EDITED,
@@ -351,7 +352,7 @@ static void basic_init(void)
     lv_style_set_border_color(&styles->btn, LV_STATE_CHECKED, COLOR_BTN_BORDER_CHK);
     lv_style_set_border_color(&styles->btn, LV_STATE_DISABLED, COLOR_BTN_BORDER_INA);
     lv_style_set_border_width(&styles->btn, LV_STATE_DEFAULT, BORDER_WIDTH);
-    lv_style_set_border_opa(&styles->btn, LV_STATE_DEFAULT, LV_OPA_30);
+    lv_style_set_border_opa(&styles->btn, LV_STATE_DEFAULT, LV_OPA_50);
     // lv_style_set_border_opa(&styles->btn, LV_STATE_CHECKED, LV_OPA_40);
 
     lv_style_set_text_color(&styles->btn, LV_STATE_DEFAULT, COLOR_BG_TEXT);
@@ -446,25 +447,25 @@ static void label_init(void)
 static void bar_init(void)
 {
 #if LV_USE_BAR
-/*    style_init_reset(&styles->bar_bg);
-    lv_style_set_radius(&styles->bar_bg, LV_STATE_DEFAULT, LV_RADIUS_CIRCLE);
-    lv_style_set_bg_opa(&styles->bar_bg, LV_STATE_DEFAULT, LV_OPA_COVER);
-    lv_style_set_bg_color(&styles->bar_bg, LV_STATE_DEFAULT, COLOR_BG_SEC);
-    lv_style_set_value_color(&styles->bar_bg, LV_STATE_DEFAULT, IS_LIGHT ? lv_color_hex(0x31404f) : LV_COLOR_WHITE);
-    lv_style_set_outline_color(&styles->bar_bg, LV_STATE_DEFAULT, theme.color_primary);
-    lv_style_set_outline_color(&styles->bar_bg, LV_STATE_EDITED, theme.color_secondary);
-    lv_style_set_outline_opa(&styles->bar_bg, LV_STATE_DEFAULT, LV_OPA_TRANSP);
-    lv_style_set_outline_width(&styles->bar_bg, LV_STATE_DEFAULT, OUTLINE_WIDTH);
-    lv_style_set_transition_time(&styles->bar_bg, LV_STATE_DEFAULT, TRANSITION_TIME);
-    lv_style_set_transition_prop_6(&styles->bar_bg, LV_STATE_DEFAULT, LV_STYLE_OUTLINE_OPA);
+    /*    style_init_reset(&styles->bar_bg);
+        lv_style_set_radius(&styles->bar_bg, LV_STATE_DEFAULT, LV_RADIUS_CIRCLE);
+        lv_style_set_bg_opa(&styles->bar_bg, LV_STATE_DEFAULT, LV_OPA_COVER);
+        lv_style_set_bg_color(&styles->bar_bg, LV_STATE_DEFAULT, COLOR_BG_SEC);
+        lv_style_set_value_color(&styles->bar_bg, LV_STATE_DEFAULT, IS_LIGHT ? lv_color_hex(0x31404f) : LV_COLOR_WHITE);
+        lv_style_set_outline_color(&styles->bar_bg, LV_STATE_DEFAULT, theme.color_primary);
+        lv_style_set_outline_color(&styles->bar_bg, LV_STATE_EDITED, theme.color_secondary);
+        lv_style_set_outline_opa(&styles->bar_bg, LV_STATE_DEFAULT, LV_OPA_TRANSP);
+        lv_style_set_outline_width(&styles->bar_bg, LV_STATE_DEFAULT, OUTLINE_WIDTH);
+        lv_style_set_transition_time(&styles->bar_bg, LV_STATE_DEFAULT, TRANSITION_TIME);
+        lv_style_set_transition_prop_6(&styles->bar_bg, LV_STATE_DEFAULT, LV_STYLE_OUTLINE_OPA);
 
-    style_init_reset(&styles->bar_indic);
-    lv_style_set_bg_opa(&styles->bar_indic, LV_STATE_DEFAULT, LV_OPA_COVER);
-    lv_style_set_radius(&styles->bar_indic, LV_STATE_DEFAULT, LV_RADIUS_CIRCLE);
-    lv_style_set_bg_color(&styles->bar_indic, LV_STATE_DEFAULT, theme.color_primary);
-    lv_style_set_bg_color(&styles->bar_indic, LV_STATE_DISABLED, lv_color_hex3(0x888));
-    lv_style_set_value_color(&styles->bar_indic, LV_STATE_DEFAULT, IS_LIGHT ? lv_color_hex(0x41404f) :
-   LV_COLOR_WHITE);*/
+        style_init_reset(&styles->bar_indic);
+        lv_style_set_bg_opa(&styles->bar_indic, LV_STATE_DEFAULT, LV_OPA_COVER);
+        lv_style_set_radius(&styles->bar_indic, LV_STATE_DEFAULT, LV_RADIUS_CIRCLE);
+        lv_style_set_bg_color(&styles->bar_indic, LV_STATE_DEFAULT, theme.color_primary);
+        lv_style_set_bg_color(&styles->bar_indic, LV_STATE_DISABLED, lv_color_hex3(0x888));
+        lv_style_set_value_color(&styles->bar_indic, LV_STATE_DEFAULT, IS_LIGHT ? lv_color_hex(0x41404f) :
+       LV_COLOR_WHITE);*/
 #endif
 }
 
@@ -1313,6 +1314,7 @@ static void theme_apply(lv_theme_t * th, lv_obj_t * obj, lv_theme_style_t name)
 
             list = lv_obj_get_style_list(obj, LV_ROLLER_PART_SELECTED);
             _lv_style_list_add_style(list, &styles->pretty_color);
+            //_lv_style_list_add_style(list, &styles->btn);
             _lv_style_list_add_style(list, &styles->selected);
             break;
 #endif
