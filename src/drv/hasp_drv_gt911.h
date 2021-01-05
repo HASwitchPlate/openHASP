@@ -8,7 +8,7 @@
 
     #include "hasp_debug.h" // for TAG_DRVR
 
-bool IRAM_ATTR GT911_getXY(uint16_t * touchX, uint16_t * touchY, bool debug);
+bool IRAM_ATTR GT911_getXY(int16_t * touchX, int16_t * touchY, bool debug);
 void GT911_init();
 void IRAM_ATTR GT911_loop();
 

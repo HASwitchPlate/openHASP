@@ -27,7 +27,7 @@ void IRAM_ATTR GT911_setXY(int8_t contacts, GTPoint * points)
 }
 
 // Read touch points from global variable
-bool IRAM_ATTR GT911_getXY(uint16_t * touchX, uint16_t * touchY, bool debug)
+bool IRAM_ATTR GT911_getXY(int16_t * touchX, int16_t * touchY, bool debug)
 {
     static GTPoint points[5];
     int16_t contacts = touch.readInput((uint8_t *)&points);
