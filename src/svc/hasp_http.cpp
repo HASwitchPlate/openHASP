@@ -1112,8 +1112,10 @@ void webHandleGuiConfig()
 
         httpMessage += F("<p><button type='submit' name='save' value='gui'>Save Settings</button></p></form>");
 
+        #if TOUCH_DRIVER == 2046 && USE_TFT_ESPI > 0
         httpMessage += PSTR("<p><form method='get' action='/config/gui'><button type='submit' name='action' "
                             "value='calibrate'>Calibrate</button></form></p>");
+        #endif
 
         httpMessage +=
             PSTR("<p><form method='get' action='/config'><button type='submit'>Configuration</button></form></p>");
