@@ -197,7 +197,7 @@ void hasp_object_tree(lv_obj_t * parent, uint8_t pageid, uint16_t level)
 #if 1
         uint16_t tabcount = lv_tabview_get_tab_count(parent);
         for(uint16_t i = 0; i < tabcount; i++) {
-            lv_obj_t * tab = lv_tabview_get_tab(child, i);
+            lv_obj_t * tab = lv_tabview_get_tab(parent, i);
             Log.verbose(TAG_HASP, "Found tab %i", i);
             if(tab->user_data.objid) hasp_object_tree(tab, pageid, level + 1);
         }
