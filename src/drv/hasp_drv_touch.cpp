@@ -72,7 +72,7 @@ static inline bool drv_touchpad_getXY(int16_t * touchX, int16_t * touchY)
     return Touch_getXY(touchX, touchY, false);
 
 #elif TOUCH_DRIVER == 5206
-    return FT5206_getXY(touchX, touchY, true);
+    return FT5206_getXY(touchX, touchY, false);
 
 #elif TOUCH_DRIVER == 6336
     return FT6336U_getXY(touchX, touchY, true);
