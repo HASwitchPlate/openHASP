@@ -27,7 +27,8 @@
 #define COLOR_SCR (IS_LIGHT ? LV_COLOR_WHITE : lv_color_hex(0x545b6a))
 #define COLOR_SCR_GRAD (IS_LIGHT ? LV_COLOR_SILVER : lv_color_hex(0x222b3a))
 #define COLOR_SCR_TEXT (IS_LIGHT ? lv_color_hex(0x3b3e42) : lv_color_hex(0xefefef))
-#define HUE_COLOR lv_color_hex(0x2F8CD8)
+//#define HUE_COLOR lv_color_hex(0x2F8CD8)
+#define HUE_COLOR theme.color_primary
 
 /*BUTTON*/
 #define COLOR_BTN (lv_color_lighten(HUE_COLOR, LV_OPA_30))
@@ -603,10 +604,10 @@ static void arc_init(void)
     lv_style_set_line_rounded(&styles->arc_indic, LV_STATE_DEFAULT, true);
 
     style_init_reset(&styles->arc_bg);
-    lv_style_set_line_color(&styles->arc_bg, LV_STATE_DEFAULT, COLOR_BG_SEC);
+    lv_style_set_line_color(&styles->arc_bg, LV_STATE_DEFAULT, lv_color_mix(BORDER_COLOR,COLOR_SCR_GRAD,128));
     lv_style_set_line_width(&styles->arc_bg, LV_STATE_DEFAULT, LV_DPX(25));
     lv_style_set_line_rounded(&styles->arc_bg, LV_STATE_DEFAULT, true);
-    //  lv_style_set_radius(&styles->arc_bg, LV_STATE_DEFAULT,   LV_RADIUS_CIRCLE);
+    lv_style_set_radius(&styles->arc_bg, LV_STATE_DEFAULT,   LV_RADIUS_CIRCLE);
     lv_style_set_border_width(&styles->arc_bg, LV_STATE_DEFAULT, LV_DPX(25));
     /*
         lv_style_set_border_opa(&styles->pretty_color, LV_STATE_DEFAULT, LV_OPA_TRANSP);
@@ -952,7 +953,7 @@ static void tabview_win_shared_init(void)
 #if LV_USE_TABVIEW || LV_USE_WIN
     style_init_reset(&styles->tabview_btns_bg);
     lv_style_set_bg_opa(&styles->tabview_btns_bg, LV_STATE_DEFAULT, LV_OPA_COVER);
-    lv_style_set_bg_color(&styles->tabview_btns_bg, LV_STATE_DEFAULT, COLOR_BG);
+    lv_style_set_bg_color(&styles->tabview_btns_bg, LV_STATE_DEFAULT, COLOR_SCR_GRAD);
     lv_style_set_text_color(&styles->tabview_btns_bg, LV_STATE_DEFAULT, COLOR_SCR_TEXT);
     lv_style_set_image_recolor(&styles->tabview_btns_bg, LV_STATE_DEFAULT, lv_color_hex(0x979a9f));
     lv_style_set_pad_top(&styles->tabview_btns_bg, LV_STATE_DEFAULT, LV_DPX(7));
@@ -1104,9 +1105,10 @@ static void theme_apply(lv_theme_t * th, lv_obj_t * obj, lv_theme_style_t name)
             list = lv_obj_get_style_list(obj, LV_BTNMATRIX_PART_BG);
             _lv_style_list_add_style(list, &styles->pretty);
             _lv_style_list_add_style(list, &styles->pad_inner);
+            _lv_style_list_add_style(list, &styles->pad_small);
 
             list = lv_obj_get_style_list(obj, LV_BTNMATRIX_PART_BTN);
-            _lv_style_list_add_style(list, &styles->pretty_color);
+            _lv_style_list_add_style(list, &styles->btn);
             //_lv_style_list_add_style(list, &styles->bg_click);
             break;
 #endif
@@ -1180,7 +1182,8 @@ static void theme_apply(lv_theme_t * th, lv_obj_t * obj, lv_theme_style_t name)
         case LV_THEME_ARC:
             list = lv_obj_get_style_list(obj, LV_ARC_PART_BG);
             _lv_style_list_add_style(list, &styles->pretty);
-            //_lv_style_list_add_style(list, &styles->arc_bg);
+            //_lv_style_list_add_style(list, &styles->pad_small);
+            _lv_style_list_add_style(list, &styles->arc_bg);
 
             list = lv_obj_get_style_list(obj, LV_ARC_PART_INDIC);
             _lv_style_list_add_style(list, &styles->arc_indic);
