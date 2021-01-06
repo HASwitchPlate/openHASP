@@ -231,9 +231,12 @@ void webHandleRoot()
         httpMessage += httpGetNodename();
         httpMessage += F("</h1><hr>");
 
-        httpMessage += F("<p><form method='get' action='info'><button type='submit'>Information</button></form></p>");
+        httpMessage +=
+            F("<p><form method='get' action='/config/hasp'><button type='submit'>HASP Design</button></form></p>");
+
         httpMessage +=
             F("<p><form method='get' action='screenshot'><button type='submit'>Screenshot</button></form></p>");
+        httpMessage += F("<p><form method='get' action='info'><button type='submit'>Information</button></form></p>");
         httpMessage +=
             F("<p><form method='get' action='config'><button type='submit'>Configuration</button></form></p>");
 
@@ -972,8 +975,9 @@ void webHandleConfig()
         httpMessage +=
             F("<p><form method='get' action='/config/gui'><button type='submit'>Display Settings</button></form></p>");
 
-        httpMessage +=
-            F("<p><form method='get' action='/config/hasp'><button type='submit'>HASP Settings</button></form></p>");
+            // httpMessage +=
+            //     F("<p><form method='get' action='/config/hasp'><button type='submit'>HASP
+            //     Settings</button></form></p>");
 
         #if HASP_USE_GPIO > 0
         httpMessage +=

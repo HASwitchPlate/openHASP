@@ -56,7 +56,8 @@ String mqttCommandTopic;            // MQTT topic for incoming panel commands
 // String mqttGroupTopic((char *)0);
 char mqttNodeTopic[24];
 char mqttGroupTopic[24];
-bool mqttEnabled;
+bool mqttEnabled        = false;
+bool mqttHAautodiscover = false;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     // These defaults may be overwritten with values saved by the web interface
@@ -173,6 +174,11 @@ void IRAM_ATTR mqtt_send_obj_attribute_str(uint8_t pageid, uint8_t btnid, const 
     //           data);
 }
 
+void mqtt_ha_send_config()
+{
+    
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Receive incoming messages
 static void mqtt_message_cb(char * topic, byte * payload, unsigned int length)
@@ -196,6 +202,12 @@ static void mqtt_message_cb(char * topic, byte * payload, unsigned int length)
         // Group topic
         topic += strlen(mqttGroupTopic); // shorten topic
         dispatch_topic_payload(topic, (const char *)payload);
+        return;
+
+    } else if(mqttHAautodiscover && topic == strstr_P(topic, PSTR("homeassistant/status"))) { // HA discovery topic
+        if(!strcasecmp_P((char *)payload, PSTR("online"))) {
+            mqtt_ha_send_config();
+        }
         return;
 
     } else {
@@ -331,6 +343,9 @@ void mqttStart()
     mqttSubscribeTo(PSTR("%slight/#"), mqttNodeTopic);
     mqttSubscribeTo(PSTR("%sbrightness/#"), mqttNodeTopic);
     mqttSubscribeTo(PSTR("%sLWT"), mqttNodeTopic);
+
+    /* Home Assistant auto-configuration */
+    if(mqttHAautodiscover) mqttSubscribeTo(PSTR("homeassistant/status"), mqttClientId);
 
     // Force any subscribed clients to toggle offline/online when we first connect to
     // make sure we get a full panel refresh at power on.  Sending offline,
