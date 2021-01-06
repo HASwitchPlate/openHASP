@@ -12,15 +12,15 @@ void m5stack_init()
     Axp.begin();
 
     Axp.SetCHGCurrent(AXP192::kCHG_100mA);
-    Axp.SetLcdVoltage(3300);
+    Axp.SetLcdVoltage(2800);
 
     Axp.SetBusPowerMode(0);
     Axp.SetCHGCurrent(AXP192::kCHG_190mA);
 
-   // Axp.SetLDOEnable(3, true);
+    Axp.SetLDOEnable(3, true);
     //    CoverScrollText("Motor Test", M5.Lcd.color565(SUCCE_COLOR));
-   // delay(150);
-   // Axp.SetLDOEnable(3, false);
+    delay(150);
+    Axp.SetLDOEnable(3, false);
 
     Axp.SetLed(1);
     //   CoverScrollText("LED Test", M5.Lcd.color565(SUCCE_COLOR));
@@ -34,7 +34,7 @@ void m5stack_init()
     // FastLED.show();
 
     Axp.SetLDOVoltage(3, 3300);
-    // Axp.SetLed(1);
+    Axp.SetLed(1);
 }
 #endif
 

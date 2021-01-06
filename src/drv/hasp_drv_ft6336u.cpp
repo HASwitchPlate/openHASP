@@ -13,21 +13,10 @@ FT6336U * touchpanel;
 // Read touch points
 bool IRAM_ATTR FT6336U_getXY(int16_t * touchX, int16_t * touchY, bool debug)
 {
-    FT6336U_TouchPointType tp = touchpanel->scan();
+    if(touchpanel->read_touch_number() != 1) return false;
 
-    if(tp.touch_count != 1) return false;
-
-    if(debug) {
-        char tempString[128];
-        sprintf(tempString, "FT6336U TD Count %d / TD1 (%d, %4d, %4d) / TD2 (%d, %4d, %4d)\r", tp.touch_count,
-                tp.tp[0].status, tp.tp[0].x, tp.tp[0].y, tp.tp[1].status, tp.tp[1].x, tp.tp[1].y);
-        Serial.print(tempString);
-    }
-
-    int i = 0; // tp.tp[0].status == TouchStatusEnum::touch ? 0 : 1;
-
-    *touchX = TFT_WIDTH - tp.tp[i].y;
-    *touchY = tp.tp[i].x;
+    *touchX = TFT_WIDTH - touchpanel->read_touch1_y();
+    *touchY = touchpanel->read_touch1_y();
     return true;
 }
 
