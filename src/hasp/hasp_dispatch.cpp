@@ -471,10 +471,13 @@ void dispatch_parse_json(const char *, const char * payload)
           strPayload.remove(strPayload.length() - 2, 2);
           strPayload.concat("]");
       }*/
-    size_t maxsize = (128u * ((strlen(payload) / 128) + 1)) + 256;
+    size_t maxsize = (128u * ((strlen(payload) / 128) + 1)) + 512;
     DynamicJsonDocument json(maxsize);
-    DeserializationError jsonError = deserializeJson(json, (char *)payload);
-    // json.shrinkToFit();
+
+    // Note: Deserialization needs to be (const char *) so the objects WILL be copied
+    // this uses more memory but otherwise the mqtt receive buffer can get overwritten by the send buffer !!
+    DeserializationError jsonError = deserializeJson(json, payload);
+    json.shrinkToFit();
 
     if(jsonError) { // Couldn't parse incoming JSON command
         Log.warning(TAG_MSGR, F("Failed to parse incoming JSON command with error: %s"), jsonError.c_str());
