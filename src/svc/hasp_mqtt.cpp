@@ -176,14 +176,14 @@ void IRAM_ATTR mqtt_send_obj_attribute_str(uint8_t pageid, uint8_t btnid, const 
 
 void mqtt_ha_send_config()
 {
-    
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Receive incoming messages
 static void mqtt_message_cb(char * topic, byte * payload, unsigned int length)
 { // Handle incoming commands from MQTT
-    if(length >= mqttClient.getBufferSize()) {
+    if(length+1 >= mqttClient.getBufferSize()) {
         Log.error(TAG_MQTT_RCV, F("Payload too long (%d bytes)"), length);
         return;
     } else {
