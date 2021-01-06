@@ -26,6 +26,8 @@
 #include "hasp_attribute.h"
 
 const char ** btnmatrix_default_map; // memory pointer to lvgl default btnmatrix map
+//static unsigned long last_change_event = 0;
+static bool last_press_was_short = false; // Avoid SHORT + UP double events
 
 // ##################### Object Finders ########################################################
 
@@ -264,8 +266,6 @@ static inline void hasp_send_obj_attribute_txt(lv_obj_t * obj, const char * txt)
 
 // ##################### Event Handlers ########################################################
 
-static bool last_press_was_short = false; // Avoid SHORT + UP double events
-
 /**
  * Called when a button-style object is clicked
  * @param obj pointer to a button object
@@ -425,13 +425,28 @@ static void ddlist_event_handler(lv_obj_t * obj, lv_event_t event)
 }
 
 /**
- * Called when a slider is clicked
+ * Called when a slider or adjustable arc is clicked
  * @param obj pointer to a slider
  * @param event type of event that occured
  */
 void slider_event_handler(lv_obj_t * obj, lv_event_t event)
 {
-    if(event == LV_EVENT_VALUE_CHANGED) hasp_send_obj_attribute_val(obj, lv_slider_get_value(obj));
+    if(event == LV_EVENT_VALUE_CHANGED) {
+/*        bool is_dragged;
+
+        if(obj->user_data.objid == LV_HASP_SLIDER) {
+            is_dragged = lv_slider_is_dragged(obj);
+        } else if(obj->user_data.objid == LV_HASP_ARC) {
+            is_dragged = lv_arc_is_dragged(obj);
+        }
+
+        if(is_dragged && (millis() - last_change_event < LV_INDEV_DEF_LONG_PRESS_TIME)) {
+            return;
+        }
+*/
+        hasp_send_obj_attribute_val(obj, lv_slider_get_value(obj));
+//        last_change_event = millis();
+    }
 }
 
 /**

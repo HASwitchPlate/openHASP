@@ -8,42 +8,49 @@
 #include "lvgl.h"
 
 enum lv_hasp_obj_type_t {
-    LV_HASP_CONTAINER = 90,
-    LV_HASP_OBJECT    = 91,
-    LV_HASP_PAGE      = 92,
-
-    LV_HASP_LABEL  = 12,
-    LV_HASP_DDLIST = 50,
-    LV_HASP_ROLLER = 51,
-
-    LV_HASP_BUTTON   = 10,
-    LV_HASP_CHECKBOX = 11,
-    LV_HASP_SWITCH   = 40,
-    LV_HASP_LED      = 41,
-
-    LV_HASP_SLIDER = 30,
-    LV_HASP_GAUGE  = 31,
-    LV_HASP_BAR    = 32,
-    LV_HASP_LMETER = 33,
-
-    LV_HASP_ARC       = 22,
-    LV_HASP_PRELOADER = 21,
+    /* Controls */
+    LV_HASP_OBJECT    = 91, // 10
+    LV_HASP_BUTTON    = 10, // 12
+    LV_HASP_BTNMATRIX = 13,
+    LV_HASP_IMGBTN    = 14, // placeholder
+    LV_HASP_CHECKBOX  = 11, // 15
+    LV_HASP_SWITCH    = 40, // 16
+    LV_HASP_SLIDER    = 30, // 17
+    LV_HASP_TEXTAREA  = 18, // placeholder
+    LV_HASP_SPINBOX   = 19, // placeholder
     LV_HASP_CPICKER   = 20,
 
-    LV_HASP_IMAGE  = 60,
-    LV_HASP_IMGBTN = 61,
-    LV_HASP_CANVAS = 62,
+    /* Selectors */
+    LV_HASP_DDLIST   = 50,
+    LV_HASP_ROLLER   = 51,
+    LV_HASP_LIST     = 52, // placeholder
+    LV_HASP_TABLE    = 53,
+    LV_HASP_CALENDER = 54,
 
-    LV_HASP_BTNMATRIX = 1,
-    LV_HASP_LINE      = 3,
-    LV_HASP_TABLE     = 2,
-    LV_HASP_CALENDER  = 81,
-    LV_HASP_CHART     = 80,
-    LV_HASP_TILEVIEW  = 70,
-    LV_HASP_TABVIEW   = 71,
-    LV_HASP_TAB       = 72,
-    LV_HASP_WINDOW    = 94,
-    LV_HASP_MSGBOX    = 93,
+    /* Containers */
+    LV_HASP_CONTAINER = 70,
+    LV_HASP_WINDOW    = 71, // placeholder
+    LV_HASP_MSGBOX    = 72, // placeholder
+    LV_HASP_TILEVIEW  = 73, // placeholder
+    LV_HASP_TABVIEW   = 74, // placeholder
+    LV_HASP_TAB       = 75, // placeholder
+    LV_HASP_PAGE      = 79, // Obsolete in v8
+
+    /* Visualizers */
+    LV_HASP_LABEL     = 12, // 30
+    LV_HASP_GAUGE     = 31,
+    LV_HASP_BAR       = 32,
+    LV_HASP_LMETER    = 33,
+    LV_HASP_LED       = 41, // 34
+    LV_HASP_ARC       = 22, // 35
+    LV_HASP_PRELOADER = 21, // 36
+    LV_HASP_CHART     = 37,
+
+    /* Graphics */
+    LV_HASP_LINE   = 60,
+    LV_HASP_IMAGE  = 61, // placeholder
+    LV_HASP_CANVAS = 62, // placeholder
+    LV_HASP_MASK   = 63, // placeholder
 };
 
 void hasp_new_object(const JsonObject & config, uint8_t & saved_page_id);
