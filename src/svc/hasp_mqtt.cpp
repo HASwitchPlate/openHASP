@@ -49,13 +49,6 @@ String mqttGetSubtopicJSON;         // MQTT object buffer for JSON status when r
 String mqttStateTopic;              // MQTT topic for outgoing panel interactions
 String mqttStateJSONTopic;          // MQTT topic for outgoing panel interactions in JSON format
 String mqttCommandTopic;            // MQTT topic for incoming panel commands
-String mqttGroupCommandTopic;       // MQTT topic for incoming group panel commands
-String mqttStatusTopic;             // MQTT topic for publishing device connectivity state
-
-String mqttLightCommandTopic;       // MQTT topic for incoming panel backlight on/off commands
-String mqttLightStateTopic;         // MQTT topic for outgoing panel backlight on/off state
-String mqttLightBrightCommandTopic; // MQTT topic for incoming panel backlight dimmer commands
-String mqttLightBrightStateTopic;   // MQTT topic for outgoing panel backlight dimmer state
 */
 
 // String mqttClientId((char *)0); // Auto-generated MQTT ClientID
@@ -402,8 +395,8 @@ void mqttStop()
         Log.notice(TAG_MQTT, F("Disconnecting from broker..."));
 
         size_t len;
-        snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%sstatus"), mqttNodeTopic);
-        len = snprintf_P(tmp_payload, sizeof(tmp_payload), PSTR("OFF"));
+        snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%sLWT"), mqttNodeTopic);
+        len = snprintf_P(tmp_payload, sizeof(tmp_payload), PSTR("offline"));
         mqttPublish(tmp_topic, tmp_payload, len);
 
         mqttClient.disconnect();
