@@ -212,19 +212,19 @@ static void mqtt_message_cb(char * topic, byte * payload, unsigned int length)
     }
 
     // catch a dangling LWT from a previous connection if it appears
-    if(!strcmp_P(topic, PSTR("status"))) { // endsWith status
-        if(!strcasecmp_P((char *)payload, PSTR("OFF"))) {
+    if(!strcmp_P(topic, PSTR("LWT"))) { // endsWith LWT
+        if(!strcasecmp_P((char *)payload, PSTR("offline"))) {
             {
-                char msg[4];
+                char msg[8];
                 char tmp_topic[strlen(mqttNodeTopic) + 8];
-                snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%sstatus"), mqttNodeTopic);
-                snprintf_P(msg, sizeof(msg), PSTR("ON"));
+                snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%sLWT"), mqttNodeTopic);
+                snprintf_P(msg, sizeof(msg), PSTR("online"));
 
                 /*bool res =*/mqttClient.publish(tmp_topic, msg, true);
             }
 
         } else {
-            // Log.notice(TAG_MQTT, F("ignoring status = ON"));
+            // Log.notice(TAG_MQTT, F("ignoring LWT = online"));
         }
     } else {
         dispatch_topic_payload(topic, (const char *)payload);
@@ -246,7 +246,7 @@ void mqttStart()
 {
     char buffer[64];
     char mqttClientId[64];
-    char lastWillPayload[4];
+    char lastWillPayload[8];
     static uint8_t mqttReconnectCount = 0;
     bool mqttFirstConnect             = true;
 
@@ -263,8 +263,8 @@ void mqttStart()
     }
 
     // Attempt to connect and set LWT and Clean Session
-    snprintf_P(buffer, sizeof(buffer), PSTR("%sstatus"), mqttNodeTopic); // lastWillTopic
-    snprintf_P(lastWillPayload, sizeof(lastWillPayload), PSTR("OFF"));   // lastWillPayload
+    snprintf_P(buffer, sizeof(buffer), PSTR("%sLWT"), mqttNodeTopic);      // lastWillTopic
+    snprintf_P(lastWillPayload, sizeof(lastWillPayload), PSTR("offline")); // lastWillPayload
 
     haspProgressMsg(F("Connecting MQTT..."));
     haspProgressVal(mqttReconnectCount * 5);
@@ -337,18 +337,17 @@ void mqttStart()
     mqttSubscribeTo(PSTR("%sconfig/#"), mqttNodeTopic);
     mqttSubscribeTo(PSTR("%slight/#"), mqttNodeTopic);
     mqttSubscribeTo(PSTR("%sbrightness/#"), mqttNodeTopic);
-    mqttSubscribeTo(PSTR("%sstatus"), mqttNodeTopic);
+    mqttSubscribeTo(PSTR("%sLWT"), mqttNodeTopic);
 
-    // Force any subscribed clients to toggle OFF/ON when we first connect to
-    // make sure we get a full panel refresh at power on.  Sending OFF,
-    // "ON" will be sent by the mqttStatusTopic subscription action.
-    snprintf_P(buffer, sizeof(buffer), PSTR("%sstatus"), mqttNodeTopic);
+    // Force any subscribed clients to toggle offline/online when we first connect to
+    // make sure we get a full panel refresh at power on.  Sending offline,
+    // "online" will be sent by the mqttStatusTopic subscription action.
+    snprintf_P(buffer, sizeof(buffer), PSTR("%sLWT"), mqttNodeTopic);
     {
-        char msg[8];
-        snprintf_P(msg, sizeof(msg), mqttFirstConnect ? PSTR("OFF") : PSTR("ON"));
+        snprintf_P(lastWillPayload, sizeof(lastWillPayload), mqttFirstConnect ? PSTR("offline") : PSTR("online"));
 
-        mqttClient.publish(buffer, msg, true);
-        Log.notice(TAG_MQTT, F("binary_sensor state: [%sstatus] : %s"), mqttNodeTopic, msg);
+        mqttClient.publish(buffer, lastWillPayload, true);
+        Log.notice(TAG_MQTT, F("%s = %s"), buffer, lastWillPayload);
     }
 
     mqttFirstConnect   = false;
