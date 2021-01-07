@@ -129,26 +129,20 @@ bool IRAM_ATTR mqttIsConnected()
     return mqttEnabled && mqttClient.connected();
 }
 
-void IRAM_ATTR mqtt_send_state(const __FlashStringHelper * subtopic, const char * payload)
+void IRAM_ATTR mqtt_send_state_str(char * subtopic, char * payload)
 {
-    // page = 0
-    // p[0].b[0].attr = abc
-    // dim = 100
-    // idle = 0/1
-    // light = 0/1
-    // brightness = 100
-
-    // if(mqttIsConnected()) {
     char tmp_topic[strlen(mqttNodeTopic) + 20];
     snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%sstate/%s"), mqttNodeTopic, subtopic);
     bool res = mqttPublish(tmp_topic, payload);
     mqttResult(res, tmp_topic, payload);
-    // } else {
-    //     return mqtt_log_no_connection();
-    // }
+}
 
-    // Log after char buffers are cleared
-    // Log.notice(TAG_MQTT_PUB, F("%sstate/%S = %s"), mqttNodeTopic, subtopic, payload);
+void IRAM_ATTR mqtt_send_state(const __FlashStringHelper * subtopic, const char * payload)
+{
+    char tmp_topic[strlen(mqttNodeTopic) + 20];
+    snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%sstate/%s"), mqttNodeTopic, subtopic);
+    bool res = mqttPublish(tmp_topic, payload);
+    mqttResult(res, tmp_topic, payload);
 }
 
 void IRAM_ATTR mqtt_send_obj_attribute_str(uint8_t pageid, uint8_t btnid, const char * attribute, const char * data)
@@ -157,9 +151,11 @@ void IRAM_ATTR mqtt_send_obj_attribute_str(uint8_t pageid, uint8_t btnid, const 
     char tmp_topic[strlen(mqttNodeTopic) + 12];
     char payload[25 + strlen(data) + strlen(attribute)];
 
-    snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%sstate/json"), mqttNodeTopic);
-    unsigned int len =
-        snprintf_P(payload, sizeof(payload), PSTR("{\"p[%u].b[%u].%s\":\"%s\"}"), pageid, btnid, attribute, data);
+    // snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%sstate/json"), mqttNodeTopic);
+    // unsigned int len =
+    //     snprintf_P(payload, sizeof(payload), PSTR("{\"p[%u].b[%u].%s\":\"%s\"}"), pageid, btnid, attribute, data);
+    snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%sstate/p%ub%u"), mqttNodeTopic, pageid, btnid);
+    unsigned int len = snprintf_P(payload, sizeof(payload), PSTR("{\"%s\":\"%s\"}"), attribute, data);
 
     bool res = mqttPublish(tmp_topic, payload, len); //, false);
     mqttResult(res, tmp_topic, payload);
@@ -175,15 +171,13 @@ void IRAM_ATTR mqtt_send_obj_attribute_str(uint8_t pageid, uint8_t btnid, const 
 }
 
 void mqtt_ha_send_config()
-{
-
-}
+{}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Receive incoming messages
 static void mqtt_message_cb(char * topic, byte * payload, unsigned int length)
 { // Handle incoming commands from MQTT
-    if(length+1 >= mqttClient.getBufferSize()) {
+    if(length + 1 >= mqttClient.getBufferSize()) {
         Log.error(TAG_MQTT_RCV, F("Payload too long (%d bytes)"), length);
         return;
     } else {

@@ -245,9 +245,13 @@ void dispatch_output_idle_state(uint8_t state)
 
 void IRAM_ATTR dispatch_send_obj_attribute_str(uint8_t pageid, uint8_t btnid, const char * attribute, const char * data)
 {
-    char payload[44 + strlen(data) + strlen(attribute)];
-    snprintf_P(payload, sizeof(payload), PSTR("{\"page\":%u,\"id\":%u,\"%s\":\"%s\"}"), pageid, btnid, attribute, data);
-    dispatch_state_msg(F("json"), payload);
+    char topic[12];
+    char payload[32 + strlen(data) + strlen(attribute)];
+    // snprintf_P(payload, sizeof(payload), PSTR("{\"page\":%u,\"id\":%u,\"%s\":\"%s\"}"), pageid, btnid, attribute,
+    // data); dispatch_state_msg(F("json"), payload);
+    snprintf_P(topic, sizeof(payload), PSTR("p%ub%u"), pageid, btnid);
+    snprintf_P(payload, sizeof(payload), PSTR("{\"%s\":\"%s\"}"), attribute, data);
+    mqtt_send_state_str(topic, payload);
 }
 
 #if HASP_USE_CONFIG > 0

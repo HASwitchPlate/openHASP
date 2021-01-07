@@ -12,6 +12,7 @@ void mqttEvery5Seconds(bool wifiIsConnected);
 void mqttStart();
 void mqttStop();
 
+void IRAM_ATTR mqtt_send_state_str(char * subtopic, char * payload);
 void IRAM_ATTR mqtt_send_state(const __FlashStringHelper * subtopic, const char * payload);
 void IRAM_ATTR mqtt_send_obj_attribute_str(uint8_t pageid, uint8_t btnid, const char * attribute, const char * data);
 
