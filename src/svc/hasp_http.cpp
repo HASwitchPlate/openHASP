@@ -158,7 +158,7 @@ String getOption(String value, String label, bool selected)
 void webSendFooter()
 {
     char buffer[16];
-    snprintf_P(buffer, sizeof(buffer), PSTR("%u.%u.%u"), HASP_VERSION_MAJOR, HASP_VERSION_MINOR, HASP_VERSION_REVISION);
+    haspGetVersion(buffer, sizeof(buffer));
 
     #if defined(STM32F4xx)
     webServer.sendContent(HTTP_END);
@@ -175,8 +175,7 @@ void webSendPage(char * nodename, uint32_t httpdatalength, bool gohome = false)
 {
     {
         char buffer[64];
-        snprintf_P(buffer, sizeof(buffer), PSTR("%u.%u.%u"), HASP_VERSION_MAJOR, HASP_VERSION_MINOR,
-                   HASP_VERSION_REVISION);
+        haspGetVersion(buffer, sizeof(buffer));
 
         /* Calculate Content Length upfront */
         uint16_t contentLength = strlen(buffer); // verion length
@@ -220,10 +219,50 @@ void webSendPage(char * nodename, uint32_t httpdatalength, bool gohome = false)
     #endif
 }
 
+void saveConfig()
+{
+    if(webServer.method() == HTTP_POST) {
+        if(webServer.hasArg(PSTR("save"))) {
+            String save = webServer.arg(PSTR("save"));
+
+            DynamicJsonDocument settings(256);
+            for(int i = 0; i < webServer.args(); i++) settings[webServer.argName(i)] = webServer.arg(i);
+
+            if(save == String(PSTR("hasp"))) {
+                haspSetConfig(settings.as<JsonObject>());
+
+    #if HASP_USE_MQTT > 0
+            } else if(save == String(PSTR("mqtt"))) {
+                mqttSetConfig(settings.as<JsonObject>());
+    #endif
+
+            } else if(save == String(PSTR("gui"))) {
+                settings[FPSTR(F_GUI_POINTER)] = webServer.hasArg(PSTR("pointer"));
+                guiSetConfig(settings.as<JsonObject>());
+
+            } else if(save == String(PSTR("debug"))) {
+                debugSetConfig(settings.as<JsonObject>());
+
+            } else if(save == String(PSTR("http"))) {
+                httpSetConfig(settings.as<JsonObject>());
+
+                // Password might have changed
+                if(!httpIsAuthenticated(F("config"))) return;
+
+    #if HASP_USE_WIFI > 0
+            } else if(save == String(PSTR("wifi"))) {
+                wifiSetConfig(settings.as<JsonObject>());
+    #endif
+            }
+        }
+    }
+}
+
 void webHandleRoot()
 {
     if(!httpIsAuthenticated(F("root"))) return;
 
+    saveConfig();
     {
         String httpMessage((char *)0);
         httpMessage.reserve(HTTP_PAGE_SIZE);
@@ -909,41 +948,7 @@ void webHandleConfig()
 { // http://plate01/config
     if(!httpIsAuthenticated(F("config"))) return;
 
-    if(webServer.method() == HTTP_POST) {
-        if(webServer.hasArg(PSTR("save"))) {
-            String save = webServer.arg(PSTR("save"));
-
-            DynamicJsonDocument settings(256);
-            for(int i = 0; i < webServer.args(); i++) settings[webServer.argName(i)] = webServer.arg(i);
-
-            if(save == String(PSTR("hasp"))) {
-                haspSetConfig(settings.as<JsonObject>());
-
-        #if HASP_USE_MQTT > 0
-            } else if(save == String(PSTR("mqtt"))) {
-                mqttSetConfig(settings.as<JsonObject>());
-        #endif
-
-            } else if(save == String(PSTR("gui"))) {
-                settings[FPSTR(F_GUI_POINTER)] = webServer.hasArg(PSTR("pointer"));
-                guiSetConfig(settings.as<JsonObject>());
-
-            } else if(save == String(PSTR("debug"))) {
-                debugSetConfig(settings.as<JsonObject>());
-
-            } else if(save == String(PSTR("http"))) {
-                httpSetConfig(settings.as<JsonObject>());
-
-                // Password might have changed
-                if(!httpIsAuthenticated(F("config"))) return;
-
-        #if HASP_USE_WIFI > 0
-            } else if(save == String(PSTR("wifi"))) {
-                wifiSetConfig(settings.as<JsonObject>());
-        #endif
-            }
-        }
-    }
+    saveConfig();
 
         // Reboot after saving wifi config in AP mode
         #if HASP_USE_WIFI > 0 && !defined(STM32F4xx)
@@ -991,7 +996,6 @@ void webHandleConfig()
                          "</button></form>");
 
         httpMessage += FPSTR(MAIN_MENU_BUTTON);
-        ;
 
         webSendPage(httpGetNodename(), httpMessage.length(), false);
         webServer.sendContent(httpMessage);
@@ -1500,7 +1504,8 @@ void webHandleHaspConfig()
                          "name='filename' accept='.jsonl,.zi'>");
         httpMessage += F("<button type='submit'>Upload File</button></form></p><hr>");
 
-        httpMessage += F("<form method='POST' action='/config'>");
+        //httpMessage += F("<form method='POST' action='/config'>");
+        httpMessage += F("<form method='POST' action='/'>");
         httpMessage += F("<p><b>UI Theme</b> <i><small>(required)</small></i><select id='theme' name='theme'>");
 
         uint8_t themeid = settings[FPSTR(F_CONFIG_THEME)].as<uint8_t>();
@@ -1570,8 +1575,9 @@ void webHandleHaspConfig()
 
         httpMessage += F("<p><button type='submit' name='save' value='hasp'>Save Settings</button></form></p>");
 
-        httpMessage +=
-            F("<p><form method='get' action='/config'><button type='submit'>Configuration</button></form></p>");
+        // httpMessage +=
+        //     F("<p><form method='get' action='/config'><button type='submit'>Configuration</button></form></p>");
+        httpMessage += FPSTR(MAIN_MENU_BUTTON);
 
         webSendPage(httpGetNodename(), httpMessage.length(), false);
         webServer.sendContent(httpMessage);
