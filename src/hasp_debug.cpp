@@ -89,7 +89,7 @@ uint16_t debugSerialBaud = SERIAL_SPEED / 10; // Multiplied by 10
 bool debugSerialStarted  = false;
 bool debugAnsiCodes      = true;
 
-ConsoleInput debugConsole(&Serial, 220);
+ConsoleInput debugConsole(&Serial, HASP_CONSOLE_BUFFER);
 
 //#define TERM_COLOR_Black "\u001b[30m"
 #define TERM_COLOR_GRAY "\e[37m"

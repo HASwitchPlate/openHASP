@@ -244,7 +244,7 @@ void telnetSetup()
             telnetServer->setNoDelay(true);
             telnetServer->begin();
 
-            telnetConsole = new ConsoleInput(&telnetClient, 220);
+            telnetConsole = new ConsoleInput(&telnetClient, HASP_CONSOLE_BUFFER);
             if(telnetConsole != NULL) {
                 telnetConsole->setLineCallback(telnetProcessLine);
                 Log.trace(TAG_TELN, F("Remote console started"));
