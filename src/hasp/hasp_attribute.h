@@ -335,3 +335,4 @@ _HASP_ATTRIBUTE(SCALE_END_LINE_WIDTH, scale_end_line_width, lv_style_int_t)
 #define ATTR_VIOLET 61695
 #define ATTR_YELLOW 10484
 #define ATTR_FUCHSIA 5463
+#define ATTR_MAGENTA 49385

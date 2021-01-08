@@ -360,93 +360,92 @@ static lv_color_t haspPayloadToColor(const char * payload)
     /* Named Color Scheme*/
     switch(sdbm(payload)) {
         case ATTR_RED:
-            return lv_color_hex(0xFF0000);
+            return lv_color_make(0xFF, 0x00, 0x00);
         case ATTR_TAN:
-            return lv_color_hex(0xD2B48C);
-        case ATTR_AQUA:
-            return lv_color_hex(0x00FFFF);
+            return lv_color_make(0xD2, 0xB4, 0x8C);
         case ATTR_BLUE:
-            return lv_color_hex(0x0000FF);
+            return lv_color_make(0x00, 0x00, 0xFF);
+        case ATTR_AQUA:
         case ATTR_CYAN:
-            return lv_color_hex(0x00FFFF);
+            return lv_color_make(0x00, 0xFF, 0xFF);
         case ATTR_GOLD:
-            return lv_color_hex(0xFFD700);
+            return lv_color_make(0xFF, 0xD7, 0x00);
         case ATTR_GRAY:
-            return lv_color_hex(0x808080);
         case ATTR_GREY:
-            return lv_color_hex(0x808080);
+            return lv_color_make(0x80, 0x80, 0x80);
         case ATTR_LIME:
-            return lv_color_hex(0x00FF00);
+            return lv_color_make(0x00, 0xFF, 0x00);
         case ATTR_NAVY:
-            return lv_color_hex(0x000080);
+            return lv_color_make(0x00, 0x00, 0x80);
         case ATTR_PERU:
-            return lv_color_hex(0xCD853F);
+            return lv_color_make(0xCD, 0x85, 0x3F);
         case ATTR_PINK:
-            return lv_color_hex(0xFFC0CB);
+            return lv_color_make(0xFF, 0xC0, 0xCB);
         case ATTR_PLUM:
-            return lv_color_hex(0xDDA0DD);
+            return lv_color_make(0xDD, 0xA0, 0xDD);
         case ATTR_SNOW:
-            return lv_color_hex(0xFFFAFA);
+            return lv_color_make(0xFF, 0xFA, 0xFA);
         case ATTR_TEAL:
-            return lv_color_hex(0x008080);
+            return lv_color_make(0x00, 0x80, 0x80);
         case ATTR_AZURE:
-            return lv_color_hex(0xF0FFFF);
+            return lv_color_make(0xF0, 0xFF, 0xFF);
         case ATTR_BEIGE:
-            return lv_color_hex(0xF5F5DC);
+            return lv_color_make(0xF5, 0xF5, 0xDC);
         case ATTR_BLACK:
-            return lv_color_hex(0x000000);
+            return lv_color_make(0x00, 0x00, 0x00);
         case ATTR_BLUSH:
-            return lv_color_hex(0xB00000);
+            return lv_color_make(0xB0, 0x00, 0x00);
         case ATTR_BROWN:
-            return lv_color_hex(0xA52A2A);
+            return lv_color_make(0xA5, 0x2A, 0x2A);
         case ATTR_CORAL:
-            return lv_color_hex(0xFF7F50);
+            return lv_color_make(0xFF, 0x7F, 0x50);
         case ATTR_GREEN:
-            return lv_color_hex(0x008000);
+            return lv_color_make(0x00, 0x80, 0x00);
         case ATTR_IVORY:
-            return lv_color_hex(0xFFFFF0);
+            return lv_color_make(0xFF, 0xFF, 0xF0);
         case ATTR_KHAKI:
-            return lv_color_hex(0xF0E68C);
+            return lv_color_make(0xF0, 0xE6, 0x8C);
         case ATTR_LINEN:
-            return lv_color_hex(0xFAF0E6);
+            return lv_color_make(0xFA, 0xF0, 0xE6);
         case ATTR_OLIVE:
-            return lv_color_hex(0x808000);
+            return lv_color_make(0x80, 0x80, 0x00);
         case ATTR_WHEAT:
-            return lv_color_hex(0xF5DEB3);
+            return lv_color_make(0xF5, 0xDE, 0xB3);
         case ATTR_WHITE:
-            return lv_color_hex(0xFFFFFF);
+            return lv_color_make(0xFF, 0xFF, 0xFF);
         case ATTR_BISQUE:
-            return lv_color_hex(0xFFE4C4);
+            return lv_color_make(0xFF, 0xE4, 0xC4);
         case ATTR_INDIGO:
-            return lv_color_hex(0x4B0082);
+            return lv_color_make(0x4B, 0x00, 0x82);
         case ATTR_MAROON:
-            return lv_color_hex(0x800000);
+            return lv_color_make(0x80, 0x00, 0x00);
         case ATTR_ORANGE:
-            return lv_color_hex(0xFFA500);
+            return lv_color_make(0xFF, 0xA5, 0x00);
         case ATTR_ORCHID:
-            return lv_color_hex(0xDA70D6);
+            return lv_color_make(0xDA, 0x70, 0xD6);
         case ATTR_PURPLE:
-            return lv_color_hex(0x800080);
+            return lv_color_make(0x80, 0x00, 0x80);
         case ATTR_SALMON:
-            return lv_color_hex(0xFA8072);
+            return lv_color_make(0xFA, 0x80, 0x72);
         case ATTR_SIENNA:
-            return lv_color_hex(0xA0522D);
+            return lv_color_make(0xA0, 0x52, 0x2D);
         case ATTR_SILVER:
-            return lv_color_hex(0xC0C0C0);
+            return lv_color_make(0xC0, 0xC0, 0xC0);
         case ATTR_TOMATO:
-            return lv_color_hex(0xFF6347);
+            return lv_color_make(0xFF, 0x63, 0x47);
         case ATTR_VIOLET:
-            return lv_color_hex(0xEE82EE);
+            return lv_color_make(0xEE, 0x82, 0xEE);
         case ATTR_YELLOW:
-            return lv_color_hex(0xFFFF00);
+            return lv_color_make(0xFF, 0xFF, 0x00);
         case ATTR_FUCHSIA:
-            return lv_color_hex(0xFF00FF);
+        case ATTR_MAGENTA:
+            return lv_color_make(0xFF, 0x00, 0xFF);
 
         default:
             break;
     }
 
-    /* Unknown format */
+    /* Unknown color format */
     Log.warning(TAG_ATTR, F("Invalid color %s"), payload);
     return LV_COLOR_BLACK;
 }
