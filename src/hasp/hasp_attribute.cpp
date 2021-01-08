@@ -608,35 +608,21 @@ static void hasp_attribute_get_part_state(lv_obj_t * obj, const char * attr_in, 
         return;
     }
 
-    if(check_obj_type(obj, LV_HASP_BAR)) {
-        if(index == 1) {
-            part = LV_BAR_PART_INDIC;
-        } else {
-            part = LV_BAR_PART_BG;
-        }
-        state = LV_STATE_DEFAULT;
-        return;
-    }
+#if(LV_SLIDER_PART_INDIC != LV_SWITCH_PART_INDIC) || (LV_SLIDER_PART_KNOB != LV_SWITCH_PART_KNOB) ||                   \
+    (LV_SLIDER_PART_BG != LV_SWITCH_PART_BG) || (LV_SLIDER_PART_INDIC != LV_ARC_PART_INDIC) ||                         \
+    (LV_SLIDER_PART_KNOB != LV_ARC_PART_KNOB) || (LV_SLIDER_PART_BG != LV_ARC_PART_BG) ||                              \
+    (LV_SLIDER_PART_INDIC != LV_BAR_PART_INDIC) || (LV_SLIDER_PART_BG != LV_BAR_PART_BG)
+    #error "LV_SLIDER, LV_BAR, LV_ARC, LV_SWITCH parts should match!"
+#endif
 
-    if(check_obj_type(obj, LV_HASP_SLIDER)) {
+    if(check_obj_type(obj, LV_HASP_SLIDER) || check_obj_type(obj, LV_HASP_SWITCH) || check_obj_type(obj, LV_HASP_ARC) ||
+       check_obj_type(obj, LV_HASP_BAR)) {
         if(index == 1) {
             part = LV_SLIDER_PART_INDIC;
         } else if(index == 2) {
             part = LV_SLIDER_PART_KNOB;
         } else {
             part = LV_SLIDER_PART_BG;
-        }
-        state = LV_STATE_DEFAULT;
-        return;
-    }
-
-    if(check_obj_type(obj, LV_HASP_ARC)) {
-        if(index == 1) {
-            part = LV_ARC_PART_INDIC;
-        } else if(index == 2) {
-            part = LV_ARC_PART_KNOB;
-        } else {
-            part = LV_ARC_PART_BG;
         }
         state = LV_STATE_DEFAULT;
         return;
@@ -661,6 +647,11 @@ static void hasp_attribute_get_part_state(lv_obj_t * obj, const char * attr_in, 
         state = LV_STATE_DEFAULT;
         return;
     }
+
+    // if(check_obj_type(obj, LV_HASP_LMETER)) {
+    //     state = LV_STATE_DEFAULT;
+    //     return;
+    // }
 }
 
 /**
@@ -871,7 +862,7 @@ static void hasp_local_style_attr(lv_obj_t * obj, const char * attr_p, uint16_t 
                     lv_obj_set_style_local_value_str(obj, part, state, str_p);
 
                     if(str != NULL) {
-//lv_mem_free(str); // TODO : BIG Memory Leak ! / crashes
+                        // lv_mem_free(str); // TODO : BIG Memory Leak ! / crashes
                     }
                 }
             } else {
