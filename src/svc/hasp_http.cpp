@@ -835,7 +835,7 @@ void handleFileDelete()
     if(!httpIsAuthenticated(F("filedelete"))) return;
 
     char mimetype[16];
-    snprintf(mimetype, sizeof(mimetype), PSTR("text/plain"));
+    snprintf_P(mimetype, sizeof(mimetype), PSTR("text/plain"));
 
     if(webServer.args() == 0) {
         return webServer.send_P(500, mimetype, PSTR("BAD ARGS"));
@@ -1802,7 +1802,7 @@ void httpSetup()
     webServer.on(F("/edit"), HTTP_GET, []() {
         if(!handleFileRead("/edit.htm")) {
             char mimetype[16];
-            snprintf(mimetype, sizeof(mimetype), PSTR("text/plain"));
+            snprintf_P(mimetype, sizeof(mimetype), PSTR("text/plain"));
             webServer.send_P(404, mimetype, PSTR("FileNotFound"));
         }
     });

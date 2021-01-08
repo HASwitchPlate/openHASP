@@ -495,17 +495,17 @@ static lv_font_t * haspPayloadToFont(const char * payload)
 
 static void gauge_format_10(lv_obj_t * gauge, char * buf, int bufsize, int32_t value)
 {
-    snprintf(buf, bufsize, PSTR("%d"), value / 10);
+    snprintf_P(buf, bufsize, PSTR("%d"), value / 10);
 }
 
 static void gauge_format_100(lv_obj_t * gauge, char * buf, int bufsize, int32_t value)
 {
-    snprintf(buf, bufsize, PSTR("%d"), value / 100);
+    snprintf_P(buf, bufsize, PSTR("%d"), value / 100);
 }
 
 static void gauge_format_1k(lv_obj_t * gauge, char * buf, int bufsize, int32_t value)
 {
-    snprintf(buf, bufsize, PSTR("%d"), value / 1000);
+    snprintf_P(buf, bufsize, PSTR("%d"), value / 1000);
 }
 
 static void gauge_format_10k(lv_obj_t * gauge, char * buf, int bufsize, int32_t value)

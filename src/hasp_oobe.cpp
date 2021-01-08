@@ -138,7 +138,7 @@ static void oobeSetupQR(const char * ssid, const char * pass)
     lv_qrcode_update(qr, buffer, strlen(buffer));
 
     lv_obj_t * qrlabel = lv_label_create(oobepage[0], NULL);
-    snprintf(buffer, sizeof(buffer), PSTR("Scan to connect"));
+    snprintf_P(buffer, sizeof(buffer), PSTR("Scan to connect"));
     lv_label_set_text(qrlabel, buffer);
 
     if(disp->driver.hor_res <= disp->driver.ver_res) {
@@ -157,7 +157,7 @@ static void oobeSetupQR(const char * ssid, const char * pass)
 #endif
 
     lv_obj_t * aplabel = lv_label_create(container, NULL);
-    snprintf(buffer, sizeof(buffer), PSTR("Tap the screen to setup WiFi or connect to this Access Point:"));
+    snprintf_P(buffer, sizeof(buffer), PSTR("Tap the screen to setup WiFi or connect to this Access Point:"));
     lv_label_set_text(aplabel, buffer);
     lv_label_set_long_mode(aplabel, LV_LABEL_LONG_BREAK);
 
@@ -248,13 +248,13 @@ static void oobeSetupSsid(void)
 
     /* Create a label and position it above the text box */
     lv_obj_t * pwd_label = lv_label_create(oobepage[1], NULL);
-    snprintf(buffer, sizeof(buffer), PSTR("Password:"));
+    snprintf_P(buffer, sizeof(buffer), PSTR("Password:"));
     lv_label_set_text(pwd_label, buffer);
     lv_obj_align(pwd_label, pwd_ta, labelpos, 0, 0);
 
     /* Create a label and position it above the text box */
     lv_obj_t * oneline_label = lv_label_create(oobepage[1], NULL);
-    snprintf(buffer, sizeof(buffer), PSTR("Ssid:"));
+    snprintf_P(buffer, sizeof(buffer), PSTR("Ssid:"));
     lv_label_set_text(oneline_label, buffer);
     lv_obj_align(oneline_label, oneline_ta, labelpos, 0, 0);
 

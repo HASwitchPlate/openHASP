@@ -39,7 +39,7 @@ void ethernetSetup()
 
     char ethHostname[12];
     memset(ethHostname, 0, sizeof(ethHostname));
-    snprintf(ethHostname, sizeof(ethHostname), PSTR("HASP-%02x%02x%02x"), mac[3], mac[4], mac[5]);
+    snprintf_P(ethHostname, sizeof(ethHostname), PSTR("HASP-%02x%02x%02x"), mac[3], mac[4], mac[5]);
 
     Ethernet.setCsPin(W5500_CS);
     Ethernet.setRstPin(W5500_RST);

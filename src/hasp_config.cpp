@@ -27,7 +27,7 @@
 void confDebugSet(const __FlashStringHelper * fstr_name)
 {
     /*char buffer[128];
-    snprintf(buffer, sizeof(buffer), PSTR("   * %s set"), name);
+    snprintf_P(buffer, sizeof(buffer), PSTR("   * %s set"), name);
     debugPrintln(buffer);*/
     Log.verbose(TAG_CONF, F("   * %S set"), fstr_name);
 }

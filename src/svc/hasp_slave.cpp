@@ -36,7 +36,7 @@ void slave_send_state(const __FlashStringHelper * subtopic, const char * payload
 
     char cBuffer[strlen(payload) + 64];
     memset(cBuffer, 0, sizeof(cBuffer));
-    snprintf(cBuffer, sizeof(cBuffer), PSTR("publish %sstate/%s %s"), slaveNodeTopic, subtopic, payload);
+    snprintf_P(cBuffer, sizeof(cBuffer), PSTR("publish %sstate/%s %s"), slaveNodeTopic, subtopic, payload);
     slave.ExecuteCommand((char *)cBuffer);
 
     // Log after char buffers are cleared

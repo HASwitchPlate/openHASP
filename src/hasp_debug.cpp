@@ -120,7 +120,7 @@ void debugPrintHaspHeader(Print * output)
                     "        Home Automation Switch Plate\r\n"
                     "        Open Hardware edition v"));
     char buffer[32];
-    snprintf(buffer, sizeof(buffer), PSTR("%u.%u.%u"), HASP_VERSION_MAJOR, HASP_VERSION_MINOR, HASP_VERSION_REVISION);
+    snprintf_P(buffer, sizeof(buffer), PSTR("%u.%u.%u"), HASP_VERSION_MAJOR, HASP_VERSION_MINOR, HASP_VERSION_REVISION);
     output->println(buffer);
     output->println();
 }
