@@ -329,43 +329,6 @@ static inline lv_color_t haspLogColor(lv_color_t color)
 // OK
 static lv_color_t haspPayloadToColor(const char * payload)
 {
-    switch(strlen(payload)) {
-        case 3:
-            if(!strcasecmp_P(payload, PSTR("red"))) return haspLogColor(LV_COLOR_RED);
-            break;
-        case 4:
-            if(!strcasecmp_P(payload, PSTR("blue"))) return haspLogColor(LV_COLOR_BLUE);
-            if(!strcasecmp_P(payload, PSTR("cyan"))) return haspLogColor(LV_COLOR_CYAN);
-            if(!strcasecmp_P(payload, PSTR("gray"))) return haspLogColor(LV_COLOR_GRAY);
-            //          if(!strcmp_P(payload, PSTR("aqua"))) return haspLogColor(LV_COLOR_AQUA);
-            //          if(!strcmp_P(payload, PSTR("lime"))) return haspLogColor(LV_COLOR_LIME);
-            //          if(!strcmp_P(payload, PSTR("teal"))) return haspLogColor(LV_COLOR_TEAL);
-            //          if(!strcmp_P(payload, PSTR("navy"))) return haspLogColor(LV_COLOR_NAVY);
-            break;
-        case 5:
-            if(!strcasecmp_P(payload, PSTR("green"))) return haspLogColor(LV_COLOR_GREEN);
-            if(!strcasecmp_P(payload, PSTR("white"))) return haspLogColor(LV_COLOR_WHITE);
-            if(!strcasecmp_P(payload, PSTR("black"))) return haspLogColor(LV_COLOR_BLACK);
-            //            if(!strcmp_P(payload, PSTR("olive"))) return haspLogColor(LV_COLOR_OLIVE);
-            break;
-        case 6:
-            if(!strcasecmp_P(payload, PSTR("yellow"))) return haspLogColor(LV_COLOR_YELLOW);
-            if(!strcasecmp_P(payload, PSTR("orange"))) return haspLogColor(LV_COLOR_ORANGE);
-            if(!strcasecmp_P(payload, PSTR("purple"))) return haspLogColor(LV_COLOR_PURPLE);
-            if(!strcasecmp_P(payload, PSTR("silver"))) return haspLogColor(LV_COLOR_SILVER);
-            //            if(!strcmp_P(payload, PSTR("maroon"))) return haspLogColor(LV_COLOR_MAROON);
-            break;
-        case 7:
-            if(!strcasecmp_P(payload, PSTR("magenta"))) return haspLogColor(LV_COLOR_MAGENTA);
-            break;
-
-        default:
-            //            if(!strcmp_P(payload, PSTR("darkblue"))) return haspLogColor(LV_COLOR_MAKE(0, 51, 102));
-            //            if(!strcmp_P(payload, PSTR("lightblue"))) return haspLogColor(LV_COLOR_MAKE(46, 203,
-            //            203));
-            break;
-    }
-
     /* HEX format #rrggbb or #rrggbbaa */
     char pattern[4];
     snprintf_P(pattern, sizeof(pattern), PSTR(" 2x")); // % cannot be escaped, so we build our own pattern
@@ -392,6 +355,95 @@ static lv_color_t haspPayloadToColor(const char * payload)
         uint8_t G8 = (G6 * 259 + 33) >> 6;
         uint8_t B8 = (B5 * 527 + 23) >> 6;
         return lv_color_make(R8, G8, B8);
+    }
+
+    /* Named Color Scheme*/
+    switch(sdbm(payload)) {
+        case ATTR_RED:
+            return lv_color_hex(0xFF0000);
+        case ATTR_TAN:
+            return lv_color_hex(0xD2B48C);
+        case ATTR_AQUA:
+            return lv_color_hex(0x00FFFF);
+        case ATTR_BLUE:
+            return lv_color_hex(0x0000FF);
+        case ATTR_CYAN:
+            return lv_color_hex(0x00FFFF);
+        case ATTR_GOLD:
+            return lv_color_hex(0xFFD700);
+        case ATTR_GRAY:
+            return lv_color_hex(0x808080);
+        case ATTR_GREY:
+            return lv_color_hex(0x808080);
+        case ATTR_LIME:
+            return lv_color_hex(0x00FF00);
+        case ATTR_NAVY:
+            return lv_color_hex(0x000080);
+        case ATTR_PERU:
+            return lv_color_hex(0xCD853F);
+        case ATTR_PINK:
+            return lv_color_hex(0xFFC0CB);
+        case ATTR_PLUM:
+            return lv_color_hex(0xDDA0DD);
+        case ATTR_SNOW:
+            return lv_color_hex(0xFFFAFA);
+        case ATTR_TEAL:
+            return lv_color_hex(0x008080);
+        case ATTR_AZURE:
+            return lv_color_hex(0xF0FFFF);
+        case ATTR_BEIGE:
+            return lv_color_hex(0xF5F5DC);
+        case ATTR_BLACK:
+            return lv_color_hex(0x000000);
+        case ATTR_BLUSH:
+            return lv_color_hex(0xB00000);
+        case ATTR_BROWN:
+            return lv_color_hex(0xA52A2A);
+        case ATTR_CORAL:
+            return lv_color_hex(0xFF7F50);
+        case ATTR_GREEN:
+            return lv_color_hex(0x008000);
+        case ATTR_IVORY:
+            return lv_color_hex(0xFFFFF0);
+        case ATTR_KHAKI:
+            return lv_color_hex(0xF0E68C);
+        case ATTR_LINEN:
+            return lv_color_hex(0xFAF0E6);
+        case ATTR_OLIVE:
+            return lv_color_hex(0x808000);
+        case ATTR_WHEAT:
+            return lv_color_hex(0xF5DEB3);
+        case ATTR_WHITE:
+            return lv_color_hex(0xFFFFFF);
+        case ATTR_BISQUE:
+            return lv_color_hex(0xFFE4C4);
+        case ATTR_INDIGO:
+            return lv_color_hex(0x4B0082);
+        case ATTR_MAROON:
+            return lv_color_hex(0x800000);
+        case ATTR_ORANGE:
+            return lv_color_hex(0xFFA500);
+        case ATTR_ORCHID:
+            return lv_color_hex(0xDA70D6);
+        case ATTR_PURPLE:
+            return lv_color_hex(0x800080);
+        case ATTR_SALMON:
+            return lv_color_hex(0xFA8072);
+        case ATTR_SIENNA:
+            return lv_color_hex(0xA0522D);
+        case ATTR_SILVER:
+            return lv_color_hex(0xC0C0C0);
+        case ATTR_TOMATO:
+            return lv_color_hex(0xFF6347);
+        case ATTR_VIOLET:
+            return lv_color_hex(0xEE82EE);
+        case ATTR_YELLOW:
+            return lv_color_hex(0xFFFF00);
+        case ATTR_FUCHSIA:
+            return lv_color_hex(0xFF00FF);
+
+        default:
+            break;
     }
 
     /* Unknown format */
