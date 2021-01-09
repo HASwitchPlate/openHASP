@@ -183,7 +183,7 @@ static bool attribute_update_lv_property(lv_obj_t * obj, const char * attr_p, ui
 #endif
 
 // OK - this function is missing in lvgl
-static uint8_t lv_roller_get_visible_row_count(lv_obj_t * roller)
+static uint8_t my_roller_get_visible_row_count(lv_obj_t * roller)
 {
     const lv_font_t * font    = lv_obj_get_style_text_font(roller, LV_ROLLER_PART_BG);
     lv_style_int_t line_space = lv_obj_get_style_text_line_space(roller, LV_ROLLER_PART_BG);
@@ -196,55 +196,55 @@ static uint8_t lv_roller_get_visible_row_count(lv_obj_t * roller)
 }
 
 // OK - this function is missing in lvgl
-static inline int16_t lv_arc_get_rotation(lv_obj_t * arc)
+static inline int16_t my_arc_get_rotation(lv_obj_t * arc)
 {
     lv_arc_ext_t * ext = (lv_arc_ext_t *)lv_obj_get_ext_attr(arc);
     return ext->rotation_angle;
 }
 
 // OK - this function is missing in lvgl
-static inline int16_t lv_arc_get_bg_start_angle(lv_obj_t * arc)
+static inline int16_t my_arc_get_bg_start_angle(lv_obj_t * arc)
 {
     lv_arc_ext_t * ext = (lv_arc_ext_t *)lv_obj_get_ext_attr(arc);
     return ext->bg_angle_start;
 }
 
 // OK - this function is missing in lvgl
-static inline int16_t lv_arc_get_bg_end_angle(lv_obj_t * arc)
+static inline int16_t my_arc_get_bg_end_angle(lv_obj_t * arc)
 {
     lv_arc_ext_t * ext = (lv_arc_ext_t *)lv_obj_get_ext_attr(arc);
     return ext->bg_angle_end;
 }
 
 // OK - this function is missing in lvgl
-static inline int16_t lv_arc_get_start_angle(lv_obj_t * arc)
+static inline int16_t my_arc_get_start_angle(lv_obj_t * arc)
 {
     lv_arc_ext_t * ext = (lv_arc_ext_t *)lv_obj_get_ext_attr(arc);
     return ext->arc_angle_start;
 }
 
 // OK - this function is missing in lvgl
-static inline int16_t lv_arc_get_end_angle(lv_obj_t * arc)
+static inline int16_t my_arc_get_end_angle(lv_obj_t * arc)
 {
     lv_arc_ext_t * ext = (lv_arc_ext_t *)lv_obj_get_ext_attr(arc);
     return ext->arc_angle_end;
 }
 
 // OK - this function is missing in lvgl
-static inline int16_t lv_chart_get_min_value(lv_obj_t * chart)
+static inline int16_t my_chart_get_min_value(lv_obj_t * chart)
 {
     lv_chart_ext_t * ext = (lv_chart_ext_t *)lv_obj_get_ext_attr(chart);
     return ext->ymin[LV_CHART_AXIS_PRIMARY_Y];
 }
 
 // OK - this function is missing in lvgl
-static inline int16_t lv_chart_get_max_value(lv_obj_t * chart)
+static inline int16_t my_chart_get_max_value(lv_obj_t * chart)
 {
     lv_chart_ext_t * ext = (lv_chart_ext_t *)lv_obj_get_ext_attr(chart);
     return ext->ymax[LV_CHART_AXIS_PRIMARY_Y];
 }
 
-lv_chart_series_t * lv_chart_get_series(lv_obj_t * chart, uint8_t ser_num)
+lv_chart_series_t * my_chart_get_series(lv_obj_t * chart, uint8_t ser_num)
 {
     lv_chart_ext_t * ext    = (lv_chart_ext_t *)lv_obj_get_ext_attr(chart);
     lv_chart_series_t * ser = (lv_chart_series_t *)_lv_ll_get_tail(&ext->series_ll);
@@ -253,6 +253,79 @@ lv_chart_series_t * lv_chart_get_series(lv_obj_t * chart, uint8_t ser_num)
         ser_num--;
     }
     return ser;
+}
+
+/**
+ * Set a new value_str for an object. Memory will be allocated to store the text by the object.
+ * @param obj pointer to a object
+ * @param text '\0' terminated character string. NULL to refresh with the current text.
+ */
+void my_obj_set_value_str_txt(lv_obj_t * obj, uint8_t part, lv_state_t state, const char * text)
+{
+    Log.verbose(TAG_ATTR, "%s %d", __FILE__, __LINE__);
+
+    const void * value_str_p = lv_obj_get_style_value_str(obj, part);
+    lv_obj_invalidate(obj);
+
+    if(text == NULL || text[0] == 0) {
+        Log.verbose(TAG_ATTR, "%s %d", __FILE__, __LINE__);
+        lv_obj_set_style_local_value_str(obj, part, state, NULL);
+        lv_mem_free(value_str_p);
+        Log.verbose(TAG_ATTR, "%s %d", __FILE__, __LINE__);
+        return;
+    }
+
+    LV_ASSERT_STR(text);
+
+    if(value_str_p == NULL) {
+        /*Get the size of the text*/
+        size_t len = strlen(text) + 1;
+
+        /*Allocate space for the new text*/
+        Log.verbose(TAG_ATTR, "%s %d", __FILE__, __LINE__);
+        value_str_p = (char *)lv_mem_alloc(len);
+        LV_ASSERT_MEM(value_str_p);
+        if(value_str_p == NULL) return;
+
+        Log.verbose(TAG_ATTR, "%s %d", __FILE__, __LINE__);
+        strncpy((char *)value_str_p, text, len);
+        lv_obj_set_style_local_value_str(obj, part, state, (char *)value_str_p);
+        Log.verbose(TAG_ATTR, "%s %d", __FILE__, __LINE__);
+        return;
+    }
+
+    // lv_obj_set_style_local_value_str(obj, part, state, str_p);
+
+    if(value_str_p == text) {
+        /*If set its own text then reallocate it (maybe its size changed)*/
+        Log.warning(TAG_ATTR, "%s %d", __FILE__, __LINE__);
+        return; // don't touch the data
+
+        // value_str_p = lv_mem_realloc(value_str_p, strlen(text) + 1);
+
+        // LV_ASSERT_MEM(value_str_p);
+        // if(value_str_p == NULL) return;
+    } else {
+        /*Free the old text*/
+        if(value_str_p != NULL) {
+            Log.verbose(TAG_ATTR, "%s %d", __FILE__, __LINE__);
+            lv_mem_free(value_str_p);
+            value_str_p = NULL;
+            Log.verbose(TAG_ATTR, "%s %d", __FILE__, __LINE__);
+        }
+
+        /*Get the size of the text*/
+        size_t len = strlen(text) + 1;
+
+        /*Allocate space for the new text*/
+        value_str_p = lv_mem_alloc(len);
+        LV_ASSERT_MEM(value_str_p);
+        if(value_str_p != NULL) strcpy((char *)value_str_p, text);
+        lv_obj_set_style_local_value_str(obj, part, state, (char *)value_str_p);
+    }
+
+    // lv_label_refr_text(label);
+    Log.verbose(TAG_ATTR, "%s %d", __FILE__, __LINE__);
 }
 
 void btnmatrix_clear_map(lv_obj_t * obj)
@@ -900,22 +973,24 @@ static void hasp_local_style_attr(lv_obj_t * obj, const char * attr_p, uint16_t 
         case ATTR_VALUE_STR: {
             if(update) {
 
-                size_t len = strlen(payload);
-                if(len > 0) {
-                    // Free previous string
-                    const char * str = lv_obj_get_style_value_str(obj, part);
+                my_obj_set_value_str_txt(obj, part, state, payload);
 
-                    // Create new string
-                    len++;
-                    char * str_p = (char *)lv_mem_alloc(len);
-                    memset(str_p, 0, len);
-                    memccpy(str_p, payload, 0, len);
-                    lv_obj_set_style_local_value_str(obj, part, state, str_p);
+                // size_t len = strlen(payload);
+                // if(len > 0) {
+                //     // Free previous string
+                //     const char * str = lv_obj_get_style_value_str(obj, part);
 
-                    if(str != NULL) {
-                        // lv_mem_free(str); // TODO : BIG Memory Leak ! / crashes
-                    }
-                }
+                //     // Create new string
+                //     len++;
+                //     char * str_p = (char *)lv_mem_alloc(len);
+                //     memset(str_p, 0, len);
+                //     memccpy(str_p, payload, 0, len);
+                //     lv_obj_set_style_local_value_str(obj, part, state, str_p);
+
+                //     if(str != NULL) {
+                //         // lv_mem_free(str); // TODO : BIG Memory Leak ! / crashes
+                //     }
+                // }
             } else {
                 hasp_out_str(obj, attr, lv_obj_get_style_value_str(obj, part));
             }
@@ -976,7 +1051,7 @@ static void hasp_process_arc_attribute(lv_obj_t * obj, const char * attr_p, uint
             return (update) ? lv_arc_set_type(obj, val % 3) : hasp_out_int(obj, attr, lv_arc_get_type(obj));
 
         case ATTR_ROTATION:
-            return (update) ? lv_arc_set_rotation(obj, val) : hasp_out_int(obj, attr, lv_arc_get_rotation(obj));
+            return (update) ? lv_arc_set_rotation(obj, val) : hasp_out_int(obj, attr, my_arc_get_rotation(obj));
 
         case ATTR_ADJUSTABLE:
             if(update) {
@@ -990,16 +1065,16 @@ static void hasp_process_arc_attribute(lv_obj_t * obj, const char * attr_p, uint
 
         case ATTR_START_ANGLE:
             return (update) ? lv_arc_set_bg_start_angle(obj, val)
-                            : hasp_out_int(obj, attr, lv_arc_get_bg_start_angle(obj));
+                            : hasp_out_int(obj, attr, my_arc_get_bg_start_angle(obj));
 
         case ATTR_END_ANGLE:
-            return (update) ? lv_arc_set_bg_end_angle(obj, val) : hasp_out_int(obj, attr, lv_arc_get_bg_end_angle(obj));
+            return (update) ? lv_arc_set_bg_end_angle(obj, val) : hasp_out_int(obj, attr, my_arc_get_bg_end_angle(obj));
 
         case ATTR_START_ANGLE1:
-            return (update) ? lv_arc_set_start_angle(obj, val) : hasp_out_int(obj, attr, lv_arc_get_start_angle(obj));
+            return (update) ? lv_arc_set_start_angle(obj, val) : hasp_out_int(obj, attr, my_arc_get_start_angle(obj));
 
         case ATTR_END_ANGLE1:
-            return (update) ? lv_arc_set_end_angle(obj, val) : hasp_out_int(obj, attr, lv_arc_get_end_angle(obj));
+            return (update) ? lv_arc_set_end_angle(obj, val) : hasp_out_int(obj, attr, my_arc_get_end_angle(obj));
     }
 
     Log.warning(TAG_ATTR, F("Unknown property %s"), attr_p);
@@ -1356,8 +1431,8 @@ static void hasp_process_obj_attribute_range(lv_obj_t * obj, const char * attr, 
     }
 
     if(check_obj_type(obj, LV_HASP_CHART)) {
-        int16_t min = lv_chart_get_min_value(obj);
-        int16_t max = lv_chart_get_max_value(obj);
+        int16_t min = my_chart_get_min_value(obj);
+        int16_t max = my_chart_get_max_value(obj);
         if(update && (set_min ? val : min) >= (set_max ? val : max)) return; // prevent setting min>=max
         return update ? lv_chart_set_range(obj, set_min ? val : min, set_max ? val : max)
                       : hasp_out_int(obj, attr, set_min ? min : max);
@@ -1427,6 +1502,18 @@ void hasp_process_obj_attribute(lv_obj_t * obj, const char * attr_p, const char 
         case ATTR_ID:
             return update ? (void)(obj->user_data.id = (uint8_t)val) : hasp_out_int(obj, attr, obj->user_data.id);
 
+        case ATTR_GROUPID:
+            return update ? (void)(obj->user_data.groupid = (uint8_t)val)
+                          : hasp_out_int(obj, attr, obj->user_data.groupid);
+
+        case ATTR_OBJID:
+            if(update) {
+                Log.warning(TAG_ATTR, F("%s is read-only"), attr_p);
+            } else {
+                hasp_out_int(obj, attr, obj->user_data.objid);
+            }
+            return;
+
         case ATTR_VIS:
             return update ? lv_obj_set_hidden(obj, !is_true(payload))
                           : hasp_out_int(obj, attr, !lv_obj_get_hidden(obj));
@@ -1466,7 +1553,7 @@ void hasp_process_obj_attribute(lv_obj_t * obj, const char * attr_p, const char 
         case ATTR_ROWS:
             if(check_obj_type(obj, LV_HASP_ROLLER)) {
                 return update ? lv_roller_set_visible_row_count(obj, (uint8_t)val)
-                              : hasp_out_int(obj, attr, lv_roller_get_visible_row_count(obj));
+                              : hasp_out_int(obj, attr, my_roller_get_visible_row_count(obj));
             }
 
             if(check_obj_type(obj, LV_HASP_TABLE)) {
@@ -1581,8 +1668,9 @@ void hasp_process_obj_attribute(lv_obj_t * obj, const char * attr_p, const char 
                 return hasp_process_btnmatrix_attribute(obj, attr_p, attr_hash, payload, update);
             }
             return; // don't try local attributes anymore
-                    // default:
-                    // hasp_local_style_attr(obj, attr, payload, update);
+
+            // default:
+            // hasp_local_style_attr(obj, attr, payload, update);
     }
 
     hasp_local_style_attr(obj, attr, attr_hash, payload, update);
