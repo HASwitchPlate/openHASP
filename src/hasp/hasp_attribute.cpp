@@ -17,8 +17,6 @@ LV_FONT_DECLARE(unscii_8_icon);
 extern lv_font_t * haspFonts[8];
 extern const char ** btnmatrix_default_map; // memory pointer to lvgl default btnmatrix map
 
-static inline bool only_digits(const char * s);
-
 #if 0
 static bool attribute_lookup_lv_property(uint16_t hash, uint8_t * prop)
 {
@@ -262,7 +260,7 @@ lv_chart_series_t * my_chart_get_series(lv_obj_t * chart, uint8_t ser_num)
  */
 void my_obj_set_value_str_txt(lv_obj_t * obj, uint8_t part, lv_state_t state, const char * text)
 {
-    Log.verbose(TAG_ATTR, "%s %d", __FILE__, __LINE__);
+    //  Log.verbose(TAG_ATTR, "%s %d", __FILE__, __LINE__);
 
     const void * value_str_p = lv_obj_get_style_value_str(obj, part);
     lv_obj_invalidate(obj);
@@ -282,12 +280,12 @@ void my_obj_set_value_str_txt(lv_obj_t * obj, uint8_t part, lv_state_t state, co
         size_t len = strlen(text) + 1;
 
         /*Allocate space for the new text*/
-        Log.verbose(TAG_ATTR, "%s %d", __FILE__, __LINE__);
+        //   Log.verbose(TAG_ATTR, "%s %d", __FILE__, __LINE__);
         value_str_p = (char *)lv_mem_alloc(len);
         LV_ASSERT_MEM(value_str_p);
         if(value_str_p == NULL) return;
 
-        Log.verbose(TAG_ATTR, "%s %d", __FILE__, __LINE__);
+        //   Log.verbose(TAG_ATTR, "%s %d", __FILE__, __LINE__);
         strncpy((char *)value_str_p, text, len);
         lv_obj_set_style_local_value_str(obj, part, state, (char *)value_str_p);
         Log.verbose(TAG_ATTR, "%s %d", __FILE__, __LINE__);
@@ -308,10 +306,10 @@ void my_obj_set_value_str_txt(lv_obj_t * obj, uint8_t part, lv_state_t state, co
     } else {
         /*Free the old text*/
         if(value_str_p != NULL) {
-            Log.verbose(TAG_ATTR, "%s %d", __FILE__, __LINE__);
+            //        Log.verbose(TAG_ATTR, "%s %d", __FILE__, __LINE__);
             lv_mem_free(value_str_p);
             value_str_p = NULL;
-            Log.verbose(TAG_ATTR, "%s %d", __FILE__, __LINE__);
+            //        Log.verbose(TAG_ATTR, "%s %d", __FILE__, __LINE__);
         }
 
         /*Get the size of the text*/
@@ -324,8 +322,7 @@ void my_obj_set_value_str_txt(lv_obj_t * obj, uint8_t part, lv_state_t state, co
         lv_obj_set_style_local_value_str(obj, part, state, (char *)value_str_p);
     }
 
-    // lv_label_refr_text(label);
-    Log.verbose(TAG_ATTR, "%s %d", __FILE__, __LINE__);
+    // Log.verbose(TAG_ATTR, "%s %d", __FILE__, __LINE__);
 }
 
 void btnmatrix_clear_map(lv_obj_t * obj)
@@ -417,7 +414,7 @@ static lv_color_t haspPayloadToColor(const char * payload)
     }
 
     /* 16-bit RGB565 Color Scheme*/
-    if(only_digits(payload)) {
+    if(hasp_util_is_only_digits(payload)) {
         uint16_t c = atoi(payload);
         /* Initial colors */
         uint8_t R5 = ((c >> 11) & 0b11111);
@@ -431,7 +428,7 @@ static lv_color_t haspPayloadToColor(const char * payload)
     }
 
     /* Named Color Scheme*/
-    switch(sdbm(payload)) {
+    switch(hasp_util_get_sdbm(payload)) {
         case ATTR_RED:
             return lv_color_make(0xFF, 0x00, 0x00);
         case ATTR_TAN:
@@ -798,7 +795,7 @@ static void hasp_local_style_attr(lv_obj_t * obj, const char * attr_p, uint16_t 
     // test_prop(attr_hash);
 
     hasp_attribute_get_part_state(obj, attr_p, attr, part, state);
-    attr_hash = sdbm(attr); // attribute name without the index number
+    attr_hash = hasp_util_get_sdbm(attr); // attribute name without the index number
 
     /* ***** WARNING ****************************************************
      * when using hasp_out use attr_p for the original attribute name
@@ -903,7 +900,7 @@ static void hasp_local_style_attr(lv_obj_t * obj, const char * attr_p, uint16_t 
         case ATTR_BORDER_SIDE:
             return attribute_border_side(obj, part, state, update, attr_p, (lv_border_side_t)var);
         case ATTR_BORDER_POST:
-            return attribute_border_post(obj, part, state, update, attr_p, is_true(payload));
+            return attribute_border_post(obj, part, state, update, attr_p, hasp_util_is_true(payload));
         case ATTR_BORDER_OPA:
             return attribute_border_opa(obj, part, state, update, attr_p, (lv_opa_t)var);
         case ATTR_BORDER_COLOR: {
@@ -949,7 +946,7 @@ static void hasp_local_style_attr(lv_obj_t * obj, const char * attr_p, uint16_t 
         case ATTR_LINE_DASH_GAP:
             return attribute_line_dash_gap(obj, part, state, update, attr_p, (lv_style_int_t)var);
         case ATTR_LINE_ROUNDED:
-            return attribute_line_rounded(obj, part, state, update, attr_p, is_true(payload));
+            return attribute_line_rounded(obj, part, state, update, attr_p, hasp_util_is_true(payload));
         case ATTR_LINE_OPA:
             return attribute_line_opa(obj, part, state, update, attr_p, (lv_opa_t)var);
         case ATTR_LINE_COLOR: {
@@ -1011,7 +1008,7 @@ static void hasp_local_style_attr(lv_obj_t * obj, const char * attr_p, uint16_t 
 
         /* Pattern attributes */
         case ATTR_PATTERN_REPEAT:
-            return attribute_pattern_repeat(obj, part, state, update, attr_p, is_true(payload));
+            return attribute_pattern_repeat(obj, part, state, update, attr_p, hasp_util_is_true(payload));
         case ATTR_PATTERN_OPA:
             return attribute_pattern_opa(obj, part, state, update, attr_p, (lv_opa_t)var);
         case ATTR_PATTERN_RECOLOR_OPA:
@@ -1055,7 +1052,7 @@ static void hasp_process_arc_attribute(lv_obj_t * obj, const char * attr_p, uint
 
         case ATTR_ADJUSTABLE:
             if(update) {
-                bool toggle = is_true(payload);
+                bool toggle = hasp_util_is_true(payload);
                 lv_arc_set_adjustable(obj, toggle);
                 lv_obj_set_event_cb(obj, toggle ? slider_event_handler : btn_event_handler);
             } else {
@@ -1334,12 +1331,12 @@ static void hasp_process_obj_attribute_val(lv_obj_t * obj, const char * attr, co
     }
 
     if(check_obj_type(obj, LV_HASP_CHECKBOX)) {
-        return update ? lv_checkbox_set_checked(obj, is_true(payload))
+        return update ? lv_checkbox_set_checked(obj, hasp_util_is_true(payload))
                       : hasp_out_int(obj, attr, lv_checkbox_is_checked(obj));
     }
     if(check_obj_type(obj, LV_HASP_SWITCH)) {
         if(update) {
-            return is_true(payload) ? lv_switch_on(obj, LV_ANIM_ON) : lv_switch_off(obj, LV_ANIM_ON);
+            return hasp_util_is_true(payload) ? lv_switch_on(obj, LV_ANIM_ON) : lv_switch_off(obj, LV_ANIM_ON);
         } else {
             return hasp_out_int(obj, attr, lv_switch_get_state(obj));
         }
@@ -1460,7 +1457,7 @@ void hasp_process_obj_attribute(lv_obj_t * obj, const char * attr_p, const char 
     char * attr = (char *)attr_p;
     if(*attr == '.') attr++; // strip leading '.'
 
-    uint16_t attr_hash = sdbm(attr);
+    uint16_t attr_hash = hasp_util_get_sdbm(attr);
     //    Log.verbose(TAG_ATTR,"%s => %d", attr, attr_hash);
 
     /* 16-bit Hash Lookup Table */
@@ -1515,7 +1512,7 @@ void hasp_process_obj_attribute(lv_obj_t * obj, const char * attr_p, const char 
             return;
 
         case ATTR_VIS:
-            return update ? lv_obj_set_hidden(obj, !is_true(payload))
+            return update ? lv_obj_set_hidden(obj, !hasp_util_is_true(payload))
                           : hasp_out_int(obj, attr, !lv_obj_get_hidden(obj));
 
         case ATTR_TXT:
@@ -1531,7 +1528,8 @@ void hasp_process_obj_attribute(lv_obj_t * obj, const char * attr_p, const char 
             return hasp_process_obj_attribute_range(obj, attr, payload, update, false, true);
 
         case ATTR_HIDDEN:
-            return update ? lv_obj_set_hidden(obj, is_true(payload)) : hasp_out_int(obj, attr, lv_obj_get_hidden(obj));
+            return update ? lv_obj_set_hidden(obj, hasp_util_is_true(payload))
+                          : hasp_out_int(obj, attr, lv_obj_get_hidden(obj));
 
         case ATTR_SRC:
             if(check_obj_type(obj, LV_HASP_IMAGE)) {
@@ -1595,7 +1593,7 @@ void hasp_process_obj_attribute(lv_obj_t * obj, const char * attr_p, const char 
         case ATTR_TOGGLE:
             if(check_obj_type(obj, LV_HASP_BUTTON)) {
                 if(update) {
-                    bool toggle = is_true(payload);
+                    bool toggle = hasp_util_is_true(payload);
                     lv_btn_set_checkable(obj, toggle);
                     lv_obj_set_event_cb(obj, toggle ? toggle_event_handler : btn_event_handler);
                 } else {
@@ -1610,7 +1608,8 @@ void hasp_process_obj_attribute(lv_obj_t * obj, const char * attr_p, const char 
                           : hasp_out_int(obj, attr, lv_obj_get_style_opa_scale(obj, LV_OBJ_PART_MAIN));
 
         case ATTR_ENABLED:
-            return update ? lv_obj_set_click(obj, is_true(payload)) : hasp_out_int(obj, attr, lv_obj_get_click(obj));
+            return update ? lv_obj_set_click(obj, hasp_util_is_true(payload))
+                          : hasp_out_int(obj, attr, lv_obj_get_click(obj));
 
         case ATTR_OPTIONS:
             if(check_obj_type(obj, LV_HASP_DDLIST)) {
@@ -1676,16 +1675,4 @@ void hasp_process_obj_attribute(lv_obj_t * obj, const char * attr_p, const char 
     hasp_local_style_attr(obj, attr, attr_hash, payload, update);
     Log.verbose(TAG_ATTR, F("%s (%d)"), attr_p, attr_hash);
     // Log.verbose(TAG_ATTR, F("%s (%d) took %d ms."), attr_p, attr_hash, millis() - start);
-}
-
-/* **************************
- * Static Inline functions
- * **************************/
-static inline bool only_digits(const char * s)
-{
-    size_t digits = 0;
-    while(*(s + digits) != '\0' && isdigit(*(s + digits))) {
-        digits++;
-    }
-    return strlen(s) == digits;
 }

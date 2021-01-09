@@ -121,7 +121,7 @@ void dispatch_command(const char * topic, const char * payload)
     /* =============================== Not standard payload commands ===================================== */
 
     if(strlen(topic) == 7 && topic == strstr_P(topic, PSTR("output"))) {
-        dispatch_group_state(atoi(topic + 6), is_true(payload) ? HASP_EVENT_ON : HASP_EVENT_OFF,
+        dispatch_group_state(atoi(topic + 6), hasp_util_is_true(payload) ? HASP_EVENT_ON : HASP_EVENT_OFF,
                              NULL); // + 6 => trim 'output' from the topic
 
         // } else if(strcasecmp_P(topic, PSTR("screenshot")) == 0) {
@@ -626,7 +626,7 @@ void dispatch_dim(const char *, const char * level)
 void dispatch_backlight(const char *, const char * payload)
 {
     // Set the current state
-    if(strlen(payload) != 0) guiSetBacklight(is_true(payload));
+    if(strlen(payload) != 0) guiSetBacklight(hasp_util_is_true(payload));
 
     // Return the current state
     char buffer[4];

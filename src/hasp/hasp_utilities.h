@@ -4,9 +4,8 @@
 #ifndef HASP_UTILITIES_H
 #define HASP_UTILITIES_H
 
-#include "lvgl.h"
-
-uint16_t sdbm(const char * str);
-bool is_true(const char * s);
+uint16_t hasp_util_get_sdbm(const char * str);
+bool hasp_util_is_true(const char * s);
+bool hasp_util_is_only_digits(const char * s);
 
 #endif
