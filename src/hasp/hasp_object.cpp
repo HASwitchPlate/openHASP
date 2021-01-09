@@ -26,7 +26,7 @@
 #include "hasp_attribute.h"
 
 const char ** btnmatrix_default_map; // memory pointer to lvgl default btnmatrix map
-//static unsigned long last_change_event = 0;
+// static unsigned long last_change_event = 0;
 static bool last_press_was_short = false; // Avoid SHORT + UP double events
 
 // ##################### Object Finders ########################################################
@@ -231,8 +231,8 @@ void hasp_send_obj_attribute_color(lv_obj_t * obj, const char * attribute, lv_co
     char buffer[40]; // "#ffffff","r":"255","g":"255","b":"255"
     lv_color32_t c32;
     c32.full = lv_color_to32(color);
-    snprintf(buffer, sizeof(buffer), PSTR("#%02x%02x%02x\",\"r\":\"%d\",\"g\":\"%d\",\"b\":\"%d"), c32.ch.red,
-             c32.ch.green, c32.ch.blue, c32.ch.red, c32.ch.green, c32.ch.blue);
+    snprintf_P(buffer, sizeof(buffer), PSTR("#%02x%02x%02x\",\"r\":\"%d\",\"g\":\"%d\",\"b\":\"%d"), c32.ch.red,
+               c32.ch.green, c32.ch.blue, c32.ch.red, c32.ch.green, c32.ch.blue);
     hasp_send_obj_attribute_str(obj, attribute, buffer);
 }
 
@@ -414,13 +414,59 @@ static void checkbox_event_handler(lv_obj_t * obj, lv_event_t event)
  * @param obj pointer to a dropdown list
  * @param event type of event that occured
  */
-static void ddlist_event_handler(lv_obj_t * obj, lv_event_t event)
+/*static void ddlist_event_handler(lv_obj_t * obj, lv_event_t event)
 {
     if(event == LV_EVENT_VALUE_CHANGED) {
         hasp_send_obj_attribute_val(obj, lv_dropdown_get_selected(obj));
         char buffer[128];
         lv_dropdown_get_selected_str(obj, buffer, sizeof(buffer));
         hasp_send_obj_attribute_txt(obj, buffer);
+    }
+}*/
+
+/**
+ * Called when a roller object is clicked
+ * @param obj pointer to a roller object
+ * @param event type of event that occured
+ */
+/*static void roller_event_handler(lv_obj_t * obj, lv_event_t event)
+{
+    if(event == LV_EVENT_VALUE_CHANGED) {
+        hasp_send_obj_attribute_val(obj, lv_roller_get_selected(obj));
+        char buffer[128];
+        lv_roller_get_selected_str(obj, buffer, sizeof(buffer));
+        hasp_send_obj_attribute_txt(obj, buffer);
+    }
+}*/
+
+/**
+ * Called when a dropdown or roller list is clicked
+ * @param obj pointer to a dropdown list or roller
+ * @param event type of event that occured
+ */
+static void selector_event_handler(lv_obj_t * obj, lv_event_t event)
+{
+    if(event == LV_EVENT_VALUE_CHANGED) {
+        uint16_t val = 0;
+        char property[16];
+        char buffer[128];
+
+        switch(obj->user_data.objid) {
+            case LV_HASP_DDLIST:
+                val = lv_dropdown_get_selected(obj);
+                lv_dropdown_get_selected_str(obj, buffer, sizeof(buffer));
+                break;
+
+            case LV_HASP_ROLLER:
+                val = lv_roller_get_selected(obj);
+                lv_roller_get_selected_str(obj, buffer, sizeof(buffer));
+                break;
+
+            default:
+                return;
+        }
+        snprintf_P(property, sizeof(property), PSTR("val\":%d,\"txt"), val);
+        hasp_send_obj_attribute_str(obj, property, buffer);
     }
 }
 
@@ -432,20 +478,20 @@ static void ddlist_event_handler(lv_obj_t * obj, lv_event_t event)
 void slider_event_handler(lv_obj_t * obj, lv_event_t event)
 {
     if(event == LV_EVENT_VALUE_CHANGED) {
-/*        bool is_dragged;
+        /*        bool is_dragged;
 
-        if(obj->user_data.objid == LV_HASP_SLIDER) {
-            is_dragged = lv_slider_is_dragged(obj);
-        } else if(obj->user_data.objid == LV_HASP_ARC) {
-            is_dragged = lv_arc_is_dragged(obj);
-        }
+                if(obj->user_data.objid == LV_HASP_SLIDER) {
+                    is_dragged = lv_slider_is_dragged(obj);
+                } else if(obj->user_data.objid == LV_HASP_ARC) {
+                    is_dragged = lv_arc_is_dragged(obj);
+                }
 
-        if(is_dragged && (millis() - last_change_event < LV_INDEV_DEF_LONG_PRESS_TIME)) {
-            return;
-        }
-*/
+                if(is_dragged && (millis() - last_change_event < LV_INDEV_DEF_LONG_PRESS_TIME)) {
+                    return;
+                }
+        */
         hasp_send_obj_attribute_val(obj, lv_slider_get_value(obj));
-//        last_change_event = millis();
+        //        last_change_event = millis();
     }
 }
 
@@ -461,21 +507,6 @@ static void cpicker_event_handler(lv_obj_t * obj, lv_event_t event)
 
     if(event == LV_EVENT_VALUE_CHANGED) hasp_send_obj_attribute_color(obj, color, lv_cpicker_get_color(obj));
     // if(event == LV_EVENT_RELEASED) hasp_send_obj_attribute_color(obj, color, lv_cpicker_get_color(obj));
-}
-
-/**
- * Called when a roller object is clicked
- * @param obj pointer to a roller object
- * @param event type of event that occured
- */
-static void roller_event_handler(lv_obj_t * obj, lv_event_t event)
-{
-    if(event == LV_EVENT_VALUE_CHANGED) {
-        hasp_send_obj_attribute_val(obj, lv_roller_get_selected(obj));
-        char buffer[128];
-        lv_roller_get_selected_str(obj, buffer, sizeof(buffer));
-        hasp_send_obj_attribute_txt(obj, buffer);
-    }
 }
 
 // ##################### State Changers ########################################################
@@ -767,7 +798,7 @@ void hasp_new_object(const JsonObject & config, uint8_t & saved_page_id)
                     // lv_dropdown_set_anim_time(obj, 200);
                     lv_obj_set_top(obj, true);
                     // lv_obj_align(obj, NULL, LV_ALIGN_IN_TOP_MID, 0, 20);
-                    lv_obj_set_event_cb(obj, ddlist_event_handler);
+                    lv_obj_set_event_cb(obj, selector_event_handler);
                 }
                 break;
             }
@@ -776,7 +807,7 @@ void hasp_new_object(const JsonObject & config, uint8_t & saved_page_id)
                 // lv_obj_align(obj, NULL, LV_ALIGN_IN_TOP_MID, 0, 20);
                 if(obj) {
                     lv_roller_set_auto_fit(obj, false);
-                    lv_obj_set_event_cb(obj, roller_event_handler);
+                    lv_obj_set_event_cb(obj, selector_event_handler);
                 }
                 break;
             }
