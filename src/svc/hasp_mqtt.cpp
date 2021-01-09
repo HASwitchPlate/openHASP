@@ -7,6 +7,7 @@
     #include "PubSubClient.h"
 
     #include "hasp_mqtt.h"
+    #include "hasp_mqtt_ha.h"
 
     #if defined(ARDUINO_ARCH_ESP32)
         #include <WiFi.h>
@@ -57,7 +58,7 @@ String mqttCommandTopic;            // MQTT topic for incoming panel commands
 char mqttNodeTopic[24];
 char mqttGroupTopic[24];
 bool mqttEnabled        = false;
-bool mqttHAautodiscover = false;
+bool mqttHAautodiscover = true;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     // These defaults may be overwritten with values saved by the web interface
@@ -170,9 +171,6 @@ void IRAM_ATTR mqtt_send_obj_attribute_str(uint8_t pageid, uint8_t btnid, const 
     //           data);
 }
 
-void mqtt_ha_send_config()
-{}
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Receive incoming messages
 static void mqtt_message_cb(char * topic, byte * payload, unsigned int length)
@@ -198,9 +196,9 @@ static void mqtt_message_cb(char * topic, byte * payload, unsigned int length)
         dispatch_topic_payload(topic, (const char *)payload);
         return;
 
-    } else if(mqttHAautodiscover && topic == strstr_P(topic, PSTR("homeassistant/status"))) { // HA discovery topic
-        if(!strcasecmp_P((char *)payload, PSTR("online"))) {
-            mqtt_ha_send_config();
+    } else if(topic == strstr_P(topic, PSTR("hass/status"))) { // HA discovery topic
+        if(mqttHAautodiscover && !strcasecmp_P((char *)payload, PSTR("online"))) {
+            mqtt_ha_send_backlight();
         }
         return;
 
@@ -337,6 +335,7 @@ void mqttStart()
     mqttSubscribeTo(PSTR("%slight/#"), mqttNodeTopic);
     mqttSubscribeTo(PSTR("%sbrightness/#"), mqttNodeTopic);
     mqttSubscribeTo(PSTR("%sLWT"), mqttNodeTopic);
+    mqttSubscribeTo(PSTR("hass/status"), "");
 
     /* Home Assistant auto-configuration */
     if(mqttHAautodiscover) mqttSubscribeTo(PSTR("homeassistant/status"), mqttClientId);
