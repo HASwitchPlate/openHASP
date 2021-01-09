@@ -519,7 +519,7 @@ void dispatch_parse_jsonl(std::istringstream & stream)
 {
     uint8_t savedPage = haspGetPage();
     size_t line       = 1;
-    DynamicJsonDocument jsonl(4 * 128u); // max ~256 characters per line
+    DynamicJsonDocument jsonl(MQTT_MAX_PACKET_SIZE / 2); // max ~256 characters per line
     DeserializationError err = deserializeJson(jsonl, stream);
     stream.setTimeout(25);
 
