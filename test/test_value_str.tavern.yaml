@@ -1,0 +1,100 @@
+# test_page.tavern.yaml
+---
+
+test_name: Obj Standard Properties
+
+includes:
+  - !include config.yaml
+
+paho-mqtt:
+  client:
+    transport: tcp
+    client_id: tavern-tester
+  connect:
+    host: "{host}"
+    port: !int "{port:d}"
+    timeout: 3
+
+marks:
+  - parametrize:
+      key: objid
+      vals:
+        - 10
+        - 12
+        - 20
+        - 22
+        - 30
+        - 31
+        - 32
+#        - 33
+#        - 40
+        - 41
+        - 50
+        - 51
+        - 91
+#        - 90
+#        - 1
+        - 2
+        - 71
+        - 80
+
+  - parametrize:
+      key: str1
+      vals:
+        - "Test 123456 longer strings work too"
+        - "The cat stretched."
+        - "Jacob stood on his tiptoes."
+        - "The car turned the corner."
+        - "Kelly twirled in circles."
+        - "She opened the door."
+        - "Aaron made a picture."
+        - "I'm sorry."
+        - Test
+        - ABC
+        - huey
+        - dewey
+
+  - parametrize:
+      key: str2
+      vals:
+        - louie
+        - fred
+        - "I danced."
+        - "Oak is strong and also gives shade."
+        - "Cats and dogs each hate the other."
+        - "The pipe began to rust while new."
+        - "Open the crate but don't break the glass."
+        - "Add the sum to the product of these three."
+        - "Thieves who rob friends deserve jail."
+        - "The ripe taste of cheese improves with age."
+        - "Act on these orders with great speed."
+        - "The hog crawled under the high fence."
+        - "Move the vat over the hot fire."
+
+stages:
+  - name: Page 1
+    mqtt_publish:
+      topic: hasp/{plate}/command
+      payload: "page 1"
+    mqtt_response:
+      topic: hasp/{plate}/state/page
+      payload: "1"
+      timeout: 5
+    delay_after: 0
+
+
+
+  - name: Set value_str
+    mqtt_publish:
+      topic: hasp/{plate}/command
+      payload: "p[1].b[1].value_str={objid} {str1} {str2}"
+    delay_after: 0
+  - name: Get value_str
+    mqtt_publish:
+      topic: hasp/{plate}/command
+      payload: "p[1].b[1].value_str"
+    mqtt_response:
+      topic: hasp/{plate}/state/p1b1
+      json:
+        value_str: "{objid} {str1} {str2}"
+      timeout: 5
