@@ -661,17 +661,21 @@ static void gui_get_bitmap_header(uint8_t * buffer, size_t bufsize)
     buffer[28 + 0] = 16;       // or 24, bbp
     buffer[30 + 0] = 3;        // compression, 0 = RGB / 3 = RGBA
 
+    // The refresh draws the active screen only, so we need the dimensions of the active screen
+    // This could in be diferent from the display driver width/height if the screen has been resized
     lv_obj_t * scr = lv_disp_get_scr_act(NULL);
 
     // file size
     guiSetBmpHeader(&buffer[2], 122 + disp->driver.hor_res * disp->driver.ver_res * buffer[28] / 8);
     // horizontal resolution
-    guiSetBmpHeader(&buffer[18], lv_obj_get_width(scr)); // disp->driver.hor_res);
+    guiSetBmpHeader(&buffer[18], lv_obj_get_width(scr));
+    // guiSetBmpHeader(&buffer[18], disp->driver.hor_res);
     // vertical resolution
-    guiSetBmpHeader(&buffer[22], -lv_obj_get_height(scr)); //-disp->driver.ver_res);
+    guiSetBmpHeader(&buffer[22], -lv_obj_get_height(scr));
+    // guiSetBmpHeader(&buffer[22], -disp->driver.ver_res);
     // bitmap size
-    // guiSetBmpHeader(&buffer[34], disp->driver.hor_res * disp->driver.ver_res * buffer[28 + 0] / 8);
     guiSetBmpHeader(&buffer[34], lv_obj_get_width(scr) * lv_obj_get_height(scr) * buffer[28 + 0] / 8);
+    // guiSetBmpHeader(&buffer[34], disp->driver.hor_res * disp->driver.ver_res * buffer[28 + 0] / 8);
     // horizontal pixels per meter
     guiSetBmpHeader(&buffer[38], 2836);
     // vertical pixels per meter
@@ -735,7 +739,15 @@ void guiTakeScreenshot(const char * pFileName)
             void (*flush_cb)(struct _disp_drv_t * disp_drv, const lv_area_t * area, lv_color_t * color_p);
             flush_cb              = disp->driver.flush_cb; /* store callback */
             disp->driver.flush_cb = gui_screenshot_to_file;
+
             lv_obj_invalidate(lv_scr_act());
+            // lv_area_t scr_area;
+            // scr_area.x1 = 0;
+            // scr_area.y1 = 0;
+            // scr_area.x2 = lv_disp_get_hor_res(disp) - 1;
+            // scr_area.y2 = lv_disp_get_ver_res(disp) - 1;
+            // _lv_inv_area(disp, &scr_area);
+
             lv_refr_now(NULL);                /* Will call our disp_drv.disp_flush function */
             disp->driver.flush_cb = flush_cb; /* restore callback */
 
