@@ -1120,7 +1120,7 @@ void webHandleGuiConfig()
 
         httpMessage += F("<p><button type='submit' name='save' value='gui'>Save Settings</button></p></form>");
 
-        #if TOUCH_DRIVER == 2046 && USE_TFT_ESPI > 0
+        #if TOUCH_DRIVER == 2046 && defined(TOUCH_CS)
         httpMessage += PSTR("<p><form method='get' action='/config/gui'><button type='submit' name='action' "
                             "value='calibrate'>Calibrate</button></form></p>");
         #endif
@@ -1504,7 +1504,7 @@ void webHandleHaspConfig()
                          "name='filename' accept='.jsonl,.zi'>");
         httpMessage += F("<button type='submit'>Upload File</button></form></p><hr>");
 
-        //httpMessage += F("<form method='POST' action='/config'>");
+        // httpMessage += F("<form method='POST' action='/config'>");
         httpMessage += F("<form method='POST' action='/'>");
         httpMessage += F("<p><b>UI Theme</b> <i><small>(required)</small></i><select id='theme' name='theme'>");
 
