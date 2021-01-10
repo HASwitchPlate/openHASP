@@ -866,16 +866,15 @@ void hasp_new_object(const JsonObject & config, uint8_t & saved_page_id)
 void hasp_object_delete(lv_obj_t * obj)
 {
     switch(obj->user_data.objid) {
-        case LV_HASP_LINE: {
+        case LV_HASP_LINE:
             line_clear_points(obj);
             break;
-        }
+
         case LV_HASP_BTNMATRIX:
-            btnmatrix_clear_map(obj);
+            my_btnmatrix_map_clear(obj);
             break;
     }
 
-    // TODO: delete value_str data for all parts
-
+    // TODO: delete value_str data for ALL parts
     my_obj_set_value_str_txt(obj, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, NULL);
 }

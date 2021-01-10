@@ -325,18 +325,90 @@ void my_obj_set_value_str_txt(lv_obj_t * obj, uint8_t part, lv_state_t state, co
     // Log.verbose(TAG_ATTR, "%s %d", __FILE__, __LINE__);
 }
 
-void btnmatrix_clear_map(lv_obj_t * obj)
+void my_btnmatrix_map_clear(lv_obj_t * obj)
 {
     lv_btnmatrix_ext_t * ext = (lv_btnmatrix_ext_t *)lv_obj_get_ext_attr(obj);
+    const char ** map_p_tmp  = ext->map_p; // store current pointer
+
+    Log.verbose(TAG_ATTR, "%s %d %x   btn_cnt: %d", __FILE__, __LINE__, map_p_tmp, ext->btn_cnt);
+
     if(ext->map_p && (ext->btn_cnt > 0)) {
-        const char ** ptr = ext->map_p;
 
         // The map exists and is not the default lvgl map anymore
-        if(ptr && btnmatrix_default_map && (ptr != btnmatrix_default_map)) {
-            lv_btnmatrix_set_map(obj, btnmatrix_default_map); // reset default btnmap
-            lv_mem_free(ptr);                                 // destroy custom btnmap
-        }
+        if((map_p_tmp == NULL) || (btnmatrix_default_map == NULL) || (map_p_tmp == btnmatrix_default_map)) return;
+
+        Log.verbose(TAG_ATTR, "%s %d %x", __FILE__, __LINE__,
+                    *map_p_tmp);                                          // label buffer reserved as a contiguous block
+        Log.verbose(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, map_p_tmp); // label pointer array block
+        lv_btnmatrix_set_map(obj, btnmatrix_default_map);                 // reset to default btnmap pointer
+
+        Log.verbose(TAG_ATTR, "%s %d", __FILE__, __LINE__);
+        lv_mem_free(*map_p_tmp); // free label buffer reserved as a contiguous block
+        Log.verbose(TAG_ATTR, "%s %d", __FILE__, __LINE__);
+        lv_mem_free(map_p_tmp); // free label pointer array block
+        Log.verbose(TAG_ATTR, "%s %d", __FILE__, __LINE__);
     }
+}
+
+static void my_btnmatrix_map_create(lv_obj_t * obj, const char * payload)
+{
+    const char ** map_p = lv_btnmatrix_get_map_array(obj);
+
+    // Create new map
+    // Reserve memory for JsonDocument
+    size_t maxsize = (128u * ((strlen(payload) / 128) + 1)) + 256;
+    DynamicJsonDocument map_doc(maxsize);
+    DeserializationError jsonError = deserializeJson(map_doc, payload);
+
+    if(jsonError) { // Couldn't parse incoming JSON payload
+        return Log.warning(TAG_ATTR, F("JSON: Failed to parse incoming button map with error: %s"), jsonError.c_str());
+    }
+
+    JsonArray arr = map_doc.as<JsonArray>(); // Parse payload
+
+    size_t tot_len             = sizeof(char *) * (arr.size() + 1);
+    const char ** map_data_str = (const char **)lv_mem_alloc(tot_len);
+    if(map_data_str == NULL) {
+        return Log.error(TAG_ATTR, F("Out of memory while creating button map"));
+    }
+    memset(map_data_str, 0, tot_len);
+
+    // Create buffer
+    tot_len = 0;
+    for(JsonVariant btn : arr) {
+        tot_len += btn.as<String>().length() + 1;
+    }
+    tot_len++; // trailing '\0'
+    Log.verbose(TAG_ATTR, F("Array Size = %d, Map Length = %d"), arr.size(), tot_len);
+
+    char * buffer_addr = (char *)lv_mem_alloc(tot_len);
+    if(buffer_addr == NULL) {
+        lv_mem_free(map_data_str);
+        return Log.error(TAG_ATTR, F("Out of memory while creating button map"));
+    }
+    memset(buffer_addr, 0, tot_len); // Important, last index needs to be 0 => empty string ""
+
+    /* Point of no return, destroy & free the previous map */
+    Log.verbose(TAG_ATTR, "%s %d   map addr:  %x", __FILE__, __LINE__, map_data_str);
+    my_btnmatrix_map_clear(obj); // Free previous map
+
+    // Fill buffer
+    size_t index = 0;
+    size_t pos   = 0;
+    Log.verbose(TAG_ATTR, "%s %d   lbl addr:  %x", __FILE__, __LINE__, buffer_addr);
+    for(JsonVariant btn : arr) {
+        size_t len = btn.as<String>().length() + 1;
+        Log.verbose(TAG_ATTR, F("    * Adding button: %s (%d bytes) %x"), btn.as<String>().c_str(), len,
+                    buffer_addr + pos);
+        memccpy(buffer_addr + pos, btn.as<String>().c_str(), 0, len); // Copy the label text into the buffer
+        map_data_str[index++] = buffer_addr + pos;                    // save pointer to the label in the array
+        pos += len;
+    }
+    map_data_str[index] = buffer_addr + pos; // save pointer to the last \0 byte
+
+    Log.verbose(TAG_ATTR, "%s %d", __FILE__, __LINE__);
+    lv_btnmatrix_set_map(obj, map_data_str);
+    Log.verbose(TAG_ATTR, "%s %d", __FILE__, __LINE__);
 }
 
 void line_clear_points(lv_obj_t * obj)
@@ -1258,82 +1330,6 @@ static void hasp_process_gauge_attribute(lv_obj_t * obj, const char * attr_p, ui
     Log.warning(TAG_ATTR, F("Unknown property %s"), attr_p);
 }
 
-static void hasp_process_btnmatrix_attribute(lv_obj_t * obj, const char * attr_p, uint16_t attr_hash,
-                                             const char * payload, bool update)
-{
-    // We already know it's a btnmatrix object
-    char * attr = (char *)attr_p;
-    if(*attr == '.') attr++; // strip leading '.'
-
-    switch(attr_hash) {
-        case ATTR_MAP: {
-            const char ** map_p = lv_btnmatrix_get_map_array(obj);
-            if(update) {
-                // Free previous map
-                btnmatrix_clear_map(obj); // delete btnmap
-
-                // Create new map
-
-                // Reserve memory for JsonDocument
-                size_t maxsize = (128u * ((strlen(payload) / 128) + 1)) + 256;
-                DynamicJsonDocument map_doc(maxsize);
-                DeserializationError jsonError = deserializeJson(map_doc, payload);
-
-                if(jsonError) { // Couldn't parse incoming JSON payload
-                    return Log.warning(TAG_ATTR, F("JSON: Failed to parse incoming button map with error: %s"),
-                                       jsonError.c_str());
-                }
-
-                JsonArray arr = map_doc.as<JsonArray>(); // Parse payload
-
-                size_t tot_len        = sizeof(char *) * (arr.size() + 1);
-                const char ** map_arr = (const char **)lv_mem_alloc(tot_len);
-                if(map_arr == NULL) {
-                    return Log.error(TAG_ATTR, F("Out of memory while creating button map"));
-                }
-                memset(map_arr, 0, tot_len);
-
-                // Create buffer
-                tot_len    = 0;
-                size_t pos = 0;
-                for(JsonVariant btn : arr) {
-                    tot_len += btn.as<String>().length() + 1;
-                }
-                tot_len++; // trailing '\0'
-                Log.verbose(TAG_ATTR, F("Array Size = %d, Map Length = %d"), arr.size(), tot_len);
-
-                char * buffer = (char *)lv_mem_alloc(tot_len);
-                if(map_arr == NULL) {
-                    lv_mem_free(map_arr);
-                    return Log.error(TAG_ATTR, F("Out of memory while creating button map"));
-                }
-                memset(buffer, 0, tot_len); // Important, last index needs to be 0
-
-                // Fill buffer
-                size_t index = 0;
-                for(JsonVariant btn : arr) {
-                    size_t len = btn.as<String>().length() + 1;
-                    Log.verbose(TAG_ATTR, F("    * Adding button: %s (%d bytes)"), btn.as<String>().c_str(), len);
-                    memccpy(buffer + pos, btn.as<String>().c_str(), 0, len); // Copy the labels into the buffer
-                    map_arr[index++] = buffer + pos;                         // save pointer to start of the label
-                    pos += len;
-                }
-                map_arr[index] = buffer + pos; // save pointer to the last \0 byte
-
-                lv_btnmatrix_set_map(obj, map_arr);
-
-                // TO DO : free & destroy previous buttonmap!
-
-            } else {
-                hasp_out_str(obj, attr, *map_p);
-            }
-            return;
-        } // ATTR_MAP
-    }
-
-    Log.warning(TAG_ATTR, F("Unknown property %s"), attr_p);
-}
-
 // ##################### Common Attributes ########################################################
 
 static void hasp_process_obj_attribute_txt(lv_obj_t * obj, const char * attr, const char * payload, bool update)
@@ -1751,6 +1747,12 @@ void hasp_process_obj_attribute(lv_obj_t * obj, const char * attr_p, const char 
                 } else {
                     hasp_out_str(obj, attr, lv_roller_get_options(obj));
                 }
+            } else if(check_obj_type(obj, LV_HASP_BTNMATRIX)) {
+                if(update) {
+                    my_btnmatrix_map_create(obj, payload);
+                } else {
+                    hasp_out_str(obj, attr_p, "Not implemented"); // TODO : Literal String
+                }
             } else {
                 goto attribute_not_found;
             }
@@ -1786,9 +1788,17 @@ void hasp_process_obj_attribute(lv_obj_t * obj, const char * attr_p, const char 
             lv_obj_del_async(obj);
             break; // attribute_found
 
-        case ATTR_MAP:
+        case ATTR_RED: // TODO: remove temp RED
             if(check_obj_type(obj, LV_HASP_BTNMATRIX)) {
-                hasp_process_btnmatrix_attribute(obj, attr_p, attr_hash, payload, update);
+                my_btnmatrix_map_clear(obj); // TODO : remove this test property
+            } else {
+                goto attribute_not_found;
+            }
+            break;
+
+        case ATTR_MAP: // TODO: remove temp MAP, use options instead
+            if(check_obj_type(obj, LV_HASP_BTNMATRIX)) {
+                my_btnmatrix_map_create(obj, payload);
             } else {
                 goto attribute_not_found;
             }
