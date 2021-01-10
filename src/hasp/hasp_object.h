@@ -75,4 +75,39 @@ void IRAM_ATTR toggle_event_handler(lv_obj_t * obj, lv_event_t event);
 void slider_event_handler(lv_obj_t * obj, lv_event_t event);
 void wakeup_event_handler(lv_obj_t * obj, lv_event_t event);
 
+#define HASP_OBJ_BAR 1971
+#define HASP_OBJ_BTN 3164
+#define HASP_OBJ_CPICKER 3313
+#define HASP_OBJ_CB 6335
+#define HASP_OBJ_SPINNER 7097
+#define HASP_OBJ_MSGBOX 7498
+#define HASP_OBJ_TABLE 12078
+#define HASP_OBJ_ROLLER 13258
+#define HASP_OBJ_LABEL 13684
+#define HASP_OBJ_KEYBOARD 14343
+#define HASP_OBJ_PAGE 19759
+#define HASP_OBJ_WIN 20284
+#define HASP_OBJ_TEXTAREA 24186
+#define HASP_OBJ_IMGBTN 24441
+#define HASP_OBJ_SPINBOX 25641
+#define HASP_OBJ_CALENDAR 30334
+#define HASP_OBJ_IMG 30499
+#define HASP_OBJ_GAUGE 33145
+#define HASP_OBJ_CHART 34654
+#define HASP_OBJ_LINE 34804
+#define HASP_OBJ_LIST 35134
+#define HASP_OBJ_SLIDER 35265
+#define HASP_OBJ_CANVAS 35480
+#define HASP_OBJ_TILEVIEW 36019
+#define HASP_OBJ_CONT 36434
+#define HASP_OBJ_SWITCH 38484
+#define HASP_OBJ_LED 41899
+#define HASP_OBJ_DROPDOWN 49169
+#define HASP_OBJ_BTNMATRIX 49629
+#define HASP_OBJ_OBJ 53623
+#define HASP_OBJ_OBJMASK 55395
+#define HASP_OBJ_LMETER 62749
+#define HASP_OBJ_TABVIEW 63226
+#define HASP_OBJ_ARC 64594
+
 #endif

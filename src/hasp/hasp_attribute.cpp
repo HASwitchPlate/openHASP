@@ -1809,7 +1809,7 @@ void hasp_process_obj_attribute(lv_obj_t * obj, const char * attr_p, const char 
     }
 
 attribute_found:
-    Log.verbose(TAG_ATTR, F("%s (%d)"), attr_p, attr_hash);
+    // Log.verbose(TAG_ATTR, F("%s (%d)"), attr_p, attr_hash);
     // Log.verbose(TAG_ATTR, F("%s (%d) took %d ms."), attr_p, attr_hash, millis() - start);
     return;
 
