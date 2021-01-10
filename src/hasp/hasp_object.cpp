@@ -583,10 +583,11 @@ void hasp_new_object(const JsonObject & config, uint8_t & saved_page_id)
             case LV_HASP_BTNMATRIX:
                 obj = lv_btnmatrix_create(parent_obj, NULL);
                 if(obj) {
+                    lv_btnmatrix_set_recolor(obj, true);
                     lv_obj_set_event_cb(obj, btnmap_event_handler);
 
                     lv_btnmatrix_ext_t * ext = (lv_btnmatrix_ext_t *)lv_obj_get_ext_attr(obj);
-                    btnmatrix_default_map    = ext->map_p; // store the pointer to the default lvgl btnmap
+                    btnmatrix_default_map    = ext->map_p; // store the static pointer to the default lvgl btnmap
                 }
                 break;
             case LV_HASP_TABLE:
