@@ -854,7 +854,7 @@ static void hasp_attribute_get_part_state(lv_obj_t * obj, const char * attr_in, 
         if(index == 1) {
             part = LV_SLIDER_PART_INDIC;
         } else if(index == 2) {
-            part = LV_SLIDER_PART_KNOB;
+            if(!check_obj_type(obj, LV_HASP_BAR)) part = LV_SLIDER_PART_KNOB;
         } else {
             part = LV_SLIDER_PART_BG;
         }
