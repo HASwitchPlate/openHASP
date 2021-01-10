@@ -661,14 +661,17 @@ static void gui_get_bitmap_header(uint8_t * buffer, size_t bufsize)
     buffer[28 + 0] = 16;       // or 24, bbp
     buffer[30 + 0] = 3;        // compression, 0 = RGB / 3 = RGBA
 
+    lv_obj_t * scr = lv_disp_get_scr_act(NULL);
+
     // file size
     guiSetBmpHeader(&buffer[2], 122 + disp->driver.hor_res * disp->driver.ver_res * buffer[28] / 8);
     // horizontal resolution
-    guiSetBmpHeader(&buffer[18], disp->driver.hor_res);
+    guiSetBmpHeader(&buffer[18], lv_obj_get_width(scr)); // disp->driver.hor_res);
     // vertical resolution
-    guiSetBmpHeader(&buffer[22], -disp->driver.ver_res);
+    guiSetBmpHeader(&buffer[22], -lv_obj_get_height(scr)); //-disp->driver.ver_res);
     // bitmap size
-    guiSetBmpHeader(&buffer[34], disp->driver.hor_res * disp->driver.ver_res * buffer[28 + 0] / 8);
+    // guiSetBmpHeader(&buffer[34], disp->driver.hor_res * disp->driver.ver_res * buffer[28 + 0] / 8);
+    guiSetBmpHeader(&buffer[34], lv_obj_get_width(scr) * lv_obj_get_height(scr) * buffer[28 + 0] / 8);
     // horizontal pixels per meter
     guiSetBmpHeader(&buffer[38], 2836);
     // vertical pixels per meter
