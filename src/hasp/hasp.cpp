@@ -229,7 +229,11 @@ void haspProgressVal(uint8_t val)
             if(!lv_obj_get_hidden(bar)) {
                 lv_obj_set_hidden(bar, true);
                 lv_obj_set_style_local_bg_opa(layer, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_0);
-                lv_obj_set_style_local_value_str(bar, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, "");
+
+                // lv_obj_set_style_local_value_str(bar, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, "");
+                // lv_obj_set_value_str_txt(bar, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, NULL); //TODO: call our custom
+                // function to free the memory
+                
 #if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
                 // progress_str.clear();
 #endif
