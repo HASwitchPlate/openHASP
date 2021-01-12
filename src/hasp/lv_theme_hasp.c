@@ -221,7 +221,8 @@ static void basic_init(void)
     // Objects with transparent background, like Checkbox, container
     style_init_reset(&styles->transparent);
     lv_style_set_bg_opa(&styles->transparent, LV_STATE_DEFAULT, LV_OPA_TRANSP);
-    lv_style_set_border_width(&styles->transparent, LV_STATE_DEFAULT, 0);
+    lv_style_set_border_opa(&styles->transparent, LV_STATE_DEFAULT, LV_OPA_TRANSP);
+    lv_style_set_outline_opa(&styles->transparent, LV_STATE_DEFAULT, LV_OPA_TRANSP);
     lv_style_set_value_color(&styles->transparent, LV_STATE_DEFAULT, COLOR_SCR_TEXT);
     lv_style_set_value_font(&styles->transparent, LV_STATE_DEFAULT, theme.font_subtitle);
 
@@ -604,10 +605,10 @@ static void arc_init(void)
     lv_style_set_line_rounded(&styles->arc_indic, LV_STATE_DEFAULT, true);
 
     style_init_reset(&styles->arc_bg);
-    lv_style_set_line_color(&styles->arc_bg, LV_STATE_DEFAULT, lv_color_mix(BORDER_COLOR,COLOR_SCR_GRAD,128));
+    lv_style_set_line_color(&styles->arc_bg, LV_STATE_DEFAULT, lv_color_mix(BORDER_COLOR, COLOR_SCR_GRAD, 128));
     lv_style_set_line_width(&styles->arc_bg, LV_STATE_DEFAULT, LV_DPX(25));
     lv_style_set_line_rounded(&styles->arc_bg, LV_STATE_DEFAULT, true);
-    lv_style_set_radius(&styles->arc_bg, LV_STATE_DEFAULT,   LV_RADIUS_CIRCLE);
+    lv_style_set_radius(&styles->arc_bg, LV_STATE_DEFAULT, LV_RADIUS_CIRCLE);
     lv_style_set_border_width(&styles->arc_bg, LV_STATE_DEFAULT, LV_DPX(25));
     /*
         lv_style_set_border_opa(&styles->pretty_color, LV_STATE_DEFAULT, LV_OPA_TRANSP);
