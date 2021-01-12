@@ -272,7 +272,7 @@ static inline void hasp_send_obj_attribute_txt(lv_obj_t * obj, const char * txt)
  * @param obj pointer to a button object
  * @param event type of event that occured
  */
-void IRAM_ATTR btn_event_handler(lv_obj_t * obj, lv_event_t event)
+void IRAM_ATTR generic_event_handler(lv_obj_t * obj, lv_event_t event)
 {
     uint8_t eventid;
 
@@ -281,22 +281,23 @@ void IRAM_ATTR btn_event_handler(lv_obj_t * obj, lv_event_t event)
             eventid              = HASP_EVENT_DOWN;
             last_press_was_short = false;
             break;
+
         case LV_EVENT_CLICKED:
             // UP = the same object was release then was pressed and press was not lost!
-            if(last_press_was_short)
-                eventid = HASP_EVENT_SHORT;
-            else
-                eventid = HASP_EVENT_UP;
+            eventid = last_press_was_short ? HASP_EVENT_SHORT : HASP_EVENT_UP;
             break;
+
         case LV_EVENT_SHORT_CLICKED:
             last_press_was_short = true; // Avoid SHORT + UP double events
             return;
+
             // eventid = HASP_EVENT_SHORT;
             // break;
         case LV_EVENT_LONG_PRESSED:
             eventid              = HASP_EVENT_LONG;
             last_press_was_short = false;
             break;
+
         case LV_EVENT_LONG_PRESSED_REPEAT:
             // last_press_was_short = false;
             return; // we don't care about hold
@@ -306,6 +307,7 @@ void IRAM_ATTR btn_event_handler(lv_obj_t * obj, lv_event_t event)
             eventid              = HASP_EVENT_LOST;
             last_press_was_short = false;
             break;
+
         case LV_EVENT_PRESSING:
         case LV_EVENT_FOCUSED:
         case LV_EVENT_DEFOCUSED:
@@ -322,6 +324,7 @@ void IRAM_ATTR btn_event_handler(lv_obj_t * obj, lv_event_t event)
             hasp_object_delete(obj); // free and destroy persistent memory allocated for certain objects
             last_press_was_short = false;
             return;
+
         default:
             Log.warning(TAG_HASP, F("Unknown Event %d occured"), event);
             last_press_was_short = false;
@@ -342,38 +345,6 @@ void wakeup_event_handler(lv_obj_t * obj, lv_event_t event)
     if(obj == lv_disp_get_layer_sys(NULL)) {
         hasp_update_sleep_state();    // wakeup?
         lv_obj_set_click(obj, false); // disable fist click
-    }
-}
-
-/**
- * Called when a button matrix object is clicked
- * @param obj pointer to a button matrix
- * @param event type of event that occured
- */
-static void btnmap_event_handler(lv_obj_t * obj, lv_event_t event)
-{
-    if(event == LV_EVENT_VALUE_CHANGED) {
-        hasp_update_sleep_state(); // wakeup?
-        hasp_send_obj_attribute_val(obj, lv_btnmatrix_get_active_btn(obj));
-    } else if(event == LV_EVENT_DELETE) {
-        Log.verbose(TAG_HASP, F("Object deleted Event %d occured"), event);
-        hasp_object_delete(obj);
-    }
-}
-
-/**
- * Called when a table object is clicked
- * @param obj pointer to a table
- * @param event type of event that occured
- */
-static void table_event_handler(lv_obj_t * obj, lv_event_t event)
-{
-    if(event == LV_EVENT_VALUE_CHANGED) {
-        hasp_update_sleep_state(); // wakeup?
-
-        uint16_t row;
-        uint16_t col;
-        if(lv_table_get_pressed_cell(obj, &row, &col) == LV_RES_OK) hasp_send_obj_attribute_val(obj, row);
     }
 }
 
@@ -432,9 +403,9 @@ static void checkbox_event_handler(lv_obj_t * obj, lv_event_t event)
 static void selector_event_handler(lv_obj_t * obj, lv_event_t event)
 {
     if(event == LV_EVENT_VALUE_CHANGED) {
-        uint16_t val = 0;
-        char property[20];
         char buffer[128];
+        char property[36];
+        uint16_t val = 0;
 
         hasp_update_sleep_state(); // wakeup?
 
@@ -449,10 +420,32 @@ static void selector_event_handler(lv_obj_t * obj, lv_event_t event)
                 lv_roller_get_selected_str(obj, buffer, sizeof(buffer));
                 break;
 
+            case LV_HASP_BTNMATRIX: {
+                val              = lv_btnmatrix_get_active_btn(obj);
+                const char * txt = lv_btnmatrix_get_btn_text(obj, val);
+                strncpy(buffer, txt, sizeof(buffer));
+                break;
+            }
+
+            case LV_HASP_TABLE: {
+                uint16_t row;
+                uint16_t col;
+                if(lv_table_get_pressed_cell(obj, &row, &col) != LV_RES_OK) return; // outside any cell
+
+                const char * txt = lv_table_get_cell_value(obj, row, col);
+                strncpy(buffer, txt, sizeof(buffer));
+
+                snprintf_P(property, sizeof(property), PSTR("row\":%d,\"col\":%d,\"txt"), row, col);
+                goto property_set;
+            }
+
             default:
                 return;
         }
+        // set the property
         snprintf_P(property, sizeof(property), PSTR("val\":%d,\"txt"), val);
+
+    property_set:
         hasp_send_obj_attribute_str(obj, property, buffer);
     } else if(event == LV_EVENT_DELETE) {
         Log.verbose(TAG_HASP, F("Object deleted Event %d occured"), event);
@@ -480,8 +473,17 @@ void slider_event_handler(lv_obj_t * obj, lv_event_t event)
                     return;
                 }
         */
+
+        int16_t val;
+        if(obj->user_data.objid == LV_HASP_SLIDER) {
+            val = lv_slider_get_value(obj);
+        } else if(obj->user_data.objid == LV_HASP_ARC) {
+            val = lv_arc_get_value(obj);
+        } else {
+            return;
+        }
         hasp_send_obj_attribute_val(obj, lv_slider_get_value(obj));
-        //        last_change_event = millis();
+
     } else if(event == LV_EVENT_DELETE) {
         Log.verbose(TAG_HASP, F("Object deleted Event %d occured"), event);
         hasp_object_delete(obj);
@@ -594,7 +596,7 @@ void hasp_new_object(const JsonObject & config, uint8_t & saved_page_id)
                 obj = lv_btnmatrix_create(parent_obj, NULL);
                 if(obj) {
                     lv_btnmatrix_set_recolor(obj, true);
-                    lv_obj_set_event_cb(obj, btnmap_event_handler);
+                    lv_obj_set_event_cb(obj, selector_event_handler);
 
                     lv_btnmatrix_ext_t * ext = (lv_btnmatrix_ext_t *)lv_obj_get_ext_attr(obj);
                     btnmatrix_default_map    = ext->map_p; // store the static pointer to the default lvgl btnmap
@@ -606,7 +608,7 @@ void hasp_new_object(const JsonObject & config, uint8_t & saved_page_id)
             case HASP_OBJ_TABLE:
                 obj = lv_table_create(parent_obj, NULL);
                 if(obj) {
-                    lv_obj_set_event_cb(obj, table_event_handler);
+                    lv_obj_set_event_cb(obj, selector_event_handler);
                     obj->user_data.objid = LV_HASP_TABLE;
                 }
                 break;
@@ -621,7 +623,7 @@ void hasp_new_object(const JsonObject & config, uint8_t & saved_page_id)
                         lbl->user_data.objid = LV_HASP_LABEL;
                         lv_obj_align(lbl, NULL, LV_ALIGN_CENTER, 0, 0);
                     }
-                    lv_obj_set_event_cb(obj, btn_event_handler);
+                    lv_obj_set_event_cb(obj, generic_event_handler);
                     obj->user_data.objid = LV_HASP_BUTTON;
                 }
                 break;
@@ -640,26 +642,16 @@ void hasp_new_object(const JsonObject & config, uint8_t & saved_page_id)
                 obj = lv_label_create(parent_obj, NULL);
                 if(obj) {
                     lv_label_set_long_mode(obj, LV_LABEL_LONG_CROP);
-                    lv_obj_set_event_cb(obj, btn_event_handler);
+                    lv_obj_set_event_cb(obj, generic_event_handler);
                     obj->user_data.objid = LV_HASP_LABEL;
                 }
-                /* click area padding */
-                //  uint8_t padh = config[F("padh")].as<uint8_t>();
-                //  uint8_t padv = config[F("padv")].as<uint8_t>();
-                /* text align */
-                // if(padh > 0 || padv > 0) {
-                //     lv_obj_set_ext_click_area(obj, padh, padh, padv, padv);
-                // }
-                // if(!config[F("align")].isNull()) {
-                //     lv_label_set_align(obj, LV_LABEL_ALIGN_CENTER);
-                // }
                 break;
 
             case LV_HASP_IMAGE:
             case HASP_OBJ_IMG:
                 obj = lv_img_create(parent_obj, NULL);
                 if(obj) {
-                    lv_obj_set_event_cb(obj, btn_event_handler);
+                    lv_obj_set_event_cb(obj, generic_event_handler);
                     obj->user_data.objid = LV_HASP_IMAGE;
                 }
                 break;
@@ -668,7 +660,7 @@ void hasp_new_object(const JsonObject & config, uint8_t & saved_page_id)
             case HASP_OBJ_ARC:
                 obj = lv_arc_create(parent_obj, NULL);
                 if(obj) {
-                    lv_obj_set_event_cb(obj, btn_event_handler);
+                    lv_obj_set_event_cb(obj, generic_event_handler);
                     obj->user_data.objid = LV_HASP_ARC;
                 }
                 break;
@@ -677,7 +669,7 @@ void hasp_new_object(const JsonObject & config, uint8_t & saved_page_id)
             case HASP_OBJ_CONT:
                 obj = lv_cont_create(parent_obj, NULL);
                 if(obj) {
-                    lv_obj_set_event_cb(obj, btn_event_handler);
+                    lv_obj_set_event_cb(obj, generic_event_handler);
                     obj->user_data.objid = LV_HASP_CONTAINER;
                 }
                 break;
@@ -686,7 +678,7 @@ void hasp_new_object(const JsonObject & config, uint8_t & saved_page_id)
             case HASP_OBJ_OBJ:
                 obj = lv_obj_create(parent_obj, NULL);
                 if(obj) {
-                    lv_obj_set_event_cb(obj, btn_event_handler);
+                    lv_obj_set_event_cb(obj, generic_event_handler);
                     obj->user_data.objid = LV_HASP_OBJECT;
                 }
                 break;
@@ -713,7 +705,7 @@ void hasp_new_object(const JsonObject & config, uint8_t & saved_page_id)
             case HASP_OBJ_LED:
                 obj = lv_led_create(parent_obj);
                 if(obj) {
-                    lv_obj_set_event_cb(obj, btn_event_handler);
+                    lv_obj_set_event_cb(obj, generic_event_handler);
                     obj->user_data.objid = LV_HASP_LED;
                 }
                 break;
@@ -747,7 +739,7 @@ void hasp_new_object(const JsonObject & config, uint8_t & saved_page_id)
             case HASP_OBJ_LED:
                 obj = lv_led_create(parent_obj, NULL);
                 if(obj) {
-                    lv_obj_set_event_cb(obj, btn_event_handler);
+                    lv_obj_set_event_cb(obj, generic_event_handler);
                     obj->user_data.objid = LV_HASP_LED;
                 }
                 break;
@@ -814,7 +806,7 @@ void hasp_new_object(const JsonObject & config, uint8_t & saved_page_id)
                 obj = lv_gauge_create(parent_obj, NULL);
                 if(obj) {
                     lv_gauge_set_range(obj, 0, 100);
-                    lv_obj_set_event_cb(obj, btn_event_handler);
+                    lv_obj_set_event_cb(obj, generic_event_handler);
                     obj->user_data.objid = LV_HASP_GAUGE;
                 }
                 break;
@@ -824,7 +816,7 @@ void hasp_new_object(const JsonObject & config, uint8_t & saved_page_id)
                 obj = lv_bar_create(parent_obj, NULL);
                 if(obj) {
                     lv_bar_set_range(obj, 0, 100);
-                    lv_obj_set_event_cb(obj, btn_event_handler);
+                    lv_obj_set_event_cb(obj, generic_event_handler);
                     obj->user_data.objid = LV_HASP_BAR;
                 }
                 break;
@@ -834,7 +826,7 @@ void hasp_new_object(const JsonObject & config, uint8_t & saved_page_id)
                 obj = lv_linemeter_create(parent_obj, NULL);
                 if(obj) {
                     lv_linemeter_set_range(obj, 0, 100);
-                    lv_obj_set_event_cb(obj, btn_event_handler);
+                    lv_obj_set_event_cb(obj, generic_event_handler);
                     obj->user_data.objid = LV_HASP_LMETER;
                 }
                 break;
@@ -844,7 +836,7 @@ void hasp_new_object(const JsonObject & config, uint8_t & saved_page_id)
                 obj = lv_chart_create(parent_obj, NULL);
                 if(obj) {
                     lv_chart_set_range(obj, 0, 100);
-                    lv_obj_set_event_cb(obj, btn_event_handler);
+                    lv_obj_set_event_cb(obj, generic_event_handler);
 
                     lv_chart_add_series(obj, LV_COLOR_RED);
                     lv_chart_add_series(obj, LV_COLOR_GREEN);
@@ -958,6 +950,10 @@ void hasp_object_delete(lv_obj_t * obj)
 
         case LV_HASP_BTNMATRIX:
             my_btnmatrix_map_clear(obj);
+            _LV_WIN_PART_REAL_LAST; _LV_WIN_PART_VIRTUAL_LAST;
+            break;
+
+        case LV_HASP_GAUGE:
             break;
     }
 

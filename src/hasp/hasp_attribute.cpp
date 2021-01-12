@@ -1218,7 +1218,7 @@ static void hasp_process_arc_attribute(lv_obj_t * obj, const char * attr_p, uint
             if(update) {
                 bool toggle = hasp_util_is_true(payload);
                 lv_arc_set_adjustable(obj, toggle);
-                lv_obj_set_event_cb(obj, toggle ? slider_event_handler : btn_event_handler);
+                lv_obj_set_event_cb(obj, toggle ? slider_event_handler : generic_event_handler);
             } else {
                 hasp_out_int(obj, attr, lv_arc_get_adjustable(obj));
             }
@@ -1724,7 +1724,7 @@ void hasp_process_obj_attribute(lv_obj_t * obj, const char * attr_p, const char 
                 if(update) {
                     bool toggle = hasp_util_is_true(payload);
                     lv_btn_set_checkable(obj, toggle);
-                    lv_obj_set_event_cb(obj, toggle ? toggle_event_handler : btn_event_handler);
+                    lv_obj_set_event_cb(obj, toggle ? toggle_event_handler : generic_event_handler);
                 } else {
                     hasp_out_int(obj, attr, lv_btn_get_checkable(obj));
                 }
