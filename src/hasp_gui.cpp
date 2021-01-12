@@ -278,7 +278,8 @@ void guiSetup()
 
     #ifdef USE_DMA_TO_TFT
     static lv_color_t *guiVdbBuffer1, *guiVdbBuffer2 = NULL;
-    size_t guiVDBsize = 4 * 1024u; // 16 KBytes * 2
+    // DMA: len must be less than 32767
+    size_t guiVDBsize = 15 * 1024u; // 15 KBytes * 2
     guiVdbBuffer1     = (lv_color_t *)heap_caps_malloc(sizeof(lv_color_t) * guiVDBsize, MALLOC_CAP_DMA);
     lv_disp_buf_init(&disp_buf, guiVdbBuffer1, NULL, guiVDBsize);
         // guiVdbBuffer2 = (lv_color_t *)heap_caps_malloc(sizeof(lv_color_t) * guiVDBsize,   MALLOC_CAP_DMA);
