@@ -80,20 +80,16 @@ static void kb_event_cb(lv_obj_t * event_kb, lv_event_t event)
             Log.notice(TAG_OOBE, F("SSID %s validated"), ssid);
             dispatch_reboot(true);
         }
-    
-}
-else if(event == LV_EVENT_CANCEL)
-{
-    oobeSetPage(0);
-    lv_obj_set_click(lv_disp_get_layer_sys(NULL), true);
-}
-else
-{
-    /* prevent double presses, swipes and ghost press on tiny keyboard */
-    if(event == LV_EVENT_RELEASED) lv_keyboard_def_event_cb(event_kb, LV_EVENT_VALUE_CHANGED);
-    /* Just call the regular event handler */
-    // lv_kb_def_event_cb(event_kb, event);
-}
+
+    } else if(event == LV_EVENT_CANCEL) {
+        oobeSetPage(0);
+        lv_obj_set_click(lv_disp_get_layer_sys(NULL), true);
+    } else {
+        /* prevent double presses, swipes and ghost press on tiny keyboard */
+        if(event == LV_EVENT_RELEASED) lv_keyboard_def_event_cb(event_kb, LV_EVENT_VALUE_CHANGED);
+        /* Just call the regular event handler */
+        // lv_kb_def_event_cb(event_kb, event);
+    }
 }
 static void ta_event_cb(lv_obj_t * ta, lv_event_t event)
 {
