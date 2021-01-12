@@ -11,6 +11,7 @@
     #include "tft_espi_drv.h"
 #endif
 
-    void drv_display_init(uint8_t rotation);
+void drv_display_init(lv_disp_drv_t * disp_drv, uint8_t rotation, bool invert_display);
+void drv_display_flush_cb(lv_disp_drv_t * disp, const lv_area_t * area, lv_color_t * color_p);
 
 #endif
