@@ -45,36 +45,28 @@ File pFileOut;
 #ifndef TFT_ROTATION
     #define TFT_ROTATION 0
 #endif
+#ifndef INVERT_COLORS
+    #define INVERT_COLORS 0
+#endif
 
 static void IRAM_ATTR lv_tick_handler(void);
 
-static bool guiShowPointer    = false;
-static bool guiBacklightIsOn  = true;
-static int8_t guiDimLevel     = -1;
-static int8_t guiBacklightPin = TFT_BCKL;
-static uint16_t guiSleepTime1 = 60;  // 1 second resolution
-static uint16_t guiSleepTime2 = 120; // 1 second resolution
-static uint8_t guiTickPeriod  = 20;
-static uint8_t guiRotation    = TFT_ROTATION;
-static uint16_t calData[5]    = {0, 65535, 0, 65535, 0};
+static bool guiShowPointer      = false;
+static bool guiBacklightIsOn    = true;
+static int8_t guiDimLevel       = -1;
+static int8_t guiBacklightPin   = TFT_BCKL;
+static uint16_t guiSleepTime1   = 60;  // 1 second resolution
+static uint16_t guiSleepTime2   = 120; // 1 second resolution
+static uint8_t guiTickPeriod    = 20;
+static uint8_t guiRotation      = TFT_ROTATION;
+static uint8_t guiInvertDisplay = INVERT_COLORS;
+static uint16_t calData[5]      = {0, 65535, 0, 65535, 0};
 
 #if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
 static Ticker tick; /* timer for interrupt handler */
 #else
 static Ticker tick(lv_tick_handler, LVGL_TICK_PERIOD); // guiTickPeriod);
 #endif
-
-/* **************************** FLUSH DATA TO TFT ******************************* */
-
-/* Defines the actual driver callback to use */
-static void gui_flush_cb(lv_disp_drv_t * disp, const lv_area_t * area, lv_color_t * color_p)
-{
-#if defined(USE_FSMC)
-    fsmc_ili9341_flush(disp, area, color_p);
-#else
-    tft_espi_flush(disp, area, color_p);
-#endif
-}
 
 /* **************************** GUI TICKER ************************************** */
 
@@ -251,9 +243,8 @@ void guiCalibrate()
 void guiSetup()
 {
     // Driver intializations:
-    drv_display_init(guiRotation); // Display
-    drv_touch_init(guiRotation);   // Touch
-    lv_init();                     // GUI
+    drv_touch_init(guiRotation); // Touch
+    lv_init();                   // GUI
 
 #if 0
     tft.begin();
@@ -364,8 +355,8 @@ void guiSetup()
     /* Initialize the display driver */
     lv_disp_drv_t disp_drv;
     lv_disp_drv_init(&disp_drv);
-    disp_drv.buffer   = &disp_buf;
-    disp_drv.flush_cb = gui_flush_cb; // static void that uses the appropriate driver
+    drv_display_init(&disp_drv, guiRotation, guiInvertDisplay); // Set display driver callback & rotation
+    disp_drv.buffer = &disp_buf;
 
     if(guiRotation == 0 || guiRotation == 2 || guiRotation == 4 || guiRotation == 6) {
         /* 1/3=Landscape or 0/2=Portrait orientation */
@@ -711,7 +702,7 @@ static void gui_screenshot_to_file(lv_disp_drv_t * disp, const lv_area_t * area,
     len *= sizeof(lv_color_t);                                          /* Number of bytes */
     size_t res = pFileOut.write((uint8_t *)color_p, len);
     if(res != len) gui_flush_not_complete();
-    gui_flush_cb(disp, area, color_p);
+    drv_display_flush_cb(disp, area, color_p); // indirect callback to flush screenshot data to the screen
 }
 
 /** Take Screenshot.
@@ -742,13 +733,6 @@ void guiTakeScreenshot(const char * pFileName)
             disp->driver.flush_cb = gui_screenshot_to_file;
 
             lv_obj_invalidate(lv_scr_act());
-            // lv_area_t scr_area;
-            // scr_area.x1 = 0;
-            // scr_area.y1 = 0;
-            // scr_area.x2 = lv_disp_get_hor_res(disp) - 1;
-            // scr_area.y2 = lv_disp_get_ver_res(disp) - 1;
-            // _lv_inv_area(disp, &scr_area);
-
             lv_refr_now(NULL);                /* Will call our disp_drv.disp_flush function */
             disp->driver.flush_cb = flush_cb; /* restore callback */
 
@@ -773,7 +757,7 @@ static void gui_screenshot_to_http(lv_disp_drv_t * disp, const lv_area_t * area,
     len *= sizeof(lv_color_t);                                          /* Number of bytes */
     size_t res = httpClientWrite((uint8_t *)color_p, len);
     if(res != len) gui_flush_not_complete();
-    gui_flush_cb(disp, area, color_p);
+    drv_display_flush_cb(disp, area, color_p);
 }
 
 /** Take Screenshot.
