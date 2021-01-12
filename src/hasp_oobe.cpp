@@ -3,27 +3,27 @@
 
 #if HASP_USE_CONFIG > 0
 
-#include "hasp_conf.h"
+    #include "hasp_conf.h"
 
-#include "lvgl.h"
-#if LVGL_VERSION_MAJOR != 7
-#include "../lv_components.h"
-#endif
+    #include "lvgl.h"
+    #if LVGL_VERSION_MAJOR != 7
+        #include "../lv_components.h"
+    #endif
 
-#include "hasp_gui.h"
-#include "hasp_config.h"
+    #include "hasp_gui.h"
+    #include "hasp_config.h"
 
-#include "net/hasp_wifi.h"
-#include "hasp/hasp_dispatch.h"
-#include "hasp/hasp_object.h"
+    #include "net/hasp_wifi.h"
+    #include "hasp/hasp_dispatch.h"
+    #include "hasp/hasp_object.h"
 
 static bool oobeAutoCalibrate = true;
 
-#if HASP_USE_WIFI > 0
+    #if HASP_USE_WIFI > 0
 
-#if HASP_USE_QRCODE > 0
-#include "lv_qrcode.h"
-#endif
+        #if HASP_USE_QRCODE > 0
+            #include "lv_qrcode.h"
+        #endif
 
 static lv_obj_t * oobepage[2];
 static lv_obj_t * oobekb;
@@ -58,8 +58,8 @@ static void kb_event_cb(lv_obj_t * event_kb, lv_event_t event)
 {
     if(event == LV_EVENT_APPLY) {
         DynamicJsonDocument settings(256);
-        char ssid[32];
-        char pass[32];
+        char ssid[32] = "";
+        char pass[32] = "";
         lv_obj_t * obj;
 
         obj = hasp_find_obj_from_parent_id(oobepage[1], (uint8_t)10);
@@ -69,30 +69,31 @@ static void kb_event_cb(lv_obj_t * event_kb, lv_event_t event)
             if(oobekb != NULL) lv_keyboard_set_textarea(oobekb, obj);
         }
 
-        obj = hasp_find_obj_from_parent_id(oobepage[1],(uint8_t) 20);
+        obj = hasp_find_obj_from_parent_id(oobepage[1], (uint8_t)20);
         if(obj) {
             strncpy(pass, lv_textarea_get_text(obj), sizeof(pass));
             settings[FPSTR(F_CONFIG_PASS)] = pass;
         }
 
-        if(strlen(ssid) > 0) {
-            if(wifiValidateSsid(ssid, pass)) {
-                wifiSetConfig(settings.as<JsonObject>());
-                Log.notice(TAG_OOBE, F("SSID validated, rebooting..."));
-                dispatch_reboot(true);
-            }
+        if(strlen(ssid) > 0 && wifiValidateSsid(ssid, pass)) {
+            wifiSetConfig(settings.as<JsonObject>());
+            Log.notice(TAG_OOBE, F("SSID %s validated"), ssid);
+            dispatch_reboot(true);
         }
-
-    } else if(event == LV_EVENT_CANCEL) {
-        oobeSetPage(0);
-        lv_obj_set_click(lv_disp_get_layer_sys(NULL), true);
-
-    } else {
-        /* prevent double presses, swipes and ghost press on tiny keyboard */
-        if(event == LV_EVENT_RELEASED) lv_keyboard_def_event_cb(event_kb, LV_EVENT_VALUE_CHANGED);
-        /* Just call the regular event handler */
-        // lv_kb_def_event_cb(event_kb, event);
-    }
+    
+}
+else if(event == LV_EVENT_CANCEL)
+{
+    oobeSetPage(0);
+    lv_obj_set_click(lv_disp_get_layer_sys(NULL), true);
+}
+else
+{
+    /* prevent double presses, swipes and ghost press on tiny keyboard */
+    if(event == LV_EVENT_RELEASED) lv_keyboard_def_event_cb(event_kb, LV_EVENT_VALUE_CHANGED);
+    /* Just call the regular event handler */
+    // lv_kb_def_event_cb(event_kb, event);
+}
 }
 static void ta_event_cb(lv_obj_t * ta, lv_event_t event)
 {
@@ -128,10 +129,10 @@ static void oobeSetupQR(const char * ssid, const char * pass)
     char buffer[128];
     lv_obj_t * container = lv_cont_create(oobepage[0], NULL);
     lv_obj_set_pos(container, 5, 5);
-    lv_obj_set_style_local_bg_opa(container, LV_ARC_PART_BG, LV_STATE_DEFAULT, 0);
-    lv_obj_set_style_local_border_opa(container, LV_ARC_PART_BG, LV_STATE_DEFAULT, 0);
+        // lv_obj_set_style_local_bg_opa(container, LV_ARC_PART_BG, LV_STATE_DEFAULT, 0);
+        // lv_obj_set_style_local_border_opa(container, LV_ARC_PART_BG, LV_STATE_DEFAULT, 0);
 
-#if HASP_USE_QRCODE > 0
+        #if HASP_USE_QRCODE > 0
     snprintf_P(buffer, sizeof(buffer), PSTR("WIFI:S:%s;T:WPA;P:%s;;"), ssid, pass);
 
     lv_obj_t * qr = lv_qrcode_create(oobepage[0], 120, LV_COLOR_BLACK, LV_COLOR_WHITE);
@@ -151,10 +152,10 @@ static void oobeSetupQR(const char * ssid, const char * pass)
         lv_obj_align(qrlabel, qr, LV_ALIGN_OUT_BOTTOM_MID, 0, 5);
     }
 
-#else
+        #else
 
     lv_obj_set_size(container, disp->driver.hor_res, disp->driver.ver_res);
-#endif
+        #endif
 
     lv_obj_t * aplabel = lv_label_create(container, NULL);
     snprintf_P(buffer, sizeof(buffer), PSTR("Tap the screen to setup WiFi or connect to this Access Point:"));
@@ -188,14 +189,15 @@ static void oobeSetupQR(const char * ssid, const char * pass)
 static void oobeSetupSsid(void)
 {
     lv_font_t * defaultfont;
-#if defined(ARDUINO_ARCH_ESP32)
+        #if defined(ARDUINO_ARCH_ESP32)
     defaultfont = &lv_font_montserrat_12;
-#else
+        #else
     defaultfont = LV_FONT_DEFAULT;
-#endif
+        #endif
 
     lv_coord_t leftmargin, topmargin, voffset;
     lv_align_t labelpos;
+    lv_obj_user_data_t udata = {0, 0, 0};
 
     lv_disp_t * disp = lv_disp_get_default();
     if(disp->driver.hor_res <= disp->driver.ver_res) {
@@ -222,7 +224,7 @@ static void oobeSetupSsid(void)
     lv_textarea_set_pwd_mode(pwd_ta, true);
     lv_textarea_set_one_line(pwd_ta, true);
     lv_textarea_set_cursor_hidden(pwd_ta, true);
-    lv_obj_user_data_t udata = (lv_obj_user_data_t){20, 1, 0};
+    udata.id = 20;
     lv_obj_set_user_data(pwd_ta, udata);
     lv_obj_set_width(pwd_ta, disp->driver.hor_res - leftmargin - 20 - lv_obj_get_height(pwd_ta));
     lv_obj_set_event_cb(pwd_ta, ta_event_cb);
@@ -243,7 +245,8 @@ static void oobeSetupSsid(void)
     lv_obj_set_style_local_text_font(oneline_ta, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, defaultfont);
 
     lv_textarea_set_pwd_mode(oneline_ta, false);
-    lv_obj_set_user_data(oneline_ta, (lv_obj_user_data_t){10, 1, 0});
+    udata.id = 10;
+    lv_obj_set_user_data(oneline_ta, udata);
     lv_obj_align(oneline_ta, pwd_ta, LV_ALIGN_OUT_TOP_MID, 0, topmargin);
 
     /* Create a label and position it above the text box */
@@ -258,12 +261,12 @@ static void oobeSetupSsid(void)
     lv_label_set_text(oneline_label, buffer);
     lv_obj_align(oneline_label, oneline_ta, labelpos, 0, 0);
 
-    /* Create a keyboard and make it fill the width of the above text areas */
-#if LVGL_VERSION_MAJOR == 8
+        /* Create a keyboard and make it fill the width of the above text areas */
+        #if LVGL_VERSION_MAJOR == 8
     oobekb = lv_keyboard_create(oobepage[1]);
-#else
+        #else
     oobekb      = lv_keyboard_create(oobepage[1], NULL);
-#endif
+        #endif
 
     lv_obj_set_style_local_pad_inner(oobekb, LV_BTNMATRIX_PART_BG, LV_STATE_DEFAULT, 0);
     lv_obj_set_style_local_border_width(oobekb, LV_BTNMATRIX_PART_BG, LV_STATE_DEFAULT, 0);
@@ -275,11 +278,7 @@ static void oobeSetupSsid(void)
     lv_obj_set_style_local_border_color(oobekb, LV_KEYBOARD_PART_BTN, LV_STATE_DEFAULT, LV_COLOR_SILVER);
     lv_obj_set_style_local_border_color(oobekb, LV_KEYBOARD_PART_BTN, LV_STATE_PRESSED, LV_COLOR_PURPLE);
     lv_obj_set_style_local_bg_color(oobekb, LV_KEYBOARD_PART_BTN, LV_BTN_STATE_PRESSED, LV_COLOR_PURPLE);
-    // lv_obj_set_style_local_pad_inner(oobekb, LV_KEYBOARD_PART_BG, LV_STATE_DEFAULT, 1);
-    // lv_obj_set_style_local_pad_left(oobekb, LV_KEYBOARD_PART_BG, LV_STATE_DEFAULT, 0);
-    // lv_obj_set_style_local_pad_right(oobekb, LV_KEYBOARD_PART_BG, LV_STATE_DEFAULT, 0);
 
-    // lv_obj_set_pos(oobekb, 5, 90);
     lv_obj_set_event_cb(oobekb, kb_event_cb);
     /* Setting a custom event handler stops the keyboard from closing automatically */
     //    lv_keybard_add_(oobekb, LV_KEYBOARD_PART_BG, &lv_style_transp_tight);
@@ -305,7 +304,7 @@ static void oobe_calibrate_cb(lv_obj_t * ta, lv_event_t event)
         }
     }
 }
-#endif // HASP_USE_WIFI
+    #endif // HASP_USE_WIFI
 
 void oobeSetAutoCalibrate(bool cal)
 {
@@ -314,10 +313,10 @@ void oobeSetAutoCalibrate(bool cal)
 
 bool oobeSetup()
 {
-#if HASP_USE_ETHERNET > 0
+    #if HASP_USE_ETHERNET > 0
     if(eth_connected) return false;
-#endif
-#if HASP_USE_WIFI > 0
+    #endif
+    #if HASP_USE_WIFI > 0
     char ssid[32];
     char pass[32];
 
@@ -339,14 +338,14 @@ bool oobeSetup()
     } else {
         return false;
     }
-#endif
+    #endif
     return false;
 }
 
 // Thist is used for testing only !!
 void oobeFakeSetup(const char *, const char *)
 {
-#if HASP_USE_WIFI > 0
+    #if HASP_USE_WIFI > 0
     char ssid[32] = "HASP-ABCDEF";
     char pass[32] = "haspadmin";
 
@@ -364,6 +363,6 @@ void oobeFakeSetup(const char *, const char *)
     } else {
         Log.trace(TAG_OOBE, F("Already calibrated"));
     }
-#endif
+    #endif
 }
 #endif // HASP_USE_CONFIG
