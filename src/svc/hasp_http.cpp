@@ -98,11 +98,11 @@ const char HASP_STYLE[] PROGMEM =
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // URL for auto-update "version.json"
-const char UPDATE_URL[] PROGMEM = "http://haswitchplate.com/update/version.json";
-// Default link to compiled Arduino firmware image
-String espFirmwareUrl = "http://haswitchplate.com/update/HASwitchPlate.ino.d1_mini.bin";
-// Default link to compiled Nextion firmware images
-String lcdFirmwareUrl = "http://haswitchplate.com/update/HASwitchPlate.tft";
+// const char UPDATE_URL[] PROGMEM = "http://haswitchplate.com/update/version.json";
+// // Default link to compiled Arduino firmware image
+// String espFirmwareUrl = "http://haswitchplate.com/update/HASwitchPlate.ino.d1_mini.bin";
+// // Default link to compiled Nextion firmware images
+// String lcdFirmwareUrl = "http://haswitchplate.com/update/HASwitchPlate.tft";
 
     #if HASP_USE_MQTT > 0
 extern char mqttNodeName[16];
