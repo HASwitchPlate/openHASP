@@ -25,7 +25,7 @@
 
 //#include "tpcal.h"
 
-#include "Ticker.h"
+//#include "Ticker.h"
 
 #if HASP_USE_PNGDECODE > 0
     #include "png_decoder.h"
@@ -62,19 +62,19 @@ static uint8_t guiRotation      = TFT_ROTATION;
 static uint8_t guiInvertDisplay = INVERT_COLORS;
 static uint16_t calData[5]      = {0, 65535, 0, 65535, 0};
 
-#if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
-static Ticker tick; /* timer for interrupt handler */
-#else
-static Ticker tick(lv_tick_handler, LVGL_TICK_PERIOD); // guiTickPeriod);
-#endif
+// #if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
+// static Ticker tick; /* timer for interrupt handler */
+// #else
+// static Ticker tick(lv_tick_handler, LVGL_TICK_PERIOD); // guiTickPeriod);
+// #endif
 
 /* **************************** GUI TICKER ************************************** */
 
 /* Interrupt driven periodic handler */
-static void ICACHE_RAM_ATTR lv_tick_handler(void)
-{
-    lv_tick_inc(LVGL_TICK_PERIOD);
-}
+// static void ICACHE_RAM_ATTR lv_tick_handler(void)
+// {
+//     lv_tick_inc(LVGL_TICK_PERIOD);
+// }
 
 /* Reading input device (simulated encoder here) */
 /*bool read_encoder(lv_indev_drv_t * indev, lv_indev_data_t * data)
@@ -242,25 +242,7 @@ void guiCalibrate()
 
 void guiSetup()
 {
-    // Driver intializations:
-    drv_touch_init(guiRotation); // Touch
-    lv_init();                   // GUI
-
-#if 0
-    tft.begin();
-    tft.setSwapBytes(true); /* set endianess */
-
-    #ifdef USE_DMA_TO_TFT
-    // DMA - should work with STM32F2xx/F4xx/F7xx processors
-    // NOTE: >>>>>> DMA IS FOR SPI DISPLAYS ONLY <<<<<<
-    tft.initDMA(); // Initialise the DMA engine (tested with STM32F446 and STM32F767)
-    #endif
-
-    tft.setRotation(guiRotation); /* 1/3=Landscape or 0/2=Portrait orientation */
-    #if TOUCH_DRIVER == 2046 && USE_TFT_ESPI > 0
-    tft_espi_set_touch(calData);
-    #endif
-#endif
+    lv_init();
 
     /* Initialize the Virtual Device Buffers */
 #if defined(ARDUINO_ARCH_ESP32)
@@ -328,24 +310,21 @@ void guiSetup()
         Log.verbose(TAG_GUI, F("Backlight: Pin %d"), guiBacklightPin);
 
 #if defined(ARDUINO_ARCH_ESP32)
-        // pinMode(guiBacklightPin, OUTPUT);
-        // configure LED PWM functionalitites
         ledcSetup(BACKLIGHT_CHANNEL, 20000, 10);
-        // attach the channel to the GPIO to be controlled
         ledcAttachPin(guiBacklightPin, BACKLIGHT_CHANNEL);
 #elif defined(ARDUINO_ARCH_ESP8266)
         pinMode(guiBacklightPin, OUTPUT);
 #endif
     }
-    Log.verbose(TAG_GUI, F("Rotation : %d"), guiRotation);
+    Log.verbose(TAG_GUI, F("Rotation   : %d"), guiRotation);
 
-    Log.verbose(TAG_LVGL, F("Version  : %u.%u.%u %s"), LVGL_VERSION_MAJOR, LVGL_VERSION_MINOR, LVGL_VERSION_PATCH,
+    Log.verbose(TAG_LVGL, F("Version    : %u.%u.%u %s"), LVGL_VERSION_MAJOR, LVGL_VERSION_MINOR, LVGL_VERSION_PATCH,
                 PSTR(LVGL_VERSION_INFO));
 
 #ifdef LV_MEM_SIZE
-    Log.verbose(TAG_LVGL, F("MEM size : %d"), LV_MEM_SIZE);
+    Log.verbose(TAG_LVGL, F("MEM size   : %d"), LV_MEM_SIZE);
 #endif
-    Log.verbose(TAG_LVGL, F("VFB size : %d"), (size_t)sizeof(lv_color_t) * guiVDBsize);
+    Log.verbose(TAG_LVGL, F("VFB size   : %d"), (size_t)sizeof(lv_color_t) * guiVDBsize);
 
 #if LV_USE_LOG != 0
     Log.notice(TAG_LVGL, F("Registering lvgl logging handler"));
@@ -417,6 +396,7 @@ void guiSetup()
 #endif
         lv_indev_set_cursor(mouse_indev, cursor); /*Connect the image  object to the driver*/
     }
+    drv_touch_init(guiRotation); // Touch driver
 
     // guiStart(); // Ticker
 }
@@ -426,7 +406,7 @@ void IRAM_ATTR guiLoop(void)
     lv_task_handler(); // process animations
 
 #if defined(STM32F4xx)
-    tick.update();
+    //  tick.update();
 #endif
 }
 
@@ -438,21 +418,21 @@ void guiEverySecond(void)
 void guiStart()
 {
     /*Initialize the graphics library's tick*/
-#if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
-    tick.attach_ms(LVGL_TICK_PERIOD, lv_tick_handler);
-#else
-    tick.start();
-#endif
+    // #if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
+    //     tick.attach_ms(LVGL_TICK_PERIOD, lv_tick_handler);
+    // #else
+    //     tick.start();
+    // #endif
 }
 
 void guiStop()
 {
     /*Deinitialize the graphics library's tick*/
-#if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
-    tick.detach();
-#else
-    tick.stop();
-#endif
+    // #if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
+    //     tick.detach();
+    // #else
+    //     tick.stop();
+    // #endif
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
