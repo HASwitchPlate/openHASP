@@ -27,9 +27,12 @@
 
 #include "../hasp/hasp.h" // for hasp_sleep_state
 extern uint8_t hasp_sleep_state;
+static uint8_t drv_touch_rotation;
 
 void drv_touch_init(uint8_t rotation)
 {
+    drv_touch_rotation = rotation;
+
 #if TOUCH_DRIVER == 2046 // XPT2046 Resistive touch panel driver
     #if defined(USE_FSMC)
     xpt2046_init(rotation);
@@ -59,40 +62,119 @@ void drv_touch_init(uint8_t rotation)
 
 static inline bool drv_touchpad_getXY(int16_t * touchX, int16_t * touchY)
 {
+    bool touched;
+    int16_t normal_x;
+    int16_t normal_y;
 #if TOUCH_DRIVER == 2046 // XPT2046 Resistive touch panel driver
-    return tft_espi_get_touch(touchX, touchY, 300u);
+    touched = tft_espi_get_touch(&normal_x, &normal_y, 300u);
 
 #elif TOUCH_DRIVER == 0x2046B
-    return XPT2046_getXY(touchX, touchY, true);
+    touched = XPT2046_getXY(&normal_x, &normal_y, true);
 
 #elif TOUCH_DRIVER == 911
-    return GT911_getXY(touchX, touchY, true);
+    touched = GT911_getXY(&normal_x, &normal_y, true);
 
 #elif TOUCH_DRIVER == 0xADC // Analog Digital Touch Conroller
-    return Touch_getXY(touchX, touchY, false);
+    touched = Touch_getXY(&normal_x, &normal_y, false);
 
 #elif TOUCH_DRIVER == 5206
-    return FT5206_getXY(touchX, touchY, false);
+    touched = FT5206_getXY(&normal_x, &normal_y, false);
 
 #elif TOUCH_DRIVER == 6336
-    return FT6336U_getXY(touchX, touchY, true);
+    touched = FT6336U_getXY(&normal_x, &normal_y, true);
 
 #else
     // xpt2046_alt_drv_read(indev_driver, data);
     // xpt2046_read(indev_driver, data);
     // if(data->state && guiSleeping != HASP_SLEEP_OFF) guiCheckSleep();
-    return false;
+    touched = false;
 #endif
+
+    *touchX = normal_x;
+    *touchY = normal_y;
+
+    /*
+        // TFT_ROTATION values:
+        // 0 - 0 deg (= default when not set)
+        // 1 - 90 deg anti-clockwise (from 0 deg)
+        // 2 - 180 deg anti-clockwise
+        // 3 - 270 deg anti-clockwise
+        // 4 - mirror content, and rotate 180 deg anti-clockwise
+        // 5 - mirror content, and rotate 270 deg anti-clockwise
+        // 6 - mirror content, and rotate 0 deg anti-clockwise
+        // 7 - mirror content, and rotate 90 deg anti-clockwise
+
+        int16_t inv_x = TFT_WIDTH - normal_x;
+        int16_t inv_y = TFT_HEIGHT - normal_y;
+        // inv_y can be negative for area below screen of M5Core2
+        switch(drv_touch_rotation) {
+            case 0:
+                *touchX = normal_x;
+                *touchY = normal_y;
+                break;
+            case 1:
+                *touchX = normal_y;
+                *touchY = inv_x;
+                break;
+            case 2:
+                *touchX = inv_x;
+                *touchY = inv_y;
+                break;
+            case 3:
+                *touchX = inv_y;
+                *touchY = normal_x;
+                break;
+
+            // rotations 4-7 are mirrored
+            case 4:
+                *touchX = inv_y;
+                *touchY = inv_x;
+                break;
+            case 5:
+                *touchX = normal_x;
+                *touchY = inv_y;
+                break;
+            case 6:
+                *touchX = normal_y;
+                *touchY = normal_x;
+                break;
+            case 7:
+                *touchX = inv_x;
+                *touchY = normal_y;
+                break;
+        }*/
+
+    return touched;
 }
+
+bool touch_rotate   = true;
+bool touch_invert_x = true;
+bool touch_invert_y = false;
 
 bool IRAM_ATTR drv_touch_read(lv_indev_drv_t * indev_driver, lv_indev_data_t * data)
 {
 #if TOUCH_DRIVER > 0
-    int16_t touchX, touchY;
-    bool touched = drv_touchpad_getXY(&touchX, &touchY);
-    if(touched && hasp_sleep_state != HASP_SLEEP_OFF) hasp_update_sleep_state(); // update Idle
+    int16_t touchX = 0;
+    int16_t touchY = 0;
+    bool touched;
+
+    if(touch_rotate) {
+        touched = drv_touchpad_getXY(&touchY, &touchX);
+    } else {
+        touched = drv_touchpad_getXY(&touchX, &touchY);
+    }
 
     // Ignore first press?
+
+    if(touched && hasp_sleep_state != HASP_SLEEP_OFF) hasp_update_sleep_state(); // update Idle
+
+    if(touch_invert_x) {
+        touchX = indev_driver->disp->driver.hor_res - touchX;
+    }
+
+    if(touch_invert_y) {
+        touchY = indev_driver->disp->driver.ver_res - touchY;
+    }
 
     /*Save the state and save the pressed coordinate for cursor position */
     data->state = touched ? LV_INDEV_STATE_PR : LV_INDEV_STATE_REL;

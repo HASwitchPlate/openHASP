@@ -15,8 +15,8 @@ bool IRAM_ATTR FT6336U_getXY(int16_t * touchX, int16_t * touchY, bool debug)
 {
     if(touchpanel->read_touch_number() != 1) return false;
 
-    *touchX = TFT_WIDTH - touchpanel->read_touch1_y();
-    *touchY = touchpanel->read_touch1_x();
+    *touchX = touchpanel->read_touch1_x();
+    *touchY = touchpanel->read_touch1_y();
     return true;
 }
 
