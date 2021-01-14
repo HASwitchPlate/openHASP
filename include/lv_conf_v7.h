@@ -5,9 +5,9 @@
 
 #if 1 /*Set it to "1" to enable content*/
 
-#ifndef LV_CONF_H
-#define LV_CONF_H
-/* clang-format off */
+    #ifndef LV_CONF_H
+        #define LV_CONF_H
+    /* clang-format off */
 
 #include <stdint.h>
 
@@ -335,9 +335,9 @@ typedef void* lv_indev_drv_user_data_t;            /*Type of user data in the in
 
   /* Robot fonts with bpp = 4
    * https://fonts.google.com/specimen/Roboto  */
-#define LV_FONT_MONTSERRAT_12    LV_HIGH_RESOURCE_MCU
-#define LV_FONT_MONTSERRAT_16    LV_HIGH_RESOURCE_MCU
-#define LV_FONT_MONTSERRAT_22    LV_HIGH_RESOURCE_MCU
+#define LV_FONT_MONTSERRAT_12    0 // LV_HIGH_RESOURCE_MCU
+#define LV_FONT_MONTSERRAT_16    0 // LV_HIGH_RESOURCE_MCU
+#define LV_FONT_MONTSERRAT_22    0 // LV_HIGH_RESOURCE_MCU
 #define LV_FONT_MONTSERRAT_28    0 // LV_HIGH_RESOURCE_MCU
 
    /* Demonstrate special features */
@@ -376,8 +376,13 @@ typedef void* lv_font_user_data_t;
 
 /*Always set a default font from the built-in fonts*/
 #if LV_HIGH_RESOURCE_MCU>0
-#define LV_FONT_CUSTOM_DECLARE LV_FONT_DECLARE(lv_font_montserrat_16);
-#define LV_FONT_DEFAULT        &lv_font_montserrat_16
+// #define LV_FONT_CUSTOM_DECLARE LV_FONT_DECLARE(lv_font_montserrat_16);
+#define LV_FONT_CUSTOM_DECLARE LV_FONT_DECLARE(robotocondensed_regular_28_nokern) \
+                               LV_FONT_DECLARE(robotocondensed_regular_22_nokern) \
+                               LV_FONT_DECLARE(robotocondensed_regular_16_nokern) \
+                               LV_FONT_DECLARE(robotocondensed_regular_12_nokern) \
+
+#define LV_FONT_DEFAULT        &robotocondensed_regular_16_nokern //&lv_font_montserrat_16
 #else
 #define LV_FONT_CUSTOM_DECLARE LV_FONT_DECLARE(unscii_8_icon);
 #define LV_FONT_DEFAULT        &unscii_8_icon //&lv_font_unscii_8
@@ -396,10 +401,10 @@ typedef void* lv_font_user_data_t;
 #define LV_THEME_DEFAULT_COLOR_SECONDARY    LV_COLOR_BLUE
 #define LV_THEME_DEFAULT_FLAG              0 //LV_THEME_MATERIAL_FLAG_NONE
 #if LV_HIGH_RESOURCE_MCU
-#define LV_THEME_DEFAULT_FONT_SMALL         &lv_font_montserrat_12
-#define LV_THEME_DEFAULT_FONT_NORMAL        &lv_font_montserrat_16
-#define LV_THEME_DEFAULT_FONT_SUBTITLE      &lv_font_montserrat_22
-#define LV_THEME_DEFAULT_FONT_TITLE         &lv_font_montserrat_22 //&lv_font_montserrat_28_compressed
+#define LV_THEME_DEFAULT_FONT_SMALL         &robotocondensed_regular_12_nokern //&lv_font_montserrat_12
+#define LV_THEME_DEFAULT_FONT_NORMAL        &robotocondensed_regular_16_nokern //&lv_font_montserrat_16
+#define LV_THEME_DEFAULT_FONT_SUBTITLE      &robotocondensed_regular_22_nokern //&lv_font_montserrat_22
+#define LV_THEME_DEFAULT_FONT_TITLE         &robotocondensed_regular_28_nokern //&lv_font_montserrat_22 //&lv_font_montserrat_28_compressed
 #else
 #define LV_THEME_DEFAULT_FONT_SMALL         LV_FONT_DEFAULT // &lv_font_montserrat_12
 #define LV_THEME_DEFAULT_FONT_NORMAL        LV_FONT_DEFAULT // &lv_font_montserrat_16
