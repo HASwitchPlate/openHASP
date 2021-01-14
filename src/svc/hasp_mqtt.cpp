@@ -44,14 +44,6 @@ EthernetClient mqttNetworkClient;
         #include "user_config_override.h"
     #endif
 
-/*
-String mqttGetSubtopic;             // MQTT subtopic for incoming commands requesting .val
-String mqttGetSubtopicJSON;         // MQTT object buffer for JSON status when requesting .val
-String mqttStateTopic;              // MQTT topic for outgoing panel interactions
-String mqttStateJSONTopic;          // MQTT topic for outgoing panel interactions in JSON format
-String mqttCommandTopic;            // MQTT topic for incoming panel commands
-*/
-
 // String mqttClientId((char *)0); // Auto-generated MQTT ClientID
 // String mqttNodeTopic((char *)0);
 // String mqttGroupTopic((char *)0);
@@ -62,64 +54,58 @@ bool mqttHAautodiscover = true;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     // These defaults may be overwritten with values saved by the web interface
-    #ifdef MQTT_HOST
-char mqttServer[16] = MQTT_HOST;
-    #else
-char mqttServer[16]    = "";
+    #ifndef MQTT_HOST
+        #define MQTT_HOST "";
     #endif
-    #ifdef MQTT_PORT
-uint16_t mqttPort = MQTT_PORT;
-    #else
-uint16_t mqttPort      = 1883;
+
+    #ifndef MQTT_PORT
+        #define MQTT_PORT 1883;
     #endif
-    #ifdef MQTT_USER
-char mqttUser[23] = MQTT_USER;
-    #else
-char mqttUser[23]      = "";
+
+    #ifndef MQTT_USER
+        #define MQTT_USER "";
     #endif
-    #ifdef MQTT_PASSW
-char mqttPassword[32] = MQTT_PASSW;
-    #else
-char mqttPassword[32]  = "";
+
+    #ifndef MQTT_PASSW
+        #define MQTT_PASSW "";
     #endif
-    #ifdef MQTT_NODENAME
-char mqttNodeName[16] = MQTT_NODENAME;
-    #else
-char mqttNodeName[16]  = "";
+    #ifndef MQTT_NODENAME
+        #define MQTT_NODENAME "";
     #endif
-    #ifdef MQTT_GROUPNAME
-char mqttGroupName[16] = MQTT_GROUPNAME;
-    #else
-char mqttGroupName[16] = "";
+    #ifndef MQTT_GROUPNAME
+        #define MQTT_GROUPNAME "";
     #endif
+
     #ifndef MQTT_PREFIX
         #define MQTT_PREFIX "hasp"
     #endif
 
+char mqttServer[16]    = MQTT_HOST;
+char mqttUser[23]      = MQTT_USER;
+char mqttPassword[32]  = MQTT_PASSW;
+char mqttNodeName[16]  = MQTT_NODENAME;
+char mqttGroupName[16] = MQTT_GROUPNAME;
+uint16_t mqttPort      = MQTT_PORT;
 PubSubClient mqttClient(mqttNetworkClient);
 
-static void mqttResult(bool result, const char * topic, const char * payload)
-{
-    if(result) {
-        Log.notice(TAG_MQTT_PUB, F("%s => %s"), topic, payload);
-    } else {
-        Log.error(TAG_MQTT_PUB, F("Failed : %s => %s"), topic, payload);
-    }
-}
-
-static bool mqttPublish(const char * topic, const char * payload, size_t len)
+static bool mqttPublish(const char * topic, const char * payload, size_t len, bool retain = false)
 {
     if(mqttIsConnected()) {
-        return mqttClient.publish(topic, (uint8_t *)payload, len, false);
+        if(mqttClient.publish(topic, (uint8_t *)payload, len, retain)) {
+            Log.notice(TAG_MQTT_PUB, F("%s => %s"), topic, payload);
+            return true;
+        } else {
+            Log.error(TAG_MQTT_PUB, F("Failed : %s => %s"), topic, payload);
+        }
+    } else {
+        Log.error(TAG_MQTT, F("Not connected"));
     }
-
-    Log.error(TAG_MQTT, F("Not connected"));
     return false;
 }
 
-static bool mqttPublish(const char * topic, const char * payload)
+static bool mqttPublish(const char * topic, const char * payload, bool retain = false)
 {
-    return mqttPublish(topic, payload, strlen(payload));
+    return mqttPublish(topic, payload, strlen(payload), retain);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -130,12 +116,23 @@ bool IRAM_ATTR mqttIsConnected()
     return mqttEnabled && mqttClient.connected();
 }
 
+void mqtt_send_lwt(bool online)
+{
+    char tmp_payload[8];
+    char tmp_topic[strlen(mqttNodeTopic) + 4];
+    snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%sLWT"), mqttNodeTopic);
+
+    size_t len = snprintf_P(tmp_payload, sizeof(tmp_payload), online ? PSTR("online") : PSTR("offline"));
+    bool res   = mqttPublish(tmp_topic, tmp_payload, len, true);
+    // mqttResult(res, tmp_topic, tmp_payload);
+}
+
 void IRAM_ATTR mqtt_send_state_str(char * subtopic, char * payload)
 {
     char tmp_topic[strlen(mqttNodeTopic) + 20];
     snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%sstate/%s"), mqttNodeTopic, subtopic);
     bool res = mqttPublish(tmp_topic, payload);
-    mqttResult(res, tmp_topic, payload);
+    // mqttResult(res, tmp_topic, payload);
 }
 
 void IRAM_ATTR mqtt_send_state(const __FlashStringHelper * subtopic, const char * payload)
@@ -143,7 +140,7 @@ void IRAM_ATTR mqtt_send_state(const __FlashStringHelper * subtopic, const char 
     char tmp_topic[strlen(mqttNodeTopic) + 20];
     snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%sstate/%s"), mqttNodeTopic, subtopic);
     bool res = mqttPublish(tmp_topic, payload);
-    mqttResult(res, tmp_topic, payload);
+    // mqttResult(res, tmp_topic, payload);
 }
 
 void IRAM_ATTR mqtt_send_obj_attribute_str(uint8_t pageid, uint8_t btnid, const char * attribute, const char * data)
@@ -155,11 +152,11 @@ void IRAM_ATTR mqtt_send_obj_attribute_str(uint8_t pageid, uint8_t btnid, const 
     // snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%sstate/json"), mqttNodeTopic);
     // unsigned int len =
     //     snprintf_P(payload, sizeof(payload), PSTR("{\"p[%u].b[%u].%s\":\"%s\"}"), pageid, btnid, attribute, data);
-    snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%sstate/p%ub%u"), mqttNodeTopic, pageid, btnid);
+    snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%sstate/p%u/b%u"), mqttNodeTopic, pageid, btnid);
     unsigned int len = snprintf_P(payload, sizeof(payload), PSTR("{\"%s\":\"%s\"}"), attribute, data);
 
     bool res = mqttPublish(tmp_topic, payload, len); //, false);
-    mqttResult(res, tmp_topic, payload);
+    // mqttResult(res, tmp_topic, payload);
 
     // } else {
     //     return mqtt_log_no_connection();
@@ -245,7 +242,7 @@ void mqttStart()
     char mqttClientId[64];
     char lastWillPayload[8];
     static uint8_t mqttReconnectCount = 0;
-    bool mqttFirstConnect             = true;
+    //   bool mqttFirstConnect             = true;
 
     mqttClient.setServer(mqttServer, 1883);
     // mqttClient.setSocketTimeout(10); //in seconds
@@ -265,40 +262,39 @@ void mqttStart()
 
     haspProgressMsg(F("Connecting MQTT..."));
     haspProgressVal(mqttReconnectCount * 5);
-    if(!mqttClient.connect(mqttClientId, mqttUser, mqttPassword, buffer, 2, false, lastWillPayload, true)) {
+    if(!mqttClient.connect(mqttClientId, mqttUser, mqttPassword, buffer, 0, true, lastWillPayload, true)) {
         // Retry until we give up and restart after connectTimeout seconds
         mqttReconnectCount++;
 
         switch(mqttClient.state()) {
             case MQTT_CONNECTION_TIMEOUT:
-                snprintf_P(buffer, sizeof(buffer), PSTR("Server didn't respond within the keepalive time"));
+                snprintf_P(buffer, sizeof(buffer), PSTR("Network connection timeout"));
                 break;
             case MQTT_CONNECTION_LOST:
-                snprintf_P(buffer, sizeof(buffer), PSTR("Network connection was broken"));
+                snprintf_P(buffer, sizeof(buffer), PSTR("Network connection lost"));
                 break;
             case MQTT_CONNECT_FAILED:
                 snprintf_P(buffer, sizeof(buffer), PSTR("Network connection failed"));
                 break;
             case MQTT_DISCONNECTED:
-                snprintf_P(buffer, sizeof(buffer), PSTR("Client is disconnected cleanly"));
+                snprintf_P(buffer, sizeof(buffer), PSTR("Disconnected"));
                 break;
             case MQTT_CONNECTED:
-                snprintf_P(buffer, sizeof(buffer), PSTR("(Client is connected"));
                 break;
             case MQTT_CONNECT_BAD_PROTOCOL:
                 snprintf_P(buffer, sizeof(buffer), PSTR("Server doesn't support the requested version of MQTT"));
                 break;
             case MQTT_CONNECT_BAD_CLIENT_ID:
-                snprintf_P(buffer, sizeof(buffer), PSTR("Server rejected the client identifier"));
+                snprintf_P(buffer, sizeof(buffer), PSTR("Server rejected the client ID"));
                 break;
             case MQTT_CONNECT_UNAVAILABLE:
-                snprintf_P(buffer, sizeof(buffer), PSTR("Server was unable to accept the connection"));
+                snprintf_P(buffer, sizeof(buffer), PSTR("Server unavailable"));
                 break;
             case MQTT_CONNECT_BAD_CREDENTIALS:
-                snprintf_P(buffer, sizeof(buffer), PSTR("Username or Password rejected"));
+                snprintf_P(buffer, sizeof(buffer), PSTR("Bad credentials"));
                 break;
             case MQTT_CONNECT_UNAUTHORIZED:
-                snprintf_P(buffer, sizeof(buffer), PSTR("Client was not authorized to connect"));
+                snprintf_P(buffer, sizeof(buffer), PSTR("Unauthorized"));
                 break;
             default:
                 snprintf_P(buffer, sizeof(buffer), PSTR("Unknown failure"));
@@ -314,19 +310,6 @@ void mqttStart()
 
     Log.trace(TAG_MQTT, F("Connected to broker %s as clientID %s"), mqttServer, mqttClientId);
 
-    /*
-        // MQTT topic string definitions
-        mqttStateTopic              = prefix + F("/state");
-        mqttStateJSONTopic          = prefix + F("/state/json");
-        mqttCommandTopic            = prefix + F("/page");
-        mqttGroupCommandTopic       = "hasp/" + mqttGroupName + "/page";
-
-        mqttLightCommandTopic       = prefix + F("/light/switch");
-        mqttLightStateTopic         = prefix + F("/light/state");
-        mqttLightBrightCommandTopic = prefix + F("/brightness/set");
-        mqttLightBrightStateTopic   = prefix + F("/brightness/state");
-    */
-
     // Subscribe to our incoming topics
     mqttSubscribeTo(PSTR("%scommand/#"), mqttGroupTopic);
     mqttSubscribeTo(PSTR("%scommand/#"), mqttNodeTopic);
@@ -334,7 +317,7 @@ void mqttStart()
     mqttSubscribeTo(PSTR("%sconfig/#"), mqttNodeTopic);
     mqttSubscribeTo(PSTR("%slight/#"), mqttNodeTopic);
     mqttSubscribeTo(PSTR("%sbrightness/#"), mqttNodeTopic);
-    mqttSubscribeTo(PSTR("%sLWT"), mqttNodeTopic);
+    // mqttSubscribeTo(PSTR("%sLWT"), mqttNodeTopic);
     mqttSubscribeTo(PSTR("hass/status"), "");
 
     /* Home Assistant auto-configuration */
@@ -343,15 +326,9 @@ void mqttStart()
     // Force any subscribed clients to toggle offline/online when we first connect to
     // make sure we get a full panel refresh at power on.  Sending offline,
     // "online" will be sent by the mqttStatusTopic subscription action.
-    snprintf_P(buffer, sizeof(buffer), PSTR("%sLWT"), mqttNodeTopic);
-    {
-        snprintf_P(lastWillPayload, sizeof(lastWillPayload), mqttFirstConnect ? PSTR("offline") : PSTR("online"));
+    mqtt_send_lwt(true);
 
-        mqttClient.publish(buffer, lastWillPayload, true);
-        Log.notice(TAG_MQTT, F("%s = %s"), buffer, lastWillPayload);
-    }
-
-    mqttFirstConnect   = false;
+    // mqttFirstConnect   = false;
     mqttReconnectCount = 0;
 
     haspReconnect();
@@ -398,17 +375,10 @@ String mqttGetNodename()
 void mqttStop()
 {
     if(mqttEnabled && mqttClient.connected()) {
-        char tmp_topic[strlen(mqttNodeTopic) + 8];
-        char tmp_payload[32];
-        Log.notice(TAG_MQTT, F("Disconnecting from broker..."));
-
-        size_t len;
-        snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%sLWT"), mqttNodeTopic);
-        len = snprintf_P(tmp_payload, sizeof(tmp_payload), PSTR("offline"));
-        mqttPublish(tmp_topic, tmp_payload, len);
-
+        Log.notice(TAG_MQTT, F("Disconnecting..."));
+        mqtt_send_lwt(false);
         mqttClient.disconnect();
-        Log.trace(TAG_MQTT, F("Disconnected from broker"));
+        Log.trace(TAG_MQTT, F("Disconnected"));
     }
 }
 
