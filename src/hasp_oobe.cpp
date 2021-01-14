@@ -185,11 +185,11 @@ static void oobeSetupQR(const char * ssid, const char * pass)
 static void oobeSetupSsid(void)
 {
     lv_font_t * defaultfont;
-        #if defined(ARDUINO_ARCH_ESP32)
-    defaultfont = &lv_font_montserrat_12;
-        #else
+    //     #if defined(ARDUINO_ARCH_ESP32)
+    // defaultfont = &lv_font_montserrat_12;
+    //     #else
     defaultfont = LV_FONT_DEFAULT;
-        #endif
+    // #endif
 
     lv_coord_t leftmargin, topmargin, voffset;
     lv_align_t labelpos;
@@ -261,7 +261,7 @@ static void oobeSetupSsid(void)
         #if LVGL_VERSION_MAJOR == 8
     oobekb = lv_keyboard_create(oobepage[1]);
         #else
-    oobekb      = lv_keyboard_create(oobepage[1], NULL);
+    oobekb = lv_keyboard_create(oobepage[1], NULL);
         #endif
 
     lv_obj_set_style_local_pad_inner(oobekb, LV_BTNMATRIX_PART_BG, LV_STATE_DEFAULT, 0);
