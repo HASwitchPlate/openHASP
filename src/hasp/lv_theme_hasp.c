@@ -245,7 +245,7 @@ static void basic_init(void)
     lv_style_set_scale_end_color(&styles->pretty, LV_STATE_DEFAULT, theme.color_primary);
 
     lv_style_set_text_color(&styles->pretty, LV_STATE_DEFAULT, COLOR_SCR_TEXT);
-    lv_style_set_text_font(&styles->pretty, LV_STATE_DEFAULT, theme.font_normal);
+    //lv_style_set_text_font(&styles->pretty, LV_STATE_DEFAULT, theme.font_normal);
 
     lv_style_set_value_color(&styles->pretty, LV_STATE_DEFAULT, COLOR_SCR_TEXT);
     lv_style_set_value_font(&styles->pretty, LV_STATE_DEFAULT, theme.font_subtitle);
@@ -275,7 +275,7 @@ static void basic_init(void)
     lv_style_set_scale_end_color(&styles->pretty_color, LV_STATE_DEFAULT, theme.color_primary);
     lv_style_set_text_color(&styles->pretty_color, LV_STATE_DEFAULT, COLOR_SCR_TEXT);
     lv_style_set_line_color(&styles->pretty_color, LV_STATE_DEFAULT, lv_color_make(0x20, 0x20, 0x20));
-    lv_style_set_text_font(&styles->pretty_color, LV_STATE_DEFAULT, theme.font_normal);
+    //lv_style_set_text_font(&styles->pretty_color, LV_STATE_DEFAULT, theme.font_normal);
 
     lv_style_set_value_font(&styles->pretty_color, LV_STATE_DEFAULT, theme.font_subtitle);
     lv_style_set_value_color(&styles->pretty_color, LV_STATE_DEFAULT, COLOR_SCR_TEXT);
