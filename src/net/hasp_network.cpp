@@ -1,6 +1,10 @@
 /* MIT License - Copyright (c) 2020 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
+#include <time.h>
+#include <sys/time.h>
+#define MYTZ "EST5EDT,M3.2.0/2,M11.1.0"
+
 #include <Arduino.h>
 #include "ArduinoLog.h"
 
@@ -13,10 +17,10 @@
 #include "../svc/hasp_mdns.h"
 
 #if HASP_USE_ETHERNET > 0 || HASP_USE_WIFI > 0
-
 void networkStart(void)
 {
-    haspProgressVal(255); // hide
+    haspProgressVal(255);                                      // hide
+    configTzTime(MYTZ, "pool.ntp.org", "time.nist.gov", NULL); // literal string
 
     haspReconnect();
     debugStartSyslog();

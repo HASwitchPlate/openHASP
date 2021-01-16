@@ -329,26 +329,40 @@ void debugGetHistoryLine(size_t num)
 
 static void debugPrintTimestamp(int level, Print * _logOutput)
 { /* Print Current Time */
-    time_t rawtime;
+
+    struct timeval tval;
     struct tm * timeinfo;
+    int rslt;
 
-    // time(&rawtime);
-    // timeinfo = localtime(&rawtime);
+    rslt = gettimeofday(&tval, NULL);
+    if(rslt) {
+        // uint32_t msecs = millis();
+        // _logOutput->printf(PSTR("[%9d.%03d]"), msecs / 1000, msecs % 1000);
+    } else {
+        timeinfo = localtime(&tval.tv_sec);
+    }
 
-    // strftime(buffer, sizeof(buffer), "%b %d %H:%M:%S.", timeinfo);
-    // Serial.println(buffer);
+    /*
+        time_t rawtime;
+        struct tm * timeinfo;
 
+         time(&rawtime);
+         timeinfo = localtime(&rawtime);
+
+        // strftime(buffer, sizeof(buffer), "%b %d %H:%M:%S.", timeinfo);
+        // Serial.println(buffer);
+*/
     debugSendAnsiCode(F(TERM_COLOR_CYAN), _logOutput);
 
-    /* if(timeinfo->tm_year >= 120) {
-         char buffer[64];
-         strftime(buffer, sizeof(buffer), "[%b %d %H:%M:%S.", timeinfo); // Literal String
-         _logOutput->print(buffer);
-         _logOutput->printf(PSTR("%03lu]"), millis() % 1000);
-     } else */
-    {
+    if(timeinfo->tm_year >= 120) {
+        char buffer[24];
+        strftime(buffer, sizeof(buffer), "[%b %d %H:%M:%S.", timeinfo); // Literal String
+        // strftime(buffer, sizeof(buffer), "[%H:%M:%S.", timeinfo); // Literal String
+        _logOutput->print(buffer);
+        _logOutput->printf(PSTR("%03lu]"), tval.tv_usec / 1000);
+    } else {
         uint32_t msecs = millis();
-        _logOutput->printf(PSTR("[%16d.%03d]"), msecs / 1000, msecs % 1000);
+        _logOutput->printf(PSTR("[%15d.%03d]"), msecs / 1000, msecs % 1000);
     }
 }
 
@@ -629,11 +643,8 @@ void debugPreSetup(JsonObject settings)
         Log.registerOutput(0, &Serial, LOG_LEVEL_VERBOSE, true);
         debugSerialStarted = true;
 
-        // Print Header
         Serial.println();
         debugPrintHaspHeader(&Serial);
-        // Serial.println(debugHaspHeader());
-        // Serial.println();
         Serial.flush();
 
         Log.trace(TAG_DEBG, ("Serial started at %u baud"), baudrate);
@@ -651,7 +662,7 @@ void debugLvglLogEvent(lv_log_level_t level, const char * file, uint32_t line, c
     lv_mem_monitor_t mem_mon;
     lv_mem_monitor(&mem_mon);
 
-    /* Reduce the number of reepeated debug message */
+    /* Reduce the number of repeated debug message */
     if(line != lastDbgLine || mem_mon.free_biggest_size != lastDbgFreeMem) {
         switch(level) {
             case LV_LOG_LEVEL_TRACE:
@@ -690,155 +701,8 @@ void IRAM_ATTR debugLoop(void)
             haspSetPage(keypress - ConsoleInput::KEY_FN - 1);
             break;
     }
-
-    // while(Serial.available()) {
-    //     char ch = Serial.read();
-    //     // Serial.println((byte)ch);
-    //     switch(ch) {
-    //         case 1: // ^A = goto begin
-    //             serialInputIndex = 0;
-    //             historyIndex     = 0;
-    //             break;
-    //         case 3: // ^C
-    //             serialInputIndex = 0;
-    //             historyIndex     = 0;
-    //             break;
-    //         case 5: // ^E = goto end
-    //             serialInputIndex = strlen(serialInputBuffer);
-    //             historyIndex     = 0;
-    //             break;
-    //         case 8: // Backspace
-    //         {
-    //             if(serialInputIndex > strlen(serialInputBuffer)) {
-    //                 serialInputIndex = strlen(serialInputBuffer);
-    //             }
-
-    //             if(serialInputIndex > 0) {
-    //                 serialInputIndex--;
-    //                 size_t len      = strlen(serialInputBuffer);
-    //                 char * currchar = serialInputBuffer + serialInputIndex;
-    //                 memmove(currchar, currchar + 1, len - serialInputIndex);
-    //             }
-    //             historyIndex = 0;
-    //         } break;
-    //         case 9: // Delete
-    //         {
-    //             size_t len            = strlen(serialInputBuffer);
-    //             char * nextchar       = serialInputBuffer + serialInputIndex;
-    //             char * remainingchars = serialInputBuffer + serialInputIndex + 1;
-    //             memmove(nextchar, remainingchars, len - serialInputIndex);
-    //             historyIndex = 0;
-    //         } break;
-    //         case 10 ... 13: // LF, VT, FF, CR
-    //             if(serialInputBuffer[0] != 0) {
-    //                 Serial.println();
-    //                 dispatchTextLine(serialInputBuffer);
-
-    //                 size_t numchars = 1;
-    //                 memmove(serialInputBuffer + numchars, serialInputBuffer,
-    //                         sizeof(serialInputBuffer) - numchars); // Shift chars right
-    //             }
-    //             serialInputIndex     = 0;
-    //             serialInputBuffer[0] = 0;
-    //             historyIndex         = 0;
-    //             debugShowHistory();
-    //             break;
-
-    //         case 27:
-    //             /*if(Serial.peek() >= 0)*/ {
-    //                 char nextchar = Serial.read();
-    //                 if(nextchar == 91 /*&& Serial.peek() >= 0*/) {
-    //                     nextchar = Serial.read();
-    //                     switch(nextchar) {
-    //                         case 51: // Del
-    //                             /*if(Serial.peek() >= 0)*/ {
-    //                                 nextchar = Serial.read();
-    //                             }
-    //                             if(nextchar == 126) {
-    //                                 size_t len            = strlen(serialInputBuffer);
-    //                                 char * nextchar       = serialInputBuffer + serialInputIndex;
-    //                                 char * remainingchars = serialInputBuffer + serialInputIndex + 1;
-    //                                 memmove(nextchar, remainingchars, len - serialInputIndex);
-    //                             }
-    //                             break;
-    //                         case 53: // Page Up
-    //                             /*if(Serial.peek() >= 0)*/ {
-    //                                 nextchar = Serial.read();
-    //                             }
-    //                             if(nextchar == 126) {
-    //                                 dispatchPageNext();
-    //                             }
-    //                             historyIndex = 0;
-    //                             break;
-    //                         case 54: // Page Down
-    //                             /*if(Serial.peek() >= 0)*/ {
-    //                                 nextchar = Serial.read();
-    //                                 if(nextchar == 126) {
-    //                                     dispatchPagePrev();
-    //                                 }
-    //                             }
-    //                             historyIndex = 0;
-    //                             break;
-    //                         case 65: {
-    //                             size_t count = debugHistorycount();
-    //                             if(historyIndex < count) {
-    //                                 historyIndex++;
-    //                                 debugGetHistoryLine(historyIndex);
-    //                             }
-    //                             break;
-    //                         }
-    //                         case 66:
-    //                             if(historyIndex > 0) {
-    //                                 historyIndex--;
-    //                                 debugGetHistoryLine(historyIndex);
-    //                             }
-    //                             break;
-    //                         case 68: // Left
-    //                             if(serialInputIndex > 0) {
-    //                                 serialInputIndex--;
-    //                             }
-    //                             historyIndex = 0;
-    //                             break;
-    //                         case 67: // Right
-    //                             if(serialInputIndex < strlen(serialInputBuffer)) {
-    //                                 serialInputIndex++;
-    //                             }
-    //                             historyIndex = 0;
-    //                             break;
-    //                             //  default:
-    //                             //      Serial.println((byte)nextchar);
-    //                     }
-    //                 }
-    //                 /* } else { // ESC, clear buffer
-    //                      serialInputIndex                    = 0;
-    //                      serialInputBuffer[serialInputIndex] = 0;*/
-    //             }
-    //             break;
-
-    //         case 32 ... 126:
-    //         case 128 ... 254: {
-    //             Serial.print(ch);
-    //             size_t len = strlen(serialInputBuffer);
-    //             if(serialInputIndex > len) serialInputIndex = len;
-
-    //             if(serialInputIndex == len && serialInputIndex < sizeof(serialInputBuffer) - 2) {
-    //                 // expand needed
-    //                 if(serialInputBuffer[serialInputIndex + 1] != 0) {
-    //                     // shift right needed
-    //                     char * dst = serialInputBuffer + len + 1;
-    //                     char * src = serialInputBuffer + len;
-    //                     memmove(dst, src, sizeof(serialInputBuffer) - len - 1);
-    //                 }
-    //             }
-
-    //             if(serialInputIndex < sizeof(serialInputBuffer) - 2) {
-    //                 if((size_t)1 + serialInputIndex >= strlen(serialInputBuffer))
-    //                     serialInputBuffer[serialInputIndex + 1] = 0;
-    //                 serialInputBuffer[serialInputIndex++] = ch;
-    //             }
-    //         } break;
 }
-/*void printLocalTime()
+void printLocalTime()
 {
     char buffer[128];
     time_t rawtime;
@@ -874,7 +738,7 @@ void IRAM_ATTR debugLoop(void)
         }
     }
 #endif
-}*/
+}
 
 void debugEverySecond()
 {
