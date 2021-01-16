@@ -774,7 +774,7 @@ static inline void haspSetLabelText(lv_obj_t * obj, const char * value)
 }
 
 // OK
-static bool haspGetLabelText(lv_obj_t * obj, char * text)
+static bool haspGetLabelText(lv_obj_t * obj, char ** text)
 {
     if(!obj) {
         Log.warning(TAG_ATTR, F("Button not defined"));
@@ -785,7 +785,7 @@ static bool haspGetLabelText(lv_obj_t * obj, char * text)
     if(label) {
 #if 1
         if(check_obj_type(label, LV_HASP_LABEL)) {
-            text = lv_label_get_text(label);
+            *text = lv_label_get_text(label);
             return true;
         }
 #else
@@ -1356,7 +1356,7 @@ static void hasp_process_obj_attribute_txt(lv_obj_t * obj, const char * attr, co
             haspSetLabelText(obj, payload);
         } else {
             char * text = NULL;
-            if(haspGetLabelText(obj, text)) hasp_out_str(obj, attr, text);
+            if(haspGetLabelText(obj, &text) && text) hasp_out_str(obj, attr, text);
         }
         return;
     }
@@ -1703,8 +1703,10 @@ void hasp_process_obj_attribute(lv_obj_t * obj, const char * attr_p, const char 
         case ATTR_ALIGN:
             if(check_obj_type(obj, LV_HASP_BUTTON)) {
                 lv_obj_t * label = FindButtonLabel(obj);
-                if(label == NULL) goto attribute_not_found;
-                update ? lv_label_set_align(label, val) : hasp_out_int(obj, attr, lv_label_get_align(label));
+                if(label == NULL)
+                    goto attribute_not_found;
+                else
+                    update ? lv_label_set_align(label, val) : hasp_out_int(obj, attr, lv_label_get_align(label));
 
             } else if(check_obj_type(obj, LV_HASP_BTNMATRIX)) {
                 update ? lv_btnmatrix_set_align(obj, val) : hasp_out_int(obj, attr, lv_btnmatrix_get_align(obj));
