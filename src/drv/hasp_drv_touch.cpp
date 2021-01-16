@@ -147,8 +147,8 @@ static inline bool drv_touchpad_getXY(int16_t * touchX, int16_t * touchY)
     return touched;
 }
 
-bool touch_rotate   = true;
-bool touch_invert_x = true;
+bool touch_rotate   = false;
+bool touch_invert_x = false;
 bool touch_invert_y = false;
 
 bool IRAM_ATTR drv_touch_read(lv_indev_drv_t * indev_driver, lv_indev_data_t * data)
