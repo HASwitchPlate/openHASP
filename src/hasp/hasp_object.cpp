@@ -620,6 +620,7 @@ void hasp_new_object(const JsonObject & config, uint8_t & saved_page_id)
                     lv_obj_t * lbl = lv_label_create(obj, NULL);
                     if(lbl) {
                         lv_label_set_text(lbl, "");
+                        lv_label_set_recolor(lbl, true);
                         lbl->user_data.objid = LV_HASP_LABEL;
                         lv_obj_align(lbl, NULL, LV_ALIGN_CENTER, 0, 0);
                     }
@@ -642,6 +643,7 @@ void hasp_new_object(const JsonObject & config, uint8_t & saved_page_id)
                 obj = lv_label_create(parent_obj, NULL);
                 if(obj) {
                     lv_label_set_long_mode(obj, LV_LABEL_LONG_CROP);
+                    lv_label_set_recolor(obj, true);
                     lv_obj_set_event_cb(obj, generic_event_handler);
                     obj->user_data.objid = LV_HASP_LABEL;
                 }
@@ -950,7 +952,8 @@ void hasp_object_delete(lv_obj_t * obj)
 
         case LV_HASP_BTNMATRIX:
             my_btnmatrix_map_clear(obj);
-            _LV_WIN_PART_REAL_LAST; _LV_WIN_PART_VIRTUAL_LAST;
+            _LV_WIN_PART_REAL_LAST;
+            _LV_WIN_PART_VIRTUAL_LAST;
             break;
 
         case LV_HASP_GAUGE:
