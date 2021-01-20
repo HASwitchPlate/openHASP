@@ -1,6 +1,7 @@
 /* MIT License - Copyright (c) 2020 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
+#include "ArduinoJson.h"
 #include "hasp_conf.h"
 #if HASP_USE_MQTT > 0
 
@@ -19,6 +20,34 @@ extern bool mqttEnabled;
 extern bool mqttHAautodiscover;
 
 char discovery_prefix[] = "homeassistant";
+
+void mqtt_ha_register_button(uint8_t page, uint8_t id)
+{
+    char buffer[128];
+    DynamicJsonDocument doc(512);
+    JsonObject device = doc.createNestedObject("device");
+    device["ids"]     = "plate35_0123456";
+    device["name"]    = "plate35";
+    device["mdl"]     = "Lanbon L8";
+    device["sw"]      = "0.3.1";
+    device["mf"]      = "hasp-lvgl";
+
+    snprintf_P(buffer, sizeof(buffer), PSTR("p%db%d"), page, id);
+    doc["stype"] = buffer; // subtype = "p0b0"
+    snprintf_P(buffer, sizeof(buffer), PSTR("%sp%db%d"), mqttNodeTopic, page, id);
+    doc["t"] = buffer; // topic
+
+    doc["atype"] = "trigger"; // automation_type
+    doc["pl"]    = "SHORT";   // payload
+    doc["type"]  = "button_short_release";
+
+    snprintf_P(buffer, sizeof(buffer), PSTR("%s/device_automation/%s/p%db%d_%s/config"), discovery_prefix, mqttNodeName,
+               page, id, "short");
+
+    mqttClient.beginPublish(buffer, measureJson(doc), RETAINED);
+    serializeJson(doc, mqttClient);
+    mqttClient.endPublish();
+}
 
 void mqtt_ha_send_backlight()
 {
@@ -53,7 +82,7 @@ void mqtt_ha_send_backlight()
                     "\"pl_on\":\"ON\","
                     "\"pl_off\":\"OFF\""
                     "}"),
-               device_id, mqttNodeName, HASP_VERSION_MAJOR, HASP_VERSION_MINOR, HASP_VERSION_REVISION, unique_id,
+               device_id, mqttNodeName, HASP_VER_MAJ, HASP_VER_MIN, HASP_VER_REV, unique_id,
                mqttNodeTopic);
 
     mqttClient.publish(configtopic, payload, RETAINED);
@@ -76,10 +105,13 @@ void mqtt_ha_send_backlight()
                     "\"json_attr_t\":\"~state/statusupdate\","
                     "\"val_tpl\":\"{{ value | capitalize }}\""
                     "}"),
-               device_id, mqttNodeName, HASP_VERSION_MAJOR, HASP_VERSION_MINOR, HASP_VERSION_REVISION, unique_id,
+               device_id, mqttNodeName, HASP_VER_MAJ, HASP_VER_MIN, HASP_VER_REV, unique_id,
                mqttNodeTopic);
 
     mqttClient.publish(configtopic, payload, RETAINED);
+
+    mqtt_ha_register_button(0, 1);
+    mqtt_ha_register_button(0, 2);
 }
 #endif
 
