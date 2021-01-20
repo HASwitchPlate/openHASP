@@ -5,21 +5,21 @@
 #include <stdio.h>
 
 #if defined(ARDUINO_ARCH_ESP32)
-    #if HASP_USE_SPIFFS > 0
-        #include "SPIFFS.h"
-        #define FS SPIFFS
-    #elif HASP_USE_LITTLEFS > 0
-        #include "LITTLEFS.h"
-        #define FS LITTLEFS
-    #endif
+#if HASP_USE_SPIFFS > 0
+#include "SPIFFS.h"
+#define FS SPIFFS
+#elif HASP_USE_LITTLEFS > 0
+#include "LITTLEFS.h"
+#define FS LITTLEFS
+#endif
 #elif defined(ARDUINO_ARCH_ESP8266)
-    #include "LittleFS.h"
-    #define FS LittleFS
+#include "LittleFS.h"
+#define FS LittleFS
 #endif // ARDUINO_ARCH
 
 #if defined(ARDUINO_ARCH_ESP8266) || defined(ARDUINO_ARCH_ESP32)
-    #include <FS.h>
-    #include <Esp.h>
+#include <FS.h>
+#include <Esp.h>
 #endif // ARDUINO_ARCH
 
 #include "lvgl.h"
@@ -63,10 +63,10 @@ uint32_t charInBuffer = 0; // Last Character ID in the Bitmap Buffer
 lv_zifont_char_t lastCharInfo; // Holds the last Glyph DSC
 
 #if ESP32
-                               // static lv_zifont_char_t charCache[256 - 32]; // glyphID DSC cache
-    #define CHAR_CACHE_SIZE 224
+// static lv_zifont_char_t charCache[256 - 32]; // glyphID DSC cache
+#define CHAR_CACHE_SIZE 224
 #else
-    #define CHAR_CACHE_SIZE 95
+#define CHAR_CACHE_SIZE 95
 // static lv_zifont_char_t charCache[256 - 32]; // glyphID DSC cache
 #endif
 static uint8_t * charBitmap_p;
@@ -79,7 +79,7 @@ static uint8_t * charBitmap_p;
  *   GLOBAL FUNCTIONS
  **********************/
 
-// static void IRAM_ATTR blackAdd(uint8_t * charBitmap_p, uint16_t pos);
+static void IRAM_ATTR blackAdd(uint8_t * charBitmap_p, uint16_t pos);
 static void IRAM_ATTR colorsAdd(uint8_t * charBitmap_p, uint8_t color1, uint16_t pos);
 // static uint16_t unicode2codepoint(uint32_t unicode, uint8_t codepage);
 // static void printBuffer(uint8_t * charBitmap_p, uint8_t w, uint8_t h);
@@ -359,7 +359,7 @@ const uint8_t * IRAM_ATTR lv_font_get_bitmap_fmt_zifont(const lv_font_t * font, 
     uint16_t fileindex = 0;
     uint16_t arrindex  = 0;
     int k, len = 1; // enter while loop
-    uint8_t b, repeats, color1, color2;
+    uint8_t color1, color2;
 
     // while((fileindex < charInfo->length) && len > 0) { //} && !feof(file)) {
     while((arrindex < size * 2) && (len > 0)) { // read untill the bitmap is full, no need for datalength
@@ -371,50 +371,43 @@ const uint8_t * IRAM_ATTR lv_font_get_bitmap_fmt_zifont(const lv_font_t * font, 
         fileindex += len;
 
         for(k = 0; k < len; k++) {
-            b = data[k];
+            uint8_t b = data[k];
             // Serial.printf("%d - %d > %x = %x  arrindex:%d\n", fileindex, arrindex, b, ch[0], ftell(file));
 
-            repeats = b & 0b00011111; /* last 5 bits indicate repetition as the same color */
+            uint8_t repeats = b & 0b00011111; /* last 5 bits indicate repetition as the same color */
             switch(b >> 5) {
                 case(0b000):
                     arrindex += repeats; // repeats are white
                     break;
 
                 case(0b001):
-                    if(arrindex & 0x1) {
-                        colorsAdd(charBitmap_p, ColorBlack, arrindex++);
-                        repeats--;
+                    for(int i = 0; i < repeats; i++) { // repeats are black
+                        blackAdd(charBitmap_p, arrindex++);
                     }
-                    for(; repeats >= 2; repeats -= 2) { // repeats are black
-                        // colorsAdd(charBitmap_p, ColorBlack, arrindex++);
-                        charBitmap_p[arrindex >> 1] = 0xff;
-                        arrindex += 2;
-                    }
-                    if(repeats & 0x1) colorsAdd(charBitmap_p, ColorBlack, arrindex++);
                     break;
 
                 case(0b010):
                     arrindex += repeats; // repeats are white
-                    colorsAdd(charBitmap_p, ColorBlack, arrindex++);
+                    blackAdd(charBitmap_p, arrindex++);
                     break;
 
                 case(0b011):
                     arrindex += repeats; // repeats are white
-                    colorsAdd(charBitmap_p, ColorBlack, arrindex++);
-                    colorsAdd(charBitmap_p, ColorBlack, arrindex++);
+                    blackAdd(charBitmap_p, arrindex++);
+                    blackAdd(charBitmap_p, arrindex++);
                     break;
 
                 case(0b100):
                 case(0b101):
-                    repeats = (b & (0b111000)) >> 3; // 3 bits indicate repetition as the same color
-                    color1  = (b & (0b000111)) << 1; // << 1 to get 4bpp
+                    repeats = (uint8_t)((b & (0b111000)) >> 3); /* 3 bits indicate repetition as the same color */
+                    color1  = (uint8_t)(b & (0b0111));
                     arrindex += repeats;
                     colorsAdd(charBitmap_p, color1, arrindex++);
                     break;
 
                 default:
-                    color1 = (b & 0b111000) >> 2; //  >> 3 first and then << 1 to get 4bpp
-                    color2 = (b & 0b000111) << 1; //  << 1 to get 4bpp
+                    color1 = (b & 0b111000) >> 3;
+                    color2 = b & 0b000111;
                     colorsAdd(charBitmap_p, color1, arrindex++);
                     colorsAdd(charBitmap_p, color2, arrindex++);
             }
@@ -539,26 +532,28 @@ bool IRAM_ATTR lv_font_get_glyph_dsc_fmt_zifont(const lv_font_t * font, lv_font_
     return true;
 }
 
-// static void IRAM_ATTR blackAdd(uint8_t * charBitmap_p, uint16_t pos)
-// {
-//     // uint8_t col    = pos & 0x0001; // remainder
-//     uint16_t map_p = pos >> 1; // devide by 2
+static void IRAM_ATTR blackAdd(uint8_t * charBitmap_p, uint16_t pos)
+{
+    uint8_t col    = pos & 0x0001; // remainder
+    uint16_t map_p = pos >> 1;     // devide by 2
 
-//     if(pos & 0x1)
-//         charBitmap_p[map_p] |= ColorBlack;
-//     else
-//         charBitmap_p[map_p] = 0xf0;
-// }
+    if(col == 0) {
+        charBitmap_p[map_p] = 0xf0;
+    } else {
+        charBitmap_p[map_p] |= ColorBlack;
+    }
+}
 
 static inline void IRAM_ATTR colorsAdd(uint8_t * charBitmap_p, uint8_t color1, uint16_t pos)
 {
-    // uint32_t col   = pos & 0x0001; // remainder
-    uint16_t map_p = pos >> 1; // devide by 2
+    uint32_t col   = pos & 0x0001; // remainder
+    uint32_t map_p = pos >> 1;     // devide by 2
 
-    if(pos & 0x1)
-        charBitmap_p[map_p] |= color1;
-    else
-        charBitmap_p[map_p] = color1 << 4;
+    if(col == 0) {
+        charBitmap_p[map_p] = color1 << 5;
+    } else {
+        charBitmap_p[map_p] |= color1 << 1;
+    }
 }
 
 /*
