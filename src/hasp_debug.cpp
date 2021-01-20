@@ -647,7 +647,8 @@ void debugPreSetup(JsonObject settings)
         debugPrintHaspHeader(&Serial);
         Serial.flush();
 
-        Log.trace(TAG_DEBG, ("Serial started at %u baud"), baudrate);
+        Log.trace(TAG_DEBG, F("Serial started at %u baud"), baudrate);
+        Log.trace(TAG_DEBG, F("Environment: " PIOENV_STR));
     }
 }
 
