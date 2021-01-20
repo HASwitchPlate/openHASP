@@ -12,30 +12,27 @@
 #include "ArduinoLog.h"
 
 #if LV_USE_FS_IF
-#if LV_FS_IF_SPIFFS != '\0'
+    #if LV_FS_IF_SPIFFS != '\0'
 
-#if defined(ARDUINO_ARCH_ESP32)
-#if HASP_USE_SPIFFS > 0
-#include "SPIFFS.h"
-#elif HASP_USE_LITTLEFS > 0
-#include "LITTLEFS.h"
-#endif
-#elif defined(ARDUINO_ARCH_ESP8266)
-// included by default
-#endif // ARDUINO_ARCH
+        #if defined(ARDUINO_ARCH_ESP32)
+            #if HASP_USE_SPIFFS > 0
+                #include "SPIFFS.h"
+                #define LV_FS_SPIFFS SPIFFS
+            #elif HASP_USE_LITTLEFS > 0
+                #include "LITTLEFS.h"
+                #define LV_FS_SPIFFS LITTLEFS
+            #endif
+        #elif defined(ARDUINO_ARCH_ESP8266)
+            #include "LittleFS.h"
+            #define LV_FS_SPIFFS LittleFS
+        #endif // ARDUINO_ARCH
 
-#if defined(ARDUINO_ARCH_ESP8266) || defined(ARDUINO_ARCH_ESP32)
-#include <FS.h>
-#include <Esp.h>
+        #if defined(ARDUINO_ARCH_ESP8266) || defined(ARDUINO_ARCH_ESP32)
+            #include <FS.h>
+            #include <Esp.h>
+        #endif // ARDUINO_ARCH
 
-#if HASP_USE_SPIFFS > 0
-#define LV_FS_SPIFFS SPIFFS
-#elif HASP_USE_LITTLEFS > 0
-#define LV_FS_SPIFFS LITTLEFS
-#endif // HASP_USE
-#endif // ARDUINO_ARCH
-
-#define TAG_LVFS 91
+        #define TAG_LVFS 91
 
 /*********************
  *      DEFINES
@@ -48,14 +45,14 @@
 /* Create a type to store the required data about your file.*/
 typedef File lv_spiffs_file_t;
 
-/*Similarly to `file_t` create a type for directory reading too */
-#if defined(ARDUINO_ARCH_ESP32)
+        /*Similarly to `file_t` create a type for directory reading too */
+        #if defined(ARDUINO_ARCH_ESP32)
 typedef File lv_spiffs_dir_t;
-#elif defined(ARDUINO_ARCH_ESP8266)
+        #elif defined(ARDUINO_ARCH_ESP8266)
 typedef Dir lv_spiffs_dir_t;
-#define FILE_READ "r"
-#define FILE_WRITE "r+"
-#endif
+            #define FILE_READ "r"
+            #define FILE_WRITE "r+"
+        #endif
 
 /**********************
  *  STATIC PROTOTYPES
@@ -416,19 +413,19 @@ static lv_fs_res_t fs_free(lv_fs_drv_t * drv, uint32_t * total_p, uint32_t * fre
 {
     (void)drv; /*Unused*/
 
-#if defined(ARDUINO_ARCH_ESP8266)
+        #if defined(ARDUINO_ARCH_ESP8266)
     FSInfo fs_info;
     LV_FS_SPIFFS.info(fs_info);
     *total_p = (uint32_t)fs_info.totalBytes;
     *free_p  = (uint32_t)fs_info.totalBytes - fs_info.usedBytes;
     return LV_FS_RES_OK;
 
-#elif defined(ARDUINO_ARCH_ESP32)
+        #elif defined(ARDUINO_ARCH_ESP32)
     *total_p = (uint32_t)LV_FS_SPIFFS.totalBytes();
     *free_p  = (uint32_t)LV_FS_SPIFFS.totalBytes() - LV_FS_SPIFFS.usedBytes();
     return LV_FS_RES_OK;
 
-#endif
+        #endif
 
     return LV_FS_RES_NOT_IMP;
 }
@@ -444,16 +441,16 @@ static lv_fs_res_t fs_dir_open(lv_fs_drv_t * drv, void * dir_p, const char * pat
 {
     lv_spiffs_dir_t dir;
 
-#if defined(ARDUINO_ARCH_ESP32)
+        #if defined(ARDUINO_ARCH_ESP32)
     dir = LV_FS_SPIFFS.open(path);
     if(!dir) {
         return LV_FS_RES_UNKNOWN;
     }
-#endif
+        #endif
 
-#if defined(ARDUINO_ARCH_ESP8266)
+        #if defined(ARDUINO_ARCH_ESP8266)
     dir = LV_FS_SPIFFS.openDir(path);
-#endif
+        #endif
 
     lv_spiffs_dir_t * dp = (lv_spiffs_dir_t *)dir_p; /*Just avoid the confusing casings*/
     *dp                  = dir;
@@ -472,7 +469,7 @@ static lv_fs_res_t fs_dir_read(lv_fs_drv_t * drv, void * dir_p, char * fn)
 {
     lv_spiffs_dir_t dir = *(lv_spiffs_dir_t *)dir_p; /*Convert type*/
 
-#if defined(ARDUINO_ARCH_ESP32)
+        #if defined(ARDUINO_ARCH_ESP32)
     File file = dir.openNextFile();
     if(file) {
         strcpy(fn, file.name());
@@ -480,16 +477,16 @@ static lv_fs_res_t fs_dir_read(lv_fs_drv_t * drv, void * dir_p, char * fn)
     } else {
         return LV_FS_RES_UNKNOWN;
     }
-#endif
+        #endif
 
-#if defined(ARDUINO_ARCH_ESP8266)
+        #if defined(ARDUINO_ARCH_ESP8266)
     if(dir.next()) {
         strcpy(fn, dir.fileName().c_str());
         return LV_FS_RES_OK;
     } else {
         return LV_FS_RES_UNKNOWN;
     }
-#endif
+        #endif
 
     return LV_FS_RES_NOT_IMP;
 }
@@ -505,5 +502,5 @@ static lv_fs_res_t fs_dir_close(lv_fs_drv_t * drv, void * dir_p)
     return LV_FS_RES_OK;
 }
 
-#endif /*LV_USE_FS_IF*/
-#endif /*LV_FS_IF_SPIFFS*/
+    #endif /*LV_USE_FS_IF*/
+#endif     /*LV_FS_IF_SPIFFS*/
