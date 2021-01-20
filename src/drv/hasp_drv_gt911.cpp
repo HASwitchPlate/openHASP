@@ -19,9 +19,9 @@ void IRAM_ATTR GT911_setXY(int8_t contacts, GTPoint * points)
     GT911_num_touches = contacts;
     GT911_points      = points;
 
-    Log.verbose(TAG_GUI, "Contacts: %d", contacts);
+    Log.verbose(TAG_GUI, F("Contacts: %d"), contacts);
     for(int i = 0; i < contacts; i++) {
-        Log.verbose(TAG_GUI, "C%d: #%d %d,%d s:%d", i, points[i].trackId, points[i].x, points[i].y, points[i].area);
+        Log.verbose(TAG_GUI, F("C%d: #%d %d,%d s:%d"), i, points[i].trackId, points[i].x, points[i].y, points[i].area);
         yield();
     }
 }
