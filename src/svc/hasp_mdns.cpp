@@ -4,15 +4,16 @@
 #include "hasp_conf.h"
 #if HASP_USE_MDNS > 0
 
-#if defined(ARDUINO_ARCH_ESP32)
-#include <ESPmDNS.h>
-#elif defined(ARDUINO_ARCH_ESP8266)
-#include <ESP8266mDNS.h>
-// MDNSResponder::hMDNSService hMDNSService;
-#endif
+    #if defined(ARDUINO_ARCH_ESP32)
+        #include <ESPmDNS.h>
+    #elif defined(ARDUINO_ARCH_ESP8266)
+        #include <ESP8266mDNS.h>
+    // MDNSResponder::hMDNSService hMDNSService;
+    #endif
 
-#include "hasp_config.h"
-#include "hasp_debug.h"
+    #include "hasp/hasp.h"
+    #include "hasp_config.h"
+    #include "hasp_debug.h"
 
 uint8_t mdnsEnabled = true;
 
@@ -31,17 +32,17 @@ void mdnsStart()
 
     Log.notice(TAG_MDNS, F("Starting MDNS Responder..."));
 
-#if HASP_USE_MQTT > 0
+    #if HASP_USE_MQTT > 0
     String hasp2Node = mqttGetNodename();
-#else
+    #else
     String hasp2Node = "unknown";
-#endif
+    #endif
 
     // Setup mDNS service discovery if enabled
     char buffer[32];
-    snprintf_P(buffer, sizeof(buffer), PSTR("%u.%u.%u"), HASP_VERSION_MAJOR, HASP_VERSION_MINOR, HASP_VERSION_REVISION);
-    uint8_t attempt = 0;
+    haspGetVersion(buffer, sizeof(buffer));
 
+    uint8_t attempt = 0;
     while(!MDNS.begin(hasp2Node.c_str())) {
         if(attempt++ >= 3) {
             Log.error(TAG_MDNS, F("Responder failed to start %s"), hasp2Node.c_str());
@@ -68,19 +69,19 @@ void mdnsStart()
 
 void IRAM_ATTR mdnsLoop(void)
 {
-#if defined(ARDUINO_ARCH_ESP8266)
+    #if defined(ARDUINO_ARCH_ESP8266)
     if(mdnsEnabled) {
         MDNS.update();
     }
-#endif
+    #endif
 }
 
 void mdnsStop()
 {
     return;
-#if HASP_USE_MDNS > 0
+    #if HASP_USE_MDNS > 0
     MDNS.end();
-#endif
+    #endif
 }
 
     #if HASP_USE_CONFIG > 0

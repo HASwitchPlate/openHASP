@@ -101,19 +101,20 @@
 #include <Arduino.h>
 
 #if HASP_USE_SPIFFS > 0
-#if defined(ARDUINO_ARCH_ESP32)
-#include "SPIFFS.h"
-#endif
-#include <FS.h> // Include the SPIFFS library
+// #if defined(ARDUINO_ARCH_ESP32)
+// #include "SPIFFS.h"
+// #endif
+// #include <FS.h> // Include the SPIFFS library
 #include "hasp_filesystem.h"
 #endif
 
 #if HASP_USE_LITTLEFS > 0
-#if defined(ARDUINO_ARCH_ESP32)
-#include "LITTLEFS.h"
-#elif defined(ARDUINO_ARCH_ESP8266)
-#include <FS.h> // Include the FS library
-#endif
+// #if defined(ARDUINO_ARCH_ESP32)
+// #include "LITTLEFS.h"
+// #elif defined(ARDUINO_ARCH_ESP8266)
+// #include <FS.h> // Include the FS library
+// #include <LittleFS.h>
+// #endif
 #include "hasp_filesystem.h"
 #endif
 

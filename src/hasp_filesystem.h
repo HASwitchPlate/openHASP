@@ -12,24 +12,22 @@ void filesystemList();
 void filesystemInfo();
 
 #if defined(ARDUINO_ARCH_ESP32)
-#if HASP_USE_SPIFFS > 0
-#include "SPIFFS.h"
-#elif HASP_USE_LITTLEFS > 0
-#include "LITTLEFS.h"
-#endif
+    #if HASP_USE_SPIFFS > 0
+        #include "SPIFFS.h"
+        #define HASP_FS SPIFFS
+    #elif HASP_USE_LITTLEFS > 0
+        #include "LITTLEFS.h"
+        #define HASP_FS LITTLEFS
+    #endif
 #elif defined(ARDUINO_ARCH_ESP8266)
-// included by default
+    // included by default
+    #include <LittleFS.h>
+    #define HASP_FS LittleFS
 #endif // ARDUINO_ARCH
 
 #if defined(ARDUINO_ARCH_ESP8266) || defined(ARDUINO_ARCH_ESP32)
-#include <FS.h>
-#include <Esp.h>
-
-#if HASP_USE_SPIFFS > 0
-#define HASP_FS SPIFFS
-#elif HASP_USE_LITTLEFS > 0
-#define HASP_FS LITTLEFS
-#endif // HASP_USE
+    #include <FS.h>
+    #include <Esp.h>
 #endif // ARDUINO_ARCH
 
 #endif // HASP_FILESYSTEM_H

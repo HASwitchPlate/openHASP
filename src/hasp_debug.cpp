@@ -120,7 +120,7 @@ void debugPrintHaspHeader(Print * output)
                     "        Home Automation Switch Plate\r\n"
                     "        Open Hardware edition v"));
     char buffer[32];
-    snprintf_P(buffer, sizeof(buffer), PSTR("%u.%u.%u"), HASP_VERSION_MAJOR, HASP_VERSION_MINOR, HASP_VERSION_REVISION);
+    haspGetVersion(buffer, sizeof(buffer));
     output->println(buffer);
     output->println();
 }
@@ -648,7 +648,7 @@ void debugPreSetup(JsonObject settings)
         Serial.flush();
 
         Log.trace(TAG_DEBG, F("Serial started at %u baud"), baudrate);
-        Log.trace(TAG_DEBG, F("Environment: " PIOENV_STR));
+        Log.trace(TAG_DEBG, F("Environment: " PIOENV));
     }
 }
 

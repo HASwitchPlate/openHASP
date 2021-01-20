@@ -49,7 +49,7 @@ File pFileOut;
     #define INVERT_COLORS 0
 #endif
 
-static void IRAM_ATTR lv_tick_handler(void);
+// static void IRAM_ATTR lv_tick_handler(void);
 
 static bool guiShowPointer      = false;
 static bool guiBacklightIsOn    = true;

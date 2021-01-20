@@ -503,7 +503,7 @@ void hasp_background(uint16_t pageid, uint16_t imageid)
 
 void haspGetVersion(char * version, size_t len)
 {
-    snprintf_P(version, len, "%u.%u.%u", HASP_VERSION_MAJOR, HASP_VERSION_MINOR, HASP_VERSION_REVISION);
+    snprintf_P(version, len, PSTR("%u.%u.%u"), HASP_VER_MAJ, HASP_VER_MIN, HASP_VER_REV);
 }
 
 void haspClearPage(uint16_t pageid)

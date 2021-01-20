@@ -20,9 +20,7 @@ bool IRAM_ATTR FT5206_getXY(int16_t * touchX, int16_t * touchY, bool debug)
     *touchY     = tp.y;
 
     if(debug) {
-        char tempString[128];
-        sprintf(tempString, F("FT5206 touched x: %d y: %d\n"), tp.x, tp.y); // TODO: literal string
-        Serial.print(tempString);
+        Log.verbose(TAG_DRVR, F("FT5206 touched x: %d y: %d\n"), tp.x, tp.y);
     }
 
     return true;
