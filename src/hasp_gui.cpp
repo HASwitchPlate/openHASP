@@ -307,7 +307,7 @@ void guiSetup()
 
     /* Setup Backlight Control Pin */
     if(guiBacklightPin >= 0) {
-        Log.verbose(TAG_GUI, F("Backlight: Pin %d"), guiBacklightPin);
+        Log.verbose(TAG_GUI, F("Backlight  : Pin %d"), guiBacklightPin);
 
 #if defined(ARDUINO_ARCH_ESP32)
         ledcSetup(BACKLIGHT_CHANNEL, 20000, 10);
