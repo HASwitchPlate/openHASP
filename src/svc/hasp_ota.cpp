@@ -3,30 +3,72 @@
 
 #if defined(ARDUINO_ARCH_ESP8266) || defined(ARDUINO_ARCH_ESP32)
 
-#include "hasp_conf.h"
+    #include "hasp_conf.h"
 
-#include "hasp_debug.h"
-#include "hasp_ota.h"
+    #include "hasp_debug.h"
+    #include "hasp_ota.h"
 
-#include "../hasp/hasp_dispatch.h"
-#include "../hasp/hasp.h"
+    #include "../hasp/hasp_dispatch.h"
+    #include "../hasp/hasp.h"
 
-#if defined(ARDUINO_ARCH_ESP8266)
-#include <ESP8266HTTPClient.h>
-#include <ESP8266httpUpdate.h>
-#include <ESP8266WiFi.h>
-#else
-#include <HTTPClient.h>
-#include <HTTPUpdate.h>
-#include <WiFi.h>
-#endif
+    #if defined(ARDUINO_ARCH_ESP8266)
+        #include <ESP8266HTTPClient.h>
+        #include <ESP8266httpUpdate.h>
+        #include <ESP8266WiFi.h>
+    #else
+        #include <HTTPClient.h>
+        #include <HTTPUpdate.h>
+        #include <WiFi.h>
+    #endif
 
-#include <ArduinoOTA.h>
+    #include <ArduinoOTA.h>
 
 static WiFiClient otaClient;
 std::string otaUrl           = "http://ota.netwize.be";
 int16_t otaPort              = HASP_OTA_PORT;
 int8_t otaPrecentageComplete = -1;
+
+bool otaUpdateCheck()
+{ // firmware update check
+    WiFiClientSecure wifiUpdateClientSecure;
+    HTTPClient updateClient;
+    Log.notice(TAG_OTA, F("UPDATE: Checking update URL: %s"), otaUrl.c_str());
+
+   // wifiUpdateClientSecure.setInsecure();
+   // wifiUpdateClientSecure.setBufferSizes(512, 512);
+    updateClient.begin(wifiUpdateClientSecure, otaUrl.c_str());
+
+    int httpCode = updateClient.GET(); // start connection and send HTTP header
+    if(httpCode != HTTP_CODE_OK) {
+        Log.error(TAG_OTA, F("Update check failed: %s"), updateClient.errorToString(httpCode).c_str());
+        return false;
+    }
+
+    DynamicJsonDocument updateJson(1024);
+    DeserializationError jsonError = deserializeJson(updateJson, updateClient.getString());
+    updateClient.end();
+
+    if(jsonError) { // Couldn't parse the returned JSON, so bail
+        Log.error(TAG_OTA, F("JSON parsing failed: %s"), jsonError.c_str());
+        // mqttClient.publish(mqttStateJSONTopic,
+        //                    String(F("{\"event\":\"jsonError\",\"event_source\":\"updateCheck()\",\"event_description\":"
+        //                             "\"Failed to parse incoming JSON command with error\"")) +
+        //                        String(jsonError.c_str()));
+        return false;
+    } else {
+        if(!updateJson["d1_mini"]["version"].isNull()) {
+            // updateEspAvailableVersion = updateJson["d1_mini"]["version"].as<float>();
+            // debugPrintln(String(F("UPDATE: updateEspAvailableVersion: ")) + String(updateEspAvailableVersion));
+            // espFirmwareUrl = updateJson["d1_mini"]["firmware"].as<String>();
+            // if(updateEspAvailableVersion > haspVersion) {
+            //     updateEspAvailable = true;
+            //     debugPrintln(String(F("UPDATE: New ESP version available: ")) + String(updateEspAvailableVersion));
+            // }
+        }
+        Log.verbose(TAG_OTA, F("UPDATE: Update check completed"));
+    }
+    return true;
+}
 
 static inline void otaProgress(void)
 {
@@ -99,22 +141,22 @@ void otaSetup(void)
             // delay(5000);
         });
 
-#if HASP_USE_MQTT > 0
+    #if HASP_USE_MQTT > 0
         ArduinoOTA.setHostname(String(mqttGetNodename()).c_str());
-#else
+    #else
         ArduinoOTA.setHostname(String(mqttGetNodename()).c_str());
-#endif
+    #endif
         // ArduinoOTA.setPassword(configPassword);
         ArduinoOTA.setPort(otaPort);
 
-#if ESP32
-#if HASP_USE_MDNS > 0
+    #if ESP32
+        #if HASP_USE_MDNS > 0
         ArduinoOTA.setMdnsEnabled(true);
-#else
+        #else
         ArduinoOTA.setMdnsEnabled(false);
-#endif
-        // ArduinoOTA.setTimeout(1000);
-#endif
+        #endif
+            // ArduinoOTA.setTimeout(1000);
+    #endif
         ArduinoOTA.setRebootOnSuccess(false); // We do that ourselves
 
         ArduinoOTA.begin();
@@ -138,19 +180,19 @@ void otaHttpUpdate(const char * espOtaUrl)
 { // Update ESP firmware from HTTP
   // nextionSendCmd("page 0");
   // nextionSetAttr("p[0].b[1].txt", "\"HTTP update\\rstarting...\"");
-#if HASP_USE_MDNS > 0
+    #if HASP_USE_MDNS > 0
     mdnsStop(); // Keep mDNS responder from breaking things
-#endif
+    #endif
 
-#if defined(ARDUINO_ARCH_ESP8266)
+    #if defined(ARDUINO_ARCH_ESP8266)
     // ESPhttpUpdate.onStart(update_started);
     // ESPhttpUpdate.onEnd(update_finished);
     // ESPhttpUpdate.onProgress(update_progress);
     // ESPhttpUpdate.onError(update_error);
     ESP8266HTTPUpdate httpUpdate;
-#else
+    #else
     HTTPUpdate httpUpdate;
-#endif
+    #endif
 
     httpUpdate.rebootOnUpdate(false); // We do that ourselves
     t_httpUpdate_return returnCode = httpUpdate.update(otaClient, espOtaUrl);
@@ -170,9 +212,9 @@ void otaHttpUpdate(const char * espOtaUrl)
             dispatch_reboot(true);
     }
 
-#if HASP_USE_MDNS > 0
+    #if HASP_USE_MDNS > 0
     mdnsStart();
-#endif // HASP_USE_MDNS
+    #endif // HASP_USE_MDNS
 }
 
 #endif // ARDUINO_ARCH_ESP8266 || ARDUINO_ARCH_ESP32
