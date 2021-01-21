@@ -83,8 +83,8 @@ stages:
       topic: hasp/{plate}/command/reboot
       payload: ""
     mqtt_response:
-      topic: hasp/{plate}/status
-      payload: "OFF"
+      topic: hasp/{plate}/LWT
+      payload: "offline"
       timeout: 20
     delay_after: 1
 

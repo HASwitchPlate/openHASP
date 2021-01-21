@@ -1,6 +1,5 @@
 # test_page.tavern.yaml
 ---
-
 test_name: Label Standard Properties
 
 includes:
@@ -50,10 +49,8 @@ stages:
       topic: hasp/{plate}/command
       payload: "p[1].b[1].x"
     mqtt_response:
-      topic: hasp/{plate}/state/json
+      topic: hasp/{plate}/state/p1b1
       json:
-        page: 1
-        id: 1
         x: "50"
       timeout: 5
   - name: Set x
@@ -65,10 +62,8 @@ stages:
       topic: hasp/{plate}/command
       payload: "p[1].b[1].x"
     mqtt_response:
-      topic: hasp/{plate}/state/json
+      topic: hasp/{plate}/state/p1b1
       json:
-        page: 1
-        id: 1
         x: "25"
       timeout: 5
 
@@ -82,10 +77,8 @@ stages:
       topic: hasp/{plate}/command
       payload: "p[1].b[1].y"
     mqtt_response:
-      topic: hasp/{plate}/state/json
+      topic: hasp/{plate}/state/p1b1
       json:
-        page: 1
-        id: 1
         y: "50"
       timeout: 5
   - name: Set y
@@ -98,10 +91,8 @@ stages:
       topic: hasp/{plate}/command
       payload: "p[1].b[1].y"
     mqtt_response:
-      topic: hasp/{plate}/state/json
+      topic: hasp/{plate}/state/p1b1
       json:
-        page: 1
-        id: 1
         y: "25"
       timeout: 5
 
@@ -115,10 +106,8 @@ stages:
       topic: hasp/{plate}/command
       payload: "p[1].b[1].w"
     mqtt_response:
-      topic: hasp/{plate}/state/json
+      topic: hasp/{plate}/state/p1b1
       json:
-        page: 1
-        id: 1
         w: !anything
       timeout: 5
   - name: Set w
@@ -130,10 +119,8 @@ stages:
       topic: hasp/{plate}/command
       payload: "p[1].b[1].w"
     mqtt_response:
-      topic: hasp/{plate}/state/json
+      topic: hasp/{plate}/state/p1b1
       json:
-        page: 1
-        id: 1
         w: !anything
       timeout: 5
 
@@ -147,10 +134,8 @@ stages:
       topic: hasp/{plate}/command
       payload: "p[1].b[1].h"
     mqtt_response:
-      topic: hasp/{plate}/state/json
+      topic: hasp/{plate}/state/p1b1
       json:
-        page: 1
-        id: 1
         h: !anything
       timeout: 5
   - name: Set h
@@ -163,10 +148,8 @@ stages:
       topic: hasp/{plate}/command
       payload: "p[1].b[1].h"
     mqtt_response:
-      topic: hasp/{plate}/state/json
+      topic: hasp/{plate}/state/p1b1
       json:
-        page: 1
-        id: 1
         h: !anything
       timeout: 5
 
@@ -190,10 +173,8 @@ stages:
       topic: hasp/{plate}/command
       payload: "p[1].b[1].w"
     mqtt_response:
-      topic: hasp/{plate}/state/json
+      topic: hasp/{plate}/state/p1b1
       json:
-        page: 1
-        id: 1
         w: "50"
       timeout: 5
   - name: Set w
@@ -205,10 +186,8 @@ stages:
       topic: hasp/{plate}/command
       payload: "p[1].b[1].w"
     mqtt_response:
-      topic: hasp/{plate}/state/json
+      topic: hasp/{plate}/state/p1b1
       json:
-        page: 1
-        id: 1
         w: "25"
       timeout: 5
 
@@ -222,10 +201,8 @@ stages:
       topic: hasp/{plate}/command
       payload: "p[1].b[1].h"
     mqtt_response:
-      topic: hasp/{plate}/state/json
+      topic: hasp/{plate}/state/p1b1
       json:
-        page: 1
-        id: 1
         h: "50"
       timeout: 5
   - name: Set h
@@ -238,10 +215,8 @@ stages:
       topic: hasp/{plate}/command
       payload: "p[1].b[1].h"
     mqtt_response:
-      topic: hasp/{plate}/state/json
+      topic: hasp/{plate}/state/p1b1
       json:
-        page: 1
-        id: 1
         h: "45"
       timeout: 5
 
@@ -255,10 +230,8 @@ stages:
       topic: hasp/{plate}/command
       payload: "p[1].b[1].enabled"
     mqtt_response:
-      topic: hasp/{plate}/state/json
+      topic: hasp/{plate}/state/p1b1
       json:
-        page: 1
-        id: 1
         enabled: "0"
       timeout: 5
   - name: Set enabled
@@ -271,10 +244,8 @@ stages:
       topic: hasp/{plate}/command
       payload: "p[1].b[1].enabled"
     mqtt_response:
-      topic: hasp/{plate}/state/json
+      topic: hasp/{plate}/state/p1b1
       json:
-        page: 1
-        id: 1
         enabled: "1"
       timeout: 5
 
@@ -288,10 +259,8 @@ stages:
       topic: hasp/{plate}/command
       payload: "p[1].b[1].hidden"
     mqtt_response:
-      topic: hasp/{plate}/state/json
+      topic: hasp/{plate}/state/p1b1
       json:
-        page: 1
-        id: 1
         hidden: "1"
       timeout: 5
   - name: Get vis
@@ -299,10 +268,8 @@ stages:
       topic: hasp/{plate}/command
       payload: "p[1].b[1].vis"
     mqtt_response:
-      topic: hasp/{plate}/state/json
+      topic: hasp/{plate}/state/p1b1
       json:
-        page: 1
-        id: 1
         vis: "0"
       timeout: 5
 
@@ -316,10 +283,8 @@ stages:
       topic: hasp/{plate}/command
       payload: "p[1].b[1].hidden"
     mqtt_response:
-      topic: hasp/{plate}/state/json
+      topic: hasp/{plate}/state/p1b1
       json:
-        page: 1
-        id: 1
         hidden: "0"
       timeout: 5
   - name: Get vis
@@ -327,10 +292,8 @@ stages:
       topic: hasp/{plate}/command
       payload: "p[1].b[1].vis"
     mqtt_response:
-      topic: hasp/{plate}/state/json
+      topic: hasp/{plate}/state/p1b1
       json:
-        page: 1
-        id: 1
         vis: "1"
       timeout: 5
 
@@ -344,10 +307,8 @@ stages:
       topic: hasp/{plate}/command
       payload: "p[1].b[1].hidden"
     mqtt_response:
-      topic: hasp/{plate}/state/json
+      topic: hasp/{plate}/state/p1b1
       json:
-        page: 1
-        id: 1
         hidden: "1"
       timeout: 5
   - name: Get vis
@@ -355,10 +316,8 @@ stages:
       topic: hasp/{plate}/command
       payload: "p[1].b[1].vis"
     mqtt_response:
-      topic: hasp/{plate}/state/json
+      topic: hasp/{plate}/state/p1b1
       json:
-        page: 1
-        id: 1
         vis: "0"
       timeout: 5
 
@@ -372,10 +331,8 @@ stages:
       topic: hasp/{plate}/command
       payload: "p[1].b[1].hidden"
     mqtt_response:
-      topic: hasp/{plate}/state/json
+      topic: hasp/{plate}/state/p1b1
       json:
-        page: 1
-        id: 1
         hidden: "0"
       timeout: 5
   - name: Get vis
@@ -383,10 +340,7 @@ stages:
       topic: hasp/{plate}/command
       payload: "p[1].b[1].vis"
     mqtt_response:
-      topic: hasp/{plate}/state/json
+      topic: hasp/{plate}/state/p1b1
       json:
-        page: 1
-        id: 1
         vis: "1"
       timeout: 5
-
