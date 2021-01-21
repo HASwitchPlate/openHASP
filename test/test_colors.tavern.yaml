@@ -70,7 +70,6 @@ marks:
   - parametrize:
       key: obj
       vals:
-        - label
         - cb
         - btn
 
@@ -104,9 +103,9 @@ stages:
         obj: "{obj}"
         id: 1
         txt: "{color}"
-        x: 50
-        y: 50
-        w: 140
+        x: "{r}"
+        y: "{g}"
+        w: "{b}"
     delay_after: 0.1
 
   - name: Set bg_color
