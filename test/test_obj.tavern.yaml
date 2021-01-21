@@ -1,6 +1,5 @@
 # test_page.tavern.yaml
 ---
-
 test_name: Obj Standard Properties
 
 includes:
@@ -17,25 +16,20 @@ paho-mqtt:
 
 marks:
   - parametrize:
-      key: x
+      key:
+        - hidden
+        - hidden_inv
+        - x
+        - y
+        - w
+        - h
+        - radius
+        - opacity
       vals:
-        - 120
-        - 80
-  - parametrize:
-      key: y
-      vals:
-        - 121
-        - 81
-  - parametrize:
-      key: w
-      vals:
-        - 122
-        - 82
-  - parametrize:
-      key: h
-      vals:
-        - 123
-        - 83
+        - [1, 0, 120, 121, 122, 123, 0, 255]
+        - [0, 1, 80, 81, 82, 83, 32535, 192]
+        - [1, 0, -10, -10, 256, 257, 1, 64]
+        - [0, 1, 1024, 1025, 1026, 1027, 5, 0]
   - parametrize:
       key: objid
       vals:
@@ -52,25 +46,6 @@ marks:
         - 50
         - 51
         - 91
-  - parametrize:
-      key:
-        - hidden
-        - hidden_inv
-      vals:
-        - [1, 0]
-        - [0, 1]
-  - parametrize:
-      key: opacity
-      vals:
-        - 0
-        - 127
-        - 255
-  - parametrize:
-      key: radius
-      vals:
-        - 0
-        - 5
-        - 32535
 
 stages:
   - name: Page 1
@@ -97,88 +72,55 @@ stages:
         id: 1
     delay_after: 0
 
-  - name: Set x
+  - name: Test x
     mqtt_publish:
-      topic: hasp/{plate}/command
-      payload: "p[1].b[1].x={x}"
-    delay_after: 0
-  - name: Get x
-    mqtt_publish:
-      topic: hasp/{plate}/command
-      payload: "p[1].b[1].x"
+      topic: hasp/{plate}/command/json
+      payload: '["p[1].b[1].x={x}","p[1].b[1].x"]'
     mqtt_response:
-      topic: hasp/{plate}/state/json
+      topic: hasp/{plate}/state/p1b1
       json:
-        page: 1
-        id: 1
         x: "{x}"
       timeout: 5
 
-  - name: Set y
+  - name: Test y
     mqtt_publish:
-      topic: hasp/{plate}/command
-      payload: "p[1].b[1].y={y}"
-    delay_after: 0
-  - name: Get y
-    mqtt_publish:
-      topic: hasp/{plate}/command
-      payload: "p[1].b[1].y"
+      topic: hasp/{plate}/command/json
+      payload: '["p[1].b[1].y={y}","p[1].b[1].y"]'
     mqtt_response:
-      topic: hasp/{plate}/state/json
+      topic: hasp/{plate}/state/p1b1
       json:
-        page: 1
-        id: 1
         y: "{y}"
       timeout: 5
 
-  - name: Set w
+  - name: Test w
     mqtt_publish:
-      topic: hasp/{plate}/command
-      payload: "p[1].b[1].w={w}"
-    delay_after: 0
-  - name: Get w
-    mqtt_publish:
-      topic: hasp/{plate}/command
-      payload: "p[1].b[1].w"
+      topic: hasp/{plate}/command/json
+      payload: '["p[1].b[1].w={w}","p[1].b[1].w"]'
     mqtt_response:
-      topic: hasp/{plate}/state/json
+      topic: hasp/{plate}/state/p1b1
       json:
-        page: 1
-        id: 1
         w: "{w}"
       timeout: 5
 
-  - name: Set h
+  - name: Test h
     mqtt_publish:
-      topic: hasp/{plate}/command
-      payload: "p[1].b[1].h={h}"
+      topic: hasp/{plate}/command/json
+      payload: '["p[1].b[1].h={h}","p[1].b[1].h"]'
     delay_after: 0
-  - name: Get h
-    mqtt_publish:
-      topic: hasp/{plate}/command
-      payload: "p[1].b[1].h"
     mqtt_response:
-      topic: hasp/{plate}/state/json
+      topic: hasp/{plate}/state/p1b1
       json:
-        page: 1
-        id: 1
         h: "{h}"
       timeout: 5
 
-  - name: Set enabled
+  - name: Test enabled
     mqtt_publish:
-      topic: hasp/{plate}/command
-      payload: "p[1].b[1].enabled={hidden}"
+      topic: hasp/{plate}/command/json
+      payload: '["p[1].b[1].enabled={hidden}","p[1].b[1].enabled"]'
     delay_after: 0
-  - name: Get enabled
-    mqtt_publish:
-      topic: hasp/{plate}/command
-      payload: "p[1].b[1].enabled"
     mqtt_response:
-      topic: hasp/{plate}/state/json
+      topic: hasp/{plate}/state/p1b1
       json:
-        page: 1
-        id: 1
         enabled: "{hidden}"
       timeout: 5
 
@@ -192,10 +134,8 @@ stages:
       topic: hasp/{plate}/command
       payload: "p[1].b[1].hidden"
     mqtt_response:
-      topic: hasp/{plate}/state/json
+      topic: hasp/{plate}/state/p1b1
       json:
-        page: 1
-        id: 1
         hidden: "{hidden_inv}"
       timeout: 5
   - name: Get vis
@@ -203,10 +143,8 @@ stages:
       topic: hasp/{plate}/command
       payload: "p[1].b[1].vis"
     mqtt_response:
-      topic: hasp/{plate}/state/json
+      topic: hasp/{plate}/state/p1b1
       json:
-        page: 1
-        id: 1
         vis: "{hidden}"
       timeout: 5
 
@@ -220,54 +158,37 @@ stages:
       topic: hasp/{plate}/command
       payload: "p[1].b[1].hidden"
     mqtt_response:
-      topic: hasp/{plate}/state/json
+      topic: hasp/{plate}/state/p1b1
       json:
-        page: 1
-        id: 1
         hidden: "{hidden}"
       timeout: 5
+
   - name: Get vis
     mqtt_publish:
       topic: hasp/{plate}/command
       payload: "p[1].b[1].vis"
     mqtt_response:
-      topic: hasp/{plate}/state/json
+      topic: hasp/{plate}/state/p1b1
       json:
-        page: 1
-        id: 1
         vis: "{hidden_inv}"
       timeout: 5
 
-  - name: Set opacity
+  - name: Test opacity
     mqtt_publish:
-      topic: hasp/{plate}/command
-      payload: "p[1].b[1].opacity={opacity}"
-    delay_after: 0
-  - name: Get opacity
-    mqtt_publish:
-      topic: hasp/{plate}/command
-      payload: "p[1].b[1].opacity"
+      topic: hasp/{plate}/command/json
+      payload: '["p[1].b[1].opacity={opacity}","p[1].b[1].opacity"]'
     mqtt_response:
-      topic: hasp/{plate}/state/json
+      topic: hasp/{plate}/state/p1b1
       json:
-        page: 1
-        id: 1
         opacity: "{opacity}"
       timeout: 5
 
-  - name: Set radius
+  - name: Test radius
     mqtt_publish:
-      topic: hasp/{plate}/command
-      payload: "p[1].b[1].radius={radius}"
-    delay_after: 0
-  - name: Get radius
-    mqtt_publish:
-      topic: hasp/{plate}/command
-      payload: "p[1].b[1].radius"
+      topic: hasp/{plate}/command/json
+      payload: '["p[1].b[1].radius={radius}","p[1].b[1].radius"]'
     mqtt_response:
-      topic: hasp/{plate}/state/json
+      topic: hasp/{plate}/state/p1b1
       json:
-        page: 1
-        id: 1
         radius: "{radius}"
       timeout: 5
