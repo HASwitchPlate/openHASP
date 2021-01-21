@@ -7,15 +7,15 @@ import shutil
 buildFlags = env.ParseFlags(env['BUILD_FLAGS'])
 
 def get_fw_version(source, target, env):
-    global HASP_VERSION_MAJOR
-    global HASP_VERSION_MINOR
-    global HASP_VERSION_REVISION
+    global HASP_VER_MAJ
+    global HASP_VER_MIN
+    global HASP_VER_REV
 
     for item in buildFlags.get("CPPDEFINES"): 
         if (type(item) is list):
-            if (item[0]=="HASP_VERSION_MAJOR"): HASP_VERSION_MAJOR = item[1]
-            if (item[0]=="HASP_VERSION_MINOR"): HASP_VERSION_MINOR = item[1]
-            if (item[0]=="HASP_VERSION_REVISION"): HASP_VERSION_REVISION = item[1]
+            if (item[0]=="HASP_VER_MAJ"): HASP_VER_MAJ = item[1]
+            if (item[0]=="HASP_VER_MIN"): HASP_VER_MIN = item[1]
+            if (item[0]=="HASP_VER_REV"): HASP_VER_REV = item[1]
             print("   * %s = %s" % (item[0],item[1]))
         else:
             print("   * %s" % item)
@@ -23,7 +23,7 @@ def get_fw_version(source, target, env):
 OUTPUT_DIR = "build_output{}".format(os.path.sep)
 
 def bin_copy_rename(source, target, env):
-    variant = str(target[0]).split(os.path.sep)[2] + '_v' + str(HASP_VERSION_MAJOR) + '.' + str(HASP_VERSION_MINOR) + '.' + str(HASP_VERSION_REVISION)
+    variant = str(target[0]).split(os.path.sep)[2] + '_v' + str(HASP_VER_MAJ) + '.' + str(HASP_VER_MIN) + '.' + str(HASP_VER_REV)
     
     # check if output directories exist and create if necessary
     if not os.path.isdir(OUTPUT_DIR):
