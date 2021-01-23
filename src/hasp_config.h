@@ -3,12 +3,12 @@
 
 #if HASP_USE_CONFIG > 0
 
-#ifndef HASP_CONFIG_H
-#define HASP_CONFIG_H
+    #ifndef HASP_CONFIG_H
+        #define HASP_CONFIG_H
 
-#include "hasp_conf.h"
-#include "ArduinoJson.h"
-#include "hasp_debug.h" // for TAG_CONF
+        #include "hasp_conf.h"
+        #include "ArduinoJson.h"
+        #include "hasp_debug.h" // for TAG_CONF
 
 /* ===== Default Event Processors ===== */
 void configSetup(void);
@@ -49,18 +49,19 @@ const char F_CONFIG_GROUP[] PROGMEM     = "group";
 const char F_CONFIG_BAUD[] PROGMEM      = "baud";
 const char F_CONFIG_LOG[] PROGMEM       = "log";
 const char F_CONFIG_PROTOCOL[] PROGMEM  = "proto";
-const char F_GUI_ROTATION[] PROGMEM     = "rotation";
-const char F_GUI_TICKPERIOD[] PROGMEM   = "tickperiod";
+const char F_GUI_ROTATION[] PROGMEM     = "rotate";
+const char F_GUI_INVERT[] PROGMEM       = "invert";
+const char F_GUI_TICKPERIOD[] PROGMEM   = "tick";
 const char F_GUI_IDLEPERIOD1[] PROGMEM  = "idle1";
 const char F_GUI_IDLEPERIOD2[] PROGMEM  = "idle2";
 const char F_GUI_CALIBRATION[] PROGMEM  = "calibration";
-const char F_GUI_BACKLIGHTPIN[] PROGMEM = "bcklpin";
-const char F_GUI_POINTER[] PROGMEM      = "pointer";
-const char F_DEBUG_TELEPERIOD[] PROGMEM = "teleperiod";
+const char F_GUI_BACKLIGHTPIN[] PROGMEM = "bckl";
+const char F_GUI_POINTER[] PROGMEM      = "cursor";
+const char F_DEBUG_TELEPERIOD[] PROGMEM = "tele";
 const char F_GPIO_CONFIG[] PROGMEM      = "config";
 
 const char HASP_CONFIG_FILE[] PROGMEM = "/config.json";
 
-#endif
+    #endif
 
 #endif // HASP_USE_CONFIG

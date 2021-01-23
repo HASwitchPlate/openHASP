@@ -506,6 +506,9 @@ bool guiGetConfig(const JsonObject & settings)
     if(guiShowPointer != settings[FPSTR(F_GUI_POINTER)].as<bool>()) changed = true;
     settings[FPSTR(F_GUI_POINTER)] = guiShowPointer;
 
+    if(guiInvertDisplay != settings[FPSTR(F_GUI_INVERT)].as<bool>()) changed = true;
+    settings[FPSTR(F_GUI_INVERT)] = guiInvertDisplay;
+
     /* Check CalData array has changed */
     JsonArray array = settings[FPSTR(F_GUI_CALIBRATION)].as<JsonArray>();
     uint8_t i       = 0;
@@ -559,6 +562,7 @@ bool guiSetConfig(const JsonObject & settings)
     changed |= configSet(guiSleepTime1, settings[FPSTR(F_GUI_IDLEPERIOD1)], F("guiSleepTime1"));
     changed |= configSet(guiSleepTime2, settings[FPSTR(F_GUI_IDLEPERIOD2)], F("guiSleepTime2"));
     changed |= configSet(guiRotation, settings[FPSTR(F_GUI_ROTATION)], F("guiRotation"));
+    changed |= configSet(guiInvertDisplay, settings[FPSTR(F_GUI_INVERT)], F("guiInvertDisplay"));
 
     if(!settings[FPSTR(F_GUI_POINTER)].isNull()) {
         if(guiShowPointer != settings[FPSTR(F_GUI_POINTER)].as<bool>()) {

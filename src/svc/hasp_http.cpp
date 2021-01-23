@@ -237,7 +237,8 @@ void saveConfig()
     #endif
 
             } else if(save == String(PSTR("gui"))) {
-                settings[FPSTR(F_GUI_POINTER)] = webServer.hasArg(PSTR("pointer"));
+                settings[FPSTR(F_GUI_POINTER)] = webServer.hasArg(PSTR("cur"));
+                settings[FPSTR(F_GUI_INVERT)]  = webServer.hasArg(PSTR("inv"));
                 guiSetConfig(settings.as<JsonObject>());
 
             } else if(save == String(PSTR("debug"))) {
@@ -1093,7 +1094,11 @@ void webHandleGuiConfig()
         httpMessage += getOption(5, F("270 degrees - mirrored"), rotation == 5);
         httpMessage += F("</select></p>");
 
-        httpMessage += F("<p><input id='pointer' name='pointer' type='checkbox' ");
+        httpMessage += F("<p><input id='inv' name='inv' type='checkbox' ");
+        if(settings[FPSTR(F_GUI_INVERT)].as<bool>()) httpMessage += F(" checked");
+        httpMessage += F("><b>Invert Colors</b>");
+
+        httpMessage += F("<p><input id='cur' name='cur' type='checkbox' ");
         if(settings[FPSTR(F_GUI_POINTER)].as<bool>()) httpMessage += F(" checked");
         httpMessage += F("><b>Show Pointer</b>");
 
