@@ -61,7 +61,7 @@ git submodule update --init --recursive
 
 ## Getting Started
 
-Check out the [wiki](https://github.com/fvanroie/hasp-lvgl/wiki) for how-to's, information and frequently asked questions.
+Check out the [documentation](https://fvanroie.github.io/hasp-docs/) for how-to's, information and frequently asked questions.
 
 Support
 ---------------------------
