@@ -70,8 +70,8 @@ void hasp_process_attribute(uint8_t pageid, uint8_t objid, const char * attr, co
 
 void object_set_group_state(uint8_t groupid, uint8_t eventid, lv_obj_t * src_obj);
 
-void IRAM_ATTR generic_event_handler(lv_obj_t * obj, lv_event_t event);
-void IRAM_ATTR toggle_event_handler(lv_obj_t * obj, lv_event_t event);
+void generic_event_handler(lv_obj_t * obj, lv_event_t event);
+void toggle_event_handler(lv_obj_t * obj, lv_event_t event);
 void slider_event_handler(lv_obj_t * obj, lv_event_t event);
 void wakeup_event_handler(lv_obj_t * obj, lv_event_t event);
 

@@ -37,7 +37,7 @@ uint8_t nCommands = 0;
 haspCommand_t commands[16];
 
 static void dispatch_config(const char * topic, const char * payload);
-static void dispatch_group_state(uint8_t groupid, uint8_t eventid, lv_obj_t * obj);
+// void dispatch_group_value(uint8_t groupid, int16_t state, lv_obj_t * obj);
 static inline void dispatch_state_msg(const __FlashStringHelper * subtopic, const char * payload);
 
 void dispatch_screenshot(const char *, const char * filename)
@@ -101,6 +101,18 @@ inline void dispatch_process_button_attribute(String strTopic, const char * payl
         if(pageid >= 0 && pageid <= 255 && objid >= 0 && objid <= 255) {
             hasp_process_attribute((uint8_t)pageid, (uint8_t)objid, strAttr.c_str(), payload);
         } // valid page
+
+    } else {
+
+        unsigned int pageid, objid;
+        const char * topic_p = strTopic.c_str();
+
+        if(sscanf(topic_p, "p%ub%u.", &pageid, &objid) == 2) { // Literal String
+            size_t offset = 0;
+            while(topic_p[offset++] != '.') {
+            }
+            hasp_process_attribute((uint8_t)pageid, (uint8_t)objid, topic_p + offset, payload);
+        }
     }
 }
 
@@ -121,8 +133,8 @@ void dispatch_command(const char * topic, const char * payload)
     /* =============================== Not standard payload commands ===================================== */
 
     if(strlen(topic) == 7 && topic == strstr_P(topic, PSTR("output"))) {
-        dispatch_group_state(atoi(topic + 6), hasp_util_is_true(payload) ? HASP_EVENT_ON : HASP_EVENT_OFF,
-                             NULL); // + 6 => trim 'output' from the topic
+        int16_t state = atoi(payload);
+        dispatch_normalized_group_value(atoi(topic + 6), state, NULL); // + 6 => trim 'output' from the topic
 
         // } else if(strcasecmp_P(topic, PSTR("screenshot")) == 0) {
         //     guiTakeScreenshot("/screenshot.bmp"); // Literal String
@@ -243,8 +255,20 @@ void dispatch_output_idle_state(uint8_t state)
     dispatch_state_msg(F("idle"), payload);
 }
 
+void dispatch_output_group_state(uint8_t groupid, uint16_t state)
+{
+    char payload[64];
+    char number[16]; // Return the current state
+    itoa(state, number, DEC);
+    snprintf_P(payload, sizeof(payload), PSTR("{\"group\":%d,\"state\":\"%s\"}"), groupid, number);
+
+    dispatch_state_msg(F("output"), payload);
+}
+
 void IRAM_ATTR dispatch_send_obj_attribute_str(uint8_t pageid, uint8_t btnid, const char * attribute, const char * data)
 {
+    if(!attribute || !data) return;
+
     char topic[12];
     char payload[32 + strlen(data) + strlen(attribute)];
     // snprintf_P(payload, sizeof(payload), PSTR("{\"page\":%u,\"id\":%u,\"%s\":\"%s\"}"), pageid, btnid, attribute,
@@ -399,7 +423,7 @@ static void dispatch_get_event_name(uint8_t eventid, char * buffer, size_t size)
 }
 
 #if HASP_USE_GPIO > 0
-void dispatch_gpio_event(uint8_t pin, uint8_t group, uint8_t eventid)
+void dispatch_gpio_input_event(uint8_t pin, uint8_t group, uint8_t eventid)
 {
     char payload[64];
     char event[8];
@@ -411,7 +435,7 @@ void dispatch_gpio_event(uint8_t pin, uint8_t group, uint8_t eventid)
     #endif
 
     // update outputstates
-    dispatch_group_state(group, dispatch_get_event_state(eventid), NULL);
+    // dispatch_group_onoff(group, dispatch_get_event_state(eventid), NULL);
 }
 #endif
 
@@ -428,9 +452,16 @@ void dispatch_object_event(lv_obj_t * obj, uint8_t eventid)
         dispatch_send_obj_attribute_str(pageid, objid, topic, payload);
     }
 
-    if(obj->user_data.groupid > 0) {
-        dispatch_group_state(obj->user_data.groupid, eventid, obj);
-    }
+    //  dispatch_group_onoff(obj->user_data.groupid, dispatch_get_event_state(eventid), obj);
+}
+
+void dispatch_object_value_changed(lv_obj_t * obj, int16_t state)
+{
+    char topic[4];
+
+    hasp_update_sleep_state(); // wakeup?
+    snprintf_P(topic, sizeof(topic), PSTR("val"));
+    hasp_send_obj_attribute_int(obj, topic, state);
 }
 
 /********************************************** Output States ******************************************/
@@ -448,21 +479,39 @@ static inline void dispatch_state_msg(const __FlashStringHelper * subtopic, cons
 #endif
 }
 
-void dispatch_group_state(uint8_t groupid, uint8_t eventid, lv_obj_t * obj)
+// void dispatch_group_onoff(uint8_t groupid, uint16_t eventid, lv_obj_t * obj)
+// {
+//     if((eventid == HASP_EVENT_LONG) || (eventid == HASP_EVENT_HOLD)) return; // don't send repeat events
+
+//     if(groupid >= 0) {
+//         bool state = dispatch_get_event_state(eventid);
+//         gpio_set_group_onoff(groupid, state);
+//         object_set_group_state(groupid, eventid, obj);
+//     }
+
+//     char payload[8];
+//     dispatch_get_event_name(eventid, payload, sizeof(payload));
+//     // dispatch_output_group_state(groupid, payload);
+// }
+
+// void dispatch_group_value(uint8_t groupid, int16_t state, lv_obj_t * obj)
+// {
+//     if(groupid >= 0) {
+//         gpio_set_group_value(groupid, state);
+//         object_set_group_state(groupid, state, obj);
+//     }
+
+//     char payload[8];
+//     // dispatch_output_group_state(groupid, payload);
+// }
+
+void dispatch_normalized_group_value(uint8_t groupid, uint16_t value, lv_obj_t * obj)
 {
-    if((eventid == HASP_EVENT_LONG) || (eventid == HASP_EVENT_HOLD)) return; // don't send repeat events
-
-    if(groupid >= 0) {
-        gpio_set_group_state(groupid, eventid);
-        object_set_group_state(groupid, eventid, obj);
+    if(groupid > 0) {
+        Log.verbose(TAG_MSGR, F("GROUP %d value %d"), groupid, value);
+        gpio_set_normalized_group_value(groupid, value);
+        //  object_set_group_state(groupid, value, obj);
     }
-
-    char payload[64];
-    char state[4]; // Return the current state
-    memcpy_P(state, dispatch_get_event_state(eventid) ? PSTR("ON") : PSTR("OFF"), sizeof(state));
-    snprintf_P(payload, sizeof(payload), PSTR("{\"group\":%d,\"state\":\"%s\"}"), groupid, state);
-
-    dispatch_state_msg(F("output"), payload);
 }
 
 /********************************************** Native Commands ****************************************/

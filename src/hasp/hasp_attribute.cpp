@@ -260,16 +260,16 @@ lv_chart_series_t * my_chart_get_series(lv_obj_t * chart, uint8_t ser_num)
  */
 void my_obj_set_value_str_txt(lv_obj_t * obj, uint8_t part, lv_state_t state, const char * text)
 {
-    //  Log.verbose(TAG_ATTR, "%s %d", __FILE__, __LINE__);
+    //  Log.verbose(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
 
     const void * value_str_p = lv_obj_get_style_value_str(obj, part);
     lv_obj_invalidate(obj);
 
     if(text == NULL || text[0] == 0) {
-        Log.verbose(TAG_ATTR, "%s %d", __FILE__, __LINE__);
+        // Log.verbose(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
         lv_obj_set_style_local_value_str(obj, part, state, NULL);
         lv_mem_free(value_str_p);
-        Log.verbose(TAG_ATTR, "%s %d", __FILE__, __LINE__);
+        // Log.verbose(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
         return;
     }
 
@@ -280,15 +280,15 @@ void my_obj_set_value_str_txt(lv_obj_t * obj, uint8_t part, lv_state_t state, co
         size_t len = strlen(text) + 1;
 
         /*Allocate space for the new text*/
-        //   Log.verbose(TAG_ATTR, "%s %d", __FILE__, __LINE__);
+        //   Log.verbose(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
         value_str_p = (char *)lv_mem_alloc(len);
         LV_ASSERT_MEM(value_str_p);
         if(value_str_p == NULL) return;
 
-        //   Log.verbose(TAG_ATTR, "%s %d", __FILE__, __LINE__);
+        // Log.verbose(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
         strncpy((char *)value_str_p, text, len);
         lv_obj_set_style_local_value_str(obj, part, state, (char *)value_str_p);
-        Log.verbose(TAG_ATTR, "%s %d", __FILE__, __LINE__);
+        // Log.verbose(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
         return;
     }
 
@@ -306,10 +306,10 @@ void my_obj_set_value_str_txt(lv_obj_t * obj, uint8_t part, lv_state_t state, co
     } else {
         /*Free the old text*/
         if(value_str_p != NULL) {
-            //        Log.verbose(TAG_ATTR, "%s %d", __FILE__, __LINE__);
+            //        Log.verbose(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
             lv_mem_free(value_str_p);
             value_str_p = NULL;
-            //        Log.verbose(TAG_ATTR, "%s %d", __FILE__, __LINE__);
+            //        Log.verbose(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
         }
 
         /*Get the size of the text*/
@@ -322,7 +322,7 @@ void my_obj_set_value_str_txt(lv_obj_t * obj, uint8_t part, lv_state_t state, co
         lv_obj_set_style_local_value_str(obj, part, state, (char *)value_str_p);
     }
 
-    // Log.verbose(TAG_ATTR, "%s %d", __FILE__, __LINE__);
+    // Log.verbose(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
 }
 
 void my_btnmatrix_map_clear(lv_obj_t * obj)
@@ -342,11 +342,11 @@ void my_btnmatrix_map_clear(lv_obj_t * obj)
         Log.verbose(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, map_p_tmp); // label pointer array block
         lv_btnmatrix_set_map(obj, btnmatrix_default_map);                 // reset to default btnmap pointer
 
-        Log.verbose(TAG_ATTR, "%s %d", __FILE__, __LINE__);
+        Log.verbose(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
         lv_mem_free(*map_p_tmp); // free label buffer reserved as a contiguous block
-        Log.verbose(TAG_ATTR, "%s %d", __FILE__, __LINE__);
+        Log.verbose(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
         lv_mem_free(map_p_tmp); // free label pointer array block
-        Log.verbose(TAG_ATTR, "%s %d", __FILE__, __LINE__);
+        Log.verbose(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
     }
 }
 
@@ -389,13 +389,13 @@ static void my_btnmatrix_map_create(lv_obj_t * obj, const char * payload)
     memset(buffer_addr, 0, tot_len); // Important, last index needs to be 0 => empty string ""
 
     /* Point of no return, destroy & free the previous map */
-    Log.verbose(TAG_ATTR, "%s %d   map addr:  %x", __FILE__, __LINE__, map_data_str);
+    Log.verbose(TAG_ATTR, F("%s %d   map addr:  %x"), __FILE__, __LINE__, map_data_str);
     my_btnmatrix_map_clear(obj); // Free previous map
 
     // Fill buffer
     size_t index = 0;
     size_t pos   = 0;
-    Log.verbose(TAG_ATTR, "%s %d   lbl addr:  %x", __FILE__, __LINE__, buffer_addr);
+    Log.verbose(TAG_ATTR, F("%s %d   lbl addr:  %x"), __FILE__, __LINE__, buffer_addr);
     for(JsonVariant btn : arr) {
         size_t len = btn.as<String>().length() + 1;
         Log.verbose(TAG_ATTR, F("    * Adding button: %s (%d bytes) %x"), btn.as<String>().c_str(), len,
@@ -406,9 +406,9 @@ static void my_btnmatrix_map_create(lv_obj_t * obj, const char * payload)
     }
     map_data_str[index] = buffer_addr + pos; // save pointer to the last \0 byte
 
-    Log.verbose(TAG_ATTR, "%s %d", __FILE__, __LINE__);
+    Log.verbose(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
     lv_btnmatrix_set_map(obj, map_data_str);
-    Log.verbose(TAG_ATTR, "%s %d", __FILE__, __LINE__);
+    Log.verbose(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
 }
 
 void line_clear_points(lv_obj_t * obj)
@@ -497,140 +497,155 @@ static bool haspPayloadToColor(const char * payload, lv_color_t & color)
         uint8_t G8 = (G6 * 259 + 33) >> 6;
         uint8_t B8 = (B5 * 527 + 23) >> 6;
         color      = lv_color_make(R8, G8, B8);
+
     } else {
 
         /* Named Color Scheme*/
-        switch(hasp_util_get_sdbm(payload)) {
-            case ATTR_RED:
-                color = lv_color_make(0xFF, 0x00, 0x00);
-                break;
-            case ATTR_TAN:
-                color = lv_color_make(0xD2, 0xB4, 0x8C);
-                break;
-            case ATTR_BLUE:
-                color = lv_color_make(0x00, 0x00, 0xFF);
-                break;
-            case ATTR_AQUA:
-            case ATTR_CYAN:
-                color = lv_color_make(0x00, 0xFF, 0xFF);
-                break;
-            case ATTR_GOLD:
-                color = lv_color_make(0xFF, 0xD7, 0x00);
-                break;
-            case ATTR_GRAY:
-            case ATTR_GREY:
-                color = lv_color_make(0x80, 0x80, 0x80);
-                break;
-            case ATTR_LIME:
-                color = lv_color_make(0x00, 0xFF, 0x00);
-                break;
-            case ATTR_NAVY:
-                color = lv_color_make(0x00, 0x00, 0x80);
-                break;
-            case ATTR_PERU:
-                color = lv_color_make(0xCD, 0x85, 0x3F);
-                break;
-            case ATTR_PINK:
-                color = lv_color_make(0xFF, 0xC0, 0xCB);
-                break;
-            case ATTR_PLUM:
-                color = lv_color_make(0xDD, 0xA0, 0xDD);
-                break;
-            case ATTR_SNOW:
-                color = lv_color_make(0xFF, 0xFA, 0xFA);
-                break;
-            case ATTR_TEAL:
-                color = lv_color_make(0x00, 0x80, 0x80);
-                break;
-            case ATTR_AZURE:
-                color = lv_color_make(0xF0, 0xFF, 0xFF);
-                break;
-            case ATTR_BEIGE:
-                color = lv_color_make(0xF5, 0xF5, 0xDC);
-                break;
-            case ATTR_BLACK:
-                color = lv_color_make(0x00, 0x00, 0x00);
-                break;
-            case ATTR_BLUSH:
-                color = lv_color_make(0xB0, 0x00, 0x00);
-                break;
-            case ATTR_BROWN:
-                color = lv_color_make(0xA5, 0x2A, 0x2A);
-                break;
-            case ATTR_CORAL:
-                color = lv_color_make(0xFF, 0x7F, 0x50);
-                break;
-            case ATTR_GREEN:
-                color = lv_color_make(0x00, 0x80, 0x00);
-                break;
-            case ATTR_IVORY:
-                color = lv_color_make(0xFF, 0xFF, 0xF0);
-                break;
-            case ATTR_KHAKI:
-                color = lv_color_make(0xF0, 0xE6, 0x8C);
-                break;
-            case ATTR_LINEN:
-                color = lv_color_make(0xFA, 0xF0, 0xE6);
-                break;
-            case ATTR_OLIVE:
-                color = lv_color_make(0x80, 0x80, 0x00);
-                break;
-            case ATTR_WHEAT:
-                color = lv_color_make(0xF5, 0xDE, 0xB3);
-                break;
-            case ATTR_WHITE:
-                color = lv_color_make(0xFF, 0xFF, 0xFF);
-                break;
-            case ATTR_BISQUE:
-                color = lv_color_make(0xFF, 0xE4, 0xC4);
-                break;
-            case ATTR_INDIGO:
-                color = lv_color_make(0x4B, 0x00, 0x82);
-                break;
-            case ATTR_MAROON:
-                color = lv_color_make(0x80, 0x00, 0x00);
-                break;
-            case ATTR_ORANGE:
-                color = lv_color_make(0xFF, 0xA5, 0x00);
-                break;
-            case ATTR_ORCHID:
-                color = lv_color_make(0xDA, 0x70, 0xD6);
-                break;
-            case ATTR_PURPLE:
-                color = lv_color_make(0x80, 0x00, 0x80);
-                break;
-            case ATTR_SALMON:
-                color = lv_color_make(0xFA, 0x80, 0x72);
-                break;
-            case ATTR_SIENNA:
-                color = lv_color_make(0xA0, 0x52, 0x2D);
-                break;
-            case ATTR_SILVER:
-                color = lv_color_make(0xC0, 0xC0, 0xC0);
-                break;
-            case ATTR_TOMATO:
-                color = lv_color_make(0xFF, 0x63, 0x47);
-                break;
-            case ATTR_VIOLET:
-                color = lv_color_make(0xEE, 0x82, 0xEE);
-                break;
-            case ATTR_YELLOW:
-                color = lv_color_make(0xFF, 0xFF, 0x00);
-                break;
-            case ATTR_FUCHSIA:
-            case ATTR_MAGENTA:
-                color = lv_color_make(0xFF, 0x00, 0xFF);
-                break;
+        //     switch(hasp_util_get_sdbm(payload)) {
+        //         case ATTR_RED:
+        //             color = lv_color_make(0xFF, 0x00, 0x00);
+        //             break;
+        //         case ATTR_TAN:
+        //             color = lv_color_make(0xD2, 0xB4, 0x8C);
+        //             break;
+        //         case ATTR_BLUE:
+        //             color = lv_color_make(0x00, 0x00, 0xFF);
+        //             break;
+        //         case ATTR_AQUA:
+        //         case ATTR_CYAN:
+        //             color = lv_color_make(0x00, 0xFF, 0xFF);
+        //             break;
+        //         case ATTR_GOLD:
+        //             color = lv_color_make(0xFF, 0xD7, 0x00);
+        //             break;
+        //         case ATTR_GRAY:
+        //         case ATTR_GREY:
+        //             color = lv_color_make(0x80, 0x80, 0x80);
+        //             break;
+        //         case ATTR_LIME:
+        //             color = lv_color_make(0x00, 0xFF, 0x00);
+        //             break;
+        //         case ATTR_NAVY:
+        //             color = lv_color_make(0x00, 0x00, 0x80);
+        //             break;
+        //         case ATTR_PERU:
+        //             color = lv_color_make(0xCD, 0x85, 0x3F);
+        //             break;
+        //         case ATTR_PINK:
+        //             color = lv_color_make(0xFF, 0xC0, 0xCB);
+        //             break;
+        //         case ATTR_PLUM:
+        //             color = lv_color_make(0xDD, 0xA0, 0xDD);
+        //             break;
+        //         case ATTR_SNOW:
+        //             color = lv_color_make(0xFF, 0xFA, 0xFA);
+        //             break;
+        //         case ATTR_TEAL:
+        //             color = lv_color_make(0x00, 0x80, 0x80);
+        //             break;
+        //         case ATTR_AZURE:
+        //             color = lv_color_make(0xF0, 0xFF, 0xFF);
+        //             break;
+        //         case ATTR_BEIGE:
+        //             color = lv_color_make(0xF5, 0xF5, 0xDC);
+        //             break;
+        //         case ATTR_BLACK:
+        //             color = lv_color_make(0x00, 0x00, 0x00);
+        //             break;
+        //         case ATTR_BLUSH:
+        //             color = lv_color_make(0xB0, 0x00, 0x00);
+        //             break;
+        //         case ATTR_BROWN:
+        //             color = lv_color_make(0xA5, 0x2A, 0x2A);
+        //             break;
+        //         case ATTR_CORAL:
+        //             color = lv_color_make(0xFF, 0x7F, 0x50);
+        //             break;
+        //         case ATTR_GREEN:
+        //             color = lv_color_make(0x00, 0x80, 0x00);
+        //             break;
+        //         case ATTR_IVORY:
+        //             color = lv_color_make(0xFF, 0xFF, 0xF0);
+        //             break;
+        //         case ATTR_KHAKI:
+        //             color = lv_color_make(0xF0, 0xE6, 0x8C);
+        //             break;
+        //         case ATTR_LINEN:
+        //             color = lv_color_make(0xFA, 0xF0, 0xE6);
+        //             break;
+        //         case ATTR_OLIVE:
+        //             color = lv_color_make(0x80, 0x80, 0x00);
+        //             break;
+        //         case ATTR_WHEAT:
+        //             color = lv_color_make(0xF5, 0xDE, 0xB3);
+        //             break;
+        //         case ATTR_WHITE:
+        //             color = lv_color_make(0xFF, 0xFF, 0xFF);
+        //             break;
+        //         case ATTR_BISQUE:
+        //             color = lv_color_make(0xFF, 0xE4, 0xC4);
+        //             break;
+        //         case ATTR_INDIGO:
+        //             color = lv_color_make(0x4B, 0x00, 0x82);
+        //             break;
+        //         case ATTR_MAROON:
+        //             color = lv_color_make(0x80, 0x00, 0x00);
+        //             break;
+        //         case ATTR_ORANGE:
+        //             color = lv_color_make(0xFF, 0xA5, 0x00);
+        //             break;
+        //         case ATTR_ORCHID:
+        //             color = lv_color_make(0xDA, 0x70, 0xD6);
+        //             break;
+        //         case ATTR_PURPLE:
+        //             color = lv_color_make(0x80, 0x00, 0x80);
+        //             break;
+        //         case ATTR_SALMON:
+        //             color = lv_color_make(0xFA, 0x80, 0x72);
+        //             break;
+        //         case ATTR_SIENNA:
+        //             color = lv_color_make(0xA0, 0x52, 0x2D);
+        //             break;
+        //         case ATTR_SILVER:
+        //             color = lv_color_make(0xC0, 0xC0, 0xC0);
+        //             break;
+        //         case ATTR_TOMATO:
+        //             color = lv_color_make(0xFF, 0x63, 0x47);
+        //             break;
+        //         case ATTR_VIOLET:
+        //             color = lv_color_make(0xEE, 0x82, 0xEE);
+        //             break;
+        //         case ATTR_YELLOW:
+        //             color = lv_color_make(0xFF, 0xFF, 0x00);
+        //             break;
+        //         case ATTR_FUCHSIA:
+        //         case ATTR_MAGENTA:
+        //             color = lv_color_make(0xFF, 0x00, 0xFF);
+        //             break;
 
-            default:
-                /* Unknown color name */
-                Log.warning(TAG_ATTR, F("Invalid color %s"), payload);
-                return false;
+        //         default:
+        //             /* Unknown color name */
+        //             Log.warning(TAG_ATTR, F("Invalid color %s"), payload);
+        //             return false;
+        //     }
+        // }
+
+        size_t numColors = sizeof(haspNamedColors) / sizeof(haspNamedColors[0]);
+        uint16_t sdbm    = hasp_util_get_sdbm(payload);
+
+        for(size_t i = 0; i < numColors; i++) {
+            if(sdbm == (uint16_t)pgm_read_word_near(&(haspNamedColors[i].hash))) {
+                uint8_t r = (uint16_t)pgm_read_byte_near(&(haspNamedColors[i].r));
+                uint8_t g = (uint16_t)pgm_read_byte_near(&(haspNamedColors[i].g));
+                uint8_t b = (uint16_t)pgm_read_byte_near(&(haspNamedColors[i].b));
+                color     = lv_color_make(r, g, b);
+                return true; /* Color found */
+            }
         }
+        return false; /* Color not found */
     }
 
-    /* Unknown color scheme */
-    return true;
+    return true; /* Color found */
 }
 
 static lv_font_t * haspPayloadToFont(const char * payload)
@@ -1034,7 +1049,7 @@ static void hasp_local_style_attr(lv_obj_t * obj, const char * attr_p, uint16_t 
         case ATTR_TEXT_FONT: {
             lv_font_t * font = haspPayloadToFont(payload);
             if(font) {
-                uint8_t count;
+                uint8_t count = 3;
                 if(check_obj_type(obj, LV_HASP_ROLLER)) count = my_roller_get_visible_row_count(obj);
                 lv_obj_set_style_local_text_font(obj, part, state, font);
                 if(check_obj_type(obj, LV_HASP_ROLLER)) lv_roller_set_visible_row_count(obj, count);
@@ -1390,100 +1405,59 @@ static void hasp_process_obj_attribute_txt(lv_obj_t * obj, const char * attr, co
     Log.warning(TAG_ATTR, F("Unknown property %s"), attr);
 }
 
-static void hasp_process_obj_attribute_val(lv_obj_t * obj, const char * attr, const char * payload, bool update)
+bool hasp_process_obj_attribute_val(lv_obj_t * obj, const char * attr, const char * payload, bool update)
 {
     int16_t intval = atoi(payload);
-    uint16_t val   = atoi(payload);
 
-    /* Attributes depending on objecttype */
-    // lv_obj_type_t list;
-    // lv_obj_get_type(obj, &list);
-    // const char * objtype = list.type[0];
-
-    if(check_obj_type(obj, LV_HASP_BUTTON) && lv_btn_get_checkable(obj)) {
-        if(update) {
-            lv_btn_state_t state;
-            switch(val) {
-                case 0:
-                    state = LV_BTN_STATE_RELEASED;
-                    break;
-                case 1:
-                    state = LV_BTN_STATE_CHECKED_RELEASED;
-                    break;
-                case 3:
-                    state = LV_BTN_STATE_CHECKED_DISABLED;
-                    break;
-                default:
-                    state = LV_BTN_STATE_DISABLED;
-            };
-            return lv_btn_set_state(obj, state);
-        } else {
-            lv_btn_state_t state = lv_btn_get_state(obj);
-            switch(state) {
-                case LV_BTN_STATE_RELEASED:
-                case LV_BTN_STATE_PRESSED:
-                    return hasp_out_int(obj, attr, 0);
-                case LV_BTN_STATE_CHECKED_RELEASED:
-                case LV_BTN_STATE_CHECKED_PRESSED:
-                    return hasp_out_int(obj, attr, 1);
-                case LV_BTN_STATE_DISABLED:
-                    return hasp_out_int(obj, attr, 2);
-                case LV_BTN_STATE_CHECKED_DISABLED:
-                    return hasp_out_int(obj, attr, 3);
+    if(check_obj_type(obj, LV_HASP_BUTTON)) {
+        if(lv_btn_get_checkable(obj)) {
+            if(update) {
+                if(intval)
+                    lv_obj_add_state(obj, LV_STATE_CHECKED);
+                else
+                    lv_obj_clear_state(obj, LV_STATE_CHECKED);
+            } else {
+                hasp_out_int(obj, attr, lv_obj_get_state(obj, LV_BTN_PART_MAIN) & LV_STATE_CHECKED);
             }
-        }
-    }
-
-    if(check_obj_type(obj, LV_HASP_CHECKBOX)) {
-        return update ? lv_checkbox_set_checked(obj, hasp_util_is_true(payload))
-                      : hasp_out_int(obj, attr, lv_checkbox_is_checked(obj));
-    }
-    if(check_obj_type(obj, LV_HASP_SWITCH)) {
-        if(update) {
-            return hasp_util_is_true(payload) ? lv_switch_on(obj, LV_ANIM_ON) : lv_switch_off(obj, LV_ANIM_ON);
         } else {
-            return hasp_out_int(obj, attr, lv_switch_get_state(obj));
+            return false; // not checkable
         }
-
+    } else if(check_obj_type(obj, LV_HASP_CHECKBOX)) {
+        update ? lv_checkbox_set_checked(obj, hasp_util_is_true(payload))
+               : hasp_out_int(obj, attr, lv_checkbox_is_checked(obj));
+    } else if(check_obj_type(obj, LV_HASP_SWITCH)) {
+        if(update)
+            hasp_util_is_true(payload) ? lv_switch_on(obj, LV_ANIM_ON) : lv_switch_off(obj, LV_ANIM_ON);
+        else
+            hasp_out_int(obj, attr, lv_switch_get_state(obj));
     } else if(check_obj_type(obj, LV_HASP_DDLIST)) {
-        lv_dropdown_set_selected(obj, val);
-        return;
-
+        lv_dropdown_set_selected(obj, (uint16_t)intval);
     } else if(check_obj_type(obj, LV_HASP_LMETER)) {
-        return update ? lv_linemeter_set_value(obj, intval) : hasp_out_int(obj, attr, lv_linemeter_get_value(obj));
-
+        update ? lv_linemeter_set_value(obj, intval) : hasp_out_int(obj, attr, lv_linemeter_get_value(obj));
     } else if(check_obj_type(obj, LV_HASP_SLIDER)) {
-        return update ? lv_slider_set_value(obj, intval, LV_ANIM_ON)
-                      : hasp_out_int(obj, attr, lv_slider_get_value(obj));
-
+        update ? lv_slider_set_value(obj, intval, LV_ANIM_ON) : hasp_out_int(obj, attr, lv_slider_get_value(obj));
     } else if(check_obj_type(obj, LV_HASP_LED)) {
-        return update ? lv_led_set_bright(obj, (uint8_t)val) : hasp_out_int(obj, attr, lv_led_get_bright(obj));
-
+        update ? lv_led_set_bright(obj, (uint8_t)intval) : hasp_out_int(obj, attr, lv_led_get_bright(obj));
     } else if(check_obj_type(obj, LV_HASP_ARC)) {
-        return update ? lv_arc_set_value(obj, intval) : hasp_out_int(obj, attr, lv_arc_get_value(obj));
-
+        update ? lv_arc_set_value(obj, intval) : hasp_out_int(obj, attr, lv_arc_get_value(obj));
     } else if(check_obj_type(obj, LV_HASP_GAUGE)) {
-        return update ? lv_gauge_set_value(obj, 0, intval) : hasp_out_int(obj, attr, lv_gauge_get_value(obj, 0));
-
+        update ? lv_gauge_set_value(obj, 0, intval) : hasp_out_int(obj, attr, lv_gauge_get_value(obj, 0));
     } else if(check_obj_type(obj, LV_HASP_ROLLER)) {
-        lv_roller_set_selected(obj, val, LV_ANIM_ON);
-        return;
-
+        lv_roller_set_selected(obj, (uint16_t)intval, LV_ANIM_ON);
     } else if(check_obj_type(obj, LV_HASP_BAR)) {
-        return update ? lv_bar_set_value(obj, intval, LV_ANIM_ON) : hasp_out_int(obj, attr, lv_bar_get_value(obj));
-
+        update ? lv_bar_set_value(obj, intval, LV_ANIM_ON) : hasp_out_int(obj, attr, lv_bar_get_value(obj));
     } else if(check_obj_type(obj, LV_HASP_CPICKER)) {
         if(update) {
             lv_color_t color;
-            if(!haspPayloadToColor(payload, color)) return;
-            lv_cpicker_set_color(obj, color);
+            if(haspPayloadToColor(payload, color)) lv_cpicker_set_color(obj, color);
         } else {
             hasp_out_color(obj, attr, lv_cpicker_get_color(obj));
         }
-        return;
+    } else {
+        return false;
     }
 
-    Log.warning(TAG_ATTR, F("Unknown property %s"), attr);
+    return true;
 }
 
 static void hasp_process_obj_attribute_range(lv_obj_t * obj, const char * attr, const char * payload, bool update,
@@ -1639,7 +1613,7 @@ void hasp_process_obj_attribute(lv_obj_t * obj, const char * attr_p, const char 
             break; // attribute_found
 
         case ATTR_VAL:
-            hasp_process_obj_attribute_val(obj, attr, payload, update);
+            if(!hasp_process_obj_attribute_val(obj, attr, payload, update)) goto attribute_not_found;
             break; // attribute_found
 
         case ATTR_MIN:
@@ -1832,5 +1806,5 @@ attribute_found:
     return;
 
 attribute_not_found:
-    Log.verbose(TAG_ATTR, F("%s (%d)"), attr_p, attr_hash);
+    Log.warning(TAG_ATTR, F("Unknown property %s (%d)"), attr_p, attr_hash);
 }

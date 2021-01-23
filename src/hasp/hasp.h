@@ -4,6 +4,8 @@
 #ifndef HASP_H
 #define HASP_H
 
+#define NORMALIZE(a, b, c) map(a, b, c, 0, 0xFFFFU)
+
 #include <Arduino.h>
 #include "lvgl.h"
 #include "hasp_conf.h"

@@ -48,7 +48,6 @@ lv_obj_t * hasp_find_obj_from_parent_id(lv_obj_t * parent, uint8_t objid)
 
         /* check tabs */
         if(check_obj_type(child, LV_HASP_TABVIEW)) {
-            //#if LVGL_VERSION_MAJOR == 7
             uint16_t tabcount = lv_tabview_get_tab_count(child);
             for(uint16_t i = 0; i < tabcount; i++) {
                 lv_obj_t * tab = lv_tabview_get_tab(child, i);
@@ -59,7 +58,6 @@ lv_obj_t * hasp_find_obj_from_parent_id(lv_obj_t * parent, uint8_t objid)
                 grandchild = hasp_find_obj_from_parent_id(tab, objid);
                 if(grandchild) return grandchild; /* grandchild found, return it */
             }
-            //#endif
         }
 
         /* try next sibling */
@@ -231,6 +229,7 @@ void hasp_send_obj_attribute_color(lv_obj_t * obj, const char * attribute, lv_co
 {
     char buffer[40]; // "#ffffff","r":"255","g":"255","b":"255"
     lv_color32_t c32;
+
     c32.full = lv_color_to32(color);
     snprintf_P(buffer, sizeof(buffer), PSTR("#%02x%02x%02x\",\"r\":\"%d\",\"g\":\"%d\",\"b\":\"%d"), c32.ch.red,
                c32.ch.green, c32.ch.blue, c32.ch.red, c32.ch.green, c32.ch.blue);
@@ -239,31 +238,32 @@ void hasp_send_obj_attribute_color(lv_obj_t * obj, const char * attribute, lv_co
 
 // ##################### Value Senders ########################################################
 
-static void hasp_send_obj_attribute_P(lv_obj_t * obj, const char * attr, const char * data)
-{
-    char * buffer;
-    buffer = (char *)malloc(strlen_P(attr) + 1);
-    strcpy_P(buffer, attr);
-    hasp_send_obj_attribute_str(obj, buffer, data);
-    free(buffer);
-}
+// static void hasp_send_obj_attribute_P(lv_obj_t * obj, const char * attr, const char * data)
+// {
+//     char * buffer;
+//     buffer = (char *)malloc(strlen_P(attr) + 1);
+//     strcpy_P(buffer, attr);
+//     hasp_send_obj_attribute_str(obj, buffer, data);
+//     free(buffer);
+// }
 
-static inline void hasp_send_obj_attribute_val(lv_obj_t * obj, int32_t val)
-{
-    char data[32];
-    itoa(val, data, DEC);
-    hasp_send_obj_attribute_P(obj, PSTR("val"), data);
-}
+// static inline void hasp_obj_value_changed(lv_obj_t * obj, int32_t val)
+// {
+//     dispatch_object_value_changed(obj, val);
+// char data[32];
+// itoa(val, data, DEC);
+// hasp_send_obj_attribute_P(obj, PSTR("val"), data);
+//}
 
-static inline void hasp_send_obj_attribute_event(lv_obj_t * obj, const char * event)
-{
-    hasp_send_obj_attribute_P(obj, PSTR("event"), event);
-}
+// static inline void hasp_send_obj_attribute_event(lv_obj_t * obj, const char * event)
+// {
+//     hasp_send_obj_attribute_P(obj, PSTR("event"), event);
+// }
 
-static inline void hasp_send_obj_attribute_txt(lv_obj_t * obj, const char * txt)
-{
-    hasp_send_obj_attribute_P(obj, PSTR("txt"), txt);
-}
+// static inline void hasp_send_obj_attribute_txt(lv_obj_t * obj, const char * txt)
+// {
+//     hasp_send_obj_attribute_P(obj, PSTR("txt"), txt);
+// }
 
 // ##################### Event Handlers ########################################################
 
@@ -272,7 +272,7 @@ static inline void hasp_send_obj_attribute_txt(lv_obj_t * obj, const char * txt)
  * @param obj pointer to a button object
  * @param event type of event that occured
  */
-void IRAM_ATTR generic_event_handler(lv_obj_t * obj, lv_event_t event)
+void generic_event_handler(lv_obj_t * obj, lv_event_t event)
 {
     uint8_t eventid;
 
@@ -333,6 +333,7 @@ void IRAM_ATTR generic_event_handler(lv_obj_t * obj, lv_event_t event)
 
     hasp_update_sleep_state();           // wakeup?
     dispatch_object_event(obj, eventid); // send object event
+    dispatch_normalized_group_value(obj->user_data.groupid, NORMALIZE(dispatch_get_event_state(eventid), 0, 1), obj);
 }
 
 /**
@@ -349,31 +350,39 @@ void wakeup_event_handler(lv_obj_t * obj, lv_event_t event)
 }
 
 /**
- * Called when a toggle button is clicked
- * @param obj pointer to a button
- * @param event type of event that occured
- */
-void IRAM_ATTR toggle_event_handler(lv_obj_t * obj, lv_event_t event)
-{
-    if(event == LV_EVENT_VALUE_CHANGED) {
-        hasp_update_sleep_state(); // wakeup?
-        hasp_send_obj_attribute_val(obj, lv_checkbox_is_checked(obj));
-    } else if(event == LV_EVENT_DELETE) {
-        Log.verbose(TAG_HASP, F("Object deleted Event %d occured"), event);
-        hasp_object_delete(obj);
-    }
-}
-
-/**
- * Called when a switch is toggled
+ * Called when a object state is toggled on/off
  * @param obj pointer to a switch object
  * @param event type of event that occured
  */
-static void switch_event_handler(lv_obj_t * obj, lv_event_t event)
+void toggle_event_handler(lv_obj_t * obj, lv_event_t event)
 {
     if(event == LV_EVENT_VALUE_CHANGED) {
+        char property[4];
+        bool val = 0;
         hasp_update_sleep_state(); // wakeup?
-        hasp_send_obj_attribute_val(obj, lv_switch_get_state(obj));
+
+        switch(obj->user_data.objid) {
+            case LV_HASP_SWITCH:
+                val = lv_switch_get_state(obj);
+                break;
+
+            case LV_HASP_CHECKBOX:
+                val = lv_checkbox_is_checked(obj);
+                break;
+
+            case LV_HASP_BUTTON: {
+                val = lv_obj_get_state(obj, LV_BTN_PART_MAIN) & LV_STATE_CHECKED;
+                break;
+            }
+
+            default:
+                return;
+        }
+
+        snprintf_P(property, sizeof(property), PSTR("val"));
+        hasp_send_obj_attribute_int(obj, property, val);
+        dispatch_normalized_group_value(obj->user_data.groupid, NORMALIZE(val, 0, 1), obj);
+
     } else if(event == LV_EVENT_DELETE) {
         Log.verbose(TAG_HASP, F("Object deleted Event %d occured"), event);
         hasp_object_delete(obj);
@@ -381,22 +390,7 @@ static void switch_event_handler(lv_obj_t * obj, lv_event_t event)
 }
 
 /**
- * Called when a checkboxed is clicked
- * @param obj pointer to a checkbox
- * @param event type of event that occured
- */
-static void checkbox_event_handler(lv_obj_t * obj, lv_event_t event)
-{
-    if(event == LV_EVENT_VALUE_CHANGED) {
-        hasp_send_obj_attribute_val(obj, lv_checkbox_is_checked(obj));
-    } else if(event == LV_EVENT_DELETE) {
-        Log.verbose(TAG_HASP, F("Object deleted Event %d occured"), event);
-        hasp_object_delete(obj);
-    }
-}
-
-/**
- * Called when a dropdown or roller list is clicked
+ * Called when a range value has changed
  * @param obj pointer to a dropdown list or roller
  * @param event type of event that occured
  */
@@ -406,17 +400,19 @@ static void selector_event_handler(lv_obj_t * obj, lv_event_t event)
         char buffer[128];
         char property[36];
         uint16_t val = 0;
-
+        uint16_t max = 0;
         hasp_update_sleep_state(); // wakeup?
 
         switch(obj->user_data.objid) {
             case LV_HASP_DDLIST:
                 val = lv_dropdown_get_selected(obj);
+                max = lv_dropdown_get_option_cnt(obj) - 1;
                 lv_dropdown_get_selected_str(obj, buffer, sizeof(buffer));
                 break;
 
             case LV_HASP_ROLLER:
                 val = lv_roller_get_selected(obj);
+                max = lv_roller_get_option_cnt(obj) - 1;
                 lv_roller_get_selected_str(obj, buffer, sizeof(buffer));
                 break;
 
@@ -436,17 +432,19 @@ static void selector_event_handler(lv_obj_t * obj, lv_event_t event)
                 strncpy(buffer, txt, sizeof(buffer));
 
                 snprintf_P(property, sizeof(property), PSTR("row\":%d,\"col\":%d,\"txt"), row, col);
-                goto property_set;
+                hasp_send_obj_attribute_str(obj, property, buffer);
+                return;
             }
 
             default:
                 return;
         }
+
         // set the property
         snprintf_P(property, sizeof(property), PSTR("val\":%d,\"txt"), val);
-
-    property_set:
         hasp_send_obj_attribute_str(obj, property, buffer);
+        if(max > 0) dispatch_normalized_group_value(obj->user_data.groupid, NORMALIZE(val, 0, max), obj);
+
     } else if(event == LV_EVENT_DELETE) {
         Log.verbose(TAG_HASP, F("Object deleted Event %d occured"), event);
         hasp_object_delete(obj);
@@ -474,15 +472,23 @@ void slider_event_handler(lv_obj_t * obj, lv_event_t event)
                 }
         */
 
-        int16_t val;
+        int16_t val = 0;
+        int16_t min = 0;
+        int16_t max = 0;
+
         if(obj->user_data.objid == LV_HASP_SLIDER) {
             val = lv_slider_get_value(obj);
+            min = lv_slider_get_min_value(obj);
+            max = lv_slider_get_max_value(obj);
         } else if(obj->user_data.objid == LV_HASP_ARC) {
             val = lv_arc_get_value(obj);
+            min = lv_arc_get_min_value(obj);
+            max = lv_arc_get_max_value(obj);
         } else {
             return;
         }
-        hasp_send_obj_attribute_val(obj, lv_slider_get_value(obj));
+        dispatch_object_value_changed(obj, val);
+        dispatch_normalized_group_value(obj->user_data.groupid, NORMALIZE(val, min, max), obj);
 
     } else if(event == LV_EVENT_DELETE) {
         Log.verbose(TAG_HASP, F("Object deleted Event %d occured"), event);
@@ -501,6 +507,7 @@ static void cpicker_event_handler(lv_obj_t * obj, lv_event_t event)
     snprintf_P(color, sizeof(color), PSTR("color"));
 
     if(event == LV_EVENT_VALUE_CHANGED) {
+        hasp_update_sleep_state(); // wakeup?
         hasp_send_obj_attribute_color(obj, color, lv_cpicker_get_color(obj));
     } else if(event == LV_EVENT_DELETE) {
         Log.verbose(TAG_HASP, F("Object deleted Event %d occured"), event);
@@ -513,16 +520,58 @@ static void cpicker_event_handler(lv_obj_t * obj, lv_event_t event)
 // TODO make this a recursive function that goes over all objects only ONCE
 void object_set_group_state(uint8_t groupid, uint8_t eventid, lv_obj_t * src_obj)
 {
+    if(groupid == 0) return;
     bool state = dispatch_get_event_state(eventid);
+
     for(uint8_t page = 0; page < HASP_NUM_PAGES; page++) {
-        uint8_t startid = 100 + groupid * 10; // groups start at id 100
-        for(uint8_t objid = startid; objid < (startid + 10); objid++) {
+        uint8_t startid = 1;
+        for(uint8_t objid = startid; objid < 20; objid++) {
             lv_obj_t * obj = hasp_find_obj_from_parent_id(get_page_obj(page), objid);
-            if(obj && obj != src_obj) { // skip source object, if set
+            if(obj && obj != src_obj && obj->user_data.groupid == groupid) { // skip source object, if set
                 lv_obj_set_state(obj, state ? LV_STATE_PRESSED | LV_STATE_CHECKED : LV_STATE_DEFAULT);
             }
         }
     }
+}
+
+void object_set_group_value(lv_obj_t * parent, uint8_t groupid, const char * payload)
+{
+    if(groupid == 0 || parent == nullptr) return;
+
+    lv_obj_t * child;
+    child = lv_obj_get_child(parent, NULL);
+    while(child) {
+        /* child found, update it */
+        if(groupid == child->user_data.groupid) hasp_process_obj_attribute_val(child, NULL, payload, true);
+
+        /* update grandchildren */
+        object_set_group_value(child, groupid, payload);
+
+        /* check tabs */
+        if(check_obj_type(child, LV_HASP_TABVIEW)) {
+            //#if LVGL_VERSION_MAJOR == 7
+            uint16_t tabcount = lv_tabview_get_tab_count(child);
+            for(uint16_t i = 0; i < tabcount; i++) {
+                lv_obj_t * tab = lv_tabview_get_tab(child, i);
+                Log.verbose(TAG_HASP, F("Found tab %i"), i);
+                if(tab->user_data.groupid && groupid == tab->user_data.groupid)
+                    hasp_process_obj_attribute_val(tab, NULL, payload, true); /* tab found, update it */
+
+                /* check grandchildren */
+                object_set_group_value(tab, groupid, payload);
+            }
+            //#endif
+        }
+
+        /* try next sibling */
+        child = lv_obj_get_child(parent, child);
+    }
+}
+
+void object_set_group_value(uint8_t groupid, int16_t state)
+{
+    char payload[16];
+    itoa(state, payload, DEC);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -633,7 +682,7 @@ void hasp_new_object(const JsonObject & config, uint8_t & saved_page_id)
             case HASP_OBJ_CB:
                 obj = lv_checkbox_create(parent_obj, NULL);
                 if(obj) {
-                    lv_obj_set_event_cb(obj, checkbox_event_handler);
+                    lv_obj_set_event_cb(obj, toggle_event_handler);
                     obj->user_data.objid = LV_HASP_CHECKBOX;
                 }
                 break;
@@ -859,7 +908,7 @@ void hasp_new_object(const JsonObject & config, uint8_t & saved_page_id)
             case HASP_OBJ_SWITCH:
                 obj = lv_switch_create(parent_obj, NULL);
                 if(obj) {
-                    lv_obj_set_event_cb(obj, switch_event_handler);
+                    lv_obj_set_event_cb(obj, toggle_event_handler);
                     obj->user_data.objid = LV_HASP_SWITCH;
                 }
                 break;

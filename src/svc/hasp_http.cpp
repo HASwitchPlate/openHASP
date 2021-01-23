@@ -1261,25 +1261,25 @@ void webHandleGpioConfig()
                     httpMessage += halGpioName(gpio);
                     httpMessage += F("</td><td>");
 
-                    switch(conf.type) {
+                    switch(conf.type & 0xfe) {
                         case HASP_GPIO_SWITCH:
-                        case HASP_GPIO_SWITCH_INVERTED:
+                            // case HASP_GPIO_SWITCH_INVERTED:
                             httpMessage += F("Switch");
                             break;
                         case HASP_GPIO_BUTTON:
-                        case HASP_GPIO_BUTTON_INVERTED:
+                            // case HASP_GPIO_BUTTON_INVERTED:
                             httpMessage += F("Button");
                             break;
                         case HASP_GPIO_LED:
-                        case HASP_GPIO_LED_INVERTED:
+                            // case HASP_GPIO_LED_INVERTED:
                             httpMessage += F("Led");
                             break;
                         case HASP_GPIO_RELAY:
-                        case HASP_GPIO_RELAY_INVERTED:
+                            // case HASP_GPIO_RELAY_INVERTED:
                             httpMessage += F("Relay");
                             break;
                         case HASP_GPIO_PWM:
-                        case HASP_GPIO_PWM_INVERTED:
+                            // case HASP_GPIO_PWM_INVERTED:
                             httpMessage += F("PWM");
                             break;
                         default:
@@ -1290,14 +1290,12 @@ void webHandleGpioConfig()
                     httpMessage += conf.group;
                     httpMessage += F("</td><td>");
 
-                    bool inverted = (conf.type == HASP_GPIO_BUTTON_INVERTED) ||
-                                    (conf.type == HASP_GPIO_SWITCH_INVERTED) || (conf.type == HASP_GPIO_LED_INVERTED) ||
-                                    (conf.type == HASP_GPIO_RELAY_INVERTED) || (conf.type == HASP_GPIO_PWM_INVERTED);
-                    if(inverted) {
-                        httpMessage += F("High");
-                    } else {
-                        httpMessage += F("Low");
-                    }
+                    // bool inverted = (conf.type == HASP_GPIO_BUTTON_INVERTED) ||
+                    //                 (conf.type == HASP_GPIO_SWITCH_INVERTED) || (conf.type == HASP_GPIO_LED_INVERTED)
+                    //                 || (conf.type == HASP_GPIO_RELAY_INVERTED) || (conf.type ==
+                    //                 HASP_GPIO_PWM_INVERTED);
+
+                    httpMessage += (conf.type & 0x1) ? F("High") : F("Low");
 
                     httpMessage += F("</td><td><a href='/config/gpio/options?id=");
                     httpMessage += id;

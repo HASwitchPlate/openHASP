@@ -49,30 +49,44 @@ static void gpio_event_handler(AceButton * button, uint8_t eventType, uint8_t bu
 {
     uint8_t btnid = button->getId();
     uint8_t eventid;
+    bool state = false;
     switch(eventType) {
         case AceButton::kEventPressed:
-            eventid = HASP_EVENT_DOWN;
+            if(gpioConfig[btnid].type == HASP_GPIO_SWITCH || gpioConfig[btnid].type == HASP_GPIO_SWITCH_INVERTED) {
+                eventid = HASP_EVENT_ON;
+            } else {
+                eventid = HASP_EVENT_DOWN;
+            }
+            state = true;
             break;
         case 2: // AceButton::kEventClicked:
             eventid = HASP_EVENT_SHORT;
             break;
-        case AceButton::kEventDoubleClicked:
-            eventid = HASP_EVENT_DOUBLE;
-            break;
+        // case AceButton::kEventDoubleClicked:
+        //     eventid = HASP_EVENT_DOUBLE;
+        //     break;
         case AceButton::kEventLongPressed:
             eventid = HASP_EVENT_LONG;
+            // state = true; // do not repeat DOWN + LONG
             break;
-        case AceButton::kEventRepeatPressed:
-            // return; // Fix needed for switches
-            eventid = HASP_EVENT_HOLD;
-            break;
+        // case AceButton::kEventRepeatPressed:
+        //     eventid = HASP_EVENT_HOLD;
+        //     state = true; // do not repeat DOWN + LONG + HOLD
+        //     break;
         case AceButton::kEventReleased:
-            eventid = HASP_EVENT_UP;
+            if(gpioConfig[btnid].type == HASP_GPIO_SWITCH || gpioConfig[btnid].type == HASP_GPIO_SWITCH_INVERTED) {
+                eventid = HASP_EVENT_OFF;
+            } else {
+                eventid = HASP_EVENT_UP;
+            }
             break;
         default:
             eventid = HASP_EVENT_LOST;
     }
-    dispatch_gpio_event(gpioConfig[btnid].pin, gpioConfig[btnid].group, eventid);
+
+    dispatch_gpio_input_event(gpioConfig[btnid].pin, gpioConfig[btnid].group, eventid);
+    if(eventid != HASP_EVENT_LONG) // do not repeat DOWN + LONG
+        dispatch_normalized_group_value(gpioConfig[btnid].group, NORMALIZE(state, 0, 1), NULL);
 }
 
 void aceButtonSetup(void)
@@ -81,8 +95,8 @@ void aceButtonSetup(void)
     buttonConfig->setEventHandler(gpio_event_handler);
 
     // Features
-    buttonConfig->setFeature(ButtonConfig::kFeatureClick);
-    buttonConfig->setFeature(ButtonConfig::kFeatureLongPress);
+    // buttonConfig->setFeature(ButtonConfig::kFeatureClick);
+    // buttonConfig->setFeature(ButtonConfig::kFeatureLongPress);
     // buttonConfig->setFeature(ButtonConfig::kFeatureRepeatPress);
     // buttonConfig->setFeature(ButtonConfig::kFeatureDoubleClick);
     // buttonConfig->setFeature(ButtonConfig::kFeatureSuppressClickBeforeDoubleClick);
@@ -98,7 +112,7 @@ void aceButtonSetup(void)
 void IRAM_ATTR gpioLoop(void)
 {
     // Should be called every 4-5ms or faster, for the default debouncing time of ~20ms.
-    for(uint32_t i = 0; i < gpioUsedInputCount; i++) {
+    for(uint8_t i = 0; i < gpioUsedInputCount; i++) {
         if(button[i]) button[i]->check();
     }
 }
@@ -113,21 +127,50 @@ void gpioAddButton(uint8_t pin, uint8_t input_mode, uint8_t default_state, uint8
                        input_mode, default_state);
 
             button[i] = new AceButton(pin, default_state, index);
-            // button[i]->init(pin, default_state, index);
 
             if(button[i]) {
-                //pinMode(pin, input_mode);
+                // pinMode(pin, input_mode);
 
                 ButtonConfig * buttonConfig = button[i]->getButtonConfig();
                 buttonConfig->setEventHandler(gpio_event_handler);
                 buttonConfig->setFeature(ButtonConfig::kFeatureClick);
                 buttonConfig->clearFeature(ButtonConfig::kFeatureDoubleClick);
                 buttonConfig->setFeature(ButtonConfig::kFeatureLongPress);
-                //buttonConfig->clearFeature(ButtonConfig::kFeatureRepeatPress);
+                // buttonConfig->clearFeature(ButtonConfig::kFeatureRepeatPress);
                 buttonConfig->clearFeature(
                     ButtonConfig::kFeatureSuppressClickBeforeDoubleClick); // Causes annoying pauses
+                buttonConfig->setFeature(ButtonConfig::kFeatureSuppressAfterClick);
 
                 Log.trace(TAG_GPIO, F("Button%d created on pin %d (index %d) mode %d default %d"), i, pin, index,
+                          input_mode, default_state);
+                gpioUsedInputCount = i + 1;
+                return;
+            }
+        }
+    }
+    Log.error(TAG_GPIO, F("Failed to create Button%d pin %d (index %d). All %d slots available are in use!"), i, pin,
+              index, HASP_NUM_INPUTS);
+}
+
+void gpioAddSwitch(uint8_t pin, uint8_t input_mode, uint8_t default_state, uint8_t index)
+{
+    uint8_t i;
+    for(i = 0; i < HASP_NUM_INPUTS; i++) {
+
+        if(!button[i]) {
+            Log.notice(TAG_GPIO, F("Creating Switch%d on pin %d (index %d) mode %d default %d"), i, pin, index,
+                       input_mode, default_state);
+
+            button[i] = new AceButton(pin, default_state, index);
+
+            if(button[i]) {
+                // pinMode(pin, input_mode);
+
+                ButtonConfig * buttonConfig = button[i]->getButtonConfig();
+                buttonConfig->setEventHandler(gpio_event_handler);
+                buttonConfig->setFeature(ButtonConfig::kFeatureSuppressAll);
+
+                Log.trace(TAG_GPIO, F("Button%d switch on pin %d (index %d) mode %d default %d"), i, pin, index,
                           input_mode, default_state);
                 gpioUsedInputCount = i + 1;
                 return;
@@ -173,7 +216,7 @@ void gpioSetup()
 {
     aceButtonSetup();
 
-    for(uint32_t i = 0; i < HASP_NUM_GPIO_CONFIG; i++) {
+    for(uint8_t i = 0; i < HASP_NUM_GPIO_CONFIG; i++) {
         uint8_t input_mode;
         switch(gpioConfig[i].gpio_function) {
             case OUTPUT:
@@ -193,29 +236,36 @@ void gpioSetup()
 
         switch(gpioConfig[i].type) {
             case HASP_GPIO_SWITCH:
+                gpioAddSwitch(gpioConfig[i].pin, input_mode, HIGH, i);
+                pinMode(gpioConfig[i].pin, INPUT_PULLUP);
+                break;
             case HASP_GPIO_BUTTON:
                 gpioAddButton(gpioConfig[i].pin, input_mode, HIGH, i);
                 pinMode(gpioConfig[i].pin, INPUT_PULLUP);
                 break;
             case HASP_GPIO_SWITCH_INVERTED:
+                gpioAddSwitch(gpioConfig[i].pin, input_mode, LOW, i);
+                pinMode(gpioConfig[i].pin, INPUT_PULLDOWN);
+                break;
             case HASP_GPIO_BUTTON_INVERTED:
                 gpioAddButton(gpioConfig[i].pin, input_mode, LOW, i);
+                pinMode(gpioConfig[i].pin, INPUT_PULLDOWN);
                 break;
 
             case HASP_GPIO_RELAY:
             case HASP_GPIO_RELAY_INVERTED:
-            case HASP_GPIO_LED:
-            case HASP_GPIO_LED_INVERTED:
                 pinMode(gpioConfig[i].pin, OUTPUT);
                 break;
 
+            case HASP_GPIO_LED:
+            case HASP_GPIO_LED_INVERTED:
             case HASP_GPIO_PWM:
             case HASP_GPIO_PWM_INVERTED:
                 // case HASP_GPIO_BACKLIGHT:
                 pinMode(gpioConfig[i].pin, OUTPUT);
 #if defined(ARDUINO_ARCH_ESP32)
                 // configure LED PWM functionalitites
-                ledcSetup(gpioConfig[i].group, 20000, 10);
+                ledcSetup(gpioConfig[i].group, 20000, 12);
                 // attach the channel to the GPIO to be controlled
                 ledcAttachPin(gpioConfig[i].pin, gpioConfig[i].group);
 #endif
@@ -224,56 +274,75 @@ void gpioSetup()
     }
 }
 
-void gpio_set_state(hasp_gpio_config_t gpio, bool state)
+/* ********************************* State Setters *************************************** */
+void gpio_set_normalized_value(hasp_gpio_config_t gpio, uint16_t state)
 {
     switch(gpio.type) {
         case HASP_GPIO_RELAY:
-        case HASP_GPIO_LED:
-            digitalWrite(gpio.pin, state ? HIGH : LOW);
+            gpio.val = state >= 0x8000U ? HIGH : LOW;
+            digitalWrite(gpio.pin, gpio.val);
             break;
         case HASP_GPIO_RELAY_INVERTED:
-        case HASP_GPIO_LED_INVERTED:
-            digitalWrite(gpio.pin, state ? LOW : HIGH);
+            gpio.val = state >= 0x8000U ? LOW : HIGH;
+            digitalWrite(gpio.pin, gpio.val);
             break;
 #if defined(ARDUINO_ARCH_ESP32)
+        case HASP_GPIO_LED:
         case HASP_GPIO_PWM:
-            ledcWrite(gpio.group, map(state, 0, 1, 0, 1023)); // ledChannel and value
+            gpio.val = map(state, 0, 0xFFFFU, 0, 4095);
+            ledcWrite(gpio.group, gpio.val); // ledChannel and value
             break;
+        case HASP_GPIO_LED_INVERTED:
         case HASP_GPIO_PWM_INVERTED:
-            ledcWrite(gpio.group, map(!state, 0, 1, 0, 1023)); // ledChannel and value
+            gpio.val = map(0xFFFFU - state, 0, 0xFFFFU, 0, 4095);
+            ledcWrite(gpio.group, gpio.val); // ledChannel and value
             break;
 #else
+        case HASP_GPIO_LED:
         case HASP_GPIO_PWM:
-            analogWrite(gpio.pin, map(state, 0, 1, 0, 1023));
+            analogWrite(gpio.pin, map(state, 0, 0xFFFFU, 0, 1023));
             break;
+        case HASP_GPIO_LED_INVERTED:
         case HASP_GPIO_PWM_INVERTED:
-            analogWrite(gpio.pin, map(!state, 0, 1, 0, 1023));
+            analogWrite(gpio.pin, map(0xFFFFU - state, 0, 0xFFFFU, 0, 1023));
             break;
 #endif
-        default:;
-    }
-}
-
-void gpio_set_group_state(uint8_t groupid, uint8_t eventid)
-{
-    bool state = dispatch_get_event_state(eventid);
-    for(uint32_t i = 0; i < HASP_NUM_GPIO_CONFIG; i++) {
-        if(gpioConfig[i].group == groupid) {
-            gpio_set_state(gpioConfig[i], state);
-        }
-    }
-}
-
-void gpio_set_gpio_state(uint8_t pin, uint8_t eventid)
-{
-    bool state = dispatch_get_event_state(eventid);
-    for(uint32_t i = 0; i < HASP_NUM_GPIO_CONFIG; i++) {
-        if(gpioConfig[i].pin == pin) {
-            gpio_set_state(gpioConfig[i], state);
+        default:
             return;
+    }
+    Log.verbose(TAG_GPIO, F("    * Group %d - Pin %d = %d"), gpio.group, gpio.pin, gpio.val);
+}
+
+// void gpio_set_group_onoff(uint8_t groupid, bool ison)
+// {
+//     for(uint8_t i = 0; i < HASP_NUM_GPIO_CONFIG; i++) {
+//         if(gpioConfig[i].group == groupid) {
+//             gpio_set_value(gpioConfig[i], ison ? gpioConfig[i].max : 0);
+//         }
+//     }
+// }
+
+void gpio_set_normalized_group_value(uint8_t groupid, uint16_t state)
+{
+    // bool state = dispatch_get_event_state(eventid);
+    for(uint8_t i = 0; i < HASP_NUM_GPIO_CONFIG; i++) {
+        if(gpioConfig[i].group == groupid) {
+            gpio_set_normalized_value(gpioConfig[i], state);
         }
     }
 }
+
+// not used
+// void gpio_set_gpio_value(uint8_t pin, uint16_t state)
+// {
+//     // bool state = dispatch_get_event_state(eventid);
+//     for(uint8_t i = 0; i < HASP_NUM_GPIO_CONFIG; i++) {
+//         if(gpioConfig[i].pin == pin) {
+//             gpio_set_value(gpioConfig[i], state);
+//             return;
+//         }
+//     }
+// }
 
 bool gpioIsSystemPin(uint8_t gpio)
 {
@@ -376,9 +445,9 @@ bool gpioIsSystemPin(uint8_t gpio)
 
 #ifdef ARDUINO_ARCH_ESP8266
     if((gpio >= 6) && (gpio <= 11)) return true; // VSPI
-#ifndef TFT_SPI_OVERLAP
+    #ifndef TFT_SPI_OVERLAP
     if((gpio >= 12) && (gpio <= 14)) return true; // HSPI
-#endif
+    #endif
 #endif
 
     return false;
@@ -386,8 +455,8 @@ bool gpioIsSystemPin(uint8_t gpio)
 
 bool gpioInUse(uint8_t gpio)
 {
-    for(uint32_t i = 0; i < HASP_NUM_GPIO_CONFIG; i++) {
-        if(gpioConfigInUse(i) && (gpioConfig[i].pin == gpio)) {
+    for(uint8_t i = 0; i < HASP_NUM_GPIO_CONFIG; i++) {
+        if((gpioConfig[i].pin == gpio) && gpioConfigInUse(i)) {
             return true; // pin matches and is in use
         }
     }
@@ -397,7 +466,7 @@ bool gpioInUse(uint8_t gpio)
 
 bool gpioSavePinConfig(uint8_t config_num, uint8_t pin, uint8_t type, uint8_t group, uint8_t pinfunc)
 {
-    // Input validation
+    // TODO: Input validation
 
     // ESP8266: Only Pullups except on gpio16
 
@@ -463,7 +532,7 @@ bool gpioGetConfig(const JsonObject & settings)
     /* Build new Gpio array if the count is not correct */
     if(i != HASP_NUM_GPIO_CONFIG) {
         array = settings[FPSTR(F_GPIO_CONFIG)].to<JsonArray>(); // Clear JsonArray
-        for(uint32_t i = 0; i < HASP_NUM_GPIO_CONFIG; i++) {
+        for(uint8_t i = 0; i < HASP_NUM_GPIO_CONFIG; i++) {
             uint32_t cur_val = gpioConfig[i].pin | (gpioConfig[i].group << 8) | (gpioConfig[i].type << 16) |
                                (gpioConfig[i].gpio_function << 24);
             array.add(cur_val);

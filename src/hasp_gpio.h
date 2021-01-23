@@ -16,13 +16,15 @@ struct hasp_gpio_config_t
     uint8_t group;         // groupid
     uint8_t type;          // switch, button, ...
     uint8_t gpio_function; // INPUT, OUTPUT, PULLUP, etc
+    uint16_t val;
 };
 
 void gpioSetup(void);
 void IRAM_ATTR gpioLoop(void);
 
-void gpio_set_group_state(uint8_t groupid, uint8_t eventid);
-void gpio_set_gpio_state(uint8_t pin, uint8_t eventid);
+// void gpio_set_group_onoff(uint8_t groupid, bool ison);
+void gpio_set_normalized_group_value(uint8_t groupid, uint16_t state);
+// void gpio_set_gpio_state(uint8_t pin, uint16_t state);
 
 bool gpioSavePinConfig(uint8_t config_num, uint8_t pin, uint8_t type, uint8_t group, uint8_t pinfunc);
 bool gpioIsSystemPin(uint8_t gpio);
