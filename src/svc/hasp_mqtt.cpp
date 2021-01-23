@@ -91,7 +91,10 @@ PubSubClient mqttClient(mqttNetworkClient);
 static bool mqttPublish(const char * topic, const char * payload, size_t len, bool retain = false)
 {
     if(mqttIsConnected()) {
-        if(mqttClient.publish(topic, (uint8_t *)payload, len, retain)) {
+        if(mqttClient.beginPublish(topic, len, retain)) {
+            mqttClient.write((uint8_t *)payload, len);
+            mqttClient.endPublish();
+
             Log.notice(TAG_MQTT_PUB, F("%s => %s"), topic, payload);
             return true;
         } else {

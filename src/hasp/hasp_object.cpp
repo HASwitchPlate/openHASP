@@ -220,9 +220,12 @@ void hasp_send_obj_attribute_str(lv_obj_t * obj, const char * attribute, const c
 
 void hasp_send_obj_attribute_int(lv_obj_t * obj, const char * attribute, int32_t val)
 {
-    char data[64];
-    itoa(val, data, 10);
-    hasp_send_obj_attribute_str(obj, attribute, data);
+    uint8_t pageid;
+    uint8_t objid;
+
+    if(hasp_find_id_from_obj(obj, &pageid, &objid)) {
+        dispatch_send_obj_attribute_int(pageid, objid, attribute, val);
+    }
 }
 
 void hasp_send_obj_attribute_color(lv_obj_t * obj, const char * attribute, lv_color_t color)

@@ -54,8 +54,8 @@ void dispatch_object_value_changed(lv_obj_t * obj, int16_t state);
 
 void dispatch_normalized_group_value(uint8_t groupid, uint16_t value, lv_obj_t * obj);
 
-void IRAM_ATTR dispatch_send_obj_attribute_str(uint8_t pageid, uint8_t btnid, const char * attribute,
-                                               const char * data);
+void dispatch_send_obj_attribute_str(uint8_t pageid, uint8_t btnid, const char * attribute, const char * data);
+void dispatch_send_obj_attribute_int(uint8_t pageid, uint8_t btnid, const char * attribute, int32_t val);
 
 /* ===== Getter and Setter Functions ===== */
 

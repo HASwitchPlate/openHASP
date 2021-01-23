@@ -265,16 +265,25 @@ void dispatch_output_group_state(uint8_t groupid, uint16_t state)
     dispatch_state_msg(F("output"), payload);
 }
 
-void IRAM_ATTR dispatch_send_obj_attribute_str(uint8_t pageid, uint8_t btnid, const char * attribute, const char * data)
+void dispatch_send_obj_attribute_str(uint8_t pageid, uint8_t btnid, const char * attribute, const char * data)
 {
     if(!attribute || !data) return;
 
     char topic[12];
     char payload[32 + strlen(data) + strlen(attribute)];
-    // snprintf_P(payload, sizeof(payload), PSTR("{\"page\":%u,\"id\":%u,\"%s\":\"%s\"}"), pageid, btnid, attribute,
-    // data); dispatch_state_msg(F("json"), payload);
     snprintf_P(topic, sizeof(payload), PSTR("p%ub%u"), pageid, btnid);
     snprintf_P(payload, sizeof(payload), PSTR("{\"%s\":\"%s\"}"), attribute, data);
+    mqtt_send_state_str(topic, payload);
+}
+
+void dispatch_send_obj_attribute_int(uint8_t pageid, uint8_t btnid, const char * attribute, int32_t val)
+{
+    if(!attribute) return;
+
+    char topic[12];
+    char payload[64 + strlen(attribute)];
+    snprintf_P(topic, sizeof(payload), PSTR("p%ub%u"), pageid, btnid);
+    snprintf_P(payload, sizeof(payload), PSTR("{\"%s\":%d}"), attribute, val);
     mqtt_send_state_str(topic, payload);
 }
 
