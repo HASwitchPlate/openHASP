@@ -11,6 +11,10 @@
 #include "hasp/hasp_dispatch.h"
 #include "hasp/hasp.h"
 
+#ifdef ARDUINO_ARCH_ESP8266
+    #define INPUT_PULLDOWN INPUT
+#endif
+
 uint8_t gpioUsedInputCount = 0;
 
 using namespace ace_button;
