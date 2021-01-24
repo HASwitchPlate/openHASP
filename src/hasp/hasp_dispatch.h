@@ -56,7 +56,9 @@ void dispatch_normalized_group_value(uint8_t groupid, uint16_t value, lv_obj_t *
 
 void dispatch_send_obj_attribute_str(uint8_t pageid, uint8_t btnid, const char * attribute, const char * data);
 void dispatch_send_obj_attribute_int(uint8_t pageid, uint8_t btnid, const char * attribute, int32_t val);
-
+void dispatch_send_obj_attribute_color(uint8_t pageid, uint8_t btnid, const char * attribute, uint8_t r, uint8_t g,
+                                       uint8_t b);
+                                       
 /* ===== Getter and Setter Functions ===== */
 
 /* ===== Read/Write Configuration ===== */

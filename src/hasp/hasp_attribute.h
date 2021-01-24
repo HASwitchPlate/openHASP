@@ -271,6 +271,7 @@ _HASP_ATTRIBUTE(SCALE_END_LINE_WIDTH, scale_end_line_width, lv_style_int_t)
 #define ATTR_MIN 46130
 #define ATTR_MAX 45636
 #define ATTR_VAL 15809
+#define ATTR_COLOR 58979
 #define ATTR_TXT 9328
 #define ATTR_SRC 4964
 #define ATTR_ID 6715

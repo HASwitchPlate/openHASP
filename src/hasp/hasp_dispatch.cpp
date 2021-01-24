@@ -269,22 +269,32 @@ void dispatch_send_obj_attribute_str(uint8_t pageid, uint8_t btnid, const char *
 {
     if(!attribute || !data) return;
 
-    char topic[12];
     char payload[32 + strlen(data) + strlen(attribute)];
-    snprintf_P(topic, sizeof(payload), PSTR("p%ub%u"), pageid, btnid);
     snprintf_P(payload, sizeof(payload), PSTR("{\"%s\":\"%s\"}"), attribute, data);
-    mqtt_send_state_str(topic, payload);
+
+    mqtt_send_object_state(pageid, btnid, payload);
 }
 
 void dispatch_send_obj_attribute_int(uint8_t pageid, uint8_t btnid, const char * attribute, int32_t val)
 {
     if(!attribute) return;
 
-    char topic[12];
     char payload[64 + strlen(attribute)];
-    snprintf_P(topic, sizeof(payload), PSTR("p%ub%u"), pageid, btnid);
     snprintf_P(payload, sizeof(payload), PSTR("{\"%s\":%d}"), attribute, val);
-    mqtt_send_state_str(topic, payload);
+
+    mqtt_send_object_state(pageid, btnid, payload);
+}
+
+void dispatch_send_obj_attribute_color(uint8_t pageid, uint8_t btnid, const char * attribute, uint8_t r, uint8_t g,
+                                       uint8_t b)
+{
+    if(!attribute) return;
+
+    char payload[64 + strlen(attribute)];
+    snprintf_P(payload, sizeof(payload), PSTR("{\"%s\":\"#%02x%02x%02x\",\"r\":%d,\"g\":%d,\"b\":%d}"), attribute, r, g,
+               b, r, g, b);
+
+    mqtt_send_object_state(pageid, btnid, payload);
 }
 
 #if HASP_USE_CONFIG > 0
@@ -796,7 +806,7 @@ void dispatch_factory_reset(const char *, const char *)
 static void dispatch_add_command(const char * p_cmdstr, void (*func)(const char *, const char *))
 {
     if(nCommands >= sizeof(commands) / sizeof(haspCommand_t)) {
-        Log.fatal(TAG_MSGR, F("Dispatchcer command array overflow: %d"), nCommands);
+        Log.fatal(TAG_MSGR, F("CMD overflow %d"), nCommands);
         while(1) {
         }
     } else {

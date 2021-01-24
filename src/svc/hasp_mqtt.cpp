@@ -130,45 +130,18 @@ void mqtt_send_lwt(bool online)
     // mqttResult(res, tmp_topic, tmp_payload);
 }
 
-void IRAM_ATTR mqtt_send_state_str(char * subtopic, char * payload)
+void mqtt_send_object_state(uint8_t pageid, uint8_t btnid, char * payload)
 {
-    char tmp_topic[strlen(mqttNodeTopic) + 20];
-    snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%sstate/%s"), mqttNodeTopic, subtopic);
-    bool res = mqttPublish(tmp_topic, payload);
-    // mqttResult(res, tmp_topic, payload);
-}
-
-void IRAM_ATTR mqtt_send_state(const __FlashStringHelper * subtopic, const char * payload)
-{
-    char tmp_topic[strlen(mqttNodeTopic) + 20];
-    snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%sstate/%s"), mqttNodeTopic, subtopic);
-    bool res = mqttPublish(tmp_topic, payload);
-    // mqttResult(res, tmp_topic, payload);
-}
-
-void IRAM_ATTR mqtt_send_obj_attribute_str(uint8_t pageid, uint8_t btnid, const char * attribute, const char * data)
-{
-    // if(mqttIsConnected()) {
     char tmp_topic[strlen(mqttNodeTopic) + 12];
-    char payload[25 + strlen(data) + strlen(attribute)];
-
-    // snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%sstate/json"), mqttNodeTopic);
-    // unsigned int len =
-    //     snprintf_P(payload, sizeof(payload), PSTR("{\"p[%u].b[%u].%s\":\"%s\"}"), pageid, btnid, attribute, data);
     snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%sstate/p%ub%u"), mqttNodeTopic, pageid, btnid);
-    unsigned int len = snprintf_P(payload, sizeof(payload), PSTR("{\"%s\":\"%s\"}"), attribute, data);
+    bool res = mqttPublish(tmp_topic, payload);
+}
 
-    bool res = mqttPublish(tmp_topic, payload, len); //, false);
-    // mqttResult(res, tmp_topic, payload);
-
-    // } else {
-    //     return mqtt_log_no_connection();
-    // }
-
-    // Log after char buffers are cleared
-    // Log.notice(TAG_MQTT_PUB, F("%sstate/json = {\"p[%u].b[%u].%s\":\"%s\"}"), mqttNodeTopic, pageid, btnid,
-    // attribute,
-    //           data);
+void mqtt_send_state(const __FlashStringHelper * subtopic, const char * payload)
+{
+    char tmp_topic[strlen(mqttNodeTopic) + 20];
+    snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%sstate/%s"), mqttNodeTopic, subtopic);
+    bool res = mqttPublish(tmp_topic, payload);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

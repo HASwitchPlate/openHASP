@@ -230,13 +230,14 @@ void hasp_send_obj_attribute_int(lv_obj_t * obj, const char * attribute, int32_t
 
 void hasp_send_obj_attribute_color(lv_obj_t * obj, const char * attribute, lv_color_t color)
 {
-    char buffer[40]; // "#ffffff","r":"255","g":"255","b":"255"
-    lv_color32_t c32;
+    uint8_t pageid;
+    uint8_t objid;
 
-    c32.full = lv_color_to32(color);
-    snprintf_P(buffer, sizeof(buffer), PSTR("#%02x%02x%02x\",\"r\":\"%d\",\"g\":\"%d\",\"b\":\"%d"), c32.ch.red,
-               c32.ch.green, c32.ch.blue, c32.ch.red, c32.ch.green, c32.ch.blue);
-    hasp_send_obj_attribute_str(obj, attribute, buffer);
+    if(hasp_find_id_from_obj(obj, &pageid, &objid)) {
+        lv_color32_t c32;
+        c32.full = lv_color_to32(color);
+        dispatch_send_obj_attribute_color(pageid, objid, attribute, c32.ch.red, c32.ch.green, c32.ch.blue);
+    }
 }
 
 // ##################### Value Senders ########################################################

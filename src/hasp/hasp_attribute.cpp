@@ -1446,13 +1446,6 @@ bool hasp_process_obj_attribute_val(lv_obj_t * obj, const char * attr, const cha
         lv_roller_set_selected(obj, (uint16_t)intval, LV_ANIM_ON);
     } else if(check_obj_type(obj, LV_HASP_BAR)) {
         update ? lv_bar_set_value(obj, intval, LV_ANIM_ON) : hasp_out_int(obj, attr, lv_bar_get_value(obj));
-    } else if(check_obj_type(obj, LV_HASP_CPICKER)) {
-        if(update) {
-            lv_color_t color;
-            if(haspPayloadToColor(payload, color)) lv_cpicker_set_color(obj, color);
-        } else {
-            hasp_out_color(obj, attr, lv_cpicker_get_color(obj));
-        }
     } else {
         return false;
     }
@@ -1610,6 +1603,19 @@ void hasp_process_obj_attribute(lv_obj_t * obj, const char * attr_p, const char 
 
         case ATTR_TXT:
             hasp_process_obj_attribute_txt(obj, attr, payload, update);
+            break; // attribute_found
+
+        case ATTR_COLOR:
+            if(check_obj_type(obj, LV_HASP_CPICKER)) {
+                if(update) {
+                    lv_color_t color;
+                    if(haspPayloadToColor(payload, color)) lv_cpicker_set_color(obj, color);
+                } else {
+                    hasp_out_color(obj, attr, lv_cpicker_get_color(obj));
+                }
+            } else {
+                goto attribute_not_found;
+            }
             break; // attribute_found
 
         case ATTR_VAL:
