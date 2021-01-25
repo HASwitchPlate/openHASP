@@ -38,7 +38,8 @@ EthernetClient mqttNetworkClient;
     #include "hasp_config.h"
 
     #include "../hasp/hasp_dispatch.h"
-    #include "../hasp/hasp.h"
+    #include "../hasp/hasp.h" // for hasp_sleep_state
+extern uint8_t hasp_sleep_state;
 
     #ifdef USE_CONFIG_OVERRIDE
         #include "user_config_override.h"
@@ -114,6 +115,13 @@ static bool mqttPublish(const char * topic, const char * payload, bool retain = 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Send changed values OUT
 
+void mqtt_send_current_states()
+{
+    dispatch_output_current_page();
+    dispatch_output_statusupdate(NULL, NULL);
+    dispatch_output_idle_state(hasp_sleep_state);
+}
+
 bool IRAM_ATTR mqttIsConnected()
 {
     return mqttEnabled && mqttClient.connected();
@@ -169,8 +177,9 @@ static void mqtt_message_cb(char * topic, byte * payload, unsigned int length)
         dispatch_topic_payload(topic, (const char *)payload);
         return;
 
-    } else if(topic == strstr_P(topic, PSTR("hass/status"))) { // HA discovery topic
+    } else if(topic == strstr_P(topic, PSTR("homeassistant/status"))) { // HA discovery topic
         if(mqttHAautodiscover && !strcasecmp_P((char *)payload, PSTR("online"))) {
+            mqtt_send_current_states();
             mqtt_ha_send_backlight();
         }
         return;
@@ -310,8 +319,7 @@ void mqttStart()
     haspReconnect();
     haspProgressVal(255);
 
-    dispatch_output_current_page();
-    dispatch_output_statusupdate(NULL, NULL);
+    mqtt_send_current_states();
 }
 
 void mqttSetup()
