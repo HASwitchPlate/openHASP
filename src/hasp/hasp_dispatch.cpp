@@ -743,8 +743,9 @@ void dispatch_output_statusupdate(const char *, const char *)
         char buffer[128];
 
         haspGetVersion(buffer, sizeof(buffer));
-        snprintf_P(data, sizeof(data), PSTR("{\"status\":\"available\",\"version\":\"%s\",\"uptime\":%lu,"), buffer,
-                   long(millis() / 1000));
+        snprintf_P(data, sizeof(data),
+                   PSTR("{\"node\":\"%s\",\"status\":\"available\",\"version\":\"%s\",\"uptime\":%lu,"),
+                   mqttGetNodename().c_str(), buffer, long(millis() / 1000));
 
     #if HASP_USE_WIFI > 0
         network_get_statusupdate(buffer, sizeof(buffer));
