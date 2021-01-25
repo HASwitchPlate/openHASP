@@ -115,12 +115,12 @@ bool IRAM_ATTR hasp_update_sleep_state()
     uint32_t idle = lv_disp_get_inactive_time(NULL);
 
     if(idle >= (sleepTimeShort + sleepTimeLong) * 1000U) {
-        if(hasp_sleep_state != HASP_SLEEP_LONG) {
+        if(hasp_sleep_state != HASP_SLEEP_LONG && sleepTimeLong > 0) {
             dispatch_output_idle_state(HASP_SLEEP_LONG);
             hasp_sleep_state = HASP_SLEEP_LONG;
         }
     } else if(idle >= sleepTimeShort * 1000U) {
-        if(hasp_sleep_state != HASP_SLEEP_SHORT) {
+        if(hasp_sleep_state != HASP_SLEEP_SHORT && sleepTimeShort > 0) {
             dispatch_output_idle_state(HASP_SLEEP_SHORT);
             hasp_sleep_state = HASP_SLEEP_SHORT;
         }
@@ -233,7 +233,7 @@ void haspProgressVal(uint8_t val)
                 // lv_obj_set_style_local_value_str(bar, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, "");
                 // lv_obj_set_value_str_txt(bar, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, NULL); //TODO: call our custom
                 // function to free the memory
-                
+
 #if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
                 // progress_str.clear();
 #endif
