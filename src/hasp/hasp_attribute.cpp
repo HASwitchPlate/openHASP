@@ -1779,13 +1779,6 @@ void hasp_process_obj_attribute(lv_obj_t * obj, const char * attr_p, const char 
             }
             break; // attribute_found
 
-        case ATTR_DELETE:
-            if(obj->user_data.id == 0) {
-                return Log.error(TAG_ATTR, F("Unable to delete a page"));
-            }
-            lv_obj_del_async(obj);
-            break; // attribute_found
-
         case ATTR_RED: // TODO: remove temp RED
             if(check_obj_type(obj, LV_HASP_BTNMATRIX)) {
                 my_btnmatrix_map_clear(obj); // TODO : remove this test property
@@ -1800,6 +1793,27 @@ void hasp_process_obj_attribute(lv_obj_t * obj, const char * attr_p, const char 
             } else {
                 goto attribute_not_found;
             }
+            break; // attribute_found
+
+        case ATTR_DELETE:
+            if(!lv_obj_get_parent(obj)) {
+                return Log.error(TAG_ATTR, F("Unable to call %s on a page"), attr_p);
+            }
+            lv_obj_del_async(obj);
+            break; // attribute_found
+
+        case ATTR_TO_FRONT:
+            if(!lv_obj_get_parent(obj)) {
+                return Log.error(TAG_ATTR, F("Unable to call %s on a page"), attr_p);
+            }
+            lv_obj_move_foreground(obj);
+            break; // attribute_found
+
+        case ATTR_TO_BACK:
+            if(!lv_obj_get_parent(obj)) {
+                return Log.error(TAG_ATTR, F("Unable to call %s on a page"), attr_p);
+            }
+            lv_obj_move_background(obj);
             break; // attribute_found
 
         default:
