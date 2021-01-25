@@ -31,7 +31,7 @@
     #include "png_decoder.h"
 #endif
 
-#define BACKLIGHT_CHANNEL 15 // pwm channel 0-15
+#define BACKLIGHT_CHANNEL 0 // pwm channel 0-15
 
 #if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
 File pFileOut;
@@ -310,7 +310,7 @@ void guiSetup()
         Log.verbose(TAG_GUI, F("Backlight  : Pin %d"), guiBacklightPin);
 
 #if defined(ARDUINO_ARCH_ESP32)
-        ledcSetup(BACKLIGHT_CHANNEL, 20000, 10);
+        ledcSetup(BACKLIGHT_CHANNEL, 20000, 12);
         ledcAttachPin(guiBacklightPin, BACKLIGHT_CHANNEL);
 #elif defined(ARDUINO_ARCH_ESP8266)
         pinMode(guiBacklightPin, OUTPUT);
@@ -448,7 +448,7 @@ void guiSetBacklight(bool lighton)
     if(guiBacklightPin >= 0) {
 
 #if defined(ARDUINO_ARCH_ESP32)
-        ledcWrite(BACKLIGHT_CHANNEL, lighton ? map(guiDimLevel, 0, 100, 0, 1023) : 0); // ledChannel and value
+        ledcWrite(BACKLIGHT_CHANNEL, lighton ? map(guiDimLevel, 0, 100, 0, 4095) : 0); // ledChannel and value
 #else
         analogWrite(guiBacklightPin, lighton ? map(guiDimLevel, 0, 100, 0, 1023) : 0);
 #endif
@@ -466,7 +466,7 @@ void guiSetDim(int8_t level)
 
         if(guiBacklightIsOn) { // The backlight is ON
 #if defined(ARDUINO_ARCH_ESP32)
-            ledcWrite(BACKLIGHT_CHANNEL, map(guiDimLevel, 0, 100, 0, 1023)); // ledChannel and value
+            ledcWrite(BACKLIGHT_CHANNEL, map(guiDimLevel, 0, 100, 0, 4095)); // ledChannel and value
 #else
             analogWrite(guiBacklightPin, map(guiDimLevel, 0, 100, 0, 1023));
 #endif
