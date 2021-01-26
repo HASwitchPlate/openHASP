@@ -55,8 +55,6 @@ static bool guiShowPointer      = false;
 static bool guiBacklightIsOn    = true;
 static int8_t guiDimLevel       = -1;
 static int8_t guiBacklightPin   = TFT_BCKL;
-static uint16_t guiSleepTime1   = 60;  // 1 second resolution
-static uint16_t guiSleepTime2   = 120; // 1 second resolution
 static uint8_t guiTickPeriod    = 20;
 static uint8_t guiRotation      = TFT_ROTATION;
 static uint8_t guiInvertDisplay = INVERT_COLORS;
@@ -487,6 +485,9 @@ int8_t guiGetDim()
 bool guiGetConfig(const JsonObject & settings)
 {
     bool changed = false;
+    uint16_t guiSleepTime1;
+    uint16_t guiSleepTime2;
+    hasp_get_sleep_time(guiSleepTime1, guiSleepTime2);
 
     if(guiTickPeriod != settings[FPSTR(F_GUI_TICKPERIOD)].as<uint8_t>()) changed = true;
     settings[FPSTR(F_GUI_TICKPERIOD)] = guiTickPeriod;
@@ -556,6 +557,8 @@ bool guiSetConfig(const JsonObject & settings)
 {
     configOutput(settings, TAG_GUI);
     bool changed = false;
+    uint16_t guiSleepTime1;
+    uint16_t guiSleepTime2;
 
     changed |= configSet(guiTickPeriod, settings[FPSTR(F_GUI_TICKPERIOD)], F("guiTickPeriod"));
     changed |= configSet(guiBacklightPin, settings[FPSTR(F_GUI_BACKLIGHTPIN)], F("guiBacklightPin"));
@@ -563,6 +566,8 @@ bool guiSetConfig(const JsonObject & settings)
     changed |= configSet(guiSleepTime2, settings[FPSTR(F_GUI_IDLEPERIOD2)], F("guiSleepTime2"));
     changed |= configSet(guiRotation, settings[FPSTR(F_GUI_ROTATION)], F("guiRotation"));
     changed |= configSet(guiInvertDisplay, settings[FPSTR(F_GUI_INVERT)], F("guiInvertDisplay"));
+
+    hasp_set_sleep_time(guiSleepTime1, guiSleepTime2);
 
     if(!settings[FPSTR(F_GUI_POINTER)].isNull()) {
         if(guiShowPointer != settings[FPSTR(F_GUI_POINTER)].as<bool>()) {

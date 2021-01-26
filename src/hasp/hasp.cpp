@@ -114,13 +114,13 @@ bool IRAM_ATTR hasp_update_sleep_state()
 {
     uint32_t idle = lv_disp_get_inactive_time(NULL);
 
-    if(idle >= (sleepTimeShort + sleepTimeLong) * 1000U) {
-        if(hasp_sleep_state != HASP_SLEEP_LONG && sleepTimeLong > 0) {
+    if(sleepTimeLong > 0 && idle >= (sleepTimeShort + sleepTimeLong) * 1000U) {
+        if(hasp_sleep_state != HASP_SLEEP_LONG) {
             dispatch_output_idle_state(HASP_SLEEP_LONG);
             hasp_sleep_state = HASP_SLEEP_LONG;
         }
-    } else if(idle >= sleepTimeShort * 1000U) {
-        if(hasp_sleep_state != HASP_SLEEP_SHORT && sleepTimeShort > 0) {
+    } else if(sleepTimeShort > 0 && idle >= sleepTimeShort * 1000U) {
+        if(hasp_sleep_state != HASP_SLEEP_SHORT) {
             dispatch_output_idle_state(HASP_SLEEP_SHORT);
             hasp_sleep_state = HASP_SLEEP_SHORT;
         }
@@ -132,6 +132,24 @@ bool IRAM_ATTR hasp_update_sleep_state()
     }
 
     return (hasp_sleep_state != HASP_SLEEP_OFF);
+}
+
+/**
+ * Return the sleep times
+ */
+void hasp_get_sleep_time(uint16_t & short_time, uint16_t & long_time)
+{
+    short_time = sleepTimeShort;
+    long_time  = sleepTimeLong;
+}
+
+/**
+ * Set the sleep times
+ */
+void hasp_set_sleep_time(uint16_t short_time, uint16_t long_time)
+{
+    sleepTimeShort = short_time;
+    sleepTimeLong  = long_time;
 }
 
 /**

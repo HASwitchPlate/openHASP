@@ -11,7 +11,7 @@
 #include "hasp_conf.h"
 
 #if HASP_USE_DEBUG > 0
-#include "../hasp_debug.h"
+    #include "../hasp_debug.h"
 #endif
 
 #ifdef __cplusplus
@@ -24,12 +24,12 @@ extern "C" {
 
 #if HASP_USE_APP > 0
 
-/*********************
- *      DEFINES
- *********************/
-#define HASP_SLEEP_OFF 0
-#define HASP_SLEEP_SHORT 1
-#define HASP_SLEEP_LONG 2
+    /*********************
+     *      DEFINES
+     *********************/
+    #define HASP_SLEEP_OFF 0
+    #define HASP_SLEEP_SHORT 1
+    #define HASP_SLEEP_LONG 2
 
 /**********************
  *      TYPEDEFS
@@ -44,7 +44,7 @@ extern "C" {
  */
 void haspSetup(void);
 void IRAM_ATTR haspLoop(void);
-//void haspEverySecond(void); // See MACROS
+// void haspEverySecond(void); // See MACROS
 
 void haspReconnect(void);
 void haspDisconnect(void);
@@ -56,27 +56,29 @@ void haspSetPage(uint8_t id);
 uint8_t haspGetPage();
 void haspClearPage(uint16_t pageid);
 
-void haspGetVersion(char* version,size_t len);
-//void haspBackground(uint16_t pageid, uint16_t imageid);
+void haspGetVersion(char * version, size_t len);
+// void haspBackground(uint16_t pageid, uint16_t imageid);
 
 // void haspNewObject(const JsonObject & config, uint8_t & saved_page_id);
 
 void haspProgressVal(uint8_t val);
 
-#if HASP_USE_CONFIG > 0
+    #if HASP_USE_CONFIG > 0
 bool haspGetConfig(const JsonObject & settings);
 bool haspSetConfig(const JsonObject & settings);
-#endif
+    #endif
 
 lv_font_t * hasp_get_font(uint8_t fontid);
 
 bool IRAM_ATTR hasp_update_sleep_state();
+void hasp_get_sleep_time(uint16_t & short_time, uint16_t & long_time);
+void hasp_set_sleep_time(uint16_t short_time, uint16_t long_time);
 void hasp_wakeup(void);
 
-/**********************
- *      MACROS
- **********************/
-#define haspEverySecond hasp_update_sleep_state
+    /**********************
+     *      MACROS
+     **********************/
+    #define haspEverySecond hasp_update_sleep_state
 
 #endif /*HASP_USE_APP*/
 
