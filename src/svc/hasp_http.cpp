@@ -1083,7 +1083,7 @@ void webHandleGuiConfig()
         httpMessage += F("'></p>");
 
         int8_t rotation = settings[FPSTR(F_GUI_ROTATION)].as<int8_t>();
-        httpMessage += F("<p><b>Orientation</b> <select id='rotation' name='rotation'>");
+        httpMessage += F("<p><b>Orientation</b> <select id='rotate' name='rotate'>");
         httpMessage += getOption(0, F("0 degrees"), rotation == 0);
         httpMessage += getOption(1, F("90 degrees"), rotation == 1);
         httpMessage += getOption(2, F("180 degrees"), rotation == 2);
