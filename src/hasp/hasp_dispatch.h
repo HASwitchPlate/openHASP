@@ -50,6 +50,7 @@ void dispatch_output_current_page();
 void dispatch_gpio_input_event(uint8_t pin, uint8_t group, uint8_t eventid);
 void dispatch_object_event(lv_obj_t * obj, uint8_t eventid);
 bool dispatch_get_event_state(uint8_t eventid);
+void dispatch_get_event_name(uint8_t eventid, char * buffer, size_t size);
 void dispatch_object_value_changed(lv_obj_t * obj, int16_t state);
 
 void dispatch_normalized_group_value(uint8_t groupid, uint16_t value, lv_obj_t * obj);

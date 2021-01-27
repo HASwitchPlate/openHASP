@@ -409,7 +409,7 @@ bool dispatch_get_event_state(uint8_t eventid)
 }
 
 // Map events to their description string
-static void dispatch_get_event_name(uint8_t eventid, char * buffer, size_t size)
+void dispatch_get_event_name(uint8_t eventid, char * buffer, size_t size)
 {
     switch(eventid) {
         case HASP_EVENT_ON:
