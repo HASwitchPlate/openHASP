@@ -1279,6 +1279,12 @@ void webHandleGpioConfig()
                             // case HASP_GPIO_LED_INVERTED:
                             httpMessage += F("Led");
                             break;
+                        case HASP_GPIO_LED_R:
+                        case HASP_GPIO_LED_G:
+                        case HASP_GPIO_LED_B:
+                            // case HASP_GPIO_LED_INVERTED:
+                            httpMessage += F("Mood ");
+                            break;
                         case HASP_GPIO_RELAY:
                             // case HASP_GPIO_RELAY_INVERTED:
                             httpMessage += F("Relay");
@@ -1289,6 +1295,18 @@ void webHandleGpioConfig()
                             break;
                         default:
                             httpMessage += F("Unknown");
+                    }
+
+                    switch(conf.type & 0xfe) {
+                        case HASP_GPIO_LED_R:
+                            httpMessage += F("Red");
+                            break;
+                        case HASP_GPIO_LED_G:
+                            httpMessage += F("Green");
+                            break;
+                        case HASP_GPIO_LED_B:
+                            httpMessage += F("Blue");
+                            break;
                     }
 
                     httpMessage += F("</td><td>");
@@ -1381,6 +1399,15 @@ void webHandleGpioOptions()
 
         selected = (conf.type == HASP_GPIO_LED) || (conf.type == HASP_GPIO_LED_INVERTED);
         httpMessage += getOption(HASP_GPIO_LED, F("Led"), selected);
+
+        selected = (conf.type == HASP_GPIO_LED_R) || (conf.type == HASP_GPIO_LED_R_INVERTED);
+        httpMessage += getOption(HASP_GPIO_LED_R, F("Mood Red"), selected);
+
+        selected = (conf.type == HASP_GPIO_LED_G) || (conf.type == HASP_GPIO_LED_G_INVERTED);
+        httpMessage += getOption(HASP_GPIO_LED_G, F("Mood Green"), selected);
+
+        selected = (conf.type == HASP_GPIO_LED_B) || (conf.type == HASP_GPIO_LED_B_INVERTED);
+        httpMessage += getOption(HASP_GPIO_LED_B, F("Mood Blue"), selected);
 
         selected = (conf.type == HASP_GPIO_RELAY) || (conf.type == HASP_GPIO_RELAY_INVERTED);
         httpMessage += getOption(HASP_GPIO_RELAY, F("Relay"), selected);
@@ -1568,7 +1595,7 @@ void webHandleHaspConfig()
 
         httpMessage += settings[FPSTR(F_CONFIG_PAGES)].as<String>();
         httpMessage += F("'></br><b>Startup Page</b> <i><small>(required)</small></i><input id='startpage' required "
-                         "name='startpage' type='number' min='0' max='3' value='");
+                         "name='startpage' type='number' min='1' max='4' value='");
         httpMessage += settings[FPSTR(F_CONFIG_STARTPAGE)].as<String>();
         httpMessage +=
             F("'></p><p><b>Startup Brightness</b> <i><small>(required)</small></i><input id='startpage' required "
