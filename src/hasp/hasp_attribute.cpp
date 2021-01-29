@@ -1053,6 +1053,7 @@ static void hasp_local_style_attr(lv_obj_t * obj, const char * attr_p, uint16_t 
                 if(check_obj_type(obj, LV_HASP_ROLLER)) count = my_roller_get_visible_row_count(obj);
                 lv_obj_set_style_local_text_font(obj, part, state, font);
                 if(check_obj_type(obj, LV_HASP_ROLLER)) lv_roller_set_visible_row_count(obj, count);
+                lv_obj_set_style_local_text_font(obj, part, state, font); // again, for roller
             } else {
                 Log.warning(TAG_ATTR, F("Unknown Font ID %s"), payload);
             }
