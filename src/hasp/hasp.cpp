@@ -36,6 +36,7 @@
 /*********************
  *      DEFINES
  *********************/
+#define PAGE_START_INDEX 1 // Page number of array index 0
 
 /**********************
  *      TYPEDEFS
@@ -72,7 +73,7 @@ static uint16_t sleepTimeShort = 60;             // 1 second resolution
 static uint16_t sleepTimeLong  = 120;            // 1 second resolution
 
 uint8_t haspStartDim   = 100;
-uint8_t haspStartPage  = 0;
+uint8_t haspStartPage  = 1;
 uint8_t haspThemeId    = 2;
 uint16_t haspThemeHue  = 200;
 char haspPagesPath[32] = "/pages.jsonl";
@@ -166,10 +167,10 @@ void hasp_set_sleep_time(uint16_t short_time, uint16_t long_time)
  */
 lv_obj_t * get_page_obj(uint8_t pageid)
 {
-    if(pageid == 254) return lv_layer_top();
+    if(pageid == 0) return lv_layer_top(); // 254
     if(pageid == 255) return lv_layer_sys();
-    if(pageid >= sizeof pages / sizeof *pages) return NULL;
-    return pages[pageid];
+    if(pageid > sizeof pages / sizeof *pages) return NULL; // >=0
+    return pages[pageid - PAGE_START_INDEX];
 }
 
 bool get_page_id(lv_obj_t * obj, uint8_t * pageid)
@@ -179,7 +180,7 @@ bool get_page_id(lv_obj_t * obj, uint8_t * pageid)
     if(!page) return false;
 
     if(page == lv_layer_top()) {
-        *pageid = 254;
+        *pageid = 0; // 254
         return true;
     }
     if(page == lv_layer_sys()) {
@@ -189,7 +190,7 @@ bool get_page_id(lv_obj_t * obj, uint8_t * pageid)
 
     for(uint8_t i = 0; i < sizeof pages / sizeof *pages; i++) {
         if(page == pages[i]) {
-            *pageid = i;
+            *pageid = i + PAGE_START_INDEX;
             return true;
         }
     }
@@ -378,7 +379,8 @@ void haspSetup(void)
     switch(haspThemeId) {
 #if(LV_USE_THEME_EMPTY == 1)
         case 0:
-            th = lv_theme_empty_init(LV_COLOR_PURPLE, LV_COLOR_BLACK, LV_THEME_DEFAULT_FLAGS, haspFonts[0],
+            th = lv_theme_empty_init(lv_color_hsv_to_rgb(haspThemeHue, 100, 100),
+                                     lv_color_hsv_to_rgb(haspThemeHue, 100, 100), LV_THEME_DEFAULT_FLAGS, haspFonts[0],
                                      haspFonts[1], haspFonts[2], haspFonts[3]);
             break;
 #endif
@@ -420,10 +422,10 @@ void haspSetup(void)
             material_flags = LV_THEME_MATERIAL_FLAG_DARK;
         case 4: // Light
         case 9: // Light (old id)
-            th = lv_theme_material_init(LV_COLOR_PURPLE, LV_COLOR_ORANGE,
-                                        material_flags + LV_THEME_MATERIAL_FLAG_NO_FOCUS +
-                                            LV_THEME_MATERIAL_FLAG_NO_TRANSITION,
-                                        haspFonts[0], haspFonts[1], haspFonts[2], haspFonts[3]);
+            th = lv_theme_material_init(
+                lv_color_hsv_to_rgb(haspThemeHue, 100, 100), lv_color_hsv_to_rgb(haspThemeHue, 100, 100),
+                material_flags + LV_THEME_MATERIAL_FLAG_NO_FOCUS + LV_THEME_MATERIAL_FLAG_NO_TRANSITION, haspFonts[0],
+                haspFonts[1], haspFonts[2], haspFonts[3]);
             break;
 #endif
 
@@ -527,8 +529,8 @@ void haspGetVersion(char * version, size_t len)
 void haspClearPage(uint16_t pageid)
 {
     lv_obj_t * page = get_page_obj(pageid);
-    if(!page || pageid > 255) {
-        Log.warning(TAG_HASP, F("Page ID %u not defined"), pageid);
+    if(!page || pageid > (pageid > sizeof pages / sizeof *pages)) {
+        Log.warning(TAG_HASP, F("Invalid page %u"), pageid);
     } else if(page == lv_layer_sys() /*|| page == lv_layer_top()*/) {
         Log.warning(TAG_HASP, F("Cannot clear system layer"));
     } else {
@@ -544,20 +546,18 @@ uint8_t haspGetPage()
 
 void haspSetPage(uint8_t pageid)
 {
-    lv_obj_t * page = get_page_obj(pageid);
-    if(!page) {
-        Log.warning(TAG_HASP, F("Page ID %u not found"), pageid);
-    } else if(page == lv_layer_sys() || page == lv_layer_top()) {
+    if(pageid == 0 || pageid == 255) {
         Log.warning(TAG_HASP, F("%sCannot change to a layer"));
     } else {
-        // if(pageid != current_page) {
-        Log.notice(TAG_HASP, F("Changing page to %u"), pageid);
-        current_page = pageid;
-        lv_scr_load(page);
-
-        hasp_object_tree(page, pageid, 0);
-
-        //}
+        lv_obj_t * page = get_page_obj(pageid);
+        if(!page) {
+            Log.warning(TAG_HASP, F("Invalid page %u"), pageid);
+        } else {
+            Log.notice(TAG_HASP, F("Changing page to %u"), pageid);
+            current_page = pageid;
+            lv_scr_load(page);
+            hasp_object_tree(page, pageid, 0);
+        }
     }
 }
 

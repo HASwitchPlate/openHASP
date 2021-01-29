@@ -640,8 +640,21 @@ void dispatch_output_current_page()
 // Get or Set a page
 void dispatch_page(const char *, const char * page)
 {
-    if(strlen(page) > 0 && atoi(page) < HASP_NUM_PAGES) {
-        haspSetPage(atoi(page));
+    if(strlen(page) > 0) {
+        if(hasp_util_is_only_digits(page)) {
+            uint8_t pageid = atoi(page);
+            haspSetPage(pageid);
+        } else {
+
+            if(!strcasecmp_P(page, PSTR("prev"))) {
+                dispatch_page_prev();
+            } else if(!strcasecmp_P(page, PSTR("next"))) {
+                dispatch_page_next();
+            } else {
+                Log.warning(TAG_MSGR, PSTR("Invalid page %s"), page);
+            }
+            return;
+        }
     }
 
     dispatch_output_current_page();
@@ -650,8 +663,8 @@ void dispatch_page(const char *, const char * page)
 void dispatch_page_next()
 {
     uint8_t page = haspGetPage();
-    if(page + 1 >= HASP_NUM_PAGES) {
-        page = 0;
+    if(page >= HASP_NUM_PAGES) {
+        page = 1;
     } else {
         page++;
     }
@@ -662,8 +675,8 @@ void dispatch_page_next()
 void dispatch_page_prev()
 {
     uint8_t page = haspGetPage();
-    if(page == 0) {
-        page = HASP_NUM_PAGES - 1;
+    if(page == 1) {
+        page = HASP_NUM_PAGES;
     } else {
         page--;
     }
@@ -674,11 +687,9 @@ void dispatch_page_prev()
 // Clears a page id or the current page if empty
 void dispatch_clear_page(const char *, const char * page)
 {
-    if(strlen(page) == 0) {
-        haspClearPage(haspGetPage());
-    } else {
-        haspClearPage(atoi(page));
-    }
+    uint8_t pageid = haspGetPage();
+    if(strlen(page) > 0) pageid = atoi(page);
+    haspClearPage(pageid);
 }
 
 void dispatch_dim(const char *, const char * level)
