@@ -21,6 +21,7 @@ struct hasp_gpio_config_t
 
 void gpioSetup(void);
 void IRAM_ATTR gpioLoop(void);
+void gpioEvery5Seconds(void);
 
 // void gpio_set_group_onoff(uint8_t groupid, bool ison);
 void gpio_set_normalized_group_value(uint8_t groupid, uint16_t state);
@@ -56,6 +57,18 @@ bool gpioSetConfig(const JsonObject & settings);
 #define HASP_GPIO_RELAY_INVERTED 0x21
 #define HASP_GPIO_LED 0x22
 #define HASP_GPIO_LED_INVERTED 0x23
+#define HASP_GPIO_LED_R 0x24
+#define HASP_GPIO_LED_R_INVERTED 0x25
+#define HASP_GPIO_LED_G 0x26
+#define HASP_GPIO_LED_G_INVERTED 0x27
+#define HASP_GPIO_LED_B 0x28
+#define HASP_GPIO_LED_B_INVERTED 0x29
+#define HASP_GPIO_LED_W 0x2A
+#define HASP_GPIO_LED_W_INVERTED 0x2B
+#define HASP_GPIO_LED_WW 0x2C
+#define HASP_GPIO_LED_WW_INVERTED 0x2D
+#define HASP_GPIO_LED_CW 0x2E
+#define HASP_GPIO_LED_CW_INVERTED 0x2F
 #define HASP_GPIO_BUZZER 0x30
 #define HASP_GPIO_BUZZER_INVERTED 0x31
 #define HASP_GPIO_HAPTIC 0x32
