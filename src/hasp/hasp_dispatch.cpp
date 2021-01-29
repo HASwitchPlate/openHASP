@@ -108,10 +108,10 @@ inline void dispatch_process_button_attribute(String strTopic, const char * payl
         const char * topic_p = strTopic.c_str();
 
         if(sscanf(topic_p, "p%ub%u.", &pageid, &objid) == 2) { // Literal String
-            size_t offset = 0;
-            while(topic_p[offset++] != '.') {
+            while(*topic_p++ != '.') {
+                // strip to '.' character
             }
-            hasp_process_attribute((uint8_t)pageid, (uint8_t)objid, topic_p + offset, payload);
+            hasp_process_attribute((uint8_t)pageid, (uint8_t)objid, topic_p, payload);
         }
     }
 }
@@ -139,7 +139,7 @@ void dispatch_command(const char * topic, const char * payload)
         // } else if(strcasecmp_P(topic, PSTR("screenshot")) == 0) {
         //     guiTakeScreenshot("/screenshot.bmp"); // Literal String
 
-    } else if(topic == strstr_P(topic, PSTR("p["))) {
+    } else if(topic[0] == 'p') {
         dispatch_process_button_attribute(topic, payload);
 
 #if HASP_USE_CONFIG > 0
