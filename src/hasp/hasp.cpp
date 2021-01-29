@@ -86,7 +86,7 @@ lv_obj_t * kb;
 lv_obj_t * pages[HASP_NUM_PAGES];
 static lv_font_t * haspFonts[4] = {nullptr, LV_THEME_DEFAULT_FONT_NORMAL, LV_THEME_DEFAULT_FONT_SUBTITLE,
                                    LV_THEME_DEFAULT_FONT_TITLE};
-uint8_t current_page            = 0;
+uint8_t current_page            = 1;
 
 /**
  * Get Font ID
@@ -546,43 +546,39 @@ uint8_t haspGetPage()
 
 void haspSetPage(uint8_t pageid)
 {
-    if(pageid == 0 || pageid == 255) {
-        Log.warning(TAG_HASP, F("%sCannot change to a layer"));
+    lv_obj_t * page = get_page_obj(pageid);
+    if(!page || pageid == 0 || pageid > HASP_NUM_PAGES) {
+        Log.warning(TAG_HASP, F("Invalid page %u"), pageid);
     } else {
-        lv_obj_t * page = get_page_obj(pageid);
-        if(!page) {
-            Log.warning(TAG_HASP, F("Invalid page %u"), pageid);
-        } else {
-            Log.notice(TAG_HASP, F("Changing page to %u"), pageid);
-            current_page = pageid;
-            lv_scr_load(page);
-            hasp_object_tree(page, pageid, 0);
-        }
+        Log.notice(TAG_HASP, F("Changing page to %u"), pageid);
+        current_page = pageid;
+        lv_scr_load(page);
+        hasp_object_tree(page, pageid, 0);
     }
 }
 
-void haspLoadPage(const char * pages)
+void haspLoadPage(const char * pagesfile)
 {
 #if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
-    if(pages[0] == '\0') return;
+    if(pagesfile[0] == '\0') return;
 
     if(!filesystemSetup()) {
-        Log.error(TAG_HASP, F("FS not mounted. Failed to load %s"), pages);
+        Log.error(TAG_HASP, F("FS not mounted. Failed to load %s"), pagesfile);
         return;
     }
 
-    if(!HASP_FS.exists(pages)) {
-        Log.error(TAG_HASP, F("Non existing file %s"), pages);
+    if(!HASP_FS.exists(pagesfile)) {
+        Log.error(TAG_HASP, F("Non existing file %s"), pagesfile);
         return;
     }
 
-    Log.notice(TAG_HASP, F("Loading file %s"), pages);
+    Log.notice(TAG_HASP, F("Loading file %s"), pagesfile);
 
-    File file = HASP_FS.open(pages, "r");
+    File file = HASP_FS.open(pagesfile, "r");
     dispatch_parse_jsonl(file);
     file.close();
 
-    Log.trace(TAG_HASP, F("File %s loaded"), pages);
+    Log.trace(TAG_HASP, F("File %s loaded"), pagesfile);
 #else
 
     #if HASP_USE_EEPROM > 0
@@ -640,6 +636,11 @@ bool haspSetConfig(const JsonObject & settings)
     changed |= configSet(haspStartDim, settings[FPSTR(F_CONFIG_STARTDIM)], F("haspStartDim"));
     changed |= configSet(haspThemeId, settings[FPSTR(F_CONFIG_THEME)], F("haspThemeId"));
     changed |= configSet(haspThemeHue, settings[FPSTR(F_CONFIG_HUE)], F("haspThemeHue"));
+
+    if(haspStartPage == 0) { // TODO: fase out migration code
+        haspStartPage = 1;
+        changed       = true;
+    }
 
     if(!settings[FPSTR(F_CONFIG_PAGES)].isNull()) {
         changed |= strcmp(haspPagesPath, settings[FPSTR(F_CONFIG_PAGES)]) != 0;
