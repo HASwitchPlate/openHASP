@@ -14,12 +14,16 @@
 
 #include "net/hasp_network.h"
 
+#include "dev/device.h"
+
 bool isConnected;
 uint8_t mainLoopCounter        = 0;
 unsigned long mainLastLoopTime = 0;
 
 void setup()
 {
+    haspDevice.pre_setup();
+
     /****************************
      * Storage initializations
      ***************************/
@@ -128,6 +132,7 @@ void loop()
 #endif            // TELNET
 
     debugLoop(); // Console
+    haspDevice.loop();
 
     /* Timer Loop */
     if(millis() - mainLastLoopTime >= 1000) {
@@ -150,6 +155,12 @@ void loop()
 #if HASP_USE_MQTT > 0
             mqttEvery5Seconds(isConnected);
 #endif
+
+#if HASP_USE_GPIO > 0
+            //   gpioEvery5Seconds();
+#endif
+
+            haspDevice.loop_5s();
         }
 
         /* Reset loop counter every 10 seconds */
