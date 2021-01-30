@@ -101,14 +101,6 @@ lv_font_t * hasp_get_font(uint8_t fontid)
 }
 
 /**
- * WakeUp the display using a command instead of touch
- */
-void hasp_wakeup()
-{
-    lv_disp_trig_activity(NULL);
-}
-
-/**
  * Check if sleep state needs to be updated
  */
 bool IRAM_ATTR hasp_update_sleep_state()
@@ -529,7 +521,7 @@ void haspGetVersion(char * version, size_t len)
 void haspClearPage(uint16_t pageid)
 {
     lv_obj_t * page = get_page_obj(pageid);
-    if(!page || pageid > (pageid > sizeof pages / sizeof *pages)) {
+    if(!page || (pageid > HASP_NUM_PAGES)) {
         Log.warning(TAG_HASP, F("Invalid page %u"), pageid);
     } else if(page == lv_layer_sys() /*|| page == lv_layer_top()*/) {
         Log.warning(TAG_HASP, F("Cannot clear system layer"));

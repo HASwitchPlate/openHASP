@@ -6,6 +6,7 @@
 
     #include "PubSubClient.h"
 
+    #include "hasp/hasp.h"
     #include "hasp_mqtt.h"
     #include "hasp_mqtt_ha.h"
 
@@ -38,8 +39,6 @@ EthernetClient mqttNetworkClient;
     #include "hasp_config.h"
 
     #include "../hasp/hasp_dispatch.h"
-    #include "../hasp/hasp.h" // for hasp_sleep_state
-extern uint8_t hasp_sleep_state;
 
     #ifdef USE_CONFIG_OVERRIDE
         #include "user_config_override.h"
@@ -115,13 +114,6 @@ static bool mqttPublish(const char * topic, const char * payload, bool retain = 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Send changed values OUT
 
-void mqtt_send_current_states()
-{
-    dispatch_output_current_page();
-    dispatch_output_statusupdate(NULL, NULL);
-    dispatch_output_idle_state(hasp_sleep_state);
-}
-
 bool IRAM_ATTR mqttIsConnected()
 {
     return mqttEnabled && mqttClient.connected();
@@ -179,7 +171,7 @@ static void mqtt_message_cb(char * topic, byte * payload, unsigned int length)
 
     } else if(topic == strstr_P(topic, PSTR("homeassistant/status"))) { // HA discovery topic
         if(mqttHAautodiscover && !strcasecmp_P((char *)payload, PSTR("online"))) {
-            mqtt_send_current_states();
+            dispatch_current_state();
             mqtt_ha_send_backlight();
         }
         return;
@@ -253,13 +245,13 @@ void mqttStart()
 
         switch(mqttClient.state()) {
             case MQTT_CONNECTION_TIMEOUT:
-                snprintf_P(buffer, sizeof(buffer), PSTR("Network connection timeout"));
+                snprintf_P(buffer, sizeof(buffer), PSTR("Connection timeout"));
                 break;
             case MQTT_CONNECTION_LOST:
-                snprintf_P(buffer, sizeof(buffer), PSTR("Network connection lost"));
+                snprintf_P(buffer, sizeof(buffer), PSTR("Connection lost"));
                 break;
             case MQTT_CONNECT_FAILED:
-                snprintf_P(buffer, sizeof(buffer), PSTR("Network connection failed"));
+                snprintf_P(buffer, sizeof(buffer), PSTR("Connection failed"));
                 break;
             case MQTT_DISCONNECTED:
                 snprintf_P(buffer, sizeof(buffer), PSTR("Disconnected"));
@@ -267,10 +259,10 @@ void mqttStart()
             case MQTT_CONNECTED:
                 break;
             case MQTT_CONNECT_BAD_PROTOCOL:
-                snprintf_P(buffer, sizeof(buffer), PSTR("Server doesn't support the requested version of MQTT"));
+                snprintf_P(buffer, sizeof(buffer), PSTR("MQTT version not suported"));
                 break;
             case MQTT_CONNECT_BAD_CLIENT_ID:
-                snprintf_P(buffer, sizeof(buffer), PSTR("Server rejected the client ID"));
+                snprintf_P(buffer, sizeof(buffer), PSTR("Client ID rejected"));
                 break;
             case MQTT_CONNECT_UNAVAILABLE:
                 snprintf_P(buffer, sizeof(buffer), PSTR("Server unavailable"));
@@ -319,7 +311,7 @@ void mqttStart()
     haspReconnect();
     haspProgressVal(255);
 
-    mqtt_send_current_states();
+    dispatch_current_state();
 }
 
 void mqttSetup()

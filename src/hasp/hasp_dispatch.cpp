@@ -32,6 +32,7 @@
 #endif
 
 extern unsigned long debugLastMillis; // UpdateStatus timer
+extern uint8_t hasp_sleep_state;
 
 uint8_t nCommands = 0;
 haspCommand_t commands[16];
@@ -81,39 +82,48 @@ inline void dispatch_process_button_attribute(String strTopic, const char * payl
 {
     // Log.verbose(TAG_MSGR,F("BTN ATTR: %s = %s"), strTopic.c_str(), payload);
 
-    String strPageId((char *)0);
-    String strTemp((char *)0);
+    unsigned int pageid, objid;
+    const char * topic_p = strTopic.c_str();
 
-    strPageId = strTopic.substring(2, strTopic.indexOf("]"));
-    strTemp   = strTopic.substring(strTopic.indexOf("]") + 1, strTopic.length());
+    if(sscanf(topic_p, "p%ub%u.", &pageid, &objid) == 2) { // Literal String
 
-    if(strTemp.startsWith(".b[")) {
-        String strObjId((char *)0);
-        String strAttr((char *)0);
+        // OK, continue below
 
-        strObjId = strTemp.substring(3, strTemp.indexOf("]"));
-        strAttr  = strTemp.substring(strTemp.indexOf("]") + 1, strTemp.length());
-        // debugPrintln(strPageId + " && " + strObjId + " && " + strAttr);
+    } else if(sscanf(topic_p, "p[%u]b[%u].", &pageid, &objid) == 2) { // Literal String
 
-        int pageid = strPageId.toInt();
-        int objid  = strObjId.toInt();
-
-        if(pageid >= 0 && pageid <= 255 && objid >= 0 && objid <= 255) {
-            hasp_process_attribute((uint8_t)pageid, (uint8_t)objid, strAttr.c_str(), payload);
-        } // valid page
+        // TODO: obsolete old syntax p[x].b[]y
+        // OK, continue below
 
     } else {
-
-        unsigned int pageid, objid;
-        const char * topic_p = strTopic.c_str();
-
-        if(sscanf(topic_p, "p%ub%u.", &pageid, &objid) == 2) { // Literal String
-            while(*topic_p++ != '.') {
-                // strip to '.' character
-            }
-            hasp_process_attribute((uint8_t)pageid, (uint8_t)objid, topic_p, payload);
-        }
+        return;
     }
+
+    while(*topic_p++ != '.') {
+        // strip to '.' character
+    }
+    hasp_process_attribute((uint8_t)pageid, (uint8_t)objid, topic_p, payload);
+
+    // String strPageId((char *)0);
+    // String strTemp((char *)0);
+
+    // strPageId = strTopic.substring(2, strTopic.indexOf("]"));
+    // strTemp   = strTopic.substring(strTopic.indexOf("]") + 1, strTopic.length());
+
+    // if(strTemp.startsWith(".b[")) {
+    //     String strObjId((char *)0);
+    //     String strAttr((char *)0);
+
+    //     strObjId = strTemp.substring(3, strTemp.indexOf("]"));
+    //     strAttr  = strTemp.substring(strTemp.indexOf("]") + 1, strTemp.length());
+    //     // debugPrintln(strPageId + " && " + strObjId + " && " + strAttr);
+
+    //     pageid = strPageId.toInt();
+    //     objid  = strObjId.toInt();
+
+    //     if(pageid >= 0 && pageid <= 255 && objid >= 0 && objid <= 255) {
+    //         hasp_process_attribute(pageid, objid, strAttr.c_str(), payload);
+    //     } // valid page
+    // }
 }
 
 // objectattribute=value
@@ -398,11 +408,11 @@ bool dispatch_get_event_state(uint8_t eventid)
         case HASP_EVENT_LONG:
         case HASP_EVENT_HOLD:
             return true;
-        case HASP_EVENT_OFF:
-        case HASP_EVENT_UP:
-        case HASP_EVENT_SHORT:
-        case HASP_EVENT_DOUBLE:
-        case HASP_EVENT_LOST:
+        // case HASP_EVENT_OFF:
+        // case HASP_EVENT_UP:
+        // case HASP_EVENT_SHORT:
+        // case HASP_EVENT_DOUBLE:
+        // case HASP_EVENT_LOST:
         default:
             return false;
     }
@@ -742,6 +752,13 @@ void dispatch_reboot(bool saveConfig)
     halRestartMcu();
 }
 
+void dispatch_current_state()
+{
+    dispatch_output_current_page();
+    dispatch_output_statusupdate(NULL, NULL);
+    dispatch_output_idle_state(hasp_sleep_state);
+}
+
 /******************************************* Command Wrapper Functions *********************************/
 
 // Periodically publish a JSON string indicating system status
@@ -791,14 +808,15 @@ void dispatch_output_statusupdate(const char *, const char *)
 #endif
 }
 
-void dispatch_calibrate(const char *, const char *)
+void dispatch_calibrate(const char * topic = NULL, const char * payload = NULL)
 {
     guiCalibrate();
 }
 
 void dispatch_wakeup(const char *, const char *)
 {
-    hasp_wakeup();
+    dispatch_calibrate();
+    lv_disp_trig_activity(NULL);
 }
 
 void dispatch_reboot(const char *, const char *)
@@ -855,7 +873,7 @@ void dispatchSetup()
     /* WARNING: remember to expand the commands array when adding new commands */
 }
 
-void IRAM_ATTR dispatchLoop()
+void dispatchLoop()
 {
     // Not used
 }

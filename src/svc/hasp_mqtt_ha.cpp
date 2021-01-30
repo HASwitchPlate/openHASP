@@ -159,7 +159,7 @@ void mqtt_ha_register_backlight()
     // doc[F("brightness")]       = true;
     doc[F("bri_scl")] = 100;
 
-    snprintf_P(buffer, sizeof(buffer), PSTR("hasp_%s-backlight"), halGetMacAddress(0, "").c_str(), mqttNodeName);
+    snprintf_P(buffer, sizeof(buffer), PSTR("hasp_%s-backlight"), halGetMacAddress(0, "").c_str());
     doc[F("uniq_id")] = buffer;
 
     snprintf_P(buffer, sizeof(buffer), PSTR("%s/light/%s/backlight/config"), discovery_prefix, mqttNodeName);
@@ -184,11 +184,11 @@ void mqtt_ha_register_moodlight()
     doc[F("avty_t")]     = F("~LWT");
     doc[F("bri_stat_t")] = F("~state/moodlight/dim");
     doc[F("bri_cmd_t")]  = F("~command/moodlight/dim");
-    //doc[F("rgb")]        = true;
-    doc[F("bri_scl")]    = 100;
+    // doc[F("rgb")]        = true;
+    doc[F("bri_scl")] = 100;
 
-    doc[F("rgb_stat_t")]           = F("~state/moodlight/rgb");
-    doc[F("rgb_cmd_t")]         = F("~command/moodlight/rgb");
+    doc[F("rgb_stat_t")] = F("~state/moodlight/rgb");
+    doc[F("rgb_cmd_t")]  = F("~command/moodlight/rgb");
     // doc[F("state_value_template")]      = F("~command/moodlight/light");
     // doc[F("brightness_value_template")] = F("{{ value_json.brightness }}");
     // doc[F("rgb_command_template")]        = F("{{ '%02x%02x%02x0000'| format(red, green, blue) }}");
@@ -215,7 +215,7 @@ void mqtt_ha_register_idle()
     doc[F("avty_t")]      = F("~LWT");
     doc[F("json_attr_t")] = F("~state/statusupdate");
 
-    snprintf_P(buffer, sizeof(buffer), PSTR("hasp_%s-idlestate"), halGetMacAddress(0, "").c_str(), mqttNodeName);
+    snprintf_P(buffer, sizeof(buffer), PSTR("hasp_%s-idlestate"), halGetMacAddress(0, "").c_str());
     doc[F("uniq_id")] = buffer;
 
     // "value_template" : "{{ value | capitalize }}",

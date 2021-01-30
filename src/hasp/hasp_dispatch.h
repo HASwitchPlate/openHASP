@@ -22,7 +22,7 @@ enum hasp_event_t { // even = released, odd = pressed
 
 /* ===== Default Event Processors ===== */
 void dispatchSetup(void);
-void IRAM_ATTR dispatchLoop(void);
+void dispatchLoop(void);
 void dispatchEverySecond(void);
 void dispatchStart(void);
 void dispatchStop(void);
@@ -45,7 +45,7 @@ void dispatch_reboot(bool saveConfig);
 
 void dispatch_output_idle_state(uint8_t state);
 void dispatch_output_statusupdate(const char *, const char *);
-void dispatch_output_current_page();
+void dispatch_current_state();
 
 void dispatch_gpio_input_event(uint8_t pin, uint8_t group, uint8_t eventid);
 void dispatch_object_event(lv_obj_t * obj, uint8_t eventid);
@@ -59,7 +59,7 @@ void dispatch_send_obj_attribute_str(uint8_t pageid, uint8_t btnid, const char *
 void dispatch_send_obj_attribute_int(uint8_t pageid, uint8_t btnid, const char * attribute, int32_t val);
 void dispatch_send_obj_attribute_color(uint8_t pageid, uint8_t btnid, const char * attribute, uint8_t r, uint8_t g,
                                        uint8_t b);
-                                       
+
 /* ===== Getter and Setter Functions ===== */
 
 /* ===== Read/Write Configuration ===== */
