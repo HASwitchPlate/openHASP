@@ -238,6 +238,7 @@ void mqtt_ha_register_activepage()
     doc[F("cmd_t")]       = F("~command/page");
     doc[F("stat_t")]      = F("~state/page");
     doc[F("avty_t")]      = F("~LWT");
+    doc[F("json_attr_t")] = F("~state/statusupdate");
 
     snprintf_P(buffer, sizeof(buffer), PSTR("%s_hasp_activepage"), halGetMacAddress(0, "").c_str(), mqttNodeName);
     doc[F("uniq_id")] = buffer;
