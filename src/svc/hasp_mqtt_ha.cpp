@@ -226,8 +226,30 @@ void mqtt_ha_register_idle()
     mqtt_ha_send_json(buffer, doc);
 }
 
+void mqtt_ha_register_activepage()
+{
+    char buffer[128];
+    DynamicJsonDocument doc(640);
+    mqtt_ha_add_device(doc);
+
+    snprintf_P(buffer, sizeof(buffer), PSTR("%s HASP active page"), mqttNodeName);
+    doc[F("name")] = buffer;
+
+    doc[F("cmd_t")]       = F("~command/page");
+    doc[F("stat_t")]      = F("~state/page");
+    doc[F("avty_t")]      = F("~LWT");
+
+    snprintf_P(buffer, sizeof(buffer), PSTR("%s_hasp_activepage"), halGetMacAddress(0, "").c_str(), mqttNodeName);
+    doc[F("uniq_id")] = buffer;
+
+    snprintf_P(buffer, sizeof(buffer), PSTR("%s/number/%s/activepage/config"), discovery_prefix, mqttNodeName);
+
+    mqtt_ha_send_json(buffer, doc);
+}
+
 void mqtt_ha_send_backlight()
 {
+    mqtt_ha_register_activepage();
     mqtt_ha_register_button(0, 1);
     mqtt_ha_register_button(0, 2);
     mqtt_ha_register_backlight();
