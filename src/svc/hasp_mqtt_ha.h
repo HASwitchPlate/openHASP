@@ -4,6 +4,6 @@
 #ifndef HASP_MQTT_HA_H
 #define HASP_MQTT_HA_H
 
-void mqtt_ha_send_backlight();
+void mqtt_ha_register_auto_discovery();
 
 #endif
