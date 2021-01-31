@@ -172,7 +172,7 @@ static void mqtt_message_cb(char * topic, byte * payload, unsigned int length)
     } else if(topic == strstr_P(topic, PSTR("homeassistant/status"))) { // HA discovery topic
         if(mqttHAautodiscover && !strcasecmp_P((char *)payload, PSTR("online"))) {
             dispatch_current_state();
-            mqtt_ha_send_backlight();
+            mqtt_ha_register_auto_discovery();
         }
         return;
 
