@@ -181,7 +181,7 @@ void hasp_object_tree(lv_obj_t * parent, uint8_t pageid, uint16_t level)
     lv_obj_type_t list;
     lv_obj_get_type(parent, &list);
     const char * objtype = list.type[0];
-    Log.verbose(TAG_HASP, F("[%d] p[%d].b[%d] %s"), level, pageid, parent->user_data.id, objtype);
+    Log.verbose(TAG_HASP, F("[%d] p%ub%u %s"), level, pageid, parent->user_data.id, objtype);
 
     lv_obj_t * child;
     child = lv_obj_get_child(parent, NULL);
@@ -586,7 +586,7 @@ void hasp_process_attribute(uint8_t pageid, uint8_t objid, const char * attr, co
     if(lv_obj_t * obj = hasp_find_obj_from_parent_id(get_page_obj(pageid), objid)) {
         hasp_process_obj_attribute(obj, attr, payload, strlen(payload) > 0);
     } else {
-        Log.warning(TAG_HASP, F("Unknown object p[%d].b[%d]"), pageid, objid);
+        Log.warning(TAG_HASP, F("Unknown object p%ub%u"), pageid, objid);
     }
 }
 
@@ -614,9 +614,9 @@ void hasp_new_object(const JsonObject & config, uint8_t & saved_page_id)
         uint8_t parentid = config[F("parentid")].as<uint8_t>();
         parent_obj       = hasp_find_obj_from_parent_id(parent_obj, parentid);
         if(!parent_obj) {
-            return Log.warning(TAG_HASP, F("Parent ID p[%u].b[%u] not found, skipping..."), pageid, parentid);
+            return Log.warning(TAG_HASP, F("Parent ID p%ub%u not found, skipping..."), pageid, parentid);
         } else {
-            Log.verbose(TAG_HASP, F("Parent ID p[%u].b[%u] found"), pageid, parentid);
+            Log.verbose(TAG_HASP, F("Parent ID p%ub%u found"), pageid, parentid);
         }
     }
 
@@ -970,7 +970,7 @@ void hasp_new_object(const JsonObject & config, uint8_t & saved_page_id)
         /** verbose reporting **/
         lv_obj_type_t list;
         lv_obj_get_type(obj, &list);
-        Log.verbose(TAG_HASP, F("    * p[%u].b[%u] = %s"), pageid, temp, list.type[0]);
+        Log.verbose(TAG_HASP, F("    * p%ub%u = %s"), pageid, temp, list.type[0]);
 
         /* test double-check */
         lv_obj_t * test = hasp_find_obj_from_parent_id(get_page_obj(pageid), (uint8_t)temp);
