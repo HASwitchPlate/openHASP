@@ -244,9 +244,10 @@ void mqtt_ha_register_activepage()
     snprintf_P(buffer, sizeof(buffer), PSTR("%s HASP active page"), mqttNodeName);
     doc[F("name")] = buffer;
 
-    doc[F("cmd_t")]  = F("~command/page");
-    doc[F("stat_t")] = F("~state/page");
-    doc[F("avty_t")] = F("~LWT");
+    doc[F("cmd_t")]       = F("~command/page");
+    doc[F("stat_t")]      = F("~state/page");
+    doc[F("avty_t")]      = F("~LWT");
+    doc[F("json_attr_t")] = F("~state/statusupdate");
 
     snprintf_P(buffer, sizeof(buffer), PSTR("hasp_%s-%s"), HASP_MAC_ADDRESS, item);
     doc[F("uniq_id")] = buffer;
