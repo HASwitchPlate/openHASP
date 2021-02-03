@@ -201,34 +201,6 @@ static inline int16_t my_arc_get_rotation(lv_obj_t * arc)
 }
 
 // OK - this function is missing in lvgl
-static inline int16_t my_arc_get_bg_start_angle(lv_obj_t * arc)
-{
-    lv_arc_ext_t * ext = (lv_arc_ext_t *)lv_obj_get_ext_attr(arc);
-    return ext->bg_angle_start;
-}
-
-// OK - this function is missing in lvgl
-static inline int16_t my_arc_get_bg_end_angle(lv_obj_t * arc)
-{
-    lv_arc_ext_t * ext = (lv_arc_ext_t *)lv_obj_get_ext_attr(arc);
-    return ext->bg_angle_end;
-}
-
-// OK - this function is missing in lvgl
-static inline int16_t my_arc_get_start_angle(lv_obj_t * arc)
-{
-    lv_arc_ext_t * ext = (lv_arc_ext_t *)lv_obj_get_ext_attr(arc);
-    return ext->arc_angle_start;
-}
-
-// OK - this function is missing in lvgl
-static inline int16_t my_arc_get_end_angle(lv_obj_t * arc)
-{
-    lv_arc_ext_t * ext = (lv_arc_ext_t *)lv_obj_get_ext_attr(arc);
-    return ext->arc_angle_end;
-}
-
-// OK - this function is missing in lvgl
 static inline int16_t my_chart_get_min_value(lv_obj_t * chart)
 {
     lv_chart_ext_t * ext = (lv_chart_ext_t *)lv_obj_get_ext_attr(chart);
@@ -1258,16 +1230,16 @@ static void hasp_process_arc_attribute(lv_obj_t * obj, const char * attr_p, uint
 
         case ATTR_START_ANGLE:
             return (update) ? lv_arc_set_bg_start_angle(obj, val)
-                            : hasp_out_int(obj, attr, my_arc_get_bg_start_angle(obj));
+                            : hasp_out_int(obj, attr, lv_arc_get_bg_angle_start(obj));
 
         case ATTR_END_ANGLE:
-            return (update) ? lv_arc_set_bg_end_angle(obj, val) : hasp_out_int(obj, attr, my_arc_get_bg_end_angle(obj));
+            return (update) ? lv_arc_set_bg_end_angle(obj, val) : hasp_out_int(obj, attr, lv_arc_get_bg_angle_end(obj));
 
         case ATTR_START_ANGLE1:
-            return (update) ? lv_arc_set_start_angle(obj, val) : hasp_out_int(obj, attr, my_arc_get_start_angle(obj));
+            return (update) ? lv_arc_set_start_angle(obj, val) : hasp_out_int(obj, attr, lv_arc_get_angle_start(obj));
 
         case ATTR_END_ANGLE1:
-            return (update) ? lv_arc_set_end_angle(obj, val) : hasp_out_int(obj, attr, my_arc_get_end_angle(obj));
+            return (update) ? lv_arc_set_end_angle(obj, val) : hasp_out_int(obj, attr, lv_arc_get_angle_end(obj));
     }
 
     Log.warning(TAG_ATTR, F("Unknown property %s"), attr_p);
