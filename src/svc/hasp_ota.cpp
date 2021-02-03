@@ -178,8 +178,6 @@ void otaEverySecond(void)
 
 void otaHttpUpdate(const char * espOtaUrl)
 { // Update ESP firmware from HTTP
-  // nextionSendCmd("page 0");
-  // nextionSetAttr("p[0].b[1].txt", "\"HTTP update\\rstarting...\"");
     #if HASP_USE_MDNS > 0
     mdnsStop(); // Keep mDNS responder from breaking things
     #endif
