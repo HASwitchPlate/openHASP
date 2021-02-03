@@ -245,9 +245,9 @@ void guiSetup()
     /* Initialize the Virtual Device Buffers */
 #if defined(ARDUINO_ARCH_ESP32)
     /* allocate on iram (or psram ?) */
-    static lv_disp_buf_t disp_buf;
 
     #ifdef USE_DMA_TO_TFT
+    static lv_disp_buf_t disp_buf;
     static lv_color_t *guiVdbBuffer1, *guiVdbBuffer2 = NULL;
     // DMA: len must be less than 32767
     size_t guiVDBsize = 15 * 1024u; // 15 KBytes * 2
@@ -256,6 +256,7 @@ void guiSetup()
         // guiVdbBuffer2 = (lv_color_t *)heap_caps_malloc(sizeof(lv_color_t) * guiVDBsize,   MALLOC_CAP_DMA);
         // lv_disp_buf_init(&disp_buf, guiVdbBuffer1, guiVdbBuffer2, guiVDBsize);
     #else
+    static lv_disp_buf_t disp_buf;
     static lv_color_t * guiVdbBuffer1;
     size_t guiVDBsize = 16 * 1024u; // 32 KBytes * 2
     guiVdbBuffer1 =
@@ -267,16 +268,16 @@ void guiSetup()
     // lv_disp_buf_init(&disp_buf, guiVdbBuffer1, guiVdbBuffer2, guiVDBsize);
 #elif defined(ARDUINO_ARCH_ESP8266)
     /* allocate on heap */
-    static lv_disp_buf_t disp_buf;
-    static lv_color_t guiVdbBuffer1[4 * 512u]; // 4 KBytes
-    size_t guiVDBsize = sizeof(guiVdbBuffer1) / sizeof(guiVdbBuffer1[0]);
-    lv_disp_buf_init(&disp_buf, guiVdbBuffer1, NULL, guiVDBsize);
-
     // static lv_disp_buf_t disp_buf;
-    // static lv_color_t * guiVdbBuffer1;
-    // guiVDBsize    = 4 * 512u; // 4 KBytes * 2
-    // guiVdbBuffer1 = (lv_color_t *)malloc(sizeof(lv_color_t) * guiVDBsize);
+    // static lv_color_t guiVdbBuffer1[2 * 512u]; // 4 KBytes
+    // size_t guiVDBsize = sizeof(guiVdbBuffer1) / sizeof(guiVdbBuffer1[0]);
     // lv_disp_buf_init(&disp_buf, guiVdbBuffer1, NULL, guiVDBsize);
+
+    static lv_disp_buf_t disp_buf;
+    static lv_color_t * guiVdbBuffer1;
+    size_t guiVDBsize = 2 * 512u; // 4 KBytes * 2
+    guiVdbBuffer1     = (lv_color_t *)malloc(sizeof(lv_color_t) * guiVDBsize);
+    lv_disp_buf_init(&disp_buf, guiVdbBuffer1, NULL, guiVDBsize);
 #else
     static lv_disp_buf_t disp_buf;
     static lv_color_t guiVdbBuffer1[16 * 512u]; // 16 KBytes
@@ -559,6 +560,8 @@ bool guiSetConfig(const JsonObject & settings)
     bool changed = false;
     uint16_t guiSleepTime1;
     uint16_t guiSleepTime2;
+
+    hasp_get_sleep_time(guiSleepTime1, guiSleepTime2);
 
     changed |= configSet(guiTickPeriod, settings[FPSTR(F_GUI_TICKPERIOD)], F("guiTickPeriod"));
     changed |= configSet(guiBacklightPin, settings[FPSTR(F_GUI_BACKLIGHTPIN)], F("guiBacklightPin"));

@@ -1103,7 +1103,7 @@ void webHandleGuiConfig()
         httpMessage += F("><b>Show Pointer</b>");
 
         int8_t bcklpin = settings[FPSTR(F_GUI_BACKLIGHTPIN)].as<int8_t>();
-        httpMessage += F("<p><b>Backlight Control</b> <select id='bcklpin' name='bcklpin'>");
+        httpMessage += F("<p><b>Backlight Control</b> <select id='bckl' name='bckl'>");
         httpMessage += getOption(-1, F("None"), bcklpin == -1);
         #if defined(ARDUINO_ARCH_ESP32)
         httpMessage += getOption(5, F("GPIO 5"), bcklpin == 5);    // D8 on ESP32 for D1 mini 32
