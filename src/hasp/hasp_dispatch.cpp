@@ -78,30 +78,36 @@ bool dispatch_factory_reset()
 }
 
 // p[x].b[y].attr=value
-inline void dispatch_process_button_attribute(String strTopic, const char * payload)
+inline bool dispatch_process_button_attribute(const char * topic_p, const char * payload)
 {
     // Log.verbose(TAG_MSGR,F("BTN ATTR: %s = %s"), strTopic.c_str(), payload);
 
     unsigned int pageid, objid;
-    const char * topic_p = strTopic.c_str();
+    // const char * topic_p = strTopic.c_str();
 
-    if(sscanf(topic_p, "p%ub%u.", &pageid, &objid) == 2) { // Literal String
+    if(sscanf(topic_p, HASP_OBJECT_NOTATION ".", &pageid, &objid) == 2) { // Literal String
 
         // OK, continue below
 
-    } else if(sscanf(topic_p, "p[%u]b[%u].", &pageid, &objid) == 2) { // Literal String
+    } else if(sscanf(topic_p, "p[%u].b[%u].", &pageid, &objid) == 2) { // Literal String
 
-        // TODO: obsolete old syntax p[x].b[]y
+        // TODO: obsolete old syntax p[x].b[y].
         // OK, continue below
+        while(*topic_p++ != '.') {
+            // strip to '.' character
+        }
 
     } else {
-        return;
+        return false;
     }
 
-    while(*topic_p++ != '.') {
-        // strip to '.' character
+    while(*topic_p != '.') {
+        if(*topic_p == 0) return false; // strip to '.' character
+        topic_p++;
     }
+
     hasp_process_attribute((uint8_t)pageid, (uint8_t)objid, topic_p, payload);
+    return true;
 
     // String strPageId((char *)0);
     // String strTemp((char *)0);
@@ -149,8 +155,8 @@ void dispatch_command(const char * topic, const char * payload)
         // } else if(strcasecmp_P(topic, PSTR("screenshot")) == 0) {
         //     guiTakeScreenshot("/screenshot.bmp"); // Literal String
 
-    } else if(topic[0] == 'p') {
-        dispatch_process_button_attribute(topic, payload);
+    } else if(topic[0] == 'p' && dispatch_process_button_attribute(topic, payload)) {
+        return; // matched pxby.attr
 
 #if HASP_USE_CONFIG > 0
 
@@ -597,7 +603,7 @@ void dispatch_parse_jsonl(std::istringstream & stream)
 {
     uint8_t savedPage = haspGetPage();
     size_t line       = 1;
-    DynamicJsonDocument jsonl(MQTT_MAX_PACKET_SIZE / 2); // max ~256 characters per line
+    DynamicJsonDocument jsonl(MQTT_MAX_PACKET_SIZE / 2 + 128); // max ~256 characters per line
     DeserializationError err = deserializeJson(jsonl, stream);
     stream.setTimeout(25);
 
