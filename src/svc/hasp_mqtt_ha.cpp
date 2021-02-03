@@ -57,9 +57,9 @@ void mqtt_ha_register_button(uint8_t page, uint8_t id)
     DynamicJsonDocument doc(512);
     mqtt_ha_add_device(doc);
 
-    snprintf_P(buffer, sizeof(buffer), PSTR("p%db%d"), page, id);
+    snprintf_P(buffer, sizeof(buffer), PSTR(HASP_OBJECT_NOTATION), page, id);
     doc[F("stype")] = buffer; // subtype = "p0b0"
-    snprintf_P(buffer, sizeof(buffer), PSTR("~state/p%db%d"), page, id);
+    snprintf_P(buffer, sizeof(buffer), PSTR("~state/" HASP_OBJECT_NOTATION), page, id);
     doc[F("t")] = buffer; // topic
 
     doc[F("atype")] = "trigger"; // automation_type
@@ -67,29 +67,29 @@ void mqtt_ha_register_button(uint8_t page, uint8_t id)
     dispatch_get_event_name(HASP_EVENT_DOWN, buffer, sizeof(buffer));
     doc[F("pl")]   = buffer;
     doc[F("type")] = "button_short_press";
-    snprintf_P(buffer, sizeof(buffer), PSTR("%s/device_automation/%s/p%db%d_%s/config"), discovery_prefix, mqttNodeName,
-               page, id, "short_press");
+    snprintf_P(buffer, sizeof(buffer), PSTR("%s/device_automation/%s/" HASP_OBJECT_NOTATION "_%s/config"),
+               discovery_prefix, mqttNodeName, page, id, "short_press");
     mqtt_ha_send_json(buffer, doc);
 
     dispatch_get_event_name(HASP_EVENT_SHORT, buffer, sizeof(buffer));
     doc[F("pl")]   = buffer;
     doc[F("type")] = "button_short_release";
-    snprintf_P(buffer, sizeof(buffer), PSTR("%s/device_automation/%s/p%db%d_%s/config"), discovery_prefix, mqttNodeName,
-               page, id, "short_release");
+    snprintf_P(buffer, sizeof(buffer), PSTR("%s/device_automation/%s/" HASP_OBJECT_NOTATION "_%s/config"),
+               discovery_prefix, mqttNodeName, page, id, "short_release");
     mqtt_ha_send_json(buffer, doc);
 
     dispatch_get_event_name(HASP_EVENT_LONG, buffer, sizeof(buffer));
     doc[F("pl")]   = buffer;
     doc[F("type")] = "button_long_press";
-    snprintf_P(buffer, sizeof(buffer), PSTR("%s/device_automation/%s/p%db%d_%s/config"), discovery_prefix, mqttNodeName,
-               page, id, "long_press");
+    snprintf_P(buffer, sizeof(buffer), PSTR("%s/device_automation/%s/" HASP_OBJECT_NOTATION "_%s/config"),
+               discovery_prefix, mqttNodeName, page, id, "long_press");
     mqtt_ha_send_json(buffer, doc);
 
     dispatch_get_event_name(HASP_EVENT_UP, buffer, sizeof(buffer));
     doc[F("pl")]   = buffer;
     doc[F("type")] = "button_long_release";
-    snprintf_P(buffer, sizeof(buffer), PSTR("%s/device_automation/%s/p%db%d_%s/config"), discovery_prefix, mqttNodeName,
-               page, id, "long_release");
+    snprintf_P(buffer, sizeof(buffer), PSTR("%s/device_automation/%s/" HASP_OBJECT_NOTATION "_%s/config"),
+               discovery_prefix, mqttNodeName, page, id, "long_release");
     mqtt_ha_send_json(buffer, doc);
 }
 
@@ -99,16 +99,16 @@ void mqtt_ha_register_switch(uint8_t page, uint8_t id)
     DynamicJsonDocument doc(512);
     mqtt_ha_add_device(doc);
 
-    snprintf_P(buffer, sizeof(buffer), PSTR("p%db%d"), page, id);
+    snprintf_P(buffer, sizeof(buffer), PSTR(HASP_OBJECT_NOTATION), page, id);
     doc[F("stype")] = buffer; // subtype = "p0b0"
-    snprintf_P(buffer, sizeof(buffer), PSTR("~state/p%db%d"), page, id);
+    snprintf_P(buffer, sizeof(buffer), PSTR("~state/" HASP_OBJECT_NOTATION), page, id);
     doc[F("t")] = buffer; // topic
 
     doc[F("atype")] = "binary_sensor"; // automation_type
     doc[F("pl")]    = "SHORT";         // payload
     doc[F("type")]  = "button_short_release";
 
-    snprintf_P(buffer, sizeof(buffer), PSTR("%s/device_automation/%s/p%db%d_%s/config"), discovery_prefix, mqttNodeName,
+    snprintf_P(buffer, sizeof(buffer), PSTR("%s/device_automation/%s/" HASP_OBJECT_NOTATION "_%s/config"), discovery_prefix, mqttNodeName,
                page, id, "short");
 
     mqtt_ha_send_json(buffer, doc);

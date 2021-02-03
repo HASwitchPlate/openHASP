@@ -133,7 +133,7 @@ void mqtt_send_lwt(bool online)
 void mqtt_send_object_state(uint8_t pageid, uint8_t btnid, char * payload)
 {
     char tmp_topic[strlen(mqttNodeTopic) + 16];
-    snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%sstate/p%ub%u"), mqttNodeTopic, pageid, btnid);
+    snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%sstate/" HASP_OBJECT_NOTATION), mqttNodeTopic, pageid, btnid);
     bool res = mqttPublish(tmp_topic, payload);
 }
 
