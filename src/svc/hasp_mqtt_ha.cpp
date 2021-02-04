@@ -15,6 +15,7 @@
 
     #define RETAINED true
     #define HASP_MAC_ADDRESS halGetMacAddress(0, "").c_str()
+    #define HASP_MAC_ADDRESS_STR halGetMacAddress(0, "")
 
 extern PubSubClient mqttClient;
 extern char mqttNodeName[16];
@@ -38,7 +39,7 @@ void mqtt_ha_add_device(DynamicJsonDocument & doc)
     JsonObject device = doc.createNestedObject(F("device"));
     JsonArray ids     = device.createNestedArray(F("ids"));
     ids.add(mqttNodeName);
-    ids.add(HASP_MAC_ADDRESS);
+    ids.add(HASP_MAC_ADDRESS_STR);
 
     char version[32];
     haspGetVersion(version, sizeof(version));
@@ -54,7 +55,7 @@ void mqtt_ha_add_device(DynamicJsonDocument & doc)
 void mqtt_ha_register_button(uint8_t page, uint8_t id)
 {
     char buffer[128];
-    DynamicJsonDocument doc(512);
+    DynamicJsonDocument doc(640);
     mqtt_ha_add_device(doc);
 
     snprintf_P(buffer, sizeof(buffer), PSTR(HASP_OBJECT_NOTATION), page, id);
@@ -96,7 +97,7 @@ void mqtt_ha_register_button(uint8_t page, uint8_t id)
 void mqtt_ha_register_switch(uint8_t page, uint8_t id)
 {
     char buffer[128];
-    DynamicJsonDocument doc(512);
+    DynamicJsonDocument doc(640);
     mqtt_ha_add_device(doc);
 
     snprintf_P(buffer, sizeof(buffer), PSTR(HASP_OBJECT_NOTATION), page, id);
