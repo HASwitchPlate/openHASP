@@ -636,36 +636,24 @@ static lv_font_t * haspPayloadToFont(const char * payload)
 
 #if ESP32
 
-    #if LV_FONT_MONTSERRAT_12 > 0
+    #ifdef LV_FONT_CUSTOM_12
         case 12:
-            return &lv_font_montserrat_12;
-    #else
-        case 12:
-            return &robotocondensed_regular_12_nokern;
+            return LV_THEME_DEFAULT_FONT_SMALL;
     #endif
 
-    #if LV_FONT_MONTSERRAT_16 > 0
+    #ifdef LV_FONT_CUSTOM_16
         case 16:
-            return &lv_font_montserrat_16;
-    #else
-        case 16:
-            return &robotocondensed_regular_16_nokern;
+            return LV_THEME_DEFAULT_FONT_NORMAL;
     #endif
 
-    #if LV_FONT_MONTSERRAT_22 > 0
+    #ifdef LV_FONT_CUSTOM_22
         case 22:
-            return &lv_font_montserrat_22;
-    #else
-        case 22:
-            return &robotocondensed_regular_22_nokern;
+            return LV_THEME_DEFAULT_FONT_SUBTITLE;
     #endif
 
-    #if LV_FONT_MONTSERRAT_28 > 0
+    #ifdef LV_FONT_CUSTOM_28
         case 28:
-            return &lv_font_montserrat_28_compressed;
-    #else
-        case 28:
-            return &robotocondensed_regular_28_nokern;
+            return LV_THEME_DEFAULT_FONT_TITLE;
     #endif
 
 #endif

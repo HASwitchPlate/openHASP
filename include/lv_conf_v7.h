@@ -377,10 +377,16 @@ typedef void* lv_font_user_data_t;
 /*Always set a default font from the built-in fonts*/
 #if LV_HIGH_RESOURCE_MCU>0
 // #define LV_FONT_CUSTOM_DECLARE LV_FONT_DECLARE(lv_font_montserrat_16);
-#define LV_FONT_CUSTOM_DECLARE LV_FONT_DECLARE(robotocondensed_regular_12_nokern) \
-                               LV_FONT_DECLARE(robotocondensed_regular_22_nokern) \
-                               LV_FONT_DECLARE(robotocondensed_regular_16_nokern) \
-                               LV_FONT_DECLARE(robotocondensed_regular_28_nokern) \
+
+#define LV_FONT_CUSTOM_12     LV_FONT_DECLARE(robotocondensed_regular_12_nokern)
+#define LV_FONT_CUSTOM_16     LV_FONT_DECLARE(robotocondensed_regular_16_nokern)
+#define LV_FONT_CUSTOM_22     LV_FONT_DECLARE(robotocondensed_regular_22_nokern)
+#define LV_FONT_CUSTOM_28     LV_FONT_DECLARE(robotocondensed_regular_28_nokern)
+
+#define LV_FONT_CUSTOM_DECLARE LV_FONT_CUSTOM_12 \
+                               LV_FONT_CUSTOM_16 \
+                               LV_FONT_CUSTOM_22 \
+                               LV_FONT_CUSTOM_28 \
 
 #define LV_FONT_DEFAULT        &robotocondensed_regular_16_nokern //&lv_font_montserrat_16
 #else
