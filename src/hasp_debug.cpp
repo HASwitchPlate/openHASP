@@ -686,22 +686,23 @@ void debugLvglLogEvent(lv_log_level_t level, const char * file, uint32_t line, c
 
 void IRAM_ATTR debugLoop(void)
 {
-    int16_t keypress = debugConsole.readKey();
+    int16_t keypress;
+    do {
+        switch(keypress = debugConsole.readKey()) {
 
-    switch(keypress) {
+            case ConsoleInput::KEY_PAGE_UP:
+                dispatch_page_next();
+                break;
 
-        case ConsoleInput::KEY_PAGE_UP:
-            dispatch_page_next();
-            break;
+            case ConsoleInput::KEY_PAGE_DOWN:
+                dispatch_page_prev();
+                break;
 
-        case ConsoleInput::KEY_PAGE_DOWN:
-            dispatch_page_prev();
-            break;
-
-        case(ConsoleInput::KEY_FN)...(ConsoleInput::KEY_FN + 12):
-            haspSetPage(keypress - ConsoleInput::KEY_FN - 1);
-            break;
-    }
+            case(ConsoleInput::KEY_FN)...(ConsoleInput::KEY_FN + 12):
+                haspSetPage(keypress - ConsoleInput::KEY_FN - 1);
+                break;
+        }
+    } while(keypress != 0);
 }
 void printLocalTime()
 {
