@@ -463,13 +463,14 @@ bool gpioIsSystemPin(uint8_t gpio)
     // Tasmota Slave GPIOs
 
 #ifdef ARDUINO_ARCH_ESP32
+    if((gpio >= 6) && (gpio <= 11)) return true; // integrated SPI flash
     if(psramFound()) {
         if((gpio == 16) || (gpio == 17)) return true; // PSRAM
     }
 #endif
 
 #ifdef ARDUINO_ARCH_ESP8266
-    if((gpio >= 6) && (gpio <= 11)) return true; // VSPI
+    if((gpio >= 6) && (gpio <= 11)) return true; // integrated SPI flash
     #ifndef TFT_SPI_OVERLAP
     if((gpio >= 12) && (gpio <= 14)) return true; // HSPI
     #endif
