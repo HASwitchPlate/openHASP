@@ -34,8 +34,8 @@ bool otaUpdateCheck()
     HTTPClient updateClient;
     Log.notice(TAG_OTA, F("UPDATE: Checking update URL: %s"), otaUrl.c_str());
 
-   // wifiUpdateClientSecure.setInsecure();
-   // wifiUpdateClientSecure.setBufferSizes(512, 512);
+    // wifiUpdateClientSecure.setInsecure();
+    // wifiUpdateClientSecure.setBufferSizes(512, 512);
     updateClient.begin(wifiUpdateClientSecure, otaUrl.c_str());
 
     int httpCode = updateClient.GET(); // start connection and send HTTP header
@@ -49,7 +49,7 @@ bool otaUpdateCheck()
     updateClient.end();
 
     if(jsonError) { // Couldn't parse the returned JSON, so bail
-        Log.error(TAG_OTA, F("JSON parsing failed: %s"), jsonError.c_str());
+        dispatch_json_error(TAG_OTA, jsonError);
         // mqttClient.publish(mqttStateJSONTopic,
         //                    String(F("{\"event\":\"jsonError\",\"event_source\":\"updateCheck()\",\"event_description\":"
         //                             "\"Failed to parse incoming JSON command with error\"")) +
@@ -159,6 +159,10 @@ void otaSetup(void)
     #endif
         ArduinoOTA.setRebootOnSuccess(false); // We do that ourselves
 
+    #ifdef OTA_PASSWORD
+        ArduinoOTA.setPassword(OTA_PASSWORD);
+    #endif
+    
         ArduinoOTA.begin();
         Log.trace(TAG_OTA, F("Over the Air firmware update ready"));
     } else {

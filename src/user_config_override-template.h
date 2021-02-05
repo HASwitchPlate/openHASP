@@ -1,7 +1,7 @@
 /* MIT License - Copyright (c) 2020 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
-/*************************************************** 
+/***************************************************
 // This file contains the default settings that are
 // burned into the compiled firmware.
 //
@@ -39,6 +39,7 @@
 #define OTA_SERVER ""
 #define OTA_PORT 80
 #define OTA_URL ""
+#define OTA_PASSWORD ""
 
 /***************************************************
  *        Syslog Settings
