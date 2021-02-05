@@ -261,8 +261,8 @@ void gpioSetup()
                 pinMode(gpioConfig[i].pin, OUTPUT);
                 break;
 
-            case HASP_GPIO_LED:
-            case HASP_GPIO_LED_INVERTED:
+            case HASP_GPIO_LED ... HASP_GPIO_LED_CW_INVERTED:
+            // case HASP_GPIO_LED_INVERTED:
             case HASP_GPIO_PWM:
             case HASP_GPIO_PWM_INVERTED:
                 // case HASP_GPIO_BACKLIGHT:
@@ -290,27 +290,31 @@ void gpio_set_normalized_value(hasp_gpio_config_t gpio, uint16_t state)
             gpio.val = state >= 0x8000U ? LOW : HIGH;
             digitalWrite(gpio.pin, gpio.val);
             break;
-#if defined(ARDUINO_ARCH_ESP32)
         case HASP_GPIO_LED:
+        case HASP_GPIO_LED_R:
+        case HASP_GPIO_LED_G:
+        case HASP_GPIO_LED_B:
         case HASP_GPIO_PWM:
+#if defined(ARDUINO_ARCH_ESP32)
             gpio.val = map(state, 0, 0xFFFFU, 0, 4095);
             ledcWrite(gpio.group, gpio.val); // ledChannel and value
+#else
+            analogWrite(gpio.pin, map(state, 0, 0xFFFFU, 0, 1023));
+#endif
             break;
         case HASP_GPIO_LED_INVERTED:
+        case HASP_GPIO_LED_R_INVERTED:
+        case HASP_GPIO_LED_G_INVERTED:
+        case HASP_GPIO_LED_B_INVERTED:
         case HASP_GPIO_PWM_INVERTED:
+#if defined(ARDUINO_ARCH_ESP32)
             gpio.val = map(0xFFFFU - state, 0, 0xFFFFU, 0, 4095);
             ledcWrite(gpio.group, gpio.val); // ledChannel and value
-            break;
 #else
-        case HASP_GPIO_LED:
-        case HASP_GPIO_PWM:
-            analogWrite(gpio.pin, map(state, 0, 0xFFFFU, 0, 1023));
-            break;
-        case HASP_GPIO_LED_INVERTED:
-        case HASP_GPIO_PWM_INVERTED:
             analogWrite(gpio.pin, map(0xFFFFU - state, 0, 0xFFFFU, 0, 1023));
-            break;
 #endif
+            break;
+
         default:
             return;
     }
@@ -332,6 +336,23 @@ void gpio_set_normalized_group_value(uint8_t groupid, uint16_t state)
     for(uint8_t i = 0; i < HASP_NUM_GPIO_CONFIG; i++) {
         if(gpioConfig[i].group == groupid) {
             gpio_set_normalized_value(gpioConfig[i], state);
+        }
+    }
+}
+
+void gpio_set_moodlight(uint8_t r, uint8_t g, uint8_t b)
+{
+    for(uint8_t i = 0; i < HASP_NUM_GPIO_CONFIG; i++) {
+        switch(gpioConfig[i].type & 0xfe) {
+            case HASP_GPIO_LED_R:
+                gpio_set_normalized_value(gpioConfig[i], map(r, 0, 0xFF, 0, 0xFFFFU));
+                break;
+            case HASP_GPIO_LED_G:
+                gpio_set_normalized_value(gpioConfig[i], map(g, 0, 0xFF, 0, 0xFFFFU));
+                break;
+            case HASP_GPIO_LED_B:
+                gpio_set_normalized_value(gpioConfig[i], map(b, 0, 0xFF, 0, 0xFFFFU));
+                break;
         }
     }
 }

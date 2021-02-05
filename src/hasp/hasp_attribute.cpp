@@ -333,7 +333,8 @@ static void my_btnmatrix_map_create(lv_obj_t * obj, const char * payload)
     DeserializationError jsonError = deserializeJson(map_doc, payload);
 
     if(jsonError) { // Couldn't parse incoming JSON payload
-        return Log.warning(TAG_ATTR, F("JSON: Failed to parse incoming button map with error: %s"), jsonError.c_str());
+        dispatch_json_error(TAG_ATTR, jsonError);
+        return;
     }
 
     JsonArray arr = map_doc.as<JsonArray>(); // Parse payload
@@ -404,7 +405,8 @@ static void line_set_points(lv_obj_t * obj, const char * payload)
     DeserializationError jsonError = deserializeJson(doc, payload);
 
     if(jsonError) { // Couldn't parse incoming JSON payload
-        return Log.warning(TAG_ATTR, F("JSON: Failed to parse incoming line points with error: %s"), jsonError.c_str());
+        dispatch_json_error(TAG_ATTR, jsonError);
+        return;
     }
 
     JsonArray arr = doc.as<JsonArray>(); // Parse payload
@@ -441,7 +443,7 @@ static inline lv_color_t haspLogColor(lv_color_t color)
 }
 
 // OK
-static bool haspPayloadToColor(const char * payload, lv_color_t & color)
+bool haspPayloadToColor(const char * payload, lv_color_t & color)
 {
     /* HEX format #rrggbb or #rrggbbaa */
     char pattern[4];

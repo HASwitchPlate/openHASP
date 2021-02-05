@@ -32,6 +32,7 @@ void dispatch_topic_payload(const char * topic, const char * payload);
 void dispatch_text_line(const char * cmnd);
 void dispatch_parse_jsonl(Stream & stream);
 void dispatch_clear_page(const char * page);
+void dispatch_json_error(uint8_t tag, DeserializationError & jsonError);
 
 // void dispatchPage(uint8_t page);
 void dispatch_page_next();

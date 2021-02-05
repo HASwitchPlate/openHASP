@@ -8,6 +8,7 @@
 #include "hasp_object.h"
 #include "hasp.h"
 #include "hasp_utilities.h"
+#include "hasp_attribute.h"
 
 #if HASP_USE_DEBUG > 0
     #include "StringStream.h"
@@ -35,7 +36,14 @@ extern unsigned long debugLastMillis; // UpdateStatus timer
 extern uint8_t hasp_sleep_state;
 
 uint8_t nCommands = 0;
-haspCommand_t commands[16];
+haspCommand_t commands[17];
+
+struct moodlight_t
+{
+    byte power;
+    byte r, g, b;
+};
+moodlight_t moodlight;
 
 static void dispatch_config(const char * topic, const char * payload);
 // void dispatch_group_value(uint8_t groupid, int16_t state, lv_obj_t * obj);
@@ -75,6 +83,11 @@ bool dispatch_factory_reset()
 #endif
 
     return formated && erased;
+}
+
+void dispatch_json_error(uint8_t tag, DeserializationError & jsonError)
+{
+    Log.error(tag, F("JSON parsing failed: %s"), jsonError.c_str());
 }
 
 // p[x].b[y].attr=value
@@ -330,7 +343,7 @@ static void dispatch_config(const char * topic, const char * payload)
     } else {
         DeserializationError jsonError = deserializeJson(doc, payload);
         if(jsonError) { // Couldn't parse incoming JSON command
-            Log.warning(TAG_MSGR, F("JSON: Failed to parse incoming JSON command with error: %s"), jsonError.c_str());
+            dispatch_json_error(TAG_MSGR, jsonError);
             return;
         }
         settings = doc.as<JsonObject>();
@@ -568,7 +581,7 @@ void dispatch_parse_json(const char *, const char * payload)
     json.shrinkToFit();
 
     if(jsonError) { // Couldn't parse incoming JSON command
-        Log.warning(TAG_MSGR, F("Failed to parse incoming JSON command with error: %s"), jsonError.c_str());
+        dispatch_json_error(TAG_MSGR, jsonError);
 
     } else if(json.is<JsonArray>()) { // handle json as an array of commands
         JsonArray arr = json.as<JsonArray>();
@@ -716,6 +729,55 @@ void dispatch_dim(const char *, const char * level)
     char payload[4];
     itoa(guiGetDim(), payload, DEC);
     dispatch_state_msg(F("dim"), payload);
+}
+
+void dispatch_moodlight(const char * topic, const char * payload)
+{
+    // Set the current state
+    if(strlen(payload) != 0) {
+
+        size_t maxsize = (128u * ((strlen(payload) / 128) + 1)) + 512;
+        DynamicJsonDocument json(maxsize);
+
+        // Note: Deserialization needs to be (const char *) so the objects WILL be copied
+        // this uses more memory but otherwise the mqtt receive buffer can get overwritten by the send buffer !!
+        DeserializationError jsonError = deserializeJson(json, payload);
+        json.shrinkToFit();
+
+        if(jsonError) { // Couldn't parse incoming JSON command
+            dispatch_json_error(TAG_MSGR, jsonError);
+        } else {
+
+            if(!json[F("power")].isNull()) moodlight.power = hasp_util_is_true(json[F("power")].as<String>().c_str());
+
+            if(!json[F("r")].isNull()) moodlight.r = json[F("r")].as<uint8_t>();
+            if(!json[F("g")].isNull()) moodlight.r = json[F("g")].as<uint8_t>();
+            if(!json[F("b")].isNull()) moodlight.r = json[F("b")].as<uint8_t>();
+
+            if(!json[F("color")].isNull()) {
+                lv_color16_t color;
+                if(haspPayloadToColor(json[F("color")].as<String>().c_str(), color)) {
+                    lv_color32_t c32;
+                    c32.full    = lv_color_to32(color);
+                    moodlight.r = c32.ch.red;
+                    moodlight.g = c32.ch.green;
+                    moodlight.b = c32.ch.blue;
+                }
+            }
+
+            if(moodlight.power)
+                gpio_set_moodlight(moodlight.r, moodlight.g, moodlight.b);
+            else
+                gpio_set_moodlight(0, 0, 0);
+        }
+    }
+
+    // Return the current state
+    char buffer[128];
+    snprintf_P(buffer, sizeof(buffer),
+               PSTR("{\"power\":\"%u\",\"color\":\"#%02x%02x%02x\",\"r\":%u,\"g\":%u,\"b\":%u}"), moodlight.power,
+               moodlight.r, moodlight.g, moodlight.b, moodlight.r, moodlight.g, moodlight.b);
+    dispatch_state_msg(F("moodlight"), buffer);
 }
 
 void dispatch_backlight(const char *, const char * payload)
@@ -867,6 +929,7 @@ void dispatchSetup()
     dispatch_add_command(PSTR("dim"), dispatch_dim);
     dispatch_add_command(PSTR("brightness"), dispatch_dim);
     dispatch_add_command(PSTR("light"), dispatch_backlight);
+    dispatch_add_command(PSTR("moodlight"), dispatch_moodlight);
     dispatch_add_command(PSTR("calibrate"), dispatch_calibrate);
     dispatch_add_command(PSTR("update"), dispatch_web_update);
     dispatch_add_command(PSTR("reboot"), dispatch_reboot);
