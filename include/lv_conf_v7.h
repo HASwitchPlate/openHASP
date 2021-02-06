@@ -184,10 +184,11 @@ typedef void* lv_fs_drv_user_data_t;
 #define LV_USE_FS_IF	      1
 #if LV_USE_FS_IF
 #  define LV_FS_IF_FATFS    '\0'
-#  define LV_FS_IF_PC       '\0'
-#if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
-#  define LV_FS_IF_SPIFFS   'E'  // internal esp Flash
+#if defined(ARDUINO_ARCH_ESP32) // || defined(ARDUINO_ARCH_ESP8266)
+#  define LV_FS_IF_PC       'S'
+#  define LV_FS_IF_SPIFFS   '\0'  // internal esp Flash
 #else
+#  define LV_FS_IF_PC       '\0'
 #  define LV_FS_IF_SPIFFS   '\0'  // no internal esp Flash
 #endif
 #endif  /*LV_USE_FS_IF*/
@@ -419,6 +420,7 @@ typedef void* lv_font_user_data_t;
 #endif
 
 #define LV_USE_THEME_EMPTY 0
+#define LV_USE_THEME_MONO 0
 #define LV_USE_THEME_TEMPLATE 0
 #define LV_USE_THEME_HASP 1
 
