@@ -420,7 +420,7 @@ typedef void* lv_font_user_data_t;
 #endif
 
 #define LV_USE_THEME_EMPTY 0
-#define LV_USE_THEME_MONO 0
+#define LV_USE_THEME_MONO 1
 #define LV_USE_THEME_TEMPLATE 0
 #define LV_USE_THEME_HASP 1
 
