@@ -34,28 +34,41 @@ void mqtt_ha_send_json(char * topic, JsonDocument & doc)
     mqttClient.endPublish();
 }
 
-void mqtt_ha_add_device(JsonDocument & doc)
+// adds the device identifiers to the HA MQTT auto-discovery message
+void mqtt_ha_add_device_ids(JsonDocument & doc)
 {
     JsonObject device = doc.createNestedObject(F("device"));
     JsonArray ids     = device.createNestedArray(F("ids"));
     ids.add(mqttNodeName);
     ids.add(HASP_MAC_ADDRESS_STR);
 
-    char version[32];
-    haspGetVersion(version, sizeof(version));
-    device[F("sw")] = version;
+    char buffer[32];
+    haspGetVersion(buffer, sizeof(buffer));
+    device[F("sw")] = buffer;
 
     device[F("name")] = mqttNodeName;
     device[F("mdl")]  = F(PIOENV);
-    device[F("mf")]   = F("hasp-lvgl");
+    device[F("mf")]   = F(D_MANUFACTURER);
 
     doc[F("~")] = mqttNodeTopic;
+}
+
+// adds the name and unique_id to the HA MQTT auto-discovery message
+void mqtt_ha_add_unique_id(JsonDocument & doc, char * item)
+{
+    char buffer[64];
+
+    snprintf_P(buffer, sizeof(buffer), PSTR("HASP %s %s"), mqttNodeName, item);
+    doc[F("name")] = buffer;
+
+    snprintf_P(buffer, sizeof(buffer), PSTR("hasp_%s-%s"), HASP_MAC_ADDRESS, item);
+    doc[F("uniq_id")] = buffer;
 }
 
 void mqtt_ha_register_button(uint8_t page, uint8_t id)
 {
     StaticJsonDocument<640> doc;
-    mqtt_ha_add_device(doc);
+    mqtt_ha_add_device_ids(doc);
 
     char buffer[128];
     snprintf_P(buffer, sizeof(buffer), PSTR(HASP_OBJECT_NOTATION), page, id);
@@ -97,7 +110,7 @@ void mqtt_ha_register_button(uint8_t page, uint8_t id)
 void mqtt_ha_register_switch(uint8_t page, uint8_t id)
 {
     StaticJsonDocument<640> doc;
-    mqtt_ha_add_device(doc);
+    mqtt_ha_add_device_ids(doc);
 
     char buffer[128];
     snprintf_P(buffer, sizeof(buffer), PSTR(HASP_OBJECT_NOTATION), page, id);
@@ -105,9 +118,9 @@ void mqtt_ha_register_switch(uint8_t page, uint8_t id)
     snprintf_P(buffer, sizeof(buffer), PSTR("~state/" HASP_OBJECT_NOTATION), page, id);
     doc[F("t")] = buffer; // topic
 
-    doc[F("atype")] = "binary_sensor"; // automation_type
-    doc[F("pl")]    = "SHORT";         // payload
-    doc[F("type")]  = "button_short_release";
+    doc[F("atype")] = F("binary_sensor"); // automation_type
+    doc[F("pl")]    = F("SHORT");         // payload
+    doc[F("type")]  = F("button_short_release");
 
     snprintf_P(buffer, sizeof(buffer), PSTR("%s/device_automation/%s/" HASP_OBJECT_NOTATION "_%s/config"),
                discovery_prefix, mqttNodeName, page, id, "short");
@@ -118,26 +131,16 @@ void mqtt_ha_register_switch(uint8_t page, uint8_t id)
 void mqtt_ha_register_connectivity()
 {
     StaticJsonDocument<640> doc;
-    mqtt_ha_add_device(doc);
-
-    char buffer[128];
     char item[16];
     snprintf_P(item, sizeof(item), PSTR("connectivity"));
 
-    doc[F("device_class")] = item;
+    // start from static keys and values that do not change
+    deserializeJson(doc, F("{\"device_class\":\"connectivity\",\"stat_t\":\"~LWT\",\"pl_on\":\"online\",\"pl_off\":"
+                           "\"offline\",\"json_attr_t\":\"~state/statusupdate\"}"));
+    mqtt_ha_add_device_ids(doc);
+    mqtt_ha_add_unique_id(doc, item);
 
-    snprintf_P(buffer, sizeof(buffer), PSTR("HASP %s %s"), mqttNodeName, item);
-    doc[F("name")] = buffer;
-
-    doc[F("stat_t")] = F("~LWT");
-    doc[F("pl_on")]  = F("online");
-    doc[F("pl_off")] = F("offline");
-
-    doc[F("json_attr_t")] = F("~state/statusupdate");
-
-    snprintf_P(buffer, sizeof(buffer), PSTR("hasp_%s-%s"), HASP_MAC_ADDRESS, item);
-    doc[F("uniq_id")] = buffer;
-
+    char buffer[128];
     snprintf_P(buffer, sizeof(buffer), PSTR("%s/binary_sensor/%s/%s/config"), discovery_prefix, mqttNodeName, item);
     mqtt_ha_send_json(buffer, doc);
 }
@@ -145,28 +148,24 @@ void mqtt_ha_register_connectivity()
 void mqtt_ha_register_backlight()
 {
     StaticJsonDocument<640> doc;
-    mqtt_ha_add_device(doc);
-
-    char buffer[128];
     char item[16];
     snprintf_P(item, sizeof(item), PSTR("backlight"));
 
-    snprintf_P(buffer, sizeof(buffer), PSTR("HASP %s %s"), mqttNodeName, item);
-    doc[F("name")] = buffer;
+    // start from static keys and values that do not change
+    deserializeJson(doc, F("{"
+                           "\"cmd_t\":\"~command/light\","
+                           "\"stat_t\":\"~state/light\","
+                           "\"avty_t\":\"~LWT\","
+                           "\"bri_stat_t\":\"~state/dim\","
+                           "\"bri_cmd_t\":\"~command/dim\","
+                           "\"bri_scl\":100}"));
+    mqtt_ha_add_device_ids(doc);
+    mqtt_ha_add_unique_id(doc, item);
 
-    doc[F("cmd_t")]  = F("~command/light");
-    doc[F("stat_t")] = F("~state/light");
-    doc[F("pl_on")]  = F("ON");
-    doc[F("pl_off")] = F("OFF");
+    // doc[F("pl_on")]  = F("ON");
+    // doc[F("pl_off")] = F("OFF");
 
-    doc[F("avty_t")]     = F("~LWT");
-    doc[F("bri_stat_t")] = F("~state/dim");
-    doc[F("bri_cmd_t")]  = F("~command/dim");
-    doc[F("bri_scl")]    = 100;
-
-    snprintf_P(buffer, sizeof(buffer), PSTR("hasp_%s-%s"), HASP_MAC_ADDRESS, item);
-    doc[F("uniq_id")] = buffer;
-
+    char buffer[128];
     snprintf_P(buffer, sizeof(buffer), PSTR("%s/light/%s/%s/config"), discovery_prefix, mqttNodeName, item);
     mqtt_ha_send_json(buffer, doc);
 }
@@ -174,34 +173,30 @@ void mqtt_ha_register_backlight()
 void mqtt_ha_register_moodlight()
 {
     DynamicJsonDocument doc(1024);
-    mqtt_ha_add_device(doc);
-
-    char buffer[128];
     char item[16];
     snprintf_P(item, sizeof(item), PSTR("moodlight"));
 
-    snprintf_P(buffer, sizeof(buffer), PSTR("HASP %s %s"), mqttNodeName, item);
-    doc[F("name")] = buffer;
+    // start from static keys and values that do not change
+    deserializeJson(doc, F("{"
+                           "\"cmd_t\":\"~command/moodlight\","
+                           "\"stat_t\":\"~state/moodlight\","
+                           "\"avty_t\":\"~LWT\","
+                           "\"bri_stat_t\":\"~state/moodlight/dim\","
+                           "\"bri_cmd_t\":\"~command/moodlight/dim\","
+                           "\"bri_scl\":100,"
+                           "\"rgb_stat_t\":\"~state/moodlight/rgb\","
+                           "\"rgb_cmd_t\":\"~command/moodlight/rgb\"}"));
+    mqtt_ha_add_device_ids(doc);
+    mqtt_ha_add_unique_id(doc, item);
 
-    doc[F("cmd_t")]  = F("~command/moodlight");
-    doc[F("stat_t")] = F("~state/moodlight");
-    doc[F("pl_on")]  = F("ON");
-    doc[F("pl_off")] = F("OFF");
+    // doc[F("pl_on")]  = F("ON");
+    // doc[F("pl_off")] = F("OFF");
 
-    doc[F("avty_t")]     = F("~LWT");
-    doc[F("bri_stat_t")] = F("~state/moodlight/dim");
-    doc[F("bri_cmd_t")]  = F("~command/moodlight/dim");
-    doc[F("bri_scl")]    = 100;
-
-    doc[F("rgb_stat_t")] = F("~state/moodlight/rgb");
-    doc[F("rgb_cmd_t")]  = F("~command/moodlight/rgb");
     // doc[F("state_value_template")]      = F("~command/moodlight/light");
     // doc[F("brightness_value_template")] = F("{{ value_json.brightness }}");
     // doc[F("rgb_command_template")]        = F("{{ '%02x%02x%02x0000'| format(red, green, blue) }}");
 
-    snprintf_P(buffer, sizeof(buffer), PSTR("hasp_%s-%s"), HASP_MAC_ADDRESS, item);
-    doc[F("uniq_id")] = buffer;
-
+    char buffer[128];
     snprintf_P(buffer, sizeof(buffer), PSTR("%s/light/%s/%s/config"), discovery_prefix, mqttNodeName, item);
     mqtt_ha_send_json(buffer, doc);
 }
@@ -209,26 +204,15 @@ void mqtt_ha_register_moodlight()
 void mqtt_ha_register_idle()
 {
     StaticJsonDocument<640> doc;
-    mqtt_ha_add_device(doc);
-
-    char buffer[128];
     char item[16];
     snprintf_P(item, sizeof(item), PSTR("idle"));
 
-    snprintf_P(buffer, sizeof(buffer), PSTR("HASP %s idle state"), mqttNodeName);
-    doc[F("name")] = buffer;
+    // start from static keys and values that do not change
+    deserializeJson(doc, F("{\"stat_t\":\"~state/idle\",\"avty_t\":\"~LWT\",\"json_attr_t\":\"~state/statusupdate\"}"));
+    mqtt_ha_add_device_ids(doc);
+    mqtt_ha_add_unique_id(doc, item);
 
-    // doc[F("cmd_t")]  = F("~command/wakeup");
-    doc[F("stat_t")]      = F("~state/idle");
-    doc[F("avty_t")]      = F("~LWT");
-    doc[F("json_attr_t")] = F("~state/statusupdate");
-
-    snprintf_P(buffer, sizeof(buffer), PSTR("hasp_%s-%s"), HASP_MAC_ADDRESS, item);
-    doc[F("uniq_id")] = buffer;
-
-    // "value_template" : "{{ value | capitalize }}",
-    //                    "icon" : "hass:card",
-
+    char buffer[128];
     snprintf_P(buffer, sizeof(buffer), PSTR("%s/sensor/%s/%s/config"), discovery_prefix, mqttNodeName, item);
     mqtt_ha_send_json(buffer, doc);
 }
@@ -236,23 +220,15 @@ void mqtt_ha_register_idle()
 void mqtt_ha_register_activepage()
 {
     StaticJsonDocument<640> doc;
-    mqtt_ha_add_device(doc);
-
-    char buffer[128];
     char item[16];
     snprintf_P(item, sizeof(item), PSTR("page"));
 
-    snprintf_P(buffer, sizeof(buffer), PSTR("%s HASP active page"), mqttNodeName);
-    doc[F("name")] = buffer;
+    // start from static keys and values that do not change
+    deserializeJson(doc, F("{\"cmd_t\":\"~command/page\",\"stat_t\":\"~state/page\",\"avty_t\":\"~LWT\"}"));
+    mqtt_ha_add_device_ids(doc);
+    mqtt_ha_add_unique_id(doc, item);
 
-    doc[F("cmd_t")]       = F("~command/page");
-    doc[F("stat_t")]      = F("~state/page");
-    doc[F("avty_t")]      = F("~LWT");
-    doc[F("json_attr_t")] = F("~state/statusupdate");
-
-    snprintf_P(buffer, sizeof(buffer), PSTR("hasp_%s-%s"), HASP_MAC_ADDRESS, item);
-    doc[F("uniq_id")] = buffer;
-
+    char buffer[128];
     snprintf_P(buffer, sizeof(buffer), PSTR("%s/number/%s/%s/config"), discovery_prefix, mqttNodeName, item);
     mqtt_ha_send_json(buffer, doc);
 }
