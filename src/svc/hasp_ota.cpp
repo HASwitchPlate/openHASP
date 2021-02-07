@@ -170,7 +170,7 @@ void otaSetup(void)
     }
 }
 
-void IRAM_ATTR otaLoop(void)
+void otaLoop(void)
 {
     ArduinoOTA.handle();
 }

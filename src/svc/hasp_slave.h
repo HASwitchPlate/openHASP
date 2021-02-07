@@ -16,7 +16,7 @@ void slave_send_input(uint8_t id, const char * payload);
 void slave_send_statusupdate();
 
 void slaveSetup();
-void IRAM_ATTR slaveLoop(void);
+void slaveLoop(void);
 
 
 #endif

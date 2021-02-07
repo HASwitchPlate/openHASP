@@ -151,7 +151,7 @@ bool touch_rotate   = false;
 bool touch_invert_x = false;
 bool touch_invert_y = false;
 
-bool IRAM_ATTR drv_touch_read(lv_indev_drv_t * indev_driver, lv_indev_data_t * data)
+bool drv_touch_read(lv_indev_drv_t * indev_driver, lv_indev_data_t * data)
 {
 #if TOUCH_DRIVER > 0
     int16_t touchX = 0;

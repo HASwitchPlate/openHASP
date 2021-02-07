@@ -7,7 +7,7 @@
 #include "ArduinoJson.h"
 
 void mqttSetup();
-void IRAM_ATTR mqttLoop();
+void mqttLoop();
 void mqttEvery5Seconds(bool wifiIsConnected);
 void mqttStart();
 void mqttStop();
@@ -15,7 +15,7 @@ void mqttStop();
 void mqtt_send_object_state(uint8_t pageid, uint8_t btnid, char * payload);
 void mqtt_send_state(const __FlashStringHelper * subtopic, const char * payload);
 
-bool IRAM_ATTR mqttIsConnected();
+bool mqttIsConnected();
 
 #if HASP_USE_CONFIG > 0
 bool mqttGetConfig(const JsonObject & settings);

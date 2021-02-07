@@ -11,7 +11,7 @@
 
 /* ===== Default Event Processors ===== */
 void telnetSetup();
-void IRAM_ATTR telnetLoop(void);
+void telnetLoop(void);
 void telnetEvery5Seconds(void);
 void telnetEverySecond(void);
 void telnetStart(void);

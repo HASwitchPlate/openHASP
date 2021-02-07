@@ -11,7 +11,7 @@
 FT5206_Class * touchpanel;
 
 // Read touch points
-bool IRAM_ATTR FT5206_getXY(int16_t * touchX, int16_t * touchY, bool debug)
+bool FT5206_getXY(int16_t * touchX, int16_t * touchY, bool debug)
 {
     if(!touchpanel->touched()) return false;
 

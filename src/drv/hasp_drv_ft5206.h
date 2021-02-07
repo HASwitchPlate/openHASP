@@ -10,7 +10,7 @@
 
     #include "hasp_debug.h" // for TAG_DRVR
 
-bool IRAM_ATTR FT5206_getXY(int16_t * touchX, int16_t * touchY, bool debug);
+bool FT5206_getXY(int16_t * touchX, int16_t * touchY, bool debug);
 void FT5206_init();
 
 #endif

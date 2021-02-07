@@ -113,7 +113,7 @@ void aceButtonSetup(void)
     buttonConfig->setRepeatPressInterval(LV_INDEV_DEF_LONG_PRESS_REP_TIME);
 }
 
-void IRAM_ATTR gpioLoop(void)
+void gpioLoop(void)
 {
     // Should be called every 4-5ms or faster, for the default debouncing time of ~20ms.
     for(uint8_t i = 0; i < gpioUsedInputCount; i++) {

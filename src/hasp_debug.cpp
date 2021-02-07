@@ -685,7 +685,7 @@ void debugLvglLogEvent(lv_log_level_t level, const char * file, uint32_t line, c
 }
 #endif
 
-void IRAM_ATTR debugLoop(void)
+void debugLoop(void)
 {
     int16_t keypress;
     do {

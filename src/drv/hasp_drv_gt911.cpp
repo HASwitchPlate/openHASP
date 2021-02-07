@@ -14,7 +14,7 @@ static int8_t GT911_num_touches;
 static GTPoint * GT911_points;
 
 // Store touch points into global variable
-void IRAM_ATTR GT911_setXY(int8_t contacts, GTPoint * points)
+void GT911_setXY(int8_t contacts, GTPoint * points)
 {
     GT911_num_touches = contacts;
     GT911_points      = points;
@@ -27,7 +27,7 @@ void IRAM_ATTR GT911_setXY(int8_t contacts, GTPoint * points)
 }
 
 // Read touch points from global variable
-bool IRAM_ATTR GT911_getXY(int16_t * touchX, int16_t * touchY, bool debug)
+bool GT911_getXY(int16_t * touchX, int16_t * touchY, bool debug)
 {
     static GTPoint points[5];
     int16_t contacts = touch.readInput((uint8_t *)&points);
@@ -101,7 +101,7 @@ void GT911_init()
     Log.trace(TAG_DRVR, F("Goodix GT911x touch driver started"));
 }
 
-void IRAM_ATTR GT911_loop()
+void GT911_loop()
 {
     touch.loop();
 }

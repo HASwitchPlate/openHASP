@@ -43,7 +43,7 @@ extern "C" {
  * Create a hasp application
  */
 void haspSetup(void);
-void IRAM_ATTR haspLoop(void);
+void haspLoop(void);
 // void haspEverySecond(void); // See MACROS
 
 void haspReconnect(void);

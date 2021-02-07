@@ -153,7 +153,7 @@ void slaveSetup()
     Log.notice(TAG_TASM, F("HASP SLAVE LOADED"));
 }
 
-void IRAM_ATTR slaveLoop(void)
+void slaveLoop(void)
 {
     slave.loop();
     // demo code to run the led without tasmota

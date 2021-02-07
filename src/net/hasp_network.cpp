@@ -50,7 +50,7 @@ void networkSetup()
     #endif
 }
 
-void IRAM_ATTR networkLoop(void)
+void networkLoop(void)
 {
     #if HASP_USE_ETHERNET > 0
     ethernetLoop();

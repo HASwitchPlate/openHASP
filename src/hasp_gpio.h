@@ -20,7 +20,7 @@ struct hasp_gpio_config_t
 };
 
 void gpioSetup(void);
-void IRAM_ATTR gpioLoop(void);
+void gpioLoop(void);
 void gpioEvery5Seconds(void);
 
 // void gpio_set_group_onoff(uint8_t groupid, bool ison);

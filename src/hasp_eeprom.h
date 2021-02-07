@@ -7,7 +7,7 @@
 #include <Arduino.h>
 
 void eepromSetup(void);
-void IRAM_ATTR eepromLoop(void);
+void eepromLoop(void);
 void eepromWrite(uint16_t addr, std::string & data);
 std::string eepromRead(uint16_t addr);
 

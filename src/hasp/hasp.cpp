@@ -459,7 +459,7 @@ void haspSetup(void)
  *   STATIC FUNCTIONS
  **********************/
 
-void IRAM_ATTR haspLoop(void)
+void haspLoop(void)
 {}
 
 /*

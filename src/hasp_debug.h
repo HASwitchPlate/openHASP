@@ -13,7 +13,7 @@
 /* ===== Default Event Processors ===== */
 void debugPreSetup(JsonObject settings);
 void debugSetup();
-void IRAM_ATTR debugLoop(void);
+void debugLoop(void);
 void debugEverySecond(void);
 void debugStart(void);
 void debugStop(void);

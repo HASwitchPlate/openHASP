@@ -13,7 +13,7 @@ struct hasp_mdns_config_t
 
 /* ===== Default Event Processors ===== */
 void mdnsSetup();
-void IRAM_ATTR mdnsLoop(void);
+void mdnsLoop(void);
 void mdnsStart(void);
 void mdnsStop(void);
 
