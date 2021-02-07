@@ -103,7 +103,7 @@ lv_font_t * hasp_get_font(uint8_t fontid)
 /**
  * Check if sleep state needs to be updated
  */
-bool IRAM_ATTR hasp_update_sleep_state()
+bool hasp_update_sleep_state()
 {
     uint32_t idle = lv_disp_get_inactive_time(NULL);
 
@@ -522,11 +522,11 @@ void haspClearPage(uint16_t pageid)
 {
     lv_obj_t * page = get_page_obj(pageid);
     if(!page || (pageid > HASP_NUM_PAGES)) {
-        Log.warning(TAG_HASP, F("Invalid page %u"), pageid);
+        Log.warning(TAG_HASP, F(D_HASP_INVALID_PAGE), pageid);
     } else if(page == lv_layer_sys() /*|| page == lv_layer_top()*/) {
-        Log.warning(TAG_HASP, F("Cannot clear system layer"));
+        Log.warning(TAG_HASP, F(D_HASP_INVALID_LAYER));
     } else {
-        Log.notice(TAG_HASP, F("Clearing page %u"), pageid);
+        Log.notice(TAG_HASP, F(D_HASP_CLEAR_PAGE), pageid);
         lv_obj_clean(page);
     }
 }
@@ -540,9 +540,9 @@ void haspSetPage(uint8_t pageid)
 {
     lv_obj_t * page = get_page_obj(pageid);
     if(!page || pageid == 0 || pageid > HASP_NUM_PAGES) {
-        Log.warning(TAG_HASP, F("Invalid page %u"), pageid);
+        Log.warning(TAG_HASP, F(D_HASP_INVALID_PAGE), pageid);
     } else {
-        Log.notice(TAG_HASP, F("Changing page to %u"), pageid);
+        Log.notice(TAG_HASP, F(D_HASP_CHANGE_PAGE), pageid);
         current_page = pageid;
         lv_scr_load(page);
         hasp_object_tree(page, pageid, 0);

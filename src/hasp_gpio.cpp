@@ -318,7 +318,7 @@ void gpio_set_normalized_value(hasp_gpio_config_t gpio, uint16_t state)
         default:
             return;
     }
-    Log.verbose(TAG_GPIO, F("    * Group %d - Pin %d = %d"), gpio.group, gpio.pin, gpio.val);
+    Log.verbose(TAG_GPIO, F(D_BULLET "Group %d - Pin %d = %d"), gpio.group, gpio.pin, gpio.val);
 }
 
 // void gpio_set_group_onoff(uint8_t groupid, bool ison)

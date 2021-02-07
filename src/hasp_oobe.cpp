@@ -57,7 +57,7 @@ static void peek_password_cb(lv_obj_t * obj, lv_event_t event)
 static void kb_event_cb(lv_obj_t * event_kb, lv_event_t event)
 {
     if(event == LV_EVENT_APPLY) {
-        DynamicJsonDocument settings(256);
+        StaticJsonDocument<256> settings;
         char ssid[32] = "";
         char pass[32] = "";
         lv_obj_t * obj;
@@ -77,7 +77,7 @@ static void kb_event_cb(lv_obj_t * event_kb, lv_event_t event)
 
         if(strlen(ssid) > 0 && wifiValidateSsid(ssid, pass)) {
             wifiSetConfig(settings.as<JsonObject>());
-            Log.notice(TAG_OOBE, F("SSID %s validated"), ssid);
+            Log.notice(TAG_OOBE, F(D_OOBE_SSID_VALIDATED), ssid);
             dispatch_reboot(true);
         }
 
@@ -324,10 +324,10 @@ bool oobeSetup()
         lv_obj_set_click(lv_disp_get_layer_sys(NULL), true);
         if(oobeAutoCalibrate) {
             lv_obj_set_event_cb(lv_disp_get_layer_sys(NULL), oobe_calibrate_cb);
-            Log.trace(TAG_OOBE, F("Enabled Auto Calibrate on touch"));
+            Log.trace(TAG_OOBE, F(D_OOBE_AUTO_CALIBRATE));
         } else {
             lv_obj_set_event_cb(lv_disp_get_layer_sys(NULL), gotoPage1_cb);
-            Log.trace(TAG_OOBE, F("Already calibrated"));
+            Log.trace(TAG_OOBE, F(D_OOBE_CALIBRATED));
         }
         oobeSetPage(0);
         return true;
@@ -355,9 +355,9 @@ void oobeFakeSetup(const char *, const char *)
     if(oobeAutoCalibrate) {
         lv_obj_set_click(lv_disp_get_layer_sys(NULL), true);
         lv_obj_set_event_cb(lv_disp_get_layer_sys(NULL), oobe_calibrate_cb);
-        Log.trace(TAG_OOBE, F("Enabled Auto Calibrate on touch"));
+        Log.trace(TAG_OOBE, F(D_OOBE_AUTO_CALIBRATE));
     } else {
-        Log.trace(TAG_OOBE, F("Already calibrated"));
+        Log.trace(TAG_OOBE, F(D_OOBE_CALIBRATED));
     }
     #endif
 }

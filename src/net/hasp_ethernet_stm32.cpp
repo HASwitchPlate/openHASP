@@ -15,7 +15,7 @@ void ethernetSetup()
 {
     #if USE_BUILTIN_ETHERNET > 0
     // start Ethernet and UDP
-    Log.notice(TAG_ETH, F("Begin Ethernet LAN8720"));
+    Log.notice(TAG_ETH, F("LAN8720 "D_SERVICE_STARTING));
     if(Ethernet.begin() == 0) {
         Log.notice(TAG_ETH, F("Failed to configure Ethernet using DHCP"));
         eth_connected = false;
@@ -44,7 +44,7 @@ void ethernetSetup()
     Ethernet.setCsPin(W5500_CS);
     Ethernet.setRstPin(W5500_RST);
     Ethernet.setHostname(ethHostname);
-    Log.notice(TAG_ETH, F("Begin Ethernet W5500"));
+    Log.notice(TAG_ETH, F("W5500 "D_SERVICE_STARTING));
     if(Ethernet.begin(mac) == 0) {
         Log.notice(TAG_ETH, F("Failed to configure Ethernet using DHCP"));
     } else {
@@ -59,7 +59,7 @@ void ethernetLoop(void)
     switch(Ethernet.maintain()) {
         case 1:
             // renewed fail
-            Log.notice(TAG_ETH, F("Error: renewed fail"));
+            Log.error(TAG_ETH, F("Error: renewed fail"));
             break;
 
         case 2:
@@ -70,7 +70,7 @@ void ethernetLoop(void)
 
         case 3:
             // rebind fail
-            Log.notice(TAG_ETH, F("Error: rebind fail"));
+            Log.error(TAG_ETH, F("Error: rebind fail"));
             break;
 
         case 4:
@@ -93,7 +93,7 @@ bool ethernetEvery5Seconds()
     #else
     state      = Ethernet.link() == 1;
     #endif
-    Log.warning(TAG_ETH, state ? F("ONLINE") : F("OFFLINE"));
+    Log.warning(TAG_ETH, state ? F(D_NETWORK_ONLINE) : F(D_NETWORK_OFFLINE));
     return state;
 }
 

@@ -6,6 +6,11 @@
 
 #include "ArduinoJson.h"
 
+struct hasp_mdns_config_t
+{
+    uint8_t enable   = true;
+};
+
 /* ===== Default Event Processors ===== */
 void mdnsSetup();
 void IRAM_ATTR mdnsLoop(void);

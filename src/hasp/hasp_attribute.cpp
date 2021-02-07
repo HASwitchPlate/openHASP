@@ -371,7 +371,7 @@ static void my_btnmatrix_map_create(lv_obj_t * obj, const char * payload)
     Log.verbose(TAG_ATTR, F("%s %d   lbl addr:  %x"), __FILE__, __LINE__, buffer_addr);
     for(JsonVariant btn : arr) {
         size_t len = btn.as<String>().length() + 1;
-        Log.verbose(TAG_ATTR, F("    * Adding button: %s (%d bytes) %x"), btn.as<String>().c_str(), len,
+        Log.verbose(TAG_ATTR, F(D_BULLET"Adding button: %s (%d bytes) %x"), btn.as<String>().c_str(), len,
                     buffer_addr + pos);
         memccpy(buffer_addr + pos, btn.as<String>().c_str(), 0, len); // Copy the label text into the buffer
         map_data_str[index++] = buffer_addr + pos;                    // save pointer to the label in the array
@@ -423,7 +423,7 @@ static void line_set_points(lv_obj_t * obj, const char * payload)
         JsonArray point    = v.as<JsonArray>(); // Parse point
         point_arr[index].x = point[0].as<int16_t>();
         point_arr[index].y = point[1].as<int16_t>();
-        Log.verbose(TAG_ATTR, F("    * Adding point %d: %d,%d"), index, point_arr[index].x, point_arr[index].y);
+        Log.verbose(TAG_ATTR, F(D_BULLET"Adding point %d: %d,%d"), index, point_arr[index].x, point_arr[index].y);
         index++;
     }
 
@@ -1188,7 +1188,7 @@ static void hasp_local_style_attr(lv_obj_t * obj, const char * attr_p, uint16_t 
             /* Transition attributes */
             // Todo
     }
-    Log.warning(TAG_ATTR, F("Unknown property %s"), attr_p);
+    Log.warning(TAG_ATTR, F(D_ATTRIBUTE_UNKNOWN), attr_p);
 }
 
 static void hasp_process_arc_attribute(lv_obj_t * obj, const char * attr_p, uint16_t attr_hash, const char * payload,
@@ -1232,7 +1232,7 @@ static void hasp_process_arc_attribute(lv_obj_t * obj, const char * attr_p, uint
             return (update) ? lv_arc_set_end_angle(obj, val) : hasp_out_int(obj, attr, lv_arc_get_angle_end(obj));
     }
 
-    Log.warning(TAG_ATTR, F("Unknown property %s"), attr_p);
+    Log.warning(TAG_ATTR, F(D_ATTRIBUTE_UNKNOWN), attr_p);
 }
 
 static void hasp_process_lmeter_attribute(lv_obj_t * obj, const char * attr_p, uint16_t attr_hash, const char * payload,
@@ -1264,7 +1264,7 @@ static void hasp_process_lmeter_attribute(lv_obj_t * obj, const char * attr_p, u
             return (update) ? lv_linemeter_set_scale(obj, val, line_count) : hasp_out_int(obj, attr, angle);
     }
 
-    Log.warning(TAG_ATTR, F("Unknown property %s"), attr_p);
+    Log.warning(TAG_ATTR, F(D_ATTRIBUTE_UNKNOWN), attr_p);
 }
 
 static void hasp_process_gauge_attribute(lv_obj_t * obj, const char * attr_p, uint16_t attr_hash, const char * payload,
@@ -1321,7 +1321,7 @@ static void hasp_process_gauge_attribute(lv_obj_t * obj, const char * attr_p, ui
             return;
     }
 
-    Log.warning(TAG_ATTR, F("Unknown property %s"), attr_p);
+    Log.warning(TAG_ATTR, F(D_ATTRIBUTE_UNKNOWN), attr_p);
 }
 
 // ##################### Common Attributes ########################################################
@@ -1365,7 +1365,7 @@ static void hasp_process_obj_attribute_txt(lv_obj_t * obj, const char * attr, co
     }
 #endif
 
-    Log.warning(TAG_ATTR, F("Unknown property %s"), attr);
+    Log.warning(TAG_ATTR, F(D_ATTRIBUTE_UNKNOWN), attr);
 }
 
 bool hasp_process_obj_attribute_val(lv_obj_t * obj, const char * attr, const char * payload, bool update)
@@ -1475,7 +1475,7 @@ static void hasp_process_obj_attribute_range(lv_obj_t * obj, const char * attr, 
                       : hasp_out_int(obj, attr, set_min ? min : max);
     }
 
-    Log.warning(TAG_ATTR, F("Unknown property %s"), attr);
+    Log.warning(TAG_ATTR, F(D_ATTRIBUTE_UNKNOWN), attr);
 }
 
 // ##################### Default Attributes ########################################################
@@ -1491,7 +1491,7 @@ static void hasp_process_obj_attribute_range(lv_obj_t * obj, const char * attr, 
 void hasp_process_obj_attribute(lv_obj_t * obj, const char * attr_p, const char * payload, bool update)
 {
     // unsigned long start = millis();
-    if(!obj) return Log.warning(TAG_ATTR, F("Unknown object"));
+    if(!obj) return Log.warning(TAG_ATTR, F(D_OBJECT_UNKNOWN));
     int16_t val = atoi(payload);
 
     char * attr = (char *)attr_p;
@@ -1760,21 +1760,21 @@ void hasp_process_obj_attribute(lv_obj_t * obj, const char * attr_p, const char 
 
         case ATTR_DELETE:
             if(!lv_obj_get_parent(obj)) {
-                return Log.error(TAG_ATTR, F("Unable to call %s on a page"), attr_p);
+                return Log.error(TAG_ATTR, F(D_ATTRIBUTE_PAGE_METHOD_INVALID), attr_p);
             }
             lv_obj_del_async(obj);
             break; // attribute_found
 
         case ATTR_TO_FRONT:
             if(!lv_obj_get_parent(obj)) {
-                return Log.error(TAG_ATTR, F("Unable to call %s on a page"), attr_p);
+                return Log.error(TAG_ATTR, F(D_ATTRIBUTE_PAGE_METHOD_INVALID), attr_p);
             }
             lv_obj_move_foreground(obj);
             break; // attribute_found
 
         case ATTR_TO_BACK:
             if(!lv_obj_get_parent(obj)) {
-                return Log.error(TAG_ATTR, F("Unable to call %s on a page"), attr_p);
+                return Log.error(TAG_ATTR, F(D_ATTRIBUTE_PAGE_METHOD_INVALID), attr_p);
             }
             lv_obj_move_background(obj);
             break; // attribute_found
@@ -1789,5 +1789,5 @@ attribute_found:
     return;
 
 attribute_not_found:
-    Log.warning(TAG_ATTR, F("Unknown property %s (%d)"), attr_p, attr_hash);
+    Log.warning(TAG_ATTR, F(D_ATTRIBUTE_UNKNOWN " (%d)"), attr_p, attr_hash);
 }

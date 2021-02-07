@@ -62,10 +62,10 @@ static void wifiConnected(IPAddress ipaddress)
     ip = WiFi.localIP();
     Log.notice(TAG_WIFI, F("Received IP address %d.%d.%d.%d"), ip[0], ip[1], ip[2], ip[3]);
 #else
-    Log.notice(TAG_WIFI, F("Received IP address %s"), ipaddress.toString().c_str());
+    Log.notice(TAG_WIFI, F(D_NETWORK_IP_ADDRESS_RECEIVED), ipaddress.toString().c_str());
 #endif
 
-    Log.verbose(TAG_WIFI, F("Connected = %s"), WiFi.status() == WL_CONNECTED ? PSTR("yes") : PSTR("no"));
+    Log.verbose(TAG_WIFI, F("Connected = %s"), WiFi.status() == WL_CONNECTED ? PSTR(D_NETWORK_ONLINE) : PSTR(D_NETWORK_OFFLINE));
     networkStart();
 }
 
@@ -259,7 +259,7 @@ static void wifiDisconnected(const char * ssid, uint8_t reason)
             snprintf_P(buffer, sizeof(buffer), PSTR("handshake failed"));
             break;
         case WIFI_REASON_CONNECTION_FAIL:
-            snprintf_P(buffer, sizeof(buffer), PSTR("connection failed"));
+            snprintf_P(buffer, sizeof(buffer), PSTR(D_NETWORK_CONNECTION_FAILED));
             break;
 #endif
 
@@ -471,14 +471,14 @@ bool wifiValidateSsid(const char * ssid, const char * pass)
         delay(500);
     }
 #if defined(STM32F4xx)
-    Log.trace(TAG_WIFI, F("Received IP addres %s"), espIp);
+    Log.trace(TAG_WIFI, F(D_NETWORK_IP_ADDRESS_RECEIVED), espIp);
     if((WiFi.status() == WL_CONNECTED && String(espIp) != F("0.0.0.0"))) return true;
 #else
-    Log.trace(TAG_WIFI, F("Received IP addres %s"), WiFi.localIP().toString().c_str());
+    Log.trace(TAG_WIFI, F(D_NETWORK_IP_ADDRESS_RECEIVED), WiFi.localIP().toString().c_str());
     if((WiFi.status() == WL_CONNECTED && WiFi.localIP().toString() != F("0.0.0.0"))) return true;
 #endif
 
-    Log.warning(TAG_WIFI, F("Received IP addres %s"), WiFi.localIP().toString().c_str());
+    Log.warning(TAG_WIFI, F(D_NETWORK_IP_ADDRESS_RECEIVED), WiFi.localIP().toString().c_str());
     WiFi.disconnect();
     return false;
 }
@@ -490,7 +490,7 @@ void wifiStop()
 #if !defined(STM32F4xx)
     WiFi.mode(WIFI_OFF);
 #endif
-    Log.warning(TAG_WIFI, F("Stopped"));
+    Log.warning(TAG_WIFI, F(D_SERVICE_STOPPED));
 }
 
 void wifi_get_statusupdate(char * buffer, size_t len)
@@ -543,7 +543,7 @@ bool wifiSetConfig(const JsonObject & settings)
     }
 
     if(!settings[FPSTR(F_CONFIG_PASS)].isNull() &&
-       settings[FPSTR(F_CONFIG_PASS)].as<String>() != String(FPSTR("********"))) {
+       settings[FPSTR(F_CONFIG_PASS)].as<String>() != String(FPSTR(D_PASSWORD_MASK))) {
         changed |= strcmp(wifiPassword, settings[FPSTR(F_CONFIG_PASS)]) != 0;
         strncpy(wifiPassword, settings[FPSTR(F_CONFIG_PASS)], sizeof(wifiPassword));
     }

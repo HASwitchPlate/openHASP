@@ -8,6 +8,8 @@
 #include "ArduinoLog.h"
 #include "lvgl.h"
 
+#include "lang/lang.h"
+
 /* ===== Default Event Processors ===== */
 void debugPreSetup(JsonObject settings);
 void debugSetup();

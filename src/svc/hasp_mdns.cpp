@@ -15,7 +15,8 @@
     #include "hasp_config.h"
     #include "hasp_debug.h"
 
-uint8_t mdnsEnabled = true;
+// uint8_t mdnsEnabled = true;
+hasp_mdns_config_t mdns_config;
 
 void mdnsSetup()
 {
@@ -25,12 +26,12 @@ void mdnsSetup()
 
 void mdnsStart()
 {
-    if(!mdnsEnabled) {
-        Log.notice(TAG_MDNS, F("MDNS Responder is disabled"));
+    if(!mdns_config.enable) {
+        Log.notice(TAG_MDNS, F(D_SERVICE_DISABLED));
         return;
     }
 
-    Log.notice(TAG_MDNS, F("Starting MDNS Responder..."));
+    Log.notice(TAG_MDNS, F(D_SERVICE_STARTING));
 
     #if HASP_USE_MQTT > 0
     String hasp2Node = mqttGetNodename();
@@ -45,7 +46,7 @@ void mdnsStart()
     uint8_t attempt = 0;
     while(!MDNS.begin(hasp2Node.c_str())) {
         if(attempt++ >= 3) {
-            Log.error(TAG_MDNS, F("Responder failed to start %s"), hasp2Node.c_str());
+            Log.error(TAG_MDNS, F(D_SERVICE_START_FAILED ": %s"), hasp2Node.c_str());
             return;
         }
 
@@ -64,13 +65,13 @@ void mdnsStart()
     MDNS.addService(F("telnet"), F("tcp"), 23);
     // }
 
-    Log.trace(TAG_MDNS, F("Responder started"));
+    Log.trace(TAG_MDNS, F(D_SERVICE_STARTED));
 }
 
 void IRAM_ATTR mdnsLoop(void)
 {
     #if defined(ARDUINO_ARCH_ESP8266)
-    if(mdnsEnabled) {
+    if(mdns_config.enable) {
         MDNS.update();
     }
     #endif
@@ -89,8 +90,8 @@ bool mdnsGetConfig(const JsonObject & settings)
 {
     bool changed = false;
 
-    if(mdnsEnabled != settings[FPSTR(F_CONFIG_ENABLE)].as<bool>()) changed = true;
-    settings[FPSTR(F_CONFIG_ENABLE)] = mdnsEnabled;
+    if(mdns_config.enable != settings[FPSTR(F_CONFIG_ENABLE)].as<bool>()) changed = true;
+    settings[FPSTR(F_CONFIG_ENABLE)] = mdns_config.enable;
 
     if(changed) configOutput(settings, TAG_MDNS);
     return changed;
@@ -106,7 +107,7 @@ bool mdnsSetConfig(const JsonObject & settings)
     configOutput(settings, TAG_MDNS);
     bool changed = false;
 
-    changed |= configSet(mdnsEnabled, settings[FPSTR(F_CONFIG_ENABLE)], F("mdnsEnabled"));
+    changed |= configSet(mdns_config.enable, settings[FPSTR(F_CONFIG_ENABLE)], F("mdnsEnabled"));
 
     return changed;
 }

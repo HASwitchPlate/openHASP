@@ -6,6 +6,15 @@
 
 #include "hasp_conf.h"
 
+struct hasp_http_config_t
+{
+    bool enable   = true;
+    uint16_t port = 80;
+
+    char user[32]     = "";
+    char password[32] = "";
+};
+
 void httpSetup();
 void IRAM_ATTR httpLoop(void);
 void httpEvery5Seconds(void);

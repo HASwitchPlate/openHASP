@@ -44,9 +44,6 @@ EthernetClient mqttNetworkClient;
         #include "user_config_override.h"
     #endif
 
-// String mqttClientId((char *)0); // Auto-generated MQTT ClientID
-// String mqttNodeTopic((char *)0);
-// String mqttGroupTopic((char *)0);
 char mqttNodeTopic[24];
 char mqttGroupTopic[24];
 bool mqttEnabled        = false;
@@ -98,10 +95,10 @@ static bool mqttPublish(const char * topic, const char * payload, size_t len, bo
             Log.notice(TAG_MQTT_PUB, F("%s => %s"), topic, payload);
             return true;
         } else {
-            Log.error(TAG_MQTT_PUB, F("Failed : %s => %s"), topic, payload);
+            Log.error(TAG_MQTT_PUB, F(D_MQTT_FAILED " %s => %s"), topic, payload);
         }
     } else {
-        Log.error(TAG_MQTT, F("Not connected"));
+        Log.error(TAG_MQTT, F(D_MQTT_NOT_CONNECTED));
     }
     return false;
 }
@@ -178,7 +175,7 @@ static void mqtt_message_cb(char * topic, byte * payload, unsigned int length)
 
     } else {
         // Other topic
-        Log.error(TAG_MQTT, F("Message received with invalid topic"));
+        Log.error(TAG_MQTT, F(D_MQTT_INVALID_TOPIC));
         return;
     }
 
@@ -207,9 +204,9 @@ static void mqttSubscribeTo(const char * format, const char * data)
     char tmp_topic[strlen(format) + 2 + strlen(data)];
     snprintf_P(tmp_topic, sizeof(tmp_topic), format, data);
     if(mqttClient.subscribe(tmp_topic)) {
-        Log.verbose(TAG_MQTT, F("   * Subscribed to %s"), tmp_topic);
+        Log.verbose(TAG_MQTT, F(D_BULLET D_MQTT_SUBSCRIBED), tmp_topic);
     } else {
-        Log.error(TAG_MQTT, F("Failed to subscribe to %s"), tmp_topic);
+        Log.error(TAG_MQTT, F(D_MQTT_NOT_SUBSCRIBED), tmp_topic);
     }
 }
 
@@ -229,7 +226,7 @@ void mqttStart()
         String mac = halGetMacAddress(3, "");
         mac.toLowerCase();
         memset(mqttClientId, 0, sizeof(mqttClientId));
-        snprintf_P(mqttClientId, sizeof(mqttClientId), PSTR("plate_%s"), mac.c_str());
+        snprintf_P(mqttClientId, sizeof(mqttClientId), PSTR(D_MQTT_DEFAULT_NAME), mac.c_str());
         Log.trace(TAG_MQTT, mqttClientId);
     }
 
@@ -237,7 +234,7 @@ void mqttStart()
     snprintf_P(buffer, sizeof(buffer), PSTR("%sLWT"), mqttNodeTopic);      // lastWillTopic
     snprintf_P(lastWillPayload, sizeof(lastWillPayload), PSTR("offline")); // lastWillPayload
 
-    haspProgressMsg(F("Connecting MQTT..."));
+    haspProgressMsg(F(D_MQTT_CONNECTING));
     haspProgressVal(mqttReconnectCount * 5);
     if(!mqttClient.connect(mqttClientId, mqttUser, mqttPassword, buffer, 0, true, lastWillPayload, true)) {
         // Retry until we give up and restart after connectTimeout seconds
@@ -254,7 +251,7 @@ void mqttStart()
                 snprintf_P(buffer, sizeof(buffer), PSTR("Connection failed"));
                 break;
             case MQTT_DISCONNECTED:
-                snprintf_P(buffer, sizeof(buffer), PSTR("Disconnected"));
+                snprintf_P(buffer, sizeof(buffer), PSTR(D_MQTT_DISCONNECTED));
                 break;
             case MQTT_CONNECTED:
                 break;
@@ -285,7 +282,7 @@ void mqttStart()
         return;
     }
 
-    Log.trace(TAG_MQTT, F("Connected to broker %s as clientID %s"), mqttServer, mqttClientId);
+    Log.trace(TAG_MQTT, F(D_MQTT_CONNECTED), mqttServer, mqttClientId);
 
     // Subscribe to our incoming topics
     mqttSubscribeTo(PSTR("%scommand/#"), mqttGroupTopic);
@@ -318,15 +315,15 @@ void mqttSetup()
 {
     mqttEnabled = strlen(mqttServer) > 0 && mqttPort > 0;
     if(mqttEnabled) {
-        mqttClient.setServer(mqttServer, 1883);
+        mqttClient.setServer(mqttServer, mqttPort);
         mqttClient.setCallback(mqtt_message_cb);
         //  if(!mqttClient.setBufferSize(1024)) {
         //      Log.error(TAG_MQTT, F("Buffer allocation failed"));
         //  } else {
-        Log.trace(TAG_MQTT, F("Setup Complete: %d bytes"), mqttClient.getBufferSize());
+        Log.trace(TAG_MQTT, F(D_MQTT_STARTED), mqttClient.getBufferSize());
         // }
     } else {
-        Log.warning(TAG_MQTT, F("Broker not configured"));
+        Log.warning(TAG_MQTT, F(D_MQTT_NOT_CONFIGURED));
     }
 }
 
@@ -338,7 +335,7 @@ void IRAM_ATTR mqttLoop(void)
 void mqttEvery5Seconds(bool networkIsConnected)
 {
     if(mqttEnabled && networkIsConnected && !mqttClient.connected()) {
-        Log.notice(TAG_MQTT, F("Disconnected from broker, reconnection..."));
+        Log.notice(TAG_MQTT, F(D_MQTT_RECONNECTING));
         mqttStart();
     }
 }
@@ -351,10 +348,10 @@ String mqttGetNodename()
 void mqttStop()
 {
     if(mqttEnabled && mqttClient.connected()) {
-        Log.notice(TAG_MQTT, F("Disconnecting..."));
+        Log.notice(TAG_MQTT, F(D_MQTT_DISCONNECTING));
         mqtt_send_lwt(false);
         mqttClient.disconnect();
-        Log.trace(TAG_MQTT, F("Disconnected"));
+        Log.trace(TAG_MQTT, F(D_MQTT_DISCONNECTED));
     }
 }
 
@@ -408,7 +405,7 @@ bool mqttSetConfig(const JsonObject & settings)
     if(strlen(mqttNodeName) == 0) {
         String mac = halGetMacAddress(3, "");
         mac.toLowerCase();
-        snprintf_P(mqttNodeName, sizeof(mqttNodeName), PSTR("plate_%s"), mac.c_str());
+        snprintf_P(mqttNodeName, sizeof(mqttNodeName), PSTR(D_MQTT_DEFAULT_NAME), mac.c_str());
         changed = true;
     }
 
@@ -433,7 +430,7 @@ bool mqttSetConfig(const JsonObject & settings)
     }
 
     if(!settings[FPSTR(F_CONFIG_PASS)].isNull() &&
-       settings[FPSTR(F_CONFIG_PASS)].as<String>() != String(FPSTR("********"))) {
+       settings[FPSTR(F_CONFIG_PASS)].as<String>() != String(FPSTR(D_PASSWORD_MASK))) {
         changed |= strcmp(mqttPassword, settings[FPSTR(F_CONFIG_PASS)]) != 0;
         strncpy(mqttPassword, settings[FPSTR(F_CONFIG_PASS)], sizeof(mqttPassword));
     }

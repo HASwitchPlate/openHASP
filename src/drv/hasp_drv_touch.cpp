@@ -188,7 +188,7 @@ bool IRAM_ATTR drv_touch_read(lv_indev_drv_t * indev_driver, lv_indev_data_t * d
     return false;
 }
 
-void IRAM_ATTR drv_touch_loop()
+void drv_touch_loop()
 {
 #if TOUCH_DRIVER == 911
     GT911_loop();

@@ -15,12 +15,12 @@ void EthernetEvent(WiFiEvent_t event)
 {
     switch(event) {
         case SYSTEM_EVENT_ETH_START:
-            Log.notice(TAG_ETH, F("Started"));
+            Log.notice(TAG_ETH, F(D_SERVICE_STARTED));
             // set eth hostname here
             ETH.setHostname(mqttGetNodename().c_str());
             break;
         case SYSTEM_EVENT_ETH_CONNECTED:
-            Log.notice(TAG_ETH, F("Connected"));
+            Log.notice(TAG_ETH, F(D_SERVICE_CONNECTED));
             eth_connected = true;
             break;
         case SYSTEM_EVENT_ETH_GOT_IP:
@@ -35,12 +35,12 @@ void EthernetEvent(WiFiEvent_t event)
             networkStart(); // Start network services
             break;
         case SYSTEM_EVENT_ETH_DISCONNECTED:
-            Log.notice(TAG_ETH, F("Disconnected"));
+            Log.notice(TAG_ETH, F(D_SERVICE_DISCONNECTED));
             eth_connected = false;
             networkStop(); // Stop network services
             break;
         case SYSTEM_EVENT_ETH_STOP:
-            Log.notice(TAG_ETH, F("Stopped"));
+            Log.warning(TAG_ETH, F(D_SERVICE_STOPPED));
             eth_connected = false;
             break;
         default:
@@ -59,7 +59,7 @@ void IRAM_ATTR ethernetLoop(void)
 
 bool ethernetEvery5Seconds()
 {
-    // Log.warning(TAG_ETH, eth_connected ? F("ONLINE") : F("OFFLINE"));
+    // Log.warning(TAG_ETH, eth_connected ? F(D_NETWORK_ONLINE) : F(D_NETWORK_OFFLINE));
     return eth_connected;
 }
 

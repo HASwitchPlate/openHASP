@@ -32,7 +32,7 @@ bool otaUpdateCheck()
 { // firmware update check
     WiFiClientSecure wifiUpdateClientSecure;
     HTTPClient updateClient;
-    Log.notice(TAG_OTA, F("UPDATE: Checking update URL: %s"), otaUrl.c_str());
+    Log.notice(TAG_OTA, F(D_OTA_CHECK_UPDATE), otaUrl.c_str());
 
     // wifiUpdateClientSecure.setInsecure();
     // wifiUpdateClientSecure.setBufferSizes(512, 512);
@@ -40,7 +40,7 @@ bool otaUpdateCheck()
 
     int httpCode = updateClient.GET(); // start connection and send HTTP header
     if(httpCode != HTTP_CODE_OK) {
-        Log.error(TAG_OTA, F("Update check failed: %s"), updateClient.errorToString(httpCode).c_str());
+        Log.error(TAG_OTA, F(D_OTA_CHECK_FAILED), updateClient.errorToString(httpCode).c_str());
         return false;
     }
 
@@ -65,7 +65,7 @@ bool otaUpdateCheck()
             //     debugPrintln(String(F("UPDATE: New ESP version available: ")) + String(updateEspAvailableVersion));
             // }
         }
-        Log.verbose(TAG_OTA, F("UPDATE: Update check completed"));
+        Log.verbose(TAG_OTA, F(D_OTA_CHECK_COMPLETE));
     }
     return true;
 }
@@ -97,16 +97,16 @@ void otaSetup(void)
                 // NOTE: if updating SPIFFS this would be the place to unmount SPIFFS using SPIFFS.end()
             }
 
-            Log.notice(TAG_OTA, F("Starting OTA update"));
+            Log.notice(TAG_OTA, F(D_SERVICE_STARTING));
+            haspProgressMsg(F(D_OTA_UPDATE_FIRMWARE));
             haspProgressVal(0);
-            haspProgressMsg(F("Firmware Update"));
             otaPrecentageComplete = 0;
         });
         ArduinoOTA.onEnd([]() {
             otaPrecentageComplete = 100;
-            Log.notice(TAG_OTA, F("OTA update complete"));
+            Log.notice(TAG_OTA, F(D_OTA_UPDATE_COMPLETE));
             haspProgressVal(100);
-            haspProgressMsg(F("Applying Firmware & Reboot"));
+            haspProgressMsg(F(D_OTA_UPDATE_APPLY));
             otaProgress();
             otaPrecentageComplete = -1;
             // setup();
@@ -137,7 +137,7 @@ void otaSetup(void)
 
             otaPrecentageComplete = -1;
             Log.error(TAG_OTA, F("%s failed (%s)"), buffer, error);
-            haspProgressMsg(F("ESP OTA FAILED"));
+            haspProgressMsg(F(D_OTA_UPDATE_FAILED));
             // delay(5000);
         });
 
@@ -162,11 +162,11 @@ void otaSetup(void)
     #ifdef OTA_PASSWORD
         ArduinoOTA.setPassword(OTA_PASSWORD);
     #endif
-    
+
         ArduinoOTA.begin();
-        Log.trace(TAG_OTA, F("Over the Air firmware update ready"));
+        Log.trace(TAG_OTA, F(D_SERVICE_STARTED));
     } else {
-        Log.warning(TAG_OTA, F("Disabled"));
+        Log.warning(TAG_OTA, F(D_SERVICE_DISABLED));
     }
 }
 

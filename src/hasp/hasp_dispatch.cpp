@@ -87,7 +87,7 @@ bool dispatch_factory_reset()
 
 void dispatch_json_error(uint8_t tag, DeserializationError & jsonError)
 {
-    Log.error(tag, F("JSON parsing failed: %s"), jsonError.c_str());
+    Log.error(tag, F(D_JSON_FAILED " %s"), jsonError.c_str());
 }
 
 // p[x].b[y].attr=value
@@ -175,7 +175,7 @@ void dispatch_command(const char * topic, const char * payload)
 
     #if HASP_USE_WIFI > 0
     } else if(!strcmp_P(topic, F_CONFIG_SSID) || !strcmp_P(topic, F_CONFIG_PASS)) {
-        DynamicJsonDocument settings(45);
+        StaticJsonDocument<64> settings;
         settings[topic] = payload;
         wifiSetConfig(settings.as<JsonObject>());
     #endif // HASP_USE_WIFI
@@ -188,7 +188,7 @@ void dispatch_command(const char * topic, const char * payload)
         // memset(item, 0, sizeof(item));
         // strncpy(item, topic + 4, 4);
 
-        DynamicJsonDocument settings(45);
+        StaticJsonDocument<64> settings;
         settings[topic + 4] = payload;
         mqttSetConfig(settings.as<JsonObject>());
     #endif // HASP_USE_MQTT
@@ -199,7 +199,7 @@ void dispatch_command(const char * topic, const char * payload)
         if(strlen(payload) == 0) {
             //    dispatch_text_line(topic); // Could cause an infinite loop!
         }
-        Log.warning(TAG_MSGR, F("Command '%s' not found => %s"), topic, payload);
+        Log.warning(TAG_MSGR, F(D_DISPATCH_COMMAND_NOT_FOUND " => %s"), topic, payload);
     }
 }
 
@@ -258,11 +258,11 @@ void dispatch_text_line(const char * cmnd)
             memcpy(topic, cmnd, sizeof(topic) - 1);
 
         // topic is before '=', payload is after '=' position
-        Log.notice(TAG_MSGR, F("%s = %s"), topic, cmnd + pos + 1);
+        Log.notice(TAG_MSGR, F("%s=%s"), topic, cmnd + pos + 1);
         dispatch_topic_payload(topic, cmnd + pos + 1);
     } else {
         char empty_payload[1] = {0};
-        Log.notice(TAG_MSGR, F("%s = %s"), cmnd, empty_payload);
+        Log.notice(TAG_MSGR, F("%s=%s"), cmnd, empty_payload);
         dispatch_topic_payload(cmnd, empty_payload);
     }
 }
@@ -604,7 +604,7 @@ void dispatch_parse_json(const char *, const char * payload)
         dispatch_text_line(json.as<String>().c_str());
 
     } else {
-        Log.warning(TAG_MSGR, F("Failed to parse incoming JSON command"));
+        Log.warning(TAG_MSGR, F(D_DISPATCH_COMMAND_NOT_FOUND), payload);
     }
 }
 
@@ -617,32 +617,23 @@ void dispatch_parse_jsonl(std::istringstream & stream)
     uint8_t savedPage = haspGetPage();
     size_t line       = 1;
     DynamicJsonDocument jsonl(MQTT_MAX_PACKET_SIZE / 2 + 128); // max ~256 characters per line
-    DeserializationError err = deserializeJson(jsonl, stream);
+    DeserializationError jsonError = deserializeJson(jsonl, stream);
     stream.setTimeout(25);
 
     // guiStop();
-    while(err == DeserializationError::Ok) {
+    while(jsonError == DeserializationError::Ok) {
         hasp_new_object(jsonl.as<JsonObject>(), savedPage);
-        err = deserializeJson(jsonl, stream);
+        jsonError = deserializeJson(jsonl, stream);
         line++;
     }
     // guiStart();
 
     /* For debugging pourposes */
-    if(err == DeserializationError::EmptyInput) {
-        Log.trace(TAG_MSGR, F("Jsonl parsed successfully"));
+    if(jsonError == DeserializationError::EmptyInput) {
+        Log.trace(TAG_MSGR, F(D_JSONL_SUCCEEDED));
 
-    } else if(err == DeserializationError::InvalidInput || err == DeserializationError::IncompleteInput) {
-        Log.error(TAG_MSGR, F("Jsonl: Invalid Input at object %d"), line);
-
-    } else if(err == DeserializationError::NoMemory) {
-        Log.error(TAG_MSGR, F("Jsonl: Object line %d is too long"), line);
-
-    } else if(err == DeserializationError::NotSupported) {
-        Log.error(TAG_MSGR, F("Jsonl: Not Supported at object %d"), line);
-
-    } else if(err == DeserializationError::TooDeep) {
-        Log.error(TAG_MSGR, F("Jsonl: Too Deep at object %d"), line);
+    } else {
+        Log.error(TAG_MSGR, F(D_JSONL_FAILED ": %s"), line, jsonError.c_str());
     }
 }
 
@@ -680,7 +671,7 @@ void dispatch_page(const char *, const char * page)
             } else if(!strcasecmp_P(page, PSTR("next"))) {
                 dispatch_page_next();
             } else {
-                Log.warning(TAG_MSGR, PSTR("Invalid page %s"), page);
+                Log.warning(TAG_MSGR, PSTR(D_DISPATCH_INVALID_PAGE), page);
             }
             return;
         }
@@ -794,7 +785,7 @@ void dispatch_backlight(const char *, const char * payload)
 void dispatch_web_update(const char *, const char * espOtaUrl)
 {
 #if HASP_USE_OTA > 0
-    Log.notice(TAG_MSGR, F("Checking for updates at URL: %s"), espOtaUrl);
+    Log.notice(TAG_MSGR, F(D_OTA_CHECK_UPDATE), espOtaUrl);
     otaHttpUpdate(espOtaUrl);
 #endif
 }
@@ -815,7 +806,7 @@ void dispatch_reboot(bool saveConfig)
     wifiStop();
 #endif
     Log.verbose(TAG_MSGR, F("-------------------------------------"));
-    Log.notice(TAG_MSGR, F("HALT: Properly Rebooting the MCU now!"));
+    Log.notice(TAG_MSGR, F(D_DISPATCH_REBOOT));
     Serial.flush();
     halRestartMcu();
 }
@@ -904,7 +895,7 @@ void dispatch_factory_reset(const char *, const char *)
 static void dispatch_add_command(const char * p_cmdstr, void (*func)(const char *, const char *))
 {
     if(nCommands >= sizeof(commands) / sizeof(haspCommand_t)) {
-        Log.fatal(TAG_MSGR, F("CMD overflow %d"), nCommands);
+        Log.fatal(TAG_MSGR, F("CMD_OVERFLOW %d"), nCommands);
         while(1) {
         }
     } else {

@@ -151,7 +151,7 @@ void debugSetup()
 {
     // memset(serialInputBuffer, 0, sizeof(serialInputBuffer));
     // serialInputIndex = 0;
-    Log.notice(TAG_DEBG, F("Setting the console parser"));
+    Log.notice(TAG_DEBG, F(D_SERVICE_STARTING)); // Starting console
     debugConsole.setLineCallback(dispatch_text_line);
 }
 
@@ -172,10 +172,10 @@ void debugStartSyslog()
         if(syslogClient) {
             if(syslogClient->beginPacket(debugSyslogHost, debugSyslogPort)) {
                 Log.registerOutput(2, syslogClient, LOG_LEVEL_VERBOSE, true);
-                Log.trace(TAG_DEBG, F("Syslog client started"));
+                Log.trace(TAG_SYSL, F(D_SERVICE_STARTED));
             }
         } else {
-            Log.error(TAG_DEBG, F("Failed to start syslog client"));
+            Log.error(TAG_SYSL, F(D_SERVICE_START_FAILED));
         }
     }
 #endif
@@ -185,6 +185,7 @@ void debugStopSyslog()
 {
 #if HASP_USE_SYSLOG > 0
     if(strlen(debugSyslogHost) > 0) {
+        Log.warning(TAG_SYSL, F(D_SERVICE_STOPPED));
         Log.unregisterOutput(2);
     }
 #endif

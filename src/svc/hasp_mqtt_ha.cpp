@@ -26,7 +26,7 @@ extern bool mqttHAautodiscover;
 
 char discovery_prefix[] = "homeassistant";
 
-void mqtt_ha_send_json(char * topic, DynamicJsonDocument & doc)
+void mqtt_ha_send_json(char * topic, JsonDocument & doc)
 {
     Log.verbose(TAG_MQTT_PUB, topic);
     mqttClient.beginPublish(topic, measureJson(doc), RETAINED);
@@ -34,7 +34,7 @@ void mqtt_ha_send_json(char * topic, DynamicJsonDocument & doc)
     mqttClient.endPublish();
 }
 
-void mqtt_ha_add_device(DynamicJsonDocument & doc)
+void mqtt_ha_add_device(JsonDocument & doc)
 {
     JsonObject device = doc.createNestedObject(F("device"));
     JsonArray ids     = device.createNestedArray(F("ids"));
@@ -54,10 +54,10 @@ void mqtt_ha_add_device(DynamicJsonDocument & doc)
 
 void mqtt_ha_register_button(uint8_t page, uint8_t id)
 {
-    char buffer[128];
-    DynamicJsonDocument doc(640);
+    StaticJsonDocument<640> doc;
     mqtt_ha_add_device(doc);
 
+    char buffer[128];
     snprintf_P(buffer, sizeof(buffer), PSTR(HASP_OBJECT_NOTATION), page, id);
     doc[F("stype")] = buffer; // subtype = "p0b0"
     snprintf_P(buffer, sizeof(buffer), PSTR("~state/" HASP_OBJECT_NOTATION), page, id);
@@ -96,10 +96,10 @@ void mqtt_ha_register_button(uint8_t page, uint8_t id)
 
 void mqtt_ha_register_switch(uint8_t page, uint8_t id)
 {
-    char buffer[128];
-    DynamicJsonDocument doc(640);
+    StaticJsonDocument<640> doc;
     mqtt_ha_add_device(doc);
 
+    char buffer[128];
     snprintf_P(buffer, sizeof(buffer), PSTR(HASP_OBJECT_NOTATION), page, id);
     doc[F("stype")] = buffer; // subtype = "p0b0"
     snprintf_P(buffer, sizeof(buffer), PSTR("~state/" HASP_OBJECT_NOTATION), page, id);
@@ -109,18 +109,18 @@ void mqtt_ha_register_switch(uint8_t page, uint8_t id)
     doc[F("pl")]    = "SHORT";         // payload
     doc[F("type")]  = "button_short_release";
 
-    snprintf_P(buffer, sizeof(buffer), PSTR("%s/device_automation/%s/" HASP_OBJECT_NOTATION "_%s/config"), discovery_prefix, mqttNodeName,
-               page, id, "short");
+    snprintf_P(buffer, sizeof(buffer), PSTR("%s/device_automation/%s/" HASP_OBJECT_NOTATION "_%s/config"),
+               discovery_prefix, mqttNodeName, page, id, "short");
 
     mqtt_ha_send_json(buffer, doc);
 }
 
 void mqtt_ha_register_connectivity()
 {
-    DynamicJsonDocument doc(640);
+    StaticJsonDocument<640> doc;
     mqtt_ha_add_device(doc);
-    char buffer[128];
 
+    char buffer[128];
     char item[16];
     snprintf_P(item, sizeof(item), PSTR("connectivity"));
 
@@ -144,10 +144,10 @@ void mqtt_ha_register_connectivity()
 
 void mqtt_ha_register_backlight()
 {
-    DynamicJsonDocument doc(640);
+    StaticJsonDocument<640> doc;
     mqtt_ha_add_device(doc);
-    char buffer[128];
 
+    char buffer[128];
     char item[16];
     snprintf_P(item, sizeof(item), PSTR("backlight"));
 
@@ -175,8 +175,8 @@ void mqtt_ha_register_moodlight()
 {
     DynamicJsonDocument doc(1024);
     mqtt_ha_add_device(doc);
-    char buffer[128];
 
+    char buffer[128];
     char item[16];
     snprintf_P(item, sizeof(item), PSTR("moodlight"));
 
@@ -208,10 +208,10 @@ void mqtt_ha_register_moodlight()
 
 void mqtt_ha_register_idle()
 {
-    DynamicJsonDocument doc(640);
+    StaticJsonDocument<640> doc;
     mqtt_ha_add_device(doc);
-    char buffer[128];
 
+    char buffer[128];
     char item[16];
     snprintf_P(item, sizeof(item), PSTR("idle"));
 
@@ -235,10 +235,10 @@ void mqtt_ha_register_idle()
 
 void mqtt_ha_register_activepage()
 {
-    DynamicJsonDocument doc(640);
+    StaticJsonDocument<640> doc;
     mqtt_ha_add_device(doc);
-    char buffer[128];
 
+    char buffer[128];
     char item[16];
     snprintf_P(item, sizeof(item), PSTR("page"));
 
@@ -259,10 +259,10 @@ void mqtt_ha_register_activepage()
 
 void mqtt_ha_register_auto_discovery()
 {
-    Log.notice(TAG_MQTT_PUB, F("Register HA auto-discovery"));
+    Log.notice(TAG_MQTT_PUB, F(D_MQTT_HA_AUTO_DISCOVERY));
     mqtt_ha_register_activepage();
-    mqtt_ha_register_button(0, 1);
-    mqtt_ha_register_button(0, 2);
+    // mqtt_ha_register_button(0, 1);
+    // mqtt_ha_register_button(0, 2);
     mqtt_ha_register_backlight();
     mqtt_ha_register_moodlight();
     mqtt_ha_register_idle();
