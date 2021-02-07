@@ -32,3 +32,19 @@ bool hasp_util_is_only_digits(const char * s)
     }
     return strlen(s) == digits;
 }
+
+int hasp_util_format_bytes(size_t filesize, char * buf, size_t len)
+{
+    if(filesize < 1024) return snprintf_P(buf, len, PSTR("%d B"), filesize);
+
+    char labels[] = "kMGT";
+    filesize      = filesize * 10 / 1024; // multiply by 10 for 1 decimal place
+    int unit      = 0;
+
+    while(filesize >= 10240 && unit < sizeof(labels) - 1) { // it is multiplied by 10
+        unit++;
+        filesize = filesize / 1024;
+    }
+
+    return snprintf_P(buf, len, PSTR("%d.%d %ciB"), filesize / 10, filesize % 10, labels[unit]);
+}

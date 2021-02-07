@@ -293,26 +293,7 @@ uint16_t halGetCpuFreqMHz()
 #endif
 }
 
-String halFormatBytes(size_t bytes)
-{
-    String output((char *)0);
-    output.reserve(128);
 
-    if(bytes < 1024) {
-        output += bytes;
-    } else if(bytes < (1024 * 1024)) {
-        output += bytes / 1024.0;
-        output += "K";
-    } else if(bytes < (1024 * 1024 * 1024)) {
-        output += bytes / 1024.0 / 1024.0;
-        output += "M";
-    } else {
-        output += bytes / 1024.0 / 1024.0 / 1024.0;
-        output += "G";
-    }
-    output += "B";
-    return output;
-}
 
 String halDisplayDriverName()
 {
