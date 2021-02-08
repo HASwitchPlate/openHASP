@@ -5,7 +5,6 @@
 #include "ArduinoJson.h"
 #include "ArduinoLog.h"
 #include "lvgl.h"
-#include "StringStream.h"
 
 #if defined(ARDUINO_ARCH_ESP32)
     #include "Update.h"
@@ -18,6 +17,7 @@
 #include "hasp_debug.h"
 #include "hasp_config.h"
 
+#include "hasp/hasp_utilities.h"
 #include "hasp/hasp_dispatch.h"
 #include "hasp/hasp.h"
 
@@ -49,12 +49,15 @@ EthernetWebServer webServer(80);
     #endif
 
     #if defined(ARDUINO_ARCH_ESP8266)
+        #include "StringStream.h"
         #include <ESP8266WebServer.h>
+        #include <detail/mimetable.h>
 ESP8266WebServer webServer(80);
     #endif
 
     #if defined(ARDUINO_ARCH_ESP32)
         #include <WebServer.h>
+        #include <detail/mimetable.h>
 WebServer webServer(80);
     #endif // ESP32
 
@@ -342,7 +345,7 @@ void webHandleScreenshot()
     if(webServer.hasArg(F("q"))) {
         lv_disp_t * disp = lv_disp_get_default();
         webServer.setContentLength(122 + disp->driver.hor_res * disp->driver.ver_res * sizeof(lv_color_t));
-        webServer.send(200, PSTR("image/bmp"), "");
+        webServer.send_P(200, PSTR("image/bmp"), "");
         guiTakeScreenshot();
         webServer.client().stop();
 
@@ -441,6 +444,7 @@ void webHandleInfo()
     if(!httpIsAuthenticated(F("info"))) return;
 
     {
+        char size_buf[32];
         String httpMessage((char *)0);
         httpMessage.reserve(HTTP_PAGE_SIZE);
         httpMessage += F("<h1>");
@@ -485,16 +489,19 @@ void webHandleInfo()
         httpMessage += F("s");
 
         httpMessage += F("<br/><b>Free Memory: </b>");
-        httpMessage += halFormatBytes(halGetFreeHeap());
+        hasp_util_format_bytes(halGetFreeHeap(), size_buf, sizeof(size_buf));
+        httpMessage += size_buf;
         httpMessage += F("<br/><b>Memory Fragmentation: </b>");
         httpMessage += String(halGetHeapFragmentation());
 
     #if ARDUINO_ARCH_ESP32
         if(psramFound()) {
             httpMessage += F("<br/><b>Free PSRam: </b>");
-            httpMessage += halFormatBytes(ESP.getFreePsram());
+            hasp_util_format_bytes(ESP.getFreePsram(), size_buf, sizeof(size_buf));
+            httpMessage += size_buf;
             httpMessage += F("<br/><b>PSRam Size: </b>");
-            httpMessage += halFormatBytes(ESP.getPsramSize());
+            hasp_util_format_bytes(ESP.getPsramSize(), size_buf, sizeof(size_buf));
+            httpMessage += size_buf;
         }
     #endif
 
@@ -502,9 +509,11 @@ void webHandleInfo()
         lv_mem_monitor_t mem_mon;
         lv_mem_monitor(&mem_mon);
         httpMessage += F("</p><p><b>LVGL Memory: </b>");
-        httpMessage += halFormatBytes(mem_mon.total_size);
+        hasp_util_format_bytes(mem_mon.total_size, size_buf, sizeof(size_buf));
+        httpMessage += size_buf;
         httpMessage += F("<br/><b>LVGL Free: </b>");
-        httpMessage += halFormatBytes(mem_mon.free_size);
+        hasp_util_format_bytes(mem_mon.free_size, size_buf, sizeof(size_buf));
+        httpMessage += size_buf;
         httpMessage += F("<br/><b>LVGL Fragmentation: </b>");
         httpMessage += mem_mon.frag_pct;
 
@@ -602,14 +611,20 @@ void webHandleInfo()
         httpMessage += halGetChipModel();
         httpMessage += F("<br/><b>CPU Frequency: </b>");
         httpMessage += String(halGetCpuFreqMHz());
+        httpMessage += F("MHz");
 
     #if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
-        httpMessage += F("MHz<br/><b>Flash Chip Size: </b>");
-        httpMessage += halFormatBytes(ESP.getFlashChipSize());
+        httpMessage += F("<br/><b>Flash Chip Size: </b>");
+        hasp_util_format_bytes(ESP.getFlashChipSize(), size_buf, sizeof(size_buf));
+        httpMessage += size_buf;
+
         httpMessage += F("</br><b>Program Size: </b>");
-        httpMessage += halFormatBytes(ESP.getSketchSize());
+        hasp_util_format_bytes(ESP.getSketchSize(), size_buf, sizeof(size_buf));
+        httpMessage += size_buf;
+
         httpMessage += F("<br/><b>Free Program Space: </b>");
-        httpMessage += halFormatBytes(ESP.getFreeSketchSpace());
+        hasp_util_format_bytes(ESP.getFreeSketchSpace(), size_buf, sizeof(size_buf));
+        httpMessage += size_buf;
     #endif
 
         //#if defined(ARDUINO_ARCH_ESP32)
@@ -631,34 +646,50 @@ void webHandleInfo()
     webSendFooter();
 }
 
-String getContentType(String filename)
+// String getContentType(String filename)
+// {
+//     if(webServer.hasArg(F("download"))) {
+//         return F("application/octet-stream");
+//     } else if(filename.endsWith(F(".htm")) || filename.endsWith(F(".html"))) {
+//         return F("text/html");
+//     } else if(filename.endsWith(F(".css"))) {
+//         return F("text/css");
+//     } else if(filename.endsWith(F(".js"))) {
+//         return F("application/javascript");
+//     } else if(filename.endsWith(F(".png"))) {
+//         return F("image/png");
+//     } else if(filename.endsWith(F(".gif"))) {
+//         return F("image/gif");
+//     } else if(filename.endsWith(F(".jpg"))) {
+//         return F("image/jpeg");
+//     } else if(filename.endsWith(F(".ico"))) {
+//         return F("image/x-icon");
+//     } else if(filename.endsWith(F(".xml"))) {
+//         return F("text/xml");
+//     } else if(filename.endsWith(F(".pdf"))) {
+//         return F("application/x-pdf");
+//     } else if(filename.endsWith(F(".zip"))) {
+//         return F("application/x-zip");
+//     } else if(filename.endsWith(F(".gz"))) {
+//         return F("application/x-gzip");
+//     }
+//     return F("text/plain");
+// }
+
+static String getContentType(const String & path)
 {
-    if(webServer.hasArg(F("download"))) {
-        return F("application/octet-stream");
-    } else if(filename.endsWith(F(".htm")) || filename.endsWith(F(".html"))) {
-        return F("text/html");
-    } else if(filename.endsWith(F(".css"))) {
-        return F("text/css");
-    } else if(filename.endsWith(F(".js"))) {
-        return F("application/javascript");
-    } else if(filename.endsWith(F(".png"))) {
-        return F("image/png");
-    } else if(filename.endsWith(F(".gif"))) {
-        return F("image/gif");
-    } else if(filename.endsWith(F(".jpg"))) {
-        return F("image/jpeg");
-    } else if(filename.endsWith(F(".ico"))) {
-        return F("image/x-icon");
-    } else if(filename.endsWith(F(".xml"))) {
-        return F("text/xml");
-    } else if(filename.endsWith(F(".pdf"))) {
-        return F("application/x-pdf");
-    } else if(filename.endsWith(F(".zip"))) {
-        return F("application/x-zip");
-    } else if(filename.endsWith(F(".gz"))) {
-        return F("application/x-gzip");
+    char buff[sizeof(mime::mimeTable[0].mimeType)];
+    // Check all entries but last one for match, return if found
+    for(size_t i = 0; i < sizeof(mime::mimeTable) / sizeof(mime::mimeTable[0]) - 1; i++) {
+        strcpy_P(buff, mime::mimeTable[i].endsWith);
+        if(path.endsWith(buff)) {
+            strcpy_P(buff, mime::mimeTable[i].mimeType);
+            return String(buff);
+        }
     }
-    return F("text/plain");
+    // Fall-through and just return default type
+    strcpy_P(buff, mime::mimeTable[sizeof(mime::mimeTable) / sizeof(mime::mimeTable[0]) - 1].mimeType);
+    return String(buff);
 }
 
 /* String urldecode(String str)
@@ -700,14 +731,19 @@ void webUploadProgress()
 }
 
     #if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
-void webUpdatePrintError()
+static inline void webUpdatePrintError()
 {
+        #if defined(ARDUINO_ARCH_ESP8266)
     String output((char *)0);
     output.reserve(128);
     StringStream stream((String &)output);
-    Update.printError(stream);
+    Update.printError(stream); // ESP8266 only has printError()
     Log.error(TAG_HTTP, output.c_str());
     haspProgressMsg(output.c_str());
+        #elif defined(ARDUINO_ARCH_ESP32)
+    Log.error(TAG_HTTP, Update.errorString()); // ESP32 has errorString()
+    haspProgressMsg(Update.errorString());
+        #endif
 }
 
 void webUpdateReboot()
@@ -732,9 +768,10 @@ void webUpdateReboot()
     dispatch_reboot(true); // Save the current config
 }
 
-void webHandleFirmwareUpdate()
+void webHandleFirmwareUpload()
 {
     upload = &webServer.upload();
+
     if(upload->status == UPLOAD_FILE_START) {
         if(!httpIsAuthenticated(F("update"))) return;
         Log.notice(TAG_HTTP, F("Update: %s"), upload->filename.c_str());
@@ -745,6 +782,7 @@ void webHandleFirmwareUpdate()
         if(!Update.begin(maxSketchSpace)) { // start with max available size
             webUpdatePrintError();
         }
+
     } else if(upload->status == UPLOAD_FILE_WRITE) {
         // flashing firmware to ESP
         if(Update.write(upload->buf, upload->currentSize) != upload->currentSize) {
@@ -752,6 +790,7 @@ void webHandleFirmwareUpdate()
         } else {
             webUploadProgress();
         }
+
     } else if(upload->status == UPLOAD_FILE_END) {
         haspProgressVal(100);
         if(Update.end(true)) { // true to set the size to the current progress
@@ -1204,28 +1243,49 @@ void webHandleHttpConfig()
         StaticJsonDocument<256> settings;
         httpGetConfig(settings.to<JsonObject>());
 
-        String httpMessage((char *)0);
-        httpMessage.reserve(HTTP_PAGE_SIZE);
-        httpMessage += F("<h1>");
-        httpMessage += httpGetNodename();
-        httpMessage += F("</h1><hr>");
+        // String httpMessage((char *)0);
+        // httpMessage.reserve(HTTP_PAGE_SIZE);
+        // httpMessage += F("<h1>");
+        // httpMessage += httpGetNodename();
+        // httpMessage += F("</h1><hr>");
 
-        httpMessage += F("<form method='POST' action='/config'>");
-        httpMessage += F("<b>Web Username</b> <i><small>(optional)</small></i><input id='user' "
-                         "name='user' maxlength=31 placeholder='admin' value='");
-        httpMessage += settings[FPSTR(F_CONFIG_USER)].as<String>();
-        httpMessage += F("'><br/><b>Web Password</b> <i><small>(optional)</small></i><input id='pass' "
-                         "name='pass' type='password' maxlength=63 placeholder='Password' value='");
-        if(settings[FPSTR(F_CONFIG_PASS)].as<String>() != "") {
-            httpMessage += F(D_PASSWORD_MASK);
-        }
-        httpMessage +=
-            F("'><p><button type='submit' name='save' value='http'>" D_HTTP_SAVE_SETTINGS "</button></p></form>");
+        // httpMessage += F("<form method='POST' action='/config'>");
+        // httpMessage += F("<b>Web Username</b> <i><small>(optional)</small></i><input id='user' "
+        //                  "name='user' maxlength=31 placeholder='admin' value='");
+        // httpMessage += settings[FPSTR(F_CONFIG_USER)].as<String>();
+        // httpMessage += F("'><br/><b>Web Password</b> <i><small>(optional)</small></i><input id='pass' "
+        //                  "name='pass' type='password' maxlength=63 placeholder='Password' value='");
+        // if(settings[FPSTR(F_CONFIG_PASS)].as<String>() != "") {
+        //     httpMessage += F(D_PASSWORD_MASK);
+        // }
+        // httpMessage +=
+        //     F("'><p><button type='submit' name='save' value='http'>" D_HTTP_SAVE_SETTINGS "</button></p></form>");
 
-        httpMessage += PSTR("<p><form method='get' action='/config'><button type='submit'>&#8617; " D_HTTP_CONFIGURATION
-                            "</button></form></p>");
+        // httpMessage += PSTR("<p><form method='get' action='/config'><button type='submit'>&#8617; "
+        // D_HTTP_CONFIGURATION
+        //                     "</button></form></p>");
 
-        webSendPage(httpGetNodename(), httpMessage.length(), false);
+        char httpMessage[HTTP_PAGE_SIZE];
+
+        size_t len = snprintf_P(
+            httpMessage, sizeof(httpMessage),
+            PSTR("<h1>%s</h1><hr>"
+                 "<form method='POST' action='/config'>"
+                 "<b>Web Username</b> <i><small>(optional)</small></i>"
+                 "<input id='user' name='user' maxlength=31 placeholder='admin' value='%s'><br/>"
+                 "<b>Web Password</b> <i><small>(optional)</small></i>"
+                 "<input id='pass' name='pass' type='password' maxlength=63 placeholder='Password' value='%s'>"
+                 "<p><button type='submit' name='save' value='http'>" D_HTTP_SAVE_SETTINGS "</button></p></form>"
+                 "<p><form method='get' action='/config'><button type='submit'>&#8617; " D_HTTP_CONFIGURATION
+                 "</button></form></p>"),
+            httpGetNodename(), settings[FPSTR(F_CONFIG_USER)].as<String>().c_str(),
+            settings[FPSTR(F_CONFIG_PASS)].as<String>().c_str());
+
+        // if(settings[FPSTR(F_CONFIG_PASS)].as<String>() != "") {
+        //     httpMessage += F(D_PASSWORD_MASK);
+        // }
+
+        webSendPage(httpGetNodename(), len, false);
         webServer.sendContent(httpMessage);
     }
     // httpMessage.clear();
@@ -1869,7 +1929,6 @@ void httpSetup()
     webServer.on(F("/screenshot"), webHandleScreenshot);
     webServer.on(F("/firmware"), webHandleFirmware);
     webServer.on(F("/reboot"), httpHandleReboot);
-    webServer.onNotFound(httpHandleNotFound);
 
     #if HASP_USE_CONFIG > 0
     webServer.on(F("/config/hasp"), webHandleHaspConfig);
@@ -1898,7 +1957,7 @@ void httpSetup()
             webServer.send(200, "text/plain", "");
             Log.verbose(TAG_HTTP, F("Total size: %s"), webServer.hostHeader().c_str());
         },
-        webHandleFirmwareUpdate);
+        webHandleFirmwareUpload);
     webServer.on(F("/espfirmware"), httpHandleEspFirmware);
     #endif
 
@@ -1923,7 +1982,7 @@ void httpReconnect()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-void IRAM_ATTR httpLoop(void)
+void httpLoop(void)
 {
     if(http_config.enable) webServer.handleClient();
 }
