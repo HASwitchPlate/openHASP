@@ -40,10 +40,8 @@ void mdnsStart()
     #endif
 
     // Setup mDNS service discovery if enabled
-    char buffer[32];
-    haspGetVersion(buffer, sizeof(buffer));
 
-    uint8_t attempt = 0;
+    /* uint8_t attempt = 0;
     while(!MDNS.begin(hasp2Node.c_str())) {
         if(attempt++ >= 3) {
             Log.error(TAG_MDNS, F(D_SERVICE_START_FAILED ": %s"), hasp2Node.c_str());
@@ -55,20 +53,38 @@ void mdnsStart()
         hasp2Node += F("_");
         hasp2Node += String(attempt);
         Log.verbose(TAG_MDNS, F("Trying hostname %s"), hasp2Node.c_str());
-    };
+    };*/
 
-    MDNS.addService(F("http"), F("tcp"), 80);
-    MDNS.addServiceTxt(F("http"), F("tcp"), F("app_version"), buffer);
-    MDNS.addServiceTxt(F("http"), F("tcp"), F("app_name"), F("HASP-lvgl"));
+    if(MDNS.begin(hasp2Node.c_str())) {
+        char value[32];
+        char service[12];
+        char key[12];
+        char proto[4];
+        sprintf_P(proto, PSTR("tcp"));
 
-    // if(debugTelnetEnabled) {
-    MDNS.addService(F("telnet"), F("tcp"), 23);
-    // }
+        strcpy_P(service, PSTR("http"));
+        MDNS.addService(service, proto, 80);
 
-    Log.trace(TAG_MDNS, F(D_SERVICE_STARTED));
+        strcpy_P(key, PSTR("app_version"));
+        haspGetVersion(value, sizeof(value));
+        MDNS.addServiceTxt(service, proto, key, value);
+
+        strcpy_P(key, PSTR("app_name"));
+        strcpy_P(value, PSTR(D_MANUFACTURER));
+        MDNS.addServiceTxt(service, proto, key, value);
+
+        // if(debugTelnetEnabled) {
+        strcpy_P(service, PSTR("telnet"));
+        MDNS.addService(service, proto, 23);
+        // }
+
+        Log.trace(TAG_MDNS, F(D_SERVICE_STARTED));
+    } else {
+        Log.error(TAG_MDNS, F(D_SERVICE_START_FAILED));
+    }
 }
 
-void IRAM_ATTR mdnsLoop(void)
+void mdnsLoop(void)
 {
     #if defined(ARDUINO_ARCH_ESP8266)
     if(mdns_config.enable) {
