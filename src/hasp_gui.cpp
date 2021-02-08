@@ -240,8 +240,6 @@ void guiCalibrate()
 
 void guiSetup()
 {
-    lv_init();
-
     /* Initialize the Virtual Device Buffers */
 #if defined(ARDUINO_ARCH_ESP32)
     /* allocate on iram (or psram ?) */
@@ -250,52 +248,57 @@ void guiSetup()
     static lv_disp_buf_t disp_buf;
     static lv_color_t *guiVdbBuffer1, *guiVdbBuffer2 = NULL;
     // DMA: len must be less than 32767
-    size_t guiVDBsize = 15 * 1024u; // 15 KBytes * 2
-    guiVdbBuffer1     = (lv_color_t *)heap_caps_malloc(sizeof(lv_color_t) * guiVDBsize, MALLOC_CAP_DMA);
-    lv_disp_buf_init(&disp_buf, guiVdbBuffer1, NULL, guiVDBsize);
+    size_t guiVDBsize = 15 * 1024u; // 30 KBytes
+    guiVdbBuffer1     = (lv_color_t *)heap_caps_calloc(guiVDBsize, sizeof(lv_color_t), MALLOC_CAP_DMA);
         // guiVdbBuffer2 = (lv_color_t *)heap_caps_malloc(sizeof(lv_color_t) * guiVDBsize,   MALLOC_CAP_DMA);
         // lv_disp_buf_init(&disp_buf, guiVdbBuffer1, guiVdbBuffer2, guiVDBsize);
     #else
-    static lv_disp_buf_t disp_buf;
     static lv_color_t * guiVdbBuffer1;
-    size_t guiVDBsize = 16 * 1024u; // 32 KBytes * 2
-    guiVdbBuffer1 =
-        (lv_color_t *)heap_caps_malloc(sizeof(lv_color_t) * guiVDBsize, /*MALLOC_CAP_SPIRAM |*/ MALLOC_CAP_8BIT);
-    lv_disp_buf_init(&disp_buf, guiVdbBuffer1, NULL, guiVDBsize);
+    size_t guiVDBsize = 16 * 1024u; // 32 KBytes
+
+    if(0 && psramFound()) {
+        guiVdbBuffer1 = (lv_color_t *)ps_calloc(guiVDBsize, sizeof(lv_color_t)); // too slow for VDB
+    } else {
+        guiVdbBuffer1 = (lv_color_t *)calloc(guiVDBsize, sizeof(lv_color_t));
+    }
+
     #endif
 
     // static lv_color_t * guiVdbBuffer2 = (lv_color_t *)malloc(sizeof(lv_color_t) * guiVDBsize);
     // lv_disp_buf_init(&disp_buf, guiVdbBuffer1, guiVdbBuffer2, guiVDBsize);
 #elif defined(ARDUINO_ARCH_ESP8266)
     /* allocate on heap */
-    // static lv_disp_buf_t disp_buf;
     // static lv_color_t guiVdbBuffer1[2 * 512u]; // 4 KBytes
     // size_t guiVDBsize = sizeof(guiVdbBuffer1) / sizeof(guiVdbBuffer1[0]);
     // lv_disp_buf_init(&disp_buf, guiVdbBuffer1, NULL, guiVDBsize);
 
-    static lv_disp_buf_t disp_buf;
     static lv_color_t * guiVdbBuffer1;
     size_t guiVDBsize = 2 * 512u; // 4 KBytes * 2
     guiVdbBuffer1     = (lv_color_t *)malloc(sizeof(lv_color_t) * guiVDBsize);
-    lv_disp_buf_init(&disp_buf, guiVdbBuffer1, NULL, guiVDBsize);
 #else
-    static lv_disp_buf_t disp_buf;
     static lv_color_t guiVdbBuffer1[16 * 512u]; // 16 KBytes
     // static lv_color_t guiVdbBuffer2[16 * 512u]; // 16 KBytes
     size_t guiVDBsize = sizeof(guiVdbBuffer1) / sizeof(guiVdbBuffer1[0]);
     // lv_disp_buf_init(&disp_buf, guiVdbBuffer1, guiVdbBuffer2, guiVDBsize);
-    lv_disp_buf_init(&disp_buf, guiVdbBuffer1, NULL, guiVDBsize);
 #endif
 
-    /* Initialize PNG decoder */
-#if HASP_USE_PNGDECODE > 0
-    png_decoder_init();
-#endif
+    if(!guiVdbBuffer1) {
+        Log.error(TAG_GUI, F("Gram out of memory"));
+    }
+
+    static lv_disp_buf_t disp_buf;
+    lv_init();
+    lv_disp_buf_init(&disp_buf, guiVdbBuffer1, NULL, guiVDBsize);
 
     /* Initialize Filesystems */
 #if LV_USE_FS_IF != 0
     _lv_fs_init();   // lvgl File System
     lv_fs_if_init(); // auxilary file system drivers
+#endif
+
+    /* Initialize PNG decoder */
+#if HASP_USE_PNGDECODE > 0
+    png_decoder_init();
 #endif
 
 #ifdef USE_DMA_TO_TFT
@@ -327,7 +330,7 @@ void guiSetup()
 
 #if LV_USE_LOG != 0
     Log.notice(TAG_LVGL, F("Registering lvgl logging handler"));
-    lv_log_register_print_cb(debugLvglLogEvent); /* register print function for debugging */
+    lv_log_register_print_cb(debugLvglLogEvent);
 #endif
 
     /* Initialize the display driver */
@@ -400,13 +403,14 @@ void guiSetup()
     // guiStart(); // Ticker
 }
 
-void IRAM_ATTR guiLoop(void)
+void guiLoop(void)
 {
-    lv_task_handler(); // process animations
-
 #if defined(STM32F4xx)
     //  tick.update();
 #endif
+
+    lv_task_handler(); // process animations
+    drv_touch_loop();  // update touch
 }
 
 void guiEverySecond(void)
