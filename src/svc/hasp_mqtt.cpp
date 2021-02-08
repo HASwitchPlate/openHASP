@@ -77,6 +77,8 @@ bool mqttHAautodiscover = true;
         #define MQTT_PREFIX "hasp"
     #endif
 
+    #define LWT_TOPIC "LWT"
+
 char mqttServer[16]    = MQTT_HOST;
 char mqttUser[23]      = MQTT_USER;
 char mqttPassword[32]  = MQTT_PASSW;
@@ -111,7 +113,7 @@ static bool mqttPublish(const char * topic, const char * payload, bool retain = 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Send changed values OUT
 
-bool IRAM_ATTR mqttIsConnected()
+bool mqttIsConnected()
 {
     return mqttEnabled && mqttClient.connected();
 }
@@ -120,25 +122,26 @@ void mqtt_send_lwt(bool online)
 {
     char tmp_payload[8];
     char tmp_topic[strlen(mqttNodeTopic) + 4];
-    snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%sLWT"), mqttNodeTopic);
+    strncpy(tmp_topic, mqttNodeTopic, sizeof(tmp_topic));
+    strncat_P(tmp_topic, PSTR(LWT_TOPIC), sizeof(tmp_topic));
+    // snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%s" LWT_TOPIC), mqttNodeTopic);
 
     size_t len = snprintf_P(tmp_payload, sizeof(tmp_payload), online ? PSTR("online") : PSTR("offline"));
     bool res   = mqttPublish(tmp_topic, tmp_payload, len, true);
-    // mqttResult(res, tmp_topic, tmp_payload);
 }
 
 void mqtt_send_object_state(uint8_t pageid, uint8_t btnid, char * payload)
 {
     char tmp_topic[strlen(mqttNodeTopic) + 16];
     snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%sstate/" HASP_OBJECT_NOTATION), mqttNodeTopic, pageid, btnid);
-    bool res = mqttPublish(tmp_topic, payload);
+    mqttPublish(tmp_topic, payload);
 }
 
 void mqtt_send_state(const __FlashStringHelper * subtopic, const char * payload)
 {
     char tmp_topic[strlen(mqttNodeTopic) + 20];
     snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%sstate/%s"), mqttNodeTopic, subtopic);
-    bool res = mqttPublish(tmp_topic, payload);
+    mqttPublish(tmp_topic, payload);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -180,12 +183,12 @@ static void mqtt_message_cb(char * topic, byte * payload, unsigned int length)
     }
 
     // catch a dangling LWT from a previous connection if it appears
-    if(!strcmp_P(topic, PSTR("LWT"))) { // endsWith LWT
+    if(!strcmp_P(topic, PSTR(LWT_TOPIC))) { // endsWith LWT
         if(!strcasecmp_P((char *)payload, PSTR("offline"))) {
             {
                 char msg[8];
                 char tmp_topic[strlen(mqttNodeTopic) + 8];
-                snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%sLWT"), mqttNodeTopic);
+                snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%s" LWT_TOPIC), mqttNodeTopic);
                 snprintf_P(msg, sizeof(msg), PSTR("online"));
 
                 /*bool res =*/mqttClient.publish(tmp_topic, msg, true);
@@ -231,8 +234,8 @@ void mqttStart()
     }
 
     // Attempt to connect and set LWT and Clean Session
-    snprintf_P(buffer, sizeof(buffer), PSTR("%sLWT"), mqttNodeTopic);      // lastWillTopic
-    snprintf_P(lastWillPayload, sizeof(lastWillPayload), PSTR("offline")); // lastWillPayload
+    snprintf_P(buffer, sizeof(buffer), PSTR("%s" LWT_TOPIC), mqttNodeTopic); // lastWillTopic
+    snprintf_P(lastWillPayload, sizeof(lastWillPayload), PSTR("offline"));   // lastWillPayload
 
     haspProgressMsg(F(D_MQTT_CONNECTING));
     haspProgressVal(mqttReconnectCount * 5);
@@ -291,7 +294,7 @@ void mqttStart()
     mqttSubscribeTo(PSTR("%sconfig/#"), mqttNodeTopic);
     mqttSubscribeTo(PSTR("%slight/#"), mqttNodeTopic);
     mqttSubscribeTo(PSTR("%sbrightness/#"), mqttNodeTopic);
-    // mqttSubscribeTo(PSTR("%sLWT"), mqttNodeTopic);
+    // mqttSubscribeTo(PSTR("%s"LWT_TOPIC), mqttNodeTopic);
     mqttSubscribeTo(PSTR("hass/status"), "");
 
     /* Home Assistant auto-configuration */
@@ -318,7 +321,7 @@ void mqttSetup()
         mqttClient.setServer(mqttServer, mqttPort);
         mqttClient.setCallback(mqtt_message_cb);
         //  if(!mqttClient.setBufferSize(1024)) {
-        //      Log.error(TAG_MQTT, F("Buffer allocation failed"));
+        //  Log.error(TAG_MQTT, F("Buffer allocation failed"));
         //  } else {
         Log.trace(TAG_MQTT, F(D_MQTT_STARTED), mqttClient.getBufferSize());
         // }
@@ -327,7 +330,7 @@ void mqttSetup()
     }
 }
 
-void IRAM_ATTR mqttLoop(void)
+void mqttLoop(void)
 {
     if(mqttEnabled) mqttClient.loop();
 }
