@@ -57,6 +57,7 @@
 #define D_OBJECT_EVENT_UNKNOWN "Onbekend Event %d"
 
 #define D_ATTRIBUTE_UNKNOWN "Onbekend attribuut %s"
+#define D_ATTRIBUTE_READ_ONLY "%s is alleen-lezen"
 #define D_ATTRIBUTE_PAGE_METHOD_INVALID "%s is ongeldig voor een pagina"
 
 #define D_OOBE_SSID_VALIDATED "SSID %s gevalideerd"
