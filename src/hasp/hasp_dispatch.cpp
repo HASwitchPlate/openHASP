@@ -91,36 +91,78 @@ void dispatch_json_error(uint8_t tag, DeserializationError & jsonError)
 }
 
 // p[x].b[y].attr=value
-inline bool dispatch_process_button_attribute(const char * topic_p, const char * payload)
+static inline bool dispatch_parse_button_attribute(const char * topic_p, const char * payload)
 {
-    // Log.verbose(TAG_MSGR,F("BTN ATTR: %s = %s"), strTopic.c_str(), payload);
+    long num;
+    char * pEnd;
+    uint8_t pageid, objid;
 
-    unsigned int pageid, objid;
-    // const char * topic_p = strTopic.c_str();
+    if(*topic_p != 'p' && *topic_p != 'P') return false; // obligated p
+    topic_p++;
 
-    if(sscanf(topic_p, HASP_OBJECT_NOTATION ".", &pageid, &objid) == 2) { // Literal String
-
-        // OK, continue below
-
-    } else if(sscanf(topic_p, "p[%u].b[%u].", &pageid, &objid) == 2) { // Literal String
-
-        // TODO: obsolete old syntax p[x].b[y].
-        // OK, continue below
-        while(*topic_p++ != '.') {
-            // strip to '.' character
-        }
+    if(*topic_p == '[') { // optional brackets, TODO: remove
+        topic_p++;
+        num = strtol(topic_p, &pEnd, DEC);
+        if(*pEnd != ']') return false; // obligated closing bracket
+        pEnd++;
 
     } else {
-        return false;
+        num = strtol(topic_p, &pEnd, DEC);
     }
 
-    while(*topic_p != '.') {
-        if(*topic_p == 0) return false; // strip to '.' character
+    if(num < 0 || num > HASP_NUM_PAGES) return false; // page number must be valid
+
+    pageid  = (uint8_t)num;
+    topic_p = pEnd;
+
+    if(*topic_p == '.') topic_p++; // optional separator
+
+    if(*topic_p != 'b' && *topic_p != 'B') return false; // obligated b
+    topic_p++;
+
+    if(*topic_p == '[') { // optional brackets, TODO: remove
         topic_p++;
+        num = strtol(topic_p, &pEnd, DEC);
+        if(*pEnd != ']') return false; // obligated closing bracket
+        pEnd++;
+    } else {
+        num = strtol(topic_p, &pEnd, DEC);
     }
 
-    hasp_process_attribute((uint8_t)pageid, (uint8_t)objid, topic_p, payload);
+    if(num < 0 || num > 255) return false; // id must be valid
+    objid   = (uint8_t)num;
+    topic_p = pEnd;
+
+    if(*topic_p != '.') return false; // obligated seperator
+    topic_p++;
+
+    hasp_process_attribute(pageid, objid, topic_p, payload);
     return true;
+
+    /*
+        if(sscanf(topic_p, HASP_OBJECT_NOTATION ".", &pageid, &objid) == 2) { // Literal String
+
+            // OK, continue below
+
+        } else if(sscanf(topic_p, "p[%u].b[%u].", &pageid, &objid) == 2) { // Literal String
+
+            // TODO: obsolete old syntax p[x].b[y].
+            // OK, continue below
+            while(*topic_p++ != '.') {
+                // strip to '.' character
+            }
+
+        } else {
+            return false;
+        }
+
+        while(*topic_p != '.') {
+            if(*topic_p == 0) return false; // strip to '.' character
+            topic_p++;
+        }
+
+        hasp_process_attribute((uint8_t)pageid, (uint8_t)objid, topic_p, payload);
+        return true; */
 
     // String strPageId((char *)0);
     // String strTemp((char *)0);
@@ -168,7 +210,7 @@ void dispatch_command(const char * topic, const char * payload)
         // } else if(strcasecmp_P(topic, PSTR("screenshot")) == 0) {
         //     guiTakeScreenshot("/screenshot.bmp"); // Literal String
 
-    } else if(topic[0] == 'p' && dispatch_process_button_attribute(topic, payload)) {
+    } else if((topic[0] == 'p' || topic[0] == 'P') && dispatch_parse_button_attribute(topic, payload)) {
         return; // matched pxby.attr
 
 #if HASP_USE_CONFIG > 0
@@ -872,7 +914,6 @@ void dispatch_calibrate(const char * topic = NULL, const char * payload = NULL)
 
 void dispatch_wakeup(const char *, const char *)
 {
-    // dispatch_calibrate();
     lv_disp_trig_activity(NULL);
 }
 
@@ -885,7 +926,7 @@ void dispatch_factory_reset(const char *, const char *)
 {
     dispatch_factory_reset();
     delay(500);
-    dispatch_reboot(false); // don't save config
+    dispatch_reboot(false); // don't save running config
 }
 
 /******************************************* Commands builder *******************************************/
@@ -906,7 +947,7 @@ static void dispatch_add_command(const char * p_cmdstr, void (*func)(const char 
 void dispatchSetup()
 {
     // In order of importance : commands are NOT case-sensitive
-    // The command.func() call will receive the full payload as ONLY parameter!
+    // The command.func() call will receive the full topic and payload parameters!
 
     /* WARNING: remember to expand the commands array when adding new commands */
     dispatch_add_command(PSTR("json"), dispatch_parse_json);
