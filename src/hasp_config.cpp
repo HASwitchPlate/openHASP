@@ -74,7 +74,7 @@ void configStartDebug(bool setupdebug, String & configFile)
     if(setupdebug) {
         debugStart(); // Debug started, now we can use it; HASP header sent
     #if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
-        Log.trace(TAG_CONF, F("[SUCCESS] SPI flash FS mounted"));
+        Log.trace(TAG_CONF, F("SPI flash FS mounted"));
         filesystemInfo();
         filesystemList();
     #endif
@@ -89,8 +89,8 @@ void configStartDebug(bool setupdebug, String & configFile)
 void configGetConfig(JsonDocument & settings, bool setupdebug = false)
 {
     String configFile((char *)0);
-    configFile.reserve(128);
-    configFile = String(FPSTR(HASP_CONFIG_FILE));
+    configFile.reserve(32);
+    configFile = String(FPSTR(FP_HASP_CONFIG_FILE));
     DeserializationError error;
 
     #if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
@@ -109,7 +109,7 @@ void configGetConfig(JsonDocument & settings, bool setupdebug = false)
         if(!error) {
             /* Load Debug params */
             if(setupdebug) {
-                debugPreSetup(settings[F("debug")]);
+                debugPreSetup(settings[FPSTR(FP_DEBUG)]);
             }
             configStartDebug(setupdebug, configFile);
 
@@ -117,11 +117,11 @@ void configGetConfig(JsonDocument & settings, bool setupdebug = false)
             String output;
             serializeJson(settings, output);
             String passmask = F(D_PASSWORD_MASK);
-            output.replace(settings[F("http")][F("pass")].as<String>(), passmask);
-            output.replace(settings[F("mqtt")][F("pass")].as<String>(), passmask);
-            output.replace(settings[F("wifi")][F("pass")].as<String>(), passmask);
+            output.replace(settings[FPSTR(FP_HTTP)][F("pass")].as<String>(), passmask);
+            output.replace(settings[FPSTR(FP_MQTT)][F("pass")].as<String>(), passmask);
+            output.replace(settings[FPSTR(FP_WIFI)][F("pass")].as<String>(), passmask);
             Log.verbose(TAG_CONF, output.c_str());
-            Log.trace(TAG_CONF, F("[SUCCESS] Loaded %s"), configFile.c_str());
+            Log.trace(TAG_CONF, F("Loaded %s"), configFile.c_str());
 
             if(setupdebug) debugSetup();
             return;
@@ -138,7 +138,7 @@ void configGetConfig(JsonDocument & settings, bool setupdebug = false)
 
     // File does not exist or error reading file
     if(setupdebug) {
-        debugPreSetup(settings[F("debug")]);
+        debugPreSetup(settings[FPSTR(FP_DEBUG)]);
     }
     configStartDebug(setupdebug, configFile);
 
@@ -151,8 +151,8 @@ void configBackupToEeprom()
 {
 #if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
     String configFile((char *)0);
-    configFile.reserve(128);
-    configFile = String(FPSTR(HASP_CONFIG_FILE));
+    configFile.reserve(32);
+    configFile = String(FPSTR(FP_HASP_CONFIG_FILE));
 
     EEPROM.begin(1024);
     uint8_t buffer[128];
@@ -179,8 +179,8 @@ void configBackupToEeprom()
 void configWriteConfig()
 {
     String configFile((char *)0);
-    configFile.reserve(128);
-    configFile = String(FPSTR(HASP_CONFIG_FILE));
+    configFile.reserve(32);
+    configFile = String(FPSTR(FP_HASP_CONFIG_FILE));
 
     String settingsChanged((char *)0);
     settingsChanged.reserve(128);
@@ -205,7 +205,7 @@ void configWriteConfig()
     const __FlashStringHelper * module;
 
     #if HASP_USE_WIFI > 0
-    module = F("wifi");
+    module = FPSTR(FP_WIFI);
     if(settings[module].as<JsonObject>().isNull()) settings.createNestedObject(module);
     changed = wifiGetConfig(settings[module]);
     if(changed) {
@@ -216,7 +216,7 @@ void configWriteConfig()
     #endif
 
     #if HASP_USE_MQTT > 0
-    module = F("mqtt");
+    module = FPSTR(FP_MQTT);
     if(settings[module].as<JsonObject>().isNull()) settings.createNestedObject(module);
     changed = mqttGetConfig(settings[module]);
     if(changed) {
@@ -238,7 +238,7 @@ void configWriteConfig()
     #endif
 
     #if HASP_USE_MDNS > 0
-    module = F("mdns");
+    module = FPSTR(FP_MDNS);
     if(settings[module].as<JsonObject>().isNull()) settings.createNestedObject(module);
     changed = mdnsGetConfig(settings[module]);
     if(changed) {
@@ -249,17 +249,17 @@ void configWriteConfig()
     #endif
 
     #if HASP_USE_HTTP > 0
-    if(settings[F("http")].as<JsonObject>().isNull()) settings.createNestedObject(F("http"));
-    changed = httpGetConfig(settings[F("http")]);
+    if(settings[FPSTR(FP_HTTP)].as<JsonObject>().isNull()) settings.createNestedObject(F("http"));
+    changed = httpGetConfig(settings[FPSTR(FP_HTTP)]);
     if(changed) {
         Log.verbose(TAG_HTTP, settingsChanged.c_str());
-        configOutput(settings[F("http")], TAG_HTTP);
+        configOutput(settings[FPSTR(FP_HTTP)], TAG_HTTP);
         writefile = true;
     }
     #endif
 
     #if HASP_USE_GPIO > 0
-    module = F("gpio");
+    module = FPSTR(FP_GPIO);
     if(settings[module].as<JsonObject>().isNull()) settings.createNestedObject(module);
     changed = gpioGetConfig(settings[module]);
     if(changed) {
@@ -269,7 +269,7 @@ void configWriteConfig()
     }
     #endif
 
-    module = F("debug");
+    module = FPSTR(FP_DEBUG);
     if(settings[module].as<JsonObject>().isNull()) settings.createNestedObject(module);
     changed = debugGetConfig(settings[module]);
     if(changed) {
@@ -278,19 +278,19 @@ void configWriteConfig()
         writefile = true;
     }
 
-    if(settings[F("gui")].as<JsonObject>().isNull()) settings.createNestedObject(F("gui"));
-    changed = guiGetConfig(settings[F("gui")]);
+    if(settings[FPSTR(FP_GUI)].as<JsonObject>().isNull()) settings.createNestedObject(FPSTR(FP_GUI));
+    changed = guiGetConfig(settings[FPSTR(FP_GUI)]);
     if(changed) {
         Log.verbose(TAG_GUI, settingsChanged.c_str());
-        configOutput(settings[F("gui")], TAG_GUI);
+        configOutput(settings[FPSTR(FP_GUI)], TAG_GUI);
         writefile = true;
     }
 
-    if(settings[F("hasp")].as<JsonObject>().isNull()) settings.createNestedObject(F("hasp"));
-    changed = haspGetConfig(settings[F("hasp")]);
+    if(settings[FPSTR(FP_HASP)].as<JsonObject>().isNull()) settings.createNestedObject(FPSTR(FP_HASP));
+    changed = haspGetConfig(settings[FPSTR(FP_HASP)]);
     if(changed) {
         Log.verbose(TAG_HASP, settingsChanged.c_str());
-        configOutput(settings[F("hasp")], TAG_HASP);
+        configOutput(settings[FPSTR(FP_HASP)], TAG_HASP);
         writefile = true;
     }
 
@@ -304,7 +304,7 @@ void configWriteConfig()
             size_t size = serializeJson(doc, file);
             file.close();
             if(size > 0) {
-                Log.trace(TAG_CONF, F("[SUCCESS] Saved %s"), configFile.c_str());
+                Log.trace(TAG_CONF, F("Saved %s"), configFile.c_str());
                 // configBackupToEeprom();
             } else {
                 Log.error(TAG_CONF, F("Failed to write %s"), configFile.c_str());
@@ -332,7 +332,7 @@ void configWriteConfig()
             for(i = 0; i < size; i++) eeprom_buffered_write_byte(i, buffer[i]);
             eeprom_buffered_write_byte(i, 0);
             eeprom_buffer_flush();
-            Log.trace(TAG_CONF, F("[SUCCESS] Saved EEPROM"));
+            Log.trace(TAG_CONF, F("Saved EEPROM"));
         } else {
             Log.error(TAG_CONF, F("Failed to save config to EEPROM"));
         }
@@ -371,21 +371,21 @@ void configSetup()
 
         //#if HASP_USE_SPIFFS > 0
         Log.trace(TAG_DEBG, F("Loading debug settings"));
-        debugSetConfig(settings[F("debug")]);
+        debugSetConfig(settings[FPSTR(FP_DEBUG)]);
         Log.trace(TAG_GPIO, F("Loading GUI settings"));
-        guiSetConfig(settings[F("gui")]);
+        guiSetConfig(settings[FPSTR(FP_GUI)]);
         Log.trace(TAG_HASP, F("Loading HASP settings"));
-        haspSetConfig(settings[F("hasp")]);
+        haspSetConfig(settings[FPSTR(FP_HASP)]);
         // otaGetConfig(settings[F("ota")]);
 
     #if HASP_USE_WIFI > 0
         Log.trace(TAG_WIFI, F("Loading WiFi settings"));
-        wifiSetConfig(settings[F("wifi")]);
+        wifiSetConfig(settings[FPSTR(FP_WIFI)]);
     #endif
 
     #if HASP_USE_MQTT > 0
         Log.trace(TAG_MQTT, F("Loading MQTT settings"));
-        mqttSetConfig(settings[F("mqtt")]);
+        mqttSetConfig(settings[FPSTR(FP_MQTT)]);
     #endif
 
     #if HASP_USE_TELNET > 0
@@ -395,23 +395,26 @@ void configSetup()
 
     #if HASP_USE_MDNS > 0
         Log.trace(TAG_MDNS, F("Loading MDNS settings"));
-        mdnsSetConfig(settings[F("mdns")]);
+        mdnsSetConfig(settings[FPSTR(FP_MDNS)]);
     #endif
 
     #if HASP_USE_HTTP > 0
         Log.trace(TAG_HTTP, F("Loading HTTP settings"));
-        httpSetConfig(settings[F("http")]);
+        httpSetConfig(settings[FPSTR(FP_HTTP)]);
     #endif
 
     #if HASP_USE_GPIO > 0
         Log.trace(TAG_GPIO, F("Loading GPIO settings"));
-        gpioSetConfig(settings[F("gpio")]);
+        gpioSetConfig(settings[FPSTR(FP_GPIO)]);
     #endif
 
         Log.trace(TAG_CONF, F("User configuration loaded"));
     }
     //#endif
 }
+
+void configLoop(void)
+{}
 
 void configOutput(const JsonObject & settings, uint8_t tag)
 {
@@ -434,23 +437,23 @@ void configOutput(const JsonObject & settings, uint8_t tag)
         output.replace(password, passmask);
     }
 
-    if(!settings[F("wifi")][pass].isNull()) {
+    if(!settings[FPSTR(FP_WIFI)][pass].isNull()) {
         password = F("\"pass\":\"");
-        password += settings[F("wifi")][pass].as<String>();
+        password += settings[FPSTR(FP_WIFI)][pass].as<String>();
         password += F("\"");
         output.replace(password, passmask);
     }
 
-    if(!settings[F("mqtt")][pass].isNull()) {
+    if(!settings[FPSTR(FP_MQTT)][pass].isNull()) {
         password = F("\"pass\":\"");
-        password += settings[F("mqtt")][pass].as<String>();
+        password += settings[FPSTR(FP_MQTT)][pass].as<String>();
         password += F("\"");
         output.replace(password, passmask);
     }
 
-    if(!settings[F("http")][pass].isNull()) {
+    if(!settings[FPSTR(FP_HTTP)][pass].isNull()) {
         password = F("\"pass\":\"");
-        password += settings[F("http")][pass].as<String>();
+        password += settings[FPSTR(FP_HTTP)][pass].as<String>();
         password += F("\"");
         output.replace(password, passmask);
     }
@@ -469,7 +472,7 @@ bool configClearEeprom()
         for(i = 0; i < sizeof(buffer); i++) eeprom_buffered_write_byte(i, buffer[i]);
         eeprom_buffered_write_byte(i, 0);
         eeprom_buffer_flush();
-        Log.trace(TAG_CONF, F("[SUCCESS] Cleared EEPROM"));
+        Log.trace(TAG_CONF, F("Cleared EEPROM"));
         return true;
     } else {
         Log.error(TAG_CONF, F("Failed to clear to EEPROM"));

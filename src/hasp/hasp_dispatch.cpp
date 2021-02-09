@@ -174,7 +174,7 @@ void dispatch_command(const char * topic, const char * payload)
 #if HASP_USE_CONFIG > 0
 
     #if HASP_USE_WIFI > 0
-    } else if(!strcmp_P(topic, F_CONFIG_SSID) || !strcmp_P(topic, F_CONFIG_PASS)) {
+    } else if(!strcmp_P(topic, FP_CONFIG_SSID) || !strcmp_P(topic, FP_CONFIG_PASS)) {
         StaticJsonDocument<64> settings;
         settings[topic] = payload;
         wifiSetConfig(settings.as<JsonObject>());
@@ -717,7 +717,7 @@ void dispatch_dim(const char *, const char * level)
     // Set the current state
     if(strlen(level) != 0) guiSetDim(atoi(level));
 
-    char payload[4];
+    char payload[5];
     itoa(guiGetDim(), payload, DEC);
     dispatch_state_msg(F("dim"), payload);
 }
@@ -746,13 +746,11 @@ void dispatch_moodlight(const char * topic, const char * payload)
             if(!json[F("b")].isNull()) moodlight.r = json[F("b")].as<uint8_t>();
 
             if(!json[F("color")].isNull()) {
-                lv_color16_t color;
+                lv_color32_t color;
                 if(haspPayloadToColor(json[F("color")].as<String>().c_str(), color)) {
-                    lv_color32_t c32;
-                    c32.full    = lv_color_to32(color);
-                    moodlight.r = c32.ch.red;
-                    moodlight.g = c32.ch.green;
-                    moodlight.b = c32.ch.blue;
+                    moodlight.r = color.ch.red;
+                    moodlight.g = color.ch.green;
+                    moodlight.b = color.ch.blue;
                 }
             }
 
@@ -874,7 +872,7 @@ void dispatch_calibrate(const char * topic = NULL, const char * payload = NULL)
 
 void dispatch_wakeup(const char *, const char *)
 {
-    dispatch_calibrate();
+    // dispatch_calibrate();
     lv_disp_trig_activity(NULL);
 }
 

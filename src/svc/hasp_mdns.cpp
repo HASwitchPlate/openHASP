@@ -106,8 +106,8 @@ bool mdnsGetConfig(const JsonObject & settings)
 {
     bool changed = false;
 
-    if(mdns_config.enable != settings[FPSTR(F_CONFIG_ENABLE)].as<bool>()) changed = true;
-    settings[FPSTR(F_CONFIG_ENABLE)] = mdns_config.enable;
+    if(mdns_config.enable != settings[FPSTR(FP_CONFIG_ENABLE)].as<bool>()) changed = true;
+    settings[FPSTR(FP_CONFIG_ENABLE)] = mdns_config.enable;
 
     if(changed) configOutput(settings, TAG_MDNS);
     return changed;
@@ -123,7 +123,7 @@ bool mdnsSetConfig(const JsonObject & settings)
     configOutput(settings, TAG_MDNS);
     bool changed = false;
 
-    changed |= configSet(mdns_config.enable, settings[FPSTR(F_CONFIG_ENABLE)], F("mdnsEnabled"));
+    changed |= configSet(mdns_config.enable, settings[FPSTR(FP_CONFIG_ENABLE)], F("mdnsEnabled"));
 
     return changed;
 }

@@ -540,7 +540,7 @@ bool gpioGetConfig(const JsonObject & settings)
     bool changed = false;
 
     /* Check Gpio array has changed */
-    JsonArray array = settings[FPSTR(F_GPIO_CONFIG)].as<JsonArray>();
+    JsonArray array = settings[FPSTR(FP_GPIO_CONFIG)].as<JsonArray>();
     uint8_t i       = 0;
     for(JsonVariant v : array) {
         if(i < HASP_NUM_GPIO_CONFIG) {
@@ -558,7 +558,7 @@ bool gpioGetConfig(const JsonObject & settings)
 
     /* Build new Gpio array if the count is not correct */
     if(i != HASP_NUM_GPIO_CONFIG) {
-        array = settings[FPSTR(F_GPIO_CONFIG)].to<JsonArray>(); // Clear JsonArray
+        array = settings[FPSTR(FP_GPIO_CONFIG)].to<JsonArray>(); // Clear JsonArray
         for(uint8_t i = 0; i < HASP_NUM_GPIO_CONFIG; i++) {
             uint32_t cur_val = gpioConfig[i].pin | (gpioConfig[i].group << 8) | (gpioConfig[i].type << 16) |
                                (gpioConfig[i].gpio_function << 24);
@@ -584,11 +584,11 @@ bool gpioSetConfig(const JsonObject & settings)
     configOutput(settings);
     bool changed = false;
 
-    if(!settings[FPSTR(F_GPIO_CONFIG)].isNull()) {
+    if(!settings[FPSTR(FP_GPIO_CONFIG)].isNull()) {
         bool status = false;
         int i       = 0;
 
-        JsonArray array = settings[FPSTR(F_GPIO_CONFIG)].as<JsonArray>();
+        JsonArray array = settings[FPSTR(FP_GPIO_CONFIG)].as<JsonArray>();
         for(JsonVariant v : array) {
             uint32_t new_val = v.as<uint32_t>();
 

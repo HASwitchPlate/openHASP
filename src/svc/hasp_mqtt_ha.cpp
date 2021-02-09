@@ -26,6 +26,12 @@ extern bool mqttHAautodiscover;
 
 char discovery_prefix[] = "homeassistant";
 
+const char FP_MQTT_HA_DEVICE[] PROGMEM = "device";
+const char FP_MQTT_HA_IDENTIFIERS[] PROGMEM = "ids";
+const char FP_MQTT_HA_NAME[] PROGMEM = "name";
+const char FP_MQTT_HA_MODEL[] PROGMEM = "mdl";
+const char FP_MQTT_HA_MANUFACTURER[] PROGMEM = "mf";
+
 void mqtt_ha_send_json(char * topic, JsonDocument & doc)
 {
     Log.verbose(TAG_MQTT_PUB, topic);
@@ -37,8 +43,8 @@ void mqtt_ha_send_json(char * topic, JsonDocument & doc)
 // adds the device identifiers to the HA MQTT auto-discovery message
 void mqtt_ha_add_device_ids(JsonDocument & doc)
 {
-    JsonObject device = doc.createNestedObject(F("device"));
-    JsonArray ids     = device.createNestedArray(F("ids"));
+    JsonObject device = doc.createNestedObject(FPSTR(FP_MQTT_HA_DEVICE));
+    JsonArray ids     = device.createNestedArray(FPSTR(FP_MQTT_HA_IDENTIFIERS));
     ids.add(mqttNodeName);
     ids.add(HASP_MAC_ADDRESS_STR);
 
@@ -46,9 +52,9 @@ void mqtt_ha_add_device_ids(JsonDocument & doc)
     haspGetVersion(buffer, sizeof(buffer));
     device[F("sw")] = buffer;
 
-    device[F("name")] = mqttNodeName;
-    device[F("mdl")]  = F(PIOENV);
-    device[F("mf")]   = F(D_MANUFACTURER);
+    device[FPSTR(FP_MQTT_HA_NAME)] = mqttNodeName;
+    device[FPSTR(FP_MQTT_HA_MODEL)]  = F(PIOENV);
+    device[FPSTR(FP_MQTT_HA_MANUFACTURER)]   = F(D_MANUFACTURER);
 
     doc[F("~")] = mqttNodeTopic;
 }
@@ -59,7 +65,7 @@ void mqtt_ha_add_unique_id(JsonDocument & doc, char * item)
     char buffer[64];
 
     snprintf_P(buffer, sizeof(buffer), PSTR("HASP %s %s"), mqttNodeName, item);
-    doc[F("name")] = buffer;
+    doc[FPSTR(FP_MQTT_HA_NAME)] = buffer;
 
     snprintf_P(buffer, sizeof(buffer), PSTR("hasp_%s-%s"), HASP_MAC_ADDRESS, item);
     doc[F("uniq_id")] = buffer;

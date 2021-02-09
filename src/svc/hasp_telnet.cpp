@@ -320,11 +320,11 @@ bool telnetGetConfig(const JsonObject & settings)
 {
     bool changed = false;
 
-    if(telnetEnabled != settings[FPSTR(F_CONFIG_ENABLE)].as<bool>()) changed = true;
-    settings[FPSTR(F_CONFIG_ENABLE)] = telnetEnabled;
+    if(telnetEnabled != settings[FPSTR(FP_CONFIG_ENABLE)].as<bool>()) changed = true;
+    settings[FPSTR(FP_CONFIG_ENABLE)] = telnetEnabled;
 
-    if(telnetPort != settings[FPSTR(F_CONFIG_PORT)].as<uint16_t>()) changed = true;
-    settings[FPSTR(F_CONFIG_PORT)] = telnetPort;
+    if(telnetPort != settings[FPSTR(FP_CONFIG_PORT)].as<uint16_t>()) changed = true;
+    settings[FPSTR(FP_CONFIG_PORT)] = telnetPort;
 
     if(changed) configOutput(settings, TAG_TELN);
     return changed;
@@ -343,8 +343,8 @@ bool telnetSetConfig(const JsonObject & settings)
     configOutput(settings, TAG_TELN);
     bool changed = false;
 
-    changed |= configSet(telnetEnabled, settings[FPSTR(F_CONFIG_ENABLE)], F("telnetEnabled"));
-    changed |= configSet(telnetPort, settings[FPSTR(F_CONFIG_PORT)], F("telnetPort"));
+    changed |= configSet(telnetEnabled, settings[FPSTR(FP_CONFIG_ENABLE)], F("telnetEnabled"));
+    changed |= configSet(telnetPort, settings[FPSTR(FP_CONFIG_PORT)], F("telnetPort"));
 
     return changed;
 }

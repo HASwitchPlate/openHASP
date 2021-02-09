@@ -514,11 +514,11 @@ bool wifiGetConfig(const JsonObject & settings)
 {
     bool changed = false;
 
-    if(strcmp(wifiSsid, settings[FPSTR(F_CONFIG_SSID)].as<String>().c_str()) != 0) changed = true;
-    settings[FPSTR(F_CONFIG_SSID)] = wifiSsid;
+    if(strcmp(wifiSsid, settings[FPSTR(FP_CONFIG_SSID)].as<String>().c_str()) != 0) changed = true;
+    settings[FPSTR(FP_CONFIG_SSID)] = wifiSsid;
 
-    if(strcmp(wifiPassword, settings[FPSTR(F_CONFIG_PASS)].as<String>().c_str()) != 0) changed = true;
-    settings[FPSTR(F_CONFIG_PASS)] = wifiPassword;
+    if(strcmp(wifiPassword, settings[FPSTR(FP_CONFIG_PASS)].as<String>().c_str()) != 0) changed = true;
+    settings[FPSTR(FP_CONFIG_PASS)] = wifiPassword;
 
     if(changed) configOutput(settings, TAG_WIFI);
     return changed;
@@ -537,15 +537,15 @@ bool wifiSetConfig(const JsonObject & settings)
     configOutput(settings, TAG_WIFI);
     bool changed = false;
 
-    if(!settings[FPSTR(F_CONFIG_SSID)].isNull()) {
-        changed |= strcmp(wifiSsid, settings[FPSTR(F_CONFIG_SSID)]) != 0;
-        strncpy(wifiSsid, settings[FPSTR(F_CONFIG_SSID)], sizeof(wifiSsid));
+    if(!settings[FPSTR(FP_CONFIG_SSID)].isNull()) {
+        changed |= strcmp(wifiSsid, settings[FPSTR(FP_CONFIG_SSID)]) != 0;
+        strncpy(wifiSsid, settings[FPSTR(FP_CONFIG_SSID)], sizeof(wifiSsid));
     }
 
-    if(!settings[FPSTR(F_CONFIG_PASS)].isNull() &&
-       settings[FPSTR(F_CONFIG_PASS)].as<String>() != String(FPSTR(D_PASSWORD_MASK))) {
-        changed |= strcmp(wifiPassword, settings[FPSTR(F_CONFIG_PASS)]) != 0;
-        strncpy(wifiPassword, settings[FPSTR(F_CONFIG_PASS)], sizeof(wifiPassword));
+    if(!settings[FPSTR(FP_CONFIG_PASS)].isNull() &&
+       settings[FPSTR(FP_CONFIG_PASS)].as<String>() != String(FPSTR(D_PASSWORD_MASK))) {
+        changed |= strcmp(wifiPassword, settings[FPSTR(FP_CONFIG_PASS)]) != 0;
+        strncpy(wifiPassword, settings[FPSTR(FP_CONFIG_PASS)], sizeof(wifiPassword));
     }
 
     return changed;

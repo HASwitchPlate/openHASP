@@ -201,24 +201,24 @@ bool debugGetConfig(const JsonObject & settings)
 {
     bool changed = false;
 
-    if(debugSerialBaud != settings[FPSTR(F_CONFIG_BAUD)].as<uint16_t>()) changed = true;
-    settings[FPSTR(F_CONFIG_BAUD)] = debugSerialBaud;
+    if(debugSerialBaud != settings[FPSTR(FP_CONFIG_BAUD)].as<uint16_t>()) changed = true;
+    settings[FPSTR(FP_CONFIG_BAUD)] = debugSerialBaud;
 
-    if(debugTelePeriod != settings[FPSTR(F_DEBUG_TELEPERIOD)].as<uint16_t>()) changed = true;
-    settings[FPSTR(F_DEBUG_TELEPERIOD)] = debugTelePeriod;
+    if(debugTelePeriod != settings[FPSTR(FP_DEBUG_TELEPERIOD)].as<uint16_t>()) changed = true;
+    settings[FPSTR(FP_DEBUG_TELEPERIOD)] = debugTelePeriod;
 
     #if HASP_USE_SYSLOG > 0
-    if(strcmp(debugSyslogHost, settings[FPSTR(F_CONFIG_HOST)].as<String>().c_str()) != 0) changed = true;
-    settings[FPSTR(F_CONFIG_HOST)] = debugSyslogHost;
+    if(strcmp(debugSyslogHost, settings[FPSTR(FP_CONFIG_HOST)].as<String>().c_str()) != 0) changed = true;
+    settings[FPSTR(FP_CONFIG_HOST)] = debugSyslogHost;
 
-    if(debugSyslogPort != settings[FPSTR(F_CONFIG_PORT)].as<uint16_t>()) changed = true;
-    settings[FPSTR(F_CONFIG_PORT)] = debugSyslogPort;
+    if(debugSyslogPort != settings[FPSTR(FP_CONFIG_PORT)].as<uint16_t>()) changed = true;
+    settings[FPSTR(FP_CONFIG_PORT)] = debugSyslogPort;
 
-    if(debugSyslogProtocol != settings[FPSTR(F_CONFIG_PROTOCOL)].as<uint8_t>()) changed = true;
-    settings[FPSTR(F_CONFIG_PROTOCOL)] = debugSyslogProtocol;
+    if(debugSyslogProtocol != settings[FPSTR(FP_CONFIG_PROTOCOL)].as<uint8_t>()) changed = true;
+    settings[FPSTR(FP_CONFIG_PROTOCOL)] = debugSyslogProtocol;
 
-    if(debugSyslogFacility != settings[FPSTR(F_CONFIG_LOG)].as<uint8_t>()) changed = true;
-    settings[FPSTR(F_CONFIG_LOG)] = debugSyslogFacility;
+    if(debugSyslogFacility != settings[FPSTR(FP_CONFIG_LOG)].as<uint8_t>()) changed = true;
+    settings[FPSTR(FP_CONFIG_LOG)] = debugSyslogFacility;
     #endif
 
     if(changed) configOutput(settings, TAG_DEBG);
@@ -239,20 +239,20 @@ bool debugSetConfig(const JsonObject & settings)
     bool changed = false;
 
     /* Serial Settings*/
-    changed |= configSet(debugSerialBaud, settings[FPSTR(F_CONFIG_BAUD)], F("debugSerialBaud"));
+    changed |= configSet(debugSerialBaud, settings[FPSTR(FP_CONFIG_BAUD)], F("debugSerialBaud"));
 
     /* Teleperiod Settings*/
-    changed |= configSet(debugTelePeriod, settings[FPSTR(F_DEBUG_TELEPERIOD)], F("debugTelePeriod"));
+    changed |= configSet(debugTelePeriod, settings[FPSTR(FP_DEBUG_TELEPERIOD)], F("debugTelePeriod"));
 
     /* Syslog Settings*/
     #if HASP_USE_SYSLOG > 0
-    if(!settings[FPSTR(F_CONFIG_HOST)].isNull()) {
-        changed |= strcmp(debugSyslogHost, settings[FPSTR(F_CONFIG_HOST)]) != 0;
-        strncpy(debugSyslogHost, settings[FPSTR(F_CONFIG_HOST)], sizeof(debugSyslogHost));
+    if(!settings[FPSTR(FP_CONFIG_HOST)].isNull()) {
+        changed |= strcmp(debugSyslogHost, settings[FPSTR(FP_CONFIG_HOST)]) != 0;
+        strncpy(debugSyslogHost, settings[FPSTR(FP_CONFIG_HOST)], sizeof(debugSyslogHost));
     }
-    changed |= configSet(debugSyslogPort, settings[FPSTR(F_CONFIG_PORT)], F("debugSyslogPort"));
-    changed |= configSet(debugSyslogProtocol, settings[FPSTR(F_CONFIG_PROTOCOL)], F("debugSyslogProtocol"));
-    changed |= configSet(debugSyslogFacility, settings[FPSTR(F_CONFIG_LOG)], F("debugSyslogFacility"));
+    changed |= configSet(debugSyslogPort, settings[FPSTR(FP_CONFIG_PORT)], F("debugSyslogPort"));
+    changed |= configSet(debugSyslogProtocol, settings[FPSTR(FP_CONFIG_PROTOCOL)], F("debugSyslogProtocol"));
+    changed |= configSet(debugSyslogFacility, settings[FPSTR(FP_CONFIG_LOG)], F("debugSyslogFacility"));
     #endif
 
     return changed;
@@ -627,7 +627,7 @@ void debugPreSetup(JsonObject settings)
 
     uint32_t baudrate = 0;
 #if HASP_USE_CONFIG > 0
-    baudrate = settings[FPSTR(F_CONFIG_BAUD)].as<uint32_t>() * 10;
+    baudrate = settings[FPSTR(FP_CONFIG_BAUD)].as<uint32_t>() * 10;
 #endif
 
     if(baudrate == 0) baudrate = SERIAL_SPEED;
@@ -641,7 +641,7 @@ void debugPreSetup(JsonObject settings)
 #endif
         Serial.begin(baudrate); /* prepare for possible serial debug */
         delay(10);
-        Log.registerOutput(0, &Serial, LOG_LEVEL_VERBOSE, true);
+        Log.registerOutput(0, &Serial, LOG_LEVEL_VERBOSE, true); // LOG_LEVEL_VERBOSE
         debugSerialStarted = true;
 
         Serial.println();

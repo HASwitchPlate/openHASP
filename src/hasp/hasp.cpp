@@ -589,23 +589,23 @@ bool haspGetConfig(const JsonObject & settings)
 {
     bool changed = false;
 
-    if(haspStartPage != settings[FPSTR(F_CONFIG_STARTPAGE)].as<uint8_t>()) changed = true;
-    settings[FPSTR(F_CONFIG_STARTPAGE)] = haspStartPage;
+    if(haspStartPage != settings[FPSTR(FP_CONFIG_STARTPAGE)].as<uint8_t>()) changed = true;
+    settings[FPSTR(FP_CONFIG_STARTPAGE)] = haspStartPage;
 
-    if(haspStartDim != settings[FPSTR(F_CONFIG_STARTDIM)].as<uint8_t>()) changed = true;
-    settings[FPSTR(F_CONFIG_STARTDIM)] = haspStartDim;
+    if(haspStartDim != settings[FPSTR(FP_CONFIG_STARTDIM)].as<uint8_t>()) changed = true;
+    settings[FPSTR(FP_CONFIG_STARTDIM)] = haspStartDim;
 
-    if(haspThemeId != settings[FPSTR(F_CONFIG_THEME)].as<uint8_t>()) changed = true;
-    settings[FPSTR(F_CONFIG_THEME)] = haspThemeId;
+    if(haspThemeId != settings[FPSTR(FP_CONFIG_THEME)].as<uint8_t>()) changed = true;
+    settings[FPSTR(FP_CONFIG_THEME)] = haspThemeId;
 
-    if(haspThemeHue != settings[FPSTR(F_CONFIG_HUE)].as<uint16_t>()) changed = true;
-    settings[FPSTR(F_CONFIG_HUE)] = haspThemeHue;
+    if(haspThemeHue != settings[FPSTR(FP_CONFIG_HUE)].as<uint16_t>()) changed = true;
+    settings[FPSTR(FP_CONFIG_HUE)] = haspThemeHue;
 
-    if(strcmp(haspZiFontPath, settings[FPSTR(F_CONFIG_ZIFONT)].as<String>().c_str()) != 0) changed = true;
-    settings[FPSTR(F_CONFIG_ZIFONT)] = haspZiFontPath;
+    if(strcmp(haspZiFontPath, settings[FPSTR(FP_CONFIG_ZIFONT)].as<String>().c_str()) != 0) changed = true;
+    settings[FPSTR(FP_CONFIG_ZIFONT)] = haspZiFontPath;
 
-    if(strcmp(haspPagesPath, settings[FPSTR(F_CONFIG_PAGES)].as<String>().c_str()) != 0) changed = true;
-    settings[FPSTR(F_CONFIG_PAGES)] = haspPagesPath;
+    if(strcmp(haspPagesPath, settings[FPSTR(FP_CONFIG_PAGES)].as<String>().c_str()) != 0) changed = true;
+    settings[FPSTR(FP_CONFIG_PAGES)] = haspPagesPath;
 
     if(changed) configOutput(settings, TAG_HASP);
     return changed;
@@ -624,24 +624,24 @@ bool haspSetConfig(const JsonObject & settings)
     configOutput(settings, TAG_HASP);
     bool changed = false;
 
-    changed |= configSet(haspStartPage, settings[FPSTR(F_CONFIG_STARTPAGE)], F("haspStartPage"));
-    changed |= configSet(haspStartDim, settings[FPSTR(F_CONFIG_STARTDIM)], F("haspStartDim"));
-    changed |= configSet(haspThemeId, settings[FPSTR(F_CONFIG_THEME)], F("haspThemeId"));
-    changed |= configSet(haspThemeHue, settings[FPSTR(F_CONFIG_HUE)], F("haspThemeHue"));
+    changed |= configSet(haspStartPage, settings[FPSTR(FP_CONFIG_STARTPAGE)], F("haspStartPage"));
+    changed |= configSet(haspStartDim, settings[FPSTR(FP_CONFIG_STARTDIM)], F("haspStartDim"));
+    changed |= configSet(haspThemeId, settings[FPSTR(FP_CONFIG_THEME)], F("haspThemeId"));
+    changed |= configSet(haspThemeHue, settings[FPSTR(FP_CONFIG_HUE)], F("haspThemeHue"));
 
     if(haspStartPage == 0) { // TODO: fase out migration code
         haspStartPage = 1;
         changed       = true;
     }
 
-    if(!settings[FPSTR(F_CONFIG_PAGES)].isNull()) {
-        changed |= strcmp(haspPagesPath, settings[FPSTR(F_CONFIG_PAGES)]) != 0;
-        strncpy(haspPagesPath, settings[FPSTR(F_CONFIG_PAGES)], sizeof(haspPagesPath));
+    if(!settings[FPSTR(FP_CONFIG_PAGES)].isNull()) {
+        changed |= strcmp(haspPagesPath, settings[FPSTR(FP_CONFIG_PAGES)]) != 0;
+        strncpy(haspPagesPath, settings[FPSTR(FP_CONFIG_PAGES)], sizeof(haspPagesPath));
     }
 
-    if(!settings[FPSTR(F_CONFIG_ZIFONT)].isNull()) {
-        changed |= strcmp(haspZiFontPath, settings[FPSTR(F_CONFIG_ZIFONT)]) != 0;
-        strncpy(haspZiFontPath, settings[FPSTR(F_CONFIG_ZIFONT)], sizeof(haspZiFontPath));
+    if(!settings[FPSTR(FP_CONFIG_ZIFONT)].isNull()) {
+        changed |= strcmp(haspZiFontPath, settings[FPSTR(FP_CONFIG_ZIFONT)]) != 0;
+        strncpy(haspZiFontPath, settings[FPSTR(FP_CONFIG_ZIFONT)], sizeof(haspZiFontPath));
     }
 
     return changed;

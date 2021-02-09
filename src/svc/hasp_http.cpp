@@ -27,6 +27,7 @@
 File fsUploadFile;
     #endif
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
 bool webServerStarted = false;
 
 // bool httpEnable       = true;
@@ -62,6 +63,9 @@ WebServer webServer(80);
     #endif // ESP32
 
 HTTPUpload * upload;
+
+static const char HTTP_MENU_BUTTON[] PROGMEM =
+    "<p><form method='get' action='%s'><button type='submit'>%s</button></form></p>";
 
 const char MAIN_MENU_BUTTON[] PROGMEM =
     "</p><p><form method='get' action='/'><button type='submit'>" D_HTTP_MAIN_MENU "</button></form>";
@@ -114,6 +118,55 @@ extern char mqttNodeName[16];
 char mqttNodeName[3] = "na";
     #endif
 
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+String getOption(int value, String label, bool selected)
+{
+    char buffer[128];
+    snprintf_P(buffer, sizeof(buffer), PSTR("<option value='%d'%s>%s</option>"), value,
+               (selected ? PSTR(" selected") : ""), label.c_str());
+    return buffer;
+}
+
+String getOption(String value, String label, bool selected)
+{
+    char buffer[128];
+    snprintf_P(buffer, sizeof(buffer), PSTR("<option value='%s'%s>%s</option>"), value.c_str(),
+               (selected ? PSTR(" selected") : ""), label.c_str());
+    return buffer;
+}
+
+static void add_gpio_select_option(String & str, uint8_t gpio, uint8_t bcklpin)
+{
+    char buffer[10];
+    snprintf_P(buffer, sizeof(buffer), PSTR("GPIO %d"), gpio);
+    str += getOption(gpio, buffer, bcklpin == gpio);
+}
+
+static void add_button(String & str, const __FlashStringHelper * label, const __FlashStringHelper * extra)
+{
+    str += F("<button type='submit' ");
+    str += extra;
+    str += F(">");
+    str += label;
+    str += F("</button>");
+}
+
+static void close_form(String & str)
+{
+    str += F("</form></p>");
+}
+
+static void add_form_button(String & str, const __FlashStringHelper * label, const __FlashStringHelper * action,
+                            const __FlashStringHelper * extra)
+{
+    str += F("<p><form method='get' action='");
+    str += action;
+    str += F("'>");
+    add_button(str, label, extra);
+    close_form(str);
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 void webHandleHaspConfig();
 
@@ -141,22 +194,6 @@ bool httpIsAuthenticated(const __FlashStringHelper * fstr_page)
     #endif
 
     return true;
-}
-
-String getOption(int value, String label, bool selected)
-{
-    char buffer[128];
-    snprintf_P(buffer, sizeof(buffer), PSTR("<option value='%d'%s>%s</option>"), value,
-               (selected ? PSTR(" selected") : ""), label.c_str());
-    return buffer;
-}
-
-String getOption(String value, String label, bool selected)
-{
-    char buffer[128];
-    snprintf_P(buffer, sizeof(buffer), PSTR("<option value='%s'%s>%s</option>"), value.c_str(),
-               (selected ? PSTR(" selected") : ""), label.c_str());
-    return buffer;
 }
 
 void webSendFooter()
@@ -241,8 +278,8 @@ void saveConfig()
     #endif
 
             } else if(save == String(PSTR("gui"))) {
-                settings[FPSTR(F_GUI_POINTER)] = webServer.hasArg(PSTR("cur"));
-                settings[FPSTR(F_GUI_INVERT)]  = webServer.hasArg(PSTR("inv"));
+                settings[FPSTR(FP_GUI_POINTER)] = webServer.hasArg(PSTR("cur"));
+                settings[FPSTR(FP_GUI_INVERT)]  = webServer.hasArg(PSTR("inv"));
                 guiSetConfig(settings.as<JsonObject>());
 
             } else if(save == String(PSTR("debug"))) {
@@ -282,8 +319,9 @@ void webHandleRoot()
                          "</button></form></p>");
         httpMessage +=
             F("<p><form method='get' action='info'><button type='submit'>" D_HTTP_INFORMATION "</button></form></p>");
-        httpMessage += F("<p><form method='get' action='config'><button type='submit'>" D_HTTP_CONFIGURATION
-                         "</button></form></p>");
+        add_form_button(httpMessage, F(D_HTTP_CONFIGURATION), F("/config"), F(""));
+        // httpMessage += F("<p><form method='get' action='config'><button type='submit'>" D_HTTP_CONFIGURATION
+        //                  "</button></form></p>");
 
         httpMessage += F("<p><form method='get' action='firmware'><button type='submit'>" D_HTTP_FIRMWARE_UPGRADE
                          "</button></form></p>");
@@ -1070,27 +1108,29 @@ void webHandleMqttConfig()
         httpMessage += F("<b>HASP Node Name</b> <i><small>(required. lowercase letters, numbers, and _ only)</small>"
                          "</i><input id='name' required name='name' maxlength=15 "
                          "placeholder='HASP Node Name' pattern='[a-z0-9_]*' value='");
-        httpMessage += settings[FPSTR(F_CONFIG_NAME)].as<String>();
+        httpMessage += settings[FPSTR(FP_CONFIG_NAME)].as<String>();
         httpMessage += F("'><br/><br/><b>Group Name</b> <i><small>(required)</small></i><input id='group' required "
                          "name='group' maxlength=15 placeholder='Group Name' value='");
-        httpMessage += settings[FPSTR(F_CONFIG_GROUP)].as<String>();
+        httpMessage += settings[FPSTR(FP_CONFIG_GROUP)].as<String>();
         httpMessage += F("'><br/><br/><b>MQTT Broker</b> <i><small>(required)</small></i><input id='host' required "
                          "name='host' maxlength=63 placeholder='mqttServer' value='");
-        httpMessage += settings[FPSTR(F_CONFIG_HOST)].as<String>();
+        httpMessage += settings[FPSTR(FP_CONFIG_HOST)].as<String>();
         httpMessage += F("'><br/><b>MQTT Port</b> <i><small>(required)</small></i><input id='port' required "
                          "name='port' type='number' maxlength=5 placeholder='mqttPort' value='");
-        httpMessage += settings[FPSTR(F_CONFIG_PORT)].as<uint16_t>();
+        httpMessage += settings[FPSTR(FP_CONFIG_PORT)].as<uint16_t>();
         httpMessage += F("'><br/><b>MQTT User</b> <i><small>(optional)</small></i><input id='mqttUser' name='user' "
                          "maxlength=31 placeholder='user' value='");
-        httpMessage += settings[FPSTR(F_CONFIG_USER)].as<String>();
+        httpMessage += settings[FPSTR(FP_CONFIG_USER)].as<String>();
         httpMessage += F("'><br/><b>MQTT Password</b> <i><small>(optional)</small></i><input id='pass' "
                          "name='pass' type='password' maxlength=31 placeholder='mqttPassword' value='");
-        if(settings[FPSTR(F_CONFIG_PASS)].as<String>() != "") httpMessage += F(D_PASSWORD_MASK);
+        if(settings[FPSTR(FP_CONFIG_PASS)].as<String>() != "") httpMessage += F(D_PASSWORD_MASK);
 
         httpMessage +=
             F("'><p><button type='submit' name='save' value='mqtt'>" D_HTTP_SAVE_SETTINGS "</button></form></p>");
-        httpMessage += PSTR("<p><form method='get' action='/config'><button type='submit'>&#8617; " D_HTTP_CONFIGURATION
-                            "</button></form></p>");
+
+        add_form_button(httpMessage, F("&#8617; " D_HTTP_CONFIGURATION), F("/config"), F(""));
+        // httpMessage += PSTR("<p><form method='get' action='/config'><button type='submit'>&#8617; " D_HTTP_CONFIGURATION
+        //                     "</button></form></p>");
 
         webSendPage(httpGetNodename(), httpMessage.length(), false);
         webServer.sendContent(httpMessage);
@@ -1119,15 +1159,15 @@ void webHandleGuiConfig()
 
         httpMessage += F("<p><b>Short Idle</b> <input id='idle1' required "
                          "name='idle1' type='number' min='0' max='32400' value='");
-        httpMessage += settings[FPSTR(F_GUI_IDLEPERIOD1)].as<String>();
+        httpMessage += settings[FPSTR(FP_GUI_IDLEPERIOD1)].as<String>();
         httpMessage += F("'></p>");
 
         httpMessage += F("<p><b>Long Idle</b> <input id='idle2' required "
                          "name='idle2' type='number' min='0' max='32400' value='");
-        httpMessage += settings[FPSTR(F_GUI_IDLEPERIOD2)].as<String>();
+        httpMessage += settings[FPSTR(FP_GUI_IDLEPERIOD2)].as<String>();
         httpMessage += F("'></p>");
 
-        int8_t rotation = settings[FPSTR(F_GUI_ROTATION)].as<int8_t>();
+        int8_t rotation = settings[FPSTR(FP_GUI_ROTATION)].as<int8_t>();
         httpMessage += F("<p><b>Orientation</b> <select id='rotate' name='rotate'>");
         httpMessage += getOption(0, F("0 degrees"), rotation == 0);
         httpMessage += getOption(1, F("90 degrees"), rotation == 1);
@@ -1140,27 +1180,27 @@ void webHandleGuiConfig()
         httpMessage += F("</select></p>");
 
         httpMessage += F("<p><input id='inv' name='inv' type='checkbox' ");
-        if(settings[FPSTR(F_GUI_INVERT)].as<bool>()) httpMessage += F(" checked");
+        if(settings[FPSTR(FP_GUI_INVERT)].as<bool>()) httpMessage += F(" checked");
         httpMessage += F("><b>Invert Colors</b>");
 
         httpMessage += F("<p><input id='cur' name='cur' type='checkbox' ");
-        if(settings[FPSTR(F_GUI_POINTER)].as<bool>()) httpMessage += F(" checked");
+        if(settings[FPSTR(FP_GUI_POINTER)].as<bool>()) httpMessage += F(" checked");
         httpMessage += F("><b>Show Pointer</b>");
 
-        int8_t bcklpin = settings[FPSTR(F_GUI_BACKLIGHTPIN)].as<int8_t>();
+        int8_t bcklpin = settings[FPSTR(FP_GUI_BACKLIGHTPIN)].as<int8_t>();
         httpMessage += F("<p><b>Backlight Control</b> <select id='bckl' name='bckl'>");
         httpMessage += getOption(-1, F("None"), bcklpin == -1);
         #if defined(ARDUINO_ARCH_ESP32)
-        httpMessage += getOption(5, F("GPIO 5"), bcklpin == 5);    // D8 on ESP32 for D1 mini 32
-        httpMessage += getOption(12, F("GPIO 12"), bcklpin == 12); // TFT_LED on the Liligo Pi
-        httpMessage += getOption(16, F("GPIO 16"), bcklpin == 16); // D4 on ESP32 for D1 mini 32
-        httpMessage += getOption(17, F("GPIO 17"), bcklpin == 17); // D3 on ESP32 for D1 mini 32
-        httpMessage += getOption(18, F("GPIO 18"), bcklpin == 18); // D5 on ESP32 for D1 mini 32
-        httpMessage += getOption(19, F("GPIO 19"), bcklpin == 19); // D6 on ESP32 for D1 mini 32
-        httpMessage += getOption(21, F("GPIO 21"), bcklpin == 21); // D1 on ESP32 for D1 mini 32
-        httpMessage += getOption(22, F("GPIO 22"), bcklpin == 22); // D2 on ESP32 for D1 mini 32
-        httpMessage += getOption(23, F("GPIO 23"), bcklpin == 23); // D7 on ESP32 for D1 mini 32
-        httpMessage += getOption(32, F("GPIO 32"), bcklpin == 32); // TFT_LED on the Lolin D32 Pro
+        add_gpio_select_option(httpMessage, 5, bcklpin);  // D8 on ESP32 for D1 mini 32
+        add_gpio_select_option(httpMessage, 12, bcklpin); // TFT_LED on the Liligo Pi
+        add_gpio_select_option(httpMessage, 16, bcklpin); // D4 on ESP32 for D1 mini 32
+        add_gpio_select_option(httpMessage, 17, bcklpin); // D3 on ESP32 for D1 mini 32
+        add_gpio_select_option(httpMessage, 18, bcklpin); // D5 on ESP32 for D1 mini 32
+        add_gpio_select_option(httpMessage, 19, bcklpin); // D6 on ESP32 for D1 mini 32
+        add_gpio_select_option(httpMessage, 21, bcklpin); // D1 on ESP32 for D1 mini 32
+        add_gpio_select_option(httpMessage, 22, bcklpin); // D2 on ESP32 for D1 mini 32
+        add_gpio_select_option(httpMessage, 23, bcklpin); // D7 on ESP32 for D1 mini 32
+        add_gpio_select_option(httpMessage, 32, bcklpin); // TFT_LED on the Lolin D32 Pro
         #else
         httpMessage += getOption(5, F("D1 - GPIO 5"), bcklpin == 5);
         httpMessage += getOption(4, F("D2 - GPIO 4"), bcklpin == 4);
@@ -1169,16 +1209,23 @@ void webHandleGuiConfig()
         #endif
         httpMessage += F("</select></p>");
 
-        httpMessage +=
-            F("<p><button type='submit' name='save' value='gui'>" D_HTTP_SAVE_SETTINGS "</button></p></form>");
+        add_button(httpMessage, F(D_HTTP_SAVE_SETTINGS), F("name='save' value='gui'"));
+        close_form(httpMessage);
+            // httpMessage +=
+            //     F("<p><button type='submit' name='save' value='gui'>" D_HTTP_SAVE_SETTINGS "</button></p></form>");
 
         #if TOUCH_DRIVER == 2046 && defined(TOUCH_CS)
-        httpMessage += PSTR("<p><form method='get' action='/config/gui'><button type='submit' name='action' "
-                            "value='calibrate'>" D_HTTP_CALIBRATE "</button></form></p>");
+        add_form_button(httpMessage, F(D_HTTP_CALIBRATE), F("/config/gui"), F("name='action' value='calibrate'"));
+
+        // httpMessage += PSTR("<p><form method='get' action='/config/gui'><button type='submit' "
+        //                     ">" D_HTTP_CALIBRATE "</button></form></p>");
         #endif
 
-        httpMessage += PSTR("<p><form method='get' action='/config'><button type='submit'>&#8617; " D_HTTP_CONFIGURATION
-                            "</button></form></p>");
+        add_form_button(httpMessage, F("&#8617; " D_HTTP_CONFIGURATION), F("/config"), F(""));
+
+        // httpMessage += PSTR("<p><form method='get' action='/config'><button type='submit'>&#8617; "
+        // D_HTTP_CONFIGURATION
+        //                     "</button></form></p>");
 
         webSendPage(httpGetNodename(), httpMessage.length(), false);
         webServer.sendContent(httpMessage);
@@ -1206,10 +1253,10 @@ void webHandleWifiConfig()
     httpMessage += F("<form method='POST' action='/config'>");
     httpMessage += F("<b>WiFi SSID</b> <i><small>(required)</small></i><input id='ssid' required "
                      "name='ssid' maxlength=31 placeholder='WiFi SSID' value='");
-    httpMessage += settings[FPSTR(F_CONFIG_SSID)].as<String>();
+    httpMessage += settings[FPSTR(FP_CONFIG_SSID)].as<String>();
     httpMessage += F("'><br/><b>WiFi Password</b> <i><small>(required)</small></i><input id='pass' required "
                      "name='pass' type='password' maxlength=63 placeholder='WiFi Password' value='");
-    if(settings[FPSTR(F_CONFIG_PASS)].as<String>() != "") {
+    if(settings[FPSTR(FP_CONFIG_PASS)].as<String>() != "") {
         httpMessage += F(D_PASSWORD_MASK);
     }
     httpMessage +=
@@ -1217,8 +1264,10 @@ void webHandleWifiConfig()
 
             #if HASP_USE_WIFI > 0 && !defined(STM32F4xx)
     if(WiFi.getMode() == WIFI_STA) {
-        httpMessage += PSTR("<p><form method='get' action='/config'><button type='submit'>&#8617; " D_HTTP_CONFIGURATION
-                            "</button></form></p>");
+        add_form_button(httpMessage, F("&#8617; " D_HTTP_CONFIGURATION), F("/config"), F(""));
+        // httpMessage += PSTR("<p><form method='get' action='/config'><button type='submit'>&#8617; "
+        // D_HTTP_CONFIGURATION
+        //                     "</button></form></p>");
     }
             #endif
 
@@ -1252,10 +1301,10 @@ void webHandleHttpConfig()
         // httpMessage += F("<form method='POST' action='/config'>");
         // httpMessage += F("<b>Web Username</b> <i><small>(optional)</small></i><input id='user' "
         //                  "name='user' maxlength=31 placeholder='admin' value='");
-        // httpMessage += settings[FPSTR(F_CONFIG_USER)].as<String>();
+        // httpMessage += settings[FPSTR(FP_CONFIG_USER)].as<String>();
         // httpMessage += F("'><br/><b>Web Password</b> <i><small>(optional)</small></i><input id='pass' "
         //                  "name='pass' type='password' maxlength=63 placeholder='Password' value='");
-        // if(settings[FPSTR(F_CONFIG_PASS)].as<String>() != "") {
+        // if(settings[FPSTR(FP_CONFIG_PASS)].as<String>() != "") {
         //     httpMessage += F(D_PASSWORD_MASK);
         // }
         // httpMessage +=
@@ -1278,10 +1327,10 @@ void webHandleHttpConfig()
                  "<p><button type='submit' name='save' value='http'>" D_HTTP_SAVE_SETTINGS "</button></p></form>"
                  "<p><form method='get' action='/config'><button type='submit'>&#8617; " D_HTTP_CONFIGURATION
                  "</button></form></p>"),
-            httpGetNodename(), settings[FPSTR(F_CONFIG_USER)].as<String>().c_str(),
-            settings[FPSTR(F_CONFIG_PASS)].as<String>().c_str());
+            httpGetNodename(), settings[FPSTR(FP_CONFIG_USER)].as<String>().c_str(),
+            settings[FPSTR(FP_CONFIG_PASS)].as<String>().c_str());
 
-        // if(settings[FPSTR(F_CONFIG_PASS)].as<String>() != "") {
+        // if(settings[FPSTR(FP_CONFIG_PASS)].as<String>() != "") {
         //     httpMessage += F(D_PASSWORD_MASK);
         // }
 
@@ -1411,8 +1460,10 @@ void webHandleGpioConfig()
             httpMessage += F("'><button type='submit'>" D_HTTP_ADD_GPIO "</button></form></p>");
         }
 
-        httpMessage += F("<p><form method='get' action='/config'><button type='submit'>&#8617; " D_HTTP_CONFIGURATION
-                         "</button></form></p>");
+        add_form_button(httpMessage, F("&#8617; " D_HTTP_CONFIGURATION), F("/config"), F(""));
+        //    httpMessage += F("<p><form method='get' action='/config'><button type='submit'>&#8617; "
+        //    D_HTTP_CONFIGURATION
+        //                      "</button></form></p>");
 
         webSendPage(httpGetNodename(), httpMessage.length(), false);
         webServer.sendContent(httpMessage);
@@ -1539,7 +1590,7 @@ void webHandleDebugConfig()
 
         httpMessage += F("<form method='POST' action='/config'>");
 
-        uint16_t baudrate = settings[FPSTR(F_CONFIG_BAUD)].as<uint16_t>();
+        uint16_t baudrate = settings[FPSTR(FP_CONFIG_BAUD)].as<uint16_t>();
         httpMessage += F("<p><b>Serial Port</b> <select id='baud' name='baud'>");
         httpMessage += getOption(1, F("Disabled"), baudrate == 1); // Don't use 0 here which is default 115200
         httpMessage += getOption(960, F("9600"), baudrate == 960);
@@ -1550,35 +1601,37 @@ void webHandleDebugConfig()
         httpMessage += getOption(11520, F("115200"), baudrate == 11520);
         httpMessage += F("</select></p><p><b>Telemetry Period</b> <i><small>(Seconds, 0=disable)</small></i> "
                          "<input id='teleperiod' required name='teleperiod' type='number' min='0' max='65535' value='");
-        httpMessage += settings[FPSTR(F_DEBUG_TELEPERIOD)].as<String>();
+        httpMessage += settings[FPSTR(FP_DEBUG_TELEPERIOD)].as<String>();
         httpMessage += F("'></p>");
 
         #if HASP_USE_SYSLOG > 0
         httpMessage += F("<b>Syslog Hostame</b> <i><small>(optional)</small></i><input id='host' "
                          "name='host' maxlength=31 placeholder='logserver' value='");
-        httpMessage += settings[FPSTR(F_CONFIG_HOST)].as<String>();
+        httpMessage += settings[FPSTR(FP_CONFIG_HOST)].as<String>();
         httpMessage += F("'><br/><b>Syslog Port</b> <i><small>(optional)</small></i> <input id='port' required "
                          "name='port' type='number' min='0' max='65535' value='");
-        httpMessage += settings[FPSTR(F_CONFIG_PORT)].as<String>();
+        httpMessage += settings[FPSTR(FP_CONFIG_PORT)].as<String>();
 
         httpMessage += F("'><b>Syslog Facility</b> <select id='log' name='log'>");
-        uint8_t logid = settings[FPSTR(F_CONFIG_LOG)].as<uint8_t>();
+        uint8_t logid = settings[FPSTR(FP_CONFIG_LOG)].as<uint8_t>();
         for(int i = 0; i < 8; i++) {
             httpMessage += getOption(i, String(F("Local")) + i, i == logid);
         }
 
         httpMessage += F("</select></br><b>Syslog Protocol</b> <input id='proto' name='proto' type='radio' value='0'");
-        if(settings[FPSTR(F_CONFIG_PROTOCOL)].as<uint8_t>() == 0) httpMessage += F(" checked");
+        if(settings[FPSTR(FP_CONFIG_PROTOCOL)].as<uint8_t>() == 0) httpMessage += F(" checked");
         httpMessage += F(">IETF (RFC 5424) &nbsp; <input id='proto' name='proto' type='radio' value='1'");
-        if(settings[FPSTR(F_CONFIG_PROTOCOL)].as<uint8_t>() == 1) httpMessage += F(" checked");
+        if(settings[FPSTR(FP_CONFIG_PROTOCOL)].as<uint8_t>() == 1) httpMessage += F(" checked");
         httpMessage += F(">BSD (RFC 3164)");
         #endif
 
         httpMessage +=
             F("</p><p><button type='submit' name='save' value='debug'>" D_HTTP_SAVE_SETTINGS "</button></p></form>");
 
-        httpMessage += PSTR("<p><form method='get' action='/config'><button type='submit'>&#8617; " D_HTTP_CONFIGURATION
-                            "</button></form></p>");
+        add_form_button(httpMessage, F("&#8617; " D_HTTP_CONFIGURATION), F("/config"), F(""));
+        // httpMessage += PSTR("<p><form method='get' action='/config'><button type='submit'>&#8617; "
+        // D_HTTP_CONFIGURATION
+        //                     "</button></form></p>");
 
         webSendPage(httpGetNodename(), httpMessage.length(), false);
         webServer.sendContent(httpMessage);
@@ -1610,7 +1663,7 @@ void webHandleHaspConfig()
         httpMessage += F("<form method='POST' action='/'>");
         httpMessage += F("<p><b>UI Theme</b> <i><small>(required)</small></i><select id='theme' name='theme'>");
 
-        uint8_t themeid = settings[FPSTR(F_CONFIG_THEME)].as<uint8_t>();
+        uint8_t themeid = settings[FPSTR(FP_CONFIG_THEME)].as<uint8_t>();
             // httpMessage += getOption(0, F("Built-in"), themeid == 0);
         #if LV_USE_THEME_HASP == 1
         httpMessage += getOption(2, F("Hasp Dark"), themeid == 2);
@@ -1634,7 +1687,7 @@ void webHandleHaspConfig()
             F("<b>Hue</b><div style='width:100%;background-image:linear-gradient(to "
               "right,red,orange,yellow,green,blue,indigo,violet);'><input style='align:center;padding:0px;width:100%;' "
               "name='hue' type='range' min='0' max='360' value='");
-        httpMessage += settings[FPSTR(F_CONFIG_HUE)].as<String>();
+        httpMessage += settings[FPSTR(FP_CONFIG_HUE)].as<String>();
         httpMessage += F("'></div></p>");
         httpMessage += F("<p><b>Default Font</b><select id='font' name='font'><option value=''>None</option>");
 
@@ -1646,7 +1699,7 @@ void webHandleHaspConfig()
             String filename = file.name();
             if(filename.endsWith(".zi"))
                 httpMessage +=
-                    getOption(file.name(), file.name(), filename == settings[FPSTR(F_CONFIG_ZIFONT)].as<String>());
+                    getOption(file.name(), file.name(), filename == settings[FPSTR(FP_CONFIG_ZIFONT)].as<String>());
             file = root.openNextFile();
         }
         #elif defined(ARDUINO_ARCH_ESP8266)
@@ -1656,7 +1709,7 @@ void webHandleHaspConfig()
             String filename = file.name();
             if(filename.endsWith(".zi"))
                 httpMessage +=
-                    getOption(file.name(), file.name(), filename == settings[FPSTR(F_CONFIG_ZIFONT)].as<String>());
+                    getOption(file.name(), file.name(), filename == settings[FPSTR(FP_CONFIG_ZIFONT)].as<String>());
             file.close();
         }
         #endif
@@ -1665,14 +1718,14 @@ void webHandleHaspConfig()
         httpMessage += F("<p><b>Startup Layout</b> <i><small>(optional)</small></i><input id='pages' "
                          "name='pages' maxlength=31 placeholder='/pages.jsonl' value='");
 
-        httpMessage += settings[FPSTR(F_CONFIG_PAGES)].as<String>();
+        httpMessage += settings[FPSTR(FP_CONFIG_PAGES)].as<String>();
         httpMessage += F("'></br><b>Startup Page</b> <i><small>(required)</small></i><input id='startpage' required "
                          "name='startpage' type='number' min='1' max='4' value='");
-        httpMessage += settings[FPSTR(F_CONFIG_STARTPAGE)].as<String>();
+        httpMessage += settings[FPSTR(FP_CONFIG_STARTPAGE)].as<String>();
         httpMessage +=
             F("'></p><p><b>Startup Brightness</b> <i><small>(required)</small></i><input id='startpage' required "
               "name='startdim' type='number' min='0' max='100' value='");
-        httpMessage += settings[FPSTR(F_CONFIG_STARTDIM)].as<String>();
+        httpMessage += settings[FPSTR(FP_CONFIG_STARTDIM)].as<String>();
         httpMessage += F("'></p>");
 
         httpMessage +=
@@ -1817,9 +1870,10 @@ void httpHandleResetConfig()
                   "<br/><br/><button type='submit' name='confirm' value='yes'>" D_HTTP_ERASE_DEVICE "</button></form>"
                   "<br/><hr><br/>");
 
-            httpMessage +=
-                PSTR("<p><form method='get' action='/config'><button type='submit'>&#8617; " D_HTTP_CONFIGURATION
-                     "</button></form></p>");
+            add_form_button(httpMessage, F("&#8617; " D_HTTP_CONFIGURATION), F("/config"), F(""));
+            // httpMessage +=
+            //     PSTR("<p><form method='get' action='/config'><button type='submit'>&#8617; " D_HTTP_CONFIGURATION
+            //          "</button></form></p>");
         }
 
         webSendPage(httpGetNodename(), httpMessage.length(), resetConfirmed);
@@ -1999,16 +2053,16 @@ bool httpGetConfig(const JsonObject & settings)
 {
     bool changed = false;
 
-    settings[FPSTR(F_CONFIG_ENABLE)] = http_config.enable;
+    settings[FPSTR(FP_CONFIG_ENABLE)] = http_config.enable;
 
-    if(http_config.port != settings[FPSTR(F_CONFIG_PORT)].as<uint16_t>()) changed = true;
-    settings[FPSTR(F_CONFIG_PORT)] = http_config.port;
+    if(http_config.port != settings[FPSTR(FP_CONFIG_PORT)].as<uint16_t>()) changed = true;
+    settings[FPSTR(FP_CONFIG_PORT)] = http_config.port;
 
-    if(strcmp(http_config.user, settings[FPSTR(F_CONFIG_USER)].as<String>().c_str()) != 0) changed = true;
-    settings[FPSTR(F_CONFIG_USER)] = http_config.user;
+    if(strcmp(http_config.user, settings[FPSTR(FP_CONFIG_USER)].as<String>().c_str()) != 0) changed = true;
+    settings[FPSTR(FP_CONFIG_USER)] = http_config.user;
 
-    if(strcmp(http_config.password, settings[FPSTR(F_CONFIG_PASS)].as<String>().c_str()) != 0) changed = true;
-    settings[FPSTR(F_CONFIG_PASS)] = http_config.password;
+    if(strcmp(http_config.password, settings[FPSTR(FP_CONFIG_PASS)].as<String>().c_str()) != 0) changed = true;
+    settings[FPSTR(FP_CONFIG_PASS)] = http_config.password;
 
     if(changed) configOutput(settings, TAG_HTTP);
     return changed;
@@ -2027,16 +2081,16 @@ bool httpSetConfig(const JsonObject & settings)
     configOutput(settings, TAG_HTTP);
     bool changed = false;
 
-    changed |= configSet(http_config.port, settings[FPSTR(F_CONFIG_PORT)], F("httpPort"));
+    changed |= configSet(http_config.port, settings[FPSTR(FP_CONFIG_PORT)], F("httpPort"));
 
-    if(!settings[FPSTR(F_CONFIG_USER)].isNull()) {
-        changed |= strcmp(http_config.user, settings[FPSTR(F_CONFIG_USER)]) != 0;
-        strncpy(http_config.user, settings[FPSTR(F_CONFIG_USER)], sizeof(http_config.user));
+    if(!settings[FPSTR(FP_CONFIG_USER)].isNull()) {
+        changed |= strcmp(http_config.user, settings[FPSTR(FP_CONFIG_USER)]) != 0;
+        strncpy(http_config.user, settings[FPSTR(FP_CONFIG_USER)], sizeof(http_config.user));
     }
 
-    if(!settings[FPSTR(F_CONFIG_PASS)].isNull()) {
-        changed |= strcmp(http_config.password, settings[FPSTR(F_CONFIG_PASS)]) != 0;
-        strncpy(http_config.password, settings[FPSTR(F_CONFIG_PASS)], sizeof(http_config.password));
+    if(!settings[FPSTR(FP_CONFIG_PASS)].isNull()) {
+        changed |= strcmp(http_config.password, settings[FPSTR(FP_CONFIG_PASS)]) != 0;
+        strncpy(http_config.password, settings[FPSTR(FP_CONFIG_PASS)], sizeof(http_config.password));
     }
 
     return changed;

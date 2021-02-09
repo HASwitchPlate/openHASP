@@ -601,7 +601,7 @@ void hasp_process_attribute(uint8_t pageid, uint8_t objid, const char * attr, co
 void hasp_new_object(const JsonObject & config, uint8_t & saved_page_id)
 {
     /* Page selection: page is the default parent_obj */
-    uint8_t pageid        = config[F("page")].isNull() ? saved_page_id : config[F("page")].as<uint8_t>();
+    uint8_t pageid        = config[FPSTR(FP_PAGE)].isNull() ? saved_page_id : config[FPSTR(FP_PAGE)].as<uint8_t>();
     lv_obj_t * parent_obj = get_page_obj(pageid);
     if(!parent_obj) {
         return Log.warning(TAG_HASP, F(D_OBJECT_PAGE_UNKNOWN), pageid);
@@ -610,8 +610,8 @@ void hasp_new_object(const JsonObject & config, uint8_t & saved_page_id)
     }
 
     // lv_obj_t * parent_obj = page;
-    if(!config[F("parentid")].isNull()) {
-        uint8_t parentid = config[F("parentid")].as<uint8_t>();
+    if(!config[FPSTR(FP_PARENTID)].isNull()) {
+        uint8_t parentid = config[FPSTR(FP_PARENTID)].as<uint8_t>();
         parent_obj       = hasp_find_obj_from_parent_id(parent_obj, parentid);
         if(!parent_obj) {
             return Log.warning(TAG_HASP, F("Parent ID " HASP_OBJECT_NOTATION " not found, skipping..."), pageid,
@@ -622,8 +622,8 @@ void hasp_new_object(const JsonObject & config, uint8_t & saved_page_id)
     }
 
     uint16_t sdbm   = 0;
-    uint8_t id      = config[F("id")].as<uint8_t>();
-    uint8_t groupid = config[F("groupid")].as<uint8_t>();
+    uint8_t id      = config[FPSTR(FP_ID)].as<uint8_t>();
+    uint8_t groupid = config[FPSTR(FP_GROUPID)].as<uint8_t>();
 
     /* Define Objects*/
     lv_obj_t * obj = hasp_find_obj_from_parent_id(parent_obj, id);
@@ -632,14 +632,14 @@ void hasp_new_object(const JsonObject & config, uint8_t & saved_page_id)
         /* Create the object first */
 
         /* Validate type */
-        if(config[F("objid")].isNull()) { // TODO: obsolete objid
-            if(config[F("obj")].isNull()) {
+        if(config[FPSTR(FP_OBJID)].isNull()) { // TODO: obsolete objid
+            if(config[FPSTR(FP_OBJ)].isNull()) {
                 return; // comments
             } else {
-                sdbm = hasp_util_get_sdbm(config[F("obj")].as<String>().c_str());
+                sdbm = hasp_util_get_sdbm(config[FPSTR(FP_OBJ)].as<String>().c_str());
             }
         } else {
-            sdbm = config[F("objid")].as<uint8_t>();
+            sdbm = config[FPSTR(FP_OBJID)].as<uint8_t>();
         }
 
         switch(sdbm) {
@@ -980,11 +980,11 @@ void hasp_new_object(const JsonObject & config, uint8_t & saved_page_id)
     }
 
     /* do not process these attributes */
-    config.remove(F("page"));
-    config.remove(F("id"));
-    config.remove(F("obj"));
-    config.remove(F("objid")); // TODO: obsolete objid
-    config.remove(F("parentid"));
+    config.remove(FPSTR(FP_PAGE));
+    config.remove(FPSTR(FP_ID));
+    config.remove(FPSTR(FP_OBJ));
+    config.remove(FPSTR(FP_OBJID)); // TODO: obsolete objid
+    config.remove(FPSTR(FP_PARENTID));
 
     String v((char *)0);
     v.reserve(64);

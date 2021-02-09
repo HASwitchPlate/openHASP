@@ -7,6 +7,13 @@
 #include <ArduinoJson.h>
 #include "lvgl.h"
 
+const char FP_PAGE[] PROGMEM = "page";
+const char FP_ID[] PROGMEM = "id";
+const char FP_OBJ[] PROGMEM = "obj";
+const char FP_OBJID[] PROGMEM = "objid";
+const char FP_PARENTID[] PROGMEM = "parentid";
+const char FP_GROUPID[] PROGMEM = "groupid";
+
 enum lv_hasp_obj_type_t {
     /* Controls */
     LV_HASP_OBJECT    = 91, // 10

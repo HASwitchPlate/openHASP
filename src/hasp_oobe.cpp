@@ -65,14 +65,14 @@ static void kb_event_cb(lv_obj_t * event_kb, lv_event_t event)
         obj = hasp_find_obj_from_parent_id(oobepage[1], (uint8_t)10);
         if(obj) {
             strncpy(ssid, lv_textarea_get_text(obj), sizeof(ssid));
-            settings[FPSTR(F_CONFIG_SSID)] = ssid;
+            settings[FPSTR(FP_CONFIG_SSID)] = ssid;
             if(oobekb != NULL) lv_keyboard_set_textarea(oobekb, obj);
         }
 
         obj = hasp_find_obj_from_parent_id(oobepage[1], (uint8_t)20);
         if(obj) {
             strncpy(pass, lv_textarea_get_text(obj), sizeof(pass));
-            settings[FPSTR(F_CONFIG_PASS)] = pass;
+            settings[FPSTR(FP_CONFIG_PASS)] = pass;
         }
 
         if(strlen(ssid) > 0 && wifiValidateSsid(ssid, pass)) {
