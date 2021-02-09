@@ -1,6 +1,22 @@
 #ifndef HASP_LANG_EN_US_H
 #define HASP_LANG_EN_US_H
 
+#define D_USERNAME "Username:"
+#define D_PASSWORD "Password:"
+#define D_SSID "Ssid:"
+
+#define D_CONFIG_NOT_CHANGED "Settings did not change"
+#define D_CONFIG_CHANGED "Settings changed"
+#define D_CONFIG_LOADED "Settings loaded"
+
+#define D_FILE_LOADING "Loading %s"
+#define D_FILE_LOADED "Loaded %s"
+#define D_FILE_LOAD_FAILED "Failed to load %s"
+
+#define D_FILE_SAVING "Saving %s"
+#define D_FILE_SAVED "Saved %s"
+#define D_FILE_SAVE_FAILED "Failed to save %s"
+
 #define D_SERVICE_STARTING "Starting..."
 #define D_SERVICE_STARTED "Started"
 #define D_SERVICE_START_FAILED "Failed to start"
@@ -33,8 +49,6 @@
 #define D_TELNET_CLIENT_LOGIN_FROM "Client login from %s"
 #define D_TELNET_CLIENT_CONNECT_FROM "Client connected from %s"
 #define D_TELNET_CLIENT_NOT_CONNECTED "Client NOT connected"
-#define D_TELNET_USERNAME "Username:"
-#define D_TELNET_PASSWORD "Password:"
 #define D_TELNET_AUTHENTICATION_FAILED "Authorization failed!"
 #define D_TELNET_INCORRECT_LOGIN_ATTEMPT "Incorrect login attempt from %s"
 #define D_TELNET_STARTED "Telnet console started"
@@ -107,5 +121,8 @@
 #define D_HTTP_MAIN_MENU "Main Menu"
 #define D_HTTP_REBOOT "Restart"
 #define D_HTTP_CONFIGURATION "Configuration"
+
+#define D_OOBE_MSG "Tap the screen to setup WiFi or connect to this Access Point:"
+#define D_OOBE_SCAN_TO_CONNECT "Scan to connect"
 
 #endif

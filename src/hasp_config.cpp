@@ -80,9 +80,9 @@ void configStartDebug(bool setupdebug, String & configFile)
     #endif
     }
     #if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
-    LOG_TRACE(TAG_CONF, F("Loading %s"), configFile.c_str());
+    LOG_TRACE(TAG_CONF, F(D_FILE_LOADING), configFile.c_str());
     #else
-    LOG_TRACE(TAG_CONF, F("reading EEPROM"));
+    LOG_TRACE(TAG_CONF, F(D_FILE_LOADING), "EEPROM");
     #endif
 }
 
@@ -117,11 +117,12 @@ void configGetConfig(JsonDocument & settings, bool setupdebug = false)
             String output;
             serializeJson(settings, output);
             String passmask = F(D_PASSWORD_MASK);
-            output.replace(settings[FPSTR(FP_HTTP)][F("pass")].as<String>(), passmask);
-            output.replace(settings[FPSTR(FP_MQTT)][F("pass")].as<String>(), passmask);
-            output.replace(settings[FPSTR(FP_WIFI)][F("pass")].as<String>(), passmask);
+            const  __FlashStringHelper * pass = F("pass");
+            output.replace(settings[FPSTR(FP_HTTP)][pass].as<String>(), passmask);
+            output.replace(settings[FPSTR(FP_MQTT)][pass].as<String>(), passmask);
+            output.replace(settings[FPSTR(FP_WIFI)][pass].as<String>(), passmask);
             LOG_VERBOSE(TAG_CONF, output.c_str());
-            LOG_INFO(TAG_CONF, F("Loaded %s"), configFile.c_str());
+            LOG_INFO(TAG_CONF, F(D_FILE_LOADED), configFile.c_str());
 
             if(setupdebug) debugSetup();
             return;
@@ -143,7 +144,7 @@ void configGetConfig(JsonDocument & settings, bool setupdebug = false)
     configStartDebug(setupdebug, configFile);
 
     #if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
-    LOG_ERROR(TAG_CONF, F("Failed to load %s"), configFile.c_str());
+    LOG_ERROR(TAG_CONF, F(D_FILE_LOAD_FAILED), configFile.c_str());
     #endif
 }
 /*
@@ -184,13 +185,13 @@ void configWriteConfig()
 
     String settingsChanged((char *)0);
     settingsChanged.reserve(128);
-    settingsChanged = F("Settings changed!");
+    settingsChanged = F(D_CONFIG_CHANGED);
 
     /* Read Config File */
     DynamicJsonDocument doc(8 * 256);
-    LOG_TRACE(TAG_CONF, F("Config LOADING first %s"), configFile.c_str());
+    LOG_TRACE(TAG_CONF, F(D_FILE_LOADING), configFile.c_str());
     configGetConfig(doc, false);
-    LOG_INFO(TAG_CONF, F("Config LOADED first %s"), configFile.c_str());
+    LOG_INFO(TAG_CONF, F(D_FILE_LOADED), configFile.c_str());
 
     // Make sure we have a valid JsonObject to start from
     JsonObject settings;
@@ -300,17 +301,17 @@ void configWriteConfig()
     #if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
         File file = HASP_FS.open(configFile, "w");
         if(file) {
-            LOG_TRACE(TAG_CONF, F("Writing %s"), configFile.c_str());
+            LOG_TRACE(TAG_CONF, F(D_FILE_SAVING), configFile.c_str());
             size_t size = serializeJson(doc, file);
             file.close();
             if(size > 0) {
-                LOG_INFO(TAG_CONF, F("Saved %s"), configFile.c_str());
+                LOG_INFO(TAG_CONF, F(D_FILE_SAVED), configFile.c_str());
                 // configBackupToEeprom();
             } else {
-                LOG_ERROR(TAG_CONF, F("Failed to write %s"), configFile.c_str());
+                LOG_ERROR(TAG_CONF, F(D_FILE_SAVE_FAILED), configFile.c_str());
             }
         } else {
-            LOG_ERROR(TAG_CONF, F("Failed to write %s"), configFile.c_str());
+            LOG_ERROR(TAG_CONF, F(D_FILE_SAVE_FAILED), configFile.c_str());
         }
     #endif
 
@@ -324,7 +325,7 @@ void configWriteConfig()
 
     #if defined(STM32F4xx)
         // Method 2
-        LOG_INFO(TAG_CONF, F("Writing to EEPROM"));
+        LOG_INFO(TAG_CONF, F(F_FILE_SAVING), "EEPROM");
         char buffer[1024 + 128];
         size_t size = serializeJson(doc, buffer, sizeof(buffer));
         if(size > 0) {
@@ -332,14 +333,14 @@ void configWriteConfig()
             for(i = 0; i < size; i++) eeprom_buffered_write_byte(i, buffer[i]);
             eeprom_buffered_write_byte(i, 0);
             eeprom_buffer_flush();
-            LOG_INFO(TAG_CONF, F("Saved EEPROM"));
+            LOG_INFO(TAG_CONF, F(F_FILE_SAVED), "EEPROM");
         } else {
-            LOG_ERROR(TAG_CONF, F("Failed to save config to EEPROM"));
+            LOG_ERROR(TAG_CONF, F(D_FILE_WRITE_FAILED), "EEPROM");
         }
     #endif
 
     } else {
-        LOG_INFO(TAG_CONF, F("Configuration did not change"));
+        LOG_INFO(TAG_CONF, F(D_CONFIG_NOT_CHANGED));
     }
     configOutput(settings, TAG_CONF);
 }
@@ -408,7 +409,7 @@ void configSetup()
         gpioSetConfig(settings[FPSTR(FP_GPIO)]);
     #endif
 
-        LOG_INFO(TAG_CONF, F("User configuration loaded"));
+        LOG_INFO(TAG_CONF, F(D_CONFIG_LOADED));
     }
     //#endif
 }

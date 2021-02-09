@@ -1,6 +1,22 @@
 #ifndef HASP_LANG_EN_US_H
 #define HASP_LANG_EN_US_H
 
+#define D_USERNAME "Gebruikersnaam:"
+#define D_PASSWORD "Wachtwoord:"
+#define D_SSID "Ssid:"
+
+#define D_CONFIG_NOT_CHANGED "Instellingen ongewijzigd"
+#define D_CONFIG_CHANGED "Instellingen gewijzigd"
+#define D_CONFIG_LOADED "Instellingen geladen"
+
+#define D_FILE_LOADING "%s laden..."
+#define D_FILE_LOADED "%s geladen"
+#define D_FILE_LOAD_FAILED "%s laden mislukt"
+
+#define D_FILE_SAVING "%s bewaren..."
+#define D_FILE_SAVED "%s bewaard"
+#define D_FILE_SAVE_FAILED "%s bewaren mislukt"
+
 #define D_SERVICE_STARTING "Starten..."
 #define D_SERVICE_STARTED "Gestart"
 #define D_SERVICE_START_FAILED "Starten mislukt"
@@ -33,8 +49,6 @@
 #define D_TELNET_CLIENT_LOGIN_FROM "Client aangemeld van %s"
 #define D_TELNET_CLIENT_CONNECT_FROM "Client verbonden van %s"
 #define D_TELNET_CLIENT_NOT_CONNECTED "Client NIET vzebonden"
-#define D_TELNET_USERNAME "Gebruikersnaam:"
-#define D_TELNET_PASSWORD "Wachtwoord:"
 #define D_TELNET_AUTHENTICATION_FAILED "Autorisatie mislukt!"
 #define D_TELNET_INCORRECT_LOGIN_ATTEMPT "Aanmelding van %s mislukt"
 #define D_TELNET_STARTED "Telnet console gestart"
@@ -107,5 +121,8 @@
 #define D_HTTP_MAIN_MENU "Hoofdmenu"
 #define D_HTTP_REBOOT "Herstarten"
 #define D_HTTP_CONFIGURATION "Configuratie"
+
+#define D_OOBE_MSB "Raak het scherm aan om WiFi in te stellen of meld je aan op AP:"
+#define D_OOBE_SCAN_TO_CONNECT "Scan code"
 
 #endif
