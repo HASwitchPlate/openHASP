@@ -17,9 +17,9 @@ Licensed under the MIT License <http://opensource.org/licenses/MIT>.
 #include <inttypes.h>
 #include <stdarg.h>
 #if defined(ARDUINO) && ARDUINO >= 100
-#include "Arduino.h"
+    #include "Arduino.h"
 #else
-#include "WProgram.h"
+    #include "WProgram.h"
 #endif
 //#include "StringStream.h"
 typedef void (*printfunction)(uint8_t tag, int level, Print *);
@@ -39,10 +39,11 @@ typedef void (*printfunction)(uint8_t tag, int level, Print *);
 #define LOG_LEVEL_ERROR 3
 #define LOG_LEVEL_WARNING 4
 #define LOG_LEVEL_NOTICE 5
-#define LOG_LEVEL_INFO 6
+#define LOG_LEVEL_INFO 5
 #define LOG_LEVEL_TRACE 6
 #define LOG_LEVEL_VERBOSE 7
-#define LOG_LEVEL_DEBUG 7
+#define LOG_LEVEL_DEBUG 8
+#define LOG_LEVEL_OUTPUT 9
 
 //#define CR "\n"
 #define LOGGING_VERSION 1_0_3
@@ -80,7 +81,8 @@ typedef void (*printfunction)(uint8_t tag, int level, Print *);
  * 3 - LOG_LEVEL_WARNING    errors and warnings
  * 4 - LOG_LEVEL_NOTICE     errors, warnings and notices
  * 5 - LOG_LEVEL_TRACE      errors, warnings, notices, traces
- * 6 - LOG_LEVEL_VERBOSE    all
+ * 6 - LOG_LEVEL_VERBOSE    subprocesses and steps
+ * 7 - LOG_LEVEL_DEBUG      all
  */
 
 class Logging {
@@ -90,7 +92,7 @@ class Logging {
      */
     Logging()
 #ifndef DISABLE_LOGGING
-    //   : _level(LOG_LEVEL_SILENT), _showLevel(true)
+        //   : _level(LOG_LEVEL_SILENT), _showLevel(true)
 #endif
     {}
 
@@ -261,7 +263,7 @@ class Logging {
     /**
      * Output a verbose message. Output message contains
      * V: followed by original message
-     * Debug messages are printed out at
+     * Verbose messages are printed out at
      * loglevels >= LOG_LEVEL_VERBOSE
      *
      * \param msg format string to output
@@ -272,6 +274,39 @@ class Logging {
     {
 #ifndef DISABLE_LOGGING
         printLevel(tag, LOG_LEVEL_VERBOSE, msg, args...);
+#endif
+    }
+
+    /**
+     * Output a debug message. Output message contains
+     * V: followed by original message
+     * Debug messages are printed out at
+     * loglevels >= LOG_LEVEL_DEBUG
+     *
+     * \param msg format string to output
+     * \param ... any number of variables
+     * \return void
+     */
+    template <class T, typename... Args> void debug(uint8_t tag, T msg, Args... args)
+    {
+#ifndef DISABLE_LOGGING
+        printLevel(tag, LOG_LEVEL_DEBUG, msg, args...);
+#endif
+    }
+
+    /**
+     * Output a normal message. Output message contains
+     * V: followed by original message
+     * Output messages are always printed out
+     *
+     * \param msg format string to output
+     * \param ... any number of variables
+     * \return void
+     */
+    template <class T, typename... Args> void output(uint8_t tag, T msg, Args... args)
+    {
+#ifndef DISABLE_LOGGING
+        printLevel(tag, LOG_LEVEL_OUTPUT, msg, args...);
 #endif
     }
 

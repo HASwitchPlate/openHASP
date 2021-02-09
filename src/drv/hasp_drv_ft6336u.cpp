@@ -56,10 +56,10 @@ void scan(TwoWire & i2c)
 
 void FT6336U_init()
 {
-    Log.trace(TAG_DRVR, F("Touch SDA     : %d"), TOUCH_SDA);
-    Log.trace(TAG_DRVR, F("Touch SCL     : %d"), TOUCH_SCL);
-    Log.trace(TAG_DRVR, F("Touch freq.   : %d"), TOUCH_FREQUENCY);
-    Log.trace(TAG_DRVR, F("Touch address : %x"), I2C_ADDR_FT6336U);
+    LOG_INFO(TAG_DRVR, F("Touch SDA     : %d"), TOUCH_SDA);
+    LOG_INFO(TAG_DRVR, F("Touch SCL     : %d"), TOUCH_SCL);
+    LOG_INFO(TAG_DRVR, F("Touch freq.   : %d"), TOUCH_FREQUENCY);
+    LOG_INFO(TAG_DRVR, F("Touch address : %x"), I2C_ADDR_FT6336U);
 
     touchpanel = new FT6336U(TOUCH_SDA, TOUCH_SCL, TOUCH_RST, TOUCH_IRQ);
     touchpanel->begin();
@@ -79,9 +79,9 @@ void FT6336U_init()
     scan(Wire1);
 
     if(touchpanel->read_chip_id() != 0) {
-        Log.trace(TAG_DRVR, F("FT6336U touch driver started chipid: %d"), touchpanel->read_chip_id());
+        LOG_INFO(TAG_DRVR, F("FT6336U touch driver started chipid: %d"), touchpanel->read_chip_id());
     } else {
-        Log.error(TAG_DRVR, F("FT6336U touch driver failed to start"));
+        LOG_ERROR(TAG_DRVR, F("FT6336U touch driver failed to start"));
     }
 }
 #endif

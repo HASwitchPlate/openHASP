@@ -34,7 +34,7 @@ const char FP_MQTT_HA_MANUFACTURER[] PROGMEM = "mf";
 
 void mqtt_ha_send_json(char * topic, JsonDocument & doc)
 {
-    Log.verbose(TAG_MQTT_PUB, topic);
+    LOG_VERBOSE(TAG_MQTT_PUB, topic);
     mqttClient.beginPublish(topic, measureJson(doc), RETAINED);
     serializeJson(doc, mqttClient);
     mqttClient.endPublish();
@@ -241,7 +241,7 @@ void mqtt_ha_register_activepage()
 
 void mqtt_ha_register_auto_discovery()
 {
-    Log.notice(TAG_MQTT_PUB, F(D_MQTT_HA_AUTO_DISCOVERY));
+    LOG_TRACE(TAG_MQTT_PUB, F(D_MQTT_HA_AUTO_DISCOVERY));
     mqtt_ha_register_activepage();
     // mqtt_ha_register_button(0, 1);
     // mqtt_ha_register_button(0, 2);

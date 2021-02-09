@@ -27,11 +27,11 @@ void mdnsSetup()
 void mdnsStart()
 {
     if(!mdns_config.enable) {
-        Log.notice(TAG_MDNS, F(D_SERVICE_DISABLED));
+        LOG_TRACE(TAG_MDNS, F(D_SERVICE_DISABLED));
         return;
     }
 
-    Log.notice(TAG_MDNS, F(D_SERVICE_STARTING));
+    LOG_TRACE(TAG_MDNS, F(D_SERVICE_STARTING));
 
     #if HASP_USE_MQTT > 0
     String hasp2Node = mqttGetNodename();
@@ -44,7 +44,7 @@ void mdnsStart()
     /* uint8_t attempt = 0;
     while(!MDNS.begin(hasp2Node.c_str())) {
         if(attempt++ >= 3) {
-            Log.error(TAG_MDNS, F(D_SERVICE_START_FAILED ": %s"), hasp2Node.c_str());
+            LOG_ERROR(TAG_MDNS, F(D_SERVICE_START_FAILED ": %s"), hasp2Node.c_str());
             return;
         }
 
@@ -52,7 +52,7 @@ void mdnsStart()
         hasp2Node = mqttGetNodename();
         hasp2Node += F("_");
         hasp2Node += String(attempt);
-        Log.verbose(TAG_MDNS, F("Trying hostname %s"), hasp2Node.c_str());
+        LOG_VERBOSE(TAG_MDNS, F("Trying hostname %s"), hasp2Node.c_str());
     };*/
 
     if(MDNS.begin(hasp2Node.c_str())) {
@@ -78,9 +78,9 @@ void mdnsStart()
         MDNS.addService(service, proto, 23);
         // }
 
-        Log.trace(TAG_MDNS, F(D_SERVICE_STARTED));
+        LOG_INFO(TAG_MDNS, F(D_SERVICE_STARTED));
     } else {
-        Log.error(TAG_MDNS, F(D_SERVICE_START_FAILED));
+        LOG_ERROR(TAG_MDNS, F(D_SERVICE_START_FAILED));
     }
 }
 

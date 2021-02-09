@@ -152,26 +152,26 @@ static lv_fs_res_t fs_open(lv_fs_drv_t * drv, void * file_p, const char * path, 
     lv_spiffs_file_t * fp = (lv_spiffs_file_t *)file_p;
     if(fp == NULL) return LV_FS_RES_INV_PARAM;
 
-    Log.verbose(TAG_LVFS, F("Opening %s"), filename);
+    LOG_VERBOSE(TAG_LVFS, F("Opening %s"), filename);
     lv_spiffs_file_t file = LV_FS_SPIFFS.open(filename, mode == LV_FS_MODE_WR ? FILE_WRITE : FILE_READ);
 
-    Log.verbose(TAG_LVFS, F("%d"), __LINE__);
+    LOG_VERBOSE(TAG_LVFS, F("%d"), __LINE__);
     if(!file) {
-        Log.verbose(TAG_LVFS, F("Invalid file"));
+        LOG_VERBOSE(TAG_LVFS, F("Invalid file"));
         return LV_FS_RES_NOT_EX;
 
         // } else if((*fp).isDirectory()) {
-        //     Log.verbose(TAG_LVFS, F("Cannot open directory as a file"));
+        //     LOG_VERBOSE(TAG_LVFS, F("Cannot open directory as a file"));
         //     return LV_FS_RES_UNKNOWN;
 
     } else {
         // f.seek(0, SeekSet);
-        // Log.verbose(TAG_LVFS,F("Assigning %s"), f.name());
-        Log.verbose(TAG_LVFS, F("%d"), __LINE__);
-        // Log.verbose(TAG_LVFS,F("Copying %s"), f.name());
-        Log.verbose(TAG_LVFS, F("%d - %x - %d"), __LINE__, fp, sizeof(lv_spiffs_file_t));
+        // LOG_VERBOSE(TAG_LVFS,F("Assigning %s"), f.name());
+        LOG_VERBOSE(TAG_LVFS, F("%d"), __LINE__);
+        // LOG_VERBOSE(TAG_LVFS,F("Copying %s"), f.name());
+        LOG_VERBOSE(TAG_LVFS, F("%d - %x - %d"), __LINE__, fp, sizeof(lv_spiffs_file_t));
         // memcpy(fp,&file,sizeof(lv_spiffs_file_t));
-        Log.verbose(TAG_LVFS, F("%d"), __LINE__);
+        LOG_VERBOSE(TAG_LVFS, F("%d"), __LINE__);
         *fp = file;
         return LV_FS_RES_OK;
     }
@@ -193,7 +193,7 @@ static lv_fs_res_t fs_close(lv_fs_drv_t * drv, void * file_p)
     lv_spiffs_file_t file = *fp;
 
     if(!file) {
-        Log.verbose(TAG_LVFS, F("Invalid file"));
+        LOG_VERBOSE(TAG_LVFS, F("Invalid file"));
         return LV_FS_RES_NOT_EX;
 
     } else if(file.isDirectory()) {
@@ -224,22 +224,22 @@ static lv_fs_res_t fs_read(lv_fs_drv_t * drv, void * file_p, void * buf, uint32_
     lv_spiffs_file_t file = *fp;
 
     if(!file) {
-        Log.error(TAG_LVFS, F("Invalid file"));
+        LOG_ERROR(TAG_LVFS, F("Invalid file"));
         return LV_FS_RES_NOT_EX;
 
     } else {
-        // Log.verbose(TAG_LVFS, F("Reading %u bytes from %s at position %u"), btr, file.name(), file.position());
+        // LOG_VERBOSE(TAG_LVFS, F("Reading %u bytes from %s at position %u"), btr, file.name(), file.position());
         uint32_t len = 0;
         char * chp   = (char *)buf;
         if(chp != NULL && btr > 0)
             len = file.readBytes(chp, btr);
         else
-            Log.verbose(TAG_LVFS, F("Buffer is NULL"), btr, file.name(), file.position());
+            LOG_VERBOSE(TAG_LVFS, F("Buffer is NULL"), btr, file.name(), file.position());
 
         if(br != NULL)
             *br = len;
         else
-            Log.verbose(TAG_LVFS, F("BYTESREAD is NULL"), btr, file.name(), file.position());
+            LOG_VERBOSE(TAG_LVFS, F("BYTESREAD is NULL"), btr, file.name(), file.position());
 
         Serial.print("!");
         return LV_FS_RES_OK;
@@ -262,7 +262,7 @@ static lv_fs_res_t fs_write(lv_fs_drv_t * drv, void * file_p, const void * buf, 
     // File file           = fp;
 
     if(!file) {
-        // Log.verbose(TAG_LVFS,F("Invalid file"));
+        // LOG_VERBOSE(TAG_LVFS,F("Invalid file"));
         return LV_FS_RES_NOT_EX;
 
     } else {
@@ -286,7 +286,7 @@ static lv_fs_res_t fs_seek(lv_fs_drv_t * drv, void * file_p, uint32_t pos)
     // File file           = fp;
 
     if(!file) {
-        // Log.verbose(TAG_LVFS,F("Invalid file"));
+        // LOG_VERBOSE(TAG_LVFS,F("Invalid file"));
         return LV_FS_RES_NOT_EX;
 
     } else {
@@ -309,7 +309,7 @@ static lv_fs_res_t fs_size(lv_fs_drv_t * drv, void * file_p, uint32_t * size_p)
     // File file           = fp;
 
     if(!file) {
-        // Log.verbose(TAG_LVFS,F("Invalid file"));
+        // LOG_VERBOSE(TAG_LVFS,F("Invalid file"));
         return LV_FS_RES_NOT_EX;
 
     } else {
@@ -333,7 +333,7 @@ static lv_fs_res_t fs_tell(lv_fs_drv_t * drv, void * file_p, uint32_t * pos_p)
     // File file           = fp;
 
     if(!file) {
-        // Log.verbose(TAG_LVFS,F("Invalid file"));
+        // LOG_VERBOSE(TAG_LVFS,F("Invalid file"));
         return LV_FS_RES_NOT_EX;
 
     } else {

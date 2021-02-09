@@ -62,7 +62,7 @@ void Logging::unregisterOutput(uint8_t slot)
 void Logging::setLevel(uint8_t slot, int level)
 {
 #ifndef DISABLE_LOGGING
-    _level[slot] = constrain(level, LOG_LEVEL_SILENT, LOG_LEVEL_VERBOSE);
+    _level[slot] = constrain(level, LOG_LEVEL_SILENT, LOG_LEVEL_OUTPUT);
 #endif
 }
 

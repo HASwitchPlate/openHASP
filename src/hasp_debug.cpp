@@ -3,13 +3,13 @@
 
 /* ===========================================================================
 
-- Log.fatal() - A fatal exception is caught, the program should halt with while(1){}
-- Log.error() - An important but non-fatal error occured, this error should be checked and not ignored
-- Log.warning() - Send at the end of a function to indicate failure of the sub process, can be ignored
+- LOG_FATAL() - A fatal exception is caught, the program should halt with while(1){}
+- LOG_ERROR() - An important but non-fatal error occured, this error should be checked and not ignored
+- LOG_WARNING() - Send at the end of a function to indicate failure of the sub process, can be ignored
 
-- Log.notice() - Information at the START of an action to notify another function is now running
-    - Log.trace()   - Send at the END of a function to indicate successful completion of the sub process
-    - Log.verbose() - Send DEBUG information DURING a subprocess
+- LOG_TRACE() - Information at the START of an action to notify another function is now running
+    - LOG_INFO()   - Send at the END of a function to indicate successful completion of the sub process
+    - LOG_VERBOSE() - Send DEBUG information DURING a subprocess
 
 =========================================================================== */
 
@@ -151,7 +151,7 @@ void debugSetup()
 {
     // memset(serialInputBuffer, 0, sizeof(serialInputBuffer));
     // serialInputIndex = 0;
-    Log.notice(TAG_DEBG, F(D_SERVICE_STARTING)); // Starting console
+    LOG_TRACE(TAG_DEBG, F(D_SERVICE_STARTING)); // Starting console
     debugConsole.setLineCallback(dispatch_text_line);
 }
 
@@ -172,10 +172,10 @@ void debugStartSyslog()
         if(syslogClient) {
             if(syslogClient->beginPacket(debugSyslogHost, debugSyslogPort)) {
                 Log.registerOutput(2, syslogClient, LOG_LEVEL_VERBOSE, true);
-                Log.trace(TAG_SYSL, F(D_SERVICE_STARTED));
+                LOG_INFO(TAG_SYSL, F(D_SERVICE_STARTED));
             }
         } else {
-            Log.error(TAG_SYSL, F(D_SERVICE_START_FAILED));
+            LOG_ERROR(TAG_SYSL, F(D_SERVICE_START_FAILED));
         }
     }
 #endif
@@ -185,7 +185,7 @@ void debugStopSyslog()
 {
 #if HASP_USE_SYSLOG > 0
     if(strlen(debugSyslogHost) > 0) {
-        Log.warning(TAG_SYSL, F(D_SERVICE_STOPPED));
+        LOG_WARNING(TAG_SYSL, F(D_SERVICE_STOPPED));
         Log.unregisterOutput(2);
     }
 #endif
@@ -411,8 +411,7 @@ static void debugPrintPriority(int level, Print * _logOutput)
     // }
 
     switch(level) {
-        case LOG_LEVEL_FATAL:
-        case LOG_LEVEL_ERROR:
+        case LOG_LEVEL_FATAL...LOG_LEVEL_ERROR:
             debugSendAnsiCode(F(TERM_COLOR_RED), _logOutput);
             break;
         case LOG_LEVEL_WARNING:
@@ -427,6 +426,10 @@ static void debugPrintPriority(int level, Print * _logOutput)
         case LOG_LEVEL_VERBOSE:
             debugSendAnsiCode(F(TERM_COLOR_CYAN), _logOutput);
             break;
+        case LOG_LEVEL_DEBUG:
+            debugSendAnsiCode(F(TERM_COLOR_BLUE), _logOutput);
+            break;
+        case LOG_LEVEL_OUTPUT:
         default:
             debugSendAnsiCode(F(TERM_COLOR_RESET), _logOutput);
     }
@@ -648,8 +651,8 @@ void debugPreSetup(JsonObject settings)
         debugPrintHaspHeader(&Serial);
         Serial.flush();
 
-        Log.trace(TAG_DEBG, F("Serial started at %u baud"), baudrate);
-        Log.trace(TAG_DEBG, F("Environment: " PIOENV));
+        LOG_INFO(TAG_DEBG, F("Serial started at %u baud"), baudrate);
+        LOG_INFO(TAG_DEBG, F("Environment: " PIOENV));
     }
 }
 
@@ -668,16 +671,16 @@ void debugLvglLogEvent(lv_log_level_t level, const char * file, uint32_t line, c
     if(line != lastDbgLine || mem_mon.free_biggest_size != lastDbgFreeMem) {
         switch(level) {
             case LV_LOG_LEVEL_TRACE:
-                Log.verbose(TAG_LVGL, descr);
+                LOG_VERBOSE(TAG_LVGL, descr);
                 break;
             case LV_LOG_LEVEL_WARN:
-                Log.warning(TAG_LVGL, descr);
+                LOG_WARNING(TAG_LVGL, descr);
                 break;
             case LV_LOG_LEVEL_ERROR:
-                Log.error(TAG_LVGL, descr);
+                LOG_ERROR(TAG_LVGL, descr);
                 break;
             default:
-                Log.notice(TAG_LVGL, descr);
+                LOG_TRACE(TAG_LVGL, descr);
         }
         lastDbgLine    = line;
         lastDbgFreeMem = mem_mon.free_biggest_size;

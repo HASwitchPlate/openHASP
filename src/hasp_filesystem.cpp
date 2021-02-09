@@ -72,23 +72,23 @@ void filesystemList()
 #else
     if(!SPIFFS.begin(true)) {
 #endif
-        Log.error(TAG_FILE, F("Flash file system not mouted."));
+        LOG_ERROR(TAG_FILE, F("Flash file system not mouted."));
     } else {
 
-        Log.verbose(TAG_FILE, F("Listing files on the internal flash:"));
+        LOG_VERBOSE(TAG_FILE, F("Listing files on the internal flash:"));
 
 #if defined(ARDUINO_ARCH_ESP32)
         File root = SPIFFS.open("/");
         File file = root.openNextFile();
         while(file) {
-            Log.verbose(TAG_FILE, F("   * %s  (%u bytes)"), file.name(), (uint32_t)file.size());
+            LOG_VERBOSE(TAG_FILE, F("   * %s  (%u bytes)"), file.name(), (uint32_t)file.size());
             file = root.openNextFile();
         }
 #endif
 #if defined(ARDUINO_ARCH_ESP8266)
         Dir dir = SPIFFS.openDir("/");
         while(dir.next()) {
-            Log.verbose(TAG_FILE, F("   * %s  (%u bytes)"), dir.fileName().c_str(), (uint32_t)dir.fileSize());
+            LOG_VERBOSE(TAG_FILE, F("   * %s  (%u bytes)"), dir.fileName().c_str(), (uint32_t)dir.fileSize());
         }
 #endif
     }
@@ -109,10 +109,10 @@ bool filesystemSetup(void)
 #else
     if(!HASP_FS.begin(true)) {
 #endif
-        // Log.error(TAG_FILE, F("SPI flash init failed. Unable to mount FS."));
+        // LOG_ERROR(TAG_FILE, F("SPI flash init failed. Unable to mount FS."));
         return false;
     } else {
-        // Log.trace(TAG_FILE, F("SPI Flash FS mounted"));
+        // LOG_INFO(TAG_FILE, F("SPI Flash FS mounted"));
         return true;
     }
 #endif

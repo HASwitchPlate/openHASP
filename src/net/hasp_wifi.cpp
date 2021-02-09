@@ -60,12 +60,12 @@ static void wifiConnected(IPAddress ipaddress)
 #if defined(STM32F4xx)
     IPAddress ip;
     ip = WiFi.localIP();
-    Log.notice(TAG_WIFI, F("Received IP address %d.%d.%d.%d"), ip[0], ip[1], ip[2], ip[3]);
+    LOG_TRACE(TAG_WIFI, F("Received IP address %d.%d.%d.%d"), ip[0], ip[1], ip[2], ip[3]);
 #else
-    Log.notice(TAG_WIFI, F(D_NETWORK_IP_ADDRESS_RECEIVED), ipaddress.toString().c_str());
+    LOG_TRACE(TAG_WIFI, F(D_NETWORK_IP_ADDRESS_RECEIVED), ipaddress.toString().c_str());
 #endif
 
-    Log.verbose(TAG_WIFI, F("Connected = %s"), WiFi.status() == WL_CONNECTED ? PSTR(D_NETWORK_ONLINE) : PSTR(D_NETWORK_OFFLINE));
+    LOG_VERBOSE(TAG_WIFI, F("Connected = %s"), WiFi.status() == WL_CONNECTED ? PSTR(D_NETWORK_ONLINE) : PSTR(D_NETWORK_OFFLINE));
     networkStart();
 }
 
@@ -77,7 +77,7 @@ static void wifiDisconnected(const char * ssid, uint8_t reason)
     // networkStop();
 
     if(wifiReconnectCounter > 33) {
-        Log.error(TAG_WIFI, F("Retries exceed %u: Rebooting..."), wifiReconnectCounter);
+        LOG_ERROR(TAG_WIFI, F("Retries exceed %u: Rebooting..."), wifiReconnectCounter);
         dispatch_reboot(false);
     }
 
@@ -267,12 +267,12 @@ static void wifiDisconnected(const char * ssid, uint8_t reason)
             snprintf_P(buffer, sizeof(buffer), PSTR("unknown"));
     }
 
-    Log.warning(TAG_WIFI, F("Disconnected from %s (Reason: %s [%d])"), ssid, buffer, reason);
+    LOG_WARNING(TAG_WIFI, F("Disconnected from %s (Reason: %s [%d])"), ssid, buffer, reason);
 }
 
 static void wifiSsidConnected(const char * ssid)
 {
-    Log.notice(TAG_WIFI, F("Connected to SSID %s. Requesting IP..."), ssid);
+    LOG_TRACE(TAG_WIFI, F("Connected to SSID %s. Requesting IP..."), ssid);
     wifiReconnectCounter = 0;
 }
 
@@ -334,7 +334,7 @@ bool wifiShowAP(char * ssid, char * pass)
     sprintf_P(ssid, PSTR("HASP-%02x%02x%02x"), mac[3], mac[4], mac[5]);
     sprintf_P(pass, PSTR("haspadmin"));
 #if defined(STM32F4xx)
-    Log.warning(TAG_WIFI, F("We should setup Temporary Access Point %s password: %s"), ssid, pass);
+    LOG_WARNING(TAG_WIFI, F("We should setup Temporary Access Point %s password: %s"), ssid, pass);
 #else
     WiFi.softAP(ssid, pass);
 
@@ -342,8 +342,8 @@ bool wifiShowAP(char * ssid, char * pass)
     // dnsServer.setErrorReplyCode(DNSReplyCode::NoError);
     // dnsServer.start(DNS_PORT, "*", apIP);
 
-    Log.warning(TAG_WIFI, F("Temporary Access Point %s password: %s"), ssid, pass);
-    Log.warning(TAG_WIFI, F("AP IP address : %s"), WiFi.softAPIP().toString().c_str());
+    LOG_WARNING(TAG_WIFI, F("Temporary Access Point %s password: %s"), ssid, pass);
+    LOG_WARNING(TAG_WIFI, F("AP IP address : %s"), WiFi.softAPIP().toString().c_str());
 // httpReconnect();}
 #endif
     return true;
@@ -379,14 +379,14 @@ void wifiSetup()
 
     // check for the presence of the shield:
     if(WiFiSpi.status() == WL_NO_SHIELD) {
-        Log.fatal(TAG_WIFI, F("WiFi shield not present"));
+        LOG_FATAL(TAG_WIFI, F("WiFi shield not present"));
         // don't continue:
         while(true)
             ;
     }
 
     if(!WiFiSpi.checkProtocolVersion()) {
-        Log.fatal(TAG_WIFI, F("Protocol version mismatch. Please upgrade the firmware"));
+        LOG_FATAL(TAG_WIFI, F("Protocol version mismatch. Please upgrade the firmware"));
         // don't continue:
         while(true)
             ;
@@ -396,7 +396,7 @@ void wifiSetup()
     // int status = WL_IDLE_STATUS;     // the Wifi radio's status
     if(!wifiShowAP()) {
         // while (status != WL_CONNECTED) {
-        Log.notice(TAG_WIFI, F("Connecting to : %s"), wifiSsid);
+        LOG_TRACE(TAG_WIFI, F("Connecting to : %s"), wifiSsid);
         // Connect to WPA/WPA2 network
         // status = WiFi.begin(wifiSsid, wifiPassword);
         WiFi.begin(wifiSsid, wifiPassword);
@@ -420,7 +420,7 @@ void wifiSetup()
 #endif
 
         wifiReconnect();
-        Log.notice(TAG_WIFI, F("Connecting to : %s"), wifiSsid);
+        LOG_TRACE(TAG_WIFI, F("Connecting to : %s"), wifiSsid);
     }
 #endif
 }
@@ -440,10 +440,10 @@ bool wifiEvery5Seconds()
     } else {
         wifiReconnectCounter++;
         if(wifiReconnectCounter > 45) {
-            Log.error(TAG_WIFI, F("Retries exceed %u: Rebooting..."), wifiReconnectCounter);
+            LOG_ERROR(TAG_WIFI, F("Retries exceed %u: Rebooting..."), wifiReconnectCounter);
             dispatch_reboot(false);
         }
-        Log.warning(TAG_WIFI, F("No Connection... retry %u"), wifiReconnectCounter);
+        LOG_WARNING(TAG_WIFI, F("No Connection... retry %u"), wifiReconnectCounter);
         if(wifiReconnectCounter % 6 == 0) {
             wifiReconnect();
         }
@@ -467,18 +467,18 @@ bool wifiValidateSsid(const char * ssid, const char * pass)
     while(attempt < 15 && (WiFi.status() != WL_CONNECTED || WiFi.localIP().toString() == F("0.0.0.0"))) {
 #endif
         attempt++;
-        Log.trace(TAG_WIFI, F("Trying to connect to %s... %u"), wifiSsid, attempt);
+        LOG_INFO(TAG_WIFI, F("Trying to connect to %s... %u"), wifiSsid, attempt);
         delay(500);
     }
 #if defined(STM32F4xx)
-    Log.trace(TAG_WIFI, F(D_NETWORK_IP_ADDRESS_RECEIVED), espIp);
+    LOG_INFO(TAG_WIFI, F(D_NETWORK_IP_ADDRESS_RECEIVED), espIp);
     if((WiFi.status() == WL_CONNECTED && String(espIp) != F("0.0.0.0"))) return true;
 #else
-    Log.trace(TAG_WIFI, F(D_NETWORK_IP_ADDRESS_RECEIVED), WiFi.localIP().toString().c_str());
+    LOG_INFO(TAG_WIFI, F(D_NETWORK_IP_ADDRESS_RECEIVED), WiFi.localIP().toString().c_str());
     if((WiFi.status() == WL_CONNECTED && WiFi.localIP().toString() != F("0.0.0.0"))) return true;
 #endif
 
-    Log.warning(TAG_WIFI, F(D_NETWORK_IP_ADDRESS_RECEIVED), WiFi.localIP().toString().c_str());
+    LOG_WARNING(TAG_WIFI, F(D_NETWORK_IP_ADDRESS_RECEIVED), WiFi.localIP().toString().c_str());
     WiFi.disconnect();
     return false;
 }
@@ -490,7 +490,7 @@ void wifiStop()
 #if !defined(STM32F4xx)
     WiFi.mode(WIFI_OFF);
 #endif
-    Log.warning(TAG_WIFI, F(D_SERVICE_STOPPED));
+    LOG_WARNING(TAG_WIFI, F(D_SERVICE_STOPPED));
 }
 
 void wifi_get_statusupdate(char * buffer, size_t len)

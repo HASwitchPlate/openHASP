@@ -94,13 +94,13 @@ static bool mqttPublish(const char * topic, const char * payload, size_t len, bo
             mqttClient.write((uint8_t *)payload, len);
             mqttClient.endPublish();
 
-            Log.notice(TAG_MQTT_PUB, F("%s => %s"), topic, payload);
+            LOG_TRACE(TAG_MQTT_PUB, F("%s => %s"), topic, payload);
             return true;
         } else {
-            Log.error(TAG_MQTT_PUB, F(D_MQTT_FAILED " %s => %s"), topic, payload);
+            LOG_ERROR(TAG_MQTT_PUB, F(D_MQTT_FAILED " %s => %s"), topic, payload);
         }
     } else {
-        Log.error(TAG_MQTT, F(D_MQTT_NOT_CONNECTED));
+        LOG_ERROR(TAG_MQTT, F(D_MQTT_NOT_CONNECTED));
     }
     return false;
 }
@@ -149,13 +149,13 @@ void mqtt_send_state(const __FlashStringHelper * subtopic, const char * payload)
 static void mqtt_message_cb(char * topic, byte * payload, unsigned int length)
 { // Handle incoming commands from MQTT
     if(length + 1 >= mqttClient.getBufferSize()) {
-        Log.error(TAG_MQTT_RCV, F("Payload too long (%d bytes)"), length);
+        LOG_ERROR(TAG_MQTT_RCV, F("Payload too long (%d bytes)"), length);
         return;
     } else {
         payload[length] = '\0';
     }
 
-    Log.notice(TAG_MQTT_RCV, F("%s = %s"), topic, (char *)payload);
+    LOG_TRACE(TAG_MQTT_RCV, F("%s = %s"), topic, (char *)payload);
 
     if(topic == strstr(topic, mqttNodeTopic)) { // startsWith mqttNodeTopic
 
@@ -178,7 +178,7 @@ static void mqtt_message_cb(char * topic, byte * payload, unsigned int length)
 
     } else {
         // Other topic
-        Log.error(TAG_MQTT, F(D_MQTT_INVALID_TOPIC));
+        LOG_ERROR(TAG_MQTT, F(D_MQTT_INVALID_TOPIC));
         return;
     }
 
@@ -195,7 +195,7 @@ static void mqtt_message_cb(char * topic, byte * payload, unsigned int length)
             }
 
         } else {
-            // Log.notice(TAG_MQTT, F("ignoring LWT = online"));
+            // LOG_TRACE(TAG_MQTT, F("ignoring LWT = online"));
         }
     } else {
         dispatch_topic_payload(topic, (const char *)payload);
@@ -207,9 +207,9 @@ static void mqttSubscribeTo(const __FlashStringHelper * format, const char * dat
     char tmp_topic[strlen_P((PGM_P)format) + 2 + strlen(data)];
     snprintf_P(tmp_topic, sizeof(tmp_topic), (PGM_P)format, data);
     if(mqttClient.subscribe(tmp_topic)) {
-        Log.verbose(TAG_MQTT, F(D_BULLET D_MQTT_SUBSCRIBED), tmp_topic);
+        LOG_VERBOSE(TAG_MQTT, F(D_BULLET D_MQTT_SUBSCRIBED), tmp_topic);
     } else {
-        Log.error(TAG_MQTT, F(D_MQTT_NOT_SUBSCRIBED), tmp_topic);
+        LOG_ERROR(TAG_MQTT, F(D_MQTT_NOT_SUBSCRIBED), tmp_topic);
     }
 }
 
@@ -230,7 +230,7 @@ void mqttStart()
         mac.toLowerCase();
         memset(mqttClientId, 0, sizeof(mqttClientId));
         snprintf_P(mqttClientId, sizeof(mqttClientId), PSTR(D_MQTT_DEFAULT_NAME), mac.c_str());
-        Log.trace(TAG_MQTT, mqttClientId);
+        LOG_INFO(TAG_MQTT, mqttClientId);
     }
 
     // Attempt to connect and set LWT and Clean Session
@@ -245,13 +245,13 @@ void mqttStart()
 
         switch(mqttClient.state()) {
             case MQTT_CONNECTION_TIMEOUT:
-                Log.warning(TAG_MQTT, F("Connection timeout"));
+                LOG_WARNING(TAG_MQTT, F("Connection timeout"));
                 break;
             case MQTT_CONNECTION_LOST:
-                Log.warning(TAG_MQTT, F("Connection lost"));
+                LOG_WARNING(TAG_MQTT, F("Connection lost"));
                 break;
             case MQTT_CONNECT_FAILED:
-                Log.warning(TAG_MQTT, F("Connection failed"));
+                LOG_WARNING(TAG_MQTT, F("Connection failed"));
                 break;
             case MQTT_DISCONNECTED:
                 snprintf_P(buffer, sizeof(buffer), PSTR(D_MQTT_DISCONNECTED));
@@ -259,32 +259,32 @@ void mqttStart()
             case MQTT_CONNECTED:
                 break;
             case MQTT_CONNECT_BAD_PROTOCOL:
-                Log.warning(TAG_MQTT, F("MQTT version not suported"));
+                LOG_WARNING(TAG_MQTT, F("MQTT version not suported"));
                 break;
             case MQTT_CONNECT_BAD_CLIENT_ID:
-                Log.warning(TAG_MQTT, F("Client ID rejected"));
+                LOG_WARNING(TAG_MQTT, F("Client ID rejected"));
                 break;
             case MQTT_CONNECT_UNAVAILABLE:
-                Log.warning(TAG_MQTT, F("Server unavailable"));
+                LOG_WARNING(TAG_MQTT, F("Server unavailable"));
                 break;
             case MQTT_CONNECT_BAD_CREDENTIALS:
-                Log.warning(TAG_MQTT, F("Bad credentials"));
+                LOG_WARNING(TAG_MQTT, F("Bad credentials"));
                 break;
             case MQTT_CONNECT_UNAUTHORIZED:
-                Log.warning(TAG_MQTT, F("Unauthorized"));
+                LOG_WARNING(TAG_MQTT, F("Unauthorized"));
                 break;
             default:
-                Log.warning(TAG_MQTT, F("Unknown failure"));
+                LOG_WARNING(TAG_MQTT, F("Unknown failure"));
         }
 
         if(mqttReconnectCount > 20) {
-            Log.error(TAG_MQTT, F("Retry count exceeded, rebooting..."));
+            LOG_ERROR(TAG_MQTT, F("Retry count exceeded, rebooting..."));
             dispatch_reboot(false);
         }
         return;
     }
 
-    Log.trace(TAG_MQTT, F(D_MQTT_CONNECTED), mqttServer, mqttClientId);
+    LOG_INFO(TAG_MQTT, F(D_MQTT_CONNECTED), mqttServer, mqttClientId);
 
     // Subscribe to our incoming topics
     const __FlashStringHelper * F_topic;
@@ -323,12 +323,12 @@ void mqttSetup()
         mqttClient.setServer(mqttServer, mqttPort);
         mqttClient.setCallback(mqtt_message_cb);
         //  if(!mqttClient.setBufferSize(1024)) {
-        //  Log.error(TAG_MQTT, F("Buffer allocation failed"));
+        //  LOG_ERROR(TAG_MQTT, F("Buffer allocation failed"));
         //  } else {
-        Log.trace(TAG_MQTT, F(D_MQTT_STARTED), mqttClient.getBufferSize());
+        LOG_INFO(TAG_MQTT, F(D_MQTT_STARTED), mqttClient.getBufferSize());
         // }
     } else {
-        Log.warning(TAG_MQTT, F(D_MQTT_NOT_CONFIGURED));
+        LOG_WARNING(TAG_MQTT, F(D_MQTT_NOT_CONFIGURED));
     }
 }
 
@@ -340,7 +340,7 @@ void mqttLoop(void)
 void mqttEvery5Seconds(bool networkIsConnected)
 {
     if(mqttEnabled && networkIsConnected && !mqttClient.connected()) {
-        Log.notice(TAG_MQTT, F(D_MQTT_RECONNECTING));
+        LOG_TRACE(TAG_MQTT, F(D_MQTT_RECONNECTING));
         mqttStart();
     }
 }
@@ -353,10 +353,10 @@ String mqttGetNodename()
 void mqttStop()
 {
     if(mqttEnabled && mqttClient.connected()) {
-        Log.notice(TAG_MQTT, F(D_MQTT_DISCONNECTING));
+        LOG_TRACE(TAG_MQTT, F(D_MQTT_DISCONNECTING));
         mqtt_send_lwt(false);
         mqttClient.disconnect();
-        Log.trace(TAG_MQTT, F(D_MQTT_DISCONNECTED));
+        LOG_INFO(TAG_MQTT, F(D_MQTT_DISCONNECTED));
     }
 }
 

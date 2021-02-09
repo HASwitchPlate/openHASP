@@ -15,32 +15,32 @@ void EthernetEvent(WiFiEvent_t event)
 {
     switch(event) {
         case SYSTEM_EVENT_ETH_START:
-            Log.notice(TAG_ETH, F(D_SERVICE_STARTED));
+            LOG_TRACE(TAG_ETH, F(D_SERVICE_STARTED));
             // set eth hostname here
             ETH.setHostname(mqttGetNodename().c_str());
             break;
         case SYSTEM_EVENT_ETH_CONNECTED:
-            Log.notice(TAG_ETH, F(D_SERVICE_CONNECTED));
+            LOG_TRACE(TAG_ETH, F(D_SERVICE_CONNECTED));
             eth_connected = true;
             break;
         case SYSTEM_EVENT_ETH_GOT_IP:
-            Log.notice(TAG_ETH, F("MAC Address %s"), ETH.macAddress().c_str());
+            LOG_TRACE(TAG_ETH, F("MAC Address %s"), ETH.macAddress().c_str());
             ip = ETH.localIP();
-            Log.notice(TAG_ETH, F("IPv4: %d.%d.%d.%d"), ip[0], ip[1], ip[2], ip[3]);
+            LOG_TRACE(TAG_ETH, F("IPv4: %d.%d.%d.%d"), ip[0], ip[1], ip[2], ip[3]);
             if(ETH.fullDuplex()) {
-                Log.notice(TAG_ETH, F("FULL_DUPLEX"));
+                LOG_TRACE(TAG_ETH, F("FULL_DUPLEX"));
             }
-            Log.notice(TAG_ETH, F("LINK_SPEED %d Mbps"), ETH.linkSpeed());
+            LOG_TRACE(TAG_ETH, F("LINK_SPEED %d Mbps"), ETH.linkSpeed());
             eth_connected = true;
             networkStart(); // Start network services
             break;
         case SYSTEM_EVENT_ETH_DISCONNECTED:
-            Log.notice(TAG_ETH, F(D_SERVICE_DISCONNECTED));
+            LOG_TRACE(TAG_ETH, F(D_SERVICE_DISCONNECTED));
             eth_connected = false;
             networkStop(); // Stop network services
             break;
         case SYSTEM_EVENT_ETH_STOP:
-            Log.warning(TAG_ETH, F(D_SERVICE_STOPPED));
+            LOG_WARNING(TAG_ETH, F(D_SERVICE_STOPPED));
             eth_connected = false;
             break;
         default:
@@ -59,7 +59,7 @@ void ethernetLoop(void)
 
 bool ethernetEvery5Seconds()
 {
-    // Log.warning(TAG_ETH, eth_connected ? F(D_NETWORK_ONLINE) : F(D_NETWORK_OFFLINE));
+    // LOG_WARNING(TAG_ETH, eth_connected ? F(D_NETWORK_ONLINE) : F(D_NETWORK_OFFLINE));
     return eth_connected;
 }
 

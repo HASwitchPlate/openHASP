@@ -7,8 +7,9 @@
  *      INCLUDES
  *********************/
 #include "../../src/hasp_hal.h" // for halGpioName()
-#include "ArduinoLog.h"
 #include "tft_espi_drv.h"
+#include "ArduinoLog.h"
+#include "hasp_macro.h"
 
 #if USE_TFT_ESPI != 0
 
@@ -137,10 +138,10 @@ ADC_MODE(ADC_VCC); // tftShowConfig measures the voltage on the pin
 static void tftOffsetInfo(uint8_t pin, uint8_t x_offset, uint8_t y_offset)
 {
     if(x_offset != 0) {
-        Log.verbose(TAG_TFT, F("R%u x offset = %i"), pin, x_offset);
+        LOG_VERBOSE(TAG_TFT, F("R%u x offset = %i"), pin, x_offset);
     }
     if(y_offset != 0) {
-        Log.verbose(TAG_TFT, F("R%u y offset = %i"), pin, y_offset);
+        LOG_VERBOSE(TAG_TFT, F("R%u y offset = %i"), pin, y_offset);
     }
 }
 
@@ -149,7 +150,7 @@ static void tftPinInfo(const __FlashStringHelper * pinfunction, int8_t pin)
     if(pin != -1) {
         char buffer[64];
         snprintf_P(buffer, sizeof(buffer), PSTR("%-11s: %s (GPIO %02d)"), pinfunction, halGpioName(pin).c_str(), pin);
-        Log.verbose(TAG_TFT, buffer);
+        LOG_VERBOSE(TAG_TFT, buffer);
     }
 }
 
@@ -158,29 +159,29 @@ static void tftShowConfig(TFT_eSPI & tft)
     setup_t tftSetup;
     tft.getSetup(tftSetup);
 
-    Log.verbose(TAG_TFT, F("TFT_eSPI   : v%s"), tftSetup.version.c_str());
+    LOG_VERBOSE(TAG_TFT, F("TFT_eSPI   : v%s"), tftSetup.version.c_str());
     #if defined(ARDUINO_ARCH_ESP8266) || defined(ARDUINO_ARCH_ESP32)
-    Log.verbose(TAG_TFT, F("Processor  : ESP%x"), tftSetup.esp);
+    LOG_VERBOSE(TAG_TFT, F("Processor  : ESP%x"), tftSetup.esp);
     #else
-    Log.verbose(TAG_TFT, F("Processor  : STM%x"), tftSetup.esp);
+    LOG_VERBOSE(TAG_TFT, F("Processor  : STM%x"), tftSetup.esp);
     #endif
-    Log.verbose(TAG_TFT, F("CPU freq.  : %i MHz"), halGetCpuFreqMHz());
+    LOG_VERBOSE(TAG_TFT, F("CPU freq.  : %i MHz"), halGetCpuFreqMHz());
 
     #if defined(ARDUINO_ARCH_ESP8266)
-    Log.verbose(TAG_TFT, F("Voltage    : %2.2f V"), ESP.getVcc() / 918.0); // 918 empirically determined
+    LOG_VERBOSE(TAG_TFT, F("Voltage    : %2.2f V"), ESP.getVcc() / 918.0); // 918 empirically determined
     #endif
-    Log.verbose(TAG_TFT, F("Transactns : %s"), (tftSetup.trans == 1) ? PSTR("Yes") : PSTR("No"));
-    Log.verbose(TAG_TFT, F("Interface  : %s"), (tftSetup.serial == 1) ? PSTR("SPI") : PSTR("Parallel"));
+    LOG_VERBOSE(TAG_TFT, F("Transactns : %s"), (tftSetup.trans == 1) ? PSTR("Yes") : PSTR("No"));
+    LOG_VERBOSE(TAG_TFT, F("Interface  : %s"), (tftSetup.serial == 1) ? PSTR("SPI") : PSTR("Parallel"));
     #if defined(ARDUINO_ARCH_ESP8266)
-    Log.verbose(TAG_TFT, F("SPI overlap: %s"), (tftSetup.overlap == 1) ? PSTR("Yes") : PSTR("No"));
+    LOG_VERBOSE(TAG_TFT, F("SPI overlap: %s"), (tftSetup.overlap == 1) ? PSTR("Yes") : PSTR("No"));
     #endif
 
     if(tftSetup.tft_driver != 0xE9D) // For ePaper displays the size is defined in the sketch
     {
-        Log.verbose(TAG_TFT, F("Driver     : %s"), halDisplayDriverName().c_str()); // tftSetup.tft_driver);
-        Log.verbose(TAG_TFT, F("Resolution : %ix%i"), tftSetup.tft_width, tftSetup.tft_height);
+        LOG_VERBOSE(TAG_TFT, F("Driver     : %s"), halDisplayDriverName().c_str()); // tftSetup.tft_driver);
+        LOG_VERBOSE(TAG_TFT, F("Resolution : %ix%i"), tftSetup.tft_width, tftSetup.tft_height);
     } else if(tftSetup.tft_driver == 0xE9D)
-        Log.verbose(TAG_TFT, F("Driver = ePaper"));
+        LOG_VERBOSE(TAG_TFT, F("Driver = ePaper"));
 
     // Offsets, not all used yet
     tftOffsetInfo(0, tftSetup.r0_x_offset, tftSetup.r0_y_offset);
@@ -202,14 +203,14 @@ static void tftShowConfig(TFT_eSPI & tft)
 
     #if defined(ARDUINO_ARCH_ESP8266)
     if(tftSetup.overlap == true) {
-        Log.verbose(TAG_TFT, F("Overlap selected, following pins MUST be used:"));
+        LOG_VERBOSE(TAG_TFT, F("Overlap selected, following pins MUST be used:"));
 
-        Log.verbose(TAG_TFT, F("MOSI     : SD1 (GPIO 8)"));
-        Log.verbose(TAG_TFT, F("MISO     : SD0 (GPIO 7)"));
-        Log.verbose(TAG_TFT, F("SCK      : CLK (GPIO 6)"));
-        Log.verbose(TAG_TFT, F("TFT_CS   : D3  (GPIO 0)"));
+        LOG_VERBOSE(TAG_TFT, F("MOSI     : SD1 (GPIO 8)"));
+        LOG_VERBOSE(TAG_TFT, F("MISO     : SD0 (GPIO 7)"));
+        LOG_VERBOSE(TAG_TFT, F("SCK      : CLK (GPIO 6)"));
+        LOG_VERBOSE(TAG_TFT, F("TFT_CS   : D3  (GPIO 0)"));
 
-        Log.verbose(TAG_TFT, F("TFT_DC and TFT_RST pins can be tftSetup defined"));
+        LOG_VERBOSE(TAG_TFT, F("TFT_DC and TFT_RST pins can be tftSetup defined"));
     }
     #endif
 
@@ -232,11 +233,11 @@ static void tftShowConfig(TFT_eSPI & tft)
     tftPinInfo(F("TFT_D7"), tftSetup.pin_tft_d7);
 
     if(tftSetup.serial == 1) {
-        Log.verbose(TAG_TFT, F("Display SPI freq. : %d.%d MHz"), tftSetup.tft_spi_freq / 10,
+        LOG_VERBOSE(TAG_TFT, F("Display SPI freq. : %d.%d MHz"), tftSetup.tft_spi_freq / 10,
                     tftSetup.tft_spi_freq % 10);
     }
     if(tftSetup.pin_tch_cs != -1) {
-        Log.verbose(TAG_TFT, F("Touch SPI freq.   : %d.%d MHz"), tftSetup.tch_spi_freq / 10,
+        LOG_VERBOSE(TAG_TFT, F("Touch SPI freq.   : %d.%d MHz"), tftSetup.tch_spi_freq / 10,
                     tftSetup.tch_spi_freq % 10);
     }
 }

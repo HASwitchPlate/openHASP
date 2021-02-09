@@ -20,7 +20,7 @@ bool FT5206_getXY(int16_t * touchX, int16_t * touchY, bool debug)
     *touchY     = tp.y;
 
     if(debug) {
-        Log.verbose(TAG_DRVR, F("FT5206 touched x: %d y: %d\n"), tp.x, tp.y);
+        LOG_VERBOSE(TAG_DRVR, F("FT5206 touched x: %d y: %d\n"), tp.x, tp.y);
     }
 
     return true;
@@ -63,19 +63,19 @@ void scan(TwoWire & i2c)
 // void FT5206_init(TwoWire & i2c)
 void FT5206_init()
 {
-    Log.trace(TAG_DRVR, F("Touch SDA     : %d"), TOUCH_SDA);
-    Log.trace(TAG_DRVR, F("Touch SCL     : %d"), TOUCH_SCL);
-    Log.trace(TAG_DRVR, F("Touch freq.   : %d"), TOUCH_FREQUENCY);
-    Log.trace(TAG_DRVR, F("Touch address : %02x"), FT5206_address);
+    LOG_INFO(TAG_DRVR, F("Touch SDA     : %d"), TOUCH_SDA);
+    LOG_INFO(TAG_DRVR, F("Touch SCL     : %d"), TOUCH_SCL);
+    LOG_INFO(TAG_DRVR, F("Touch freq.   : %d"), TOUCH_FREQUENCY);
+    LOG_INFO(TAG_DRVR, F("Touch address : %02x"), FT5206_address);
 
     Wire1.begin(TOUCH_SDA, TOUCH_SCL, TOUCH_FREQUENCY);
     scan(Wire1);
     touchpanel = new FT5206_Class();
 
     if(touchpanel->begin(Wire1, FT5206_address)) {
-        Log.trace(TAG_DRVR, F("FT5206 touch driver started"));
+        LOG_INFO(TAG_DRVR, F("FT5206 touch driver started"));
     } else {
-        Log.error(TAG_DRVR, F("FT5206 touch driver failed to start"));
+        LOG_ERROR(TAG_DRVR, F("FT5206 touch driver failed to start"));
     }
 }
 #endif

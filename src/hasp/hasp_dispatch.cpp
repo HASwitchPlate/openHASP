@@ -58,13 +58,13 @@ void dispatch_screenshot(const char *, const char * filename)
         memcpy_P(tempfile, PSTR("/screenshot.bmp"), sizeof(tempfile));
         guiTakeScreenshot(tempfile);
     } else if(strlen(filename) > 31 || filename[0] != '/') { // Invalid filename
-        Log.warning(TAG_MSGR, "Invalid filename %s", filename);
+        LOG_WARNING(TAG_MSGR, "Invalid filename %s", filename);
     } else { // Valid filename
         guiTakeScreenshot(filename);
     }
 
 #else
-    Log.warning(TAG_MSGR, "Failed to save %s, no storage", filename);
+    LOG_WARNING(TAG_MSGR, "Failed to save %s, no storage", filename);
 #endif
 }
 
@@ -87,7 +87,7 @@ bool dispatch_factory_reset()
 
 void dispatch_json_error(uint8_t tag, DeserializationError & jsonError)
 {
-    Log.error(tag, F(D_JSON_FAILED " %s"), jsonError.c_str());
+    LOG_ERROR(tag, F(D_JSON_FAILED " %s"), jsonError.c_str());
 }
 
 // p[x].b[y].attr=value
@@ -195,7 +195,7 @@ void dispatch_command(const char * topic, const char * payload)
     // check and execute commands from commands array
     for(int i = 0; i < nCommands; i++) {
         if(!strcasecmp_P(topic, commands[i].p_cmdstr)) {
-            // Log.warning(TAG_MSGR, F("Command %d found in array !!!"), i);
+            // LOG_DEBUG(TAG_MSGR, F("Command %d found in array !!!"), i);
             commands[i].func(topic, payload); /* execute command */
             return;
         }
@@ -241,14 +241,14 @@ void dispatch_command(const char * topic, const char * payload)
         if(strlen(payload) == 0) {
             //    dispatch_text_line(topic); // Could cause an infinite loop!
         }
-        Log.warning(TAG_MSGR, F(D_DISPATCH_COMMAND_NOT_FOUND " => %s"), topic, payload);
+        LOG_WARNING(TAG_MSGR, F(D_DISPATCH_COMMAND_NOT_FOUND " => %s"), topic, payload);
     }
 }
 
 // Strip command/config prefix from the topic and process the payload
 void dispatch_topic_payload(const char * topic, const char * payload)
 {
-    // Log.verbose(TAG_MSGR,F("TOPIC: short topic: %s"), topic);
+    // LOG_VERBOSE(TAG_MSGR,F("TOPIC: short topic: %s"), topic);
 
     if(!strcmp_P(topic, PSTR("command"))) {
         dispatch_text_line((char *)payload);
@@ -300,11 +300,11 @@ void dispatch_text_line(const char * cmnd)
             memcpy(topic, cmnd, sizeof(topic) - 1);
 
         // topic is before '=', payload is after '=' position
-        Log.notice(TAG_MSGR, F("%s=%s"), topic, cmnd + pos + 1);
+        LOG_TRACE(TAG_MSGR, F("%s=%s"), topic, cmnd + pos + 1);
         dispatch_topic_payload(topic, cmnd + pos + 1);
     } else {
         char empty_payload[1] = {0};
-        Log.notice(TAG_MSGR, F("%s=%s"), cmnd, empty_payload);
+        LOG_TRACE(TAG_MSGR, F("%s=%s"), cmnd, empty_payload);
         dispatch_topic_payload(cmnd, empty_payload);
     }
 }
@@ -558,7 +558,7 @@ void dispatch_object_value_changed(lv_obj_t * obj, int16_t state)
 static inline void dispatch_state_msg(const __FlashStringHelper * subtopic, const char * payload)
 {
 #if !defined(HASP_USE_MQTT) && !defined(HASP_USE_TASMOTA_SLAVE)
-    Log.notice(TAG_MSGR, F("%s => %s"), String(subtopic).c_str(), payload);
+    LOG_TRACE(TAG_MSGR, F("%s => %s"), String(subtopic).c_str(), payload);
 #else
     #if HASP_USE_MQTT > 0
     mqtt_send_state(subtopic, payload);
@@ -598,7 +598,7 @@ static inline void dispatch_state_msg(const __FlashStringHelper * subtopic, cons
 void dispatch_normalized_group_value(uint8_t groupid, uint16_t value, lv_obj_t * obj)
 {
     if(groupid > 0) {
-        Log.verbose(TAG_MSGR, F("GROUP %d value %d"), groupid, value);
+        LOG_VERBOSE(TAG_MSGR, F("GROUP %d value %d"), groupid, value);
         gpio_set_normalized_group_value(groupid, value);
         //  object_set_group_state(groupid, value, obj);
     }
@@ -646,7 +646,7 @@ void dispatch_parse_json(const char *, const char * payload)
         dispatch_text_line(json.as<String>().c_str());
 
     } else {
-        Log.warning(TAG_MSGR, F(D_DISPATCH_COMMAND_NOT_FOUND), payload);
+        LOG_WARNING(TAG_MSGR, F(D_DISPATCH_COMMAND_NOT_FOUND), payload);
     }
 }
 
@@ -672,10 +672,10 @@ void dispatch_parse_jsonl(std::istringstream & stream)
 
     /* For debugging pourposes */
     if(jsonError == DeserializationError::EmptyInput) {
-        Log.trace(TAG_MSGR, F(D_JSONL_SUCCEEDED));
+        LOG_INFO(TAG_MSGR, F(D_JSONL_SUCCEEDED));
 
     } else {
-        Log.error(TAG_MSGR, F(D_JSONL_FAILED ": %s"), line, jsonError.c_str());
+        LOG_ERROR(TAG_MSGR, F(D_JSONL_FAILED ": %s"), line, jsonError.c_str());
     }
 }
 
@@ -713,7 +713,7 @@ void dispatch_page(const char *, const char * page)
             } else if(!strcasecmp_P(page, PSTR("next"))) {
                 dispatch_page_next();
             } else {
-                Log.warning(TAG_MSGR, PSTR(D_DISPATCH_INVALID_PAGE), page);
+                LOG_WARNING(TAG_MSGR, PSTR(D_DISPATCH_INVALID_PAGE), page);
             }
             return;
         }
@@ -825,7 +825,7 @@ void dispatch_backlight(const char *, const char * payload)
 void dispatch_web_update(const char *, const char * espOtaUrl)
 {
 #if HASP_USE_OTA > 0
-    Log.notice(TAG_MSGR, F(D_OTA_CHECK_UPDATE), espOtaUrl);
+    LOG_TRACE(TAG_MSGR, F(D_OTA_CHECK_UPDATE), espOtaUrl);
     otaHttpUpdate(espOtaUrl);
 #endif
 }
@@ -845,8 +845,8 @@ void dispatch_reboot(bool saveConfig)
 #if HASP_USE_WIFI > 0
     wifiStop();
 #endif
-    Log.verbose(TAG_MSGR, F("-------------------------------------"));
-    Log.notice(TAG_MSGR, F(D_DISPATCH_REBOOT));
+    LOG_VERBOSE(TAG_MSGR, F("-------------------------------------"));
+    LOG_TRACE(TAG_MSGR, F(D_DISPATCH_REBOOT));
     Serial.flush();
     halRestartMcu();
 }
@@ -934,7 +934,7 @@ void dispatch_factory_reset(const char *, const char *)
 static void dispatch_add_command(const char * p_cmdstr, void (*func)(const char *, const char *))
 {
     if(nCommands >= sizeof(commands) / sizeof(haspCommand_t)) {
-        Log.fatal(TAG_MSGR, F("CMD_OVERFLOW %d"), nCommands);
+        LOG_FATAL(TAG_MSGR, F("CMD_OVERFLOW %d"), nCommands);
         while(1) {
         }
     } else {

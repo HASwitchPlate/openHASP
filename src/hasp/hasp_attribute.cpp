@@ -135,11 +135,11 @@ static bool attribute_lookup_lv_property(uint16_t hash, uint8_t * prop)
     for(uint32_t i = 0; i < sizeof(props) / sizeof(props[0]); i++) {
         if(props[i].hash == hash) {
             *prop = props[1].prop;
-            Log.warning(TAG_ATTR, F("%d found and has propery %d"), hash, props[i].prop);
+            LOG_WARNING(TAG_ATTR, F("%d found and has propery %d"), hash, props[i].prop);
             return true;
         }
     }
-    Log.error(TAG_ATTR, F("%d has no property id"), hash);
+    LOG_ERROR(TAG_ATTR, F("%d has no property id"), hash);
     return false;
 }
 
@@ -232,16 +232,16 @@ lv_chart_series_t * my_chart_get_series(lv_obj_t * chart, uint8_t ser_num)
  */
 void my_obj_set_value_str_txt(lv_obj_t * obj, uint8_t part, lv_state_t state, const char * text)
 {
-    //  Log.verbose(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
+    //  LOG_VERBOSE(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
 
     const void * value_str_p = lv_obj_get_style_value_str(obj, part);
     lv_obj_invalidate(obj);
 
     if(text == NULL || text[0] == 0) {
-        // Log.verbose(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
+        // LOG_VERBOSE(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
         lv_obj_set_style_local_value_str(obj, part, state, NULL);
         lv_mem_free(value_str_p);
-        // Log.verbose(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
+        // LOG_VERBOSE(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
         return;
     }
 
@@ -252,15 +252,15 @@ void my_obj_set_value_str_txt(lv_obj_t * obj, uint8_t part, lv_state_t state, co
         size_t len = strlen(text) + 1;
 
         /*Allocate space for the new text*/
-        //   Log.verbose(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
+        //   LOG_VERBOSE(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
         value_str_p = (char *)lv_mem_alloc(len);
         LV_ASSERT_MEM(value_str_p);
         if(value_str_p == NULL) return;
 
-        // Log.verbose(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
+        // LOG_VERBOSE(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
         strncpy((char *)value_str_p, text, len);
         lv_obj_set_style_local_value_str(obj, part, state, (char *)value_str_p);
-        // Log.verbose(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
+        // LOG_VERBOSE(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
         return;
     }
 
@@ -268,7 +268,7 @@ void my_obj_set_value_str_txt(lv_obj_t * obj, uint8_t part, lv_state_t state, co
 
     if(value_str_p == text) {
         /*If set its own text then reallocate it (maybe its size changed)*/
-        Log.warning(TAG_ATTR, "%s %d", __FILE__, __LINE__);
+        LOG_DEBUG(TAG_ATTR, "%s %d", __FILE__, __LINE__);
         return; // don't touch the data
 
         // value_str_p = lv_mem_realloc(value_str_p, strlen(text) + 1);
@@ -278,10 +278,10 @@ void my_obj_set_value_str_txt(lv_obj_t * obj, uint8_t part, lv_state_t state, co
     } else {
         /*Free the old text*/
         if(value_str_p != NULL) {
-            //        Log.verbose(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
+            //        LOG_DEBUG(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
             lv_mem_free(value_str_p);
             value_str_p = NULL;
-            //        Log.verbose(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
+            //        LOG_DEBUG(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
         }
 
         /*Get the size of the text*/
@@ -294,7 +294,7 @@ void my_obj_set_value_str_txt(lv_obj_t * obj, uint8_t part, lv_state_t state, co
         lv_obj_set_style_local_value_str(obj, part, state, (char *)value_str_p);
     }
 
-    // Log.verbose(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
+    // LOG_VERBOSE(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
 }
 
 void my_btnmatrix_map_clear(lv_obj_t * obj)
@@ -302,23 +302,23 @@ void my_btnmatrix_map_clear(lv_obj_t * obj)
     lv_btnmatrix_ext_t * ext = (lv_btnmatrix_ext_t *)lv_obj_get_ext_attr(obj);
     const char ** map_p_tmp  = ext->map_p; // store current pointer
 
-    Log.verbose(TAG_ATTR, "%s %d %x   btn_cnt: %d", __FILE__, __LINE__, map_p_tmp, ext->btn_cnt);
+    LOG_VERBOSE(TAG_ATTR, "%s %d %x   btn_cnt: %d", __FILE__, __LINE__, map_p_tmp, ext->btn_cnt);
 
     if(ext->map_p && (ext->btn_cnt > 0)) {
 
         // The map exists and is not the default lvgl map anymore
         if((map_p_tmp == NULL) || (btnmatrix_default_map == NULL) || (map_p_tmp == btnmatrix_default_map)) return;
 
-        Log.verbose(TAG_ATTR, "%s %d %x", __FILE__, __LINE__,
-                    *map_p_tmp);                                          // label buffer reserved as a contiguous block
-        Log.verbose(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, map_p_tmp); // label pointer array block
-        lv_btnmatrix_set_map(obj, btnmatrix_default_map);                 // reset to default btnmap pointer
+        LOG_DEBUG(TAG_ATTR, "%s %d %x", __FILE__, __LINE__,
+                  *map_p_tmp);                                          // label buffer reserved as a contiguous block
+        LOG_DEBUG(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, map_p_tmp); // label pointer array block
+        lv_btnmatrix_set_map(obj, btnmatrix_default_map);               // reset to default btnmap pointer
 
-        Log.verbose(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
+        LOG_DEBUG(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
         lv_mem_free(*map_p_tmp); // free label buffer reserved as a contiguous block
-        Log.verbose(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
+        LOG_DEBUG(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
         lv_mem_free(map_p_tmp); // free label pointer array block
-        Log.verbose(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
+        LOG_DEBUG(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
     }
 }
 
@@ -342,7 +342,7 @@ static void my_btnmatrix_map_create(lv_obj_t * obj, const char * payload)
     size_t tot_len             = sizeof(char *) * (arr.size() + 1);
     const char ** map_data_str = (const char **)lv_mem_alloc(tot_len);
     if(map_data_str == NULL) {
-        return Log.error(TAG_ATTR, F("Out of memory while creating button map"));
+        return LOG_ERROR(TAG_ATTR, F("Out of memory while creating button map"));
     }
     memset(map_data_str, 0, tot_len);
 
@@ -352,26 +352,26 @@ static void my_btnmatrix_map_create(lv_obj_t * obj, const char * payload)
         tot_len += btn.as<String>().length() + 1;
     }
     tot_len++; // trailing '\0'
-    Log.verbose(TAG_ATTR, F("Array Size = %d, Map Length = %d"), arr.size(), tot_len);
+    LOG_VERBOSE(TAG_ATTR, F("Array Size = %d, Map Length = %d"), arr.size(), tot_len);
 
     char * buffer_addr = (char *)lv_mem_alloc(tot_len);
     if(buffer_addr == NULL) {
         lv_mem_free(map_data_str);
-        return Log.error(TAG_ATTR, F("Out of memory while creating button map"));
+        return LOG_ERROR(TAG_ATTR, F("Out of memory while creating button map"));
     }
     memset(buffer_addr, 0, tot_len); // Important, last index needs to be 0 => empty string ""
 
     /* Point of no return, destroy & free the previous map */
-    Log.verbose(TAG_ATTR, F("%s %d   map addr:  %x"), __FILE__, __LINE__, map_data_str);
+    LOG_VERBOSE(TAG_ATTR, F("%s %d   map addr:  %x"), __FILE__, __LINE__, map_data_str);
     my_btnmatrix_map_clear(obj); // Free previous map
 
     // Fill buffer
     size_t index = 0;
     size_t pos   = 0;
-    Log.verbose(TAG_ATTR, F("%s %d   lbl addr:  %x"), __FILE__, __LINE__, buffer_addr);
+    LOG_VERBOSE(TAG_ATTR, F("%s %d   lbl addr:  %x"), __FILE__, __LINE__, buffer_addr);
     for(JsonVariant btn : arr) {
         size_t len = btn.as<String>().length() + 1;
-        Log.verbose(TAG_ATTR, F(D_BULLET "Adding button: %s (%d bytes) %x"), btn.as<String>().c_str(), len,
+        LOG_VERBOSE(TAG_ATTR, F(D_BULLET "Adding button: %s (%d bytes) %x"), btn.as<String>().c_str(), len,
                     buffer_addr + pos);
         memccpy(buffer_addr + pos, btn.as<String>().c_str(), 0, len); // Copy the label text into the buffer
         map_data_str[index++] = buffer_addr + pos;                    // save pointer to the label in the array
@@ -379,9 +379,9 @@ static void my_btnmatrix_map_create(lv_obj_t * obj, const char * payload)
     }
     map_data_str[index] = buffer_addr + pos; // save pointer to the last \0 byte
 
-    Log.verbose(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
+    LOG_VERBOSE(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
     lv_btnmatrix_set_map(obj, map_data_str);
-    Log.verbose(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
+    LOG_VERBOSE(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
 }
 
 void line_clear_points(lv_obj_t * obj)
@@ -414,7 +414,7 @@ static void line_set_points(lv_obj_t * obj, const char * payload)
     size_t tot_len         = sizeof(lv_point_t *) * (arr.size());
     lv_point_t * point_arr = (lv_point_t *)lv_mem_alloc(tot_len);
     if(point_arr == NULL) {
-        return Log.error(TAG_ATTR, F("Out of memory while creating line points"));
+        return LOG_ERROR(TAG_ATTR, F("Out of memory while creating line points"));
     }
     memset(point_arr, 0, tot_len);
 
@@ -423,7 +423,7 @@ static void line_set_points(lv_obj_t * obj, const char * payload)
         JsonArray point    = v.as<JsonArray>(); // Parse point
         point_arr[index].x = point[0].as<int16_t>();
         point_arr[index].y = point[1].as<int16_t>();
-        Log.verbose(TAG_ATTR, F(D_BULLET "Adding point %d: %d,%d"), index, point_arr[index].x, point_arr[index].y);
+        LOG_VERBOSE(TAG_ATTR, F(D_BULLET "Adding point %d: %d,%d"), index, point_arr[index].x, point_arr[index].y);
         index++;
     }
 
@@ -438,7 +438,7 @@ static inline lv_color_t haspLogColor(lv_color_t color)
     // uint8_t r = (LV_COLOR_GET_R(color) * 263 + 7) >> 5;
     // uint8_t g = (LV_COLOR_GET_G(color) * 259 + 3) >> 6;
     // uint8_t b = (LV_COLOR_GET_B(color) * 263 + 7) >> 5;
-    // Log.verbose(TAG_ATTR,F("Color: R%u G%u B%u"), r, g, b);
+    // LOG_VERBOSE(TAG_ATTR,F("Color: R%u G%u B%u"), r, g, b);
     return color;
 }
 
@@ -590,7 +590,7 @@ static void hasp_process_label_long_mode(lv_obj_t * obj, const char * payload, b
         } else if(!strcasecmp_P(payload, PSTR("crop"))) {
             mode = LV_LABEL_LONG_CROP;
         } else {
-            return Log.warning(TAG_ATTR, F("Invalid long mode"));
+            return LOG_WARNING(TAG_ATTR, F("Invalid long mode"));
         }
         lv_label_set_long_mode(obj, mode);
     } else {
@@ -621,10 +621,10 @@ lv_obj_t * FindButtonLabel(lv_obj_t * btn)
 #endif
 
         } else {
-            Log.error(TAG_ATTR, F("FindButtonLabel NULL Pointer encountered"));
+            LOG_ERROR(TAG_ATTR, F("FindButtonLabel NULL Pointer encountered"));
         }
     } else {
-        Log.warning(TAG_ATTR, F("Button not defined"));
+        LOG_WARNING(TAG_ATTR, F("Button not defined"));
     }
     return NULL;
 }
@@ -642,7 +642,7 @@ static inline void haspSetLabelText(lv_obj_t * obj, const char * value)
 static bool haspGetLabelText(lv_obj_t * obj, char ** text)
 {
     if(!obj) {
-        Log.warning(TAG_ATTR, F("Button not defined"));
+        LOG_WARNING(TAG_ATTR, F("Button not defined"));
         return false;
     }
 
@@ -664,7 +664,7 @@ static bool haspGetLabelText(lv_obj_t * obj, char ** text)
 #endif
 
     } else {
-        Log.warning(TAG_ATTR, F("haspGetLabelText NULL Pointer encountered"));
+        LOG_WARNING(TAG_ATTR, F("haspGetLabelText NULL Pointer encountered"));
     }
 
     return false;
@@ -909,8 +909,15 @@ static void hasp_local_style_attr(lv_obj_t * obj, const char * attr_p, uint16_t 
                 lv_obj_set_style_local_text_font(obj, part, state, font);
                 if(check_obj_type(obj, LV_HASP_ROLLER)) lv_roller_set_visible_row_count(obj, count);
                 lv_obj_set_style_local_text_font(obj, part, state, font); // again, for roller
+
+                if(check_obj_type(obj, LV_HASP_DDLIST)) { // issue #43
+                    lv_obj_set_style_local_text_font(obj, LV_DROPDOWN_PART_MAIN, state, font);
+                    lv_obj_set_style_local_text_font(obj, LV_DROPDOWN_PART_LIST, state, font);
+                    lv_obj_set_style_local_text_font(obj, LV_DROPDOWN_PART_SELECTED, state, font);
+                };
+
             } else {
-                Log.warning(TAG_ATTR, F("Unknown Font ID %s"), payload);
+                LOG_WARNING(TAG_ATTR, F("Unknown Font ID %s"), payload);
             }
             return;
         }
@@ -1057,7 +1064,7 @@ static void hasp_local_style_attr(lv_obj_t * obj, const char * attr_p, uint16_t 
             if(font) {
                 return lv_obj_set_style_local_value_font(obj, part, state, font);
             } else {
-                return Log.warning(TAG_ATTR, F("Unknown Font ID %s"), attr_p);
+                return LOG_WARNING(TAG_ATTR, F("Unknown Font ID %s"), attr_p);
             }
         }
 
@@ -1092,7 +1099,7 @@ static void hasp_local_style_attr(lv_obj_t * obj, const char * attr_p, uint16_t 
             /* Transition attributes */
             // Todo
     }
-    Log.warning(TAG_ATTR, F(D_ATTRIBUTE_UNKNOWN), attr_p);
+    LOG_WARNING(TAG_ATTR, F(D_ATTRIBUTE_UNKNOWN), attr_p);
 }
 
 static void hasp_process_arc_attribute(lv_obj_t * obj, const char * attr_p, uint16_t attr_hash, const char * payload,
@@ -1136,7 +1143,7 @@ static void hasp_process_arc_attribute(lv_obj_t * obj, const char * attr_p, uint
             return (update) ? lv_arc_set_end_angle(obj, val) : hasp_out_int(obj, attr, lv_arc_get_angle_end(obj));
     }
 
-    Log.warning(TAG_ATTR, F(D_ATTRIBUTE_UNKNOWN), attr_p);
+    LOG_WARNING(TAG_ATTR, F(D_ATTRIBUTE_UNKNOWN), attr_p);
 }
 
 static void hasp_process_lmeter_attribute(lv_obj_t * obj, const char * attr_p, uint16_t attr_hash, const char * payload,
@@ -1168,7 +1175,7 @@ static void hasp_process_lmeter_attribute(lv_obj_t * obj, const char * attr_p, u
             return (update) ? lv_linemeter_set_scale(obj, val, line_count) : hasp_out_int(obj, attr, angle);
     }
 
-    Log.warning(TAG_ATTR, F(D_ATTRIBUTE_UNKNOWN), attr_p);
+    LOG_WARNING(TAG_ATTR, F(D_ATTRIBUTE_UNKNOWN), attr_p);
 }
 
 static void hasp_process_gauge_attribute(lv_obj_t * obj, const char * attr_p, uint16_t attr_hash, const char * payload,
@@ -1225,7 +1232,7 @@ static void hasp_process_gauge_attribute(lv_obj_t * obj, const char * attr_p, ui
             return;
     }
 
-    Log.warning(TAG_ATTR, F(D_ATTRIBUTE_UNKNOWN), attr_p);
+    LOG_WARNING(TAG_ATTR, F(D_ATTRIBUTE_UNKNOWN), attr_p);
 }
 
 // ##################### Common Attributes ########################################################
@@ -1269,7 +1276,7 @@ static void hasp_process_obj_attribute_txt(lv_obj_t * obj, const char * attr, co
     }
 #endif
 
-    Log.warning(TAG_ATTR, F(D_ATTRIBUTE_UNKNOWN), attr);
+    LOG_WARNING(TAG_ATTR, F(D_ATTRIBUTE_UNKNOWN), attr);
 }
 
 bool hasp_process_obj_attribute_val(lv_obj_t * obj, const char * attr, const char * payload, bool update)
@@ -1379,7 +1386,7 @@ static void hasp_process_obj_attribute_range(lv_obj_t * obj, const char * attr, 
                       : hasp_out_int(obj, attr, set_min ? min : max);
     }
 
-    Log.warning(TAG_ATTR, F(D_ATTRIBUTE_UNKNOWN), attr);
+    LOG_WARNING(TAG_ATTR, F(D_ATTRIBUTE_UNKNOWN), attr);
 }
 
 // ##################### Default Attributes ########################################################
@@ -1395,14 +1402,14 @@ static void hasp_process_obj_attribute_range(lv_obj_t * obj, const char * attr, 
 void hasp_process_obj_attribute(lv_obj_t * obj, const char * attr_p, const char * payload, bool update)
 {
     // unsigned long start = millis();
-    if(!obj) return Log.warning(TAG_ATTR, F(D_OBJECT_UNKNOWN));
+    if(!obj) return LOG_WARNING(TAG_ATTR, F(D_OBJECT_UNKNOWN));
     int16_t val = atoi(payload);
 
     char * attr = (char *)attr_p;
     if(*attr == '.') attr++; // strip leading '.'
 
     uint16_t attr_hash = hasp_util_get_sdbm(attr);
-    //    Log.verbose(TAG_ATTR,"%s => %d", attr, attr_hash);
+    //    LOG_VERBOSE(TAG_ATTR,"%s => %d", attr, attr_hash);
 
     /* 16-bit Hash Lookup Table */
     switch(attr_hash) {
@@ -1416,7 +1423,7 @@ void hasp_process_obj_attribute(lv_obj_t * obj, const char * attr_p, const char 
 
         case ATTR_OBJID:
             if(update) {
-                Log.warning(TAG_ATTR, F("%s is read-only"), attr_p);
+                LOG_WARNING(TAG_ATTR, F(D_ATTRIBUTE_READ_ONLY), attr_p);
             } else {
                 hasp_out_int(obj, attr, obj->user_data.objid);
             }
@@ -1665,21 +1672,21 @@ void hasp_process_obj_attribute(lv_obj_t * obj, const char * attr_p, const char 
 
         case ATTR_DELETE:
             if(!lv_obj_get_parent(obj)) {
-                return Log.error(TAG_ATTR, F(D_ATTRIBUTE_PAGE_METHOD_INVALID), attr_p);
+                return LOG_ERROR(TAG_ATTR, F(D_ATTRIBUTE_PAGE_METHOD_INVALID), attr_p);
             }
             lv_obj_del_async(obj);
             break; // attribute_found
 
         case ATTR_TO_FRONT:
             if(!lv_obj_get_parent(obj)) {
-                return Log.error(TAG_ATTR, F(D_ATTRIBUTE_PAGE_METHOD_INVALID), attr_p);
+                return LOG_ERROR(TAG_ATTR, F(D_ATTRIBUTE_PAGE_METHOD_INVALID), attr_p);
             }
             lv_obj_move_foreground(obj);
             break; // attribute_found
 
         case ATTR_TO_BACK:
             if(!lv_obj_get_parent(obj)) {
-                return Log.error(TAG_ATTR, F(D_ATTRIBUTE_PAGE_METHOD_INVALID), attr_p);
+                return LOG_ERROR(TAG_ATTR, F(D_ATTRIBUTE_PAGE_METHOD_INVALID), attr_p);
             }
             lv_obj_move_background(obj);
             break; // attribute_found
@@ -1689,10 +1696,10 @@ void hasp_process_obj_attribute(lv_obj_t * obj, const char * attr_p, const char 
     }
 
 attribute_found:
-    // Log.verbose(TAG_ATTR, F("%s (%d)"), attr_p, attr_hash);
-    // Log.verbose(TAG_ATTR, F("%s (%d) took %d ms."), attr_p, attr_hash, millis() - start);
+    // LOG_VERBOSE(TAG_ATTR, F("%s (%d)"), attr_p, attr_hash);
+    // LOG_VERBOSE(TAG_ATTR, F("%s (%d) took %d ms."), attr_p, attr_hash, millis() - start);
     return;
 
 attribute_not_found:
-    Log.warning(TAG_ATTR, F(D_ATTRIBUTE_UNKNOWN " (%d)"), attr_p, attr_hash);
+    LOG_WARNING(TAG_ATTR, F(D_ATTRIBUTE_UNKNOWN " (%d)"), attr_p, attr_hash);
 }

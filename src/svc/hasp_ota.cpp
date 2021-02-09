@@ -32,7 +32,7 @@ bool otaUpdateCheck()
 { // firmware update check
     WiFiClientSecure wifiUpdateClientSecure;
     HTTPClient updateClient;
-    Log.notice(TAG_OTA, F(D_OTA_CHECK_UPDATE), otaUrl.c_str());
+    LOG_TRACE(TAG_OTA, F(D_OTA_CHECK_UPDATE), otaUrl.c_str());
 
     // wifiUpdateClientSecure.setInsecure();
     // wifiUpdateClientSecure.setBufferSizes(512, 512);
@@ -40,7 +40,7 @@ bool otaUpdateCheck()
 
     int httpCode = updateClient.GET(); // start connection and send HTTP header
     if(httpCode != HTTP_CODE_OK) {
-        Log.error(TAG_OTA, F(D_OTA_CHECK_FAILED), updateClient.errorToString(httpCode).c_str());
+        LOG_ERROR(TAG_OTA, F(D_OTA_CHECK_FAILED), updateClient.errorToString(httpCode).c_str());
         return false;
     }
 
@@ -65,14 +65,14 @@ bool otaUpdateCheck()
             //     debugPrintln(String(F("UPDATE: New ESP version available: ")) + String(updateEspAvailableVersion));
             // }
         }
-        Log.verbose(TAG_OTA, F(D_OTA_CHECK_COMPLETE));
+        LOG_VERBOSE(TAG_OTA, F(D_OTA_CHECK_COMPLETE));
     }
     return true;
 }
 
 static inline void otaProgress(void)
 {
-    Log.verbose(TAG_OTA, F("%s update in progress... %3u%"),
+    LOG_VERBOSE(TAG_OTA, F("%s update in progress... %3u%"),
                 (ArduinoOTA.getCommand() == U_FLASH ? PSTR("Firmware") : PSTR("Filesystem")), otaPrecentageComplete);
 }
 
@@ -87,7 +87,7 @@ void otaOnProgress(unsigned int progress, unsigned int total)
 void otaSetup(void)
 {
     if(strlen(otaUrl.c_str())) {
-        Log.trace(TAG_OTA, otaUrl.c_str());
+        LOG_INFO(TAG_OTA, otaUrl.c_str());
     }
 
     if(otaPort > 0) {
@@ -97,14 +97,14 @@ void otaSetup(void)
                 // NOTE: if updating SPIFFS this would be the place to unmount SPIFFS using SPIFFS.end()
             }
 
-            Log.notice(TAG_OTA, F(D_SERVICE_STARTING));
+            LOG_TRACE(TAG_OTA, F(D_SERVICE_STARTING));
             haspProgressMsg(F(D_OTA_UPDATE_FIRMWARE));
             haspProgressVal(0);
             otaPrecentageComplete = 0;
         });
         ArduinoOTA.onEnd([]() {
             otaPrecentageComplete = 100;
-            Log.notice(TAG_OTA, F(D_OTA_UPDATE_COMPLETE));
+            LOG_TRACE(TAG_OTA, F(D_OTA_UPDATE_COMPLETE));
             haspProgressVal(100);
             haspProgressMsg(F(D_OTA_UPDATE_APPLY));
             otaProgress();
@@ -136,7 +136,7 @@ void otaSetup(void)
             }
 
             otaPrecentageComplete = -1;
-            Log.error(TAG_OTA, F("%s failed (%s)"), buffer, error);
+            LOG_ERROR(TAG_OTA, F("%s failed (%s)"), buffer, error);
             haspProgressMsg(F(D_OTA_UPDATE_FAILED));
             // delay(5000);
         });
@@ -164,9 +164,9 @@ void otaSetup(void)
     #endif
 
         ArduinoOTA.begin();
-        Log.trace(TAG_OTA, F(D_SERVICE_STARTED));
+        LOG_INFO(TAG_OTA, F(D_SERVICE_STARTED));
     } else {
-        Log.warning(TAG_OTA, F(D_SERVICE_DISABLED));
+        LOG_WARNING(TAG_OTA, F(D_SERVICE_DISABLED));
     }
 }
 
@@ -201,16 +201,16 @@ void otaHttpUpdate(const char * espOtaUrl)
 
     switch(returnCode) {
         case HTTP_UPDATE_FAILED:
-            Log.error(TAG_FWUP, F("HTTP_UPDATE_FAILED error %i %s"), httpUpdate.getLastError(),
+            LOG_ERROR(TAG_FWUP, F("HTTP_UPDATE_FAILED error %i %s"), httpUpdate.getLastError(),
                       httpUpdate.getLastErrorString().c_str());
             break;
 
         case HTTP_UPDATE_NO_UPDATES:
-            Log.notice(TAG_FWUP, F("HTTP_UPDATE_NO_UPDATES"));
+            LOG_TRACE(TAG_FWUP, F("HTTP_UPDATE_NO_UPDATES"));
             break;
 
         case HTTP_UPDATE_OK:
-            Log.notice(TAG_FWUP, F("HTTP_UPDATE_OK"));
+            LOG_TRACE(TAG_FWUP, F("HTTP_UPDATE_OK"));
             dispatch_reboot(true);
     }
 

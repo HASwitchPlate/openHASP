@@ -313,9 +313,9 @@ void haspSetup(void)
     // lv_fs_res_t res;
     // res = lv_fs_open(&f, "E:/config.json", LV_FS_MODE_RD);
     // if(res == LV_FS_RES_OK)
-    //     Log.verbose(TAG_HASP, F("Opening config.json OK"));
+    //     LOG_VERBOSE(TAG_HASP, F("Opening config.json OK"));
     // else
-    //     Log.error(TAG_HASP, F("Opening config.json from FS failed %d"), res);
+    //     LOG_ERROR(TAG_HASP, F("Opening config.json from FS failed %d"), res);
 
     // uint32_t btoread = 128;
     // uint32_t bread   = 0;
@@ -323,17 +323,17 @@ void haspSetup(void)
 
     // res = lv_fs_read(&f, buffer, btoread, &bread);
     // if(res == LV_FS_RES_OK) {
-    //     Log.verbose(TAG_HASP, F("Reading config.json OK %u"), bread);
+    //     LOG_VERBOSE(TAG_HASP, F("Reading config.json OK %u"), bread);
     //     buffer[127] = '\0';
-    //     Log.trace(TAG_HASP, buffer);
+    //     LOG_INFO(TAG_HASP, buffer);
     // } else
-    //     Log.error(TAG_HASP, F("Reading config.json from FS failed %d"), res);
+    //     LOG_ERROR(TAG_HASP, F("Reading config.json from FS failed %d"), res);
 
     // res = lv_fs_close(&f);
     // if(res == LV_FS_RES_OK)
-    //     Log.verbose(TAG_HASP, F("Closing config.json OK"));
+    //     LOG_VERBOSE(TAG_HASP, F("Closing config.json OK"));
     // else
-    //     Log.error(TAG_HASP, F("Closing config.json on FS failed %d"), res);
+    //     LOG_ERROR(TAG_HASP, F("Closing config.json on FS failed %d"), res);
     /******* File System Test ********************************************************************/
 
     /* ********** Font Initializations ********** */
@@ -343,7 +343,7 @@ void haspSetup(void)
     lv_zifont_init();
 
     if(lv_zifont_font_init(&haspFonts[1], haspZiFontPath, 32) != 0) {
-        Log.error(TAG_HASP, F("Failed to set font to %s"), haspZiFontPath);
+        LOG_ERROR(TAG_HASP, F("Failed to set font to %s"), haspZiFontPath);
         haspFonts[1] = LV_FONT_DEFAULT;
     } else {
         // defaultFont = haspFonts[0];
@@ -430,14 +430,14 @@ void haspSetup(void)
 
         default:
 
-            Log.error(TAG_HASP, F("Unknown theme selected"));
+            LOG_ERROR(TAG_HASP, F("Unknown theme selected"));
     }
 
     if(th) {
         lv_theme_set_act(th);
-        Log.trace(TAG_HASP, F("Custom theme loaded"));
+        LOG_INFO(TAG_HASP, F("Custom theme loaded"));
     } else {
-        Log.error(TAG_HASP, F("Theme could not be loaded"));
+        LOG_ERROR(TAG_HASP, F("Theme could not be loaded"));
     }
 
     /* Create all screens using the theme */
@@ -522,11 +522,11 @@ void haspClearPage(uint16_t pageid)
 {
     lv_obj_t * page = get_page_obj(pageid);
     if(!page || (pageid > HASP_NUM_PAGES)) {
-        Log.warning(TAG_HASP, F(D_HASP_INVALID_PAGE), pageid);
+        LOG_WARNING(TAG_HASP, F(D_HASP_INVALID_PAGE), pageid);
     } else if(page == lv_layer_sys() /*|| page == lv_layer_top()*/) {
-        Log.warning(TAG_HASP, F(D_HASP_INVALID_LAYER));
+        LOG_WARNING(TAG_HASP, F(D_HASP_INVALID_LAYER));
     } else {
-        Log.notice(TAG_HASP, F(D_HASP_CLEAR_PAGE), pageid);
+        LOG_TRACE(TAG_HASP, F(D_HASP_CLEAR_PAGE), pageid);
         lv_obj_clean(page);
     }
 }
@@ -540,9 +540,9 @@ void haspSetPage(uint8_t pageid)
 {
     lv_obj_t * page = get_page_obj(pageid);
     if(!page || pageid == 0 || pageid > HASP_NUM_PAGES) {
-        Log.warning(TAG_HASP, F(D_HASP_INVALID_PAGE), pageid);
+        LOG_WARNING(TAG_HASP, F(D_HASP_INVALID_PAGE), pageid);
     } else {
-        Log.notice(TAG_HASP, F(D_HASP_CHANGE_PAGE), pageid);
+        LOG_TRACE(TAG_HASP, F(D_HASP_CHANGE_PAGE), pageid);
         current_page = pageid;
         lv_scr_load(page);
         hasp_object_tree(page, pageid, 0);
@@ -555,29 +555,29 @@ void haspLoadPage(const char * pagesfile)
     if(pagesfile[0] == '\0') return;
 
     if(!filesystemSetup()) {
-        Log.error(TAG_HASP, F("FS not mounted. Failed to load %s"), pagesfile);
+        LOG_ERROR(TAG_HASP, F("FS not mounted. Failed to load %s"), pagesfile);
         return;
     }
 
     if(!HASP_FS.exists(pagesfile)) {
-        Log.error(TAG_HASP, F("Non existing file %s"), pagesfile);
+        LOG_ERROR(TAG_HASP, F("Non existing file %s"), pagesfile);
         return;
     }
 
-    Log.notice(TAG_HASP, F("Loading file %s"), pagesfile);
+    LOG_TRACE(TAG_HASP, F("Loading file %s"), pagesfile);
 
     File file = HASP_FS.open(pagesfile, "r");
     dispatch_parse_jsonl(file);
     file.close();
 
-    Log.trace(TAG_HASP, F("File %s loaded"), pagesfile);
+    LOG_INFO(TAG_HASP, F("File %s loaded"), pagesfile);
 #else
 
     #if HASP_USE_EEPROM > 0
-    Log.notice(TAG_HASP, F("Loading jsonl from EEPROM..."));
+    LOG_TRACE(TAG_HASP, F("Loading jsonl from EEPROM..."));
     EepromStream eepromStream(4096, 1024);
     dispatch_parse_jsonl(eepromStream);
-    Log.trace(TAG_HASP, F("Loaded jsonl from EEPROM"));
+    LOG_INFO(TAG_HASP, F("Loaded jsonl from EEPROM"));
     #endif
 
 #endif

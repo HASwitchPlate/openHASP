@@ -26,6 +26,7 @@
 #include "lv_misc/lv_debug.h"
 #include "lv_zifont.h"
 #include "ArduinoLog.h"
+#include "hasp_macro.h"
 
 /*********************
  *      DEFINES
@@ -96,7 +97,7 @@ static inline bool openFont(File & file, const char * filename)
 
     file = FS.open(filename, "r");
     if(!file) {
-        Log.error(TAG_FONT, F("Opening font: %s"), filename);
+        LOG_ERROR(TAG_FONT, F("Opening font: %s"), filename);
         return false;
     }
     return file;
@@ -107,14 +108,14 @@ static inline bool initCharacterFrame(size_t size)
     if(size > _lv_mem_get_size(charBitmap_p)) {
         lv_mem_free(charBitmap_p);
         charBitmap_p = (uint8_t *)lv_mem_alloc(size);
-        Log.warning(TAG_FONT, F("Pixel buffer is %d bytes"), _lv_mem_get_size(charBitmap_p));
+        LOG_WARNING(TAG_FONT, F("Pixel buffer is %d bytes"), _lv_mem_get_size(charBitmap_p));
     }
 
     if(charBitmap_p != NULL) {
         _lv_memset_00(charBitmap_p, size); // init the bitmap to white
         return true;
     } else {
-        Log.error(TAG_FONT, F("Failed to allocate pixel buffer"));
+        LOG_ERROR(TAG_FONT, F("Failed to allocate pixel buffer"));
         return false;
     }
 }
@@ -158,14 +159,14 @@ int lv_zifont_font_init(lv_font_t ** font, const char * font_path, uint16_t size
 
     /* Check that we read the correct size */
     if(readSize != sizeof(zi_font_header_t)) {
-        Log.error(TAG_FONT, F("Error reading ziFont Header"));
+        LOG_ERROR(TAG_FONT, F("Error reading ziFont Header"));
         file.close();
         return ZIFONT_ERROR_READING_DATA;
     }
 
     /* Check ziFile Header Format */
     if(header.Password != 4 || header.Version != 5) {
-        Log.error(TAG_FONT, F("Unknown font file format"));
+        LOG_ERROR(TAG_FONT, F("Unknown font file format"));
         file.close();
         return ZIFONT_ERROR_UNKNOWN_HEADER;
     }
@@ -195,12 +196,12 @@ int lv_zifont_font_init(lv_font_t ** font, const char * font_path, uint16_t size
 
     //* Check that we read the correct size
     if(readSize != sizeof(lv_zifont_char_t) * CHAR_CACHE_SIZE) {
-        Log.error(TAG_FONT, F("Error reading ziFont character map"));
+        LOG_ERROR(TAG_FONT, F("Error reading ziFont character map"));
         file.close();
         return ZIFONT_ERROR_READING_DATA;
     }
 
-    Log.verbose(TAG_FONT, F("Loaded V%d Font File: %s containing %d characters"), header.Version, font_path,
+    LOG_VERBOSE(TAG_FONT, F("Loaded V%d Font File: %s containing %d characters"), header.Version, font_path,
                 header.Maximumnumchars);
 
     file.close();
@@ -309,7 +310,7 @@ const uint8_t * IRAM_ATTR lv_font_get_bitmap_fmt_zifont(const lv_font_t * font, 
         if(readSize != sizeof(lv_zifont_char_t)) {
             file.close();
             lv_mem_free(charInfo);
-            Log.error(TAG_FONT, F("Wrong number of bytes read from flash"));
+            LOG_ERROR(TAG_FONT, F("Wrong number of bytes read from flash"));
             return NULL;
         }
 
@@ -317,7 +318,7 @@ const uint8_t * IRAM_ATTR lv_font_get_bitmap_fmt_zifont(const lv_font_t * font, 
         if(charInfo->character != unicode_letter) {
             file.close();
             lv_mem_free(charInfo);
-            Log.error(TAG_FONT, F("Incorrect letter read from flash"));
+            LOG_ERROR(TAG_FONT, F("Incorrect letter read from flash"));
             return NULL;
         }
     }
@@ -412,7 +413,7 @@ const uint8_t * IRAM_ATTR lv_font_get_bitmap_fmt_zifont(const lv_font_t * font, 
                     colorsAdd(charBitmap_p, color2, arrindex++);
             }
             // if(unicode_letter == 0xf015)
-            //     Log.verbose(TAG_FONT, F("read %d => %d / %d (%d / %d) %d"), len, fileindex, charInfo->length,
+            //     LOG_VERBOSE(TAG_FONT, F("read %d => %d / %d (%d / %d) %d"), len, fileindex, charInfo->length,
             //     arrindex,
             //                 size, k);
         }

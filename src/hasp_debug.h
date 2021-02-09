@@ -6,6 +6,7 @@
 
 #include "ArduinoJson.h"
 #include "ArduinoLog.h"
+#include "hasp_macro.h"
 #include "lvgl.h"
 
 #include "lang/lang.h"
@@ -19,7 +20,8 @@ void debugStart(void);
 void debugStop(void);
 
 /* ===== Special Event Processors ===== */
-void debugLvglLogEvent(lv_log_level_t level, const char * file, uint32_t line, const char * funcname, const char * descr);
+void debugLvglLogEvent(lv_log_level_t level, const char * file, uint32_t line, const char * funcname,
+                       const char * descr);
 void debugPrintHaspHeader(Print * output);
 void debugStartSyslog(void);
 void debugStopSyslog(void);
@@ -42,7 +44,7 @@ enum {
     TAG_MSGR = 3,
     TAG_OOBE = 4,
     TAG_HAL  = 5,
-    TAG_DRVR  = 6,
+    TAG_DRVR = 6,
 
     TAG_DEBG = 10,
     TAG_TELN = 11,

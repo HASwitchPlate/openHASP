@@ -51,7 +51,7 @@ lv_obj_t * hasp_find_obj_from_parent_id(lv_obj_t * parent, uint8_t objid)
             uint16_t tabcount = lv_tabview_get_tab_count(child);
             for(uint16_t i = 0; i < tabcount; i++) {
                 lv_obj_t * tab = lv_tabview_get_tab(child, i);
-                Log.verbose(TAG_HASP, "Found tab %i", i);
+                LOG_VERBOSE(TAG_HASP, "Found tab %i", i);
                 if(tab->user_data.objid && objid == tab->user_data.objid) return tab; /* tab found, return it */
 
                 /* check grandchildren */
@@ -181,7 +181,7 @@ void hasp_object_tree(lv_obj_t * parent, uint8_t pageid, uint16_t level)
     lv_obj_type_t list;
     lv_obj_get_type(parent, &list);
     const char * objtype = list.type[0];
-    Log.verbose(TAG_HASP, F("[%d] " HASP_OBJECT_NOTATION " %s"), level, pageid, parent->user_data.id, objtype);
+    LOG_VERBOSE(TAG_HASP, F("[%d] " HASP_OBJECT_NOTATION " %s"), level, pageid, parent->user_data.id, objtype);
 
     lv_obj_t * child;
     child = lv_obj_get_child(parent, NULL);
@@ -199,7 +199,7 @@ void hasp_object_tree(lv_obj_t * parent, uint8_t pageid, uint16_t level)
         uint16_t tabcount = lv_tabview_get_tab_count(parent);
         for(uint16_t i = 0; i < tabcount; i++) {
             lv_obj_t * tab = lv_tabview_get_tab(parent, i);
-            Log.verbose(TAG_HASP, "Found tab %i", i);
+            LOG_VERBOSE(TAG_HASP, "Found tab %i", i);
             if(tab->user_data.objid) hasp_object_tree(tab, pageid, level + 1);
         }
 #endif
@@ -319,18 +319,18 @@ void generic_event_handler(lv_obj_t * obj, lv_event_t event)
             return;
 
         case LV_EVENT_VALUE_CHANGED:
-            Log.warning(TAG_HASP, F("Value changed Event %d occured"), event);
+            LOG_WARNING(TAG_HASP, F("Value changed Event %d occured"), event);
             last_press_was_short = false;
             return;
 
         case LV_EVENT_DELETE:
-            Log.verbose(TAG_HASP, F(D_OBJECT_DELETED));
+            LOG_VERBOSE(TAG_HASP, F(D_OBJECT_DELETED));
             hasp_object_delete(obj); // free and destroy persistent memory allocated for certain objects
             last_press_was_short = false;
             return;
 
         default:
-            Log.warning(TAG_HASP, F(D_OBJECT_EVENT_UNKNOWN), event);
+            LOG_WARNING(TAG_HASP, F(D_OBJECT_EVENT_UNKNOWN), event);
             last_press_was_short = false;
             return;
     }
@@ -388,7 +388,7 @@ void toggle_event_handler(lv_obj_t * obj, lv_event_t event)
         dispatch_normalized_group_value(obj->user_data.groupid, NORMALIZE(val, 0, 1), obj);
 
     } else if(event == LV_EVENT_DELETE) {
-        Log.verbose(TAG_HASP, F(D_OBJECT_DELETED));
+        LOG_VERBOSE(TAG_HASP, F(D_OBJECT_DELETED));
         hasp_object_delete(obj);
     }
 }
@@ -450,7 +450,7 @@ static void selector_event_handler(lv_obj_t * obj, lv_event_t event)
         if(max > 0) dispatch_normalized_group_value(obj->user_data.groupid, NORMALIZE(val, 0, max), obj);
 
     } else if(event == LV_EVENT_DELETE) {
-        Log.verbose(TAG_HASP, F(D_OBJECT_DELETED));
+        LOG_VERBOSE(TAG_HASP, F(D_OBJECT_DELETED));
         hasp_object_delete(obj);
     }
 }
@@ -495,7 +495,7 @@ void slider_event_handler(lv_obj_t * obj, lv_event_t event)
         dispatch_normalized_group_value(obj->user_data.groupid, NORMALIZE(val, min, max), obj);
 
     } else if(event == LV_EVENT_DELETE) {
-        Log.verbose(TAG_HASP, F(D_OBJECT_DELETED));
+        LOG_VERBOSE(TAG_HASP, F(D_OBJECT_DELETED));
         hasp_object_delete(obj);
     }
 }
@@ -514,7 +514,7 @@ static void cpicker_event_handler(lv_obj_t * obj, lv_event_t event)
         hasp_update_sleep_state(); // wakeup?
         hasp_send_obj_attribute_color(obj, color, lv_cpicker_get_color(obj));
     } else if(event == LV_EVENT_DELETE) {
-        Log.verbose(TAG_HASP, F(D_OBJECT_DELETED));
+        LOG_VERBOSE(TAG_HASP, F(D_OBJECT_DELETED));
         hasp_object_delete(obj);
     }
 }
@@ -557,7 +557,7 @@ void object_set_group_value(lv_obj_t * parent, uint8_t groupid, const char * pay
             uint16_t tabcount = lv_tabview_get_tab_count(child);
             for(uint16_t i = 0; i < tabcount; i++) {
                 lv_obj_t * tab = lv_tabview_get_tab(child, i);
-                Log.verbose(TAG_HASP, F("Found tab %i"), i);
+                LOG_VERBOSE(TAG_HASP, F("Found tab %i"), i);
                 if(tab->user_data.groupid && groupid == tab->user_data.groupid)
                     hasp_process_obj_attribute_val(tab, NULL, payload, true); /* tab found, update it */
 
@@ -586,7 +586,7 @@ void hasp_process_attribute(uint8_t pageid, uint8_t objid, const char * attr, co
     if(lv_obj_t * obj = hasp_find_obj_from_parent_id(get_page_obj(pageid), objid)) {
         hasp_process_obj_attribute(obj, attr, payload, strlen(payload) > 0);
     } else {
-        Log.warning(TAG_HASP, F(D_OBJECT_UNKNOWN " " HASP_OBJECT_NOTATION), pageid, objid);
+        LOG_WARNING(TAG_HASP, F(D_OBJECT_UNKNOWN " " HASP_OBJECT_NOTATION), pageid, objid);
     }
 }
 
@@ -604,7 +604,7 @@ void hasp_new_object(const JsonObject & config, uint8_t & saved_page_id)
     uint8_t pageid        = config[FPSTR(FP_PAGE)].isNull() ? saved_page_id : config[FPSTR(FP_PAGE)].as<uint8_t>();
     lv_obj_t * parent_obj = get_page_obj(pageid);
     if(!parent_obj) {
-        return Log.warning(TAG_HASP, F(D_OBJECT_PAGE_UNKNOWN), pageid);
+        return LOG_WARNING(TAG_HASP, F(D_OBJECT_PAGE_UNKNOWN), pageid);
     } else {
         saved_page_id = pageid; /* save the current pageid */
     }
@@ -614,10 +614,10 @@ void hasp_new_object(const JsonObject & config, uint8_t & saved_page_id)
         uint8_t parentid = config[FPSTR(FP_PARENTID)].as<uint8_t>();
         parent_obj       = hasp_find_obj_from_parent_id(parent_obj, parentid);
         if(!parent_obj) {
-            return Log.warning(TAG_HASP, F("Parent ID " HASP_OBJECT_NOTATION " not found, skipping..."), pageid,
+            return LOG_WARNING(TAG_HASP, F("Parent ID " HASP_OBJECT_NOTATION " not found, skipping..."), pageid,
                                parentid);
         } else {
-            Log.verbose(TAG_HASP, F("Parent ID " HASP_OBJECT_NOTATION " found"), pageid, parentid);
+            LOG_VERBOSE(TAG_HASP, F("Parent ID " HASP_OBJECT_NOTATION " found"), pageid, parentid);
         }
     }
 
@@ -944,12 +944,12 @@ void hasp_new_object(const JsonObject & config, uint8_t & saved_page_id)
 
                 /* ----- Other Object ------ */
                 // default:
-                //    return Log.warning(TAG_HASP, F("Unsupported Object ID %u"), objid);
+                //    return LOG_WARNING(TAG_HASP, F("Unsupported Object ID %u"), objid);
         }
 
         /* No object was actually created */
         if(!obj) {
-            return Log.error(TAG_HASP, F(D_OBJECT_CREATE_FAILED), id);
+            return LOG_ERROR(TAG_HASP, F(D_OBJECT_CREATE_FAILED), id);
         }
 
         // Prevent losing press when the press is slid out of the objects.
@@ -964,18 +964,18 @@ void hasp_new_object(const JsonObject & config, uint8_t & saved_page_id)
         /** testing start **/
         uint8_t temp;
         if(!hasp_find_id_from_obj(obj, &pageid, &temp)) {
-            return Log.error(TAG_HASP, F(D_OBJECT_LOST));
+            return LOG_ERROR(TAG_HASP, F(D_OBJECT_LOST));
         }
 
         /** verbose reporting **/
         lv_obj_type_t list;
         lv_obj_get_type(obj, &list);
-        Log.verbose(TAG_HASP, F(D_BULLET HASP_OBJECT_NOTATION " = %s"), pageid, temp, list.type[0]);
+        LOG_VERBOSE(TAG_HASP, F(D_BULLET HASP_OBJECT_NOTATION " = %s"), pageid, temp, list.type[0]);
 
         /* test double-check */
         lv_obj_t * test = hasp_find_obj_from_parent_id(get_page_obj(pageid), (uint8_t)temp);
         if(test != obj) {
-            return Log.error(TAG_HASP, F(D_OBJECT_MISMATCH));
+            return LOG_ERROR(TAG_HASP, F(D_OBJECT_MISMATCH));
         }
     }
 
@@ -992,7 +992,7 @@ void hasp_new_object(const JsonObject & config, uint8_t & saved_page_id)
     for(JsonPair keyValue : config) {
         v = keyValue.value().as<String>();
         hasp_process_obj_attribute(obj, keyValue.key().c_str(), v.c_str(), true);
-        // Log.verbose(TAG_HASP,F("     * %s => %s"), keyValue.key().c_str(), v.c_str());
+        // LOG_VERBOSE(TAG_HASP,F("     * %s => %s"), keyValue.key().c_str(), v.c_str());
     }
 }
 

@@ -186,10 +186,10 @@ bool httpIsAuthenticated(const __FlashStringHelper * fstr_page)
     }
 
     #if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
-    Log.notice(TAG_HTTP, F("Sending %S page to client connected from: %s"), fstr_page,
+    LOG_TRACE(TAG_HTTP, F("Sending %S page to client connected from: %s"), fstr_page,
                webServer.client().remoteIP().toString().c_str());
     #else
-        // Log.trace(TAG_HTTP,F("Sending %s page to client connected from: %s"), page,
+        // LOG_INFO(TAG_HTTP,F("Sending %s page to client connected from: %s"), page,
         //             String(webServer.client().remoteIP()).c_str());
     #endif
 
@@ -231,7 +231,7 @@ void webSendPage(char * nodename, uint32_t httpdatalength, bool gohome = false)
         contentLength += sizeof(HTTP_FOOTER) - 1;
 
         if(httpdatalength > HTTP_PAGE_SIZE) {
-            Log.warning(TAG_HTTP, F("Sending page with %u static and %u dynamic bytes"), contentLength, httpdatalength);
+            LOG_WARNING(TAG_HTTP, F("Sending page with %u static and %u dynamic bytes"), contentLength, httpdatalength);
         }
 
         webServer.setContentLength(contentLength + httpdatalength);
@@ -761,7 +761,7 @@ void webUploadProgress()
 {
     long t = webServer.header("Content-Length").toInt();
     if(millis() - htppLastLoopTime >= 1250) {
-        Log.verbose(TAG_HTTP, F(D_BULLET "Uploaded %u / %d bytes"), upload->totalSize + upload->currentSize, t);
+        LOG_VERBOSE(TAG_HTTP, F(D_BULLET "Uploaded %u / %d bytes"), upload->totalSize + upload->currentSize, t);
         htppLastLoopTime = millis();
     }
     if(t > 0) t = (upload->totalSize + upload->currentSize) * 100 / t;
@@ -776,17 +776,17 @@ static inline void webUpdatePrintError()
     output.reserve(128);
     StringStream stream((String &)output);
     Update.printError(stream); // ESP8266 only has printError()
-    Log.error(TAG_HTTP, output.c_str());
+    LOG_ERROR(TAG_HTTP, output.c_str());
     haspProgressMsg(output.c_str());
         #elif defined(ARDUINO_ARCH_ESP32)
-    Log.error(TAG_HTTP, Update.errorString()); // ESP32 has errorString()
+    LOG_ERROR(TAG_HTTP, Update.errorString()); // ESP32 has errorString()
     haspProgressMsg(Update.errorString());
         #endif
 }
 
 void webUpdateReboot()
 {
-    Log.trace(TAG_HTTP, F("Update Success: %u bytes received. Rebooting..."), upload->totalSize);
+    LOG_INFO(TAG_HTTP, F("Update Success: %u bytes received. Rebooting..."), upload->totalSize);
 
     {
         String httpMessage((char *)0);
@@ -812,7 +812,7 @@ void webHandleFirmwareUpload()
 
     if(upload->status == UPLOAD_FILE_START) {
         if(!httpIsAuthenticated(F("update"))) return;
-        Log.notice(TAG_HTTP, F("Update: %s"), upload->filename.c_str());
+        LOG_TRACE(TAG_HTTP, F("Update: %s"), upload->filename.c_str());
         haspProgressMsg(upload->filename.c_str());
         // WiFiUDP::stopAll();
         uint32_t maxSketchSpace = (ESP.getFreeSketchSpace() - 0x1000) & 0xFFFFF000;
@@ -874,7 +874,7 @@ void handleFileUpload()
     upload = &webServer.upload();
     if(upload->status == UPLOAD_FILE_START) {
         if(!httpIsAuthenticated(F("fileupload"))) return;
-        Log.trace(TAG_HTTP, F("Total size: %s"), webServer.headerName(0).c_str());
+        LOG_INFO(TAG_HTTP, F("Total size: %s"), webServer.headerName(0).c_str());
         String filename((char *)0);
         filename.reserve(128);
         filename = upload->filename;
@@ -884,23 +884,23 @@ void handleFileUpload()
         }
         if(filename.length() < 32) {
             fsUploadFile = HASP_FS.open(filename, "w");
-            Log.notice(TAG_HTTP, F("handleFileUpload Name: %s"), filename.c_str());
+            LOG_TRACE(TAG_HTTP, F("handleFileUpload Name: %s"), filename.c_str());
             haspProgressMsg(fsUploadFile.name());
         } else {
-            Log.error(TAG_HTTP, F("Filename %s is too long"), filename.c_str());
+            LOG_ERROR(TAG_HTTP, F("Filename %s is too long"), filename.c_str());
         }
     } else if(upload->status == UPLOAD_FILE_WRITE) {
         // DBG_OUTPUT_PORT.print("handleFileUpload Data: "); debugPrintln(upload.currentSize);
         if(fsUploadFile) {
             if(fsUploadFile.write(upload->buf, upload->currentSize) != upload->currentSize) {
-                Log.error(TAG_HTTP, F("Failed to write received data to file"));
+                LOG_ERROR(TAG_HTTP, F("Failed to write received data to file"));
             } else {
                 webUploadProgress(); // Moved to httpEverySecond Loop
             }
         }
     } else if(upload->status == UPLOAD_FILE_END) {
         if(fsUploadFile) {
-            Log.trace(TAG_HTTP, F("Uploaded %s (%u bytes)"), fsUploadFile.name(), upload->totalSize);
+            LOG_INFO(TAG_HTTP, F("Uploaded %s (%u bytes)"), fsUploadFile.name(), upload->totalSize);
             fsUploadFile.close();
         }
         haspProgressVal(255);
@@ -923,7 +923,7 @@ void handleFileDelete()
         return webServer.send_P(500, mimetype, PSTR("BAD ARGS"));
     }
     String path = webServer.arg(0);
-    Log.notice(TAG_HTTP, F("handleFileDelete: %s"), path.c_str());
+    LOG_TRACE(TAG_HTTP, F("handleFileDelete: %s"), path.c_str());
     if(path == "/") {
         return webServer.send_P(500, mimetype, PSTR("BAD PATH"));
     }
@@ -943,7 +943,7 @@ void handleFileCreate()
         return webServer.send(500, PSTR("text/plain"), PSTR("BAD ARGS"));
     }
     String path = webServer.arg(0);
-    Log.notice(TAG_HTTP, F("handleFileCreate: %s"), path.c_str());
+    LOG_TRACE(TAG_HTTP, F("handleFileCreate: %s"), path.c_str());
     if(path == "/") {
         return webServer.send(500, PSTR("text/plain"), PSTR("BAD PATH"));
     }
@@ -970,7 +970,7 @@ void handleFileList()
     }
 
     String path = webServer.arg(F("dir"));
-    Log.notice(TAG_HTTP, F("handleFileList: %s"), path.c_str());
+    LOG_TRACE(TAG_HTTP, F("handleFileList: %s"), path.c_str());
     path.clear();
 
         #if defined(ARDUINO_ARCH_ESP32)
@@ -1752,10 +1752,10 @@ void httpHandleNotFound()
     #endif
 
     #if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
-    Log.notice(TAG_HTTP, F("Sending 404 to client connected from: %s"),
+    LOG_TRACE(TAG_HTTP, F("Sending 404 to client connected from: %s"),
                webServer.client().remoteIP().toString().c_str());
     #else
-  // Log.notice(TAG_HTTP,F("Sending 404 to client connected from: %s"), String(webServer.client().remoteIP()).c_str());
+  // LOG_TRACE(TAG_HTTP,F("Sending 404 to client connected from: %s"), String(webServer.client().remoteIP()).c_str());
     #endif
 
     String httpMessage((char *)0);
@@ -1824,7 +1824,7 @@ void httpHandleEspFirmware()
     }
     webSendFooter();
 
-    Log.notice(TAG_HTTP, F("Attempting ESP firmware update from: %s"), webServer.arg("espFirmware").c_str());
+    LOG_TRACE(TAG_HTTP, F("Attempting ESP firmware update from: %s"), webServer.arg("espFirmware").c_str());
     // espStartOta(webServer.arg("espFirmware"));
 }
 
@@ -1898,9 +1898,9 @@ void httpStart()
         #if defined(STM32F4xx)
     IPAddress ip;
     ip = WiFi.localIP();
-    Log.trace(TAG_HTTP, F(D_SERVICE_STARTED " @ http://%d.%d.%d.%d"), ip[0], ip[1], ip[2], ip[3]);
+    LOG_INFO(TAG_HTTP, F(D_SERVICE_STARTED " @ http://%d.%d.%d.%d"), ip[0], ip[1], ip[2], ip[3]);
         #else
-    Log.trace(TAG_HTTP, F(D_SERVICE_STARTED " @ http://%s"),
+    LOG_INFO(TAG_HTTP, F(D_SERVICE_STARTED " @ http://%s"),
               (WiFi.getMode() != WIFI_STA ? WiFi.softAPIP().toString().c_str() : WiFi.localIP().toString().c_str()));
         #endif
     #else
@@ -1910,7 +1910,7 @@ void httpStart()
         #else
     ip = Ethernet.localIP();
         #endif
-    Log.trace(TAG_HTTP, F(D_SERVICE_STARTED " @ http://%d.%d.%d.%d"), ip[0], ip[1], ip[2], ip[3]);
+    LOG_INFO(TAG_HTTP, F(D_SERVICE_STARTED " @ http://%d.%d.%d.%d"), ip[0], ip[1], ip[2], ip[3]);
     #endif
 }
 
@@ -1918,7 +1918,7 @@ void httpStop()
 {
     webServer.stop();
     webServerStarted = false;
-    Log.warning(TAG_HTTP, F(D_SERVICE_STOPPED));
+    LOG_WARNING(TAG_HTTP, F(D_SERVICE_STOPPED));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1940,7 +1940,7 @@ void httpSetup()
 
             #if HASP_USE_CONFIG > 0
     if(WiFi.getMode() != WIFI_STA) {
-        Log.notice(TAG_HTTP, F("Wifi access point"));
+        LOG_TRACE(TAG_HTTP, F("Wifi access point"));
         webServer.on(F("/"), webHandleWifiConfig);
         return;
     }
@@ -1973,7 +1973,7 @@ void httpSetup()
         F("/edit"), HTTP_POST,
         []() {
             webServer.send(200, "text/plain", "");
-            Log.verbose(TAG_HTTP, F("Headers: %d"), webServer.headers());
+            LOG_VERBOSE(TAG_HTTP, F("Headers: %d"), webServer.headers());
         },
         handleFileUpload);
     #endif
@@ -2009,13 +2009,13 @@ void httpSetup()
         F("/update"), HTTP_POST,
         []() {
             webServer.send(200, "text/plain", "");
-            Log.verbose(TAG_HTTP, F("Total size: %s"), webServer.hostHeader().c_str());
+            LOG_VERBOSE(TAG_HTTP, F("Total size: %s"), webServer.hostHeader().c_str());
         },
         webHandleFirmwareUpload);
     webServer.on(F("/espfirmware"), httpHandleEspFirmware);
     #endif
 
-    Log.trace(TAG_HTTP, F(D_SERVICE_STARTED));
+    LOG_INFO(TAG_HTTP, F(D_SERVICE_STARTED));
     // webStart();  Wait for network connection
 }
 

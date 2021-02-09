@@ -77,7 +77,7 @@ static void kb_event_cb(lv_obj_t * event_kb, lv_event_t event)
 
         if(strlen(ssid) > 0 && wifiValidateSsid(ssid, pass)) {
             wifiSetConfig(settings.as<JsonObject>());
-            Log.notice(TAG_OOBE, F(D_OOBE_SSID_VALIDATED), ssid);
+            LOG_TRACE(TAG_OOBE, F(D_OOBE_SSID_VALIDATED), ssid);
             dispatch_reboot(true);
         }
 
@@ -247,7 +247,7 @@ static void oobeSetupSsid(void)
 
     /* Create a label and position it above the text box */
     lv_obj_t * pwd_label = lv_label_create(oobepage[1], NULL);
-    snprintf_P(buffer, sizeof(buffer), PSTR("Password:"));
+    snprintf_P(buffer, sizeof(buffer), PSTR(D_TELNET_PASSWORD));
     lv_label_set_text(pwd_label, buffer);
     lv_obj_align(pwd_label, pwd_ta, labelpos, 0, 0);
 
@@ -324,10 +324,10 @@ bool oobeSetup()
         lv_obj_set_click(lv_disp_get_layer_sys(NULL), true);
         if(oobeAutoCalibrate) {
             lv_obj_set_event_cb(lv_disp_get_layer_sys(NULL), oobe_calibrate_cb);
-            Log.trace(TAG_OOBE, F(D_OOBE_AUTO_CALIBRATE));
+            LOG_INFO(TAG_OOBE, F(D_OOBE_AUTO_CALIBRATE));
         } else {
             lv_obj_set_event_cb(lv_disp_get_layer_sys(NULL), gotoPage1_cb);
-            Log.trace(TAG_OOBE, F(D_OOBE_CALIBRATED));
+            LOG_INFO(TAG_OOBE, F(D_OOBE_CALIBRATED));
         }
         oobeSetPage(0);
         return true;
@@ -355,9 +355,9 @@ void oobeFakeSetup(const char *, const char *)
     if(oobeAutoCalibrate) {
         lv_obj_set_click(lv_disp_get_layer_sys(NULL), true);
         lv_obj_set_event_cb(lv_disp_get_layer_sys(NULL), oobe_calibrate_cb);
-        Log.trace(TAG_OOBE, F(D_OOBE_AUTO_CALIBRATE));
+        LOG_INFO(TAG_OOBE, F(D_OOBE_AUTO_CALIBRATE));
     } else {
-        Log.trace(TAG_OOBE, F(D_OOBE_CALIBRATED));
+        LOG_INFO(TAG_OOBE, F(D_OOBE_CALIBRATED));
     }
     #endif
 }

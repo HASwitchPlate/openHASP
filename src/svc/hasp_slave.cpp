@@ -40,7 +40,7 @@ void slave_send_state(const __FlashStringHelper * subtopic, const char * payload
     slave.ExecuteCommand((char *)cBuffer);
 
     // Log after char buffers are cleared
-    Log.notice(TAG_TASM, F("TAS PUB: %sstate/%S = %s"), slaveNodeTopic, subtopic, payload);
+    LOG_TRACE(TAG_TASM, F("TAS PUB: %sstate/%S = %s"), slaveNodeTopic, subtopic, payload);
 }
 
 void slave_send_obj_attribute_str(uint8_t pageid, uint8_t btnid, const char * attribute, const char * data)
@@ -51,13 +51,13 @@ void slave_send_obj_attribute_str(uint8_t pageid, uint8_t btnid, const char * at
                pageid, btnid, attribute, data);
     slave.ExecuteCommand((char *)cBuffer);
     // Log after char buffers are cleared
-    Log.notice(TAG_TASM, F("TAS PUB: %sstate/json = {\"p[%u].b[%u].%s\":\"%s\"}"), slaveNodeTopic, pageid, btnid,
+    LOG_TRACE(TAG_TASM, F("TAS PUB: %sstate/json = {\"p[%u].b[%u].%s\":\"%s\"}"), slaveNodeTopic, pageid, btnid,
                attribute, data);
 }
 
 void slave_send_input(uint8_t id, const char * payload)
 {
-    // Log.verbose(TAG_TASM,F("MQTT TST: %sstate/input%u = %s"), mqttNodeTopic, id, payload); // to be removed
+    // LOG_VERBOSE(TAG_TASM,F("MQTT TST: %sstate/input%u = %s"), mqttNodeTopic, id, payload); // to be removed
 
     char cBuffer[strlen(payload) + 64];
     memset(cBuffer, 0, sizeof(cBuffer));
@@ -65,7 +65,7 @@ void slave_send_input(uint8_t id, const char * payload)
     slave.ExecuteCommand((char *)cBuffer);
 
     // Log after char buffers are cleared
-    Log.notice(TAG_TASM, F("TAS PUB: %sstate/input%u = %s"), slaveNodeTopic, id, payload);
+    LOG_TRACE(TAG_TASM, F("TAS PUB: %sstate/input%u = %s"), slaveNodeTopic, id, payload);
 }
 
 void TASMO_TELE_JSON()
@@ -92,12 +92,12 @@ void TASMO_TELE_JSON()
 
 void TASMO_DATA_RECEIVE(char * data)
 {
-    Log.trace(TAG_TASM, F("Slave IN [%s]"), data);
+    LOG_INFO(TAG_TASM, F("Slave IN [%s]"), data);
 
     char dataType[3];
     memset(dataType, 0, sizeof(dataType));
     snprintf_P(dataType, sizeof(dataType), data);
-    Log.trace(TAG_TASM, F("dataType [%s]"), dataType);
+    LOG_INFO(TAG_TASM, F("dataType [%s]"), dataType);
 
     if(!strcmp(dataType, "p[")) { //
         dispatchTextLine(data);
@@ -109,7 +109,7 @@ void TASMO_DATA_RECEIVE(char * data)
         memset(slvVal, 0, sizeof(slvVal));
         sscanf(data, "%[^=] =%s", slvCmd, slvVal);
 
-        Log.trace(TAG_TASM, F("Cmd[%s] Val[%s]"), slvCmd, slvVal);
+        LOG_INFO(TAG_TASM, F("Cmd[%s] Val[%s]"), slvCmd, slvVal);
 
         if(!strcmp(slvCmd, "calData")) {
             if(strlen(slvVal) != 0) {
@@ -135,11 +135,11 @@ void TASMO_EVERY_SECOND(void)
     if(ledstate) {
         ledstate = false;
         // digitalWrite(HASP_OUTPUT_PIN, 1);
-        // Log.trace(TAG_TASM,F("LED OFF"));
+        // LOG_INFO(TAG_TASM,F("LED OFF"));
     } else {
         ledstate = true;
         // digitalWrite(HASP_OUTPUT_PIN, 0);
-        // Log.trace(TAG_TASM,F("LED ON"));
+        // LOG_INFO(TAG_TASM,F("LED ON"));
     }
 }
 
@@ -150,7 +150,7 @@ void slaveSetup()
     slave.attach_FUNC_JSON(TASMO_TELE_JSON);
     slave.attach_FUNC_COMMAND_SEND(TASMO_DATA_RECEIVE);
 
-    Log.notice(TAG_TASM, F("HASP SLAVE LOADED"));
+    LOG_TRACE(TAG_TASM, F("HASP SLAVE LOADED"));
 }
 
 void slaveLoop(void)
