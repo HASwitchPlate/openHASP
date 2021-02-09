@@ -1475,7 +1475,8 @@ void hasp_process_obj_attribute(lv_obj_t * obj, const char * attr_p, const char 
                    : hasp_out_int(obj, attr, lv_obj_get_hidden(obj));
             break; // attribute_found
 
-        case ATTR_TXT:
+        case ATTR_TEXT:
+        case ATTR_TXT: // TODO: remove
             hasp_process_obj_attribute_txt(obj, attr, payload, update);
             break; // attribute_found
 

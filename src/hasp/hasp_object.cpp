@@ -445,7 +445,7 @@ static void selector_event_handler(lv_obj_t * obj, lv_event_t event)
         }
 
         // set the property
-        snprintf_P(property, sizeof(property), PSTR("val\":%d,\"txt"), val);
+        snprintf_P(property, sizeof(property), PSTR("val\":%d,\"text"), val);
         hasp_send_obj_attribute_str(obj, property, buffer);
         if(max > 0) dispatch_normalized_group_value(obj->user_data.groupid, NORMALIZE(val, 0, max), obj);
 
