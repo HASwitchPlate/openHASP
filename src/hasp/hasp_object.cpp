@@ -348,8 +348,12 @@ void generic_event_handler(lv_obj_t * obj, lv_event_t event)
 void wakeup_event_handler(lv_obj_t * obj, lv_event_t event)
 {
     if(obj == lv_disp_get_layer_sys(NULL)) {
-        hasp_update_sleep_state();    // wakeup?
-        lv_obj_set_click(obj, false); // disable fist click
+        hasp_update_sleep_state(); // wakeup?
+
+        if(event == LV_EVENT_CLICKED) {
+            lv_obj_set_click(obj, false); // disable first touch
+            LOG_VERBOSE(TAG_HASP, F("Wakeup touch disabled"));
+        }
     }
 }
 

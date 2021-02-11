@@ -127,6 +127,13 @@ bool hasp_update_sleep_state()
     return (hasp_sleep_state != HASP_SLEEP_OFF);
 }
 
+void hasp_enable_wakeup_touch()
+{
+    LOG_VERBOSE(TAG_HASP,F("Wakeup touch enabled"));
+    lv_obj_set_click(lv_disp_get_layer_sys(NULL), true); // enable first touch
+    lv_obj_set_event_cb(lv_disp_get_layer_sys(NULL), wakeup_event_handler);
+}
+
 /**
  * Return the sleep times
  */

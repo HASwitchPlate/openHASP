@@ -73,6 +73,7 @@ lv_font_t * hasp_get_font(uint8_t fontid);
 bool hasp_update_sleep_state();
 void hasp_get_sleep_time(uint16_t & short_time, uint16_t & long_time);
 void hasp_set_sleep_time(uint16_t short_time, uint16_t long_time);
+void hasp_enable_wakeup_touch();
 
     /**********************
      *      MACROS

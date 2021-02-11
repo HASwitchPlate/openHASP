@@ -448,6 +448,8 @@ void guiSetBacklight(bool lighton)
 {
     guiBacklightIsOn = lighton;
 
+if(!lighton) hasp_enable_wakeup_touch();
+
     if(guiBacklightPin >= 0) {
 
 #if defined(ARDUINO_ARCH_ESP32)
