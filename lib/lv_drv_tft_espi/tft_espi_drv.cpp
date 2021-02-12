@@ -33,7 +33,7 @@
  *  STATIC PROTOTYPES
  **********************/
 static void tftShowConfig(TFT_eSPI & tft);
-static void tftShowLogo(TFT_eSPI & tft);
+static inline void tftShowLogo(TFT_eSPI & tft);
 
 /**********************
  *  STATIC VARIABLES
@@ -242,7 +242,7 @@ static void tftShowConfig(TFT_eSPI & tft)
     }
 }
 
-static void tftShowLogo(TFT_eSPI & tft)
+static inline void tftShowLogo(TFT_eSPI & tft)
 {
     tft.fillScreen(TFT_DARKCYAN);
     int x = (tft.width() - logoWidth) / 2;
