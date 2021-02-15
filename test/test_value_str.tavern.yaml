@@ -81,14 +81,14 @@ stages:
     mqtt_response:
       topic: hasp/{plate}/state/page
       payload: "1"
-      timeout: 5
+      timeout: 1
     delay_after: 0
 
   - name: Set value_str
     mqtt_publish:
       topic: "hasp/{plate}/command/p[1].b[1].value_str"
       payload: "{str1}{str2}"
-    delay_after: 0.2
+    delay_after: 0.05
   - name: Get value_str
     mqtt_publish:
       topic: hasp/{plate}/command
@@ -97,4 +97,4 @@ stages:
       topic: hasp/{plate}/state/p1b1
       json:
         value_str: "{str1}{str2}"
-      timeout: 5
+      timeout: 1

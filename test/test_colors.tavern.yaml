@@ -81,7 +81,7 @@ stages:
     mqtt_response:
       topic: hasp/{plate}/state/page
       payload: "1"
-      timeout: 5
+      timeout: 1
     delay_after: 0
 
   - name: Set bg_color
@@ -125,7 +125,7 @@ stages:
         r: "{r}"
         g: "{g}"
         b: "{b}"
-      timeout: 5
+      timeout: 1
 
   - name: Reset
     mqtt_publish:
@@ -144,7 +144,7 @@ stages:
         r: "{r}"
         g: "{g}"
         b: "{b}"
-      timeout: 5
+      timeout: 1
 
   - name: Reset
     mqtt_publish:
@@ -163,4 +163,4 @@ stages:
         r: "{r}"
         g: "{g}"
         b: "{b}"
-      timeout: 5
+      timeout: 1

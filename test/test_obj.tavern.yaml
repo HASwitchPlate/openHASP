@@ -35,17 +35,7 @@ marks:
       vals:
         - 10
         - 12
-        - 20
-        - 22
-        - 30
-        - 31
-        - 32
-        - 33
-        - 40
-        - 41
-        - 50
-        - 51
-        - 91
+
 
 stages:
   - name: Page 1
@@ -55,7 +45,7 @@ stages:
     mqtt_response:
       topic: hasp/{plate}/state/page
       payload: "1"
-      timeout: 5
+      timeout: 1
     delay_after: 0
 
   - name: Clear page
@@ -79,8 +69,8 @@ stages:
     mqtt_response:
       topic: hasp/{plate}/state/p1b1
       json:
-        x: "{x}"
-      timeout: 5
+        x: !int "{x:d}"
+      timeout: 1
 
   - name: Test y
     mqtt_publish:
@@ -89,8 +79,8 @@ stages:
     mqtt_response:
       topic: hasp/{plate}/state/p1b1
       json:
-        y: "{y}"
-      timeout: 5
+        y: !int "{y:d}"
+      timeout: 1
 
   - name: Test w
     mqtt_publish:
@@ -99,8 +89,8 @@ stages:
     mqtt_response:
       topic: hasp/{plate}/state/p1b1
       json:
-        w: "{w}"
-      timeout: 5
+        w: !int "{w:d}"
+      timeout: 1
 
   - name: Test h
     mqtt_publish:
@@ -110,8 +100,8 @@ stages:
     mqtt_response:
       topic: hasp/{plate}/state/p1b1
       json:
-        h: "{h}"
-      timeout: 5
+        h: !int "{h:d}"
+      timeout: 1
 
   - name: Test enabled
     mqtt_publish:
@@ -121,8 +111,8 @@ stages:
     mqtt_response:
       topic: hasp/{plate}/state/p1b1
       json:
-        enabled: "{hidden}"
-      timeout: 5
+        enabled: !int "{hidden:d}"
+      timeout: 1
 
   - name: Set vis
     mqtt_publish:
@@ -136,8 +126,8 @@ stages:
     mqtt_response:
       topic: hasp/{plate}/state/p1b1
       json:
-        hidden: "{hidden_inv}"
-      timeout: 5
+        hidden: !int "{hidden_inv:d}"
+      timeout: 1
   - name: Get vis
     mqtt_publish:
       topic: hasp/{plate}/command
@@ -145,8 +135,8 @@ stages:
     mqtt_response:
       topic: hasp/{plate}/state/p1b1
       json:
-        vis: "{hidden}"
-      timeout: 5
+        vis: !int "{hidden:d}"
+      timeout: 1
 
   - name: Set hidden
     mqtt_publish:
@@ -160,8 +150,8 @@ stages:
     mqtt_response:
       topic: hasp/{plate}/state/p1b1
       json:
-        hidden: "{hidden}"
-      timeout: 5
+        hidden: !int "{hidden:d}"
+      timeout: 1
 
   - name: Get vis
     mqtt_publish:
@@ -170,8 +160,8 @@ stages:
     mqtt_response:
       topic: hasp/{plate}/state/p1b1
       json:
-        vis: "{hidden_inv}"
-      timeout: 5
+        vis: !int "{hidden_inv:d}"
+      timeout: 1
 
   - name: Test opacity
     mqtt_publish:
@@ -180,8 +170,8 @@ stages:
     mqtt_response:
       topic: hasp/{plate}/state/p1b1
       json:
-        opacity: "{opacity}"
-      timeout: 5
+        opacity: !int "{opacity:d}"
+      timeout: 1
 
   - name: Test radius
     mqtt_publish:
@@ -190,5 +180,5 @@ stages:
     mqtt_response:
       topic: hasp/{plate}/state/p1b1
       json:
-        radius: "{radius}"
-      timeout: 5
+        radius: !int "{radius:d}"
+      timeout: 1
