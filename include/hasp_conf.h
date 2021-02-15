@@ -1,6 +1,9 @@
 #ifndef HASP_CONF_H
 #define HASP_CONF_H
 
+// language specific defines
+#include "lang/lang.h"
+
 #define HASP_USE_APP 1
 
 #ifndef HASP_USE_DEBUG
@@ -101,7 +104,12 @@
 #define HASP_OBJECT_NOTATION "p%ub%u"
 
 /* Includes */
-#include <Arduino.h>
+#ifdef WINDOWS
+    #include "winsock2.h"
+    #include "Windows.h"
+#else
+    #include "Arduino.h"
+#endif
 
 #if HASP_USE_SPIFFS > 0
     // #if defined(ARDUINO_ARCH_ESP32)
@@ -132,7 +140,7 @@
 #endif
 
 #if HASP_USE_WIFI > 0
-    #include "net/hasp_wifi.h"
+    #include "sys/net/hasp_wifi.h"
 
     #if defined(STM32F4xx)
         #include "WiFiSpi.h"
@@ -173,11 +181,18 @@ static WiFiSpiClass WiFi;
 #endif
 
 #if HASP_USE_MQTT > 0
-    #include "svc/hasp_mqtt.h"
+    #include "mqtt/hasp_mqtt.h"
+
+    #ifdef WINDOWS
+        #define USE_PAHO
+    #else
+        #define USE_PUBSUBCLIENT
+    #endif
+
 #endif
 
 #if HASP_USE_GPIO > 0
-    #include "hasp_gpio.h"
+    #include "sys/gpio/hasp_gpio.h"
 #endif
 
 #if HASP_USE_HTTP > 0
@@ -213,6 +228,56 @@ static WiFiSpiClass WiFi;
 
 #ifndef PGM_P
     #define PGM_P const char *
+#endif
+
+#ifndef __FlashStringHelper
+    #define __FlashStringHelper char
+#endif
+
+#ifndef FPSTR
+    #define FPSTR(pstr_pointer) (reinterpret_cast<const __FlashStringHelper *>(pstr_pointer))
+#endif
+
+#ifndef PGM_P
+    #define PGM_P const char *
+#endif
+
+#ifndef F
+    #define F(x) (x)
+#endif
+
+#ifndef PSTR
+    #define PSTR(x) x
+#endif
+
+#ifndef PROGMEM
+    #define PROGMEM
+#endif
+
+#ifdef WINDOWS
+    #include <string.h>
+    #include <stdio.h>
+    #include <Windows.h>
+    #include <SDL2/SDL.h>
+
+    #define snprintf_P snprintf
+    #define memcpy_P memcpy
+    #define strcasecmp_P strcmp // TODO: should be strcasecmp
+    #define strcmp_P strcmp
+    #define strstr_P strstr
+    #define halRestartMcu()
+    #define delay Sleep
+    #define millis SDL_GetTicks
+
+    #define DEC 10
+    #define HEX 16
+    #define BIN 2
+
+    #define guiGetDim() 255
+    #define guiSetDim(x)
+    #define guiGetBacklight() 1
+    #define guiSetBacklight(x)
+    #define guiCalibrate()
 #endif
 
 #endif // HASP_CONF_H

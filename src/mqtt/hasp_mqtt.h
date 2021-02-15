@@ -4,7 +4,11 @@
 #ifndef HASP_MQTT_H
 #define HASP_MQTT_H
 
-#include "ArduinoJson.h"
+#include <stdint.h>
+
+#include "hasp_conf.h"
+
+#define __FlashStringHelper char
 
 void mqttSetup();
 void mqttLoop();
@@ -22,6 +26,6 @@ bool mqttGetConfig(const JsonObject & settings);
 bool mqttSetConfig(const JsonObject & settings);
 #endif
 
-String mqttGetNodename(void);
+//String mqttGetNodename(void);
 
 #endif

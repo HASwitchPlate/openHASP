@@ -26,6 +26,8 @@
  /* Maximal horizontal and vertical resolution to support by the library.*/
 #define LV_HOR_RES_MAX          (TFT_WIDTH)
 #define LV_VER_RES_MAX          (TFT_HEIGHT)
+#define LV_HOR_RES          (TFT_WIDTH)
+#define LV_VER_RES          (TFT_HEIGHT)
 
 /* Color depth:
  * - 1:  1 byte per pixel
@@ -181,7 +183,7 @@ typedef void* lv_group_user_data_t;
 typedef void* lv_fs_drv_user_data_t;
 
 /*File system interface*/
-#define LV_USE_FS_IF	      1
+#define LV_USE_FS_IF	      0
 #if LV_USE_FS_IF
 #  define LV_FS_IF_FATFS    '\0'
 #if defined(ARDUINO_ARCH_ESP32) // || defined(ARDUINO_ARCH_ESP8266)
@@ -251,11 +253,17 @@ typedef void* lv_img_decoder_user_data_t;
 
     /* 1: use a custom tick source.
      * It removes the need to manually update the tick with `lv_tick_inc`) */
+#ifdef ARDUINO
+
 #define LV_TICK_CUSTOM     1
 #if LV_TICK_CUSTOM == 1
 #define LV_TICK_CUSTOM_INCLUDE  "Arduino.h"       /*Header for the sys time function*/
 #define LV_TICK_CUSTOM_SYS_TIME_EXPR (millis())     /*Expression evaluating to current systime in ms*/
 #endif   /*LV_TICK_CUSTOM*/
+
+#else
+#define LV_TICK_CUSTOM     0
+#endif
 
 typedef void* lv_disp_drv_user_data_t;             /*Type of user data in the display driver*/
 typedef void* lv_indev_drv_user_data_t;            /*Type of user data in the input device driver*/
@@ -280,7 +288,7 @@ typedef void* lv_indev_drv_user_data_t;            /*Type of user data in the in
 
  /* 1: Print the log with 'printf';
   * 0: user need to register a callback with `lv_log_register_print_cb`*/
-#  define LV_LOG_PRINTF   0
+#  define LV_LOG_PRINTF   1
 #endif  /*LV_USE_LOG*/
 
   /*=================
@@ -431,7 +439,7 @@ typedef void* lv_font_user_data_t;
  /*Always enable at least on theme*/
 #define LV_USE_THEME_MATERIAL    1   /*A fast and impressive theme*/
 
-#define LV_THEME_DEFAULT_INIT               lv_theme_hasp_init // We init the theme ourselves
+#define LV_THEME_DEFAULT_INIT               lv_theme_material_init // lv_theme_hasp_init // We init the theme ourselves
 #define LV_THEME_DEFAULT_COLOR_PRIMARY      LV_COLOR_RED
 #define LV_THEME_DEFAULT_COLOR_SECONDARY    LV_COLOR_BLUE
 #define LV_THEME_DEFAULT_FLAG              0 //LV_THEME_MATERIAL_FLAG_NONE

@@ -1,18 +1,26 @@
 /* MIT License - Copyright (c) 2020 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
+#ifdef ARDUINO
+
 #include <Arduino.h>
 #include "hasp_conf.h" // load first
 
-#include "hasp_debug.h"
-#include "hasp_config.h"
-#include "hasp_gui.h"
+#if HASP_USE_CONFIG > 0
+    #include "hasp_debug.h"
+#endif
+
+#if HASP_USE_CONFIG > 0
+    #include "hasp_config.h"
+    #include "hasp_gui.h"
+#endif
+
 #include "hasp_oobe.h"
 
 #include "hasp/hasp_dispatch.h"
 #include "hasp/hasp.h"
 
-#include "net/hasp_network.h"
+#include "sys/net/hasp_network.h"
 
 #include "dev/device.h"
 
@@ -49,6 +57,7 @@ void setup()
     dispatchSetup();
     guiSetup();
     debugSetup(); // Init the console
+
 #if HASP_USE_GPIO > 0
     gpioSetup();
 #endif
@@ -137,7 +146,7 @@ void loop()
     /* Timer Loop */
     if(millis() - mainLastLoopTime >= 1000) {
         /* Runs Every Second */
-        haspEverySecond();
+        haspEverySecond();  // sleep timer
         debugEverySecond(); // statusupdate
 
 #if HASP_USE_OTA > 0
@@ -178,3 +187,5 @@ void loop()
     delay(6);
 #endif
 }
+
+#endif

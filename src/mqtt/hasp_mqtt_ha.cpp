@@ -3,7 +3,8 @@
 
 #include "ArduinoJson.h"
 #include "hasp_conf.h"
-#if HASP_USE_MQTT > 0
+
+#if 0 && HASP_USE_MQTT > 0
 
     #include "PubSubClient.h"
 

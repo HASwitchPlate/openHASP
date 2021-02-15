@@ -35,7 +35,7 @@ EthernetClient mqttNetworkClient;
     #endif
 
     #include "hasp_hal.h"
-    #include "hasp_debug.h"
+    #include "log/hasp_debug.h"
     #include "hasp_config.h"
 
     #include "../hasp/hasp_dispatch.h"
