@@ -84,6 +84,16 @@ stages:
       timeout: 1
     delay_after: 0
 
+  - name: Create object
+    mqtt_publish:
+      topic: hasp/{plate}/command/jsonl
+      json:
+        objid: "{objid}"
+        id: 1
+        x: 128
+        y: 128
+    delay_after: 0
+    
   - name: Set value_str
     mqtt_publish:
       topic: "hasp/{plate}/command/p[1].b[1].value_str"

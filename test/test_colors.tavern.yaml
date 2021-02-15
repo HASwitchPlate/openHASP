@@ -103,9 +103,9 @@ stages:
         obj: "{obj}"
         id: 1
         txt: "{color}"
-        x: "{r}"
-        y: "{g}"
-        w: "{b}"
+        r: !int "{r:d}"
+        g: !int "{g:d}"
+        b: !int "{b:d}"
     delay_after: 0.1
 
   - name: Set bg_color
@@ -122,9 +122,9 @@ stages:
       topic: hasp/{plate}/state/p1b1
       json:
         text_color: "{hex}"
-        r: "{r}"
-        g: "{g}"
-        b: "{b}"
+        r: !int "{r:d}"
+        g: !int "{g:d}"
+        b: !int "{b:d}"
       timeout: 1
 
   - name: Reset
@@ -141,9 +141,9 @@ stages:
       topic: hasp/{plate}/state/p1b1
       json:
         text_color: "{hex}"
-        r: "{r}"
-        g: "{g}"
-        b: "{b}"
+        r: !int "{r:d}"
+        g: !int "{g:d}"
+        b: !int "{b:d}"
       timeout: 1
 
   - name: Reset
@@ -160,7 +160,7 @@ stages:
       topic: hasp/{plate}/state/p1b1
       json:
         text_color: "{hex}"
-        r: "{r}"
-        g: "{g}"
-        b: "{b}"
+        r: !int "{r:d}"
+        g: !int "{g:d}"
+        b: !int "{b:d}"
       timeout: 1

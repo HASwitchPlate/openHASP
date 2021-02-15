@@ -16,6 +16,24 @@ paho-mqtt:
 
 marks:
   - parametrize:
+      key: obj
+      vals:
+        - btnmatrix
+        - gauge
+        - btn
+        - label
+        - slider
+        #- cb
+        - sw
+        - bar
+        - arc
+        - led
+        - obj
+        - lmeter
+        - dropdown
+        - roller
+        - spinner
+  - parametrize:
       key:
         - hidden
         - hidden_inv
@@ -25,17 +43,13 @@ marks:
         - h
         - radius
         - opacity
+        - str1
+        - str2
       vals:
-        - [1, 0, 120, 121, 122, 123, 0, 255]
-        - [0, 1, 80, 81, 82, 83, 32535, 192]
-        - [1, 0, -10, -10, 256, 257, 1, 64]
-        - [0, 1, 1024, 1025, 1026, 1027, 5, 0]
-  - parametrize:
-      key: objid
-      vals:
-        - 10
-        - 12
-
+        - [1, 0, 120, 121, 122, 123, 0, 255, "I'm sorry.", "louie"]
+        - [1, 0, -10, -10, 256, 257, 1, 64, "louie", " The cat stretched."]
+        - [0, 1, 1024, 1025, 1026, 1027, 5, 0, "The pipe began to rust while new.", ""]
+        - [0, 1, 80, 81, 82, 83, 32535, 192, "" ," Oak is strong and also gives shade."]
 
 stages:
   - name: Page 1
@@ -52,40 +66,42 @@ stages:
     mqtt_publish:
       topic: hasp/{plate}/command/clearpage
       payload: ""
-    delay_after: 0
+    delay_after: 0.2
 
   - name: Create object
     mqtt_publish:
       topic: hasp/{plate}/command/jsonl
       json:
-        objid: "{objid}"
+        obj: "{obj}"
         id: 1
+        x: 128
+        y: 128
     delay_after: 0
-
-  - name: Test x
-    mqtt_publish:
-      topic: hasp/{plate}/command/json
-      payload: '["p[1].b[1].x={x}","p[1].b[1].x"]'
-    mqtt_response:
-      topic: hasp/{plate}/state/p1b1
-      json:
-        x: !int "{x:d}"
-      timeout: 1
 
   - name: Test y
     mqtt_publish:
       topic: hasp/{plate}/command/json
-      payload: '["p[1].b[1].y={y}","p[1].b[1].y"]'
+      payload: '["p1b1.y={y}","p1b1.y"]'
     mqtt_response:
       topic: hasp/{plate}/state/p1b1
       json:
         y: !int "{y:d}"
       timeout: 1
 
+  - name: Test x
+    mqtt_publish:
+      topic: hasp/{plate}/command/json
+      payload: '["p1b1.x={x}","p1b1.x"]'
+    mqtt_response:
+      topic: hasp/{plate}/state/p1b1
+      json:
+        x: !int "{x:d}"
+      timeout: 1
+
   - name: Test w
     mqtt_publish:
       topic: hasp/{plate}/command/json
-      payload: '["p[1].b[1].w={w}","p[1].b[1].w"]'
+      payload: '["p1b1.w={w}","p1b1.w"]'
     mqtt_response:
       topic: hasp/{plate}/state/p1b1
       json:
@@ -95,7 +111,7 @@ stages:
   - name: Test h
     mqtt_publish:
       topic: hasp/{plate}/command/json
-      payload: '["p[1].b[1].h={h}","p[1].b[1].h"]'
+      payload: '["p1b1.h={h}","p1b1.h"]'
     delay_after: 0
     mqtt_response:
       topic: hasp/{plate}/state/p1b1
@@ -106,7 +122,7 @@ stages:
   - name: Test enabled
     mqtt_publish:
       topic: hasp/{plate}/command/json
-      payload: '["p[1].b[1].enabled={hidden}","p[1].b[1].enabled"]'
+      payload: '["p1b1.enabled={hidden}","p1b1.enabled"]'
     delay_after: 0
     mqtt_response:
       topic: hasp/{plate}/state/p1b1
@@ -117,12 +133,12 @@ stages:
   - name: Set vis
     mqtt_publish:
       topic: hasp/{plate}/command
-      payload: "p[1].b[1].vis={hidden}"
+      payload: "p1b1.vis={hidden}"
     delay_after: 0
   - name: Get hidden
     mqtt_publish:
       topic: hasp/{plate}/command
-      payload: "p[1].b[1].hidden"
+      payload: "p1b1.hidden"
     mqtt_response:
       topic: hasp/{plate}/state/p1b1
       json:
@@ -131,7 +147,7 @@ stages:
   - name: Get vis
     mqtt_publish:
       topic: hasp/{plate}/command
-      payload: "p[1].b[1].vis"
+      payload: "p1b1.vis"
     mqtt_response:
       topic: hasp/{plate}/state/p1b1
       json:
@@ -141,12 +157,12 @@ stages:
   - name: Set hidden
     mqtt_publish:
       topic: hasp/{plate}/command
-      payload: "p[1].b[1].hidden={hidden}"
+      payload: "p1b1.hidden={hidden}"
     delay_after: 0
   - name: Get hidden
     mqtt_publish:
       topic: hasp/{plate}/command
-      payload: "p[1].b[1].hidden"
+      payload: "p1b1.hidden"
     mqtt_response:
       topic: hasp/{plate}/state/p1b1
       json:
@@ -156,7 +172,7 @@ stages:
   - name: Get vis
     mqtt_publish:
       topic: hasp/{plate}/command
-      payload: "p[1].b[1].vis"
+      payload: "p1b1.vis"
     mqtt_response:
       topic: hasp/{plate}/state/p1b1
       json:
@@ -166,7 +182,7 @@ stages:
   - name: Test opacity
     mqtt_publish:
       topic: hasp/{plate}/command/json
-      payload: '["p[1].b[1].opacity={opacity}","p[1].b[1].opacity"]'
+      payload: '["p1b1.opacity={opacity}","p1b1.opacity"]'
     mqtt_response:
       topic: hasp/{plate}/state/p1b1
       json:
@@ -176,9 +192,24 @@ stages:
   - name: Test radius
     mqtt_publish:
       topic: hasp/{plate}/command/json
-      payload: '["p[1].b[1].radius={radius}","p[1].b[1].radius"]'
+      payload: '["p1b1.radius={radius}","p1b1.radius"]'
     mqtt_response:
       topic: hasp/{plate}/state/p1b1
       json:
         radius: !int "{radius:d}"
+      timeout: 1
+    
+  - name: Set value_str
+    mqtt_publish:
+      topic: "hasp/{plate}/command/p1b1.value_str"
+      payload: "{str1}{str2}"
+    delay_after: 0.05
+  - name: Get value_str
+    mqtt_publish:
+      topic: hasp/{plate}/command
+      payload: "p1b1.value_str"
+    mqtt_response:
+      topic: hasp/{plate}/state/p1b1
+      json:
+        value_str: "{str1}{str2}"
       timeout: 1
