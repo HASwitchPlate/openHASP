@@ -222,36 +222,34 @@ static WiFiSpiClass WiFi;
     #include "svc/hasp_slave.h"
 #endif
 
-#ifndef FPSTR
-    #define FPSTR(pstr_pointer) (reinterpret_cast<const __FlashStringHelper *>(pstr_pointer))
-#endif
+#ifdef WINDOWS
+    #ifndef FPSTR
+        #define FPSTR(pstr_pointer) (reinterpret_cast<const __FlashStringHelper *>(pstr_pointer))
+    #endif
 
-#ifndef PGM_P
-    #define PGM_P const char *
-#endif
+    #ifndef __FlashStringHelper
+        #define __FlashStringHelper char
+    #endif
 
-#ifndef __FlashStringHelper
-    #define __FlashStringHelper char
-#endif
+    #ifndef FPSTR
+        #define FPSTR(pstr_pointer) (reinterpret_cast<const __FlashStringHelper *>(pstr_pointer))
+    #endif
 
-#ifndef FPSTR
-    #define FPSTR(pstr_pointer) (reinterpret_cast<const __FlashStringHelper *>(pstr_pointer))
-#endif
+    #ifndef PGM_P
+        #define PGM_P const char *
+    #endif
 
-#ifndef PGM_P
-    #define PGM_P const char *
-#endif
+    #ifndef F
+        #define F(x) (x)
+    #endif
 
-#ifndef F
-    #define F(x) (x)
-#endif
+    #ifndef PSTR
+        #define PSTR(x) x
+    #endif
 
-#ifndef PSTR
-    #define PSTR(x) x
-#endif
-
-#ifndef PROGMEM
-    #define PROGMEM
+    #ifndef PROGMEM
+        #define PROGMEM
+    #endif
 #endif
 
 #ifdef WINDOWS
