@@ -1,7 +1,8 @@
-#include "Arduino.h"
 #include "lanbonl8.h"
 
 #if defined(LANBONL8)
+    #include "Arduino.h"
+    #include "../device.h"
 
     #include "driver/adc.h"
     #include "esp_adc_cal.h"

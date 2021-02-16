@@ -22,13 +22,12 @@ class BaseDevice {
 
 using dev::BaseDevice;
 
-#include "lanbonl8.h"
-#include "m5stackcore2.h"
-
 #if defined(LANBONL8)
     #warning Lanbon L8
+    #include "lanbonl8.h"
 #elif defined(M5STACK)
     #warning M5 Stack
+    #include "m5stackcore2.h"
 #else
 extern dev::BaseDevice haspDevice;
 #endif

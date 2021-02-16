@@ -1,8 +1,8 @@
-#include "device.h"
 #include "m5stackcore2.h"
 
 #if defined(M5STACK)
     #include "AXP192.h" // Power Mgmt
+    #include "../device.h"
 
 // AXP192 Axp;
 namespace dev {
