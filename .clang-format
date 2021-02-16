@@ -60,7 +60,7 @@ IncludeIsMainRegex: '$'
 IndentCaseLabels: true
 IndentWidth:     4
 IndentWrappedFunctionNames: false
-IndentPPDirectives: BeforeHash
+# IndentPPDirectives: BeforeHash
 JavaScriptQuotes: Leave
 JavaScriptWrapImports: true
 KeepEmptyLinesAtTheStartOfBlocks: true
