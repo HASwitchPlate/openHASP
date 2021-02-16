@@ -1,6 +1,9 @@
 /*********************
  *      INCLUDES
  *********************/
+
+#ifndef WINDOWS
+
 #include <Arduino.h>
 #include <stdio.h>
 
@@ -556,6 +559,8 @@ static inline void IRAM_ATTR colorsAdd(uint8_t * charBitmap_p, uint8_t color1, u
         charBitmap_p[map_p] |= color1 << 1;
     }
 }
+
+#endif
 
 /*
 void printPixel(uint8_t pixel)

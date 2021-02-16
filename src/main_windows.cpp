@@ -98,6 +98,7 @@ int main(int argv, char ** args)
     setup();
     std::cout << "HSetup OK\n";
 
+
     while(1) {
         SDL_Delay(5);
         lv_task_handler();

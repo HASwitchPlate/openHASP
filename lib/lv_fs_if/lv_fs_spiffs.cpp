@@ -6,6 +6,8 @@
 /*********************
  *      INCLUDES
  *********************/
+#ifdef ARDUINO
+
 #include <Arduino.h>
 #include "lv_fs_if.h"
 #include "lv_fs_spiffs.h"
@@ -504,3 +506,5 @@ static lv_fs_res_t fs_dir_close(lv_fs_drv_t * drv, void * dir_p)
 
     #endif /*LV_USE_FS_IF*/
 #endif     /*LV_FS_IF_SPIFFS*/
+
+#endif /*ARDUINO*/
