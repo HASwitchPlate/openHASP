@@ -6,7 +6,7 @@
 /*********************
  *      INCLUDES
  *********************/
-#include "../../src/hasp_hal.h" // for halGpioName()
+#include "../../src/hal/hasp_hal.h" // for halGpioName()
 #include "tft_espi_drv.h"
 #include "ArduinoLog.h"
 #include "hasp_macro.h"
