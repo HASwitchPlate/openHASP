@@ -19,20 +19,24 @@ marks:
       key: obj
       vals:
         - btnmatrix
+        - cpicker
+        - table
+        - tabview
+        - chart
         - gauge
         - btn
         - label
         - slider
-        #- cb
-        - sw
+        - checkbox
+        - switch
         - bar
         - arc
         - led
         - obj
         - lmeter
         - dropdown
-        - roller
         - spinner
+        - roller
   - parametrize:
       key:
         - hidden
