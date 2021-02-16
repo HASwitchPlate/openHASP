@@ -8,7 +8,9 @@
 
 #include "hasp_conf.h"
 
-#define __FlashStringHelper char
+#ifdef WINDOWS
+    #define __FlashStringHelper char
+#endif
 
 void mqttSetup();
 void mqttLoop();
@@ -26,6 +28,8 @@ bool mqttGetConfig(const JsonObject & settings);
 bool mqttSetConfig(const JsonObject & settings);
 #endif
 
-//String mqttGetNodename(void);
+#ifndef WINDOWS
+String mqttGetNodename(void);
+#endif
 
 #endif

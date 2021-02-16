@@ -109,20 +109,11 @@ static bool mqttPublish(const char * topic, const char * payload, size_t len, bo
 
 void connlost(void * context, char * cause)
 {
-    MQTTAsync client                   = (MQTTAsync)context;
-    MQTTAsync_connectOptions conn_opts = MQTTAsync_connectOptions_initializer;
-    int rc;
-    connected = 0;
-
     printf("\nConnection lost\n");
     if(cause) printf("     cause: %s\n", cause);
 
     printf("Reconnecting\n");
-    conn_opts.keepAliveInterval = 20;
-    conn_opts.cleansession      = 1;
-    if((rc = MQTTAsync_connect(client, &conn_opts)) != MQTTASYNC_SUCCESS) {
-        printf("Failed to start connect, return code %d\n", rc);
-    }
+    mqttStart();
 }
 
 // Receive incoming messages
@@ -185,8 +176,8 @@ static void mqtt_message_cb(char * topic, char * payload, unsigned int length)
 
 int msgarrvd(void * context, char * topicName, int topicLen, MQTTAsync_message * message)
 {
-    printf("MQT RCV >> ");
-    printf("%s => %.*s (%d)\n", topicName, message->payloadlen, (char *)message->payload, message->payloadlen);
+    // printf("MQT RCV >> ");
+    // printf("%s => %.*s (%d)\n", topicName, message->payloadlen, (char *)message->payload, message->payloadlen);
 
     char msg[message->payloadlen + 1];
     memcpy(msg, (char *)message->payload, message->payloadlen);
@@ -256,6 +247,8 @@ void onConnect(void * context, MQTTAsync_successData * response)
     mqtt_subscribe(context, TOPIC "light");
     mqtt_subscribe(context, TOPIC "dim");
 
+    mqttPublish(TOPIC LWT_TOPIC, "online", false);
+
     mqtt_send_object_state(0, 0, "connected");
     std::cout << std::endl;
 }
@@ -272,7 +265,7 @@ void onSendFailure(void * context, MQTTAsync_failureData * response)
     opts.context   = client;
     if((rc = MQTTAsync_disconnect(client, &opts)) != MQTTASYNC_SUCCESS) {
         printf("Failed to start disconnect, return code %d\n", rc);
-        exit(EXIT_FAILURE);
+        //exit(EXIT_FAILURE);
     }
 }
 
@@ -282,7 +275,8 @@ void onSend(void * context, MQTTAsync_successData * response)
     MQTTAsync_disconnectOptions opts = MQTTAsync_disconnectOptions_initializer;
     int rc;
 
-    printf("Message with token value %d delivery confirmed\n", response->token);
+    // printf("Message with token value %d delivery confirmed\n", response->token);
+
     // opts.onSuccess = onDisconnect;
     // opts.onFailure = onDisconnectFailure;
     // opts.context = client;
@@ -346,6 +340,7 @@ void mqtt_send_object_state(uint8_t pageid, uint8_t btnid, char * payload)
 void mqttStart()
 {
     MQTTAsync_connectOptions conn_opts = MQTTAsync_connectOptions_initializer;
+    MQTTAsync_willOptions will_opts    = MQTTAsync_willOptions_initializer;
     int rc;
     int ch;
 
@@ -362,11 +357,18 @@ void mqttStart()
         return;
     }
 
+    conn_opts.will            = &will_opts;
+    conn_opts.will->message   = "offline";
+    conn_opts.will->qos       = 1;
+    conn_opts.will->retained  = 0;
+    conn_opts.will->topicName = "hasp/plate35/LWT";
+
     conn_opts.keepAliveInterval = 20;
     conn_opts.cleansession      = 1;
     conn_opts.onSuccess         = onConnect;
     conn_opts.onFailure         = onConnectFailure;
     conn_opts.context           = mqtt_client;
+
     if((rc = MQTTAsync_connect(mqtt_client, &conn_opts)) != MQTTASYNC_SUCCESS) {
         printf("Failed to start connect, return code %d\n", rc);
         rc = EXIT_FAILURE;

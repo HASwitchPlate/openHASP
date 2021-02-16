@@ -4,19 +4,20 @@
 #include "ArduinoJson.h"
 #include "hasp_conf.h"
 
-#if 0 && HASP_USE_MQTT > 0
+#ifndef WINDOWS
+    #if HASP_USE_MQTT > 0
 
-    #include "PubSubClient.h"
+        #include "PubSubClient.h"
 
-    #include "hasp/hasp.h"
-    #include "hasp/hasp_dispatch.h"
-    #include "hasp_hal.h"
-    #include "hasp_mqtt.h"
-    #include "hasp_mqtt_ha.h"
+        #include "hasp/hasp.h"
+        #include "hasp/hasp_dispatch.h"
+        #include "hal/hasp_hal.h"
+        #include "hasp_mqtt.h"
+        #include "hasp_mqtt_ha.h"
 
-    #define RETAINED true
-    #define HASP_MAC_ADDRESS halGetMacAddress(0, "").c_str()
-    #define HASP_MAC_ADDRESS_STR halGetMacAddress(0, "")
+        #define RETAINED true
+        #define HASP_MAC_ADDRESS halGetMacAddress(0, "").c_str()
+        #define HASP_MAC_ADDRESS_STR halGetMacAddress(0, "")
 
 extern PubSubClient mqttClient;
 extern char mqttNodeName[16];
@@ -27,10 +28,10 @@ extern bool mqttHAautodiscover;
 
 char discovery_prefix[] = "homeassistant";
 
-const char FP_MQTT_HA_DEVICE[] PROGMEM = "device";
-const char FP_MQTT_HA_IDENTIFIERS[] PROGMEM = "ids";
-const char FP_MQTT_HA_NAME[] PROGMEM = "name";
-const char FP_MQTT_HA_MODEL[] PROGMEM = "mdl";
+const char FP_MQTT_HA_DEVICE[] PROGMEM       = "device";
+const char FP_MQTT_HA_IDENTIFIERS[] PROGMEM  = "ids";
+const char FP_MQTT_HA_NAME[] PROGMEM         = "name";
+const char FP_MQTT_HA_MODEL[] PROGMEM        = "mdl";
 const char FP_MQTT_HA_MANUFACTURER[] PROGMEM = "mf";
 
 void mqtt_ha_send_json(char * topic, JsonDocument & doc)
@@ -53,9 +54,9 @@ void mqtt_ha_add_device_ids(JsonDocument & doc)
     haspGetVersion(buffer, sizeof(buffer));
     device[F("sw")] = buffer;
 
-    device[FPSTR(FP_MQTT_HA_NAME)] = mqttNodeName;
-    device[FPSTR(FP_MQTT_HA_MODEL)]  = F(PIOENV);
-    device[FPSTR(FP_MQTT_HA_MANUFACTURER)]   = F(D_MANUFACTURER);
+    device[FPSTR(FP_MQTT_HA_NAME)]         = mqttNodeName;
+    device[FPSTR(FP_MQTT_HA_MODEL)]        = F(PIOENV);
+    device[FPSTR(FP_MQTT_HA_MANUFACTURER)] = F(D_MANUFACTURER);
 
     doc[F("~")] = mqttNodeTopic;
 }
@@ -251,6 +252,7 @@ void mqtt_ha_register_auto_discovery()
     mqtt_ha_register_idle();
     mqtt_ha_register_connectivity();
 }
+    #endif
 #endif
 
 /*
