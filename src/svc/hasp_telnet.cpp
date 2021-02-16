@@ -7,7 +7,7 @@
     #include "ArduinoJson.h"
     #include "ConsoleInput.h"
 
-    #include "hasp_debug.h"
+    #include "log/hasp_debug.h"
     #include "hasp_config.h"
     #include "hasp_telnet.h"
 

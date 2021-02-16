@@ -8,7 +8,7 @@
 
     #define FT5206_address 0x38
 
-    #include "hasp_debug.h" // for TAG_DRVR
+    #include "log/hasp_debug.h" // for TAG_DRVR
 
 bool FT5206_getXY(int16_t * touchX, int16_t * touchY, bool debug);
 void FT5206_init();

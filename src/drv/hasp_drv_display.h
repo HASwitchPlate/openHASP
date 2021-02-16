@@ -4,6 +4,8 @@
 #ifndef HASP_DRV_DISPLAY_H
 #define HASP_DRV_DISPLAY_H
 
+#include "lvgl.h"
+
 // Select Display Driver
 #if defined(USE_FSMC)
     #include "fsmc_ili9341.h"

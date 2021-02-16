@@ -6,7 +6,7 @@
 
 #if TOUCH_DRIVER == 911
 
-    #include "hasp_debug.h" // for TAG_DRVR
+    #include "log/hasp_debug.h" // for TAG_DRVR
 
 bool GT911_getXY(int16_t * touchX, int16_t * touchY, bool debug);
 void GT911_init();

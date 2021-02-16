@@ -13,7 +13,7 @@
 #include "hasp_conf.h"
 
 #include "hasp_gui.h"
-#include "hasp_hal.h"
+#include "hal/hasp_hal.h"
 #include "hasp_debug.h"
 #include "hasp_config.h"
 
@@ -527,7 +527,7 @@ void webHandleInfo()
         httpMessage += F("s");
 
         httpMessage += F("<br/><b>Free Memory: </b>");
-        hasp_util_format_bytes(halGetFreeHeap(), size_buf, sizeof(size_buf));
+        Utilities::format_bytes(halGetFreeHeap(), size_buf, sizeof(size_buf));
         httpMessage += size_buf;
         httpMessage += F("<br/><b>Memory Fragmentation: </b>");
         httpMessage += String(halGetHeapFragmentation());
@@ -535,10 +535,10 @@ void webHandleInfo()
     #if ARDUINO_ARCH_ESP32
         if(psramFound()) {
             httpMessage += F("<br/><b>Free PSRam: </b>");
-            hasp_util_format_bytes(ESP.getFreePsram(), size_buf, sizeof(size_buf));
+            Utilities::format_bytes(ESP.getFreePsram(), size_buf, sizeof(size_buf));
             httpMessage += size_buf;
             httpMessage += F("<br/><b>PSRam Size: </b>");
-            hasp_util_format_bytes(ESP.getPsramSize(), size_buf, sizeof(size_buf));
+            Utilities::format_bytes(ESP.getPsramSize(), size_buf, sizeof(size_buf));
             httpMessage += size_buf;
         }
     #endif
@@ -547,10 +547,10 @@ void webHandleInfo()
         lv_mem_monitor_t mem_mon;
         lv_mem_monitor(&mem_mon);
         httpMessage += F("</p><p><b>LVGL Memory: </b>");
-        hasp_util_format_bytes(mem_mon.total_size, size_buf, sizeof(size_buf));
+        Utilities::format_bytes(mem_mon.total_size, size_buf, sizeof(size_buf));
         httpMessage += size_buf;
         httpMessage += F("<br/><b>LVGL Free: </b>");
-        hasp_util_format_bytes(mem_mon.free_size, size_buf, sizeof(size_buf));
+        Utilities::format_bytes(mem_mon.free_size, size_buf, sizeof(size_buf));
         httpMessage += size_buf;
         httpMessage += F("<br/><b>LVGL Fragmentation: </b>");
         httpMessage += mem_mon.frag_pct;
@@ -653,15 +653,15 @@ void webHandleInfo()
 
     #if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
         httpMessage += F("<br/><b>Flash Chip Size: </b>");
-        hasp_util_format_bytes(ESP.getFlashChipSize(), size_buf, sizeof(size_buf));
+        Utilities::format_bytes(ESP.getFlashChipSize(), size_buf, sizeof(size_buf));
         httpMessage += size_buf;
 
         httpMessage += F("</br><b>Program Size: </b>");
-        hasp_util_format_bytes(ESP.getSketchSize(), size_buf, sizeof(size_buf));
+        Utilities::format_bytes(ESP.getSketchSize(), size_buf, sizeof(size_buf));
         httpMessage += size_buf;
 
         httpMessage += F("<br/><b>Free Program Space: </b>");
-        hasp_util_format_bytes(ESP.getFreeSketchSpace(), size_buf, sizeof(size_buf));
+        Utilities::format_bytes(ESP.getFreeSketchSpace(), size_buf, sizeof(size_buf));
         httpMessage += size_buf;
     #endif
 
@@ -1834,7 +1834,7 @@ void webHandleSaveConfig()
 {
     if(!httpIsAuthenticated(F("saveConfig"))) return;
 
-    configWriteConfig();
+    configWrite();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

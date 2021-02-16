@@ -4,7 +4,7 @@
 #include "hasp_conf.h"
 
 #include "hasp_debug.h"
-#include "hasp_hal.h"
+#include "hal/hasp_hal.h"
 
 #if HASP_USE_ETHERNET > 0 && defined(STM32F4xx)
 
