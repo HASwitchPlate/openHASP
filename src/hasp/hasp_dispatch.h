@@ -7,6 +7,10 @@
 #include "ArduinoJson.h"
 #include "lvgl.h"
 
+struct dispatch_conf_t {
+    uint16_t teleperiod;
+};
+
 enum hasp_event_t { // even = released, odd = pressed
     HASP_EVENT_OFF  = 0,
     HASP_EVENT_ON   = 1,
@@ -30,7 +34,13 @@ void dispatchStop(void);
 /* ===== Special Event Processors ===== */
 void dispatch_topic_payload(const char * topic, const char * payload);
 void dispatch_text_line(const char * cmnd);
-void dispatch_parse_jsonl(Stream & stream);
+
+#ifdef ARDUINO
+void dispatch_parse_jsonl(Stream &stream);
+#else
+void dispatch_parse_jsonl(std::istringstream &stream);
+#endif
+
 void dispatch_clear_page(const char * page);
 void dispatch_json_error(uint8_t tag, DeserializationError & jsonError);
 

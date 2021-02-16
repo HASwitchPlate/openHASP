@@ -51,14 +51,21 @@ File pFileOut;
 
 // static void IRAM_ATTR lv_tick_handler(void);
 
-static bool guiShowPointer      = false;
-static bool guiBacklightIsOn    = true;
-static int8_t guiDimLevel       = -1;
-static int8_t guiBacklightPin   = TFT_BCKL;
-static uint8_t guiTickPeriod    = 20;
-static uint8_t guiRotation      = TFT_ROTATION;
-static uint8_t guiInvertDisplay = INVERT_COLORS;
-static uint16_t calData[5]      = {0, 65535, 0, 65535, 0};
+// static bool guiShowPointer      = false;
+// static int8_t guiBacklightPin   = TFT_BCKL;
+// static uint8_t guiTickPeriod    = 20;
+// static uint8_t guiRotation      = TFT_ROTATION;
+// static uint8_t guiInvertDisplay = INVERT_COLORS;
+// static uint16_t calData[5]      = {0, 65535, 0, 65535, 0};
+
+gui_conf_t gui_settings = {.show_pointer = false,
+                           .backlight_pin =TFT_BCKL,
+                           .rotation       = TFT_ROTATION,
+                           .invert_display = INVERT_COLORS,
+                           .cal_data       = {0, 65535, 0, 65535, 0}};
+
+static int8_t guiDimLevel = 100;
+bool guiBacklightIsOn;
 
 // #if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
 // static Ticker tick; /* timer for interrupt handler */
@@ -197,7 +204,7 @@ boolean Touch_getXY(uint16_t * x, uint16_t * y, boolean showTouch)
     bool pressed = (p.z > MINPRESSURE && p.z < MAXPRESSURE);
     if(pressed) {
 
-        switch(guiRotation) {
+        switch(gui_settings.rotation) {
             case 0: // portrait
                 *x = map(p.x, coords[0], coords[1], 0, tft.width());
                 *y = map(p.y, coords[2], coords[3], 0, tft.height());
@@ -225,11 +232,11 @@ void guiCalibrate()
 {
 #if TOUCH_DRIVER == 2046 && USE_TFT_ESPI > 0
     #ifdef TOUCH_CS
-    tft_espi_calibrate(calData);
+    tft_espi_calibrate(gui_settings.cal_data);
     #endif
 
     for(int i = 0; i < 5; i++) {
-        Serial.print(calData[i]);
+        Serial.print(gui_settings.cal_data[i]);
         if(i < 4) Serial.print(", ");
     }
 
@@ -308,17 +315,17 @@ void guiSetup()
 #endif
 
     /* Setup Backlight Control Pin */
-    if(guiBacklightPin >= 0) {
-        LOG_VERBOSE(TAG_GUI, F("Backlight  : Pin %d"), guiBacklightPin);
+    if(gui_settings.backlight_pin >= 0) {
+        LOG_VERBOSE(TAG_GUI, F("Backlight  : Pin %d"), gui_settings.backlight_pin);
 
 #if defined(ARDUINO_ARCH_ESP32)
         ledcSetup(BACKLIGHT_CHANNEL, 20000, 12);
-        ledcAttachPin(guiBacklightPin, BACKLIGHT_CHANNEL);
+        ledcAttachPin(gui_settings.backlight_pin, BACKLIGHT_CHANNEL);
 #elif defined(ARDUINO_ARCH_ESP8266)
-        pinMode(guiBacklightPin, OUTPUT);
+        pinMode(gui_settings.backlight_pin, OUTPUT);
 #endif
     }
-    LOG_VERBOSE(TAG_GUI, F("Rotation   : %d"), guiRotation);
+    LOG_VERBOSE(TAG_GUI, F("Rotation   : %d"), gui_settings.rotation);
 
     LOG_VERBOSE(TAG_LVGL, F("Version    : %u.%u.%u %s"), LVGL_VERSION_MAJOR, LVGL_VERSION_MINOR, LVGL_VERSION_PATCH,
                 PSTR(LVGL_VERSION_INFO));
@@ -336,10 +343,12 @@ void guiSetup()
     /* Initialize the display driver */
     lv_disp_drv_t disp_drv;
     lv_disp_drv_init(&disp_drv);
-    drv_display_init(&disp_drv, guiRotation, guiInvertDisplay); // Set display driver callback & rotation
+    drv_display_init(&disp_drv, gui_settings.rotation,
+                     gui_settings.invert_display); // Set display driver callback & rotation
     disp_drv.buffer = &disp_buf;
 
-    if(guiRotation == 0 || guiRotation == 2 || guiRotation == 4 || guiRotation == 6) {
+    if(gui_settings.rotation == 0 || gui_settings.rotation == 2 || gui_settings.rotation == 4 ||
+       gui_settings.rotation == 6) {
         /* 1/3=Landscape or 0/2=Portrait orientation */
         // Normal width & height
         disp_drv.hor_res = TFT_WIDTH;
@@ -376,7 +385,7 @@ void guiSetup()
     mouse_indev->driver.type = LV_INDEV_TYPE_POINTER;
 
     /*Set a cursor for the mouse*/
-    if(guiShowPointer) {
+    if(gui_settings.show_pointer) {
         // lv_obj_t * label = lv_label_create(lv_layer_sys(), NULL);
         // lv_label_set_text(label, "<");
         // lv_indev_set_cursor(mouse_indev, label); // connect the object to the driver
@@ -398,7 +407,7 @@ void guiSetup()
 #endif
         lv_indev_set_cursor(mouse_indev, cursor); /*Connect the image  object to the driver*/
     }
-    drv_touch_init(guiRotation); // Touch driver
+    drv_touch_init(gui_settings.rotation); // Touch driver
 
     // guiStart(); // Ticker
 }
@@ -448,14 +457,14 @@ void guiSetBacklight(bool lighton)
 {
     guiBacklightIsOn = lighton;
 
-if(!lighton) hasp_enable_wakeup_touch();
+    if(!lighton) hasp_enable_wakeup_touch();
 
-    if(guiBacklightPin >= 0) {
+    if(gui_settings.backlight_pin >= 0) {
 
 #if defined(ARDUINO_ARCH_ESP32)
         ledcWrite(BACKLIGHT_CHANNEL, lighton ? map(guiDimLevel, 0, 100, 0, 4095) : 0); // ledChannel and value
 #else
-        analogWrite(guiBacklightPin, lighton ? map(guiDimLevel, 0, 100, 0, 1023) : 0);
+        analogWrite(gui_settings.backlight_pin, lighton ? map(guiDimLevel, 0, 100, 0, 1023) : 0);
 #endif
 
     } else {
@@ -465,7 +474,7 @@ if(!lighton) hasp_enable_wakeup_touch();
 
 void guiSetDim(int8_t level)
 {
-    if(guiBacklightPin >= 0) {
+    if(gui_settings.backlight_pin >= 0) {
         guiDimLevel = level >= 0 ? level : 0;
         guiDimLevel = guiDimLevel <= 100 ? guiDimLevel : 100;
 
@@ -473,7 +482,7 @@ void guiSetDim(int8_t level)
 #if defined(ARDUINO_ARCH_ESP32)
             ledcWrite(BACKLIGHT_CHANNEL, map(guiDimLevel, 0, 100, 0, 4095)); // ledChannel and value
 #else
-            analogWrite(guiBacklightPin, map(guiDimLevel, 0, 100, 0, 1023));
+            analogWrite(gui_settings.backlight_pin, map(guiDimLevel, 0, 100, 0, 1023));
 #endif
         }
 
@@ -496,8 +505,8 @@ bool guiGetConfig(const JsonObject & settings)
     uint16_t guiSleepTime2;
     hasp_get_sleep_time(guiSleepTime1, guiSleepTime2);
 
-    if(guiTickPeriod != settings[FPSTR(FP_GUI_TICKPERIOD)].as<uint8_t>()) changed = true;
-    settings[FPSTR(FP_GUI_TICKPERIOD)] = guiTickPeriod;
+    // if(guiTickPeriod != settings[FPSTR(FP_GUI_TICKPERIOD)].as<uint8_t>()) changed = true;
+    // settings[FPSTR(FP_GUI_TICKPERIOD)] = guiTickPeriod;
 
     if(guiSleepTime1 != settings[FPSTR(FP_GUI_IDLEPERIOD1)].as<uint16_t>()) changed = true;
     settings[FPSTR(FP_GUI_IDLEPERIOD1)] = guiSleepTime1;
@@ -505,31 +514,31 @@ bool guiGetConfig(const JsonObject & settings)
     if(guiSleepTime2 != settings[FPSTR(FP_GUI_IDLEPERIOD2)].as<uint16_t>()) changed = true;
     settings[FPSTR(FP_GUI_IDLEPERIOD2)] = guiSleepTime2;
 
-    if(guiBacklightPin != settings[FPSTR(FP_GUI_BACKLIGHTPIN)].as<int8_t>()) changed = true;
-    settings[FPSTR(FP_GUI_BACKLIGHTPIN)] = guiBacklightPin;
+    if(gui_settings.backlight_pin != settings[FPSTR(FP_GUI_BACKLIGHTPIN)].as<int8_t>()) changed = true;
+    settings[FPSTR(FP_GUI_BACKLIGHTPIN)] = gui_settings.backlight_pin;
 
-    if(guiRotation != settings[FPSTR(FP_GUI_ROTATION)].as<uint8_t>()) changed = true;
-    settings[FPSTR(FP_GUI_ROTATION)] = guiRotation;
+    if(gui_settings.rotation != settings[FPSTR(FP_GUI_ROTATION)].as<uint8_t>()) changed = true;
+    settings[FPSTR(FP_GUI_ROTATION)] = gui_settings.rotation;
 
-    if(guiShowPointer != settings[FPSTR(FP_GUI_POINTER)].as<bool>()) changed = true;
-    settings[FPSTR(FP_GUI_POINTER)] = guiShowPointer;
+    if(gui_settings.show_pointer != settings[FPSTR(FP_GUI_POINTER)].as<bool>()) changed = true;
+    settings[FPSTR(FP_GUI_POINTER)] = gui_settings.show_pointer;
 
-    if(guiInvertDisplay != settings[FPSTR(FP_GUI_INVERT)].as<bool>()) changed = true;
-    settings[FPSTR(FP_GUI_INVERT)] = guiInvertDisplay;
+    if(gui_settings.invert_display != settings[FPSTR(FP_GUI_INVERT)].as<bool>()) changed = true;
+    settings[FPSTR(FP_GUI_INVERT)] = gui_settings.invert_display;
 
     /* Check CalData array has changed */
     JsonArray array = settings[FPSTR(FP_GUI_CALIBRATION)].as<JsonArray>();
     uint8_t i       = 0;
     for(JsonVariant v : array) {
-        LOG_VERBOSE(TAG_GUI, F("GUI CONF: %d: %d <=> %d"), i, calData[i], v.as<uint16_t>());
+        LOG_VERBOSE(TAG_GUI, F("GUI CONF: %d: %d <=> %d"), i, gui_settings.cal_data[i], v.as<uint16_t>());
         if(i < 5) {
-            if(calData[i] != v.as<uint16_t>()) changed = true;
-            v.set(calData[i]);
+            if(gui_settings.cal_data[i] != v.as<uint16_t>()) changed = true;
+            v.set(gui_settings.cal_data[i]);
         } else {
             changed = true;
 
     #if TOUCH_DRIVER == 2046 && USE_TFT_ESPI > 0 && defined(TOUCH_CS)
-            tft_espi_set_touch(calData);
+            tft_espi_set_touch(gui_settings.cal_data);
     #endif
         }
         i++;
@@ -539,12 +548,12 @@ bool guiGetConfig(const JsonObject & settings)
     if(i != 5) {
         array = settings[FPSTR(FP_GUI_CALIBRATION)].to<JsonArray>(); // Clear JsonArray
         for(int i = 0; i < 5; i++) {
-            array.add(calData[i]);
+            array.add(gui_settings.cal_data[i]);
         }
         changed = true;
 
     #if TOUCH_DRIVER == 2046 && USE_TFT_ESPI > 0 && defined(TOUCH_CS)
-        tft_espi_set_touch(calData);
+        tft_espi_set_touch(gui_settings.cal_data);
     #endif
     }
 
@@ -569,22 +578,22 @@ bool guiSetConfig(const JsonObject & settings)
 
     hasp_get_sleep_time(guiSleepTime1, guiSleepTime2);
 
-    changed |= configSet(guiTickPeriod, settings[FPSTR(FP_GUI_TICKPERIOD)], F("guiTickPeriod"));
-    changed |= configSet(guiBacklightPin, settings[FPSTR(FP_GUI_BACKLIGHTPIN)], F("guiBacklightPin"));
+   // changed |= configSet(guiTickPeriod, settings[FPSTR(FP_GUI_TICKPERIOD)], F("guiTickPeriod"));
+    changed |= configSet(gui_settings.backlight_pin, settings[FPSTR(FP_GUI_BACKLIGHTPIN)], F("guiBacklightPin"));
     changed |= configSet(guiSleepTime1, settings[FPSTR(FP_GUI_IDLEPERIOD1)], F("guiSleepTime1"));
     changed |= configSet(guiSleepTime2, settings[FPSTR(FP_GUI_IDLEPERIOD2)], F("guiSleepTime2"));
-    changed |= configSet(guiRotation, settings[FPSTR(FP_GUI_ROTATION)], F("guiRotation"));
-    changed |= configSet(guiInvertDisplay, settings[FPSTR(FP_GUI_INVERT)], F("guiInvertDisplay"));
+    changed |= configSet(gui_settings.rotation, settings[FPSTR(FP_GUI_ROTATION)], F("gui_settings.rotation"));
+    changed |= configSet(gui_settings.invert_display, settings[FPSTR(FP_GUI_INVERT)], F("guiInvertDisplay"));
 
     hasp_set_sleep_time(guiSleepTime1, guiSleepTime2);
 
     if(!settings[FPSTR(FP_GUI_POINTER)].isNull()) {
-        if(guiShowPointer != settings[FPSTR(FP_GUI_POINTER)].as<bool>()) {
+        if(gui_settings.show_pointer != settings[FPSTR(FP_GUI_POINTER)].as<bool>()) {
             LOG_VERBOSE(TAG_GUI, F("guiShowPointer set"));
         }
-        changed |= guiShowPointer != settings[FPSTR(FP_GUI_POINTER)].as<bool>();
+        changed |= gui_settings.show_pointer != settings[FPSTR(FP_GUI_POINTER)].as<bool>();
 
-        guiShowPointer = settings[FPSTR(FP_GUI_POINTER)].as<bool>();
+        gui_settings.show_pointer = settings[FPSTR(FP_GUI_POINTER)].as<bool>();
     }
 
     if(!settings[FPSTR(FP_GUI_CALIBRATION)].isNull()) {
@@ -594,15 +603,15 @@ bool guiSetConfig(const JsonObject & settings)
         JsonArray array = settings[FPSTR(FP_GUI_CALIBRATION)].as<JsonArray>();
         for(JsonVariant v : array) {
             if(i < 5) {
-                if(calData[i] != v.as<uint16_t>()) status = true;
-                calData[i] = v.as<uint16_t>();
+                if(gui_settings.cal_data[i] != v.as<uint16_t>()) status = true;
+                gui_settings.cal_data[i] = v.as<uint16_t>();
             }
             i++;
         }
 
-        if(calData[0] != 0 || calData[1] != 65535 || calData[2] != 0 || calData[3] != 65535) {
-            LOG_VERBOSE(TAG_GUI, F("calData set [%u, %u, %u, %u, %u]"), calData[0], calData[1], calData[2], calData[3],
-                        calData[4]);
+        if(gui_settings.cal_data[0] != 0 || gui_settings.cal_data[1] != 65535 || gui_settings.cal_data[2] != 0 || gui_settings.cal_data[3] != 65535) {
+            LOG_VERBOSE(TAG_GUI, F("calData set [%u, %u, %u, %u, %u]"), gui_settings.cal_data[0], gui_settings.cal_data[1], gui_settings.cal_data[2], gui_settings.cal_data[3],
+                        gui_settings.cal_data[4]);
             oobeSetAutoCalibrate(false);
         } else {
             LOG_TRACE(TAG_GUI, F("First Touch Calibration enabled"));
@@ -610,7 +619,7 @@ bool guiSetConfig(const JsonObject & settings)
         }
 
     #if TOUCH_DRIVER == 2046 && USE_TFT_ESPI > 0 && defined(TOUCH_CS)
-        if(status) tft_espi_set_touch(calData);
+        if(status) tft_espi_set_touch(gui_settings.cal_data);
     #endif
         changed |= status;
     }

@@ -7,6 +7,15 @@
 #include "ArduinoJson.h"
 #include "lvgl.h"
 
+struct gui_conf_t
+{
+    bool show_pointer;
+    int8_t backlight_pin;
+    uint8_t rotation;
+    uint8_t invert_display;
+    uint16_t cal_data[5];
+};
+
 /* ===== Default Event Processors ===== */
 void guiSetup();
 void guiLoop(void);
@@ -21,7 +30,7 @@ void guiTakeScreenshot();                       // webclient
 
 /* ===== Getter and Setter Functions ===== */
 void guiSetDim(int8_t level);
-int8_t guiGetDim(void);
+int8_t guiGetDim();
 void guiSetBacklight(bool lighton);
 bool guiGetBacklight();
 

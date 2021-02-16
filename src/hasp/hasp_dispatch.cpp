@@ -1,47 +1,59 @@
 /* MIT License - Copyright (c) 2020 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
-#include "ArduinoLog.h"
+#include <stdint.h>
+
+//#include "ArduinoLog.h"
 #include "hasp_conf.h"
 
 #include "hasp_dispatch.h"
 #include "hasp_object.h"
 #include "hasp.h"
 #include "hasp_utilities.h"
+#include "hasp_parser.h"
 #include "hasp_attribute.h"
 
+//#include "hasp_gui.h"
+
 #if HASP_USE_DEBUG > 0
-    #include "StringStream.h"
-    #include "CharStream.h"
+    #include "../hasp_debug.h"
 
-    #include "hasp_debug.h"
-    #include "hasp_gui.h"
-    #include "hasp_oobe.h"
-    #include "hasp_gpio.h"
-    #include "hasp_hal.h"
+    #if WINDOWS
+        #include <iostream>
+        #include <fstream>
+        #include <sstream>
+        #include "../mqtt/hasp_mqtt.h"
+    #else
+        #include "StringStream.h"
+        #include "CharStream.h"
 
-    #include "svc/hasp_ota.h"
-    #include "svc/hasp_mqtt.h"
-    #include "net/hasp_network.h" // for network_get_status()
-#else
-    #include <iostream>
-    #include <sstream>
+        #include "hasp_oobe.h"
+        #include "hasp_gui.h" // for screenshot
+        #include "sys/gpio/hasp_gpio.h"
+        #include "hal/hasp_hal.h"
+
+        #include "svc/hasp_ota.h"
+        #include "mqtt/hasp_mqtt.h"
+        #include "sys/net/hasp_network.h" // for network_get_status()
+    #endif
 #endif
 
 #if HASP_USE_CONFIG > 0
     #include "hasp_config.h"
 #endif
 
-extern unsigned long debugLastMillis; // UpdateStatus timer
 extern uint8_t hasp_sleep_state;
 
+dispatch_conf_t dispatch_setings = {.teleperiod = 300};
+
+uint32_t dispatchLastMillis;
 uint8_t nCommands = 0;
 haspCommand_t commands[17];
 
 struct moodlight_t
 {
-    byte power;
-    byte r, g, b;
+    uint8_t power;
+    uint8_t r, g, b;
 };
 moodlight_t moodlight;
 
@@ -599,7 +611,9 @@ void dispatch_normalized_group_value(uint8_t groupid, uint16_t value, lv_obj_t *
 {
     if(groupid > 0) {
         LOG_VERBOSE(TAG_MSGR, F("GROUP %d value %d"), groupid, value);
+#if USE_GPIO
         gpio_set_normalized_group_value(groupid, value);
+#endif
         //  object_set_group_state(groupid, value, obj);
     }
 }
@@ -627,11 +641,11 @@ void dispatch_parse_json(const char *, const char * payload)
 
     } else if(json.is<JsonArray>()) { // handle json as an array of commands
         JsonArray arr = json.as<JsonArray>();
-        guiStop();
+        // guiStop();
         for(JsonVariant command : arr) {
-            dispatch_text_line(command.as<String>().c_str());
+            dispatch_text_line(command.as<const char *>());
         }
-        guiStart();
+        // guiStart();
     } else if(json.is<JsonObject>()) { // handle json as a jsonl
         uint8_t savedPage = haspGetPage();
         hasp_new_object(json.as<JsonObject>(), savedPage);
@@ -642,15 +656,15 @@ void dispatch_parse_json(const char *, const char * payload)
     } else if(json.is<char *>()) { // handle json as a single command
         dispatch_text_line(json.as<char *>());
 
-    } else if(json.is<String>()) { // handle json as a single command
-        dispatch_text_line(json.as<String>().c_str());
+        // } else if(json.is<String>()) { // handle json as a single command
+        //     dispatch_text_line(json.as<String>().c_str());
 
     } else {
         LOG_WARNING(TAG_MSGR, F(D_DISPATCH_COMMAND_NOT_FOUND), payload);
     }
 }
 
-#if HASP_USE_CONFIG > 0
+#ifdef ARDUINO
 void dispatch_parse_jsonl(Stream & stream)
 #else
 void dispatch_parse_jsonl(std::istringstream & stream)
@@ -660,7 +674,10 @@ void dispatch_parse_jsonl(std::istringstream & stream)
     size_t line       = 1;
     DynamicJsonDocument jsonl(MQTT_MAX_PACKET_SIZE / 2 + 128); // max ~256 characters per line
     DeserializationError jsonError = deserializeJson(jsonl, stream);
+
+#ifdef ARDUINO
     stream.setTimeout(25);
+#endif
 
     // guiStop();
     while(jsonError == DeserializationError::Ok) {
@@ -703,7 +720,7 @@ void dispatch_output_current_page()
 void dispatch_page(const char *, const char * page)
 {
     if(strlen(page) > 0) {
-        if(hasp_util_is_only_digits(page)) {
+        if(Utilities::is_only_digits(page)) {
             uint8_t pageid = atoi(page);
             haspSetPage(pageid);
         } else {
@@ -781,7 +798,7 @@ void dispatch_moodlight(const char * topic, const char * payload)
             dispatch_json_error(TAG_MSGR, jsonError);
         } else {
 
-            if(!json[F("power")].isNull()) moodlight.power = hasp_util_is_true(json[F("power")].as<String>().c_str());
+            if(!json[F("power")].isNull()) moodlight.power = Utilities::is_true(json[F("power")].as<const char *>());
 
             if(!json[F("r")].isNull()) moodlight.r = json[F("r")].as<uint8_t>();
             if(!json[F("g")].isNull()) moodlight.r = json[F("g")].as<uint8_t>();
@@ -789,17 +806,19 @@ void dispatch_moodlight(const char * topic, const char * payload)
 
             if(!json[F("color")].isNull()) {
                 lv_color32_t color;
-                if(haspPayloadToColor(json[F("color")].as<String>().c_str(), color)) {
+                if(Parser::haspPayloadToColor(json[F("color")].as<const char *>(), color)) {
                     moodlight.r = color.ch.red;
                     moodlight.g = color.ch.green;
                     moodlight.b = color.ch.blue;
                 }
             }
 
+#ifdef USE_GPIO
             if(moodlight.power)
                 gpio_set_moodlight(moodlight.r, moodlight.g, moodlight.b);
             else
                 gpio_set_moodlight(0, 0, 0);
+#endif
         }
     }
 
@@ -814,7 +833,7 @@ void dispatch_moodlight(const char * topic, const char * payload)
 void dispatch_backlight(const char *, const char * payload)
 {
     // Set the current state
-    if(strlen(payload) != 0) guiSetBacklight(hasp_util_is_true(payload));
+    if(strlen(payload) != 0) guiSetBacklight(Utilities::is_true(payload));
 
     // Return the current state
     char buffer[4];
@@ -834,9 +853,9 @@ void dispatch_web_update(const char *, const char * espOtaUrl)
 void dispatch_reboot(bool saveConfig)
 {
 #if HASP_USE_CONFIG > 0
-    if(saveConfig) configWriteConfig();
+    if(saveConfig) configWrite();
 #endif
-#if HASP_USE_MQTT > 0
+#if HASP_USE_MQTT > 0 && defined(ARDUINO)
     mqttStop(); // Stop the MQTT Client first
 #endif
 #if HASP_USE_CONFIG > 0
@@ -847,7 +866,13 @@ void dispatch_reboot(bool saveConfig)
 #endif
     LOG_VERBOSE(TAG_MSGR, F("-------------------------------------"));
     LOG_TRACE(TAG_MSGR, F(D_DISPATCH_REBOOT));
+
+#if WINDOWS
+    fflush(stdout);
+#else
     Serial.flush();
+#endif
+
     halRestartMcu();
 }
 
@@ -869,33 +894,34 @@ void dispatch_output_statusupdate(const char *, const char *)
     {
         char buffer[128];
 
-        haspGetVersion(buffer, sizeof(buffer));
-        snprintf_P(data, sizeof(data),
-                   PSTR("{\"node\":\"%s\",\"status\":\"available\",\"version\":\"%s\",\"uptime\":%lu,"),
-                   mqttGetNodename().c_str(), buffer, long(millis() / 1000));
+        /*       haspGetVersion(buffer, sizeof(buffer));
+               snprintf_P(data, sizeof(data),
+                          PSTR("{\"node\":\"%s\",\"status\":\"available\",\"version\":\"%s\",\"uptime\":%lu,"),
+                          mqttGetNodename().c_str(), buffer, long(millis() / 1000));
 
-    #if HASP_USE_WIFI > 0
-        network_get_statusupdate(buffer, sizeof(buffer));
-        strcat(data, buffer);
-    #endif
-        snprintf_P(buffer, sizeof(buffer), PSTR("\"heapFree\":%u,\"heapFrag\":%u,\"espCore\":\"%s\","),
-                   halGetFreeHeap(), halGetHeapFragmentation(), halGetCoreVersion().c_str());
-        strcat(data, buffer);
-        snprintf_P(buffer, sizeof(buffer), PSTR("\"espCanUpdate\":\"false\",\"page\":%u,\"numPages\":%u,"),
-                   haspGetPage(), (HASP_NUM_PAGES));
-        strcat(data, buffer);
+           #if HASP_USE_WIFI > 0
+               network_get_statusupdate(buffer, sizeof(buffer));
+               strcat(data, buffer);
+           #endif
+               snprintf_P(buffer, sizeof(buffer), PSTR("\"heapFree\":%u,\"heapFrag\":%u,\"espCore\":\"%s\","),
+                          halGetFreeHeap(), halGetHeapFragmentation(), halGetCoreVersion().c_str());
+               strcat(data, buffer);
+               snprintf_P(buffer, sizeof(buffer), PSTR("\"espCanUpdate\":\"false\",\"page\":%u,\"numPages\":%u,"),
+                          haspGetPage(), (HASP_NUM_PAGES));
+               strcat(data, buffer);
 
-    #if defined(ARDUINO_ARCH_ESP8266)
-        snprintf_P(buffer, sizeof(buffer), PSTR("\"espVcc\":%.2f,"), (float)ESP.getVcc() / 1000);
-        strcat(data, buffer);
-    #endif
+           #if defined(ARDUINO_ARCH_ESP8266)
+               snprintf_P(buffer, sizeof(buffer), PSTR("\"espVcc\":%.2f,"), (float)ESP.getVcc() / 1000);
+               strcat(data, buffer);
+           #endif
 
-        snprintf_P(buffer, sizeof(buffer), PSTR("\"tftDriver\":\"%s\",\"tftWidth\":%u,\"tftHeight\":%u}"),
-                   halDisplayDriverName().c_str(), (TFT_WIDTH), (TFT_HEIGHT));
-        strcat(data, buffer);
+               snprintf_P(buffer, sizeof(buffer), PSTR("\"tftDriver\":\"%s\",\"tftWidth\":%u,\"tftHeight\":%u}"),
+                          halDisplayDriverName().c_str(), (TFT_WIDTH), (TFT_HEIGHT));
+               strcat(data, buffer);
+               */
     }
     mqtt_send_state(F("statusupdate"), data);
-    debugLastMillis = millis();
+    dispatchLastMillis = millis();
 
     /* if(updateEspAvailable) {
             mqttStatusPayload += F("\"updateEspAvailable\":true,");
@@ -976,3 +1002,28 @@ void dispatchLoop()
 {
     // Not used
 }
+
+#if 1 || ARDUINO
+void everySecond()
+{
+    if(dispatch_setings.teleperiod > 0 && (millis() - dispatchLastMillis) >= dispatch_setings.teleperiod * 1000) {
+        dispatchLastMillis = millis();
+        dispatch_output_statusupdate(NULL, NULL);
+    }
+}
+#else
+    #include <chrono>
+std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+void everySecond()
+{
+    if(dispatch_setings.teleperiod > 0) {
+        std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+        std::chrono::seconds elapsed = std::chrono::duration_cast<std::chrono::seconds>(end - begin);
+
+        if(elapsed.count() >= dispatch_setings.teleperiod) {
+            std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+            dispatch_output_statusupdate(NULL, NULL);
+        }
+    }
+}
+#endif
