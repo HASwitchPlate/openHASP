@@ -13,7 +13,9 @@
  *
  ******************************************************************************************** */
 
-#include "ArduinoLog.h"
+#ifdef ARDUINO
+    #include "ArduinoLog.h"
+#endif
 
 #include "lvgl.h"
 #if LVGL_VERSION_MAJOR != 7
@@ -25,6 +27,7 @@
 #include "hasp_dispatch.h"
 #include "hasp_attribute.h"
 #include "hasp_utilities.h"
+#include "hasp_parser.h"
 
 const char ** btnmatrix_default_map; // memory pointer to lvgl default btnmatrix map
 // static unsigned long last_change_event = 0;
@@ -102,11 +105,11 @@ bool hasp_find_id_from_obj(lv_obj_t * obj, uint8_t * pageid, uint8_t * objid)
 //             return (strcmp_P(lvobjtype, PSTR("label")) == 0);
 //         case LV_HASP_CHECKBOX:
 //             return (strcmp_P(lvobjtype, PSTR("checkbox")) == 0); // || (strcmp_P(lvobjtype, PSTR("lv_cb")) == 0);
-//         case LV_HASP_DDLIST:
+//         case LV_HASP_DROPDOWN:
 //             return (strcmp_P(lvobjtype, PSTR("dropdown")) == 0); // || (strcmp_P(lvobjtype, PSTR("lv_ddlist")) == 0);
 //         case LV_HASP_CPICKER:
 //             return (strcmp_P(lvobjtype, PSTR("cpicker")) == 0);
-//         case LV_HASP_PRELOADER:
+//         case LV_HASP_SPINNER:
 //             return (strcmp_P(lvobjtype, PSTR("spinner")) == 0); // || (strcmp_P(lvobjtype, PSTR("lv_preload")) == 0);
 //         case LV_HASP_SLIDER:
 //             return (strcmp_P(lvobjtype, PSTR("slider")) == 0);
@@ -412,7 +415,7 @@ static void selector_event_handler(lv_obj_t * obj, lv_event_t event)
         hasp_update_sleep_state(); // wakeup?
 
         switch(obj->user_data.objid) {
-            case LV_HASP_DDLIST:
+            case LV_HASP_DROPDOWN:
                 val = lv_dropdown_get_selected(obj);
                 max = lv_dropdown_get_option_cnt(obj) - 1;
                 lv_dropdown_get_selected_str(obj, buffer, sizeof(buffer));
@@ -596,6 +599,35 @@ void hasp_process_attribute(uint8_t pageid, uint8_t objid, const char * attr, co
 
 // ##################### Object Creator ########################################################
 
+int hasp_parse_json_attributes(lv_obj_t * obj, const JsonObject & doc)
+{
+    int i = 0;
+#ifdef WINDOWS
+    // String v((char *)0);
+    // v.reserve(64);
+    std::string v;
+
+    for(JsonPair keyValue : doc) {
+        LOG_VERBOSE(TAG_HASP, F("     * %s => %s"), keyValue.key().c_str(), keyValue.value().as<std::string>().c_str());
+        v = keyValue.value().as<std::string>();
+        hasp_process_obj_attribute(obj, keyValue.key().c_str(), keyValue.value().as<std::string>().c_str(), true);
+        i++;
+    }
+#else
+    String v((char *)0);
+    v.reserve(64);
+
+    for(JsonPair keyValue : doc) {
+        LOG_VERBOSE(TAG_HASP, F("     * %s => %s"), keyValue.key().c_str(), keyValue.value().as<String>().c_str());
+        v = keyValue.value().as<String>();
+        hasp_process_obj_attribute(obj, keyValue.key().c_str(), keyValue.value().as<String>().c_str(), true);
+        i++;
+    }
+#endif
+    LOG_VERBOSE(TAG_HASP, F("%d attributes processed"), i);
+    return i;
+}
+
 /**
  * Create a new object according to the json config
  * @param config Json representation for this object
@@ -608,7 +640,8 @@ void hasp_new_object(const JsonObject & config, uint8_t & saved_page_id)
     uint8_t pageid        = config[FPSTR(FP_PAGE)].isNull() ? saved_page_id : config[FPSTR(FP_PAGE)].as<uint8_t>();
     lv_obj_t * parent_obj = get_page_obj(pageid);
     if(!parent_obj) {
-        return LOG_WARNING(TAG_HASP, F(D_OBJECT_PAGE_UNKNOWN), pageid);
+        LOG_WARNING(TAG_HASP, F(D_OBJECT_PAGE_UNKNOWN), pageid);
+        return;
     } else {
         saved_page_id = pageid; /* save the current pageid */
     }
@@ -618,8 +651,8 @@ void hasp_new_object(const JsonObject & config, uint8_t & saved_page_id)
         uint8_t parentid = config[FPSTR(FP_PARENTID)].as<uint8_t>();
         parent_obj       = hasp_find_obj_from_parent_id(parent_obj, parentid);
         if(!parent_obj) {
-            return LOG_WARNING(TAG_HASP, F("Parent ID " HASP_OBJECT_NOTATION " not found, skipping..."), pageid,
-                               parentid);
+            LOG_WARNING(TAG_HASP, F("Parent ID " HASP_OBJECT_NOTATION " not found, skipping..."), pageid, parentid);
+            return;
         } else {
             LOG_VERBOSE(TAG_HASP, F("Parent ID " HASP_OBJECT_NOTATION " found"), pageid, parentid);
         }
@@ -640,7 +673,7 @@ void hasp_new_object(const JsonObject & config, uint8_t & saved_page_id)
             if(config[FPSTR(FP_OBJ)].isNull()) {
                 return; // comments
             } else {
-                sdbm = hasp_util_get_sdbm(config[FPSTR(FP_OBJ)].as<String>().c_str());
+                sdbm = Utilities::get_sdbm(config[FPSTR(FP_OBJ)].as<const char *>());
             }
         } else {
             sdbm = config[FPSTR(FP_OBJID)].as<uint8_t>();
@@ -687,7 +720,7 @@ void hasp_new_object(const JsonObject & config, uint8_t & saved_page_id)
                 break;
 
             case LV_HASP_CHECKBOX:
-            case HASP_OBJ_CB:
+            case HASP_OBJ_CHECKBOX:
                 obj = lv_checkbox_create(parent_obj, NULL);
                 if(obj) {
                     lv_obj_set_event_cb(obj, toggle_event_handler);
@@ -839,11 +872,11 @@ void hasp_new_object(const JsonObject & config, uint8_t & saved_page_id)
                 }
                 break;
 
-#if LV_USE_PRELOAD != 0
-            case LV_HASP_PRELOADER:
+#if LV_USE_SPINNER != 0
+            case LV_HASP_SPINNER:
             case HASP_OBJ_SPINNER:
                 obj = lv_spinner_create(parent_obj, NULL);
-                if(obj) obj->user_data.objid = LV_HASP_PRELOADER;
+                if(obj) obj->user_data.objid = LV_HASP_SPINNER;
                 break;
 
 #endif
@@ -922,7 +955,7 @@ void hasp_new_object(const JsonObject & config, uint8_t & saved_page_id)
                 break;
 
             /* ----- List Object ------- */
-            case LV_HASP_DDLIST:
+            case LV_HASP_DROPDOWN:
             case HASP_OBJ_DROPDOWN:
                 obj = lv_dropdown_create(parent_obj, NULL);
                 if(obj) {
@@ -931,7 +964,7 @@ void hasp_new_object(const JsonObject & config, uint8_t & saved_page_id)
                     lv_obj_set_top(obj, true);
                     // lv_obj_align(obj, NULL, LV_ALIGN_IN_TOP_MID, 0, 20);
                     lv_obj_set_event_cb(obj, selector_event_handler);
-                    obj->user_data.objid = LV_HASP_DDLIST;
+                    obj->user_data.objid = LV_HASP_DROPDOWN;
                 }
                 break;
 
@@ -953,7 +986,8 @@ void hasp_new_object(const JsonObject & config, uint8_t & saved_page_id)
 
         /* No object was actually created */
         if(!obj) {
-            return LOG_ERROR(TAG_HASP, F(D_OBJECT_CREATE_FAILED), id);
+            LOG_ERROR(TAG_HASP, F(D_OBJECT_CREATE_FAILED), id);
+            return;
         }
 
         // Prevent losing press when the press is slid out of the objects.
@@ -968,7 +1002,8 @@ void hasp_new_object(const JsonObject & config, uint8_t & saved_page_id)
         /** testing start **/
         uint8_t temp;
         if(!hasp_find_id_from_obj(obj, &pageid, &temp)) {
-            return LOG_ERROR(TAG_HASP, F(D_OBJECT_LOST));
+            LOG_ERROR(TAG_HASP, F(D_OBJECT_LOST));
+            return;
         }
 
         /** verbose reporting **/
@@ -979,7 +1014,8 @@ void hasp_new_object(const JsonObject & config, uint8_t & saved_page_id)
         /* test double-check */
         lv_obj_t * test = hasp_find_obj_from_parent_id(get_page_obj(pageid), (uint8_t)temp);
         if(test != obj) {
-            return LOG_ERROR(TAG_HASP, F(D_OBJECT_MISMATCH));
+            LOG_ERROR(TAG_HASP, F(D_OBJECT_MISMATCH));
+            return;
         }
     }
 
@@ -990,14 +1026,7 @@ void hasp_new_object(const JsonObject & config, uint8_t & saved_page_id)
     config.remove(FPSTR(FP_OBJID)); // TODO: obsolete objid
     config.remove(FPSTR(FP_PARENTID));
 
-    String v((char *)0);
-    v.reserve(64);
-
-    for(JsonPair keyValue : config) {
-        v = keyValue.value().as<String>();
-        hasp_process_obj_attribute(obj, keyValue.key().c_str(), v.c_str(), true);
-        // LOG_VERBOSE(TAG_HASP,F("     * %s => %s"), keyValue.key().c_str(), v.c_str());
-    }
+    hasp_parse_json_attributes(obj, config);
 }
 
 void hasp_object_delete(lv_obj_t * obj)

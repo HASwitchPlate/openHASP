@@ -7,12 +7,12 @@
 #include <ArduinoJson.h>
 #include "lvgl.h"
 
-const char FP_PAGE[] PROGMEM = "page";
-const char FP_ID[] PROGMEM = "id";
-const char FP_OBJ[] PROGMEM = "obj";
-const char FP_OBJID[] PROGMEM = "objid";
+const char FP_PAGE[] PROGMEM     = "page";
+const char FP_ID[] PROGMEM       = "id";
+const char FP_OBJ[] PROGMEM      = "obj";
+const char FP_OBJID[] PROGMEM    = "objid";
 const char FP_PARENTID[] PROGMEM = "parentid";
-const char FP_GROUPID[] PROGMEM = "groupid";
+const char FP_GROUPID[] PROGMEM  = "groupid";
 
 enum lv_hasp_obj_type_t {
     /* Controls */
@@ -28,7 +28,7 @@ enum lv_hasp_obj_type_t {
     LV_HASP_CPICKER   = 20,
 
     /* Selectors */
-    LV_HASP_DDLIST   = 50,
+    LV_HASP_DROPDOWN = 50,
     LV_HASP_ROLLER   = 51,
     LV_HASP_LIST     = 52, // placeholder
     LV_HASP_TABLE    = 53,
@@ -44,14 +44,14 @@ enum lv_hasp_obj_type_t {
     LV_HASP_PAGE      = 79, // Obsolete in v8
 
     /* Visualizers */
-    LV_HASP_LABEL     = 12, // 30
-    LV_HASP_GAUGE     = 31,
-    LV_HASP_BAR       = 32,
-    LV_HASP_LMETER    = 33,
-    LV_HASP_LED       = 41, // 34
-    LV_HASP_ARC       = 22, // 35
-    LV_HASP_PRELOADER = 21, // 36
-    LV_HASP_CHART     = 37,
+    LV_HASP_LABEL   = 12, // 30
+    LV_HASP_GAUGE   = 31,
+    LV_HASP_BAR     = 32,
+    LV_HASP_LMETER  = 33,
+    LV_HASP_LED     = 41, // 34
+    LV_HASP_ARC     = 22, // 35
+    LV_HASP_SPINNER = 21, // 36
+    LV_HASP_CHART   = 37,
 
     /* Graphics */
     LV_HASP_LINE   = 60,
@@ -85,7 +85,7 @@ void wakeup_event_handler(lv_obj_t * obj, lv_event_t event);
 #define HASP_OBJ_BAR 1971
 #define HASP_OBJ_BTN 3164
 #define HASP_OBJ_CPICKER 3313
-#define HASP_OBJ_CB 6335
+#define HASP_OBJ_CHECKBOX 1923
 #define HASP_OBJ_SPINNER 7097
 #define HASP_OBJ_MSGBOX 7498
 #define HASP_OBJ_TABLE 12078
