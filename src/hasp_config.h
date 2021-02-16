@@ -18,7 +18,7 @@ void configStart(void);
 void configStop(void);
 
 /* ===== Special Event Processors ===== */
-void configWriteConfig(void);
+void configWrite(void);
 void configOutput(const JsonObject & settings, uint8_t tag = TAG_CONF);
 bool configClearEeprom(void);
 
@@ -62,15 +62,14 @@ const char FP_GPIO_CONFIG[] PROGMEM      = "config";
 
 const char FP_HASP_CONFIG_FILE[] PROGMEM = "/config.json";
 
-const char FP_WIFI[] PROGMEM = "wifi";
-const char FP_MQTT[] PROGMEM = "mqtt";
-const char FP_HTTP[] PROGMEM = "http";
-const char FP_GPIO[] PROGMEM = "gpio";
-const char FP_MDNS[] PROGMEM = "mdns";
-const char FP_HASP[] PROGMEM = "hasp";
-const char FP_GUI[] PROGMEM = "gui";
+const char FP_WIFI[] PROGMEM  = "wifi";
+const char FP_MQTT[] PROGMEM  = "mqtt";
+const char FP_HTTP[] PROGMEM  = "http";
+const char FP_GPIO[] PROGMEM  = "gpio";
+const char FP_MDNS[] PROGMEM  = "mdns";
+const char FP_HASP[] PROGMEM  = "hasp";
+const char FP_GUI[] PROGMEM   = "gui";
 const char FP_DEBUG[] PROGMEM = "debug";
-
 
     #endif
 
