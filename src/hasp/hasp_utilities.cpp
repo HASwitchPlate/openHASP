@@ -1,11 +1,16 @@
 #include <cctype>
 
-#include "Arduino.h"
+#ifdef ARDUINO
+    #include "Arduino.h"
+#endif
+
+#include "hasp_conf.h"
+
 #include "hasp_utilities.h"
 
 /* 16-bit hashing function http://www.cse.yorku.ca/~oz/hash.html */
 /* all possible attributes are hashed and checked if they are unique */
-uint16_t hasp_util_get_sdbm(const char * str)
+uint16_t Utilities::get_sdbm(const char * str)
 {
     uint16_t hash = 0;
     char c;
@@ -18,13 +23,13 @@ uint16_t hasp_util_get_sdbm(const char * str)
     return hash;
 }
 
-bool hasp_util_is_true(const char * s)
+bool Utilities::is_true(const char * s)
 {
     return (!strcasecmp_P(s, PSTR("true")) || !strcasecmp_P(s, PSTR("on")) || !strcasecmp_P(s, PSTR("yes")) ||
             !strcmp_P(s, PSTR("1")));
 }
 
-bool hasp_util_is_only_digits(const char * s)
+bool Utilities::is_only_digits(const char * s)
 {
     size_t digits = 0;
     while(*(s + digits) != '\0' && isdigit(*(s + digits))) {
@@ -33,7 +38,7 @@ bool hasp_util_is_only_digits(const char * s)
     return strlen(s) == digits;
 }
 
-int hasp_util_format_bytes(size_t filesize, char * buf, size_t len)
+int Utilities::format_bytes(size_t filesize, char * buf, size_t len)
 {
     if(filesize < 1024) return snprintf_P(buf, len, PSTR("%d B"), filesize);
 
@@ -48,3 +53,9 @@ int hasp_util_format_bytes(size_t filesize, char * buf, size_t len)
 
     return snprintf_P(buf, len, PSTR("%d.%d %ciB"), filesize / 10, filesize % 10, labels[unit]);
 }
+
+#ifndef ARDUINO
+long map(long x, long in_min, long in_max, long out_min, long out_max) {
+  return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+}
+#endif
