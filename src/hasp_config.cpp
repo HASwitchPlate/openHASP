@@ -19,10 +19,17 @@
 
     //#include "hasp_eeprom.h"
     #include "hasp/hasp.h"
+    #include "hasp/hasp_dispatch.h"
 
     #if HASP_USE_EEPROM > 0
         #include "EEPROM.h"
     #endif
+
+extern uint16_t dispatchTelePeriod;
+extern uint32_t dispatchLastMillis;
+
+extern gui_conf_t gui_settings;
+extern dispatch_conf_t dispatch_settings;
 
 void confDebugSet(const __FlashStringHelper * fstr_name)
 {
@@ -86,7 +93,7 @@ void configStartDebug(bool setupdebug, String & configFile)
     #endif
 }
 
-void configGetConfig(JsonDocument & settings, bool setupdebug = false)
+void configRead(JsonDocument & settings, bool setupdebug = false)
 {
     String configFile((char *)0);
     configFile.reserve(32);
@@ -116,8 +123,8 @@ void configGetConfig(JsonDocument & settings, bool setupdebug = false)
             // show settings in log
             String output;
             serializeJson(settings, output);
-            String passmask = F(D_PASSWORD_MASK);
-            const  __FlashStringHelper * pass = F("pass");
+            String passmask                  = F(D_PASSWORD_MASK);
+            const __FlashStringHelper * pass = F("pass");
             output.replace(settings[FPSTR(FP_HTTP)][pass].as<String>(), passmask);
             output.replace(settings[FPSTR(FP_MQTT)][pass].as<String>(), passmask);
             output.replace(settings[FPSTR(FP_WIFI)][pass].as<String>(), passmask);
@@ -177,7 +184,7 @@ void configBackupToEeprom()
 #endif
 }
 */
-void configWriteConfig()
+void configWrite()
 {
     String configFile((char *)0);
     configFile.reserve(32);
@@ -190,7 +197,7 @@ void configWriteConfig()
     /* Read Config File */
     DynamicJsonDocument doc(8 * 256);
     LOG_TRACE(TAG_CONF, F(D_FILE_LOADING), configFile.c_str());
-    configGetConfig(doc, false);
+    configRead(doc, false);
     LOG_INFO(TAG_CONF, F(D_FILE_LOADED), configFile.c_str());
 
     // Make sure we have a valid JsonObject to start from
@@ -367,7 +374,7 @@ void configSetup()
                 return;
             }
     #endif
-            configGetConfig(settings, true);
+            configRead(settings, true);
         }
 
         //#if HASP_USE_SPIFFS > 0
