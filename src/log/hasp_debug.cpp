@@ -29,7 +29,7 @@
 
 #include "hasp_conf.h"
 
-#include "hasp_hal.h"
+#include "hal/hasp_hal.h"
 #include "hasp_debug.h"
 #include "hasp_config.h"
 

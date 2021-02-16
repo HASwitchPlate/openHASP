@@ -13,7 +13,7 @@
     #include "hasp_gui.h"
     #include "hasp_config.h"
 
-    #include "net/hasp_wifi.h"
+    #include "sys/net/hasp_wifi.h"
     #include "hasp/hasp_dispatch.h"
     #include "hasp/hasp_object.h"
 
