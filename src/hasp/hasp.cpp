@@ -1,10 +1,12 @@
 /* MIT License - Copyright (c) 2020 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
-#include "hasp_conf.h"
+#ifdef ARDUINO
+    #include "ArduinoLog.h"
+#endif
 
 #include "ArduinoJson.h"
-#include "ArduinoLog.h"
+#include "hasp_conf.h"
 
 #if HASP_USE_EEPROM > 0
     #include "StreamUtils.h" // For EEPromStream
@@ -15,10 +17,13 @@
 #include "hasp_conf.h"
 
 #if HASP_USE_DEBUG > 0
+    #include "../hasp_debug.h"
+#endif
+
+#if HASP_USE_CONFIG > 0
     #include "lv_fs_if.h"
-    #include "hasp_debug.h"
-    #include "hasp_config.h"
     #include "hasp_gui.h"
+    #include "hasp_config.h"
 //#include "hasp_filesystem.h" included in hasp_conf.h
 #endif
 
@@ -29,7 +34,9 @@
 #include "hasp.h"
 #include "lv_theme_hasp.h"
 
-#include "EEPROM.h"
+#if HASP_USE_EEPROM > 0
+    #include "EEPROM.h"
+#endif
 
 //#if LV_USE_HASP
 
@@ -129,7 +136,7 @@ bool hasp_update_sleep_state()
 
 void hasp_enable_wakeup_touch()
 {
-    LOG_VERBOSE(TAG_HASP,F("Wakeup touch enabled"));
+    LOG_VERBOSE(TAG_HASP, F("Wakeup touch enabled"));
     lv_obj_set_click(lv_disp_get_layer_sys(NULL), true); // enable first touch
     lv_obj_set_event_cb(lv_disp_get_layer_sys(NULL), wakeup_event_handler);
 }
@@ -289,11 +296,13 @@ void haspProgressMsg(const char * msg)
      } */
 }
 
+#ifdef ARDUINO
 // Sets the value string of the global progress bar
-void haspProgressMsg(const __FlashStringHelper * msg)
+void haspProgressMsg(const __FlashStringHelper *msg)
 {
     haspProgressMsg(String(msg).c_str());
 }
+#endif
 
 /*Add a custom apply callback*/
 static void custom_font_apply_cb(lv_theme_t * th, lv_obj_t * obj, lv_theme_style_t name)

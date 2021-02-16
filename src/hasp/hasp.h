@@ -4,15 +4,21 @@
 #ifndef HASP_H
 #define HASP_H
 
-#define NORMALIZE(a, b, c) map(a, b, c, 0, 0xFFFFU)
+#ifdef ARDUINO
+#include "Arduino.h"
+#endif
 
-#include <Arduino.h>
 #include "lvgl.h"
 #include "hasp_conf.h"
+
+#include "hasp_conf.h"
+#include "hasp_utilities.h"
 
 #if HASP_USE_DEBUG > 0
     #include "../hasp_debug.h"
 #endif
+
+#define NORMALIZE(a, b, c) map(a, b, c, 0, 0xFFFFU)
 
 #ifdef __cplusplus
 extern "C" {
@@ -87,6 +93,8 @@ void hasp_enable_wakeup_touch();
 #endif
 
 void haspProgressMsg(const char * msg);
+#ifdef ARDUINO
 void haspProgressMsg(const __FlashStringHelper * msg);
+#endif
 
 #endif /*HASP_H*/
