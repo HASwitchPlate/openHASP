@@ -3,25 +3,25 @@
 
 #if defined(ARDUINO_ARCH_ESP8266) || defined(ARDUINO_ARCH_ESP32)
 
-    #include "hasp_conf.h"
+#include "hasp_conf.h"
 
-    #include "hasp_debug.h"
-    #include "hasp_ota.h"
+#include "hasp_debug.h"
+#include "hasp_ota.h"
 
-    #include "../hasp/hasp_dispatch.h"
-    #include "../hasp/hasp.h"
+#include "../../hasp/hasp_dispatch.h"
+#include "../../hasp/hasp.h"
 
-    #if defined(ARDUINO_ARCH_ESP8266)
-        #include <ESP8266HTTPClient.h>
-        #include <ESP8266httpUpdate.h>
-        #include <ESP8266WiFi.h>
-    #else
-        #include <HTTPClient.h>
-        #include <HTTPUpdate.h>
-        #include <WiFi.h>
-    #endif
+#if defined(ARDUINO_ARCH_ESP8266)
+#include <ESP8266HTTPClient.h>
+#include <ESP8266httpUpdate.h>
+#include <ESP8266WiFi.h>
+#else
+#include <HTTPClient.h>
+#include <HTTPUpdate.h>
+#include <WiFi.h>
+#endif
 
-    #include <ArduinoOTA.h>
+#include <ArduinoOTA.h>
 
 static WiFiClient otaClient;
 std::string otaUrl           = "http://ota.netwize.be";
@@ -141,27 +141,27 @@ void otaSetup(void)
             // delay(5000);
         });
 
-    #if HASP_USE_MQTT > 0
+#if HASP_USE_MQTT > 0
         ArduinoOTA.setHostname(String(mqttGetNodename()).c_str());
-    #else
+#else
         ArduinoOTA.setHostname(String(mqttGetNodename()).c_str());
-    #endif
+#endif
         // ArduinoOTA.setPassword(configPassword);
         ArduinoOTA.setPort(otaPort);
 
-    #if ESP32
-        #if HASP_USE_MDNS > 0
+#if ESP32
+#if HASP_USE_MDNS > 0
         ArduinoOTA.setMdnsEnabled(true);
-        #else
+#else
         ArduinoOTA.setMdnsEnabled(false);
-        #endif
-            // ArduinoOTA.setTimeout(1000);
-    #endif
+#endif
+        // ArduinoOTA.setTimeout(1000);
+#endif
         ArduinoOTA.setRebootOnSuccess(false); // We do that ourselves
 
-    #ifdef OTA_PASSWORD
+#ifdef OTA_PASSWORD
         ArduinoOTA.setPassword(OTA_PASSWORD);
-    #endif
+#endif
 
         ArduinoOTA.begin();
         LOG_INFO(TAG_OTA, F(D_SERVICE_STARTED));
@@ -182,19 +182,19 @@ void otaEverySecond(void)
 
 void otaHttpUpdate(const char * espOtaUrl)
 { // Update ESP firmware from HTTP
-    #if HASP_USE_MDNS > 0
+#if HASP_USE_MDNS > 0
     mdnsStop(); // Keep mDNS responder from breaking things
-    #endif
+#endif
 
-    #if defined(ARDUINO_ARCH_ESP8266)
+#if defined(ARDUINO_ARCH_ESP8266)
     // ESPhttpUpdate.onStart(update_started);
     // ESPhttpUpdate.onEnd(update_finished);
     // ESPhttpUpdate.onProgress(update_progress);
     // ESPhttpUpdate.onError(update_error);
     ESP8266HTTPUpdate httpUpdate;
-    #else
+#else
     HTTPUpdate httpUpdate;
-    #endif
+#endif
 
     httpUpdate.rebootOnUpdate(false); // We do that ourselves
     t_httpUpdate_return returnCode = httpUpdate.update(otaClient, espOtaUrl);
@@ -214,9 +214,9 @@ void otaHttpUpdate(const char * espOtaUrl)
             dispatch_reboot(true);
     }
 
-    #if HASP_USE_MDNS > 0
+#if HASP_USE_MDNS > 0
     mdnsStart();
-    #endif // HASP_USE_MDNS
+#endif // HASP_USE_MDNS
 }
 
 #endif // ARDUINO_ARCH_ESP8266 || ARDUINO_ARCH_ESP32

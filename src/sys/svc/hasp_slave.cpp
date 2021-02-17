@@ -2,7 +2,7 @@
    For full license information read the LICENSE file in the project folder */
 
 #include "hasp_conf.h"
-#if HASP_USE_TASMOTA_SLAVE > 0
+#if HASP_USE_TASMOTA_CLIENT > 0
 
 #include "hasp_slave.h"
 #include "ArduinoJson.h"
@@ -52,7 +52,7 @@ void slave_send_obj_attribute_str(uint8_t pageid, uint8_t btnid, const char * at
     slave.ExecuteCommand((char *)cBuffer);
     // Log after char buffers are cleared
     LOG_TRACE(TAG_TASM, F("TAS PUB: %sstate/json = {\"p[%u].b[%u].%s\":\"%s\"}"), slaveNodeTopic, pageid, btnid,
-               attribute, data);
+              attribute, data);
 }
 
 void slave_send_input(uint8_t id, const char * payload)
@@ -145,7 +145,7 @@ void TASMO_EVERY_SECOND(void)
 
 void slaveSetup()
 {
-    Serial2.begin(HASP_SLAVE_SPEED);
+    Serial2.begin(HASP_TASMOTACLIENT_SPEED);
     // slave.attach_FUNC_EVERY_SECOND(TASMO_EVERY_SECOND);
     slave.attach_FUNC_JSON(TASMO_TELE_JSON);
     slave.attach_FUNC_COMMAND_SEND(TASMO_DATA_RECEIVE);

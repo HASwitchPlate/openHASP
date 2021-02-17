@@ -13,8 +13,8 @@
 #include "hasp_debug.h"
 #include "hasp_network.h"
 
-#include "../../hasp/hasp.h"
-#include "../../svc/hasp_mdns.h"
+#include "hasp/hasp.h"
+#include "sys/svc/hasp_mdns.h"
 
 #if HASP_USE_ETHERNET > 0 || HASP_USE_WIFI > 0
 void networkStart(void)
@@ -41,60 +41,91 @@ void networkStop(void)
 
 void networkSetup()
 {
-    #if HASP_USE_ETHERNET > 0
+#if HASP_USE_ETHERNET > 0
     ethernetSetup();
-    #endif
+#endif
 
-    #if HASP_USE_WIFI > 0
+#if HASP_USE_WIFI > 0
     wifiSetup();
-    #endif
+#endif
 }
 
 void networkLoop(void)
 {
-    #if HASP_USE_ETHERNET > 0
+#if HASP_USE_ETHERNET > 0
     ethernetLoop();
-    #endif
+#endif
 
-    #if HASP_USE_WIFI > 0
-        // wifiLoop();
-    #endif
+#if HASP_USE_WIFI > 0
+    // wifiLoop();
+#endif
+
+#if HASP_USE_TASMOTA_CLIENT > 0
+    tasmotaclientLoop();
+#endif // HASP_USE_TASMOTA_CLIENT
+
+#if HASP_USE_HTTP > 0
+    httpLoop();
+#endif // HTTP
+
+#if HASP_USE_GPIO > 0
+    gpioLoop();
+#endif // GPIO
+
+#if HASP_USE_OTA > 0
+    otaLoop();
+#endif // OTA
+
+#if HASP_USE_MDNS > 0
+    mdnsLoop();
+#endif // MDNS
+
+#if HASP_USE_TELNET > 0
+    telnetLoop(); // Console
+#endif            // TELNET
 }
 
 bool networkEvery5Seconds(void)
 {
-    #if HASP_USE_ETHERNET > 0
+#if HASP_USE_ETHERNET > 0
     return ethernetEvery5Seconds();
-    #endif
+#endif
 
-    #if HASP_USE_WIFI > 0
+#if HASP_USE_WIFI > 0
     return wifiEvery5Seconds();
-    #endif
+#endif
 
     return false;
 }
 
 bool networkEverySecond(void)
 {
-    #if HASP_USE_ETHERNET > 0
-        // return ethernetEverySecond();
-    #endif
+    bool connected = false;
 
-    #if HASP_USE_WIFI > 0
-        // return wifiEverySecond();
-    #endif
+#if HASP_USE_ETHERNET > 0
+    connected |= ethernetEverySecond();
+#endif
+
+#if HASP_USE_WIFI > 0
+    // connected |= wifiEverySecond();
+#endif
+
+#if HASP_USE_OTA > 0
+    otaEverySecond(); // progressbar
+#endif
+
     return true;
 }
 
 void network_get_statusupdate(char * buffer, size_t len)
 {
-    #if HASP_USE_ETHERNET > 0
+#if HASP_USE_ETHERNET > 0
     ethernet_get_statusupdate(buffer, len);
-    #endif
+#endif
 
-    #if HASP_USE_WIFI > 0
+#if HASP_USE_WIFI > 0
     wifi_get_statusupdate(buffer, len);
-    #endif
+#endif
 }
 
 #endif
