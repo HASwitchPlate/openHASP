@@ -117,7 +117,7 @@ bool networkEverySecond(void)
     return true;
 }
 
-void network_get_statusupdate(char * buffer, size_t len)
+void network_get_statusupdate(char* buffer, size_t len)
 {
 #if HASP_USE_ETHERNET > 0
     ethernet_get_statusupdate(buffer, len);

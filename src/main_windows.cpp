@@ -3,19 +3,22 @@
 
 #ifdef WINDOWS
 
-    #include "lvgl.h"
-    #include "app_hal.h"
+#include "hasp_conf.h"
 
-    #include "hasp_conf.h"
-    #include "hasp_debug.h"
+#include "lvgl.h"
+#include "app_hal.h"
 
-    #include "hasp/hasp_dispatch.h"
-    #include "hasp/hasp.h"
+#include "hasp_debug.h"
+#include "hasp_gui.h"
 
-    #include "dev/device.h"
-    #include "app_hal.h"
+#include "hasp/hasp_dispatch.h"
+#include "hasp/hasp.h"
+
+#include "dev/device.h"
 
 bool isConnected;
+bool isRunning = 1;
+
 uint8_t mainLoopCounter        = 0;
 unsigned long mainLastLoopTime = 0;
 
@@ -27,26 +30,26 @@ void debugLvglLogEvent(lv_log_level_t level, const char * file, uint32_t line, c
 
 void setup()
 {
-    printf("%s %d\n", __FILE__, __LINE__);
-    fflush(stdout);
+    // Load Settings
+
+    // Init debug log
+    // debug_init();
+
+    // Initialize lvgl environment
     lv_init();
     lv_log_register_print_cb(debugLvglLogEvent);
 
-    printf("%s %d\n", __FILE__, __LINE__);
-    fflush(stdout);
+    haspDevice.init();
     hal_setup();
+    guiSetup();
 
-    printf("%s %d\n", __FILE__, __LINE__);
-    haspDevice.pre_setup();
-
-    printf("%s %d\n", __FILE__, __LINE__);
     dispatchSetup();
     //    debugSetup(); // Init the console
 
-    #if HASP_USE_MQTT > 0
+#if HASP_USE_MQTT > 0
     printf("%s %d\n", __FILE__, __LINE__);
     mqttSetup(); // Load Hostname before starting WiFi
-    #endif
+#endif
 
     printf("%s %d\n", __FILE__, __LINE__);
     haspSetup();
@@ -62,15 +65,16 @@ void loop()
 
     //    debugLoop(); // Console
     haspDevice.loop();
+    guiLoop();
 
     /* Timer Loop */
     if(millis() - mainLastLoopTime >= 1000) {
         /* Runs Every Second */
         haspEverySecond(); // sleep timer
 
-    #if HASP_USE_OTA > 0
+#if HASP_USE_OTA > 0
         otaEverySecond(); // progressbar
-    #endif
+#endif
 
         /* Runs Every 5 Seconds */
         if(mainLoopCounter == 0 || mainLoopCounter == 5) {
@@ -90,32 +94,21 @@ void loop()
     delay(6);
 }
 
-    #ifdef WINDOWS
+#ifdef WINDOWS
 int main(int argv, char ** args)
 {
-    printf("%s %d\n", __FILE__, __LINE__);
-    fflush(stdout);
+    // printf("%s %d\n", __FILE__, __LINE__);
+    // fflush(stdout);
     setup();
-    std::cout << "HSetup OK\n";
 
-
-    while(1) {
-        SDL_Delay(5);
-        lv_task_handler();
-        fflush(stdout);
+    while(isRunning) {
+        loop();
+        // std::cout << "HSetup OK\n";
     }
-    std::cout << "Hloop OK\n";
 
     return 0;
 }
 
-    #else
-void loop()
-{
-    delay(5);
-    lv_task_handler();
-}
-
-    #endif
+#endif
 
 #endif

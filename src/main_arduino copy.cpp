@@ -1,7 +1,7 @@
 /* MIT License - Copyright (c) 2020 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
-#ifndef WINDOWS
+#if 0 && ARDUINO
 
 #include <Arduino.h>
 #include "lvgl.h"
@@ -31,7 +31,7 @@ unsigned long mainLastLoopTime = 0;
 
 void setup()
 {
-    //   hal_setup();
+    hal_setup();
 
     haspDevice.init();
 
@@ -100,7 +100,7 @@ void setup()
     telnetSetup();
 #endif
 
-#if HASP_USE_TASMOTA_CLINET > 0
+#if HASP_USE_TASMOTA_CLIENT > 0
     slaveSetup();
 #endif
 
@@ -111,23 +111,50 @@ void setup()
 
 void loop()
 {
+    networkLoop();
     guiLoop();
     haspLoop();
-    networkLoop();
 
 #if HASP_USE_MQTT > 0
     mqttLoop();
 #endif // MQTT
+
+#if HASP_USE_TASMOTA_CLIENT > 0
+    slaveLoop();
+#endif // TASMOTASLAVE
+
+#if HASP_USE_HTTP > 0
+    httpLoop();
+#endif // HTTP
+
+#if HASP_USE_GPIO > 0
+    gpioLoop();
+#endif // GPIO
+
+#if HASP_USE_OTA > 0
+    otaLoop();
+#endif // OTA
+
+#if HASP_USE_MDNS > 0
+    mdnsLoop();
+#endif // MDNS
+
+#if HASP_USE_TELNET > 0
+    telnetLoop(); // Console
+#endif // TELNET
 
     debugLoop(); // Console
     haspDevice.loop();
 
     /* Timer Loop */
     if(millis() - mainLastLoopTime >= 1000) {
-
         /* Runs Every Second */
         haspEverySecond();  // sleep timer
         debugEverySecond(); // statusupdate
+
+#if HASP_USE_OTA > 0
+        otaEverySecond(); // progressbar
+#endif
 
         /* Runs Every 5 Seconds */
         if(mainLoopCounter == 0 || mainLoopCounter == 5) {

@@ -59,11 +59,11 @@ struct moodlight_t
 };
 moodlight_t moodlight;
 
-static void dispatch_config(const char * topic, const char * payload);
+static void dispatch_config(const char* topic, const char* payload);
 // void dispatch_group_value(uint8_t groupid, int16_t state, lv_obj_t * obj);
-static inline void dispatch_state_msg(const __FlashStringHelper * subtopic, const char * payload);
+static inline void dispatch_state_msg(const __FlashStringHelper* subtopic, const char* payload);
 
-void dispatch_screenshot(const char *, const char * filename)
+void dispatch_screenshot(const char*, const char* filename)
 {
 #if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
 
@@ -99,16 +99,16 @@ bool dispatch_factory_reset()
     return formated && erased;
 }
 
-void dispatch_json_error(uint8_t tag, DeserializationError & jsonError)
+void dispatch_json_error(uint8_t tag, DeserializationError& jsonError)
 {
     LOG_ERROR(tag, F(D_JSON_FAILED " %s"), jsonError.c_str());
 }
 
 // p[x].b[y].attr=value
-static inline bool dispatch_parse_button_attribute(const char * topic_p, const char * payload)
+static inline bool dispatch_parse_button_attribute(const char* topic_p, const char* payload)
 {
     long num;
-    char * pEnd;
+    char* pEnd;
     uint8_t pageid, objid;
 
     if(*topic_p != 'p' && *topic_p != 'P') return false; // obligated p
@@ -202,7 +202,7 @@ static inline bool dispatch_parse_button_attribute(const char * topic_p, const c
 }
 
 // objectattribute=value
-void dispatch_command(const char * topic, const char * payload)
+void dispatch_command(const char* topic, const char* payload)
 {
     /* ================================= Standard payload commands ======================================= */
 
@@ -260,34 +260,34 @@ void dispatch_command(const char * topic, const char * payload)
 }
 
 // Strip command/config prefix from the topic and process the payload
-void dispatch_topic_payload(const char * topic, const char * payload)
+void dispatch_topic_payload(const char* topic, const char* payload)
 {
     // LOG_VERBOSE(TAG_MSGR,F("TOPIC: short topic: %s"), topic);
 
     if(!strcmp_P(topic, PSTR("command"))) {
-        dispatch_text_line((char *)payload);
+        dispatch_text_line((char*)payload);
         return;
     }
 
     if(topic == strstr_P(topic, PSTR("command/"))) { // startsWith command/
         topic += 8u;
-        dispatch_command(topic, (char *)payload);
+        dispatch_command(topic, (char*)payload);
         return;
     }
 
 #if HASP_USE_CONFIG > 0
     if(topic == strstr_P(topic, PSTR("config/"))) { // startsWith command/
         topic += 7u;
-        dispatch_config(topic, (char *)payload);
+        dispatch_config(topic, (char*)payload);
         return;
     }
 #endif
 
-    dispatch_command(topic, (char *)payload); // dispatch as is
+    dispatch_command(topic, (char*)payload); // dispatch as is
 }
 
 // Parse one line of text and execute the command
-void dispatch_text_line(const char * cmnd)
+void dispatch_text_line(const char* cmnd)
 {
     size_t pos1 = std::string(cmnd).find("=");
     size_t pos2 = std::string(cmnd).find(" ");
@@ -350,7 +350,7 @@ void dispatch_output_group_state(uint8_t groupid, uint16_t state)
     dispatch_state_msg(F("output"), payload);
 }
 
-void dispatch_send_obj_attribute_str(uint8_t pageid, uint8_t btnid, const char * attribute, const char * data)
+void dispatch_send_obj_attribute_str(uint8_t pageid, uint8_t btnid, const char* attribute, const char* data)
 {
     if(!attribute || !data) return;
 
@@ -360,7 +360,7 @@ void dispatch_send_obj_attribute_str(uint8_t pageid, uint8_t btnid, const char *
     mqtt_send_object_state(pageid, btnid, payload);
 }
 
-void dispatch_send_obj_attribute_int(uint8_t pageid, uint8_t btnid, const char * attribute, int32_t val)
+void dispatch_send_obj_attribute_int(uint8_t pageid, uint8_t btnid, const char* attribute, int32_t val)
 {
     if(!attribute) return;
 
@@ -370,7 +370,7 @@ void dispatch_send_obj_attribute_int(uint8_t pageid, uint8_t btnid, const char *
     mqtt_send_object_state(pageid, btnid, payload);
 }
 
-void dispatch_send_obj_attribute_color(uint8_t pageid, uint8_t btnid, const char * attribute, uint8_t r, uint8_t g,
+void dispatch_send_obj_attribute_color(uint8_t pageid, uint8_t btnid, const char* attribute, uint8_t r, uint8_t g,
                                        uint8_t b)
 {
     if(!attribute) return;
@@ -384,7 +384,7 @@ void dispatch_send_obj_attribute_color(uint8_t pageid, uint8_t btnid, const char
 
 #if HASP_USE_CONFIG > 0
 // Get or Set a part of the config.json file
-static void dispatch_config(const char * topic, const char * payload)
+static void dispatch_config(const char* topic, const char* payload)
 {
     DynamicJsonDocument doc(128 * 2);
     char buffer[128 * 2];
@@ -494,7 +494,7 @@ bool dispatch_get_event_state(uint8_t eventid)
 }
 
 // Map events to their description string
-void dispatch_get_event_name(uint8_t eventid, char * buffer, size_t size)
+void dispatch_get_event_name(uint8_t eventid, char* buffer, size_t size)
 {
     switch(eventid) {
         case HASP_EVENT_ON:
@@ -543,7 +543,7 @@ void dispatch_gpio_input_event(uint8_t pin, uint8_t group, uint8_t eventid)
 }
 #endif
 
-void dispatch_object_event(lv_obj_t * obj, uint8_t eventid)
+void dispatch_object_event(lv_obj_t* obj, uint8_t eventid)
 {
     char topic[8];
     char payload[8];
@@ -559,7 +559,7 @@ void dispatch_object_event(lv_obj_t * obj, uint8_t eventid)
     //  dispatch_group_onoff(obj->user_data.groupid, dispatch_get_event_state(eventid), obj);
 }
 
-void dispatch_object_value_changed(lv_obj_t * obj, int16_t state)
+void dispatch_object_value_changed(lv_obj_t* obj, int16_t state)
 {
     char topic[4];
 
@@ -569,7 +569,7 @@ void dispatch_object_value_changed(lv_obj_t * obj, int16_t state)
 }
 
 /********************************************** Output States ******************************************/
-static inline void dispatch_state_msg(const __FlashStringHelper * subtopic, const char * payload)
+static inline void dispatch_state_msg(const __FlashStringHelper* subtopic, const char* payload)
 {
 #if !defined(HASP_USE_MQTT) && !defined(HASP_USE_TASMOTA_CLIENT)
     LOG_TRACE(TAG_MSGR, F("%s => %s"), String(subtopic).c_str(), payload);
@@ -609,7 +609,7 @@ static inline void dispatch_state_msg(const __FlashStringHelper * subtopic, cons
 //     // dispatch_output_group_state(groupid, payload);
 // }
 
-void dispatch_normalized_group_value(uint8_t groupid, uint16_t value, lv_obj_t * obj)
+void dispatch_normalized_group_value(uint8_t groupid, uint16_t value, lv_obj_t* obj)
 {
     if(groupid > 0) {
         LOG_VERBOSE(TAG_MSGR, F("GROUP %d value %d"), groupid, value);
@@ -622,7 +622,7 @@ void dispatch_normalized_group_value(uint8_t groupid, uint16_t value, lv_obj_t *
 
 /********************************************** Native Commands ****************************************/
 
-void dispatch_parse_json(const char *, const char * payload)
+void dispatch_parse_json(const char*, const char* payload)
 { // Parse an incoming JSON array into individual commands
     /*  if(strPayload.endsWith(",]")) {
           // Trailing null array elements are an artifact of older Home Assistant automations
@@ -645,18 +645,18 @@ void dispatch_parse_json(const char *, const char * payload)
         JsonArray arr = json.as<JsonArray>();
         // guiStop();
         for(JsonVariant command : arr) {
-            dispatch_text_line(command.as<const char *>());
+            dispatch_text_line(command.as<const char*>());
         }
         // guiStart();
     } else if(json.is<JsonObject>()) { // handle json as a jsonl
         uint8_t savedPage = haspGetPage();
         hasp_new_object(json.as<JsonObject>(), savedPage);
 
-    } else if(json.is<const char *>()) { // handle json as a single command
-        dispatch_text_line(json.as<const char *>());
+    } else if(json.is<const char*>()) { // handle json as a single command
+        dispatch_text_line(json.as<const char*>());
 
-    } else if(json.is<char *>()) { // handle json as a single command
-        dispatch_text_line(json.as<char *>());
+    } else if(json.is<char*>()) { // handle json as a single command
+        dispatch_text_line(json.as<char*>());
 
         // } else if(json.is<String>()) { // handle json as a single command
         //     dispatch_text_line(json.as<String>().c_str());
@@ -667,9 +667,9 @@ void dispatch_parse_json(const char *, const char * payload)
 }
 
 #ifdef ARDUINO
-void dispatch_parse_jsonl(Stream & stream)
+void dispatch_parse_jsonl(Stream& stream)
 #else
-void dispatch_parse_jsonl(std::istringstream & stream)
+void dispatch_parse_jsonl(std::istringstream& stream)
 #endif
 {
     uint8_t savedPage = haspGetPage();
@@ -698,14 +698,14 @@ void dispatch_parse_jsonl(std::istringstream & stream)
     }
 }
 
-void dispatch_parse_jsonl(const char *, const char * payload)
+void dispatch_parse_jsonl(const char*, const char* payload)
 {
 #if HASP_USE_CONFIG > 0
-    CharStream stream((char *)payload);
+    CharStream stream((char*)payload);
     // stream.setTimeout(10);
     dispatch_parse_jsonl(stream);
 #else
-    std::istringstream stream((char *)payload);
+    std::istringstream stream((char*)payload);
     dispatch_parse_jsonl(stream);
 #endif
 }
@@ -719,7 +719,7 @@ void dispatch_output_current_page()
 }
 
 // Get or Set a page
-void dispatch_page(const char *, const char * page)
+void dispatch_page(const char*, const char* page)
 {
     if(strlen(page) > 0) {
         if(Utilities::is_only_digits(page)) {
@@ -766,14 +766,14 @@ void dispatch_page_prev()
 }
 
 // Clears a page id or the current page if empty
-void dispatch_clear_page(const char *, const char * page)
+void dispatch_clear_page(const char*, const char* page)
 {
     uint8_t pageid = haspGetPage();
     if(strlen(page) > 0) pageid = atoi(page);
     haspClearPage(pageid);
 }
 
-void dispatch_dim(const char *, const char * level)
+void dispatch_dim(const char*, const char* level)
 {
     // Set the current state
     if(strlen(level) != 0) haspDevice.set_backlight_level(atoi(level));
@@ -783,7 +783,7 @@ void dispatch_dim(const char *, const char * level)
     dispatch_state_msg(F("dim"), payload);
 }
 
-void dispatch_moodlight(const char * topic, const char * payload)
+void dispatch_moodlight(const char* topic, const char* payload)
 {
     // Set the current state
     if(strlen(payload) != 0) {
@@ -800,7 +800,7 @@ void dispatch_moodlight(const char * topic, const char * payload)
             dispatch_json_error(TAG_MSGR, jsonError);
         } else {
 
-            if(!json[F("power")].isNull()) moodlight.power = Utilities::is_true(json[F("power")].as<const char *>());
+            if(!json[F("power")].isNull()) moodlight.power = Utilities::is_true(json[F("power")].as<const char*>());
 
             if(!json[F("r")].isNull()) moodlight.r = json[F("r")].as<uint8_t>();
             if(!json[F("g")].isNull()) moodlight.r = json[F("g")].as<uint8_t>();
@@ -808,7 +808,7 @@ void dispatch_moodlight(const char * topic, const char * payload)
 
             if(!json[F("color")].isNull()) {
                 lv_color32_t color;
-                if(Parser::haspPayloadToColor(json[F("color")].as<const char *>(), color)) {
+                if(Parser::haspPayloadToColor(json[F("color")].as<const char*>(), color)) {
                     moodlight.r = color.ch.red;
                     moodlight.g = color.ch.green;
                     moodlight.b = color.ch.blue;
@@ -832,7 +832,7 @@ void dispatch_moodlight(const char * topic, const char * payload)
     dispatch_state_msg(F("moodlight"), buffer);
 }
 
-void dispatch_backlight(const char *, const char * payload)
+void dispatch_backlight(const char*, const char* payload)
 {
     // Set the current state
     if(strlen(payload) != 0) haspDevice.set_backlight_power(Utilities::is_true(payload));
@@ -843,7 +843,7 @@ void dispatch_backlight(const char *, const char * payload)
     dispatch_state_msg(F("light"), buffer);
 }
 
-void dispatch_web_update(const char *, const char * espOtaUrl)
+void dispatch_web_update(const char*, const char* espOtaUrl)
 {
 #if HASP_USE_OTA > 0
     LOG_TRACE(TAG_MSGR, F(D_OTA_CHECK_UPDATE), espOtaUrl);
@@ -889,40 +889,38 @@ void dispatch_current_state()
 /******************************************* Command Wrapper Functions *********************************/
 
 // Periodically publish a JSON string indicating system status
-void dispatch_output_statusupdate(const char *, const char *)
+void dispatch_output_statusupdate(const char*, const char*)
 {
 #if HASP_USE_MQTT > 0
 
     char data[3 * 128];
     {
-        /*
         char buffer[128];
 
-               haspGetVersion(buffer, sizeof(buffer));
-               snprintf_P(data, sizeof(data),
-                          PSTR("{\"node\":\"%s\",\"status\":\"available\",\"version\":\"%s\",\"uptime\":%lu,"),
-                          mqttGetNodename().c_str(), buffer, long(millis() / 1000));
+        haspGetVersion(buffer, sizeof(buffer));
+        snprintf_P(data, sizeof(data),
+                   PSTR("{\"node\":\"%s\",\"status\":\"available\",\"version\":\"%s\",\"uptime\":%lu,"),
+                   mqttGetNodename().c_str(), buffer, long(millis() / 1000));
 
-           #if HASP_USE_WIFI > 0
-               network_get_statusupdate(buffer, sizeof(buffer));
-               strcat(data, buffer);
-           #endif
-               snprintf_P(buffer, sizeof(buffer), PSTR("\"heapFree\":%u,\"heapFrag\":%u,\"espCore\":\"%s\","),
-                          halGetFreeHeap(), halGetHeapFragmentation(), halGetCoreVersion().c_str());
-               strcat(data, buffer);
-               snprintf_P(buffer, sizeof(buffer), PSTR("\"espCanUpdate\":\"false\",\"page\":%u,\"numPages\":%u,"),
-                          haspGetPage(), (HASP_NUM_PAGES));
-               strcat(data, buffer);
+#if HASP_USE_WIFI > 0
+        network_get_statusupdate(buffer, sizeof(buffer));
+        strcat(data, buffer);
+#endif
+        snprintf_P(buffer, sizeof(buffer), PSTR("\"heapFree\":%u,\"heapFrag\":%u,\"espCore\":\"%s\","),
+                   haspDevice.get_free_heap(), haspDevice.get_heap_fragmentation(), halGetCoreVersion().c_str());
+        strcat(data, buffer);
+        snprintf_P(buffer, sizeof(buffer), PSTR("\"espCanUpdate\":\"false\",\"page\":%u,\"numPages\":%u,"),
+                   haspGetPage(), (HASP_NUM_PAGES));
+        strcat(data, buffer);
 
-           #if defined(ARDUINO_ARCH_ESP8266)
-               snprintf_P(buffer, sizeof(buffer), PSTR("\"espVcc\":%.2f,"), (float)ESP.getVcc() / 1000);
-               strcat(data, buffer);
-           #endif
+#if defined(ARDUINO_ARCH_ESP8266)
+        snprintf_P(buffer, sizeof(buffer), PSTR("\"espVcc\":%.2f,"), (float)ESP.getVcc() / 1000);
+        strcat(data, buffer);
+#endif
 
-               snprintf_P(buffer, sizeof(buffer), PSTR("\"tftDriver\":\"%s\",\"tftWidth\":%u,\"tftHeight\":%u}"),
-                          halDisplayDriverName().c_str(), (TFT_WIDTH), (TFT_HEIGHT));
-               strcat(data, buffer);
-               */
+        snprintf_P(buffer, sizeof(buffer), PSTR("\"tftDriver\":\"%s\",\"tftWidth\":%u,\"tftHeight\":%u}"),
+                   halDisplayDriverName().c_str(), (TFT_WIDTH), (TFT_HEIGHT));
+        strcat(data, buffer);
     }
     mqtt_send_state(F("statusupdate"), data);
     dispatchLastMillis = millis();
@@ -937,22 +935,22 @@ void dispatch_output_statusupdate(const char *, const char *)
 #endif
 }
 
-void dispatch_calibrate(const char * topic = NULL, const char * payload = NULL)
+void dispatch_calibrate(const char* topic = NULL, const char* payload = NULL)
 {
     guiCalibrate();
 }
 
-void dispatch_wakeup(const char *, const char *)
+void dispatch_wakeup(const char*, const char*)
 {
     lv_disp_trig_activity(NULL);
 }
 
-void dispatch_reboot(const char *, const char *)
+void dispatch_reboot(const char*, const char*)
 {
     dispatch_reboot(true);
 }
 
-void dispatch_factory_reset(const char *, const char *)
+void dispatch_factory_reset(const char*, const char*)
 {
     dispatch_factory_reset();
     delay(500);
@@ -961,7 +959,7 @@ void dispatch_factory_reset(const char *, const char *)
 
 /******************************************* Commands builder *******************************************/
 
-static void dispatch_add_command(const char * p_cmdstr, void (*func)(const char *, const char *))
+static void dispatch_add_command(const char* p_cmdstr, void (*func)(const char*, const char*))
 {
     if(nCommands >= sizeof(commands) / sizeof(haspCommand_t)) {
         LOG_FATAL(TAG_MSGR, F("CMD_OVERFLOW %d"), nCommands);
