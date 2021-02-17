@@ -6,7 +6,7 @@
 
 #if defined(M5STACK)
 
-#include "dev/esp32/esp32.h"
+#include "esp32.h"
 
 namespace dev {
 

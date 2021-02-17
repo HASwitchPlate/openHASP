@@ -4,8 +4,8 @@
 #include <Esp.h>
 #include "esp_system.h"
 
-#include "dev/device.h"
-#include "dev/esp32/esp32.h"
+#include "../device.h"
+#include "esp32.h"
 
 #include "driver/adc.h"
 #include "esp_adc_cal.h"
@@ -67,6 +67,31 @@ void Esp32Device::update_backlight()
     if(backlight_power) {                                                    // The backlight is ON
         ledcWrite(BACKLIGHT_CHANNEL, map(backlight_level, 0, 100, 0, 4095)); // ledChannel and value
     }
+}
+
+size_t Esp32Device::get_free_max_block()
+{
+    return ESP.getMaxAllocHeap();
+}
+
+size_t Esp32Device::get_free_heap()
+{
+    return ESP.getFreeHeap();
+}
+
+uint8_t Esp32Device::get_heap_fragmentation()
+{
+    uint32_t free = ESP.getFreeHeap();
+    if(free) {
+        return (int8_t)(100.00f - (float)ESP.getMaxAllocHeap() * 100.00f / (float)free);
+    } else {
+        return 100; // no free memory
+    }
+}
+
+uint16_t Esp32Device::get_cpu_frequency()
+{
+    return ESP.getCpuFreqMHz();
 }
 
 } // namespace dev

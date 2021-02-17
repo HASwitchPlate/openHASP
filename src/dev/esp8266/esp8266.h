@@ -26,6 +26,14 @@ class Esp8266Device : public BaseDevice {
 
     bool get_backlight_power() override;
 
+    size_t get_free_max_block() override;
+
+    size_t get_free_heap() override;
+
+    uint8_t get_heap_fragmentation() override;
+
+    uint16_t get_cpu_frequency() override;
+
   private:
     uint8_t backlight_pin;
     uint8_t backlight_level;

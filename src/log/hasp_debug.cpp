@@ -19,15 +19,16 @@
 //#include "time.h"
 
 #if defined(ARDUINO_ARCH_ESP8266)
-    #include <sntp.h> // sntp_servermode_dhcp()
-    #include <ESP8266WiFi.h>
-    #include <WiFiUdp.h>
+#include <sntp.h> // sntp_servermode_dhcp()
+#include <ESP8266WiFi.h>
+#include <WiFiUdp.h>
 #elif defined(ARDUINO_ARCH_ESP32)
-    #include <WiFi.h>
-    #include <WiFiUdp.h>
+#include <WiFi.h>
+#include <WiFiUdp.h>
 #endif
 
 #include "hasp_conf.h"
+#include "dev/device.h"
 
 #include "hal/hasp_hal.h"
 #include "hasp_debug.h"
@@ -37,27 +38,27 @@
 #include "hasp/hasp.h"
 
 #ifdef USE_CONFIG_OVERRIDE
-    #include "user_config_override.h"
+#include "user_config_override.h"
 #endif
 
 #ifndef SERIAL_SPEED
-    #define SERIAL_SPEED 115200
+#define SERIAL_SPEED 115200
 #endif
 
 #if HASP_USE_SYSLOG > 0
-    #include <WiFiUdp.h>
+#include <WiFiUdp.h>
 
-    #ifndef SYSLOG_SERVER
-        #define SYSLOG_SERVER ""
-    #endif
+#ifndef SYSLOG_SERVER
+#define SYSLOG_SERVER ""
+#endif
 
-    #ifndef SYSLOG_PORT
-        #define SYSLOG_PORT 514
-    #endif
+#ifndef SYSLOG_PORT
+#define SYSLOG_PORT 514
+#endif
 
-    #ifndef APP_NAME
-        #define APP_NAME "HASP"
-    #endif
+#ifndef APP_NAME
+#define APP_NAME "HASP"
+#endif
 
 // variables for debug stream writer
 // static String debugOutput((char *)0);
@@ -72,7 +73,7 @@ uint8_t debugSyslogProtocol = 0;
 
 // A UDP instance to let us send and receive packets over UDP
 WiFiUDP * syslogClient;
-    #define SYSLOG_PROTO_IETF 0
+#define SYSLOG_PROTO_IETF 0
 
 // Create a new syslog instance with LOG_KERN facility
 // Syslog syslog(syslogClient, SYSLOG_SERVER, SYSLOG_PORT, MQTT_CLIENT, APP_NAME, LOG_KERN);
@@ -207,7 +208,7 @@ bool debugGetConfig(const JsonObject & settings)
     if(debugTelePeriod != settings[FPSTR(FP_DEBUG_TELEPERIOD)].as<uint16_t>()) changed = true;
     settings[FPSTR(FP_DEBUG_TELEPERIOD)] = debugTelePeriod;
 
-    #if HASP_USE_SYSLOG > 0
+#if HASP_USE_SYSLOG > 0
     if(strcmp(debugSyslogHost, settings[FPSTR(FP_CONFIG_HOST)].as<String>().c_str()) != 0) changed = true;
     settings[FPSTR(FP_CONFIG_HOST)] = debugSyslogHost;
 
@@ -219,7 +220,7 @@ bool debugGetConfig(const JsonObject & settings)
 
     if(debugSyslogFacility != settings[FPSTR(FP_CONFIG_LOG)].as<uint8_t>()) changed = true;
     settings[FPSTR(FP_CONFIG_LOG)] = debugSyslogFacility;
-    #endif
+#endif
 
     if(changed) configOutput(settings, TAG_DEBG);
     return changed;
@@ -244,8 +245,8 @@ bool debugSetConfig(const JsonObject & settings)
     /* Teleperiod Settings*/
     changed |= configSet(debugTelePeriod, settings[FPSTR(FP_DEBUG_TELEPERIOD)], F("debugTelePeriod"));
 
-    /* Syslog Settings*/
-    #if HASP_USE_SYSLOG > 0
+/* Syslog Settings*/
+#if HASP_USE_SYSLOG > 0
     if(!settings[FPSTR(FP_CONFIG_HOST)].isNull()) {
         changed |= strcmp(debugSyslogHost, settings[FPSTR(FP_CONFIG_HOST)]) != 0;
         strncpy(debugSyslogHost, settings[FPSTR(FP_CONFIG_HOST)], sizeof(debugSyslogHost));
@@ -253,7 +254,7 @@ bool debugSetConfig(const JsonObject & settings)
     changed |= configSet(debugSyslogPort, settings[FPSTR(FP_CONFIG_PORT)], F("debugSyslogPort"));
     changed |= configSet(debugSyslogProtocol, settings[FPSTR(FP_CONFIG_PROTOCOL)], F("debugSyslogProtocol"));
     changed |= configSet(debugSyslogFacility, settings[FPSTR(FP_CONFIG_LOG)], F("debugSyslogFacility"));
-    #endif
+#endif
 
     return changed;
 }
@@ -369,9 +370,9 @@ static void debugPrintTimestamp(int level, Print * _logOutput)
 
 static void debugPrintHaspMemory(int level, Print * _logOutput)
 {
-    size_t maxfree     = halGetMaxFreeBlock();
-    uint32_t totalfree = halGetFreeHeap();
-    uint8_t frag       = halGetHeapFragmentation();
+    size_t maxfree   = haspDevice.get_free_max_block();
+    size_t totalfree = haspDevice.get_free_heap();
+    uint8_t frag     = haspDevice.get_heap_fragmentation();
 
     /* Print HASP Memory Info */
     if(debugAnsiCodes) {
@@ -411,7 +412,7 @@ static void debugPrintPriority(int level, Print * _logOutput)
     // }
 
     switch(level) {
-        case LOG_LEVEL_FATAL...LOG_LEVEL_ERROR:
+        case LOG_LEVEL_FATAL ... LOG_LEVEL_ERROR:
             debugSendAnsiCode(F(TERM_COLOR_RED), _logOutput);
             break;
         case LOG_LEVEL_WARNING:
@@ -572,9 +573,9 @@ void debugPrintPrefix(uint8_t tag, int level, Print * _logOutput)
             }
 
             debugPrintHaspMemory(level, _logOutput);
-    #if LV_MEM_CUSTOM == 0
+#if LV_MEM_CUSTOM == 0
             debugPrintLvglMemory(level, _logOutput);
-    #endif
+#endif
         }
         return;
     }
@@ -637,10 +638,10 @@ void debugPreSetup(JsonObject settings)
     if(baudrate >= 9600u) { /* the baudrates are stored divided by 10 */
 
 #if defined(STM32F4xx)
-    #ifndef STM32_SERIAL1  // Define what Serial port to use for log output
+#ifndef STM32_SERIAL1      // Define what Serial port to use for log output
         Serial.setRx(PA3); // User Serial2
         Serial.setTx(PA2);
-    #endif
+#endif
 #endif
         Serial.begin(baudrate); /* prepare for possible serial debug */
         delay(10);

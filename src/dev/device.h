@@ -39,19 +39,27 @@ class BaseDevice {
     {
         return true;
     }
+    virtual size_t get_free_max_block()
+    {}
+    virtual size_t get_free_heap()
+    {}
+    virtual uint8_t get_heap_fragmentation()
+    {}
+    virtual uint16_t get_cpu_frequency()
+    {}
 };
 
 } // namespace dev
 
 #if defined(ESP32)
 #warning Building for ESP32 Devices
-#include "dev/esp32/esp32.h"
+#include "esp32/esp32.h"
 #elif defined(ESP8266)
 #warning Building for ESP8266 Devices
-#include "dev/esp8266/esp8266.h"
+#include "esp8266/esp8266.h"
 #elif defined(STM32F4)
 #warning Building for STM32F4xx Devices
-#include "dev/stm32f4.h"
+#include "stm32f4/stm32f4.h"
 #else
 #warning Building for Generic Devices
 using dev::BaseDevice;

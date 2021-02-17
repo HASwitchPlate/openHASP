@@ -875,7 +875,8 @@ void dispatch_reboot(bool saveConfig)
     Serial.flush();
 #endif
 
-    halRestartMcu();
+    // halRestartMcu();
+    haspDevice.reboot();
 }
 
 void dispatch_current_state()

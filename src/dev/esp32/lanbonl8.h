@@ -4,7 +4,7 @@
 #ifndef HASP_DEVICE_LANBONL8_H
 #define HASP_DEVICE_LANBONL8_H
 
-#include "dev/esp32/esp32.h"
+#include "esp32.h"
 
 #if defined(LANBONL8)
 

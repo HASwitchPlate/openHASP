@@ -7,23 +7,24 @@
  *      INCLUDES
  *********************/
 #include "../../src/hal/hasp_hal.h" // for halGpioName()
+#include "../../src/dev/device.h"
 #include "tft_espi_drv.h"
 #include "ArduinoLog.h"
 #include "hasp_macro.h"
 
 #if USE_TFT_ESPI != 0
 
-    #include <stdbool.h>
-    #include "TFT_eSPI.h"
+#include <stdbool.h>
+#include "TFT_eSPI.h"
 
-    #include LV_DRV_DISP_INCLUDE
-    #include LV_DRV_DELAY_INCLUDE
-    #include "bootscreen.h" // Sketch tab header for xbm images
+#include LV_DRV_DISP_INCLUDE
+#include LV_DRV_DELAY_INCLUDE
+#include "bootscreen.h" // Sketch tab header for xbm images
 
-    /*********************
-     *      DEFINES
-     *********************/
-    #define TAG_TFT 22
+/*********************
+ *      DEFINES
+ *********************/
+#define TAG_TFT 22
 
 /**********************
  *      TYPEDEFS
@@ -54,11 +55,11 @@ static TFT_eSPI tft;
  */
 void tft_espi_init(uint8_t rotation, bool invert_display)
 {
-    #ifdef USE_DMA_TO_TFT
+#ifdef USE_DMA_TO_TFT
     // DMA - should work with STM32F2xx/F4xx/F7xx processors
     // NOTE: >>>>>> DMA IS FOR SPI DISPLAYS ONLY <<<<<<
     tft.initDMA(); // Initialise the DMA engine (tested with STM32F446 and STM32F767)
-    #endif
+#endif
 
     /* TFT init */
     tft.begin();
@@ -77,11 +78,11 @@ void tft_espi_flush(lv_disp_drv_t * disp, const lv_area_t * area, lv_color_t * c
     /* Update TFT */
     tft.startWrite();                                      /* Start new TFT transaction */
     tft.setWindow(area->x1, area->y1, area->x2, area->y2); /* set the working window */
-    #ifdef USE_DMA_TO_TFT
+#ifdef USE_DMA_TO_TFT
     tft.pushPixelsDMA((uint16_t *)color_p, len); /* Write words at once */
-    #else
+#else
     tft.pushPixels((uint16_t *)color_p, len); /* Write words at once */
-    #endif
+#endif
     tft.endWrite(); /* terminate TFT transaction */
 
     /* Tell lvgl that flushing is done */
@@ -98,7 +99,7 @@ void tft_espi_flush(lv_disp_drv_t * disp, const lv_area_t * area, lv_color_t * c
 //     tft_espi_flush(x1, y1, x2, y2, color_p);
 // }
 
-    #if defined(TOUCH_CS)
+#if defined(TOUCH_CS)
 
 void tft_espi_calibrate(uint16_t * calData)
 {
@@ -125,15 +126,15 @@ bool tft_espi_get_touch(int16_t * touchX, int16_t * touchY, uint16_t threshold)
 {
     return tft.getTouch((uint16_t *)touchX, (uint16_t *)touchY, threshold);
 }
-    #endif
+#endif
 
 /**********************
  *   STATIC FUNCTIONS
  **********************/
 
-    #if defined(ARDUINO_ARCH_ESP8266)
+#if defined(ARDUINO_ARCH_ESP8266)
 ADC_MODE(ADC_VCC); // tftShowConfig measures the voltage on the pin
-    #endif
+#endif
 
 static void tftOffsetInfo(uint8_t pin, uint8_t x_offset, uint8_t y_offset)
 {
@@ -160,21 +161,21 @@ static void tftShowConfig(TFT_eSPI & tft)
     tft.getSetup(tftSetup);
 
     LOG_VERBOSE(TAG_TFT, F("TFT_eSPI   : v%s"), tftSetup.version.c_str());
-    #if defined(ARDUINO_ARCH_ESP8266) || defined(ARDUINO_ARCH_ESP32)
+#if defined(ARDUINO_ARCH_ESP8266) || defined(ARDUINO_ARCH_ESP32)
     LOG_VERBOSE(TAG_TFT, F("Processor  : ESP%x"), tftSetup.esp);
-    #else
+#else
     LOG_VERBOSE(TAG_TFT, F("Processor  : STM%x"), tftSetup.esp);
-    #endif
-    LOG_VERBOSE(TAG_TFT, F("CPU freq.  : %i MHz"), halGetCpuFreqMHz());
+#endif
+    LOG_VERBOSE(TAG_TFT, F("CPU freq.  : %i MHz"), haspDevice.get_cpu_frequency());
 
-    #if defined(ARDUINO_ARCH_ESP8266)
+#if defined(ARDUINO_ARCH_ESP8266)
     LOG_VERBOSE(TAG_TFT, F("Voltage    : %2.2f V"), ESP.getVcc() / 918.0); // 918 empirically determined
-    #endif
+#endif
     LOG_VERBOSE(TAG_TFT, F("Transactns : %s"), (tftSetup.trans == 1) ? PSTR("Yes") : PSTR("No"));
     LOG_VERBOSE(TAG_TFT, F("Interface  : %s"), (tftSetup.serial == 1) ? PSTR("SPI") : PSTR("Parallel"));
-    #if defined(ARDUINO_ARCH_ESP8266)
+#if defined(ARDUINO_ARCH_ESP8266)
     LOG_VERBOSE(TAG_TFT, F("SPI overlap: %s"), (tftSetup.overlap == 1) ? PSTR("Yes") : PSTR("No"));
-    #endif
+#endif
 
     if(tftSetup.tft_driver != 0xE9D) // For ePaper displays the size is defined in the sketch
     {
@@ -201,7 +202,7 @@ static void tftShowConfig(TFT_eSPI & tft)
     tftPinInfo(F("MISO"), tftSetup.pin_tft_miso);
     tftPinInfo(F("SCLK"), tftSetup.pin_tft_clk);
 
-    #if defined(ARDUINO_ARCH_ESP8266)
+#if defined(ARDUINO_ARCH_ESP8266)
     if(tftSetup.overlap == true) {
         LOG_VERBOSE(TAG_TFT, F("Overlap selected, following pins MUST be used:"));
 
@@ -212,7 +213,7 @@ static void tftShowConfig(TFT_eSPI & tft)
 
         LOG_VERBOSE(TAG_TFT, F("TFT_DC and TFT_RST pins can be tftSetup defined"));
     }
-    #endif
+#endif
 
     tftPinInfo(F("TFT_CS"), tftSetup.pin_tft_cs);
     tftPinInfo(F("TFT_DC"), tftSetup.pin_tft_dc);

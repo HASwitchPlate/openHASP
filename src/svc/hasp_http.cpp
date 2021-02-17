@@ -7,10 +7,11 @@
 #include "lvgl.h"
 
 #if defined(ARDUINO_ARCH_ESP32)
-    #include "Update.h"
+#include "Update.h"
 #endif
 
 #include "hasp_conf.h"
+#include "dev/device.h"
 
 #include "hasp_gui.h"
 #include "hal/hasp_hal.h"
@@ -23,9 +24,9 @@
 
 #if HASP_USE_HTTP > 0
 
-    #if defined(ARDUINO_ARCH_ESP8266) || defined(ARDUINO_ARCH_ESP32)
+#if defined(ARDUINO_ARCH_ESP8266) || defined(ARDUINO_ARCH_ESP32)
 File fsUploadFile;
-    #endif
+#endif
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 bool webServerStarted = false;
@@ -36,31 +37,31 @@ bool webServerStarted = false;
 // char httpPassword[32] = "";
 hasp_http_config_t http_config;
 
-    #define HTTP_PAGE_SIZE (6 * 256)
+#define HTTP_PAGE_SIZE (6 * 256)
 
-    #if defined(STM32F4xx) && HASP_USE_ETHERNET > 0
-        #include <EthernetWebServer_STM32.h>
+#if defined(STM32F4xx) && HASP_USE_ETHERNET > 0
+#include <EthernetWebServer_STM32.h>
 EthernetWebServer webServer(80);
-    #endif
+#endif
 
-    #if defined(STM32F4xx) && HASP_USE_WIFI > 0
-        #include <EthernetWebServer_STM32.h>
+#if defined(STM32F4xx) && HASP_USE_WIFI > 0
+#include <EthernetWebServer_STM32.h>
 // #include <WiFi.h>
 EthernetWebServer webServer(80);
-    #endif
+#endif
 
-    #if defined(ARDUINO_ARCH_ESP8266)
-        #include "StringStream.h"
-        #include <ESP8266WebServer.h>
-        #include <detail/mimetable.h>
+#if defined(ARDUINO_ARCH_ESP8266)
+#include "StringStream.h"
+#include <ESP8266WebServer.h>
+#include <detail/mimetable.h>
 ESP8266WebServer webServer(80);
-    #endif
+#endif
 
-    #if defined(ARDUINO_ARCH_ESP32)
-        #include <WebServer.h>
-        #include <detail/mimetable.h>
+#if defined(ARDUINO_ARCH_ESP32)
+#include <WebServer.h>
+#include <detail/mimetable.h>
 WebServer webServer(80);
-    #endif // ESP32
+#endif // ESP32
 
 HTTPUpload * upload;
 
@@ -112,12 +113,11 @@ const char HTTP_FOOTER[] PROGMEM = " by Francis Van Roie</div></body></html>";
 // // Default link to compiled Nextion firmware images
 // String lcdFirmwareUrl = "http://haswitchplate.com/update/HASwitchPlate.tft";
 
-    #if HASP_USE_MQTT > 0
+#if HASP_USE_MQTT > 0
 extern char mqttNodeName[16];
-    #else
+#else
 char mqttNodeName[3] = "na";
-    #endif
-
+#endif
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 String getOption(int value, String label, bool selected)
@@ -185,13 +185,13 @@ bool httpIsAuthenticated(const __FlashStringHelper * fstr_page)
         }
     }
 
-    #if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
+#if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
     LOG_TRACE(TAG_HTTP, F("Sending %S page to client connected from: %s"), fstr_page,
-               webServer.client().remoteIP().toString().c_str());
-    #else
-        // LOG_INFO(TAG_HTTP,F("Sending %s page to client connected from: %s"), page,
-        //             String(webServer.client().remoteIP()).c_str());
-    #endif
+              webServer.client().remoteIP().toString().c_str());
+#else
+    // LOG_INFO(TAG_HTTP,F("Sending %s page to client connected from: %s"), page,
+    //             String(webServer.client().remoteIP()).c_str());
+#endif
 
     return true;
 }
@@ -201,15 +201,15 @@ void webSendFooter()
     char buffer[16];
     haspGetVersion(buffer, sizeof(buffer));
 
-    #if defined(STM32F4xx)
+#if defined(STM32F4xx)
     webServer.sendContent(HTTP_END);
     webServer.sendContent(buffer);
     webServer.sendContent(HTTP_FOOTER);
-    #else
+#else
     webServer.sendContent_P(HTTP_END);
     webServer.sendContent(buffer);
     webServer.sendContent_P(HTTP_FOOTER);
-    #endif
+#endif
 }
 
 void webSendPage(char * nodename, uint32_t httpdatalength, bool gohome = false)
@@ -235,29 +235,29 @@ void webSendPage(char * nodename, uint32_t httpdatalength, bool gohome = false)
         }
 
         webServer.setContentLength(contentLength + httpdatalength);
-    #if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
+#if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
         webServer.send_P(200, PSTR("text/html"), HTTP_DOCTYPE); // 122
-    #else
+#else
         webServer.send(200, ("text/html"), HTTP_DOCTYPE); // 122
-    #endif
+#endif
 
         snprintf_P(buffer, sizeof(buffer), HTTP_HEADER, nodename);
         webServer.sendContent(buffer); // 17-2+len
     }
 
-    #if defined(STM32F4xx)
+#if defined(STM32F4xx)
     webServer.sendContent(HTTP_SCRIPT); // 131
     webServer.sendContent(HTTP_STYLE);  // 487
     // webServer.sendContent(HASP_STYLE);                   // 145
     if(gohome) webServer.sendContent(HTTP_META_GO_BACK); // 47
     webServer.sendContent(HTTP_HEADER_END);              // 80
-    #else
+#else
     webServer.sendContent_P(HTTP_SCRIPT);                 // 131
     webServer.sendContent_P(HTTP_STYLE);                  // 487
     // webServer.sendContent_P(HASP_STYLE);                   // 145
     if(gohome) webServer.sendContent_P(HTTP_META_GO_BACK); // 47
     webServer.sendContent_P(HTTP_HEADER_END);              // 80
-    #endif
+#endif
 }
 
 void saveConfig()
@@ -272,10 +272,10 @@ void saveConfig()
             if(save == String(PSTR("hasp"))) {
                 haspSetConfig(settings.as<JsonObject>());
 
-    #if HASP_USE_MQTT > 0
+#if HASP_USE_MQTT > 0
             } else if(save == String(PSTR("mqtt"))) {
                 mqttSetConfig(settings.as<JsonObject>());
-    #endif
+#endif
 
             } else if(save == String(PSTR("gui"))) {
                 settings[FPSTR(FP_GUI_POINTER)] = webServer.hasArg(PSTR("cur"));
@@ -291,10 +291,10 @@ void saveConfig()
                 // Password might have changed
                 if(!httpIsAuthenticated(F("config"))) return;
 
-    #if HASP_USE_WIFI > 0
+#if HASP_USE_WIFI > 0
             } else if(save == String(PSTR("wifi"))) {
                 wifiSetConfig(settings.as<JsonObject>());
-    #endif
+#endif
             }
         }
     }
@@ -326,13 +326,13 @@ void webHandleRoot()
         httpMessage += F("<p><form method='get' action='firmware'><button type='submit'>" D_HTTP_FIRMWARE_UPGRADE
                          "</button></form></p>");
 
-    #if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
+#if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
         if(HASP_FS.exists(F("/edit.htm.gz"))) {
             httpMessage +=
                 F("<p><form method='get' action='edit.htm.gz?path=/'><button type='submit'>" D_HTTP_FILE_BROWSER
                   "</button></form></p>");
         }
-    #endif
+#endif
 
         httpMessage += F("<p><form method='get' action='reboot'><button class='red' type='submit'>" D_HTTP_REBOOT
                          "</button></form></p>");
@@ -455,15 +455,15 @@ void webHandleAbout()
             F("<p><h3>ArduinoLog</h3>Copyright&copy; 2017,2018 Thijs Elenbaas, MrRobot62, rahuldeo2047, NOX73, "
               "dhylands, Josha blemasle, mfalkvidd");
         httpMessage += FPSTR(MIT_LICENSE);
-    #if HASP_USE_SYSLOG > 0
-            // Replaced with WiFiUDP client
-            // httpMessage += F("<p><h3>Syslog</h3>Copyright&copy; 2016 Martin Sloup");
-            // httpMessage += FPSTR(MIT_LICENSE);
-    #endif
-    #if HASP_USE_QRCODE > 0
+#if HASP_USE_SYSLOG > 0
+        // Replaced with WiFiUDP client
+        // httpMessage += F("<p><h3>Syslog</h3>Copyright&copy; 2016 Martin Sloup");
+        // httpMessage += FPSTR(MIT_LICENSE);
+#endif
+#if HASP_USE_QRCODE > 0
         httpMessage += F("<p><h3>QR Code generator</h3>Copyright&copy; Project Nayuki");
         httpMessage += FPSTR(MIT_LICENSE);
-    #endif
+#endif
         httpMessage += F("<p><h3>AceButton</h3>Copyright&copy; 2018 Brian T. Park");
         httpMessage += FPSTR(MIT_LICENSE);
 
@@ -527,12 +527,12 @@ void webHandleInfo()
         httpMessage += F("s");
 
         httpMessage += F("<br/><b>Free Memory: </b>");
-        Utilities::format_bytes(halGetFreeHeap(), size_buf, sizeof(size_buf));
+        Utilities::format_bytes(haspDevice.get_free_heap(), size_buf, sizeof(size_buf));
         httpMessage += size_buf;
         httpMessage += F("<br/><b>Memory Fragmentation: </b>");
-        httpMessage += String(halGetHeapFragmentation());
+        httpMessage += String(haspDevice.get_heap_fragmentation());
 
-    #if ARDUINO_ARCH_ESP32
+#if ARDUINO_ARCH_ESP32
         if(psramFound()) {
             httpMessage += F("<br/><b>Free PSRam: </b>");
             Utilities::format_bytes(ESP.getFreePsram(), size_buf, sizeof(size_buf));
@@ -541,7 +541,7 @@ void webHandleInfo()
             Utilities::format_bytes(ESP.getPsramSize(), size_buf, sizeof(size_buf));
             httpMessage += size_buf;
         }
-    #endif
+#endif
 
         /* LVGL Stats */
         lv_mem_monitor_t mem_mon;
@@ -562,7 +562,7 @@ void webHandleInfo()
         httpMessage += String(haspGetPage());
 
         /* Wifi Stats */
-    #if HASP_USE_WIFI > 0
+#if HASP_USE_WIFI > 0
         httpMessage += F("</p/><p><b>SSID: </b>");
         httpMessage += String(WiFi.SSID());
         httpMessage += F("</br><b>Signal Strength: </b>");
@@ -582,7 +582,7 @@ void webHandleInfo()
         } else {
             httpMessage += F("Very Bad)");
         }
-        #if defined(STM32F4xx)
+#if defined(STM32F4xx)
         byte mac[6];
         WiFi.macAddress(mac);
         char macAddress[16];
@@ -594,7 +594,7 @@ void webHandleInfo()
         httpMessage += String(WiFi.gatewayIP());
         httpMessage += F("</br><b>MAC Address: </b>");
         httpMessage += String(macAddress);
-        #else
+#else
         httpMessage += F("</br><b>IP Address: </b>");
         httpMessage += String(WiFi.localIP().toString());
         httpMessage += F("</br><b>Gateway: </b>");
@@ -603,10 +603,10 @@ void webHandleInfo()
         httpMessage += String(WiFi.dnsIP().toString());
         httpMessage += F("</br><b>MAC Address: </b>");
         httpMessage += String(WiFi.macAddress());
-        #endif
-    #endif
-    #if HASP_USE_ETHERNET > 0
-        #if defined(ARDUINO_ARCH_ESP32)
+#endif
+#endif
+#if HASP_USE_ETHERNET > 0
+#if defined(ARDUINO_ARCH_ESP32)
         httpMessage += F("</p/><p><b>Ethernet: </b>");
         httpMessage += String(ETH.linkSpeed());
         httpMessage += F(" Mbps");
@@ -621,10 +621,10 @@ void webHandleInfo()
         httpMessage += String(ETH.dnsIP().toString());
         httpMessage += F("</br><b>MAC Address: </b>");
         httpMessage += String(ETH.macAddress());
-        #endif
-    #endif
-    /* Mqtt Stats */
-    #if HASP_USE_MQTT > 0
+#endif
+#endif
+/* Mqtt Stats */
+#if HASP_USE_MQTT > 0
         httpMessage += F("</p/><p><b>MQTT Status: </b>");
         if(mqttIsConnected()) { // Check MQTT connection
             httpMessage += F("Connected");
@@ -642,16 +642,16 @@ void webHandleInfo()
             httpMessage += mqttClientId;
         }
 
-    #endif // MQTT
+#endif // MQTT
 
         /* ESP Stats */
         httpMessage += F("</p/><p><b>MCU Model: </b>");
         httpMessage += halGetChipModel();
         httpMessage += F("<br/><b>CPU Frequency: </b>");
-        httpMessage += String(halGetCpuFreqMHz());
+        httpMessage += String(haspDevice.get_cpu_frequency());
         httpMessage += F("MHz");
 
-    #if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
+#if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
         httpMessage += F("<br/><b>Flash Chip Size: </b>");
         Utilities::format_bytes(ESP.getFlashChipSize(), size_buf, sizeof(size_buf));
         httpMessage += size_buf;
@@ -663,14 +663,14 @@ void webHandleInfo()
         httpMessage += F("<br/><b>Free Program Space: </b>");
         Utilities::format_bytes(ESP.getFreeSketchSpace(), size_buf, sizeof(size_buf));
         httpMessage += size_buf;
-    #endif
+#endif
 
         //#if defined(ARDUINO_ARCH_ESP32)
         //        httpMessage += F("<br/><b>ESP SDK version: </b>");
         //        httpMessage += String(ESP.getSdkVersion());
         //#else
         httpMessage += F("<br/><b>Core version: </b>");
-        httpMessage += String(halGetCoreVersion());
+        httpMessage += halGetCoreVersion();
         //#endif
         httpMessage += F("<br/><b>Last Reset: </b>");
         httpMessage += halGetResetInfo();
@@ -768,20 +768,20 @@ void webUploadProgress()
     haspProgressVal(t);
 }
 
-    #if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
+#if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
 static inline void webUpdatePrintError()
 {
-        #if defined(ARDUINO_ARCH_ESP8266)
+#if defined(ARDUINO_ARCH_ESP8266)
     String output((char *)0);
     output.reserve(128);
     StringStream stream((String &)output);
     Update.printError(stream); // ESP8266 only has printError()
     LOG_ERROR(TAG_HTTP, output.c_str());
     haspProgressMsg(output.c_str());
-        #elif defined(ARDUINO_ARCH_ESP32)
+#elif defined(ARDUINO_ARCH_ESP32)
     LOG_ERROR(TAG_HTTP, Update.errorString()); // ESP32 has errorString()
     haspProgressMsg(Update.errorString());
-        #endif
+#endif
 }
 
 void webUpdateReboot()
@@ -839,9 +839,9 @@ void webHandleFirmwareUpload()
         }
     }
 }
-    #endif
+#endif
 
-    #if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
+#if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
 bool handleFileRead(String path)
 {
     if(!httpIsAuthenticated(F("fileread"))) return false;
@@ -973,7 +973,7 @@ void handleFileList()
     LOG_TRACE(TAG_HTTP, F("handleFileList: %s"), path.c_str());
     path.clear();
 
-        #if defined(ARDUINO_ARCH_ESP32)
+#if defined(ARDUINO_ARCH_ESP32)
     File root     = HASP_FS.open("/", FILE_READ);
     File file     = root.openNextFile();
     String output = "[";
@@ -998,7 +998,7 @@ void handleFileList()
     }
     output += "]";
     webServer.send(200, PSTR("text/json"), output);
-        #elif defined(ARDUINO_ARCH_ESP8266)
+#elif defined(ARDUINO_ARCH_ESP8266)
     Dir dir = HASP_FS.openDir(path);
     String output = "[";
     while(dir.next()) {
@@ -1020,24 +1020,24 @@ void handleFileList()
     }
     output += "]";
     webServer.send(200, PSTR("text/json"), output);
-        #endif
+#endif
 }
-    #endif
+#endif
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////////
-    #if HASP_USE_CONFIG > 0
+////////////////////////////////////////////////////////////////////////////////////////////////////
+#if HASP_USE_CONFIG > 0
 void webHandleConfig()
 { // http://plate01/config
     if(!httpIsAuthenticated(F("config"))) return;
 
     saveConfig();
 
-        // Reboot after saving wifi config in AP mode
-        #if HASP_USE_WIFI > 0 && !defined(STM32F4xx)
+// Reboot after saving wifi config in AP mode
+#if HASP_USE_WIFI > 0 && !defined(STM32F4xx)
     if(WiFi.getMode() != WIFI_STA) {
         httpHandleReboot();
     }
-        #endif
+#endif
 
     {
         String httpMessage((char *)0);
@@ -1046,15 +1046,15 @@ void webHandleConfig()
         httpMessage += httpGetNodename();
         httpMessage += F("</h1><hr>");
 
-        #if HASP_USE_WIFI > 0
+#if HASP_USE_WIFI > 0
         httpMessage += F("<p><form method='get' action='/config/wifi'><button type='submit'>" D_HTTP_WIFI_SETTINGS
                          "</button></form></p>");
-        #endif
+#endif
 
-        #if HASP_USE_MQTT > 0
+#if HASP_USE_MQTT > 0
         httpMessage += F("<p><form method='get' action='/config/mqtt'><button type='submit'>" D_HTTP_MQTT_SETTINGS
                          "</button></form></p>");
-        #endif
+#endif
 
         httpMessage += F("<p><form method='get' action='/config/http'><button type='submit'>" D_HTTP_HTTP_SETTINGS
                          "</button></form></p>");
@@ -1062,14 +1062,14 @@ void webHandleConfig()
         httpMessage += F("<p><form method='get' action='/config/gui'><button type='submit'>" D_HTTP_GUI_SETTINGS
                          "</button></form></p>");
 
-            // httpMessage +=
-            //     F("<p><form method='get' action='/config/hasp'><button type='submit'>HASP
-            //     Settings</button></form></p>");
+        // httpMessage +=
+        //     F("<p><form method='get' action='/config/hasp'><button type='submit'>HASP
+        //     Settings</button></form></p>");
 
-        #if HASP_USE_GPIO > 0
+#if HASP_USE_GPIO > 0
         httpMessage += F("<p><form method='get' action='/config/gpio'><button type='submit'>" D_HTTP_GPIO_SETTINGS
                          "</button></form></p>");
-        #endif
+#endif
 
         httpMessage += F("<p><form method='get' action='/config/debug'><button type='submit'>" D_HTTP_DEBUG_SETTINGS
                          "</button></form></p>");
@@ -1087,8 +1087,8 @@ void webHandleConfig()
     webSendFooter();
 }
 
-        ////////////////////////////////////////////////////////////////////////////////////////////////////
-        #if HASP_USE_MQTT > 0
+////////////////////////////////////////////////////////////////////////////////////////////////////
+#if HASP_USE_MQTT > 0
 void webHandleMqttConfig()
 { // http://plate01/config/mqtt
     if(!httpIsAuthenticated(F("config/mqtt"))) return;
@@ -1129,7 +1129,8 @@ void webHandleMqttConfig()
             F("'><p><button type='submit' name='save' value='mqtt'>" D_HTTP_SAVE_SETTINGS "</button></form></p>");
 
         add_form_button(httpMessage, F("&#8617; " D_HTTP_CONFIGURATION), F("/config"), F(""));
-        // httpMessage += PSTR("<p><form method='get' action='/config'><button type='submit'>&#8617; " D_HTTP_CONFIGURATION
+        // httpMessage += PSTR("<p><form method='get' action='/config'><button type='submit'>&#8617; "
+        // D_HTTP_CONFIGURATION
         //                     "</button></form></p>");
 
         webSendPage(httpGetNodename(), httpMessage.length(), false);
@@ -1138,7 +1139,7 @@ void webHandleMqttConfig()
     // httpMessage.clear();
     webSendFooter();
 }
-        #endif
+#endif
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 void webHandleGuiConfig()
@@ -1190,7 +1191,7 @@ void webHandleGuiConfig()
         int8_t bcklpin = settings[FPSTR(FP_GUI_BACKLIGHTPIN)].as<int8_t>();
         httpMessage += F("<p><b>Backlight Control</b> <select id='bckl' name='bckl'>");
         httpMessage += getOption(-1, F("None"), bcklpin == -1);
-        #if defined(ARDUINO_ARCH_ESP32)
+#if defined(ARDUINO_ARCH_ESP32)
         add_gpio_select_option(httpMessage, 5, bcklpin);  // D8 on ESP32 for D1 mini 32
         add_gpio_select_option(httpMessage, 12, bcklpin); // TFT_LED on the Liligo Pi
         add_gpio_select_option(httpMessage, 16, bcklpin); // D4 on ESP32 for D1 mini 32
@@ -1201,25 +1202,25 @@ void webHandleGuiConfig()
         add_gpio_select_option(httpMessage, 22, bcklpin); // D2 on ESP32 for D1 mini 32
         add_gpio_select_option(httpMessage, 23, bcklpin); // D7 on ESP32 for D1 mini 32
         add_gpio_select_option(httpMessage, 32, bcklpin); // TFT_LED on the Lolin D32 Pro
-        #else
+#else
         httpMessage += getOption(5, F("D1 - GPIO 5"), bcklpin == 5);
         httpMessage += getOption(4, F("D2 - GPIO 4"), bcklpin == 4);
         httpMessage += getOption(0, F("D3 - GPIO 0"), bcklpin == 0);
         httpMessage += getOption(2, F("D4 - GPIO 2"), bcklpin == 2);
-        #endif
+#endif
         httpMessage += F("</select></p>");
 
         add_button(httpMessage, F(D_HTTP_SAVE_SETTINGS), F("name='save' value='gui'"));
         close_form(httpMessage);
-            // httpMessage +=
-            //     F("<p><button type='submit' name='save' value='gui'>" D_HTTP_SAVE_SETTINGS "</button></p></form>");
+        // httpMessage +=
+        //     F("<p><button type='submit' name='save' value='gui'>" D_HTTP_SAVE_SETTINGS "</button></p></form>");
 
-        #if TOUCH_DRIVER == 2046 && defined(TOUCH_CS)
+#if TOUCH_DRIVER == 2046 && defined(TOUCH_CS)
         add_form_button(httpMessage, F(D_HTTP_CALIBRATE), F("/config/gui"), F("name='action' value='calibrate'"));
 
-        // httpMessage += PSTR("<p><form method='get' action='/config/gui'><button type='submit' "
-        //                     ">" D_HTTP_CALIBRATE "</button></form></p>");
-        #endif
+// httpMessage += PSTR("<p><form method='get' action='/config/gui'><button type='submit' "
+//                     ">" D_HTTP_CALIBRATE "</button></form></p>");
+#endif
 
         add_form_button(httpMessage, F("&#8617; " D_HTTP_CONFIGURATION), F("/config"), F(""));
 
@@ -1235,8 +1236,8 @@ void webHandleGuiConfig()
     if(webServer.hasArg(F("action"))) dispatch_text_line(webServer.arg(F("action")).c_str());
 }
 
-        ////////////////////////////////////////////////////////////////////////////////////////////////////
-        #if HASP_USE_WIFI > 0
+////////////////////////////////////////////////////////////////////////////////////////////////////
+#if HASP_USE_WIFI > 0
 void webHandleWifiConfig()
 { // http://plate01/config/wifi
     if(!httpIsAuthenticated(F("config/wifi"))) return;
@@ -1262,28 +1263,28 @@ void webHandleWifiConfig()
     httpMessage +=
         F("'><p><button type='submit' name='save' value='wifi'>" D_HTTP_SAVE_SETTINGS "</button></p></form>");
 
-            #if HASP_USE_WIFI > 0 && !defined(STM32F4xx)
+#if HASP_USE_WIFI > 0 && !defined(STM32F4xx)
     if(WiFi.getMode() == WIFI_STA) {
         add_form_button(httpMessage, F("&#8617; " D_HTTP_CONFIGURATION), F("/config"), F(""));
         // httpMessage += PSTR("<p><form method='get' action='/config'><button type='submit'>&#8617; "
         // D_HTTP_CONFIGURATION
         //                     "</button></form></p>");
     }
-            #endif
+#endif
 
     webSendPage(httpGetNodename(), httpMessage.length(), false);
     webServer.sendContent(httpMessage);
-            #if defined(STM32F4xx)
+#if defined(STM32F4xx)
     httpMessage = "";
-            #else
+#else
     httpMessage.clear();
-            #endif
+#endif
     webSendFooter();
 }
-        #endif
+#endif
 
-        ////////////////////////////////////////////////////////////////////////////////////////////////////
-        #if HASP_USE_HTTP > 0
+////////////////////////////////////////////////////////////////////////////////////////////////////
+#if HASP_USE_HTTP > 0
 void webHandleHttpConfig()
 { // http://plate01/config/http
     if(!httpIsAuthenticated(F("config/http"))) return;
@@ -1340,10 +1341,10 @@ void webHandleHttpConfig()
     // httpMessage.clear();
     webSendFooter();
 }
-        #endif
+#endif
 
-        ////////////////////////////////////////////////////////////////////////////////////////////////////
-        #if defined(HASP_USE_GPIO) && (HASP_USE_GPIO > 0)
+////////////////////////////////////////////////////////////////////////////////////////////////////
+#if defined(HASP_USE_GPIO) && (HASP_USE_GPIO > 0)
 void webHandleGpioConfig()
 { // http://plate01/config/gpio
     if(!httpIsAuthenticated(F("config/gpio"))) return;
@@ -1571,7 +1572,7 @@ void webHandleGpioOptions()
 
     if(webServer.hasArg(F("action"))) dispatch_text_line(webServer.arg(F("action")).c_str()); // Security check
 }
-        #endif // HASP_USE_GPIO
+#endif // HASP_USE_GPIO
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 void webHandleDebugConfig()
@@ -1604,7 +1605,7 @@ void webHandleDebugConfig()
         httpMessage += settings[FPSTR(FP_DEBUG_TELEPERIOD)].as<String>();
         httpMessage += F("'></p>");
 
-        #if HASP_USE_SYSLOG > 0
+#if HASP_USE_SYSLOG > 0
         httpMessage += F("<b>Syslog Hostame</b> <i><small>(optional)</small></i><input id='host' "
                          "name='host' maxlength=31 placeholder='logserver' value='");
         httpMessage += settings[FPSTR(FP_CONFIG_HOST)].as<String>();
@@ -1623,7 +1624,7 @@ void webHandleDebugConfig()
         httpMessage += F(">IETF (RFC 5424) &nbsp; <input id='proto' name='proto' type='radio' value='1'");
         if(settings[FPSTR(FP_CONFIG_PROTOCOL)].as<uint8_t>() == 1) httpMessage += F(" checked");
         httpMessage += F(">BSD (RFC 3164)");
-        #endif
+#endif
 
         httpMessage +=
             F("</p><p><button type='submit' name='save' value='debug'>" D_HTTP_SAVE_SETTINGS "</button></p></form>");
@@ -1664,24 +1665,24 @@ void webHandleHaspConfig()
         httpMessage += F("<p><b>UI Theme</b> <i><small>(required)</small></i><select id='theme' name='theme'>");
 
         uint8_t themeid = settings[FPSTR(FP_CONFIG_THEME)].as<uint8_t>();
-            // httpMessage += getOption(0, F("Built-in"), themeid == 0);
-        #if LV_USE_THEME_HASP == 1
+        // httpMessage += getOption(0, F("Built-in"), themeid == 0);
+#if LV_USE_THEME_HASP == 1
         httpMessage += getOption(2, F("Hasp Dark"), themeid == 2);
         httpMessage += getOption(1, F("Hasp Light"), themeid == 1);
-        #endif
-        #if LV_USE_THEME_EMPTY == 1
+#endif
+#if LV_USE_THEME_EMPTY == 1
         httpMessage += getOption(0, F("Empty"), themeid == 0);
-        #endif
-        #if LV_USE_THEME_MONO == 1
+#endif
+#if LV_USE_THEME_MONO == 1
         httpMessage += getOption(3, F("Mono"), themeid == 3);
-        #endif
-        #if LV_USE_THEME_MATERIAL == 1
+#endif
+#if LV_USE_THEME_MATERIAL == 1
         httpMessage += getOption(5, F("Material Dark"), themeid == 5);
         httpMessage += getOption(4, F("Material Light"), themeid == 4);
-        #endif
-        #if LV_USE_THEME_TEMPLATE == 1
+#endif
+#if LV_USE_THEME_TEMPLATE == 1
         httpMessage += getOption(7, F("Template"), themeid == 7);
-        #endif
+#endif
         httpMessage += F("</select></br>");
         httpMessage +=
             F("<b>Hue</b><div style='width:100%;background-image:linear-gradient(to "
@@ -1691,7 +1692,7 @@ void webHandleHaspConfig()
         httpMessage += F("'></div></p>");
         httpMessage += F("<p><b>Default Font</b><select id='font' name='font'><option value=''>None</option>");
 
-        #if defined(ARDUINO_ARCH_ESP32)
+#if defined(ARDUINO_ARCH_ESP32)
         File root = HASP_FS.open("/");
         File file = root.openNextFile();
 
@@ -1702,7 +1703,7 @@ void webHandleHaspConfig()
                     getOption(file.name(), file.name(), filename == settings[FPSTR(FP_CONFIG_ZIFONT)].as<String>());
             file = root.openNextFile();
         }
-        #elif defined(ARDUINO_ARCH_ESP8266)
+#elif defined(ARDUINO_ARCH_ESP8266)
         Dir dir = HASP_FS.openDir("/");
         while(dir.next()) {
             File file = dir.openFile("r");
@@ -1712,7 +1713,7 @@ void webHandleHaspConfig()
                     getOption(file.name(), file.name(), filename == settings[FPSTR(FP_CONFIG_ZIFONT)].as<String>());
             file.close();
         }
-        #endif
+#endif
         httpMessage += F("</select></p>");
 
         httpMessage += F("<p><b>Startup Layout</b> <i><small>(optional)</small></i><input id='pages' "
@@ -1742,21 +1743,21 @@ void webHandleHaspConfig()
     // httpMessage.clear();
     webSendFooter();
 }
-    #endif // HASP_USE_CONFIG
+#endif // HASP_USE_CONFIG
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 void httpHandleNotFound()
 { // webServer 404
-    #if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
+#if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
     if(handleFileRead(webServer.uri())) return;
-    #endif
+#endif
 
-    #if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
+#if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
     LOG_TRACE(TAG_HTTP, F("Sending 404 to client connected from: %s"),
-               webServer.client().remoteIP().toString().c_str());
-    #else
+              webServer.client().remoteIP().toString().c_str());
+#else
   // LOG_TRACE(TAG_HTTP,F("Sending 404 to client connected from: %s"), String(webServer.client().remoteIP()).c_str());
-    #endif
+#endif
 
     String httpMessage((char *)0);
     httpMessage.reserve(HTTP_PAGE_SIZE);
@@ -1828,8 +1829,8 @@ void httpHandleEspFirmware()
     // espStartOta(webServer.arg("espFirmware"));
 }
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////////
-    #if HASP_USE_CONFIG > 0
+////////////////////////////////////////////////////////////////////////////////////////////////////
+#if HASP_USE_CONFIG > 0
 void webHandleSaveConfig()
 {
     if(!httpIsAuthenticated(F("saveConfig"))) return;
@@ -1888,30 +1889,30 @@ void httpHandleResetConfig()
         dispatch_reboot(false); // Do not save the current config
     }
 }
-    #endif // HASP_USE_CONFIG
+#endif // HASP_USE_CONFIG
 
 void httpStart()
 {
     webServer.begin();
     webServerStarted = true;
-    #if HASP_USE_WIFI > 0
-        #if defined(STM32F4xx)
+#if HASP_USE_WIFI > 0
+#if defined(STM32F4xx)
     IPAddress ip;
     ip = WiFi.localIP();
     LOG_INFO(TAG_HTTP, F(D_SERVICE_STARTED " @ http://%d.%d.%d.%d"), ip[0], ip[1], ip[2], ip[3]);
-        #else
+#else
     LOG_INFO(TAG_HTTP, F(D_SERVICE_STARTED " @ http://%s"),
-              (WiFi.getMode() != WIFI_STA ? WiFi.softAPIP().toString().c_str() : WiFi.localIP().toString().c_str()));
-        #endif
-    #else
+             (WiFi.getMode() != WIFI_STA ? WiFi.softAPIP().toString().c_str() : WiFi.localIP().toString().c_str()));
+#endif
+#else
     IPAddress ip;
-        #if defined(ARDUINO_ARCH_ESP32)
+#if defined(ARDUINO_ARCH_ESP32)
     ip = ETH.localIP();
-        #else
+#else
     ip = Ethernet.localIP();
-        #endif
+#endif
     LOG_INFO(TAG_HTTP, F(D_SERVICE_STARTED " @ http://%d.%d.%d.%d"), ip[0], ip[1], ip[2], ip[3]);
-    #endif
+#endif
 }
 
 void httpStop()
@@ -1935,19 +1936,19 @@ void httpSetup()
     webServer.on(F("/about"), webHandleAbout);
     webServer.onNotFound(httpHandleNotFound);
 
-    #if HASP_USE_WIFI > 0
-        #if !defined(STM32F4xx)
+#if HASP_USE_WIFI > 0
+#if !defined(STM32F4xx)
 
-            #if HASP_USE_CONFIG > 0
+#if HASP_USE_CONFIG > 0
     if(WiFi.getMode() != WIFI_STA) {
         LOG_TRACE(TAG_HTTP, F("Wifi access point"));
         webServer.on(F("/"), webHandleWifiConfig);
         return;
     }
 
-            #endif
-        #endif
-    #endif
+#endif
+#endif
+#endif
 
     webServer.on(F("/page/"), []() {
         String pageid = webServer.arg(F("page"));
@@ -1955,7 +1956,7 @@ void httpSetup()
         haspSetPage(pageid.toInt());
     });
 
-    #if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
+#if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
     webServer.on(F("/list"), HTTP_GET, handleFileList);
     // load editor
     webServer.on(F("/edit"), HTTP_GET, []() {
@@ -1976,7 +1977,7 @@ void httpSetup()
             LOG_VERBOSE(TAG_HTTP, F("Headers: %d"), webServer.headers());
         },
         handleFileUpload);
-    #endif
+#endif
 
     webServer.on(F("/"), webHandleRoot);
     webServer.on(F("/info"), webHandleInfo);
@@ -1984,27 +1985,27 @@ void httpSetup()
     webServer.on(F("/firmware"), webHandleFirmware);
     webServer.on(F("/reboot"), httpHandleReboot);
 
-    #if HASP_USE_CONFIG > 0
+#if HASP_USE_CONFIG > 0
     webServer.on(F("/config/hasp"), webHandleHaspConfig);
     webServer.on(F("/config/http"), webHandleHttpConfig);
     webServer.on(F("/config/gui"), webHandleGuiConfig);
     webServer.on(F("/config/debug"), webHandleDebugConfig);
-        #if HASP_USE_MQTT > 0
+#if HASP_USE_MQTT > 0
     webServer.on(F("/config/mqtt"), webHandleMqttConfig);
-        #endif
-        #if HASP_USE_WIFI > 0
+#endif
+#if HASP_USE_WIFI > 0
     webServer.on(F("/config/wifi"), webHandleWifiConfig);
-        #endif
-        #if HASP_USE_GPIO > 0
+#endif
+#if HASP_USE_GPIO > 0
     webServer.on(F("/config/gpio"), webHandleGpioConfig);
     webServer.on(F("/config/gpio/options"), webHandleGpioOptions);
-        #endif
+#endif
     webServer.on(F("/saveConfig"), webHandleSaveConfig);
     webServer.on(F("/resetConfig"), httpHandleResetConfig);
     webServer.on(F("/config"), webHandleConfig);
-    #endif // HASP_USE_CONFIG
+#endif // HASP_USE_CONFIG
 
-    #if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
+#if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
     webServer.on(
         F("/update"), HTTP_POST,
         []() {
@@ -2013,7 +2014,7 @@ void httpSetup()
         },
         webHandleFirmwareUpload);
     webServer.on(F("/espfirmware"), httpHandleEspFirmware);
-    #endif
+#endif
 
     LOG_INFO(TAG_HTTP, F(D_SERVICE_STARTED));
     // webStart();  Wait for network connection
@@ -2027,9 +2028,9 @@ void httpReconnect()
     if(webServerStarted) {
         httpStop();
     } else
-    #if HASP_USE_WIFI > 0 && !defined(STM32F4xx)
+#if HASP_USE_WIFI > 0 && !defined(STM32F4xx)
         if(WiFi.status() == WL_CONNECTED || WiFi.getMode() != WIFI_STA)
-    #endif
+#endif
     {
         httpStart();
     }
@@ -2048,7 +2049,7 @@ void httpEvery5Seconds()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-    #if HASP_USE_CONFIG > 0
+#if HASP_USE_CONFIG > 0
 bool httpGetConfig(const JsonObject & settings)
 {
     bool changed = false;
@@ -2095,7 +2096,7 @@ bool httpSetConfig(const JsonObject & settings)
 
     return changed;
 }
-    #endif // HASP_USE_CONFIG
+#endif // HASP_USE_CONFIG
 
 size_t httpClientWrite(const uint8_t * buf, size_t size)
 {

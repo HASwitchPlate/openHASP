@@ -3,7 +3,7 @@
 #include "Arduino.h"
 #include <Esp.h>
 
-#include "dev/esp8266/esp8266.h"
+#include "esp8266.h"
 
 #include "hasp_conf.h"
 #include "hasp_debug.h"
@@ -57,6 +57,26 @@ void Esp8266Device::update_backlight()
     if(backlight_pin == -1) return;
 
     analogWrite(backlight_pin, backlight_power ? map(backlight_level, 0, 100, 0, 1023) : 0);
+}
+
+size_t Esp8266Device::get_free_max_block()
+{
+    return ESP.getMaxFreeBlockSize();
+}
+
+size_t Esp8266Device::get_free_heap(void)
+{
+    return ESP.getFreeHeap();
+}
+
+uint8_t Esp8266Device::get_heap_fragmentation()
+{
+    return ESP.getHeapFragmentation();
+}
+
+uint16_t Esp8266Device::get_cpu_frequency()
+{
+    return ESP.getCpuFreqMHz();
 }
 
 } // namespace dev
