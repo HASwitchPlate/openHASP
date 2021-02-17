@@ -57,8 +57,8 @@ gui_conf_t gui_settings = {.show_pointer   = false,
                            .invert_display = INVERT_COLORS,
                            .cal_data       = {0, 65535, 0, 65535, 0}};
 
-static int8_t guiDimLevel = 100;
-bool guiBacklightIsOn;
+// static int8_t guiDimLevel = 100;
+// bool guiBacklightIsOn;
 
 // #if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
 // static Ticker tick; /* timer for interrupt handler */
