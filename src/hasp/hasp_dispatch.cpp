@@ -19,6 +19,7 @@
 
 #if HASP_USE_DEBUG > 0
 #include "../hasp_debug.h"
+#include "hasp_gui.h" // for screenshot
 
 #if WINDOWS
 #include <iostream>
@@ -30,11 +31,10 @@
 #include "CharStream.h"
 
 #include "hasp_oobe.h"
-#include "hasp_gui.h" // for screenshot
 #include "sys/gpio/hasp_gpio.h"
 #include "hal/hasp_hal.h"
 
-#include "svc/hasp_ota.h"
+#include "sys/svc/hasp_ota.h"
 #include "mqtt/hasp_mqtt.h"
 #include "sys/net/hasp_network.h" // for network_get_status()
 #endif
@@ -329,13 +329,13 @@ void dispatch_output_idle_state(uint8_t state)
     char payload[6];
     switch(state) {
         case HASP_SLEEP_LONG:
-            memcpy_P(payload, PSTR("LONG"), sizeof(payload));
+            memcpy_P(payload, PSTR("LONG"), 5);
             break;
         case HASP_SLEEP_SHORT:
-            memcpy_P(payload, PSTR("SHORT"), sizeof(payload));
+            memcpy_P(payload, PSTR("SHORT"), 6);
             break;
         default:
-            memcpy_P(payload, PSTR("OFF"), sizeof(payload));
+            memcpy_P(payload, PSTR("OFF"), 4);
     }
     dispatch_state_msg(F("idle"), payload);
 }
@@ -571,13 +571,13 @@ void dispatch_object_value_changed(lv_obj_t * obj, int16_t state)
 /********************************************** Output States ******************************************/
 static inline void dispatch_state_msg(const __FlashStringHelper * subtopic, const char * payload)
 {
-#if !defined(HASP_USE_MQTT) && !defined(HASP_USE_TASMOTA_SLAVE)
+#if !defined(HASP_USE_MQTT) && !defined(HASP_USE_TASMOTA_CLIENT)
     LOG_TRACE(TAG_MSGR, F("%s => %s"), String(subtopic).c_str(), payload);
 #else
 #if HASP_USE_MQTT > 0
     mqtt_send_state(subtopic, payload);
 #endif
-#if HASP_USE_TASMOTA_SLAVE > 0
+#if HASP_USE_TASMOTA_CLIENT > 0
     slave_send_state(subtopic, payload);
 #endif
 #endif
@@ -895,9 +895,10 @@ void dispatch_output_statusupdate(const char *, const char *)
 
     char data[3 * 128];
     {
+        /*
         char buffer[128];
 
-        /*       haspGetVersion(buffer, sizeof(buffer));
+               haspGetVersion(buffer, sizeof(buffer));
                snprintf_P(data, sizeof(data),
                           PSTR("{\"node\":\"%s\",\"status\":\"available\",\"version\":\"%s\",\"uptime\":%lu,"),
                           mqttGetNodename().c_str(), buffer, long(millis() / 1000));
