@@ -6,16 +6,13 @@
 
 #if defined(M5STACK)
 
-    #include "../device.h"
+#include "dev/esp32/esp32.h"
 
 namespace dev {
 
-class M5StackCore2 : public BaseDevice {
+class M5StackCore2 : public Esp32Device {
   public:
     void pre_setup() override;
-    void post_setup() override;
-    void loop() override;
-    void loop_5s() override;
 };
 
 } // namespace dev

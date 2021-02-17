@@ -2,14 +2,14 @@
    For full license information read the LICENSE file in the project folder */
 
 #ifdef ARDUINO
-    #include "ArduinoLog.h"
+#include "ArduinoLog.h"
 #endif
 
 #include "ArduinoJson.h"
 #include "hasp_conf.h"
 
 #if HASP_USE_EEPROM > 0
-    #include "StreamUtils.h" // For EEPromStream
+#include "StreamUtils.h" // For EEPromStream
 #endif
 
 #include "lvgl.h"
@@ -17,13 +17,13 @@
 #include "hasp_conf.h"
 
 #if HASP_USE_DEBUG > 0
-    #include "../hasp_debug.h"
+#include "../hasp_debug.h"
 #endif
 
 #if HASP_USE_CONFIG > 0
-    #include "lv_fs_if.h"
-    #include "hasp_gui.h"
-    #include "hasp_config.h"
+#include "lv_fs_if.h"
+#include "hasp_gui.h"
+#include "hasp_config.h"
 //#include "hasp_filesystem.h" included in hasp_conf.h
 #endif
 
@@ -32,10 +32,11 @@
 
 #include "hasp_attribute.h"
 #include "hasp.h"
+#include "dev/device.h"
 #include "lv_theme_hasp.h"
 
 #if HASP_USE_EEPROM > 0
-    #include "EEPROM.h"
+#include "EEPROM.h"
 #endif
 
 //#if LV_USE_HASP
@@ -298,7 +299,7 @@ void haspProgressMsg(const char * msg)
 
 #ifdef ARDUINO
 // Sets the value string of the global progress bar
-void haspProgressMsg(const __FlashStringHelper *msg)
+void haspProgressMsg(const __FlashStringHelper * msg)
 {
     haspProgressMsg(String(msg).c_str());
 }
@@ -322,7 +323,7 @@ static void custom_font_apply_cb(lv_theme_t * th, lv_obj_t * obj, lv_theme_style
  */
 void haspSetup(void)
 {
-    guiSetDim(haspStartDim);
+    haspDevice.set_backlight_level(haspStartDim);
 
     /******* File System Test ********************************************************************/
     // lv_fs_file_t f;
@@ -355,7 +356,7 @@ void haspSetup(void)
     /* ********** Font Initializations ********** */
 
 #if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
-    #if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
+#if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
     lv_zifont_init();
 
     if(lv_zifont_font_init(&haspFonts[1], haspZiFontPath, 32) != 0) {
@@ -364,7 +365,7 @@ void haspSetup(void)
     } else {
         // defaultFont = haspFonts[0];
     }
-    #endif
+#endif
 #endif
 
     // haspFonts[0] = lv_font_load("E:/font_1.fnt");
@@ -589,12 +590,12 @@ void haspLoadPage(const char * pagesfile)
     LOG_INFO(TAG_HASP, F("File %s loaded"), pagesfile);
 #else
 
-    #if HASP_USE_EEPROM > 0
+#if HASP_USE_EEPROM > 0
     LOG_TRACE(TAG_HASP, F("Loading jsonl from EEPROM..."));
     EepromStream eepromStream(4096, 1024);
     dispatch_parse_jsonl(eepromStream);
     LOG_INFO(TAG_HASP, F("Loaded jsonl from EEPROM"));
-    #endif
+#endif
 
 #endif
 }

@@ -13,33 +13,35 @@
 #include "hasp_parser.h"
 #include "hasp_attribute.h"
 
+#include "dev/device.h"
+
 //#include "hasp_gui.h"
 
 #if HASP_USE_DEBUG > 0
-    #include "../hasp_debug.h"
+#include "../hasp_debug.h"
 
-    #if WINDOWS
-        #include <iostream>
-        #include <fstream>
-        #include <sstream>
-        #include "../mqtt/hasp_mqtt.h"
-    #else
-        #include "StringStream.h"
-        #include "CharStream.h"
+#if WINDOWS
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include "../mqtt/hasp_mqtt.h"
+#else
+#include "StringStream.h"
+#include "CharStream.h"
 
-        #include "hasp_oobe.h"
-        #include "hasp_gui.h" // for screenshot
-        #include "sys/gpio/hasp_gpio.h"
-        #include "hal/hasp_hal.h"
+#include "hasp_oobe.h"
+#include "hasp_gui.h" // for screenshot
+#include "sys/gpio/hasp_gpio.h"
+#include "hal/hasp_hal.h"
 
-        #include "svc/hasp_ota.h"
-        #include "mqtt/hasp_mqtt.h"
-        #include "sys/net/hasp_network.h" // for network_get_status()
-    #endif
+#include "svc/hasp_ota.h"
+#include "mqtt/hasp_mqtt.h"
+#include "sys/net/hasp_network.h" // for network_get_status()
+#endif
 #endif
 
 #if HASP_USE_CONFIG > 0
-    #include "hasp_config.h"
+#include "hasp_config.h"
 #endif
 
 extern uint8_t hasp_sleep_state;
@@ -227,14 +229,14 @@ void dispatch_command(const char * topic, const char * payload)
 
 #if HASP_USE_CONFIG > 0
 
-    #if HASP_USE_WIFI > 0
+#if HASP_USE_WIFI > 0
     } else if(!strcmp_P(topic, FP_CONFIG_SSID) || !strcmp_P(topic, FP_CONFIG_PASS)) {
         StaticJsonDocument<64> settings;
         settings[topic] = payload;
         wifiSetConfig(settings.as<JsonObject>());
-    #endif // HASP_USE_WIFI
+#endif // HASP_USE_WIFI
 
-    #if HASP_USE_MQTT > 0
+#if HASP_USE_MQTT > 0
     } else if(!strcmp_P(topic, PSTR("mqtthost")) || !strcmp_P(topic, PSTR("mqttport")) ||
               !strcmp_P(topic, PSTR("mqttport")) || !strcmp_P(topic, PSTR("mqttuser")) ||
               !strcmp_P(topic, PSTR("hostname"))) {
@@ -245,7 +247,7 @@ void dispatch_command(const char * topic, const char * payload)
         StaticJsonDocument<64> settings;
         settings[topic + 4] = payload;
         mqttSetConfig(settings.as<JsonObject>());
-    #endif // HASP_USE_MQTT
+#endif // HASP_USE_MQTT
 
 #endif // HASP_USE_CONFIG
 
@@ -425,42 +427,42 @@ static void dispatch_config(const char * topic, const char * payload)
             haspGetConfig(settings);
     }
 
-    #if HASP_USE_WIFI > 0
+#if HASP_USE_WIFI > 0
     else if(strcasecmp_P(topic, PSTR("wifi")) == 0) {
         if(update)
             wifiSetConfig(settings);
         else
             wifiGetConfig(settings);
     }
-        #if HASP_USE_MQTT > 0
+#if HASP_USE_MQTT > 0
     else if(strcasecmp_P(topic, PSTR("mqtt")) == 0) {
         if(update)
             mqttSetConfig(settings);
         else
             mqttGetConfig(settings);
     }
-        #endif
-        #if HASP_USE_TELNET > 0
-            //   else if(strcasecmp_P(topic, PSTR("telnet")) == 0)
-            //       telnetGetConfig(settings[F("telnet")]);
-        #endif
-        #if HASP_USE_MDNS > 0
+#endif
+#if HASP_USE_TELNET > 0
+    //   else if(strcasecmp_P(topic, PSTR("telnet")) == 0)
+    //       telnetGetConfig(settings[F("telnet")]);
+#endif
+#if HASP_USE_MDNS > 0
     else if(strcasecmp_P(topic, PSTR("mdns")) == 0) {
         if(update)
             mdnsSetConfig(settings);
         else
             mdnsGetConfig(settings);
     }
-        #endif
-        #if HASP_USE_HTTP > 0
+#endif
+#if HASP_USE_HTTP > 0
     else if(strcasecmp_P(topic, PSTR("http")) == 0) {
         if(update)
             httpSetConfig(settings);
         else
             httpGetConfig(settings);
     }
-        #endif
-    #endif
+#endif
+#endif
 
     // Send output
     if(!update) {
@@ -532,9 +534,9 @@ void dispatch_gpio_input_event(uint8_t pin, uint8_t group, uint8_t eventid)
     dispatch_get_event_name(eventid, event, sizeof(event));
     snprintf_P(payload, sizeof(payload), PSTR("{\"pin\":%d,\"group\":%d,\"event\":\"%s\"}"), pin, group, event);
 
-    #if HASP_USE_MQTT > 0
+#if HASP_USE_MQTT > 0
     mqtt_send_state(F("input"), payload);
-    #endif
+#endif
 
     // update outputstates
     // dispatch_group_onoff(group, dispatch_get_event_state(eventid), NULL);
@@ -572,12 +574,12 @@ static inline void dispatch_state_msg(const __FlashStringHelper * subtopic, cons
 #if !defined(HASP_USE_MQTT) && !defined(HASP_USE_TASMOTA_SLAVE)
     LOG_TRACE(TAG_MSGR, F("%s => %s"), String(subtopic).c_str(), payload);
 #else
-    #if HASP_USE_MQTT > 0
+#if HASP_USE_MQTT > 0
     mqtt_send_state(subtopic, payload);
-    #endif
-    #if HASP_USE_TASMOTA_SLAVE > 0
+#endif
+#if HASP_USE_TASMOTA_SLAVE > 0
     slave_send_state(subtopic, payload);
-    #endif
+#endif
 #endif
 }
 
@@ -774,10 +776,10 @@ void dispatch_clear_page(const char *, const char * page)
 void dispatch_dim(const char *, const char * level)
 {
     // Set the current state
-    if(strlen(level) != 0) guiSetDim(atoi(level));
+    if(strlen(level) != 0) haspDevice.set_backlight_level(atoi(level));
 
     char payload[5];
-    itoa(guiGetDim(), payload, DEC);
+    itoa(haspDevice.get_backlight_level(), payload, DEC);
     dispatch_state_msg(F("dim"), payload);
 }
 
@@ -833,11 +835,11 @@ void dispatch_moodlight(const char * topic, const char * payload)
 void dispatch_backlight(const char *, const char * payload)
 {
     // Set the current state
-    if(strlen(payload) != 0) guiSetBacklight(Utilities::is_true(payload));
+    if(strlen(payload) != 0) haspDevice.set_backlight_power(Utilities::is_true(payload));
 
     // Return the current state
     char buffer[4];
-    memcpy_P(buffer, guiGetBacklight() ? PSTR("ON") : PSTR("OFF"), sizeof(buffer));
+    memcpy_P(buffer, haspDevice.get_backlight_power() ? PSTR("ON") : PSTR("OFF"), sizeof(buffer));
     dispatch_state_msg(F("light"), buffer);
 }
 
@@ -1012,7 +1014,7 @@ void everySecond()
     }
 }
 #else
-    #include <chrono>
+#include <chrono>
 std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 void everySecond()
 {

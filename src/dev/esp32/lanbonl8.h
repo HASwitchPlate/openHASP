@@ -4,22 +4,17 @@
 #ifndef HASP_DEVICE_LANBONL8_H
 #define HASP_DEVICE_LANBONL8_H
 
-#include "../device.h"
+#include "dev/esp32/esp32.h"
 
 #if defined(LANBONL8)
 
 namespace dev {
 
-class LanbonL8 : public BaseDevice {
+class LanbonL8 : public Esp32Device {
   public:
-    void pre_setup() override;
-
-    void post_setup() override;
-
-    void loop() override;
-
-    void loop_5s() override;
+    void pre_setup();
 };
+
 } // namespace dev
 
 extern dev::LanbonL8 haspDevice;

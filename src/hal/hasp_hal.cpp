@@ -5,18 +5,18 @@
 #include "hasp_conf.h"
 
 #if defined(ESP8266)
-    #include <Esp.h>
-    #include <ESP8266WiFi.h>
+#include <Esp.h>
+#include <ESP8266WiFi.h>
 #endif
 
 #if defined(ESP32)
-    #include <Esp.h>
-    #include <WiFi.h>
-    #include "esp_system.h"
+#include <Esp.h>
+#include <WiFi.h>
+#include "esp_system.h"
 #endif
 
 #if defined(ARDUINO_ARCH_ESP32)
-    #include <rom/rtc.h> // needed to get the ResetInfo
+#include <rom/rtc.h> // needed to get the ResetInfo
 
 // Compatibility function for ESP8266 getRestInfo
 String esp32ResetReason(uint8_t cpuid)
@@ -152,11 +152,11 @@ String halGetChipModel()
         case CHIP_ESP32:
             model += F("ESP32");
             break;
-    #ifdef CHIP_ESP32S2
+#ifdef CHIP_ESP32S2
         case CHIP_ESP32S2:
             model += F("ESP32-S2");
             break;
-    #endif
+#endif
         default:
             model = F("Unknown ESP32");
     }
@@ -174,19 +174,19 @@ String halGetChipModel()
 /* Memory Management Functions */
 
 #if defined(STM32F4xx)
-    #include <malloc.h> // for mallinfo()
-    #include <unistd.h> // for sbrk()
+#include <malloc.h> // for mallinfo()
+#include <unistd.h> // for sbrk()
 
 int freeHighMemory()
 {
     char top;
-    #ifdef __arm__
+#ifdef __arm__
     return &top - reinterpret_cast<char *>(sbrk(0));
-    #elif defined(CORE_TEENSY) || (ARDUINO > 103 && ARDUINO != 151)
+#elif defined(CORE_TEENSY) || (ARDUINO > 103 && ARDUINO != 151)
     return &top - __brkval;
-    #else  // __arm__
+#else  // __arm__
     return __brkval ? &top - __brkval : &top - __malloc_heap_start;
-    #endif // __arm__
+#endif // __arm__
 }
 #endif
 
@@ -260,14 +260,14 @@ String halGetMacAddress(int start, const char * seperator)
 
 #if defined(STM32F4xx)
     uint8_t * mac_p = nullptr;
-    #if HASP_USE_ETHERNET > 0
-        #if USE_BUILTIN_ETHERNET > 0
+#if HASP_USE_ETHERNET > 0
+#if USE_BUILTIN_ETHERNET > 0
     mac_p = Ethernet.MACAddress();
     for(int i = 0; i < 6; i++) mac[i] = *(mac_p + i);
-        #else
+#else
     Ethernet.macAddress(mac);
-        #endif
-    #endif
+#endif
+#endif
 #else
     WiFi.macAddress(mac);
 #endif
@@ -292,8 +292,6 @@ uint16_t halGetCpuFreqMHz()
     return (F_CPU / 1000 / 1000);
 #endif
 }
-
-
 
 String halDisplayDriverName()
 {
@@ -342,56 +340,56 @@ String halGpioName(uint8_t gpio)
         case PortName::PortB:
             ioName = F("PB");
             break;
-    #if defined GPIOC_BASE
+#if defined GPIOC_BASE
         case PortName::PortC:
             ioName = F("PC");
             break;
-    #endif
-    #if defined GPIOD_BASE
+#endif
+#if defined GPIOD_BASE
         case PortName::PortD:
             ioName = F("PD");
             break;
-    #endif
-    #if defined GPIOE_BASE
+#endif
+#if defined GPIOE_BASE
         case PortName::PortE:
             ioName = F("PE");
             break;
-    #endif
-    #if defined GPIOF_BASE
+#endif
+#if defined GPIOF_BASE
         case PortName::PortF:
             ioName = F("PF");
             break;
-    #endif
-    #if defined GPIOG_BASE
+#endif
+#if defined GPIOG_BASE
         case PortName::PortG:
             ioName = F("PG");
             break;
-    #endif
-    #if defined GPIOH_BASE
+#endif
+#if defined GPIOH_BASE
         case PortName::PortH:
             ioName = F("PH");
             break;
-    #endif
-    #if defined GPIOI_BASE
+#endif
+#if defined GPIOI_BASE
         case PortName::PortI:
             ioName = F("PI");
             break;
-    #endif
-    #if defined GPIOJ_BASE
+#endif
+#if defined GPIOJ_BASE
         case PortName::PortJ:
             ioName = F("PJ");
             break;
-    #endif
-    #if defined GPIOK_BASE
+#endif
+#if defined GPIOK_BASE
         case PortName::PortK:
             ioName = F("PK");
             break;
-    #endif
-    #if defined GPIOZ_BASE
+#endif
+#if defined GPIOZ_BASE
         case PortName::PortZ:
             ioName = F("PZ");
             break;
-    #endif
+#endif
         default:
             ioName = F("P?");
     }

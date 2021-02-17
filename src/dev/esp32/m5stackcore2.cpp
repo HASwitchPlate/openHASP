@@ -1,8 +1,9 @@
 #include "m5stackcore2.h"
 
 #if defined(M5STACK)
-    #include "AXP192.h" // Power Mgmt
-    #include "../device.h"
+
+#include "AXP192.h" // Power Mgmt
+#include "dev/esp32/esp32.h"
 
 // AXP192 Axp;
 namespace dev {
@@ -39,14 +40,6 @@ void M5StackCore2::pre_setup(void)
     Axp.SetLed(1);
 }
 
-void M5StackCore2::post_setup(void)
-{}
-
-void M5StackCore2::loop(void)
-{}
-
-void M5StackCore2::loop_5s(void)
-{}
 } // namespace dev
 
 dev::M5StackCore2 haspDevice;

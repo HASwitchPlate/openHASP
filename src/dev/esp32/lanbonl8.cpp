@@ -1,13 +1,19 @@
 #include "lanbonl8.h"
 
 #if defined(LANBONL8)
-    #include "Arduino.h"
-    #include "../device.h"
 
-    #include "driver/adc.h"
-    #include "esp_adc_cal.h"
+#include "Arduino.h"
+#include "dev/esp32/esp32.h"
 
-    #define REF_VOLTAGE 1100
+#include "driver/adc.h"
+#include "esp_adc_cal.h"
+
+#include "hasp_conf.h"
+#include "hasp_debug.h"
+
+#define BACKLIGHT_CHANNEL 0
+
+#define REF_VOLTAGE 1100
 esp_adc_cal_characteristics_t * adc_chars =
     new esp_adc_cal_characteristics_t; // adc_chars = calloc(1, sizeof(esp_adc_cal_characteristics_t));
 
@@ -55,19 +61,6 @@ void LanbonL8::pre_setup()
     print_char_val_type(val_type);
 }
 
-void LanbonL8::post_setup()
-{}
-
-void LanbonL8::loop()
-{}
-
-void LanbonL8::loop_5s()
-{
-    double voltage = esp_adc_cal_raw_to_voltage(analogRead(39), adc_chars);
-    Serial.print(adc1_get_raw(ADC1_CHANNEL_3));
-    Serial.print(" - ");
-    Serial.println(voltage);
-}
 } // namespace dev
 
 dev::LanbonL8 haspDevice;
