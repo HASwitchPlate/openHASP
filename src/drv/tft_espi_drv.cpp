@@ -6,8 +6,11 @@
 /*********************
  *      INCLUDES
  *********************/
-#include "../../src/hal/hasp_hal.h" // for halGpioName()
-#include "../../src/dev/device.h"
+#include "hasp_conf.h"
+
+#include "hal/hasp_hal.h" // for halGpioName()
+#include "dev/device.h"
+
 #include "tft_espi_drv.h"
 #include "ArduinoLog.h"
 #include "hasp_macro.h"
