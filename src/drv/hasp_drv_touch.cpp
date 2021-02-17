@@ -3,23 +3,23 @@
 #include "lvgl.h"
 
 #if TOUCH_DRIVER == 2046
-    #if defined(USE_FSMC)
-    #else
-        #include "tft_espi_drv.h"
-    #endif
+#if defined(USE_FSMC)
+#else
+#include "tft_espi_drv.h"
+#endif
 
 #elif TOUCH_DRIVER == 2046
-    #include "indev/XPT2046.h"
+#include "indev/XPT2046.h"
 #elif TOUCH_DRIVER == 0x2046B
-    #include "hasp_drv_xpt2046.h"
+#include "drv/touch/hasp_drv_xpt2046.h"
 #elif TOUCH_DRIVER == 911
-    #include "hasp_drv_gt911.h"
+#include "drv/touch/hasp_drv_gt911.h"
 #elif TOUCH_DRIVER == 0xADC
-    #include "hasp_drv_ft6336u.h"
+#include "drv/touch/hasp_drv_ft6336u.h"
 #elif TOUCH_DRIVER == 5206
-    #include "hasp_drv_ft5206.h"
+#include "drv/touch/hasp_drv_ft5206.h"
 #elif TOUCH_DRIVER == 6336
-    #include "hasp_drv_ft6336u.h"
+#include "drv/touch/hasp_drv_ft6336u.h"
 #else
 //#include "tp_i2c.h"
 //#include "ft6x36.h"
@@ -34,12 +34,12 @@ void drv_touch_init(uint8_t rotation)
     drv_touch_rotation = rotation;
 
 #if TOUCH_DRIVER == 2046 // XPT2046 Resistive touch panel driver
-    #if defined(USE_FSMC)
+#if defined(USE_FSMC)
     xpt2046_init(rotation);
-    #else
-        // The display driver takes care of all initializations
-        // tft_espi_init(rotation);
-    #endif
+#else
+    // The display driver takes care of all initializations
+    // tft_espi_init(rotation);
+#endif
 
 #elif TOUCH_DRIVER == 911
     GT911_init();

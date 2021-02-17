@@ -6,9 +6,9 @@
 
 #if TOUCH_DRIVER == 5206
 
-    #define FT5206_address 0x38
+#define FT5206_address 0x38
 
-    #include "log/hasp_debug.h" // for TAG_DRVR
+#include "hasp_debug.h" // for TAG_DRVR
 
 bool FT5206_getXY(int16_t * touchX, int16_t * touchY, bool debug);
 void FT5206_init();
