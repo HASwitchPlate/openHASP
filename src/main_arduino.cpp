@@ -8,12 +8,12 @@
 #include "hasp_conf.h" // load first
 
 #if HASP_USE_CONFIG > 0
-    #include "hasp_debug.h"
+#include "hasp_debug.h"
 #endif
 
 #if HASP_USE_CONFIG > 0
-    #include "hasp_config.h"
-    #include "hasp_gui.h"
+#include "hasp_config.h"
+#include "hasp_gui.h"
 #endif
 
 #include "hasp_oobe.h"
@@ -31,6 +31,8 @@ unsigned long mainLastLoopTime = 0;
 
 void setup()
 {
+    //   hal_setup();
+
     haspDevice.pre_setup();
 
     /****************************
