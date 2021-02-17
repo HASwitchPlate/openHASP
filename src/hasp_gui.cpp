@@ -28,7 +28,7 @@
 //#include "Ticker.h"
 
 #if HASP_USE_PNGDECODE > 0
-    #include "png_decoder.h"
+#include "png_decoder.h"
 #endif
 
 #define BACKLIGHT_CHANNEL 0 // pwm channel 0-15
@@ -40,26 +40,19 @@ File pFileOut;
 #define LVGL_TICK_PERIOD 20
 
 #ifndef TFT_BCKL
-    #define TFT_BCKL -1 // No Backlight Control
+#define TFT_BCKL -1 // No Backlight Control
 #endif
 #ifndef TFT_ROTATION
-    #define TFT_ROTATION 0
+#define TFT_ROTATION 0
 #endif
 #ifndef INVERT_COLORS
-    #define INVERT_COLORS 0
+#define INVERT_COLORS 0
 #endif
 
 // static void IRAM_ATTR lv_tick_handler(void);
 
-// static bool guiShowPointer      = false;
-// static int8_t guiBacklightPin   = TFT_BCKL;
-// static uint8_t guiTickPeriod    = 20;
-// static uint8_t guiRotation      = TFT_ROTATION;
-// static uint8_t guiInvertDisplay = INVERT_COLORS;
-// static uint16_t calData[5]      = {0, 65535, 0, 65535, 0};
-
-gui_conf_t gui_settings = {.show_pointer = false,
-                           .backlight_pin =TFT_BCKL,
+gui_conf_t gui_settings = {.show_pointer   = false,
+                           .backlight_pin  = TFT_BCKL,
                            .rotation       = TFT_ROTATION,
                            .invert_display = INVERT_COLORS,
                            .cal_data       = {0, 65535, 0, 65535, 0}};
@@ -81,159 +74,12 @@ bool guiBacklightIsOn;
 //     lv_tick_inc(LVGL_TICK_PERIOD);
 // }
 
-/* Reading input device (simulated encoder here) */
-/*bool read_encoder(lv_indev_drv_t * indev, lv_indev_data_t * data)
-{
-    static int32_t last_diff = 0;
-    int32_t diff             = 0;                  // Dummy - no movement
-    int btn_state            = LV_INDEV_STATE_REL; // Dummy - no press
-
-    data->enc_diff = diff - last_diff;
-    data->state    = btn_state;
-    last_diff      = diff;
-    return false;
-}*/
-
-// #define _RAWERR 20 // Deadband error allowed in successive position samples
-// uint8_t validTouch(uint16_t * x, uint16_t * y, uint16_t threshold)
-// {
-//     uint16_t x_tmp, y_tmp, x_tmp2, y_tmp2;
-
-//     // Wait until pressure stops increasing to debounce pressure
-//     uint16_t z1 = 1;
-//     uint16_t z2 = 0;
-//     while(z1 > z2) {
-//         z2 = z1;
-//         z1 = tft.getTouchRawZ();
-//         delay(1);
-//     }
-
-//     //  Serial.print("Z = ");Serial.println(z1);
-
-//     if(z1 <= threshold) return false;
-
-//     tft.getTouchRaw(&x_tmp, &y_tmp);
-
-//     //  Serial.print("Sample 1 x,y = "); Serial.print(x_tmp);Serial.print(",");Serial.print(y_tmp);
-//     //  Serial.print(", Z = ");Serial.println(z1);
-
-//     delay(1); // Small delay to the next sample
-//     if(tft.getTouchRawZ() <= threshold) return false;
-
-//     delay(2); // Small delay to the next sample
-//     tft.getTouchRaw(&x_tmp2, &y_tmp2);
-
-//     //  Serial.print("Sample 2 x,y = "); Serial.print(x_tmp2);Serial.print(",");Serial.println(y_tmp2);
-//     //  Serial.print("Sample difference = ");Serial.print(abs(x_tmp -
-//     //  x_tmp2));Serial.print(",");Serial.println(abs(y_tmp - y_tmp2));
-
-//     if(abs(x_tmp - x_tmp2) > _RAWERR) return false;
-//     if(abs(y_tmp - y_tmp2) > _RAWERR) return false;
-
-//     *x = x_tmp;
-//     *y = y_tmp;
-
-//     return true;
-// }
-
-// bool gui_touchpad_read_raw(lv_indev_drv_t * indev_driver, lv_indev_data_t * data)
-// {
-// #ifdef TOUCH_CS
-//     uint16_t touchX, touchY;
-
-//     bool touched = validTouch(&touchX, &touchY, 600u / 2);
-//     if(!touched) return false;
-
-//     // if(touchCounter < 255) {
-//     //     touchCounter++;
-
-//     //     // Store the raw touches
-//     //     if(touchCounter >= 8) {
-//     //         touchPoints[touchCorner].x /= touchCounter;
-//     //         touchPoints[touchCorner].y /= touchCounter;
-//     //         touchCounter = 255;
-//     //     } else {
-//     //         touchPoints[touchCorner].x += touchX;
-//     //         touchPoints[touchCorner].y += touchY;
-//     //     }
-//     // }
-
-//     if(sleep_state > 0) hasp_update_sleep_state(); // update Idle
-
-//     /*Save the state and save the pressed coordinate*/
-//     // lv_disp_t * disp = lv_disp_get_default();
-//     data->state   = touched ? LV_INDEV_STATE_PR : LV_INDEV_STATE_REL;
-//     data->point.x = touchX; // 20 + (disp->driver.hor_res - 40) * (touchCorner % 2);
-//     data->point.y = touchY; // 20 + (disp->driver.ver_res - 40) * (touchCorner / 2);
-
-//     LOG_VERBOSE(TAG_GUI,F("Calibrate touch %u / %u"), touchX, touchY);
-
-// #endif
-
-//     return false; /*Return `false` because we are not buffering and no more data to read*/
-// }
-
-#if TOUCH_DRIVER == 0xADC    // Analog Digital Touch Conroller
-    #include "Touchscreen.h" // For Uno Shield or ADC based resistive touchscreens
-
-boolean Touch_getXY(uint16_t * x, uint16_t * y, boolean showTouch)
-{
-    static const int coords[] = {3800, 500, 300, 3800}; // portrait - left, right, top, bottom
-    static const int XP = 27, XM = 15, YP = 4, YM = 14; // default ESP32 Uno touchscreen pins
-    static TouchScreen ts = TouchScreen(XP, YP, XM, YM, 300);
-    TSPoint p             = ts.getPoint();
-    int z1                = analogRead(aXM);
-    int z2                = analogRead(aYP);
-    Serial.print(p.x);
-    Serial.print(" - ");
-    Serial.print(p.y);
-    Serial.print(" - ");
-    Serial.print(p.z);
-    Serial.print(" - ");
-    Serial.print(z1);
-    Serial.print(" - ");
-    Serial.println(z2);
-
-    pinMode(aYP, OUTPUT); // restore shared pins
-    pinMode(aXM, OUTPUT);
-    digitalWrite(aYP, HIGH); // because TFT control pins
-    digitalWrite(aXM, HIGH);
-    // adjust pressure sensitivity - note works 'backwards'
-    #define MINPRESSURE 200
-    #define MAXPRESSURE 1000
-    bool pressed = (p.z > MINPRESSURE && p.z < MAXPRESSURE);
-    if(pressed) {
-
-        switch(gui_settings.rotation) {
-            case 0: // portrait
-                *x = map(p.x, coords[0], coords[1], 0, tft.width());
-                *y = map(p.y, coords[2], coords[3], 0, tft.height());
-                break;
-            case 1: // landscape
-                *x = map(p.y, coords[1], coords[0], 0, tft.width());
-                *y = map(p.x, coords[2], coords[3], 0, tft.height());
-                break;
-            case 2: // portrait inverted
-                *x = map(p.x, coords[1], coords[0], 0, tft.width());
-                *y = map(p.y, coords[3], coords[2], 0, tft.height());
-                break;
-            case 3: // landscape inverted
-                *x = map(p.y, coords[0], coords[1], 0, tft.width());
-                *y = map(p.x, coords[3], coords[2], 0, tft.height());
-                break;
-        }
-        // if(showTouch) tft.fillCircle(*x, *y, 2, YELLOW);
-    }
-    return pressed;
-}
-#endif
-
 void guiCalibrate()
 {
 #if TOUCH_DRIVER == 2046 && USE_TFT_ESPI > 0
-    #ifdef TOUCH_CS
+#ifdef TOUCH_CS
     tft_espi_calibrate(gui_settings.cal_data);
-    #endif
+#endif
 
     for(int i = 0; i < 5; i++) {
         Serial.print(gui_settings.cal_data[i]);
@@ -247,19 +93,23 @@ void guiCalibrate()
 
 void guiSetup()
 {
-    /* Initialize the Virtual Device Buffers */
-#if defined(ARDUINO_ARCH_ESP32)
-    /* allocate on iram (or psram ?) */
+    // Register logger to capture lvgl_init output
+    LOG_TRACE(TAG_LVGL, F(D_SERVICE_STARTING));
+#if LV_USE_LOG != 0
+    lv_log_register_print_cb(debugLvglLogEvent);
+#endif
 
-    #ifdef USE_DMA_TO_TFT
-    static lv_disp_buf_t disp_buf;
+    /* Create the Virtual Device Buffers */
+#if defined(ARDUINO_ARCH_ESP32)
+
+#ifdef USE_DMA_TO_TFT
     static lv_color_t *guiVdbBuffer1, *guiVdbBuffer2 = NULL;
     // DMA: len must be less than 32767
     size_t guiVDBsize = 15 * 1024u; // 30 KBytes
     guiVdbBuffer1     = (lv_color_t *)heap_caps_calloc(guiVDBsize, sizeof(lv_color_t), MALLOC_CAP_DMA);
-        // guiVdbBuffer2 = (lv_color_t *)heap_caps_malloc(sizeof(lv_color_t) * guiVDBsize,   MALLOC_CAP_DMA);
-        // lv_disp_buf_init(&disp_buf, guiVdbBuffer1, guiVdbBuffer2, guiVDBsize);
-    #else
+    // guiVdbBuffer2 = (lv_color_t *)heap_caps_malloc(sizeof(lv_color_t) * guiVDBsize,   MALLOC_CAP_DMA);
+    // lv_disp_buf_init(&disp_buf, guiVdbBuffer1, guiVdbBuffer2, guiVDBsize);
+#else
     static lv_color_t * guiVdbBuffer1;
     size_t guiVDBsize = 16 * 1024u; // 32 KBytes
 
@@ -269,10 +119,11 @@ void guiSetup()
         guiVdbBuffer1 = (lv_color_t *)calloc(guiVDBsize, sizeof(lv_color_t));
     }
 
-    #endif
+#endif
 
     // static lv_color_t * guiVdbBuffer2 = (lv_color_t *)malloc(sizeof(lv_color_t) * guiVDBsize);
     // lv_disp_buf_init(&disp_buf, guiVdbBuffer1, guiVdbBuffer2, guiVDBsize);
+
 #elif defined(ARDUINO_ARCH_ESP8266)
     /* allocate on heap */
     // static lv_color_t guiVdbBuffer1[2 * 512u]; // 4 KBytes
@@ -282,6 +133,19 @@ void guiSetup()
     static lv_color_t * guiVdbBuffer1;
     size_t guiVDBsize = 2 * 512u; // 4 KBytes * 2
     guiVdbBuffer1     = (lv_color_t *)malloc(sizeof(lv_color_t) * guiVDBsize);
+
+#elif defined(WINDOWS)
+    static lv_color_t buf[LV_HOR_RES_MAX * 10];                  /*Declare a buffer for 10 lines*/
+    lv_disp_buf_init(&disp_buf, buf, NULL, LV_HOR_RES_MAX * 10); /*Initialize the display buffer*/
+
+    lv_disp_drv_t disp_drv;
+    lv_disp_drv_init(&disp_drv);       /*Basic initialization*/
+    disp_drv.flush_cb = monitor_flush; /*Used when `LV_VDB_SIZE != 0` in lv_conf.h (buffered drawing)*/
+    disp_drv.buffer   = &disp_buf;
+    // disp_drv.disp_fill = monitor_fill;      /*Used when `LV_VDB_SIZE == 0` in lv_conf.h (unbuffered drawing)*/
+    // disp_drv.disp_map = monitor_map;        /*Used when `LV_VDB_SIZE == 0` in lv_conf.h (unbuffered drawing)*/
+    lv_disp_drv_register(&disp_drv);
+
 #else
     static lv_color_t guiVdbBuffer1[16 * 512u]; // 16 KBytes
     // static lv_color_t guiVdbBuffer2[16 * 512u]; // 16 KBytes
@@ -289,15 +153,38 @@ void guiSetup()
     // lv_disp_buf_init(&disp_buf, guiVdbBuffer1, guiVdbBuffer2, guiVDBsize);
 #endif
 
-    if(!guiVdbBuffer1) {
-        LOG_ERROR(TAG_GUI, F("Gram out of memory"));
+    /* Initialize lvgl */
+    static lv_disp_buf_t disp_buf;
+    if(guiVdbBuffer1 && guiVDBsize > 0) {
+        lv_init();
+        lv_disp_buf_init(&disp_buf, guiVdbBuffer1, NULL, guiVDBsize);
+    } else {
+        LOG_FATAL(TAG_GUI, F(D_ERROR_OUT_OF_MEMORY));
     }
 
-    static lv_disp_buf_t disp_buf;
-    lv_init();
-    lv_disp_buf_init(&disp_buf, guiVdbBuffer1, NULL, guiVDBsize);
+    /* Initialize the display driver */
+    lv_disp_drv_t disp_drv;
+    lv_disp_drv_init(&disp_drv);
+    disp_drv.buffer = &disp_buf;
 
-    /* Initialize Filesystems */
+    drv_display_init(&disp_drv, gui_settings.rotation,
+                     gui_settings.invert_display); // Set display driver callback & rotation
+    disp_drv.hor_res    = TFT_WIDTH;
+    disp_drv.ver_res    = TFT_HEIGHT;
+    lv_disp_t * display = lv_disp_drv_register(&disp_drv);
+
+    switch(gui_settings.rotation) {
+        case 1:
+        case 3:
+        case 5:
+        case 7:
+            lv_disp_set_rotation(display, LV_DISP_ROT_90);
+            break;
+        default:
+            lv_disp_set_rotation(display, LV_DISP_ROT_NONE);
+    }
+
+        /* Initialize Filesystems */
 #if LV_USE_FS_IF != 0
     _lv_fs_init();   // lvgl File System
     lv_fs_if_init(); // auxilary file system drivers
@@ -335,47 +222,6 @@ void guiSetup()
 #endif
     LOG_VERBOSE(TAG_LVGL, F("VFB size   : %d"), (size_t)sizeof(lv_color_t) * guiVDBsize);
 
-#if LV_USE_LOG != 0
-    LOG_TRACE(TAG_LVGL, F("Registering lvgl logging handler"));
-    lv_log_register_print_cb(debugLvglLogEvent);
-#endif
-
-    /* Initialize the display driver */
-    lv_disp_drv_t disp_drv;
-    lv_disp_drv_init(&disp_drv);
-    drv_display_init(&disp_drv, gui_settings.rotation,
-                     gui_settings.invert_display); // Set display driver callback & rotation
-    disp_drv.buffer = &disp_buf;
-
-    if(gui_settings.rotation == 0 || gui_settings.rotation == 2 || gui_settings.rotation == 4 ||
-       gui_settings.rotation == 6) {
-        /* 1/3=Landscape or 0/2=Portrait orientation */
-        // Normal width & height
-        disp_drv.hor_res = TFT_WIDTH;
-        disp_drv.ver_res = TFT_HEIGHT;
-    } else {
-        // Swapped width & height
-        disp_drv.hor_res = TFT_HEIGHT;
-        disp_drv.ver_res = TFT_WIDTH;
-    }
-    lv_disp_drv_register(&disp_drv);
-
-    /* Initialize Global progress bar*/
-    lv_obj_t * bar = lv_bar_create(lv_layer_sys(), NULL);
-    lv_obj_set_hidden(bar, true);
-    lv_bar_set_range(bar, 0, 100);
-    lv_bar_set_value(bar, 10, LV_ANIM_OFF);
-    lv_obj_set_size(bar, 200, 15);
-    lv_obj_align(bar, lv_layer_sys(), LV_ALIGN_CENTER, 0, -10);
-    lv_obj_user_data_t udata = (lv_obj_user_data_t){10, 0, 10};
-    lv_obj_set_user_data(bar, udata);
-    lv_obj_set_style_local_value_color(bar, LV_BAR_PART_BG, LV_STATE_DEFAULT, LV_COLOR_WHITE);
-    lv_obj_set_style_local_value_align(bar, LV_BAR_PART_BG, LV_STATE_DEFAULT, LV_ALIGN_CENTER);
-    lv_obj_set_style_local_value_ofs_y(bar, LV_BAR_PART_BG, LV_STATE_DEFAULT, 20);
-    lv_obj_set_style_local_value_font(bar, LV_BAR_PART_BG, LV_STATE_DEFAULT, LV_FONT_DEFAULT);
-    lv_obj_set_style_local_bg_color(lv_layer_sys(), LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_BLACK);
-    lv_obj_set_style_local_bg_opa(lv_layer_sys(), LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_0);
-
     /* Initialize the touch pad */
     lv_indev_drv_t indev_drv;
     lv_indev_drv_init(&indev_drv);
@@ -408,6 +254,22 @@ void guiSetup()
         lv_indev_set_cursor(mouse_indev, cursor); /*Connect the image  object to the driver*/
     }
     drv_touch_init(gui_settings.rotation); // Touch driver
+
+    /* Initialize Global progress bar*/
+    lv_obj_user_data_t udata = (lv_obj_user_data_t){10, 0, 10};
+    lv_obj_t * bar           = lv_bar_create(lv_layer_sys(), NULL);
+    lv_obj_set_user_data(bar, udata);
+    lv_obj_set_hidden(bar, true);
+    lv_bar_set_range(bar, 0, 100);
+    lv_bar_set_value(bar, 10, LV_ANIM_OFF);
+    lv_obj_set_size(bar, 200, 15);
+    lv_obj_align(bar, lv_layer_sys(), LV_ALIGN_CENTER, 0, -10);
+    lv_obj_set_style_local_value_color(bar, LV_BAR_PART_BG, LV_STATE_DEFAULT, LV_COLOR_WHITE);
+    lv_obj_set_style_local_value_align(bar, LV_BAR_PART_BG, LV_STATE_DEFAULT, LV_ALIGN_CENTER);
+    lv_obj_set_style_local_value_ofs_y(bar, LV_BAR_PART_BG, LV_STATE_DEFAULT, 20);
+    lv_obj_set_style_local_value_font(bar, LV_BAR_PART_BG, LV_STATE_DEFAULT, LV_FONT_DEFAULT);
+    lv_obj_set_style_local_bg_color(lv_layer_sys(), LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_BLACK);
+    lv_obj_set_style_local_bg_opa(lv_layer_sys(), LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_0);
 
     // guiStart(); // Ticker
 }
@@ -448,6 +310,7 @@ void guiStop()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+/*
 bool guiGetBacklight()
 {
     return guiBacklightIsOn;
@@ -495,6 +358,7 @@ int8_t guiGetDim()
 {
     return guiDimLevel;
 }
+*/
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 #if HASP_USE_CONFIG > 0
@@ -537,9 +401,9 @@ bool guiGetConfig(const JsonObject & settings)
         } else {
             changed = true;
 
-    #if TOUCH_DRIVER == 2046 && USE_TFT_ESPI > 0 && defined(TOUCH_CS)
+#if TOUCH_DRIVER == 2046 && USE_TFT_ESPI > 0 && defined(TOUCH_CS)
             tft_espi_set_touch(gui_settings.cal_data);
-    #endif
+#endif
         }
         i++;
     }
@@ -552,9 +416,9 @@ bool guiGetConfig(const JsonObject & settings)
         }
         changed = true;
 
-    #if TOUCH_DRIVER == 2046 && USE_TFT_ESPI > 0 && defined(TOUCH_CS)
+#if TOUCH_DRIVER == 2046 && USE_TFT_ESPI > 0 && defined(TOUCH_CS)
         tft_espi_set_touch(gui_settings.cal_data);
-    #endif
+#endif
     }
 
     if(changed) configOutput(settings, TAG_GUI);
@@ -578,7 +442,7 @@ bool guiSetConfig(const JsonObject & settings)
 
     hasp_get_sleep_time(guiSleepTime1, guiSleepTime2);
 
-   // changed |= configSet(guiTickPeriod, settings[FPSTR(FP_GUI_TICKPERIOD)], F("guiTickPeriod"));
+    // changed |= configSet(guiTickPeriod, settings[FPSTR(FP_GUI_TICKPERIOD)], F("guiTickPeriod"));
     changed |= configSet(gui_settings.backlight_pin, settings[FPSTR(FP_GUI_BACKLIGHTPIN)], F("guiBacklightPin"));
     changed |= configSet(guiSleepTime1, settings[FPSTR(FP_GUI_IDLEPERIOD1)], F("guiSleepTime1"));
     changed |= configSet(guiSleepTime2, settings[FPSTR(FP_GUI_IDLEPERIOD2)], F("guiSleepTime2"));
@@ -609,8 +473,10 @@ bool guiSetConfig(const JsonObject & settings)
             i++;
         }
 
-        if(gui_settings.cal_data[0] != 0 || gui_settings.cal_data[1] != 65535 || gui_settings.cal_data[2] != 0 || gui_settings.cal_data[3] != 65535) {
-            LOG_VERBOSE(TAG_GUI, F("calData set [%u, %u, %u, %u, %u]"), gui_settings.cal_data[0], gui_settings.cal_data[1], gui_settings.cal_data[2], gui_settings.cal_data[3],
+        if(gui_settings.cal_data[0] != 0 || gui_settings.cal_data[1] != 65535 || gui_settings.cal_data[2] != 0 ||
+           gui_settings.cal_data[3] != 65535) {
+            LOG_VERBOSE(TAG_GUI, F("calData set [%u, %u, %u, %u, %u]"), gui_settings.cal_data[0],
+                        gui_settings.cal_data[1], gui_settings.cal_data[2], gui_settings.cal_data[3],
                         gui_settings.cal_data[4]);
             oobeSetAutoCalibrate(false);
         } else {
@@ -618,9 +484,9 @@ bool guiSetConfig(const JsonObject & settings)
             oobeSetAutoCalibrate(true);
         }
 
-    #if TOUCH_DRIVER == 2046 && USE_TFT_ESPI > 0 && defined(TOUCH_CS)
+#if TOUCH_DRIVER == 2046 && USE_TFT_ESPI > 0 && defined(TOUCH_CS)
         if(status) tft_espi_set_touch(gui_settings.cal_data);
-    #endif
+#endif
         changed |= status;
     }
 

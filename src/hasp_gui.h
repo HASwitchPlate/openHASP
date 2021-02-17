@@ -29,10 +29,10 @@ void guiTakeScreenshot(const char * pFileName); // to file
 void guiTakeScreenshot();                       // webclient
 
 /* ===== Getter and Setter Functions ===== */
-void guiSetDim(int8_t level);
-int8_t guiGetDim();
-void guiSetBacklight(bool lighton);
-bool guiGetBacklight();
+// void guiSetDim(int8_t level);
+// int8_t guiGetDim();
+// void guiSetBacklight(bool lighton);
+// bool guiGetBacklight();
 
 /* ===== Read/Write Configuration ===== */
 #if HASP_USE_CONFIG > 0

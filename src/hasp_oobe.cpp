@@ -3,27 +3,28 @@
 
 #if HASP_USE_CONFIG > 0
 
-    #include "hasp_conf.h"
+#include "hasp_conf.h"
 
-    #include "lvgl.h"
-    #if LVGL_VERSION_MAJOR != 7
-        #include "../lv_components.h"
-    #endif
+#include "lvgl.h"
+#if LVGL_VERSION_MAJOR != 7
+#include "../lv_components.h"
+#endif
 
-    #include "hasp_gui.h"
-    #include "hasp_config.h"
+#include "hasp_gui.h"
+#include "hasp_config.h"
 
-    #include "sys/net/hasp_wifi.h"
-    #include "hasp/hasp_dispatch.h"
-    #include "hasp/hasp_object.h"
+#include "sys/net/hasp_wifi.h"
+#include "hasp/hasp_dispatch.h"
+#include "hasp/hasp_object.h"
+#include "dev/device.h"
 
 static bool oobeAutoCalibrate = true;
 
-    #if HASP_USE_WIFI > 0
+#if HASP_USE_WIFI > 0
 
-        #if HASP_USE_QRCODE > 0
-            #include "lv_qrcode.h"
-        #endif
+#if HASP_USE_QRCODE > 0
+#include "lv_qrcode.h"
+#endif
 
 static lv_obj_t * oobepage[2];
 static lv_obj_t * oobekb;
@@ -125,10 +126,10 @@ static void oobeSetupQR(const char * ssid, const char * pass)
     char buffer[128];
     lv_obj_t * container = lv_cont_create(oobepage[0], NULL);
     lv_obj_set_pos(container, 5, 5);
-        // lv_obj_set_style_local_bg_opa(container, LV_ARC_PART_BG, LV_STATE_DEFAULT, 0);
-        // lv_obj_set_style_local_border_opa(container, LV_ARC_PART_BG, LV_STATE_DEFAULT, 0);
+    // lv_obj_set_style_local_bg_opa(container, LV_ARC_PART_BG, LV_STATE_DEFAULT, 0);
+    // lv_obj_set_style_local_border_opa(container, LV_ARC_PART_BG, LV_STATE_DEFAULT, 0);
 
-        #if HASP_USE_QRCODE > 0
+#if HASP_USE_QRCODE > 0
     snprintf_P(buffer, sizeof(buffer), PSTR("WIFI:S:%s;T:WPA;P:%s;;"), ssid, pass);
 
     lv_obj_t * qr = lv_qrcode_create(oobepage[0], 120, LV_COLOR_BLACK, LV_COLOR_WHITE);
@@ -148,10 +149,10 @@ static void oobeSetupQR(const char * ssid, const char * pass)
         lv_obj_align(qrlabel, qr, LV_ALIGN_OUT_BOTTOM_MID, 0, 5);
     }
 
-        #else
+#else
 
     lv_obj_set_size(container, disp->driver.hor_res, disp->driver.ver_res);
-        #endif
+#endif
 
     lv_obj_t * aplabel = lv_label_create(container, NULL);
     snprintf_P(buffer, sizeof(buffer), PSTR(D_OOBE_MSG));
@@ -257,12 +258,12 @@ static void oobeSetupSsid(void)
     lv_label_set_text(oneline_label, buffer);
     lv_obj_align(oneline_label, oneline_ta, labelpos, 0, 0);
 
-        /* Create a keyboard and make it fill the width of the above text areas */
-        #if LVGL_VERSION_MAJOR == 8
+/* Create a keyboard and make it fill the width of the above text areas */
+#if LVGL_VERSION_MAJOR == 8
     oobekb = lv_keyboard_create(oobepage[1]);
-        #else
+#else
     oobekb = lv_keyboard_create(oobepage[1], NULL);
-        #endif
+#endif
 
     lv_obj_set_style_local_pad_inner(oobekb, LV_BTNMATRIX_PART_BG, LV_STATE_DEFAULT, 0);
     lv_obj_set_style_local_border_width(oobekb, LV_BTNMATRIX_PART_BG, LV_STATE_DEFAULT, 0);
@@ -289,7 +290,7 @@ static void oobe_calibrate_cb(lv_obj_t * ta, lv_event_t event)
 {
     if(event == LV_EVENT_CLICKED) {
         if(oobeAutoCalibrate) {
-            guiSetDim(100);
+            haspDevice.set_backlight_level(100);
             guiCalibrate();
             oobeAutoCalibrate = false;
             lv_obj_set_click(lv_disp_get_layer_sys(NULL), true);
@@ -300,7 +301,7 @@ static void oobe_calibrate_cb(lv_obj_t * ta, lv_event_t event)
         }
     }
 }
-    #endif // HASP_USE_WIFI
+#endif // HASP_USE_WIFI
 
 void oobeSetAutoCalibrate(bool cal)
 {
@@ -309,15 +310,15 @@ void oobeSetAutoCalibrate(bool cal)
 
 bool oobeSetup()
 {
-    #if HASP_USE_ETHERNET > 0
+#if HASP_USE_ETHERNET > 0
     if(eth_connected) return false;
-    #endif
-    #if HASP_USE_WIFI > 0
+#endif
+#if HASP_USE_WIFI > 0
     char ssid[32];
     char pass[32];
 
     if(wifiShowAP(ssid, pass)) {
-        guiSetDim(100);
+        haspDevice.set_backlight_level(100);
         oobeSetupQR(ssid, pass);
         oobeSetupSsid();
 
@@ -334,18 +335,18 @@ bool oobeSetup()
     } else {
         return false;
     }
-    #endif
+#endif
     return false;
 }
 
 // Thist is used for testing only !!
 void oobeFakeSetup(const char *, const char *)
 {
-    #if HASP_USE_WIFI > 0
+#if HASP_USE_WIFI > 0
     char ssid[32] = "HASP-ABCDEF";
     char pass[32] = "haspadmin";
 
-    guiSetDim(100);
+    haspDevice.set_backlight_level(100);
     oobeSetupQR(ssid, pass);
     oobeSetupSsid();
     oobeSetPage(0);
@@ -359,6 +360,6 @@ void oobeFakeSetup(const char *, const char *)
     } else {
         LOG_INFO(TAG_OOBE, F(D_OOBE_CALIBRATED));
     }
-    #endif
+#endif
 }
 #endif // HASP_USE_CONFIG
