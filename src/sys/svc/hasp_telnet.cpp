@@ -2,41 +2,44 @@
    For full license information read the LICENSE file in the project folder */
 
 #include "hasp_conf.h"
+
 #if HASP_USE_TELNET > 0
 
-    #include "ArduinoJson.h"
-    #include "ConsoleInput.h"
+#include "ArduinoJson.h"
+#include "ConsoleInput.h"
 
-    #include "log/hasp_debug.h"
-    #include "hasp_config.h"
-    #include "hasp_telnet.h"
+#include "hasp_debug.h"
+#include "hasp_config.h"
+#include "hasp_telnet.h"
+#include "hasp_http.h"
 
-    #include "../hasp/hasp_dispatch.h"
+#include "../../hasp/hasp_dispatch.h"
 
-    #if defined(ARDUINO_ARCH_ESP32)
-        #include <WiFi.h>
+#if defined(ARDUINO_ARCH_ESP32)
+#include <WiFi.h>
 WiFiClient telnetClient;
-static WiFiServer * telnetServer;
-    #elif defined(ARDUINO_ARCH_ESP8266)
-        #include <ESP8266WiFi.h>
+static WiFiServer* telnetServer;
+#elif defined(ARDUINO_ARCH_ESP8266)
+#include <ESP8266WiFi.h>
 WiFiClient telnetClient;
-static WiFiServer * telnetServer;
-    #else
+static WiFiServer* telnetServer;
+#else
 //#include <STM32Ethernet.h>
 EthernetClient telnetClient;
 static EthernetServer telnetServer(23);
-    #endif
+#endif
 
-    #if HASP_USE_HTTP > 0
-extern char httpUser[32];
-extern char httpPassword[32];
-    #endif
+#if HASP_USE_HTTP > 0
+// extern char http_config.user[32];
+// extern char http_config.password[32];
+extern hasp_http_config_t http_config;
+#endif
 
 uint8_t telnetLoginState   = TELNET_UNAUTHENTICATED;
 uint16_t telnetPort        = 23;
 uint8_t telnetEnabled      = true; // Enable telnet debug output
 uint8_t telnetLoginAttempt = 0;    // Initial attempt
-ConsoleInput * telnetConsole;
+ConsoleInput* telnetConsole;
 
 void telnetClientDisconnect()
 {
@@ -83,34 +86,34 @@ void telnetAcceptClient()
     // telnetClient.print((char)0xFD);
     // telnetClient.print((char)0x1B);
 
-    #if HASP_USE_HTTP > 0
-    if(strlen(httpUser) != 0 || strlen(httpPassword) != 0) {
-        telnetClient.println(F("\r\n" D_TELNET_USERNAME " "));
+#if HASP_USE_HTTP > 0
+    if(strlen(http_config.user) != 0 || strlen(http_config.password) != 0) {
+        telnetClient.println(F("\r\n" D_USERNAME " "));
         telnetLoginState = TELNET_UNAUTHENTICATED;
     } else
-    #endif
+#endif
     {
         telnetClientLogon();
     }
     telnetLoginAttempt = 0; // Initial attempt
 }
 
-    #if 0
+#if 0
 static inline void telnetProcessLine()
 {
     telnetInputBuffer[telnetInputIndex] = 0; // null terminate our char array
 
     switch(telnetLoginState) {
         case TELNET_UNAUTHENTICATED: {
-            telnetClient.printf(PSTR(D_TELNET_PASSWORD" %c%c%c"), 0xFF, 0xFB, 0x01); // Hide characters
-        #if HASP_USE_HTTP > 0
-            telnetLoginState = strcmp(telnetInputBuffer, httpUser) == 0 ? TELNET_USERNAME_OK : TELNET_USERNAME_NOK;
+            telnetClient.printf(PSTR(D_PASSWORD" %c%c%c"), 0xFF, 0xFB, 0x01); // Hide characters
+#if HASP_USE_HTTP > 0
+            telnetLoginState = strcmp(telnetInputBuffer, http_config.user) == 0 ? TELNET_USERNAME_OK : TELNET_USERNAME_NOK;
             break;
         }
         case TELNET_USERNAME_OK:
         case TELNET_USERNAME_NOK: {
             telnetClient.printf(PSTR("%c%c%c\n"), 0xFF, 0xFC, 0x01); // Show characters
-            if(telnetLoginState == TELNET_USERNAME_OK && strcmp(telnetInputBuffer, httpPassword) == 0) {
+            if(telnetLoginState == TELNET_USERNAME_OK && strcmp(telnetInputBuffer, http_config.password) == 0) {
                 telnetClientLogon();
             } else {
                 telnetLoginState = TELNET_UNAUTHENTICATED;
@@ -120,12 +123,12 @@ static inline void telnetProcessLine()
                 if(telnetLoginAttempt >= 3) {
                     telnetClientDisconnect();
                 } else {
-                    telnetClient.print(F(D_TELNET_USERNAME" "));
+                    telnetClient.print(F(D_USERNAME" "));
                 }
             }
-        #else
+#else
             telnetClientLogon();
-        #endif
+#endif
             break;
         }
         default:
@@ -179,24 +182,24 @@ static inline void telnetProcessCharacter(char ch)
     //}
 }
 
-    #endif
+#endif
 
-static inline void telnetProcessLine(const char * input)
+static inline void telnetProcessLine(const char* input)
 {
     switch(telnetLoginState) {
         case TELNET_UNAUTHENTICATED: {
             char buffer[20];
-            snprintf_P(buffer, sizeof(buffer), PSTR(D_TELNET_PASSWORD " %c%c%c\n"), 0xFF, 0xFB,
+            snprintf_P(buffer, sizeof(buffer), PSTR(D_PASSWORD " %c%c%c\n"), 0xFF, 0xFB,
                        0x01); // Hide characters
             telnetClient.print(buffer);
-    #if HASP_USE_HTTP > 0
-            telnetLoginState = strcmp(input, httpUser) == 0 ? TELNET_USERNAME_OK : TELNET_USERNAME_NOK;
+#if HASP_USE_HTTP > 0
+            telnetLoginState = strcmp(input, http_config.user) == 0 ? TELNET_USERNAME_OK : TELNET_USERNAME_NOK;
             break;
         }
         case TELNET_USERNAME_OK:
         case TELNET_USERNAME_NOK: {
             telnetClient.printf(PSTR("%c%c%c\n"), 0xFF, 0xFC, 0x01); // Show characters
-            if(telnetLoginState == TELNET_USERNAME_OK && strcmp(input, httpPassword) == 0) {
+            if(telnetLoginState == TELNET_USERNAME_OK && strcmp(input, http_config.password) == 0) {
                 telnetClientLogon();
             } else {
                 telnetLoginState = TELNET_UNAUTHENTICATED;
@@ -206,19 +209,19 @@ static inline void telnetProcessLine(const char * input)
                 if(telnetLoginAttempt >= 3) {
                     telnetClientDisconnect();
                 } else {
-                    telnetClient.print(F(D_TELNET_USERNAME " "));
+                    telnetClient.print(F(D_USERNAME " "));
                 }
             }
-    #else
+#else
             telnetClientLogon();
-    #endif
+#endif
             break;
         }
         default:
             if(strcasecmp_P(input, PSTR("exit")) == 0) {
                 telnetClientDisconnect();
             } else if(strcasecmp_P(input, PSTR("logoff")) == 0) {
-                telnetClient.println(F("\r\n" D_TELNET_USERNAME " "));
+                telnetClient.println(F("\r\n" D_USERNAME " "));
                 telnetLoginState = TELNET_UNAUTHENTICATED;
             } else {
                 dispatch_text_line(input);
@@ -231,15 +234,15 @@ void telnetSetup()
     // telnetSetConfig(settings);
 
     if(telnetEnabled) { // Setup telnet server for remote debug output
-    #if defined(STM32F4xx)
+#if defined(STM32F4xx)
         // if(!telnetServer) telnetServer = new EthernetServer(telnetPort);
         // if(telnetServer) {
         telnetServer->begin();
         LOG_INFO(TAG_TELN, F(D_TELNET_STARTED));
-            // } else {
-            //    LOG_ERROR(TAG_TELN,F("Failed to start telnet server"));
-            //}
-    #else
+        // } else {
+        //    LOG_ERROR(TAG_TELN,F("Failed to start telnet server"));
+        //}
+#else
         if(!telnetServer) telnetServer = new WiFiServer(telnetPort);
         if(telnetServer) {
             telnetServer->setNoDelay(true);
@@ -254,7 +257,7 @@ void telnetSetup()
         }
 
         LOG_ERROR(TAG_TELN, F(D_TELNET_FAILED));
-    #endif
+#endif
     }
 }
 
@@ -262,7 +265,7 @@ void telnetLoop()
 {
     // Basic telnet client handling code from: https://gist.github.com/tablatronix/4793677ca748f5f584c95ec4a2b10303
 
-    #if defined(STM32F4xx)
+#if defined(STM32F4xx)
     Ethernet.schedule();
     // if(telnetServer)
     { // client is connected
@@ -289,7 +292,7 @@ void telnetLoop()
             }
         }
     }
-    #else
+#else
     if(telnetServer && telnetServer->hasClient()) { // a new client has connected
         if(!telnetClient.connected()) {             // nobody is already connected
             telnetAcceptClient();                   // allow the new client
@@ -312,11 +315,11 @@ void telnetLoop()
             }
         }
     }
-    #endif
+#endif
 }
 
-    #if HASP_USE_CONFIG > 0
-bool telnetGetConfig(const JsonObject & settings)
+#if HASP_USE_CONFIG > 0
+bool telnetGetConfig(const JsonObject& settings)
 {
     bool changed = false;
 
@@ -338,7 +341,7 @@ bool telnetGetConfig(const JsonObject & settings)
  *
  * @param[in] settings    JsonObject with the config settings.
  **/
-bool telnetSetConfig(const JsonObject & settings)
+bool telnetSetConfig(const JsonObject& settings)
 {
     configOutput(settings, TAG_TELN);
     bool changed = false;
@@ -348,6 +351,6 @@ bool telnetSetConfig(const JsonObject & settings)
 
     return changed;
 }
-    #endif // HASP_USE_CONFIG
+#endif // HASP_USE_CONFIG
 
 #endif
