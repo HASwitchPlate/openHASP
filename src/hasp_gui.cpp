@@ -23,6 +23,11 @@
 #include "hasp/hasp_dispatch.h"
 #include "hasp/hasp.h"
 
+#ifdef WINDOWS
+#include "display/monitor.h"
+#include "indev/mouse.h"
+#endif
+
 //#include "tpcal.h"
 
 //#include "Ticker.h"
@@ -74,7 +79,7 @@ gui_conf_t gui_settings = {.show_pointer   = false,
 //     lv_tick_inc(LVGL_TICK_PERIOD);
 // }
 
-void guiCalibrate()
+void guiCalibrate(void)
 {
 #if TOUCH_DRIVER == 2046 && USE_TFT_ESPI > 0
 #ifdef TOUCH_CS
@@ -91,11 +96,11 @@ void guiCalibrate()
 #endif
 }
 
-void guiSetup()
+void guiSetup(void)
 {
     // Register logger to capture lvgl_init output
     LOG_TRACE(TAG_LVGL, F(D_SERVICE_STARTING));
-#if LV_USE_LOG != 0
+#if LV_USE_LOG != 0 && defined(ARDUINO)
     lv_log_register_print_cb(debugLvglLogEvent);
 #endif
 
@@ -105,13 +110,13 @@ void guiSetup()
 #ifdef USE_DMA_TO_TFT
     static lv_color_t *guiVdbBuffer1, *guiVdbBuffer2 = NULL;
     // DMA: len must be less than 32767
-    size_t guiVDBsize = 15 * 1024u; // 30 KBytes
-    guiVdbBuffer1     = (lv_color_t *)heap_caps_calloc(guiVDBsize, sizeof(lv_color_t), MALLOC_CAP_DMA);
+    const size_t guiVDBsize = 15 * 1024u; // 30 KBytes
+    guiVdbBuffer1           = (lv_color_t *)heap_caps_calloc(guiVDBsize, sizeof(lv_color_t), MALLOC_CAP_DMA);
     // guiVdbBuffer2 = (lv_color_t *)heap_caps_malloc(sizeof(lv_color_t) * guiVDBsize,   MALLOC_CAP_DMA);
     // lv_disp_buf_init(&disp_buf, guiVdbBuffer1, guiVdbBuffer2, guiVDBsize);
 #else
     static lv_color_t * guiVdbBuffer1;
-    size_t guiVDBsize = 16 * 1024u; // 32 KBytes
+    const size_t guiVDBsize = 16 * 1024u; // 32 KBytes
 
     if(0 && psramFound()) {
         guiVdbBuffer1 = (lv_color_t *)ps_calloc(guiVDBsize, sizeof(lv_color_t)); // too slow for VDB
@@ -131,20 +136,12 @@ void guiSetup()
     // lv_disp_buf_init(&disp_buf, guiVdbBuffer1, NULL, guiVDBsize);
 
     static lv_color_t * guiVdbBuffer1;
-    size_t guiVDBsize = 2 * 512u; // 4 KBytes * 2
-    guiVdbBuffer1     = (lv_color_t *)malloc(sizeof(lv_color_t) * guiVDBsize);
+    const size_t guiVDBsize = 2 * 512u; // 4 KBytes * 2
+    guiVdbBuffer1           = (lv_color_t *)malloc(sizeof(lv_color_t) * guiVDBsize);
 
 #elif defined(WINDOWS)
-    static lv_color_t buf[LV_HOR_RES_MAX * 10];                  /*Declare a buffer for 10 lines*/
-    lv_disp_buf_init(&disp_buf, buf, NULL, LV_HOR_RES_MAX * 10); /*Initialize the display buffer*/
-
-    lv_disp_drv_t disp_drv;
-    lv_disp_drv_init(&disp_drv);       /*Basic initialization*/
-    disp_drv.flush_cb = monitor_flush; /*Used when `LV_VDB_SIZE != 0` in lv_conf.h (buffered drawing)*/
-    disp_drv.buffer   = &disp_buf;
-    // disp_drv.disp_fill = monitor_fill;      /*Used when `LV_VDB_SIZE == 0` in lv_conf.h (unbuffered drawing)*/
-    // disp_drv.disp_map = monitor_map;        /*Used when `LV_VDB_SIZE == 0` in lv_conf.h (unbuffered drawing)*/
-    lv_disp_drv_register(&disp_drv);
+    const size_t guiVDBsize = LV_HOR_RES_MAX * 10;
+    static lv_color_t guiVdbBuffer1[guiVDBsize]; /*Declare a buffer for 10 lines*/
 
 #else
     static lv_color_t guiVdbBuffer1[16 * 512u]; // 16 KBytes
@@ -167,8 +164,12 @@ void guiSetup()
     lv_disp_drv_init(&disp_drv);
     disp_drv.buffer = &disp_buf;
 
+#if defined(WINDOWS)
+    disp_drv.flush_cb = monitor_flush;
+#else
     drv_display_init(&disp_drv, gui_settings.rotation,
                      gui_settings.invert_display); // Set display driver callback & rotation
+#endif
     disp_drv.hor_res    = TFT_WIDTH;
     disp_drv.ver_res    = TFT_HEIGHT;
     lv_disp_t * display = lv_disp_drv_register(&disp_drv);
@@ -225,8 +226,12 @@ void guiSetup()
     /* Initialize the touch pad */
     lv_indev_drv_t indev_drv;
     lv_indev_drv_init(&indev_drv);
-    indev_drv.type           = LV_INDEV_TYPE_POINTER;
-    indev_drv.read_cb        = drv_touch_read;
+    indev_drv.type = LV_INDEV_TYPE_POINTER;
+#if defined(WINDOWS)
+    indev_drv.read_cb = mouse_read;
+#else
+    indev_drv.read_cb = drv_touch_read;
+#endif
     lv_indev_t * mouse_indev = lv_indev_drv_register(&indev_drv);
     mouse_indev->driver.type = LV_INDEV_TYPE_POINTER;
 
@@ -253,7 +258,10 @@ void guiSetup()
 #endif
         lv_indev_set_cursor(mouse_indev, cursor); /*Connect the image  object to the driver*/
     }
+
+#if !defined(WINDOWS)
     drv_touch_init(gui_settings.rotation); // Touch driver
+#endif
 
     /* Initialize Global progress bar*/
     lv_obj_user_data_t udata = (lv_obj_user_data_t){10, 0, 10};
@@ -281,7 +289,9 @@ void guiLoop(void)
 #endif
 
     lv_task_handler(); // process animations
-    drv_touch_loop();  // update touch
+#if !defined(WINDOWS)
+    drv_touch_loop(); // update touch
+#endif
 }
 
 void guiEverySecond(void)

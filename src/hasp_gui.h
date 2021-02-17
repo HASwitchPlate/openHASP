@@ -17,16 +17,16 @@ struct gui_conf_t
 };
 
 /* ===== Default Event Processors ===== */
-void guiSetup();
+void guiSetup(void);
 void guiLoop(void);
 void guiEverySecond(void);
 void guiStart(void);
 void guiStop(void);
 
 /* ===== Special Event Processors ===== */
-void guiCalibrate();
-void guiTakeScreenshot(const char * pFileName); // to file
-void guiTakeScreenshot();                       // webclient
+void guiCalibrate(void);
+void guiTakeScreenshot(const char* pFileName); // to file
+void guiTakeScreenshot(void);                  // webclient
 
 /* ===== Getter and Setter Functions ===== */
 // void guiSetDim(int8_t level);
@@ -36,8 +36,8 @@ void guiTakeScreenshot();                       // webclient
 
 /* ===== Read/Write Configuration ===== */
 #if HASP_USE_CONFIG > 0
-bool guiGetConfig(const JsonObject & settings);
-bool guiSetConfig(const JsonObject & settings);
+bool guiGetConfig(const JsonObject& settings);
+bool guiSetConfig(const JsonObject& settings);
 #endif
 
 #endif
