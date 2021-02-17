@@ -12,7 +12,7 @@ namespace dev {
 
 class LanbonL8 : public Esp32Device {
   public:
-    void pre_setup();
+    void init();
 };
 
 } // namespace dev

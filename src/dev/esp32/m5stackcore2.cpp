@@ -8,7 +8,7 @@
 // AXP192 Axp;
 namespace dev {
 
-void M5StackCore2::pre_setup(void)
+void M5StackCore2::init(void)
 {
     AXP192 Axp;
     Wire.begin(TOUCH_SDA, TOUCH_SCL);

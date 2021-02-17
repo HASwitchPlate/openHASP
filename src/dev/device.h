@@ -17,7 +17,7 @@ class BaseDevice {
 
     virtual void reboot()
     {}
-    virtual void pre_setup()
+    virtual void init()
     {}
     virtual void post_setup()
     {}

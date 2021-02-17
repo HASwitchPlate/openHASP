@@ -12,7 +12,7 @@ namespace dev {
 
 class M5StackCore2 : public Esp32Device {
   public:
-    void pre_setup() override;
+    void init() override;
 };
 
 } // namespace dev
