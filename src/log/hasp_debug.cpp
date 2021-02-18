@@ -65,14 +65,14 @@
 // static StringStream debugStream((String &)debugOutput);
 
 // extern char mqttNodeName[16];
-const char * syslogAppName  = APP_NAME;
+const char* syslogAppName   = APP_NAME;
 char debugSyslogHost[32]    = SYSLOG_SERVER;
 uint16_t debugSyslogPort    = SYSLOG_PORT;
 uint8_t debugSyslogFacility = 0;
 uint8_t debugSyslogProtocol = 0;
 
 // A UDP instance to let us send and receive packets over UDP
-WiFiUDP * syslogClient;
+WiFiUDP* syslogClient;
 #define SYSLOG_PROTO_IETF 0
 
 // Create a new syslog instance with LOG_KERN facility
@@ -109,7 +109,7 @@ unsigned long debugLastMillis = 0;
 uint16_t debugTelePeriod      = 300;
 
 // Send the HASP header and version to the output device specified
-void debugPrintHaspHeader(Print * output)
+void debugPrintHaspHeader(Print* output)
 {
     if(debugAnsiCodes) output->print(TERM_COLOR_YELLOW);
     output->println();
@@ -198,7 +198,7 @@ void debugStop()
 }
 
 #if HASP_USE_CONFIG > 0
-bool debugGetConfig(const JsonObject & settings)
+bool debugGetConfig(const JsonObject& settings)
 {
     bool changed = false;
 
@@ -234,7 +234,7 @@ bool debugGetConfig(const JsonObject & settings)
  *
  * @param[in] settings    JsonObject with the config settings.
  **/
-bool debugSetConfig(const JsonObject & settings)
+bool debugSetConfig(const JsonObject& settings)
 {
     configOutput(settings, TAG_DEBG);
     bool changed = false;
@@ -260,7 +260,7 @@ bool debugSetConfig(const JsonObject & settings)
 }
 #endif // HASP_USE_CONFIG
 
-inline void debugSendAnsiCode(const __FlashStringHelper * code, Print * _logOutput)
+inline void debugSendAnsiCode(const __FlashStringHelper* code, Print* _logOutput)
 {
     if(debugAnsiCodes) _logOutput->print(code);
 }
@@ -329,11 +329,11 @@ void debugGetHistoryLine(size_t num)
 }
 */
 
-static void debugPrintTimestamp(int level, Print * _logOutput)
+static void debugPrintTimestamp(int level, Print* _logOutput)
 { /* Print Current Time */
 
     struct timeval tval;
-    struct tm * timeinfo;
+    struct tm* timeinfo;
     int rslt;
 
     rslt = gettimeofday(&tval, NULL);
@@ -368,7 +368,7 @@ static void debugPrintTimestamp(int level, Print * _logOutput)
     }
 }
 
-static void debugPrintHaspMemory(int level, Print * _logOutput)
+static void debugPrintHaspMemory(int level, Print* _logOutput)
 {
     size_t maxfree   = haspDevice.get_free_max_block();
     size_t totalfree = haspDevice.get_free_heap();
@@ -387,7 +387,7 @@ static void debugPrintHaspMemory(int level, Print * _logOutput)
 }
 
 #if LV_MEM_CUSTOM == 0
-static void debugPrintLvglMemory(int level, Print * _logOutput)
+static void debugPrintLvglMemory(int level, Print* _logOutput)
 {
     lv_mem_monitor_t mem_mon;
     lv_mem_monitor(&mem_mon);
@@ -406,7 +406,7 @@ static void debugPrintLvglMemory(int level, Print * _logOutput)
 }
 #endif
 
-static void debugPrintPriority(int level, Print * _logOutput)
+static void debugPrintPriority(int level, Print* _logOutput)
 {
     // if(_logOutput == &syslogClient) {
     // }
@@ -436,7 +436,7 @@ static void debugPrintPriority(int level, Print * _logOutput)
     }
 }
 
-static void debugPrintTag(uint8_t tag, Print * _logOutput)
+static void debugPrintTag(uint8_t tag, Print* _logOutput)
 {
     switch(tag) {
         case TAG_MAIN:
@@ -544,7 +544,7 @@ static void debugPrintTag(uint8_t tag, Print * _logOutput)
     }
 }
 
-void debugPrintPrefix(uint8_t tag, int level, Print * _logOutput)
+void debugPrintPrefix(uint8_t tag, int level, Print* _logOutput)
 {
 #if HASP_USE_SYSLOG > 0
 
@@ -562,7 +562,7 @@ void debugPrintPrefix(uint8_t tag, int level, Print * _logOutput)
                 syslogClient->print(F("1 - "));
             }
 
-            syslogClient->print(mqttGetNodename());
+            syslogClient->print(haspDevice.get_hostname());
             syslogClient->print(F(" "));
             debugPrintTag(tag, _logOutput);
 
@@ -602,7 +602,7 @@ void debugPrintPrefix(uint8_t tag, int level, Print * _logOutput)
     _logOutput->print(F(": "));
 }
 
-void debugPrintSuffix(uint8_t tag, int level, Print * _logOutput)
+void debugPrintSuffix(uint8_t tag, int level, Print* _logOutput)
 {
 #if HASP_USE_SYSLOG > 0
     if(_logOutput == syslogClient && syslogClient) {
@@ -658,8 +658,7 @@ void debugPreSetup(JsonObject settings)
 }
 
 #if LV_USE_LOG != 0
-void debugLvglLogEvent(lv_log_level_t level, const char * file, uint32_t line, const char * funcname,
-                       const char * descr)
+void debugLvglLogEvent(lv_log_level_t level, const char* file, uint32_t line, const char* funcname, const char* descr)
 {
     /* used for duplicate detection */
     static uint32_t lastDbgLine;
@@ -713,7 +712,7 @@ void printLocalTime()
 {
     char buffer[128];
     time_t rawtime;
-    struct tm * timeinfo;
+    struct tm* timeinfo;
 
     // if(!time(nullptr)) return;
 
@@ -732,8 +731,8 @@ void printLocalTime()
 
     // LwIP v2 is able to list more details about the currently configured SNTP servers
     for(int i = 0; i < SNTP_MAX_SERVERS; i++) {
-        IPAddress sntp    = *sntp_getserver(i);
-        const char * name = sntp_getservername(i);
+        IPAddress sntp   = *sntp_getserver(i);
+        const char* name = sntp_getservername(i);
         if(sntp.isSet()) {
             Serial.printf("sntp%d:     ", i);
             if(name) {
