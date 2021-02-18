@@ -5,6 +5,7 @@
 #define HASP_DEVICE_WINDOWS_H
 
 #include <cstdint>
+#include <string>
 #include "Windows.h"
 
 #include "hasp_conf.h"
@@ -17,11 +18,20 @@ namespace dev {
 class Win32Device : public BaseDevice {
 
   public:
+    Win32Device()
+    {
+        _hostname        = "winplate";
+        _backlight_pin   = -1;
+        _backlight_power = 1;
+        _backlight_level = 100;
+    }
+
     void reboot() override;
 
-    const char* get_hostname() override;
-    const char* get_core_version() override;
-    const char* get_display_driver() override;
+    const char* get_hostname();
+    void set_hostname(const char*);
+    const char* get_core_version();
+    const char* get_display_driver();
 
     void set_backlight_pin(uint8_t pin);
     void set_backlight_level(uint8_t val);
@@ -35,9 +45,11 @@ class Win32Device : public BaseDevice {
     uint16_t get_cpu_frequency();
 
   private:
-    uint8_t backlight_pin;
-    uint8_t backlight_level;
-    uint8_t backlight_power;
+    std::string _hostname;
+
+    uint8_t _backlight_pin;
+    uint8_t _backlight_level;
+    uint8_t _backlight_power;
 
     void update_backlight();
 };

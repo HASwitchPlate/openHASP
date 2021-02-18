@@ -5,22 +5,24 @@
 #include "hasp_conf.h"
 
 #ifndef WINDOWS
-    #if HASP_USE_MQTT > 0
+#if HASP_USE_MQTT > 0
 
-        #include "PubSubClient.h"
+#include "PubSubClient.h"
 
-        #include "hasp/hasp.h"
-        #include "hasp/hasp_dispatch.h"
-        #include "hal/hasp_hal.h"
-        #include "hasp_mqtt.h"
-        #include "hasp_mqtt_ha.h"
+#include "hasp/hasp.h"
+#include "hasp/hasp_dispatch.h"
+#include "hal/hasp_hal.h"
+#include "dev/device.h"
 
-        #define RETAINED true
-        #define HASP_MAC_ADDRESS halGetMacAddress(0, "").c_str()
-        #define HASP_MAC_ADDRESS_STR halGetMacAddress(0, "")
+#include "hasp_mqtt.h"
+#include "hasp_mqtt_ha.h"
+
+#define RETAINED true
+#define HASP_MAC_ADDRESS halGetMacAddress(0, "").c_str()
+#define HASP_MAC_ADDRESS_STR halGetMacAddress(0, "")
 
 extern PubSubClient mqttClient;
-extern char mqttNodeName[16];
+// extern char mqttNodeName[16];
 extern char mqttNodeTopic[24];
 extern char mqttGroupTopic[24];
 extern bool mqttEnabled;
@@ -34,7 +36,7 @@ const char FP_MQTT_HA_NAME[] PROGMEM         = "name";
 const char FP_MQTT_HA_MODEL[] PROGMEM        = "mdl";
 const char FP_MQTT_HA_MANUFACTURER[] PROGMEM = "mf";
 
-void mqtt_ha_send_json(char * topic, JsonDocument & doc)
+void mqtt_ha_send_json(char* topic, JsonDocument& doc)
 {
     LOG_VERBOSE(TAG_MQTT_PUB, topic);
     mqttClient.beginPublish(topic, measureJson(doc), RETAINED);
@@ -43,18 +45,18 @@ void mqtt_ha_send_json(char * topic, JsonDocument & doc)
 }
 
 // adds the device identifiers to the HA MQTT auto-discovery message
-void mqtt_ha_add_device_ids(JsonDocument & doc)
+void mqtt_ha_add_device_ids(JsonDocument& doc)
 {
     JsonObject device = doc.createNestedObject(FPSTR(FP_MQTT_HA_DEVICE));
     JsonArray ids     = device.createNestedArray(FPSTR(FP_MQTT_HA_IDENTIFIERS));
-    ids.add(mqttNodeName);
+    ids.add(haspDevice.get_hostname());
     ids.add(HASP_MAC_ADDRESS_STR);
 
     char buffer[32];
     haspGetVersion(buffer, sizeof(buffer));
     device[F("sw")] = buffer;
 
-    device[FPSTR(FP_MQTT_HA_NAME)]         = mqttNodeName;
+    device[FPSTR(FP_MQTT_HA_NAME)]         = haspDevice.get_hostname();
     device[FPSTR(FP_MQTT_HA_MODEL)]        = F(PIOENV);
     device[FPSTR(FP_MQTT_HA_MANUFACTURER)] = F(D_MANUFACTURER);
 
@@ -62,11 +64,11 @@ void mqtt_ha_add_device_ids(JsonDocument & doc)
 }
 
 // adds the name and unique_id to the HA MQTT auto-discovery message
-void mqtt_ha_add_unique_id(JsonDocument & doc, char * item)
+void mqtt_ha_add_unique_id(JsonDocument& doc, char* item)
 {
     char buffer[64];
 
-    snprintf_P(buffer, sizeof(buffer), PSTR("HASP %s %s"), mqttNodeName, item);
+    snprintf_P(buffer, sizeof(buffer), PSTR("HASP %s %s"), haspDevice.get_hostname(), item);
     doc[FPSTR(FP_MQTT_HA_NAME)] = buffer;
 
     snprintf_P(buffer, sizeof(buffer), PSTR("hasp_%s-%s"), HASP_MAC_ADDRESS, item);
@@ -90,28 +92,28 @@ void mqtt_ha_register_button(uint8_t page, uint8_t id)
     doc[F("pl")]   = buffer;
     doc[F("type")] = "button_short_press";
     snprintf_P(buffer, sizeof(buffer), PSTR("%s/device_automation/%s/" HASP_OBJECT_NOTATION "_%s/config"),
-               discovery_prefix, mqttNodeName, page, id, "short_press");
+               discovery_prefix, haspDevice.get_hostname(), page, id, "short_press");
     mqtt_ha_send_json(buffer, doc);
 
     dispatch_get_event_name(HASP_EVENT_SHORT, buffer, sizeof(buffer));
     doc[F("pl")]   = buffer;
     doc[F("type")] = "button_short_release";
     snprintf_P(buffer, sizeof(buffer), PSTR("%s/device_automation/%s/" HASP_OBJECT_NOTATION "_%s/config"),
-               discovery_prefix, mqttNodeName, page, id, "short_release");
+               discovery_prefix, haspDevice.get_hostname(), page, id, "short_release");
     mqtt_ha_send_json(buffer, doc);
 
     dispatch_get_event_name(HASP_EVENT_LONG, buffer, sizeof(buffer));
     doc[F("pl")]   = buffer;
     doc[F("type")] = "button_long_press";
     snprintf_P(buffer, sizeof(buffer), PSTR("%s/device_automation/%s/" HASP_OBJECT_NOTATION "_%s/config"),
-               discovery_prefix, mqttNodeName, page, id, "long_press");
+               discovery_prefix, haspDevice.get_hostname(), page, id, "long_press");
     mqtt_ha_send_json(buffer, doc);
 
     dispatch_get_event_name(HASP_EVENT_UP, buffer, sizeof(buffer));
     doc[F("pl")]   = buffer;
     doc[F("type")] = "button_long_release";
     snprintf_P(buffer, sizeof(buffer), PSTR("%s/device_automation/%s/" HASP_OBJECT_NOTATION "_%s/config"),
-               discovery_prefix, mqttNodeName, page, id, "long_release");
+               discovery_prefix, haspDevice.get_hostname(), page, id, "long_release");
     mqtt_ha_send_json(buffer, doc);
 }
 
@@ -131,7 +133,7 @@ void mqtt_ha_register_switch(uint8_t page, uint8_t id)
     doc[F("type")]  = F("button_short_release");
 
     snprintf_P(buffer, sizeof(buffer), PSTR("%s/device_automation/%s/" HASP_OBJECT_NOTATION "_%s/config"),
-               discovery_prefix, mqttNodeName, page, id, "short");
+               discovery_prefix, haspDevice.get_hostname(), page, id, "short");
 
     mqtt_ha_send_json(buffer, doc);
 }
@@ -149,7 +151,8 @@ void mqtt_ha_register_connectivity()
     mqtt_ha_add_unique_id(doc, item);
 
     char buffer[128];
-    snprintf_P(buffer, sizeof(buffer), PSTR("%s/binary_sensor/%s/%s/config"), discovery_prefix, mqttNodeName, item);
+    snprintf_P(buffer, sizeof(buffer), PSTR("%s/binary_sensor/%s/%s/config"), discovery_prefix,
+               haspDevice.get_hostname(), item);
     mqtt_ha_send_json(buffer, doc);
 }
 
@@ -174,7 +177,8 @@ void mqtt_ha_register_backlight()
     // doc[F("pl_off")] = F("OFF");
 
     char buffer[128];
-    snprintf_P(buffer, sizeof(buffer), PSTR("%s/light/%s/%s/config"), discovery_prefix, mqttNodeName, item);
+    snprintf_P(buffer, sizeof(buffer), PSTR("%s/light/%s/%s/config"), discovery_prefix, haspDevice.get_hostname(),
+               item);
     mqtt_ha_send_json(buffer, doc);
 }
 
@@ -205,7 +209,8 @@ void mqtt_ha_register_moodlight()
     // doc[F("rgb_command_template")]        = F("{{ '%02x%02x%02x0000'| format(red, green, blue) }}");
 
     char buffer[128];
-    snprintf_P(buffer, sizeof(buffer), PSTR("%s/light/%s/%s/config"), discovery_prefix, mqttNodeName, item);
+    snprintf_P(buffer, sizeof(buffer), PSTR("%s/light/%s/%s/config"), discovery_prefix, haspDevice.get_hostname(),
+               item);
     mqtt_ha_send_json(buffer, doc);
 }
 
@@ -221,7 +226,8 @@ void mqtt_ha_register_idle()
     mqtt_ha_add_unique_id(doc, item);
 
     char buffer[128];
-    snprintf_P(buffer, sizeof(buffer), PSTR("%s/sensor/%s/%s/config"), discovery_prefix, mqttNodeName, item);
+    snprintf_P(buffer, sizeof(buffer), PSTR("%s/sensor/%s/%s/config"), discovery_prefix, haspDevice.get_hostname(),
+               item);
     mqtt_ha_send_json(buffer, doc);
 }
 
@@ -237,7 +243,8 @@ void mqtt_ha_register_activepage()
     mqtt_ha_add_unique_id(doc, item);
 
     char buffer[128];
-    snprintf_P(buffer, sizeof(buffer), PSTR("%s/number/%s/%s/config"), discovery_prefix, mqttNodeName, item);
+    snprintf_P(buffer, sizeof(buffer), PSTR("%s/number/%s/%s/config"), discovery_prefix, haspDevice.get_hostname(),
+               item);
     mqtt_ha_send_json(buffer, doc);
 }
 
@@ -252,7 +259,7 @@ void mqtt_ha_register_auto_discovery()
     mqtt_ha_register_idle();
     mqtt_ha_register_connectivity();
 }
-    #endif
+#endif
 #endif
 
 /*

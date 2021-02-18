@@ -13,9 +13,17 @@ namespace dev {
 class Esp32Device : public BaseDevice {
 
   public:
+    Esp32Device()
+    {
+        _hostname        = "plate";
+        _backlight_pin   = TFT_BCKL;
+        _backlight_power = 1;
+        _backlight_level = 100;
+    }
     void reboot() override;
 
     const char* get_hostname();
+    void set_hostname(const char*);
     const char* get_core_version();
     const char* get_display_driver();
 
@@ -31,11 +39,11 @@ class Esp32Device : public BaseDevice {
     uint16_t get_cpu_frequency() override;
 
   private:
-    std::string hostname;
+    std::string _hostname;
 
-    uint8_t backlight_pin;
-    uint8_t backlight_level;
-    uint8_t backlight_power;
+    uint8_t _backlight_pin;
+    uint8_t _backlight_level;
+    uint8_t _backlight_power;
 
     void update_backlight();
 };

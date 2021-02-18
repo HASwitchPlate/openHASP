@@ -81,10 +81,10 @@ bool mqttHAautodiscover = true;
 
 #define LWT_TOPIC "LWT"
 
-char mqttServer[16]    = MQTT_HOST;
-char mqttUser[23]      = MQTT_USER;
-char mqttPassword[32]  = MQTT_PASSW;
-char mqttNodeName[16]  = MQTT_NODENAME;
+char mqttServer[16]   = MQTT_HOST;
+char mqttUser[23]     = MQTT_USER;
+char mqttPassword[32] = MQTT_PASSW;
+// char mqttNodeName[16]  = MQTT_NODENAME;
 char mqttGroupName[16] = MQTT_GROUPNAME;
 uint16_t mqttPort      = MQTT_PORT;
 PubSubClient mqttClient(mqttNetworkClient);
@@ -368,8 +368,8 @@ bool mqttGetConfig(const JsonObject& settings)
 {
     bool changed = false;
 
-    if(strcmp(mqttNodeName, settings[FPSTR(FP_CONFIG_NAME)].as<String>().c_str()) != 0) changed = true;
-    settings[FPSTR(FP_CONFIG_NAME)] = mqttNodeName;
+    if(strcmp(haspDevice.get_hostname(), settings[FPSTR(FP_CONFIG_NAME)].as<String>().c_str()) != 0) changed = true;
+    settings[FPSTR(FP_CONFIG_NAME)] = haspDevice.get_hostname();
 
     if(strcmp(mqttGroupName, settings[FPSTR(FP_CONFIG_GROUP)].as<String>().c_str()) != 0) changed = true;
     settings[FPSTR(FP_CONFIG_GROUP)] = mqttGroupName;
@@ -406,14 +406,17 @@ bool mqttSetConfig(const JsonObject& settings)
     changed |= configSet(mqttPort, settings[FPSTR(FP_CONFIG_PORT)], F("mqttPort"));
 
     if(!settings[FPSTR(FP_CONFIG_NAME)].isNull()) {
-        changed |= strcmp(mqttNodeName, settings[FPSTR(FP_CONFIG_NAME)]) != 0;
-        strncpy(mqttNodeName, settings[FPSTR(FP_CONFIG_NAME)], sizeof(mqttNodeName));
+        changed |= strcmp(haspDevice.get_hostname(), settings[FPSTR(FP_CONFIG_NAME)]) != 0;
+        // strncpy(mqttNodeName, settings[FPSTR(FP_CONFIG_NAME)], sizeof(mqttNodeName));
+        haspDevice.set_hostname(settings[FPSTR(FP_CONFIG_NAME)].as<const char*>());
     }
     // Prefill node name
-    if(strlen(mqttNodeName) == 0) {
+    if(strlen(haspDevice.get_hostname()) == 0) {
+        char mqttNodeName[64];
         String mac = halGetMacAddress(3, "");
         mac.toLowerCase();
         snprintf_P(mqttNodeName, sizeof(mqttNodeName), PSTR(D_MQTT_DEFAULT_NAME), mac.c_str());
+        haspDevice.set_hostname(mqttNodeName);
         changed = true;
     }
 
@@ -443,7 +446,7 @@ bool mqttSetConfig(const JsonObject& settings)
         strncpy(mqttPassword, settings[FPSTR(FP_CONFIG_PASS)], sizeof(mqttPassword));
     }
 
-    snprintf_P(mqttNodeTopic, sizeof(mqttNodeTopic), PSTR(MQTT_PREFIX "/%s/"), mqttNodeName);
+    snprintf_P(mqttNodeTopic, sizeof(mqttNodeTopic), PSTR(MQTT_PREFIX "/%s/"), haspDevice.get_hostname());
     snprintf_P(mqttGroupTopic, sizeof(mqttGroupTopic), PSTR(MQTT_PREFIX "/%s/"), mqttGroupName);
 
     return changed;

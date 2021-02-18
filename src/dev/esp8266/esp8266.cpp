@@ -17,9 +17,18 @@ void Esp8266Device::reboot()
     ESP.restart();
 }
 
+const char* Esp8266Device::get_hostname()
+{
+    return _hostname.c_str();
+}
+void Esp8266Device::set_hostname(const char* hostname)
+{
+    _hostname = hostname;
+}
+
 void Esp8266Device::set_backlight_pin(uint8_t pin)
 {
-    Esp8266Device::backlight_pin = pin;
+    _backlight_pin = pin;
     /* Setup Backlight Control Pin */
     if(pin >= 0) {
         LOG_VERBOSE(TAG_GUI, F("Backlight  : Pin %d"), pin);
@@ -30,33 +39,33 @@ void Esp8266Device::set_backlight_pin(uint8_t pin)
 
 void Esp8266Device::set_backlight_level(uint8_t level)
 {
-    backlight_level = level >= 0 ? level : 0;
-    backlight_level = backlight_level <= 100 ? backlight_level : 100;
+    _backlight_level = level >= 0 ? level : 0;
+    _backlight_level = _backlight_level <= 100 ? backlight_level : 100;
 
     update_backlight();
 }
 
 uint8_t Esp8266Device::get_backlight_level()
 {
-    return backlight_level;
+    return _backlight_level;
 }
 
 void Esp8266Device::set_backlight_power(bool power)
 {
-    backlight_power = power;
+    _backlight_power = power;
     update_backlight();
 }
 
 bool Esp8266Device::get_backlight_power()
 {
-    return backlight_power != 0;
+    return _backlight_power != 0;
 }
 
 void Esp8266Device::update_backlight()
 {
-    if(backlight_pin == -1) return;
+    if(_backlight_pin == -1) return;
 
-    analogWrite(backlight_pin, backlight_power ? map(backlight_level, 0, 100, 0, 1023) : 0);
+    analogWrite(backlight_pin, _backlight_power ? map(_backlight_level, 0, 100, 0, 1023) : 0);
 }
 
 size_t Esp8266Device::get_free_max_block()

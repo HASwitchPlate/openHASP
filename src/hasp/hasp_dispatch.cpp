@@ -1026,7 +1026,7 @@ void dispatchLoop()
 void dispatchEverySecond()
 {
     if(dispatch_setings.teleperiod > 0 && (millis() - dispatchLastMillis) >= dispatch_setings.teleperiod * 1000) {
-        dispatchLastMillis = millis();
+        dispatchLastMillis += dispatch_setings.teleperiod * 1000;
         dispatch_output_statusupdate(NULL, NULL);
     }
 }

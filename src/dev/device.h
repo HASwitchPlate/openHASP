@@ -26,6 +26,8 @@ class BaseDevice {
     {
         return "";
     }
+    virtual void set_hostname(const char*)
+    {}
     virtual const char* get_core_version()
     {
         return "";

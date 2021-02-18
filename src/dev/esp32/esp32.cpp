@@ -25,7 +25,11 @@ void Esp32Device::reboot()
 
 const char* Esp32Device::get_hostname()
 {
-    return hostname.c_str();
+    return _hostname.c_str();
+}
+void Esp32Device::set_hostname(const char* hostname)
+{
+    _hostname = hostname;
 }
 const char* Esp32Device::get_core_version()
 {
@@ -38,7 +42,7 @@ const char* Esp32Device::get_display_driver()
 
 void Esp32Device::set_backlight_pin(uint8_t pin)
 {
-    Esp32Device::backlight_pin = pin;
+    Esp32Device::_backlight_pin = pin;
 
     /* Setup Backlight Control Pin */
     if(pin != (uint8_t)-1) {
@@ -53,33 +57,33 @@ void Esp32Device::set_backlight_pin(uint8_t pin)
 
 void Esp32Device::set_backlight_level(uint8_t level)
 {
-    backlight_level = level >= 0 ? level : 0;
-    backlight_level = backlight_level <= 100 ? backlight_level : 100;
+    _backlight_level = level >= 0 ? level : 0;
+    _backlight_level = _backlight_level <= 100 ? _backlight_level : 100;
 
     update_backlight();
 }
 
 uint8_t Esp32Device::get_backlight_level()
 {
-    return backlight_level;
+    return _backlight_level;
 }
 
 void Esp32Device::set_backlight_power(bool power)
 {
-    backlight_power = power;
+    _backlight_power = power;
     update_backlight();
 }
 
 bool Esp32Device::get_backlight_power()
 {
-    return backlight_power != 0;
+    return _backlight_power != 0;
 }
 
 void Esp32Device::update_backlight()
 {
-    if(backlight_pin == (uint8_t)-1) return;
+    if(_backlight_pin == (uint8_t)-1) return;
 
-    uint32_t duty = backlight_power ? map(backlight_level, 0, 100, 0, 4095) : 0;
+    uint32_t duty = _backlight_power ? map(_backlight_level, 0, 100, 0, 4095) : 0;
     ledcWrite(BACKLIGHT_CHANNEL, duty); // ledChannel and value
 }
 

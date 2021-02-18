@@ -63,7 +63,7 @@ ESP8266WebServer webServer(80);
 WebServer webServer(80);
 #endif // ESP32
 
-HTTPUpload * upload;
+HTTPUpload* upload;
 
 static const char HTTP_MENU_BUTTON[] PROGMEM =
     "<p><form method='get' action='%s'><button type='submit'>%s</button></form></p>";
@@ -113,11 +113,11 @@ const char HTTP_FOOTER[] PROGMEM = " by Francis Van Roie</div></body></html>";
 // // Default link to compiled Nextion firmware images
 // String lcdFirmwareUrl = "http://haswitchplate.com/update/HASwitchPlate.tft";
 
-#if HASP_USE_MQTT > 0
-extern char mqttNodeName[16];
-#else
-char mqttNodeName[3] = "na";
-#endif
+// #if HASP_USE_MQTT > 0
+// extern char mqttNodeName[16];
+// #else
+// char mqttNodeName[3] = "na";
+// #endif
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 String getOption(int value, String label, bool selected)
@@ -136,14 +136,14 @@ String getOption(String value, String label, bool selected)
     return buffer;
 }
 
-static void add_gpio_select_option(String & str, uint8_t gpio, uint8_t bcklpin)
+static void add_gpio_select_option(String& str, uint8_t gpio, uint8_t bcklpin)
 {
     char buffer[10];
     snprintf_P(buffer, sizeof(buffer), PSTR("GPIO %d"), gpio);
     str += getOption(gpio, buffer, bcklpin == gpio);
 }
 
-static void add_button(String & str, const __FlashStringHelper * label, const __FlashStringHelper * extra)
+static void add_button(String& str, const __FlashStringHelper* label, const __FlashStringHelper* extra)
 {
     str += F("<button type='submit' ");
     str += extra;
@@ -152,13 +152,13 @@ static void add_button(String & str, const __FlashStringHelper * label, const __
     str += F("</button>");
 }
 
-static void close_form(String & str)
+static void close_form(String& str)
 {
     str += F("</form></p>");
 }
 
-static void add_form_button(String & str, const __FlashStringHelper * label, const __FlashStringHelper * action,
-                            const __FlashStringHelper * extra)
+static void add_form_button(String& str, const __FlashStringHelper* label, const __FlashStringHelper* action,
+                            const __FlashStringHelper* extra)
 {
     str += F("<p><form method='get' action='");
     str += action;
@@ -170,13 +170,13 @@ static void add_form_button(String & str, const __FlashStringHelper * label, con
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 void webHandleHaspConfig();
 
-static inline char * httpGetNodename()
-{
-    return mqttNodeName;
-}
+// static inline char* haspDevice.get_hostname()
+// {
+//     return mqttNodeName;
+// }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-bool httpIsAuthenticated(const __FlashStringHelper * fstr_page)
+bool httpIsAuthenticated(const __FlashStringHelper* fstr_page)
 {
     if(http_config.password[0] != '\0') { // Request HTTP auth if httpPassword is set
         if(!webServer.authenticate(http_config.user, http_config.password)) {
@@ -212,7 +212,7 @@ void webSendFooter()
 #endif
 }
 
-void webSendPage(char * nodename, uint32_t httpdatalength, bool gohome = false)
+void webSendPage(const char* nodename, uint32_t httpdatalength, bool gohome = false)
 {
     {
         char buffer[64];
@@ -306,10 +306,10 @@ void webHandleRoot()
 
     saveConfig();
     {
-        String httpMessage((char *)0);
+        String httpMessage((char*)0);
         httpMessage.reserve(HTTP_PAGE_SIZE);
         httpMessage += F("<h1>");
-        httpMessage += httpGetNodename();
+        httpMessage += haspDevice.get_hostname();
         httpMessage += F("</h1><hr>");
 
         httpMessage += F("<p><form method='get' action='/config/hasp'><button type='submit'>" D_HTTP_HASP_DESIGN
@@ -337,7 +337,7 @@ void webHandleRoot()
         httpMessage += F("<p><form method='get' action='reboot'><button class='red' type='submit'>" D_HTTP_REBOOT
                          "</button></form></p>");
 
-        webSendPage(httpGetNodename(), httpMessage.length(), false);
+        webSendPage(haspDevice.get_hostname(), httpMessage.length(), false);
         webServer.sendContent(httpMessage);
     }
     // httpMessage.clear();
@@ -350,14 +350,14 @@ void httpHandleReboot()
     if(!httpIsAuthenticated(F("reboot"))) return;
 
     {
-        String httpMessage((char *)0);
+        String httpMessage((char*)0);
         httpMessage.reserve(HTTP_PAGE_SIZE);
         httpMessage += F("<h1>");
-        httpMessage += httpGetNodename();
+        httpMessage += haspDevice.get_hostname();
         httpMessage += F("</h1><hr>");
         httpMessage = F(D_DISPATCH_REBOOT);
 
-        webSendPage(httpGetNodename(), httpMessage.length(), true);
+        webSendPage(haspDevice.get_hostname(), httpMessage.length(), true);
         webServer.sendContent(httpMessage);
     }
     // httpMessage.clear();
@@ -381,7 +381,7 @@ void webHandleScreenshot()
     }
 
     if(webServer.hasArg(F("q"))) {
-        lv_disp_t * disp = lv_disp_get_default();
+        lv_disp_t* disp = lv_disp_get_default();
         webServer.setContentLength(122 + disp->driver.hor_res * disp->driver.ver_res * sizeof(lv_color_t));
         webServer.send_P(200, PSTR("image/bmp"), "");
         guiTakeScreenshot();
@@ -389,10 +389,10 @@ void webHandleScreenshot()
 
     } else {
         {
-            String httpMessage((char *)0);
+            String httpMessage((char*)0);
             httpMessage.reserve(HTTP_PAGE_SIZE);
             httpMessage += F("<h1>");
-            httpMessage += httpGetNodename();
+            httpMessage += haspDevice.get_hostname();
             httpMessage += F("</h1><hr>");
 
             httpMessage +=
@@ -413,7 +413,7 @@ void webHandleScreenshot()
                   "</button></form></p>");
             httpMessage += FPSTR(MAIN_MENU_BUTTON);
 
-            webSendPage(httpGetNodename(), httpMessage.length(), false);
+            webSendPage(haspDevice.get_hostname(), httpMessage.length(), false);
             webServer.sendContent(httpMessage);
         }
         // httpMessage.clear();
@@ -428,7 +428,7 @@ void webHandleAbout()
     if(!httpIsAuthenticated(F("about"))) return;
 
     {
-        String httpMessage((char *)0);
+        String httpMessage((char*)0);
         httpMessage.reserve(HTTP_PAGE_SIZE);
 
         httpMessage += F("<p><h3>HASP OpenHardware edition</h3>Copyright&copy; 2020 Francis Van Roie ");
@@ -469,7 +469,7 @@ void webHandleAbout()
 
         httpMessage += FPSTR(MAIN_MENU_BUTTON);
 
-        webSendPage(httpGetNodename(), httpMessage.length(), false);
+        webSendPage(haspDevice.get_hostname(), httpMessage.length(), false);
         webServer.sendContent(httpMessage);
     }
     // httpMessage.clear();
@@ -483,10 +483,10 @@ void webHandleInfo()
 
     {
         char size_buf[32];
-        String httpMessage((char *)0);
+        String httpMessage((char*)0);
         httpMessage.reserve(HTTP_PAGE_SIZE);
         httpMessage += F("<h1>");
-        httpMessage += httpGetNodename();
+        httpMessage += haspDevice.get_hostname();
         httpMessage += F("</h1><hr>");
 
         /* HASP Stats */
@@ -638,7 +638,7 @@ void webHandleInfo()
             char mqttClientId[64];
             String mac = halGetMacAddress(3, "");
             mac.toLowerCase();
-            snprintf_P(mqttClientId, sizeof(mqttClientId), PSTR("%s-%s"), mqttNodeName, mac.c_str());
+            snprintf_P(mqttClientId, sizeof(mqttClientId), PSTR("%s-%s"), haspDevice.get_hostname(), mac.c_str());
             httpMessage += mqttClientId;
         }
 
@@ -677,7 +677,7 @@ void webHandleInfo()
 
         httpMessage += FPSTR(MAIN_MENU_BUTTON);
 
-        webSendPage(httpGetNodename(), httpMessage.length(), false);
+        webSendPage(haspDevice.get_hostname(), httpMessage.length(), false);
         webServer.sendContent(httpMessage);
     }
     // httpMessage.clear();
@@ -714,7 +714,7 @@ void webHandleInfo()
 //     return F("text/plain");
 // }
 
-static String getContentType(const String & path)
+static String getContentType(const String& path)
 {
     char buff[sizeof(mime::mimeTable[0].mimeType)];
     // Check all entries but last one for match, return if found
@@ -772,9 +772,9 @@ void webUploadProgress()
 static inline void webUpdatePrintError()
 {
 #if defined(ARDUINO_ARCH_ESP8266)
-    String output((char *)0);
+    String output((char*)0);
     output.reserve(128);
-    StringStream stream((String &)output);
+    StringStream stream((String&)output);
     Update.printError(stream); // ESP8266 only has printError()
     LOG_ERROR(TAG_HTTP, output.c_str());
     haspProgressMsg(output.c_str());
@@ -789,14 +789,14 @@ void webUpdateReboot()
     LOG_INFO(TAG_HTTP, F("Update Success: %u bytes received. Rebooting..."), upload->totalSize);
 
     {
-        String httpMessage((char *)0);
+        String httpMessage((char*)0);
         httpMessage.reserve(HTTP_PAGE_SIZE);
         httpMessage += F("<h1>");
-        httpMessage += httpGetNodename();
+        httpMessage += haspDevice.get_hostname();
         httpMessage += F("</h1><hr>");
         httpMessage += F("<b>Upload complete. Rebooting device, please wait...</b>");
 
-        webSendPage(httpGetNodename(), httpMessage.length(), true);
+        webSendPage(haspDevice.get_hostname(), httpMessage.length(), true);
         webServer.sendContent(httpMessage);
     }
     // httpMessage.clear();
@@ -875,7 +875,7 @@ void handleFileUpload()
     if(upload->status == UPLOAD_FILE_START) {
         if(!httpIsAuthenticated(F("fileupload"))) return;
         LOG_INFO(TAG_HTTP, F("Total size: %s"), webServer.headerName(0).c_str());
-        String filename((char *)0);
+        String filename((char*)0);
         filename.reserve(128);
         filename = upload->filename;
         if(!filename.startsWith("/")) {
@@ -1040,10 +1040,10 @@ void webHandleConfig()
 #endif
 
     {
-        String httpMessage((char *)0);
+        String httpMessage((char*)0);
         httpMessage.reserve(HTTP_PAGE_SIZE);
         httpMessage += F("<h1>");
-        httpMessage += httpGetNodename();
+        httpMessage += haspDevice.get_hostname();
         httpMessage += F("</h1><hr>");
 
 #if HASP_USE_WIFI > 0
@@ -1080,7 +1080,7 @@ void webHandleConfig()
 
         httpMessage += FPSTR(MAIN_MENU_BUTTON);
 
-        webSendPage(httpGetNodename(), httpMessage.length(), false);
+        webSendPage(haspDevice.get_hostname(), httpMessage.length(), false);
         webServer.sendContent(httpMessage);
     }
     // httpMessage.clear();
@@ -1098,10 +1098,10 @@ void webHandleMqttConfig()
 
     {
         // char buffer[128];
-        String httpMessage((char *)0);
+        String httpMessage((char*)0);
         httpMessage.reserve(HTTP_PAGE_SIZE);
         httpMessage += F("<h1>");
-        httpMessage += httpGetNodename();
+        httpMessage += haspDevice.get_hostname();
         httpMessage += F("</h1><hr>");
 
         httpMessage += F("<form method='POST' action='/config'>");
@@ -1133,7 +1133,7 @@ void webHandleMqttConfig()
         // D_HTTP_CONFIGURATION
         //                     "</button></form></p>");
 
-        webSendPage(httpGetNodename(), httpMessage.length(), false);
+        webSendPage(haspDevice.get_hostname(), httpMessage.length(), false);
         webServer.sendContent(httpMessage);
     }
     // httpMessage.clear();
@@ -1150,10 +1150,10 @@ void webHandleGuiConfig()
         StaticJsonDocument<256> settings;
         guiGetConfig(settings.to<JsonObject>());
 
-        String httpMessage((char *)0);
+        String httpMessage((char*)0);
         httpMessage.reserve(HTTP_PAGE_SIZE);
         httpMessage += F("<h1>");
-        httpMessage += httpGetNodename();
+        httpMessage += haspDevice.get_hostname();
         httpMessage += F("</h1><hr>");
 
         httpMessage += F("<form method='POST' action='/config'>");
@@ -1228,7 +1228,7 @@ void webHandleGuiConfig()
         // D_HTTP_CONFIGURATION
         //                     "</button></form></p>");
 
-        webSendPage(httpGetNodename(), httpMessage.length(), false);
+        webSendPage(haspDevice.get_hostname(), httpMessage.length(), false);
         webServer.sendContent(httpMessage);
     }
     webSendFooter();
@@ -1245,10 +1245,10 @@ void webHandleWifiConfig()
     StaticJsonDocument<256> settings;
     wifiGetConfig(settings.to<JsonObject>());
 
-    String httpMessage((char *)0);
+    String httpMessage((char*)0);
     httpMessage.reserve(HTTP_PAGE_SIZE);
     httpMessage += F("<h1>");
-    httpMessage += httpGetNodename();
+    httpMessage += haspDevice.get_hostname();
     httpMessage += F("</h1><hr>");
 
     httpMessage += F("<form method='POST' action='/config'>");
@@ -1272,7 +1272,7 @@ void webHandleWifiConfig()
     }
 #endif
 
-    webSendPage(httpGetNodename(), httpMessage.length(), false);
+    webSendPage(haspDevice.get_hostname(), httpMessage.length(), false);
     webServer.sendContent(httpMessage);
 #if defined(STM32F4xx)
     httpMessage = "";
@@ -1296,7 +1296,7 @@ void webHandleHttpConfig()
         // String httpMessage((char *)0);
         // httpMessage.reserve(HTTP_PAGE_SIZE);
         // httpMessage += F("<h1>");
-        // httpMessage += httpGetNodename();
+        // httpMessage += haspDevice.get_hostname();
         // httpMessage += F("</h1><hr>");
 
         // httpMessage += F("<form method='POST' action='/config'>");
@@ -1328,14 +1328,14 @@ void webHandleHttpConfig()
                  "<p><button type='submit' name='save' value='http'>" D_HTTP_SAVE_SETTINGS "</button></p></form>"
                  "<p><form method='get' action='/config'><button type='submit'>&#8617; " D_HTTP_CONFIGURATION
                  "</button></form></p>"),
-            httpGetNodename(), settings[FPSTR(FP_CONFIG_USER)].as<String>().c_str(),
+            haspDevice.get_hostname(), settings[FPSTR(FP_CONFIG_USER)].as<String>().c_str(),
             settings[FPSTR(FP_CONFIG_PASS)].as<String>().c_str());
 
         // if(settings[FPSTR(FP_CONFIG_PASS)].as<String>() != "") {
         //     httpMessage += F(D_PASSWORD_MASK);
         // }
 
-        webSendPage(httpGetNodename(), len, false);
+        webSendPage(haspDevice.get_hostname(), len, false);
         webServer.sendContent(httpMessage);
     }
     // httpMessage.clear();
@@ -1368,10 +1368,10 @@ void webHandleGpioConfig()
     }
 
     {
-        String httpMessage((char *)0);
+        String httpMessage((char*)0);
         httpMessage.reserve(HTTP_PAGE_SIZE);
         httpMessage += F("<h1>");
-        httpMessage += httpGetNodename();
+        httpMessage += haspDevice.get_hostname();
         httpMessage += F("</h1><hr>");
 
         httpMessage += F("<form method='POST' action='/config'>");
@@ -1466,7 +1466,7 @@ void webHandleGpioConfig()
         //    D_HTTP_CONFIGURATION
         //                      "</button></form></p>");
 
-        webSendPage(httpGetNodename(), httpMessage.length(), false);
+        webSendPage(haspDevice.get_hostname(), httpMessage.length(), false);
         webServer.sendContent(httpMessage);
     }
     // httpMessage.clear();
@@ -1484,10 +1484,10 @@ void webHandleGpioOptions()
 
         uint8_t config_id = webServer.arg(F("id")).toInt();
 
-        String httpMessage((char *)0);
+        String httpMessage((char*)0);
         httpMessage.reserve(HTTP_PAGE_SIZE);
         httpMessage += F("<h1>");
-        httpMessage += httpGetNodename();
+        httpMessage += haspDevice.get_hostname();
         httpMessage += F("</h1><hr>");
 
         httpMessage += F("<form method='GET' action='/config/gpio'>");
@@ -1542,7 +1542,7 @@ void webHandleGpioOptions()
 
         httpMessage += F("<p><b>Group</b> <select id='group' name='group'>");
         httpMessage += getOption(0, F("None"), conf.group == 0);
-        String group((char *)0);
+        String group((char*)0);
         group.reserve(10);
         for(int i = 1; i < 15; i++) {
             group = F("Group ");
@@ -1565,7 +1565,7 @@ void webHandleGpioOptions()
         httpMessage += PSTR("<p><form method='get' action='/config/gpio'><button type='submit'>&#8617; " D_HTTP_BACK
                             "</button></form></p>");
 
-        webSendPage(httpGetNodename(), httpMessage.length(), false);
+        webSendPage(haspDevice.get_hostname(), httpMessage.length(), false);
         webServer.sendContent(httpMessage);
     }
     webSendFooter();
@@ -1583,10 +1583,10 @@ void webHandleDebugConfig()
     debugGetConfig(settings.to<JsonObject>());
 
     {
-        String httpMessage((char *)0);
+        String httpMessage((char*)0);
         httpMessage.reserve(HTTP_PAGE_SIZE);
         httpMessage += F("<h1>");
-        httpMessage += httpGetNodename();
+        httpMessage += haspDevice.get_hostname();
         httpMessage += F("</h1><hr>");
 
         httpMessage += F("<form method='POST' action='/config'>");
@@ -1634,7 +1634,7 @@ void webHandleDebugConfig()
         // D_HTTP_CONFIGURATION
         //                     "</button></form></p>");
 
-        webSendPage(httpGetNodename(), httpMessage.length(), false);
+        webSendPage(haspDevice.get_hostname(), httpMessage.length(), false);
         webServer.sendContent(httpMessage);
     }
     // httpMessage.clear();
@@ -1650,10 +1650,10 @@ void webHandleHaspConfig()
     haspGetConfig(settings.to<JsonObject>());
 
     {
-        String httpMessage((char *)0);
+        String httpMessage((char*)0);
         httpMessage.reserve(HTTP_PAGE_SIZE);
         httpMessage += F("<h1>");
-        httpMessage += httpGetNodename();
+        httpMessage += haspDevice.get_hostname();
         httpMessage += F("</h1><hr>");
 
         httpMessage += F("<p><form action='/edit' method='post' enctype='multipart/form-data'><input type='file' "
@@ -1737,7 +1737,7 @@ void webHandleHaspConfig()
         //     type='submit'>"D_HTTP_CONFIGURATION"</button></form></p>");
         httpMessage += FPSTR(MAIN_MENU_BUTTON);
 
-        webSendPage(httpGetNodename(), httpMessage.length(), false);
+        webSendPage(haspDevice.get_hostname(), httpMessage.length(), false);
         webServer.sendContent(httpMessage);
     }
     // httpMessage.clear();
@@ -1759,7 +1759,7 @@ void httpHandleNotFound()
   // LOG_TRACE(TAG_HTTP,F("Sending 404 to client connected from: %s"), String(webServer.client().remoteIP()).c_str());
 #endif
 
-    String httpMessage((char *)0);
+    String httpMessage((char*)0);
     httpMessage.reserve(HTTP_PAGE_SIZE);
 
     httpMessage += F("File Not Found\n\nURI: ");
@@ -1781,10 +1781,10 @@ void webHandleFirmware()
     if(!httpIsAuthenticated(F("firmware"))) return;
 
     {
-        String httpMessage((char *)0);
+        String httpMessage((char*)0);
         httpMessage.reserve(HTTP_PAGE_SIZE);
         httpMessage += F("<h1>");
-        httpMessage += httpGetNodename();
+        httpMessage += haspDevice.get_hostname();
         httpMessage += F("</h1><hr>");
 
         httpMessage += F("<p><form action='/update' method='post' enctype='multipart/form-data'><input type='file' "
@@ -1797,7 +1797,7 @@ void webHandleFirmware()
 
         httpMessage += FPSTR(MAIN_MENU_BUTTON);
 
-        webSendPage(httpGetNodename(), httpMessage.length(), false);
+        webSendPage(haspDevice.get_hostname(), httpMessage.length(), false);
         webServer.sendContent(httpMessage);
     }
     // httpMessage.clear();
@@ -1810,16 +1810,16 @@ void httpHandleEspFirmware()
     if(!httpIsAuthenticated(F("espfirmware"))) return;
 
     {
-        String httpMessage((char *)0);
+        String httpMessage((char*)0);
         httpMessage.reserve(HTTP_PAGE_SIZE);
         httpMessage += F("<h1>");
-        httpMessage += httpGetNodename();
+        httpMessage += haspDevice.get_hostname();
         httpMessage += F("</h1><hr>");
 
         httpMessage += F("<p><b>ESP update</b></p>Updating ESP firmware from: ");
         httpMessage += webServer.arg("espFirmware");
 
-        webSendPage(httpGetNodename(), httpMessage.length(), true);
+        webSendPage(haspDevice.get_hostname(), httpMessage.length(), true);
         webServer.sendContent(httpMessage);
         // httpMessage.clear();
     }
@@ -1846,10 +1846,10 @@ void httpHandleResetConfig()
     bool resetConfirmed = webServer.arg(F("confirm")) == F("yes");
 
     {
-        String httpMessage((char *)0);
+        String httpMessage((char*)0);
         httpMessage.reserve(HTTP_PAGE_SIZE);
         httpMessage += F("<h1>");
-        httpMessage += httpGetNodename();
+        httpMessage += haspDevice.get_hostname();
         httpMessage += F("</h1><hr>");
 
         if(resetConfirmed) { // User has confirmed, so reset everything
@@ -1877,7 +1877,7 @@ void httpHandleResetConfig()
             //          "</button></form></p>");
         }
 
-        webSendPage(httpGetNodename(), httpMessage.length(), resetConfirmed);
+        webSendPage(haspDevice.get_hostname(), httpMessage.length(), resetConfirmed);
         webServer.sendContent(httpMessage);
     }
     // httpMessage.clear();
@@ -1928,8 +1928,8 @@ void httpSetup()
     // httpSetConfig(settings);
 
     // ask server to track these headers
-    const char * headerkeys[] = {"Content-Length"}; // "Authentication"
-    size_t headerkeyssize     = sizeof(headerkeys) / sizeof(char *);
+    const char* headerkeys[] = {"Content-Length"}; // "Authentication"
+    size_t headerkeyssize    = sizeof(headerkeys) / sizeof(char*);
     webServer.collectHeaders(headerkeys, headerkeyssize);
 
     // Shared pages
@@ -2050,7 +2050,7 @@ void httpEvery5Seconds()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 #if HASP_USE_CONFIG > 0
-bool httpGetConfig(const JsonObject & settings)
+bool httpGetConfig(const JsonObject& settings)
 {
     bool changed = false;
 
@@ -2077,7 +2077,7 @@ bool httpGetConfig(const JsonObject & settings)
  *
  * @param[in] settings    JsonObject with the config settings.
  **/
-bool httpSetConfig(const JsonObject & settings)
+bool httpSetConfig(const JsonObject& settings)
 {
     configOutput(settings, TAG_HTTP);
     bool changed = false;
@@ -2098,7 +2098,7 @@ bool httpSetConfig(const JsonObject & settings)
 }
 #endif // HASP_USE_CONFIG
 
-size_t httpClientWrite(const uint8_t * buf, size_t size)
+size_t httpClientWrite(const uint8_t* buf, size_t size)
 {
     /***** Sending 16Kb at once freezes on STM32 EthernetClient *****/
     size_t bytes_sent = 0;
