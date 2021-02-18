@@ -4,82 +4,82 @@
 #include "hasp_conf.h"
 
 #if HASP_USE_MQTT > 0
-    #ifdef USE_PUBSUBCLIENT
+#ifdef USE_PUBSUBCLIENT
 
-        #include "PubSubClient.h"
+#include "PubSubClient.h"
 
-        #include "hasp/hasp.h"
-        #include "hasp_mqtt.h"
-        #include "hasp_mqtt_ha.h"
+#include "hasp/hasp.h"
+#include "hasp_mqtt.h"
+#include "hasp_mqtt_ha.h"
 
-        #if defined(ARDUINO_ARCH_ESP32)
-            #include <WiFi.h>
+#if defined(ARDUINO_ARCH_ESP32)
+#include <WiFi.h>
 WiFiClient mqttNetworkClient;
-        #elif defined(ARDUINO_ARCH_ESP8266)
-            #include <ESP8266WiFi.h>
-            #include <EEPROM.h>
-            #include <Esp.h>
+#elif defined(ARDUINO_ARCH_ESP8266)
+#include <ESP8266WiFi.h>
+#include <EEPROM.h>
+#include <Esp.h>
 WiFiClient mqttNetworkClient;
-        #else
-            #if defined(STM32F4xx) && HASP_USE_WIFI > 0
+#else
+#if defined(STM32F4xx) && HASP_USE_WIFI > 0
 // #include <WiFi.h>
 WiFiSpiClient mqttNetworkClient;
-            #else
-                #if defined(W5500_MOSI) && defined(W5500_MISO) && defined(W5500_SCLK)
-                    #define W5500_LAN
-                    #include <Ethernet.h>
-                #else
-                    #include <STM32Ethernet.h>
-                #endif
+#else
+#if defined(W5500_MOSI) && defined(W5500_MISO) && defined(W5500_SCLK)
+#define W5500_LAN
+#include <Ethernet.h>
+#else
+#include <STM32Ethernet.h>
+#endif
 
 EthernetClient mqttNetworkClient;
-            #endif
-        #endif
+#endif
+#endif
 
-        #include "hal/hasp_hal.h"
-        #include "hasp_debug.h"
-        #include "hasp_config.h"
+#include "hal/hasp_hal.h"
+#include "hasp_debug.h"
+#include "hasp_config.h"
 
-        #include "../hasp/hasp_dispatch.h"
+#include "../hasp/hasp_dispatch.h"
 
-        #ifdef USE_CONFIG_OVERRIDE
-            #include "user_config_override.h"
-        #endif
+#ifdef USE_CONFIG_OVERRIDE
+#include "user_config_override.h"
+#endif
 
 char mqttNodeTopic[24];
 char mqttGroupTopic[24];
 bool mqttEnabled        = false;
 bool mqttHAautodiscover = true;
 
-        ////////////////////////////////////////////////////////////////////////////////////////////////////
-        // These defaults may be overwritten with values saved by the web interface
-        #ifndef MQTT_HOST
-            #define MQTT_HOST "";
-        #endif
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// These defaults may be overwritten with values saved by the web interface
+#ifndef MQTT_HOST
+#define MQTT_HOST "";
+#endif
 
-        #ifndef MQTT_PORT
-            #define MQTT_PORT 1883;
-        #endif
+#ifndef MQTT_PORT
+#define MQTT_PORT 1883;
+#endif
 
-        #ifndef MQTT_USER
-            #define MQTT_USER "";
-        #endif
+#ifndef MQTT_USER
+#define MQTT_USER "";
+#endif
 
-        #ifndef MQTT_PASSW
-            #define MQTT_PASSW "";
-        #endif
-        #ifndef MQTT_NODENAME
-            #define MQTT_NODENAME "";
-        #endif
-        #ifndef MQTT_GROUPNAME
-            #define MQTT_GROUPNAME "";
-        #endif
+#ifndef MQTT_PASSW
+#define MQTT_PASSW "";
+#endif
+#ifndef MQTT_NODENAME
+#define MQTT_NODENAME "";
+#endif
+#ifndef MQTT_GROUPNAME
+#define MQTT_GROUPNAME "";
+#endif
 
-        #ifndef MQTT_PREFIX
-            #define MQTT_PREFIX "hasp"
-        #endif
+#ifndef MQTT_PREFIX
+#define MQTT_PREFIX "hasp"
+#endif
 
-        #define LWT_TOPIC "LWT"
+#define LWT_TOPIC "LWT"
 
 char mqttServer[16]    = MQTT_HOST;
 char mqttUser[23]      = MQTT_USER;
@@ -89,11 +89,11 @@ char mqttGroupName[16] = MQTT_GROUPNAME;
 uint16_t mqttPort      = MQTT_PORT;
 PubSubClient mqttClient(mqttNetworkClient);
 
-static bool mqttPublish(const char * topic, const char * payload, size_t len, bool retain = false)
+static bool mqttPublish(const char* topic, const char* payload, size_t len, bool retain = false)
 {
     if(mqttIsConnected()) {
         if(mqttClient.beginPublish(topic, len, retain)) {
-            mqttClient.write((uint8_t *)payload, len);
+            mqttClient.write((uint8_t*)payload, len);
             mqttClient.endPublish();
 
             LOG_TRACE(TAG_MQTT_PUB, F("%s => %s"), topic, payload);
@@ -107,7 +107,7 @@ static bool mqttPublish(const char * topic, const char * payload, size_t len, bo
     return false;
 }
 
-static bool mqttPublish(const char * topic, const char * payload, bool retain = false)
+static bool mqttPublish(const char* topic, const char* payload, bool retain = false)
 {
     return mqttPublish(topic, payload, strlen(payload), retain);
 }
@@ -132,14 +132,14 @@ void mqtt_send_lwt(bool online)
     bool res   = mqttPublish(tmp_topic, tmp_payload, len, true);
 }
 
-void mqtt_send_object_state(uint8_t pageid, uint8_t btnid, char * payload)
+void mqtt_send_object_state(uint8_t pageid, uint8_t btnid, char* payload)
 {
     char tmp_topic[strlen(mqttNodeTopic) + 16];
     snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%sstate/" HASP_OBJECT_NOTATION), mqttNodeTopic, pageid, btnid);
     mqttPublish(tmp_topic, payload);
 }
 
-void mqtt_send_state(const __FlashStringHelper * subtopic, const char * payload)
+void mqtt_send_state(const __FlashStringHelper* subtopic, const char* payload)
 {
     char tmp_topic[strlen(mqttNodeTopic) + 20];
     snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%sstate/%s"), mqttNodeTopic, subtopic);
@@ -148,7 +148,7 @@ void mqtt_send_state(const __FlashStringHelper * subtopic, const char * payload)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Receive incoming messages
-static void mqtt_message_cb(char * topic, byte * payload, unsigned int length)
+static void mqtt_message_cb(char* topic, byte* payload, unsigned int length)
 { // Handle incoming commands from MQTT
     if(length + 1 >= mqttClient.getBufferSize()) {
         LOG_ERROR(TAG_MQTT_RCV, F("Payload too long (%d bytes)"), length);
@@ -157,7 +157,7 @@ static void mqtt_message_cb(char * topic, byte * payload, unsigned int length)
         payload[length] = '\0';
     }
 
-    LOG_TRACE(TAG_MQTT_RCV, F("%s = %s"), topic, (char *)payload);
+    LOG_TRACE(TAG_MQTT_RCV, F("%s = %s"), topic, (char*)payload);
 
     if(topic == strstr(topic, mqttNodeTopic)) { // startsWith mqttNodeTopic
 
@@ -168,11 +168,11 @@ static void mqtt_message_cb(char * topic, byte * payload, unsigned int length)
 
         // Group topic
         topic += strlen(mqttGroupTopic); // shorten topic
-        dispatch_topic_payload(topic, (const char *)payload);
+        dispatch_topic_payload(topic, (const char*)payload);
         return;
 
     } else if(topic == strstr_P(topic, PSTR("homeassistant/status"))) { // HA discovery topic
-        if(mqttHAautodiscover && !strcasecmp_P((char *)payload, PSTR("online"))) {
+        if(mqttHAautodiscover && !strcasecmp_P((char*)payload, PSTR("online"))) {
             dispatch_current_state();
             mqtt_ha_register_auto_discovery();
         }
@@ -186,7 +186,7 @@ static void mqtt_message_cb(char * topic, byte * payload, unsigned int length)
 
     // catch a dangling LWT from a previous connection if it appears
     if(!strcmp_P(topic, PSTR(LWT_TOPIC))) { // endsWith LWT
-        if(!strcasecmp_P((char *)payload, PSTR("offline"))) {
+        if(!strcasecmp_P((char*)payload, PSTR("offline"))) {
             {
                 char msg[8];
                 char tmp_topic[strlen(mqttNodeTopic) + 8];
@@ -201,11 +201,11 @@ static void mqtt_message_cb(char * topic, byte * payload, unsigned int length)
             // LOG_TRACE(TAG_MQTT, F("ignoring LWT = online"));
         }
     } else {
-        dispatch_topic_payload(topic, (const char *)payload);
+        dispatch_topic_payload(topic, (const char*)payload);
     }
 }
 
-static void mqttSubscribeTo(const __FlashStringHelper * format, const char * data)
+static void mqttSubscribeTo(const __FlashStringHelper* format, const char* data)
 {
     char tmp_topic[strlen_P((PGM_P)format) + 2 + strlen(data)];
     snprintf_P(tmp_topic, sizeof(tmp_topic), (PGM_P)format, data);
@@ -290,7 +290,7 @@ void mqttStart()
     LOG_INFO(TAG_MQTT, F(D_MQTT_CONNECTED), mqttServer, mqttClientId);
 
     // Subscribe to our incoming topics
-    const __FlashStringHelper * F_topic;
+    const __FlashStringHelper* F_topic;
     F_topic = F("%scommand/#");
     mqttSubscribeTo(F_topic, mqttGroupTopic);
     mqttSubscribeTo(F_topic, mqttNodeTopic);
@@ -348,10 +348,10 @@ void mqttEvery5Seconds(bool networkIsConnected)
     }
 }
 
-String mqttGetNodename()
-{
-    return mqttNodeName;
-}
+// String mqttGetNodename()
+// {
+//     return mqttNodeName;
+// }
 
 void mqttStop()
 {
@@ -363,8 +363,8 @@ void mqttStop()
     }
 }
 
-        #if HASP_USE_CONFIG > 0
-bool mqttGetConfig(const JsonObject & settings)
+#if HASP_USE_CONFIG > 0
+bool mqttGetConfig(const JsonObject& settings)
 {
     bool changed = false;
 
@@ -398,7 +398,7 @@ bool mqttGetConfig(const JsonObject & settings)
  *
  * @param[in] settings    JsonObject with the config settings.
  **/
-bool mqttSetConfig(const JsonObject & settings)
+bool mqttSetConfig(const JsonObject& settings)
 {
     configOutput(settings, TAG_MQTT);
     bool changed = false;
@@ -448,8 +448,8 @@ bool mqttSetConfig(const JsonObject & settings)
 
     return changed;
 }
-        #endif // HASP_USE_CONFIG
+#endif // HASP_USE_CONFIG
 
-    #endif // PUBSUBCLIENT
+#endif // PUBSUBCLIENT
 
 #endif // HASP_USE_MQTT

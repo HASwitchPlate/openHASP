@@ -141,12 +141,8 @@ void otaSetup(void)
             // delay(5000);
         });
 
-#if HASP_USE_MQTT > 0
-        ArduinoOTA.setHostname(String(mqttGetNodename()).c_str());
-#else
-        ArduinoOTA.setHostname(String(mqttGetNodename()).c_str());
-#endif
-        // ArduinoOTA.setPassword(configPassword);
+        ArduinoOTA.setHostname(haspDevice.get_hostname());
+        // ArduinoOTA.setPassword(configPassword); // See OTA_PASSWORD
         ArduinoOTA.setPort(otaPort);
 
 #if ESP32
@@ -160,7 +156,7 @@ void otaSetup(void)
         ArduinoOTA.setRebootOnSuccess(false); // We do that ourselves
 
 #ifdef OTA_PASSWORD
-        ArduinoOTA.setPassword(OTA_PASSWORD);
+        ArduinoOTA.setPassword(OTA_PASSWORD); // TODO
 #endif
 
         ArduinoOTA.begin();
@@ -180,7 +176,7 @@ void otaEverySecond(void)
     if(otaPrecentageComplete >= 0) otaProgress();
 }
 
-void otaHttpUpdate(const char * espOtaUrl)
+void otaHttpUpdate(const char* espOtaUrl)
 { // Update ESP firmware from HTTP
 #if HASP_USE_MDNS > 0
     mdnsStop(); // Keep mDNS responder from breaking things

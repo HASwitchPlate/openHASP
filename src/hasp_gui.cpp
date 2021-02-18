@@ -12,6 +12,7 @@
 #include "lv_fs_if.h"
 
 // Device Drivers
+#include "dev/device.h"
 #include "drv/hasp_drv_display.h"
 #include "drv/hasp_drv_touch.h"
 
@@ -111,17 +112,17 @@ void guiSetup(void)
     static lv_color_t *guiVdbBuffer1, *guiVdbBuffer2 = NULL;
     // DMA: len must be less than 32767
     const size_t guiVDBsize = 15 * 1024u; // 30 KBytes
-    guiVdbBuffer1           = (lv_color_t *)heap_caps_calloc(guiVDBsize, sizeof(lv_color_t), MALLOC_CAP_DMA);
+    guiVdbBuffer1           = (lv_color_t*)heap_caps_calloc(guiVDBsize, sizeof(lv_color_t), MALLOC_CAP_DMA);
     // guiVdbBuffer2 = (lv_color_t *)heap_caps_malloc(sizeof(lv_color_t) * guiVDBsize,   MALLOC_CAP_DMA);
     // lv_disp_buf_init(&disp_buf, guiVdbBuffer1, guiVdbBuffer2, guiVDBsize);
 #else
-    static lv_color_t * guiVdbBuffer1;
+    static lv_color_t* guiVdbBuffer1;
     const size_t guiVDBsize = 16 * 1024u; // 32 KBytes
 
     if(0 && psramFound()) {
-        guiVdbBuffer1 = (lv_color_t *)ps_calloc(guiVDBsize, sizeof(lv_color_t)); // too slow for VDB
+        guiVdbBuffer1 = (lv_color_t*)ps_calloc(guiVDBsize, sizeof(lv_color_t)); // too slow for VDB
     } else {
-        guiVdbBuffer1 = (lv_color_t *)calloc(guiVDBsize, sizeof(lv_color_t));
+        guiVdbBuffer1 = (lv_color_t*)calloc(guiVDBsize, sizeof(lv_color_t));
     }
 
 #endif
@@ -135,9 +136,9 @@ void guiSetup(void)
     // size_t guiVDBsize = sizeof(guiVdbBuffer1) / sizeof(guiVdbBuffer1[0]);
     // lv_disp_buf_init(&disp_buf, guiVdbBuffer1, NULL, guiVDBsize);
 
-    static lv_color_t * guiVdbBuffer1;
+    static lv_color_t* guiVdbBuffer1;
     const size_t guiVDBsize = 2 * 512u; // 4 KBytes * 2
-    guiVdbBuffer1           = (lv_color_t *)malloc(sizeof(lv_color_t) * guiVDBsize);
+    guiVdbBuffer1           = (lv_color_t*)malloc(sizeof(lv_color_t) * guiVDBsize);
 
 #elif defined(WINDOWS)
     const size_t guiVDBsize = LV_HOR_RES_MAX * 10;
@@ -170,9 +171,9 @@ void guiSetup(void)
     drv_display_init(&disp_drv, gui_settings.rotation,
                      gui_settings.invert_display); // Set display driver callback & rotation
 #endif
-    disp_drv.hor_res    = TFT_WIDTH;
-    disp_drv.ver_res    = TFT_HEIGHT;
-    lv_disp_t * display = lv_disp_drv_register(&disp_drv);
+    disp_drv.hor_res   = TFT_WIDTH;
+    disp_drv.ver_res   = TFT_HEIGHT;
+    lv_disp_t* display = lv_disp_drv_register(&disp_drv);
 
     switch(gui_settings.rotation) {
         case 1:
@@ -203,16 +204,17 @@ void guiSetup(void)
 #endif
 
     /* Setup Backlight Control Pin */
-    if(gui_settings.backlight_pin >= 0) {
-        LOG_VERBOSE(TAG_GUI, F("Backlight  : Pin %d"), gui_settings.backlight_pin);
+    haspDevice.set_backlight_pin(gui_settings.backlight_pin);
+    //     if(gui_settings.backlight_pin >= 0) {
+    //         LOG_VERBOSE(TAG_GUI, F("Backlight  : Pin %d"), gui_settings.backlight_pin);
 
-#if defined(ARDUINO_ARCH_ESP32)
-        ledcSetup(BACKLIGHT_CHANNEL, 20000, 12);
-        ledcAttachPin(gui_settings.backlight_pin, BACKLIGHT_CHANNEL);
-#elif defined(ARDUINO_ARCH_ESP8266)
-        pinMode(gui_settings.backlight_pin, OUTPUT);
-#endif
-    }
+    // #if defined(ARDUINO_ARCH_ESP32)
+    //         ledcSetup(BACKLIGHT_CHANNEL, 20000, 12);
+    //         ledcAttachPin(gui_settings.backlight_pin, BACKLIGHT_CHANNEL);
+    // #elif defined(ARDUINO_ARCH_ESP8266)
+    //         pinMode(gui_settings.backlight_pin, OUTPUT);
+    // #endif
+    //     }
     LOG_VERBOSE(TAG_GUI, F("Rotation   : %d"), gui_settings.rotation);
 
     LOG_VERBOSE(TAG_LVGL, F("Version    : %u.%u.%u %s"), LVGL_VERSION_MAJOR, LVGL_VERSION_MINOR, LVGL_VERSION_PATCH,
@@ -232,7 +234,7 @@ void guiSetup(void)
 #else
     indev_drv.read_cb = drv_touch_read;
 #endif
-    lv_indev_t * mouse_indev = lv_indev_drv_register(&indev_drv);
+    lv_indev_t* mouse_indev  = lv_indev_drv_register(&indev_drv);
     mouse_indev->driver.type = LV_INDEV_TYPE_POINTER;
 
     /*Set a cursor for the mouse*/
@@ -242,8 +244,8 @@ void guiSetup(void)
         // lv_indev_set_cursor(mouse_indev, label); // connect the object to the driver
 
         LOG_TRACE(TAG_GUI, F("Initialize Cursor"));
-        lv_obj_t * cursor;
-        lv_obj_t * mouse_layer = lv_disp_get_layer_sys(NULL); // default display
+        lv_obj_t* cursor;
+        lv_obj_t* mouse_layer = lv_disp_get_layer_sys(NULL); // default display
 
 #if defined(ARDUINO_ARCH_ESP32)
         LV_IMG_DECLARE(mouse_cursor_icon);          /*Declare the image file.*/
@@ -265,7 +267,7 @@ void guiSetup(void)
 
     /* Initialize Global progress bar*/
     lv_obj_user_data_t udata = (lv_obj_user_data_t){10, 0, 10};
-    lv_obj_t * bar           = lv_bar_create(lv_layer_sys(), NULL);
+    lv_obj_t* bar            = lv_bar_create(lv_layer_sys(), NULL);
     lv_obj_set_user_data(bar, udata);
     lv_obj_set_hidden(bar, true);
     lv_bar_set_range(bar, 0, 100);
@@ -372,7 +374,7 @@ int8_t guiGetDim()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 #if HASP_USE_CONFIG > 0
-bool guiGetConfig(const JsonObject & settings)
+bool guiGetConfig(const JsonObject& settings)
 {
     bool changed = false;
     uint16_t guiSleepTime1;
@@ -443,7 +445,7 @@ bool guiGetConfig(const JsonObject & settings)
  *
  * @param[in] settings    JsonObject with the config settings.
  **/
-bool guiSetConfig(const JsonObject & settings)
+bool guiSetConfig(const JsonObject& settings)
 {
     configOutput(settings, TAG_GUI);
     bool changed = false;
@@ -507,7 +509,7 @@ bool guiSetConfig(const JsonObject & settings)
 /* **************************** SCREENSHOTS ************************************** */
 #if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0 || HASP_USE_HTTP > 0
 
-static void guiSetBmpHeader(uint8_t * buffer_p, int32_t data)
+static void guiSetBmpHeader(uint8_t* buffer_p, int32_t data)
 {
     *buffer_p++ = data & 0xFF;
     *buffer_p++ = (data >> 8) & 0xFF;
@@ -522,13 +524,13 @@ static void guiSetBmpHeader(uint8_t * buffer_p, int32_t data)
  * @note: send header before refreshing the whole screen
  *
  **/
-static void gui_get_bitmap_header(uint8_t * buffer, size_t bufsize)
+static void gui_get_bitmap_header(uint8_t* buffer, size_t bufsize)
 {
     memset(buffer, 0, bufsize);
 
-    lv_disp_t * disp = lv_disp_get_default();
-    buffer[0]        = 0x42; // B
-    buffer[1]        = 0x4D; // M
+    lv_disp_t* disp = lv_disp_get_default();
+    buffer[0]       = 0x42; // B
+    buffer[1]       = 0x4D; // M
 
     buffer[10 + 0] = 122;      // full header size
     buffer[14 + 0] = 122 - 14; // dib header size
@@ -538,7 +540,7 @@ static void gui_get_bitmap_header(uint8_t * buffer, size_t bufsize)
 
     // The refresh draws the active screen only, so we need the dimensions of the active screen
     // This could in be diferent from the display driver width/height if the screen has been resized
-    lv_obj_t * scr = lv_disp_get_scr_act(NULL);
+    lv_obj_t* scr = lv_disp_get_scr_act(NULL);
 
     // file size
     guiSetBmpHeader(&buffer[2], 122 + disp->driver.hor_res * disp->driver.ver_res * buffer[28] / 8);
@@ -579,11 +581,11 @@ void gui_flush_not_complete()
 
 #if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
 /* Flush VDB bytes to a file */
-static void gui_screenshot_to_file(lv_disp_drv_t * disp, const lv_area_t * area, lv_color_t * color_p)
+static void gui_screenshot_to_file(lv_disp_drv_t* disp, const lv_area_t* area, lv_color_t* color_p)
 {
     size_t len = (area->x2 - area->x1 + 1) * (area->y2 - area->y1 + 1); /* Number of pixels */
     len *= sizeof(lv_color_t);                                          /* Number of bytes */
-    size_t res = pFileOut.write((uint8_t *)color_p, len);
+    size_t res = pFileOut.write((uint8_t*)color_p, len);
     if(res != len) gui_flush_not_complete();
     drv_display_flush_cb(disp, area, color_p); // indirect callback to flush screenshot data to the screen
 }
@@ -597,7 +599,7 @@ static void gui_screenshot_to_file(lv_disp_drv_t * disp, const lv_area_t * area,
  * @param[in] pFileName   Output binary file name.
  *
  **/
-void guiTakeScreenshot(const char * pFileName)
+void guiTakeScreenshot(const char* pFileName)
 {
     uint8_t buffer[128];
     gui_get_bitmap_header(buffer, sizeof(buffer));
@@ -610,8 +612,8 @@ void guiTakeScreenshot(const char * pFileName)
             LOG_VERBOSE(TAG_GUI, F("Bitmap header written"));
 
             /* Refresh screen to screenshot callback */
-            lv_disp_t * disp = lv_disp_get_default();
-            void (*flush_cb)(struct _disp_drv_t * disp_drv, const lv_area_t * area, lv_color_t * color_p);
+            lv_disp_t* disp = lv_disp_get_default();
+            void (*flush_cb)(struct _disp_drv_t * disp_drv, const lv_area_t* area, lv_color_t* color_p);
             flush_cb              = disp->driver.flush_cb; /* store callback */
             disp->driver.flush_cb = gui_screenshot_to_file;
 
@@ -634,11 +636,11 @@ void guiTakeScreenshot(const char * pFileName)
 
 #if HASP_USE_HTTP > 0
 /* Flush VDB bytes to a webclient */
-static void gui_screenshot_to_http(lv_disp_drv_t * disp, const lv_area_t * area, lv_color_t * color_p)
+static void gui_screenshot_to_http(lv_disp_drv_t* disp, const lv_area_t* area, lv_color_t* color_p)
 {
     size_t len = (area->x2 - area->x1 + 1) * (area->y2 - area->y1 + 1); /* Number of pixels */
     len *= sizeof(lv_color_t);                                          /* Number of bytes */
-    size_t res = httpClientWrite((uint8_t *)color_p, len);
+    size_t res = httpClientWrite((uint8_t*)color_p, len);
     if(res != len) gui_flush_not_complete();
     drv_display_flush_cb(disp, area, color_p);
 }
@@ -659,8 +661,8 @@ void guiTakeScreenshot()
         LOG_VERBOSE(TAG_GUI, F("Bitmap header sent"));
 
         /* Refresh screen to screenshot callback */
-        lv_disp_t * disp = lv_disp_get_default();
-        void (*flush_cb)(struct _disp_drv_t * disp_drv, const lv_area_t * area, lv_color_t * color_p);
+        lv_disp_t* disp = lv_disp_get_default();
+        void (*flush_cb)(struct _disp_drv_t * disp_drv, const lv_area_t* area, lv_color_t* color_p);
         flush_cb              = disp->driver.flush_cb; /* store callback */
         disp->driver.flush_cb = gui_screenshot_to_http;
         lv_obj_invalidate(lv_scr_act());

@@ -4,16 +4,16 @@
 #include "hasp_conf.h"
 #if HASP_USE_MDNS > 0
 
-    #if defined(ARDUINO_ARCH_ESP32)
-        #include <ESPmDNS.h>
-    #elif defined(ARDUINO_ARCH_ESP8266)
-        #include <ESP8266mDNS.h>
-    // MDNSResponder::hMDNSService hMDNSService;
-    #endif
+#if defined(ARDUINO_ARCH_ESP32)
+#include <ESPmDNS.h>
+#elif defined(ARDUINO_ARCH_ESP8266)
+#include <ESP8266mDNS.h>
+// MDNSResponder::hMDNSService hMDNSService;
+#endif
 
-    #include "hasp/hasp.h"
-    #include "hasp_config.h"
-    #include "hasp_debug.h"
+#include "hasp/hasp.h"
+#include "hasp_config.h"
+#include "hasp_debug.h"
 
 // uint8_t mdnsEnabled = true;
 hasp_mdns_config_t mdns_config;
@@ -33,12 +33,6 @@ void mdnsStart()
 
     LOG_TRACE(TAG_MDNS, F(D_SERVICE_STARTING));
 
-    #if HASP_USE_MQTT > 0
-    String hasp2Node = mqttGetNodename();
-    #else
-    String hasp2Node = "unknown";
-    #endif
-
     // Setup mDNS service discovery if enabled
 
     /* uint8_t attempt = 0;
@@ -55,7 +49,7 @@ void mdnsStart()
         LOG_VERBOSE(TAG_MDNS, F("Trying hostname %s"), hasp2Node.c_str());
     };*/
 
-    if(MDNS.begin(hasp2Node.c_str())) {
+    if(MDNS.begin(haspDevice.get_hostname())) {
         char value[32];
         char service[12];
         char key[12];
@@ -86,23 +80,23 @@ void mdnsStart()
 
 void mdnsLoop(void)
 {
-    #if defined(ARDUINO_ARCH_ESP8266)
+#if defined(ARDUINO_ARCH_ESP8266)
     if(mdns_config.enable) {
         MDNS.update();
     }
-    #endif
+#endif
 }
 
 void mdnsStop()
 {
     return;
-    #if HASP_USE_MDNS > 0
+#if HASP_USE_MDNS > 0
     MDNS.end();
-    #endif
+#endif
 }
 
-    #if HASP_USE_CONFIG > 0
-bool mdnsGetConfig(const JsonObject & settings)
+#if HASP_USE_CONFIG > 0
+bool mdnsGetConfig(const JsonObject& settings)
 {
     bool changed = false;
 
@@ -118,7 +112,7 @@ bool mdnsGetConfig(const JsonObject & settings)
  * @note: data pixel should be formated to uint32_t RGBA. Imagemagick requirements.
  * @param[in] settings    JsonObject with the config settings.
  **/
-bool mdnsSetConfig(const JsonObject & settings)
+bool mdnsSetConfig(const JsonObject& settings)
 {
     configOutput(settings, TAG_MDNS);
     bool changed = false;
@@ -127,6 +121,6 @@ bool mdnsSetConfig(const JsonObject & settings)
 
     return changed;
 }
-    #endif // HASP_USE_CONFIG
+#endif // HASP_USE_CONFIG
 
 #endif // HASP_USE_MDNS

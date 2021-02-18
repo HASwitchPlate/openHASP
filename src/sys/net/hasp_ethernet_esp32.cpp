@@ -1,7 +1,6 @@
 /* MIT License - Copyright (c) 2020 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
-
 #include "hasp_conf.h"
 #include "hal/hasp_hal.h"
 #include "hasp_debug.h"
@@ -17,7 +16,7 @@ void EthernetEvent(WiFiEvent_t event)
         case SYSTEM_EVENT_ETH_START:
             LOG_TRACE(TAG_ETH, F(D_SERVICE_STARTED));
             // set eth hostname here
-            ETH.setHostname(mqttGetNodename().c_str());
+            ETH.setHostname(haspDevice.get_hostname());
             break;
         case SYSTEM_EVENT_ETH_CONNECTED:
             LOG_TRACE(TAG_ETH, F(D_SERVICE_CONNECTED));
@@ -63,10 +62,10 @@ bool ethernetEvery5Seconds()
     return eth_connected;
 }
 
-void ethernet_get_statusupdate(char * buffer, size_t len)
+void ethernet_get_statusupdate(char* buffer, size_t len)
 {
-    snprintf_P(buffer, len, PSTR("\"eth\":\"%s\",\"link\":\"%d Mbps\",\"ip\":\"%s\","), eth_connected ? F("ON") : F("OFF"), ETH.linkSpeed(),
-               ETH.localIP().toString().c_str());
+    snprintf_P(buffer, len, PSTR("\"eth\":\"%s\",\"link\":\"%d Mbps\",\"ip\":\"%s\","),
+               eth_connected ? F("ON") : F("OFF"), ETH.linkSpeed(), ETH.localIP().toString().c_str());
 }
 
 #endif

@@ -45,7 +45,6 @@ class Esp8266Device : public BaseDevice {
 } // namespace dev
 
 using dev::Esp8266Device;
-
 extern dev::Esp8266Device haspDevice;
 
 #endif // ESP8266

@@ -15,7 +15,8 @@
 #include "hasp_utilities.h"
 
 #if HASP_USE_DEBUG > 0
-    #include "../hasp_debug.h"
+#include "../hasp_debug.h"
+#include "dev/device.h"
 #endif
 
 #define NORMALIZE(a, b, c) map(a, b, c, 0, 0xFFFFU)
@@ -30,12 +31,12 @@ extern "C" {
 
 #if HASP_USE_APP > 0
 
-    /*********************
-     *      DEFINES
-     *********************/
-    #define HASP_SLEEP_OFF 0
-    #define HASP_SLEEP_SHORT 1
-    #define HASP_SLEEP_LONG 2
+/*********************
+ *      DEFINES
+ *********************/
+#define HASP_SLEEP_OFF 0
+#define HASP_SLEEP_SHORT 1
+#define HASP_SLEEP_LONG 2
 
 /**********************
  *      TYPEDEFS
@@ -50,41 +51,40 @@ extern "C" {
  */
 void haspSetup(void);
 void haspLoop(void);
-// void haspEverySecond(void); // See MACROS
+void haspEverySecond(void);
 
 void haspReconnect(void);
 void haspDisconnect(void);
 
-lv_obj_t * get_page_obj(uint8_t pageid);
-bool get_page_id(lv_obj_t * obj, uint8_t * pageid);
+lv_obj_t* get_page_obj(uint8_t pageid);
+bool get_page_id(lv_obj_t* obj, uint8_t* pageid);
 
 void haspSetPage(uint8_t id);
 uint8_t haspGetPage();
 void haspClearPage(uint16_t pageid);
 
-void haspGetVersion(char * version, size_t len);
+void haspGetVersion(char* version, size_t len);
 // void haspBackground(uint16_t pageid, uint16_t imageid);
 
 // void haspNewObject(const JsonObject & config, uint8_t & saved_page_id);
 
 void haspProgressVal(uint8_t val);
 
-    #if HASP_USE_CONFIG > 0
-bool haspGetConfig(const JsonObject & settings);
-bool haspSetConfig(const JsonObject & settings);
-    #endif
+#if HASP_USE_CONFIG > 0
+bool haspGetConfig(const JsonObject& settings);
+bool haspSetConfig(const JsonObject& settings);
+#endif
 
-lv_font_t * hasp_get_font(uint8_t fontid);
+lv_font_t* hasp_get_font(uint8_t fontid);
 
 bool hasp_update_sleep_state();
-void hasp_get_sleep_time(uint16_t & short_time, uint16_t & long_time);
+void hasp_get_sleep_time(uint16_t& short_time, uint16_t& long_time);
 void hasp_set_sleep_time(uint16_t short_time, uint16_t long_time);
 void hasp_enable_wakeup_touch();
 
-    /**********************
-     *      MACROS
-     **********************/
-    #define haspEverySecond hasp_update_sleep_state
+/**********************
+ *      MACROS
+ **********************/
 
 #endif /*HASP_USE_APP*/
 
@@ -92,9 +92,9 @@ void hasp_enable_wakeup_touch();
 } /* extern "C" */
 #endif
 
-void haspProgressMsg(const char * msg);
+void haspProgressMsg(const char* msg);
 #ifdef ARDUINO
-void haspProgressMsg(const __FlashStringHelper * msg);
+void haspProgressMsg(const __FlashStringHelper* msg);
 #endif
 
 #endif /*HASP_H*/

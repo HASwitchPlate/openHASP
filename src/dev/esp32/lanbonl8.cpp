@@ -14,7 +14,7 @@
 #define BACKLIGHT_CHANNEL 0
 
 #define REF_VOLTAGE 1100
-esp_adc_cal_characteristics_t * adc_chars =
+esp_adc_cal_characteristics_t* adc_chars =
     new esp_adc_cal_characteristics_t; // adc_chars = calloc(1, sizeof(esp_adc_cal_characteristics_t));
 
 namespace dev {
@@ -64,4 +64,5 @@ void LanbonL8::init()
 } // namespace dev
 
 dev::LanbonL8 haspDevice;
+
 #endif

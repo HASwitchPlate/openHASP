@@ -36,8 +36,8 @@
 /**********************
  *  STATIC PROTOTYPES
  **********************/
-static void tftShowConfig(TFT_eSPI & tft);
-static inline void tftShowLogo(TFT_eSPI & tft);
+static void tftShowConfig(TFT_eSPI& tft);
+static inline void tftShowLogo(TFT_eSPI& tft);
 
 /**********************
  *  STATIC VARIABLES
@@ -74,7 +74,7 @@ void tft_espi_init(uint8_t rotation, bool invert_display)
     tftShowConfig(tft);
 }
 
-void tft_espi_flush(lv_disp_drv_t * disp, const lv_area_t * area, lv_color_t * color_p)
+void tft_espi_flush(lv_disp_drv_t* disp, const lv_area_t* area, lv_color_t* color_p)
 {
     size_t len = lv_area_get_size(area);
 
@@ -82,9 +82,9 @@ void tft_espi_flush(lv_disp_drv_t * disp, const lv_area_t * area, lv_color_t * c
     tft.startWrite();                                      /* Start new TFT transaction */
     tft.setWindow(area->x1, area->y1, area->x2, area->y2); /* set the working window */
 #ifdef USE_DMA_TO_TFT
-    tft.pushPixelsDMA((uint16_t *)color_p, len); /* Write words at once */
+    tft.pushPixelsDMA((uint16_t*)color_p, len); /* Write words at once */
 #else
-    tft.pushPixels((uint16_t *)color_p, len); /* Write words at once */
+    tft.pushPixels((uint16_t*)color_p, len); /* Write words at once */
 #endif
     tft.endWrite(); /* terminate TFT transaction */
 
@@ -104,7 +104,7 @@ void tft_espi_flush(lv_disp_drv_t * disp, const lv_area_t * area, lv_color_t * c
 
 #if defined(TOUCH_CS)
 
-void tft_espi_calibrate(uint16_t * calData)
+void tft_espi_calibrate(uint16_t* calData)
 {
     tft.fillScreen(TFT_BLACK);
     tft.setCursor(20, 0);
@@ -120,14 +120,14 @@ void tft_espi_calibrate(uint16_t * calData)
     tft.setTouch(calData);
 }
 
-void tft_espi_set_touch(uint16_t * calData)
+void tft_espi_set_touch(uint16_t* calData)
 {
     tft.setTouch(calData);
 }
 
-bool tft_espi_get_touch(int16_t * touchX, int16_t * touchY, uint16_t threshold)
+bool tft_espi_get_touch(int16_t* touchX, int16_t* touchY, uint16_t threshold)
 {
-    return tft.getTouch((uint16_t *)touchX, (uint16_t *)touchY, threshold);
+    return tft.getTouch((uint16_t*)touchX, (uint16_t*)touchY, threshold);
 }
 #endif
 
@@ -149,7 +149,7 @@ static void tftOffsetInfo(uint8_t pin, uint8_t x_offset, uint8_t y_offset)
     }
 }
 
-static void tftPinInfo(const __FlashStringHelper * pinfunction, int8_t pin)
+static void tftPinInfo(const __FlashStringHelper* pinfunction, int8_t pin)
 {
     if(pin != -1) {
         char buffer[64];
@@ -158,7 +158,7 @@ static void tftPinInfo(const __FlashStringHelper * pinfunction, int8_t pin)
     }
 }
 
-static void tftShowConfig(TFT_eSPI & tft)
+static void tftShowConfig(TFT_eSPI& tft)
 {
     setup_t tftSetup;
     tft.getSetup(tftSetup);
@@ -246,7 +246,7 @@ static void tftShowConfig(TFT_eSPI & tft)
     }
 }
 
-static inline void tftShowLogo(TFT_eSPI & tft)
+static inline void tftShowLogo(TFT_eSPI& tft)
 {
     tft.fillScreen(TFT_DARKCYAN);
     int x = (tft.width() - logoWidth) / 2;

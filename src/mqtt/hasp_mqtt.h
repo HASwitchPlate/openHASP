@@ -9,7 +9,7 @@
 #include "hasp_conf.h"
 
 #ifdef WINDOWS
-    #define __FlashStringHelper char
+#define __FlashStringHelper char
 #endif
 
 void mqttSetup();
@@ -18,18 +18,18 @@ void mqttEvery5Seconds(bool wifiIsConnected);
 void mqttStart();
 void mqttStop();
 
-void mqtt_send_object_state(uint8_t pageid, uint8_t btnid, char * payload);
-void mqtt_send_state(const __FlashStringHelper * subtopic, const char * payload);
+void mqtt_send_object_state(uint8_t pageid, uint8_t btnid, char* payload);
+void mqtt_send_state(const __FlashStringHelper* subtopic, const char* payload);
 
 bool mqttIsConnected();
 
 #if HASP_USE_CONFIG > 0
-bool mqttGetConfig(const JsonObject & settings);
-bool mqttSetConfig(const JsonObject & settings);
+bool mqttGetConfig(const JsonObject& settings);
+bool mqttSetConfig(const JsonObject& settings);
 #endif
 
-#ifndef WINDOWS
-String mqttGetNodename(void);
-#endif
+// #ifndef WINDOWS
+// String mqttGetNodename(void);
+// #endif
 
 #endif

@@ -17,6 +17,7 @@ class LanbonL8 : public Esp32Device {
 
 } // namespace dev
 
+using dev::LanbonL8;
 extern dev::LanbonL8 haspDevice;
 
 #endif

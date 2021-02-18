@@ -4,13 +4,16 @@
 #ifndef HASP_UTILITIES_H
 #define HASP_UTILITIES_H
 
+#include <string>
+
 class Utilities {
 
   public:
-    static uint16_t get_sdbm(const char * str);
-    static bool is_true(const char * s);
-    static bool is_only_digits(const char * s);
-    static int format_bytes(size_t filesize, char * buf, size_t len);
+    static uint16_t get_sdbm(const char* str);
+    static bool is_true(const char* s);
+    static bool is_only_digits(const char* s);
+    static int format_bytes(size_t filesize, char* buf, size_t len);
+    static std::string tft_driver_name();
 };
 
 #ifndef ARDUINO

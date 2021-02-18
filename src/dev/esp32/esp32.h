@@ -15,25 +15,24 @@ class Esp32Device : public BaseDevice {
   public:
     void reboot() override;
 
+    const char* get_hostname();
+    const char* get_core_version();
+    const char* get_display_driver();
+
     void set_backlight_pin(uint8_t pin) override;
-
     void set_backlight_level(uint8_t val) override;
-
     uint8_t get_backlight_level() override;
-
     void set_backlight_power(bool power) override;
-
     bool get_backlight_power() override;
 
     size_t get_free_max_block() override;
-
     size_t get_free_heap() override;
-
     uint8_t get_heap_fragmentation() override;
-
     uint16_t get_cpu_frequency() override;
 
   private:
+    std::string hostname;
+
     uint8_t backlight_pin;
     uint8_t backlight_level;
     uint8_t backlight_power;
@@ -43,8 +42,6 @@ class Esp32Device : public BaseDevice {
 
 } // namespace dev
 
-using dev::Esp32Device;
-
 #if defined(LANBONL8)
 #warning Building for Lanbon L8
 #include "lanbonl8.h"
@@ -52,6 +49,7 @@ using dev::Esp32Device;
 #warning Building for M5Stack core2
 #include "m5stackcore2.h"
 #else
+using dev::Esp32Device;
 extern dev::Esp32Device haspDevice;
 #endif
 #endif // ESP32

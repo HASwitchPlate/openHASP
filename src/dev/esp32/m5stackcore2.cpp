@@ -43,4 +43,5 @@ void M5StackCore2::init(void)
 } // namespace dev
 
 dev::M5StackCore2 haspDevice;
+
 #endif

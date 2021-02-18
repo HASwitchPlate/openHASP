@@ -65,11 +65,12 @@ static void wifiConnected(IPAddress ipaddress)
     LOG_TRACE(TAG_WIFI, F(D_NETWORK_IP_ADDRESS_RECEIVED), ipaddress.toString().c_str());
 #endif
 
-    LOG_VERBOSE(TAG_WIFI, F("Connected = %s"), WiFi.status() == WL_CONNECTED ? PSTR(D_NETWORK_ONLINE) : PSTR(D_NETWORK_OFFLINE));
+    LOG_VERBOSE(TAG_WIFI, F("Connected = %s"),
+                WiFi.status() == WL_CONNECTED ? PSTR(D_NETWORK_ONLINE) : PSTR(D_NETWORK_OFFLINE));
     networkStart();
 }
 
-static void wifiDisconnected(const char * ssid, uint8_t reason)
+static void wifiDisconnected(const char* ssid, uint8_t reason)
 {
     wifiReconnectCounter++;
 
@@ -270,7 +271,7 @@ static void wifiDisconnected(const char * ssid, uint8_t reason)
     LOG_WARNING(TAG_WIFI, F("Disconnected from %s (Reason: %s [%d])"), ssid, buffer, reason);
 }
 
-static void wifiSsidConnected(const char * ssid)
+static void wifiSsidConnected(const char* ssid)
 {
     LOG_TRACE(TAG_WIFI, F("Connected to SSID %s. Requesting IP..."), ssid);
     wifiReconnectCounter = 0;
@@ -281,13 +282,13 @@ static void wifi_callback(system_event_id_t event, system_event_info_t info)
 {
     switch(event) {
         case SYSTEM_EVENT_STA_CONNECTED:
-            wifiSsidConnected((const char *)info.connected.ssid);
+            wifiSsidConnected((const char*)info.connected.ssid);
             break;
         case SYSTEM_EVENT_STA_GOT_IP:
             wifiConnected(IPAddress(info.got_ip.ip_info.ip.addr));
             break;
         case SYSTEM_EVENT_STA_DISCONNECTED:
-            wifiDisconnected((const char *)info.disconnected.ssid, info.disconnected.reason);
+            wifiDisconnected((const char*)info.disconnected.ssid, info.disconnected.reason);
             // NTP.stop(); // NTP sync can be disabled to avoid sync errors
             break;
         default:
@@ -325,7 +326,7 @@ bool wifiShowAP()
         return true;
 }
 
-bool wifiShowAP(char * ssid, char * pass)
+bool wifiShowAP(char* ssid, char* pass)
 {
     if(strlen(wifiSsid) != 0) return false;
 
@@ -353,10 +354,10 @@ static void wifiReconnect(void)
 {
     WiFi.disconnect(true);
 #if defined(ARDUINO_ARCH_ESP8266)
-    WiFi.hostname(mqttGetNodename().c_str());
+    WiFi.hostname(haspDevice.get_hostname());
 #elif defined(ARDUINO_ARCH_ESP32)
     WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE);
-    WiFi.setHostname(mqttGetNodename().c_str());
+    WiFi.setHostname(haspDevice.get_hostname());
 #endif
     WiFi.begin(wifiSsid, wifiPassword);
 }
@@ -451,7 +452,7 @@ bool wifiEvery5Seconds()
     }
 }
 
-bool wifiValidateSsid(const char * ssid, const char * pass)
+bool wifiValidateSsid(const char* ssid, const char* pass)
 {
     uint8_t attempt = 0;
     WiFi.begin(ssid, pass);
@@ -493,7 +494,7 @@ void wifiStop()
     LOG_WARNING(TAG_WIFI, F(D_SERVICE_STOPPED));
 }
 
-void wifi_get_statusupdate(char * buffer, size_t len)
+void wifi_get_statusupdate(char* buffer, size_t len)
 {
 #if defined(STM32F4xx)
     IPAddress ip;
@@ -510,7 +511,7 @@ void wifi_get_statusupdate(char * buffer, size_t len)
 
 /* ============ Confiuration =============================================================== */
 #if HASP_USE_CONFIG > 0
-bool wifiGetConfig(const JsonObject & settings)
+bool wifiGetConfig(const JsonObject& settings)
 {
     bool changed = false;
 
@@ -532,7 +533,7 @@ bool wifiGetConfig(const JsonObject & settings)
  *
  * @param[in] settings    JsonObject with the config settings.
  **/
-bool wifiSetConfig(const JsonObject & settings)
+bool wifiSetConfig(const JsonObject& settings)
 {
     configOutput(settings, TAG_WIFI);
     bool changed = false;

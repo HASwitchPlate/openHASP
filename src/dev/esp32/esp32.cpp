@@ -12,6 +12,7 @@
 
 #include "hasp_conf.h"
 #include "hasp_debug.h"
+#include "hasp/hasp_utilities.h"
 
 #define BACKLIGHT_CHANNEL 0
 
@@ -22,17 +23,31 @@ void Esp32Device::reboot()
     ESP.restart();
 }
 
+const char* Esp32Device::get_hostname()
+{
+    return hostname.c_str();
+}
+const char* Esp32Device::get_core_version()
+{
+    return ESP.getSdkVersion();
+}
+const char* Esp32Device::get_display_driver()
+{
+    return Utilities::tft_driver_name().c_str();
+}
+
 void Esp32Device::set_backlight_pin(uint8_t pin)
 {
     Esp32Device::backlight_pin = pin;
-    /* Setup Backlight Control Pin */
-    if(pin >= 0) {
-        LOG_VERBOSE(TAG_GUI, F("Backlight  : Pin %d"), pin);
 
+    /* Setup Backlight Control Pin */
+    if(pin != (uint8_t)-1) {
+        LOG_VERBOSE(TAG_GUI, F("Backlight  : Pin %d"), pin);
         ledcSetup(BACKLIGHT_CHANNEL, 20000, 12);
         ledcAttachPin(pin, BACKLIGHT_CHANNEL);
-
         update_backlight();
+    } else {
+        LOG_VERBOSE(TAG_GUI, F("Backlight  : Pin not set"));
     }
 }
 
@@ -62,11 +77,10 @@ bool Esp32Device::get_backlight_power()
 
 void Esp32Device::update_backlight()
 {
-    if(backlight_pin == -1) return;
+    if(backlight_pin == (uint8_t)-1) return;
 
-    if(backlight_power) {                                                    // The backlight is ON
-        ledcWrite(BACKLIGHT_CHANNEL, map(backlight_level, 0, 100, 0, 4095)); // ledChannel and value
-    }
+    uint32_t duty = backlight_power ? map(backlight_level, 0, 100, 0, 4095) : 0;
+    ledcWrite(BACKLIGHT_CHANNEL, duty); // ledChannel and value
 }
 
 size_t Esp32Device::get_free_max_block()

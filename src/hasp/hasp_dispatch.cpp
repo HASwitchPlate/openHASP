@@ -46,7 +46,7 @@
 
 extern uint8_t hasp_sleep_state;
 
-dispatch_conf_t dispatch_setings = {.teleperiod = 300};
+dispatch_conf_t dispatch_setings = {.teleperiod = 10};
 
 uint32_t dispatchLastMillis;
 uint8_t nCommands = 0;
@@ -897,18 +897,32 @@ void dispatch_output_statusupdate(const char*, const char*)
     {
         char buffer[128];
 
+        printf("%s %d\n", __FILE__, __LINE__);
+        fflush(stdout);
+
         haspGetVersion(buffer, sizeof(buffer));
         snprintf_P(data, sizeof(data),
                    PSTR("{\"node\":\"%s\",\"status\":\"available\",\"version\":\"%s\",\"uptime\":%lu,"),
-                   mqttGetNodename().c_str(), buffer, long(millis() / 1000));
+                   haspDevice.get_hostname(), buffer, long(millis() / 1000));
+
+        printf("%s %d\n", __FILE__, __LINE__);
+        fflush(stdout);
 
 #if HASP_USE_WIFI > 0
         network_get_statusupdate(buffer, sizeof(buffer));
         strcat(data, buffer);
 #endif
+
+        printf("%s %d\n", __FILE__, __LINE__);
+        fflush(stdout);
+
         snprintf_P(buffer, sizeof(buffer), PSTR("\"heapFree\":%u,\"heapFrag\":%u,\"espCore\":\"%s\","),
-                   haspDevice.get_free_heap(), haspDevice.get_heap_fragmentation(), halGetCoreVersion().c_str());
+                   haspDevice.get_free_heap(), haspDevice.get_heap_fragmentation(), haspDevice.get_core_version());
         strcat(data, buffer);
+
+        printf("%s %d\n", __FILE__, __LINE__);
+        fflush(stdout);
+
         snprintf_P(buffer, sizeof(buffer), PSTR("\"espCanUpdate\":\"false\",\"page\":%u,\"numPages\":%u,"),
                    haspGetPage(), (HASP_NUM_PAGES));
         strcat(data, buffer);
@@ -918,8 +932,11 @@ void dispatch_output_statusupdate(const char*, const char*)
         strcat(data, buffer);
 #endif
 
+        printf("%s %d\n", __FILE__, __LINE__);
+        fflush(stdout);
+
         snprintf_P(buffer, sizeof(buffer), PSTR("\"tftDriver\":\"%s\",\"tftWidth\":%u,\"tftHeight\":%u}"),
-                   halDisplayDriverName().c_str(), (TFT_WIDTH), (TFT_HEIGHT));
+                   haspDevice.get_display_driver(), (TFT_WIDTH), (TFT_HEIGHT));
         strcat(data, buffer);
     }
     mqtt_send_state(F("statusupdate"), data);
@@ -1006,7 +1023,7 @@ void dispatchLoop()
 }
 
 #if 1 || ARDUINO
-void everySecond()
+void dispatchEverySecond()
 {
     if(dispatch_setings.teleperiod > 0 && (millis() - dispatchLastMillis) >= dispatch_setings.teleperiod * 1000) {
         dispatchLastMillis = millis();

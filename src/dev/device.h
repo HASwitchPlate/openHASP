@@ -8,6 +8,11 @@
 #include "Arduino.h"
 #endif
 
+#ifdef WINDOWS
+#include <cstdint>
+#include "Windows.h"
+#endif
+
 namespace dev {
 
 class BaseDevice {
@@ -17,6 +22,19 @@ class BaseDevice {
 
     virtual void reboot()
     {}
+    virtual const char* get_hostname()
+    {
+        return "";
+    }
+    virtual const char* get_core_version()
+    {
+        return "";
+    }
+    virtual const char* get_display_driver()
+    {
+        return "";
+    }
+
     virtual void init()
     {}
     virtual void post_setup()
@@ -60,10 +78,13 @@ class BaseDevice {
 #elif defined(STM32F4)
 #warning Building for STM32F4xx Devices
 #include "stm32f4/stm32f4.h"
+#elif defined(WINDOWS)
+#warning Building for Win32 Devices
+#include "win32/hasp_win32.h"
 #else
 #warning Building for Generic Devices
 using dev::BaseDevice;
-
 extern dev::BaseDevice haspDevice;
 #endif
+
 #endif
