@@ -7,6 +7,9 @@
 
 #include "hasp_conf.h"
 #include "hasp_debug.h"
+#include "hasp/hasp_utilities.h"
+
+#include "display/monitor.h"
 
 namespace dev {
 
@@ -32,7 +35,7 @@ const char* Win32Device::get_display_driver()
 
 void Win32Device::set_backlight_pin(uint8_t pin)
 {
-    Win32Device::_backlight_pin = pin;
+    // Win32Device::_backlight_pin = pin;
 }
 
 void Win32Device::set_backlight_level(uint8_t level)
@@ -60,7 +63,7 @@ bool Win32Device::get_backlight_power()
 
 void Win32Device::update_backlight()
 {
-    if(_backlight_pin == -1) return;
+    monitor_backlight(_backlight_power ? map(_backlight_level, 0, 100, 0, 255) : 0);
 }
 
 size_t Win32Device::get_free_max_block()

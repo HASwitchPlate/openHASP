@@ -45,7 +45,7 @@ void Esp32Device::set_backlight_pin(uint8_t pin)
     Esp32Device::_backlight_pin = pin;
 
     /* Setup Backlight Control Pin */
-    if(pin != (uint8_t)-1) {
+    if(pin < GPIO_NUM_MAX) {
         LOG_VERBOSE(TAG_GUI, F("Backlight  : Pin %d"), pin);
         ledcSetup(BACKLIGHT_CHANNEL, 20000, 12);
         ledcAttachPin(pin, BACKLIGHT_CHANNEL);
@@ -81,10 +81,10 @@ bool Esp32Device::get_backlight_power()
 
 void Esp32Device::update_backlight()
 {
-    if(_backlight_pin == (uint8_t)-1) return;
-
-    uint32_t duty = _backlight_power ? map(_backlight_level, 0, 100, 0, 4095) : 0;
-    ledcWrite(BACKLIGHT_CHANNEL, duty); // ledChannel and value
+    if(pin < GPIO_NUM_MAX) {
+        uint32_t duty = _backlight_power ? map(_backlight_level, 0, 100, 0, 4095) : 0;
+        ledcWrite(BACKLIGHT_CHANNEL, duty); // ledChannel and value
+    }
 }
 
 size_t Esp32Device::get_free_max_block()

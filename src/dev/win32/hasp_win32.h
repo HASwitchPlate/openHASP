@@ -20,8 +20,8 @@ class Win32Device : public BaseDevice {
   public:
     Win32Device()
     {
-        _hostname        = "winplate";
-        _backlight_pin   = -1;
+        _hostname = "winplate";
+        // _backlight_pin   = -1;
         _backlight_power = 1;
         _backlight_level = 100;
     }
