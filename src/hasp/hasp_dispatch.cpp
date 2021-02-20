@@ -897,31 +897,19 @@ void dispatch_output_statusupdate(const char*, const char*)
     {
         char buffer[128];
 
-        printf("%s %d\n", __FILE__, __LINE__);
-        fflush(stdout);
-
         haspGetVersion(buffer, sizeof(buffer));
         snprintf_P(data, sizeof(data),
                    PSTR("{\"node\":\"%s\",\"status\":\"available\",\"version\":\"%s\",\"uptime\":%lu,"),
                    haspDevice.get_hostname(), buffer, long(millis() / 1000));
-
-        printf("%s %d\n", __FILE__, __LINE__);
-        fflush(stdout);
 
 #if HASP_USE_WIFI > 0
         network_get_statusupdate(buffer, sizeof(buffer));
         strcat(data, buffer);
 #endif
 
-        printf("%s %d\n", __FILE__, __LINE__);
-        fflush(stdout);
-
         snprintf_P(buffer, sizeof(buffer), PSTR("\"heapFree\":%u,\"heapFrag\":%u,\"espCore\":\"%s\","),
                    haspDevice.get_free_heap(), haspDevice.get_heap_fragmentation(), haspDevice.get_core_version());
         strcat(data, buffer);
-
-        printf("%s %d\n", __FILE__, __LINE__);
-        fflush(stdout);
 
         snprintf_P(buffer, sizeof(buffer), PSTR("\"espCanUpdate\":\"false\",\"page\":%u,\"numPages\":%u,"),
                    haspGetPage(), (HASP_NUM_PAGES));
@@ -931,9 +919,6 @@ void dispatch_output_statusupdate(const char*, const char*)
         snprintf_P(buffer, sizeof(buffer), PSTR("\"espVcc\":%.2f,"), (float)ESP.getVcc() / 1000);
         strcat(data, buffer);
 #endif
-
-        printf("%s %d\n", __FILE__, __LINE__);
-        fflush(stdout);
 
         snprintf_P(buffer, sizeof(buffer), PSTR("\"tftDriver\":\"%s\",\"tftWidth\":%u,\"tftHeight\":%u}"),
                    haspDevice.get_display_driver(), (TFT_WIDTH), (TFT_HEIGHT));
@@ -1019,7 +1004,7 @@ void dispatchSetup()
 
 void dispatchLoop()
 {
-    // Not used
+    lv_task_handler(); // process animations
 }
 
 #if 1 || ARDUINO

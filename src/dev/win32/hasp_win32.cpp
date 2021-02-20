@@ -40,9 +40,13 @@ void Win32Device::set_backlight_pin(uint8_t pin)
 
 void Win32Device::set_backlight_level(uint8_t level)
 {
-    _backlight_level = level >= 0 ? level : 0;
-    _backlight_level = _backlight_level <= 100 ? _backlight_level : 100;
-    update_backlight();
+    uint8_t new_level = level >= 0 ? level : 0;
+    new_level         = new_level <= 100 ? new_level : 100;
+
+    if(_backlight_level != new_level) {
+        _backlight_level = new_level;
+        update_backlight();
+    }
 }
 
 uint8_t Win32Device::get_backlight_level()

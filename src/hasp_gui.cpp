@@ -205,6 +205,7 @@ void guiSetup(void)
 
     /* Setup Backlight Control Pin */
     haspDevice.set_backlight_pin(gui_settings.backlight_pin);
+
     //     if(gui_settings.backlight_pin >= 0) {
     //         LOG_VERBOSE(TAG_GUI, F("Backlight  : Pin %d"), gui_settings.backlight_pin);
 
@@ -290,7 +291,6 @@ void guiLoop(void)
     //  tick.update();
 #endif
 
-    lv_task_handler(); // process animations
 #if !defined(WINDOWS)
     drv_touch_loop(); // update touch
 #endif
