@@ -1,11 +1,13 @@
 /* MIT License - Copyright (c) 2020 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
+/* Multi threaded asynchronous paho client */
+
 #include <stdint.h>
 
 #include "hasp_conf.h"
 
-#if HASP_USE_MQTT > 0
+#if HASP_USE_MQTT_ASYNC > 0
 #ifdef USE_PAHO
 
 /*******************************************************************************
@@ -29,6 +31,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
+#include <mutex>
 
 #include "MQTTAsync.h"
 
@@ -90,6 +93,9 @@ bool mqttHAautodiscover = true;
 
 #define LWT_TOPIC "LWT"
 
+std::recursive_mutex dispatch_mtx;
+std::recursive_mutex publish_mtx;
+
 char mqttServer[16]   = MQTT_HOST;
 char mqttUser[23]     = MQTT_USER;
 char mqttPassword[32] = MQTT_PASSW;
@@ -137,7 +143,9 @@ static void mqtt_message_cb(char* topic, char* payload, unsigned int length)
 
         // Group topic
         topic += strlen(mqttGroupTopic); // shorten topic
+        dispatch_mtx.lock();
         dispatch_topic_payload(topic, (const char*)payload);
+        dispatch_mtx.unlock();
         return;
 
     } else if(topic == strstr_P(topic, PSTR("homeassistant/status"))) { // HA discovery topic
@@ -170,7 +178,9 @@ static void mqtt_message_cb(char* topic, char* payload, unsigned int length)
             // LOG_TRACE(TAG_MQTT, F("ignoring LWT = online"));
         }
     } else {
+        dispatch_mtx.lock();
         dispatch_topic_payload(topic, (const char*)payload);
+        dispatch_mtx.unlock();
     }
 }
 
@@ -303,9 +313,12 @@ static bool mqttPublish(const char* topic, const char* payload, size_t len, bool
         pubmsg.payloadlen = (int)strlen(payload);
         pubmsg.qos        = QOS;
         pubmsg.retained   = 0;
+        dispatch_mtx.lock();
         if((rc = MQTTAsync_sendMessage(mqtt_client, topic, &pubmsg, &opts)) != MQTTASYNC_SUCCESS) {
+            dispatch_mtx.unlock();
             LOG_ERROR(TAG_MQTT_PUB, F(D_MQTT_FAILED " %s => %s"), topic, payload);
         } else {
+            dispatch_mtx.unlock();
             LOG_TRACE(TAG_MQTT_PUB, F("%s => %s"), topic, payload);
             return true;
         }
