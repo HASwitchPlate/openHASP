@@ -70,7 +70,7 @@ marks:
   - parametrize:
       key: obj
       vals:
-        - cb
+        - checkbox
         - btn
 
 stages:
@@ -88,13 +88,13 @@ stages:
     mqtt_publish:
       topic: hasp/{plate}/command
       payload: "p[1].b[0].bg_color={color}"
-    delay_after: 0.1
+    delay_after: 0.02
 
   - name: Clear page
     mqtt_publish:
       topic: hasp/{plate}/command/clearpage
       payload: ""
-    delay_after: 0.2
+    delay_after: 0.02
 
   - name: Create object
     mqtt_publish:
@@ -106,13 +106,13 @@ stages:
         r: !int "{r:d}"
         g: !int "{g:d}"
         b: !int "{b:d}"
-    delay_after: 0.1
+    delay_after: 0.02
 
   - name: Set bg_color
     mqtt_publish:
       topic: hasp/{plate}/command
       payload: "p[1].b[0].bg_color={rgb565}"
-    delay_after: 0.1
+    delay_after: 0.02
 
   - name: Test named COLOR
     mqtt_publish:
