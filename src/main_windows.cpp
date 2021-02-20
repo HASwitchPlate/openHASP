@@ -194,6 +194,26 @@ int main(int argc, char* argv[])
 
     InitializeConsoleOutput();
 
+    char hostbuffer[256];
+    char* IPbuffer;
+    struct hostent* host_entry;
+    int hostname;
+
+    // To retrieve hostname
+    hostname = gethostname(hostbuffer, sizeof(hostbuffer));
+    // checkHostName(hostname);
+
+    // To retrieve host information
+    host_entry = gethostbyname(hostbuffer);
+    // checkHostEntry(host_entry);
+
+    // To convert an Internet network
+    // address into ASCII string
+    // IPbuffer = inet_ntoa(*((struct in_addr*)host_entry->h_addr_list[0]));
+
+    printf("Hostname: %s", hostbuffer);
+    // printf("Host IP: %s", IPbuffer);
+
     // Display each command-line argument.
     std::cout << "\nCommand-line arguments:\n";
     for(count = 0; count < argc; count++)
@@ -225,7 +245,7 @@ int main(int argc, char* argv[])
                 std::cout << "  argv[" << count << "]   " << argv[count] << "\n" << std::endl << std::flush;
                 fflush(stdout);
                 if(count + 1 < argc) {
-                    haspDevice.set_hostname(argv[count] + 1);
+                    haspDevice.set_hostname(argv[count + 1]);
                 } else {
                     showhelp = true;
                 }
@@ -247,7 +267,6 @@ int main(int argc, char* argv[])
     monitor_title(haspDevice.get_hostname());
 
     while(isRunning) {
-
         loop();
         // std::cout << "HSetup OK\n";
     }
