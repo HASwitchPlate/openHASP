@@ -39,6 +39,8 @@ class BaseDevice {
 
     virtual void init()
     {}
+    virtual void show_info()
+    {}
     virtual void post_setup()
     {}
     virtual void loop()
@@ -60,13 +62,21 @@ class BaseDevice {
         return true;
     }
     virtual size_t get_free_max_block()
-    {}
+    {
+        return 0;
+    }
     virtual size_t get_free_heap()
-    {}
+    {
+        return 0;
+    }
     virtual uint8_t get_heap_fragmentation()
-    {}
+    {
+        return 0;
+    }
     virtual uint16_t get_cpu_frequency()
-    {}
+    {
+        return 0;
+    }
 };
 
 } // namespace dev

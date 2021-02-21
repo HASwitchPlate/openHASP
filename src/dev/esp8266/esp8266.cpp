@@ -1,3 +1,6 @@
+/* MIT License - Copyright (c) 2020 Francis Van Roie
+   For full license information read the LICENSE file in the project folder */
+
 #if defined(ESP8266)
 
 #include "Arduino.h"
@@ -17,6 +20,13 @@ void Esp8266Device::reboot()
     ESP.restart();
 }
 
+void Esp8266Device::show_info()
+{
+    LOG_VERBOSE(TAG_DEV, F("Processor  : ESP8266"));
+    LOG_VERBOSE(TAG_DEV, F("CPU freq.  : %i MHz"), get_cpu_frequency());
+    LOG_VERBOSE(TAG_DEV, F("Voltage    : %2.2f V"), ESP.getVcc() / 918.0); // 918 empirically determined
+}
+
 const char* Esp8266Device::get_hostname()
 {
     return _hostname.c_str();
@@ -32,7 +42,7 @@ void Esp8266Device::set_backlight_pin(uint8_t pin)
     /* Setup Backlight Control Pin */
     if(pin >= 0) {
         LOG_VERBOSE(TAG_GUI, F("Backlight  : Pin %d"), pin);
-        pinMode(backlight_pin, OUTPUT);
+        pinMode(_backlight_pin, OUTPUT);
         update_backlight();
     }
 }
@@ -40,7 +50,7 @@ void Esp8266Device::set_backlight_pin(uint8_t pin)
 void Esp8266Device::set_backlight_level(uint8_t level)
 {
     _backlight_level = level >= 0 ? level : 0;
-    _backlight_level = _backlight_level <= 100 ? backlight_level : 100;
+    _backlight_level = _backlight_level <= 100 ? _backlight_level : 100;
 
     update_backlight();
 }
@@ -65,7 +75,7 @@ void Esp8266Device::update_backlight()
 {
     if(_backlight_pin == -1) return;
 
-    analogWrite(backlight_pin, _backlight_power ? map(_backlight_level, 0, 100, 0, 1023) : 0);
+    analogWrite(_backlight_pin, _backlight_power ? map(_backlight_level, 0, 100, 0, 1023) : 0);
 }
 
 size_t Esp8266Device::get_free_max_block()

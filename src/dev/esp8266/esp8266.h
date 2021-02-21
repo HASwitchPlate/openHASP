@@ -16,13 +16,14 @@ class Esp8266Device : public BaseDevice {
   public:
     Esp8266Device()
     {
-        hostname        = "plate";
-        backlight_pin   = TFT_BCKL;
-        backlight_power = 1;
-        backlight_level = 100;
+        _hostname        = "plate";
+        _backlight_pin   = TFT_BCKL;
+        _backlight_power = 1;
+        _backlight_level = 100;
     }
 
     void reboot() override;
+    void show_info() override;
 
     const char* get_hostname();
     void set_hostname(const char*);

@@ -21,6 +21,7 @@ class Esp32Device : public BaseDevice {
         _backlight_level = 100;
     }
     void reboot() override;
+    void show_info() override;
 
     const char* get_hostname();
     void set_hostname(const char*);

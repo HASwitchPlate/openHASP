@@ -20,13 +20,28 @@ class Win32Device : public BaseDevice {
   public:
     Win32Device()
     {
-        _hostname = "winplate";
+        char buffer[MAX_COMPUTERNAME_LENGTH + 1];
+        DWORD length = sizeof(buffer);
+
+        if(GetComputerNameExA((COMPUTER_NAME_FORMAT)ComputerNameNetBIOS, buffer, &length)) {
+            _hostname = buffer;
+        } else if(GetComputerNameExA((COMPUTER_NAME_FORMAT)ComputerNameDnsHostname, buffer, &length)) {
+            _hostname = buffer;
+        } else if(GetComputerNameExA((COMPUTER_NAME_FORMAT)ComputerNamePhysicalDnsHostname, buffer, &length)) {
+            _hostname = buffer;
+        } else if(GetComputerNameExA((COMPUTER_NAME_FORMAT)ComputerNamePhysicalDnsDomain, buffer, &length)) {
+            _hostname = buffer;
+        } else {
+            _hostname = "localhost";
+        }
+
         // _backlight_pin   = -1;
         _backlight_power = 1;
         _backlight_level = 100;
     }
 
     void reboot() override;
+    void show_info() override;
 
     const char* get_hostname();
     void set_hostname(const char*);

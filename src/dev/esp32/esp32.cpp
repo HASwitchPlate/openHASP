@@ -1,3 +1,6 @@
+/* MIT License - Copyright (c) 2020 Francis Van Roie
+   For full license information read the LICENSE file in the project folder */
+
 #if defined(ESP32)
 
 #include "Arduino.h"
@@ -21,6 +24,13 @@ namespace dev {
 void Esp32Device::reboot()
 {
     ESP.restart();
+}
+
+void Esp32Device::show_info()
+{
+    LOG_VERBOSE(TAG_DEV, F("Processor  : ESP32"));
+    LOG_VERBOSE(TAG_DEV, F("CPU freq.  : %i MHz"), get_cpu_frequency());
+    // LOG_VERBOSE(TAG_DEV, F("Voltage    : %2.2f V"), ESP.getVcc() / 918.0); // 918 empirically determined
 }
 
 const char* Esp32Device::get_hostname()
