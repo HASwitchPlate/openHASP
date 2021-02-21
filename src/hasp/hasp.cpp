@@ -272,7 +272,7 @@ void haspProgressVal(uint8_t val)
             }
             lv_bar_set_value(bar, val, LV_ANIM_OFF);
         }
-        lv_task_handler(); /* let the GUI do its work */
+        // lv_task_handler(); /* let the GUI do its work */
     }
 }
 
@@ -287,14 +287,14 @@ void haspProgressMsg(const char* msg)
         hasp_process_obj_attribute(bar, value_str, msg, true);
     }
 
-    lv_task_handler(); /* let the GUI do its work */
+    // lv_task_handler(); /* let the GUI do its work */
 
     /* if(bar) {
          progress_str.reserve(64);
          progress_str = msg;
          lv_obj_set_style_local_value_str(bar, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, progress_str.c_str());
 
-        lv_task_handler(); // let the GUI do its work
+        // lv_task_handler(); // let the GUI do its work
      } */
 }
 
@@ -478,7 +478,9 @@ void haspSetup(void)
  **********************/
 
 void haspLoop(void)
-{}
+{
+    dispatchLoop();
+}
 
 /*
 void hasp_background(uint16_t pageid, uint16_t imageid)
