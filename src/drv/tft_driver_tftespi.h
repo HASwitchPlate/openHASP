@@ -9,7 +9,7 @@
 #endif
 
 #include "lvgl.h"
-#include "tft_espi.h"
+#include "TFT_eSPI.h"
 
 #include "tft_driver.h"
 #include "hal/hasp_hal.h"
