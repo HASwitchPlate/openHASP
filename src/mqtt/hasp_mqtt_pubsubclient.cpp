@@ -89,7 +89,7 @@ char mqttGroupName[16] = MQTT_GROUPNAME;
 uint16_t mqttPort      = MQTT_PORT;
 PubSubClient mqttClient(mqttNetworkClient);
 
-static bool mqttPublish(const char* topic, const char* payload, size_t len, bool retain = false)
+bool mqttPublish(const char* topic, const char* payload, size_t len, bool retain)
 {
     if(mqttIsConnected()) {
         if(mqttClient.beginPublish(topic, len, retain)) {
@@ -107,7 +107,7 @@ static bool mqttPublish(const char* topic, const char* payload, size_t len, bool
     return false;
 }
 
-static bool mqttPublish(const char* topic, const char* payload, bool retain = false)
+static bool mqttPublish(const char* topic, const char* payload, bool retain)
 {
     return mqttPublish(topic, payload, strlen(payload), retain);
 }
@@ -136,14 +136,14 @@ void mqtt_send_object_state(uint8_t pageid, uint8_t btnid, char* payload)
 {
     char tmp_topic[strlen(mqttNodeTopic) + 16];
     snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%sstate/" HASP_OBJECT_NOTATION), mqttNodeTopic, pageid, btnid);
-    mqttPublish(tmp_topic, payload);
+    mqttPublish(tmp_topic, payload, false);
 }
 
 void mqtt_send_state(const __FlashStringHelper* subtopic, const char* payload)
 {
     char tmp_topic[strlen(mqttNodeTopic) + 20];
     snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%sstate/%s"), mqttNodeTopic, subtopic);
-    mqttPublish(tmp_topic, payload);
+    mqttPublish(tmp_topic, payload, false);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

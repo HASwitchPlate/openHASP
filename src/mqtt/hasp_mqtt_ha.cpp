@@ -4,24 +4,17 @@
 #include "ArduinoJson.h"
 #include "hasp_conf.h"
 
-#ifndef WINDOWS
 #if HASP_USE_MQTT > 0
-
-#include "PubSubClient.h"
 
 #include "hasp/hasp.h"
 #include "hasp/hasp_dispatch.h"
-#include "hal/hasp_hal.h"
 #include "dev/device.h"
 
 #include "hasp_mqtt.h"
 #include "hasp_mqtt_ha.h"
 
 #define RETAINED true
-#define HASP_MAC_ADDRESS halGetMacAddress(0, "").c_str()
-#define HASP_MAC_ADDRESS_STR halGetMacAddress(0, "")
 
-extern PubSubClient mqttClient;
 // extern char mqttNodeName[16];
 extern char mqttNodeTopic[24];
 extern char mqttGroupTopic[24];
@@ -36,12 +29,41 @@ const char FP_MQTT_HA_NAME[] PROGMEM         = "name";
 const char FP_MQTT_HA_MODEL[] PROGMEM        = "mdl";
 const char FP_MQTT_HA_MANUFACTURER[] PROGMEM = "mf";
 
+#ifndef WINDOWS
+
+#include "hal/hasp_hal.h"
+
+#define HASP_MAC_ADDRESS halGetMacAddress(0, "").c_str()
+#define HASP_MAC_ADDRESS_STR halGetMacAddress(0, "")
+
+// #include "PubSubClient.h"
+// extern PubSubClient mqttClient;
+
+#else
+
+#define HASP_MAC_ADDRESS "aabbccddeeff"
+#define HASP_MAC_ADDRESS_STR "aabbccddeeff"
+
+#endif
+
 void mqtt_ha_send_json(char* topic, JsonDocument& doc)
 {
     LOG_VERBOSE(TAG_MQTT_PUB, topic);
-    mqttClient.beginPublish(topic, measureJson(doc), RETAINED);
-    serializeJson(doc, mqttClient);
-    mqttClient.endPublish();
+
+    // size_t n;
+    // LOG_VERBOSE(TAG_MQTT_PUB, " >>> measureJson & serializeJson start ");
+    // long start = millis();
+    // mqttClient.beginPublish(topic, measureJson(doc), RETAINED);
+    // n = serializeJson(doc, mqttClient);
+    // mqttClient.endPublish();
+    // LOG_VERBOSE(TAG_MQTT_PUB, " >>> measureJson & serializeJson done, %d bytes in %d millis\n", n, millis() - start);
+
+    // LOG_VERBOSE(TAG_MQTT_PUB, " >>> serializeJson start ");
+    // start = millis();
+    char buffer[800];
+    size_t len = serializeJson(doc, buffer, sizeof(buffer));
+    mqttPublish(topic, buffer, len, RETAINED);
+    // LOG_VERBOSE(TAG_MQTT_PUB, " >>>  serializeJson done, %d bytes in %d millis\n", n, millis() - start);
 }
 
 // adds the device identifiers to the HA MQTT auto-discovery message
@@ -77,7 +99,7 @@ void mqtt_ha_add_unique_id(JsonDocument& doc, char* item)
 
 void mqtt_ha_register_button(uint8_t page, uint8_t id)
 {
-    StaticJsonDocument<640> doc;
+    StaticJsonDocument<800> doc;
     mqtt_ha_add_device_ids(doc);
 
     char buffer[128];
@@ -119,7 +141,7 @@ void mqtt_ha_register_button(uint8_t page, uint8_t id)
 
 void mqtt_ha_register_switch(uint8_t page, uint8_t id)
 {
-    StaticJsonDocument<640> doc;
+    StaticJsonDocument<800> doc;
     mqtt_ha_add_device_ids(doc);
 
     char buffer[128];
@@ -140,7 +162,7 @@ void mqtt_ha_register_switch(uint8_t page, uint8_t id)
 
 void mqtt_ha_register_connectivity()
 {
-    StaticJsonDocument<640> doc;
+    StaticJsonDocument<1024> doc;
     char item[16];
     snprintf_P(item, sizeof(item), PSTR("connectivity"));
 
@@ -158,7 +180,7 @@ void mqtt_ha_register_connectivity()
 
 void mqtt_ha_register_backlight()
 {
-    StaticJsonDocument<640> doc;
+    StaticJsonDocument<800> doc;
     char item[16];
     snprintf_P(item, sizeof(item), PSTR("backlight"));
 
@@ -216,7 +238,7 @@ void mqtt_ha_register_moodlight()
 
 void mqtt_ha_register_idle()
 {
-    StaticJsonDocument<640> doc;
+    StaticJsonDocument<800> doc;
     char item[16];
     snprintf_P(item, sizeof(item), PSTR("idle"));
 
@@ -233,7 +255,7 @@ void mqtt_ha_register_idle()
 
 void mqtt_ha_register_activepage()
 {
-    StaticJsonDocument<640> doc;
+    StaticJsonDocument<800> doc;
     char item[16];
     snprintf_P(item, sizeof(item), PSTR("page"));
 
@@ -259,7 +281,6 @@ void mqtt_ha_register_auto_discovery()
     mqtt_ha_register_idle();
     mqtt_ha_register_connectivity();
 }
-#endif
 #endif
 
 /*

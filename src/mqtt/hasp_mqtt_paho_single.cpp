@@ -34,7 +34,8 @@
 
 #include "MQTTClient.h"
 
-#include "hasp_mqtt.h" // functions to implement here
+#include "hasp_mqtt.h"    // functions to implement here
+#include "hasp_mqtt_ha.h" // HA functions
 
 #include "hasp/hasp_dispatch.h" // for dispatch_topic_payload
 #include "hasp_debug.h"         // for logging
@@ -49,13 +50,13 @@
 #include <OsWrapper.h>
 #endif
 
-#define ADDRESS "10.4.0.5:1883"
+#define ADDRESS "10.1.0.208:1883"
 #define CLIENTID "test1123"
 #define TOPIC "hasp/plate35/"
 #define QOS 1
 #define TIMEOUT 1000L
 
-const char* mqttNodeTopic  = "hasp/plate35/";
+char mqttNodeTopic[24]     = "hasp/plate35/";
 const char* mqttGroupTopic = "hasp/plates/";
 // char mqttNodeTopic[24];
 // char mqttGroupTopic[24];
@@ -105,7 +106,7 @@ int disc_finished = 0;
 int subscribed    = 0;
 int connected     = 0;
 
-static bool mqttPublish(const char* topic, const char* payload, size_t len, bool retain);
+bool mqttPublish(const char* topic, const char* payload, size_t len, bool retain);
 
 /* ===== Paho event callbacks ===== */
 
@@ -144,8 +145,8 @@ static void mqtt_message_cb(char* topic, char* payload, unsigned int length)
 
     } else if(topic == strstr_P(topic, PSTR("homeassistant/status"))) { // HA discovery topic
         if(mqttHAautodiscover && !strcasecmp_P((char*)payload, PSTR("online"))) {
-            //   dispatch_current_state();
-            //   mqtt_ha_register_auto_discovery();
+            dispatch_current_state();
+            mqtt_ha_register_auto_discovery();
         }
         return;
 
@@ -197,7 +198,8 @@ void mqtt_subscribe(void* context, const char* topic)
     MQTTClient client = (MQTTClient)context;
     int rc;
 
-    printf("Subscribing to topic %s\nfor client %s using QoS%d\n\n", topic, CLIENTID, QOS);
+    printf("Subscribing to topic %s\n", topic);
+    //\nfor client %s using QoS%d\n\n", topic, CLIENTID, QOS);
     if((rc = MQTTClient_subscribe(client, topic, QOS)) != MQTTCLIENT_SUCCESS) {
         printf("Failed to start subscribe, return code %d\n", rc);
     }
@@ -266,9 +268,13 @@ static void onConnect(void* context)
     printf("Successful connection\n");
 
     mqtt_subscribe(mqtt_client, TOPIC "command/#");
-    mqtt_subscribe(mqtt_client, TOPIC "command");
-    mqtt_subscribe(mqtt_client, TOPIC "light");
-    mqtt_subscribe(mqtt_client, TOPIC "dim");
+    // mqtt_subscribe(mqtt_client, TOPIC "command");
+    mqtt_subscribe(mqtt_client, TOPIC "light/#");
+    mqtt_subscribe(mqtt_client, TOPIC "brightness/#");
+    mqtt_subscribe(mqtt_client, "hass/status");
+
+    /* Home Assistant auto-configuration */
+    if(mqttHAautodiscover) mqtt_subscribe(mqtt_client, "homeassistant/status");
 
     mqttPublish(TOPIC LWT_TOPIC, "online", 6, false);
 
@@ -305,8 +311,8 @@ void mqttStart()
     conn_opts.keepAliveInterval = 20;
     conn_opts.cleansession      = 1;
 
-    // conn_opts.username      = "";
-    // conn_opts.password      = "";
+    conn_opts.username = "hasp";
+    conn_opts.password = "hasp";
 
     if((rc = MQTTClient_connect(mqtt_client, &conn_opts)) != MQTTCLIENT_SUCCESS) {
         printf("Failed to start connect, return code %d\n", rc);

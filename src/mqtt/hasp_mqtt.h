@@ -21,6 +21,8 @@ void mqttStop();
 void mqtt_send_object_state(uint8_t pageid, uint8_t btnid, char* payload);
 void mqtt_send_state(const __FlashStringHelper* subtopic, const char* payload);
 
+bool mqttPublish(const char* topic, const char* payload, size_t len, bool retain);
+
 bool mqttIsConnected();
 
 #if HASP_USE_CONFIG > 0
