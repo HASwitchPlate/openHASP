@@ -1,0 +1,177 @@
+/* MIT License - Copyright (c) 2020 Francis Van Roie
+   For full license information read the LICENSE file in the project folder */
+
+#ifndef HASP_TFTESPI_DRIVER_H
+#define HASP_TFTESPI_DRIVER_H
+
+#ifdef ARDUINO
+#include "Arduino.h"
+#endif
+
+#include "lvgl.h"
+#include "tft_espi.h"
+
+#include "tft_driver.h"
+#include "hal/hasp_hal.h"
+#include "dev/device.h"
+#include "hasp_debug.h"
+
+#include "bootscreen.h" // Sketch tab header for xbm images
+
+namespace dev {
+
+class TftEspi : BaseTft {
+
+  public:
+    void init(int w, int h)
+    {
+        tft.begin();
+        tft.setSwapBytes(true); /* set endianess */
+    }
+    void show_info()
+    {
+
+        setup_t tftSetup;
+        tft.getSetup(tftSetup);
+
+        LOG_VERBOSE(TAG_TFT, F("TFT_eSPI   : v%s"), tftSetup.version.c_str());
+        LOG_VERBOSE(TAG_TFT, F("Transactns : %s"), (tftSetup.trans == 1) ? PSTR("Yes") : PSTR("No"));
+        LOG_VERBOSE(TAG_TFT, F("Interface  : %s"), (tftSetup.serial == 1) ? PSTR("SPI") : PSTR("Parallel"));
+
+#if defined(ARDUINO_ARCH_ESP8266)
+        LOG_VERBOSE(TAG_TFT, F("SPI overlap: %s"), (tftSetup.overlap == 1) ? PSTR("Yes") : PSTR("No"));
+#endif
+
+        if(tftSetup.tft_driver != 0xE9D) // For ePaper displays the size is defined in the sketch
+        {
+            LOG_VERBOSE(TAG_TFT, F("Driver     : %s"), halDisplayDriverName().c_str()); // tftSetup.tft_driver);
+            LOG_VERBOSE(TAG_TFT, F("Resolution : %ix%i"), tftSetup.tft_width, tftSetup.tft_height);
+        } else if(tftSetup.tft_driver == 0xE9D)
+            LOG_VERBOSE(TAG_TFT, F("Driver = ePaper"));
+
+        // Offsets, not all used yet
+        tftOffsetInfo(0, tftSetup.r0_x_offset, tftSetup.r0_y_offset);
+        tftOffsetInfo(1, tftSetup.r1_x_offset, tftSetup.r1_y_offset);
+        tftOffsetInfo(2, tftSetup.r2_x_offset, tftSetup.r2_y_offset);
+        tftOffsetInfo(3, tftSetup.r3_x_offset, tftSetup.r3_y_offset);
+        /* replaced by tftOffsetInfo
+        //    if(tftSetup.r1_x_offset != 0) Serial.printf("R1 x offset = %i \n", tftSetup.r1_x_offset);
+        //    if(tftSetup.r1_y_offset != 0) Serial.printf("R1 y offset = %i \n", tftSetup.r1_y_offset);
+        //    if(tftSetup.r2_x_offset != 0) Serial.printf("R2 x offset = %i \n", tftSetup.r2_x_offset);
+        //    if(tftSetup.r2_y_offset != 0) Serial.printf("R2 y offset = %i \n", tftSetup.r2_y_offset);
+        //    if(tftSetup.r3_x_offset != 0) Serial.printf("R3 x offset = %i \n", tftSetup.r3_x_offset);
+        //    if(tftSetup.r3_y_offset != 0) Serial.printf("R3 y offset = %i \n", tftSetup.r3_y_offset);
+        */
+
+        tftPinInfo(F("MOSI"), tftSetup.pin_tft_mosi);
+        tftPinInfo(F("MISO"), tftSetup.pin_tft_miso);
+        tftPinInfo(F("SCLK"), tftSetup.pin_tft_clk);
+
+#if defined(ARDUINO_ARCH_ESP8266)
+        if(tftSetup.overlap == true) {
+            LOG_VERBOSE(TAG_TFT, F("Overlap selected, following pins MUST be used:"));
+
+            LOG_VERBOSE(TAG_TFT, F("MOSI     : SD1 (GPIO 8)"));
+            LOG_VERBOSE(TAG_TFT, F("MISO     : SD0 (GPIO 7)"));
+            LOG_VERBOSE(TAG_TFT, F("SCK      : CLK (GPIO 6)"));
+            LOG_VERBOSE(TAG_TFT, F("TFT_CS   : D3  (GPIO 0)"));
+
+            LOG_VERBOSE(TAG_TFT, F("TFT_DC and TFT_RST pins can be tftSetup defined"));
+        }
+#endif
+
+        tftPinInfo(F("TFT_CS"), tftSetup.pin_tft_cs);
+        tftPinInfo(F("TFT_DC"), tftSetup.pin_tft_dc);
+        tftPinInfo(F("TFT_RST"), tftSetup.pin_tft_rst);
+
+        tftPinInfo(F("TOUCH_CS"), tftSetup.pin_tch_cs);
+
+        tftPinInfo(F("TFT_WR"), tftSetup.pin_tft_wr);
+        tftPinInfo(F("TFT_RD"), tftSetup.pin_tft_rd);
+
+        tftPinInfo(F("TFT_D0"), tftSetup.pin_tft_d0);
+        tftPinInfo(F("TFT_D1"), tftSetup.pin_tft_d1);
+        tftPinInfo(F("TFT_D2"), tftSetup.pin_tft_d2);
+        tftPinInfo(F("TFT_D3"), tftSetup.pin_tft_d3);
+        tftPinInfo(F("TFT_D4"), tftSetup.pin_tft_d4);
+        tftPinInfo(F("TFT_D5"), tftSetup.pin_tft_d5);
+        tftPinInfo(F("TFT_D6"), tftSetup.pin_tft_d6);
+        tftPinInfo(F("TFT_D7"), tftSetup.pin_tft_d7);
+
+        if(tftSetup.serial == 1) {
+            LOG_VERBOSE(TAG_TFT, F("Display SPI freq. : %d.%d MHz"), tftSetup.tft_spi_freq / 10,
+                        tftSetup.tft_spi_freq % 10);
+        }
+        if(tftSetup.pin_tch_cs != -1) {
+            LOG_VERBOSE(TAG_TFT, F("Touch SPI freq.   : %d.%d MHz"), tftSetup.tch_spi_freq / 10,
+                        tftSetup.tch_spi_freq % 10);
+        }
+    }
+    void splashscreen()
+    {
+        tft.fillScreen(TFT_DARKCYAN);
+        int x = (tft.width() - logoWidth) / 2;
+        int y = (tft.height() - logoHeight) / 2;
+        tft.drawXBitmap(x, y, bootscreen, logoWidth, logoHeight, TFT_WHITE);
+    }
+    void set_rotation(uint8_t rotation)
+    {
+        LOG_VERBOSE(TAG_TFT, F("Rotation   : %d"), rotation);
+        tft.setRotation(rotation);
+    }
+    void set_invert(bool invert)
+    {
+        char buffer[4];
+        memcpy_P(buffer, invert ? PSTR("yes") : PSTR("no"), sizeof(buffer));
+
+        LOG_VERBOSE(TAG_TFT, F("Invert Disp: %s"), buffer);
+        tft.invertDisplay(invert);
+    }
+    void flush_pixels(lv_disp_drv_t* disp, const lv_area_t* area, lv_color_t* color_p)
+    {
+        size_t len = lv_area_get_size(area);
+
+        /* Update TFT */
+        tft.startWrite();                                      /* Start new TFT transaction */
+        tft.setWindow(area->x1, area->y1, area->x2, area->y2); /* set the working window */
+#ifdef USE_DMA_TO_TFT
+        tft.pushPixelsDMA((uint16_t*)color_p, len); /* Write words at once */
+#else
+        tft.pushPixels((uint16_t*)color_p, len); /* Write words at once */
+#endif
+        tft.endWrite(); /* terminate TFT transaction */
+
+        /* Tell lvgl that flushing is done */
+        lv_disp_flush_ready(disp);
+    }
+
+  private:
+    TFT_eSPI tft;
+
+    void tftOffsetInfo(uint8_t pin, uint8_t x_offset, uint8_t y_offset)
+    {
+        if(x_offset != 0) {
+            LOG_VERBOSE(TAG_TFT, F("R%u x offset = %i"), pin, x_offset);
+        }
+        if(y_offset != 0) {
+            LOG_VERBOSE(TAG_TFT, F("R%u y offset = %i"), pin, y_offset);
+        }
+    }
+
+    void tftPinInfo(const __FlashStringHelper* pinfunction, int8_t pin)
+    {
+        if(pin != -1) {
+            char buffer[64];
+            snprintf_P(buffer, sizeof(buffer), PSTR("%-11s: %s (GPIO %02d)"), pinfunction, halGpioName(pin).c_str(),
+                       pin);
+            LOG_VERBOSE(TAG_TFT, buffer);
+        }
+    }
+};
+
+} // namespace dev
+
+using dev::TftEspi;
+extern dev::TftEspi haspTft;
+
+#endif

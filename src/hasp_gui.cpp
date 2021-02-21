@@ -12,7 +12,9 @@
 #include "lv_fs_if.h"
 
 // Device Drivers
+#include "drv/tft_driver.h"
 #include "dev/device.h"
+
 #include "drv/hasp_drv_display.h"
 #include "drv/hasp_drv_touch.h"
 
@@ -79,6 +81,10 @@ gui_conf_t gui_settings = {.show_pointer   = false,
 // {
 //     lv_tick_inc(LVGL_TICK_PERIOD);
 // }
+void gui_flush_cb(lv_disp_drv_t* disp, const lv_area_t* area, lv_color_t* color_p)
+{
+    haspTft.flush_pixels(disp, area, color_p);
+}
 
 void guiCalibrate(void)
 {
@@ -104,6 +110,12 @@ void guiSetup(void)
 #if LV_USE_LOG != 0 && defined(ARDUINO)
     lv_log_register_print_cb(debugLvglLogEvent);
 #endif
+
+    // Initialize the TFT
+    haspTft.init(240, 320);
+    haspTft.set_rotation(gui_settings.rotation);
+    haspTft.set_invert(gui_settings.invert_display);
+    haspTft.show_info();
 
     /* Create the Virtual Device Buffers */
 #if defined(ARDUINO_ARCH_ESP32)
@@ -163,14 +175,8 @@ void guiSetup(void)
     /* Initialize the display driver */
     lv_disp_drv_t disp_drv;
     lv_disp_drv_init(&disp_drv);
-    disp_drv.buffer = &disp_buf;
-
-#if defined(WINDOWS)
-    disp_drv.flush_cb = monitor_flush;
-#else
-    drv_display_init(&disp_drv, gui_settings.rotation,
-                     gui_settings.invert_display); // Set display driver callback & rotation
-#endif
+    disp_drv.buffer    = &disp_buf;
+    disp_drv.flush_cb  = gui_flush_cb;
     disp_drv.hor_res   = TFT_WIDTH;
     disp_drv.ver_res   = TFT_HEIGHT;
     lv_disp_t* display = lv_disp_drv_register(&disp_drv);
@@ -205,18 +211,6 @@ void guiSetup(void)
 
     /* Setup Backlight Control Pin */
     haspDevice.set_backlight_pin(gui_settings.backlight_pin);
-
-    //     if(gui_settings.backlight_pin >= 0) {
-    //         LOG_VERBOSE(TAG_GUI, F("Backlight  : Pin %d"), gui_settings.backlight_pin);
-
-    // #if defined(ARDUINO_ARCH_ESP32)
-    //         ledcSetup(BACKLIGHT_CHANNEL, 20000, 12);
-    //         ledcAttachPin(gui_settings.backlight_pin, BACKLIGHT_CHANNEL);
-    // #elif defined(ARDUINO_ARCH_ESP8266)
-    //         pinMode(gui_settings.backlight_pin, OUTPUT);
-    // #endif
-    //     }
-    LOG_VERBOSE(TAG_GUI, F("Rotation   : %d"), gui_settings.rotation);
 
     LOG_VERBOSE(TAG_LVGL, F("Version    : %u.%u.%u %s"), LVGL_VERSION_MAJOR, LVGL_VERSION_MINOR, LVGL_VERSION_PATCH,
                 PSTR(LVGL_VERSION_INFO));
@@ -320,57 +314,6 @@ void guiStop()
     //     tick.stop();
     // #endif
 }
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-/*
-bool guiGetBacklight()
-{
-    return guiBacklightIsOn;
-}
-
-void guiSetBacklight(bool lighton)
-{
-    guiBacklightIsOn = lighton;
-
-    if(!lighton) hasp_enable_wakeup_touch();
-
-    if(gui_settings.backlight_pin >= 0) {
-
-#if defined(ARDUINO_ARCH_ESP32)
-        ledcWrite(BACKLIGHT_CHANNEL, lighton ? map(guiDimLevel, 0, 100, 0, 4095) : 0); // ledChannel and value
-#else
-        analogWrite(gui_settings.backlight_pin, lighton ? map(guiDimLevel, 0, 100, 0, 1023) : 0);
-#endif
-
-    } else {
-        guiBacklightIsOn = true;
-    }
-}
-
-void guiSetDim(int8_t level)
-{
-    if(gui_settings.backlight_pin >= 0) {
-        guiDimLevel = level >= 0 ? level : 0;
-        guiDimLevel = guiDimLevel <= 100 ? guiDimLevel : 100;
-
-        if(guiBacklightIsOn) { // The backlight is ON
-#if defined(ARDUINO_ARCH_ESP32)
-            ledcWrite(BACKLIGHT_CHANNEL, map(guiDimLevel, 0, 100, 0, 4095)); // ledChannel and value
-#else
-            analogWrite(gui_settings.backlight_pin, map(guiDimLevel, 0, 100, 0, 1023));
-#endif
-        }
-
-    } else {
-        guiDimLevel = -1;
-    }
-}
-
-int8_t guiGetDim()
-{
-    return guiDimLevel;
-}
-*/
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 #if HASP_USE_CONFIG > 0
@@ -587,7 +530,10 @@ static void gui_screenshot_to_file(lv_disp_drv_t* disp, const lv_area_t* area, l
     len *= sizeof(lv_color_t);                                          /* Number of bytes */
     size_t res = pFileOut.write((uint8_t*)color_p, len);
     if(res != len) gui_flush_not_complete();
-    drv_display_flush_cb(disp, area, color_p); // indirect callback to flush screenshot data to the screen
+
+    // indirect callback to flush screenshot data to the screen
+    // drv_display_flush_cb(disp, area, color_p);
+    haspTft.flush_pixels(disp, area, color_p);
 }
 
 /** Take Screenshot.
@@ -642,7 +588,10 @@ static void gui_screenshot_to_http(lv_disp_drv_t* disp, const lv_area_t* area, l
     len *= sizeof(lv_color_t);                                          /* Number of bytes */
     size_t res = httpClientWrite((uint8_t*)color_p, len);
     if(res != len) gui_flush_not_complete();
-    drv_display_flush_cb(disp, area, color_p);
+
+    // indirect callback to flush screenshot data to the screen
+    // drv_display_flush_cb(disp, area, color_p);
+    haspTft.flush_pixels(disp, area, color_p);
 }
 
 /** Take Screenshot.
