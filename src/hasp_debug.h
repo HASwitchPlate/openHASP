@@ -22,23 +22,46 @@ void debugStart(void);
 void debugStop(void);
 
 /* ===== Special Event Processors ===== */
-void debugLvglLogEvent(lv_log_level_t level, const char *file, uint32_t line, const char *funcname,
-                       const char *descr);
-void debugPrintHaspHeader(Print *output);
+void debugLvglLogEvent(lv_log_level_t level, const char* file, uint32_t line, const char* funcname, const char* descr);
+void debugPrintHaspHeader(Print* output);
 void debugStartSyslog(void);
 void debugStopSyslog(void);
 // void syslogSend(uint8_t log, const char * debugText);
 #else
 #include <iostream>
 
-#define LOG_FATAL(x, ...) printf(__VA_ARGS__); std::cout << std::endl; fflush(stdout)
-#define LOG_ERROR(x, ...) printf(__VA_ARGS__); std::cout << std::endl; fflush(stdout)
-#define LOG_WARNING(x, ...) printf(__VA_ARGS__); std::cout << std::endl; fflush(stdout)
-#define LOG_NOTICE(x, ...) printf(__VA_ARGS__); std::cout << std::endl; fflush(stdout)
-#define LOG_TRACE(x, ...) printf(__VA_ARGS__); std::cout << std::endl; fflush(stdout)
-#define LOG_VERBOSE(x, ...) printf(__VA_ARGS__); std::cout << std::endl; fflush(stdout)
-#define LOG_DEBUG(x, ...) printf(__VA_ARGS__); std::cout << std::endl; fflush(stdout)
-#define LOG_INFO(x, ...) printf(__VA_ARGS__); std::cout << std::endl; fflush(stdout)
+#define LOG_FATAL(x, ...)                                                                                              \
+    printf(__VA_ARGS__);                                                                                               \
+    std::cout << std::endl;                                                                                            \
+    fflush(stdout)
+#define LOG_ERROR(x, ...)                                                                                              \
+    printf(__VA_ARGS__);                                                                                               \
+    std::cout << std::endl;                                                                                            \
+    fflush(stdout)
+#define LOG_WARNING(x, ...)                                                                                            \
+    printf(__VA_ARGS__);                                                                                               \
+    std::cout << std::endl;                                                                                            \
+    fflush(stdout)
+#define LOG_NOTICE(x, ...)                                                                                             \
+    printf(__VA_ARGS__);                                                                                               \
+    std::cout << std::endl;                                                                                            \
+    fflush(stdout)
+#define LOG_TRACE(x, ...)                                                                                              \
+    printf(__VA_ARGS__);                                                                                               \
+    std::cout << std::endl;                                                                                            \
+    fflush(stdout)
+#define LOG_VERBOSE(x, ...)                                                                                            \
+    printf(__VA_ARGS__);                                                                                               \
+    std::cout << std::endl;                                                                                            \
+    fflush(stdout)
+#define LOG_DEBUG(x, ...)                                                                                              \
+    printf(__VA_ARGS__);                                                                                               \
+    std::cout << std::endl;                                                                                            \
+    fflush(stdout)
+#define LOG_INFO(x, ...)                                                                                               \
+    printf(__VA_ARGS__);                                                                                               \
+    std::cout << std::endl;                                                                                            \
+    fflush(stdout)
 
 /* json keys used in the configfile */
 // const char FP_CONFIG_STARTPAGE[] PROGMEM = "startpage";
@@ -84,23 +107,23 @@ void debugStopSyslog(void);
 
 /* ===== Read/Write Configuration ===== */
 #if HASP_USE_CONFIG > 0
-bool debugGetConfig(const JsonObject &settings);
-bool debugSetConfig(const JsonObject &settings);
+bool debugGetConfig(const JsonObject& settings);
+bool debugSetConfig(const JsonObject& settings);
 #endif
 
 // void debugPrintPrefix(int level, Print * _logOutput);
 // void debugPrintSuffix(int level, Print * _logOutput);
 // void debugSendOuput(const char * buffer);
 
-enum
-{
+enum {
     TAG_MAIN = 0,
     TAG_HASP = 1,
     TAG_ATTR = 2,
     TAG_MSGR = 3,
     TAG_OOBE = 4,
-    TAG_HAL = 5,
+    TAG_HAL  = 5,
     TAG_DRVR = 6,
+    TAG_DEV  = 7,
 
     TAG_DEBG = 10,
     TAG_TELN = 11,
@@ -108,8 +131,8 @@ enum
     TAG_TASM = 13,
 
     TAG_CONF = 20,
-    TAG_GUI = 21,
-    TAG_TFT = 22,
+    TAG_GUI  = 21,
+    TAG_TFT  = 22,
 
     TAG_EPRM = 30,
     TAG_FILE = 31,
@@ -117,12 +140,12 @@ enum
 
     TAG_FWUP = 50,
 
-    TAG_ETH = 60,
-    TAG_WIFI = 61,
-    TAG_HTTP = 62,
-    TAG_OTA = 63,
-    TAG_MDNS = 64,
-    TAG_MQTT = 65,
+    TAG_ETH      = 60,
+    TAG_WIFI     = 61,
+    TAG_HTTP     = 62,
+    TAG_OTA      = 63,
+    TAG_MDNS     = 64,
+    TAG_MQTT     = 65,
     TAG_MQTT_PUB = 66,
     TAG_MQTT_RCV = 67,
 
