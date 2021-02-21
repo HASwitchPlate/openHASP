@@ -62,6 +62,7 @@ typedef struct
 #else
     uint32_t tft_fb[LV_HOR_RES_MAX * LV_VER_RES_MAX];
 #endif
+    double rotation;
 } monitor_t;
 
 /**********************
@@ -293,6 +294,12 @@ void monitor_backlight(uint8_t level)
     window_update(&monitor);
 }
 
+void monitor_title(const char* title)
+{
+    SDL_SetWindowTitle(monitor.window, title);
+    //  SDL_SetWindowFullscreen(monitor.window, SDL_WINDOW_FULLSCREEN_DESKTOP);
+}
+
 static void monitor_sdl_init(void)
 {
     /*Initialize the SDL*/
@@ -408,7 +415,8 @@ static void window_update(monitor_t* m)
     //        SDL_RenderDrawRect(renderer, &r);
 
     /*Update the renderer with the texture containing the rendered image*/
-    SDL_RenderCopy(m->renderer, m->texture, NULL, NULL);
+    // SDL_RenderCopy(m->renderer, m->texture, NULL, NULL);
+    SDL_RenderCopyEx(m->renderer, m->texture, NULL, NULL, m->rotation, NULL, SDL_FLIP_NONE);
     SDL_RenderPresent(m->renderer);
 }
 
