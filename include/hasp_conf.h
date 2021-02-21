@@ -254,13 +254,14 @@ static WiFiSpiClass WiFi;
 
 #ifdef WINDOWS
 #include <string.h>
+#include <strings.h>
 #include <stdio.h>
 #include <Windows.h>
 #include <SDL2/SDL.h>
 
 #define snprintf_P snprintf
 #define memcpy_P memcpy
-#define strcasecmp_P strcmp // TODO: should be strcasecmp
+#define strcasecmp_P strcasecmp
 #define strcmp_P strcmp
 #define strstr_P strstr
 #define halRestartMcu()
