@@ -1,7 +1,5 @@
-/**
- * @file tft_espi_drv.cpp
- *
- */
+/* MIT License - Copyright (c) 2020 Francis Van Roie
+   For full license information read the LICENSE file in the project folder */
 
 /*********************
  *      INCLUDES
@@ -163,17 +161,18 @@ static void tftShowConfig(TFT_eSPI& tft)
     setup_t tftSetup;
     tft.getSetup(tftSetup);
 
-    LOG_VERBOSE(TAG_TFT, F("TFT_eSPI   : v%s"), tftSetup.version.c_str());
-#if defined(ARDUINO_ARCH_ESP8266) || defined(ARDUINO_ARCH_ESP32)
-    LOG_VERBOSE(TAG_TFT, F("Processor  : ESP%x"), tftSetup.esp);
-#else
-    LOG_VERBOSE(TAG_TFT, F("Processor  : STM%x"), tftSetup.esp);
-#endif
-    LOG_VERBOSE(TAG_TFT, F("CPU freq.  : %i MHz"), haspDevice.get_cpu_frequency());
+    //     LOG_VERBOSE(TAG_TFT, F("TFT_eSPI   : v%s"), tftSetup.version.c_str());
+    // #if defined(ARDUINO_ARCH_ESP8266) || defined(ARDUINO_ARCH_ESP32)
+    //     LOG_VERBOSE(TAG_TFT, F("Processor  : ESP%x"), tftSetup.esp);
+    // #else
+    //     LOG_VERBOSE(TAG_TFT, F("Processor  : STM%x"), tftSetup.esp);
+    // #endif
+    //     LOG_VERBOSE(TAG_TFT, F("CPU freq.  : %i MHz"), haspDevice.get_cpu_frequency());
 
-#if defined(ARDUINO_ARCH_ESP8266)
-    LOG_VERBOSE(TAG_TFT, F("Voltage    : %2.2f V"), ESP.getVcc() / 918.0); // 918 empirically determined
-#endif
+    // #if defined(ARDUINO_ARCH_ESP8266)
+    //     LOG_VERBOSE(TAG_TFT, F("Voltage    : %2.2f V"), ESP.getVcc() / 918.0); // 918 empirically determined
+    // #endif
+
     LOG_VERBOSE(TAG_TFT, F("Transactns : %s"), (tftSetup.trans == 1) ? PSTR("Yes") : PSTR("No"));
     LOG_VERBOSE(TAG_TFT, F("Interface  : %s"), (tftSetup.serial == 1) ? PSTR("SPI") : PSTR("Parallel"));
 #if defined(ARDUINO_ARCH_ESP8266)

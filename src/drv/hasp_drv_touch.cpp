@@ -1,3 +1,6 @@
+/* MIT License - Copyright (c) 2020 Francis Van Roie
+   For full license information read the LICENSE file in the project folder */
+
 #include "hasp_drv_touch.h"
 #include "hasp/hasp.h"
 #include "lvgl.h"
@@ -60,7 +63,7 @@ void drv_touch_init(uint8_t rotation)
 #endif
 }
 
-static inline bool drv_touchpad_getXY(int16_t * touchX, int16_t * touchY)
+static inline bool drv_touchpad_getXY(int16_t* touchX, int16_t* touchY)
 {
     bool touched;
     int16_t normal_x;
@@ -151,7 +154,7 @@ bool touch_rotate   = false;
 bool touch_invert_x = false;
 bool touch_invert_y = false;
 
-bool drv_touch_read(lv_indev_drv_t * indev_driver, lv_indev_data_t * data)
+bool drv_touch_read(lv_indev_drv_t* indev_driver, lv_indev_data_t* data)
 {
 #if TOUCH_DRIVER > 0
     int16_t touchX = 0;
