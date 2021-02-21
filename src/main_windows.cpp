@@ -100,14 +100,14 @@ void setup()
     // debug_init();
 
     // Initialize lvgl environment
-    lv_init();
     lv_log_register_print_cb(debugLvglLogEvent);
+    lv_init();
 
     haspDevice.init();
-    hal_setup();
+    // hal_setup();
+    dispatchSetup();
     guiSetup();
 
-    dispatchSetup();
     //    debugSetup(); // Init the console
 
     printf("%s %d\n", __FILE__, __LINE__);
@@ -194,6 +194,8 @@ int main(int argc, char* argv[])
 
     InitializeConsoleOutput();
 
+    haspDevice.show_info();
+
     char hostbuffer[256];
     char* IPbuffer;
     struct hostent* host_entry;
@@ -264,7 +266,6 @@ int main(int argc, char* argv[])
     // printf("%s %d\n", __FILE__, __LINE__);
     // fflush(stdout);
     setup();
-    monitor_title(haspDevice.get_hostname());
 
     while(isRunning) {
         loop();

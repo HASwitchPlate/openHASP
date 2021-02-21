@@ -61,6 +61,13 @@ void setup()
     guiSetup();
     debugSetup(); // Init the console
 
+#if HASP_USE_CONFIG > 0
+    if(!oobeSetup())
+#endif
+    {
+        haspSetup();
+    }
+
 #if HASP_USE_GPIO > 0
     gpioSetup();
 #endif
@@ -76,13 +83,6 @@ void setup()
 #if HASP_USE_WIFI > 0 || HASP_USE_ETHERNET > 0
     networkSetup();
 #endif
-
-#if HASP_USE_CONFIG > 0
-    if(!oobeSetup())
-#endif
-    {
-        haspSetup();
-    }
 
 #if HASP_USE_MDNS > 0
     mdnsSetup();
@@ -106,7 +106,7 @@ void setup()
 
     mainLastLoopTime = millis() - 1000; // reset loop counter
     delay(250);
-    guiStart();
+    // guiStart();
 }
 
 void loop()
