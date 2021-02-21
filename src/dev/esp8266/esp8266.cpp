@@ -10,6 +10,7 @@
 
 #include "hasp_conf.h"
 #include "hasp_debug.h"
+#include "hasp/hasp_utilities.h"
 
 #define BACKLIGHT_CHANNEL 0
 
@@ -34,6 +35,16 @@ const char* Esp8266Device::get_hostname()
 void Esp8266Device::set_hostname(const char* hostname)
 {
     _hostname = hostname;
+}
+
+const char* Esp8266Device::get_core_version()
+{
+    return ESP.getCoreVersion().c_str();
+}
+
+const char* Esp8266Device::get_display_driver()
+{
+    return Utilities::tft_driver_name().c_str();
 }
 
 void Esp8266Device::set_backlight_pin(uint8_t pin)
