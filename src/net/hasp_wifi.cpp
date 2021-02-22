@@ -9,45 +9,45 @@
 
 #if HASP_USE_WIFI > 0
 
-#include "hasp_debug.h"
-#include "hasp_config.h"
-#include "hasp_network.h"
-#include "hasp_gui.h"
+    #include "hasp_debug.h"
+    #include "hasp_config.h"
+    #include "hasp_network.h"
+    #include "hasp_gui.h"
 
-#include "hasp/hasp_dispatch.h"
-#include "hasp/hasp.h"
+    #include "hasp/hasp_dispatch.h"
+    #include "hasp/hasp.h"
 
-#if defined(ARDUINO_ARCH_ESP32)
-#include <WiFi.h>
-#elif defined(ARDUINO_ARCH_ESP8266)
-#include <ESP8266WiFi.h>
-#include "user_interface.h" // Wifi Reasons
+    #if defined(ARDUINO_ARCH_ESP32)
+        #include <WiFi.h>
+    #elif defined(ARDUINO_ARCH_ESP8266)
+        #include <ESP8266WiFi.h>
+        #include "user_interface.h" // Wifi Reasons
 
 static WiFiEventHandler gotIpEventHandler, disconnectedEventHandler;
 
-#elif defined(STM32F4xx)
+    #elif defined(STM32F4xx)
 // #include <WiFi.h>
 // #include "WiFiSpi.h"
 // extern WiFiSpiClass WiFi;
 SPIClass espSPI(ESPSPI_MOSI, ESPSPI_MISO, ESPSPI_SCLK); // SPI port where esp is connected
 
-#endif
+    #endif
 //#include "DNSserver.h"
 
-#ifdef USE_CONFIG_OVERRIDE
-#include "user_config_override.h"
-#endif
+    #ifdef USE_CONFIG_OVERRIDE
+        #include "user_config_override.h"
+    #endif
 
-#ifdef WIFI_SSID
+    #ifdef WIFI_SSID
 char wifiSsid[32] = WIFI_SSID;
-#else
+    #else
 char wifiSsid[32]     = "";
-#endif
-#ifdef WIFI_PASSW
+    #endif
+    #ifdef WIFI_PASSW
 char wifiPassword[32] = WIFI_PASSW;
-#else
+    #else
 char wifiPassword[32] = "";
-#endif
+    #endif
 uint8_t wifiReconnectCounter = 0;
 
 // const byte DNS_PORT = 53;
@@ -57,15 +57,16 @@ uint8_t wifiReconnectCounter = 0;
 
 static void wifiConnected(IPAddress ipaddress)
 {
-#if defined(STM32F4xx)
+    #if defined(STM32F4xx)
     IPAddress ip;
     ip = WiFi.localIP();
     LOG_TRACE(TAG_WIFI, F("Received IP address %d.%d.%d.%d"), ip[0], ip[1], ip[2], ip[3]);
-#else
+    #else
     LOG_TRACE(TAG_WIFI, F(D_NETWORK_IP_ADDRESS_RECEIVED), ipaddress.toString().c_str());
-#endif
+    #endif
 
-    LOG_VERBOSE(TAG_WIFI, F("Connected = %s"), WiFi.status() == WL_CONNECTED ? PSTR(D_NETWORK_ONLINE) : PSTR(D_NETWORK_OFFLINE));
+    LOG_VERBOSE(TAG_WIFI, F("Connected = %s"),
+                WiFi.status() == WL_CONNECTED ? PSTR(D_NETWORK_ONLINE) : PSTR(D_NETWORK_OFFLINE));
     networkStart();
 }
 
@@ -84,7 +85,7 @@ static void wifiDisconnected(const char * ssid, uint8_t reason)
     char buffer[64];
 
     switch(reason) {
-#if defined(ARDUINO_ARCH_ESP8266)
+    #if defined(ARDUINO_ARCH_ESP8266)
         case REASON_UNSPECIFIED:
             snprintf_P(buffer, sizeof(buffer), PSTR("unspecified"));
             break;
@@ -170,9 +171,9 @@ static void wifiDisconnected(const char * ssid, uint8_t reason)
         case REASON_HANDSHAKE_TIMEOUT:
             snprintf_P(buffer, sizeof(buffer), PSTR("handshake timeout"));
             break;
-#endif
+    #endif
 
-#if defined(ARDUINO_ARCH_ESP32)
+    #if defined(ARDUINO_ARCH_ESP32)
         case WIFI_REASON_UNSPECIFIED:
             snprintf_P(buffer, sizeof(buffer), PSTR("unspecified"));
             break;
@@ -261,7 +262,7 @@ static void wifiDisconnected(const char * ssid, uint8_t reason)
         case WIFI_REASON_CONNECTION_FAIL:
             snprintf_P(buffer, sizeof(buffer), PSTR(D_NETWORK_CONNECTION_FAILED));
             break;
-#endif
+    #endif
 
         default:
             snprintf_P(buffer, sizeof(buffer), PSTR("unknown"));
@@ -276,7 +277,7 @@ static void wifiSsidConnected(const char * ssid)
     wifiReconnectCounter = 0;
 }
 
-#if defined(ARDUINO_ARCH_ESP32)
+    #if defined(ARDUINO_ARCH_ESP32)
 static void wifi_callback(system_event_id_t event, system_event_info_t info)
 {
     switch(event) {
@@ -294,9 +295,9 @@ static void wifi_callback(system_event_id_t event, system_event_info_t info)
             break;
     }
 }
-#endif
+    #endif
 
-#if defined(ARDUINO_ARCH_ESP8266)
+    #if defined(ARDUINO_ARCH_ESP8266)
 static void wifiSTAConnected(WiFiEventStationModeConnected info)
 {
     wifiSsidConnected(info.ssid.c_str());
@@ -313,7 +314,7 @@ static void wifiSTADisconnected(WiFiEventStationModeDisconnected info)
 {
     wifiDisconnected(info.ssid.c_str(), info.reason);
 }
-#endif
+    #endif
 
 /* ================================================================================================ */
 
@@ -333,9 +334,9 @@ bool wifiShowAP(char * ssid, char * pass)
     WiFi.macAddress(mac);
     sprintf_P(ssid, PSTR("HASP-%02x%02x%02x"), mac[3], mac[4], mac[5]);
     sprintf_P(pass, PSTR("haspadmin"));
-#if defined(STM32F4xx)
+    #if defined(STM32F4xx)
     LOG_WARNING(TAG_WIFI, F("We should setup Temporary Access Point %s password: %s"), ssid, pass);
-#else
+    #else
     WiFi.softAP(ssid, pass);
 
     /* Setup the DNS server redirecting all the domains to the apIP */
@@ -344,20 +345,20 @@ bool wifiShowAP(char * ssid, char * pass)
 
     LOG_WARNING(TAG_WIFI, F("Temporary Access Point %s password: %s"), ssid, pass);
     LOG_WARNING(TAG_WIFI, F("AP IP address : %s"), WiFi.softAPIP().toString().c_str());
-// httpReconnect();}
-#endif
+    // httpReconnect();}
+    #endif
     return true;
 }
 
 static void wifiReconnect(void)
 {
     WiFi.disconnect(true);
-#if defined(ARDUINO_ARCH_ESP8266)
+    #if defined(ARDUINO_ARCH_ESP8266)
     WiFi.hostname(mqttGetNodename().c_str());
-#elif defined(ARDUINO_ARCH_ESP32)
+    #elif defined(ARDUINO_ARCH_ESP32)
     WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE);
     WiFi.setHostname(mqttGetNodename().c_str());
-#endif
+    #endif
     WiFi.begin(wifiSsid, wifiPassword);
 }
 
@@ -365,7 +366,7 @@ static void wifiReconnect(void)
 
 void wifiSetup()
 {
-#if defined(STM32F4xx)
+    #if defined(STM32F4xx)
     // Temp ESP reset function
     pinMode(ESPSPI_RST, OUTPUT);
     digitalWrite(ESPSPI_RST, 0);
@@ -401,41 +402,41 @@ void wifiSetup()
         // status = WiFi.begin(wifiSsid, wifiPassword);
         WiFi.begin(wifiSsid, wifiPassword);
     }
-    // }
+        // }
 
-#else
+    #else
     if(wifiShowAP()) {
         WiFi.mode(WIFI_AP_STA);
     } else {
         WiFi.mode(WIFI_STA);
 
-#if defined(ARDUINO_ARCH_ESP8266)
+        #if defined(ARDUINO_ARCH_ESP8266)
         // wifiEventHandler[0]      = WiFi.onStationModeConnected(wifiSTAConnected);
         gotIpEventHandler        = WiFi.onStationModeGotIP(wifiSTAGotIP); // As soon WiFi is connected, start NTP Client
         disconnectedEventHandler = WiFi.onStationModeDisconnected(wifiSTADisconnected);
         WiFi.setSleepMode(WIFI_NONE_SLEEP);
-#elif defined(ARDUINO_ARCH_ESP32)
+        #elif defined(ARDUINO_ARCH_ESP32)
         WiFi.onEvent(wifi_callback);
         WiFi.setSleep(false);
-#endif
+        #endif
 
         wifiReconnect();
         LOG_TRACE(TAG_WIFI, F("Connecting to : %s"), wifiSsid);
     }
-#endif
+    #endif
 }
 
 bool wifiEvery5Seconds()
 {
-#if defined(STM32F4xx)
+    #if defined(STM32F4xx)
     if(wifiShowAP()) { // no ssid is set yet wait for user on-screen input
         return false;
     } else if(WiFi.status() == WL_CONNECTED) {
-#else
+    #else
     if(WiFi.getMode() != WIFI_STA) {
         return false;
     } else if(WiFi.status() == WL_CONNECTED) {
-#endif
+    #endif
         return true;
     } else {
         wifiReconnectCounter++;
@@ -456,27 +457,27 @@ bool wifiValidateSsid(const char * ssid, const char * pass)
     uint8_t attempt = 0;
     WiFi.begin(ssid, pass);
 
-#if defined(STM32F4xx)
+    #if defined(STM32F4xx)
     IPAddress ip;
     ip = WiFi.localIP();
     char espIp[16];
     memset(espIp, 0, sizeof(espIp));
     snprintf_P(espIp, sizeof(espIp), PSTR("%d.%d.%d.%d"), ip[0], ip[1], ip[2], ip[3]);
     while(attempt < 15 && (WiFi.status() != WL_CONNECTED || String(espIp) == F("0.0.0.0"))) {
-#else
+    #else
     while(attempt < 15 && (WiFi.status() != WL_CONNECTED || WiFi.localIP().toString() == F("0.0.0.0"))) {
-#endif
+    #endif
         attempt++;
         LOG_INFO(TAG_WIFI, F("Trying to connect to %s... %u"), wifiSsid, attempt);
         delay(500);
     }
-#if defined(STM32F4xx)
+    #if defined(STM32F4xx)
     LOG_INFO(TAG_WIFI, F(D_NETWORK_IP_ADDRESS_RECEIVED), espIp);
     if((WiFi.status() == WL_CONNECTED && String(espIp) != F("0.0.0.0"))) return true;
-#else
+    #else
     LOG_INFO(TAG_WIFI, F(D_NETWORK_IP_ADDRESS_RECEIVED), WiFi.localIP().toString().c_str());
     if((WiFi.status() == WL_CONNECTED && WiFi.localIP().toString() != F("0.0.0.0"))) return true;
-#endif
+    #endif
 
     LOG_WARNING(TAG_WIFI, F(D_NETWORK_IP_ADDRESS_RECEIVED), WiFi.localIP().toString().c_str());
     WiFi.disconnect();
@@ -487,29 +488,29 @@ void wifiStop()
 {
     wifiReconnectCounter = 0; // Prevent endless loop in wifiDisconnected
     WiFi.disconnect();
-#if !defined(STM32F4xx)
+    #if !defined(STM32F4xx)
     WiFi.mode(WIFI_OFF);
-#endif
+    #endif
     LOG_WARNING(TAG_WIFI, F(D_SERVICE_STOPPED));
 }
 
 void wifi_get_statusupdate(char * buffer, size_t len)
 {
-#if defined(STM32F4xx)
+    #if defined(STM32F4xx)
     IPAddress ip;
     ip = WiFi.localIP();
     char espIp[16];
     memset(espIp, 0, sizeof(espIp));
     snprintf_P(buffer, len, PSTR("\"ssid\":\"%s\",\"rssi\":%i,\"ip\":\"%d.%d.%d.%d\","), WiFi.SSID(), WiFi.RSSI(),
                ip[0], ip[1], ip[2], ip[3]);
-#else
+    #else
     snprintf_P(buffer, len, PSTR("\"ssid\":\"%s\",\"rssi\":%i,\"ip\":\"%s\","), WiFi.SSID().c_str(), WiFi.RSSI(),
                WiFi.localIP().toString().c_str());
-#endif
+    #endif
 }
 
-/* ============ Confiuration =============================================================== */
-#if HASP_USE_CONFIG > 0
+    /* ============ Confiuration =============================================================== */
+    #if HASP_USE_CONFIG > 0
 bool wifiGetConfig(const JsonObject & settings)
 {
     bool changed = false;
@@ -550,6 +551,6 @@ bool wifiSetConfig(const JsonObject & settings)
 
     return changed;
 }
-#endif // HASP_USE_CONFIG
+    #endif // HASP_USE_CONFIG
 
 #endif
