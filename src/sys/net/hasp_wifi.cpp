@@ -345,6 +345,7 @@ bool wifiShowAP(char* ssid, char* pass)
 
     LOG_WARNING(TAG_WIFI, F("Temporary Access Point %s password: %s"), ssid, pass);
     LOG_WARNING(TAG_WIFI, F("AP IP address : %s"), WiFi.softAPIP().toString().c_str());
+    networkStart();
 // httpReconnect();}
 #endif
     return true;
@@ -352,14 +353,18 @@ bool wifiShowAP(char* ssid, char* pass)
 
 static void wifiReconnect(void)
 {
-    WiFi.disconnect(true);
 #if defined(ARDUINO_ARCH_ESP8266)
+    WiFi.disconnect(true);
+    WiFi.begin(wifiSsid, wifiPassword);
     WiFi.hostname(haspDevice.get_hostname());
+
 #elif defined(ARDUINO_ARCH_ESP32)
+    // https://github.com/espressif/arduino-esp32/issues/3438#issuecomment-721428310
+    WiFi.disconnect(true);
+    WiFi.begin(wifiSsid, wifiPassword);
     WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE);
     WiFi.setHostname(haspDevice.get_hostname());
 #endif
-    WiFi.begin(wifiSsid, wifiPassword);
 }
 
 /* ============ Setup, Loop, Start, Stop =================================================== */
