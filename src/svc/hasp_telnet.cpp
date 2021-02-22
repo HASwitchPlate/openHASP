@@ -85,7 +85,7 @@ void telnetAcceptClient()
 
     #if HASP_USE_HTTP > 0
     if(strlen(httpUser) != 0 || strlen(httpPassword) != 0) {
-        telnetClient.println(F("\r\n" D_TELNET_USERNAME " "));
+        telnetClient.println(F("\r\n" D_USERNAME " "));
         telnetLoginState = TELNET_UNAUTHENTICATED;
     } else
     #endif
@@ -186,7 +186,7 @@ static inline void telnetProcessLine(const char * input)
     switch(telnetLoginState) {
         case TELNET_UNAUTHENTICATED: {
             char buffer[20];
-            snprintf_P(buffer, sizeof(buffer), PSTR(D_TELNET_PASSWORD " %c%c%c\n"), 0xFF, 0xFB,
+            snprintf_P(buffer, sizeof(buffer), PSTR(D_PASSWORD " %c%c%c\n"), 0xFF, 0xFB,
                        0x01); // Hide characters
             telnetClient.print(buffer);
     #if HASP_USE_HTTP > 0
@@ -206,7 +206,7 @@ static inline void telnetProcessLine(const char * input)
                 if(telnetLoginAttempt >= 3) {
                     telnetClientDisconnect();
                 } else {
-                    telnetClient.print(F(D_TELNET_USERNAME " "));
+                    telnetClient.print(F(D_USERNAME " "));
                 }
             }
     #else
@@ -218,7 +218,7 @@ static inline void telnetProcessLine(const char * input)
             if(strcasecmp_P(input, PSTR("exit")) == 0) {
                 telnetClientDisconnect();
             } else if(strcasecmp_P(input, PSTR("logoff")) == 0) {
-                telnetClient.println(F("\r\n" D_TELNET_USERNAME " "));
+                telnetClient.println(F("\r\n" D_USERNAME " "));
                 telnetLoginState = TELNET_UNAUTHENTICATED;
             } else {
                 dispatch_text_line(input);
