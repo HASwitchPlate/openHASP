@@ -1942,7 +1942,7 @@ void httpSetup()
     if(WiFi.getMode() != WIFI_STA) {
         LOG_TRACE(TAG_HTTP, F("Wifi access point"));
         webServer.on(F("/"), webHandleWifiConfig);
-        webServer.on(F("/config"), webHandleWifiConfig);
+        webServer.on(F("/config"), webHandleConfig);
         return;
     }
 
