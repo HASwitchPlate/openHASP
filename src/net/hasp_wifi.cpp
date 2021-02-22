@@ -345,6 +345,7 @@ bool wifiShowAP(char * ssid, char * pass)
 
     LOG_WARNING(TAG_WIFI, F("Temporary Access Point %s password: %s"), ssid, pass);
     LOG_WARNING(TAG_WIFI, F("AP IP address : %s"), WiFi.softAPIP().toString().c_str());
+    networkStart();
     // httpReconnect();}
     #endif
     return true;
