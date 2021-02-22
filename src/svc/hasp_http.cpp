@@ -118,7 +118,6 @@ extern char mqttNodeName[16];
 char mqttNodeName[3] = "na";
     #endif
 
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 String getOption(int value, String label, bool selected)
 {
@@ -187,7 +186,7 @@ bool httpIsAuthenticated(const __FlashStringHelper * fstr_page)
 
     #if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
     LOG_TRACE(TAG_HTTP, F("Sending %S page to client connected from: %s"), fstr_page,
-               webServer.client().remoteIP().toString().c_str());
+              webServer.client().remoteIP().toString().c_str());
     #else
         // LOG_INFO(TAG_HTTP,F("Sending %s page to client connected from: %s"), page,
         //             String(webServer.client().remoteIP()).c_str());
@@ -1129,7 +1128,8 @@ void webHandleMqttConfig()
             F("'><p><button type='submit' name='save' value='mqtt'>" D_HTTP_SAVE_SETTINGS "</button></form></p>");
 
         add_form_button(httpMessage, F("&#8617; " D_HTTP_CONFIGURATION), F("/config"), F(""));
-        // httpMessage += PSTR("<p><form method='get' action='/config'><button type='submit'>&#8617; " D_HTTP_CONFIGURATION
+        // httpMessage += PSTR("<p><form method='get' action='/config'><button type='submit'>&#8617; "
+        // D_HTTP_CONFIGURATION
         //                     "</button></form></p>");
 
         webSendPage(httpGetNodename(), httpMessage.length(), false);
@@ -1753,7 +1753,7 @@ void httpHandleNotFound()
 
     #if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
     LOG_TRACE(TAG_HTTP, F("Sending 404 to client connected from: %s"),
-               webServer.client().remoteIP().toString().c_str());
+              webServer.client().remoteIP().toString().c_str());
     #else
   // LOG_TRACE(TAG_HTTP,F("Sending 404 to client connected from: %s"), String(webServer.client().remoteIP()).c_str());
     #endif
@@ -1901,7 +1901,7 @@ void httpStart()
     LOG_INFO(TAG_HTTP, F(D_SERVICE_STARTED " @ http://%d.%d.%d.%d"), ip[0], ip[1], ip[2], ip[3]);
         #else
     LOG_INFO(TAG_HTTP, F(D_SERVICE_STARTED " @ http://%s"),
-              (WiFi.getMode() != WIFI_STA ? WiFi.softAPIP().toString().c_str() : WiFi.localIP().toString().c_str()));
+             (WiFi.getMode() != WIFI_STA ? WiFi.softAPIP().toString().c_str() : WiFi.localIP().toString().c_str()));
         #endif
     #else
     IPAddress ip;
@@ -1942,6 +1942,7 @@ void httpSetup()
     if(WiFi.getMode() != WIFI_STA) {
         LOG_TRACE(TAG_HTTP, F("Wifi access point"));
         webServer.on(F("/"), webHandleWifiConfig);
+        webServer.on(F("/config"), webHandleWifiConfig);
         return;
     }
 
