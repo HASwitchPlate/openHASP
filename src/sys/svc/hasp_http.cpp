@@ -1940,7 +1940,7 @@ void httpSetup()
 
     // These two endpoints are needed in STA and AP mode
     webServer.on(F("/"), webHandleWifiConfig);
-    webServer.on(F("/config"), webHandleWifiConfig);
+    webServer.on(F("/config"), webHandleConfig);
 
 #if !defined(STM32F4xx)
 
