@@ -1937,19 +1937,24 @@ void httpSetup()
     webServer.onNotFound(httpHandleNotFound);
 
 #if HASP_USE_WIFI > 0
+
+    // These two endpoints are needed in STA and AP mode
+    webServer.on(F("/"), webHandleWifiConfig);
+    webServer.on(F("/config"), webHandleWifiConfig);
+
 #if !defined(STM32F4xx)
 
 #if HASP_USE_CONFIG > 0
     if(WiFi.getMode() != WIFI_STA) {
         LOG_TRACE(TAG_HTTP, F("Wifi access point"));
-        webServer.on(F("/"), webHandleWifiConfig);
         return;
     }
 
-#endif
-#endif
-#endif
+#endif // HASP_USE_CONFIG
+#endif // !STM32F4xx
+#endif // HASP_USE_WIFI
 
+    // The following endpoints are only needed in STA mode
     webServer.on(F("/page/"), []() {
         String pageid = webServer.arg(F("page"));
         webServer.send(200, PSTR("text/plain"), "Page: '" + pageid + "'");
@@ -1979,7 +1984,6 @@ void httpSetup()
         handleFileUpload);
 #endif
 
-    webServer.on(F("/"), webHandleRoot);
     webServer.on(F("/info"), webHandleInfo);
     webServer.on(F("/screenshot"), webHandleScreenshot);
     webServer.on(F("/firmware"), webHandleFirmware);
@@ -2002,7 +2006,6 @@ void httpSetup()
 #endif
     webServer.on(F("/saveConfig"), webHandleSaveConfig);
     webServer.on(F("/resetConfig"), httpHandleResetConfig);
-    webServer.on(F("/config"), webHandleConfig);
 #endif // HASP_USE_CONFIG
 
 #if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
