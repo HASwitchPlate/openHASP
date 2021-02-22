@@ -800,7 +800,7 @@ void dispatch_moodlight(const char* topic, const char* payload)
             dispatch_json_error(TAG_MSGR, jsonError);
         } else {
 
-            if(!json[F("power")].isNull()) moodlight.power = Utilities::is_true(json[F("power")].as<const char*>());
+            if(!json[F("state")].isNull()) moodlight.power = Utilities::is_true(json[F("state")].as<const char*>());
 
             if(!json[F("r")].isNull()) moodlight.r = json[F("r")].as<uint8_t>();
             if(!json[F("g")].isNull()) moodlight.r = json[F("g")].as<uint8_t>();
@@ -826,9 +826,10 @@ void dispatch_moodlight(const char* topic, const char* payload)
 
     // Return the current state
     char buffer[128];
-    snprintf_P(buffer, sizeof(buffer),
-               PSTR("{\"power\":\"%u\",\"color\":\"#%02x%02x%02x\",\"r\":%u,\"g\":%u,\"b\":%u}"), moodlight.power,
-               moodlight.r, moodlight.g, moodlight.b, moodlight.r, moodlight.g, moodlight.b);
+    snprintf_P(
+        // buffer, sizeof(buffer), PSTR("{\"state\":\"%s\",\"color\":\"#%02x%02x%02x\",\"r\":%u,\"g\":%u,\"b\":%u}"),
+        buffer, sizeof(buffer), PSTR("{\"state\":\"%s\",\"color\":[%u,%u,%u]}"), moodlight.power ? "ON" : "OFF",
+        moodlight.r, moodlight.g, moodlight.b);
     dispatch_state_msg(F("moodlight"), buffer);
 }
 
