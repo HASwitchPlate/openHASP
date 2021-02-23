@@ -119,6 +119,11 @@ uint16_t Win32Device::get_cpu_frequency()
     return 0;
 }
 
+bool Win32Device::is_system_pin(uint8_t pin)
+{
+    return false;
+}
+
 } // namespace dev
 
 dev::Win32Device haspDevice;

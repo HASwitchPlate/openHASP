@@ -77,6 +77,10 @@ class BaseDevice {
     {
         return 0;
     }
+    virtual bool is_system_pin(uint8_t pin)
+    {
+        return false;
+    }
 };
 
 } // namespace dev

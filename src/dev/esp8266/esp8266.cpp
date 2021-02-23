@@ -109,6 +109,13 @@ uint16_t Esp8266Device::get_cpu_frequency()
     return ESP.getCpuFreqMHz();
 }
 
+bool Esp8266Device::is_system_pin(uint8_t pin)
+{
+    if((pin >= 6) && (pin <= 11)) return true;  // integrated SPI flash
+    if((pin >= 12) && (pin <= 14)) return true; // HSPI
+    return false;
+}
+
 } // namespace dev
 
 dev::Esp8266Device haspDevice;

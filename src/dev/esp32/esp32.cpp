@@ -122,6 +122,16 @@ uint16_t Esp32Device::get_cpu_frequency()
     return ESP.getCpuFreqMHz();
 }
 
+bool Esp32Device::is_system_pin(uint8_t pin)
+{
+    if((pin >= 6) && (pin <= 11)) return true;  // integrated SPI flash
+    if((pin == 37) || (pin == 38)) return true; // unavailable
+    if(psramFound()) {
+        if((pin == 16) || (pin == 17)) return true; // PSRAM
+    }
+    return false;
+}
+
 } // namespace dev
 
 #if defined(LANBONL8)

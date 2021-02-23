@@ -41,6 +41,8 @@ class Esp8266Device : public BaseDevice {
     uint8_t get_heap_fragmentation() override;
     uint16_t get_cpu_frequency() override;
 
+    bool is_system_pin(uint8_t pin) override;
+
   private:
     std::string _hostname;
 
