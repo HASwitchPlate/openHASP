@@ -30,8 +30,6 @@ static EthernetServer telnetServer(23);
 #endif
 
 #if HASP_USE_HTTP > 0
-// extern char http_config.user[32];
-// extern char http_config.password[32];
 extern hasp_http_config_t http_config;
 #endif
 
