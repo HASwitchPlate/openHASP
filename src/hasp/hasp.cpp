@@ -272,7 +272,7 @@ void haspProgressVal(uint8_t val)
             }
             lv_bar_set_value(bar, val, LV_ANIM_OFF);
         }
-        // lv_task_handler(); /* let the GUI do its work */
+        lv_task_handler(); // needed to let the GUI do its work during long updates
     }
 }
 
@@ -287,7 +287,7 @@ void haspProgressMsg(const char* msg)
         hasp_process_obj_attribute(bar, value_str, msg, true);
     }
 
-    // lv_task_handler(); /* let the GUI do its work */
+    lv_task_handler(); // needed to let the GUI do its work during long updates
 
     /* if(bar) {
          progress_str.reserve(64);
