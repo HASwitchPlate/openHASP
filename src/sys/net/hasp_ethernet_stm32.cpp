@@ -1,4 +1,4 @@
-/* MIT License - Copyright (c) 2020 Francis Van Roie
+/* MIT License - Copyright (c) 2019-2021 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
 #include "hasp_conf.h"
@@ -13,9 +13,9 @@ IPAddress ip;
 
 void ethernetSetup()
 {
-    #if USE_BUILTIN_ETHERNET > 0
+#if USE_BUILTIN_ETHERNET > 0
     // start Ethernet and UDP
-    LOG_TRACE(TAG_ETH, F("LAN8720 "D_SERVICE_STARTING));
+    LOG_TRACE(TAG_ETH, F("LAN8720 " D_SERVICE_STARTING));
     if(Ethernet.begin() == 0) {
         LOG_TRACE(TAG_ETH, F("Failed to configure Ethernet using DHCP"));
         eth_connected = false;
@@ -27,7 +27,7 @@ void ethernetSetup()
 
     LOG_TRACE(TAG_ETH, F("MAC Address %s"), halGetMacAddress(0, ":"));
 
-    #else
+#else
     byte mac[6];
     uint32_t baseUID = (uint32_t)UID_BASE;
     mac[0]           = 0x00;
@@ -44,14 +44,14 @@ void ethernetSetup()
     Ethernet.setCsPin(W5500_CS);
     Ethernet.setRstPin(W5500_RST);
     Ethernet.setHostname(ethHostname);
-    LOG_TRACE(TAG_ETH, F("W5500 "D_SERVICE_STARTING));
+    LOG_TRACE(TAG_ETH, F("W5500 " D_SERVICE_STARTING));
     if(Ethernet.begin(mac) == 0) {
         LOG_TRACE(TAG_ETH, F("Failed to configure Ethernet using DHCP"));
     } else {
         ip = Ethernet.localIP();
         LOG_TRACE(TAG_ETH, F("DHCP Success got IP %d.%d.%d.%d"), ip[0], ip[1], ip[2], ip[3]);
     }
-    #endif
+#endif
 }
 
 void ethernetLoop(void)
@@ -88,22 +88,22 @@ void ethernetLoop(void)
 bool ethernetEvery5Seconds()
 {
     bool state;
-    #if USE_BUILTIN_ETHERNET > 0
+#if USE_BUILTIN_ETHERNET > 0
     state = Ethernet.linkStatus() == LinkON;
-    #else
+#else
     state      = Ethernet.link() == 1;
-    #endif
+#endif
     LOG_WARNING(TAG_ETH, state ? F(D_NETWORK_ONLINE) : F(D_NETWORK_OFFLINE));
     return state;
 }
 
-void ethernet_get_statusupdate(char * buffer, size_t len)
+void ethernet_get_statusupdate(char* buffer, size_t len)
 {
-    #if USE_BUILTIN_ETHERNET > 0
+#if USE_BUILTIN_ETHERNET > 0
     bool state = Ethernet.linkStatus() == LinkON;
-    #else
+#else
     bool state = Ethernet.link() == 1;
-    #endif
+#endif
 
     IPAddress ip = Ethernet.localIP();
     snprintf_P(buffer, len, PSTR("\"eth\":\"%s\",\"link\":%d,\"ip\":\"%d.%d.%d.%d\","), state ? F("ON") : F("OFF"), 10,

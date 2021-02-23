@@ -1,14 +1,14 @@
-/* MIT License - Copyright (c) 2020 Francis Van Roie
+/* MIT License - Copyright (c) 2019-2021 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
 #if HASP_USE_CONFIG > 0
 
-    #ifndef HASP_CONFIG_H
-        #define HASP_CONFIG_H
+#ifndef HASP_CONFIG_H
+#define HASP_CONFIG_H
 
-        #include "hasp_conf.h"
-        #include "ArduinoJson.h"
-        #include "hasp_debug.h" // for TAG_CONF
+#include "hasp_conf.h"
+#include "ArduinoJson.h"
+#include "hasp_debug.h" // for TAG_CONF
 
 /* ===== Default Event Processors ===== */
 void configSetup(void);
@@ -19,17 +19,17 @@ void configStop(void);
 
 /* ===== Special Event Processors ===== */
 void configWrite(void);
-void configOutput(const JsonObject & settings, uint8_t tag = TAG_CONF);
+void configOutput(const JsonObject& settings, uint8_t tag = TAG_CONF);
 bool configClearEeprom(void);
 
 /* ===== Getter and Setter Functions ===== */
-bool configSet(int8_t & value, const JsonVariant & setting, const __FlashStringHelper * fstr_name);
-bool configSet(uint8_t & value, const JsonVariant & setting, const __FlashStringHelper * fstr_name);
-bool configSet(uint16_t & value, const JsonVariant & setting, const __FlashStringHelper * fstr_name);
+bool configSet(int8_t& value, const JsonVariant& setting, const __FlashStringHelper* fstr_name);
+bool configSet(uint8_t& value, const JsonVariant& setting, const __FlashStringHelper* fstr_name);
+bool configSet(uint16_t& value, const JsonVariant& setting, const __FlashStringHelper* fstr_name);
 
 /* ===== Read/Write Configuration ===== */
-void configSetConfig(JsonObject & settings);
-void configGetConfig(JsonDocument & settings);
+void configSetConfig(JsonObject& settings);
+void configGetConfig(JsonDocument& settings);
 
 /* json keys used in the configfile */
 const char FP_CONFIG_STARTPAGE[] PROGMEM = "startpage";
@@ -71,6 +71,6 @@ const char FP_HASP[] PROGMEM  = "hasp";
 const char FP_GUI[] PROGMEM   = "gui";
 const char FP_DEBUG[] PROGMEM = "debug";
 
-    #endif
+#endif
 
 #endif // HASP_USE_CONFIG

@@ -1,4 +1,4 @@
-/* MIT License - Copyright (c) 2020 Francis Van Roie
+/* MIT License - Copyright (c) 2019-2021 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
 #ifndef HASP_ATTR_SET_H
@@ -6,7 +6,7 @@
 
 #include "lvgl.h"
 #if LVGL_VERSION_MAJOR != 7
-    #include "../lv_components.h"
+#include "../lv_components.h"
 #endif
 
 #include "hasp_conf.h"
@@ -18,14 +18,14 @@ extern "C" {
 #endif
 
 // test
-lv_chart_series_t * my_chart_get_series(lv_obj_t * chart, uint8_t ser_num);
-void my_obj_set_value_str_txt(lv_obj_t * obj, uint8_t part, lv_state_t state, const char * text);
+lv_chart_series_t* my_chart_get_series(lv_obj_t* chart, uint8_t ser_num);
+void my_obj_set_value_str_txt(lv_obj_t* obj, uint8_t part, lv_state_t state, const char* text);
 
-void my_btnmatrix_map_clear(lv_obj_t * obj);
-void line_clear_points(lv_obj_t * obj);
+void my_btnmatrix_map_clear(lv_obj_t* obj);
+void line_clear_points(lv_obj_t* obj);
 
-void hasp_process_obj_attribute(lv_obj_t * obj, const char * attr_p, const char * payload, bool update);
-bool hasp_process_obj_attribute_val(lv_obj_t * obj, const char * attr, const char * payload, bool update);
+void hasp_process_obj_attribute(lv_obj_t* obj, const char* attr_p, const char* payload, bool update);
+bool hasp_process_obj_attribute_val(lv_obj_t* obj, const char* attr, const char* payload, bool update);
 
 #ifdef __cplusplus
 } /* extern "C" */
@@ -37,8 +37,8 @@ bool hasp_process_obj_attribute_val(lv_obj_t * obj, const char * attr, const cha
 #define hasp_out_color hasp_send_obj_attribute_color
 
 #define _HASP_ATTRIBUTE(prop_name, func_name, value_type)                                                              \
-    static inline void attribute_##func_name(lv_obj_t * obj, uint8_t part, lv_state_t state, bool update,              \
-                                             const char * attr, value_type val)                                        \
+    static inline void attribute_##func_name(lv_obj_t* obj, uint8_t part, lv_state_t state, bool update,               \
+                                             const char* attr, value_type val)                                         \
     {                                                                                                                  \
         if(update) {                                                                                                   \
             return lv_obj_set_style_local_##func_name(obj, part, state, (value_type)val);                              \

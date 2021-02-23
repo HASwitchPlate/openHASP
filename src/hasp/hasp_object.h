@@ -1,4 +1,4 @@
-/* MIT License - Copyright (c) 2020 Francis Van Roie
+/* MIT License - Copyright (c) 2019-2021 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
 #ifndef HASP_OBJECT_H
@@ -60,27 +60,27 @@ enum lv_hasp_obj_type_t {
     LV_HASP_MASK   = 63, // placeholder
 };
 
-void hasp_new_object(const JsonObject & config, uint8_t & saved_page_id);
+void hasp_new_object(const JsonObject& config, uint8_t& saved_page_id);
 
-lv_obj_t * hasp_find_obj_from_parent_id(lv_obj_t * parent, uint8_t objid);
+lv_obj_t* hasp_find_obj_from_parent_id(lv_obj_t* parent, uint8_t objid);
 // lv_obj_t * hasp_find_obj_from_page_id(uint8_t pageid, uint8_t objid);
-bool hasp_find_id_from_obj(lv_obj_t * obj, uint8_t * pageid, uint8_t * objid);
+bool hasp_find_id_from_obj(lv_obj_t* obj, uint8_t* pageid, uint8_t* objid);
 // bool check_obj_type_str(const char * lvobjtype, lv_hasp_obj_type_t haspobjtype);
-bool check_obj_type(lv_obj_t * obj, lv_hasp_obj_type_t haspobjtype);
-void hasp_object_tree(lv_obj_t * parent, uint8_t pageid, uint16_t level);
-void hasp_object_delete(lv_obj_t * obj);
+bool check_obj_type(lv_obj_t* obj, lv_hasp_obj_type_t haspobjtype);
+void hasp_object_tree(lv_obj_t* parent, uint8_t pageid, uint16_t level);
+void hasp_object_delete(lv_obj_t* obj);
 
-void hasp_send_obj_attribute_str(lv_obj_t * obj, const char * attribute, const char * data);
-void hasp_send_obj_attribute_int(lv_obj_t * obj, const char * attribute, int32_t val);
-void hasp_send_obj_attribute_color(lv_obj_t * obj, const char * attribute, lv_color_t color);
-void hasp_process_attribute(uint8_t pageid, uint8_t objid, const char * attr, const char * payload);
+void hasp_send_obj_attribute_str(lv_obj_t* obj, const char* attribute, const char* data);
+void hasp_send_obj_attribute_int(lv_obj_t* obj, const char* attribute, int32_t val);
+void hasp_send_obj_attribute_color(lv_obj_t* obj, const char* attribute, lv_color_t color);
+void hasp_process_attribute(uint8_t pageid, uint8_t objid, const char* attr, const char* payload);
 
-void object_set_group_state(uint8_t groupid, uint8_t eventid, lv_obj_t * src_obj);
+void object_set_group_state(uint8_t groupid, uint8_t eventid, lv_obj_t* src_obj);
 
-void generic_event_handler(lv_obj_t * obj, lv_event_t event);
-void toggle_event_handler(lv_obj_t * obj, lv_event_t event);
-void slider_event_handler(lv_obj_t * obj, lv_event_t event);
-void wakeup_event_handler(lv_obj_t * obj, lv_event_t event);
+void generic_event_handler(lv_obj_t* obj, lv_event_t event);
+void toggle_event_handler(lv_obj_t* obj, lv_event_t event);
+void slider_event_handler(lv_obj_t* obj, lv_event_t event);
+void wakeup_event_handler(lv_obj_t* obj, lv_event_t event);
 
 #define HASP_OBJ_BAR 1971
 #define HASP_OBJ_BTN 3164

@@ -1,4 +1,4 @@
-/* MIT License - Copyright (c) 2020 Francis Van Roie
+/* MIT License - Copyright (c) 2019-2021 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
 #ifndef HASP_DRV_FT5206_H
@@ -10,7 +10,7 @@
 
 #include "hasp_debug.h" // for TAG_DRVR
 
-bool FT5206_getXY(int16_t * touchX, int16_t * touchY, bool debug);
+bool FT5206_getXY(int16_t* touchX, int16_t* touchY, bool debug);
 void FT5206_init();
 
 #endif

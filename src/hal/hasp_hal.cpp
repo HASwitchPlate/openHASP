@@ -1,4 +1,4 @@
-/* MIT License - Copyright (c) 2020 Francis Van Roie
+/* MIT License - Copyright (c) 2019-2021 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
 #include "hasp_hal.h"
@@ -26,7 +26,7 @@ String esp32ResetReason(uint8_t cpuid)
     }
     RESET_REASON reason = rtc_get_reset_reason(cpuid);
 
-    String resetReason((char *)0);
+    String resetReason((char*)0);
     resetReason.reserve(128);
 
     resetReason += F("CPU");
@@ -102,7 +102,7 @@ void halRestartMcu(void)
 String halGetResetInfo()
 {
 #if defined(ARDUINO_ARCH_ESP32)
-    String resetReason((char *)0);
+    String resetReason((char*)0);
     resetReason.reserve(128);
 
     resetReason += String(esp32ResetReason(0));
@@ -129,7 +129,7 @@ String halGetCoreVersion()
 
 String halGetChipModel()
 {
-    String model((char *)0);
+    String model((char*)0);
     model.reserve(128);
 
 #if defined(STM32F4xx)
@@ -181,7 +181,7 @@ int freeHighMemory()
 {
     char top;
 #ifdef __arm__
-    return &top - reinterpret_cast<char *>(sbrk(0));
+    return &top - reinterpret_cast<char*>(sbrk(0));
 #elif defined(CORE_TEENSY) || (ARDUINO > 103 && ARDUINO != 151)
     return &top - __brkval;
 #else  // __arm__
@@ -254,12 +254,12 @@ uint8_t halGetHeapFragmentation()
 #endif
 }
 
-String halGetMacAddress(int start, const char * seperator)
+String halGetMacAddress(int start, const char* seperator)
 {
     byte mac[6];
 
 #if defined(STM32F4xx)
-    uint8_t * mac_p = nullptr;
+    uint8_t* mac_p = nullptr;
 #if HASP_USE_ETHERNET > 0
 #if USE_BUILTIN_ETHERNET > 0
     mac_p = Ethernet.MACAddress();
@@ -272,7 +272,7 @@ String halGetMacAddress(int start, const char * seperator)
     WiFi.macAddress(mac);
 #endif
 
-    String cMac((char *)0);
+    String cMac((char*)0);
     cMac.reserve(32);
 
     for(int i = start; i < 6; ++i) {

@@ -1,4 +1,4 @@
-/* MIT License - Copyright (c) 2020 Francis Van Roie
+/* MIT License - Copyright (c) 2019-2021 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
 #include <cstdlib>
@@ -13,13 +13,13 @@
 #include "hasp_parser.h"
 #include "hasp_utilities.h"
 
-bool Parser::haspPayloadToColor(const char * payload, lv_color32_t & color)
+bool Parser::haspPayloadToColor(const char* payload, lv_color32_t& color)
 {
     /* HEX format #rrggbb or #rgb */
     if(*payload == '#') {
         if(strlen(payload) >= 8) return false;
 
-        char * pEnd;
+        char* pEnd;
         long color_int = strtol(payload + 1, &pEnd, HEX);
 
         if(pEnd - payload == 7) { // #rrbbgg

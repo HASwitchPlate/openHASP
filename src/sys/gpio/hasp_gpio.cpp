@@ -1,4 +1,4 @@
-/* MIT License - Copyright (c) 2020 Francis Van Roie
+/* MIT License - Copyright (c) 2019-2021 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
 #include "AceButton.h"
@@ -12,13 +12,13 @@
 #include "hasp/hasp.h"
 
 #ifdef ARDUINO_ARCH_ESP8266
-    #define INPUT_PULLDOWN INPUT
+#define INPUT_PULLDOWN INPUT
 #endif
 
 uint8_t gpioUsedInputCount = 0;
 
 using namespace ace_button;
-static AceButton * button[HASP_NUM_INPUTS];
+static AceButton* button[HASP_NUM_INPUTS];
 
 // An array of button pins, led pins, and the led states. Cannot be const
 // because ledState is mutable.
@@ -49,7 +49,7 @@ class TouchConfig : public ButtonConfig {
 TouchConfig touchConfig();
 #endif
 
-static void gpio_event_handler(AceButton * button, uint8_t eventType, uint8_t buttonState)
+static void gpio_event_handler(AceButton* button, uint8_t eventType, uint8_t buttonState)
 {
     uint8_t btnid = button->getId();
     uint8_t eventid;
@@ -95,7 +95,7 @@ static void gpio_event_handler(AceButton * button, uint8_t eventType, uint8_t bu
 
 void aceButtonSetup(void)
 {
-    ButtonConfig * buttonConfig = ButtonConfig::getSystemButtonConfig();
+    ButtonConfig* buttonConfig = ButtonConfig::getSystemButtonConfig();
     buttonConfig->setEventHandler(gpio_event_handler);
 
     // Features
@@ -128,14 +128,14 @@ void gpioAddButton(uint8_t pin, uint8_t input_mode, uint8_t default_state, uint8
 
         if(!button[i]) {
             LOG_TRACE(TAG_GPIO, F("Creating Button%d on pin %d (index %d) mode %d default %d"), i, pin, index,
-                       input_mode, default_state);
+                      input_mode, default_state);
 
             button[i] = new AceButton(pin, default_state, index);
 
             if(button[i]) {
                 // pinMode(pin, input_mode);
 
-                ButtonConfig * buttonConfig = button[i]->getButtonConfig();
+                ButtonConfig* buttonConfig = button[i]->getButtonConfig();
                 buttonConfig->setEventHandler(gpio_event_handler);
                 buttonConfig->setFeature(ButtonConfig::kFeatureClick);
                 buttonConfig->clearFeature(ButtonConfig::kFeatureDoubleClick);
@@ -146,7 +146,7 @@ void gpioAddButton(uint8_t pin, uint8_t input_mode, uint8_t default_state, uint8
                 buttonConfig->setFeature(ButtonConfig::kFeatureSuppressAfterClick);
 
                 LOG_INFO(TAG_GPIO, F("Button%d created on pin %d (index %d) mode %d default %d"), i, pin, index,
-                          input_mode, default_state);
+                         input_mode, default_state);
                 gpioUsedInputCount = i + 1;
                 return;
             }
@@ -163,19 +163,19 @@ void gpioAddSwitch(uint8_t pin, uint8_t input_mode, uint8_t default_state, uint8
 
         if(!button[i]) {
             LOG_TRACE(TAG_GPIO, F("Creating Switch%d on pin %d (index %d) mode %d default %d"), i, pin, index,
-                       input_mode, default_state);
+                      input_mode, default_state);
 
             button[i] = new AceButton(pin, default_state, index);
 
             if(button[i]) {
                 // pinMode(pin, input_mode);
 
-                ButtonConfig * buttonConfig = button[i]->getButtonConfig();
+                ButtonConfig* buttonConfig = button[i]->getButtonConfig();
                 buttonConfig->setEventHandler(gpio_event_handler);
                 buttonConfig->setFeature(ButtonConfig::kFeatureSuppressAll);
 
                 LOG_INFO(TAG_GPIO, F("Button%d switch on pin %d (index %d) mode %d default %d"), i, pin, index,
-                          input_mode, default_state);
+                         input_mode, default_state);
                 gpioUsedInputCount = i + 1;
                 return;
             }
@@ -196,7 +196,7 @@ void gpioAddTouchButton(uint8_t pin, uint8_t input_mode, uint8_t default_state, 
             if(button[i]) {
                 pinMode(pin, input_mode);
 
-                ButtonConfig * buttonConfig = button[i]->getButtonConfig();
+                ButtonConfig* buttonConfig = button[i]->getButtonConfig();
                 buttonConfig->setEventHandler(gpio_event_handler);
                 buttonConfig->setFeature(ButtonConfig::kFeatureClick);
                 buttonConfig->clearFeature(ButtonConfig::kFeatureDoubleClick);
@@ -206,7 +206,7 @@ void gpioAddTouchButton(uint8_t pin, uint8_t input_mode, uint8_t default_state, 
                     ButtonConfig::kFeatureSuppressClickBeforeDoubleClick); // Causes annoying pauses
 
                 LOG_INFO(TAG_GPIO, F("Button%d created on pin %d (index %d) mode %d default %d"), i, pin, index,
-                          input_mode, default_state);
+                         input_mode, default_state);
                 gpioUsedInputCount = i + 1;
                 return;
             }
@@ -472,9 +472,9 @@ bool gpioIsSystemPin(uint8_t gpio)
 
 #ifdef ARDUINO_ARCH_ESP8266
     if((gpio >= 6) && (gpio <= 11)) return true; // integrated SPI flash
-    #ifndef TFT_SPI_OVERLAP
+#ifndef TFT_SPI_OVERLAP
     if((gpio >= 12) && (gpio <= 14)) return true; // HSPI
-    #endif
+#endif
 #endif
 
     return false;
@@ -505,7 +505,7 @@ bool gpioSavePinConfig(uint8_t config_num, uint8_t pin, uint8_t type, uint8_t gr
         gpioConfig[config_num].group         = group;
         gpioConfig[config_num].gpio_function = pinfunc;
         LOG_TRACE(TAG_GPIO, F("Saving Pin config #%d pin %d - type %d - group %d - func %d"), config_num, pin, type,
-                   group, pinfunc);
+                  group, pinfunc);
         return true;
     }
 
@@ -535,7 +535,7 @@ hasp_gpio_config_t gpioGetPinConfig(uint8_t num)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 #if HASP_USE_CONFIG > 0
-bool gpioGetConfig(const JsonObject & settings)
+bool gpioGetConfig(const JsonObject& settings)
 {
     bool changed = false;
 
@@ -579,7 +579,7 @@ bool gpioGetConfig(const JsonObject & settings)
  *
  * @param[in] settings    JsonObject with the config settings.
  **/
-bool gpioSetConfig(const JsonObject & settings)
+bool gpioSetConfig(const JsonObject& settings)
 {
     configOutput(settings);
     bool changed = false;

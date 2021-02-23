@@ -1,4 +1,4 @@
-/* MIT License - Copyright (c) 2020 Francis Van Roie
+/* MIT License - Copyright (c) 2019-2021 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
 #include "hasp_conf.h"
@@ -25,7 +25,7 @@ unsigned long updatLedPeriod = 1000; // timer in msec for tele mqtt send
 
 bool ledstate = false;
 
-void slave_send_state(const __FlashStringHelper * subtopic, const char * payload)
+void slave_send_state(const __FlashStringHelper* subtopic, const char* payload)
 {
     // page = 0
     // p[0].b[0].attr = abc
@@ -37,32 +37,32 @@ void slave_send_state(const __FlashStringHelper * subtopic, const char * payload
     char cBuffer[strlen(payload) + 64];
     memset(cBuffer, 0, sizeof(cBuffer));
     snprintf_P(cBuffer, sizeof(cBuffer), PSTR("publish %sstate/%s %s"), slaveNodeTopic, subtopic, payload);
-    slave.ExecuteCommand((char *)cBuffer);
+    slave.ExecuteCommand((char*)cBuffer);
 
     // Log after char buffers are cleared
     LOG_TRACE(TAG_TASM, F("TAS PUB: %sstate/%S = %s"), slaveNodeTopic, subtopic, payload);
 }
 
-void slave_send_obj_attribute_str(uint8_t pageid, uint8_t btnid, const char * attribute, const char * data)
+void slave_send_obj_attribute_str(uint8_t pageid, uint8_t btnid, const char* attribute, const char* data)
 {
     char cBuffer[192];
     memset(cBuffer, 0, sizeof(cBuffer));
     snprintf_P(cBuffer, sizeof(cBuffer), PSTR("publish %sstate/json {\"p[%u].b[%u].%s\":\"%s\"}"), slaveNodeTopic,
                pageid, btnid, attribute, data);
-    slave.ExecuteCommand((char *)cBuffer);
+    slave.ExecuteCommand((char*)cBuffer);
     // Log after char buffers are cleared
     LOG_TRACE(TAG_TASM, F("TAS PUB: %sstate/json = {\"p[%u].b[%u].%s\":\"%s\"}"), slaveNodeTopic, pageid, btnid,
               attribute, data);
 }
 
-void slave_send_input(uint8_t id, const char * payload)
+void slave_send_input(uint8_t id, const char* payload)
 {
     // LOG_VERBOSE(TAG_TASM,F("MQTT TST: %sstate/input%u = %s"), mqttNodeTopic, id, payload); // to be removed
 
     char cBuffer[strlen(payload) + 64];
     memset(cBuffer, 0, sizeof(cBuffer));
     snprintf_P(cBuffer, sizeof(cBuffer), PSTR("publish %sstate/input%u %s"), slaveNodeTopic, id, payload);
-    slave.ExecuteCommand((char *)cBuffer);
+    slave.ExecuteCommand((char*)cBuffer);
 
     // Log after char buffers are cleared
     LOG_TRACE(TAG_TASM, F("TAS PUB: %sstate/input%u = %s"), slaveNodeTopic, id, payload);
@@ -85,12 +85,12 @@ void TASMO_TELE_JSON()
                    halDisplayDriverName().c_str(), (TFT_WIDTH), (TFT_HEIGHT));
         strcat(data, buffer);
     }
-    slave.sendJSON((char *)data);
+    slave.sendJSON((char*)data);
     // slave_send_state(F("statusupdate"), data);
     // debugLastMillis = millis();
 }
 
-void TASMO_DATA_RECEIVE(char * data)
+void TASMO_DATA_RECEIVE(char* data)
 {
     LOG_INFO(TAG_TASM, F("Slave IN [%s]"), data);
 

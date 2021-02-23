@@ -1,4 +1,4 @@
-/* MIT License - Copyright (c) 2020 Francis Van Roie
+/* MIT License - Copyright (c) 2019-2021 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
 #ifndef HASP_HAL_H
@@ -13,7 +13,7 @@ String halGetResetInfo(void);
 // size_t halGetFreeHeap(void);
 String halGetCoreVersion(void);
 String halGetChipModel();
-String halGetMacAddress(int start, const char * seperator);
+String halGetMacAddress(int start, const char* seperator);
 // uint16_t halGetCpuFreqMHz(void);
 String halDisplayDriverName(void);
 String halGpioName(uint8_t gpio);

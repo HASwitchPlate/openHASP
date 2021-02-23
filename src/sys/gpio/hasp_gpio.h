@@ -1,4 +1,4 @@
-/* MIT License - Copyright (c) 2020 Francis Van Roie
+/* MIT License - Copyright (c) 2019-2021 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
 #ifndef HASP_GPIO_H
@@ -36,8 +36,8 @@ int8_t gpioGetFreeConfigId();
 hasp_gpio_config_t gpioGetPinConfig(uint8_t num);
 
 #if HASP_USE_CONFIG > 0
-bool gpioGetConfig(const JsonObject & settings);
-bool gpioSetConfig(const JsonObject & settings);
+bool gpioGetConfig(const JsonObject& settings);
+bool gpioSetConfig(const JsonObject& settings);
 #endif
 
 #define HASP_GPIO_FREE 0x00

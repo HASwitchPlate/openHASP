@@ -1,4 +1,4 @@
-/* MIT License - Copyright (c) 2020 Francis Van Roie
+/* MIT License - Copyright (c) 2019-2021 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
 #ifndef HASP_TELNET_H
@@ -23,8 +23,8 @@ void telnetStop(void);
 
 /* ===== Read/Write Configuration ===== */
 #if HASP_USE_CONFIG > 0
-bool telnetSetConfig(const JsonObject & settings);
-bool telnetGetConfig(const JsonObject & settings);
+bool telnetSetConfig(const JsonObject& settings);
+bool telnetGetConfig(const JsonObject& settings);
 #endif
 
 #define TELNET_UNAUTHENTICATED 0

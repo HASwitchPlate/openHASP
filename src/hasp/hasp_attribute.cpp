@@ -1,13 +1,13 @@
-/* MIT License - Copyright (c) 2020 Francis Van Roie
+/* MIT License - Copyright (c) 2019-2021 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
 #ifdef ARDUINO
-    #include "ArduinoLog.h"
+#include "ArduinoLog.h"
 #endif
 
 #include "lvgl.h"
 #if LVGL_VERSION_MAJOR != 7
-    #include "../lv_components.h"
+#include "../lv_components.h"
 #endif
 
 #include "hasp.h"
@@ -18,8 +18,8 @@
 #include "hasp_parser.h"
 
 LV_FONT_DECLARE(unscii_8_icon);
-extern lv_font_t * haspFonts[8];
-extern const char ** btnmatrix_default_map; // memory pointer to lvgl default btnmatrix map
+extern lv_font_t* haspFonts[8];
+extern const char** btnmatrix_default_map; // memory pointer to lvgl default btnmatrix map
 
 #if 0
 static bool attribute_lookup_lv_property(uint16_t hash, uint8_t * prop)
@@ -111,20 +111,20 @@ static bool attribute_lookup_lv_property(uint16_t hash, uint8_t * prop)
         {ATTR_TRANSITION_PATH, LV_STYLE_TRANSITION_PATH & LV_STYLE_PROP_ALL},
         {ATTR_VALUE_STR, LV_STYLE_VALUE_STR & LV_STYLE_PROP_ALL},
 
-    #if LV_USE_SHADOW
+#if LV_USE_SHADOW
         {ATTR_SHADOW_WIDTH, LV_STYLE_SHADOW_WIDTH & LV_STYLE_PROP_ALL},
         {ATTR_SHADOW_OFS_X, LV_STYLE_SHADOW_OFS_X & LV_STYLE_PROP_ALL},
         {ATTR_SHADOW_OFS_Y, LV_STYLE_SHADOW_OFS_Y & LV_STYLE_PROP_ALL},
         {ATTR_SHADOW_SPREAD, LV_STYLE_SHADOW_SPREAD & LV_STYLE_PROP_ALL},
         {ATTR_SHADOW_COLOR, LV_STYLE_SHADOW_COLOR & LV_STYLE_PROP_ALL},
         {ATTR_SHADOW_OPA, LV_STYLE_SHADOW_OPA & LV_STYLE_PROP_ALL},
-    #endif
+#endif
 
-    #if LV_USE_BLEND_MODES && LV_USE_SHADOW
+#if LV_USE_BLEND_MODES && LV_USE_SHADOW
         {ATTR_SHADOW_BLEND_MODE, LV_STYLE_SHADOW_BLEND_MODE & LV_STYLE_PROP_ALL},
-    #endif
+#endif
 
-    #if LV_USE_BLEND_MODES
+#if LV_USE_BLEND_MODES
         {ATTR_BG_BLEND_MODE, LV_STYLE_BG_BLEND_MODE & LV_STYLE_PROP_ALL},
         {ATTR_PATTERN_BLEND_MODE, LV_STYLE_PATTERN_BLEND_MODE & LV_STYLE_PROP_ALL},
         {ATTR_IMAGE_BLEND_MODE, LV_STYLE_IMAGE_BLEND_MODE & LV_STYLE_PROP_ALL},
@@ -133,7 +133,7 @@ static bool attribute_lookup_lv_property(uint16_t hash, uint8_t * prop)
         {ATTR_OUTLINE_BLEND_MODE, LV_STYLE_OUTLINE_BLEND_MODE & LV_STYLE_PROP_ALL},
         {ATTR_VALUE_BLEND_MODE, LV_STYLE_VALUE_BLEND_MODE & LV_STYLE_PROP_ALL},
         {ATTR_TEXT_BLEND_MODE, LV_STYLE_TEXT_BLEND_MODE & LV_STYLE_PROP_ALL},
-    #endif
+#endif
     };
 
     for(uint32_t i = 0; i < sizeof(props) / sizeof(props[0]); i++) {
@@ -185,9 +185,9 @@ static bool attribute_update_lv_property(lv_obj_t * obj, const char * attr_p, ui
 #endif
 
 // OK - this function is missing in lvgl
-static uint8_t my_roller_get_visible_row_count(lv_obj_t * roller)
+static uint8_t my_roller_get_visible_row_count(lv_obj_t* roller)
 {
-    const lv_font_t * font    = lv_obj_get_style_text_font(roller, LV_ROLLER_PART_BG);
+    const lv_font_t* font     = lv_obj_get_style_text_font(roller, LV_ROLLER_PART_BG);
     lv_style_int_t line_space = lv_obj_get_style_text_line_space(roller, LV_ROLLER_PART_BG);
     lv_coord_t h              = lv_obj_get_height(roller);
 
@@ -198,32 +198,32 @@ static uint8_t my_roller_get_visible_row_count(lv_obj_t * roller)
 }
 
 // OK - this function is missing in lvgl
-static inline int16_t my_arc_get_rotation(lv_obj_t * arc)
+static inline int16_t my_arc_get_rotation(lv_obj_t* arc)
 {
-    lv_arc_ext_t * ext = (lv_arc_ext_t *)lv_obj_get_ext_attr(arc);
+    lv_arc_ext_t* ext = (lv_arc_ext_t*)lv_obj_get_ext_attr(arc);
     return ext->rotation_angle;
 }
 
 // OK - this function is missing in lvgl
-static inline int16_t my_chart_get_min_value(lv_obj_t * chart)
+static inline int16_t my_chart_get_min_value(lv_obj_t* chart)
 {
-    lv_chart_ext_t * ext = (lv_chart_ext_t *)lv_obj_get_ext_attr(chart);
+    lv_chart_ext_t* ext = (lv_chart_ext_t*)lv_obj_get_ext_attr(chart);
     return ext->ymin[LV_CHART_AXIS_PRIMARY_Y];
 }
 
 // OK - this function is missing in lvgl
-static inline int16_t my_chart_get_max_value(lv_obj_t * chart)
+static inline int16_t my_chart_get_max_value(lv_obj_t* chart)
 {
-    lv_chart_ext_t * ext = (lv_chart_ext_t *)lv_obj_get_ext_attr(chart);
+    lv_chart_ext_t* ext = (lv_chart_ext_t*)lv_obj_get_ext_attr(chart);
     return ext->ymax[LV_CHART_AXIS_PRIMARY_Y];
 }
 
-lv_chart_series_t * my_chart_get_series(lv_obj_t * chart, uint8_t ser_num)
+lv_chart_series_t* my_chart_get_series(lv_obj_t* chart, uint8_t ser_num)
 {
-    lv_chart_ext_t * ext    = (lv_chart_ext_t *)lv_obj_get_ext_attr(chart);
-    lv_chart_series_t * ser = (lv_chart_series_t *)_lv_ll_get_tail(&ext->series_ll);
+    lv_chart_ext_t* ext    = (lv_chart_ext_t*)lv_obj_get_ext_attr(chart);
+    lv_chart_series_t* ser = (lv_chart_series_t*)_lv_ll_get_tail(&ext->series_ll);
     while(ser_num > 0 && ser) {
-        ser = (lv_chart_series_t *)_lv_ll_get_prev(&ext->series_ll, ser);
+        ser = (lv_chart_series_t*)_lv_ll_get_prev(&ext->series_ll, ser);
         ser_num--;
     }
     return ser;
@@ -234,11 +234,11 @@ lv_chart_series_t * my_chart_get_series(lv_obj_t * chart, uint8_t ser_num)
  * @param obj pointer to a object
  * @param text '\0' terminated character string. NULL to refresh with the current text.
  */
-void my_obj_set_value_str_txt(lv_obj_t * obj, uint8_t part, lv_state_t state, const char * text)
+void my_obj_set_value_str_txt(lv_obj_t* obj, uint8_t part, lv_state_t state, const char* text)
 {
     //  LOG_VERBOSE(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
 
-    const void * value_str_p = lv_obj_get_style_value_str(obj, part);
+    const void* value_str_p = lv_obj_get_style_value_str(obj, part);
     lv_obj_invalidate(obj);
 
     if(text == NULL || text[0] == 0) {
@@ -257,13 +257,13 @@ void my_obj_set_value_str_txt(lv_obj_t * obj, uint8_t part, lv_state_t state, co
 
         /*Allocate space for the new text*/
         //   LOG_VERBOSE(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
-        value_str_p = (char *)lv_mem_alloc(len);
+        value_str_p = (char*)lv_mem_alloc(len);
         LV_ASSERT_MEM(value_str_p);
         if(value_str_p == NULL) return;
 
         // LOG_VERBOSE(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
-        strncpy((char *)value_str_p, text, len);
-        lv_obj_set_style_local_value_str(obj, part, state, (char *)value_str_p);
+        strncpy((char*)value_str_p, text, len);
+        lv_obj_set_style_local_value_str(obj, part, state, (char*)value_str_p);
         // LOG_VERBOSE(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
         return;
     }
@@ -294,17 +294,17 @@ void my_obj_set_value_str_txt(lv_obj_t * obj, uint8_t part, lv_state_t state, co
         /*Allocate space for the new text*/
         value_str_p = lv_mem_alloc(len);
         LV_ASSERT_MEM(value_str_p);
-        if(value_str_p != NULL) strcpy((char *)value_str_p, text);
-        lv_obj_set_style_local_value_str(obj, part, state, (char *)value_str_p);
+        if(value_str_p != NULL) strcpy((char*)value_str_p, text);
+        lv_obj_set_style_local_value_str(obj, part, state, (char*)value_str_p);
     }
 
     // LOG_VERBOSE(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
 }
 
-void my_btnmatrix_map_clear(lv_obj_t * obj)
+void my_btnmatrix_map_clear(lv_obj_t* obj)
 {
-    lv_btnmatrix_ext_t * ext = (lv_btnmatrix_ext_t *)lv_obj_get_ext_attr(obj);
-    const char ** map_p_tmp  = ext->map_p; // store current pointer
+    lv_btnmatrix_ext_t* ext = (lv_btnmatrix_ext_t*)lv_obj_get_ext_attr(obj);
+    const char** map_p_tmp  = ext->map_p; // store current pointer
 
     LOG_VERBOSE(TAG_ATTR, "%s %d %x   btn_cnt: %d", __FILE__, __LINE__, map_p_tmp, ext->btn_cnt);
 
@@ -326,9 +326,9 @@ void my_btnmatrix_map_clear(lv_obj_t * obj)
     }
 }
 
-static void my_btnmatrix_map_create(lv_obj_t * obj, const char * payload)
+static void my_btnmatrix_map_create(lv_obj_t* obj, const char* payload)
 {
-    const char ** map_p = lv_btnmatrix_get_map_array(obj);
+    const char** map_p = lv_btnmatrix_get_map_array(obj);
 
     // Create new map
     // Reserve memory for JsonDocument
@@ -343,8 +343,8 @@ static void my_btnmatrix_map_create(lv_obj_t * obj, const char * payload)
 
     JsonArray arr = map_doc.as<JsonArray>(); // Parse payload
 
-    size_t tot_len             = sizeof(char *) * (arr.size() + 1);
-    const char ** map_data_str = (const char **)lv_mem_alloc(tot_len);
+    size_t tot_len            = sizeof(char*) * (arr.size() + 1);
+    const char** map_data_str = (const char**)lv_mem_alloc(tot_len);
     if(map_data_str == NULL) {
         LOG_ERROR(TAG_ATTR, F("Out of memory while creating button map"));
         return;
@@ -355,12 +355,12 @@ static void my_btnmatrix_map_create(lv_obj_t * obj, const char * payload)
     tot_len = 0;
     for(JsonVariant btn : arr) {
         // tot_len += btn.as<String>().length() + 1;
-        tot_len += strlen(btn.as<const char *>()) + 1;
+        tot_len += strlen(btn.as<const char*>()) + 1;
     }
     tot_len++; // trailing '\0'
     LOG_VERBOSE(TAG_ATTR, F("Array Size = %d, Map Length = %d"), arr.size(), tot_len);
 
-    char * buffer_addr = (char *)lv_mem_alloc(tot_len);
+    char* buffer_addr = (char*)lv_mem_alloc(tot_len);
     if(buffer_addr == NULL) {
         lv_mem_free(map_data_str);
         LOG_ERROR(TAG_ATTR, F("Out of memory while creating button map"));
@@ -378,12 +378,12 @@ static void my_btnmatrix_map_create(lv_obj_t * obj, const char * payload)
     LOG_VERBOSE(TAG_ATTR, F("%s %d   lbl addr:  %x"), __FILE__, __LINE__, buffer_addr);
     for(JsonVariant btn : arr) {
         // size_t len = btn.as<String>().length() + 1;
-        size_t len = strlen(btn.as<const char *>()) + 1;
-        LOG_VERBOSE(TAG_ATTR, F(D_BULLET "Adding button: %s (%d bytes) %x"), btn.as<const char *>(), len,
+        size_t len = strlen(btn.as<const char*>()) + 1;
+        LOG_VERBOSE(TAG_ATTR, F(D_BULLET "Adding button: %s (%d bytes) %x"), btn.as<const char*>(), len,
                     buffer_addr + pos);
         // LOG_VERBOSE(TAG_ATTR, F(D_BULLET "Adding button: %s (%d bytes) %x"), btn.as<String>().c_str(), len,
         // buffer_addr + pos);
-        memccpy(buffer_addr + pos, btn.as<const char *>(), 0, len); // Copy the label text into the buffer
+        memccpy(buffer_addr + pos, btn.as<const char*>(), 0, len); // Copy the label text into the buffer
         // memccpy(buffer_addr + pos, btn.as<String>().c_str(), 0, len); // Copy the label text into the buffer
         map_data_str[index++] = buffer_addr + pos; // save pointer to the label in the array
         pos += len;
@@ -395,17 +395,17 @@ static void my_btnmatrix_map_create(lv_obj_t * obj, const char * payload)
     LOG_VERBOSE(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
 }
 
-void line_clear_points(lv_obj_t * obj)
+void line_clear_points(lv_obj_t* obj)
 {
-    lv_line_ext_t * ext = (lv_line_ext_t *)lv_obj_get_ext_attr(obj);
+    lv_line_ext_t* ext = (lv_line_ext_t*)lv_obj_get_ext_attr(obj);
     if(ext->point_array && (ext->point_num > 0)) {
-        const lv_point_t * ptr = ext->point_array;
+        const lv_point_t* ptr = ext->point_array;
         lv_line_set_points(obj, NULL, 0);
         lv_mem_free(ptr);
     }
 }
 
-static void line_set_points(lv_obj_t * obj, const char * payload)
+static void line_set_points(lv_obj_t* obj, const char* payload)
 {
     line_clear_points(obj); // delete pointmap
 
@@ -422,8 +422,8 @@ static void line_set_points(lv_obj_t * obj, const char * payload)
 
     JsonArray arr = doc.as<JsonArray>(); // Parse payload
 
-    size_t tot_len         = sizeof(lv_point_t *) * (arr.size());
-    lv_point_t * point_arr = (lv_point_t *)lv_mem_alloc(tot_len);
+    size_t tot_len        = sizeof(lv_point_t*) * (arr.size());
+    lv_point_t* point_arr = (lv_point_t*)lv_mem_alloc(tot_len);
     if(point_arr == NULL) {
         LOG_ERROR(TAG_ATTR, F("Out of memory while creating line points"));
         return;
@@ -454,7 +454,7 @@ static inline lv_color_t haspLogColor(lv_color_t color)
     return color;
 }
 
-static lv_font_t * haspPayloadToFont(const char * payload)
+static lv_font_t* haspPayloadToFont(const char* payload)
 {
     uint8_t var = atoi(payload);
 
@@ -470,25 +470,25 @@ static lv_font_t * haspPayloadToFont(const char * payload)
 
 #ifndef ARDUINO_ARCH_ESP8266
 
-    #ifdef LV_FONT_CUSTOM_12
+#ifdef LV_FONT_CUSTOM_12
         case 12:
             return LV_THEME_DEFAULT_FONT_SMALL;
-    #endif
+#endif
 
-    #ifdef LV_FONT_CUSTOM_16
+#ifdef LV_FONT_CUSTOM_16
         case 16:
             return LV_THEME_DEFAULT_FONT_NORMAL;
-    #endif
+#endif
 
-    #ifdef LV_FONT_CUSTOM_22
+#ifdef LV_FONT_CUSTOM_22
         case 22:
             return LV_THEME_DEFAULT_FONT_SUBTITLE;
-    #endif
+#endif
 
-    #ifdef LV_FONT_CUSTOM_28
+#ifdef LV_FONT_CUSTOM_28
         case 28:
             return LV_THEME_DEFAULT_FONT_TITLE;
-    #endif
+#endif
 
 #endif
 
@@ -497,27 +497,27 @@ static lv_font_t * haspPayloadToFont(const char * payload)
     }
 }
 
-static void gauge_format_10(lv_obj_t * gauge, char * buf, int bufsize, int32_t value)
+static void gauge_format_10(lv_obj_t* gauge, char* buf, int bufsize, int32_t value)
 {
     snprintf(buf, bufsize, PSTR("%d"), value / 10);
 }
 
-static void gauge_format_100(lv_obj_t * gauge, char * buf, int bufsize, int32_t value)
+static void gauge_format_100(lv_obj_t* gauge, char* buf, int bufsize, int32_t value)
 {
     snprintf(buf, bufsize, PSTR("%d"), value / 100);
 }
 
-static void gauge_format_1k(lv_obj_t * gauge, char * buf, int bufsize, int32_t value)
+static void gauge_format_1k(lv_obj_t* gauge, char* buf, int bufsize, int32_t value)
 {
     snprintf(buf, bufsize, PSTR("%d"), value / 1000);
 }
 
-static void gauge_format_10k(lv_obj_t * gauge, char * buf, int bufsize, int32_t value)
+static void gauge_format_10k(lv_obj_t* gauge, char* buf, int bufsize, int32_t value)
 {
     snprintf(buf, bufsize, PSTR("%d"), value / 10000);
 }
 
-static void hasp_process_label_long_mode(lv_obj_t * obj, const char * payload, bool update)
+static void hasp_process_label_long_mode(lv_obj_t* obj, const char* payload, bool update)
 {
     if(update) {
         lv_label_long_mode_t mode = LV_LABEL_LONG_EXPAND;
@@ -545,10 +545,10 @@ static void hasp_process_label_long_mode(lv_obj_t * obj, const char * payload, b
 }
 
 // OK
-lv_obj_t * FindButtonLabel(lv_obj_t * btn)
+lv_obj_t* FindButtonLabel(lv_obj_t* btn)
 {
     if(btn) {
-        lv_obj_t * label = lv_obj_get_child_back(btn, NULL);
+        lv_obj_t* label = lv_obj_get_child_back(btn, NULL);
 #if 1
         if(label) {
             if(check_obj_type(label, LV_HASP_LABEL)) {
@@ -558,7 +558,7 @@ lv_obj_t * FindButtonLabel(lv_obj_t * btn)
         if(label) {
             lv_obj_type_t list;
             lv_obj_get_type(label, &list);
-            const char * objtype = list.type[0];
+            const char* objtype = list.type[0];
 
             if(check_obj_type(objtype, LV_HASP_LABEL)) {
                 return label;
@@ -575,23 +575,23 @@ lv_obj_t * FindButtonLabel(lv_obj_t * btn)
 }
 
 // OK
-static inline void haspSetLabelText(lv_obj_t * obj, const char * value)
+static inline void haspSetLabelText(lv_obj_t* obj, const char* value)
 {
-    lv_obj_t * label = FindButtonLabel(obj);
+    lv_obj_t* label = FindButtonLabel(obj);
     if(label) {
         lv_label_set_text(label, value);
     }
 }
 
 // OK
-static bool haspGetLabelText(lv_obj_t * obj, char ** text)
+static bool haspGetLabelText(lv_obj_t* obj, char** text)
 {
     if(!obj) {
         LOG_WARNING(TAG_ATTR, F("Button not defined"));
         return false;
     }
 
-    lv_obj_t * label = lv_obj_get_child_back(obj, NULL);
+    lv_obj_t* label = lv_obj_get_child_back(obj, NULL);
     if(label) {
 #if 1
         if(check_obj_type(label, LV_HASP_LABEL)) {
@@ -615,8 +615,8 @@ static bool haspGetLabelText(lv_obj_t * obj, char ** text)
     return false;
 }
 
-static void hasp_attribute_get_part_state(lv_obj_t * obj, const char * attr_in, char * attr_out, uint8_t & part,
-                                          uint8_t & state)
+static void hasp_attribute_get_part_state(lv_obj_t* obj, const char* attr_in, char* attr_out, uint8_t& part,
+                                          uint8_t& state)
 {
     int len = strlen(attr_in);
     if(len <= 0 || len >= 32) {
@@ -668,7 +668,7 @@ static void hasp_attribute_get_part_state(lv_obj_t * obj, const char * attr_in, 
     (LV_SLIDER_PART_BG != LV_SWITCH_PART_BG) || (LV_SLIDER_PART_INDIC != LV_ARC_PART_INDIC) ||                         \
     (LV_SLIDER_PART_KNOB != LV_ARC_PART_KNOB) || (LV_SLIDER_PART_BG != LV_ARC_PART_BG) ||                              \
     (LV_SLIDER_PART_INDIC != LV_BAR_PART_INDIC) || (LV_SLIDER_PART_BG != LV_BAR_PART_BG)
-    #error "LV_SLIDER, LV_BAR, LV_ARC, LV_SWITCH parts should match!"
+#error "LV_SLIDER, LV_BAR, LV_ARC, LV_SWITCH parts should match!"
 #endif
 
     if(check_obj_type(obj, LV_HASP_SLIDER) || check_obj_type(obj, LV_HASP_SWITCH) || check_obj_type(obj, LV_HASP_ARC) ||
@@ -719,7 +719,7 @@ static void hasp_attribute_get_part_state(lv_obj_t * obj, const char * attr_in, 
  * @param update  bool: change/set the value if true, dispatch/get value if false
  * @note setting a value won't return anything, getting will dispatch the value
  */
-static void hasp_local_style_attr(lv_obj_t * obj, const char * attr_p, uint16_t attr_hash, const char * payload,
+static void hasp_local_style_attr(lv_obj_t* obj, const char* attr_p, uint16_t attr_hash, const char* payload,
                                   bool update)
 {
     char attr[32];
@@ -857,7 +857,7 @@ static void hasp_local_style_attr(lv_obj_t * obj, const char * attr_p, uint16_t 
             return;
         }
         case ATTR_TEXT_FONT: {
-            lv_font_t * font = haspPayloadToFont(payload);
+            lv_font_t* font = haspPayloadToFont(payload);
             if(font) {
                 uint8_t count = 3;
                 if(check_obj_type(obj, LV_HASP_ROLLER)) count = my_roller_get_visible_row_count(obj);
@@ -1015,7 +1015,7 @@ static void hasp_local_style_attr(lv_obj_t * obj, const char * attr_p, uint16_t 
             return;
         }
         case ATTR_VALUE_FONT: {
-            lv_font_t * font = haspPayloadToFont(payload);
+            lv_font_t* font = haspPayloadToFont(payload);
             if(font) {
                 return lv_obj_set_style_local_value_font(obj, part, state, font);
             } else {
@@ -1058,14 +1058,14 @@ static void hasp_local_style_attr(lv_obj_t * obj, const char * attr_p, uint16_t 
     LOG_WARNING(TAG_ATTR, F(D_ATTRIBUTE_UNKNOWN " (%d)"), attr_p, attr_hash);
 }
 
-static void hasp_process_arc_attribute(lv_obj_t * obj, const char * attr_p, uint16_t attr_hash, const char * payload,
+static void hasp_process_arc_attribute(lv_obj_t* obj, const char* attr_p, uint16_t attr_hash, const char* payload,
                                        bool update)
 {
     // We already know it's a arc object
     int16_t intval = atoi(payload);
     uint16_t val   = atoi(payload);
 
-    char * attr = (char *)attr_p;
+    char* attr = (char*)attr_p;
     if(*attr == '.') attr++; // strip leading '.'
 
     switch(attr_hash) {
@@ -1102,7 +1102,7 @@ static void hasp_process_arc_attribute(lv_obj_t * obj, const char * attr_p, uint
     LOG_WARNING(TAG_ATTR, F(D_ATTRIBUTE_UNKNOWN), attr_p);
 }
 
-static void hasp_process_lmeter_attribute(lv_obj_t * obj, const char * attr_p, uint16_t attr_hash, const char * payload,
+static void hasp_process_lmeter_attribute(lv_obj_t* obj, const char* attr_p, uint16_t attr_hash, const char* payload,
                                           bool update)
 {
     // We already know it's a linemeter object
@@ -1112,7 +1112,7 @@ static void hasp_process_lmeter_attribute(lv_obj_t * obj, const char * attr_p, u
     uint16_t line_count = lv_linemeter_get_line_count(obj);
     uint16_t angle      = lv_linemeter_get_scale_angle(obj);
 
-    char * attr = (char *)attr_p;
+    char* attr = (char*)attr_p;
     if(*attr == '.') attr++; // strip leading '.'
 
     switch(attr_hash) {
@@ -1134,7 +1134,7 @@ static void hasp_process_lmeter_attribute(lv_obj_t * obj, const char * attr_p, u
     LOG_WARNING(TAG_ATTR, F(D_ATTRIBUTE_UNKNOWN), attr_p);
 }
 
-static void hasp_process_gauge_attribute(lv_obj_t * obj, const char * attr_p, uint16_t attr_hash, const char * payload,
+static void hasp_process_gauge_attribute(lv_obj_t* obj, const char* attr_p, uint16_t attr_hash, const char* payload,
                                          bool update)
 {
     // We already know it's a gauge object
@@ -1145,7 +1145,7 @@ static void hasp_process_gauge_attribute(lv_obj_t * obj, const char * attr_p, ui
     uint16_t line_count = lv_gauge_get_line_count(obj);
     uint16_t angle      = lv_gauge_get_scale_angle(obj);
 
-    char * attr = (char *)attr_p;
+    char* attr = (char*)attr_p;
     if(*attr == '.') attr++; // strip leading '.'
 
     switch(attr_hash) {
@@ -1193,7 +1193,7 @@ static void hasp_process_gauge_attribute(lv_obj_t * obj, const char * attr_p, ui
 
 // ##################### Common Attributes ########################################################
 
-static void hasp_process_obj_attribute_txt(lv_obj_t * obj, const char * attr, const char * payload, bool update)
+static void hasp_process_obj_attribute_txt(lv_obj_t* obj, const char* attr, const char* payload, bool update)
 {
     /* Attributes depending on objecttype */
     // lv_obj_type_t list;
@@ -1204,7 +1204,7 @@ static void hasp_process_obj_attribute_txt(lv_obj_t * obj, const char * attr, co
         if(update) {
             haspSetLabelText(obj, payload);
         } else {
-            char * text = NULL;
+            char* text = NULL;
             if(haspGetLabelText(obj, &text) && text) hasp_out_str(obj, attr, text);
         }
         return;
@@ -1235,7 +1235,7 @@ static void hasp_process_obj_attribute_txt(lv_obj_t * obj, const char * attr, co
     LOG_WARNING(TAG_ATTR, F(D_ATTRIBUTE_UNKNOWN), attr);
 }
 
-bool hasp_process_obj_attribute_val(lv_obj_t * obj, const char * attr, const char * payload, bool update)
+bool hasp_process_obj_attribute_val(lv_obj_t* obj, const char* attr, const char* payload, bool update)
 {
     int16_t intval = atoi(payload);
 
@@ -1283,7 +1283,7 @@ bool hasp_process_obj_attribute_val(lv_obj_t * obj, const char * attr, const cha
     return true;
 }
 
-static void hasp_process_obj_attribute_range(lv_obj_t * obj, const char * attr, const char * payload, bool update,
+static void hasp_process_obj_attribute_range(lv_obj_t* obj, const char* attr, const char* payload, bool update,
                                              bool set_min, bool set_max)
 {
     int16_t val   = atoi(payload);
@@ -1355,7 +1355,7 @@ static void hasp_process_obj_attribute_range(lv_obj_t * obj, const char * attr, 
  * @param update  bool: change/set the value if true, dispatch/get value if false
  * @note setting a value won't return anything, getting will dispatch the value
  */
-void hasp_process_obj_attribute(lv_obj_t * obj, const char * attr_p, const char * payload, bool update)
+void hasp_process_obj_attribute(lv_obj_t* obj, const char* attr_p, const char* payload, bool update)
 {
     // unsigned long start = millis();
     if(!obj) {
@@ -1364,7 +1364,7 @@ void hasp_process_obj_attribute(lv_obj_t * obj, const char * attr_p, const char 
     }
     int16_t val = atoi(payload);
 
-    char * attr = (char *)attr_p;
+    char* attr = (char*)attr_p;
     if(*attr == '.') attr++; // strip leading '.'
 
     uint16_t attr_hash = Utilities::get_sdbm(attr);
@@ -1471,7 +1471,8 @@ void hasp_process_obj_attribute(lv_obj_t * obj, const char * attr_p, const char 
             break; // attribute_found
 
         case ATTR_ENABLED:
-            update ? lv_obj_set_click(obj, Utilities::is_true(payload)) : hasp_out_int(obj, attr, lv_obj_get_click(obj));
+            update ? lv_obj_set_click(obj, Utilities::is_true(payload))
+                   : hasp_out_int(obj, attr, lv_obj_get_click(obj));
             break; // attribute_found
 
         case ATTR_SRC:
@@ -1483,7 +1484,7 @@ void hasp_process_obj_attribute(lv_obj_t * obj, const char * attr_p, const char 
                         case LV_IMG_SRC_FILE:
                             return hasp_out_str(obj, attr, lv_img_get_file_name(obj));
                         case LV_IMG_SRC_SYMBOL:
-                            return hasp_out_str(obj, attr, (char *)lv_img_get_src(obj));
+                            return hasp_out_str(obj, attr, (char*)lv_img_get_src(obj));
                         default:
                             return;
                     }
@@ -1521,7 +1522,7 @@ void hasp_process_obj_attribute(lv_obj_t * obj, const char * attr_p, const char 
 
         case ATTR_ALIGN:
             if(check_obj_type(obj, LV_HASP_BUTTON)) {
-                lv_obj_t * label = FindButtonLabel(obj);
+                lv_obj_t* label = FindButtonLabel(obj);
                 if(label == NULL)
                     goto attribute_not_found;
                 else
@@ -1540,7 +1541,7 @@ void hasp_process_obj_attribute(lv_obj_t * obj, const char * attr_p, const char 
 
         case ATTR_MODE:
             if(check_obj_type(obj, LV_HASP_BUTTON)) {
-                lv_obj_t * label = FindButtonLabel(obj);
+                lv_obj_t* label = FindButtonLabel(obj);
                 if(label) {
                     hasp_process_label_long_mode(label, payload, update);
                     lv_obj_set_width(label, lv_obj_get_width(obj));
@@ -1575,7 +1576,7 @@ void hasp_process_obj_attribute(lv_obj_t * obj, const char * attr_p, const char 
                 }
             } else if(check_obj_type(obj, LV_HASP_ROLLER)) {
                 if(update) {
-                    lv_roller_ext_t * ext = (lv_roller_ext_t *)lv_obj_get_ext_attr(obj);
+                    lv_roller_ext_t* ext = (lv_roller_ext_t*)lv_obj_get_ext_attr(obj);
                     lv_roller_set_options(obj, payload, ext->mode);
                 } else {
                     hasp_out_str(obj, attr, lv_roller_get_options(obj));

@@ -1,4 +1,4 @@
-/* MIT License - Copyright (c) 2020 Francis Van Roie
+/* MIT License - Copyright (c) 2019-2021 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
 #if defined(ARDUINO_ARCH_ESP8266) || defined(ARDUINO_ARCH_ESP32)
@@ -14,7 +14,7 @@ void otaLoop(void);
 void otaEverySecond(void);
 
 /* ===== Special Event Processors ===== */
-void otaHttpUpdate(const char * espOtaUrl);
+void otaHttpUpdate(const char* espOtaUrl);
 
 #endif
 #endif

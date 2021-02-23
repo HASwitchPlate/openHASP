@@ -1,4 +1,4 @@
-/* MIT License - Copyright (c) 2020 Francis Van Roie
+/* MIT License - Copyright (c) 2019-2021 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
 #ifndef HASP_PARSER_H
@@ -10,7 +10,7 @@
 class Parser {
 
   public:
-    static bool haspPayloadToColor(const char * payload, lv_color32_t & color);
+    static bool haspPayloadToColor(const char* payload, lv_color32_t& color);
 };
 
 /* Named COLOR attributes */
