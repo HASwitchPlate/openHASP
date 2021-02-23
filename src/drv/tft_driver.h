@@ -24,7 +24,9 @@ class BaseTft {
     static void flush_pixels(lv_disp_drv_t* disp, const lv_area_t* area, lv_color_t* color_p)
     {}
     virtual bool is_driver_pin(uint8_t)
-    {}
+    {
+        return false;
+    }
 };
 
 } // namespace dev
