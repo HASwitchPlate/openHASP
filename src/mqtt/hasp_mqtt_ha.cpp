@@ -214,12 +214,22 @@ void mqtt_ha_register_moodlight()
     deserializeJson(doc, F("{"
                            "\"cmd_t\":\"~command/moodlight\","
                            "\"stat_t\":\"~state/moodlight\","
-                           "\"avty_t\":\"~LWT\","
-                           "\"bri_stat_t\":\"~state/moodlight/dim\","
-                           "\"bri_cmd_t\":\"~command/moodlight/dim\","
-                           "\"bri_scl\":100,"
-                           "\"rgb_stat_t\":\"~state/moodlight/rgb\","
-                           "\"rgb_cmd_t\":\"~command/moodlight/rgb\"}"));
+                           "\"platform\":\"mqtt\","
+                           "\"schema\":\"json\","
+                           "\"rgb\":true,"
+                           "\"brightness\":true,"
+                           "\"avty_t\":\"~LWT\"}"));
+
+    /*    deserializeJson(doc, F("{"
+                               "\"cmd_t\":\"~command/moodlight\","
+                               //                      "\"stat_t\":\"~state/moodlight\","
+                               "\"avty_t\":\"~LWT\","
+                               "\"bri_stat_t\":\"~state/moodlight/dim\","
+                               "\"bri_cmd_t\":\"~command/moodlight/dim\","
+                               "\"bri_scl\":100,"
+                               "\"rgb_stat_t\":\"~state/moodlight/rgb\","
+                               "\"rgb_cmd_t\":\"~command/moodlight/rgb\"}"));
+                               */
     mqtt_ha_add_device_ids(doc);
     mqtt_ha_add_unique_id(doc, item);
 
