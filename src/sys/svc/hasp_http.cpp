@@ -1939,13 +1939,13 @@ void httpSetup()
 #if HASP_USE_WIFI > 0
 
     // These two endpoints are needed in STA and AP mode
-    webServer.on(F("/"), webHandleWifiConfig);
     webServer.on(F("/config"), webHandleConfig);
 
 #if !defined(STM32F4xx)
 
 #if HASP_USE_CONFIG > 0
     if(WiFi.getMode() != WIFI_STA) {
+        webServer.on(F("/"), webHandleWifiConfig);
         LOG_TRACE(TAG_HTTP, F("Wifi access point"));
         return;
     }
@@ -1984,6 +1984,7 @@ void httpSetup()
         handleFileUpload);
 #endif
 
+    webServer.on(F("/"), webHandleRoot);
     webServer.on(F("/info"), webHandleInfo);
     webServer.on(F("/screenshot"), webHandleScreenshot);
     webServer.on(F("/firmware"), webHandleFirmware);
