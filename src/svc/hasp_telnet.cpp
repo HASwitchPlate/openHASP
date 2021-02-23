@@ -28,8 +28,7 @@ static EthernetServer telnetServer(23);
     #endif
 
     #if HASP_USE_HTTP > 0
-extern char httpUser[32];
-extern char httpPassword[32];
+extern hasp_http_config_t http_config;
     #endif
 
 uint8_t telnetLoginState   = TELNET_UNAUTHENTICATED;
@@ -84,7 +83,7 @@ void telnetAcceptClient()
     // telnetClient.print((char)0x1B);
 
     #if HASP_USE_HTTP > 0
-    if(strlen(httpUser) != 0 || strlen(httpPassword) != 0) {
+    if(strlen(http_config.user) != 0 || strlen(http_config.password) != 0) {
         telnetClient.println(F("\r\n" D_USERNAME " "));
         telnetLoginState = TELNET_UNAUTHENTICATED;
     } else
@@ -104,13 +103,13 @@ static inline void telnetProcessLine()
         case TELNET_UNAUTHENTICATED: {
             telnetClient.printf(PSTR(D_TELNET_PASSWORD" %c%c%c"), 0xFF, 0xFB, 0x01); // Hide characters
         #if HASP_USE_HTTP > 0
-            telnetLoginState = strcmp(telnetInputBuffer, httpUser) == 0 ? TELNET_USERNAME_OK : TELNET_USERNAME_NOK;
+            telnetLoginState = strcmp(telnetInputBuffer, http_config.user) == 0 ? TELNET_USERNAME_OK : TELNET_USERNAME_NOK;
             break;
         }
         case TELNET_USERNAME_OK:
         case TELNET_USERNAME_NOK: {
             telnetClient.printf(PSTR("%c%c%c\n"), 0xFF, 0xFC, 0x01); // Show characters
-            if(telnetLoginState == TELNET_USERNAME_OK && strcmp(telnetInputBuffer, httpPassword) == 0) {
+            if(telnetLoginState == TELNET_USERNAME_OK && strcmp(telnetInputBuffer, http_config.password) == 0) {
                 telnetClientLogon();
             } else {
                 telnetLoginState = TELNET_UNAUTHENTICATED;
@@ -190,13 +189,13 @@ static inline void telnetProcessLine(const char * input)
                        0x01); // Hide characters
             telnetClient.print(buffer);
     #if HASP_USE_HTTP > 0
-            telnetLoginState = strcmp(input, httpUser) == 0 ? TELNET_USERNAME_OK : TELNET_USERNAME_NOK;
+            telnetLoginState = strcmp(input, http_config.user) == 0 ? TELNET_USERNAME_OK : TELNET_USERNAME_NOK;
             break;
         }
         case TELNET_USERNAME_OK:
         case TELNET_USERNAME_NOK: {
             telnetClient.printf(PSTR("%c%c%c\n"), 0xFF, 0xFC, 0x01); // Show characters
-            if(telnetLoginState == TELNET_USERNAME_OK && strcmp(input, httpPassword) == 0) {
+            if(telnetLoginState == TELNET_USERNAME_OK && strcmp(input, http_config.password) == 0) {
                 telnetClientLogon();
             } else {
                 telnetLoginState = TELNET_UNAUTHENTICATED;
