@@ -83,6 +83,10 @@ class TftSdl2 : BaseTft {
     {
         monitor_flush(disp, area, color_p);
     }
+    bool is_driver_pin(uint8_t pin)
+    {
+        return false;
+    }
 };
 
 } // namespace dev
