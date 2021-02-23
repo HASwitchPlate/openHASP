@@ -16,9 +16,13 @@ class Esp32Device : public BaseDevice {
     Esp32Device()
     {
         _hostname        = "plate";
-        _backlight_pin   = TFT_BCKL;
         _backlight_power = 1;
         _backlight_level = 100;
+#ifdef TFT_BCKL
+        _backlight_pin = TFT_BCKL;
+#else
+        _backlight_pin = -1;
+#endif
     }
     void reboot() override;
     void show_info() override;
