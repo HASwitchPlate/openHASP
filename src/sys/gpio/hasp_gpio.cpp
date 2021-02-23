@@ -343,14 +343,17 @@ void gpio_set_normalized_group_value(uint8_t groupid, uint16_t state)
 void gpio_set_moodlight(uint8_t r, uint8_t g, uint8_t b)
 {
     for(uint8_t i = 0; i < HASP_NUM_GPIO_CONFIG; i++) {
-        switch(gpioConfig[i].type & 0xfe) {
+        switch(gpioConfig[i].type) {
             case HASP_GPIO_LED_R:
+            case HASP_GPIO_LED_R_INVERTED:
                 gpio_set_normalized_value(gpioConfig[i], map(r, 0, 0xFF, 0, 0xFFFFU));
                 break;
             case HASP_GPIO_LED_G:
+            case HASP_GPIO_LED_G_INVERTED:
                 gpio_set_normalized_value(gpioConfig[i], map(g, 0, 0xFF, 0, 0xFFFFU));
                 break;
             case HASP_GPIO_LED_B:
+            case HASP_GPIO_LED_B_INVERTED:
                 gpio_set_normalized_value(gpioConfig[i], map(b, 0, 0xFF, 0, 0xFFFFU));
                 break;
         }
