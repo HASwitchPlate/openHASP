@@ -613,7 +613,7 @@ void dispatch_normalized_group_value(uint8_t groupid, uint16_t value, lv_obj_t* 
 {
     if(groupid > 0) {
         LOG_VERBOSE(TAG_MSGR, F("GROUP %d value %d"), groupid, value);
-#if USE_GPIO
+#if HASP_USE_GPIO > 0
         gpio_set_normalized_group_value(groupid, value);
 #endif
         //  object_set_group_state(groupid, value, obj);
@@ -652,14 +652,19 @@ void dispatch_parse_json(const char*, const char* payload)
         uint8_t savedPage = haspGetPage();
         hasp_new_object(json.as<JsonObject>(), savedPage);
 
+#ifdef ARDUINO
+    } else if(json.is<String>()) { // handle json as a single command
+        dispatch_text_line(json.as<String>().c_str());
+#else
+    } else if(json.is<std::string>()) { // handle json as a single command
+        dispatch_text_line(json.as<std::string>().c_str());
+#endif
+
     } else if(json.is<const char*>()) { // handle json as a single command
         dispatch_text_line(json.as<const char*>());
 
     } else if(json.is<char*>()) { // handle json as a single command
         dispatch_text_line(json.as<char*>());
-
-        // } else if(json.is<String>()) { // handle json as a single command
-        //     dispatch_text_line(json.as<String>().c_str());
 
     } else {
         LOG_WARNING(TAG_MSGR, F(D_DISPATCH_COMMAND_NOT_FOUND), payload);
@@ -800,22 +805,32 @@ void dispatch_moodlight(const char* topic, const char* payload)
             dispatch_json_error(TAG_MSGR, jsonError);
         } else {
 
-            if(!json[F("state")].isNull()) moodlight.power = Utilities::is_true(json[F("state")].as<const char*>());
+            if(!json[F("state")].isNull())
+                moodlight.power = Utilities::is_true(json[F("state")].as<std::string>().c_str());
 
             if(!json[F("r")].isNull()) moodlight.r = json[F("r")].as<uint8_t>();
             if(!json[F("g")].isNull()) moodlight.r = json[F("g")].as<uint8_t>();
             if(!json[F("b")].isNull()) moodlight.r = json[F("b")].as<uint8_t>();
 
             if(!json[F("color")].isNull()) {
-                lv_color32_t color;
-                if(Parser::haspPayloadToColor(json[F("color")].as<const char*>(), color)) {
-                    moodlight.r = color.ch.red;
-                    moodlight.g = color.ch.green;
-                    moodlight.b = color.ch.blue;
+                if(!json[F("color")]["r"].isNull()) {
+                    moodlight.r = json[F("color")]["r"].as<uint8_t>();
                 }
+                if(!json[F("color")]["g"].isNull()) {
+                    moodlight.g = json[F("color")]["g"].as<uint8_t>();
+                }
+                if(!json[F("color")]["b"].isNull()) {
+                    moodlight.b = json[F("color")]["b"].as<uint8_t>();
+                }
+                // lv_color32_t color;
+                // if(Parser::haspPayloadToColor(json[F("color")].as<const char*>(), color)) {
+                //     moodlight.r = color.ch.red;
+                //     moodlight.g = color.ch.green;
+                //     moodlight.b = color.ch.blue;
+                // }
             }
 
-#ifdef USE_GPIO
+#if HASP_USE_GPIO > 0
             if(moodlight.power)
                 gpio_set_moodlight(moodlight.r, moodlight.g, moodlight.b);
             else
@@ -828,8 +843,8 @@ void dispatch_moodlight(const char* topic, const char* payload)
     char buffer[128];
     snprintf_P(
         // buffer, sizeof(buffer), PSTR("{\"state\":\"%s\",\"color\":\"#%02x%02x%02x\",\"r\":%u,\"g\":%u,\"b\":%u}"),
-        buffer, sizeof(buffer), PSTR("{\"state\":\"%s\",\"color\":[%u,%u,%u]}"), moodlight.power ? "ON" : "OFF",
-        moodlight.r, moodlight.g, moodlight.b);
+        buffer, sizeof(buffer), PSTR("{\"state\":\"%s\",\"color\":{\"r\":%u,\"g\":%u,\"b\":%u}}"),
+        moodlight.power ? "ON" : "OFF", moodlight.r, moodlight.g, moodlight.b);
     dispatch_state_msg(F("moodlight"), buffer);
 }
 

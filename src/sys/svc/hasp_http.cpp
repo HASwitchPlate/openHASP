@@ -1344,7 +1344,7 @@ void webHandleHttpConfig()
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-#if defined(HASP_USE_GPIO) && (HASP_USE_GPIO > 0)
+#if HASP_USE_GPIO > 0
 void webHandleGpioConfig()
 { // http://plate01/config/gpio
     if(!httpIsAuthenticated(F("config/gpio"))) return;

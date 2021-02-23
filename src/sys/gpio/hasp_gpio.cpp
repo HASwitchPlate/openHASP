@@ -460,7 +460,7 @@ bool gpioIsSystemPin(uint8_t gpio)
     // Backlight GPIO
     // Network GPIOs
     // Serial GPIOs
-    // Tasmota Slave GPIOs
+    // Tasmota Client GPIOs
 
 #ifdef ARDUINO_ARCH_ESP32
     if((gpio >= 6) && (gpio <= 11)) return true;  // integrated SPI flash
