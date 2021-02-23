@@ -90,7 +90,7 @@ void mqtt_ha_add_unique_id(JsonDocument& doc, char* item)
 {
     char buffer[64];
 
-    snprintf_P(buffer, sizeof(buffer), PSTR("HASP %s %s"), haspDevice.get_hostname(), item);
+    snprintf_P(buffer, sizeof(buffer), PSTR("%s %s"), haspDevice.get_hostname(), item);
     doc[FPSTR(FP_MQTT_HA_NAME)] = buffer;
 
     snprintf_P(buffer, sizeof(buffer), PSTR("hasp_%s-%s"), HASP_MAC_ADDRESS, item);
