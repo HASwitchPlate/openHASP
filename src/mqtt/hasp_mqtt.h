@@ -5,6 +5,7 @@
 #define HASP_MQTT_H
 
 #include <stdint.h>
+#include "ArduinoJson.h"
 
 #include "hasp_conf.h"
 

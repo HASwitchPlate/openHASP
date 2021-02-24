@@ -160,7 +160,7 @@ static WiFiSpiClass WiFi;
 #define ETH_TYPE ETH_PHY_LAN8720
 #define ETH_CLKMODE ETH_CLOCK_GPIO17_OUT
 
-#include "net/hasp_ethernet_esp32.h"
+#include "sys/net/hasp_ethernet_esp32.h"
 #warning Using ESP32 Ethernet LAN8720
 
 #else

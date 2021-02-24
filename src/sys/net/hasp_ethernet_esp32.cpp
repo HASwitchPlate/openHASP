@@ -2,9 +2,11 @@
    For full license information read the LICENSE file in the project folder */
 
 #include "hasp_conf.h"
-#include "hal/hasp_hal.h"
 #include "hasp_debug.h"
 #include "hasp_network.h"
+
+#include "hal/hasp_hal.h"
+#include "dev/device.h"
 
 #if HASP_USE_ETHERNET > 0 && defined(ARDUINO_ARCH_ESP32)
 
