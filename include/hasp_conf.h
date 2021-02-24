@@ -176,7 +176,7 @@ static WiFiSpiClass WiFi;
 #include "Ethernet.h"
 #warning Use W5x00 Ethernet shield
 #endif
-#include "net/hasp_ethernet_stm32.h"
+#include "sys/net/hasp_ethernet_stm32.h"
 #endif
 #endif
 
@@ -222,21 +222,17 @@ static WiFiSpiClass WiFi;
 #include "sys/svc/hasp_slave.h"
 #endif
 
-#ifdef WINDOWS
-#ifndef FPSTR
-#define FPSTR(pstr_pointer) (reinterpret_cast<const __FlashStringHelper*>(pstr_pointer))
-#endif
-
-#ifndef __FlashStringHelper
-#define __FlashStringHelper char
-#endif
-
 #ifndef FPSTR
 #define FPSTR(pstr_pointer) (reinterpret_cast<const __FlashStringHelper*>(pstr_pointer))
 #endif
 
 #ifndef PGM_P
 #define PGM_P const char*
+#endif
+
+#if defined(WINDOWS)
+#ifndef __FlashStringHelper
+#define __FlashStringHelper char
 #endif
 
 #ifndef F
