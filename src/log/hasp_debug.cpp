@@ -25,6 +25,8 @@
 #elif defined(ARDUINO_ARCH_ESP32)
 #include <WiFi.h>
 #include <WiFiUdp.h>
+#elif defined(STM32F4xx)
+#include <time.h>
 #endif
 
 #include "hasp_conf.h"
@@ -336,11 +338,12 @@ static void debugPrintTimestamp(int level, Print* _logOutput)
     struct tm* timeinfo;
     int rslt;
 
-    rslt = gettimeofday(&tval, NULL);
-    if(rslt) {
-        // uint32_t msecs = millis();
-        // _logOutput->printf(PSTR("[%9d.%03d]"), msecs / 1000, msecs % 1000);
-    } else {
+    /*  rslt = gettimeofday(&tval, NULL);
+      if(rslt) {
+          // uint32_t msecs = millis();
+          // _logOutput->printf(PSTR("[%9d.%03d]"), msecs / 1000, msecs % 1000);
+      } else */
+    {
         timeinfo = localtime(&tval.tv_sec);
     }
 
