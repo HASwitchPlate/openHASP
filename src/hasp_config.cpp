@@ -332,7 +332,7 @@ void configWrite()
 
 #if defined(STM32F4xx)
         // Method 2
-        LOG_INFO(TAG_CONF, F(F_FILE_SAVING), "EEPROM");
+        LOG_INFO(TAG_CONF, F(D_FILE_SAVING), "EEPROM");
         char buffer[1024 + 128];
         size_t size = serializeJson(doc, buffer, sizeof(buffer));
         if(size > 0) {
@@ -340,9 +340,9 @@ void configWrite()
             for(i = 0; i < size; i++) eeprom_buffered_write_byte(i, buffer[i]);
             eeprom_buffered_write_byte(i, 0);
             eeprom_buffer_flush();
-            LOG_INFO(TAG_CONF, F(F_FILE_SAVED), "EEPROM");
+            LOG_INFO(TAG_CONF, F(D_FILE_SAVED), "EEPROM");
         } else {
-            LOG_ERROR(TAG_CONF, F(D_FILE_WRITE_FAILED), "EEPROM");
+            LOG_ERROR(TAG_CONF, F(D_FILE_SAVE_FAILED), "EEPROM");
         }
 #endif
 
