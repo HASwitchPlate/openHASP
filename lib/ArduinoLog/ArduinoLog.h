@@ -17,12 +17,12 @@ Licensed under the MIT License <http://opensource.org/licenses/MIT>.
 #include <inttypes.h>
 #include <stdarg.h>
 #if defined(ARDUINO) && ARDUINO >= 100
-    #include "Arduino.h"
+#include "Arduino.h"
 #else
-    #include "WProgram.h"
+#include "WProgram.h"
 #endif
 //#include "StringStream.h"
-typedef void (*printfunction)(uint8_t tag, int level, Print *);
+typedef void (*printfunction)(uint8_t tag, int level, Print*);
 
 //#include <stdint.h>
 //#include <stddef.h>
@@ -92,7 +92,7 @@ class Logging {
      */
     Logging()
 #ifndef DISABLE_LOGGING
-        //   : _level(LOG_LEVEL_SILENT), _showLevel(true)
+    //   : _level(LOG_LEVEL_SILENT), _showLevel(true)
 #endif
     {}
 
@@ -116,7 +116,7 @@ class Logging {
      * \return void
      *
      */
-    void registerOutput(uint8_t slot, Print * logOutput, int level, bool showLevel);
+    void registerOutput(uint8_t slot, Print* logOutput, int level, bool showLevel);
 
     /**
      * Unregister the printer in a certain slot
@@ -311,11 +311,11 @@ class Logging {
     }
 
   private:
-    void print(Print * logOutput, const char * format, va_list args);
+    void print(Print* logOutput, const char* format, va_list args);
 
-    void print(Print * logOutput, const __FlashStringHelper * format, va_list args);
+    void print(Print* logOutput, const __FlashStringHelper* format, va_list args);
 
-    void printFormat(Print * logOutput, const char format, va_list * args);
+    void printFormat(Print* logOutput, const char format, va_list* args);
 
     template <class T> void printLevel(uint8_t tag, int level, T msg, ...)
     {
@@ -343,7 +343,7 @@ class Logging {
 #ifndef DISABLE_LOGGING
     int _level[3];
     bool _showLevel[3];
-    Print * _logOutput[3];
+    Print* _logOutput[3];
 
     printfunction _prefix = NULL;
     printfunction _suffix = NULL;
