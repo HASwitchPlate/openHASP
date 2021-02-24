@@ -19,9 +19,11 @@
 #if HASP_USE_ETHERNET > 0 || HASP_USE_WIFI > 0
 void networkStart(void)
 {
-    haspProgressVal(255);                                      // hide
+#if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
     configTzTime(MYTZ, "pool.ntp.org", "time.nist.gov", NULL); // literal string
+#endif
 
+    haspProgressVal(255); // hide
     haspReconnect();
     debugStartSyslog();
     // mqttStart();
