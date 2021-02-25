@@ -22,10 +22,10 @@ extern "C" {
  *      DEFINES
  *********************/
 typedef enum {
-    LV_THEME_HASP_FLAG_DARK =  0x01,
-    LV_THEME_HASP_FLAG_LIGHT = 0x02,
-    LV_THEME_HASP_FLAG_NO_TRANSITION  = 0x10,
-    LV_THEME_HASP_FLAG_NO_FOCUS  = 0x20,
+    LV_THEME_HASP_FLAG_DARK          = 0x01,
+    LV_THEME_HASP_FLAG_LIGHT         = 0x02,
+    LV_THEME_HASP_FLAG_NO_TRANSITION = 0x10,
+    LV_THEME_HASP_FLAG_NO_FOCUS      = 0x20,
 } lv_theme_hasp_flag_t;
 
 /**********************
@@ -47,17 +47,15 @@ typedef enum {
  * @param font_title pointer to a extra large font
  * @return a pointer to reference this theme later
  */
-lv_theme_t * lv_theme_hasp_init(lv_color_t color_primary, lv_color_t color_secondary, uint32_t flags,
-                                    const lv_font_t * font_small, const lv_font_t * font_normal,
-                                    const lv_font_t * font_subtitle, const lv_font_t * font_title);
+lv_theme_t* lv_theme_hasp_init(lv_color_t color_primary, lv_color_t color_secondary, uint32_t flags,
+                               const lv_font_t* font_small, const lv_font_t* font_normal,
+                               const lv_font_t* font_subtitle, const lv_font_t* font_title);
 /**********************
  *      MACROS
  **********************/
-
-#endif
 
 #ifdef __cplusplus
 } /* extern "C" */
 #endif
 
-//#endif /*LV_THEME_HASP_H*/
+#endif /*LV_THEME_HASP_H*/
