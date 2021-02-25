@@ -10,12 +10,7 @@
 #include "../lv_components.h"
 #endif
 
-#include "hasp.h"
-#include "hasp_object.h"
-#include "hasp_dispatch.h"
-#include "hasp_attribute.h"
-#include "hasp_utilities.h"
-#include "hasp_parser.h"
+#include "hasplib.h"
 
 LV_FONT_DECLARE(unscii_8_icon);
 extern lv_font_t* haspFonts[8];
@@ -825,6 +820,37 @@ static void hasp_local_style_attr(lv_obj_t* obj, const char* attr_p, uint16_t at
         case ATTR_PAD_INNER:
             return attribute_pad_inner(obj, part, state, update, attr_p, (lv_style_int_t)var);
 #endif
+
+        /* Scale attributes */
+        case ATTR_SCALE_GRAD_COLOR: {
+            if(update) {
+                lv_color32_t c;
+                if(Parser::haspPayloadToColor(payload, c) && part != 64)
+                    lv_obj_set_style_local_scale_grad_color(obj, part, state,
+                                                            lv_color_make(c.ch.red, c.ch.green, c.ch.blue));
+            } else {
+                hasp_out_color(obj, attr, lv_obj_get_style_scale_grad_color(obj, part));
+            }
+            return;
+        }
+        case ATTR_SCALE_END_COLOR:
+            if(update) {
+                lv_color32_t c;
+                if(Parser::haspPayloadToColor(payload, c))
+                    lv_obj_set_style_local_scale_end_color(obj, part, state,
+                                                           lv_color_make(c.ch.red, c.ch.green, c.ch.blue));
+            } else {
+                hasp_out_color(obj, attr, lv_obj_get_style_scale_end_color(obj, part));
+            }
+            return;
+        case ATTR_SCALE_END_LINE_WIDTH:
+            return attribute_scale_end_line_width(obj, part, state, update, attr_p, (lv_style_int_t)var);
+        case ATTR_SCALE_END_BORDER_WIDTH:
+            return attribute_scale_end_border_width(obj, part, state, update, attr_p, (lv_style_int_t)var);
+        case ATTR_SCALE_BORDER_WIDTH:
+            return attribute_scale_border_width(obj, part, state, update, attr_p, (lv_style_int_t)var);
+        case ATTR_SCALE_WIDTH:
+            return attribute_scale_width(obj, part, state, update, attr_p, (lv_style_int_t)var);
 
         /* Text attributes */
         case ATTR_TEXT_LETTER_SPACE:
