@@ -4,14 +4,7 @@
 #include <stdint.h>
 
 //#include "ArduinoLog.h"
-#include "hasp_conf.h"
-
-#include "hasp_dispatch.h"
-#include "hasp_object.h"
-#include "hasp.h"
-#include "hasp_utilities.h"
-#include "hasp_parser.h"
-#include "hasp_attribute.h"
+#include "hasplib.h"
 
 #include "dev/device.h"
 
@@ -652,13 +645,13 @@ void dispatch_parse_json(const char*, const char* payload)
         uint8_t savedPage = haspGetPage();
         hasp_new_object(json.as<JsonObject>(), savedPage);
 
-#ifdef ARDUINO
-    } else if(json.is<String>()) { // handle json as a single command
-        dispatch_text_line(json.as<String>().c_str());
-#else
+        // #ifdef ARDUINO
+        //     } else if(json.is<String>()) { // handle json as a single command
+        //         dispatch_text_line(json.as<String>().c_str());
+        // #else
     } else if(json.is<std::string>()) { // handle json as a single command
         dispatch_text_line(json.as<std::string>().c_str());
-#endif
+        // #endif
 
     } else if(json.is<const char*>()) { // handle json as a single command
         dispatch_text_line(json.as<const char*>());
@@ -937,7 +930,7 @@ void dispatch_output_statusupdate(const char*, const char*)
 #endif
 
         snprintf_P(buffer, sizeof(buffer), PSTR("\"tftDriver\":\"%s\",\"tftWidth\":%u,\"tftHeight\":%u}"),
-                   haspDevice.get_display_driver(), (TFT_WIDTH), (TFT_HEIGHT));
+                   Utilities::tft_driver_name().c_str(), (TFT_WIDTH), (TFT_HEIGHT));
         strcat(data, buffer);
     }
     mqtt_send_state(F("statusupdate"), data);

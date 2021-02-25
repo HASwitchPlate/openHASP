@@ -6,9 +6,6 @@
 #endif
 
 #include "ArduinoJson.h"
-#include "hasp_conf.h"
-
-#include "dev/device.h"
 
 #if HASP_USE_EEPROM > 0
 #include "StreamUtils.h" // For EEPromStream
@@ -28,12 +25,10 @@
 //#include "hasp_filesystem.h" included in hasp_conf.h
 #endif
 
-#include "hasp_object.h"
-#include "hasp_dispatch.h"
-
-#include "hasp_attribute.h"
-#include "hasp.h"
+#include "hasplib.h"
 #include "lv_theme_hasp.h"
+
+#include "dev/device.h"
 
 #if HASP_USE_EEPROM > 0
 #include "EEPROM.h"

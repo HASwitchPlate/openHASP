@@ -6,7 +6,6 @@
 #endif
 
 #include "hasp_conf.h"
-
 #include "hasp_utilities.h"
 
 /* 16-bit hashing function http://www.cse.yorku.ca/~oz/hash.html */

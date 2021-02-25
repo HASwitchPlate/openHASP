@@ -22,12 +22,7 @@
 #include "../lv_components.h"
 #endif
 
-#include "hasp.h"
-#include "hasp_object.h"
-#include "hasp_dispatch.h"
-#include "hasp_attribute.h"
-#include "hasp_utilities.h"
-#include "hasp_parser.h"
+#include "hasplib.h"
 
 const char** btnmatrix_default_map; // memory pointer to lvgl default btnmatrix map
 // static unsigned long last_change_event = 0;

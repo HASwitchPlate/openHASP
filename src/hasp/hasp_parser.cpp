@@ -8,10 +8,8 @@
 #endif
 
 #include "lvgl.h"
-#include "hasp_conf.h"
 
-#include "hasp_parser.h"
-#include "hasp_utilities.h"
+#include "hasplib.h"
 
 bool Parser::haspPayloadToColor(const char* payload, lv_color32_t& color)
 {
