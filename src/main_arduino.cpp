@@ -57,7 +57,6 @@ void setup()
     configSetup(); // also runs debugPreSetup(), debugSetup() and debugStart()
 #endif
 
-    dispatchSetup();
     guiSetup();
     debugSetup(); // Init the console
 
@@ -100,7 +99,7 @@ void setup()
     telnetSetup();
 #endif
 
-#if HASP_USE_TASMOTA_CLINET > 0
+#if HASP_USE_TASMOTA_CLIENT > 0
     slaveSetup();
 #endif
 

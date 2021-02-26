@@ -319,6 +319,7 @@ static void custom_font_apply_cb(lv_theme_t* th, lv_obj_t* obj, lv_theme_style_t
  */
 void haspSetup(void)
 {
+    dispatchSetup();
     haspDevice.set_backlight_level(haspStartDim);
 
     /******* File System Test ********************************************************************/

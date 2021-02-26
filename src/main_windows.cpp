@@ -103,9 +103,8 @@ void setup()
     lv_log_register_print_cb(debugLvglLogEvent);
     lv_init();
 
-    haspDevice.init();
+    haspDevice.init(); // hardware setup
     // hal_setup();
-    dispatchSetup();
     guiSetup();
 
     //    debugSetup(); // Init the console
