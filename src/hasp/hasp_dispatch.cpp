@@ -40,10 +40,48 @@
 extern uint8_t hasp_sleep_state;
 
 dispatch_conf_t dispatch_setings = {.teleperiod = 10};
-
 uint32_t dispatchLastMillis;
-uint8_t nCommands = 0;
-haspCommand_t commands[17];
+
+/* Declare all Command Handlers */
+void dispatch_parse_json(const char*, const char* payload);
+void dispatch_parse_jsonl(const char*, const char* payload);
+void dispatch_page(const char*, const char* payload);
+void dispatch_wakeup(const char*, const char* payload);
+void dispatch_output_statusupdate(const char*, const char* payload);
+void dispatch_clear_page(const char*, const char* payload);
+void dispatch_dim(const char*, const char* payload);
+void dispatch_backlight(const char*, const char* payload);
+void dispatch_moodlight(const char*, const char* payload);
+void dispatch_calibrate(const char*, const char* payload);
+void dispatch_web_update(const char*, const char* payload);
+void dispatch_reboot(const char*, const char* payload);
+void dispatch_screenshot(const char*, const char* payload);
+void dispatch_factory_reset(const char*, const char* payload);
+
+/* Map Commands to Command Handlers */
+haspCommand_t commands[] = {
+
+    {PSTR("json"), dispatch_parse_json},
+    {PSTR("page"), dispatch_page},
+    {PSTR("wakeup"), dispatch_wakeup},
+    {PSTR("statusupdate"), dispatch_output_statusupdate},
+    {PSTR("clearpage"), dispatch_clear_page},
+    {PSTR("jsonl"), dispatch_parse_jsonl},
+    {PSTR("dim"), dispatch_dim},
+    {PSTR("brightness"), dispatch_dim},
+    {PSTR("light"), dispatch_backlight},
+    {PSTR("moodlight"), dispatch_moodlight},
+    {PSTR("calibrate"), dispatch_calibrate},
+    {PSTR("update"), dispatch_web_update},
+    {PSTR("reboot"), dispatch_reboot},
+    {PSTR("restart"), dispatch_reboot},
+    {PSTR("screenshot"), dispatch_screenshot},
+#if HASP_USE_CONFIG > 0
+    {PSTR("setupap"), oobeFakeSetup},
+#endif
+    {PSTR("factoryreset"), dispatch_factory_reset}
+
+};
 
 struct moodlight_t
 {
@@ -59,7 +97,6 @@ static inline void dispatch_state_msg(const __FlashStringHelper* subtopic, const
 void dispatch_screenshot(const char*, const char* filename)
 {
 #if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
-
     if(strlen(filename) == 0) { // no filename given
         char tempfile[32];
         memcpy_P(tempfile, PSTR("/screenshot.bmp"), sizeof(tempfile));
@@ -200,7 +237,7 @@ void dispatch_command(const char* topic, const char* payload)
     /* ================================= Standard payload commands ======================================= */
 
     // check and execute commands from commands array
-    for(int i = 0; i < nCommands; i++) {
+    for(int i = 0; i < sizeof(commands) / sizeof(haspCommand_t); i++) {
         if(!strcasecmp_P(topic, commands[i].p_cmdstr)) {
             // LOG_DEBUG(TAG_MSGR, F("Command %d found in array !!!"), i);
             commands[i].func(topic, payload); /* execute command */
@@ -901,7 +938,6 @@ void dispatch_current_state()
 void dispatch_output_statusupdate(const char*, const char*)
 {
 #if HASP_USE_MQTT > 0
-
     char data[3 * 128];
     {
         char buffer[128];
@@ -970,46 +1006,8 @@ void dispatch_factory_reset(const char*, const char*)
 
 /******************************************* Commands builder *******************************************/
 
-static void dispatch_add_command(const char* p_cmdstr, void (*func)(const char*, const char*))
-{
-    if(nCommands >= sizeof(commands) / sizeof(haspCommand_t)) {
-        LOG_FATAL(TAG_MSGR, F("CMD_OVERFLOW %d"), nCommands);
-        while(1) {
-        }
-    } else {
-        commands[nCommands].p_cmdstr = p_cmdstr;
-        commands[nCommands].func     = func;
-        nCommands++;
-    }
-}
-
 void dispatchSetup()
-{
-    // In order of importance : commands are NOT case-sensitive
-    // The command.func() call will receive the full topic and payload parameters!
-
-    /* WARNING: remember to expand the commands array when adding new commands */
-    dispatch_add_command(PSTR("json"), dispatch_parse_json);
-    dispatch_add_command(PSTR("page"), dispatch_page);
-    dispatch_add_command(PSTR("wakeup"), dispatch_wakeup);
-    dispatch_add_command(PSTR("statusupdate"), dispatch_output_statusupdate);
-    dispatch_add_command(PSTR("clearpage"), dispatch_clear_page);
-    dispatch_add_command(PSTR("jsonl"), dispatch_parse_jsonl);
-    dispatch_add_command(PSTR("dim"), dispatch_dim);
-    dispatch_add_command(PSTR("brightness"), dispatch_dim);
-    dispatch_add_command(PSTR("light"), dispatch_backlight);
-    dispatch_add_command(PSTR("moodlight"), dispatch_moodlight);
-    dispatch_add_command(PSTR("calibrate"), dispatch_calibrate);
-    dispatch_add_command(PSTR("update"), dispatch_web_update);
-    dispatch_add_command(PSTR("reboot"), dispatch_reboot);
-    dispatch_add_command(PSTR("restart"), dispatch_reboot);
-    dispatch_add_command(PSTR("screenshot"), dispatch_screenshot);
-    dispatch_add_command(PSTR("factoryreset"), dispatch_factory_reset);
-#if HASP_USE_CONFIG > 0
-    dispatch_add_command(PSTR("setupap"), oobeFakeSetup);
-#endif
-    /* WARNING: remember to expand the commands array when adding new commands */
-}
+{}
 
 void dispatchLoop()
 {

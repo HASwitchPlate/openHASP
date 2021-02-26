@@ -79,8 +79,8 @@ void dispatch_send_obj_attribute_color(uint8_t pageid, uint8_t btnid, const char
 /* ===== Structs and Constants ===== */
 struct haspCommand_t
 {
-    void (*func)(const char*, const char*);
     const char* p_cmdstr;
+    void (*func)(const char*, const char*);
 };
 
 #endif
