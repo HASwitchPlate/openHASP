@@ -420,6 +420,15 @@ static void dispatch_config(const char* topic, const char* payload)
             haspGetConfig(settings);
     }
 
+#if HASP_USE_GPIO > 0
+    else if(strcasecmp_P(topic, PSTR("gpio")) == 0) {
+        if(update)
+            gpioSetConfig(settings);
+        else
+            gpioGetConfig(settings);
+    }
+#endif
+
 #if HASP_USE_WIFI > 0
     else if(strcasecmp_P(topic, PSTR("wifi")) == 0) {
         if(update)
