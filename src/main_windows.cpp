@@ -110,6 +110,7 @@ void setup()
     //    debugSetup(); // Init the console
 
     printf("%s %d\n", __FILE__, __LINE__);
+    dispatchSetup(); // for hasp and oobe
     haspSetup();
 
 #if HASP_USE_MQTT > 0

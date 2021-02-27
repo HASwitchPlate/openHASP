@@ -58,7 +58,8 @@ void setup()
 #endif
 
     guiSetup();
-    debugSetup(); // Init the console
+    debugSetup();    // Init the console
+    dispatchSetup(); // for hasp and oobe
 
 #if HASP_USE_CONFIG > 0
     if(!oobeSetup())
