@@ -23,8 +23,7 @@
 #include "hasp_gui.h"
 #include "hasp_oobe.h"
 
-#include "hasp/hasp_dispatch.h"
-#include "hasp/hasp.h"
+#include "hasplib.h"
 
 #ifdef WINDOWS
 #include "display/monitor.h"
@@ -194,8 +193,12 @@ void guiSetup(void)
 
         /* Initialize Filesystems */
 #if LV_USE_FS_IF != 0
-    _lv_fs_init();   // lvgl File System
+    // _lv_fs_init();   // lvgl File System -- not neaded, it done in lv_init() when LV_USE_FILESYSTEM is set
+    LOG_VERBOSE(TAG_LVGL, F("Filesystem : Enabled"));
     lv_fs_if_init(); // auxilary file system drivers
+    filesystem_list_path("S:/");
+#else
+    LOG_VERBOSE(TAG_LVGL, F("Filesystem : Disabled"));
 #endif
 
     /* Initialize PNG decoder */

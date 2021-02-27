@@ -8,58 +8,62 @@
  *********************/
 #include "lv_fs_if.h"
 #if LV_USE_FS_IF
-    #if LV_FS_IF_PC != '\0'
+#if LV_FS_IF_PC != '\0'
 
-        #include <stdio.h>
-        #include <errno.h>
-        #include <dirent.h>
-        #include <unistd.h>
-        #ifdef WIN32
-            #include <windows.h>
-        #endif
+#include <stdio.h>
+#include <errno.h>
+#include <unistd.h>
+#if !defined(ARDUINO_ARCH_ESP8266) && !defined(STM32F4xx)
+#include <dirent.h>
+#endif
+#ifdef WIN32
+#include <windows.h>
+#endif
 
-        /*********************
-         *      DEFINES
-         *********************/
-        #ifndef LV_FS_PC_PATH
-            #ifndef WIN32
-                #define LV_FS_PC_PATH "/fs" /*Projet root*/
-            #else
-                #define LV_FS_PC_PATH ".\\" /*Projet root*/
-            #endif
-        #endif /*LV_FS_PATH*/
+/*********************
+ *      DEFINES
+ *********************/
+#ifndef LV_FS_PC_PATH
+#ifndef WIN32
+#define LV_FS_PC_PATH "/fs" /*Projet root*/
+#else
+#define LV_FS_PC_PATH ".\\" /*Projet root*/
+#endif
+#endif /*LV_FS_PATH*/
 
 /**********************
  *      TYPEDEFS
  **********************/
 
 /* Create a type to store the required data about your file. */
-typedef FILE * file_t;
+typedef FILE* file_t;
 
-        /*Similarly to `file_t` create a type for directory reading too */
-        #ifndef WIN32
-typedef DIR * dir_t;
-        #else
+/*Similarly to `file_t` create a type for directory reading too */
+#if defined(WIN32)
 typedef HANDLE dir_t;
-        #endif
+#elif defined(ARDUINO_ARCH_ESP8266) || defined(STM32F4xx)
+typedef FILE* dir_t;
+#else
+typedef DIR* dir_t;
+#endif
 
 /**********************
  *  STATIC PROTOTYPES
  **********************/
-static lv_fs_res_t fs_open(lv_fs_drv_t * drv, void * file_p, const char * path, lv_fs_mode_t mode);
-static lv_fs_res_t fs_close(lv_fs_drv_t * drv, void * file_p);
-static lv_fs_res_t fs_read(lv_fs_drv_t * drv, void * file_p, void * buf, uint32_t btr, uint32_t * br);
-static lv_fs_res_t fs_write(lv_fs_drv_t * drv, void * file_p, const void * buf, uint32_t btw, uint32_t * bw);
-static lv_fs_res_t fs_seek(lv_fs_drv_t * drv, void * file_p, uint32_t pos);
-static lv_fs_res_t fs_size(lv_fs_drv_t * drv, void * file_p, uint32_t * size_p);
-static lv_fs_res_t fs_tell(lv_fs_drv_t * drv, void * file_p, uint32_t * pos_p);
-static lv_fs_res_t fs_remove(lv_fs_drv_t * drv, const char * path);
-static lv_fs_res_t fs_trunc(lv_fs_drv_t * drv, void * file_p);
-static lv_fs_res_t fs_rename(lv_fs_drv_t * drv, const char * oldname, const char * newname);
-static lv_fs_res_t fs_free(lv_fs_drv_t * drv, uint32_t * total_p, uint32_t * free_p);
-static lv_fs_res_t fs_dir_open(lv_fs_drv_t * drv, void * dir_p, const char * path);
-static lv_fs_res_t fs_dir_read(lv_fs_drv_t * drv, void * dir_p, char * fn);
-static lv_fs_res_t fs_dir_close(lv_fs_drv_t * drv, void * dir_p);
+static lv_fs_res_t fs_open(lv_fs_drv_t* drv, void* file_p, const char* path, lv_fs_mode_t mode);
+static lv_fs_res_t fs_close(lv_fs_drv_t* drv, void* file_p);
+static lv_fs_res_t fs_read(lv_fs_drv_t* drv, void* file_p, void* buf, uint32_t btr, uint32_t* br);
+static lv_fs_res_t fs_write(lv_fs_drv_t* drv, void* file_p, const void* buf, uint32_t btw, uint32_t* bw);
+static lv_fs_res_t fs_seek(lv_fs_drv_t* drv, void* file_p, uint32_t pos);
+static lv_fs_res_t fs_size(lv_fs_drv_t* drv, void* file_p, uint32_t* size_p);
+static lv_fs_res_t fs_tell(lv_fs_drv_t* drv, void* file_p, uint32_t* pos_p);
+static lv_fs_res_t fs_remove(lv_fs_drv_t* drv, const char* path);
+static lv_fs_res_t fs_trunc(lv_fs_drv_t* drv, void* file_p);
+static lv_fs_res_t fs_rename(lv_fs_drv_t* drv, const char* oldname, const char* newname);
+static lv_fs_res_t fs_free(lv_fs_drv_t* drv, uint32_t* total_p, uint32_t* free_p);
+static lv_fs_res_t fs_dir_open(lv_fs_drv_t* drv, void* dir_p, const char* path);
+static lv_fs_res_t fs_dir_read(lv_fs_drv_t* drv, void* dir_p, char* fn);
+static lv_fs_res_t fs_dir_close(lv_fs_drv_t* drv, void* dir_p);
 
 /**********************
  *  STATIC VARIABLES
@@ -121,12 +125,12 @@ void lv_fs_if_pc_init(void)
  * @param mode read: FS_MODE_RD, write: FS_MODE_WR, both: FS_MODE_RD | FS_MODE_WR
  * @return LV_FS_RES_OK or any error from lv_fs_res_t enum
  */
-static lv_fs_res_t fs_open(lv_fs_drv_t * drv, void * file_p, const char * path, lv_fs_mode_t mode)
+static lv_fs_res_t fs_open(lv_fs_drv_t* drv, void* file_p, const char* path, lv_fs_mode_t mode)
 {
     (void)drv; /*Unused*/
     errno = 0;
 
-    const char * flags = "";
+    const char* flags = "";
 
     if(mode == LV_FS_MODE_WR)
         flags = "wb";
@@ -135,16 +139,16 @@ static lv_fs_res_t fs_open(lv_fs_drv_t * drv, void * file_p, const char * path, 
     else if(mode == (LV_FS_MODE_WR | LV_FS_MODE_RD))
         flags = "rb+";
 
-            /*Make the path relative to the current directory (the projects root folder)*/
+        /*Make the path relative to the current directory (the projects root folder)*/
 
-        #ifndef WIN32
+#ifndef WIN32
     char buf[256];
     sprintf(buf, LV_FS_PC_PATH "/%s", path);
     printf("%s\n", buf);
-        #else
+#else
     char buf[256];
     sprintf(buf, LV_FS_PC_PATH "\\%s", path);
-        #endif
+#endif
 
     file_t f = fopen(buf, flags);
     if(f == NULL) {
@@ -156,8 +160,8 @@ static lv_fs_res_t fs_open(lv_fs_drv_t * drv, void * file_p, const char * path, 
 
     /* 'file_p' is pointer to a file descriptor and
      * we need to store our file descriptor here*/
-    file_t * fp = file_p; /*Just avoid the confusing casings*/
-    *fp         = f;
+    file_t* fp = file_p; /*Just avoid the confusing casings*/
+    *fp        = f;
 
     return LV_FS_RES_OK;
 }
@@ -169,10 +173,10 @@ static lv_fs_res_t fs_open(lv_fs_drv_t * drv, void * file_p, const char * path, 
  * @return LV_FS_RES_OK: no error, the file is read
  *         any error from lv_fs_res_t enum
  */
-static lv_fs_res_t fs_close(lv_fs_drv_t * drv, void * file_p)
+static lv_fs_res_t fs_close(lv_fs_drv_t* drv, void* file_p)
 {
-    (void)drv;            /*Unused*/
-    file_t * fp = file_p; /*Just avoid the confusing casings*/
+    (void)drv;           /*Unused*/
+    file_t* fp = file_p; /*Just avoid the confusing casings*/
     fclose(*fp);
     return LV_FS_RES_OK;
 }
@@ -187,11 +191,11 @@ static lv_fs_res_t fs_close(lv_fs_drv_t * drv, void * file_p)
  * @return LV_FS_RES_OK: no error, the file is read
  *         any error from lv_fs_res_t enum
  */
-static lv_fs_res_t fs_read(lv_fs_drv_t * drv, void * file_p, void * buf, uint32_t btr, uint32_t * br)
+static lv_fs_res_t fs_read(lv_fs_drv_t* drv, void* file_p, void* buf, uint32_t btr, uint32_t* br)
 {
-    (void)drv;            /*Unused*/
-    file_t * fp = file_p; /*Just avoid the confusing casings*/
-    *br         = fread(buf, 1, btr, *fp);
+    (void)drv;           /*Unused*/
+    file_t* fp = file_p; /*Just avoid the confusing casings*/
+    *br        = fread(buf, 1, btr, *fp);
     return LV_FS_RES_OK;
 }
 
@@ -204,11 +208,11 @@ static lv_fs_res_t fs_read(lv_fs_drv_t * drv, void * file_p, void * buf, uint32_
  * @param br the number of real written bytes (Bytes Written). NULL if unused.
  * @return LV_FS_RES_OK or any error from lv_fs_res_t enum
  */
-static lv_fs_res_t fs_write(lv_fs_drv_t * drv, void * file_p, const void * buf, uint32_t btw, uint32_t * bw)
+static lv_fs_res_t fs_write(lv_fs_drv_t* drv, void* file_p, const void* buf, uint32_t btw, uint32_t* bw)
 {
-    (void)drv;            /*Unused*/
-    file_t * fp = file_p; /*Just avoid the confusing casings*/
-    *bw         = fwrite(buf, 1, btw, *fp);
+    (void)drv;           /*Unused*/
+    file_t* fp = file_p; /*Just avoid the confusing casings*/
+    *bw        = fwrite(buf, 1, btw, *fp);
     return LV_FS_RES_OK;
 }
 
@@ -220,10 +224,10 @@ static lv_fs_res_t fs_write(lv_fs_drv_t * drv, void * file_p, const void * buf, 
  * @return LV_FS_RES_OK: no error, the file is read
  *         any error from lv_fs_res_t enum
  */
-static lv_fs_res_t fs_seek(lv_fs_drv_t * drv, void * file_p, uint32_t pos)
+static lv_fs_res_t fs_seek(lv_fs_drv_t* drv, void* file_p, uint32_t pos)
 {
-    (void)drv;            /*Unused*/
-    file_t * fp = file_p; /*Just avoid the confusing casings*/
+    (void)drv;           /*Unused*/
+    file_t* fp = file_p; /*Just avoid the confusing casings*/
     fseek(*fp, pos, SEEK_SET);
     return LV_FS_RES_OK;
 }
@@ -235,10 +239,10 @@ static lv_fs_res_t fs_seek(lv_fs_drv_t * drv, void * file_p, uint32_t pos)
  * @param size pointer to a variable to store the size
  * @return LV_FS_RES_OK or any error from lv_fs_res_t enum
  */
-static lv_fs_res_t fs_size(lv_fs_drv_t * drv, void * file_p, uint32_t * size_p)
+static lv_fs_res_t fs_size(lv_fs_drv_t* drv, void* file_p, uint32_t* size_p)
 {
-    (void)drv;            /*Unused*/
-    file_t * fp = file_p; /*Just avoid the confusing casings*/
+    (void)drv;           /*Unused*/
+    file_t* fp = file_p; /*Just avoid the confusing casings*/
 
     uint32_t cur = ftell(*fp);
 
@@ -258,11 +262,11 @@ static lv_fs_res_t fs_size(lv_fs_drv_t * drv, void * file_p, uint32_t * size_p)
  * @return LV_FS_RES_OK: no error, the file is read
  *         any error from lv_fs_res_t enum
  */
-static lv_fs_res_t fs_tell(lv_fs_drv_t * drv, void * file_p, uint32_t * pos_p)
+static lv_fs_res_t fs_tell(lv_fs_drv_t* drv, void* file_p, uint32_t* pos_p)
 {
-    (void)drv;            /*Unused*/
-    file_t * fp = file_p; /*Just avoid the confusing casings*/
-    *pos_p      = ftell(*fp);
+    (void)drv;           /*Unused*/
+    file_t* fp = file_p; /*Just avoid the confusing casings*/
+    *pos_p     = ftell(*fp);
     return LV_FS_RES_OK;
 }
 
@@ -272,7 +276,7 @@ static lv_fs_res_t fs_tell(lv_fs_drv_t * drv, void * file_p, uint32_t * pos_p)
  * @param path path of the file to delete
  * @return  LV_FS_RES_OK or any error from lv_fs_res_t enum
  */
-static lv_fs_res_t fs_remove(lv_fs_drv_t * drv, const char * path)
+static lv_fs_res_t fs_remove(lv_fs_drv_t* drv, const char* path)
 {
     (void)drv; /*Unused*/
     lv_fs_res_t res = LV_FS_RES_NOT_IMP;
@@ -289,10 +293,10 @@ static lv_fs_res_t fs_remove(lv_fs_drv_t * drv, const char * path)
  * @return LV_FS_RES_OK: no error, the file is read
  *         any error from lv_fs_res_t enum
  */
-static lv_fs_res_t fs_trunc(lv_fs_drv_t * drv, void * file_p)
+static lv_fs_res_t fs_trunc(lv_fs_drv_t* drv, void* file_p)
 {
-    (void)drv;            /*Unused*/
-    file_t * fp = file_p; /*Just avoid the confusing casings*/
+    (void)drv;           /*Unused*/
+    file_t* fp = file_p; /*Just avoid the confusing casings*/
 
     fflush(*fp); /*If not syncronized fclose can write the truncated part*/
     uint32_t p = ftell(*fp);
@@ -307,7 +311,7 @@ static lv_fs_res_t fs_trunc(lv_fs_drv_t * drv, void * file_p)
  * @param newname path with the new name
  * @return LV_FS_RES_OK or any error from 'fs_res_t'
  */
-static lv_fs_res_t fs_rename(lv_fs_drv_t * drv, const char * oldname, const char * newname)
+static lv_fs_res_t fs_rename(lv_fs_drv_t* drv, const char* oldname, const char* newname)
 {
     (void)drv; /*Unused*/
     static char new[512];
@@ -316,12 +320,14 @@ static lv_fs_res_t fs_rename(lv_fs_drv_t * drv, const char * oldname, const char
     sprintf(old, LV_FS_PC_PATH "/%s", oldname);
     sprintf(new, LV_FS_PC_PATH "/%s", newname);
 
-    int r = rename(old, new);
+    return LV_FS_RES_UNKNOWN;
 
-    if(r == 0)
-        return LV_FS_RES_OK;
-    else
-        return LV_FS_RES_UNKNOWN;
+    // int r = rename(old, new);
+
+    // if(r == 0)
+    //     return LV_FS_RES_OK;
+    // else
+    //     return LV_FS_RES_UNKNOWN;
 }
 
 /**
@@ -332,7 +338,7 @@ static lv_fs_res_t fs_rename(lv_fs_drv_t * drv, const char * oldname, const char
  * @param free_p pointer to store the free size [kB]
  * @return LV_FS_RES_OK or any error from lv_fs_res_t enum
  */
-static lv_fs_res_t fs_free(lv_fs_drv_t * drv, uint32_t * total_p, uint32_t * free_p)
+static lv_fs_res_t fs_free(lv_fs_drv_t* drv, uint32_t* total_p, uint32_t* free_p)
 {
     (void)drv; /*Unused*/
     lv_fs_res_t res = LV_FS_RES_NOT_IMP;
@@ -342,9 +348,9 @@ static lv_fs_res_t fs_free(lv_fs_drv_t * drv, uint32_t * total_p, uint32_t * fre
     return res;
 }
 
-        #ifdef WIN32
+#ifdef WIN32
 static char next_fn[256];
-        #endif
+#endif
 
 /**
  * Initialize a 'fs_read_dir_t' variable for directory reading
@@ -353,11 +359,14 @@ static char next_fn[256];
  * @param path path to a directory
  * @return LV_FS_RES_OK or any error from lv_fs_res_t enum
  */
-static lv_fs_res_t fs_dir_open(lv_fs_drv_t * drv, void * dir_p, const char * path)
+static lv_fs_res_t fs_dir_open(lv_fs_drv_t* drv, void* dir_p, const char* path)
 {
     (void)drv; /*Unused*/
     dir_t d;
-        #ifndef WIN32
+#if defined(ARDUINO_ARCH_ESP8266) || defined(STM32F4xx)
+    return LV_FS_RES_UNKNOWN;
+
+#elif !defined(WIN32)
     /*Make the path relative to the current directory (the projects root folder)*/
     char buf[256];
     sprintf(buf, LV_FS_PC_PATH "/%s", path);
@@ -366,10 +375,10 @@ static lv_fs_res_t fs_dir_open(lv_fs_drv_t * drv, void * dir_p, const char * pat
     } else {
         /* 'dir_p' is pointer to a file descriptor and
          * we need to store our file descriptor here*/
-        dir_t * dp = dir_p; /*Just avoid the confusing casings*/
-        *dp        = d;
+        dir_t* dp = dir_p; /*Just avoid the confusing casings*/
+        *dp       = d;
     }
-        #else
+#else
     d = INVALID_HANDLE_VALUE;
     WIN32_FIND_DATA fdata;
 
@@ -393,10 +402,10 @@ static lv_fs_res_t fs_dir_open(lv_fs_drv_t * drv, void * dir_p, const char * pat
         }
     } while(FindNextFileA(d, &fdata));
 
-    dir_t * dp = dir_p; /*Just avoid the confusing casings*/
-    *dp        = d;
+    dir_t* dp = dir_p; /*Just avoid the confusing casings*/
+    *dp       = d;
 
-        #endif
+#endif
 
     return LV_FS_RES_OK;
 }
@@ -409,17 +418,18 @@ static lv_fs_res_t fs_dir_open(lv_fs_drv_t * drv, void * dir_p, const char * pat
  * @param fn pointer to a buffer to store the filename
  * @return LV_FS_RES_OK or any error from lv_fs_res_t enum
  */
-static lv_fs_res_t fs_dir_read(lv_fs_drv_t * drv, void * dir_p, char * fn)
+static lv_fs_res_t fs_dir_read(lv_fs_drv_t* drv, void* dir_p, char* fn)
 {
-    (void)drv;          /*Unused*/
-    dir_t * dp = dir_p; /*Just avoid the confusing casings*/
+    (void)drv;         /*Unused*/
+    dir_t* dp = dir_p; /*Just avoid the confusing casings*/
 
-        #ifndef WIN32
-    struct dirent * entry;
+#ifdef ARDUINO_ARCH_ESP32
+    struct dirent* entry;
     do {
         entry = readdir(*dp);
 
         if(entry) {
+
             if(entry->d_type == DT_DIR)
                 sprintf(fn, "/%s", entry->d_name);
             else
@@ -428,7 +438,9 @@ static lv_fs_res_t fs_dir_read(lv_fs_drv_t * drv, void * dir_p, char * fn)
             strcpy(fn, "");
         }
     } while(strcmp(fn, "/.") == 0 || strcmp(fn, "/..") == 0);
-        #else
+#endif
+
+#ifdef WIN32
     strcpy(fn, next_fn);
 
     strcpy(next_fn, "");
@@ -449,7 +461,7 @@ static lv_fs_res_t fs_dir_read(lv_fs_drv_t * drv, void * dir_p, char * fn)
         }
     } while(FindNextFile(*dp, &fdata));
 
-        #endif
+#endif
     return LV_FS_RES_OK;
 }
 
@@ -459,18 +471,21 @@ static lv_fs_res_t fs_dir_read(lv_fs_drv_t * drv, void * dir_p, char * fn)
  * @param dir_p pointer to an initialized 'fs_read_dir_t' variable
  * @return LV_FS_RES_OK or any error from lv_fs_res_t enum
  */
-static lv_fs_res_t fs_dir_close(lv_fs_drv_t * drv, void * dir_p)
+static lv_fs_res_t fs_dir_close(lv_fs_drv_t* drv, void* dir_p)
 {
     (void)drv; /*Unused*/
-    dir_t * dp = dir_p;
-        #ifndef WIN32
+    dir_t* dp = dir_p;
+#if defined(ARDUINO_ARCH_ESP8266) || defined(STM32F4xx)
+    return LV_FS_RES_UNKNOWN;
+
+#elif !defined(WIN32)
     closedir(*dp);
-        #else
+#else
     FindClose(*dp);
     *dp = INVALID_HANDLE_VALUE;
-        #endif
+#endif
     return LV_FS_RES_OK;
 }
 
-    #endif /*LV_USE_FS_IF*/
-#endif     /*LV_FS_IF_FATFS*/
+#endif /*LV_USE_FS_IF*/
+#endif /*LV_FS_IF_FATFS*/
