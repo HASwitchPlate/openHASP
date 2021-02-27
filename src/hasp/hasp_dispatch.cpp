@@ -500,31 +500,31 @@ void dispatch_get_event_name(uint8_t eventid, char* buffer, size_t size)
 {
     switch(eventid) {
         case HASP_EVENT_ON:
-            memcpy_P(buffer, PSTR("ON"), size);
+            memcpy_P(buffer, PSTR("on"), size);
             break;
         case HASP_EVENT_OFF:
-            memcpy_P(buffer, PSTR("OFF"), size);
+            memcpy_P(buffer, PSTR("off"), size);
             break;
         case HASP_EVENT_UP:
-            memcpy_P(buffer, PSTR("UP"), size);
+            memcpy_P(buffer, PSTR("up"), size);
             break;
         case HASP_EVENT_DOWN:
-            memcpy_P(buffer, PSTR("DOWN"), size);
+            memcpy_P(buffer, PSTR("down"), size);
             break;
         case HASP_EVENT_SHORT:
-            memcpy_P(buffer, PSTR("SHORT"), size);
+            memcpy_P(buffer, PSTR("short"), size);
             break;
         case HASP_EVENT_LONG:
-            memcpy_P(buffer, PSTR("LONG"), size);
+            memcpy_P(buffer, PSTR("long"), size);
             break;
         case HASP_EVENT_HOLD:
-            memcpy_P(buffer, PSTR("HOLD"), size);
+            memcpy_P(buffer, PSTR("hold"), size);
             break;
         case HASP_EVENT_LOST:
-            memcpy_P(buffer, PSTR("LOST"), size);
+            memcpy_P(buffer, PSTR("lost"), size);
             break;
         default:
-            memcpy_P(buffer, PSTR("UNKNOWN"), size);
+            memcpy_P(buffer, PSTR("unknown"), size);
     }
 }
 
@@ -811,8 +811,8 @@ void dispatch_moodlight(const char* topic, const char* payload)
                 moodlight.power = Utilities::is_true(json[F("state")].as<std::string>().c_str());
 
             if(!json[F("r")].isNull()) moodlight.r = json[F("r")].as<uint8_t>();
-            if(!json[F("g")].isNull()) moodlight.r = json[F("g")].as<uint8_t>();
-            if(!json[F("b")].isNull()) moodlight.r = json[F("b")].as<uint8_t>();
+            if(!json[F("g")].isNull()) moodlight.g = json[F("g")].as<uint8_t>();
+            if(!json[F("b")].isNull()) moodlight.b = json[F("b")].as<uint8_t>();
 
             if(!json[F("color")].isNull()) {
                 if(!json[F("color")]["r"].isNull()) {
