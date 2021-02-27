@@ -13,6 +13,9 @@ paho-mqtt: &mqtt_spec
     host: "{host}"
     port: !int "{port:d}"
     timeout: 1
+  auth:
+    username: "{username}"
+    password: "{password}"
 
 stages:
   - name: Page 1

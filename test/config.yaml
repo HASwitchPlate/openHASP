@@ -1,10 +1,11 @@
 # config.yaml
 ---
-
 name: Common test information
 description: Connection information for MQTT Client
 
 variables:
-  host: 10.4.0.5
+  host: homeassistant.local
+  username: hasp
+  password: hasp
   port: 1883
   plate: plate35

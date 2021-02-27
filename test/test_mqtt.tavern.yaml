@@ -1,6 +1,5 @@
 # test_page.tavern.yaml
 ---
-
 test_name: Page command
 
 includes:
@@ -14,6 +13,9 @@ paho-mqtt:
     host: "{host}"
     port: !int "{port:d}"
     timeout: 3
+  auth:
+    username: "{username}"
+    password: "{password}"
 
 stages:
   - name: step 1 - Page test
@@ -46,7 +48,7 @@ stages:
   - name: step 4 - Page test
     mqtt_publish:
       topic: hasp/{plate}/command/json
-      payload: "[\"page=1\"]"
+      payload: '["page=1"]'
     mqtt_response:
       topic: hasp/{plate}/state/page
       payload: "1"
@@ -55,7 +57,7 @@ stages:
   - name: step 5 - Page test
     mqtt_publish:
       topic: hasp/{plate}/command/json
-      payload: "[\"page 300\"]"
+      payload: '["page 300"]'
     mqtt_response:
       topic: hasp/{plate}/state/page
       payload: "1"

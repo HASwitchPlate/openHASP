@@ -1,6 +1,5 @@
 # test_value_str.tavern.yaml
 ---
-
 test_name: Obj Standard Properties
 
 includes:
@@ -14,6 +13,9 @@ paho-mqtt:
     host: "{host}"
     port: !int "{port:d}"
     timeout: 3
+  auth:
+    username: "{username}"
+    password: "{password}"
 
 marks:
   - parametrize:
@@ -26,14 +28,14 @@ marks:
         - 30
         - 31
         - 32
-#        - 33
-#        - 40
+        #        - 33
+        #        - 40
         - 41
         - 50
         - 51
         - 91
-#        - 90
-#        - 1
+        #        - 90
+        #        - 1
         - 2
         - 71
         - 80
@@ -93,7 +95,7 @@ stages:
         x: 128
         y: 128
     delay_after: 0
-    
+
   - name: Set value_str
     mqtt_publish:
       topic: "hasp/{plate}/command/p[1].b[1].value_str"

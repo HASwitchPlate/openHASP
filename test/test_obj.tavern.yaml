@@ -13,6 +13,9 @@ paho-mqtt:
     host: "{host}"
     port: !int "{port:d}"
     timeout: 3
+  auth:
+    username: "{username}"
+    password: "{password}"
 
 marks:
   - parametrize:
@@ -52,8 +55,30 @@ marks:
       vals:
         - [1, 0, 120, 121, 122, 123, 0, 255, "I'm sorry.", "louie"]
         - [1, 0, -10, -10, 256, 257, 1, 64, "louie", " The cat stretched."]
-        - [0, 1, 1024, 1025, 1026, 1027, 5, 0, "The pipe began to rust while new.", ""]
-        - [0, 1, 80, 81, 82, 83, 32535, 192, "" ," Oak is strong and also gives shade."]
+        - [
+            0,
+            1,
+            1024,
+            1025,
+            1026,
+            1027,
+            5,
+            0,
+            "The pipe began to rust while new.",
+            "",
+          ]
+        - [
+            0,
+            1,
+            80,
+            81,
+            82,
+            83,
+            32535,
+            192,
+            "",
+            " Oak is strong and also gives shade.",
+          ]
 
 stages:
   - name: Page 1
@@ -202,7 +227,7 @@ stages:
       json:
         radius: !int "{radius:d}"
       timeout: 1
-    
+
   - name: Set value_str
     mqtt_publish:
       topic: "hasp/{plate}/command/p1b1.value_str"
