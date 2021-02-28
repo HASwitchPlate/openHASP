@@ -846,7 +846,7 @@ void dispatch_moodlight(const char* topic, const char* payload)
     snprintf_P(
         // buffer, sizeof(buffer), PSTR("{\"state\":\"%s\",\"color\":\"#%02x%02x%02x\",\"r\":%u,\"g\":%u,\"b\":%u}"),
         buffer, sizeof(buffer), PSTR("{\"state\":\"%s\",\"color\":{\"r\":%u,\"g\":%u,\"b\":%u}}"),
-        moodlight.power ? "ON" : "OFF", moodlight.r, moodlight.g, moodlight.b);
+        moodlight.power ? "on" : "off", moodlight.r, moodlight.g, moodlight.b);
     dispatch_state_msg(F("moodlight"), buffer);
 }
 
@@ -857,7 +857,7 @@ void dispatch_backlight(const char*, const char* payload)
 
     // Return the current state
     char buffer[4];
-    memcpy_P(buffer, haspDevice.get_backlight_power() ? PSTR("ON") : PSTR("OFF"), sizeof(buffer));
+    memcpy_P(buffer, haspDevice.get_backlight_power() ? PSTR("on") : PSTR("off"), sizeof(buffer));
     dispatch_state_msg(F("light"), buffer);
 }
 

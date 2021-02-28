@@ -195,8 +195,8 @@ void mqtt_ha_register_backlight()
     mqtt_ha_add_device_ids(doc);
     mqtt_ha_add_unique_id(doc, item);
 
-    // doc[F("pl_on")]  = F("ON");
-    // doc[F("pl_off")] = F("OFF");
+    // doc[F("pl_on")]  = F("on");
+    // doc[F("pl_off")] = F("off");
 
     char buffer[128];
     snprintf_P(buffer, sizeof(buffer), PSTR("%s/light/%s/%s/config"), discovery_prefix, haspDevice.get_hostname(),
@@ -341,8 +341,8 @@ device:
     "bri_stat_t": "~/state/dim",
     "bri_cmd_t": "~/command/dim",
     "bri_scl": 100,
-    "pl_on": "ON",
-    "pl_off": "OFF"
+    "pl_on": "on",
+    "pl_off": "off"
 }
 
 {
