@@ -89,25 +89,21 @@ char mqttGroupName[16] = MQTT_GROUPNAME;
 uint16_t mqttPort      = MQTT_PORT;
 PubSubClient mqttClient(mqttNetworkClient);
 
-bool mqttPublish(const char* topic, const char* payload, size_t len, bool retain)
+int mqttPublish(const char* topic, const char* payload, size_t len, bool retain)
 {
-    if(mqttIsConnected()) {
-        if(mqttClient.beginPublish(topic, len, retain)) {
-            mqttClient.write((uint8_t*)payload, len);
-            mqttClient.endPublish();
+    if(!mqttEnabled) return MQTT_ERR_DISABLED;
+    if(!mqttClient.connected()) return MQTT_ERR_NO_CONN;
 
-            LOG_TRACE(TAG_MQTT_PUB, F("%s => %s"), topic, payload);
-            return true;
-        } else {
-            LOG_ERROR(TAG_MQTT_PUB, F(D_MQTT_FAILED " %s => %s"), topic, payload);
-        }
-    } else {
-        LOG_ERROR(TAG_MQTT, F(D_MQTT_NOT_CONNECTED));
+    if(mqttClient.beginPublish(topic, len, retain)) {
+        mqttClient.write((uint8_t*)payload, len);
+        mqttClient.endPublish();
+        return MQTT_ERR_OK;
     }
-    return false;
+
+    return MQTT_ERR_PUB_FAIL;
 }
 
-static bool mqttPublish(const char* topic, const char* payload, bool retain)
+int mqttPublish(const char* topic, const char* payload, bool retain)
 {
     return mqttPublish(topic, payload, strlen(payload), retain);
 }
@@ -132,18 +128,18 @@ void mqtt_send_lwt(bool online)
     bool res   = mqttPublish(tmp_topic, tmp_payload, len, true);
 }
 
-void mqtt_send_object_state(uint8_t pageid, uint8_t btnid, char* payload)
+void mqtt_send_object_state(uint8_t pageid, uint8_t btnid, const char* payload)
 {
     char tmp_topic[strlen(mqttNodeTopic) + 16];
     snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%sstate/" HASP_OBJECT_NOTATION), mqttNodeTopic, pageid, btnid);
     mqttPublish(tmp_topic, payload, false);
 }
 
-void mqtt_send_state(const __FlashStringHelper* subtopic, const char* payload)
+int mqtt_send_state(const char* subtopic, const char* payload)
 {
     char tmp_topic[strlen(mqttNodeTopic) + 20];
     snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%sstate/%s"), mqttNodeTopic, subtopic);
-    mqttPublish(tmp_topic, payload, false);
+    return mqttPublish(tmp_topic, payload, false);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -13,16 +13,24 @@
 #define __FlashStringHelper char
 #endif
 
+enum hasp_mqtt_error_t {
+    MQTT_ERR_OK       = 0,
+    MQTT_ERR_DISABLED = -1,
+    MQTT_ERR_NO_CONN  = -2,
+    MQTT_ERR_SUB_FAIL = -3,
+    MQTT_ERR_PUB_FAIL = -4,
+    MQTT_ERR_UNKNOWN  = -128
+};
+
 void mqttSetup();
 void mqttLoop();
 void mqttEvery5Seconds(bool wifiIsConnected);
 void mqttStart();
 void mqttStop();
 
-void mqtt_send_object_state(uint8_t pageid, uint8_t btnid, char* payload);
-void mqtt_send_state(const __FlashStringHelper* subtopic, const char* payload);
-
-bool mqttPublish(const char* topic, const char* payload, size_t len, bool retain);
+int mqtt_send_object_state(uint8_t pageid, uint8_t btnid, const char* payload);
+int mqtt_send_state(const char* subtopic, const char* payload);
+int mqttPublish(const char* topic, const char* payload, size_t len, bool retain);
 
 bool mqttIsConnected();
 
