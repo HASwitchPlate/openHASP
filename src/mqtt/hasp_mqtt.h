@@ -9,9 +9,9 @@
 
 #include "hasp_conf.h"
 
-#ifdef WINDOWS
-#define __FlashStringHelper char
-#endif
+// #ifdef WINDOWS
+// #define __FlashStringHelper char
+// #endif
 
 enum hasp_mqtt_error_t {
     MQTT_ERR_OK       = 0,

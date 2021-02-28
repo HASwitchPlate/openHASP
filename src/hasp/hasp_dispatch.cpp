@@ -54,25 +54,63 @@ moodlight_t moodlight;
 
 static void dispatch_config(const char* topic, const char* payload);
 // void dispatch_group_value(uint8_t groupid, int16_t state, lv_obj_t * obj);
-static inline void dispatch_state_msg(const __FlashStringHelper* subtopic, const char* payload);
 
-void dispatch_screenshot(const char*, const char* filename)
+/* Sends the payload out on the state/subtopic
+ */
+void dispatch_state_subtopic(const char* subtopic, const char* payload)
 {
-#if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
-
-    if(strlen(filename) == 0) { // no filename given
-        char tempfile[32];
-        memcpy_P(tempfile, PSTR("/screenshot.bmp"), sizeof(tempfile));
-        guiTakeScreenshot(tempfile);
-    } else if(strlen(filename) > 31 || filename[0] != '/') { // Invalid filename
-        LOG_WARNING(TAG_MSGR, "Invalid filename %s", filename);
-    } else { // Valid filename
-        guiTakeScreenshot(filename);
-    }
-
+#if !defined(HASP_USE_MQTT) && !defined(HASP_USE_TASMOTA_CLIENT)
+    LOG_TRACE(TAG_MSGR, F("%s => %s"), subtopic, payload);
 #else
-    LOG_WARNING(TAG_MSGR, "Failed to save %s, no storage", filename);
+
+#if HASP_USE_MQTT > 0
+    switch(mqtt_send_state(subtopic, payload)) {
+        case MQTT_ERR_OK:
+            LOG_TRACE(TAG_MQTT_PUB, F("%s => %s"), subtopic, payload);
+            break;
+        case MQTT_ERR_PUB_FAIL:
+            LOG_ERROR(TAG_MQTT_PUB, F(D_MQTT_FAILED " %s => %s"), subtopic, payload);
+            break;
+        case MQTT_ERR_NO_CONN:
+            LOG_ERROR(TAG_MQTT, F(D_MQTT_NOT_CONNECTED));
+            break;
+        default:
+            LOG_ERROR(TAG_MQTT, F(D_ERROR_UNKNOWN));
+    }
 #endif
+
+#if HASP_USE_TASMOTA_CLIENT > 0
+    slave_send_state(subtopic, payload);
+#endif
+
+#endif
+}
+
+/* Sends the data out on the state/pxby topic
+ */
+void dispatch_state_object(uint8_t pageid, uint8_t btnid, const char* payload)
+{
+    char topic[16];
+    snprintf_P(topic, sizeof(topic), PSTR(HASP_OBJECT_NOTATION), pageid, btnid);
+    dispatch_state_subtopic(topic, payload);
+}
+
+/* Takes and lv_obj and finds the pageid and objid
+   Then sends the data out on the state/pxby topic
+*/
+void dispatch_obj_data(lv_obj_t* obj, const char* data)
+{
+    uint8_t pageid;
+    uint8_t objid;
+
+    if(hasp_find_id_from_obj(obj, &pageid, &objid)) {
+        if(!data) return;
+#if HASP_USE_MQTT > 0
+        dispatch_state_object(pageid, objid, data);
+#endif
+    } else {
+        LOG_ERROR(TAG_MSGR, F(D_OBJECT_UNKNOWN));
+    }
 }
 
 // Format filesystem and erase EEPROM
@@ -319,6 +357,7 @@ void dispatch_text_line(const char* cmnd)
 // send idle state to the client
 void dispatch_output_idle_state(uint8_t state)
 {
+    char topic[6];
     char payload[6];
     switch(state) {
         case HASP_SLEEP_LONG:
@@ -330,17 +369,20 @@ void dispatch_output_idle_state(uint8_t state)
         default:
             memcpy_P(payload, PSTR("off"), 4);
     }
-    dispatch_state_msg(F("idle"), payload);
+    memcpy_P(topic, PSTR("idle"), 5);
+    dispatch_state_subtopic(topic, payload);
 }
 
 void dispatch_output_group_state(uint8_t groupid, uint16_t state)
 {
     char payload[64];
     char number[16]; // Return the current state
+    char topic[8];
     itoa(state, number, DEC);
     snprintf_P(payload, sizeof(payload), PSTR("{\"group\":%d,\"state\":\"%s\"}"), groupid, number);
 
-    dispatch_state_msg(F("output"), payload);
+    memcpy_P(topic, PSTR("output"), 7);
+    dispatch_state_subtopic(topic, payload);
 }
 
 void dispatch_send_obj_attribute_str(uint8_t pageid, uint8_t btnid, const char* attribute, const char* data)
@@ -350,7 +392,7 @@ void dispatch_send_obj_attribute_str(uint8_t pageid, uint8_t btnid, const char* 
     char payload[32 + strlen(data) + strlen(attribute)];
     snprintf_P(payload, sizeof(payload), PSTR("{\"%s\":\"%s\"}"), attribute, data);
 
-    mqtt_send_object_state(pageid, btnid, payload);
+    dispatch_state_object(pageid, btnid, payload);
 }
 
 void dispatch_send_obj_attribute_int(uint8_t pageid, uint8_t btnid, const char* attribute, int32_t val)
@@ -360,7 +402,7 @@ void dispatch_send_obj_attribute_int(uint8_t pageid, uint8_t btnid, const char* 
     char payload[64 + strlen(attribute)];
     snprintf_P(payload, sizeof(payload), PSTR("{\"%s\":%d}"), attribute, val);
 
-    mqtt_send_object_state(pageid, btnid, payload);
+    dispatch_state_object(pageid, btnid, payload);
 }
 
 void dispatch_send_obj_attribute_color(uint8_t pageid, uint8_t btnid, const char* attribute, uint8_t r, uint8_t g,
@@ -372,7 +414,7 @@ void dispatch_send_obj_attribute_color(uint8_t pageid, uint8_t btnid, const char
     snprintf_P(payload, sizeof(payload), PSTR("{\"%s\":\"#%02x%02x%02x\",\"r\":%d,\"g\":%d,\"b\":%d}"), attribute, r, g,
                b, r, g, b);
 
-    mqtt_send_object_state(pageid, btnid, payload);
+    dispatch_state_object(pageid, btnid, payload);
 }
 
 #if HASP_USE_CONFIG > 0
@@ -468,9 +510,12 @@ static void dispatch_config(const char* topic, const char* payload)
 
     // Send output
     if(!update) {
+        char subtopic[8];
         settings.remove(F("pass")); // hide password in output
+
         size_t size = serializeJson(doc, buffer, sizeof(buffer));
-        dispatch_state_msg(F("config"), buffer);
+        memcpy_P(subtopic, PSTR("config"), 7);
+        dispatch_state_subtopic(subtopic, buffer);
     }
 }
 #endif // HASP_USE_CONFIG
@@ -523,6 +568,9 @@ void dispatch_get_event_name(uint8_t eventid, char* buffer, size_t size)
         case HASP_EVENT_LOST:
             memcpy_P(buffer, PSTR("lost"), size);
             break;
+        case HASP_EVENT_CHANGED:
+            memcpy_P(buffer, PSTR("changed"), size);
+            break;
         default:
             memcpy_P(buffer, PSTR("unknown"), size);
     }
@@ -532,12 +580,14 @@ void dispatch_get_event_name(uint8_t eventid, char* buffer, size_t size)
 void dispatch_gpio_input_event(uint8_t pin, uint8_t group, uint8_t eventid)
 {
     char payload[64];
+    char topic[8];
     char event[8];
     dispatch_get_event_name(eventid, event, sizeof(event));
     snprintf_P(payload, sizeof(payload), PSTR("{\"pin\":%d,\"group\":%d,\"event\":\"%s\"}"), pin, group, event);
 
 #if HASP_USE_MQTT > 0
-    mqtt_send_state(F("input"), payload);
+    memcpy_P(topic, PSTR("input"), 6);
+    dispatch_state_subtopic(topic, payload);
 #endif
 
     // update outputstates
@@ -545,45 +595,67 @@ void dispatch_gpio_input_event(uint8_t pin, uint8_t group, uint8_t eventid)
 }
 #endif
 
-void dispatch_object_event(lv_obj_t* obj, uint8_t eventid)
+/* ============================== Event Senders ============================ */
+
+// Send out the event that occured
+void dispatch_object_generic_event(lv_obj_t* obj, uint8_t eventid)
 {
-    char topic[8];
-    char payload[8];
-    uint8_t pageid, objid;
+    char data[40];
+    char eventname[8];
 
-    snprintf_P(topic, sizeof(topic), PSTR("event"));
-    dispatch_get_event_name(eventid, payload, sizeof(payload));
-
-    if(hasp_find_id_from_obj(obj, &pageid, &objid)) {
-        dispatch_send_obj_attribute_str(pageid, objid, topic, payload);
-    }
-
-    //  dispatch_group_onoff(obj->user_data.groupid, dispatch_get_event_state(eventid), obj);
+    dispatch_get_event_name(eventid, eventname, sizeof(eventname));
+    snprintf_P(data, sizeof(data), PSTR("{\"event\":\"%s\"}"), eventname);
+    dispatch_obj_data(obj, data);
 }
 
+// Send out the on/off event, with the val
+void dispatch_object_toggle_event(lv_obj_t* obj, bool state)
+{
+    char data[40];
+    char eventname[8];
+
+    dispatch_get_event_name(state, eventname, sizeof(eventname));
+    snprintf_P(data, sizeof(data), PSTR("{\"event\":\"%s\",\"val\":%d}"), eventname, state);
+    dispatch_obj_data(obj, data);
+}
+
+// Send out the changed event, with the val
 void dispatch_object_value_changed(lv_obj_t* obj, int16_t state)
 {
-    char topic[4];
+    char data[48];
 
-    hasp_update_sleep_state(); // wakeup?
-    snprintf_P(topic, sizeof(topic), PSTR("val"));
-    hasp_send_obj_attribute_int(obj, topic, state);
+    snprintf_P(data, sizeof(data), PSTR("{\"event\":\"changed\",\"val\":%d}"), state);
+    dispatch_obj_data(obj, data);
+}
+
+// Send out the changed event, with the val and text
+void dispatch_object_selection_changed(lv_obj_t* obj, int16_t val, const char* text)
+{
+    char data[200];
+
+    snprintf_P(data, sizeof(data), PSTR("{\"event\":\"changed\",\"val\":%d,\"text\":\"%s\"}"), val, text);
+    dispatch_obj_data(obj, data);
+}
+
+// Send out the changed event, with the color
+void dispatch_object_color_changed(lv_obj_t* obj, lv_color_t color)
+{
+    char data[80];
+    lv_color32_t c32;
+    c32.full = lv_color_to32(color);
+
+    snprintf_P(data, sizeof(data),
+               PSTR("{\"event\":\"changed\",\"color\":\"#%02x%02x%02x\",\"r\":%d,\"g\":%d,\"b\":%d}"), c32.ch.red,
+               c32.ch.green, c32.ch.blue, c32.ch.red, c32.ch.green, c32.ch.blue);
+    dispatch_obj_data(obj, data);
 }
 
 /********************************************** Output States ******************************************/
+/*
 static inline void dispatch_state_msg(const __FlashStringHelper* subtopic, const char* payload)
 {
-#if !defined(HASP_USE_MQTT) && !defined(HASP_USE_TASMOTA_CLIENT)
-    LOG_TRACE(TAG_MSGR, F("%s => %s"), String(subtopic).c_str(), payload);
-#else
-#if HASP_USE_MQTT > 0
-    mqtt_send_state(subtopic, payload);
-#endif
-#if HASP_USE_TASMOTA_CLIENT > 0
-    slave_send_state(subtopic, payload);
-#endif
-#endif
-}
+
+}*/
 
 // void dispatch_group_onoff(uint8_t groupid, uint16_t eventid, lv_obj_t * obj)
 // {
@@ -623,6 +695,25 @@ void dispatch_normalized_group_value(uint8_t groupid, uint16_t value, lv_obj_t* 
 }
 
 /********************************************** Native Commands ****************************************/
+
+void dispatch_screenshot(const char*, const char* filename)
+{
+#if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
+
+    if(strlen(filename) == 0) { // no filename given
+        char tempfile[32];
+        memcpy_P(tempfile, PSTR("/screenshot.bmp"), sizeof(tempfile));
+        guiTakeScreenshot(tempfile);
+    } else if(strlen(filename) > 31 || filename[0] != '/') { // Invalid filename
+        LOG_WARNING(TAG_MSGR, "Invalid filename %s", filename);
+    } else { // Valid filename
+        guiTakeScreenshot(filename);
+    }
+
+#else
+    LOG_WARNING(TAG_MSGR, "Failed to save %s, no storage", filename);
+#endif
+}
 
 void dispatch_parse_json(const char*, const char* payload)
 { // Parse an incoming JSON array into individual commands
@@ -719,10 +810,12 @@ void dispatch_parse_jsonl(const char*, const char* payload)
 
 void dispatch_output_current_page()
 {
-    // Log result
-    char payload[4];
-    itoa(haspGetPage(), payload, DEC);
-    dispatch_state_msg(F("page"), payload);
+    char topic[8];
+    char payload[8];
+
+    memcpy_P(topic, PSTR("page"), 5);
+    snprintf_P(payload, sizeof(payload), PSTR("%d"), haspGetPage());
+    dispatch_state_subtopic(topic, payload);
 }
 
 // Get or Set a page
@@ -785,9 +878,12 @@ void dispatch_dim(const char*, const char* level)
     // Set the current state
     if(strlen(level) != 0) haspDevice.set_backlight_level(atoi(level));
 
-    char payload[5];
-    itoa(haspDevice.get_backlight_level(), payload, DEC);
-    dispatch_state_msg(F("dim"), payload);
+    char topic[8];
+    char payload[8];
+
+    memcpy_P(topic, PSTR("dim"), 4);
+    snprintf_P(payload, sizeof(payload), PSTR("%d"), haspDevice.get_backlight_level());
+    dispatch_state_subtopic(topic, payload);
 }
 
 void dispatch_moodlight(const char* topic, const char* payload)
@@ -843,11 +939,14 @@ void dispatch_moodlight(const char* topic, const char* payload)
 
     // Return the current state
     char buffer[128];
+    char out_topic[16];
+    memcpy_P(out_topic, PSTR("moodlight"), 10);
     snprintf_P(
-        // buffer, sizeof(buffer), PSTR("{\"state\":\"%s\",\"color\":\"#%02x%02x%02x\",\"r\":%u,\"g\":%u,\"b\":%u}"),
+        // buffer, sizeof(buffer),
+        // PSTR("{\"state\":\"%s\",\"color\":\"#%02x%02x%02x\",\"r\":%u,\"g\":%u,\"b\":%u}"),
         buffer, sizeof(buffer), PSTR("{\"state\":\"%s\",\"color\":{\"r\":%u,\"g\":%u,\"b\":%u}}"),
         moodlight.power ? "on" : "off", moodlight.r, moodlight.g, moodlight.b);
-    dispatch_state_msg(F("moodlight"), buffer);
+    dispatch_state_subtopic(out_topic, buffer);
 }
 
 void dispatch_backlight(const char*, const char* payload)
@@ -856,9 +955,11 @@ void dispatch_backlight(const char*, const char* payload)
     if(strlen(payload) != 0) haspDevice.set_backlight_power(Utilities::is_true(payload));
 
     // Return the current state
+    char topic[8];
     char buffer[4];
+    memcpy_P(topic, PSTR("light"), 6);
     memcpy_P(buffer, haspDevice.get_backlight_power() ? PSTR("on") : PSTR("off"), sizeof(buffer));
-    dispatch_state_msg(F("light"), buffer);
+    dispatch_state_subtopic(topic, buffer);
 }
 
 void dispatch_web_update(const char*, const char* espOtaUrl)
@@ -925,12 +1026,12 @@ void dispatch_output_statusupdate(const char*, const char*)
         strcat(data, buffer);
 #endif
 
-        snprintf_P(buffer, sizeof(buffer), PSTR("\"heapFree\":%u,\"heapFrag\":%u,\"espCore\":\"%s\","),
+        snprintf_P(buffer, sizeof(buffer), PSTR("\"heapFree\":%u,\"heapFrag\":%u,\"core\":\"%s\","),
                    haspDevice.get_free_heap(), haspDevice.get_heap_fragmentation(), haspDevice.get_core_version());
         strcat(data, buffer);
 
-        snprintf_P(buffer, sizeof(buffer), PSTR("\"espCanUpdate\":\"false\",\"page\":%u,\"numPages\":%u,"),
-                   haspGetPage(), (HASP_NUM_PAGES));
+        snprintf_P(buffer, sizeof(buffer), PSTR("\"canUpdate\":\"false\",\"page\":%u,\"numPages\":%u,"), haspGetPage(),
+                   (HASP_NUM_PAGES));
         strcat(data, buffer);
 
 #if defined(ARDUINO_ARCH_ESP8266)
@@ -942,7 +1043,10 @@ void dispatch_output_statusupdate(const char*, const char*)
                    Utilities::tft_driver_name().c_str(), (TFT_WIDTH), (TFT_HEIGHT));
         strcat(data, buffer);
     }
-    mqtt_send_state(F("statusupdate"), data);
+
+    char topic[16];
+    memcpy_P(topic, PSTR("statusupdate"), 13);
+    dispatch_state_subtopic(topic, data);
     dispatchLastMillis = millis();
 
     /* if(updateEspAvailable) {

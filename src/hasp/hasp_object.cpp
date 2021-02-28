@@ -270,6 +270,23 @@ void hasp_send_obj_attribute_color(lv_obj_t* obj, const char* attribute, lv_colo
 // ##################### Event Handlers ########################################################
 
 /**
+ * Called when a press on the system layer is detected
+ * @param obj pointer to a button matrix
+ * @param event type of event that occured
+ */
+void wakeup_event_handler(lv_obj_t* obj, lv_event_t event)
+{
+    if(obj == lv_disp_get_layer_sys(NULL)) {
+        hasp_update_sleep_state(); // wakeup?
+
+        if(event == LV_EVENT_CLICKED) {
+            lv_obj_set_click(obj, false); // disable first touch
+            LOG_VERBOSE(TAG_HASP, F("Wakeup touch disabled"));
+        }
+    }
+}
+
+/**
  * Called when a button-style object is clicked
  * @param obj pointer to a button object
  * @param event type of event that occured
@@ -317,7 +334,7 @@ void generic_event_handler(lv_obj_t* obj, lv_event_t event)
             return;
 
         case LV_EVENT_VALUE_CHANGED:
-            LOG_WARNING(TAG_HASP, F("Value changed Event %d occured"), event);
+            LOG_WARNING(TAG_HASP, F("Value changed Event %d occured"), event); // Shouldn't happen in this event handler
             last_press_was_short = false;
             return;
 
@@ -333,26 +350,9 @@ void generic_event_handler(lv_obj_t* obj, lv_event_t event)
             return;
     }
 
-    hasp_update_sleep_state();           // wakeup?
-    dispatch_object_event(obj, eventid); // send object event
+    hasp_update_sleep_state();                   // wakeup?
+    dispatch_object_generic_event(obj, eventid); // send object event
     dispatch_normalized_group_value(obj->user_data.groupid, NORMALIZE(dispatch_get_event_state(eventid), 0, 1), obj);
-}
-
-/**
- * Called when a press on the system layer is detected
- * @param obj pointer to a button matrix
- * @param event type of event that occured
- */
-void wakeup_event_handler(lv_obj_t* obj, lv_event_t event)
-{
-    if(obj == lv_disp_get_layer_sys(NULL)) {
-        hasp_update_sleep_state(); // wakeup?
-
-        if(event == LV_EVENT_CLICKED) {
-            lv_obj_set_click(obj, false); // disable first touch
-            LOG_VERBOSE(TAG_HASP, F("Wakeup touch disabled"));
-        }
-    }
 }
 
 /**
@@ -363,7 +363,7 @@ void wakeup_event_handler(lv_obj_t* obj, lv_event_t event)
 void toggle_event_handler(lv_obj_t* obj, lv_event_t event)
 {
     if(event == LV_EVENT_VALUE_CHANGED) {
-        char property[4];
+        char property[36]; // 4 for val only
         bool val = 0;
         hasp_update_sleep_state(); // wakeup?
 
@@ -385,8 +385,11 @@ void toggle_event_handler(lv_obj_t* obj, lv_event_t event)
                 return;
         }
 
-        snprintf_P(property, sizeof(property), PSTR("val"));
-        hasp_send_obj_attribute_int(obj, property, val);
+        // snprintf_P(property, sizeof(property), PSTR("val"));
+        // hasp_send_obj_attribute_int(obj, property, val);
+
+        hasp_update_sleep_state(); // wakeup?
+        dispatch_object_toggle_event(obj, val);
         dispatch_normalized_group_value(obj->user_data.groupid, NORMALIZE(val, 0, 1), obj);
 
     } else if(event == LV_EVENT_DELETE) {
@@ -437,7 +440,7 @@ static void selector_event_handler(lv_obj_t* obj, lv_event_t event)
                 const char* txt = lv_table_get_cell_value(obj, row, col);
                 strncpy(buffer, txt, sizeof(buffer));
 
-                snprintf_P(property, sizeof(property), PSTR("row\":%d,\"col\":%d,\"txt"), row, col);
+                snprintf_P(property, sizeof(property), PSTR("row\":%d,\"col\":%d,\"text"), row, col);
                 hasp_send_obj_attribute_str(obj, property, buffer);
                 return;
             }
@@ -447,8 +450,10 @@ static void selector_event_handler(lv_obj_t* obj, lv_event_t event)
         }
 
         // set the property
-        snprintf_P(property, sizeof(property), PSTR("val\":%d,\"text"), val);
-        hasp_send_obj_attribute_str(obj, property, buffer);
+        // snprintf_P(property, sizeof(property), PSTR("val\":%d,\"text"), val);
+        // hasp_send_obj_attribute_str(obj, property, buffer);
+
+        dispatch_object_selection_changed(obj, val, buffer);
         if(max > 0) dispatch_normalized_group_value(obj->user_data.groupid, NORMALIZE(val, 0, max), obj);
 
     } else if(event == LV_EVENT_DELETE) {
@@ -481,6 +486,7 @@ void slider_event_handler(lv_obj_t* obj, lv_event_t event)
         int16_t val = 0;
         int16_t min = 0;
         int16_t max = 0;
+        hasp_update_sleep_state(); // wakeup?
 
         if(obj->user_data.objid == LV_HASP_SLIDER) {
             val = lv_slider_get_value(obj);
@@ -514,7 +520,9 @@ static void cpicker_event_handler(lv_obj_t* obj, lv_event_t event)
 
     if(event == LV_EVENT_VALUE_CHANGED) {
         hasp_update_sleep_state(); // wakeup?
-        hasp_send_obj_attribute_color(obj, color, lv_cpicker_get_color(obj));
+        // hasp_send_obj_attribute_color(obj, color, lv_cpicker_get_color(obj));
+        dispatch_object_color_changed(obj, lv_cpicker_get_color(obj));
+
     } else if(event == LV_EVENT_DELETE) {
         LOG_VERBOSE(TAG_HASP, F(D_OBJECT_DELETED));
         hasp_object_delete(obj);

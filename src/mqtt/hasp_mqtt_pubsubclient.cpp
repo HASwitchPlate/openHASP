@@ -128,11 +128,11 @@ void mqtt_send_lwt(bool online)
     bool res   = mqttPublish(tmp_topic, tmp_payload, len, true);
 }
 
-void mqtt_send_object_state(uint8_t pageid, uint8_t btnid, const char* payload)
+int mqtt_send_object_state(uint8_t pageid, uint8_t btnid, const char* payload)
 {
     char tmp_topic[strlen(mqttNodeTopic) + 16];
     snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%sstate/" HASP_OBJECT_NOTATION), mqttNodeTopic, pageid, btnid);
-    mqttPublish(tmp_topic, payload, false);
+    return mqttPublish(tmp_topic, payload, false);
 }
 
 int mqtt_send_state(const char* subtopic, const char* payload)

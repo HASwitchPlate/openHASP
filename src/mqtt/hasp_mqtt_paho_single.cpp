@@ -251,7 +251,7 @@ int mqtt_send_state(const __FlashStringHelper* subtopic, const char* payload)
     return mqttPublish(tmp_topic, payload, strlen(payload), false);
 }
 
-int mqtt_send_object_state(uint8_t pageid, uint8_t btnid, char* payload)
+int mqtt_send_object_state(uint8_t pageid, uint8_t btnid, const char* payload)
 {
     char tmp_topic[strlen(mqttNodeTopic) + 20];
     snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%sstate/p%ub%u"), mqttNodeTopic, pageid, btnid);
