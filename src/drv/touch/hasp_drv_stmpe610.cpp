@@ -27,14 +27,29 @@ bool IRAM_ATTR STMPE610_getXY(int16_t * touchX, int16_t * touchY, uint8_t touchR
     }
     touch.writeRegister8(STMPE_INT_STA, 0xFF);
     if (1 == touchRotation) {
-        y = map(y, TS_MINX, TS_MAXX, 0, TFT_WIDTH);
-        x = map(x, TS_MINY, TS_MAXY, 0, TFT_HEIGHT);
-    } else if (2 == touchRotation) {
+        #if HX8357D_DRIVER == 1
+        y = map(y, TS_MINX, TS_MAXX, 0, TFT_HEIGHT);
+        x = map(x, TS_MINY, TS_MAXY, TFT_WIDTH, 0);
+        #else
         x = map(x, TS_MAXX, TS_MINX, 0, TFT_WIDTH);
         y = map(y, TS_MAXY, TS_MINY, 0, TFT_HEIGHT);
+        #endif
+    } else if (2 == touchRotation) {
+        #if HX8357D_DRIVER == 1
+        x = map(x, TS_MAXX, TS_MINX, TFT_WIDTH, 0);
+        y = map(y, TS_MAXY, TS_MINY, 0, TFT_HEIGHT);
+        #else
+        x = map(x, TS_MAXX, TS_MINX, 0, TFT_WIDTH);
+        y = map(y, TS_MAXY, TS_MINY, 0, TFT_HEIGHT);
+        #endif
     } else {
+        #if HX8357D_DRIVER == 1
+        x = map(x, TS_MINX, TS_MAXX, TFT_WIDTH, 0);
+        y = map(y, TS_MINY, TS_MAXY, 0, TFT_HEIGHT);
+        #else
         x = map(x, TS_MINX, TS_MAXX, 0, TFT_WIDTH);
         y = map(y, TS_MINY, TS_MAXY, 0, TFT_HEIGHT);
+        #endif
     }
 
     *touchX = x;
