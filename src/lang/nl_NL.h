@@ -6,6 +6,7 @@
 #define D_SSID "Ssid:"
 
 #define D_ERROR_OUT_OF_MEMORY "Geen geheugen bechikbaar"
+#define D_ERROR_UNKNOWN "Unbekende fout"
 
 #define D_CONFIG_NOT_CHANGED "Instellingen ongewijzigd"
 #define D_CONFIG_CHANGED "Instellingen gewijzigd"
