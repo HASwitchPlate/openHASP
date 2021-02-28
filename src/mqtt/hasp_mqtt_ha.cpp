@@ -151,7 +151,7 @@ void mqtt_ha_register_switch(uint8_t page, uint8_t id)
     doc[F("t")] = buffer; // topic
 
     doc[F("atype")] = F("binary_sensor"); // automation_type
-    doc[F("pl")]    = F("SHORT");         // payload
+    doc[F("pl")]    = F("short");         // payload
     doc[F("type")]  = F("button_short_release");
 
     snprintf_P(buffer, sizeof(buffer), PSTR("%s/device_automation/%s/" HASP_OBJECT_NOTATION "_%s/config"),

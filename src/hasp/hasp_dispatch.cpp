@@ -322,13 +322,13 @@ void dispatch_output_idle_state(uint8_t state)
     char payload[6];
     switch(state) {
         case HASP_SLEEP_LONG:
-            memcpy_P(payload, PSTR("LONG"), 5);
+            memcpy_P(payload, PSTR("long"), 5);
             break;
         case HASP_SLEEP_SHORT:
-            memcpy_P(payload, PSTR("SHORT"), 6);
+            memcpy_P(payload, PSTR("short"), 6);
             break;
         default:
-            memcpy_P(payload, PSTR("OFF"), 4);
+            memcpy_P(payload, PSTR("off"), 4);
     }
     dispatch_state_msg(F("idle"), payload);
 }

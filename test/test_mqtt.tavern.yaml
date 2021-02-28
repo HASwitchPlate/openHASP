@@ -112,7 +112,7 @@ stages:
       payload: "wakeup"
     mqtt_response:
       topic: hasp/{plate}/state/idle
-      payload: "LONG"
+      payload: "long"
       timeout: 190
     delay_after: 0
 
@@ -122,7 +122,7 @@ stages:
       payload: "wakeup"
     mqtt_response:
       topic: hasp/{plate}/state/idle
-      payload: "SHORT"
+      payload: "short"
       timeout: 70
     delay_after: 0
 
@@ -132,6 +132,6 @@ stages:
       payload: "wakeup"
     mqtt_response:
       topic: hasp/{plate}/state/idle
-      payload: "OFF"
+      payload: "off"
       timeout: 1
     delay_after: 0
