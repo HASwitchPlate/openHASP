@@ -9,7 +9,7 @@
 
 #include "hasp_conf.h"
 
-#ifdef WINDOWS
+#if defined(WINDOWS) || defined(POSIX)
 #define __FlashStringHelper char
 #endif
 

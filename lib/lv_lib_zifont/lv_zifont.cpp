@@ -2,7 +2,7 @@
  *      INCLUDES
  *********************/
 
-#ifndef WINDOWS
+#if !(defined(WINDOWS)||defined(POSIX))
 
 #include <Arduino.h>
 #include <stdio.h>

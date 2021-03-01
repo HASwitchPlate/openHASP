@@ -40,7 +40,7 @@ class BaseTft {
 #elif defined(STM32F4)
 #warning Building for STM32F4xx Devices
 #include "tft_driver_tftespi.h"
-#elif defined(WINDOWS)
+#elif defined(WINDOWS) || defined(POSIX)
 #warning Building for Win32 Devices
 #include "tft_driver_sdl2.h"
 #else

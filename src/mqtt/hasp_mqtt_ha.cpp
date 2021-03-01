@@ -29,7 +29,7 @@ const char FP_MQTT_HA_NAME[] PROGMEM         = "name";
 const char FP_MQTT_HA_MODEL[] PROGMEM        = "mdl";
 const char FP_MQTT_HA_MANUFACTURER[] PROGMEM = "mf";
 
-#ifndef WINDOWS
+#if !(defined(WINDOWS) || defined(POSIX))
 
 #include "hal/hasp_hal.h"
 

@@ -107,6 +107,7 @@
 #ifdef WINDOWS
 #include "winsock2.h"
 #include "Windows.h"
+#elif defined(POSIX)
 #else
 #include "Arduino.h"
 #endif
@@ -183,7 +184,7 @@ static WiFiSpiClass WiFi;
 #if HASP_USE_MQTT > 0
 #include "mqtt/hasp_mqtt.h"
 
-#ifdef WINDOWS
+#if defined(WINDOWS) || defined(POSIX)
 #define USE_PAHO
 #else
 #define USE_PUBSUBCLIENT
@@ -230,7 +231,7 @@ static WiFiSpiClass WiFi;
 #define PGM_P const char*
 #endif
 
-#if defined(WINDOWS)
+#if defined(WINDOWS) || defined(POSIX)
 #ifndef __FlashStringHelper
 #define __FlashStringHelper char
 #endif
@@ -248,11 +249,17 @@ static WiFiSpiClass WiFi;
 #endif
 #endif
 
-#ifdef WINDOWS
+#if defined(WINDOWS) 
+#include <Windows.h>
+#define delay Sleep
+#endif
+#if defined(POSIX)
+#define delay SDL_Delay
+#endif
+#if defined(WINDOWS) || defined(POSIX)
 #include <string.h>
 #include <strings.h>
 #include <stdio.h>
-#include <Windows.h>
 #include <SDL2/SDL.h>
 
 #define snprintf_P snprintf
@@ -261,7 +268,6 @@ static WiFiSpiClass WiFi;
 #define strcmp_P strcmp
 #define strstr_P strstr
 #define halRestartMcu()
-#define delay Sleep
 #define millis SDL_GetTicks
 
 #define DEC 10

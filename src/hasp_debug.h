@@ -10,7 +10,7 @@
 
 #include "lang/lang.h"
 
-#ifndef WINDOWS
+#if (!defined(WINDOWS)) && (!defined(POSIX))
 #include "ArduinoLog.h"
 
 /* ===== Default Event Processors ===== */

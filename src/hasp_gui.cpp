@@ -26,7 +26,7 @@
 #include "hasp/hasp_dispatch.h"
 #include "hasp/hasp.h"
 
-#ifdef WINDOWS
+#if defined(WINDOWS) || defined(POSIX)
 #include "display/monitor.h"
 #include "indev/mouse.h"
 #endif
@@ -152,7 +152,7 @@ void guiSetup(void)
     const size_t guiVDBsize = 2 * 512u; // 4 KBytes * 2
     guiVdbBuffer1           = (lv_color_t*)malloc(sizeof(lv_color_t) * guiVDBsize);
 
-#elif defined(WINDOWS)
+#elif defined(WINDOWS) || defined(POSIX)
     const size_t guiVDBsize = LV_HOR_RES_MAX * 10;
     static lv_color_t guiVdbBuffer1[guiVDBsize]; /*Declare a buffer for 10 lines*/
 
@@ -224,7 +224,7 @@ void guiSetup(void)
     lv_indev_drv_t indev_drv;
     lv_indev_drv_init(&indev_drv);
     indev_drv.type = LV_INDEV_TYPE_POINTER;
-#if defined(WINDOWS)
+#if defined(WINDOWS) || defined(POSIX)
     indev_drv.read_cb = mouse_read;
 #else
     indev_drv.read_cb = drv_touch_read;
@@ -256,7 +256,7 @@ void guiSetup(void)
         lv_indev_set_cursor(mouse_indev, cursor); /*Connect the image  object to the driver*/
     }
 
-#if !defined(WINDOWS)
+#if !(defined(WINDOWS) || defined(POSIX))
     drv_touch_init(gui_settings.rotation); // Touch driver
 #endif
 
@@ -285,7 +285,7 @@ void guiLoop(void)
     //  tick.update();
 #endif
 
-#if !defined(WINDOWS)
+#if !(defined(WINDOWS) || defined(POSIX))
     drv_touch_loop(); // update touch
 #endif
 }
