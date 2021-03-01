@@ -180,7 +180,7 @@ void mqtt_ha_register_connectivity()
 
 void mqtt_ha_register_backlight()
 {
-    StaticJsonDocument<800> doc;
+    DynamicJsonDocument doc(1024);
     char item[16];
     snprintf_P(item, sizeof(item), PSTR("backlight"));
 
@@ -188,6 +188,8 @@ void mqtt_ha_register_backlight()
     deserializeJson(doc, F("{"
                            "\"cmd_t\":\"~command/light\","
                            "\"stat_t\":\"~state/light\","
+                           "\"pl_on\":\"on\","
+                           "\"pl_off\":\"off\","
                            "\"avty_t\":\"~LWT\","
                            "\"bri_stat_t\":\"~state/dim\","
                            "\"bri_cmd_t\":\"~command/dim\","
