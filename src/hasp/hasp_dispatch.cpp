@@ -945,7 +945,7 @@ void dispatch_moodlight(const char* topic, const char* payload)
         // buffer, sizeof(buffer),
         // PSTR("{\"state\":\"%s\",\"color\":\"#%02x%02x%02x\",\"r\":%u,\"g\":%u,\"b\":%u}"),
         buffer, sizeof(buffer), PSTR("{\"state\":\"%s\",\"color\":{\"r\":%u,\"g\":%u,\"b\":%u}}"),
-        moodlight.power ? "on" : "off", moodlight.r, moodlight.g, moodlight.b);
+        moodlight.power ? "ON" : "OFF", moodlight.r, moodlight.g, moodlight.b);
     dispatch_state_subtopic(out_topic, buffer);
 }
 
@@ -1000,9 +1000,9 @@ void dispatch_reboot(bool saveConfig)
 
 void dispatch_current_state()
 {
-    dispatch_output_current_page();
     dispatch_output_statusupdate(NULL, NULL);
     dispatch_output_idle_state(hasp_sleep_state);
+    dispatch_output_current_page();
 }
 
 /******************************************* Command Wrapper Functions *********************************/
