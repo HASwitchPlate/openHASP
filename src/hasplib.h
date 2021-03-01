@@ -6,5 +6,6 @@
 #include "hasp/hasp_object.h"
 #include "hasp/hasp_parser.h"
 #include "hasp/hasp_utilities.h"
+#include "hasp/hasp_lvfs.h"
 
 #include "hasp/lv_theme_hasp.h"

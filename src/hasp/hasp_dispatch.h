@@ -22,7 +22,9 @@ enum hasp_event_t { // even = released, odd = pressed
     HASP_EVENT_LONG   = 5,
     HASP_EVENT_LOST   = 6,
     HASP_EVENT_HOLD   = 7,
-    HASP_EVENT_DOUBLE = 8
+    HASP_EVENT_DOUBLE = 8,
+
+    HASP_EVENT_CHANGED = 32
 };
 
 /* ===== Default Event Processors ===== */
@@ -60,7 +62,6 @@ void dispatch_output_statusupdate(const char*, const char*);
 void dispatch_current_state();
 
 void dispatch_gpio_input_event(uint8_t pin, uint8_t group, uint8_t eventid);
-void dispatch_object_event(lv_obj_t* obj, uint8_t eventid);
 bool dispatch_get_event_state(uint8_t eventid);
 void dispatch_get_event_name(uint8_t eventid, char* buffer, size_t size);
 void dispatch_object_value_changed(lv_obj_t* obj, int16_t state);
@@ -72,6 +73,12 @@ void dispatch_send_obj_attribute_int(uint8_t pageid, uint8_t btnid, const char* 
 void dispatch_send_obj_attribute_color(uint8_t pageid, uint8_t btnid, const char* attribute, uint8_t r, uint8_t g,
                                        uint8_t b);
 
+void dispatch_object_generic_event(lv_obj_t* obj, uint8_t eventid);
+void dispatch_object_toggle_event(lv_obj_t* obj, bool state);
+void dispatch_object_value_changed(lv_obj_t* obj, int16_t state);
+void dispatch_object_selection_changed(lv_obj_t* obj, int16_t val, const char* text);
+void dispatch_object_color_changed(lv_obj_t* obj, lv_color_t color);
+
 /* ===== Getter and Setter Functions ===== */
 
 /* ===== Read/Write Configuration ===== */
@@ -79,8 +86,8 @@ void dispatch_send_obj_attribute_color(uint8_t pageid, uint8_t btnid, const char
 /* ===== Structs and Constants ===== */
 struct haspCommand_t
 {
-    void (*func)(const char*, const char*);
     const char* p_cmdstr;
+    void (*func)(const char*, const char*);
 };
 
 #endif

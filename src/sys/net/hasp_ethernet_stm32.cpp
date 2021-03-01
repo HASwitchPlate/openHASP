@@ -106,7 +106,7 @@ void ethernet_get_statusupdate(char* buffer, size_t len)
 #endif
 
     IPAddress ip = Ethernet.localIP();
-    snprintf_P(buffer, len, PSTR("\"eth\":\"%s\",\"link\":%d,\"ip\":\"%d.%d.%d.%d\","), state ? F("ON") : F("OFF"), 10,
+    snprintf_P(buffer, len, PSTR("\"eth\":\"%s\",\"link\":%d,\"ip\":\"%d.%d.%d.%d\","), state ? F("on") : F("off"), 10,
                ip[0], ip[1], ip[2], ip[3]);
 }
 #endif

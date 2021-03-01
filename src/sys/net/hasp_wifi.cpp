@@ -362,7 +362,7 @@ static void wifiReconnect(void)
     // https://github.com/espressif/arduino-esp32/issues/3438#issuecomment-721428310
     WiFi.disconnect(true);
     WiFi.begin(wifiSsid, wifiPassword);
-    WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE);
+    // WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE); // causes 255.255.255.255 IP errors
     WiFi.setHostname(haspDevice.get_hostname());
 #endif
 }

@@ -6,6 +6,7 @@
 #define D_SSID "Ssid:"
 
 #define D_ERROR_OUT_OF_MEMORY "Out of memory"
+#define D_ERROR_UNKNOWN "Unkown error"
 
 #define D_CONFIG_NOT_CHANGED "Settings did not change"
 #define D_CONFIG_CHANGED "Settings changed"

@@ -13,6 +13,9 @@ paho-mqtt:
     host: "{host}"
     port: !int "{port:d}"
     timeout: 3
+  auth:
+    username: "{username}"
+    password: "{password}"
 
 marks:
   - parametrize:

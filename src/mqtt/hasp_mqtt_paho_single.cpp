@@ -106,7 +106,7 @@ int disc_finished = 0;
 int subscribed    = 0;
 int connected     = 0;
 
-bool mqttPublish(const char* topic, const char* payload, size_t len, bool retain);
+int mqttPublish(const char* topic, const char* payload, size_t len, bool retain);
 
 /* ===== Paho event callbacks ===== */
 
@@ -207,30 +207,28 @@ void mqtt_subscribe(void* context, const char* topic)
 
 /* ===== Local HASP MQTT functions ===== */
 
-bool mqttPublish(const char* topic, const char* payload, size_t len, bool retain)
+int mqttPublish(const char* topic, const char* payload, size_t len, bool retain)
 {
-    if(mqttIsConnected()) {
-        MQTTClient_message pubmsg = MQTTClient_message_initializer;
-        MQTTClient_deliveryToken token;
+    if(!mqttIsConnected()) return MQTT_ERR_NO_CONN;
 
-        pubmsg.payload    = (char*)payload;
-        pubmsg.payloadlen = len; // (int)strlen(payload);
-        pubmsg.qos        = QOS;
-        pubmsg.retained   = retain;
+    MQTTClient_message pubmsg = MQTTClient_message_initializer;
+    MQTTClient_deliveryToken token;
 
-        MQTTClient_publishMessage(mqtt_client, topic, &pubmsg, &token);
-        int rc = MQTTClient_waitForCompletion(mqtt_client, token, TIMEOUT);
+    pubmsg.payload    = (char*)payload;
+    pubmsg.payloadlen = len; // (int)strlen(payload);
+    pubmsg.qos        = QOS;
+    pubmsg.retained   = retain;
 
-        if(rc != MQTTCLIENT_SUCCESS) {
-            LOG_ERROR(TAG_MQTT_PUB, F(D_MQTT_FAILED " '%s' => %s"), topic, payload);
-        } else {
-            LOG_TRACE(TAG_MQTT_PUB, F("'%s' => %s OK"), topic, payload);
-            return true;
-        }
+    MQTTClient_publishMessage(mqtt_client, topic, &pubmsg, &token);
+    int rc = MQTTClient_waitForCompletion(mqtt_client, token, TIMEOUT);
+
+    if(rc != MQTTCLIENT_SUCCESS) {
+        LOG_ERROR(TAG_MQTT_PUB, F(D_MQTT_FAILED " '%s' => %s"), topic, payload);
+        return MQTT_ERR_PUB_FAIL;
     } else {
-        LOG_ERROR(TAG_MQTT, F(D_MQTT_NOT_CONNECTED));
+        LOG_TRACE(TAG_MQTT_PUB, F("'%s' => %s OK"), topic, payload);
+        return MQTT_ERR_OK;
     }
-    return false;
 }
 
 // static bool mqttPublish(const char* topic, const char* payload, bool retain)
@@ -245,19 +243,19 @@ bool mqttIsConnected()
     return connected == 1;
 }
 
-void mqtt_send_state(const __FlashStringHelper* subtopic, const char* payload)
+int mqtt_send_state(const __FlashStringHelper* subtopic, const char* payload)
 {
     char tmp_topic[strlen(mqttNodeTopic) + 20];
     // printf(("%sstate/%s\n"), mqttNodeTopic, subtopic);
     snprintf_P(tmp_topic, sizeof(tmp_topic), ("%sstate/%s"), mqttNodeTopic, subtopic);
-    mqttPublish(tmp_topic, payload, strlen(payload), false);
+    return mqttPublish(tmp_topic, payload, strlen(payload), false);
 }
 
-void mqtt_send_object_state(uint8_t pageid, uint8_t btnid, char* payload)
+int mqtt_send_object_state(uint8_t pageid, uint8_t btnid, const char* payload)
 {
     char tmp_topic[strlen(mqttNodeTopic) + 20];
     snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%sstate/p%ub%u"), mqttNodeTopic, pageid, btnid);
-    mqttPublish(tmp_topic, payload, strlen(payload), false);
+    return mqttPublish(tmp_topic, payload, strlen(payload), false);
 }
 
 static void onConnect(void* context)
