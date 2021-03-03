@@ -1,7 +1,7 @@
 /* MIT License - Copyright (c) 2019-2021 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
-#ifndef HASP_DRV_DISPLAY_H
+#if 0 // ndef HASP_DRV_DISPLAY_H
 #define HASP_DRV_DISPLAY_H
 
 #include "lvgl.h"

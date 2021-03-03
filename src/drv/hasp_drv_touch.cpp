@@ -3,6 +3,7 @@
 
 #include "hasp_drv_touch.h"
 #include "hasp/hasp.h"
+#include "drv/tft_driver.h"
 #include "lvgl.h"
 
 #if TOUCH_DRIVER == 2046
@@ -74,7 +75,7 @@ static inline bool drv_touchpad_getXY(int16_t* touchX, int16_t* touchY)
     int16_t normal_x;
     int16_t normal_y;
 #if TOUCH_DRIVER == 2046 // XPT2046 Resistive touch panel driver
-    touched = tft_espi_get_touch(&normal_x, &normal_y, 300u);
+    touched = haspTft.tft.getTouch((uint16_t*)&normal_x, (uint16_t*)&normal_y, 20);
 
 #elif TOUCH_DRIVER == 0x2046B
     touched = XPT2046_getXY(&normal_x, &normal_y, true);

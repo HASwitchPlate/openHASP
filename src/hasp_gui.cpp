@@ -15,8 +15,9 @@
 #include "drv/tft_driver.h"
 #include "dev/device.h"
 
-#include "drv/hasp_drv_display.h"
+//#include "drv/hasp_drv_display.h"
 #include "drv/hasp_drv_touch.h"
+#include "drv/tft_espi_drv.h"
 
 #include "hasp_debug.h"
 #include "hasp_config.h"
@@ -196,7 +197,7 @@ void guiSetup(void)
     // _lv_fs_init();   // lvgl File System -- not neaded, it done in lv_init() when LV_USE_FILESYSTEM is set
     LOG_VERBOSE(TAG_LVGL, F("Filesystem : Enabled"));
     lv_fs_if_init(); // auxilary file system drivers
-    filesystem_list_path("S:/");
+    filesystem_list_path("S:/fs/");
 #else
     LOG_VERBOSE(TAG_LVGL, F("Filesystem : Disabled"));
 #endif

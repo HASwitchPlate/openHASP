@@ -23,6 +23,8 @@ namespace dev {
 class TftEspi : BaseTft {
 
   public:
+    TFT_eSPI tft;
+
     void init(int w, int h);
     void show_info();
     void splashscreen();
@@ -34,8 +36,6 @@ class TftEspi : BaseTft {
     bool is_driver_pin(uint8_t pin);
 
   private:
-    TFT_eSPI tft;
-
     void tftOffsetInfo(uint8_t pin, uint8_t x_offset, uint8_t y_offset)
     {
         if(x_offset != 0) {
