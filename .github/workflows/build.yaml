@@ -30,6 +30,9 @@ jobs:
     - name: Enable ESP platforms from platformio_override-template.ini
       run: |
         sed 's/; user_setups\/esp/user_setups\/esp/g' platformio_override-template.ini > platformio_override.ini
+    - name: Enable Linux platform from platformio_override.ini
+      run: |
+        sed -i 's/; user_setups\/linux/user_setups\/linux/g' platformio_override.ini
     - name: List all files in current folder
       run: |
         ls -la
