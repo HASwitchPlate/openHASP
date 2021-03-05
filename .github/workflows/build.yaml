@@ -1,4 +1,4 @@
-name: Build test
+name: Build 0.4.0-dev branch
 
 on: [push]
 
