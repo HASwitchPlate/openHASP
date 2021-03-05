@@ -1,4 +1,4 @@
-name: PlatformIO CI
+name: Build test
 
 on: [push]
 
