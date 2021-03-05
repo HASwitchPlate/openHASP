@@ -33,10 +33,10 @@ jobs:
     - name: Enable Linux platform from platformio_override.ini
       run: |
         sed -i 's/; user_setups\/linux/user_setups\/linux/g' platformio_override.ini
-    - name: Install PlatformIO
+    - name: Install SDL2 library
       run: |
-        apt update
-        apt install libsdl2-dev
+        sudo apt-get update
+        sudo apt-get install libsdl2-dev
     - name: List all files in current folder
       run: |
         ls -la
