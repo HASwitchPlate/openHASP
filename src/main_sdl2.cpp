@@ -1,6 +1,8 @@
 /* MIT License - Copyright (c) 2019-2021 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
+#if defined(WINDOWS) || defined(POSIX)
+
 #if defined(WINDOWS)
 #include <windows.h>
 #endif
@@ -167,7 +169,6 @@ void loop()
     // delay(6);
 }
 
-#if defined(WINDOWS) || defined(POSIX)
 
 void usage(char* progName)
 {
