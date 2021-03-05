@@ -133,9 +133,7 @@ void setup()
 
 void loop()
 {
-    printf("1 \n");
     haspLoop();
-    printf("2 \n");
     mqttLoop();
 
     //    debugLoop(); // Console
@@ -166,7 +164,6 @@ void loop()
         }
         mainLastLoopTime += 1000;
     }
-    printf("loop\n");
     // delay(6);
 }
 
