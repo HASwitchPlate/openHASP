@@ -1795,6 +1795,12 @@ void webHandleFirmware()
         //                  "name='filename' accept='.spiffs'>");
         // httpMessage += F("<button type='submit'>Replace Filesystem Image</button></form></p>");
 
+        httpMessage += F("<form method='get' action='/espfirmware'>");
+        httpMessage += F("<br/><b>Update ESP from URL</b>");
+        httpMessage += F("<br/><input id='url' name='url' value='");
+        httpMessage += "";
+        httpMessage += F("'><br/><br/><button type='submit'>Update ESP from URL</button></form>");
+
         httpMessage += FPSTR(MAIN_MENU_BUTTON);
 
         webSendPage(haspDevice.get_hostname(), httpMessage.length(), false);
@@ -1807,6 +1813,9 @@ void webHandleFirmware()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 void httpHandleEspFirmware()
 { // http://plate01/espfirmware
+    char url[4];
+    memcpy_P(url, PSTR("url"), 4);
+
     if(!httpIsAuthenticated(F("espfirmware"))) return;
 
     {
@@ -1817,7 +1826,7 @@ void httpHandleEspFirmware()
         httpMessage += F("</h1><hr>");
 
         httpMessage += F("<p><b>ESP update</b></p>Updating ESP firmware from: ");
-        httpMessage += webServer.arg("espFirmware");
+        httpMessage += webServer.arg(url);
 
         webSendPage(haspDevice.get_hostname(), httpMessage.length(), true);
         webServer.sendContent(httpMessage);
@@ -1825,8 +1834,8 @@ void httpHandleEspFirmware()
     }
     webSendFooter();
 
-    LOG_TRACE(TAG_HTTP, F("Attempting ESP firmware update from: %s"), webServer.arg("espFirmware").c_str());
-    // espStartOta(webServer.arg("espFirmware"));
+    LOG_TRACE(TAG_HTTP, F("Attempting ESP firmware update from: %s"), webServer.arg(url).c_str());
+    dispatch_web_update(NULL, webServer.arg(url).c_str());
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
