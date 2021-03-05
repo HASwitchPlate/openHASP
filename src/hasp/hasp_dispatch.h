@@ -54,7 +54,7 @@ void dispatch_page_prev();
 void dispatch_dim(const char* level);
 void dispatch_backlight(const char* payload);
 
-void dispatch_web_update(const char* espOtaUrl);
+void dispatch_web_update(const char*, const char* espOtaUrl);
 void dispatch_reboot(bool saveConfig);
 
 void dispatch_output_idle_state(uint8_t state);
