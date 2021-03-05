@@ -605,7 +605,7 @@ void hasp_process_attribute(uint8_t pageid, uint8_t objid, const char* attr, con
 int hasp_parse_json_attributes(lv_obj_t* obj, const JsonObject& doc)
 {
     int i = 0;
-#ifdef WINDOWS
+#if defined(WINDOWS) || defined(POSIX)
     // String v((char *)0);
     // v.reserve(64);
     std::string v;

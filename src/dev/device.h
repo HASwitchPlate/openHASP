@@ -8,8 +8,13 @@
 #include "Arduino.h"
 #endif
 
-#ifdef WINDOWS
+#if defined(WINDOWS) || defined(POSIX)
 #include <cstdint>
+#endif
+#if defined(POSIX)
+#include <stddef.h>
+#endif
+#ifdef WINDOWS
 #include "Windows.h"
 #endif
 
@@ -97,6 +102,10 @@ class BaseDevice {
 #elif defined(WINDOWS)
 #warning Building for Win32 Devices
 #include "win32/hasp_win32.h"
+#elif defined(POSIX)
+#warning Building for Posix Devices
+#include "posix/hasp_posix.h"
+
 #else
 #warning Building for Generic Devices
 using dev::BaseDevice;

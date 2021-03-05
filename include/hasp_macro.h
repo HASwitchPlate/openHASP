@@ -1,7 +1,7 @@
 #ifndef HASP_MACRO_H
 #define HASP_MACRO_H
 
-#ifdef WINDOWS
+#if defined(WINDOWS) || defined(POSIX)
 #define LOG_OUTPUT(x, ...) printf(__VA_ARGS__)
 #else
 #define LOG_OUTPUT(...) Log.output(...)

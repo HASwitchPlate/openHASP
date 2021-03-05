@@ -9,7 +9,8 @@
 
 #include "hasp_conf.h"
 
-// #ifdef WINDOWS
+
+// #if defined(WINDOWS) || defined(POSIX)
 // #define __FlashStringHelper char
 // #endif
 
@@ -21,6 +22,7 @@ enum hasp_mqtt_error_t {
     MQTT_ERR_PUB_FAIL = -4,
     MQTT_ERR_UNKNOWN  = -128
 };
+
 
 void mqttSetup();
 void mqttLoop();

@@ -14,7 +14,7 @@
 #include "../hasp_debug.h"
 #include "hasp_gui.h" // for screenshot
 
-#if WINDOWS
+#if defined(WINDOWS) || defined(POSIX)
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -988,7 +988,7 @@ void dispatch_reboot(bool saveConfig)
     LOG_VERBOSE(TAG_MSGR, F("-------------------------------------"));
     LOG_TRACE(TAG_MSGR, F(D_DISPATCH_REBOOT));
 
-#if WINDOWS
+#if defined(WINDOWS) || defined(POSIX)
     fflush(stdout);
 #else
     Serial.flush();
