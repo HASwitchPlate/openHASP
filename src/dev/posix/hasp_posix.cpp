@@ -73,7 +73,9 @@ bool PosixDevice::get_backlight_power()
 
 void PosixDevice::update_backlight()
 {
+#ifndef TARGET_OS_MAC
     monitor_backlight(_backlight_power ? map(_backlight_level, 0, 100, 0, 255) : 0);
+#endif
 }
 
 size_t PosixDevice::get_free_max_block()
