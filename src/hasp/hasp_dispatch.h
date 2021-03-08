@@ -47,10 +47,11 @@ void dispatch_parse_jsonl(std::istringstream& stream);
 void dispatch_clear_page(const char* page);
 void dispatch_json_error(uint8_t tag, DeserializationError& jsonError);
 
-void dispatch_set_page(uint8_t pageid);
-void dispatch_page_next();
-void dispatch_page_prev();
-void dispatch_page_back();
+// void dispatch_set_page(uint8_t pageid);
+void dispatch_set_page(uint8_t pageid, lv_scr_load_anim_t effectid);
+void dispatch_page_next(lv_scr_load_anim_t effectid);
+void dispatch_page_prev(lv_scr_load_anim_t effectid);
+void dispatch_page_back(lv_scr_load_anim_t effectid);
 
 void dispatch_dim(const char* level);
 void dispatch_backlight(const char* payload);

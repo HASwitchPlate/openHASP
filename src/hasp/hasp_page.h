@@ -36,11 +36,11 @@ class Page {
     size_t count();
     void init(uint8_t start_page);
     void clear(uint16_t pageid);
-    void set(uint8_t pageid);
-    void set(uint8_t pageid, lv_scr_load_anim_t effectid);
-    void next();
-    void prev();
-    void back();
+    //    void set(uint8_t pageid);
+    void set(uint8_t pageid, lv_scr_load_anim_t animation);
+    void next(lv_scr_load_anim_t animation);
+    void prev(lv_scr_load_anim_t animation);
+    void back(lv_scr_load_anim_t animation);
     uint8_t get();
     void load_jsonl(const char* pagesfile);
     lv_obj_t* get_obj(uint8_t pageid);

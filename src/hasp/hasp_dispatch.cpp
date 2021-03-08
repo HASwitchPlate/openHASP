@@ -819,27 +819,32 @@ void dispatch_output_current_page()
 }
 
 // Dispatch Page Get or Set
-void dispatch_page_next()
+void dispatch_page_next(lv_scr_load_anim_t animation)
 {
-    haspPages.next();
+    haspPages.next(animation);
     dispatch_output_current_page();
 }
 
-void dispatch_page_prev()
+void dispatch_page_prev(lv_scr_load_anim_t animation)
 {
-    haspPages.prev();
+    haspPages.prev(animation);
     dispatch_output_current_page();
 }
 
-void dispatch_page_back()
+void dispatch_page_back(lv_scr_load_anim_t animation)
 {
-    haspPages.back();
+    haspPages.back(animation);
     dispatch_output_current_page();
 }
 
 void dispatch_set_page(uint8_t pageid)
 {
-    haspPages.set(pageid);
+    dispatch_set_page(pageid, LV_SCR_LOAD_ANIM_NONE);
+}
+
+void dispatch_set_page(uint8_t pageid, lv_scr_load_anim_t animation)
+{
+    haspPages.set(pageid, animation);
     dispatch_output_current_page();
 }
 
@@ -850,15 +855,16 @@ void dispatch_page(const char*, const char* page)
         return;
     }
 
+    lv_scr_load_anim_t animation = LV_SCR_LOAD_ANIM_NONE;
     if(Utilities::is_only_digits(page)) {
         uint8_t pageid = atoi(page);
-        dispatch_set_page(pageid);
+        dispatch_set_page(pageid, animation);
     } else if(!strcasecmp_P(page, PSTR("prev"))) {
-        dispatch_page_prev();
+        dispatch_page_prev(animation);
     } else if(!strcasecmp_P(page, PSTR("next"))) {
-        dispatch_page_next();
+        dispatch_page_next(animation);
     } else if(!strcasecmp_P(page, PSTR("back"))) {
-        dispatch_page_back();
+        dispatch_page_back(animation);
     } else {
         LOG_WARNING(TAG_MSGR, PSTR(D_DISPATCH_INVALID_PAGE), page);
     }

@@ -376,11 +376,11 @@ void webHandleScreenshot()
 
     if(webServer.hasArg(F("a"))) {
         if(webServer.arg(F("a")) == F("next")) {
-            dispatch_page_next();
+            dispatch_page_next(LV_SCR_LOAD_ANIM_NONE);
         } else if(webServer.arg(F("a")) == F("prev")) {
-            dispatch_page_prev();
+            dispatch_page_prev(LV_SCR_LOAD_ANIM_NONE);
         } else if(webServer.arg(F("a")) == F("back")) {
-            dispatch_page_back();
+            dispatch_page_back(LV_SCR_LOAD_ANIM_NONE);
         }
     }
 
@@ -1962,7 +1962,7 @@ void httpSetup()
     webServer.on(F("/page/"), []() {
         String pageid = webServer.arg(F("page"));
         webServer.send(200, PSTR("text/plain"), "Page: '" + pageid + "'");
-        dispatch_set_page(pageid.toInt());
+        dispatch_set_page(pageid.toInt(), LV_SCR_LOAD_ANIM_NONE);
     });
 
 #if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0

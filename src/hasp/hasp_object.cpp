@@ -352,14 +352,12 @@ void generic_event_handler(lv_obj_t* obj, lv_event_t event)
 
     hasp_update_sleep_state(); // wakeup?
 
-    /* If a pageaction is attached, perform that action on UP event only */
-    if(obj->user_data.pageaction) {
-        if(eventid == HASP_EVENT_UP) {
-            lv_scr_load_anim_t effectid = LV_SCR_LOAD_ANIM_NONE;
-            if(obj->user_data.pageaction >> 4 <= LV_SCR_LOAD_ANIM_FADE_ON)
-                effectid = (lv_scr_load_anim_t)(obj->user_data.pageaction >> 4);
-            uint8_t pageid = obj->user_data.pageaction & 0x0F;
-            haspPages.set(pageid, effectid);
+    /* If an actionid is attached, perform that action on UP event only */
+    if(obj->user_data.actionid) {
+        if(eventid == HASP_EVENT_UP || eventid == HASP_EVENT_SHORT) {
+            lv_scr_load_anim_t transitionid = (lv_scr_load_anim_t)obj->user_data.transitionid;
+            haspPages.set(obj->user_data.actionid, transitionid);
+            dispatch_set_page(obj->user_data.actionid, transitionid);
         }
     } else {
         dispatch_object_generic_event(obj, eventid); // send object event

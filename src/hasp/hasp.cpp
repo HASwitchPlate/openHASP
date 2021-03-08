@@ -425,7 +425,7 @@ void haspSetup(void)
 
     haspPages.init(haspStartPage);
     haspPages.load_jsonl(haspPagesPath);
-    haspPages.set(haspStartPage);
+    haspPages.set(haspStartPage, LV_SCR_LOAD_ANIM_NONE);
 }
 
 /**********************

@@ -582,9 +582,11 @@ typedef void * lv_font_user_data_t;
  *==================*/
 
 typedef struct {
+  uint8_t id:8;
   uint8_t objid:8;
-  uint8_t groupid:8;
-  uint8_t id;
+  uint8_t transitionid:4;
+  uint8_t actionid:4;
+  uint8_t groupid:4;
 } lv_obj_user_data_t;
 
 #if LV_USE_USER_DATA

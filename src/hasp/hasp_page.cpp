@@ -43,12 +43,12 @@ void Page::clear(uint16_t pageid)
     }
 }
 
-void Page::set(uint8_t pageid)
-{
-    set(pageid, LV_SCR_LOAD_ANIM_NONE);
-}
+// void Page::set(uint8_t pageid)
+// {
+//     set(pageid, LV_SCR_LOAD_ANIM_NONE);
+// }
 
-void Page::set(uint8_t pageid, lv_scr_load_anim_t effectid)
+void Page::set(uint8_t pageid, lv_scr_load_anim_t animation)
 {
     lv_obj_t* page = get_obj(pageid);
     if(!page || pageid == 0 || pageid > HASP_NUM_PAGES) {
@@ -56,24 +56,24 @@ void Page::set(uint8_t pageid, lv_scr_load_anim_t effectid)
     } else {
         LOG_TRACE(TAG_HASP, F(D_HASP_CHANGE_PAGE), pageid);
         _current_page = pageid;
-        lv_scr_load_anim(page, effectid, 1000, 0, false);
+        lv_scr_load_anim(page, animation, 1000, 0, false);
         hasp_object_tree(page, pageid, 0);
     }
 }
 
-void Page::next()
+void Page::next(lv_scr_load_anim_t animation)
 {
-    set(_meta_data[_current_page - PAGE_START_INDEX].next);
+    set(_meta_data[_current_page - PAGE_START_INDEX].next, animation);
 }
 
-void Page::prev()
+void Page::prev(lv_scr_load_anim_t animation)
 {
-    set(_meta_data[_current_page - PAGE_START_INDEX].prev);
+    set(_meta_data[_current_page - PAGE_START_INDEX].prev, animation);
 }
 
-void Page::back()
+void Page::back(lv_scr_load_anim_t animation)
 {
-    set(_meta_data[_current_page - PAGE_START_INDEX].back);
+    set(_meta_data[_current_page - PAGE_START_INDEX].back, animation);
 }
 
 uint8_t Page::get()

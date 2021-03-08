@@ -1407,8 +1407,12 @@ void hasp_process_obj_attribute(lv_obj_t* obj, const char* attr_p, const char* p
             break; // attribute_found
 
         case ATTR_ACTION:
-            update ? (void)(obj->user_data.pageaction = (uint8_t)val)
-                   : hasp_out_int(obj, attr, obj->user_data.pageaction);
+            update ? (void)(obj->user_data.actionid = (uint8_t)val) : hasp_out_int(obj, attr, obj->user_data.actionid);
+            break; // attribute_found
+
+        case ATTR_TRANSITION:
+            update ? (void)(obj->user_data.transitionid = (uint8_t)val)
+                   : hasp_out_int(obj, attr, obj->user_data.transitionid);
             break; // attribute_found
 
         case ATTR_OBJID:
