@@ -52,7 +52,7 @@ void dispatch_page_next();
 void dispatch_page_prev();
 
 void dispatch_dim(const char* level);
-void dispatch_backlight(const char* payload);
+void dispatch_backlight(const char*, const char* payload);
 
 void dispatch_web_update(const char* espOtaUrl);
 void dispatch_reboot(bool saveConfig);
