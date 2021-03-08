@@ -14,12 +14,14 @@
 #include "dev/device.h"
 
 #include "hasp_gui.h"
-#include "hal/hasp_hal.h"
+#include "hasp/hasp_dispatch.h"
 #include "hasp_debug.h"
 #include "hasp_config.h"
+#include "hal/hasp_hal.h"
 
 #include "hasp/hasp_utilities.h"
 #include "hasp/hasp_dispatch.h"
+#include "hasp/hasp_page.h"
 #include "hasp/hasp.h"
 
 #if HASP_USE_HTTP > 0
@@ -377,6 +379,8 @@ void webHandleScreenshot()
             dispatch_page_next();
         } else if(webServer.arg(F("a")) == F("prev")) {
             dispatch_page_prev();
+        } else if(webServer.arg(F("a")) == F("back")) {
+            dispatch_page_back();
         }
     }
 
@@ -559,7 +563,7 @@ void webHandleInfo()
         // String(LV_HASP_VER_RES_MAX); httpMessage += F("<br/><b>LCD Version: </b>")) +
         // String(lcdVersion);
         httpMessage += F("</p/><p><b>LCD Active Page: </b>");
-        httpMessage += String(haspGetPage());
+        httpMessage += String(haspPages.get());
 
         /* Wifi Stats */
 #if HASP_USE_WIFI > 0
@@ -1958,7 +1962,7 @@ void httpSetup()
     webServer.on(F("/page/"), []() {
         String pageid = webServer.arg(F("page"));
         webServer.send(200, PSTR("text/plain"), "Page: '" + pageid + "'");
-        haspSetPage(pageid.toInt());
+        dispatch_set_page(pageid.toInt());
     });
 
 #if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0

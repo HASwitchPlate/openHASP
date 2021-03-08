@@ -26,6 +26,7 @@
 #endif
 
 #include "hasplib.h"
+#include "hasp.h"
 #include "lv_theme_hasp.h"
 
 #include "dev/device.h"
@@ -68,7 +69,6 @@ LV_IMG_DECLARE(img_bubble_pattern)
 /**********************
  *   GLOBAL FUNCTIONS
  **********************/
-void haspLoadPage(const char* pages);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 uint8_t hasp_sleep_state       = HASP_SLEEP_OFF; // Used in hasp_drv_touch.cpp
@@ -86,10 +86,8 @@ lv_style_t style_mbox_bg; /*Black bg. style with opacity*/
 lv_obj_t* kb;
 // lv_font_t * defaultFont;
 
-lv_obj_t* pages[HASP_NUM_PAGES];
 static lv_font_t* haspFonts[4] = {nullptr, LV_THEME_DEFAULT_FONT_NORMAL, LV_THEME_DEFAULT_FONT_SUBTITLE,
                                   LV_THEME_DEFAULT_FONT_TITLE};
-uint8_t current_page           = 1;
 
 /**
  * Get Font ID
@@ -165,42 +163,6 @@ void haspEverySecond()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/**
- * Get Page Object by PageID
- */
-lv_obj_t* get_page_obj(uint8_t pageid)
-{
-    if(pageid == 0) return lv_layer_top(); // 254
-    if(pageid == 255) return lv_layer_sys();
-    if(pageid > sizeof pages / sizeof *pages) return NULL; // >=0
-    return pages[pageid - PAGE_START_INDEX];
-}
-
-bool get_page_id(lv_obj_t* obj, uint8_t* pageid)
-{
-    lv_obj_t* page = lv_obj_get_screen(obj);
-
-    if(!page) return false;
-
-    if(page == lv_layer_top()) {
-        *pageid = 0; // 254
-        return true;
-    }
-    if(page == lv_layer_sys()) {
-        *pageid = 255;
-        return true;
-    }
-
-    for(uint8_t i = 0; i < sizeof pages / sizeof *pages; i++) {
-        if(page == pages[i]) {
-            *pageid = i + PAGE_START_INDEX;
-            return true;
-        }
-    }
-    return false;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void haspDisconnect()
 {
@@ -245,7 +207,7 @@ void haspReconnect()
 void haspProgressVal(uint8_t val)
 {
     lv_obj_t* layer = lv_disp_get_layer_sys(NULL);
-    lv_obj_t* bar   = hasp_find_obj_from_parent_id(get_page_obj(255), (uint8_t)10);
+    lv_obj_t* bar   = hasp_find_obj_from_parent_id(haspPages.get_obj(255), (uint8_t)10);
     if(layer && bar) {
         if(val == 255) {
             if(!lv_obj_get_hidden(bar)) {
@@ -274,7 +236,7 @@ void haspProgressVal(uint8_t val)
 // Sets the value string of the global progress bar
 void haspProgressMsg(const char* msg)
 {
-    lv_obj_t* bar = hasp_find_obj_from_parent_id(get_page_obj(255), (uint8_t)10);
+    lv_obj_t* bar = hasp_find_obj_from_parent_id(haspPages.get_obj(255), (uint8_t)10);
 
     if(bar) {
         char value_str[10];
@@ -454,9 +416,6 @@ void haspSetup(void)
     }
 
     /* Create all screens using the theme */
-    for(int i = 0; i < (sizeof pages / sizeof *pages); i++) {
-        pages[i] = lv_obj_create(NULL, NULL);
-    }
 
 #if HASP_USE_WIFI > 0
     if(!wifiShowAP()) {
@@ -464,8 +423,9 @@ void haspSetup(void)
     }
 #endif
 
-    haspLoadPage(haspPagesPath);
-    haspSetPage(haspStartPage);
+    haspPages.init(haspStartPage);
+    haspPages.load_jsonl(haspPagesPath);
+    haspPages.set(haspStartPage);
 }
 
 /**********************
@@ -531,71 +491,6 @@ void hasp_background(uint16_t pageid, uint16_t imageid)
 void haspGetVersion(char* version, size_t len)
 {
     snprintf_P(version, len, PSTR("%u.%u.%u"), HASP_VER_MAJ, HASP_VER_MIN, HASP_VER_REV);
-}
-
-void haspClearPage(uint16_t pageid)
-{
-    lv_obj_t* page = get_page_obj(pageid);
-    if(!page || (pageid > HASP_NUM_PAGES)) {
-        LOG_WARNING(TAG_HASP, F(D_HASP_INVALID_PAGE), pageid);
-    } else if(page == lv_layer_sys() /*|| page == lv_layer_top()*/) {
-        LOG_WARNING(TAG_HASP, F(D_HASP_INVALID_LAYER));
-    } else {
-        LOG_TRACE(TAG_HASP, F(D_HASP_CLEAR_PAGE), pageid);
-        lv_obj_clean(page);
-    }
-}
-
-uint8_t haspGetPage()
-{
-    return current_page;
-}
-
-void haspSetPage(uint8_t pageid)
-{
-    lv_obj_t* page = get_page_obj(pageid);
-    if(!page || pageid == 0 || pageid > HASP_NUM_PAGES) {
-        LOG_WARNING(TAG_HASP, F(D_HASP_INVALID_PAGE), pageid);
-    } else {
-        LOG_TRACE(TAG_HASP, F(D_HASP_CHANGE_PAGE), pageid);
-        current_page = pageid;
-        lv_scr_load(page);
-        hasp_object_tree(page, pageid, 0);
-    }
-}
-
-void haspLoadPage(const char* pagesfile)
-{
-#if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
-    if(pagesfile[0] == '\0') return;
-
-    if(!filesystemSetup()) {
-        LOG_ERROR(TAG_HASP, F("FS not mounted. Failed to load %s"), pagesfile);
-        return;
-    }
-
-    if(!HASP_FS.exists(pagesfile)) {
-        LOG_ERROR(TAG_HASP, F("Non existing file %s"), pagesfile);
-        return;
-    }
-
-    LOG_TRACE(TAG_HASP, F("Loading file %s"), pagesfile);
-
-    File file = HASP_FS.open(pagesfile, "r");
-    dispatch_parse_jsonl(file);
-    file.close();
-
-    LOG_INFO(TAG_HASP, F("File %s loaded"), pagesfile);
-#else
-
-#if HASP_USE_EEPROM > 0
-    LOG_TRACE(TAG_HASP, F("Loading jsonl from EEPROM..."));
-    EepromStream eepromStream(4096, 1024);
-    dispatch_parse_jsonl(eepromStream);
-    LOG_INFO(TAG_HASP, F("Loaded jsonl from EEPROM"));
-#endif
-
-#endif
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

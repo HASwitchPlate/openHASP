@@ -312,6 +312,7 @@ _HASP_ATTRIBUTE(SCALE_END_LINE_WIDTH, scale_end_line_width, lv_style_int_t)
 #define ATTR_MAP 45628
 
 /* hasp user data */
+#define ATTR_ACTION 42102
 #define ATTR_GROUPID 48986
 #define ATTR_OBJID 41010
 

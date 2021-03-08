@@ -1,0 +1,55 @@
+/* MIT License - Copyright (c) 2019-2021 Francis Van Roie
+   For full license information read the LICENSE file in the project folder */
+
+#ifndef HASP_PAGES_H
+#define HASP_PAGES_H
+
+#include "hasp_conf.h"
+#include "hasplib.h"
+
+/*********************
+ *      DEFINES
+ *********************/
+#define PAGE_START_INDEX 1 // Page number of array index 0
+
+/**********************
+ *      TYPEDEFS
+ **********************/
+
+typedef struct hasp_page_meta_data_t
+{
+    uint8_t prev : 4;
+    uint8_t next : 4;
+    uint8_t back : 4;
+};
+
+namespace hasp {
+
+class Page {
+  private:
+    hasp_page_meta_data_t _meta_data[HASP_NUM_PAGES]; // index 0 = Page 1 etc.
+    lv_obj_t* _pages[HASP_NUM_PAGES];                 // index 0 = Page 1 etc.
+    uint8_t _current_page;
+
+  public:
+    Page();
+    size_t count();
+    void init(uint8_t start_page);
+    void clear(uint16_t pageid);
+    void set(uint8_t pageid);
+    void set(uint8_t pageid, lv_scr_load_anim_t effectid);
+    void next();
+    void prev();
+    void back();
+    uint8_t get();
+    void load_jsonl(const char* pagesfile);
+    lv_obj_t* get_obj(uint8_t pageid);
+    bool get_id(lv_obj_t* obj, uint8_t* pageid);
+};
+
+} // namespace hasp
+
+using hasp::Page;
+extern hasp::Page haspPages;
+
+#endif // HASP_PAGES_H

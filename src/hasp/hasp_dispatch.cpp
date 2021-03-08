@@ -742,7 +742,7 @@ void dispatch_parse_json(const char*, const char* payload)
         }
         // guiStart();
     } else if(json.is<JsonObject>()) { // handle json as a jsonl
-        uint8_t savedPage = haspGetPage();
+        uint8_t savedPage = haspPages.get();
         hasp_new_object(json.as<JsonObject>(), savedPage);
 
         // #ifdef ARDUINO
@@ -770,7 +770,7 @@ void dispatch_parse_jsonl(Stream& stream)
 void dispatch_parse_jsonl(std::istringstream& stream)
 #endif
 {
-    uint8_t savedPage = haspGetPage();
+    uint8_t savedPage = haspPages.get();
     size_t line       = 1;
     DynamicJsonDocument jsonl(MQTT_MAX_PACKET_SIZE / 2 + 128); // max ~256 characters per line
     DeserializationError jsonError = deserializeJson(jsonl, stream);
@@ -814,63 +814,65 @@ void dispatch_output_current_page()
     char payload[8];
 
     memcpy_P(topic, PSTR("page"), 5);
-    snprintf_P(payload, sizeof(payload), PSTR("%d"), haspGetPage());
+    snprintf_P(payload, sizeof(payload), PSTR("%d"), haspPages.get());
     dispatch_state_subtopic(topic, payload);
 }
 
-// Get or Set a page
-void dispatch_page(const char*, const char* page)
-{
-    if(strlen(page) > 0) {
-        if(Utilities::is_only_digits(page)) {
-            uint8_t pageid = atoi(page);
-            haspSetPage(pageid);
-        } else {
-
-            if(!strcasecmp_P(page, PSTR("prev"))) {
-                dispatch_page_prev();
-            } else if(!strcasecmp_P(page, PSTR("next"))) {
-                dispatch_page_next();
-            } else {
-                LOG_WARNING(TAG_MSGR, PSTR(D_DISPATCH_INVALID_PAGE), page);
-            }
-            return;
-        }
-    }
-
-    dispatch_output_current_page();
-}
-
+// Dispatch Page Get or Set
 void dispatch_page_next()
 {
-    uint8_t page = haspGetPage();
-    if(page >= HASP_NUM_PAGES) {
-        page = 1;
-    } else {
-        page++;
-    }
-    haspSetPage(page);
+    haspPages.next();
     dispatch_output_current_page();
 }
 
 void dispatch_page_prev()
 {
-    uint8_t page = haspGetPage();
-    if(page == 1) {
-        page = HASP_NUM_PAGES;
-    } else {
-        page--;
-    }
-    haspSetPage(page);
+    haspPages.prev();
     dispatch_output_current_page();
+}
+
+void dispatch_page_back()
+{
+    haspPages.back();
+    dispatch_output_current_page();
+}
+
+void dispatch_set_page(uint8_t pageid)
+{
+    haspPages.set(pageid);
+    dispatch_output_current_page();
+}
+
+void dispatch_page(const char*, const char* page)
+{
+    if(strlen(page) == 0) {
+        dispatch_output_current_page(); // No payload, send current page
+        return;
+    }
+
+    if(Utilities::is_only_digits(page)) {
+        uint8_t pageid = atoi(page);
+        dispatch_set_page(pageid);
+    } else if(!strcasecmp_P(page, PSTR("prev"))) {
+        dispatch_page_prev();
+    } else if(!strcasecmp_P(page, PSTR("next"))) {
+        dispatch_page_next();
+    } else if(!strcasecmp_P(page, PSTR("back"))) {
+        dispatch_page_back();
+    } else {
+        LOG_WARNING(TAG_MSGR, PSTR(D_DISPATCH_INVALID_PAGE), page);
+    }
 }
 
 // Clears a page id or the current page if empty
 void dispatch_clear_page(const char*, const char* page)
 {
-    uint8_t pageid = haspGetPage();
-    if(strlen(page) > 0) pageid = atoi(page);
-    haspClearPage(pageid);
+    uint8_t pageid;
+    if(strlen(page) > 0)
+        pageid = atoi(page);
+    else
+        pageid = haspPages.get();
+    haspPages.clear(pageid);
 }
 
 void dispatch_dim(const char*, const char* level)
@@ -1030,8 +1032,8 @@ void dispatch_output_statusupdate(const char*, const char*)
                    haspDevice.get_free_heap(), haspDevice.get_heap_fragmentation(), haspDevice.get_core_version());
         strcat(data, buffer);
 
-        snprintf_P(buffer, sizeof(buffer), PSTR("\"canUpdate\":\"false\",\"page\":%u,\"numPages\":%u,"), haspGetPage(),
-                   (HASP_NUM_PAGES));
+        snprintf_P(buffer, sizeof(buffer), PSTR("\"canUpdate\":\"false\",\"page\":%u,\"numPages\":%u,"),
+                   haspPages.get(), haspPages.count());
         strcat(data, buffer);
 
 #if defined(ARDUINO_ARCH_ESP8266)

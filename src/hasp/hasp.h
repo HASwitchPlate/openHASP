@@ -56,13 +56,6 @@ void haspEverySecond(void);
 void haspReconnect(void);
 void haspDisconnect(void);
 
-lv_obj_t* get_page_obj(uint8_t pageid);
-bool get_page_id(lv_obj_t* obj, uint8_t* pageid);
-
-void haspSetPage(uint8_t id);
-uint8_t haspGetPage();
-void haspClearPage(uint16_t pageid);
-
 void haspGetVersion(char* version, size_t len);
 // void haspBackground(uint16_t pageid, uint16_t imageid);
 

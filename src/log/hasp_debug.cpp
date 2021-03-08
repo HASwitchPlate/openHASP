@@ -706,7 +706,7 @@ void debugLoop(void)
                 break;
 
             case(ConsoleInput::KEY_FN)...(ConsoleInput::KEY_FN + 12):
-                haspSetPage(keypress - ConsoleInput::KEY_FN - 1);
+                dispatch_set_page(keypress - ConsoleInput::KEY_FN);
                 break;
         }
     } while(keypress != 0);

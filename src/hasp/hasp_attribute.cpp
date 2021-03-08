@@ -1406,6 +1406,11 @@ void hasp_process_obj_attribute(lv_obj_t* obj, const char* attr_p, const char* p
             update ? (void)(obj->user_data.groupid = (uint8_t)val) : hasp_out_int(obj, attr, obj->user_data.groupid);
             break; // attribute_found
 
+        case ATTR_ACTION:
+            update ? (void)(obj->user_data.pageaction = (uint8_t)val)
+                   : hasp_out_int(obj, attr, obj->user_data.pageaction);
+            break; // attribute_found
+
         case ATTR_OBJID:
             if(update) {
                 LOG_WARNING(TAG_ATTR, F(D_ATTRIBUTE_READ_ONLY), attr_p);

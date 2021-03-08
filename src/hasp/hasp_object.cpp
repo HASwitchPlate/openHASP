@@ -71,7 +71,7 @@ lv_obj_t* hasp_find_obj_from_parent_id(lv_obj_t* parent, uint8_t objid)
 
 bool hasp_find_id_from_obj(lv_obj_t* obj, uint8_t* pageid, uint8_t* objid)
 {
-    if(!get_page_id(obj, pageid)) return false;
+    if(!haspPages.get_id(obj, pageid)) return false;
     if(!(obj->user_data.id > 0)) return false;
     //    memcpy(objid, &obj->user_data.id, sizeof(lv_obj_user_data_t));
     *objid = obj->user_data.id;
@@ -350,8 +350,20 @@ void generic_event_handler(lv_obj_t* obj, lv_event_t event)
             return;
     }
 
-    hasp_update_sleep_state();                   // wakeup?
-    dispatch_object_generic_event(obj, eventid); // send object event
+    hasp_update_sleep_state(); // wakeup?
+
+    /* If a pageaction is attached, perform that action on UP event only */
+    if(obj->user_data.pageaction) {
+        if(eventid == HASP_EVENT_UP) {
+            lv_scr_load_anim_t effectid = LV_SCR_LOAD_ANIM_NONE;
+            if(obj->user_data.pageaction >> 4 <= LV_SCR_LOAD_ANIM_FADE_ON)
+                effectid = (lv_scr_load_anim_t)(obj->user_data.pageaction >> 4);
+            uint8_t pageid = obj->user_data.pageaction & 0x0F;
+            haspPages.set(pageid, effectid);
+        }
+    } else {
+        dispatch_object_generic_event(obj, eventid); // send object event
+    }
     dispatch_normalized_group_value(obj->user_data.groupid, NORMALIZE(dispatch_get_event_state(eventid), 0, 1), obj);
 }
 
@@ -540,7 +552,7 @@ void object_set_group_state(uint8_t groupid, uint8_t eventid, lv_obj_t* src_obj)
     for(uint8_t page = 0; page < HASP_NUM_PAGES; page++) {
         uint8_t startid = 1;
         for(uint8_t objid = startid; objid < 20; objid++) {
-            lv_obj_t* obj = hasp_find_obj_from_parent_id(get_page_obj(page), objid);
+            lv_obj_t* obj = hasp_find_obj_from_parent_id(haspPages.get_obj(page), objid);
             if(obj && obj != src_obj && obj->user_data.groupid == groupid) { // skip source object, if set
                 lv_obj_set_state(obj, state ? LV_STATE_PRESSED | LV_STATE_CHECKED : LV_STATE_DEFAULT);
             }
@@ -593,7 +605,7 @@ void object_set_group_value(uint8_t groupid, int16_t state)
 // Used in the dispatcher & hasp_new_object
 void hasp_process_attribute(uint8_t pageid, uint8_t objid, const char* attr, const char* payload)
 {
-    if(lv_obj_t* obj = hasp_find_obj_from_parent_id(get_page_obj(pageid), objid)) {
+    if(lv_obj_t* obj = hasp_find_obj_from_parent_id(haspPages.get_obj(pageid), objid)) {
         hasp_process_obj_attribute(obj, attr, payload, strlen(payload) > 0);
     } else {
         LOG_WARNING(TAG_HASP, F(D_OBJECT_UNKNOWN " " HASP_OBJECT_NOTATION), pageid, objid);
@@ -639,17 +651,23 @@ int hasp_parse_json_attributes(lv_obj_t* obj, const JsonObject& doc)
  */
 void hasp_new_object(const JsonObject& config, uint8_t& saved_page_id)
 {
-    /* Page selection: page is the default parent_obj */
-    uint8_t pageid       = config[FPSTR(FP_PAGE)].isNull() ? saved_page_id : config[FPSTR(FP_PAGE)].as<uint8_t>();
-    lv_obj_t* parent_obj = get_page_obj(pageid);
+    /* Page selection */
+    uint8_t pageid = saved_page_id;
+    if(!config[FPSTR(FP_PAGE)].isNull()) {
+        config[FPSTR(FP_PAGE)].as<uint8_t>();
+        config.remove(FPSTR(FP_PAGE));
+    }
+
+    /* Page with pageid is the default parent_obj */
+    lv_obj_t* parent_obj = haspPages.get_obj(pageid);
     if(!parent_obj) {
         LOG_WARNING(TAG_HASP, F(D_OBJECT_PAGE_UNKNOWN), pageid);
         return;
     } else {
-        saved_page_id = pageid; /* save the current pageid */
+        saved_page_id = pageid; /* save the current pageid for next objects */
     }
 
-    // lv_obj_t * parent_obj = page;
+    /* A custom parentid was set */
     if(!config[FPSTR(FP_PARENTID)].isNull()) {
         uint8_t parentid = config[FPSTR(FP_PARENTID)].as<uint8_t>();
         parent_obj       = hasp_find_obj_from_parent_id(parent_obj, parentid);
@@ -659,13 +677,15 @@ void hasp_new_object(const JsonObject& config, uint8_t& saved_page_id)
         } else {
             LOG_VERBOSE(TAG_HASP, F("Parent ID " HASP_OBJECT_NOTATION " found"), pageid, parentid);
         }
+        config.remove(FPSTR(FP_PARENTID));
     }
 
     uint16_t sdbm   = 0;
-    uint8_t id      = config[FPSTR(FP_ID)].as<uint8_t>();
     uint8_t groupid = config[FPSTR(FP_GROUPID)].as<uint8_t>();
+    uint8_t id      = config[FPSTR(FP_ID)].as<uint8_t>();
+    config.remove(FPSTR(FP_ID));
 
-    /* Define Objects*/
+    /* Create the object if it does not exist */
     lv_obj_t* obj = hasp_find_obj_from_parent_id(parent_obj, id);
     if(!obj) {
 
@@ -677,9 +697,11 @@ void hasp_new_object(const JsonObject& config, uint8_t& saved_page_id)
                 return; // comments
             } else {
                 sdbm = Utilities::get_sdbm(config[FPSTR(FP_OBJ)].as<const char*>());
+                config.remove(FPSTR(FP_OBJ));
             }
         } else {
             sdbm = config[FPSTR(FP_OBJID)].as<uint8_t>();
+            config.remove(FPSTR(FP_OBJID));
         }
 
         switch(sdbm) {
@@ -1015,19 +1037,17 @@ void hasp_new_object(const JsonObject& config, uint8_t& saved_page_id)
         LOG_VERBOSE(TAG_HASP, F(D_BULLET HASP_OBJECT_NOTATION " = %s"), pageid, temp, list.type[0]);
 
         /* test double-check */
-        lv_obj_t* test = hasp_find_obj_from_parent_id(get_page_obj(pageid), (uint8_t)temp);
+        lv_obj_t* test = hasp_find_obj_from_parent_id(haspPages.get_obj(pageid), (uint8_t)temp);
         if(test != obj) {
             LOG_ERROR(TAG_HASP, F(D_OBJECT_MISMATCH));
             return;
+        } else {
+            // object created successfully
         }
-    }
 
-    /* do not process these attributes */
-    config.remove(FPSTR(FP_PAGE));
-    config.remove(FPSTR(FP_ID));
-    config.remove(FPSTR(FP_OBJ));
-    config.remove(FPSTR(FP_OBJID)); // TODO: obsolete objid
-    config.remove(FPSTR(FP_PARENTID));
+    } else {
+        // object already exists
+    }
 
     hasp_parse_json_attributes(obj, config);
 }
