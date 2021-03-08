@@ -49,7 +49,9 @@ class TftSdl2 : BaseTft {
         /* Add a display
          * Use the 'monitor' driver which creates window on PC's monitor to simulate a display*/
         monitor_init();
+#ifndef TARGET_OS_MAC
         monitor_title(haspDevice.get_hostname());
+#endif
 
         /* Add the mouse as input device
          * Use the 'mouse' driver which reads the PC's mouse*/
