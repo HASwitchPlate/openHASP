@@ -485,6 +485,17 @@ static lv_font_t* haspPayloadToFont(const char* payload)
             return LV_THEME_DEFAULT_FONT_TITLE;
 #endif
 
+#ifdef FONTAWESOME_SEPARATE /* fontawesome_26.c */
+        case 26:
+            return LV_FONT_AWESOME;
+#endif
+
+#ifdef EXTRA_BIGNUMBERS /* roboto_condensed_bignumbers_44.c */
+        case 44:
+            return LV_FONT_BIGNUMBERS;
+#endif
+
+
 #endif
 
         default:

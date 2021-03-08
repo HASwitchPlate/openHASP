@@ -11,6 +11,11 @@
 
 #include <stdint.h>
 
+
+#ifdef USE_CONFIG_OVERRIDE
+#include "../src/user_config_override.h"
+#endif
+
 #if defined(ARDUINO_ARCH_ESP8266)
 #define LV_HIGH_RESOURCE_MCU  0
 #endif
@@ -415,22 +420,77 @@ typedef void* lv_font_user_data_t;
 #if LV_HIGH_RESOURCE_MCU>0
 // #define LV_FONT_CUSTOM_DECLARE LV_FONT_DECLARE(lv_font_montserrat_16);
 
-#define LV_FONT_CUSTOM_12     LV_FONT_DECLARE(robotocondensed_regular_12_nokern)
-#define LV_FONT_CUSTOM_16     LV_FONT_DECLARE(robotocondensed_regular_16_nokern)
-#define LV_FONT_CUSTOM_22     LV_FONT_DECLARE(robotocondensed_regular_22_nokern)
-#define LV_FONT_CUSTOM_28     LV_FONT_DECLARE(robotocondensed_regular_28_nokern)
+#ifndef USE_BASIC_FONTS /*switch for basic fonts*/
+  #define LV_FONT_CUSTOM_12     LV_FONT_DECLARE(robotocondensed_regular_12_nokern)
+  #define LV_FONT_CUSTOM_16     LV_FONT_DECLARE(robotocondensed_regular_16_nokern)
+  #define LV_FONT_CUSTOM_22     LV_FONT_DECLARE(robotocondensed_regular_22_nokern)
+  #define LV_FONT_CUSTOM_28     LV_FONT_DECLARE(robotocondensed_regular_28_nokern)
+  #define LV_FONT_DEFAULT        &robotocondensed_regular_16_nokern //&lv_font_montserrat_16
 
-#define LV_FONT_CUSTOM_DECLARE LV_FONT_CUSTOM_12 \
-                               LV_FONT_CUSTOM_16 \
-                               LV_FONT_CUSTOM_22 \
-                               LV_FONT_CUSTOM_28 \
+#else
+  #ifdef USE_BASIC_HU /*HU language chooser*/
+    #define LV_FONT_CUSTOM_12     LV_FONT_DECLARE(roboto_condensed_12_basic_hu)
+    #define LV_FONT_CUSTOM_16     LV_FONT_DECLARE(roboto_condensed_16_basic_hu)
+    #define LV_FONT_CUSTOM_22     LV_FONT_DECLARE(roboto_condensed_22_basic_hu)
+    #define LV_FONT_CUSTOM_28     LV_FONT_DECLARE(roboto_condensed_28_basic_hu)
+    #define LV_FONT_DEFAULT        &roboto_condensed_16_basic_hu
 
-#define LV_FONT_DEFAULT        &robotocondensed_regular_16_nokern //&lv_font_montserrat_16
+  #elif defined(USE_BASIC_RO) /*RO language chooser*/
+    #define LV_FONT_CUSTOM_12     LV_FONT_DECLARE(roboto_condensed_12_basic_ro)
+    #define LV_FONT_CUSTOM_16     LV_FONT_DECLARE(roboto_condensed_16_basic_ro)
+    #define LV_FONT_CUSTOM_22     LV_FONT_DECLARE(roboto_condensed_22_basic_ro)
+    #define LV_FONT_CUSTOM_28     LV_FONT_DECLARE(roboto_condensed_28_basic_ro)
+    #define LV_FONT_DEFAULT        &roboto_condensed_16_basic_ro
+
+  #else /*Only basic Latin-1 characters chooser*/
+    #define LV_FONT_CUSTOM_12     LV_FONT_DECLARE(roboto_condensed_12_basic)
+    #define LV_FONT_CUSTOM_16     LV_FONT_DECLARE(roboto_condensed_16_basic)
+    #define LV_FONT_CUSTOM_22     LV_FONT_DECLARE(roboto_condensed_22_basic)
+    #define LV_FONT_CUSTOM_28     LV_FONT_DECLARE(roboto_condensed_28_basic)
+    #define LV_FONT_DEFAULT        &roboto_condensed_16_basic
+
+  #endif //USE_BASIC_HU
+#endif //USE_BASIC_FONTS
+
+#if defined(USE_FONTAWESOME_SEPARATE) && defined(USE_EXTRA_BIGNUMBERS)  /*separate fontawesome and bignums*/
+  #define FONTAWESOME_SEPARATE  LV_FONT_DECLARE(fontawesome_26)
+  #define EXTRA_BIGNUMBERS      LV_FONT_DECLARE(roboto_condensed_bignumbers_44)
+  #define LV_FONT_CUSTOM_DECLARE LV_FONT_CUSTOM_12 \
+                                 LV_FONT_CUSTOM_16 \
+                                 LV_FONT_CUSTOM_22 \
+                                 LV_FONT_CUSTOM_28 \
+                                 FONTAWESOME_SEPARATE \
+                                 EXTRA_BIGNUMBERS \
+
+#elif defined(FONTAWESOME_SEPARATE)
+  #define FONTAWESOME_SEPARATE    LV_FONT_DECLARE(fontawesome_26)
+  #define LV_FONT_CUSTOM_DECLARE LV_FONT_CUSTOM_12 \
+                                 LV_FONT_CUSTOM_16 \
+                                 LV_FONT_CUSTOM_22 \
+                                 LV_FONT_CUSTOM_28 \
+                                 FONTAWESOME_SEPARATE \
+
+#elif defined(USE_EXTRA_BIGNUMBERS)
+  #define EXTRA_BIGNUMBERS    LV_FONT_DECLARE(roboto_condensed_bignumbers_44)
+  #define LV_FONT_CUSTOM_DECLARE LV_FONT_CUSTOM_12 \
+                                 LV_FONT_CUSTOM_16 \
+                                 LV_FONT_CUSTOM_22 \
+                                 LV_FONT_CUSTOM_28 \
+                                 EXTRA_BIGNUMBERS \
+
+#else
+  #define LV_FONT_CUSTOM_DECLARE LV_FONT_CUSTOM_12 \
+                                 LV_FONT_CUSTOM_16 \
+                                 LV_FONT_CUSTOM_22 \
+                                 LV_FONT_CUSTOM_28 \
+
+#endif //USE_FONTAWESOME_SEPARATE + USE_EXTRA_BIGNUMBERS
+
 #else
 #define LV_FONT_CUSTOM_DECLARE LV_FONT_DECLARE(unscii_8_icon);
 #define LV_FONT_DEFAULT        &unscii_8_icon //&lv_font_unscii_8
 //#define LV_FONT_DEFAULT        my_font
-#endif
+#endif //LV_HIGH_RESOURCE_MCU
 
 /*================
  *  THEME USAGE
@@ -444,16 +504,45 @@ typedef void* lv_font_user_data_t;
 #define LV_THEME_DEFAULT_COLOR_SECONDARY    LV_COLOR_BLUE
 #define LV_THEME_DEFAULT_FLAG              0 //LV_THEME_MATERIAL_FLAG_NONE
 #if LV_HIGH_RESOURCE_MCU
-#define LV_THEME_DEFAULT_FONT_SMALL         &robotocondensed_regular_12_nokern //&lv_font_montserrat_12
-#define LV_THEME_DEFAULT_FONT_NORMAL        &robotocondensed_regular_16_nokern //&lv_font_montserrat_16
-#define LV_THEME_DEFAULT_FONT_SUBTITLE      &robotocondensed_regular_22_nokern //&lv_font_montserrat_22
-#define LV_THEME_DEFAULT_FONT_TITLE         &robotocondensed_regular_28_nokern //&lv_font_montserrat_22 //&lv_font_montserrat_28_compressed
+  #ifndef USE_BASIC_FONTS /*switch for basic fonts*/
+    #define LV_THEME_DEFAULT_FONT_SMALL         &robotocondensed_regular_12_nokern //&lv_font_montserrat_12
+    #define LV_THEME_DEFAULT_FONT_NORMAL        &robotocondensed_regular_16_nokern //&lv_font_montserrat_16
+    #define LV_THEME_DEFAULT_FONT_SUBTITLE      &robotocondensed_regular_22_nokern //&lv_font_montserrat_22
+    #define LV_THEME_DEFAULT_FONT_TITLE         &robotocondensed_regular_28_nokern //&lv_font_montserrat_22 //&lv_font_montserrat_28_compressed
+  #else
+    #ifdef USE_BASIC_HU /*HU language chooser*/
+      #define LV_THEME_DEFAULT_FONT_SMALL         &roboto_condensed_12_basic_hu
+      #define LV_THEME_DEFAULT_FONT_NORMAL        &roboto_condensed_16_basic_hu
+      #define LV_THEME_DEFAULT_FONT_SUBTITLE      &roboto_condensed_22_basic_hu
+      #define LV_THEME_DEFAULT_FONT_TITLE         &roboto_condensed_28_basic_hu
+    #elif defined(USE_BASIC_RO) /*RO language chooser*/
+      #define LV_THEME_DEFAULT_FONT_SMALL         &roboto_condensed_12_basic_ro
+      #define LV_THEME_DEFAULT_FONT_NORMAL        &roboto_condensed_16_basic_ro
+      #define LV_THEME_DEFAULT_FONT_SUBTITLE      &roboto_condensed_22_basic_ro
+      #define LV_THEME_DEFAULT_FONT_TITLE         &roboto_condensed_28_basic_ro
+    #else /*Only basic Latin-1 characters chooser*/
+      #define LV_THEME_DEFAULT_FONT_SMALL         &roboto_condensed_12_basic
+      #define LV_THEME_DEFAULT_FONT_NORMAL        &roboto_condensed_16_basic
+      #define LV_THEME_DEFAULT_FONT_SUBTITLE      &roboto_condensed_22_basic
+      #define LV_THEME_DEFAULT_FONT_TITLE         &roboto_condensed_28_basic
+    #endif //language chooser
+  #endif //USE_BASIC_FONTS
+
+#if defined(USE_FONTAWESOME_SEPARATE) && defined(USE_EXTRA_BIGNUMBERS)  /*separate fontawesome and bignums*/
+  #define LV_FONT_AWESOME                     &fontawesome_26
+  #define LV_FONT_BIGNUMBERS                  &roboto_condensed_bignumbers_44
+#elif defined(FONTAWESOME_SEPARATE)
+  #define LV_FONT_AWESOME                     &fontawesome_26
+#elif defined(USE_EXTRA_BIGNUMBERS)
+  #define LV_FONT_BIGNUMBERS                  &roboto_condensed_bignumbers_44
+#endif
+
 #else
 #define LV_THEME_DEFAULT_FONT_SMALL         LV_FONT_DEFAULT // &lv_font_montserrat_12
 #define LV_THEME_DEFAULT_FONT_NORMAL        LV_FONT_DEFAULT // &lv_font_montserrat_16
 #define LV_THEME_DEFAULT_FONT_SUBTITLE      LV_FONT_DEFAULT // &lv_font_montserrat_22
 #define LV_THEME_DEFAULT_FONT_TITLE         LV_FONT_DEFAULT // &lv_font_montserrat_28_compressed
-#endif
+#endif //LV_HIGH_RESOURCE_MCU
 
 #define LV_USE_THEME_EMPTY 0
 #define LV_USE_THEME_MONO 1
