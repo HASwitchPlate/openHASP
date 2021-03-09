@@ -11,7 +11,7 @@
 
 #include "display/monitor.h"
 
-extern monitor_t monitor;
+// extern monitor_t monitor;
 
 namespace dev {
 
@@ -44,7 +44,8 @@ const char* PosixDevice::get_hostname()
 void PosixDevice::set_hostname(const char* hostname)
 {
     _hostname = hostname;
-    SDL_SetWindowTitle(monitor.window, hostname);
+    monitor_title(hostname);
+    // SDL_SetWindowTitle(monitor.window, hostname);
 }
 const char* PosixDevice::get_core_version()
 {
@@ -91,12 +92,12 @@ bool PosixDevice::get_backlight_power()
 void PosixDevice::update_backlight()
 {
     uint8_t level = _backlight_power ? map(_backlight_level, 0, 100, 0, 255) : 0;
-
-    SDL_SetTextureColorMod(monitor.texture, level, level, level);
+    monitor_backlight(level);
+    // SDL_SetTextureColorMod(monitor.texture, level, level, level);
     // window_update(&monitor);
-    monitor.sdl_refr_qry = true;
+    // monitor.sdl_refr_qry = true;
     // monitor_sdl_refr(NULL);
-    const lv_area_t area = {1,1,0,0};
+    // const lv_area_t area = {1,1,0,0};
     //monitor_flush(NULL,&area,NULL);
 }
 
