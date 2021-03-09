@@ -195,7 +195,8 @@ typedef void* lv_fs_drv_user_data_t;
 #  define LV_FS_IF_PC       '\0'
 #  define LV_FS_IF_SPIFFS   '\0'  // internal esp Flash
 #else
-#  define LV_FS_IF_PC       'S'
+#  define LV_FS_IF_PC       '\0'
+#  define LV_FS_IF_POSIX    '\0'
 #  define LV_FS_IF_SPIFFS   '\0'  // no internal esp Flash
 #endif
 #endif  /*LV_USE_FS_IF*/

@@ -276,12 +276,12 @@ void hasp_send_obj_attribute_color(lv_obj_t* obj, const char* attribute, lv_colo
  */
 void wakeup_event_handler(lv_obj_t* obj, lv_event_t event)
 {
-    if(obj == lv_disp_get_layer_sys(NULL)) {
+    if(event == LV_EVENT_RELEASED && obj == lv_disp_get_layer_sys(NULL)) {
         hasp_update_sleep_state(); // wakeup?
-
-        if(event == LV_EVENT_CLICKED) {
-            lv_obj_set_click(obj, false); // disable first touch
-            LOG_VERBOSE(TAG_HASP, F("Wakeup touch disabled"));
+        if(!haspDevice.get_backlight_power())
+            dispatch_backlight(NULL, "1"); // backlight on and also disable wakeup touch
+        else {
+            hasp_disable_wakeup_touch(); // only disable wakeup touch
         }
     }
 }
