@@ -15,11 +15,34 @@
 
 namespace dev {
 
+PosixDevice::PosixDevice()    {
+        struct utsname uts;
+
+        if (uname(&uts) < 0) {
+          LOG_ERROR(0,"uname() error");
+          _hostname = "localhost";
+          _core_version = "unknown";
+        } else {
+        //   LOG_VERBOSE(0,"Sysname:  %s", uts.sysname);
+        //   LOG_VERBOSE(0,"Nodename: %s", uts.nodename);
+        //   LOG_VERBOSE(0,"Release:  %s", uts.release);
+        //   LOG_VERBOSE(0,"Version:  %s", uts.version);
+        //   LOG_VERBOSE(0,"Machine:  %s", uts.machine);
+
+          char version[128];
+          snprintf(version, sizeof(version), "%s %s", uts.sysname, uts.release);
+          _core_version = version;
+          _hostname = uts.nodename;
+        }
+
+        _backlight_power = 1;
+        _backlight_level = 100;
+    }
+
 void PosixDevice::reboot()
 {}
 void PosixDevice::show_info()
 {
-
   struct utsname uts;
 
   if (uname(&uts) < 0) {
@@ -49,7 +72,7 @@ void PosixDevice::set_hostname(const char* hostname)
 }
 const char* PosixDevice::get_core_version()
 {
-    return "posix";
+    return _core_version.c_str();
 }
 const char* PosixDevice::get_display_driver()
 {

@@ -6,11 +6,13 @@
 
 #include <cstdint>
 #include <cstddef>
+
 extern "C"
 {
 #include <inttypes.h>
 #include <stdlib.h>
 #include <stddef.h>
+#include <sys/utsname.h>
 }
 
 #include "hasp_conf.h"
@@ -28,12 +30,7 @@ namespace dev {
 class PosixDevice : public BaseDevice {
 
   public:
-    PosixDevice()
-    {
-        _hostname = "localhost";
-        _backlight_power = 1;
-        _backlight_level = 100;
-    }
+    PosixDevice();
 
     void reboot() override;
     void show_info() override;
@@ -58,6 +55,7 @@ class PosixDevice : public BaseDevice {
 
   private:
     std::string _hostname;
+    std::string _core_version;
 
     uint8_t _backlight_pin;
     uint8_t _backlight_level;

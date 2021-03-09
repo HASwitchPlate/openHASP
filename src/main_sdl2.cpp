@@ -112,7 +112,8 @@ void setup()
     lv_log_register_print_cb(debugLvglLogEvent);
     lv_init();
 
-    haspDevice.init(); // hardware setup
+    haspDevice.init();      // hardware setup
+    haspDevice.show_info(); // debug info
     // hal_setup();
     guiSetup();
 
@@ -203,29 +204,6 @@ int main(int argc, char* argv[])
 #ifdef WINDOWS
     InitializeConsoleOutput();
 #endif
-
-    haspDevice.show_info();
-
-    char hostbuffer[256];
-    char* IPbuffer;
-    struct hostent* host_entry;
-    int hostname;
-
-    // To retrieve hostname
-    hostname = gethostname(hostbuffer, sizeof(hostbuffer));
-    // checkHostName(hostname);
-
-    // To retrieve host information
-    host_entry = gethostbyname(hostbuffer);
-    // checkHostEntry(host_entry);
-    haspDevice.set_hostname(hostbuffer);
-
-    // To convert an Internet network
-    // address into ASCII string
-    // IPbuffer = inet_ntoa(*((struct in_addr*)host_entry->h_addr_list[0]));
-
-    printf("Hostname: %s", hostbuffer);
-    // printf("Host IP: %s", IPbuffer);
 
     // Display each command-line argument.
     std::cout << "\nCommand-line arguments:\n";
