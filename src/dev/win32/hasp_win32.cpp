@@ -52,7 +52,7 @@ void Win32Device::set_hostname(const char* hostname)
 }
 const char* Win32Device::get_core_version()
 {
-    return "win32";
+    return _core_version.c_str();
 }
 const char* Win32Device::get_display_driver()
 {
