@@ -218,6 +218,7 @@ int main(int argc, char* argv[])
     // To retrieve host information
     host_entry = gethostbyname(hostbuffer);
     // checkHostEntry(host_entry);
+    haspDevice.set_hostname(hostbuffer);
 
     // To convert an Internet network
     // address into ASCII string
@@ -245,6 +246,7 @@ int main(int argc, char* argv[])
         // return 67;
     }
 #endif
+
     for(count = 0; count < argc; count++) {
         if(argv[count][0] == '-') {
 
