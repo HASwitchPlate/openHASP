@@ -1,9 +1,16 @@
 /* MIT License - Copyright (c) 2019-2021 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
-#ifdef WINDOWS
+#if defined(WINDOWS) || defined(POSIX)
 
+#if defined(WINDOWS)
 #include <windows.h>
+#endif
+#if defined(POSIX)
+#include <netdb.h>
+#include <unistd.h>
+#endif
+
 #include <cstdlib>
 #include <iostream>
 
@@ -27,6 +34,7 @@ bool isRunning = 1;
 uint8_t mainLoopCounter        = 0;
 unsigned long mainLastLoopTime = 0;
 
+#if defined(WINDOWS)
 // https://gist.github.com/kingseva/a918ec66079a9475f19642ec31276a21
 void BindStdHandlesToConsole()
 {
@@ -86,6 +94,7 @@ void InitializeConsoleOutput()
     // Redirect all standard output streams to the console
     BindStdHandlesToConsole();
 }
+#endif
 
 void debugLvglLogEvent(lv_log_level_t level, const char* file, uint32_t line, const char* funcname, const char* descr)
 {
@@ -121,6 +130,7 @@ void setup()
 
     mainLastLoopTime = millis() - 1000; // reset loop counter
     delay(250);
+    printf("%s %d\n", __FILE__, __LINE__);
 }
 
 void loop()
@@ -156,11 +166,9 @@ void loop()
         }
         mainLastLoopTime += 1000;
     }
-
     // delay(6);
 }
 
-#ifdef WINDOWS
 
 void usage(char* progName)
 {
@@ -181,18 +189,20 @@ void usage(char* progName)
               //   << "    -v | --verbose     Verbosity level" << std::endl
               << std::endl;
     fflush(stdout);
-
+#if defined(WINDOWS)
     static const char s[] = "\n";
     DWORD slen            = lstrlen(s);
     WriteConsoleA(GetStdHandle(STD_OUTPUT_HANDLE), s, slen, &slen, NULL);
+#endif
 }
 
 int main(int argc, char* argv[])
 {
     bool showhelp = false;
     int count;
-
+#ifdef WINDOWS
     InitializeConsoleOutput();
+#endif
 
     haspDevice.show_info();
 
@@ -208,6 +218,7 @@ int main(int argc, char* argv[])
     // To retrieve host information
     host_entry = gethostbyname(hostbuffer);
     // checkHostEntry(host_entry);
+    haspDevice.set_hostname(hostbuffer);
 
     // To convert an Internet network
     // address into ASCII string
@@ -221,6 +232,7 @@ int main(int argc, char* argv[])
     for(count = 0; count < argc; count++)
         std::cout << "  argv[" << count << "]   " << argv[count] << "\n" << std::endl << std::flush;
 
+#if defined(WINDOWS)
     SetConsoleCP(65001); // 65001 = UTF-8
     static const char s[] = "tränenüberströmt™\n";
     DWORD slen            = lstrlen(s);
@@ -233,6 +245,7 @@ int main(int argc, char* argv[])
     if(!WriteConsole(std_out, "Hello World!", 12, NULL, NULL)) {
         // return 67;
     }
+#endif
 
     for(count = 0; count < argc; count++) {
         if(argv[count][0] == '-') {
@@ -257,24 +270,29 @@ int main(int argc, char* argv[])
 
     if(showhelp) {
         usage("hasp-lvgl");
+
+#if defined(WINDOWS)
         WriteConsole(std_out, "bye", 3, NULL, NULL);
 
         FreeConsole();
+#endif
         return 0;
     }
 
     // printf("%s %d\n", __FILE__, __LINE__);
     // fflush(stdout);
+    printf("pre setup\n");
     setup();
+    printf("to loop\n");
 
     while(isRunning) {
         loop();
         // std::cout << "HSetup OK\n";
     }
+    printf("endrunning\n");
 
     return 0;
 }
 
-#endif
 
 #endif

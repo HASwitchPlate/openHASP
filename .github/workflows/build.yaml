@@ -1,4 +1,4 @@
-name: PlatformIO CI
+name: Build 0.4.0-dev branch
 
 on: [push]
 
@@ -30,6 +30,14 @@ jobs:
     - name: Enable ESP platforms from platformio_override-template.ini
       run: |
         sed 's/; user_setups\/esp/user_setups\/esp/g' platformio_override-template.ini > platformio_override.ini
+    - name: Enable Linux platform from platformio_override.ini
+      run: |
+        sed -i 's/; user_setups\/linux/user_setups\/linux/g' platformio_override.ini
+        mkdir -p .pio/libdeps/linux_sdl_64bits/paho/src
+    - name: Install SDL2 library
+      run: |
+        sudo apt-get update
+        sudo apt-get install libsdl2-dev
     - name: List all files in current folder
       run: |
         ls -la
@@ -37,7 +45,7 @@ jobs:
       run: |
         cat platformio_override.ini
     - name: Run PlatformIO
-      run: pio run -e d1-mini-esp32_ili9341 -e lanbon_l8 -e wt32-sc01 -e d1-mini-esp8266_ili9341
+      run: pio run -e d1-mini-esp32_ili9341 -e lanbon_l8 -e wt32-sc01 -e d1-mini-esp8266_ili9341 -e linux_sdl_64bits
     - name: Upload output file
       uses: actions/upload-artifact@v2
       with:

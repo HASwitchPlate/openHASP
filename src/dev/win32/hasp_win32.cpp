@@ -49,6 +49,7 @@ const char* Win32Device::get_hostname()
 void Win32Device::set_hostname(const char* hostname)
 {
     _hostname = hostname;
+    SDL_SetWindowTitle(monitor.window, hostname);
 }
 const char* Win32Device::get_core_version()
 {

@@ -14,7 +14,7 @@
 #include "../hasp_debug.h"
 #include "hasp_gui.h" // for screenshot
 
-#if WINDOWS
+#if defined(WINDOWS) || defined(POSIX)
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -43,7 +43,7 @@ dispatch_conf_t dispatch_setings = {.teleperiod = 10};
 
 uint32_t dispatchLastMillis;
 uint8_t nCommands = 0;
-haspCommand_t commands[17];
+haspCommand_t commands[18];
 
 struct moodlight_t
 {
@@ -952,7 +952,17 @@ void dispatch_moodlight(const char* topic, const char* payload)
 void dispatch_backlight(const char*, const char* payload)
 {
     // Set the current state
-    if(strlen(payload) != 0) haspDevice.set_backlight_power(Utilities::is_true(payload));
+    if(strlen(payload) != 0) {
+        bool power = Utilities::is_true(payload);
+
+        if(haspDevice.get_backlight_power() != power) {
+            haspDevice.set_backlight_power(power);
+            if(power)
+                hasp_disable_wakeup_touch();
+            else
+                hasp_enable_wakeup_touch();
+        }
+    }
 
     // Return the current state
     char topic[8];
@@ -988,7 +998,7 @@ void dispatch_reboot(bool saveConfig)
     LOG_VERBOSE(TAG_MSGR, F("-------------------------------------"));
     LOG_TRACE(TAG_MSGR, F(D_DISPATCH_REBOOT));
 
-#if WINDOWS
+#if defined(WINDOWS) || defined(POSIX)
     fflush(stdout);
 #else
     Serial.flush();
@@ -1067,6 +1077,12 @@ void dispatch_calibrate(const char* topic = NULL, const char* payload = NULL)
 void dispatch_wakeup(const char*, const char*)
 {
     lv_disp_trig_activity(NULL);
+    hasp_disable_wakeup_touch();
+}
+
+void dispatch_sleep(const char*, const char*)
+{
+    hasp_enable_wakeup_touch();
 }
 
 void dispatch_reboot(const char*, const char*)
@@ -1105,6 +1121,7 @@ void dispatchSetup()
     dispatch_add_command(PSTR("json"), dispatch_parse_json);
     dispatch_add_command(PSTR("page"), dispatch_page);
     dispatch_add_command(PSTR("wakeup"), dispatch_wakeup);
+    dispatch_add_command(PSTR("sleep"), dispatch_sleep);
     dispatch_add_command(PSTR("statusupdate"), dispatch_output_statusupdate);
     dispatch_add_command(PSTR("clearpage"), dispatch_clear_page);
     dispatch_add_command(PSTR("jsonl"), dispatch_parse_jsonl);

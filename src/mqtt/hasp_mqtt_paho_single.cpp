@@ -186,7 +186,7 @@ int msgarrvd(void* context, char* topicName, int topicLen, MQTTClient_message* m
     memcpy(msg, (char*)message->payload, message->payloadlen);
     msg[message->payloadlen] = '\0';
 
-    mqtt_message_cb(topicName, (char*)message->payload, message->payloadlen);
+    mqtt_message_cb(topicName, msg, message->payloadlen);
 
     MQTTClient_freeMessage(&message);
     MQTTClient_free(topicName);
