@@ -49,7 +49,8 @@ const char* Win32Device::get_hostname()
 void Win32Device::set_hostname(const char* hostname)
 {
     _hostname = hostname;
-    SDL_SetWindowTitle(monitor.window, hostname);
+    monitor_title(hostname);
+    // SDL_SetWindowTitle(monitor.window, hostname);
 }
 const char* Win32Device::get_core_version()
 {
@@ -94,7 +95,8 @@ bool Win32Device::get_backlight_power()
 
 void Win32Device::update_backlight()
 {
-    monitor_backlight(_backlight_power ? map(_backlight_level, 0, 100, 0, 255) : 0);
+    uint8_t level = _backlight_power ? map(_backlight_level, 0, 100, 0, 255) : 0;
+    monitor_backlight(level);
 }
 
 size_t Win32Device::get_free_max_block()
