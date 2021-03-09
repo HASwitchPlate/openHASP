@@ -1,6 +1,7 @@
 #if defined(POSIX)
 
 #include <cstdint>
+#include <sys/utsname.h>
 
 #include "hasp_posix.h"
 
@@ -10,14 +11,29 @@
 
 #include "display/monitor.h"
 
+extern monitor_t monitor;
+
 namespace dev {
 
 void PosixDevice::reboot()
 {}
 void PosixDevice::show_info()
 {
-    LOG_VERBOSE(0, F("Processor  : %s"), "unknown");
-    LOG_VERBOSE(0, F("CPU freq.  : %i MHz"), 0);
+
+  struct utsname uts;
+
+  if (uname(&uts) < 0) {
+    LOG_ERROR(0,"uname() error");
+  } else {
+    LOG_VERBOSE(0,"Sysname:  %s", uts.sysname);
+    LOG_VERBOSE(0,"Nodename: %s", uts.nodename);
+    LOG_VERBOSE(0,"Release:  %s", uts.release);
+    LOG_VERBOSE(0,"Version:  %s", uts.version);
+    LOG_VERBOSE(0,"Machine:  %s", uts.machine);
+  }
+
+    LOG_VERBOSE(0, "Processor  : %s", "unknown");
+    LOG_VERBOSE(0, "CPU freq.  : %i MHz", 0);
 }
 
 
@@ -28,6 +44,7 @@ const char* PosixDevice::get_hostname()
 void PosixDevice::set_hostname(const char* hostname)
 {
     _hostname = hostname;
+    SDL_SetWindowTitle(monitor.window, hostname);
 }
 const char* PosixDevice::get_core_version()
 {
@@ -73,7 +90,14 @@ bool PosixDevice::get_backlight_power()
 
 void PosixDevice::update_backlight()
 {
-    monitor_backlight(_backlight_power ? map(_backlight_level, 0, 100, 0, 255) : 0);
+    uint8_t level = _backlight_power ? map(_backlight_level, 0, 100, 0, 255) : 0;
+
+    SDL_SetTextureColorMod(monitor.texture, level, level, level);
+    // window_update(&monitor);
+    monitor.sdl_refr_qry = true;
+    // monitor_sdl_refr(NULL);
+    const lv_area_t area = {1,1,0,0};
+    //monitor_flush(NULL,&area,NULL);
 }
 
 size_t PosixDevice::get_free_max_block()
