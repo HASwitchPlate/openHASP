@@ -646,7 +646,7 @@ void webHandleInfo()
 
         /* ESP Stats */
         httpMessage += F("</p/><p><b>MCU Model: </b>");
-        httpMessage += halGetChipModel();
+        httpMessage += haspDevice.get_chip_model();
         httpMessage += F("<br/><b>CPU Frequency: </b>");
         httpMessage += String(haspDevice.get_cpu_frequency());
         httpMessage += F("MHz");
@@ -670,7 +670,7 @@ void webHandleInfo()
         //        httpMessage += String(ESP.getSdkVersion());
         //#else
         httpMessage += F("<br/><b>Core version: </b>");
-        httpMessage += halGetCoreVersion();
+        httpMessage += haspDevice.get_core_version();
         //#endif
         httpMessage += F("<br/><b>Last Reset: </b>");
         httpMessage += halGetResetInfo();

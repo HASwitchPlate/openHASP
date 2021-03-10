@@ -56,7 +56,7 @@ const char* Win32Device::get_core_version()
 {
     return _core_version.c_str();
 }
-const char* Win32Device::get_display_driver()
+const char* Win32Device::get_chip_model()
 {
     return "SDL2";
 }

@@ -7,8 +7,7 @@
 #include <cstdint>
 #include <cstddef>
 
-extern "C"
-{
+extern "C" {
 #include <inttypes.h>
 #include <stdlib.h>
 #include <stddef.h>
@@ -19,9 +18,9 @@ extern "C"
 #include "../device.h"
 
 #if defined(POSIX)
-static inline void itoa(int i, char *out, int unused_)
+static inline void itoa(int i, char* out, int unused_)
 {
-    (void) unused_;
+    (void)unused_;
     sprintf(out, "%d", i);
 }
 
@@ -38,7 +37,7 @@ class PosixDevice : public BaseDevice {
     const char* get_hostname();
     void set_hostname(const char*);
     const char* get_core_version();
-    const char* get_display_driver();
+    const char* get_chip_model();
 
     void set_backlight_pin(uint8_t pin);
     void set_backlight_level(uint8_t val);
@@ -56,6 +55,7 @@ class PosixDevice : public BaseDevice {
   private:
     std::string _hostname;
     std::string _core_version;
+    std::string _chip_model;
 
     uint8_t _backlight_pin;
     uint8_t _backlight_level;

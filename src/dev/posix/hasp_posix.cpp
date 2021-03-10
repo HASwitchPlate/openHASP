@@ -15,50 +15,52 @@
 
 namespace dev {
 
-PosixDevice::PosixDevice()    {
-        struct utsname uts;
+PosixDevice::PosixDevice()
+{
+    struct utsname uts;
 
-        if (uname(&uts) < 0) {
-          LOG_ERROR(0,"uname() error");
-          _hostname = "localhost";
-          _core_version = "unknown";
-        } else {
+    if(uname(&uts) < 0) {
+        LOG_ERROR(0, "uname() error");
+        _hostname     = "localhost";
+        _core_version = "unknown";
+        _chip_model   = "unknown";
+    } else {
         //   LOG_VERBOSE(0,"Sysname:  %s", uts.sysname);
         //   LOG_VERBOSE(0,"Nodename: %s", uts.nodename);
         //   LOG_VERBOSE(0,"Release:  %s", uts.release);
         //   LOG_VERBOSE(0,"Version:  %s", uts.version);
         //   LOG_VERBOSE(0,"Machine:  %s", uts.machine);
 
-          char version[128];
-          snprintf(version, sizeof(version), "%s %s", uts.sysname, uts.release);
-          _core_version = version;
-          _hostname = uts.nodename;
-        }
-
-        _backlight_power = 1;
-        _backlight_level = 100;
+        char version[128];
+        snprintf(version, sizeof(version), "%s %s", uts.sysname, uts.release);
+        _core_version = version;
+        _chip_model   = uts.machine;
+        _hostname     = uts.nodename;
     }
+
+    _backlight_power = 1;
+    _backlight_level = 100;
+}
 
 void PosixDevice::reboot()
 {}
 void PosixDevice::show_info()
 {
-  struct utsname uts;
+    struct utsname uts;
 
-  if (uname(&uts) < 0) {
-    LOG_ERROR(0,"uname() error");
-  } else {
-    LOG_VERBOSE(0,"Sysname:  %s", uts.sysname);
-    LOG_VERBOSE(0,"Nodename: %s", uts.nodename);
-    LOG_VERBOSE(0,"Release:  %s", uts.release);
-    LOG_VERBOSE(0,"Version:  %s", uts.version);
-    LOG_VERBOSE(0,"Machine:  %s", uts.machine);
-  }
+    if(uname(&uts) < 0) {
+        LOG_ERROR(0, "uname() error");
+    } else {
+        LOG_VERBOSE(0, "Sysname:  %s", uts.sysname);
+        LOG_VERBOSE(0, "Nodename: %s", uts.nodename);
+        LOG_VERBOSE(0, "Release:  %s", uts.release);
+        LOG_VERBOSE(0, "Version:  %s", uts.version);
+        LOG_VERBOSE(0, "Machine:  %s", uts.machine);
+    }
 
     LOG_VERBOSE(0, "Processor  : %s", "unknown");
     LOG_VERBOSE(0, "CPU freq.  : %i MHz", 0);
 }
-
 
 const char* PosixDevice::get_hostname()
 {
@@ -74,9 +76,9 @@ const char* PosixDevice::get_core_version()
 {
     return _core_version.c_str();
 }
-const char* PosixDevice::get_display_driver()
+const char* PosixDevice::get_chip_model()
 {
-    return "SDL2";
+    return _chip_model.c_str();
 }
 
 void PosixDevice::set_backlight_pin(uint8_t pin)
@@ -89,8 +91,7 @@ void PosixDevice::set_backlight_level(uint8_t level)
     uint8_t new_level = level >= 0 ? level : 0;
     new_level         = new_level <= 100 ? new_level : 100;
 
-    if(_backlight_level != new_level) 
-    {
+    if(_backlight_level != new_level) {
         _backlight_level = new_level;
         update_backlight();
     }
@@ -121,7 +122,7 @@ void PosixDevice::update_backlight()
     // monitor.sdl_refr_qry = true;
     // monitor_sdl_refr(NULL);
     // const lv_area_t area = {1,1,0,0};
-    //monitor_flush(NULL,&area,NULL);
+    // monitor_flush(NULL,&area,NULL);
 }
 
 size_t PosixDevice::get_free_max_block()

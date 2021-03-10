@@ -57,7 +57,7 @@ class Win32Device : public BaseDevice {
     const char* get_hostname();
     void set_hostname(const char*);
     const char* get_core_version();
-    const char* get_display_driver();
+    const char* get_chip_model();
 
     void set_backlight_pin(uint8_t pin);
     void set_backlight_level(uint8_t val);
