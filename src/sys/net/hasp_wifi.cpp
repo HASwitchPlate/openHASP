@@ -44,9 +44,9 @@ char wifiSsid[32] = WIFI_SSID;
 char wifiSsid[32]     = "";
 #endif
 #ifdef WIFI_PASSW
-char wifiPassword[32] = WIFI_PASSW;
+char wifiPassword[64] = WIFI_PASSW;
 #else
-char wifiPassword[32] = "";
+char wifiPassword[64] = "";
 #endif
 uint8_t wifiReconnectCounter = 0;
 

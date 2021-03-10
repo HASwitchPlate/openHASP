@@ -72,9 +72,9 @@ const char MAIN_MENU_BUTTON[] PROGMEM =
     "</p><p><form method='get' action='/'><button type='submit'>" D_HTTP_MAIN_MENU "</button></form>";
 const char MIT_LICENSE[] PROGMEM = "</br>MIT License</p>";
 
-const char HTTP_DOCTYPE[] PROGMEM =
-    "<!DOCTYPE html><html lang=\"en\"><head><meta name=\"viewport\" content=\"width=device-width,initial-scale=1,"
-    "user-scalable=no\"/>";
+const char HTTP_DOCTYPE[] PROGMEM = "<!DOCTYPE html><html lang=\"en\"><head><meta charset='utf-8'><meta "
+                                    "name=\"viewport\" content=\"width=device-width,initial-scale=1,"
+                                    "user-scalable=no\"/>";
 const char HTTP_META_GO_BACK[] PROGMEM = "<meta http-equiv='refresh' content='15;url=/'/>";
 const char HTTP_HEADER[] PROGMEM       = "<title>%s</title>";
 const char HTTP_STYLE[] PROGMEM =
