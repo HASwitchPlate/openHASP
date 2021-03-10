@@ -1,4 +1,4 @@
-Import("env", "projenv")
+Import("env")
 
 env.Append(
   LINKFLAGS=[

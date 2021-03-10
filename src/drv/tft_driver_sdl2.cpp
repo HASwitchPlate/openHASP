@@ -9,10 +9,13 @@
 #include "display/monitor.h"
 #include "indev/mouse.h"
 
+#include "drv/tft_driver.h"
 #include "tft_driver_sdl2.h"
 
 #include "dev/device.h"
 #include "hasp_debug.h"
+
+#include "tft_driver_sdl2.h"
 
 //#include "bootscreen.h" // Sketch tab header for xbm images
 
@@ -35,62 +38,63 @@ static int tick_thread(void* data)
     return 0;
 }
 
-    void TftSdl2::init(int w, int h)
-    {
+void TftSdl::init(int w, int h)
+{
 
 // Workaround for sdl2 `-m32` crash
 // https://bugs.launchpad.net/ubuntu/+source/libsdl2/+bug/1775067/comments/7
 #ifndef WIN32
-        setenv("DBUS_FATAL_WARNINGS", "0", 1);
+    setenv("DBUS_FATAL_WARNINGS", "0", 1);
 #endif
 
-        /* Add a display
-         * Use the 'monitor' driver which creates window on PC's monitor to simulate a display*/
-        monitor_init();
-        monitor_title(haspDevice.get_hostname());
+    /* Add a display
+     * Use the 'monitor' driver which creates window on PC's monitor to simulate a display*/
+    monitor_init();
+    monitor_title(haspDevice.get_hostname());
 
-        /* Add the mouse as input device
-         * Use the 'mouse' driver which reads the PC's mouse*/
-        mouse_init();
+    /* Add the mouse as input device
+     * Use the 'mouse' driver which reads the PC's mouse*/
+    mouse_init();
 
-        /* Tick init.
-         * You have to call 'lv_tick_inc()' in periodically to inform LittelvGL about how much time were elapsed
-         * Create an SDL thread to do this*/
-        SDL_CreateThread(tick_thread, "tick", NULL);
-    }
-    void TftSdl2::show_info()
-    {
-        SDL_version linked;
-        SDL_GetVersion(&linked);
-        LOG_VERBOSE(TAG_TFT, F("SDL2       : v%d.%d.%d"), linked.major, linked.minor, linked.patch);
-        LOG_VERBOSE(TAG_TFT, F("Driver     : SDL2"));
-    }
+    /* Tick init.
+     * You have to call 'lv_tick_inc()' in periodically to inform LittelvGL about how much time were elapsed
+     * Create an SDL thread to do this*/
+    SDL_CreateThread(tick_thread, "tick", NULL);
+}
+void TftSdl::show_info()
+{
+    SDL_version linked;
+    SDL_GetVersion(&linked);
+    LOG_VERBOSE(TAG_TFT, F("SDL2       : v%d.%d.%d"), linked.major, linked.minor, linked.patch);
+    LOG_VERBOSE(TAG_TFT, F("Driver     : SDL2"));
+}
 
-    void TftSdl2::splashscreen()
-    {
-        // tft.fillScreen(TFT_DARKCYAN);
-        // int x = (tft.width() - logoWidth) / 2;
-        // int y = (tft.height() - logoHeight) / 2;
-        // tft.drawXBitmap(x, y, bootscreen, logoWidth, logoHeight, TFT_WHITE);
-    }
-    void TftSdl2::set_rotation(uint8_t rotation)
-    {}
-    void set_invert(bool invert)
-    {}
-    static void TftSdl2::flush_pixels(lv_disp_drv_t* disp, const lv_area_t* area, lv_color_t* color_p)
-    {
-        monitor_flush(disp, area, color_p);
-    }
-    bool TftSdl2:is_driver_pin(uint8_t pin)
-    {
-        return false;
-    }
-    const char* TftSdl2::get_tft_model()
-    {
-        return "SDL2";
-    }
+void TftSdl::splashscreen()
+{
+    // tft.fillScreen(TFT_DARKCYAN);
+    // int x = (tft.width() - logoWidth) / 2;
+    // int y = (tft.height() - logoHeight) / 2;
+    // tft.drawXBitmap(x, y, bootscreen, logoWidth, logoHeight, TFT_WHITE);
+}
+void TftSdl::set_rotation(uint8_t rotation)
+{}
+void TftSdl::set_invert(bool invert)
+{}
+void TftSdl::flush_pixels(lv_disp_drv_t* disp, const lv_area_t* area, lv_color_t* color_p)
+{
+    monitor_flush(disp, area, color_p);
+}
+bool TftSdl::is_driver_pin(uint8_t pin)
+{
+    return false;
+}
+const char* TftSdl::get_tft_model()
+{
+    return "SDL2";
+}
 
 } // namespace dev
 
-dev::TftSdl2 haspTft;
-#endif
+dev::TftSdl haspTft;
+
+#endif // WINDOWS || POSIX
