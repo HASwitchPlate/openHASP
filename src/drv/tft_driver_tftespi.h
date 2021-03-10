@@ -6,7 +6,6 @@
 
 #ifdef ARDUINO
 #include "Arduino.h"
-#endif
 
 #include "lvgl.h"
 #include "TFT_eSPI.h"
@@ -64,4 +63,6 @@ class TftEspi : BaseTft {
 using dev::TftEspi;
 extern dev::TftEspi haspTft;
 
-#endif
+#endif // ARDUINO
+
+#endif // HASP_TFTESPI_DRIVER_H

@@ -26,10 +26,7 @@
 
 #include "hasplib.h"
 
-#if defined(WINDOWS) || defined(POSIX)
-#include "display/monitor.h"
-#include "indev/mouse.h"
-#endif
+
 
 //#include "tpcal.h"
 
