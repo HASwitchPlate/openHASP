@@ -27,6 +27,10 @@ class BaseTft {
     {
         return false;
     }
+    virtual const char* get_tft_model()
+    {
+        return "";
+    }
 };
 
 } // namespace dev

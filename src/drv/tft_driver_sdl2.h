@@ -87,6 +87,10 @@ class TftSdl2 : BaseTft {
     {
         return false;
     }
+    const char* get_tft_model()
+    {
+        return "SDL2";
+    }
 };
 
 } // namespace dev

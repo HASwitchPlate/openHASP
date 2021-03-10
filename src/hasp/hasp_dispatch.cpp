@@ -7,6 +7,7 @@
 #include "hasplib.h"
 
 #include "dev/device.h"
+#include "drv/tft_driver.h"
 
 //#include "hasp_gui.h"
 
@@ -1050,7 +1051,7 @@ void dispatch_output_statusupdate(const char*, const char*)
 #endif
 
         snprintf_P(buffer, sizeof(buffer), PSTR("\"tftDriver\":\"%s\",\"tftWidth\":%u,\"tftHeight\":%u}"),
-                   Utilities::tft_driver_name().c_str(), (TFT_WIDTH), (TFT_HEIGHT));
+                   haspTft.get_tft_model(), (TFT_WIDTH), (TFT_HEIGHT));
         strcat(data, buffer);
     }
 
