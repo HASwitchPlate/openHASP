@@ -84,16 +84,11 @@ void telnetAcceptClient()
     // telnetClient.print((char)0xFD);
     // telnetClient.print((char)0x1B);
 
-<<<<<<< HEAD:src/sys/svc/hasp_telnet.cpp
-#if HASP_USE_HTTP > 0 == == == =
 #if HASP_USE_HTTP > 0
->>>>>>> master:src/svc/hasp_telnet.cpp
-                                       if(strlen(http_config.user) != 0 || strlen(http_config.password) != 0)
-    {
+    if(strlen(http_config.user) != 0 || strlen(http_config.password) != 0) {
         telnetClient.println(F("\r\n" D_USERNAME " "));
         telnetLoginState = TELNET_UNAUTHENTICATED;
-    }
-    else
+    } else
 #endif
     {
         telnetClientLogon();
