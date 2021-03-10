@@ -116,16 +116,16 @@ String halGetResetInfo()
 #endif
 }
 
-String halGetCoreVersion()
-{
-#if defined(ARDUINO_ARCH_ESP32)
-    return String(ESP.getSdkVersion());
-#elif defined(ARDUINO_ARCH_ESP8266)
-    return String(ESP.getCoreVersion());
-#else
-    return String(STM32_CORE_VERSION_MAJOR) + "." + STM32_CORE_VERSION_MINOR + "." + STM32_CORE_VERSION_PATCH;
-#endif
-}
+// String halGetCoreVersion()
+// {
+// #if defined(ARDUINO_ARCH_ESP32)
+//     return String(ESP.getSdkVersion());
+// #elif defined(ARDUINO_ARCH_ESP8266)
+//     return String(ESP.getCoreVersion());
+// #else
+//     return String(STM32_CORE_VERSION_MAJOR) + "." + STM32_CORE_VERSION_MINOR + "." + STM32_CORE_VERSION_PATCH;
+// #endif
+// }
 
 String halGetChipModel()
 {
