@@ -41,7 +41,7 @@ void dispatch_text_line(const char* cmnd);
 #ifdef ARDUINO
 void dispatch_parse_jsonl(Stream& stream);
 #else
-void dispatch_parse_jsonl(std::istringstream& stream);
+void dispatch_parse_jsonl(std::istream& stream);
 #endif
 
 void dispatch_clear_page(const char* page);

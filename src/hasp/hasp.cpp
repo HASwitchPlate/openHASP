@@ -5,6 +5,12 @@
 #include "ArduinoLog.h"
 #endif
 
+#if defined(WINDOWS) || defined(POSIX)
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#endif
+
 #include "ArduinoJson.h"
 
 #if HASP_USE_EEPROM > 0
@@ -600,6 +606,15 @@ void haspLoadPage(const char* pagesfile)
     dispatch_parse_jsonl(eepromStream);
     LOG_INFO(TAG_HASP, F("Loaded jsonl from EEPROM"));
 #endif
+
+    std::ifstream ifs("pages.json", std::ifstream::in);
+    if(ifs) {
+        LOG_TRACE(TAG_HASP, F("Loading file %s"), pagesfile);
+        dispatch_parse_jsonl(ifs);
+        LOG_INFO(TAG_HASP, F("File %s loaded"), pagesfile);
+    } else {
+        LOG_ERROR(TAG_HASP, F("Non existing file %s"), pagesfile);
+    }
 
 #endif
 }

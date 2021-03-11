@@ -768,7 +768,7 @@ void dispatch_parse_json(const char*, const char* payload)
 #ifdef ARDUINO
 void dispatch_parse_jsonl(Stream& stream)
 #else
-void dispatch_parse_jsonl(std::istringstream& stream)
+void dispatch_parse_jsonl(std::istream& stream)
 #endif
 {
     uint8_t savedPage = haspGetPage();
