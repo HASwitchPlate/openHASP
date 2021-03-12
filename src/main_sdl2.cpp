@@ -104,11 +104,6 @@ void InitializeConsoleOutput()
 }
 #endif
 
-void debugLvglLogEvent(lv_log_level_t level, const char* file, uint32_t line, const char* funcname, const char* descr)
-{
-    printf("%s %d\n", file, line);
-}
-
 void setup()
 {
     // Load Settings
@@ -117,8 +112,8 @@ void setup()
     // debug_init();
 
     // Initialize lvgl environment
-    lv_log_register_print_cb(debugLvglLogEvent);
     lv_init();
+    lv_log_register_print_cb(debugLvglLogEvent);
 
     haspDevice.init();      // hardware setup
     haspDevice.show_info(); // debug info

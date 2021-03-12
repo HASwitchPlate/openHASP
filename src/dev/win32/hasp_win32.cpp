@@ -31,7 +31,7 @@ void Win32Device::show_info()
     unsigned int eax, ebx, ecx, edx;
     eax = 0;
     native_cpuid(&eax, &ebx, &ecx, &edx);
-    printf("EAX: %08X EBX: %08X ECX: %08X EDX: %08X\n", eax, ebx, ecx, edx);
+    // printf("EAX: %08X EBX: %08X ECX: %08X EDX: %08X\n", eax, ebx, ecx, edx);
     char vendor[13];
     memcpy(vendor, &ebx, 4);
     memcpy(vendor + 4, &edx, 4);

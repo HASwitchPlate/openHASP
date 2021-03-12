@@ -65,8 +65,8 @@ void TftSdl::show_info()
 {
     SDL_version linked;
     SDL_GetVersion(&linked);
-    LOG_VERBOSE(TAG_TFT, F("SDL2       : v%d.%d.%d"), linked.major, linked.minor, linked.patch);
     LOG_VERBOSE(TAG_TFT, F("Driver     : SDL2"));
+    LOG_VERBOSE(TAG_TFT, F("SDL Version: v%d.%d.%d"), linked.major, linked.minor, linked.patch);
 }
 
 void TftSdl::splashscreen()
