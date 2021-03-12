@@ -1,5 +1,5 @@
 
-This directory is intended for project specific (private) libraries.
+This directory is intended for project specific (customized) libraries.
 PlatformIO will compile them to static libraries and link into executable file.
 
 The source code of each library should be placed in a an own separate directory
