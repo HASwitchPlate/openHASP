@@ -14,7 +14,7 @@
 #if(!defined(WINDOWS)) && (!defined(POSIX))
 #include "ArduinoLog.h"
 
-#define debug_print(io, ...) io->print(__VA_ARGS__)
+#define debug_print(io, ...) io->printf(__VA_ARGS__)
 #define debug_newline(io) io->println()
 
 bool debugSerialStarted = false;
@@ -33,7 +33,11 @@ bool debugAnsiCodes = true;
 
 inline void debugSendAnsiCode(const __FlashStringHelper* code, Print* _logOutput)
 {
+#ifdef ARDUINO
+    if(debugAnsiCodes) _logOutput->print(code);
+#else
     if(debugAnsiCodes) debug_print(_logOutput, code);
+#endif
 }
 
 void debug_timestamp()
@@ -64,10 +68,21 @@ static void debugPrintTimestamp(int level, Print* _logOutput)
         char buffer[24];
         strftime(buffer, sizeof(buffer), "[%b %d %H:%M:%S", timeinfo); // Literal String
         // strftime(buffer, sizeof(buffer), "[%H:%M:%S.", timeinfo); // Literal String
+
+#ifdef ARDUINO
+        _logOutput->printf(PSTR("%03lu]"), curTime.tv_usec / 1000);
+#else
         debug_print(_logOutput, PSTR("%s.%03lu]"), buffer, curTime.tv_usec / 1000);
+#endif
+
     } else {
+
         uint32_t msecs = millis();
+#ifdef ARDUINO
+        _logOutput->printf(PSTR("[%15d.%03d]"), msecs / 1000, msecs % 1000);
+#else
         debug_print(_logOutput, PSTR("[%15d.%03d]"), msecs / 1000, msecs % 1000);
+#endif
     }
 }
 
@@ -161,18 +176,23 @@ void debugLvglLogEvent(lv_log_level_t level, const char* file, uint32_t line, co
 void debugPrintHaspHeader(Print* output)
 {
     // if(debugAnsiCodes) debug_print(output,TERM_COLOR_YELLOW);
-    debug_newline(output);
-    debug_print(output, F(""
-                          "           _____ _____ _____ _____\r\n"
-                          "          |  |  |  _  |   __|  _  |\r\n"
-                          "          |     |     |__   |   __|\r\n"
-                          "          |__|__|__|__|_____|__|\r\n"
-                          "        Home Automation Switch Plate\r\n"
-                          "        Open Hardware edition v"));
+
+    // debug_newline(output);
+    // debug_print(output, F(""
+    //                       "           _____ _____ _____ _____\r\n"
+    //                       "          |  |  |  _  |   __|  _  |\r\n"
+    //                       "          |     |     |__   |   __|\r\n"
+    //                       "          |__|__|__|__|_____|__|\r\n"
+    //                       "        Home Automation Switch Plate\r\n"
+    //                       "        Open Hardware edition v"));
     char buffer[32];
     haspGetVersion(buffer, sizeof(buffer));
+#ifdef ARDUINO
+    output->println(buffer);
+#else
     debug_print(output, buffer);
     debug_newline(output);
+#endif
 }
 
 void debug_get_tag(uint8_t tag, char* buffer)
@@ -285,6 +305,7 @@ void debug_get_tag(uint8_t tag, char* buffer)
 
 static void debugPrintHaspMemory(int level, Print* _logOutput)
 {
+#ifdef ARDUINO
     size_t maxfree   = haspDevice.get_free_max_block();
     size_t totalfree = haspDevice.get_free_heap();
     uint8_t frag     = haspDevice.get_heap_fragmentation();
@@ -298,7 +319,8 @@ static void debugPrintHaspMemory(int level, Print* _logOutput)
         else
             debugSendAnsiCode(F(TERM_COLOR_RED), _logOutput);
     }
-    debug_print(_logOutput, PSTR("[%5u/%5u%3u]"), maxfree, totalfree, frag);
+    _logOutput->printf(PSTR("[%5u/%5u%3u]"), maxfree, totalfree, frag);
+#endif
 }
 
 static void debugPrintLvglMemory(int level, Print* _logOutput)
@@ -317,8 +339,14 @@ static void debugPrintLvglMemory(int level, Print* _logOutput)
         else
             debugSendAnsiCode(F(TERM_COLOR_RED), _logOutput);
     }
+
+#ifdef ARDUINO
+    _logOutput->printf(PSTR("[%5u/%5u%3u]"), mem_mon.free_biggest_size, mem_mon.free_size, mem_mon.frag_pct);
+#else
     debug_print(_logOutput, PSTR("[%5u/%5u%3u]"), mem_mon.free_biggest_size, mem_mon.free_size, mem_mon.frag_pct);
-#endif
+#endif // ARDUINO
+
+#endif // LV_MEM_CUSTOM
 }
 
 static void debugPrintPriority(int level, Print* _logOutput)
@@ -355,7 +383,7 @@ void debugPrintPrefix(uint8_t tag, int level, Print* _logOutput)
 {
     char buffer[10];
 
-#if HASP_USE_SYSLOG > 0
+#if 0 && HASP_USE_SYSLOG > 0
 
     if(_logOutput == syslogClient && syslogClient) {
         if(syslogClient->beginPacket(debugSyslogHost, debugSyslogPort)) {
@@ -381,9 +409,7 @@ void debugPrintPrefix(uint8_t tag, int level, Print* _logOutput)
             }
 
             debugPrintHaspMemory(level, _logOutput);
-#if LV_MEM_CUSTOM == 0
             debugPrintLvglMemory(level, _logOutput);
-#endif
         }
         return;
     }
@@ -403,5 +429,9 @@ void debugPrintPrefix(uint8_t tag, int level, Print* _logOutput)
     }
 
     debug_get_tag(tag, buffer);
-    debug_print(_logOutput, F(" %s: "), buffer);
+#ifdef ARDUINO
+    _logOutput->printf(PSTR(" %s: "), buffer);
+#else
+    debug_print(_logOutput, PSTR(" %s: "), buffer);
+#endif
 }
