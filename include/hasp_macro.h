@@ -7,16 +7,14 @@
 #define LOG_OUTPUT(...) Log.output(...)
 
 #if HASP_LOG_LEVEL > LOG_LEVEL_FATAL
-#define LOG_FATAL(...)      \
-    Log.fatal(__VA_ARGS__); \
-    while (true)            \
-    {                       \
+#define LOG_FATAL(...)                                                                                                 \
+    Log.fatal(__VA_ARGS__);                                                                                            \
+    while(true) {                                                                                                      \
     }
 #else
-#define LOG_FATAL(...) \
-    do                 \
-    {                  \
-    } while (0)
+#define LOG_FATAL(...)                                                                                                 \
+    do {                                                                                                               \
+    } while(0)
 #endif
 
 #if HASP_LOG_LEVEL > LOG_LEVEL_ALERT
@@ -69,4 +67,4 @@
 
 #endif
 
-#endif
+#endif // HASP_MACRO_H
