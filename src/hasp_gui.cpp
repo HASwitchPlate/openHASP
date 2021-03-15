@@ -102,7 +102,7 @@ void guiSetup(void)
 {
     // Register logger to capture lvgl_init output
     LOG_TRACE(TAG_LVGL, F(D_SERVICE_STARTING));
-#if LV_USE_LOG != 0 && defined(ARDUINO)
+#if LV_USE_LOG != 0
     lv_log_register_print_cb(debugLvglLogEvent);
 #endif
 
