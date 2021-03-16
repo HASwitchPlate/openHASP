@@ -14,27 +14,27 @@
 #include "ArduinoLog.h"
 
 #if LV_USE_FS_IF
-    #if LV_FS_IF_SPIFFS != '\0'
+#if LV_FS_IF_SPIFFS != '\0'
 
-        #if defined(ARDUINO_ARCH_ESP32)
-            #if HASP_USE_SPIFFS > 0
-                #include "SPIFFS.h"
-                #define LV_FS_SPIFFS SPIFFS
-            #elif HASP_USE_LITTLEFS > 0
-                #include "LITTLEFS.h"
-                #define LV_FS_SPIFFS LITTLEFS
-            #endif
-        #elif defined(ARDUINO_ARCH_ESP8266)
-            #include "LittleFS.h"
-            #define LV_FS_SPIFFS LittleFS
-        #endif // ARDUINO_ARCH
+#if defined(ARDUINO_ARCH_ESP32)
+#if HASP_USE_SPIFFS > 0
+#include "SPIFFS.h"
+#define LV_FS_SPIFFS SPIFFS
+#elif HASP_USE_LITTLEFS > 0
+#include "LITTLEFS.h"
+#define LV_FS_SPIFFS LITTLEFS
+#endif
+#elif defined(ARDUINO_ARCH_ESP8266)
+#include "LittleFS.h"
+#define LV_FS_SPIFFS LittleFS
+#endif // ARDUINO_ARCH
 
-        #if defined(ARDUINO_ARCH_ESP8266) || defined(ARDUINO_ARCH_ESP32)
-            #include <FS.h>
-            #include <Esp.h>
-        #endif // ARDUINO_ARCH
+#if defined(ARDUINO_ARCH_ESP8266) || defined(ARDUINO_ARCH_ESP32)
+#include <FS.h>
+#include <Esp.h>
+#endif // ARDUINO_ARCH
 
-        #define TAG_LVFS 91
+#define TAG_LVFS 91
 
 /*********************
  *      DEFINES
@@ -47,34 +47,34 @@
 /* Create a type to store the required data about your file.*/
 typedef File lv_spiffs_file_t;
 
-        /*Similarly to `file_t` create a type for directory reading too */
-        #if defined(ARDUINO_ARCH_ESP32)
+/*Similarly to `file_t` create a type for directory reading too */
+#if defined(ARDUINO_ARCH_ESP32)
 typedef File lv_spiffs_dir_t;
-        #elif defined(ARDUINO_ARCH_ESP8266)
+#elif defined(ARDUINO_ARCH_ESP8266)
 typedef Dir lv_spiffs_dir_t;
-            #define FILE_READ "r"
-            #define FILE_WRITE "r+"
-        #endif
+#define FILE_READ "r"
+#define FILE_WRITE "r+"
+#endif
 
 /**********************
  *  STATIC PROTOTYPES
  **********************/
 static void fs_init(void);
 
-static lv_fs_res_t fs_open(lv_fs_drv_t * drv, void * file_p, const char * path, lv_fs_mode_t mode);
-static lv_fs_res_t fs_close(lv_fs_drv_t * drv, void * file_p);
-static lv_fs_res_t fs_read(lv_fs_drv_t * drv, void * file_p, void * buf, uint32_t btr, uint32_t * br);
-static lv_fs_res_t fs_write(lv_fs_drv_t * drv, void * file_p, const void * buf, uint32_t btw, uint32_t * bw);
-static lv_fs_res_t fs_seek(lv_fs_drv_t * drv, void * file_p, uint32_t pos);
-static lv_fs_res_t fs_size(lv_fs_drv_t * drv, void * file_p, uint32_t * size_p);
-static lv_fs_res_t fs_tell(lv_fs_drv_t * drv, void * file_p, uint32_t * pos_p);
-static lv_fs_res_t fs_remove(lv_fs_drv_t * drv, const char * path);
-static lv_fs_res_t fs_trunc(lv_fs_drv_t * drv, void * file_p);
-static lv_fs_res_t fs_rename(lv_fs_drv_t * drv, const char * oldname, const char * newname);
-static lv_fs_res_t fs_free(lv_fs_drv_t * drv, uint32_t * total_p, uint32_t * free_p);
-static lv_fs_res_t fs_dir_open(lv_fs_drv_t * drv, void * dir_p, const char * path);
-static lv_fs_res_t fs_dir_read(lv_fs_drv_t * drv, void * dir_p, char * fn);
-static lv_fs_res_t fs_dir_close(lv_fs_drv_t * drv, void * dir_p);
+static lv_fs_res_t fs_open(lv_fs_drv_t* drv, void* file_p, const char* path, lv_fs_mode_t mode);
+static lv_fs_res_t fs_close(lv_fs_drv_t* drv, void* file_p);
+static lv_fs_res_t fs_read(lv_fs_drv_t* drv, void* file_p, void* buf, uint32_t btr, uint32_t* br);
+static lv_fs_res_t fs_write(lv_fs_drv_t* drv, void* file_p, const void* buf, uint32_t btw, uint32_t* bw);
+static lv_fs_res_t fs_seek(lv_fs_drv_t* drv, void* file_p, uint32_t pos);
+static lv_fs_res_t fs_size(lv_fs_drv_t* drv, void* file_p, uint32_t* size_p);
+static lv_fs_res_t fs_tell(lv_fs_drv_t* drv, void* file_p, uint32_t* pos_p);
+static lv_fs_res_t fs_remove(lv_fs_drv_t* drv, const char* path);
+static lv_fs_res_t fs_trunc(lv_fs_drv_t* drv, void* file_p);
+static lv_fs_res_t fs_rename(lv_fs_drv_t* drv, const char* oldname, const char* newname);
+static lv_fs_res_t fs_free(lv_fs_drv_t* drv, uint32_t* total_p, uint32_t* free_p);
+static lv_fs_res_t fs_dir_open(lv_fs_drv_t* drv, void* dir_p, const char* path);
+static lv_fs_res_t fs_dir_read(lv_fs_drv_t* drv, void* dir_p, char* fn);
+static lv_fs_res_t fs_dir_close(lv_fs_drv_t* drv, void* dir_p);
 
 /**********************
  *  STATIC VARIABLES
@@ -100,7 +100,7 @@ void lv_fs_if_spiffs_init(void)
      *--------------------------------------------------*/
 
     /* Add a simple drive to open images */
-    lv_fs_drv_t fs_drv; /*A driver descriptor*/
+    static lv_fs_drv_t fs_drv; /*A driver descriptor*/
     lv_fs_drv_init(&fs_drv);
 
     /*Set up fields...*/
@@ -144,14 +144,14 @@ static void fs_init(void)
  * @param mode read: FS_MODE_RD, write: FS_MODE_WR, both: FS_MODE_RD | FS_MODE_WR
  * @return LV_FS_RES_OK or any error from lv_fs_res_t enum
  */
-static lv_fs_res_t fs_open(lv_fs_drv_t * drv, void * file_p, const char * path, lv_fs_mode_t mode)
+static lv_fs_res_t fs_open(lv_fs_drv_t* drv, void* file_p, const char* path, lv_fs_mode_t mode)
 {
     (void)drv; /*Unused*/
 
     char filename[32];
     snprintf_P(filename, sizeof(filename), PSTR("/%s"), path);
 
-    lv_spiffs_file_t * fp = (lv_spiffs_file_t *)file_p;
+    lv_spiffs_file_t* fp = (lv_spiffs_file_t*)file_p;
     if(fp == NULL) return LV_FS_RES_INV_PARAM;
 
     LOG_VERBOSE(TAG_LVFS, F("Opening %s"), filename);
@@ -186,10 +186,10 @@ static lv_fs_res_t fs_open(lv_fs_drv_t * drv, void * file_p, const char * path, 
  * @return LV_FS_RES_OK: no error, the file is read
  *         any error from lv_fs_res_t enum
  */
-static lv_fs_res_t fs_close(lv_fs_drv_t * drv, void * file_p)
+static lv_fs_res_t fs_close(lv_fs_drv_t* drv, void* file_p)
 {
     (void)drv; /*Unused*/
-    lv_spiffs_file_t * fp = (lv_spiffs_file_t *)file_p;
+    lv_spiffs_file_t* fp = (lv_spiffs_file_t*)file_p;
     if(fp == NULL) return LV_FS_RES_INV_PARAM;
 
     lv_spiffs_file_t file = *fp;
@@ -217,10 +217,10 @@ static lv_fs_res_t fs_close(lv_fs_drv_t * drv, void * file_p)
  * @return LV_FS_RES_OK: no error, the file is read
  *         any error from lv_fs_res_t enum
  */
-static lv_fs_res_t fs_read(lv_fs_drv_t * drv, void * file_p, void * buf, uint32_t btr, uint32_t * br)
+static lv_fs_res_t fs_read(lv_fs_drv_t* drv, void* file_p, void* buf, uint32_t btr, uint32_t* br)
 {
     (void)drv; /*Unused*/
-    lv_spiffs_file_t * fp = (lv_spiffs_file_t *)file_p;
+    lv_spiffs_file_t* fp = (lv_spiffs_file_t*)file_p;
     if(fp == NULL) return LV_FS_RES_INV_PARAM;
 
     lv_spiffs_file_t file = *fp;
@@ -232,7 +232,7 @@ static lv_fs_res_t fs_read(lv_fs_drv_t * drv, void * file_p, void * buf, uint32_
     } else {
         // LOG_VERBOSE(TAG_LVFS, F("Reading %u bytes from %s at position %u"), btr, file.name(), file.position());
         uint32_t len = 0;
-        char * chp   = (char *)buf;
+        char* chp    = (char*)buf;
         if(chp != NULL && btr > 0)
             len = file.readBytes(chp, btr);
         else
@@ -257,10 +257,10 @@ static lv_fs_res_t fs_read(lv_fs_drv_t * drv, void * file_p, void * buf, uint32_
  * @param br the number of real written bytes (Bytes Written). NULL if unused.
  * @return LV_FS_RES_OK or any error from lv_fs_res_t enum
  */
-static lv_fs_res_t fs_write(lv_fs_drv_t * drv, void * file_p, const void * buf, uint32_t btw, uint32_t * bw)
+static lv_fs_res_t fs_write(lv_fs_drv_t* drv, void* file_p, const void* buf, uint32_t btw, uint32_t* bw)
 {
     (void)drv; /*Unused*/
-    lv_spiffs_file_t file = *(lv_spiffs_file_t *)file_p;
+    lv_spiffs_file_t file = *(lv_spiffs_file_t*)file_p;
     // File file           = fp;
 
     if(!file) {
@@ -268,7 +268,7 @@ static lv_fs_res_t fs_write(lv_fs_drv_t * drv, void * file_p, const void * buf, 
         return LV_FS_RES_NOT_EX;
 
     } else {
-        *bw = (uint32_t)file.write((byte *)buf, btw);
+        *bw = (uint32_t)file.write((byte*)buf, btw);
         return LV_FS_RES_OK;
     }
 }
@@ -281,10 +281,10 @@ static lv_fs_res_t fs_write(lv_fs_drv_t * drv, void * file_p, const void * buf, 
  * @return LV_FS_RES_OK: no error, the file is read
  *         any error from lv_fs_res_t enum
  */
-static lv_fs_res_t fs_seek(lv_fs_drv_t * drv, void * file_p, uint32_t pos)
+static lv_fs_res_t fs_seek(lv_fs_drv_t* drv, void* file_p, uint32_t pos)
 {
     (void)drv; /*Unused*/
-    lv_spiffs_file_t file = *(lv_spiffs_file_t *)file_p;
+    lv_spiffs_file_t file = *(lv_spiffs_file_t*)file_p;
     // File file           = fp;
 
     if(!file) {
@@ -304,10 +304,10 @@ static lv_fs_res_t fs_seek(lv_fs_drv_t * drv, void * file_p, uint32_t pos)
  * @param size pointer to a variable to store the size
  * @return LV_FS_RES_OK or any error from lv_fs_res_t enum
  */
-static lv_fs_res_t fs_size(lv_fs_drv_t * drv, void * file_p, uint32_t * size_p)
+static lv_fs_res_t fs_size(lv_fs_drv_t* drv, void* file_p, uint32_t* size_p)
 {
     (void)drv; /*Unused*/
-    lv_spiffs_file_t file = *(lv_spiffs_file_t *)file_p;
+    lv_spiffs_file_t file = *(lv_spiffs_file_t*)file_p;
     // File file           = fp;
 
     if(!file) {
@@ -328,10 +328,10 @@ static lv_fs_res_t fs_size(lv_fs_drv_t * drv, void * file_p, uint32_t * size_p)
  * @return LV_FS_RES_OK: no error, the file is read
  *         any error from lv_fs_res_t enum
  */
-static lv_fs_res_t fs_tell(lv_fs_drv_t * drv, void * file_p, uint32_t * pos_p)
+static lv_fs_res_t fs_tell(lv_fs_drv_t* drv, void* file_p, uint32_t* pos_p)
 {
     (void)drv; /*Unused*/
-    lv_spiffs_file_t file = *(lv_spiffs_file_t *)file_p;
+    lv_spiffs_file_t file = *(lv_spiffs_file_t*)file_p;
     // File file           = fp;
 
     if(!file) {
@@ -350,7 +350,7 @@ static lv_fs_res_t fs_tell(lv_fs_drv_t * drv, void * file_p, uint32_t * pos_p)
  * @param path path of the file to delete
  * @return  LV_FS_RES_OK or any error from lv_fs_res_t enum
  */
-static lv_fs_res_t fs_remove(lv_fs_drv_t * drv, const char * path)
+static lv_fs_res_t fs_remove(lv_fs_drv_t* drv, const char* path)
 {
     (void)drv; /*Unused*/
 
@@ -375,7 +375,7 @@ static lv_fs_res_t fs_remove(lv_fs_drv_t * drv, const char * path)
  * @return LV_FS_RES_OK: no error, the file is read
  *         any error from lv_fs_res_t enum
  */
-static lv_fs_res_t fs_trunc(lv_fs_drv_t * drv, void * file_p)
+static lv_fs_res_t fs_trunc(lv_fs_drv_t* drv, void* file_p)
 {
     return LV_FS_RES_NOT_IMP;
 }
@@ -387,7 +387,7 @@ static lv_fs_res_t fs_trunc(lv_fs_drv_t * drv, void * file_p)
  * @param newname path with the new name
  * @return LV_FS_RES_OK or any error from 'fs_res_t'
  */
-static lv_fs_res_t fs_rename(lv_fs_drv_t * drv, const char * oldname, const char * newname)
+static lv_fs_res_t fs_rename(lv_fs_drv_t* drv, const char* oldname, const char* newname)
 {
     (void)drv; /*Unused*/
     char fromname[32];
@@ -411,23 +411,23 @@ static lv_fs_res_t fs_rename(lv_fs_drv_t * drv, const char * oldname, const char
  * @param free_p pointer to store the free size [kB]
  * @return LV_FS_RES_OK or any error from lv_fs_res_t enum
  */
-static lv_fs_res_t fs_free(lv_fs_drv_t * drv, uint32_t * total_p, uint32_t * free_p)
+static lv_fs_res_t fs_free(lv_fs_drv_t* drv, uint32_t* total_p, uint32_t* free_p)
 {
     (void)drv; /*Unused*/
 
-        #if defined(ARDUINO_ARCH_ESP8266)
+#if defined(ARDUINO_ARCH_ESP8266)
     FSInfo fs_info;
     LV_FS_SPIFFS.info(fs_info);
     *total_p = (uint32_t)fs_info.totalBytes;
     *free_p  = (uint32_t)fs_info.totalBytes - fs_info.usedBytes;
     return LV_FS_RES_OK;
 
-        #elif defined(ARDUINO_ARCH_ESP32)
+#elif defined(ARDUINO_ARCH_ESP32)
     *total_p = (uint32_t)LV_FS_SPIFFS.totalBytes();
     *free_p  = (uint32_t)LV_FS_SPIFFS.totalBytes() - LV_FS_SPIFFS.usedBytes();
     return LV_FS_RES_OK;
 
-        #endif
+#endif
 
     return LV_FS_RES_NOT_IMP;
 }
@@ -439,23 +439,23 @@ static lv_fs_res_t fs_free(lv_fs_drv_t * drv, uint32_t * total_p, uint32_t * fre
  * @param path path to a directory
  * @return LV_FS_RES_OK or any error from lv_fs_res_t enum
  */
-static lv_fs_res_t fs_dir_open(lv_fs_drv_t * drv, void * dir_p, const char * path)
+static lv_fs_res_t fs_dir_open(lv_fs_drv_t* drv, void* dir_p, const char* path)
 {
     lv_spiffs_dir_t dir;
 
-        #if defined(ARDUINO_ARCH_ESP32)
+#if defined(ARDUINO_ARCH_ESP32)
     dir = LV_FS_SPIFFS.open(path);
     if(!dir) {
         return LV_FS_RES_UNKNOWN;
     }
-        #endif
+#endif
 
-        #if defined(ARDUINO_ARCH_ESP8266)
+#if defined(ARDUINO_ARCH_ESP8266)
     dir = LV_FS_SPIFFS.openDir(path);
-        #endif
+#endif
 
-    lv_spiffs_dir_t * dp = (lv_spiffs_dir_t *)dir_p; /*Just avoid the confusing casings*/
-    *dp                  = dir;
+    lv_spiffs_dir_t* dp = (lv_spiffs_dir_t*)dir_p; /*Just avoid the confusing casings*/
+    *dp                 = dir;
     return LV_FS_RES_OK;
 }
 
@@ -467,11 +467,11 @@ static lv_fs_res_t fs_dir_open(lv_fs_drv_t * drv, void * dir_p, const char * pat
  * @param fn pointer to a buffer to store the filename
  * @return LV_FS_RES_OK or any error from lv_fs_res_t enum
  */
-static lv_fs_res_t fs_dir_read(lv_fs_drv_t * drv, void * dir_p, char * fn)
+static lv_fs_res_t fs_dir_read(lv_fs_drv_t* drv, void* dir_p, char* fn)
 {
-    lv_spiffs_dir_t dir = *(lv_spiffs_dir_t *)dir_p; /*Convert type*/
+    lv_spiffs_dir_t dir = *(lv_spiffs_dir_t*)dir_p; /*Convert type*/
 
-        #if defined(ARDUINO_ARCH_ESP32)
+#if defined(ARDUINO_ARCH_ESP32)
     File file = dir.openNextFile();
     if(file) {
         strcpy(fn, file.name());
@@ -479,16 +479,16 @@ static lv_fs_res_t fs_dir_read(lv_fs_drv_t * drv, void * dir_p, char * fn)
     } else {
         return LV_FS_RES_UNKNOWN;
     }
-        #endif
+#endif
 
-        #if defined(ARDUINO_ARCH_ESP8266)
+#if defined(ARDUINO_ARCH_ESP8266)
     if(dir.next()) {
         strcpy(fn, dir.fileName().c_str());
         return LV_FS_RES_OK;
     } else {
         return LV_FS_RES_UNKNOWN;
     }
-        #endif
+#endif
 
     return LV_FS_RES_NOT_IMP;
 }
@@ -499,12 +499,12 @@ static lv_fs_res_t fs_dir_read(lv_fs_drv_t * drv, void * dir_p, char * fn)
  * @param dir_p pointer to an initialized 'fs_read_dir_t' variable
  * @return LV_FS_RES_OK or any error from lv_fs_res_t enum
  */
-static lv_fs_res_t fs_dir_close(lv_fs_drv_t * drv, void * dir_p)
+static lv_fs_res_t fs_dir_close(lv_fs_drv_t* drv, void* dir_p)
 {
     return LV_FS_RES_OK;
 }
 
-    #endif /*LV_USE_FS_IF*/
-#endif     /*LV_FS_IF_SPIFFS*/
+#endif /*LV_USE_FS_IF*/
+#endif /*LV_FS_IF_SPIFFS*/
 
 #endif /*ARDUINO*/
