@@ -90,7 +90,7 @@ static void IRAM_ATTR colorsAdd(uint8_t* charBitmap_p, uint8_t color1, uint16_t 
 
 int lv_zifont_init(void)
 {
-    FS.begin(true);
+    // FS.begin(true);
     // charBitmap_p = (uint8_t *)lv_mem_alloc(32 * 32);
     return LV_RES_OK; // OK
 }
