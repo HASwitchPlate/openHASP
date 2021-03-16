@@ -68,7 +68,7 @@ lv_zifont_char_t lastCharInfo; // Holds the last Glyph DSC
 
 #if ESP32
 // static lv_zifont_char_t charCache[256 - 32]; // glyphID DSC cache
-#define CHAR_CACHE_SIZE 95
+#define CHAR_CACHE_SIZE 224
 #else
 #define CHAR_CACHE_SIZE 95
 // static lv_zifont_char_t charCache[256 - 32]; // glyphID DSC cache
@@ -104,7 +104,7 @@ static inline bool openFont(File& file, const char* filename)
         LOG_ERROR(TAG_FONT, F("Opening font: %s"), filename);
         return false;
     }
-    LOG_TRACE(TAG_FONT, F("Opening font: %s"), filename);
+    // LOG_TRACE(TAG_FONT, F("Opening font: %s"), filename);
     return file;
 }
 
@@ -128,6 +128,7 @@ static inline bool initCharacterFrame(size_t size)
 int lv_zifont_font_init(lv_font_t** font, const char* font_path, uint16_t size)
 {
     charInBuffer = 0; // invalidate any previous cache
+    LOG_TRACE(TAG_FONT, F("File %s - Line %d - lv_zifont_font_init"), __FILE__, __LINE__);
 
     if(!*font) {
         LOG_TRACE(TAG_FONT, F("File %s - Line %d - init font"), __FILE__, __LINE__);

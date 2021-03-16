@@ -93,8 +93,8 @@ lv_obj_t* kb;
 // lv_font_t * defaultFont;
 
 lv_obj_t* pages[HASP_NUM_PAGES];
-static lv_font_t* haspFonts[4] = {nullptr, LV_THEME_DEFAULT_FONT_NORMAL, LV_THEME_DEFAULT_FONT_SUBTITLE,
-                                  LV_THEME_DEFAULT_FONT_TITLE};
+static lv_font_t* haspFonts[4] = {LV_THEME_DEFAULT_FONT_SMALL, LV_THEME_DEFAULT_FONT_NORMAL,
+                                  LV_THEME_DEFAULT_FONT_SUBTITLE, LV_THEME_DEFAULT_FONT_TITLE};
 uint8_t current_page           = 1;
 
 /**
@@ -365,13 +365,16 @@ void haspSetup(void)
 
 #if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
 #if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
+    lv_font_t* hasp_font = nullptr; // required or font init will crash
     lv_zifont_init();
 
-    if(lv_zifont_font_init(&haspFonts[1], haspZiFontPath, 32) != 0) {
+    // WARNING: hasp_font needs to be null !
+    if(lv_zifont_font_init(&hasp_font, haspZiFontPath, 32) != 0) {
         LOG_ERROR(TAG_HASP, F("Failed to set font to %s"), haspZiFontPath);
         haspFonts[1] = LV_FONT_DEFAULT;
     } else {
         // defaultFont = haspFonts[0];
+        haspFonts[1] = hasp_font; // save it
     }
 #endif
 #endif
