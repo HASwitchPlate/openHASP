@@ -374,7 +374,7 @@ void haspSetup(void)
         haspFonts[1] = LV_FONT_DEFAULT;
     } else {
         // defaultFont = haspFonts[0];
-        haspFonts[1] = hasp_font; // save it
+        haspFonts[0] = hasp_font; // save it
     }
 #endif
 #endif

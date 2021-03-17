@@ -70,7 +70,7 @@ static void debugPrintTimestamp(int level, Print* _logOutput)
         // strftime(buffer, sizeof(buffer), "[%H:%M:%S.", timeinfo); // Literal String
 
 #ifdef ARDUINO
-        _logOutput->printf(PSTR("%03lu]"), curTime.tv_usec / 1000);
+        _logOutput->printf(PSTR("%s.%03lu]"), buffer, curTime.tv_usec / 1000);
 #else
         debug_print(_logOutput, PSTR("%s.%03lu]"), buffer, curTime.tv_usec / 1000);
 #endif
