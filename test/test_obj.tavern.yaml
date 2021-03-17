@@ -242,3 +242,13 @@ stages:
       json:
         value_str: "{str1}{str2}"
       timeout: 1
+
+  - name: Get obj type
+    mqtt_publish:
+      topic: hasp/{plate}/command
+      payload: "p1b1.obj"
+    mqtt_response:
+      topic: hasp/{plate}/state/p1b1
+      json:
+        obj: "{obj}"
+      timeout: 1
