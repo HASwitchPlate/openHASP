@@ -1407,12 +1407,14 @@ void hasp_process_obj_attribute(lv_obj_t* obj, const char* attr_p, const char* p
             update ? (void)(obj->user_data.groupid = (uint8_t)val) : hasp_out_int(obj, attr, obj->user_data.groupid);
             break; // attribute_found
 
+        case ATTR_OBJ:
+            if(update) LOG_WARNING(TAG_ATTR, F(D_ATTRIBUTE_READ_ONLY), attr_p);
+            hasp_out_str(obj, attr, get_obj_type_name(obj));
+            break; // attribute_found
+
         case ATTR_OBJID:
-            if(update) {
-                LOG_WARNING(TAG_ATTR, F(D_ATTRIBUTE_READ_ONLY), attr_p);
-            } else {
-                hasp_out_int(obj, attr, obj->user_data.objid);
-            }
+            if(update) LOG_WARNING(TAG_ATTR, F(D_ATTRIBUTE_READ_ONLY), attr_p);
+            hasp_out_int(obj, attr, obj->user_data.objid);
             break; // attribute_found
 
         case ATTR_X:

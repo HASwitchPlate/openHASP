@@ -153,6 +153,20 @@ bool hasp_find_id_from_obj(lv_obj_t* obj, uint8_t* pageid, uint8_t* objid)
 // }
 
 /**
+ * Get the object type name of an object
+ * @param obj an lv_obj_t* of the object to check its type
+ * @return name of the object type
+ * @note
+ */
+const char* get_obj_type_name(lv_obj_t* obj)
+{
+    lv_obj_type_t list;
+    lv_obj_get_type(obj, &list);
+    const char* objtype = list.type[0];
+    return objtype + 3; // skip lv_
+}
+
+/**
  * Check if an lvgl objecttype name corresponds to a given HASP object ID
  * @param obj an lv_obj_t* of the object to check its type
  * @param haspobjtype the HASP object ID to check against
@@ -352,7 +366,8 @@ void generic_event_handler(lv_obj_t* obj, lv_event_t event)
 
     hasp_update_sleep_state();                   // wakeup?
     dispatch_object_generic_event(obj, eventid); // send object event
-    dispatch_normalized_group_value(obj->user_data.groupid, NORMALIZE(dispatch_get_event_state(eventid), 0, 1), obj);
+    dispatch_normalized_group_value(obj->user_data.groupid, obj, dispatch_get_event_state(eventid), HASP_EVENT_OFF,
+                                    HASP_EVENT_ON);
 }
 
 /**
@@ -390,7 +405,7 @@ void toggle_event_handler(lv_obj_t* obj, lv_event_t event)
 
         hasp_update_sleep_state(); // wakeup?
         dispatch_object_toggle_event(obj, val);
-        dispatch_normalized_group_value(obj->user_data.groupid, NORMALIZE(val, 0, 1), obj);
+        dispatch_normalized_group_value(obj->user_data.groupid, obj, val, HASP_EVENT_OFF, HASP_EVENT_ON);
 
     } else if(event == LV_EVENT_DELETE) {
         LOG_VERBOSE(TAG_HASP, F(D_OBJECT_DELETED));
@@ -454,7 +469,7 @@ static void selector_event_handler(lv_obj_t* obj, lv_event_t event)
         // hasp_send_obj_attribute_str(obj, property, buffer);
 
         dispatch_object_selection_changed(obj, val, buffer);
-        if(max > 0) dispatch_normalized_group_value(obj->user_data.groupid, NORMALIZE(val, 0, max), obj);
+        if(max > 0) dispatch_normalized_group_value(obj->user_data.groupid, obj, val, 0, max);
 
     } else if(event == LV_EVENT_DELETE) {
         LOG_VERBOSE(TAG_HASP, F(D_OBJECT_DELETED));
@@ -500,7 +515,7 @@ void slider_event_handler(lv_obj_t* obj, lv_event_t event)
             return;
         }
         dispatch_object_value_changed(obj, val);
-        dispatch_normalized_group_value(obj->user_data.groupid, NORMALIZE(val, min, max), obj);
+        dispatch_normalized_group_value(obj->user_data.groupid, obj, val, min, max);
 
     } else if(event == LV_EVENT_DELETE) {
         LOG_VERBOSE(TAG_HASP, F(D_OBJECT_DELETED));

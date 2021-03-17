@@ -66,6 +66,7 @@ lv_obj_t* hasp_find_obj_from_parent_id(lv_obj_t* parent, uint8_t objid);
 // lv_obj_t * hasp_find_obj_from_page_id(uint8_t pageid, uint8_t objid);
 bool hasp_find_id_from_obj(lv_obj_t* obj, uint8_t* pageid, uint8_t* objid);
 // bool check_obj_type_str(const char * lvobjtype, lv_hasp_obj_type_t haspobjtype);
+const char* get_obj_type_name(lv_obj_t* obj);
 bool check_obj_type(lv_obj_t* obj, lv_hasp_obj_type_t haspobjtype);
 void hasp_object_tree(lv_obj_t* parent, uint8_t pageid, uint16_t level);
 void hasp_object_delete(lv_obj_t* obj);
