@@ -93,7 +93,8 @@ lv_obj_t* kb;
 // lv_font_t * defaultFont;
 
 lv_obj_t* pages[HASP_NUM_PAGES];
-static lv_font_t* haspFonts[4] = {nullptr, nullptr, nullptr, nullptr};
+static lv_font_t* haspFonts[4] = {LV_THEME_DEFAULT_FONT_SMALL, LV_THEME_DEFAULT_FONT_NORMAL,
+                                  LV_THEME_DEFAULT_FONT_SUBTITLE, LV_THEME_DEFAULT_FONT_TITLE};
 uint8_t current_page           = 1;
 
 /**
