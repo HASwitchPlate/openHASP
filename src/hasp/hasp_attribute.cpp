@@ -13,7 +13,6 @@
 #include "hasplib.h"
 
 LV_FONT_DECLARE(unscii_8_icon);
-extern lv_font_t* haspFonts[8];
 extern const char** btnmatrix_default_map; // memory pointer to lvgl default btnmatrix map
 
 #if 0
@@ -454,10 +453,8 @@ static lv_font_t* haspPayloadToFont(const char* payload)
     uint8_t var = atoi(payload);
 
     switch(var) {
-        case 0:
-        case 1:
-        case 2:
-        case 3:
+        case 0 ... 7:
+            LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, robotocondensed_regular_12_nokern);
             return hasp_get_font(var);
 
         case 8:
@@ -467,22 +464,25 @@ static lv_font_t* haspPayloadToFont(const char* payload)
 
 #ifdef LV_FONT_CUSTOM_12
         case 12:
-            return LV_THEME_DEFAULT_FONT_SMALL;
+            return &robotocondensed_regular_12_nokern;
 #endif
 
 #ifdef LV_FONT_CUSTOM_16
         case 16:
-            return LV_THEME_DEFAULT_FONT_NORMAL;
+            LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, robotocondensed_regular_16_nokern);
+            return &robotocondensed_regular_16_nokern;
 #endif
 
 #ifdef LV_FONT_CUSTOM_22
         case 22:
-            return LV_THEME_DEFAULT_FONT_SUBTITLE;
+            LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, robotocondensed_regular_22_nokern);
+            return &robotocondensed_regular_22_nokern;
 #endif
 
 #ifdef LV_FONT_CUSTOM_28
         case 28:
-            return LV_THEME_DEFAULT_FONT_TITLE;
+            LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, robotocondensed_regular_28_nokern);
+            return &robotocondensed_regular_28_nokern;
 #endif
 
 #endif
@@ -885,6 +885,7 @@ static void hasp_local_style_attr(lv_obj_t* obj, const char* attr_p, uint16_t at
         case ATTR_TEXT_FONT: {
             lv_font_t* font = haspPayloadToFont(payload);
             if(font) {
+                LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, *font);
                 uint8_t count = 3;
                 if(check_obj_type(obj, LV_HASP_ROLLER)) count = my_roller_get_visible_row_count(obj);
                 lv_obj_set_style_local_text_font(obj, part, state, font);

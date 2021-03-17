@@ -56,6 +56,7 @@ void setup()
 #if HASP_USE_CONFIG > 0
     configSetup(); // also runs debugPreSetup(), debugSetup() and debugStart()
 #endif
+    LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, &robotocondensed_regular_16_nokern);
 
     guiSetup();
     debugSetup();    // Init the console
