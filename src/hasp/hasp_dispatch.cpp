@@ -251,7 +251,7 @@ void dispatch_command(const char* topic, const char* payload)
 
     if(strlen(topic) == 7 && topic == strstr_P(topic, PSTR("output"))) {
         int16_t state = atoi(payload);
-        dispatch_normalized_group_value(atoi(topic + 6), state, NULL); // + 6 => trim 'output' from the topic
+        dispatch_normalized_group_value(atoi(topic + 6), NULL, state, 0, 1); // + 6 => trim 'output' from the topic
 
         // } else if(strcasecmp_P(topic, PSTR("screenshot")) == 0) {
         //     guiTakeScreenshot("/screenshot.bmp"); // Literal String
@@ -684,12 +684,12 @@ static inline void dispatch_state_msg(const __FlashStringHelper* subtopic, const
 //     // dispatch_output_group_state(groupid, payload);
 // }
 
-void dispatch_normalized_group_value(uint8_t groupid, uint16_t value, lv_obj_t* obj)
+void dispatch_normalized_group_value(uint8_t groupid, lv_obj_t* obj, int16_t val, int16_t min, int16_t max)
 {
     if(groupid > 0) {
-        LOG_VERBOSE(TAG_MSGR, F("GROUP %d value %d"), groupid, value);
+        LOG_VERBOSE(TAG_MSGR, F("GROUP %d value %d (%d-%d)"), groupid, val, min, max);
 #if HASP_USE_GPIO > 0
-        gpio_set_normalized_group_value(groupid, value);
+        gpio_set_normalized_group_value(groupid, val, min, max);
 #endif
         //  object_set_group_state(groupid, value, obj);
     }

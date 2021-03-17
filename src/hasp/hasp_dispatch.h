@@ -66,7 +66,7 @@ bool dispatch_get_event_state(uint8_t eventid);
 void dispatch_get_event_name(uint8_t eventid, char* buffer, size_t size);
 void dispatch_object_value_changed(lv_obj_t* obj, int16_t state);
 
-void dispatch_normalized_group_value(uint8_t groupid, uint16_t value, lv_obj_t* obj);
+void dispatch_normalized_group_value(uint8_t groupid, lv_obj_t* obj, int16_t val, int16_t min, int16_t max);
 
 void dispatch_send_obj_attribute_str(uint8_t pageid, uint8_t btnid, const char* attribute, const char* data);
 void dispatch_send_obj_attribute_int(uint8_t pageid, uint8_t btnid, const char* attribute, int32_t val);

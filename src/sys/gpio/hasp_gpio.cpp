@@ -90,7 +90,7 @@ static void gpio_event_handler(AceButton* button, uint8_t eventType, uint8_t but
 
     dispatch_gpio_input_event(gpioConfig[btnid].pin, gpioConfig[btnid].group, eventid);
     if(eventid != HASP_EVENT_LONG) // do not repeat DOWN + LONG
-        dispatch_normalized_group_value(gpioConfig[btnid].group, NORMALIZE(state, 0, 1), NULL);
+        dispatch_normalized_group_value(gpioConfig[btnid].group, NULL, state, HASP_EVENT_OFF, HASP_EVENT_ON);
 }
 
 void aceButtonSetup(void)
@@ -279,15 +279,20 @@ void gpioSetup()
 }
 
 /* ********************************* State Setters *************************************** */
-void gpio_set_normalized_value(hasp_gpio_config_t gpio, uint16_t state)
+void gpio_set_normalized_value(hasp_gpio_config_t gpio, int16_t val, int16_t min, int16_t max)
 {
+    if(min == max) {
+        LOG_ERROR(TAG_GPIO, F("Invalid value range"));
+        return;
+    }
+
     switch(gpio.type) {
         case HASP_GPIO_RELAY:
-            gpio.val = state >= 0x8000U ? HIGH : LOW;
+            gpio.val = map(val, min, max, 0, 1) ? HIGH : LOW;
             digitalWrite(gpio.pin, gpio.val);
             break;
         case HASP_GPIO_RELAY_INVERTED:
-            gpio.val = state >= 0x8000U ? LOW : HIGH;
+            gpio.val = map(val, min, max, 0, 1) ? LOW : HIGH;
             digitalWrite(gpio.pin, gpio.val);
             break;
         case HASP_GPIO_LED:
@@ -295,19 +300,19 @@ void gpio_set_normalized_value(hasp_gpio_config_t gpio, uint16_t state)
         case HASP_GPIO_LED_G:
         case HASP_GPIO_LED_B:
 #if defined(ARDUINO_ARCH_ESP32)
-            gpio.val = map(state, 0, 0xFFFFU, 0, 4095);
+            gpio.val = map(val, min, max, 0, 4095);
             ledcWrite(gpio.group, gpio.val); // ledChannel and value
 #else
-            gpio.val = map(state, 0, 0xFFFFU, 0, 1023);
+            gpio.val = map(val, min, max, 0, 1023);
             analogWrite(gpio.pin, gpio.val);
 #endif
             break;
         case HASP_GPIO_PWM:
 #if defined(ARDUINO_ARCH_ESP32)
-            gpio.val = map(state, 0, 0xFFFFU, 0, 4095);
+            gpio.val = map(val, min, max, 0, 4095);
             ledcWrite(gpio.group, gpio.val); // ledChannel and value
 #else
-            gpio.val = map(state, 0, 0xFFFFU, 0, 1023);
+            gpio.val = map(val, min, max, 0, 1023);
             analogWrite(gpio.pin, gpio.val);
 #endif
             break;
@@ -317,10 +322,10 @@ void gpio_set_normalized_value(hasp_gpio_config_t gpio, uint16_t state)
         case HASP_GPIO_LED_B_INVERTED:
         case HASP_GPIO_PWM_INVERTED:
 #if defined(ARDUINO_ARCH_ESP32)
-            gpio.val = map(0xFFFFU - state, 0, 0xFFFFU, 0, 4095);
+            gpio.val = map(val, min, max, 0, 4095);
             ledcWrite(gpio.group, gpio.val); // ledChannel and value
 #else
-            gpio.val = map(0xFFFFU - state, 0, 0xFFFFU, 0, 1023);
+            gpio.val = map(val, min, max, 0, 1023);
             analogWrite(gpio.pin, gpio.val);
 #endif
             break;
@@ -340,12 +345,17 @@ void gpio_set_normalized_value(hasp_gpio_config_t gpio, uint16_t state)
 //     }
 // }
 
-void gpio_set_normalized_group_value(uint8_t groupid, uint16_t state)
+void gpio_set_normalized_group_value(uint8_t groupid, int16_t val, int16_t min, int16_t max)
 {
+    if(min == max) {
+        LOG_ERROR(TAG_GPIO, F("Invalid value range"));
+        return;
+    }
+
     // bool state = dispatch_get_event_state(eventid);
     for(uint8_t i = 0; i < HASP_NUM_GPIO_CONFIG; i++) {
         if(gpioConfig[i].group == groupid) {
-            gpio_set_normalized_value(gpioConfig[i], state);
+            gpio_set_normalized_value(gpioConfig[i], val, min, max);
         }
     }
 }
@@ -359,15 +369,15 @@ void gpio_set_moodlight(uint8_t r, uint8_t g, uint8_t b)
         switch(gpioConfig[i].type) {
             case HASP_GPIO_LED_R:
             case HASP_GPIO_LED_R_INVERTED:
-                gpio_set_normalized_value(gpioConfig[i], map(r, 0, 0xFF, 0, max_level));
+                gpio_set_normalized_value(gpioConfig[i], r, 0, 0xFF);
                 break;
             case HASP_GPIO_LED_G:
             case HASP_GPIO_LED_G_INVERTED:
-                gpio_set_normalized_value(gpioConfig[i], map(g, 0, 0xFF, 0, max_level));
+                gpio_set_normalized_value(gpioConfig[i], g, 0, 0xFF);
                 break;
             case HASP_GPIO_LED_B:
             case HASP_GPIO_LED_B_INVERTED:
-                gpio_set_normalized_value(gpioConfig[i], map(b, 0, 0xFF, 0, max_level));
+                gpio_set_normalized_value(gpioConfig[i], b, 0, 0xFF);
                 break;
         }
     }
