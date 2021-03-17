@@ -380,11 +380,12 @@ void haspSetup(void)
         // defaultFont = haspFonts[0];
         haspFonts[0] = hasp_font; // save it
     }
-#endif
-#endif
 
     LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, robotocondensed_regular_16_nokern);
     LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, *hasp_font);
+
+#endif
+#endif
 
     if(haspFonts[0] == nullptr) haspFonts[0] = LV_THEME_DEFAULT_FONT_SMALL;
     // if(haspFonts[1] == nullptr) haspFonts[1] = LV_THEME_DEFAULT_FONT_NORMAL;
