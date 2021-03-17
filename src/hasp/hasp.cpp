@@ -93,8 +93,7 @@ lv_obj_t* kb;
 // lv_font_t * defaultFont;
 
 lv_obj_t* pages[HASP_NUM_PAGES];
-static lv_font_t* haspFonts[4] = {LV_THEME_DEFAULT_FONT_SMALL, LV_THEME_DEFAULT_FONT_NORMAL,
-                                  LV_THEME_DEFAULT_FONT_SUBTITLE, LV_THEME_DEFAULT_FONT_TITLE};
+static lv_font_t* haspFonts[4] = {nullptr, nullptr, nullptr, nullptr};
 uint8_t current_page           = 1;
 
 /**
@@ -363,6 +362,10 @@ void haspSetup(void)
 
     /* ********** Font Initializations ********** */
 
+    LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, &robotocondensed_regular_16_nokern);
+    LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, nullptr);
+    LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, haspFonts[1]);
+
 #if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
 #if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
     lv_font_t* hasp_font = nullptr; // required or font init will crash
@@ -378,6 +381,14 @@ void haspSetup(void)
     }
 #endif
 #endif
+
+    LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, robotocondensed_regular_16_nokern);
+    LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, *hasp_font);
+
+    if(haspFonts[0] == nullptr) haspFonts[0] = LV_THEME_DEFAULT_FONT_SMALL;
+    // if(haspFonts[1] == nullptr) haspFonts[1] = LV_THEME_DEFAULT_FONT_NORMAL;
+    if(haspFonts[2] == nullptr) haspFonts[2] = LV_THEME_DEFAULT_FONT_SUBTITLE;
+    if(haspFonts[3] == nullptr) haspFonts[3] = LV_THEME_DEFAULT_FONT_TITLE;
 
     // haspFonts[0] = lv_font_load("E:/font_1.fnt");
     //  haspFonts[2] = lv_font_load("E:/font_2.fnt");
