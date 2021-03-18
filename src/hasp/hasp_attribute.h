@@ -25,7 +25,7 @@ void my_btnmatrix_map_clear(lv_obj_t* obj);
 void line_clear_points(lv_obj_t* obj);
 
 void hasp_process_obj_attribute(lv_obj_t* obj, const char* attr_p, const char* payload, bool update);
-bool hasp_process_obj_attribute_val(lv_obj_t* obj, const char* attr, const char* payload, bool update);
+bool hasp_process_obj_attribute_val(lv_obj_t* obj, const char* attr, int16_t intval, bool booval, bool update);
 
 #ifdef __cplusplus
 } /* extern "C" */

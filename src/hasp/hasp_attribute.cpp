@@ -1262,9 +1262,9 @@ static void hasp_process_obj_attribute_txt(lv_obj_t* obj, const char* attr, cons
     LOG_WARNING(TAG_ATTR, F(D_ATTRIBUTE_UNKNOWN), attr);
 }
 
-bool hasp_process_obj_attribute_val(lv_obj_t* obj, const char* attr, const char* payload, bool update)
+bool hasp_process_obj_attribute_val(lv_obj_t* obj, const char* attr, int16_t intval, bool boolval, bool update)
 {
-    int16_t intval = atoi(payload);
+    //  int16_t intval = atoi(payload);
 
     if(check_obj_type(obj, LV_HASP_BUTTON)) {
         if(lv_btn_get_checkable(obj)) {
@@ -1280,11 +1280,10 @@ bool hasp_process_obj_attribute_val(lv_obj_t* obj, const char* attr, const char*
             return false; // not checkable
         }
     } else if(check_obj_type(obj, LV_HASP_CHECKBOX)) {
-        update ? lv_checkbox_set_checked(obj, Utilities::is_true(payload))
-               : hasp_out_int(obj, attr, lv_checkbox_is_checked(obj));
+        update ? lv_checkbox_set_checked(obj, boolval) : hasp_out_int(obj, attr, lv_checkbox_is_checked(obj));
     } else if(check_obj_type(obj, LV_HASP_SWITCH)) {
         if(update)
-            Utilities::is_true(payload) ? lv_switch_on(obj, LV_ANIM_ON) : lv_switch_off(obj, LV_ANIM_ON);
+            boolval ? lv_switch_on(obj, LV_ANIM_ON) : lv_switch_off(obj, LV_ANIM_ON);
         else
             hasp_out_int(obj, attr, lv_switch_get_state(obj));
     } else if(check_obj_type(obj, LV_HASP_DROPDOWN)) {
@@ -1483,7 +1482,8 @@ void hasp_process_obj_attribute(lv_obj_t* obj, const char* attr_p, const char* p
             break; // attribute_found
 
         case ATTR_VAL:
-            if(!hasp_process_obj_attribute_val(obj, attr, payload, update)) goto attribute_not_found;
+            if(!hasp_process_obj_attribute_val(obj, attr, atoi(payload), Utilities::is_true(payload), update))
+                goto attribute_not_found;
             break; // attribute_found
 
         case ATTR_MIN:
