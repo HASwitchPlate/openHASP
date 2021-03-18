@@ -5,6 +5,12 @@
 #include "ArduinoLog.h"
 #endif
 
+#if defined(WINDOWS) || defined(POSIX)
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#endif
+
 #include "ArduinoJson.h"
 
 #if HASP_USE_EEPROM > 0
@@ -86,8 +92,13 @@ lv_style_t style_mbox_bg; /*Black bg. style with opacity*/
 lv_obj_t* kb;
 // lv_font_t * defaultFont;
 
+<<<<<<< HEAD
 static lv_font_t* haspFonts[4] = {nullptr, LV_THEME_DEFAULT_FONT_NORMAL, LV_THEME_DEFAULT_FONT_SUBTITLE,
                                   LV_THEME_DEFAULT_FONT_TITLE};
+== == ==                       = lv_obj_t * pages[HASP_NUM_PAGES];
+static lv_font_t* haspFonts[4] = {nullptr, nullptr, nullptr, nullptr};
+uint8_t current_page           = 1;
+>>>>>>> 0.4.0-dev
 
 /**
  * Get Font ID
@@ -133,6 +144,12 @@ void hasp_enable_wakeup_touch()
     LOG_VERBOSE(TAG_HASP, F("Wakeup touch enabled"));
     lv_obj_set_click(lv_disp_get_layer_sys(NULL), true); // enable first touch
     lv_obj_set_event_cb(lv_disp_get_layer_sys(NULL), wakeup_event_handler);
+}
+
+void hasp_disable_wakeup_touch()
+{
+    LOG_VERBOSE(TAG_HASP, F("Wakeup touch disabled"));
+    lv_obj_set_click(lv_disp_get_layer_sys(NULL), false); // disable first touch
 }
 
 /**
@@ -313,18 +330,35 @@ void haspSetup(void)
 
     /* ********** Font Initializations ********** */
 
+    LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, nullptr);
+    LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, haspFonts[1]);
+    // LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, &robotocondensed_regular_16_nokern);
+
 #if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
 #if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
+
+    lv_font_t* hasp_font = nullptr; // required or font init will crash
     lv_zifont_init();
 
-    if(lv_zifont_font_init(&haspFonts[1], haspZiFontPath, 32) != 0) {
+    // WARNING: hasp_font needs to be null !
+    if(lv_zifont_font_init(&hasp_font, haspZiFontPath, 32) != 0) {
         LOG_ERROR(TAG_HASP, F("Failed to set font to %s"), haspZiFontPath);
         haspFonts[1] = LV_FONT_DEFAULT;
     } else {
         // defaultFont = haspFonts[0];
+        haspFonts[0] = hasp_font; // save it
     }
+
+    //  LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, robotocondensed_regular_16_nokern);
+    LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, *hasp_font);
+
 #endif
 #endif
+
+    if(haspFonts[0] == nullptr) haspFonts[0] = LV_THEME_DEFAULT_FONT_SMALL;
+    // if(haspFonts[1] == nullptr) haspFonts[1] = LV_THEME_DEFAULT_FONT_NORMAL;
+    if(haspFonts[2] == nullptr) haspFonts[2] = LV_THEME_DEFAULT_FONT_SUBTITLE;
+    if(haspFonts[3] == nullptr) haspFonts[3] = LV_THEME_DEFAULT_FONT_TITLE;
 
     // haspFonts[0] = lv_font_load("E:/font_1.fnt");
     //  haspFonts[2] = lv_font_load("E:/font_2.fnt");
@@ -491,6 +525,80 @@ void hasp_background(uint16_t pageid, uint16_t imageid)
 void haspGetVersion(char* version, size_t len)
 {
     snprintf_P(version, len, PSTR("%u.%u.%u"), HASP_VER_MAJ, HASP_VER_MIN, HASP_VER_REV);
+}
+
+void haspClearPage(uint16_t pageid)
+{
+    lv_obj_t* page = get_page_obj(pageid);
+    if(!page || (pageid > HASP_NUM_PAGES)) {
+        LOG_WARNING(TAG_HASP, F(D_HASP_INVALID_PAGE), pageid);
+    } else if(page == lv_layer_sys() /*|| page == lv_layer_top()*/) {
+        LOG_WARNING(TAG_HASP, F(D_HASP_INVALID_LAYER));
+    } else {
+        LOG_TRACE(TAG_HASP, F(D_HASP_CLEAR_PAGE), pageid);
+        lv_obj_clean(page);
+    }
+}
+
+uint8_t haspGetPage()
+{
+    return current_page;
+}
+
+void haspSetPage(uint8_t pageid)
+{
+    lv_obj_t* page = get_page_obj(pageid);
+    if(!page || pageid == 0 || pageid > HASP_NUM_PAGES) {
+        LOG_WARNING(TAG_HASP, F(D_HASP_INVALID_PAGE), pageid);
+    } else {
+        LOG_TRACE(TAG_HASP, F(D_HASP_CHANGE_PAGE), pageid);
+        current_page = pageid;
+        lv_scr_load(page);
+        hasp_object_tree(page, pageid, 0);
+    }
+}
+
+void haspLoadPage(const char* pagesfile)
+{
+#if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
+    if(pagesfile[0] == '\0') return;
+
+    if(!filesystemSetup()) {
+        LOG_ERROR(TAG_HASP, F("FS not mounted. Failed to load %s"), pagesfile);
+        return;
+    }
+
+    if(!HASP_FS.exists(pagesfile)) {
+        LOG_ERROR(TAG_HASP, F("Non existing file %s"), pagesfile);
+        return;
+    }
+
+    LOG_TRACE(TAG_HASP, F("Loading file %s"), pagesfile);
+
+    File file = HASP_FS.open(pagesfile, "r");
+    dispatch_parse_jsonl(file);
+    file.close();
+
+    LOG_INFO(TAG_HASP, F("File %s loaded"), pagesfile);
+#else
+
+#if HASP_USE_EEPROM > 0
+    LOG_TRACE(TAG_HASP, F("Loading jsonl from EEPROM..."));
+    EepromStream eepromStream(4096, 1024);
+    dispatch_parse_jsonl(eepromStream);
+    LOG_INFO(TAG_HASP, F("Loaded jsonl from EEPROM"));
+#endif
+
+    std::ifstream ifs("pages.json", std::ifstream::in);
+    if(ifs) {
+        LOG_TRACE(TAG_HASP, F("Loading file %s"), pagesfile);
+        dispatch_parse_jsonl(ifs);
+        LOG_INFO(TAG_HASP, F("File %s loaded"), pagesfile);
+    } else {
+        LOG_ERROR(TAG_HASP, F("Non existing file %s"), pagesfile);
+    }
+
+#endif
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

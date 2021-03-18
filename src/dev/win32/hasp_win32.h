@@ -35,6 +35,17 @@ class Win32Device : public BaseDevice {
             _hostname = "localhost";
         }
 
+        // Get the Windows version.
+        DWORD dwBuild        = 0;
+        DWORD dwVersion      = GetVersion();
+        DWORD dwMajorVersion = (DWORD)(LOBYTE(LOWORD(dwVersion)));
+        DWORD dwMinorVersion = (DWORD)(HIBYTE(LOWORD(dwVersion)));
+        if(dwVersion < 0x80000000) dwBuild = (DWORD)(HIWORD(dwVersion));
+
+        char version[128];
+        snprintf(version, sizeof(version), "Windows %d.%d-%d", dwMajorVersion, dwMinorVersion, dwBuild);
+        _core_version = version;
+
         // _backlight_pin   = -1;
         _backlight_power = 1;
         _backlight_level = 100;
@@ -46,7 +57,7 @@ class Win32Device : public BaseDevice {
     const char* get_hostname();
     void set_hostname(const char*);
     const char* get_core_version();
-    const char* get_display_driver();
+    const char* get_chip_model();
 
     void set_backlight_pin(uint8_t pin);
     void set_backlight_level(uint8_t val);
@@ -63,6 +74,7 @@ class Win32Device : public BaseDevice {
 
   private:
     std::string _hostname;
+    std::string _core_version;
 
     uint8_t _backlight_pin;
     uint8_t _backlight_level;

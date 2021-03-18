@@ -4,11 +4,19 @@
 #if defined(WINDOWS) || defined(POSIX)
 
 #if defined(WINDOWS)
+
 #include <windows.h>
+#include <direct.h>
+// MSDN recommends against using getcwd & chdir names
+#define cwd _getcwd
+#define cd _chdir
 #endif
+
 #if defined(POSIX)
 #include <netdb.h>
 #include <unistd.h>
+#define cwd getcwd
+#define cd chdir
 #endif
 
 #include <cstdlib>
@@ -96,11 +104,6 @@ void InitializeConsoleOutput()
 }
 #endif
 
-void debugLvglLogEvent(lv_log_level_t level, const char* file, uint32_t line, const char* funcname, const char* descr)
-{
-    printf("%s %d\n", file, line);
-}
-
 void setup()
 {
     // Load Settings
@@ -109,10 +112,11 @@ void setup()
     // debug_init();
 
     // Initialize lvgl environment
-    lv_log_register_print_cb(debugLvglLogEvent);
     lv_init();
+    lv_log_register_print_cb(debugLvglLogEvent);
 
-    haspDevice.init(); // hardware setup
+    haspDevice.init();      // hardware setup
+    haspDevice.show_info(); // debug info
     // hal_setup();
     guiSetup();
 
@@ -169,7 +173,6 @@ void loop()
     // delay(6);
 }
 
-
 void usage(char* progName)
 {
     std::cout << progName << " [options]" << std::endl
@@ -200,38 +203,9 @@ int main(int argc, char* argv[])
 {
     bool showhelp = false;
     int count;
-#ifdef WINDOWS
-    InitializeConsoleOutput();
-#endif
-
-    haspDevice.show_info();
-
-    char hostbuffer[256];
-    char* IPbuffer;
-    struct hostent* host_entry;
-    int hostname;
-
-    // To retrieve hostname
-    hostname = gethostname(hostbuffer, sizeof(hostbuffer));
-    // checkHostName(hostname);
-
-    // To retrieve host information
-    host_entry = gethostbyname(hostbuffer);
-    // checkHostEntry(host_entry);
-
-    // To convert an Internet network
-    // address into ASCII string
-    // IPbuffer = inet_ntoa(*((struct in_addr*)host_entry->h_addr_list[0]));
-
-    printf("Hostname: %s", hostbuffer);
-    // printf("Host IP: %s", IPbuffer);
-
-    // Display each command-line argument.
-    std::cout << "\nCommand-line arguments:\n";
-    for(count = 0; count < argc; count++)
-        std::cout << "  argv[" << count << "]   " << argv[count] << "\n" << std::endl << std::flush;
 
 #if defined(WINDOWS)
+    InitializeConsoleOutput();
     SetConsoleCP(65001); // 65001 = UTF-8
     static const char s[] = "tränenüberströmt™\n";
     DWORD slen            = lstrlen(s);
@@ -239,12 +213,25 @@ int main(int argc, char* argv[])
 
     HANDLE std_out = GetStdHandle(STD_OUTPUT_HANDLE);
     if(std_out == INVALID_HANDLE_VALUE) {
-        //   return 66;
+        return 66;
     }
-    if(!WriteConsole(std_out, "Hello World!", 12, NULL, NULL)) {
-        // return 67;
+    if(!WriteConsole(std_out, "Hello World!\n", 13, NULL, NULL)) {
+        return 67;
     }
 #endif
+
+    SDL_Init(0);    // Needs to be initialized for GetPerfPath
+    char buf[4096]; // never know how much is needed
+    std::cout << "CWD: " << cwd(buf, sizeof buf) << std::endl;
+    cd(SDL_GetPrefPath("hasp", "hasp"));
+    std::cout << "CWD changed to: " << cwd(buf, sizeof buf) << std::endl;
+    SDL_Quit(); // We'll properly init later
+
+    // Change to preferences dir
+    std::cout << "\nCommand-line arguments:\n";
+    for(count = 0; count < argc; count++)
+        std::cout << "  argv[" << count << "]   " << argv[count] << "\n" << std::endl << std::flush;
+
     for(count = 0; count < argc; count++) {
         if(argv[count][0] == '-') {
 
@@ -291,6 +278,5 @@ int main(int argc, char* argv[])
 
     return 0;
 }
-
 
 #endif

@@ -41,11 +41,6 @@ const char* Stm32f4Device::get_core_version()
     // return ESP.getCoreVersion().c_str();
 }
 
-const char* Stm32f4Device::get_display_driver()
-{
-    return Utilities::tft_driver_name().c_str();
-}
-
 void Stm32f4Device::set_backlight_pin(uint8_t pin)
 {
     _backlight_pin = pin;
@@ -55,6 +50,23 @@ void Stm32f4Device::set_backlight_pin(uint8_t pin)
         pinMode(_backlight_pin, OUTPUT);
         update_backlight();
     }
+}
+
+const char* Stm32f4Device::get_chip_model()
+{
+#if defined(STM32F407ZG)
+    return "STM32F407ZG";
+#elif defined(STM32F407ZE)
+    return "STM32F407ZE";
+#elif defined(STM32F407VE)
+    return "STM32F407VE";
+#elif defined(STM32F407VG)
+    return "STM32F407VG";
+#elif defined(STM32F4xx) || defined(ARDUINO_ARCH_STM32F4)
+    return "STM32F4";
+#else
+    return "Unknown STM32";
+#endif
 }
 
 void Stm32f4Device::set_backlight_level(uint8_t level)

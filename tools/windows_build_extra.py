@@ -1,3 +1,5 @@
+Import("env")
+
 env.Append(
   LINKFLAGS=[
       "-static",

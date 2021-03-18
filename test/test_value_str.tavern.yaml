@@ -19,26 +19,27 @@ paho-mqtt:
 
 marks:
   - parametrize:
-      key: objid
+      key: obj
       vals:
-        - 10
-        - 12
-        - 20
-        - 22
-        - 30
-        - 31
-        - 32
-        #        - 33
-        #        - 40
-        - 41
-        - 50
-        - 51
-        - 91
-        #        - 90
-        #        - 1
-        - 2
-        - 71
-        - 80
+        - cpicker
+        - table
+        - tabview
+        - chart
+        - gauge
+        - btn
+        - label
+        - slider
+        - checkbox
+        - switch
+        - bar
+        - arc
+        - led
+        - obj
+        - lmeter
+        - dropdown
+        - spinner
+        - roller
+        - btnmatrix
 
   - parametrize:
       key: str1
@@ -51,8 +52,6 @@ marks:
         - "She opened the door."
         - "Aaron made a picture."
         - "I'm sorry."
-        - Test
-        - ABC
         - huey
         - dewey
         - ""
@@ -61,7 +60,6 @@ marks:
       key: str2
       vals:
         - louie
-        - fred
         - " I danced."
         - " Oak is strong and also gives shade."
         - " Cats and dogs each hate the other."
@@ -90,17 +88,19 @@ stages:
     mqtt_publish:
       topic: hasp/{plate}/command/jsonl
       json:
-        objid: "{objid}"
+        obj: "{obj}"
         id: 1
-        x: 128
-        y: 128
+        x: 0
+        y: 0
+        w: 240
+        h: 240
     delay_after: 0
 
   - name: Set value_str
     mqtt_publish:
       topic: "hasp/{plate}/command/p[1].b[1].value_str"
       payload: "{str1}{str2}"
-    delay_after: 0.05
+    delay_after: 0
   - name: Get value_str
     mqtt_publish:
       topic: hasp/{plate}/command

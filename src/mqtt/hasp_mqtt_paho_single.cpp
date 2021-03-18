@@ -226,7 +226,7 @@ int mqttPublish(const char* topic, const char* payload, size_t len, bool retain)
         LOG_ERROR(TAG_MQTT_PUB, F(D_MQTT_FAILED " '%s' => %s"), topic, payload);
         return MQTT_ERR_PUB_FAIL;
     } else {
-        LOG_TRACE(TAG_MQTT_PUB, F("'%s' => %s OK"), topic, payload);
+        // LOG_TRACE(TAG_MQTT_PUB, F("'%s' => %s OK"), topic, payload);
         return MQTT_ERR_OK;
     }
 }

@@ -33,7 +33,7 @@ void hal_setup(void)
 
     /* Add a display
      * Use the 'monitor' driver which creates window on PC's monitor to simulate a display*/
-    monitor_init();
+    monitor_init(MONITOR_HOR_RES, MONITOR_VER_RES);
 
     /* Add the mouse as input device
      * Use the 'mouse' driver which reads the PC's mouse*/

@@ -42,9 +42,9 @@ const char* Esp8266Device::get_core_version()
     return ESP.getCoreVersion().c_str();
 }
 
-const char* Esp8266Device::get_display_driver()
+const char* Esp8266Device::get_chip_model()
 {
-    return Utilities::tft_driver_name().c_str();
+    return "ESP8266";
 }
 
 void Esp8266Device::set_backlight_pin(uint8_t pin)

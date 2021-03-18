@@ -74,9 +74,9 @@ const char MAIN_MENU_BUTTON[] PROGMEM =
     "</p><p><form method='get' action='/'><button type='submit'>" D_HTTP_MAIN_MENU "</button></form>";
 const char MIT_LICENSE[] PROGMEM = "</br>MIT License</p>";
 
-const char HTTP_DOCTYPE[] PROGMEM =
-    "<!DOCTYPE html><html lang=\"en\"><head><meta name=\"viewport\" content=\"width=device-width,initial-scale=1,"
-    "user-scalable=no\"/>";
+const char HTTP_DOCTYPE[] PROGMEM = "<!DOCTYPE html><html lang=\"en\"><head><meta charset='utf-8'><meta "
+                                    "name=\"viewport\" content=\"width=device-width,initial-scale=1,"
+                                    "user-scalable=no\"/>";
 const char HTTP_META_GO_BACK[] PROGMEM = "<meta http-equiv='refresh' content='15;url=/'/>";
 const char HTTP_HEADER[] PROGMEM       = "<title>%s</title>";
 const char HTTP_STYLE[] PROGMEM =
@@ -650,7 +650,7 @@ void webHandleInfo()
 
         /* ESP Stats */
         httpMessage += F("</p/><p><b>MCU Model: </b>");
-        httpMessage += halGetChipModel();
+        httpMessage += haspDevice.get_chip_model();
         httpMessage += F("<br/><b>CPU Frequency: </b>");
         httpMessage += String(haspDevice.get_cpu_frequency());
         httpMessage += F("MHz");
@@ -674,7 +674,7 @@ void webHandleInfo()
         //        httpMessage += String(ESP.getSdkVersion());
         //#else
         httpMessage += F("<br/><b>Core version: </b>");
-        httpMessage += halGetCoreVersion();
+        httpMessage += haspDevice.get_core_version();
         //#endif
         httpMessage += F("<br/><b>Last Reset: </b>");
         httpMessage += halGetResetInfo();
@@ -1799,6 +1799,12 @@ void webHandleFirmware()
         //                  "name='filename' accept='.spiffs'>");
         // httpMessage += F("<button type='submit'>Replace Filesystem Image</button></form></p>");
 
+        httpMessage += F("<form method='get' action='/espfirmware'>");
+        httpMessage += F("<br/><b>Update ESP from URL</b>");
+        httpMessage += F("<br/><input id='url' name='url' value='");
+        httpMessage += "";
+        httpMessage += F("'><br/><br/><button type='submit'>Update ESP from URL</button></form>");
+
         httpMessage += FPSTR(MAIN_MENU_BUTTON);
 
         webSendPage(haspDevice.get_hostname(), httpMessage.length(), false);
@@ -1811,6 +1817,9 @@ void webHandleFirmware()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 void httpHandleEspFirmware()
 { // http://plate01/espfirmware
+    char url[4];
+    memcpy_P(url, PSTR("url"), 4);
+
     if(!httpIsAuthenticated(F("espfirmware"))) return;
 
     {
@@ -1821,7 +1830,7 @@ void httpHandleEspFirmware()
         httpMessage += F("</h1><hr>");
 
         httpMessage += F("<p><b>ESP update</b></p>Updating ESP firmware from: ");
-        httpMessage += webServer.arg("espFirmware");
+        httpMessage += webServer.arg(url);
 
         webSendPage(haspDevice.get_hostname(), httpMessage.length(), true);
         webServer.sendContent(httpMessage);
@@ -1829,8 +1838,8 @@ void httpHandleEspFirmware()
     }
     webSendFooter();
 
-    LOG_TRACE(TAG_HTTP, F("Attempting ESP firmware update from: %s"), webServer.arg("espFirmware").c_str());
-    // espStartOta(webServer.arg("espFirmware"));
+    LOG_TRACE(TAG_HTTP, F("Attempting ESP firmware update from: %s"), webServer.arg(url).c_str());
+    dispatch_web_update(NULL, webServer.arg(url).c_str());
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

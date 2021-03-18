@@ -3,8 +3,12 @@
 
 #include <time.h>
 #include <sys/time.h>
+#ifdef USE_CONFIG_OVERRIDE
+#include "user_config_override.h"
+#endif
+#ifndef MYTZ
 #define MYTZ "EST5EDT,M3.2.0/2,M11.1.0"
-
+#endif
 #include <Arduino.h>
 #include "ArduinoLog.h"
 
@@ -20,6 +24,7 @@
 void networkStart(void)
 {
 #if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
+    LOG_WARNING(TAG_MAIN, F("TIMEZONE: %s"), MYTZ);
     configTzTime(MYTZ, "pool.ntp.org", "time.nist.gov", NULL); // literal string
 #endif
 
@@ -69,10 +74,6 @@ void networkLoop(void)
 #if HASP_USE_HTTP > 0
     httpLoop();
 #endif // HTTP
-
-#if HASP_USE_GPIO > 0
-    gpioLoop();
-#endif // GPIO
 
 #if HASP_USE_OTA > 0
     otaLoop();

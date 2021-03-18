@@ -26,11 +26,6 @@
 
 #include "hasplib.h"
 
-#if defined(WINDOWS) || defined(POSIX)
-#include "display/monitor.h"
-#include "indev/mouse.h"
-#endif
-
 //#include "tpcal.h"
 
 //#include "Ticker.h"
@@ -107,7 +102,7 @@ void guiSetup(void)
 {
     // Register logger to capture lvgl_init output
     LOG_TRACE(TAG_LVGL, F(D_SERVICE_STARTING));
-#if LV_USE_LOG != 0 && defined(ARDUINO)
+#if LV_USE_LOG != 0
     lv_log_register_print_cb(debugLvglLogEvent);
 #endif
 
@@ -173,7 +168,7 @@ void guiSetup(void)
     }
 
     /* Initialize the display driver */
-    lv_disp_drv_t disp_drv;
+    static lv_disp_drv_t disp_drv;
     lv_disp_drv_init(&disp_drv);
     disp_drv.buffer    = &disp_buf;
     disp_drv.flush_cb  = gui_flush_cb;
@@ -225,7 +220,7 @@ void guiSetup(void)
     LOG_VERBOSE(TAG_LVGL, F("VFB size   : %d"), (size_t)sizeof(lv_color_t) * guiVDBsize);
 
     /* Initialize the touch pad */
-    lv_indev_drv_t indev_drv;
+    static lv_indev_drv_t indev_drv;
     lv_indev_drv_init(&indev_drv);
     indev_drv.type = LV_INDEV_TYPE_POINTER;
 #if defined(WINDOWS) || defined(POSIX)

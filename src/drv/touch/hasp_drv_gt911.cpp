@@ -19,11 +19,11 @@ void GT911_setXY(int8_t contacts, GTPoint * points)
     GT911_num_touches = contacts;
     GT911_points      = points;
 
-    LOG_VERBOSE(TAG_GUI, F("Contacts: %d"), contacts);
-    for(int i = 0; i < contacts; i++) {
-        LOG_VERBOSE(TAG_GUI, F("C%d: #%d %d,%d s:%d"), i, points[i].trackId, points[i].x, points[i].y, points[i].area);
-        yield();
-    }
+    // LOG_VERBOSE(TAG_GUI, F("Contacts: %d"), contacts);
+    // for(int i = 0; i < contacts; i++) {
+    //     LOG_VERBOSE(TAG_GUI, F("C%d: #%d %d,%d s:%d"), i, points[i].trackId, points[i].x, points[i].y, points[i].area);
+    //     yield();
+    // }
 }
 
 // Read touch points from global variable

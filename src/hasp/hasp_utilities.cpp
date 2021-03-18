@@ -54,41 +54,6 @@ int Utilities::format_bytes(size_t filesize, char* buf, size_t len)
     return snprintf_P(buf, len, PSTR("%d.%d %ciB"), filesize / 10, filesize % 10, labels[unit]);
 }
 
-std::string Utilities::tft_driver_name()
-{
-#if defined(ILI9341_DRIVER)
-    return "ILI9341";
-#elif defined(ST7735_DRIVER)
-    return "ST7735";
-#elif defined(ILI9163_DRIVER)
-    return "ILI9163";
-#elif defined(S6D02A1_DRIVER)
-    return "S6D02A1";
-#elif defined(ST7796_DRIVER)
-    return "ST7796";
-#elif defined(ILI9486_DRIVER)
-    return "ILI9486";
-#elif defined(ILI9481_DRIVER)
-    return "ILI9481";
-#elif defined(ILI9488_DRIVER)
-    return "ILI9488";
-#elif defined(HX8357D_DRIVER)
-    return "HX8357D";
-#elif defined(EPD_DRIVER)
-    return "EPD";
-#elif defined(ST7789_DRIVER)
-    return "ST7789";
-#elif defined(R61581_DRIVER)
-    return "R61581";
-#elif defined(ST7789_2_DRIVER)
-    return "ST7789_2";
-#elif defined(RM68140_DRIVER)
-    return "RM68140";
-#else
-    return "Other";
-#endif
-}
-
 #ifndef ARDUINO
 long map(long x, long in_min, long in_max, long out_min, long out_max)
 {

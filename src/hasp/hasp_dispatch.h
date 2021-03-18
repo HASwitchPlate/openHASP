@@ -41,7 +41,7 @@ void dispatch_text_line(const char* cmnd);
 #ifdef ARDUINO
 void dispatch_parse_jsonl(Stream& stream);
 #else
-void dispatch_parse_jsonl(std::istringstream& stream);
+void dispatch_parse_jsonl(std::istream& stream);
 #endif
 
 void dispatch_clear_page(const char* page);
@@ -54,9 +54,9 @@ void dispatch_page_prev(lv_scr_load_anim_t effectid);
 void dispatch_page_back(lv_scr_load_anim_t effectid);
 
 void dispatch_dim(const char* level);
-void dispatch_backlight(const char* payload);
+void dispatch_backlight(const char*, const char* payload);
 
-void dispatch_web_update(const char* espOtaUrl);
+void dispatch_web_update(const char*, const char* espOtaUrl);
 void dispatch_reboot(bool saveConfig);
 
 void dispatch_output_idle_state(uint8_t state);
@@ -68,7 +68,7 @@ bool dispatch_get_event_state(uint8_t eventid);
 void dispatch_get_event_name(uint8_t eventid, char* buffer, size_t size);
 void dispatch_object_value_changed(lv_obj_t* obj, int16_t state);
 
-void dispatch_normalized_group_value(uint8_t groupid, uint16_t value, lv_obj_t* obj);
+void dispatch_normalized_group_value(uint8_t groupid, lv_obj_t* obj, int16_t val, int16_t min, int16_t max);
 
 void dispatch_send_obj_attribute_str(uint8_t pageid, uint8_t btnid, const char* attribute, const char* data);
 void dispatch_send_obj_attribute_int(uint8_t pageid, uint8_t btnid, const char* attribute, int32_t val);

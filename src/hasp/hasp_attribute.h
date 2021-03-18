@@ -25,7 +25,7 @@ void my_btnmatrix_map_clear(lv_obj_t* obj);
 void line_clear_points(lv_obj_t* obj);
 
 void hasp_process_obj_attribute(lv_obj_t* obj, const char* attr_p, const char* payload, bool update);
-bool hasp_process_obj_attribute_val(lv_obj_t* obj, const char* attr, const char* payload, bool update);
+bool hasp_process_obj_attribute_val(lv_obj_t* obj, const char* attr, int16_t intval, bool booval, bool update);
 
 #ifdef __cplusplus
 } /* extern "C" */
@@ -316,5 +316,6 @@ _HASP_ATTRIBUTE(SCALE_END_LINE_WIDTH, scale_end_line_width, lv_style_int_t)
 #define ATTR_TRANSITION 10933
 #define ATTR_GROUPID 48986
 #define ATTR_OBJID 41010
+#define ATTR_OBJ 53623
 
 #endif

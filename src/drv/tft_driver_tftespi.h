@@ -6,7 +6,6 @@
 
 #ifdef ARDUINO
 #include "Arduino.h"
-#endif
 
 #include "lvgl.h"
 #include "TFT_eSPI.h"
@@ -35,6 +34,8 @@ class TftEspi : BaseTft {
     void flush_pixels(lv_disp_drv_t* disp, const lv_area_t* area, lv_color_t* color_p);
     bool is_driver_pin(uint8_t pin);
 
+    const char* get_tft_model();
+
   private:
     void tftOffsetInfo(uint8_t pin, uint8_t x_offset, uint8_t y_offset)
     {
@@ -62,4 +63,6 @@ class TftEspi : BaseTft {
 using dev::TftEspi;
 extern dev::TftEspi haspTft;
 
-#endif
+#endif // ARDUINO
+
+#endif // HASP_TFTESPI_DRIVER_H

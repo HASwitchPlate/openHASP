@@ -153,6 +153,20 @@ bool hasp_find_id_from_obj(lv_obj_t* obj, uint8_t* pageid, uint8_t* objid)
 // }
 
 /**
+ * Get the object type name of an object
+ * @param obj an lv_obj_t* of the object to check its type
+ * @return name of the object type
+ * @note
+ */
+const char* get_obj_type_name(lv_obj_t* obj)
+{
+    lv_obj_type_t list;
+    lv_obj_get_type(obj, &list);
+    const char* objtype = list.type[0];
+    return objtype + 3; // skip lv_
+}
+
+/**
  * Check if an lvgl objecttype name corresponds to a given HASP object ID
  * @param obj an lv_obj_t* of the object to check its type
  * @param haspobjtype the HASP object ID to check against
@@ -276,12 +290,12 @@ void hasp_send_obj_attribute_color(lv_obj_t* obj, const char* attribute, lv_colo
  */
 void wakeup_event_handler(lv_obj_t* obj, lv_event_t event)
 {
-    if(obj == lv_disp_get_layer_sys(NULL)) {
+    if(event == LV_EVENT_RELEASED && obj == lv_disp_get_layer_sys(NULL)) {
         hasp_update_sleep_state(); // wakeup?
-
-        if(event == LV_EVENT_CLICKED) {
-            lv_obj_set_click(obj, false); // disable first touch
-            LOG_VERBOSE(TAG_HASP, F("Wakeup touch disabled"));
+        if(!haspDevice.get_backlight_power())
+            dispatch_backlight(NULL, "1"); // backlight on and also disable wakeup touch
+        else {
+            hasp_disable_wakeup_touch(); // only disable wakeup touch
         }
     }
 }
@@ -350,6 +364,7 @@ void generic_event_handler(lv_obj_t* obj, lv_event_t event)
             return;
     }
 
+<<<<<<< HEAD
     hasp_update_sleep_state(); // wakeup?
 
     /* If an actionid is attached, perform that action on UP event only */
@@ -363,6 +378,11 @@ void generic_event_handler(lv_obj_t* obj, lv_event_t event)
         dispatch_object_generic_event(obj, eventid); // send object event
     }
     dispatch_normalized_group_value(obj->user_data.groupid, NORMALIZE(dispatch_get_event_state(eventid), 0, 1), obj);
+    == == == = hasp_update_sleep_state();        // wakeup?
+    dispatch_object_generic_event(obj, eventid); // send object event
+    dispatch_normalized_group_value(obj->user_data.groupid, obj, dispatch_get_event_state(eventid), HASP_EVENT_OFF,
+                                    HASP_EVENT_ON);
+>>>>>>> 0.4.0-dev
 }
 
 /**
@@ -400,7 +420,7 @@ void toggle_event_handler(lv_obj_t* obj, lv_event_t event)
 
         hasp_update_sleep_state(); // wakeup?
         dispatch_object_toggle_event(obj, val);
-        dispatch_normalized_group_value(obj->user_data.groupid, NORMALIZE(val, 0, 1), obj);
+        dispatch_normalized_group_value(obj->user_data.groupid, obj, val, HASP_EVENT_OFF, HASP_EVENT_ON);
 
     } else if(event == LV_EVENT_DELETE) {
         LOG_VERBOSE(TAG_HASP, F(D_OBJECT_DELETED));
@@ -464,7 +484,7 @@ static void selector_event_handler(lv_obj_t* obj, lv_event_t event)
         // hasp_send_obj_attribute_str(obj, property, buffer);
 
         dispatch_object_selection_changed(obj, val, buffer);
-        if(max > 0) dispatch_normalized_group_value(obj->user_data.groupid, NORMALIZE(val, 0, max), obj);
+        if(max > 0) dispatch_normalized_group_value(obj->user_data.groupid, obj, val, 0, max);
 
     } else if(event == LV_EVENT_DELETE) {
         LOG_VERBOSE(TAG_HASP, F(D_OBJECT_DELETED));
@@ -510,7 +530,7 @@ void slider_event_handler(lv_obj_t* obj, lv_event_t event)
             return;
         }
         dispatch_object_value_changed(obj, val);
-        dispatch_normalized_group_value(obj->user_data.groupid, NORMALIZE(val, min, max), obj);
+        dispatch_normalized_group_value(obj->user_data.groupid, obj, val, min, max);
 
     } else if(event == LV_EVENT_DELETE) {
         LOG_VERBOSE(TAG_HASP, F(D_OBJECT_DELETED));
@@ -541,24 +561,7 @@ static void cpicker_event_handler(lv_obj_t* obj, lv_event_t event)
 
 // ##################### State Changers ########################################################
 
-// TODO make this a recursive function that goes over all objects only ONCE
-void object_set_group_state(uint8_t groupid, uint8_t eventid, lv_obj_t* src_obj)
-{
-    if(groupid == 0) return;
-    bool state = dispatch_get_event_state(eventid);
-
-    for(uint8_t page = 0; page < HASP_NUM_PAGES; page++) {
-        uint8_t startid = 1;
-        for(uint8_t objid = startid; objid < 20; objid++) {
-            lv_obj_t* obj = hasp_find_obj_from_parent_id(haspPages.get_obj(page), objid);
-            if(obj && obj != src_obj && obj->user_data.groupid == groupid) { // skip source object, if set
-                lv_obj_set_state(obj, state ? LV_STATE_PRESSED | LV_STATE_CHECKED : LV_STATE_DEFAULT);
-            }
-        }
-    }
-}
-
-void object_set_group_value(lv_obj_t* parent, uint8_t groupid, const char* payload)
+void object_set_group_value(lv_obj_t* parent, uint8_t groupid, int16_t intval)
 {
     if(groupid == 0 || parent == nullptr) return;
 
@@ -566,10 +569,10 @@ void object_set_group_value(lv_obj_t* parent, uint8_t groupid, const char* paylo
     child = lv_obj_get_child(parent, NULL);
     while(child) {
         /* child found, update it */
-        if(groupid == child->user_data.groupid) hasp_process_obj_attribute_val(child, NULL, payload, true);
+        if(groupid == child->user_data.groupid) hasp_process_obj_attribute_val(child, NULL, intval, intval, true);
 
         /* update grandchildren */
-        object_set_group_value(child, groupid, payload);
+        object_set_group_value(child, groupid, intval);
 
         /* check tabs */
         if(check_obj_type(child, LV_HASP_TABVIEW)) {
@@ -579,10 +582,10 @@ void object_set_group_value(lv_obj_t* parent, uint8_t groupid, const char* paylo
                 lv_obj_t* tab = lv_tabview_get_tab(child, i);
                 LOG_VERBOSE(TAG_HASP, F("Found tab %i"), i);
                 if(tab->user_data.groupid && groupid == tab->user_data.groupid)
-                    hasp_process_obj_attribute_val(tab, NULL, payload, true); /* tab found, update it */
+                    hasp_process_obj_attribute_val(tab, NULL, intval, intval, true); /* tab found, update it */
 
                 /* check grandchildren */
-                object_set_group_value(tab, groupid, payload);
+                object_set_group_value(tab, groupid, intval);
             }
             //#endif
         }
@@ -592,10 +595,30 @@ void object_set_group_value(lv_obj_t* parent, uint8_t groupid, const char* paylo
     }
 }
 
-void object_set_group_value(uint8_t groupid, int16_t state)
+// TODO make this a recursive function that goes over all objects only ONCE
+void object_set_normalized_group_value(uint8_t groupid, lv_obj_t* src_obj, int16_t val, int16_t min, int16_t max)
 {
-    char payload[16];
-    itoa(state, payload, DEC);
+    if(groupid == 0) return;
+    if(min == max) return;
+
+    for(uint8_t page = 0; page < HASP_NUM_PAGES; page++) {
+        object_set_group_value(get_page_obj(page), groupid, val);
+        // uint8_t startid = 1;
+        // for(uint8_t objid = startid; objid < 20; objid++) {
+        //     lv_obj_t* obj = hasp_find_obj_from_parent_id(get_page_obj(page), objid);
+        //     if(obj && obj != src_obj && obj->user_data.groupid == groupid) { // skip source object, if set
+        //         LOG_VERBOSE(TAG_HASP, F("Found p%db%d in group %d"), page, objid, groupid);
+        //         lv_obj_set_state(obj, val > 0 ? LV_STATE_PRESSED | LV_STATE_CHECKED : LV_STATE_DEFAULT);
+        //         switch(obj->user_data.objid) {
+        //             case HASP_OBJ_ARC:
+        //             case HASP_OBJ_SLIDER:
+        //             case HASP_OBJ_CHECKBOX:
+        //                 hasp_process_obj_attribute_val();
+        //             default:
+        //         }
+        //     }
+        // }
+    }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

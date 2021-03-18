@@ -7,6 +7,7 @@
 #ifdef ARDUINO
 #include "Arduino.h"
 #endif
+
 #include "lvgl.h"
 
 namespace dev {
@@ -27,24 +28,28 @@ class BaseTft {
     {
         return false;
     }
+    virtual const char* get_tft_model()
+    {
+        return "";
+    }
 };
 
 } // namespace dev
 
 #if defined(ESP32)
-#warning Building for ESP32 Devices
+#warning Building for ESP32 Tfts
 #include "tft_driver_tftespi.h"
 #elif defined(ESP8266)
-#warning Building for ESP8266 Devices
+#warning Building for ESP8266 Tfts
 #include "tft_driver_tftespi.h"
 #elif defined(STM32F4)
-#warning Building for STM32F4xx Devices
+#warning Building for STM32F4xx Tfts
 #include "tft_driver_tftespi.h"
 #elif defined(WINDOWS) || defined(POSIX)
-#warning Building for Win32 Devices
+#warning Building for SDL2
 #include "tft_driver_sdl2.h"
 #else
-#warning Building for Generic Devices
+#warning Building for Generic Tfts
 using dev::BaseTft;
 extern dev::BaseTft haspTft;
 #endif

@@ -31,7 +31,7 @@ void Win32Device::show_info()
     unsigned int eax, ebx, ecx, edx;
     eax = 0;
     native_cpuid(&eax, &ebx, &ecx, &edx);
-    printf("EAX: %08X EBX: %08X ECX: %08X EDX: %08X\n", eax, ebx, ecx, edx);
+    // printf("EAX: %08X EBX: %08X ECX: %08X EDX: %08X\n", eax, ebx, ecx, edx);
     char vendor[13];
     memcpy(vendor, &ebx, 4);
     memcpy(vendor + 4, &edx, 4);
@@ -49,12 +49,14 @@ const char* Win32Device::get_hostname()
 void Win32Device::set_hostname(const char* hostname)
 {
     _hostname = hostname;
+    monitor_title(hostname);
+    // SDL_SetWindowTitle(monitor.window, hostname);
 }
 const char* Win32Device::get_core_version()
 {
-    return "win32";
+    return _core_version.c_str();
 }
-const char* Win32Device::get_display_driver()
+const char* Win32Device::get_chip_model()
 {
     return "SDL2";
 }
@@ -93,7 +95,8 @@ bool Win32Device::get_backlight_power()
 
 void Win32Device::update_backlight()
 {
-    monitor_backlight(_backlight_power ? map(_backlight_level, 0, 100, 0, 255) : 0);
+    uint8_t level = _backlight_power ? map(_backlight_level, 0, 100, 0, 255) : 0;
+    monitor_backlight(level);
 }
 
 size_t Win32Device::get_free_max_block()

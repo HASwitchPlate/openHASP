@@ -7,6 +7,7 @@
 #include "hasplib.h"
 
 #include "dev/device.h"
+#include "drv/tft_driver.h"
 
 //#include "hasp_gui.h"
 
@@ -43,7 +44,7 @@ dispatch_conf_t dispatch_setings = {.teleperiod = 10};
 
 uint32_t dispatchLastMillis;
 uint8_t nCommands = 0;
-haspCommand_t commands[17];
+haspCommand_t commands[18];
 
 struct moodlight_t
 {
@@ -249,8 +250,13 @@ void dispatch_command(const char* topic, const char* payload)
     /* =============================== Not standard payload commands ===================================== */
 
     if(strlen(topic) == 7 && topic == strstr_P(topic, PSTR("output"))) {
-        int16_t state = atoi(payload);
-        dispatch_normalized_group_value(atoi(topic + 6), state, NULL); // + 6 => trim 'output' from the topic
+
+        if(strlen(payload) == 0) {
+            // reply state
+        } else {
+            int16_t state = atoi(payload);
+            dispatch_normalized_group_value(atoi(topic + 6), NULL, state, 0, 1); // + 6 => trim 'output' from the topic
+        }
 
         // } else if(strcasecmp_P(topic, PSTR("screenshot")) == 0) {
         //     guiTakeScreenshot("/screenshot.bmp"); // Literal String
@@ -269,7 +275,7 @@ void dispatch_command(const char* topic, const char* payload)
 
 #if HASP_USE_MQTT > 0
     } else if(!strcmp_P(topic, PSTR("mqtthost")) || !strcmp_P(topic, PSTR("mqttport")) ||
-              !strcmp_P(topic, PSTR("mqttport")) || !strcmp_P(topic, PSTR("mqttuser")) ||
+              !strcmp_P(topic, PSTR("mqttuser")) || !strcmp_P(topic, PSTR("mqttpass")) ||
               !strcmp_P(topic, PSTR("hostname"))) {
         // char item[5];
         // memset(item, 0, sizeof(item));
@@ -664,7 +670,7 @@ static inline void dispatch_state_msg(const __FlashStringHelper* subtopic, const
 //     if(groupid >= 0) {
 //         bool state = dispatch_get_event_state(eventid);
 //         gpio_set_group_onoff(groupid, state);
-//         object_set_group_state(groupid, eventid, obj);
+//         object_set_normalized_group_value(groupid, eventid, obj);
 //     }
 
 //     char payload[8];
@@ -676,22 +682,22 @@ static inline void dispatch_state_msg(const __FlashStringHelper* subtopic, const
 // {
 //     if(groupid >= 0) {
 //         gpio_set_group_value(groupid, state);
-//         object_set_group_state(groupid, state, obj);
+//         object_set_normalized_group_value(groupid, state, obj);
 //     }
 
 //     char payload[8];
 //     // dispatch_output_group_state(groupid, payload);
 // }
 
-void dispatch_normalized_group_value(uint8_t groupid, uint16_t value, lv_obj_t* obj)
+void dispatch_normalized_group_value(uint8_t groupid, lv_obj_t* obj, int16_t val, int16_t min, int16_t max)
 {
-    if(groupid > 0) {
-        LOG_VERBOSE(TAG_MSGR, F("GROUP %d value %d"), groupid, value);
+    if(groupid == 0) return;
+
+    LOG_VERBOSE(TAG_MSGR, F("GROUP %d value %d (%d-%d)"), groupid, val, min, max);
 #if HASP_USE_GPIO > 0
-        gpio_set_normalized_group_value(groupid, value);
+    gpio_set_normalized_group_value(groupid, val, min, max); // Update GPIO states
 #endif
-        //  object_set_group_state(groupid, value, obj);
-    }
+    object_set_normalized_group_value(groupid, obj, val, min, max); // Update onsreen objects
 }
 
 /********************************************** Native Commands ****************************************/
@@ -767,7 +773,7 @@ void dispatch_parse_json(const char*, const char* payload)
 #ifdef ARDUINO
 void dispatch_parse_jsonl(Stream& stream)
 #else
-void dispatch_parse_jsonl(std::istringstream& stream)
+void dispatch_parse_jsonl(std::istream& stream)
 #endif
 {
     uint8_t savedPage = haspPages.get();
@@ -960,7 +966,17 @@ void dispatch_moodlight(const char* topic, const char* payload)
 void dispatch_backlight(const char*, const char* payload)
 {
     // Set the current state
-    if(strlen(payload) != 0) haspDevice.set_backlight_power(Utilities::is_true(payload));
+    if(strlen(payload) != 0) {
+        bool power = Utilities::is_true(payload);
+
+        if(haspDevice.get_backlight_power() != power) {
+            haspDevice.set_backlight_power(power);
+            if(power)
+                hasp_disable_wakeup_touch();
+            else
+                hasp_enable_wakeup_touch();
+        }
+    }
 
     // Return the current state
     char topic[8];
@@ -1048,7 +1064,7 @@ void dispatch_output_statusupdate(const char*, const char*)
 #endif
 
         snprintf_P(buffer, sizeof(buffer), PSTR("\"tftDriver\":\"%s\",\"tftWidth\":%u,\"tftHeight\":%u}"),
-                   Utilities::tft_driver_name().c_str(), (TFT_WIDTH), (TFT_HEIGHT));
+                   haspTft.get_tft_model(), (TFT_WIDTH), (TFT_HEIGHT));
         strcat(data, buffer);
     }
 
@@ -1075,6 +1091,12 @@ void dispatch_calibrate(const char* topic = NULL, const char* payload = NULL)
 void dispatch_wakeup(const char*, const char*)
 {
     lv_disp_trig_activity(NULL);
+    hasp_disable_wakeup_touch();
+}
+
+void dispatch_sleep(const char*, const char*)
+{
+    hasp_enable_wakeup_touch();
 }
 
 void dispatch_reboot(const char*, const char*)
@@ -1113,6 +1135,7 @@ void dispatchSetup()
     dispatch_add_command(PSTR("json"), dispatch_parse_json);
     dispatch_add_command(PSTR("page"), dispatch_page);
     dispatch_add_command(PSTR("wakeup"), dispatch_wakeup);
+    dispatch_add_command(PSTR("sleep"), dispatch_sleep);
     dispatch_add_command(PSTR("statusupdate"), dispatch_output_statusupdate);
     dispatch_add_command(PSTR("clearpage"), dispatch_clear_page);
     dispatch_add_command(PSTR("jsonl"), dispatch_parse_jsonl);

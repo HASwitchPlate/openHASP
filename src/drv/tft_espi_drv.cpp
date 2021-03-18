@@ -6,6 +6,8 @@
  *********************/
 #include "hasp_conf.h"
 
+#if defined(TOUCH_CS)
+
 #include "hal/hasp_hal.h" // for halGpioName()
 #include "dev/device.h"
 #include "drv/tft_driver.h"
@@ -13,8 +15,6 @@
 #include "tft_espi_drv.h"
 #include "ArduinoLog.h"
 #include "hasp_macro.h"
-
-#if defined(TOUCH_CS)
 
 void tft_espi_calibrate(uint16_t* calData)
 {

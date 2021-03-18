@@ -11,11 +11,11 @@ String halGetResetInfo(void);
 // uint8_t halGetHeapFragmentation(void);
 // size_t halGetMaxFreeBlock(void);
 // size_t halGetFreeHeap(void);
-String halGetCoreVersion(void);
-String halGetChipModel();
+// String halGetCoreVersion(void);
+// String halGetChipModel();
 String halGetMacAddress(int start, const char* seperator);
 // uint16_t halGetCpuFreqMHz(void);
-String halDisplayDriverName(void);
+// String halDisplayDriverName(void);
 String halGpioName(uint8_t gpio);
 
 #endif

@@ -24,7 +24,7 @@ void gpioLoop(void);
 void gpioEvery5Seconds(void);
 
 // void gpio_set_group_onoff(uint8_t groupid, bool ison);
-void gpio_set_normalized_group_value(uint8_t groupid, uint16_t state);
+void gpio_set_normalized_group_value(uint8_t groupid, int16_t val, int16_t min, int16_t max);
 // void gpio_set_gpio_state(uint8_t pin, uint16_t state);
 void gpio_set_moodlight(uint8_t r, uint8_t g, uint8_t b);
 

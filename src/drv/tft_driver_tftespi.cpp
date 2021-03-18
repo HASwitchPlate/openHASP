@@ -28,7 +28,7 @@ void TftEspi::show_info()
 
     if(tftSetup.tft_driver != 0xE9D) // For ePaper displays the size is defined in the sketch
     {
-        LOG_VERBOSE(TAG_TFT, F("Driver     : %s"), halDisplayDriverName().c_str()); // tftSetup.tft_driver);
+        LOG_VERBOSE(TAG_TFT, F("Driver     : %s"), haspTft.get_tft_model()); // tftSetup.tft_driver);
         LOG_VERBOSE(TAG_TFT, F("Resolution : %ix%i"), tftSetup.tft_width, tftSetup.tft_height);
     } else if(tftSetup.tft_driver == 0xE9D)
         LOG_VERBOSE(TAG_TFT, F("Driver = ePaper"));
@@ -228,6 +228,42 @@ bool TftEspi::is_driver_pin(uint8_t pin)
 
     return false;
 }
+
+const char* TftEspi::get_tft_model()
+{
+#if defined(ILI9341_DRIVER)
+    return "ILI9341";
+#elif defined(ST7735_DRIVER)
+    return "ST7735";
+#elif defined(ILI9163_DRIVER)
+    return "ILI9163";
+#elif defined(S6D02A1_DRIVER)
+    return "S6D02A1";
+#elif defined(ST7796_DRIVER)
+    return "ST7796";
+#elif defined(ILI9486_DRIVER)
+    return "ILI9486";
+#elif defined(ILI9481_DRIVER)
+    return "ILI9481";
+#elif defined(ILI9488_DRIVER)
+    return "ILI9488";
+#elif defined(HX8357D_DRIVER)
+    return "HX8357D";
+#elif defined(EPD_DRIVER)
+    return "EPD";
+#elif defined(ST7789_DRIVER)
+    return "ST7789";
+#elif defined(R61581_DRIVER)
+    return "R61581";
+#elif defined(ST7789_2_DRIVER)
+    return "ST7789_2";
+#elif defined(RM68140_DRIVER)
+    return "RM68140";
+#else
+    return "Other";
+#endif
+}
+
 } // namespace dev
 
 dev::TftEspi haspTft;

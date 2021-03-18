@@ -1,7 +1,7 @@
 # HASP - Open Hardware edition
 
 [![GitHub Workflow Status](https://img.shields.io/github/workflow/status/fvanroie/hasp-lvgl/PlatformIO%20CI?label=build%20status&logo=github&logoColor=%23dddddd)](https://github.com/fvanroie/hasp-lvgl/actions?query=workflow%3A%22PlatformIO+CI%22)
-[![GitHub release](https://img.shields.io/github/release/fvanroie/hasp-lvgl.svg)](https://github.com/fvanroie/hasp-lvgl/releases)
+[![GitHub release](https://img.shields.io/github/v/release/fvanroie/hasp-lvgl?include_prereleases)](https://github.com/fvanroie/hasp-lvgl/releases)
 [![GitHub issues](https://img.shields.io/github/issues/fvanroie/hasp-lvgl.svg)](http://github.com/fvanroie/hasp-lvgl/issues)
 [![Discord](https://img.shields.io/discord/538814618106331137?color=%237289DA&label=support&logo=discord&logoColor=white)][6]
 [![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](#Contributing)

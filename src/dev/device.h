@@ -37,7 +37,7 @@ class BaseDevice {
     {
         return "";
     }
-    virtual const char* get_display_driver()
+    virtual const char* get_chip_model()
     {
         return "";
     }

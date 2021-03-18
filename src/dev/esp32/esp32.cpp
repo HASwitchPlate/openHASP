@@ -43,11 +43,34 @@ void Esp32Device::set_hostname(const char* hostname)
 }
 const char* Esp32Device::get_core_version()
 {
-    return ESP.getSdkVersion();
+    return esp_get_idf_version(); // == ESP.getSdkVersion();
 }
-const char* Esp32Device::get_display_driver()
+const char* Esp32Device::get_chip_model()
 {
-    return Utilities::tft_driver_name().c_str();
+    esp_chip_info_t chip_info;
+    esp_chip_info(&chip_info);
+
+    //  model = chip_info.cores;
+    //  model += F("core ");
+    switch(chip_info.model) {
+        case CHIP_ESP32:
+            return "ESP32";
+
+#ifdef CHIP_ESP32S2
+        case CHIP_ESP32S2:
+            return "ESP32-S2";
+#endif
+
+#ifdef CHIP_ESP32S3
+        case CHIP_ESP32S3:
+            return "ESP32-S3";
+#endif
+
+        default:
+            return "Unknown ESP32";
+    }
+    // model += F(" rev");
+    // model += chip_info.revision;
 }
 
 void Esp32Device::set_backlight_pin(uint8_t pin)
