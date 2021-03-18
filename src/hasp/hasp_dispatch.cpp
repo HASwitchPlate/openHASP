@@ -250,8 +250,13 @@ void dispatch_command(const char* topic, const char* payload)
     /* =============================== Not standard payload commands ===================================== */
 
     if(strlen(topic) == 7 && topic == strstr_P(topic, PSTR("output"))) {
-        int16_t state = atoi(payload);
-        dispatch_normalized_group_value(atoi(topic + 6), NULL, state, 0, 1); // + 6 => trim 'output' from the topic
+
+        if(strlen(payload) == 0) {
+            // reply state
+        } else {
+            int16_t state = atoi(payload);
+            dispatch_normalized_group_value(atoi(topic + 6), NULL, state, 0, 1); // + 6 => trim 'output' from the topic
+        }
 
         // } else if(strcasecmp_P(topic, PSTR("screenshot")) == 0) {
         //     guiTakeScreenshot("/screenshot.bmp"); // Literal String
@@ -270,7 +275,7 @@ void dispatch_command(const char* topic, const char* payload)
 
 #if HASP_USE_MQTT > 0
     } else if(!strcmp_P(topic, PSTR("mqtthost")) || !strcmp_P(topic, PSTR("mqttport")) ||
-              !strcmp_P(topic, PSTR("mqttport")) || !strcmp_P(topic, PSTR("mqttuser")) ||
+              !strcmp_P(topic, PSTR("mqttuser")) || !strcmp_P(topic, PSTR("mqttpass")) ||
               !strcmp_P(topic, PSTR("hostname"))) {
         // char item[5];
         // memset(item, 0, sizeof(item));
@@ -665,7 +670,7 @@ static inline void dispatch_state_msg(const __FlashStringHelper* subtopic, const
 //     if(groupid >= 0) {
 //         bool state = dispatch_get_event_state(eventid);
 //         gpio_set_group_onoff(groupid, state);
-//         object_set_group_state(groupid, eventid, obj);
+//         object_set_normalized_group_value(groupid, eventid, obj);
 //     }
 
 //     char payload[8];
@@ -677,7 +682,7 @@ static inline void dispatch_state_msg(const __FlashStringHelper* subtopic, const
 // {
 //     if(groupid >= 0) {
 //         gpio_set_group_value(groupid, state);
-//         object_set_group_state(groupid, state, obj);
+//         object_set_normalized_group_value(groupid, state, obj);
 //     }
 
 //     char payload[8];
@@ -686,13 +691,13 @@ static inline void dispatch_state_msg(const __FlashStringHelper* subtopic, const
 
 void dispatch_normalized_group_value(uint8_t groupid, lv_obj_t* obj, int16_t val, int16_t min, int16_t max)
 {
-    if(groupid > 0) {
-        LOG_VERBOSE(TAG_MSGR, F("GROUP %d value %d (%d-%d)"), groupid, val, min, max);
+    if(groupid == 0) return;
+
+    LOG_VERBOSE(TAG_MSGR, F("GROUP %d value %d (%d-%d)"), groupid, val, min, max);
 #if HASP_USE_GPIO > 0
-        gpio_set_normalized_group_value(groupid, val, min, max);
+    gpio_set_normalized_group_value(groupid, val, min, max); // Update GPIO states
 #endif
-        //  object_set_group_state(groupid, value, obj);
-    }
+    object_set_normalized_group_value(groupid, obj, val, min, max); // Update onsreen objects
 }
 
 /********************************************** Native Commands ****************************************/

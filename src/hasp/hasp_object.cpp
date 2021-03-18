@@ -581,7 +581,7 @@ void object_set_group_value(lv_obj_t* parent, uint8_t groupid, int16_t intval)
 }
 
 // TODO make this a recursive function that goes over all objects only ONCE
-void object_set_group_state(uint8_t groupid, lv_obj_t* src_obj, int16_t val, int16_t min, int16_t max)
+void object_set_normalized_group_value(uint8_t groupid, lv_obj_t* src_obj, int16_t val, int16_t min, int16_t max)
 {
     if(groupid == 0) return;
     if(min == max) return;

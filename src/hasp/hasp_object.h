@@ -76,7 +76,7 @@ void hasp_send_obj_attribute_int(lv_obj_t* obj, const char* attribute, int32_t v
 void hasp_send_obj_attribute_color(lv_obj_t* obj, const char* attribute, lv_color_t color);
 void hasp_process_attribute(uint8_t pageid, uint8_t objid, const char* attr, const char* payload);
 
-void object_set_group_state(uint8_t groupid, lv_obj_t* src_obj, int16_t val, int16_t min, int16_t max);
+void object_set_normalized_group_value(uint8_t groupid, lv_obj_t* src_obj, int16_t val, int16_t min, int16_t max);
 
 void generic_event_handler(lv_obj_t* obj, lv_event_t event);
 void toggle_event_handler(lv_obj_t* obj, lv_event_t event);
