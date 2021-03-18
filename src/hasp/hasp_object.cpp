@@ -364,7 +364,6 @@ void generic_event_handler(lv_obj_t* obj, lv_event_t event)
             return;
     }
 
-<<<<<<< HEAD
     hasp_update_sleep_state(); // wakeup?
 
     /* If an actionid is attached, perform that action on UP event only */
@@ -377,12 +376,8 @@ void generic_event_handler(lv_obj_t* obj, lv_event_t event)
     } else {
         dispatch_object_generic_event(obj, eventid); // send object event
     }
-    dispatch_normalized_group_value(obj->user_data.groupid, NORMALIZE(dispatch_get_event_state(eventid), 0, 1), obj);
-    == == == = hasp_update_sleep_state();        // wakeup?
-    dispatch_object_generic_event(obj, eventid); // send object event
     dispatch_normalized_group_value(obj->user_data.groupid, obj, dispatch_get_event_state(eventid), HASP_EVENT_OFF,
                                     HASP_EVENT_ON);
->>>>>>> 0.4.0-dev
 }
 
 /**
@@ -602,7 +597,7 @@ void object_set_normalized_group_value(uint8_t groupid, lv_obj_t* src_obj, int16
     if(min == max) return;
 
     for(uint8_t page = 0; page < HASP_NUM_PAGES; page++) {
-        object_set_group_value(get_page_obj(page), groupid, val);
+        object_set_group_value(haspPages.get_obj(page), groupid, val);
         // uint8_t startid = 1;
         // for(uint8_t objid = startid; objid < 20; objid++) {
         //     lv_obj_t* obj = hasp_find_obj_from_parent_id(get_page_obj(page), objid);

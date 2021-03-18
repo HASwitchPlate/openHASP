@@ -92,13 +92,8 @@ lv_style_t style_mbox_bg; /*Black bg. style with opacity*/
 lv_obj_t* kb;
 // lv_font_t * defaultFont;
 
-<<<<<<< HEAD
-static lv_font_t* haspFonts[4] = {nullptr, LV_THEME_DEFAULT_FONT_NORMAL, LV_THEME_DEFAULT_FONT_SUBTITLE,
-                                  LV_THEME_DEFAULT_FONT_TITLE};
-== == ==                       = lv_obj_t * pages[HASP_NUM_PAGES];
 static lv_font_t* haspFonts[4] = {nullptr, nullptr, nullptr, nullptr};
 uint8_t current_page           = 1;
->>>>>>> 0.4.0-dev
 
 /**
  * Get Font ID
@@ -529,7 +524,7 @@ void haspGetVersion(char* version, size_t len)
 
 void haspClearPage(uint16_t pageid)
 {
-    lv_obj_t* page = get_page_obj(pageid);
+    lv_obj_t* page = haspPages.get_obj(pageid);
     if(!page || (pageid > HASP_NUM_PAGES)) {
         LOG_WARNING(TAG_HASP, F(D_HASP_INVALID_PAGE), pageid);
     } else if(page == lv_layer_sys() /*|| page == lv_layer_top()*/) {
@@ -547,7 +542,7 @@ uint8_t haspGetPage()
 
 void haspSetPage(uint8_t pageid)
 {
-    lv_obj_t* page = get_page_obj(pageid);
+    lv_obj_t* page = haspPages.get_obj(pageid);
     if(!page || pageid == 0 || pageid > HASP_NUM_PAGES) {
         LOG_WARNING(TAG_HASP, F(D_HASP_INVALID_PAGE), pageid);
     } else {
