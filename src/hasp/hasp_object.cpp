@@ -546,24 +546,7 @@ static void cpicker_event_handler(lv_obj_t* obj, lv_event_t event)
 
 // ##################### State Changers ########################################################
 
-// TODO make this a recursive function that goes over all objects only ONCE
-void object_set_group_state(uint8_t groupid, uint8_t eventid, lv_obj_t* src_obj)
-{
-    if(groupid == 0) return;
-    bool state = dispatch_get_event_state(eventid);
-
-    for(uint8_t page = 0; page < HASP_NUM_PAGES; page++) {
-        uint8_t startid = 1;
-        for(uint8_t objid = startid; objid < 20; objid++) {
-            lv_obj_t* obj = hasp_find_obj_from_parent_id(get_page_obj(page), objid);
-            if(obj && obj != src_obj && obj->user_data.groupid == groupid) { // skip source object, if set
-                lv_obj_set_state(obj, state ? LV_STATE_PRESSED | LV_STATE_CHECKED : LV_STATE_DEFAULT);
-            }
-        }
-    }
-}
-
-void object_set_group_value(lv_obj_t* parent, uint8_t groupid, const char* payload)
+void object_set_group_value(lv_obj_t* parent, uint8_t groupid, int16_t intval)
 {
     if(groupid == 0 || parent == nullptr) return;
 
@@ -571,10 +554,10 @@ void object_set_group_value(lv_obj_t* parent, uint8_t groupid, const char* paylo
     child = lv_obj_get_child(parent, NULL);
     while(child) {
         /* child found, update it */
-        if(groupid == child->user_data.groupid) hasp_process_obj_attribute_val(child, NULL, payload, true);
+        if(groupid == child->user_data.groupid) hasp_process_obj_attribute_val(child, NULL, intval, intval, true);
 
         /* update grandchildren */
-        object_set_group_value(child, groupid, payload);
+        object_set_group_value(child, groupid, intval);
 
         /* check tabs */
         if(check_obj_type(child, LV_HASP_TABVIEW)) {
@@ -584,10 +567,10 @@ void object_set_group_value(lv_obj_t* parent, uint8_t groupid, const char* paylo
                 lv_obj_t* tab = lv_tabview_get_tab(child, i);
                 LOG_VERBOSE(TAG_HASP, F("Found tab %i"), i);
                 if(tab->user_data.groupid && groupid == tab->user_data.groupid)
-                    hasp_process_obj_attribute_val(tab, NULL, payload, true); /* tab found, update it */
+                    hasp_process_obj_attribute_val(tab, NULL, intval, intval, true); /* tab found, update it */
 
                 /* check grandchildren */
-                object_set_group_value(tab, groupid, payload);
+                object_set_group_value(tab, groupid, intval);
             }
             //#endif
         }
@@ -597,10 +580,30 @@ void object_set_group_value(lv_obj_t* parent, uint8_t groupid, const char* paylo
     }
 }
 
-void object_set_group_value(uint8_t groupid, int16_t state)
+// TODO make this a recursive function that goes over all objects only ONCE
+void object_set_group_state(uint8_t groupid, lv_obj_t* src_obj, int16_t val, int16_t min, int16_t max)
 {
-    char payload[16];
-    itoa(state, payload, DEC);
+    if(groupid == 0) return;
+    if(min == max) return;
+
+    for(uint8_t page = 0; page < HASP_NUM_PAGES; page++) {
+        object_set_group_value(get_page_obj(page), groupid, val);
+        // uint8_t startid = 1;
+        // for(uint8_t objid = startid; objid < 20; objid++) {
+        //     lv_obj_t* obj = hasp_find_obj_from_parent_id(get_page_obj(page), objid);
+        //     if(obj && obj != src_obj && obj->user_data.groupid == groupid) { // skip source object, if set
+        //         LOG_VERBOSE(TAG_HASP, F("Found p%db%d in group %d"), page, objid, groupid);
+        //         lv_obj_set_state(obj, val > 0 ? LV_STATE_PRESSED | LV_STATE_CHECKED : LV_STATE_DEFAULT);
+        //         switch(obj->user_data.objid) {
+        //             case HASP_OBJ_ARC:
+        //             case HASP_OBJ_SLIDER:
+        //             case HASP_OBJ_CHECKBOX:
+        //                 hasp_process_obj_attribute_val();
+        //             default:
+        //         }
+        //     }
+        // }
+    }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
