@@ -93,8 +93,7 @@ lv_obj_t* kb;
 // lv_font_t * defaultFont;
 
 lv_obj_t* pages[HASP_NUM_PAGES];
-static lv_font_t* haspFonts[4] = {LV_THEME_DEFAULT_FONT_SMALL, LV_THEME_DEFAULT_FONT_NORMAL,
-                                  LV_THEME_DEFAULT_FONT_SUBTITLE, LV_THEME_DEFAULT_FONT_TITLE};
+static lv_font_t* haspFonts[4] = {nullptr, nullptr, nullptr, nullptr};
 uint8_t current_page           = 1;
 
 /**
@@ -363,12 +362,13 @@ void haspSetup(void)
 
     /* ********** Font Initializations ********** */
 
-    LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, &robotocondensed_regular_16_nokern);
     LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, nullptr);
     LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, haspFonts[1]);
+    // LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, &robotocondensed_regular_16_nokern);
 
 #if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
 #if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
+
     lv_font_t* hasp_font = nullptr; // required or font init will crash
     lv_zifont_init();
 
@@ -381,7 +381,7 @@ void haspSetup(void)
         haspFonts[0] = hasp_font; // save it
     }
 
-    LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, robotocondensed_regular_16_nokern);
+    //  LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, robotocondensed_regular_16_nokern);
     LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, *hasp_font);
 
 #endif

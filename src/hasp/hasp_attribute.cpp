@@ -454,7 +454,7 @@ static lv_font_t* haspPayloadToFont(const char* payload)
 
     switch(var) {
         case 0 ... 7:
-            LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, robotocondensed_regular_12_nokern);
+            // LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, robotocondensed_regular_12_nokern);
             return hasp_get_font(var);
 
         case 8:
