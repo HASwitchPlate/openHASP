@@ -75,10 +75,6 @@ void networkLoop(void)
     httpLoop();
 #endif // HTTP
 
-#if HASP_USE_GPIO > 0
-    gpioLoop();
-#endif // GPIO
-
 #if HASP_USE_OTA > 0
     otaLoop();
 #endif // OTA

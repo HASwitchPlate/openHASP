@@ -116,6 +116,10 @@ void loop()
     haspLoop();
     networkLoop();
 
+#if HASP_USE_GPIO > 0
+    gpioLoop();
+#endif // GPIO
+
 #if HASP_USE_MQTT > 0
     mqttLoop();
 #endif // MQTT

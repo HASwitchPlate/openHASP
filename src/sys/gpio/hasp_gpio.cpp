@@ -288,11 +288,11 @@ void gpio_set_normalized_value(hasp_gpio_config_t gpio, int16_t val, int16_t min
 
     switch(gpio.type) {
         case HASP_GPIO_RELAY:
-            gpio.val = map(val, min, max, 0, 1) ? HIGH : LOW;
+            gpio.val = val > min ? HIGH : LOW;
             digitalWrite(gpio.pin, gpio.val);
             break;
         case HASP_GPIO_RELAY_INVERTED:
-            gpio.val = map(val, min, max, 0, 1) ? LOW : HIGH;
+            gpio.val = val > min ? LOW : HIGH;
             digitalWrite(gpio.pin, gpio.val);
             break;
         case HASP_GPIO_LED:
