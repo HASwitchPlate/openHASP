@@ -75,7 +75,7 @@ const char MIT_LICENSE[] PROGMEM = "</br>MIT License</p>";
 const char HTTP_DOCTYPE[] PROGMEM = "<!DOCTYPE html><html lang=\"en\"><head><meta charset='utf-8'><meta "
                                     "name=\"viewport\" content=\"width=device-width,initial-scale=1,"
                                     "user-scalable=no\"/>";
-const char HTTP_META_GO_BACK[] PROGMEM = "<meta http-equiv='refresh' content='15;url=/'/>";
+const char HTTP_META_GO_BACK[] PROGMEM = "<meta http-equiv='refresh' content='10;url=/'/>";
 const char HTTP_HEADER[] PROGMEM       = "<title>%s</title>";
 const char HTTP_STYLE[] PROGMEM =
     "<style>"
@@ -85,7 +85,7 @@ const char HTTP_STYLE[] PROGMEM =
     "input[type=checkbox],input[type=radio]{width:1em;}"
     "input:invalid{border:1px solid red;}"
     //"#hue{width:100%;}"
-    "body{font-family:verdana;width:60%;margin:auto;}"
+    "body{font-family:verdana;width:60%;margin:auto;background:#252525;}"
     "button{border:0;border-radius:0.6rem;background-color:#0af;color:#eee;line-height:2.4rem;font-size:1.2rem;"
     "width:100%;}"
     //".q{float:right;width:64px;text-align:right;}"
@@ -99,7 +99,7 @@ const char HTTP_SCRIPT[] PROGMEM = "<script>function "
                                    "c(l){document.getElementById('s').value=l.innerText||l.textContent;document."
                                    "getElementById('p').focus();}</script>";
 const char HTTP_HEADER_END[] PROGMEM =
-    "</head><body><div style='text-align:left;display:inline-block;min-width:260px;'>";
+    "</head><body><div style='text-align:left;display:inline-block;color:#eaeaea;min-width:260px;'>";
 const char HTTP_END[] PROGMEM = "<div style='text-align:right;font-size:11px;'><hr/><a href='/about' "
                                 "style='color:#aaa;'>HASP ";
 const char HTTP_FOOTER[] PROGMEM = " by Francis Van Roie</div></body></html>";
