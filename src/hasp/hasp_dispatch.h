@@ -62,6 +62,7 @@ void dispatch_reboot(bool saveConfig);
 void dispatch_output_idle_state(uint8_t state);
 void dispatch_output_statusupdate(const char*, const char*);
 void dispatch_current_state();
+void dispatch_output_current_page();
 
 void dispatch_gpio_input_event(uint8_t pin, uint8_t group, uint8_t eventid);
 bool dispatch_get_event_state(uint8_t eventid);

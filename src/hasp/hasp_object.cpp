@@ -370,11 +370,19 @@ void generic_event_handler(lv_obj_t* obj, lv_event_t event)
     if(obj->user_data.actionid) {
         if(eventid == HASP_EVENT_UP || eventid == HASP_EVENT_SHORT) {
             lv_scr_load_anim_t transitionid = (lv_scr_load_anim_t)obj->user_data.transitionid;
-            haspPages.set(obj->user_data.actionid, transitionid);
-            dispatch_set_page(obj->user_data.actionid, transitionid);
+            if(obj->user_data.actionid == HASP_NUM_PAGES + 1) {
+                haspPages.prev(transitionid);
+            } else if(obj->user_data.actionid == HASP_NUM_PAGES + 2) {
+                haspPages.back(transitionid);
+            } else if(obj->user_data.actionid == HASP_NUM_PAGES + 3) {
+                haspPages.next(transitionid);
+            } else {
+                haspPages.set(obj->user_data.actionid, transitionid);
+            }
+            dispatch_output_current_page();
         }
     } else {
-        dispatch_object_generic_event(obj, eventid); // send object event
+        dispatch_object_generic_event(obj, eventid); // send normal object event
     }
     dispatch_normalized_group_value(obj->user_data.groupid, obj, dispatch_get_event_state(eventid), HASP_EVENT_OFF,
                                     HASP_EVENT_ON);
@@ -670,7 +678,7 @@ void hasp_new_object(const JsonObject& config, uint8_t& saved_page_id)
     /* Page selection */
     uint8_t pageid = saved_page_id;
     if(!config[FPSTR(FP_PAGE)].isNull()) {
-        config[FPSTR(FP_PAGE)].as<uint8_t>();
+        pageid = config[FPSTR(FP_PAGE)].as<uint8_t>();
         config.remove(FPSTR(FP_PAGE));
     }
 
