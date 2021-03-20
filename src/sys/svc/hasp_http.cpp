@@ -1605,7 +1605,7 @@ void webHandleDebugConfig()
         httpMessage += getOption(7488, F("74880"), baudrate == 7488);
         httpMessage += getOption(11520, F("115200"), baudrate == 11520);
         httpMessage += F("</select></p><p><b>Telemetry Period</b> <i><small>(Seconds, 0=disable)</small></i> "
-                         "<input id='teleperiod' required name='teleperiod' type='number' min='0' max='65535' value='");
+                         "<input id='tele' required name='tele' type='number' min='0' max='65535' value='");
         httpMessage += settings[FPSTR(FP_DEBUG_TELEPERIOD)].as<String>();
         httpMessage += F("'></p>");
 
