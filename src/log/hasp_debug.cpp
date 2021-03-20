@@ -95,7 +95,7 @@ extern bool debugAnsiCodes;
 ConsoleInput debugConsole(&Serial, HASP_CONSOLE_BUFFER);
 
 unsigned long debugLastMillis = 0;
-uint16_t debugTelePeriod      = 300;
+extern dispatch_conf_t dispatch_setings;
 
 // #if HASP_USE_SYSLOG > 0
 // void syslogSend(uint8_t priority, const char * debugText)
@@ -158,8 +158,8 @@ bool debugGetConfig(const JsonObject& settings)
     if(debugSerialBaud != settings[FPSTR(FP_CONFIG_BAUD)].as<uint16_t>()) changed = true;
     settings[FPSTR(FP_CONFIG_BAUD)] = debugSerialBaud;
 
-    if(debugTelePeriod != settings[FPSTR(FP_DEBUG_TELEPERIOD)].as<uint16_t>()) changed = true;
-    settings[FPSTR(FP_DEBUG_TELEPERIOD)] = debugTelePeriod;
+    if(dispatch_setings.teleperiod != settings[FPSTR(FP_DEBUG_TELEPERIOD)].as<uint16_t>()) changed = true;
+    settings[FPSTR(FP_DEBUG_TELEPERIOD)] = dispatch_setings.teleperiod;
 
 #if HASP_USE_SYSLOG > 0
     if(strcmp(debugSyslogHost, settings[FPSTR(FP_CONFIG_HOST)].as<String>().c_str()) != 0) changed = true;
@@ -196,7 +196,7 @@ bool debugSetConfig(const JsonObject& settings)
     changed |= configSet(debugSerialBaud, settings[FPSTR(FP_CONFIG_BAUD)], F("debugSerialBaud"));
 
     /* Teleperiod Settings*/
-    changed |= configSet(debugTelePeriod, settings[FPSTR(FP_DEBUG_TELEPERIOD)], F("debugTelePeriod"));
+    changed |= configSet(dispatch_setings.teleperiod, settings[FPSTR(FP_DEBUG_TELEPERIOD)], F("debugTelePeriod"));
 
 /* Syslog Settings*/
 #if HASP_USE_SYSLOG > 0
@@ -353,6 +353,7 @@ void debugLoop(void)
         }
     } while(keypress != 0);
 }
+
 void printLocalTime()
 {
     char buffer[128];
