@@ -19,8 +19,6 @@
 #include "dev/device.h"
 #endif
 
-#define NORMALIZE(a, b, c) map(a, b, c, 0, 0xFFFFU)
-
 #ifdef __cplusplus
 extern "C" {
 #endif
