@@ -19,6 +19,7 @@ class Esp8266Device : public BaseDevice {
         _hostname        = "plate";
         _backlight_power = 1;
         _backlight_level = 100;
+        _core_version    = ESP.getCoreVersion().c_str();
 #ifdef TFT_BCKL
         _backlight_pin = TFT_BCKL;
 #else
@@ -49,6 +50,7 @@ class Esp8266Device : public BaseDevice {
 
   private:
     std::string _hostname;
+    std::string _core_version;
 
     uint8_t _backlight_pin;
     uint8_t _backlight_level;
