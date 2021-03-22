@@ -39,7 +39,7 @@ void Esp8266Device::set_hostname(const char* hostname)
 
 const char* Esp8266Device::get_core_version()
 {
-    return ESP.getCoreVersion().c_str();
+    return _core_version.c_str();
 }
 
 const char* Esp8266Device::get_chip_model()

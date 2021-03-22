@@ -1050,10 +1050,10 @@ void dispatch_output_statusupdate(const char*, const char*)
                    (HASP_NUM_PAGES));
         strcat(data, buffer);
 
-#if defined(ARDUINO_ARCH_ESP8266)
-        snprintf_P(buffer, sizeof(buffer), PSTR("\"espVcc\":%.2f,"), (float)ESP.getVcc() / 1000);
-        strcat(data, buffer);
-#endif
+// #if defined(ARDUINO_ARCH_ESP8266)
+//         snprintf_P(buffer, sizeof(buffer), PSTR("\"espVcc\":%.2f,"), (float)ESP.getVcc() / 1000);
+//         strcat(data, buffer);
+// #endif
 
         snprintf_P(buffer, sizeof(buffer), PSTR("\"tftDriver\":\"%s\",\"tftWidth\":%u,\"tftHeight\":%u}"),
                    haspTft.get_tft_model(), (TFT_WIDTH), (TFT_HEIGHT));
