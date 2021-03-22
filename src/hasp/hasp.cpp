@@ -326,7 +326,7 @@ void haspSetup(void)
     /* ********** Font Initializations ********** */
 
     LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, nullptr);
-    LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, haspFonts[1]);
+    LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, haspFonts[0]);
     // LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, &robotocondensed_regular_16_nokern);
 
 #if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
@@ -338,7 +338,7 @@ void haspSetup(void)
     // WARNING: hasp_font needs to be null !
     if(lv_zifont_font_init(&hasp_font, haspZiFontPath, 32) != 0) {
         LOG_ERROR(TAG_HASP, F("Failed to set font to %s"), haspZiFontPath);
-        haspFonts[1] = LV_FONT_DEFAULT;
+        haspFonts[0] = LV_THEME_DEFAULT_FONT_SMALL;
     } else {
         // defaultFont = haspFonts[0];
         haspFonts[0] = hasp_font; // save it
@@ -351,7 +351,7 @@ void haspSetup(void)
 #endif
 
     if(haspFonts[0] == nullptr) haspFonts[0] = LV_THEME_DEFAULT_FONT_SMALL;
-    // if(haspFonts[1] == nullptr) haspFonts[1] = LV_THEME_DEFAULT_FONT_NORMAL;
+    if(haspFonts[1] == nullptr) haspFonts[1] = LV_THEME_DEFAULT_FONT_NORMAL;
     if(haspFonts[2] == nullptr) haspFonts[2] = LV_THEME_DEFAULT_FONT_SUBTITLE;
     if(haspFonts[3] == nullptr) haspFonts[3] = LV_THEME_DEFAULT_FONT_TITLE;
 
