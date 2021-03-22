@@ -1323,7 +1323,7 @@ static void hasp_process_obj_attribute_range(lv_obj_t* obj, const char* attr, co
     if(check_obj_type(obj, LV_HASP_SLIDER)) {
         int16_t min = lv_slider_get_min_value(obj);
         int16_t max = lv_slider_get_max_value(obj);
-        if(update && (set_min ? val : min) >= (set_max ? val : max)) return; // prevent setting min>=max
+        if(update && (set_min ? val : min) == (set_max ? val : max)) return; // prevent setting min=max
         return update ? lv_slider_set_range(obj, set_min ? val : min, set_max ? val : max)
                       : hasp_out_int(obj, attr, set_min ? min : max);
     }
@@ -1331,7 +1331,7 @@ static void hasp_process_obj_attribute_range(lv_obj_t* obj, const char* attr, co
     if(check_obj_type(obj, LV_HASP_GAUGE)) {
         int32_t min = lv_gauge_get_min_value(obj);
         int32_t max = lv_gauge_get_max_value(obj);
-        if(update && (set_min ? val32 : min) >= (set_max ? val32 : max)) return; // prevent setting min>=max
+        if(update && (set_min ? val32 : min) == (set_max ? val32 : max)) return; // prevent setting min=max
         return update ? lv_gauge_set_range(obj, set_min ? val32 : min, set_max ? val32 : max)
                       : hasp_out_int(obj, attr, set_min ? min : max);
     }
@@ -1339,7 +1339,7 @@ static void hasp_process_obj_attribute_range(lv_obj_t* obj, const char* attr, co
     if(check_obj_type(obj, LV_HASP_ARC)) {
         int16_t min = lv_arc_get_min_value(obj);
         int16_t max = lv_arc_get_max_value(obj);
-        if(update && (set_min ? val : min) >= (set_max ? val : max)) return; // prevent setting min>=max
+        if(update && (set_min ? val : min) == (set_max ? val : max)) return; // prevent setting min=max
         return update ? lv_arc_set_range(obj, set_min ? val : min, set_max ? val : max)
                       : hasp_out_int(obj, attr, set_min ? min : max);
     }
@@ -1347,7 +1347,7 @@ static void hasp_process_obj_attribute_range(lv_obj_t* obj, const char* attr, co
     if(check_obj_type(obj, LV_HASP_BAR)) {
         int16_t min = lv_bar_get_min_value(obj);
         int16_t max = lv_bar_get_max_value(obj);
-        if(update && (set_min ? val : min) >= (set_max ? val : max)) return; // prevent setting min>=max
+        if(update && (set_min ? val : min) == (set_max ? val : max)) return; // prevent setting min=max
         return update ? lv_bar_set_range(obj, set_min ? val : min, set_max ? val : max)
                       : hasp_out_int(obj, attr, set_min ? min : max);
     }
@@ -1355,7 +1355,7 @@ static void hasp_process_obj_attribute_range(lv_obj_t* obj, const char* attr, co
     if(check_obj_type(obj, LV_HASP_LMETER)) {
         int32_t min = lv_linemeter_get_min_value(obj);
         int32_t max = lv_linemeter_get_max_value(obj);
-        if(update && (set_min ? val32 : min) >= (set_max ? val32 : max)) return; // prevent setting min>=max
+        if(update && (set_min ? val32 : min) == (set_max ? val32 : max)) return; // prevent setting min=max
         return update ? lv_linemeter_set_range(obj, set_min ? val32 : min, set_max ? val32 : max)
                       : hasp_out_int(obj, attr, set_min ? min : max);
     }
@@ -1363,7 +1363,7 @@ static void hasp_process_obj_attribute_range(lv_obj_t* obj, const char* attr, co
     if(check_obj_type(obj, LV_HASP_CHART)) {
         int16_t min = my_chart_get_min_value(obj);
         int16_t max = my_chart_get_max_value(obj);
-        if(update && (set_min ? val : min) >= (set_max ? val : max)) return; // prevent setting min>=max
+        if(update && (set_min ? val : min) == (set_max ? val : max)) return; // prevent setting min=max
         return update ? lv_chart_set_range(obj, set_min ? val : min, set_max ? val : max)
                       : hasp_out_int(obj, attr, set_min ? min : max);
     }
