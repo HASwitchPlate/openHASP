@@ -24,6 +24,10 @@
 
 #include "hasplib.h"
 
+#define HASP_NUM_PAGE_PREV (HASP_NUM_PAGES + 1)
+#define HASP_NUM_PAGE_BACK (HASP_NUM_PAGES + 2)
+#define HASP_NUM_PAGE_NEXT (HASP_NUM_PAGES + 3)
+
 const char** btnmatrix_default_map; // memory pointer to lvgl default btnmatrix map
 // static unsigned long last_change_event = 0;
 static bool last_press_was_short = false; // Avoid SHORT + UP double events
@@ -370,14 +374,18 @@ void generic_event_handler(lv_obj_t* obj, lv_event_t event)
     if(obj->user_data.actionid) {
         if(eventid == HASP_EVENT_UP || eventid == HASP_EVENT_SHORT) {
             lv_scr_load_anim_t transitionid = (lv_scr_load_anim_t)obj->user_data.transitionid;
-            if(obj->user_data.actionid == HASP_NUM_PAGES + 1) {
-                haspPages.prev(transitionid);
-            } else if(obj->user_data.actionid == HASP_NUM_PAGES + 2) {
-                haspPages.back(transitionid);
-            } else if(obj->user_data.actionid == HASP_NUM_PAGES + 3) {
-                haspPages.next(transitionid);
-            } else {
-                haspPages.set(obj->user_data.actionid, transitionid);
+            switch(obj->user_data.actionid) {
+                case HASP_NUM_PAGE_PREV:
+                    haspPages.prev(transitionid);
+                    break;
+                case HASP_NUM_PAGE_BACK:
+                    haspPages.back(transitionid);
+                    break;
+                case HASP_NUM_PAGE_NEXT:
+                    haspPages.next(transitionid);
+                    break;
+                default:
+                    haspPages.set(obj->user_data.actionid, transitionid);
             }
             dispatch_output_current_page();
         }
