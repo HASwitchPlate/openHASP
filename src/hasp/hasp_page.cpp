@@ -55,8 +55,10 @@ void Page::set(uint8_t pageid, lv_scr_load_anim_t animation)
         LOG_WARNING(TAG_HASP, F(D_HASP_INVALID_PAGE), pageid);
     } else {
         LOG_TRACE(TAG_HASP, F(D_HASP_CHANGE_PAGE), pageid);
-        _current_page = pageid;
-        lv_scr_load_anim(page, animation, 500, 0, false);
+        if(_current_page != pageid) {
+            _current_page = pageid;
+            lv_scr_load_anim(page, animation, 500, 0, false);
+        }
         hasp_object_tree(page, pageid, 0);
     }
 }
