@@ -63,8 +63,8 @@ def copy_merge_bins(source, target, env):
                         stderr=subprocess.PIPE)
     stdout, stderr = process.communicate()
     stdout, stderr
-    print(stdout)
-    print(stderr)
+    print(stdout.decode("utf-8") )
+    print(stderr.decode("utf-8") )
 
 def copy_ota(source, target, env):
     version = 'v' + str(HASP_VER_MAJ) + '.' + str(HASP_VER_MIN) + '.' + str(HASP_VER_REV)
