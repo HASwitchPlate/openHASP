@@ -32,6 +32,7 @@
 #endif
 
 #include "hasplib.h"
+#include "hasp.h"
 #include "lv_theme_hasp.h"
 
 #include "dev/device.h"
@@ -74,7 +75,6 @@ LV_IMG_DECLARE(img_bubble_pattern)
 /**********************
  *   GLOBAL FUNCTIONS
  **********************/
-void haspLoadPage(const char* pages);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 uint8_t hasp_sleep_state       = HASP_SLEEP_OFF; // Used in hasp_drv_touch.cpp
@@ -92,7 +92,6 @@ lv_style_t style_mbox_bg; /*Black bg. style with opacity*/
 lv_obj_t* kb;
 // lv_font_t * defaultFont;
 
-lv_obj_t* pages[HASP_NUM_PAGES];
 static lv_font_t* haspFonts[4] = {nullptr, nullptr, nullptr, nullptr};
 uint8_t current_page           = 1;
 
@@ -176,42 +175,6 @@ void haspEverySecond()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/**
- * Get Page Object by PageID
- */
-lv_obj_t* get_page_obj(uint8_t pageid)
-{
-    if(pageid == 0) return lv_layer_top(); // 254
-    if(pageid == 255) return lv_layer_sys();
-    if(pageid > sizeof pages / sizeof *pages) return NULL; // >=0
-    return pages[pageid - PAGE_START_INDEX];
-}
-
-bool get_page_id(lv_obj_t* obj, uint8_t* pageid)
-{
-    lv_obj_t* page = lv_obj_get_screen(obj);
-
-    if(!page) return false;
-
-    if(page == lv_layer_top()) {
-        *pageid = 0; // 254
-        return true;
-    }
-    if(page == lv_layer_sys()) {
-        *pageid = 255;
-        return true;
-    }
-
-    for(uint8_t i = 0; i < sizeof pages / sizeof *pages; i++) {
-        if(page == pages[i]) {
-            *pageid = i + PAGE_START_INDEX;
-            return true;
-        }
-    }
-    return false;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void haspDisconnect()
 {
@@ -256,7 +219,7 @@ void haspReconnect()
 void haspProgressVal(uint8_t val)
 {
     lv_obj_t* layer = lv_disp_get_layer_sys(NULL);
-    lv_obj_t* bar   = hasp_find_obj_from_parent_id(get_page_obj(255), (uint8_t)10);
+    lv_obj_t* bar   = hasp_find_obj_from_parent_id(haspPages.get_obj(255), (uint8_t)10);
     if(layer && bar) {
         if(val == 255) {
             if(!lv_obj_get_hidden(bar)) {
@@ -285,7 +248,7 @@ void haspProgressVal(uint8_t val)
 // Sets the value string of the global progress bar
 void haspProgressMsg(const char* msg)
 {
-    lv_obj_t* bar = hasp_find_obj_from_parent_id(get_page_obj(255), (uint8_t)10);
+    lv_obj_t* bar = hasp_find_obj_from_parent_id(haspPages.get_obj(255), (uint8_t)10);
 
     if(bar) {
         char value_str[10];
@@ -363,7 +326,7 @@ void haspSetup(void)
     /* ********** Font Initializations ********** */
 
     LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, nullptr);
-    LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, haspFonts[1]);
+    LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, haspFonts[0]);
     // LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, &robotocondensed_regular_16_nokern);
 
 #if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
@@ -375,7 +338,7 @@ void haspSetup(void)
     // WARNING: hasp_font needs to be null !
     if(lv_zifont_font_init(&hasp_font, haspZiFontPath, 32) != 0) {
         LOG_ERROR(TAG_HASP, F("Failed to set font to %s"), haspZiFontPath);
-        haspFonts[1] = LV_FONT_DEFAULT;
+        haspFonts[0] = LV_THEME_DEFAULT_FONT_SMALL;
     } else {
         // defaultFont = haspFonts[0];
         haspFonts[0] = hasp_font; // save it
@@ -388,7 +351,7 @@ void haspSetup(void)
 #endif
 
     if(haspFonts[0] == nullptr) haspFonts[0] = LV_THEME_DEFAULT_FONT_SMALL;
-    // if(haspFonts[1] == nullptr) haspFonts[1] = LV_THEME_DEFAULT_FONT_NORMAL;
+    if(haspFonts[1] == nullptr) haspFonts[1] = LV_THEME_DEFAULT_FONT_NORMAL;
     if(haspFonts[2] == nullptr) haspFonts[2] = LV_THEME_DEFAULT_FONT_SUBTITLE;
     if(haspFonts[3] == nullptr) haspFonts[3] = LV_THEME_DEFAULT_FONT_TITLE;
 
@@ -482,9 +445,6 @@ void haspSetup(void)
     }
 
     /* Create all screens using the theme */
-    for(int i = 0; i < (sizeof pages / sizeof *pages); i++) {
-        pages[i] = lv_obj_create(NULL, NULL);
-    }
 
 #if HASP_USE_WIFI > 0
     if(!wifiShowAP()) {
@@ -492,8 +452,9 @@ void haspSetup(void)
     }
 #endif
 
-    haspLoadPage(haspPagesPath);
-    haspSetPage(haspStartPage);
+    haspPages.init(haspStartPage);
+    haspPages.load_jsonl(haspPagesPath);
+    haspPages.set(haspStartPage, LV_SCR_LOAD_ANIM_NONE);
 }
 
 /**********************
@@ -563,7 +524,7 @@ void haspGetVersion(char* version, size_t len)
 
 void haspClearPage(uint16_t pageid)
 {
-    lv_obj_t* page = get_page_obj(pageid);
+    lv_obj_t* page = haspPages.get_obj(pageid);
     if(!page || (pageid > HASP_NUM_PAGES)) {
         LOG_WARNING(TAG_HASP, F(D_HASP_INVALID_PAGE), pageid);
     } else if(page == lv_layer_sys() /*|| page == lv_layer_top()*/) {
@@ -581,7 +542,7 @@ uint8_t haspGetPage()
 
 void haspSetPage(uint8_t pageid)
 {
-    lv_obj_t* page = get_page_obj(pageid);
+    lv_obj_t* page = haspPages.get_obj(pageid);
     if(!page || pageid == 0 || pageid > HASP_NUM_PAGES) {
         LOG_WARNING(TAG_HASP, F(D_HASP_INVALID_PAGE), pageid);
     } else {

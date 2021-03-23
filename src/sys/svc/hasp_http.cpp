@@ -14,12 +14,14 @@
 #include "dev/device.h"
 
 #include "hasp_gui.h"
-#include "hal/hasp_hal.h"
+#include "hasp/hasp_dispatch.h"
 #include "hasp_debug.h"
 #include "hasp_config.h"
+#include "hal/hasp_hal.h"
 
 #include "hasp/hasp_utilities.h"
 #include "hasp/hasp_dispatch.h"
+#include "hasp/hasp_page.h"
 #include "hasp/hasp.h"
 
 #if HASP_USE_HTTP > 0
@@ -374,9 +376,11 @@ void webHandleScreenshot()
 
     if(webServer.hasArg(F("a"))) {
         if(webServer.arg(F("a")) == F("next")) {
-            dispatch_page_next();
+            dispatch_page_next(LV_SCR_LOAD_ANIM_NONE);
         } else if(webServer.arg(F("a")) == F("prev")) {
-            dispatch_page_prev();
+            dispatch_page_prev(LV_SCR_LOAD_ANIM_NONE);
+        } else if(webServer.arg(F("a")) == F("back")) {
+            dispatch_page_back(LV_SCR_LOAD_ANIM_NONE);
         }
     }
 
@@ -559,7 +563,7 @@ void webHandleInfo()
         // String(LV_HASP_VER_RES_MAX); httpMessage += F("<br/><b>LCD Version: </b>")) +
         // String(lcdVersion);
         httpMessage += F("</p/><p><b>LCD Active Page: </b>");
-        httpMessage += String(haspGetPage());
+        httpMessage += String(haspPages.get());
 
         /* Wifi Stats */
 #if HASP_USE_WIFI > 0
@@ -1601,7 +1605,7 @@ void webHandleDebugConfig()
         httpMessage += getOption(7488, F("74880"), baudrate == 7488);
         httpMessage += getOption(11520, F("115200"), baudrate == 11520);
         httpMessage += F("</select></p><p><b>Telemetry Period</b> <i><small>(Seconds, 0=disable)</small></i> "
-                         "<input id='teleperiod' required name='teleperiod' type='number' min='0' max='65535' value='");
+                         "<input id='tele' required name='tele' type='number' min='0' max='65535' value='");
         httpMessage += settings[FPSTR(FP_DEBUG_TELEPERIOD)].as<String>();
         httpMessage += F("'></p>");
 
@@ -1967,7 +1971,7 @@ void httpSetup()
     webServer.on(F("/page/"), []() {
         String pageid = webServer.arg(F("page"));
         webServer.send(200, PSTR("text/plain"), "Page: '" + pageid + "'");
-        haspSetPage(pageid.toInt());
+        dispatch_set_page(pageid.toInt(), LV_SCR_LOAD_ANIM_NONE);
     });
 
 #if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0

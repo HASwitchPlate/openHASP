@@ -518,9 +518,11 @@ typedef void* lv_font_user_data_t;
 
  /*Declare the type of the user data of object (can be e.g. `void *`, `int`, `struct`)*/
 typedef struct {
+  uint8_t id:8;
   uint8_t objid:8;
-  uint8_t groupid:8;
-  uint8_t id;
+  uint8_t transitionid:4;
+  uint8_t actionid:4;
+  uint8_t groupid:4;
 } lv_obj_user_data_t;
 
 /*1: enable `lv_obj_realaign()` based on `lv_obj_align()` parameters*/

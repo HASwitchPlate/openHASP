@@ -92,7 +92,7 @@
 #define D_OTA_CHECK_UPDATE "Checking updates URL: %s"
 #define D_OTA_CHECK_COMPLETE "Update check complete"
 #define D_OTA_CHECK_FAILED "Update check failed: %s"
-#define D_OTA_UPDATE_FIRMWARE "OTA Update firmware"
+#define D_OTA_UPDATE_FIRMWARE "OTA Firmware Update"
 #define D_OTA_UPDATE_COMPLETE "OTA Update complete"
 #define D_OTA_UPDATE_APPLY "Applying Firmware & Reboot"
 #define D_OTA_UPDATE_FAILED "OTA Update failed"
