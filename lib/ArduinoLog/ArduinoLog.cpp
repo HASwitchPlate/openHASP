@@ -29,85 +29,87 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE  OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#include "ArduinoLog.h"
+#ifdef ARDUINO
+
+    #include "ArduinoLog.h"
 
 void Logging::begin(int level, bool showLevel)
 {
-#ifndef DISABLE_LOGGING
+    #ifndef DISABLE_LOGGING
     setLevel(0, level);
     setLevel(1, level);
     setLevel(2, level);
     setShowLevel(0, showLevel);
-#endif
+    #endif
 }
 
 void Logging::registerOutput(uint8_t slot, Print * logOutput, int level, bool showLevel)
 {
-#ifndef DISABLE_LOGGING
+    #ifndef DISABLE_LOGGING
     if(slot >= 3) return;
     setLevel(slot, level);
     setShowLevel(slot, showLevel);
     _logOutput[slot] = logOutput;
-#endif
+    #endif
 }
 
 void Logging::unregisterOutput(uint8_t slot)
 {
-#ifndef DISABLE_LOGGING
+    #ifndef DISABLE_LOGGING
     if(slot >= 3) return;
     _logOutput[slot] = NULL;
-#endif
+    #endif
 }
 
 void Logging::setLevel(uint8_t slot, int level)
 {
-#ifndef DISABLE_LOGGING
+    #ifndef DISABLE_LOGGING
     _level[slot] = constrain(level, LOG_LEVEL_SILENT, LOG_LEVEL_OUTPUT);
-#endif
+    #endif
 }
 
 int Logging::getLevel(uint8_t slot) const
 {
-#ifndef DISABLE_LOGGING
+    #ifndef DISABLE_LOGGING
     return _level[slot];
-#else
+    #else
     return 0;
-#endif
+    #endif
 }
 
 void Logging::setShowLevel(uint8_t slot, bool showLevel)
 {
-#ifndef DISABLE_LOGGING
+    #ifndef DISABLE_LOGGING
     _showLevel[slot] = showLevel;
-#endif
+    #endif
 }
 
 bool Logging::getShowLevel(uint8_t slot) const
 {
-#ifndef DISABLE_LOGGING
+    #ifndef DISABLE_LOGGING
     return _showLevel[slot];
-#else
+    #else
     return false;
-#endif
+    #endif
 }
 
 void Logging::setPrefix(printfunction f)
 {
-#ifndef DISABLE_LOGGING
+    #ifndef DISABLE_LOGGING
     _prefix = f;
-#endif
+    #endif
 }
 
 void Logging::setSuffix(printfunction f)
 {
-#ifndef DISABLE_LOGGING
+    #ifndef DISABLE_LOGGING
     _suffix = f;
-#endif
+    #endif
 }
 
 void Logging::print(Print * logOutput, const __FlashStringHelper * format, va_list args)
 {
-#ifndef DISABLE_LOGGING
+    #ifndef DISABLE_LOGGING
     PGM_P p = reinterpret_cast<PGM_P>(format);
     char c  = pgm_read_byte(p++);
     for(; c != 0; c = pgm_read_byte(p++)) {
@@ -118,12 +120,12 @@ void Logging::print(Print * logOutput, const __FlashStringHelper * format, va_li
             logOutput->print(c);
         }
     }
-#endif
+    #endif
 }
 
 void Logging::print(Print * logOutput, const char * format, va_list args)
 {
-#ifndef DISABLE_LOGGING
+    #ifndef DISABLE_LOGGING
     for(; *format != 0; ++format) {
         if(*format == '%') {
             ++format;
@@ -132,12 +134,12 @@ void Logging::print(Print * logOutput, const char * format, va_list args)
             logOutput->print(*format);
         }
     }
-#endif
+    #endif
 }
 
 void Logging::printFormat(Print * logOutput, const char format, va_list * args)
 {
-#ifndef DISABLE_LOGGING
+    #ifndef DISABLE_LOGGING
     if(format == '%') {
         logOutput->print(format);
     } else if(format == 's') {
@@ -179,7 +181,9 @@ void Logging::printFormat(Print * logOutput, const char format, va_list * args)
             logOutput->print(F("false"));
         }
     }
-#endif
+    #endif
 }
 
 Logging Log = Logging();
+
+#endif // ARDUINO

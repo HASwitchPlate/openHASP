@@ -1,4 +1,4 @@
-/* MIT License - Copyright (c) 2020 Francis Van Roie
+/* MIT License - Copyright (c) 2019-2021 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
 #ifndef HASP_ATTR_SET_H
@@ -6,7 +6,7 @@
 
 #include "lvgl.h"
 #if LVGL_VERSION_MAJOR != 7
-    #include "../lv_components.h"
+#include "../lv_components.h"
 #endif
 
 #include "hasp_conf.h"
@@ -18,16 +18,14 @@ extern "C" {
 #endif
 
 // test
-lv_chart_series_t * my_chart_get_series(lv_obj_t * chart, uint8_t ser_num);
-void my_obj_set_value_str_txt(lv_obj_t * obj, uint8_t part, lv_state_t state, const char * text);
+lv_chart_series_t* my_chart_get_series(lv_obj_t* chart, uint8_t ser_num);
+void my_obj_set_value_str_txt(lv_obj_t* obj, uint8_t part, lv_state_t state, const char* text);
 
-void my_btnmatrix_map_clear(lv_obj_t * obj);
-void line_clear_points(lv_obj_t * obj);
+void my_btnmatrix_map_clear(lv_obj_t* obj);
+void line_clear_points(lv_obj_t* obj);
 
-void hasp_process_obj_attribute(lv_obj_t * obj, const char * attr_p, const char * payload, bool update);
-bool hasp_process_obj_attribute_val(lv_obj_t * obj, const char * attr, const char * payload, bool update);
-
-bool haspPayloadToColor(const char * payload, lv_color32_t & color);
+void hasp_process_obj_attribute(lv_obj_t* obj, const char* attr_p, const char* payload, bool update);
+bool hasp_process_obj_attribute_val(lv_obj_t* obj, const char* attr, int16_t intval, bool booval, bool update);
 
 #ifdef __cplusplus
 } /* extern "C" */
@@ -39,8 +37,8 @@ bool haspPayloadToColor(const char * payload, lv_color32_t & color);
 #define hasp_out_color hasp_send_obj_attribute_color
 
 #define _HASP_ATTRIBUTE(prop_name, func_name, value_type)                                                              \
-    static inline void attribute_##func_name(lv_obj_t * obj, uint8_t part, lv_state_t state, bool update,              \
-                                             const char * attr, value_type val)                                        \
+    static inline void attribute_##func_name(lv_obj_t* obj, uint8_t part, lv_state_t state, bool update,               \
+                                             const char* attr, value_type val)                                         \
     {                                                                                                                  \
         if(update) {                                                                                                   \
             return lv_obj_set_style_local_##func_name(obj, part, state, (value_type)val);                              \
@@ -57,6 +55,10 @@ _HASP_ATTRIBUTE(SIZE, size, lv_style_int_t)
 _HASP_ATTRIBUTE(TRANSFORM_WIDTH, transform_width, lv_style_int_t)
 _HASP_ATTRIBUTE(TRANSFORM_HEIGHT, transform_height, lv_style_int_t)
 _HASP_ATTRIBUTE(OPA_SCALE, opa_scale, lv_opa_t)
+_HASP_ATTRIBUTE(MARGIN_TOP, margin_top, lv_style_int_t)
+_HASP_ATTRIBUTE(MARGIN_BOTTOM, margin_bottom, lv_style_int_t)
+_HASP_ATTRIBUTE(MARGIN_LEFT, margin_left, lv_style_int_t)
+_HASP_ATTRIBUTE(MARGIN_RIGHT, margin_right, lv_style_int_t)
 _HASP_ATTRIBUTE(PAD_TOP, pad_top, lv_style_int_t)
 _HASP_ATTRIBUTE(PAD_BOTTOM, pad_bottom, lv_style_int_t)
 _HASP_ATTRIBUTE(PAD_LEFT, pad_left, lv_style_int_t)
@@ -161,6 +163,12 @@ _HASP_ATTRIBUTE(SCALE_END_LINE_WIDTH, scale_end_line_width, lv_style_int_t)
 #define ATTR_BG_MAIN_STOP 63118
 #define ATTR_BG_BLEND_MODE 31147
 #define ATTR_BG_GRAD_COLOR 44140
+
+/* Margin Attributes */
+#define ATTR_MARGIN_TOP 7812
+#define ATTR_MARGIN_LEFT 24440
+#define ATTR_MARGIN_BOTTOM 37692
+#define ATTR_MARGIN_RIGHT 2187
 
 /* Padding Attributes */
 #define ATTR_PAD_TOP 59081
@@ -304,75 +312,10 @@ _HASP_ATTRIBUTE(SCALE_END_LINE_WIDTH, scale_end_line_width, lv_style_int_t)
 #define ATTR_MAP 45628
 
 /* hasp user data */
+#define ATTR_ACTION 42102
+#define ATTR_TRANSITION 10933
 #define ATTR_GROUPID 48986
 #define ATTR_OBJID 41010
-
-/* Named COLOR attributes */
-#define ATTR_RED 177
-#define ATTR_TAN 7873
-#define ATTR_AQUA 3452
-#define ATTR_BLUE 37050
-#define ATTR_CYAN 9763
-#define ATTR_GOLD 53440
-#define ATTR_GRAY 64675
-#define ATTR_GREY 64927
-#define ATTR_LIME 34741
-#define ATTR_NAVY 44918
-#define ATTR_PERU 36344
-#define ATTR_PINK 51958
-#define ATTR_PLUM 64308
-#define ATTR_SNOW 35587
-#define ATTR_TEAL 52412
-#define ATTR_AZURE 44239
-#define ATTR_BEIGE 12132
-#define ATTR_BLACK 26527
-#define ATTR_BLUSH 41376
-#define ATTR_BROWN 10774
-#define ATTR_CORAL 16369
-#define ATTR_GREEN 26019
-#define ATTR_IVORY 1257
-#define ATTR_KHAKI 32162
-#define ATTR_LINEN 30074
-#define ATTR_OLIVE 47963
-#define ATTR_WHEAT 11591
-#define ATTR_WHITE 28649
-#define ATTR_BISQUE 60533
-#define ATTR_INDIGO 46482
-#define ATTR_MAROON 12528
-#define ATTR_ORANGE 21582
-#define ATTR_ORCHID 39235
-#define ATTR_PURPLE 53116
-#define ATTR_SALMON 29934
-#define ATTR_SIENNA 50930
-#define ATTR_SILVER 62989
-#define ATTR_TOMATO 8234
-#define ATTR_VIOLET 61695
-#define ATTR_YELLOW 10484
-#define ATTR_FUCHSIA 5463
-#define ATTR_MAGENTA 49385
-
-struct hasp_color_t
-{
-    uint16_t hash;
-    uint8_t r, g, b;
-};
-
-/* Named COLOR lookup table */
-const hasp_color_t haspNamedColors[] PROGMEM = {
-    {ATTR_RED, 0xFF, 0x00, 0x00},    {ATTR_TAN, 0xD2, 0xB4, 0x8C},     {ATTR_AQUA, 0x00, 0xFF, 0xFF},
-    {ATTR_BLUE, 0x00, 0x00, 0xFF},   {ATTR_CYAN, 0x00, 0xFF, 0xFF},    {ATTR_GOLD, 0xFF, 0xD7, 0x00},
-    {ATTR_GRAY, 0x80, 0x80, 0x80},   {ATTR_GREY, 0x80, 0x80, 0x80},    {ATTR_LIME, 0x00, 0xFF, 0x00},
-    {ATTR_NAVY, 0x00, 0x00, 0x80},   {ATTR_PERU, 0xCD, 0x85, 0x3F},    {ATTR_PINK, 0xFF, 0xC0, 0xCB},
-    {ATTR_PLUM, 0xDD, 0xA0, 0xDD},   {ATTR_SNOW, 0xFF, 0xFA, 0xFA},    {ATTR_TEAL, 0x00, 0x80, 0x80},
-    {ATTR_AZURE, 0xF0, 0xFF, 0xFF},  {ATTR_BEIGE, 0xF5, 0xF5, 0xDC},   {ATTR_BLACK, 0x00, 0x00, 0x00},
-    {ATTR_BLUSH, 0xB0, 0x00, 0x00},  {ATTR_BROWN, 0xA5, 0x2A, 0x2A},   {ATTR_CORAL, 0xFF, 0x7F, 0x50},
-    {ATTR_GREEN, 0x00, 0x80, 0x00},  {ATTR_IVORY, 0xFF, 0xFF, 0xF0},   {ATTR_KHAKI, 0xF0, 0xE6, 0x8C},
-    {ATTR_LINEN, 0xFA, 0xF0, 0xE6},  {ATTR_OLIVE, 0x80, 0x80, 0x00},   {ATTR_WHEAT, 0xF5, 0xDE, 0xB3},
-    {ATTR_WHITE, 0xFF, 0xFF, 0xFF},  {ATTR_BISQUE, 0xFF, 0xE4, 0xC4},  {ATTR_INDIGO, 0x4B, 0x00, 0x82},
-    {ATTR_MAROON, 0x80, 0x00, 0x00}, {ATTR_ORANGE, 0xFF, 0xA5, 0x00},  {ATTR_ORCHID, 0xDA, 0x70, 0xD6},
-    {ATTR_PURPLE, 0x80, 0x00, 0x80}, {ATTR_SALMON, 0xFA, 0x80, 0x72},  {ATTR_SIENNA, 0xA0, 0x52, 0x2D},
-    {ATTR_SILVER, 0xC0, 0xC0, 0xC0}, {ATTR_TOMATO, 0xFF, 0x63, 0x47},  {ATTR_VIOLET, 0xEE, 0x82, 0xEE},
-    {ATTR_YELLOW, 0xFF, 0xFF, 0x00}, {ATTR_FUCHSIA, 0xFF, 0x00, 0xFF}, {ATTR_MAGENTA, 0xFF, 0x00, 0xFF},
-};
+#define ATTR_OBJ 53623
 
 #endif

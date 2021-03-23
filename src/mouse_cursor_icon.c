@@ -1,4 +1,3 @@
-#include "Arduino.h"
 #include "lvgl.h"
 
 #if 1

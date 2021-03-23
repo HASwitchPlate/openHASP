@@ -1,71 +1,117 @@
-/* MIT License - Copyright (c) 2020 Francis Van Roie
+/* MIT License - Copyright (c) 2019-2021 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
-#include "ArduinoLog.h"
-#include "hasp_conf.h"
+#include <stdint.h>
 
-#include "hasp_dispatch.h"
-#include "hasp_object.h"
-#include "hasp.h"
-#include "hasp_utilities.h"
-#include "hasp_attribute.h"
+//#include "ArduinoLog.h"
+#include "hasplib.h"
+
+#include "dev/device.h"
+#include "drv/tft_driver.h"
+
+//#include "hasp_gui.h"
 
 #if HASP_USE_DEBUG > 0
-    #include "StringStream.h"
-    #include "CharStream.h"
+#include "../hasp_debug.h"
+#include "hasp_gui.h" // for screenshot
 
-    #include "hasp_debug.h"
-    #include "hasp_gui.h"
-    #include "hasp_oobe.h"
-    #include "hasp_gpio.h"
-    #include "hasp_hal.h"
-
-    #include "svc/hasp_ota.h"
-    #include "svc/hasp_mqtt.h"
-    #include "net/hasp_network.h" // for network_get_status()
+#if defined(WINDOWS) || defined(POSIX)
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include "../mqtt/hasp_mqtt.h"
 #else
-    #include <iostream>
-    #include <sstream>
+#include "StringStream.h"
+#include "CharStream.h"
+
+#include "hasp_oobe.h"
+#include "sys/gpio/hasp_gpio.h"
+#include "hal/hasp_hal.h"
+
+#include "sys/svc/hasp_ota.h"
+#include "mqtt/hasp_mqtt.h"
+#include "sys/net/hasp_network.h" // for network_get_status()
+#endif
 #endif
 
 #if HASP_USE_CONFIG > 0
-    #include "hasp_config.h"
+#include "hasp_config.h"
 #endif
 
-extern unsigned long debugLastMillis; // UpdateStatus timer
 extern uint8_t hasp_sleep_state;
 
+dispatch_conf_t dispatch_setings = {.teleperiod = 10};
+
+uint32_t dispatchLastMillis;
 uint8_t nCommands = 0;
-haspCommand_t commands[17];
+haspCommand_t commands[18];
 
 struct moodlight_t
 {
-    byte power;
-    byte r, g, b;
+    uint8_t power;
+    uint8_t r, g, b;
 };
 moodlight_t moodlight;
 
-static void dispatch_config(const char * topic, const char * payload);
+static void dispatch_config(const char* topic, const char* payload);
 // void dispatch_group_value(uint8_t groupid, int16_t state, lv_obj_t * obj);
-static inline void dispatch_state_msg(const __FlashStringHelper * subtopic, const char * payload);
 
-void dispatch_screenshot(const char *, const char * filename)
+/* Sends the payload out on the state/subtopic
+ */
+void dispatch_state_subtopic(const char* subtopic, const char* payload)
 {
-#if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
-
-    if(strlen(filename) == 0) { // no filename given
-        char tempfile[32];
-        memcpy_P(tempfile, PSTR("/screenshot.bmp"), sizeof(tempfile));
-        guiTakeScreenshot(tempfile);
-    } else if(strlen(filename) > 31 || filename[0] != '/') { // Invalid filename
-        LOG_WARNING(TAG_MSGR, "Invalid filename %s", filename);
-    } else { // Valid filename
-        guiTakeScreenshot(filename);
-    }
-
+#if !defined(HASP_USE_MQTT) && !defined(HASP_USE_TASMOTA_CLIENT)
+    LOG_TRACE(TAG_MSGR, F("%s => %s"), subtopic, payload);
 #else
-    LOG_WARNING(TAG_MSGR, "Failed to save %s, no storage", filename);
+
+#if HASP_USE_MQTT > 0
+    switch(mqtt_send_state(subtopic, payload)) {
+        case MQTT_ERR_OK:
+            LOG_TRACE(TAG_MQTT_PUB, F("%s => %s"), subtopic, payload);
+            break;
+        case MQTT_ERR_PUB_FAIL:
+            LOG_ERROR(TAG_MQTT_PUB, F(D_MQTT_FAILED " %s => %s"), subtopic, payload);
+            break;
+        case MQTT_ERR_NO_CONN:
+            LOG_ERROR(TAG_MQTT, F(D_MQTT_NOT_CONNECTED));
+            break;
+        default:
+            LOG_ERROR(TAG_MQTT, F(D_ERROR_UNKNOWN));
+    }
 #endif
+
+#if HASP_USE_TASMOTA_CLIENT > 0
+    slave_send_state(subtopic, payload);
+#endif
+
+#endif
+}
+
+/* Sends the data out on the state/pxby topic
+ */
+void dispatch_state_object(uint8_t pageid, uint8_t btnid, const char* payload)
+{
+    char topic[16];
+    snprintf_P(topic, sizeof(topic), PSTR(HASP_OBJECT_NOTATION), pageid, btnid);
+    dispatch_state_subtopic(topic, payload);
+}
+
+/* Takes and lv_obj and finds the pageid and objid
+   Then sends the data out on the state/pxby topic
+*/
+void dispatch_obj_data(lv_obj_t* obj, const char* data)
+{
+    uint8_t pageid;
+    uint8_t objid;
+
+    if(hasp_find_id_from_obj(obj, &pageid, &objid)) {
+        if(!data) return;
+#if HASP_USE_MQTT > 0
+        dispatch_state_object(pageid, objid, data);
+#endif
+    } else {
+        LOG_ERROR(TAG_MSGR, F(D_OBJECT_UNKNOWN));
+    }
 }
 
 // Format filesystem and erase EEPROM
@@ -85,16 +131,16 @@ bool dispatch_factory_reset()
     return formated && erased;
 }
 
-void dispatch_json_error(uint8_t tag, DeserializationError & jsonError)
+void dispatch_json_error(uint8_t tag, DeserializationError& jsonError)
 {
     LOG_ERROR(tag, F(D_JSON_FAILED " %s"), jsonError.c_str());
 }
 
 // p[x].b[y].attr=value
-static inline bool dispatch_parse_button_attribute(const char * topic_p, const char * payload)
+static inline bool dispatch_parse_button_attribute(const char* topic_p, const char* payload)
 {
     long num;
-    char * pEnd;
+    char* pEnd;
     uint8_t pageid, objid;
 
     if(*topic_p != 'p' && *topic_p != 'P') return false; // obligated p
@@ -188,7 +234,7 @@ static inline bool dispatch_parse_button_attribute(const char * topic_p, const c
 }
 
 // objectattribute=value
-void dispatch_command(const char * topic, const char * payload)
+void dispatch_command(const char* topic, const char* payload)
 {
     /* ================================= Standard payload commands ======================================= */
 
@@ -204,8 +250,13 @@ void dispatch_command(const char * topic, const char * payload)
     /* =============================== Not standard payload commands ===================================== */
 
     if(strlen(topic) == 7 && topic == strstr_P(topic, PSTR("output"))) {
-        int16_t state = atoi(payload);
-        dispatch_normalized_group_value(atoi(topic + 6), state, NULL); // + 6 => trim 'output' from the topic
+
+        if(strlen(payload) == 0) {
+            // reply state
+        } else {
+            int16_t state = atoi(payload);
+            dispatch_normalized_group_value(atoi(topic + 6), NULL, state, 0, 1); // + 6 => trim 'output' from the topic
+        }
 
         // } else if(strcasecmp_P(topic, PSTR("screenshot")) == 0) {
         //     guiTakeScreenshot("/screenshot.bmp"); // Literal String
@@ -215,16 +266,16 @@ void dispatch_command(const char * topic, const char * payload)
 
 #if HASP_USE_CONFIG > 0
 
-    #if HASP_USE_WIFI > 0
+#if HASP_USE_WIFI > 0
     } else if(!strcmp_P(topic, FP_CONFIG_SSID) || !strcmp_P(topic, FP_CONFIG_PASS)) {
         StaticJsonDocument<64> settings;
         settings[topic] = payload;
         wifiSetConfig(settings.as<JsonObject>());
-    #endif // HASP_USE_WIFI
+#endif // HASP_USE_WIFI
 
-    #if HASP_USE_MQTT > 0
+#if HASP_USE_MQTT > 0
     } else if(!strcmp_P(topic, PSTR("mqtthost")) || !strcmp_P(topic, PSTR("mqttport")) ||
-              !strcmp_P(topic, PSTR("mqttport")) || !strcmp_P(topic, PSTR("mqttuser")) ||
+              !strcmp_P(topic, PSTR("mqttuser")) || !strcmp_P(topic, PSTR("mqttpass")) ||
               !strcmp_P(topic, PSTR("hostname"))) {
         // char item[5];
         // memset(item, 0, sizeof(item));
@@ -233,7 +284,7 @@ void dispatch_command(const char * topic, const char * payload)
         StaticJsonDocument<64> settings;
         settings[topic + 4] = payload;
         mqttSetConfig(settings.as<JsonObject>());
-    #endif // HASP_USE_MQTT
+#endif // HASP_USE_MQTT
 
 #endif // HASP_USE_CONFIG
 
@@ -246,34 +297,34 @@ void dispatch_command(const char * topic, const char * payload)
 }
 
 // Strip command/config prefix from the topic and process the payload
-void dispatch_topic_payload(const char * topic, const char * payload)
+void dispatch_topic_payload(const char* topic, const char* payload)
 {
     // LOG_VERBOSE(TAG_MSGR,F("TOPIC: short topic: %s"), topic);
 
     if(!strcmp_P(topic, PSTR("command"))) {
-        dispatch_text_line((char *)payload);
+        dispatch_text_line((char*)payload);
         return;
     }
 
     if(topic == strstr_P(topic, PSTR("command/"))) { // startsWith command/
         topic += 8u;
-        dispatch_command(topic, (char *)payload);
+        dispatch_command(topic, (char*)payload);
         return;
     }
 
 #if HASP_USE_CONFIG > 0
     if(topic == strstr_P(topic, PSTR("config/"))) { // startsWith command/
         topic += 7u;
-        dispatch_config(topic, (char *)payload);
+        dispatch_config(topic, (char*)payload);
         return;
     }
 #endif
 
-    dispatch_command(topic, (char *)payload); // dispatch as is
+    dispatch_command(topic, (char*)payload); // dispatch as is
 }
 
 // Parse one line of text and execute the command
-void dispatch_text_line(const char * cmnd)
+void dispatch_text_line(const char* cmnd)
 {
     size_t pos1 = std::string(cmnd).find("=");
     size_t pos2 = std::string(cmnd).find(" ");
@@ -312,51 +363,55 @@ void dispatch_text_line(const char * cmnd)
 // send idle state to the client
 void dispatch_output_idle_state(uint8_t state)
 {
+    char topic[6];
     char payload[6];
     switch(state) {
         case HASP_SLEEP_LONG:
-            memcpy_P(payload, PSTR("LONG"), sizeof(payload));
+            memcpy_P(payload, PSTR("long"), 5);
             break;
         case HASP_SLEEP_SHORT:
-            memcpy_P(payload, PSTR("SHORT"), sizeof(payload));
+            memcpy_P(payload, PSTR("short"), 6);
             break;
         default:
-            memcpy_P(payload, PSTR("OFF"), sizeof(payload));
+            memcpy_P(payload, PSTR("off"), 4);
     }
-    dispatch_state_msg(F("idle"), payload);
+    memcpy_P(topic, PSTR("idle"), 5);
+    dispatch_state_subtopic(topic, payload);
 }
 
 void dispatch_output_group_state(uint8_t groupid, uint16_t state)
 {
     char payload[64];
     char number[16]; // Return the current state
+    char topic[8];
     itoa(state, number, DEC);
     snprintf_P(payload, sizeof(payload), PSTR("{\"group\":%d,\"state\":\"%s\"}"), groupid, number);
 
-    dispatch_state_msg(F("output"), payload);
+    memcpy_P(topic, PSTR("output"), 7);
+    dispatch_state_subtopic(topic, payload);
 }
 
-void dispatch_send_obj_attribute_str(uint8_t pageid, uint8_t btnid, const char * attribute, const char * data)
+void dispatch_send_obj_attribute_str(uint8_t pageid, uint8_t btnid, const char* attribute, const char* data)
 {
     if(!attribute || !data) return;
 
     char payload[32 + strlen(data) + strlen(attribute)];
     snprintf_P(payload, sizeof(payload), PSTR("{\"%s\":\"%s\"}"), attribute, data);
 
-    mqtt_send_object_state(pageid, btnid, payload);
+    dispatch_state_object(pageid, btnid, payload);
 }
 
-void dispatch_send_obj_attribute_int(uint8_t pageid, uint8_t btnid, const char * attribute, int32_t val)
+void dispatch_send_obj_attribute_int(uint8_t pageid, uint8_t btnid, const char* attribute, int32_t val)
 {
     if(!attribute) return;
 
     char payload[64 + strlen(attribute)];
     snprintf_P(payload, sizeof(payload), PSTR("{\"%s\":%d}"), attribute, val);
 
-    mqtt_send_object_state(pageid, btnid, payload);
+    dispatch_state_object(pageid, btnid, payload);
 }
 
-void dispatch_send_obj_attribute_color(uint8_t pageid, uint8_t btnid, const char * attribute, uint8_t r, uint8_t g,
+void dispatch_send_obj_attribute_color(uint8_t pageid, uint8_t btnid, const char* attribute, uint8_t r, uint8_t g,
                                        uint8_t b)
 {
     if(!attribute) return;
@@ -365,12 +420,12 @@ void dispatch_send_obj_attribute_color(uint8_t pageid, uint8_t btnid, const char
     snprintf_P(payload, sizeof(payload), PSTR("{\"%s\":\"#%02x%02x%02x\",\"r\":%d,\"g\":%d,\"b\":%d}"), attribute, r, g,
                b, r, g, b);
 
-    mqtt_send_object_state(pageid, btnid, payload);
+    dispatch_state_object(pageid, btnid, payload);
 }
 
 #if HASP_USE_CONFIG > 0
 // Get or Set a part of the config.json file
-static void dispatch_config(const char * topic, const char * payload)
+static void dispatch_config(const char* topic, const char* payload)
 {
     DynamicJsonDocument doc(128 * 2);
     char buffer[128 * 2];
@@ -413,48 +468,60 @@ static void dispatch_config(const char * topic, const char * payload)
             haspGetConfig(settings);
     }
 
-    #if HASP_USE_WIFI > 0
+#if HASP_USE_GPIO > 0
+    else if(strcasecmp_P(topic, PSTR("gpio")) == 0) {
+        if(update)
+            gpioSetConfig(settings);
+        else
+            gpioGetConfig(settings);
+    }
+#endif
+
+#if HASP_USE_WIFI > 0
     else if(strcasecmp_P(topic, PSTR("wifi")) == 0) {
         if(update)
             wifiSetConfig(settings);
         else
             wifiGetConfig(settings);
     }
-        #if HASP_USE_MQTT > 0
+#if HASP_USE_MQTT > 0
     else if(strcasecmp_P(topic, PSTR("mqtt")) == 0) {
         if(update)
             mqttSetConfig(settings);
         else
             mqttGetConfig(settings);
     }
-        #endif
-        #if HASP_USE_TELNET > 0
-            //   else if(strcasecmp_P(topic, PSTR("telnet")) == 0)
-            //       telnetGetConfig(settings[F("telnet")]);
-        #endif
-        #if HASP_USE_MDNS > 0
+#endif
+#if HASP_USE_TELNET > 0
+    //   else if(strcasecmp_P(topic, PSTR("telnet")) == 0)
+    //       telnetGetConfig(settings[F("telnet")]);
+#endif
+#if HASP_USE_MDNS > 0
     else if(strcasecmp_P(topic, PSTR("mdns")) == 0) {
         if(update)
             mdnsSetConfig(settings);
         else
             mdnsGetConfig(settings);
     }
-        #endif
-        #if HASP_USE_HTTP > 0
+#endif
+#if HASP_USE_HTTP > 0
     else if(strcasecmp_P(topic, PSTR("http")) == 0) {
         if(update)
             httpSetConfig(settings);
         else
             httpGetConfig(settings);
     }
-        #endif
-    #endif
+#endif
+#endif
 
     // Send output
     if(!update) {
+        char subtopic[8];
         settings.remove(F("pass")); // hide password in output
+
         size_t size = serializeJson(doc, buffer, sizeof(buffer));
-        dispatch_state_msg(F("config"), buffer);
+        memcpy_P(subtopic, PSTR("config"), 7);
+        dispatch_state_subtopic(subtopic, buffer);
     }
 }
 #endif // HASP_USE_CONFIG
@@ -480,35 +547,38 @@ bool dispatch_get_event_state(uint8_t eventid)
 }
 
 // Map events to their description string
-void dispatch_get_event_name(uint8_t eventid, char * buffer, size_t size)
+void dispatch_get_event_name(uint8_t eventid, char* buffer, size_t size)
 {
     switch(eventid) {
         case HASP_EVENT_ON:
-            memcpy_P(buffer, PSTR("ON"), size);
+            memcpy_P(buffer, PSTR("on"), size);
             break;
         case HASP_EVENT_OFF:
-            memcpy_P(buffer, PSTR("OFF"), size);
+            memcpy_P(buffer, PSTR("off"), size);
             break;
         case HASP_EVENT_UP:
-            memcpy_P(buffer, PSTR("UP"), size);
+            memcpy_P(buffer, PSTR("up"), size);
             break;
         case HASP_EVENT_DOWN:
-            memcpy_P(buffer, PSTR("DOWN"), size);
+            memcpy_P(buffer, PSTR("down"), size);
             break;
         case HASP_EVENT_SHORT:
-            memcpy_P(buffer, PSTR("SHORT"), size);
+            memcpy_P(buffer, PSTR("short"), size);
             break;
         case HASP_EVENT_LONG:
-            memcpy_P(buffer, PSTR("LONG"), size);
+            memcpy_P(buffer, PSTR("long"), size);
             break;
         case HASP_EVENT_HOLD:
-            memcpy_P(buffer, PSTR("HOLD"), size);
+            memcpy_P(buffer, PSTR("hold"), size);
             break;
         case HASP_EVENT_LOST:
-            memcpy_P(buffer, PSTR("LOST"), size);
+            memcpy_P(buffer, PSTR("lost"), size);
+            break;
+        case HASP_EVENT_CHANGED:
+            memcpy_P(buffer, PSTR("changed"), size);
             break;
         default:
-            memcpy_P(buffer, PSTR("UNKNOWN"), size);
+            memcpy_P(buffer, PSTR("unknown"), size);
     }
 }
 
@@ -516,58 +586,82 @@ void dispatch_get_event_name(uint8_t eventid, char * buffer, size_t size)
 void dispatch_gpio_input_event(uint8_t pin, uint8_t group, uint8_t eventid)
 {
     char payload[64];
+    char topic[8];
     char event[8];
     dispatch_get_event_name(eventid, event, sizeof(event));
     snprintf_P(payload, sizeof(payload), PSTR("{\"pin\":%d,\"group\":%d,\"event\":\"%s\"}"), pin, group, event);
 
-    #if HASP_USE_MQTT > 0
-    mqtt_send_state(F("input"), payload);
-    #endif
+#if HASP_USE_MQTT > 0
+    memcpy_P(topic, PSTR("input"), 6);
+    dispatch_state_subtopic(topic, payload);
+#endif
 
     // update outputstates
     // dispatch_group_onoff(group, dispatch_get_event_state(eventid), NULL);
 }
 #endif
 
-void dispatch_object_event(lv_obj_t * obj, uint8_t eventid)
+/* ============================== Event Senders ============================ */
+
+// Send out the event that occured
+void dispatch_object_generic_event(lv_obj_t* obj, uint8_t eventid)
 {
-    char topic[8];
-    char payload[8];
-    uint8_t pageid, objid;
+    char data[40];
+    char eventname[8];
 
-    snprintf_P(topic, sizeof(topic), PSTR("event"));
-    dispatch_get_event_name(eventid, payload, sizeof(payload));
-
-    if(hasp_find_id_from_obj(obj, &pageid, &objid)) {
-        dispatch_send_obj_attribute_str(pageid, objid, topic, payload);
-    }
-
-    //  dispatch_group_onoff(obj->user_data.groupid, dispatch_get_event_state(eventid), obj);
+    dispatch_get_event_name(eventid, eventname, sizeof(eventname));
+    snprintf_P(data, sizeof(data), PSTR("{\"event\":\"%s\"}"), eventname);
+    dispatch_obj_data(obj, data);
 }
 
-void dispatch_object_value_changed(lv_obj_t * obj, int16_t state)
+// Send out the on/off event, with the val
+void dispatch_object_toggle_event(lv_obj_t* obj, bool state)
 {
-    char topic[4];
+    char data[40];
+    char eventname[8];
 
-    hasp_update_sleep_state(); // wakeup?
-    snprintf_P(topic, sizeof(topic), PSTR("val"));
-    hasp_send_obj_attribute_int(obj, topic, state);
+    dispatch_get_event_name(state, eventname, sizeof(eventname));
+    snprintf_P(data, sizeof(data), PSTR("{\"event\":\"%s\",\"val\":%d}"), eventname, state);
+    dispatch_obj_data(obj, data);
+}
+
+// Send out the changed event, with the val
+void dispatch_object_value_changed(lv_obj_t* obj, int16_t state)
+{
+    char data[48];
+
+    snprintf_P(data, sizeof(data), PSTR("{\"event\":\"changed\",\"val\":%d}"), state);
+    dispatch_obj_data(obj, data);
+}
+
+// Send out the changed event, with the val and text
+void dispatch_object_selection_changed(lv_obj_t* obj, int16_t val, const char* text)
+{
+    char data[200];
+
+    snprintf_P(data, sizeof(data), PSTR("{\"event\":\"changed\",\"val\":%d,\"text\":\"%s\"}"), val, text);
+    dispatch_obj_data(obj, data);
+}
+
+// Send out the changed event, with the color
+void dispatch_object_color_changed(lv_obj_t* obj, lv_color_t color)
+{
+    char data[80];
+    lv_color32_t c32;
+    c32.full = lv_color_to32(color);
+
+    snprintf_P(data, sizeof(data),
+               PSTR("{\"event\":\"changed\",\"color\":\"#%02x%02x%02x\",\"r\":%d,\"g\":%d,\"b\":%d}"), c32.ch.red,
+               c32.ch.green, c32.ch.blue, c32.ch.red, c32.ch.green, c32.ch.blue);
+    dispatch_obj_data(obj, data);
 }
 
 /********************************************** Output States ******************************************/
-static inline void dispatch_state_msg(const __FlashStringHelper * subtopic, const char * payload)
+/*
+static inline void dispatch_state_msg(const __FlashStringHelper* subtopic, const char* payload)
 {
-#if !defined(HASP_USE_MQTT) && !defined(HASP_USE_TASMOTA_SLAVE)
-    LOG_TRACE(TAG_MSGR, F("%s => %s"), String(subtopic).c_str(), payload);
-#else
-    #if HASP_USE_MQTT > 0
-    mqtt_send_state(subtopic, payload);
-    #endif
-    #if HASP_USE_TASMOTA_SLAVE > 0
-    slave_send_state(subtopic, payload);
-    #endif
-#endif
-}
+
+}*/
 
 // void dispatch_group_onoff(uint8_t groupid, uint16_t eventid, lv_obj_t * obj)
 // {
@@ -576,7 +670,7 @@ static inline void dispatch_state_msg(const __FlashStringHelper * subtopic, cons
 //     if(groupid >= 0) {
 //         bool state = dispatch_get_event_state(eventid);
 //         gpio_set_group_onoff(groupid, state);
-//         object_set_group_state(groupid, eventid, obj);
+//         object_set_normalized_group_value(groupid, eventid, obj);
 //     }
 
 //     char payload[8];
@@ -588,25 +682,46 @@ static inline void dispatch_state_msg(const __FlashStringHelper * subtopic, cons
 // {
 //     if(groupid >= 0) {
 //         gpio_set_group_value(groupid, state);
-//         object_set_group_state(groupid, state, obj);
+//         object_set_normalized_group_value(groupid, state, obj);
 //     }
 
 //     char payload[8];
 //     // dispatch_output_group_state(groupid, payload);
 // }
 
-void dispatch_normalized_group_value(uint8_t groupid, uint16_t value, lv_obj_t * obj)
+void dispatch_normalized_group_value(uint8_t groupid, lv_obj_t* obj, int16_t val, int16_t min, int16_t max)
 {
-    if(groupid > 0) {
-        LOG_VERBOSE(TAG_MSGR, F("GROUP %d value %d"), groupid, value);
-        gpio_set_normalized_group_value(groupid, value);
-        //  object_set_group_state(groupid, value, obj);
-    }
+    if(groupid == 0) return;
+
+    LOG_VERBOSE(TAG_MSGR, F("GROUP %d value %d (%d-%d)"), groupid, val, min, max);
+#if HASP_USE_GPIO > 0
+    gpio_set_normalized_group_value(groupid, val, min, max); // Update GPIO states
+#endif
+    object_set_normalized_group_value(groupid, obj, val, min, max); // Update onsreen objects
 }
 
 /********************************************** Native Commands ****************************************/
 
-void dispatch_parse_json(const char *, const char * payload)
+void dispatch_screenshot(const char*, const char* filename)
+{
+#if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
+
+    if(strlen(filename) == 0) { // no filename given
+        char tempfile[32];
+        memcpy_P(tempfile, PSTR("/screenshot.bmp"), sizeof(tempfile));
+        guiTakeScreenshot(tempfile);
+    } else if(strlen(filename) > 31 || filename[0] != '/') { // Invalid filename
+        LOG_WARNING(TAG_MSGR, "Invalid filename %s", filename);
+    } else { // Valid filename
+        guiTakeScreenshot(filename);
+    }
+
+#else
+    LOG_WARNING(TAG_MSGR, "Failed to save %s, no storage", filename);
+#endif
+}
+
+void dispatch_parse_json(const char*, const char* payload)
 { // Parse an incoming JSON array into individual commands
     /*  if(strPayload.endsWith(",]")) {
           // Trailing null array elements are an artifact of older Home Assistant automations
@@ -627,40 +742,48 @@ void dispatch_parse_json(const char *, const char * payload)
 
     } else if(json.is<JsonArray>()) { // handle json as an array of commands
         JsonArray arr = json.as<JsonArray>();
-        guiStop();
+        // guiStop();
         for(JsonVariant command : arr) {
-            dispatch_text_line(command.as<String>().c_str());
+            dispatch_text_line(command.as<const char*>());
         }
-        guiStart();
+        // guiStart();
     } else if(json.is<JsonObject>()) { // handle json as a jsonl
-        uint8_t savedPage = haspGetPage();
+        uint8_t savedPage = haspPages.get();
         hasp_new_object(json.as<JsonObject>(), savedPage);
 
-    } else if(json.is<const char *>()) { // handle json as a single command
-        dispatch_text_line(json.as<const char *>());
+        // #ifdef ARDUINO
+        //     } else if(json.is<String>()) { // handle json as a single command
+        //         dispatch_text_line(json.as<String>().c_str());
+        // #else
+    } else if(json.is<std::string>()) { // handle json as a single command
+        dispatch_text_line(json.as<std::string>().c_str());
+        // #endif
 
-    } else if(json.is<char *>()) { // handle json as a single command
-        dispatch_text_line(json.as<char *>());
+    } else if(json.is<const char*>()) { // handle json as a single command
+        dispatch_text_line(json.as<const char*>());
 
-    } else if(json.is<String>()) { // handle json as a single command
-        dispatch_text_line(json.as<String>().c_str());
+    } else if(json.is<char*>()) { // handle json as a single command
+        dispatch_text_line(json.as<char*>());
 
     } else {
         LOG_WARNING(TAG_MSGR, F(D_DISPATCH_COMMAND_NOT_FOUND), payload);
     }
 }
 
-#if HASP_USE_CONFIG > 0
-void dispatch_parse_jsonl(Stream & stream)
+#ifdef ARDUINO
+void dispatch_parse_jsonl(Stream& stream)
 #else
-void dispatch_parse_jsonl(std::istringstream & stream)
+void dispatch_parse_jsonl(std::istream& stream)
 #endif
 {
-    uint8_t savedPage = haspGetPage();
+    uint8_t savedPage = haspPages.get();
     size_t line       = 1;
     DynamicJsonDocument jsonl(MQTT_MAX_PACKET_SIZE / 2 + 128); // max ~256 characters per line
     DeserializationError jsonError = deserializeJson(jsonl, stream);
+
+#ifdef ARDUINO
     stream.setTimeout(25);
+#endif
 
     // guiStop();
     while(jsonError == DeserializationError::Ok) {
@@ -679,92 +802,105 @@ void dispatch_parse_jsonl(std::istringstream & stream)
     }
 }
 
-void dispatch_parse_jsonl(const char *, const char * payload)
+void dispatch_parse_jsonl(const char*, const char* payload)
 {
 #if HASP_USE_CONFIG > 0
-    CharStream stream((char *)payload);
+    CharStream stream((char*)payload);
     // stream.setTimeout(10);
     dispatch_parse_jsonl(stream);
 #else
-    std::istringstream stream((char *)payload);
+    std::istringstream stream((char*)payload);
     dispatch_parse_jsonl(stream);
 #endif
 }
 
 void dispatch_output_current_page()
 {
-    // Log result
-    char payload[4];
-    itoa(haspGetPage(), payload, DEC);
-    dispatch_state_msg(F("page"), payload);
+    char topic[8];
+    char payload[8];
+
+    memcpy_P(topic, PSTR("page"), 5);
+    snprintf_P(payload, sizeof(payload), PSTR("%d"), haspPages.get());
+    dispatch_state_subtopic(topic, payload);
 }
 
-// Get or Set a page
-void dispatch_page(const char *, const char * page)
+// Dispatch Page Get or Set
+void dispatch_page_next(lv_scr_load_anim_t animation)
 {
-    if(strlen(page) > 0) {
-        if(hasp_util_is_only_digits(page)) {
-            uint8_t pageid = atoi(page);
-            haspSetPage(pageid);
-        } else {
-
-            if(!strcasecmp_P(page, PSTR("prev"))) {
-                dispatch_page_prev();
-            } else if(!strcasecmp_P(page, PSTR("next"))) {
-                dispatch_page_next();
-            } else {
-                LOG_WARNING(TAG_MSGR, PSTR(D_DISPATCH_INVALID_PAGE), page);
-            }
-            return;
-        }
-    }
-
+    haspPages.next(animation);
     dispatch_output_current_page();
 }
 
-void dispatch_page_next()
+void dispatch_page_prev(lv_scr_load_anim_t animation)
 {
-    uint8_t page = haspGetPage();
-    if(page >= HASP_NUM_PAGES) {
-        page = 1;
+    haspPages.prev(animation);
+    dispatch_output_current_page();
+}
+
+void dispatch_page_back(lv_scr_load_anim_t animation)
+{
+    haspPages.back(animation);
+    dispatch_output_current_page();
+}
+
+void dispatch_set_page(uint8_t pageid)
+{
+    dispatch_set_page(pageid, LV_SCR_LOAD_ANIM_NONE);
+}
+
+void dispatch_set_page(uint8_t pageid, lv_scr_load_anim_t animation)
+{
+    haspPages.set(pageid, animation);
+    dispatch_output_current_page();
+}
+
+void dispatch_page(const char*, const char* page)
+{
+    if(strlen(page) == 0) {
+        dispatch_output_current_page(); // No payload, send current page
+        return;
+    }
+
+    lv_scr_load_anim_t animation = LV_SCR_LOAD_ANIM_NONE;
+    if(Utilities::is_only_digits(page)) {
+        uint8_t pageid = atoi(page);
+        dispatch_set_page(pageid, animation);
+    } else if(!strcasecmp_P(page, PSTR("prev"))) {
+        dispatch_page_prev(animation);
+    } else if(!strcasecmp_P(page, PSTR("next"))) {
+        dispatch_page_next(animation);
+    } else if(!strcasecmp_P(page, PSTR("back"))) {
+        dispatch_page_back(animation);
     } else {
-        page++;
+        LOG_WARNING(TAG_MSGR, PSTR(D_DISPATCH_INVALID_PAGE), page);
     }
-    haspSetPage(page);
-    dispatch_output_current_page();
-}
-
-void dispatch_page_prev()
-{
-    uint8_t page = haspGetPage();
-    if(page == 1) {
-        page = HASP_NUM_PAGES;
-    } else {
-        page--;
-    }
-    haspSetPage(page);
-    dispatch_output_current_page();
 }
 
 // Clears a page id or the current page if empty
-void dispatch_clear_page(const char *, const char * page)
+void dispatch_clear_page(const char*, const char* page)
 {
-    uint8_t pageid = haspGetPage();
-    if(strlen(page) > 0) pageid = atoi(page);
-    haspClearPage(pageid);
+    uint8_t pageid;
+    if(strlen(page) > 0)
+        pageid = atoi(page);
+    else
+        pageid = haspPages.get();
+    haspPages.clear(pageid);
 }
 
-void dispatch_dim(const char *, const char * level)
+void dispatch_dim(const char*, const char* level)
 {
     // Set the current state
-    if(strlen(level) != 0) guiSetDim(atoi(level));
+    if(strlen(level) != 0) haspDevice.set_backlight_level(atoi(level));
 
-    char payload[5];
-    itoa(guiGetDim(), payload, DEC);
-    dispatch_state_msg(F("dim"), payload);
+    char topic[8];
+    char payload[8];
+
+    memcpy_P(topic, PSTR("dim"), 4);
+    snprintf_P(payload, sizeof(payload), PSTR("%d"), haspDevice.get_backlight_level());
+    dispatch_state_subtopic(topic, payload);
 }
 
-void dispatch_moodlight(const char * topic, const char * payload)
+void dispatch_moodlight(const char* topic, const char* payload)
 {
     // Set the current state
     if(strlen(payload) != 0) {
@@ -781,48 +917,76 @@ void dispatch_moodlight(const char * topic, const char * payload)
             dispatch_json_error(TAG_MSGR, jsonError);
         } else {
 
-            if(!json[F("power")].isNull()) moodlight.power = hasp_util_is_true(json[F("power")].as<String>().c_str());
+            if(!json[F("state")].isNull())
+                moodlight.power = Utilities::is_true(json[F("state")].as<std::string>().c_str());
 
             if(!json[F("r")].isNull()) moodlight.r = json[F("r")].as<uint8_t>();
-            if(!json[F("g")].isNull()) moodlight.r = json[F("g")].as<uint8_t>();
-            if(!json[F("b")].isNull()) moodlight.r = json[F("b")].as<uint8_t>();
+            if(!json[F("g")].isNull()) moodlight.g = json[F("g")].as<uint8_t>();
+            if(!json[F("b")].isNull()) moodlight.b = json[F("b")].as<uint8_t>();
 
             if(!json[F("color")].isNull()) {
-                lv_color32_t color;
-                if(haspPayloadToColor(json[F("color")].as<String>().c_str(), color)) {
-                    moodlight.r = color.ch.red;
-                    moodlight.g = color.ch.green;
-                    moodlight.b = color.ch.blue;
+                if(!json[F("color")]["r"].isNull()) {
+                    moodlight.r = json[F("color")]["r"].as<uint8_t>();
                 }
+                if(!json[F("color")]["g"].isNull()) {
+                    moodlight.g = json[F("color")]["g"].as<uint8_t>();
+                }
+                if(!json[F("color")]["b"].isNull()) {
+                    moodlight.b = json[F("color")]["b"].as<uint8_t>();
+                }
+                // lv_color32_t color;
+                // if(Parser::haspPayloadToColor(json[F("color")].as<const char*>(), color)) {
+                //     moodlight.r = color.ch.red;
+                //     moodlight.g = color.ch.green;
+                //     moodlight.b = color.ch.blue;
+                // }
             }
 
+#if HASP_USE_GPIO > 0
             if(moodlight.power)
                 gpio_set_moodlight(moodlight.r, moodlight.g, moodlight.b);
             else
                 gpio_set_moodlight(0, 0, 0);
+#endif
         }
     }
 
     // Return the current state
     char buffer[128];
-    snprintf_P(buffer, sizeof(buffer),
-               PSTR("{\"power\":\"%u\",\"color\":\"#%02x%02x%02x\",\"r\":%u,\"g\":%u,\"b\":%u}"), moodlight.power,
-               moodlight.r, moodlight.g, moodlight.b, moodlight.r, moodlight.g, moodlight.b);
-    dispatch_state_msg(F("moodlight"), buffer);
+    char out_topic[16];
+    memcpy_P(out_topic, PSTR("moodlight"), 10);
+    snprintf_P(
+        // buffer, sizeof(buffer),
+        // PSTR("{\"state\":\"%s\",\"color\":\"#%02x%02x%02x\",\"r\":%u,\"g\":%u,\"b\":%u}"),
+        buffer, sizeof(buffer), PSTR("{\"state\":\"%s\",\"color\":{\"r\":%u,\"g\":%u,\"b\":%u}}"),
+        moodlight.power ? "ON" : "OFF", moodlight.r, moodlight.g, moodlight.b);
+    dispatch_state_subtopic(out_topic, buffer);
 }
 
-void dispatch_backlight(const char *, const char * payload)
+void dispatch_backlight(const char*, const char* payload)
 {
     // Set the current state
-    if(strlen(payload) != 0) guiSetBacklight(hasp_util_is_true(payload));
+    if(strlen(payload) != 0) {
+        bool power = Utilities::is_true(payload);
+
+        if(haspDevice.get_backlight_power() != power) {
+            haspDevice.set_backlight_power(power);
+            if(power)
+                hasp_disable_wakeup_touch();
+            else
+                hasp_enable_wakeup_touch();
+        }
+    }
 
     // Return the current state
+    char topic[8];
     char buffer[4];
-    memcpy_P(buffer, guiGetBacklight() ? PSTR("ON") : PSTR("OFF"), sizeof(buffer));
-    dispatch_state_msg(F("light"), buffer);
+    memcpy_P(topic, PSTR("light"), 6);
+    memcpy_P(buffer, haspDevice.get_backlight_power() ? PSTR("on") : PSTR("off"), sizeof(buffer));
+    dispatch_state_subtopic(topic, buffer);
 }
 
-void dispatch_web_update(const char *, const char * espOtaUrl)
+void dispatch_web_update(const char*, const char* espOtaUrl)
 {
 #if HASP_USE_OTA > 0
     LOG_TRACE(TAG_MSGR, F(D_OTA_CHECK_UPDATE), espOtaUrl);
@@ -834,9 +998,9 @@ void dispatch_web_update(const char *, const char * espOtaUrl)
 void dispatch_reboot(bool saveConfig)
 {
 #if HASP_USE_CONFIG > 0
-    if(saveConfig) configWriteConfig();
+    if(saveConfig) configWrite();
 #endif
-#if HASP_USE_MQTT > 0
+#if HASP_USE_MQTT > 0 && defined(ARDUINO)
     mqttStop(); // Stop the MQTT Client first
 #endif
 #if HASP_USE_CONFIG > 0
@@ -847,21 +1011,28 @@ void dispatch_reboot(bool saveConfig)
 #endif
     LOG_VERBOSE(TAG_MSGR, F("-------------------------------------"));
     LOG_TRACE(TAG_MSGR, F(D_DISPATCH_REBOOT));
+
+#if defined(WINDOWS) || defined(POSIX)
+    fflush(stdout);
+#else
     Serial.flush();
-    halRestartMcu();
+#endif
+
+    // halRestartMcu();
+    haspDevice.reboot();
 }
 
 void dispatch_current_state()
 {
-    dispatch_output_current_page();
     dispatch_output_statusupdate(NULL, NULL);
     dispatch_output_idle_state(hasp_sleep_state);
+    dispatch_output_current_page();
 }
 
 /******************************************* Command Wrapper Functions *********************************/
 
 // Periodically publish a JSON string indicating system status
-void dispatch_output_statusupdate(const char *, const char *)
+void dispatch_output_statusupdate(const char*, const char*)
 {
 #if HASP_USE_MQTT > 0
 
@@ -872,30 +1043,35 @@ void dispatch_output_statusupdate(const char *, const char *)
         haspGetVersion(buffer, sizeof(buffer));
         snprintf_P(data, sizeof(data),
                    PSTR("{\"node\":\"%s\",\"status\":\"available\",\"version\":\"%s\",\"uptime\":%lu,"),
-                   mqttGetNodename().c_str(), buffer, long(millis() / 1000));
+                   haspDevice.get_hostname(), buffer, long(millis() / 1000));
 
-    #if HASP_USE_WIFI > 0
+#if HASP_USE_WIFI > 0
         network_get_statusupdate(buffer, sizeof(buffer));
         strcat(data, buffer);
-    #endif
-        snprintf_P(buffer, sizeof(buffer), PSTR("\"heapFree\":%u,\"heapFrag\":%u,\"espCore\":\"%s\","),
-                   halGetFreeHeap(), halGetHeapFragmentation(), halGetCoreVersion().c_str());
-        strcat(data, buffer);
-        snprintf_P(buffer, sizeof(buffer), PSTR("\"espCanUpdate\":\"false\",\"page\":%u,\"numPages\":%u,"),
-                   haspGetPage(), (HASP_NUM_PAGES));
+#endif
+
+        snprintf_P(buffer, sizeof(buffer), PSTR("\"heapFree\":%u,\"heapFrag\":%u,\"core\":\"%s\","),
+                   haspDevice.get_free_heap(), haspDevice.get_heap_fragmentation(), haspDevice.get_core_version());
         strcat(data, buffer);
 
-    #if defined(ARDUINO_ARCH_ESP8266)
-        snprintf_P(buffer, sizeof(buffer), PSTR("\"espVcc\":%.2f,"), (float)ESP.getVcc() / 1000);
+        snprintf_P(buffer, sizeof(buffer), PSTR("\"canUpdate\":\"false\",\"page\":%u,\"numPages\":%u,"),
+                   haspPages.get(), haspPages.count());
         strcat(data, buffer);
-    #endif
+
+// #if defined(ARDUINO_ARCH_ESP8266)
+//         snprintf_P(buffer, sizeof(buffer), PSTR("\"espVcc\":%.2f,"), (float)ESP.getVcc() / 1000);
+//         strcat(data, buffer);
+// #endif
 
         snprintf_P(buffer, sizeof(buffer), PSTR("\"tftDriver\":\"%s\",\"tftWidth\":%u,\"tftHeight\":%u}"),
-                   halDisplayDriverName().c_str(), (TFT_WIDTH), (TFT_HEIGHT));
+                   haspTft.get_tft_model(), (TFT_WIDTH), (TFT_HEIGHT));
         strcat(data, buffer);
     }
-    mqtt_send_state(F("statusupdate"), data);
-    debugLastMillis = millis();
+
+    char topic[16];
+    memcpy_P(topic, PSTR("statusupdate"), 13);
+    dispatch_state_subtopic(topic, data);
+    dispatchLastMillis = millis();
 
     /* if(updateEspAvailable) {
             mqttStatusPayload += F("\"updateEspAvailable\":true,");
@@ -907,22 +1083,28 @@ void dispatch_output_statusupdate(const char *, const char *)
 #endif
 }
 
-void dispatch_calibrate(const char * topic = NULL, const char * payload = NULL)
+void dispatch_calibrate(const char* topic = NULL, const char* payload = NULL)
 {
     guiCalibrate();
 }
 
-void dispatch_wakeup(const char *, const char *)
+void dispatch_wakeup(const char*, const char*)
 {
     lv_disp_trig_activity(NULL);
+    hasp_disable_wakeup_touch();
 }
 
-void dispatch_reboot(const char *, const char *)
+void dispatch_sleep(const char*, const char*)
+{
+    hasp_enable_wakeup_touch();
+}
+
+void dispatch_reboot(const char*, const char*)
 {
     dispatch_reboot(true);
 }
 
-void dispatch_factory_reset(const char *, const char *)
+void dispatch_factory_reset(const char*, const char*)
 {
     dispatch_factory_reset();
     delay(500);
@@ -931,7 +1113,7 @@ void dispatch_factory_reset(const char *, const char *)
 
 /******************************************* Commands builder *******************************************/
 
-static void dispatch_add_command(const char * p_cmdstr, void (*func)(const char *, const char *))
+static void dispatch_add_command(const char* p_cmdstr, void (*func)(const char*, const char*))
 {
     if(nCommands >= sizeof(commands) / sizeof(haspCommand_t)) {
         LOG_FATAL(TAG_MSGR, F("CMD_OVERFLOW %d"), nCommands);
@@ -953,6 +1135,7 @@ void dispatchSetup()
     dispatch_add_command(PSTR("json"), dispatch_parse_json);
     dispatch_add_command(PSTR("page"), dispatch_page);
     dispatch_add_command(PSTR("wakeup"), dispatch_wakeup);
+    dispatch_add_command(PSTR("sleep"), dispatch_sleep);
     dispatch_add_command(PSTR("statusupdate"), dispatch_output_statusupdate);
     dispatch_add_command(PSTR("clearpage"), dispatch_clear_page);
     dispatch_add_command(PSTR("jsonl"), dispatch_parse_jsonl);
@@ -974,5 +1157,30 @@ void dispatchSetup()
 
 void dispatchLoop()
 {
-    // Not used
+    lv_task_handler(); // process animations
 }
+
+#if 1 || ARDUINO
+void dispatchEverySecond()
+{
+    if(dispatch_setings.teleperiod > 0 && (millis() - dispatchLastMillis) >= dispatch_setings.teleperiod * 1000) {
+        dispatchLastMillis += dispatch_setings.teleperiod * 1000;
+        dispatch_output_statusupdate(NULL, NULL);
+    }
+}
+#else
+#include <chrono>
+std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+void everySecond()
+{
+    if(dispatch_setings.teleperiod > 0) {
+        std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+        std::chrono::seconds elapsed = std::chrono::duration_cast<std::chrono::seconds>(end - begin);
+
+        if(elapsed.count() >= dispatch_setings.teleperiod) {
+            std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+            dispatch_output_statusupdate(NULL, NULL);
+        }
+    }
+}
+#endif

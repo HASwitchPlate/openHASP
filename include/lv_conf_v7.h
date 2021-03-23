@@ -5,9 +5,9 @@
 
 #if 1 /*Set it to "1" to enable content*/
 
-    #ifndef LV_CONF_H
-        #define LV_CONF_H
-    /* clang-format off */
+#ifndef LV_CONF_H
+#define LV_CONF_H
+/* clang-format off */
 
 #include <stdint.h>
 
@@ -26,6 +26,8 @@
  /* Maximal horizontal and vertical resolution to support by the library.*/
 #define LV_HOR_RES_MAX          (TFT_WIDTH)
 #define LV_VER_RES_MAX          (TFT_HEIGHT)
+#define LV_HOR_RES          (TFT_WIDTH)
+#define LV_VER_RES          (TFT_HEIGHT)
 
 /* Color depth:
  * - 1:  1 byte per pixel
@@ -181,14 +183,15 @@ typedef void* lv_group_user_data_t;
 typedef void* lv_fs_drv_user_data_t;
 
 /*File system interface*/
-#define LV_USE_FS_IF	      1
+#define LV_USE_FS_IF	      0
 #if LV_USE_FS_IF
 #  define LV_FS_IF_FATFS    '\0'
-#if defined(ARDUINO_ARCH_ESP32) // || defined(ARDUINO_ARCH_ESP8266)
-#  define LV_FS_IF_PC       'S'
+#if defined(STM32F4xx) // || defined(ARDUINO_ARCH_ESP8266)
+#  define LV_FS_IF_PC       '\0'
 #  define LV_FS_IF_SPIFFS   '\0'  // internal esp Flash
 #else
 #  define LV_FS_IF_PC       '\0'
+#  define LV_FS_IF_POSIX    '\0'
 #  define LV_FS_IF_SPIFFS   '\0'  // no internal esp Flash
 #endif
 #endif  /*LV_USE_FS_IF*/
@@ -251,11 +254,17 @@ typedef void* lv_img_decoder_user_data_t;
 
     /* 1: use a custom tick source.
      * It removes the need to manually update the tick with `lv_tick_inc`) */
+#ifdef ARDUINO
+
 #define LV_TICK_CUSTOM     1
 #if LV_TICK_CUSTOM == 1
 #define LV_TICK_CUSTOM_INCLUDE  "Arduino.h"       /*Header for the sys time function*/
 #define LV_TICK_CUSTOM_SYS_TIME_EXPR (millis())     /*Expression evaluating to current systime in ms*/
 #endif   /*LV_TICK_CUSTOM*/
+
+#else
+#define LV_TICK_CUSTOM     0
+#endif
 
 typedef void* lv_disp_drv_user_data_t;             /*Type of user data in the display driver*/
 typedef void* lv_indev_drv_user_data_t;            /*Type of user data in the input device driver*/
@@ -431,7 +440,7 @@ typedef void* lv_font_user_data_t;
  /*Always enable at least on theme*/
 #define LV_USE_THEME_MATERIAL    1   /*A fast and impressive theme*/
 
-#define LV_THEME_DEFAULT_INIT               lv_theme_hasp_init // We init the theme ourselves
+#define LV_THEME_DEFAULT_INIT               lv_theme_material_init // lv_theme_hasp_init // We init the theme ourselves
 #define LV_THEME_DEFAULT_COLOR_PRIMARY      LV_COLOR_RED
 #define LV_THEME_DEFAULT_COLOR_SECONDARY    LV_COLOR_BLUE
 #define LV_THEME_DEFAULT_FLAG              0 //LV_THEME_MATERIAL_FLAG_NONE
@@ -509,9 +518,11 @@ typedef void* lv_font_user_data_t;
 
  /*Declare the type of the user data of object (can be e.g. `void *`, `int`, `struct`)*/
 typedef struct {
+  uint8_t id:8;
   uint8_t objid:8;
-  uint8_t groupid:8;
-  uint8_t id;
+  uint8_t transitionid:4;
+  uint8_t actionid:4;
+  uint8_t groupid:4;
 } lv_obj_user_data_t;
 
 /*1: enable `lv_obj_realaign()` based on `lv_obj_align()` parameters*/
@@ -637,7 +648,7 @@ typedef struct {
 #endif
 
 /*Preload (dependencies: lv_arc, lv_anim)*/
-#define LV_USE_SPINNER      0
+#define LV_USE_SPINNER      1
 #if LV_USE_SPINNER != 0
 #  define LV_SPINNER_DEF_ARC_LENGTH   60      /*[deg]*/
 #  define LV_SPINNER_DEF_SPIN_TIME    1000    /*[ms]*/

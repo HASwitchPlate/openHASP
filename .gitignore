@@ -6,18 +6,23 @@
 .pio
 data/*
 src/user_setups/active/*
+include/user_config_override.h
 src/user_config_override.h
+user_config_override.h
 platformio_override.ini
 user_setups/active/*
 build_output/*
 build_output/firmware/*.bin
+build_output/firmware/*.exe
 
 ## Test result files
 *.xml
 *.bin
 
 ## Visual Studio Code specific ######
-.vscode
+!.vscode
+.vscode/*
+!.vscode/extensions.json
 .vscode/.browse.c_cpp.db*
 .vscode/c_cpp_properties.json
 .vscode/launch.json

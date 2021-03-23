@@ -5,6 +5,9 @@
 #define D_PASSWORD "Password:"
 #define D_SSID "Ssid:"
 
+#define D_ERROR_OUT_OF_MEMORY "Out of memory"
+#define D_ERROR_UNKNOWN "Unkown error"
+
 #define D_CONFIG_NOT_CHANGED "Settings did not change"
 #define D_CONFIG_CHANGED "Settings changed"
 #define D_CONFIG_LOADED "Settings loaded"
@@ -89,7 +92,7 @@
 #define D_OTA_CHECK_UPDATE "Checking updates URL: %s"
 #define D_OTA_CHECK_COMPLETE "Update check complete"
 #define D_OTA_CHECK_FAILED "Update check failed: %s"
-#define D_OTA_UPDATE_FIRMWARE "OTA Update firmware"
+#define D_OTA_UPDATE_FIRMWARE "OTA Firmware Update"
 #define D_OTA_UPDATE_COMPLETE "OTA Update complete"
 #define D_OTA_UPDATE_APPLY "Applying Firmware & Reboot"
 #define D_OTA_UPDATE_FAILED "OTA Update failed"

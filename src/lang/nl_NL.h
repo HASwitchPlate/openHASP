@@ -5,6 +5,9 @@
 #define D_PASSWORD "Wachtwoord:"
 #define D_SSID "Ssid:"
 
+#define D_ERROR_OUT_OF_MEMORY "Geen geheugen bechikbaar"
+#define D_ERROR_UNKNOWN "Unbekende fout"
+
 #define D_CONFIG_NOT_CHANGED "Instellingen ongewijzigd"
 #define D_CONFIG_CHANGED "Instellingen gewijzigd"
 #define D_CONFIG_LOADED "Instellingen geladen"
@@ -86,13 +89,13 @@
 #define D_JSONL_FAILED "JSONL verwerking mislukt op lijn %d"
 #define D_JSONL_SUCCEEDED "Jsonl volledig verwerkt"
 
-#define D_OTA_CHECK_UPDATE "Checking updates URL: %s"
-#define D_OTA_CHECK_COMPLETE "Update check complete"
+#define D_OTA_CHECK_UPDATE "Controle update URL: %s"
+#define D_OTA_CHECK_COMPLETE "Update controle klaar"
 #define D_OTA_CHECK_FAILED "Update check failed: %s"
-#define D_OTA_UPDATE_FIRMWARE "OTA Update firmware"
-#define D_OTA_UPDATE_COMPLETE "OTA Update complete"
-#define D_OTA_UPDATE_APPLY "Applying Firmware & Reboot"
-#define D_OTA_UPDATE_FAILED "OTA Update failed"
+#define D_OTA_UPDATE_FIRMWARE "OTA Firmware bijwerken"
+#define D_OTA_UPDATE_COMPLETE "OTA Firmware bijgewerkt"
+#define D_OTA_UPDATE_APPLY "Firmware Schrijven & Herstart"
+#define D_OTA_UPDATE_FAILED "OTA Update mislukt"
 
 #define D_HTTP_HASP_DESIGN "HASP Ontwerp"
 #define D_HTTP_INFORMATION "Informatie"

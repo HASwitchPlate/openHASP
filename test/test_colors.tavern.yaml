@@ -13,6 +13,9 @@ paho-mqtt:
     host: "{host}"
     port: !int "{port:d}"
     timeout: 3
+  auth:
+    username: "{username}"
+    password: "{password}"
 
 marks:
   - parametrize:
@@ -60,17 +63,17 @@ marks:
         - ["purple", "#830083", 131, 0, 131, 32784]
         - ["salmon", "#ff8173", 255, 129, 115, 64526]
         - ["sienna", "#a45029", 164, 80, 41, 41605]
-        - ["silver", "#c5c2c5", 197, 194, 197, 50712]
         - ["tomato", "#ff6141", 255, 97, 65, 64264]
         - ["violet", "#ee81ee", 238, 129, 238, 60445]
         - ["yellow", "#ffff00", 255, 255, 0, 65504]
         - ["fuchsia", "#ff00ff", 255, 0, 255, 63519]
         - ["magenta", "#ff00ff", 255, 0, 255, 63519]
+        - ["silver", "#c5c2c5", 197, 194, 197, 50712]
 
   - parametrize:
       key: obj
       vals:
-        - cb
+        - checkbox
         - btn
 
 stages:
@@ -81,20 +84,20 @@ stages:
     mqtt_response:
       topic: hasp/{plate}/state/page
       payload: "1"
-      timeout: 5
+      timeout: 1
     delay_after: 0
 
   - name: Set bg_color
     mqtt_publish:
       topic: hasp/{plate}/command
       payload: "p[1].b[0].bg_color={color}"
-    delay_after: 0.1
+    delay_after: 0.02
 
   - name: Clear page
     mqtt_publish:
       topic: hasp/{plate}/command/clearpage
       payload: ""
-    delay_after: 0.2
+    delay_after: 0.02
 
   - name: Create object
     mqtt_publish:
@@ -103,16 +106,16 @@ stages:
         obj: "{obj}"
         id: 1
         txt: "{color}"
-        x: "{r}"
-        y: "{g}"
-        w: "{b}"
-    delay_after: 0.1
+        r: !int "{r:d}"
+        g: !int "{g:d}"
+        b: !int "{b:d}"
+    delay_after: 0.02
 
   - name: Set bg_color
     mqtt_publish:
       topic: hasp/{plate}/command
       payload: "p[1].b[0].bg_color={rgb565}"
-    delay_after: 0.1
+    delay_after: 0.02
 
   - name: Test named COLOR
     mqtt_publish:
@@ -122,10 +125,10 @@ stages:
       topic: hasp/{plate}/state/p1b1
       json:
         text_color: "{hex}"
-        r: "{r}"
-        g: "{g}"
-        b: "{b}"
-      timeout: 5
+        r: !int "{r:d}"
+        g: !int "{g:d}"
+        b: !int "{b:d}"
+      timeout: 1
 
   - name: Reset
     mqtt_publish:
@@ -141,10 +144,10 @@ stages:
       topic: hasp/{plate}/state/p1b1
       json:
         text_color: "{hex}"
-        r: "{r}"
-        g: "{g}"
-        b: "{b}"
-      timeout: 5
+        r: !int "{r:d}"
+        g: !int "{g:d}"
+        b: !int "{b:d}"
+      timeout: 1
 
   - name: Reset
     mqtt_publish:
@@ -160,7 +163,7 @@ stages:
       topic: hasp/{plate}/state/p1b1
       json:
         text_color: "{hex}"
-        r: "{r}"
-        g: "{g}"
-        b: "{b}"
-      timeout: 5
+        r: !int "{r:d}"
+        g: !int "{g:d}"
+        b: !int "{b:d}"
+      timeout: 1

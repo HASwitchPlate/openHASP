@@ -1,35 +1,45 @@
-/* MIT License - Copyright (c) 2020 Francis Van Roie
+/* MIT License - Copyright (c) 2019-2021 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
-#include "hasp_conf.h"
+#ifdef ARDUINO
+#include "ArduinoLog.h"
+#endif
+
+#if defined(WINDOWS) || defined(POSIX)
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#endif
 
 #include "ArduinoJson.h"
-#include "ArduinoLog.h"
 
 #if HASP_USE_EEPROM > 0
-    #include "StreamUtils.h" // For EEPromStream
+#include "StreamUtils.h" // For EEPromStream
 #endif
 
 #include "lvgl.h"
 #include "lv_conf.h"
-#include "hasp_conf.h"
 
 #if HASP_USE_DEBUG > 0
-    #include "lv_fs_if.h"
-    #include "hasp_debug.h"
-    #include "hasp_config.h"
-    #include "hasp_gui.h"
+#include "../hasp_debug.h"
+#endif
+
+#if HASP_USE_CONFIG > 0
+#include "lv_fs_if.h"
+#include "hasp_gui.h"
+#include "hasp_config.h"
 //#include "hasp_filesystem.h" included in hasp_conf.h
 #endif
 
-#include "hasp_object.h"
-#include "hasp_dispatch.h"
-
-#include "hasp_attribute.h"
+#include "hasplib.h"
 #include "hasp.h"
 #include "lv_theme_hasp.h"
 
+#include "dev/device.h"
+
+#if HASP_USE_EEPROM > 0
 #include "EEPROM.h"
+#endif
 
 //#if LV_USE_HASP
 
@@ -65,7 +75,6 @@ LV_IMG_DECLARE(img_bubble_pattern)
 /**********************
  *   GLOBAL FUNCTIONS
  **********************/
-void haspLoadPage(const char * pages);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 uint8_t hasp_sleep_state       = HASP_SLEEP_OFF; // Used in hasp_drv_touch.cpp
@@ -80,18 +89,16 @@ char haspPagesPath[32] = "/pages.jsonl";
 char haspZiFontPath[32];
 
 lv_style_t style_mbox_bg; /*Black bg. style with opacity*/
-lv_obj_t * kb;
+lv_obj_t* kb;
 // lv_font_t * defaultFont;
 
-lv_obj_t * pages[HASP_NUM_PAGES];
-static lv_font_t * haspFonts[4] = {nullptr, LV_THEME_DEFAULT_FONT_NORMAL, LV_THEME_DEFAULT_FONT_SUBTITLE,
-                                   LV_THEME_DEFAULT_FONT_TITLE};
-uint8_t current_page            = 1;
+static lv_font_t* haspFonts[4] = {nullptr, nullptr, nullptr, nullptr};
+uint8_t current_page           = 1;
 
 /**
  * Get Font ID
  */
-lv_font_t * hasp_get_font(uint8_t fontid)
+lv_font_t* hasp_get_font(uint8_t fontid)
 {
     if(fontid >= 4) {
         return nullptr;
@@ -129,15 +136,21 @@ bool hasp_update_sleep_state()
 
 void hasp_enable_wakeup_touch()
 {
-    LOG_VERBOSE(TAG_HASP,F("Wakeup touch enabled"));
+    LOG_VERBOSE(TAG_HASP, F("Wakeup touch enabled"));
     lv_obj_set_click(lv_disp_get_layer_sys(NULL), true); // enable first touch
     lv_obj_set_event_cb(lv_disp_get_layer_sys(NULL), wakeup_event_handler);
+}
+
+void hasp_disable_wakeup_touch()
+{
+    LOG_VERBOSE(TAG_HASP, F("Wakeup touch disabled"));
+    lv_obj_set_click(lv_disp_get_layer_sys(NULL), false); // disable first touch
 }
 
 /**
  * Return the sleep times
  */
-void hasp_get_sleep_time(uint16_t & short_time, uint16_t & long_time)
+void hasp_get_sleep_time(uint16_t& short_time, uint16_t& long_time)
 {
     short_time = sleepTimeShort;
     long_time  = sleepTimeLong;
@@ -155,45 +168,10 @@ void hasp_set_sleep_time(uint16_t short_time, uint16_t long_time)
 /**
  * Checks if we went to sleep, wake up is handled in the event handlers
  */
-// void haspEverySecond()
-// {
-//     hasp_update_sleep_state();
-// }
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-/**
- * Get Page Object by PageID
- */
-lv_obj_t * get_page_obj(uint8_t pageid)
+void haspEverySecond()
 {
-    if(pageid == 0) return lv_layer_top(); // 254
-    if(pageid == 255) return lv_layer_sys();
-    if(pageid > sizeof pages / sizeof *pages) return NULL; // >=0
-    return pages[pageid - PAGE_START_INDEX];
-}
-
-bool get_page_id(lv_obj_t * obj, uint8_t * pageid)
-{
-    lv_obj_t * page = lv_obj_get_screen(obj);
-
-    if(!page) return false;
-
-    if(page == lv_layer_top()) {
-        *pageid = 0; // 254
-        return true;
-    }
-    if(page == lv_layer_sys()) {
-        *pageid = 255;
-        return true;
-    }
-
-    for(uint8_t i = 0; i < sizeof pages / sizeof *pages; i++) {
-        if(page == pages[i]) {
-            *pageid = i + PAGE_START_INDEX;
-            return true;
-        }
-    }
-    return false;
+    hasp_update_sleep_state();
+    dispatchEverySecond();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -240,8 +218,8 @@ void haspReconnect()
 // Shows/hides the the global progress bar and updates the value
 void haspProgressVal(uint8_t val)
 {
-    lv_obj_t * layer = lv_disp_get_layer_sys(NULL);
-    lv_obj_t * bar   = hasp_find_obj_from_parent_id(get_page_obj(255), (uint8_t)10);
+    lv_obj_t* layer = lv_disp_get_layer_sys(NULL);
+    lv_obj_t* bar   = hasp_find_obj_from_parent_id(haspPages.get_obj(255), (uint8_t)10);
     if(layer && bar) {
         if(val == 255) {
             if(!lv_obj_get_hidden(bar)) {
@@ -263,14 +241,14 @@ void haspProgressVal(uint8_t val)
             }
             lv_bar_set_value(bar, val, LV_ANIM_OFF);
         }
-        lv_task_handler(); /* let the GUI do its work */
+        lv_task_handler(); // needed to let the GUI do its work during long updates
     }
 }
 
 // Sets the value string of the global progress bar
-void haspProgressMsg(const char * msg)
+void haspProgressMsg(const char* msg)
 {
-    lv_obj_t * bar = hasp_find_obj_from_parent_id(get_page_obj(255), (uint8_t)10);
+    lv_obj_t* bar = hasp_find_obj_from_parent_id(haspPages.get_obj(255), (uint8_t)10);
 
     if(bar) {
         char value_str[10];
@@ -278,27 +256,29 @@ void haspProgressMsg(const char * msg)
         hasp_process_obj_attribute(bar, value_str, msg, true);
     }
 
-    lv_task_handler(); /* let the GUI do its work */
+    lv_task_handler(); // needed to let the GUI do its work during long updates
 
     /* if(bar) {
          progress_str.reserve(64);
          progress_str = msg;
          lv_obj_set_style_local_value_str(bar, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, progress_str.c_str());
 
-        lv_task_handler(); // let the GUI do its work
+        // lv_task_handler(); // let the GUI do its work
      } */
 }
 
+#ifdef ARDUINO
 // Sets the value string of the global progress bar
-void haspProgressMsg(const __FlashStringHelper * msg)
+void haspProgressMsg(const __FlashStringHelper* msg)
 {
     haspProgressMsg(String(msg).c_str());
 }
+#endif
 
 /*Add a custom apply callback*/
-static void custom_font_apply_cb(lv_theme_t * th, lv_obj_t * obj, lv_theme_style_t name)
+static void custom_font_apply_cb(lv_theme_t* th, lv_obj_t* obj, lv_theme_style_t name)
 {
-    lv_style_list_t * list;
+    lv_style_list_t* list;
 
     switch(name) {
         case LV_THEME_BTN:
@@ -313,7 +293,7 @@ static void custom_font_apply_cb(lv_theme_t * th, lv_obj_t * obj, lv_theme_style
  */
 void haspSetup(void)
 {
-    guiSetDim(haspStartDim);
+    haspDevice.set_backlight_level(haspStartDim);
 
     /******* File System Test ********************************************************************/
     // lv_fs_file_t f;
@@ -345,18 +325,35 @@ void haspSetup(void)
 
     /* ********** Font Initializations ********** */
 
+    LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, nullptr);
+    LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, haspFonts[0]);
+    // LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, &robotocondensed_regular_16_nokern);
+
 #if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
-    #if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
+#if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
+
+    lv_font_t* hasp_font = nullptr; // required or font init will crash
     lv_zifont_init();
 
-    if(lv_zifont_font_init(&haspFonts[1], haspZiFontPath, 32) != 0) {
+    // WARNING: hasp_font needs to be null !
+    if(lv_zifont_font_init(&hasp_font, haspZiFontPath, 32) != 0) {
         LOG_ERROR(TAG_HASP, F("Failed to set font to %s"), haspZiFontPath);
-        haspFonts[1] = LV_FONT_DEFAULT;
+        haspFonts[0] = LV_THEME_DEFAULT_FONT_SMALL;
     } else {
         // defaultFont = haspFonts[0];
+        haspFonts[0] = hasp_font; // save it
     }
-    #endif
+
+    //  LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, robotocondensed_regular_16_nokern);
+    LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, *hasp_font);
+
 #endif
+#endif
+
+    if(haspFonts[0] == nullptr) haspFonts[0] = LV_THEME_DEFAULT_FONT_SMALL;
+    if(haspFonts[1] == nullptr) haspFonts[1] = LV_THEME_DEFAULT_FONT_NORMAL;
+    if(haspFonts[2] == nullptr) haspFonts[2] = LV_THEME_DEFAULT_FONT_SUBTITLE;
+    if(haspFonts[3] == nullptr) haspFonts[3] = LV_THEME_DEFAULT_FONT_TITLE;
 
     // haspFonts[0] = lv_font_load("E:/font_1.fnt");
     //  haspFonts[2] = lv_font_load("E:/font_2.fnt");
@@ -367,7 +364,7 @@ void haspSetup(void)
     if(haspThemeId == 9) haspThemeId = 5;                   // update old material id
     if(haspThemeId < 0 || haspThemeId > 5) haspThemeId = 1; // check bounds
 
-    lv_theme_t * th = NULL;
+    lv_theme_t* th = NULL;
 #if(LV_USE_THEME_HASP == 1)
     lv_theme_hasp_flag_t hasp_flags = LV_THEME_HASP_FLAG_LIGHT;
 #endif
@@ -448,9 +445,6 @@ void haspSetup(void)
     }
 
     /* Create all screens using the theme */
-    for(int i = 0; i < (sizeof pages / sizeof *pages); i++) {
-        pages[i] = lv_obj_create(NULL, NULL);
-    }
 
 #if HASP_USE_WIFI > 0
     if(!wifiShowAP()) {
@@ -458,8 +452,9 @@ void haspSetup(void)
     }
 #endif
 
-    haspLoadPage(haspPagesPath);
-    haspSetPage(haspStartPage);
+    haspPages.init(haspStartPage);
+    haspPages.load_jsonl(haspPagesPath);
+    haspPages.set(haspStartPage, LV_SCR_LOAD_ANIM_NONE);
 }
 
 /**********************
@@ -467,7 +462,9 @@ void haspSetup(void)
  **********************/
 
 void haspLoop(void)
-{}
+{
+    dispatchLoop();
+}
 
 /*
 void hasp_background(uint16_t pageid, uint16_t imageid)
@@ -520,14 +517,14 @@ void hasp_background(uint16_t pageid, uint16_t imageid)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void haspGetVersion(char * version, size_t len)
+void haspGetVersion(char* version, size_t len)
 {
     snprintf_P(version, len, PSTR("%u.%u.%u"), HASP_VER_MAJ, HASP_VER_MIN, HASP_VER_REV);
 }
 
 void haspClearPage(uint16_t pageid)
 {
-    lv_obj_t * page = get_page_obj(pageid);
+    lv_obj_t* page = haspPages.get_obj(pageid);
     if(!page || (pageid > HASP_NUM_PAGES)) {
         LOG_WARNING(TAG_HASP, F(D_HASP_INVALID_PAGE), pageid);
     } else if(page == lv_layer_sys() /*|| page == lv_layer_top()*/) {
@@ -545,7 +542,7 @@ uint8_t haspGetPage()
 
 void haspSetPage(uint8_t pageid)
 {
-    lv_obj_t * page = get_page_obj(pageid);
+    lv_obj_t* page = haspPages.get_obj(pageid);
     if(!page || pageid == 0 || pageid > HASP_NUM_PAGES) {
         LOG_WARNING(TAG_HASP, F(D_HASP_INVALID_PAGE), pageid);
     } else {
@@ -556,7 +553,7 @@ void haspSetPage(uint8_t pageid)
     }
 }
 
-void haspLoadPage(const char * pagesfile)
+void haspLoadPage(const char* pagesfile)
 {
 #if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
     if(pagesfile[0] == '\0') return;
@@ -580,19 +577,28 @@ void haspLoadPage(const char * pagesfile)
     LOG_INFO(TAG_HASP, F("File %s loaded"), pagesfile);
 #else
 
-    #if HASP_USE_EEPROM > 0
+#if HASP_USE_EEPROM > 0
     LOG_TRACE(TAG_HASP, F("Loading jsonl from EEPROM..."));
     EepromStream eepromStream(4096, 1024);
     dispatch_parse_jsonl(eepromStream);
     LOG_INFO(TAG_HASP, F("Loaded jsonl from EEPROM"));
-    #endif
+#endif
+
+    std::ifstream ifs("pages.json", std::ifstream::in);
+    if(ifs) {
+        LOG_TRACE(TAG_HASP, F("Loading file %s"), pagesfile);
+        dispatch_parse_jsonl(ifs);
+        LOG_INFO(TAG_HASP, F("File %s loaded"), pagesfile);
+    } else {
+        LOG_ERROR(TAG_HASP, F("Non existing file %s"), pagesfile);
+    }
 
 #endif
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #if HASP_USE_CONFIG > 0
-bool haspGetConfig(const JsonObject & settings)
+bool haspGetConfig(const JsonObject& settings)
 {
     bool changed = false;
 
@@ -626,7 +632,7 @@ bool haspGetConfig(const JsonObject & settings)
  *
  * @param[in] settings    JsonObject with the config settings.
  **/
-bool haspSetConfig(const JsonObject & settings)
+bool haspSetConfig(const JsonObject& settings)
 {
     configOutput(settings, TAG_HASP);
     bool changed = false;

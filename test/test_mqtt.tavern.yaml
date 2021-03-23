@@ -1,6 +1,5 @@
 # test_page.tavern.yaml
 ---
-
 test_name: Page command
 
 includes:
@@ -14,6 +13,9 @@ paho-mqtt:
     host: "{host}"
     port: !int "{port:d}"
     timeout: 3
+  auth:
+    username: "{username}"
+    password: "{password}"
 
 stages:
   - name: step 1 - Page test
@@ -23,8 +25,8 @@ stages:
     mqtt_response:
       topic: hasp/{plate}/state/page
       payload: "1"
-      timeout: 5
-    delay_after: 1
+      timeout: 1
+    delay_after: 0
   - name: step 2 - Page test
     mqtt_publish:
       topic: hasp/{plate}/command
@@ -32,8 +34,8 @@ stages:
     mqtt_response:
       topic: hasp/{plate}/state/page
       payload: "2"
-      timeout: 5
-    delay_after: 1
+      timeout: 1
+    delay_after: 0
   - name: step 3 - Page test
     mqtt_publish:
       topic: hasp/{plate}/command
@@ -41,26 +43,26 @@ stages:
     mqtt_response:
       topic: hasp/{plate}/state/page
       payload: "3"
-      timeout: 5
-    delay_after: 1
+      timeout: 1
+    delay_after: 0
   - name: step 4 - Page test
     mqtt_publish:
       topic: hasp/{plate}/command/json
-      payload: "[\"page=0\"]"
+      payload: '["page=1"]'
     mqtt_response:
       topic: hasp/{plate}/state/page
-      payload: "0"
-      timeout: 3
-    delay_after: 1
+      payload: "1"
+      timeout: 1
+    delay_after: 0
   - name: step 5 - Page test
     mqtt_publish:
       topic: hasp/{plate}/command/json
-      payload: "[\"page 300\"]"
+      payload: '["page 300"]'
     mqtt_response:
       topic: hasp/{plate}/state/page
-      payload: "0"
-      timeout: 3
-    delay_after: 1
+      payload: "1"
+      timeout: 1
+    delay_after: 0
 
 ---
 test_name: Reboot Command
@@ -75,7 +77,7 @@ paho-mqtt:
   connect:
     host: "{host}"
     port: !int "{port:d}"
-    timeout: 3
+    timeout: 1
 
 stages:
   - name: Test reboot command
@@ -86,7 +88,7 @@ stages:
       topic: hasp/{plate}/LWT
       payload: "offline"
       timeout: 20
-    delay_after: 1
+    delay_after: 0
 
 ---
 test_name: Idle States
@@ -110,9 +112,9 @@ stages:
       payload: "wakeup"
     mqtt_response:
       topic: hasp/{plate}/state/idle
-      payload: "LONG"
+      payload: "long"
       timeout: 190
-    delay_after: 1
+    delay_after: 0
 
   - name: Test idle
     mqtt_publish:
@@ -120,9 +122,9 @@ stages:
       payload: "wakeup"
     mqtt_response:
       topic: hasp/{plate}/state/idle
-      payload: "SHORT"
+      payload: "short"
       timeout: 70
-    delay_after: 1
+    delay_after: 0
 
   - name: Test idle
     mqtt_publish:
@@ -130,6 +132,6 @@ stages:
       payload: "wakeup"
     mqtt_response:
       topic: hasp/{plate}/state/idle
-      payload: "OFF"
-      timeout: 3
-    delay_after: 1
+      payload: "off"
+      timeout: 1
+    delay_after: 0

@@ -1,25 +1,31 @@
+/* MIT License - Copyright (c) 2019-2021 Francis Van Roie
+   For full license information read the LICENSE file in the project folder */
+
 #include "hasp_drv_touch.h"
 #include "hasp/hasp.h"
+#include "drv/tft_driver.h"
 #include "lvgl.h"
 
 #if TOUCH_DRIVER == 2046
-    #if defined(USE_FSMC)
-    #else
-        #include "tft_espi_drv.h"
-    #endif
+#if defined(USE_FSMC)
+#else
+#include "tft_espi_drv.h"
+#endif
 
 #elif TOUCH_DRIVER == 2046
-    #include "indev/XPT2046.h"
+#include "indev/XPT2046.h"
 #elif TOUCH_DRIVER == 0x2046B
-    #include "hasp_drv_xpt2046.h"
+#include "drv/touch/hasp_drv_xpt2046.h"
 #elif TOUCH_DRIVER == 911
-    #include "hasp_drv_gt911.h"
+#include "drv/touch/hasp_drv_gt911.h"
 #elif TOUCH_DRIVER == 0xADC
-    #include "hasp_drv_ft6336u.h"
+#include "drv/touch/hasp_drv_ft6336u.h"
 #elif TOUCH_DRIVER == 5206
-    #include "hasp_drv_ft5206.h"
+#include "drv/touch/hasp_drv_ft5206.h"
 #elif TOUCH_DRIVER == 6336
-    #include "hasp_drv_ft6336u.h"
+#include "drv/touch/hasp_drv_ft6336u.h"
+#elif TOUCH_DRIVER == 610
+#include "drv/touch/hasp_drv_stmpe610.h"
 #else
 //#include "tp_i2c.h"
 //#include "ft6x36.h"
@@ -34,12 +40,12 @@ void drv_touch_init(uint8_t rotation)
     drv_touch_rotation = rotation;
 
 #if TOUCH_DRIVER == 2046 // XPT2046 Resistive touch panel driver
-    #if defined(USE_FSMC)
+#if defined(USE_FSMC)
     xpt2046_init(rotation);
-    #else
-        // The display driver takes care of all initializations
-        // tft_espi_init(rotation);
-    #endif
+#else
+    // The display driver takes care of all initializations
+    // tft_espi_init(rotation);
+#endif
 
 #elif TOUCH_DRIVER == 911
     GT911_init();
@@ -53,6 +59,9 @@ void drv_touch_init(uint8_t rotation)
 #elif TOUCH_DRIVER == 6336
     FT6336U_init();
 
+#elif TOUCH_DRIVER == 610
+    STMPE610_init();
+
 #else
     // xpt2046_alt_drv_read(indev_driver, data);
     // xpt2046_read(indev_driver, data);
@@ -60,13 +69,13 @@ void drv_touch_init(uint8_t rotation)
 #endif
 }
 
-static inline bool drv_touchpad_getXY(int16_t * touchX, int16_t * touchY)
+static inline bool drv_touchpad_getXY(int16_t* touchX, int16_t* touchY)
 {
     bool touched;
     int16_t normal_x;
     int16_t normal_y;
 #if TOUCH_DRIVER == 2046 // XPT2046 Resistive touch panel driver
-    touched = tft_espi_get_touch(&normal_x, &normal_y, 300u);
+    touched = haspTft.tft.getTouch((uint16_t*)&normal_x, (uint16_t*)&normal_y, 300);
 
 #elif TOUCH_DRIVER == 0x2046B
     touched = XPT2046_getXY(&normal_x, &normal_y, true);
@@ -82,6 +91,9 @@ static inline bool drv_touchpad_getXY(int16_t * touchX, int16_t * touchY)
 
 #elif TOUCH_DRIVER == 6336
     touched = FT6336U_getXY(&normal_x, &normal_y, true);
+
+#elif TOUCH_DRIVER == 610
+    touched = STMPE610_getXY(&normal_x, &normal_y, drv_touch_rotation, true);
 
 #else
     // xpt2046_alt_drv_read(indev_driver, data);
@@ -151,7 +163,7 @@ bool touch_rotate   = false;
 bool touch_invert_x = false;
 bool touch_invert_y = false;
 
-bool drv_touch_read(lv_indev_drv_t * indev_driver, lv_indev_data_t * data)
+bool drv_touch_read(lv_indev_drv_t* indev_driver, lv_indev_data_t* data)
 {
 #if TOUCH_DRIVER > 0
     int16_t touchX = 0;

@@ -15,7 +15,7 @@ Obtain or create a font file:
     lv_zifont_init();
 
     static lv_font_t font1;
-    lv_zifont_font_init(&font1, "./notosans_32.zi", 0);
+    lv_zifont_font_init(&font1, "/notosans_32.zi", 0);
 
     static  lv_style_t ft_style;
     lv_style_copy(&ft_style,  &lv_style_plain);

@@ -1,11 +1,14 @@
-/* MIT License - Copyright (c) 2020 Francis Van Roie
+/* MIT License - Copyright (c) 2019-2021 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
+
+#include "hasp_conf.h" // include first
+
+#if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
 
 #include <Arduino.h>
 #include "ArduinoJson.h"
 #include "ArduinoLog.h"
 
-#include "hasp_conf.h"
 #include "hasp_debug.h"
 #include "hasp_filesystem.h"
 
@@ -15,7 +18,7 @@ void filesystemInfo()
     FSInfo fs_info;
     SPIFFS.info(fs_info);
 
-    Serial.println("File sistem info.");
+    Serial.println("File system info.");
 
     Serial.print("Total space:      ");
     Serial.print(fs_info.totalBytes);
@@ -99,7 +102,7 @@ bool filesystemSetup(void)
 {
     // no SPIFFS settings, as settings depend on SPIFFS
     // no Logging, because it depends on the configuration file
-    
+
     // Logging is defered until debugging has started
     // FS success or failure is printed at that time !
 
@@ -119,3 +122,5 @@ bool filesystemSetup(void)
 
     return false;
 }
+
+#endif
