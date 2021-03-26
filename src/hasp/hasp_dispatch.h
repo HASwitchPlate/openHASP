@@ -77,8 +77,7 @@ void dispatch_send_obj_attribute_color(uint8_t pageid, uint8_t btnid, const char
                                        uint8_t b);
 
 void dispatch_object_generic_event(lv_obj_t* obj, uint8_t eventid);
-void dispatch_object_toggle_event(lv_obj_t* obj, bool state);
-void dispatch_object_value_changed(lv_obj_t* obj, int16_t state);
+void dispatch_object_val_event(lv_obj_t* obj, uint8_t eventid, int16_t val);
 void dispatch_object_selection_changed(lv_obj_t* obj, int16_t val, const char* text);
 void dispatch_object_color_changed(lv_obj_t* obj, lv_color_t color);
 
