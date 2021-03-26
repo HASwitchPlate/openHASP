@@ -26,6 +26,20 @@
 
 #if HASP_USE_HTTP > 0
 
+#ifdef USE_CONFIG_OVERRIDE
+#include "user_config_override.h"
+#else
+//default theme
+#define D_HTTP_COLOR_TEXT               "#000"       // Global text color - Black
+#define D_HTTP_COLOR_BACKGROUND         "#fff"       // Global background color - White
+#define D_HTTP_COLOR_INPUT_TEXT         "#000"       // Input text color - Black
+#define D_HTTP_COLOR_INPUT              "#fff"       // Input background color - White
+#define D_HTTP_COLOR_INPUT_WARNING      "#f00"       // Input warning border color - Red
+#define D_HTTP_COLOR_BUTTON_TEXT        "#fff"       // Button text color - White
+#define D_HTTP_COLOR_BUTTON             "#1fa3ec"    // Button color - Vivid blue
+#define D_HTTP_COLOR_BUTTON_RESET       "#f00"       // Restart/Reset button color - red
+#endif
+
 #if defined(ARDUINO_ARCH_ESP8266) || defined(ARDUINO_ARCH_ESP32)
 File fsUploadFile;
 #endif
@@ -83,15 +97,16 @@ const char HTTP_STYLE[] PROGMEM =
     "<style>"
     "body,.c{text-align:center;}"
     "div,input{padding:5px;font-size:1em;}"
-    "input{width:90%;}"
+    "input{width:90%;background-color:" D_HTTP_COLOR_INPUT ";color:" D_HTTP_COLOR_INPUT_TEXT ";}"
     "input[type=checkbox],input[type=radio]{width:1em;}"
-    "input:invalid{border:1px solid red;}"
+    "select{background-color:" D_HTTP_COLOR_INPUT ";color:" D_HTTP_COLOR_INPUT_TEXT ";}"
+    "input:invalid{border:1px solid " D_HTTP_COLOR_INPUT_WARNING ";}"
     //"#hue{width:100%;}"
-    "body{font-family:verdana;width:60%;margin:auto;}"
-    "button{border:0;border-radius:0.6rem;background-color:#0af;color:#eee;line-height:2.4rem;font-size:1.2rem;"
+    "body{font-family:verdana;width:60%;margin:auto;background:" D_HTTP_COLOR_BACKGROUND ";color:" D_HTTP_COLOR_TEXT ";}"
+    "button{border:0;border-radius:0.6rem;background-color:" D_HTTP_COLOR_BUTTON ";color:" D_HTTP_COLOR_BUTTON_TEXT ";line-height:2.4rem;font-size:1.2rem;"
     "width:100%;}"
     //".q{float:right;width:64px;text-align:right;}"
-    ".red{background-color:#f33;}"
+    ".red{background-color:" D_HTTP_COLOR_BUTTON_RESET ";}"
     // ".button3{background-color:#f44336;}"
     // ".button4{background-color:#e7e7e7;color:black;}"
     // ".button5{background-color:#555555;}"
@@ -101,9 +116,9 @@ const char HTTP_SCRIPT[] PROGMEM = "<script>function "
                                    "c(l){document.getElementById('s').value=l.innerText||l.textContent;document."
                                    "getElementById('p').focus();}</script>";
 const char HTTP_HEADER_END[] PROGMEM =
-    "</head><body><div style='text-align:left;display:inline-block;min-width:260px;'>";
+    "</head><body><div style='text-align:left;display:inline-block;color:" D_HTTP_COLOR_TEXT ";min-width:260px;'>";
 const char HTTP_END[] PROGMEM = "<div style='text-align:right;font-size:11px;'><hr/><a href='/about' "
-                                "style='color:#aaa;'>HASP ";
+                                "style='color:" D_HTTP_COLOR_TEXT ";'>HASP ";
 const char HTTP_FOOTER[] PROGMEM = " by Francis Van Roie</div></body></html>";
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
