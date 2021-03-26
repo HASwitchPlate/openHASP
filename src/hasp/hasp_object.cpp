@@ -31,6 +31,7 @@
 const char** btnmatrix_default_map; // memory pointer to lvgl default btnmatrix map
 // static unsigned long last_change_event = 0;
 static bool last_press_was_short = false; // Avoid SHORT + UP double events
+static lv_style_int_t last_value_sent;
 
 // ##################### Object Finders ########################################################
 
@@ -404,7 +405,6 @@ void generic_event_handler(lv_obj_t* obj, lv_event_t event)
 void toggle_event_handler(lv_obj_t* obj, lv_event_t event)
 {
     if(event == LV_EVENT_VALUE_CHANGED) {
-        char property[36]; // 4 for val only
         bool val = 0;
         hasp_update_sleep_state(); // wakeup?
 
@@ -430,7 +430,7 @@ void toggle_event_handler(lv_obj_t* obj, lv_event_t event)
         // hasp_send_obj_attribute_int(obj, property, val);
 
         hasp_update_sleep_state(); // wakeup?
-        dispatch_object_toggle_event(obj, val);
+        dispatch_object_val_event(obj, val, val);
         dispatch_normalized_group_value(obj->user_data.groupid, obj, val, HASP_EVENT_OFF, HASP_EVENT_ON);
 
     } else if(event == LV_EVENT_DELETE) {
@@ -510,42 +510,53 @@ static void selector_event_handler(lv_obj_t* obj, lv_event_t event)
  */
 void slider_event_handler(lv_obj_t* obj, lv_event_t event)
 {
-    if(event == LV_EVENT_VALUE_CHANGED) {
-        /*        bool is_dragged;
+    uint16_t evt;
+    switch(event) {
+        case LV_EVENT_VALUE_CHANGED:
+            break;
 
-                if(obj->user_data.objid == LV_HASP_SLIDER) {
-                    is_dragged = lv_slider_is_dragged(obj);
-                } else if(obj->user_data.objid == LV_HASP_ARC) {
-                    is_dragged = lv_arc_is_dragged(obj);
-                }
+        case LV_EVENT_DELETE:
+            LOG_VERBOSE(TAG_HASP, F(D_OBJECT_DELETED));
+            hasp_object_delete(obj);
+            break;
 
-                if(is_dragged && (millis() - last_change_event < LV_INDEV_DEF_LONG_PRESS_TIME)) {
-                    return;
-                }
-        */
+        case LV_EVENT_PRESSED:
+            hasp_update_sleep_state(); // wakeup on press down?
+            evt = HASP_EVENT_DOWN;
+        case LV_EVENT_LONG_PRESSED_REPEAT:
+            if(event == LV_EVENT_LONG_PRESSED_REPEAT) evt = HASP_EVENT_CHANGED;
+        case LV_EVENT_RELEASED: {
+            if(event == LV_EVENT_RELEASED) evt = HASP_EVENT_UP;
 
-        int16_t val = 0;
-        int16_t min = 0;
-        int16_t max = 0;
-        hasp_update_sleep_state(); // wakeup?
+            // case LV_EVENT_PRESSED || LV_EVENT_LONG_PRESSED_REPEAT || LV_EVENT_RELEASED
+            int16_t val;
+            int16_t min;
+            int16_t max;
 
-        if(obj->user_data.objid == LV_HASP_SLIDER) {
-            val = lv_slider_get_value(obj);
-            min = lv_slider_get_min_value(obj);
-            max = lv_slider_get_max_value(obj);
-        } else if(obj->user_data.objid == LV_HASP_ARC) {
-            val = lv_arc_get_value(obj);
-            min = lv_arc_get_min_value(obj);
-            max = lv_arc_get_max_value(obj);
-        } else {
-            return;
+            if(obj->user_data.objid == LV_HASP_SLIDER) {
+                val = lv_slider_get_value(obj);
+                min = lv_slider_get_min_value(obj);
+                max = lv_slider_get_max_value(obj);
+            } else if(obj->user_data.objid == LV_HASP_ARC) {
+                val = lv_arc_get_value(obj);
+                min = lv_arc_get_min_value(obj);
+                max = lv_arc_get_max_value(obj);
+            } else {
+                return;
+            }
+
+            if((event == LV_EVENT_LONG_PRESSED_REPEAT && last_value_sent != val) ||
+               event != LV_EVENT_LONG_PRESSED_REPEAT) {
+                last_value_sent = val;
+                dispatch_object_val_event(obj, evt, val);
+                dispatch_normalized_group_value(obj->user_data.groupid, obj, val, min, max);
+            }
+            break;
         }
-        dispatch_object_value_changed(obj, val);
-        dispatch_normalized_group_value(obj->user_data.groupid, obj, val, min, max);
 
-    } else if(event == LV_EVENT_DELETE) {
-        LOG_VERBOSE(TAG_HASP, F(D_OBJECT_DELETED));
-        hasp_object_delete(obj);
+        default:
+            // LOG_VERBOSE(TAG_HASP, F("Event ID: %d"), event);
+            ;
     }
 }
 

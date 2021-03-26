@@ -40,7 +40,7 @@
 
 extern uint8_t hasp_sleep_state;
 
-dispatch_conf_t dispatch_setings = {.teleperiod = 10};
+dispatch_conf_t dispatch_setings = {.teleperiod = 300};
 
 uint32_t dispatchLastMillis;
 uint8_t nCommands = 0;
@@ -615,22 +615,13 @@ void dispatch_object_generic_event(lv_obj_t* obj, uint8_t eventid)
 }
 
 // Send out the on/off event, with the val
-void dispatch_object_toggle_event(lv_obj_t* obj, bool state)
+void dispatch_object_val_event(lv_obj_t* obj, uint8_t eventid, int16_t val)
 {
     char data[40];
     char eventname[8];
 
-    dispatch_get_event_name(state, eventname, sizeof(eventname));
-    snprintf_P(data, sizeof(data), PSTR("{\"event\":\"%s\",\"val\":%d}"), eventname, state);
-    dispatch_obj_data(obj, data);
-}
-
-// Send out the changed event, with the val
-void dispatch_object_value_changed(lv_obj_t* obj, int16_t state)
-{
-    char data[48];
-
-    snprintf_P(data, sizeof(data), PSTR("{\"event\":\"changed\",\"val\":%d}"), state);
+    dispatch_get_event_name(eventid, eventname, sizeof(eventname));
+    snprintf_P(data, sizeof(data), PSTR("{\"event\":\"%s\",\"val\":%d}"), eventname, val);
     dispatch_obj_data(obj, data);
 }
 
@@ -1058,10 +1049,10 @@ void dispatch_output_statusupdate(const char*, const char*)
                    haspPages.get(), haspPages.count());
         strcat(data, buffer);
 
-// #if defined(ARDUINO_ARCH_ESP8266)
-//         snprintf_P(buffer, sizeof(buffer), PSTR("\"espVcc\":%.2f,"), (float)ESP.getVcc() / 1000);
-//         strcat(data, buffer);
-// #endif
+        // #if defined(ARDUINO_ARCH_ESP8266)
+        //         snprintf_P(buffer, sizeof(buffer), PSTR("\"espVcc\":%.2f,"), (float)ESP.getVcc() / 1000);
+        //         strcat(data, buffer);
+        // #endif
 
         snprintf_P(buffer, sizeof(buffer), PSTR("\"tftDriver\":\"%s\",\"tftWidth\":%u,\"tftHeight\":%u}"),
                    haspTft.get_tft_model(), (TFT_WIDTH), (TFT_HEIGHT));

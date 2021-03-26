@@ -136,7 +136,7 @@ typedef int16_t lv_coord_t;
 
  /* Repeated trigger period in long press [ms]
   * Time between `LV_EVENT_LONG_PRESSED_REPEAT */
-#define LV_INDEV_DEF_LONG_PRESS_REP_TIME  100
+#define LV_INDEV_DEF_LONG_PRESS_REP_TIME  200
 
 
   /* Gesture threshold in pixels */
