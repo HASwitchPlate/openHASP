@@ -143,12 +143,14 @@ static void mqtt_message_cb(char* topic, char* payload, unsigned int length)
         dispatch_topic_payload(topic, (const char*)payload);
         return;
 
+#ifdef HASP_USE_HA
     } else if(topic == strstr_P(topic, PSTR("homeassistant/status"))) { // HA discovery topic
         if(mqttHAautodiscover && !strcasecmp_P((char*)payload, PSTR("online"))) {
             dispatch_current_state();
             mqtt_ha_register_auto_discovery();
         }
         return;
+#endif
 
     } else {
         // Other topic
@@ -272,7 +274,9 @@ static void onConnect(void* context)
     mqtt_subscribe(mqtt_client, "hass/status");
 
     /* Home Assistant auto-configuration */
+#ifdef HASP_USE_HA
     if(mqttHAautodiscover) mqtt_subscribe(mqtt_client, "homeassistant/status");
+#endif
 
     mqttPublish(TOPIC LWT_TOPIC, "online", 6, false);
 

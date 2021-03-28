@@ -167,12 +167,14 @@ static void mqtt_message_cb(char* topic, byte* payload, unsigned int length)
         dispatch_topic_payload(topic, (const char*)payload);
         return;
 
+#ifdef HASP_USE_HA
     } else if(topic == strstr_P(topic, PSTR("homeassistant/status"))) { // HA discovery topic
         if(mqttHAautodiscover && !strcasecmp_P((char*)payload, PSTR("online"))) {
             mqtt_ha_register_auto_discovery(); // auto-discovery first
             dispatch_current_state();          // send the data
         }
         return;
+#endif
 
     } else {
         // Other topic
@@ -299,7 +301,9 @@ void mqttStart()
     mqttSubscribeTo(F("hass/status"), mqttClientId);
 
     /* Home Assistant auto-configuration */
+#ifdef HASP_USE_HA
     if(mqttHAautodiscover) mqttSubscribeTo(F("homeassistant/status"), mqttClientId);
+#endif
 
     // Force any subscribed clients to toggle offline/online when we first connect to
     // make sure we get a full panel refresh at power on.  Sending offline,
