@@ -871,10 +871,15 @@ void dispatch_page(const char*, const char* page)
 void dispatch_clear_page(const char*, const char* page)
 {
     uint8_t pageid;
-    if(strlen(page) > 0)
-        pageid = atoi(page);
-    else
+    if(strlen(page) > 0) {
+        if(!strcasecmp_P(page, PSTR("all"))) {
+            for(pageid = 0; pageid < HASP_NUM_PAGES; pageid++) haspPages.clear(pageid);
+        } else {
+            pageid = atoi(page);
+        }
+    } else {
         pageid = haspPages.get();
+    }
     haspPages.clear(pageid);
 }
 
