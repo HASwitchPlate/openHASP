@@ -170,24 +170,28 @@ void guiSetup(void)
     /* Initialize the display driver */
     static lv_disp_drv_t disp_drv;
     lv_disp_drv_init(&disp_drv);
-    disp_drv.buffer    = &disp_buf;
-    disp_drv.flush_cb  = gui_flush_cb;
-    disp_drv.hor_res   = TFT_WIDTH;
-    disp_drv.ver_res   = TFT_HEIGHT;
-    lv_disp_t* display = lv_disp_drv_register(&disp_drv);
+    disp_drv.buffer   = &disp_buf;
+    disp_drv.flush_cb = gui_flush_cb;
+    disp_drv.hor_res  = TFT_WIDTH;
+    disp_drv.ver_res  = TFT_HEIGHT;
 
     switch(gui_settings.rotation) {
         case 1:
         case 3:
         case 5:
         case 7:
-            lv_disp_set_rotation(display, LV_DISP_ROT_90);
+            //     lv_disp_set_rotation(display, LV_DISP_ROT_90);
+            disp_drv.hor_res = TFT_HEIGHT;
+            disp_drv.ver_res = TFT_WIDTH;
             break;
         default:
-            lv_disp_set_rotation(display, LV_DISP_ROT_NONE);
+            //           lv_disp_set_rotation(display, LV_DISP_ROT_NONE);
+            disp_drv.hor_res = TFT_WIDTH;
+            disp_drv.ver_res = TFT_HEIGHT;
     }
+    lv_disp_t* display = lv_disp_drv_register(&disp_drv);
 
-        /* Initialize Filesystems */
+    /* Initialize Filesystems */
 #if LV_USE_FS_IF != 0
     // _lv_fs_init();   // lvgl File System -- not neaded, it done in lv_init() when LV_USE_FILESYSTEM is set
     LOG_VERBOSE(TAG_LVGL, F("Filesystem : Enabled"));
