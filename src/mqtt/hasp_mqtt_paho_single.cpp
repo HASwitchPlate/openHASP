@@ -278,7 +278,7 @@ static void onConnect(void* context)
     if(mqttHAautodiscover) mqtt_subscribe(mqtt_client, "homeassistant/status");
 #endif
 
-    mqttPublish(TOPIC LWT_TOPIC, "online", 6, false);
+    mqttPublish(TOPIC LWT_TOPIC, "online", 6, true);
 
     mqtt_send_object_state(0, 0, "connected");
     std::cout << std::endl;
@@ -307,7 +307,7 @@ void mqttStart()
     conn_opts.will            = &will_opts;
     conn_opts.will->message   = "offline";
     conn_opts.will->qos       = 1;
-    conn_opts.will->retained  = 0;
+    conn_opts.will->retained  = 1;
     conn_opts.will->topicName = "hasp/plate35/LWT";
 
     conn_opts.keepAliveInterval = 20;
