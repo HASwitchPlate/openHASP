@@ -1161,6 +1161,42 @@ static void hasp_process_lmeter_attribute(lv_obj_t* obj, const char* attr_p, uin
     LOG_WARNING(TAG_ATTR, F(D_ATTRIBUTE_UNKNOWN), attr_p);
 }
 
+static void hasp_process_dropdown_attribute(lv_obj_t* obj, const char* attr_p, uint16_t attr_hash, const char* payload,
+                                            bool update)
+{
+    // We already know it's a gauge object
+    int16_t intval = atoi(payload);
+    uint16_t val   = atoi(payload);
+
+    char* attr = (char*)attr_p;
+    if(*attr == '.') attr++; // strip leading '.'
+
+    switch(attr_hash) {
+        case ATTR_DIRECTION:
+            return (update) ? lv_dropdown_set_dir(obj, intval) : hasp_out_int(obj, attr, lv_dropdown_get_dir(obj));
+
+        case ATTR_SYMBOL:
+            return (update) ? lv_dropdown_set_symbol(obj, payload)
+                            : hasp_out_str(obj, attr, lv_dropdown_get_symbol(obj));
+
+        case ATTR_OPEN:
+            return lv_dropdown_open(obj);
+
+        case ATTR_CLOSE:
+            return lv_dropdown_close(obj);
+
+        case ATTR_MAX_HEIGHT:
+            return (update) ? lv_dropdown_set_max_height(obj, intval)
+                            : hasp_out_int(obj, attr, lv_dropdown_get_max_height(obj));
+
+        case ATTR_SHOW_SELECTED:
+            return (update) ? lv_dropdown_set_show_selected(obj, val)
+                            : hasp_out_int(obj, attr, lv_dropdown_get_show_selected(obj));
+    }
+
+    LOG_WARNING(TAG_ATTR, F(D_ATTRIBUTE_UNKNOWN), attr_p);
+}
+
 static void hasp_process_gauge_attribute(lv_obj_t* obj, const char* attr_p, uint16_t attr_hash, const char* payload,
                                          bool update)
 {
@@ -1532,6 +1568,10 @@ void hasp_process_obj_attribute(lv_obj_t* obj, const char* attr_p, const char* p
             }
             break; // attribute_found
 
+            /*     case ATTR_ANIM_TIME:
+                     return (update) ? lv_anim_time(obj, val)
+                                     : hasp_out_int(obj, attr, lv_gauge_get_angle_offset(obj)); */
+
         case ATTR_ROWS:
             if(check_obj_type(obj, LV_HASP_ROLLER)) {
                 update ? lv_roller_set_visible_row_count(obj, (uint8_t)val)
@@ -1648,6 +1688,19 @@ void hasp_process_obj_attribute(lv_obj_t* obj, const char* attr_p, const char* p
                 hasp_process_gauge_attribute(obj, attr_p, attr_hash, payload, update);
             } else if(check_obj_type(obj, LV_HASP_LMETER)) {
                 hasp_process_lmeter_attribute(obj, attr_p, attr_hash, payload, update);
+            } else {
+                goto attribute_not_found;
+            }
+            break; // attribute_found
+
+        case ATTR_DIRECTION:
+        case ATTR_SYMBOL:
+        case ATTR_OPEN:
+        case ATTR_CLOSE:
+        case ATTR_MAX_HEIGHT:
+        case ATTR_SHOW_SELECTED:
+            if(check_obj_type(obj, LV_HASP_DROPDOWN)) {
+                hasp_process_dropdown_attribute(obj, attr_p, attr_hash, payload, update);
             } else {
                 goto attribute_not_found;
             }

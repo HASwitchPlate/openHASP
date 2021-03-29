@@ -286,6 +286,7 @@ _HASP_ATTRIBUTE(SCALE_END_LINE_WIDTH, scale_end_line_width, lv_style_int_t)
 #define ATTR_TEXT 53869
 #define ATTR_SRC 4964
 #define ATTR_ID 6715
+#define ATTR_ANIM_TIME 59451
 
 // methods
 #define ATTR_DELETE 50027
@@ -307,6 +308,14 @@ _HASP_ATTRIBUTE(SCALE_END_LINE_WIDTH, scale_end_line_width, lv_style_int_t)
 #define ATTR_END_ANGLE 41103
 #define ATTR_START_ANGLE1 39067
 #define ATTR_END_ANGLE1 33634
+
+// Dropdown
+#define ATTR_DIRECTION 32415
+#define ATTR_SYMBOL 33592
+#define ATTR_OPEN 25738
+#define ATTR_CLOSE 41880
+#define ATTR_MAX_HEIGHT 30946
+#define ATTR_SHOW_SELECTED 56029
 
 // Buttonmatrix
 #define ATTR_MAP 45628
