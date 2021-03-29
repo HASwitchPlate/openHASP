@@ -307,7 +307,7 @@ void mqttStart()
     conn_opts.will            = &will_opts;
     conn_opts.will->message   = "offline";
     conn_opts.will->qos       = 1;
-    conn_opts.will->retained  = 0;
+    conn_opts.will->retained  = 1;
     conn_opts.will->topicName = "hasp/plate35/LWT";
 
     conn_opts.keepAliveInterval = 20;
