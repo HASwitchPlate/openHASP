@@ -145,30 +145,35 @@ void debugLvglLogEvent(lv_log_level_t level, const char* file, uint32_t line, co
 {
 #if LV_USE_LOG != 0
     /* used for duplicate detection */
+    static const char* last_funcname;
     static uint32_t lastDbgLine;
-    static uint32_t lastDbgFreeMem;
-
-    lv_mem_monitor_t mem_mon;
-    lv_mem_monitor(&mem_mon);
+    // static uint32_t lastDbgFreeMem;
 
     /* Reduce the number of repeated debug message */
-    if(line != lastDbgLine || mem_mon.free_biggest_size != lastDbgFreeMem) {
-        switch(level) {
-            case LV_LOG_LEVEL_TRACE:
-                LOG_VERBOSE(TAG_LVGL, descr);
-                break;
-            case LV_LOG_LEVEL_WARN:
-                LOG_WARNING(TAG_LVGL, descr);
-                break;
-            case LV_LOG_LEVEL_ERROR:
-                LOG_ERROR(TAG_LVGL, descr);
-                break;
-            default:
-                LOG_TRACE(TAG_LVGL, descr);
-        }
-        lastDbgLine    = line;
-        lastDbgFreeMem = mem_mon.free_biggest_size;
+    if(line == lastDbgLine && funcname == last_funcname) return;
+
+    // lv_mem_monitor_t mem_mon;
+    // lv_mem_monitor(&mem_mon);
+
+    /* Reduce the number of repeated debug message */
+    // if(line != lastDbgLine || mem_mon.free_biggest_size != lastDbgFreeMem) {
+    switch(level) {
+        case LV_LOG_LEVEL_TRACE:
+            LOG_VERBOSE(TAG_LVGL, descr);
+            break;
+        case LV_LOG_LEVEL_WARN:
+            LOG_WARNING(TAG_LVGL, descr);
+            break;
+        case LV_LOG_LEVEL_ERROR:
+            LOG_ERROR(TAG_LVGL, descr);
+            break;
+        default:
+            LOG_TRACE(TAG_LVGL, descr);
     }
+    last_funcname = funcname;
+    lastDbgLine   = line;
+    // lastDbgFreeMem = mem_mon.free_biggest_size;
+    //}
 #endif
 }
 
