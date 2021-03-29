@@ -38,6 +38,7 @@ marks:
         - obj
         - lmeter
         - dropdown
+        - calendar
         - spinner
         - roller
   - parametrize:

@@ -1047,6 +1047,16 @@ void hasp_new_object(const JsonObject& config, uint8_t& saved_page_id)
                 }
                 break;
 
+            case LV_HASP_CALENDER:
+            case HASP_OBJ_CALENDAR:
+                obj = lv_calendar_create(parent_obj, NULL);
+                // lv_obj_align(obj, NULL, LV_ALIGN_IN_TOP_MID, 0, 20);
+                if(obj) {
+                    lv_obj_set_event_cb(obj, selector_event_handler);
+                    obj->user_data.objid = LV_HASP_CALENDER;
+                }
+                break;
+
                 /* ----- Other Object ------ */
                 // default:
                 //    return LOG_WARNING(TAG_HASP, F("Unsupported Object ID %u"), objid);
