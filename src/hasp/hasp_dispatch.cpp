@@ -360,11 +360,8 @@ void dispatch_text_line(const char* cmnd)
     }
 }
 
-// send idle state to the client
-void dispatch_output_idle_state(uint8_t state)
+void dispatch_get_idle_state(uint8_t state, char* payload)
 {
-    char topic[6];
-    char payload[6];
     switch(state) {
         case HASP_SLEEP_LONG:
             memcpy_P(payload, PSTR("long"), 5);
@@ -375,7 +372,16 @@ void dispatch_output_idle_state(uint8_t state)
         default:
             memcpy_P(payload, PSTR("off"), 4);
     }
+}
+
+// send idle state to the client
+void dispatch_output_idle_state(uint8_t state)
+{
+    char topic[6];
+    char payload[6];
     memcpy_P(topic, PSTR("idle"), 5);
+
+    dispatch_get_idle_state(state, payload);
     dispatch_state_subtopic(topic, payload);
 }
 
@@ -1032,17 +1038,21 @@ void dispatch_output_statusupdate(const char*, const char*)
 {
 #if HASP_USE_MQTT > 0
 
-    char data[3 * 128];
+    char data[400];
+    char topic[16];
     {
         char buffer[128];
 
         haspGetVersion(buffer, sizeof(buffer));
-        snprintf_P(data, sizeof(data),
-                   PSTR("{\"node\":\"%s\",\"status\":\"available\",\"version\":\"%s\",\"uptime\":%lu,"),
-                   haspDevice.get_hostname(), buffer, long(millis() / 1000));
+        dispatch_get_idle_state(hasp_sleep_state, topic);
+        snprintf_P(data, sizeof(data), PSTR("{\"node\":\"%s\",\"idle\":\"%s\",\"version\":\"%s\",\"uptime\":%lu,"),
+                   haspDevice.get_hostname(), topic, buffer, long(millis() / 1000)); // \"status\":\"available\",
 
-#if HASP_USE_WIFI > 0
+#if HASP_USE_WIFI > 0 || HASP_USE_ETHERNET > 0
         network_get_statusupdate(buffer, sizeof(buffer));
+        strcat(data, buffer);
+
+        snprintf_P(buffer, sizeof(buffer), PSTR("\"mac\":\"%s\","), halGetMacAddress(0, ":").c_str());
         strcat(data, buffer);
 #endif
 
@@ -1064,7 +1074,6 @@ void dispatch_output_statusupdate(const char*, const char*)
         strcat(data, buffer);
     }
 
-    char topic[16];
     memcpy_P(topic, PSTR("statusupdate"), 13);
     dispatch_state_subtopic(topic, data);
     dispatchLastMillis = millis();
