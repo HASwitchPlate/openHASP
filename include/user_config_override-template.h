@@ -47,3 +47,29 @@
 #define SYSLOG_SERVER ""
 #define SYSLOG_PORT 514
 #define APP_NAME "HASP"
+
+/***************************************************
+ *        Web interface coloring
+ **************************************************/
+// Light theme (default)
+#define D_HTTP_COLOR_TEXT               "#000"       // Global text color - Black
+#define D_HTTP_COLOR_BACKGROUND         "#fff"       // Global background color - White
+#define D_HTTP_COLOR_INPUT_TEXT         "#000"       // Input text color - Black
+#define D_HTTP_COLOR_INPUT              "#fff"       // Input background color - White
+#define D_HTTP_COLOR_INPUT_WARNING      "#f00"       // Input warning border color - Red
+#define D_HTTP_COLOR_BUTTON_TEXT        "#fff"       // Button text color - White
+#define D_HTTP_COLOR_BUTTON             "#1fa3ec"    // Button color - Vivid blue
+#define D_HTTP_COLOR_BUTTON_RESET       "#f00"       // Restart/Reset button color - red
+
+/*
+// Dark theme
+#define D_HTTP_COLOR_TEXT               "#eaeaea"    // Global text color - Very light gray
+#define D_HTTP_COLOR_BACKGROUND         "#252525"    // Global background color - Very dark gray (mostly black)
+#define D_HTTP_COLOR_INPUT_TEXT         "#000"       // Input text color - Black
+#define D_HTTP_COLOR_INPUT              "#ddd"       // Input background color - Very light gray
+#define D_HTTP_COLOR_INPUT_WARNING      "#ff5661"    // Warning text color - Brick Red
+#define D_HTTP_COLOR_BUTTON_TEXT        "#faffff"    // Button text color - Very pale (mostly white) cyan
+#define D_HTTP_COLOR_BUTTON             "#1fa3ec"    // Button color - Vivid blue
+#define D_HTTP_COLOR_BUTTON_RESET       "#d43535"    // Restart/Reset/Delete button color - Strong red
+*/
+
