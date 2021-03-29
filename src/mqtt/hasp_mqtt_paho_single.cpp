@@ -278,7 +278,7 @@ static void onConnect(void* context)
     if(mqttHAautodiscover) mqtt_subscribe(mqtt_client, "homeassistant/status");
 #endif
 
-    mqttPublish(TOPIC LWT_TOPIC, "online", 6, false);
+    mqttPublish(TOPIC LWT_TOPIC, "online", 6, true);
 
     mqtt_send_object_state(0, 0, "connected");
     std::cout << std::endl;
