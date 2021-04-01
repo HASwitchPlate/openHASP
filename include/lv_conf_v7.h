@@ -559,7 +559,7 @@ typedef struct {
 #define LV_USE_BTNMATRIX     1
 
 /*Calendar (dependencies: -)*/
-#define LV_USE_CALENDAR (LV_HIGH_RESOURCE_MCU)
+#define LV_USE_CALENDAR 1
 
 /*Canvas (dependencies: lv_img)*/
 #define LV_USE_CANVAS   1
