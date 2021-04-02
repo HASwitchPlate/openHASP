@@ -28,15 +28,31 @@
 
 #ifdef USE_CONFIG_OVERRIDE
 #include "user_config_override.h"
-#else
+#endif
+
 //default theme
+#ifndef D_HTTP_COLOR_TEXT
 #define D_HTTP_COLOR_TEXT               "#000"       // Global text color - Black
+#endif
+#ifndef D_HTTP_COLOR_BACKGROUND
 #define D_HTTP_COLOR_BACKGROUND         "#fff"       // Global background color - White
+#endif
+#ifndef D_HTTP_COLOR_INPUT_TEXT
 #define D_HTTP_COLOR_INPUT_TEXT         "#000"       // Input text color - Black
+#endif
+#ifndef D_HTTP_COLOR_INPUT
 #define D_HTTP_COLOR_INPUT              "#fff"       // Input background color - White
+#endif
+#ifndef D_HTTP_COLOR_INPUT_WARNING
 #define D_HTTP_COLOR_INPUT_WARNING      "#f00"       // Input warning border color - Red
+#endif
+#ifndef D_HTTP_COLOR_BUTTON_TEXT
 #define D_HTTP_COLOR_BUTTON_TEXT        "#fff"       // Button text color - White
+#endif
+#ifndef D_HTTP_COLOR_BUTTON
 #define D_HTTP_COLOR_BUTTON             "#1fa3ec"    // Button color - Vivid blue
+#endif
+#ifndef D_HTTP_COLOR_BUTTON_RESET
 #define D_HTTP_COLOR_BUTTON_RESET       "#f00"       // Restart/Reset button color - red
 #endif
 
@@ -1625,7 +1641,7 @@ void webHandleDebugConfig()
         httpMessage += F("'></p>");
 
 #if HASP_USE_SYSLOG > 0
-        httpMessage += F("<b>Syslog Hostame</b> <i><small>(optional)</small></i><input id='host' "
+        httpMessage += F("<b>Syslog Hostname</b> <i><small>(optional)</small></i><input id='host' "
                          "name='host' maxlength=31 placeholder='logserver' value='");
         httpMessage += settings[FPSTR(FP_CONFIG_HOST)].as<String>();
         httpMessage += F("'><br/><b>Syslog Port</b> <i><small>(optional)</small></i> <input id='port' required "
