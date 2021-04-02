@@ -73,3 +73,7 @@
 #define D_HTTP_COLOR_BUTTON_RESET       "#d43535"    // Restart/Reset/Delete button color - Strong red
 */
 
+/***************************************************
+ *        Other Settings
+ **************************************************/
+//#define HASP_USE_HA                                 // Enable Home Assistant auto-discovery
