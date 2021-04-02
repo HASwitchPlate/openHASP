@@ -254,7 +254,7 @@ int main(int argc, char* argv[])
     }
 
     if(showhelp) {
-        usage("hasp-lvgl");
+        usage("openHASP");
 
 #if defined(WINDOWS)
         WriteConsole(std_out, "bye", 3, NULL, NULL);

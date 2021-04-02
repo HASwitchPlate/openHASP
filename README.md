@@ -1,11 +1,11 @@
 # HASP - Open Hardware edition
 
-[![GitHub Workflow Status](https://img.shields.io/github/workflow/status/fvanroie/hasp-lvgl/PlatformIO%20CI?label=build%20status&logo=github&logoColor=%23dddddd)](https://github.com/fvanroie/hasp-lvgl/actions)
-[![GitHub release](https://img.shields.io/github/v/release/fvanroie/hasp-lvgl?include_prereleases)](https://github.com/fvanroie/hasp-lvgl/releases)
-[![GitHub issues](https://img.shields.io/github/issues/fvanroie/hasp-lvgl.svg)](http://github.com/fvanroie/hasp-lvgl/issues)
+[![GitHub Workflow Status](https://img.shields.io/github/workflow/status/HASwitchPlate/openHASP/PlatformIO%20CI?label=build%20status&logo=github&logoColor=%23dddddd)](https://github.com/HASwitchPlate/openHASP/actions)
+[![GitHub release](https://img.shields.io/github/v/release/HASwitchPlate/openHASP?include_prereleases)](https://github.com/HASwitchPlate/openHASP/releases)
+[![GitHub issues](https://img.shields.io/github/issues/HASwitchPlate/openHASP.svg)](http://github.com/HASwitchPlate/openHASP/issues)
 [![Discord](https://img.shields.io/discord/538814618106331137?color=%237289DA&label=support&logo=discord&logoColor=white)][6]
 [![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](#Contributing)
-[![GitHub](https://img.shields.io/github/license/mashape/apistatus.svg)](https://github.com/fvanroie/hasp-lvgl/blob/master/LICENSE)
+[![GitHub](https://img.shields.io/github/license/mashape/apistatus.svg)](https://github.com/HASwitchPlate/openHASP/blob/master/LICENSE)
 
 Control your home-automation devices from a customizable touchscreen UI connected via MQTT.
 
@@ -18,9 +18,9 @@ This version also adds ESP32 and STM32F4 support to take advantage of the additi
 
 ## Demo Screens
 
-![Screenshot](https://raw.githubusercontent.com/fvanroie/hasp-lvgl/0.0.11/docs/img/sliders.png) &nbsp; 
-![Screenshot](https://raw.githubusercontent.com/fvanroie/hasp-lvgl/0.0.11/docs/img/buttons.png) &nbsp; 
-![Screenshot](https://raw.githubusercontent.com/fvanroie/hasp-lvgl/0.0.11/docs/img/mediaplayer.png)
+![Screenshot](https://raw.githubusercontent.com/HASwitchPlate/openHASP/0.0.11/docs/img/sliders.png) &nbsp; 
+![Screenshot](https://raw.githubusercontent.com/HASwitchPlate/openHASP/0.0.11/docs/img/buttons.png) &nbsp; 
+![Screenshot](https://raw.githubusercontent.com/HASwitchPlate/openHASP/0.0.11/docs/img/mediaplayer.png)
 
 ## Features
 
@@ -43,10 +43,10 @@ This version also adds ESP32 and STM32F4 support to take advantage of the additi
 Make sure to add the `--recursive` parameter when cloning the project. Otherwise git will not download the required submodules in the `/lib` subdirectory.
 
 ```bash
-git clone --recursive https://github.com/fvanroie/hasp-lvgl
+git clone --recursive https://github.com/HASwitchPlate/openHASP
 ```
 
-If you already cloned hasp-lvgl without the submodules, you can fetch the submodules seperately using:
+If you already cloned openHASP without the submodules, you can fetch the submodules seperately using:
 
 ```bash
 git submodule update --init --recursive
@@ -55,8 +55,8 @@ git submodule update --init --recursive
 To build a defierent branch use:
 
 ```bash
-git clone --recursive https://github.com/fvanroie/hasp-lvgl
-cd hasp-lvgl
+git clone --recursive https://github.com/HASwitchPlate/openHASP
+cd openHASP
 git checkout 0.1.0-dev
 git submodule update --init --recursive
 ```
@@ -67,7 +67,7 @@ Check out the [documentation](https://fvanroie.github.io/hasp-docs/) for how-to'
 
 Support
 ---------------------------
-For support using hasp-lvgl, please join the [#hasp-lvgl channel][6] on Discord.
+For support using openHASP, please join the [#openHASP channel][6] on Discord.
 
 
 

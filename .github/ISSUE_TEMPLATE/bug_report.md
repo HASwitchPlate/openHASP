@@ -11,13 +11,13 @@ assignees: fvanroie
 IMPORTANT
 Issues that don't use this template will be ignored and closed.
 
-If you are not sure if your issue is a bug, please open a [github discussion](https://github.com/fvanroie/hasp-lvgl/discussions) first
-or join the [#hasp-lvgl channel](https://discord.gg/VCWyuhF) on Discord.
+If you are not sure if your issue is a bug, please open a [github discussion](https://github.com/HASwitchPlate/openHASP/discussions) first
+or join the [#openHASP channel](https://discord.gg/VCWyuhF) on Discord.
 -->
 
 ### Perform all steps below and tick them with [x]
-- [ ] Check the related part of the [Documentation](https://fvanroie.github.io/hasp-docs/)
-- [ ] Update hasp-lvgl to the latest version
+- [ ] Check the related part of the [Documentation](https://haswitchplate.github.io/openHASP-docs/)
+- [ ] Update openHASP to the latest version
 - [ ] Reproduce the issue and describe all steps
 
 ### Describe the bug
