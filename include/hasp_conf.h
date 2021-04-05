@@ -1,6 +1,10 @@
 #ifndef HASP_CONF_H
 #define HASP_CONF_H
 
+#ifdef USE_CONFIG_OVERRIDE
+#include "user_config_override.h"
+#endif
+
 // language specific defines
 #include "lang/lang.h"
 

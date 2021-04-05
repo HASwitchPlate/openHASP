@@ -7,13 +7,14 @@
 #include <Esp.h>
 #include "esp_system.h"
 
+#include "hasp_conf.h"
+
 #include "../device.h"
 #include "esp32.h"
 
 #include "driver/adc.h"
 #include "esp_adc_cal.h"
 
-#include "hasp_conf.h"
 #include "hasp_debug.h"
 #include "hasp/hasp_utilities.h"
 

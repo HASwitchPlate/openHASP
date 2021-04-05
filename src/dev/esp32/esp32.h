@@ -15,7 +15,11 @@ class Esp32Device : public BaseDevice {
   public:
     Esp32Device()
     {
+#ifdef MQTT_NODENAME
+        _hostname        = MQTT_NODENAME;
+#else
         _hostname        = "plate";
+#endif
         _backlight_power = 1;
         _backlight_level = 100;
 #ifdef TFT_BCKL
