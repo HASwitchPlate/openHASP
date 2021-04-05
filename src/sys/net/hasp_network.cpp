@@ -3,9 +3,9 @@
 
 #include <time.h>
 #include <sys/time.h>
-#ifdef USE_CONFIG_OVERRIDE
-#include "user_config_override.h"
-#endif
+// #ifdef USE_CONFIG_OVERRIDE
+// #include "user_config_override.h"
+// #endif
 #ifndef MYTZ
 #define MYTZ "EST5EDT,M3.2.0/2,M11.1.0"
 #endif

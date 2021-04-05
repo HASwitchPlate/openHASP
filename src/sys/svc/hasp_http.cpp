@@ -26,9 +26,9 @@
 
 #if HASP_USE_HTTP > 0
 
-#ifdef USE_CONFIG_OVERRIDE
-#include "user_config_override.h"
-#endif
+// #ifdef USE_CONFIG_OVERRIDE
+// #include "user_config_override.h"
+// #endif
 
 //default theme
 #ifndef D_HTTP_COLOR_TEXT

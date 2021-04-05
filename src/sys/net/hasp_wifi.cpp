@@ -34,9 +34,9 @@ SPIClass espSPI(ESPSPI_MOSI, ESPSPI_MISO, ESPSPI_SCLK); // SPI port where esp is
 #endif
 //#include "DNSserver.h"
 
-#ifdef USE_CONFIG_OVERRIDE
-#include "user_config_override.h"
-#endif
+// #ifdef USE_CONFIG_OVERRIDE
+// #include "user_config_override.h"
+// #endif
 
 #ifdef WIFI_SSID
 char wifiSsid[32] = WIFI_SSID;
