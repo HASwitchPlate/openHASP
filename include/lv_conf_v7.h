@@ -11,6 +11,8 @@
 
 #include <stdint.h>
 
+#include "lv_symbol_mdi_def.h"
+
 #if defined(ARDUINO_ARCH_ESP8266)
 #define LV_HIGH_RESOURCE_MCU  0
 #endif
@@ -416,17 +418,17 @@ typedef void* lv_font_user_data_t;
 #if LV_HIGH_RESOURCE_MCU>0
 // #define LV_FONT_CUSTOM_DECLARE LV_FONT_DECLARE(lv_font_montserrat_16);
 
-#define LV_FONT_CUSTOM_12     LV_FONT_DECLARE(robotocondensed_regular_12_nokern)
-#define LV_FONT_CUSTOM_16     LV_FONT_DECLARE(robotocondensed_regular_16_nokern)
-#define LV_FONT_CUSTOM_22     LV_FONT_DECLARE(robotocondensed_regular_22_nokern)
-#define LV_FONT_CUSTOM_28     LV_FONT_DECLARE(robotocondensed_regular_28_nokern)
+#define LV_FONT_CUSTOM_12     LV_FONT_DECLARE(robotocondensed_regular_12)
+#define LV_FONT_CUSTOM_16     LV_FONT_DECLARE(robotocondensed_regular_16)
+#define LV_FONT_CUSTOM_22     LV_FONT_DECLARE(robotocondensed_regular_22)
+#define LV_FONT_CUSTOM_28     LV_FONT_DECLARE(robotocondensed_regular_28)
 
 #define LV_FONT_CUSTOM_DECLARE LV_FONT_CUSTOM_12 \
                                LV_FONT_CUSTOM_16 \
                                LV_FONT_CUSTOM_22 \
                                LV_FONT_CUSTOM_28 \
 
-#define LV_FONT_DEFAULT        &robotocondensed_regular_16_nokern //&lv_font_montserrat_16
+#define LV_FONT_DEFAULT        &robotocondensed_regular_16 //&lv_font_montserrat_16
 #else
 #define LV_FONT_CUSTOM_DECLARE LV_FONT_DECLARE(unscii_8_icon);
 #define LV_FONT_DEFAULT        &unscii_8_icon //&lv_font_unscii_8
@@ -445,10 +447,10 @@ typedef void* lv_font_user_data_t;
 #define LV_THEME_DEFAULT_COLOR_SECONDARY    LV_COLOR_BLUE
 #define LV_THEME_DEFAULT_FLAG              0 //LV_THEME_MATERIAL_FLAG_NONE
 #if LV_HIGH_RESOURCE_MCU
-#define LV_THEME_DEFAULT_FONT_SMALL         &robotocondensed_regular_12_nokern //&lv_font_montserrat_12
-#define LV_THEME_DEFAULT_FONT_NORMAL        &robotocondensed_regular_16_nokern //&lv_font_montserrat_16
-#define LV_THEME_DEFAULT_FONT_SUBTITLE      &robotocondensed_regular_22_nokern //&lv_font_montserrat_22
-#define LV_THEME_DEFAULT_FONT_TITLE         &robotocondensed_regular_28_nokern //&lv_font_montserrat_22 //&lv_font_montserrat_28_compressed
+#define LV_THEME_DEFAULT_FONT_SMALL         &robotocondensed_regular_12 //&lv_font_montserrat_12
+#define LV_THEME_DEFAULT_FONT_NORMAL        &robotocondensed_regular_16 //&lv_font_montserrat_16
+#define LV_THEME_DEFAULT_FONT_SUBTITLE      &robotocondensed_regular_22 //&lv_font_montserrat_22
+#define LV_THEME_DEFAULT_FONT_TITLE         &robotocondensed_regular_28 //&lv_font_montserrat_22 //&lv_font_montserrat_28_compressed
 #else
 #define LV_THEME_DEFAULT_FONT_SMALL         LV_FONT_DEFAULT // &lv_font_montserrat_12
 #define LV_THEME_DEFAULT_FONT_NORMAL        LV_FONT_DEFAULT // &lv_font_montserrat_16
