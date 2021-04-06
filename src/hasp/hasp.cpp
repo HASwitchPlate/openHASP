@@ -81,7 +81,7 @@ uint8_t hasp_sleep_state       = HASP_SLEEP_OFF; // Used in hasp_drv_touch.cpp
 static uint16_t sleepTimeShort = 60;             // 1 second resolution
 static uint16_t sleepTimeLong  = 120;            // 1 second resolution
 
-uint8_t haspStartDim   = 100;
+uint8_t haspStartDim   = 255;
 uint8_t haspStartPage  = 1;
 uint8_t haspThemeId    = 2;
 uint16_t haspThemeHue  = 200;

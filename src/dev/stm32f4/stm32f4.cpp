@@ -71,9 +71,7 @@ const char* Stm32f4Device::get_chip_model()
 
 void Stm32f4Device::set_backlight_level(uint8_t level)
 {
-    _backlight_level = level >= 0 ? level : 0;
-    _backlight_level = _backlight_level <= 100 ? _backlight_level : 100;
-
+    _backlight_level = level;
     update_backlight();
 }
 
