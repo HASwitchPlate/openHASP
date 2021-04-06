@@ -30,6 +30,7 @@
 // #include "user_config_override.h"
 // #endif
 
+/* clang-format off */
 //default theme
 #ifndef D_HTTP_COLOR_TEXT
 #define D_HTTP_COLOR_TEXT               "#000"       // Global text color - Black
@@ -55,6 +56,7 @@
 #ifndef D_HTTP_COLOR_BUTTON_RESET
 #define D_HTTP_COLOR_BUTTON_RESET       "#f00"       // Restart/Reset button color - red
 #endif
+/* clang-format on */
 
 #if defined(ARDUINO_ARCH_ESP8266) || defined(ARDUINO_ARCH_ESP32)
 File fsUploadFile;
@@ -119,8 +121,10 @@ const char HTTP_STYLE[] PROGMEM =
     "select{background-color:" D_HTTP_COLOR_INPUT ";color:" D_HTTP_COLOR_INPUT_TEXT ";}"
     "input:invalid{border:1px solid " D_HTTP_COLOR_INPUT_WARNING ";}"
     //"#hue{width:100%;}"
-    "body{font-family:verdana;width:60%;margin:auto;background:" D_HTTP_COLOR_BACKGROUND ";color:" D_HTTP_COLOR_TEXT ";}"
-    "button{border:0;border-radius:0.6rem;background-color:" D_HTTP_COLOR_BUTTON ";color:" D_HTTP_COLOR_BUTTON_TEXT ";line-height:2.4rem;font-size:1.2rem;"
+    "body{font-family:verdana;width:60%;margin:auto;background:" D_HTTP_COLOR_BACKGROUND ";color:" D_HTTP_COLOR_TEXT
+    ";}"
+    "button{border:0;border-radius:0.6rem;background-color:" D_HTTP_COLOR_BUTTON ";color:" D_HTTP_COLOR_BUTTON_TEXT
+    ";line-height:2.4rem;font-size:1.2rem;"
     "width:100%;}"
     //".q{float:right;width:64px;text-align:right;}"
     ".red{background-color:" D_HTTP_COLOR_BUTTON_RESET ";}"
@@ -1757,11 +1761,11 @@ void webHandleHaspConfig()
 
         httpMessage += settings[FPSTR(FP_CONFIG_PAGES)].as<String>();
         httpMessage += F("'></br><b>Startup Page</b> <i><small>(required)</small></i><input id='startpage' required "
-                         "name='startpage' type='number' min='1' max='4' value='");
+                         "name='startpage' type='number' min='1' max='12' value='");
         httpMessage += settings[FPSTR(FP_CONFIG_STARTPAGE)].as<String>();
         httpMessage +=
             F("'></p><p><b>Startup Brightness</b> <i><small>(required)</small></i><input id='startpage' required "
-              "name='startdim' type='number' min='0' max='100' value='");
+              "name='startdim' type='number' min='0' max='255' value='");
         httpMessage += settings[FPSTR(FP_CONFIG_STARTDIM)].as<String>();
         httpMessage += F("'></p>");
 
