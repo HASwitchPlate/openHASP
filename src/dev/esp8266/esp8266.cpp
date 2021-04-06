@@ -60,9 +60,7 @@ void Esp8266Device::set_backlight_pin(uint8_t pin)
 
 void Esp8266Device::set_backlight_level(uint8_t level)
 {
-    _backlight_level = level >= 0 ? level : 0;
-    _backlight_level = _backlight_level <= 100 ? _backlight_level : 100;
-
+    _backlight_level = level;
     update_backlight();
 }
 
@@ -86,7 +84,7 @@ void Esp8266Device::update_backlight()
 {
     if(_backlight_pin == -1) return;
 
-    analogWrite(_backlight_pin, _backlight_power ? map(_backlight_level, 0, 100, 0, 1023) : 0);
+    analogWrite(_backlight_pin, _backlight_power ? map(_backlight_level, 0, 255, 0, 1023) : 0);
 }
 
 size_t Esp8266Device::get_free_max_block()

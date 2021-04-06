@@ -288,7 +288,7 @@ static void oobe_calibrate_cb(lv_obj_t* ta, lv_event_t event)
 {
     if(event == LV_EVENT_CLICKED) {
         if(oobeAutoCalibrate) {
-            haspDevice.set_backlight_level(100);
+            haspDevice.set_backlight_level(255);
             guiCalibrate();
             oobeAutoCalibrate = false;
             lv_obj_set_click(lv_disp_get_layer_sys(NULL), true);
@@ -316,7 +316,7 @@ bool oobeSetup()
     char pass[32];
 
     if(wifiShowAP(ssid, pass)) {
-        haspDevice.set_backlight_level(100);
+        haspDevice.set_backlight_level(255);
         oobeSetupQR(ssid, pass);
         oobeSetupSsid();
 
@@ -344,7 +344,7 @@ void oobeFakeSetup(const char*, const char*)
     char ssid[32] = "HASP-ABCDEF";
     char pass[32] = "haspadmin";
 
-    haspDevice.set_backlight_level(100);
+    haspDevice.set_backlight_level(255);
     oobeSetupQR(ssid, pass);
     oobeSetupSsid();
     oobeSetPage(0);

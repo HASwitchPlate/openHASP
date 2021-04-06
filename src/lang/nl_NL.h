@@ -6,7 +6,7 @@
 #define D_SSID "Ssid:"
 
 #define D_ERROR_OUT_OF_MEMORY "Geen geheugen bechikbaar"
-#define D_ERROR_UNKNOWN "Unbekende fout"
+#define D_ERROR_UNKNOWN "Onbekende fout"
 
 #define D_CONFIG_NOT_CHANGED "Instellingen ongewijzigd"
 #define D_CONFIG_CHANGED "Instellingen gewijzigd"
@@ -51,7 +51,6 @@
 #define D_TELNET_CLOSING_CONNECTION "Sessie sluiten van %s"
 #define D_TELNET_CLIENT_LOGIN_FROM "Client aangemeld van %s"
 #define D_TELNET_CLIENT_CONNECT_FROM "Client verbonden van %s"
-#define D_TELNET_CLIENT_NOT_CONNECTED "Client NIET vzebonden"
 #define D_TELNET_AUTHENTICATION_FAILED "Autorisatie mislukt!"
 #define D_TELNET_INCORRECT_LOGIN_ATTEMPT "Aanmelding van %s mislukt"
 #define D_TELNET_STARTED "Telnet console gestart"
@@ -125,7 +124,7 @@
 #define D_HTTP_REBOOT "Herstarten"
 #define D_HTTP_CONFIGURATION "Configuratie"
 
-#define D_OOBE_MSB "Raak het scherm aan om WiFi in te stellen of meld je aan op AP:"
+#define D_OOBE_MSG "Raak het scherm aan om WiFi in te stellen of meld je aan op AP:"
 #define D_OOBE_SCAN_TO_CONNECT "Scan code"
 
 #endif

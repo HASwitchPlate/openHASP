@@ -68,8 +68,7 @@ void Win32Device::set_backlight_pin(uint8_t pin)
 
 void Win32Device::set_backlight_level(uint8_t level)
 {
-    uint8_t new_level = level >= 0 ? level : 0;
-    new_level         = new_level <= 100 ? new_level : 100;
+    uint8_t new_level = level;
 
     if(_backlight_level != new_level) {
         _backlight_level = new_level;
@@ -95,7 +94,7 @@ bool Win32Device::get_backlight_power()
 
 void Win32Device::update_backlight()
 {
-    uint8_t level = _backlight_power ? map(_backlight_level, 0, 100, 0, 255) : 0;
+    uint8_t level = _backlight_power ? _backlight_level : 0;
     monitor_backlight(level);
 }
 

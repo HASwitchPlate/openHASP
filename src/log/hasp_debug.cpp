@@ -39,9 +39,9 @@
 #include "hasp/hasp_dispatch.h"
 #include "hasp/hasp.h"
 
-#ifdef USE_CONFIG_OVERRIDE
-#include "user_config_override.h"
-#endif
+// #ifdef USE_CONFIG_OVERRIDE
+// #include "user_config_override.h"
+// #endif
 
 #ifndef SERIAL_SPEED
 #define SERIAL_SPEED 115200

@@ -3,12 +3,9 @@
 
 #include <time.h>
 #include <sys/time.h>
-#ifdef USE_CONFIG_OVERRIDE
-#include "user_config_override.h"
-#endif
-#ifndef MYTZ
-#define MYTZ "EST5EDT,M3.2.0/2,M11.1.0"
-#endif
+// #ifdef USE_CONFIG_OVERRIDE
+// #include "user_config_override.h"
+// #endif
 #include <Arduino.h>
 #include "ArduinoLog.h"
 
@@ -19,6 +16,10 @@
 
 #include "hasp/hasp.h"
 #include "sys/svc/hasp_mdns.h"
+
+#ifndef MYTZ
+#define MYTZ "EST5EDT,M3.2.0/2,M11.1.0"
+#endif
 
 #if HASP_USE_ETHERNET > 0 || HASP_USE_WIFI > 0
 void networkStart(void)

@@ -7,13 +7,14 @@
 #include <Esp.h>
 #include "esp_system.h"
 
+#include "hasp_conf.h"
+
 #include "../device.h"
 #include "esp32.h"
 
 #include "driver/adc.h"
 #include "esp_adc_cal.h"
 
-#include "hasp_conf.h"
 #include "hasp_debug.h"
 #include "hasp/hasp_utilities.h"
 
@@ -90,9 +91,7 @@ void Esp32Device::set_backlight_pin(uint8_t pin)
 
 void Esp32Device::set_backlight_level(uint8_t level)
 {
-    _backlight_level = level >= 0 ? level : 0;
-    _backlight_level = _backlight_level <= 100 ? _backlight_level : 100;
-
+    _backlight_level = level;
     update_backlight();
 }
 
@@ -115,7 +114,7 @@ bool Esp32Device::get_backlight_power()
 void Esp32Device::update_backlight()
 {
     if(_backlight_pin < GPIO_NUM_MAX) {
-        uint32_t duty = _backlight_power ? map(_backlight_level, 0, 100, 0, 4095) : 0;
+        uint32_t duty = _backlight_power ? map(_backlight_level, 0, 255, 0, 4095) : 0;
         ledcWrite(BACKLIGHT_CHANNEL, duty); // ledChannel and value
     }
 }

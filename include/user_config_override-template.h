@@ -9,6 +9,8 @@
 //
 // To use: Save a copy as user_config_override.h
 ***************************************************/
+#ifndef HASP_USER_CONFIG_OVERRIDE_H
+#define HASP_USER_CONFIG_OVERRIDE_H
 
 #define SERIAL_SPEED 115200
 
@@ -49,6 +51,19 @@
 #define APP_NAME "HASP"
 
 /***************************************************
+ *        Timezone Settings
+ **************************************************/
+#define MYTZ "CET-1CEST,M3.5.0,M10.5.0/3"            // A full list with possible timezones can be found here https://gist.github.com/alwynallan/24d96091655391107939
+
+/***************************************************
+ *        Interface Language Settings
+ **************************************************/
+#define HASP_LANGUAGE en_US                          // English
+// #define HASP_LANGUAGE nl_NL                       // Dutch
+// #define HASP_LANGUAGE hu_HU                       // Hungarian
+// #define HASP_LANGUAGE ro_RO                       // Romanian
+
+/***************************************************
  *        Web interface coloring
  **************************************************/
 // Light theme (default)
@@ -77,3 +92,5 @@
  *        Other Settings
  **************************************************/
 //#define HASP_USE_HA                                 // Enable Home Assistant auto-discovery
+
+#endif
