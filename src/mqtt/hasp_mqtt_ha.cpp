@@ -328,12 +328,12 @@ device:
   name: 'HASP Test'
   model: 'hasptest'
   sw_version: 'v0.3.2'
-  manufacturer: hasp-lvgl
+  manufacturer: openHASP
 
 
 {
     "device":
-        {"ids": "plate_87546c", "name": "Test Switchplate", "mdl": "Lanbon L8", "sw": "v0.3.1", "mf": "hasp-lvgl"},
+        {"ids": "plate_87546c", "name": "Test Switchplate", "mdl": "Lanbon L8", "sw": "v0.3.1", "mf": "openHASP"},
     "name": "Backlight",
     "uniq_id": "hasp35_light",
     "~": "hasp/plate35",
@@ -360,7 +360,7 @@ device:
         "name": "Test Switchplate",
         "model": "Lanbon L8",
         "sw_version": "v0.3.1",
-        "manufacturer": "hasp-lvgl"
+        "manufacturer": "openHASP"
     }
 }
 
