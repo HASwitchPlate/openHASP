@@ -82,7 +82,7 @@ bool Esp8266Device::get_backlight_power()
 
 void Esp8266Device::update_backlight()
 {
-    if(_backlight_pin < GPIO_NUM_MAX) {
+    if(_backlight_pin < 17) {
         uint32_t duty = _backlight_power ? map(_backlight_level, 0, 255, 0, 1023) : 0;
         if(_backlight_invert) duty = 1023 - duty;
         analogWrite(_backlight_pin, duty);
