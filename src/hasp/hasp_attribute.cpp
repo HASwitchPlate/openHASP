@@ -467,19 +467,19 @@ static lv_font_t* haspPayloadToFont(const char* payload)
             return &HASP_FONT_1;
 #endif
 
-#ifdef LV_FONT_CUSTOM_16
+#ifdef HASP_FONT_2
         case 16:
             LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, HASP_FONT_2);
             return &HASP_FONT_2;
 #endif
 
-#ifdef LV_FONT_CUSTOM_22
+#ifdef HASP_FONT_3
         case 22:
             LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, HASP_FONT_3);
             return &HASP_FONT_3;
 #endif
 
-#ifdef LV_FONT_CUSTOM_28
+#ifdef HASP_FONT_4
         case 28:
             LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, HASP_FONT_4);
             return &HASP_FONT_4;
