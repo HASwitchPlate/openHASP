@@ -60,6 +60,7 @@ class PosixDevice : public BaseDevice {
     uint8_t _backlight_pin;
     uint8_t _backlight_level;
     uint8_t _backlight_power;
+    uint8_t _backlight_invert;
 
     void update_backlight();
 };

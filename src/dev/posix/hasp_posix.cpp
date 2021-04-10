@@ -38,8 +38,9 @@ PosixDevice::PosixDevice()
         _hostname     = uts.nodename;
     }
 
-    _backlight_power = 1;
-    _backlight_level = 100;
+    _backlight_power  = 1;
+    _backlight_invert = 0;
+    _backlight_level  = 100;
 }
 
 void PosixDevice::reboot()
@@ -115,6 +116,7 @@ bool PosixDevice::get_backlight_power()
 void PosixDevice::update_backlight()
 {
     uint8_t level = _backlight_power ? _backlight_level : 0;
+    if(_backlight_invert) level = 255 - level;
     monitor_backlight(level);
     // SDL_SetTextureColorMod(monitor.texture, level, level, level);
     // window_update(&monitor);

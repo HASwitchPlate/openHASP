@@ -16,12 +16,13 @@ class Esp32Device : public BaseDevice {
     Esp32Device()
     {
 #ifdef MQTT_NODENAME
-        _hostname        = MQTT_NODENAME;
+        _hostname = MQTT_NODENAME;
 #else
-        _hostname        = "plate";
+        _hostname      = "plate";
 #endif
-        _backlight_power = 1;
-        _backlight_level = 100;
+        _backlight_power  = 1;
+        _backlight_invert = 0;
+        _backlight_level  = 255;
 #ifdef TFT_BCKL
         _backlight_pin = TFT_BCKL;
 #else
@@ -55,6 +56,7 @@ class Esp32Device : public BaseDevice {
     uint8_t _backlight_pin;
     uint8_t _backlight_level;
     uint8_t _backlight_power;
+    uint8_t _backlight_invert;
 
     void update_backlight();
 };

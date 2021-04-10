@@ -95,6 +95,7 @@ bool Win32Device::get_backlight_power()
 void Win32Device::update_backlight()
 {
     uint8_t level = _backlight_power ? _backlight_level : 0;
+    if(_backlight_invert) level = 255 - level;
     monitor_backlight(level);
 }
 

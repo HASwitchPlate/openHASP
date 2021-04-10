@@ -47,8 +47,9 @@ class Win32Device : public BaseDevice {
         _core_version = version;
 
         // _backlight_pin   = -1;
-        _backlight_power = 1;
-        _backlight_level = 100;
+        _backlight_power  = 1;
+        _backlight_invert = 0;
+        _backlight_level  = 255;
     }
 
     void reboot() override;
@@ -79,6 +80,7 @@ class Win32Device : public BaseDevice {
     uint8_t _backlight_pin;
     uint8_t _backlight_level;
     uint8_t _backlight_power;
+    uint8_t _backlight_invert;
 
     void update_backlight();
 };

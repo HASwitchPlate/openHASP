@@ -16,9 +16,10 @@ class Stm32f4Device : public BaseDevice {
   public:
     Stm32f4Device()
     {
-        _hostname        = "plate";
-        _backlight_power = 1;
-        _backlight_level = 100;
+        _hostname         = "plate";
+        _backlight_power  = 1;
+        _backlight_invert = 0;
+        _backlight_level  = 100;
 #ifdef TFT_BCKL
         _backlight_pin = TFT_BCKL;
 #else
@@ -53,6 +54,7 @@ class Stm32f4Device : public BaseDevice {
     uint8_t _backlight_pin;
     uint8_t _backlight_level;
     uint8_t _backlight_power;
+    uint8_t _backlight_invert;
 
     void update_backlight();
 };
