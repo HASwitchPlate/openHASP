@@ -6,7 +6,6 @@
 extern "C" {
 #endif
 
-#include "lv_conf_internal.h"
 
 /*----------------------------------------
  * Symbols from Material Design Icons font

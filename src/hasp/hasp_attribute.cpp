@@ -462,27 +462,27 @@ static lv_font_t* haspPayloadToFont(const char* payload)
 
 #ifndef ARDUINO_ARCH_ESP8266
 
-#ifdef LV_FONT_CUSTOM_12
+#ifdef HASP_FONT_1
         case 12:
-            return &robotocondensed_regular_12;
+            return &HASP_FONT_1;
 #endif
 
 #ifdef LV_FONT_CUSTOM_16
         case 16:
-            LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, robotocondensed_regular_16);
-            return &robotocondensed_regular_16;
+            LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, HASP_FONT_2);
+            return &HASP_FONT_2;
 #endif
 
 #ifdef LV_FONT_CUSTOM_22
         case 22:
-            LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, robotocondensed_regular_22);
-            return &robotocondensed_regular_22;
+            LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, HASP_FONT_3);
+            return &HASP_FONT_3;
 #endif
 
 #ifdef LV_FONT_CUSTOM_28
         case 28:
-            LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, robotocondensed_regular_28);
-            return &robotocondensed_regular_28;
+            LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, HASP_FONT_4);
+            return &HASP_FONT_4;
 #endif
 
 #endif
