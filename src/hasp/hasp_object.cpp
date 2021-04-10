@@ -305,6 +305,24 @@ void wakeup_event_handler(lv_obj_t* obj, lv_event_t event)
     }
 }
 
+void page_event_handler(lv_obj_t* obj, lv_event_t event)
+{
+    if(event == LV_EVENT_GESTURE) {
+        lv_gesture_dir_t dir = lv_indev_get_gesture_dir(lv_indev_get_act());
+        switch(dir) {
+            case LV_GESTURE_DIR_LEFT:
+                haspPages.next(LV_SCR_LOAD_ANIM_NONE);
+                break;
+            case LV_GESTURE_DIR_RIGHT:
+                haspPages.prev(LV_SCR_LOAD_ANIM_NONE);
+                break;
+            case LV_GESTURE_DIR_BOTTOM:
+                haspPages.back(LV_SCR_LOAD_ANIM_NONE);
+                break;
+        }
+    }
+}
+
 /**
  * Called when a button-style object is clicked
  * @param obj pointer to a button object

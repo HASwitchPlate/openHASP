@@ -78,10 +78,11 @@ void hasp_process_attribute(uint8_t pageid, uint8_t objid, const char* attr, con
 
 void object_set_normalized_group_value(uint8_t groupid, lv_obj_t* src_obj, int16_t val, int16_t min, int16_t max);
 
+void wakeup_event_handler(lv_obj_t* obj, lv_event_t event);
+void page_event_handler(lv_obj_t* obj, lv_event_t event);
 void generic_event_handler(lv_obj_t* obj, lv_event_t event);
 void toggle_event_handler(lv_obj_t* obj, lv_event_t event);
 void slider_event_handler(lv_obj_t* obj, lv_event_t event);
-void wakeup_event_handler(lv_obj_t* obj, lv_event_t event);
 
 #define HASP_OBJ_BAR 1971
 #define HASP_OBJ_BTN 3164
