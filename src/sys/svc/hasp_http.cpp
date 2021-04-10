@@ -540,7 +540,7 @@ void webHandleInfo()
         httpMessage += __DATE__;
         httpMessage += F(" ");
         httpMessage += __TIME__;
-        httpMessage += F(" CET<br/><b>Uptime: </b>");
+        httpMessage += F(" UTC<br/><b>Uptime: </b>"); // Github buildservers are in UTC
 
         unsigned long time = millis() / 1000;
         uint16_t day       = time / 86400;
