@@ -88,7 +88,7 @@ do
 
   LETTERS="$ASCII,$EXTENDED_ASCII"
 
-  for SIZE in 12 14 16 20 24 26 28 32 36 38 40 44 48
+  for SIZE in 12 14 16 20 22 24 26 28 32 36 38 40 44 48
   do
 
     for format in bin lvgl
