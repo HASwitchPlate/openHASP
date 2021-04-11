@@ -9,32 +9,6 @@
 #define LV_CONF_H
 /* clang-format off */
 
-#ifndef HASP_FONT_1
-#define HASP_FONT_1 robotocondensed_regular_24_latin1
-#endif
-#ifndef HASP_FONT_2
-#define HASP_FONT_2 robotocondensed_regular_32_latin1
-#endif
-#ifndef HASP_FONT_3
-#define HASP_FONT_3 robotocondensed_regular_40_latin1
-#endif
-#ifndef HASP_FONT_4
-#define HASP_FONT_4 robotocondensed_regular_48_latin1
-#endif
-
-#ifndef ROBOTOCONDENSED_REGULAR_24_LATIN1
-#define ROBOTOCONDENSED_REGULAR_24_LATIN1 1
-#endif
-#ifndef ROBOTOCONDENSED_REGULAR_32_LATIN1
-#define ROBOTOCONDENSED_REGULAR_32_LATIN1 1
-#endif
-#ifndef ROBOTOCONDENSED_REGULAR_40_LATIN1
-#define ROBOTOCONDENSED_REGULAR_40_LATIN1 1
-#endif
-#ifndef ROBOTOCONDENSED_REGULAR_48_LATIN1
-#define ROBOTOCONDENSED_REGULAR_48_LATIN1 1
-#endif
-
 #include <stdint.h>
 
 #include "lv_symbol_mdi_def.h"
@@ -365,6 +339,64 @@ typedef void* lv_indev_drv_user_data_t;            /*Type of user data in the in
  *    FONT USAGE
  *===================*/
 
+#if TFT_WIDTH>=320 || TFT_WIDTH>=480
+
+#ifndef HASP_FONT_1
+#define HASP_FONT_1 robotocondensed_regular_16_latin1  /* 5% Width */
+#endif
+#ifndef HASP_FONT_2
+#define HASP_FONT_2 robotocondensed_regular_24_latin1  /* 5% Width */
+#endif
+#ifndef HASP_FONT_3
+#define HASP_FONT_3 robotocondensed_regular_32_latin1  /* 10% Width */
+#endif
+#ifndef HASP_FONT_4
+#define HASP_FONT_4 robotocondensed_regular_48_latin1  /* 10% Height */
+#endif
+
+#ifndef ROBOTOCONDENSED_REGULAR_16_LATIN1
+#define ROBOTOCONDENSED_REGULAR_16_LATIN1 1
+#endif
+#ifndef ROBOTOCONDENSED_REGULAR_24_LATIN1
+#define ROBOTOCONDENSED_REGULAR_24_LATIN1 1
+#endif
+#ifndef ROBOTOCONDENSED_REGULAR_36_LATIN1
+#define ROBOTOCONDENSED_REGULAR_36_LATIN1 1
+#endif
+#ifndef ROBOTOCONDENSED_REGULAR_48_LATIN1
+#define ROBOTOCONDENSED_REGULAR_48_LATIN1 1
+#endif
+
+#else
+
+#ifndef HASP_FONT_1
+#define HASP_FONT_1 robotocondensed_regular_12_latin1  /* 5% Width */
+#endif
+#ifndef HASP_FONT_2
+#define HASP_FONT_2 robotocondensed_regular_16_latin1  /* 5% Width */
+#endif
+#ifndef HASP_FONT_3
+#define HASP_FONT_3 robotocondensed_regular_24_latin1  /* 10% Width */
+#endif
+#ifndef HASP_FONT_4
+#define HASP_FONT_4 robotocondensed_regular_32_latin1  /* 10% Height */
+#endif
+
+#ifndef ROBOTOCONDENSED_REGULAR_12_LATIN1
+#define ROBOTOCONDENSED_REGULAR_12_LATIN1 1
+#endif
+#ifndef ROBOTOCONDENSED_REGULAR_16_LATIN1
+#define ROBOTOCONDENSED_REGULAR_16_LATIN1 1
+#endif
+#ifndef ROBOTOCONDENSED_REGULAR_24_LATIN1
+#define ROBOTOCONDENSED_REGULAR_24_LATIN1 1
+#endif
+#ifndef ROBOTOCONDENSED_REGULAR_32_LATIN1
+#define ROBOTOCONDENSED_REGULAR_32_LATIN1 1
+#endif
+
+#endif
+
 /* The built-in fonts contains the ASCII range and some Symbols with 4 bit-per-pixel.
  * The symbols are available via `LV_SYMBOL_...` defines
  * More info about fonts: https://docs.lvgl.io/v7/en/html/overview/font.html
@@ -479,7 +511,7 @@ typedef void* lv_font_user_data_t;
                                LV_FONT_DECLARE(HASP_FONT_3) \
                                LV_FONT_DECLARE(HASP_FONT_4) \
 
-#define LV_FONT_DEFAULT        &HASP_FONT_1 //&lv_font_montserrat_16
+#define LV_FONT_DEFAULT        &HASP_FONT_2 //&lv_font_montserrat_16
 #else
 #define LV_FONT_CUSTOM_DECLARE LV_FONT_DECLARE(unscii_8_icon);
 #define LV_FONT_DEFAULT        &unscii_8_icon //&lv_font_unscii_8
