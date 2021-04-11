@@ -15,16 +15,17 @@ extern "C" {
     0XF0140, 0XF0141, 0XF0142, 0XF0143, 0XF012C, 0XF0208, 0XF0209, 0XF05A9, 0XF0156, 0XF060C, 0XF030D
 */
 
-#define LV_SYMBOL_DOWN              "\xf3\xb0\x85\x80" /*983360, 0XF0140*/
-#define LV_SYMBOL_LEFT              "\xf3\xb0\x85\x81" /*983361, 0XF0141*/
-#define LV_SYMBOL_RIGHT             "\xf3\xb0\x85\x82" /*983362, 0XF0142*/
-#define LV_SYMBOL_OK                "\xf3\xb0\x84\xac" /*984545, 0XF012C*/
-#define LV_SYMBOL_EYE_OPEN          "\xf3\xb0\x88\x88" /*983560, 0XF0208*/
-#define LV_SYMBOL_EYE_CLOSE         "\xf3\xb0\x88\x89" /*983561, 0XF0209*/
-#define LV_SYMBOL_WIFI              "\xf3\xb0\x96\xa9" /*984489, 0XF05A9*/
-#define LV_SYMBOL_CLOSE             "\xf3\xb0\x85\x96" /*983382, 0XF0156*/
-#define LV_SYMBOL_NEW_LINE          "\xf3\xb0\x98\x8c" /*984588, 0XF060C*/
-#define LV_SYMBOL_BACKSPACE         "\xf3\xb0\x8c\x8d" /*983821, 0XF030D*/
+#define LV_SYMBOL_DOWN              "\xEE\x85\x80"  /* 0xE140, chevron-down */
+#define LV_SYMBOL_LEFT              "\xEE\x85\x81"  /* 0xE141, chevron-left */
+#define LV_SYMBOL_RIGHT             "\xEE\x85\x82"  /* 0xE142, chevron-right */
+#define LV_SYMBOL_OK                "\xEE\x84\xAC"  /* 0xE12C, check */
+#define LV_SYMBOL_EYE_OPEN          "\xEE\xBF\x86"  /* 0xEFC6, lock-open-variant */
+#define LV_SYMBOL_EYE_CLOSE         "\xEE\x8C\xBE"  /* 0xE33E, lock*/
+#define LV_SYMBOL_WIFI              "\xEE\x96\xA9"  /* 0xE5A9, wifi */
+#define LV_SYMBOL_KEY               "\xEE\x8C\x8B"  /* 0xE30B, key-variant */
+#define LV_SYMBOL_CLOSE             "\xEE\x85\x96"  /* 0xE156, close */
+#define LV_SYMBOL_NEW_LINE          "\xEE\x98\x8C"  /* 0xE60C, subdirectory-arrow-left */
+#define LV_SYMBOL_BACKSPACE         "\xEE\x81\x8D"  /* 0xE04D, arrow-left */
 
 /** Invalid symbol at (U+F8FF). If written before a string then `lv_img` will show it as a label*/
 #define LV_SYMBOL_DUMMY             "\xEF\xA3\xBF"
@@ -32,7 +33,7 @@ extern "C" {
 /*-------------------------------
  * Symbols from "normal" font
  *-----------------------------*/
-#define LV_SYMBOL_BULLET            "\xE2\x80\xA2" /*20042, 0x2022*/
+#define LV_SYMBOL_BULLET            "\xE2\x80\xA2" /* 20042, 0x2022 */
 
 
 

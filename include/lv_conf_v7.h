@@ -10,29 +10,29 @@
 /* clang-format off */
 
 #ifndef HASP_FONT_1
-#define HASP_FONT_1 robotocondensed_regular_12_latin1
+#define HASP_FONT_1 robotocondensed_regular_24_latin1
 #endif
 #ifndef HASP_FONT_2
-#define HASP_FONT_2 robotocondensed_regular_16_latin1
+#define HASP_FONT_2 robotocondensed_regular_32_latin1
 #endif
 #ifndef HASP_FONT_3
-#define HASP_FONT_3 robotocondensed_regular_22_latin1
+#define HASP_FONT_3 robotocondensed_regular_40_latin1
 #endif
 #ifndef HASP_FONT_4
-#define HASP_FONT_4 robotocondensed_regular_28_latin1
+#define HASP_FONT_4 robotocondensed_regular_48_latin1
 #endif
 
-#ifndef ROBOTOCONDENSED_REGULAR_12_LATIN1
-#define ROBOTOCONDENSED_REGULAR_12_LATIN1 1
+#ifndef ROBOTOCONDENSED_REGULAR_24_LATIN1
+#define ROBOTOCONDENSED_REGULAR_24_LATIN1 1
 #endif
-#ifndef ROBOTOCONDENSED_REGULAR_16_LATIN1
-#define ROBOTOCONDENSED_REGULAR_16_LATIN1 1
+#ifndef ROBOTOCONDENSED_REGULAR_32_LATIN1
+#define ROBOTOCONDENSED_REGULAR_32_LATIN1 1
 #endif
-#ifndef ROBOTOCONDENSED_REGULAR_22_LATIN1
-#define ROBOTOCONDENSED_REGULAR_22_LATIN1 1
+#ifndef ROBOTOCONDENSED_REGULAR_40_LATIN1
+#define ROBOTOCONDENSED_REGULAR_40_LATIN1 1
 #endif
-#ifndef ROBOTOCONDENSED_REGULAR_28_LATIN1
-#define ROBOTOCONDENSED_REGULAR_28_LATIN1 1
+#ifndef ROBOTOCONDENSED_REGULAR_48_LATIN1
+#define ROBOTOCONDENSED_REGULAR_48_LATIN1 1
 #endif
 
 #include <stdint.h>

@@ -177,7 +177,7 @@ static void oobeSetupQR(const char* ssid, const char* pass)
     lv_label_set_text(network, txt.c_str());
 
     lv_obj_t* password = lv_label_create(panel, NULL);
-    txt                = String(F("\xef\x80\xA3")) + " " + String(pass);
+    txt                = String(F(LV_SYMBOL_KEY)) + " " + String(pass);
     lv_label_set_text(password, txt.c_str());
 }
 
