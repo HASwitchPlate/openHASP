@@ -11,7 +11,7 @@ extern "C" {
 /*********************
  *      INCLUDES
  *********************/
-#if USE_TFT_ESPI
+//#if USE_TFT_ESPI
 
 #ifdef LV_LVGL_H_INCLUDE_SIMPLE
 #include "lvgl.h"
@@ -25,7 +25,7 @@ void tft_espi_set_touch(uint16_t* calData);
 bool tft_espi_get_touch(int16_t* touchX, int16_t* touchY, uint16_t threshold);
 #endif
 
-#endif /* USE_TFT_ESPI */
+//#endif /* USE_TFT_ESPI */
 
 #ifdef __cplusplus
 } /* extern "C" */

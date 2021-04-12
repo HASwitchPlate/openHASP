@@ -16,7 +16,7 @@
  *      TYPEDEFS
  **********************/
 
-typedef struct hasp_page_meta_data_t
+struct hasp_page_meta_data_t
 {
     uint8_t prev : 4;
     uint8_t next : 4;

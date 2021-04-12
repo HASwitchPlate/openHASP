@@ -525,7 +525,7 @@ static void dispatch_config(const char* topic, const char* payload)
         char subtopic[8];
         settings.remove(F("pass")); // hide password in output
 
-        size_t size = serializeJson(doc, buffer, sizeof(buffer));
+        /* size_t size = */ serializeJson(doc, buffer, sizeof(buffer));
         memcpy_P(subtopic, PSTR("config"), 7);
         dispatch_state_subtopic(subtopic, buffer);
     }

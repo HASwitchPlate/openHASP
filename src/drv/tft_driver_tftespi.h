@@ -51,8 +51,8 @@ class TftEspi : BaseTft {
     {
         if(pin != -1) {
             char buffer[64];
-            snprintf_P(buffer, sizeof(buffer), PSTR("%-11s: %s (GPIO %02d)"), pinfunction, halGpioName(pin).c_str(),
-                       pin);
+            snprintf_P(buffer, sizeof(buffer), PSTR("%-11s: %s (GPIO %02d)"), String(pinfunction).c_str(),
+                       halGpioName(pin).c_str(), pin);
             LOG_VERBOSE(TAG_TFT, buffer);
         }
     }
