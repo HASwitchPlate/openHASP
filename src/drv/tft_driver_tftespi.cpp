@@ -8,6 +8,13 @@ namespace dev {
 
 void TftEspi::init(int w, int h)
 {
+#ifdef USE_DMA_TO_TFT
+    // DMA - should work with STM32F2xx/F4xx/F7xx processors
+    // NOTE: >>>>>> DMA IS FOR SPI DISPLAYS ONLY <<<<<<
+    tft.initDMA(); // Initialise the DMA engine (tested with STM32F446 and STM32F767)
+#endif
+
+    /* TFT init */
     tft.begin();
     tft.setSwapBytes(true); /* set endianess */
 }

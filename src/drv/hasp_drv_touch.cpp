@@ -9,7 +9,7 @@
 #if TOUCH_DRIVER == 2046
 #if defined(USE_FSMC)
 #else
-#include "tft_espi_drv.h"
+#include "drv/touch/hasp_drv_tft_espi.h"
 #endif
 
 #elif TOUCH_DRIVER == 2046
