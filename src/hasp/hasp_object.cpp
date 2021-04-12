@@ -818,6 +818,7 @@ void hasp_new_object(const JsonObject& config, uint8_t& saved_page_id)
                 config.remove(FPSTR(FP_OBJ));
             }
         } else {
+            LOG_WARNING(TAG_HASP, F("objid property is obsolete, use obj instead"));
             sdbm = config[FPSTR(FP_OBJID)].as<uint8_t>();
             config.remove(FPSTR(FP_OBJID));
         }
