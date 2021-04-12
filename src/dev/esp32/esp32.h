@@ -64,10 +64,10 @@ class Esp32Device : public BaseDevice {
 } // namespace dev
 
 #if defined(LANBONL8)
-#warning Building for Lanbon L8
+// #warning Building for Lanbon L8
 #include "lanbonl8.h"
 #elif defined(M5STACK)
-#warning Building for M5Stack core2
+// #warning Building for M5Stack core2
 #include "m5stackcore2.h"
 #else
 using dev::Esp32Device;

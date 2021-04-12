@@ -116,7 +116,7 @@ bool mqttIsConnected()
     return mqttEnabled && mqttClient.connected();
 }
 
-void mqtt_send_lwt(bool online)
+bool mqtt_send_lwt(bool online)
 {
     char tmp_payload[8];
     char tmp_topic[strlen(mqttNodeTopic) + 4];
@@ -126,6 +126,8 @@ void mqtt_send_lwt(bool online)
 
     size_t len = snprintf_P(tmp_payload, sizeof(tmp_payload), online ? PSTR("online") : PSTR("offline"));
     bool res   = mqttPublish(tmp_topic, tmp_payload, len, true);
+
+    return res;
 }
 
 int mqtt_send_object_state(uint8_t pageid, uint8_t btnid, const char* payload)

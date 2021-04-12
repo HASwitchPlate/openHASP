@@ -37,19 +37,19 @@ class BaseTft {
 } // namespace dev
 
 #if defined(ESP32)
-#warning Building for ESP32 Tfts
+// #warning Building for ESP32 Tfts
 #include "tft_driver_tftespi.h"
 #elif defined(ESP8266)
-#warning Building for ESP8266 Tfts
+// #warning Building for ESP8266 Tfts
 #include "tft_driver_tftespi.h"
 #elif defined(STM32F4)
-#warning Building for STM32F4xx Tfts
+// #warning Building for STM32F4xx Tfts
 #include "tft_driver_tftespi.h"
 #elif defined(WINDOWS) || defined(POSIX)
-#warning Building for SDL2
+// #warning Building for SDL2
 #include "tft_driver_sdl2.h"
 #else
-#warning Building for Generic Tfts
+// #warning Building for Generic Tfts
 using dev::BaseTft;
 extern dev::BaseTft haspTft;
 #endif

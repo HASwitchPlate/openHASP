@@ -158,10 +158,10 @@ bool Esp32Device::is_system_pin(uint8_t pin)
 } // namespace dev
 
 #if defined(LANBONL8)
-#warning Building for Lanbon L8
+// #warning Building for Lanbon L8
 #include "dev/esp32/lanbonl8.h"
 #elif defined(M5STACK)
-#warning Building for M5Stack core2
+// #warning Building for M5Stack core2
 #include "dev/esp32/m5stackcore2.h"
 #else
 dev::Esp32Device haspDevice;

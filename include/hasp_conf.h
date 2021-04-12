@@ -253,7 +253,7 @@ static WiFiSpiClass WiFi;
 #endif
 #endif
 
-#if defined(WINDOWS) 
+#if defined(WINDOWS)
 #include <Windows.h>
 #define delay Sleep
 #endif

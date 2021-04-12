@@ -7,7 +7,7 @@
 #include "tft_driver.h"
 
 #if defined(WINDOWS) || defined(POSIX)
-#warning Building H driver TFT SDL2
+// #warning Building H driver TFT SDL2
 
 #include "lvgl.h"
 #include "indev/mouse.h"

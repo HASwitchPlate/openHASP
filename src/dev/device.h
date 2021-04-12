@@ -91,23 +91,23 @@ class BaseDevice {
 } // namespace dev
 
 #if defined(ESP32)
-#warning Building for ESP32 Devices
+// #warning Building for ESP32 Devices
 #include "esp32/esp32.h"
 #elif defined(ESP8266)
-#warning Building for ESP8266 Devices
+// #warning Building for ESP8266 Devices
 #include "esp8266/esp8266.h"
 #elif defined(STM32F4)
-#warning Building for STM32F4xx Devices
+// #warning Building for STM32F4xx Devices
 #include "stm32f4/stm32f4.h"
 #elif defined(WINDOWS)
-#warning Building for Win32 Devices
+// #warning Building for Win32 Devices
 #include "win32/hasp_win32.h"
 #elif defined(POSIX)
-#warning Building for Posix Devices
+// #warning Building for Posix Devices
 #include "posix/hasp_posix.h"
 
 #else
-#warning Building for Generic Devices
+// #warning Building for Generic Devices
 using dev::BaseDevice;
 extern dev::BaseDevice haspDevice;
 #endif
