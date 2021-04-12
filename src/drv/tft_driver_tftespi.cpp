@@ -10,11 +10,11 @@ void TftEspi::init(int w, int h)
 {
     tft.begin();
     tft.setSwapBytes(true); /* set endianess */
-    splashscreen();
 }
 
 void TftEspi::show_info()
 {
+    splashscreen();
 
     setup_t tftSetup;
     tft.getSetup(tftSetup);
