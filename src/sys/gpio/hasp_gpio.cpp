@@ -4,12 +4,9 @@
 #include "AceButton.h"
 #include "lv_conf.h" // For timing defines
 
-#include "hasp_conf.h"
+#include "hasplib.h"
 #include "hasp_gpio.h"
 #include "hasp_config.h"
-
-#include "hasp/hasp_dispatch.h"
-#include "hasp/hasp.h"
 
 #ifdef ARDUINO_ARCH_ESP8266
 #define INPUT_PULLDOWN INPUT
@@ -88,7 +85,7 @@ static void gpio_event_handler(AceButton* button, uint8_t eventType, uint8_t but
             eventid = HASP_EVENT_LOST;
     }
 
-    dispatch_gpio_input_event(gpioConfig[btnid].pin, gpioConfig[btnid].group, eventid);
+    event_gpio_input(gpioConfig[btnid].pin, gpioConfig[btnid].group, eventid);
     if(eventid != HASP_EVENT_LONG) // do not repeat DOWN + LONG
         dispatch_normalized_group_value(gpioConfig[btnid].group, NULL, state, HASP_EVENT_OFF, HASP_EVENT_ON);
 }
@@ -290,11 +287,15 @@ void gpio_set_normalized_value(hasp_gpio_config_t gpio, int16_t val, int16_t min
         case HASP_GPIO_RELAY:
             gpio.val = val > min ? HIGH : LOW;
             digitalWrite(gpio.pin, gpio.val);
+            dispatch_gpio_output_value("relay", gpio.pin, gpio.val);
             break;
+
         case HASP_GPIO_RELAY_INVERTED:
             gpio.val = val > min ? LOW : HIGH;
             digitalWrite(gpio.pin, gpio.val);
+            dispatch_gpio_output_value("relay", gpio.pin, gpio.val);
             break;
+
         case HASP_GPIO_LED:
         case HASP_GPIO_LED_R:
         case HASP_GPIO_LED_G:
@@ -306,16 +307,9 @@ void gpio_set_normalized_value(hasp_gpio_config_t gpio, int16_t val, int16_t min
             gpio.val = map(val, min, max, 0, 1023);
             analogWrite(gpio.pin, gpio.val);
 #endif
+            dispatch_gpio_output_value("led", gpio.pin, gpio.val);
             break;
-        case HASP_GPIO_PWM:
-#if defined(ARDUINO_ARCH_ESP32)
-            gpio.val = map(val, min, max, 0, 4095);
-            ledcWrite(gpio.group, gpio.val); // ledChannel and value
-#else
-            gpio.val = map(val, min, max, 0, 1023);
-            analogWrite(gpio.pin, gpio.val);
-#endif
-            break;
+
         case HASP_GPIO_LED_INVERTED:
         case HASP_GPIO_LED_R_INVERTED:
         case HASP_GPIO_LED_G_INVERTED:
@@ -328,6 +322,18 @@ void gpio_set_normalized_value(hasp_gpio_config_t gpio, int16_t val, int16_t min
             gpio.val = map(val, min, max, 0, 1023);
             analogWrite(gpio.pin, gpio.val);
 #endif
+            dispatch_gpio_output_value("led", gpio.pin, gpio.val);
+            break;
+
+        case HASP_GPIO_PWM:
+#if defined(ARDUINO_ARCH_ESP32)
+            gpio.val = map(val, min, max, 0, 4095);
+            ledcWrite(gpio.group, gpio.val); // ledChannel and value
+#else
+            gpio.val = map(val, min, max, 0, 1023);
+            analogWrite(gpio.pin, gpio.val);
+#endif
+            dispatch_gpio_output_value("pwm", gpio.pin, gpio.val);
             break;
 
         default:
@@ -352,7 +358,7 @@ void gpio_set_normalized_group_value(uint8_t groupid, int16_t val, int16_t min, 
         return;
     }
 
-    // bool state = dispatch_get_event_state(eventid);
+    // bool state = Parser::get_event_state(eventid);
     for(uint8_t i = 0; i < HASP_NUM_GPIO_CONFIG; i++) {
         if(gpioConfig[i].group == groupid) {
             gpio_set_normalized_value(gpioConfig[i], val, min, max);
@@ -386,7 +392,7 @@ void gpio_set_moodlight(uint8_t r, uint8_t g, uint8_t b)
 // not used
 // void gpio_set_gpio_value(uint8_t pin, uint16_t state)
 // {
-//     // bool state = dispatch_get_event_state(eventid);
+//     // bool state = Parser::get_event_state(eventid);
 //     for(uint8_t i = 0; i < HASP_NUM_GPIO_CONFIG; i++) {
 //         if(gpioConfig[i].pin == pin) {
 //             gpio_set_value(gpioConfig[i], state);

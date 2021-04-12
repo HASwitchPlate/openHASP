@@ -96,24 +96,6 @@ void dispatch_state_object(uint8_t pageid, uint8_t btnid, const char* payload)
     dispatch_state_subtopic(topic, payload);
 }
 
-/* Takes and lv_obj and finds the pageid and objid
-   Then sends the data out on the state/pxby topic
-*/
-void dispatch_obj_data(lv_obj_t* obj, const char* data)
-{
-    uint8_t pageid;
-    uint8_t objid;
-
-    if(hasp_find_id_from_obj(obj, &pageid, &objid)) {
-        if(!data) return;
-#if HASP_USE_MQTT > 0
-        dispatch_state_object(pageid, objid, data);
-#endif
-    } else {
-        LOG_ERROR(TAG_MSGR, F(D_OBJECT_UNKNOWN));
-    }
-}
-
 // Format filesystem and erase EEPROM
 bool dispatch_factory_reset()
 {
@@ -233,6 +215,59 @@ static inline bool dispatch_parse_button_attribute(const char* topic_p, const ch
     // }
 }
 
+static void dispatch_gpio(const char* topic, const char* payload)
+{
+    int16_t val;
+    uint8_t pin;
+
+    if(topic == strstr_P(topic, PSTR("relay"))) {
+        if(strlen(payload) == 0) {
+            // val = gpio_get_relay_value(pin);
+        } else {
+            topic += 5;
+            if(Utilities::is_only_digits(topic)) {
+                pin = atoi(topic);
+                val = Utilities::is_true(payload);
+                //  gpio_set_relay_value(pin, val);
+                return;
+            }
+            // invalid pin
+        }
+
+    } else if(topic == strstr_P(topic, PSTR("led"))) {
+        if(strlen(payload) == 0) {
+        } else {
+            topic += 3;
+            if(Utilities::is_only_digits(topic)) {
+                pin = atoi(topic);
+                val = Utilities::is_true(payload);
+                //   gpio_set_led_value(pin, val);
+                return;
+            }
+            // invalid pin
+        }
+
+    } else if(topic == strstr_P(topic, PSTR("pwm"))) {
+        if(strlen(payload) == 0) {
+
+        } else {
+            topic += 3;
+            if(Utilities::is_only_digits(topic)) {
+                pin = atoi(topic);
+                val = Utilities::is_true(payload);
+                //   gpio_set_pwm_value(pin, val);
+                return;
+            }
+            // invalid pin
+        }
+
+    } else {
+        LOG_WARNING(TAG_MSGR, F("Invalid gpio type %s"), topic);
+        return;
+    }
+    LOG_WARNING(TAG_MSGR, F("Invalid pin number %s"), topic);
+}
+
 // objectattribute=value
 void dispatch_command(const char* topic, const char* payload)
 {
@@ -249,14 +284,9 @@ void dispatch_command(const char* topic, const char* payload)
 
     /* =============================== Not standard payload commands ===================================== */
 
-    if(strlen(topic) == 7 && topic == strstr_P(topic, PSTR("output"))) {
+    if(topic == strstr_P(topic, PSTR("gpio/"))) {
 
-        if(strlen(payload) == 0) {
-            // reply state
-        } else {
-            int16_t state = atoi(payload);
-            dispatch_normalized_group_value(atoi(topic + 6), NULL, state, 0, 1); // + 6 => trim 'output' from the topic
-        }
+        dispatch_gpio(topic + 5, payload);
 
         // } else if(strcasecmp_P(topic, PSTR("screenshot")) == 0) {
         //     guiTakeScreenshot("/screenshot.bmp"); // Literal String
@@ -385,49 +415,17 @@ void dispatch_output_idle_state(uint8_t state)
     dispatch_state_subtopic(topic, payload);
 }
 
-void dispatch_output_group_state(uint8_t groupid, uint16_t state)
-{
-    char payload[64];
-    char number[16]; // Return the current state
-    char topic[8];
-    itoa(state, number, DEC);
-    snprintf_P(payload, sizeof(payload), PSTR("{\"group\":%d,\"state\":\"%s\"}"), groupid, number);
+// void dispatch_output_group_state(uint8_t groupid, uint16_t state)
+// {
+//     char payload[64];
+//     char number[16]; // Return the current state
+//     char topic[8];
+//     itoa(state, number, DEC);
+//     snprintf_P(payload, sizeof(payload), PSTR("{\"group\":%d,\"state\":\"%s\"}"), groupid, number);
 
-    memcpy_P(topic, PSTR("output"), 7);
-    dispatch_state_subtopic(topic, payload);
-}
-
-void dispatch_send_obj_attribute_str(uint8_t pageid, uint8_t btnid, const char* attribute, const char* data)
-{
-    if(!attribute || !data) return;
-
-    char payload[32 + strlen(data) + strlen(attribute)];
-    snprintf_P(payload, sizeof(payload), PSTR("{\"%s\":\"%s\"}"), attribute, data);
-
-    dispatch_state_object(pageid, btnid, payload);
-}
-
-void dispatch_send_obj_attribute_int(uint8_t pageid, uint8_t btnid, const char* attribute, int32_t val)
-{
-    if(!attribute) return;
-
-    char payload[64 + strlen(attribute)];
-    snprintf_P(payload, sizeof(payload), PSTR("{\"%s\":%d}"), attribute, val);
-
-    dispatch_state_object(pageid, btnid, payload);
-}
-
-void dispatch_send_obj_attribute_color(uint8_t pageid, uint8_t btnid, const char* attribute, uint8_t r, uint8_t g,
-                                       uint8_t b)
-{
-    if(!attribute) return;
-
-    char payload[64 + strlen(attribute)];
-    snprintf_P(payload, sizeof(payload), PSTR("{\"%s\":\"#%02x%02x%02x\",\"r\":%d,\"g\":%d,\"b\":%d}"), attribute, r, g,
-               b, r, g, b);
-
-    dispatch_state_object(pageid, btnid, payload);
-}
+//     memcpy_P(topic, PSTR("output"), 7);
+//     dispatch_state_subtopic(topic, payload);
+// }
 
 #if HASP_USE_CONFIG > 0
 // Get or Set a part of the config.json file
@@ -533,125 +531,17 @@ static void dispatch_config(const char* topic, const char* payload)
 #endif // HASP_USE_CONFIG
 
 /********************************************** Input Events *******************************************/
-// Map events to either ON or OFF (UP or DOWN)
-bool dispatch_get_event_state(uint8_t eventid)
-{
-    switch(eventid) {
-        case HASP_EVENT_ON:
-        case HASP_EVENT_DOWN:
-        case HASP_EVENT_LONG:
-        case HASP_EVENT_HOLD:
-            return true;
-        // case HASP_EVENT_OFF:
-        // case HASP_EVENT_UP:
-        // case HASP_EVENT_SHORT:
-        // case HASP_EVENT_DOUBLE:
-        // case HASP_EVENT_LOST:
-        default:
-            return false;
-    }
-}
-
-// Map events to their description string
-void dispatch_get_event_name(uint8_t eventid, char* buffer, size_t size)
-{
-    switch(eventid) {
-        case HASP_EVENT_ON:
-            memcpy_P(buffer, PSTR("on"), size);
-            break;
-        case HASP_EVENT_OFF:
-            memcpy_P(buffer, PSTR("off"), size);
-            break;
-        case HASP_EVENT_UP:
-            memcpy_P(buffer, PSTR("up"), size);
-            break;
-        case HASP_EVENT_DOWN:
-            memcpy_P(buffer, PSTR("down"), size);
-            break;
-        case HASP_EVENT_SHORT:
-            memcpy_P(buffer, PSTR("short"), size);
-            break;
-        case HASP_EVENT_LONG:
-            memcpy_P(buffer, PSTR("long"), size);
-            break;
-        case HASP_EVENT_HOLD:
-            memcpy_P(buffer, PSTR("hold"), size);
-            break;
-        case HASP_EVENT_LOST:
-            memcpy_P(buffer, PSTR("lost"), size);
-            break;
-        case HASP_EVENT_CHANGED:
-            memcpy_P(buffer, PSTR("changed"), size);
-            break;
-        default:
-            memcpy_P(buffer, PSTR("unknown"), size);
-    }
-}
-
 #if HASP_USE_GPIO > 0
-void dispatch_gpio_input_event(uint8_t pin, uint8_t group, uint8_t eventid)
+void dispatch_gpio_output_value(const char* gpiotype, uint8_t pin, int16_t val)
 {
-    char payload[64];
-    char topic[8];
-    char event[8];
-    dispatch_get_event_name(eventid, event, sizeof(event));
-    snprintf_P(payload, sizeof(payload), PSTR("{\"pin\":%d,\"group\":%d,\"event\":\"%s\"}"), pin, group, event);
+    char payload[16];
+    char topic[16];
+    snprintf_P(topic, sizeof(topic), PSTR("%s%d"), gpiotype, pin);
+    snprintf_P(payload, sizeof(payload), PSTR("%d"), val);
 
-#if HASP_USE_MQTT > 0
-    memcpy_P(topic, PSTR("input"), 6);
     dispatch_state_subtopic(topic, payload);
-#endif
-
-    // update outputstates
-    // dispatch_group_onoff(group, dispatch_get_event_state(eventid), NULL);
 }
 #endif
-
-/* ============================== Event Senders ============================ */
-
-// Send out the event that occured
-void dispatch_object_generic_event(lv_obj_t* obj, uint8_t eventid)
-{
-    char data[40];
-    char eventname[8];
-
-    dispatch_get_event_name(eventid, eventname, sizeof(eventname));
-    snprintf_P(data, sizeof(data), PSTR("{\"event\":\"%s\"}"), eventname);
-    dispatch_obj_data(obj, data);
-}
-
-// Send out the on/off event, with the val
-void dispatch_object_val_event(lv_obj_t* obj, uint8_t eventid, int16_t val)
-{
-    char data[40];
-    char eventname[8];
-
-    dispatch_get_event_name(eventid, eventname, sizeof(eventname));
-    snprintf_P(data, sizeof(data), PSTR("{\"event\":\"%s\",\"val\":%d}"), eventname, val);
-    dispatch_obj_data(obj, data);
-}
-
-// Send out the changed event, with the val and text
-void dispatch_object_selection_changed(lv_obj_t* obj, int16_t val, const char* text)
-{
-    char data[200];
-
-    snprintf_P(data, sizeof(data), PSTR("{\"event\":\"changed\",\"val\":%d,\"text\":\"%s\"}"), val, text);
-    dispatch_obj_data(obj, data);
-}
-
-// Send out the changed event, with the color
-void dispatch_object_color_changed(lv_obj_t* obj, lv_color_t color)
-{
-    char data[80];
-    lv_color32_t c32;
-    c32.full = lv_color_to32(color);
-
-    snprintf_P(data, sizeof(data),
-               PSTR("{\"event\":\"changed\",\"color\":\"#%02x%02x%02x\",\"r\":%d,\"g\":%d,\"b\":%d}"), c32.ch.red,
-               c32.ch.green, c32.ch.blue, c32.ch.red, c32.ch.green, c32.ch.blue);
-    dispatch_obj_data(obj, data);
-}
 
 /********************************************** Output States ******************************************/
 /*
@@ -665,13 +555,13 @@ static inline void dispatch_state_msg(const __FlashStringHelper* subtopic, const
 //     if((eventid == HASP_EVENT_LONG) || (eventid == HASP_EVENT_HOLD)) return; // don't send repeat events
 
 //     if(groupid >= 0) {
-//         bool state = dispatch_get_event_state(eventid);
+//         bool state = Parser::get_event_state(eventid);
 //         gpio_set_group_onoff(groupid, state);
 //         object_set_normalized_group_value(groupid, eventid, obj);
 //     }
 
 //     char payload[8];
-//     dispatch_get_event_name(eventid, payload, sizeof(payload));
+//     Parser::get_event_name(eventid, payload, sizeof(payload));
 //     // dispatch_output_group_state(groupid, payload);
 // }
 

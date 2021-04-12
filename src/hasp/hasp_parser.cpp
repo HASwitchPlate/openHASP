@@ -86,3 +86,58 @@ bool Parser::haspPayloadToColor(const char* payload, lv_color32_t& color)
 
     return false; /* Color not found */
 }
+
+// Map events to either ON or OFF (UP or DOWN)
+bool Parser::get_event_state(uint8_t eventid)
+{
+    switch(eventid) {
+        case HASP_EVENT_ON:
+        case HASP_EVENT_DOWN:
+        case HASP_EVENT_LONG:
+        case HASP_EVENT_HOLD:
+            return true;
+        // case HASP_EVENT_OFF:
+        // case HASP_EVENT_UP:
+        // case HASP_EVENT_SHORT:
+        // case HASP_EVENT_DOUBLE:
+        // case HASP_EVENT_LOST:
+        default:
+            return false;
+    }
+}
+
+// Map events to their description string
+void Parser::get_event_name(uint8_t eventid, char* buffer, size_t size)
+{
+    switch(eventid) {
+        case HASP_EVENT_ON:
+            memcpy_P(buffer, PSTR("on"), size);
+            break;
+        case HASP_EVENT_OFF:
+            memcpy_P(buffer, PSTR("off"), size);
+            break;
+        case HASP_EVENT_UP:
+            memcpy_P(buffer, PSTR("up"), size);
+            break;
+        case HASP_EVENT_DOWN:
+            memcpy_P(buffer, PSTR("down"), size);
+            break;
+        case HASP_EVENT_SHORT:
+            memcpy_P(buffer, PSTR("short"), size);
+            break;
+        case HASP_EVENT_LONG:
+            memcpy_P(buffer, PSTR("long"), size);
+            break;
+        case HASP_EVENT_HOLD:
+            memcpy_P(buffer, PSTR("hold"), size);
+            break;
+        case HASP_EVENT_LOST:
+            memcpy_P(buffer, PSTR("lost"), size);
+            break;
+        case HASP_EVENT_CHANGED:
+            memcpy_P(buffer, PSTR("changed"), size);
+            break;
+        default:
+            memcpy_P(buffer, PSTR("unknown"), size);
+    }
+}

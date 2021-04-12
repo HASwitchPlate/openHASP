@@ -223,6 +223,10 @@ void debug_get_tag(uint8_t tag, char* buffer)
             memcpy_P(buffer, PSTR("MSGR"), 5);
             break;
 
+        case TAG_EVENT:
+            memcpy_P(buffer, PSTR("EVNT"), 5);
+            break;
+
         case TAG_OOBE:
             memcpy_P(buffer, PSTR("OOBE"), 5);
             break;

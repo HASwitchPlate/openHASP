@@ -69,7 +69,6 @@ bool hasp_find_id_from_obj(lv_obj_t* obj, uint8_t* pageid, uint8_t* objid);
 const char* get_obj_type_name(lv_obj_t* obj);
 bool check_obj_type(lv_obj_t* obj, lv_hasp_obj_type_t haspobjtype);
 void hasp_object_tree(lv_obj_t* parent, uint8_t pageid, uint16_t level);
-void hasp_object_delete(lv_obj_t* obj);
 
 void hasp_send_obj_attribute_str(lv_obj_t* obj, const char* attribute, const char* data);
 void hasp_send_obj_attribute_int(lv_obj_t* obj, const char* attribute, int32_t val);
@@ -77,12 +76,6 @@ void hasp_send_obj_attribute_color(lv_obj_t* obj, const char* attribute, lv_colo
 void hasp_process_attribute(uint8_t pageid, uint8_t objid, const char* attr, const char* payload);
 
 void object_set_normalized_group_value(uint8_t groupid, lv_obj_t* src_obj, int16_t val, int16_t min, int16_t max);
-
-void wakeup_event_handler(lv_obj_t* obj, lv_event_t event);
-void page_event_handler(lv_obj_t* obj, lv_event_t event);
-void generic_event_handler(lv_obj_t* obj, lv_event_t event);
-void toggle_event_handler(lv_obj_t* obj, lv_event_t event);
-void slider_event_handler(lv_obj_t* obj, lv_event_t event);
 
 #define HASP_OBJ_BAR 1971
 #define HASP_OBJ_BTN 3164

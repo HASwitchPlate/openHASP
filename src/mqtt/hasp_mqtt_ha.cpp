@@ -8,6 +8,7 @@
 
 #include "hasp/hasp.h"
 #include "hasp/hasp_dispatch.h"
+#include "hasp/hasp_parser.h"
 #include "dev/device.h"
 
 #include "hasp_mqtt.h"
@@ -110,28 +111,28 @@ void mqtt_ha_register_button(uint8_t page, uint8_t id)
 
     doc[F("atype")] = "trigger"; // automation_type
 
-    dispatch_get_event_name(HASP_EVENT_DOWN, buffer, sizeof(buffer));
+    Parser::get_event_name(HASP_EVENT_DOWN, buffer, sizeof(buffer));
     doc[F("pl")]   = buffer;
     doc[F("type")] = "button_short_press";
     snprintf_P(buffer, sizeof(buffer), PSTR("%s/device_automation/%s/" HASP_OBJECT_NOTATION "_%s/config"),
                discovery_prefix, haspDevice.get_hostname(), page, id, "short_press");
     mqtt_ha_send_json(buffer, doc);
 
-    dispatch_get_event_name(HASP_EVENT_SHORT, buffer, sizeof(buffer));
+    Parser::get_event_name(HASP_EVENT_SHORT, buffer, sizeof(buffer));
     doc[F("pl")]   = buffer;
     doc[F("type")] = "button_short_release";
     snprintf_P(buffer, sizeof(buffer), PSTR("%s/device_automation/%s/" HASP_OBJECT_NOTATION "_%s/config"),
                discovery_prefix, haspDevice.get_hostname(), page, id, "short_release");
     mqtt_ha_send_json(buffer, doc);
 
-    dispatch_get_event_name(HASP_EVENT_LONG, buffer, sizeof(buffer));
+    Parser::get_event_name(HASP_EVENT_LONG, buffer, sizeof(buffer));
     doc[F("pl")]   = buffer;
     doc[F("type")] = "button_long_press";
     snprintf_P(buffer, sizeof(buffer), PSTR("%s/device_automation/%s/" HASP_OBJECT_NOTATION "_%s/config"),
                discovery_prefix, haspDevice.get_hostname(), page, id, "long_press");
     mqtt_ha_send_json(buffer, doc);
 
-    dispatch_get_event_name(HASP_EVENT_UP, buffer, sizeof(buffer));
+    Parser::get_event_name(HASP_EVENT_UP, buffer, sizeof(buffer));
     doc[F("pl")]   = buffer;
     doc[F("type")] = "button_long_release";
     snprintf_P(buffer, sizeof(buffer), PSTR("%s/device_automation/%s/" HASP_OBJECT_NOTATION "_%s/config"),

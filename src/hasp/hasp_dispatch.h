@@ -65,21 +65,14 @@ void dispatch_current_state();
 void dispatch_output_current_page();
 
 void dispatch_gpio_input_event(uint8_t pin, uint8_t group, uint8_t eventid);
-bool dispatch_get_event_state(uint8_t eventid);
-void dispatch_get_event_name(uint8_t eventid, char* buffer, size_t size);
+void dispatch_gpio_output_value(const char* gpiotype, uint8_t pin, int16_t val);
+
 void dispatch_object_value_changed(lv_obj_t* obj, int16_t state);
 
 void dispatch_normalized_group_value(uint8_t groupid, lv_obj_t* obj, int16_t val, int16_t min, int16_t max);
 
-void dispatch_send_obj_attribute_str(uint8_t pageid, uint8_t btnid, const char* attribute, const char* data);
-void dispatch_send_obj_attribute_int(uint8_t pageid, uint8_t btnid, const char* attribute, int32_t val);
-void dispatch_send_obj_attribute_color(uint8_t pageid, uint8_t btnid, const char* attribute, uint8_t r, uint8_t g,
-                                       uint8_t b);
-
-void dispatch_object_generic_event(lv_obj_t* obj, uint8_t eventid);
-void dispatch_object_val_event(lv_obj_t* obj, uint8_t eventid, int16_t val);
-void dispatch_object_selection_changed(lv_obj_t* obj, int16_t val, const char* text);
-void dispatch_object_color_changed(lv_obj_t* obj, lv_color_t color);
+void dispatch_state_object(uint8_t pageid, uint8_t btnid, const char* payload);
+void dispatch_state_subtopic(const char* subtopic, const char* payload);
 
 /* ===== Getter and Setter Functions ===== */
 

@@ -152,14 +152,15 @@ bool debugSetConfig(const JsonObject& settings);
 #endif
 
 enum {
-    TAG_MAIN = 0,
-    TAG_HASP = 1,
-    TAG_ATTR = 2,
-    TAG_MSGR = 3,
-    TAG_OOBE = 4,
-    TAG_HAL  = 5,
-    TAG_DRVR = 6,
-    TAG_DEV  = 7,
+    TAG_MAIN  = 0,
+    TAG_HASP  = 1,
+    TAG_ATTR  = 2,
+    TAG_MSGR  = 3,
+    TAG_OOBE  = 4,
+    TAG_HAL   = 5,
+    TAG_DRVR  = 6,
+    TAG_DEV   = 7,
+    TAG_EVENT = 8,
 
     TAG_DEBG = 10,
     TAG_TELN = 11,
