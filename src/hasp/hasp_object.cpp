@@ -288,6 +288,51 @@ void hasp_send_obj_attribute_color(lv_obj_t* obj, const char* attribute, lv_colo
 
 // ##################### Event Handlers ########################################################
 
+void log_event(const char* name, lv_event_t event)
+{
+    return;
+
+    switch(event) {
+        case LV_EVENT_PRESSED:
+            LOG_TRACE(TAG_HASP, "%s Pressed", name);
+            break;
+
+        case LV_EVENT_PRESS_LOST:
+            LOG_TRACE(TAG_HASP, "%s Press lost", name);
+            break;
+
+        case LV_EVENT_SHORT_CLICKED:
+            LOG_TRACE(TAG_HASP, "%s Short clicked", name);
+            break;
+
+        case LV_EVENT_CLICKED:
+            LOG_TRACE(TAG_HASP, "%s Clicked", name);
+            break;
+
+        case LV_EVENT_LONG_PRESSED:
+            LOG_TRACE(TAG_HASP, "%S Long press", name);
+            break;
+
+        case LV_EVENT_LONG_PRESSED_REPEAT:
+            LOG_TRACE(TAG_HASP, "%s Long press repeat", name);
+            break;
+
+        case LV_EVENT_RELEASED:
+            LOG_TRACE(TAG_HASP, "%s Released", name);
+            break;
+
+        case LV_EVENT_VALUE_CHANGED:
+            LOG_TRACE(TAG_HASP, "%s Changed", name);
+            break;
+
+        case LV_EVENT_PRESSING:
+            break;
+
+        default:
+            LOG_TRACE(TAG_HASP, "%s Other %d", name, event);
+    }
+}
+
 /**
  * Called when a press on the system layer is detected
  * @param obj pointer to a button matrix
@@ -295,6 +340,8 @@ void hasp_send_obj_attribute_color(lv_obj_t* obj, const char* attribute, lv_colo
  */
 void wakeup_event_handler(lv_obj_t* obj, lv_event_t event)
 {
+    log_event("wakeup", event);
+
     if(event == LV_EVENT_RELEASED && obj == lv_disp_get_layer_sys(NULL)) {
         hasp_update_sleep_state(); // wakeup?
         if(!haspDevice.get_backlight_power())
@@ -307,6 +354,8 @@ void wakeup_event_handler(lv_obj_t* obj, lv_event_t event)
 
 void page_event_handler(lv_obj_t* obj, lv_event_t event)
 {
+    log_event("page", event);
+
     if(event == LV_EVENT_GESTURE) {
         lv_gesture_dir_t dir = lv_indev_get_gesture_dir(lv_indev_get_act());
         switch(dir) {
@@ -331,6 +380,7 @@ void page_event_handler(lv_obj_t* obj, lv_event_t event)
 void generic_event_handler(lv_obj_t* obj, lv_event_t event)
 {
     uint8_t eventid;
+    log_event("generic", event);
 
     switch(event) {
         case LV_EVENT_PRESSED:
@@ -422,6 +472,8 @@ void generic_event_handler(lv_obj_t* obj, lv_event_t event)
  */
 void toggle_event_handler(lv_obj_t* obj, lv_event_t event)
 {
+    log_event("toggle", event);
+
     if(event == LV_EVENT_VALUE_CHANGED) {
         bool val = 0;
         hasp_update_sleep_state(); // wakeup?
@@ -464,6 +516,8 @@ void toggle_event_handler(lv_obj_t* obj, lv_event_t event)
  */
 static void selector_event_handler(lv_obj_t* obj, lv_event_t event)
 {
+    log_event("selector", event);
+
     if(event == LV_EVENT_VALUE_CHANGED) {
         char buffer[128];
         char property[36];
@@ -528,6 +582,8 @@ static void selector_event_handler(lv_obj_t* obj, lv_event_t event)
  */
 void slider_event_handler(lv_obj_t* obj, lv_event_t event)
 {
+    log_event("slider", event);
+
     uint16_t evt;
     switch(event) {
         case LV_EVENT_VALUE_CHANGED:
@@ -587,6 +643,7 @@ static void cpicker_event_handler(lv_obj_t* obj, lv_event_t event)
 {
     char color[6];
     snprintf_P(color, sizeof(color), PSTR("color"));
+    log_event("cpicker", event);
 
     if(event == LV_EVENT_VALUE_CHANGED) {
         hasp_update_sleep_state(); // wakeup?
@@ -1089,6 +1146,7 @@ void hasp_new_object(const JsonObject& config, uint8_t& saved_page_id)
         // Prevent losing press when the press is slid out of the objects.
         // (E.g. a Button can be released out of it if it was being pressed)
         lv_obj_add_protect(obj, LV_PROTECT_PRESS_LOST);
+        lv_obj_set_gesture_parent(obj, false);
 
         /* id tag the object */
         // lv_obj_set_user_data(obj, id);

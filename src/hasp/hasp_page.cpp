@@ -24,6 +24,9 @@ void Page::init(uint8_t start_page)
         _pages[i] = lv_obj_create(NULL, NULL);
         lv_obj_set_event_cb(_pages[i], page_event_handler);
 
+        /**< If the `indev` was pressing this object but swiped out while pressing do not search other object.*/
+        lv_obj_add_protect(_pages[i], LV_PROTECT_PRESS_LOST);
+
         uint16_t thispage  = i + PAGE_START_INDEX;
         _meta_data[i].prev = thispage == PAGE_START_INDEX ? HASP_NUM_PAGES : thispage - PAGE_START_INDEX;
         _meta_data[i].next = thispage == HASP_NUM_PAGES ? PAGE_START_INDEX : thispage + PAGE_START_INDEX;
