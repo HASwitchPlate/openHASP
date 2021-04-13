@@ -265,7 +265,7 @@ static void wifiDisconnected(const char* ssid, uint8_t reason)
 #endif
 
         default:
-            snprintf_P(buffer, sizeof(buffer), PSTR("unknown"));
+            snprintf_P(buffer, sizeof(buffer), PSTR(D_ERROR_UNKNOWN));
     }
 
     LOG_WARNING(TAG_WIFI, F("Disconnected from %s (Reason: %s [%d])"), ssid, buffer, reason);
@@ -273,7 +273,7 @@ static void wifiDisconnected(const char* ssid, uint8_t reason)
 
 static void wifiSsidConnected(const char* ssid)
 {
-    LOG_TRACE(TAG_WIFI, F("Connected to SSID %s. Requesting IP..."), ssid);
+    LOG_TRACE(TAG_WIFI, F(D_WIFI_CONNECTED_TO), ssid);
     wifiReconnectCounter = 0;
 }
 
@@ -402,7 +402,7 @@ void wifiSetup()
     // int status = WL_IDLE_STATUS;     // the Wifi radio's status
     if(!wifiShowAP()) {
         // while (status != WL_CONNECTED) {
-        LOG_TRACE(TAG_WIFI, F("Connecting to : %s"), wifiSsid);
+        LOG_TRACE(TAG_WIFI, F(D_WIFI_CONNECTING_TO), wifiSsid);
         // Connect to WPA/WPA2 network
         // status = WiFi.begin(wifiSsid, wifiPassword);
         WiFi.begin(wifiSsid, wifiPassword);
@@ -426,7 +426,7 @@ void wifiSetup()
 #endif
 
         wifiReconnect();
-        LOG_TRACE(TAG_WIFI, F("Connecting to : %s"), wifiSsid);
+        LOG_TRACE(TAG_WIFI, F(D_WIFI_CONNECTING_TO), wifiSsid);
     }
 #endif
 }
@@ -473,7 +473,7 @@ bool wifiValidateSsid(const char* ssid, const char* pass)
     while(attempt < 15 && (WiFi.status() != WL_CONNECTED || WiFi.localIP().toString() == F("0.0.0.0"))) {
 #endif
         attempt++;
-        LOG_INFO(TAG_WIFI, F("Trying to connect to %s... %u"), wifiSsid, attempt);
+        LOG_INFO(TAG_WIFI, F(D_WIFI_CONNECTING_TO "... %u"), wifiSsid, attempt);
         delay(500);
     }
 #if defined(STM32F4xx)

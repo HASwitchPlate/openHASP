@@ -54,7 +54,6 @@ const char* rootCACertificate = "-----BEGIN CERTIFICATE-----\n"
                                 "PfZ+G6Z6h7mjem0Y+iWlkYcV4PIWL1iwBi8saCbGS5jN2p8M+X+Q7UNKEkROb3N6\n"
                                 "KOqkqm57TH2H3eDJAkSnh6/DNFu0Qg==\n"
                                 "-----END CERTIFICATE-----\n";
-
 #endif
 
 static WiFiClient otaClient;
@@ -106,8 +105,10 @@ bool otaUpdateCheck()
 
 static inline void otaProgress(void)
 {
-    LOG_VERBOSE(TAG_OTA, F("%s update in progress... %3u%"),
-                (ArduinoOTA.getCommand() == U_FLASH ? PSTR("Firmware") : PSTR("Filesystem")), otaPrecentageComplete);
+    LOG_VERBOSE(TAG_OTA, F("%s %3u%"),
+                (ArduinoOTA.getCommand() == U_FLASH ? PSTR("Firmware update in progress...")
+                                                    : PSTR("Filesystem update in progress...")),
+                otaPrecentageComplete);
 }
 
 void otaOnProgress(unsigned int progress, unsigned int total)
@@ -148,29 +149,29 @@ void otaSetup(void)
         });
         ArduinoOTA.onProgress(otaOnProgress);
         ArduinoOTA.onError([](ota_error_t error) {
-            char buffer[16];
+            char buffer[32];
             switch(error) {
                 case OTA_AUTH_ERROR:
-                    snprintf_P(buffer, sizeof(buffer), PSTR("Auth"));
+                    snprintf_P(buffer, sizeof(buffer), PSTR("Auth failed"));
                     break;
                 case OTA_BEGIN_ERROR:
-                    snprintf_P(buffer, sizeof(buffer), PSTR("Begin"));
+                    snprintf_P(buffer, sizeof(buffer), PSTR("Begin failed"));
                     break;
                 case OTA_CONNECT_ERROR:
-                    snprintf_P(buffer, sizeof(buffer), PSTR("Connect"));
+                    snprintf_P(buffer, sizeof(buffer), PSTR("Connect failed"));
                     break;
                 case OTA_RECEIVE_ERROR:
-                    snprintf_P(buffer, sizeof(buffer), PSTR("Receive"));
+                    snprintf_P(buffer, sizeof(buffer), PSTR("Receive failed"));
                     break;
                 case OTA_END_ERROR:
-                    snprintf_P(buffer, sizeof(buffer), PSTR("End"));
+                    snprintf_P(buffer, sizeof(buffer), PSTR("End failed"));
                     break;
                 default:
-                    snprintf_P(buffer, sizeof(buffer), PSTR("Something"));
+                    snprintf_P(buffer, sizeof(buffer), PSTR("Unknown Error"));
             }
 
             otaPrecentageComplete = -1;
-            LOG_ERROR(TAG_OTA, F("%s failed (%s)"), buffer, error);
+            LOG_ERROR(TAG_OTA, F("%s (%d)"), buffer, error);
             haspProgressMsg(F(D_OTA_UPDATE_FAILED));
             // delay(5000);
         });

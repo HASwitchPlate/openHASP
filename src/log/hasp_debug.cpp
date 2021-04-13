@@ -67,7 +67,7 @@
 // static StringStream debugStream((String &)debugOutput);
 
 // extern char mqttNodeName[16];
-const char* syslogAppName   = APP_NAME;
+// const char* syslogAppName   = APP_NAME;
 char debugSyslogHost[32]    = SYSLOG_SERVER;
 uint16_t debugSyslogPort    = SYSLOG_PORT;
 uint8_t debugSyslogFacility = 0;
@@ -328,7 +328,7 @@ void debugPreSetup(JsonObject settings)
         debugPrintHaspHeader(&Serial);
         Serial.flush();
 
-        LOG_INFO(TAG_DEBG, F("Serial started at %u baud"), baudrate);
+        LOG_INFO(TAG_DEBG, F(D_SERVICE_STARTED " @ %u baud"), baudrate);
         LOG_INFO(TAG_DEBG, F("Environment: " PIOENV));
     }
 }

@@ -127,4 +127,7 @@
 #define D_OOBE_MSG "Raak het scherm aan om WiFi in te stellen of meld je aan op AP:"
 #define D_OOBE_SCAN_TO_CONNECT "Scan code"
 
+#define D_WIFI_CONNECTING_TO "Verbinden met %s"
+#define D_WIFI_CONNECTED_TO "Verbonden met %s, IP aanvragen..."
+
 #endif

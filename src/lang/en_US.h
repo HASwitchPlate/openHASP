@@ -128,4 +128,7 @@
 #define D_OOBE_MSG "Tap the screen to setup WiFi or connect to this Access Point:"
 #define D_OOBE_SCAN_TO_CONNECT "Scan to connect"
 
+#define D_WIFI_CONNECTING_TO "Connecting to %s"
+#define D_WIFI_CONNECTED_TO "Connected to %s, requesting IP..."
+
 #endif

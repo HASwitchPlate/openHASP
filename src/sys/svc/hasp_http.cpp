@@ -1875,7 +1875,7 @@ void httpHandleEspFirmware()
     }
     webSendFooter();
 
-    LOG_TRACE(TAG_HTTP, F("Attempting ESP firmware update from: %s"), webServer.arg(url).c_str());
+    LOG_TRACE(TAG_HTTP, F("Updating ESP firmware from: %s"), webServer.arg(url).c_str());
     dispatch_web_update(NULL, webServer.arg(url).c_str());
 }
 
