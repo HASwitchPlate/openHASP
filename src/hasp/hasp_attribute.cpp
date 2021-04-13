@@ -1006,25 +1006,7 @@ static void hasp_local_style_attr(lv_obj_t* obj, const char* attr_p, uint16_t at
             return attribute_value_opa(obj, part, state, update, attr_p, (lv_opa_t)var);
         case ATTR_VALUE_STR: {
             if(update) {
-
                 my_obj_set_value_str_txt(obj, part, state, payload);
-
-                // size_t len = strlen(payload);
-                // if(len > 0) {
-                //     // Free previous string
-                //     const char * str = lv_obj_get_style_value_str(obj, part);
-
-                //     // Create new string
-                //     len++;
-                //     char * str_p = (char *)lv_mem_alloc(len);
-                //     memset(str_p, 0, len);
-                //     memccpy(str_p, payload, 0, len);
-                //     lv_obj_set_style_local_value_str(obj, part, state, str_p);
-
-                //     if(str != NULL) {
-                //         // lv_mem_free(str); // TODO : BIG Memory Leak ! / crashes
-                //     }
-                // }
             } else {
                 attr_out_str(obj, attr, lv_obj_get_style_value_str(obj, part));
             }
@@ -1074,9 +1056,6 @@ static void hasp_local_style_attr(lv_obj_t* obj, const char* attr_p, uint16_t at
         }
 
             /* Image attributes */
-            // Todo
-
-            /* Scale attributes */
             // Todo
 
             /* Transition attributes */
@@ -1507,8 +1486,9 @@ void hasp_process_obj_attribute(lv_obj_t* obj, const char* attr_p, const char* p
                    : attr_out_int(obj, attr, lv_obj_get_hidden(obj));
             break; // attribute_found
 
-        case ATTR_TEXT:
         case ATTR_TXT: // TODO: remove
+            LOG_WARNING(TAG_HASP, F("txt property is obsolete, use text instead"));
+        case ATTR_TEXT:
             hasp_process_obj_attribute_txt(obj, attr, payload, update);
             break; // attribute_found
 
