@@ -17,7 +17,6 @@
 extern "C" {
 #endif
 
-// test
 lv_chart_series_t* my_chart_get_series(lv_obj_t* chart, uint8_t ser_num);
 void my_obj_set_value_str_txt(lv_obj_t* obj, uint8_t part, lv_state_t state, const char* text);
 
@@ -27,14 +26,13 @@ void line_clear_points(lv_obj_t* obj);
 void hasp_process_obj_attribute(lv_obj_t* obj, const char* attr_p, const char* payload, bool update);
 bool hasp_process_obj_attribute_val(lv_obj_t* obj, const char* attr, int16_t intval, bool booval, bool update);
 
+void attr_out_str(lv_obj_t* obj, const char* attribute, const char* data);
+void attr_out_int(lv_obj_t* obj, const char* attribute, int32_t val);
+void attr_out_color(lv_obj_t* obj, const char* attribute, lv_color_t color);
+
 #ifdef __cplusplus
 } /* extern "C" */
 #endif
-
-// use shorter name for readability
-#define hasp_out_int hasp_send_obj_attribute_int
-#define hasp_out_str hasp_send_obj_attribute_str
-#define hasp_out_color hasp_send_obj_attribute_color
 
 #define _HASP_ATTRIBUTE(prop_name, func_name, value_type)                                                              \
     static inline void attribute_##func_name(lv_obj_t* obj, uint8_t part, lv_state_t state, bool update,               \
@@ -45,7 +43,7 @@ bool hasp_process_obj_attribute_val(lv_obj_t* obj, const char* attr, int16_t int
         } else {                                                                                                       \
             value_type temp = lv_obj_get_style_##func_name(obj, part);                                                 \
             /*lv_obj_get_style_##func_name(obj, part, state, &temp);*/                                                 \
-            return hasp_send_obj_attribute_int(obj, attr, temp);                                                       \
+            return attr_out_int(obj, attr, temp);                                                                      \
         }                                                                                                              \
     }
 

@@ -32,7 +32,7 @@ void event_obj_data(lv_obj_t* obj, const char* data)
     if(hasp_find_id_from_obj(obj, &pageid, &objid)) {
         if(!data) return;
 #if HASP_USE_MQTT > 0
-        dispatch_state_object(pageid, objid, data);
+        object_dispatch_state(pageid, objid, data);
 #endif
     } else {
         LOG_ERROR(TAG_MSGR, F(D_OBJECT_UNKNOWN));
@@ -336,7 +336,7 @@ void toggle_event_handler(lv_obj_t* obj, lv_event_t event)
         }
 
         // snprintf_P(property, sizeof(property), PSTR("val"));
-        // hasp_send_obj_attribute_int(obj, property, val);
+        // attr_out_int(obj, property, val);
 
         hasp_update_sleep_state(); // wakeup?
         event_object_val_event(obj, val, val);
@@ -393,7 +393,7 @@ void selector_event_handler(lv_obj_t* obj, lv_event_t event)
                 strncpy(buffer, txt, sizeof(buffer));
 
                 snprintf_P(property, sizeof(property), PSTR("row\":%d,\"col\":%d,\"text"), row, col);
-                hasp_send_obj_attribute_str(obj, property, buffer);
+                attr_out_str(obj, property, buffer);
                 return;
             }
 
@@ -403,7 +403,7 @@ void selector_event_handler(lv_obj_t* obj, lv_event_t event)
 
         // set the property
         // snprintf_P(property, sizeof(property), PSTR("val\":%d,\"text"), val);
-        // hasp_send_obj_attribute_str(obj, property, buffer);
+        // attr_out_str(obj, property, buffer);
 
         event_object_selection_changed(obj, val, buffer);
         if(max > 0) dispatch_normalized_group_value(obj->user_data.groupid, obj, val, 0, max);
@@ -486,7 +486,7 @@ void cpicker_event_handler(lv_obj_t* obj, lv_event_t event)
 
     if(event == LV_EVENT_VALUE_CHANGED) {
         hasp_update_sleep_state(); // wakeup?
-        // hasp_send_obj_attribute_color(obj, color, lv_cpicker_get_color(obj));
+        // attr_out_color(obj, color, lv_cpicker_get_color(obj));
         event_object_color_changed(obj, lv_cpicker_get_color(obj));
 
     } else if(event == LV_EVENT_DELETE) {

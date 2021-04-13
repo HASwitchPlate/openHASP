@@ -216,52 +216,12 @@ void hasp_object_tree(lv_obj_t* parent, uint8_t pageid, uint16_t level)
 
 // ##################### Value Dispatchers ########################################################
 
-void hasp_send_obj_attribute_str(lv_obj_t* obj, const char* attribute, const char* data)
+/* Sends the data out on the state/pxby topic */
+void object_dispatch_state(uint8_t pageid, uint8_t btnid, const char* payload)
 {
-    uint8_t pageid;
-    uint8_t objid;
-
-    if(hasp_find_id_from_obj(obj, &pageid, &objid)) {
-        if(!attribute || !data) return;
-
-        char payload[32 + strlen(data) + strlen(attribute)];
-        snprintf_P(payload, sizeof(payload), PSTR("{\"%s\":\"%s\"}"), attribute, data);
-
-        dispatch_state_object(pageid, objid, payload);
-    }
-}
-
-void hasp_send_obj_attribute_int(lv_obj_t* obj, const char* attribute, int32_t val)
-{
-    uint8_t pageid;
-    uint8_t objid;
-
-    if(hasp_find_id_from_obj(obj, &pageid, &objid)) {
-        if(!attribute) return;
-
-        char payload[64 + strlen(attribute)];
-        snprintf_P(payload, sizeof(payload), PSTR("{\"%s\":%d}"), attribute, val);
-
-        dispatch_state_object(pageid, objid, payload);
-    }
-}
-
-void hasp_send_obj_attribute_color(lv_obj_t* obj, const char* attribute, lv_color_t color)
-{
-    uint8_t pageid;
-    uint8_t objid;
-
-    if(hasp_find_id_from_obj(obj, &pageid, &objid)) {
-        if(!attribute) return;
-
-        char payload[64 + strlen(attribute)];
-        lv_color32_t c32;
-        c32.full = lv_color_to32(color);
-
-        snprintf_P(payload, sizeof(payload), PSTR("{\"%s\":\"#%02x%02x%02x\",\"r\":%d,\"g\":%d,\"b\":%d}"), attribute,
-                   c32.ch.red, c32.ch.green, c32.ch.blue, c32.ch.red, c32.ch.green, c32.ch.blue);
-        dispatch_state_object(pageid, objid, payload);
-    }
+    char topic[16];
+    snprintf_P(topic, sizeof(topic), PSTR(HASP_OBJECT_NOTATION), pageid, btnid);
+    dispatch_state_subtopic(topic, payload);
 }
 
 // ##################### State Changers ########################################################

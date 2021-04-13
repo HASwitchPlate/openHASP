@@ -87,15 +87,6 @@ void dispatch_state_subtopic(const char* subtopic, const char* payload)
 #endif
 }
 
-/* Sends the data out on the state/pxby topic
- */
-void dispatch_state_object(uint8_t pageid, uint8_t btnid, const char* payload)
-{
-    char topic[16];
-    snprintf_P(topic, sizeof(topic), PSTR(HASP_OBJECT_NOTATION), pageid, btnid);
-    dispatch_state_subtopic(topic, payload);
-}
-
 // Format filesystem and erase EEPROM
 bool dispatch_factory_reset()
 {
