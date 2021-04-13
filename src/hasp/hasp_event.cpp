@@ -15,6 +15,7 @@
 // static unsigned long last_change_event = 0;
 static bool last_press_was_short = false; // Avoid SHORT + UP double events
 static lv_style_int_t last_value_sent;
+static lv_color_t last_color_sent;
 
 /* ============================== Event Senders ============================ */
 
@@ -74,15 +75,16 @@ void event_object_selection_changed(lv_obj_t* obj, int16_t val, const char* text
 }
 
 // Send out the changed event, with the color
-void event_object_color_changed(lv_obj_t* obj, lv_color_t color)
+void event_object_color_event(lv_obj_t* obj, uint8_t eventid, lv_color_t color)
 {
     char data[80];
+    char eventname[8];
     lv_color32_t c32;
     c32.full = lv_color_to32(color);
 
-    snprintf_P(data, sizeof(data),
-               PSTR("{\"event\":\"changed\",\"color\":\"#%02x%02x%02x\",\"r\":%d,\"g\":%d,\"b\":%d}"), c32.ch.red,
-               c32.ch.green, c32.ch.blue, c32.ch.red, c32.ch.green, c32.ch.blue);
+    Parser::get_event_name(eventid, eventname, sizeof(eventname));
+    snprintf_P(data, sizeof(data), PSTR("{\"event\":\"%s\",\"color\":\"#%02x%02x%02x\",\"r\":%d,\"g\":%d,\"b\":%d}"),
+               eventname, c32.ch.red, c32.ch.green, c32.ch.blue, c32.ch.red, c32.ch.green, c32.ch.blue);
     event_obj_data(obj, data);
 }
 
@@ -425,13 +427,6 @@ void slider_event_handler(lv_obj_t* obj, lv_event_t event)
 
     uint16_t evt;
     switch(event) {
-        case LV_EVENT_VALUE_CHANGED:
-            break;
-
-        case LV_EVENT_DELETE:
-            LOG_VERBOSE(TAG_EVENT, F(D_OBJECT_DELETED));
-            event_delete_object(obj);
-            break;
 
         case LV_EVENT_PRESSED:
             hasp_update_sleep_state(); // wakeup on press down?
@@ -467,6 +462,14 @@ void slider_event_handler(lv_obj_t* obj, lv_event_t event)
             break;
         }
 
+        case LV_EVENT_VALUE_CHANGED:
+            break;
+
+        case LV_EVENT_DELETE:
+            LOG_VERBOSE(TAG_EVENT, F(D_OBJECT_DELETED));
+            event_delete_object(obj);
+            break;
+
         default:
             // LOG_VERBOSE(TAG_EVENT, F("Event ID: %d"), event);
             ;
@@ -484,13 +487,37 @@ void cpicker_event_handler(lv_obj_t* obj, lv_event_t event)
     snprintf_P(color, sizeof(color), PSTR("color"));
     log_event("cpicker", event);
 
-    if(event == LV_EVENT_VALUE_CHANGED) {
-        hasp_update_sleep_state(); // wakeup?
-        // attr_out_color(obj, color, lv_cpicker_get_color(obj));
-        event_object_color_changed(obj, lv_cpicker_get_color(obj));
+    uint16_t evt;
+    switch(event) {
 
-    } else if(event == LV_EVENT_DELETE) {
-        LOG_VERBOSE(TAG_EVENT, F(D_OBJECT_DELETED));
-        event_delete_object(obj);
+        case LV_EVENT_PRESSED:
+            hasp_update_sleep_state(); // wakeup on press down?
+            evt = HASP_EVENT_DOWN;
+        case LV_EVENT_LONG_PRESSED_REPEAT:
+            if(event == LV_EVENT_LONG_PRESSED_REPEAT) evt = HASP_EVENT_CHANGED;
+        case LV_EVENT_RELEASED: {
+            if(event == LV_EVENT_RELEASED) evt = HASP_EVENT_UP;
+            lv_color_t color = lv_cpicker_get_color(obj);
+
+            if((event == LV_EVENT_LONG_PRESSED_REPEAT && last_color_sent.full != color.full) ||
+               event != LV_EVENT_LONG_PRESSED_REPEAT) {
+                last_color_sent = color;
+                event_object_color_event(obj, evt, color);
+                // dispatch_normalized_group_value(obj->user_data.groupid, obj, val, min, max);
+            }
+            break;
+        }
+
+        case LV_EVENT_VALUE_CHANGED:
+            break;
+
+        case LV_EVENT_DELETE:
+            LOG_VERBOSE(TAG_EVENT, F(D_OBJECT_DELETED));
+            event_delete_object(obj);
+            break;
+
+        default:
+            // LOG_VERBOSE(TAG_EVENT, F("Event ID: %d"), event);
+            ;
     }
 }
