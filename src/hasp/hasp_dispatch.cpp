@@ -803,9 +803,9 @@ void dispatch_moodlight(const char* topic, const char* payload)
             if(!json[F("state")].isNull())
                 moodlight.power = Utilities::is_true(json[F("state")].as<std::string>().c_str());
 
-            if(!json[F("r")].isNull()) moodlight.r = json[F("r")].as<uint8_t>();
-            if(!json[F("g")].isNull()) moodlight.g = json[F("g")].as<uint8_t>();
-            if(!json[F("b")].isNull()) moodlight.b = json[F("b")].as<uint8_t>();
+            if(!json["r"].isNull()) moodlight.r = json["r"].as<uint8_t>();
+            if(!json["g"].isNull()) moodlight.g = json["g"].as<uint8_t>();
+            if(!json["b"].isNull()) moodlight.b = json["b"].as<uint8_t>();
 
             if(!json[F("color")].isNull()) {
                 if(!json[F("color")]["r"].isNull()) {
