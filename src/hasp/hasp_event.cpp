@@ -317,38 +317,38 @@ void toggle_event_handler(lv_obj_t* obj, lv_event_t event)
 {
     log_event("toggle", event);
 
-    if(event == LV_EVENT_VALUE_CHANGED) {
-        bool val = 0;
-        hasp_update_sleep_state(); // wakeup?
+    switch(event) {
+        case LV_EVENT_PRESSED:
+            hasp_update_sleep_state(); // wakeup?
+        case LV_EVENT_RELEASED:
 
-        switch(obj->user_data.objid) {
-            case LV_HASP_SWITCH:
-                val = lv_switch_get_state(obj);
-                break;
+            switch(obj->user_data.objid) {
+                case LV_HASP_SWITCH:
+                    last_value_sent = lv_switch_get_state(obj);
+                    break;
 
-            case LV_HASP_CHECKBOX:
-                val = lv_checkbox_is_checked(obj);
-                break;
+                case LV_HASP_CHECKBOX:
+                    last_value_sent = lv_checkbox_is_checked(obj);
+                    break;
 
-            case LV_HASP_BUTTON: {
-                val = lv_obj_get_state(obj, LV_BTN_PART_MAIN) & LV_STATE_CHECKED;
-                break;
+                case LV_HASP_BUTTON: {
+                    last_value_sent = lv_obj_get_state(obj, LV_BTN_PART_MAIN) & LV_STATE_CHECKED;
+                    break;
+                }
+
+                default:
+                    return;
             }
 
-            default:
-                return;
-        }
+            event_object_val_event(obj, event == LV_EVENT_PRESSED ? HASP_EVENT_DOWN : HASP_EVENT_UP, last_value_sent);
+            dispatch_normalized_group_value(obj->user_data.groupid, obj, last_value_sent, HASP_EVENT_OFF,
+                                            HASP_EVENT_ON);
+            break;
 
-        // snprintf_P(property, sizeof(property), PSTR("val"));
-        // attr_out_int(obj, property, val);
-
-        hasp_update_sleep_state(); // wakeup?
-        event_object_val_event(obj, val, val);
-        dispatch_normalized_group_value(obj->user_data.groupid, obj, val, HASP_EVENT_OFF, HASP_EVENT_ON);
-
-    } else if(event == LV_EVENT_DELETE) {
-        LOG_VERBOSE(TAG_EVENT, F(D_OBJECT_DELETED));
-        event_delete_object(obj);
+        case LV_EVENT_DELETE:
+            LOG_VERBOSE(TAG_EVENT, F(D_OBJECT_DELETED));
+            event_delete_object(obj);
+            break;
     }
 }
 
