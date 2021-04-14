@@ -61,7 +61,7 @@ static void gpio_event_handler(AceButton* button, uint8_t eventType, uint8_t but
             state = true;
             break;
         case 2: // AceButton::kEventClicked:
-            eventid = HASP_EVENT_SHORT;
+            eventid = HASP_EVENT_UP;
             break;
         // case AceButton::kEventDoubleClicked:
         //     eventid = HASP_EVENT_DOUBLE;
@@ -78,7 +78,7 @@ static void gpio_event_handler(AceButton* button, uint8_t eventType, uint8_t but
             if(gpioConfig[btnid].type == HASP_GPIO_SWITCH || gpioConfig[btnid].type == HASP_GPIO_SWITCH_INVERTED) {
                 eventid = HASP_EVENT_OFF;
             } else {
-                eventid = HASP_EVENT_UP;
+                eventid = HASP_EVENT_RELEASE;
             }
             break;
         default:

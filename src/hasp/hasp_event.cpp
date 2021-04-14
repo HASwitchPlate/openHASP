@@ -304,8 +304,8 @@ void generic_event_handler(lv_obj_t* obj, lv_event_t event)
     } else {
         event_object_generic_event(obj, last_value_sent); // send normal object event
     }
-    dispatch_normalized_group_value(obj->user_data.groupid, obj, Parser::get_event_state(eventid), HASP_EVENT_OFF,
-                                    HASP_EVENT_ON);
+    dispatch_normalized_group_value(obj->user_data.groupid, obj, Parser::get_event_state(last_value_sent),
+                                    HASP_EVENT_OFF, HASP_EVENT_ON);
 }
 
 /**
