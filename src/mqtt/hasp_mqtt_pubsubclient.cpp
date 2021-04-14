@@ -294,16 +294,16 @@ void mqttStart()
     F_topic = F("%scommand/#");
     mqttSubscribeTo(F_topic, mqttGroupTopic);
     mqttSubscribeTo(F_topic, mqttNodeTopic);
-    F_topic = F("%sconfig/#");
-    mqttSubscribeTo(F_topic, mqttGroupTopic);
-    mqttSubscribeTo(F_topic, mqttNodeTopic);
-    mqttSubscribeTo(F("%slight/#"), mqttNodeTopic);
-    mqttSubscribeTo(F("%sbrightness/#"), mqttNodeTopic);
+    // F_topic = F("%sconfig/#");
+    // mqttSubscribeTo(F_topic, mqttGroupTopic);
+    // mqttSubscribeTo(F_topic, mqttNodeTopic);
+    // mqttSubscribeTo(F("%slight/#"), mqttNodeTopic);
+    // mqttSubscribeTo(F("%sbrightness/#"), mqttNodeTopic);
     // mqttSubscribeTo(F("%s"LWT_TOPIC), mqttNodeTopic);
-    mqttSubscribeTo(F("hass/status"), mqttClientId);
 
     /* Home Assistant auto-configuration */
 #ifdef HASP_USE_HA
+    if(mqttHAautodiscover) mqttSubscribeTo(F("hass/status"), mqttClientId);
     if(mqttHAautodiscover) mqttSubscribeTo(F("homeassistant/status"), mqttClientId);
 #endif
 
