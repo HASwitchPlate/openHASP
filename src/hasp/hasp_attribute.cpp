@@ -699,6 +699,16 @@ static void hasp_attribute_get_part_state(lv_obj_t* obj, const char* attr_in, ch
         return;
     }
 
+    if(check_obj_type(obj, LV_HASP_ROLLER)) {
+        if(index == 1) {
+            part = LV_ROLLER_PART_SELECTED;
+        } else {
+            part = LV_ROLLER_PART_BG;
+        }
+        state = LV_STATE_DEFAULT;
+        return;
+    }
+
     // if(check_obj_type(obj, LV_HASP_LMETER)) {
     //     state = LV_STATE_DEFAULT;
     //     return;
