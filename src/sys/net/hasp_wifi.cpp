@@ -361,7 +361,7 @@ static void wifiReconnect(void)
 #elif defined(ARDUINO_ARCH_ESP32)
     // https://github.com/espressif/arduino-esp32/issues/3438#issuecomment-721428310
     WiFi.disconnect(true);
-    WiFi.begin(wifiSsid, wifiPassword);
+    WiFi.begin(wifiSsid, wifiPassword, WIFI_ALL_CHANNEL_SCAN);
     // WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE); // causes 255.255.255.255 IP errors
     WiFi.setHostname(haspDevice.get_hostname());
 #endif
@@ -459,8 +459,13 @@ bool wifiEvery5Seconds()
 
 bool wifiValidateSsid(const char* ssid, const char* pass)
 {
+#ifdef ARDUINO_ARCH_ESP32
+    WiFi.begin(wifiSsid, wifiPassword, WIFI_ALL_CHANNEL_SCAN);
+#else
+    WiFi.begin(wifiSsid, wifiPassword);
+#endif
+
     uint8_t attempt = 0;
-    WiFi.begin(ssid, pass);
 
 #if defined(STM32F4xx)
     IPAddress ip;
