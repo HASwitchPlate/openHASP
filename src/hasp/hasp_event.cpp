@@ -12,8 +12,6 @@
 #include "hasp_conf.h"
 #include "hasplib.h"
 
-// static unsigned long last_change_event = 0;
-static bool last_press_was_short = false; // Avoid SHORT + UP double events
 static lv_style_int_t last_value_sent;
 static lv_color_t last_color_sent;
 
@@ -32,9 +30,7 @@ void event_obj_data(lv_obj_t* obj, const char* data)
 
     if(hasp_find_id_from_obj(obj, &pageid, &objid)) {
         if(!data) return;
-#if HASP_USE_MQTT > 0
         object_dispatch_state(pageid, objid, data);
-#endif
     } else {
         LOG_ERROR(TAG_MSGR, F(D_OBJECT_UNKNOWN));
     }
@@ -95,9 +91,9 @@ void event_gpio_input(uint8_t pin, uint8_t group, uint8_t eventid)
 {
     char payload[64];
     char topic[8];
-    char event[8];
-    Parser::get_event_name(eventid, event, sizeof(event));
-    snprintf_P(payload, sizeof(payload), PSTR("{\"pin\":%d,\"group\":%d,\"event\":\"%s\"}"), pin, group, event);
+    char eventname[8];
+    Parser::get_event_name(eventid, eventname, sizeof(eventname));
+    snprintf_P(payload, sizeof(payload), PSTR("{\"pin\":%d,\"group\":%d,\"event\":\"%s\"}"), pin, group, eventname);
 
     memcpy_P(topic, PSTR("input"), 6);
     dispatch_state_subtopic(topic, payload);
@@ -165,6 +161,18 @@ void log_event(const char* name, lv_event_t event)
             LOG_TRACE(TAG_EVENT, "%s Changed", name);
             break;
 
+        case LV_EVENT_GESTURE:
+            LOG_TRACE(TAG_EVENT, "%s Gesture", name);
+            break;
+
+        case LV_EVENT_FOCUSED:
+            LOG_TRACE(TAG_EVENT, "%s Focussed", name);
+            break;
+
+        case LV_EVENT_DEFOCUSED:
+            LOG_TRACE(TAG_EVENT, "%s Defocussed", name);
+            break;
+
         case LV_EVENT_PRESSING:
             break;
 
@@ -219,70 +227,64 @@ void page_event_handler(lv_obj_t* obj, lv_event_t event)
  */
 void generic_event_handler(lv_obj_t* obj, lv_event_t event)
 {
-    uint8_t eventid;
     log_event("generic", event);
 
     switch(event) {
         case LV_EVENT_PRESSED:
-            eventid              = HASP_EVENT_DOWN;
-            last_press_was_short = false;
+            hasp_update_sleep_state(); // wakeup?
+            last_value_sent = HASP_EVENT_DOWN;
             break;
 
         case LV_EVENT_CLICKED:
             // UP = the same object was release then was pressed and press was not lost!
-            eventid = last_press_was_short ? HASP_EVENT_SHORT : HASP_EVENT_UP;
-            break;
-
-        case LV_EVENT_SHORT_CLICKED:
-            last_press_was_short = true; // Avoid SHORT + UP double events
+            // eventid = HASP_EVENT_UP;
+            if(last_value_sent != HASP_EVENT_LOST && last_value_sent != HASP_EVENT_UP)
+                last_value_sent = HASP_EVENT_LONG;
             return;
 
-            // eventid = HASP_EVENT_SHORT;
-            // break;
+        case LV_EVENT_SHORT_CLICKED:
+            if(last_value_sent != HASP_EVENT_LOST) last_value_sent = HASP_EVENT_UP; // Avoid SHORT + UP double events
+            break;
+
         case LV_EVENT_LONG_PRESSED:
-            eventid              = HASP_EVENT_LONG;
-            last_press_was_short = false;
+            if(last_value_sent != HASP_EVENT_LOST) last_value_sent = HASP_EVENT_LONG;
             break;
 
         case LV_EVENT_LONG_PRESSED_REPEAT:
-            // last_press_was_short = false;
-            return; // we don't care about hold
-                    // eventid = HASP_EVENT_HOLD;
-                    // break;
+            if(last_value_sent != HASP_EVENT_LOST) last_value_sent = HASP_EVENT_HOLD;
+            break; // we do care about hold
+
         case LV_EVENT_PRESS_LOST:
-            eventid              = HASP_EVENT_LOST;
-            last_press_was_short = false;
+            last_value_sent = HASP_EVENT_LOST;
             break;
 
         case LV_EVENT_PRESSING:
         case LV_EVENT_FOCUSED:
         case LV_EVENT_DEFOCUSED:
-        case LV_EVENT_RELEASED:
-            return;
+        case LV_EVENT_GESTURE:
+            return; // Don't care about these
 
-        case LV_EVENT_VALUE_CHANGED:
-            LOG_WARNING(TAG_EVENT, F("Value changed Event %d occured"),
-                        event); // Shouldn't happen in this event handler
-            last_press_was_short = false;
-            return;
+        case LV_EVENT_RELEASED:
+            if(last_value_sent == HASP_EVENT_UP) return;
+            last_value_sent = HASP_EVENT_RELEASE;
+            break;
 
         case LV_EVENT_DELETE:
             LOG_VERBOSE(TAG_EVENT, F(D_OBJECT_DELETED));
             event_delete_object(obj); // free and destroy persistent memory allocated for certain objects
-            last_press_was_short = false;
             return;
 
+        case LV_EVENT_VALUE_CHANGED: // Should not occur in this event handler
         default:
             LOG_WARNING(TAG_EVENT, F(D_OBJECT_EVENT_UNKNOWN), event);
-            last_press_was_short = false;
             return;
     }
 
-    hasp_update_sleep_state(); // wakeup?
+    if(last_value_sent == HASP_EVENT_LOST) return;
 
     /* If an actionid is attached, perform that action on UP event only */
     if(obj->user_data.actionid) {
-        if(eventid == HASP_EVENT_UP || eventid == HASP_EVENT_SHORT) {
+        if(last_value_sent == HASP_EVENT_UP || last_value_sent == HASP_EVENT_RELEASE) {
             lv_scr_load_anim_t transitionid = (lv_scr_load_anim_t)obj->user_data.transitionid;
             switch(obj->user_data.actionid) {
                 case HASP_NUM_PAGE_PREV:
@@ -300,7 +302,7 @@ void generic_event_handler(lv_obj_t* obj, lv_event_t event)
             dispatch_output_current_page();
         }
     } else {
-        event_object_generic_event(obj, eventid); // send normal object event
+        event_object_generic_event(obj, last_value_sent); // send normal object event
     }
     dispatch_normalized_group_value(obj->user_data.groupid, obj, Parser::get_event_state(eventid), HASP_EVENT_OFF,
                                     HASP_EVENT_ON);

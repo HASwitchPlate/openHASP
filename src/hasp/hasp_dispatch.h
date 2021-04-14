@@ -13,16 +13,15 @@ struct dispatch_conf_t
 };
 
 enum hasp_event_t { // even = released, odd = pressed
-    HASP_EVENT_OFF  = 0,
-    HASP_EVENT_ON   = 1,
-    HASP_EVENT_UP   = 2,
-    HASP_EVENT_DOWN = 3,
-
-    HASP_EVENT_SHORT  = 4,
-    HASP_EVENT_LONG   = 5,
-    HASP_EVENT_LOST   = 6,
-    HASP_EVENT_HOLD   = 7,
-    HASP_EVENT_DOUBLE = 8,
+    HASP_EVENT_OFF     = 0,
+    HASP_EVENT_ON      = 1,
+    HASP_EVENT_UP      = 2,
+    HASP_EVENT_DOWN    = 3,
+    HASP_EVENT_RELEASE = 4,
+    HASP_EVENT_HOLD    = 5,
+    HASP_EVENT_LONG    = 6,
+    HASP_EVENT_LOST    = 7,
+    HASP_EVENT_DOUBLE  = 8,
 
     HASP_EVENT_CHANGED = 32
 };

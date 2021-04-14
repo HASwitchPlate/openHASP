@@ -122,8 +122,8 @@ void Parser::get_event_name(uint8_t eventid, char* buffer, size_t size)
         case HASP_EVENT_DOWN:
             memcpy_P(buffer, PSTR("down"), size);
             break;
-        case HASP_EVENT_SHORT:
-            memcpy_P(buffer, PSTR("short"), size);
+        case HASP_EVENT_RELEASE:
+            memcpy_P(buffer, PSTR("release"), size);
             break;
         case HASP_EVENT_LONG:
             memcpy_P(buffer, PSTR("long"), size);
