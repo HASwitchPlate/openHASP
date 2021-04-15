@@ -4,21 +4,10 @@
 #ifndef HASP_DEVICE_ESP32_H
 #define HASP_DEVICE_ESP32_H
 
+#include "hasp_conf.h"
 #include "../device.h"
 
 #if defined(ESP32)
-
-#ifndef TFT_BACKLIGHT_ON
-#define TFT_BACKLIGHT_ON LOW
-#endif
-
-#ifndef MQTT_NODENAME
-#define MQTT_NODENAME "plate"
-#endif
-
-#ifndef TFT_BCKL
-#define TFT_BCKL -1
-#endif
 
 namespace dev {
 

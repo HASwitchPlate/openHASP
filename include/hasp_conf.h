@@ -8,6 +8,15 @@
 // language specific defines
 #include "lang/lang.h"
 
+// TFT defines
+#ifndef TFT_BACKLIGHT_ON
+#define TFT_BACKLIGHT_ON LOW
+#endif
+
+#ifndef TFT_BCKL
+#define TFT_BCKL -1
+#endif
+
 #define HASP_USE_APP 1
 
 #ifndef HASP_USE_DEBUG
@@ -32,6 +41,10 @@
 
 #ifndef HASP_USE_MQTT
 #define HASP_USE_MQTT (HASP_HAS_NETWORK)
+#endif
+
+#ifndef MQTT_NODENAME
+#define MQTT_NODENAME "plate"
 #endif
 
 #ifndef HASP_USE_HTTP

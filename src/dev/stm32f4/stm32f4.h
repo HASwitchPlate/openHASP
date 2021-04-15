@@ -16,15 +16,11 @@ class Stm32f4Device : public BaseDevice {
   public:
     Stm32f4Device()
     {
-        _hostname         = "plate";
+        _hostname         = MQTT_NODENAME;
         _backlight_power  = 1;
         _backlight_invert = 0;
         _backlight_level  = 100;
-#ifdef TFT_BCKL
-        _backlight_pin = TFT_BCKL;
-#else
-        _backlight_pin = -1;
-#endif
+        _backlight_pin    = TFT_BCKL;
     }
 
     void reboot() override;
