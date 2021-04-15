@@ -107,8 +107,7 @@ void event_object_val_event(lv_obj_t* obj, uint8_t eventid, int16_t val)
     char eventname[8];
 
     Parser::get_event_name(eventid, eventname, sizeof(eventname));
-    snprintf_P(data, sizeof(data), PSTR("{\"obj\":\"%s\",\"event\":\"%s\",\"val\":%d}"), get_obj_type_name(obj),
-               eventname, val);
+    snprintf_P(data, sizeof(data), PSTR("{\"event\":\"%s\",\"val\":%d}"), eventname, val);
     event_send_object_data(obj, data);
 }
 
@@ -119,8 +118,7 @@ void event_object_selection_changed(lv_obj_t* obj, uint8_t eventid, int16_t val,
     char eventname[8];
 
     Parser::get_event_name(eventid, eventname, sizeof(eventname));
-    snprintf_P(data, sizeof(data), PSTR("{\"obj\":\"%s\",\"event\":\"%s\",\"val\":%d,\"text\":\"%s\"}"),
-               get_obj_type_name(obj), eventname, val, text);
+    snprintf_P(data, sizeof(data), PSTR("{\"event\":\"%s\",\"val\":%d,\"text\":\"%s\"}"), eventname, val, text);
     event_send_object_data(obj, data);
 }
 
@@ -528,10 +526,9 @@ void cpicker_event_handler(lv_obj_t* obj, lv_event_t event)
         c32.full        = lv_color_to32(color);
         last_color_sent = color;
 
-        snprintf_P(
-            data, sizeof(data),
-            PSTR("{\"obj\":\"cpicker\",\"event\":\"%s\",\"color\":\"#%02x%02x%02x\",\"r\":%d,\"g\":%d,\"b\":%d}"),
-            eventname, c32.ch.red, c32.ch.green, c32.ch.blue, c32.ch.red, c32.ch.green, c32.ch.blue);
+        snprintf_P(data, sizeof(data),
+                   PSTR("{\"event\":\"%s\",\"color\":\"#%02x%02x%02x\",\"r\":%d,\"g\":%d,\"b\":%d}"), eventname,
+                   c32.ch.red, c32.ch.green, c32.ch.blue, c32.ch.red, c32.ch.green, c32.ch.blue);
         event_send_object_data(obj, data);
 
         // dispatch_normalized_group_value(obj->user_data.groupid, obj, val, min, max);
