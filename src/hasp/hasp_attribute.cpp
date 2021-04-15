@@ -1628,6 +1628,18 @@ void hasp_process_obj_attribute(lv_obj_t* obj, const char* attr_p, const char* p
                 } else {
                     attr_out_int(obj, attr, lv_btn_get_checkable(obj));
                 }
+            } else if(check_obj_type(obj, LV_HASP_BTNMATRIX)) {
+                if(update) {
+                    bool toggle = Parser::is_true(payload);
+                    if(toggle) {
+                        lv_btnmatrix_set_btn_ctrl_all(obj, LV_BTNMATRIX_CTRL_CHECKABLE);
+                    } else {
+                        lv_btnmatrix_clear_btn_ctrl_all(obj, LV_BTNMATRIX_CTRL_CHECKABLE);
+                        lv_btnmatrix_clear_btn_ctrl_all(obj, LV_BTNMATRIX_CTRL_CHECK_STATE);
+                    }
+                } else {
+                    attr_out_int(obj, attr, lv_btn_get_checkable(obj));
+                }
             } else {
                 goto attribute_not_found;
             }
@@ -1657,6 +1669,16 @@ void hasp_process_obj_attribute(lv_obj_t* obj, const char* attr_p, const char* p
                 goto attribute_not_found;
             }
             break; // attribute_found
+
+        case ATTR_ONE_CHECK:
+            if(check_obj_type(obj, LV_HASP_BTNMATRIX)) {
+                if(update) {
+                    lv_btnmatrix_set_one_check(obj, Parser::is_true(payload));
+                } else {
+                    attr_out_int(obj, attr_p, lv_btnmatrix_get_one_check(obj));
+                }
+            }
+            break;
 
         case ATTR_CRITICAL_VALUE:
         case ATTR_ANGLE:
@@ -1699,16 +1721,6 @@ void hasp_process_obj_attribute(lv_obj_t* obj, const char* attr_p, const char* p
                 my_btnmatrix_map_clear(obj); // TODO : remove this test property
             } else {
                 goto attribute_not_found;
-            }
-            break;
-
-        case ATTR_ONE_CHECK:
-            if(check_obj_type(obj, LV_HASP_BTNMATRIX)) {
-                if(update) {
-                    lv_btnmatrix_set_one_check(obj, Parser::is_true(payload));
-                } else {
-                    attr_out_int(obj, attr_p, lv_btnmatrix_get_one_check(obj));
-                }
             }
             break;
 
