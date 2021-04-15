@@ -1614,6 +1614,13 @@ void hasp_process_obj_attribute(lv_obj_t* obj, const char* attr_p, const char* p
                 }
             } else if(check_obj_type(obj, LV_HASP_LABEL)) {
                 hasp_process_label_long_mode(obj, payload, update);
+            } else if(check_obj_type(obj, LV_HASP_ROLLER)) {
+                if(update) {
+                    lv_roller_set_options(obj, lv_roller_get_options(obj), (lv_roller_mode_t)Parser::is_true(payload));
+                } else {
+                    lv_roller_ext_t* ext = (lv_roller_ext_t*)lv_obj_get_ext_attr(obj);
+                    attr_out_int(obj, attr, ext->mode);
+                }
             } else {
                 goto attribute_not_found;
             }
