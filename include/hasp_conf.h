@@ -10,7 +10,7 @@
 
 // TFT defines
 #ifndef TFT_BACKLIGHT_ON
-#define TFT_BACKLIGHT_ON LOW
+#define TFT_BACKLIGHT_ON HIGH
 #endif
 
 #ifndef TFT_BCKL
