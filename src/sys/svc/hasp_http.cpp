@@ -19,7 +19,6 @@
 #include "hasp_config.h"
 #include "hal/hasp_hal.h"
 
-// #include "hasp/hasp_utilities.h"
 #include "hasp/hasp_dispatch.h"
 #include "hasp/hasp_page.h"
 #include "hasp/hasp.h"

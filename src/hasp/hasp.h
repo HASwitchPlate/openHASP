@@ -12,7 +12,6 @@
 #include "hasp_conf.h"
 
 #include "hasp_conf.h"
-#include "hasp_utilities.h"
 
 #if HASP_USE_DEBUG > 0
 #include "../hasp_debug.h"
