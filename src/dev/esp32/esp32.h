@@ -8,6 +8,18 @@
 
 #if defined(ESP32)
 
+#ifndef TFT_BACKLIGHT_ON
+#define TFT_BACKLIGHT_ON LOW
+#endif
+
+#ifndef MQTT_NODENAME
+#define MQTT_NODENAME "plate"
+#endif
+
+#ifndef TFT_BCKL
+#define TFT_BCKL -1
+#endif
+
 namespace dev {
 
 class Esp32Device : public BaseDevice {
@@ -15,19 +27,11 @@ class Esp32Device : public BaseDevice {
   public:
     Esp32Device()
     {
-#ifdef MQTT_NODENAME
-        _hostname = MQTT_NODENAME;
-#else
-        _hostname      = "plate";
-#endif
+        _hostname         = MQTT_NODENAME;
+        _backlight_invert = (TFT_BACKLIGHT_ON == LOW);
         _backlight_power  = 1;
-        _backlight_invert = 0;
         _backlight_level  = 255;
-#ifdef TFT_BCKL
-        _backlight_pin = TFT_BCKL;
-#else
-        _backlight_pin = -1;
-#endif
+        _backlight_pin    = TFT_BCKL;
     }
     void reboot() override;
     void show_info() override;
