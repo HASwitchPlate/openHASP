@@ -17,6 +17,7 @@ void generic_event_handler(lv_obj_t* obj, lv_event_t event);
 void toggle_event_handler(lv_obj_t* obj, lv_event_t event);
 void slider_event_handler(lv_obj_t* obj, lv_event_t event);
 void selector_event_handler(lv_obj_t* obj, lv_event_t event);
+void btnmatrix_event_handler(lv_obj_t* obj, lv_event_t event);
 void cpicker_event_handler(lv_obj_t* obj, lv_event_t event);
 
 #if HASP_USE_GPIO > 0
