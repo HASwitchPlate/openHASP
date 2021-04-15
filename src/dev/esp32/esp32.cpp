@@ -16,7 +16,7 @@
 #include "esp_adc_cal.h"
 
 #include "hasp_debug.h"
-#include "hasp/hasp_utilities.h"
+// #include "hasp/hasp_utilities.h"
 
 #define BACKLIGHT_CHANNEL 0
 

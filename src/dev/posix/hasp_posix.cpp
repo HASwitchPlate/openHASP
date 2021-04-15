@@ -6,7 +6,7 @@
 #include "hasp_posix.h"
 
 #include "hasp_conf.h"
-#include "hasp/hasp_utilities.h"
+// #include "hasp/hasp_utilities.h"
 #include "hasp_debug.h"
 
 #include "display/monitor.h"

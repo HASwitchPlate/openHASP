@@ -216,9 +216,9 @@ static void dispatch_gpio(const char* topic, const char* payload)
             // val = gpio_get_relay_value(pin);
         } else {
             topic += 5;
-            if(Utilities::is_only_digits(topic)) {
+            if(Parser::is_only_digits(topic)) {
                 pin = atoi(topic);
-                val = Utilities::is_true(payload);
+                val = Parser::is_true(payload);
                 //  gpio_set_relay_value(pin, val);
                 return;
             }
@@ -229,9 +229,9 @@ static void dispatch_gpio(const char* topic, const char* payload)
         if(strlen(payload) == 0) {
         } else {
             topic += 3;
-            if(Utilities::is_only_digits(topic)) {
+            if(Parser::is_only_digits(topic)) {
                 pin = atoi(topic);
-                val = Utilities::is_true(payload);
+                val = Parser::is_true(payload);
                 //   gpio_set_led_value(pin, val);
                 return;
             }
@@ -243,9 +243,9 @@ static void dispatch_gpio(const char* topic, const char* payload)
 
         } else {
             topic += 3;
-            if(Utilities::is_only_digits(topic)) {
+            if(Parser::is_only_digits(topic)) {
                 pin = atoi(topic);
-                val = Utilities::is_true(payload);
+                val = Parser::is_true(payload);
                 //   gpio_set_pwm_value(pin, val);
                 return;
             }
@@ -740,7 +740,7 @@ void dispatch_page(const char*, const char* page)
     }
 
     lv_scr_load_anim_t animation = LV_SCR_LOAD_ANIM_NONE;
-    if(Utilities::is_only_digits(page)) {
+    if(Parser::is_only_digits(page)) {
         uint8_t pageid = atoi(page);
         dispatch_set_page(pageid, animation);
     } else if(!strcasecmp_P(page, PSTR("prev"))) {
@@ -801,7 +801,7 @@ void dispatch_moodlight(const char* topic, const char* payload)
         } else {
 
             if(!json[F("state")].isNull())
-                moodlight.power = Utilities::is_true(json[F("state")].as<std::string>().c_str());
+                moodlight.power = Parser::is_true(json[F("state")].as<std::string>().c_str());
 
             if(!json["r"].isNull()) moodlight.r = json["r"].as<uint8_t>();
             if(!json["g"].isNull()) moodlight.g = json["g"].as<uint8_t>();
@@ -850,7 +850,7 @@ void dispatch_backlight(const char*, const char* payload)
 {
     // Set the current state
     if(strlen(payload) != 0) {
-        bool power = Utilities::is_true(payload);
+        bool power = Parser::is_true(payload);
 
         if(haspDevice.get_backlight_power() != power) {
             haspDevice.set_backlight_power(power);

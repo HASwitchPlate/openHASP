@@ -316,7 +316,7 @@ _HASP_ATTRIBUTE(SCALE_END_LINE_WIDTH, scale_end_line_width, lv_style_int_t)
 #define ATTR_SHOW_SELECTED 56029
 
 // Buttonmatrix
-#define ATTR_MAP 45628
+#define ATTR_ONE_CHECK 45935
 
 /* hasp user data */
 #define ATTR_ACTION 42102

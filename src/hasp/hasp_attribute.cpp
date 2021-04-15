@@ -735,7 +735,7 @@ static void hasp_local_style_attr(lv_obj_t* obj, const char* attr_p, uint16_t at
     // test_prop(attr_hash);
 
     hasp_attribute_get_part_state(obj, attr_p, attr, part, state);
-    attr_hash = Utilities::get_sdbm(attr); // attribute name without the index number
+    attr_hash = Parser::get_sdbm(attr); // attribute name without the index number
 
     /* ***** WARNING ****************************************************
      * when using hasp_out use attr_p for the original attribute name
@@ -920,7 +920,7 @@ static void hasp_local_style_attr(lv_obj_t* obj, const char* attr_p, uint16_t at
         case ATTR_BORDER_SIDE:
             return attribute_border_side(obj, part, state, update, attr_p, (lv_border_side_t)var);
         case ATTR_BORDER_POST:
-            return attribute_border_post(obj, part, state, update, attr_p, Utilities::is_true(payload));
+            return attribute_border_post(obj, part, state, update, attr_p, Parser::is_true(payload));
         case ATTR_BORDER_OPA:
             return attribute_border_opa(obj, part, state, update, attr_p, (lv_opa_t)var);
         case ATTR_BORDER_COLOR: {
@@ -987,7 +987,7 @@ static void hasp_local_style_attr(lv_obj_t* obj, const char* attr_p, uint16_t at
         case ATTR_LINE_DASH_GAP:
             return attribute_line_dash_gap(obj, part, state, update, attr_p, (lv_style_int_t)var);
         case ATTR_LINE_ROUNDED:
-            return attribute_line_rounded(obj, part, state, update, attr_p, Utilities::is_true(payload));
+            return attribute_line_rounded(obj, part, state, update, attr_p, Parser::is_true(payload));
         case ATTR_LINE_OPA:
             return attribute_line_opa(obj, part, state, update, attr_p, (lv_opa_t)var);
         case ATTR_LINE_COLOR: {
@@ -1045,7 +1045,7 @@ static void hasp_local_style_attr(lv_obj_t* obj, const char* attr_p, uint16_t at
 
         /* Pattern attributes */
         case ATTR_PATTERN_REPEAT:
-            return attribute_pattern_repeat(obj, part, state, update, attr_p, Utilities::is_true(payload));
+            return attribute_pattern_repeat(obj, part, state, update, attr_p, Parser::is_true(payload));
         case ATTR_PATTERN_OPA:
             return attribute_pattern_opa(obj, part, state, update, attr_p, (lv_opa_t)var);
         case ATTR_PATTERN_RECOLOR_OPA:
@@ -1093,7 +1093,7 @@ static void hasp_process_arc_attribute(lv_obj_t* obj, const char* attr_p, uint16
 
         case ATTR_ADJUSTABLE:
             if(update) {
-                bool toggle = Utilities::is_true(payload);
+                bool toggle = Parser::is_true(payload);
                 lv_arc_set_adjustable(obj, toggle);
                 lv_obj_set_event_cb(obj, toggle ? slider_event_handler : generic_event_handler);
             } else {
@@ -1418,7 +1418,7 @@ void hasp_process_obj_attribute(lv_obj_t* obj, const char* attr_p, const char* p
     char* attr = (char*)attr_p;
     if(*attr == '.') attr++; // strip leading '.'
 
-    uint16_t attr_hash = Utilities::get_sdbm(attr);
+    uint16_t attr_hash = Parser::get_sdbm(attr);
     //    LOG_VERBOSE(TAG_ATTR,"%s => %d", attr, attr_hash);
 
     /* 16-bit Hash Lookup Table */
@@ -1487,13 +1487,12 @@ void hasp_process_obj_attribute(lv_obj_t* obj, const char* attr_p, const char* p
             break; // attribute_found
 
         case ATTR_VIS:
-            update ? lv_obj_set_hidden(obj, !Utilities::is_true(payload))
+            update ? lv_obj_set_hidden(obj, !Parser::is_true(payload))
                    : attr_out_int(obj, attr, !lv_obj_get_hidden(obj));
             break; // attribute_found
 
         case ATTR_HIDDEN:
-            update ? lv_obj_set_hidden(obj, Utilities::is_true(payload))
-                   : attr_out_int(obj, attr, lv_obj_get_hidden(obj));
+            update ? lv_obj_set_hidden(obj, Parser::is_true(payload)) : attr_out_int(obj, attr, lv_obj_get_hidden(obj));
             break; // attribute_found
 
         case ATTR_TXT: // TODO: remove
@@ -1517,7 +1516,7 @@ void hasp_process_obj_attribute(lv_obj_t* obj, const char* attr_p, const char* p
             break; // attribute_found
 
         case ATTR_VAL:
-            if(!hasp_process_obj_attribute_val(obj, attr, atoi(payload), Utilities::is_true(payload), update))
+            if(!hasp_process_obj_attribute_val(obj, attr, atoi(payload), Parser::is_true(payload), update))
                 goto attribute_not_found;
             break; // attribute_found
 
@@ -1535,8 +1534,7 @@ void hasp_process_obj_attribute(lv_obj_t* obj, const char* attr_p, const char* p
             break; // attribute_found
 
         case ATTR_ENABLED:
-            update ? lv_obj_set_click(obj, Utilities::is_true(payload))
-                   : attr_out_int(obj, attr, lv_obj_get_click(obj));
+            update ? lv_obj_set_click(obj, Parser::is_true(payload)) : attr_out_int(obj, attr, lv_obj_get_click(obj));
             break; // attribute_found
 
         case ATTR_SRC:
@@ -1624,7 +1622,7 @@ void hasp_process_obj_attribute(lv_obj_t* obj, const char* attr_p, const char* p
         case ATTR_TOGGLE:
             if(check_obj_type(obj, LV_HASP_BUTTON)) {
                 if(update) {
-                    bool toggle = Utilities::is_true(payload);
+                    bool toggle = Parser::is_true(payload);
                     lv_btn_set_checkable(obj, toggle);
                     lv_obj_set_event_cb(obj, toggle ? toggle_event_handler : generic_event_handler);
                 } else {
@@ -1704,13 +1702,15 @@ void hasp_process_obj_attribute(lv_obj_t* obj, const char* attr_p, const char* p
             }
             break;
 
-        case ATTR_MAP: // TODO: remove temp MAP, use options instead
+        case ATTR_ONE_CHECK:
             if(check_obj_type(obj, LV_HASP_BTNMATRIX)) {
-                my_btnmatrix_map_create(obj, payload);
-            } else {
-                goto attribute_not_found;
+                if(update) {
+                    lv_btnmatrix_set_one_check(obj, Parser::is_true(payload));
+                } else {
+                    attr_out_int(obj, attr_p, lv_btnmatrix_get_one_check(obj));
+                }
             }
-            break; // attribute_found
+            break;
 
         case ATTR_DELETE:
             if(!lv_obj_get_parent(obj)) {
