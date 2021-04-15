@@ -173,7 +173,7 @@ void loop()
     // delay(6);
 }
 
-void usage(char* progName)
+void usage(const char* progName)
 {
     std::cout << progName << " [options]" << std::endl
               << std::endl
