@@ -1776,10 +1776,18 @@ void attr_out_str(lv_obj_t* obj, const char* attribute, const char* data)
     if(hasp_find_id_from_obj(obj, &pageid, &objid)) {
         if(!attribute || !data) return;
 
-        char payload[32 + strlen(data) + strlen(attribute)];
-        snprintf_P(payload, sizeof(payload), PSTR("{\"%s\":\"%s\"}"), attribute, data);
+        StaticJsonDocument<32> doc; // Total (recommended) size
+        doc[attribute].set(data);
 
-        object_dispatch_state(pageid, objid, payload);
+        size_t size = measureJson(doc); // strlen(data) + strlen(attribute);
+        if(size < MQTT_MAX_PACKET_SIZE) {
+            char payload[MQTT_MAX_PACKET_SIZE];
+            serializeJson(doc, payload);
+            object_dispatch_state(pageid, objid, payload);
+
+        } else {
+            LOG_ERROR(TAG_ATTR, F(D_MQTT_PAYLOAD_TOO_LONG), size);
+        }
     }
 }
 

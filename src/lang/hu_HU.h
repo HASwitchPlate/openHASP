@@ -47,6 +47,7 @@
 #define D_MQTT_SUBSCRIBED "Feliratkozva: %s"
 #define D_MQTT_NOT_SUBSCRIBED "Nem sikerült feliratkozni: %s"
 #define D_MQTT_HA_AUTO_DISCOVERY "Regisztrálás HA automatikus felfedezésre"
+#define D_MQTT_PAYLOAD_TOO_LONG "$$$Payload too long (%d bytes)"
 
 #define D_TELNET_CLOSING_CONNECTION "Munkamenet befejezése %s-el"
 #define D_TELNET_CLIENT_LOGIN_FROM "Kliens bejelentkezés innen: %s"

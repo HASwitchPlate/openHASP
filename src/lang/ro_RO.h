@@ -47,6 +47,7 @@
 #define D_MQTT_SUBSCRIBED "Abonat la %s"
 #define D_MQTT_NOT_SUBSCRIBED "Abonarea la %s a eșuat"
 #define D_MQTT_HA_AUTO_DISCOVERY "Înregistrare la auto-descoperire în HA"
+#define D_MQTT_PAYLOAD_TOO_LONG "$$$Payload too long (%d bytes)"
 
 #define D_TELNET_CLOSING_CONNECTION "Terminarea sesiunii de la %s"
 #define D_TELNET_CLIENT_LOGIN_FROM "Conectare client de la %s"
