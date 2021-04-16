@@ -12,7 +12,6 @@
 #define HASP_NUM_PAGE_NEXT (HASP_NUM_PAGES + 3)
 
 void wakeup_event_handler(lv_obj_t* obj, lv_event_t event);
-void page_event_handler(lv_obj_t* obj, lv_event_t event);
 void generic_event_handler(lv_obj_t* obj, lv_event_t event);
 void toggle_event_handler(lv_obj_t* obj, lv_event_t event);
 void slider_event_handler(lv_obj_t* obj, lv_event_t event);

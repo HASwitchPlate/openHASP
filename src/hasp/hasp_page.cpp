@@ -22,7 +22,7 @@ void Page::init(uint8_t start_page)
 {
     for(int i = 0; i < count(); i++) {
         _pages[i] = lv_obj_create(NULL, NULL);
-        lv_obj_set_event_cb(_pages[i], page_event_handler);
+        lv_obj_set_event_cb(_pages[i], generic_event_handler);
 
         /**< If the `indev` was pressing this object but swiped out while pressing do not search other object.*/
         lv_obj_add_protect(_pages[i], LV_PROTECT_PRESS_LOST);

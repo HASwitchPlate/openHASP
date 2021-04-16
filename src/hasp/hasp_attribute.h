@@ -271,6 +271,7 @@ _HASP_ATTRIBUTE(SCALE_END_LINE_WIDTH, scale_end_line_width, lv_style_int_t)
 #define ATTR_TOGGLE 38580
 #define ATTR_HIDDEN 11082
 #define ATTR_VIS 16320
+#define ATTR_SWIPE 11802
 #define ATTR_MODE 45891
 // #define ATTR_RECT 11204
 #define ATTR_ALIGN 34213

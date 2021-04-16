@@ -178,6 +178,11 @@ static bool attribute_update_lv_property(lv_obj_t * obj, const char * attr_p, ui
 }
 #endif
 
+static void my_obj_set_swipeid(lv_obj_t* obj, uint8_t swipeid)
+{
+    if(obj) obj->user_data.swipeid = swipeid % 16;
+}
+
 // OK - this function is missing in lvgl
 static uint8_t my_roller_get_visible_row_count(lv_obj_t* roller)
 {
@@ -1535,6 +1540,11 @@ void hasp_process_obj_attribute(lv_obj_t* obj, const char* attr_p, const char* p
 
         case ATTR_ENABLED:
             update ? lv_obj_set_click(obj, Parser::is_true(payload)) : attr_out_int(obj, attr, lv_obj_get_click(obj));
+            break; // attribute_found
+
+        case ATTR_SWIPE:
+            update ? my_obj_set_swipeid(obj, Parser::is_true(payload))
+                   : attr_out_int(obj, attr, obj->user_data.swipeid);
             break; // attribute_found
 
         case ATTR_SRC:

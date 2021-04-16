@@ -67,8 +67,8 @@ lv_obj_t* hasp_find_obj_from_parent_id(lv_obj_t* parent, uint8_t objid)
 
 bool hasp_find_id_from_obj(lv_obj_t* obj, uint8_t* pageid, uint8_t* objid)
 {
-    if(!haspPages.get_id(obj, pageid)) return false;
-    if(!obj || obj->user_data.id == 0) return false;
+    if(!obj || !haspPages.get_id(obj, pageid)) return false;
+    if(obj->user_data.id == 0 && obj != haspPages.get_obj(*pageid)) return false;
     *objid = obj->user_data.id;
     return true;
 }

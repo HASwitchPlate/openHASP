@@ -7,6 +7,10 @@
  *     - Value Senders       : Convert values and events into topic/payload before forwarding
  *     - Event Handlers      : Callbacks for object event processing
  *
+ * To avoid race conditions:
+ *  - Objects need to send consistent events encapsulated between `up`and `down` events
+ *  - Where appropriate include the current value of the object
+ *
  ******************************************************************************************** */
 
 #include "hasp_conf.h"
@@ -14,6 +18,8 @@
 
 static lv_style_int_t last_value_sent;
 static lv_color_t last_color_sent;
+
+void swipe_event_handler(lv_obj_t* obj, lv_event_t event);
 
 /**
  * Clean-up allocated memory before an object is deleted
@@ -56,6 +62,10 @@ static void event_delete_object(lv_obj_t* obj)
 static bool translate_event(lv_obj_t* obj, lv_event_t event, uint8_t& eventid)
 {
     switch(event) {
+        case LV_EVENT_GESTURE:
+            swipe_event_handler(obj, event);
+            break;
+
         case LV_EVENT_DELETE:
             LOG_VERBOSE(TAG_EVENT, F(D_OBJECT_DELETED));
             event_delete_object(obj);
@@ -67,6 +77,7 @@ static bool translate_event(lv_obj_t* obj, lv_event_t event, uint8_t& eventid)
             return true;
 
         case LV_EVENT_LONG_PRESSED_REPEAT:
+        case LV_EVENT_LONG_PRESSED:
             eventid = HASP_EVENT_CHANGED;
             return true;
 
@@ -97,10 +108,7 @@ void event_send_object_data(lv_obj_t* obj, const char* data)
     }
 }
 
-void event_dispatch(lv_obj_t* obj, uint8_t eventid, const char* data)
-{}
-
-// Send out the on/off event, with the val
+// Send out events with a val attribute
 void event_object_val_event(lv_obj_t* obj, uint8_t eventid, int16_t val)
 {
     char data[40];
@@ -111,7 +119,7 @@ void event_object_val_event(lv_obj_t* obj, uint8_t eventid, int16_t val)
     event_send_object_data(obj, data);
 }
 
-// Send out the changed event, with the val and text
+// Send out events with a val and text attribute
 void event_object_selection_changed(lv_obj_t* obj, uint8_t eventid, int16_t val, const char* text)
 {
     char data[200];
@@ -209,17 +217,16 @@ void wakeup_event_handler(lv_obj_t* obj, lv_event_t event)
 
     if(event == LV_EVENT_RELEASED && obj == lv_disp_get_layer_sys(NULL)) {
         hasp_update_sleep_state(); // wakeup?
-        if(!haspDevice.get_backlight_power())
+        if(!haspDevice.get_backlight_power()) {
             dispatch_backlight(NULL, "1"); // backlight on and also disable wakeup touch
-        else {
-            hasp_disable_wakeup_touch(); // only disable wakeup touch
         }
+        hasp_disable_wakeup_touch(); // only disable wakeup touch
     }
 }
 
-void page_event_handler(lv_obj_t* obj, lv_event_t event)
+void swipe_event_handler(lv_obj_t* obj, lv_event_t event)
 {
-    log_event("page", event);
+    if(!obj || obj->user_data.swipeid == 0) return;
 
     if(event == LV_EVENT_GESTURE) {
         lv_gesture_dir_t dir = lv_indev_get_gesture_dir(lv_indev_get_act());
@@ -247,6 +254,10 @@ void generic_event_handler(lv_obj_t* obj, lv_event_t event)
     log_event("generic", event);
 
     switch(event) {
+        case LV_EVENT_GESTURE:
+            swipe_event_handler(obj, event);
+            return;
+
         case LV_EVENT_PRESSED:
             hasp_update_sleep_state(); // wakeup?
             last_value_sent = HASP_EVENT_DOWN;
@@ -288,7 +299,6 @@ void generic_event_handler(lv_obj_t* obj, lv_event_t event)
         case LV_EVENT_PRESSING:
         case LV_EVENT_FOCUSED:
         case LV_EVENT_DEFOCUSED:
-        case LV_EVENT_GESTURE:
             return; // Don't care about these
 
         case LV_EVENT_VALUE_CHANGED: // Should not occur in this event handler
@@ -348,10 +358,13 @@ void toggle_event_handler(lv_obj_t* obj, lv_event_t event)
             last_value_sent = lv_switch_get_state(obj);
             break;
 
-        case LV_HASP_CHECKBOX:
-            last_value_sent = lv_checkbox_is_checked(obj);
-            break;
+            /* case LV_HASP_CHECKBOX:
+                // This lvgl value is incorrect, it returns pressed instead of checked
+                // last_value_sent = lv_checkbox_is_checked(obj);
+                last_value_sent = lv_obj_get_state(obj, LV_BTN_PART_MAIN) & LV_STATE_CHECKED;
+                break; */
 
+        case LV_HASP_CHECKBOX:
         case LV_HASP_BUTTON: {
             last_value_sent = lv_obj_get_state(obj, LV_BTN_PART_MAIN) & LV_STATE_CHECKED;
             break;
@@ -414,11 +427,10 @@ void selector_event_handler(lv_obj_t* obj, lv_event_t event)
             return; // Invalid selector type
     }
 
-    if((event == LV_EVENT_LONG_PRESSED_REPEAT && last_value_sent != val) || event != LV_EVENT_LONG_PRESSED_REPEAT) {
-        last_value_sent = val;
-        event_object_selection_changed(obj, hasp_event_id, val, buffer);
-        // if(max > 0) dispatch_normalized_group_value(obj->user_data.groupid, obj, val, 0, max);
-    }
+    if(hasp_event_id == HASP_EVENT_CHANGED && last_value_sent == val) return; // same value as before
+    last_value_sent = val;
+    event_object_selection_changed(obj, hasp_event_id, val, buffer);
+    // if(max > 0) dispatch_normalized_group_value(obj->user_data.groupid, obj, val, 0, max);
 
     // set the property
     // snprintf_P(property, sizeof(property), PSTR("val\":%d,\"text"), val);
@@ -451,11 +463,11 @@ void btnmatrix_event_handler(lv_obj_t* obj, lv_event_t event)
         buffer[0] = 0; // empty string
     }
 
-    if((event == LV_EVENT_LONG_PRESSED_REPEAT && last_value_sent != val) || event != LV_EVENT_LONG_PRESSED_REPEAT) {
-        last_value_sent = val;
-        event_object_selection_changed(obj, hasp_event_id, val, buffer);
-        // if(max > 0) dispatch_normalized_group_value(obj->user_data.groupid, obj, val, 0, max);
-    }
+    if(hasp_event_id == HASP_EVENT_CHANGED && last_value_sent == val) return; // same value as before
+
+    last_value_sent = val;
+    event_object_selection_changed(obj, hasp_event_id, val, buffer);
+    // if(max > 0) dispatch_normalized_group_value(obj->user_data.groupid, obj, val, 0, max);
 
     // set the property
     // snprintf_P(property, sizeof(property), PSTR("val\":%d,\"text"), val);
@@ -493,11 +505,11 @@ void slider_event_handler(lv_obj_t* obj, lv_event_t event)
         return; // not a slider
     }
 
-    if((event == LV_EVENT_LONG_PRESSED_REPEAT && last_value_sent != val) || event != LV_EVENT_LONG_PRESSED_REPEAT) {
-        last_value_sent = val;
-        event_object_val_event(obj, hasp_event_id, val);
-        dispatch_normalized_group_value(obj->user_data.groupid, obj, val, min, max);
-    }
+    if(hasp_event_id == HASP_EVENT_CHANGED && last_value_sent == val) return; // same value as before
+
+    last_value_sent = val;
+    event_object_val_event(obj, hasp_event_id, val);
+    dispatch_normalized_group_value(obj->user_data.groupid, obj, val, min, max);
 }
 
 /**
@@ -510,27 +522,24 @@ void cpicker_event_handler(lv_obj_t* obj, lv_event_t event)
     log_event("cpicker", event);
 
     uint8_t hasp_event_id;
-    if(!translate_event(obj, event, hasp_event_id) || event == LV_EVENT_LONG_PRESSED_REPEAT) return;
+    if(!translate_event(obj, event, hasp_event_id) || event == LV_EVENT_VALUE_CHANGED) return;
 
     /* Get the new value */
     lv_color_t color = lv_cpicker_get_color(obj);
 
-    if((event == LV_EVENT_LONG_PRESSED_REPEAT && last_color_sent.full != color.full) ||
-       event != LV_EVENT_LONG_PRESSED_REPEAT) {
+    if(hasp_event_id == HASP_EVENT_CHANGED && last_color_sent.full == color.full) return; // same value as before
 
-        char data[100];
-        char eventname[8];
-        Parser::get_event_name(hasp_event_id, eventname, sizeof(eventname));
+    char data[100];
+    char eventname[8];
+    Parser::get_event_name(hasp_event_id, eventname, sizeof(eventname));
 
-        lv_color32_t c32;
-        c32.full        = lv_color_to32(color);
-        last_color_sent = color;
+    lv_color32_t c32;
+    c32.full        = lv_color_to32(color);
+    last_color_sent = color;
 
-        snprintf_P(data, sizeof(data),
-                   PSTR("{\"event\":\"%s\",\"color\":\"#%02x%02x%02x\",\"r\":%d,\"g\":%d,\"b\":%d}"), eventname,
-                   c32.ch.red, c32.ch.green, c32.ch.blue, c32.ch.red, c32.ch.green, c32.ch.blue);
-        event_send_object_data(obj, data);
+    snprintf_P(data, sizeof(data), PSTR("{\"event\":\"%s\",\"color\":\"#%02x%02x%02x\",\"r\":%d,\"g\":%d,\"b\":%d}"),
+               eventname, c32.ch.red, c32.ch.green, c32.ch.blue, c32.ch.red, c32.ch.green, c32.ch.blue);
+    event_send_object_data(obj, data);
 
-        // dispatch_normalized_group_value(obj->user_data.groupid, obj, val, min, max);
-    }
+    // dispatch_normalized_group_value(obj->user_data.groupid, obj, val, min, max);
 }
