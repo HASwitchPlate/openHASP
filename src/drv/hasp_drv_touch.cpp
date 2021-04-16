@@ -35,23 +35,38 @@
 extern uint8_t hasp_sleep_state;
 static uint8_t drv_touch_rotation;
 
+bool touch_rotate   = false;
+bool touch_invert_x = false;
+bool touch_invert_y = false;
+
 void drv_touch_init(uint8_t rotation)
 {
     drv_touch_rotation = rotation;
+
+    switch(rotation) {
+        case 1:
+        case 3:
+        case 5:
+        case 7:
+            // touch_rotate = true;
+            break;
+        default:
+            touch_rotate = false;
+    }
 
 #if TOUCH_DRIVER == 2046 // XPT2046 Resistive touch panel driver
 #if defined(USE_FSMC)
     xpt2046_init(rotation);
 #else
-    // The display driver takes care of all initializations
-    // tft_espi_init(rotation);
+        // The display driver takes care of all initializations
+        // tft_espi_init(rotation);
 #endif
 
 #elif TOUCH_DRIVER == 911
     GT911_init();
 
 #elif TOUCH_DRIVER == 0xADC // Analog Digital Touch Conroller
-    // Touch_init();
+        // Touch_init();
 
 #elif TOUCH_DRIVER == 5206
     FT5206_init();
@@ -63,9 +78,9 @@ void drv_touch_init(uint8_t rotation)
     STMPE610_init();
 
 #else
-    // xpt2046_alt_drv_read(indev_driver, data);
-    // xpt2046_read(indev_driver, data);
-    // if(data->state && guiSleeping != HASP_SLEEP_OFF) guiCheckSleep();
+        // xpt2046_alt_drv_read(indev_driver, data);
+        // xpt2046_read(indev_driver, data);
+        // if(data->state && guiSleeping != HASP_SLEEP_OFF) guiCheckSleep();
 #endif
 }
 
@@ -158,10 +173,6 @@ static inline bool drv_touchpad_getXY(int16_t* touchX, int16_t* touchY)
 
     return touched;
 }
-
-bool touch_rotate   = false;
-bool touch_invert_x = false;
-bool touch_invert_y = false;
 
 bool drv_touch_read(lv_indev_drv_t* indev_driver, lv_indev_data_t* data)
 {

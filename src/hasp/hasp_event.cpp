@@ -11,6 +11,15 @@
  *  - Objects need to send consistent events encapsulated between `up`and `down` events
  *  - Where appropriate include the current value of the object
  *
+ *  TODO:
+ *  - Swiping an open dropdown list activates a gesture (lvgl bug)
+ *  - Rolling a roller object sends the events out-of-order (down > up > changed)
+ *  - Long pressing a colorpicker (to change the mode) does not send an up event:
+ * static void indev_proc_release(lv_indev_proc_t* proc)
+ * {
+ *    if(proc->wait_until_release != 0) {
+ *        lv_event_send(proc->types.pointer.act_obj, LV_EVENT_RELEASED, NULL);  // Add this line for HASP
+ *
  ******************************************************************************************** */
 
 #include "hasp_conf.h"
