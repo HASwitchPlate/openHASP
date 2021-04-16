@@ -11,6 +11,8 @@
 
 #include <stdint.h>
 
+#include "lv_symbol_mdi_def.h"
+
 #if defined(ARDUINO_ARCH_ESP8266)
 #define LV_HIGH_RESOURCE_MCU  0
 #endif
@@ -337,6 +339,64 @@ typedef void* lv_indev_drv_user_data_t;            /*Type of user data in the in
  *    FONT USAGE
  *===================*/
 
+#if TFT_WIDTH>=320 || TFT_WIDTH>=480
+
+#ifndef HASP_FONT_1
+#define HASP_FONT_1 robotocondensed_regular_16_latin1  /* 5% Width */
+#endif
+#ifndef HASP_FONT_2
+#define HASP_FONT_2 robotocondensed_regular_24_latin1  /* 5% Width */
+#endif
+#ifndef HASP_FONT_3
+#define HASP_FONT_3 robotocondensed_regular_32_latin1  /* 10% Width */
+#endif
+#ifndef HASP_FONT_4
+#define HASP_FONT_4 robotocondensed_regular_48_latin1  /* 10% Height */
+#endif
+
+#ifndef ROBOTOCONDENSED_REGULAR_16_LATIN1
+#define ROBOTOCONDENSED_REGULAR_16_LATIN1 1
+#endif
+#ifndef ROBOTOCONDENSED_REGULAR_24_LATIN1
+#define ROBOTOCONDENSED_REGULAR_24_LATIN1 1
+#endif
+#ifndef ROBOTOCONDENSED_REGULAR_32_LATIN1
+#define ROBOTOCONDENSED_REGULAR_32_LATIN1 1
+#endif
+#ifndef ROBOTOCONDENSED_REGULAR_48_LATIN1
+#define ROBOTOCONDENSED_REGULAR_48_LATIN1 1
+#endif
+
+#else
+
+#ifndef HASP_FONT_1
+#define HASP_FONT_1 robotocondensed_regular_12_latin1  /* 5% Width */
+#endif
+#ifndef HASP_FONT_2
+#define HASP_FONT_2 robotocondensed_regular_16_latin1  /* 5% Width */
+#endif
+#ifndef HASP_FONT_3
+#define HASP_FONT_3 robotocondensed_regular_24_latin1  /* 10% Width */
+#endif
+#ifndef HASP_FONT_4
+#define HASP_FONT_4 robotocondensed_regular_32_latin1  /* 10% Height */
+#endif
+
+#ifndef ROBOTOCONDENSED_REGULAR_12_LATIN1
+#define ROBOTOCONDENSED_REGULAR_12_LATIN1 1
+#endif
+#ifndef ROBOTOCONDENSED_REGULAR_16_LATIN1
+#define ROBOTOCONDENSED_REGULAR_16_LATIN1 1
+#endif
+#ifndef ROBOTOCONDENSED_REGULAR_24_LATIN1
+#define ROBOTOCONDENSED_REGULAR_24_LATIN1 1
+#endif
+#ifndef ROBOTOCONDENSED_REGULAR_32_LATIN1
+#define ROBOTOCONDENSED_REGULAR_32_LATIN1 1
+#endif
+
+#endif
+
 /* The built-in fonts contains the ASCII range and some Symbols with 4 bit-per-pixel.
  * The symbols are available via `LV_SYMBOL_...` defines
  * More info about fonts: https://docs.lvgl.io/v7/en/html/overview/font.html
@@ -411,22 +471,47 @@ typedef void* lv_indev_drv_user_data_t;            /*Type of user data in the in
     /*Declare the type of the user data of fonts (can be e.g. `void *`, `int`, `struct`)*/
 typedef void* lv_font_user_data_t;
 
+// #define FONT_CONCAT2(a, b)  a ## b
+// #define FONT_CONCAT(a, b) FONT_CONCAT2(a, b)
+// #define HASP_FONTNAME robotocondensed_regular_
+// #define HASP_FONTNAME_BASE FONT_CONCAT(HASP_FONTNAME, _)
+// #define HASP_CHARACTER_SET latin1
+
+// /* Concatenate the fontname macros */
+// #define HASP_FONT_1_size FONT_CONCAT(HASP_FONTNAME, 12)
+// #define HASP_FONT_1_base FONT_CONCAT(HASP_FONT_1_size, _)
+// #define HASP_FONT_1 FONT_CONCAT(HASP_FONT_1_base, HASP_CHARACTER_SET)
+
+// /* Concatenate the fontname macros */
+// #define HASP_FONT_2_size FONT_CONCAT(HASP_FONTNAME, 16)
+// #define HASP_FONT_2_base FONT_CONCAT(HASP_FONT_2_size, _)
+// #define HASP_FONT_2 FONT_CONCAT(HASP_FONT_2_base, HASP_CHARACTER_SET)
+
+// /* Concatenate the fontname macros */
+// #define HASP_FONT_3_size FONT_CONCAT(HASP_FONTNAME, 22)
+// #define HASP_FONT_3_base FONT_CONCAT(HASP_FONT_3_size, _)
+// #define HASP_FONT_3 FONT_CONCAT(HASP_FONT_3_base, HASP_CHARACTER_SET)
+
+// /* Concatenate the fontname macros */
+// #define HASP_FONT_4_size FONT_CONCAT(HASP_FONTNAME, 28)
+// #define HASP_FONT_4_base FONT_CONCAT(HASP_FONT_4_size, _)
+// #define HASP_FONT_4 FONT_CONCAT(HASP_FONT_4_base, HASP_CHARACTER_SET)
 
 /*Always set a default font from the built-in fonts*/
 #if LV_HIGH_RESOURCE_MCU>0
 // #define LV_FONT_CUSTOM_DECLARE LV_FONT_DECLARE(lv_font_montserrat_16);
 
-#define LV_FONT_CUSTOM_12     LV_FONT_DECLARE(robotocondensed_regular_12_nokern)
-#define LV_FONT_CUSTOM_16     LV_FONT_DECLARE(robotocondensed_regular_16_nokern)
-#define LV_FONT_CUSTOM_22     LV_FONT_DECLARE(robotocondensed_regular_22_nokern)
-#define LV_FONT_CUSTOM_28     LV_FONT_DECLARE(robotocondensed_regular_28_nokern)
+// #define LV_FONT_CUSTOM_12     LV_FONT_DECLARE(robotocondensed_regular_12)
+// #define LV_FONT_CUSTOM_16     LV_FONT_DECLARE(robotocondensed_regular_16)
+// #define LV_FONT_CUSTOM_22     LV_FONT_DECLARE(robotocondensed_regular_22)
+// #define LV_FONT_CUSTOM_28     LV_FONT_DECLARE(robotocondensed_regular_28)
 
-#define LV_FONT_CUSTOM_DECLARE LV_FONT_CUSTOM_12 \
-                               LV_FONT_CUSTOM_16 \
-                               LV_FONT_CUSTOM_22 \
-                               LV_FONT_CUSTOM_28 \
+#define LV_FONT_CUSTOM_DECLARE LV_FONT_DECLARE(HASP_FONT_1) \
+                               LV_FONT_DECLARE(HASP_FONT_2) \
+                               LV_FONT_DECLARE(HASP_FONT_3) \
+                               LV_FONT_DECLARE(HASP_FONT_4) \
 
-#define LV_FONT_DEFAULT        &robotocondensed_regular_16_nokern //&lv_font_montserrat_16
+#define LV_FONT_DEFAULT        &HASP_FONT_2 //&lv_font_montserrat_16
 #else
 #define LV_FONT_CUSTOM_DECLARE LV_FONT_DECLARE(unscii_8_icon);
 #define LV_FONT_DEFAULT        &unscii_8_icon //&lv_font_unscii_8
@@ -443,12 +528,12 @@ typedef void* lv_font_user_data_t;
 #define LV_THEME_DEFAULT_INIT               lv_theme_material_init // lv_theme_hasp_init // We init the theme ourselves
 #define LV_THEME_DEFAULT_COLOR_PRIMARY      LV_COLOR_RED
 #define LV_THEME_DEFAULT_COLOR_SECONDARY    LV_COLOR_BLUE
-#define LV_THEME_DEFAULT_FLAG              0 //LV_THEME_MATERIAL_FLAG_NONE
+#define LV_THEME_DEFAULT_FLAG               0 //LV_THEME_MATERIAL_FLAG_NONE
 #if LV_HIGH_RESOURCE_MCU
-#define LV_THEME_DEFAULT_FONT_SMALL         &robotocondensed_regular_12_nokern //&lv_font_montserrat_12
-#define LV_THEME_DEFAULT_FONT_NORMAL        &robotocondensed_regular_16_nokern //&lv_font_montserrat_16
-#define LV_THEME_DEFAULT_FONT_SUBTITLE      &robotocondensed_regular_22_nokern //&lv_font_montserrat_22
-#define LV_THEME_DEFAULT_FONT_TITLE         &robotocondensed_regular_28_nokern //&lv_font_montserrat_22 //&lv_font_montserrat_28_compressed
+#define LV_THEME_DEFAULT_FONT_SMALL         &HASP_FONT_1 //&lv_font_montserrat_12
+#define LV_THEME_DEFAULT_FONT_NORMAL        &HASP_FONT_2 //&lv_font_montserrat_16
+#define LV_THEME_DEFAULT_FONT_SUBTITLE      &HASP_FONT_3 //&lv_font_montserrat_22
+#define LV_THEME_DEFAULT_FONT_TITLE         &HASP_FONT_4 //&lv_font_montserrat_22 //&lv_font_montserrat_28_compressed
 #else
 #define LV_THEME_DEFAULT_FONT_SMALL         LV_FONT_DEFAULT // &lv_font_montserrat_12
 #define LV_THEME_DEFAULT_FONT_NORMAL        LV_FONT_DEFAULT // &lv_font_montserrat_16

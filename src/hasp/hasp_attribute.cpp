@@ -459,7 +459,7 @@ static lv_font_t* haspPayloadToFont(const char* payload)
 
     switch(var) {
         case 0 ... 7:
-            // LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, robotocondensed_regular_12_nokern);
+            // LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, robotocondensed_regular_12);
             return hasp_get_font(var);
 
         case 8:
@@ -467,27 +467,27 @@ static lv_font_t* haspPayloadToFont(const char* payload)
 
 #ifndef ARDUINO_ARCH_ESP8266
 
-#ifdef LV_FONT_CUSTOM_12
+#ifdef HASP_FONT_1
         case 12:
-            return &robotocondensed_regular_12_nokern;
+            return &HASP_FONT_1;
 #endif
 
-#ifdef LV_FONT_CUSTOM_16
+#ifdef HASP_FONT_2
         case 16:
-            LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, robotocondensed_regular_16_nokern);
-            return &robotocondensed_regular_16_nokern;
+            LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, HASP_FONT_2);
+            return &HASP_FONT_2;
 #endif
 
-#ifdef LV_FONT_CUSTOM_22
+#ifdef HASP_FONT_3
         case 22:
-            LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, robotocondensed_regular_22_nokern);
-            return &robotocondensed_regular_22_nokern;
+            LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, HASP_FONT_3);
+            return &HASP_FONT_3;
 #endif
 
-#ifdef LV_FONT_CUSTOM_28
+#ifdef HASP_FONT_4
         case 28:
-            LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, robotocondensed_regular_28_nokern);
-            return &robotocondensed_regular_28_nokern;
+            LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, HASP_FONT_4);
+            return &HASP_FONT_4;
 #endif
 
 #endif

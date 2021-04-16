@@ -327,7 +327,7 @@ void haspSetup(void)
 
     LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, nullptr);
     LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, haspFonts[0]);
-    // LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, &robotocondensed_regular_16_nokern);
+    // LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, &robotocondensed_regular_16);
 
 #if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
 #if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
@@ -344,7 +344,7 @@ void haspSetup(void)
         haspFonts[0] = hasp_font; // save it
     }
 
-    //  LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, robotocondensed_regular_16_nokern);
+    //  LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, robotocondensed_regular_16);
     LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, *hasp_font);
 
 #endif

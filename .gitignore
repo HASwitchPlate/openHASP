@@ -14,6 +14,8 @@ user_setups/active/*
 build_output/*
 build_output/firmware/*.bin
 build_output/firmware/*.exe
+src/custom/*
+!src/custom/README.md
 
 ## Test result files
 *.xml
