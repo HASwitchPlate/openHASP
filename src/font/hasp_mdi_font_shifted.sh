@@ -98,7 +98,7 @@ do
       then
         ext=bin
       else
-        ext=c
+        ext=cpp
       fi
 
       for FONT in fonts/*.ttf; do
