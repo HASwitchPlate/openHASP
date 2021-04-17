@@ -587,6 +587,7 @@ typedef struct {
   uint8_t transitionid:4;
   uint8_t actionid:4;
   uint8_t groupid:4;
+  uint8_t swipeid:4;
 } lv_obj_user_data_t;
 
 #if LV_USE_USER_DATA
