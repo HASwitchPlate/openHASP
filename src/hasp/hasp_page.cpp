@@ -8,6 +8,14 @@
 
 namespace hasp {
 
+bool Page::is_valid(uint8_t pageid)
+{
+    if(pageid > 0 && pageid <= HASP_NUM_PAGES) return true;
+
+    LOG_WARNING(TAG_HASP, F(D_HASP_INVALID_PAGE), pageid);
+    return false;
+}
+
 Page::Page()
 {
     // LVGL is not yet initialized at construction time
@@ -21,7 +29,8 @@ size_t Page::count()
 void Page::init(uint8_t start_page)
 {
     for(int i = 0; i < count(); i++) {
-        _pages[i] = lv_obj_create(NULL, NULL);
+        _pages[i]                  = lv_obj_create(NULL, NULL);
+        _pages[i]->user_data.objid = LV_HASP_SCREEN;
         lv_obj_set_event_cb(_pages[i], generic_event_handler);
 
         /**< If the `indev` was pressing this object but swiped out while pressing do not search other object.*/
@@ -34,14 +43,12 @@ void Page::init(uint8_t start_page)
     }
 }
 
-void Page::clear(uint16_t pageid)
+void Page::clear(uint8_t pageid)
 {
     lv_obj_t* page = get_obj(pageid);
-    if(!page || (pageid > HASP_NUM_PAGES)) {
-        LOG_WARNING(TAG_HASP, F(D_HASP_INVALID_PAGE), pageid);
-    } else if(page == lv_layer_sys() /*|| page == lv_layer_top()*/) {
+    if(page == lv_layer_sys() /*|| page == lv_layer_top()*/) {
         LOG_WARNING(TAG_HASP, F(D_HASP_INVALID_LAYER));
-    } else {
+    } else if(is_valid(pageid)) {
         LOG_TRACE(TAG_HASP, F(D_HASP_CLEAR_PAGE), pageid);
         lv_obj_clean(page);
     }
@@ -55,7 +62,9 @@ void Page::clear(uint16_t pageid)
 void Page::set(uint8_t pageid, lv_scr_load_anim_t animation)
 {
     lv_obj_t* page = get_obj(pageid);
-    if(!page || pageid == 0 || pageid > HASP_NUM_PAGES) {
+    if(!is_valid(pageid)) {
+        return;
+    } else if(!page) {
         LOG_WARNING(TAG_HASP, F(D_HASP_INVALID_PAGE), pageid);
     } else {
         LOG_TRACE(TAG_HASP, F(D_HASP_CHANGE_PAGE), pageid);
@@ -65,6 +74,36 @@ void Page::set(uint8_t pageid, lv_scr_load_anim_t animation)
         }
         hasp_object_tree(page, pageid, 0);
     }
+}
+
+uint8_t Page::get_next(uint8_t pageid)
+{
+    return is_valid(pageid) ? _meta_data[pageid - PAGE_START_INDEX].next : 0;
+}
+
+uint8_t Page::get_prev(uint8_t pageid)
+{
+    return is_valid(pageid) ? _meta_data[pageid - PAGE_START_INDEX].prev : 0;
+}
+
+uint8_t Page::get_back(uint8_t pageid)
+{
+    return is_valid(pageid) ? _meta_data[pageid - PAGE_START_INDEX].back : 0;
+}
+
+void Page::set_next(uint8_t pageid, uint8_t nextid)
+{
+    if(is_valid(pageid) && is_valid(nextid)) _meta_data[pageid - PAGE_START_INDEX].next = nextid;
+}
+
+void Page::set_prev(uint8_t pageid, uint8_t previd)
+{
+    if(is_valid(pageid) && is_valid(previd)) _meta_data[pageid - PAGE_START_INDEX].prev = previd;
+}
+
+void Page::set_back(uint8_t pageid, uint8_t backid)
+{
+    if(is_valid(pageid) && is_valid(backid)) _meta_data[pageid - PAGE_START_INDEX].back = backid;
 }
 
 void Page::next(lv_scr_load_anim_t animation)

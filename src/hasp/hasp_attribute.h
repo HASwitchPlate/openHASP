@@ -260,6 +260,11 @@ _HASP_ATTRIBUTE(SCALE_END_LINE_WIDTH, scale_end_line_width, lv_style_int_t)
 #define ATTR_SCALE_WIDTH 36017
 #define ATTR_SCALE_END_COLOR 44074
 
+/* Page Attributes */
+#define ATTR_NEXT 60915
+#define ATTR_PREV 21587
+#define ATTR_BACK 57799
+
 /* Object Attributes */
 #define ATTR_X 120
 #define ATTR_Y 121

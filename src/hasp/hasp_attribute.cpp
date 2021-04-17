@@ -178,11 +178,6 @@ static bool attribute_update_lv_property(lv_obj_t * obj, const char * attr_p, ui
 }
 #endif
 
-static void my_obj_set_swipeid(lv_obj_t* obj, uint8_t swipeid)
-{
-    if(obj) obj->user_data.swipeid = swipeid % 16;
-}
-
 // OK - this function is missing in lvgl
 static uint8_t my_roller_get_visible_row_count(lv_obj_t* roller)
 {
@@ -1250,6 +1245,29 @@ static void hasp_process_gauge_attribute(lv_obj_t* obj, const char* attr_p, uint
 
 // ##################### Common Attributes ########################################################
 
+static void hasp_process_page_attributes(lv_obj_t* obj, const char* attr_p, uint16_t attr_hash, uint8_t val,
+                                         bool update)
+{
+    uint8_t pageid;
+
+    if(haspPages.get_id(obj, &pageid)) {
+        switch(attr_hash) {
+            case ATTR_NEXT:
+                update ? haspPages.set_next(pageid, val) : attr_out_int(obj, attr_p, haspPages.get_next(pageid));
+                break;
+
+            case ATTR_PREV:
+                update ? haspPages.set_prev(pageid, val) : attr_out_int(obj, attr_p, haspPages.get_prev(pageid));
+                break;
+
+            // case ATTR_BACK:
+            default:
+                update ? haspPages.set_back(pageid, val) : attr_out_int(obj, attr_p, haspPages.get_back(pageid));
+                break;
+        }
+    }
+}
+
 static void hasp_process_obj_attribute_txt(lv_obj_t* obj, const char* attr, const char* payload, bool update)
 {
     /* Attributes depending on objecttype */
@@ -1418,13 +1436,12 @@ void hasp_process_obj_attribute(lv_obj_t* obj, const char* attr_p, const char* p
         LOG_WARNING(TAG_ATTR, F(D_OBJECT_UNKNOWN));
         return;
     }
-    int16_t val = atoi(payload);
 
     char* attr = (char*)attr_p;
     if(*attr == '.') attr++; // strip leading '.'
 
     uint16_t attr_hash = Parser::get_sdbm(attr);
-    //    LOG_VERBOSE(TAG_ATTR,"%s => %d", attr, attr_hash);
+    int16_t val        = atoi(payload);
 
     /* 16-bit Hash Lookup Table */
     switch(attr_hash) {
@@ -1543,7 +1560,7 @@ void hasp_process_obj_attribute(lv_obj_t* obj, const char* attr_p, const char* p
             break; // attribute_found
 
         case ATTR_SWIPE:
-            update ? my_obj_set_swipeid(obj, Parser::is_true(payload))
+            update ? (void)(obj->user_data.swipeid = Parser::is_true(payload) % 16)
                    : attr_out_int(obj, attr, obj->user_data.swipeid);
             break; // attribute_found
 
@@ -1764,6 +1781,15 @@ void hasp_process_obj_attribute(lv_obj_t* obj, const char* attr_p, const char* p
             }
             lv_obj_move_background(obj);
             break; // attribute_found
+
+        case ATTR_NEXT:
+        case ATTR_PREV:
+        case ATTR_BACK:
+            if(check_obj_type(obj, LV_HASP_SCREEN)) {
+                hasp_process_page_attributes(obj, attr_p, attr_hash, val, update);
+                break; // attribute_found
+            }
+            goto attribute_not_found;
 
         default:
             hasp_local_style_attr(obj, attr, attr_hash, payload, update);

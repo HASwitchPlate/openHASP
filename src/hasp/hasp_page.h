@@ -35,16 +35,26 @@ class Page {
     Page();
     size_t count();
     void init(uint8_t start_page);
-    void clear(uint16_t pageid);
+    void clear(uint8_t pageid);
     //    void set(uint8_t pageid);
     void set(uint8_t pageid, lv_scr_load_anim_t animation);
+
     void next(lv_scr_load_anim_t animation);
     void prev(lv_scr_load_anim_t animation);
     void back(lv_scr_load_anim_t animation);
+
+    uint8_t get_next(uint8_t pageid);
+    uint8_t get_prev(uint8_t pageid);
+    uint8_t get_back(uint8_t pageid);
+    void set_next(uint8_t pageid, uint8_t nextid);
+    void set_prev(uint8_t pageid, uint8_t previd);
+    void set_back(uint8_t pageid, uint8_t backid);
+
     uint8_t get();
     void load_jsonl(const char* pagesfile);
     lv_obj_t* get_obj(uint8_t pageid);
     bool get_id(lv_obj_t* obj, uint8_t* pageid);
+    bool is_valid(uint8_t pageid);
 };
 
 } // namespace hasp

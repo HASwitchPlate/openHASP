@@ -35,6 +35,7 @@ enum lv_hasp_obj_type_t {
     LV_HASP_CALENDER = 54,
 
     /* Containers */
+    LV_HASP_SCREEN    = 1,
     LV_HASP_CONTAINER = 70,
     LV_HASP_WINDOW    = 71, // placeholder
     LV_HASP_MSGBOX    = 72, // placeholder
