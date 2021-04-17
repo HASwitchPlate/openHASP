@@ -191,6 +191,23 @@ int Parser::format_bytes(size_t filesize, char* buf, size_t len)
     return snprintf_P(buf, len, PSTR("%d.%d %ciB"), filesize / 10, filesize % 10, labels[unit]);
 }
 
+uint8_t Parser::get_action_id(const char* action)
+{
+    if(!strcasecmp_P(action, PSTR("prev"))) {
+        return HASP_NUM_PAGE_PREV;
+    } else if(!strcasecmp_P(action, PSTR("next"))) {
+        return HASP_NUM_PAGE_NEXT;
+    } else if(!strcasecmp_P(action, PSTR("back"))) {
+        return HASP_NUM_PAGE_BACK;
+    } else if(action[0] == 'p') {
+        action++;
+        if(is_only_digits(action)) {
+            return atoi(action);
+        }
+    }
+    return 0;
+}
+
 #ifndef ARDUINO
 long map(long x, long in_min, long in_max, long out_min, long out_max)
 {
