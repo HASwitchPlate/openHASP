@@ -249,7 +249,10 @@ void swipe_event_handler(lv_obj_t* obj, lv_event_t event)
             case LV_GESTURE_DIR_BOTTOM:
                 haspPages.back(LV_SCR_LOAD_ANIM_NONE);
                 break;
+            default:
+                return;
         }
+        dispatch_output_current_page();
     }
 }
 
