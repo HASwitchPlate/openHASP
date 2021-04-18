@@ -136,15 +136,15 @@ bool hasp_update_sleep_state()
 
 void hasp_enable_wakeup_touch()
 {
-    LOG_VERBOSE(TAG_HASP, F("Wakeup touch enabled"));
     lv_obj_set_click(lv_disp_get_layer_sys(NULL), true); // enable first touch
     lv_obj_set_event_cb(lv_disp_get_layer_sys(NULL), wakeup_event_handler);
+    LOG_INFO(TAG_HASP, F("Wakeup touch enabled"));
 }
 
 void hasp_disable_wakeup_touch()
 {
-    LOG_VERBOSE(TAG_HASP, F("Wakeup touch disabled"));
     lv_obj_set_click(lv_disp_get_layer_sys(NULL), false); // disable first touch
+    LOG_INFO(TAG_HASP, F("Wakeup touch disabled"));
 }
 
 /**
