@@ -46,11 +46,11 @@ void Page::init(uint8_t start_page)
 void Page::clear(uint8_t pageid)
 {
     lv_obj_t* page = get_obj(pageid);
-    if(page == lv_layer_sys() /*|| page == lv_layer_top()*/) {
-        LOG_WARNING(TAG_HASP, F(D_HASP_INVALID_LAYER));
-    } else if(is_valid(pageid)) {
+    if(page == lv_layer_top() || is_valid(pageid)) {
         LOG_TRACE(TAG_HASP, F(D_HASP_CLEAR_PAGE), pageid);
         lv_obj_clean(page);
+    } else {
+        LOG_WARNING(TAG_HASP, F(D_HASP_INVALID_LAYER)); // lv_layer_sys
     }
 }
 
