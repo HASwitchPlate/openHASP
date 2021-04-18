@@ -11,10 +11,6 @@ extern "C" {
  * Symbols from Material Design Icons font
  *--------------------------------------*/
 
-/* In the font converter use this list as range:
-    0XF0140, 0XF0141, 0XF0142, 0XF0143, 0XF012C, 0XF0208, 0XF0209, 0XF05A9, 0XF0156, 0XF060C, 0XF030D
-*/
-
 #define LV_SYMBOL_DOWN              "\xEE\x85\x80"  /* 0xE140, chevron-down */
 #define LV_SYMBOL_LEFT              "\xEE\x85\x81"  /* 0xE141, chevron-left */
 #define LV_SYMBOL_RIGHT             "\xEE\x85\x82"  /* 0xE142, chevron-right */
