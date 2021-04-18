@@ -19,7 +19,7 @@ class Esp8266Device : public BaseDevice {
         _hostname         = MQTT_NODENAME;
         _backlight_invert = (TFT_BACKLIGHT_ON == LOW);
         _backlight_power  = 1;
-        _backlight_level  = 100;
+        _backlight_level  = 255;
         _core_version     = ESP.getCoreVersion().c_str();
         _backlight_pin    = TFT_BCKL;
     }

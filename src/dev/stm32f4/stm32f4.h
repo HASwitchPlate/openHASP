@@ -19,7 +19,7 @@ class Stm32f4Device : public BaseDevice {
         _hostname         = MQTT_NODENAME;
         _backlight_power  = 1;
         _backlight_invert = 0;
-        _backlight_level  = 100;
+        _backlight_level  = 255;
         _backlight_pin    = TFT_BCKL;
     }
 

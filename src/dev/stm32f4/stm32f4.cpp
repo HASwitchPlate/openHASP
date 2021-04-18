@@ -94,7 +94,7 @@ void Stm32f4Device::update_backlight()
 {
     if(_backlight_pin == -1) return;
 
-    // analogWrite(_backlight_pin, _backlight_power ? map(_backlight_level, 0, 100, 0, 1023) : 0);
+    // analogWrite(_backlight_pin, _backlight_power ? map(_backlight_level, 0, 255, 0, 1023) : 0);
 }
 
 size_t Stm32f4Device::get_free_max_block()

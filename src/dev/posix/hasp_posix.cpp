@@ -39,7 +39,7 @@ PosixDevice::PosixDevice()
 
     _backlight_power  = 1;
     _backlight_invert = 0;
-    _backlight_level  = 100;
+    _backlight_level  = 255;
 }
 
 void PosixDevice::reboot()
