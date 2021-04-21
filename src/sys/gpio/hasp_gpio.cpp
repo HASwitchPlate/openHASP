@@ -24,6 +24,8 @@ hasp_gpio_config_t gpioConfig[HASP_NUM_GPIO_CONFIG] = {
 };
 
 #if defined(ARDUINO_ARCH_ESP32)
+#include "driver/uart.h"
+
 class TouchConfig : public ButtonConfig {
   public:
     TouchConfig();
@@ -273,6 +275,20 @@ void gpioSetup()
                 ledcAttachPin(gpioConfig[i].pin, gpioConfig[i].group);
 #endif
                 break;
+
+            case HASP_GPIO_SERIAL_DIMMER:
+#if defined(ARDUINO_ARCH_ESP32)
+                Serial2.begin(115200, SERIAL_8N1, UART_PIN_NO_CHANGE, gpioConfig[i].pin);
+                delay(20);
+                const char command[5] = "\xEF\x01\x4D\xA3"; // Start Lanbon Dimmer
+                Serial2.print(command);
+
+                char buffer[32];
+                snprintf_P(buffer, sizeof(buffer), PSTR("Dimmer: %02x %02x %02x %02x"), command[0], command[1],
+                           command[2], command[3]);
+                LOG_VERBOSE(TAG_GPIO, buffer);
+#endif
+                break;
         }
     }
 }
@@ -306,7 +322,7 @@ void gpio_set_value(hasp_gpio_config_t gpio, int16_t val)
             inverted = true;
         case HASP_GPIO_RELAY:
             gpio.val = val > 0 ? HIGH : LOW;
-            digitalWrite(gpio.pin, inverted ? !gpio.val : gpio.val);
+            digitalWrite(gpio.pin, inverted ? gpio.val : !gpio.val);
             break;
 
         case HASP_GPIO_LED_INVERTED:
@@ -336,6 +352,22 @@ void gpio_set_value(hasp_gpio_config_t gpio, int16_t val)
             analogWrite(gpio.pin, (inverted ? 4095 - gpio.val : gpio.val) >> 2); // 1023
 #endif
             break;
+
+        case HASP_GPIO_SERIAL_DIMMER: {
+#if defined(ARDUINO_ARCH_ESP32)
+            char command[5] = "\xEF\x02\x00\xED";
+            if(gpio.val == 0) {
+                command[2] = 0x20;
+            } else {
+                command[2] = (uint8_t)gpio.val;
+                command[3] ^= command[2];
+            }
+            Serial2.print(command);
+            LOG_VERBOSE(TAG_GPIO, F("%02x %02x %02x %02x"), command[0], command[1], command[2], command[3]);
+
+#endif
+            break;
+        }
 
         default:
             return;

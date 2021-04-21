@@ -82,6 +82,7 @@ bool gpioSetConfig(const JsonObject& settings);
 #define HASP_GPIO_DAC_INVERTED 0x51
 #define HASP_GPIO_ADC 0x52
 #define HASP_GPIO_ADC_INVERTED 0x53
+#define HASP_GPIO_SERIAL_DIMMER 0x60
 #define HASP_GPIO_USER 0xFF
 
 #ifdef __cplusplus
