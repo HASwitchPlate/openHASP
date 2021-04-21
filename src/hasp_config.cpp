@@ -380,7 +380,7 @@ void configSetup()
         //#if HASP_USE_SPIFFS > 0
         LOG_INFO(TAG_DEBG, F("Loading debug settings"));
         debugSetConfig(settings[FPSTR(FP_DEBUG)]);
-        LOG_INFO(TAG_GPIO, F("Loading GUI settings"));
+        LOG_INFO(TAG_GUI, F("Loading GUI settings"));
         guiSetConfig(settings[FPSTR(FP_GUI)]);
         LOG_INFO(TAG_HASP, F("Loading HASP settings"));
         haspSetConfig(settings[FPSTR(FP_HASP)]);

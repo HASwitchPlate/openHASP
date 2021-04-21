@@ -1792,6 +1792,9 @@ void hasp_process_obj_attribute(lv_obj_t* obj, const char* attr_p, const char* p
             }
             goto attribute_not_found;
 
+        case ATTR_COMMENT:
+            break; // attribute_found
+
         default:
             hasp_local_style_attr(obj, attr, attr_hash, payload, update);
     }
