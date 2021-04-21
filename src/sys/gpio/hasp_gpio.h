@@ -26,6 +26,8 @@ void gpioEvery5Seconds(void);
 // void gpio_set_group_onoff(uint8_t groupid, bool ison);
 void gpio_set_normalized_group_value(uint8_t groupid, int16_t val, int16_t min, int16_t max);
 // void gpio_set_gpio_state(uint8_t pin, uint16_t state);
+void gpio_get_value(uint8_t pin);
+void gpio_set_value(uint8_t pin, int16_t val);
 void gpio_set_moodlight(uint8_t r, uint8_t g, uint8_t b);
 
 bool gpioSavePinConfig(uint8_t config_num, uint8_t pin, uint8_t type, uint8_t group, uint8_t pinfunc);

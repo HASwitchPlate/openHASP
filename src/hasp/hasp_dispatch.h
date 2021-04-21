@@ -64,7 +64,6 @@ void dispatch_current_state();
 void dispatch_output_current_page();
 
 void dispatch_gpio_input_event(uint8_t pin, uint8_t group, uint8_t eventid);
-void dispatch_gpio_output_value(const char* gpiotype, uint8_t pin, int16_t val);
 
 void dispatch_object_value_changed(lv_obj_t* obj, int16_t state);
 
