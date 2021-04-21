@@ -463,24 +463,24 @@ static lv_font_t* haspPayloadToFont(const char* payload)
 #ifndef ARDUINO_ARCH_ESP8266
 
 #ifdef HASP_FONT_1
-        case 12:
+        case HASP_FONT_SIZE_1:
             return &HASP_FONT_1;
 #endif
 
 #ifdef HASP_FONT_2
-        case 16:
+        case HASP_FONT_SIZE_2:
             LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, HASP_FONT_2);
             return &HASP_FONT_2;
 #endif
 
 #ifdef HASP_FONT_3
-        case 22:
+        case HASP_FONT_SIZE_3:
             LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, HASP_FONT_3);
             return &HASP_FONT_3;
 #endif
 
 #ifdef HASP_FONT_4
-        case 28:
+        case HASP_FONT_SIZE_4:
             LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, HASP_FONT_4);
             return &HASP_FONT_4;
 #endif

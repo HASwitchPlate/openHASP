@@ -89,6 +89,24 @@
 */
 
 /***************************************************
+ *        Font Settings
+ **************************************************/
+// #define HASP_FONT_1 robotocondensed_regular_16_latin1 // Use available fonts from src/fonts directory
+// #define HASP_FONT_2 robotocondensed_regular_22_latin1
+// #define HASP_FONT_3 robotocondensed_regular_40_latin1
+// #define HASP_FONT_4 robotocondensed_regular_48_latin1
+
+// #define ROBOTOCONDENSED_REGULAR_16_LATIN1 1           // Enable the selected fonts
+// #define ROBOTOCONDENSED_REGULAR_22_LATIN1 1
+// #define ROBOTOCONDENSED_REGULAR_40_LATIN1 1
+// #define ROBOTOCONDENSED_REGULAR_48_LATIN1 1
+
+// #define HASP_FONT_SIZE_1 16                           // Define used font sizes
+// #define HASP_FONT_SIZE_2 22
+// #define HASP_FONT_SIZE_3 40
+// #define HASP_FONT_SIZE_4 48
+
+/***************************************************
  *        Other Settings
  **************************************************/
 //#define HASP_USE_HA                                 // Enable Home Assistant auto-discovery
