@@ -94,6 +94,14 @@ static void gpio_event_handler(AceButton* button, uint8_t eventType, uint8_t but
 
 /* ********************************* GPIO Setup *************************************** */
 
+void gpio_log_serial_dimmer(const char* command)
+{
+    char buffer[32];
+    snprintf_P(buffer, sizeof(buffer), PSTR("Dimmer: %02x %02x %02x %02x"), command[0], command[1], command[2],
+               command[3]);
+    LOG_VERBOSE(TAG_GPIO, buffer);
+}
+
 void aceButtonSetup(void)
 {
     ButtonConfig* buttonConfig = ButtonConfig::getSystemButtonConfig();
@@ -282,11 +290,7 @@ void gpioSetup()
                 delay(20);
                 const char command[5] = "\xEF\x01\x4D\xA3"; // Start Lanbon Dimmer
                 Serial2.print(command);
-
-                char buffer[32];
-                snprintf_P(buffer, sizeof(buffer), PSTR("Dimmer: %02x %02x %02x %02x"), command[0], command[1],
-                           command[2], command[3]);
-                LOG_VERBOSE(TAG_GPIO, buffer);
+                gpio_log_serial_dimmer(command);
 #endif
                 break;
         }
@@ -299,7 +303,7 @@ void gpio_get_value(hasp_gpio_config_t gpio)
 {
     char payload[32];
     char topic[12];
-    snprintf_P(topic, sizeof(topic), PSTR("gpio%dp%d"), gpio.type, gpio.pin);
+    snprintf_P(topic, sizeof(topic), PSTR("gpio%d"), gpio.pin);
     snprintf_P(payload, sizeof(payload), PSTR("%d"), gpio.val);
 
     dispatch_state_subtopic(topic, payload);
@@ -354,6 +358,7 @@ void gpio_set_value(hasp_gpio_config_t gpio, int16_t val)
             break;
 
         case HASP_GPIO_SERIAL_DIMMER: {
+            gpio.val = val >= 100 ? 100 : val > 0 ? val : 0;
 #if defined(ARDUINO_ARCH_ESP32)
             char command[5] = "\xEF\x02\x00\xED";
             if(gpio.val == 0) {
@@ -363,7 +368,7 @@ void gpio_set_value(hasp_gpio_config_t gpio, int16_t val)
                 command[3] ^= command[2];
             }
             Serial2.print(command);
-            LOG_VERBOSE(TAG_GPIO, F("%02x %02x %02x %02x"), command[0], command[1], command[2], command[3]);
+            gpio_log_serial_dimmer(command);
 
 #endif
             break;
@@ -373,7 +378,7 @@ void gpio_set_value(hasp_gpio_config_t gpio, int16_t val)
             return;
     }
     gpio_get_value(gpio);
-    LOG_VERBOSE(TAG_GPIO, F(D_BULLET "Group %d - Pin %d = %d"), gpio.group, gpio.pin, gpio.val);
+    LOG_VERBOSE(TAG_GPIO, F("Group %d - Pin %d = %d"), gpio.group, gpio.pin, gpio.val);
 }
 
 void gpio_set_value(uint8_t pin, int16_t val)
