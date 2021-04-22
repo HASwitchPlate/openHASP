@@ -49,13 +49,13 @@ marks:
   - parametrize:
       key: obj
       vals:
-        - cpicker
+        #        - cpicker
         - table
         - tabview
         - chart
         - gauge
         - btn
-        - label
+        #        - label
         - slider
         - checkbox
         - switch
@@ -102,6 +102,11 @@ marks:
         - ""
 
 stages:
+  - name: Clear page
+    mqtt_publish:
+      topic: hasp/{plate}/command
+      payload: clearpage
+
   - name: Create object
     mqtt_publish:
       topic: hasp/{plate}/command/jsonl

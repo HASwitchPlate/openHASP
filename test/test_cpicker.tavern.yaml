@@ -159,3 +159,69 @@ stages:
         g: !int "{g:d}"
         b: !int "{b:d}"
       timeout: 1
+
+---
+test_name: Value String Loop
+
+includes:
+  - !include config.yaml
+
+paho-mqtt:
+  client:
+    transport: tcp
+    client_id: tavern-tester
+  connect:
+    host: "{host}"
+    port: !int "{port:d}"
+    timeout: 3
+  auth:
+    username: "{username}"
+    password: "{password}"
+
+marks:
+  - parametrize:
+      key: str1
+      vals:
+        - "Test 123456 longer strings work too"
+        - "The cat stretched."
+        - "Jacob stood on his tiptoes."
+        - "The car turned the corner."
+        - "Kelly twirled in circles."
+        - "She opened the door."
+        - "Aaron made a picture."
+        - "I'm sorry."
+        - huey
+        - dewey
+        - ""
+
+  - parametrize:
+      key: str2
+      vals:
+        - louie
+        - " I danced."
+        - " Oak is strong and also gives shade."
+        - " Cats and dogs each hate the other."
+        - " The pipe began to rust while new."
+        - " Open the crate but don't break the glass."
+        - " Add the sum to the product of these three."
+        - " Thieves who rob friends deserve jail."
+        - " The ripe taste of cheese improves with age."
+        - " Act on these orders with great speed."
+        - " The hog crawled under the high fence."
+        - " Move the vat over the hot fire."
+        - ""
+
+stages:
+  - name: Set value_str
+    mqtt_publish:
+      topic: "hasp/{plate}/command/p1b1.value_str"
+      payload: "{str1}{str2}"
+  - name: Get value_str
+    mqtt_publish:
+      topic: hasp/{plate}/command
+      payload: "p1b1.value_str"
+    mqtt_response:
+      topic: hasp/{plate}/state/p1b1
+      json:
+        value_str: "{str1}{str2}"
+      timeout: 1
