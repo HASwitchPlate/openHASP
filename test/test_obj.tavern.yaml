@@ -1,6 +1,34 @@
 # test_page.tavern.yaml
 ---
-test_name: Obj Standard Properties
+test_name: Objects Standard Properties Setup
+
+includes:
+  - !include config.yaml
+
+paho-mqtt:
+  client:
+    transport: tcp
+    client_id: tavern-tester
+  connect:
+    host: "{host}"
+    port: !int "{port:d}"
+    timeout: 3
+  auth:
+    username: "{username}"
+    password: "{password}"
+
+stages:
+  - name: Page 1
+    mqtt_publish:
+      topic: hasp/{plate}/command
+      payload: "page 1"
+    mqtt_response:
+      topic: hasp/{plate}/state/page
+      payload: "1"
+      timeout: 1
+
+---
+test_name: Objects Standard Properties Loop
 
 includes:
   - !include config.yaml
@@ -90,13 +118,11 @@ stages:
       topic: hasp/{plate}/state/page
       payload: "1"
       timeout: 1
-    delay_after: 0
 
   - name: Clear page
     mqtt_publish:
       topic: hasp/{plate}/command/clearpage
       payload: ""
-    delay_after: 0.2
 
   - name: Create object
     mqtt_publish:
@@ -106,7 +132,6 @@ stages:
         id: 1
         x: 128
         y: 128
-    delay_after: 0
 
   - name: Test y
     mqtt_publish:
@@ -142,7 +167,7 @@ stages:
     mqtt_publish:
       topic: hasp/{plate}/command/json
       payload: '["p1b1.h={h}","p1b1.h"]'
-    delay_after: 0
+
     mqtt_response:
       topic: hasp/{plate}/state/p1b1
       json:
@@ -153,7 +178,7 @@ stages:
     mqtt_publish:
       topic: hasp/{plate}/command/json
       payload: '["p1b1.enabled={hidden}","p1b1.enabled"]'
-    delay_after: 0
+
     mqtt_response:
       topic: hasp/{plate}/state/p1b1
       json:
@@ -164,7 +189,7 @@ stages:
     mqtt_publish:
       topic: hasp/{plate}/command
       payload: "p1b1.vis={hidden}"
-    delay_after: 0
+
   - name: Get hidden
     mqtt_publish:
       topic: hasp/{plate}/command
@@ -188,7 +213,7 @@ stages:
     mqtt_publish:
       topic: hasp/{plate}/command
       payload: "p1b1.hidden={hidden}"
-    delay_after: 0
+
   - name: Get hidden
     mqtt_publish:
       topic: hasp/{plate}/command
@@ -233,7 +258,7 @@ stages:
     mqtt_publish:
       topic: "hasp/{plate}/command/p1b1.value_str"
       payload: "{str1}{str2}"
-    delay_after: 0.05
+
   - name: Get value_str
     mqtt_publish:
       topic: hasp/{plate}/command

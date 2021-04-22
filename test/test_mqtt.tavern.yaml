@@ -88,7 +88,6 @@ stages:
       topic: hasp/{plate}/LWT
       payload: "offline"
       timeout: 20
-    delay_after: 0
 
 ---
 test_name: Idle States
@@ -114,7 +113,6 @@ stages:
       topic: hasp/{plate}/state/idle
       payload: "long"
       timeout: 190
-    delay_after: 0
 
   - name: Test idle
     mqtt_publish:
@@ -124,7 +122,6 @@ stages:
       topic: hasp/{plate}/state/idle
       payload: "short"
       timeout: 70
-    delay_after: 0
 
   - name: Test idle
     mqtt_publish:
@@ -134,4 +131,3 @@ stages:
       topic: hasp/{plate}/state/idle
       payload: "off"
       timeout: 1
-    delay_after: 0

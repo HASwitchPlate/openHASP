@@ -1,6 +1,6 @@
-# test_value_str.tavern.yaml
+# test_page.tavern.yaml
 ---
-test_name: Colors setup
+test_name: Cpicker setup
 
 includes:
   - !include config.yaml
@@ -26,10 +26,14 @@ stages:
       topic: hasp/{plate}/state/page
       payload: "1"
       timeout: 1
-    delay_after: 0
+
+  - name: Clear page
+    mqtt_publish:
+      topic: hasp/{plate}/command/clearpage
+      payload: ""
 
 ---
-test_name: Colors loop
+test_name: Cpicker loop
 
 includes:
   - !include config.yaml
@@ -57,7 +61,7 @@ marks:
         - rgb565
       vals:
         - ["red", "#ff0000", 255, 0, 0, 63488]
-        - ["tan", "#d5b68b", 213, 182, 139, 54705]
+        - ["tan", "#d2b48c", 213, 182, 139, 54705]
         - ["aqua", "#00ffff", 0, 255, 255, 2047]
         - ["blue", "#0000ff", 0, 0, 255, 31]
         - ["cyan", "#00ffff", 0, 255, 255, 2047]
@@ -66,7 +70,7 @@ marks:
         - ["grey", "#838183", 131, 129, 131, 33808]
         - ["lime", "#00ff00", 0, 255, 0, 2016]
         - ["navy", "#000083", 0, 0, 131, 16]
-        - ["peru", "#cd8539", 205, 133, 57, 52263]
+        - ["peru", "#cd8139", 205, 129, 57, 52263]
         - ["pink", "#ffc2cd", 255, 194, 205, 65049]
         - ["plum", "#dea1de", 222, 161, 222, 56603]
         - ["snow", "#fffaff", 255, 250, 255, 65503]
@@ -79,98 +83,78 @@ marks:
         - ["coral", "#ff7d52", 255, 125, 82, 64490]
         - ["green", "#008100", 0, 129, 0, 1024]
         - ["ivory", "#fffff6", 255, 255, 246, 65534]
-        - ["khaki", "#f6e68b", 246, 230, 139, 63281]
-        - ["linen", "#fff2e6", 255, 242, 230, 65436]
-        - ["olive", "#838100", 131, 129, 0, 33792]
-        - ["wheat", "#f6deb5", 246, 222, 181, 63222]
+        - ["khaki", "#f6e28b", 246, 226, 139, 63281]
+        - ["linen", "#fff2ee", 255, 242, 238, 65436]
+        - ["olive", "#837d00", 131, 125, 0, 33792]
+        - ["wheat", "#f6dab5", 246, 218, 181, 63222]
         - ["white", "#ffffff", 255, 255, 255, 65535]
         - ["bisque", "#ffe6c5", 255, 230, 197, 65336]
         - ["indigo", "#4a0083", 74, 0, 131, 18448]
         - ["maroon", "#830000", 131, 0, 0, 32768]
         - ["orange", "#ffa500", 255, 165, 0, 64800]
         - ["orchid", "#de71d5", 222, 113, 213, 56218]
-        - ["purple", "#830083", 131, 0, 131, 32784]
+        - ["purple", "#7b0083", 123, 0, 131, 32784]
         - ["salmon", "#ff8173", 255, 129, 115, 64526]
-        - ["sienna", "#a45029", 164, 80, 41, 41605]
+        - ["sienna", "#a44c29", 164, 76, 41, 41605]
         - ["tomato", "#ff6141", 255, 97, 65, 64264]
-        - ["violet", "#ee81ee", 238, 129, 238, 60445]
+        - ["violet", "#ee81ee", 230, 129, 238, 60445]
         - ["yellow", "#ffff00", 255, 255, 0, 65504]
-        - ["fuchsia", "#ff00ff", 255, 0, 255, 63519]
-        - ["magenta", "#ff00ff", 255, 0, 255, 63519]
+        - ["fuchsia", "#f600ff", 246, 0, 255, 63519]
+        - ["magenta", "#f600ff", 246, 0, 255, 63519]
         - ["silver", "#c5c2c5", 197, 194, 197, 50712]
-
-  - parametrize:
-      key: obj
-      vals:
-        - checkbox
-        - btn
 
 stages:
   - name: Set bg_color
     mqtt_publish:
-      topic: hasp/{plate}/command/json
-      payload: '["p1b0.bg_color={color}","clearpage"]'
+      topic: hasp/{plate}/command
+      payload: "p[1].b[0].bg_color={color}"
 
-  - name: Create object
+  - name: Create cpicker
     mqtt_publish:
       topic: hasp/{plate}/command/jsonl
       json:
-        obj: "{obj}"
+        obj: "cpicker"
         id: 1
-        txt: "{color}"
-        r: !int "{r:d}"
-        g: !int "{g:d}"
-        b: !int "{b:d}"
-
-  - name: Set bg_color
-    mqtt_publish:
-      topic: hasp/{plate}/command
-      payload: "p[1].b[0].bg_color={rgb565}"
+        color: "{color}"
 
   - name: Test named COLOR
     mqtt_publish:
-      topic: hasp/{plate}/command/json
-      payload: '["p1b1.text_color={color}","p1b1.text_color"]'
+      topic: hasp/{plate}/command
+      payload: "p1b1.color"
     mqtt_response:
       topic: hasp/{plate}/state/p1b1
       json:
-        text_color: "{hex}"
+        color: "{hex}"
         r: !int "{r:d}"
         g: !int "{g:d}"
         b: !int "{b:d}"
       timeout: 1
-
-  - name: Reset
-    mqtt_publish:
-      topic: hasp/{plate}/command
-      payload: "p1b1.text_color=123"
 
   - name: Test hex COLOR
     mqtt_publish:
       topic: hasp/{plate}/command/json
-      payload: '["p1b1.text_color={hex}","p1b1.text_color"]'
+      payload: '["p1b1.color={hex}","p1b1.color"]'
     mqtt_response:
       topic: hasp/{plate}/state/p1b1
       json:
-        text_color: "{hex}"
+        color: "{hex}"
         r: !int "{r:d}"
         g: !int "{g:d}"
         b: !int "{b:d}"
       timeout: 1
-
   - name: Reset
     mqtt_publish:
       topic: hasp/{plate}/command
-      payload: "p1b1.text_color=529"
+      payload: "p1b1.color=529"
 
   - name: Test rgb565 COLOR
     mqtt_publish:
       topic: hasp/{plate}/command/json
-      payload: '["p1b1.text_color={rgb565}","p1b1.text_color"]'
+      payload: '["p1b1.color={rgb565}","p1b1.color"]'
     mqtt_response:
       topic: hasp/{plate}/state/p1b1
       json:
-        text_color: "{hex}"
+        color: "{hex}"
         r: !int "{r:d}"
         g: !int "{g:d}"
         b: !int "{b:d}"
