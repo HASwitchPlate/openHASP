@@ -232,7 +232,7 @@ void my_obj_set_value_str_txt(lv_obj_t* obj, uint8_t part, lv_state_t state, con
 {
     //  LOG_VERBOSE(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
 
-    const void* value_str_p = lv_obj_get_style_value_str(obj, part);
+    void* value_str_p = (void*)lv_obj_get_style_value_str(obj, part);
     lv_obj_invalidate(obj);
 
     if(text == NULL || text[0] == 0) {
@@ -262,35 +262,20 @@ void my_obj_set_value_str_txt(lv_obj_t* obj, uint8_t part, lv_state_t state, con
         return;
     }
 
-    // lv_obj_set_style_local_value_str(obj, part, state, str_p);
-
     if(value_str_p == text) {
         /*If set its own text then reallocate it (maybe its size changed)*/
         LOG_DEBUG(TAG_ATTR, "%s %d", __FILE__, __LINE__);
         return; // don't touch the data
-
-        // value_str_p = lv_mem_realloc(value_str_p, strlen(text) + 1);
-
-        // LV_ASSERT_MEM(value_str_p);
-        // if(value_str_p == NULL) return;
-    } else {
-        /*Free the old text*/
-        if(value_str_p != NULL) {
-            //        LOG_DEBUG(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
-            lv_mem_free(value_str_p);
-            value_str_p = NULL;
-            //        LOG_DEBUG(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
-        }
-
-        /*Get the size of the text*/
-        size_t len = strlen(text) + 1;
-
-        /*Allocate space for the new text*/
-        value_str_p = lv_mem_alloc(len);
-        LV_ASSERT_MEM(value_str_p);
-        if(value_str_p != NULL) strcpy((char*)value_str_p, text);
-        lv_obj_set_style_local_value_str(obj, part, state, (char*)value_str_p);
     }
+
+    /*Get the size of the text*/
+    size_t len = strlen(text) + 1;
+
+    /*Allocate space for the new text*/
+    value_str_p = lv_mem_realloc(value_str_p, len);
+    LV_ASSERT_MEM(value_str_p);
+    if(value_str_p != NULL) strcpy((char*)value_str_p, text);
+    lv_obj_set_style_local_value_str(obj, part, state, (char*)value_str_p);
 
     // LOG_VERBOSE(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
 }
