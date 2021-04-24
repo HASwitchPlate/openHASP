@@ -1,6 +1,34 @@
 # test_value_str.tavern.yaml
 ---
-test_name: Obj Standard Properties
+test_name: Value String Setup
+
+includes:
+  - !include config.yaml
+
+paho-mqtt:
+  client:
+    transport: tcp
+    client_id: tavern-tester
+  connect:
+    host: "{host}"
+    port: !int "{port:d}"
+    timeout: 3
+  auth:
+    username: "{username}"
+    password: "{password}"
+
+stages:
+  - name: Page 1
+    mqtt_publish:
+      topic: hasp/{plate}/command/json
+      payload: '["page 1","clearpage"]'
+    mqtt_response:
+      topic: hasp/{plate}/state/page
+      payload: "1"
+      timeout: 1
+
+---
+test_name: Value String Loop
 
 includes:
   - !include config.yaml
@@ -21,13 +49,13 @@ marks:
   - parametrize:
       key: obj
       vals:
-        - cpicker
+        #        - cpicker
         - table
         - tabview
         - chart
         - gauge
         - btn
-        - label
+        #        - label
         - slider
         - checkbox
         - switch
@@ -74,15 +102,10 @@ marks:
         - ""
 
 stages:
-  - name: Page 1
+  - name: Clear page
     mqtt_publish:
       topic: hasp/{plate}/command
-      payload: "page 1"
-    mqtt_response:
-      topic: hasp/{plate}/state/page
-      payload: "1"
-      timeout: 1
-    delay_after: 0
+      payload: clearpage
 
   - name: Create object
     mqtt_publish:
@@ -94,13 +117,11 @@ stages:
         y: 0
         w: 240
         h: 240
-    delay_after: 0
 
   - name: Set value_str
     mqtt_publish:
       topic: "hasp/{plate}/command/p[1].b[1].value_str"
       payload: "{str1}{str2}"
-    delay_after: 0
   - name: Get value_str
     mqtt_publish:
       topic: hasp/{plate}/command

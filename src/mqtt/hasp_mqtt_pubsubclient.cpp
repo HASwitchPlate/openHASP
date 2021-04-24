@@ -81,12 +81,16 @@ bool mqttHAautodiscover = true;
 
 #define LWT_TOPIC "LWT"
 
-char mqttServer[16]   = MQTT_HOST;
-char mqttUser[23]     = MQTT_USER;
-char mqttPassword[32] = MQTT_PASSW;
-// char mqttNodeName[16]  = MQTT_NODENAME;
-char mqttGroupName[16] = MQTT_GROUPNAME;
-uint16_t mqttPort      = MQTT_PORT;
+// char mqttServer[16]    = MQTT_HOST;
+// char mqttUser[23]      = MQTT_USER;
+// char mqttPassword[32]  = MQTT_PASSW;
+// char mqttGroupName[16] = MQTT_GROUPNAME;
+std::string mqttServer    = MQTT_HOST;
+std::string mqttUser      = MQTT_USER;
+std::string mqttPassword  = MQTT_PASSW;
+std::string mqttGroupName = MQTT_GROUPNAME;
+
+uint16_t mqttPort = MQTT_PORT;
 PubSubClient mqttClient(mqttNetworkClient);
 
 int mqttPublish(const char* topic, const char* payload, size_t len, bool retain)
@@ -224,7 +228,7 @@ void mqttStart()
     static uint8_t mqttReconnectCount = 0;
     //   bool mqttFirstConnect             = true;
 
-    mqttClient.setServer(mqttServer, 1883);
+    mqttClient.setServer(mqttServer.c_str(), 1883);
     // mqttClient.setSocketTimeout(10); //in seconds
 
     /* Construct unique Client ID*/
@@ -242,7 +246,8 @@ void mqttStart()
 
     haspProgressMsg(F(D_MQTT_CONNECTING));
     haspProgressVal(mqttReconnectCount * 5);
-    if(!mqttClient.connect(mqttClientId, mqttUser, mqttPassword, buffer, 0, true, lastWillPayload, true)) {
+    if(!mqttClient.connect(mqttClientId, mqttUser.c_str(), mqttPassword.c_str(), buffer, 0, true, lastWillPayload,
+                           true)) {
         // Retry until we give up and restart after connectTimeout seconds
         mqttReconnectCount++;
 
@@ -287,16 +292,16 @@ void mqttStart()
         return;
     }
 
-    LOG_INFO(TAG_MQTT, F(D_MQTT_CONNECTED), mqttServer, mqttClientId);
+    LOG_INFO(TAG_MQTT, F(D_MQTT_CONNECTED), mqttServer.c_str(), mqttClientId);
 
     // Subscribe to our incoming topics
     const __FlashStringHelper* F_topic;
     F_topic = F("%scommand/#");
     mqttSubscribeTo(F_topic, mqttGroupTopic);
     mqttSubscribeTo(F_topic, mqttNodeTopic);
-    // F_topic = F("%sconfig/#");
-    // mqttSubscribeTo(F_topic, mqttGroupTopic);
-    // mqttSubscribeTo(F_topic, mqttNodeTopic);
+    F_topic = F("%sconfig/#");
+    mqttSubscribeTo(F_topic, mqttGroupTopic);
+    mqttSubscribeTo(F_topic, mqttNodeTopic);
     // mqttSubscribeTo(F("%slight/#"), mqttNodeTopic);
     // mqttSubscribeTo(F("%sbrightness/#"), mqttNodeTopic);
     // mqttSubscribeTo(F("%s"LWT_TOPIC), mqttNodeTopic);
@@ -323,9 +328,9 @@ void mqttStart()
 
 void mqttSetup()
 {
-    mqttEnabled = strlen(mqttServer) > 0 && mqttPort > 0;
+    mqttEnabled = mqttServer.length() > 0 && mqttPort > 0;
     if(mqttEnabled) {
-        mqttClient.setServer(mqttServer, mqttPort);
+        mqttClient.setServer(mqttServer.c_str(), mqttPort);
         mqttClient.setCallback(mqtt_message_cb);
         //  if(!mqttClient.setBufferSize(1024)) {
         //  LOG_ERROR(TAG_MQTT, F("Buffer allocation failed"));
@@ -373,19 +378,19 @@ bool mqttGetConfig(const JsonObject& settings)
     if(strcmp(haspDevice.get_hostname(), settings[FPSTR(FP_CONFIG_NAME)].as<String>().c_str()) != 0) changed = true;
     settings[FPSTR(FP_CONFIG_NAME)] = haspDevice.get_hostname();
 
-    if(strcmp(mqttGroupName, settings[FPSTR(FP_CONFIG_GROUP)].as<String>().c_str()) != 0) changed = true;
+    if(mqttGroupName != settings[FPSTR(FP_CONFIG_GROUP)].as<std::string>()) changed = true;
     settings[FPSTR(FP_CONFIG_GROUP)] = mqttGroupName;
 
-    if(strcmp(mqttServer, settings[FPSTR(FP_CONFIG_HOST)].as<String>().c_str()) != 0) changed = true;
+    if(mqttServer != settings[FPSTR(FP_CONFIG_HOST)].as<std::string>()) changed = true;
     settings[FPSTR(FP_CONFIG_HOST)] = mqttServer;
 
     if(mqttPort != settings[FPSTR(FP_CONFIG_PORT)].as<uint16_t>()) changed = true;
     settings[FPSTR(FP_CONFIG_PORT)] = mqttPort;
 
-    if(strcmp(mqttUser, settings[FPSTR(FP_CONFIG_USER)].as<String>().c_str()) != 0) changed = true;
+    if(mqttUser != settings[FPSTR(FP_CONFIG_USER)].as<String>().c_str()) changed = true;
     settings[FPSTR(FP_CONFIG_USER)] = mqttUser;
 
-    if(strcmp(mqttPassword, settings[FPSTR(FP_CONFIG_PASS)].as<String>().c_str()) != 0) changed = true;
+    if(mqttPassword != settings[FPSTR(FP_CONFIG_PASS)].as<String>().c_str()) changed = true;
     settings[FPSTR(FP_CONFIG_PASS)] = mqttPassword;
 
     if(changed) configOutput(settings, TAG_MQTT);
@@ -423,33 +428,33 @@ bool mqttSetConfig(const JsonObject& settings)
     }
 
     if(!settings[FPSTR(FP_CONFIG_GROUP)].isNull()) {
-        changed |= strcmp(mqttGroupName, settings[FPSTR(FP_CONFIG_GROUP)]) != 0;
-        strncpy(mqttGroupName, settings[FPSTR(FP_CONFIG_GROUP)], sizeof(mqttGroupName));
+        changed |= mqttGroupName != settings[FPSTR(FP_CONFIG_GROUP)].as<std::string>();
+        mqttGroupName = settings[FPSTR(FP_CONFIG_GROUP)].as<std::string>();
     }
 
-    if(strlen(mqttGroupName) == 0) {
-        strcpy_P(mqttGroupName, PSTR("plates"));
-        changed = true;
+    if(mqttGroupName.length() == 0) {
+        mqttGroupName = String(F("plates")).c_str();
+        changed       = true;
     }
 
     if(!settings[FPSTR(FP_CONFIG_HOST)].isNull()) {
-        changed |= strcmp(mqttServer, settings[FPSTR(FP_CONFIG_HOST)]) != 0;
-        strncpy(mqttServer, settings[FPSTR(FP_CONFIG_HOST)], sizeof(mqttServer));
+        changed |= mqttServer != settings[FPSTR(FP_CONFIG_HOST)].as<std::string>();
+        mqttServer = settings[FPSTR(FP_CONFIG_HOST)].as<std::string>();
     }
 
     if(!settings[FPSTR(FP_CONFIG_USER)].isNull()) {
-        changed |= strcmp(mqttUser, settings[FPSTR(FP_CONFIG_USER)]) != 0;
-        strncpy(mqttUser, settings[FPSTR(FP_CONFIG_USER)], sizeof(mqttUser));
+        changed |= mqttUser != settings[FPSTR(FP_CONFIG_USER)].as<std::string>();
+        mqttUser = settings[FPSTR(FP_CONFIG_USER)].as<std::string>();
     }
 
     if(!settings[FPSTR(FP_CONFIG_PASS)].isNull() &&
        settings[FPSTR(FP_CONFIG_PASS)].as<String>() != String(FPSTR(D_PASSWORD_MASK))) {
-        changed |= strcmp(mqttPassword, settings[FPSTR(FP_CONFIG_PASS)]) != 0;
-        strncpy(mqttPassword, settings[FPSTR(FP_CONFIG_PASS)], sizeof(mqttPassword));
+        changed |= mqttPassword != settings[FPSTR(FP_CONFIG_PASS)].as<std::string>();
+        mqttPassword = settings[FPSTR(FP_CONFIG_PASS)].as<std::string>();
     }
 
     snprintf_P(mqttNodeTopic, sizeof(mqttNodeTopic), PSTR(MQTT_PREFIX "/%s/"), haspDevice.get_hostname());
-    snprintf_P(mqttGroupTopic, sizeof(mqttGroupTopic), PSTR(MQTT_PREFIX "/%s/"), mqttGroupName);
+    snprintf_P(mqttGroupTopic, sizeof(mqttGroupTopic), PSTR(MQTT_PREFIX "/%s/"), mqttGroupName.c_str());
 
     return changed;
 }
