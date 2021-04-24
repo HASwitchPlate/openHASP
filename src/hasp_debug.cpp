@@ -338,6 +338,8 @@ static void debugPrintLvglMemory(int level, Print* _logOutput)
     lv_mem_monitor_t mem_mon;
     lv_mem_monitor(&mem_mon);
 
+    if(mem_mon.frag_pct > 20) lv_mem_defrag(); // prevents LED shadow crashing
+
     /* Print LVGL Memory Info */
     if(debugAnsiCodes) {
         if(mem_mon.free_biggest_size > (1024u * 2) && (mem_mon.free_size > 1024u * 2.5) && (mem_mon.frag_pct <= 10))
