@@ -71,6 +71,10 @@ const char FP_HASP[] PROGMEM  = "hasp";
 const char FP_GUI[] PROGMEM   = "gui";
 const char FP_DEBUG[] PROGMEM = "debug";
 
+#ifdef HASP_GPIO_TEMPLATE
+const char FP_GPIO_TEMPLATE[] PROGMEM = HASP_GPIO_TEMPLATE;
+#endif
+
 #endif
 
 #endif // HASP_USE_CONFIG
