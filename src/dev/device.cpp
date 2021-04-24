@@ -3,12 +3,15 @@
 
 #include "device.h"
 
+#define Q(x) #x
+#define QUOTE(x) Q(x)
+
 namespace dev {
 
 const char* BaseDevice::get_model()
 {
 #ifdef HASP_MODEL
-    return HASP_MODEL;
+    return QUOTE(HASP_MODEL);
 #else
     return PIOENV;
 #endif
