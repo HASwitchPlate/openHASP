@@ -528,6 +528,9 @@ void webHandleInfo()
         httpMessage += haspDevice.get_hostname();
         httpMessage += F("</h1><hr>");
 
+        httpMessage += F("<b>HASP Model: </b>");
+        httpMessage += haspDevice.get_model();
+
         /* HASP Stats */
         httpMessage += F("<b>HASP Version: </b>");
         {

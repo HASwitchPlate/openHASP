@@ -926,8 +926,10 @@ void dispatch_output_statusupdate(const char*, const char*)
 
         haspGetVersion(buffer, sizeof(buffer));
         dispatch_get_idle_state(hasp_sleep_state, topic);
-        snprintf_P(data, sizeof(data), PSTR("{\"node\":\"%s\",\"idle\":\"%s\",\"version\":\"%s\",\"uptime\":%lu,"),
-                   haspDevice.get_hostname(), topic, buffer, long(millis() / 1000)); // \"status\":\"available\",
+        snprintf_P(data, sizeof(data),
+                   PSTR("{\"node\":\"%s\",\"model\":\"%s\",\"idle\":\"%s\",\"version\":\"%s\",\"uptime\":%lu,"),
+                   haspDevice.get_hostname(), haspDevice.get_model(), topic, buffer,
+                   (unsigned long)(millis() / 1000)); // \"status\":\"available\",
 
 #if HASP_USE_WIFI > 0 || HASP_USE_ETHERNET > 0
         network_get_statusupdate(buffer, sizeof(buffer));
