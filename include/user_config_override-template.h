@@ -110,5 +110,6 @@
  *        Other Settings
  **************************************************/
 //#define HASP_USE_HA                                 // Enable Home Assistant auto-discovery
+//#define HASP_GPIO_TEMPLATE "[2360346,2491680,2623009,2097420,2097678,2097947,0,0]"  // Lanbon L8-HS: 3 Relays + Moodlight GPIO config
 
 #endif
