@@ -24,6 +24,8 @@ hasp_gpio_config_t gpioConfig[HASP_NUM_GPIO_CONFIG] = {
 };
 
 #if defined(ARDUINO_ARCH_ESP32)
+#include "driver/uart.h"
+
 class TouchConfig : public ButtonConfig {
   public:
     TouchConfig();
@@ -88,6 +90,16 @@ static void gpio_event_handler(AceButton* button, uint8_t eventType, uint8_t but
     event_gpio_input(gpioConfig[btnid].pin, gpioConfig[btnid].group, eventid);
     if(eventid != HASP_EVENT_LONG) // do not repeat DOWN + LONG
         dispatch_normalized_group_value(gpioConfig[btnid].group, NULL, state, HASP_EVENT_OFF, HASP_EVENT_ON);
+}
+
+/* ********************************* GPIO Setup *************************************** */
+
+void gpio_log_serial_dimmer(const char* command)
+{
+    char buffer[32];
+    snprintf_P(buffer, sizeof(buffer), PSTR("Dimmer: %02x %02x %02x %02x"), command[0], command[1], command[2],
+               command[3]);
+    LOG_VERBOSE(TAG_GPIO, buffer);
 }
 
 void aceButtonSetup(void)
@@ -271,11 +283,112 @@ void gpioSetup()
                 ledcAttachPin(gpioConfig[i].pin, gpioConfig[i].group);
 #endif
                 break;
+
+            case HASP_GPIO_SERIAL_DIMMER:
+#if defined(ARDUINO_ARCH_ESP32)
+                Serial2.begin(115200, SERIAL_8N1, UART_PIN_NO_CHANGE, gpioConfig[i].pin);
+                delay(20);
+                const char command[5] = "\xEF\x01\x4D\xA3"; // Start Lanbon Dimmer
+                Serial2.print(command);
+                gpio_log_serial_dimmer(command);
+#endif
+                break;
         }
     }
 }
 
 /* ********************************* State Setters *************************************** */
+
+void gpio_get_value(hasp_gpio_config_t gpio)
+{
+    char payload[32];
+    char topic[12];
+    snprintf_P(topic, sizeof(topic), PSTR("gpio%d"), gpio.pin);
+    snprintf_P(payload, sizeof(payload), PSTR("%d"), gpio.val);
+
+    dispatch_state_subtopic(topic, payload);
+}
+
+void gpio_get_value(uint8_t pin)
+{
+    for(uint8_t i = 0; i < HASP_NUM_GPIO_CONFIG; i++) {
+        if(gpioConfig[i].pin == pin) return gpio_get_value(gpioConfig[i]);
+    }
+    LOG_WARNING(TAG_GPIO, F(D_BULLET "Pin %d is not configured"), pin);
+}
+
+void gpio_set_value(hasp_gpio_config_t gpio, int16_t val)
+{
+    bool inverted = false;
+
+    switch(gpio.type) {
+        case HASP_GPIO_RELAY_INVERTED:
+            inverted = true;
+        case HASP_GPIO_RELAY:
+            gpio.val = val > 0 ? HIGH : LOW;
+            digitalWrite(gpio.pin, inverted ? gpio.val : !gpio.val);
+            break;
+
+        case HASP_GPIO_LED_INVERTED:
+        case HASP_GPIO_LED_R_INVERTED:
+        case HASP_GPIO_LED_G_INVERTED:
+        case HASP_GPIO_LED_B_INVERTED:
+            inverted = true;
+        case HASP_GPIO_LED:
+        case HASP_GPIO_LED_R:
+        case HASP_GPIO_LED_G:
+        case HASP_GPIO_LED_B:
+            gpio.val = val >= 255 ? 255 : val > 0 ? val : 0;
+#if defined(ARDUINO_ARCH_ESP32)
+            ledcWrite(gpio.group, gpio.val); // ledChannel and value
+#else
+            analogWrite(gpio.pin, gpio.val);                                     // 1023
+#endif
+            break;
+
+        case HASP_GPIO_PWM_INVERTED:
+            inverted = true;
+        case HASP_GPIO_PWM:
+            gpio.val = val >= 4095 ? 4095 : val > 0 ? val : 0;
+#if defined(ARDUINO_ARCH_ESP32)
+            ledcWrite(gpio.group, inverted ? 4095 - gpio.val : gpio.val); // ledChannel and value
+#else
+            analogWrite(gpio.pin, (inverted ? 4095 - gpio.val : gpio.val) >> 2); // 1023
+#endif
+            break;
+
+        case HASP_GPIO_SERIAL_DIMMER: {
+            gpio.val = val >= 100 ? 100 : val > 0 ? val : 0;
+#if defined(ARDUINO_ARCH_ESP32)
+            char command[5] = "\xEF\x02\x00\xED";
+            if(gpio.val == 0) {
+                command[2] = 0x20;
+            } else {
+                command[2] = (uint8_t)gpio.val;
+                command[3] ^= command[2];
+            }
+            Serial2.print(command);
+            gpio_log_serial_dimmer(command);
+
+#endif
+            break;
+        }
+
+        default:
+            return;
+    }
+    gpio_get_value(gpio);
+    LOG_VERBOSE(TAG_GPIO, F("Group %d - Pin %d = %d"), gpio.group, gpio.pin, gpio.val);
+}
+
+void gpio_set_value(uint8_t pin, int16_t val)
+{
+    for(uint8_t i = 0; i < HASP_NUM_GPIO_CONFIG; i++) {
+        if(gpioConfig[i].pin == pin) return gpio_set_value(gpioConfig[i], val);
+    }
+    LOG_WARNING(TAG_GPIO, F(D_BULLET "Pin %d is not configured"), pin);
+}
+
 void gpio_set_normalized_value(hasp_gpio_config_t gpio, int16_t val, int16_t min, int16_t max)
 {
     if(min == max) {
@@ -283,73 +396,35 @@ void gpio_set_normalized_value(hasp_gpio_config_t gpio, int16_t val, int16_t min
         return;
     }
 
+    int16_t newval;
     switch(gpio.type) {
         case HASP_GPIO_RELAY:
-            gpio.val = val > min ? HIGH : LOW;
-            digitalWrite(gpio.pin, gpio.val);
-            dispatch_gpio_output_value("relay", gpio.pin, gpio.val);
-            break;
-
         case HASP_GPIO_RELAY_INVERTED:
-            gpio.val = val > min ? LOW : HIGH;
-            digitalWrite(gpio.pin, gpio.val);
-            dispatch_gpio_output_value("relay", gpio.pin, gpio.val);
+            newval = val > min ? HIGH : LOW;
             break;
 
         case HASP_GPIO_LED:
         case HASP_GPIO_LED_R:
         case HASP_GPIO_LED_G:
         case HASP_GPIO_LED_B:
-#if defined(ARDUINO_ARCH_ESP32)
-            gpio.val = map(val, min, max, 0, 4095);
-            ledcWrite(gpio.group, gpio.val); // ledChannel and value
-#else
-            gpio.val = map(val, min, max, 0, 1023);
-            analogWrite(gpio.pin, gpio.val);
-#endif
-            dispatch_gpio_output_value("led", gpio.pin, gpio.val);
-            break;
-
         case HASP_GPIO_LED_INVERTED:
         case HASP_GPIO_LED_R_INVERTED:
         case HASP_GPIO_LED_G_INVERTED:
         case HASP_GPIO_LED_B_INVERTED:
-        case HASP_GPIO_PWM_INVERTED:
-#if defined(ARDUINO_ARCH_ESP32)
-            gpio.val = map(val, min, max, 0, 4095);
-            ledcWrite(gpio.group, gpio.val); // ledChannel and value
-#else
-            gpio.val = map(val, min, max, 0, 1023);
-            analogWrite(gpio.pin, gpio.val);
-#endif
-            dispatch_gpio_output_value("led", gpio.pin, gpio.val);
+            newval = map(val, min, max, 0, 255);
             break;
 
         case HASP_GPIO_PWM:
-#if defined(ARDUINO_ARCH_ESP32)
-            gpio.val = map(val, min, max, 0, 4095);
-            ledcWrite(gpio.group, gpio.val); // ledChannel and value
-#else
-            gpio.val = map(val, min, max, 0, 1023);
-            analogWrite(gpio.pin, gpio.val);
-#endif
-            dispatch_gpio_output_value("pwm", gpio.pin, gpio.val);
+        case HASP_GPIO_PWM_INVERTED:
+            newval = map(val, min, max, 0, 4095);
             break;
 
         default:
             return;
     }
-    LOG_VERBOSE(TAG_GPIO, F(D_BULLET "Group %d - Pin %d = %d"), gpio.group, gpio.pin, gpio.val);
-}
 
-// void gpio_set_group_onoff(uint8_t groupid, bool ison)
-// {
-//     for(uint8_t i = 0; i < HASP_NUM_GPIO_CONFIG; i++) {
-//         if(gpioConfig[i].group == groupid) {
-//             gpio_set_value(gpioConfig[i], ison ? gpioConfig[i].max : 0);
-//         }
-//     }
-// }
+    gpio_set_value(gpio, newval);
+}
 
 void gpio_set_normalized_group_value(uint8_t groupid, int16_t val, int16_t min, int16_t max)
 {
@@ -388,18 +463,6 @@ void gpio_set_moodlight(uint8_t r, uint8_t g, uint8_t b)
         }
     }
 }
-
-// not used
-// void gpio_set_gpio_value(uint8_t pin, uint16_t state)
-// {
-//     // bool state = Parser::get_event_state(eventid);
-//     for(uint8_t i = 0; i < HASP_NUM_GPIO_CONFIG; i++) {
-//         if(gpioConfig[i].pin == pin) {
-//             gpio_set_value(gpioConfig[i], state);
-//             return;
-//         }
-//     }
-// }
 
 bool gpioIsSystemPin(uint8_t gpio)
 {

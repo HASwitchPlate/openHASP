@@ -1456,6 +1456,9 @@ void webHandleGpioConfig()
                             // case HASP_GPIO_PWM_INVERTED:
                             httpMessage += F("PWM");
                             break;
+                        case HASP_GPIO_SERIAL_DIMMER:
+                            httpMessage += F("Serial Dimmer");
+                            break;
                         default:
                             httpMessage += F("Unknown");
                     }
@@ -1576,6 +1579,9 @@ void webHandleGpioOptions()
 
         selected = (conf.type == HASP_GPIO_RELAY) || (conf.type == HASP_GPIO_RELAY_INVERTED);
         httpMessage += getOption(HASP_GPIO_RELAY, F("Relay"), selected);
+
+        selected = (conf.type == HASP_GPIO_SERIAL_DIMMER);
+        httpMessage += getOption(HASP_GPIO_SERIAL_DIMMER, F("Serial Dimmer"), selected);
 
         if(digitalPinHasPWM(webServer.arg(0).toInt())) {
             selected = (conf.type == HASP_GPIO_PWM) || (conf.type == HASP_GPIO_PWM_INVERTED);

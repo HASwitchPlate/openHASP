@@ -212,51 +212,32 @@ static void dispatch_gpio(const char* topic, const char* payload)
     uint8_t pin;
 
     if(topic == strstr_P(topic, PSTR("relay"))) {
-        if(strlen(payload) == 0) {
-            // val = gpio_get_relay_value(pin);
-        } else {
-            topic += 5;
-            if(Parser::is_only_digits(topic)) {
-                pin = atoi(topic);
-                val = Parser::is_true(payload);
-                //  gpio_set_relay_value(pin, val);
-                return;
-            }
-            // invalid pin
-        }
+        topic += 5;
+        val = Parser::is_true(payload);
 
     } else if(topic == strstr_P(topic, PSTR("led"))) {
-        if(strlen(payload) == 0) {
-        } else {
-            topic += 3;
-            if(Parser::is_only_digits(topic)) {
-                pin = atoi(topic);
-                val = Parser::is_true(payload);
-                //   gpio_set_led_value(pin, val);
-                return;
-            }
-            // invalid pin
-        }
+        topic += 3;
+        val = atoi(payload);
 
     } else if(topic == strstr_P(topic, PSTR("pwm"))) {
-        if(strlen(payload) == 0) {
-
-        } else {
-            topic += 3;
-            if(Parser::is_only_digits(topic)) {
-                pin = atoi(topic);
-                val = Parser::is_true(payload);
-                //   gpio_set_pwm_value(pin, val);
-                return;
-            }
-            // invalid pin
-        }
+        topic += 3;
+        val = atoi(payload);
 
     } else {
-        LOG_WARNING(TAG_MSGR, F("Invalid gpio type %s"), topic);
+        LOG_WARNING(TAG_MSGR, F("Invalid gpio %s"), topic);
         return;
     }
-    LOG_WARNING(TAG_MSGR, F("Invalid pin number %s"), topic);
+
+    if(Parser::is_only_digits(topic)) {
+        pin = atoi(topic);
+        if(strlen(payload) > 0) {
+            gpio_set_value(pin, val);
+        } else {
+            gpio_get_value(pin);
+        }
+    } else {
+        LOG_WARNING(TAG_MSGR, F("Invalid pin %s"), topic);
+    }
 }
 
 // objectattribute=value
@@ -521,19 +502,6 @@ static void dispatch_config(const char* topic, const char* payload)
 }
 #endif // HASP_USE_CONFIG
 
-/********************************************** Input Events *******************************************/
-#if HASP_USE_GPIO > 0
-void dispatch_gpio_output_value(const char* gpiotype, uint8_t pin, int16_t val)
-{
-    char payload[16];
-    char topic[16];
-    snprintf_P(topic, sizeof(topic), PSTR("%s%d"), gpiotype, pin);
-    snprintf_P(payload, sizeof(payload), PSTR("%d"), val);
-
-    dispatch_state_subtopic(topic, payload);
-}
-#endif
-
 /********************************************** Output States ******************************************/
 /*
 static inline void dispatch_state_msg(const __FlashStringHelper* subtopic, const char* payload)
@@ -595,7 +563,7 @@ void dispatch_screenshot(const char*, const char* filename)
     }
 
 #else
-    LOG_WARNING(TAG_MSGR, "Failed to save %s, no storage", filename);
+    LOG_WARNING(TAG_MSGR, D_FILE_SAVE_FAILED, filename);
 #endif
 }
 
