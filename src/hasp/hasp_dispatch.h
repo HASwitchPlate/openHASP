@@ -72,6 +72,8 @@ void dispatch_normalized_group_value(uint8_t groupid, lv_obj_t* obj, int16_t val
 
 void dispatch_state_subtopic(const char* subtopic, const char* payload);
 
+void dispatch_config(const char* topic, const char* payload);
+
 /* ===== Getter and Setter Functions ===== */
 
 /* ===== Read/Write Configuration ===== */

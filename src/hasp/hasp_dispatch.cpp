@@ -53,7 +53,7 @@ struct moodlight_t
 };
 moodlight_t moodlight;
 
-static void dispatch_config(const char* topic, const char* payload);
+// static void dispatch_config(const char* topic, const char* payload);
 // void dispatch_group_value(uint8_t groupid, int16_t state, lv_obj_t * obj);
 
 /* Sends the payload out on the state/subtopic
@@ -420,7 +420,7 @@ void dispatch_output_idle_state(uint8_t state)
 
 #if HASP_USE_CONFIG > 0
 // Get or Set a part of the config.json file
-static void dispatch_config(const char* topic, const char* payload)
+void dispatch_config(const char* topic, const char* payload)
 {
     DynamicJsonDocument doc(128 * 2);
     char buffer[128 * 2];
