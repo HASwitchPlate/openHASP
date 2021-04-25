@@ -18,7 +18,6 @@ void slider_event_handler(lv_obj_t* obj, lv_event_t event);
 void selector_event_handler(lv_obj_t* obj, lv_event_t event);
 void btnmatrix_event_handler(lv_obj_t* obj, lv_event_t event);
 void cpicker_event_handler(lv_obj_t* obj, lv_event_t event);
-void deleted_event_handler(lv_obj_t* obj, lv_event_t event);
 
 #if HASP_USE_GPIO > 0
 void event_gpio_input(uint8_t pin, uint8_t group, uint8_t eventid);

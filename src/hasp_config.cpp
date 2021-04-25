@@ -152,13 +152,6 @@ void configRead(JsonDocument& settings, bool setupdebug = false)
 
 #if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
     LOG_ERROR(TAG_CONF, F(D_FILE_LOAD_FAILED), configFile.c_str());
-    #ifdef HASP_GPIO_TEMPLATE
-    char json[100];
-    snprintf(json, sizeof(json), PSTR("{\"%s\":{\"%s\":%s}}"), (char*)(FPSTR(FP_GPIO)), (char*)(FPSTR(FP_GPIO_CONFIG)), (char*)(FPSTR(HASP_GPIO_TEMPLATE)));
-    error = deserializeJson(settings, json);
-    gpioSetConfig(settings[FPSTR(FP_GPIO)]);
-    #endif
-
 #endif
 }
 /*

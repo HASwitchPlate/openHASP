@@ -489,20 +489,16 @@ void hasp_new_object(const JsonObject& config, uint8_t& saved_page_id)
             case LV_HASP_PAGE:
             case HASP_OBJ_PAGE:
                 obj = lv_page_create(parent_obj, NULL);
-                if(obj) {
-                    obj->user_data.objid = LV_HASP_PAGE;
-                    lv_obj_set_event_cb(obj, deleted_event_handler); // Needed for memory dealocation
-                }
+                if(obj) obj->user_data.objid = LV_HASP_PAGE;
+                // No event handler for pages
                 break;
 
 #if LV_USE_WIN && LVGL_VERSION_MAJOR == 7
             case LV_HASP_WINDOW:
             case HASP_OBJ_WIN:
                 obj = lv_win_create(parent_obj, NULL);
-                if(obj) {
-                    obj->user_data.objid = LV_HASP_WINDOW;
-                    lv_obj_set_event_cb(obj, deleted_event_handler); // Needed for memory dealocation
-                }
+                if(obj) obj->user_data.objid = LV_HASP_WINDOW;
+                // No event handler for pages
                 break;
 
 #endif
@@ -554,18 +550,16 @@ void hasp_new_object(const JsonObject& config, uint8_t& saved_page_id)
             case LV_HASP_TILEVIEW:
             case HASP_OBJ_TILEVIEW:
                 obj = lv_tileview_create(parent_obj, NULL);
-                if(obj) {
-                    obj->user_data.objid = LV_HASP_TILEVIEW;
-                    lv_obj_set_event_cb(obj, deleted_event_handler); // Needed for memory dealocation
-                }
+                if(obj) obj->user_data.objid = LV_HASP_TILEVIEW;
+
+                // No event handler for tileviews
                 break;
 
             case LV_HASP_TABVIEW:
             case HASP_OBJ_TABVIEW:
                 obj = lv_tabview_create(parent_obj, NULL);
+                // No event handler for tabs
                 if(obj) {
-                    lv_obj_set_event_cb(obj, deleted_event_handler); // Needed for memory dealocation
-
                     lv_obj_t* tab;
                     tab = lv_tabview_add_tab(obj, "tab 1");
                     // lv_obj_set_user_data(tab, id + 1);
@@ -593,10 +587,7 @@ void hasp_new_object(const JsonObject& config, uint8_t& saved_page_id)
             case LV_HASP_SPINNER:
             case HASP_OBJ_SPINNER:
                 obj = lv_spinner_create(parent_obj, NULL);
-                if(obj) {
-                    obj->user_data.objid = LV_HASP_SPINNER;
-                    lv_obj_set_event_cb(obj, deleted_event_handler); // Needed for memory dealocation
-                }
+                if(obj) obj->user_data.objid = LV_HASP_SPINNER;
                 break;
 
 #endif

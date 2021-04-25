@@ -925,18 +925,15 @@ void dispatch_output_statusupdate(const char*, const char*)
 {
 #if HASP_USE_MQTT > 0
 
-    char data[512];
+    char data[400];
     char topic[16];
     {
         char buffer[128];
 
         haspGetVersion(buffer, sizeof(buffer));
         dispatch_get_idle_state(hasp_sleep_state, topic);
-        snprintf_P(data, sizeof(data),
-                   PSTR("{\"node\":\"%s\",\"manufacturer\":\"" D_MANUFACTURER
-                        "\",\"model\":\"%s\",\"idle\":\"%s\",\"version\":\"%s\",\"uptime\":%lu,"),
-                   haspDevice.get_hostname(), haspDevice.get_model(), topic, buffer,
-                   (unsigned long)(millis() / 1000)); // \"status\":\"available\",
+        snprintf_P(data, sizeof(data), PSTR("{\"node\":\"%s\",\"idle\":\"%s\",\"version\":\"%s\",\"uptime\":%lu,"),
+                   haspDevice.get_hostname(), topic, buffer, long(millis() / 1000)); // \"status\":\"available\",
 
 #if HASP_USE_WIFI > 0 || HASP_USE_ETHERNET > 0
         network_get_statusupdate(buffer, sizeof(buffer));
@@ -967,6 +964,13 @@ void dispatch_output_statusupdate(const char*, const char*)
     memcpy_P(topic, PSTR("statusupdate"), 13);
     dispatch_state_subtopic(topic, data);
     dispatchLastMillis = millis();
+
+    /* if(updateEspAvailable) {
+            mqttStatusPayload += F("\"updateEspAvailable\":true,");
+        } else {
+            mqttStatusPayload += F("\"updateEspAvailable\":false,");
+        }
+    */
 
 #endif
 }

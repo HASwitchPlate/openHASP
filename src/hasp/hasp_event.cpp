@@ -547,14 +547,3 @@ void cpicker_event_handler(lv_obj_t* obj, lv_event_t event)
 
     // dispatch_normalized_group_value(obj->user_data.groupid, obj, val, min, max);
 }
-
-/**
- * Called when an object is deleted
- * @param obj pointer to a generic object
- * @param event type of event that occured
- */
-void deleted_event_handler(lv_obj_t* obj, lv_event_t event)
-{
-    uint8_t hasp_event_id;
-    translate_event(obj, event, hasp_event_id);
-}
