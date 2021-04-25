@@ -238,11 +238,11 @@ int mqtt_send_state(const __FlashStringHelper* subtopic, const char* payload)
     return mqttPublish(tmp_topic, payload, strlen(payload), false);
 }
 
-int mqtt_send_discovery(const char* payload)
+int mqtt_send_discovery(const char* payload, size_t len)
 {
     char tmp_topic[20];
     snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR(MQTT_PREFIX "/discovery"));
-    return mqttPublish(tmp_topic, payload, strlen(payload), false);
+    return mqttPublish(tmp_topic, payload, len, false);
 }
 
 int mqtt_send_object_state(uint8_t pageid, uint8_t btnid, const char* payload)

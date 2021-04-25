@@ -30,6 +30,8 @@ void gpio_get_value(uint8_t pin);
 void gpio_set_value(uint8_t pin, int16_t val);
 void gpio_set_moodlight(uint8_t r, uint8_t g, uint8_t b);
 
+void gpio_discovery(JsonArray& relay, JsonArray& led);
+
 bool gpioSavePinConfig(uint8_t config_num, uint8_t pin, uint8_t type, uint8_t group, uint8_t pinfunc);
 bool gpioIsSystemPin(uint8_t gpio);
 bool gpioInUse(uint8_t gpio);

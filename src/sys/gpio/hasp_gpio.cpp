@@ -1,7 +1,6 @@
 /* MIT License - Copyright (c) 2019-2021 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
-#include "AceButton.h"
 #include "lv_conf.h" // For timing defines
 
 #include "hasplib.h"
@@ -12,10 +11,19 @@
 #define INPUT_PULLDOWN INPUT
 #endif
 
-uint8_t gpioUsedInputCount = 0;
-
+#ifdef ARDUINO
+#include "AceButton.h"
 using namespace ace_button;
 static AceButton* button[HASP_NUM_INPUTS];
+#else
+#define HIGH 1
+#define LOW 0
+#define NUM_DIGITAL_PINS 40
+#define digitalWrite(x, y)
+#define analogWrite(x, y)
+#endif
+
+uint8_t gpioUsedInputCount = 0;
 
 // An array of button pins, led pins, and the led states. Cannot be const
 // because ledState is mutable.
@@ -48,6 +56,7 @@ class TouchConfig : public ButtonConfig {
 TouchConfig touchConfig();
 #endif
 
+#ifdef ARDUINO
 static void gpio_event_handler(AceButton* button, uint8_t eventType, uint8_t buttonState)
 {
     uint8_t btnid = button->getId();
@@ -94,14 +103,6 @@ static void gpio_event_handler(AceButton* button, uint8_t eventType, uint8_t but
 
 /* ********************************* GPIO Setup *************************************** */
 
-void gpio_log_serial_dimmer(const char* command)
-{
-    char buffer[32];
-    snprintf_P(buffer, sizeof(buffer), PSTR("Dimmer: %02x %02x %02x %02x"), command[0], command[1], command[2],
-               command[3]);
-    LOG_VERBOSE(TAG_GPIO, buffer);
-}
-
 void aceButtonSetup(void)
 {
     ButtonConfig* buttonConfig = ButtonConfig::getSystemButtonConfig();
@@ -120,14 +121,6 @@ void aceButtonSetup(void)
     buttonConfig->setLongPressDelay(LV_INDEV_DEF_LONG_PRESS_TIME);
     buttonConfig->setRepeatPressDelay(LV_INDEV_DEF_LONG_PRESS_TIME);
     buttonConfig->setRepeatPressInterval(LV_INDEV_DEF_LONG_PRESS_REP_TIME);
-}
-
-void gpioLoop(void)
-{
-    // Should be called every 4-5ms or faster, for the default debouncing time of ~20ms.
-    for(uint8_t i = 0; i < gpioUsedInputCount; i++) {
-        if(button[i]) button[i]->check();
-    }
 }
 
 void gpioAddButton(uint8_t pin, uint8_t input_mode, uint8_t default_state, uint8_t index)
@@ -297,6 +290,34 @@ void gpioSetup()
     }
 }
 
+void gpioLoop(void)
+{
+    // Should be called every 4-5ms or faster, for the default debouncing time of ~20ms.
+    for(uint8_t i = 0; i < gpioUsedInputCount; i++) {
+        if(button[i]) button[i]->check();
+    }
+}
+
+#else
+void gpioSetup(void)
+{
+    gpioSavePinConfig(0, 3, HASP_GPIO_RELAY, 0, -1);
+    gpioSavePinConfig(1, 4, HASP_GPIO_RELAY_INVERTED, 0, -1);
+    gpioSavePinConfig(2, 13, HASP_GPIO_LED, 0, -1);
+    gpioSavePinConfig(3, 14, HASP_GPIO_LED_INVERTED, 0, -1);
+}
+void gpioLoop(void)
+{}
+#endif // ARDUINO
+
+void gpio_log_serial_dimmer(const char* command)
+{
+    char buffer[32];
+    snprintf_P(buffer, sizeof(buffer), PSTR("Dimmer: %02x %02x %02x %02x"), command[0], command[1], command[2],
+               command[3]);
+    LOG_VERBOSE(TAG_GPIO, buffer);
+}
+
 /* ********************************* State Setters *************************************** */
 
 void gpio_get_value(hasp_gpio_config_t gpio)
@@ -358,8 +379,7 @@ void gpio_set_value(hasp_gpio_config_t gpio, int16_t val)
             break;
 
         case HASP_GPIO_SERIAL_DIMMER: {
-            gpio.val = val >= 100 ? 100 : val > 0 ? val : 0;
-#if defined(ARDUINO_ARCH_ESP32)
+            gpio.val        = val >= 100 ? 100 : val > 0 ? val : 0;
             char command[5] = "\xEF\x02\x00\xED";
             if(gpio.val == 0) {
                 command[2] = 0x20;
@@ -367,10 +387,11 @@ void gpio_set_value(hasp_gpio_config_t gpio, int16_t val)
                 command[2] = (uint8_t)gpio.val;
                 command[3] ^= command[2];
             }
+#if defined(ARDUINO_ARCH_ESP32)
             Serial2.print(command);
+#endif
             gpio_log_serial_dimmer(command);
 
-#endif
             break;
         }
 
@@ -627,6 +648,13 @@ hasp_gpio_config_t gpioGetPinConfig(uint8_t num)
 {
     return gpioConfig[num];
 }
+
+void gpio_discovery(JsonArray& relay, JsonArray& led)
+{
+    relay.add(5);
+    relay.add(12);
+    led.add(3);
+};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 #if HASP_USE_CONFIG > 0

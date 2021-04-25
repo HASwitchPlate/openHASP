@@ -144,11 +144,11 @@ int mqtt_send_state(const char* subtopic, const char* payload)
     return mqttPublish(tmp_topic, payload, false);
 }
 
-int mqtt_send_discovery(const char* payload)
+int mqtt_send_discovery(const char* payload, size_t len)
 {
     char tmp_topic[20];
     snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR(MQTT_PREFIX "/discovery"));
-    return mqttPublish(tmp_topic, payload, false);
+    return mqttPublish(tmp_topic, payload, len, false);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

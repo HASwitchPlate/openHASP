@@ -132,6 +132,11 @@ void setup()
     mqttStart();
 #endif
 
+#if HASP_USE_GPIO > 0
+    printf("%s %d\n", __FILE__, __LINE__);
+    gpioSetup();
+#endif
+
     mainLastLoopTime = millis() - 1000; // reset loop counter
     delay(250);
     printf("%s %d\n", __FILE__, __LINE__);
@@ -145,6 +150,10 @@ void loop()
     //    debugLoop(); // Console
     haspDevice.loop();
     guiLoop();
+
+#if HASP_USE_GPIO > 0
+    gpioLoop();
+#endif
 
     /* Timer Loop */
     if(millis() - mainLastLoopTime >= 1000) {

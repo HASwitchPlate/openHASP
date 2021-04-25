@@ -882,19 +882,26 @@ void dispatch_send_discovery(const char*, const char*)
 {
 #if HASP_USE_MQTT > 0
 
+    StaticJsonDocument<512> doc;
     char data[512];
-    {
-        char buffer[128];
+    haspGetVersion(data, sizeof(data));
 
-        haspGetVersion(buffer, sizeof(buffer));
-        snprintf_P(data, sizeof(data),
-                   PSTR("{\"node\":\"%s\",\"manufacturer\":\"" D_MANUFACTURER
-                        "\",\"model\":\"%s\",\"hwid\":\"%s\",\"version\":\"%s\",\"numPages\":%u}"),
-                   haspDevice.get_hostname(), haspDevice.get_model(), haspDevice.get_hardware_id(), buffer,
-                   haspPages.count());
-    }
+    doc[F("node")]         = haspDevice.get_hostname();
+    doc[F("model")]        = haspDevice.get_model();
+    doc[F("manufacturer")] = F(D_MANUFACTURER);
+    doc[F("hwid")]         = haspDevice.get_hardware_id();
+    doc[F("version")]      = data;
+    doc[F("numPages")]     = haspPages.count();
 
-    switch(mqtt_send_discovery(data)) {
+    JsonArray relay = doc.createNestedArray(F("relay"));
+    JsonArray led   = doc.createNestedArray(F("led"));
+
+#if HASP_USE_GPIO > 0
+    gpio_discovery(relay, led);
+#endif
+
+    size_t len = serializeJson(doc, data);
+    switch(mqtt_send_discovery(data, len)) {
         case MQTT_ERR_OK:
             LOG_TRACE(TAG_MQTT_PUB, F("discovery => %s"), data);
             break;
@@ -907,7 +914,7 @@ void dispatch_send_discovery(const char*, const char*)
         default:
             LOG_ERROR(TAG_MQTT, F(D_ERROR_UNKNOWN));
     }
-    dispatchLastMillis = millis();
+        // dispatchLastMillis = millis();
 
 #endif
 }
