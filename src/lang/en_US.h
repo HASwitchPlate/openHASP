@@ -47,7 +47,7 @@
 #define D_MQTT_SUBSCRIBED "Subscribed to %s"
 #define D_MQTT_NOT_SUBSCRIBED "Failed to subscribe to %s"
 #define D_MQTT_HA_AUTO_DISCOVERY "Register HA auto-discovery"
-#define D_MQTT_PAYLOAD_TOO_LONG "Payload too long (%d bytes)"
+#define D_MQTT_PAYLOAD_TOO_LONG "Payload too long (%zu bytes)"
 
 #define D_TELNET_CLOSING_CONNECTION "Closing session from %s"
 #define D_TELNET_CLIENT_LOGIN_FROM "Client login from %s"
@@ -87,7 +87,7 @@
 #define D_DISPATCH_REBOOT "Rebooting the MCU now!"
 
 #define D_JSON_FAILED "JSON parsing failed:"
-#define D_JSONL_FAILED "JSONL parsing failed at line %d"
+#define D_JSONL_FAILED "JSONL parsing failed at line %zu"
 #define D_JSONL_SUCCEEDED "Jsonl fully parsed"
 
 #define D_OTA_CHECK_UPDATE "Checking updates URL: %s"

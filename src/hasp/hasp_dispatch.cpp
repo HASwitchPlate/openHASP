@@ -943,11 +943,11 @@ void dispatch_output_statusupdate(const char*, const char*)
         strcat(data, buffer);
 #endif
 
-        snprintf_P(buffer, sizeof(buffer), PSTR("\"heapFree\":%u,\"heapFrag\":%u,\"core\":\"%s\","),
+        snprintf_P(buffer, sizeof(buffer), PSTR("\"heapFree\":%zu,\"heapFrag\":%u,\"core\":\"%s\","),
                    haspDevice.get_free_heap(), haspDevice.get_heap_fragmentation(), haspDevice.get_core_version());
         strcat(data, buffer);
 
-        snprintf_P(buffer, sizeof(buffer), PSTR("\"canUpdate\":\"false\",\"page\":%u,\"numPages\":%u,"),
+        snprintf_P(buffer, sizeof(buffer), PSTR("\"canUpdate\":\"false\",\"page\":%u,\"numPages\":%zu,"),
                    haspPages.get(), haspPages.count());
         strcat(data, buffer);
 

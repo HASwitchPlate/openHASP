@@ -47,7 +47,7 @@
 #define D_MQTT_SUBSCRIBED "Abonat la %s"
 #define D_MQTT_NOT_SUBSCRIBED "Abonarea la %s a eșuat"
 #define D_MQTT_HA_AUTO_DISCOVERY "Înregistrare la auto-descoperire în HA"
-#define D_MQTT_PAYLOAD_TOO_LONG "$$$Payload too long (%d bytes)"
+#define D_MQTT_PAYLOAD_TOO_LONG "$$$Payload too long (%zu bytes)"
 
 #define D_TELNET_CLOSING_CONNECTION "Terminarea sesiunii de la %s"
 #define D_TELNET_CLIENT_LOGIN_FROM "Conectare client de la %s"
@@ -87,7 +87,7 @@
 #define D_DISPATCH_REBOOT "MCU-ul repornește acum!"
 
 #define D_JSON_FAILED "Analiza JSON a eșuat:"
-#define D_JSONL_FAILED "Analiza JSONL a eșuat la linia %d"
+#define D_JSONL_FAILED "Analiza JSONL a eșuat la linia %zu"
 #define D_JSONL_SUCCEEDED "Analiza JSONL completă"
 
 #define D_OTA_CHECK_UPDATE "Verificare la URL-ul actualizărilor: %s"
