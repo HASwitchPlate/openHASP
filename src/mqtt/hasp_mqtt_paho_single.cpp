@@ -84,7 +84,7 @@ bool mqttHAautodiscover = true;
 #define MQTT_NODENAME "";
 #endif
 #ifndef MQTT_GROUPNAME
-#define MQTT_GROUPNAME "";
+#define MQTT_GROUPNAME "plates";
 #endif
 
 #ifndef MQTT_PREFIX
@@ -258,12 +258,17 @@ static void onConnect(void* context)
 {
     MQTTClient client = (MQTTClient)context;
     connected         = 1;
+    std::string topic;
 
     LOG_VERBOSE(TAG_MQTT, "Successful connection");
 
-    std::string topic;
+    topic = mqttGroupTopic + "command/#";
+    mqtt_subscribe(mqtt_client, topic.c_str());
 
     topic = mqttNodeTopic + "command/#";
+    mqtt_subscribe(mqtt_client, topic.c_str());
+
+    topic = mqttGroupTopic + "config/#";
     mqtt_subscribe(mqtt_client, topic.c_str());
 
     topic = mqttNodeTopic + "config/#";
