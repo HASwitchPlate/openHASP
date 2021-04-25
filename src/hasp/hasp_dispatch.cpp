@@ -42,8 +42,8 @@ extern uint8_t hasp_sleep_state;
 
 dispatch_conf_t dispatch_setings = {.teleperiod = 300};
 
-uint32_t dispatchLastMillis;
-uint8_t nCommands = 0;
+uint32_t dispatchLastMillis = -3000000; // force discovery
+uint8_t nCommands           = 0;
 haspCommand_t commands[18];
 
 struct moodlight_t
