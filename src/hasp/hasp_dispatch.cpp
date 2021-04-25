@@ -213,26 +213,17 @@ static void dispatch_gpio(const char* topic, const char* payload)
     int16_t val;
     uint8_t pin;
 
-    if(topic == strstr_P(topic, PSTR("relay"))) {
-        topic += 5;
-        val = Parser::is_true(payload);
-
-    } else if(topic == strstr_P(topic, PSTR("led"))) {
-        topic += 3;
-        val = atoi(payload);
-
-    } else if(topic == strstr_P(topic, PSTR("pwm"))) {
-        topic += 3;
-        val = atoi(payload);
-
-    } else {
-        LOG_WARNING(TAG_MSGR, F("Invalid gpio %s"), topic);
-        return;
-    }
+    if(topic == strstr_P(topic, PSTR("output"))) topic += 6;
 
     if(Parser::is_only_digits(topic)) {
         pin = atoi(topic);
         if(strlen(payload) > 0) {
+
+            if(1)
+                val = atoi(payload);
+            else
+                val = Parser::is_true(payload);
+
             gpio_set_value(pin, val);
         } else {
             gpio_get_value(pin);
@@ -240,6 +231,7 @@ static void dispatch_gpio(const char* topic, const char* payload)
     } else {
         LOG_WARNING(TAG_MSGR, F("Invalid pin %s"), topic);
     }
+
 #endif
 }
 
