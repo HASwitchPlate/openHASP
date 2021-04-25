@@ -30,6 +30,7 @@ void mqttStop();
 
 int mqtt_send_object_state(uint8_t pageid, uint8_t btnid, const char* payload);
 int mqtt_send_state(const char* subtopic, const char* payload);
+int mqtt_send_discovery(const char* payload);
 int mqttPublish(const char* topic, const char* payload, size_t len, bool retain);
 
 bool mqttIsConnected();

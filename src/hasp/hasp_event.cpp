@@ -43,8 +43,6 @@ static void event_delete_object(lv_obj_t* obj)
 
         case LV_HASP_BTNMATRIX:
             my_btnmatrix_map_clear(obj);
-            _LV_WIN_PART_REAL_LAST;
-            _LV_WIN_PART_VIRTUAL_LAST;
             break;
 
         case LV_HASP_GAUGE:
@@ -463,9 +461,7 @@ void btnmatrix_event_handler(lv_obj_t* obj, lv_event_t event)
 
     /* Get the new value */
     char buffer[128];
-    char property[36];
     uint16_t val = 0;
-    uint16_t max = 0;
 
     val = lv_btnmatrix_get_active_btn(obj);
     if(val != LV_BTNMATRIX_BTN_NONE) {
@@ -480,10 +476,6 @@ void btnmatrix_event_handler(lv_obj_t* obj, lv_event_t event)
     last_value_sent = val;
     event_object_selection_changed(obj, hasp_event_id, val, buffer);
     // if(max > 0) dispatch_normalized_group_value(obj->user_data.groupid, obj, val, 0, max);
-
-    // set the property
-    // snprintf_P(property, sizeof(property), PSTR("val\":%d,\"text"), val);
-    // attr_out_str(obj, property, buffer);
 }
 
 /**

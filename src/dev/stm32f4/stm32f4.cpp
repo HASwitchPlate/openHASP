@@ -30,6 +30,7 @@ const char* Stm32f4Device::get_hostname()
 {
     return _hostname.c_str();
 }
+
 void Stm32f4Device::set_hostname(const char* hostname)
 {
     _hostname = hostname;
@@ -38,6 +39,14 @@ void Stm32f4Device::set_hostname(const char* hostname)
 const char* Stm32f4Device::get_core_version()
 {
     // return ESP.getCoreVersion().c_str();
+}
+
+const char* Stm32f4Device::get_hardware_id()
+{
+    // https://stm32duinoforum.com/forum/viewtopic_f_29_t_2909_start_10.html
+    //   Serial.println("UID [HEX]  : "+String(*(uint32_t*)(UID_BASE), HEX)+" "+String(*(uint32_t*)(UID_BASE+0x04),
+    //   HEX)+" "+String(*(uint32_t*)(UID_BASE+0x08), HEX));
+    return _hardware_id.c_str();
 }
 
 void Stm32f4Device::set_backlight_pin(uint8_t pin)

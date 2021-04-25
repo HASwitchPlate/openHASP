@@ -278,14 +278,17 @@ void haspProgressMsg(const __FlashStringHelper* msg)
 /*Add a custom apply callback*/
 static void custom_font_apply_cb(lv_theme_t* th, lv_obj_t* obj, lv_theme_style_t name)
 {
-    lv_style_list_t* list;
+    /*    lv_style_list_t* list;
 
-    switch(name) {
-        case LV_THEME_BTN:
-            list = lv_obj_get_style_list(obj, LV_BTN_PART_MAIN);
-            // _lv_style_list_add_style(list, &my_style);
-            break;
-    }
+        switch(name) {
+            case LV_THEME_BTN:
+                list = lv_obj_get_style_list(obj, LV_BTN_PART_MAIN);
+                // _lv_style_list_add_style(list, &my_style);
+                break;
+            default:
+                // nothing
+                ;
+        } */
 }
 
 /**

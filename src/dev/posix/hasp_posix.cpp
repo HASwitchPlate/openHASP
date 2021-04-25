@@ -30,7 +30,7 @@ PosixDevice::PosixDevice()
         //   LOG_VERBOSE(0,"Version:  %s", uts.version);
         //   LOG_VERBOSE(0,"Machine:  %s", uts.machine);
 
-        char version[128];
+        char version[256];
         snprintf(version, sizeof(version), "%s %s", uts.sysname, uts.release);
         _core_version = version;
         _chip_model   = uts.machine;
@@ -66,19 +66,27 @@ const char* PosixDevice::get_hostname()
 {
     return _hostname.c_str();
 }
+
 void PosixDevice::set_hostname(const char* hostname)
 {
     _hostname = hostname;
     monitor_title(hostname);
     // SDL_SetWindowTitle(monitor.window, hostname);
 }
+
 const char* PosixDevice::get_core_version()
 {
     return _core_version.c_str();
 }
+
 const char* PosixDevice::get_chip_model()
 {
     return _chip_model.c_str();
+}
+
+const char* PosixDevice::get_hardware_id()
+{
+    return "223344556677";
 }
 
 void PosixDevice::set_backlight_pin(uint8_t pin)

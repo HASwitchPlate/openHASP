@@ -41,7 +41,11 @@ class BaseDevice {
     {
         return "";
     }
-
+    virtual const char* get_model();
+    virtual const char* get_hardware_id()
+    {
+        return "";
+    }
     virtual void init()
     {}
     virtual void show_info()

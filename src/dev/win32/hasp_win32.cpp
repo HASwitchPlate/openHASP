@@ -55,9 +55,15 @@ const char* Win32Device::get_core_version()
 {
     return _core_version.c_str();
 }
+
 const char* Win32Device::get_chip_model()
 {
     return "SDL2";
+}
+
+const char* Win32Device::get_hardware_id()
+{
+    return "112233445566";
 }
 
 void Win32Device::set_backlight_pin(uint8_t pin)

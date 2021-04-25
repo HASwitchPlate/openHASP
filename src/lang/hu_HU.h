@@ -47,7 +47,7 @@
 #define D_MQTT_SUBSCRIBED "Feliratkozva: %s"
 #define D_MQTT_NOT_SUBSCRIBED "Nem sikerült feliratkozni: %s"
 #define D_MQTT_HA_AUTO_DISCOVERY "Regisztrálás HA automatikus felfedezésre"
-#define D_MQTT_PAYLOAD_TOO_LONG "$$$Payload too long (%d bytes)"
+#define D_MQTT_PAYLOAD_TOO_LONG "$$$Payload too long (%zu bytes)"
 
 #define D_TELNET_CLOSING_CONNECTION "Munkamenet befejezése %s-el"
 #define D_TELNET_CLIENT_LOGIN_FROM "Kliens bejelentkezés innen: %s"
@@ -87,7 +87,7 @@
 #define D_DISPATCH_REBOOT "Az MCU most újraindul!"
 
 #define D_JSON_FAILED "JSON elemzése nem sikerült:"
-#define D_JSONL_FAILED "JSONL elemzése meghiúsult a %d vonalnál"
+#define D_JSONL_FAILED "JSONL elemzése meghiúsult a %zu vonalnál"
 #define D_JSONL_SUCCEEDED "JSONL teljes körűen elemezve"
 
 #define D_OTA_CHECK_UPDATE "A frissítések ellenőrzése az URL-en: %s"

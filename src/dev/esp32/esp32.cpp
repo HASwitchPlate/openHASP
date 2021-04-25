@@ -5,6 +5,7 @@
 
 #include "Arduino.h"
 #include <Esp.h>
+#include <WiFi.h>
 #include "esp_system.h"
 
 #include "hasp_conf.h"
@@ -20,6 +21,24 @@
 #define BACKLIGHT_CHANNEL 0
 
 namespace dev {
+
+Esp32Device::Esp32Device()
+{
+    _hostname         = MQTT_NODENAME;
+    _backlight_invert = (TFT_BACKLIGHT_ON == LOW);
+    _backlight_power  = 1;
+    _backlight_level  = 255;
+    _backlight_pin    = TFT_BCKL;
+
+    /* fill unique identifier with wifi mac */
+    byte mac[6];
+    WiFi.macAddress(mac);
+    _hardware_id.reserve(13);
+    for(int i = 0; i < 6; ++i) {
+        if(mac[i] < 0x10) _hardware_id += "0";
+        _hardware_id += String(mac[i], HEX).c_str();
+    }
+}
 
 void Esp32Device::reboot()
 {
@@ -71,6 +90,11 @@ const char* Esp32Device::get_chip_model()
     }
     // model += F(" rev");
     // model += chip_info.revision;
+}
+
+const char* Esp32Device::get_hardware_id()
+{
+    return _hardware_id.c_str();
 }
 
 void Esp32Device::set_backlight_pin(uint8_t pin)
