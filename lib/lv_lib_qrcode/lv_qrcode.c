@@ -156,7 +156,7 @@ lv_res_t lv_qrcode_update2(lv_obj_t* qrcode, const void* data, uint32_t data_len
 
     lv_img_decoder_dsc_t dec_dsc;
     lv_res_t res = lv_img_decoder_open(&dec_dsc, ext->src, LV_COLOR_CYAN);
-    (void)res;
+    (void)res; // unused
 
     for(int y = 0; y < dec_dsc.header.h; y++) {
         for(int x = 0; x < dec_dsc.header.w; x++) {

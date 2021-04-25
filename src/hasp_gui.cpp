@@ -190,6 +190,7 @@ void guiSetup(void)
             disp_drv.ver_res = TFT_HEIGHT;
     }
     lv_disp_t* display = lv_disp_drv_register(&disp_drv);
+    (void)display; // unused
 
     /* Initialize Filesystems */
 #if LV_USE_FS_IF != 0

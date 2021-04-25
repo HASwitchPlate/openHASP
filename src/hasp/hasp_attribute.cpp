@@ -307,7 +307,7 @@ void my_btnmatrix_map_clear(lv_obj_t* obj)
 
 static void my_btnmatrix_map_create(lv_obj_t* obj, const char* payload)
 {
-    const char** map_p = lv_btnmatrix_get_map_array(obj);
+    // const char** map_p = lv_btnmatrix_get_map_array(obj);
 
     // Create new map
     // Reserve memory for JsonDocument
