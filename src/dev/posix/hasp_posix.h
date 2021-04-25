@@ -38,6 +38,7 @@ class PosixDevice : public BaseDevice {
     void set_hostname(const char*);
     const char* get_core_version();
     const char* get_chip_model();
+    const char* get_hardware_id();
 
     void set_backlight_pin(uint8_t pin);
     void set_backlight_level(uint8_t val);
