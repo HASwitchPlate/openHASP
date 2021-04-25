@@ -30,7 +30,7 @@ PosixDevice::PosixDevice()
         //   LOG_VERBOSE(0,"Version:  %s", uts.version);
         //   LOG_VERBOSE(0,"Machine:  %s", uts.machine);
 
-        char version[128];
+        char version[256];
         snprintf(version, sizeof(version), "%s %s", uts.sysname, uts.release);
         _core_version = version;
         _chip_model   = uts.machine;
