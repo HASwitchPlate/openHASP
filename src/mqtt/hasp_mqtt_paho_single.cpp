@@ -80,9 +80,7 @@ bool mqttHAautodiscover = true;
 #ifndef MQTT_PASSW
 #define MQTT_PASSW "hasp";
 #endif
-#ifndef MQTT_NODENAME
-#define MQTT_NODENAME "";
-#endif
+
 #ifndef MQTT_GROUPNAME
 #define MQTT_GROUPNAME "plates";
 #endif
