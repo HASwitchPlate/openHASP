@@ -208,6 +208,8 @@ static inline bool dispatch_parse_button_attribute(const char* topic_p, const ch
 
 static void dispatch_gpio(const char* topic, const char* payload)
 {
+#if HASP_USE_GPIO > 0
+
     int16_t val;
     uint8_t pin;
 
@@ -238,6 +240,7 @@ static void dispatch_gpio(const char* topic, const char* payload)
     } else {
         LOG_WARNING(TAG_MSGR, F("Invalid pin %s"), topic);
     }
+#endif
 }
 
 // objectattribute=value
