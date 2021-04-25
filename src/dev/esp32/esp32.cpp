@@ -37,17 +37,14 @@ const char* Esp32Device::get_hostname()
 {
     return _hostname.c_str();
 }
-
 void Esp32Device::set_hostname(const char* hostname)
 {
     _hostname = hostname;
 }
-
 const char* Esp32Device::get_core_version()
 {
     return esp_get_idf_version(); // == ESP.getSdkVersion();
 }
-
 const char* Esp32Device::get_chip_model()
 {
     esp_chip_info_t chip_info;

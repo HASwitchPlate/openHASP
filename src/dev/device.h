@@ -41,7 +41,6 @@ class BaseDevice {
     {
         return "";
     }
-    const char* get_model();
 
     virtual void init()
     {}
