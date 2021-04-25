@@ -17,8 +17,8 @@
 #define RETAINED true
 
 // extern char mqttNodeName[16];
-extern char mqttNodeTopic[24];
-extern char mqttGroupTopic[24];
+extern std::string mqttNodeTopic;
+extern std::string mqttGroupTopic;
 extern bool mqttEnabled;
 extern bool mqttHAautodiscover;
 

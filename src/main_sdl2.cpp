@@ -266,15 +266,15 @@ int main(int argc, char* argv[])
 
     // printf("%s %d\n", __FILE__, __LINE__);
     // fflush(stdout);
-    printf("pre setup\n");
-    setup();
-    printf("to loop\n");
 
+    LOG_NOTICE(TAG_MAIN, "pre setup");
+    setup();
+
+    LOG_TRACE(TAG_MAIN, "loop started");
     while(isRunning) {
         loop();
-        // std::cout << "HSetup OK\n";
     }
-    printf("endrunning\n");
+    LOG_TRACE(TAG_MAIN, "main loop completed");
 
     return 0;
 }
