@@ -60,19 +60,19 @@ static void debugPrintTimestamp(int level, Print* _logOutput)
     int rslt     = gettimeofday(&curTime, NULL);
     time_t t     = curTime.tv_sec;
     tm* timeinfo = localtime(&t);
-    int milli    = curTime.tv_usec / 1000;
 
     debugSendAnsiCode(F(TERM_COLOR_CYAN), _logOutput);
 
     if(timeinfo->tm_year >= 120) {
+        int milli = curTime.tv_usec / 1000;
         char buffer[24];
         strftime(buffer, sizeof(buffer), "[%b %d %H:%M:%S", timeinfo); // Literal String
         // strftime(buffer, sizeof(buffer), "[%H:%M:%S.", timeinfo); // Literal String
 
 #ifdef ARDUINO
-        _logOutput->printf(PSTR("%s.%03lu]"), buffer, curTime.tv_usec / 1000);
+        _logOutput->printf(PSTR("%s.%03lu]"), buffer, milli);
 #else
-        debug_print(_logOutput, PSTR("%s.%03lu]"), buffer, curTime.tv_usec / 1000);
+        debug_print(_logOutput, PSTR("%s.%03lu]"), buffer, milli);
 #endif
 
     } else {

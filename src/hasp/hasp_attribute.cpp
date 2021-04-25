@@ -1063,8 +1063,7 @@ static void hasp_process_arc_attribute(lv_obj_t* obj, const char* attr_p, uint16
                                        bool update)
 {
     // We already know it's a arc object
-    int16_t intval = atoi(payload);
-    uint16_t val   = atoi(payload);
+    uint16_t val = atoi(payload);
 
     char* attr = (char*)attr_p;
     if(*attr == '.') attr++; // strip leading '.'
@@ -1107,8 +1106,7 @@ static void hasp_process_lmeter_attribute(lv_obj_t* obj, const char* attr_p, uin
                                           bool update)
 {
     // We already know it's a linemeter object
-    int16_t intval = atoi(payload);
-    uint16_t val   = atoi(payload);
+    uint16_t val = atoi(payload);
 
     uint16_t line_count = lv_linemeter_get_line_count(obj);
     uint16_t angle      = lv_linemeter_get_scale_angle(obj);
@@ -1782,6 +1780,7 @@ void hasp_process_obj_attribute(lv_obj_t* obj, const char* attr_p, const char* p
 
         default:
             hasp_local_style_attr(obj, attr, attr_hash, payload, update);
+            goto attribute_found;
     }
 
 attribute_found:

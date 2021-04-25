@@ -285,6 +285,9 @@ static void custom_font_apply_cb(lv_theme_t* th, lv_obj_t* obj, lv_theme_style_t
             list = lv_obj_get_style_list(obj, LV_BTN_PART_MAIN);
             // _lv_style_list_add_style(list, &my_style);
             break;
+        default:
+            // nothing
+            ;
     }
 }
 
