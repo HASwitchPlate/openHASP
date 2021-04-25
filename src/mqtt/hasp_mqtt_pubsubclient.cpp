@@ -148,6 +148,13 @@ int mqtt_send_state(const char* subtopic, const char* payload)
     return mqttPublish(tmp_topic, payload, false);
 }
 
+int mqtt_send_discovery(const char* payload)
+{
+    char tmp_topic[20];
+    snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR(MQTT_PREFIX "/discovery"));
+    return mqttPublish(tmp_topic, payload, false);
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Receive incoming messages
 static void mqtt_message_cb(char* topic, byte* payload, unsigned int length)

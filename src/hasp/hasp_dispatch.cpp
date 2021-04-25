@@ -883,6 +883,41 @@ void dispatch_current_state()
 /******************************************* Command Wrapper Functions *********************************/
 
 // Periodically publish a JSON string indicating system status
+void dispatch_send_discovery(const char*, const char*)
+{
+#if HASP_USE_MQTT > 0
+
+    char data[512];
+    {
+        char buffer[128];
+
+        haspGetVersion(buffer, sizeof(buffer));
+        snprintf_P(data, sizeof(data),
+                   PSTR("{\"node\":\"%s\",\"manufacturer\":\"" D_MANUFACTURER
+                        "\",\"model\":\"%s\",\"hwid\":\"%s\",\"version\":\"%s\",\"numPages\":%u}"),
+                   haspDevice.get_hostname(), haspDevice.get_model(), haspDevice.get_hardware_id(), buffer,
+                   haspPages.count());
+    }
+
+    switch(mqtt_send_discovery(data)) {
+        case MQTT_ERR_OK:
+            LOG_TRACE(TAG_MQTT_PUB, F("discovery => %s"), data);
+            break;
+        case MQTT_ERR_PUB_FAIL:
+            LOG_ERROR(TAG_MQTT_PUB, F(D_MQTT_FAILED " discovery => %s"), data);
+            break;
+        case MQTT_ERR_NO_CONN:
+            LOG_ERROR(TAG_MQTT, F(D_MQTT_NOT_CONNECTED));
+            break;
+        default:
+            LOG_ERROR(TAG_MQTT, F(D_ERROR_UNKNOWN));
+    }
+    dispatchLastMillis = millis();
+
+#endif
+}
+
+// Periodically publish a JSON string indicating system status
 void dispatch_output_statusupdate(const char*, const char*)
 {
 #if HASP_USE_MQTT > 0
@@ -1016,6 +1051,7 @@ void dispatchEverySecond()
     if(dispatch_setings.teleperiod > 0 && (millis() - dispatchLastMillis) >= dispatch_setings.teleperiod * 1000) {
         dispatchLastMillis += dispatch_setings.teleperiod * 1000;
         dispatch_output_statusupdate(NULL, NULL);
+        dispatch_send_discovery(NULL, NULL);
     }
 }
 #else
