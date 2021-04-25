@@ -1,4 +1,4 @@
-name: Build master branch
+name: Build branch
 
 on: [push, workflow_dispatch]
 
