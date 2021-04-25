@@ -651,9 +651,34 @@ hasp_gpio_config_t gpioGetPinConfig(uint8_t num)
 
 void gpio_discovery(JsonArray& relay, JsonArray& led)
 {
-    relay.add(5);
-    relay.add(12);
-    led.add(3);
+    for(uint8_t i = 0; i < HASP_NUM_GPIO_CONFIG; i++) {
+        switch(gpioConfig[i].type) {
+            case HASP_GPIO_RELAY:
+            case HASP_GPIO_RELAY_INVERTED:
+                relay.add(gpioConfig[i].pin);
+                break;
+
+            case HASP_GPIO_LED:
+            case HASP_GPIO_LED_R:
+            case HASP_GPIO_LED_G:
+            case HASP_GPIO_LED_B:
+            case HASP_GPIO_LED_INVERTED:
+            case HASP_GPIO_LED_R_INVERTED:
+            case HASP_GPIO_LED_G_INVERTED:
+            case HASP_GPIO_LED_B_INVERTED:
+                led.add(gpioConfig[i].pin);
+                break;
+
+            case HASP_GPIO_PWM:
+            case HASP_GPIO_PWM_INVERTED:
+                // pwm.add(gpioConfig[i].pin);
+                break;
+
+            case HASP_GPIO_FREE:
+            default:
+                break;
+        }
+    }
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
