@@ -210,12 +210,10 @@ static void dispatch_gpio(const char* topic, const char* payload)
 {
 #if HASP_USE_GPIO > 0
 
-    int16_t val;
-    uint8_t pin;
-
-    if(topic == strstr_P(topic, PSTR("output"))) topic += 6;
-
     if(Parser::is_only_digits(topic)) {
+        int16_t val;
+        uint8_t pin;
+
         pin = atoi(topic);
         if(strlen(payload) > 0) {
 
@@ -251,13 +249,13 @@ void dispatch_command(const char* topic, const char* payload)
 
     /* =============================== Not standard payload commands ===================================== */
 
-    if(topic == strstr_P(topic, PSTR("gpio/"))) {
+    // if(topic == strstr_P(topic, PSTR("gpio/"))) {
+    if(topic == strstr_P(topic, PSTR("output"))) {
 
-        dispatch_gpio(topic + 5, payload);
+        dispatch_gpio(topic + 6, payload);
 
         // } else if(strcasecmp_P(topic, PSTR("screenshot")) == 0) {
         //     guiTakeScreenshot("/screenshot.bmp"); // Literal String
-
     } else if((topic[0] == 'p' || topic[0] == 'P') && dispatch_parse_button_attribute(topic, payload)) {
         return; // matched pxby.attr
 
@@ -284,7 +282,6 @@ void dispatch_command(const char* topic, const char* payload)
 #endif // HASP_USE_MQTT
 
 #endif // HASP_USE_CONFIG
-
     } else {
         if(strlen(payload) == 0) {
             //    dispatch_text_line(topic); // Could cause an infinite loop!

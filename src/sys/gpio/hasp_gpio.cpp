@@ -324,7 +324,7 @@ void gpio_get_value(hasp_gpio_config_t gpio)
 {
     char payload[32];
     char topic[12];
-    snprintf_P(topic, sizeof(topic), PSTR("gpio%d"), gpio.pin);
+    snprintf_P(topic, sizeof(topic), PSTR("output%d"), gpio.pin);
     snprintf_P(payload, sizeof(payload), PSTR("%d"), gpio.val);
 
     dispatch_state_subtopic(topic, payload);
@@ -333,12 +333,12 @@ void gpio_get_value(hasp_gpio_config_t gpio)
 void gpio_get_value(uint8_t pin)
 {
     for(uint8_t i = 0; i < HASP_NUM_GPIO_CONFIG; i++) {
-        if(gpioConfig[i].pin == pin) return gpio_get_value(gpioConfig[i]);
+        if(gpioConfig[i].pin == pin && gpioConfigInUse(i)) return gpio_get_value(gpioConfig[i]);
     }
     LOG_WARNING(TAG_GPIO, F(D_BULLET "Pin %d is not configured"), pin);
 }
 
-void gpio_set_value(hasp_gpio_config_t gpio, int16_t val)
+void gpio_set_value(hasp_gpio_config_t& gpio, int16_t val)
 {
     bool inverted = false;
 
@@ -405,7 +405,7 @@ void gpio_set_value(hasp_gpio_config_t gpio, int16_t val)
 void gpio_set_value(uint8_t pin, int16_t val)
 {
     for(uint8_t i = 0; i < HASP_NUM_GPIO_CONFIG; i++) {
-        if(gpioConfig[i].pin == pin) return gpio_set_value(gpioConfig[i], val);
+        if(gpioConfig[i].pin == pin && gpioConfigInUse(i)) return gpio_set_value(gpioConfig[i], val);
     }
     LOG_WARNING(TAG_GPIO, F(D_BULLET "Pin %d is not configured"), pin);
 }
@@ -666,6 +666,7 @@ void gpio_discovery(JsonArray& relay, JsonArray& led)
             case HASP_GPIO_LED_R_INVERTED:
             case HASP_GPIO_LED_G_INVERTED:
             case HASP_GPIO_LED_B_INVERTED:
+            case HASP_GPIO_SERIAL_DIMMER:
                 led.add(gpioConfig[i].pin);
                 break;
 
