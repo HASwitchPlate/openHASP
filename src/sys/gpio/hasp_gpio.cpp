@@ -56,6 +56,14 @@ class TouchConfig : public ButtonConfig {
 TouchConfig touchConfig();
 #endif
 
+void gpio_log_serial_dimmer(const char* command)
+{
+    char buffer[32];
+    snprintf_P(buffer, sizeof(buffer), PSTR("Dimmer: %02x %02x %02x %02x"), command[0], command[1], command[2],
+               command[3]);
+    LOG_VERBOSE(TAG_GPIO, buffer);
+}
+
 #ifdef ARDUINO
 static void gpio_event_handler(AceButton* button, uint8_t eventType, uint8_t buttonState)
 {
@@ -278,13 +286,13 @@ void gpioSetup()
                 break;
 
             case HASP_GPIO_SERIAL_DIMMER:
+                const char command[5] = "\xEF\x01\x4D\xA3"; // Start Lanbon Dimmer
 #if defined(ARDUINO_ARCH_ESP32)
                 Serial2.begin(115200, SERIAL_8N1, UART_PIN_NO_CHANGE, gpioConfig[i].pin);
                 delay(20);
-                const char command[5] = "\xEF\x01\x4D\xA3"; // Start Lanbon Dimmer
                 Serial2.print(command);
-                gpio_log_serial_dimmer(command);
 #endif
+                gpio_log_serial_dimmer(command);
                 break;
         }
     }
@@ -309,14 +317,6 @@ void gpioSetup(void)
 void gpioLoop(void)
 {}
 #endif // ARDUINO
-
-void gpio_log_serial_dimmer(const char* command)
-{
-    char buffer[32];
-    snprintf_P(buffer, sizeof(buffer), PSTR("Dimmer: %02x %02x %02x %02x"), command[0], command[1], command[2],
-               command[3]);
-    LOG_VERBOSE(TAG_GPIO, buffer);
-}
 
 /* ********************************* State Setters *************************************** */
 
