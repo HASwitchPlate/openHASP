@@ -38,13 +38,11 @@
 #include "hasp_config.h"
 #endif
 
-extern uint8_t hasp_sleep_state;
-
 dispatch_conf_t dispatch_setings = {.teleperiod = 300};
 
 uint32_t dispatchLastMillis = -3000000; // force discovery
 uint8_t nCommands           = 0;
-haspCommand_t commands[18];
+haspCommand_t commands[19];
 
 struct moodlight_t
 {
@@ -217,10 +215,8 @@ static void dispatch_gpio(const char* topic, const char* payload)
         pin = atoi(topic);
         if(strlen(payload) > 0) {
 
-            if(1)
-                val = atoi(payload);
-            else
-                val = Parser::is_true(payload);
+            val = atoi(payload);
+            if(val == 0) val = Parser::is_true(payload);
 
             gpio_set_value(pin, val);
         } else {
@@ -237,6 +233,8 @@ static void dispatch_gpio(const char* topic, const char* payload)
 void dispatch_command(const char* topic, const char* payload)
 {
     /* ================================= Standard payload commands ======================================= */
+
+    if(dispatch_parse_button_attribute(topic, payload)) return; // matched pxby.attr
 
     // check and execute commands from commands array
     for(int i = 0; i < nCommands; i++) {
@@ -256,8 +254,6 @@ void dispatch_command(const char* topic, const char* payload)
 
         // } else if(strcasecmp_P(topic, PSTR("screenshot")) == 0) {
         //     guiTakeScreenshot("/screenshot.bmp"); // Literal String
-    } else if((topic[0] == 'p' || topic[0] == 'P') && dispatch_parse_button_attribute(topic, payload)) {
-        return; // matched pxby.attr
 
 #if HASP_USE_CONFIG > 0
 
@@ -293,8 +289,6 @@ void dispatch_command(const char* topic, const char* payload)
 // Strip command/config prefix from the topic and process the payload
 void dispatch_topic_payload(const char* topic, const char* payload)
 {
-    // LOG_VERBOSE(TAG_MSGR,F("TOPIC: short topic: %s"), topic);
-
     if(!strcmp_P(topic, PSTR("command"))) {
         dispatch_text_line((char*)payload);
         return;
@@ -307,7 +301,7 @@ void dispatch_topic_payload(const char* topic, const char* payload)
     }
 
 #if HASP_USE_CONFIG > 0
-    if(topic == strstr_P(topic, PSTR("config/"))) { // startsWith command/
+    if(topic == strstr_P(topic, PSTR("config/"))) { // startsWith config/
         topic += 7u;
         dispatch_config(topic, (char*)payload);
         return;
@@ -352,31 +346,6 @@ void dispatch_text_line(const char* cmnd)
         LOG_TRACE(TAG_MSGR, F("%s=%s"), cmnd, empty_payload);
         dispatch_topic_payload(cmnd, empty_payload);
     }
-}
-
-void dispatch_get_idle_state(uint8_t state, char* payload)
-{
-    switch(state) {
-        case HASP_SLEEP_LONG:
-            memcpy_P(payload, PSTR("long"), 5);
-            break;
-        case HASP_SLEEP_SHORT:
-            memcpy_P(payload, PSTR("short"), 6);
-            break;
-        default:
-            memcpy_P(payload, PSTR("off"), 4);
-    }
-}
-
-// send idle state to the client
-void dispatch_output_idle_state(uint8_t state)
-{
-    char topic[6];
-    char payload[6];
-    memcpy_P(topic, PSTR("idle"), 5);
-
-    dispatch_get_idle_state(state, payload);
-    dispatch_state_subtopic(topic, payload);
 }
 
 // void dispatch_output_group_state(uint8_t groupid, uint16_t state)
@@ -652,7 +621,7 @@ void dispatch_parse_jsonl(const char*, const char* payload)
 #endif
 }
 
-void dispatch_output_current_page()
+void dispatch_current_page()
 {
     char topic[8];
     char payload[8];
@@ -666,19 +635,19 @@ void dispatch_output_current_page()
 void dispatch_page_next(lv_scr_load_anim_t animation)
 {
     haspPages.next(animation);
-    dispatch_output_current_page();
+    dispatch_current_page();
 }
 
 void dispatch_page_prev(lv_scr_load_anim_t animation)
 {
     haspPages.prev(animation);
-    dispatch_output_current_page();
+    dispatch_current_page();
 }
 
 void dispatch_page_back(lv_scr_load_anim_t animation)
 {
     haspPages.back(animation);
-    dispatch_output_current_page();
+    dispatch_current_page();
 }
 
 void dispatch_set_page(uint8_t pageid)
@@ -689,13 +658,13 @@ void dispatch_set_page(uint8_t pageid)
 void dispatch_set_page(uint8_t pageid, lv_scr_load_anim_t animation)
 {
     haspPages.set(pageid, animation);
-    dispatch_output_current_page();
+    dispatch_current_page();
 }
 
 void dispatch_page(const char*, const char* page)
 {
     if(strlen(page) == 0) {
-        dispatch_output_current_page(); // No payload, send current page
+        dispatch_current_page(); // No payload, send current page
         return;
     }
 
@@ -867,9 +836,9 @@ void dispatch_reboot(bool saveConfig)
 
 void dispatch_current_state()
 {
-    dispatch_output_statusupdate(NULL, NULL);
-    dispatch_output_idle_state(hasp_sleep_state);
-    dispatch_output_current_page();
+    dispatch_statusupdate(NULL, NULL);
+    dispatch_idle(NULL, NULL);
+    dispatch_current_page();
 }
 
 /******************************************* Command Wrapper Functions *********************************/
@@ -917,7 +886,7 @@ void dispatch_send_discovery(const char*, const char*)
 }
 
 // Periodically publish a JSON string indicating system status
-void dispatch_output_statusupdate(const char*, const char*)
+void dispatch_statusupdate(const char*, const char*)
 {
 #if HASP_USE_MQTT > 0
 
@@ -926,8 +895,8 @@ void dispatch_output_statusupdate(const char*, const char*)
     {
         char buffer[128];
 
+        hasp_get_sleep_state(topic);
         haspGetVersion(buffer, sizeof(buffer));
-        dispatch_get_idle_state(hasp_sleep_state, topic);
         snprintf_P(data, sizeof(data), PSTR("{\"node\":\"%s\",\"idle\":\"%s\",\"version\":\"%s\",\"uptime\":%lu,"),
                    haspDevice.get_hostname(), topic, buffer, long(millis() / 1000)); // \"status\":\"available\",
 
@@ -987,6 +956,16 @@ void dispatch_sleep(const char*, const char*)
     hasp_enable_wakeup_touch();
 }
 
+void dispatch_idle(const char*, const char*)
+{
+    char topic[6];
+    char payload[6];
+    memcpy_P(topic, PSTR("idle"), 5);
+
+    hasp_get_sleep_state(payload);
+    dispatch_state_subtopic(topic, payload);
+}
+
 void dispatch_reboot(const char*, const char*)
 {
     dispatch_reboot(true);
@@ -1024,10 +1003,11 @@ void dispatchSetup()
     dispatch_add_command(PSTR("page"), dispatch_page);
     dispatch_add_command(PSTR("wakeup"), dispatch_wakeup);
     dispatch_add_command(PSTR("sleep"), dispatch_sleep);
-    dispatch_add_command(PSTR("statusupdate"), dispatch_output_statusupdate);
+    dispatch_add_command(PSTR("statusupdate"), dispatch_statusupdate);
     dispatch_add_command(PSTR("clearpage"), dispatch_clear_page);
     dispatch_add_command(PSTR("jsonl"), dispatch_parse_jsonl);
     dispatch_add_command(PSTR("dim"), dispatch_dim);
+    dispatch_add_command(PSTR("idle"), dispatch_idle);
     dispatch_add_command(PSTR("brightness"), dispatch_dim);
     dispatch_add_command(PSTR("light"), dispatch_backlight);
     dispatch_add_command(PSTR("moodlight"), dispatch_moodlight);
@@ -1053,7 +1033,7 @@ void dispatchEverySecond()
 {
     if(dispatch_setings.teleperiod > 0 && (millis() - dispatchLastMillis) >= dispatch_setings.teleperiod * 1000) {
         dispatchLastMillis += dispatch_setings.teleperiod * 1000;
-        dispatch_output_statusupdate(NULL, NULL);
+        dispatch_statusupdate(NULL, NULL);
         dispatch_send_discovery(NULL, NULL);
     }
 }
@@ -1068,7 +1048,7 @@ void everySecond()
 
         if(elapsed.count() >= dispatch_setings.teleperiod) {
             std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
-            dispatch_output_statusupdate(NULL, NULL);
+            dispatch_statusupdate(NULL, NULL);
         }
     }
 }

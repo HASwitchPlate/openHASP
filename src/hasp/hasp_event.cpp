@@ -250,7 +250,7 @@ void swipe_event_handler(lv_obj_t* obj, lv_event_t event)
             default:
                 return;
         }
-        dispatch_output_current_page();
+        dispatch_current_page();
     }
 }
 
@@ -336,7 +336,7 @@ void generic_event_handler(lv_obj_t* obj, lv_event_t event)
                 default:
                     haspPages.set(obj->user_data.actionid, transitionid);
             }
-            dispatch_output_current_page();
+            dispatch_current_page();
         }
     } else {
         char data[40];

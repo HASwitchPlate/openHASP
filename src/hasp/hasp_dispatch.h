@@ -58,10 +58,11 @@ void dispatch_backlight(const char*, const char* payload);
 void dispatch_web_update(const char*, const char* espOtaUrl);
 void dispatch_reboot(bool saveConfig);
 
-void dispatch_output_idle_state(uint8_t state);
-void dispatch_output_statusupdate(const char*, const char*);
+void dispatch_statusupdate(const char*, const char*);
+void dispatch_idle(const char*, const char*);
+
 void dispatch_current_state();
-void dispatch_output_current_page();
+void dispatch_current_page();
 
 void dispatch_gpio_input_event(uint8_t pin, uint8_t group, uint8_t eventid);
 

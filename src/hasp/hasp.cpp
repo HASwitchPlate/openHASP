@@ -116,22 +116,36 @@ bool hasp_update_sleep_state()
 
     if(sleepTimeLong > 0 && idle >= (sleepTimeShort + sleepTimeLong) * 1000U) {
         if(hasp_sleep_state != HASP_SLEEP_LONG) {
-            dispatch_output_idle_state(HASP_SLEEP_LONG);
             hasp_sleep_state = HASP_SLEEP_LONG;
+            dispatch_idle(NULL, NULL);
         }
     } else if(sleepTimeShort > 0 && idle >= sleepTimeShort * 1000U) {
         if(hasp_sleep_state != HASP_SLEEP_SHORT) {
-            dispatch_output_idle_state(HASP_SLEEP_SHORT);
             hasp_sleep_state = HASP_SLEEP_SHORT;
+            dispatch_idle(NULL, NULL);
         }
     } else {
         if(hasp_sleep_state != HASP_SLEEP_OFF) {
-            dispatch_output_idle_state(HASP_SLEEP_OFF);
             hasp_sleep_state = HASP_SLEEP_OFF;
+            dispatch_idle(NULL, NULL);
         }
     }
 
     return (hasp_sleep_state != HASP_SLEEP_OFF);
+}
+
+void hasp_get_sleep_state(char* payload)
+{
+    switch(hasp_sleep_state) {
+        case HASP_SLEEP_LONG:
+            memcpy_P(payload, PSTR("long"), 5);
+            break;
+        case HASP_SLEEP_SHORT:
+            memcpy_P(payload, PSTR("short"), 6);
+            break;
+        default:
+            memcpy_P(payload, PSTR("off"), 4);
+    }
 }
 
 void hasp_enable_wakeup_touch()
