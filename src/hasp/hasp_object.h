@@ -110,6 +110,7 @@ void object_set_normalized_group_value(uint8_t groupid, lv_obj_t* src_obj, int16
 #define HASP_OBJ_OBJMASK 55395
 #define HASP_OBJ_LMETER 62749
 #define HASP_OBJ_TABVIEW 63226
+#define HASP_OBJ_TAB 7861
 #define HASP_OBJ_ARC 64594
 
 #endif

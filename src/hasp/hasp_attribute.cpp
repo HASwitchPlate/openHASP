@@ -1310,8 +1310,6 @@ static void hasp_process_obj_attribute_txt(lv_obj_t* obj, const char* attr, cons
 
 bool hasp_process_obj_attribute_val(lv_obj_t* obj, const char* attr, int16_t intval, bool boolval, bool update)
 {
-    //  int16_t intval = atoi(payload);
-
     if(check_obj_type(obj, LV_HASP_BUTTON)) {
         if(lv_btn_get_checkable(obj)) {
             if(update) {
@@ -1348,6 +1346,8 @@ bool hasp_process_obj_attribute_val(lv_obj_t* obj, const char* attr, int16_t int
         lv_roller_set_selected(obj, (uint16_t)intval, LV_ANIM_ON);
     } else if(check_obj_type(obj, LV_HASP_BAR)) {
         update ? lv_bar_set_value(obj, intval, LV_ANIM_ON) : attr_out_int(obj, attr, lv_bar_get_value(obj));
+    } else if(check_obj_type(obj, LV_HASP_TABVIEW)) {
+        update ? lv_tabview_set_tab_act(obj, intval, LV_ANIM_ON) : attr_out_int(obj, attr, lv_tabview_get_tab_act(obj));
     } else {
         return false;
     }

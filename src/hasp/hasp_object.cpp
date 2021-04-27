@@ -560,15 +560,22 @@ void hasp_new_object(const JsonObject& config, uint8_t& saved_page_id)
                 obj = lv_tabview_create(parent_obj, NULL);
                 // No event handler for tabs
                 if(obj) {
-                    lv_obj_t* tab;
-                    tab = lv_tabview_add_tab(obj, "tab 1");
-                    // lv_obj_set_user_data(tab, id + 1);
-                    tab = lv_tabview_add_tab(obj, "tab 2");
-                    // lv_obj_set_user_data(tab, id + 2);
-                    tab = lv_tabview_add_tab(obj, "tab 3");
-                    // lv_obj_set_user_data(tab, id + 3);
-
+                    lv_obj_set_event_cb(obj, selector_event_handler);
                     obj->user_data.objid = LV_HASP_TABVIEW;
+                }
+                break;
+
+            case LV_HASP_TAB:
+            case HASP_OBJ_TAB:
+                if(parent_obj && parent_obj->user_data.objid == LV_HASP_TABVIEW) {
+                    obj = lv_tabview_add_tab(parent_obj, "Tab");
+                    if(obj) {
+                        lv_obj_set_event_cb(obj, generic_event_handler);
+                        obj->user_data.objid = LV_HASP_TAB;
+                    }
+                } else {
+                    LOG_WARNING(TAG_HASP, F("Parent of a tab must be a tabview object"));
+                    return;
                 }
                 break;
 

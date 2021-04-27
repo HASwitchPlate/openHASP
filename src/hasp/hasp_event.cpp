@@ -25,6 +25,8 @@
 #include "hasp_conf.h"
 #include "hasplib.h"
 
+#include "lv_core/lv_obj.h" // for tabview ext
+
 static lv_style_int_t last_value_sent;
 static lv_color_t last_color_sent;
 
@@ -419,6 +421,15 @@ void selector_event_handler(lv_obj_t* obj, lv_event_t event)
             max = lv_roller_get_option_cnt(obj) - 1;
             lv_roller_get_selected_str(obj, buffer, sizeof(buffer));
             break;
+
+        case LV_HASP_TABVIEW: {
+            val = lv_tabview_get_tab_act(obj);
+            max = lv_tabview_get_tab_count(obj) - 1;
+
+            lv_tabview_ext_t* ext = (lv_tabview_ext_t*)lv_obj_get_ext_attr(obj);
+            strcpy(buffer, ext->tab_name_ptr[val]);
+            break;
+        }
 
         case LV_HASP_TABLE: {
             uint16_t row;
