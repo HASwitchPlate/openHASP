@@ -273,6 +273,7 @@ _HASP_ATTRIBUTE(SCALE_END_LINE_WIDTH, scale_end_line_width, lv_style_int_t)
 #define ATTR_H 104
 #define ATTR_OPTIONS 29886
 #define ATTR_ENABLED 28193
+#define ATTR_CLICK 17064
 #define ATTR_OPACITY 10155
 #define ATTR_TOGGLE 38580
 #define ATTR_HIDDEN 11082
