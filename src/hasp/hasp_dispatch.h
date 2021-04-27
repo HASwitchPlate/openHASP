@@ -46,23 +46,18 @@ void dispatch_parse_jsonl(std::istream& stream);
 void dispatch_clear_page(const char* page);
 void dispatch_json_error(uint8_t tag, DeserializationError& jsonError);
 
-// void dispatch_set_page(uint8_t pageid);
 void dispatch_set_page(uint8_t pageid, lv_scr_load_anim_t effectid);
 void dispatch_page_next(lv_scr_load_anim_t effectid);
 void dispatch_page_prev(lv_scr_load_anim_t effectid);
 void dispatch_page_back(lv_scr_load_anim_t effectid);
 
-void dispatch_dim(const char* level);
-void dispatch_backlight(const char*, const char* payload);
-
-void dispatch_web_update(const char*, const char* espOtaUrl);
 void dispatch_reboot(bool saveConfig);
-
-void dispatch_statusupdate(const char*, const char*);
-void dispatch_idle(const char*, const char*);
-
 void dispatch_current_state();
 void dispatch_current_page();
+void dispatch_backlight(const char*, const char* payload);
+void dispatch_web_update(const char*, const char* espOtaUrl);
+void dispatch_statusupdate(const char*, const char*);
+void dispatch_idle(const char*, const char*);
 
 void dispatch_gpio_input_event(uint8_t pin, uint8_t group, uint8_t eventid);
 

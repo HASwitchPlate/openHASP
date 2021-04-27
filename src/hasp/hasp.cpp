@@ -354,7 +354,7 @@ void haspSetup(void)
 
     // WARNING: hasp_font needs to be null !
     if(lv_zifont_font_init(&hasp_font, haspZiFontPath, 32) != 0) {
-        LOG_ERROR(TAG_HASP, F("Failed to set font to %s"), haspZiFontPath);
+        if(strlen(haspZiFontPath) > 0) LOG_WARNING(TAG_HASP, F("Failed to set font to %s"), haspZiFontPath);
         haspFonts[0] = LV_THEME_DEFAULT_FONT_SMALL;
     } else {
         // defaultFont = haspFonts[0];
