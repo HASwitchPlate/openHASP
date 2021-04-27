@@ -248,6 +248,11 @@ void gpioSetup()
                 input_mode = INPUT_PULLUP;
         }
 
+        if(gpioIsSystemPin(gpioConfig[i].pin)) {
+            LOG_WARNING(TAG_GPIO, F("Invalid pin %d"), gpioConfig[i].pin);
+            // continue;
+        }
+
         switch(gpioConfig[i].type) {
             case HASP_GPIO_SWITCH:
                 gpioAddSwitch(gpioConfig[i].pin, input_mode, HIGH, i);
@@ -320,7 +325,7 @@ void gpioLoop(void)
 
 /* ********************************* State Setters *************************************** */
 
-void gpio_get_value(hasp_gpio_config_t gpio)
+bool gpio_get_value(hasp_gpio_config_t gpio)
 {
     char payload[32];
     char topic[12];
@@ -328,17 +333,19 @@ void gpio_get_value(hasp_gpio_config_t gpio)
     snprintf_P(payload, sizeof(payload), PSTR("%d"), gpio.val);
 
     dispatch_state_subtopic(topic, payload);
+    return true;
 }
 
-void gpio_get_value(uint8_t pin)
+bool gpio_get_value(uint8_t pin)
 {
     for(uint8_t i = 0; i < HASP_NUM_GPIO_CONFIG; i++) {
         if(gpioConfig[i].pin == pin && gpioConfigInUse(i)) return gpio_get_value(gpioConfig[i]);
     }
     LOG_WARNING(TAG_GPIO, F(D_BULLET "Pin %d is not configured"), pin);
+    return false;
 }
 
-void gpio_set_value(hasp_gpio_config_t& gpio, int16_t val)
+bool gpio_set_value(hasp_gpio_config_t& gpio, int16_t val)
 {
     bool inverted = false;
 
@@ -347,7 +354,7 @@ void gpio_set_value(hasp_gpio_config_t& gpio, int16_t val)
             inverted = true;
         case HASP_GPIO_RELAY:
             gpio.val = val > 0 ? HIGH : LOW;
-            digitalWrite(gpio.pin, inverted ? gpio.val : !gpio.val);
+            digitalWrite(gpio.pin, inverted ? !gpio.val : gpio.val);
             break;
 
         case HASP_GPIO_LED_INVERTED:
@@ -396,18 +403,20 @@ void gpio_set_value(hasp_gpio_config_t& gpio, int16_t val)
         }
 
         default:
-            return;
+            return false;
     }
     gpio_get_value(gpio);
     LOG_VERBOSE(TAG_GPIO, F("Group %d - Pin %d = %d"), gpio.group, gpio.pin, gpio.val);
+    return true;
 }
 
-void gpio_set_value(uint8_t pin, int16_t val)
+bool gpio_set_value(uint8_t pin, int16_t val)
 {
     for(uint8_t i = 0; i < HASP_NUM_GPIO_CONFIG; i++) {
         if(gpioConfig[i].pin == pin && gpioConfigInUse(i)) return gpio_set_value(gpioConfig[i], val);
     }
     LOG_WARNING(TAG_GPIO, F(D_BULLET "Pin %d is not configured"), pin);
+    return false;
 }
 
 void gpio_set_normalized_value(hasp_gpio_config_t gpio, int16_t val, int16_t min, int16_t max)
