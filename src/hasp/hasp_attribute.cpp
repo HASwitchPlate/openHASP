@@ -1825,7 +1825,7 @@ void attr_out_str(lv_obj_t* obj, const char* attribute, const char* data)
             object_dispatch_state(pageid, objid, payload);
 
         } else {
-            LOG_ERROR(TAG_ATTR, F(D_MQTT_PAYLOAD_TOO_LONG), size);
+            LOG_ERROR(TAG_ATTR, F(D_MQTT_PAYLOAD_TOO_LONG), (uint32_t)size);
         }
     }
 }
