@@ -324,6 +324,13 @@ _HASP_ATTRIBUTE(SCALE_END_LINE_WIDTH, scale_end_line_width, lv_style_int_t)
 // Buttonmatrix
 #define ATTR_ONE_CHECK 45935
 
+// Tabview
+#define ATTR_BTN_POS 35697
+
+// Msgbox
+#define ATTR_MODAL 7405
+#define ATTR_AUTO_CLOSE 7880
+
 /* hasp user data */
 #define ATTR_ACTION 42102
 #define ATTR_TRANSITION 10933

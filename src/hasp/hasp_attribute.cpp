@@ -1299,7 +1299,13 @@ static void hasp_process_obj_attribute_txt(lv_obj_t* obj, const char* attr, cons
         return attr_out_str(obj, attr, buffer);
     }
     if(check_obj_type(obj, LV_HASP_MSGBOX)) {
-        return update ? lv_msgbox_set_text(obj, payload) : attr_out_str(obj, attr, lv_msgbox_get_text(obj));
+        if(update) {
+            lv_msgbox_set_text(obj, payload);
+            lv_obj_align(obj, NULL, LV_ALIGN_CENTER, 0, 0); /*Align to the corner*/
+        } else {
+            attr_out_str(obj, attr, lv_msgbox_get_text(obj));
+        }
+        return;
     }
 #if LV_USE_WIN != 0
     if(check_obj_type(obj, LV_HASP_WINDOW)) {
@@ -1713,6 +1719,33 @@ void hasp_process_obj_attribute(lv_obj_t* obj, const char* attr_p, const char* p
                 } else {
                     attr_out_int(obj, attr_p, lv_btnmatrix_get_one_check(obj));
                 }
+            } else {
+                goto attribute_not_found;
+            }
+            break;
+
+        case ATTR_BTN_POS:
+            if(check_obj_type(obj, LV_HASP_TABVIEW)) {
+                if(update) {
+                    lv_tabview_set_btns_pos(obj, val);
+                } else {
+                    attr_out_int(obj, attr_p, lv_tabview_get_btns_pos(obj));
+                }
+            } else {
+                goto attribute_not_found;
+            }
+            break;
+
+            //  case ATTR_MODAL:
+        case ATTR_AUTO_CLOSE:
+            if(check_obj_type(obj, LV_HASP_MSGBOX)) {
+                if(update) {
+                    lv_msgbox_start_auto_close(obj, val);
+                } else {
+                    lv_msgbox_stop_auto_close(obj);
+                }
+            } else {
+                goto attribute_not_found;
             }
             break;
 
@@ -1760,6 +1793,7 @@ void hasp_process_obj_attribute(lv_obj_t* obj, const char* attr_p, const char* p
             }
             break;
 
+            /* ***** Methods ***** */
         case ATTR_DELETE:
             if(!lv_obj_get_parent(obj)) {
                 LOG_ERROR(TAG_ATTR, F(D_ATTRIBUTE_PAGE_METHOD_INVALID), attr_p);
