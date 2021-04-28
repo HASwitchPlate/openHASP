@@ -155,53 +155,6 @@ static inline bool dispatch_parse_button_attribute(const char* topic_p, const ch
 
     hasp_process_attribute(pageid, objid, topic_p, payload);
     return true;
-
-    /*
-        if(sscanf(topic_p, HASP_OBJECT_NOTATION ".", &pageid, &objid) == 2) { // Literal String
-
-            // OK, continue below
-
-        } else if(sscanf(topic_p, "p[%u].b[%u].", &pageid, &objid) == 2) { // Literal String
-
-            // TODO: obsolete old syntax p[x].b[y].
-            // OK, continue below
-            while(*topic_p++ != '.') {
-                // strip to '.' character
-            }
-
-        } else {
-            return false;
-        }
-
-        while(*topic_p != '.') {
-            if(*topic_p == 0) return false; // strip to '.' character
-            topic_p++;
-        }
-
-        hasp_process_attribute((uint8_t)pageid, (uint8_t)objid, topic_p, payload);
-        return true; */
-
-    // String strPageId((char *)0);
-    // String strTemp((char *)0);
-
-    // strPageId = strTopic.substring(2, strTopic.indexOf("]"));
-    // strTemp   = strTopic.substring(strTopic.indexOf("]") + 1, strTopic.length());
-
-    // if(strTemp.startsWith(".b[")) {
-    //     String strObjId((char *)0);
-    //     String strAttr((char *)0);
-
-    //     strObjId = strTemp.substring(3, strTemp.indexOf("]"));
-    //     strAttr  = strTemp.substring(strTemp.indexOf("]") + 1, strTemp.length());
-    //     // debugPrintln(strPageId + " && " + strObjId + " && " + strAttr);
-
-    //     pageid = strPageId.toInt();
-    //     objid  = strObjId.toInt();
-
-    //     if(pageid >= 0 && pageid <= 255 && objid >= 0 && objid <= 255) {
-    //         hasp_process_attribute(pageid, objid, strAttr.c_str(), payload);
-    //     } // valid page
-    // }
 }
 
 static void dispatch_gpio(const char* topic, const char* payload)
