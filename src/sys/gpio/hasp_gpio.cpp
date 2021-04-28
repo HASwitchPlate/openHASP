@@ -386,14 +386,14 @@ bool gpio_set_value(hasp_gpio_config_t& gpio, int16_t val)
             break;
 
         case HASP_GPIO_SERIAL_DIMMER: {
-            gpio.val        = val >= 100 ? 100 : val > 0 ? val : 0;
+            gpio.val        = val >= 255 ? 255 : val > 0 ? val : 0;
             char command[5] = "\xEF\x02\x00\xED";
-            /*         if(gpio.val == 1000) {
+            /*         if(gpio.val == 0) {
                          // command[2] = 0x20;
                          Serial2.print("\xEF\x02\x20\xED");
                      } else */
             {
-                command[2] = (uint8_t)gpio.val;
+                command[2] = (uint8_t)map(gpio.val, 0, 255, 0, 100);
                 command[3] ^= command[2];
             }
 #if defined(ARDUINO_ARCH_ESP32)
