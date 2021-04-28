@@ -509,6 +509,7 @@ void msgbox_event_handler(lv_obj_t* obj, lv_event_t event)
     if(val != LV_BTNMATRIX_BTN_NONE) {
         const char* txt = lv_msgbox_get_active_btn_text(obj);
         strncpy(buffer, txt, sizeof(buffer));
+        if(hasp_event_id == HASP_EVENT_UP || hasp_event_id == HASP_EVENT_RELEASE) lv_msgbox_start_auto_close(obj, 0);
     } else {
         buffer[0] = 0; // empty string
     }
@@ -518,8 +519,6 @@ void msgbox_event_handler(lv_obj_t* obj, lv_event_t event)
     last_value_sent = val;
     event_object_selection_changed(obj, hasp_event_id, val, buffer);
     // if(max > 0) dispatch_normalized_group_value(obj->user_data.groupid, obj, val, 0, max);
-
-    if(hasp_event_id == HASP_EVENT_UP || hasp_event_id == HASP_EVENT_RELEASE) lv_msgbox_start_auto_close(obj, 0);
 }
 
 /**
