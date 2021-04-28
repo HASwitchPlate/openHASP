@@ -87,7 +87,7 @@
 #define D_DISPATCH_REBOOT "Az MCU most újraindul!"
 
 #define D_JSON_FAILED "JSON elemzése nem sikerült:"
-#define D_JSONL_FAILED "JSONL elemzése meghiúsult a %zu vonalnál"
+#define D_JSONL_FAILED "JSONL elemzése meghiúsult a %u vonalnál"
 #define D_JSONL_SUCCEEDED "JSONL teljes körűen elemezve"
 
 #define D_OTA_CHECK_UPDATE "A frissítések ellenőrzése az URL-en: %s"

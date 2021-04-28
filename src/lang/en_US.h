@@ -87,7 +87,7 @@
 #define D_DISPATCH_REBOOT "Rebooting the MCU now!"
 
 #define D_JSON_FAILED "JSON parsing failed:"
-#define D_JSONL_FAILED "JSONL parsing failed at line %zu"
+#define D_JSONL_FAILED "JSONL parsing failed at line %u"
 #define D_JSONL_SUCCEEDED "Jsonl fully parsed"
 
 #define D_OTA_CHECK_UPDATE "Checking updates URL: %s"

@@ -87,7 +87,7 @@
 #define D_DISPATCH_REBOOT "MCU-ul repornește acum!"
 
 #define D_JSON_FAILED "Analiza JSON a eșuat:"
-#define D_JSONL_FAILED "Analiza JSONL a eșuat la linia %zu"
+#define D_JSONL_FAILED "Analiza JSONL a eșuat la linia %u"
 #define D_JSONL_SUCCEEDED "Analiza JSONL completă"
 
 #define D_OTA_CHECK_UPDATE "Verificare la URL-ul actualizărilor: %s"

@@ -86,7 +86,7 @@
 #define D_DISPATCH_REBOOT "De MCU wordt herstart!"
 
 #define D_JSON_FAILED "JSON verwerking mislukt:"
-#define D_JSONL_FAILED "JSONL verwerking mislukt op lijn %zu"
+#define D_JSONL_FAILED "JSONL verwerking mislukt op lijn %u"
 #define D_JSONL_SUCCEEDED "Jsonl volledig verwerkt"
 
 #define D_OTA_CHECK_UPDATE "Controle update URL: %s"
