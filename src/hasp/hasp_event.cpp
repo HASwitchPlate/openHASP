@@ -490,6 +490,39 @@ void btnmatrix_event_handler(lv_obj_t* obj, lv_event_t event)
 }
 
 /**
+ * Called when a msgbox value has changed
+ * @param obj pointer to a dropdown list or roller
+ * @param event type of event that occured
+ */
+void msgbox_event_handler(lv_obj_t* obj, lv_event_t event)
+{
+    log_event("msgbox", event);
+
+    uint8_t hasp_event_id;
+    if(!translate_event(obj, event, hasp_event_id)) return; // Use LV_EVENT_VALUE_CHANGED
+
+    /* Get the new value */
+    char buffer[128];
+    uint16_t val = 0;
+
+    val = lv_msgbox_get_active_btn(obj);
+    if(val != LV_BTNMATRIX_BTN_NONE) {
+        const char* txt = lv_msgbox_get_active_btn_text(obj);
+        strncpy(buffer, txt, sizeof(buffer));
+    } else {
+        buffer[0] = 0; // empty string
+    }
+
+    if(hasp_event_id == HASP_EVENT_CHANGED && last_value_sent == val) return; // same value as before
+
+    last_value_sent = val;
+    event_object_selection_changed(obj, hasp_event_id, val, buffer);
+    // if(max > 0) dispatch_normalized_group_value(obj->user_data.groupid, obj, val, 0, max);
+
+    if(hasp_event_id == HASP_EVENT_UP || hasp_event_id == HASP_EVENT_RELEASE) lv_msgbox_start_auto_close(obj, 0);
+}
+
+/**
  * Called when a slider or adjustable arc is clicked
  * @param obj pointer to a slider
  * @param event type of event that occured

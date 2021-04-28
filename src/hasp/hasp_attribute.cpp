@@ -1298,6 +1298,9 @@ static void hasp_process_obj_attribute_txt(lv_obj_t* obj, const char* attr, cons
         lv_roller_get_selected_str(obj, buffer, sizeof(buffer));
         return attr_out_str(obj, attr, buffer);
     }
+    if(check_obj_type(obj, LV_HASP_MSGBOX)) {
+        return update ? lv_msgbox_set_text(obj, payload) : attr_out_str(obj, attr, lv_msgbox_get_text(obj));
+    }
 #if LV_USE_WIN != 0
     if(check_obj_type(obj, LV_HASP_WINDOW)) {
         // return update ? lv_win_set_title(obj, (const char *)payload) : attr_out_str(obj, attr,
