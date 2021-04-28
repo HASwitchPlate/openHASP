@@ -156,7 +156,7 @@ int mqtt_send_discovery(const char* payload, size_t len)
 static void mqtt_message_cb(char* topic, byte* payload, unsigned int length)
 { // Handle incoming commands from MQTT
     if(length + 1 >= mqttClient.getBufferSize()) {
-        LOG_ERROR(TAG_MQTT_RCV, F(D_MQTT_PAYLOAD_TOO_LONG), length);
+        LOG_ERROR(TAG_MQTT_RCV, F(D_MQTT_PAYLOAD_TOO_LONG), (uint32_t)length);
         return;
     } else {
         payload[length] = '\0';

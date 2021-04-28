@@ -33,7 +33,7 @@ class Page {
 
   public:
     Page();
-    size_t count();
+    uint8_t count();
     void init(uint8_t start_page);
     void clear(uint8_t pageid);
     //    void set(uint8_t pageid);

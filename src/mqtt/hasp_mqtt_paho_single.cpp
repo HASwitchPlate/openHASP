@@ -120,7 +120,7 @@ void connlost(void* context, char* cause)
 static void mqtt_message_cb(char* topic, char* payload, size_t length)
 { // Handle incoming commands from MQTT
     if(length + 1 >= MQTT_MAX_PACKET_SIZE) {
-        LOG_ERROR(TAG_MQTT_RCV, F(D_MQTT_PAYLOAD_TOO_LONG), length);
+        LOG_ERROR(TAG_MQTT_RCV, F(D_MQTT_PAYLOAD_TOO_LONG), (uint32_t)length);
         return;
     } else {
         payload[length] = '\0';

@@ -21,9 +21,9 @@ Page::Page()
     // LVGL is not yet initialized at construction time
 }
 
-size_t Page::count()
+uint8_t Page::count()
 {
-    return sizeof(_pages) / sizeof(*_pages);
+    return (uint8_t)(sizeof(_pages) / sizeof(*_pages));
 }
 
 void Page::init(uint8_t start_page)

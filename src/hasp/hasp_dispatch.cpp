@@ -912,7 +912,7 @@ void dispatch_statusupdate(const char*, const char*)
                    haspDevice.get_free_heap(), haspDevice.get_heap_fragmentation(), haspDevice.get_core_version());
         strcat(data, buffer);
 
-        snprintf_P(buffer, sizeof(buffer), PSTR("\"canUpdate\":\"false\",\"page\":%u,\"numPages\":%zu,"),
+        snprintf_P(buffer, sizeof(buffer), PSTR("\"canUpdate\":\"false\",\"page\":%u,\"numPages\":%u,"),
                    haspPages.get(), haspPages.count());
         strcat(data, buffer);
 

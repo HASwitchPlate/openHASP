@@ -47,7 +47,7 @@
 #define D_MQTT_SUBSCRIBED "Ingeschreven op %s"
 #define D_MQTT_NOT_SUBSCRIBED "Inschrijving op %s mislukt"
 #define D_MQTT_HA_AUTO_DISCOVERY "Registeren HA auto-configuratie"
-#define D_MQTT_PAYLOAD_TOO_LONG "Payload is te lang (%zu bytes)"
+#define D_MQTT_PAYLOAD_TOO_LONG "Payload is te lang (%u bytes)"
 
 #define D_TELNET_CLOSING_CONNECTION "Sessie sluiten van %s"
 #define D_TELNET_CLIENT_LOGIN_FROM "Client aangemeld van %s"
