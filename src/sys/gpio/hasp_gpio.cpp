@@ -59,7 +59,7 @@ TouchConfig touchConfig();
 void gpio_log_serial_dimmer(const char* command)
 {
     char buffer[32];
-    snprintf_P(buffer, sizeof(buffer), PSTR("Dimmer: %02x %02x %02x %02x"), command[0], command[1], command[2],
+    snprintf_P(buffer, sizeof(buffer), PSTR("Dimmer => %02x %02x %02x %02x"), command[0], command[1], command[2],
                command[3]);
     LOG_VERBOSE(TAG_GPIO, buffer);
 }
@@ -670,13 +670,13 @@ void gpio_discovery(JsonArray& relay, JsonArray& led)
                 break;
 
             case HASP_GPIO_LED:
-            case HASP_GPIO_LED_R:
-            case HASP_GPIO_LED_G:
-            case HASP_GPIO_LED_B:
+            // case HASP_GPIO_LED_R:
+            // case HASP_GPIO_LED_G:
+            // case HASP_GPIO_LED_B:
             case HASP_GPIO_LED_INVERTED:
-            case HASP_GPIO_LED_R_INVERTED:
-            case HASP_GPIO_LED_G_INVERTED:
-            case HASP_GPIO_LED_B_INVERTED:
+            // case HASP_GPIO_LED_R_INVERTED:
+            // case HASP_GPIO_LED_G_INVERTED:
+            // case HASP_GPIO_LED_B_INVERTED:
             case HASP_GPIO_SERIAL_DIMMER:
                 led.add(gpioConfig[i].pin);
                 break;
