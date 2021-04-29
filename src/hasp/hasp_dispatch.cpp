@@ -893,7 +893,7 @@ void dispatch_statusupdate(const char*, const char*)
 #endif
 }
 
-void dispatch_calibrate(const char* topic = NULL, const char* payload = NULL)
+void dispatch_calibrate(const char*, const char*)
 {
     guiCalibrate();
 }
