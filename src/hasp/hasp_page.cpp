@@ -28,7 +28,11 @@ uint8_t Page::count()
 
 void Page::init(uint8_t start_page)
 {
+    lv_obj_t* scr_act = lv_scr_act();
+
     for(int i = 0; i < count(); i++) {
+        lv_obj_t* prev_page_obj = _pages[i];
+
         _pages[i]                  = lv_obj_create(NULL, NULL);
         _pages[i]->user_data.objid = LV_HASP_SCREEN;
         lv_obj_set_event_cb(_pages[i], generic_event_handler);
@@ -40,6 +44,13 @@ void Page::init(uint8_t start_page)
         _meta_data[i].prev = thispage == PAGE_START_INDEX ? HASP_NUM_PAGES : thispage - PAGE_START_INDEX;
         _meta_data[i].next = thispage == HASP_NUM_PAGES ? PAGE_START_INDEX : thispage + PAGE_START_INDEX;
         _meta_data[i].back = start_page;
+
+        if(prev_page_obj)
+            if(scr_act == prev_page_obj) {
+                lv_scr_load_anim(_pages[i], LV_SCR_LOAD_ANIM_NONE, 500, 0, false); // update page screen obj
+                lv_obj_del_async(prev_page_obj);
+            } else
+                lv_obj_del(prev_page_obj);
     }
 }
 
@@ -67,12 +78,12 @@ void Page::set(uint8_t pageid, lv_scr_load_anim_t animation)
     } else if(!page) {
         LOG_WARNING(TAG_HASP, F(D_HASP_INVALID_PAGE), pageid);
     } else {
-        LOG_TRACE(TAG_HASP, F(D_HASP_CHANGE_PAGE), pageid);
-        if(_current_page != pageid) {
-            _current_page = pageid;
+        _current_page = pageid;
+        if(page != lv_scr_act()) {
+            LOG_TRACE(TAG_HASP, F(D_HASP_CHANGE_PAGE), pageid);
             lv_scr_load_anim(page, animation, 500, 0, false);
+            hasp_object_tree(page, pageid, 0);
         }
-        hasp_object_tree(page, pageid, 0);
     }
 }
 
