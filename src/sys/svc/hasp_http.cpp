@@ -99,10 +99,10 @@ WebServer webServer(80);
 HTTPUpload* upload;
 
 static const char HTTP_MENU_BUTTON[] PROGMEM =
-    "<p><form method='get' action='%s'><button type='submit'>%s</button></form></p>";
+    "<p><form method='GET' action='%s'><button type='submit'>%s</button></form></p>";
 
 const char MAIN_MENU_BUTTON[] PROGMEM =
-    "</p><p><form method='get' action='/'><button type='submit'>" D_HTTP_MAIN_MENU "</button></form>";
+    "</p><p><form method='GET' action='/'><button type='submit'>" D_HTTP_MAIN_MENU "</button></form>";
 const char MIT_LICENSE[] PROGMEM = "</br>MIT License</p>";
 
 const char HTTP_DOCTYPE[] PROGMEM = "<!DOCTYPE html><html lang=\"en\"><head><meta charset='utf-8'><meta "
@@ -197,7 +197,7 @@ static void close_form(String& str)
 static void add_form_button(String& str, const __FlashStringHelper* label, const __FlashStringHelper* action,
                             const __FlashStringHelper* extra)
 {
-    str += F("<p><form method='get' action='");
+    str += F("<p><form method='GET' action='");
     str += action;
     str += F("'>");
     add_button(str, label, extra);
@@ -256,7 +256,7 @@ void webSendPage(const char* nodename, uint32_t httpdatalength, bool gohome = fa
         haspGetVersion(buffer, sizeof(buffer));
 
         /* Calculate Content Length upfront */
-        uint16_t contentLength = strlen(buffer); // verion length
+        uint32_t contentLength = strlen(buffer); // version length
         contentLength += sizeof(HTTP_DOCTYPE) - 1;
         contentLength += sizeof(HTTP_HEADER) - 1 - 2 + strlen(nodename); // -2 for %s
         contentLength += sizeof(HTTP_SCRIPT) - 1;
@@ -349,29 +349,28 @@ void webHandleRoot()
         httpMessage += haspDevice.get_hostname();
         httpMessage += F("</h1><hr>");
 
-        httpMessage += F("<p><form method='get' action='/config/hasp'><button type='submit'>" D_HTTP_HASP_DESIGN
+        httpMessage += F("<p><form method='GET' action='/config/hasp'><button type='submit'>" D_HTTP_HASP_DESIGN
                          "</button></form></p>");
 
-        httpMessage += F("<p><form method='get' action='screenshot'><button type='submit'>" D_HTTP_SCREENSHOT
+        httpMessage += F("<p><form method='GET' action='screenshot'><button type='submit'>" D_HTTP_SCREENSHOT
                          "</button></form></p>");
         httpMessage +=
-            F("<p><form method='get' action='info'><button type='submit'>" D_HTTP_INFORMATION "</button></form></p>");
+            F("<p><form method='GET' action='info'><button type='submit'>" D_HTTP_INFORMATION "</button></form></p>");
         add_form_button(httpMessage, F(D_HTTP_CONFIGURATION), F("/config"), F(""));
-        // httpMessage += F("<p><form method='get' action='config'><button type='submit'>" D_HTTP_CONFIGURATION
+        // httpMessage += F("<p><form method='GET' action='config'><button type='submit'>" D_HTTP_CONFIGURATION
         //                  "</button></form></p>");
 
-        httpMessage += F("<p><form method='get' action='firmware'><button type='submit'>" D_HTTP_FIRMWARE_UPGRADE
+        httpMessage += F("<p><form method='GET' action='firmware'><button type='submit'>" D_HTTP_FIRMWARE_UPGRADE
                          "</button></form></p>");
 
 #if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
-        if(HASP_FS.exists(F("/edit.htm.gz"))) {
-            httpMessage +=
-                F("<p><form method='get' action='edit.htm.gz?path=/'><button type='submit'>" D_HTTP_FILE_BROWSER
-                  "</button></form></p>");
+        if(HASP_FS.exists(F("/edit.htm.gz")) || HASP_FS.exists(F("/edit.htm"))) {
+            httpMessage += F("<p><form method='GET' action='edit.htm?path=/'><button type='submit'>" D_HTTP_FILE_BROWSER
+                             "</button></form></p>");
         }
 #endif
 
-        httpMessage += F("<p><form method='get' action='reboot'><button class='red' type='submit'>" D_HTTP_REBOOT
+        httpMessage += F("<p><form method='GET' action='reboot'><button class='red' type='submit'>" D_HTTP_REBOOT
                          "</button></form></p>");
 
         webSendPage(haspDevice.get_hostname(), httpMessage.length(), false);
@@ -442,13 +441,13 @@ void webHandleScreenshot()
             // Automatic refresh
             httpMessage += F(" onload=\"aref(5)\" onerror=\"aref(5)\"/></p>");
 
-            httpMessage += F("<p><form method='get' onsubmit=\"return ref('')\"><button type='submit'>" D_HTTP_REFRESH
+            httpMessage += F("<p><form method='GET' onsubmit=\"return ref('')\"><button type='submit'>" D_HTTP_REFRESH
                              "</button></form></p>");
             httpMessage +=
-                F("<p><form method='get' onsubmit=\"return ref('prev');\"><button type='submit'>" D_HTTP_PREV_PAGE
+                F("<p><form method='GET' onsubmit=\"return ref('prev');\"><button type='submit'>" D_HTTP_PREV_PAGE
                   "</button></form></p>");
             httpMessage +=
-                F("<p><form method='get' onsubmit=\"return ref('next');\"><button type='submit'>" D_HTTP_NEXT_PAGE
+                F("<p><form method='GET' onsubmit=\"return ref('next');\"><button type='submit'>" D_HTTP_NEXT_PAGE
                   "</button></form></p>");
             httpMessage += FPSTR(MAIN_MENU_BUTTON);
 
@@ -981,22 +980,30 @@ void handleFileCreate()
     if(webServer.args() == 0) {
         return webServer.send(500, PSTR("text/plain"), PSTR("BAD ARGS"));
     }
-    String path = webServer.arg(0);
-    LOG_TRACE(TAG_HTTP, F("handleFileCreate: %s"), path.c_str());
-    if(path == "/") {
-        return webServer.send(500, PSTR("text/plain"), PSTR("BAD PATH"));
+
+    if(webServer.hasArg(F("path"))) {
+        String path = webServer.arg(F("path"));
+        LOG_TRACE(TAG_HTTP, F("handleFileCreate: %s"), path.c_str());
+        if(path == "/") {
+            return webServer.send(500, PSTR("text/plain"), PSTR("BAD PATH"));
+        }
+        if(HASP_FS.exists(path)) {
+            return webServer.send(500, PSTR("text/plain"), PSTR("FILE EXISTS"));
+        }
+        File file = HASP_FS.open(path, "w");
+        if(file) {
+            file.close();
+        } else {
+            return webServer.send(500, PSTR("text/plain"), PSTR("CREATE FAILED"));
+        }
     }
-    if(HASP_FS.exists(path)) {
-        return webServer.send(500, PSTR("text/plain"), PSTR("FILE EXISTS"));
+    if(webServer.hasArg(F("init"))) {
+        hasp_init();
     }
-    File file = HASP_FS.open(path, "w");
-    if(file) {
-        file.close();
-    } else {
-        return webServer.send(500, PSTR("text/plain"), PSTR("CREATE FAILED"));
+    if(webServer.hasArg(F("load"))) {
+        hasp_load_json();
     }
     webServer.send(200, PSTR("text/plain"), "");
-    path.clear();
 }
 
 void handleFileList()
@@ -1086,35 +1093,35 @@ void webHandleConfig()
         httpMessage += F("</h1><hr>");
 
 #if HASP_USE_WIFI > 0
-        httpMessage += F("<p><form method='get' action='/config/wifi'><button type='submit'>" D_HTTP_WIFI_SETTINGS
+        httpMessage += F("<p><form method='GET' action='/config/wifi'><button type='submit'>" D_HTTP_WIFI_SETTINGS
                          "</button></form></p>");
 #endif
 
 #if HASP_USE_MQTT > 0
-        httpMessage += F("<p><form method='get' action='/config/mqtt'><button type='submit'>" D_HTTP_MQTT_SETTINGS
+        httpMessage += F("<p><form method='GET' action='/config/mqtt'><button type='submit'>" D_HTTP_MQTT_SETTINGS
                          "</button></form></p>");
 #endif
 
-        httpMessage += F("<p><form method='get' action='/config/http'><button type='submit'>" D_HTTP_HTTP_SETTINGS
+        httpMessage += F("<p><form method='GET' action='/config/http'><button type='submit'>" D_HTTP_HTTP_SETTINGS
                          "</button></form></p>");
 
-        httpMessage += F("<p><form method='get' action='/config/gui'><button type='submit'>" D_HTTP_GUI_SETTINGS
+        httpMessage += F("<p><form method='GET' action='/config/gui'><button type='submit'>" D_HTTP_GUI_SETTINGS
                          "</button></form></p>");
 
         // httpMessage +=
-        //     F("<p><form method='get' action='/config/hasp'><button type='submit'>HASP
+        //     F("<p><form method='GET' action='/config/hasp'><button type='submit'>HASP
         //     Settings</button></form></p>");
 
 #if HASP_USE_GPIO > 0
-        httpMessage += F("<p><form method='get' action='/config/gpio'><button type='submit'>" D_HTTP_GPIO_SETTINGS
+        httpMessage += F("<p><form method='GET' action='/config/gpio'><button type='submit'>" D_HTTP_GPIO_SETTINGS
                          "</button></form></p>");
 #endif
 
-        httpMessage += F("<p><form method='get' action='/config/debug'><button type='submit'>" D_HTTP_DEBUG_SETTINGS
+        httpMessage += F("<p><form method='GET' action='/config/debug'><button type='submit'>" D_HTTP_DEBUG_SETTINGS
                          "</button></form></p>");
 
         httpMessage +=
-            F("<p><form method='get' action='resetConfig'><button class='red' type='submit'>" D_HTTP_FACTORY_RESET
+            F("<p><form method='GET' action='resetConfig'><button class='red' type='submit'>" D_HTTP_FACTORY_RESET
               "</button></form>");
 
         httpMessage += FPSTR(MAIN_MENU_BUTTON);
@@ -1168,7 +1175,7 @@ void webHandleMqttConfig()
             F("'><p><button type='submit' name='save' value='mqtt'>" D_HTTP_SAVE_SETTINGS "</button></form></p>");
 
         add_form_button(httpMessage, F("&#8617; " D_HTTP_CONFIGURATION), F("/config"), F(""));
-        // httpMessage += PSTR("<p><form method='get' action='/config'><button type='submit'>&#8617; "
+        // httpMessage += PSTR("<p><form method='GET' action='/config'><button type='submit'>&#8617; "
         // D_HTTP_CONFIGURATION
         //                     "</button></form></p>");
 
@@ -1256,24 +1263,19 @@ void webHandleGuiConfig()
         //     F("<p><button type='submit' name='save' value='gui'>" D_HTTP_SAVE_SETTINGS "</button></p></form>");
 
 #if TOUCH_DRIVER == 2046 && defined(TOUCH_CS)
-        add_form_button(httpMessage, F(D_HTTP_CALIBRATE), F("/config/gui"), F("name='action' value='calibrate'"));
+        add_form_button(httpMessage, F(D_HTTP_CALIBRATE), F("/config/gui"), F("name='cal' value='1'"));
 
-// httpMessage += PSTR("<p><form method='get' action='/config/gui'><button type='submit' "
+// httpMessage += PSTR("<p><form method='GET' action='/config/gui'><button type='submit' "
 //                     ">" D_HTTP_CALIBRATE "</button></form></p>");
 #endif
 
         add_form_button(httpMessage, F("&#8617; " D_HTTP_CONFIGURATION), F("/config"), F(""));
-
-        // httpMessage += PSTR("<p><form method='get' action='/config'><button type='submit'>&#8617; "
-        // D_HTTP_CONFIGURATION
-        //                     "</button></form></p>");
-
         webSendPage(haspDevice.get_hostname(), httpMessage.length(), false);
         webServer.sendContent(httpMessage);
     }
     webSendFooter();
 
-    if(webServer.hasArg(F("action"))) dispatch_text_line(webServer.arg(F("action")).c_str());
+    if(webServer.hasArg(F("cal"))) dispatch_calibrate(NULL, NULL);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1306,7 +1308,7 @@ void webHandleWifiConfig()
 #if HASP_USE_WIFI > 0 && !defined(STM32F4xx)
     if(WiFi.getMode() == WIFI_STA) {
         add_form_button(httpMessage, F("&#8617; " D_HTTP_CONFIGURATION), F("/config"), F(""));
-        // httpMessage += PSTR("<p><form method='get' action='/config'><button type='submit'>&#8617; "
+        // httpMessage += PSTR("<p><form method='GET' action='/config'><button type='submit'>&#8617; "
         // D_HTTP_CONFIGURATION
         //                     "</button></form></p>");
     }
@@ -1351,7 +1353,7 @@ void webHandleHttpConfig()
         // httpMessage +=
         //     F("'><p><button type='submit' name='save' value='http'>" D_HTTP_SAVE_SETTINGS "</button></p></form>");
 
-        // httpMessage += PSTR("<p><form method='get' action='/config'><button type='submit'>&#8617; "
+        // httpMessage += PSTR("<p><form method='GET' action='/config'><button type='submit'>&#8617; "
         // D_HTTP_CONFIGURATION
         //                     "</button></form></p>");
 
@@ -1366,7 +1368,7 @@ void webHandleHttpConfig()
                  "<b>Web Password</b> <i><small>(optional)</small></i>"
                  "<input id='pass' name='pass' type='password' maxlength=63 placeholder='Password' value='%s'>"
                  "<p><button type='submit' name='save' value='http'>" D_HTTP_SAVE_SETTINGS "</button></p></form>"
-                 "<p><form method='get' action='/config'><button type='submit'>&#8617; " D_HTTP_CONFIGURATION
+                 "<p><form method='GET' action='/config'><button type='submit'>&#8617; " D_HTTP_CONFIGURATION
                  "</button></form></p>"),
             haspDevice.get_hostname(), settings[FPSTR(FP_CONFIG_USER)].as<String>().c_str(),
             settings[FPSTR(FP_CONFIG_PASS)].as<String>().c_str());
@@ -1505,7 +1507,7 @@ void webHandleGpioConfig()
         }
 
         add_form_button(httpMessage, F("&#8617; " D_HTTP_CONFIGURATION), F("/config"), F(""));
-        //    httpMessage += F("<p><form method='get' action='/config'><button type='submit'>&#8617; "
+        //    httpMessage += F("<p><form method='GET' action='/config'><button type='submit'>&#8617; "
         //    D_HTTP_CONFIGURATION
         //                      "</button></form></p>");
 
@@ -1608,7 +1610,7 @@ void webHandleGpioOptions()
         httpMessage +=
             F("<p><button type='submit' name='save' value='gpio'>" D_HTTP_SAVE_SETTINGS "</button></p></form>");
 
-        httpMessage += PSTR("<p><form method='get' action='/config/gpio'><button type='submit'>&#8617; " D_HTTP_BACK
+        httpMessage += PSTR("<p><form method='GET' action='/config/gpio'><button type='submit'>&#8617; " D_HTTP_BACK
                             "</button></form></p>");
 
         webSendPage(haspDevice.get_hostname(), httpMessage.length(), false);
@@ -1616,7 +1618,7 @@ void webHandleGpioOptions()
     }
     webSendFooter();
 
-    if(webServer.hasArg(F("action"))) dispatch_text_line(webServer.arg(F("action")).c_str()); // Security check
+    // if(webServer.hasArg(F("action"))) dispatch_text_line(webServer.arg(F("action")).c_str()); // Security check
 }
 #endif // HASP_USE_GPIO
 
@@ -1676,7 +1678,7 @@ void webHandleDebugConfig()
             F("</p><p><button type='submit' name='save' value='debug'>" D_HTTP_SAVE_SETTINGS "</button></p></form>");
 
         add_form_button(httpMessage, F("&#8617; " D_HTTP_CONFIGURATION), F("/config"), F(""));
-        // httpMessage += PSTR("<p><form method='get' action='/config'><button type='submit'>&#8617; "
+        // httpMessage += PSTR("<p><form method='GET' action='/config'><button type='submit'>&#8617; "
         // D_HTTP_CONFIGURATION
         //                     "</button></form></p>");
 
@@ -1702,7 +1704,7 @@ void webHandleHaspConfig()
         httpMessage += haspDevice.get_hostname();
         httpMessage += F("</h1><hr>");
 
-        httpMessage += F("<p><form action='/edit' method='post' enctype='multipart/form-data'><input type='file' "
+        httpMessage += F("<p><form action='/edit' method='POST' enctype='multipart/form-data'><input type='file' "
                          "name='filename' accept='.jsonl,.zi'>");
         httpMessage += F("<button type='submit'>" D_HTTP_UPLOAD_FILE "</button></form></p><hr>");
 
@@ -1779,7 +1781,7 @@ void webHandleHaspConfig()
             F("<p><button type='submit' name='save' value='hasp'>" D_HTTP_SAVE_SETTINGS "</button></form></p>");
 
         // httpMessage +=
-        //     F("<p><form method='get' action='/config'><button
+        //     F("<p><form method='GET' action='/config'><button
         //     type='submit'>"D_HTTP_CONFIGURATION"</button></form></p>");
         httpMessage += FPSTR(MAIN_MENU_BUTTON);
 
@@ -1833,15 +1835,15 @@ void webHandleFirmware()
         httpMessage += haspDevice.get_hostname();
         httpMessage += F("</h1><hr>");
 
-        httpMessage += F("<p><form action='/update' method='post' enctype='multipart/form-data'><input type='file' "
+        httpMessage += F("<p><form action='/update' method='POST' enctype='multipart/form-data'><input type='file' "
                          "name='filename' accept='.bin'>");
         httpMessage += F("<button type='submit'>" D_HTTP_UPDATE_FIRMWARE "</button></form></p>");
 
-        // httpMessage += F("<p><form action='/update' method='post' enctype='multipart/form-data'><input type='file' "
+        // httpMessage += F("<p><form action='/update' method='POST' enctype='multipart/form-data'><input type='file' "
         //                  "name='filename' accept='.spiffs'>");
         // httpMessage += F("<button type='submit'>Replace Filesystem Image</button></form></p>");
 
-        httpMessage += F("<form method='get' action='/espfirmware'>");
+        httpMessage += F("<form method='GET' action='/espfirmware'>");
         httpMessage += F("<br/><b>Update ESP from URL</b>");
         httpMessage += F("<br/><input id='url' name='url' value='");
         httpMessage += "";
@@ -1922,13 +1924,13 @@ void httpHandleResetConfig()
                   "be erased and the device is restarted. You may need to connect to the WiFi AP displayed on the "
                   "panel to "
                   "re-configure the device before accessing it again. ALL FILES WILL BE LOST!"
-                  "<br/><hr><br/><form method='get' action='resetConfig'>"
+                  "<br/><hr><br/><form method='GET' action='resetConfig'>"
                   "<br/><br/><button type='submit' name='confirm' value='yes'>" D_HTTP_ERASE_DEVICE "</button></form>"
                   "<br/><hr><br/>");
 
             add_form_button(httpMessage, F("&#8617; " D_HTTP_CONFIGURATION), F("/config"), F(""));
             // httpMessage +=
-            //     PSTR("<p><form method='get' action='/config'><button type='submit'>&#8617; " D_HTTP_CONFIGURATION
+            //     PSTR("<p><form method='GET' action='/config'><button type='submit'>&#8617; " D_HTTP_CONFIGURATION
             //          "</button></form></p>");
         }
 
