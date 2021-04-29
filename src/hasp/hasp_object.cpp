@@ -23,6 +23,8 @@
 #include "hasplib.h"
 
 const char** btnmatrix_default_map; // memory pointer to lvgl default btnmatrix map
+const char* msgbox_default_map[] = {"OK"
+                                    ""}; // memory pointer to hasp default msgbox map
 
 // ##################### Object Finders ########################################################
 
@@ -702,8 +704,9 @@ void hasp_new_object(const JsonObject& config, uint8_t& saved_page_id)
                 obj = lv_msgbox_create(parent_obj, NULL);
                 if(obj) {
                     lv_obj_align(obj, NULL, LV_ALIGN_CENTER, 0, 0);
+                    lv_obj_set_auto_realign(obj, true);
                     lv_obj_set_event_cb(obj, msgbox_event_handler);
-                    if(btnmatrix_default_map) lv_msgbox_add_btns(obj, btnmatrix_default_map);
+                    //  if(msgbox_default_map) lv_msgbox_add_btns(obj, msgbox_default_map);
                     obj->user_data.objid = LV_HASP_MSGBOX;
                 }
                 break;
