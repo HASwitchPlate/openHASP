@@ -178,6 +178,15 @@ static bool attribute_update_lv_property(lv_obj_t * obj, const char * attr_p, ui
 }
 #endif
 
+const char* my_tabview_get_tab_name(lv_obj_t* tabview)
+{
+    uint16_t id = lv_tabview_get_tab_act(tabview);
+    if(id >= lv_tabview_get_tab_count(tabview)) return NULL;
+
+    lv_tabview_ext_t* ext = (lv_tabview_ext_t*)lv_obj_get_ext_attr(tabview);
+    return ext->tab_name_ptr[id];
+}
+
 // OK - this function is missing in lvgl
 static uint8_t my_roller_get_visible_row_count(lv_obj_t* roller)
 {
@@ -228,7 +237,7 @@ lv_chart_series_t* my_chart_get_series(lv_obj_t* chart, uint8_t ser_num)
  * @param obj pointer to a object
  * @param text '\0' terminated character string. NULL to refresh with the current text.
  */
-void my_obj_set_value_str_txt(lv_obj_t* obj, uint8_t part, lv_state_t state, const char* text)
+void my_obj_set_value_str_text(lv_obj_t* obj, uint8_t part, lv_state_t state, const char* text)
 {
     //  LOG_VERBOSE(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
 
@@ -1016,7 +1025,7 @@ static void hasp_local_style_attr(lv_obj_t* obj, const char* attr_p, uint16_t at
             return attribute_value_opa(obj, part, state, update, attr_p, (lv_opa_t)var);
         case ATTR_VALUE_STR: {
             if(update) {
-                my_obj_set_value_str_txt(obj, part, state, payload);
+                my_obj_set_value_str_text(obj, part, state, payload);
             } else {
                 attr_out_str(obj, attr, lv_obj_get_style_value_str(obj, part));
             }
@@ -1266,7 +1275,7 @@ static void hasp_process_page_attributes(lv_obj_t* obj, const char* attr_p, uint
     }
 }
 
-static void hasp_process_obj_attribute_txt(lv_obj_t* obj, const char* attr, const char* payload, bool update)
+static void hasp_process_obj_attribute_text(lv_obj_t* obj, const char* attr, const char* payload, bool update)
 {
     /* Attributes depending on objecttype */
     // lv_obj_type_t list;
@@ -1301,9 +1310,18 @@ static void hasp_process_obj_attribute_txt(lv_obj_t* obj, const char* attr, cons
     if(check_obj_type(obj, LV_HASP_MSGBOX)) {
         if(update) {
             lv_msgbox_set_text(obj, payload);
-            lv_obj_align(obj, NULL, LV_ALIGN_CENTER, 0, 0); /*Align to the corner*/
+            //  lv_obj_realign(obj); /* Realign to the center */
         } else {
             attr_out_str(obj, attr, lv_msgbox_get_text(obj));
+        }
+        return;
+    }
+    if(check_obj_type(obj, LV_HASP_TABVIEW)) {
+        if(update) {
+            uint16_t id = lv_tabview_get_tab_act(obj);
+            if(id < lv_tabview_get_tab_count(obj)) lv_tabview_set_tab_name(obj, id, (char*)payload);
+        } else {
+            attr_out_str(obj, attr, my_tabview_get_tab_name(obj));
         }
         return;
     }
@@ -1528,7 +1546,7 @@ void hasp_process_obj_attribute(lv_obj_t* obj, const char* attr_p, const char* p
         case ATTR_TXT: // TODO: remove
             LOG_WARNING(TAG_HASP, F("txt property is obsolete, use text instead"));
         case ATTR_TEXT:
-            hasp_process_obj_attribute_txt(obj, attr, payload, update);
+            hasp_process_obj_attribute_text(obj, attr, payload, update);
             break; // attribute_found
 
         case ATTR_COLOR:
@@ -1736,6 +1754,16 @@ void hasp_process_obj_attribute(lv_obj_t* obj, const char* attr_p, const char* p
             }
             break;
 
+        case ATTR_COUNT:
+            if(check_obj_type(obj, LV_HASP_TABVIEW)) {
+                if(update) LOG_WARNING(TAG_ATTR, F(D_ATTRIBUTE_READ_ONLY), attr_p);
+                attr_out_int(obj, attr_p, lv_tabview_get_tab_count(obj));
+
+            } else {
+                goto attribute_not_found;
+            }
+            break;
+
             //  case ATTR_MODAL:
         case ATTR_AUTO_CLOSE:
             if(check_obj_type(obj, LV_HASP_MSGBOX)) {
@@ -1846,22 +1874,23 @@ void attr_out_str(lv_obj_t* obj, const char* attribute, const char* data)
     uint8_t pageid;
     uint8_t objid;
 
-    if(hasp_find_id_from_obj(obj, &pageid, &objid)) {
-        if(!attribute || !data) return;
+    if(!attribute || !hasp_find_id_from_obj(obj, &pageid, &objid)) return;
 
-        StaticJsonDocument<32> doc; // Total (recommended) size
+    StaticJsonDocument<32> doc; // Total (recommended) size
+    if(data)
         doc[attribute].set(data);
+    else
+        doc[attribute].set(nullptr);
 
-        size_t size = measureJson(doc); // strlen(data) + strlen(attribute);
-        if(size < MQTT_MAX_PACKET_SIZE) {
-            char payload[MQTT_MAX_PACKET_SIZE];
-            serializeJson(doc, payload);
-            object_dispatch_state(pageid, objid, payload);
+    // size_t size = measureJson(doc); // strlen(data) + strlen(attribute);
+    // if(size < MQTT_MAX_PACKET_SIZE) {
+    char payload[MQTT_MAX_PACKET_SIZE];
+    serializeJson(doc, payload, MQTT_MAX_PACKET_SIZE);
+    object_dispatch_state(pageid, objid, payload);
 
-        } else {
-            LOG_ERROR(TAG_ATTR, F(D_MQTT_PAYLOAD_TOO_LONG), (uint32_t)size);
-        }
-    }
+    // } else {
+    //     LOG_ERROR(TAG_ATTR, F(D_MQTT_PAYLOAD_TOO_LONG), (uint32_t)size);
+    // }
 }
 
 void attr_out_int(lv_obj_t* obj, const char* attribute, int32_t val)

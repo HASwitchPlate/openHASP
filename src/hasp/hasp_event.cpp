@@ -52,7 +52,7 @@ static void event_delete_object(lv_obj_t* obj)
     }
 
     // TODO: delete value_str data for ALL parts
-    my_obj_set_value_str_txt(obj, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, NULL);
+    my_obj_set_value_str_text(obj, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, NULL);
 }
 
 /* ============================== Event Senders ============================ */
