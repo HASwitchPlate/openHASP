@@ -291,9 +291,11 @@ void gpioSetup()
                 break;
 
             case HASP_GPIO_SERIAL_DIMMER:
-                const char command[9] = "    \xEF\x01\x4D\xA3"; // Start Lanbon Dimmer
+                const char command[9] = "\xEF\x01\x4D\xA3"; // Start Lanbon Dimmer
 #if defined(ARDUINO_ARCH_ESP32)
                 Serial2.begin(115200, SERIAL_8N1, UART_PIN_NO_CHANGE, gpioConfig[i].pin, 2000);
+                delay(20);
+                Serial2.print("  ");
                 delay(20);
                 Serial2.write((const uint8_t*)command, 8);
 #endif
