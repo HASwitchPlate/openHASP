@@ -695,11 +695,11 @@ void webHandleInfo()
         Parser::format_bytes(ESP.getFlashChipSize(), size_buf, sizeof(size_buf));
         httpMessage += size_buf;
 
-        httpMessage += F("</br><b>Program Size: </b>");
+        httpMessage += F("</br><b>Program Size Used: </b>");
         Parser::format_bytes(ESP.getSketchSize(), size_buf, sizeof(size_buf));
         httpMessage += size_buf;
 
-        httpMessage += F("<br/><b>Free Program Space: </b>");
+        httpMessage += F("<br/><b>Program Size Free: </b>");
         Parser::format_bytes(ESP.getFreeSketchSpace(), size_buf, sizeof(size_buf));
         httpMessage += size_buf;
 #endif

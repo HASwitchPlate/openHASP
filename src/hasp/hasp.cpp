@@ -570,49 +570,6 @@ void haspSetPage(uint8_t pageid)
     }
 }
 
-void haspLoadPage(const char* pagesfile)
-{
-#if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
-    if(pagesfile[0] == '\0') return;
-
-    if(!filesystemSetup()) {
-        LOG_ERROR(TAG_HASP, F("FS not mounted. Failed to load %s"), pagesfile);
-        return;
-    }
-
-    if(!HASP_FS.exists(pagesfile)) {
-        LOG_ERROR(TAG_HASP, F("Non existing file %s"), pagesfile);
-        return;
-    }
-
-    LOG_TRACE(TAG_HASP, F("Loading file %s"), pagesfile);
-
-    File file = HASP_FS.open(pagesfile, "r");
-    dispatch_parse_jsonl(file);
-    file.close();
-
-    LOG_INFO(TAG_HASP, F("File %s loaded"), pagesfile);
-#else
-
-#if HASP_USE_EEPROM > 0
-    LOG_TRACE(TAG_HASP, F("Loading jsonl from EEPROM..."));
-    EepromStream eepromStream(4096, 1024);
-    dispatch_parse_jsonl(eepromStream);
-    LOG_INFO(TAG_HASP, F("Loaded jsonl from EEPROM"));
-#endif
-
-    std::ifstream ifs("pages.json", std::ifstream::in);
-    if(ifs) {
-        LOG_TRACE(TAG_HASP, F("Loading file %s"), pagesfile);
-        dispatch_parse_jsonl(ifs);
-        LOG_INFO(TAG_HASP, F("File %s loaded"), pagesfile);
-    } else {
-        LOG_ERROR(TAG_HASP, F("Non existing file %s"), pagesfile);
-    }
-
-#endif
-}
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #if HASP_USE_CONFIG > 0
 bool haspGetConfig(const JsonObject& settings)
