@@ -74,6 +74,9 @@ void hasp_set_sleep_time(uint16_t short_time, uint16_t long_time);
 void hasp_enable_wakeup_touch();
 void hasp_disable_wakeup_touch();
 
+void hasp_init(void);
+void hasp_load_json(void);
+
 /**********************
  *      MACROS
  **********************/

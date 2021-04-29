@@ -469,8 +469,8 @@ void haspSetup(void)
     }
 #endif
 
-    haspPages.init(haspStartPage);
-    haspPages.load_jsonl(haspPagesPath);
+    hasp_init();
+    hasp_load_json();
     haspPages.set(haspStartPage, LV_SCR_LOAD_ANIM_NONE);
 }
 
@@ -481,6 +481,16 @@ void haspSetup(void)
 void haspLoop(void)
 {
     dispatchLoop();
+}
+
+void hasp_init(void)
+{
+    haspPages.init(haspStartPage);
+}
+
+void hasp_load_json(void)
+{
+    haspPages.load_jsonl(haspPagesPath);
 }
 
 /*
