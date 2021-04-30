@@ -1,16 +1,10 @@
 /* MIT License - Copyright (c) 2019-2021 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
-#include <cstdlib>
-#include <cctype>
-#include <string>
-
 #ifdef ARDUINO
 #include "pgmspace.h"
 #include "Arduino.h"
 #endif
-
-#include "lvgl.h"
 
 #include "hasplib.h"
 

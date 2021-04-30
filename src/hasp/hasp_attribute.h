@@ -4,14 +4,7 @@
 #ifndef HASP_ATTR_SET_H
 #define HASP_ATTR_SET_H
 
-#include "lvgl.h"
-#if LVGL_VERSION_MAJOR != 7
-#include "../lv_components.h"
-#endif
-
-#include "hasp_conf.h"
-#include "hasp.h"
-#include "hasp_object.h"
+#include "hasplib.h"
 
 #ifdef __cplusplus
 extern "C" {

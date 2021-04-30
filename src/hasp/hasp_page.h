@@ -4,7 +4,6 @@
 #ifndef HASP_PAGES_H
 #define HASP_PAGES_H
 
-#include "hasp_conf.h"
 #include "hasplib.h"
 
 /*********************

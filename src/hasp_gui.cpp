@@ -1,10 +1,8 @@
 /* MIT License - Copyright (c) 2019-2021 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
-#include "hasp_conf.h"
+#include "hasplib.h"
 
-#include "lv_conf.h"
-#include "lvgl.h"
 #include "lv_drv_conf.h"
 
 // Filesystem Driver
@@ -23,8 +21,6 @@
 #include "hasp_config.h"
 #include "hasp_gui.h"
 #include "hasp_oobe.h"
-
-#include "hasplib.h"
 
 //#include "tpcal.h"
 

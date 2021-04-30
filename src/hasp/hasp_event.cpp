@@ -22,7 +22,6 @@
  *
  ******************************************************************************************** */
 
-#include "hasp_conf.h"
 #include "hasplib.h"
 
 #include "lv_core/lv_obj.h" // for tabview ext

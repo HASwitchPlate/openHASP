@@ -3,12 +3,7 @@
 
 #if HASP_USE_CONFIG > 0
 
-#include "hasp_conf.h"
-
-#include "lvgl.h"
-#if LVGL_VERSION_MAJOR != 7
-#include "../lv_components.h"
-#endif
+#include "hasplib.h"
 
 #include "hasp_gui.h"
 #include "hasp_config.h"

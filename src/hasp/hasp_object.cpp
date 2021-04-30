@@ -15,11 +15,6 @@
 #include "ArduinoLog.h"
 #endif
 
-#include "lvgl.h"
-#if LVGL_VERSION_MAJOR != 7
-#include "../lv_components.h"
-#endif
-
 #include "hasplib.h"
 
 const char** btnmatrix_default_map; // memory pointer to lvgl default btnmatrix map

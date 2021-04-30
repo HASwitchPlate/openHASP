@@ -11,14 +11,12 @@
 #include <sstream>
 #endif
 
-#include "ArduinoJson.h"
-
 #if HASP_USE_EEPROM > 0
 #include "StreamUtils.h" // For EEPromStream
 #endif
 
-#include "lvgl.h"
-#include "lv_conf.h"
+#include "hasplib.h"
+#include "lv_theme_hasp.h"
 
 #if HASP_USE_DEBUG > 0
 #include "../hasp_debug.h"
@@ -30,10 +28,6 @@
 #include "hasp_config.h"
 //#include "hasp_filesystem.h" included in hasp_conf.h
 #endif
-
-#include "hasplib.h"
-#include "hasp.h"
-#include "lv_theme_hasp.h"
 
 #include "dev/device.h"
 

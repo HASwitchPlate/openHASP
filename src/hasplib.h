@@ -1,4 +1,12 @@
+#include <cstdlib>
+#include <cctype>
+#include <string>
+#include <stdint.h>
+
 #include "hasp_conf.h"
+
+#include "lv_conf.h"
+#include "lvgl.h"
 
 #include "hasp/hasp.h"
 #include "hasp/hasp_attribute.h"
@@ -10,3 +18,5 @@
 #include "hasp/hasp_lvfs.h"
 
 #include "hasp/lv_theme_hasp.h"
+
+#include "ArduinoJson.h"

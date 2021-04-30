@@ -3,9 +3,6 @@
 
 /* Single threaded synchronous paho client */
 
-#include <stdint.h>
-
-#include "hasp_conf.h"
 #include "hasplib.h"
 
 #if HASP_USE_MQTT > 0
