@@ -367,7 +367,7 @@ void webHandleRoot()
 
 #if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
         if(HASP_FS.exists(F("/edit.htm.gz")) || HASP_FS.exists(F("/edit.htm"))) {
-            httpMessage += F("<p><form method='GET' action='edit.htm?path=/'><button type='submit'>" D_HTTP_FILE_BROWSER
+            httpMessage += F("<p><form method='GET' action='edit.htm?file=/'><button type='submit'>" D_HTTP_FILE_BROWSER
                              "</button></form></p>");
         }
 #endif
@@ -893,22 +893,29 @@ bool handleFileRead(String path)
     String pathWithGz = path + F(".gz");
     if(HASP_FS.exists(pathWithGz) || HASP_FS.exists(path)) {
         if(HASP_FS.exists(pathWithGz)) path += F(".gz");
+        File file = HASP_FS.open(path, "r");
 
-        File file          = HASP_FS.open(path, "r");
-        String contentType = getContentType(path);
-        if(path == F("/edit.htm.gz")) {
-            contentType = F("text/html");
-        }
+        String contentType;
+        if(webServer.hasArg(F("download")))
+            contentType = F("application/octet-stream");
+        else
+            contentType = getContentType(path);
+
+        // if(path == F("/edit.htm.gz")) {
+        //     contentType = F("text/html");
+        // }
         webServer.streamFile(file, contentType);
         file.close();
         return true;
     }
 
 #ifdef ARDUINO_ARCH_ESP32
-    size_t size = EDIT_HTM_GZ_END - EDIT_HTM_GZ_START;
-    webServer.sendHeader(F("Content-Encoding"), F("gzip"));
-    webServer.send_P(200, PSTR("text/html"), (const char*)EDIT_HTM_GZ_START, size);
-    return true;
+    if(path == F("/edit.htm")) {
+        size_t size = EDIT_HTM_GZ_END - EDIT_HTM_GZ_START;
+        webServer.sendHeader(F("Content-Encoding"), F("gzip"));
+        webServer.send_P(200, PSTR("text/html"), (const char*)EDIT_HTM_GZ_START, size);
+        return true;
+    }
 #else
     return false;
 #endif
