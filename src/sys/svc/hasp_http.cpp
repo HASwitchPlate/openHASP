@@ -373,7 +373,12 @@ void webHandleRoot()
                          "</button></form></p>");
 
 #if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
-        if(HASP_FS.exists(F("/edit.htm.gz")) || HASP_FS.exists(F("/edit.htm"))) {
+#ifdef ARDUINO_ARCH_ESP32
+        bool flashfile = true;
+#else
+        bool flashfile = false;
+#endif
+        if(flashfile || HASP_FS.exists(F("/edit.htm.gz")) || HASP_FS.exists(F("/edit.htm"))) {
             httpMessage += F("<p><form method='GET' action='edit.htm?file=/'><button type='submit'>" D_HTTP_FILE_BROWSER
                              "</button></form></p>");
         }
@@ -903,17 +908,23 @@ bool handleFileRead(String path)
         if(HASP_FS.exists(pathWithGz)) path += F(".gz");
         File file = HASP_FS.open(path, "r");
 
-        String contentType;
-        if(webServer.hasArg(F("download")))
-            contentType = F("application/octet-stream");
-        else
-            contentType = getContentType(path);
+        String configFile((char*)0);
+        configFile.reserve(32);
+        configFile = String(FPSTR(FP_HASP_CONFIG_FILE));
 
-        // if(path == F("/edit.htm.gz")) {
-        //     contentType = F("text/html");
-        // }
-        webServer.streamFile(file, contentType);
-        file.close();
+        if(!strncasecmp(file.name(), configFile.c_str(), configFile.length())) {
+
+        } else {
+            String contentType;
+            if(webServer.hasArg(F("download")))
+                contentType = F("application/octet-stream");
+            else
+                contentType = getContentType(path);
+
+            webServer.streamFile(file, contentType);
+            file.close();
+        }
+
         return true;
     }
 
@@ -1052,9 +1063,11 @@ void handleFileList()
     path.clear();
 
 #if defined(ARDUINO_ARCH_ESP32)
-    File root     = HASP_FS.open("/", FILE_READ);
-    File file     = root.openNextFile();
-    String output = "[";
+    File root = HASP_FS.open("/", FILE_READ);
+    File file = root.openNextFile();
+    String output((char*)0);
+    output.reserve(HTTP_PAGE_SIZE);
+    output = "[";
 
     while(file) {
         if(output != "[") {
@@ -1078,7 +1091,10 @@ void handleFileList()
     webServer.send(200, PSTR("text/json"), output);
 #elif defined(ARDUINO_ARCH_ESP8266)
     Dir dir = HASP_FS.openDir(path);
-    String output = "[";
+    String output((char*)0);
+    output.reserve(HTTP_PAGE_SIZE);
+    output = "[";
+
     while(dir.next()) {
         File entry = dir.openFile("r");
         if(output != "[") {
