@@ -59,6 +59,7 @@ void dispatch_web_update(const char*, const char* espOtaUrl);
 void dispatch_statusupdate(const char*, const char*);
 void dispatch_idle(const char*, const char*);
 void dispatch_calibrate(const char*, const char*);
+void dispatch_wakeup(const char*, const char*);
 
 void dispatch_gpio_input_event(uint8_t pin, uint8_t group, uint8_t eventid);
 

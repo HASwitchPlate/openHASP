@@ -5,6 +5,8 @@
 .git
 .pio
 data/*
+!data/edit.htm
+!data/edit.htm.gz
 src/user_setups/active/*
 include/user_config_override.h
 src/user_config_override.h

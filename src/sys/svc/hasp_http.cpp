@@ -94,6 +94,8 @@ ESP8266WebServer webServer(80);
 #include <WebServer.h>
 #include <detail/mimetable.h>
 WebServer webServer(80);
+extern const uint8_t EDIT_HTM_GZ_START[] asm("_binary_data_edit_htm_gz_start");
+extern const uint8_t EDIT_HTM_GZ_END[] asm("_binary_data_edit_htm_gz_end");
 #endif // ESP32
 
 HTTPUpload* upload;
@@ -901,7 +903,15 @@ bool handleFileRead(String path)
         file.close();
         return true;
     }
+
+#ifdef ARDUINO_ARCH_ESP32
+    size_t size = EDIT_HTM_GZ_END - EDIT_HTM_GZ_START;
+    webServer.sendHeader(F("Content-Encoding"), F("gzip"));
+    webServer.send_P(200, PSTR("text/html"), (const char*)EDIT_HTM_GZ_START, size);
+    return true;
+#else
     return false;
+#endif
 }
 
 void handleFileUpload()
@@ -998,10 +1008,17 @@ void handleFileCreate()
         }
     }
     if(webServer.hasArg(F("init"))) {
+        dispatch_wakeup(NULL, NULL);
         hasp_init();
     }
     if(webServer.hasArg(F("load"))) {
+        dispatch_wakeup(NULL, NULL);
         hasp_load_json();
+    }
+    if(webServer.hasArg(F("page"))) {
+        uint8_t pageid = atoi(webServer.arg(F("page")).c_str());
+        dispatch_wakeup(NULL, NULL);
+        dispatch_set_page(pageid, LV_SCR_LOAD_ANIM_NONE);
     }
     webServer.send(200, PSTR("text/plain"), "");
 }
