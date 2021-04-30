@@ -87,7 +87,7 @@ static void debugPrintTimestamp(int level, Print* _logOutput)
 }
 
 /* ===== Default Event Processors ===== */
-// void debugPreSetup(JsonObject settings);
+// void debugSetupWithoutLogging(JsonObject settings);
 // void debugSetup();
 
 static inline void debug_flush()

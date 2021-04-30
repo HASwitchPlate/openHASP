@@ -14,7 +14,7 @@
 #include "ArduinoLog.h"
 
 /* ===== Default Event Processors ===== */
-void debugPreSetup(JsonObject settings);
+void debugSetupWithoutLogging(JsonObject settings);
 void debugSetup();
 
 /* ===== Special Event Processors ===== */

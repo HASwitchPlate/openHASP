@@ -299,7 +299,7 @@ void debugPrintSuffix(uint8_t tag, int level, Print* _logOutput)
     }
 }
 
-void debugPreSetup(JsonObject settings)
+void debugSetupWithoutLogging(JsonObject settings)
 {
     Log.begin(LOG_LEVEL_WARNING, true);
     Log.setPrefix(debugPrintPrefix); // Uncomment to get timestamps as prefix

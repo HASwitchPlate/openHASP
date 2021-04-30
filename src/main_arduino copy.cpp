@@ -54,7 +54,7 @@ void setup()
      * Read & Apply User Configuration
      ***************************/
 #if HASP_USE_CONFIG > 0
-    configSetup(); // also runs debugPreSetup(), debugSetup() and debugStart()
+    configSetup(); // also runs debugSetupWithoutLogging(), debugSetup() and debugStart()
 #endif
 
     dispatchSetup();
