@@ -215,7 +215,8 @@ void webHandleHaspConfig();
 // }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-bool httpIsAuthenticated(const __FlashStringHelper* fstr_page)
+
+bool httpIsAuthenticated()
 {
     if(http_config.password[0] != '\0') { // Request HTTP auth if httpPassword is set
         if(!webServer.authenticate(http_config.user, http_config.password)) {
@@ -223,13 +224,19 @@ bool httpIsAuthenticated(const __FlashStringHelper* fstr_page)
             return false;
         }
     }
+    return true;
+}
+
+bool httpIsAuthenticated(const __FlashStringHelper* fstr_page)
+{
+    if(!httpIsAuthenticated()) return false;
 
 #if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
     LOG_TRACE(TAG_HTTP, F("Sending %S page to client connected from: %s"), fstr_page,
               webServer.client().remoteIP().toString().c_str());
 #else
-    // LOG_INFO(TAG_HTTP,F("Sending %s page to client connected from: %s"), page,
-    //             String(webServer.client().remoteIP()).c_str());
+        // LOG_INFO(TAG_HTTP,F("Sending %s page to client connected from: %s"), page,
+        //             String(webServer.client().remoteIP()).c_str());
 #endif
 
     return true;
@@ -884,7 +891,8 @@ void webHandleFirmwareUpload()
 #if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
 bool handleFileRead(String path)
 {
-    if(!httpIsAuthenticated(F("fileread"))) return false;
+    // if(!httpIsAuthenticated(F("fileread"))) return false;
+    if(!httpIsAuthenticated()) return false;
 
     path = webServer.urlDecode(path).substring(0, 31);
     if(path.endsWith("/")) {
@@ -916,9 +924,9 @@ bool handleFileRead(String path)
         webServer.send_P(200, PSTR("text/html"), (const char*)EDIT_HTM_GZ_START, size);
         return true;
     }
-#else
-    return false;
 #endif
+
+    return false;
 }
 
 void handleFileUpload()
@@ -1040,7 +1048,7 @@ void handleFileList()
     }
 
     String path = webServer.arg(F("dir"));
-    LOG_TRACE(TAG_HTTP, F("handleFileList: %s"), path.c_str());
+    //  LOG_TRACE(TAG_HTTP, F("handleFileList: %s"), path.c_str());
     path.clear();
 
 #if defined(ARDUINO_ARCH_ESP32)
@@ -1821,11 +1829,15 @@ void webHandleHaspConfig()
 void httpHandleNotFound()
 { // webServer 404
 #if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
-    if(handleFileRead(webServer.uri())) return;
+    if(handleFileRead(webServer.uri())) {
+        LOG_TRACE(TAG_HTTP, F("Sending %d %s to client connected from: %s"), 200, webServer.uri().c_str(),
+                  webServer.client().remoteIP().toString().c_str());
+        return;
+    }
 #endif
 
 #if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
-    LOG_TRACE(TAG_HTTP, F("Sending 404 to client connected from: %s"),
+    LOG_TRACE(TAG_HTTP, F("Sending %d %s to client connected from: %s"), 404, webServer.uri().c_str(),
               webServer.client().remoteIP().toString().c_str());
 #else
   // LOG_TRACE(TAG_HTTP,F("Sending 404 to client connected from: %s"), String(webServer.client().remoteIP()).c_str());
