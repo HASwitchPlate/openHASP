@@ -912,14 +912,31 @@ bool handleFileRead(String path)
         configFile.reserve(32);
         configFile = String(FPSTR(FP_HASP_CONFIG_FILE));
 
+        String contentType;
+        if(webServer.hasArg(F("download")))
+            contentType = F("application/octet-stream");
+        else
+            contentType = getContentType(path);
+
         if(!strncasecmp(file.name(), configFile.c_str(), configFile.length())) {
+            file.close();
+            DynamicJsonDocument settings(8 * 256);
+            DeserializationError error = configParseFile(configFile, settings);
+
+            if(!error) {
+                LOG_TRACE(TAG_CONF, F(D_FILE_LOADING), configFile.c_str());
+                // Output settings in log with masked passwords
+                configMaskPasswords(settings);
+                char buffer[800];
+                size_t len = serializeJson(settings, buffer, sizeof(buffer));
+                LOG_VERBOSE(TAG_CONF, buffer);
+                webServer.setContentLength(len);
+                webServer.send(200, contentType, "");
+                webServer.sendContent(buffer, len);
+            } else {
+            }
 
         } else {
-            String contentType;
-            if(webServer.hasArg(F("download")))
-                contentType = F("application/octet-stream");
-            else
-                contentType = getContentType(path);
 
             webServer.streamFile(file, contentType);
             file.close();
@@ -950,7 +967,7 @@ void handleFileUpload()
         if(!httpIsAuthenticated(F("fileupload"))) return;
         LOG_INFO(TAG_HTTP, F("Total size: %s"), webServer.headerName(0).c_str());
         String filename((char*)0);
-        filename.reserve(128);
+        filename.reserve(64);
         filename = upload->filename;
         if(!filename.startsWith("/")) {
             filename = "/";
@@ -1943,7 +1960,6 @@ void httpHandleEspFirmware()
 void webHandleSaveConfig()
 {
     if(!httpIsAuthenticated(F("saveConfig"))) return;
-
     configWrite();
 }
 
