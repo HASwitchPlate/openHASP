@@ -117,7 +117,7 @@
 #define D_HTTP_NEXT_PAGE "Volgende Pagina"
 #define D_HTTP_CALIBRATE "Calibratie"
 #define D_HTTP_SCREENSHOT "Schermafbeelding"
-#define D_HTTP_FILE_BROWSER "Bestandsverkenner"
+#define D_HTTP_FILE_BROWSER "Bestandseditor"
 #define D_HTTP_FIRMWARE_UPGRADE "Firmware Upgrade"
 #define D_HTTP_UPDATE_FIRMWARE "Firmware Bijwerken"
 #define D_HTTP_FACTORY_RESET "Fabrieksinstellingen"

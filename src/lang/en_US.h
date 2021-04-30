@@ -118,7 +118,7 @@
 #define D_HTTP_NEXT_PAGE "Next Page"
 #define D_HTTP_CALIBRATE "Calibrate"
 #define D_HTTP_SCREENSHOT "Screenshot"
-#define D_HTTP_FILE_BROWSER "File Browser"
+#define D_HTTP_FILE_BROWSER "File Editor"
 #define D_HTTP_FIRMWARE_UPGRADE "Firmware Upgrade"
 #define D_HTTP_UPDATE_FIRMWARE "Update Firmware"
 #define D_HTTP_FACTORY_RESET "Factory Reset"
