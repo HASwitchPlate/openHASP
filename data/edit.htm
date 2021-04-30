@@ -3,7 +3,7 @@
 
 <head>
     <meta charset='utf-8'>
-    <title>File Browser</title>
+    <title>File Editor</title>
     <style type="text/css" media="screen">
         .cm {
             z-index: 300;
@@ -147,7 +147,7 @@
     <script>
         function createFileUploader(e, t, n) {
             var a = document.createElement("button");
-            a.innerHTML = "Home", document.getElementById(e).appendChild(a);
+            a.innerHTML = "Main Menu", document.getElementById(e).appendChild(a);
             var o, d = document.createElement("input");
             d.type = "file", d.multiple = !1, d.name = "data", document.getElementById(e).appendChild(d);
             var c = document.createElement("input");
@@ -341,10 +341,12 @@
                 }
                 return t
             }
-            void 0 === t && (t = "/pages.jsonl"), void 0 === n && (n = d(t)), void 0 === a && (a = "textmate"), void 0 === o && (o = "text/" + n, "c_cpp" === n && (o = "text/plain"));
+            void 0 === t && (t = "/"), void 0 === n && (n = d(t)), void 0 === a && (a = "textmate"), void 0 === o && (o = "text/" + n, "c_cpp" === n && (o = "text/plain"));
             var c = null,
                 l = ace.edit(e, {
-                    useWorker: !1
+                    useWorker: !1,
+                    wrap: !0,
+                    indentedSoftWrap: !1
                 });
 
             function i() {
