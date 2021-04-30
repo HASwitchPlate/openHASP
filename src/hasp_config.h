@@ -18,6 +18,8 @@ void configStart(void);
 void configStop(void);
 
 /* ===== Special Event Processors ===== */
+DeserializationError configParseFile(String& configFile, JsonDocument& settings);
+bool configRead(String configFile, JsonDocument& settings, bool setupdebug = false);
 void configWrite(void);
 void configOutput(const JsonObject& settings, uint8_t tag = TAG_CONF);
 bool configClearEeprom(void);
@@ -26,6 +28,7 @@ bool configClearEeprom(void);
 bool configSet(int8_t& value, const JsonVariant& setting, const __FlashStringHelper* fstr_name);
 bool configSet(uint8_t& value, const JsonVariant& setting, const __FlashStringHelper* fstr_name);
 bool configSet(uint16_t& value, const JsonVariant& setting, const __FlashStringHelper* fstr_name);
+void configMaskPasswords(JsonDocument& settings);
 
 /* ===== Read/Write Configuration ===== */
 void configSetConfig(JsonObject& settings);

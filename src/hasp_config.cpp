@@ -3,10 +3,9 @@
 
 #if HASP_USE_CONFIG > 0
 
-#include "ArduinoJson.h"
 #include "StreamUtils.h" // For EEPromStream
 
-#include "hasp_conf.h"
+#include "hasplib.h"
 
 #include "hasp_config.h"
 #include "hasp_debug.h"
@@ -18,8 +17,6 @@
 //#include "hasp_gpio.h" included in conf
 
 //#include "hasp_eeprom.h"
-#include "hasp/hasp.h"
-#include "hasp/hasp_dispatch.h"
 
 #if HASP_USE_EEPROM > 0
 #include "EEPROM.h"
@@ -76,24 +73,59 @@ bool configSet(uint16_t& value, const JsonVariant& setting, const __FlashStringH
     return false;
 }
 
-void configStartDebug(bool setupdebug, String& configFile)
+void configSetupDebug(JsonDocument& settings)
 {
-    if(setupdebug) {
-        debugStart(); // Debug started, now we can use it; HASP header sent
+    debugSetupWithoutLogging(settings[FPSTR(FP_DEBUG)]);
+    debugStart(); // Debug started, now we can use it; HASP header sent
+}
+
+void configStorePasswords(JsonDocument& settings, String& wifiPass, String& mqttPass, String& httpPass)
+{
+    const __FlashStringHelper* pass = F("pass");
+
+    wifiPass = settings[FPSTR(FP_WIFI)][pass].as<String>();
+    mqttPass = settings[FPSTR(FP_MQTT)][pass].as<String>();
+    httpPass = settings[FPSTR(FP_HTTP)][pass].as<String>();
+}
+
+void configRestorePasswords(JsonDocument& settings, String& wifiPass, String& mqttPass, String& httpPass)
+{
+    const __FlashStringHelper* pass = F("pass");
+
+    if(!settings[FPSTR(FP_WIFI)][pass].isNull()) settings[FPSTR(FP_WIFI)][pass] = wifiPass;
+    if(!settings[FPSTR(FP_MQTT)][pass].isNull()) settings[FPSTR(FP_MQTT)][pass] = mqttPass;
+    if(!settings[FPSTR(FP_HTTP)][pass].isNull()) settings[FPSTR(FP_HTTP)][pass] = httpPass;
+}
+
+void configMaskPasswords(JsonDocument& settings)
+{
+    String passmask = F(D_PASSWORD_MASK);
+    configRestorePasswords(settings, passmask, passmask, passmask);
+}
+
+DeserializationError configParseFile(String& configFile, JsonDocument& settings)
+{
 #if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
-        LOG_INFO(TAG_CONF, F("SPI flash FS mounted"));
-        filesystemInfo();
-        filesystemList();
-#endif
+    File file = HASP_FS.open(configFile, "r");
+    DeserializationError result;
+
+    if(file) {
+        size_t size = file.size();
+        if(size > 1024) {
+            LOG_ERROR(TAG_CONF, F("Config file size is too large"));
+            return DeserializationError::NoMemory;
+        }
+        result = deserializeJson(settings, file);
+        file.close();
+        return result;
     }
-#if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
-    LOG_TRACE(TAG_CONF, F(D_FILE_LOADING), configFile.c_str());
+    return DeserializationError::InvalidInput;
 #else
-    LOG_TRACE(TAG_CONF, F(D_FILE_LOADING), "EEPROM");
+    return DeserializationError::NotSupported;
 #endif
 }
 
-void configRead(JsonDocument& settings, bool setupdebug = false)
+DeserializationError configRead(JsonDocument& settings, bool setupdebug = false)
 {
     String configFile((char*)0);
     configFile.reserve(32);
@@ -101,40 +133,34 @@ void configRead(JsonDocument& settings, bool setupdebug = false)
     DeserializationError error;
 
 #if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
-    File file = HASP_FS.open(configFile, "r");
+    error = configParseFile(configFile, settings);
+    if(!error) {
+        String output, wifiPass, mqttPass, httpPass;
 
-    if(file) {
-        size_t size = file.size();
-        if(size > 1024) {
-            LOG_ERROR(TAG_CONF, F("Config file size is too large"));
-            return;
+        /* Load Debug params */
+        if(setupdebug) {
+            configSetupDebug(settings); // Now we can use log
+            LOG_INFO(TAG_CONF, F("SPI flash FS mounted"));
+
+            filesystemInfo();
+            filesystemList();
         }
 
-        error = deserializeJson(settings, file);
-        file.close();
+        LOG_TRACE(TAG_CONF, F(D_FILE_LOADING), configFile.c_str());
+        configStorePasswords(settings, wifiPass, mqttPass, httpPass);
 
-        if(!error) {
-            /* Load Debug params */
-            if(setupdebug) {
-                debugPreSetup(settings[FPSTR(FP_DEBUG)]);
-            }
-            configStartDebug(setupdebug, configFile);
+        // Output settings in log with masked passwords
+        configMaskPasswords(settings);
+        serializeJson(settings, output);
+        LOG_VERBOSE(TAG_CONF, output.c_str());
 
-            // show settings in log
-            String output;
-            serializeJson(settings, output);
-            String passmask                 = F(D_PASSWORD_MASK);
-            const __FlashStringHelper* pass = F("pass");
-            output.replace(settings[FPSTR(FP_HTTP)][pass].as<String>(), passmask);
-            output.replace(settings[FPSTR(FP_MQTT)][pass].as<String>(), passmask);
-            output.replace(settings[FPSTR(FP_WIFI)][pass].as<String>(), passmask);
-            LOG_VERBOSE(TAG_CONF, output.c_str());
-            LOG_INFO(TAG_CONF, F(D_FILE_LOADED), configFile.c_str());
+        configRestorePasswords(settings, wifiPass, mqttPass, httpPass);
+        LOG_INFO(TAG_CONF, F(D_FILE_LOADED), configFile.c_str());
 
-            if(setupdebug) debugSetup();
-            return;
-        }
+        if(setupdebug) debugSetup();
+        return error;
     }
+
 #else
 
 #if HASP_USE_EEPROM > 0
@@ -145,15 +171,18 @@ void configRead(JsonDocument& settings, bool setupdebug = false)
 #endif
 
     // File does not exist or error reading file
-    if(setupdebug) {
-        debugPreSetup(settings[FPSTR(FP_DEBUG)]);
-    }
-    configStartDebug(setupdebug, configFile);
+    if(setupdebug) configSetupDebug(settings); // Now we can use log
 
 #if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
     LOG_ERROR(TAG_CONF, F(D_FILE_LOAD_FAILED), configFile.c_str());
 #endif
+
+    configFile = F("EEPROM");
+    LOG_TRACE(TAG_CONF, F(D_FILE_LOADING), configFile.c_str());
+    LOG_INFO(TAG_CONF, F(D_FILE_LOADED), configFile.c_str());
+    return error;
 }
+
 /*
 void configBackupToEeprom()
 {
@@ -309,7 +338,9 @@ void configWrite()
         File file = HASP_FS.open(configFile, "w");
         if(file) {
             LOG_TRACE(TAG_CONF, F(D_FILE_SAVING), configFile.c_str());
-            size_t size = serializeJson(doc, file);
+            WriteBufferingStream bufferedFile(file, 256);
+            size_t size = serializeJson(doc, bufferedFile);
+            bufferedFile.flush();
             file.close();
             if(size > 0) {
                 LOG_INFO(TAG_CONF, F(D_FILE_SAVED), configFile.c_str());
