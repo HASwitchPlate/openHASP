@@ -128,8 +128,7 @@ const char HTTP_STYLE[] PROGMEM =
     // ".button4{background-color:#e7e7e7;color:black;}"
     // ".button5{background-color:#555555;}"
     // ".button6{background-color:#4CAF50;}"
-    "td{padding:5px;width:50%;}"
-    "th{padding-top:1em;}"
+    "td{font-size:0.87rem;padding-bottom:0px;padding-top:0px;}th{padding-top:0.5em;}"
     "</style>";
 const char HTTP_SCRIPT[] PROGMEM = "<script>function "
                                    "c(l){document.getElementById('s').value=l.innerText||l.textContent;document."
@@ -137,8 +136,8 @@ const char HTTP_SCRIPT[] PROGMEM = "<script>function "
 const char HTTP_HEADER_END[] PROGMEM =
     "</head><body><div style='text-align:left;display:inline-block;color:" D_HTTP_COLOR_TEXT ";min-width:260px;'>";
 const char HTTP_END[] PROGMEM = "<div style='text-align:right;font-size:11px;'><hr/><a href='/about' "
-                                "style='color:" D_HTTP_COLOR_TEXT ";'>HASP ";
-const char HTTP_FOOTER[] PROGMEM = " by Francis Van Roie</div></body></html>";
+                                "style='color:" D_HTTP_COLOR_TEXT ";'>" D_MANUFACTURER " ";
+const char HTTP_FOOTER[] PROGMEM = " " D_HTTP_FOOTER "</div></body></html>";
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
