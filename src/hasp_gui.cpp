@@ -97,16 +97,20 @@ void guiCalibrate(void)
 void guiSetup(void)
 {
     // Register logger to capture lvgl_init output
-    LOG_TRACE(TAG_LVGL, F(D_SERVICE_STARTING));
-#if LV_USE_LOG != 0
-    lv_log_register_print_cb(debugLvglLogEvent);
-#endif
+    LOG_TRACE(TAG_TFT, F(D_SERVICE_STARTING));
 
     // Initialize the TFT
     haspTft.init(240, 320);
     haspTft.set_rotation(gui_settings.rotation);
     haspTft.set_invert(gui_settings.invert_display);
     haspTft.show_info();
+
+    LOG_INFO(TAG_TFT, F(D_SERVICE_STARTED));
+    LOG_TRACE(TAG_LVGL, F(D_SERVICE_STARTING));
+
+#if LV_USE_LOG != 0
+    lv_log_register_print_cb(debugLvglLogEvent);
+#endif
 
     /* Create the Virtual Device Buffers */
 #if defined(ARDUINO_ARCH_ESP32)
@@ -277,6 +281,7 @@ void guiSetup(void)
     lv_obj_set_style_local_bg_opa(lv_layer_sys(), LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_0);
 
     // guiStart(); // Ticker
+    LOG_INFO(TAG_LVGL, F(D_SERVICE_STARTED));
 }
 
 void guiLoop(void)
