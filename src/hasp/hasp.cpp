@@ -2,7 +2,6 @@
    For full license information read the LICENSE file in the project folder */
 
 #include "hasplib.h"
-#include "lv_theme_hasp.h"
 #include "dev/device.h"
 
 #ifdef ARDUINO
