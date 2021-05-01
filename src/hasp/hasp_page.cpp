@@ -26,6 +26,7 @@ uint8_t Page::count()
 void Page::init(uint8_t start_page)
 {
     lv_obj_t* scr_act = lv_scr_act();
+    lv_obj_clean(lv_layer_top());
 
     for(int i = 0; i < count(); i++) {
         lv_obj_t* prev_page_obj = _pages[i];
