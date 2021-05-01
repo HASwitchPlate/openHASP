@@ -2021,18 +2021,14 @@ void httpHandleResetConfig()
         } else {
             httpMessage +=
                 F("<h2>Warning</h2><b>This process will reset all settings to the default values. The internal flash "
-                  "will "
-                  "be erased and the device is restarted. You may need to connect to the WiFi AP displayed on the "
-                  "panel to "
-                  "re-configure the device before accessing it again. ALL FILES WILL BE LOST!"
-                  "<br/><hr><br/><form method='GET' action='resetConfig'>"
-                  "<br/><br/><button type='submit' name='confirm' value='yes'>" D_HTTP_ERASE_DEVICE "</button></form>"
-                  "<br/><hr><br/>");
+                  "will be erased and the device is restarted. You may need to connect to the WiFi AP displayed on the "
+                  "panel to re-configure the device before accessing it again. ALL FILES WILL BE LOST!</b>"
+                  "<br/><hr><br/><form method='GET' action='resetConfig'>");
+
+            add_button(httpMessage, F(D_HTTP_ERASE_DEVICE), F("name='confirm' value='yes'"));
+            close_form(httpMessage);
 
             add_form_button(httpMessage, F("&#8617; " D_HTTP_CONFIGURATION), F("/config"), F(""));
-            // httpMessage +=
-            //     PSTR("<p><form method='GET' action='/config'><button type='submit'>&#8617; " D_HTTP_CONFIGURATION
-            //          "</button></form></p>");
         }
 
         webSendPage(haspDevice.get_hostname(), httpMessage.length(), resetConfirmed);
