@@ -4,6 +4,8 @@
 #define D_USERNAME "Felhasználónév:"
 #define D_PASSWORD "Jelszó:"
 #define D_SSID "SSID:"
+#define D_YES "Yes" // New
+#define D_NO "No"   // New
 
 #define D_ERROR_OUT_OF_MEMORY "Elfogyott a memória"
 #define D_ERROR_UNKNOWN "Ismeretlen hiba"
@@ -27,6 +29,9 @@
 #define D_SERVICE_DISABLED "Tiltva"
 #define D_SERVICE_CONNECTED "Csatlakoztatva"
 #define D_SERVICE_DISCONNECTED "Szétkapcsolva"
+
+#define D_SETTING_ENABLED "Enabled"   // New
+#define D_SETTING_DISABLED "Disabled" // New
 
 #define D_NETWORK_IP_ADDRESS_RECEIVED "Beállított IP-cím: %s"
 #define D_NETWORK_ONLINE "online"

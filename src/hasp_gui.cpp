@@ -191,11 +191,11 @@ void guiSetup(void)
     /* Initialize Filesystems */
 #if LV_USE_FS_IF != 0
     // _lv_fs_init();   // lvgl File System -- not neaded, it done in lv_init() when LV_USE_FILESYSTEM is set
-    LOG_VERBOSE(TAG_LVGL, F("Filesystem : Enabled"));
+    LOG_VERBOSE(TAG_LVGL, F("Filesystem : " D_SETTING_ENABLED));
     lv_fs_if_init(); // auxilary file system drivers
     filesystem_list_path("S:/fs/");
 #else
-    LOG_VERBOSE(TAG_LVGL, F("Filesystem : Disabled"));
+    LOG_VERBOSE(TAG_LVGL, F("Filesystem : " D_SETTING_DISABLED));
 #endif
 
     /* Initialize PNG decoder */
@@ -204,9 +204,9 @@ void guiSetup(void)
 #endif
 
 #ifdef USE_DMA_TO_TFT
-    LOG_VERBOSE(TAG_GUI, F("DMA        : ENABLED"));
+    LOG_VERBOSE(TAG_GUI, F("DMA        : " D_SETTING_ENABLED));
 #else
-    LOG_VERBOSE(TAG_GUI, F("DMA        : DISABLED"));
+    LOG_VERBOSE(TAG_GUI, F("DMA        : " D_SETTING_DISABLED));
 #endif
 
     /* Setup Backlight Control Pin */
@@ -575,7 +575,7 @@ void guiTakeScreenshot(const char* pFileName)
         pFileOut.close();
 
     } else {
-        LOG_WARNING(TAG_GUI, F("%s cannot be opened"), pFileName);
+        LOG_WARNING(TAG_GUI, F(D_FILE_SAVE_FAILED), pFileName);
     }
 }
 #endif

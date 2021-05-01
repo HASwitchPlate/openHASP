@@ -386,7 +386,7 @@ void printLocalTime()
             } else {
                 Serial.printf("%s ", sntp.toString().c_str());
             }
-            Serial.printf("IPv6: %s Reachability: %o\n", sntp.isV6() ? "Yes" : "No", sntp_getreachability(i));
+            Serial.printf("IPv6: %s Reachability: %o\n", sntp.isV6() ? D_YES : D_NO, sntp_getreachability(i));
         }
     }
 #endif

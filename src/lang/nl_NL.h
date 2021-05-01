@@ -4,6 +4,8 @@
 #define D_USERNAME "Gebruikersnaam:"
 #define D_PASSWORD "Wachtwoord:"
 #define D_SSID "Ssid:"
+#define D_YES "Yes" // New
+#define D_NO "No"   // New
 
 #define D_ERROR_OUT_OF_MEMORY "Geen geheugen bechikbaar"
 #define D_ERROR_UNKNOWN "Onbekende fout"
@@ -19,6 +21,9 @@
 #define D_FILE_SAVING "%s bewaren..."
 #define D_FILE_SAVED "%s bewaard"
 #define D_FILE_SAVE_FAILED "%s bewaren mislukt"
+
+#define D_SETTING_ENABLED "Ingeschakeld"   // New
+#define D_SETTING_DISABLED "Uitgeschakeld" // New
 
 #define D_SERVICE_STARTING "Starten..."
 #define D_SERVICE_STARTED "Gestart"

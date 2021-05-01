@@ -4,6 +4,8 @@
 #define D_USERNAME "Username:"
 #define D_PASSWORD "Password:"
 #define D_SSID "Ssid:"
+#define D_YES "Yes" // New
+#define D_NO "No"   // New
 
 #define D_ERROR_OUT_OF_MEMORY "Out of memory"
 #define D_ERROR_UNKNOWN "Unkown error"
@@ -27,6 +29,9 @@
 #define D_SERVICE_DISABLED "Disabled"
 #define D_SERVICE_CONNECTED "Connected"
 #define D_SERVICE_DISCONNECTED "Disconnected"
+
+#define D_SETTING_ENABLED "Enabled"   // New
+#define D_SETTING_DISABLED "Disabled" // New
 
 #define D_NETWORK_IP_ADDRESS_RECEIVED "Received IP address %s"
 #define D_NETWORK_ONLINE "online"

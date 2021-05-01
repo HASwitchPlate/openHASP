@@ -4,6 +4,8 @@
 #define D_USERNAME "Nume de utilizator:"
 #define D_PASSWORD "Parola:"
 #define D_SSID "SSID:"
+#define D_YES "Yes" // New
+#define D_NO "No"   // New
 
 #define D_ERROR_OUT_OF_MEMORY "Memorie epuizată"
 #define D_ERROR_UNKNOWN "Eroare necunoscută"
@@ -19,6 +21,9 @@
 #define D_FILE_SAVING "Se salvează %s"
 #define D_FILE_SAVED "S-a salvat %s"
 #define D_FILE_SAVE_FAILED "Salvarea %s a eșuat"
+
+#define D_SETTING_ENABLED "Enabled"   // New
+#define D_SETTING_DISABLED "Disabled" // New
 
 #define D_SERVICE_STARTING "Pornire..."
 #define D_SERVICE_STARTED "Pornit"

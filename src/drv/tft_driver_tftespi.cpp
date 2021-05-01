@@ -27,11 +27,11 @@ void TftEspi::show_info()
     tft.getSetup(tftSetup);
 
     LOG_VERBOSE(TAG_TFT, F("TFT_eSPI   : v%s"), tftSetup.version.c_str());
-    LOG_VERBOSE(TAG_TFT, F("Transactns : %s"), (tftSetup.trans == 1) ? PSTR("Yes") : PSTR("No"));
+    LOG_VERBOSE(TAG_TFT, F("Transactns : %s"), (tftSetup.trans == 1) ? PSTR(D_YES) : PSTR(D_NO));
     LOG_VERBOSE(TAG_TFT, F("Interface  : %s"), (tftSetup.serial == 1) ? PSTR("SPI") : PSTR("Parallel"));
 
 #if defined(ARDUINO_ARCH_ESP8266)
-    LOG_VERBOSE(TAG_TFT, F("SPI overlap: %s"), (tftSetup.overlap == 1) ? PSTR("Yes") : PSTR("No"));
+    LOG_VERBOSE(TAG_TFT, F("SPI overlap: %s"), (tftSetup.overlap == 1) ? PSTR(D_YES) : PSTR(D_NO));
 #endif
 
     if(tftSetup.tft_driver != 0xE9D) // For ePaper displays the size is defined in the sketch
@@ -117,7 +117,7 @@ void TftEspi::set_rotation(uint8_t rotation)
 void TftEspi::set_invert(bool invert)
 {
     char buffer[4];
-    memcpy_P(buffer, invert ? PSTR("yes") : PSTR("no"), sizeof(buffer));
+    memcpy_P(buffer, invert ? PSTR(D_YES) : PSTR(D_NO), sizeof(buffer));
 
     LOG_VERBOSE(TAG_TFT, F("Invert Disp: %s"), buffer);
     tft.invertDisplay(invert);
