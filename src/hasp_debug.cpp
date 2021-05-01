@@ -64,7 +64,7 @@ static void debugPrintTimestamp(int level, Print* _logOutput)
     debugSendAnsiCode(F(TERM_COLOR_CYAN), _logOutput);
 
     if(timeinfo->tm_year >= 120) {
-        int milli = curTime.tv_usec / 1000;
+        unsigned long int milli = curTime.tv_usec / 1000;
         char buffer[24];
         strftime(buffer, sizeof(buffer), "[%b %d %H:%M:%S", timeinfo); // Literal String
         // strftime(buffer, sizeof(buffer), "[%H:%M:%S.", timeinfo); // Literal String
