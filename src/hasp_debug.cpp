@@ -123,7 +123,7 @@ void debugStart()
 #endif
 
     if(debugSerialStarted) {
-        debug_flush;
+        debug_flush();
 
         // Serial.println();
         // Serial.println(debugHaspHeader());
