@@ -96,6 +96,8 @@
 #define D_OTA_UPDATE_COMPLETE "OTA Firmware bijgewerkt"
 #define D_OTA_UPDATE_APPLY "Firmware Schrijven & Herstart"
 #define D_OTA_UPDATE_FAILED "OTA Update mislukt"
+#define D_OTA_UPDATING_FIRMWARE "Firmware bijwerken..."
+#define D_OTA_UPDATING_FILESYSTEM "Bestandsysteem bijwerken..."
 
 #define D_HTTP_HASP_DESIGN "HASP Ontwerp"
 #define D_HTTP_INFORMATION "Informatie"

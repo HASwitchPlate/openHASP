@@ -106,8 +106,7 @@ bool otaUpdateCheck()
 static inline void otaProgress(void)
 {
     LOG_VERBOSE(TAG_OTA, F("%s %3u%"),
-                (ArduinoOTA.getCommand() == U_FLASH ? PSTR("Firmware update in progress...")
-                                                    : PSTR("Filesystem update in progress...")),
+                (ArduinoOTA.getCommand() == U_FLASH ? F(D_OTA_UPDATING_FIRMWARE) : F(D_OTA_UPDATING_FILESYSTEM)),
                 otaPrecentageComplete);
 }
 

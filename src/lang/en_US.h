@@ -97,6 +97,8 @@
 #define D_OTA_UPDATE_COMPLETE "OTA Update complete"
 #define D_OTA_UPDATE_APPLY "Applying Firmware & Reboot"
 #define D_OTA_UPDATE_FAILED "OTA Update failed"
+#define D_OTA_UPDATING_FIRMWARE "Updating firmware..."
+#define D_OTA_UPDATING_FILESYSTEM "Updating filesystem..."
 
 #define D_HTTP_HASP_DESIGN "HASP Design"
 #define D_HTTP_INFORMATION "Information"

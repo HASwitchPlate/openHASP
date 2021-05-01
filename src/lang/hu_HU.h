@@ -97,6 +97,8 @@
 #define D_OTA_UPDATE_COMPLETE "Az OTA frissítés elkészült"
 #define D_OTA_UPDATE_APPLY "Firmware alkalmazása és újraindítás"
 #define D_OTA_UPDATE_FAILED "Az OTA frissítés meghiúsult"
+#define D_OTA_UPDATING_FIRMWARE "Updating firmware..."     // New
+#define D_OTA_UPDATING_FILESYSTEM "Updating filesystem..." // New
 
 #define D_HTTP_HASP_DESIGN "Képernyő dizájn"
 #define D_HTTP_INFORMATION "Információk"

@@ -97,6 +97,8 @@
 #define D_OTA_UPDATE_COMPLETE "Actualizare prin OTA finalizată"
 #define D_OTA_UPDATE_APPLY "Aplicarea firmware-ului și repornire"
 #define D_OTA_UPDATE_FAILED "Actualizarea prin OTA a eșuat"
+#define D_OTA_UPDATING_FIRMWARE "Updating firmware..."     // New
+#define D_OTA_UPDATING_FILESYSTEM "Updating filesystem..." // New
 
 #define D_HTTP_HASP_DESIGN "Desenul ecranului"
 #define D_HTTP_INFORMATION "Informații"
