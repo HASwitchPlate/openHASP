@@ -619,7 +619,7 @@ void hasp_get_info(JsonDocument& doc)
     buffer += "s";
     info[F(D_INFO_UPTIME)] = buffer;
 
-    info = doc.createNestedObject(F("Device Memory"));
+    info = doc.createNestedObject(F(D_INFO_DEVICE_MEMORY));
     Parser::format_bytes(haspDevice.get_free_heap(), size_buf, sizeof(size_buf));
     info[F(D_INFO_FREE_HEAP)] = size_buf;
     Parser::format_bytes(haspDevice.get_free_max_block(), size_buf, sizeof(size_buf));
@@ -635,13 +635,13 @@ void hasp_get_info(JsonDocument& doc)
     }
 #endif
 
-    info = doc.createNestedObject(F("LVGL Memory"));
+    info = doc.createNestedObject(F(D_INFO_LVGL_MEMORY));
     lv_mem_monitor_t mem_mon;
     lv_mem_monitor(&mem_mon);
     Parser::format_bytes(mem_mon.total_size, size_buf, sizeof(size_buf));
-    info[F("Total")] = size_buf;
+    info[F(D_INFO_TOTAL_MEMORY)] = size_buf;
     Parser::format_bytes(mem_mon.free_size, size_buf, sizeof(size_buf));
-    info[F("Free")]               = size_buf;
+    info[F(D_INFO_FREE_MEMORY)]   = size_buf;
     info[F(D_INFO_FRAGMENTATION)] = mem_mon.frag_pct;
 
     info = doc.createNestedObject(F("HASP State"));
