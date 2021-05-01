@@ -75,7 +75,7 @@
 #define D_OBJECT_UNKNOWN "Unknown object"
 #define D_OBJECT_MISMATCH "Objects DO NOT match!"
 #define D_OBJECT_LOST "Lost object!"
-#define D_OBJECT_CREATE_FAILED "Object %u failed"
+#define D_OBJECT_CREATE_FAILED "Failed to create object id %u"
 #define D_OBJECT_PAGE_UNKNOWN "Page ID %u not defined"
 #define D_OBJECT_EVENT_UNKNOWN "Unknown Event %d"
 

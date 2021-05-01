@@ -74,7 +74,7 @@
 #define D_OBJECT_UNKNOWN "Onbekend object"
 #define D_OBJECT_MISMATCH "Objecten komen niet overeen!"
 #define D_OBJECT_LOST "Object kwijt!"
-#define D_OBJECT_CREATE_FAILED "Object %u mislukt"
+#define D_OBJECT_CREATE_FAILED "Object id %u aanmaken mislukt"
 #define D_OBJECT_PAGE_UNKNOWN "Paginga %u niet gedefinieerd"
 #define D_OBJECT_EVENT_UNKNOWN "Onbekend Event %d"
 
