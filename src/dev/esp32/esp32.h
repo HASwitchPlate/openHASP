@@ -35,12 +35,14 @@ class Esp32Device : public BaseDevice {
     size_t get_free_heap() override;
     uint8_t get_heap_fragmentation() override;
     uint16_t get_cpu_frequency() override;
+    void get_info(JsonDocument& doc) override;
 
     bool is_system_pin(uint8_t pin) override;
 
   private:
     std::string _hostname;
     std::string _hardware_id;
+    uint32_t _sketch_size; // cached because function is slow
 
     uint8_t _backlight_pin;
     uint8_t _backlight_level;

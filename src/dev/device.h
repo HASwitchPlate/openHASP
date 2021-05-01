@@ -18,6 +18,8 @@
 #include "Windows.h"
 #endif
 
+#include "ArduinoJson.h"
+
 namespace dev {
 
 class BaseDevice {
@@ -86,6 +88,8 @@ class BaseDevice {
     {
         return 0;
     }
+    virtual void get_info(JsonDocument& doc)
+    {}
     virtual bool is_system_pin(uint8_t pin)
     {
         return false;
