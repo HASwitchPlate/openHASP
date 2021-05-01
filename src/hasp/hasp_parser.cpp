@@ -177,7 +177,7 @@ int Parser::format_bytes(size_t filesize, char* buf, size_t len)
     filesize      = filesize * 10 / 1024; // multiply by 10 for 1 decimal place
     int unit      = 0;
 
-    while(filesize >= 10240 && unit < sizeof(labels) - 1) { // it is multiplied by 10
+    while(filesize >= 10240 && unit < (sizeof(labels) - 1)) { // it is multiplied by 10
         unit++;
         filesize = filesize / 1024;
     }
