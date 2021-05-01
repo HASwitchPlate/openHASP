@@ -118,16 +118,15 @@
 #define D_HTTP_NEXT_PAGE "Next Page"
 #define D_HTTP_CALIBRATE "Calibrate"
 #define D_HTTP_SCREENSHOT "Screenshot"
-#define D_HTTP_FILE_BROWSER "File Editor" // Updated
+#define D_HTTP_FILE_BROWSER "File Editor"
 #define D_HTTP_FIRMWARE_UPGRADE "Firmware Upgrade"
 #define D_HTTP_UPDATE_FIRMWARE "Update Firmware"
 #define D_HTTP_FACTORY_RESET "Factory Reset"
 #define D_HTTP_MAIN_MENU "Main Menu"
 #define D_HTTP_REBOOT "Restart"
 #define D_HTTP_CONFIGURATION "Configuration"
-#define D_HTTP_FOOTER "by Francis Van Roie" // New
+#define D_HTTP_FOOTER "by Francis Van Roie"
 
-// New
 #define D_INFO_VERSION "Version"
 #define D_INFO_BUILD_DATETIME "Build DateTime"
 #define D_INFO_UPTIME "Uptime"

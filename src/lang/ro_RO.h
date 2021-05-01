@@ -47,7 +47,7 @@
 #define D_MQTT_SUBSCRIBED "Abonat la %s"
 #define D_MQTT_NOT_SUBSCRIBED "Abonarea la %s a eșuat"
 #define D_MQTT_HA_AUTO_DISCOVERY "Înregistrare la auto-descoperire în HA"
-#define D_MQTT_PAYLOAD_TOO_LONG "$$$Payload too long (%u bytes)"
+#define D_MQTT_PAYLOAD_TOO_LONG "Payload too long (%u bytes)" // New
 
 #define D_TELNET_CLOSING_CONNECTION "Terminarea sesiunii de la %s"
 #define D_TELNET_CLIENT_LOGIN_FROM "Conectare client de la %s"
@@ -118,18 +118,59 @@
 #define D_HTTP_NEXT_PAGE "Pagina următoare"
 #define D_HTTP_CALIBRATE "Calibrare"
 #define D_HTTP_SCREENSHOT "Captură de ecran"
-#define D_HTTP_FILE_BROWSER "Browser de fișiere"
+#define D_HTTP_FILE_BROWSER "Browser de fișiere" // Updated
 #define D_HTTP_FIRMWARE_UPGRADE "Actualizare firmware"
 #define D_HTTP_UPDATE_FIRMWARE "Actualizarea firmware-ului"
 #define D_HTTP_FACTORY_RESET "Resetare la parametri de fabrică"
 #define D_HTTP_MAIN_MENU "Meniu principal"
 #define D_HTTP_REBOOT "Repornire"
 #define D_HTTP_CONFIGURATION "Setări"
+#define D_HTTP_FOOTER "by Francis Van Roie" // New
+
+// New list:
+#define D_INFO_VERSION "Version"
+#define D_INFO_BUILD_DATETIME "Build DateTime"
+#define D_INFO_UPTIME "Uptime"
+#define D_INFO_FREE_HEAP "Free Heap"
+#define D_INFO_FREE_BLOCK "Free Block"
+#define D_INFO_DEVICE_MEMORY "Device Memory"
+#define D_INFO_LVGL_MEMORY "LVGL Memory"
+#define D_INFO_TOTAL_MEMORY "Total"
+#define D_INFO_FREE_MEMORY "Free"
+#define D_INFO_FRAGMENTATION "Fragmentation"
+#define D_INFO_PSRAM_FREE "PSRam Free"
+#define D_INFO_PSRAM_SIZE "PSRam Size"
+#define D_INFO_FLASH_SIZE "Flash Size"
+#define D_INFO_SKETCH_USED "Program Size Used"
+#define D_INFO_SKETCH_FREE "Program Size Free"
+#define D_INFO_MODULE "Module"
+#define D_INFO_MODEL "Model"
+#define D_INFO_FREQUENCY "Frequency"
+#define D_INFO_CORE_VERSION "Core Version"
+#define D_INFO_RESET_REASON "Reset Reason"
+#define D_INFO_STATUS "Status"
+#define D_INFO_SERVER "Server"
+#define D_INFO_USERNAME "Username"
+#define D_INFO_CLIENTID "Client ID"
+#define D_INFO_CONNECTED "Connected"
+#define D_INFO_DISCONNECTED "Disconnected"
+#define D_INFO_RECEIVED "Received"
+#define D_INFO_PUBLISHED "Published"
+#define D_INFO_FAILED "Failed"
+#define D_INFO_ETHERNET "Ethernet"
+#define D_INFO_WIFI "Wifi"
+#define D_INFO_LINK_SPEED "Link Speed"
+#define D_INFO_SSID "SSID"
+#define D_INFO_RSSI "Signal Strength"
+#define D_INFO_IP_ADDRESS "IP Address"
+#define D_INFO_MAC_ADDRESS "MAC Address"
+#define D_INFO_GATEWAY "Gateway"
+#define D_INFO_DNS_SERVER "DNS Server"
 
 #define D_OOBE_MSG "Atingeți ecranul pentru a configura WiFi sau conectați-vă la acest punct de acces:"
 #define D_OOBE_SCAN_TO_CONNECT "Scanați pentru a vă conecta:"
 
-#define D_WIFI_CONNECTING_TO "$$$Connecting to %s"
-#define D_WIFI_CONNECTED_TO "$$$Connected to %s, requesting IP..."
+#define D_WIFI_CONNECTING_TO "Connecting to %s"                 // New
+#define D_WIFI_CONNECTED_TO "Connected to %s, requesting IP..." // New
 
 #endif
