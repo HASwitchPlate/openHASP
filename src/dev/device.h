@@ -94,6 +94,12 @@ class BaseDevice {
     {
         return false;
     }
+    virtual std::string gpio_name(uint8_t pin)
+    {
+        char buffer[8];
+        itoa(pin, buffer, DEC);
+        return buffer;
+    }
 };
 
 } // namespace dev

@@ -99,22 +99,22 @@ void halRestartMcu(void)
     } // halt
 }
 
-String halGetResetInfo()
-{
-#if defined(ARDUINO_ARCH_ESP32)
-    String resetReason((char*)0);
-    resetReason.reserve(128);
+// String halGetResetInfo()
+// {
+// #if defined(ARDUINO_ARCH_ESP32)
+//     String resetReason((char*)0);
+//     resetReason.reserve(128);
 
-    resetReason += String(esp32ResetReason(0));
-    resetReason += F(" / ");
-    resetReason += String(esp32ResetReason(1));
-    return resetReason;
-#elif defined(ARDUINO_ARCH_ESP8266)
-    return ESP.getResetInfo();
-#else
-    return "";
-#endif
-}
+//     resetReason += String(esp32ResetReason(0));
+//     resetReason += F(" / ");
+//     resetReason += String(esp32ResetReason(1));
+//     return resetReason;
+// #elif defined(ARDUINO_ARCH_ESP8266)
+//     return ESP.getResetInfo();
+// #else
+//     return "";
+// #endif
+// }
 
 // String halGetCoreVersion()
 // {
@@ -127,48 +127,48 @@ String halGetResetInfo()
 // #endif
 // }
 
-String halGetChipModel()
-{
-    String model((char*)0);
-    model.reserve(128);
+// String halGetChipModel()
+// {
+//     String model((char*)0);
+//     model.reserve(128);
 
-#if defined(STM32F4xx)
-    model = F("STM32");
-#endif
+// #if defined(STM32F4xx)
+//     model = F("STM32");
+// #endif
 
-#if defined(STM32F4xx)
-    model = F("STM32F4xx");
+// #if defined(STM32F4xx)
+//     model = F("STM32F4xx");
 
-#elif defined(ARDUINO_ARCH_ESP8266)
-    model = F("ESP8266");
+// #elif defined(ARDUINO_ARCH_ESP8266)
+//     model = F("ESP8266");
 
-#elif defined(ARDUINO_ARCH_ESP32)
-    esp_chip_info_t chip_info;
-    esp_chip_info(&chip_info);
+// #elif defined(ARDUINO_ARCH_ESP32)
+//     esp_chip_info_t chip_info;
+//     esp_chip_info(&chip_info);
 
-    model = chip_info.cores;
-    model += F("core ");
-    switch(chip_info.model) {
-        case CHIP_ESP32:
-            model += F("ESP32");
-            break;
-#ifdef CHIP_ESP32S2
-        case CHIP_ESP32S2:
-            model += F("ESP32-S2");
-            break;
-#endif
-        default:
-            model = F("Unknown ESP32");
-    }
-    model += F(" rev");
-    model += chip_info.revision;
+//     model = chip_info.cores;
+//     model += F("core ");
+//     switch(chip_info.model) {
+//         case CHIP_ESP32:
+//             model += F("ESP32");
+//             break;
+// #ifdef CHIP_ESP32S2
+//         case CHIP_ESP32S2:
+//             model += F("ESP32-S2");
+//             break;
+// #endif
+//         default:
+//             model = F("Unknown ESP32");
+//     }
+//     model += F(" rev");
+//     model += chip_info.revision;
 
-#else
-    model = F("Unknown");
-#endif
+// #else
+//     model = F("Unknown");
+// #endif
 
-    return model;
-}
+//     return model;
+// }
 
 /*******************************/
 /* Memory Management Functions */
@@ -216,43 +216,43 @@ int getMemFree() { // returns the amount of free memory in bytes
    return mi.fordblks + freeHighMemory();
 } */
 
-size_t halGetMaxFreeBlock()
-{
-#if defined(ARDUINO_ARCH_ESP32)
-    return ESP.getMaxAllocHeap();
-#elif defined(ARDUINO_ARCH_ESP8266)
-    return ESP.getMaxFreeBlockSize();
-#else
-    return freeHighMemory();
-#endif
-}
+// size_t halGetMaxFreeBlock()
+// {
+// #if defined(ARDUINO_ARCH_ESP32)
+//     return ESP.getMaxAllocHeap();
+// #elif defined(ARDUINO_ARCH_ESP8266)
+//     return ESP.getMaxFreeBlockSize();
+// #else
+//     return freeHighMemory();
+// #endif
+// }
 
-size_t halGetFreeHeap(void)
-{
-#if defined(ARDUINO_ARCH_ESP32)
-    return ESP.getFreeHeap();
-#elif defined(ARDUINO_ARCH_ESP8266)
-    return ESP.getFreeHeap();
-#else
-    struct mallinfo chuncks = mallinfo();
+// size_t halGetFreeHeap(void)
+// {
+// #if defined(ARDUINO_ARCH_ESP32)
+//     return ESP.getFreeHeap();
+// #elif defined(ARDUINO_ARCH_ESP8266)
+//     return ESP.getFreeHeap();
+// #else
+//     struct mallinfo chuncks = mallinfo();
 
-    // fordblks
-    //    This is the total size of memory occupied by free (not in use) chunks.
+//     // fordblks
+//     //    This is the total size of memory occupied by free (not in use) chunks.
 
-    return chuncks.fordblks + freeHighMemory();
-#endif
-}
+//     return chuncks.fordblks + freeHighMemory();
+// #endif
+// }
 
-uint8_t halGetHeapFragmentation()
-{
-#if defined(ARDUINO_ARCH_ESP32)
-    return (int8_t)(100.00f - (float)ESP.getMaxAllocHeap() * 100.00f / (float)ESP.getFreeHeap());
-#elif defined(ARDUINO_ARCH_ESP8266)
-    return ESP.getHeapFragmentation();
-#else
-    return (int8_t)(100.00f - (float)freeHighMemory() * 100.00f / (float)halGetFreeHeap());
-#endif
-}
+// uint8_t halGetHeapFragmentation()
+// {
+// #if defined(ARDUINO_ARCH_ESP32)
+//     return (int8_t)(100.00f - (float)ESP.getMaxAllocHeap() * 100.00f / (float)ESP.getFreeHeap());
+// #elif defined(ARDUINO_ARCH_ESP8266)
+//     return ESP.getHeapFragmentation();
+// #else
+//     return (int8_t)(100.00f - (float)freeHighMemory() * 100.00f / (float)halGetFreeHeap());
+// #endif
+// }
 
 String halGetMacAddress(int start, const char* seperator)
 {
@@ -284,14 +284,14 @@ String halGetMacAddress(int start, const char* seperator)
     return cMac;
 }
 
-uint16_t halGetCpuFreqMHz()
-{
-#if defined(ARDUINO_ARCH_ESP8266) || defined(ARDUINO_ARCH_32)
-    return ESP.getCpuFreqMHz();
-#else
-    return (F_CPU / 1000 / 1000);
-#endif
-}
+// uint16_t halGetCpuFreqMHz()
+// {
+// #if defined(ARDUINO_ARCH_ESP8266) || defined(ARDUINO_ARCH_32)
+//     return ESP.getCpuFreqMHz();
+// #else
+//     return (F_CPU / 1000 / 1000);
+// #endif
+// }
 
 String halDisplayDriverName()
 {

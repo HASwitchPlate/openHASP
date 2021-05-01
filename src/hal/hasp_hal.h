@@ -7,7 +7,7 @@
 #include <Arduino.h>
 
 // void halRestartMcu(void);
-String halGetResetInfo(void);
+// String halGetResetInfo(void);
 // uint8_t halGetHeapFragmentation(void);
 // size_t halGetMaxFreeBlock(void);
 // size_t halGetFreeHeap(void);
@@ -16,6 +16,6 @@ String halGetResetInfo(void);
 String halGetMacAddress(int start, const char* seperator);
 // uint16_t halGetCpuFreqMHz(void);
 // String halDisplayDriverName(void);
-String halGpioName(uint8_t gpio);
+// String halGpioName(uint8_t gpio);
 
 #endif

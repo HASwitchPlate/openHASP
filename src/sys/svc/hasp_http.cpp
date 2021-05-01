@@ -801,7 +801,7 @@ void webHandleInfo()
         httpMessage += haspDevice.get_core_version();
         //#endif
         httpMessage += F("<br/><b>Last Reset: </b>");
-        httpMessage += halGetResetInfo();
+        //  httpMessage += halGetResetInfo();
 
         httpMessage += FPSTR(MAIN_MENU_BUTTON);
 
@@ -1519,7 +1519,8 @@ void webHandleGpioConfig()
                 hasp_gpio_config_t conf = gpioGetPinConfig(id);
                 if((conf.pin == gpio) && gpioConfigInUse(id) && gpioInUse(gpio) && !gpioIsSystemPin(gpio)) {
                     httpMessage += F("<tr><td>");
-                    httpMessage += halGpioName(gpio);
+                    // httpMessage += halGpioName(gpio);
+                    httpMessage += haspDevice.gpio_name(gpio).c_str();
                     httpMessage += F("</td><td>");
 
                     switch(conf.type & 0xfe) {
@@ -1643,7 +1644,7 @@ void webHandleGpioOptions()
 
         for(uint8_t io = 0; io < NUM_DIGITAL_PINS; io++) {
             if(((conf.pin == io) || !gpioInUse(io)) && !gpioIsSystemPin(io)) {
-                httpMessage += getOption(io, halGpioName(io), conf.pin == io);
+                httpMessage += getOption(io, haspDevice.gpio_name(io).c_str(), conf.pin == io);
             }
         }
         httpMessage += F("</select></p>");
