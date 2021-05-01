@@ -42,12 +42,13 @@ void Page::init(uint8_t start_page)
         _meta_data[i].next = thispage == HASP_NUM_PAGES ? PAGE_START_INDEX : thispage + PAGE_START_INDEX;
         _meta_data[i].back = start_page;
 
-        if(prev_page_obj)
+        if(prev_page_obj) {
             if(scr_act == prev_page_obj) {
                 lv_scr_load_anim(_pages[i], LV_SCR_LOAD_ANIM_NONE, 500, 0, false); // update page screen obj
                 lv_obj_del_async(prev_page_obj);
             } else
                 lv_obj_del(prev_page_obj);
+        }
     }
 }
 
