@@ -4,8 +4,7 @@
 #ifndef HASP_GUI_H
 #define HASP_GUI_H
 
-#include "ArduinoJson.h"
-#include "lvgl.h"
+#include "hasplib.h"
 
 struct gui_conf_t
 {

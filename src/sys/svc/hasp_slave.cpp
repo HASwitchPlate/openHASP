@@ -1,17 +1,14 @@
 /* MIT License - Copyright (c) 2019-2021 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
-#include "hasp_conf.h"
+#include "hasplib.h"
 #if HASP_USE_TASMOTA_CLIENT > 0
 
 #include "hasp_slave.h"
-#include "ArduinoJson.h"
 
-#include "hasp_dispatch.h"
 #include "hasp_gui.h"
 #include "hasp_hal.h"
 #include "hasp_config.h"
-#include "hasp.h"
 #include "tasmotaSlave.h"
 
 // set RX and TX pins

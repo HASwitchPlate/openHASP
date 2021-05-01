@@ -1,3 +1,7 @@
+#ifdef ARDUINO
+#include <Arduino.h>
+#endif
+
 #include <cstdlib>
 #include <cctype>
 #include <string>

@@ -1,11 +1,10 @@
 /* MIT License - Copyright (c) 2019-2021 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
-#include "hasp_conf.h"
+#include "hasplib.h"
 
 #if HASP_USE_TELNET > 0
 
-#include "ArduinoJson.h"
 #include "ConsoleInput.h"
 
 #include "hasp_debug.h"

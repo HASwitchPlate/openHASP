@@ -1,15 +1,12 @@
 /* MIT License - Copyright (c) 2019-2021 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
-#include "ArduinoJson.h"
-#include "lvgl.h"
+#include "hasplib.h"
 #include <sys/time.h>
 
 #include "lang/lang.h"
-#include "hasp_conf.h"
 #include "hasp_debug.h"
 #include "hasp_macro.h"
-#include "hasp/hasp.h"
 
 #if(!defined(WINDOWS)) && (!defined(POSIX))
 #include "ArduinoLog.h"

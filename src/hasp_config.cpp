@@ -3,13 +3,12 @@
 
 #if HASP_USE_CONFIG > 0
 
-#include "StreamUtils.h" // For EEPromStream
-
 #include "hasplib.h"
 
 #include "hasp_config.h"
 #include "hasp_debug.h"
 #include "hasp_gui.h"
+#include "hal/hasp_hal.h"
 
 //#include "hasp_ota.h" included in conf
 //#include "hasp_filesystem.h" included in conf
@@ -21,6 +20,8 @@
 #if HASP_USE_EEPROM > 0
 #include "EEPROM.h"
 #endif
+
+#include "StreamUtils.h" // For EEPromStream
 
 extern uint16_t dispatchTelePeriod;
 extern uint32_t dispatchLastMillis;

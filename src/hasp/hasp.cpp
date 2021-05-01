@@ -1,6 +1,10 @@
 /* MIT License - Copyright (c) 2019-2021 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
+#include "hasplib.h"
+#include "lv_theme_hasp.h"
+#include "dev/device.h"
+
 #ifdef ARDUINO
 #include "ArduinoLog.h"
 #endif
@@ -15,9 +19,6 @@
 #include "StreamUtils.h" // For EEPromStream
 #endif
 
-#include "hasplib.h"
-#include "lv_theme_hasp.h"
-
 #if HASP_USE_DEBUG > 0
 #include "../hasp_debug.h"
 #endif
@@ -28,8 +29,6 @@
 #include "hasp_config.h"
 //#include "hasp_filesystem.h" included in hasp_conf.h
 #endif
-
-#include "dev/device.h"
 
 #if HASP_USE_EEPROM > 0
 #include "EEPROM.h"

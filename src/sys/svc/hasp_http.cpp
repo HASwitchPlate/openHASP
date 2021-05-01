@@ -2,9 +2,8 @@
    For full license information read the LICENSE file in the project folder */
 
 //#include "webServer.h"
-#include "ArduinoJson.h"
+#include "hasplib.h"
 #include "ArduinoLog.h"
-#include "lvgl.h"
 
 #if defined(ARDUINO_ARCH_ESP32)
 #include "Update.h"
@@ -12,16 +11,11 @@
 
 #include "hasp_conf.h"
 #include "dev/device.h"
-
-#include "hasp_gui.h"
-#include "hasp/hasp_dispatch.h"
-#include "hasp_debug.h"
-#include "hasp_config.h"
 #include "hal/hasp_hal.h"
 
-#include "hasp/hasp_dispatch.h"
-#include "hasp/hasp_page.h"
-#include "hasp/hasp.h"
+#include "hasp_gui.h"
+#include "hasp_debug.h"
+#include "hasp_config.h"
 
 #if HASP_USE_HTTP > 0
 

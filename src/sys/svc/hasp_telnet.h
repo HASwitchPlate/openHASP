@@ -6,8 +6,7 @@
 
 #if HASP_USE_TELNET > 0
 
-#include "hasp_conf.h"
-#include "ArduinoJson.h"
+#include "hasplib.h"
 
 /* ===== Default Event Processors ===== */
 void telnetSetup();
