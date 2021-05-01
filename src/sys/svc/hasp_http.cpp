@@ -128,6 +128,8 @@ const char HTTP_STYLE[] PROGMEM =
     // ".button4{background-color:#e7e7e7;color:black;}"
     // ".button5{background-color:#555555;}"
     // ".button6{background-color:#4CAF50;}"
+    "td{padding:5px;width:50%;}"
+    "th{padding-top:1em;}"
     "</style>";
 const char HTTP_SCRIPT[] PROGMEM = "<script>function "
                                    "c(l){document.getElementById('s').value=l.innerText||l.textContent;document."
@@ -545,7 +547,7 @@ void add_json(String& data, JsonDocument& doc)
 {
     char buffer[512];
     size_t len = serializeJson(doc, buffer, sizeof(buffer));
-    if(len <= 2) return; // empty document
+    if(doc.isNull()) return; // empty document
 
     buffer[len - 1] = ',';
     char* start     = buffer + 1;
@@ -561,7 +563,12 @@ void webHandleInfoJson()
     htmldata.reserve(HTTP_PAGE_SIZE);
     DynamicJsonDocument doc(512);
 
-    htmldata = "{";
+    htmldata += F("<h1>");
+    htmldata += haspDevice.get_hostname();
+    htmldata += F("</h1><hr>");
+
+    htmldata += "<div id=\"info\"></div><script>window.addEventListener(\"load\", function(){ var data = '{";
+    //  htmldata = "{";
 
     hasp_get_info(doc);
     add_json(htmldata, doc);
@@ -574,12 +581,28 @@ void webHandleInfoJson()
     network_get_info(doc);
     add_json(htmldata, doc);
 
-    //  haspDevice.get_info(doc);
-    // add_json(htmldata, doc);
+    haspDevice.get_info(doc);
+    add_json(htmldata, doc);
 
     htmldata[htmldata.length() - 1] = '}'; // Replace last comma with a bracket
-    String path                     = F(".json");
-    webServer.send(200, getContentType(path), htmldata);
+
+    htmldata += "'; data = JSON.parse(data); var table = \"<table>\"; for(let header in data) { "
+                "table += `<tr><td colspan=2></td></ tr><tr><th colspan=2>${header}</ th></ tr>`;"
+                "for(let key in data[header]) { "
+                "table += `<tr><td>${key}: </ td><td> ${data[header][key]}</ td></ tr>`;"
+                "}} table += \"</table>\"; "
+                "document.getElementById(\"info\").innerHTML = table;});</script>";
+
+    // String path = F(".html");
+    // webServer.send(200, getContentType(path), htmldata);
+
+    htmldata += FPSTR(MAIN_MENU_BUTTON);
+
+    webSendPage(haspDevice.get_hostname(), htmldata.length(), false);
+    webServer.sendContent(htmldata);
+
+    htmldata.clear();
+    webSendFooter();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2121,8 +2144,8 @@ void httpSetup()
 #endif
 
     webServer.on(F("/"), webHandleRoot);
-    webServer.on(F("/info"), webHandleInfo);
-    webServer.on(F("/infojson"), webHandleInfoJson);
+    webServer.on(F("/info"), webHandleInfoJson);
+    // webServer.on(F("/info"), webHandleInfo);
     webServer.on(F("/screenshot"), webHandleScreenshot);
     webServer.on(F("/firmware"), webHandleFirmware);
     webServer.on(F("/reboot"), httpHandleReboot);
