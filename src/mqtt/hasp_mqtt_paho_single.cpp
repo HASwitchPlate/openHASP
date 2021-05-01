@@ -321,7 +321,7 @@ void mqttStart()
     conn_opts.password = mqttPassword.c_str();
 
     if((rc = MQTTClient_connect(mqtt_client, &conn_opts)) != MQTTCLIENT_SUCCESS) {
-        printf("Failed to start connect, return code %d\n", rc);
+        printf("Failed to connect, return code %d\n", rc);
         rc = EXIT_FAILURE;
         //   goto destroy_exit;
     } else {
@@ -346,7 +346,7 @@ void mqttStop()
     // disc_opts.onSuccess                    = onDisconnect;
     // disc_opts.onFailure                    = onDisconnectFailure;
     if((rc = MQTTClient_disconnect(mqtt_client, 1000)) != MQTTCLIENT_SUCCESS) {
-        printf("Failed to start disconnect, return code %d\n", rc);
+        printf("Failed to disconnect, return code %d\n", rc);
         rc = EXIT_FAILURE;
         // goto destroy_exit;
     }
@@ -397,21 +397,21 @@ void mqtt_get_info(JsonDocument& doc)
 {
     char mqttClientId[64];
 
-    JsonObject info     = doc.createNestedObject(F("MQTT"));
-    info[F("Server")]   = mqttServer;
-    info[F("User")]     = mqttUser;
-    info[F("ClientID")] = haspDevice.get_hostname();
+    JsonObject info          = doc.createNestedObject(F("MQTT"));
+    info[F(D_INFO_SERVER)]   = mqttServer;
+    info[F(D_INFO_USERNAME)] = mqttUser;
+    info[F(D_INFO_CLIENTID)] = haspDevice.get_hostname();
 
     if(mqttIsConnected()) { // Check MQTT connection
-        info[F("Status")] = F("Connected");
+        info[F(D_INFO_STATUS)] = F(D_INFO_CONNECTED);
     } else {
-        info[F("Status")] = F("<font color='red'><b>Disconnected</b></font>, return code: ");
+        info[F(D_INFO_STATUS)] = F("<font color='red'><b>" D_INFO_DISCONNECTED "</b></font>, return code: ");
         //     +String(mqttClient.returnCode());
     }
 
-    info[F("Received")]  = mqttReceiveCount;
-    info[F("Published")] = mqttPublishCount;
-    info[F("Failed")]    = mqttFailedCount;
+    info[F(D_INFO_RECEIVED)]  = mqttReceiveCount;
+    info[F(D_INFO_PUBLISHED)] = mqttPublishCount;
+    info[F(D_INFO_FAILED)]    = mqttFailedCount;
 }
 
 #endif // USE_PAHO

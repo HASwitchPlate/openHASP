@@ -25,13 +25,13 @@ void EthernetEvent(WiFiEvent_t event)
             eth_connected = true;
             break;
         case SYSTEM_EVENT_ETH_GOT_IP:
-            LOG_TRACE(TAG_ETH, F("MAC Address %s"), ETH.macAddress().c_str());
+            LOG_TRACE(TAG_ETH, F(D_INFO_MAC_ADDRESS " %s"), ETH.macAddress().c_str());
             ip = ETH.localIP();
             LOG_TRACE(TAG_ETH, F("IPv4: %d.%d.%d.%d"), ip[0], ip[1], ip[2], ip[3]);
             if(ETH.fullDuplex()) {
-                LOG_TRACE(TAG_ETH, F("FULL_DUPLEX"));
+                LOG_TRACE(TAG_ETH, F(D_INFO_FULL_DUPLEX));
             }
-            LOG_TRACE(TAG_ETH, F("LINK_SPEED %d Mbps"), ETH.linkSpeed());
+            LOG_TRACE(TAG_ETH, F(D_INFO_LINK_SPEED " %d Mbps"), ETH.linkSpeed());
             eth_connected = true;
             networkStart(); // Start network services
             break;
@@ -76,19 +76,19 @@ void ethernet_get_info(JsonDocument& doc)
     String buffer((char*)0);
     buffer.reserve(64);
 
-    JsonObject info = doc.createNestedObject(F("Ethernet"));
+    JsonObject info = doc.createNestedObject(F(D_INFO_ETHERNET));
 
     buffer = ETH.linkSpeed();
     buffer += F(" Mbps");
     if(ETH.fullDuplex()) {
-        buffer += F(" FULL_DUPLEX");
+        buffer += F(" " D_INFO_FULL_DUPLEX);
     }
 
-    info[F("Link Speed")]  = buffer;
-    info[F("IP Address")]  = ETH.localIP().toString();
-    info[F("Gateway")]     = ETH.gatewayIP().toString();
-    info[F("DNS Server")]  = ETH.dnsIP().toString();
-    info[F("MAC Address")] = ETH.macAddress();
+    info[F(D_INFO_LINK_SPEED)]  = buffer;
+    info[F(D_INFO_IP_ADDRESS)]  = ETH.localIP().toString();
+    info[F(D_INFO_GATEWAY)]     = ETH.gatewayIP().toString();
+    info[F(D_INFO_DNS_SERVER)]  = ETH.dnsIP().toString();
+    info[F(D_INFO_MAC_ADDRESS)] = ETH.macAddress();
 }
 
 #endif

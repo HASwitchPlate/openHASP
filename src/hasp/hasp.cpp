@@ -581,13 +581,13 @@ void hasp_get_info(JsonDocument& doc)
     JsonObject info = doc.createNestedObject(F(D_MANUFACTURER));
 
     haspGetVersion(size_buf, sizeof(size_buf));
-    info[F("Version")] = size_buf;
+    info[F(D_INFO_VERSION)] = size_buf;
 
     buffer = __DATE__;
     buffer += (" ");
     buffer += __TIME__;
     buffer += (" UTC"); // Github buildservers are in UTC
-    info[F("Build DateTime")] = buffer;
+    info[F(D_INFO_BUILD_DATETIME)] = buffer;
 
     unsigned long time = millis() / 1000;
     uint16_t day       = time / 86400;
@@ -617,21 +617,21 @@ void hasp_get_info(JsonDocument& doc)
     itoa(sec, size_buf, DEC);
     buffer += size_buf;
     buffer += "s";
-    info[F("Uptime")] = buffer;
+    info[F(D_INFO_UPTIME)] = buffer;
 
     info = doc.createNestedObject(F("Device Memory"));
     Parser::format_bytes(haspDevice.get_free_heap(), size_buf, sizeof(size_buf));
-    info[F("Free Heap")] = size_buf;
+    info[F(D_INFO_FREE_HEAP)] = size_buf;
     Parser::format_bytes(haspDevice.get_free_max_block(), size_buf, sizeof(size_buf));
-    info[F("Free Block")]    = size_buf;
-    info[F("Fragmentation")] = haspDevice.get_heap_fragmentation();
+    info[F(D_INFO_FREE_BLOCK)]    = size_buf;
+    info[F(D_INFO_FRAGMENTATION)] = haspDevice.get_heap_fragmentation();
 
 #if ARDUINO_ARCH_ESP32
     if(psramFound()) {
         Parser::format_bytes(ESP.getFreePsram(), size_buf, sizeof(size_buf));
-        info[F("Free PSRam")] = size_buf;
+        info[F(D_INFO_PSRAM_FREE)] = size_buf;
         Parser::format_bytes(ESP.getPsramSize(), size_buf, sizeof(size_buf));
-        info[F("PSRam Size")] = size_buf;
+        info[F(D_INFO_PSRAM_SIZE)] = size_buf;
     }
 #endif
 
@@ -641,8 +641,8 @@ void hasp_get_info(JsonDocument& doc)
     Parser::format_bytes(mem_mon.total_size, size_buf, sizeof(size_buf));
     info[F("Total")] = size_buf;
     Parser::format_bytes(mem_mon.free_size, size_buf, sizeof(size_buf));
-    info[F("Free")]          = size_buf;
-    info[F("Fragmentation")] = mem_mon.frag_pct;
+    info[F("Free")]               = size_buf;
+    info[F(D_INFO_FRAGMENTATION)] = mem_mon.frag_pct;
 
     info = doc.createNestedObject(F("HASP State"));
     hasp_get_sleep_state(size_buf);

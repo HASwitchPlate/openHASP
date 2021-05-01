@@ -385,25 +385,25 @@ void mqtt_get_info(JsonDocument& doc)
     String mac((char*)0);
     mac.reserve(64);
 
-    JsonObject info   = doc.createNestedObject(F("MQTT"));
-    info[F("Server")] = mqttServer;
-    info[F("User")]   = mqttUser;
+    JsonObject info          = doc.createNestedObject(F("MQTT"));
+    info[F(D_INFO_SERVER)]   = mqttServer;
+    info[F(D_INFO_USERNAME)] = mqttUser;
 
     mac = halGetMacAddress(3, "");
     mac.toLowerCase();
     snprintf_P(mqttClientId, sizeof(mqttClientId), PSTR("%s-%s"), haspDevice.get_hostname(), mac.c_str());
-    info[F("ClientID")] = mqttClientId;
+    info[F(D_INFO_CLIENTID)] = mqttClientId;
 
     if(mqttIsConnected()) { // Check MQTT connection
-        info[F("Status")] = F("Connected");
+        info[F(D_INFO_STATUS)] = F(D_INFO_CONNECTED);
     } else {
-        info[F("Status")] = F("<font color='red'><b>Disconnected</b></font>, return code: ");
+        info[F(D_INFO_STATUS)] = F("<font color='red'><b>" D_INFO_DISCONNECTED "</b></font>, return code: ");
         //     +String(mqttClient.returnCode());
     }
 
-    info[F("Received")]  = mqttReceiveCount;
-    info[F("Published")] = mqttPublishCount;
-    info[F("Failed")]    = mqttFailedCount;
+    info[F(D_INFO_RECEIVED)]  = mqttReceiveCount;
+    info[F(D_INFO_PUBLISHED)] = mqttPublishCount;
+    info[F(D_INFO_FAILED)]    = mqttFailedCount;
 }
 
 #if HASP_USE_CONFIG > 0

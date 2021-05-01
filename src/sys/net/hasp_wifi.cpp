@@ -524,7 +524,7 @@ void wifi_get_info(JsonDocument& doc)
     String buffer((char*)0);
     buffer.reserve(64);
 
-    JsonObject info = doc.createNestedObject(F("Wifi"));
+    JsonObject info = doc.createNestedObject(F(D_INFO_WIFI));
 
     int8_t rssi = WiFi.RSSI();
     buffer += String(rssi);
@@ -542,25 +542,22 @@ void wifi_get_info(JsonDocument& doc)
         buffer += F("Very Bad)");
     }
 
-    info[F("SSID")]            = String(WiFi.SSID());
-    info[F("Signal Strength")] = buffer;
+    info[F(D_INFO_SSID)] = String(WiFi.SSID());
+    info[F(D_INFO_RSSI)] = buffer;
 
 #if defined(STM32F4xx)
     byte mac[6];
     WiFi.macAddress(mac);
     char macAddress[16];
     snprintf_P(macAddress, sizeof(macAddress), PSTR("%02x%02x%02x"), mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
-    httpMessage += F("</br><b>IP Address: </b>");
-    httpMessage += String(WiFi.localIP());
-    httpMessage += F("</br><b>Gateway: </b>");
-    httpMessage += String(WiFi.gatewayIP());
-    httpMessage += F("</br><b>MAC Address: </b>");
-    httpMessage += String(macAddress);
+    info[F(D_INFO_IP_ADDRESS)]  = String(WiFi.localIP());
+    info[F(D_INFO_GATEWAY)]     = String(WiFi.gatewayIP());
+    info[F(D_INFO_MAC_ADDRESS)] = String(macAddress);
 #else
-    info[F("IP Address")]  = WiFi.localIP().toString();
-    info[F("Gateway")]     = WiFi.gatewayIP().toString();
-    info[F("DNS Server")]  = WiFi.dnsIP().toString();
-    info[F("MAC Address")] = WiFi.macAddress();
+    info[F(D_INFO_IP_ADDRESS)]  = WiFi.localIP().toString();
+    info[F(D_INFO_GATEWAY)]     = WiFi.gatewayIP().toString();
+    info[F(D_INFO_DNS_SERVER)]  = WiFi.dnsIP().toString();
+    info[F(D_INFO_MAC_ADDRESS)] = WiFi.macAddress();
 #endif
 }
 
