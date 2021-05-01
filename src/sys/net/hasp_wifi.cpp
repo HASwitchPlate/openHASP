@@ -531,15 +531,15 @@ void wifi_get_info(JsonDocument& doc)
     buffer += F("dBm (");
 
     if(rssi >= -50) {
-        buffer += F("Excellent)");
+        buffer += F(D_WIFI_RSSI_EXCELLENT ")");
     } else if(rssi >= -60) {
-        buffer += F("Good)");
+        buffer += F(D_WIFI_RSSI_GOOD ")");
     } else if(rssi >= -70) {
-        buffer += F("Fair)");
+        buffer += F(D_WIFI_RSSI_FAIR ")");
     } else if(rssi >= -80) {
-        buffer += F("Weak)");
+        buffer += F(D_WIFI_RSSI_WEAK ")");
     } else {
-        buffer += F("Very Bad)");
+        buffer += F(D_WIFI_RSSI_BAD ")");
     }
 
     info[F(D_INFO_SSID)] = String(WiFi.SSID());

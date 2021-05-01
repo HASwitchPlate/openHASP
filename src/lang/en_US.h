@@ -178,5 +178,10 @@
 
 #define D_WIFI_CONNECTING_TO "Connecting to %s"
 #define D_WIFI_CONNECTED_TO "Connected to %s, requesting IP..."
+#define D_WIFI_RSSI_EXCELLENT "Excellent"
+#define D_WIFI_RSSI_GOOD "Good"
+#define D_WIFI_RSSI_FAIR "Fair"
+#define D_WIFI_RSSI_WEAK "Weak"
+#define D_WIFI_RSSI_BAD "Very bad"
 
 #endif

@@ -4,8 +4,8 @@
 #define D_USERNAME "Gebruikersnaam:"
 #define D_PASSWORD "Wachtwoord:"
 #define D_SSID "Ssid:"
-#define D_YES "Yes" // New
-#define D_NO "No"   // New
+#define D_YES "Ja"
+#define D_NO "Nee"
 
 #define D_ERROR_OUT_OF_MEMORY "Geen geheugen bechikbaar"
 #define D_ERROR_UNKNOWN "Onbekende fout"
@@ -22,8 +22,8 @@
 #define D_FILE_SAVED "%s bewaard"
 #define D_FILE_SAVE_FAILED "%s bewaren mislukt"
 
-#define D_SETTING_ENABLED "Ingeschakeld"   // New
-#define D_SETTING_DISABLED "Uitgeschakeld" // New
+#define D_SETTING_ENABLED "Ingeschakeld"
+#define D_SETTING_DISABLED "Uitgeschakeld"
 
 #define D_SERVICE_STARTING "Starten..."
 #define D_SERVICE_STARTED "Gestart"
@@ -137,7 +137,7 @@
 #define D_INFO_BUILD_DATETIME "Gecompileerd"
 #define D_INFO_UPTIME "Opgestart"
 #define D_INFO_FREE_HEAP "Vrije Heap"
-#define D_INFO_FREE_BLOCK "Vrije blok"
+#define D_INFO_FREE_BLOCK "Vrije Blok"
 #define D_INFO_DEVICE_MEMORY "Algemeen Geheugen"
 #define D_INFO_LVGL_MEMORY "LVGL Geheugen"
 #define D_INFO_TOTAL_MEMORY "Totaal"
@@ -177,5 +177,10 @@
 
 #define D_WIFI_CONNECTING_TO "Verbinden met %s"
 #define D_WIFI_CONNECTED_TO "Verbonden met %s, IP aanvragen..."
+#define D_WIFI_RSSI_EXCELLENT "Uitstekend"
+#define D_WIFI_RSSI_GOOD "Goed"
+#define D_WIFI_RSSI_FAIR "Redelijk"
+#define D_WIFI_RSSI_WEAK "Zwak"
+#define D_WIFI_RSSI_BAD "Zeer Slecht"
 
 #endif
