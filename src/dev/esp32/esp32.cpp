@@ -111,8 +111,6 @@ Esp32Device::Esp32Device()
         if(mac[i] < 0x10) _hardware_id += "0";
         _hardware_id += String(mac[i], HEX).c_str();
     }
-
-    _sketch_size = ESP.getSketchSize(); // slow: takes ~1 second
 }
 
 void Esp32Device::reboot()
@@ -125,6 +123,8 @@ void Esp32Device::show_info()
     LOG_VERBOSE(TAG_DEV, F("Processor  : ESP32"));
     LOG_VERBOSE(TAG_DEV, F("CPU freq.  : %i MHz"), get_cpu_frequency());
     // LOG_VERBOSE(TAG_DEV, F("Voltage    : %2.2f V"), ESP.getVcc() / 918.0); // 918 empirically determined
+
+    if(_sketch_size == 0) _sketch_size = ESP.getSketchSize(); // slow: takes ~1 second
 }
 
 const char* Esp32Device::get_hostname()
@@ -274,6 +274,7 @@ void Esp32Device::get_info(JsonDocument& doc)
     Parser::format_bytes(ESP.getFlashChipSize(), size_buf, sizeof(size_buf)); // 25ms
     info[F(D_INFO_FLASH_SIZE)] = size_buf;
 
+    if(_sketch_size == 0) _sketch_size = ESP.getSketchSize(); // slow: takes ~1 second
     Parser::format_bytes(_sketch_size, size_buf, sizeof(size_buf));
     info[F(D_INFO_SKETCH_USED)] = size_buf;
 
