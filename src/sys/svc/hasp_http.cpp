@@ -894,7 +894,7 @@ void webHandleFirmwareUpload()
 #endif
 
 #if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
-bool handleFileRead(String path)
+int handleFileRead(String path)
 {
     // if(!httpIsAuthenticated(F("fileread"))) return false;
     if(!httpIsAuthenticated()) return false;
@@ -909,10 +909,9 @@ bool handleFileRead(String path)
         File file = HASP_FS.open(path, "r");
 
         String configFile((char*)0);
-        configFile.reserve(32);
         configFile = String(FPSTR(FP_HASP_CONFIG_FILE));
 
-        String contentType;
+        String contentType((char*)0);
         if(webServer.hasArg(F("download")))
             contentType = F("application/octet-stream");
         else
@@ -924,16 +923,17 @@ bool handleFileRead(String path)
             DeserializationError error = configParseFile(configFile, settings);
 
             if(!error) {
-                LOG_TRACE(TAG_CONF, F(D_FILE_LOADING), configFile.c_str());
-                // Output settings in log with masked passwords
-                configMaskPasswords(settings);
+                // LOG_TRACE(TAG_CONF, F(D_FILE_LOADING), configFile.c_str());
+                configMaskPasswords(settings); // Output settings in log with masked passwords
                 char buffer[800];
                 size_t len = serializeJson(settings, buffer, sizeof(buffer));
-                LOG_VERBOSE(TAG_CONF, buffer);
+                // LOG_VERBOSE(TAG_CONF, buffer);
+
                 webServer.setContentLength(len);
                 webServer.send(200, contentType, "");
-                webServer.sendContent(buffer, len);
+                webServer.sendContent((const char*)buffer, len);
             } else {
+                return 500; // Internal Server error
             }
 
         } else {
@@ -942,7 +942,7 @@ bool handleFileRead(String path)
             file.close();
         }
 
-        return true;
+        return 200; // OK
     }
 
 #ifdef ARDUINO_ARCH_ESP32
@@ -950,11 +950,11 @@ bool handleFileRead(String path)
         size_t size = EDIT_HTM_GZ_END - EDIT_HTM_GZ_START;
         webServer.sendHeader(F("Content-Encoding"), F("gzip"));
         webServer.send_P(200, PSTR("text/html"), (const char*)EDIT_HTM_GZ_START, size);
-        return true;
+        return 200; // OK
     }
 #endif
 
-    return false;
+    return 404; // Not found
 }
 
 void handleFileUpload()
@@ -1862,24 +1862,28 @@ void webHandleHaspConfig()
 void httpHandleNotFound()
 { // webServer 404
 #if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
-    if(handleFileRead(webServer.uri())) {
-        LOG_TRACE(TAG_HTTP, F("Sending %d %s to client connected from: %s"), 200, webServer.uri().c_str(),
-                  webServer.client().remoteIP().toString().c_str());
-        return;
-    }
+    int statuscode = handleFileRead(webServer.uri());
+    if(statuscode == 200) return;
+#else
+    int statuscode = 404;
 #endif
 
 #if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
-    LOG_TRACE(TAG_HTTP, F("Sending %d %s to client connected from: %s"), 404, webServer.uri().c_str(),
+    LOG_TRACE(TAG_HTTP, F("Sending %d %s to client connected from: %s"), statuscode, webServer.uri().c_str(),
               webServer.client().remoteIP().toString().c_str());
 #else
-  // LOG_TRACE(TAG_HTTP,F("Sending 404 to client connected from: %s"), String(webServer.client().remoteIP()).c_str());
+    // LOG_TRACE(TAG_HTTP,F("Sending 404 to client connected from: %s"), String(webServer.client().remoteIP()).c_str());
 #endif
 
     String httpMessage((char*)0);
     httpMessage.reserve(HTTP_PAGE_SIZE);
 
-    httpMessage += F("File Not Found\n\nURI: ");
+    if(statuscode == 500)
+        httpMessage += F("Internal Server Error");
+    else
+        httpMessage += F("File Not Found");
+
+    httpMessage += F("\n\nURI: ");
     httpMessage += webServer.uri();
     httpMessage += F("\nMethod: ");
     httpMessage += (webServer.method() == HTTP_GET) ? F("GET") : F("POST");
@@ -1889,7 +1893,7 @@ void httpHandleNotFound()
     for(int i = 0; i < webServer.args(); i++) {
         httpMessage += " " + webServer.argName(i) + ": " + webServer.arg(i) + "\n";
     }
-    webServer.send(404, PSTR("text/plain"), httpMessage.c_str());
+    webServer.send(statuscode, PSTR("text/plain"), httpMessage.c_str());
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
