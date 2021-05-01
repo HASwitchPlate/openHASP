@@ -265,7 +265,7 @@ static void onConnect(void* context)
     connected         = 1;
     std::string topic;
 
-    LOG_VERBOSE(TAG_MQTT, "Successful connection");
+    LOG_VERBOSE(TAG_MQTT, D_MQTT_CONNECTED, mqttServer.c_str(), haspDevice.get_hostname());
 
     topic = mqttGroupTopic + "command/#";
     mqtt_subscribe(mqtt_client, topic.c_str());
@@ -290,11 +290,13 @@ static void onConnect(void* context)
 
 void mqttStart()
 {
+    printf("%s %d\n", __FILE__, __LINE__);
     MQTTClient_connectOptions conn_opts = MQTTClient_connectOptions_initializer;
     MQTTClient_willOptions will_opts    = MQTTClient_willOptions_initializer;
     int rc;
     int ch;
 
+    printf("%s %d\n", __FILE__, __LINE__);
     if((rc = MQTTClient_create(&mqtt_client, mqttServer.c_str(), haspDevice.get_hostname(), MQTTCLIENT_PERSISTENCE_NONE,
                                NULL)) != MQTTCLIENT_SUCCESS) {
         printf("Failed to create client, return code %d\n", rc);
@@ -308,25 +310,36 @@ void mqttStart()
     //     return;
     // }
 
-    conn_opts.will            = &will_opts;
-    conn_opts.will->message   = "offline";
-    conn_opts.will->qos       = 1;
-    conn_opts.will->retained  = 1;
-    conn_opts.will->topicName = mqttLwtTopic.c_str();
+    printf("%s %d\n", __FILE__, __LINE__);
+    if(mqttServer.length() > 0) {
+        conn_opts.will            = &will_opts;
+        conn_opts.will->message   = "offline";
+        conn_opts.will->qos       = 1;
+        conn_opts.will->retained  = 1;
+        conn_opts.will->topicName = mqttLwtTopic.c_str();
 
-    conn_opts.keepAliveInterval = 20;
-    conn_opts.cleansession      = 1;
+        conn_opts.keepAliveInterval = 20;
+        conn_opts.cleansession      = 1;
+        conn_opts.connectTimeout    = 2; // seconds
+        conn_opts.retryInterval     = 0; // no retry
 
-    conn_opts.username = mqttUser.c_str();
-    conn_opts.password = mqttPassword.c_str();
+        conn_opts.username = mqttUser.c_str();
+        conn_opts.password = mqttPassword.c_str();
 
-    if((rc = MQTTClient_connect(mqtt_client, &conn_opts)) != MQTTCLIENT_SUCCESS) {
-        printf("Failed to connect, return code %d\n", rc);
-        rc = EXIT_FAILURE;
-        //   goto destroy_exit;
+        printf("%s %d\n", __FILE__, __LINE__);
+        if((rc = MQTTClient_connect(mqtt_client, &conn_opts)) != MQTTCLIENT_SUCCESS) {
+            printf("Failed to connect, return code %d\n", rc);
+            rc = EXIT_FAILURE;
+            //   goto destroy_exit;
+        } else {
+            onConnect(&mqtt_client);
+        }
     } else {
-        onConnect(&mqtt_client);
+        rc = EXIT_FAILURE;
+        printf("Mqtt server not configured\n");
     }
+
+    printf("%s %d\n", __FILE__, __LINE__);
 
     //     while (!subscribed && !finished)
     // #if defined(_WIN32)
@@ -367,18 +380,23 @@ void mqttStop()
 
 void mqttSetup()
 {
+    printf("%s %d\n", __FILE__, __LINE__);
     mqttNodeTopic = MQTT_PREFIX;
     mqttNodeTopic += "/";
     mqttNodeTopic += haspDevice.get_hostname();
     mqttNodeTopic += "/";
 
+    printf("%s %d\n", __FILE__, __LINE__);
     mqttGroupTopic = MQTT_PREFIX;
     mqttGroupTopic += "/";
     mqttGroupTopic += mqttGroupName;
     mqttGroupTopic += "/";
 
+    printf("%s %d\n", __FILE__, __LINE__);
     mqttLwtTopic = mqttNodeTopic;
     mqttLwtTopic += LWT_TOPIC;
+
+    printf("%s %d\n", __FILE__, __LINE__);
 }
 
 void mqttLoop()
