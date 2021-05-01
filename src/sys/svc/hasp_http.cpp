@@ -925,13 +925,12 @@ int handleFileRead(String path)
             if(!error) {
                 // LOG_TRACE(TAG_CONF, F(D_FILE_LOADING), configFile.c_str());
                 configMaskPasswords(settings); // Output settings in log with masked passwords
-                char buffer[800];
+                char buffer[1024];
                 size_t len = serializeJson(settings, buffer, sizeof(buffer));
                 // LOG_VERBOSE(TAG_CONF, buffer);
 
                 webServer.setContentLength(len);
-                webServer.send(200, contentType, "");
-                webServer.sendContent((const char*)buffer, len);
+                webServer.send(200, contentType, buffer);
             } else {
                 return 500; // Internal Server error
             }
