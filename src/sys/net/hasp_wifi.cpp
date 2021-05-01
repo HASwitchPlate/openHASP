@@ -519,6 +519,51 @@ void wifi_get_statusupdate(char* buffer, size_t len)
 #endif
 }
 
+void wifi_get_info(JsonDocument& doc)
+{
+    String buffer((char*)0);
+    buffer.reserve(64);
+
+    JsonObject info = doc.createNestedObject(F("Wifi"));
+
+    int8_t rssi = WiFi.RSSI();
+    buffer += String(rssi);
+    buffer += F("dBm (");
+
+    if(rssi >= -50) {
+        buffer += F("Excellent)");
+    } else if(rssi >= -60) {
+        buffer += F("Good)");
+    } else if(rssi >= -70) {
+        buffer += F("Fair)");
+    } else if(rssi >= -80) {
+        buffer += F("Weak)");
+    } else {
+        buffer += F("Very Bad)");
+    }
+
+    info[F("SSID")]            = String(WiFi.SSID());
+    info[F("Signal Strength")] = buffer;
+
+#if defined(STM32F4xx)
+    byte mac[6];
+    WiFi.macAddress(mac);
+    char macAddress[16];
+    snprintf_P(macAddress, sizeof(macAddress), PSTR("%02x%02x%02x"), mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+    httpMessage += F("</br><b>IP Address: </b>");
+    httpMessage += String(WiFi.localIP());
+    httpMessage += F("</br><b>Gateway: </b>");
+    httpMessage += String(WiFi.gatewayIP());
+    httpMessage += F("</br><b>MAC Address: </b>");
+    httpMessage += String(macAddress);
+#else
+    info[F("IP Address")]  = WiFi.localIP().toString();
+    info[F("Gateway")]     = WiFi.gatewayIP().toString();
+    info[F("DNS Server")]  = WiFi.dnsIP().toString();
+    info[F("MAC Address")] = WiFi.macAddress();
+#endif
+}
+
 /* ============ Confiuration =============================================================== */
 #if HASP_USE_CONFIG > 0
 bool wifiGetConfig(const JsonObject& settings)

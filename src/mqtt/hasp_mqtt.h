@@ -34,6 +34,7 @@ int mqtt_send_discovery(const char* payload, size_t len);
 int mqttPublish(const char* topic, const char* payload, size_t len, bool retain);
 
 bool mqttIsConnected();
+void mqtt_get_info(JsonDocument& doc);
 
 #if HASP_USE_CONFIG > 0
 bool mqttGetConfig(const JsonObject& settings);

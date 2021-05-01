@@ -132,4 +132,15 @@ void network_get_statusupdate(char* buffer, size_t len)
 #endif
 }
 
+void network_get_info(JsonDocument& doc)
+{
+#if HASP_USE_ETHERNET > 0
+    ethernet_get_info(doc);
+#endif
+
+#if HASP_USE_WIFI > 0
+    wifi_get_info(doc);
+#endif
+}
+
 #endif

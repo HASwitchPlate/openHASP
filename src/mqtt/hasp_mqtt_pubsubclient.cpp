@@ -50,6 +50,9 @@ char mqttNodeTopic[24];
 char mqttGroupTopic[24];
 bool mqttEnabled        = false;
 bool mqttHAautodiscover = true;
+uint32_t mqttPublishCount;
+uint32_t mqttReceiveCount;
+uint32_t mqttFailedCount;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // These defaults may be overwritten with values saved by the web interface
@@ -95,11 +98,13 @@ int mqttPublish(const char* topic, const char* payload, size_t len, bool retain)
     if(!mqttClient.connected()) return MQTT_ERR_NO_CONN;
 
     if(mqttClient.beginPublish(topic, len, retain)) {
+        mqttPublishCount++;
         mqttClient.write((uint8_t*)payload, len);
         mqttClient.endPublish();
         return MQTT_ERR_OK;
     }
 
+    mqttFailedCount++;
     return MQTT_ERR_PUB_FAIL;
 }
 
@@ -156,9 +161,11 @@ int mqtt_send_discovery(const char* payload, size_t len)
 static void mqtt_message_cb(char* topic, byte* payload, unsigned int length)
 { // Handle incoming commands from MQTT
     if(length + 1 >= mqttClient.getBufferSize()) {
+        mqttFailedCount++;
         LOG_ERROR(TAG_MQTT_RCV, F(D_MQTT_PAYLOAD_TOO_LONG), (uint32_t)length);
         return;
     } else {
+        mqttReceiveCount++;
         payload[length] = '\0';
     }
 
@@ -370,6 +377,33 @@ void mqttStop()
         mqttClient.disconnect();
         LOG_INFO(TAG_MQTT, F(D_MQTT_DISCONNECTED));
     }
+}
+
+void mqtt_get_info(JsonDocument& doc)
+{
+    char mqttClientId[64];
+    String mac((char*)0);
+    mac.reserve(64);
+
+    JsonObject info   = doc.createNestedObject(F("MQTT"));
+    info[F("Server")] = mqttServer;
+    info[F("User")]   = mqttUser;
+
+    mac = halGetMacAddress(3, "");
+    mac.toLowerCase();
+    snprintf_P(mqttClientId, sizeof(mqttClientId), PSTR("%s-%s"), haspDevice.get_hostname(), mac.c_str());
+    info[F("ClientID")] = mqttClientId;
+
+    if(mqttIsConnected()) { // Check MQTT connection
+        info[F("Status")] = F("Connected");
+    } else {
+        info[F("Status")] = F("<font color='red'><b>Disconnected</b></font>, return code: ");
+        //     +String(mqttClient.returnCode());
+    }
+
+    info[F("Received")]  = mqttReceiveCount;
+    info[F("Published")] = mqttPublishCount;
+    info[F("Failed")]    = mqttFailedCount;
 }
 
 #if HASP_USE_CONFIG > 0

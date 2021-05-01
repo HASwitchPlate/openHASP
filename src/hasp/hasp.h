@@ -77,6 +77,8 @@ void hasp_disable_wakeup_touch();
 void hasp_init(void);
 void hasp_load_json(void);
 
+void hasp_get_info(JsonDocument& info);
+
 /**********************
  *      MACROS
  **********************/

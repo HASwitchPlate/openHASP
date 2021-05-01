@@ -18,6 +18,7 @@
 #include "hasp_config.h"
 
 #if HASP_USE_HTTP > 0
+#include "sys/net/hasp_network.h"
 
 // #ifdef USE_CONFIG_OVERRIDE
 // #include "user_config_override.h"
@@ -198,6 +199,22 @@ static void add_form_button(String& str, const __FlashStringHelper* label, const
     str += F("'>");
     add_button(str, label, extra);
     close_form(str);
+}
+
+static String getContentType(const String& path)
+{
+    char buff[sizeof(mime::mimeTable[0].mimeType)];
+    // Check all entries but last one for match, return if found
+    for(size_t i = 0; i < sizeof(mime::mimeTable) / sizeof(mime::mimeTable[0]) - 1; i++) {
+        strcpy_P(buff, mime::mimeTable[i].endsWith);
+        if(path.endsWith(buff)) {
+            strcpy_P(buff, mime::mimeTable[i].mimeType);
+            return String(buff);
+        }
+    }
+    // Fall-through and just return default type
+    strcpy_P(buff, mime::mimeTable[sizeof(mime::mimeTable) / sizeof(mime::mimeTable[0]) - 1].mimeType);
+    return String(buff);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -523,6 +540,49 @@ void webHandleAbout()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void add_json(String& data, JsonDocument& doc)
+{
+    char buffer[512];
+    size_t len = serializeJson(doc, buffer, sizeof(buffer));
+    if(len <= 2) return; // empty document
+
+    buffer[len - 1] = ',';
+    char* start     = buffer + 1;
+    data += String(start);
+    doc.clear();
+}
+
+void webHandleInfoJson()
+{ // http://plate01/
+    if(!httpIsAuthenticated(F("infojson"))) return;
+
+    String htmldata((char*)0);
+    htmldata.reserve(HTTP_PAGE_SIZE);
+    DynamicJsonDocument doc(512);
+
+    htmldata = "{";
+
+    hasp_get_info(doc);
+    add_json(htmldata, doc);
+
+#if HASP_USE_MQTT > 0
+    mqtt_get_info(doc);
+    add_json(htmldata, doc);
+#endif
+
+    network_get_info(doc);
+    add_json(htmldata, doc);
+
+    //  haspDevice.get_info(doc);
+    // add_json(htmldata, doc);
+
+    htmldata[htmldata.length() - 1] = '}'; // Replace last comma with a bracket
+    String path                     = F(".json");
+    webServer.send(200, getContentType(path), htmldata);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 void webHandleInfo()
 { // http://plate01/
     if(!httpIsAuthenticated(F("info"))) return;
@@ -728,52 +788,6 @@ void webHandleInfo()
     }
     // httpMessage.clear();
     webSendFooter();
-}
-
-// String getContentType(String filename)
-// {
-//     if(webServer.hasArg(F("download"))) {
-//         return F("application/octet-stream");
-//     } else if(filename.endsWith(F(".htm")) || filename.endsWith(F(".html"))) {
-//         return F("text/html");
-//     } else if(filename.endsWith(F(".css"))) {
-//         return F("text/css");
-//     } else if(filename.endsWith(F(".js"))) {
-//         return F("application/javascript");
-//     } else if(filename.endsWith(F(".png"))) {
-//         return F("image/png");
-//     } else if(filename.endsWith(F(".gif"))) {
-//         return F("image/gif");
-//     } else if(filename.endsWith(F(".jpg"))) {
-//         return F("image/jpeg");
-//     } else if(filename.endsWith(F(".ico"))) {
-//         return F("image/x-icon");
-//     } else if(filename.endsWith(F(".xml"))) {
-//         return F("text/xml");
-//     } else if(filename.endsWith(F(".pdf"))) {
-//         return F("application/x-pdf");
-//     } else if(filename.endsWith(F(".zip"))) {
-//         return F("application/x-zip");
-//     } else if(filename.endsWith(F(".gz"))) {
-//         return F("application/x-gzip");
-//     }
-//     return F("text/plain");
-// }
-
-static String getContentType(const String& path)
-{
-    char buff[sizeof(mime::mimeTable[0].mimeType)];
-    // Check all entries but last one for match, return if found
-    for(size_t i = 0; i < sizeof(mime::mimeTable) / sizeof(mime::mimeTable[0]) - 1; i++) {
-        strcpy_P(buff, mime::mimeTable[i].endsWith);
-        if(path.endsWith(buff)) {
-            strcpy_P(buff, mime::mimeTable[i].mimeType);
-            return String(buff);
-        }
-    }
-    // Fall-through and just return default type
-    strcpy_P(buff, mime::mimeTable[sizeof(mime::mimeTable) / sizeof(mime::mimeTable[0]) - 1].mimeType);
-    return String(buff);
 }
 
 /* String urldecode(String str)
@@ -2108,6 +2122,7 @@ void httpSetup()
 
     webServer.on(F("/"), webHandleRoot);
     webServer.on(F("/info"), webHandleInfo);
+    webServer.on(F("/infojson"), webHandleInfoJson);
     webServer.on(F("/screenshot"), webHandleScreenshot);
     webServer.on(F("/firmware"), webHandleFirmware);
     webServer.on(F("/reboot"), httpHandleReboot);

@@ -70,4 +70,25 @@ void ethernet_get_statusupdate(char* buffer, size_t len)
                eth_connected ? F("on") : F("off"), ETH.linkSpeed(), ETH.localIP().toString().c_str());
 }
 
+void ethernet_get_info(JsonDocument& doc)
+{
+    char size_buf[32];
+    String buffer((char*)0);
+    buffer.reserve(64);
+
+    JsonObject info = doc.createNestedObject(F("Ethernet"));
+
+    buffer = ETH.linkSpeed();
+    buffer += F(" Mbps");
+    if(ETH.fullDuplex()) {
+        buffer += F(" FULL_DUPLEX");
+    }
+
+    info[F("Link Speed")]  = buffer;
+    info[F("IP Address")]  = ETH.localIP().toString();
+    info[F("Gateway")]     = ETH.gatewayIP().toString();
+    info[F("DNS Server")]  = ETH.dnsIP().toString();
+    info[F("MAC Address")] = ETH.macAddress();
+}
+
 #endif

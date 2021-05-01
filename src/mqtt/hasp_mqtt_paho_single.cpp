@@ -59,6 +59,9 @@ std::string mqttGroupTopic;
 std::string mqttLwtTopic;
 bool mqttEnabled        = false;
 bool mqttHAautodiscover = true;
+uint32_t mqttPublishCount;
+uint32_t mqttReceiveCount;
+uint32_t mqttFailedCount;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // These defaults may be overwritten with values saved by the web interface
@@ -117,9 +120,11 @@ void connlost(void* context, char* cause)
 static void mqtt_message_cb(char* topic, char* payload, size_t length)
 { // Handle incoming commands from MQTT
     if(length + 1 >= MQTT_MAX_PACKET_SIZE) {
+        mqttFailedCount++;
         LOG_ERROR(TAG_MQTT_RCV, F(D_MQTT_PAYLOAD_TOO_LONG), (uint32_t)length);
         return;
     } else {
+        mqttReceiveCount++;
         payload[length] = '\0';
     }
 
@@ -198,7 +203,10 @@ void mqtt_subscribe(void* context, const char* topic)
 
 int mqttPublish(const char* topic, const char* payload, size_t len, bool retain)
 {
-    if(!mqttIsConnected()) return MQTT_ERR_NO_CONN;
+    if(!mqttIsConnected()) {
+        mqttFailedCount++;
+        return MQTT_ERR_NO_CONN;
+    }
 
     MQTTClient_message pubmsg = MQTTClient_message_initializer;
     MQTTClient_deliveryToken token;
@@ -212,10 +220,12 @@ int mqttPublish(const char* topic, const char* payload, size_t len, bool retain)
     int rc = MQTTClient_waitForCompletion(mqtt_client, token, TIMEOUT); // time to wait in milliseconds
 
     if(rc != MQTTCLIENT_SUCCESS) {
+        mqttFailedCount++;
         LOG_ERROR(TAG_MQTT_PUB, F(D_MQTT_FAILED " '%s' => %s"), topic, payload);
         return MQTT_ERR_PUB_FAIL;
     } else {
         // LOG_TRACE(TAG_MQTT_PUB, F("'%s' => %s OK"), topic, payload);
+        mqttPublishCount++;
         return MQTT_ERR_OK;
     }
 }
@@ -382,6 +392,27 @@ void mqttLoop()
 };
 
 void mqttEvery5Seconds(bool wifiIsConnected){};
+
+void mqtt_get_info(JsonDocument& doc)
+{
+    char mqttClientId[64];
+
+    JsonObject info     = doc.createNestedObject(F("MQTT"));
+    info[F("Server")]   = mqttServer;
+    info[F("User")]     = mqttUser;
+    info[F("ClientID")] = haspDevice.get_hostname();
+
+    if(mqttIsConnected()) { // Check MQTT connection
+        info[F("Status")] = F("Connected");
+    } else {
+        info[F("Status")] = F("<font color='red'><b>Disconnected</b></font>, return code: ");
+        //     +String(mqttClient.returnCode());
+    }
+
+    info[F("Received")]  = mqttReceiveCount;
+    info[F("Published")] = mqttPublishCount;
+    info[F("Failed")]    = mqttFailedCount;
+}
 
 #endif // USE_PAHO
 #endif // USE_MQTT
