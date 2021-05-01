@@ -132,7 +132,8 @@
 #define D_HTTP_MAIN_MENU "Meniu principal"
 #define D_HTTP_REBOOT "Repornire"
 #define D_HTTP_CONFIGURATION "Setări"
-#define D_HTTP_FOOTER "by Francis Van Roie" // New
+#define D_HTTP_SENDING_PAGE "Sent %S page to %s" // New
+#define D_HTTP_FOOTER "by Francis Van Roie"      // New
 
 // New list:
 #define D_INFO_VERSION "Version"

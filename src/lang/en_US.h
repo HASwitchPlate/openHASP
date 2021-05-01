@@ -132,6 +132,7 @@
 #define D_HTTP_MAIN_MENU "Main Menu"
 #define D_HTTP_REBOOT "Restart"
 #define D_HTTP_CONFIGURATION "Configuration"
+#define D_HTTP_SENDING_PAGE "Sent %S page to %s" // New
 #define D_HTTP_FOOTER "by Francis Van Roie"
 
 #define D_INFO_VERSION "Version"

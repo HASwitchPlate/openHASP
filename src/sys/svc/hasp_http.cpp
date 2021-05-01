@@ -244,10 +244,9 @@ bool httpIsAuthenticated(const __FlashStringHelper* fstr_page)
     if(!httpIsAuthenticated()) return false;
 
 #if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
-    LOG_TRACE(TAG_HTTP, F("Sending %S page to client connected from: %s"), fstr_page,
-              webServer.client().remoteIP().toString().c_str());
+    LOG_TRACE(TAG_HTTP, F(D_HTTP_SENDING_PAGE), fstr_page, webServer.client().remoteIP().toString().c_str());
 #else
-        // LOG_INFO(TAG_HTTP,F("Sending %s page to client connected from: %s"), page,
+        // LOG_INFO(TAG_HTTP,F(D_HTTP_SENDING_PAGE), page,
         //             String(webServer.client().remoteIP()).c_str());
 #endif
 
