@@ -142,22 +142,22 @@ void Page::load_jsonl(const char* pagesfile)
     if(pagesfile[0] == '\0') return;
 
     if(!filesystemSetup()) {
-        LOG_ERROR(TAG_HASP, F("FS not mounted. Failed to load %s"), pagesfile);
+        LOG_ERROR(TAG_HASP, F("FS not mounted. " D_FILE_LOAD_FAILED), pagesfile);
         return;
     }
 
     if(!HASP_FS.exists(pagesfile)) {
-        LOG_ERROR(TAG_HASP, F("Non existing file %s"), pagesfile);
+        LOG_ERROR(TAG_HASP, F(D_FILE_LOAD_FAILED), pagesfile);
         return;
     }
 
-    LOG_TRACE(TAG_HASP, F("Loading file %s"), pagesfile);
+    LOG_TRACE(TAG_HASP, F(D_FILE_LOADING), pagesfile);
 
     File file = HASP_FS.open(pagesfile, "r");
     dispatch_parse_jsonl(file);
     file.close();
 
-    LOG_INFO(TAG_HASP, F("File %s loaded"), pagesfile);
+    LOG_INFO(TAG_HASP, F(D_FILE_LOADED), pagesfile);
 #else
 
 #if HASP_USE_EEPROM > 0
