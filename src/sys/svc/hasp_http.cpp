@@ -891,33 +891,47 @@ void webHandleFirmwareUpload()
 {
     upload = &webServer.upload();
 
-    if(upload->status == UPLOAD_FILE_START) {
-        if(!httpIsAuthenticated(F("update"))) return;
-        LOG_TRACE(TAG_HTTP, F("Update: %s"), upload->filename.c_str());
-        haspProgressMsg(upload->filename.c_str());
-        // WiFiUDP::stopAll();
-        uint32_t maxSketchSpace = (ESP.getFreeSketchSpace() - 0x1000) & 0xFFFFF000;
-        // if(!Update.begin(UPDATE_SIZE_UNKNOWN)) { // start with max available size
-        if(!Update.begin(maxSketchSpace)) { // start with max available size
-            webUpdatePrintError();
+    switch(upload->status) {
+
+        case UPLOAD_FILE_START: {
+            if(!httpIsAuthenticated(F("update"))) return;
+            LOG_TRACE(TAG_HTTP, F("Update: %s"), upload->filename.c_str());
+            haspProgressMsg(upload->filename.c_str());
+            // WiFiUDP::stopAll();
+
+            int command = webServer.arg(F("cmd")).toInt();
+            size_t size;
+            if(command == U_FLASH) {
+                size = (ESP.getFreeSketchSpace() - 0x1000) & 0xFFFFF000;
+            } else if(command == U_SPIFFS) {
+                size = UPDATE_SIZE_UNKNOWN;
+            }
+            // if(!Update.begin(UPDATE_SIZE_UNKNOWN)) { // start with max available size
+            if(!Update.begin(size, command, -1, 0U, "spiffs")) { // start with max available size
+                webUpdatePrintError();
+            }
+            break;
         }
 
-    } else if(upload->status == UPLOAD_FILE_WRITE) {
-        // flashing firmware to ESP
-        if(Update.write(upload->buf, upload->currentSize) != upload->currentSize) {
-            webUpdatePrintError();
-        } else {
-            webUploadProgress();
-        }
+        case UPLOAD_FILE_WRITE: // flashing firmware to ESP
+            if(Update.write(upload->buf, upload->currentSize) != upload->currentSize) {
+                webUpdatePrintError();
+            } else {
+                webUploadProgress();
+            }
+            break;
 
-    } else if(upload->status == UPLOAD_FILE_END) {
-        haspProgressVal(100);
-        if(Update.end(true)) { // true to set the size to the current progress
-            haspProgressMsg(F(D_OTA_UPDATE_APPLY));
-            webUpdateReboot();
-        } else {
-            webUpdatePrintError();
-        }
+        case UPLOAD_FILE_END:
+            haspProgressVal(100);
+            if(Update.end(true)) { // true to set the size to the current progress
+                haspProgressMsg(F(D_OTA_UPDATE_APPLY));
+                webUpdateReboot();
+            } else {
+                webUpdatePrintError();
+            }
+            break;
+
+        default:;
     }
 }
 #endif
@@ -932,13 +946,9 @@ int handleFileRead(String path)
     if(path.endsWith("/")) {
         path += F("index.htm");
     }
+
     String pathWithGz = path + F(".gz");
     if(HASP_FS.exists(pathWithGz) || HASP_FS.exists(path)) {
-        if(HASP_FS.exists(pathWithGz)) path += F(".gz");
-        File file = HASP_FS.open(path, "r");
-
-        String configFile((char*)0);
-        configFile = String(FPSTR(FP_HASP_CONFIG_FILE));
 
         String contentType((char*)0);
         if(webServer.hasArg(F("download")))
@@ -946,26 +956,29 @@ int handleFileRead(String path)
         else
             contentType = getContentType(path);
 
+        if(!HASP_FS.exists(path) && HASP_FS.exists(pathWithGz))
+            path = pathWithGz; // Only use .gz if normal file doesn't exist
+        File file = HASP_FS.open(path, "r");
+
+        String configFile((char*)0); // Verify if the file is config.json
+        configFile = String(FPSTR(FP_HASP_CONFIG_FILE));
+
         if(!strncasecmp(file.name(), configFile.c_str(), configFile.length())) {
             file.close();
             DynamicJsonDocument settings(8 * 256);
             DeserializationError error = configParseFile(configFile, settings);
 
-            if(!error) {
-                // LOG_TRACE(TAG_CONF, F(D_FILE_LOADING), configFile.c_str());
-                configMaskPasswords(settings); // Output settings in log with masked passwords
-                char buffer[1024];
-                size_t len = serializeJson(settings, buffer, sizeof(buffer));
-                // LOG_VERBOSE(TAG_CONF, buffer);
+            if(error) return 500; // Internal Server Error
 
-                webServer.setContentLength(len);
-                webServer.send(200, contentType, buffer);
-            } else {
-                return 500; // Internal Server error
-            }
+            configMaskPasswords(settings); // Output settings to the client with masked passwords!
+            char buffer[1024];
+            size_t len = serializeJson(settings, buffer, sizeof(buffer));
+            webServer.setContentLength(len);
+            webServer.send(200, contentType, buffer);
 
         } else {
 
+            // Stream other files directly from filesystem
             webServer.streamFile(file, contentType);
             file.close();
         }
@@ -1444,7 +1457,8 @@ void webHandleHttpConfig()
         //     httpMessage += F(D_PASSWORD_MASK);
         // }
         // httpMessage +=
-        //     F("'><p><button type='submit' name='save' value='http'>" D_HTTP_SAVE_SETTINGS "</button></p></form>");
+        //     F("'><p><button type='submit' name='save' value='http'>" D_HTTP_SAVE_SETTINGS
+        //     "</button></p></form>");
 
         // httpMessage += PSTR("<p><form method='GET' action='/config'><button type='submit'>&#8617; "
         // D_HTTP_CONFIGURATION
@@ -1571,12 +1585,6 @@ void webHandleGpioConfig()
                     httpMessage += F("</td><td>");
                     httpMessage += conf.group;
                     httpMessage += F("</td><td>");
-
-                    // bool inverted = (conf.type == HASP_GPIO_BUTTON_INVERTED) ||
-                    //                 (conf.type == HASP_GPIO_SWITCH_INVERTED) || (conf.type == HASP_GPIO_LED_INVERTED)
-                    //                 || (conf.type == HASP_GPIO_RELAY_INVERTED) || (conf.type ==
-                    //                 HASP_GPIO_PWM_INVERTED);
-
                     httpMessage += (conf.type & 0x1) ? F("High") : F("Low");
 
                     httpMessage += F("</td><td><a href='/config/gpio/options?id=");
@@ -1826,10 +1834,10 @@ void webHandleHaspConfig()
         httpMessage += getOption(7, F("Template"), themeid == 7);
 #endif
         httpMessage += F("</select></br>");
-        httpMessage +=
-            F("<b>Hue</b><div style='width:100%;background-image:linear-gradient(to "
-              "right,red,orange,yellow,green,blue,indigo,violet);'><input style='align:center;padding:0px;width:100%;' "
-              "name='hue' type='range' min='0' max='360' value='");
+        httpMessage += F("<b>Hue</b><div style='width:100%;background-image:linear-gradient(to "
+                         "right,red,orange,yellow,green,blue,indigo,violet);'><input "
+                         "style='align:center;padding:0px;width:100%;' "
+                         "name='hue' type='range' min='0' max='360' value='");
         httpMessage += settings[FPSTR(FP_CONFIG_HUE)].as<String>();
         httpMessage += F("'></div></p>");
         httpMessage += F("<p><b>Default Font</b><select id='font' name='font'><option value=''>None</option>");
@@ -1892,7 +1900,6 @@ void httpHandleNotFound()
 { // webServer 404
 #if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
     int statuscode = handleFileRead(webServer.uri());
-    if(statuscode == 200) return;
 #else
     int statuscode = 404;
 #endif
@@ -1903,6 +1910,8 @@ void httpHandleNotFound()
 #else
     // LOG_TRACE(TAG_HTTP,F("Sending 404 to client connected from: %s"), String(webServer.client().remoteIP()).c_str());
 #endif
+
+    if(statuscode == 200) return; // OK
 
     String httpMessage((char*)0);
     httpMessage.reserve(HTTP_PAGE_SIZE);
@@ -1939,9 +1948,16 @@ void webHandleFirmware()
 
         httpMessage += F("<p><form action='/update' method='POST' enctype='multipart/form-data'><input type='file' "
                          "name='filename' accept='.bin'>");
-        httpMessage += F("<button type='submit'>" D_HTTP_UPDATE_FIRMWARE "</button></form></p>");
+        // httpMessage += F("<button type='submit'>" D_HTTP_UPDATE_FIRMWARE "</button></form></p>");
 
-        // httpMessage += F("<p><form action='/update' method='POST' enctype='multipart/form-data'><input type='file' "
+        httpMessage += F("<input id='cmd' name='cmd' type='radio' value='0' checked>Firmware &nbsp; "
+                         "<input id='cmd' name='cmd' type='radio' value='100'>Filesystem");
+
+        add_button(httpMessage, F(D_HTTP_UPDATE_FIRMWARE), F(""));
+        httpMessage += F("</form></p>");
+
+        // httpMessage += F("<p><form action='/update' method='POST' enctype='multipart/form-data'><input
+        // type='file' "
         //                  "name='filename' accept='.spiffs'>");
         // httpMessage += F("<button type='submit'>Replace Filesystem Image</button></form></p>");
 
@@ -2021,7 +2037,8 @@ void httpHandleResetConfig()
         } else {
             httpMessage +=
                 F("<h2>Warning</h2><b>This process will reset all settings to the default values. The internal flash "
-                  "will be erased and the device is restarted. You may need to connect to the WiFi AP displayed on the "
+                  "will be erased and the device is restarted. You may need to connect to the WiFi AP displayed on "
+                  "the "
                   "panel to re-configure the device before accessing it again. ALL FILES WILL BE LOST!</b>"
                   "<br/><hr><br/><form method='GET' action='resetConfig'>");
 
@@ -2119,7 +2136,7 @@ void httpSetup()
     webServer.on(F("/list"), HTTP_GET, handleFileList);
     // load editor
     webServer.on(F("/edit"), HTTP_GET, []() {
-        if(!handleFileRead("/edit.htm")) {
+        if(handleFileRead("/edit.htm") != 200) {
             char mimetype[16];
             snprintf_P(mimetype, sizeof(mimetype), PSTR("text/plain"));
             webServer.send_P(404, mimetype, PSTR("FileNotFound"));
