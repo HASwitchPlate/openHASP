@@ -900,14 +900,15 @@ void webHandleFirmwareUpload()
             // WiFiUDP::stopAll();
 
             int command = webServer.arg(F("cmd")).toInt();
-            size_t size;
+            size_t size = 0;
             if(command == U_FLASH) {
                 size = (ESP.getFreeSketchSpace() - 0x1000) & 0xFFFFF000;
             } else if(command == U_SPIFFS) {
                 size = UPDATE_SIZE_UNKNOWN;
             }
             // if(!Update.begin(UPDATE_SIZE_UNKNOWN)) { // start with max available size
-            if(!Update.begin(size, command, -1, 0U, "spiffs")) { // start with max available size
+            const char label[] = "spiffs";
+            if(!Update.begin(size, command, -1, 0U, (const char*)label)) { // start with max available size
                 webUpdatePrintError();
             }
             break;
