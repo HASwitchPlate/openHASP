@@ -313,7 +313,7 @@ void mqttStart()
     // }
 
     printf("%s %d\n", __FILE__, __LINE__);
-    mqttEnabled = strlen(mqttServer) > 0 && mqttPort > 0;
+    mqttEnabled = mqttServer.length() > 0 && mqttPort > 0;
 
     if(mqttEnabled) {
         conn_opts.will            = &will_opts;
