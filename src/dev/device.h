@@ -97,7 +97,7 @@ class BaseDevice {
     virtual std::string gpio_name(uint8_t pin)
     {
         char buffer[8];
-        itoa(pin, buffer, 10); // DEC
+        snprintf(buffer, sizeof(buffer), "%d", pin);
         return buffer;
     }
 };
