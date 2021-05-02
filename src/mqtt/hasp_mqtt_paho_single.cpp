@@ -203,6 +203,8 @@ void mqtt_subscribe(void* context, const char* topic)
 
 int mqttPublish(const char* topic, const char* payload, size_t len, bool retain)
 {
+    if(!mqttEnabled) return MQTT_ERR_DISABLED;
+
     if(!mqttIsConnected()) {
         mqttFailedCount++;
         return MQTT_ERR_NO_CONN;
@@ -311,7 +313,9 @@ void mqttStart()
     // }
 
     printf("%s %d\n", __FILE__, __LINE__);
-    if(mqttServer.length() > 0) {
+    mqttEnabled = strlen(mqttServer) > 0 && mqttPort > 0;
+
+    if(mqttEnabled) {
         conn_opts.will            = &will_opts;
         conn_opts.will->message   = "offline";
         conn_opts.will->qos       = 1;
