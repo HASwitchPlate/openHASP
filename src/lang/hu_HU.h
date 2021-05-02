@@ -4,8 +4,8 @@
 #define D_USERNAME "Felhasználónév:"
 #define D_PASSWORD "Jelszó:"
 #define D_SSID "SSID:"
-#define D_YES "Yes" // New
-#define D_NO "No"   // New
+#define D_YES "Igen" 
+#define D_NO "Nem" 
 
 #define D_ERROR_OUT_OF_MEMORY "Elfogyott a memória"
 #define D_ERROR_UNKNOWN "Ismeretlen hiba"
@@ -30,8 +30,8 @@
 #define D_SERVICE_CONNECTED "Csatlakoztatva"
 #define D_SERVICE_DISCONNECTED "Szétkapcsolva"
 
-#define D_SETTING_ENABLED "Enabled"   // New
-#define D_SETTING_DISABLED "Disabled" // New
+#define D_SETTING_ENABLED "Engedélyezve" 
+#define D_SETTING_DISABLED "Letiltva" 
 
 #define D_NETWORK_IP_ADDRESS_RECEIVED "Beállított IP-cím: %s"
 #define D_NETWORK_ONLINE "online"
@@ -52,7 +52,7 @@
 #define D_MQTT_SUBSCRIBED "Feliratkozva: %s"
 #define D_MQTT_NOT_SUBSCRIBED "Nem sikerült feliratkozni: %s"
 #define D_MQTT_HA_AUTO_DISCOVERY "Regisztrálás HA automatikus felfedezésre"
-#define D_MQTT_PAYLOAD_TOO_LONG "Payload too long (%u bytes)" // New
+#define D_MQTT_PAYLOAD_TOO_LONG "Túl hosszú payload (%u bájt)" 
 
 #define D_TELNET_CLOSING_CONNECTION "Munkamenet befejezése %s-el"
 #define D_TELNET_CLIENT_LOGIN_FROM "Kliens bejelentkezés innen: %s"
@@ -102,8 +102,8 @@
 #define D_OTA_UPDATE_COMPLETE "Az OTA frissítés elkészült"
 #define D_OTA_UPDATE_APPLY "Firmware alkalmazása és újraindítás"
 #define D_OTA_UPDATE_FAILED "Az OTA frissítés meghiúsult"
-#define D_OTA_UPDATING_FIRMWARE "Updating firmware..."     // New
-#define D_OTA_UPDATING_FILESYSTEM "Updating filesystem..." // New
+#define D_OTA_UPDATING_FIRMWARE "Firmware frissítés..." 
+#define D_OTA_UPDATING_FILESYSTEM "Fájlrendszer frissítés..." 
 
 #define D_HTTP_HASP_DESIGN "Képernyő dizájn"
 #define D_HTTP_INFORMATION "Információk"
@@ -125,65 +125,64 @@
 #define D_HTTP_NEXT_PAGE "Következő oldal"
 #define D_HTTP_CALIBRATE "Kalibrálás"
 #define D_HTTP_SCREENSHOT "Képernyőkép"
-#define D_HTTP_FILE_BROWSER "Fájl böngésző" // Updated
+#define D_HTTP_FILE_BROWSER "Fájlkezelő"
 #define D_HTTP_FIRMWARE_UPGRADE "Firmware frissítés"
 #define D_HTTP_UPDATE_FIRMWARE "Firmware frissítése"
 #define D_HTTP_FACTORY_RESET "Gyári beállítások visszaállítása"
 #define D_HTTP_MAIN_MENU "Főmenü"
 #define D_HTTP_REBOOT "Újraindítás"
 #define D_HTTP_CONFIGURATION "Beállítások"
-#define D_HTTP_SENDING_PAGE "Sent %S page to %s" // New
-#define D_HTTP_FOOTER "by Francis Van Roie"      // New
+#define D_HTTP_SENDING_PAGE "%S oldal küldése %s-re" 
+#define D_HTTP_FOOTER "készítette: Francis Van Roie"
 
-// New list:
-#define D_INFO_VERSION "Version"
-#define D_INFO_BUILD_DATETIME "Build DateTime"
+#define D_INFO_VERSION "Verziószám"
+#define D_INFO_BUILD_DATETIME "Build időpontja"
 #define D_INFO_UPTIME "Uptime"
-#define D_INFO_FREE_HEAP "Free Heap"
-#define D_INFO_FREE_BLOCK "Free Block"
-#define D_INFO_DEVICE_MEMORY "Device Memory"
-#define D_INFO_LVGL_MEMORY "LVGL Memory"
-#define D_INFO_TOTAL_MEMORY "Total"
-#define D_INFO_FREE_MEMORY "Free"
-#define D_INFO_FRAGMENTATION "Fragmentation"
-#define D_INFO_PSRAM_FREE "PSRam Free"
-#define D_INFO_PSRAM_SIZE "PSRam Size"
-#define D_INFO_FLASH_SIZE "Flash Size"
-#define D_INFO_SKETCH_USED "Program Size Used"
-#define D_INFO_SKETCH_FREE "Program Size Free"
-#define D_INFO_MODULE "Module"
-#define D_INFO_MODEL "Model"
-#define D_INFO_FREQUENCY "Frequency"
-#define D_INFO_CORE_VERSION "Core Version"
-#define D_INFO_RESET_REASON "Reset Reason"
-#define D_INFO_STATUS "Status"
-#define D_INFO_SERVER "Server"
-#define D_INFO_USERNAME "Username"
-#define D_INFO_CLIENTID "Client ID"
-#define D_INFO_CONNECTED "Connected"
-#define D_INFO_DISCONNECTED "Disconnected"
-#define D_INFO_RECEIVED "Received"
-#define D_INFO_PUBLISHED "Published"
-#define D_INFO_FAILED "Failed"
+#define D_INFO_FREE_HEAP "Szabad Heap"
+#define D_INFO_FREE_BLOCK "Szabad Blokk"
+#define D_INFO_DEVICE_MEMORY "Eszköz Memória"
+#define D_INFO_LVGL_MEMORY "LVGL Memória"
+#define D_INFO_TOTAL_MEMORY "Összesen"
+#define D_INFO_FREE_MEMORY "Szabad"
+#define D_INFO_FRAGMENTATION "Fragmentáció"
+#define D_INFO_PSRAM_FREE "PSRam szabad"
+#define D_INFO_PSRAM_SIZE "PSRam méret"
+#define D_INFO_FLASH_SIZE "Flash méret"
+#define D_INFO_SKETCH_USED "Program használatban"
+#define D_INFO_SKETCH_FREE "Program szabad"
+#define D_INFO_MODULE "Modul"
+#define D_INFO_MODEL "Modell"
+#define D_INFO_FREQUENCY "Frekvencia"
+#define D_INFO_CORE_VERSION "Core Verzió"
+#define D_INFO_RESET_REASON "Újraindulás oka"
+#define D_INFO_STATUS "Státusz"
+#define D_INFO_SERVER "Szerver"
+#define D_INFO_USERNAME "Felhasználónév"
+#define D_INFO_CLIENTID "Kliens ID"
+#define D_INFO_CONNECTED "Csatlakoztatva"
+#define D_INFO_DISCONNECTED "Szétkapcsolva"
+#define D_INFO_RECEIVED "Fogadott"
+#define D_INFO_PUBLISHED "Küldött"
+#define D_INFO_FAILED "Sikertelen"
 #define D_INFO_ETHERNET "Ethernet"
-#define D_INFO_WIFI "Wifi"
-#define D_INFO_LINK_SPEED "Link Speed"
+#define D_INFO_WIFI "WiFi"
+#define D_INFO_LINK_SPEED "Linksebesség"
 #define D_INFO_SSID "SSID"
-#define D_INFO_RSSI "Signal Strength"
-#define D_INFO_IP_ADDRESS "IP Address"
-#define D_INFO_MAC_ADDRESS "MAC Address"
-#define D_INFO_GATEWAY "Gateway"
-#define D_INFO_DNS_SERVER "DNS Server"
+#define D_INFO_RSSI "Jelerősség"
+#define D_INFO_IP_ADDRESS "IP cím"
+#define D_INFO_MAC_ADDRESS "MAC cím"
+#define D_INFO_GATEWAY "Átjáró"
+#define D_INFO_DNS_SERVER "DNS szerver"
 
 #define D_OOBE_MSG "Koppintson a képernyőre a WiFi beállításához, vagy csatlakozzon az alábbi Access Point-hoz:"
 #define D_OOBE_SCAN_TO_CONNECT "Szkennelje le a csatlakozáshoz:"
 
-#define D_WIFI_CONNECTING_TO "Connecting to %s"                 // New
-#define D_WIFI_CONNECTED_TO "Connected to %s, requesting IP..." // New
-#define D_WIFI_RSSI_EXCELLENT "Excellent"                       // New
-#define D_WIFI_RSSI_GOOD "Good"                                 // New
-#define D_WIFI_RSSI_FAIR "Fair"                                 // New
-#define D_WIFI_RSSI_WEAK "Weak"                                 // New
-#define D_WIFI_RSSI_BAD "Very bad"                              // New
+#define D_WIFI_CONNECTING_TO "Csatlakozás %s-hez"
+#define D_WIFI_CONNECTED_TO "Csatlakozva %s-hez, IP cím kérése..." 
+#define D_WIFI_RSSI_EXCELLENT "Kiváló"
+#define D_WIFI_RSSI_GOOD "Jó"
+#define D_WIFI_RSSI_FAIR "Elfogadható"
+#define D_WIFI_RSSI_WEAK "Gyenge"
+#define D_WIFI_RSSI_BAD "Rossz"
 
 #endif
