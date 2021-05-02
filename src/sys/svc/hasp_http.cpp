@@ -903,12 +903,14 @@ void webHandleFirmwareUpload()
             size_t size = 0;
             if(command == U_FLASH) {
                 size = (ESP.getFreeSketchSpace() - 0x1000) & 0xFFFFF000;
+#ifdef ESP32
             } else if(command == U_SPIFFS) {
                 size = UPDATE_SIZE_UNKNOWN;
+#endif
             }
             // if(!Update.begin(UPDATE_SIZE_UNKNOWN)) { // start with max available size
-            const char label[] = "spiffs";
-            if(!Update.begin(size, command, -1, 0U, (const char*)label)) { // start with max available size
+            //  const char label[] = "spiffs";
+            if(!Update.begin(size, command, -1, 0U)) { // start with max available size
                 webUpdatePrintError();
             }
             break;
