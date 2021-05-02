@@ -219,12 +219,8 @@ static String getContentType(const String& path)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-void webHandleHaspConfig();
 
-// static inline char* haspDevice.get_hostname()
-// {
-//     return mqttNodeName;
-// }
+void webHandleHaspConfig();
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -997,6 +993,11 @@ int handleFileRead(String path)
         return 200; // OK
     }
 #endif
+
+    if(!strcasecmp_P(path.c_str(), PSTR("/favicon.ico"))) {
+        webServer.send_P(204, PSTR("image/bmp"), "", 0); // No content
+        return 204;
+    }
 
     return 404; // Not found
 }
@@ -1907,11 +1908,14 @@ void httpHandleNotFound()
     int statuscode = 404;
 #endif
 
+    if(statuscode == 204) return; // No content
+
 #if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
     LOG_TRACE(TAG_HTTP, F("Sending %d %s to client connected from: %s"), statuscode, webServer.uri().c_str(),
               webServer.client().remoteIP().toString().c_str());
 #else
-    // LOG_TRACE(TAG_HTTP,F("Sending 404 to client connected from: %s"), String(webServer.client().remoteIP()).c_str());
+        // LOG_TRACE(TAG_HTTP,F("Sending 404 to client connected from: %s"),
+        // String(webServer.client().remoteIP()).c_str());
 #endif
 
     if(statuscode == 200) return; // OK
