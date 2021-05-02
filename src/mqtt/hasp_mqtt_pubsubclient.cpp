@@ -95,7 +95,11 @@ PubSubClient mqttClient(mqttNetworkClient);
 int mqttPublish(const char* topic, const char* payload, size_t len, bool retain)
 {
     if(!mqttEnabled) return MQTT_ERR_DISABLED;
-    if(!mqttClient.connected()) return MQTT_ERR_NO_CONN;
+
+    if(!mqttClient.connected()) {
+        mqttFailedCount++;
+        return MQTT_ERR_NO_CONN;
+    }
 
     if(mqttClient.beginPublish(topic, len, retain)) {
         mqttPublishCount++;
