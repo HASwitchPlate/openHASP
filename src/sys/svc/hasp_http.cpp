@@ -233,12 +233,13 @@ bool httpIsAuthenticated()
     return true;
 }
 
-bool httpIsAuthenticated(const __FlashStringHelper* fstr_page)
+bool httpIsAuthenticated(const __FlashStringHelper* notused)
 {
     if(!httpIsAuthenticated()) return false;
 
 #if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
-    LOG_TRACE(TAG_HTTP, F(D_HTTP_SENDING_PAGE), fstr_page, webServer.client().remoteIP().toString().c_str());
+    LOG_TRACE(TAG_HTTP, F(D_HTTP_SENDING_PAGE), webServer.uri().c_str(),
+              webServer.client().remoteIP().toString().c_str());
 #else
         // LOG_INFO(TAG_HTTP,F(D_HTTP_SENDING_PAGE), page,
         //             String(webServer.client().remoteIP()).c_str());
@@ -263,7 +264,7 @@ void webSendFooter()
 #endif
 }
 
-int webSendCached(int statuscode, char* contenttype, char* data, size_t size)
+static int webSendCached(int statuscode, const char* contenttype, const char* data, size_t size)
 {
     webServer.sendHeader(F("Cache-Control"), F("public, max-age=604800, immutable"));
 #if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
