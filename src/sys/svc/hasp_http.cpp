@@ -107,8 +107,8 @@ const char HTTP_DOCTYPE[] PROGMEM = "<!DOCTYPE html><html lang=\"en\"><head><met
                                     "user-scalable=no\"/>";
 const char HTTP_META_GO_BACK[] PROGMEM = "<meta http-equiv='refresh' content='15;url=/'/>";
 const char HTTP_HEADER[] PROGMEM       = "<title>%s</title>";
-const char HTTP_STYLE[] PROGMEM =
-    "<style>"
+const char HTTP_STYLE[] PROGMEM        = "<link rel=\"stylesheet\" href=\"/css\">";
+const char HTTP_CSS[] PROGMEM =
     "body,.c{text-align:center;}"
     "div,input{padding:5px;font-size:1em;}"
     "a{color:" D_HTTP_COLOR_TEXT "}"
@@ -120,16 +120,14 @@ const char HTTP_STYLE[] PROGMEM =
     "body{font-family:verdana;width:60%;margin:auto;background:" D_HTTP_COLOR_BACKGROUND ";color:" D_HTTP_COLOR_TEXT
     ";}"
     "button{border:0;border-radius:0.6rem;background-color:" D_HTTP_COLOR_BUTTON ";color:" D_HTTP_COLOR_BUTTON_TEXT
-    ";line-height:2.4rem;font-size:1.2rem;"
-    "width:100%;}"
+    ";line-height:2.4rem;font-size:1.2rem;width:100%;}"
     //".q{float:right;width:64px;text-align:right;}"
     ".red{background-color:" D_HTTP_COLOR_BUTTON_RESET ";}"
     // ".button3{background-color:#f44336;}"
     // ".button4{background-color:#e7e7e7;color:black;}"
     // ".button5{background-color:#555555;}"
     // ".button6{background-color:#4CAF50;}"
-    "td{font-size:0.87rem;padding-bottom:0px;padding-top:0px;}th{padding-top:0.5em;}"
-    "</style>";
+    "td{font-size:0.87rem;padding-bottom:0px;padding-top:0px;}th{padding-top:0.5em;}";
 const char HTTP_SCRIPT[] PROGMEM = "<script>function "
                                    "c(l){document.getElementById('s').value=l.innerText||l.textContent;document."
                                    "getElementById('p').focus();}</script>";
@@ -263,6 +261,17 @@ void webSendFooter()
     webServer.sendContent(buffer);
     webServer.sendContent_P(HTTP_FOOTER);
 #endif
+}
+
+int webSendCached(int statuscode, char* contenttype, char* data, size_t size)
+{
+    webServer.sendHeader(F("Cache-Control"), F("public, max-age=604800, immutable"));
+#if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
+    webServer.send_P(statuscode, contenttype, data, size);
+#else
+    webServer.send(statuscode, contenttype, data);
+#endif
+    return statuscode;
 }
 
 void webSendPage(const char* nodename, uint32_t httpdatalength, bool gohome = false)
@@ -989,15 +998,12 @@ int handleFileRead(String path)
     if(path == F("/edit.htm")) {
         size_t size = EDIT_HTM_GZ_END - EDIT_HTM_GZ_START;
         webServer.sendHeader(F("Content-Encoding"), F("gzip"));
-        webServer.send_P(200, PSTR("text/html"), (const char*)EDIT_HTM_GZ_START, size);
-        return 200; // OK
+        return webSendCached(200, PSTR("text/html"), (const char*)EDIT_HTM_GZ_START, size); // OK
     }
 #endif
 
-    if(!strcasecmp_P(path.c_str(), PSTR("/favicon.ico"))) {
-        webServer.send_P(204, PSTR("image/bmp"), "", 0); // No content
-        return 204;
-    }
+    if(!strcasecmp_P(path.c_str(), PSTR("/favicon.ico")))
+        return webSendCached(204, PSTR("image/bmp"), "", 0); // No content
 
     return 404; // Not found
 }
@@ -1908,17 +1914,15 @@ void httpHandleNotFound()
     int statuscode = 404;
 #endif
 
-    if(statuscode == 204) return; // No content
-
 #if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
     LOG_TRACE(TAG_HTTP, F("Sending %d %s to client connected from: %s"), statuscode, webServer.uri().c_str(),
               webServer.client().remoteIP().toString().c_str());
 #else
-        // LOG_TRACE(TAG_HTTP,F("Sending 404 to client connected from: %s"),
-        // String(webServer.client().remoteIP()).c_str());
+    // LOG_TRACE(TAG_HTTP,F("Sending 404 to client connected from: %s"),
+    // String(webServer.client().remoteIP()).c_str());
 #endif
 
-    if(statuscode == 200) return; // OK
+    if(statuscode < 300) return; // OK
 
     String httpMessage((char*)0);
     httpMessage.reserve(HTTP_PAGE_SIZE);
@@ -2112,6 +2116,7 @@ void httpSetup()
 
     // Shared pages
     webServer.on(F("/about"), webHandleAbout);
+    webServer.on(F("/css"), []() { webSendCached(200, PSTR("text/css"), HTTP_CSS, sizeof(HTTP_CSS) - 1); });
     webServer.onNotFound(httpHandleNotFound);
 
 #if HASP_USE_WIFI > 0
