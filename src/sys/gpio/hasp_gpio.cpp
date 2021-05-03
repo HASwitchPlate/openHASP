@@ -293,12 +293,12 @@ void gpioSetup()
             case HASP_GPIO_SERIAL_DIMMER:
                 const char command[9] = "\xEF\x01\x4D\xA3"; // Start Lanbon Dimmer
 #if defined(ARDUINO_ARCH_ESP32)
-                Serial2.begin(115200UL, SERIAL_8N1, UART_PIN_NO_CHANGE, gpioConfig[i].pin, 2000);
-                Serial2.flush();
+                Serial1.begin(115200UL, SERIAL_8N1, 14, gpioConfig[i].pin); // , false, 2000
+                Serial1.flush();
                 delay(20);
-                Serial2.print("  ");
+                Serial1.print("  ");
                 delay(20);
-                Serial2.write((const uint8_t*)command, 8);
+                Serial1.write((const uint8_t*)command, 8);
 #endif
                 gpio_log_serial_dimmer(command);
                 break;
@@ -339,17 +339,20 @@ bool gpio_get_value(uint8_t pin, uint16_t& val)
     return false;
 }
 
-static bool gpio_set_output_value(hasp_gpio_config_t* gpio, int32_t newval)
+static bool gpio_set_output_value(hasp_gpio_config_t* gpio, int32_t val)
 {
-    bool inverted = false;
-    uint16_t val  = 0;           // negative values will be zeroed
-    if(newval > 0) val = newval; // positive values are accepted
+    if(val >= gpio->max)
+        gpio->val = gpio->max;
+    else if(val > 0)
+        gpio->val = val;
+    else
+        gpio->val = 0;
 
+    bool inverted = false;
     switch(gpio->type) {
         case HASP_GPIO_RELAY_INVERTED:
             inverted = true;
         case HASP_GPIO_RELAY:
-            gpio->val = val > 0 ? HIGH : LOW;
             digitalWrite(gpio->pin, inverted ? !gpio->val : gpio->val);
             break;
 
@@ -386,14 +389,14 @@ static bool gpio_set_output_value(hasp_gpio_config_t* gpio, int32_t newval)
             char command[5] = "\xEF\x02\x00\xED";
             /*         if(gpio.val == 0) {
                          // command[2] = 0x20;
-                         Serial2.print("\xEF\x02\x20\xED");
+                         Serial1.print("\xEF\x02\x20\xED");
                      } else */
             {
                 command[2] = (uint8_t)map(gpio->val, 0, 255, 0, 100);
                 command[3] ^= command[2];
             }
 #if defined(ARDUINO_ARCH_ESP32)
-            Serial2.write((const uint8_t*)command, 4);
+            Serial1.write((const uint8_t*)command, 4);
 #endif
             gpio_log_serial_dimmer(command);
 
