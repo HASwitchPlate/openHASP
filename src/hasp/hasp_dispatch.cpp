@@ -105,6 +105,16 @@ void dispatch_json_error(uint8_t tag, DeserializationError& jsonError)
     LOG_ERROR(tag, F(D_JSON_FAILED " %s"), jsonError.c_str());
 }
 
+void dispatch_output_pin_value(uint8_t pin, uint16_t val)
+{
+    char payload[32];
+    char topic[12];
+    snprintf_P(topic, sizeof(topic), PSTR("output%d"), pin);
+    snprintf_P(payload, sizeof(payload), PSTR("%d"), val);
+
+    dispatch_state_subtopic(topic, payload);
+}
+
 // p[x].b[y].attr=value
 static inline bool dispatch_parse_button_attribute(const char* topic_p, const char* payload)
 {
@@ -169,9 +179,15 @@ static void dispatch_gpio(const char* topic, const char* payload)
             val = atoi(payload);
             if(val == 0) val = Parser::is_true(payload);
 
-            gpio_set_value(pin, val);
+            gpio_set_pin_value(pin, val);
         } else {
-            gpio_get_value(pin);
+            uint16_t val;
+
+            if(gpio_get_value(pin, val)) {
+                dispatch_output_pin_value(pin, val);
+            } else {
+                LOG_WARNING(TAG_GPIO, F(D_BULLET "Pin %d is not configured"), pin);
+            }
         }
     } else {
         LOG_WARNING(TAG_MSGR, F("Invalid pin %s"), topic);
@@ -185,7 +201,7 @@ void dispatch_command(const char* topic, const char* payload)
 {
     /* ================================= Standard payload commands ======================================= */
 
-    if(dispatch_parse_button_attribute(topic, payload)) return; // matched pxby.attr
+    if(dispatch_parse_button_attribute(topic, payload)) return; // matched pxby.attr, first for speed
 
     // check and execute commands from commands array
     for(int i = 0; i < nCommands; i++) {

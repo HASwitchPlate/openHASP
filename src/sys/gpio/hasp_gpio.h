@@ -27,8 +27,8 @@ void gpioEvery5Seconds(void);
 // void gpio_set_group_onoff(uint8_t groupid, bool ison);
 void gpio_set_normalized_group_value(uint8_t groupid, int16_t val, int16_t min, int16_t max);
 // void gpio_set_gpio_state(uint8_t pin, uint16_t state);
-bool gpio_get_value(uint8_t pin);
-bool gpio_set_value(uint8_t pin, int16_t val);
+bool gpio_get_value(uint8_t pin, uint16_t& val);
+bool gpio_set_pin_value(uint8_t pin, int32_t val);
 void gpio_set_moodlight(uint8_t r, uint8_t g, uint8_t b);
 
 void gpio_discovery(JsonArray& relay, JsonArray& led);
