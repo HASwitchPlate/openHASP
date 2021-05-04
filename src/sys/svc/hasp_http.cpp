@@ -1547,31 +1547,25 @@ void webHandleGpioConfig()
                     httpMessage += haspDevice.gpio_name(gpio).c_str();
                     httpMessage += F("</td><td>");
 
-                    switch(conf.type & 0xfe) {
+                    switch(conf.type) {
                         case HASP_GPIO_SWITCH:
-                            // case HASP_GPIO_SWITCH_INVERTED:
                             httpMessage += F("Switch");
                             break;
                         case HASP_GPIO_BUTTON:
-                            // case HASP_GPIO_BUTTON_INVERTED:
                             httpMessage += F("Button");
                             break;
                         case HASP_GPIO_LED:
-                            // case HASP_GPIO_LED_INVERTED:
                             httpMessage += F("Led");
                             break;
                         case HASP_GPIO_LED_R:
                         case HASP_GPIO_LED_G:
                         case HASP_GPIO_LED_B:
-                            // case HASP_GPIO_LED_INVERTED:
                             httpMessage += F("Mood ");
                             break;
                         case HASP_GPIO_RELAY:
-                            // case HASP_GPIO_RELAY_INVERTED:
                             httpMessage += F("Relay");
                             break;
                         case HASP_GPIO_PWM:
-                            // case HASP_GPIO_PWM_INVERTED:
                             httpMessage += F("PWM");
                             break;
                         case HASP_GPIO_SERIAL_DIMMER:
@@ -1581,7 +1575,7 @@ void webHandleGpioConfig()
                             httpMessage += F("Unknown");
                     }
 
-                    switch(conf.type & 0xfe) {
+                    switch(conf.type) {
                         case HASP_GPIO_LED_R:
                             httpMessage += F("Red");
                             break;
@@ -1596,7 +1590,7 @@ void webHandleGpioConfig()
                     httpMessage += F("</td><td>");
                     httpMessage += conf.group;
                     httpMessage += F("</td><td>");
-                    httpMessage += (conf.type & 0x1) ? F("High") : F("Low");
+                    httpMessage += (conf.inverted) ? F("Inverted") : F("Normal");
 
                     httpMessage += F("</td><td><a href='/config/gpio/options?id=");
                     httpMessage += id;
@@ -1669,34 +1663,36 @@ void webHandleGpioOptions()
 
         bool selected;
         httpMessage += F("<p><b>Type</b> <select id='type' name='type'>");
-        // httpMessage += getOption(HASP_GPIO_FREE, F("Unused"), false);
 
-        selected = (conf.type == HASP_GPIO_SWITCH) || (conf.type == HASP_GPIO_SWITCH_INVERTED);
+        selected = (conf.type == HASP_GPIO_SWITCH);
         httpMessage += getOption(HASP_GPIO_SWITCH, F("Switch"), selected);
 
-        selected = (conf.type == HASP_GPIO_BUTTON) || (conf.type == HASP_GPIO_BUTTON_INVERTED);
+        selected = (conf.type == HASP_GPIO_BUTTON);
         httpMessage += getOption(HASP_GPIO_BUTTON, F("Button"), selected);
 
-        selected = (conf.type == HASP_GPIO_LED) || (conf.type == HASP_GPIO_LED_INVERTED);
+        selected = (conf.type == HASP_GPIO_LED);
         httpMessage += getOption(HASP_GPIO_LED, F("Led"), selected);
 
-        selected = (conf.type == HASP_GPIO_LED_R) || (conf.type == HASP_GPIO_LED_R_INVERTED);
+        selected = (conf.type == HASP_GPIO_LED_R);
         httpMessage += getOption(HASP_GPIO_LED_R, F("Mood Red"), selected);
 
-        selected = (conf.type == HASP_GPIO_LED_G) || (conf.type == HASP_GPIO_LED_G_INVERTED);
+        selected = (conf.type == HASP_GPIO_LED_G);
         httpMessage += getOption(HASP_GPIO_LED_G, F("Mood Green"), selected);
 
-        selected = (conf.type == HASP_GPIO_LED_B) || (conf.type == HASP_GPIO_LED_B_INVERTED);
+        selected = (conf.type == HASP_GPIO_LED_B);
         httpMessage += getOption(HASP_GPIO_LED_B, F("Mood Blue"), selected);
 
-        selected = (conf.type == HASP_GPIO_RELAY) || (conf.type == HASP_GPIO_RELAY_INVERTED);
+        selected = (conf.type == HASP_GPIO_RELAY);
         httpMessage += getOption(HASP_GPIO_RELAY, F("Relay"), selected);
+
+        selected = (conf.type == HASP_GPIO_RELAY);
+        httpMessage += getOption(HASP_GPIO_RELAY, F("DAC"), selected);
 
         selected = (conf.type == HASP_GPIO_SERIAL_DIMMER);
         httpMessage += getOption(HASP_GPIO_SERIAL_DIMMER, F("Serial Dimmer"), selected);
 
         if(digitalPinHasPWM(webServer.arg(0).toInt())) {
-            selected = (conf.type == HASP_GPIO_PWM) || (conf.type == HASP_GPIO_PWM_INVERTED);
+            selected = (conf.type == HASP_GPIO_PWM);
             httpMessage += getOption(HASP_GPIO_PWM, F("PWM"), selected);
         }
         httpMessage += F("</select></p>");
@@ -1713,11 +1709,8 @@ void webHandleGpioOptions()
         httpMessage += F("</select></p>");
 
         httpMessage += F("<p><b>Default State</b> <select id='state' name='state'>");
-        bool inverted = (conf.type == HASP_GPIO_BUTTON_INVERTED) || (conf.type == HASP_GPIO_SWITCH_INVERTED) ||
-                        (conf.type == HASP_GPIO_LED_INVERTED) || (conf.type == HASP_GPIO_RELAY_INVERTED) ||
-                        (conf.type == HASP_GPIO_PWM_INVERTED);
-        httpMessage += getOption(1, F("High"), inverted);
-        httpMessage += getOption(0, F("Low"), !inverted);
+        httpMessage += getOption(0, F("Normal"), !conf.inverted);
+        httpMessage += getOption(1, F("Inverted"), conf.inverted);
         httpMessage += F("</select></p>");
 
         httpMessage +=
