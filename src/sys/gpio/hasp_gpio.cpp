@@ -23,6 +23,9 @@ static AceButton* button[HASP_NUM_INPUTS];
 #define analogWrite(x, y)
 #endif
 
+#define SCALE_8BIT_TO_12BIT(x) x << 4 | x >> 4
+#define SCALE_8BIT_TO_10BIT(x) x << 2 | x >> 6
+
 uint8_t gpioUsedInputCount = 0;
 
 // An array of button pins, led pins, and the led states. Cannot be const
@@ -33,6 +36,7 @@ hasp_gpio_config_t gpioConfig[HASP_NUM_GPIO_CONFIG] = {
 
 #if defined(ARDUINO_ARCH_ESP32)
 #include "driver/uart.h"
+#include <driver/dac.h>
 
 class TouchConfig : public ButtonConfig {
   public:
@@ -72,7 +76,7 @@ static void gpio_event_handler(AceButton* button, uint8_t eventType, uint8_t but
     bool state = false;
     switch(eventType) {
         case AceButton::kEventPressed:
-            if(gpioConfig[btnid].type == HASP_GPIO_SWITCH || gpioConfig[btnid].type == HASP_GPIO_SWITCH_INVERTED) {
+            if(gpioConfig[btnid].type == HASP_GPIO_SWITCH) {
                 eventid = HASP_EVENT_ON;
             } else {
                 eventid = HASP_EVENT_DOWN;
@@ -94,7 +98,7 @@ static void gpio_event_handler(AceButton* button, uint8_t eventType, uint8_t but
         //     state = true; // do not repeat DOWN + LONG + HOLD
         //     break;
         case AceButton::kEventReleased:
-            if(gpioConfig[btnid].type == HASP_GPIO_SWITCH || gpioConfig[btnid].type == HASP_GPIO_SWITCH_INVERTED) {
+            if(gpioConfig[btnid].type == HASP_GPIO_SWITCH) {
                 eventid = HASP_EVENT_OFF;
             } else {
                 eventid = HASP_EVENT_RELEASE;
@@ -195,6 +199,96 @@ void gpioAddSwitch(uint8_t pin, uint8_t input_mode, uint8_t default_state, uint8
               index, HASP_NUM_INPUTS);
 }
 
+void gpio_setup_pin(hasp_gpio_config_t* gpio)
+{
+    uint8_t input_mode;
+    switch(gpio->gpio_function) {
+        case OUTPUT:
+            input_mode = OUTPUT;
+            break;
+        case INPUT:
+            input_mode = INPUT;
+            break;
+#ifndef ARDUINO_ARCH_ESP8266
+        case INPUT_PULLDOWN:
+            input_mode = INPUT_PULLDOWN;
+            break;
+#endif
+        default:
+            input_mode = INPUT_PULLUP;
+    }
+
+    if(gpioIsSystemPin(gpio->pin)) {
+        LOG_WARNING(TAG_GPIO, F("Invalid pin %d"), gpio->pin);
+        return;
+    }
+
+    gpio->max = 255;
+
+    switch(gpio->type) {
+        case HASP_GPIO_SWITCH:
+            gpioAddSwitch(gpio->pin, input_mode, HIGH, gpioUsedInputCount);
+            pinMode(gpio->pin, INPUT_PULLUP);
+            gpio->max = 0;
+            break;
+
+        case HASP_GPIO_BUTTON:
+            gpioAddButton(gpio->pin, input_mode, HIGH, gpioUsedInputCount);
+            pinMode(gpio->pin, INPUT_PULLUP);
+            gpio->max = 0;
+            break;
+
+        case HASP_GPIO_RELAY:
+            pinMode(gpio->pin, OUTPUT);
+            gpio->max = 1; // on-off
+            break;
+
+        case HASP_GPIO_PWM:
+            gpio->max = 4095;
+        case HASP_GPIO_ALL_LEDS:
+            // case HASP_GPIO_BACKLIGHT:
+            pinMode(gpio->pin, OUTPUT);
+#if defined(ARDUINO_ARCH_ESP32)
+            // configure LED PWM functionalitites
+            ledcSetup(gpio->group, 20000, 12);
+            // attach the channel to the GPIO to be controlled
+            ledcAttachPin(gpio->pin, gpio->group);
+#endif
+            break;
+
+        case HASP_GPIO_DAC:
+#if defined(ARDUINO_ARCH_ESP32)
+            gpio_num_t pin;
+            if(dac_pad_get_io_num(DAC_CHANNEL_1, &pin) == ESP_OK)
+                if(gpio->pin == pin) dac_output_enable(DAC_CHANNEL_1);
+            if(dac_pad_get_io_num(DAC_CHANNEL_2, &pin) == ESP_OK)
+                if(gpio->pin == pin) dac_output_enable(DAC_CHANNEL_2);
+#endif
+            break;
+
+        case HASP_GPIO_SERIAL_DIMMER: {
+            const char command[9] = "\xEF\x01\x4D\xA3"; // Start Lanbon Dimmer
+#if defined(ARDUINO_ARCH_ESP32)
+            Serial1.begin(115200UL, SERIAL_8N1, UART_PIN_NO_CHANGE, gpio->pin, true, 2000);
+            Serial1.flush();
+            delay(20);
+            Serial1.print("  ");
+            delay(20);
+            Serial1.write((const uint8_t*)command, 8);
+#endif
+            gpio_log_serial_dimmer(command);
+            break;
+        }
+
+        case HASP_GPIO_FREE:
+            return;
+
+        default:
+            LOG_WARNING(TAG_GPIO, F("Invalid config -> pin %d - type: %d"), gpio->pin, gpio->type);
+    }
+    LOG_VERBOSE(TAG_GPIO, F(D_BULLET "Configured pin %d"), gpio->pin);
+}
+
 void gpioAddTouchButton(uint8_t pin, uint8_t input_mode, uint8_t default_state, uint8_t index)
 {
     uint8_t i;
@@ -228,82 +322,15 @@ void gpioAddTouchButton(uint8_t pin, uint8_t input_mode, uint8_t default_state, 
 
 void gpioSetup()
 {
+    LOG_INFO(TAG_GPIO, F(D_SERVICE_STARTING));
+
     aceButtonSetup();
 
     for(uint8_t i = 0; i < HASP_NUM_GPIO_CONFIG; i++) {
-        uint8_t input_mode;
-        switch(gpioConfig[i].gpio_function) {
-            case OUTPUT:
-                input_mode = OUTPUT;
-                break;
-            case INPUT:
-                input_mode = INPUT;
-                break;
-#ifndef ARDUINO_ARCH_ESP8266
-            case INPUT_PULLDOWN:
-                input_mode = INPUT_PULLDOWN;
-                break;
-#endif
-            default:
-                input_mode = INPUT_PULLUP;
-        }
-
-        if(gpioIsSystemPin(gpioConfig[i].pin)) {
-            LOG_WARNING(TAG_GPIO, F("Invalid pin %d"), gpioConfig[i].pin);
-            // continue;
-        }
-
-        switch(gpioConfig[i].type) {
-            case HASP_GPIO_SWITCH:
-                gpioAddSwitch(gpioConfig[i].pin, input_mode, HIGH, i);
-                pinMode(gpioConfig[i].pin, INPUT_PULLUP);
-                break;
-            case HASP_GPIO_BUTTON:
-                gpioAddButton(gpioConfig[i].pin, input_mode, HIGH, i);
-                pinMode(gpioConfig[i].pin, INPUT_PULLUP);
-                break;
-            case HASP_GPIO_SWITCH_INVERTED:
-                gpioAddSwitch(gpioConfig[i].pin, input_mode, LOW, i);
-                pinMode(gpioConfig[i].pin, INPUT_PULLDOWN);
-                break;
-            case HASP_GPIO_BUTTON_INVERTED:
-                gpioAddButton(gpioConfig[i].pin, input_mode, LOW, i);
-                pinMode(gpioConfig[i].pin, INPUT_PULLDOWN);
-                break;
-
-            case HASP_GPIO_RELAY:
-            case HASP_GPIO_RELAY_INVERTED:
-                pinMode(gpioConfig[i].pin, OUTPUT);
-                break;
-
-            case HASP_GPIO_LED ... HASP_GPIO_LED_CW_INVERTED:
-            // case HASP_GPIO_LED_INVERTED:
-            case HASP_GPIO_PWM:
-            case HASP_GPIO_PWM_INVERTED:
-                // case HASP_GPIO_BACKLIGHT:
-                pinMode(gpioConfig[i].pin, OUTPUT);
-#if defined(ARDUINO_ARCH_ESP32)
-                // configure LED PWM functionalitites
-                ledcSetup(gpioConfig[i].group, 20000, 12);
-                // attach the channel to the GPIO to be controlled
-                ledcAttachPin(gpioConfig[i].pin, gpioConfig[i].group);
-#endif
-                break;
-
-            case HASP_GPIO_SERIAL_DIMMER:
-                const char command[9] = "\xEF\x01\x4D\xA3"; // Start Lanbon Dimmer
-#if defined(ARDUINO_ARCH_ESP32)
-                Serial1.begin(115200UL, SERIAL_8N1, 14, gpioConfig[i].pin); // , false, 2000
-                Serial1.flush();
-                delay(20);
-                Serial1.print("  ");
-                delay(20);
-                Serial1.write((const uint8_t*)command, 8);
-#endif
-                gpio_log_serial_dimmer(command);
-                break;
-        }
+        gpio_setup_pin(&gpioConfig[i]);
     }
+
+    LOG_INFO(TAG_GPIO, F(D_SERVICE_STARTED));
 }
 
 void gpioLoop(void)
@@ -339,153 +366,145 @@ bool gpio_get_value(uint8_t pin, uint16_t& val)
     return false;
 }
 
-static bool gpio_set_output_value(hasp_gpio_config_t* gpio, int32_t val)
+static inline int32_t gpio_limit(int32_t val, int32_t min, int32_t max)
 {
-    if(val >= gpio->max)
-        gpio->val = gpio->max;
-    else if(val > 0)
-        gpio->val = val;
+    if(val >= max) return max;
+    if(val <= min) return min;
+    return val;
+}
+
+// val is assumed to be 12 bits
+static inline bool gpio_set_analog_value(hasp_gpio_config_t* gpio)
+{
+    uint16_t val = 0;
+#if defined(ARDUINO_ARCH_ESP32)
+
+    if(gpio->max == 255)
+        val = SCALE_8BIT_TO_12BIT(gpio->val);
+    else if(gpio->max == 4095)
+        val = gpio->val;
+
+    if(gpio->inverted) val = 4095 - val;
+
+    ledcWrite(gpio->group, val); // 12 bits
+    return true;                 // sent
+
+#elif defined(ARDUINO_ARCH_ESP8266)
+
+    if(gpio->max == 255)
+        val = SCALE_8BIT_TO_10BIT(gpio->val);
+    else if(gpio->max == 4095)
+        val = gpio->val >> 2;
+
+    if(gpio->inverted) val = 1023 - val;
+
+    analogWrite(gpio->pin, val); // 10 bits
+    return true;                 // sent
+
+#else
+    return false; // not implemented
+#endif
+}
+
+static inline bool gpio_set_serial_dimmer(hasp_gpio_config_t* gpio)
+{
+    char command[5] = "\xEF\x02\x00\xED";
+    command[2]      = (uint8_t)map(gpio->val, 0, 255, 0, 100);
+    command[3] ^= command[2];
+
+#if defined(ARDUINO_ARCH_ESP32)
+    Serial1.write((const uint8_t*)command, 4);
+    gpio_log_serial_dimmer(command);
+    return true; // sent
+#else
+    gpio_log_serial_dimmer(command);
+    return false; // not sent
+#endif
+}
+
+static inline bool gpio_set_dac_value(hasp_gpio_config_t* gpio)
+{
+#ifdef ARDUINO_ARCH_ESP32
+    gpio_num_t pin;
+    if(dac_pad_get_io_num(DAC_CHANNEL_1, &pin) == ESP_OK && gpio->pin == pin)
+        dac_output_voltage(DAC_CHANNEL_1, gpio->val);
+    else if(dac_pad_get_io_num(DAC_CHANNEL_2, &pin) == ESP_OK && gpio->pin == pin)
+        dac_output_voltage(DAC_CHANNEL_2, gpio->val);
     else
-        gpio->val = 0;
-
-    bool inverted = false;
-    switch(gpio->type) {
-        case HASP_GPIO_RELAY_INVERTED:
-            inverted = true;
-        case HASP_GPIO_RELAY:
-            digitalWrite(gpio->pin, inverted ? !gpio->val : gpio->val);
-            break;
-
-        case HASP_GPIO_LED_INVERTED:
-        case HASP_GPIO_LED_R_INVERTED:
-        case HASP_GPIO_LED_G_INVERTED:
-        case HASP_GPIO_LED_B_INVERTED:
-            inverted = true;
-        case HASP_GPIO_LED:
-        case HASP_GPIO_LED_R:
-        case HASP_GPIO_LED_G:
-        case HASP_GPIO_LED_B:
-            gpio->val = val >= 255 ? 255 : val > 0 ? val : 0;
-#if defined(ARDUINO_ARCH_ESP32)
-            ledcWrite(gpio->group, (gpio->val << 4) | (gpio->val >> 4)); // ledChannel and value
+        return false; // not found
+    return true;      // found
 #else
-            analogWrite(gpio->pin, (gpio->val) << 2 | (gpio->val >> 6));            // 1023
+    return false; // not implemented
 #endif
-            break;
-
-        case HASP_GPIO_PWM_INVERTED:
-            inverted = true;
-        case HASP_GPIO_PWM:
-            gpio->val = val >= 4095 ? 4095 : val > 0 ? val : 0;
-#if defined(ARDUINO_ARCH_ESP32)
-            ledcWrite(gpio->group, inverted ? 4095 - gpio->val : gpio->val); // ledChannel and value
-#else
-            analogWrite(gpio->pin, (inverted ? 4095 - gpio->val : gpio->val) >> 2); // 1023
-#endif
-            break;
-
-        case HASP_GPIO_SERIAL_DIMMER: {
-            gpio->val       = val >= 255 ? 255 : val > 0 ? val : 0;
-            char command[5] = "\xEF\x02\x00\xED";
-            /*         if(gpio.val == 0) {
-                         // command[2] = 0x20;
-                         Serial1.print("\xEF\x02\x20\xED");
-                     } else */
-            {
-                command[2] = (uint8_t)map(gpio->val, 0, 255, 0, 100);
-                command[3] ^= command[2];
-            }
-#if defined(ARDUINO_ARCH_ESP32)
-            Serial1.write((const uint8_t*)command, 4);
-#endif
-            gpio_log_serial_dimmer(command);
-
-            break;
-        }
-
-        default:
-            return false;
-    }
-    return true;
 }
 
-static inline void gpio_set_group_value(uint8_t group, int32_t val)
-{
-    // Set all pins first, minimizes delays
-    for(uint8_t k = 0; k < HASP_NUM_GPIO_CONFIG; k++) {
-        hasp_gpio_config_t* gpio = &gpioConfig[k];
-        if(gpio->group == group && gpioConfigInUse(k)) gpio_set_output_value(gpio, val);
-    }
-
-    // Dispatch all values
-    for(uint8_t k = 0; k < HASP_NUM_GPIO_CONFIG; k++) {
-        if(gpioConfig[k].group == group && gpioConfigInUse(k))
-            dispatch_output_pin_value(gpioConfig[k].pin, gpioConfig[k].val);
-    }
-}
-
-bool gpio_set_pin_value(uint8_t pin, int32_t val)
+bool gpio_get_pin_config(uint8_t pin, hasp_gpio_config_t** gpio)
 {
     for(uint8_t i = 0; i < HASP_NUM_GPIO_CONFIG; i++) {
-        hasp_gpio_config_t* gpio = &gpioConfig[i];
-
-        if(gpio->pin == pin && gpioConfigInUse(i)) {
-
-            if(gpio->group) {
-                // Set all pins in the group
-                gpio_set_group_value(gpio->group, val);
-            } else {
-                // Set the single pin value
-                gpio_set_output_value(gpio, val);
-                dispatch_output_pin_value(gpio->pin, gpio->val);
-            }
-
-            LOG_VERBOSE(TAG_GPIO, F("Group %d - Pin %d = %d"), gpio->group, gpio->pin, gpio->val);
+        if(gpioConfig[i].pin == pin) {
+            *gpio = &gpioConfig[i];
             return true;
         }
     }
-    LOG_WARNING(TAG_GPIO, F(D_BULLET "Pin %d is not configured"), pin);
     return false;
 }
 
-void gpio_set_normalized_value(hasp_gpio_config_t* gpio, int16_t val, int16_t min, int16_t max)
+// Update the actual value of one pin
+// The value must be normalized first
+static bool gpio_set_output_value(hasp_gpio_config_t* gpio, uint16_t val)
 {
-    if(min == max) {
-        LOG_ERROR(TAG_GPIO, F("Invalid value range"));
-        return;
-    }
+    gpio->val = gpio_limit(val, 0, gpio->max);
 
-    int16_t newval;
     switch(gpio->type) {
         case HASP_GPIO_RELAY:
-        case HASP_GPIO_RELAY_INVERTED:
-            newval = val > min ? HIGH : LOW;
-            break;
+            digitalWrite(gpio->pin, gpio->inverted ? !gpio->val : gpio->val);
+            return true;
 
-        case HASP_GPIO_LED:
-        case HASP_GPIO_LED_R:
-        case HASP_GPIO_LED_G:
-        case HASP_GPIO_LED_B:
-        case HASP_GPIO_LED_INVERTED:
-        case HASP_GPIO_LED_R_INVERTED:
-        case HASP_GPIO_LED_G_INVERTED:
-        case HASP_GPIO_LED_B_INVERTED:
-            newval = map(val, min, max, 0, 255);
-            break;
-
+        case HASP_GPIO_ALL_LEDS:
         case HASP_GPIO_PWM:
-        case HASP_GPIO_PWM_INVERTED:
-            newval = map(val, min, max, 0, 4095);
-            break;
+            return gpio_set_analog_value(gpio);
+
+        case HASP_GPIO_DAC:
+            return gpio_set_dac_value(gpio);
+
+        case HASP_GPIO_SERIAL_DIMMER:
+            return gpio_set_serial_dimmer(gpio);
 
         default:
-            return;
+            LOG_WARNING(TAG_GPIO, F(D_BULLET "Pin %d is not a valid output"), gpio->pin);
+            return false; // not a valid output
     }
-
-    gpio_set_output_value(gpio, newval);
 }
 
-void gpio_set_normalized_group_value(uint8_t groupid, int16_t val, int16_t min, int16_t max)
+// Update the normalized value of one pin
+void gpio_set_normalized_value(hasp_gpio_config_t* gpio, int32_t val, int32_t min, int32_t max)
+{
+    if(min != 0 || max != gpio->max) {
+        if(min == max) {
+            LOG_ERROR(TAG_GPIO, F("Invalid value range"));
+            return;
+        }
+
+        switch(gpio->type) {
+            case HASP_GPIO_RELAY:
+                val = val > min ? HIGH : LOW;
+                break;
+
+            case HASP_GPIO_ALL_LEDS:
+            case HASP_GPIO_DAC:
+            case HASP_GPIO_PWM:
+            case HASP_GPIO_SERIAL_DIMMER:
+                val = map(val, min, max, 0, gpio->max);
+                break;
+
+            default:
+                return;
+        }
+    }
+    gpio_set_output_value(gpio, val); // normalized
+}
+
+/* void gpio_set_normalized_group_values(uint8_t groupid, int16_t val, int16_t min, int16_t max)
 {
     if(min == max) {
         LOG_ERROR(TAG_GPIO, F("Invalid value range"));
@@ -498,26 +517,77 @@ void gpio_set_normalized_group_value(uint8_t groupid, int16_t val, int16_t min, 
             gpio_set_normalized_value(&gpioConfig[i], val, min, max);
         }
     }
+} */
+
+// Dispatch all group member values
+void gpio_output_group_values(uint8_t group)
+{
+    for(uint8_t k = 0; k < HASP_NUM_GPIO_CONFIG; k++) {
+        hasp_gpio_config_t* gpio = &gpioConfig[k];
+        if(gpio->group == group && gpio->type != HASP_GPIO_BUTTON &&
+           gpio->type != HASP_GPIO_SWITCH && // group members that are outputs
+           gpioConfigInUse(k))
+            dispatch_output_pin_value(gpioConfig[k].pin, gpioConfig[k].val);
+    }
 }
 
+// Update the normalized value of all group members
+void gpio_set_normalized_group_values(uint8_t group, int32_t val, int32_t min, int32_t max)
+{
+    // Set all pins first, minimizes delays
+    for(uint8_t k = 0; k < HASP_NUM_GPIO_CONFIG; k++) {
+        hasp_gpio_config_t* gpio = &gpioConfig[k];
+        if(gpio->group == group && // group members that are outputs
+           gpioConfigInUse(k))
+            gpio_set_normalized_value(gpio, val, min, max);
+    }
+
+    gpio_output_group_values(group);
+    object_set_normalized_group_values(group, NULL, val, min, max); // Update onsreen objects
+}
+
+// Update the value of an output pin and its group members
+bool gpio_set_pin_value(uint8_t pin, int32_t val)
+{
+    hasp_gpio_config_t* gpio = NULL;
+
+    if(!gpio_get_pin_config(pin, &gpio) || !gpio || gpio->type == HASP_GPIO_FREE) {
+        LOG_WARNING(TAG_GPIO, F(D_BULLET "Pin %d is not configured"), pin);
+        return false;
+
+    } else if(gpio->type == HASP_GPIO_BUTTON || gpio->type == HASP_GPIO_SWITCH) {
+        LOG_WARNING(TAG_GPIO, F(D_BULLET "Pin %d is an input"), pin);
+        if(gpio->group) gpio_output_group_values(gpio->group);
+        return false;
+    }
+
+    if(gpio->group) {
+        gpio_set_normalized_group_values(gpio->group, val, 0, gpio->max); // Set all pins in the group
+        LOG_VERBOSE(TAG_GPIO, F("Group %d - Pin %d = %d"), gpio->group, gpio->pin, gpio->val);
+
+    } else {
+        gpio_set_output_value(gpio, val); // update this gpio value only
+        dispatch_output_pin_value(gpio->pin, gpio->val);
+        LOG_VERBOSE(TAG_GPIO, F("No Group - Pin %d = %d"), gpio->pin, gpio->val);
+    }
+
+    return true; // pin found and set
+}
+
+// Updates the RGB pins directly, rgb are already normalized values
 void gpio_set_moodlight(uint8_t r, uint8_t g, uint8_t b)
 {
-    // uint16_t max_level = power == 0 ? 0 : map(brightness, 0, 0xFF, 0, 0xFFFFU);
-    uint16_t max_level = 0xFFFFU;
-
+    // RGBXX https://stackoverflow.com/questions/39949331/how-to-calculate-rgbaw-amber-white-from-rgb-for-leds
     for(uint8_t i = 0; i < HASP_NUM_GPIO_CONFIG; i++) {
         switch(gpioConfig[i].type) {
             case HASP_GPIO_LED_R:
-            case HASP_GPIO_LED_R_INVERTED:
-                gpio_set_normalized_value(&gpioConfig[i], r, 0, 0xFF);
+                gpio_set_output_value(&gpioConfig[i], r);
                 break;
             case HASP_GPIO_LED_G:
-            case HASP_GPIO_LED_G_INVERTED:
-                gpio_set_normalized_value(&gpioConfig[i], g, 0, 0xFF);
+                gpio_set_output_value(&gpioConfig[i], g);
                 break;
             case HASP_GPIO_LED_B:
-            case HASP_GPIO_LED_B_INVERTED:
-                gpio_set_normalized_value(&gpioConfig[i], b, 0, 0xFF);
+                gpio_set_output_value(&gpioConfig[i], b);
                 break;
         }
     }
@@ -692,24 +762,15 @@ void gpio_discovery(JsonArray& relay, JsonArray& led)
     for(uint8_t i = 0; i < HASP_NUM_GPIO_CONFIG; i++) {
         switch(gpioConfig[i].type) {
             case HASP_GPIO_RELAY:
-            case HASP_GPIO_RELAY_INVERTED:
                 relay.add(gpioConfig[i].pin);
                 break;
 
-            case HASP_GPIO_LED:
-            // case HASP_GPIO_LED_R:
-            // case HASP_GPIO_LED_G:
-            // case HASP_GPIO_LED_B:
-            case HASP_GPIO_LED_INVERTED:
-            // case HASP_GPIO_LED_R_INVERTED:
-            // case HASP_GPIO_LED_G_INVERTED:
-            // case HASP_GPIO_LED_B_INVERTED:
+            case HASP_GPIO_DAC:
+            case HASP_GPIO_LED: // Don't include the moodlight
             case HASP_GPIO_SERIAL_DIMMER:
                 led.add(gpioConfig[i].pin);
                 break;
 
-            case HASP_GPIO_PWM:
-            case HASP_GPIO_PWM_INVERTED:
                 // pwm.add(gpioConfig[i].pin);
                 break;
 
