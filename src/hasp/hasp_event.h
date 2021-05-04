@@ -11,6 +11,7 @@
 #define HASP_NUM_PAGE_BACK (HASP_NUM_PAGES + 2)
 #define HASP_NUM_PAGE_NEXT (HASP_NUM_PAGES + 3)
 
+// Object event Handlers
 void wakeup_event_handler(lv_obj_t* obj, lv_event_t event);
 void generic_event_handler(lv_obj_t* obj, lv_event_t event);
 void toggle_event_handler(lv_obj_t* obj, lv_event_t event);
@@ -21,6 +22,7 @@ void msgbox_event_handler(lv_obj_t* obj, lv_event_t event);
 void cpicker_event_handler(lv_obj_t* obj, lv_event_t event);
 
 #if HASP_USE_GPIO > 0
+// GPIO event Handler
 void event_gpio_input(uint8_t pin, uint8_t group, uint8_t eventid);
 #endif
 

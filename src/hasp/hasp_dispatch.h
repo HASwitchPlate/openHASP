@@ -64,7 +64,7 @@ void dispatch_wakeup(const char*, const char*);
 void dispatch_gpio_input_event(uint8_t pin, uint8_t group, uint8_t eventid);
 void dispatch_output_pin_value(uint8_t pin, uint16_t val);
 
-void dispatch_normalized_group_value(uint8_t groupid, lv_obj_t* obj, int16_t val, int16_t min, int16_t max);
+void dispatch_normalized_group_values(uint8_t groupid, lv_obj_t* obj, int16_t val, int16_t min, int16_t max);
 
 void dispatch_state_subtopic(const char* subtopic, const char* payload);
 
