@@ -345,9 +345,9 @@ void gpioLoop(void)
 void gpioSetup(void)
 {
     gpioSavePinConfig(0, 3, HASP_GPIO_RELAY, 0, -1);
-    gpioSavePinConfig(1, 4, HASP_GPIO_RELAY_INVERTED, 0, -1);
+    gpioSavePinConfig(1, 4, HASP_GPIO_RELAY, 0, -1);
     gpioSavePinConfig(2, 13, HASP_GPIO_LED, 0, -1);
-    gpioSavePinConfig(3, 14, HASP_GPIO_LED_INVERTED, 0, -1);
+    gpioSavePinConfig(3, 14, HASP_GPIO_LEDAC, 0, -1);
 }
 void gpioLoop(void)
 {}
