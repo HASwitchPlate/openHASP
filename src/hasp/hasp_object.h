@@ -75,7 +75,7 @@ void object_dispatch_state(uint8_t pageid, uint8_t btnid, const char* payload);
 
 void hasp_process_attribute(uint8_t pageid, uint8_t objid, const char* attr, const char* payload);
 
-void object_set_normalized_group_value(uint8_t groupid, lv_obj_t* src_obj, int16_t val, int16_t min, int16_t max);
+void object_set_normalized_group_values(uint8_t groupid, lv_obj_t* src_obj, int16_t val, int16_t min, int16_t max);
 
 #define HASP_OBJ_BAR 1971
 #define HASP_OBJ_BTN 3164
