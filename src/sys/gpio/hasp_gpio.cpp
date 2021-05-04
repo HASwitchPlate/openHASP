@@ -110,7 +110,7 @@ static void gpio_event_handler(AceButton* button, uint8_t eventType, uint8_t but
 
     event_gpio_input(gpioConfig[btnid].pin, gpioConfig[btnid].group, eventid);
     if(eventid != HASP_EVENT_LONG) // do not repeat DOWN + LONG
-        dispatch_normalized_group_value(gpioConfig[btnid].group, NULL, state, HASP_EVENT_OFF, HASP_EVENT_ON);
+        dispatch_normalized_group_values(gpioConfig[btnid].group, NULL, state, HASP_EVENT_OFF, HASP_EVENT_ON);
 }
 
 /* ********************************* GPIO Setup *************************************** */
