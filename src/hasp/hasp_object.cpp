@@ -711,8 +711,9 @@ void hasp_new_object(const JsonObject& config, uint8_t& saved_page_id)
                 obj = lv_calendar_create(parent_obj, NULL);
                 // lv_obj_align(obj, NULL, LV_ALIGN_IN_TOP_MID, 0, 20);
                 if(obj) {
-                    lv_obj_set_event_cb(obj, selector_event_handler);
+                    lv_obj_set_event_cb(obj, calendar_event_handler);
                     obj->user_data.objid = LV_HASP_CALENDER;
+                    lv_task_t* task      = lv_task_create(event_timer_calendar, 300, LV_TASK_PRIO_LOWEST, (void*)obj);
                 }
                 break;
 
