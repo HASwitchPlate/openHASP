@@ -57,6 +57,7 @@ static void debugPrintTimestamp(int level, Print* _logOutput)
     int rslt     = gettimeofday(&curTime, NULL);
     time_t t     = curTime.tv_sec;
     tm* timeinfo = localtime(&t);
+    (void*)rslt;
 
     debugSendAnsiCode(F(TERM_COLOR_CYAN), _logOutput);
 
