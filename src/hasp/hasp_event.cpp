@@ -22,6 +22,9 @@
  *
  ******************************************************************************************** */
 
+#include <time.h>
+#include <sys/time.h>
+
 #include "hasplib.h"
 
 #include "lv_core/lv_obj.h" // for tabview ext
@@ -29,7 +32,7 @@
 static lv_style_int_t last_value_sent;
 static lv_color_t last_color_sent;
 
-void swipe_event_handler(lv_obj_t* obj, lv_event_t event);
+void IRAM_ATTR swipe_event_handler(lv_obj_t* obj, lv_event_t event);
 
 /**
  * Clean-up allocated memory before an object is deleted
@@ -54,6 +57,73 @@ static void event_delete_object(lv_obj_t* obj)
     my_obj_set_value_str_text(obj, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, NULL);
 }
 
+/* ============================== Timer Event  ============================ */
+void event_timer_calendar(lv_task_t* task)
+{
+    lv_obj_t* obj = (lv_obj_t*)task->user_data;
+
+    if(!obj) return lv_task_del(task); // the calendar object for this task was deleted
+
+    lv_calendar_date_t date;
+
+    timeval curTime;
+    int rslt     = gettimeofday(&curTime, NULL);
+    time_t t     = curTime.tv_sec;
+    tm* timeinfo = localtime(&t);
+    (void*)rslt;
+
+    if(timeinfo->tm_year < 120) {
+        lv_task_set_period(task, 60000); // try again in a minute
+        return;
+    } else {
+        uint32_t next_hour = (3600 - (t % 3600)) * 1000; // ms to next top of hour
+        lv_task_set_period(task, next_hour + 128);       // small offset so all tasks don't run at once
+    }
+
+    date.day   = timeinfo->tm_mday;
+    date.month = timeinfo->tm_mon + 1;     // months since January 0-11
+    date.year  = timeinfo->tm_year + 1900; // years since 1900
+
+    LOG_VERBOSE(TAG_EVENT, "event_timer_calendar called with user %d:%d:%d", timeinfo->tm_hour, timeinfo->tm_min,
+                timeinfo->tm_sec);
+
+    lv_calendar_set_today_date(obj, &date);
+}
+
+void event_timer_clock(lv_task_t* task)
+{
+    lv_obj_t* obj = (lv_obj_t*)task->user_data;
+
+    if(!obj) return lv_task_del(task); // the calendar object for this task was deleted
+
+    timeval curTime;
+    int rslt       = gettimeofday(&curTime, NULL);
+    time_t seconds = curTime.tv_sec;
+    tm* timeinfo   = localtime(&seconds);
+    (void*)rslt;
+
+    if(timeinfo->tm_year < 120) {
+        lv_task_set_period(task, 60000); // try again in a minute
+        return;
+    }
+
+    LOG_VERBOSE(TAG_EVENT, "event_timer_clock called with user %d:%d%s", timeinfo->tm_hour, timeinfo->tm_min,
+                timeinfo->tm_sec);
+
+    uint16_t interval;
+    lv_task_set_period(task, (interval - (seconds % interval)) * 1000 + 64); // ms to next interval
+}
+
+/* ============================== Timer Event  ============================ */
+void event_timer_refresh(lv_task_t* task)
+{
+    lv_obj_t* obj = (lv_obj_t*)task->user_data;
+    printf("event_timer_refresh called with user data\n");
+    if(!obj) return;
+
+    lv_obj_invalidate(obj);
+}
+
 /* ============================== Event Senders ============================ */
 
 /* Takes and lv_obj and finds the pageid and objid
@@ -67,7 +137,7 @@ static void event_delete_object(lv_obj_t* obj)
  * @param event type of event that occured
  * @param eventid returns the hasp eventid
  */
-static bool translate_event(lv_obj_t* obj, lv_event_t event, uint8_t& eventid)
+static bool IRAM_ATTR translate_event(lv_obj_t* obj, lv_event_t event, uint8_t& eventid)
 {
     switch(event) {
         case LV_EVENT_GESTURE:
@@ -103,7 +173,7 @@ static bool translate_event(lv_obj_t* obj, lv_event_t event, uint8_t& eventid)
 
 // ##################### Value Senders ########################################################
 
-static void event_send_object_data(lv_obj_t* obj, const char* data)
+static void IRAM_ATTR event_send_object_data(lv_obj_t* obj, const char* data)
 {
     uint8_t pageid;
     uint8_t objid;
@@ -117,7 +187,7 @@ static void event_send_object_data(lv_obj_t* obj, const char* data)
 }
 
 // Send out events with a val attribute
-static void event_object_val_event(lv_obj_t* obj, uint8_t eventid, int16_t val)
+static void IRAM_ATTR event_object_val_event(lv_obj_t* obj, uint8_t eventid, int16_t val)
 {
     char data[40];
     char eventname[8];
@@ -128,7 +198,7 @@ static void event_object_val_event(lv_obj_t* obj, uint8_t eventid, int16_t val)
 }
 
 // Send out events with a val and text attribute
-static void event_object_selection_changed(lv_obj_t* obj, uint8_t eventid, int16_t val, const char* text)
+static void IRAM_ATTR event_object_selection_changed(lv_obj_t* obj, uint8_t eventid, int16_t val, const char* text)
 {
     char data[200];
     char eventname[8];
@@ -141,7 +211,7 @@ static void event_object_selection_changed(lv_obj_t* obj, uint8_t eventid, int16
 // ##################### Event Handlers ########################################################
 
 #if HASP_USE_GPIO > 0
-void event_gpio_input(uint8_t pin, uint8_t group, uint8_t eventid)
+void IRAM_ATTR event_gpio_input(uint8_t pin, uint8_t group, uint8_t eventid)
 {
     char payload[64];
     char topic[8];
@@ -219,7 +289,7 @@ static void log_event(const char* name, lv_event_t event)
  * @param obj pointer to a button matrix
  * @param event type of event that occured
  */
-void wakeup_event_handler(lv_obj_t* obj, lv_event_t event)
+void IRAM_ATTR wakeup_event_handler(lv_obj_t* obj, lv_event_t event)
 {
     log_event("wakeup", event);
 
@@ -232,7 +302,7 @@ void wakeup_event_handler(lv_obj_t* obj, lv_event_t event)
     }
 }
 
-void swipe_event_handler(lv_obj_t* obj, lv_event_t event)
+void IRAM_ATTR swipe_event_handler(lv_obj_t* obj, lv_event_t event)
 {
     if(!obj || obj->user_data.swipeid == 0) return;
 
@@ -260,7 +330,7 @@ void swipe_event_handler(lv_obj_t* obj, lv_event_t event)
  * @param obj pointer to a button object
  * @param event type of event that occured
  */
-void generic_event_handler(lv_obj_t* obj, lv_event_t event)
+void IRAM_ATTR generic_event_handler(lv_obj_t* obj, lv_event_t event)
 {
     log_event("generic", event);
 
@@ -359,7 +429,7 @@ void generic_event_handler(lv_obj_t* obj, lv_event_t event)
  * @param obj pointer to a switch object
  * @param event type of event that occured
  */
-void toggle_event_handler(lv_obj_t* obj, lv_event_t event)
+void IRAM_ATTR toggle_event_handler(lv_obj_t* obj, lv_event_t event)
 {
     log_event("toggle", event);
 
@@ -402,7 +472,7 @@ void toggle_event_handler(lv_obj_t* obj, lv_event_t event)
  * @param obj pointer to a dropdown list or roller
  * @param event type of event that occured
  */
-void selector_event_handler(lv_obj_t* obj, lv_event_t event)
+void IRAM_ATTR selector_event_handler(lv_obj_t* obj, lv_event_t event)
 {
     log_event("selector", event);
 
@@ -474,7 +544,7 @@ void selector_event_handler(lv_obj_t* obj, lv_event_t event)
  * @param obj pointer to a dropdown list or roller
  * @param event type of event that occured
  */
-void btnmatrix_event_handler(lv_obj_t* obj, lv_event_t event)
+void IRAM_ATTR btnmatrix_event_handler(lv_obj_t* obj, lv_event_t event)
 {
     log_event("btnmatrix", event);
 
@@ -509,7 +579,7 @@ void btnmatrix_event_handler(lv_obj_t* obj, lv_event_t event)
  * @param obj pointer to a dropdown list or roller
  * @param event type of event that occured
  */
-void msgbox_event_handler(lv_obj_t* obj, lv_event_t event)
+void IRAM_ATTR msgbox_event_handler(lv_obj_t* obj, lv_event_t event)
 {
     log_event("msgbox", event);
 
@@ -541,7 +611,7 @@ void msgbox_event_handler(lv_obj_t* obj, lv_event_t event)
  * @param obj pointer to a slider
  * @param event type of event that occured
  */
-void slider_event_handler(lv_obj_t* obj, lv_event_t event)
+void IRAM_ATTR slider_event_handler(lv_obj_t* obj, lv_event_t event)
 {
     log_event("slider", event);
 
@@ -581,7 +651,7 @@ void slider_event_handler(lv_obj_t* obj, lv_event_t event)
  * @param obj pointer to a color picker
  * @param event type of event that occured
  */
-void cpicker_event_handler(lv_obj_t* obj, lv_event_t event)
+void IRAM_ATTR cpicker_event_handler(lv_obj_t* obj, lv_event_t event)
 {
     log_event("cpicker", event);
 
@@ -601,8 +671,40 @@ void cpicker_event_handler(lv_obj_t* obj, lv_event_t event)
     c32.full        = lv_color_to32(color);
     last_color_sent = color;
 
-    snprintf_P(data, sizeof(data), PSTR("{\"event\":\"%s\",\"color\":\"#%02x%02x%02x\",\"r\":%d,\"g\":%d,\"b\":%d}"),
-               eventname, c32.ch.red, c32.ch.green, c32.ch.blue, c32.ch.red, c32.ch.green, c32.ch.blue);
+    snprintf_P(data, sizeof(data), PSTR("{\"event\":\"%s\",\"color\":\"#\",\"r\":%d,\"g\":%d,\"b\":%d}"), eventname,
+               c32.ch.red, c32.ch.green, c32.ch.blue, c32.ch.red, c32.ch.green, c32.ch.blue);
+    event_send_object_data(obj, data);
+
+    // dispatch_normalized_group_values(obj->user_data.groupid, obj, val, min, max);
+}
+
+void IRAM_ATTR calendar_event_handler(lv_obj_t* obj, lv_event_t event)
+{
+    log_event("calendar", event);
+
+    uint8_t hasp_event_id;
+    if(event != LV_EVENT_PRESSED && event != LV_EVENT_RELEASED && event != LV_EVENT_VALUE_CHANGED) return;
+    if(!translate_event(obj, event, hasp_event_id)) return; // Use LV_EVENT_VALUE_CHANGED
+
+    /* Get the new value */
+    lv_calendar_date_t* date;
+    if(hasp_event_id == HASP_EVENT_CHANGED)
+        date = lv_calendar_get_pressed_date(obj); // pressed date
+    else
+        date = lv_calendar_get_showed_date(obj); // current month
+    if(!date) return;
+
+    lv_style_int_t val = date->day + date->month * 31;
+    if(hasp_event_id == HASP_EVENT_CHANGED && last_value_sent == val) return; // same value as before
+
+    char data[100];
+    char eventname[8];
+    Parser::get_event_name(hasp_event_id, eventname, sizeof(eventname));
+
+    last_value_sent = val;
+
+    snprintf_P(data, sizeof(data), PSTR("{\"event\":\"%s\",\"val\":\"%d\",\"text\":\"%04d-%02d-%02dT00:00:00Z\"}"),
+               eventname, date->day, date->year, date->month, date->day);
     event_send_object_data(obj, data);
 
     // dispatch_normalized_group_values(obj->user_data.groupid, obj, val, min, max);
