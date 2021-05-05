@@ -122,7 +122,7 @@ DeserializationError configParseFile(String& configFile, JsonDocument& settings)
     }
     return DeserializationError::InvalidInput;
 #else
-    return DeserializationError::NotSupported;
+    return DeserializationError::InvalidInput;
 #endif
 }
 
