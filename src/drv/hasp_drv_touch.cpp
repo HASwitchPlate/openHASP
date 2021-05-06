@@ -102,13 +102,13 @@ static inline bool drv_touchpad_getXY(int16_t* touchX, int16_t* touchY)
     touched = Touch_getXY(&normal_x, &normal_y, false);
 
 #elif TOUCH_DRIVER == 5206
-    touched = FT5206_getXY(&normal_x, &normal_y, false);
+    touched = FT5206_getXY(&normal_x, &normal_y, false); // no debug
 
 #elif TOUCH_DRIVER == 6336
-    touched = FT6336U_getXY(&normal_x, &normal_y, true);
+    touched = FT6336U_getXY(&normal_x, &normal_y, false); // no debug
 
 #elif TOUCH_DRIVER == 610
-    touched = STMPE610_getXY(&normal_x, &normal_y, drv_touch_rotation, true);
+    touched = STMPE610_getXY(&normal_x, &normal_y, drv_touch_rotation, false); // no debug
 
 #else
     // xpt2046_alt_drv_read(indev_driver, data);
