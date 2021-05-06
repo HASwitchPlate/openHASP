@@ -70,7 +70,7 @@ void event_timer_calendar(lv_task_t* task)
     int rslt     = gettimeofday(&curTime, NULL);
     time_t t     = curTime.tv_sec;
     tm* timeinfo = localtime(&t);
-    (void*)rslt;
+    (void)rslt; // unused
 
     if(timeinfo->tm_year < 120) {
         lv_task_set_period(task, 60000); // try again in a minute
@@ -100,7 +100,7 @@ void event_timer_clock(lv_task_t* task)
     int rslt       = gettimeofday(&curTime, NULL);
     time_t seconds = curTime.tv_sec;
     tm* timeinfo   = localtime(&seconds);
-    (void*)rslt;
+    (void)rslt; // unused
 
     if(timeinfo->tm_year < 120) {
         lv_task_set_period(task, 60000); // try again in a minute
