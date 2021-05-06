@@ -1536,7 +1536,8 @@ void webHandleGpioConfig()
 
         httpMessage += F("<form method='POST' action='/config'>");
 
-        httpMessage += F("<table><tr><th>Pin</th><th>Type</th><th>Group</th><th>Default</th><th>Action</th></tr>");
+        httpMessage += F("<table><tr><th>" D_GPIO_PIN "</th><th>Type</th><th>" D_GPIO_GROUP
+                         "</th><th>Default</th><th>Action</th></tr>");
 
         for(uint8_t gpio = 0; gpio < NUM_DIGITAL_PINS; gpio++) {
             for(uint8_t id = 0; id < HASP_NUM_GPIO_CONFIG; id++) {
@@ -1549,42 +1550,37 @@ void webHandleGpioConfig()
 
                     switch(conf.type) {
                         case HASP_GPIO_SWITCH:
-                            httpMessage += F("Switch");
+                            httpMessage += F(D_GPIO_SWITCH);
                             break;
                         case HASP_GPIO_BUTTON:
-                            httpMessage += F("Button");
+                            httpMessage += F(D_GPIO_BUTTON);
                             break;
                         case HASP_GPIO_LED:
-                            httpMessage += F("Led");
+                            httpMessage += F(D_GPIO_LED);
                             break;
                         case HASP_GPIO_LED_R:
+                            httpMessage += F(D_GPIO_LED_R);
+                            break;
                         case HASP_GPIO_LED_G:
+                            httpMessage += F(D_GPIO_LED_G);
+                            break;
                         case HASP_GPIO_LED_B:
-                            httpMessage += F("Mood ");
+                            httpMessage += F(D_GPIO_LED_B);
                             break;
                         case HASP_GPIO_RELAY:
-                            httpMessage += F("Relay");
+                            httpMessage += F(D_GPIO_RELAY);
                             break;
                         case HASP_GPIO_PWM:
-                            httpMessage += F("PWM");
+                            httpMessage += F(D_GPIO_PWM);
+                            break;
+                        case HASP_GPIO_DAC:
+                            httpMessage += F(D_GPIO_DAC);
                             break;
                         case HASP_GPIO_SERIAL_DIMMER:
-                            httpMessage += F("Serial Dimmer");
+                            httpMessage += F(D_GPIO_SERIAL_DIMMER);
                             break;
                         default:
-                            httpMessage += F("Unknown");
-                    }
-
-                    switch(conf.type) {
-                        case HASP_GPIO_LED_R:
-                            httpMessage += F("Red");
-                            break;
-                        case HASP_GPIO_LED_G:
-                            httpMessage += F("Green");
-                            break;
-                        case HASP_GPIO_LED_B:
-                            httpMessage += F("Blue");
-                            break;
+                            httpMessage += F(D_GPIO_UNKNOWN);
                     }
 
                     httpMessage += F("</td><td>");
@@ -1651,7 +1647,7 @@ void webHandleGpioOptions()
         httpMessage += config_id;
         httpMessage += F(" Options</b></p>");
 
-        httpMessage += F("<p><b>Pin</b> <select id='pin' name='pin'>");
+        httpMessage += F("<p><b>" D_GPIO_PIN "</b> <select id='pin' name='pin'>");
         hasp_gpio_config_t conf = gpioGetPinConfig(config_id);
 
         for(uint8_t io = 0; io < NUM_DIGITAL_PINS; io++) {
@@ -1665,44 +1661,44 @@ void webHandleGpioOptions()
         httpMessage += F("<p><b>Type</b> <select id='type' name='type'>");
 
         selected = (conf.type == HASP_GPIO_SWITCH);
-        httpMessage += getOption(HASP_GPIO_SWITCH, F("Switch"), selected);
+        httpMessage += getOption(HASP_GPIO_SWITCH, F(D_GPIO_SWITCH), selected);
 
         selected = (conf.type == HASP_GPIO_BUTTON);
-        httpMessage += getOption(HASP_GPIO_BUTTON, F("Button"), selected);
+        httpMessage += getOption(HASP_GPIO_BUTTON, F(D_GPIO_BUTTON), selected);
 
         selected = (conf.type == HASP_GPIO_LED);
-        httpMessage += getOption(HASP_GPIO_LED, F("Led"), selected);
+        httpMessage += getOption(HASP_GPIO_LED, F(D_GPIO_LED), selected);
 
         selected = (conf.type == HASP_GPIO_LED_R);
-        httpMessage += getOption(HASP_GPIO_LED_R, F("Mood Red"), selected);
+        httpMessage += getOption(HASP_GPIO_LED_R, F(D_GPIO_LED_R), selected);
 
         selected = (conf.type == HASP_GPIO_LED_G);
-        httpMessage += getOption(HASP_GPIO_LED_G, F("Mood Green"), selected);
+        httpMessage += getOption(HASP_GPIO_LED_G, F(D_GPIO_LED_G), selected);
 
         selected = (conf.type == HASP_GPIO_LED_B);
-        httpMessage += getOption(HASP_GPIO_LED_B, F("Mood Blue"), selected);
+        httpMessage += getOption(HASP_GPIO_LED_B, F(D_GPIO_LED_B), selected);
 
         selected = (conf.type == HASP_GPIO_RELAY);
-        httpMessage += getOption(HASP_GPIO_RELAY, F("Relay"), selected);
+        httpMessage += getOption(HASP_GPIO_RELAY, F(D_GPIO_RELAY), selected);
 
-        selected = (conf.type == HASP_GPIO_RELAY);
-        httpMessage += getOption(HASP_GPIO_RELAY, F("DAC"), selected);
+        selected = (conf.type == HASP_GPIO_DAC);
+        httpMessage += getOption(HASP_GPIO_DAC, F(D_GPIO_DAC), selected);
 
         selected = (conf.type == HASP_GPIO_SERIAL_DIMMER);
-        httpMessage += getOption(HASP_GPIO_SERIAL_DIMMER, F("Serial Dimmer"), selected);
+        httpMessage += getOption(HASP_GPIO_SERIAL_DIMMER, F(D_GPIO_SERIAL_DIMMER), selected);
 
         if(digitalPinHasPWM(webServer.arg(0).toInt())) {
             selected = (conf.type == HASP_GPIO_PWM);
-            httpMessage += getOption(HASP_GPIO_PWM, F("PWM"), selected);
+            httpMessage += getOption(HASP_GPIO_PWM, F(D_GPIO_PWM), selected);
         }
         httpMessage += F("</select></p>");
 
-        httpMessage += F("<p><b>Group</b> <select id='group' name='group'>");
-        httpMessage += getOption(0, F("None"), conf.group == 0);
+        httpMessage += F("<p><b>" D_GPIO_GROUP "</b> <select id='group' name='group'>");
+        httpMessage += getOption(0, F(D_GPIO_GROUP_NONE), conf.group == 0);
         String group((char*)0);
         group.reserve(10);
         for(int i = 1; i < 15; i++) {
-            group = F("Group ");
+            group = F(D_GPIO_GROUP " ");
             group += i;
             httpMessage += getOption(i, group, conf.group == i);
         }

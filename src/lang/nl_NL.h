@@ -185,4 +185,19 @@
 #define D_WIFI_RSSI_WEAK "Zwak"
 #define D_WIFI_RSSI_BAD "Zeer Slecht"
 
+#define D_GPIO_SWITCH "Schakelaar"
+#define D_GPIO_BUTTON "Drukknop"
+#define D_GPIO_LED "Led"
+#define D_GPIO_LED_R "Sfeer Rood"
+#define D_GPIO_LED_G "Sfeer Groen"
+#define D_GPIO_LED_B "Sfeer Blauw"
+#define D_GPIO_RELAY "Relay"
+#define D_GPIO_PWM "PWM"
+#define D_GPIO_DAC "DAC"
+#define D_GPIO_SERIAL_DIMMER "Seriële Dimmer"
+#define D_GPIO_UNKNOWN "Onbekend"
+#define D_GPIO_PIN "Pin"
+#define D_GPIO_GROUP "Groep"
+#define D_GPIO_GROUP_NONE "Geen"
+
 #endif

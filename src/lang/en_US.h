@@ -186,4 +186,20 @@
 #define D_WIFI_RSSI_WEAK "Weak"
 #define D_WIFI_RSSI_BAD "Very bad"
 
+// new
+#define D_GPIO_SWITCH "Switch"
+#define D_GPIO_BUTTON "Button"
+#define D_GPIO_LED "Led"
+#define D_GPIO_LED_R "Mood Red"
+#define D_GPIO_LED_G "Mood Green"
+#define D_GPIO_LED_B "Mood Blue"
+#define D_GPIO_RELAY "Relay"
+#define D_GPIO_PWM "PWM"
+#define D_GPIO_DAC "DAC"
+#define D_GPIO_SERIAL_DIMMER "Serial Dimmer"
+#define D_GPIO_UNKNOWN "Unknown"
+#define D_GPIO_PIN "Pin"
+#define D_GPIO_GROUP "Group"
+#define D_GPIO_GROUP_NONE "None"
+
 #endif
