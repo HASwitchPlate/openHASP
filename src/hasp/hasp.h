@@ -8,10 +8,7 @@
 #include "Arduino.h"
 #endif
 
-#include "lvgl.h"
-#include "hasp_conf.h"
-
-#include "hasp_conf.h"
+#include "hasplib.h"
 
 #if HASP_USE_DEBUG > 0
 #include "../hasp_debug.h"

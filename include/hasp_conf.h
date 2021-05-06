@@ -240,6 +240,14 @@ static WiFiSpiClass WiFi;
 #include "sys/svc/hasp_slave.h"
 #endif
 
+#ifndef HASP_ATTRIBUTE_FAST_MEM
+#define HASP_ATTRIBUTE_FAST_MEM
+#endif
+
+#ifndef IRAM_ATTR
+#define IRAM_ATTR
+#endif
+
 #ifndef FPSTR
 #define FPSTR(pstr_pointer) (reinterpret_cast<const __FlashStringHelper*>(pstr_pointer))
 #endif

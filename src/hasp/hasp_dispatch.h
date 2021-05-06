@@ -4,8 +4,7 @@
 #ifndef HASP_DISPATCH_H
 #define HASP_DISPATCH_H
 
-#include "ArduinoJson.h"
-#include "lvgl.h"
+#include "hasplib.h"
 
 struct dispatch_conf_t
 {

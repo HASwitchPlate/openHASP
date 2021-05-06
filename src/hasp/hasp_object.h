@@ -4,8 +4,7 @@
 #ifndef HASP_OBJECT_H
 #define HASP_OBJECT_H
 
-#include <ArduinoJson.h>
-#include "lvgl.h"
+#include "hasplib.h"
 
 const char FP_PAGE[] PROGMEM     = "page";
 const char FP_ID[] PROGMEM       = "id";
@@ -15,50 +14,50 @@ const char FP_PARENTID[] PROGMEM = "parentid";
 const char FP_GROUPID[] PROGMEM  = "groupid";
 
 enum lv_hasp_obj_type_t {
+    /* Containers */
+    LV_HASP_SCREEN    = 1,
+    LV_HASP_CONTAINER = 2,
+    LV_HASP_WINDOW    = 3, // placeholder
+    LV_HASP_MSGBOX    = 4, // placeholder
+    LV_HASP_TILEVIEW  = 5, // placeholder
+    LV_HASP_TABVIEW   = 6, // placeholder
+    LV_HASP_TAB       = 7, // placeholder
+    LV_HASP_PAGE      = 8, // Obsolete in v8
+
     /* Controls */
-    LV_HASP_OBJECT    = 91, // 10
-    LV_HASP_BUTTON    = 10, // 12
+    LV_HASP_OBJECT    = 11,
+    LV_HASP_BUTTON    = 12,
     LV_HASP_BTNMATRIX = 13,
     LV_HASP_IMGBTN    = 14, // placeholder
-    LV_HASP_CHECKBOX  = 11, // 15
-    LV_HASP_SWITCH    = 40, // 16
-    LV_HASP_SLIDER    = 30, // 17
+    LV_HASP_CHECKBOX  = 15,
+    LV_HASP_SWITCH    = 16,
+    LV_HASP_SLIDER    = 17,
     LV_HASP_TEXTAREA  = 18, // placeholder
     LV_HASP_SPINBOX   = 19, // placeholder
     LV_HASP_CPICKER   = 20,
 
-    /* Selectors */
-    LV_HASP_DROPDOWN = 50,
-    LV_HASP_ROLLER   = 51,
-    LV_HASP_LIST     = 52, // placeholder
-    LV_HASP_TABLE    = 53,
-    LV_HASP_CALENDER = 54,
-
-    /* Containers */
-    LV_HASP_SCREEN    = 1,
-    LV_HASP_CONTAINER = 70,
-    LV_HASP_WINDOW    = 71, // placeholder
-    LV_HASP_MSGBOX    = 72, // placeholder
-    LV_HASP_TILEVIEW  = 73, // placeholder
-    LV_HASP_TABVIEW   = 74, // placeholder
-    LV_HASP_TAB       = 75, // placeholder
-    LV_HASP_PAGE      = 79, // Obsolete in v8
-
     /* Visualizers */
-    LV_HASP_LABEL   = 12, // 30
-    LV_HASP_GAUGE   = 31,
-    LV_HASP_BAR     = 32,
-    LV_HASP_LMETER  = 33,
-    LV_HASP_LED     = 41, // 34
-    LV_HASP_ARC     = 22, // 35
-    LV_HASP_SPINNER = 21, // 36
-    LV_HASP_CHART   = 37,
+    LV_HASP_LABEL   = 21,
+    LV_HASP_GAUGE   = 22,
+    LV_HASP_BAR     = 23,
+    LV_HASP_LMETER  = 24,
+    LV_HASP_LED     = 25,
+    LV_HASP_ARC     = 26,
+    LV_HASP_SPINNER = 27,
+    LV_HASP_CHART   = 28,
+
+    /* Selectors */
+    LV_HASP_DROPDOWN = 29,
+    LV_HASP_ROLLER   = 30,
+    LV_HASP_LIST     = 31, // placeholder
+    LV_HASP_TABLE    = 32,
+    LV_HASP_CALENDER = 33,
 
     /* Graphics */
-    LV_HASP_LINE   = 60,
-    LV_HASP_IMAGE  = 61, // placeholder
-    LV_HASP_CANVAS = 62, // placeholder
-    LV_HASP_MASK   = 63, // placeholder
+    LV_HASP_LINE   = 36,
+    LV_HASP_IMAGE  = 37, // placeholder
+    LV_HASP_CANVAS = 38, // placeholder
+    LV_HASP_MASK   = 39, // placeholder
 };
 
 void hasp_new_object(const JsonObject& config, uint8_t& saved_page_id);

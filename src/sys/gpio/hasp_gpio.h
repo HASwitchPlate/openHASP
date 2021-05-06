@@ -4,7 +4,7 @@
 #ifndef HASP_GPIO_H
 #define HASP_GPIO_H
 
-#include "ArduinoJson.h"
+#include "hasplib.h"
 
 #ifdef __cplusplus
 extern "C" {

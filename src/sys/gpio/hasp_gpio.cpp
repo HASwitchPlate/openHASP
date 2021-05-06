@@ -4,6 +4,7 @@
 #include "lv_conf.h" // For timing defines
 
 #include "hasplib.h"
+
 #include "hasp_gpio.h"
 #include "hasp_config.h"
 
@@ -537,8 +538,7 @@ void gpio_set_normalized_group_values(uint8_t group, int32_t val, int32_t min, i
     // Set all pins first, minimizes delays
     for(uint8_t k = 0; k < HASP_NUM_GPIO_CONFIG; k++) {
         hasp_gpio_config_t* gpio = &gpioConfig[k];
-        if(gpio->group == group && // group members that are outputs
-           gpioConfigInUse(k))
+        if(gpio->group == group && gpioConfigInUse(k)) // group members that are outputs
             gpio_set_normalized_value(gpio, val, min, max);
     }
 
