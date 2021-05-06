@@ -403,7 +403,7 @@ void mqttSetup()
     printf("%s %d\n", __FILE__, __LINE__);
 }
 
-void mqttLoop()
+IRAM_ATTR void mqttLoop()
 {
     int topicLen;
     char* topicName;             // Freed by msgarrvd

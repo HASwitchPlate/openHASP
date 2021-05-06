@@ -102,7 +102,7 @@ lv_font_t* hasp_get_font(uint8_t fontid)
 /**
  * Check if sleep state needs to be updated
  */
-bool IRAM_ATTR hasp_update_sleep_state()
+HASP_ATTRIBUTE_FAST_MEM bool hasp_update_sleep_state()
 {
     uint32_t idle = lv_disp_get_inactive_time(NULL);
 
@@ -470,7 +470,7 @@ void haspSetup(void)
  *   STATIC FUNCTIONS
  **********************/
 
-void haspLoop(void)
+IRAM_ATTR void haspLoop(void)
 {
     dispatchLoop();
 }

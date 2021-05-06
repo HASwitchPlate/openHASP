@@ -10,7 +10,7 @@
 
 /* ===== Default Event Processors ===== */
 void otaSetup(void);
-void otaLoop(void);
+IRAM_ATTR void otaLoop(void);
 void otaEverySecond(void);
 
 /* ===== Special Event Processors ===== */

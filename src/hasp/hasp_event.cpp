@@ -32,7 +32,7 @@
 static lv_style_int_t last_value_sent;
 static lv_color_t last_color_sent;
 
-void IRAM_ATTR swipe_event_handler(lv_obj_t* obj, lv_event_t event);
+void swipe_event_handler(lv_obj_t* obj, lv_event_t event);
 
 /**
  * Clean-up allocated memory before an object is deleted
@@ -137,7 +137,7 @@ void event_timer_refresh(lv_task_t* task)
  * @param event type of event that occured
  * @param eventid returns the hasp eventid
  */
-static bool IRAM_ATTR translate_event(lv_obj_t* obj, lv_event_t event, uint8_t& eventid)
+static bool translate_event(lv_obj_t* obj, lv_event_t event, uint8_t& eventid)
 {
     switch(event) {
         case LV_EVENT_GESTURE:
@@ -173,7 +173,7 @@ static bool IRAM_ATTR translate_event(lv_obj_t* obj, lv_event_t event, uint8_t& 
 
 // ##################### Value Senders ########################################################
 
-static void IRAM_ATTR event_send_object_data(lv_obj_t* obj, const char* data)
+static void event_send_object_data(lv_obj_t* obj, const char* data)
 {
     uint8_t pageid;
     uint8_t objid;
@@ -187,7 +187,7 @@ static void IRAM_ATTR event_send_object_data(lv_obj_t* obj, const char* data)
 }
 
 // Send out events with a val attribute
-static void IRAM_ATTR event_object_val_event(lv_obj_t* obj, uint8_t eventid, int16_t val)
+static void event_object_val_event(lv_obj_t* obj, uint8_t eventid, int16_t val)
 {
     char data[40];
     char eventname[8];
@@ -198,7 +198,7 @@ static void IRAM_ATTR event_object_val_event(lv_obj_t* obj, uint8_t eventid, int
 }
 
 // Send out events with a val and text attribute
-static void IRAM_ATTR event_object_selection_changed(lv_obj_t* obj, uint8_t eventid, int16_t val, const char* text)
+static void event_object_selection_changed(lv_obj_t* obj, uint8_t eventid, int16_t val, const char* text)
 {
     char data[200];
     char eventname[8];
@@ -211,7 +211,7 @@ static void IRAM_ATTR event_object_selection_changed(lv_obj_t* obj, uint8_t even
 // ##################### Event Handlers ########################################################
 
 #if HASP_USE_GPIO > 0
-void IRAM_ATTR event_gpio_input(uint8_t pin, uint8_t group, uint8_t eventid)
+void event_gpio_input(uint8_t pin, uint8_t group, uint8_t eventid)
 {
     char payload[64];
     char topic[8];
@@ -289,7 +289,7 @@ static void log_event(const char* name, lv_event_t event)
  * @param obj pointer to a button matrix
  * @param event type of event that occured
  */
-void IRAM_ATTR wakeup_event_handler(lv_obj_t* obj, lv_event_t event)
+void wakeup_event_handler(lv_obj_t* obj, lv_event_t event)
 {
     log_event("wakeup", event);
 
@@ -302,7 +302,7 @@ void IRAM_ATTR wakeup_event_handler(lv_obj_t* obj, lv_event_t event)
     }
 }
 
-void IRAM_ATTR swipe_event_handler(lv_obj_t* obj, lv_event_t event)
+void swipe_event_handler(lv_obj_t* obj, lv_event_t event)
 {
     if(!obj || obj->user_data.swipeid == 0) return;
 
@@ -330,7 +330,7 @@ void IRAM_ATTR swipe_event_handler(lv_obj_t* obj, lv_event_t event)
  * @param obj pointer to a button object
  * @param event type of event that occured
  */
-void IRAM_ATTR generic_event_handler(lv_obj_t* obj, lv_event_t event)
+void generic_event_handler(lv_obj_t* obj, lv_event_t event)
 {
     log_event("generic", event);
 
@@ -429,7 +429,7 @@ void IRAM_ATTR generic_event_handler(lv_obj_t* obj, lv_event_t event)
  * @param obj pointer to a switch object
  * @param event type of event that occured
  */
-void IRAM_ATTR toggle_event_handler(lv_obj_t* obj, lv_event_t event)
+void toggle_event_handler(lv_obj_t* obj, lv_event_t event)
 {
     log_event("toggle", event);
 
@@ -472,7 +472,7 @@ void IRAM_ATTR toggle_event_handler(lv_obj_t* obj, lv_event_t event)
  * @param obj pointer to a dropdown list or roller
  * @param event type of event that occured
  */
-void IRAM_ATTR selector_event_handler(lv_obj_t* obj, lv_event_t event)
+void selector_event_handler(lv_obj_t* obj, lv_event_t event)
 {
     log_event("selector", event);
 
@@ -544,7 +544,7 @@ void IRAM_ATTR selector_event_handler(lv_obj_t* obj, lv_event_t event)
  * @param obj pointer to a dropdown list or roller
  * @param event type of event that occured
  */
-void IRAM_ATTR btnmatrix_event_handler(lv_obj_t* obj, lv_event_t event)
+void btnmatrix_event_handler(lv_obj_t* obj, lv_event_t event)
 {
     log_event("btnmatrix", event);
 
@@ -579,7 +579,7 @@ void IRAM_ATTR btnmatrix_event_handler(lv_obj_t* obj, lv_event_t event)
  * @param obj pointer to a dropdown list or roller
  * @param event type of event that occured
  */
-void IRAM_ATTR msgbox_event_handler(lv_obj_t* obj, lv_event_t event)
+void msgbox_event_handler(lv_obj_t* obj, lv_event_t event)
 {
     log_event("msgbox", event);
 
@@ -611,7 +611,7 @@ void IRAM_ATTR msgbox_event_handler(lv_obj_t* obj, lv_event_t event)
  * @param obj pointer to a slider
  * @param event type of event that occured
  */
-void IRAM_ATTR slider_event_handler(lv_obj_t* obj, lv_event_t event)
+void slider_event_handler(lv_obj_t* obj, lv_event_t event)
 {
     log_event("slider", event);
 
@@ -651,7 +651,7 @@ void IRAM_ATTR slider_event_handler(lv_obj_t* obj, lv_event_t event)
  * @param obj pointer to a color picker
  * @param event type of event that occured
  */
-void IRAM_ATTR cpicker_event_handler(lv_obj_t* obj, lv_event_t event)
+void cpicker_event_handler(lv_obj_t* obj, lv_event_t event)
 {
     log_event("cpicker", event);
 
@@ -678,7 +678,7 @@ void IRAM_ATTR cpicker_event_handler(lv_obj_t* obj, lv_event_t event)
     // dispatch_normalized_group_values(obj->user_data.groupid, obj, val, min, max);
 }
 
-void IRAM_ATTR calendar_event_handler(lv_obj_t* obj, lv_event_t event)
+void calendar_event_handler(lv_obj_t* obj, lv_event_t event)
 {
     log_event("calendar", event);
 

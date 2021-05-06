@@ -68,16 +68,16 @@ void setup()
         haspSetup();
     }
 
-#if HASP_USE_GPIO > 0
-    gpioSetup();
-#endif
-
     /****************************
      * Apply User Configuration
      ***************************/
 
 #if HASP_USE_MQTT > 0
     mqttSetup(); // Load Hostname before starting WiFi
+#endif
+
+#if HASP_USE_GPIO > 0
+    gpioSetup();
 #endif
 
 #if HASP_USE_WIFI > 0 || HASP_USE_ETHERNET > 0
@@ -109,7 +109,7 @@ void setup()
     // guiStart();
 }
 
-void IRAM_ATTR loop()
+IRAM_ATTR void loop()
 {
     guiLoop();
     haspLoop();

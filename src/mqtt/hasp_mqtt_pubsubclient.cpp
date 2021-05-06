@@ -355,7 +355,7 @@ void mqttSetup()
     }
 }
 
-void mqttLoop(void)
+IRAM_ATTR void mqttLoop(void)
 {
     if(mqttEnabled) mqttClient.loop();
 }

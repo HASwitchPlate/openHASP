@@ -23,7 +23,7 @@ typedef enum {
 } hasp_mqtt_error_t;
 
 void mqttSetup();
-void mqttLoop();
+IRAM_ATTR void mqttLoop();
 void mqttEvery5Seconds(bool wifiIsConnected);
 void mqttStart();
 void mqttStop();

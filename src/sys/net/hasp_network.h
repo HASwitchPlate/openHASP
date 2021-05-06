@@ -6,7 +6,7 @@
 
 /* ===== Default Event Processors ===== */
 void networkSetup();
-void networkLoop(void);
+IRAM_ATTR void networkLoop(void);
 bool networkEvery5Seconds(void);
 // bool networkEverySecond(void);
 void networkStart(void);

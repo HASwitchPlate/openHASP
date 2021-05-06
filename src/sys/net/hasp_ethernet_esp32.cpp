@@ -55,7 +55,7 @@ void ethernetSetup()
     ETH.begin(ETH_ADDR, ETH_POWER_PIN, ETH_MDC_PIN, ETH_MDIO_PIN, ETH_TYPE, ETH_CLKMODE);
 }
 
-void ethernetLoop(void)
+IRAM_ATTR void ethernetLoop(void)
 {}
 
 bool ethernetEvery5Seconds()

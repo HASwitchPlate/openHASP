@@ -991,7 +991,7 @@ void dispatchSetup()
     /* WARNING: remember to expand the commands array when adding new commands */
 }
 
-void dispatchLoop()
+IRAM_ATTR void dispatchLoop()
 {
     lv_task_handler(); // process animations
 }

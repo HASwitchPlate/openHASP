@@ -48,7 +48,7 @@ File pFileOut;
 #define INVERT_COLORS 0
 #endif
 
-// static void IRAM_ATTR lv_tick_handler(void);
+// HASP_ATTRIBUTE_FAST_MEM static void  lv_tick_handler(void);
 
 gui_conf_t gui_settings = {.show_pointer   = false,
                            .backlight_pin  = TFT_BCKL,
@@ -73,7 +73,7 @@ gui_conf_t gui_settings = {.show_pointer   = false,
 //     lv_tick_inc(LVGL_TICK_PERIOD);
 // }
 
-void IRAM_ATTR gui_flush_cb(lv_disp_drv_t* disp, const lv_area_t* area, lv_color_t* color_p)
+IRAM_ATTR void gui_flush_cb(lv_disp_drv_t* disp, const lv_area_t* area, lv_color_t* color_p)
 {
     haspTft.flush_pixels(disp, area, color_p);
 }
@@ -285,7 +285,7 @@ void guiSetup(void)
     LOG_INFO(TAG_LVGL, F(D_SERVICE_STARTED));
 }
 
-void IRAM_ATTR guiLoop(void)
+IRAM_ATTR void guiLoop(void)
 {
 #if defined(STM32F4xx)
     //  tick.update();

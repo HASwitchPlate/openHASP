@@ -11,7 +11,7 @@
 FT6336U* touchpanel;
 
 // Read touch points
-bool IRAM_ATTR FT6336U_getXY(int16_t* touchX, int16_t* touchY, bool debug)
+HASP_ATTRIBUTE_FAST_MEM bool FT6336U_getXY(int16_t* touchX, int16_t* touchY, bool debug)
 {
     if(touchpanel->read_touch_number() != 1) return false;
 

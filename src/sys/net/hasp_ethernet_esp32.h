@@ -9,7 +9,7 @@
 static bool eth_connected = false;
 
 void ethernetSetup();
-void ethernetLoop(void);
+IRAM_ATTR void ethernetLoop(void);
 
 bool ethernetEverySecond();
 bool ethernetEvery5Seconds();

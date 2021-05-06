@@ -17,7 +17,7 @@ struct gui_conf_t
 
 /* ===== Default Event Processors ===== */
 void guiSetup(void);
-void guiLoop(void);
+IRAM_ATTR void guiLoop(void);
 void guiEverySecond(void);
 void guiStart(void);
 void guiStop(void);

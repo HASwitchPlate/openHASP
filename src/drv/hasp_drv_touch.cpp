@@ -1,10 +1,10 @@
 /* MIT License - Copyright (c) 2019-2021 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
+#include "hasplib.h"
+
 #include "hasp_drv_touch.h"
-#include "hasp/hasp.h"
 #include "drv/tft_driver.h"
-#include "lvgl.h"
 
 #if TOUCH_DRIVER == 2046
 #if defined(USE_FSMC)
@@ -174,7 +174,7 @@ static inline bool drv_touchpad_getXY(int16_t* touchX, int16_t* touchY)
     return touched;
 }
 
-bool IRAM_ATTR drv_touch_read(lv_indev_drv_t* indev_driver, lv_indev_data_t* data)
+IRAM_ATTR bool drv_touch_read(lv_indev_drv_t* indev_driver, lv_indev_data_t* data)
 {
 #if TOUCH_DRIVER > 0
     int16_t touchX = 0;
@@ -211,7 +211,7 @@ bool IRAM_ATTR drv_touch_read(lv_indev_drv_t* indev_driver, lv_indev_data_t* dat
     return false;
 }
 
-void IRAM_ATTR drv_touch_loop()
+IRAM_ATTR void drv_touch_loop()
 {
 #if TOUCH_DRIVER == 911
     GT911_loop();

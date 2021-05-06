@@ -8,7 +8,7 @@
 
 #include "hasp_debug.h" // for TAG_DRVR
 
-bool FT6336U_getXY(int16_t* touchX, int16_t* touchY, bool debug);
+HASP_ATTRIBUTE_FAST_MEM bool FT6336U_getXY(int16_t* touchX, int16_t* touchY, bool debug);
 void FT6336U_init();
 
 #endif

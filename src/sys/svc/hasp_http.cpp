@@ -2219,7 +2219,7 @@ void httpReconnect()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-void httpLoop(void)
+IRAM_ATTR void httpLoop(void)
 {
     if(http_config.enable) webServer.handleClient();
 }

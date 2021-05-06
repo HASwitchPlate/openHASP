@@ -1449,7 +1449,8 @@ static void hasp_process_obj_attribute_range(lv_obj_t* obj, const char* attr, co
  * @param update  bool: change/set the value if true, dispatch/get value if false
  * @note setting a value won't return anything, getting will dispatch the value
  */
-void IRAM_ATTR hasp_process_obj_attribute(lv_obj_t* obj, const char* attr_p, const char* payload, bool update)
+HASP_ATTRIBUTE_FAST_MEM void hasp_process_obj_attribute(lv_obj_t* obj, const char* attr_p, const char* payload,
+                                                        bool update)
 {
     // unsigned long start = millis();
     if(!obj) {

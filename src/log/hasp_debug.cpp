@@ -333,7 +333,7 @@ void debugSetupWithoutLogging(JsonObject settings)
     }
 }
 
-void debugLoop(void)
+IRAM_ATTR void debugLoop(void)
 {
     int16_t keypress;
     do {

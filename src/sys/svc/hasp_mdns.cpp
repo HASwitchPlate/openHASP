@@ -78,7 +78,7 @@ void mdnsStart()
     }
 }
 
-void mdnsLoop(void)
+IRAM_ATTR void mdnsLoop(void)
 {
 #if defined(ARDUINO_ARCH_ESP8266)
     if(mdns_config.enable) {

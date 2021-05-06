@@ -430,7 +430,7 @@ void mqttStop()
 
 void mqttSetup(){};
 
-void mqttLoop(){};
+IRAM_ATTR void mqttLoop(){};
 
 void mqttEvery5Seconds(bool wifiIsConnected){};
 

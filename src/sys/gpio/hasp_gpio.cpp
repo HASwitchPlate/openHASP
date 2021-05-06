@@ -333,7 +333,7 @@ void gpioSetup()
     LOG_INFO(TAG_GPIO, F(D_SERVICE_STARTED));
 }
 
-void gpioLoop(void)
+IRAM_ATTR void gpioLoop(void)
 {
     // Should be called every 4-5ms or faster, for the default debouncing time of ~20ms.
     for(uint8_t i = 0; i < gpioUsedInputCount; i++) {
@@ -349,7 +349,7 @@ void gpioSetup(void)
     gpioSavePinConfig(2, 13, HASP_GPIO_LED, 0, -1);
     gpioSavePinConfig(3, 14, HASP_GPIO_DAC, 0, -1);
 }
-void gpioLoop(void)
+IRAM_ATTR void gpioLoop(void)
 {}
 #endif // ARDUINO
 

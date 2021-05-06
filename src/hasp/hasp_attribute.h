@@ -16,7 +16,8 @@ void my_obj_set_value_str_text(lv_obj_t* obj, uint8_t part, lv_state_t state, co
 void my_btnmatrix_map_clear(lv_obj_t* obj);
 void line_clear_points(lv_obj_t* obj);
 
-void hasp_process_obj_attribute(lv_obj_t* obj, const char* attr_p, const char* payload, bool update);
+HASP_ATTRIBUTE_FAST_MEM void hasp_process_obj_attribute(lv_obj_t* obj, const char* attr_p, const char* payload,
+                                                        bool update);
 bool hasp_process_obj_attribute_val(lv_obj_t* obj, const char* attr, int16_t intval, bool booval, bool update);
 
 void attr_out_str(lv_obj_t* obj, const char* attribute, const char* data);
