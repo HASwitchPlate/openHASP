@@ -21,6 +21,7 @@
 #define D_FILE_SAVING "Saving %s"
 #define D_FILE_SAVED "Saved %s"
 #define D_FILE_SAVE_FAILED "Failed to save %s"
+#define D_FILE_NOT_FOUND "File not found" // new
 
 #define D_SERVICE_STARTING "Starting..."
 #define D_SERVICE_STARTED "Started"

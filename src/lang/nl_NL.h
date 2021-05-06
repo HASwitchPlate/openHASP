@@ -21,6 +21,7 @@
 #define D_FILE_SAVING "%s bewaren..."
 #define D_FILE_SAVED "%s bewaard"
 #define D_FILE_SAVE_FAILED "%s bewaren mislukt"
+#define D_FILE_NOT_FOUND "Bestand niet gevonden" // new
 
 #define D_SETTING_ENABLED "Ingeschakeld"
 #define D_SETTING_DISABLED "Uitgeschakeld"

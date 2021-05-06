@@ -1920,7 +1920,7 @@ void httpHandleNotFound()
     if(statuscode == 500)
         httpMessage += F("Internal Server Error");
     else
-        httpMessage += F("File Not Found");
+        httpMessage += F(D_FILE_NOT_FOUND);
 
     httpMessage += F("\n\nURI: ");
     httpMessage += webServer.uri();

@@ -1,5 +1,7 @@
 #if TOUCH_DRIVER == 610
 
+#include "hasp_conf.h"
+
 #include <SPI.h>
 #include "Adafruit_STMPE610.h"
 #include "ArduinoLog.h"
@@ -59,10 +61,11 @@ HASP_ATTRIBUTE_FAST_MEM bool STMPE610_getXY(int16_t* touchX, int16_t* touchY, ui
 
 void STMPE610_init()
 {
+    LOG_INFO(TAG_DRVR, F("STMPE610 " D_SERVICE_STARTING));
     if(!touch.begin()) {
-        Log.trace(TAG_DRVR, F("STMPE610 not found!"));
+        LOG_ERROR(TAG_DRVR, F("STMPE610 " D_SERVICE_START_FAILED));
     } else {
-        Log.trace(TAG_DRVR, F("STMPE610 touch driver started"));
+        LOG_INFO(TAG_DRVR, F("STMPE610 " D_SERVICE_STARTED));
     }
 }
 #endif

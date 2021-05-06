@@ -17,6 +17,7 @@
 #define D_FILE_LOADING "%s betöltése"
 #define D_FILE_LOADED "%s betöltve"
 #define D_FILE_LOAD_FAILED "%s betöltése nem sikerült"
+#define D_FILE_NOT_FOUND "File not found" // new
 
 #define D_FILE_SAVING "%s mentése"
 #define D_FILE_SAVED "%s mentve"

@@ -21,6 +21,7 @@
 #define D_FILE_SAVING "Se salvează %s"
 #define D_FILE_SAVED "S-a salvat %s"
 #define D_FILE_SAVE_FAILED "Salvarea %s a eșuat"
+#define D_FILE_NOT_FOUND "File not found" // new
 
 #define D_SETTING_ENABLED "Activ"
 #define D_SETTING_DISABLED "Inactiv"
