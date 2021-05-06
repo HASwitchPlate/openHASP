@@ -40,7 +40,7 @@ dispatch_conf_t dispatch_setings = {.teleperiod = 300};
 
 uint32_t dispatchLastMillis = -3000000; // force discovery
 uint8_t nCommands           = 0;
-haspCommand_t commands[19];
+haspCommand_t commands[20];
 
 struct moodlight_t
 {
@@ -986,6 +986,7 @@ void dispatchSetup()
     dispatch_add_command(PSTR("reboot"), dispatch_reboot);
     dispatch_add_command(PSTR("restart"), dispatch_reboot);
     dispatch_add_command(PSTR("screenshot"), dispatch_screenshot);
+    dispatch_add_command(PSTR("discovery"), dispatch_send_discovery);
     dispatch_add_command(PSTR("factoryreset"), dispatch_factory_reset);
 #if HASP_USE_CONFIG > 0
     dispatch_add_command(PSTR("setupap"), oobeFakeSetup);
