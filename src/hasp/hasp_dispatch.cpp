@@ -536,8 +536,8 @@ void dispatch_parse_json(const char*, const char* payload)
     } else if(json.is<const char*>()) { // handle json as a single command
         dispatch_text_line(json.as<const char*>());
 
-    } else if(json.is<char*>()) { // handle json as a single command
-        dispatch_text_line(json.as<char*>());
+        // } else if(json.is<char*>()) { // handle json as a single command
+        //     dispatch_text_line(json.as<char*>());
 
     } else {
         LOG_WARNING(TAG_MSGR, F(D_DISPATCH_COMMAND_NOT_FOUND), payload);
