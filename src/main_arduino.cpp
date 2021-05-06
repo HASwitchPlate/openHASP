@@ -54,12 +54,11 @@ void setup()
      * Read & Apply User Configuration
      ***************************/
 #if HASP_USE_CONFIG > 0
-    configSetup(); // also runs debugSetupWithoutLogging(), debugSetup() and debugStart()
+    configSetup(); // also runs  debugSetup() and debugStart()
 #endif
 
     dispatchSetup(); // before hasp and oobe, asap after logging starts
     guiSetup();
-    debugSetup(); // Init the console
 
 #if HASP_USE_CONFIG > 0
     if(!oobeSetup())
@@ -96,6 +95,10 @@ void setup()
     httpSetup();
 #endif
 
+#if HASP_USE_CONSOLE > 0
+    consoleSetup();
+#endif
+
 #if HASP_USE_TELNET > 0
     telnetSetup();
 #endif
@@ -123,8 +126,12 @@ IRAM_ATTR void loop()
     mqttLoop();
 #endif // MQTT
 
-    debugLoop(); // Console
+    // debugLoop();
     haspDevice.loop();
+
+#if HASP_USE_CONSOLE > 0
+    consoleLoop();
+#endif
 
     /* Timer Loop */
     if(millis() - mainLastLoopTime >= 1000) {

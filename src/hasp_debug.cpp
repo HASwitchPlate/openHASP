@@ -86,8 +86,6 @@ static void debugPrintTimestamp(int level, Print* _logOutput)
 }
 
 /* ===== Default Event Processors ===== */
-// void debugSetupWithoutLogging(JsonObject settings);
-// void debugSetup();
 
 static inline void debug_flush()
 {
@@ -243,6 +241,9 @@ void debug_get_tag(uint8_t tag, char* buffer)
             memcpy_P(buffer, PSTR("HAL "), 5);
             break;
 
+        case TAG_CONS:
+            memcpy_P(buffer, PSTR("CONS"), 5);
+            break;
         case TAG_DEBG:
             memcpy_P(buffer, PSTR("DBUG"), 5);
             break;

@@ -63,6 +63,10 @@
 #define HASP_USE_TELNET 0
 #endif
 
+#ifndef HASP_USE_CONSOLE
+#define HASP_USE_CONSOLE 1
+#endif
+
 /* Filesystem */
 #define HASP_HAS_FILESYSTEM (ARDUINO_ARCH_ESP32 > 0 || ARDUINO_ARCH_ESP8266 > 0)
 
@@ -215,6 +219,10 @@ static WiFiSpiClass WiFi;
 
 #if HASP_USE_HTTP > 0
 #include "sys/svc/hasp_http.h"
+#endif
+
+#if HASP_USE_CONSOLE > 0
+#include "sys/svc/hasp_console.h"
 #endif
 
 #if HASP_USE_TELNET > 0

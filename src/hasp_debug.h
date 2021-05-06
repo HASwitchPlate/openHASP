@@ -14,8 +14,7 @@
 #include "ArduinoLog.h"
 
 /* ===== Default Event Processors ===== */
-void debugSetupWithoutLogging(JsonObject settings);
-void debugSetup();
+void debugSetup(JsonObject settings);
 
 /* ===== Special Event Processors ===== */
 
@@ -163,9 +162,10 @@ enum {
     TAG_EVENT = 8,
 
     TAG_DEBG = 10,
-    TAG_TELN = 11,
-    TAG_SYSL = 12,
-    TAG_TASM = 13,
+    TAG_CONS = 11,
+    TAG_TELN = 12,
+    TAG_SYSL = 13,
+    TAG_TASM = 14,
 
     TAG_CONF = 20,
     TAG_GUI  = 21,

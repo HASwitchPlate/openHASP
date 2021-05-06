@@ -76,7 +76,7 @@ bool configSet(uint16_t& value, const JsonVariant& setting, const __FlashStringH
 
 void configSetupDebug(JsonDocument& settings)
 {
-    debugSetupWithoutLogging(settings[FPSTR(FP_DEBUG)]);
+    debugSetup(settings[FPSTR(FP_DEBUG)]);
     debugStart(); // Debug started, now we can use it; HASP header sent
 }
 
@@ -158,7 +158,7 @@ DeserializationError configRead(JsonDocument& settings, bool setupdebug = false)
         configRestorePasswords(settings, wifiPass, mqttPass, httpPass);
         LOG_INFO(TAG_CONF, F(D_FILE_LOADED), configFile.c_str());
 
-        if(setupdebug) debugSetup();
+        // if(setupdebug) debugSetup();
         return error;
     }
 

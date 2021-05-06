@@ -120,8 +120,6 @@ void setup()
     // hal_setup();
     guiSetup();
 
-    //    debugSetup(); // Init the console
-
     printf("%s %d\n", __FILE__, __LINE__);
     dispatchSetup(); // for hasp and oobe
     haspSetup();
