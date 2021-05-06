@@ -116,7 +116,7 @@ void dispatch_output_pin_value(uint8_t pin, uint16_t val)
 }
 
 // p[x].b[y].attr=value
-static inline bool dispatch_parse_button_attribute(const char* topic_p, const char* payload)
+static inline bool dispatch_parse_button_attribute(const char* topic_p, const char* payload, bool update)
 {
     long num;
     char* pEnd;
@@ -161,7 +161,7 @@ static inline bool dispatch_parse_button_attribute(const char* topic_p, const ch
     if(*topic_p != '.') return false; // obligated seperator
     topic_p++;
 
-    hasp_process_attribute(pageid, objid, topic_p, payload);
+    hasp_process_attribute(pageid, objid, topic_p, payload, update);
     return true;
 }
 
@@ -197,11 +197,11 @@ static void dispatch_gpio(const char* topic, const char* payload)
 }
 
 // objectattribute=value
-void dispatch_command(const char* topic, const char* payload)
+void dispatch_command(const char* topic, const char* payload, bool update)
 {
     /* ================================= Standard payload commands ======================================= */
 
-    if(dispatch_parse_button_attribute(topic, payload)) return; // matched pxby.attr, first for speed
+    if(dispatch_parse_button_attribute(topic, payload, update)) return; // matched pxby.attr, first for speed
 
     // check and execute commands from commands array
     for(int i = 0; i < nCommands; i++) {
@@ -254,16 +254,16 @@ void dispatch_command(const char* topic, const char* payload)
 }
 
 // Strip command/config prefix from the topic and process the payload
-void dispatch_topic_payload(const char* topic, const char* payload)
+void dispatch_topic_payload(const char* topic, const char* payload, bool update)
 {
-    if(!strcmp_P(topic, PSTR("command"))) {
+    if(!strcmp_P(topic, PSTR(HASP_TOPIC_COMMAND))) {
         dispatch_text_line((char*)payload);
         return;
     }
 
-    if(topic == strstr_P(topic, PSTR("command/"))) { // startsWith command/
+    if(topic == strstr_P(topic, PSTR(HASP_TOPIC_COMMAND "/"))) { // startsWith command/
         topic += 8u;
-        dispatch_command(topic, (char*)payload);
+        dispatch_command(topic, (char*)payload, update);
         return;
     }
 
@@ -275,7 +275,7 @@ void dispatch_topic_payload(const char* topic, const char* payload)
     }
 #endif
 
-    dispatch_command(topic, (char*)payload); // dispatch as is
+    dispatch_command(topic, (char*)payload, update); // dispatch as is
 }
 
 // Parse one line of text and execute the command
@@ -284,14 +284,16 @@ void dispatch_text_line(const char* cmnd)
     size_t pos1 = std::string(cmnd).find("=");
     size_t pos2 = std::string(cmnd).find(" ");
     size_t pos  = 0;
+    bool update = false;
 
     // Find what comes first, ' ' or '='
-    if(pos1 != std::string::npos) {
-        if(pos2 != std::string::npos) {
+    if(pos1 != std::string::npos) {     // '=' found
+        if(pos2 != std::string::npos) { // ' ' found
             pos = (pos1 < pos2 ? pos1 : pos2);
         } else {
             pos = pos1;
         }
+        update = pos == pos1; // equal sign wins
 
     } else {
         pos = (pos2 != std::string::npos) ? pos2 : 0;
@@ -306,12 +308,13 @@ void dispatch_text_line(const char* cmnd)
             memcpy(topic, cmnd, sizeof(topic) - 1);
 
         // topic is before '=', payload is after '=' position
-        LOG_TRACE(TAG_MSGR, F("%s=%s"), topic, cmnd + pos + 1);
-        dispatch_topic_payload(topic, cmnd + pos + 1);
+        update |= strlen(cmnd + pos + 1) > 0; // equal sign OR space with payload
+        LOG_TRACE(TAG_MSGR, update ? F("%s=%s") : F("%s%s"), topic, cmnd + pos + 1);
+        dispatch_topic_payload(topic, cmnd + pos + 1, update);
     } else {
         char empty_payload[1] = {0};
-        LOG_TRACE(TAG_MSGR, F("%s=%s"), cmnd, empty_payload);
-        dispatch_topic_payload(cmnd, empty_payload);
+        LOG_TRACE(TAG_MSGR, cmnd);
+        dispatch_topic_payload(cmnd, empty_payload, false);
     }
 }
 

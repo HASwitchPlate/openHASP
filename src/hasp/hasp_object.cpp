@@ -285,10 +285,10 @@ void object_set_normalized_group_values(uint8_t groupid, lv_obj_t* src_obj, int1
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // Used in the dispatcher & hasp_new_object
-void hasp_process_attribute(uint8_t pageid, uint8_t objid, const char* attr, const char* payload)
+void hasp_process_attribute(uint8_t pageid, uint8_t objid, const char* attr, const char* payload, bool update)
 {
     if(lv_obj_t* obj = hasp_find_obj_from_parent_id(haspPages.get_obj(pageid), objid)) {
-        hasp_process_obj_attribute(obj, attr, payload, strlen(payload) > 0);
+        hasp_process_obj_attribute(obj, attr, payload, update); // || strlen(payload) > 0);
     } else {
         LOG_WARNING(TAG_HASP, F(D_OBJECT_UNKNOWN " " HASP_OBJECT_NOTATION), pageid, objid);
     }

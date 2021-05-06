@@ -33,7 +33,7 @@ void dispatchStart(void);
 void dispatchStop(void);
 
 /* ===== Special Event Processors ===== */
-void dispatch_topic_payload(const char* topic, const char* payload);
+void dispatch_topic_payload(const char* topic, const char* payload, bool update);
 void dispatch_text_line(const char* cmnd);
 
 #ifdef ARDUINO
@@ -56,6 +56,7 @@ void dispatch_current_page();
 void dispatch_backlight(const char*, const char* payload);
 void dispatch_web_update(const char*, const char* espOtaUrl);
 void dispatch_statusupdate(const char*, const char*);
+void dispatch_send_discovery(const char*, const char*);
 void dispatch_idle(const char*, const char*);
 void dispatch_calibrate(const char*, const char*);
 void dispatch_wakeup(const char*, const char*);

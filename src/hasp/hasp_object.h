@@ -72,7 +72,7 @@ void hasp_object_tree(lv_obj_t* parent, uint8_t pageid, uint16_t level);
 
 void object_dispatch_state(uint8_t pageid, uint8_t btnid, const char* payload);
 
-void hasp_process_attribute(uint8_t pageid, uint8_t objid, const char* attr, const char* payload);
+void hasp_process_attribute(uint8_t pageid, uint8_t objid, const char* attr, const char* payload, bool update);
 
 void object_set_normalized_group_values(uint8_t groupid, lv_obj_t* src_obj, int16_t val, int16_t min, int16_t max);
 
