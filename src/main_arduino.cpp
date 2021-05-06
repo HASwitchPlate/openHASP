@@ -104,12 +104,12 @@ void setup()
     slaveSetup();
 #endif
 
-    mainLastLoopTime = millis() - 1000; // reset loop counter
-    delay(250);
+    mainLastLoopTime = -1000; // reset loop counter
+    delay(20);
     // guiStart();
 }
 
-void loop()
+void IRAM_ATTR loop()
 {
     guiLoop();
     haspLoop();

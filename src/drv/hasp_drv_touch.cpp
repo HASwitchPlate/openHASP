@@ -174,7 +174,7 @@ static inline bool drv_touchpad_getXY(int16_t* touchX, int16_t* touchY)
     return touched;
 }
 
-bool drv_touch_read(lv_indev_drv_t* indev_driver, lv_indev_data_t* data)
+bool IRAM_ATTR drv_touch_read(lv_indev_drv_t* indev_driver, lv_indev_data_t* data)
 {
 #if TOUCH_DRIVER > 0
     int16_t touchX = 0;
@@ -211,7 +211,7 @@ bool drv_touch_read(lv_indev_drv_t* indev_driver, lv_indev_data_t* data)
     return false;
 }
 
-void drv_touch_loop()
+void IRAM_ATTR drv_touch_loop()
 {
 #if TOUCH_DRIVER == 911
     GT911_loop();

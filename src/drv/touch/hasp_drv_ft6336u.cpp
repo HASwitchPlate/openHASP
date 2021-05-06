@@ -1,17 +1,17 @@
 #if TOUCH_DRIVER == 6336
 
-    #include <Wire.h>
-    #include "FT6336U.h"
-    #include "ArduinoLog.h"
+#include <Wire.h>
+#include "FT6336U.h"
+#include "ArduinoLog.h"
 
-    #include "hasp_drv_ft6336u.h"
+#include "hasp_drv_ft6336u.h"
 
-    #define RST_PIN (TOUCH_RST) // -1 if pin is connected to VCC else set pin number
+#define RST_PIN (TOUCH_RST) // -1 if pin is connected to VCC else set pin number
 
-FT6336U * touchpanel;
+FT6336U* touchpanel;
 
 // Read touch points
-bool FT6336U_getXY(int16_t * touchX, int16_t * touchY, bool debug)
+bool IRAM_ATTR FT6336U_getXY(int16_t* touchX, int16_t* touchY, bool debug)
 {
     if(touchpanel->read_touch_number() != 1) return false;
 
@@ -20,7 +20,7 @@ bool FT6336U_getXY(int16_t * touchX, int16_t * touchY, bool debug)
     return true;
 }
 
-void scan(TwoWire & i2c)
+void scan(TwoWire& i2c)
 {
     byte error, address;
     int nDevices;

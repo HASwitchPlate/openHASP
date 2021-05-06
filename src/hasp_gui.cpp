@@ -72,7 +72,8 @@ gui_conf_t gui_settings = {.show_pointer   = false,
 // {
 //     lv_tick_inc(LVGL_TICK_PERIOD);
 // }
-void gui_flush_cb(lv_disp_drv_t* disp, const lv_area_t* area, lv_color_t* color_p)
+
+void IRAM_ATTR gui_flush_cb(lv_disp_drv_t* disp, const lv_area_t* area, lv_color_t* color_p)
 {
     haspTft.flush_pixels(disp, area, color_p);
 }
@@ -284,7 +285,7 @@ void guiSetup(void)
     LOG_INFO(TAG_LVGL, F(D_SERVICE_STARTED));
 }
 
-void guiLoop(void)
+void IRAM_ATTR guiLoop(void)
 {
 #if defined(STM32F4xx)
     //  tick.update();

@@ -123,7 +123,7 @@ void TftEspi::set_invert(bool invert)
     tft.invertDisplay(invert);
 }
 
-void TftEspi::flush_pixels(lv_disp_drv_t* disp, const lv_area_t* area, lv_color_t* color_p)
+void IRAM_ATTR TftEspi::flush_pixels(lv_disp_drv_t* disp, const lv_area_t* area, lv_color_t* color_p)
 {
     size_t len = lv_area_get_size(area);
 
