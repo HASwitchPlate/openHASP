@@ -66,7 +66,7 @@ static void debugPrintTimestamp(int level, Print* _logOutput)
         unsigned long int milli = curTime.tv_usec / 1000;
         char buffer[24];
         // strftime(buffer, sizeof(buffer), "[%b %d %H:%M:%S", timeinfo); // Literal String
-        strftime(buffer, sizeof(buffer), "[%H:%M:%S", timeinfo); // Literal String
+        strftime(buffer, sizeof(buffer), "[" D_TIMESTAMP, timeinfo); // Literal String
 
 #ifdef ARDUINO
         _logOutput->printf(PSTR("%s.%03lu]"), buffer, milli);
@@ -78,9 +78,9 @@ static void debugPrintTimestamp(int level, Print* _logOutput)
 
         uint32_t msecs = millis();
 #ifdef ARDUINO
-        _logOutput->printf(PSTR("[%15d.%03d]"), msecs / 1000, msecs % 1000);
+        _logOutput->printf(PSTR("[" D_TIME_MILLIS ".%03d]"), msecs / 1000, msecs % 1000);
 #else
-        debug_print(_logOutput, PSTR("[%15d.%03d]"), msecs / 1000, msecs % 1000);
+        debug_print(_logOutput, PSTR("[" D_TIME_MILLIS ".%03d]"), msecs / 1000, msecs % 1000);
 #endif
     }
 }
