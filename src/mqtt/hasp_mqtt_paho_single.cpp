@@ -139,8 +139,17 @@ static void mqtt_message_cb(char* topic, char* payload, size_t length)
 
         // Group topic
         topic += mqttGroupTopic.length(); // shorten topic
-        dispatch_topic_payload(topic, (const char*)payload);
+        dispatch_topic_payload(topic, (const char*)payload, length > 0);
         return;
+
+#ifdef HASP_USE_BROADCAST
+    } else if(topic == strstr_P(topic, PSTR(MQTT_PREFIX "/broadcast/"))) { // broadcast discovery topic
+
+        // broadcast topic
+        topic += strlen(MQTT_PREFIX "/broadcast/"); // shorten topic
+        dispatch_topic_payload(topic, (const char*)payload, length > 0);
+        return;
+#endif
 
 #ifdef HASP_USE_HA
     } else if(topic == strstr_P(topic, PSTR("homeassistant/status"))) { // HA discovery topic
@@ -170,7 +179,7 @@ static void mqtt_message_cb(char* topic, char* payload, size_t length)
             // LOG_TRACE(TAG_MQTT, F("ignoring LWT = online"));
         }
     } else {
-        dispatch_topic_payload(topic, (const char*)payload);
+        dispatch_topic_payload(topic, (const char*)payload, length > 0);
     }
 }
 
@@ -269,10 +278,10 @@ static void onConnect(void* context)
 
     LOG_VERBOSE(TAG_MQTT, D_MQTT_CONNECTED, mqttServer.c_str(), haspDevice.get_hostname());
 
-    topic = mqttGroupTopic + "command/#";
+    topic = mqttGroupTopic + HASP_TOPIC_COMMAND "/#";
     mqtt_subscribe(mqtt_client, topic.c_str());
 
-    topic = mqttNodeTopic + "command/#";
+    topic = mqttNodeTopic + HASP_TOPIC_COMMAND "/#";
     mqtt_subscribe(mqtt_client, topic.c_str());
 
     topic = mqttGroupTopic + "config/#";
@@ -280,6 +289,11 @@ static void onConnect(void* context)
 
     topic = mqttNodeTopic + "config/#";
     mqtt_subscribe(mqtt_client, topic.c_str());
+
+#ifdef HASP_USE_BROADCAST
+    topic = MQTT_PREFIX "/broadcast/" HASP_TOPIC_COMMAND "/#";
+    mqtt_subscribe(mqtt_client, topic.c_str());
+#endif
 
     /* Home Assistant auto-configuration */
 #ifdef HASP_USE_HA

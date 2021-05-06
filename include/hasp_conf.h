@@ -43,6 +43,10 @@
 #define HASP_USE_MQTT (HASP_HAS_NETWORK)
 #endif
 
+#ifndef HASP_USE_BROADCAST
+#define HASP_USE_BROADCAST 1
+#endif
+
 #ifndef MQTT_NODENAME
 #define MQTT_NODENAME "plate"
 #endif

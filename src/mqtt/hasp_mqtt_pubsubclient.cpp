@@ -184,8 +184,17 @@ static void mqtt_message_cb(char* topic, byte* payload, unsigned int length)
 
         // Group topic
         topic += strlen(mqttGroupTopic); // shorten topic
-        dispatch_topic_payload(topic, (const char*)payload);
+        dispatch_topic_payload(topic, (const char*)payload, length > 0);
         return;
+
+#ifdef HASP_USE_BROADCAST
+    } else if(topic == strstr_P(topic, PSTR(MQTT_PREFIX "/broadcast/"))) { // broadcast discovery topic
+
+        // Broadcast topic
+        topic += strlen_P(PSTR(MQTT_PREFIX "/broadcast/")); // shorten topic
+        dispatch_topic_payload(topic, (const char*)payload, length > 0);
+        return;
+#endif
 
 #ifdef HASP_USE_HA
     } else if(topic == strstr_P(topic, PSTR("homeassistant/status"))) { // HA discovery topic
@@ -203,34 +212,36 @@ static void mqtt_message_cb(char* topic, byte* payload, unsigned int length)
     }
 
     // catch a dangling LWT from a previous connection if it appears
-    if(!strcmp_P(topic, PSTR(LWT_TOPIC))) { // endsWith LWT
-        if(!strcasecmp_P((char*)payload, PSTR("offline"))) {
-            {
-                char msg[8];
-                char tmp_topic[strlen(mqttNodeTopic) + 8];
-                snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%s" LWT_TOPIC), mqttNodeTopic);
-                snprintf_P(msg, sizeof(msg), PSTR("online"));
+    /*    if(!strcmp_P(topic, PSTR(LWT_TOPIC))) { // endsWith LWT
+            if(!strcasecmp_P((char*)payload, PSTR("offline"))) {
+                {
+                    char msg[8];
+                    char tmp_topic[strlen(mqttNodeTopic) + 8];
+                    snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%s" LWT_TOPIC), mqttNodeTopic);
+                    snprintf_P(msg, sizeof(msg), PSTR("online"));
 
-                // /*bool res =*/mqttClient.publish(tmp_topic, msg, true);
-                mqttPublish(tmp_topic, msg, true);
-            }
-
-        } else {
-            // LOG_TRACE(TAG_MQTT, F("ignoring LWT = online"));
-        }
-    } else {
-        dispatch_topic_payload(topic, (const char*)payload);
+                    // bool res =
+                    mqttClient.publish(tmp_topic, msg, true);
+                    mqttPublish(tmp_topic, msg, true);
+                }
+                }
+                else
+                {
+                    // LOG_TRACE(TAG_MQTT, F("ignoring LWT = online"));
+                }
+                }
+                else */
+    {
+        dispatch_topic_payload(topic, (const char*)payload, length > 0);
     }
 }
 
-static void mqttSubscribeTo(const __FlashStringHelper* format, const char* data)
+static void mqttSubscribeTo(const char* topic)
 {
-    char tmp_topic[strlen_P((PGM_P)format) + 2 + strlen(data)];
-    snprintf_P(tmp_topic, sizeof(tmp_topic), (PGM_P)format, data);
-    if(mqttClient.subscribe(tmp_topic)) {
-        LOG_VERBOSE(TAG_MQTT, F(D_BULLET D_MQTT_SUBSCRIBED), tmp_topic);
+    if(mqttClient.subscribe(topic)) {
+        LOG_VERBOSE(TAG_MQTT, F(D_BULLET D_MQTT_SUBSCRIBED), topic);
     } else {
-        LOG_ERROR(TAG_MQTT, F(D_MQTT_NOT_SUBSCRIBED), tmp_topic);
+        LOG_ERROR(TAG_MQTT, F(D_MQTT_NOT_SUBSCRIBED), topic);
     }
 }
 
@@ -308,16 +319,19 @@ void mqttStart()
     LOG_INFO(TAG_MQTT, F(D_MQTT_CONNECTED), mqttServer, mqttClientId);
 
     // Subscribe to our incoming topics
-    const __FlashStringHelper* F_topic;
-    F_topic = F("%scommand/#");
-    mqttSubscribeTo(F_topic, mqttGroupTopic);
-    mqttSubscribeTo(F_topic, mqttNodeTopic);
+    char topic[64];
+    snprintf_P(topic, sizeof(topic), PSTR("%s" HASP_TOPIC_COMMAND "/#"), mqttGroupTopic);
+    mqttSubscribeTo(topic);
+    snprintf_P(topic, sizeof(topic), PSTR("%s" HASP_TOPIC_COMMAND "/#"), mqttNodeTopic);
+    mqttSubscribeTo(topic);
     // F_topic = F("%sconfig/#");
     // mqttSubscribeTo(F_topic, mqttGroupTopic);
-    // mqttSubscribeTo(F_topic, mqttNodeTopic);
-    // mqttSubscribeTo(F("%slight/#"), mqttNodeTopic);
-    // mqttSubscribeTo(F("%sbrightness/#"), mqttNodeTopic);
     // mqttSubscribeTo(F("%s"LWT_TOPIC), mqttNodeTopic);
+
+#ifdef HASP_USE_BROADCAST
+    snprintf_P(topic, sizeof(topic), PSTR(MQTT_PREFIX "/broadcast/" HASP_TOPIC_COMMAND "/#"));
+    mqttSubscribeTo(topic);
+#endif
 
     /* Home Assistant auto-configuration */
 #ifdef HASP_USE_HA

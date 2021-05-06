@@ -187,13 +187,13 @@ void mqtt_ha_register_backlight()
 
     // start from static keys and values that do not change
     deserializeJson(doc, F("{"
-                           "\"cmd_t\":\"~command/light\","
+                           "\"cmd_t\":\"~" HASP_TOPIC_COMMAND "/light\","
                            "\"stat_t\":\"~state/light\","
                            "\"pl_on\":\"on\","
                            "\"pl_off\":\"off\","
                            "\"avty_t\":\"~LWT\","
                            "\"bri_stat_t\":\"~state/dim\","
-                           "\"bri_cmd_t\":\"~command/dim\","
+                           "\"bri_cmd_t\":\"~" HASP_TOPIC_COMMAND "/dim\","
                            "\"bri_scl\":100}"));
     mqtt_ha_add_device_ids(doc);
     mqtt_ha_add_unique_id(doc, item);
@@ -215,7 +215,7 @@ void mqtt_ha_register_moodlight()
 
     // start from static keys and values that do not change
     deserializeJson(doc, F("{"
-                           "\"cmd_t\":\"~command/moodlight\","
+                           "\"cmd_t\":\"~" HASP_TOPIC_COMMAND "/moodlight\","
                            "\"stat_t\":\"~state/moodlight\","
                            "\"platform\":\"mqtt\","
                            "\"schema\":\"json\","
@@ -273,7 +273,8 @@ void mqtt_ha_register_activepage()
     snprintf_P(item, sizeof(item), PSTR("page"));
 
     // start from static keys and values that do not change
-    deserializeJson(doc, F("{\"cmd_t\":\"~command/page\",\"stat_t\":\"~state/page\",\"avty_t\":\"~LWT\"}"));
+    deserializeJson(doc,
+                    F("{\"cmd_t\":\"~" HASP_TOPIC_COMMAND "/page\",\"stat_t\":\"~state/page\",\"avty_t\":\"~LWT\"}"));
     mqtt_ha_add_device_ids(doc);
     mqtt_ha_add_unique_id(doc, item);
 

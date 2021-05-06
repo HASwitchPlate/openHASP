@@ -39,6 +39,8 @@ bool mqttGetConfig(const JsonObject& settings);
 bool mqttSetConfig(const JsonObject& settings);
 #endif
 
+#define HASP_TOPIC_COMMAND "command"
+
 // #ifndef WINDOWS
 // String mqttGetNodename(void);
 // #endif

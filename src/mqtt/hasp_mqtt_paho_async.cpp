@@ -254,8 +254,8 @@ void onConnect(void* context, MQTTAsync_successData* response)
 
     printf("Successful connection\n");
 
-    mqtt_subscribe(context, TOPIC "command/#");
-    mqtt_subscribe(context, TOPIC "command");
+    mqtt_subscribe(context, TOPIC HASP_TOPIC_COMMAND "/#");
+    mqtt_subscribe(context, TOPIC HASP_TOPIC_COMMAND);
     mqtt_subscribe(context, TOPIC "light");
     mqtt_subscribe(context, TOPIC "dim");
 
