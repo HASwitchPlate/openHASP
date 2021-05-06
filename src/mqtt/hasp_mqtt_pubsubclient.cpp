@@ -54,36 +54,6 @@ uint32_t mqttPublishCount;
 uint32_t mqttReceiveCount;
 uint32_t mqttFailedCount;
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
-// These defaults may be overwritten with values saved by the web interface
-#ifndef MQTT_HOST
-#define MQTT_HOST "";
-#endif
-
-#ifndef MQTT_PORT
-#define MQTT_PORT 1883;
-#endif
-
-#ifndef MQTT_USER
-#define MQTT_USER "";
-#endif
-
-#ifndef MQTT_PASSW
-#define MQTT_PASSW "";
-#endif
-#ifndef MQTT_NODENAME
-#define MQTT_NODENAME "";
-#endif
-#ifndef MQTT_GROUPNAME
-#define MQTT_GROUPNAME "";
-#endif
-
-#ifndef MQTT_PREFIX
-#define MQTT_PREFIX "hasp"
-#endif
-
-#define LWT_TOPIC "LWT"
-
 char mqttServer[16]   = MQTT_HOST;
 char mqttUser[23]     = MQTT_USER;
 char mqttPassword[32] = MQTT_PASSW;
@@ -130,8 +100,8 @@ bool mqtt_send_lwt(bool online)
     char tmp_payload[8];
     char tmp_topic[strlen(mqttNodeTopic) + 4];
     strncpy(tmp_topic, mqttNodeTopic, sizeof(tmp_topic));
-    strncat_P(tmp_topic, PSTR(LWT_TOPIC), sizeof(tmp_topic));
-    // snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%s" LWT_TOPIC), mqttNodeTopic);
+    strncat_P(tmp_topic, PSTR(MQTT_TOPIC_LWT), sizeof(tmp_topic));
+    // snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%s" MQTT_TOPIC_LWT), mqttNodeTopic);
 
     size_t len = snprintf_P(tmp_payload, sizeof(tmp_payload), online ? PSTR("online") : PSTR("offline"));
     bool res   = mqttPublish(tmp_topic, tmp_payload, len, true);
@@ -142,21 +112,22 @@ bool mqtt_send_lwt(bool online)
 int mqtt_send_object_state(uint8_t pageid, uint8_t btnid, const char* payload)
 {
     char tmp_topic[strlen(mqttNodeTopic) + 16];
-    snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%sstate/" HASP_OBJECT_NOTATION), mqttNodeTopic, pageid, btnid);
+    snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%s" MQTT_TOPIC_STATE "/" HASP_OBJECT_NOTATION), mqttNodeTopic,
+               pageid, btnid);
     return mqttPublish(tmp_topic, payload, false);
 }
 
 int mqtt_send_state(const char* subtopic, const char* payload)
 {
     char tmp_topic[strlen(mqttNodeTopic) + 20];
-    snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%sstate/%s"), mqttNodeTopic, subtopic);
+    snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%s" MQTT_TOPIC_STATE "/%s"), mqttNodeTopic, subtopic);
     return mqttPublish(tmp_topic, payload, false);
 }
 
 int mqtt_send_discovery(const char* payload, size_t len)
 {
     char tmp_topic[20];
-    snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR(MQTT_PREFIX "/discovery"));
+    snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR(MQTT_PREFIX "/" MQTT_TOPIC_DISCOVERY));
     return mqttPublish(tmp_topic, payload, len, false);
 }
 
@@ -188,10 +159,10 @@ static void mqtt_message_cb(char* topic, byte* payload, unsigned int length)
         return;
 
 #ifdef HASP_USE_BROADCAST
-    } else if(topic == strstr_P(topic, PSTR(MQTT_PREFIX "/broadcast/"))) { // broadcast discovery topic
+    } else if(topic == strstr_P(topic, PSTR(MQTT_PREFIX "/" MQTT_TOPIC_BROADCAST "/"))) { // broadcast  topic
 
         // Broadcast topic
-        topic += strlen_P(PSTR(MQTT_PREFIX "/broadcast/")); // shorten topic
+        topic += strlen_P(PSTR(MQTT_PREFIX "/" MQTT_TOPIC_BROADCAST "/")); // shorten topic
         dispatch_topic_payload(topic, (const char*)payload, length > 0);
         return;
 #endif
@@ -212,12 +183,12 @@ static void mqtt_message_cb(char* topic, byte* payload, unsigned int length)
     }
 
     // catch a dangling LWT from a previous connection if it appears
-    /*    if(!strcmp_P(topic, PSTR(LWT_TOPIC))) { // endsWith LWT
+    /*    if(!strcmp_P(topic, PSTR(MQTT_TOPIC_LWT))) { // endsWith LWT
             if(!strcasecmp_P((char*)payload, PSTR("offline"))) {
                 {
                     char msg[8];
                     char tmp_topic[strlen(mqttNodeTopic) + 8];
-                    snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%s" LWT_TOPIC), mqttNodeTopic);
+                    snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%s" MQTT_TOPIC_LWT), mqttNodeTopic);
                     snprintf_P(msg, sizeof(msg), PSTR("online"));
 
                     // bool res =
@@ -266,8 +237,8 @@ void mqttStart()
     }
 
     // Attempt to connect and set LWT and Clean Session
-    snprintf_P(buffer, sizeof(buffer), PSTR("%s" LWT_TOPIC), mqttNodeTopic); // lastWillTopic
-    snprintf_P(lastWillPayload, sizeof(lastWillPayload), PSTR("offline"));   // lastWillPayload
+    snprintf_P(buffer, sizeof(buffer), PSTR("%s" MQTT_TOPIC_LWT), mqttNodeTopic); // lastWillTopic
+    snprintf_P(lastWillPayload, sizeof(lastWillPayload), PSTR("offline"));        // lastWillPayload
 
     haspProgressMsg(F(D_MQTT_CONNECTING));
     haspProgressVal(mqttReconnectCount * 5);
@@ -320,16 +291,16 @@ void mqttStart()
 
     // Subscribe to our incoming topics
     char topic[64];
-    snprintf_P(topic, sizeof(topic), PSTR("%s" HASP_TOPIC_COMMAND "/#"), mqttGroupTopic);
+    snprintf_P(topic, sizeof(topic), PSTR("%s" MQTT_TOPIC_COMMAND "/#"), mqttGroupTopic);
     mqttSubscribeTo(topic);
-    snprintf_P(topic, sizeof(topic), PSTR("%s" HASP_TOPIC_COMMAND "/#"), mqttNodeTopic);
+    snprintf_P(topic, sizeof(topic), PSTR("%s" MQTT_TOPIC_COMMAND "/#"), mqttNodeTopic);
     mqttSubscribeTo(topic);
     // F_topic = F("%sconfig/#");
     // mqttSubscribeTo(F_topic, mqttGroupTopic);
-    // mqttSubscribeTo(F("%s"LWT_TOPIC), mqttNodeTopic);
+    // mqttSubscribeTo(F("%s"MQTT_TOPIC_LWT), mqttNodeTopic);
 
 #ifdef HASP_USE_BROADCAST
-    snprintf_P(topic, sizeof(topic), PSTR(MQTT_PREFIX "/broadcast/" HASP_TOPIC_COMMAND "/#"));
+    snprintf_P(topic, sizeof(topic), PSTR(MQTT_PREFIX "/" MQTT_TOPIC_BROADCAST "/" MQTT_TOPIC_COMMAND "/#"));
     mqttSubscribeTo(topic);
 #endif
 

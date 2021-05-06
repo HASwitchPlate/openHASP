@@ -39,10 +39,49 @@ bool mqttGetConfig(const JsonObject& settings);
 bool mqttSetConfig(const JsonObject& settings);
 #endif
 
-#define HASP_TOPIC_COMMAND "command"
-
-// #ifndef WINDOWS
-// String mqttGetNodename(void);
-// #endif
-
+#ifndef MQTT_PREFIX
+#define MQTT_PREFIX "hasp"
 #endif
+
+#ifndef MQTT_TOPIC_STATE
+#define MQTT_TOPIC_STATE "state"
+#endif
+
+#ifndef MQTT_TOPIC_COMMAND
+#define MQTT_TOPIC_COMMAND "command"
+#endif
+
+#ifndef MQTT_TOPIC_DISCOVERY
+#define MQTT_TOPIC_DISCOVERY "discovery"
+#endif
+
+#ifndef MQTT_TOPIC_BROADCAST
+#define MQTT_TOPIC_BROADCAST "broadcast"
+#endif
+
+#define MQTT_TOPIC_LWT "LWT"
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// These defaults may be overwritten with values saved by the web interface
+
+#ifndef MQTT_GROUPNAME
+#define MQTT_GROUPNAME "plates";
+#endif
+
+#ifndef MQTT_HOST
+#define MQTT_HOST "";
+#endif
+
+#ifndef MQTT_PORT
+#define MQTT_PORT 1883;
+#endif
+
+#ifndef MQTT_USER
+#define MQTT_USER "";
+#endif
+
+#ifndef MQTT_PASSW
+#define MQTT_PASSW "";
+#endif
+
+#endif // HASP_MQTT_H

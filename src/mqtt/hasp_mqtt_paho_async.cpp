@@ -63,36 +63,6 @@ const char* mqttGroupTopic = TOPIC;
 bool mqttEnabled        = false;
 bool mqttHAautodiscover = true;
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
-// These defaults may be overwritten with values saved by the web interface
-#ifndef MQTT_HOST
-#define MQTT_HOST "";
-#endif
-
-#ifndef MQTT_PORT
-#define MQTT_PORT 1883;
-#endif
-
-#ifndef MQTT_USER
-#define MQTT_USER "";
-#endif
-
-#ifndef MQTT_PASSW
-#define MQTT_PASSW "";
-#endif
-#ifndef MQTT_NODENAME
-#define MQTT_NODENAME "";
-#endif
-#ifndef MQTT_GROUPNAME
-#define MQTT_GROUPNAME "";
-#endif
-
-#ifndef MQTT_PREFIX
-#define MQTT_PREFIX "hasp"
-#endif
-
-#define LWT_TOPIC "LWT"
-
 std::recursive_mutex dispatch_mtx;
 std::recursive_mutex publish_mtx;
 
@@ -164,12 +134,12 @@ static void mqtt_message_cb(char* topic, char* payload, size_t length)
     }
 
     // catch a dangling LWT from a previous connection if it appears
-    if(!strcmp_P(topic, PSTR(LWT_TOPIC))) { // endsWith LWT
+    if(!strcmp_P(topic, PSTR(MQTT_TOPIC_LWT))) { // endsWith LWT
         if(!strcasecmp_P((char*)payload, PSTR("offline"))) {
             {
                 char msg[8];
                 char tmp_topic[strlen(mqttNodeTopic) + 8];
-                snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%s" LWT_TOPIC), mqttNodeTopic);
+                snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%s" MQTT_TOPIC_LWT), mqttNodeTopic);
                 snprintf_P(msg, sizeof(msg), PSTR("online"));
 
                 // /*bool res =*/mqttClient.publish(tmp_topic, msg, true);
@@ -254,12 +224,12 @@ void onConnect(void* context, MQTTAsync_successData* response)
 
     printf("Successful connection\n");
 
-    mqtt_subscribe(context, TOPIC HASP_TOPIC_COMMAND "/#");
-    mqtt_subscribe(context, TOPIC HASP_TOPIC_COMMAND);
+    mqtt_subscribe(context, TOPIC MQTT_TOPIC_COMMAND "/#");
+    mqtt_subscribe(context, TOPIC MQTT_TOPIC_COMMAND);
     mqtt_subscribe(context, TOPIC "light");
     mqtt_subscribe(context, TOPIC "dim");
 
-    mqttPublish(TOPIC LWT_TOPIC, "online", false);
+    mqttPublish(TOPIC MQTT_TOPIC_LWT, "online", false);
 
     mqtt_send_object_state(0, 0, "connected");
     std::cout << std::endl;
@@ -340,15 +310,15 @@ bool mqttIsConnected()
 void mqtt_send_state(const __FlashStringHelper* subtopic, const char* payload)
 {
     char tmp_topic[strlen(mqttNodeTopic) + 20];
-    printf(("%sstate/%s\n"), mqttNodeTopic, subtopic);
-    snprintf_P(tmp_topic, sizeof(tmp_topic), ("%sstate/%s"), mqttNodeTopic, subtopic);
+    printf(("%s" MQTT_TOPIC_STATE "/%s\n"), mqttNodeTopic, subtopic);
+    snprintf_P(tmp_topic, sizeof(tmp_topic), ("%s" MQTT_TOPIC_STATE "/%s"), mqttNodeTopic, subtopic);
     mqttPublish(tmp_topic, payload, false);
 }
 
 void mqtt_send_object_state(uint8_t pageid, uint8_t btnid, const char* payload)
 {
     char tmp_topic[strlen(mqttNodeTopic) + 20];
-    snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%sstate/p%ub%u"), mqttNodeTopic, pageid, btnid);
+    snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%s" MQTT_TOPIC_STATE "/p%ub%u"), mqttNodeTopic, pageid, btnid);
     mqttPublish(tmp_topic, payload, false);
 }
 

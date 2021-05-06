@@ -256,12 +256,12 @@ void dispatch_command(const char* topic, const char* payload, bool update)
 // Strip command/config prefix from the topic and process the payload
 void dispatch_topic_payload(const char* topic, const char* payload, bool update)
 {
-    if(!strcmp_P(topic, PSTR(HASP_TOPIC_COMMAND))) {
+    if(!strcmp_P(topic, PSTR(MQTT_TOPIC_COMMAND))) {
         dispatch_text_line((char*)payload);
         return;
     }
 
-    if(topic == strstr_P(topic, PSTR(HASP_TOPIC_COMMAND "/"))) { // startsWith command/
+    if(topic == strstr_P(topic, PSTR(MQTT_TOPIC_COMMAND "/"))) { // startsWith command/
         topic += 8u;
         dispatch_command(topic, (char*)payload, update);
         return;
@@ -832,10 +832,10 @@ void dispatch_send_discovery(const char*, const char*)
     size_t len = serializeJson(doc, data);
     switch(mqtt_send_discovery(data, len)) {
         case MQTT_ERR_OK:
-            LOG_TRACE(TAG_MQTT_PUB, F("discovery => %s"), data);
+            LOG_TRACE(TAG_MQTT_PUB, F(MQTT_TOPIC_DISCOVERY " => %s"), data);
             break;
         case MQTT_ERR_PUB_FAIL:
-            LOG_ERROR(TAG_MQTT_PUB, F(D_MQTT_FAILED " discovery => %s"), data);
+            LOG_ERROR(TAG_MQTT_PUB, F(D_MQTT_FAILED " " MQTT_TOPIC_DISCOVERY " => %s"), data);
             break;
         case MQTT_ERR_NO_CONN:
             LOG_ERROR(TAG_MQTT, F(D_MQTT_NOT_CONNECTED));

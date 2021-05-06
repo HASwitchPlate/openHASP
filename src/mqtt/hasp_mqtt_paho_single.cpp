@@ -63,34 +63,6 @@ uint32_t mqttPublishCount;
 uint32_t mqttReceiveCount;
 uint32_t mqttFailedCount;
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
-// These defaults may be overwritten with values saved by the web interface
-#ifndef MQTT_HOST
-#define MQTT_HOST "10.1.0.208";
-#endif
-
-#ifndef MQTT_PORT
-#define MQTT_PORT 1883;
-#endif
-
-#ifndef MQTT_USER
-#define MQTT_USER "hasp";
-#endif
-
-#ifndef MQTT_PASSW
-#define MQTT_PASSW "hasp";
-#endif
-
-#ifndef MQTT_GROUPNAME
-#define MQTT_GROUPNAME "plates";
-#endif
-
-#ifndef MQTT_PREFIX
-#define MQTT_PREFIX "hasp"
-#endif
-
-#define LWT_TOPIC "LWT"
-
 std::string mqttServer    = MQTT_HOST;
 std::string mqttUser      = MQTT_USER;
 std::string mqttPassword  = MQTT_PASSW;
@@ -143,10 +115,11 @@ static void mqtt_message_cb(char* topic, char* payload, size_t length)
         return;
 
 #ifdef HASP_USE_BROADCAST
-    } else if(topic == strstr_P(topic, PSTR(MQTT_PREFIX "/broadcast/"))) { // broadcast discovery topic
+    } else if(topic == strstr_P(topic, PSTR(MQTT_PREFIX "/" MQTT_TOPIC_BROADCAST
+                                                        "/"))) { // /" MQTT_TOPIC_BROADCAST "/ discovery topic
 
-        // broadcast topic
-        topic += strlen(MQTT_PREFIX "/broadcast/"); // shorten topic
+        // /" MQTT_TOPIC_BROADCAST "/ topic
+        topic += strlen(MQTT_PREFIX "/" MQTT_TOPIC_BROADCAST "/"); // shorten topic
         dispatch_topic_payload(topic, (const char*)payload, length > 0);
         return;
 #endif
@@ -167,7 +140,7 @@ static void mqtt_message_cb(char* topic, char* payload, size_t length)
     }
 
     // catch a dangling LWT from a previous connection if it appears
-    if(!strcmp_P(topic, PSTR(LWT_TOPIC))) { // endsWith LWT
+    if(!strcmp_P(topic, PSTR(MQTT_TOPIC_LWT))) { // endsWith LWT
         if(!strcasecmp_P((char*)payload, PSTR("offline"))) {
             {
                 char msg[8];
@@ -251,22 +224,23 @@ bool mqttIsConnected()
 int mqtt_send_state(const __FlashStringHelper* subtopic, const char* payload)
 {
     char tmp_topic[mqttNodeTopic.length() + 20];
-    // printf(("%sstate/%s\n"), mqttNodeTopic, subtopic);
-    snprintf_P(tmp_topic, sizeof(tmp_topic), ("%sstate/%s"), mqttNodeTopic.c_str(), subtopic);
+    // printf(("%s" MQTT_TOPIC_STATE "/%s\n"), mqttNodeTopic, subtopic);
+    snprintf_P(tmp_topic, sizeof(tmp_topic), ("%s" MQTT_TOPIC_STATE "/%s"), mqttNodeTopic.c_str(), subtopic);
     return mqttPublish(tmp_topic, payload, strlen(payload), false);
 }
 
 int mqtt_send_discovery(const char* payload, size_t len)
 {
     char tmp_topic[20];
-    snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR(MQTT_PREFIX "/discovery"));
+    snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR(MQTT_PREFIX "/" MQTT_TOPIC_DISCOVERY));
     return mqttPublish(tmp_topic, payload, len, false);
 }
 
 int mqtt_send_object_state(uint8_t pageid, uint8_t btnid, const char* payload)
 {
     char tmp_topic[mqttNodeTopic.length() + 20];
-    snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%sstate/p%ub%u"), mqttNodeTopic.c_str(), pageid, btnid);
+    snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%s" MQTT_TOPIC_STATE "/p%ub%u"), mqttNodeTopic.c_str(), pageid,
+               btnid);
     return mqttPublish(tmp_topic, payload, strlen(payload), false);
 }
 
@@ -278,10 +252,10 @@ static void onConnect(void* context)
 
     LOG_VERBOSE(TAG_MQTT, D_MQTT_CONNECTED, mqttServer.c_str(), haspDevice.get_hostname());
 
-    topic = mqttGroupTopic + HASP_TOPIC_COMMAND "/#";
+    topic = mqttGroupTopic + MQTT_TOPIC_COMMAND "/#";
     mqtt_subscribe(mqtt_client, topic.c_str());
 
-    topic = mqttNodeTopic + HASP_TOPIC_COMMAND "/#";
+    topic = mqttNodeTopic + MQTT_TOPIC_COMMAND "/#";
     mqtt_subscribe(mqtt_client, topic.c_str());
 
     topic = mqttGroupTopic + "config/#";
@@ -291,7 +265,7 @@ static void onConnect(void* context)
     mqtt_subscribe(mqtt_client, topic.c_str());
 
 #ifdef HASP_USE_BROADCAST
-    topic = MQTT_PREFIX "/broadcast/" HASP_TOPIC_COMMAND "/#";
+    topic = MQTT_PREFIX "/" MQTT_TOPIC_BROADCAST "/" MQTT_TOPIC_COMMAND "/#";
     mqtt_subscribe(mqtt_client, topic.c_str());
 #endif
 
@@ -412,7 +386,7 @@ void mqttSetup()
 
     printf("%s %d\n", __FILE__, __LINE__);
     mqttLwtTopic = mqttNodeTopic;
-    mqttLwtTopic += LWT_TOPIC;
+    mqttLwtTopic += MQTT_TOPIC_LWT;
 
     printf("%s %d\n", __FILE__, __LINE__);
 }
