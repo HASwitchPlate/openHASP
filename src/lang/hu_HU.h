@@ -4,8 +4,8 @@
 #define D_USERNAME "Felhasználónév:"
 #define D_PASSWORD "Jelszó:"
 #define D_SSID "SSID:"
-#define D_YES "Igen" 
-#define D_NO "Nem" 
+#define D_YES "Igen"
+#define D_NO "Nem"
 
 #define D_ERROR_OUT_OF_MEMORY "Elfogyott a memória"
 #define D_ERROR_UNKNOWN "Ismeretlen hiba"
@@ -30,8 +30,8 @@
 #define D_SERVICE_CONNECTED "Csatlakoztatva"
 #define D_SERVICE_DISCONNECTED "Szétkapcsolva"
 
-#define D_SETTING_ENABLED "Engedélyezve" 
-#define D_SETTING_DISABLED "Letiltva" 
+#define D_SETTING_ENABLED "Engedélyezve"
+#define D_SETTING_DISABLED "Letiltva"
 
 #define D_NETWORK_IP_ADDRESS_RECEIVED "Beállított IP-cím: %s"
 #define D_NETWORK_ONLINE "online"
@@ -52,7 +52,7 @@
 #define D_MQTT_SUBSCRIBED "Feliratkozva: %s"
 #define D_MQTT_NOT_SUBSCRIBED "Nem sikerült feliratkozni: %s"
 #define D_MQTT_HA_AUTO_DISCOVERY "Regisztrálás HA automatikus felfedezésre"
-#define D_MQTT_PAYLOAD_TOO_LONG "Túl hosszú payload (%u bájt)" 
+#define D_MQTT_PAYLOAD_TOO_LONG "Túl hosszú payload (%u bájt)"
 
 #define D_TELNET_CLOSING_CONNECTION "Munkamenet befejezése %s-el"
 #define D_TELNET_CLIENT_LOGIN_FROM "Kliens bejelentkezés innen: %s"
@@ -102,8 +102,8 @@
 #define D_OTA_UPDATE_COMPLETE "Az OTA frissítés elkészült"
 #define D_OTA_UPDATE_APPLY "Firmware alkalmazása és újraindítás"
 #define D_OTA_UPDATE_FAILED "Az OTA frissítés meghiúsult"
-#define D_OTA_UPDATING_FIRMWARE "Firmware frissítés..." 
-#define D_OTA_UPDATING_FILESYSTEM "Fájlrendszer frissítés..." 
+#define D_OTA_UPDATING_FIRMWARE "Firmware frissítés..."
+#define D_OTA_UPDATING_FILESYSTEM "Fájlrendszer frissítés..."
 
 #define D_HTTP_HASP_DESIGN "Képernyő dizájn"
 #define D_HTTP_INFORMATION "Információk"
@@ -132,7 +132,7 @@
 #define D_HTTP_MAIN_MENU "Főmenü"
 #define D_HTTP_REBOOT "Újraindítás"
 #define D_HTTP_CONFIGURATION "Beállítások"
-#define D_HTTP_SENDING_PAGE "%S oldal küldése %s-re" 
+#define D_HTTP_SENDING_PAGE "%S oldal küldése %s-re"
 #define D_HTTP_FOOTER "készítette: Francis Van Roie"
 
 #define D_INFO_VERSION "Verziószám"
@@ -167,6 +167,7 @@
 #define D_INFO_ETHERNET "Ethernet"
 #define D_INFO_WIFI "WiFi"
 #define D_INFO_LINK_SPEED "Linksebesség"
+#define D_INFO_FULL_DUPLEX "Full Duplex" // new
 #define D_INFO_SSID "SSID"
 #define D_INFO_RSSI "Jelerősség"
 #define D_INFO_IP_ADDRESS "IP cím"
@@ -178,7 +179,7 @@
 #define D_OOBE_SCAN_TO_CONNECT "Szkennelje le a csatlakozáshoz:"
 
 #define D_WIFI_CONNECTING_TO "Csatlakozás %s-hez"
-#define D_WIFI_CONNECTED_TO "Csatlakozva %s-hez, IP cím kérése..." 
+#define D_WIFI_CONNECTED_TO "Csatlakozva %s-hez, IP cím kérése..."
 #define D_WIFI_RSSI_EXCELLENT "Kiváló"
 #define D_WIFI_RSSI_GOOD "Jó"
 #define D_WIFI_RSSI_FAIR "Elfogadható"

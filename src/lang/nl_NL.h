@@ -166,6 +166,7 @@
 #define D_INFO_ETHERNET "Ethernet"
 #define D_INFO_WIFI "Wifi"
 #define D_INFO_LINK_SPEED "Snelheid"
+#define D_INFO_FULL_DUPLEX "Full Duplex"
 #define D_INFO_SSID "SSID"
 #define D_INFO_RSSI "Signaalsterkte"
 #define D_INFO_IP_ADDRESS "IP Adres"

@@ -744,7 +744,7 @@ void webHandleInfo()
         httpMessage += String(ETH.linkSpeed());
         httpMessage += F(" Mbps");
         if(ETH.fullDuplex()) {
-            httpMessage += F(" FULL_DUPLEX");
+            httpMessage += F(" " D_INFO_FULL_DUPLEX);
         }
         httpMessage += F("</br><b>IP Address: </b>");
         httpMessage += String(ETH.localIP().toString());
