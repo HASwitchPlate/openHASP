@@ -966,6 +966,8 @@ void dispatchSetup()
     // In order of importance : commands are NOT case-sensitive
     // The command.func() call will receive the full topic and payload parameters!
 
+    LOG_TRACE(TAG_MSGR, F(D_SERVICE_STARTING));
+
     /* WARNING: remember to expand the commands array when adding new commands */
     dispatch_add_command(PSTR("json"), dispatch_parse_json);
     dispatch_add_command(PSTR("page"), dispatch_page);
@@ -989,6 +991,8 @@ void dispatchSetup()
     dispatch_add_command(PSTR("setupap"), oobeFakeSetup);
 #endif
     /* WARNING: remember to expand the commands array when adding new commands */
+
+    LOG_INFO(TAG_MSGR, F(D_SERVICE_STARTED));
 }
 
 IRAM_ATTR void dispatchLoop()

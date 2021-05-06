@@ -57,9 +57,9 @@ void setup()
     configSetup(); // also runs debugSetupWithoutLogging(), debugSetup() and debugStart()
 #endif
 
+    dispatchSetup(); // before hasp and oobe, asap after logging starts
     guiSetup();
-    debugSetup();    // Init the console
-    dispatchSetup(); // for hasp and oobe
+    debugSetup(); // Init the console
 
 #if HASP_USE_CONFIG > 0
     if(!oobeSetup())

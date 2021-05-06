@@ -37,6 +37,7 @@ inline void debugSendAnsiCode(const __FlashStringHelper* code, Print* _logOutput
 #endif
 }
 
+/*
 void debug_timestamp()
 {
     timeval curTime;
@@ -48,7 +49,7 @@ void debug_timestamp()
     // strftime(currentTime, 80, "%Y-%m-%d %H:%M.%S", localtime(&t));
     strftime(currentTime, 80, "%H:%M:%S", localtime(&t));
     printf("[%s.%03d] ", currentTime, milli);
-}
+} */
 
 static void debugPrintTimestamp(int level, Print* _logOutput)
 { /* Print Current Time */
@@ -64,8 +65,8 @@ static void debugPrintTimestamp(int level, Print* _logOutput)
     if(timeinfo->tm_year >= 120) {
         unsigned long int milli = curTime.tv_usec / 1000;
         char buffer[24];
-        strftime(buffer, sizeof(buffer), "[%b %d %H:%M:%S", timeinfo); // Literal String
-        // strftime(buffer, sizeof(buffer), "[%H:%M:%S.", timeinfo); // Literal String
+        // strftime(buffer, sizeof(buffer), "[%b %d %H:%M:%S", timeinfo); // Literal String
+        strftime(buffer, sizeof(buffer), "[%H:%M:%S", timeinfo); // Literal String
 
 #ifdef ARDUINO
         _logOutput->printf(PSTR("%s.%03lu]"), buffer, milli);
@@ -178,22 +179,32 @@ void debugLvglLogEvent(lv_log_level_t level, const char* file, uint32_t line, co
 // Send the HASP header and version to the output device specified
 void debugPrintHaspHeader(Print* output)
 {
-    // if(debugAnsiCodes) debug_print(output,TERM_COLOR_YELLOW);
-
-    // debug_newline(output);
-    // debug_print(output, F(""
-    //                       "           _____ _____ _____ _____\r\n"
-    //                       "          |  |  |  _  |   __|  _  |\r\n"
-    //                       "          |     |     |__   |   __|\r\n"
-    //                       "          |__|__|__|__|_____|__|\r\n"
-    //                       "        Home Automation Switch Plate\r\n"
-    //                       "        Open Hardware edition v"));
-    char buffer[32];
+    char buffer[16];
     haspGetVersion(buffer, sizeof(buffer));
+
 #ifdef ARDUINO
+    if(debugAnsiCodes) output->print(TERM_COLOR_YELLOW);
+    output->println();
+    output->print(F("\r\n"
+                    "        open____ _____ _____ _____\r\n"
+                    "          |  |  |  _  |   __|  _  |\r\n"
+                    "          |     |     |__   |   __|\r\n"
+                    "          |__|__|__|__|_____|__|\r\n"
+                    "        Home Automation Switch Plate\r\n"
+                    "        Open Hardware edition v"));
     output->println(buffer);
+    output->println();
 #else
+    if(debugAnsiCodes) debug_print(output, TERM_COLOR_YELLOW);
+    debug_print(output, F("\r\n"
+                          "        open____ _____ _____ _____\r\n"
+                          "          |  |  |  _  |   __|  _  |\r\n"
+                          "          |     |     |__   |   __|\r\n"
+                          "          |__|__|__|__|_____|__|\r\n"
+                          "        Home Automation Switch Plate\r\n"
+                          "        Open Hardware edition v"));
     debug_print(output, buffer);
+    debug_newline(output);
     debug_newline(output);
 #endif
 }

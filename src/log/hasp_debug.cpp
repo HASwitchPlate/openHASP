@@ -328,7 +328,7 @@ void debugSetupWithoutLogging(JsonObject settings)
         debugPrintHaspHeader(&Serial);
         Serial.flush();
 
-        LOG_INFO(TAG_DEBG, F(D_SERVICE_STARTED " @ %u baud"), baudrate);
+        LOG_INFO(TAG_DEBG, F(D_SERVICE_STARTED " @ %u Bps"), baudrate);
         LOG_INFO(TAG_DEBG, F("Environment: " PIOENV));
     }
 }
