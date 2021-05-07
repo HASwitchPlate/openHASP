@@ -121,7 +121,12 @@ void hasp_object_tree(lv_obj_t* parent, uint8_t pageid, uint16_t level)
     if(parent == nullptr) return;
 
     /* Output parent info */
-    LOG_VERBOSE(TAG_HASP, F("[%d] " HASP_OBJECT_NOTATION " %s"), level, pageid, parent->user_data.id,
+    char indent[31];
+    memset(indent, 32, 31);
+    if(level < 15) indent[level * 2] = 0;
+    indent[30] = 0;
+
+    LOG_VERBOSE(TAG_HASP, F("%s- " HASP_OBJECT_NOTATION ": %s"), indent, pageid, parent->user_data.id,
                 obj_get_type_name(parent));
 
     lv_obj_t* child;
