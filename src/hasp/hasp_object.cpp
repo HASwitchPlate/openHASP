@@ -17,12 +17,12 @@
 
 #include "hasplib.h"
 
-const char** btnmatrix_default_map; // memory pointer to lvgl default btnmatrix map
-const char* msgbox_default_map[] = {"OK"
-                                    ""}; // memory pointer to hasp default msgbox map
+const char** btnmatrix_default_map;            // memory pointer to lvgl default btnmatrix map
+const char* msgbox_default_map[] = {"OK", ""}; // memory pointer to hasp default msgbox map
 
 // ##################### Object Finders ########################################################
 
+// Return a child object from a parent with a specific objid
 lv_obj_t* hasp_find_obj_from_parent_id(lv_obj_t* parent, uint8_t objid)
 {
     if(objid == 0 || parent == nullptr) return parent;
@@ -38,7 +38,7 @@ lv_obj_t* hasp_find_obj_from_parent_id(lv_obj_t* parent, uint8_t objid)
         if(grandchild) return grandchild; /* grandchild found, return it */
 
         /* check tabs */
-        if(check_obj_type(child, LV_HASP_TABVIEW)) {
+        if(obj_check_type(child, LV_HASP_TABVIEW)) {
             uint16_t tabcount = lv_tabview_get_tab_count(child);
             for(uint16_t i = 0; i < tabcount; i++) {
                 lv_obj_t* tab = lv_tabview_get_tab(child, i);
@@ -57,11 +57,13 @@ lv_obj_t* hasp_find_obj_from_parent_id(lv_obj_t* parent, uint8_t objid)
     return NULL;
 }
 
-// lv_obj_t * hasp_find_obj_from_page_id(uint8_t pageid, uint8_t objid)
-// {
-//     return hasp_find_obj_from_parent_id(get_page_obj(pageid), objid);
-// }
+// Return the object with a specific pageid and objid
+lv_obj_t* hasp_find_obj_from_page_id(uint8_t pageid, uint8_t objid)
+{
+    return hasp_find_obj_from_parent_id(haspPages.get_obj(pageid), objid);
+}
 
+// Return the pageid and objid of an object
 bool hasp_find_id_from_obj(lv_obj_t* obj, uint8_t* pageid, uint8_t* objid)
 {
     if(!obj || !haspPages.get_id(obj, pageid)) return false;
@@ -71,86 +73,12 @@ bool hasp_find_id_from_obj(lv_obj_t* obj, uint8_t* pageid, uint8_t* objid)
 }
 
 /**
- * Check if an lvgl object typename corresponds to a given HASP object ID
- * @param lvobjtype a char* to a string
- * @param haspobjtype the HASP object ID to check against
- * @return true or false wether the types match
- * @note
- */
-// bool check_obj_type_str(const char * lvobjtype, lv_hasp_obj_type_t haspobjtype)
-// {
-//     lvobjtype += 3; // skip "lv_"
-
-//     switch(haspobjtype) {
-//         case LV_HASP_BTNMATRIX:
-//             return (strcmp_P(lvobjtype, PSTR("btnmatrix")) == 0);
-//         case LV_HASP_TABLE:
-//             return (strcmp_P(lvobjtype, PSTR("table")) == 0);
-//         case LV_HASP_BUTTON:
-//             return (strcmp_P(lvobjtype, PSTR("btn")) == 0);
-//         case LV_HASP_LABEL:
-//             return (strcmp_P(lvobjtype, PSTR("label")) == 0);
-//         case LV_HASP_CHECKBOX:
-//             return (strcmp_P(lvobjtype, PSTR("checkbox")) == 0); // || (strcmp_P(lvobjtype, PSTR("lv_cb")) == 0);
-//         case LV_HASP_DROPDOWN:
-//             return (strcmp_P(lvobjtype, PSTR("dropdown")) == 0); // || (strcmp_P(lvobjtype, PSTR("lv_ddlist")) == 0);
-//         case LV_HASP_CPICKER:
-//             return (strcmp_P(lvobjtype, PSTR("cpicker")) == 0);
-//         case LV_HASP_SPINNER:
-//             return (strcmp_P(lvobjtype, PSTR("spinner")) == 0); // || (strcmp_P(lvobjtype, PSTR("lv_preload")) == 0);
-//         case LV_HASP_SLIDER:
-//             return (strcmp_P(lvobjtype, PSTR("slider")) == 0);
-//         case LV_HASP_GAUGE:
-//             return (strcmp_P(lvobjtype, PSTR("gauge")) == 0);
-//         case LV_HASP_ARC:
-//             return (strcmp_P(lvobjtype, PSTR("arc")) == 0);
-//         case LV_HASP_BAR:
-//             return (strcmp_P(lvobjtype, PSTR("bar")) == 0);
-//         case LV_HASP_LMETER:
-//             return (strcmp_P(lvobjtype, PSTR("linemeter")) == 0); // || (strcmp_P(lvobjtype, PSTR("lv_lmeter")) == 0)
-//         case LV_HASP_ROLLER:
-//             return (strcmp_P(lvobjtype, PSTR("roller")) == 0);
-//         case LV_HASP_SWITCH:
-//             return (strcmp_P(lvobjtype, PSTR("switch")) == 0); // || (strcmp_P(lvobjtype, PSTR("lv_sw")) == 0)
-//         case LV_HASP_LED:
-//             return (strcmp_P(lvobjtype, PSTR("led")) == 0);
-//         case LV_HASP_IMAGE:
-//             return (strcmp_P(lvobjtype, PSTR("img")) == 0);
-//         case LV_HASP_IMGBTN:
-//             return (strcmp_P(lvobjtype, PSTR("imgbtn")) == 0);
-//         case LV_HASP_CONTAINER:
-//             return (strcmp_P(lvobjtype, PSTR("container")) == 0); // || (strcmp_P(lvobjtype, PSTR("lv_cont")) == 0)
-//         case LV_HASP_OBJECT:
-//             return (strcmp_P(lvobjtype, PSTR("page")) == 0); // || (strcmp_P(lvobjtype, PSTR("lv_cont")) == 0)
-//         case LV_HASP_PAGE:
-//             return (strcmp_P(lvobjtype, PSTR("obj")) == 0); // || (strcmp_P(lvobjtype, PSTR("lv_cont")) == 0)
-//         case LV_HASP_TABVIEW:
-//             return (strcmp_P(lvobjtype, PSTR("tabview")) == 0);
-//         case LV_HASP_TILEVIEW:
-//             return (strcmp_P(lvobjtype, PSTR("tileview")) == 0);
-//         case LV_HASP_CHART:
-//             return (strcmp_P(lvobjtype, PSTR("chart")) == 0);
-//         case LV_HASP_CANVAS:
-//             return (strcmp_P(lvobjtype, PSTR("canvas")) == 0);
-//         case LV_HASP_CALENDER:
-//             return (strcmp_P(lvobjtype, PSTR("calender")) == 0);
-//         case LV_HASP_MSGBOX:
-//             return (strcmp_P(lvobjtype, PSTR("msgbox")) == 0);
-//         case LV_HASP_WINDOW:
-//             return (strcmp_P(lvobjtype, PSTR("win")) == 0);
-
-//         default:
-//             return false;
-//     }
-// }
-
-/**
  * Get the object type name of an object
  * @param obj an lv_obj_t* of the object to check its type
  * @return name of the object type
  * @note
  */
-const char* get_obj_type_name(lv_obj_t* obj)
+const char* obj_get_type_name(lv_obj_t* obj)
 {
     lv_obj_type_t list;
     lv_obj_get_type(obj, &list);
@@ -165,7 +93,7 @@ const char* get_obj_type_name(lv_obj_t* obj)
  * @return true or false wether the types match
  * @note
  */
-bool check_obj_type(lv_obj_t* obj, lv_hasp_obj_type_t haspobjtype)
+bool obj_check_type(lv_obj_t* obj, lv_hasp_obj_type_t haspobjtype)
 {
 #if 1
     return obj->user_data.objid == (uint8_t)haspobjtype;
@@ -173,8 +101,19 @@ bool check_obj_type(lv_obj_t* obj, lv_hasp_obj_type_t haspobjtype)
     lv_obj_type_t list;
     lv_obj_get_type(obj, &list);
     const char* objtype = list.type[0];
-    return check_obj_type(objtype, haspobjtype);
+    return obj_check_type(objtype, haspobjtype);
 #endif
+}
+
+/**
+ * Get the hasp object type of a given LVGL object
+ * @param obj an lv_obj_t* of the object to check its type
+ * @return lv_hasp_obj_type_t
+ * @note
+ */
+lv_hasp_obj_type_t obj_get_type(lv_obj_t* obj)
+{
+    return (lv_hasp_obj_type_t)obj->user_data.objid;
 }
 
 void hasp_object_tree(lv_obj_t* parent, uint8_t pageid, uint16_t level)
@@ -182,10 +121,8 @@ void hasp_object_tree(lv_obj_t* parent, uint8_t pageid, uint16_t level)
     if(parent == nullptr) return;
 
     /* Output parent info */
-    lv_obj_type_t list;
-    lv_obj_get_type(parent, &list);
-    const char* objtype = list.type[0];
-    LOG_VERBOSE(TAG_HASP, F("[%d] " HASP_OBJECT_NOTATION " %s"), level, pageid, parent->user_data.id, objtype);
+    LOG_VERBOSE(TAG_HASP, F("[%d] " HASP_OBJECT_NOTATION " %s"), level, pageid, parent->user_data.id,
+                obj_get_type_name(parent));
 
     lv_obj_t* child;
     child = lv_obj_get_child(parent, NULL);
@@ -198,7 +135,7 @@ void hasp_object_tree(lv_obj_t* parent, uint8_t pageid, uint16_t level)
     }
 
     /* check tabs */
-    if(check_obj_type(parent, LV_HASP_TABVIEW)) {
+    if(obj_check_type(parent, LV_HASP_TABVIEW)) {
 #if 1
         uint16_t tabcount = lv_tabview_get_tab_count(parent);
         for(uint16_t i = 0; i < tabcount; i++) {
@@ -236,7 +173,7 @@ void object_set_group_values(lv_obj_t* parent, uint8_t groupid, int16_t intval)
         object_set_group_values(child, groupid, intval);
 
         /* check tabs */
-        if(check_obj_type(child, LV_HASP_TABVIEW)) {
+        if(obj_check_type(child, LV_HASP_TABVIEW)) {
             //#if LVGL_VERSION_MAJOR == 7
             uint16_t tabcount = lv_tabview_get_tab_count(child);
             for(uint16_t i = 0; i < tabcount; i++) {
@@ -287,7 +224,7 @@ void object_set_normalized_group_values(uint8_t groupid, lv_obj_t* src_obj, int1
 // Used in the dispatcher & hasp_new_object
 void hasp_process_attribute(uint8_t pageid, uint8_t objid, const char* attr, const char* payload, bool update)
 {
-    if(lv_obj_t* obj = hasp_find_obj_from_parent_id(haspPages.get_obj(pageid), objid)) {
+    if(lv_obj_t* obj = hasp_find_obj_from_page_id(pageid, objid)) {
         hasp_process_obj_attribute(obj, attr, payload, update); // || strlen(payload) > 0);
     } else {
         LOG_WARNING(TAG_HASP, F(D_OBJECT_UNKNOWN " " HASP_OBJECT_NOTATION), pageid, objid);
@@ -362,9 +299,8 @@ void hasp_new_object(const JsonObject& config, uint8_t& saved_page_id)
         config.remove(FPSTR(FP_PARENTID));
     }
 
-    uint16_t sdbm   = 0;
-    uint8_t groupid = config[FPSTR(FP_GROUPID)].as<uint8_t>();
-    uint8_t id      = config[FPSTR(FP_ID)].as<uint8_t>();
+    uint16_t sdbm = 0;
+    uint8_t id    = config[FPSTR(FP_ID)].as<uint8_t>();
     config.remove(FPSTR(FP_ID));
 
     /* Create the object if it does not exist */
@@ -701,7 +637,7 @@ void hasp_new_object(const JsonObject& config, uint8_t& saved_page_id)
                     lv_obj_align(obj, NULL, LV_ALIGN_CENTER, 0, 0);
                     lv_obj_set_auto_realign(obj, true);
                     lv_obj_set_event_cb(obj, msgbox_event_handler);
-                    //  if(msgbox_default_map) lv_msgbox_add_btns(obj, msgbox_default_map);
+                    if(msgbox_default_map) lv_msgbox_add_btns(obj, msgbox_default_map);
                     obj->user_data.objid = LV_HASP_MSGBOX;
                 }
                 break;
@@ -713,7 +649,8 @@ void hasp_new_object(const JsonObject& config, uint8_t& saved_page_id)
                 if(obj) {
                     lv_obj_set_event_cb(obj, calendar_event_handler);
                     obj->user_data.objid = LV_HASP_CALENDER;
-                    lv_task_t* task      = lv_task_create(event_timer_calendar, 300, LV_TASK_PRIO_LOWEST, (void*)obj);
+                    lv_task_t* task      = lv_task_create(event_timer_calendar, 25, LV_TASK_PRIO_LOWEST, (void*)obj);
+                    (void)task; // unused
                 }
                 break;
 
@@ -734,30 +671,34 @@ void hasp_new_object(const JsonObject& config, uint8_t& saved_page_id)
         lv_obj_set_gesture_parent(obj, false);
 
         /* id tag the object */
-        // lv_obj_set_user_data(obj, id);
         obj->user_data.id = id;
-        // obj->user_data.groupid = groupid; // get/set in atttr
 
+        uint8_t temp; // needed for debug tests
+        (void)temp;
+
+#ifdef HASP_DEBUG
         /** testing start **/
-        uint8_t temp;
         if(!hasp_find_id_from_obj(obj, &pageid, &temp)) {
             LOG_ERROR(TAG_HASP, F(D_OBJECT_LOST));
             return;
         }
+#endif
 
+#if HASP_LOG_LEVEL >= LOG_LEVEL_VERBOSE
         /** verbose reporting **/
-        lv_obj_type_t list;
-        lv_obj_get_type(obj, &list);
-        LOG_VERBOSE(TAG_HASP, F(D_BULLET HASP_OBJECT_NOTATION " = %s"), pageid, temp, list.type[0]);
+        LOG_VERBOSE(TAG_HASP, F(D_BULLET HASP_OBJECT_NOTATION " = %s"), pageid, id, obj_get_type_name(obj));
+#endif
 
+#ifdef HASP_DEBUG
         /* test double-check */
-        lv_obj_t* test = hasp_find_obj_from_parent_id(haspPages.get_obj(pageid), (uint8_t)temp);
-        if(test != obj) {
+        lv_obj_t* test = hasp_find_obj_from_page_id(pageid, (uint8_t)temp);
+        if(test != obj || temp != id) {
             LOG_ERROR(TAG_HASP, F(D_OBJECT_MISMATCH));
             return;
         } else {
             // object created successfully
         }
+#endif
 
     } else {
         // object already exists
