@@ -173,9 +173,8 @@ static bool attribute_update_lv_property(lv_obj_t * obj, const char * attr_p, ui
 }
 #endif
 
-const char* my_tabview_get_tab_name(lv_obj_t* tabview)
+const char* my_tabview_get_tab_name(lv_obj_t* tabview, uint16_t id)
 {
-    uint16_t id = lv_tabview_get_tab_act(tabview);
     if(id >= lv_tabview_get_tab_count(tabview)) return NULL;
 
     lv_tabview_ext_t* ext = (lv_tabview_ext_t*)lv_obj_get_ext_attr(tabview);
@@ -682,7 +681,7 @@ lv_obj_t* FindButtonLabel(lv_obj_t* btn)
 }
 
 // OK
-static inline void haspSetLabelText(lv_obj_t* obj, const char* value)
+static inline void my_btn_set_text(lv_obj_t* obj, const char* value)
 {
     lv_obj_t* label = FindButtonLabel(obj);
     if(label) {
@@ -691,7 +690,7 @@ static inline void haspSetLabelText(lv_obj_t* obj, const char* value)
 }
 
 // OK
-static bool haspGetLabelText(lv_obj_t* obj, char** text)
+static bool my_btn_get_text(lv_obj_t* obj, char** text)
 {
     if(!obj) {
         LOG_WARNING(TAG_ATTR, F("Button not defined"));
@@ -716,7 +715,7 @@ static bool haspGetLabelText(lv_obj_t* obj, char** text)
 #endif
 
     } else {
-        LOG_WARNING(TAG_ATTR, F("haspGetLabelText NULL Pointer encountered"));
+        LOG_WARNING(TAG_ATTR, F("my_btn_get_text NULL Pointer encountered"));
     }
 
     return false;
@@ -1385,57 +1384,90 @@ static void hasp_process_obj_attribute_text(lv_obj_t* obj, const char* attr, con
     // lv_obj_get_type(obj, &list);
     // const char * objtype = list.type[0];
 
-    if(obj_check_type(obj, LV_HASP_BUTTON)) {
-        if(update) {
-            haspSetLabelText(obj, payload);
-        } else {
-            char* text = NULL;
-            if(haspGetLabelText(obj, &text) && text) attr_out_str(obj, attr, text);
+    switch(obj_get_type(obj)) {
+
+        case LV_HASP_BUTTON:
+            if(update) {
+                my_btn_set_text(obj, payload);
+            } else {
+                char* text = NULL;
+                if(my_btn_get_text(obj, &text) && text) attr_out_str(obj, attr, text);
+            }
+            return;
+
+        case LV_HASP_LABEL:
+            return update ? lv_label_set_text(obj, payload) : attr_out_str(obj, attr, lv_label_get_text(obj));
+
+        case LV_HASP_CHECKBOX:
+            return update ? lv_checkbox_set_text(obj, payload) : attr_out_str(obj, attr, lv_checkbox_get_text(obj));
+
+        case LV_HASP_DROPDOWN: {
+            char buffer[128];
+            lv_dropdown_get_selected_str(obj, buffer, sizeof(buffer));
+            return attr_out_str(obj, attr, buffer);
         }
-        return;
-    }
-    if(obj_check_type(obj, LV_HASP_LABEL)) {
-        return update ? lv_label_set_text(obj, payload) : attr_out_str(obj, attr, lv_label_get_text(obj));
-    }
-    if(obj_check_type(obj, LV_HASP_CHECKBOX)) {
-        return update ? lv_checkbox_set_text(obj, payload) : attr_out_str(obj, attr, lv_checkbox_get_text(obj));
-    }
-    if(obj_check_type(obj, LV_HASP_DROPDOWN)) {
-        char buffer[128];
-        lv_dropdown_get_selected_str(obj, buffer, sizeof(buffer));
-        return attr_out_str(obj, attr, buffer);
-    }
-    if(obj_check_type(obj, LV_HASP_ROLLER)) {
-        char buffer[128];
-        lv_roller_get_selected_str(obj, buffer, sizeof(buffer));
-        return attr_out_str(obj, attr, buffer);
-    }
-    if(obj_check_type(obj, LV_HASP_MSGBOX)) {
-        if(update) {
-            lv_msgbox_set_text(obj, payload);
-            //  lv_obj_realign(obj); /* Realign to the center */
-        } else {
-            attr_out_str(obj, attr, lv_msgbox_get_text(obj));
+
+        case LV_HASP_ROLLER: {
+            char buffer[128];
+            lv_roller_get_selected_str(obj, buffer, sizeof(buffer));
+            return attr_out_str(obj, attr, buffer);
         }
-        return;
-    }
-    if(obj_check_type(obj, LV_HASP_TABVIEW)) {
-        if(update) {
+
+        case LV_HASP_MSGBOX:
+            if(update) {
+                lv_msgbox_set_text(obj, payload);
+                //  lv_obj_realign(obj); /* Realign to the center */
+            } else {
+                attr_out_str(obj, attr, lv_msgbox_get_text(obj));
+            }
+            return;
+
+        case LV_HASP_TABVIEW: {
             uint16_t id = lv_tabview_get_tab_act(obj);
-            if(id < lv_tabview_get_tab_count(obj)) lv_tabview_set_tab_name(obj, id, (char*)payload);
-        } else {
-            attr_out_str(obj, attr, my_tabview_get_tab_name(obj));
+            if(id < lv_tabview_get_tab_count(obj)) {
+                if(update) {
+                    lv_tabview_set_tab_name(obj, id, (char*)payload);
+                } else {
+                    attr_out_str(obj, attr, my_tabview_get_tab_name(obj, id));
+                }
+            }
+            return;
         }
-        return;
-    }
+
+        case LV_HASP_TAB: {
+            lv_obj_t* content = lv_obj_get_parent(obj->parent); // 2 levels up
+            if(!content) return LOG_WARNING(TAG_ATTR, F("content not found"), attr);
+
+            lv_obj_t* tabview = lv_obj_get_parent(content); // 3rd level up
+            if(!tabview) return LOG_WARNING(TAG_ATTR, F("Tabview not found"), attr);
+
+            if(!obj_check_type(tabview, LV_HASP_TABVIEW))
+                return LOG_WARNING(TAG_ATTR, F("LV_HASP_TABVIEW not found %d"), obj_get_type(tabview));
+
+            for(uint16_t id = 0; id < lv_tabview_get_tab_count(tabview); id++) {
+                if(obj == lv_tabview_get_tab(tabview, id)) {
+                    if(update) {
+                        lv_tabview_set_tab_name(tabview, id, (char*)payload);
+                    } else {
+                        attr_out_str(obj, attr, my_tabview_get_tab_name(tabview, id));
+                    }
+                    return;
+                }
+            }
+            LOG_WARNING(TAG_ATTR, F("Tab not found"), attr);
+            return;
+        }
+
 #if LV_USE_WIN != 0
-    if(obj_check_type(obj, LV_HASP_WINDOW)) {
-        // return update ? lv_win_set_title(obj, (const char *)payload) : attr_out_str(obj, attr,
-        // lv_win_get_title(obj));
-    }
+        case LV_HASP_WINDOW:
+            // return update ? lv_win_set_title(obj, (const char *)payload) : attr_out_str(obj, attr,
+            // lv_win_get_title(obj));
+            return;
 #endif
 
-    LOG_WARNING(TAG_ATTR, F(D_ATTRIBUTE_UNKNOWN), attr);
+        default:
+            LOG_WARNING(TAG_ATTR, F(D_ATTRIBUTE_UNKNOWN), attr);
+    }
 }
 
 bool hasp_process_obj_attribute_val(lv_obj_t* obj, const char* attr, int16_t intval, bool boolval, bool update)
