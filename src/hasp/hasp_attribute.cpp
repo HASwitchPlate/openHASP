@@ -324,6 +324,13 @@ void my_btnmatrix_map_clear(lv_obj_t* obj)
     }
 }
 
+void my_msgbox_map_clear(lv_obj_t* obj)
+{
+    lv_msgbox_ext_t* ext = (lv_msgbox_ext_t*)lv_obj_get_ext_attr(obj);
+    if(ext && ext->btnm) my_btnmatrix_map_clear(ext->btnm); // Clear the button map if it exists yet
+}
+
+/*
 static void my_btnmatrix_map_create(lv_obj_t* obj, const char* payload)
 {
     // const char** map_p = lv_btnmatrix_get_map_array(obj);
@@ -366,7 +373,7 @@ static void my_btnmatrix_map_create(lv_obj_t* obj, const char* payload)
     }
     memset(buffer_addr, 0, tot_len); // Important, last index needs to be 0 => empty string ""
 
-    /* Point of no return, destroy & free the previous map */
+    // Point of no return, destroy & free the previous map /
     LOG_VERBOSE(TAG_ATTR, F("%s %d   map addr:  %x"), __FILE__, __LINE__, map_data_str);
     my_btnmatrix_map_clear(obj); // Free previous map
 
@@ -390,6 +397,107 @@ static void my_btnmatrix_map_create(lv_obj_t* obj, const char* payload)
 
     LOG_VERBOSE(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
     lv_btnmatrix_set_map(obj, map_data_str);
+    LOG_VERBOSE(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
+}*/
+
+// Create new btnmatrix button map from json array
+const char** my_map_create(const char* payload)
+{
+    // Reserve memory for JsonDocument
+    size_t maxsize = (128u * ((strlen(payload) / 128) + 1)) + 256;
+    DynamicJsonDocument map_doc(maxsize);
+    DeserializationError jsonError = deserializeJson(map_doc, payload);
+
+    if(jsonError) { // Couldn't parse incoming JSON payload
+        dispatch_json_error(TAG_ATTR, jsonError);
+        return NULL;
+    }
+
+    JsonArray arr = map_doc.as<JsonArray>(); // Parse payload
+
+    size_t tot_len            = sizeof(char*) * (arr.size() + 1);
+    const char** map_data_str = (const char**)lv_mem_alloc(tot_len);
+    if(map_data_str == NULL) {
+        LOG_ERROR(TAG_ATTR, F("Out of memory while creating button map"));
+        return NULL;
+    }
+    memset(map_data_str, 0, tot_len);
+
+    // Create buffer
+    tot_len = 0;
+    for(JsonVariant btn : arr) {
+        tot_len += strlen(btn.as<const char*>()) + 1;
+    }
+    tot_len++; // trailing '\0'
+    LOG_VERBOSE(TAG_ATTR, F("Array Size = %d, Map Length = %d"), arr.size(), tot_len);
+
+    char* buffer_addr = (char*)lv_mem_alloc(tot_len);
+    if(buffer_addr == NULL) {
+        lv_mem_free(map_data_str);
+        LOG_ERROR(TAG_ATTR, F("Out of memory while creating button map"));
+        return NULL;
+    }
+    memset(buffer_addr, 0, tot_len); // Important, last index needs to be 0 => empty string ""
+
+    /* Point of no return, destroy & free the previous map */
+    LOG_VERBOSE(TAG_ATTR, F("%s %d   map addr:  %x"), __FILE__, __LINE__, map_data_str);
+    // my_btnmatrix_map_clear(obj); // Free previous map
+
+    // Fill buffer
+    size_t index = 0;
+    size_t pos   = 0;
+    LOG_VERBOSE(TAG_ATTR, F("%s %d   lbl addr:  %x"), __FILE__, __LINE__, buffer_addr);
+    for(JsonVariant btn : arr) {
+        // size_t len = btn.as<String>().length() + 1;
+        size_t len = strlen(btn.as<const char*>()) + 1;
+        LOG_VERBOSE(TAG_ATTR, F(D_BULLET "Adding button: %s (%d bytes) %x"), btn.as<const char*>(), len,
+                    buffer_addr + pos);
+        // LOG_VERBOSE(TAG_ATTR, F(D_BULLET "Adding button: %s (%d bytes) %x"), btn.as<String>().c_str(), len,
+        // buffer_addr + pos);
+        memccpy(buffer_addr + pos, btn.as<const char*>(), 0, len); // Copy the label text into the buffer
+        // memccpy(buffer_addr + pos, btn.as<String>().c_str(), 0, len); // Copy the label text into the buffer
+        map_data_str[index++] = buffer_addr + pos; // save pointer to the label in the array
+        pos += len;
+    }
+    map_data_str[index] = buffer_addr + pos; // save pointer to the last \0 byte
+
+    LOG_VERBOSE(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
+    return map_data_str;
+}
+
+static void my_btnmatrix_set_map(lv_obj_t* obj, const char* payload)
+{
+    LOG_VERBOSE(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
+    const char** map = my_map_create(payload);
+    if(!map) return;
+
+    LOG_VERBOSE(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
+    my_btnmatrix_map_clear(obj); // Free previous map
+    LOG_VERBOSE(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
+    lv_btnmatrix_set_map(obj, map);
+    LOG_VERBOSE(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
+}
+
+static void my_msgbox_set_map(lv_obj_t* obj, const char* payload)
+{
+    LOG_VERBOSE(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
+    const char** map = my_map_create(payload);
+    if(!map) return;
+
+    LOG_VERBOSE(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
+    my_msgbox_map_clear(obj); // Free previous map
+    LOG_VERBOSE(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
+    lv_msgbox_add_btns(obj, map);
+    LOG_VERBOSE(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
+}
+
+static void my_msgbox_map_create(lv_obj_t* obj, const char* payload)
+{
+    const char** map = my_map_create(payload);
+    if(!map) return;
+
+    my_btnmatrix_map_clear(obj); // Free previous map
+    lv_btnmatrix_set_map(obj, map);
     LOG_VERBOSE(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
 }
 
@@ -550,7 +658,7 @@ lv_obj_t* FindButtonLabel(lv_obj_t* btn)
         lv_obj_t* label = lv_obj_get_child_back(btn, NULL);
 #if 1
         if(label) {
-            if(check_obj_type(label, LV_HASP_LABEL)) {
+            if(obj_check_type(label, LV_HASP_LABEL)) {
                 return label;
             }
 #else
@@ -559,7 +667,7 @@ lv_obj_t* FindButtonLabel(lv_obj_t* btn)
             lv_obj_get_type(label, &list);
             const char* objtype = list.type[0];
 
-            if(check_obj_type(objtype, LV_HASP_LABEL)) {
+            if(obj_check_type(objtype, LV_HASP_LABEL)) {
                 return label;
             }
 #endif
@@ -593,7 +701,7 @@ static bool haspGetLabelText(lv_obj_t* obj, char** text)
     lv_obj_t* label = lv_obj_get_child_back(obj, NULL);
     if(label) {
 #if 1
-        if(check_obj_type(label, LV_HASP_LABEL)) {
+        if(obj_check_type(label, LV_HASP_LABEL)) {
             *text = lv_label_get_text(label);
             return true;
         }
@@ -601,7 +709,7 @@ static bool haspGetLabelText(lv_obj_t* obj, char** text)
         lv_obj_type_t list;
         lv_obj_get_type(label, &list);
 
-        if(check_obj_type(list.type[0], LV_HASP_LABEL)) {
+        if(obj_check_type(list.type[0], LV_HASP_LABEL)) {
             text = lv_label_get_text(label);
             return true;
         }
@@ -639,7 +747,7 @@ static void hasp_attribute_get_part_state(lv_obj_t* obj, const char* attr_in, ch
     // lv_obj_get_type(obj, &list);
     // const char * objtype = list.type[0];
 
-    if(check_obj_type(obj, LV_HASP_BUTTON)) {
+    if(obj_check_type(obj, LV_HASP_BUTTON)) {
         switch(index) {
             case 1:
                 state = LV_BTN_STATE_PRESSED;
@@ -670,12 +778,12 @@ static void hasp_attribute_get_part_state(lv_obj_t* obj, const char* attr_in, ch
 #error "LV_SLIDER, LV_BAR, LV_ARC, LV_SWITCH parts should match!"
 #endif
 
-    if(check_obj_type(obj, LV_HASP_SLIDER) || check_obj_type(obj, LV_HASP_SWITCH) || check_obj_type(obj, LV_HASP_ARC) ||
-       check_obj_type(obj, LV_HASP_BAR)) {
+    if(obj_check_type(obj, LV_HASP_SLIDER) || obj_check_type(obj, LV_HASP_SWITCH) || obj_check_type(obj, LV_HASP_ARC) ||
+       obj_check_type(obj, LV_HASP_BAR)) {
         if(index == 1) {
             part = LV_SLIDER_PART_INDIC;
         } else if(index == 2) {
-            if(!check_obj_type(obj, LV_HASP_BAR)) part = LV_SLIDER_PART_KNOB;
+            if(!obj_check_type(obj, LV_HASP_BAR)) part = LV_SLIDER_PART_KNOB;
         } else {
             part = LV_SLIDER_PART_BG;
         }
@@ -683,7 +791,7 @@ static void hasp_attribute_get_part_state(lv_obj_t* obj, const char* attr_in, ch
         return;
     }
 
-    if(check_obj_type(obj, LV_HASP_CHECKBOX)) {
+    if(obj_check_type(obj, LV_HASP_CHECKBOX)) {
         if(index == 1) {
             part = LV_CHECKBOX_PART_BULLET;
         } else {
@@ -693,7 +801,7 @@ static void hasp_attribute_get_part_state(lv_obj_t* obj, const char* attr_in, ch
         return;
     }
 
-    if(check_obj_type(obj, LV_HASP_CPICKER)) {
+    if(obj_check_type(obj, LV_HASP_CPICKER)) {
         if(index == 1) {
             part = LV_CPICKER_PART_KNOB;
         } else {
@@ -703,7 +811,7 @@ static void hasp_attribute_get_part_state(lv_obj_t* obj, const char* attr_in, ch
         return;
     }
 
-    if(check_obj_type(obj, LV_HASP_ROLLER)) {
+    if(obj_check_type(obj, LV_HASP_ROLLER)) {
         if(index == 1) {
             part = LV_ROLLER_PART_SELECTED;
         } else {
@@ -713,7 +821,7 @@ static void hasp_attribute_get_part_state(lv_obj_t* obj, const char* attr_in, ch
         return;
     }
 
-    // if(check_obj_type(obj, LV_HASP_LMETER)) {
+    // if(obj_check_type(obj, LV_HASP_LMETER)) {
     //     state = LV_STATE_DEFAULT;
     //     return;
     // }
@@ -901,12 +1009,12 @@ static void hasp_local_style_attr(lv_obj_t* obj, const char* attr_p, uint16_t at
             if(font) {
                 LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, *font);
                 uint8_t count = 3;
-                if(check_obj_type(obj, LV_HASP_ROLLER)) count = my_roller_get_visible_row_count(obj);
+                if(obj_check_type(obj, LV_HASP_ROLLER)) count = my_roller_get_visible_row_count(obj);
                 lv_obj_set_style_local_text_font(obj, part, state, font);
-                if(check_obj_type(obj, LV_HASP_ROLLER)) lv_roller_set_visible_row_count(obj, count);
+                if(obj_check_type(obj, LV_HASP_ROLLER)) lv_roller_set_visible_row_count(obj, count);
                 lv_obj_set_style_local_text_font(obj, part, state, font); // again, for roller
 
-                if(check_obj_type(obj, LV_HASP_DROPDOWN)) { // issue #43
+                if(obj_check_type(obj, LV_HASP_DROPDOWN)) { // issue #43
                     lv_obj_set_style_local_text_font(obj, LV_DROPDOWN_PART_MAIN, state, font);
                     lv_obj_set_style_local_text_font(obj, LV_DROPDOWN_PART_LIST, state, font);
                     lv_obj_set_style_local_text_font(obj, LV_DROPDOWN_PART_SELECTED, state, font);
@@ -1085,7 +1193,7 @@ static void hasp_process_arc_attribute(lv_obj_t* obj, const char* attr_p, uint16
     uint16_t val = atoi(payload);
 
     char* attr = (char*)attr_p;
-    if(*attr == '.') attr++; // strip leading '.'
+    // if(*attr == '.') attr++; // strip leading '.'
 
     switch(attr_hash) {
         case ATTR_TYPE:
@@ -1131,7 +1239,7 @@ static void hasp_process_lmeter_attribute(lv_obj_t* obj, const char* attr_p, uin
     uint16_t angle      = lv_linemeter_get_scale_angle(obj);
 
     char* attr = (char*)attr_p;
-    if(*attr == '.') attr++; // strip leading '.'
+    // if(*attr == '.') attr++; // strip leading '.'
 
     switch(attr_hash) {
         case ATTR_TYPE:
@@ -1160,7 +1268,7 @@ static void hasp_process_dropdown_attribute(lv_obj_t* obj, const char* attr_p, u
     uint16_t val   = atoi(payload);
 
     char* attr = (char*)attr_p;
-    if(*attr == '.') attr++; // strip leading '.'
+    // if(*attr == '.') attr++; // strip leading '.'
 
     switch(attr_hash) {
         case ATTR_DIRECTION:
@@ -1200,7 +1308,7 @@ static void hasp_process_gauge_attribute(lv_obj_t* obj, const char* attr_p, uint
     uint16_t angle      = lv_gauge_get_scale_angle(obj);
 
     char* attr = (char*)attr_p;
-    if(*attr == '.') attr++; // strip leading '.'
+    // if(*attr == '.') attr++; // strip leading '.'
 
     switch(attr_hash) {
         case ATTR_CRITICAL_VALUE:
@@ -1277,7 +1385,7 @@ static void hasp_process_obj_attribute_text(lv_obj_t* obj, const char* attr, con
     // lv_obj_get_type(obj, &list);
     // const char * objtype = list.type[0];
 
-    if(check_obj_type(obj, LV_HASP_BUTTON)) {
+    if(obj_check_type(obj, LV_HASP_BUTTON)) {
         if(update) {
             haspSetLabelText(obj, payload);
         } else {
@@ -1286,23 +1394,23 @@ static void hasp_process_obj_attribute_text(lv_obj_t* obj, const char* attr, con
         }
         return;
     }
-    if(check_obj_type(obj, LV_HASP_LABEL)) {
+    if(obj_check_type(obj, LV_HASP_LABEL)) {
         return update ? lv_label_set_text(obj, payload) : attr_out_str(obj, attr, lv_label_get_text(obj));
     }
-    if(check_obj_type(obj, LV_HASP_CHECKBOX)) {
+    if(obj_check_type(obj, LV_HASP_CHECKBOX)) {
         return update ? lv_checkbox_set_text(obj, payload) : attr_out_str(obj, attr, lv_checkbox_get_text(obj));
     }
-    if(check_obj_type(obj, LV_HASP_DROPDOWN)) {
+    if(obj_check_type(obj, LV_HASP_DROPDOWN)) {
         char buffer[128];
         lv_dropdown_get_selected_str(obj, buffer, sizeof(buffer));
         return attr_out_str(obj, attr, buffer);
     }
-    if(check_obj_type(obj, LV_HASP_ROLLER)) {
+    if(obj_check_type(obj, LV_HASP_ROLLER)) {
         char buffer[128];
         lv_roller_get_selected_str(obj, buffer, sizeof(buffer));
         return attr_out_str(obj, attr, buffer);
     }
-    if(check_obj_type(obj, LV_HASP_MSGBOX)) {
+    if(obj_check_type(obj, LV_HASP_MSGBOX)) {
         if(update) {
             lv_msgbox_set_text(obj, payload);
             //  lv_obj_realign(obj); /* Realign to the center */
@@ -1311,7 +1419,7 @@ static void hasp_process_obj_attribute_text(lv_obj_t* obj, const char* attr, con
         }
         return;
     }
-    if(check_obj_type(obj, LV_HASP_TABVIEW)) {
+    if(obj_check_type(obj, LV_HASP_TABVIEW)) {
         if(update) {
             uint16_t id = lv_tabview_get_tab_act(obj);
             if(id < lv_tabview_get_tab_count(obj)) lv_tabview_set_tab_name(obj, id, (char*)payload);
@@ -1321,7 +1429,7 @@ static void hasp_process_obj_attribute_text(lv_obj_t* obj, const char* attr, con
         return;
     }
 #if LV_USE_WIN != 0
-    if(check_obj_type(obj, LV_HASP_WINDOW)) {
+    if(obj_check_type(obj, LV_HASP_WINDOW)) {
         // return update ? lv_win_set_title(obj, (const char *)payload) : attr_out_str(obj, attr,
         // lv_win_get_title(obj));
     }
@@ -1332,7 +1440,7 @@ static void hasp_process_obj_attribute_text(lv_obj_t* obj, const char* attr, con
 
 bool hasp_process_obj_attribute_val(lv_obj_t* obj, const char* attr, int16_t intval, bool boolval, bool update)
 {
-    if(check_obj_type(obj, LV_HASP_BUTTON)) {
+    if(obj_check_type(obj, LV_HASP_BUTTON)) {
         if(lv_btn_get_checkable(obj)) {
             if(update) {
                 if(intval)
@@ -1345,30 +1453,30 @@ bool hasp_process_obj_attribute_val(lv_obj_t* obj, const char* attr, int16_t int
         } else {
             return false; // not checkable
         }
-    } else if(check_obj_type(obj, LV_HASP_CHECKBOX)) {
+    } else if(obj_check_type(obj, LV_HASP_CHECKBOX)) {
         update ? lv_checkbox_set_checked(obj, boolval) : attr_out_int(obj, attr, lv_checkbox_is_checked(obj));
-    } else if(check_obj_type(obj, LV_HASP_SWITCH)) {
+    } else if(obj_check_type(obj, LV_HASP_SWITCH)) {
         if(update)
             boolval ? lv_switch_on(obj, LV_ANIM_ON) : lv_switch_off(obj, LV_ANIM_ON);
         else
             attr_out_int(obj, attr, lv_switch_get_state(obj));
-    } else if(check_obj_type(obj, LV_HASP_DROPDOWN)) {
+    } else if(obj_check_type(obj, LV_HASP_DROPDOWN)) {
         lv_dropdown_set_selected(obj, (uint16_t)intval);
-    } else if(check_obj_type(obj, LV_HASP_LMETER)) {
+    } else if(obj_check_type(obj, LV_HASP_LMETER)) {
         update ? lv_linemeter_set_value(obj, intval) : attr_out_int(obj, attr, lv_linemeter_get_value(obj));
-    } else if(check_obj_type(obj, LV_HASP_SLIDER)) {
+    } else if(obj_check_type(obj, LV_HASP_SLIDER)) {
         update ? lv_slider_set_value(obj, intval, LV_ANIM_ON) : attr_out_int(obj, attr, lv_slider_get_value(obj));
-    } else if(check_obj_type(obj, LV_HASP_LED)) {
+    } else if(obj_check_type(obj, LV_HASP_LED)) {
         update ? lv_led_set_bright(obj, (uint8_t)intval) : attr_out_int(obj, attr, lv_led_get_bright(obj));
-    } else if(check_obj_type(obj, LV_HASP_ARC)) {
+    } else if(obj_check_type(obj, LV_HASP_ARC)) {
         update ? lv_arc_set_value(obj, intval) : attr_out_int(obj, attr, lv_arc_get_value(obj));
-    } else if(check_obj_type(obj, LV_HASP_GAUGE)) {
+    } else if(obj_check_type(obj, LV_HASP_GAUGE)) {
         update ? lv_gauge_set_value(obj, 0, intval) : attr_out_int(obj, attr, lv_gauge_get_value(obj, 0));
-    } else if(check_obj_type(obj, LV_HASP_ROLLER)) {
+    } else if(obj_check_type(obj, LV_HASP_ROLLER)) {
         lv_roller_set_selected(obj, (uint16_t)intval, LV_ANIM_ON);
-    } else if(check_obj_type(obj, LV_HASP_BAR)) {
+    } else if(obj_check_type(obj, LV_HASP_BAR)) {
         update ? lv_bar_set_value(obj, intval, LV_ANIM_ON) : attr_out_int(obj, attr, lv_bar_get_value(obj));
-    } else if(check_obj_type(obj, LV_HASP_TABVIEW)) {
+    } else if(obj_check_type(obj, LV_HASP_TABVIEW)) {
         update ? lv_tabview_set_tab_act(obj, intval, LV_ANIM_ON) : attr_out_int(obj, attr, lv_tabview_get_tab_act(obj));
     } else {
         return false;
@@ -1388,7 +1496,7 @@ static void hasp_process_obj_attribute_range(lv_obj_t* obj, const char* attr, co
     // lv_obj_get_type(obj, &list);
     // const char * objtype = list.type[0];
 
-    if(check_obj_type(obj, LV_HASP_SLIDER)) {
+    if(obj_check_type(obj, LV_HASP_SLIDER)) {
         int16_t min = lv_slider_get_min_value(obj);
         int16_t max = lv_slider_get_max_value(obj);
         if(update && (set_min ? val : min) == (set_max ? val : max)) return; // prevent setting min=max
@@ -1396,7 +1504,7 @@ static void hasp_process_obj_attribute_range(lv_obj_t* obj, const char* attr, co
                       : attr_out_int(obj, attr, set_min ? min : max);
     }
 
-    if(check_obj_type(obj, LV_HASP_GAUGE)) {
+    if(obj_check_type(obj, LV_HASP_GAUGE)) {
         int32_t min = lv_gauge_get_min_value(obj);
         int32_t max = lv_gauge_get_max_value(obj);
         if(update && (set_min ? val32 : min) == (set_max ? val32 : max)) return; // prevent setting min=max
@@ -1404,7 +1512,7 @@ static void hasp_process_obj_attribute_range(lv_obj_t* obj, const char* attr, co
                       : attr_out_int(obj, attr, set_min ? min : max);
     }
 
-    if(check_obj_type(obj, LV_HASP_ARC)) {
+    if(obj_check_type(obj, LV_HASP_ARC)) {
         int16_t min = lv_arc_get_min_value(obj);
         int16_t max = lv_arc_get_max_value(obj);
         if(update && (set_min ? val : min) == (set_max ? val : max)) return; // prevent setting min=max
@@ -1412,7 +1520,7 @@ static void hasp_process_obj_attribute_range(lv_obj_t* obj, const char* attr, co
                       : attr_out_int(obj, attr, set_min ? min : max);
     }
 
-    if(check_obj_type(obj, LV_HASP_BAR)) {
+    if(obj_check_type(obj, LV_HASP_BAR)) {
         int16_t min = lv_bar_get_min_value(obj);
         int16_t max = lv_bar_get_max_value(obj);
         if(update && (set_min ? val : min) == (set_max ? val : max)) return; // prevent setting min=max
@@ -1420,7 +1528,7 @@ static void hasp_process_obj_attribute_range(lv_obj_t* obj, const char* attr, co
                       : attr_out_int(obj, attr, set_min ? min : max);
     }
 
-    if(check_obj_type(obj, LV_HASP_LMETER)) {
+    if(obj_check_type(obj, LV_HASP_LMETER)) {
         int32_t min = lv_linemeter_get_min_value(obj);
         int32_t max = lv_linemeter_get_max_value(obj);
         if(update && (set_min ? val32 : min) == (set_max ? val32 : max)) return; // prevent setting min=max
@@ -1428,7 +1536,7 @@ static void hasp_process_obj_attribute_range(lv_obj_t* obj, const char* attr, co
                       : attr_out_int(obj, attr, set_min ? min : max);
     }
 
-    if(check_obj_type(obj, LV_HASP_CHART)) {
+    if(obj_check_type(obj, LV_HASP_CHART)) {
         int16_t min = my_chart_get_min_value(obj);
         int16_t max = my_chart_get_max_value(obj);
         if(update && (set_min ? val : min) == (set_max ? val : max)) return; // prevent setting min=max
@@ -1459,7 +1567,7 @@ HASP_ATTRIBUTE_FAST_MEM void hasp_process_obj_attribute(lv_obj_t* obj, const cha
     }
 
     char* attr = (char*)attr_p;
-    if(*attr == '.') attr++; // strip leading '.'
+    // if(*attr == '.') attr++; // strip leading '.'
 
     uint16_t attr_hash = Parser::get_sdbm(attr);
     int16_t val        = atoi(payload);
@@ -1486,7 +1594,7 @@ HASP_ATTRIBUTE_FAST_MEM void hasp_process_obj_attribute(lv_obj_t* obj, const cha
 
         case ATTR_OBJ:
             if(update) LOG_WARNING(TAG_ATTR, F(D_ATTRIBUTE_READ_ONLY), attr_p);
-            attr_out_str(obj, attr, get_obj_type_name(obj));
+            attr_out_str(obj, attr, obj_get_type_name(obj));
             break; // attribute_found
 
         case ATTR_OBJID:
@@ -1505,7 +1613,7 @@ HASP_ATTRIBUTE_FAST_MEM void hasp_process_obj_attribute(lv_obj_t* obj, const cha
         case ATTR_W:
             if(update) {
                 lv_obj_set_width(obj, val);
-                if(check_obj_type(obj, LV_HASP_CPICKER)) {
+                if(obj_check_type(obj, LV_HASP_CPICKER)) {
 #if LVGL_VERSION_MAJOR == 7
                     lv_cpicker_set_type(obj, lv_obj_get_width(obj) == lv_obj_get_height(obj) ? LV_CPICKER_TYPE_DISC
                                                                                              : LV_CPICKER_TYPE_RECT);
@@ -1519,7 +1627,7 @@ HASP_ATTRIBUTE_FAST_MEM void hasp_process_obj_attribute(lv_obj_t* obj, const cha
         case ATTR_H:
             if(update) {
                 lv_obj_set_height(obj, val);
-                if(check_obj_type(obj, LV_HASP_CPICKER)) {
+                if(obj_check_type(obj, LV_HASP_CPICKER)) {
 #if LVGL_VERSION_MAJOR == 7
                     lv_cpicker_set_type(obj, lv_obj_get_width(obj) == lv_obj_get_height(obj) ? LV_CPICKER_TYPE_DISC
                                                                                              : LV_CPICKER_TYPE_RECT);
@@ -1546,7 +1654,7 @@ HASP_ATTRIBUTE_FAST_MEM void hasp_process_obj_attribute(lv_obj_t* obj, const cha
             break; // attribute_found
 
         case ATTR_COLOR:
-            if(check_obj_type(obj, LV_HASP_CPICKER)) {
+            if(obj_check_type(obj, LV_HASP_CPICKER)) {
                 if(update) {
                     lv_color32_t c;
                     if(Parser::haspPayloadToColor(payload, c))
@@ -1587,7 +1695,7 @@ HASP_ATTRIBUTE_FAST_MEM void hasp_process_obj_attribute(lv_obj_t* obj, const cha
             break; // attribute_found
 
         case ATTR_SRC:
-            if(check_obj_type(obj, LV_HASP_IMAGE)) {
+            if(obj_check_type(obj, LV_HASP_IMAGE)) {
                 if(update) {
                     return lv_img_set_src(obj, payload);
                 } else {
@@ -1610,124 +1718,144 @@ HASP_ATTRIBUTE_FAST_MEM void hasp_process_obj_attribute(lv_obj_t* obj, const cha
                                      : attr_out_int(obj, attr, lv_gauge_get_angle_offset(obj)); */
 
         case ATTR_ROWS:
-            if(check_obj_type(obj, LV_HASP_ROLLER)) {
-                update ? lv_roller_set_visible_row_count(obj, (uint8_t)val)
-                       : attr_out_int(obj, attr, my_roller_get_visible_row_count(obj));
-            } else if(check_obj_type(obj, LV_HASP_TABLE)) {
-                update ? lv_table_set_row_cnt(obj, (uint8_t)val) : attr_out_int(obj, attr, lv_table_get_row_cnt(obj));
-            } else {
-                goto attribute_not_found;
+            switch(obj_get_type(obj)) {
+                case LV_HASP_ROLLER:
+                    update ? lv_roller_set_visible_row_count(obj, (uint8_t)val)
+                           : attr_out_int(obj, attr, my_roller_get_visible_row_count(obj));
+                    break;
+                case LV_HASP_TABLE:
+                    update ? lv_table_set_row_cnt(obj, (uint8_t)val)
+                           : attr_out_int(obj, attr, lv_table_get_row_cnt(obj));
+                    break;
+                default:
+                    goto attribute_not_found;
             }
             break; // attribute_found
 
         case ATTR_COLS:
-            if(check_obj_type(obj, LV_HASP_TABLE)) {
+            if(obj_check_type(obj, LV_HASP_TABLE)) {
                 update ? lv_table_set_col_cnt(obj, (uint8_t)val) : attr_out_int(obj, attr, lv_table_get_col_cnt(obj));
             } else {
                 goto attribute_not_found;
             }
             break; // attribute_found
 
-            // case ATTR_RECT:
-            //     if(check_obj_type(obj, LV_HASP_CPICKER)) {
-            //         lv_cpicker_set_type(obj, is_true(payload) ? LV_CPICKER_TYPE_RECT : LV_CPICKER_TYPE_DISC);
-            //         return;
-            //     }
-            //     break;
-
         case ATTR_ALIGN:
-            if(check_obj_type(obj, LV_HASP_BUTTON)) {
-                lv_obj_t* label = FindButtonLabel(obj);
-                if(label == NULL)
+            switch(obj_get_type(obj)) {
+                case LV_HASP_BUTTON: {
+                    lv_obj_t* label = FindButtonLabel(obj);
+                    if(label == NULL)
+                        goto attribute_not_found;
+                    else
+                        update ? lv_label_set_align(label, val) : attr_out_int(obj, attr, lv_label_get_align(label));
+                } break;
+                case LV_HASP_BTNMATRIX:
+                    update ? lv_btnmatrix_set_align(obj, val) : attr_out_int(obj, attr, lv_btnmatrix_get_align(obj));
+                    break;
+                case LV_HASP_LABEL:
+                    update ? lv_label_set_align(obj, val) : attr_out_int(obj, attr, lv_label_get_align(obj));
+                    break;
+                case LV_HASP_ROLLER:
+                    update ? lv_roller_set_align(obj, val) : attr_out_int(obj, attr, lv_roller_get_align(obj));
+                    break;
+                default:
                     goto attribute_not_found;
-                else
-                    update ? lv_label_set_align(label, val) : attr_out_int(obj, attr, lv_label_get_align(label));
-
-            } else if(check_obj_type(obj, LV_HASP_BTNMATRIX)) {
-                update ? lv_btnmatrix_set_align(obj, val) : attr_out_int(obj, attr, lv_btnmatrix_get_align(obj));
-            } else if(check_obj_type(obj, LV_HASP_LABEL)) {
-                update ? lv_label_set_align(obj, val) : attr_out_int(obj, attr, lv_label_get_align(obj));
-            } else if(check_obj_type(obj, LV_HASP_ROLLER)) {
-                update ? lv_roller_set_align(obj, val) : attr_out_int(obj, attr, lv_roller_get_align(obj));
-            } else {
-                goto attribute_not_found;
             }
             break; // attribute_found
 
         case ATTR_MODE:
-            if(check_obj_type(obj, LV_HASP_BUTTON)) {
-                lv_obj_t* label = FindButtonLabel(obj);
-                if(label) {
-                    hasp_process_label_long_mode(label, payload, update);
-                    lv_obj_set_width(label, lv_obj_get_width(obj));
-                }
-            } else if(check_obj_type(obj, LV_HASP_LABEL)) {
-                hasp_process_label_long_mode(obj, payload, update);
-            } else if(check_obj_type(obj, LV_HASP_ROLLER)) {
-                if(update) {
-                    lv_roller_set_options(obj, lv_roller_get_options(obj), (lv_roller_mode_t)Parser::is_true(payload));
-                } else {
-                    lv_roller_ext_t* ext = (lv_roller_ext_t*)lv_obj_get_ext_attr(obj);
-                    attr_out_int(obj, attr, ext->mode);
-                }
-            } else {
-                goto attribute_not_found;
+            switch(obj_get_type(obj)) {
+                case LV_HASP_BUTTON: {
+                    lv_obj_t* label = FindButtonLabel(obj);
+                    if(label) {
+                        hasp_process_label_long_mode(label, payload, update);
+                        lv_obj_set_width(label, lv_obj_get_width(obj));
+                    }
+                } break;
+                case LV_HASP_LABEL:
+                    hasp_process_label_long_mode(obj, payload, update);
+                    break;
+                case LV_HASP_ROLLER:
+                    if(update) {
+                        lv_roller_set_options(obj, lv_roller_get_options(obj),
+                                              (lv_roller_mode_t)Parser::is_true(payload));
+                    } else {
+                        lv_roller_ext_t* ext = (lv_roller_ext_t*)lv_obj_get_ext_attr(obj);
+                        attr_out_int(obj, attr, ext->mode);
+                    }
+                    break;
+                default:
+                    goto attribute_not_found;
             }
             break; // attribute_found
 
         case ATTR_TOGGLE:
-            if(check_obj_type(obj, LV_HASP_BUTTON)) {
-                if(update) {
-                    bool toggle = Parser::is_true(payload);
-                    lv_btn_set_checkable(obj, toggle);
-                    lv_obj_set_event_cb(obj, toggle ? toggle_event_handler : generic_event_handler);
-                } else {
-                    attr_out_int(obj, attr, lv_btn_get_checkable(obj));
-                }
-            } else if(check_obj_type(obj, LV_HASP_BTNMATRIX)) {
-                if(update) {
-                    bool toggle = Parser::is_true(payload);
-                    if(toggle) {
-                        lv_btnmatrix_set_btn_ctrl_all(obj, LV_BTNMATRIX_CTRL_CHECKABLE);
+            switch(obj_get_type(obj)) {
+                case LV_HASP_BUTTON:
+                    if(update) {
+                        bool toggle = Parser::is_true(payload);
+                        lv_btn_set_checkable(obj, toggle);
+                        lv_obj_set_event_cb(obj, toggle ? toggle_event_handler : generic_event_handler);
                     } else {
-                        lv_btnmatrix_clear_btn_ctrl_all(obj, LV_BTNMATRIX_CTRL_CHECKABLE);
-                        lv_btnmatrix_clear_btn_ctrl_all(obj, LV_BTNMATRIX_CTRL_CHECK_STATE);
+                        attr_out_int(obj, attr, lv_btn_get_checkable(obj));
                     }
-                } else {
-                    attr_out_int(obj, attr, lv_btn_get_checkable(obj));
-                }
-            } else {
-                goto attribute_not_found;
+                    break;
+                case LV_HASP_BTNMATRIX:
+                    if(update) {
+                        bool toggle = Parser::is_true(payload);
+                        if(toggle) {
+                            lv_btnmatrix_set_btn_ctrl_all(obj, LV_BTNMATRIX_CTRL_CHECKABLE);
+                        } else {
+                            lv_btnmatrix_clear_btn_ctrl_all(obj, LV_BTNMATRIX_CTRL_CHECKABLE);
+                            lv_btnmatrix_clear_btn_ctrl_all(obj, LV_BTNMATRIX_CTRL_CHECK_STATE);
+                        }
+                    } else {
+                        attr_out_int(obj, attr, lv_btn_get_checkable(obj));
+                    }
+                    break;
+                default:
+                    goto attribute_not_found;
             }
             break; // attribute_found
 
         case ATTR_OPTIONS:
-            if(check_obj_type(obj, LV_HASP_DROPDOWN)) {
-                if(update) {
-                    lv_dropdown_set_options(obj, payload);
-                } else {
-                    attr_out_str(obj, attr, lv_dropdown_get_options(obj));
-                }
-            } else if(check_obj_type(obj, LV_HASP_ROLLER)) {
-                if(update) {
-                    lv_roller_ext_t* ext = (lv_roller_ext_t*)lv_obj_get_ext_attr(obj);
-                    lv_roller_set_options(obj, payload, ext->mode);
-                } else {
-                    attr_out_str(obj, attr, lv_roller_get_options(obj));
-                }
-            } else if(check_obj_type(obj, LV_HASP_BTNMATRIX)) {
-                if(update) {
-                    my_btnmatrix_map_create(obj, payload);
-                } else {
-                    attr_out_str(obj, attr_p, "Not implemented"); // TODO : Literal String
-                }
-            } else {
-                goto attribute_not_found;
+            switch(obj_get_type(obj)) {
+                case LV_HASP_DROPDOWN:
+                    if(update) {
+                        lv_dropdown_set_options(obj, payload);
+                    } else {
+                        attr_out_str(obj, attr, lv_dropdown_get_options(obj));
+                    }
+                    break;
+                case LV_HASP_ROLLER:
+                    if(update) {
+                        lv_roller_ext_t* ext = (lv_roller_ext_t*)lv_obj_get_ext_attr(obj);
+                        lv_roller_set_options(obj, payload, ext->mode);
+                    } else {
+                        attr_out_str(obj, attr, lv_roller_get_options(obj));
+                    }
+                    break;
+                case LV_HASP_BTNMATRIX:
+                    if(update) {
+                        my_btnmatrix_set_map(obj, payload);
+                    } else {
+                        attr_out_str(obj, attr_p, "Not implemented"); // TODO : Literal String
+                    }
+                    break;
+                case LV_HASP_MSGBOX:
+                    if(update) {
+                        my_msgbox_set_map(obj, payload);
+                    } else {
+                        attr_out_str(obj, attr_p, "Not implemented"); // TODO : Literal String
+                    }
+                    break;
+                default:
+                    goto attribute_not_found;
             }
             break; // attribute_found
 
         case ATTR_ONE_CHECK:
-            if(check_obj_type(obj, LV_HASP_BTNMATRIX)) {
+            if(obj_check_type(obj, LV_HASP_BTNMATRIX)) {
                 if(update) {
                     lv_btnmatrix_set_one_check(obj, Parser::is_true(payload));
                 } else {
@@ -1739,7 +1867,7 @@ HASP_ATTRIBUTE_FAST_MEM void hasp_process_obj_attribute(lv_obj_t* obj, const cha
             break;
 
         case ATTR_BTN_POS:
-            if(check_obj_type(obj, LV_HASP_TABVIEW)) {
+            if(obj_check_type(obj, LV_HASP_TABVIEW)) {
                 if(update) {
                     lv_tabview_set_btns_pos(obj, val);
                 } else {
@@ -1751,7 +1879,7 @@ HASP_ATTRIBUTE_FAST_MEM void hasp_process_obj_attribute(lv_obj_t* obj, const cha
             break;
 
         case ATTR_COUNT:
-            if(check_obj_type(obj, LV_HASP_TABVIEW)) {
+            if(obj_check_type(obj, LV_HASP_TABVIEW)) {
                 if(update) LOG_WARNING(TAG_ATTR, F(D_ATTRIBUTE_READ_ONLY), attr_p);
                 attr_out_int(obj, attr_p, lv_tabview_get_tab_count(obj));
 
@@ -1762,7 +1890,7 @@ HASP_ATTRIBUTE_FAST_MEM void hasp_process_obj_attribute(lv_obj_t* obj, const cha
 
             //  case ATTR_MODAL:
         case ATTR_AUTO_CLOSE:
-            if(check_obj_type(obj, LV_HASP_MSGBOX)) {
+            if(obj_check_type(obj, LV_HASP_MSGBOX)) {
                 if(update) {
                     lv_msgbox_start_auto_close(obj, val);
                 } else {
@@ -1785,14 +1913,18 @@ HASP_ATTRIBUTE_FAST_MEM void hasp_process_obj_attribute(lv_obj_t* obj, const cha
         case ATTR_END_ANGLE:
         case ATTR_START_ANGLE1:
         case ATTR_END_ANGLE1:
-            if(check_obj_type(obj, LV_HASP_ARC)) {
-                hasp_process_arc_attribute(obj, attr_p, attr_hash, payload, update);
-            } else if(check_obj_type(obj, LV_HASP_GAUGE)) {
-                hasp_process_gauge_attribute(obj, attr_p, attr_hash, payload, update);
-            } else if(check_obj_type(obj, LV_HASP_LMETER)) {
-                hasp_process_lmeter_attribute(obj, attr_p, attr_hash, payload, update);
-            } else {
-                goto attribute_not_found;
+            switch(obj_get_type(obj)) {
+                case LV_HASP_ARC:
+                    hasp_process_arc_attribute(obj, attr_p, attr_hash, payload, update);
+                    break;
+                case LV_HASP_GAUGE:
+                    hasp_process_gauge_attribute(obj, attr_p, attr_hash, payload, update);
+                    break;
+                case LV_HASP_LMETER:
+                    hasp_process_lmeter_attribute(obj, attr_p, attr_hash, payload, update);
+                    break;
+                default:
+                    goto attribute_not_found;
             }
             break; // attribute_found
 
@@ -1802,7 +1934,7 @@ HASP_ATTRIBUTE_FAST_MEM void hasp_process_obj_attribute(lv_obj_t* obj, const cha
         case ATTR_CLOSE:
         case ATTR_MAX_HEIGHT:
         case ATTR_SHOW_SELECTED:
-            if(check_obj_type(obj, LV_HASP_DROPDOWN)) {
+            if(obj_check_type(obj, LV_HASP_DROPDOWN)) {
                 hasp_process_dropdown_attribute(obj, attr_p, attr_hash, payload, update);
             } else {
                 goto attribute_not_found;
@@ -1810,7 +1942,7 @@ HASP_ATTRIBUTE_FAST_MEM void hasp_process_obj_attribute(lv_obj_t* obj, const cha
             break; // attribute_found
 
         case ATTR_RED: // TODO: remove temp RED
-            if(check_obj_type(obj, LV_HASP_BTNMATRIX)) {
+            if(obj_check_type(obj, LV_HASP_BTNMATRIX)) {
                 my_btnmatrix_map_clear(obj); // TODO : remove this test property
             } else {
                 goto attribute_not_found;
@@ -1845,7 +1977,7 @@ HASP_ATTRIBUTE_FAST_MEM void hasp_process_obj_attribute(lv_obj_t* obj, const cha
         case ATTR_NEXT:
         case ATTR_PREV:
         case ATTR_BACK:
-            if(check_obj_type(obj, LV_HASP_SCREEN)) {
+            if(obj_check_type(obj, LV_HASP_SCREEN)) {
                 hasp_process_page_attributes(obj, attr_p, attr_hash, val, update);
                 break; // attribute_found
             }

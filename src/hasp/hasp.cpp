@@ -225,7 +225,7 @@ void haspReconnect()
 void haspProgressVal(uint8_t val)
 {
     lv_obj_t* layer = lv_disp_get_layer_sys(NULL);
-    lv_obj_t* bar   = hasp_find_obj_from_parent_id(haspPages.get_obj(255), (uint8_t)10);
+    lv_obj_t* bar   = hasp_find_obj_from_page_id(255U, 10U);
     if(layer && bar) {
         if(val == 255) {
             if(!lv_obj_get_hidden(bar)) {
@@ -254,9 +254,7 @@ void haspProgressVal(uint8_t val)
 // Sets the value string of the global progress bar
 void haspProgressMsg(const char* msg)
 {
-    lv_obj_t* bar = hasp_find_obj_from_parent_id(haspPages.get_obj(255), (uint8_t)10);
-
-    if(bar) {
+    if(lv_obj_t* bar = hasp_find_obj_from_page_id(255U, 10U)) {
         char value_str[10];
         snprintf_P(value_str, sizeof(value_str), PSTR("value_str"));
         hasp_process_obj_attribute(bar, value_str, msg, true);
