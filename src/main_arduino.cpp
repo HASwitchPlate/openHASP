@@ -169,9 +169,9 @@ IRAM_ATTR void loop()
     }
 
 #ifdef ARDUINO_ARCH_ESP8266
-    delay(2);
+    delay((lv_task_get_idle() >> 6) + 1); // 1..2 ms
 #else
-    delay(6);
+    delay((lv_task_get_idle() >> 4) + 1); // 1..7 ms
 #endif
 }
 
