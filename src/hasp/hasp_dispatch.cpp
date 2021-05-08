@@ -69,10 +69,10 @@ void dispatch_state_subtopic(const char* subtopic, const char* payload)
             LOG_ERROR(TAG_MQTT_PUB, F(D_MQTT_FAILED " %s => %s"), subtopic, payload);
             break;
         case MQTT_ERR_NO_CONN:
-            LOG_ERROR(TAG_MQTT, F(D_MQTT_NOT_CONNECTED));
+            LOG_ERROR(TAG_MQTT, F(D_MQTT_NOT_CONNECTED " %s => %s"), subtopic, payload);
             break;
         default:
-            LOG_ERROR(TAG_MQTT, F(D_ERROR_UNKNOWN));
+            LOG_ERROR(TAG_MQTT, F(D_ERROR_UNKNOWN " %s => %s"), subtopic, payload);
     }
 #endif
 
