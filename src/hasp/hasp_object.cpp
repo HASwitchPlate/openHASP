@@ -64,7 +64,7 @@ lv_obj_t* hasp_find_obj_from_page_id(uint8_t pageid, uint8_t objid)
 }
 
 // Return the pageid and objid of an object
-bool hasp_find_id_from_obj(lv_obj_t* obj, uint8_t* pageid, uint8_t* objid)
+bool hasp_find_id_from_obj(const lv_obj_t* obj, uint8_t* pageid, uint8_t* objid)
 {
     if(!obj || !haspPages.get_id(obj, pageid)) return false;
     if(obj->user_data.id == 0 && obj != haspPages.get_obj(*pageid)) return false;
@@ -78,7 +78,7 @@ bool hasp_find_id_from_obj(lv_obj_t* obj, uint8_t* pageid, uint8_t* objid)
  * @return name of the object type
  * @note
  */
-const char* obj_get_type_name(lv_obj_t* obj)
+const char* obj_get_type_name(const lv_obj_t* obj)
 {
     lv_obj_type_t list;
     lv_obj_get_type(obj, &list);
@@ -93,7 +93,7 @@ const char* obj_get_type_name(lv_obj_t* obj)
  * @return true or false wether the types match
  * @note
  */
-bool obj_check_type(lv_obj_t* obj, lv_hasp_obj_type_t haspobjtype)
+bool obj_check_type(const lv_obj_t* obj, lv_hasp_obj_type_t haspobjtype)
 {
 #if 1
     if(!obj) return false;
@@ -112,12 +112,12 @@ bool obj_check_type(lv_obj_t* obj, lv_hasp_obj_type_t haspobjtype)
  * @return lv_hasp_obj_type_t
  * @note
  */
-lv_hasp_obj_type_t obj_get_type(lv_obj_t* obj)
+lv_hasp_obj_type_t obj_get_type(const lv_obj_t* obj)
 {
     return (lv_hasp_obj_type_t)obj->user_data.objid;
 }
 
-void hasp_object_tree(lv_obj_t* parent, uint8_t pageid, uint16_t level)
+void hasp_object_tree(const lv_obj_t* parent, uint8_t pageid, uint16_t level)
 {
     if(parent == nullptr) return;
 
@@ -239,7 +239,8 @@ void hasp_process_attribute(uint8_t pageid, uint8_t objid, const char* attr, con
 
 // ##################### Object Creator ########################################################
 
-int hasp_parse_json_attributes(lv_obj_t* obj, const JsonObject& doc)
+// Called from hasp_new_object only to process all attributes
+static inline int hasp_parse_json_attributes(lv_obj_t* obj, const JsonObject& doc)
 {
     int i = 0;
 #if defined(WINDOWS) || defined(POSIX)

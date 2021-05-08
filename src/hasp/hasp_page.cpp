@@ -178,7 +178,7 @@ lv_obj_t* Page::get_obj(uint8_t pageid)
     return _pages[pageid - PAGE_START_INDEX];
 }
 
-bool Page::get_id(lv_obj_t* obj, uint8_t* pageid)
+bool Page::get_id(const lv_obj_t* obj, uint8_t* pageid)
 {
     lv_obj_t* page = lv_obj_get_screen(obj);
 
