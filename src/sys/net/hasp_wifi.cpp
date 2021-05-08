@@ -446,11 +446,11 @@ bool wifiEvery5Seconds()
     } else {
         wifiReconnectCounter++;
         if(wifiReconnectCounter > 45) {
-            LOG_ERROR(TAG_WIFI, F("Retries exceed %u: Rebooting..."), wifiReconnectCounter);
+            LOG_ERROR(TAG_WIFI, F("Retries exceeded %d: Rebooting..."), wifiReconnectCounter);
             dispatch_reboot(false);
         }
-        LOG_WARNING(TAG_WIFI, F("No Connection... retry %u"), wifiReconnectCounter);
-        if(wifiReconnectCounter % 6 == 0) {
+        LOG_WARNING(TAG_WIFI, F("No Connection... retry %d"), wifiReconnectCounter);
+        if(wifiReconnectCounter % 2 == 0) {
             wifiReconnect();
         }
         return false;
