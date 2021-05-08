@@ -14,10 +14,10 @@ lv_chart_series_t* my_chart_get_series(lv_obj_t* chart, uint8_t ser_num);
 void my_obj_set_value_str_text(lv_obj_t* obj, uint8_t part, lv_state_t state, const char* text);
 
 void my_btnmatrix_map_clear(lv_obj_t* obj);
+void my_msgbox_map_clear(lv_obj_t* obj);
 void line_clear_points(lv_obj_t* obj);
 
-HASP_ATTRIBUTE_FAST_MEM void hasp_process_obj_attribute(lv_obj_t* obj, const char* attr_p, const char* payload,
-                                                        bool update);
+void hasp_process_obj_attribute(lv_obj_t* obj, const char* attr_p, const char* payload, bool update);
 bool hasp_process_obj_attribute_val(lv_obj_t* obj, const char* attr, int16_t intval, bool booval, bool update);
 
 void attr_out_str(lv_obj_t* obj, const char* attribute, const char* data);
@@ -27,6 +27,27 @@ void attr_out_color(lv_obj_t* obj, const char* attribute, lv_color_t color);
 #ifdef __cplusplus
 } /* extern "C" */
 #endif
+
+struct hasp_attr_update16_const_t
+{
+    lv_hasp_obj_type_t obj_type;
+    void (*set)(lv_obj_t*, uint16_t);
+    uint16_t (*get)(const lv_obj_t*);
+};
+
+struct hasp_attr_update16_t
+{
+    lv_hasp_obj_type_t obj_type;
+    void (*set)(lv_obj_t*, uint16_t);
+    uint16_t (*get)(lv_obj_t*);
+};
+
+struct hasp_attr_update_char_const_t
+{
+    lv_hasp_obj_type_t obj_type;
+    void (*set)(lv_obj_t*, const char*);
+    const char* (*get)(const lv_obj_t*);
+};
 
 #define _HASP_ATTRIBUTE(prop_name, func_name, value_type)                                                              \
     static inline void attribute_##func_name(lv_obj_t* obj, uint8_t part, lv_state_t state, bool update,               \
@@ -285,6 +306,7 @@ _HASP_ATTRIBUTE(SCALE_END_LINE_WIDTH, scale_end_line_width, lv_style_int_t)
 #define ATTR_SRC 4964
 #define ATTR_ID 6715
 #define ATTR_ANIM_TIME 59451
+#define ATTR_ANIM_SPEED 281
 
 // methods
 #define ATTR_DELETE 50027
