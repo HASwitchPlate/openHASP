@@ -96,6 +96,7 @@ const char* obj_get_type_name(lv_obj_t* obj)
 bool obj_check_type(lv_obj_t* obj, lv_hasp_obj_type_t haspobjtype)
 {
 #if 1
+    if(!obj) return false;
     return obj->user_data.objid == (uint8_t)haspobjtype;
 #else
     lv_obj_type_t list;
@@ -267,6 +268,18 @@ int hasp_parse_json_attributes(lv_obj_t* obj, const JsonObject& doc)
     return i;
 }
 
+static void object_add_task(lv_obj_t* obj, uint8_t pageid, uint8_t objid, lv_task_cb_t task_xcb, uint16_t interval)
+{
+    hasp_task_user_data_t* user_data = (hasp_task_user_data_t*)lv_mem_alloc(sizeof(hasp_task_user_data_t));
+    if(!user_data) return;
+
+    user_data->pageid   = pageid;
+    user_data->objid    = objid;
+    user_data->interval = interval;
+    lv_task_t* task     = lv_task_create(task_xcb, 25, LV_TASK_PRIO_LOWEST, (void*)user_data);
+    (void)task; // unused
+}
+
 /**
  * Create a new object according to the json config
  * @param config Json representation for this object
@@ -385,6 +398,8 @@ void hasp_new_object(const JsonObject& config, uint8_t& saved_page_id)
                     lv_label_set_recolor(obj, true);
                     lv_obj_set_event_cb(obj, generic_event_handler);
                     obj->user_data.objid = LV_HASP_LABEL;
+
+                    // object_add_task(obj, pageid, id, event_timer_clock, 1000);
                 }
                 break;
 
@@ -654,8 +669,8 @@ void hasp_new_object(const JsonObject& config, uint8_t& saved_page_id)
                 if(obj) {
                     lv_obj_set_event_cb(obj, calendar_event_handler);
                     obj->user_data.objid = LV_HASP_CALENDER;
-                    lv_task_t* task      = lv_task_create(event_timer_calendar, 25, LV_TASK_PRIO_LOWEST, (void*)obj);
-                    (void)task; // unused
+
+                    object_add_task(obj, pageid, id, event_timer_calendar, 5000);
                 }
                 break;
 

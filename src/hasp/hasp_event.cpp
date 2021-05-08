@@ -60,9 +60,16 @@ static void event_delete_object(lv_obj_t* obj)
 /* ============================== Timer Event  ============================ */
 void event_timer_calendar(lv_task_t* task)
 {
-    lv_obj_t* obj = (lv_obj_t*)task->user_data;
+    hasp_task_user_data_t* data = (hasp_task_user_data_t*)task->user_data;
+    lv_obj_t* obj;
 
-    if(!obj) return lv_task_del(task); // the calendar object for this task was deleted
+    if(data) obj = hasp_find_obj_from_page_id(data->pageid, data->objid);
+    if(!obj || !data) {
+        if(data) lv_mem_free(data); // the object that the user_data points to is gone
+        lv_task_del(task);          // the calendar object for this task was deleted
+        LOG_WARNING(TAG_EVENT, "event_timer_calendar could not find the linked object");
+        return;
+    }
 
     lv_calendar_date_t date;
 
@@ -74,10 +81,12 @@ void event_timer_calendar(lv_task_t* task)
 
     if(timeinfo->tm_year < 120) {
         lv_task_set_period(task, 60000); // try again in a minute
+        LOG_WARNING(TAG_EVENT, "event_timer_calendar could not sync the clock");
         return;
     } else {
         uint32_t next_hour = (3600 - (t % 3600)) * 1000; // ms to next top of hour
-        lv_task_set_period(task, next_hour + 128);       // small offset so all tasks don't run at once
+        // lv_task_set_period(task, next_hour + 128);       // small offset so all tasks don't run at once
+        lv_task_set_period(task, data->interval);
     }
 
     date.day   = timeinfo->tm_mday;
@@ -92,9 +101,16 @@ void event_timer_calendar(lv_task_t* task)
 
 void event_timer_clock(lv_task_t* task)
 {
-    lv_obj_t* obj = (lv_obj_t*)task->user_data;
+    hasp_task_user_data_t* data = (hasp_task_user_data_t*)task->user_data;
+    lv_obj_t* obj;
 
-    if(!obj) return lv_task_del(task); // the calendar object for this task was deleted
+    if(data) obj = hasp_find_obj_from_page_id(data->pageid, data->objid);
+    if(!obj || !data) {
+        if(data) lv_mem_free(data); // the object that the user_data points to is gone
+        lv_task_del(task);          // the calendar object for this task was deleted
+        LOG_WARNING(TAG_EVENT, "event_timer_clock could not find the linked object");
+        return;
+    }
 
     timeval curTime;
     int rslt       = gettimeofday(&curTime, NULL);
@@ -102,16 +118,18 @@ void event_timer_clock(lv_task_t* task)
     tm* timeinfo   = localtime(&seconds);
     (void)rslt; // unused
 
+    char buffer[24];
     if(timeinfo->tm_year < 120) {
-        lv_task_set_period(task, 60000); // try again in a minute
-        return;
+        snprintf_P(buffer, sizeof(buffer), PSTR("%il"), seconds);
+    } else {
+        strftime(buffer, sizeof(buffer), D_TIMESTAMP, timeinfo); // Literal String
     }
 
-    LOG_VERBOSE(TAG_EVENT, "event_timer_clock called with user %d:%d%s", timeinfo->tm_hour, timeinfo->tm_min,
-                timeinfo->tm_sec);
+    // LOG_VERBOSE(TAG_EVENT, "event_timer_clock called with user %d:%d:%d", timeinfo->tm_hour, timeinfo->tm_min,
+    //             timeinfo->tm_sec);
 
-    uint16_t interval;
-    lv_task_set_period(task, (interval - (seconds % interval)) * 1000 + 64); // ms to next interval
+    lv_label_set_text(obj, buffer);
+    lv_task_set_period(task, data->interval);
 }
 
 /* ============================== Timer Event  ============================ */

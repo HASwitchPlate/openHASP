@@ -13,6 +13,13 @@ const char FP_OBJID[] PROGMEM    = "objid";
 const char FP_PARENTID[] PROGMEM = "parentid";
 const char FP_GROUPID[] PROGMEM  = "groupid";
 
+typedef struct
+{
+    uint8_t pageid;
+    uint8_t objid;
+    uint16_t interval;
+} hasp_task_user_data_t;
+
 enum lv_hasp_obj_type_t {
     /* Containers */
     LV_HASP_SCREEN    = 1,
