@@ -40,7 +40,7 @@ void swipe_event_handler(lv_obj_t* obj, lv_event_t event);
  */
 static void event_delete_object(lv_obj_t* obj)
 {
-    switch(obj->user_data.objid) {
+    switch(obj_get_type(obj)) {
         case LV_HASP_LINE:
             line_clear_points(obj);
             break;
@@ -49,7 +49,14 @@ static void event_delete_object(lv_obj_t* obj)
             my_btnmatrix_map_clear(obj);
             break;
 
+        case LV_HASP_MSGBOX:
+            my_msgbox_map_clear(obj);
+            break;
+
         case LV_HASP_GAUGE:
+            break;
+
+        default:
             break;
     }
 
@@ -61,7 +68,7 @@ static void event_delete_object(lv_obj_t* obj)
 void event_timer_calendar(lv_task_t* task)
 {
     hasp_task_user_data_t* data = (hasp_task_user_data_t*)task->user_data;
-    lv_obj_t* obj;
+    lv_obj_t* obj               = NULL;
 
     if(data) obj = hasp_find_obj_from_page_id(data->pageid, data->objid);
     if(!obj || !data) {
@@ -118,9 +125,9 @@ void event_timer_clock(lv_task_t* task)
     tm* timeinfo   = localtime(&seconds);
     (void)rslt; // unused
 
-    char buffer[24];
+    char buffer[24] = {0};
     if(timeinfo->tm_year < 120) {
-        snprintf_P(buffer, sizeof(buffer), PSTR("%il"), seconds);
+        snprintf_P(buffer, sizeof(buffer), PSTR("%d"), seconds);
     } else {
         strftime(buffer, sizeof(buffer), D_TIMESTAMP, timeinfo); // Literal String
     }
@@ -689,8 +696,8 @@ void cpicker_event_handler(lv_obj_t* obj, lv_event_t event)
     c32.full        = lv_color_to32(color);
     last_color_sent = color;
 
-    snprintf_P(data, sizeof(data), PSTR("{\"event\":\"%s\",\"color\":\"#\",\"r\":%d,\"g\":%d,\"b\":%d}"), eventname,
-               c32.ch.red, c32.ch.green, c32.ch.blue, c32.ch.red, c32.ch.green, c32.ch.blue);
+    snprintf_P(data, sizeof(data), PSTR("{\"event\":\"%s\",\"color\":\"#%02x%02x%02x\",\"r\":%d,\"g\":%d,\"b\":%d}"),
+               eventname, c32.ch.red, c32.ch.green, c32.ch.blue, c32.ch.red, c32.ch.green, c32.ch.blue);
     event_send_object_data(obj, data);
 
     // dispatch_normalized_group_values(obj->user_data.groupid, obj, val, min, max);
