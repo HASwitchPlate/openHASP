@@ -403,7 +403,7 @@ void configSetup()
 #if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
             if(!filesystemSetup()) {
                 LOG_ERROR(TAG_CONF, F("FILE: SPI flash init failed. Unable to mount FS: Using default settings..."));
-                return;
+                // return; // Keep going and initialize the console with default settings
             }
 #endif
             configRead(settings, true);
