@@ -348,6 +348,11 @@ _HASP_ATTRIBUTE(SCALE_END_LINE_WIDTH, scale_end_line_width, lv_style_int_t)
 #define ATTR_MODAL 7405
 #define ATTR_AUTO_CLOSE 7880
 
+// Image
+#define ATTR_OFFSET_X 65388
+#define ATTR_OFFSET_Y 65389
+#define ATTR_AUTO_SIZE 63729
+
 /* hasp user data */
 #define ATTR_ACTION 42102
 #define ATTR_TRANSITION 10933
