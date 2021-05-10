@@ -1795,9 +1795,19 @@ void hasp_process_obj_attribute(lv_obj_t* obj, const char* attr_p, const char* p
                    : attr_out_int(obj, attr, lv_obj_get_style_opa_scale(obj, LV_OBJ_PART_MAIN));
             return; // attribute_found
 
-        case ATTR_ENABLED:
+        case ATTR_CLICK:
             update ? lv_obj_set_click(obj, Parser::is_true(payload)) : attr_out_int(obj, attr, lv_obj_get_click(obj));
             return; // attribute_found
+
+        case ATTR_ENABLED:
+            if(update)
+                if(Parser::is_true(payload))
+                    lv_obj_clear_state(obj, LV_STATE_DISABLED);
+                else
+                    lv_obj_add_state(obj, LV_STATE_DISABLED);
+            else
+                attr_out_int(obj, attr, !(lv_obj_get_state(obj, LV_BTN_PART_MAIN) & LV_STATE_DISABLED));
+            break; // attribute_found
 
         case ATTR_SWIPE:
             update ? (void)(obj->user_data.swipeid = Parser::is_true(payload) % 16)
