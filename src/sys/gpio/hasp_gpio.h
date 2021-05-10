@@ -31,7 +31,7 @@ void gpio_set_normalized_group_values(uint8_t group, int32_t val, int32_t min, i
 // void gpio_set_gpio_state(uint8_t pin, uint16_t state);
 bool gpio_get_value(uint8_t pin, uint16_t& val);
 bool gpio_set_pin_value(uint8_t pin, int32_t val);
-void gpio_set_moodlight(uint8_t r, uint8_t g, uint8_t b);
+void gpio_set_moodlight(moodlight_t& moodlight);
 
 void gpio_discovery(JsonArray& relay, JsonArray& led);
 

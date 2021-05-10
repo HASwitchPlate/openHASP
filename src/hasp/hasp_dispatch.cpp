@@ -42,12 +42,7 @@ uint32_t dispatchLastMillis = -3000000; // force discovery
 uint8_t nCommands           = 0;
 haspCommand_t commands[20];
 
-struct moodlight_t
-{
-    uint8_t power;
-    uint8_t r, g, b;
-};
-moodlight_t moodlight;
+moodlight_t moodlight = {.brightness = 255};
 
 static void dispatch_config(const char* topic, const char* payload);
 // void dispatch_group_value(uint8_t groupid, int16_t state, lv_obj_t * obj);
@@ -705,6 +700,7 @@ void dispatch_moodlight(const char* topic, const char* payload)
             if(!json["r"].isNull()) moodlight.r = json["r"].as<uint8_t>();
             if(!json["g"].isNull()) moodlight.g = json["g"].as<uint8_t>();
             if(!json["b"].isNull()) moodlight.b = json["b"].as<uint8_t>();
+            if(!json["brightness"].isNull()) moodlight.brightness = json["brightness"].as<uint8_t>();
 
             if(!json[F("color")].isNull()) {
                 if(!json[F("color")]["r"].isNull()) {
@@ -725,10 +721,7 @@ void dispatch_moodlight(const char* topic, const char* payload)
             }
 
 #if HASP_USE_GPIO > 0
-            if(moodlight.power)
-                gpio_set_moodlight(moodlight.r, moodlight.g, moodlight.b);
-            else
-                gpio_set_moodlight(0, 0, 0);
+            gpio_set_moodlight(moodlight);
 #endif
         }
     }
@@ -740,8 +733,8 @@ void dispatch_moodlight(const char* topic, const char* payload)
     snprintf_P(
         // buffer, sizeof(buffer),
         // PSTR("{\"state\":\"%s\",\"color\":\"#%02x%02x%02x\",\"r\":%u,\"g\":%u,\"b\":%u}"),
-        buffer, sizeof(buffer), PSTR("{\"state\":\"%s\",\"color\":{\"r\":%u,\"g\":%u,\"b\":%u}}"),
-        moodlight.power ? "ON" : "OFF", moodlight.r, moodlight.g, moodlight.b);
+        buffer, sizeof(buffer), PSTR("{\"state\":\"%s\",\"color\":{\"r\":%u,\"g\":%u,\"b\":%u,\"brightness\":%u}}"),
+        moodlight.power ? "ON" : "OFF", moodlight.r, moodlight.g, moodlight.b, moodlight.brightness);
     dispatch_state_subtopic(out_topic, buffer);
 }
 
@@ -1000,9 +993,7 @@ void dispatchSetup()
 }
 
 IRAM_ATTR void dispatchLoop()
-{
-    lv_task_handler(); // process animations
-}
+{}
 
 #if 1 || ARDUINO
 void dispatchEverySecond()

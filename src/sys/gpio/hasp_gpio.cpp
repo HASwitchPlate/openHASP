@@ -575,8 +575,20 @@ bool gpio_set_pin_value(uint8_t pin, int32_t val)
 }
 
 // Updates the RGB pins directly, rgb are already normalized values
-void gpio_set_moodlight(uint8_t r, uint8_t g, uint8_t b)
+void gpio_set_moodlight(moodlight_t& moodlight)
 {
+    uint8_t r = 0;
+    uint8_t g = 0;
+    uint8_t b = 0;
+
+    if(moodlight.power && moodlight.brightness) {
+        r = (moodlight.r * moodlight.brightness + 127) / 255;
+        g = (moodlight.g * moodlight.brightness + 127) / 255;
+        b = (moodlight.b * moodlight.brightness + 127) / 255;
+    } else {
+        moodlight.power = 0;
+    }
+
     // RGBXX https://stackoverflow.com/questions/39949331/how-to-calculate-rgbaw-amber-white-from-rgb-for-leds
     for(uint8_t i = 0; i < HASP_NUM_GPIO_CONFIG; i++) {
         switch(gpioConfig[i].type) {
@@ -588,6 +600,16 @@ void gpio_set_moodlight(uint8_t r, uint8_t g, uint8_t b)
                 break;
             case HASP_GPIO_LED_B:
                 gpio_set_output_value(&gpioConfig[i], b);
+                break;
+        }
+    }
+
+    for(uint8_t i = 0; i < HASP_NUM_GPIO_CONFIG; i++) {
+        switch(gpioConfig[i].type) {
+            case HASP_GPIO_LED_B:
+            case HASP_GPIO_LED_G:
+            case HASP_GPIO_LED_R:
+                LOG_VERBOSE(TAG_GPIO, F(D_BULLET D_GPIO_PIN " %d => %d"), gpioConfig[i].pin, gpioConfig[i].val);
                 break;
         }
     }
