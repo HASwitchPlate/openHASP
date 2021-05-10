@@ -65,6 +65,8 @@ void filesystemInfo()
     Serial.print("Max path lenght:  ");
     // Serial.println(SPIFFS.maxPathLength());
 #endif
+
+    Log.verbose(TAG_FILE, "Partition size: total: %d, used: %d", HASP_FS.totalBytes(), HASP_FS.usedBytes());
 }
 
 void filesystemList()
