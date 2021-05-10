@@ -1777,6 +1777,7 @@ void hasp_process_obj_attribute(lv_obj_t* obj, const char* attr_p, const char* p
         case ATTR_SRC:
             if(obj_check_type(obj, LV_HASP_IMAGE)) {
                 if(update) {
+                    lv_img_cache_invalidate_src(lv_img_get_src(obj));
                     lv_img_set_src(obj, payload);
                 } else {
                     switch(lv_img_src_get_type(obj)) {

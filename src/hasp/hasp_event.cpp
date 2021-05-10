@@ -53,6 +53,10 @@ static void event_delete_object(lv_obj_t* obj)
             my_msgbox_map_clear(obj);
             break;
 
+        case LV_HASP_IMAGE:
+            lv_img_cache_invalidate_src(NULL);
+            break;
+
         case LV_HASP_GAUGE:
             break;
 

@@ -187,16 +187,16 @@ typedef void* lv_group_user_data_t;
 typedef void* lv_fs_drv_user_data_t;
 
 /*File system interface*/
-#define LV_USE_FS_IF	      0
+#define LV_USE_FS_IF	      1
 #if LV_USE_FS_IF
 #  define LV_FS_IF_FATFS    '\0'
 #if defined(STM32F4xx) // || defined(ARDUINO_ARCH_ESP8266)
 #  define LV_FS_IF_PC       '\0'
-#  define LV_FS_IF_SPIFFS   '\0'  // internal esp Flash
+//#  define LV_FS_IF_SPIFFS   '\0'  // internal esp Flash
 #else
-#  define LV_FS_IF_PC       '\0'
+#  define LV_FS_IF_PC       'L'   // Local filesystem
 #  define LV_FS_IF_POSIX    '\0'
-#  define LV_FS_IF_SPIFFS   '\0'  // no internal esp Flash
+//#  define LV_FS_IF_SPIFFS   '\0'  // no internal esp Flash
 #endif
 #endif  /*LV_USE_FS_IF*/
 
@@ -225,6 +225,10 @@ typedef void* lv_fs_drv_user_data_t;
 
  /*Declare the type of the user data of image decoder (can be e.g. `void *`, `int`, `struct`)*/
 typedef void* lv_img_decoder_user_data_t;
+
+#if (HASP_USE_PNGDECODE > 0) && (LV_USE_FILESYSTEM > 0)
+//#define LV_PNG_USE_LV_FILESYSTEM 1
+#endif
 
 /*=====================
  *  Compiler settings

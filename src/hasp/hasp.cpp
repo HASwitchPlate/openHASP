@@ -305,7 +305,7 @@ void haspSetup(void)
     /******* File System Test ********************************************************************/
     // lv_fs_file_t f;
     // lv_fs_res_t res;
-    // res = lv_fs_open(&f, "E:/config.json", LV_FS_MODE_RD);
+    // res = lv_fs_open(&f, "L:/config.json", LV_FS_MODE_RD);
     // if(res == LV_FS_RES_OK)
     //     LOG_VERBOSE(TAG_HASP, F("Opening config.json OK"));
     // else
