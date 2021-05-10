@@ -363,8 +363,8 @@ void haspSetup(void)
     if(haspFonts[3] == nullptr) haspFonts[3] = LV_THEME_DEFAULT_FONT_TITLE;
 
     // haspFonts[0] = lv_font_load("E:/font_1.fnt");
-    //  haspFonts[2] = lv_font_load("E:/font_2.fnt");
-    //  haspFonts[3] = lv_font_load("E:/font_3.fnt");
+    // haspFonts[2] = lv_font_load("E:/font_2.fnt");
+    // haspFonts[3] = lv_font_load("E:/font_3.fnt");
 
     /* ********** Theme Initializations ********** */
     if(haspThemeId == 8) haspThemeId = 1;                   // update old HASP id
@@ -461,7 +461,7 @@ void haspSetup(void)
 
     hasp_init();
     hasp_load_json();
-    haspPages.set(haspStartPage, LV_SCR_LOAD_ANIM_NONE);
+    haspPages.set(haspStartPage, LV_SCR_LOAD_ANIM_FADE_ON);
 }
 
 /**********************

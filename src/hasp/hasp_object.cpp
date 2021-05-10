@@ -249,7 +249,8 @@ static int hasp_parse_json_attributes(lv_obj_t* obj, const JsonObject& doc)
     std::string v;
 
     for(JsonPair keyValue : doc) {
-        LOG_VERBOSE(TAG_HASP, F(D_BULLET "%s=%s"), keyValue.key().c_str(), keyValue.value().as<std::string>().c_str());
+        // LOG_VERBOSE(TAG_HASP, F(D_BULLET "%s=%s"), keyValue.key().c_str(),
+        // keyValue.value().as<std::string>().c_str());
         v = keyValue.value().as<std::string>();
         hasp_process_obj_attribute(obj, keyValue.key().c_str(), keyValue.value().as<std::string>().c_str(), true);
         i++;
@@ -259,7 +260,7 @@ static int hasp_parse_json_attributes(lv_obj_t* obj, const JsonObject& doc)
     v.reserve(64);
 
     for(JsonPair keyValue : doc) {
-        LOG_DEBUG(TAG_HASP, F(D_BULLET "%s=%s"), keyValue.key().c_str(), keyValue.value().as<String>().c_str());
+        // LOG_DEBUG(TAG_HASP, F(D_BULLET "%s=%s"), keyValue.key().c_str(), keyValue.value().as<String>().c_str());
         v = keyValue.value().as<String>();
         hasp_process_obj_attribute(obj, keyValue.key().c_str(), keyValue.value().as<String>().c_str(), true);
         i++;

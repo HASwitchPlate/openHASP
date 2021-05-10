@@ -319,25 +319,7 @@ void debugSetup(JsonObject settings)
 }
 
 IRAM_ATTR void debugLoop(void)
-{
-    /*     int16_t keypress;
-        do {
-            switch(keypress = debugConsole.readKey()) {
-
-                case ConsoleInput::KEY_PAGE_UP:
-                    dispatch_page_next(LV_SCR_LOAD_ANIM_NONE);
-                    break;
-
-                case ConsoleInput::KEY_PAGE_DOWN:
-                    dispatch_page_prev(LV_SCR_LOAD_ANIM_NONE);
-                    break;
-
-                case(ConsoleInput::KEY_FN)...(ConsoleInput::KEY_FN + 12):
-                    dispatch_set_page(keypress - ConsoleInput::KEY_FN, LV_SCR_LOAD_ANIM_NONE);
-                    break;
-            }
-        } while(keypress != 0); */
-}
+{}
 
 void printLocalTime()
 {

@@ -298,6 +298,8 @@ void guiSetup()
 
 IRAM_ATTR void guiLoop(void)
 {
+    lv_task_handler(); // process animations
+
 #if defined(STM32F4xx)
     //  tick.update();
 #endif

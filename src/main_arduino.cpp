@@ -115,7 +115,7 @@ void setup()
 IRAM_ATTR void loop()
 {
     guiLoop();
-    haspLoop();
+    // haspLoop();
     networkLoop();
 
 #if HASP_USE_GPIO > 0
@@ -126,10 +126,10 @@ IRAM_ATTR void loop()
     mqttLoop();
 #endif // MQTT
 
-    // debugLoop();
     haspDevice.loop();
 
 #if HASP_USE_CONSOLE > 0
+    // debugLoop();
     consoleLoop();
 #endif
 
@@ -137,8 +137,8 @@ IRAM_ATTR void loop()
     if(millis() - mainLastLoopTime >= 1000) {
 
         /* Runs Every Second */
-        haspEverySecond();  // sleep timer
-        debugEverySecond(); // statusupdate
+        haspEverySecond(); // sleep timer & statusupdate
+        // debugEverySecond();
 
         /* Runs Every 5 Seconds */
         if(mainLoopCounter == 0 || mainLoopCounter == 5) {
@@ -165,6 +165,7 @@ IRAM_ATTR void loop()
         } else {
             mainLoopCounter++;
         }
+
         mainLastLoopTime += 1000;
     }
 

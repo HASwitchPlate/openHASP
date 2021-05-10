@@ -104,7 +104,7 @@ void setup()
 #endif
 
     mainLastLoopTime = millis() - 1000; // reset loop counter
-    delay(250);
+    delay(20);
     guiStart();
 }
 
