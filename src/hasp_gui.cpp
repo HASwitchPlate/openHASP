@@ -27,7 +27,7 @@
 //#include "Ticker.h"
 
 #if HASP_USE_PNGDECODE > 0
-#include "png_decoder.h"
+#include "lv_png.h"
 #endif
 
 #define BACKLIGHT_CHANNEL 0 // pwm channel 0-15
@@ -56,8 +56,8 @@ gui_conf_t gui_settings = {.show_pointer   = false,
                            .invert_display = INVERT_COLORS,
                            .cal_data       = {0, 65535, 0, 65535, 0}};
 
-// static int8_t guiDimLevel = 100;
-// bool guiBacklightIsOn;
+uint16_t tft_width  = TFT_WIDTH;
+uint16_t tft_height = TFT_HEIGHT;
 
 // #if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
 // static Ticker tick; /* timer for interrupt handler */
@@ -95,13 +95,13 @@ void guiCalibrate(void)
 #endif
 }
 
-void guiSetup(void)
+void guiSetup()
 {
     // Register logger to capture lvgl_init output
     LOG_TRACE(TAG_TFT, F(D_SERVICE_STARTING));
 
     // Initialize the TFT
-    haspTft.init(240, 320);
+    haspTft.init(tft_width, tft_height);
     haspTft.set_rotation(gui_settings.rotation);
     haspTft.set_invert(gui_settings.invert_display);
     haspTft.show_info();
@@ -168,6 +168,9 @@ void guiSetup(void)
         LOG_FATAL(TAG_GUI, F(D_ERROR_OUT_OF_MEMORY));
     }
 
+    LOG_VERBOSE(TAG_LVGL, F("Version    : %u.%u.%u %s"), LVGL_VERSION_MAJOR, LVGL_VERSION_MINOR, LVGL_VERSION_PATCH,
+                PSTR(LVGL_VERSION_INFO));
+
     /* Initialize the display driver */
     static lv_disp_drv_t disp_drv;
     lv_disp_drv_init(&disp_drv);
@@ -195,17 +198,28 @@ void guiSetup(void)
 
     /* Initialize Filesystems */
 #if LV_USE_FS_IF != 0
-    // _lv_fs_init();   // lvgl File System -- not neaded, it done in lv_init() when LV_USE_FILESYSTEM is set
+    //_lv_fs_init(); // lvgl File System -- not neaded, it done in lv_init() when LV_USE_FILESYSTEM is set
     LOG_VERBOSE(TAG_LVGL, F("Filesystem : " D_SETTING_ENABLED));
     lv_fs_if_init(); // auxilary file system drivers
-    filesystem_list_path("S:/fs/");
+    filesystem_list_path("L:/");
+
+    lv_fs_file_t f;
+    lv_fs_res_t res;
+    res = lv_fs_open(&f, "L:/config.json", LV_FS_MODE_RD);
+    if(res == LV_FS_RES_OK) {
+        LOG_VERBOSE(TAG_HASP, F("TEST Opening config.json OK"));
+        lv_fs_close(&f);
+    } else {
+        LOG_ERROR(TAG_HASP, F("TEST Opening config.json from FS failed %d"), res);
+    }
+
 #else
     LOG_VERBOSE(TAG_LVGL, F("Filesystem : " D_SETTING_DISABLED));
 #endif
 
     /* Initialize PNG decoder */
 #if HASP_USE_PNGDECODE > 0
-    png_decoder_init();
+    lv_png_init();
 #endif
 
 #ifdef USE_DMA_TO_TFT
@@ -216,9 +230,6 @@ void guiSetup(void)
 
     /* Setup Backlight Control Pin */
     haspDevice.set_backlight_pin(gui_settings.backlight_pin);
-
-    LOG_VERBOSE(TAG_LVGL, F("Version    : %u.%u.%u %s"), LVGL_VERSION_MAJOR, LVGL_VERSION_MINOR, LVGL_VERSION_PATCH,
-                PSTR(LVGL_VERSION_INFO));
 
 #ifdef LV_MEM_SIZE
     LOG_VERBOSE(TAG_LVGL, F("MEM size   : %d"), LV_MEM_SIZE);
