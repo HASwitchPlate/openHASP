@@ -16,7 +16,7 @@ void filesystemInfo()
 { // Get all information of your SPIFFS
 #if 0
     FSInfo fs_info;
-    SPIFFS.info(fs_info);
+    HASP_FS.info(fs_info);
 
     Serial.println("File system info.");
 
@@ -71,9 +71,9 @@ void filesystemList()
 {
 #if HASP_USE_SPIFFS > 0
 #if defined(ARDUINO_ARCH_ESP8266)
-    if(!SPIFFS.begin()) {
+    if(!HASP_FS.begin()) {
 #else
-    if(!SPIFFS.begin(true)) {
+    if(!HASP_FS.begin(true)) { // default vfs path: /littlefs
 #endif
         LOG_ERROR(TAG_FILE, F("Flash file system not mouted."));
     } else {
@@ -81,7 +81,7 @@ void filesystemList()
         LOG_VERBOSE(TAG_FILE, F("Listing files on the internal flash:"));
 
 #if defined(ARDUINO_ARCH_ESP32)
-        File root = SPIFFS.open("/");
+        File root = HASP_FS.open("/");
         File file = root.openNextFile();
         while(file) {
             LOG_VERBOSE(TAG_FILE, F("   * %s  (%u bytes)"), file.name(), (uint32_t)file.size());
@@ -89,7 +89,7 @@ void filesystemList()
         }
 #endif
 #if defined(ARDUINO_ARCH_ESP8266)
-        Dir dir = SPIFFS.openDir("/");
+        Dir dir = HASP_FS.openDir("/");
         while(dir.next()) {
             LOG_VERBOSE(TAG_FILE, F("   * %s  (%u bytes)"), dir.fileName().c_str(), (uint32_t)dir.fileSize());
         }
