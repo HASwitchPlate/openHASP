@@ -11,6 +11,13 @@ struct dispatch_conf_t
     uint16_t teleperiod;
 };
 
+struct moodlight_t
+{
+    uint8_t brightness;
+    uint8_t power;
+    uint8_t r, g, b;
+};
+
 enum hasp_event_t { // even = released, odd = pressed
     HASP_EVENT_OFF     = 0,
     HASP_EVENT_ON      = 1,
