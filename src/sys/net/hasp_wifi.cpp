@@ -354,13 +354,13 @@ bool wifiShowAP(char* ssid, char* pass)
 static void wifiReconnect(void)
 {
 #if defined(ARDUINO_ARCH_ESP8266)
-    WiFi.disconnect(true);
+    WiFi.disconnect();
     WiFi.begin(wifiSsid, wifiPassword);
     WiFi.hostname(haspDevice.get_hostname());
 
 #elif defined(ARDUINO_ARCH_ESP32)
     // https://github.com/espressif/arduino-esp32/issues/3438#issuecomment-721428310
-    WiFi.disconnect(true);
+    WiFi.disconnect();
     WiFi.begin(wifiSsid, wifiPassword, WIFI_ALL_CHANNEL_SCAN);
     // WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE); // causes 255.255.255.255 IP errors
     WiFi.setHostname(haspDevice.get_hostname());
@@ -532,11 +532,11 @@ void wifi_get_info(JsonDocument& doc)
 
     if(rssi >= -50) {
         buffer += F(D_WIFI_RSSI_EXCELLENT ")");
-    } else if(rssi >= -60) {
+    } else if(rssi >= -59) {
         buffer += F(D_WIFI_RSSI_GOOD ")");
-    } else if(rssi >= -70) {
+    } else if(rssi >= -68) {
         buffer += F(D_WIFI_RSSI_FAIR ")");
-    } else if(rssi >= -80) {
+    } else if(rssi >= -77) {
         buffer += F(D_WIFI_RSSI_WEAK ")");
     } else {
         buffer += F(D_WIFI_RSSI_BAD ")");
