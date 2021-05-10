@@ -2,6 +2,7 @@
    For full license information read the LICENSE file in the project folder */
 
 #include "hasplib.h"
+#include <fstream>
 
 namespace hasp {
 
@@ -158,14 +159,50 @@ void Page::load_jsonl(const char* pagesfile)
     file.close();
 
     LOG_INFO(TAG_HASP, F(D_FILE_LOADED), pagesfile);
-#else
 
-#if HASP_USE_EEPROM > 0
+#elif HASP_USE_EEPROM > 0
     LOG_TRACE(TAG_HASP, F("Loading jsonl from EEPROM..."));
     EepromStream eepromStream(4096, 1024);
     dispatch_parse_jsonl(eepromStream);
     LOG_INFO(TAG_HASP, F("Loaded jsonl from EEPROM"));
-#endif
+
+#else
+
+    char path[strlen(pagesfile) + 4];
+    path[0] = '.';
+    path[1] = '\0';
+    strcat(path, pagesfile);
+    path[1] = '\\';
+
+    LOG_TRACE(TAG_HASP, F("Loading %s from disk..."), path);
+    std::ifstream f(path); // taking file as inputstream
+    if(f) {
+        dispatch_parse_jsonl(f);
+    }
+    f.close();
+    LOG_INFO(TAG_HASP, F("Loaded %s from disk"), path);
+
+    // char path[strlen(pagesfile) + 4];
+    // path[0] = '\0';
+    // strcat(path, "L:/");
+    // strcat(path, pagesfile);
+
+    // lv_fs_file_t file;
+    // lv_fs_res_t res;
+    // res = lv_fs_open(&file, path, LV_FS_MODE_RD);
+    // if(res == LV_FS_RES_OK) {
+    //     LOG_VERBOSE(TAG_HASP, F("Opening %s"), path);
+    // } else {
+    //     LOG_ERROR(TAG_HASP, F("TEST Opening %q from FS failed %d"), path, res);
+    // }
+
+    // dispatch_parse_jsonl(file);
+    // res = lv_fs_close(&file);
+    // if(res == LV_FS_RES_OK) {
+    //     LOG_VERBOSE(TAG_HASP, F("Closing %s OK"), path);
+    // } else {
+    //     LOG_ERROR(TAG_HASP, F("Closing %s on FS failed %d"), path, res);
+    // }
 
 #endif
 }
