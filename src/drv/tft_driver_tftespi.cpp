@@ -123,19 +123,27 @@ void TftEspi::set_invert(bool invert)
     tft.invertDisplay(invert);
 }
 
+/* Update TFT */
 void IRAM_ATTR TftEspi::flush_pixels(lv_disp_drv_t* disp, const lv_area_t* area, lv_color_t* color_p)
 {
-    size_t len = lv_area_get_size(area);
+    uint32_t w = (area->x2 - area->x1 + 1);
+    uint32_t h = (area->y2 - area->y1 + 1);
+    // size_t len = lv_area_get_size(area);
+    uint32_t len = w * h;
 
-    /* Update TFT */
-    tft.startWrite();                                      /* Start new TFT transaction */
-    tft.setWindow(area->x1, area->y1, area->x2, area->y2); /* set the working window */
 #ifdef USE_DMA_TO_TFT
-    tft.pushPixelsDMA((uint16_t*)color_p, len); /* Write words at once */
+    tft.startWrite(); /* Start new TFT transaction */
+    //    tft.setWindow(area->x1, area->y1, area->x2, area->y2);
+    tft.setAddrWindow(area->x1, area->y1, w, h); /* set the working window */
+    tft.pushPixelsDMA((uint16_t*)color_p, len);  /* Write words at once */
+    tft.endWrite();                              /* terminate TFT transaction */
 #else
-    tft.pushPixels((uint16_t*)color_p, len); /* Write words at once */
+    tft.startWrite(); /* Start new TFT transaction */
+    //    tft.setWindow(area->x1, area->y1, area->x2, area->y2);
+    tft.setAddrWindow(area->x1, area->y1, w, h); /* set the working window */
+    tft.pushPixels((uint16_t*)color_p, len);     /* Write words at once */
+    tft.endWrite();                              /* terminate TFT transaction */
 #endif
-    tft.endWrite(); /* terminate TFT transaction */
 
     /* Tell lvgl that flushing is done */
     lv_disp_flush_ready(disp);
