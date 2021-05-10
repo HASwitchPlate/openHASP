@@ -64,7 +64,6 @@
 #define D_TELNET_STARTED "Telnet console started"
 #define D_TELNET_FAILED "Failed to start telnet console"
 #define D_TELNET_CLIENT_CONNECTED "Client connected"
-#define D_TELNET_CLIENT_NOT_CONNECTED "Client NOT connected"
 #define D_TELNET_CLIENT_REJECTED "Client rejected"
 
 #define D_HASP_INVALID_PAGE "Invalid page %u"

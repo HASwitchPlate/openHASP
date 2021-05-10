@@ -64,7 +64,6 @@
 #define D_TELNET_STARTED "Consola Telnet pornită"
 #define D_TELNET_FAILED "Nu s-a putut porni consola Telnet"
 #define D_TELNET_CLIENT_CONNECTED "Client conectat"
-#define D_TELNET_CLIENT_NOT_CONNECTED "Client NU este conectat"
 #define D_TELNET_CLIENT_REJECTED "Client respins"
 
 #define D_HASP_INVALID_PAGE "Pagina invalidă: %u"

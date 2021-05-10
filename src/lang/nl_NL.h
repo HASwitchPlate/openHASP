@@ -58,12 +58,12 @@
 #define D_TELNET_CLOSING_CONNECTION "Sessie sluiten van %s"
 #define D_TELNET_CLIENT_LOGIN_FROM "Client aangemeld van %s"
 #define D_TELNET_CLIENT_CONNECT_FROM "Client verbonden van %s"
+#define D_TELNET_CLIENT_NOT_CONNECTED "Client NIET verbonden"
 #define D_TELNET_AUTHENTICATION_FAILED "Autorisatie mislukt!"
 #define D_TELNET_INCORRECT_LOGIN_ATTEMPT "Aanmelding van %s mislukt"
 #define D_TELNET_STARTED "Telnet console gestart"
 #define D_TELNET_FAILED "Telnet console starten is mislukt"
 #define D_TELNET_CLIENT_CONNECTED "Client verbonden"
-#define D_TELNET_CLIENT_NOT_CONNECTED "Client NIET verbonden"
 #define D_TELNET_CLIENT_REJECTED "Client geweigerd"
 
 #define D_HASP_INVALID_PAGE "Ongeldige pagina %u"

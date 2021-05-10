@@ -64,7 +64,6 @@
 #define D_TELNET_STARTED "Telnet konzol elindítva"
 #define D_TELNET_FAILED "Telnet konzol elindítása meghiúsult"
 #define D_TELNET_CLIENT_CONNECTED "Kliens csatlakozva"
-#define D_TELNET_CLIENT_NOT_CONNECTED "Kliens NEM csatlakozik"
 #define D_TELNET_CLIENT_REJECTED "Kliens elutasítva"
 
 #define D_HASP_INVALID_PAGE "Érvénytelen oldal: %u"
