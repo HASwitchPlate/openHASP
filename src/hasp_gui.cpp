@@ -176,8 +176,8 @@ void guiSetup()
     lv_disp_drv_init(&disp_drv);
     disp_drv.buffer   = &disp_buf;
     disp_drv.flush_cb = gui_flush_cb;
-    disp_drv.hor_res  = TFT_WIDTH;
-    disp_drv.ver_res  = TFT_HEIGHT;
+    disp_drv.hor_res  = tft_width;
+    disp_drv.ver_res  = tft_height;
 
     switch(gui_settings.rotation) {
         case 1:
@@ -185,13 +185,13 @@ void guiSetup()
         case 5:
         case 7:
             //     lv_disp_set_rotation(display, LV_DISP_ROT_90);
-            disp_drv.hor_res = TFT_HEIGHT;
-            disp_drv.ver_res = TFT_WIDTH;
+            disp_drv.hor_res = tft_height;
+            disp_drv.ver_res = tft_width;
             break;
         default:
             //           lv_disp_set_rotation(display, LV_DISP_ROT_NONE);
-            disp_drv.hor_res = TFT_WIDTH;
-            disp_drv.ver_res = TFT_HEIGHT;
+            disp_drv.hor_res = tft_width;
+            disp_drv.ver_res = tft_height;
     }
     lv_disp_t* display = lv_disp_drv_register(&disp_drv);
     (void)display; // unused

@@ -25,7 +25,7 @@
 #include "hasp_conf.h"
 
 #include "lvgl.h"
-#include "app_hal.h"
+// #include "app_hal.h"
 #include "display/monitor.h"
 
 #include "hasp_debug.h"
@@ -41,6 +41,9 @@ bool isRunning = 1;
 
 uint8_t mainLoopCounter        = 0;
 unsigned long mainLastLoopTime = 0;
+
+extern uint16_t tft_width;
+extern uint16_t tft_height;
 
 #if defined(WINDOWS)
 // https://gist.github.com/kingseva/a918ec66079a9475f19642ec31276a21
@@ -136,8 +139,8 @@ void setup()
 #endif
 
     mainLastLoopTime = millis() - 1000; // reset loop counter
-    delay(250);
     printf("%s %d\n", __FILE__, __LINE__);
+    // delay(250);
 }
 
 void loop()
@@ -237,19 +240,27 @@ int main(int argc, char* argv[])
     // Change to preferences dir
     std::cout << "\nCommand-line arguments:\n";
     for(count = 0; count < argc; count++)
-        std::cout << "  argv[" << count << "]   " << argv[count] << "\n" << std::endl << std::flush;
+        std::cout << "  argv[" << count << "]   " << argv[count] << std::endl << std::flush;
 
     for(count = 0; count < argc; count++) {
         if(argv[count][0] == '-') {
 
             if(strncmp(argv[count], "--help", 6) == 0 || strncmp(argv[count], "-h", 2) == 0) {
-                std::cout << "  argv[" << count << "]   " << argv[count] << "\n" << std::endl << std::flush;
-                fflush(stdout);
-                exit(0);
+                showhelp = true;
             }
 
-            if(strncmp(argv[count], "--name", 6) == 0) {
-                std::cout << "  argv[" << count << "]   " << argv[count] << "\n" << std::endl << std::flush;
+            if(strncmp(argv[count], "--width", 7) == 0 || strncmp(argv[count], "-x", 2) == 0) {
+                int w = atoi(argv[count + 1]);
+                if(w > 0) tft_width = w;
+            }
+
+            if(strncmp(argv[count], "--height", 8) == 0 || strncmp(argv[count], "-y", 2) == 0) {
+                int h = atoi(argv[count + 1]);
+                if(h > 0) tft_height = h;
+            }
+
+            if(strncmp(argv[count], "--name", 6) == 0 || strncmp(argv[count], "-n", 2) == 0) {
+                std::cout << "  argv[" << count << "]   " << argv[count] << std::endl << std::flush;
                 fflush(stdout);
                 if(count + 1 < argc) {
                     haspDevice.set_hostname(argv[count + 1]);
@@ -264,9 +275,11 @@ int main(int argc, char* argv[])
         usage("openHASP");
 
 #if defined(WINDOWS)
-        WriteConsole(std_out, "bye", 3, NULL, NULL);
-
+        WriteConsole(std_out, "bye\n", 3, NULL, NULL);
+        std::cout << std::endl << std::flush;
+        fflush(stdout);
         FreeConsole();
+        exit(0);
 #endif
         return 0;
     }
@@ -275,6 +288,7 @@ int main(int argc, char* argv[])
     // fflush(stdout);
 
     debugPrintHaspHeader(stdout);
+    LOG_NOTICE(TAG_MAIN, "resolution %d x %d", tft_width, tft_height);
     LOG_NOTICE(TAG_MAIN, "pre setup");
 
     setup();
