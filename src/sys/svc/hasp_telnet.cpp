@@ -181,7 +181,7 @@ static inline void telnetProcessCharacter(char ch)
 
 #endif
 
-static inline void telnetProcessLine(const char* input)
+static void telnetProcessLine(const char* input)
 {
     switch(telnetLoginState) {
         case TELNET_UNAUTHENTICATED: {

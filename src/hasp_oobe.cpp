@@ -25,7 +25,7 @@ static lv_obj_t* oobepage[2];
 static lv_obj_t* oobekb;
 lv_obj_t* pwd_ta;
 
-static inline void oobeSetPage(uint8_t pageid)
+static void oobeSetPage(uint8_t pageid)
 {
     lv_scr_load(oobepage[pageid]);
     lv_obj_invalidate(lv_disp_get_layer_sys(NULL));

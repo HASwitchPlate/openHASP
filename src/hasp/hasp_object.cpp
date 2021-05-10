@@ -240,7 +240,7 @@ void hasp_process_attribute(uint8_t pageid, uint8_t objid, const char* attr, con
 // ##################### Object Creator ########################################################
 
 // Called from hasp_new_object only to process all attributes
-static inline int hasp_parse_json_attributes(lv_obj_t* obj, const JsonObject& doc)
+static int hasp_parse_json_attributes(lv_obj_t* obj, const JsonObject& doc)
 {
     int i = 0;
 #if defined(WINDOWS) || defined(POSIX)
