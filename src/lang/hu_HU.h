@@ -18,10 +18,15 @@
 #define D_FILE_LOADED "%s betöltve"
 #define D_FILE_LOAD_FAILED "%s betöltése nem sikerült"
 #define D_FILE_NOT_FOUND "File not found" // new
-
 #define D_FILE_SAVING "%s mentése"
 #define D_FILE_SAVED "%s mentve"
 #define D_FILE_SAVE_FAILED "%s mentése meghiúsult"
+#define D_FILE_SIZE_BYTES "bytes"   // new
+#define D_FILE_SIZE_KILOBYTES "KiB" // new
+#define D_FILE_SIZE_MEGABYTES "MiB" // new
+#define D_FILE_SIZE_GIGABYTES "GiB" // new
+#define D_FILE_SIZE_DIVIDER 1024    // new, kibi or kilo bytes
+#define F_FILE_SIZE_DECIMAL "%d,%d" // new, decimal comma or point
 
 #define D_SERVICE_STARTING "Indítás..."
 #define D_SERVICE_STARTED "Elindítva"

@@ -17,11 +17,16 @@
 #define D_FILE_LOADING "Charger %s"
 #define D_FILE_LOADED "Chargé %s"
 #define D_FILE_LOAD_FAILED "Échec du chargement %s"
-
 #define D_FILE_SAVING "Enregistrer %s"
 #define D_FILE_SAVED "Enregistré %s"
 #define D_FILE_SAVE_FAILED "Échec de l'enregistrement %s"
 #define D_FILE_NOT_FOUND "Fichier non trouvé"
+#define D_FILE_SIZE_BYTES "octets"
+#define D_FILE_SIZE_KILOBYTES "Kio"
+#define D_FILE_SIZE_MEGABYTES "Mio"
+#define D_FILE_SIZE_GIGABYTES "Gio"
+#define D_FILE_SIZE_DIVIDER 1024    // new, kibi or kilo bytes
+#define F_FILE_SIZE_DECIMAL "%d,%d" // new, decimal comma or point
 
 #define D_SERVICE_STARTING "Démarer..."
 #define D_SERVICE_STARTED "Démaré"

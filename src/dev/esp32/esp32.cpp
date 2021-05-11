@@ -264,7 +264,7 @@ void Esp32Device::get_info(JsonDocument& doc)
     /* ESP Stats */
     buffer = String(get_cpu_frequency());
     buffer += F("MHz");
-    info[F(D_INFO_MODULE)]    = get_chip_model(); // 10ms
+    info[F(D_INFO_MODEL)]     = get_chip_model(); // 10ms
     info[F(D_INFO_FREQUENCY)] = buffer;
 
     info[F(D_INFO_CORE_VERSION)] = get_core_version();

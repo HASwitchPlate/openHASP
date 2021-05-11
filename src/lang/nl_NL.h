@@ -17,11 +17,16 @@
 #define D_FILE_LOADING "%s laden..."
 #define D_FILE_LOADED "%s geladen"
 #define D_FILE_LOAD_FAILED "%s laden mislukt"
-
 #define D_FILE_SAVING "%s bewaren..."
 #define D_FILE_SAVED "%s bewaard"
 #define D_FILE_SAVE_FAILED "%s bewaren mislukt"
-#define D_FILE_NOT_FOUND "Bestand niet gevonden" // new
+#define D_FILE_NOT_FOUND "Bestand niet gevonden"
+#define D_FILE_SIZE_BYTES "bytes"
+#define D_FILE_SIZE_KILOBYTES "KiB"
+#define D_FILE_SIZE_MEGABYTES "MiB"
+#define D_FILE_SIZE_GIGABYTES "GiB"
+#define D_FILE_SIZE_DIVIDER 1024    //  kibi or kilo bytes
+#define F_FILE_SIZE_DECIMAL "%d,%d" //  decimal comma or point
 
 #define D_SETTING_ENABLED "Ingeschakeld"
 #define D_SETTING_DISABLED "Uitgeschakeld"

@@ -5,7 +5,7 @@
 #define D_PASSWORD "Contraseña:"
 #define D_SSID "Ssid:"
 #define D_YES "Si" // New
-#define D_NO "No"   // New
+#define D_NO "No"  // New
 
 #define D_ERROR_OUT_OF_MEMORY "Memory llena"
 #define D_ERROR_UNKNOWN "Error desconocido"
@@ -17,11 +17,16 @@
 #define D_FILE_LOADING "Cargando %s"
 #define D_FILE_LOADED "%s cargado"
 #define D_FILE_LOAD_FAILED "No se pudo cargar %s"
-
 #define D_FILE_SAVING "Guardando %s"
 #define D_FILE_SAVED "%s guardado"
 #define D_FILE_SAVE_FAILED "No se pudo guardar %s"
-#define D_FILE_NOT_FOUND "Archivo no encontrado" // new
+#define D_FILE_NOT_FOUND "Archivo no encontrado"
+#define D_FILE_SIZE_BYTES "bytes"   // new
+#define D_FILE_SIZE_KILOBYTES "KiB" // new
+#define D_FILE_SIZE_MEGABYTES "MiB" // new
+#define D_FILE_SIZE_GIGABYTES "GiB" // new
+#define D_FILE_SIZE_DIVIDER 1024    // new, kibi or kilo bytes
+#define F_FILE_SIZE_DECIMAL "%d,%d" // new, decimal comma or point
 
 #define D_SERVICE_STARTING "Inicializando..."
 #define D_SERVICE_STARTED "Inicializado"
@@ -31,7 +36,7 @@
 #define D_SERVICE_CONNECTED "Conectado"
 #define D_SERVICE_DISCONNECTED "Desconectado"
 
-#define D_SETTING_ENABLED "habilitado"   // New
+#define D_SETTING_ENABLED "habilitado"     // New
 #define D_SETTING_DISABLED "Deshabilitado" // New
 
 #define D_NETWORK_IP_ADDRESS_RECEIVED "Se recibió la dirección IP: %s"
