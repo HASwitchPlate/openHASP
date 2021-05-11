@@ -14,59 +14,15 @@
 
 void filesystemInfo()
 { // Get all information of your SPIFFS
-#if 0
+#ifdef ESP8266
     FSInfo fs_info;
     HASP_FS.info(fs_info);
-
-    Serial.println("File system info.");
-
-    Serial.print("Total space:      ");
-    Serial.print(fs_info.totalBytes);
-    Serial.println("byte");
-
-    Serial.print("Total space used: ");
-    Serial.print(fs_info.usedBytes);
-    Serial.println("byte");
-
-    Serial.print("Block size:       ");
-    Serial.print(fs_info.blockSize);
-    Serial.println("byte");
-
-    Serial.print("Page size:        ");
-    Serial.print(fs_info.totalBytes);
-    Serial.println("byte");
-
-    Serial.print("Max open files:   ");
-    Serial.println(fs_info.maxOpenFiles);
-
-    Serial.print("Max path lenght:  ");
-    Serial.println(fs_info.maxPathLength);
-    Serial.println("File sistem info.");
-
-    Serial.print("Total space:      ");
-    Serial.print(SPIFFS.totalBytes());
-    Serial.println("byte");
-
-    Serial.print("Total space used: ");
-    Serial.print(SPIFFS.usedBytes());
-    Serial.println("byte");
-
-    Serial.print("Block size:       ");
-    // Serial.print(SPIFFS);
-    Serial.println("byte");
-
-    Serial.print("Page size:        ");
-    Serial.print(SPIFFS.totalBytes());
-    Serial.println("byte");
-
-    Serial.print("Max open files:   ");
-    // Serial.println(SPIFFS.maxOpenFiles());
-
-    Serial.print("Max path lenght:  ");
-    // Serial.println(SPIFFS.maxPathLength());
+    Log.verbose(TAG_FILE, "Partition size: total: %d, used: %d", fs_info.totalBytes, fs_info.usedBytes);
 #endif
 
+#ifdef ESP32
     Log.verbose(TAG_FILE, "Partition size: total: %d, used: %d", HASP_FS.totalBytes(), HASP_FS.usedBytes());
+#endif
 }
 
 void filesystemList()
