@@ -6,6 +6,11 @@
 
 #include "hasplib.h"
 
+#ifdef ARDUINO
+#include "AceButton.h"
+using namespace ace_button;
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -20,6 +25,9 @@ struct hasp_gpio_config_t
     uint8_t type; // switch, button, ...
     uint16_t val;
     uint16_t max;
+#ifdef ARDUINO
+    AceButton* btn;
+#endif
 };
 
 void gpioSetup(void);

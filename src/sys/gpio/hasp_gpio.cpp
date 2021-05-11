@@ -13,16 +13,22 @@
 #endif
 
 #ifdef ARDUINO
+
 #include "AceButton.h"
 using namespace ace_button;
 static AceButton* button[HASP_NUM_INPUTS];
+ButtonConfig buttonConfig; // Clicks, double-clicks and long presses
+ButtonConfig switchConfig; // Clicks only
+
 #else
+
 #define HIGH 1
 #define LOW 0
 #define NUM_DIGITAL_PINS 40
 #define digitalWrite(x, y)
 #define analogWrite(x, y)
-#endif
+
+#endif // ARDUINO
 
 #define SCALE_8BIT_TO_12BIT(x) x << 4 | x >> 4
 #define SCALE_8BIT_TO_10BIT(x) x << 2 | x >> 6
@@ -118,25 +124,31 @@ static void gpio_event_handler(AceButton* button, uint8_t eventType, uint8_t but
 
 void aceButtonSetup(void)
 {
-    ButtonConfig* buttonConfig = ButtonConfig::getSystemButtonConfig();
-    buttonConfig->setEventHandler(gpio_event_handler);
-
-    // Features
-    // buttonConfig->setFeature(ButtonConfig::kFeatureClick);
-    // buttonConfig->setFeature(ButtonConfig::kFeatureLongPress);
-    // buttonConfig->setFeature(ButtonConfig::kFeatureRepeatPress);
-    // buttonConfig->setFeature(ButtonConfig::kFeatureDoubleClick);
-    // buttonConfig->setFeature(ButtonConfig::kFeatureSuppressClickBeforeDoubleClick);
-
+    // Button Features
+    buttonConfig.setEventHandler(gpio_event_handler);
+    buttonConfig.setFeature(ButtonConfig::kFeatureClick);
+    buttonConfig.clearFeature(ButtonConfig::kFeatureDoubleClick);
+    buttonConfig.setFeature(ButtonConfig::kFeatureLongPress);
+    // buttonConfig->clearFeature(ButtonConfig::kFeatureRepeatPress);
+    buttonConfig.clearFeature(ButtonConfig::kFeatureSuppressClickBeforeDoubleClick); // Causes annoying pauses
+    buttonConfig.setFeature(ButtonConfig::kFeatureSuppressAfterClick);
+    buttonConfig.setClickDelay(LV_INDEV_DEF_LONG_PRESS_TIME);
     // Delays
-    buttonConfig->setClickDelay(LV_INDEV_DEF_LONG_PRESS_TIME);
-    buttonConfig->setDoubleClickDelay(LV_INDEV_DEF_LONG_PRESS_TIME);
-    buttonConfig->setLongPressDelay(LV_INDEV_DEF_LONG_PRESS_TIME);
-    buttonConfig->setRepeatPressDelay(LV_INDEV_DEF_LONG_PRESS_TIME);
-    buttonConfig->setRepeatPressInterval(LV_INDEV_DEF_LONG_PRESS_REP_TIME);
+    buttonConfig.setDoubleClickDelay(LV_INDEV_DEF_LONG_PRESS_TIME);
+    buttonConfig.setLongPressDelay(LV_INDEV_DEF_LONG_PRESS_TIME);
+    buttonConfig.setRepeatPressDelay(LV_INDEV_DEF_LONG_PRESS_TIME);
+    buttonConfig.setRepeatPressInterval(LV_INDEV_DEF_LONG_PRESS_REP_TIME);
+
+    // Switch Features
+    switchConfig.setEventHandler(gpio_event_handler);
+    switchConfig.setFeature(ButtonConfig::kFeatureClick);
+    switchConfig.clearFeature(ButtonConfig::kFeatureLongPress);
+    switchConfig.clearFeature(ButtonConfig::kFeatureRepeatPress);
+    switchConfig.clearFeature(ButtonConfig::kFeatureDoubleClick);
+    switchConfig.setClickDelay(100); // decrease click delay from default 200 ms
 }
 
-void gpioAddButton(uint8_t pin, uint8_t input_mode, uint8_t default_state, uint8_t index)
+/* void gpioAddButton(uint8_t pin, uint8_t input_mode, uint8_t default_state, uint8_t index)
 {
     uint8_t i;
     for(i = 0; i < HASP_NUM_INPUTS; i++) {
@@ -145,20 +157,20 @@ void gpioAddButton(uint8_t pin, uint8_t input_mode, uint8_t default_state, uint8
             LOG_TRACE(TAG_GPIO, F("Creating Button%d on pin %d (index %d) mode %d default %d"), i, pin, index,
                       input_mode, default_state);
 
-            button[i] = new AceButton(pin, default_state, index);
+            button[i] = new AceButton(&buttonConfig, pin, default_state, index);
 
             if(button[i]) {
                 // pinMode(pin, input_mode);
 
-                ButtonConfig* buttonConfig = button[i]->getButtonConfig();
-                buttonConfig->setEventHandler(gpio_event_handler);
-                buttonConfig->setFeature(ButtonConfig::kFeatureClick);
-                buttonConfig->clearFeature(ButtonConfig::kFeatureDoubleClick);
-                buttonConfig->setFeature(ButtonConfig::kFeatureLongPress);
-                // buttonConfig->clearFeature(ButtonConfig::kFeatureRepeatPress);
-                buttonConfig->clearFeature(
-                    ButtonConfig::kFeatureSuppressClickBeforeDoubleClick); // Causes annoying pauses
-                buttonConfig->setFeature(ButtonConfig::kFeatureSuppressAfterClick);
+                // ButtonConfig* buttonConfig = button[i]->getButtonConfig();
+                // buttonConfig->setEventHandler(gpio_event_handler);
+                // buttonConfig->setFeature(ButtonConfig::kFeatureClick);
+                // buttonConfig->clearFeature(ButtonConfig::kFeatureDoubleClick);
+                // buttonConfig->setFeature(ButtonConfig::kFeatureLongPress);
+                // // buttonConfig->clearFeature(ButtonConfig::kFeatureRepeatPress);
+                // buttonConfig->clearFeature(
+                //     ButtonConfig::kFeatureSuppressClickBeforeDoubleClick); // Causes annoying pauses
+                // buttonConfig->setFeature(ButtonConfig::kFeatureSuppressAfterClick);
 
                 LOG_INFO(TAG_GPIO, F("Button%d created on pin %d (index %d) mode %d default %d"), i, pin, index,
                          input_mode, default_state);
@@ -180,28 +192,32 @@ void gpioAddSwitch(uint8_t pin, uint8_t input_mode, uint8_t default_state, uint8
             LOG_TRACE(TAG_GPIO, F("Creating Switch%d on pin %d (index %d) mode %d default %d"), i, pin, index,
                       input_mode, default_state);
 
-            button[i] = new AceButton(pin, default_state, index);
+            button[i] = new AceButton(&switchConfig, pin, default_state, index);
 
             if(button[i]) {
                 // pinMode(pin, input_mode);
 
-                ButtonConfig* buttonConfig = button[i]->getButtonConfig();
-                buttonConfig->setEventHandler(gpio_event_handler);
-                buttonConfig->setFeature(ButtonConfig::kFeatureSuppressAll);
-
-                LOG_INFO(TAG_GPIO, F("Button%d switch on pin %d (index %d) mode %d default %d"), i, pin, index,
-                         input_mode, default_state);
+                LOG_INFO(TAG_GPIO, F("Switch%d on pin %d (index %d) mode %d default %d"), i, pin, index, input_mode,
+                         default_state);
                 gpioUsedInputCount = i + 1;
                 return;
             }
         }
     }
-    LOG_ERROR(TAG_GPIO, F("Failed to create Button%d pin %d (index %d). All %d slots available are in use!"), i, pin,
+    LOG_ERROR(TAG_GPIO, F("Failed to create Switch%d pin %d (index %d). All %d slots available are in use!"), i, pin,
               index, HASP_NUM_INPUTS);
-}
+}*/
 
-void gpio_setup_pin(hasp_gpio_config_t* gpio)
+// Can be called ad-hoc to change a setup
+static void gpio_setup_pin(uint8_t index)
 {
+    hasp_gpio_config_t* gpio = &gpioConfig[index];
+
+    if(gpioIsSystemPin(gpio->pin)) {
+        LOG_WARNING(TAG_GPIO, F("Invalid pin %d"), gpio->pin);
+        return;
+    }
+
     uint8_t input_mode;
     switch(gpio->gpio_function) {
         case OUTPUT:
@@ -219,22 +235,15 @@ void gpio_setup_pin(hasp_gpio_config_t* gpio)
             input_mode = INPUT_PULLUP;
     }
 
-    if(gpioIsSystemPin(gpio->pin)) {
-        LOG_WARNING(TAG_GPIO, F("Invalid pin %d"), gpio->pin);
-        return;
-    }
-
-    gpio->max = 255;
+    gpio->max            = 255;
+    ButtonConfig* config = &buttonConfig; // Ddefault pushbutton
 
     switch(gpio->type) {
         case HASP_GPIO_SWITCH:
-            gpioAddSwitch(gpio->pin, input_mode, HIGH, gpioUsedInputCount);
-            pinMode(gpio->pin, INPUT_PULLUP);
-            gpio->max = 0;
-            break;
-
+            config = &switchConfig;
         case HASP_GPIO_BUTTON:
-            gpioAddButton(gpio->pin, input_mode, HIGH, gpioUsedInputCount);
+            if(gpio->btn) delete gpio->btn;
+            gpio->btn = new AceButton(config, gpio->pin, HIGH, index);
             pinMode(gpio->pin, INPUT_PULLUP);
             gpio->max = 0;
             break;
@@ -270,7 +279,8 @@ void gpio_setup_pin(hasp_gpio_config_t* gpio)
         case HASP_GPIO_SERIAL_DIMMER: {
             const char command[9] = "\xEF\x01\x4D\xA3"; // Start Lanbon Dimmer
 #if defined(ARDUINO_ARCH_ESP32)
-            Serial1.begin(115200UL, SERIAL_8N1, UART_PIN_NO_CHANGE, gpio->pin, true, 2000);
+            Serial1.begin(115200UL, SERIAL_8N1, UART_PIN_NO_CHANGE, gpio->pin, true,
+                          2000); // true = EU, false = AU
             Serial1.flush();
             delay(20);
             Serial1.print("  ");
@@ -328,7 +338,7 @@ void gpioSetup()
     aceButtonSetup();
 
     for(uint8_t i = 0; i < HASP_NUM_GPIO_CONFIG; i++) {
-        gpio_setup_pin(&gpioConfig[i]);
+        gpio_setup_pin(i);
     }
 
     LOG_INFO(TAG_GPIO, F(D_SERVICE_STARTED));
@@ -337,12 +347,13 @@ void gpioSetup()
 IRAM_ATTR void gpioLoop(void)
 {
     // Should be called every 4-5ms or faster, for the default debouncing time of ~20ms.
-    for(uint8_t i = 0; i < gpioUsedInputCount; i++) {
-        if(button[i]) button[i]->check();
+    for(uint8_t i = 0; i < HASP_NUM_GPIO_CONFIG; i++) {
+        if(gpioConfig[i].btn) gpioConfig[i].btn->check();
     }
 }
 
 #else
+
 void gpioSetup(void)
 {
     gpioSavePinConfig(0, 3, HASP_GPIO_RELAY, 0, -1);
@@ -352,6 +363,7 @@ void gpioSetup(void)
 }
 IRAM_ATTR void gpioLoop(void)
 {}
+
 #endif // ARDUINO
 
 /* ********************************* State Setters *************************************** */
