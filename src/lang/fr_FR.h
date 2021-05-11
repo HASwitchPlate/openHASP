@@ -1,5 +1,5 @@
-#ifndef HASP_LANG_EN_US_H
-#define HASP_LANG_EN_US_H
+#ifndef HASP_LANG_FR_FR_H
+#define HASP_LANG_FR_FR_H
 
 #define D_USERNAME "Utilisateur:"
 #define D_PASSWORD "Mot de passe:"
@@ -25,8 +25,8 @@
 #define D_FILE_SIZE_KILOBYTES "Kio"
 #define D_FILE_SIZE_MEGABYTES "Mio"
 #define D_FILE_SIZE_GIGABYTES "Gio"
-#define D_FILE_SIZE_DIVIDER 1024    // new, kibi or kilo bytes
-#define F_FILE_SIZE_DECIMAL "%d,%d" // new, decimal comma or point
+#define D_FILE_SIZE_DIVIDER 1024 // new, kibi or kilo bytes
+#define D_DECIMAL_POINT ","      // new, decimal comma or point
 
 #define D_SERVICE_STARTING "Démarer..."
 #define D_SERVICE_STARTED "Démaré"

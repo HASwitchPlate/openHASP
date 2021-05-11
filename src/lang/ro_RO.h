@@ -26,7 +26,7 @@
 #define D_FILE_SIZE_MEGABYTES "MiB"       // new
 #define D_FILE_SIZE_GIGABYTES "GiB"       // new
 #define D_FILE_SIZE_DIVIDER 1024          // new, kibi or kilo bytes
-#define F_FILE_SIZE_DECIMAL "%d,%d"       // new, decimal comma or point
+#define D_DECIMAL_POINT ","               // new, decimal comma or point
 
 #define D_SETTING_ENABLED "Activ"
 #define D_SETTING_DISABLED "Inactiv"

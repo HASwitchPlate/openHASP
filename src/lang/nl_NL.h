@@ -1,5 +1,5 @@
-#ifndef HASP_LANG_EN_US_H
-#define HASP_LANG_EN_US_H
+#ifndef HASP_LANG_NL_NL_H
+#define HASP_LANG_NL_NL_H
 
 #define D_USERNAME "Gebruikersnaam:"
 #define D_PASSWORD "Wachtwoord:"
@@ -25,8 +25,8 @@
 #define D_FILE_SIZE_KILOBYTES "KiB"
 #define D_FILE_SIZE_MEGABYTES "MiB"
 #define D_FILE_SIZE_GIGABYTES "GiB"
-#define D_FILE_SIZE_DIVIDER 1024    //  kibi or kilo bytes
-#define F_FILE_SIZE_DECIMAL "%d,%d" //  decimal comma or point
+#define D_FILE_SIZE_DIVIDER 1024 //  kibi or kilo bytes
+#define D_DECIMAL_POINT ","      //  decimal comma or point
 
 #define D_SETTING_ENABLED "Ingeschakeld"
 #define D_SETTING_DISABLED "Uitgeschakeld"

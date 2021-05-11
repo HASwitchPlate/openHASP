@@ -1,5 +1,5 @@
-#ifndef HASP_LANG_EN_US_H
-#define HASP_LANG_EN_US_H
+#ifndef HASP_LANG_ES_ES_H
+#define HASP_LANG_ES_ES_H
 
 #define D_USERNAME "Usuario:"
 #define D_PASSWORD "Contraseña:"
@@ -26,7 +26,7 @@
 #define D_FILE_SIZE_MEGABYTES "MiB" // new
 #define D_FILE_SIZE_GIGABYTES "GiB" // new
 #define D_FILE_SIZE_DIVIDER 1024    // new, kibi or kilo bytes
-#define F_FILE_SIZE_DECIMAL "%d,%d" // new, decimal comma or point
+#define D_DECIMAL_POINT ","         // new, decimal comma or point
 
 #define D_SERVICE_STARTING "Inicializando..."
 #define D_SERVICE_STARTED "Inicializado"

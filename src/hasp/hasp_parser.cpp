@@ -176,13 +176,15 @@ int Parser::format_bytes(size_t filesize, char* buf, size_t len)
 
     filesize = filesize / D_FILE_SIZE_DIVIDER; // multiply by 10 for 1 decimal place
     if(filesize < D_FILE_SIZE_DIVIDER * 10)
-        return snprintf_P(buf, len, PSTR(D_FILE_SIZE_DECIMAL " " D_FILE_SIZE_KILOBYTES), filesize / 10, filesize % 10);
+        return snprintf_P(buf, len, PSTR("%d" D_DECIMAL_POINT "%d " D_FILE_SIZE_KILOBYTES), filesize / 10,
+                          filesize % 10);
 
     filesize = filesize / D_FILE_SIZE_DIVIDER; // multiply by 10 for 1 decimal place
     if(filesize < D_FILE_SIZE_DIVIDER * 10)
-        return snprintf_P(buf, len, PSTR(D_FILE_SIZE_DECIMAL " " D_FILE_SIZE_MEGABYTES), filesize / 10, filesize % 10);
+        return snprintf_P(buf, len, PSTR("%d" D_DECIMAL_POINT "%d " D_FILE_SIZE_MEGABYTES), filesize / 10,
+                          filesize % 10);
 
-    return snprintf_P(buf, len, PSTR(D_FILE_SIZE_DECIMAL " " D_FILE_SIZE_GIGABYTES), filesize / 10, filesize % 10);
+    return snprintf_P(buf, len, PSTR("%d" D_DECIMAL_POINT "%d " D_FILE_SIZE_GIGABYTES), filesize / 10, filesize % 10);
 }
 
 uint8_t Parser::get_action_id(const char* action)
