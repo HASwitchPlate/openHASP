@@ -429,47 +429,20 @@ void dispatch_config(const char* topic, const char* payload)
 #endif // HASP_USE_CONFIG
 
 /********************************************** Output States ******************************************/
-/*
-static inline void dispatch_state_msg(const __FlashStringHelper* subtopic, const char* payload)
+
+void dispatch_normalized_group_values(hasp_update_value_t& value)
 {
+    if(value.group == 0) return;
 
-}*/
-
-// void dispatch_group_onoff(uint8_t groupid, uint16_t eventid, lv_obj_t * obj)
-// {
-//     if((eventid == HASP_EVENT_LONG) || (eventid == HASP_EVENT_HOLD)) return; // don't send repeat events
-
-//     if(groupid >= 0) {
-//         bool state = Parser::get_event_state(eventid);
-//         gpio_set_group_onoff(groupid, state);
-//         object_set_normalized_group_value(groupid, eventid, obj);
-//     }
-
-//     char payload[8];
-//     Parser::get_event_name(eventid, payload, sizeof(payload));
-//     // dispatch_output_group_state(groupid, payload);
-// }
-
-// void dispatch_group_value(uint8_t groupid, int16_t state, lv_obj_t * obj)
-// {
-//     if(groupid >= 0) {
-//         gpio_set_group_value(groupid, state);
-//         object_set_normalized_group_value(groupid, state, obj);
-//     }
-
-//     char payload[8];
-//     // dispatch_output_group_state(groupid, payload);
-// }
-
-void dispatch_normalized_group_values(uint8_t groupid, lv_obj_t* obj, int16_t val, int16_t min, int16_t max)
-{
-    if(groupid == 0) return;
-
-    LOG_VERBOSE(TAG_MSGR, F("GROUP %d value %d (%d-%d)"), groupid, val, min, max);
+    LOG_VERBOSE(TAG_MSGR, F("GROUP %d value %d (%d-%d)"), value.group, value.val, value.min, value.max);
 #if HASP_USE_GPIO > 0
-    gpio_set_normalized_group_values(groupid, val, min, max); // Update GPIO states
+    gpio_set_normalized_group_values(value); // Update GPIO states first
 #endif
-    object_set_normalized_group_values(groupid, obj, val, min, max); // Update onsreen objects
+    object_set_normalized_group_values(value); // Update onsreen objects except originating obj
+
+#if HASP_USE_GPIO > 0
+    gpio_output_group_values(value.group); // Output new gpio values
+#endif
 }
 
 /********************************************** Native Commands ****************************************/

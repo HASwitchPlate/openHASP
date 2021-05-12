@@ -34,9 +34,9 @@ void gpioSetup(void);
 IRAM_ATTR void gpioLoop(void);
 void gpioEvery5Seconds(void);
 
-// void gpio_set_group_onoff(uint8_t groupid, bool ison);
-void gpio_set_normalized_group_values(uint8_t group, int32_t val, int32_t min, int32_t max);
-// void gpio_set_gpio_state(uint8_t pin, uint16_t state);
+void gpio_set_normalized_group_values(hasp_update_value_t& value);
+void gpio_output_group_values(uint8_t group);
+
 bool gpio_get_value(uint8_t pin, uint16_t& val);
 bool gpio_set_pin_value(uint8_t pin, int32_t val);
 void gpio_set_moodlight(moodlight_t& moodlight);

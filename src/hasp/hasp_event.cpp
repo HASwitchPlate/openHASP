@@ -239,6 +239,18 @@ static void event_object_selection_changed(lv_obj_t* obj, uint8_t eventid, int16
 
 // ##################### Event Handlers ########################################################
 
+static inline void event_update_group(uint8_t group, lv_obj_t* obj, int32_t val, int32_t min, int32_t max)
+{
+    hasp_update_value_t value = {
+        .min   = min,
+        .max   = max,
+        .val   = val,
+        .obj   = obj,
+        .group = group,
+    };
+    dispatch_normalized_group_values(value);
+}
+
 #if HASP_USE_GPIO > 0
 void event_gpio_input(uint8_t pin, uint8_t group, uint8_t eventid)
 {
@@ -448,8 +460,8 @@ void generic_event_handler(lv_obj_t* obj, lv_event_t event)
 
     // Update group objects and gpios on release
     if(last_value_sent == HASP_EVENT_UP || last_value_sent == HASP_EVENT_RELEASE) {
-        dispatch_normalized_group_values(obj->user_data.groupid, obj, Parser::get_event_state(last_value_sent),
-                                         HASP_EVENT_OFF, HASP_EVENT_ON);
+        event_update_group(obj->user_data.groupid, obj, Parser::get_event_state(last_value_sent), HASP_EVENT_OFF,
+                           HASP_EVENT_ON);
     }
 }
 
@@ -491,8 +503,8 @@ void toggle_event_handler(lv_obj_t* obj, lv_event_t event)
     event_object_val_event(obj, hasp_event_id, last_value_sent);
 
     // Update group objects and gpios on release
-    if(last_value_sent == HASP_EVENT_UP) {
-        dispatch_normalized_group_values(obj->user_data.groupid, obj, last_value_sent, HASP_EVENT_OFF, HASP_EVENT_ON);
+    if(obj->user_data.groupid && hasp_event_id == HASP_EVENT_UP) {
+        event_update_group(obj->user_data.groupid, obj, last_value_sent, HASP_EVENT_OFF, HASP_EVENT_ON);
     }
 }
 
@@ -558,9 +570,9 @@ void selector_event_handler(lv_obj_t* obj, lv_event_t event)
     last_value_sent = val;
     event_object_selection_changed(obj, hasp_event_id, val, buffer);
 
-    if(max > 0) // max a cannot be 0, its the divider
+    if(obj->user_data.groupid && max > 0) // max a cannot be 0, its the divider
         if(hasp_event_id == HASP_EVENT_UP || hasp_event_id == LV_EVENT_VALUE_CHANGED) {
-            dispatch_normalized_group_values(obj->user_data.groupid, obj, last_value_sent, 0, max);
+            event_update_group(obj->user_data.groupid, obj, last_value_sent, 0, max);
         }
 
     // set the property
@@ -599,7 +611,7 @@ void btnmatrix_event_handler(lv_obj_t* obj, lv_event_t event)
 
     // if(max > 0) // max a cannot be 0, its the divider
     //     if(hasp_event_id == HASP_EVENT_UP || hasp_event_id == LV_EVENT_VALUE_CHANGED) {
-    //         dispatch_normalized_group_values(obj->user_data.groupid, obj, last_value_sent, 0, max);
+    //         event_update_group(obj->user_data.groupid, obj, last_value_sent, 0, max);
     //     }
 }
 
@@ -632,7 +644,7 @@ void msgbox_event_handler(lv_obj_t* obj, lv_event_t event)
 
     last_value_sent = val;
     event_object_selection_changed(obj, hasp_event_id, val, buffer);
-    // if(max > 0) dispatch_normalized_group_values(obj->user_data.groupid, obj, val, 0, max);
+    // if(max > 0) event_update_group(obj->user_data.groupid, obj, val, 0, max);
 }
 
 /**
@@ -671,8 +683,8 @@ void slider_event_handler(lv_obj_t* obj, lv_event_t event)
     last_value_sent = val;
     event_object_val_event(obj, hasp_event_id, val);
 
-    if(hasp_event_id == HASP_EVENT_CHANGED && min != max)
-        dispatch_normalized_group_values(obj->user_data.groupid, obj, val, min, max);
+    if(obj->user_data.groupid && hasp_event_id == HASP_EVENT_CHANGED && min != max)
+        event_update_group(obj->user_data.groupid, obj, val, min, max);
 }
 
 /**
@@ -704,7 +716,7 @@ void cpicker_event_handler(lv_obj_t* obj, lv_event_t event)
                eventname, c32.ch.red, c32.ch.green, c32.ch.blue, c32.ch.red, c32.ch.green, c32.ch.blue);
     event_send_object_data(obj, data);
 
-    // dispatch_normalized_group_values(obj->user_data.groupid, obj, val, min, max);
+    // event_update_group(obj->user_data.groupid, obj, val, min, max);
 }
 
 void calendar_event_handler(lv_obj_t* obj, lv_event_t event)
@@ -736,5 +748,5 @@ void calendar_event_handler(lv_obj_t* obj, lv_event_t event)
                eventname, date->day, date->year, date->month, date->day);
     event_send_object_data(obj, data);
 
-    // dispatch_normalized_group_values(obj->user_data.groupid, obj, val, min, max);
+    // event_update_group(obj->user_data.groupid, obj, val, min, max);
 }

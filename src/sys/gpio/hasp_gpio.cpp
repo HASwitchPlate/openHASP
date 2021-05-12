@@ -16,10 +16,8 @@
 
 #include "AceButton.h"
 using namespace ace_button;
-static AceButton* button[HASP_NUM_INPUTS];
 ButtonConfig buttonConfig; // Clicks, double-clicks and long presses
 ButtonConfig switchConfig; // Clicks only
-
 #else
 
 #define HIGH 1
@@ -33,38 +31,52 @@ ButtonConfig switchConfig; // Clicks only
 #define SCALE_8BIT_TO_12BIT(x) x << 4 | x >> 4
 #define SCALE_8BIT_TO_10BIT(x) x << 2 | x >> 6
 
-uint8_t gpioUsedInputCount = 0;
-
 // An array of button pins, led pins, and the led states. Cannot be const
 // because ledState is mutable.
 hasp_gpio_config_t gpioConfig[HASP_NUM_GPIO_CONFIG] = {
     //    {2, 8, INPUT, LOW}, {3, 9, OUTPUT, LOW}, {4, 10, INPUT, HIGH}, {5, 11, OUTPUT, LOW}, {6, 12, INPUT, LOW},
 };
 
+static inline void gpio_update_group(uint8_t group, lv_obj_t* obj, int32_t val, int32_t min, int32_t max)
+{
+    hasp_update_value_t value = {
+        .min   = min,
+        .max   = max,
+        .val   = val,
+        .obj   = obj,
+        .group = group,
+    };
+    dispatch_normalized_group_values(value);
+}
+
 #if defined(ARDUINO_ARCH_ESP32)
 #include "driver/uart.h"
 #include <driver/dac.h>
 
-class TouchConfig : public ButtonConfig {
-  public:
-    TouchConfig();
+volatile bool touchdetected = false;
+
+void gotTouch()
+{
+    touchdetected = true;
+}
+
+// Overrides the readButton function on ESP32
+class CapacitiveConfig : public ButtonConfig {
 
   protected:
     // Number of iterations to sample the capacitive switch. Higher number
     // provides better smoothing but increases the time taken for a single read.
-    static const uint8_t kSamples = 10;
+    // static const uint8_t kSamples = 10;
 
     // The threshold value which is considered to be a "touch" on the switch.
-    static const long kTouchThreshold = 70;
+    static const long kTouchThreshold = 32;
 
     int readButton(uint8_t pin) override
     {
-        // long total =  mSensor.capacitiveSensor(kSamples);
-        return (touchRead(pin) > kTouchThreshold) ? LOW : HIGH;
+        return touchdetected ? HIGH : LOW; // HIGH = not touched
     }
 };
-
-TouchConfig touchConfig();
+CapacitiveConfig touchConfig; // Capacitive touch
 #endif
 
 void gpio_log_serial_dimmer(const char* command)
@@ -88,7 +100,8 @@ static void gpio_event_handler(AceButton* button, uint8_t eventType, uint8_t but
             } else {
                 eventid = HASP_EVENT_DOWN;
             }
-            state = true;
+            state         = true;
+            touchdetected = false;
             break;
         case 2: // AceButton::kEventClicked:
             eventid = HASP_EVENT_UP;
@@ -116,8 +129,10 @@ static void gpio_event_handler(AceButton* button, uint8_t eventType, uint8_t but
     }
 
     event_gpio_input(gpioConfig[btnid].pin, gpioConfig[btnid].group, eventid);
-    if(eventid != HASP_EVENT_LONG) // do not repeat DOWN + LONG
-        dispatch_normalized_group_values(gpioConfig[btnid].group, NULL, state, HASP_EVENT_OFF, HASP_EVENT_ON);
+
+    // update objects and gpios in this group
+    if(gpioConfig[btnid].group && eventid != HASP_EVENT_LONG) // do not repeat DOWN + LONG
+        gpio_update_group(gpioConfig[btnid].group, NULL, state, HASP_EVENT_OFF, HASP_EVENT_ON);
 }
 
 /* ********************************* GPIO Setup *************************************** */
@@ -129,11 +144,11 @@ void aceButtonSetup(void)
     buttonConfig.setFeature(ButtonConfig::kFeatureClick);
     buttonConfig.clearFeature(ButtonConfig::kFeatureDoubleClick);
     buttonConfig.setFeature(ButtonConfig::kFeatureLongPress);
-    // buttonConfig->clearFeature(ButtonConfig::kFeatureRepeatPress);
+    // buttonConfig.clearFeature(ButtonConfig::kFeatureRepeatPress);
     buttonConfig.clearFeature(ButtonConfig::kFeatureSuppressClickBeforeDoubleClick); // Causes annoying pauses
     buttonConfig.setFeature(ButtonConfig::kFeatureSuppressAfterClick);
-    buttonConfig.setClickDelay(LV_INDEV_DEF_LONG_PRESS_TIME);
     // Delays
+    buttonConfig.setClickDelay(LV_INDEV_DEF_LONG_PRESS_TIME);
     buttonConfig.setDoubleClickDelay(LV_INDEV_DEF_LONG_PRESS_TIME);
     buttonConfig.setLongPressDelay(LV_INDEV_DEF_LONG_PRESS_TIME);
     buttonConfig.setRepeatPressDelay(LV_INDEV_DEF_LONG_PRESS_TIME);
@@ -146,67 +161,24 @@ void aceButtonSetup(void)
     switchConfig.clearFeature(ButtonConfig::kFeatureRepeatPress);
     switchConfig.clearFeature(ButtonConfig::kFeatureDoubleClick);
     switchConfig.setClickDelay(100); // decrease click delay from default 200 ms
+
+#if defined(ARDUINO_ARCH_ESP32)
+    // Capacitive Touch Features
+    touchConfig.setEventHandler(gpio_event_handler);
+    touchConfig.setFeature(ButtonConfig::kFeatureClick);
+    touchConfig.clearFeature(ButtonConfig::kFeatureDoubleClick);
+    touchConfig.setFeature(ButtonConfig::kFeatureLongPress);
+    // touchConfig.clearFeature(ButtonConfig::kFeatureRepeatPress);
+    touchConfig.clearFeature(ButtonConfig::kFeatureSuppressClickBeforeDoubleClick); // Causes annoying pauses
+    touchConfig.setFeature(ButtonConfig::kFeatureSuppressAfterClick);
+    // Delays
+    touchConfig.setClickDelay(LV_INDEV_DEF_LONG_PRESS_TIME);
+    touchConfig.setDoubleClickDelay(LV_INDEV_DEF_LONG_PRESS_TIME);
+    touchConfig.setLongPressDelay(LV_INDEV_DEF_LONG_PRESS_TIME);
+    touchConfig.setRepeatPressDelay(LV_INDEV_DEF_LONG_PRESS_TIME);
+    touchConfig.setRepeatPressInterval(LV_INDEV_DEF_LONG_PRESS_REP_TIME);
+#endif
 }
-
-/* void gpioAddButton(uint8_t pin, uint8_t input_mode, uint8_t default_state, uint8_t index)
-{
-    uint8_t i;
-    for(i = 0; i < HASP_NUM_INPUTS; i++) {
-
-        if(!button[i]) {
-            LOG_TRACE(TAG_GPIO, F("Creating Button%d on pin %d (index %d) mode %d default %d"), i, pin, index,
-                      input_mode, default_state);
-
-            button[i] = new AceButton(&buttonConfig, pin, default_state, index);
-
-            if(button[i]) {
-                // pinMode(pin, input_mode);
-
-                // ButtonConfig* buttonConfig = button[i]->getButtonConfig();
-                // buttonConfig->setEventHandler(gpio_event_handler);
-                // buttonConfig->setFeature(ButtonConfig::kFeatureClick);
-                // buttonConfig->clearFeature(ButtonConfig::kFeatureDoubleClick);
-                // buttonConfig->setFeature(ButtonConfig::kFeatureLongPress);
-                // // buttonConfig->clearFeature(ButtonConfig::kFeatureRepeatPress);
-                // buttonConfig->clearFeature(
-                //     ButtonConfig::kFeatureSuppressClickBeforeDoubleClick); // Causes annoying pauses
-                // buttonConfig->setFeature(ButtonConfig::kFeatureSuppressAfterClick);
-
-                LOG_INFO(TAG_GPIO, F("Button%d created on pin %d (index %d) mode %d default %d"), i, pin, index,
-                         input_mode, default_state);
-                gpioUsedInputCount = i + 1;
-                return;
-            }
-        }
-    }
-    LOG_ERROR(TAG_GPIO, F("Failed to create Button%d pin %d (index %d). All %d slots available are in use!"), i, pin,
-              index, HASP_NUM_INPUTS);
-}
-
-void gpioAddSwitch(uint8_t pin, uint8_t input_mode, uint8_t default_state, uint8_t index)
-{
-    uint8_t i;
-    for(i = 0; i < HASP_NUM_INPUTS; i++) {
-
-        if(!button[i]) {
-            LOG_TRACE(TAG_GPIO, F("Creating Switch%d on pin %d (index %d) mode %d default %d"), i, pin, index,
-                      input_mode, default_state);
-
-            button[i] = new AceButton(&switchConfig, pin, default_state, index);
-
-            if(button[i]) {
-                // pinMode(pin, input_mode);
-
-                LOG_INFO(TAG_GPIO, F("Switch%d on pin %d (index %d) mode %d default %d"), i, pin, index, input_mode,
-                         default_state);
-                gpioUsedInputCount = i + 1;
-                return;
-            }
-        }
-    }
-    LOG_ERROR(TAG_GPIO, F("Failed to create Switch%d pin %d (index %d). All %d slots available are in use!"), i, pin,
-              index, HASP_NUM_INPUTS);
-}*/
 
 // Can be called ad-hoc to change a setup
 static void gpio_setup_pin(uint8_t index)
@@ -240,12 +212,22 @@ static void gpio_setup_pin(uint8_t index)
 
     switch(gpio->type) {
         case HASP_GPIO_SWITCH:
-            config = &switchConfig;
-        case HASP_GPIO_BUTTON:
             if(gpio->btn) delete gpio->btn;
-            gpio->btn = new AceButton(config, gpio->pin, HIGH, index);
+            gpio->btn = new AceButton(&switchConfig, gpio->pin, HIGH, index);
             pinMode(gpio->pin, INPUT_PULLUP);
             gpio->max = 0;
+            break;
+        case HASP_GPIO_BUTTON:
+            if(gpio->btn) delete gpio->btn;
+            gpio->btn = new AceButton(&buttonConfig, gpio->pin, HIGH, index);
+            pinMode(gpio->pin, INPUT_PULLUP);
+            gpio->max = 0;
+            break;
+        case HASP_GPIO_TOUCH:
+            if(gpio->btn) delete gpio->btn;
+            gpio->btn = new AceButton(&touchConfig, gpio->pin, HIGH, index);
+            gpio->max = 0;
+            // touchAttachInterrupt(gpio->pin, gotTouch, 33);
             break;
 
         case HASP_GPIO_RELAY:
@@ -298,37 +280,6 @@ static void gpio_setup_pin(uint8_t index)
             LOG_WARNING(TAG_GPIO, F("Invalid config -> pin %d - type: %d"), gpio->pin, gpio->type);
     }
     LOG_VERBOSE(TAG_GPIO, F(D_BULLET "Configured pin %d"), gpio->pin);
-}
-
-void gpioAddTouchButton(uint8_t pin, uint8_t input_mode, uint8_t default_state, uint8_t index)
-{
-    uint8_t i;
-    for(i = 0; i < HASP_NUM_INPUTS; i++) {
-
-        if(!button[i]) {
-            button[i] = new AceButton(pin, default_state, index);
-
-            if(button[i]) {
-                pinMode(pin, input_mode);
-
-                ButtonConfig* buttonConfig = button[i]->getButtonConfig();
-                buttonConfig->setEventHandler(gpio_event_handler);
-                buttonConfig->setFeature(ButtonConfig::kFeatureClick);
-                buttonConfig->clearFeature(ButtonConfig::kFeatureDoubleClick);
-                buttonConfig->setFeature(ButtonConfig::kFeatureLongPress);
-                buttonConfig->clearFeature(ButtonConfig::kFeatureRepeatPress);
-                buttonConfig->clearFeature(
-                    ButtonConfig::kFeatureSuppressClickBeforeDoubleClick); // Causes annoying pauses
-
-                LOG_INFO(TAG_GPIO, F("Button%d created on pin %d (index %d) mode %d default %d"), i, pin, index,
-                         input_mode, default_state);
-                gpioUsedInputCount = i + 1;
-                return;
-            }
-        }
-    }
-    LOG_ERROR(TAG_GPIO, F("Failed to create Button%d pin %d (index %d). All %d slots available are in use!"), i, pin,
-              index, HASP_NUM_INPUTS);
 }
 
 void gpioSetup()
@@ -462,7 +413,7 @@ bool gpio_get_pin_config(uint8_t pin, hasp_gpio_config_t** gpio)
     return false;
 }
 
-// Update the actual value of one pin
+// Update the actual value of one pin, does NOT update group members
 // The value must be normalized first
 static bool gpio_set_output_value(hasp_gpio_config_t* gpio, uint16_t val)
 {
@@ -492,7 +443,7 @@ static bool gpio_set_output_value(hasp_gpio_config_t* gpio, uint16_t val)
 // Update the normalized value of one pin
 void gpio_set_normalized_value(hasp_gpio_config_t* gpio, int32_t val, int32_t min, int32_t max)
 {
-    if(min != 0 || max != gpio->max) {
+    if(min != 0 || max != gpio->max) { // do we need to recalculate?
         if(min == max) {
             LOG_ERROR(TAG_GPIO, F("Invalid value range"));
             return;
@@ -511,51 +462,48 @@ void gpio_set_normalized_value(hasp_gpio_config_t* gpio, int32_t val, int32_t mi
                 break;
 
             default:
-                return;
+                return; // invalid output type
         }
     }
-    gpio_set_output_value(gpio, val); // normalized
+    gpio_set_output_value(gpio, val); // recalculated
 }
 
-/* void gpio_set_normalized_group_values(uint8_t groupid, int16_t val, int16_t min, int16_t max)
+static inline bool gpio_is_input(hasp_gpio_config_t* gpio)
 {
-    if(min == max) {
-        LOG_ERROR(TAG_GPIO, F("Invalid value range"));
-        return;
-    }
+    return gpio->type == HASP_GPIO_BUTTON || gpio->type == HASP_GPIO_SWITCH || gpio->type == HASP_GPIO_TOUCH;
+}
 
-    // bool state = Parser::get_event_state(eventid);
-    for(uint8_t i = 0; i < HASP_NUM_GPIO_CONFIG; i++) {
-        if(gpioConfig[i].group == groupid) {
-            gpio_set_normalized_value(&gpioConfig[i], val, min, max);
-        }
-    }
-} */
+static inline bool gpio_is_output(hasp_gpio_config_t* gpio)
+{
+    return (gpio->type != HASP_GPIO_FREE) && !gpio_is_input(gpio);
+}
 
 // Dispatch all group member values
 void gpio_output_group_values(uint8_t group)
 {
     for(uint8_t k = 0; k < HASP_NUM_GPIO_CONFIG; k++) {
         hasp_gpio_config_t* gpio = &gpioConfig[k];
-        if(gpio->group == group && gpio->type != HASP_GPIO_BUTTON &&
-           gpio->type != HASP_GPIO_SWITCH && // group members that are outputs
-           gpioConfigInUse(k))
+        if(gpio->group == group && gpio_is_output(gpio)) // group members that are outputs
             dispatch_output_pin_value(gpioConfig[k].pin, gpioConfig[k].val);
     }
 }
 
+// SHOULD only by called from DISPATCH
 // Update the normalized value of all group members
-void gpio_set_normalized_group_values(uint8_t group, int32_t val, int32_t min, int32_t max)
+// Does not procude logging output
+void gpio_set_normalized_group_values(hasp_update_value_t& value)
 {
     // Set all pins first, minimizes delays
     for(uint8_t k = 0; k < HASP_NUM_GPIO_CONFIG; k++) {
         hasp_gpio_config_t* gpio = &gpioConfig[k];
-        if(gpio->group == group && gpioConfigInUse(k)) // group members that are outputs
-            gpio_set_normalized_value(gpio, val, min, max);
+        if(gpio->group == value.group && gpioConfigInUse(k)) // group members that are outputs
+            gpio_set_normalized_value(gpio, value.val, value.min, value.max);
     }
 
-    gpio_output_group_values(group);
-    object_set_normalized_group_values(group, NULL, val, min, max); // Update onsreen objects
+    // Log the changed output values
+    // gpio_output_group_values(value.group);
+
+    // object_set_normalized_group_values(group, NULL, val, min, max); // Update onsreen objects
 }
 
 // Update the value of an output pin and its group members
@@ -563,22 +511,23 @@ bool gpio_set_pin_value(uint8_t pin, int32_t val)
 {
     hasp_gpio_config_t* gpio = NULL;
 
-    if(!gpio_get_pin_config(pin, &gpio) || !gpio || gpio->type == HASP_GPIO_FREE) {
+    if(!gpio_get_pin_config(pin, &gpio) || !gpio) {
         LOG_WARNING(TAG_GPIO, F(D_BULLET "Pin %d is not configured"), pin);
         return false;
 
-    } else if(gpio->type == HASP_GPIO_BUTTON || gpio->type == HASP_GPIO_SWITCH) {
-        LOG_WARNING(TAG_GPIO, F(D_BULLET "Pin %d is an input"), pin);
+    } else if(gpio_is_output(gpio)) {
+        LOG_WARNING(TAG_GPIO, F(D_BULLET "Pin %d can not be set"), pin);
         if(gpio->group) gpio_output_group_values(gpio->group);
         return false;
     }
 
     if(gpio->group) {
-        gpio_set_normalized_group_values(gpio->group, val, 0, gpio->max); // Set all pins in the group
-        LOG_VERBOSE(TAG_GPIO, F("Group %d - Pin %d = %d"), gpio->group, gpio->pin, gpio->val);
+        // update objects and gpios in this group
+        gpio_update_group(gpio->group, NULL, gpio->val, 0, gpio->max);
 
     } else {
-        gpio_set_output_value(gpio, val); // update this gpio value only
+        // update this gpio value only
+        gpio_set_output_value(gpio, val);
         dispatch_output_pin_value(gpio->pin, gpio->val);
         LOG_VERBOSE(TAG_GPIO, F("No Group - Pin %d = %d"), gpio->pin, gpio->val);
     }
@@ -625,6 +574,8 @@ void gpio_set_moodlight(moodlight_t& moodlight)
                 break;
         }
     }
+
+    // TODO: Update objects when the Mood Color Pin is in a group
 }
 
 bool gpioIsSystemPin(uint8_t gpio)

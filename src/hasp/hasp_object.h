@@ -20,6 +20,15 @@ typedef struct
     uint16_t interval;
 } hasp_task_user_data_t;
 
+typedef struct
+{
+    int32_t min;
+    int32_t max;
+    int32_t val;
+    lv_obj_t* obj;
+    uint8_t group;
+} hasp_update_value_t;
+
 enum lv_hasp_obj_type_t {
     /* Containers */
     LV_HASP_SCREEN    = 1,
@@ -81,7 +90,7 @@ void object_dispatch_state(uint8_t pageid, uint8_t btnid, const char* payload);
 
 void hasp_process_attribute(uint8_t pageid, uint8_t objid, const char* attr, const char* payload, bool update);
 
-void object_set_normalized_group_values(uint8_t groupid, lv_obj_t* src_obj, int16_t val, int16_t min, int16_t max);
+void object_set_normalized_group_values(hasp_update_value_t& value);
 
 #define HASP_OBJ_BAR 1971
 #define HASP_OBJ_BTN 3164

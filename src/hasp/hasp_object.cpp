@@ -165,48 +165,42 @@ void object_dispatch_state(uint8_t pageid, uint8_t btnid, const char* payload)
 
 // ##################### State Changers ########################################################
 
-void object_set_group_values(lv_obj_t* parent, uint8_t groupid, int16_t intval)
+// Recursive function that goes over all objects only ONCE
+void object_set_group_values(lv_obj_t* parent, hasp_update_value_t& value)
 {
-    if(groupid == 0 || parent == nullptr) return;
+    if(parent == nullptr) return;
 
-    lv_obj_t* child;
-    child = lv_obj_get_child(parent, NULL);
-    while(child) {
-        /* child found, update it */
-        if(groupid == child->user_data.groupid) hasp_process_obj_attribute_val(child, NULL, intval, intval, true);
+    // Update object if it's in the same group
+    if(value.group == parent->user_data.groupid && value.obj != parent)
+        hasp_process_obj_attribute_val(parent, NULL, value.val, !!value.val, true);
 
-        /* update grandchildren */
-        object_set_group_values(child, groupid, intval);
-
-        /* check tabs */
-        if(obj_check_type(child, LV_HASP_TABVIEW)) {
-            //#if LVGL_VERSION_MAJOR == 7
-            uint16_t tabcount = lv_tabview_get_tab_count(child);
-            for(uint16_t i = 0; i < tabcount; i++) {
-                lv_obj_t* tab = lv_tabview_get_tab(child, i);
-                LOG_VERBOSE(TAG_HASP, F("Found tab %i"), i);
-                if(tab->user_data.groupid && groupid == tab->user_data.groupid)
-                    hasp_process_obj_attribute_val(tab, NULL, intval, intval, true); /* tab found, update it */
-
-                /* check grandchildren */
-                object_set_group_values(tab, groupid, intval);
-            }
-            //#endif
+    /* check tabs */
+    if(obj_get_type(parent) == LV_HASP_TABVIEW) {
+        uint16_t tabcount = lv_tabview_get_tab_count(parent);
+        for(uint16_t i = 0; i < tabcount; i++) {
+            lv_obj_t* tab = lv_tabview_get_tab(parent, i);
+            object_set_group_values(tab, value);
         }
-
-        /* try next sibling */
-        child = lv_obj_get_child(parent, child);
+    } else {
+        lv_obj_t* child;
+        child = lv_obj_get_child(parent, NULL);
+        while(child) {
+            object_set_group_values(child, value);
+            child = lv_obj_get_child(parent, child);
+        }
     }
 }
 
-// Recursive function that goes over all objects only ONCE
-void object_set_normalized_group_values(uint8_t groupid, lv_obj_t* src_obj, int16_t val, int16_t min, int16_t max)
+// SHOULD only by called from DISPATCH
+void object_set_normalized_group_values(hasp_update_value_t& value)
 {
-    if(groupid == 0) return;
-    if(min == max) return;
+    if(value.group == 0 || value.min == value.max) return;
 
-    for(uint8_t page = 0; page < HASP_NUM_PAGES; page++) {
-        object_set_group_values(haspPages.get_obj(page), groupid, val);
+    uint8_t page = haspPages.get();
+    object_set_group_values(haspPages.get_obj(page), value); // Update visible objects first
+
+    for(uint8_t i = 0; i < HASP_NUM_PAGES; i++) {
+        if(i != page) object_set_group_values(haspPages.get_obj(i), value);
         // uint8_t startid = 1;
         // for(uint8_t objid = startid; objid < 20; objid++) {
         //     lv_obj_t* obj = hasp_find_obj_from_parent_id(get_page_obj(page), objid);
