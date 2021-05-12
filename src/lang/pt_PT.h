@@ -194,6 +194,7 @@
 
 #define D_GPIO_SWITCH "Interruptor"
 #define D_GPIO_BUTTON "Botão"
+#define D_GPIO_TOUCH "Capacitive Touch" // Nieuw
 #define D_GPIO_LED "LED"
 #define D_GPIO_LED_R "LED Red"
 #define D_GPIO_LED_G "LED Green"

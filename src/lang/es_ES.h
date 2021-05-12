@@ -194,6 +194,7 @@
 // new
 #define D_GPIO_SWITCH "Switch"
 #define D_GPIO_BUTTON "Botón"
+#define D_GPIO_TOUCH "Capacitive Touch" // Nieuw
 #define D_GPIO_LED "DEL"
 #define D_GPIO_LED_R "Ánimo Red"
 #define D_GPIO_LED_G "Ánimo Green"

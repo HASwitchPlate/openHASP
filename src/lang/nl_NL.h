@@ -193,6 +193,7 @@
 
 #define D_GPIO_SWITCH "Schakelaar"
 #define D_GPIO_BUTTON "Drukknop"
+#define D_GPIO_TOUCH "Aanraakknop"
 #define D_GPIO_LED "Led"
 #define D_GPIO_LED_R "Sfeer Rood"
 #define D_GPIO_LED_G "Sfeer Groen"

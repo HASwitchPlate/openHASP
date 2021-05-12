@@ -193,11 +193,12 @@
 
 #define D_GPIO_SWITCH "Interrupteur"
 #define D_GPIO_BUTTON "Bouton"
+#define D_GPIO_TOUCH "Touche Capacitive"
 #define D_GPIO_LED "Led"
 #define D_GPIO_LED_R "Humeur Rouge"
 #define D_GPIO_LED_G "Humeur Vert"
 #define D_GPIO_LED_B "Humeur Bleu"
-#define D_GPIO_RELAY "Relaiss"
+#define D_GPIO_RELAY "Relais"
 #define D_GPIO_PWM "PWM"
 #define D_GPIO_DAC "DAC"
 #define D_GPIO_SERIAL_DIMMER "Gradateur Série"
