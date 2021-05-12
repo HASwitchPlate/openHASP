@@ -1555,6 +1555,9 @@ void webHandleGpioConfig()
                         case HASP_GPIO_BUTTON:
                             httpMessage += F(D_GPIO_BUTTON);
                             break;
+                        case HASP_GPIO_TOUCH:
+                            httpMessage += F(D_GPIO_TOUCH);
+                            break;
                         case HASP_GPIO_LED:
                             httpMessage += F(D_GPIO_LED);
                             break;
@@ -1665,6 +1668,9 @@ void webHandleGpioOptions()
 
         selected = (conf.type == HASP_GPIO_BUTTON);
         httpMessage += getOption(HASP_GPIO_BUTTON, F(D_GPIO_BUTTON), selected);
+
+        selected = (conf.type == HASP_GPIO_TOUCH);
+        httpMessage += getOption(HASP_GPIO_TOUCH, F(D_GPIO_TOUCH), selected);
 
         selected = (conf.type == HASP_GPIO_LED);
         httpMessage += getOption(HASP_GPIO_LED, F(D_GPIO_LED), selected);
