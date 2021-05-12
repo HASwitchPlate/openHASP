@@ -115,7 +115,9 @@ Esp32Device::Esp32Device()
 
 void Esp32Device::reboot()
 {
-    ESP.restart();
+    esp_sleep_enable_timer_wakeup(50 * 1000);
+    esp_deep_sleep_start();
+    //    ESP.restart();
 }
 
 void Esp32Device::show_info()
