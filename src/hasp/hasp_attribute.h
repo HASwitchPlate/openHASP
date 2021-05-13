@@ -20,6 +20,8 @@ void line_clear_points(lv_obj_t* obj);
 void hasp_process_obj_attribute(lv_obj_t* obj, const char* attr_p, const char* payload, bool update);
 bool hasp_process_obj_attribute_val(lv_obj_t* obj, const char* attr, int16_t intval, bool booval, bool update);
 
+bool attribute_set_normalized_value(lv_obj_t* obj, hasp_update_value_t& value);
+
 void attr_out_str(lv_obj_t* obj, const char* attribute, const char* data);
 void attr_out_int(lv_obj_t* obj, const char* attribute, int32_t val);
 void attr_out_color(lv_obj_t* obj, const char* attribute, lv_color_t color);
@@ -306,6 +308,8 @@ _HASP_ATTRIBUTE(SCALE_END_LINE_WIDTH, scale_end_line_width, lv_style_int_t)
 #define ATTR_TEXT 53869
 #define ATTR_SRC 4964
 #define ATTR_ID 6715
+#define ATTR_EXT_CLICK_H 46643
+#define ATTR_EXT_CLICK_V 46657
 #define ATTR_ANIM_TIME 59451
 #define ATTR_ANIM_SPEED 281
 
