@@ -72,51 +72,6 @@ bool hasp_find_id_from_obj(const lv_obj_t* obj, uint8_t* pageid, uint8_t* objid)
     return true;
 }
 
-/**
- * Get the object type name of an object
- * @param obj an lv_obj_t* of the object to check its type
- * @return name of the object type
- * @note
- */
-const char* obj_get_type_name(const lv_obj_t* obj)
-{
-    lv_obj_type_t list;
-    lv_obj_get_type(obj, &list);
-    const char* objtype = list.type[0];
-    return objtype + 3; // skip lv_
-}
-
-/**
- * Check if an lvgl objecttype name corresponds to a given HASP object ID
- * @param obj an lv_obj_t* of the object to check its type
- * @param haspobjtype the HASP object ID to check against
- * @return true or false wether the types match
- * @note
- */
-bool obj_check_type(const lv_obj_t* obj, lv_hasp_obj_type_t haspobjtype)
-{
-#if 1
-    if(!obj) return false;
-    return obj->user_data.objid == (uint8_t)haspobjtype;
-#else
-    lv_obj_type_t list;
-    lv_obj_get_type(obj, &list);
-    const char* objtype = list.type[0];
-    return obj_check_type(objtype, haspobjtype);
-#endif
-}
-
-/**
- * Get the hasp object type of a given LVGL object
- * @param obj an lv_obj_t* of the object to check its type
- * @return lv_hasp_obj_type_t
- * @note
- */
-lv_hasp_obj_type_t obj_get_type(const lv_obj_t* obj)
-{
-    return (lv_hasp_obj_type_t)obj->user_data.objid;
-}
-
 void hasp_object_tree(const lv_obj_t* parent, uint8_t pageid, uint16_t level)
 {
     if(parent == nullptr) return;
