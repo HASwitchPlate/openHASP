@@ -48,8 +48,8 @@ static inline void gpio_update_group(uint8_t group, lv_obj_t* obj, bool power, i
 #include "driver/uart.h"
 #include <driver/dac.h>
 
-volatile bool touchdetected     = false;
-RTC_DATA_ATTR int recordCounter = 0;
+volatile bool touchdetected        = false;
+RTC_DATA_ATTR int rtcRecordCounter = 0;
 
 void gotTouch()
 {
@@ -96,8 +96,8 @@ static void gpio_event_handler(AceButton* button, uint8_t eventType, uint8_t but
             } else {
                 eventid = HASP_EVENT_DOWN;
             }
-            state         = true;
-            touchdetected = false;
+            state = true;
+            // touchdetected = false;
             break;
         case 2: // AceButton::kEventClicked:
             eventid = HASP_EVENT_UP;
@@ -224,12 +224,14 @@ static void gpio_setup_pin(uint8_t index)
             pinMode(gpio->pin, INPUT_PULLUP);
             gpio->max = 0;
             break;
+#if defined(ARDUINO_ARCH_ESP32)
         case hasp_gpio_type_t::TOUCH:
             if(gpio->btn) delete gpio->btn;
             gpio->btn = new AceButton(&touchConfig, gpio->pin, HIGH, index);
             gpio->max = 0;
             // touchAttachInterrupt(gpio->pin, gotTouch, 33);
             break;
+#endif
 
         case hasp_gpio_type_t::POWER_RELAY:
         case hasp_gpio_type_t::LIGHT_RELAY:
@@ -294,7 +296,9 @@ static void gpio_setup_pin(uint8_t index)
 void gpioSetup()
 {
     LOG_INFO(TAG_GPIO, F(D_SERVICE_STARTING));
-    LOG_WARNING(TAG_GPIO, F("Reboot counter %d"), recordCounter++);
+#if defined(ARDUINO_ARCH_ESP32)
+    LOG_WARNING(TAG_GPIO, F("Reboot counter %d"), rtcRecordCounter++);
+#endif
 
     aceButtonSetup();
 
