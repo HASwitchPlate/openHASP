@@ -237,7 +237,9 @@ typedef void* lv_img_decoder_user_data_t;
 #define LV_ATTRIBUTE_TICK_INC
 
 /* Define a custom attribute to `lv_task_handler` function */
+#ifndef LV_ATTRIBUTE_TASK_HANDLER
 #define LV_ATTRIBUTE_TASK_HANDLER
+#endif
 
 /* With size optimization (-Os) the compiler might not align data to
  * 4 or 8 byte boundary. This alignment will be explicitly applied where needed.
