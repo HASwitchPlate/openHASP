@@ -321,8 +321,8 @@ IRAM_ATTR void gpioLoop(void)
 
 void gpioSetup(void)
 {
-    gpioSavePinConfig(0, 3, hasp_gpio_type_t::RELAY, 0, -1, false);
-    gpioSavePinConfig(1, 4, hasp_gpio_type_t::RELAY, 0, -1, false);
+    gpioSavePinConfig(0, 3, hasp_gpio_type_t::POWER_RELAY, 0, -1, false);
+    gpioSavePinConfig(1, 4, hasp_gpio_type_t::LIGHT_RELAY, 0, -1, false);
     gpioSavePinConfig(2, 13, hasp_gpio_type_t::LED, 0, -1, false);
     gpioSavePinConfig(3, 14, hasp_gpio_type_t::DAC, 0, -1, false);
 }
