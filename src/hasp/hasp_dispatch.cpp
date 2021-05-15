@@ -100,16 +100,6 @@ void dispatch_json_error(uint8_t tag, DeserializationError& jsonError)
     LOG_ERROR(tag, F(D_JSON_FAILED " %s"), jsonError.c_str());
 }
 
-void dispatch_output_pin_value(uint8_t pin, uint16_t val)
-{
-    char payload[32];
-    char topic[12];
-    snprintf_P(topic, sizeof(topic), PSTR("output%d"), pin);
-    snprintf_P(payload, sizeof(payload), PSTR("%d"), val);
-
-    dispatch_state_subtopic(topic, payload);
-}
-
 // p[x].b[y].attr=value
 static inline bool dispatch_parse_button_attribute(const char* topic_p, const char* payload, bool update)
 {
@@ -164,28 +154,63 @@ static void dispatch_gpio(const char* topic, const char* payload)
 {
 #if HASP_USE_GPIO > 0
 
-    if(Parser::is_only_digits(topic)) {
-        int16_t val;
-        uint8_t pin;
+    if(!Parser::is_only_digits(topic)) {
+        LOG_WARNING(TAG_MSGR, F("Invalid pin %s"), topic);
+        return;
+    }
 
-        pin = atoi(topic);
-        if(strlen(payload) > 0) {
+    uint8_t pin = atoi(topic);
 
-            val = atoi(payload);
-            if(val == 0) val = Parser::is_true(payload);
+    if(strlen(payload) > 0) {
 
-            gpio_set_pin_value(pin, val);
+        size_t maxsize = (128u * ((strlen(payload) / 128) + 1)) + 128;
+        DynamicJsonDocument json(maxsize);
+
+        // Note: Deserialization needs to be (const char *) so the objects WILL be copied
+        // this uses more memory but otherwise the mqtt receive buffer can get overwritten by the send buffer !!
+        DeserializationError jsonError = deserializeJson(json, payload);
+        json.shrinkToFit();
+
+        if(jsonError) { // Couldn't parse incoming JSON command
+            dispatch_json_error(TAG_MSGR, jsonError);
         } else {
-            uint16_t val;
 
-            if(gpio_get_value(pin, val)) {
-                dispatch_output_pin_value(pin, val);
+            // Save the current state
+            int32_t state_value;
+            bool power_state;
+            bool updated = false;
+
+            if(!gpio_get_pin_state(pin, power_state, state_value)) {
+                LOG_WARNING(TAG_GPIO, F(D_BULLET "Pin %d can not be set"), pin);
+                return;
+            }
+
+            JsonVariant state = json[F("state")];
+            JsonVariant value = json[F("val")];
+
+            // Check if the state needs to change
+            if(!state.isNull() && power_state != state.as<bool>()) {
+                power_state = state.as<bool>();
+                updated     = true;
+            }
+
+            if(!value.isNull() && state_value != value.as<int32_t>()) {
+                state_value = value.as<int32_t>();
+                updated     = true;
+            }
+
+            // Set new state
+            if(updated && gpio_set_pin_state(pin, power_state, state_value)) {
+                return; // value was set and state output already
             } else {
-                LOG_WARNING(TAG_GPIO, F(D_BULLET "Pin %d is not configured"), pin);
+                // output the new state to the log
             }
         }
-    } else {
-        LOG_WARNING(TAG_MSGR, F("Invalid pin %s"), topic);
+    }
+
+    // just output this pin
+    if(!gpio_output_pin_state(pin)) {
+        LOG_WARNING(TAG_GPIO, F(D_BULLET "Pin %d is not configured"), pin);
     }
 
 #endif
@@ -434,12 +459,12 @@ void dispatch_normalized_group_values(hasp_update_value_t& value)
 {
     if(value.group == 0) return;
 
-    LOG_VERBOSE(TAG_MSGR, F("GROUP %d value %d (%d-%d)"), value.group, value.val, value.min, value.max);
 #if HASP_USE_GPIO > 0
     gpio_set_normalized_group_values(value); // Update GPIO states first
 #endif
     object_set_normalized_group_values(value); // Update onsreen objects except originating obj
 
+    LOG_VERBOSE(TAG_MSGR, F("GROUP %d value %d (%d-%d)"), value.group, value.val, value.min, value.max);
 #if HASP_USE_GPIO > 0
     gpio_output_group_values(value.group); // Output new gpio values
 #endif
@@ -655,7 +680,7 @@ void dispatch_moodlight(const char* topic, const char* payload)
     // Set the current state
     if(strlen(payload) != 0) {
 
-        size_t maxsize = (128u * ((strlen(payload) / 128) + 1)) + 512;
+        size_t maxsize = (128u * ((strlen(payload) / 128) + 1)) + 128;
         DynamicJsonDocument json(maxsize);
 
         // Note: Deserialization needs to be (const char *) so the objects WILL be copied
@@ -670,20 +695,20 @@ void dispatch_moodlight(const char* topic, const char* payload)
             if(!json[F("state")].isNull())
                 moodlight.power = Parser::is_true(json[F("state")].as<std::string>().c_str());
 
-            if(!json["r"].isNull()) moodlight.r = json["r"].as<uint8_t>();
-            if(!json["g"].isNull()) moodlight.g = json["g"].as<uint8_t>();
-            if(!json["b"].isNull()) moodlight.b = json["b"].as<uint8_t>();
+            if(!json["r"].isNull()) moodlight.rgbww[0] = json["r"].as<uint8_t>();
+            if(!json["g"].isNull()) moodlight.rgbww[1] = json["g"].as<uint8_t>();
+            if(!json["b"].isNull()) moodlight.rgbww[2] = json["b"].as<uint8_t>();
             if(!json["brightness"].isNull()) moodlight.brightness = json["brightness"].as<uint8_t>();
 
             if(!json[F("color")].isNull()) {
                 if(!json[F("color")]["r"].isNull()) {
-                    moodlight.r = json[F("color")]["r"].as<uint8_t>();
+                    moodlight.rgbww[0] = json[F("color")]["r"].as<uint8_t>();
                 }
                 if(!json[F("color")]["g"].isNull()) {
-                    moodlight.g = json[F("color")]["g"].as<uint8_t>();
+                    moodlight.rgbww[1] = json[F("color")]["g"].as<uint8_t>();
                 }
                 if(!json[F("color")]["b"].isNull()) {
-                    moodlight.b = json[F("color")]["b"].as<uint8_t>();
+                    moodlight.rgbww[2] = json[F("color")]["b"].as<uint8_t>();
                 }
                 // lv_color32_t color;
                 // if(Parser::haspPayloadToColor(json[F("color")].as<const char*>(), color)) {
@@ -707,7 +732,8 @@ void dispatch_moodlight(const char* topic, const char* payload)
         // buffer, sizeof(buffer),
         // PSTR("{\"state\":\"%s\",\"color\":\"#%02x%02x%02x\",\"r\":%u,\"g\":%u,\"b\":%u}"),
         buffer, sizeof(buffer), PSTR("{\"state\":\"%s\",\"color\":{\"r\":%u,\"g\":%u,\"b\":%u,\"brightness\":%u}}"),
-        moodlight.power ? "ON" : "OFF", moodlight.r, moodlight.g, moodlight.b, moodlight.brightness);
+        moodlight.power ? "ON" : "OFF", moodlight.rgbww[0], moodlight.rgbww[1], moodlight.rgbww[2],
+        moodlight.brightness);
     dispatch_state_subtopic(out_topic, buffer);
 }
 
@@ -971,7 +997,8 @@ IRAM_ATTR void dispatchLoop()
 #if 1 || ARDUINO
 void dispatchEverySecond()
 {
-    if(dispatch_setings.teleperiod > 0 && (millis() - dispatchLastMillis) >= dispatch_setings.teleperiod * 1000) {
+    if(mqttIsConnected() && dispatch_setings.teleperiod > 0 &&
+       (millis() - dispatchLastMillis) >= dispatch_setings.teleperiod * 1000) {
         dispatchLastMillis += dispatch_setings.teleperiod * 1000;
         dispatch_statusupdate(NULL, NULL);
         dispatch_send_discovery(NULL, NULL);

@@ -15,7 +15,7 @@ struct moodlight_t
 {
     uint8_t brightness;
     uint8_t power;
-    uint8_t r, g, b;
+    uint8_t rgbww[5];
 };
 
 enum hasp_event_t { // even = released, odd = pressed
@@ -28,6 +28,12 @@ enum hasp_event_t { // even = released, odd = pressed
     HASP_EVENT_LONG    = 6,
     HASP_EVENT_LOST    = 7,
     HASP_EVENT_DOUBLE  = 8,
+
+    HASP_EVENT_OPEN    = 10,
+    HASP_EVENT_OPENING = 11,
+    HASP_EVENT_CLOSED  = 12,
+    HASP_EVENT_CLOSING = 13,
+    HASP_EVENT_STOP    = 14,
 
     HASP_EVENT_CHANGED = 32
 };
@@ -69,7 +75,6 @@ void dispatch_calibrate(const char*, const char*);
 void dispatch_wakeup(const char*, const char*);
 
 void dispatch_gpio_input_event(uint8_t pin, uint8_t group, uint8_t eventid);
-void dispatch_output_pin_value(uint8_t pin, uint16_t val);
 
 void dispatch_normalized_group_values(hasp_update_value_t& value);
 
