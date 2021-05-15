@@ -30,16 +30,42 @@ void attr_out_color(lv_obj_t* obj, const char* attribute, lv_color_t color);
 } /* extern "C" */
 #endif
 
+struct hasp_attr_update_bool_const_t
+{
+    lv_hasp_obj_type_t obj_type;
+    uint16_t hash;
+    void (*set)(lv_obj_t*, bool);
+    bool (*get)(const lv_obj_t*);
+};
+
 struct hasp_attr_update16_const_t
 {
     lv_hasp_obj_type_t obj_type;
+    uint16_t hash;
     void (*set)(lv_obj_t*, uint16_t);
     uint16_t (*get)(const lv_obj_t*);
+};
+
+struct hasp_attr_update_lv_anim_value_const_t
+{
+    lv_hasp_obj_type_t obj_type;
+    uint16_t hash;
+    void (*set)(lv_obj_t*, lv_anim_value_t);
+    lv_anim_value_t (*get)(const lv_obj_t*);
+};
+
+struct hasp_attr_update8_const_t
+{
+    lv_hasp_obj_type_t obj_type;
+    uint16_t hash;
+    void (*set)(lv_obj_t*, uint8_t);
+    uint8_t (*get)(const lv_obj_t*);
 };
 
 struct hasp_attr_update16_t
 {
     lv_hasp_obj_type_t obj_type;
+    uint16_t hash;
     void (*set)(lv_obj_t*, uint16_t);
     uint16_t (*get)(lv_obj_t*);
 };
@@ -47,6 +73,7 @@ struct hasp_attr_update16_t
 struct hasp_attr_update_char_const_t
 {
     lv_hasp_obj_type_t obj_type;
+    uint16_t hash;
     void (*set)(lv_obj_t*, const char*);
     const char* (*get)(const lv_obj_t*);
 };
@@ -315,6 +342,7 @@ _HASP_ATTRIBUTE(SCALE_END_LINE_WIDTH, scale_end_line_width, lv_style_int_t)
 
 // methods
 #define ATTR_DELETE 50027
+#define ATTR_CLEAR 1069
 #define ATTR_TO_FRONT 44741
 #define ATTR_TO_BACK 24555
 
@@ -357,6 +385,12 @@ _HASP_ATTRIBUTE(SCALE_END_LINE_WIDTH, scale_end_line_width, lv_style_int_t)
 #define ATTR_OFFSET_X 65388
 #define ATTR_OFFSET_Y 65389
 #define ATTR_AUTO_SIZE 63729
+
+// Spinner
+#define ATTR_SPEED 14375
+#define ATTR_THICKNESS 24180
+//#define ATTR_ARC_LENGTH 755 - use ATTR_ANGLE
+// #define ATTR_DIRECTION 32415 - see Dropdown
 
 /* hasp user data */
 #define ATTR_ACTION 42102
