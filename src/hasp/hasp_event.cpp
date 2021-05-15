@@ -239,32 +239,28 @@ static void event_object_selection_changed(lv_obj_t* obj, uint8_t eventid, int16
 
 // ##################### Event Handlers ########################################################
 
-static inline void event_update_group(uint8_t group, lv_obj_t* obj, int32_t val, int32_t min, int32_t max)
+static inline void event_update_group(uint8_t group, lv_obj_t* obj, bool power, int32_t val, int32_t min, int32_t max)
 {
-    hasp_update_value_t value = {
-        .min   = min,
-        .max   = max,
-        .val   = val,
-        .obj   = obj,
-        .group = group,
-    };
+    hasp_update_value_t value = {.obj = obj, .group = group, .min = min, .max = max, .val = val, .power = power};
     dispatch_normalized_group_values(value);
 }
 
 #if HASP_USE_GPIO > 0
-void event_gpio_input(uint8_t pin, uint8_t group, uint8_t eventid)
+void event_gpio_input(uint8_t pin, uint8_t eventid)
 {
-    char payload[64];
-    char topic[8];
+    char payload[32];
+    char topic[10];
     char eventname[8];
-    Parser::get_event_name(eventid, eventname, sizeof(eventname));
-    snprintf_P(payload, sizeof(payload), PSTR("{\"pin\":%d,\"group\":%d,\"event\":\"%s\"}"), pin, group, eventname);
 
-    memcpy_P(topic, PSTR("input"), 6);
+    snprintf_P(topic, sizeof(topic), PSTR("input%d"), pin);
+    if(eventid == HASP_EVENT_ON || eventid == HASP_EVENT_OFF) {
+        Parser::get_event_name(HASP_EVENT_CHANGED, eventname, sizeof(eventname));
+        snprintf_P(payload, sizeof(payload), PSTR("{\"event\":\"%s\",\"val\":%d}"), eventname, eventid);
+    } else {
+        Parser::get_event_name(eventid, eventname, sizeof(eventname));
+        snprintf_P(payload, sizeof(payload), PSTR("{\"event\":\"%s\"}"), eventname);
+    }
     dispatch_state_subtopic(topic, payload);
-
-    // update outputstates
-    // dispatch_group_onoff(group, Parser::get_event_state(eventid), NULL);
 }
 #endif
 
@@ -459,9 +455,9 @@ void generic_event_handler(lv_obj_t* obj, lv_event_t event)
     }
 
     // Update group objects and gpios on release
-    if(last_value_sent == HASP_EVENT_UP || last_value_sent == HASP_EVENT_RELEASE) {
-        event_update_group(obj->user_data.groupid, obj, Parser::get_event_state(last_value_sent), HASP_EVENT_OFF,
-                           HASP_EVENT_ON);
+    if(last_value_sent != LV_EVENT_LONG_PRESSED || last_value_sent != LV_EVENT_LONG_PRESSED_REPEAT) {
+        bool state = Parser::get_event_state(last_value_sent);
+        event_update_group(obj->user_data.groupid, obj, state, state, HASP_EVENT_OFF, HASP_EVENT_ON);
     }
 }
 
@@ -504,7 +500,8 @@ void toggle_event_handler(lv_obj_t* obj, lv_event_t event)
 
     // Update group objects and gpios on release
     if(obj->user_data.groupid && hasp_event_id == HASP_EVENT_UP) {
-        event_update_group(obj->user_data.groupid, obj, last_value_sent, HASP_EVENT_OFF, HASP_EVENT_ON);
+        event_update_group(obj->user_data.groupid, obj, last_value_sent, last_value_sent, HASP_EVENT_OFF,
+                           HASP_EVENT_ON);
     }
 }
 
@@ -572,7 +569,7 @@ void selector_event_handler(lv_obj_t* obj, lv_event_t event)
 
     if(obj->user_data.groupid && max > 0) // max a cannot be 0, its the divider
         if(hasp_event_id == HASP_EVENT_UP || hasp_event_id == LV_EVENT_VALUE_CHANGED) {
-            event_update_group(obj->user_data.groupid, obj, last_value_sent, 0, max);
+            event_update_group(obj->user_data.groupid, obj, !!last_value_sent, last_value_sent, 0, max);
         }
 
     // set the property
@@ -683,8 +680,8 @@ void slider_event_handler(lv_obj_t* obj, lv_event_t event)
     last_value_sent = val;
     event_object_val_event(obj, hasp_event_id, val);
 
-    if(obj->user_data.groupid && hasp_event_id == HASP_EVENT_CHANGED && min != max)
-        event_update_group(obj->user_data.groupid, obj, val, min, max);
+    if(obj->user_data.groupid && (hasp_event_id == HASP_EVENT_CHANGED || hasp_event_id == HASP_EVENT_UP) && min != max)
+        event_update_group(obj->user_data.groupid, obj, !!val, val, min, max);
 }
 
 /**
