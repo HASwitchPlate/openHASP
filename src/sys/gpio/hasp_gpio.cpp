@@ -13,8 +13,8 @@
 #endif
 
 #ifdef ARDUINO
-
 #include "AceButton.h"
+
 using namespace ace_button;
 ButtonConfig buttonConfig; // Clicks, double-clicks and long presses
 ButtonConfig switchConfig; // Clicks only
@@ -36,16 +36,11 @@ ButtonConfig switchConfig; // Clicks only
 hasp_gpio_config_t gpioConfig[HASP_NUM_GPIO_CONFIG] = {
     //    {2, 8, INPUT, LOW}, {3, 9, OUTPUT, LOW}, {4, 10, INPUT, HIGH}, {5, 11, OUTPUT, LOW}, {6, 12, INPUT, LOW},
 };
+uint8_t pwm_channel = 1; // Backlight has 0
 
-static inline void gpio_update_group(uint8_t group, lv_obj_t* obj, int32_t val, int32_t min, int32_t max)
+static inline void gpio_update_group(uint8_t group, lv_obj_t* obj, bool power, int32_t val, int32_t min, int32_t max)
 {
-    hasp_update_value_t value = {
-        .min   = min,
-        .max   = max,
-        .val   = val,
-        .obj   = obj,
-        .group = group,
-    };
+    hasp_update_value_t value = {.obj = obj, .group = group, .min = min, .max = max, .val = val, .power = power};
     dispatch_normalized_group_values(value);
 }
 
@@ -53,7 +48,8 @@ static inline void gpio_update_group(uint8_t group, lv_obj_t* obj, int32_t val, 
 #include "driver/uart.h"
 #include <driver/dac.h>
 
-volatile bool touchdetected = false;
+volatile bool touchdetected     = false;
+RTC_DATA_ATTR int recordCounter = 0;
 
 void gotTouch()
 {
@@ -95,7 +91,7 @@ static void gpio_event_handler(AceButton* button, uint8_t eventType, uint8_t but
     bool state = false;
     switch(eventType) {
         case AceButton::kEventPressed:
-            if(gpioConfig[btnid].type == HASP_GPIO_SWITCH) {
+            if(gpioConfig[btnid].type != hasp_gpio_type_t::BUTTON) {
                 eventid = HASP_EVENT_ON;
             } else {
                 eventid = HASP_EVENT_DOWN;
@@ -118,7 +114,7 @@ static void gpio_event_handler(AceButton* button, uint8_t eventType, uint8_t but
         //     state = true; // do not repeat DOWN + LONG + HOLD
         //     break;
         case AceButton::kEventReleased:
-            if(gpioConfig[btnid].type == HASP_GPIO_SWITCH) {
+            if(gpioConfig[btnid].type != hasp_gpio_type_t::BUTTON) {
                 eventid = HASP_EVENT_OFF;
             } else {
                 eventid = HASP_EVENT_RELEASE;
@@ -128,11 +124,11 @@ static void gpio_event_handler(AceButton* button, uint8_t eventType, uint8_t but
             eventid = HASP_EVENT_LOST;
     }
 
-    event_gpio_input(gpioConfig[btnid].pin, gpioConfig[btnid].group, eventid);
+    event_gpio_input(gpioConfig[btnid].pin, eventid);
 
     // update objects and gpios in this group
     if(gpioConfig[btnid].group && eventid != HASP_EVENT_LONG) // do not repeat DOWN + LONG
-        gpio_update_group(gpioConfig[btnid].group, NULL, state, HASP_EVENT_OFF, HASP_EVENT_ON);
+        gpio_update_group(gpioConfig[btnid].group, NULL, gpioConfig[btnid].power, state, HASP_EVENT_OFF, HASP_EVENT_ON);
 }
 
 /* ********************************* GPIO Setup *************************************** */
@@ -191,64 +187,75 @@ static void gpio_setup_pin(uint8_t index)
     }
 
     uint8_t input_mode;
+    bool default_state = gpio->inverted ? LOW : HIGH; // default pullup
     switch(gpio->gpio_function) {
-        case OUTPUT:
+        case hasp_gpio_function_t::OUTPUT_PIN:
             input_mode = OUTPUT;
             break;
-        case INPUT:
+        case hasp_gpio_function_t::EXTERNAL_PULLDOWN:
+            default_state = !default_state; // not pullup
+        case hasp_gpio_function_t::EXTERNAL_PULLUP:
             input_mode = INPUT;
             break;
 #ifndef ARDUINO_ARCH_ESP8266
-        case INPUT_PULLDOWN:
-            input_mode = INPUT_PULLDOWN;
+        case hasp_gpio_function_t::INTERNAL_PULLDOWN:
+            default_state = !default_state; // not pullup
+            input_mode    = INPUT_PULLDOWN;
             break;
 #endif
+        case hasp_gpio_function_t::INTERNAL_PULLUP:
         default:
             input_mode = INPUT_PULLUP;
     }
 
-    gpio->max            = 255;
-    ButtonConfig* config = &buttonConfig; // Ddefault pushbutton
-
+    gpio->power = 1; // on by default, value is set to 0
+    gpio->max   = 255;
     switch(gpio->type) {
-        case HASP_GPIO_SWITCH:
+        case hasp_gpio_type_t::SWITCH:
+        case hasp_gpio_type_t::BATTERY... hasp_gpio_type_t::WINDOW:
             if(gpio->btn) delete gpio->btn;
-            gpio->btn = new AceButton(&switchConfig, gpio->pin, HIGH, index);
+            gpio->btn = new AceButton(&switchConfig, gpio->pin, default_state, index);
             pinMode(gpio->pin, INPUT_PULLUP);
             gpio->max = 0;
             break;
-        case HASP_GPIO_BUTTON:
+        case hasp_gpio_type_t::BUTTON:
             if(gpio->btn) delete gpio->btn;
-            gpio->btn = new AceButton(&buttonConfig, gpio->pin, HIGH, index);
+            gpio->btn = new AceButton(&buttonConfig, gpio->pin, default_state, index);
             pinMode(gpio->pin, INPUT_PULLUP);
             gpio->max = 0;
             break;
-        case HASP_GPIO_TOUCH:
+        case hasp_gpio_type_t::TOUCH:
             if(gpio->btn) delete gpio->btn;
             gpio->btn = new AceButton(&touchConfig, gpio->pin, HIGH, index);
             gpio->max = 0;
             // touchAttachInterrupt(gpio->pin, gotTouch, 33);
             break;
 
-        case HASP_GPIO_RELAY:
+        case hasp_gpio_type_t::POWER_RELAY:
+        case hasp_gpio_type_t::LIGHT_RELAY:
             pinMode(gpio->pin, OUTPUT);
             gpio->max = 1; // on-off
             break;
 
-        case HASP_GPIO_PWM:
+        case hasp_gpio_type_t::PWM:
             gpio->max = 4095;
-        case HASP_GPIO_ALL_LEDS:
-            // case HASP_GPIO_BACKLIGHT:
+        case hasp_gpio_type_t::LED... hasp_gpio_type_t::LED_W:
+            // case hasp_gpio_type_t::BACKLIGHT:
             pinMode(gpio->pin, OUTPUT);
 #if defined(ARDUINO_ARCH_ESP32)
-            // configure LED PWM functionalitites
-            ledcSetup(gpio->group, 20000, 12);
-            // attach the channel to the GPIO to be controlled
-            ledcAttachPin(gpio->pin, gpio->group);
+            if(pwm_channel < 16) {
+                // configure LED PWM functionalitites
+                ledcSetup(pwm_channel, 20000, 12);
+                // attach the channel to the GPIO to be controlled
+                ledcAttachPin(gpio->pin, pwm_channel);
+                gpio->channel = pwm_channel++;
+            } else {
+                LOG_ERROR(TAG_GPIO, F("Too many PWM channels defined"));
+            }
 #endif
             break;
 
-        case HASP_GPIO_DAC:
+        case hasp_gpio_type_t::DAC:
 #if defined(ARDUINO_ARCH_ESP32)
             gpio_num_t pin;
             if(dac_pad_get_io_num(DAC_CHANNEL_1, &pin) == ESP_OK)
@@ -258,11 +265,13 @@ static void gpio_setup_pin(uint8_t index)
 #endif
             break;
 
-        case HASP_GPIO_SERIAL_DIMMER: {
+        case hasp_gpio_type_t::SERIAL_DIMMER:
+        case hasp_gpio_type_t::SERIAL_DIMMER_AU:
+        case hasp_gpio_type_t::SERIAL_DIMMER_EU: {
             const char command[9] = "\xEF\x01\x4D\xA3"; // Start Lanbon Dimmer
 #if defined(ARDUINO_ARCH_ESP32)
-            Serial1.begin(115200UL, SERIAL_8N1, UART_PIN_NO_CHANGE, gpio->pin, true,
-                          2000); // true = EU, false = AU
+            Serial1.begin(115200UL, SERIAL_8N1, UART_PIN_NO_CHANGE, gpio->pin,
+                          gpio->type == hasp_gpio_type_t::SERIAL_DIMMER_EU); // true = EU, false = AU
             Serial1.flush();
             delay(20);
             Serial1.print("  ");
@@ -273,7 +282,7 @@ static void gpio_setup_pin(uint8_t index)
             break;
         }
 
-        case HASP_GPIO_FREE:
+        case hasp_gpio_type_t::FREE:
             return;
 
         default:
@@ -285,6 +294,7 @@ static void gpio_setup_pin(uint8_t index)
 void gpioSetup()
 {
     LOG_INFO(TAG_GPIO, F(D_SERVICE_STARTING));
+    LOG_WARNING(TAG_GPIO, F("Reboot counter %d"), recordCounter++);
 
     aceButtonSetup();
 
@@ -307,23 +317,55 @@ IRAM_ATTR void gpioLoop(void)
 
 void gpioSetup(void)
 {
-    gpioSavePinConfig(0, 3, HASP_GPIO_RELAY, 0, -1);
-    gpioSavePinConfig(1, 4, HASP_GPIO_RELAY, 0, -1);
-    gpioSavePinConfig(2, 13, HASP_GPIO_LED, 0, -1);
-    gpioSavePinConfig(3, 14, HASP_GPIO_DAC, 0, -1);
+    gpioSavePinConfig(0, 3, hasp_gpio_type_t::RELAY, 0, -1, false);
+    gpioSavePinConfig(1, 4, hasp_gpio_type_t::RELAY, 0, -1, false);
+    gpioSavePinConfig(2, 13, hasp_gpio_type_t::LED, 0, -1, false);
+    gpioSavePinConfig(3, 14, hasp_gpio_type_t::DAC, 0, -1, false);
 }
 IRAM_ATTR void gpioLoop(void)
 {}
 
 #endif // ARDUINO
 
+static inline bool gpio_is_input(hasp_gpio_config_t* gpio)
+{
+    return (gpio->type != hasp_gpio_type_t::USER) && (gpio->type >= 0x80);
+}
+
+static inline bool gpio_is_output(hasp_gpio_config_t* gpio)
+{
+    return (gpio->type > hasp_gpio_type_t::USED) && (gpio->type < 0x80);
+}
+
 /* ********************************* State Setters *************************************** */
 
-bool gpio_get_value(uint8_t pin, uint16_t& val)
+bool gpio_get_pin_state(uint8_t pin, bool& power, int32_t& val)
+{
+    for(uint8_t i = 0; i < HASP_NUM_GPIO_CONFIG; i++) {
+        if(gpioConfig[i].pin == pin && gpio_is_output(&gpioConfig[i])) {
+            power = gpioConfig[i].power;
+            val   = gpioConfig[i].val;
+            return true;
+        }
+    }
+    return false;
+}
+
+void gpio_output_state(hasp_gpio_config_t* gpio)
+{
+    char payload[32];
+    char topic[12];
+    snprintf_P(topic, sizeof(topic), PSTR("output%d"), gpio->pin);
+    snprintf_P(payload, sizeof(payload), PSTR("{\"state\":%d,\"val\":%d}"), gpio->power, gpio->val);
+
+    dispatch_state_subtopic(topic, payload);
+}
+
+bool gpio_output_pin_state(uint8_t pin)
 {
     for(uint8_t i = 0; i < HASP_NUM_GPIO_CONFIG; i++) {
         if(gpioConfig[i].pin == pin && gpioConfigInUse(i)) {
-            val = gpioConfig[i].val;
+            gpio_output_state(&gpioConfig[i]);
             return true;
         }
     }
@@ -348,10 +390,11 @@ static inline bool gpio_set_analog_value(hasp_gpio_config_t* gpio)
     else if(gpio->max == 4095)
         val = gpio->val;
 
+    if(!gpio->power) val = 0;
     if(gpio->inverted) val = 4095 - val;
 
-    ledcWrite(gpio->group, val); // 12 bits
-    return true;                 // sent
+    ledcWrite(gpio->channel, val); // 12 bits
+    return true;                   // sent
 
 #elif defined(ARDUINO_ARCH_ESP8266)
 
@@ -360,6 +403,7 @@ static inline bool gpio_set_analog_value(hasp_gpio_config_t* gpio)
     else if(gpio->max == 4095)
         val = gpio->val >> 2;
 
+    if(!gpio->power) val = 0;
     if(gpio->inverted) val = 1023 - val;
 
     analogWrite(gpio->pin, val); // 10 bits
@@ -372,8 +416,13 @@ static inline bool gpio_set_analog_value(hasp_gpio_config_t* gpio)
 
 static inline bool gpio_set_serial_dimmer(hasp_gpio_config_t* gpio)
 {
+    uint16_t val = gpio_limit(gpio->val, 0, 255);
+
+    if(!gpio->power) val = 0;
+    if(gpio->inverted) val = 255 - val;
+
     char command[5] = "\xEF\x02\x00\xED";
-    command[2]      = (uint8_t)map(gpio->val, 0, 255, 0, 100);
+    command[2]      = (uint8_t)map(val, 0, 255, 0, 100);
     command[3] ^= command[2];
 
 #if defined(ARDUINO_ARCH_ESP32)
@@ -389,7 +438,12 @@ static inline bool gpio_set_serial_dimmer(hasp_gpio_config_t* gpio)
 static inline bool gpio_set_dac_value(hasp_gpio_config_t* gpio)
 {
 #ifdef ARDUINO_ARCH_ESP32
+    uint16_t val = gpio_limit(gpio->val, 0, 255);
     gpio_num_t pin;
+
+    if(!gpio->power) val = 0;
+    if(gpio->inverted) val = 255 - val;
+
     if(dac_pad_get_io_num(DAC_CHANNEL_1, &pin) == ESP_OK && gpio->pin == pin)
         dac_output_voltage(DAC_CHANNEL_1, gpio->val);
     else if(dac_pad_get_io_num(DAC_CHANNEL_2, &pin) == ESP_OK && gpio->pin == pin)
@@ -415,23 +469,30 @@ bool gpio_get_pin_config(uint8_t pin, hasp_gpio_config_t** gpio)
 
 // Update the actual value of one pin, does NOT update group members
 // The value must be normalized first
-static bool gpio_set_output_value(hasp_gpio_config_t* gpio, uint16_t val)
+static bool gpio_set_output_value(hasp_gpio_config_t* gpio, bool power, uint16_t val)
 {
-    gpio->val = gpio_limit(val, 0, gpio->max);
+    // if val is 0, then set power to 0
+    gpio->power = val == 0 ? 0 : power;
+
+    // Only update the current value if power set to 1, otherwise retain previous value
+    if(power) gpio->val = gpio_limit(val, 0, gpio->max);
 
     switch(gpio->type) {
-        case HASP_GPIO_RELAY:
-            digitalWrite(gpio->pin, gpio->inverted ? !gpio->val : gpio->val);
+        case hasp_gpio_type_t::POWER_RELAY:
+        case hasp_gpio_type_t::LIGHT_RELAY:
+            digitalWrite(gpio->pin, power ? (gpio->inverted ? !gpio->val : gpio->val) : 0);
             return true;
 
-        case HASP_GPIO_ALL_LEDS:
-        case HASP_GPIO_PWM:
+        case hasp_gpio_type_t::LED... hasp_gpio_type_t::LED_W:
+        case hasp_gpio_type_t::PWM:
             return gpio_set_analog_value(gpio);
 
-        case HASP_GPIO_DAC:
+        case hasp_gpio_type_t::DAC:
             return gpio_set_dac_value(gpio);
 
-        case HASP_GPIO_SERIAL_DIMMER:
+        case hasp_gpio_type_t::SERIAL_DIMMER:
+        case hasp_gpio_type_t::SERIAL_DIMMER_AU:
+        case hasp_gpio_type_t::SERIAL_DIMMER_EU:
             return gpio_set_serial_dimmer(gpio);
 
         default:
@@ -441,41 +502,37 @@ static bool gpio_set_output_value(hasp_gpio_config_t* gpio, uint16_t val)
 }
 
 // Update the normalized value of one pin
-void gpio_set_normalized_value(hasp_gpio_config_t* gpio, int32_t val, int32_t min, int32_t max)
+static void gpio_set_normalized_value(hasp_gpio_config_t* gpio, hasp_update_value_t& value)
 {
-    if(min != 0 || max != gpio->max) { // do we need to recalculate?
-        if(min == max) {
+    int32_t val = value.val;
+
+    if(value.min != 0 || value.max != gpio->max) { // do we need to recalculate?
+        if(value.min == value.max) {
             LOG_ERROR(TAG_GPIO, F("Invalid value range"));
             return;
         }
 
         switch(gpio->type) {
-            case HASP_GPIO_RELAY:
-                val = val > min ? HIGH : LOW;
+            case hasp_gpio_type_t::POWER_RELAY:
+            case hasp_gpio_type_t::LIGHT_RELAY:
+                val = val > value.min ? HIGH : LOW;
                 break;
 
-            case HASP_GPIO_ALL_LEDS:
-            case HASP_GPIO_DAC:
-            case HASP_GPIO_PWM:
-            case HASP_GPIO_SERIAL_DIMMER:
-                val = map(val, min, max, 0, gpio->max);
+            case hasp_gpio_type_t::LED... hasp_gpio_type_t::LED_W:
+            case hasp_gpio_type_t::DAC:
+            case hasp_gpio_type_t::PWM:
+            case hasp_gpio_type_t::SERIAL_DIMMER:
+            case hasp_gpio_type_t::SERIAL_DIMMER_AU:
+            case hasp_gpio_type_t::SERIAL_DIMMER_EU:
+                val = map(val, value.min, value.max, 0, gpio->max);
                 break;
 
             default:
                 return; // invalid output type
         }
     }
-    gpio_set_output_value(gpio, val); // recalculated
-}
 
-static inline bool gpio_is_input(hasp_gpio_config_t* gpio)
-{
-    return gpio->type == HASP_GPIO_BUTTON || gpio->type == HASP_GPIO_SWITCH || gpio->type == HASP_GPIO_TOUCH;
-}
-
-static inline bool gpio_is_output(hasp_gpio_config_t* gpio)
-{
-    return (gpio->type != HASP_GPIO_FREE) && !gpio_is_input(gpio);
+    gpio_set_output_value(gpio, value.power, val); // recalculated
 }
 
 // Dispatch all group member values
@@ -484,7 +541,7 @@ void gpio_output_group_values(uint8_t group)
     for(uint8_t k = 0; k < HASP_NUM_GPIO_CONFIG; k++) {
         hasp_gpio_config_t* gpio = &gpioConfig[k];
         if(gpio->group == group && gpio_is_output(gpio)) // group members that are outputs
-            dispatch_output_pin_value(gpioConfig[k].pin, gpioConfig[k].val);
+            gpio_output_state(&gpioConfig[k]);
     }
 }
 
@@ -497,7 +554,7 @@ void gpio_set_normalized_group_values(hasp_update_value_t& value)
     for(uint8_t k = 0; k < HASP_NUM_GPIO_CONFIG; k++) {
         hasp_gpio_config_t* gpio = &gpioConfig[k];
         if(gpio->group == value.group && gpioConfigInUse(k)) // group members that are outputs
-            gpio_set_normalized_value(gpio, value.val, value.min, value.max);
+            gpio_set_normalized_value(gpio, value);
     }
 
     // Log the changed output values
@@ -507,29 +564,34 @@ void gpio_set_normalized_group_values(hasp_update_value_t& value)
 }
 
 // Update the value of an output pin and its group members
-bool gpio_set_pin_value(uint8_t pin, int32_t val)
+bool gpio_set_pin_state(uint8_t pin, bool power, int32_t val)
 {
     hasp_gpio_config_t* gpio = NULL;
 
     if(!gpio_get_pin_config(pin, &gpio) || !gpio) {
         LOG_WARNING(TAG_GPIO, F(D_BULLET "Pin %d is not configured"), pin);
         return false;
+    }
 
-    } else if(gpio_is_output(gpio)) {
+    if(!gpio_is_output(gpio)) {
         LOG_WARNING(TAG_GPIO, F(D_BULLET "Pin %d can not be set"), pin);
-        if(gpio->group) gpio_output_group_values(gpio->group);
         return false;
     }
 
     if(gpio->group) {
         // update objects and gpios in this group
-        gpio_update_group(gpio->group, NULL, gpio->val, 0, gpio->max);
+        gpio->power = power;
+        gpio->val   = gpio_limit(val, 0, gpio->max);
+        gpio_update_group(gpio->group, NULL, gpio->power, gpio->val, 0, gpio->max);
 
     } else {
         // update this gpio value only
-        gpio_set_output_value(gpio, val);
-        dispatch_output_pin_value(gpio->pin, gpio->val);
-        LOG_VERBOSE(TAG_GPIO, F("No Group - Pin %d = %d"), gpio->pin, gpio->val);
+        if(gpio_set_output_value(gpio, power, val)) {
+            gpio_output_state(gpio);
+            LOG_VERBOSE(TAG_GPIO, F("No Group - Pin %d = %d"), gpio->pin, gpio->val);
+        } else {
+            return false;
+        }
     }
 
     return true; // pin found and set
@@ -538,38 +600,22 @@ bool gpio_set_pin_value(uint8_t pin, int32_t val)
 // Updates the RGB pins directly, rgb are already normalized values
 void gpio_set_moodlight(moodlight_t& moodlight)
 {
-    uint8_t r = 0;
-    uint8_t g = 0;
-    uint8_t b = 0;
-
-    if(moodlight.power && moodlight.brightness) {
-        r = (moodlight.r * moodlight.brightness + 127) / 255;
-        g = (moodlight.g * moodlight.brightness + 127) / 255;
-        b = (moodlight.b * moodlight.brightness + 127) / 255;
-    } else {
-        moodlight.power = 0;
-    }
-
     // RGBXX https://stackoverflow.com/questions/39949331/how-to-calculate-rgbaw-amber-white-from-rgb-for-leds
     for(uint8_t i = 0; i < HASP_NUM_GPIO_CONFIG; i++) {
         switch(gpioConfig[i].type) {
-            case HASP_GPIO_LED_R:
-                gpio_set_output_value(&gpioConfig[i], r);
-                break;
-            case HASP_GPIO_LED_G:
-                gpio_set_output_value(&gpioConfig[i], g);
-                break;
-            case HASP_GPIO_LED_B:
-                gpio_set_output_value(&gpioConfig[i], b);
+            case hasp_gpio_type_t::LED_R... hasp_gpio_type_t::LED_W:
+                uint8_t index = (gpioConfig[i].type - hasp_gpio_type_t::LED_R) / 2;
+                if(index > 4) continue;
+
+                uint8_t val = (moodlight.rgbww[index] * moodlight.brightness + 127) / 255;
+                gpio_set_output_value(&gpioConfig[i], moodlight.power, val);
                 break;
         }
     }
 
     for(uint8_t i = 0; i < HASP_NUM_GPIO_CONFIG; i++) {
         switch(gpioConfig[i].type) {
-            case HASP_GPIO_LED_B:
-            case HASP_GPIO_LED_G:
-            case HASP_GPIO_LED_R:
+            case hasp_gpio_type_t::LED_R... hasp_gpio_type_t::LED_W:
                 LOG_VERBOSE(TAG_GPIO, F(D_BULLET D_GPIO_PIN " %d => %d"), gpioConfig[i].pin, gpioConfig[i].val);
                 break;
         }
@@ -689,10 +735,10 @@ bool gpioIsSystemPin(uint8_t gpio)
     return false;
 }
 
-bool gpioInUse(uint8_t gpio)
+bool gpioInUse(uint8_t pin)
 {
     for(uint8_t i = 0; i < HASP_NUM_GPIO_CONFIG; i++) {
-        if((gpioConfig[i].pin == gpio) && gpioConfigInUse(i)) {
+        if((gpioConfig[i].pin == pin) && gpioConfigInUse(i)) {
             return true; // pin matches and is in use
         }
     }
@@ -700,7 +746,7 @@ bool gpioInUse(uint8_t gpio)
     return false;
 }
 
-bool gpioSavePinConfig(uint8_t config_num, uint8_t pin, uint8_t type, uint8_t group, uint8_t pinfunc)
+bool gpioSavePinConfig(uint8_t config_num, uint8_t pin, uint8_t type, uint8_t group, uint8_t pinfunc, bool inverted)
 {
     // TODO: Input validation
 
@@ -713,6 +759,7 @@ bool gpioSavePinConfig(uint8_t config_num, uint8_t pin, uint8_t type, uint8_t gr
         gpioConfig[config_num].type          = type;
         gpioConfig[config_num].group         = group;
         gpioConfig[config_num].gpio_function = pinfunc;
+        gpioConfig[config_num].inverted      = inverted;
         LOG_TRACE(TAG_GPIO, F("Saving Pin config #%d pin %d - type %d - group %d - func %d"), config_num, pin, type,
                   group, pinfunc);
         return true;
@@ -724,7 +771,7 @@ bool gpioSavePinConfig(uint8_t config_num, uint8_t pin, uint8_t type, uint8_t gr
 bool gpioConfigInUse(uint8_t num)
 {
     if(num >= HASP_NUM_GPIO_CONFIG) return false;
-    return gpioConfig[num].type != HASP_GPIO_FREE;
+    return gpioConfig[num].type != hasp_gpio_type_t::FREE;
 }
 
 int8_t gpioGetFreeConfigId()
@@ -746,20 +793,23 @@ void gpio_discovery(JsonArray& relay, JsonArray& led)
 {
     for(uint8_t i = 0; i < HASP_NUM_GPIO_CONFIG; i++) {
         switch(gpioConfig[i].type) {
-            case HASP_GPIO_RELAY:
+            case hasp_gpio_type_t::LIGHT_RELAY:
+            case hasp_gpio_type_t::POWER_RELAY:
                 relay.add(gpioConfig[i].pin);
                 break;
 
-            case HASP_GPIO_DAC:
-            case HASP_GPIO_LED: // Don't include the moodlight
-            case HASP_GPIO_SERIAL_DIMMER:
+            case hasp_gpio_type_t::DAC:
+            case hasp_gpio_type_t::LED: // Don't include the moodlight
+            case hasp_gpio_type_t::SERIAL_DIMMER:
+            case hasp_gpio_type_t::SERIAL_DIMMER_AU:
+            case hasp_gpio_type_t::SERIAL_DIMMER_EU:
                 led.add(gpioConfig[i].pin);
                 break;
 
                 // pwm.add(gpioConfig[i].pin);
                 break;
 
-            case HASP_GPIO_FREE:
+            case hasp_gpio_type_t::FREE:
             default:
                 break;
         }
@@ -778,7 +828,7 @@ bool gpioGetConfig(const JsonObject& settings)
     for(JsonVariant v : array) {
         if(i < HASP_NUM_GPIO_CONFIG) {
             uint32_t cur_val = gpioConfig[i].pin | (gpioConfig[i].group << 8) | (gpioConfig[i].type << 16) |
-                               (gpioConfig[i].gpio_function << 24);
+                               (gpioConfig[i].gpio_function << 24) | (gpioConfig[i].inverted << 31);
             LOG_INFO(TAG_GPIO, F("GPIO CONF: %d: %d <=> %d"), i, cur_val, v.as<uint32_t>());
 
             if(cur_val != v.as<uint32_t>()) changed = true;
@@ -794,7 +844,7 @@ bool gpioGetConfig(const JsonObject& settings)
         array = settings[FPSTR(FP_GPIO_CONFIG)].to<JsonArray>(); // Clear JsonArray
         for(uint8_t i = 0; i < HASP_NUM_GPIO_CONFIG; i++) {
             uint32_t cur_val = gpioConfig[i].pin | (gpioConfig[i].group << 8) | (gpioConfig[i].type << 16) |
-                               (gpioConfig[i].gpio_function << 24);
+                               (gpioConfig[i].gpio_function << 24) | (gpioConfig[i].inverted << 31);
             array.add(cur_val);
         }
         changed = true;
@@ -827,13 +877,14 @@ bool gpioSetConfig(const JsonObject& settings)
 
             if(i < HASP_NUM_GPIO_CONFIG) {
                 uint32_t cur_val = gpioConfig[i].pin | (gpioConfig[i].group << 8) | (gpioConfig[i].type << 16) |
-                                   (gpioConfig[i].gpio_function << 24);
+                                   (gpioConfig[i].gpio_function << 24) | (gpioConfig[i].inverted << 31);
                 if(cur_val != new_val) status = true;
 
                 gpioConfig[i].pin           = new_val & 0xFF;
                 gpioConfig[i].group         = new_val >> 8 & 0xFF;
                 gpioConfig[i].type          = new_val >> 16 & 0xFF;
-                gpioConfig[i].gpio_function = new_val >> 24 & 0xFF;
+                gpioConfig[i].gpio_function = new_val >> 24 & 0x7F;
+                gpioConfig[i].inverted      = new_val >> 31 & 0x1;
             }
             i++;
         }
