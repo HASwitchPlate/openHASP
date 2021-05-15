@@ -22,11 +22,12 @@ typedef struct
 
 typedef struct
 {
+    lv_obj_t* obj;
+    uint8_t group;
     int32_t min;
     int32_t max;
     int32_t val;
-    lv_obj_t* obj;
-    uint8_t group;
+    bool power;
 } hasp_update_value_t;
 
 enum lv_hasp_obj_type_t {

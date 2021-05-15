@@ -171,8 +171,9 @@ void object_set_group_values(lv_obj_t* parent, hasp_update_value_t& value)
     if(parent == nullptr) return;
 
     // Update object if it's in the same group
-    if(value.group == parent->user_data.groupid && value.obj != parent)
-        hasp_process_obj_attribute_val(parent, NULL, value.val, !!value.val, true);
+    if(value.group == parent->user_data.groupid && value.obj != parent) {
+        attribute_set_normalized_value(parent, value);
+    }
 
     /* check tabs */
     if(obj_get_type(parent) == LV_HASP_TABVIEW) {
@@ -201,21 +202,6 @@ void object_set_normalized_group_values(hasp_update_value_t& value)
 
     for(uint8_t i = 0; i < HASP_NUM_PAGES; i++) {
         if(i != page) object_set_group_values(haspPages.get_obj(i), value);
-        // uint8_t startid = 1;
-        // for(uint8_t objid = startid; objid < 20; objid++) {
-        //     lv_obj_t* obj = hasp_find_obj_from_parent_id(get_page_obj(page), objid);
-        //     if(obj && obj != src_obj && obj->user_data.groupid == groupid) { // skip source object, if set
-        //         LOG_VERBOSE(TAG_HASP, F("Found p%db%d in group %d"), page, objid, groupid);
-        //         lv_obj_set_state(obj, val > 0 ? LV_STATE_PRESSED | LV_STATE_CHECKED : LV_STATE_DEFAULT);
-        //         switch(obj->user_data.objid) {
-        //             case HASP_OBJ_ARC:
-        //             case HASP_OBJ_SLIDER:
-        //             case HASP_OBJ_CHECKBOX:
-        //                 hasp_process_obj_attribute_val();
-        //             default:
-        //         }
-        //     }
-        // }
     }
 }
 
