@@ -1516,15 +1516,16 @@ void webHandleGpioConfig()
     if(webServer.hasArg(PSTR("save"))) {
         uint8_t id      = webServer.arg(F("id")).toInt();
         uint8_t pin     = webServer.arg(F("pin")).toInt();
-        uint8_t type    = webServer.arg(F("type")).toInt() + webServer.arg(F("state")).toInt();
+        uint8_t type    = webServer.arg(F("type")).toInt();
         uint8_t group   = webServer.arg(F("group")).toInt();
         uint8_t pinfunc = webServer.arg(F("func")).toInt();
-        gpioSavePinConfig(id, pin, type, group, pinfunc);
+        bool inverted   = webServer.arg(F("state")).toInt();
+        gpioSavePinConfig(id, pin, type, group, pinfunc, inverted);
     }
     if(webServer.hasArg(PSTR("del"))) {
         uint8_t id  = webServer.arg(F("id")).toInt();
         uint8_t pin = webServer.arg(F("pin")).toInt();
-        gpioSavePinConfig(id, pin, HASP_GPIO_FREE, 0, 0);
+        gpioSavePinConfig(id, pin, hasp_gpio_type_t::FREE, 0, 0, false);
     }
 
     {
@@ -1546,54 +1547,72 @@ void webHandleGpioConfig()
                     httpMessage += F("<tr><td>");
                     // httpMessage += halGpioName(gpio);
                     httpMessage += haspDevice.gpio_name(gpio).c_str();
-                    httpMessage += F("</td><td>");
+                    if(conf.type >= 0x80) {
+                        httpMessage += F("</td><td><a href='/config/gpio/input?id=");
+                    } else {
+                        httpMessage += F("</td><td><a href='/config/gpio/options?id=");
+                    }
+                    httpMessage += id;
+                    httpMessage += F("'>");
 
                     switch(conf.type) {
-                        case HASP_GPIO_SWITCH:
+                        case hasp_gpio_type_t::SWITCH:
                             httpMessage += F(D_GPIO_SWITCH);
                             break;
-                        case HASP_GPIO_BUTTON:
+                        case hasp_gpio_type_t::BUTTON:
                             httpMessage += F(D_GPIO_BUTTON);
                             break;
-                        case HASP_GPIO_TOUCH:
+                        case hasp_gpio_type_t::TOUCH:
                             httpMessage += F(D_GPIO_TOUCH);
                             break;
-                        case HASP_GPIO_LED:
+                        case hasp_gpio_type_t::LED:
                             httpMessage += F(D_GPIO_LED);
                             break;
-                        case HASP_GPIO_LED_R:
+                        case hasp_gpio_type_t::LED_R:
                             httpMessage += F(D_GPIO_LED_R);
                             break;
-                        case HASP_GPIO_LED_G:
+                        case hasp_gpio_type_t::LED_G:
                             httpMessage += F(D_GPIO_LED_G);
                             break;
-                        case HASP_GPIO_LED_B:
+                        case hasp_gpio_type_t::LED_B:
                             httpMessage += F(D_GPIO_LED_B);
                             break;
-                        case HASP_GPIO_RELAY:
+                        case hasp_gpio_type_t::LIGHT_RELAY:
+                            httpMessage += F("LIGHT_RELAY");
+                            break;
+                        case hasp_gpio_type_t::POWER_RELAY:
                             httpMessage += F(D_GPIO_RELAY);
                             break;
-                        case HASP_GPIO_PWM:
+                        case hasp_gpio_type_t::SHUTTER_RELAY:
+                            httpMessage += F("SHUTTER_RELAY");
+                            break;
+                        case hasp_gpio_type_t::PWM:
                             httpMessage += F(D_GPIO_PWM);
                             break;
-                        case HASP_GPIO_DAC:
+                        case hasp_gpio_type_t::DAC:
                             httpMessage += F(D_GPIO_DAC);
                             break;
-                        case HASP_GPIO_SERIAL_DIMMER:
+                        case hasp_gpio_type_t::SERIAL_DIMMER:
                             httpMessage += F(D_GPIO_SERIAL_DIMMER);
                             break;
+#if defined(LANBONL8)
+                        case hasp_gpio_type_t::SERIAL_DIMMER_EU:
+                            httpMessage += F("L8-HD (EU)");
+                            break;
+                        case hasp_gpio_type_t::SERIAL_DIMMER_AU:
+                            httpMessage += F("L8-HD (AU)");
+                            break;
+#endif
                         default:
                             httpMessage += F(D_GPIO_UNKNOWN);
                     }
 
-                    httpMessage += F("</td><td>");
+                    httpMessage += F("</a></td><td>");
                     httpMessage += conf.group;
                     httpMessage += F("</td><td>");
                     httpMessage += (conf.inverted) ? F("Inverted") : F("Normal");
 
-                    httpMessage += F("</td><td><a href='/config/gpio/options?id=");
-                    httpMessage += id;
-                    httpMessage += ("'>Edit</a> <a href='/config/gpio?del=&id=");
+                    httpMessage += ("</td><td><a href='/config/gpio?del=&id=");
                     httpMessage += id;
                     httpMessage += ("&pin=");
                     httpMessage += conf.pin;
@@ -1663,39 +1682,44 @@ void webHandleGpioOptions()
         bool selected;
         httpMessage += F("<p><b>Type</b> <select id='type' name='type'>");
 
-        selected = (conf.type == HASP_GPIO_SWITCH);
-        httpMessage += getOption(HASP_GPIO_SWITCH, F(D_GPIO_SWITCH), selected);
+        selected = (conf.type == hasp_gpio_type_t::LED);
+        httpMessage += getOption(hasp_gpio_type_t::LED, F(D_GPIO_LED), selected);
 
-        selected = (conf.type == HASP_GPIO_BUTTON);
-        httpMessage += getOption(HASP_GPIO_BUTTON, F(D_GPIO_BUTTON), selected);
+        selected = (conf.type == hasp_gpio_type_t::LED_R);
+        httpMessage += getOption(hasp_gpio_type_t::LED_R, F(D_GPIO_LED_R), selected);
 
-        selected = (conf.type == HASP_GPIO_TOUCH);
-        httpMessage += getOption(HASP_GPIO_TOUCH, F(D_GPIO_TOUCH), selected);
+        selected = (conf.type == hasp_gpio_type_t::LED_G);
+        httpMessage += getOption(hasp_gpio_type_t::LED_G, F(D_GPIO_LED_G), selected);
 
-        selected = (conf.type == HASP_GPIO_LED);
-        httpMessage += getOption(HASP_GPIO_LED, F(D_GPIO_LED), selected);
+        selected = (conf.type == hasp_gpio_type_t::LED_B);
+        httpMessage += getOption(hasp_gpio_type_t::LED_B, F(D_GPIO_LED_B), selected);
 
-        selected = (conf.type == HASP_GPIO_LED_R);
-        httpMessage += getOption(HASP_GPIO_LED_R, F(D_GPIO_LED_R), selected);
+        selected = (conf.type == hasp_gpio_type_t::LIGHT_RELAY);
+        httpMessage += getOption(hasp_gpio_type_t::LIGHT_RELAY, F("Light Relay"), selected);
 
-        selected = (conf.type == HASP_GPIO_LED_G);
-        httpMessage += getOption(HASP_GPIO_LED_G, F(D_GPIO_LED_G), selected);
+        selected = (conf.type == hasp_gpio_type_t::POWER_RELAY);
+        httpMessage += getOption(hasp_gpio_type_t::POWER_RELAY, F(D_GPIO_RELAY), selected);
 
-        selected = (conf.type == HASP_GPIO_LED_B);
-        httpMessage += getOption(HASP_GPIO_LED_B, F(D_GPIO_LED_B), selected);
+        selected = (conf.type == hasp_gpio_type_t::SHUTTER_RELAY);
+        httpMessage += getOption(hasp_gpio_type_t::SHUTTER_RELAY, F("Shutter Relay"), selected);
 
-        selected = (conf.type == HASP_GPIO_RELAY);
-        httpMessage += getOption(HASP_GPIO_RELAY, F(D_GPIO_RELAY), selected);
+        selected = (conf.type == hasp_gpio_type_t::DAC);
+        httpMessage += getOption(hasp_gpio_type_t::DAC, F(D_GPIO_DAC), selected);
 
-        selected = (conf.type == HASP_GPIO_DAC);
-        httpMessage += getOption(HASP_GPIO_DAC, F(D_GPIO_DAC), selected);
+        selected = (conf.type == hasp_gpio_type_t::SERIAL_DIMMER);
+        httpMessage += getOption(hasp_gpio_type_t::SERIAL_DIMMER, F(D_GPIO_SERIAL_DIMMER), selected);
 
-        selected = (conf.type == HASP_GPIO_SERIAL_DIMMER);
-        httpMessage += getOption(HASP_GPIO_SERIAL_DIMMER, F(D_GPIO_SERIAL_DIMMER), selected);
+#if defined(LANBONL8)
+        selected = (conf.type == hasp_gpio_type_t::SERIAL_DIMMER_AU);
+        httpMessage += getOption(hasp_gpio_type_t::SERIAL_DIMMER_AU, F("L8-HD (AU)"), selected);
+
+        selected = (conf.type == hasp_gpio_type_t::SERIAL_DIMMER_EU);
+        httpMessage += getOption(hasp_gpio_type_t::SERIAL_DIMMER_EU, F("L8-HD (EU)"), selected);
+#endif
 
         if(digitalPinHasPWM(webServer.arg(0).toInt())) {
-            selected = (conf.type == HASP_GPIO_PWM);
-            httpMessage += getOption(HASP_GPIO_PWM, F(D_GPIO_PWM), selected);
+            selected = (conf.type == hasp_gpio_type_t::PWM);
+            httpMessage += getOption(hasp_gpio_type_t::PWM, F(D_GPIO_PWM), selected);
         }
         httpMessage += F("</select></p>");
 
@@ -1710,9 +1734,137 @@ void webHandleGpioOptions()
         }
         httpMessage += F("</select></p>");
 
-        httpMessage += F("<p><b>Default State</b> <select id='state' name='state'>");
+        httpMessage += F("<p><b>Value</b> <select id='state' name='state'>");
         httpMessage += getOption(0, F("Normal"), !conf.inverted);
         httpMessage += getOption(1, F("Inverted"), conf.inverted);
+        httpMessage += F("</select></p>");
+
+        httpMessage +=
+            F("<p><button type='submit' name='save' value='gpio'>" D_HTTP_SAVE_SETTINGS "</button></p></form>");
+
+        httpMessage += PSTR("<p><form method='GET' action='/config/gpio'><button type='submit'>&#8617; " D_HTTP_BACK
+                            "</button></form></p>");
+
+        webSendPage(haspDevice.get_hostname(), httpMessage.length(), false);
+        webServer.sendContent(httpMessage);
+    }
+    webSendFooter();
+
+    // if(webServer.hasArg(F("action"))) dispatch_text_line(webServer.arg(F("action")).c_str()); // Security check
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+void webHandleGpioInput()
+{ // http://plate01/config/gpio/options
+    if(!httpIsAuthenticated(F("config/gpio/input"))) return;
+    {
+        StaticJsonDocument<256> settings;
+        guiGetConfig(settings.to<JsonObject>());
+
+        uint8_t config_id = webServer.arg(F("id")).toInt();
+
+        String httpMessage((char*)0);
+        httpMessage.reserve(HTTP_PAGE_SIZE);
+        httpMessage += F("<h1>");
+        httpMessage += haspDevice.get_hostname();
+        httpMessage += F("</h1><hr>");
+
+        httpMessage += F("<form method='GET' action='/config/gpio'>");
+        httpMessage += F("<input type='hidden' name='id' value='");
+        httpMessage += config_id;
+        httpMessage += F("'>");
+
+        httpMessage += F("<p><b>GPIO Options");
+        httpMessage += config_id;
+        httpMessage += F(" Options</b></p>");
+
+        httpMessage += F("<p><b>" D_GPIO_PIN "</b> <select id='pin' name='pin'>");
+        hasp_gpio_config_t conf = gpioGetPinConfig(config_id);
+
+        for(uint8_t io = 0; io < NUM_DIGITAL_PINS; io++) {
+            if(((conf.pin == io) || !gpioInUse(io)) && !gpioIsSystemPin(io)) {
+                httpMessage += getOption(io, haspDevice.gpio_name(io).c_str(), conf.pin == io);
+            }
+        }
+        httpMessage += F("</select></p>");
+
+        bool selected;
+        httpMessage += F("<p><b>Type</b> <select id='type' name='type'>");
+
+        selected = (conf.type == hasp_gpio_type_t::BUTTON);
+        httpMessage += getOption(hasp_gpio_type_t::BUTTON, F(D_GPIO_BUTTON), selected);
+
+        selected = (conf.type == hasp_gpio_type_t::SWITCH);
+        httpMessage += getOption(hasp_gpio_type_t::SWITCH, F(D_GPIO_SWITCH), selected);
+
+        selected = (conf.type == hasp_gpio_type_t::DOOR);
+        httpMessage += getOption(hasp_gpio_type_t::DOOR, F("door"), selected);
+
+        selected = (conf.type == hasp_gpio_type_t::GARAGE_DOOR);
+        httpMessage += getOption(hasp_gpio_type_t::GARAGE_DOOR, F("garage_door"), selected);
+
+        selected = (conf.type == hasp_gpio_type_t::GAS);
+        httpMessage += getOption(hasp_gpio_type_t::GAS, F("gas"), selected);
+
+        selected = (conf.type == hasp_gpio_type_t::LIGHT);
+        httpMessage += getOption(hasp_gpio_type_t::LIGHT, F("light"), selected);
+
+        selected = (conf.type == hasp_gpio_type_t::LOCK);
+        httpMessage += getOption(hasp_gpio_type_t::LOCK, F("lock"), selected);
+
+        selected = (conf.type == hasp_gpio_type_t::MOISTURE);
+        httpMessage += getOption(hasp_gpio_type_t::MOISTURE, F("moisture"), selected);
+
+        selected = (conf.type == hasp_gpio_type_t::MOTION);
+        httpMessage += getOption(hasp_gpio_type_t::MOTION, F("motion"), selected);
+
+        selected = (conf.type == hasp_gpio_type_t::OCCUPANCY);
+        httpMessage += getOption(hasp_gpio_type_t::OCCUPANCY, F("occupancy"), selected);
+
+        selected = (conf.type == hasp_gpio_type_t::OPENING);
+        httpMessage += getOption(hasp_gpio_type_t::OPENING, F("opening"), selected);
+
+        selected = (conf.type == hasp_gpio_type_t::PRESENCE);
+        httpMessage += getOption(hasp_gpio_type_t::PRESENCE, F("presence"), selected);
+
+        selected = (conf.type == hasp_gpio_type_t::PROBLEM);
+        httpMessage += getOption(hasp_gpio_type_t::PROBLEM, F("problem"), selected);
+
+        selected = (conf.type == hasp_gpio_type_t::SAFETY);
+        httpMessage += getOption(hasp_gpio_type_t::SAFETY, F("Safety"), selected);
+
+        selected = (conf.type == hasp_gpio_type_t::SMOKE);
+        httpMessage += getOption(hasp_gpio_type_t::SMOKE, F("Smoke"), selected);
+
+        selected = (conf.type == hasp_gpio_type_t::VIBRATION);
+        httpMessage += getOption(hasp_gpio_type_t::VIBRATION, F("Vibration"), selected);
+
+        selected = (conf.type == hasp_gpio_type_t::WINDOW);
+        httpMessage += getOption(hasp_gpio_type_t::WINDOW, F("Window"), selected);
+
+        httpMessage += F("</select></p>");
+
+        httpMessage += F("<p><b>" D_GPIO_GROUP "</b> <select id='group' name='group'>");
+        httpMessage += getOption(0, F(D_GPIO_GROUP_NONE), conf.group == 0);
+        String group((char*)0);
+        group.reserve(10);
+        for(int i = 1; i < 15; i++) {
+            group = F(D_GPIO_GROUP " ");
+            group += i;
+            httpMessage += getOption(i, group, conf.group == i);
+        }
+        httpMessage += F("</select></p>");
+
+        httpMessage += F("<p><b>Default State</b> <select id='state' name='state'>");
+        httpMessage += getOption(0, F("Normally Open"), !conf.inverted);
+        httpMessage += getOption(1, F("Normally Closed"), conf.inverted);
+        httpMessage += F("</select></p>");
+
+        httpMessage += F("<p><b>Resistor</b> <select id='func' name='func'>");
+        httpMessage += getOption(hasp_gpio_function_t::INTERNAL_PULLUP, F("Internal Pullup"), conf.gpio_function);
+        httpMessage += getOption(hasp_gpio_function_t::INTERNAL_PULLDOWN, F("Internal Pulldown"), conf.gpio_function);
+        httpMessage += getOption(hasp_gpio_function_t::EXTERNAL_PULLUP, F("External Pullup"), conf.gpio_function);
+        httpMessage += getOption(hasp_gpio_function_t::EXTERNAL_PULLDOWN, F("External Pulldown"), conf.gpio_function);
         httpMessage += F("</select></p>");
 
         httpMessage +=
@@ -2184,6 +2336,7 @@ void httpSetup()
 #if HASP_USE_GPIO > 0
     webServer.on(F("/config/gpio"), webHandleGpioConfig);
     webServer.on(F("/config/gpio/options"), webHandleGpioOptions);
+    webServer.on(F("/config/gpio/input"), webHandleGpioInput);
 #endif
     webServer.on(F("/saveConfig"), webHandleSaveConfig);
     webServer.on(F("/resetConfig"), httpHandleResetConfig);
@@ -2223,7 +2376,8 @@ void httpReconnect()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 IRAM_ATTR void httpLoop(void)
 {
-    if(http_config.enable) webServer.handleClient();
+    // if(http_config.enable)
+    webServer.handleClient();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
