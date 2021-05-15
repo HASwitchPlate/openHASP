@@ -17,6 +17,35 @@ paho-mqtt:
     username: "{username}"
     password: "{password}"
 
+stages:
+  - name: Page 1
+    mqtt_publish:
+      topic: hasp/{plate}/command
+      payload: "page 1"
+    mqtt_response:
+      topic: hasp/{plate}/state/page
+      payload: "1"
+      timeout: 1
+    delay_after: 0
+
+---
+test_name: Obj Standard Properties
+
+includes:
+  - !include config.yaml
+
+paho-mqtt:
+  client:
+    transport: tcp
+    client_id: tavern-tester
+  connect:
+    host: "{host}"
+    port: !int "{port:d}"
+    timeout: 3
+  auth:
+    username: "{username}"
+    password: "{password}"
+
 marks:
   - parametrize:
       key: obj
@@ -74,15 +103,10 @@ marks:
         - ""
 
 stages:
-  - name: Page 1
+  - name: Clear Page
     mqtt_publish:
       topic: hasp/{plate}/command
-      payload: "page 1"
-    mqtt_response:
-      topic: hasp/{plate}/state/page
-      payload: "1"
-      timeout: 1
-    delay_after: 0
+      payload: "clearpage 1"
 
   - name: Create object
     mqtt_publish:
