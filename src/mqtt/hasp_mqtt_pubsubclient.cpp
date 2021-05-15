@@ -342,7 +342,8 @@ void mqttSetup()
 
 IRAM_ATTR void mqttLoop(void)
 {
-    if(mqttEnabled) mqttClient.loop();
+    // if(mqttEnabled)
+    mqttClient.loop();
 }
 
 void mqttEvery5Seconds(bool networkIsConnected)
