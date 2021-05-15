@@ -3,9 +3,12 @@
 
 #if !(defined(WINDOWS) || defined(POSIX))
 
-#include <Arduino.h>
-#include "lvgl.h"
-#include "hasp_conf.h" // load first
+#include "hasplib.h"
+#include "hasp_oobe.h"
+#include "sys/net/hasp_network.h"
+#include "dev/device.h"
+#include "drv/hasp_drv_touch.h"
+#include "ArduinoLog.h"
 
 #if HASP_USE_CONFIG > 0
 #include "hasp_debug.h"
@@ -16,18 +19,10 @@
 #include "hasp_gui.h"
 #endif
 
-#include "hasp_oobe.h"
-
-#include "hasp/hasp_dispatch.h"
-#include "hasp/hasp.h"
-
-#include "sys/net/hasp_network.h"
-
-#include "dev/device.h"
-
 bool isConnected;
 uint8_t mainLoopCounter        = 0;
 unsigned long mainLastLoopTime = 0;
+uint8_t statLoopCounter        = 0;
 
 void setup()
 {
@@ -116,6 +111,7 @@ IRAM_ATTR void loop()
 {
     guiLoop();
     // haspLoop();
+
     networkLoop();
 
 #if HASP_USE_GPIO > 0
@@ -126,53 +122,65 @@ IRAM_ATTR void loop()
     mqttLoop();
 #endif // MQTT
 
-    haspDevice.loop();
+    // haspDevice.loop();
 
 #if HASP_USE_CONSOLE > 0
     // debugLoop();
     consoleLoop();
 #endif
 
+    statLoopCounter++;
     /* Timer Loop */
     if(millis() - mainLastLoopTime >= 1000) {
+        mainLastLoopTime += 1000;
 
         /* Runs Every Second */
         haspEverySecond(); // sleep timer & statusupdate
+
+#if HASP_USE_TELNET > 0
+        telnetEverySecond();
+#endif
+
         // debugEverySecond();
 
-        /* Runs Every 5 Seconds */
-        if(mainLoopCounter == 0 || mainLoopCounter == 5) {
-            isConnected = networkEvery5Seconds(); // Check connection
+        switch(++mainLoopCounter) {
+            case 1:
+                haspDevice.loop_5s();
+                break;
 
+            case 2:
 #if HASP_USE_HTTP > 0
-            // httpEvery5Seconds();
+                // httpEvery5Seconds();
 #endif
+                break;
+
+            case 3:
+#if HASP_USE_GPIO > 0
+                //   gpioEvery5Seconds();
+#endif
+                break;
+
+            case 4:
+                isConnected = networkEvery5Seconds(); // Check connection
 
 #if HASP_USE_MQTT > 0
-            mqttEvery5Seconds(isConnected);
+                mqttEvery5Seconds(isConnected);
 #endif
+                break;
 
-#if HASP_USE_GPIO > 0
-            //   gpioEvery5Seconds();
-#endif
-
-            haspDevice.loop_5s();
+            case 5:
+                mainLoopCounter = 0;
+                if(statLoopCounter)
+                    LOG_VERBOSE(TAG_MAIN, F("%d millis per loop, %d counted"), 5000 / statLoopCounter, statLoopCounter);
+                statLoopCounter = 0;
+                break;
         }
-
-        /* Reset loop counter every 10 seconds */
-        if(mainLoopCounter >= 9) {
-            mainLoopCounter = 0;
-        } else {
-            mainLoopCounter++;
-        }
-
-        mainLastLoopTime += 1000;
     }
 
 #ifdef ARDUINO_ARCH_ESP8266
     delay(2); // ms
 #else
-    delay(5); // ms
+    delay(2); // ms
               // delay((lv_task_get_idle() >> 5) + 3); // 2..5 ms
 #endif
 }
