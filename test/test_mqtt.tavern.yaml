@@ -1,6 +1,6 @@
 # test_page.tavern.yaml
 ---
-test_name: Page command
+test_name: Obj Standard Properties
 
 includes:
   - !include config.yaml
@@ -77,7 +77,10 @@ paho-mqtt:
   connect:
     host: "{host}"
     port: !int "{port:d}"
-    timeout: 1
+    timeout: 3
+  auth:
+    username: "{username}"
+    password: "{password}"
 
 stages:
   - name: Test reboot command
@@ -104,6 +107,9 @@ paho-mqtt:
     host: "{host}"
     port: !int "{port:d}"
     timeout: 3
+  auth:
+    username: "{username}"
+    password: "{password}"
 
 stages:
   - name: Test idle

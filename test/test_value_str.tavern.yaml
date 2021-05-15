@@ -98,13 +98,13 @@ stages:
 
   - name: Set value_str
     mqtt_publish:
-      topic: "hasp/{plate}/command/p[1].b[1].value_str"
-      payload: "{str1}{str2}"
+      topic: "hasp/{plate}/command"
+      payload: "p1b1.value_str={str1}{str2}"
     delay_after: 0
   - name: Get value_str
     mqtt_publish:
-      topic: hasp/{plate}/command
-      payload: "p[1].b[1].value_str"
+      topic: hasp/{plate}/command/p1b1.value_str
+      payload: ""
     mqtt_response:
       topic: hasp/{plate}/state/p1b1
       json:

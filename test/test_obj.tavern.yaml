@@ -34,7 +34,7 @@ marks:
         - switch
         - bar
         - arc
-        - led
+        # - led # has a shadow bug
         - obj
         - lmeter
         - dropdown

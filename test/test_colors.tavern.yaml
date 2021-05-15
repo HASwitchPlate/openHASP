@@ -17,6 +17,34 @@ paho-mqtt:
     username: "{username}"
     password: "{password}"
 
+stages:
+  - name: Page 1
+    mqtt_publish:
+      topic: hasp/{plate}/command
+      payload: "page 1"
+    mqtt_response:
+      topic: hasp/{plate}/state/page
+      payload: "1"
+      timeout: 1
+
+---
+test_name: Obj Standard Properties
+
+includes:
+  - !include config.yaml
+
+paho-mqtt:
+  client:
+    transport: tcp
+    client_id: tavern-tester
+  connect:
+    host: "{host}"
+    port: !int "{port:d}"
+    timeout: 3
+  auth:
+    username: "{username}"
+    password: "{password}"
+
 marks:
   - parametrize:
       key:
@@ -77,27 +105,15 @@ marks:
         - btn
 
 stages:
-  - name: Page 1
-    mqtt_publish:
-      topic: hasp/{plate}/command
-      payload: "page 1"
-    mqtt_response:
-      topic: hasp/{plate}/state/page
-      payload: "1"
-      timeout: 1
-    delay_after: 0
-
   - name: Set bg_color
     mqtt_publish:
       topic: hasp/{plate}/command
       payload: "p[1].b[0].bg_color={color}"
-    delay_after: 0.02
 
   - name: Clear page
     mqtt_publish:
       topic: hasp/{plate}/command/clearpage
       payload: ""
-    delay_after: 0.02
 
   - name: Create object
     mqtt_publish:
@@ -105,17 +121,12 @@ stages:
       json:
         obj: "{obj}"
         id: 1
-        txt: "{color}"
-        r: !int "{r:d}"
-        g: !int "{g:d}"
-        b: !int "{b:d}"
-    delay_after: 0.02
+        text: "{color}"
 
   - name: Set bg_color
     mqtt_publish:
       topic: hasp/{plate}/command
       payload: "p[1].b[0].bg_color={rgb565}"
-    delay_after: 0.02
 
   - name: Test named COLOR
     mqtt_publish:
@@ -134,7 +145,6 @@ stages:
     mqtt_publish:
       topic: hasp/{plate}/command
       payload: "p[1].b[1].text_color=123"
-    delay_after: 0.02
 
   - name: Test hex COLOR
     mqtt_publish:
@@ -153,7 +163,6 @@ stages:
     mqtt_publish:
       topic: hasp/{plate}/command
       payload: "p[1].b[1].text_color=529"
-    delay_after: 0.02
 
   - name: Test rgb565 COLOR
     mqtt_publish:
