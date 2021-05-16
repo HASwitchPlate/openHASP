@@ -54,14 +54,14 @@ enum lv_hasp_obj_type_t {
     LV_HASP_CPICKER   = 20,
 
     /* Visualizers */
-    LV_HASP_LABEL   = 21,
-    LV_HASP_GAUGE   = 22,
-    LV_HASP_BAR     = 23,
-    LV_HASP_LMETER  = 24,
-    LV_HASP_LED     = 25,
-    LV_HASP_ARC     = 26,
-    LV_HASP_SPINNER = 27,
-    LV_HASP_CHART   = 28,
+    LV_HASP_LABEL     = 21,
+    LV_HASP_GAUGE     = 22,
+    LV_HASP_BAR       = 23,
+    LV_HASP_LINEMETER = 24,
+    LV_HASP_LED       = 25,
+    LV_HASP_ARC       = 26,
+    LV_HASP_SPINNER   = 27,
+    LV_HASP_CHART     = 28,
 
     /* Selectors */
     LV_HASP_DROPDOWN = 29,
@@ -166,6 +166,7 @@ inline bool obj_check_type(const lv_obj_t* obj, lv_hasp_obj_type_t haspobjtype)
 #define HASP_OBJ_OBJ 53623
 #define HASP_OBJ_OBJMASK 55395
 #define HASP_OBJ_LMETER 62749
+#define HASP_OBJ_LINEMETER 55189
 #define HASP_OBJ_TABVIEW 63226
 #define HASP_OBJ_TAB 7861
 #define HASP_OBJ_ARC 64594
