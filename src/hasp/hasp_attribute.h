@@ -18,7 +18,6 @@ void my_msgbox_map_clear(lv_obj_t* obj);
 void line_clear_points(lv_obj_t* obj);
 
 void hasp_process_obj_attribute(lv_obj_t* obj, const char* attr_p, const char* payload, bool update);
-bool hasp_process_obj_attribute_val(lv_obj_t* obj, const char* attr, int16_t intval, bool booval, bool update);
 
 bool attribute_set_normalized_value(lv_obj_t* obj, hasp_update_value_t& value);
 
@@ -30,6 +29,26 @@ void attr_out_color(lv_obj_t* obj, const char* attribute, lv_color_t color);
 } /* extern "C" */
 #endif
 
+typedef enum {
+    ATTR_RANGE_ERROR                  = -9,
+    ATTR_TYPE_METHOD_INVALID_FOR_PAGE = -8,
+    ATTR_TYPE_ALIGN_INVALID           = -5,
+    ATTR_TYPE_COLOR_INVALID           = -4,
+    ATTR_TYPE_STR_READONLY            = -3,
+    ATTR_TYPE_BOOL_READONLY           = -2,
+    ATTR_TYPE_INT_READONLY            = -1,
+    ATTR_NOT_FOUND                    = 0,
+    ATTR_TYPE_INT,
+    ATTR_TYPE_BOOL,
+    ATTR_TYPE_STR,
+    ATTR_TYPE_COLOR,
+    ATTR_TYPE_ALIGN,
+    ATTR_TYPE_DIRECTION_XY,
+    ATTR_TYPE_DIRECTION_CLOCK,
+    ATTR_TYPE_METHOD_OK,
+
+} hasp_attribute_type_t;
+
 struct hasp_attr_update_bool_const_t
 {
     lv_hasp_obj_type_t obj_type;
@@ -38,7 +57,7 @@ struct hasp_attr_update_bool_const_t
     bool (*get)(const lv_obj_t*);
 };
 
-struct hasp_attr_update16_const_t
+struct hasp_attr_update_uint16_const_t
 {
     lv_hasp_obj_type_t obj_type;
     uint16_t hash;
@@ -54,6 +73,22 @@ struct hasp_attr_update_lv_anim_value_const_t
     lv_anim_value_t (*get)(const lv_obj_t*);
 };
 
+struct hasp_attr_update_int16_const_t
+{
+    lv_hasp_obj_type_t obj_type;
+    uint16_t hash;
+    void (*set)(lv_obj_t*, int16_t);
+    int16_t (*get)(const lv_obj_t*);
+};
+
+struct hasp_attr_update_uint8_const_t
+{
+    lv_hasp_obj_type_t obj_type;
+    uint16_t hash;
+    void (*set)(lv_obj_t*, uint8_t);
+    uint8_t (*get)(const lv_obj_t*);
+};
+
 struct hasp_attr_update8_const_t
 {
     lv_hasp_obj_type_t obj_type;
@@ -62,12 +97,28 @@ struct hasp_attr_update8_const_t
     uint8_t (*get)(const lv_obj_t*);
 };
 
-struct hasp_attr_update16_t
+struct hasp_attr_update_uint16_t
 {
     lv_hasp_obj_type_t obj_type;
     uint16_t hash;
     void (*set)(lv_obj_t*, uint16_t);
     uint16_t (*get)(lv_obj_t*);
+};
+
+struct hasp_attr_update_bool_t
+{
+    lv_hasp_obj_type_t obj_type;
+    uint16_t hash;
+    void (*set)(lv_obj_t*, bool);
+    bool (*get)(lv_obj_t*);
+};
+
+struct hasp_attr_update_lv_coord_t
+{
+    lv_hasp_obj_type_t obj_type;
+    uint16_t hash;
+    void (*set)(lv_obj_t*, lv_coord_t);
+    lv_coord_t (*get)(lv_obj_t*);
 };
 
 struct hasp_attr_update_char_const_t
@@ -339,6 +390,7 @@ _HASP_ATTRIBUTE(SCALE_END_LINE_WIDTH, scale_end_line_width, lv_style_int_t)
 #define ATTR_EXT_CLICK_V 46657
 #define ATTR_ANIM_TIME 59451
 #define ATTR_ANIM_SPEED 281
+#define ATTR_START_VALUE 11828
 
 // methods
 #define ATTR_DELETE 50027
