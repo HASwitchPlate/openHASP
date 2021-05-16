@@ -64,7 +64,7 @@ marks:
         - arc
         - led
         - obj
-        - lmeter
+        - linemeter
         - dropdown
         - spinner
         - roller

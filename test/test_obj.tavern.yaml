@@ -36,7 +36,7 @@ marks:
         - arc
         # - led # has a shadow bug
         - obj
-        - lmeter
+        - linemeter
         - dropdown
         - calendar
         - spinner

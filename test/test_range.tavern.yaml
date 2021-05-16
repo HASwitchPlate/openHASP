@@ -25,7 +25,7 @@ marks:
         - bar
         - slider
         - gauge
-        - lmeter
+        - linemeter
   - parametrize:
       key:
         - min
