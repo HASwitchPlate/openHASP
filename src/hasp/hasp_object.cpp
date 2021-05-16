@@ -521,13 +521,14 @@ void hasp_new_object(const JsonObject& config, uint8_t& saved_page_id)
                 }
                 break;
 
-            case LV_HASP_LMETER:
+            case LV_HASP_LINEMETER:
             case HASP_OBJ_LMETER:
+            case HASP_OBJ_LINEMETER:
                 obj = lv_linemeter_create(parent_obj, NULL);
                 if(obj) {
                     lv_linemeter_set_range(obj, 0, 100);
                     lv_obj_set_event_cb(obj, generic_event_handler);
-                    obj->user_data.objid = LV_HASP_LMETER;
+                    obj->user_data.objid = LV_HASP_LINEMETER;
                 }
                 break;
 
