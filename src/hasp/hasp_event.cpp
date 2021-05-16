@@ -75,7 +75,7 @@ void event_timer_calendar(lv_task_t* task)
     lv_obj_t* obj               = NULL;
 
     if(data) obj = hasp_find_obj_from_page_id(data->pageid, data->objid);
-    if(!obj || !data) {
+    if(!obj || !data || !obj_check_type(obj, LV_HASP_CALENDER)) {
         if(data) lv_mem_free(data); // the object that the user_data points to is gone
         lv_task_del(task);          // the calendar object for this task was deleted
         LOG_WARNING(TAG_EVENT, "event_timer_calendar could not find the linked object");
