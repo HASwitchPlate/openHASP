@@ -299,6 +299,7 @@ static WiFiSpiClass WiFi;
 #define memcpy_P memcpy
 #define strcasecmp_P strcasecmp
 #define strcmp_P strcmp
+#define strcpy_P strcpy
 #define strstr_P strstr
 #define halRestartMcu()
 #define millis SDL_GetTicks
