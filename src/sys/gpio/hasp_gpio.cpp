@@ -608,7 +608,7 @@ void gpio_set_moodlight(moodlight_t& moodlight)
     for(uint8_t i = 0; i < HASP_NUM_GPIO_CONFIG; i++) {
         switch(gpioConfig[i].type) {
             case hasp_gpio_type_t::LED_R... hasp_gpio_type_t::LED_W:
-                uint8_t index = (gpioConfig[i].type - hasp_gpio_type_t::LED_R) / 2;
+                uint8_t index = (gpioConfig[i].type - hasp_gpio_type_t::LED_R);
                 if(index > 4) continue;
 
                 uint8_t val = (moodlight.rgbww[index] * moodlight.brightness + 127) / 255;
