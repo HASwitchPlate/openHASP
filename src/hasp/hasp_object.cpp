@@ -175,7 +175,7 @@ void hasp_process_attribute(uint8_t pageid, uint8_t objid, const char* attr, con
 // ##################### Object Creator ########################################################
 
 // Called from hasp_new_object only to process all attributes
-static int hasp_parse_json_attributes(lv_obj_t* obj, const JsonObject& doc)
+static inline int hasp_parse_json_attributes(lv_obj_t* obj, const JsonObject& doc)
 {
     int i = 0;
 #if defined(WINDOWS) || defined(POSIX)
@@ -415,14 +415,7 @@ void hasp_new_object(const JsonObject& config, uint8_t& saved_page_id)
                 obj = lv_tabview_create(parent_obj, LV_DIR_TOP, 100);
                 // No event handler for tabs
                 if(obj) {
-                    lv_obj_t* tab;
-                    tab = lv_tabview_add_tab(obj, "tab 1");
-                    // lv_obj_set_user_data(tab, id + 1);
-                    tab = lv_tabview_add_tab(obj, "tab 2");
-                    // lv_obj_set_user_data(tab, id + 2);
-                    tab = lv_tabview_add_tab(obj, "tab 3");
-                    // lv_obj_set_user_data(tab, id + 3);
-
+                    lv_obj_set_event_cb(obj, selector_event_handler);
                     obj->user_data.objid = LV_HASP_TABVIEW;
                 }
                 break;
@@ -484,10 +477,13 @@ void hasp_new_object(const JsonObject& config, uint8_t& saved_page_id)
             case LV_HASP_SPINNER:
             case HASP_OBJ_SPINNER:
                 obj = lv_spinner_create(parent_obj, NULL);
-                if(obj) obj->user_data.objid = LV_HASP_SPINNER;
+                if(obj) {
+                    obj->user_data.objid = LV_HASP_SPINNER;
+                    lv_obj_set_event_cb(obj, generic_event_handler);
+                }
                 break;
-
 #endif
+
             /* ----- Range Objects ------ */
             case LV_HASP_SLIDER:
             case HASP_OBJ_SLIDER:
@@ -522,7 +518,7 @@ void hasp_new_object(const JsonObject& config, uint8_t& saved_page_id)
                 break;
 
             case LV_HASP_LINEMETER:
-            case HASP_OBJ_LMETER:
+            case HASP_OBJ_LMETER: // obsolete
             case HASP_OBJ_LINEMETER:
                 obj = lv_linemeter_create(parent_obj, NULL);
                 if(obj) {
