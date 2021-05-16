@@ -87,6 +87,8 @@
 #define D_ATTRIBUTE_UNKNOWN "Unknown property %s"
 #define D_ATTRIBUTE_READ_ONLY "%s is read-only"
 #define D_ATTRIBUTE_PAGE_METHOD_INVALID "Unable to call %s on a page"
+#define D_ATTRIBUTE_ALIGN_INVALID "Invalid align property: %s"
+#define D_ATTRIBUTE_COLOR_INVALID "Invalid color property: %s"
 
 #define D_OOBE_SSID_VALIDATED "SSID %s validated"
 #define D_OOBE_AUTO_CALIBRATE "Auto calibrate enabled"
@@ -193,7 +195,7 @@
 
 // new
 #define D_GPIO_SWITCH "Switch"
-#define D_GPIO_BUTTON "Button"
+#define D_GPIO_BUTTON "Push Button"
 #define D_GPIO_TOUCH "Capacitive Touch" // Nieuw
 #define D_GPIO_LED "Led"
 #define D_GPIO_LED_R "Mood Red"

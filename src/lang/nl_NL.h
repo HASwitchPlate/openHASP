@@ -87,6 +87,8 @@
 #define D_ATTRIBUTE_UNKNOWN "Onbekend attribuut %s"
 #define D_ATTRIBUTE_READ_ONLY "%s is alleen-lezen"
 #define D_ATTRIBUTE_PAGE_METHOD_INVALID "%s is ongeldig voor een pagina"
+#define D_ATTRIBUTE_ALIGN_INVALID "Ongeldig align attribuut: %s" // new
+#define D_ATTRIBUTE_COLOR_INVALID "Ongeldige kleur: %s"          // new
 
 #define D_OOBE_SSID_VALIDATED "SSID %s gevalideerd"
 #define D_OOBE_AUTO_CALIBRATE "Auto calibratie actief"

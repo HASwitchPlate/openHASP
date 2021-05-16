@@ -87,6 +87,8 @@
 #define D_ATTRIBUTE_UNKNOWN "Proprietate necunoscută: %s"
 #define D_ATTRIBUTE_READ_ONLY "%s este numai în citire"
 #define D_ATTRIBUTE_PAGE_METHOD_INVALID "Nu se poate apela %s pe o pagină"
+#define D_ATTRIBUTE_ALIGN_INVALID "Invalid align property: %s" // new
+#define D_ATTRIBUTE_COLOR_INVALID "Invalid color property: %s" // new
 
 #define D_OOBE_SSID_VALIDATED "SSID %s validat"
 #define D_OOBE_AUTO_CALIBRATE "Calibrarea automată este activă"

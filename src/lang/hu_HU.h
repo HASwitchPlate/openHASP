@@ -87,6 +87,8 @@
 #define D_ATTRIBUTE_UNKNOWN "Ismeretlen tulajdonság: %s"
 #define D_ATTRIBUTE_READ_ONLY "%s csak olvasható"
 #define D_ATTRIBUTE_PAGE_METHOD_INVALID "Nem lehet meghívni %s-t egy oldalon"
+#define D_ATTRIBUTE_ALIGN_INVALID "Invalid align property: %s" // new
+#define D_ATTRIBUTE_COLOR_INVALID "Invalid color property: %s" // new
 
 #define D_OOBE_SSID_VALIDATED "%s SSID érvényes"
 #define D_OOBE_AUTO_CALIBRATE "Automatikus kalibrálás engedélyezve"
