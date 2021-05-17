@@ -21,26 +21,7 @@ marks:
   - parametrize:
       key: obj
       vals:
-        - btnmatrix
-        - cpicker
-        - table
-        - tabview
-        - chart
-        - gauge
-        - btn
-        - label
-        - slider
-        #- checkbox
-        #- switch
-        - bar
-        - arc
-        # - led # has a shadow bug
-        - obj
-        - linemeter
-        - dropdown
-        - calendar
-        - spinner
-        - roller
+        - switch
   - parametrize:
       key:
         - hidden
@@ -108,16 +89,6 @@ stages:
         y: 128
     delay_after: 0
 
-  - name: Test y
-    mqtt_publish:
-      topic: hasp/{plate}/command/json
-      payload: '["p1b1.y={y}","p1b1.y"]'
-    mqtt_response:
-      topic: hasp/{plate}/state/p1b1
-      json:
-        y: !int "{y:d}"
-      timeout: 1
-
   - name: Test x
     mqtt_publish:
       topic: hasp/{plate}/command/json
@@ -126,6 +97,16 @@ stages:
       topic: hasp/{plate}/state/p1b1
       json:
         x: !int "{x:d}"
+      timeout: 1
+
+  - name: Test y
+    mqtt_publish:
+      topic: hasp/{plate}/command/json
+      payload: '["p1b1.y={y}","p1b1.y"]'
+    mqtt_response:
+      topic: hasp/{plate}/state/p1b1
+      json:
+        y: !int "{y:d}"
       timeout: 1
 
   - name: Test w
@@ -158,6 +139,28 @@ stages:
       topic: hasp/{plate}/state/p1b1
       json:
         enabled: !int "{hidden:d}"
+      timeout: 1
+
+  - name: Test click
+    mqtt_publish:
+      topic: hasp/{plate}/command/json
+      payload: '["p1b1.click={hidden}","p1b1.click"]'
+    delay_after: 0
+    mqtt_response:
+      topic: hasp/{plate}/state/p1b1
+      json:
+        click: !int "{hidden:d}"
+      timeout: 1
+
+  - name: Test swipe
+    mqtt_publish:
+      topic: hasp/{plate}/command/json
+      payload: '["p1b1.swipe={hidden_inv}","p1b1.swipe"]'
+    delay_after: 0
+    mqtt_response:
+      topic: hasp/{plate}/state/p1b1
+      json:
+        swipe: !int "{hidden_inv:d}"
       timeout: 1
 
   - name: Set vis
@@ -229,6 +232,16 @@ stages:
         radius: !int "{radius:d}"
       timeout: 1
 
+  - name: Test radius2
+    mqtt_publish:
+      topic: hasp/{plate}/command/json
+      payload: '["p1b1.radius2={radius}","p1b1.radius2"]'
+    mqtt_response:
+      topic: hasp/{plate}/state/p1b1
+      json:
+        radius2: !int "{radius:d}"
+      timeout: 1
+
   - name: Set value_str
     mqtt_publish:
       topic: "hasp/{plate}/command/p1b1.value_str"
@@ -252,4 +265,24 @@ stages:
       topic: hasp/{plate}/state/p1b1
       json:
         obj: "{obj}"
+      timeout: 1
+
+  - name: Test groupid
+    mqtt_publish:
+      topic: hasp/{plate}/command/json
+      payload: '["p1b1.groupid={hidden}","p1b1.groupid"]'
+    mqtt_response:
+      topic: hasp/{plate}/state/p1b1
+      json:
+        groupid: !int "{hidden:d}"
+      timeout: 1
+
+  - name: Test val
+    mqtt_publish:
+      topic: hasp/{plate}/command/json
+      payload: '["p1b1.val={hidden}","p1b1.val"]'
+    mqtt_response:
+      topic: hasp/{plate}/state/p1b1
+      json:
+        val: !int "{hidden:d}"
       timeout: 1

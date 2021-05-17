@@ -8,4 +8,4 @@ variables:
   username: hasp
   password: hasp
   port: 1883
-  plate: DESKTOP-1T7EDMU
+  plate: ubuntu-desktop-20-04
