@@ -793,11 +793,16 @@ hasp_gpio_config_t gpioGetPinConfig(uint8_t num)
     return gpioConfig[num];
 }
 
-void gpio_discovery(JsonArray& relay, JsonArray& led)
+void gpio_discovery(JsonObject& input, JsonArray& relay, JsonArray& light, JsonArray& dimmer)
 {
+    char description[20];
+
     for(uint8_t i = 0; i < HASP_NUM_GPIO_CONFIG; i++) {
         switch(gpioConfig[i].type) {
             case hasp_gpio_type_t::LIGHT_RELAY:
+                light.add(gpioConfig[i].pin);
+                break;
+
             case hasp_gpio_type_t::POWER_RELAY:
                 relay.add(gpioConfig[i].pin);
                 break;
@@ -807,15 +812,93 @@ void gpio_discovery(JsonArray& relay, JsonArray& led)
             case hasp_gpio_type_t::SERIAL_DIMMER:
             case hasp_gpio_type_t::SERIAL_DIMMER_AU:
             case hasp_gpio_type_t::SERIAL_DIMMER_EU:
-                led.add(gpioConfig[i].pin);
+                dimmer.add(gpioConfig[i].pin);
                 break;
 
-                // pwm.add(gpioConfig[i].pin);
+            case SWITCH:
+                strcpy_P(description, PSTR("none"));
                 break;
-
+            case BATTERY:
+                strcpy_P(description, PSTR("battery"));
+                break;
+            case BATTERY_CHARGING:
+                strcpy_P(description, PSTR("battery_charging"));
+                break;
+            case COLD:
+                strcpy_P(description, PSTR("cold"));
+                break;
+            case CONNECTIVITY:
+                strcpy_P(description, PSTR("connectivity"));
+                break;
+            case DOOR:
+                strcpy_P(description, PSTR("door"));
+                break;
+            case GARAGE_DOOR:
+                strcpy_P(description, PSTR("garage_door"));
+                break;
+            case GAS:
+                strcpy_P(description, PSTR("gas"));
+                break;
+            case HEAT:
+                strcpy_P(description, PSTR("heat"));
+                break;
+            case LIGHT:
+                strcpy_P(description, PSTR("light"));
+                break;
+            case LOCK:
+                strcpy_P(description, PSTR("lock"));
+                break;
+            case MOISTURE:
+                strcpy_P(description, PSTR("moisture"));
+                break;
+            case MOTION:
+                strcpy_P(description, PSTR("motion"));
+                break;
+            case MOVING:
+                strcpy_P(description, PSTR("moving"));
+                break;
+            case OCCUPANCY:
+                strcpy_P(description, PSTR("occupancy"));
+                break;
+            case OPENING:
+                strcpy_P(description, PSTR("opening"));
+                break;
+            case PLUG:
+                strcpy_P(description, PSTR("plug"));
+                break;
+            case POWER:
+                strcpy_P(description, PSTR("power"));
+                break;
+            case PRESENCE:
+                strcpy_P(description, PSTR("presence"));
+                break;
+            case PROBLEM:
+                strcpy_P(description, PSTR("problem"));
+                break;
+            case SAFETY:
+                strcpy_P(description, PSTR("safety"));
+                break;
+            case SMOKE:
+                strcpy_P(description, PSTR("smoke"));
+                break;
+            case SOUND:
+                strcpy_P(description, PSTR("sound"));
+                break;
+            case VIBRATION:
+                strcpy_P(description, PSTR("vibration"));
+                break;
+            case WINDOW:
+                strcpy_P(description, PSTR("window"));
+                break;
             case hasp_gpio_type_t::FREE:
             default:
                 break;
+        }
+
+        if(gpioConfig[i].type >= hasp_gpio_type_t::SWITCH && gpioConfig[i].type <= hasp_gpio_type_t::WINDOW) {
+            JsonArray arr = input[description];
+            if(arr.isNull()) arr = input.createNestedArray(description);
+            arr.add(gpioConfig[i].pin);
         }
     }
 };

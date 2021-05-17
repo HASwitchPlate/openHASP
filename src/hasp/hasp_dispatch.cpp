@@ -481,7 +481,7 @@ void dispatch_screenshot(const char*, const char* filename)
         memcpy_P(tempfile, PSTR("/screenshot.bmp"), sizeof(tempfile));
         guiTakeScreenshot(tempfile);
     } else if(strlen(filename) > 31 || filename[0] != '/') { // Invalid filename
-        LOG_WARNING(TAG_MSGR, "Invalid filename %s", filename);
+        LOG_WARNING(TAG_MSGR, F("D_FILE_SAVE_FAILED"), filename);
     } else { // Valid filename
         guiTakeScreenshot(filename);
     }
@@ -803,23 +803,26 @@ void dispatch_send_discovery(const char*, const char*)
 {
 #if HASP_USE_MQTT > 0
 
-    StaticJsonDocument<512> doc;
-    char data[512];
-    haspGetVersion(data, sizeof(data));
+    StaticJsonDocument<1024> doc;
 
-    doc[F("node")]         = haspDevice.get_hostname();
-    doc[F("model")]        = haspDevice.get_model();
-    doc[F("manufacturer")] = F(D_MANUFACTURER);
-    doc[F("hwid")]         = haspDevice.get_hardware_id();
-    doc[F("version")]      = data;
-    doc[F("numPages")]     = haspPages.count();
+    doc[F("node")]  = haspDevice.get_hostname();
+    doc[F("mdl")]   = haspDevice.get_model();
+    doc[F("mf")]    = F(D_MANUFACTURER);
+    doc[F("hwid")]  = haspDevice.get_hardware_id();
+    doc[F("pages")] = haspPages.count();
 
-    JsonArray relay = doc.createNestedArray(F("relay"));
-    JsonArray led   = doc.createNestedArray(F("led"));
+    JsonObject input = doc.createNestedObject(F("input"));
+    JsonArray relay  = doc.createNestedArray(F("power"));
+    JsonArray led    = doc.createNestedArray(F("light"));
+    JsonArray dimmer = doc.createNestedArray(F("dim"));
 
 #if HASP_USE_GPIO > 0
-    gpio_discovery(relay, led);
+    gpio_discovery(input, relay, led, dimmer);
 #endif
+
+    char data[1024];
+    haspGetVersion(data, sizeof(data));
+    doc[F("sw")] = data;
 
     size_t len = serializeJson(doc, data);
     switch(mqtt_send_discovery(data, len)) {

@@ -44,7 +44,7 @@ bool gpio_set_pin_state(uint8_t pin, bool power, int32_t val);
 
 void gpio_set_moodlight(moodlight_t& moodlight);
 
-void gpio_discovery(JsonArray& relay, JsonArray& led);
+void gpio_discovery(JsonObject& input, JsonArray& relay, JsonArray& light, JsonArray& dimmer);
 
 bool gpioSavePinConfig(uint8_t config_num, uint8_t pin, uint8_t type, uint8_t group, uint8_t pinfunc, bool inverted);
 bool gpioIsSystemPin(uint8_t gpio);
@@ -93,6 +93,7 @@ enum hasp_gpio_type_t {
     HAPTIC           = 0x41,
 
     /* Inputs */
+    SWITCH           = 0xA0, // Binary Sensors
     BATTERY          = 0xA1,
     BATTERY_CHARGING = 0xA2,
     COLD             = 0xA3,
@@ -105,18 +106,26 @@ enum hasp_gpio_type_t {
     LOCK             = 0xAA,
     MOISTURE         = 0xAB,
     MOTION           = 0xAC,
-    OCCUPANCY        = 0xAD,
-    OPENING          = 0xAE,
-    PLUG             = 0xAF,
-    PRESENCE         = 0xB0,
-    PROBLEM          = 0xB1,
-    SAFETY           = 0xB2,
-    SMOKE            = 0xB3,
-    SOUND            = 0xB4,
-    VIBRATION        = 0xB5,
-    WINDOW           = 0xB6,
+    MOVING           = 0xAD,
+    OCCUPANCY        = 0xAE,
+    OPENING          = 0xAF,
+    PLUG             = 0xB0,
+    POWER            = 0xB1,
+    PRESENCE         = 0xB2,
+    PROBLEM          = 0xB3,
+    SAFETY           = 0xB4,
+    SMOKE            = 0xB5,
+    SOUND            = 0xB6,
+    VIBRATION        = 0xB7,
+    WINDOW           = 0xB8,
 
-    SWITCH = 0xC0, // Binary Sensors
+    AWNING  = 0xB9,
+    BLIND   = 0xBA,
+    CURTAIN = 0xBB,
+    DAMPER  = 0xBC,
+    GATE    = 0xBD,
+    SHADE   = 0xBE,
+    SHUTTER = 0xBF,
 
     BUTTON             = 0xF0,
     BUTTON_TOGGLE_ON   = 0xF1,
