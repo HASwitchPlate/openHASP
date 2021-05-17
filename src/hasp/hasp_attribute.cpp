@@ -1971,13 +1971,7 @@ void hasp_process_obj_attribute(lv_obj_t* obj, const char* attribute, const char
             break;
 
         default: {
-            bool result;
-            hasp_local_style_attr(obj, attribute, attr_hash, payload, update, result);
-            if(result) {
-                ret = ATTR_TYPE_METHOD_OK;
-            } else {
-                ret = ATTR_NOT_FOUND;
-            }
+            break; // not found
         }
     }
 
@@ -2014,6 +2008,16 @@ void hasp_process_obj_attribute(lv_obj_t* obj, const char* attribute, const char
 
             default:
                 break; // not found
+        }
+    }
+
+    if(ret == ATTR_NOT_FOUND) {
+        bool result;
+        hasp_local_style_attr(obj, attribute, attr_hash, payload, update, result);
+        if(result) {
+            ret = ATTR_TYPE_METHOD_OK;
+        } else {
+            ret = ATTR_NOT_FOUND;
         }
     }
 
