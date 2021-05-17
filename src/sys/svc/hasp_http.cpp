@@ -1625,10 +1625,15 @@ void webHandleGpioConfig()
         httpMessage += F("</table></form>");
 
         if(configCount < HASP_NUM_GPIO_CONFIG) {
+            httpMessage += F("<p><form method='GET' action='gpio/input'>");
+            httpMessage += F("<input type='hidden' name='id' value='");
+            httpMessage += gpioGetFreeConfigId();
+            httpMessage += F("'><button type='submit'>" D_HTTP_ADD_GPIO " Input</button></form></p>");
+
             httpMessage += F("<p><form method='GET' action='gpio/options'>");
             httpMessage += F("<input type='hidden' name='id' value='");
             httpMessage += gpioGetFreeConfigId();
-            httpMessage += F("'><button type='submit'>" D_HTTP_ADD_GPIO "</button></form></p>");
+            httpMessage += F("'><button type='submit'>" D_HTTP_ADD_GPIO " Output</button></form></p>");
         }
 
         add_form_button(httpMessage, F("&#8617; " D_HTTP_CONFIGURATION), F("/config"), F(""));
