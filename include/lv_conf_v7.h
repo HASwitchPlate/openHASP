@@ -746,6 +746,7 @@ typedef struct {
 
 /*LED (dependencies: -)*/
 #define LV_USE_LED      1
+#define LV_LED_BRIGHT_MIN 0
 
 /*Line (dependencies: -*/
 #define LV_USE_LINE     1
