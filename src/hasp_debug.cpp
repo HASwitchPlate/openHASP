@@ -177,9 +177,6 @@ void debugLvglLogEvent(lv_log_level_t level, const char* file, uint32_t line, co
 // Send the HASP header and version to the output device specified
 void debugPrintHaspHeader(Print* output)
 {
-    char buffer[16];
-    haspGetVersion(buffer, sizeof(buffer));
-
 #ifdef ARDUINO
     if(debugAnsiCodes) output->print(TERM_COLOR_YELLOW);
     output->println();
@@ -190,7 +187,7 @@ void debugPrintHaspHeader(Print* output)
                     "          |__|__|__|__|_____|__|\r\n"
                     "        Home Automation Switch Plate\r\n"
                     "        Open Hardware edition v"));
-    output->println(buffer);
+    output->println(haspDevice.get_version());
     output->println();
 #else
     if(debugAnsiCodes) debug_print(output, TERM_COLOR_YELLOW);
@@ -201,7 +198,7 @@ void debugPrintHaspHeader(Print* output)
                           "          |__|__|__|__|_____|__|\r\n"
                           "        Home Automation Switch Plate\r\n"
                           "        Open Hardware edition v"));
-    debug_print(output, buffer);
+    debug_print(output, haspDevice.get_version());
     debug_newline(output);
     debug_newline(output);
 #endif

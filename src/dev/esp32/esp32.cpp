@@ -97,7 +97,7 @@ static void halGetResetInfo(String& resetReason)
 
 Esp32Device::Esp32Device()
 {
-    _hostname         = MQTT_NODENAME;
+    BaseDevice::set_hostname(MQTT_NODENAME);
     _backlight_invert = (TFT_BACKLIGHT_ON == LOW);
     _backlight_power  = 1;
     _backlight_level  = 255;
@@ -129,14 +129,6 @@ void Esp32Device::show_info()
     if(_sketch_size == 0) _sketch_size = ESP.getSketchSize(); // slow: takes ~1 second
 }
 
-const char* Esp32Device::get_hostname()
-{
-    return _hostname.c_str();
-}
-void Esp32Device::set_hostname(const char* hostname)
-{
-    _hostname = hostname;
-}
 const char* Esp32Device::get_core_version()
 {
     return esp_get_idf_version(); // == ESP.getSdkVersion();

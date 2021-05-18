@@ -250,16 +250,13 @@ bool httpIsAuthenticated(const __FlashStringHelper* notused)
 
 void webSendFooter()
 {
-    char buffer[16];
-    haspGetVersion(buffer, sizeof(buffer));
-
 #if defined(STM32F4xx)
     webServer.sendContent(HTTP_END);
-    webServer.sendContent(buffer);
+    webServer.sendContent(haspDevice.get_version());
     webServer.sendContent(HTTP_FOOTER);
 #else
     webServer.sendContent_P(HTTP_END);
-    webServer.sendContent(buffer);
+    webServer.sendContent(haspDevice.get_version());
     webServer.sendContent_P(HTTP_FOOTER);
 #endif
 }
@@ -279,10 +276,9 @@ void webSendPage(const char* nodename, uint32_t httpdatalength, bool gohome = fa
 {
     {
         char buffer[64];
-        haspGetVersion(buffer, sizeof(buffer));
 
         /* Calculate Content Length upfront */
-        uint32_t contentLength = strlen(buffer); // version length
+        uint32_t contentLength = strlen(haspDevice.get_version()); // version length
         contentLength += sizeof(HTTP_DOCTYPE) - 1;
         contentLength += sizeof(HTTP_HEADER) - 1 - 2 + strlen(nodename); // -2 for %s
         contentLength += sizeof(HTTP_SCRIPT) - 1;
@@ -624,11 +620,7 @@ void webHandleInfo()
 
         /* HASP Stats */
         httpMessage += F("<b>HASP Version: </b>");
-        {
-            char version[32];
-            haspGetVersion(version, sizeof(version));
-            httpMessage += version;
-        }
+        httpMessage += haspDevice.get_version();
         httpMessage += F("<br/><b>Build DateTime: </b>");
         httpMessage += __DATE__;
         httpMessage += F(" ");

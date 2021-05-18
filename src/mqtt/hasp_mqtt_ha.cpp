@@ -75,10 +75,7 @@ void mqtt_ha_add_device_ids(JsonDocument& doc)
     ids.add(haspDevice.get_hostname());
     ids.add(HASP_MAC_ADDRESS_STR);
 
-    char buffer[32];
-    haspGetVersion(buffer, sizeof(buffer));
-    device[F("sw")] = buffer;
-
+    device[F("sw")]                        = haspDevice.get_version();
     device[FPSTR(FP_MQTT_HA_NAME)]         = haspDevice.get_hostname();
     device[FPSTR(FP_MQTT_HA_MODEL)]        = F(PIOENV);
     device[FPSTR(FP_MQTT_HA_MANUFACTURER)] = F(D_MANUFACTURER);

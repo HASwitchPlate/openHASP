@@ -50,7 +50,7 @@ void haspEverySecond(void);
 void haspReconnect(void);
 void haspDisconnect(void);
 
-void haspGetVersion(char* version, size_t len);
+// void haspGetVersion(char* version, size_t len);
 // void haspBackground(uint16_t pageid, uint16_t imageid);
 
 // void haspNewObject(const JsonObject & config, uint8_t & saved_page_id);

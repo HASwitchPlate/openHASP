@@ -19,8 +19,6 @@ class Esp32Device : public BaseDevice {
     void reboot() override;
     void show_info() override;
 
-    const char* get_hostname();
-    void set_hostname(const char*);
     const char* get_core_version();
     const char* get_chip_model();
     const char* get_hardware_id();
@@ -40,7 +38,6 @@ class Esp32Device : public BaseDevice {
     bool is_system_pin(uint8_t pin) override;
 
   private:
-    std::string _hostname;
     std::string _hardware_id;
     uint32_t _sketch_size; // cached because function is slow
 

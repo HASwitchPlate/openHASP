@@ -60,8 +60,7 @@ void mdnsStart()
         MDNS.addService(service, proto, 80);
 
         strcpy_P(key, PSTR("app_version"));
-        haspGetVersion(value, sizeof(value));
-        MDNS.addServiceTxt(service, proto, key, value);
+        MDNS.addServiceTxt(service, proto, key, haspDevice.get_version());
 
         strcpy_P(key, PSTR("app_name"));
         strcpy_P(value, PSTR(D_MANUFACTURER));

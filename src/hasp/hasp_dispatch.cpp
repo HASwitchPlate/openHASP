@@ -810,6 +810,7 @@ void dispatch_send_discovery(const char*, const char*)
     doc[F("mf")]    = F(D_MANUFACTURER);
     doc[F("hwid")]  = haspDevice.get_hardware_id();
     doc[F("pages")] = haspPages.count();
+    doc[F("sw")]    = haspDevice.get_version();
 
     JsonObject input = doc.createNestedObject(F("input"));
     JsonArray relay  = doc.createNestedArray(F("power"));
@@ -821,10 +822,8 @@ void dispatch_send_discovery(const char*, const char*)
 #endif
 
     char data[1024];
-    haspGetVersion(data, sizeof(data));
-    doc[F("sw")] = data;
-
     size_t len = serializeJson(doc, data);
+
     switch(mqtt_send_discovery(data, len)) {
         case MQTT_ERR_OK:
             LOG_TRACE(TAG_MQTT_PUB, F(MQTT_TOPIC_DISCOVERY " => %s"), data);
@@ -854,9 +853,9 @@ void dispatch_statusupdate(const char*, const char*)
         char buffer[128];
 
         hasp_get_sleep_state(topic);
-        haspGetVersion(buffer, sizeof(buffer));
         snprintf_P(data, sizeof(data), PSTR("{\"node\":\"%s\",\"idle\":\"%s\",\"version\":\"%s\",\"uptime\":%lu,"),
-                   haspDevice.get_hostname(), topic, buffer, long(millis() / 1000)); // \"status\":\"available\",
+                   haspDevice.get_hostname(), topic, haspDevice.get_version(),
+                   long(millis() / 1000)); // \"status\":\"available\",
 
 #if HASP_USE_WIFI > 0 || HASP_USE_ETHERNET > 0
         network_get_statusupdate(buffer, sizeof(buffer));

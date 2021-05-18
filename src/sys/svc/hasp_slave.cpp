@@ -70,10 +70,9 @@ void TASMO_TELE_JSON()
     char data[3 * 128];
     {
         char buffer[128];
-        haspGetVersion(buffer, sizeof(buffer));
 
-        snprintf_P(data, sizeof(data), PSTR("{\"status\":\"available\",\"version\":\"%s\",\"uptime\":%lu,"), buffer,
-                   long(millis() / 1000));
+        snprintf_P(data, sizeof(data), PSTR("{\"status\":\"available\",\"version\":\"%s\",\"uptime\":%lu,"),
+                   haspDevice.get_version(), long(millis() / 1000));
 
         snprintf_P(buffer, sizeof(buffer), PSTR("\"espCanUpdate\":\"false\",\"page\":%u,\"numPages\":%u,"),
                    haspGetPage(), (HASP_NUM_PAGES));

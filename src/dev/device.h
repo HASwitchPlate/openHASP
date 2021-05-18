@@ -20,6 +20,8 @@
 
 #include "ArduinoJson.h"
 
+#define STR_LEN_HOSTNAME 64
+
 namespace dev {
 
 class BaseDevice {
@@ -29,13 +31,9 @@ class BaseDevice {
 
     virtual void reboot()
     {}
-    virtual const char* get_hostname()
-    {
-        return "";
-    }
-    virtual void set_hostname(const char*)
-    {}
-    virtual const char* get_core_version()
+    const char* get_hostname();
+    void set_hostname(const char*);
+    const char* get_core_version()
     {
         return "";
     }
@@ -44,6 +42,7 @@ class BaseDevice {
         return "";
     }
     virtual const char* get_model();
+    virtual const char* get_version();
     virtual const char* get_hardware_id()
     {
         return "";
@@ -100,6 +99,10 @@ class BaseDevice {
         snprintf(buffer, sizeof(buffer), "%d", pin);
         return buffer;
     }
+
+  private:
+    // std::string _hostname;
+    char _hostname[STR_LEN_HOSTNAME];
 };
 
 } // namespace dev
