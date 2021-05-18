@@ -3,9 +3,7 @@
 
 #include <time.h>
 #include <sys/time.h>
-// #ifdef USE_CONFIG_OVERRIDE
-// #include "user_config_override.h"
-// #endif
+
 #include <Arduino.h>
 #include "ArduinoLog.h"
 
@@ -29,7 +27,7 @@ void networkStart(void)
     configTzTime(MYTZ, "pool.ntp.org", "time.nist.gov", NULL); // literal string
 #endif
 
-    haspProgressVal(255); // hide
+    // haspProgressVal(255); // hide
     haspReconnect();
     debugStartSyslog();
     // mqttStart();
