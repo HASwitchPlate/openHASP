@@ -1210,20 +1210,13 @@ void webHandleConfig()
         httpMessage += F("</h1><hr>");
 
 #if HASP_USE_WIFI > 0
-        httpMessage += F("<p><form method='GET' action='/config/wifi'><button type='submit'>" D_HTTP_WIFI_SETTINGS
-                         "</button></form></p>");
+        add_form_button(httpMessage, F(D_HTTP_WIFI_SETTINGS), F("/config/wifi"), F(""));
 #endif
-
 #if HASP_USE_MQTT > 0
-        httpMessage += F("<p><form method='GET' action='/config/mqtt'><button type='submit'>" D_HTTP_MQTT_SETTINGS
-                         "</button></form></p>");
+        add_form_button(httpMessage, F(D_HTTP_MQTT_SETTINGS), F("/config/mqtt"), F(""));
 #endif
-
-        httpMessage += F("<p><form method='GET' action='/config/http'><button type='submit'>" D_HTTP_HTTP_SETTINGS
-                         "</button></form></p>");
-
-        httpMessage += F("<p><form method='GET' action='/config/gui'><button type='submit'>" D_HTTP_GUI_SETTINGS
-                         "</button></form></p>");
+        add_form_button(httpMessage, F(D_HTTP_HTTP_SETTINGS), F("/config/http"), F(""));
+        add_form_button(httpMessage, F(D_HTTP_GUI_SETTINGS), F("/config/gui"), F(""));
 
         // httpMessage +=
         //     F("<p><form method='GET' action='/config/hasp'><button type='submit'>HASP
@@ -1291,11 +1284,7 @@ void webHandleMqttConfig()
         httpMessage +=
             F("'><p><button type='submit' name='save' value='mqtt'>" D_HTTP_SAVE_SETTINGS "</button></form></p>");
 
-        add_form_button(httpMessage, F("&#8617; " D_HTTP_CONFIGURATION), F("/config"), F(""));
-        // httpMessage += PSTR("<p><form method='GET' action='/config'><button type='submit'>&#8617; "
-        // D_HTTP_CONFIGURATION
-        //                     "</button></form></p>");
-
+        add_form_button(httpMessage, F(D_BACK_ICON D_HTTP_CONFIGURATION), F("/config"), F(""));
         webSendPage(haspDevice.get_hostname(), httpMessage.length(), false);
         webServer.sendContent(httpMessage);
     }
@@ -1381,12 +1370,9 @@ void webHandleGuiConfig()
 
 #if TOUCH_DRIVER == 2046 && defined(TOUCH_CS)
         add_form_button(httpMessage, F(D_HTTP_CALIBRATE), F("/config/gui"), F("name='cal' value='1'"));
-
-// httpMessage += PSTR("<p><form method='GET' action='/config/gui'><button type='submit' "
-//                     ">" D_HTTP_CALIBRATE "</button></form></p>");
 #endif
 
-        add_form_button(httpMessage, F("&#8617; " D_HTTP_CONFIGURATION), F("/config"), F(""));
+        add_form_button(httpMessage, F(D_BACK_ICON D_HTTP_CONFIGURATION), F("/config"), F(""));
         webSendPage(haspDevice.get_hostname(), httpMessage.length(), false);
         webServer.sendContent(httpMessage);
     }
@@ -1424,10 +1410,7 @@ void webHandleWifiConfig()
 
 #if HASP_USE_WIFI > 0 && !defined(STM32F4xx)
     if(WiFi.getMode() == WIFI_STA) {
-        add_form_button(httpMessage, F("&#8617; " D_HTTP_CONFIGURATION), F("/config"), F(""));
-        // httpMessage += PSTR("<p><form method='GET' action='/config'><button type='submit'>&#8617; "
-        // D_HTTP_CONFIGURATION
-        //                     "</button></form></p>");
+        add_form_button(httpMessage, F(D_BACK_ICON D_HTTP_CONFIGURATION), F("/config"), F(""));
     }
 #endif
 
@@ -1451,29 +1434,6 @@ void webHandleHttpConfig()
     {
         StaticJsonDocument<256> settings;
         httpGetConfig(settings.to<JsonObject>());
-
-        // String httpMessage((char *)0);
-        // httpMessage.reserve(HTTP_PAGE_SIZE);
-        // httpMessage += F("<h1>");
-        // httpMessage += haspDevice.get_hostname();
-        // httpMessage += F("</h1><hr>");
-
-        // httpMessage += F("<form method='POST' action='/config'>");
-        // httpMessage += F("<b>Web Username</b> <i><small>(optional)</small></i><input id='user' "
-        //                  "name='user' maxlength=31 placeholder='admin' value='");
-        // httpMessage += settings[FPSTR(FP_CONFIG_USER)].as<String>();
-        // httpMessage += F("'><br/><b>Web Password</b> <i><small>(optional)</small></i><input id='pass' "
-        //                  "name='pass' type='password' maxlength=63 placeholder='Password' value='");
-        // if(settings[FPSTR(FP_CONFIG_PASS)].as<String>() != "") {
-        //     httpMessage += F(D_PASSWORD_MASK);
-        // }
-        // httpMessage +=
-        //     F("'><p><button type='submit' name='save' value='http'>" D_HTTP_SAVE_SETTINGS
-        //     "</button></p></form>");
-
-        // httpMessage += PSTR("<p><form method='GET' action='/config'><button type='submit'>&#8617; "
-        // D_HTTP_CONFIGURATION
-        //                     "</button></form></p>");
 
         char httpMessage[HTTP_PAGE_SIZE];
 
@@ -1578,10 +1538,10 @@ void webHandleGpioConfig()
                             httpMessage += F(D_GPIO_LED_B);
                             break;
                         case hasp_gpio_type_t::LIGHT_RELAY:
-                            httpMessage += F("LIGHT_RELAY");
+                            httpMessage += F(D_GPIO_LIGHT_RELAY);
                             break;
                         case hasp_gpio_type_t::POWER_RELAY:
-                            httpMessage += F(D_GPIO_RELAY);
+                            httpMessage += F(D_GPIO_POWER_RELAY);
                             break;
                         case hasp_gpio_type_t::SHUTTER_RELAY:
                             httpMessage += F("SHUTTER_RELAY");
@@ -1592,10 +1552,11 @@ void webHandleGpioConfig()
                         case hasp_gpio_type_t::DAC:
                             httpMessage += F(D_GPIO_DAC);
                             break;
-                        case hasp_gpio_type_t::SERIAL_DIMMER:
-                            httpMessage += F(D_GPIO_SERIAL_DIMMER);
-                            break;
+
 #if defined(LANBONL8)
+                            // case hasp_gpio_type_t::SERIAL_DIMMER:
+                            //     httpMessage += F(D_GPIO_SERIAL_DIMMER);
+                            //     break;
                         case hasp_gpio_type_t::SERIAL_DIMMER_EU:
                             httpMessage += F("L8-HD (EU)");
                             break;
@@ -1610,7 +1571,7 @@ void webHandleGpioConfig()
                     httpMessage += F("</a></td><td>");
                     httpMessage += conf.group;
                     httpMessage += F("</td><td>");
-                    httpMessage += (conf.inverted) ? F("Inverted") : F("Normal");
+                    httpMessage += (conf.inverted) ? F(D_GPIO_STATE_INVERTED) : F(D_GPIO_STATE_NORMAL);
 
                     httpMessage += ("</td><td><a href='/config/gpio?del=&id=");
                     httpMessage += id;
@@ -1636,7 +1597,7 @@ void webHandleGpioConfig()
             httpMessage += F("'><button type='submit'>" D_HTTP_ADD_GPIO " Output</button></form></p>");
         }
 
-        add_form_button(httpMessage, F("&#8617; " D_HTTP_CONFIGURATION), F("/config"), F(""));
+        add_form_button(httpMessage, F(D_BACK_ICON D_HTTP_CONFIGURATION), F("/config"), F(""));
         //    httpMessage += F("<p><form method='GET' action='/config'><button type='submit'>&#8617; "
         //    D_HTTP_CONFIGURATION
         //                      "</button></form></p>");
@@ -1700,10 +1661,10 @@ void webHandleGpioOptions()
         httpMessage += getOption(hasp_gpio_type_t::LED_B, F(D_GPIO_LED_B), selected);
 
         selected = (conf.type == hasp_gpio_type_t::LIGHT_RELAY);
-        httpMessage += getOption(hasp_gpio_type_t::LIGHT_RELAY, F("Light Relay"), selected);
+        httpMessage += getOption(hasp_gpio_type_t::LIGHT_RELAY, F(D_GPIO_LIGHT_RELAY), selected);
 
         selected = (conf.type == hasp_gpio_type_t::POWER_RELAY);
-        httpMessage += getOption(hasp_gpio_type_t::POWER_RELAY, F(D_GPIO_RELAY), selected);
+        httpMessage += getOption(hasp_gpio_type_t::POWER_RELAY, F(D_GPIO_POWER_RELAY), selected);
 
         selected = (conf.type == hasp_gpio_type_t::SHUTTER_RELAY);
         httpMessage += getOption(hasp_gpio_type_t::SHUTTER_RELAY, F("Shutter Relay"), selected);
@@ -1711,8 +1672,8 @@ void webHandleGpioOptions()
         selected = (conf.type == hasp_gpio_type_t::DAC);
         httpMessage += getOption(hasp_gpio_type_t::DAC, F(D_GPIO_DAC), selected);
 
-        selected = (conf.type == hasp_gpio_type_t::SERIAL_DIMMER);
-        httpMessage += getOption(hasp_gpio_type_t::SERIAL_DIMMER, F(D_GPIO_SERIAL_DIMMER), selected);
+        // selected = (conf.type == hasp_gpio_type_t::SERIAL_DIMMER);
+        // httpMessage += getOption(hasp_gpio_type_t::SERIAL_DIMMER, F(D_GPIO_SERIAL_DIMMER), selected);
 
 #if defined(LANBONL8)
         selected = (conf.type == hasp_gpio_type_t::SERIAL_DIMMER_AU);
@@ -1740,8 +1701,8 @@ void webHandleGpioOptions()
         httpMessage += F("</select></p>");
 
         httpMessage += F("<p><b>Value</b> <select id='state' name='state'>");
-        httpMessage += getOption(0, F("Normal"), !conf.inverted);
-        httpMessage += getOption(1, F("Inverted"), conf.inverted);
+        httpMessage += getOption(0, F(D_GPIO_STATE_NORMAL), !conf.inverted);
+        httpMessage += getOption(1, F(D_GPIO_STATE_INVERTED), conf.inverted);
         httpMessage += F("</select></p>");
 
         httpMessage +=
@@ -1942,7 +1903,7 @@ void webHandleDebugConfig()
         httpMessage +=
             F("</p><p><button type='submit' name='save' value='debug'>" D_HTTP_SAVE_SETTINGS "</button></p></form>");
 
-        add_form_button(httpMessage, F("&#8617; " D_HTTP_CONFIGURATION), F("/config"), F(""));
+        add_form_button(httpMessage, F(D_BACK_ICON D_HTTP_CONFIGURATION), F("/config"), F(""));
         // httpMessage += PSTR("<p><form method='GET' action='/config'><button type='submit'>&#8617; "
         // D_HTTP_CONFIGURATION
         //                     "</button></form></p>");
@@ -2209,7 +2170,7 @@ void httpHandleResetConfig()
             add_button(httpMessage, F(D_HTTP_ERASE_DEVICE), F("name='confirm' value='yes'"));
             close_form(httpMessage);
 
-            add_form_button(httpMessage, F("&#8617; " D_HTTP_CONFIGURATION), F("/config"), F(""));
+            add_form_button(httpMessage, F(D_BACK_ICON D_HTTP_CONFIGURATION), F("/config"), F(""));
         }
 
         webSendPage(haspDevice.get_hostname(), httpMessage.length(), resetConfirmed);

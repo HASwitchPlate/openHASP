@@ -200,7 +200,8 @@
 #define D_GPIO_LED_R "Sfeer Rood"
 #define D_GPIO_LED_G "Sfeer Groen"
 #define D_GPIO_LED_B "Sfeer Blauw"
-#define D_GPIO_RELAY "Relay"
+#define D_GPIO_POWER_RELAY "Stroomrelais"
+#define D_GPIO_LIGHT_RELAY "Licht Relais"
 #define D_GPIO_PWM "PWM"
 #define D_GPIO_DAC "DAC"
 #define D_GPIO_SERIAL_DIMMER "Seriële Dimmer"
@@ -208,5 +209,7 @@
 #define D_GPIO_PIN "Pin"
 #define D_GPIO_GROUP "Groep"
 #define D_GPIO_GROUP_NONE "Geen"
+#define D_GPIO_STATE_NORMAL "Normaal"
+#define D_GPIO_STATE_INVERTED "Geïnverteerd"
 
 #endif

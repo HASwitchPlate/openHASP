@@ -200,7 +200,8 @@
 #define D_GPIO_LED_R "Humeur Rouge"
 #define D_GPIO_LED_G "Humeur Vert"
 #define D_GPIO_LED_B "Humeur Bleu"
-#define D_GPIO_RELAY "Relais"
+#define D_GPIO_POWER_RELAY "Relais Electrique"
+#define D_GPIO_LIGHT_RELAY "Relais de Lumière"
 #define D_GPIO_PWM "PWM"
 #define D_GPIO_DAC "DAC"
 #define D_GPIO_SERIAL_DIMMER "Gradateur Série"
@@ -208,5 +209,7 @@
 #define D_GPIO_PIN "Pin"
 #define D_GPIO_GROUP "Groupe"
 #define D_GPIO_GROUP_NONE "Aucun"
+#define D_GPIO_STATE_NORMAL "Normal"
+#define D_GPIO_STATE_INVERTED "Inverse"
 
 #endif

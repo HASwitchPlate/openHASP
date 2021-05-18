@@ -196,12 +196,13 @@
 // new
 #define D_GPIO_SWITCH "Switch"
 #define D_GPIO_BUTTON "Botón"
-#define D_GPIO_TOUCH "Capacitive Touch" // Nieuw
+#define D_GPIO_TOUCH "Capacitive Touch" // new
 #define D_GPIO_LED "DEL"
 #define D_GPIO_LED_R "Ánimo Red"
 #define D_GPIO_LED_G "Ánimo Green"
 #define D_GPIO_LED_B "Ánimo Blue"
-#define D_GPIO_RELAY "Relé"
+#define D_GPIO_POWER_RELAY "Power Relé" // new
+#define D_GPIO_LIGHT_RELAY "Light Relé" // new
 #define D_GPIO_PWM "PWM"
 #define D_GPIO_DAC "DAC"
 #define D_GPIO_SERIAL_DIMMER "Atenuador serial"
@@ -209,5 +210,7 @@
 #define D_GPIO_PIN "Pin"
 #define D_GPIO_GROUP "Grupo"
 #define D_GPIO_GROUP_NONE "Ninguno"
+#define D_GPIO_STATE_NORMAL "Normal"     // new
+#define D_GPIO_STATE_INVERTED "Inverted" // new
 
 #endif

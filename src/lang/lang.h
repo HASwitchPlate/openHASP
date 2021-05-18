@@ -14,6 +14,7 @@
 #define D_PASSWORD_MASK "********"
 #define D_BULLET "    * "
 #define D_MANUFACTURER "openHASP"
+#define D_BACK_ICON "&#8617; "
 
 #define D_TIMESTAMP "%H:%M:%S" // Used when reference time is set from NTP
 #define D_TIME_MILLIS "%8d"    // Used when no reference clock could be set
