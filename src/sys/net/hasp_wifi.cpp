@@ -48,6 +48,7 @@ char wifiPassword[64] = WIFI_PASSW;
 #else
 char wifiPassword[64] = "";
 #endif
+char wifiIpAddress[16]       = "";
 uint8_t wifiReconnectCounter = 0;
 
 // const byte DNS_PORT = 53;
@@ -60,10 +61,11 @@ static void wifiConnected(IPAddress ipaddress)
 #if defined(STM32F4xx)
     IPAddress ip;
     ip = WiFi.localIP();
-    LOG_TRACE(TAG_WIFI, F("Received IP address %d.%d.%d.%d"), ip[0], ip[1], ip[2], ip[3]);
+    snprintf_P(wifiIpAddress, sizeof(wifiIpAddress), PSTR("%d.%d.%d.%d"), ip[0], ip[1], ip[2], ip[3]);
 #else
-    LOG_TRACE(TAG_WIFI, F(D_NETWORK_IP_ADDRESS_RECEIVED), ipaddress.toString().c_str());
+    strncpy(wifiIpAddress, ipaddress.toString().c_str(), sizeof(wifiIpAddress));
 #endif
+    LOG_TRACE(TAG_WIFI, F(D_NETWORK_IP_ADDRESS_RECEIVED), wifiIpAddress);
 
     LOG_VERBOSE(TAG_WIFI, F("Connected = %s"),
                 WiFi.status() == WL_CONNECTED ? PSTR(D_NETWORK_ONLINE) : PSTR(D_NETWORK_OFFLINE));
@@ -73,16 +75,15 @@ static void wifiConnected(IPAddress ipaddress)
 static void wifiDisconnected(const char* ssid, uint8_t reason)
 {
     wifiReconnectCounter++;
+    char buffer[64];
 
-    haspProgressVal(wifiReconnectCounter * 3);
+    //  haspProgressVal(wifiReconnectCounter * 3);
     // networkStop();
 
     if(wifiReconnectCounter > 33) {
         LOG_ERROR(TAG_WIFI, F("Retries exceed %u: Rebooting..."), wifiReconnectCounter);
         dispatch_reboot(false);
     }
-
-    char buffer[64];
 
     switch(reason) {
 #if defined(ARDUINO_ARCH_ESP8266)
@@ -514,9 +515,20 @@ void wifi_get_statusupdate(char* buffer, size_t len)
     snprintf_P(buffer, len, PSTR("\"ssid\":\"%s\",\"rssi\":%i,\"ip\":\"%d.%d.%d.%d\","), WiFi.SSID(), WiFi.RSSI(),
                ip[0], ip[1], ip[2], ip[3]);
 #else
+    strncpy(wifiIpAddress, WiFi.localIP().toString().c_str(), sizeof(wifiIpAddress));
     snprintf_P(buffer, len, PSTR("\"ssid\":\"%s\",\"rssi\":%i,\"ip\":\"%s\","), WiFi.SSID().c_str(), WiFi.RSSI(),
-               WiFi.localIP().toString().c_str());
+               wifiIpAddress);
 #endif
+}
+
+const char* wifi_get_ssid()
+{
+    return wifiSsid;
+}
+
+const char* wifi_get_ip_address()
+{
+    return wifiIpAddress;
 }
 
 void wifi_get_info(JsonDocument& doc)

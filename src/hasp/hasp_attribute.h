@@ -456,5 +456,6 @@ _HASP_ATTRIBUTE(SCALE_END_LINE_WIDTH, scale_end_line_width, lv_style_int_t)
 #define ATTR_TEXT_HOSTNAME 10125
 #define ATTR_TEXT_MODEL 54561
 #define ATTR_TEXT_VERSION 60178
+#define ATTR_TEXT_SSID 62981
 
 #endif

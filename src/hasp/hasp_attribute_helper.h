@@ -120,15 +120,6 @@ lv_obj_t* FindButtonLabel(lv_obj_t* btn)
     return NULL;
 }
 
-// OK
-static inline void my_btn_set_text(lv_obj_t* obj, const char* value)
-{
-    lv_obj_t* label = FindButtonLabel(obj);
-    if(label) {
-        lv_label_set_text(label, value);
-    }
-}
-
 // OK - lvgl does not return a const char *
 static const char* my_label_get_text(const lv_obj_t* label)
 {
@@ -144,10 +135,18 @@ static void my_label_set_text(lv_obj_t* label, const char* text)
 
         switch(hash) {
             case ATTR_TEXT_MAC:
-            case ATTR_TEXT_IP:
                 if(len == 4) break;
                 break;
 
+#if HASP_USE_WIFI > 0
+            case ATTR_TEXT_SSID:
+                if(len == 6) static_text = wifi_get_ssid();
+                break;
+
+            case ATTR_TEXT_IP:
+                if(len == 4) static_text = wifi_get_ip_address();
+                break;
+#endif
             case ATTR_TEXT_HOSTNAME:
                 if(len == 10) static_text = haspDevice.get_hostname();
                 break;
@@ -198,6 +197,15 @@ static const char* my_btn_get_text(const lv_obj_t* obj)
     }
 
     return NULL;
+}
+
+// OK
+static inline void my_btn_set_text(lv_obj_t* obj, const char* value)
+{
+    lv_obj_t* label = FindButtonLabel(obj);
+    if(label) {
+        my_label_set_text(label, value);
+    }
 }
 
 /**
