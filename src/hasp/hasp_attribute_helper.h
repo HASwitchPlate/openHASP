@@ -138,24 +138,36 @@ static const char* my_label_get_text(const lv_obj_t* label)
 static void my_label_set_text(lv_obj_t* label, const char* text)
 {
     if(text[0] == '%') {
-        uint16_t hash = Parser::get_sdbm(text);
-        size_t len    = strlen(text);
-        const char* static_text;
+        uint16_t hash           = Parser::get_sdbm(text);
+        size_t len              = strlen(text);
+        const char* static_text = NULL;
 
         switch(hash) {
-
-            case 10125:
-                static_text = haspDevice.get_hostname();
+            case ATTR_TEXT_MAC:
+            case ATTR_TEXT_IP:
+                if(len == 4) break;
                 break;
-            default:
-                lv_label_set_text(label, text);
-                return;
+
+            case ATTR_TEXT_HOSTNAME:
+                if(len == 10) static_text = haspDevice.get_hostname();
+                break;
+
+            case ATTR_TEXT_MODEL:
+                if(len == 7) static_text = haspDevice.get_model();
+                break;
+
+            case ATTR_TEXT_VERSION:
+                if(len == 9) static_text = haspDevice.get_version();
+                break;
         }
 
-        lv_label_set_text_static(label, static_text);
-    } else {
-        lv_label_set_text(label, text);
+        if(static_text) {
+            lv_label_set_text_static(label, static_text);
+            return;
+        }
     }
+
+    lv_label_set_text(label, text);
 }
 
 // OK
