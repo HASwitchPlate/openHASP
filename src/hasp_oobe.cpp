@@ -304,7 +304,8 @@ void oobeSetAutoCalibrate(bool cal)
 bool oobeSetup()
 {
 #if HASP_USE_ETHERNET > 0
-    if(eth_connected) return false;
+    // if(eth_connected)
+    return false;
 #endif
 #if HASP_USE_WIFI > 0
     char ssid[32];

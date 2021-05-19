@@ -8,7 +8,7 @@
 #include "hal/hasp_hal.h"
 #include "dev/device.h"
 
-#if HASP_USE_ETHERNET > 0 && defined(ARDUINO_ARCH_ESP32)
+#if HASP_USE_ETHERNET > 0 && defined(ARDUINO_ARCH_ESP32) && !defined(HASP_USE_ETHERNET_LIB)
 
 IPAddress ip;
 

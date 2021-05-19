@@ -172,6 +172,13 @@ static WiFiSpiClass WiFi;
 
 #if HASP_USE_ETHERNET > 0
 #if defined(ARDUINO_ARCH_ESP32)
+
+#if HASP_USE_W5500 > 0
+#include "sys/net/hasp_ethernet_lib.h"
+
+#warning Using ESP32 Ethernet W5500
+
+#else
 #include <ETH.h>
 
 #define ETH_ADDR 0
@@ -184,8 +191,10 @@ static WiFiSpiClass WiFi;
 
 #include "sys/net/hasp_ethernet_esp32.h"
 #warning Using ESP32 Ethernet LAN8720
+#endif
 
-#else
+#else // Not ARDUINO_ARCH_ESP32
+
 #if USE_BUILTIN_ETHERNET > 0
 #include <LwIP.h>
 #include <STM32Ethernet.h>
@@ -200,7 +209,8 @@ static WiFiSpiClass WiFi;
 #endif
 #include "sys/net/hasp_ethernet_stm32.h"
 #endif
-#endif
+
+#endif // ARDUINO_ARCH_ESP32
 
 #if HASP_USE_MQTT > 0
 #include "mqtt/hasp_mqtt.h"

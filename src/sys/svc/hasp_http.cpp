@@ -732,6 +732,16 @@ void webHandleInfo()
 #endif
 #if HASP_USE_ETHERNET > 0
 #if defined(ARDUINO_ARCH_ESP32)
+#if HASP_USE_ETHERNET_LIB > 0
+        httpMessage += F("</br><b>IP Address: </b>");
+        httpMessage += String(Ethernet.localIP().toString());
+        httpMessage += F("</br><b>Gateway: </b>");
+        httpMessage += String(Ethernet.gatewayIP().toString());
+        httpMessage += F("</br><b>DNS Server: </b>");
+        httpMessage += String(Ethernet.dnsServerIP().toString());
+        httpMessage += F("</br><b>MAC Address: </b>");
+        //  httpMessage += String(Ethernet.macAddress());
+#else
         httpMessage += F("</p/><p><b>Ethernet: </b>");
         httpMessage += String(ETH.linkSpeed());
         httpMessage += F(" Mbps");
@@ -746,6 +756,8 @@ void webHandleInfo()
         httpMessage += String(ETH.dnsIP().toString());
         httpMessage += F("</br><b>MAC Address: </b>");
         httpMessage += String(ETH.macAddress());
+#endif
+
 #endif
 #endif
 /* Mqtt Stats */
@@ -2194,7 +2206,7 @@ void httpStart()
 #endif
 #else
     IPAddress ip;
-#if defined(ARDUINO_ARCH_ESP32)
+#if defined(ARDUINO_ARCH_ESP32) && !defined(HASP_USE_ETHERNET_LIB)
     ip = ETH.localIP();
 #else
     ip = Ethernet.localIP();
