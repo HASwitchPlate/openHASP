@@ -197,24 +197,24 @@ static lv_font_t* haspPayloadToFont(const char* payload)
 #ifndef ARDUINO_ARCH_ESP8266
 
 #ifdef HASP_FONT_1
-        case 12:
+        case HASP_FONT_SIZE_1:
             return &HASP_FONT_1;
 #endif
 
 #ifdef HASP_FONT_2
-        case 16:
+        case HASP_FONT_SIZE_2:
             LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, HASP_FONT_2);
             return &HASP_FONT_2;
 #endif
 
 #ifdef HASP_FONT_3
-        case 22:
+        case HASP_FONT_SIZE_3:
             LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, HASP_FONT_3);
             return &HASP_FONT_3;
 #endif
 
 #ifdef HASP_FONT_4
-        case 28:
+        case HASP_FONT_SIZE_4:
             LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, HASP_FONT_4);
             return &HASP_FONT_4;
 #endif
@@ -1833,7 +1833,8 @@ void hasp_process_obj_attribute(lv_obj_t* obj, const char* attribute, const char
     int32_t val;
     char temp_buffer[128] = "";              // buffer to hold return strings
     char* text            = &temp_buffer[0]; // pointer to temp_buffer
-    hasp_attribute_type_t ret;               // the return code determines the attribute return value type
+    hasp_attribute_type_t ret =
+        hasp_attribute_type_t::ATTR_NOT_FOUND; // the return code determines the attribute return value type
     uint16_t attr_hash = Parser::get_sdbm(attribute);
 
     switch(attr_hash) {
@@ -2019,6 +2020,7 @@ void hasp_process_obj_attribute(lv_obj_t* obj, const char* attribute, const char
         } else {
             ret = ATTR_NOT_FOUND;
         }
+        LOG_VERBOSE(TAG_ATTR, "%s %d ret:%d", __FILE__, __LINE__, ret);
     }
 
     // Positive return codes have returned a value, negative are warnings
