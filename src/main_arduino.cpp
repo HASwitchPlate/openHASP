@@ -170,9 +170,10 @@ IRAM_ATTR void loop()
 
             case 5:
                 mainLoopCounter = 0;
-                if(statLoopCounter)
-                    LOG_VERBOSE(TAG_MAIN, F("%d millis per loop, %d counted"), 5000 / statLoopCounter, statLoopCounter);
-                statLoopCounter = 0;
+                // if(statLoopCounter)
+                //     LOG_VERBOSE(TAG_MAIN, F("%d millis per loop, %d counted"), 5000 / statLoopCounter,
+                //     statLoopCounter);
+                // statLoopCounter = 0;
                 break;
         }
     }

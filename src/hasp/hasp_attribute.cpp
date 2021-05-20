@@ -2051,7 +2051,7 @@ void hasp_process_obj_attribute(lv_obj_t* obj, const char* attribute, const char
             break;
 
         case ATTR_TYPE_COLOR_INVALID:
-            LOG_WARNING(TAG_ATTR, F(D_ATTRIBUTE_ALIGN_INVALID), payload);
+            LOG_WARNING(TAG_ATTR, F(D_ATTRIBUTE_COLOR_INVALID), payload);
             break;
 
         case ATTR_TYPE_COLOR:
