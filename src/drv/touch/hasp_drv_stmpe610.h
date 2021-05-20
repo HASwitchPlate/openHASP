@@ -6,9 +6,9 @@
 
 #if TOUCH_DRIVER == 610
 
-    #include "hasp_debug.h" // for TAG_DRVR
+#include "hasp_debug.h" // for TAG_DRVR
 
-bool IRAM_ATTR STMPE610_getXY(int16_t * touchX, int16_t * touchY, uint8_t touchRotation, bool debug);
+HASP_ATTRIBUTE_FAST_MEM bool STMPE610_getXY(int16_t* touchX, int16_t* touchY, uint8_t touchRotation, bool debug);
 void STMPE610_init();
 
 #endif

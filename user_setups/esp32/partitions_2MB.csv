@@ -1,0 +1,8 @@
+# One single application partition of 1.625 MB
+# 320 kB filesystem
+#
+# Name,   Type, SubType, Offset,  Size, Flags
+nvs,      data, nvs,     36K,     20K,
+otadata,  data, ota,     56K,     8K,
+app0,     app,  ota_0,   64K,     1664K,
+spiffs,   data, spiffs,  1728K,   320K,

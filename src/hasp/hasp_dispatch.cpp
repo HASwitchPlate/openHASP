@@ -1,8 +1,6 @@
 /* MIT License - Copyright (c) 2019-2021 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
-#include <stdint.h>
-
 //#include "ArduinoLog.h"
 #include "hasplib.h"
 
@@ -38,20 +36,13 @@
 #include "hasp_config.h"
 #endif
 
-extern uint8_t hasp_sleep_state;
-
 dispatch_conf_t dispatch_setings = {.teleperiod = 300};
 
-uint32_t dispatchLastMillis;
-uint8_t nCommands = 0;
-haspCommand_t commands[18];
+uint32_t dispatchLastMillis = -3000000; // force discovery
+uint8_t nCommands           = 0;
+haspCommand_t commands[20];
 
-struct moodlight_t
-{
-    uint8_t power;
-    uint8_t r, g, b;
-};
-moodlight_t moodlight;
+moodlight_t moodlight = {.brightness = 255};
 
 // static void dispatch_config(const char* topic, const char* payload);
 // void dispatch_group_value(uint8_t groupid, int16_t state, lv_obj_t * obj);
@@ -73,10 +64,10 @@ void dispatch_state_subtopic(const char* subtopic, const char* payload)
             LOG_ERROR(TAG_MQTT_PUB, F(D_MQTT_FAILED " %s => %s"), subtopic, payload);
             break;
         case MQTT_ERR_NO_CONN:
-            LOG_ERROR(TAG_MQTT, F(D_MQTT_NOT_CONNECTED));
+            LOG_ERROR(TAG_MQTT, F(D_MQTT_NOT_CONNECTED " %s => %s"), subtopic, payload);
             break;
         default:
-            LOG_ERROR(TAG_MQTT, F(D_ERROR_UNKNOWN));
+            LOG_ERROR(TAG_MQTT, F(D_ERROR_UNKNOWN " %s => %s"), subtopic, payload);
     }
 #endif
 
@@ -110,7 +101,7 @@ void dispatch_json_error(uint8_t tag, DeserializationError& jsonError)
 }
 
 // p[x].b[y].attr=value
-static inline bool dispatch_parse_button_attribute(const char* topic_p, const char* payload)
+static inline bool dispatch_parse_button_attribute(const char* topic_p, const char* payload, bool update)
 {
     long num;
     char* pEnd;
@@ -155,98 +146,82 @@ static inline bool dispatch_parse_button_attribute(const char* topic_p, const ch
     if(*topic_p != '.') return false; // obligated seperator
     topic_p++;
 
-    hasp_process_attribute(pageid, objid, topic_p, payload);
+    hasp_process_attribute(pageid, objid, topic_p, payload, update);
     return true;
-
-    /*
-        if(sscanf(topic_p, HASP_OBJECT_NOTATION ".", &pageid, &objid) == 2) { // Literal String
-
-            // OK, continue below
-
-        } else if(sscanf(topic_p, "p[%u].b[%u].", &pageid, &objid) == 2) { // Literal String
-
-            // TODO: obsolete old syntax p[x].b[y].
-            // OK, continue below
-            while(*topic_p++ != '.') {
-                // strip to '.' character
-            }
-
-        } else {
-            return false;
-        }
-
-        while(*topic_p != '.') {
-            if(*topic_p == 0) return false; // strip to '.' character
-            topic_p++;
-        }
-
-        hasp_process_attribute((uint8_t)pageid, (uint8_t)objid, topic_p, payload);
-        return true; */
-
-    // String strPageId((char *)0);
-    // String strTemp((char *)0);
-
-    // strPageId = strTopic.substring(2, strTopic.indexOf("]"));
-    // strTemp   = strTopic.substring(strTopic.indexOf("]") + 1, strTopic.length());
-
-    // if(strTemp.startsWith(".b[")) {
-    //     String strObjId((char *)0);
-    //     String strAttr((char *)0);
-
-    //     strObjId = strTemp.substring(3, strTemp.indexOf("]"));
-    //     strAttr  = strTemp.substring(strTemp.indexOf("]") + 1, strTemp.length());
-    //     // debugPrintln(strPageId + " && " + strObjId + " && " + strAttr);
-
-    //     pageid = strPageId.toInt();
-    //     objid  = strObjId.toInt();
-
-    //     if(pageid >= 0 && pageid <= 255 && objid >= 0 && objid <= 255) {
-    //         hasp_process_attribute(pageid, objid, strAttr.c_str(), payload);
-    //     } // valid page
-    // }
 }
 
 static void dispatch_gpio(const char* topic, const char* payload)
 {
 #if HASP_USE_GPIO > 0
 
-    int16_t val;
-    uint8_t pin;
-
-    if(topic == strstr_P(topic, PSTR("relay"))) {
-        topic += 5;
-        val = Parser::is_true(payload);
-
-    } else if(topic == strstr_P(topic, PSTR("led"))) {
-        topic += 3;
-        val = atoi(payload);
-
-    } else if(topic == strstr_P(topic, PSTR("pwm"))) {
-        topic += 3;
-        val = atoi(payload);
-
-    } else {
-        LOG_WARNING(TAG_MSGR, F("Invalid gpio %s"), topic);
+    if(!Parser::is_only_digits(topic)) {
+        LOG_WARNING(TAG_MSGR, F("Invalid pin %s"), topic);
         return;
     }
 
-    if(Parser::is_only_digits(topic)) {
-        pin = atoi(topic);
-        if(strlen(payload) > 0) {
-            gpio_set_value(pin, val);
+    uint8_t pin = atoi(topic);
+
+    if(strlen(payload) > 0) {
+
+        size_t maxsize = (128u * ((strlen(payload) / 128) + 1)) + 128;
+        DynamicJsonDocument json(maxsize);
+
+        // Note: Deserialization needs to be (const char *) so the objects WILL be copied
+        // this uses more memory but otherwise the mqtt receive buffer can get overwritten by the send buffer !!
+        DeserializationError jsonError = deserializeJson(json, payload);
+        json.shrinkToFit();
+
+        if(jsonError) { // Couldn't parse incoming JSON command
+            dispatch_json_error(TAG_MSGR, jsonError);
         } else {
-            gpio_get_value(pin);
+
+            // Save the current state
+            int32_t state_value;
+            bool power_state;
+            bool updated = false;
+
+            if(!gpio_get_pin_state(pin, power_state, state_value)) {
+                LOG_WARNING(TAG_GPIO, F(D_BULLET "Pin %d can not be set"), pin);
+                return;
+            }
+
+            JsonVariant state = json[F("state")];
+            JsonVariant value = json[F("val")];
+
+            // Check if the state needs to change
+            if(!state.isNull() && power_state != state.as<bool>()) {
+                power_state = state.as<bool>();
+                updated     = true;
+            }
+
+            if(!value.isNull() && state_value != value.as<int32_t>()) {
+                state_value = value.as<int32_t>();
+                updated     = true;
+            }
+
+            // Set new state
+            if(updated && gpio_set_pin_state(pin, power_state, state_value)) {
+                return; // value was set and state output already
+            } else {
+                // output the new state to the log
+            }
         }
-    } else {
-        LOG_WARNING(TAG_MSGR, F("Invalid pin %s"), topic);
     }
+
+    // just output this pin
+    if(!gpio_output_pin_state(pin)) {
+        LOG_WARNING(TAG_GPIO, F(D_BULLET "Pin %d is not configured"), pin);
+    }
+
 #endif
 }
 
 // objectattribute=value
-void dispatch_command(const char* topic, const char* payload)
+void dispatch_command(const char* topic, const char* payload, bool update)
 {
     /* ================================= Standard payload commands ======================================= */
+
+    if(dispatch_parse_button_attribute(topic, payload, update)) return; // matched pxby.attr, first for speed
 
     // check and execute commands from commands array
     for(int i = 0; i < nCommands; i++) {
@@ -259,15 +234,13 @@ void dispatch_command(const char* topic, const char* payload)
 
     /* =============================== Not standard payload commands ===================================== */
 
-    if(topic == strstr_P(topic, PSTR("gpio/"))) {
+    // if(topic == strstr_P(topic, PSTR("gpio/"))) {
+    if(topic == strstr_P(topic, PSTR("output"))) {
 
-        dispatch_gpio(topic + 5, payload);
+        dispatch_gpio(topic + 6, payload);
 
         // } else if(strcasecmp_P(topic, PSTR("screenshot")) == 0) {
         //     guiTakeScreenshot("/screenshot.bmp"); // Literal String
-
-    } else if((topic[0] == 'p' || topic[0] == 'P') && dispatch_parse_button_attribute(topic, payload)) {
-        return; // matched pxby.attr
 
 #if HASP_USE_CONFIG > 0
 
@@ -292,7 +265,6 @@ void dispatch_command(const char* topic, const char* payload)
 #endif // HASP_USE_MQTT
 
 #endif // HASP_USE_CONFIG
-
     } else {
         if(strlen(payload) == 0) {
             //    dispatch_text_line(topic); // Could cause an infinite loop!
@@ -302,30 +274,28 @@ void dispatch_command(const char* topic, const char* payload)
 }
 
 // Strip command/config prefix from the topic and process the payload
-void dispatch_topic_payload(const char* topic, const char* payload)
+void dispatch_topic_payload(const char* topic, const char* payload, bool update)
 {
-    // LOG_VERBOSE(TAG_MSGR,F("TOPIC: short topic: %s"), topic);
-
-    if(!strcmp_P(topic, PSTR("command"))) {
+    if(!strcmp_P(topic, PSTR(MQTT_TOPIC_COMMAND))) {
         dispatch_text_line((char*)payload);
         return;
     }
 
-    if(topic == strstr_P(topic, PSTR("command/"))) { // startsWith command/
+    if(topic == strstr_P(topic, PSTR(MQTT_TOPIC_COMMAND "/"))) { // startsWith command/
         topic += 8u;
-        dispatch_command(topic, (char*)payload);
+        dispatch_command(topic, (char*)payload, update);
         return;
     }
 
 #if HASP_USE_CONFIG > 0
-    if(topic == strstr_P(topic, PSTR("config/"))) { // startsWith command/
+    if(topic == strstr_P(topic, PSTR("config/"))) { // startsWith config/
         topic += 7u;
         dispatch_config(topic, (char*)payload);
         return;
     }
 #endif
 
-    dispatch_command(topic, (char*)payload); // dispatch as is
+    dispatch_command(topic, (char*)payload, update); // dispatch as is
 }
 
 // Parse one line of text and execute the command
@@ -334,14 +304,16 @@ void dispatch_text_line(const char* cmnd)
     size_t pos1 = std::string(cmnd).find("=");
     size_t pos2 = std::string(cmnd).find(" ");
     size_t pos  = 0;
+    bool update = false;
 
     // Find what comes first, ' ' or '='
-    if(pos1 != std::string::npos) {
-        if(pos2 != std::string::npos) {
+    if(pos1 != std::string::npos) {     // '=' found
+        if(pos2 != std::string::npos) { // ' ' found
             pos = (pos1 < pos2 ? pos1 : pos2);
         } else {
             pos = pos1;
         }
+        update = pos == pos1; // equal sign wins
 
     } else {
         pos = (pos2 != std::string::npos) ? pos2 : 0;
@@ -356,38 +328,14 @@ void dispatch_text_line(const char* cmnd)
             memcpy(topic, cmnd, sizeof(topic) - 1);
 
         // topic is before '=', payload is after '=' position
-        LOG_TRACE(TAG_MSGR, F("%s=%s"), topic, cmnd + pos + 1);
-        dispatch_topic_payload(topic, cmnd + pos + 1);
+        update |= strlen(cmnd + pos + 1) > 0; // equal sign OR space with payload
+        LOG_TRACE(TAG_MSGR, update ? F("%s=%s") : F("%s%s"), topic, cmnd + pos + 1);
+        dispatch_topic_payload(topic, cmnd + pos + 1, update);
     } else {
         char empty_payload[1] = {0};
-        LOG_TRACE(TAG_MSGR, F("%s=%s"), cmnd, empty_payload);
-        dispatch_topic_payload(cmnd, empty_payload);
+        LOG_TRACE(TAG_MSGR, cmnd);
+        dispatch_topic_payload(cmnd, empty_payload, false);
     }
-}
-
-void dispatch_get_idle_state(uint8_t state, char* payload)
-{
-    switch(state) {
-        case HASP_SLEEP_LONG:
-            memcpy_P(payload, PSTR("long"), 5);
-            break;
-        case HASP_SLEEP_SHORT:
-            memcpy_P(payload, PSTR("short"), 6);
-            break;
-        default:
-            memcpy_P(payload, PSTR("off"), 4);
-    }
-}
-
-// send idle state to the client
-void dispatch_output_idle_state(uint8_t state)
-{
-    char topic[6];
-    char payload[6];
-    memcpy_P(topic, PSTR("idle"), 5);
-
-    dispatch_get_idle_state(state, payload);
-    dispatch_state_subtopic(topic, payload);
 }
 
 // void dispatch_output_group_state(uint8_t groupid, uint16_t state)
@@ -506,47 +454,20 @@ void dispatch_config(const char* topic, const char* payload)
 #endif // HASP_USE_CONFIG
 
 /********************************************** Output States ******************************************/
-/*
-static inline void dispatch_state_msg(const __FlashStringHelper* subtopic, const char* payload)
+
+void dispatch_normalized_group_values(hasp_update_value_t& value)
 {
+    if(value.group == 0) return;
 
-}*/
-
-// void dispatch_group_onoff(uint8_t groupid, uint16_t eventid, lv_obj_t * obj)
-// {
-//     if((eventid == HASP_EVENT_LONG) || (eventid == HASP_EVENT_HOLD)) return; // don't send repeat events
-
-//     if(groupid >= 0) {
-//         bool state = Parser::get_event_state(eventid);
-//         gpio_set_group_onoff(groupid, state);
-//         object_set_normalized_group_value(groupid, eventid, obj);
-//     }
-
-//     char payload[8];
-//     Parser::get_event_name(eventid, payload, sizeof(payload));
-//     // dispatch_output_group_state(groupid, payload);
-// }
-
-// void dispatch_group_value(uint8_t groupid, int16_t state, lv_obj_t * obj)
-// {
-//     if(groupid >= 0) {
-//         gpio_set_group_value(groupid, state);
-//         object_set_normalized_group_value(groupid, state, obj);
-//     }
-
-//     char payload[8];
-//     // dispatch_output_group_state(groupid, payload);
-// }
-
-void dispatch_normalized_group_value(uint8_t groupid, lv_obj_t* obj, int16_t val, int16_t min, int16_t max)
-{
-    if(groupid == 0) return;
-
-    LOG_VERBOSE(TAG_MSGR, F("GROUP %d value %d (%d-%d)"), groupid, val, min, max);
 #if HASP_USE_GPIO > 0
-    gpio_set_normalized_group_value(groupid, val, min, max); // Update GPIO states
+    gpio_set_normalized_group_values(value); // Update GPIO states first
 #endif
-    object_set_normalized_group_value(groupid, obj, val, min, max); // Update onsreen objects
+    object_set_normalized_group_values(value); // Update onsreen objects except originating obj
+
+    LOG_VERBOSE(TAG_MSGR, F("GROUP %d value %d (%d-%d)"), value.group, value.val, value.min, value.max);
+#if HASP_USE_GPIO > 0
+    gpio_output_group_values(value.group); // Output new gpio values
+#endif
 }
 
 /********************************************** Native Commands ****************************************/
@@ -560,7 +481,7 @@ void dispatch_screenshot(const char*, const char* filename)
         memcpy_P(tempfile, PSTR("/screenshot.bmp"), sizeof(tempfile));
         guiTakeScreenshot(tempfile);
     } else if(strlen(filename) > 31 || filename[0] != '/') { // Invalid filename
-        LOG_WARNING(TAG_MSGR, "Invalid filename %s", filename);
+        LOG_WARNING(TAG_MSGR, F("D_FILE_SAVE_FAILED"), filename);
     } else { // Valid filename
         guiTakeScreenshot(filename);
     }
@@ -611,6 +532,9 @@ void dispatch_parse_json(const char*, const char* payload)
     } else if(json.is<const char*>()) { // handle json as a single command
         dispatch_text_line(json.as<const char*>());
 
+        // } else if(json.is<char*>()) { // handle json as a single command
+        //     dispatch_text_line(json.as<char*>());
+
     } else {
         LOG_WARNING(TAG_MSGR, F(D_DISPATCH_COMMAND_NOT_FOUND), payload);
     }
@@ -623,7 +547,7 @@ void dispatch_parse_jsonl(std::istream& stream)
 #endif
 {
     uint8_t savedPage = haspPages.get();
-    size_t line       = 1;
+    uint16_t line     = 1;
     DynamicJsonDocument jsonl(MQTT_MAX_PACKET_SIZE / 2 + 128); // max ~256 characters per line
     DeserializationError jsonError = deserializeJson(jsonl, stream);
 
@@ -660,7 +584,7 @@ void dispatch_parse_jsonl(const char*, const char* payload)
 #endif
 }
 
-void dispatch_output_current_page()
+void dispatch_current_page()
 {
     char topic[8];
     char payload[8];
@@ -674,19 +598,19 @@ void dispatch_output_current_page()
 void dispatch_page_next(lv_scr_load_anim_t animation)
 {
     haspPages.next(animation);
-    dispatch_output_current_page();
+    dispatch_current_page();
 }
 
 void dispatch_page_prev(lv_scr_load_anim_t animation)
 {
     haspPages.prev(animation);
-    dispatch_output_current_page();
+    dispatch_current_page();
 }
 
 void dispatch_page_back(lv_scr_load_anim_t animation)
 {
     haspPages.back(animation);
-    dispatch_output_current_page();
+    dispatch_current_page();
 }
 
 void dispatch_set_page(uint8_t pageid)
@@ -697,13 +621,13 @@ void dispatch_set_page(uint8_t pageid)
 void dispatch_set_page(uint8_t pageid, lv_scr_load_anim_t animation)
 {
     haspPages.set(pageid, animation);
-    dispatch_output_current_page();
+    dispatch_current_page();
 }
 
 void dispatch_page(const char*, const char* page)
 {
     if(strlen(page) == 0) {
-        dispatch_output_current_page(); // No payload, send current page
+        dispatch_current_page(); // No payload, send current page
         return;
     }
 
@@ -756,7 +680,7 @@ void dispatch_moodlight(const char* topic, const char* payload)
     // Set the current state
     if(strlen(payload) != 0) {
 
-        size_t maxsize = (128u * ((strlen(payload) / 128) + 1)) + 512;
+        size_t maxsize = (128u * ((strlen(payload) / 128) + 1)) + 128;
         DynamicJsonDocument json(maxsize);
 
         // Note: Deserialization needs to be (const char *) so the objects WILL be copied
@@ -771,19 +695,20 @@ void dispatch_moodlight(const char* topic, const char* payload)
             if(!json[F("state")].isNull())
                 moodlight.power = Parser::is_true(json[F("state")].as<std::string>().c_str());
 
-            if(!json["r"].isNull()) moodlight.r = json["r"].as<uint8_t>();
-            if(!json["g"].isNull()) moodlight.g = json["g"].as<uint8_t>();
-            if(!json["b"].isNull()) moodlight.b = json["b"].as<uint8_t>();
+            if(!json["r"].isNull()) moodlight.rgbww[0] = json["r"].as<uint8_t>();
+            if(!json["g"].isNull()) moodlight.rgbww[1] = json["g"].as<uint8_t>();
+            if(!json["b"].isNull()) moodlight.rgbww[2] = json["b"].as<uint8_t>();
+            if(!json["brightness"].isNull()) moodlight.brightness = json["brightness"].as<uint8_t>();
 
             if(!json[F("color")].isNull()) {
                 if(!json[F("color")]["r"].isNull()) {
-                    moodlight.r = json[F("color")]["r"].as<uint8_t>();
+                    moodlight.rgbww[0] = json[F("color")]["r"].as<uint8_t>();
                 }
                 if(!json[F("color")]["g"].isNull()) {
-                    moodlight.g = json[F("color")]["g"].as<uint8_t>();
+                    moodlight.rgbww[1] = json[F("color")]["g"].as<uint8_t>();
                 }
                 if(!json[F("color")]["b"].isNull()) {
-                    moodlight.b = json[F("color")]["b"].as<uint8_t>();
+                    moodlight.rgbww[2] = json[F("color")]["b"].as<uint8_t>();
                 }
                 // lv_color32_t color;
                 // if(Parser::haspPayloadToColor(json[F("color")].as<const char*>(), color)) {
@@ -794,10 +719,7 @@ void dispatch_moodlight(const char* topic, const char* payload)
             }
 
 #if HASP_USE_GPIO > 0
-            if(moodlight.power)
-                gpio_set_moodlight(moodlight.r, moodlight.g, moodlight.b);
-            else
-                gpio_set_moodlight(0, 0, 0);
+            gpio_set_moodlight(moodlight);
 #endif
         }
     }
@@ -809,8 +731,9 @@ void dispatch_moodlight(const char* topic, const char* payload)
     snprintf_P(
         // buffer, sizeof(buffer),
         // PSTR("{\"state\":\"%s\",\"color\":\"#%02x%02x%02x\",\"r\":%u,\"g\":%u,\"b\":%u}"),
-        buffer, sizeof(buffer), PSTR("{\"state\":\"%s\",\"color\":{\"r\":%u,\"g\":%u,\"b\":%u}}"),
-        moodlight.power ? "ON" : "OFF", moodlight.r, moodlight.g, moodlight.b);
+        buffer, sizeof(buffer), PSTR("{\"state\":\"%s\",\"color\":{\"r\":%u,\"g\":%u,\"b\":%u,\"brightness\":%u}}"),
+        moodlight.power ? "ON" : "OFF", moodlight.rgbww[0], moodlight.rgbww[1], moodlight.rgbww[2],
+        moodlight.brightness);
     dispatch_state_subtopic(out_topic, buffer);
 }
 
@@ -873,32 +796,66 @@ void dispatch_reboot(bool saveConfig)
     haspDevice.reboot();
 }
 
-void dispatch_current_state()
-{
-    dispatch_output_statusupdate(NULL, NULL);
-    dispatch_output_idle_state(hasp_sleep_state);
-    dispatch_output_current_page();
-}
-
 /******************************************* Command Wrapper Functions *********************************/
 
 // Periodically publish a JSON string indicating system status
-void dispatch_output_statusupdate(const char*, const char*)
+void dispatch_send_discovery(const char*, const char*)
 {
 #if HASP_USE_MQTT > 0
 
-    char data[512];
+    StaticJsonDocument<1024> doc;
+
+    doc[F("node")]  = haspDevice.get_hostname();
+    doc[F("mdl")]   = haspDevice.get_model();
+    doc[F("mf")]    = F(D_MANUFACTURER);
+    doc[F("hwid")]  = haspDevice.get_hardware_id();
+    doc[F("pages")] = haspPages.count();
+    doc[F("sw")]    = haspDevice.get_version();
+
+    JsonObject input = doc.createNestedObject(F("input"));
+    JsonArray relay  = doc.createNestedArray(F("power"));
+    JsonArray led    = doc.createNestedArray(F("light"));
+    JsonArray dimmer = doc.createNestedArray(F("dim"));
+
+#if HASP_USE_GPIO > 0
+    gpio_discovery(input, relay, led, dimmer);
+#endif
+
+    char data[1024];
+    size_t len = serializeJson(doc, data);
+
+    switch(mqtt_send_discovery(data, len)) {
+        case MQTT_ERR_OK:
+            LOG_TRACE(TAG_MQTT_PUB, F(MQTT_TOPIC_DISCOVERY " => %s"), data);
+            break;
+        case MQTT_ERR_PUB_FAIL:
+            LOG_ERROR(TAG_MQTT_PUB, F(D_MQTT_FAILED " " MQTT_TOPIC_DISCOVERY " => %s"), data);
+            break;
+        case MQTT_ERR_NO_CONN:
+            LOG_ERROR(TAG_MQTT, F(D_MQTT_NOT_CONNECTED));
+            break;
+        default:
+            LOG_ERROR(TAG_MQTT, F(D_ERROR_UNKNOWN));
+    }
+        // dispatchLastMillis = millis();
+
+#endif
+}
+
+// Periodically publish a JSON string indicating system status
+void dispatch_statusupdate(const char*, const char*)
+{
+#if HASP_USE_MQTT > 0
+
+    char data[400];
     char topic[16];
     {
         char buffer[128];
 
-        haspGetVersion(buffer, sizeof(buffer));
-        dispatch_get_idle_state(hasp_sleep_state, topic);
-        snprintf_P(data, sizeof(data),
-                   PSTR("{\"node\":\"%s\",\"manufacturer\":\"" D_MANUFACTURER
-                        "\",\"model\":\"%s\",\"idle\":\"%s\",\"version\":\"%s\",\"uptime\":%lu,"),
-                   haspDevice.get_hostname(), haspDevice.get_model(), topic, buffer,
-                   (unsigned long)(millis() / 1000)); // \"status\":\"available\",
+        hasp_get_sleep_state(topic);
+        snprintf_P(data, sizeof(data), PSTR("{\"node\":\"%s\",\"idle\":\"%s\",\"version\":\"%s\",\"uptime\":%lu,"),
+                   haspDevice.get_hostname(), topic, haspDevice.get_version(),
+                   long(millis() / 1000)); // \"status\":\"available\",
 
 #if HASP_USE_WIFI > 0 || HASP_USE_ETHERNET > 0
         network_get_statusupdate(buffer, sizeof(buffer));
@@ -930,10 +887,25 @@ void dispatch_output_statusupdate(const char*, const char*)
     dispatch_state_subtopic(topic, data);
     dispatchLastMillis = millis();
 
+    /* if(updateEspAvailable) {
+            mqttStatusPayload += F("\"updateEspAvailable\":true,");
+        } else {
+            mqttStatusPayload += F("\"updateEspAvailable\":false,");
+        }
+    */
+
 #endif
 }
 
-void dispatch_calibrate(const char* topic = NULL, const char* payload = NULL)
+void dispatch_current_state()
+{
+    dispatch_statusupdate(NULL, NULL);
+    dispatch_idle(NULL, NULL);
+    dispatch_current_page();
+    dispatch_send_discovery(NULL, NULL);
+}
+
+void dispatch_calibrate(const char*, const char*)
 {
     guiCalibrate();
 }
@@ -947,6 +919,16 @@ void dispatch_wakeup(const char*, const char*)
 void dispatch_sleep(const char*, const char*)
 {
     hasp_enable_wakeup_touch();
+}
+
+void dispatch_idle(const char*, const char*)
+{
+    char topic[6];
+    char payload[6];
+    memcpy_P(topic, PSTR("idle"), 5);
+
+    hasp_get_sleep_state(payload);
+    dispatch_state_subtopic(topic, payload);
 }
 
 void dispatch_reboot(const char*, const char*)
@@ -981,15 +963,18 @@ void dispatchSetup()
     // In order of importance : commands are NOT case-sensitive
     // The command.func() call will receive the full topic and payload parameters!
 
+    LOG_TRACE(TAG_MSGR, F(D_SERVICE_STARTING));
+
     /* WARNING: remember to expand the commands array when adding new commands */
     dispatch_add_command(PSTR("json"), dispatch_parse_json);
     dispatch_add_command(PSTR("page"), dispatch_page);
     dispatch_add_command(PSTR("wakeup"), dispatch_wakeup);
     dispatch_add_command(PSTR("sleep"), dispatch_sleep);
-    dispatch_add_command(PSTR("statusupdate"), dispatch_output_statusupdate);
+    dispatch_add_command(PSTR("statusupdate"), dispatch_statusupdate);
     dispatch_add_command(PSTR("clearpage"), dispatch_clear_page);
     dispatch_add_command(PSTR("jsonl"), dispatch_parse_jsonl);
     dispatch_add_command(PSTR("dim"), dispatch_dim);
+    dispatch_add_command(PSTR("idle"), dispatch_idle);
     dispatch_add_command(PSTR("brightness"), dispatch_dim);
     dispatch_add_command(PSTR("light"), dispatch_backlight);
     dispatch_add_command(PSTR("moodlight"), dispatch_moodlight);
@@ -998,24 +983,27 @@ void dispatchSetup()
     dispatch_add_command(PSTR("reboot"), dispatch_reboot);
     dispatch_add_command(PSTR("restart"), dispatch_reboot);
     dispatch_add_command(PSTR("screenshot"), dispatch_screenshot);
+    dispatch_add_command(PSTR("discovery"), dispatch_send_discovery);
     dispatch_add_command(PSTR("factoryreset"), dispatch_factory_reset);
 #if HASP_USE_CONFIG > 0
     dispatch_add_command(PSTR("setupap"), oobeFakeSetup);
 #endif
     /* WARNING: remember to expand the commands array when adding new commands */
+
+    LOG_INFO(TAG_MSGR, F(D_SERVICE_STARTED));
 }
 
-void dispatchLoop()
-{
-    lv_task_handler(); // process animations
-}
+IRAM_ATTR void dispatchLoop()
+{}
 
 #if 1 || ARDUINO
 void dispatchEverySecond()
 {
-    if(dispatch_setings.teleperiod > 0 && (millis() - dispatchLastMillis) >= dispatch_setings.teleperiod * 1000) {
+    if(mqttIsConnected() && dispatch_setings.teleperiod > 0 &&
+       (millis() - dispatchLastMillis) >= dispatch_setings.teleperiod * 1000) {
         dispatchLastMillis += dispatch_setings.teleperiod * 1000;
-        dispatch_output_statusupdate(NULL, NULL);
+        dispatch_statusupdate(NULL, NULL);
+        dispatch_send_discovery(NULL, NULL);
     }
 }
 #else
@@ -1029,7 +1017,7 @@ void everySecond()
 
         if(elapsed.count() >= dispatch_setings.teleperiod) {
             std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
-            dispatch_output_statusupdate(NULL, NULL);
+            dispatch_statusupdate(NULL, NULL);
         }
     }
 }

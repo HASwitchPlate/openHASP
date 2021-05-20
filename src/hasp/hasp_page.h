@@ -4,7 +4,6 @@
 #ifndef HASP_PAGES_H
 #define HASP_PAGES_H
 
-#include "hasp_conf.h"
 #include "hasplib.h"
 
 /*********************
@@ -33,7 +32,7 @@ class Page {
 
   public:
     Page();
-    size_t count();
+    uint8_t count();
     void init(uint8_t start_page);
     void clear(uint8_t pageid);
     //    void set(uint8_t pageid);
@@ -46,6 +45,7 @@ class Page {
     uint8_t get_next(uint8_t pageid);
     uint8_t get_prev(uint8_t pageid);
     uint8_t get_back(uint8_t pageid);
+
     void set_next(uint8_t pageid, uint8_t nextid);
     void set_prev(uint8_t pageid, uint8_t previd);
     void set_back(uint8_t pageid, uint8_t backid);
@@ -53,7 +53,7 @@ class Page {
     uint8_t get();
     void load_jsonl(const char* pagesfile);
     lv_obj_t* get_obj(uint8_t pageid);
-    bool get_id(lv_obj_t* obj, uint8_t* pageid);
+    bool get_id(const lv_obj_t* obj, uint8_t* pageid);
     bool is_valid(uint8_t pageid);
 };
 

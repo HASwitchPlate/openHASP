@@ -1,6 +1,9 @@
 /* MIT License - Copyright (c) 2019-2021 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
+#include "hasplib.h"
+#include "dev/device.h"
+
 #ifdef ARDUINO
 #include "ArduinoLog.h"
 #endif
@@ -11,14 +14,9 @@
 #include <sstream>
 #endif
 
-#include "ArduinoJson.h"
-
 #if HASP_USE_EEPROM > 0
 #include "StreamUtils.h" // For EEPromStream
 #endif
-
-#include "lvgl.h"
-#include "lv_conf.h"
 
 #if HASP_USE_DEBUG > 0
 #include "../hasp_debug.h"
@@ -30,12 +28,6 @@
 #include "hasp_config.h"
 //#include "hasp_filesystem.h" included in hasp_conf.h
 #endif
-
-#include "hasplib.h"
-#include "hasp.h"
-#include "lv_theme_hasp.h"
-
-#include "dev/device.h"
 
 #if HASP_USE_EEPROM > 0
 #include "EEPROM.h"
@@ -110,28 +102,42 @@ lv_font_t* hasp_get_font(uint8_t fontid)
 /**
  * Check if sleep state needs to be updated
  */
-bool hasp_update_sleep_state()
+HASP_ATTRIBUTE_FAST_MEM bool hasp_update_sleep_state()
 {
     uint32_t idle = lv_disp_get_inactive_time(NULL);
 
     if(sleepTimeLong > 0 && idle >= (sleepTimeShort + sleepTimeLong) * 1000U) {
         if(hasp_sleep_state != HASP_SLEEP_LONG) {
-            dispatch_output_idle_state(HASP_SLEEP_LONG);
             hasp_sleep_state = HASP_SLEEP_LONG;
+            dispatch_idle(NULL, NULL);
         }
     } else if(sleepTimeShort > 0 && idle >= sleepTimeShort * 1000U) {
         if(hasp_sleep_state != HASP_SLEEP_SHORT) {
-            dispatch_output_idle_state(HASP_SLEEP_SHORT);
             hasp_sleep_state = HASP_SLEEP_SHORT;
+            dispatch_idle(NULL, NULL);
         }
     } else {
         if(hasp_sleep_state != HASP_SLEEP_OFF) {
-            dispatch_output_idle_state(HASP_SLEEP_OFF);
             hasp_sleep_state = HASP_SLEEP_OFF;
+            dispatch_idle(NULL, NULL);
         }
     }
 
     return (hasp_sleep_state != HASP_SLEEP_OFF);
+}
+
+void hasp_get_sleep_state(char* payload)
+{
+    switch(hasp_sleep_state) {
+        case HASP_SLEEP_LONG:
+            memcpy_P(payload, PSTR("long"), 5);
+            break;
+        case HASP_SLEEP_SHORT:
+            memcpy_P(payload, PSTR("short"), 6);
+            break;
+        default:
+            memcpy_P(payload, PSTR("off"), 4);
+    }
 }
 
 void hasp_enable_wakeup_touch()
@@ -219,7 +225,7 @@ void haspReconnect()
 void haspProgressVal(uint8_t val)
 {
     lv_obj_t* layer = lv_disp_get_layer_sys(NULL);
-    lv_obj_t* bar   = hasp_find_obj_from_parent_id(haspPages.get_obj(255), (uint8_t)10);
+    lv_obj_t* bar   = hasp_find_obj_from_page_id(255U, 10U);
     if(layer && bar) {
         if(val == 255) {
             if(!lv_obj_get_hidden(bar)) {
@@ -227,8 +233,8 @@ void haspProgressVal(uint8_t val)
                 lv_obj_set_style_local_bg_opa(layer, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_0);
 
                 // lv_obj_set_style_local_value_str(bar, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, "");
-                // lv_obj_set_value_str_txt(bar, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, NULL); //TODO: call our custom
-                // function to free the memory
+                // lv_obj_set_value_str_txt(bar, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, NULL);
+                // TODO: call our custom function to free the memory
 
 #if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
                 // progress_str.clear();
@@ -248,9 +254,7 @@ void haspProgressVal(uint8_t val)
 // Sets the value string of the global progress bar
 void haspProgressMsg(const char* msg)
 {
-    lv_obj_t* bar = hasp_find_obj_from_parent_id(haspPages.get_obj(255), (uint8_t)10);
-
-    if(bar) {
+    if(lv_obj_t* bar = hasp_find_obj_from_page_id(255U, 10U)) {
         char value_str[10];
         snprintf_P(value_str, sizeof(value_str), PSTR("value_str"));
         hasp_process_obj_attribute(bar, value_str, msg, true);
@@ -278,14 +282,17 @@ void haspProgressMsg(const __FlashStringHelper* msg)
 /*Add a custom apply callback*/
 static void custom_font_apply_cb(lv_theme_t* th, lv_obj_t* obj, lv_theme_style_t name)
 {
-    lv_style_list_t* list;
+    /*    lv_style_list_t* list;
 
-    switch(name) {
-        case LV_THEME_BTN:
-            list = lv_obj_get_style_list(obj, LV_BTN_PART_MAIN);
-            // _lv_style_list_add_style(list, &my_style);
-            break;
-    }
+        switch(name) {
+            case LV_THEME_BTN:
+                list = lv_obj_get_style_list(obj, LV_BTN_PART_MAIN);
+                // _lv_style_list_add_style(list, &my_style);
+                break;
+            default:
+                // nothing
+                ;
+        } */
 }
 
 /**
@@ -298,7 +305,7 @@ void haspSetup(void)
     /******* File System Test ********************************************************************/
     // lv_fs_file_t f;
     // lv_fs_res_t res;
-    // res = lv_fs_open(&f, "E:/config.json", LV_FS_MODE_RD);
+    // res = lv_fs_open(&f, "L:/config.json", LV_FS_MODE_RD);
     // if(res == LV_FS_RES_OK)
     //     LOG_VERBOSE(TAG_HASP, F("Opening config.json OK"));
     // else
@@ -337,7 +344,7 @@ void haspSetup(void)
 
     // WARNING: hasp_font needs to be null !
     if(lv_zifont_font_init(&hasp_font, haspZiFontPath, 32) != 0) {
-        LOG_ERROR(TAG_HASP, F("Failed to set font to %s"), haspZiFontPath);
+        if(strlen(haspZiFontPath) > 0) LOG_WARNING(TAG_HASP, F("Failed to set font to %s"), haspZiFontPath);
         haspFonts[0] = LV_THEME_DEFAULT_FONT_SMALL;
     } else {
         // defaultFont = haspFonts[0];
@@ -356,8 +363,8 @@ void haspSetup(void)
     if(haspFonts[3] == nullptr) haspFonts[3] = LV_THEME_DEFAULT_FONT_TITLE;
 
     // haspFonts[0] = lv_font_load("E:/font_1.fnt");
-    //  haspFonts[2] = lv_font_load("E:/font_2.fnt");
-    //  haspFonts[3] = lv_font_load("E:/font_3.fnt");
+    // haspFonts[2] = lv_font_load("E:/font_2.fnt");
+    // haspFonts[3] = lv_font_load("E:/font_3.fnt");
 
     /* ********** Theme Initializations ********** */
     if(haspThemeId == 8) haspThemeId = 1;                   // update old HASP id
@@ -452,18 +459,28 @@ void haspSetup(void)
     }
 #endif
 
-    haspPages.init(haspStartPage);
-    haspPages.load_jsonl(haspPagesPath);
-    haspPages.set(haspStartPage, LV_SCR_LOAD_ANIM_NONE);
+    hasp_init();
+    hasp_load_json();
+    haspPages.set(haspStartPage, LV_SCR_LOAD_ANIM_FADE_ON);
 }
 
 /**********************
  *   STATIC FUNCTIONS
  **********************/
 
-void haspLoop(void)
+IRAM_ATTR void haspLoop(void)
 {
     dispatchLoop();
+}
+
+void hasp_init(void)
+{
+    haspPages.init(haspStartPage);
+}
+
+void hasp_load_json(void)
+{
+    haspPages.load_jsonl(haspPagesPath);
 }
 
 /*
@@ -517,10 +534,10 @@ void hasp_background(uint16_t pageid, uint16_t imageid)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void haspGetVersion(char* version, size_t len)
-{
-    snprintf_P(version, len, PSTR("%u.%u.%u"), HASP_VER_MAJ, HASP_VER_MIN, HASP_VER_REV);
-}
+// void haspGetVersion(char* version, size_t len)
+// {
+//     snprintf_P(version, len, PSTR("%u.%u.%u"), HASP_VER_MAJ, HASP_VER_MIN, HASP_VER_REV);
+// }
 
 void haspClearPage(uint16_t pageid)
 {
@@ -553,47 +570,80 @@ void haspSetPage(uint8_t pageid)
     }
 }
 
-void haspLoadPage(const char* pagesfile)
+void hasp_get_info(JsonDocument& doc)
 {
-#if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
-    if(pagesfile[0] == '\0') return;
+    std::string buffer;
+    buffer.reserve(64);
+    char size_buf[32];
+    JsonObject info = doc.createNestedObject(F(D_MANUFACTURER));
 
-    if(!filesystemSetup()) {
-        LOG_ERROR(TAG_HASP, F("FS not mounted. Failed to load %s"), pagesfile);
-        return;
+    info[F(D_INFO_VERSION)] = haspDevice.get_version();
+
+    buffer = __DATE__;
+    buffer += (" ");
+    buffer += __TIME__;
+    buffer += (" UTC"); // Github buildservers are in UTC
+    info[F(D_INFO_BUILD_DATETIME)] = buffer;
+
+    unsigned long time = millis() / 1000;
+    uint16_t day       = time / 86400;
+    time               = time % 86400;
+    uint8_t hour       = time / 3600;
+    time               = time % 3600;
+    uint8_t min        = time / 60;
+    time               = time % 60;
+    uint8_t sec        = time;
+
+    buffer.clear();
+    if(day > 0) {
+        itoa(day, size_buf, DEC);
+        buffer += size_buf;
+        buffer += "d ";
     }
-
-    if(!HASP_FS.exists(pagesfile)) {
-        LOG_ERROR(TAG_HASP, F("Non existing file %s"), pagesfile);
-        return;
+    if(day > 0 || hour > 0) {
+        itoa(hour, size_buf, DEC);
+        buffer += size_buf;
+        buffer += "h ";
     }
+    if(day > 0 || hour > 0 || min > 0) {
+        itoa(min, size_buf, DEC);
+        buffer += size_buf;
+        buffer += "m ";
+    }
+    itoa(sec, size_buf, DEC);
+    buffer += size_buf;
+    buffer += "s";
+    info[F(D_INFO_UPTIME)] = buffer;
 
-    LOG_TRACE(TAG_HASP, F("Loading file %s"), pagesfile);
+    info = doc.createNestedObject(F(D_INFO_DEVICE_MEMORY));
+    Parser::format_bytes(haspDevice.get_free_heap(), size_buf, sizeof(size_buf));
+    info[F(D_INFO_FREE_HEAP)] = size_buf;
+    Parser::format_bytes(haspDevice.get_free_max_block(), size_buf, sizeof(size_buf));
+    info[F(D_INFO_FREE_BLOCK)]    = size_buf;
+    info[F(D_INFO_FRAGMENTATION)] = haspDevice.get_heap_fragmentation();
 
-    File file = HASP_FS.open(pagesfile, "r");
-    dispatch_parse_jsonl(file);
-    file.close();
-
-    LOG_INFO(TAG_HASP, F("File %s loaded"), pagesfile);
-#else
-
-#if HASP_USE_EEPROM > 0
-    LOG_TRACE(TAG_HASP, F("Loading jsonl from EEPROM..."));
-    EepromStream eepromStream(4096, 1024);
-    dispatch_parse_jsonl(eepromStream);
-    LOG_INFO(TAG_HASP, F("Loaded jsonl from EEPROM"));
+#if ARDUINO_ARCH_ESP32
+    if(psramFound()) {
+        Parser::format_bytes(ESP.getFreePsram(), size_buf, sizeof(size_buf));
+        info[F(D_INFO_PSRAM_FREE)] = size_buf;
+        Parser::format_bytes(ESP.getPsramSize(), size_buf, sizeof(size_buf));
+        info[F(D_INFO_PSRAM_SIZE)] = size_buf;
+    }
 #endif
 
-    std::ifstream ifs("pages.json", std::ifstream::in);
-    if(ifs) {
-        LOG_TRACE(TAG_HASP, F("Loading file %s"), pagesfile);
-        dispatch_parse_jsonl(ifs);
-        LOG_INFO(TAG_HASP, F("File %s loaded"), pagesfile);
-    } else {
-        LOG_ERROR(TAG_HASP, F("Non existing file %s"), pagesfile);
-    }
+    info = doc.createNestedObject(F(D_INFO_LVGL_MEMORY));
+    lv_mem_monitor_t mem_mon;
+    lv_mem_monitor(&mem_mon);
+    Parser::format_bytes(mem_mon.total_size, size_buf, sizeof(size_buf));
+    info[F(D_INFO_TOTAL_MEMORY)] = size_buf;
+    Parser::format_bytes(mem_mon.free_size, size_buf, sizeof(size_buf));
+    info[F(D_INFO_FREE_MEMORY)]   = size_buf;
+    info[F(D_INFO_FRAGMENTATION)] = mem_mon.frag_pct;
 
-#endif
+    info = doc.createNestedObject(F("HASP State"));
+    hasp_get_sleep_state(size_buf);
+    info[F("Idle")]        = size_buf;
+    info[F("Active Page")] = haspPages.get();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

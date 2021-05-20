@@ -6,8 +6,7 @@
 #ifndef HASP_CONFIG_H
 #define HASP_CONFIG_H
 
-#include "hasp_conf.h"
-#include "ArduinoJson.h"
+#include "hasplib.h"
 #include "hasp_debug.h" // for TAG_CONF
 
 /* ===== Default Event Processors ===== */
@@ -18,6 +17,8 @@ void configStart(void);
 void configStop(void);
 
 /* ===== Special Event Processors ===== */
+DeserializationError configParseFile(String& configFile, JsonDocument& settings);
+bool configRead(String configFile, JsonDocument& settings, bool setupdebug = false);
 void configWrite(void);
 void configOutput(const JsonObject& settings, uint8_t tag = TAG_CONF);
 bool configClearEeprom(void);
@@ -26,6 +27,7 @@ bool configClearEeprom(void);
 bool configSet(int8_t& value, const JsonVariant& setting, const __FlashStringHelper* fstr_name);
 bool configSet(uint8_t& value, const JsonVariant& setting, const __FlashStringHelper* fstr_name);
 bool configSet(uint16_t& value, const JsonVariant& setting, const __FlashStringHelper* fstr_name);
+void configMaskPasswords(JsonDocument& settings);
 
 /* ===== Read/Write Configuration ===== */
 void configSetConfig(JsonObject& settings);
@@ -70,10 +72,6 @@ const char FP_MDNS[] PROGMEM  = "mdns";
 const char FP_HASP[] PROGMEM  = "hasp";
 const char FP_GUI[] PROGMEM   = "gui";
 const char FP_DEBUG[] PROGMEM = "debug";
-
-#ifdef HASP_GPIO_TEMPLATE
-const char FP_GPIO_TEMPLATE[] PROGMEM = HASP_GPIO_TEMPLATE;
-#endif
 
 #endif
 

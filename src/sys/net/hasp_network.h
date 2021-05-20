@@ -6,7 +6,7 @@
 
 /* ===== Default Event Processors ===== */
 void networkSetup();
-void networkLoop(void);
+IRAM_ATTR void networkLoop(void);
 bool networkEvery5Seconds(void);
 // bool networkEverySecond(void);
 void networkStart(void);
@@ -16,6 +16,7 @@ void networkStop(void);
 
 /* ===== Getter and Setter Functions ===== */
 void network_get_statusupdate(char* buffer, size_t len);
+void network_get_info(JsonDocument& doc);
 
 /* ===== Read/Write Configuration ===== */
 

@@ -1,10 +1,8 @@
 /* MIT License - Copyright (c) 2019-2021 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
-#include "hasp_conf.h"
 #include "hasplib.h"
-
-#include "hasp_page.h"
+#include <fstream>
 
 namespace hasp {
 
@@ -21,14 +19,19 @@ Page::Page()
     // LVGL is not yet initialized at construction time
 }
 
-size_t Page::count()
+uint8_t Page::count()
 {
-    return sizeof(_pages) / sizeof(*_pages);
+    return (uint8_t)(sizeof(_pages) / sizeof(*_pages));
 }
 
 void Page::init(uint8_t start_page)
 {
+    lv_obj_t* scr_act = lv_scr_act();
+    lv_obj_clean(lv_layer_top());
+
     for(int i = 0; i < count(); i++) {
+        lv_obj_t* prev_page_obj = _pages[i];
+
         _pages[i]                  = lv_obj_create(NULL, NULL);
         _pages[i]->user_data.objid = LV_HASP_SCREEN;
         lv_obj_set_event_cb(_pages[i], generic_event_handler);
@@ -40,6 +43,14 @@ void Page::init(uint8_t start_page)
         _meta_data[i].prev = thispage == PAGE_START_INDEX ? HASP_NUM_PAGES : thispage - PAGE_START_INDEX;
         _meta_data[i].next = thispage == HASP_NUM_PAGES ? PAGE_START_INDEX : thispage + PAGE_START_INDEX;
         _meta_data[i].back = start_page;
+
+        if(prev_page_obj) {
+            if(scr_act == prev_page_obj) {
+                lv_scr_load_anim(_pages[i], LV_SCR_LOAD_ANIM_NONE, 500, 0, false); // update page screen obj
+                lv_obj_del_async(prev_page_obj);
+            } else
+                lv_obj_del(prev_page_obj);
+        }
     }
 }
 
@@ -67,12 +78,12 @@ void Page::set(uint8_t pageid, lv_scr_load_anim_t animation)
     } else if(!page) {
         LOG_WARNING(TAG_HASP, F(D_HASP_INVALID_PAGE), pageid);
     } else {
-        LOG_TRACE(TAG_HASP, F(D_HASP_CHANGE_PAGE), pageid);
-        if(_current_page != pageid) {
-            _current_page = pageid;
+        _current_page = pageid;
+        if(page != lv_scr_act()) {
+            LOG_TRACE(TAG_HASP, F(D_HASP_CHANGE_PAGE), pageid);
             lv_scr_load_anim(page, animation, 500, 0, false);
+            hasp_object_tree(page, pageid, 0);
         }
-        hasp_object_tree(page, pageid, 0);
     }
 }
 
@@ -132,30 +143,66 @@ void Page::load_jsonl(const char* pagesfile)
     if(pagesfile[0] == '\0') return;
 
     if(!filesystemSetup()) {
-        LOG_ERROR(TAG_HASP, F("FS not mounted. Failed to load %s"), pagesfile);
+        LOG_ERROR(TAG_HASP, F("FS not mounted. " D_FILE_LOAD_FAILED), pagesfile);
         return;
     }
 
     if(!HASP_FS.exists(pagesfile)) {
-        LOG_ERROR(TAG_HASP, F("Non existing file %s"), pagesfile);
+        LOG_ERROR(TAG_HASP, F(D_FILE_LOAD_FAILED), pagesfile);
         return;
     }
 
-    LOG_TRACE(TAG_HASP, F("Loading file %s"), pagesfile);
+    LOG_TRACE(TAG_HASP, F(D_FILE_LOADING), pagesfile);
 
     File file = HASP_FS.open(pagesfile, "r");
     dispatch_parse_jsonl(file);
     file.close();
 
-    LOG_INFO(TAG_HASP, F("File %s loaded"), pagesfile);
-#else
+    LOG_INFO(TAG_HASP, F(D_FILE_LOADED), pagesfile);
 
-#if HASP_USE_EEPROM > 0
+#elif HASP_USE_EEPROM > 0
     LOG_TRACE(TAG_HASP, F("Loading jsonl from EEPROM..."));
     EepromStream eepromStream(4096, 1024);
     dispatch_parse_jsonl(eepromStream);
     LOG_INFO(TAG_HASP, F("Loaded jsonl from EEPROM"));
-#endif
+
+#else
+
+    char path[strlen(pagesfile) + 4];
+    path[0] = '.';
+    path[1] = '\0';
+    strcat(path, pagesfile);
+    path[1] = '\\';
+
+    LOG_TRACE(TAG_HASP, F("Loading %s from disk..."), path);
+    std::ifstream f(path); // taking file as inputstream
+    if(f) {
+        dispatch_parse_jsonl(f);
+    }
+    f.close();
+    LOG_INFO(TAG_HASP, F("Loaded %s from disk"), path);
+
+    // char path[strlen(pagesfile) + 4];
+    // path[0] = '\0';
+    // strcat(path, "L:/");
+    // strcat(path, pagesfile);
+
+    // lv_fs_file_t file;
+    // lv_fs_res_t res;
+    // res = lv_fs_open(&file, path, LV_FS_MODE_RD);
+    // if(res == LV_FS_RES_OK) {
+    //     LOG_VERBOSE(TAG_HASP, F("Opening %s"), path);
+    // } else {
+    //     LOG_ERROR(TAG_HASP, F("TEST Opening %q from FS failed %d"), path, res);
+    // }
+
+    // dispatch_parse_jsonl(file);
+    // res = lv_fs_close(&file);
+    // if(res == LV_FS_RES_OK) {
+    //     LOG_VERBOSE(TAG_HASP, F("Closing %s OK"), path);
+    // } else {
+    //     LOG_ERROR(TAG_HASP, F("Closing %s on FS failed %d"), path, res);
+    // }
 
 #endif
 }
@@ -168,7 +215,7 @@ lv_obj_t* Page::get_obj(uint8_t pageid)
     return _pages[pageid - PAGE_START_INDEX];
 }
 
-bool Page::get_id(lv_obj_t* obj, uint8_t* pageid)
+bool Page::get_id(const lv_obj_t* obj, uint8_t* pageid)
 {
     lv_obj_t* page = lv_obj_get_screen(obj);
 

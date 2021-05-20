@@ -4,27 +4,22 @@
 #ifndef HASP_ATTR_SET_H
 #define HASP_ATTR_SET_H
 
-#include "lvgl.h"
-#if LVGL_VERSION_MAJOR != 7
-#include "../lv_components.h"
-#endif
-
-#include "hasp_conf.h"
-#include "hasp.h"
-#include "hasp_object.h"
+#include "hasplib.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 lv_chart_series_t* my_chart_get_series(lv_obj_t* chart, uint8_t ser_num);
-void my_obj_set_value_str_txt(lv_obj_t* obj, uint8_t part, lv_state_t state, const char* text);
+void my_obj_set_value_str_text(lv_obj_t* obj, uint8_t part, lv_state_t state, const char* text);
 
 void my_btnmatrix_map_clear(lv_obj_t* obj);
+void my_msgbox_map_clear(lv_obj_t* obj);
 void line_clear_points(lv_obj_t* obj);
 
 void hasp_process_obj_attribute(lv_obj_t* obj, const char* attr_p, const char* payload, bool update);
-bool hasp_process_obj_attribute_val(lv_obj_t* obj, const char* attr, int16_t intval, bool booval, bool update);
+
+bool attribute_set_normalized_value(lv_obj_t* obj, hasp_update_value_t& value);
 
 void attr_out_str(lv_obj_t* obj, const char* attribute, const char* data);
 void attr_out_int(lv_obj_t* obj, const char* attribute, int32_t val);
@@ -33,6 +28,106 @@ void attr_out_color(lv_obj_t* obj, const char* attribute, lv_color_t color);
 #ifdef __cplusplus
 } /* extern "C" */
 #endif
+
+typedef enum {
+    ATTR_RANGE_ERROR                  = -9,
+    ATTR_TYPE_METHOD_INVALID_FOR_PAGE = -8,
+    ATTR_TYPE_ALIGN_INVALID           = -5,
+    ATTR_TYPE_COLOR_INVALID           = -4,
+    ATTR_TYPE_STR_READONLY            = -3,
+    ATTR_TYPE_BOOL_READONLY           = -2,
+    ATTR_TYPE_INT_READONLY            = -1,
+    ATTR_NOT_FOUND                    = 0,
+    ATTR_TYPE_INT,
+    ATTR_TYPE_BOOL,
+    ATTR_TYPE_STR,
+    ATTR_TYPE_COLOR,
+    ATTR_TYPE_ALIGN,
+    ATTR_TYPE_DIRECTION_XY,
+    ATTR_TYPE_DIRECTION_CLOCK,
+    ATTR_TYPE_METHOD_OK,
+
+} hasp_attribute_type_t;
+
+struct hasp_attr_update_bool_const_t
+{
+    lv_hasp_obj_type_t obj_type;
+    uint16_t hash;
+    void (*set)(lv_obj_t*, bool);
+    bool (*get)(const lv_obj_t*);
+};
+
+struct hasp_attr_update_uint16_const_t
+{
+    lv_hasp_obj_type_t obj_type;
+    uint16_t hash;
+    void (*set)(lv_obj_t*, uint16_t);
+    uint16_t (*get)(const lv_obj_t*);
+};
+
+struct hasp_attr_update_lv_anim_value_const_t
+{
+    lv_hasp_obj_type_t obj_type;
+    uint16_t hash;
+    void (*set)(lv_obj_t*, lv_anim_value_t);
+    lv_anim_value_t (*get)(const lv_obj_t*);
+};
+
+struct hasp_attr_update_int16_const_t
+{
+    lv_hasp_obj_type_t obj_type;
+    uint16_t hash;
+    void (*set)(lv_obj_t*, int16_t);
+    int16_t (*get)(const lv_obj_t*);
+};
+
+struct hasp_attr_update_uint8_const_t
+{
+    lv_hasp_obj_type_t obj_type;
+    uint16_t hash;
+    void (*set)(lv_obj_t*, uint8_t);
+    uint8_t (*get)(const lv_obj_t*);
+};
+
+struct hasp_attr_update8_const_t
+{
+    lv_hasp_obj_type_t obj_type;
+    uint16_t hash;
+    void (*set)(lv_obj_t*, uint8_t);
+    uint8_t (*get)(const lv_obj_t*);
+};
+
+struct hasp_attr_update_uint16_t
+{
+    lv_hasp_obj_type_t obj_type;
+    uint16_t hash;
+    void (*set)(lv_obj_t*, uint16_t);
+    uint16_t (*get)(lv_obj_t*);
+};
+
+struct hasp_attr_update_bool_t
+{
+    lv_hasp_obj_type_t obj_type;
+    uint16_t hash;
+    void (*set)(lv_obj_t*, bool);
+    bool (*get)(lv_obj_t*);
+};
+
+struct hasp_attr_update_lv_coord_t
+{
+    lv_hasp_obj_type_t obj_type;
+    uint16_t hash;
+    void (*set)(lv_obj_t*, lv_coord_t);
+    lv_coord_t (*get)(lv_obj_t*);
+};
+
+struct hasp_attr_update_char_const_t
+{
+    lv_hasp_obj_type_t obj_type;
+    uint16_t hash;
+    void (*set)(lv_obj_t*, const char*);
+    const char* (*get)(const lv_obj_t*);
+};
 
 #define _HASP_ATTRIBUTE(prop_name, func_name, value_type)                                                              \
     static inline void attribute_##func_name(lv_obj_t* obj, uint8_t part, lv_state_t state, bool update,               \
@@ -266,7 +361,6 @@ _HASP_ATTRIBUTE(SCALE_END_LINE_WIDTH, scale_end_line_width, lv_style_int_t)
 #define ATTR_BACK 57799
 
 /* Object Attributes */
-#define ATTR_COMMENT 62559
 #define ATTR_X 120
 #define ATTR_Y 121
 #define ATTR_W 119
@@ -292,10 +386,15 @@ _HASP_ATTRIBUTE(SCALE_END_LINE_WIDTH, scale_end_line_width, lv_style_int_t)
 #define ATTR_TEXT 53869
 #define ATTR_SRC 4964
 #define ATTR_ID 6715
+#define ATTR_EXT_CLICK_H 46643
+#define ATTR_EXT_CLICK_V 46657
 #define ATTR_ANIM_TIME 59451
+#define ATTR_ANIM_SPEED 281
+#define ATTR_START_VALUE 11828
 
 // methods
 #define ATTR_DELETE 50027
+#define ATTR_CLEAR 1069
 #define ATTR_TO_FRONT 44741
 #define ATTR_TO_BACK 24555
 
@@ -326,11 +425,37 @@ _HASP_ATTRIBUTE(SCALE_END_LINE_WIDTH, scale_end_line_width, lv_style_int_t)
 // Buttonmatrix
 #define ATTR_ONE_CHECK 45935
 
+// Tabview
+#define ATTR_BTN_POS 35697
+#define ATTR_COUNT 29103
+
+// Msgbox
+#define ATTR_MODAL 7405
+#define ATTR_AUTO_CLOSE 7880
+
+// Image
+#define ATTR_OFFSET_X 65388
+#define ATTR_OFFSET_Y 65389
+#define ATTR_AUTO_SIZE 63729
+
+// Spinner
+#define ATTR_SPEED 14375
+#define ATTR_THICKNESS 24180
+//#define ATTR_ARC_LENGTH 755 - use ATTR_ANGLE
+// #define ATTR_DIRECTION 32415 - see Dropdown
+
 /* hasp user data */
 #define ATTR_ACTION 42102
 #define ATTR_TRANSITION 10933
 #define ATTR_GROUPID 48986
 #define ATTR_OBJID 41010
 #define ATTR_OBJ 53623
+
+#define ATTR_TEXT_MAC 38107
+#define ATTR_TEXT_IP 41785
+#define ATTR_TEXT_HOSTNAME 10125
+#define ATTR_TEXT_MODEL 54561
+#define ATTR_TEXT_VERSION 60178
+#define ATTR_TEXT_SSID 62981
 
 #endif

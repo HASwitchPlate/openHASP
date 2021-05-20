@@ -1,16 +1,10 @@
 /* MIT License - Copyright (c) 2019-2021 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
-#include <cstdlib>
-#include <cctype>
-#include <string>
-
 #ifdef ARDUINO
 #include "pgmspace.h"
 #include "Arduino.h"
 #endif
-
-#include "lvgl.h"
 
 #include "hasplib.h"
 
@@ -177,18 +171,20 @@ bool Parser::is_only_digits(const char* s)
 
 int Parser::format_bytes(size_t filesize, char* buf, size_t len)
 {
-    if(filesize < 1024) return snprintf_P(buf, len, PSTR("%d B"), filesize);
+    if(filesize < D_FILE_SIZE_DIVIDER) return snprintf_P(buf, len, PSTR("%d " D_FILE_SIZE_BYTES), filesize);
+    filesize = filesize * 10;
 
-    char labels[] = "kMGT";
-    filesize      = filesize * 10 / 1024; // multiply by 10 for 1 decimal place
-    int unit      = 0;
+    filesize = filesize / D_FILE_SIZE_DIVIDER; // multiply by 10 for 1 decimal place
+    if(filesize < D_FILE_SIZE_DIVIDER * 10)
+        return snprintf_P(buf, len, PSTR("%d" D_DECIMAL_POINT "%d " D_FILE_SIZE_KILOBYTES), filesize / 10,
+                          filesize % 10);
 
-    while(filesize >= 10240 && unit < sizeof(labels) - 1) { // it is multiplied by 10
-        unit++;
-        filesize = filesize / 1024;
-    }
+    filesize = filesize / D_FILE_SIZE_DIVIDER; // multiply by 10 for 1 decimal place
+    if(filesize < D_FILE_SIZE_DIVIDER * 10)
+        return snprintf_P(buf, len, PSTR("%d" D_DECIMAL_POINT "%d " D_FILE_SIZE_MEGABYTES), filesize / 10,
+                          filesize % 10);
 
-    return snprintf_P(buf, len, PSTR("%d.%d %ciB"), filesize / 10, filesize % 10, labels[unit]);
+    return snprintf_P(buf, len, PSTR("%d" D_DECIMAL_POINT "%d " D_FILE_SIZE_GIGABYTES), filesize / 10, filesize % 10);
 }
 
 uint8_t Parser::get_action_id(const char* action)

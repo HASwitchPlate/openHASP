@@ -16,4 +16,24 @@ const char* BaseDevice::get_model()
     return PIOENV;
 #endif
 }
+
+const char* BaseDevice::get_version()
+{
+#ifdef HASP_MODEL
+    return (QUOTE(HASP_VER_MAJ) "." QUOTE(HASP_VER_MIN) "." QUOTE(HASP_VER_REV));
+#else
+    return PIOENV;
+#endif
+}
+
+const char* BaseDevice::get_hostname()
+{
+    return _hostname; //.c_str();
+}
+
+void BaseDevice::set_hostname(const char* hostname)
+{
+    strncpy(_hostname, hostname, STR_LEN_HOSTNAME);
+}
+
 } // namespace dev

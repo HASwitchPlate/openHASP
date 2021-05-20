@@ -1,10 +1,8 @@
 /* MIT License - Copyright (c) 2019-2021 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
-#include "hasp_conf.h"
+#include "hasplib.h"
 
-#include "lv_conf.h"
-#include "lvgl.h"
 #include "lv_drv_conf.h"
 
 // Filesystem Driver
@@ -24,14 +22,12 @@
 #include "hasp_gui.h"
 #include "hasp_oobe.h"
 
-#include "hasplib.h"
-
 //#include "tpcal.h"
 
 //#include "Ticker.h"
 
 #if HASP_USE_PNGDECODE > 0
-#include "png_decoder.h"
+#include "lv_png.h"
 #endif
 
 #define BACKLIGHT_CHANNEL 0 // pwm channel 0-15
@@ -52,7 +48,7 @@ File pFileOut;
 #define INVERT_COLORS 0
 #endif
 
-// static void IRAM_ATTR lv_tick_handler(void);
+// HASP_ATTRIBUTE_FAST_MEM static void  lv_tick_handler(void);
 
 gui_conf_t gui_settings = {.show_pointer   = false,
                            .backlight_pin  = TFT_BCKL,
@@ -60,8 +56,8 @@ gui_conf_t gui_settings = {.show_pointer   = false,
                            .invert_display = INVERT_COLORS,
                            .cal_data       = {0, 65535, 0, 65535, 0}};
 
-// static int8_t guiDimLevel = 100;
-// bool guiBacklightIsOn;
+uint16_t tft_width  = TFT_WIDTH;
+uint16_t tft_height = TFT_HEIGHT;
 
 // #if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
 // static Ticker tick; /* timer for interrupt handler */
@@ -76,7 +72,8 @@ gui_conf_t gui_settings = {.show_pointer   = false,
 // {
 //     lv_tick_inc(LVGL_TICK_PERIOD);
 // }
-void gui_flush_cb(lv_disp_drv_t* disp, const lv_area_t* area, lv_color_t* color_p)
+
+IRAM_ATTR void gui_flush_cb(lv_disp_drv_t* disp, const lv_area_t* area, lv_color_t* color_p)
 {
     haspTft.flush_pixels(disp, area, color_p);
 }
@@ -98,19 +95,23 @@ void guiCalibrate(void)
 #endif
 }
 
-void guiSetup(void)
+void guiSetup()
 {
     // Register logger to capture lvgl_init output
-    LOG_TRACE(TAG_LVGL, F(D_SERVICE_STARTING));
-#if LV_USE_LOG != 0
-    lv_log_register_print_cb(debugLvglLogEvent);
-#endif
+    LOG_TRACE(TAG_TFT, F(D_SERVICE_STARTING));
 
     // Initialize the TFT
-    haspTft.init(240, 320);
+    haspTft.init(tft_width, tft_height);
     haspTft.set_rotation(gui_settings.rotation);
     haspTft.set_invert(gui_settings.invert_display);
     haspTft.show_info();
+
+    LOG_INFO(TAG_TFT, F(D_SERVICE_STARTED));
+    LOG_TRACE(TAG_LVGL, F(D_SERVICE_STARTING));
+
+#if LV_USE_LOG != 0
+    lv_log_register_print_cb(debugLvglLogEvent);
+#endif
 
     /* Create the Virtual Device Buffers */
 #if defined(ARDUINO_ARCH_ESP32)
@@ -167,13 +168,16 @@ void guiSetup(void)
         LOG_FATAL(TAG_GUI, F(D_ERROR_OUT_OF_MEMORY));
     }
 
+    LOG_VERBOSE(TAG_LVGL, F("Version    : %u.%u.%u %s"), LVGL_VERSION_MAJOR, LVGL_VERSION_MINOR, LVGL_VERSION_PATCH,
+                PSTR(LVGL_VERSION_INFO));
+
     /* Initialize the display driver */
     static lv_disp_drv_t disp_drv;
     lv_disp_drv_init(&disp_drv);
     disp_drv.buffer   = &disp_buf;
     disp_drv.flush_cb = gui_flush_cb;
-    disp_drv.hor_res  = TFT_WIDTH;
-    disp_drv.ver_res  = TFT_HEIGHT;
+    disp_drv.hor_res  = tft_width;
+    disp_drv.ver_res  = tft_height;
 
     switch(gui_settings.rotation) {
         case 1:
@@ -181,42 +185,51 @@ void guiSetup(void)
         case 5:
         case 7:
             //     lv_disp_set_rotation(display, LV_DISP_ROT_90);
-            disp_drv.hor_res = TFT_HEIGHT;
-            disp_drv.ver_res = TFT_WIDTH;
+            disp_drv.hor_res = tft_height;
+            disp_drv.ver_res = tft_width;
             break;
         default:
             //           lv_disp_set_rotation(display, LV_DISP_ROT_NONE);
-            disp_drv.hor_res = TFT_WIDTH;
-            disp_drv.ver_res = TFT_HEIGHT;
+            disp_drv.hor_res = tft_width;
+            disp_drv.ver_res = tft_height;
     }
     lv_disp_t* display = lv_disp_drv_register(&disp_drv);
+    (void)display; // unused
 
     /* Initialize Filesystems */
 #if LV_USE_FS_IF != 0
-    // _lv_fs_init();   // lvgl File System -- not neaded, it done in lv_init() when LV_USE_FILESYSTEM is set
-    LOG_VERBOSE(TAG_LVGL, F("Filesystem : Enabled"));
+    //_lv_fs_init(); // lvgl File System -- not neaded, it done in lv_init() when LV_USE_FILESYSTEM is set
+    LOG_VERBOSE(TAG_LVGL, F("Filesystem : " D_SETTING_ENABLED));
     lv_fs_if_init(); // auxilary file system drivers
-    filesystem_list_path("S:/fs/");
+    filesystem_list_path("L:/");
+
+    lv_fs_file_t f;
+    lv_fs_res_t res;
+    res = lv_fs_open(&f, "L:/config.json", LV_FS_MODE_RD);
+    if(res == LV_FS_RES_OK) {
+        LOG_VERBOSE(TAG_HASP, F("TEST Opening config.json OK"));
+        lv_fs_close(&f);
+    } else {
+        LOG_ERROR(TAG_HASP, F("TEST Opening config.json from FS failed %d"), res);
+    }
+
 #else
-    LOG_VERBOSE(TAG_LVGL, F("Filesystem : Disabled"));
+    LOG_VERBOSE(TAG_LVGL, F("Filesystem : " D_SETTING_DISABLED));
 #endif
 
     /* Initialize PNG decoder */
 #if HASP_USE_PNGDECODE > 0
-    png_decoder_init();
+    lv_png_init();
 #endif
 
 #ifdef USE_DMA_TO_TFT
-    LOG_VERBOSE(TAG_GUI, F("DMA        : ENABLED"));
+    LOG_VERBOSE(TAG_GUI, F("DMA        : " D_SETTING_ENABLED));
 #else
-    LOG_VERBOSE(TAG_GUI, F("DMA        : DISABLED"));
+    LOG_VERBOSE(TAG_GUI, F("DMA        : " D_SETTING_DISABLED));
 #endif
 
     /* Setup Backlight Control Pin */
     haspDevice.set_backlight_pin(gui_settings.backlight_pin);
-
-    LOG_VERBOSE(TAG_LVGL, F("Version    : %u.%u.%u %s"), LVGL_VERSION_MAJOR, LVGL_VERSION_MINOR, LVGL_VERSION_PATCH,
-                PSTR(LVGL_VERSION_INFO));
 
 #ifdef LV_MEM_SIZE
     LOG_VERBOSE(TAG_LVGL, F("MEM size   : %d"), LV_MEM_SIZE);
@@ -280,10 +293,13 @@ void guiSetup(void)
     lv_obj_set_style_local_bg_opa(lv_layer_sys(), LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_0);
 
     // guiStart(); // Ticker
+    LOG_INFO(TAG_LVGL, F(D_SERVICE_STARTED));
 }
 
-void guiLoop(void)
+IRAM_ATTR void guiLoop(void)
 {
+    lv_task_handler(); // process animations
+
 #if defined(STM32F4xx)
     //  tick.update();
 #endif
@@ -578,7 +594,7 @@ void guiTakeScreenshot(const char* pFileName)
         pFileOut.close();
 
     } else {
-        LOG_WARNING(TAG_GUI, F("%s cannot be opened"), pFileName);
+        LOG_WARNING(TAG_GUI, F(D_FILE_SAVE_FAILED), pFileName);
     }
 }
 #endif

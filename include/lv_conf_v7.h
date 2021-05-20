@@ -124,7 +124,9 @@ typedef int16_t lv_coord_t;
    * Can be changed in the Input device driver (`lv_indev_drv_t`)*/
 
    /* Input device read period in milliseconds */
-#define LV_INDEV_DEF_READ_PERIOD          30
+#ifndef LV_INDEV_DEF_READ_PERIOD
+#define LV_INDEV_DEF_READ_PERIOD          20
+#endif
 
 /* Drag threshold in pixels */
 #define LV_INDEV_DEF_DRAG_LIMIT           10
@@ -185,16 +187,16 @@ typedef void* lv_group_user_data_t;
 typedef void* lv_fs_drv_user_data_t;
 
 /*File system interface*/
-#define LV_USE_FS_IF	      0
+#define LV_USE_FS_IF	      1
 #if LV_USE_FS_IF
 #  define LV_FS_IF_FATFS    '\0'
 #if defined(STM32F4xx) // || defined(ARDUINO_ARCH_ESP8266)
 #  define LV_FS_IF_PC       '\0'
-#  define LV_FS_IF_SPIFFS   '\0'  // internal esp Flash
+//#  define LV_FS_IF_SPIFFS   '\0'  // internal esp Flash
 #else
-#  define LV_FS_IF_PC       '\0'
+#  define LV_FS_IF_PC       'L'   // Local filesystem
 #  define LV_FS_IF_POSIX    '\0'
-#  define LV_FS_IF_SPIFFS   '\0'  // no internal esp Flash
+//#  define LV_FS_IF_SPIFFS   '\0'  // no internal esp Flash
 #endif
 #endif  /*LV_USE_FS_IF*/
 
@@ -224,6 +226,10 @@ typedef void* lv_fs_drv_user_data_t;
  /*Declare the type of the user data of image decoder (can be e.g. `void *`, `int`, `struct`)*/
 typedef void* lv_img_decoder_user_data_t;
 
+#if (HASP_USE_PNGDECODE > 0) && (LV_USE_FILESYSTEM > 0)
+//#define LV_PNG_USE_LV_FILESYSTEM 1
+#endif
+
 /*=====================
  *  Compiler settings
  *====================*/
@@ -231,7 +237,9 @@ typedef void* lv_img_decoder_user_data_t;
 #define LV_ATTRIBUTE_TICK_INC
 
 /* Define a custom attribute to `lv_task_handler` function */
+#ifndef LV_ATTRIBUTE_TASK_HANDLER
 #define LV_ATTRIBUTE_TASK_HANDLER
+#endif
 
 /* With size optimization (-Os) the compiler might not align data to
  * 4 or 8 byte boundary. This alignment will be explicitly applied where needed.
@@ -341,6 +349,36 @@ typedef void* lv_indev_drv_user_data_t;            /*Type of user data in the in
 
 #if TFT_WIDTH>=320 || TFT_WIDTH>=480
 
+#ifdef WT32SC01
+
+#ifndef HASP_FONT_1
+#define HASP_FONT_1 robotocondensed_regular_16_ascii  /* 5% Width */
+#endif
+#ifndef HASP_FONT_2
+#define HASP_FONT_2 robotocondensed_regular_24_ascii  /* 5% Width */
+#endif
+#ifndef HASP_FONT_3
+#define HASP_FONT_3 robotocondensed_regular_32_ascii  /* 10% Width */
+#endif
+#ifndef HASP_FONT_4
+#define HASP_FONT_4 robotocondensed_regular_48_ascii  /* 10% Height */
+#endif
+
+#ifndef ROBOTOCONDENSED_REGULAR_16_ASCII
+#define ROBOTOCONDENSED_REGULAR_16_ASCII 1
+#endif
+#ifndef ROBOTOCONDENSED_REGULAR_24_ASCII
+#define ROBOTOCONDENSED_REGULAR_24_ASCII 1
+#endif
+#ifndef ROBOTOCONDENSED_REGULAR_32_ASCII
+#define ROBOTOCONDENSED_REGULAR_32_ASCII 1
+#endif
+#ifndef ROBOTOCONDENSED_REGULAR_48_ASCII
+#define ROBOTOCONDENSED_REGULAR_48_ASCII 1
+#endif
+
+#else // not WT32SC01
+
 #ifndef HASP_FONT_1
 #define HASP_FONT_1 robotocondensed_regular_16_latin1  /* 5% Width */
 #endif
@@ -367,6 +405,8 @@ typedef void* lv_indev_drv_user_data_t;            /*Type of user data in the in
 #define ROBOTOCONDENSED_REGULAR_48_LATIN1 1
 #endif
 
+#endif // WT32SC01
+
 #ifndef HASP_FONT_SIZE_1
 #define HASP_FONT_SIZE_1 16
 #endif
@@ -380,7 +420,7 @@ typedef void* lv_indev_drv_user_data_t;            /*Type of user data in the in
 #define HASP_FONT_SIZE_4 48
 #endif
 
-#else
+#else // not 320x480
 
 #ifndef HASP_FONT_1
 #define HASP_FONT_1 robotocondensed_regular_12_latin1  /* 5% Width */
@@ -732,6 +772,7 @@ typedef struct {
 
 /*LED (dependencies: -)*/
 #define LV_USE_LED      1
+#define LV_LED_BRIGHT_MIN 0
 
 /*Line (dependencies: -*/
 #define LV_USE_LINE     1

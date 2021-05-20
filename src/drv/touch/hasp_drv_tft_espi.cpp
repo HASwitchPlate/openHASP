@@ -8,7 +8,6 @@
 
 #if defined(TOUCH_CS)
 
-#include "hal/hasp_hal.h" // for halGpioName()
 #include "dev/device.h"
 #include "drv/tft_driver.h"
 

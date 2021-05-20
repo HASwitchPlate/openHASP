@@ -25,13 +25,13 @@ void EthernetEvent(WiFiEvent_t event)
             eth_connected = true;
             break;
         case SYSTEM_EVENT_ETH_GOT_IP:
-            LOG_TRACE(TAG_ETH, F("MAC Address %s"), ETH.macAddress().c_str());
+            LOG_TRACE(TAG_ETH, F(D_INFO_MAC_ADDRESS " %s"), ETH.macAddress().c_str());
             ip = ETH.localIP();
             LOG_TRACE(TAG_ETH, F("IPv4: %d.%d.%d.%d"), ip[0], ip[1], ip[2], ip[3]);
             if(ETH.fullDuplex()) {
-                LOG_TRACE(TAG_ETH, F("FULL_DUPLEX"));
+                LOG_TRACE(TAG_ETH, F(D_INFO_FULL_DUPLEX));
             }
-            LOG_TRACE(TAG_ETH, F("LINK_SPEED %d Mbps"), ETH.linkSpeed());
+            LOG_TRACE(TAG_ETH, F(D_INFO_LINK_SPEED " %d Mbps"), ETH.linkSpeed());
             eth_connected = true;
             networkStart(); // Start network services
             break;
@@ -55,7 +55,7 @@ void ethernetSetup()
     ETH.begin(ETH_ADDR, ETH_POWER_PIN, ETH_MDC_PIN, ETH_MDIO_PIN, ETH_TYPE, ETH_CLKMODE);
 }
 
-void ethernetLoop(void)
+IRAM_ATTR void ethernetLoop(void)
 {}
 
 bool ethernetEvery5Seconds()
@@ -68,6 +68,27 @@ void ethernet_get_statusupdate(char* buffer, size_t len)
 {
     snprintf_P(buffer, len, PSTR("\"eth\":\"%s\",\"link\":\"%d Mbps\",\"ip\":\"%s\","),
                eth_connected ? F("on") : F("off"), ETH.linkSpeed(), ETH.localIP().toString().c_str());
+}
+
+void ethernet_get_info(JsonDocument& doc)
+{
+    char size_buf[32];
+    String buffer((char*)0);
+    buffer.reserve(64);
+
+    JsonObject info = doc.createNestedObject(F(D_INFO_ETHERNET));
+
+    buffer = ETH.linkSpeed();
+    buffer += F(" Mbps");
+    if(ETH.fullDuplex()) {
+        buffer += F(" " D_INFO_FULL_DUPLEX);
+    }
+
+    info[F(D_INFO_LINK_SPEED)]  = buffer;
+    info[F(D_INFO_IP_ADDRESS)]  = ETH.localIP().toString();
+    info[F(D_INFO_GATEWAY)]     = ETH.gatewayIP().toString();
+    info[F(D_INFO_DNS_SERVER)]  = ETH.dnsIP().toString();
+    info[F(D_INFO_MAC_ADDRESS)] = ETH.macAddress();
 }
 
 #endif

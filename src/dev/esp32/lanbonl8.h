@@ -8,11 +8,14 @@
 
 #if defined(LANBONL8)
 
+void Read_PCNT();
+
 namespace dev {
 
 class LanbonL8 : public Esp32Device {
   public:
     void init();
+    void loop_5s();
 };
 
 } // namespace dev

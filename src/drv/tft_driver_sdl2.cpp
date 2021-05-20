@@ -49,7 +49,7 @@ void TftSdl::init(int w, int h)
 
     /* Add a display
      * Use the 'monitor' driver which creates window on PC's monitor to simulate a display*/
-    monitor_init(MONITOR_HOR_RES, MONITOR_VER_RES);
+    monitor_init(w, h); // (MONITOR_HOR_RES, MONITOR_VER_RES);
     monitor_title(haspDevice.get_hostname());
 
     /* Add the mouse as input device

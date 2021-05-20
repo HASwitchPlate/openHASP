@@ -39,10 +39,6 @@
 #include "hasp/hasp_dispatch.h"
 #include "hasp/hasp.h"
 
-// #ifdef USE_CONFIG_OVERRIDE
-// #include "user_config_override.h"
-// #endif
-
 #ifndef SERIAL_SPEED
 #define SERIAL_SPEED 115200
 #endif
@@ -66,7 +62,6 @@
 // static String debugOutput((char *)0);
 // static StringStream debugStream((String &)debugOutput);
 
-// extern char mqttNodeName[16];
 // const char* syslogAppName   = APP_NAME;
 char debugSyslogHost[32]    = SYSLOG_SERVER;
 uint16_t debugSyslogPort    = SYSLOG_PORT;
@@ -92,9 +87,6 @@ uint16_t debugSerialBaud = SERIAL_SPEED / 10; // Multiplied by 10
 extern bool debugSerialStarted;
 extern bool debugAnsiCodes;
 
-ConsoleInput debugConsole(&Serial, HASP_CONSOLE_BUFFER);
-
-unsigned long debugLastMillis = 0;
 extern dispatch_conf_t dispatch_setings;
 
 // #if HASP_USE_SYSLOG > 0
@@ -105,14 +97,6 @@ extern dispatch_conf_t dispatch_setings;
 //     }
 // }
 // #endif
-
-void debugSetup()
-{
-    // memset(serialInputBuffer, 0, sizeof(serialInputBuffer));
-    // serialInputIndex = 0;
-    LOG_TRACE(TAG_DEBG, F(D_SERVICE_STARTING)); // Starting console
-    debugConsole.setLineCallback(dispatch_text_line);
-}
 
 void debugStartSyslog()
 {
@@ -293,13 +277,14 @@ void debugPrintSuffix(uint8_t tag, int level, Print* _logOutput)
         _logOutput->println();
 
     if(_logOutput == &Serial) {
-        debugConsole.update();
+        console_update_prompt();
     } else {
         _logOutput->print("hasp > ");
     }
 }
 
-void debugPreSetup(JsonObject settings)
+// Do NOT call Log function before debugSetup is called
+void debugSetup(JsonObject settings)
 {
     Log.begin(LOG_LEVEL_WARNING, true);
     Log.setPrefix(debugPrintPrefix); // Uncomment to get timestamps as prefix
@@ -328,31 +313,13 @@ void debugPreSetup(JsonObject settings)
         debugPrintHaspHeader(&Serial);
         Serial.flush();
 
-        LOG_INFO(TAG_DEBG, F(D_SERVICE_STARTED " @ %u baud"), baudrate);
+        LOG_INFO(TAG_DEBG, F(D_SERVICE_STARTED " @ %u Bps"), baudrate);
         LOG_INFO(TAG_DEBG, F("Environment: " PIOENV));
     }
 }
 
-void debugLoop(void)
-{
-    int16_t keypress;
-    do {
-        switch(keypress = debugConsole.readKey()) {
-
-            case ConsoleInput::KEY_PAGE_UP:
-                dispatch_page_next(LV_SCR_LOAD_ANIM_NONE);
-                break;
-
-            case ConsoleInput::KEY_PAGE_DOWN:
-                dispatch_page_prev(LV_SCR_LOAD_ANIM_NONE);
-                break;
-
-            case(ConsoleInput::KEY_FN)...(ConsoleInput::KEY_FN + 12):
-                dispatch_set_page(keypress - ConsoleInput::KEY_FN, LV_SCR_LOAD_ANIM_NONE);
-                break;
-        }
-    } while(keypress != 0);
-}
+IRAM_ATTR void debugLoop(void)
+{}
 
 void printLocalTime()
 {
@@ -386,7 +353,7 @@ void printLocalTime()
             } else {
                 Serial.printf("%s ", sntp.toString().c_str());
             }
-            Serial.printf("IPv6: %s Reachability: %o\n", sntp.isV6() ? "Yes" : "No", sntp_getreachability(i));
+            Serial.printf("IPv6: %s Reachability: %o\n", sntp.isV6() ? D_YES : D_NO, sntp_getreachability(i));
         }
     }
 #endif

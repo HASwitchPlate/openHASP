@@ -4,8 +4,7 @@
 #ifndef HASP_OBJECT_H
 #define HASP_OBJECT_H
 
-#include <ArduinoJson.h>
-#include "lvgl.h"
+#include "hasplib.h"
 
 const char FP_PAGE[] PROGMEM     = "page";
 const char FP_ID[] PROGMEM       = "id";
@@ -14,68 +13,126 @@ const char FP_OBJID[] PROGMEM    = "objid";
 const char FP_PARENTID[] PROGMEM = "parentid";
 const char FP_GROUPID[] PROGMEM  = "groupid";
 
+typedef struct
+{
+    uint8_t pageid;
+    uint8_t objid;
+    uint16_t interval;
+} hasp_task_user_data_t;
+
+typedef struct
+{
+    lv_obj_t* obj;
+    uint8_t group;
+    int32_t min;
+    int32_t max;
+    int32_t val;
+    bool power;
+} hasp_update_value_t;
+
 enum lv_hasp_obj_type_t {
+    /* Containers */
+    LV_HASP_SCREEN    = 1,
+    LV_HASP_CONTAINER = 2,
+    LV_HASP_WINDOW    = 3, // placeholder
+    LV_HASP_MSGBOX    = 4, // placeholder
+    LV_HASP_TILEVIEW  = 5, // placeholder
+    LV_HASP_TABVIEW   = 6, // placeholder
+    LV_HASP_TAB       = 7, // placeholder
+    LV_HASP_PAGE      = 8, // Obsolete in v8
+
     /* Controls */
-    LV_HASP_OBJECT    = 91, // 10
-    LV_HASP_BUTTON    = 10, // 12
+    LV_HASP_OBJECT    = 11,
+    LV_HASP_BUTTON    = 12,
     LV_HASP_BTNMATRIX = 13,
     LV_HASP_IMGBTN    = 14, // placeholder
-    LV_HASP_CHECKBOX  = 11, // 15
-    LV_HASP_SWITCH    = 40, // 16
-    LV_HASP_SLIDER    = 30, // 17
+    LV_HASP_CHECKBOX  = 15,
+    LV_HASP_SWITCH    = 16,
+    LV_HASP_SLIDER    = 17,
     LV_HASP_TEXTAREA  = 18, // placeholder
     LV_HASP_SPINBOX   = 19, // placeholder
     LV_HASP_CPICKER   = 20,
 
-    /* Selectors */
-    LV_HASP_DROPDOWN = 50,
-    LV_HASP_ROLLER   = 51,
-    LV_HASP_LIST     = 52, // placeholder
-    LV_HASP_TABLE    = 53,
-    LV_HASP_CALENDER = 54,
-
-    /* Containers */
-    LV_HASP_SCREEN    = 1,
-    LV_HASP_CONTAINER = 70,
-    LV_HASP_WINDOW    = 71, // placeholder
-    LV_HASP_MSGBOX    = 72, // placeholder
-    LV_HASP_TILEVIEW  = 73, // placeholder
-    LV_HASP_TABVIEW   = 74, // placeholder
-    LV_HASP_TAB       = 75, // placeholder
-    LV_HASP_PAGE      = 79, // Obsolete in v8
-
     /* Visualizers */
-    LV_HASP_LABEL   = 12, // 30
-    LV_HASP_GAUGE   = 31,
-    LV_HASP_BAR     = 32,
-    LV_HASP_LMETER  = 33,
-    LV_HASP_LED     = 41, // 34
-    LV_HASP_ARC     = 22, // 35
-    LV_HASP_SPINNER = 21, // 36
-    LV_HASP_CHART   = 37,
+    LV_HASP_LABEL     = 21,
+    LV_HASP_GAUGE     = 22,
+    LV_HASP_BAR       = 23,
+    LV_HASP_LINEMETER = 24,
+    LV_HASP_LED       = 25,
+    LV_HASP_ARC       = 26,
+    LV_HASP_SPINNER   = 27,
+    LV_HASP_CHART     = 28,
+
+    /* Selectors */
+    LV_HASP_DROPDOWN = 29,
+    LV_HASP_ROLLER   = 30,
+    LV_HASP_LIST     = 31, // placeholder
+    LV_HASP_TABLE    = 32,
+    LV_HASP_CALENDER = 33,
 
     /* Graphics */
-    LV_HASP_LINE   = 60,
-    LV_HASP_IMAGE  = 61, // placeholder
-    LV_HASP_CANVAS = 62, // placeholder
-    LV_HASP_MASK   = 63, // placeholder
+    LV_HASP_LINE   = 36,
+    LV_HASP_IMAGE  = 37, // placeholder
+    LV_HASP_CANVAS = 38, // placeholder
+    LV_HASP_MASK   = 39, // placeholder
 };
 
 void hasp_new_object(const JsonObject& config, uint8_t& saved_page_id);
 
 lv_obj_t* hasp_find_obj_from_parent_id(lv_obj_t* parent, uint8_t objid);
-// lv_obj_t * hasp_find_obj_from_page_id(uint8_t pageid, uint8_t objid);
-bool hasp_find_id_from_obj(lv_obj_t* obj, uint8_t* pageid, uint8_t* objid);
-// bool check_obj_type_str(const char * lvobjtype, lv_hasp_obj_type_t haspobjtype);
-const char* get_obj_type_name(lv_obj_t* obj);
-bool check_obj_type(lv_obj_t* obj, lv_hasp_obj_type_t haspobjtype);
-void hasp_object_tree(lv_obj_t* parent, uint8_t pageid, uint16_t level);
+lv_obj_t* hasp_find_obj_from_page_id(uint8_t pageid, uint8_t objid);
+bool hasp_find_id_from_obj(const lv_obj_t* obj, uint8_t* pageid, uint8_t* objid);
+
+void hasp_object_tree(const lv_obj_t* parent, uint8_t pageid, uint16_t level);
 
 void object_dispatch_state(uint8_t pageid, uint8_t btnid, const char* payload);
 
-void hasp_process_attribute(uint8_t pageid, uint8_t objid, const char* attr, const char* payload);
+void hasp_process_attribute(uint8_t pageid, uint8_t objid, const char* attr, const char* payload, bool update);
 
-void object_set_normalized_group_value(uint8_t groupid, lv_obj_t* src_obj, int16_t val, int16_t min, int16_t max);
+void object_set_normalized_group_values(hasp_update_value_t& value);
+
+/**
+ * Get the object type name of an object
+ * @param obj an lv_obj_t* of the object to check its type
+ * @return name of the object type
+ * @note
+ */
+inline const char* obj_get_type_name(const lv_obj_t* obj)
+{
+    lv_obj_type_t list;
+    lv_obj_get_type(obj, &list);
+    const char* objtype = list.type[0];
+    return objtype + 3; // skip lv_
+}
+/**
+ * Get the hasp object type of a given LVGL object
+ * @param obj an lv_obj_t* of the object to check its type
+ * @return lv_hasp_obj_type_t
+ * @note
+ */
+inline lv_hasp_obj_type_t obj_get_type(const lv_obj_t* obj)
+{
+    return (lv_hasp_obj_type_t)obj->user_data.objid;
+}
+/**
+ * Check if an lvgl objecttype name corresponds to a given HASP object ID
+ * @param obj an lv_obj_t* of the object to check its type
+ * @param haspobjtype the HASP object ID to check against
+ * @return true or false wether the types match
+ * @note
+ */
+inline bool obj_check_type(const lv_obj_t* obj, lv_hasp_obj_type_t haspobjtype)
+{
+#if 1
+    if(!obj) return false;
+    return obj->user_data.objid == (uint8_t)haspobjtype;
+#else
+    lv_obj_type_t list;
+    lv_obj_get_type(obj, &list);
+    const char* objtype = list.type[0];
+    return obj_check_type(objtype, haspobjtype);
+#endif
+}
 
 #define HASP_OBJ_BAR 1971
 #define HASP_OBJ_BTN 3164
@@ -109,7 +166,9 @@ void object_set_normalized_group_value(uint8_t groupid, lv_obj_t* src_obj, int16
 #define HASP_OBJ_OBJ 53623
 #define HASP_OBJ_OBJMASK 55395
 #define HASP_OBJ_LMETER 62749
+#define HASP_OBJ_LINEMETER 55189
 #define HASP_OBJ_TABVIEW 63226
+#define HASP_OBJ_TAB 7861
 #define HASP_OBJ_ARC 64594
 
 #endif

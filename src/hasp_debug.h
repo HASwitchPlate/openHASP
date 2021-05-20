@@ -14,8 +14,7 @@
 #include "ArduinoLog.h"
 
 /* ===== Default Event Processors ===== */
-void debugPreSetup(JsonObject settings);
-void debugSetup();
+void debugSetup(JsonObject settings);
 
 /* ===== Special Event Processors ===== */
 
@@ -85,6 +84,46 @@ void debugStopSyslog(void);
     std::cout << std::endl;                                                                                            \
     fflush(stdout)
 
+/* json keys used in the configfile */
+// const char FP_CONFIG_STARTPAGE[] PROGMEM = "startpage";
+// const char FP_CONFIG_STARTDIM[] PROGMEM = "startdim";
+// const char FP_CONFIG_THEME[] PROGMEM = "theme";
+// const char FP_CONFIG_HUE[] PROGMEM = "hue";
+// const char FP_CONFIG_ZIFONT[] PROGMEM = "font";
+// const char FP_CONFIG_PAGES[] PROGMEM = "pages";
+// const char FP_CONFIG_ENABLE[] PROGMEM = "enable";
+// const char FP_CONFIG_HOST[] PROGMEM = "host";
+// const char FP_CONFIG_PORT[] PROGMEM = "port";
+// const char FP_CONFIG_NAME[] PROGMEM = "name";
+// const char FP_CONFIG_USER[] PROGMEM = "user";
+// const char FP_CONFIG_PASS[] PROGMEM = "pass";
+// const char FP_CONFIG_SSID[] PROGMEM = "ssid";
+// const char FP_CONFIG_GROUP[] PROGMEM = "group";
+// const char FP_CONFIG_BAUD[] PROGMEM = "baud";
+// const char FP_CONFIG_LOG[] PROGMEM = "log";
+// const char FP_CONFIG_PROTOCOL[] PROGMEM = "proto";
+// const char FP_GUI_ROTATION[] PROGMEM = "rotate";
+// const char FP_GUI_INVERT[] PROGMEM = "invert";
+// const char FP_GUI_TICKPERIOD[] PROGMEM = "tick";
+// const char FP_GUI_IDLEPERIOD1[] PROGMEM = "idle1";
+// const char FP_GUI_IDLEPERIOD2[] PROGMEM = "idle2";
+// const char FP_GUI_CALIBRATION[] PROGMEM = "calibration";
+// const char FP_GUI_BACKLIGHTPIN[] PROGMEM = "bckl";
+// const char FP_GUI_POINTER[] PROGMEM = "cursor";
+// const char FP_DEBUG_TELEPERIOD[] PROGMEM = "tele";
+// const char FP_GPIO_CONFIG[] PROGMEM = "config";
+
+// const char FP_HASP_CONFIG_FILE[] PROGMEM = "/config.json";
+
+// const char FP_WIFI[] PROGMEM = "wifi";
+// const char FP_MQTT[] PROGMEM = "mqtt";
+// const char FP_HTTP[] PROGMEM = "http";
+// const char FP_GPIO[] PROGMEM = "gpio";
+// const char FP_MDNS[] PROGMEM = "mdns";
+// const char FP_HASP[] PROGMEM = "hasp";
+// const char FP_GUI[] PROGMEM = "gui";
+// const char FP_DEBUG[] PROGMEM = "debug";
+
 #endif
 
 #ifdef __cplusplus
@@ -93,7 +132,7 @@ extern "C" {
 
 // Functions used by ANDROID, WINDOWS and POSSIX
 void debugLvglLogEvent(lv_log_level_t level, const char* file, uint32_t line, const char* funcname, const char* descr);
-void debugLoop(void);
+IRAM_ATTR void debugLoop(void);
 void debugEverySecond(void);
 void debugStart(void);
 void debugStop(void);
@@ -123,9 +162,10 @@ enum {
     TAG_EVENT = 8,
 
     TAG_DEBG = 10,
-    TAG_TELN = 11,
-    TAG_SYSL = 12,
-    TAG_TASM = 13,
+    TAG_CONS = 11,
+    TAG_TELN = 12,
+    TAG_SYSL = 13,
+    TAG_TASM = 14,
 
     TAG_CONF = 20,
     TAG_GUI  = 21,

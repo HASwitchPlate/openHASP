@@ -54,12 +54,11 @@ void setup()
      * Read & Apply User Configuration
      ***************************/
 #if HASP_USE_CONFIG > 0
-    configSetup(); // also runs debugPreSetup(), debugSetup() and debugStart()
+    configSetup(); // also runs debugSetup() and debugStart()
 #endif
 
     dispatchSetup();
     guiSetup();
-    debugSetup(); // Init the console
 
 #if HASP_USE_GPIO > 0
     gpioSetup();
@@ -105,7 +104,7 @@ void setup()
 #endif
 
     mainLastLoopTime = millis() - 1000; // reset loop counter
-    delay(250);
+    delay(20);
     guiStart();
 }
 

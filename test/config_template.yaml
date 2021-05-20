@@ -1,11 +1,12 @@
 # Copy and rename this file to config.yaml
+# Enter the connection details for the mqtt test server
 ---
 name: Common test information
 description: Connection information for MQTT Client
 
 variables:
-  host: homeassistant.local
-  username: <mqtt_username>
-  password: <mqtt_password>
+  host:
   port: 1883
-  plate: <platename>
+  username:
+  password:
+  plate:

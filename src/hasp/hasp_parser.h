@@ -4,8 +4,7 @@
 #ifndef HASP_PARSER_H
 #define HASP_PARSER_H
 
-#include "lvgl.h"
-#include "hasp_conf.h"
+#include "hasplib.h"
 
 class Parser {
 

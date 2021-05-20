@@ -4,8 +4,8 @@
 #define D_USERNAME "Utilizador:"
 #define D_PASSWORD "Palavra-passe:"
 #define D_SSID "SSID:"
-#define D_YES "Sim" // new
-#define D_NO "Não" // new
+#define D_YES "Sim"
+#define D_NO "Não"
 
 #define D_ERROR_OUT_OF_MEMORY "Memória Cheia"
 #define D_ERROR_UNKNOWN "Erro desconhecido"
@@ -21,7 +21,13 @@
 #define D_FILE_SAVING "A guardar %s"
 #define D_FILE_SAVED "%s guardado"
 #define D_FILE_SAVE_FAILED "Não foi possível guardar %s"
-#define D_FILE_NOT_FOUND "Ficheiro não encontrado" // new
+#define D_FILE_NOT_FOUND "Ficheiro não encontrado"
+#define D_FILE_SIZE_BYTES "bytes"   // new
+#define D_FILE_SIZE_KILOBYTES "KiB" // new
+#define D_FILE_SIZE_MEGABYTES "MiB" // new
+#define D_FILE_SIZE_GIGABYTES "GiB" // new
+#define D_FILE_SIZE_DIVIDER 1024    // new, kibi or kilo bytes
+#define D_DECIMAL_POINT "."         // new, decimal comma or point
 
 #define D_SERVICE_STARTING "A inicializar..."
 #define D_SERVICE_STARTED "Iniciado"
@@ -31,8 +37,8 @@
 #define D_SERVICE_CONNECTED "Ligado"
 #define D_SERVICE_DISCONNECTED "Desligado"
 
-#define D_SETTING_ENABLED "Ativado"   // New
-#define D_SETTING_DISABLED "Desativado" // New
+#define D_SETTING_ENABLED "Ativado"
+#define D_SETTING_DISABLED "Desativado"
 
 #define D_NETWORK_IP_ADDRESS_RECEIVED "Foi atribuído endereço IP: %s"
 #define D_NETWORK_ONLINE "Online"
@@ -82,6 +88,8 @@
 #define D_ATTRIBUTE_UNKNOWN "Propriedade %s desconhecida"
 #define D_ATTRIBUTE_READ_ONLY "%s é de leitura apenas"
 #define D_ATTRIBUTE_PAGE_METHOD_INVALID "Não foi possível chamar %s numa página"
+#define D_ATTRIBUTE_ALIGN_INVALID "Invalid align property: %s" // new
+#define D_ATTRIBUTE_COLOR_INVALID "Invalid color property: %s" // new
 
 #define D_OOBE_SSID_VALIDATED "SSID %s válido"
 #define D_OOBE_AUTO_CALIBRATE "Auto calibração ativada"
@@ -132,7 +140,7 @@
 #define D_HTTP_MAIN_MENU "Menu Principal"
 #define D_HTTP_REBOOT "Reiniciar"
 #define D_HTTP_CONFIGURATION "Configuração"
-#define D_HTTP_SENDING_PAGE "Foi enviado página %S a %s" // New
+#define D_HTTP_SENDING_PAGE "Foi enviado página %S a %s"
 #define D_HTTP_FOOTER "por Francis Van Roie"
 
 #define D_INFO_VERSION "Versão"
@@ -141,7 +149,7 @@
 #define D_INFO_FREE_HEAP "Heap livre"
 #define D_INFO_FREE_BLOCK "Blocos livres"
 #define D_INFO_DEVICE_MEMORY "Memória do dispositivo"
-#define D_INFO_LVGL_MEMORY "Memoria LVGL"
+#define D_INFO_LVGL_MEMORY "Memória LVGL"
 #define D_INFO_TOTAL_MEMORY "Total"
 #define D_INFO_FREE_MEMORY "Livre"
 #define D_INFO_FRAGMENTATION "Fragmentação"
@@ -186,14 +194,15 @@
 #define D_WIFI_RSSI_WEAK "Fraco"
 #define D_WIFI_RSSI_BAD "Muito baixo"
 
-// new
 #define D_GPIO_SWITCH "Interruptor"
 #define D_GPIO_BUTTON "Botão"
+#define D_GPIO_TOUCH "Capacitive Touch" // new
 #define D_GPIO_LED "LED"
 #define D_GPIO_LED_R "LED Red"
 #define D_GPIO_LED_G "LED Green"
 #define D_GPIO_LED_B "LED Blue"
-#define D_GPIO_RELAY "Relé"
+#define D_GPIO_POWER_RELAY "Power Relé" // new
+#define D_GPIO_LIGHT_RELAY "Light Relé" // new
 #define D_GPIO_PWM "PWM"
 #define D_GPIO_DAC "DAC"
 #define D_GPIO_SERIAL_DIMMER "Dimmer serial"
@@ -201,5 +210,7 @@
 #define D_GPIO_PIN "Pin"
 #define D_GPIO_GROUP "Grupo"
 #define D_GPIO_GROUP_NONE "Nenhum"
+#define D_GPIO_STATE_NORMAL "Normal"     // new
+#define D_GPIO_STATE_INVERTED "Inverted" // new
 
-#endif 
+#endif

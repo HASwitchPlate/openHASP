@@ -14,56 +14,14 @@
 
 void filesystemInfo()
 { // Get all information of your SPIFFS
-#if 0
+#ifdef ESP8266
     FSInfo fs_info;
-    SPIFFS.info(fs_info);
+    HASP_FS.info(fs_info);
+    Log.verbose(TAG_FILE, "Partition size: total: %d, used: %d", fs_info.totalBytes, fs_info.usedBytes);
+#endif
 
-    Serial.println("File system info.");
-
-    Serial.print("Total space:      ");
-    Serial.print(fs_info.totalBytes);
-    Serial.println("byte");
-
-    Serial.print("Total space used: ");
-    Serial.print(fs_info.usedBytes);
-    Serial.println("byte");
-
-    Serial.print("Block size:       ");
-    Serial.print(fs_info.blockSize);
-    Serial.println("byte");
-
-    Serial.print("Page size:        ");
-    Serial.print(fs_info.totalBytes);
-    Serial.println("byte");
-
-    Serial.print("Max open files:   ");
-    Serial.println(fs_info.maxOpenFiles);
-
-    Serial.print("Max path lenght:  ");
-    Serial.println(fs_info.maxPathLength);
-    Serial.println("File sistem info.");
-
-    Serial.print("Total space:      ");
-    Serial.print(SPIFFS.totalBytes());
-    Serial.println("byte");
-
-    Serial.print("Total space used: ");
-    Serial.print(SPIFFS.usedBytes());
-    Serial.println("byte");
-
-    Serial.print("Block size:       ");
-    // Serial.print(SPIFFS);
-    Serial.println("byte");
-
-    Serial.print("Page size:        ");
-    Serial.print(SPIFFS.totalBytes());
-    Serial.println("byte");
-
-    Serial.print("Max open files:   ");
-    // Serial.println(SPIFFS.maxOpenFiles());
-
-    Serial.print("Max path lenght:  ");
-    // Serial.println(SPIFFS.maxPathLength());
+#ifdef ESP32
+    Log.verbose(TAG_FILE, "Partition size: total: %d, used: %d", HASP_FS.totalBytes(), HASP_FS.usedBytes());
 #endif
 }
 
@@ -71,9 +29,9 @@ void filesystemList()
 {
 #if HASP_USE_SPIFFS > 0
 #if defined(ARDUINO_ARCH_ESP8266)
-    if(!SPIFFS.begin()) {
+    if(!HASP_FS.begin()) {
 #else
-    if(!SPIFFS.begin(true)) {
+    if(!HASP_FS.begin(true)) { // default vfs path: /littlefs
 #endif
         LOG_ERROR(TAG_FILE, F("Flash file system not mouted."));
     } else {
@@ -81,7 +39,7 @@ void filesystemList()
         LOG_VERBOSE(TAG_FILE, F("Listing files on the internal flash:"));
 
 #if defined(ARDUINO_ARCH_ESP32)
-        File root = SPIFFS.open("/");
+        File root = HASP_FS.open("/");
         File file = root.openNextFile();
         while(file) {
             LOG_VERBOSE(TAG_FILE, F("   * %s  (%u bytes)"), file.name(), (uint32_t)file.size());
@@ -89,7 +47,7 @@ void filesystemList()
         }
 #endif
 #if defined(ARDUINO_ARCH_ESP8266)
-        Dir dir = SPIFFS.openDir("/");
+        Dir dir = HASP_FS.openDir("/");
         while(dir.next()) {
             LOG_VERBOSE(TAG_FILE, F("   * %s  (%u bytes)"), dir.fileName().c_str(), (uint32_t)dir.fileSize());
         }

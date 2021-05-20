@@ -45,14 +45,14 @@
  * @param light_color light color of the QR code
  * @return pointer to the created QR code object
  */
-lv_obj_t * lv_qrcode_create(lv_obj_t * parent, lv_coord_t size, lv_color_t dark_color, lv_color_t light_color)
+lv_obj_t* lv_qrcode_create(lv_obj_t* parent, lv_coord_t size, lv_color_t dark_color, lv_color_t light_color)
 {
     uint32_t buf_size = LV_CANVAS_BUF_SIZE_INDEXED_1BIT(size, size);
-    uint8_t * buf     = lv_mem_alloc(buf_size);
+    uint8_t* buf      = lv_mem_alloc(buf_size);
     LV_ASSERT_MEM(buf);
     if(buf == NULL) return NULL;
 
-    lv_obj_t * canvas = lv_canvas_create(parent, NULL);
+    lv_obj_t* canvas = lv_canvas_create(parent, NULL);
 
     lv_canvas_set_buffer(canvas, buf, size, size, LV_IMG_CF_INDEXED_1BIT);
     lv_canvas_set_palette(canvas, 0, dark_color);
@@ -90,7 +90,7 @@ lv_obj_t * lv_qrcode_create(lv_obj_t * parent, lv_coord_t size, lv_color_t dark_
  * @param data_len length of data in bytes
  * @return LV_RES_OK: if no error; LV_RES_INV: on error
  */
-lv_res_t lv_qrcode_update(lv_obj_t * qrcode, const void * data, uint32_t data_len)
+lv_res_t lv_qrcode_update(lv_obj_t* qrcode, const void* data, uint32_t data_len)
 {
     lv_color_t c;
     c.full = 1;
@@ -124,7 +124,7 @@ lv_res_t lv_qrcode_update(lv_obj_t * qrcode, const void * data, uint32_t data_le
     return LV_RES_OK;
 }
 
-lv_res_t lv_qrcode_update2(lv_obj_t * qrcode, const void * data, uint32_t data_len)
+lv_res_t lv_qrcode_update2(lv_obj_t* qrcode, const void* data, uint32_t data_len)
 {
     lv_color_t c;
     // c.full = 1;
@@ -143,31 +143,27 @@ lv_res_t lv_qrcode_update2(lv_obj_t * qrcode, const void * data, uint32_t data_l
     if(!ok) return LV_RES_INV;
 
     // lv_coord_t obj_w = lv_obj_get_width(qrcode);
-    int qr_size = qrcodegen_getSize(qr_pixels);
-    int scale   = 1;
-    int scaled  = 0;
-    int margin  = 0;
-    LV_LOG_ERROR("5 OK");
+    // int scale   = 1;
+    // int scaled  = 0;
+    // int qr_size = qrcodegen_getSize(qr_pixels);
+    int margin = 0;
 
-    lv_img_ext_t * ext = (lv_img_ext_t *)lv_obj_get_ext_attr(qrcode);
+    lv_img_ext_t* ext = (lv_img_ext_t*)lv_obj_get_ext_attr(qrcode);
     if(!ext || !ext->src) return LV_RES_INV;
-    LV_LOG_ERROR("6 OK");
 
     lv_img_header_t header;
     lv_img_decoder_get_info(ext->src, &header);
-    LV_LOG_ERROR("7 OK");
 
     lv_img_decoder_dsc_t dec_dsc;
     lv_res_t res = lv_img_decoder_open(&dec_dsc, ext->src, LV_COLOR_CYAN);
-    LV_LOG_ERROR("8 OK");
+    (void)res; // unused
 
     for(int y = 0; y < dec_dsc.header.h; y++) {
         for(int x = 0; x < dec_dsc.header.w; x++) {
             c = qrcodegen_getModule(qr_pixels, x, y) ? LV_COLOR_WHITE : LV_COLOR_BLACK;
-            lv_img_buf_set_px_color(dec_dsc.src, x + margin, y + margin, c);
+            lv_img_buf_set_px_color((lv_img_dsc_t*)dec_dsc.src, x + margin, y + margin, c);
         }
     }
-    LV_LOG_ERROR("9 OK");
 
     return LV_RES_OK;
 }
@@ -176,9 +172,9 @@ lv_res_t lv_qrcode_update2(lv_obj_t * qrcode, const void * data, uint32_t data_l
  * Delete a QR code object
  * @param qrcode pointer to a QR code obejct
  */
-void lv_qrcode_delete(lv_obj_t * qrcode)
+void lv_qrcode_delete(lv_obj_t* qrcode)
 {
-    lv_img_dsc_t * img = lv_canvas_get_img(qrcode);
+    lv_img_dsc_t* img = lv_canvas_get_img(qrcode);
     lv_mem_free(img->data);
     lv_mem_free(img);
     lv_obj_del(qrcode);

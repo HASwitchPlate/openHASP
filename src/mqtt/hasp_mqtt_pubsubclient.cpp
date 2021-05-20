@@ -50,60 +50,35 @@ char mqttNodeTopic[24];
 char mqttGroupTopic[24];
 bool mqttEnabled        = false;
 bool mqttHAautodiscover = true;
+uint32_t mqttPublishCount;
+uint32_t mqttReceiveCount;
+uint32_t mqttFailedCount;
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
-// These defaults may be overwritten with values saved by the web interface
-#ifndef MQTT_HOST
-#define MQTT_HOST "";
-#endif
-
-#ifndef MQTT_PORT
-#define MQTT_PORT 1883;
-#endif
-
-#ifndef MQTT_USER
-#define MQTT_USER "";
-#endif
-
-#ifndef MQTT_PASSW
-#define MQTT_PASSW "";
-#endif
-#ifndef MQTT_NODENAME
-#define MQTT_NODENAME "";
-#endif
-#ifndef MQTT_GROUPNAME
-#define MQTT_GROUPNAME "";
-#endif
-
-#ifndef MQTT_PREFIX
-#define MQTT_PREFIX "hasp"
-#endif
-
-#define LWT_TOPIC "LWT"
-
-// char mqttServer[16]    = MQTT_HOST;
-// char mqttUser[23]      = MQTT_USER;
-// char mqttPassword[32]  = MQTT_PASSW;
-// char mqttGroupName[16] = MQTT_GROUPNAME;
-std::string mqttServer    = MQTT_HOST;
-std::string mqttUser      = MQTT_USER;
-std::string mqttPassword  = MQTT_PASSW;
-std::string mqttGroupName = MQTT_GROUPNAME;
-
-uint16_t mqttPort = MQTT_PORT;
+char mqttServer[16]   = MQTT_HOST;
+char mqttUser[23]     = MQTT_USER;
+char mqttPassword[32] = MQTT_PASSW;
+// char mqttNodeName[16]  = MQTT_NODENAME;
+char mqttGroupName[16] = MQTT_GROUPNAME;
+uint16_t mqttPort      = MQTT_PORT;
 PubSubClient mqttClient(mqttNetworkClient);
 
 int mqttPublish(const char* topic, const char* payload, size_t len, bool retain)
 {
     if(!mqttEnabled) return MQTT_ERR_DISABLED;
-    if(!mqttClient.connected()) return MQTT_ERR_NO_CONN;
+
+    if(!mqttClient.connected()) {
+        mqttFailedCount++;
+        return MQTT_ERR_NO_CONN;
+    }
 
     if(mqttClient.beginPublish(topic, len, retain)) {
+        mqttPublishCount++;
         mqttClient.write((uint8_t*)payload, len);
         mqttClient.endPublish();
         return MQTT_ERR_OK;
     }
 
+    mqttFailedCount++;
     return MQTT_ERR_PUB_FAIL;
 }
 
@@ -125,8 +100,8 @@ bool mqtt_send_lwt(bool online)
     char tmp_payload[8];
     char tmp_topic[strlen(mqttNodeTopic) + 4];
     strncpy(tmp_topic, mqttNodeTopic, sizeof(tmp_topic));
-    strncat_P(tmp_topic, PSTR(LWT_TOPIC), sizeof(tmp_topic));
-    // snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%s" LWT_TOPIC), mqttNodeTopic);
+    strncat_P(tmp_topic, PSTR(MQTT_TOPIC_LWT), sizeof(tmp_topic));
+    // snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%s" MQTT_TOPIC_LWT), mqttNodeTopic);
 
     size_t len = snprintf_P(tmp_payload, sizeof(tmp_payload), online ? PSTR("online") : PSTR("offline"));
     bool res   = mqttPublish(tmp_topic, tmp_payload, len, true);
@@ -137,15 +112,23 @@ bool mqtt_send_lwt(bool online)
 int mqtt_send_object_state(uint8_t pageid, uint8_t btnid, const char* payload)
 {
     char tmp_topic[strlen(mqttNodeTopic) + 16];
-    snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%sstate/" HASP_OBJECT_NOTATION), mqttNodeTopic, pageid, btnid);
+    snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%s" MQTT_TOPIC_STATE "/" HASP_OBJECT_NOTATION), mqttNodeTopic,
+               pageid, btnid);
     return mqttPublish(tmp_topic, payload, false);
 }
 
 int mqtt_send_state(const char* subtopic, const char* payload)
 {
     char tmp_topic[strlen(mqttNodeTopic) + 20];
-    snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%sstate/%s"), mqttNodeTopic, subtopic);
+    snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%s" MQTT_TOPIC_STATE "/%s"), mqttNodeTopic, subtopic);
     return mqttPublish(tmp_topic, payload, false);
+}
+
+int mqtt_send_discovery(const char* payload, size_t len)
+{
+    char tmp_topic[20];
+    snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR(MQTT_PREFIX "/" MQTT_TOPIC_DISCOVERY));
+    return mqttPublish(tmp_topic, payload, len, false);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -153,9 +136,11 @@ int mqtt_send_state(const char* subtopic, const char* payload)
 static void mqtt_message_cb(char* topic, byte* payload, unsigned int length)
 { // Handle incoming commands from MQTT
     if(length + 1 >= mqttClient.getBufferSize()) {
-        LOG_ERROR(TAG_MQTT_RCV, F(D_MQTT_PAYLOAD_TOO_LONG), length);
+        mqttFailedCount++;
+        LOG_ERROR(TAG_MQTT_RCV, F(D_MQTT_PAYLOAD_TOO_LONG), (uint32_t)length);
         return;
     } else {
+        mqttReceiveCount++;
         payload[length] = '\0';
     }
 
@@ -170,8 +155,17 @@ static void mqtt_message_cb(char* topic, byte* payload, unsigned int length)
 
         // Group topic
         topic += strlen(mqttGroupTopic); // shorten topic
-        dispatch_topic_payload(topic, (const char*)payload);
+        dispatch_topic_payload(topic, (const char*)payload, length > 0);
         return;
+
+#ifdef HASP_USE_BROADCAST
+    } else if(topic == strstr_P(topic, PSTR(MQTT_PREFIX "/" MQTT_TOPIC_BROADCAST "/"))) { // broadcast  topic
+
+        // Broadcast topic
+        topic += strlen_P(PSTR(MQTT_PREFIX "/" MQTT_TOPIC_BROADCAST "/")); // shorten topic
+        dispatch_topic_payload(topic, (const char*)payload, length > 0);
+        return;
+#endif
 
 #ifdef HASP_USE_HA
     } else if(topic == strstr_P(topic, PSTR("homeassistant/status"))) { // HA discovery topic
@@ -189,34 +183,36 @@ static void mqtt_message_cb(char* topic, byte* payload, unsigned int length)
     }
 
     // catch a dangling LWT from a previous connection if it appears
-    if(!strcmp_P(topic, PSTR(LWT_TOPIC))) { // endsWith LWT
-        if(!strcasecmp_P((char*)payload, PSTR("offline"))) {
-            {
-                char msg[8];
-                char tmp_topic[strlen(mqttNodeTopic) + 8];
-                snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%s" LWT_TOPIC), mqttNodeTopic);
-                snprintf_P(msg, sizeof(msg), PSTR("online"));
+    /*    if(!strcmp_P(topic, PSTR(MQTT_TOPIC_LWT))) { // endsWith LWT
+            if(!strcasecmp_P((char*)payload, PSTR("offline"))) {
+                {
+                    char msg[8];
+                    char tmp_topic[strlen(mqttNodeTopic) + 8];
+                    snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%s" MQTT_TOPIC_LWT), mqttNodeTopic);
+                    snprintf_P(msg, sizeof(msg), PSTR("online"));
 
-                // /*bool res =*/mqttClient.publish(tmp_topic, msg, true);
-                mqttPublish(tmp_topic, msg, true);
-            }
-
-        } else {
-            // LOG_TRACE(TAG_MQTT, F("ignoring LWT = online"));
-        }
-    } else {
-        dispatch_topic_payload(topic, (const char*)payload);
+                    // bool res =
+                    mqttClient.publish(tmp_topic, msg, true);
+                    mqttPublish(tmp_topic, msg, true);
+                }
+                }
+                else
+                {
+                    // LOG_TRACE(TAG_MQTT, F("ignoring LWT = online"));
+                }
+                }
+                else */
+    {
+        dispatch_topic_payload(topic, (const char*)payload, length > 0);
     }
 }
 
-static void mqttSubscribeTo(const __FlashStringHelper* format, const char* data)
+static void mqttSubscribeTo(const char* topic)
 {
-    char tmp_topic[strlen_P((PGM_P)format) + 2 + strlen(data)];
-    snprintf_P(tmp_topic, sizeof(tmp_topic), (PGM_P)format, data);
-    if(mqttClient.subscribe(tmp_topic)) {
-        LOG_VERBOSE(TAG_MQTT, F(D_BULLET D_MQTT_SUBSCRIBED), tmp_topic);
+    if(mqttClient.subscribe(topic)) {
+        LOG_VERBOSE(TAG_MQTT, F(D_BULLET D_MQTT_SUBSCRIBED), topic);
     } else {
-        LOG_ERROR(TAG_MQTT, F(D_MQTT_NOT_SUBSCRIBED), tmp_topic);
+        LOG_ERROR(TAG_MQTT, F(D_MQTT_NOT_SUBSCRIBED), topic);
     }
 }
 
@@ -228,7 +224,7 @@ void mqttStart()
     static uint8_t mqttReconnectCount = 0;
     //   bool mqttFirstConnect             = true;
 
-    mqttClient.setServer(mqttServer.c_str(), 1883);
+    mqttClient.setServer(mqttServer, 1883);
     // mqttClient.setSocketTimeout(10); //in seconds
 
     /* Construct unique Client ID*/
@@ -241,13 +237,12 @@ void mqttStart()
     }
 
     // Attempt to connect and set LWT and Clean Session
-    snprintf_P(buffer, sizeof(buffer), PSTR("%s" LWT_TOPIC), mqttNodeTopic); // lastWillTopic
-    snprintf_P(lastWillPayload, sizeof(lastWillPayload), PSTR("offline"));   // lastWillPayload
+    snprintf_P(buffer, sizeof(buffer), PSTR("%s" MQTT_TOPIC_LWT), mqttNodeTopic); // lastWillTopic
+    snprintf_P(lastWillPayload, sizeof(lastWillPayload), PSTR("offline"));        // lastWillPayload
 
     haspProgressMsg(F(D_MQTT_CONNECTING));
     haspProgressVal(mqttReconnectCount * 5);
-    if(!mqttClient.connect(mqttClientId, mqttUser.c_str(), mqttPassword.c_str(), buffer, 0, true, lastWillPayload,
-                           true)) {
+    if(!mqttClient.connect(mqttClientId, mqttUser, mqttPassword, buffer, 0, true, lastWillPayload, true)) {
         // Retry until we give up and restart after connectTimeout seconds
         mqttReconnectCount++;
 
@@ -292,19 +287,22 @@ void mqttStart()
         return;
     }
 
-    LOG_INFO(TAG_MQTT, F(D_MQTT_CONNECTED), mqttServer.c_str(), mqttClientId);
+    LOG_INFO(TAG_MQTT, F(D_MQTT_CONNECTED), mqttServer, mqttClientId);
 
     // Subscribe to our incoming topics
-    const __FlashStringHelper* F_topic;
-    F_topic = F("%scommand/#");
-    mqttSubscribeTo(F_topic, mqttGroupTopic);
-    mqttSubscribeTo(F_topic, mqttNodeTopic);
-    F_topic = F("%sconfig/#");
-    mqttSubscribeTo(F_topic, mqttGroupTopic);
-    mqttSubscribeTo(F_topic, mqttNodeTopic);
-    // mqttSubscribeTo(F("%slight/#"), mqttNodeTopic);
-    // mqttSubscribeTo(F("%sbrightness/#"), mqttNodeTopic);
-    // mqttSubscribeTo(F("%s"LWT_TOPIC), mqttNodeTopic);
+    char topic[64];
+    snprintf_P(topic, sizeof(topic), PSTR("%s" MQTT_TOPIC_COMMAND "/#"), mqttGroupTopic);
+    mqttSubscribeTo(topic);
+    snprintf_P(topic, sizeof(topic), PSTR("%s" MQTT_TOPIC_COMMAND "/#"), mqttNodeTopic);
+    mqttSubscribeTo(topic);
+    // F_topic = F("%sconfig/#");
+    // mqttSubscribeTo(F_topic, mqttGroupTopic);
+    // mqttSubscribeTo(F("%s"MQTT_TOPIC_LWT), mqttNodeTopic);
+
+#ifdef HASP_USE_BROADCAST
+    snprintf_P(topic, sizeof(topic), PSTR(MQTT_PREFIX "/" MQTT_TOPIC_BROADCAST "/" MQTT_TOPIC_COMMAND "/#"));
+    mqttSubscribeTo(topic);
+#endif
 
     /* Home Assistant auto-configuration */
 #ifdef HASP_USE_HA
@@ -328,9 +326,9 @@ void mqttStart()
 
 void mqttSetup()
 {
-    mqttEnabled = mqttServer.length() > 0 && mqttPort > 0;
+    mqttEnabled = strlen(mqttServer) > 0 && mqttPort > 0;
     if(mqttEnabled) {
-        mqttClient.setServer(mqttServer.c_str(), mqttPort);
+        mqttClient.setServer(mqttServer, mqttPort);
         mqttClient.setCallback(mqtt_message_cb);
         //  if(!mqttClient.setBufferSize(1024)) {
         //  LOG_ERROR(TAG_MQTT, F("Buffer allocation failed"));
@@ -342,9 +340,10 @@ void mqttSetup()
     }
 }
 
-void mqttLoop(void)
+IRAM_ATTR void mqttLoop(void)
 {
-    if(mqttEnabled) mqttClient.loop();
+    // if(mqttEnabled)
+    mqttClient.loop();
 }
 
 void mqttEvery5Seconds(bool networkIsConnected)
@@ -370,6 +369,33 @@ void mqttStop()
     }
 }
 
+void mqtt_get_info(JsonDocument& doc)
+{
+    char mqttClientId[64];
+    String mac((char*)0);
+    mac.reserve(64);
+
+    JsonObject info          = doc.createNestedObject(F("MQTT"));
+    info[F(D_INFO_SERVER)]   = mqttServer;
+    info[F(D_INFO_USERNAME)] = mqttUser;
+
+    mac = halGetMacAddress(3, "");
+    mac.toLowerCase();
+    snprintf_P(mqttClientId, sizeof(mqttClientId), PSTR("%s-%s"), haspDevice.get_hostname(), mac.c_str());
+    info[F(D_INFO_CLIENTID)] = mqttClientId;
+
+    if(mqttIsConnected()) { // Check MQTT connection
+        info[F(D_INFO_STATUS)] = F(D_INFO_CONNECTED);
+    } else {
+        info[F(D_INFO_STATUS)] = F("<font color='red'><b>" D_INFO_DISCONNECTED "</b></font>, return code: ");
+        //     +String(mqttClient.returnCode());
+    }
+
+    info[F(D_INFO_RECEIVED)]  = mqttReceiveCount;
+    info[F(D_INFO_PUBLISHED)] = mqttPublishCount;
+    info[F(D_INFO_FAILED)]    = mqttFailedCount;
+}
+
 #if HASP_USE_CONFIG > 0
 bool mqttGetConfig(const JsonObject& settings)
 {
@@ -378,19 +404,19 @@ bool mqttGetConfig(const JsonObject& settings)
     if(strcmp(haspDevice.get_hostname(), settings[FPSTR(FP_CONFIG_NAME)].as<String>().c_str()) != 0) changed = true;
     settings[FPSTR(FP_CONFIG_NAME)] = haspDevice.get_hostname();
 
-    if(mqttGroupName != settings[FPSTR(FP_CONFIG_GROUP)].as<std::string>()) changed = true;
+    if(strcmp(mqttGroupName, settings[FPSTR(FP_CONFIG_GROUP)].as<String>().c_str()) != 0) changed = true;
     settings[FPSTR(FP_CONFIG_GROUP)] = mqttGroupName;
 
-    if(mqttServer != settings[FPSTR(FP_CONFIG_HOST)].as<std::string>()) changed = true;
+    if(strcmp(mqttServer, settings[FPSTR(FP_CONFIG_HOST)].as<String>().c_str()) != 0) changed = true;
     settings[FPSTR(FP_CONFIG_HOST)] = mqttServer;
 
     if(mqttPort != settings[FPSTR(FP_CONFIG_PORT)].as<uint16_t>()) changed = true;
     settings[FPSTR(FP_CONFIG_PORT)] = mqttPort;
 
-    if(mqttUser != settings[FPSTR(FP_CONFIG_USER)].as<String>().c_str()) changed = true;
+    if(strcmp(mqttUser, settings[FPSTR(FP_CONFIG_USER)].as<String>().c_str()) != 0) changed = true;
     settings[FPSTR(FP_CONFIG_USER)] = mqttUser;
 
-    if(mqttPassword != settings[FPSTR(FP_CONFIG_PASS)].as<String>().c_str()) changed = true;
+    if(strcmp(mqttPassword, settings[FPSTR(FP_CONFIG_PASS)].as<String>().c_str()) != 0) changed = true;
     settings[FPSTR(FP_CONFIG_PASS)] = mqttPassword;
 
     if(changed) configOutput(settings, TAG_MQTT);
@@ -428,33 +454,33 @@ bool mqttSetConfig(const JsonObject& settings)
     }
 
     if(!settings[FPSTR(FP_CONFIG_GROUP)].isNull()) {
-        changed |= mqttGroupName != settings[FPSTR(FP_CONFIG_GROUP)].as<std::string>();
-        mqttGroupName = settings[FPSTR(FP_CONFIG_GROUP)].as<std::string>();
+        changed |= strcmp(mqttGroupName, settings[FPSTR(FP_CONFIG_GROUP)]) != 0;
+        strncpy(mqttGroupName, settings[FPSTR(FP_CONFIG_GROUP)], sizeof(mqttGroupName));
     }
 
-    if(mqttGroupName.length() == 0) {
-        mqttGroupName = String(F("plates")).c_str();
-        changed       = true;
+    if(strlen(mqttGroupName) == 0) {
+        strcpy_P(mqttGroupName, PSTR("plates"));
+        changed = true;
     }
 
     if(!settings[FPSTR(FP_CONFIG_HOST)].isNull()) {
-        changed |= mqttServer != settings[FPSTR(FP_CONFIG_HOST)].as<std::string>();
-        mqttServer = settings[FPSTR(FP_CONFIG_HOST)].as<std::string>();
+        changed |= strcmp(mqttServer, settings[FPSTR(FP_CONFIG_HOST)]) != 0;
+        strncpy(mqttServer, settings[FPSTR(FP_CONFIG_HOST)], sizeof(mqttServer));
     }
 
     if(!settings[FPSTR(FP_CONFIG_USER)].isNull()) {
-        changed |= mqttUser != settings[FPSTR(FP_CONFIG_USER)].as<std::string>();
-        mqttUser = settings[FPSTR(FP_CONFIG_USER)].as<std::string>();
+        changed |= strcmp(mqttUser, settings[FPSTR(FP_CONFIG_USER)]) != 0;
+        strncpy(mqttUser, settings[FPSTR(FP_CONFIG_USER)], sizeof(mqttUser));
     }
 
     if(!settings[FPSTR(FP_CONFIG_PASS)].isNull() &&
        settings[FPSTR(FP_CONFIG_PASS)].as<String>() != String(FPSTR(D_PASSWORD_MASK))) {
-        changed |= mqttPassword != settings[FPSTR(FP_CONFIG_PASS)].as<std::string>();
-        mqttPassword = settings[FPSTR(FP_CONFIG_PASS)].as<std::string>();
+        changed |= strcmp(mqttPassword, settings[FPSTR(FP_CONFIG_PASS)]) != 0;
+        strncpy(mqttPassword, settings[FPSTR(FP_CONFIG_PASS)], sizeof(mqttPassword));
     }
 
     snprintf_P(mqttNodeTopic, sizeof(mqttNodeTopic), PSTR(MQTT_PREFIX "/%s/"), haspDevice.get_hostname());
-    snprintf_P(mqttGroupTopic, sizeof(mqttGroupTopic), PSTR(MQTT_PREFIX "/%s/"), mqttGroupName.c_str());
+    snprintf_P(mqttGroupTopic, sizeof(mqttGroupTopic), PSTR(MQTT_PREFIX "/%s/"), mqttGroupName);
 
     return changed;
 }

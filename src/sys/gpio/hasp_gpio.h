@@ -4,7 +4,12 @@
 #ifndef HASP_GPIO_H
 #define HASP_GPIO_H
 
-#include "ArduinoJson.h"
+#include "hasplib.h"
+
+#ifdef ARDUINO
+#include "AceButton.h"
+using namespace ace_button;
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -12,27 +17,38 @@ extern "C" {
 
 struct hasp_gpio_config_t
 {
-    uint8_t pin;           // pin number
-    uint8_t group;         // groupid
-    uint8_t type;          // switch, button, ...
-    uint8_t gpio_function; // INPUT, OUTPUT, PULLUP, etc
+    uint8_t pin : 8;           // pin number
+    uint8_t group : 8;         // groupid
+    uint8_t gpio_function : 7; // INPUT, OUTPUT, PULLUP, etc
+    uint8_t inverted : 1;
+    uint8_t channel : 4; // pwmchannel
+    uint8_t power : 1;
+    uint8_t type; // switch, button, ...
     uint16_t val;
+    uint16_t max;
+#ifdef ARDUINO
+    AceButton* btn;
+#endif
 };
 
 void gpioSetup(void);
-void gpioLoop(void);
+IRAM_ATTR void gpioLoop(void);
 void gpioEvery5Seconds(void);
 
-// void gpio_set_group_onoff(uint8_t groupid, bool ison);
-void gpio_set_normalized_group_value(uint8_t groupid, int16_t val, int16_t min, int16_t max);
-// void gpio_set_gpio_state(uint8_t pin, uint16_t state);
-void gpio_get_value(uint8_t pin);
-void gpio_set_value(uint8_t pin, int16_t val);
-void gpio_set_moodlight(uint8_t r, uint8_t g, uint8_t b);
+void gpio_set_normalized_group_values(hasp_update_value_t& value);
+void gpio_output_group_values(uint8_t group);
 
-bool gpioSavePinConfig(uint8_t config_num, uint8_t pin, uint8_t type, uint8_t group, uint8_t pinfunc);
+bool gpio_output_pin_state(uint8_t pin);
+bool gpio_get_pin_state(uint8_t pin, bool& power, int32_t& val);
+bool gpio_set_pin_state(uint8_t pin, bool power, int32_t val);
+
+void gpio_set_moodlight(moodlight_t& moodlight);
+
+void gpio_discovery(JsonObject& input, JsonArray& relay, JsonArray& light, JsonArray& dimmer);
+
+bool gpioSavePinConfig(uint8_t config_num, uint8_t pin, uint8_t type, uint8_t group, uint8_t pinfunc, bool inverted);
 bool gpioIsSystemPin(uint8_t gpio);
-bool gpioInUse(uint8_t gpio);
+bool gpioInUse(uint8_t pin);
 bool gpioConfigInUse(uint8_t num);
 int8_t gpioGetFreeConfigId();
 hasp_gpio_config_t gpioGetPinConfig(uint8_t num);
@@ -42,48 +58,89 @@ bool gpioGetConfig(const JsonObject& settings);
 bool gpioSetConfig(const JsonObject& settings);
 #endif
 
-#define HASP_GPIO_FREE 0x00
-#define HASP_GPIO_USED 0x01
-#define HASP_GPIO_SWITCH 0x02 // User Inputs
-#define HASP_GPIO_SWITCH_INVERTED 0x03
-#define HASP_GPIO_BUTTON 0x04
-#define HASP_GPIO_BUTTON_INVERTED 0x05
-#define HASP_GPIO_TOUCH 0x06
-#define HASP_GPIO_TOUCH_INVERTED 0x07
-#define HASP_GPIO_COUNTER_RISE 0x10 // User Counters
-#define HASP_GPIO_COUNTER_RISE_INVERTED 0x11
-#define HASP_GPIO_COUNTER_FALL 0x12
-#define HASP_GPIO_COUNTER_FALL_INVERTED 0x13
-#define HASP_GPIO_COUNTER_BOTH 0x14
-#define HASP_GPIO_COUNTER_BOTH_INVERTED 0x15
-#define HASP_GPIO_RELAY 0x20 // User Outputs
-#define HASP_GPIO_RELAY_INVERTED 0x21
-#define HASP_GPIO_LED 0x22
-#define HASP_GPIO_LED_INVERTED 0x23
-#define HASP_GPIO_LED_R 0x24
-#define HASP_GPIO_LED_R_INVERTED 0x25
-#define HASP_GPIO_LED_G 0x26
-#define HASP_GPIO_LED_G_INVERTED 0x27
-#define HASP_GPIO_LED_B 0x28
-#define HASP_GPIO_LED_B_INVERTED 0x29
-#define HASP_GPIO_LED_W 0x2A
-#define HASP_GPIO_LED_W_INVERTED 0x2B
-#define HASP_GPIO_LED_WW 0x2C
-#define HASP_GPIO_LED_WW_INVERTED 0x2D
-#define HASP_GPIO_LED_CW 0x2E
-#define HASP_GPIO_LED_CW_INVERTED 0x2F
-#define HASP_GPIO_BUZZER 0x30
-#define HASP_GPIO_BUZZER_INVERTED 0x31
-#define HASP_GPIO_HAPTIC 0x32
-#define HASP_GPIO_HAPTIC_INVERTED 0x33
-#define HASP_GPIO_PWM 0x40
-#define HASP_GPIO_PWM_INVERTED 0x41
-#define HASP_GPIO_DAC 0x50
-#define HASP_GPIO_DAC_INVERTED 0x51
-#define HASP_GPIO_ADC 0x52
-#define HASP_GPIO_ADC_INVERTED 0x53
-#define HASP_GPIO_SERIAL_DIMMER 0x60
-#define HASP_GPIO_USER 0xFF
+enum hasp_gpio_function_t {
+    OUTPUT_PIN        = 1,
+    INTERNAL_PULLUP   = 2,
+    INTERNAL_PULLDOWN = 3,
+    EXTERNAL_PULLUP   = 4,
+    EXTERNAL_PULLDOWN = 5
+};
+
+enum hasp_gpio_type_t {
+    FREE = 0x00,
+    USED = 0x01,
+
+    /* Outputs */
+    LED              = 0x02,
+    LED_R            = 0x03,
+    LED_G            = 0x04,
+    LED_B            = 0x05,
+    LED_CW           = 0x06,
+    LED_WW           = 0x07,
+    LED_W            = 0x08,
+    LIGHT_RELAY      = 0x0A,
+    POWER_RELAY      = 0x0B,
+    SHUTTER_RELAY    = 0x0C,
+    SHUTTER_OPEN     = 0x1A,
+    SHUTTER_CLOSE    = 0x1B,
+    BACKLIGHT        = 0x20,
+    PWM              = 0x21,
+    DAC              = 0x22,
+    SERIAL_DIMMER    = 0x30,
+    SERIAL_DIMMER_EU = 0x31,
+    SERIAL_DIMMER_AU = 0x32,
+    BUZZER           = 0x40,
+    HAPTIC           = 0x41,
+
+    /* Inputs */
+    SWITCH           = 0xA0, // Binary Sensors
+    BATTERY          = 0xA1,
+    BATTERY_CHARGING = 0xA2,
+    COLD             = 0xA3,
+    CONNECTIVITY     = 0xA4,
+    DOOR             = 0xA5,
+    GARAGE_DOOR      = 0xA6,
+    GAS              = 0xA7,
+    HEAT             = 0xA8,
+    LIGHT            = 0xA9,
+    LOCK             = 0xAA,
+    MOISTURE         = 0xAB,
+    MOTION           = 0xAC,
+    MOVING           = 0xAD,
+    OCCUPANCY        = 0xAE,
+    OPENING          = 0xAF,
+    PLUG             = 0xB0,
+    POWER            = 0xB1,
+    PRESENCE         = 0xB2,
+    PROBLEM          = 0xB3,
+    SAFETY           = 0xB4,
+    SMOKE            = 0xB5,
+    SOUND            = 0xB6,
+    VIBRATION        = 0xB7,
+    WINDOW           = 0xB8,
+
+    AWNING  = 0xB9,
+    BLIND   = 0xBA,
+    CURTAIN = 0xBB,
+    DAMPER  = 0xBC,
+    GATE    = 0xBD,
+    SHADE   = 0xBE,
+    SHUTTER = 0xBF,
+
+    BUTTON             = 0xF0,
+    BUTTON_TOGGLE_ON   = 0xF1,
+    BUTTON_TOGGLE_OFF  = 0xF2,
+    BUTTON_TOGGLE_BOTH = 0xF3,
+    TOUCH              = 0xF4,
+
+    ADC = 0xF9,
+
+    COUNTER_RISE = 0xFA, // User Counters
+    COUNTER_FALL = 0xFB,
+    COUNTER_BOTH = 0xFC,
+
+    USER = 0xFF
+};
 
 #ifdef __cplusplus
 } /* extern "C" */

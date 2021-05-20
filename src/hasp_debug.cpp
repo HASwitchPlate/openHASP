@@ -1,15 +1,12 @@
 /* MIT License - Copyright (c) 2019-2021 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
-#include "ArduinoJson.h"
-#include "lvgl.h"
+#include "hasplib.h"
 #include <sys/time.h>
 
 #include "lang/lang.h"
-#include "hasp_conf.h"
 #include "hasp_debug.h"
 #include "hasp_macro.h"
-#include "hasp/hasp.h"
 
 #if(!defined(WINDOWS)) && (!defined(POSIX))
 #include "ArduinoLog.h"
@@ -40,6 +37,7 @@ inline void debugSendAnsiCode(const __FlashStringHelper* code, Print* _logOutput
 #endif
 }
 
+/*
 void debug_timestamp()
 {
     timeval curTime;
@@ -51,7 +49,7 @@ void debug_timestamp()
     // strftime(currentTime, 80, "%Y-%m-%d %H:%M.%S", localtime(&t));
     strftime(currentTime, 80, "%H:%M:%S", localtime(&t));
     printf("[%s.%03d] ", currentTime, milli);
-}
+} */
 
 static void debugPrintTimestamp(int level, Print* _logOutput)
 { /* Print Current Time */
@@ -60,35 +58,34 @@ static void debugPrintTimestamp(int level, Print* _logOutput)
     int rslt     = gettimeofday(&curTime, NULL);
     time_t t     = curTime.tv_sec;
     tm* timeinfo = localtime(&t);
-    int milli    = curTime.tv_usec / 1000;
+    (void)rslt; // unused
 
     debugSendAnsiCode(F(TERM_COLOR_CYAN), _logOutput);
 
     if(timeinfo->tm_year >= 120) {
+        unsigned long int milli = curTime.tv_usec / 1000;
         char buffer[24];
-        strftime(buffer, sizeof(buffer), "[%b %d %H:%M:%S", timeinfo); // Literal String
-        // strftime(buffer, sizeof(buffer), "[%H:%M:%S.", timeinfo); // Literal String
+        // strftime(buffer, sizeof(buffer), "[%b %d %H:%M:%S", timeinfo); // Literal String
+        strftime(buffer, sizeof(buffer), "[" D_TIMESTAMP, timeinfo); // Literal String
 
 #ifdef ARDUINO
-        _logOutput->printf(PSTR("%s.%03lu]"), buffer, curTime.tv_usec / 1000);
+        _logOutput->printf(PSTR("%s.%03lu]"), buffer, milli);
 #else
-        debug_print(_logOutput, PSTR("%s.%03lu]"), buffer, curTime.tv_usec / 1000);
+        debug_print(_logOutput, PSTR("%s.%03lu]"), buffer, milli);
 #endif
 
     } else {
 
         uint32_t msecs = millis();
 #ifdef ARDUINO
-        _logOutput->printf(PSTR("[%15d.%03d]"), msecs / 1000, msecs % 1000);
+        _logOutput->printf(PSTR("[" D_TIME_MILLIS ".%03d]"), msecs / 1000, msecs % 1000);
 #else
-        debug_print(_logOutput, PSTR("[%15d.%03d]"), msecs / 1000, msecs % 1000);
+        debug_print(_logOutput, PSTR("[" D_TIME_MILLIS ".%03d]"), msecs / 1000, msecs % 1000);
 #endif
     }
 }
 
 /* ===== Default Event Processors ===== */
-// void debugPreSetup(JsonObject settings);
-// void debugSetup();
 
 static inline void debug_flush()
 {
@@ -104,7 +101,7 @@ static inline void debug_flush()
 void debugEverySecond()
 {
     // if(debugTelePeriod > 0 && (millis() - debugLastMillis) >= debugTelePeriod * 1000) {
-    //     dispatch_output_statusupdate(NULL, NULL);
+    //     dispatch_statusupdate(NULL, NULL);
     //     debugLastMillis = millis();
     // }
     // printLocalTime();
@@ -123,7 +120,7 @@ void debugStart()
 #endif
 
     if(debugSerialStarted) {
-        debug_flush;
+        debug_flush();
 
         // Serial.println();
         // Serial.println(debugHaspHeader());
@@ -180,22 +177,29 @@ void debugLvglLogEvent(lv_log_level_t level, const char* file, uint32_t line, co
 // Send the HASP header and version to the output device specified
 void debugPrintHaspHeader(Print* output)
 {
-    // if(debugAnsiCodes) debug_print(output,TERM_COLOR_YELLOW);
-
-    // debug_newline(output);
-    // debug_print(output, F(""
-    //                       "           _____ _____ _____ _____\r\n"
-    //                       "          |  |  |  _  |   __|  _  |\r\n"
-    //                       "          |     |     |__   |   __|\r\n"
-    //                       "          |__|__|__|__|_____|__|\r\n"
-    //                       "        Home Automation Switch Plate\r\n"
-    //                       "        Open Hardware edition v"));
-    char buffer[32];
-    haspGetVersion(buffer, sizeof(buffer));
 #ifdef ARDUINO
-    output->println(buffer);
+    if(debugAnsiCodes) output->print(TERM_COLOR_YELLOW);
+    output->println();
+    output->print(F("\r\n"
+                    "        open____ _____ _____ _____\r\n"
+                    "          |  |  |  _  |   __|  _  |\r\n"
+                    "          |     |     |__   |   __|\r\n"
+                    "          |__|__|__|__|_____|__|\r\n"
+                    "        Home Automation Switch Plate\r\n"
+                    "        Open Hardware edition v"));
+    output->println(haspDevice.get_version());
+    output->println();
 #else
-    debug_print(output, buffer);
+    if(debugAnsiCodes) debug_print(output, TERM_COLOR_YELLOW);
+    debug_print(output, F("\r\n"
+                          "        open____ _____ _____ _____\r\n"
+                          "          |  |  |  _  |   __|  _  |\r\n"
+                          "          |     |     |__   |   __|\r\n"
+                          "          |__|__|__|__|_____|__|\r\n"
+                          "        Home Automation Switch Plate\r\n"
+                          "        Open Hardware edition v"));
+    debug_print(output, haspDevice.get_version());
+    debug_newline(output);
     debug_newline(output);
 #endif
 }
@@ -234,6 +238,9 @@ void debug_get_tag(uint8_t tag, char* buffer)
             memcpy_P(buffer, PSTR("HAL "), 5);
             break;
 
+        case TAG_CONS:
+            memcpy_P(buffer, PSTR("CONS"), 5);
+            break;
         case TAG_DEBG:
             memcpy_P(buffer, PSTR("DBUG"), 5);
             break;
@@ -337,8 +344,6 @@ static void debugPrintLvglMemory(int level, Print* _logOutput)
 #if LV_MEM_CUSTOM == 0
     lv_mem_monitor_t mem_mon;
     lv_mem_monitor(&mem_mon);
-
-    if(mem_mon.frag_pct > 20) lv_mem_defrag(); // prevents LED shadow crashing
 
     /* Print LVGL Memory Info */
     if(debugAnsiCodes) {

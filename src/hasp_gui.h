@@ -4,8 +4,7 @@
 #ifndef HASP_GUI_H
 #define HASP_GUI_H
 
-#include "ArduinoJson.h"
-#include "lvgl.h"
+#include "hasplib.h"
 
 struct gui_conf_t
 {
@@ -18,7 +17,7 @@ struct gui_conf_t
 
 /* ===== Default Event Processors ===== */
 void guiSetup(void);
-void guiLoop(void);
+IRAM_ATTR void guiLoop(void);
 void guiEverySecond(void);
 void guiStart(void);
 void guiStop(void);

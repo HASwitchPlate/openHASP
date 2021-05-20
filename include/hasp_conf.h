@@ -43,6 +43,10 @@
 #define HASP_USE_MQTT (HASP_HAS_NETWORK)
 #endif
 
+#ifndef HASP_USE_BROADCAST
+#define HASP_USE_BROADCAST 1
+#endif
+
 #ifndef MQTT_NODENAME
 #define MQTT_NODENAME "plate"
 #endif
@@ -61,6 +65,10 @@
 
 #ifndef HASP_USE_TELNET
 #define HASP_USE_TELNET 0
+#endif
+
+#ifndef HASP_USE_CONSOLE
+#define HASP_USE_CONSOLE 1
 #endif
 
 /* Filesystem */
@@ -100,10 +108,6 @@
 
 #ifndef HASP_NUM_GPIO_CONFIG
 #define HASP_NUM_GPIO_CONFIG 8
-#endif
-
-#ifndef HASP_NUM_INPUTS
-#define HASP_NUM_INPUTS 4 // Number of ACE Buttons
 #endif
 
 // #ifndef HASP_NUM_OUTPUTS
@@ -217,6 +221,10 @@ static WiFiSpiClass WiFi;
 #include "sys/svc/hasp_http.h"
 #endif
 
+#if HASP_USE_CONSOLE > 0
+#include "sys/svc/hasp_console.h"
+#endif
+
 #if HASP_USE_TELNET > 0
 #include "sys/svc/hasp_telnet.h"
 #endif
@@ -238,6 +246,14 @@ static WiFiSpiClass WiFi;
 
 #if HASP_USE_TASMOTA_CLIENT > 0
 #include "sys/svc/hasp_slave.h"
+#endif
+
+#ifndef HASP_ATTRIBUTE_FAST_MEM
+#define HASP_ATTRIBUTE_FAST_MEM
+#endif
+
+#ifndef IRAM_ATTR
+#define IRAM_ATTR
 #endif
 
 #ifndef FPSTR
@@ -283,6 +299,7 @@ static WiFiSpiClass WiFi;
 #define memcpy_P memcpy
 #define strcasecmp_P strcasecmp
 #define strcmp_P strcmp
+#define strcpy_P strcpy
 #define strstr_P strstr
 #define halRestartMcu()
 #define millis SDL_GetTicks

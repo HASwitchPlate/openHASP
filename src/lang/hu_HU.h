@@ -4,6 +4,8 @@
 #define D_USERNAME "Felhasználónév:"
 #define D_PASSWORD "Jelszó:"
 #define D_SSID "SSID:"
+#define D_YES "Igen"
+#define D_NO "Nem"
 
 #define D_ERROR_OUT_OF_MEMORY "Elfogyott a memória"
 #define D_ERROR_UNKNOWN "Ismeretlen hiba"
@@ -15,10 +17,16 @@
 #define D_FILE_LOADING "%s betöltése"
 #define D_FILE_LOADED "%s betöltve"
 #define D_FILE_LOAD_FAILED "%s betöltése nem sikerült"
-
+#define D_FILE_NOT_FOUND "File not found" // new
 #define D_FILE_SAVING "%s mentése"
 #define D_FILE_SAVED "%s mentve"
 #define D_FILE_SAVE_FAILED "%s mentése meghiúsult"
+#define D_FILE_SIZE_BYTES "bytes"   // new
+#define D_FILE_SIZE_KILOBYTES "KiB" // new
+#define D_FILE_SIZE_MEGABYTES "MiB" // new
+#define D_FILE_SIZE_GIGABYTES "GiB" // new
+#define D_FILE_SIZE_DIVIDER 1024    // new, kibi or kilo bytes
+#define D_DECIMAL_POINT ","         // new, decimal comma or point
 
 #define D_SERVICE_STARTING "Indítás..."
 #define D_SERVICE_STARTED "Elindítva"
@@ -27,6 +35,9 @@
 #define D_SERVICE_DISABLED "Tiltva"
 #define D_SERVICE_CONNECTED "Csatlakoztatva"
 #define D_SERVICE_DISCONNECTED "Szétkapcsolva"
+
+#define D_SETTING_ENABLED "Engedélyezve"
+#define D_SETTING_DISABLED "Letiltva"
 
 #define D_NETWORK_IP_ADDRESS_RECEIVED "Beállított IP-cím: %s"
 #define D_NETWORK_ONLINE "online"
@@ -47,7 +58,7 @@
 #define D_MQTT_SUBSCRIBED "Feliratkozva: %s"
 #define D_MQTT_NOT_SUBSCRIBED "Nem sikerült feliratkozni: %s"
 #define D_MQTT_HA_AUTO_DISCOVERY "Regisztrálás HA automatikus felfedezésre"
-#define D_MQTT_PAYLOAD_TOO_LONG "$$$Payload too long (%d bytes)"
+#define D_MQTT_PAYLOAD_TOO_LONG "Túl hosszú payload (%u bájt)"
 
 #define D_TELNET_CLOSING_CONNECTION "Munkamenet befejezése %s-el"
 #define D_TELNET_CLIENT_LOGIN_FROM "Kliens bejelentkezés innen: %s"
@@ -58,7 +69,6 @@
 #define D_TELNET_STARTED "Telnet konzol elindítva"
 #define D_TELNET_FAILED "Telnet konzol elindítása meghiúsult"
 #define D_TELNET_CLIENT_CONNECTED "Kliens csatlakozva"
-#define D_TELNET_CLIENT_NOT_CONNECTED "Kliens NEM csatlakozik"
 #define D_TELNET_CLIENT_REJECTED "Kliens elutasítva"
 
 #define D_HASP_INVALID_PAGE "Érvénytelen oldal: %u"
@@ -77,6 +87,8 @@
 #define D_ATTRIBUTE_UNKNOWN "Ismeretlen tulajdonság: %s"
 #define D_ATTRIBUTE_READ_ONLY "%s csak olvasható"
 #define D_ATTRIBUTE_PAGE_METHOD_INVALID "Nem lehet meghívni %s-t egy oldalon"
+#define D_ATTRIBUTE_ALIGN_INVALID "Invalid align property: %s" // new
+#define D_ATTRIBUTE_COLOR_INVALID "Invalid color property: %s" // new
 
 #define D_OOBE_SSID_VALIDATED "%s SSID érvényes"
 #define D_OOBE_AUTO_CALIBRATE "Automatikus kalibrálás engedélyezve"
@@ -87,7 +99,7 @@
 #define D_DISPATCH_REBOOT "Az MCU most újraindul!"
 
 #define D_JSON_FAILED "JSON elemzése nem sikerült:"
-#define D_JSONL_FAILED "JSONL elemzése meghiúsult a %d vonalnál"
+#define D_JSONL_FAILED "JSONL elemzése meghiúsult a %u vonalnál"
 #define D_JSONL_SUCCEEDED "JSONL teljes körűen elemezve"
 
 #define D_OTA_CHECK_UPDATE "A frissítések ellenőrzése az URL-en: %s"
@@ -97,6 +109,8 @@
 #define D_OTA_UPDATE_COMPLETE "Az OTA frissítés elkészült"
 #define D_OTA_UPDATE_APPLY "Firmware alkalmazása és újraindítás"
 #define D_OTA_UPDATE_FAILED "Az OTA frissítés meghiúsult"
+#define D_OTA_UPDATING_FIRMWARE "Firmware frissítés..."
+#define D_OTA_UPDATING_FILESYSTEM "Fájlrendszer frissítés..."
 
 #define D_HTTP_HASP_DESIGN "Képernyő dizájn"
 #define D_HTTP_INFORMATION "Információk"
@@ -118,18 +132,85 @@
 #define D_HTTP_NEXT_PAGE "Következő oldal"
 #define D_HTTP_CALIBRATE "Kalibrálás"
 #define D_HTTP_SCREENSHOT "Képernyőkép"
-#define D_HTTP_FILE_BROWSER "Fájl böngésző"
+#define D_HTTP_FILE_BROWSER "Fájlkezelő"
 #define D_HTTP_FIRMWARE_UPGRADE "Firmware frissítés"
 #define D_HTTP_UPDATE_FIRMWARE "Firmware frissítése"
 #define D_HTTP_FACTORY_RESET "Gyári beállítások visszaállítása"
 #define D_HTTP_MAIN_MENU "Főmenü"
 #define D_HTTP_REBOOT "Újraindítás"
 #define D_HTTP_CONFIGURATION "Beállítások"
+#define D_HTTP_SENDING_PAGE "%S oldal küldése %s-re"
+#define D_HTTP_FOOTER "készítette: Francis Van Roie"
+
+#define D_INFO_VERSION "Verziószám"
+#define D_INFO_BUILD_DATETIME "Build időpontja"
+#define D_INFO_UPTIME "Uptime"
+#define D_INFO_FREE_HEAP "Szabad Heap"
+#define D_INFO_FREE_BLOCK "Szabad Blokk"
+#define D_INFO_DEVICE_MEMORY "Eszköz Memória"
+#define D_INFO_LVGL_MEMORY "LVGL Memória"
+#define D_INFO_TOTAL_MEMORY "Összesen"
+#define D_INFO_FREE_MEMORY "Szabad"
+#define D_INFO_FRAGMENTATION "Fragmentáció"
+#define D_INFO_PSRAM_FREE "PSRam szabad"
+#define D_INFO_PSRAM_SIZE "PSRam méret"
+#define D_INFO_FLASH_SIZE "Flash méret"
+#define D_INFO_SKETCH_USED "Program használatban"
+#define D_INFO_SKETCH_FREE "Program szabad"
+#define D_INFO_MODULE "Modul"
+#define D_INFO_MODEL "Modell"
+#define D_INFO_FREQUENCY "Frekvencia"
+#define D_INFO_CORE_VERSION "Core Verzió"
+#define D_INFO_RESET_REASON "Újraindulás oka"
+#define D_INFO_STATUS "Státusz"
+#define D_INFO_SERVER "Szerver"
+#define D_INFO_USERNAME "Felhasználónév"
+#define D_INFO_CLIENTID "Kliens ID"
+#define D_INFO_CONNECTED "Csatlakoztatva"
+#define D_INFO_DISCONNECTED "Szétkapcsolva"
+#define D_INFO_RECEIVED "Fogadott"
+#define D_INFO_PUBLISHED "Küldött"
+#define D_INFO_FAILED "Sikertelen"
+#define D_INFO_ETHERNET "Ethernet"
+#define D_INFO_WIFI "WiFi"
+#define D_INFO_LINK_SPEED "Linksebesség"
+#define D_INFO_FULL_DUPLEX "Full Duplex" // new
+#define D_INFO_SSID "SSID"
+#define D_INFO_RSSI "Jelerősség"
+#define D_INFO_IP_ADDRESS "IP cím"
+#define D_INFO_MAC_ADDRESS "MAC cím"
+#define D_INFO_GATEWAY "Átjáró"
+#define D_INFO_DNS_SERVER "DNS szerver"
 
 #define D_OOBE_MSG "Koppintson a képernyőre a WiFi beállításához, vagy csatlakozzon az alábbi Access Point-hoz:"
 #define D_OOBE_SCAN_TO_CONNECT "Szkennelje le a csatlakozáshoz:"
 
-#define D_WIFI_CONNECTING_TO "$$$Connecting to %s"
-#define D_WIFI_CONNECTED_TO "$$$Connected to %s, requesting IP..."
+#define D_WIFI_CONNECTING_TO "Csatlakozás %s-hez"
+#define D_WIFI_CONNECTED_TO "Csatlakozva %s-hez, IP cím kérése..."
+#define D_WIFI_RSSI_EXCELLENT "Kiváló"
+#define D_WIFI_RSSI_GOOD "Jó"
+#define D_WIFI_RSSI_FAIR "Elfogadható"
+#define D_WIFI_RSSI_WEAK "Gyenge"
+#define D_WIFI_RSSI_BAD "Rossz"
+
+// new
+#define D_GPIO_SWITCH "Switch"
+#define D_GPIO_BUTTON "Button"
+#define D_GPIO_TOUCH "Capacitive Touch" // new
+#define D_GPIO_LED "Led"
+#define D_GPIO_LED_R "Mood Red"
+#define D_GPIO_LED_G "Mood Green"
+#define D_GPIO_LED_B "Mood Blue"
+#define D_GPIO_POWER_RELAY "Power Relay" // new
+#define D_GPIO_LIGHT_RELAY "Light Relay" // new
+#define D_GPIO_PWM "PWM"
+#define D_GPIO_DAC "DAC"
+#define D_GPIO_SERIAL_DIMMER "Serial Dimmer"
+#define D_GPIO_UNKNOWN "Unknown"
+#define D_GPIO_PIN "Pin"
+#define D_GPIO_GROUP "Group"
+#define D_GPIO_GROUP_NONE "None"
+#define D_GPIO_STATE_NORMAL "Normal"     // new
+#define D_GPIO_STATE_INVERTED "Inverted" // new
 
 #endif

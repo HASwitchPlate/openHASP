@@ -26,11 +26,13 @@ stages:
       topic: hasp/{plate}/state/page
       payload: "1"
       timeout: 1
+    delay_after: 0.02
 
   - name: Clear page
     mqtt_publish:
       topic: hasp/{plate}/command/clearpage
       payload: ""
+    delay_after: 0.02
 
   - name: Create object
     mqtt_publish:
@@ -38,12 +40,13 @@ stages:
       json:
         objid: 12
         id: 1
+    delay_after: 0.02
 
   - name: Set x
     mqtt_publish:
       topic: hasp/{plate}/command
       payload: "p1b1.x=50"
-
+    delay_after: 0.02
   - name: Get x
     mqtt_publish:
       topic: hasp/{plate}/command
@@ -71,7 +74,7 @@ stages:
     mqtt_publish:
       topic: hasp/{plate}/command
       payload: "p1b1.y=50"
-
+    delay_after: 0.02
   - name: Get y
     mqtt_publish:
       topic: hasp/{plate}/command
@@ -85,7 +88,7 @@ stages:
     mqtt_publish:
       topic: hasp/{plate}/command
       payload: "p1b1.y=25"
-
+    delay_after: 0.02
   - name: Get y
     mqtt_publish:
       topic: hasp/{plate}/command
@@ -100,7 +103,7 @@ stages:
     mqtt_publish:
       topic: hasp/{plate}/command
       payload: "p1b1.w=50"
-
+    delay_after: 0.02
   - name: Get w
     mqtt_publish:
       topic: hasp/{plate}/command
@@ -128,7 +131,7 @@ stages:
     mqtt_publish:
       topic: hasp/{plate}/command
       payload: "p1b1.h=50"
-
+    delay_after: 0.02
   - name: Get h
     mqtt_publish:
       topic: hasp/{plate}/command
@@ -142,7 +145,7 @@ stages:
     mqtt_publish:
       topic: hasp/{plate}/command
       payload: "p1b1.h=25"
-
+    delay_after: 0.02
   - name: Get h
     mqtt_publish:
       topic: hasp/{plate}/command
@@ -157,7 +160,7 @@ stages:
     mqtt_publish:
       topic: hasp/{plate}/command
       payload: "p1b1.mode=crop"
-
+    delay_after: 0.02
   - name: Get mode
     mqtt_publish:
       topic: hasp/{plate}/command
@@ -167,7 +170,7 @@ stages:
     mqtt_publish:
       topic: hasp/{plate}/command
       payload: "p1b1.w=50"
-
+    delay_after: 0.02
   - name: Get w
     mqtt_publish:
       topic: hasp/{plate}/command
@@ -195,7 +198,7 @@ stages:
     mqtt_publish:
       topic: hasp/{plate}/command
       payload: "p1b1.h=50"
-
+    delay_after: 0.02
   - name: Get h
     mqtt_publish:
       topic: hasp/{plate}/command
@@ -209,7 +212,7 @@ stages:
     mqtt_publish:
       topic: hasp/{plate}/command
       payload: "p1b1.h=45"
-
+    delay_after: 0.02
   - name: Get h
     mqtt_publish:
       topic: hasp/{plate}/command
@@ -224,7 +227,7 @@ stages:
     mqtt_publish:
       topic: hasp/{plate}/command
       payload: "p1b1.enabled=0"
-
+    delay_after: 0.02
   - name: Get enabled
     mqtt_publish:
       topic: hasp/{plate}/command
@@ -238,7 +241,7 @@ stages:
     mqtt_publish:
       topic: hasp/{plate}/command
       payload: "p1b1.enabled=1"
-
+    delay_after: 0.02
   - name: Get enabled
     mqtt_publish:
       topic: hasp/{plate}/command
@@ -253,7 +256,7 @@ stages:
     mqtt_publish:
       topic: hasp/{plate}/command
       payload: "p1b1.hidden=1"
-
+    delay_after: 0.02
   - name: Get hidden
     mqtt_publish:
       topic: hasp/{plate}/command
@@ -277,7 +280,7 @@ stages:
     mqtt_publish:
       topic: hasp/{plate}/command
       payload: "p1b1.hidden=0"
-
+    delay_after: 0.02
   - name: Get hidden
     mqtt_publish:
       topic: hasp/{plate}/command
@@ -301,7 +304,7 @@ stages:
     mqtt_publish:
       topic: hasp/{plate}/command
       payload: "p1b1.vis=0"
-
+    delay_after: 0.02
   - name: Get hidden
     mqtt_publish:
       topic: hasp/{plate}/command
@@ -325,7 +328,7 @@ stages:
     mqtt_publish:
       topic: hasp/{plate}/command
       payload: "p1b1.vis=1"
-
+    delay_after: 0.02
   - name: Get hidden
     mqtt_publish:
       topic: hasp/{plate}/command
@@ -343,70 +346,4 @@ stages:
       topic: hasp/{plate}/state/p1b1
       json:
         vis: 1
-      timeout: 1
-
----
-test_name: Value String Loop
-
-includes:
-  - !include config.yaml
-
-paho-mqtt:
-  client:
-    transport: tcp
-    client_id: tavern-tester
-  connect:
-    host: "{host}"
-    port: !int "{port:d}"
-    timeout: 3
-  auth:
-    username: "{username}"
-    password: "{password}"
-
-marks:
-  - parametrize:
-      key: str1
-      vals:
-        - "Test 123456 longer strings work too"
-        - "The cat stretched."
-        - "Jacob stood on his tiptoes."
-        - "The car turned the corner."
-        - "Kelly twirled in circles."
-        - "She opened the door."
-        - "Aaron made a picture."
-        - "I'm sorry."
-        - huey
-        - dewey
-        - ""
-
-  - parametrize:
-      key: str2
-      vals:
-        - louie
-        - " I danced."
-        - " Oak is strong and also gives shade."
-        - " Cats and dogs each hate the other."
-        - " The pipe began to rust while new."
-        - " Open the crate but don't break the glass."
-        - " Add the sum to the product of these three."
-        - " Thieves who rob friends deserve jail."
-        - " The ripe taste of cheese improves with age."
-        - " Act on these orders with great speed."
-        - " The hog crawled under the high fence."
-        - " Move the vat over the hot fire."
-        - ""
-
-stages:
-  - name: Set value_str
-    mqtt_publish:
-      topic: "hasp/{plate}/command/p1b1.value_str"
-      payload: "{str1}{str2}"
-  - name: Get value_str
-    mqtt_publish:
-      topic: hasp/{plate}/command
-      payload: "p1b1.value_str"
-    mqtt_response:
-      topic: hasp/{plate}/state/p1b1
-      json:
-        value_str: "{str1}{str2}"
       timeout: 1

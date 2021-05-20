@@ -55,9 +55,9 @@ enum zifont_codepage_t8_t { ASCII = 0x01, ISO_8859_1 = 0x03, UTF_8 = 0x18 };
 /**********************
  *  STATIC PROTOTYPES
  **********************/
-const uint8_t* IRAM_ATTR lv_font_get_bitmap_fmt_zifont(const lv_font_t* font, uint32_t unicode_letter);
-bool IRAM_ATTR lv_font_get_glyph_dsc_fmt_zifont(const lv_font_t* font, lv_font_glyph_dsc_t* dsc_out,
-                                                uint32_t unicode_letter, uint32_t unicode_letter_next);
+HASP_ATTRIBUTE_FAST_MEM const uint8_t* lv_font_get_bitmap_fmt_zifont(const lv_font_t* font, uint32_t unicode_letter);
+HASP_ATTRIBUTE_FAST_MEM bool lv_font_get_glyph_dsc_fmt_zifont(const lv_font_t* font, lv_font_glyph_dsc_t* dsc_out,
+                                                              uint32_t unicode_letter, uint32_t unicode_letter_next);
 
 /**********************
  *  STATIC VARIABLES
@@ -83,8 +83,8 @@ static uint8_t* charBitmap_p;
  *   GLOBAL FUNCTIONS
  **********************/
 
-static void IRAM_ATTR blackAdd(uint8_t* charBitmap_p, uint16_t pos);
-static void IRAM_ATTR colorsAdd(uint8_t* charBitmap_p, uint8_t color1, uint16_t pos);
+HASP_ATTRIBUTE_FAST_MEM static void blackAdd(uint8_t* charBitmap_p, uint16_t pos);
+HASP_ATTRIBUTE_FAST_MEM static void colorsAdd(uint8_t* charBitmap_p, uint8_t color1, uint16_t pos);
 // static uint16_t unicode2codepoint(uint32_t unicode, uint8_t codepage);
 // static void printBuffer(uint8_t * charBitmap_p, uint8_t w, uint8_t h);
 
@@ -282,7 +282,7 @@ int lv_zifont_font_init(lv_font_t** font, const char* font_path, uint16_t size)
  * @param unicode_letter an unicode letter which bitmap should be get
  * @return pointer to the bitmap or NULL if not found
  */
-const uint8_t* IRAM_ATTR lv_font_get_bitmap_fmt_zifont(const lv_font_t* font, uint32_t unicode_letter)
+HASP_ATTRIBUTE_FAST_MEM const uint8_t* lv_font_get_bitmap_fmt_zifont(const lv_font_t* font, uint32_t unicode_letter)
 {
     /* Bitmap still in buffer */
     if(charInBuffer == unicode_letter && charBitmap_p) {
@@ -469,8 +469,8 @@ const uint8_t* IRAM_ATTR lv_font_get_bitmap_fmt_zifont(const lv_font_t* font, ui
  * @return true: descriptor is successfully loaded into `dsc_out`.
  *         false: the letter was not found, no data is loaded to `dsc_out`
  */
-bool IRAM_ATTR lv_font_get_glyph_dsc_fmt_zifont(const lv_font_t* font, lv_font_glyph_dsc_t* dsc_out,
-                                                uint32_t unicode_letter, uint32_t unicode_letter_next)
+HASP_ATTRIBUTE_FAST_MEM bool lv_font_get_glyph_dsc_fmt_zifont(const lv_font_t* font, lv_font_glyph_dsc_t* dsc_out,
+                                                              uint32_t unicode_letter, uint32_t unicode_letter_next)
 {
     /* Only ascii characteres supported for now */
     // returning true with a box_h of 0 does not display an error
@@ -564,7 +564,7 @@ bool IRAM_ATTR lv_font_get_glyph_dsc_fmt_zifont(const lv_font_t* font, lv_font_g
     return true;
 }
 
-static void IRAM_ATTR blackAdd(uint8_t* charBitmap_p, uint16_t pos)
+HASP_ATTRIBUTE_FAST_MEM static void blackAdd(uint8_t* charBitmap_p, uint16_t pos)
 {
     uint8_t col    = pos & 0x0001; // remainder
     uint16_t map_p = pos >> 1;     // devide by 2
@@ -576,7 +576,7 @@ static void IRAM_ATTR blackAdd(uint8_t* charBitmap_p, uint16_t pos)
     }
 }
 
-static inline void IRAM_ATTR colorsAdd(uint8_t* charBitmap_p, uint8_t color1, uint16_t pos)
+HASP_ATTRIBUTE_FAST_MEM static inline void colorsAdd(uint8_t* charBitmap_p, uint8_t color1, uint16_t pos)
 {
     uint32_t col   = pos & 0x0001; // remainder
     uint32_t map_p = pos >> 1;     // devide by 2

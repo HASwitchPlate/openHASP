@@ -1,7 +1,3 @@
-#ifdef USE_CONFIG_OVERRIDE
-#include "user_config_override.h"
-#endif
-
 #include "lv_conf_v7.h"
 #define LV_THEME_DEFAULT_FLAGS LV_THEME_DEFAULT_FLAG
 

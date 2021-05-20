@@ -22,8 +22,12 @@
  *
  ******************************************************************************************** */
 
-#include "hasp_conf.h"
+#include <time.h>
+#include <sys/time.h>
+
 #include "hasplib.h"
+
+#include "lv_core/lv_obj.h" // for tabview ext
 
 static lv_style_int_t last_value_sent;
 static lv_color_t last_color_sent;
@@ -36,23 +40,117 @@ void swipe_event_handler(lv_obj_t* obj, lv_event_t event);
  */
 static void event_delete_object(lv_obj_t* obj)
 {
-    switch(obj->user_data.objid) {
+    switch(obj_get_type(obj)) {
         case LV_HASP_LINE:
             line_clear_points(obj);
             break;
 
         case LV_HASP_BTNMATRIX:
             my_btnmatrix_map_clear(obj);
-            _LV_WIN_PART_REAL_LAST;
-            _LV_WIN_PART_VIRTUAL_LAST;
+            break;
+
+        case LV_HASP_MSGBOX:
+            my_msgbox_map_clear(obj);
+            break;
+
+        case LV_HASP_IMAGE:
+            lv_img_cache_invalidate_src(NULL);
             break;
 
         case LV_HASP_GAUGE:
             break;
+
+        default:
+            break;
     }
 
     // TODO: delete value_str data for ALL parts
-    my_obj_set_value_str_txt(obj, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, NULL);
+    my_obj_set_value_str_text(obj, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, NULL);
+}
+
+/* ============================== Timer Event  ============================ */
+void event_timer_calendar(lv_task_t* task)
+{
+    hasp_task_user_data_t* data = (hasp_task_user_data_t*)task->user_data;
+    lv_obj_t* obj               = NULL;
+
+    if(data) obj = hasp_find_obj_from_page_id(data->pageid, data->objid);
+    if(!obj || !data || !obj_check_type(obj, LV_HASP_CALENDER)) {
+        if(data) lv_mem_free(data); // the object that the user_data points to is gone
+        lv_task_del(task);          // the calendar object for this task was deleted
+        LOG_WARNING(TAG_EVENT, "event_timer_calendar could not find the linked object");
+        return;
+    }
+
+    lv_calendar_date_t date;
+
+    timeval curTime;
+    int rslt     = gettimeofday(&curTime, NULL);
+    time_t t     = curTime.tv_sec;
+    tm* timeinfo = localtime(&t);
+    (void)rslt; // unused
+
+    if(timeinfo->tm_year < 120) {
+        lv_task_set_period(task, 60000); // try again in a minute
+        LOG_WARNING(TAG_EVENT, "event_timer_calendar could not sync the clock");
+        return;
+    } else {
+        uint32_t next_hour = (3600 - (t % 3600)) * 1000; // ms to next top of hour
+        // lv_task_set_period(task, next_hour + 128);       // small offset so all tasks don't run at once
+        lv_task_set_period(task, data->interval);
+    }
+
+    date.day   = timeinfo->tm_mday;
+    date.month = timeinfo->tm_mon + 1;     // months since January 0-11
+    date.year  = timeinfo->tm_year + 1900; // years since 1900
+
+    LOG_VERBOSE(TAG_EVENT, "event_timer_calendar called with user %d:%d:%d", timeinfo->tm_hour, timeinfo->tm_min,
+                timeinfo->tm_sec);
+
+    lv_calendar_set_today_date(obj, &date);
+}
+
+void event_timer_clock(lv_task_t* task)
+{
+    hasp_task_user_data_t* data = (hasp_task_user_data_t*)task->user_data;
+    lv_obj_t* obj;
+
+    if(data) obj = hasp_find_obj_from_page_id(data->pageid, data->objid);
+    if(!obj || !data) {
+        if(data) lv_mem_free(data); // the object that the user_data points to is gone
+        lv_task_del(task);          // the calendar object for this task was deleted
+        LOG_WARNING(TAG_EVENT, "event_timer_clock could not find the linked object");
+        return;
+    }
+
+    timeval curTime;
+    int rslt       = gettimeofday(&curTime, NULL);
+    time_t seconds = curTime.tv_sec;
+    tm* timeinfo   = localtime(&seconds);
+    (void)rslt; // unused
+
+    char buffer[24] = {0};
+    if(timeinfo->tm_year < 120) {
+        snprintf_P(buffer, sizeof(buffer), PSTR("%d"), seconds);
+    } else {
+        strftime(buffer, sizeof(buffer), D_TIMESTAMP, timeinfo); // Literal String
+    }
+
+    // LOG_VERBOSE(TAG_EVENT, "event_timer_clock called with user %d:%d:%d", timeinfo->tm_hour, timeinfo->tm_min,
+    //             timeinfo->tm_sec);
+
+    lv_label_set_text(obj, buffer);
+    lv_task_set_period(task, data->interval);
+}
+
+/* ============================== Timer Event  ============================ */
+void event_timer_refresh(lv_task_t* task)
+{
+    lv_obj_t* obj = (lv_obj_t*)task->user_data;
+    printf("event_timer_refresh called with user data\n");
+    if(!obj) return;
+
+    lv_obj_invalidate(obj);
 }
 
 /* ============================== Event Senders ============================ */
@@ -104,7 +202,7 @@ static bool translate_event(lv_obj_t* obj, lv_event_t event, uint8_t& eventid)
 
 // ##################### Value Senders ########################################################
 
-void event_send_object_data(lv_obj_t* obj, const char* data)
+static void event_send_object_data(lv_obj_t* obj, const char* data)
 {
     uint8_t pageid;
     uint8_t objid;
@@ -118,7 +216,7 @@ void event_send_object_data(lv_obj_t* obj, const char* data)
 }
 
 // Send out events with a val attribute
-void event_object_val_event(lv_obj_t* obj, uint8_t eventid, int16_t val)
+static void event_object_val_event(lv_obj_t* obj, uint8_t eventid, int16_t val)
 {
     char data[40];
     char eventname[8];
@@ -129,7 +227,7 @@ void event_object_val_event(lv_obj_t* obj, uint8_t eventid, int16_t val)
 }
 
 // Send out events with a val and text attribute
-void event_object_selection_changed(lv_obj_t* obj, uint8_t eventid, int16_t val, const char* text)
+static void event_object_selection_changed(lv_obj_t* obj, uint8_t eventid, int16_t val, const char* text)
 {
     char data[200];
     char eventname[8];
@@ -141,24 +239,32 @@ void event_object_selection_changed(lv_obj_t* obj, uint8_t eventid, int16_t val,
 
 // ##################### Event Handlers ########################################################
 
-#if HASP_USE_GPIO > 0
-void event_gpio_input(uint8_t pin, uint8_t group, uint8_t eventid)
+static inline void event_update_group(uint8_t group, lv_obj_t* obj, bool power, int32_t val, int32_t min, int32_t max)
 {
-    char payload[64];
-    char topic[8];
+    hasp_update_value_t value = {.obj = obj, .group = group, .min = min, .max = max, .val = val, .power = power};
+    dispatch_normalized_group_values(value);
+}
+
+#if HASP_USE_GPIO > 0
+void event_gpio_input(uint8_t pin, uint8_t eventid)
+{
+    char payload[32];
+    char topic[10];
     char eventname[8];
-    Parser::get_event_name(eventid, eventname, sizeof(eventname));
-    snprintf_P(payload, sizeof(payload), PSTR("{\"pin\":%d,\"group\":%d,\"event\":\"%s\"}"), pin, group, eventname);
 
-    memcpy_P(topic, PSTR("input"), 6);
+    snprintf_P(topic, sizeof(topic), PSTR("input%d"), pin);
+    if(eventid == HASP_EVENT_ON || eventid == HASP_EVENT_OFF) {
+        Parser::get_event_name(HASP_EVENT_CHANGED, eventname, sizeof(eventname));
+        snprintf_P(payload, sizeof(payload), PSTR("{\"event\":\"%s\",\"val\":%d}"), eventname, eventid);
+    } else {
+        Parser::get_event_name(eventid, eventname, sizeof(eventname));
+        snprintf_P(payload, sizeof(payload), PSTR("{\"event\":\"%s\"}"), eventname);
+    }
     dispatch_state_subtopic(topic, payload);
-
-    // update outputstates
-    // dispatch_group_onoff(group, Parser::get_event_state(eventid), NULL);
 }
 #endif
 
-void log_event(const char* name, lv_event_t event)
+static void log_event(const char* name, lv_event_t event)
 {
     return;
 
@@ -252,7 +358,7 @@ void swipe_event_handler(lv_obj_t* obj, lv_event_t event)
             default:
                 return;
         }
-        dispatch_output_current_page();
+        dispatch_current_page();
     }
 }
 
@@ -338,7 +444,7 @@ void generic_event_handler(lv_obj_t* obj, lv_event_t event)
                 default:
                     haspPages.set(obj->user_data.actionid, transitionid);
             }
-            dispatch_output_current_page();
+            dispatch_current_page();
         }
     } else {
         char data[40];
@@ -347,8 +453,12 @@ void generic_event_handler(lv_obj_t* obj, lv_event_t event)
         snprintf_P(data, sizeof(data), PSTR("{\"event\":\"%s\"}"), eventname);
         event_send_object_data(obj, data);
     }
-    dispatch_normalized_group_value(obj->user_data.groupid, obj, Parser::get_event_state(last_value_sent),
-                                    HASP_EVENT_OFF, HASP_EVENT_ON);
+
+    // Update group objects and gpios on release
+    if(last_value_sent != LV_EVENT_LONG_PRESSED || last_value_sent != LV_EVENT_LONG_PRESSED_REPEAT) {
+        bool state = Parser::get_event_state(last_value_sent);
+        event_update_group(obj->user_data.groupid, obj, state, state, HASP_EVENT_OFF, HASP_EVENT_ON);
+    }
 }
 
 /**
@@ -387,7 +497,12 @@ void toggle_event_handler(lv_obj_t* obj, lv_event_t event)
     }
 
     event_object_val_event(obj, hasp_event_id, last_value_sent);
-    dispatch_normalized_group_value(obj->user_data.groupid, obj, last_value_sent, HASP_EVENT_OFF, HASP_EVENT_ON);
+
+    // Update group objects and gpios on release
+    if(obj->user_data.groupid && hasp_event_id == HASP_EVENT_UP) {
+        event_update_group(obj->user_data.groupid, obj, last_value_sent, last_value_sent, HASP_EVENT_OFF,
+                           HASP_EVENT_ON);
+    }
 }
 
 /**
@@ -422,6 +537,15 @@ void selector_event_handler(lv_obj_t* obj, lv_event_t event)
             lv_roller_get_selected_str(obj, buffer, sizeof(buffer));
             break;
 
+        case LV_HASP_TABVIEW: {
+            val = lv_tabview_get_tab_act(obj);
+            max = lv_tabview_get_tab_count(obj) - 1;
+
+            lv_tabview_ext_t* ext = (lv_tabview_ext_t*)lv_obj_get_ext_attr(obj);
+            strcpy(buffer, ext->tab_name_ptr[val]);
+            break;
+        }
+
         case LV_HASP_TABLE: {
             uint16_t row;
             uint16_t col;
@@ -442,7 +566,11 @@ void selector_event_handler(lv_obj_t* obj, lv_event_t event)
     if(hasp_event_id == HASP_EVENT_CHANGED && last_value_sent == val) return; // same value as before
     last_value_sent = val;
     event_object_selection_changed(obj, hasp_event_id, val, buffer);
-    // if(max > 0) dispatch_normalized_group_value(obj->user_data.groupid, obj, val, 0, max);
+
+    if(obj->user_data.groupid && max > 0) // max a cannot be 0, its the divider
+        if(hasp_event_id == HASP_EVENT_UP || hasp_event_id == LV_EVENT_VALUE_CHANGED) {
+            event_update_group(obj->user_data.groupid, obj, !!last_value_sent, last_value_sent, 0, max);
+        }
 
     // set the property
     // snprintf_P(property, sizeof(property), PSTR("val\":%d,\"text"), val);
@@ -463,9 +591,7 @@ void btnmatrix_event_handler(lv_obj_t* obj, lv_event_t event)
 
     /* Get the new value */
     char buffer[128];
-    char property[36];
     uint16_t val = 0;
-    uint16_t max = 0;
 
     val = lv_btnmatrix_get_active_btn(obj);
     if(val != LV_BTNMATRIX_BTN_NONE) {
@@ -479,11 +605,43 @@ void btnmatrix_event_handler(lv_obj_t* obj, lv_event_t event)
 
     last_value_sent = val;
     event_object_selection_changed(obj, hasp_event_id, val, buffer);
-    // if(max > 0) dispatch_normalized_group_value(obj->user_data.groupid, obj, val, 0, max);
 
-    // set the property
-    // snprintf_P(property, sizeof(property), PSTR("val\":%d,\"text"), val);
-    // attr_out_str(obj, property, buffer);
+    // if(max > 0) // max a cannot be 0, its the divider
+    //     if(hasp_event_id == HASP_EVENT_UP || hasp_event_id == LV_EVENT_VALUE_CHANGED) {
+    //         event_update_group(obj->user_data.groupid, obj, last_value_sent, 0, max);
+    //     }
+}
+
+/**
+ * Called when a msgbox value has changed
+ * @param obj pointer to a dropdown list or roller
+ * @param event type of event that occured
+ */
+void msgbox_event_handler(lv_obj_t* obj, lv_event_t event)
+{
+    log_event("msgbox", event);
+
+    uint8_t hasp_event_id;
+    if(!translate_event(obj, event, hasp_event_id)) return; // Use LV_EVENT_VALUE_CHANGED
+
+    /* Get the new value */
+    char buffer[128];
+    uint16_t val = 0;
+
+    val = lv_msgbox_get_active_btn(obj);
+    if(val != LV_BTNMATRIX_BTN_NONE) {
+        const char* txt = lv_msgbox_get_active_btn_text(obj);
+        strncpy(buffer, txt, sizeof(buffer));
+        if(hasp_event_id == HASP_EVENT_UP || hasp_event_id == HASP_EVENT_RELEASE) lv_msgbox_start_auto_close(obj, 0);
+    } else {
+        buffer[0] = 0; // empty string
+    }
+
+    if(hasp_event_id == HASP_EVENT_CHANGED && last_value_sent == val) return; // same value as before
+
+    last_value_sent = val;
+    event_object_selection_changed(obj, hasp_event_id, val, buffer);
+    // if(max > 0) event_update_group(obj->user_data.groupid, obj, val, 0, max);
 }
 
 /**
@@ -521,7 +679,9 @@ void slider_event_handler(lv_obj_t* obj, lv_event_t event)
 
     last_value_sent = val;
     event_object_val_event(obj, hasp_event_id, val);
-    dispatch_normalized_group_value(obj->user_data.groupid, obj, val, min, max);
+
+    if(obj->user_data.groupid && (hasp_event_id == HASP_EVENT_CHANGED || hasp_event_id == HASP_EVENT_UP) && min != max)
+        event_update_group(obj->user_data.groupid, obj, !!val, val, min, max);
 }
 
 /**
@@ -553,16 +713,37 @@ void cpicker_event_handler(lv_obj_t* obj, lv_event_t event)
                eventname, c32.ch.red, c32.ch.green, c32.ch.blue, c32.ch.red, c32.ch.green, c32.ch.blue);
     event_send_object_data(obj, data);
 
-    // dispatch_normalized_group_value(obj->user_data.groupid, obj, val, min, max);
+    // event_update_group(obj->user_data.groupid, obj, val, min, max);
 }
 
-/**
- * Called when an object is deleted
- * @param obj pointer to a generic object
- * @param event type of event that occured
- */
-void deleted_event_handler(lv_obj_t* obj, lv_event_t event)
+void calendar_event_handler(lv_obj_t* obj, lv_event_t event)
 {
+    log_event("calendar", event);
+
     uint8_t hasp_event_id;
-    translate_event(obj, event, hasp_event_id);
+    if(event != LV_EVENT_PRESSED && event != LV_EVENT_RELEASED && event != LV_EVENT_VALUE_CHANGED) return;
+    if(!translate_event(obj, event, hasp_event_id)) return; // Use LV_EVENT_VALUE_CHANGED
+
+    /* Get the new value */
+    lv_calendar_date_t* date;
+    if(hasp_event_id == HASP_EVENT_CHANGED)
+        date = lv_calendar_get_pressed_date(obj); // pressed date
+    else
+        date = lv_calendar_get_showed_date(obj); // current month
+    if(!date) return;
+
+    lv_style_int_t val = date->day + date->month * 31;
+    if(hasp_event_id == HASP_EVENT_CHANGED && last_value_sent == val) return; // same value as before
+
+    char data[100];
+    char eventname[8];
+    Parser::get_event_name(hasp_event_id, eventname, sizeof(eventname));
+
+    last_value_sent = val;
+
+    snprintf_P(data, sizeof(data), PSTR("{\"event\":\"%s\",\"val\":\"%d\",\"text\":\"%04d-%02d-%02dT00:00:00Z\"}"),
+               eventname, date->day, date->year, date->month, date->day);
+    event_send_object_data(obj, data);
+
+    // event_update_group(obj->user_data.groupid, obj, val, min, max);
 }

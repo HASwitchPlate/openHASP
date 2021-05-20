@@ -1,11 +1,10 @@
 /* MIT License - Copyright (c) 2019-2021 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
-#include "hasp_conf.h"
+#include "hasplib.h"
 
 #if HASP_USE_TELNET > 0
 
-#include "ArduinoJson.h"
 #include "ConsoleInput.h"
 
 #include "hasp_debug.h"
@@ -45,8 +44,8 @@ void telnetClientDisconnect()
     LOG_TRACE(TAG_TELN, F(D_TELNET_CLOSING_CONNECTION), telnetClient.remoteIP().toString().c_str());
     telnetLoginState   = TELNET_UNAUTHENTICATED;
     telnetLoginAttempt = 0; // Initial attempt
-    // delete telnetConsole;
-    // telnetConsole = NULL;
+    delete telnetConsole;
+    telnetConsole = NULL;
     telnetClient.stop();
 }
 
@@ -182,7 +181,7 @@ static inline void telnetProcessCharacter(char ch)
 
 #endif
 
-static inline void telnetProcessLine(const char* input)
+static void telnetProcessLine(const char* input)
 {
     switch(telnetLoginState) {
         case TELNET_UNAUTHENTICATED: {
@@ -216,11 +215,16 @@ static inline void telnetProcessLine(const char* input)
             break;
         }
         default:
-            if(strcasecmp_P(input, PSTR("exit")) == 0) {
+            if(strcasecmp_P(input, PSTR("exit")) == 0 || strcasecmp_P(input, PSTR("quit")) == 0 ||
+               strcasecmp_P(input, PSTR("bye")) == 0) {
                 telnetClientDisconnect();
             } else if(strcasecmp_P(input, PSTR("logoff")) == 0) {
-                telnetClient.println(F("\r\n" D_USERNAME " "));
-                telnetLoginState = TELNET_UNAUTHENTICATED;
+                if(strcmp(input, http_config.password) == 0) {
+                    telnetClient.println(F("\r\n" D_USERNAME " "));
+                    telnetLoginState = TELNET_UNAUTHENTICATED;
+                } else {
+                    telnetClientDisconnect();
+                }
             } else {
                 dispatch_text_line(input);
             }
@@ -246,20 +250,21 @@ void telnetSetup()
             telnetServer->setNoDelay(true);
             telnetServer->begin();
 
-            telnetConsole = new ConsoleInput(&telnetClient, HASP_CONSOLE_BUFFER);
-            if(telnetConsole != NULL) {
-                telnetConsole->setLineCallback(telnetProcessLine);
-                LOG_INFO(TAG_TELN, F(D_TELNET_STARTED));
-                return;
-            }
+            // telnetConsole = new ConsoleInput(&telnetClient, HASP_CONSOLE_BUFFER);
+            // if(telnetConsole != NULL) {
+            //     telnetConsole->setLineCallback(telnetProcessLine);
+            //     LOG_INFO(TAG_TELN, F(D_TELNET_STARTED));
+            //     return;
+            // }
+            LOG_INFO(TAG_TELN, F(D_TELNET_STARTED));
+        } else {
+            LOG_ERROR(TAG_TELN, F(D_TELNET_FAILED));
         }
-
-        LOG_ERROR(TAG_TELN, F(D_TELNET_FAILED));
 #endif
     }
 }
 
-void telnetLoop()
+IRAM_ATTR void telnetLoop()
 {
     // Basic telnet client handling code from: https://gist.github.com/tablatronix/4793677ca748f5f584c95ec4a2b10303
 
@@ -291,6 +296,31 @@ void telnetLoop()
         }
     }
 #else
+
+    /* Active Client: Process user input */
+    if(telnetClient.connected()) {
+        if(telnetConsole) {
+            int16_t keypress = telnetConsole->readKey();
+        } else {
+            telnetConsole = new ConsoleInput(&telnetClient, HASP_CONSOLE_BUFFER);
+            if(telnetConsole) {
+                telnetConsole->setLineCallback(telnetProcessLine);
+            } else {
+                telnetClientDisconnect();
+                LOG_ERROR(TAG_TELN, F(D_TELNET_FAILED));
+            }
+        }
+    }
+
+#endif
+}
+
+void telnetEverySecond(void)
+{
+    if(!telnetClient.connected() && telnetLoginState != TELNET_UNAUTHENTICATED) {
+        telnetClientDisconnect(); // active client disconnected
+    }
+
     if(telnetServer && telnetServer->hasClient()) { // a new client has connected
         if(!telnetClient.connected()) {             // nobody is already connected
             telnetAcceptClient();                   // allow the new client
@@ -298,22 +328,7 @@ void telnetLoop()
             LOG_WARNING(TAG_TELN, F(D_TELNET_CLIENT_REJECTED));
             telnetServer->available().stop(); // already have a client, block new connections
         }
-    } else {
-        if(!telnetClient.connected() && telnetLoginState != TELNET_UNAUTHENTICATED) {
-            telnetClientDisconnect(); // active client disconnected
-        } else {
-
-            /* Active Client: Process user input */
-            if(telnetConsole && telnetClient.connected()) {
-                int16_t keypress = telnetConsole->readKey();
-                switch(keypress) {
-                    case ConsoleInput::KEY_PAUSE:
-                        break;
-                }
-            }
-        }
     }
-#endif
 }
 
 #if HASP_USE_CONFIG > 0

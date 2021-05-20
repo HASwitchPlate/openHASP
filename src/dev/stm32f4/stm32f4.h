@@ -30,6 +30,7 @@ class Stm32f4Device : public BaseDevice {
     void set_hostname(const char*);
     const char* get_core_version();
     const char* get_chip_model();
+    const char* get_chip_hardware_id();
 
     void set_backlight_pin(uint8_t pin) override;
     void set_backlight_level(uint8_t val) override;
@@ -46,6 +47,7 @@ class Stm32f4Device : public BaseDevice {
 
   private:
     std::string _hostname;
+    std::string _hardware_id;
 
     uint8_t _backlight_pin;
     uint8_t _backlight_level;

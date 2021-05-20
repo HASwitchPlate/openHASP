@@ -4,12 +4,18 @@
 #ifndef HASP_DISPATCH_H
 #define HASP_DISPATCH_H
 
-#include "ArduinoJson.h"
-#include "lvgl.h"
+#include "hasplib.h"
 
 struct dispatch_conf_t
 {
     uint16_t teleperiod;
+};
+
+struct moodlight_t
+{
+    uint8_t brightness;
+    uint8_t power;
+    uint8_t rgbww[5];
 };
 
 enum hasp_event_t { // even = released, odd = pressed
@@ -23,18 +29,24 @@ enum hasp_event_t { // even = released, odd = pressed
     HASP_EVENT_LOST    = 7,
     HASP_EVENT_DOUBLE  = 8,
 
+    HASP_EVENT_OPEN    = 10,
+    HASP_EVENT_OPENING = 11,
+    HASP_EVENT_CLOSED  = 12,
+    HASP_EVENT_CLOSING = 13,
+    HASP_EVENT_STOP    = 14,
+
     HASP_EVENT_CHANGED = 32
 };
 
 /* ===== Default Event Processors ===== */
 void dispatchSetup(void);
-void dispatchLoop(void);
+IRAM_ATTR void dispatchLoop(void);
 void dispatchEverySecond(void);
 void dispatchStart(void);
 void dispatchStop(void);
 
 /* ===== Special Event Processors ===== */
-void dispatch_topic_payload(const char* topic, const char* payload);
+void dispatch_topic_payload(const char* topic, const char* payload, bool update);
 void dispatch_text_line(const char* cmnd);
 
 #ifdef ARDUINO
@@ -46,28 +58,25 @@ void dispatch_parse_jsonl(std::istream& stream);
 void dispatch_clear_page(const char* page);
 void dispatch_json_error(uint8_t tag, DeserializationError& jsonError);
 
-// void dispatch_set_page(uint8_t pageid);
 void dispatch_set_page(uint8_t pageid, lv_scr_load_anim_t effectid);
 void dispatch_page_next(lv_scr_load_anim_t effectid);
 void dispatch_page_prev(lv_scr_load_anim_t effectid);
 void dispatch_page_back(lv_scr_load_anim_t effectid);
 
-void dispatch_dim(const char* level);
-void dispatch_backlight(const char*, const char* payload);
-
-void dispatch_web_update(const char*, const char* espOtaUrl);
 void dispatch_reboot(bool saveConfig);
-
-void dispatch_output_idle_state(uint8_t state);
-void dispatch_output_statusupdate(const char*, const char*);
 void dispatch_current_state();
-void dispatch_output_current_page();
+void dispatch_current_page();
+void dispatch_backlight(const char*, const char* payload);
+void dispatch_web_update(const char*, const char* espOtaUrl);
+void dispatch_statusupdate(const char*, const char*);
+void dispatch_send_discovery(const char*, const char*);
+void dispatch_idle(const char*, const char*);
+void dispatch_calibrate(const char*, const char*);
+void dispatch_wakeup(const char*, const char*);
 
 void dispatch_gpio_input_event(uint8_t pin, uint8_t group, uint8_t eventid);
 
-void dispatch_object_value_changed(lv_obj_t* obj, int16_t state);
-
-void dispatch_normalized_group_value(uint8_t groupid, lv_obj_t* obj, int16_t val, int16_t min, int16_t max);
+void dispatch_normalized_group_values(hasp_update_value_t& value);
 
 void dispatch_state_subtopic(const char* subtopic, const char* payload);
 

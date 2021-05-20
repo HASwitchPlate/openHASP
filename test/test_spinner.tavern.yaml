@@ -1,0 +1,87 @@
+# test_page.tavern.yaml
+---
+test_name: Obj Standard Properties
+
+includes:
+  - !include config.yaml
+
+paho-mqtt:
+  client:
+    transport: tcp
+    client_id: tavern-tester
+  connect:
+    host: "{host}"
+    port: !int "{port:d}"
+    timeout: 3
+  auth:
+    username: "{username}"
+    password: "{password}"
+
+marks:
+  - parametrize:
+      key: obj
+      vals:
+        - spinner
+  - parametrize:
+      key:
+        - speed
+        - direction
+        - angle
+      vals:
+        - [1000, 0, 90]
+        - [2000, 1, 120]
+        - [1500, 0, 30]
+
+stages:
+  - name: Page 1
+    mqtt_publish:
+      topic: hasp/{plate}/command
+      payload: "page 1"
+    mqtt_response:
+      topic: hasp/{plate}/state/page
+      payload: "1"
+      timeout: 1
+
+  - name: Clear page
+    mqtt_publish:
+      topic: hasp/{plate}/command/clearpage
+      payload: ""
+
+  - name: Create object
+    mqtt_publish:
+      topic: hasp/{plate}/command/jsonl
+      json:
+        obj: "{obj}"
+        id: 1
+        x: 128
+        y: 128
+
+  - name: Test speed
+    mqtt_publish:
+      topic: hasp/{plate}/command/json
+      payload: '["p1b1.speed={speed}","p1b1.speed"]'
+    mqtt_response:
+      topic: hasp/{plate}/state/p1b1
+      json:
+        speed: !int "{speed:d}"
+      timeout: 1
+
+  - name: Test direction
+    mqtt_publish:
+      topic: hasp/{plate}/command/json
+      payload: '["p1b1.direction={direction}","p1b1.direction"]'
+    mqtt_response:
+      topic: hasp/{plate}/state/p1b1
+      json:
+        direction: !int "{direction:d}"
+      timeout: 1
+
+  - name: Test angle
+    mqtt_publish:
+      topic: hasp/{plate}/command/json
+      payload: '["p1b1.angle={angle}","p1b1.angle"]'
+    mqtt_response:
+      topic: hasp/{plate}/state/p1b1
+      json:
+        angle: !int "{angle:d}"
+      timeout: 1

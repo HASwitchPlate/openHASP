@@ -3,9 +3,7 @@
 
 #include <time.h>
 #include <sys/time.h>
-// #ifdef USE_CONFIG_OVERRIDE
-// #include "user_config_override.h"
-// #endif
+
 #include <Arduino.h>
 #include "ArduinoLog.h"
 
@@ -29,7 +27,7 @@ void networkStart(void)
     configTzTime(MYTZ, "pool.ntp.org", "time.nist.gov", NULL); // literal string
 #endif
 
-    haspProgressVal(255); // hide
+    // haspProgressVal(255); // hide
     haspReconnect();
     debugStartSyslog();
     // mqttStart();
@@ -58,7 +56,7 @@ void networkSetup()
 #endif
 }
 
-void networkLoop(void)
+IRAM_ATTR void networkLoop(void)
 {
 #if HASP_USE_ETHERNET > 0
     ethernetLoop();
@@ -129,6 +127,17 @@ void network_get_statusupdate(char* buffer, size_t len)
 
 #if HASP_USE_WIFI > 0
     wifi_get_statusupdate(buffer, len);
+#endif
+}
+
+void network_get_info(JsonDocument& doc)
+{
+#if HASP_USE_ETHERNET > 0
+    ethernet_get_info(doc);
+#endif
+
+#if HASP_USE_WIFI > 0
+    wifi_get_info(doc);
 #endif
 }
 

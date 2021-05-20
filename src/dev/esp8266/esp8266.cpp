@@ -5,6 +5,7 @@
 
 #include "Arduino.h"
 #include <Esp.h>
+#include <ESP8266WiFi.h>
 
 #include "esp8266.h"
 
@@ -14,6 +15,25 @@
 #define BACKLIGHT_CHANNEL 0
 
 namespace dev {
+
+Esp8266Device::Esp8266Device()
+{
+    _hostname         = MQTT_NODENAME;
+    _backlight_invert = (TFT_BACKLIGHT_ON == LOW);
+    _backlight_power  = 1;
+    _backlight_level  = 255;
+    _core_version     = ESP.getCoreVersion().c_str();
+    _backlight_pin    = TFT_BCKL;
+
+    /* fill unique identifier with wifi mac */
+    byte mac[6];
+    WiFi.macAddress(mac);
+    _hardware_id.reserve(13);
+    for(int i = 0; i < 6; ++i) {
+        if(mac[i] < 0x10) _hardware_id += "0";
+        _hardware_id += String(mac[i], HEX).c_str();
+    }
+}
 
 void Esp8266Device::reboot()
 {
@@ -44,6 +64,11 @@ const char* Esp8266Device::get_core_version()
 const char* Esp8266Device::get_chip_model()
 {
     return "ESP8266";
+}
+
+const char* Esp8266Device::get_hardware_id()
+{
+    return _hardware_id.c_str();
 }
 
 void Esp8266Device::set_backlight_pin(uint8_t pin)

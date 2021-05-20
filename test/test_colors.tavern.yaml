@@ -1,6 +1,6 @@
 # test_value_str.tavern.yaml
 ---
-test_name: Colors setup
+test_name: Obj Standard Properties
 
 includes:
   - !include config.yaml
@@ -26,10 +26,9 @@ stages:
       topic: hasp/{plate}/state/page
       payload: "1"
       timeout: 1
-    delay_after: 0
 
 ---
-test_name: Colors loop
+test_name: Obj Standard Properties
 
 includes:
   - !include config.yaml
@@ -108,8 +107,13 @@ marks:
 stages:
   - name: Set bg_color
     mqtt_publish:
-      topic: hasp/{plate}/command/json
-      payload: '["p1b0.bg_color={color}","clearpage"]'
+      topic: hasp/{plate}/command
+      payload: "p[1].b[0].bg_color={color}"
+
+  - name: Clear page
+    mqtt_publish:
+      topic: hasp/{plate}/command/clearpage
+      payload: ""
 
   - name: Create object
     mqtt_publish:
@@ -117,10 +121,7 @@ stages:
       json:
         obj: "{obj}"
         id: 1
-        txt: "{color}"
-        r: !int "{r:d}"
-        g: !int "{g:d}"
-        b: !int "{b:d}"
+        text: "{color}"
 
   - name: Set bg_color
     mqtt_publish:
@@ -130,7 +131,7 @@ stages:
   - name: Test named COLOR
     mqtt_publish:
       topic: hasp/{plate}/command/json
-      payload: '["p1b1.text_color={color}","p1b1.text_color"]'
+      payload: '["p[1].b[1].text_color={color}","p[1].b[1].text_color"]'
     mqtt_response:
       topic: hasp/{plate}/state/p1b1
       json:
@@ -143,12 +144,12 @@ stages:
   - name: Reset
     mqtt_publish:
       topic: hasp/{plate}/command
-      payload: "p1b1.text_color=123"
+      payload: "p[1].b[1].text_color=123"
 
   - name: Test hex COLOR
     mqtt_publish:
       topic: hasp/{plate}/command/json
-      payload: '["p1b1.text_color={hex}","p1b1.text_color"]'
+      payload: '["p[1].b[1].text_color={hex}","p[1].b[1].text_color"]'
     mqtt_response:
       topic: hasp/{plate}/state/p1b1
       json:
@@ -161,12 +162,12 @@ stages:
   - name: Reset
     mqtt_publish:
       topic: hasp/{plate}/command
-      payload: "p1b1.text_color=529"
+      payload: "p[1].b[1].text_color=529"
 
   - name: Test rgb565 COLOR
     mqtt_publish:
       topic: hasp/{plate}/command/json
-      payload: '["p1b1.text_color={rgb565}","p1b1.text_color"]'
+      payload: '["p[1].b[1].text_color={rgb565}","p[1].b[1].text_color"]'
     mqtt_response:
       topic: hasp/{plate}/state/p1b1
       json:

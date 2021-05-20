@@ -1,0 +1,11 @@
+# config.yaml
+---
+name: Common test information
+description: Connection information for MQTT Client
+
+variables:
+  host: homeassistant.local
+  username: hasp
+  password: hasp
+  port: 1883
+  plate: ubuntu-desktop-20-04

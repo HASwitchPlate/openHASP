@@ -1,6 +1,6 @@
 # test_value_str.tavern.yaml
 ---
-test_name: Value String Setup
+test_name: Obj Standard Properties
 
 includes:
   - !include config.yaml
@@ -20,15 +20,16 @@ paho-mqtt:
 stages:
   - name: Page 1
     mqtt_publish:
-      topic: hasp/{plate}/command/json
-      payload: '["page 1","clearpage"]'
+      topic: hasp/{plate}/command
+      payload: "page 1"
     mqtt_response:
       topic: hasp/{plate}/state/page
       payload: "1"
       timeout: 1
+    delay_after: 0
 
 ---
-test_name: Value String Loop
+test_name: Obj Standard Properties
 
 includes:
   - !include config.yaml
@@ -49,13 +50,13 @@ marks:
   - parametrize:
       key: obj
       vals:
-        #        - cpicker
+        - cpicker
         - table
         - tabview
         - chart
         - gauge
         - btn
-        #        - label
+        - label
         - slider
         - checkbox
         - switch
@@ -63,7 +64,7 @@ marks:
         - arc
         - led
         - obj
-        - lmeter
+        - linemeter
         - dropdown
         - spinner
         - roller
@@ -102,10 +103,10 @@ marks:
         - ""
 
 stages:
-  - name: Clear page
+  - name: Clear Page
     mqtt_publish:
       topic: hasp/{plate}/command
-      payload: clearpage
+      payload: "clearpage 1"
 
   - name: Create object
     mqtt_publish:
@@ -117,15 +118,17 @@ stages:
         y: 0
         w: 240
         h: 240
+    delay_after: 0
 
   - name: Set value_str
     mqtt_publish:
-      topic: "hasp/{plate}/command/p[1].b[1].value_str"
-      payload: "{str1}{str2}"
+      topic: "hasp/{plate}/command"
+      payload: "p1b1.value_str={str1}{str2}"
+    delay_after: 0
   - name: Get value_str
     mqtt_publish:
-      topic: hasp/{plate}/command
-      payload: "p[1].b[1].value_str"
+      topic: hasp/{plate}/command/p1b1.value_str
+      payload: ""
     mqtt_response:
       topic: hasp/{plate}/state/p1b1
       json:

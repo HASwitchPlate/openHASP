@@ -24,10 +24,12 @@
  *      DEFINES
  *********************/
 #ifndef LV_FS_PC_PATH
-#ifndef WIN32
-#define LV_FS_PC_PATH "/fs" /*Projet root*/
+#if defined(ESP32)
+#define LV_FS_PC_PATH "/littlefs" /*Projet root*/
+#elif defined(WIN32)
+#define LV_FS_PC_PATH "./" /*Projet root*/
 #else
-#define LV_FS_PC_PATH ".\\" /*Projet root*/
+#define LV_FS_PC_PATH "" /*Projet root*/
 #endif
 #endif /*LV_FS_PATH*/
 
@@ -144,11 +146,11 @@ static lv_fs_res_t fs_open(lv_fs_drv_t* drv, void* file_p, const char* path, lv_
 #ifndef WIN32
     char buf[256];
     sprintf(buf, LV_FS_PC_PATH "/%s", path);
-    printf("%s\n", buf);
 #else
     char buf[256];
     sprintf(buf, LV_FS_PC_PATH "\\%s", path);
 #endif
+    printf("Opening file: %s\n", path);
 
     file_t f = fopen(buf, flags);
     if(f == NULL) {

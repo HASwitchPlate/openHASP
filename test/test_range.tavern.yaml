@@ -1,0 +1,91 @@
+# test_page.tavern.yaml
+---
+test_name: Obj Standard Properties
+
+includes:
+  - !include config.yaml
+
+paho-mqtt:
+  client:
+    transport: tcp
+    client_id: tavern-tester
+  connect:
+    host: "{host}"
+    port: !int "{port:d}"
+    timeout: 3
+  auth:
+    username: "{username}"
+    password: "{password}"
+
+marks:
+  - parametrize:
+      key: obj
+      vals:
+        - arc
+        - bar
+        - slider
+        - gauge
+        - linemeter
+  - parametrize:
+      key:
+        - min
+        - max
+        - val
+      vals:
+        - [-1000, 10000, 90]
+        - [128, 512, 256]
+        - [-15, 0, -5]
+
+stages:
+  - name: Page 1
+    mqtt_publish:
+      topic: hasp/{plate}/command
+      payload: "page 1"
+    mqtt_response:
+      topic: hasp/{plate}/state/page
+      payload: "1"
+      timeout: 1
+
+  - name: Clear page
+    mqtt_publish:
+      topic: hasp/{plate}/command/clearpage
+      payload: ""
+
+  - name: Create object
+    mqtt_publish:
+      topic: hasp/{plate}/command/jsonl
+      json:
+        obj: "{obj}"
+        id: 1
+        x: 128
+        y: 128
+
+  - name: Test min
+    mqtt_publish:
+      topic: hasp/{plate}/command/json
+      payload: '["p1b1.min={min}","p1b1.min"]'
+    mqtt_response:
+      topic: hasp/{plate}/state/p1b1
+      json:
+        min: !int "{min:d}"
+      timeout: 1
+
+  - name: Test max
+    mqtt_publish:
+      topic: hasp/{plate}/command/json
+      payload: '["p1b1.max={max}","p1b1.max"]'
+    mqtt_response:
+      topic: hasp/{plate}/state/p1b1
+      json:
+        max: !int "{max:d}"
+      timeout: 1
+
+  - name: Test val
+    mqtt_publish:
+      topic: hasp/{plate}/command/json
+      payload: '["p1b1.val={val}","p1b1.val"]'
+    mqtt_response:
+      topic: hasp/{plate}/state/p1b1
+      json:
+        val: !int "{val:d}"
+      timeout: 1

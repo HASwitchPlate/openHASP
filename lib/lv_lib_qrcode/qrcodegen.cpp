@@ -55,7 +55,7 @@
 // - They are completely thread-safe if the caller does not give the
 //   same writable buffer to concurrent calls to these functions.
 
-testable void appendBitsToBuffer(unsigned int val, int numBits, uint8_t buffer[], int * bitLen);
+testable void appendBitsToBuffer(unsigned int val, int numBits, uint8_t buffer[], int* bitLen);
 
 testable void addEccAndInterleave(uint8_t data[], int version, enum qrcodegen_Ecc ecl, uint8_t result[]);
 testable int getNumDataCodewords(int version, enum qrcodegen_Ecc ecl);
@@ -135,7 +135,7 @@ static const int PENALTY_N4 = 10;
 /*---- High-level QR Code encoding functions ----*/
 
 // Public function - see documentation comment in header file.
-bool qrcodegen_encodeText(const char * text, uint8_t tempBuffer[], uint8_t qrcode[], enum qrcodegen_Ecc ecl,
+bool qrcodegen_encodeText(const char* text, uint8_t tempBuffer[], uint8_t qrcode[], enum qrcodegen_Ecc ecl,
                           int minVersion, int maxVersion, enum qrcodegen_Mask mask, bool boostEcl)
 {
 
@@ -187,7 +187,7 @@ bool qrcodegen_encodeBinary(uint8_t dataAndTemp[], size_t dataLen, uint8_t qrcod
 
 // Appends the given number of low-order bits of the given value to the given byte-based
 // bit buffer, increasing the bit length. Requires 0 <= numBits <= 16 and val < 2^numBits.
-testable void appendBitsToBuffer(unsigned int val, int numBits, uint8_t buffer[], int * bitLen)
+testable void appendBitsToBuffer(unsigned int val, int numBits, uint8_t buffer[], int* bitLen)
 {
     assert(0 <= numBits && numBits <= 16 && (unsigned long)val >> numBits == 0);
     for(int i = numBits - 1; i >= 0; i--, (*bitLen)++) buffer[*bitLen >> 3] |= ((val >> i) & 1) << (7 - (*bitLen & 7));
@@ -235,7 +235,7 @@ bool qrcodegen_encodeSegmentsAdvanced(const struct qrcodegen_Segment segs[], siz
     memset(qrcode, 0, qrcodegen_BUFFER_LEN_FOR_VERSION(version) * sizeof(qrcode[0]));
     int bitLen = 0;
     for(size_t i = 0; i < len; i++) {
-        const struct qrcodegen_Segment * seg = &segs[i];
+        const struct qrcodegen_Segment* seg = &segs[i];
         appendBitsToBuffer((int)seg->mode, 4, qrcode, &bitLen);
         appendBitsToBuffer(seg->numChars, numCharCountBits(seg->mode, version), qrcode, &bitLen);
         for(int j = 0; j < seg->bitLength; j++)
@@ -305,10 +305,10 @@ testable void addEccAndInterleave(uint8_t data[], int version, enum qrcodegen_Ec
     // (not concatenate) the bytes into a single sequence
     uint8_t generator[qrcodegen_REED_SOLOMON_DEGREE_MAX];
     calcReedSolomonGenerator(blockEccLen, generator);
-    const uint8_t * dat = data;
+    const uint8_t* dat = data;
     for(int i = 0; i < numBlocks; i++) {
-        int datLen    = shortBlockDataLen + (i < numShortBlocks ? 0 : 1);
-        uint8_t * ecc = &data[dataLen]; // Temporary storage
+        int datLen   = shortBlockDataLen + (i < numShortBlocks ? 0 : 1);
+        uint8_t* ecc = &data[dataLen]; // Temporary storage
         calcReedSolomonRemainder(dat, datLen, generator, blockEccLen, ecc);
         for(int j = 0, k = i; j < datLen; j++, k += numBlocks) { // Copy data
             if(j == shortBlockDataLen) k -= numShortBlocks;
@@ -782,7 +782,7 @@ static bool getBit(int x, int i)
 /*---- Segment handling ----*/
 
 // Public function - see documentation comment in header file.
-bool qrcodegen_isAlphanumeric(const char * text)
+bool qrcodegen_isAlphanumeric(const char* text)
 {
     char buffer[64];
     snprintf_P(buffer, sizeof(buffer), ALPHANUMERIC_CHARSET);
@@ -795,7 +795,7 @@ bool qrcodegen_isAlphanumeric(const char * text)
 }
 
 // Public function - see documentation comment in header file.
-bool qrcodegen_isNumeric(const char * text)
+bool qrcodegen_isNumeric(const char* text)
 {
     assert(text != NULL);
     for(; *text != '\0'; text++) {
@@ -860,7 +860,7 @@ struct qrcodegen_Segment qrcodegen_makeBytes(const uint8_t data[], size_t len, u
 }
 
 // Public function - see documentation comment in header file.
-struct qrcodegen_Segment qrcodegen_makeNumeric(const char * digits, uint8_t buf[])
+struct qrcodegen_Segment qrcodegen_makeNumeric(const char* digits, uint8_t buf[])
 {
     assert(digits != NULL);
     struct qrcodegen_Segment result;
@@ -893,7 +893,7 @@ struct qrcodegen_Segment qrcodegen_makeNumeric(const char * digits, uint8_t buf[
 }
 
 // Public function - see documentation comment in header file.
-struct qrcodegen_Segment qrcodegen_makeAlphanumeric(const char * text, uint8_t buf[])
+struct qrcodegen_Segment qrcodegen_makeAlphanumeric(const char* text, uint8_t buf[])
 {
     char buffer[64];
     snprintf_P(buffer, sizeof(buffer), ALPHANUMERIC_CHARSET);
@@ -911,7 +911,7 @@ struct qrcodegen_Segment qrcodegen_makeAlphanumeric(const char * text, uint8_t b
     unsigned int accumData = 0;
     int accumCount         = 0;
     for(; *text != '\0'; text++) {
-        const char * temp = strchr(buffer, *text); // ALPHANUMERIC_CHARSET
+        const char* temp = strchr(buffer, *text); // ALPHANUMERIC_CHARSET
         assert(temp != NULL);
         accumData = accumData * 45 + (unsigned int)(temp - buffer); // ALPHANUMERIC_CHARSET
         accumCount++;
@@ -963,8 +963,8 @@ testable int getTotalBits(const struct qrcodegen_Segment segs[], size_t len, int
     assert(segs != NULL || len == 0);
     long result = 0;
     for(size_t i = 0; i < len; i++) {
-        int numChars  = segs[i].numChars;
-        int bitLength = segs[i].bitLength;
+        int16_t numChars  = segs[i].numChars;
+        int16_t bitLength = segs[i].bitLength;
         assert(0 <= numChars && numChars <= INT16_MAX);
         assert(0 <= bitLength && bitLength <= INT16_MAX);
         int ccbits = numCharCountBits(segs[i].mode, version);

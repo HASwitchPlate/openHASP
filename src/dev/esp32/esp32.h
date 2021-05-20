@@ -14,21 +14,14 @@ namespace dev {
 class Esp32Device : public BaseDevice {
 
   public:
-    Esp32Device()
-    {
-        _hostname         = MQTT_NODENAME;
-        _backlight_invert = (TFT_BACKLIGHT_ON == LOW);
-        _backlight_power  = 1;
-        _backlight_level  = 255;
-        _backlight_pin    = TFT_BCKL;
-    }
+    Esp32Device();
+
     void reboot() override;
     void show_info() override;
 
-    const char* get_hostname();
-    void set_hostname(const char*);
     const char* get_core_version();
     const char* get_chip_model();
+    const char* get_hardware_id();
 
     void set_backlight_pin(uint8_t pin) override;
     void set_backlight_level(uint8_t val) override;
@@ -40,11 +33,13 @@ class Esp32Device : public BaseDevice {
     size_t get_free_heap() override;
     uint8_t get_heap_fragmentation() override;
     uint16_t get_cpu_frequency() override;
+    void get_info(JsonDocument& doc) override;
 
     bool is_system_pin(uint8_t pin) override;
 
   private:
-    std::string _hostname;
+    std::string _hardware_id;
+    uint32_t _sketch_size; // cached because function is slow
 
     uint8_t _backlight_pin;
     uint8_t _backlight_level;

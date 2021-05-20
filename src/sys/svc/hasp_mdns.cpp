@@ -60,8 +60,7 @@ void mdnsStart()
         MDNS.addService(service, proto, 80);
 
         strcpy_P(key, PSTR("app_version"));
-        haspGetVersion(value, sizeof(value));
-        MDNS.addServiceTxt(service, proto, key, value);
+        MDNS.addServiceTxt(service, proto, key, haspDevice.get_version());
 
         strcpy_P(key, PSTR("app_name"));
         strcpy_P(value, PSTR(D_MANUFACTURER));
@@ -78,7 +77,7 @@ void mdnsStart()
     }
 }
 
-void mdnsLoop(void)
+IRAM_ATTR void mdnsLoop(void)
 {
 #if defined(ARDUINO_ARCH_ESP8266)
     if(mdns_config.enable) {
