@@ -407,6 +407,19 @@ typedef void* lv_indev_drv_user_data_t;            /*Type of user data in the in
 
 #endif // WT32SC01
 
+#ifndef HASP_FONT_SIZE_1
+#define HASP_FONT_SIZE_1 16
+#endif
+#ifndef HASP_FONT_SIZE_2
+#define HASP_FONT_SIZE_2 24
+#endif
+#ifndef HASP_FONT_SIZE_3
+#define HASP_FONT_SIZE_3 32
+#endif
+#ifndef HASP_FONT_SIZE_4
+#define HASP_FONT_SIZE_4 48
+#endif
+
 #else // not 320x480
 
 #ifndef HASP_FONT_1
@@ -433,6 +446,19 @@ typedef void* lv_indev_drv_user_data_t;            /*Type of user data in the in
 #endif
 #ifndef ROBOTOCONDENSED_REGULAR_32_LATIN1
 #define ROBOTOCONDENSED_REGULAR_32_LATIN1 1
+#endif
+
+#ifndef HASP_FONT_SIZE_1
+#define HASP_FONT_SIZE_1 12
+#endif
+#ifndef HASP_FONT_SIZE_2
+#define HASP_FONT_SIZE_2 16
+#endif
+#ifndef HASP_FONT_SIZE_3
+#define HASP_FONT_SIZE_3 24
+#endif
+#ifndef HASP_FONT_SIZE_4
+#define HASP_FONT_SIZE_4 32
 #endif
 
 #endif
