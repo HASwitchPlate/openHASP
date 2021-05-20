@@ -176,10 +176,16 @@ static WiFiSpiClass WiFi;
 #if HASP_USE_W5500 > 0
 #include "sys/net/hasp_ethernet_lib.h"
 
+#define HaspNetworkClient EthernetClient
+#define HaspNetworkServer EthernetServer
+
 #warning Using ESP32 Ethernet W5500
 
 #else
 #include <ETH.h>
+
+#define HaspNetworkClient WiFiClient
+#define HaspNetworkServer WiFiServer
 
 #define ETH_ADDR 0
 #define ETH_POWER_PIN -1

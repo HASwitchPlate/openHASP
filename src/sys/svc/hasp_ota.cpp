@@ -56,7 +56,7 @@ const char* rootCACertificate = "-----BEGIN CERTIFICATE-----\n"
                                 "-----END CERTIFICATE-----\n";
 #endif
 
-static WiFiClient otaClient;
+static HaspNetworkClient otaClient;
 std::string otaUrl           = "http://ota.netwize.be";
 int16_t otaPort              = HASP_OTA_PORT;
 int8_t otaPrecentageComplete = -1;
