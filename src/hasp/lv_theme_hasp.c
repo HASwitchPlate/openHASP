@@ -98,6 +98,7 @@ typedef struct
 {
 
     lv_style_t transparent;  // Objects with transparent background, like Checkbox, container
+    lv_style_t screen;       // Background pages
     lv_style_t pretty;       // Background gradient
     lv_style_t pretty_color; // Primary Colored gradient
     // lv_style_t bg_click;
@@ -270,6 +271,10 @@ static void basic_init(lv_style_int_t border_width, lv_style_int_t outline_width
         lv_style_set_border_color(&styles->pretty, LV_STATE_FOCUSED, theme.color_secondary);
         lv_style_set_border_width(&styles->pretty, LV_STATE_FOCUSED, outline_width);
     }
+
+    style_init_reset(&styles->screen);
+    lv_style_copy(&styles->screen, &styles->pretty);
+    lv_style_set_radius(&styles->screen, LV_STATE_DEFAULT, 0);
 
     // Primary Colored gradient
     style_init_reset(&styles->pretty_color);
@@ -1049,7 +1054,7 @@ static void theme_apply(lv_theme_t* th, lv_obj_t* obj, lv_theme_style_t name)
 
         case LV_THEME_SCR:
             list = lv_obj_get_style_list(obj, LV_OBJ_PART_MAIN);
-            _lv_style_list_add_style(list, &styles->pretty);
+            _lv_style_list_add_style(list, &styles->screen);
             break;
 
         case LV_THEME_OBJ:

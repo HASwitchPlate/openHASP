@@ -1,1 +1,437 @@
-<!DOCTYPE html><html lang="en"><head><meta charset='utf-8'><title>File Editor</title><style type="text/css" media="screen">.cm{z-index:300;position:absolute;left:5px;border:1px solid #444;background-color:#f5f5f5;display:none;box-shadow:0 0 10px rgba(0, 0, 0, .4);font-size:12px;font-family:sans-serif;font-weight:700}.cm ul{list-style:none;top:0;left:0;margin:0;padding:0}.cm li{position:relative;min-width:60px;cursor:pointer}.cm span{color:#444;display:inline-block;padding:6px}.cm li:hover{background:#444}.cm li:hover span{color:#eee}.tvu li, .tvu ul{padding:0;margin:0;list-style:none}.tvu input{position:absolute;opacity:0}.tvu{font:normal 12px Verdana, Arial, Sans-serif;-moz-user-select:none;-webkit-user-select:none;user-select:none;color:#444;line-height:16px}.tvu span{margin-bottom:5px;padding:0 0 0 18px;cursor:pointer;display:inline-block;height:16px;vertical-align:middle;background:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAQAAAC1+jfqAAAABGdBTUEAAK/INwWK6QAAABl0RVh0U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAADoSURBVBgZBcExblNBGAbA2ceegTRBuIKOgiihSZNTcC5LUHAihNJR0kGKCDcYJY6D3/77MdOinTvzAgCw8ysThIvn/VojIyMjIyPP+bS1sUQIV2s95pBDDvmbP/mdkft83tpYguZq5Jh/OeaYh+yzy8hTHvNlaxNNczm+la9OTlar1UdA/+C2A4trRCnD3jS8BB1obq2Gk6GU6QbQAS4BUaYSQAf4bhhKKTFdAzrAOwAxEUAH+KEM01SY3gM6wBsEAQB0gJ+maZoC3gI6iPYaAIBJsiRmHU0AALOeFC3aK2cWAACUXe7+AwO0lc9eTHYTAAAAAElFTkSuQmCC) no-repeat;background-position:0 0}.tvu span:hover{text-decoration:underline}@media screen and (-webkit-min-device-pixel-ratio:0){.tvu{-webkit-animation:webkit-adjacent-element-selector-bugfix infinite 1s}}@-webkit-keyframes webkit-adjacent-element-selector-bugfix{from{padding:0}to{padding:0}}#uploader{position:absolute;top:0;right:0;left:0;height:28px;line-height:24px;padding-left:10px;padding-right:10px;background-color:#444;color:#eee}#tree{position:absolute;top:28px;bottom:0;left:0;width:160px;padding:8px}#editor,#preview{position:absolute;top:28px;right:0;bottom:0;left:160px;border-left:1px solid #eee}#preview{background-color:#eee;padding:5px}button.right{float:right}input.number{float:right;width:48px}</style> <script>function createFileUploader(e,t,n){var a=document.createElement("button");a.innerHTML="Main Menu",document.getElementById(e).appendChild(a);var o,d=document.createElement("input");d.type="file",d.multiple=!1,d.name="data",document.getElementById(e).appendChild(d);var c=document.createElement("input");c.id="upload-path",c.type="text",c.name="path",c.defaultValue="/",document.getElementById(e).appendChild(c);var l=document.createElement("button");l.innerHTML="Upload",document.getElementById(e).appendChild(l);var i=document.createElement("button");i.innerHTML="Create",document.getElementById(e).appendChild(i);var s=document.createElement("button");s.innerHTML="Reload Pages",document.getElementById(e).appendChild(s),s.className="right";var r=document.createElement("button");r.innerHTML="Clear Pages",document.getElementById(e).appendChild(r),r.className="right";var m=document.createElement("input");function u(){4==o.readyState&&(200!=o.status?alert("ERROR["+o.status+"]: "+o.responseText):t.refreshPath(c.value))} m.setAttribute("type","number"),m.setAttribute("min",1),m.setAttribute("max",12),document.getElementById(e).appendChild(m),m.className="number",i.onclick=function(e){-1!==c.value.indexOf(".")&&(function(e){(o=new XMLHttpRequest).onreadystatechange=u;var t=new FormData;t.append("path",e),o.open("PUT","/edit"),o.send(t)}(c.value),n.loadUrl(c.value))},l.onclick=function(e){if(0!==d.files.length){(o=new XMLHttpRequest).onreadystatechange=u;var t=new FormData;t.append("data",d.files[0],c.value),o.open("POST","/edit"),o.send(t)}},d.onchange=function(e){if(0!==d.files.length){var t=d.files[0].name,n=/(?:\.([^.]+))?$/.exec(t)[1],a=/(.*)\.[^.]+$/.exec(t)[1];void 0!==typeof a&&(t=a),void 0!==typeof n&&("html"===n?n="htm":"jpeg"===n&&(n="jpg"),t=t+"."+n),"/"===c.value||0===c.value.lastIndexOf("/")?c.value="/"+t:c.value=c.value.substring(0,c.value.lastIndexOf("/")+1)+t}},s.onclick=function(e){!function(e){(o=new XMLHttpRequest).onreadystatechange=u;var t=new FormData;t.append("load",e),o.open("PUT","/edit"),o.send(t)}(c.value)},r.onclick=function(e){!function(e){(o=new XMLHttpRequest).onreadystatechange=u;var t=new FormData;t.append("init",e),o.open("PUT","/edit"),o.send(t)}(c.value)},a.onclick=function(e){c.value,window.location.href="/"},m.onchange=function(e){!function(e){(o=new XMLHttpRequest).onreadystatechange=u;var t=new FormData;t.append("page",e),o.open("PUT","/edit"),o.send(t)}(m.value)}} function createTree(e,t){var n=document.getElementById("preview"),a=document.createElement("div");function o(e){document.getElementById("editor").style.display="none",n.style.display="block",n.innerHTML='<img src="'+e+"?_cb="+Date.now()+'" style="max-width:100%; max - height: 100 % ; margin: auto; display: block;" />'} function d(e,n){var d=document.createElement("ul");e.appendChild(d);var c=document.createElement("li");d.appendChild(c),l(n)?(c.innerHTML="<span>Edit</span>",c.onclick=function(a){t.loadUrl(n),document.body.getElementsByClassName("cm").length>0&&document.body.removeChild(e)}):i(n)&&(c.innerHTML="<span>Preview</span>",c.onclick=function(t){o(n),document.body.getElementsByClassName("cm").length>0&&document.body.removeChild(e)});var r=document.createElement("li");d.appendChild(r),r.innerHTML="<span>Download</span>",r.onclick=function(t){!function(e){document.getElementById("download-frame").src=e+"?download=true"}(n),document.body.getElementsByClassName("cm").length>0&&document.body.removeChild(e)};var m=document.createElement("li");d.appendChild(m),m.innerHTML="<span>Delete</span>",m.onclick=function(t){!function(e){xmlHttp=new XMLHttpRequest,xmlHttp.onreadystatechange=function(){4==xmlHttp.readyState&&(200!=xmlHttp.status?alert("ERROR["+xmlHttp.status+"]: "+xmlHttp.responseText):(a.removeChild(a.childNodes[0]),s(a,"/")))};var t=new FormData;t.append("path",e),xmlHttp.open("DELETE","/edit"),xmlHttp.send(t)}(n),document.body.getElementsByClassName("cm").length>0&&document.body.removeChild(e)}} function c(e,n,a){var c=document.createElement("li");c.id=("/"==e?"":e)+"/"+n;var s=document.createElement("span");return s.innerText=n,c.appendChild(s),c.onclick=function(e){l(c.id.toLowerCase())?t.loadUrl(c.id):i(c.id.toLowerCase())&&o(c.id)},c.oncontextmenu=function(e){e.preventDefault(),e.stopPropagation(),function(e,t,n){var a=document.createElement("div"),o=document.body.scrollTop?document.body.scrollTop:document.documentElement.scrollTop,c=document.body.scrollLeft?document.body.scrollLeft:document.documentElement.scrollLeft,l=event.clientX+c,i=event.clientY+o;a.className="cm",a.style.display="block",a.style.left=l+"px",a.style.top=i+"px",d(a,t),document.body.appendChild(a);var s=a.offsetWidth,r=a.offsetHeight;a.onmouseout=function(e){(e.clientX<l||e.clientX>l+s||e.clientY<i||e.clientY>i+r)&&document.body.getElementsByClassName("cm").length>0&&document.body.removeChild(a)}}(0,c.id)},c} function l(e){var t=/(?:.([^.]+))?$/.exec(e)[1];if(void 0!==typeof t)switch(t){case"txt":case"json":case"jsonl":case"htm":case"js":case"c":case"cpp":case"css":case"xml":return!0} return!1} function i(e){var t=/(?:.([^.]+))?$/.exec(e)[1];if(void 0!==typeof t)switch(t){case"png":case"jpg":case"gif":return!0} return!1} function s(e,t){xmlHttp=new XMLHttpRequest(e,t),xmlHttp.onreadystatechange=function(e,t){return function(){4==xmlHttp.readyState&&200==xmlHttp.status&&function(e,t,n){var a=document.createElement("ul");e.appendChild(a);for(var o=n.length,d=0;d<o;d++)"file"===n[d].type&&a.appendChild(c(t,n[d].name,n[d].size))}(e,t,JSON.parse(xmlHttp.responseText))}}(e,t),xmlHttp.open("GET","/list?dir="+t,!0),xmlHttp.send(null)} return a.className="tvu",document.getElementById(e).appendChild(a),this.refreshPath=function(e){a.removeChild(a.childNodes[0]),s(a,"/")},s(a,"/"),this} function createEditor(e,t,n,a,o){function d(e){var t="plain",n=/(?:.([^.]+))?$/.exec(e)[1];if(void 0!==typeof n)switch(n){case"txt":t="plain";break;case"htm":t="html";break;case"js":t="javascript";break;case"jsonl":t="json";break;case"c":case"cpp":t="c_cpp";break;case"css":case"scss":case"php":case"html":case"json":case"xml":t=n} return t} void 0===t&&(t="/"),void 0===n&&(n=d(t)),void 0===a&&(a="textmate"),void 0===o&&(o="text/"+n,"c_cpp"===n&&(o="text/plain"));var c=null,l=ace.edit(e,{useWorker:!1,wrap:!0,indentedSoftWrap:!1});function i(){4==c.readyState&&200!=c.status&&alert("ERROR["+c.status+"]: "+c.responseText)} function s(){4==c.readyState&&(document.getElementById("preview").style.display="none",document.getElementById("editor").style.display="block",function(e,t){if(200==t.status)try{var n=JSON.parse(t.responseText);e.setValue(JSON.stringify(n,null,4))}catch(n){e.setValue(t.responseText)}else e.setValue("");e.resize(!0),e.scrollToLine(1,!0,!0,function(){}),e.gotoLine(1,0,!0),e.clearSelection()}(l,c))} function r(e){(c=new XMLHttpRequest).onreadystatechange=s,c.open("GET",e,!0),c.send(null)} return"plain"!==n&&l.getSession().setMode("ace/mode/"+n),l.setTheme("ace/theme/"+a),l.$blockScrolling=1/0,l.getSession().setUseSoftTabs(!0),l.getSession().setTabSize(2),l.setHighlightActiveLine(!0),l.setShowPrintMargin(!1),l.commands.addCommand({name:"saveCommand",bindKey:{win:"Ctrl-S",mac:"Command-S"},exec:function(e){!function(e,t,n){(c=new XMLHttpRequest).onreadystatechange=i;var a=new FormData;a.append("data",new Blob([t],{type:n}),e),c.open("POST","/edit"),c.send(a)}(t,function(e){var t=e.getValue();try{var n=JSON.parse(t);return JSON.stringify(n)}catch(e){return t+""}}(e),o)},readOnly:!1}),l.commands.addCommand({name:"undoCommand",bindKey:{win:"Ctrl-Z",mac:"Command-Z"},exec:function(e){e.getSession().getUndoManager().undo(!1)},readOnly:!1}),l.commands.addCommand({name:"redoCommand",bindKey:{win:"Ctrl-Shift-Z",mac:"Command-Shift-Z"},exec:function(e){e.getSession().getUndoManager().redo(!1)},readOnly:!1}),r(t),l.loadUrl=function(e){n=d(t=e),o="text/"+n,"plain"!==n&&l.getSession().setMode("ace/mode/"+n),r(t),document.getElementById("upload-path").value=e},l} function onBodyLoad(){var e={},t=(window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi,function(t,n,a){e[n]=a}),createEditor("editor",e.file,e.lang,e.theme));createFileUploader("uploader",createTree("tree",t),t),e.file&&(document.getElementById("upload-path").value=e.file)}</script> <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ace.js" type="text/javascript" charset="utf-8"></script> </head><body onload="onBodyLoad();"><div id="uploader"></div><div id="tree"></div><div id="editor"></div><div id="preview" style="display:none;"></div><iframe id=download-frame style='display:none;'></iframe></body></html>
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset='utf-8'>
+    <title>File Editor</title>
+    <style type="text/css" media="screen">
+        .cm {
+            z-index: 300;
+            position: absolute;
+            left: 5px;
+            border: 1px solid #444;
+            background-color: #f5f5f5;
+            display: none;
+            box-shadow: 0 0 10px rgba(0, 0, 0, .4);
+            font-size: 12px;
+            font-family: sans-serif;
+            font-weight: 700
+        }
+        
+        .cm ul {
+            list-style: none;
+            top: 0;
+            left: 0;
+            margin: 0;
+            padding: 0
+        }
+        
+        .cm li {
+            position: relative;
+            min-width: 60px;
+            cursor: pointer
+        }
+        
+        .cm span {
+            color: #444;
+            display: inline-block;
+            padding: 6px
+        }
+        
+        cm li:hover {
+            background: #444
+        }
+        
+        .cm li:hover span {
+            color: #eee
+        }
+        
+        .tvu li,
+        .tvu ul {
+            padding: 0;
+            margin: 0;
+            list-style: none
+        }
+        
+        .tvu input {
+            position: absolute;
+            opacity: 0
+        }
+        
+        .tvu {
+            font: normal 12px Verdana, Arial, Sans-serif;
+            -moz-user-select: none;
+            -webkit-user-select: none;
+            user-select: none;
+            color: #444;
+            line-height: 16px
+        }
+        
+        .tvu span {
+            margin-bottom: 5px;
+            padding: 0 0 0 18px;
+            cursor: pointer;
+            display: inline-block;
+            height: 16px;
+            vertical-align: middle;
+            background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAQAAAC1+jfqAAAABGdBTUEAAK/INwWK6QAAABl0RVh0U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAADoSURBVBgZBcExblNBGAbA2ceegTRBuIKOgiihSZNTcC5LUHAihNJR0kGKCDcYJY6D3/77MdOinTvzAgCw8ysThIvn/VojIyMjIyPP+bS1sUQIV2s95pBDDvmbP/mdkft83tpYguZq5Jh/OeaYh+yzy8hTHvNlaxNNczm+la9OTlar1UdA/+C2A4trRCnD3jS8BB1obq2Gk6GU6QbQAS4BUaYSQAf4bhhKKTFdAzrAOwAxEUAH+KEM01SY3gM6wBsEAQB0gJ+maZoC3gI6iPYaAIBJsiRmHU0AALOeFC3aK2cWAACUXe7+AwO0lc9eTHYTAAAAAElFTkSuQmCC) no-repeat;
+            background-position: 0 0
+        }
+        
+        .tvu span:hover {
+            text-decoration: underline
+        }
+        
+        @media screen and (-webkit-min-device-pixel-ratio:0) {
+            .tvu {
+                -webkit-animation: webkit-adjacent-element-selector-bugfix infinite 1s
+            }
+        }
+        
+        @-webkit-keyframes webkit-adjacent-element-selector-bugfix {
+            from {
+                padding: 0
+            }
+            to {
+                padding: 0
+            }
+        }
+        
+        #uploader {
+            position: absolute;
+            top: 0;
+            right: 0;
+            left: 0;
+            height: 28px;
+            line-height: 24px;
+            padding-left: 10px;
+            padding-right: 10px;
+            background-color: #444;
+            color: #eee
+        }
+        
+        #tree {
+            position: absolute;
+            top: 28px;
+            bottom: 0;
+            left: 0;
+            width: 160px;
+            padding: 8px
+        }
+        
+        #editor,
+        #preview {
+            position: absolute;
+            top: 28px;
+            right: 0;
+            bottom: 0;
+            left: 160px;
+            border-left: 1px solid #eee
+        }
+        
+        #preview {
+            background-color: #eee;
+            padding: 5px
+        }
+        
+        button.right {
+            float: right
+        }
+        
+        input.number {
+            float: right;
+            width: 48px
+        }
+    </style>
+    <script>
+        function createFileUploader(e, t, n) {
+            var a = document.createElement("button");
+            a.innerHTML = "Main Menu", document.getElementById(e).appendChild(a);
+            var o, d = document.createElement("input");
+            d.type = "file", d.multiple = !1, d.name = "data", document.getElementById(e).appendChild(d);
+            var c = document.createElement("input");
+            c.id = "upload-path", c.type = "text", c.name = "path", c.defaultValue = "/", document.getElementById(e).appendChild(c);
+            var l = document.createElement("button");
+            l.innerHTML = "Upload", document.getElementById(e).appendChild(l);
+            var i = document.createElement("button");
+            i.innerHTML = "Create", document.getElementById(e).appendChild(i);
+            var s = document.createElement("button");
+            s.innerHTML = "Reload Pages", document.getElementById(e).appendChild(s), s.className = "right";
+            var r = document.createElement("button");
+            r.innerHTML = "Clear Pages", document.getElementById(e).appendChild(r), r.className = "right";
+            var m = document.createElement("input");
+
+            function u() {
+                4 == o.readyState && (200 != o.status ? alert("ERROR[" + o.status + "]: " + o.responseText) : t.refreshPath(c.value))
+            }
+            m.setAttribute("type", "number"), m.setAttribute("min", 1), m.setAttribute("max", 12), document.getElementById(e).appendChild(m), m.className = "number", i.onclick = function(e) {
+                -1 !== c.value.indexOf(".") && (function(e) {
+                    (o = new XMLHttpRequest).onreadystatechange = u;
+                    var t = new FormData;
+                    t.append("path", e), o.open("PUT", "/edit"), o.send(t)
+                }(c.value), n.loadUrl(c.value))
+            }, l.onclick = function(e) {
+                if (0 !== d.files.length) {
+                    (o = new XMLHttpRequest).onreadystatechange = u;
+                    var t = new FormData;
+                    t.append("data", d.files[0], c.value), o.open("POST", "/edit"), o.send(t)
+                }
+            }, d.onchange = function(e) {
+                if (0 !== d.files.length) {
+                    var t = d.files[0].name,
+                        n = /(?:\.([^.]+))?$/.exec(t)[1],
+                        a = /(.*)\.[^.]+$/.exec(t)[1];
+                    void 0 !== typeof a && (t = a), void 0 !== typeof n && ("html" === n ? n = "htm" : "jpeg" === n && (n = "jpg"), t = t + "." + n), "/" === c.value || 0 === c.value.lastIndexOf("/") ? c.value = "/" + t : c.value = c.value.substring(0, c.value.lastIndexOf("/") + 1) + t
+                }
+            }, s.onclick = function(e) {
+                ! function(e) {
+                    (o = new XMLHttpRequest).onreadystatechange = u;
+                    var t = new FormData;
+                    t.append("load", e), o.open("PUT", "/edit"), o.send(t)
+                }(c.value)
+            }, r.onclick = function(e) {
+                ! function(e) {
+                    (o = new XMLHttpRequest).onreadystatechange = u;
+                    var t = new FormData;
+                    t.append("init", e), o.open("PUT", "/edit"), o.send(t)
+                }(c.value)
+            }, a.onclick = function(e) {
+                c.value, window.location.href = "/"
+            }, m.onchange = function(e) {
+                ! function(e) {
+                    (o = new XMLHttpRequest).onreadystatechange = u;
+                    var t = new FormData;
+                    t.append("page", e), o.open("PUT", "/edit"), o.send(t)
+                }(m.value)
+            }
+        }
+
+        function createTree(e, t) {
+            var n = document.getElementById("preview"),
+                a = document.createElement("div");
+
+            function o(e) {
+                document.getElementById("editor").style.display = "none", n.style.display = "block", n.innerHTML = '<img src="' + e + "?_cb=" + Date.now() + '" style="max-width:100%; max - height: 100 % ; margin: auto; display: block;" />'
+            }
+
+            function d(e, n) {
+                var d = document.createElement("ul");
+                e.appendChild(d);
+                var c = document.createElement("li");
+                d.appendChild(c), l(n) ? (c.innerHTML = "<span>Edit</span>", c.onclick = function(a) {
+                    t.loadUrl(n), document.body.getElementsByClassName("cm").length > 0 && document.body.removeChild(e)
+                }) : i(n) && (c.innerHTML = "<span>Preview</span>", c.onclick = function(t) {
+                    o(n), document.body.getElementsByClassName("cm").length > 0 && document.body.removeChild(e)
+                });
+                var r = document.createElement("li");
+                d.appendChild(r), r.innerHTML = "<span>Download</span>", r.onclick = function(t) {
+                    ! function(e) {
+                        document.getElementById("download-frame").src = e + "?download=true"
+                    }(n), document.body.getElementsByClassName("cm").length > 0 && document.body.removeChild(e)
+                };
+                var m = document.createElement("li");
+                d.appendChild(m), m.innerHTML = "<span>Delete</span>", m.onclick = function(t) {
+                    ! function(e) {
+                        xmlHttp = new XMLHttpRequest, xmlHttp.onreadystatechange = function() {
+                            4 == xmlHttp.readyState && (200 != xmlHttp.status ? alert("ERROR[" + xmlHttp.status + "]: " + xmlHttp.responseText) : (a.removeChild(a.childNodes[0]), s(a, "/")))
+                        };
+                        var t = new FormData;
+                        t.append("path", e), xmlHttp.open("DELETE", "/edit"), xmlHttp.send(t)
+                    }(n), document.body.getElementsByClassName("cm").length > 0 && document.body.removeChild(e)
+                }
+            }
+
+            function c(e, n, a) {
+                var c = document.createElement("li");
+                c.id = ("/" == e ? "" : e) + "/" + n;
+                var s = document.createElement("span");
+                return s.innerText = n, c.appendChild(s), c.onclick = function(e) {
+                    l(c.id.toLowerCase()) ? t.loadUrl(c.id) : i(c.id.toLowerCase()) && o(c.id)
+                }, c.oncontextmenu = function(e) {
+                    e.preventDefault(), e.stopPropagation(),
+                        function(e, t, n) {
+                            var a = document.createElement("div"),
+                                o = document.body.scrollTop ? document.body.scrollTop : document.documentElement.scrollTop,
+                                c = document.body.scrollLeft ? document.body.scrollLeft : document.documentElement.scrollLeft,
+                                l = event.clientX + c,
+                                i = event.clientY + o;
+                            a.className = "cm", a.style.display = "block", a.style.left = l + "px", a.style.top = i + "px", d(a, t), document.body.appendChild(a);
+                            var s = a.offsetWidth,
+                                r = a.offsetHeight;
+                            a.onmouseout = function(e) {
+                                (e.clientX < l || e.clientX > l + s || e.clientY < i || e.clientY > i + r) && document.body.getElementsByClassName("cm").length > 0 && document.body.removeChild(a)
+                            }
+                        }(0, c.id)
+                }, c
+            }
+
+            function l(e) {
+                var t = /(?:.([^.]+))?$/.exec(e)[1];
+                if (void 0 !== typeof t) switch (t) {
+                    case "txt":
+                    case "json":
+                    case "jsonl":
+                    case "htm":
+                    case "js":
+                    case "c":
+                    case "cpp":
+                    case "css":
+                    case "xml":
+                        return !0
+                }
+                return !1
+            }
+
+            function i(e) {
+                var t = /(?:.([^.]+))?$/.exec(e)[1];
+                if (void 0 !== typeof t) switch (t) {
+                    case "png":
+                    case "jpg":
+                    case "gif":
+                        return !0
+                }
+                return !1
+            }
+
+            function s(e, t) {
+                xmlHttp = new XMLHttpRequest(e, t), xmlHttp.onreadystatechange = function(e, t) {
+                    return function() {
+                        4 == xmlHttp.readyState && 200 == xmlHttp.status && function(e, t, n) {
+                            var a = document.createElement("ul");
+                            e.appendChild(a);
+                            for (var o = n.length, d = 0; d < o; d++) "file" === n[d].type && a.appendChild(c(t, n[d].name, n[d].size))
+                        }(e, t, JSON.parse(xmlHttp.responseText))
+                    }
+                }(e, t), xmlHttp.open("GET", "/list?dir=" + t, !0), xmlHttp.send(null)
+            }
+            return a.className = "tvu", document.getElementById(e).appendChild(a), this.refreshPath = function(e) {
+                a.removeChild(a.childNodes[0]), s(a, "/")
+            }, s(a, "/"), this
+        }
+
+        function createEditor(e, t, n, a, o) {
+            function d(e) {
+                var t = "plain",
+                    n = /(?:.([^.]+))?$/.exec(e)[1];
+                if (void 0 !== typeof n) switch (n) {
+                    case "txt":
+                        t = "plain";
+                        break;
+                    case "htm":
+                        t = "html";
+                        break;
+                    case "js":
+                        t = "javascript";
+                        break;
+                    case "jsonl":
+                        t = "json";
+                        break;
+                    case "c":
+                    case "cpp":
+                        t = "c_cpp";
+                        break;
+                    case "css":
+                    case "scss":
+                    case "php":
+                    case "html":
+                    case "json":
+                    case "xml":
+                        t = n
+                }
+                return t
+            }
+            void 0 === t && (t = "/"), void 0 === n && (n = d(t)), void 0 === a && (a = "textmate"), void 0 === o && (o = "text/" + n, "c_cpp" === n && (o = "text/plain"));
+            var c = null,
+                l = ace.edit(e, {
+                    useWorker: !1,
+                    wrap: !0,
+                    indentedSoftWrap: !1
+                });
+
+            function i() {
+                4 == c.readyState && 200 != c.status && alert("ERROR[" + c.status + "]: " + c.responseText)
+            }
+
+            function s() {
+                4 == c.readyState && (document.getElementById("preview").style.display = "none", document.getElementById("editor").style.display = "block", function(e, t) {
+                    if (200 == t.status) try {
+                        var n = JSON.parse(t.responseText);
+                        e.setValue(JSON.stringify(n, null, 4))
+                    } catch (n) {
+                        e.setValue(t.responseText)
+                    } else e.setValue("");
+                    e.resize(!0), e.scrollToLine(1, !0, !0, function() {}), e.gotoLine(1, 0, !0), e.clearSelection()
+                }(l, c))
+            }
+
+            function r(e) {
+                (c = new XMLHttpRequest).onreadystatechange = s, c.open("GET", e, !0), c.send(null)
+            }
+            return "plain" !== n && l.getSession().setMode("ace/mode/" + n), l.setTheme("ace/theme/" + a), l.$blockScrolling = 1 / 0, l.getSession().setUseSoftTabs(!0), l.getSession().setTabSize(2), l.setHighlightActiveLine(!0), l.setShowPrintMargin(!1), l.commands.addCommand({
+                name: "saveCommand",
+                bindKey: {
+                    win: "Ctrl-S",
+                    mac: "Command-S"
+                },
+                exec: function(e) {
+                    ! function(e, t, n) {
+                        (c = new XMLHttpRequest).onreadystatechange = i;
+                        var a = new FormData;
+                        a.append("data", new Blob([t], {
+                            type: n
+                        }), e), c.open("POST", "/edit"), c.send(a)
+                    }(t, function(e) {
+                        var t = e.getValue();
+                        try {
+                            var n = JSON.parse(t);
+                            return JSON.stringify(n)
+                        } catch (e) {
+                            return t + ""
+                        }
+                    }(e), o)
+                },
+                readOnly: !1
+            }), l.commands.addCommand({
+                name: "undoCommand",
+                bindKey: {
+                    win: "Ctrl-Z",
+                    mac: "Command-Z"
+                },
+                exec: function(e) {
+                    e.getSession().getUndoManager().undo(!1)
+                },
+                readOnly: !1
+            }), l.commands.addCommand({
+                name: "redoCommand",
+                bindKey: {
+                    win: "Ctrl-Shift-Z",
+                    mac: "Command-Shift-Z"
+                },
+                exec: function(e) {
+                    e.getSession().getUndoManager().redo(!1)
+                },
+                readOnly: !1
+            }), r(t), l.loadUrl = function(e) {
+                n = d(t = e), o = "text/" + n, "plain" !== n && l.getSession().setMode("ace/mode/" + n), r(t), document.getElementById("upload-path").value = e
+            }, l
+        }
+
+        function onBodyLoad() {
+            var e = {},
+                t = (window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(t, n, a) {
+                    e[n] = a
+                }), createEditor("editor", e.file, e.lang, e.theme));
+            createFileUploader("uploader", createTree("tree", t), t), e.file && (document.getElementById("upload-path").value = e.file)
+        }
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ace.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body onload="onBodyLoad();">
+    <div id="uploader"></div>
+    <div id="tree"></div>
+    <div id="editor"></div>
+    <div id="preview" style="display:none;"></div><iframe id=download-frame style='display:none;'></iframe>
+</body>
+
+</html>
