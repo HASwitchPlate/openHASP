@@ -30,23 +30,22 @@ void attr_out_color(lv_obj_t* obj, const char* attribute, lv_color_t color);
 #endif
 
 typedef enum {
-    ATTR_RANGE_ERROR                  = -9,
-    ATTR_TYPE_METHOD_INVALID_FOR_PAGE = -8,
-    ATTR_TYPE_ALIGN_INVALID           = -5,
-    ATTR_TYPE_COLOR_INVALID           = -4,
-    ATTR_TYPE_STR_READONLY            = -3,
-    ATTR_TYPE_BOOL_READONLY           = -2,
-    ATTR_TYPE_INT_READONLY            = -1,
-    ATTR_NOT_FOUND                    = 0,
-    ATTR_TYPE_INT,
-    ATTR_TYPE_BOOL,
-    ATTR_TYPE_STR,
-    ATTR_TYPE_COLOR,
-    ATTR_TYPE_ALIGN,
-    ATTR_TYPE_DIRECTION_XY,
-    ATTR_TYPE_DIRECTION_CLOCK,
-    ATTR_TYPE_METHOD_OK,
-
+    HASP_ATTR_TYPE_RANGE_ERROR             = -9,
+    HASP_ATTR_TYPE_METHOD_INVALID_FOR_PAGE = -8,
+    HASP_ATTR_TYPE_ALIGN_INVALID           = -5,
+    HASP_ATTR_TYPE_COLOR_INVALID           = -4,
+    HASP_ATTR_TYPE_STR_READONLY            = -3,
+    HASP_ATTR_TYPE_BOOL_READONLY           = -2,
+    HASP_ATTR_TYPE_INT_READONLY            = -1,
+    HASP_ATTR_TYPE_NOT_FOUND               = 0,
+    HASP_ATTR_TYPE_INT,
+    HASP_ATTR_TYPE_BOOL,
+    HASP_ATTR_TYPE_STR,
+    HASP_ATTR_TYPE_COLOR,
+    HASP_ATTR_TYPE_ALIGN,
+    HASP_ATTR_TYPE_DIRECTION_XY,
+    HASP_ATTR_TYPE_DIRECTION_CLOCK,
+    HASP_ATTR_TYPE_METHOD_OK,
 } hasp_attribute_type_t;
 
 struct hasp_attr_update_bool_const_t
@@ -391,6 +390,7 @@ _HASP_ATTRIBUTE(SCALE_END_LINE_WIDTH, scale_end_line_width, lv_style_int_t)
 #define ATTR_ANIM_TIME 59451
 #define ATTR_ANIM_SPEED 281
 #define ATTR_START_VALUE 11828
+#define ATTR_COMMENT 62559
 
 // methods
 #define ATTR_DELETE 50027

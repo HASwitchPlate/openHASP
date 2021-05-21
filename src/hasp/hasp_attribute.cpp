@@ -752,10 +752,10 @@ static hasp_attribute_type_t hasp_process_arc_attribute(lv_obj_t* obj, uint16_t 
             break;
 
         default:
-            return hasp_attribute_type_t::ATTR_NOT_FOUND;
+            return HASP_ATTR_TYPE_NOT_FOUND;
     }
 
-    return hasp_attribute_type_t::ATTR_TYPE_INT;
+    return HASP_ATTR_TYPE_INT;
 }
 
 static hasp_attribute_type_t hasp_process_lmeter_attribute(lv_obj_t* obj, uint16_t attr_hash, int32_t& val, bool update)
@@ -787,10 +787,10 @@ static hasp_attribute_type_t hasp_process_lmeter_attribute(lv_obj_t* obj, uint16
             break;
 
         default:
-            return hasp_attribute_type_t::ATTR_NOT_FOUND;
+            return HASP_ATTR_TYPE_NOT_FOUND;
     }
 
-    return hasp_attribute_type_t::ATTR_TYPE_INT;
+    return HASP_ATTR_TYPE_INT;
 }
 
 static hasp_attribute_type_t special_attribute_direction(lv_obj_t* obj, uint16_t attr_hash, int32_t& val, bool update)
@@ -812,10 +812,10 @@ static hasp_attribute_type_t special_attribute_direction(lv_obj_t* obj, uint16_t
             break;
 
         default:
-            return hasp_attribute_type_t::ATTR_NOT_FOUND;
+            return HASP_ATTR_TYPE_NOT_FOUND;
     }
 
-    return hasp_attribute_type_t::ATTR_TYPE_INT;
+    return HASP_ATTR_TYPE_INT;
 }
 
 static hasp_attribute_type_t hasp_process_gauge_attribute(lv_obj_t* obj, uint16_t attr_hash, int32_t& val, bool update)
@@ -878,17 +878,17 @@ static hasp_attribute_type_t hasp_process_gauge_attribute(lv_obj_t* obj, uint16_
             break;
 
         default:
-            return hasp_attribute_type_t::ATTR_NOT_FOUND;
+            return HASP_ATTR_TYPE_NOT_FOUND;
     }
 
-    return hasp_attribute_type_t::ATTR_TYPE_INT;
+    return HASP_ATTR_TYPE_INT;
 }
 
 // ##################### Common Attributes ########################################################
 
 static hasp_attribute_type_t specific_page_attribute(lv_obj_t* obj, uint16_t attr_hash, int32_t& val, bool update)
 {
-    if(!obj_check_type(obj, LV_HASP_SCREEN)) return hasp_attribute_type_t::ATTR_NOT_FOUND;
+    if(!obj_check_type(obj, LV_HASP_SCREEN)) return HASP_ATTR_TYPE_NOT_FOUND;
 
     uint8_t pageid;
 
@@ -916,11 +916,11 @@ static hasp_attribute_type_t specific_page_attribute(lv_obj_t* obj, uint16_t att
                 break;
 
             default:
-                return hasp_attribute_type_t::ATTR_NOT_FOUND;
+                return HASP_ATTR_TYPE_NOT_FOUND;
         }
     }
 
-    return hasp_attribute_type_t::ATTR_TYPE_INT;
+    return HASP_ATTR_TYPE_INT;
 }
 
 template <typename T>
@@ -944,7 +944,7 @@ static inline bool do_attribute(T& list, lv_obj_t* obj, uint16_t attr_hash, int3
 
 static hasp_attribute_type_t special_attribute_src(lv_obj_t* obj, const char* payload, char** text, bool update)
 {
-    if(!obj_check_type(obj, LV_HASP_IMAGE)) return ATTR_NOT_FOUND;
+    if(!obj_check_type(obj, LV_HASP_IMAGE)) return HASP_ATTR_TYPE_NOT_FOUND;
 
     if(update) {
         lv_img_cache_invalidate_src(lv_img_get_src(obj));
@@ -957,7 +957,7 @@ static hasp_attribute_type_t special_attribute_src(lv_obj_t* obj, const char* pa
                 *text = (char*)lv_img_get_src(obj);
         }
     }
-    return ATTR_TYPE_STR;
+    return HASP_ATTR_TYPE_STR;
 }
 
 static hasp_attribute_type_t attribute_common_align(lv_obj_t* obj, const char* attr, const char* payload, char** text,
@@ -975,7 +975,7 @@ static hasp_attribute_type_t attribute_common_align(lv_obj_t* obj, const char* a
         } else if(!strcasecmp_P(payload, PSTR("auto"))) {
             val = LV_LABEL_ALIGN_AUTO;
         } else {
-            return ATTR_TYPE_ALIGN_INVALID;
+            return HASP_ATTR_TYPE_ALIGN_INVALID;
         }
     }
 
@@ -988,7 +988,7 @@ static hasp_attribute_type_t attribute_common_align(lv_obj_t* obj, const char* a
                 else
                     val = lv_label_get_align(label);
             } else {
-                return ATTR_NOT_FOUND; // not found
+                return HASP_ATTR_TYPE_NOT_FOUND; // not found
             }
             break;
         }
@@ -1014,7 +1014,7 @@ static hasp_attribute_type_t attribute_common_align(lv_obj_t* obj, const char* a
             break;
 
         default:
-            return ATTR_NOT_FOUND; // not found
+            return HASP_ATTR_TYPE_NOT_FOUND; // not found
     }
 
     // return values
@@ -1032,7 +1032,7 @@ static hasp_attribute_type_t attribute_common_align(lv_obj_t* obj, const char* a
             strcpy_P(*text, PSTR("left"));
     }
 
-    return ATTR_TYPE_STR;
+    return HASP_ATTR_TYPE_STR;
 }
 
 static hasp_attribute_type_t attribute_common_text(lv_obj_t* obj, const char* attr, const char* payload, char** text,
@@ -1059,7 +1059,7 @@ static hasp_attribute_type_t attribute_common_text(lv_obj_t* obj, const char* at
             else
                 *text = (char*)list[i].get(obj);
 
-            return hasp_attribute_type_t::ATTR_TYPE_STR;
+            return HASP_ATTR_TYPE_STR;
         }
     }
 
@@ -1069,21 +1069,21 @@ static hasp_attribute_type_t attribute_common_text(lv_obj_t* obj, const char* at
     switch(obj_get_type(obj)) {
         case LV_HASP_DROPDOWN: {
             lv_dropdown_get_selected_str(obj, *text, 128);
-            if(update) return hasp_attribute_type_t::ATTR_TYPE_STR_READONLY;
+            if(update) return HASP_ATTR_TYPE_STR_READONLY;
             break;
         }
 
         case LV_HASP_ROLLER: {
             lv_roller_get_selected_str(obj, *text, 128);
-            if(update) return hasp_attribute_type_t::ATTR_TYPE_STR_READONLY;
+            if(update) return HASP_ATTR_TYPE_STR_READONLY;
             break;
         }
 
         default:
-            return hasp_attribute_type_t::ATTR_NOT_FOUND;
+            return HASP_ATTR_TYPE_NOT_FOUND;
     }
 
-    return hasp_attribute_type_t::ATTR_TYPE_STR;
+    return HASP_ATTR_TYPE_STR;
 }
 
 static hasp_attribute_type_t specific_bool_attribute(lv_obj_t* obj, uint16_t attr_hash, int32_t& val, bool update)
@@ -1093,16 +1093,16 @@ static hasp_attribute_type_t specific_bool_attribute(lv_obj_t* obj, uint16_t att
             {LV_HASP_ARC, ATTR_ADJUSTABLE, my_arc_set_adjustable, my_arc_get_adjustable},
             {LV_HASP_BTNMATRIX, ATTR_ONE_CHECK, lv_btnmatrix_set_one_check, lv_btnmatrix_get_one_check},
             {LV_HASP_IMAGE, ATTR_AUTO_SIZE, lv_img_set_auto_size, lv_img_get_auto_size}};
-        if(do_attribute(list, obj, attr_hash, val, update)) return ATTR_TYPE_BOOL;
+        if(do_attribute(list, obj, attr_hash, val, update)) return HASP_ATTR_TYPE_BOOL;
     }
 
     { // bool
         hasp_attr_update_bool_t list[] = {
             {LV_HASP_DROPDOWN, ATTR_SHOW_SELECTED, lv_dropdown_set_show_selected, lv_dropdown_get_show_selected}};
-        if(do_attribute(list, obj, attr_hash, val, update)) return ATTR_TYPE_BOOL;
+        if(do_attribute(list, obj, attr_hash, val, update)) return HASP_ATTR_TYPE_BOOL;
     }
 
-    return ATTR_NOT_FOUND;
+    return HASP_ATTR_TYPE_NOT_FOUND;
 }
 
 static hasp_attribute_type_t specific_coord_attribute(lv_obj_t* obj, uint16_t attr_hash, int32_t& val, bool update)
@@ -1112,10 +1112,10 @@ static hasp_attribute_type_t specific_coord_attribute(lv_obj_t* obj, uint16_t at
             {LV_HASP_IMAGE, ATTR_OFFSET_X, lv_img_set_offset_x, lv_img_get_offset_x},
             {LV_HASP_IMAGE, ATTR_OFFSET_Y, lv_img_set_offset_y, lv_img_get_offset_y},
             {LV_HASP_DROPDOWN, ATTR_MAX_HEIGHT, lv_dropdown_set_max_height, my_dropdown_get_max_height}};
-        if(do_attribute(list, obj, attr_hash, val, update)) return ATTR_TYPE_INT;
+        if(do_attribute(list, obj, attr_hash, val, update)) return HASP_ATTR_TYPE_INT;
     }
 
-    return ATTR_NOT_FOUND;
+    return HASP_ATTR_TYPE_NOT_FOUND;
 }
 
 static hasp_attribute_type_t specific_int_attribute(lv_obj_t* obj, uint16_t attr_hash, int32_t& val, bool update)
@@ -1133,7 +1133,7 @@ static hasp_attribute_type_t specific_int_attribute(lv_obj_t* obj, uint16_t attr
             {LV_HASP_TABVIEW, ATTR_ANIM_TIME, lv_tabview_set_anim_time, lv_tabview_get_anim_time},
             {LV_HASP_WINDOW, ATTR_ANIM_TIME, lv_win_set_anim_time, lv_win_get_anim_time},
             {LV_HASP_LABEL, ATTR_ANIM_SPEED, lv_label_set_anim_speed, lv_label_get_anim_speed}};
-        if(do_attribute(list, obj, attr_hash, val, update)) return ATTR_TYPE_INT;
+        if(do_attribute(list, obj, attr_hash, val, update)) return HASP_ATTR_TYPE_INT;
     }
 
     { // uint16_t, but getter is not const
@@ -1149,26 +1149,26 @@ static hasp_attribute_type_t specific_int_attribute(lv_obj_t* obj, uint16_t attr
             {LV_HASP_TABLE, ATTR_COLS, lv_table_set_col_cnt, lv_table_get_col_cnt},
             {LV_HASP_TABLE, ATTR_ROWS, lv_table_set_row_cnt, lv_table_get_row_cnt},
             {LV_HASP_TILEVIEW, ATTR_ANIM_TIME, lv_tileview_set_anim_time, lv_tileview_get_anim_time}};
-        if(do_attribute(list, obj, attr_hash, val, update)) return ATTR_TYPE_INT;
+        if(do_attribute(list, obj, attr_hash, val, update)) return HASP_ATTR_TYPE_INT;
     }
 
     { // lv_anim_value_t
         hasp_attr_update_lv_anim_value_const_t list[] = {
             {LV_HASP_SPINNER, ATTR_ANGLE, lv_spinner_set_arc_length, lv_spinner_get_arc_length}};
-        if(do_attribute(list, obj, attr_hash, val, update)) return ATTR_TYPE_INT;
+        if(do_attribute(list, obj, attr_hash, val, update)) return HASP_ATTR_TYPE_INT;
     }
 
     { // int16_t
         hasp_attr_update_int16_const_t list[] = {
             {LV_HASP_BAR, ATTR_START_VALUE, my_bar_set_start_value, lv_bar_get_start_value},
             {LV_HASP_SLIDER, ATTR_START_VALUE, my_slider_set_left_value, lv_slider_get_left_value}};
-        if(do_attribute(list, obj, attr_hash, val, update)) return ATTR_TYPE_INT;
+        if(do_attribute(list, obj, attr_hash, val, update)) return HASP_ATTR_TYPE_INT;
     }
 
     { // uint8_t
         hasp_attr_update_uint8_const_t list[] = {
             {LV_HASP_ROLLER, ATTR_ROWS, lv_roller_set_visible_row_count, my_roller_get_visible_row_count}};
-        if(do_attribute(list, obj, attr_hash, val, update)) return ATTR_TYPE_INT;
+        if(do_attribute(list, obj, attr_hash, val, update)) return HASP_ATTR_TYPE_INT;
     }
 
     if(obj_check_type(obj, LV_HASP_TABVIEW)) {
@@ -1176,9 +1176,9 @@ static hasp_attribute_type_t specific_int_attribute(lv_obj_t* obj, uint16_t attr
             case ATTR_COUNT:
                 val = lv_tabview_get_tab_count(obj);
                 if(update)
-                    return ATTR_TYPE_INT_READONLY;
+                    return HASP_ATTR_TYPE_INT_READONLY;
                 else
-                    return ATTR_TYPE_INT;
+                    return HASP_ATTR_TYPE_INT;
 
             case ATTR_BTN_POS:
                 if(update) {
@@ -1186,11 +1186,11 @@ static hasp_attribute_type_t specific_int_attribute(lv_obj_t* obj, uint16_t attr
                 } else {
                     val = lv_tabview_get_btns_pos(obj);
                 }
-                return ATTR_TYPE_INT;
+                return HASP_ATTR_TYPE_INT;
         }
     }
 
-    return ATTR_NOT_FOUND;
+    return HASP_ATTR_TYPE_NOT_FOUND;
 }
 
 static bool my_obj_get_range(lv_obj_t* obj, int32_t& min, int32_t& max)
@@ -1272,7 +1272,7 @@ static hasp_attribute_type_t attribute_common_val(lv_obj_t* obj, int32_t& val, b
                 val = lv_obj_get_state(obj, LV_BTN_PART_MAIN) & LV_STATE_CHECKED;
             }
         } else {
-            return hasp_attribute_type_t::ATTR_NOT_FOUND; // not checkable
+            return HASP_ATTR_TYPE_NOT_FOUND; // not checkable
         }
     } else if(obj_check_type(obj, LV_HASP_CHECKBOX)) {
         if(update)
@@ -1324,10 +1324,10 @@ static hasp_attribute_type_t attribute_common_val(lv_obj_t* obj, int32_t& val, b
         else
             val = lv_tabview_get_tab_act(obj);
     } else {
-        return hasp_attribute_type_t::ATTR_NOT_FOUND; // not found
+        return HASP_ATTR_TYPE_NOT_FOUND; // not found
     }
 
-    return hasp_attribute_type_t::ATTR_TYPE_INT; // found
+    return HASP_ATTR_TYPE_INT; // found
 }
 
 bool attribute_set_normalized_value(lv_obj_t* obj, hasp_update_value_t& value)
@@ -1363,12 +1363,12 @@ static hasp_attribute_type_t attribute_common_range(lv_obj_t* obj, int32_t& val,
 {
     int32_t min;
     int32_t max;
-    if(!my_obj_get_range(obj, min, max)) return hasp_attribute_type_t::ATTR_RANGE_ERROR;
+    if(!my_obj_get_range(obj, min, max)) return HASP_ATTR_TYPE_RANGE_ERROR;
 
     switch(obj_get_type(obj)) {
         case LV_HASP_SLIDER:
             if(update && (set_min ? val : min) == (set_max ? val : max))
-                return hasp_attribute_type_t::ATTR_RANGE_ERROR; // prevent setting min=max
+                return HASP_ATTR_TYPE_RANGE_ERROR; // prevent setting min=max
             if(update)
                 lv_slider_set_range(obj, set_min ? val : min, set_max ? val : max);
             else
@@ -1377,7 +1377,7 @@ static hasp_attribute_type_t attribute_common_range(lv_obj_t* obj, int32_t& val,
 
         case LV_HASP_GAUGE:
             if(update && (set_min ? val : min) == (set_max ? val : max))
-                return hasp_attribute_type_t::ATTR_RANGE_ERROR; // prevent setting min=max
+                return HASP_ATTR_TYPE_RANGE_ERROR; // prevent setting min=max
             if(update)
                 lv_gauge_set_range(obj, set_min ? val : min, set_max ? val : max);
             else
@@ -1386,7 +1386,7 @@ static hasp_attribute_type_t attribute_common_range(lv_obj_t* obj, int32_t& val,
 
         case LV_HASP_ARC:
             if(update && (set_min ? val : min) == (set_max ? val : max))
-                return hasp_attribute_type_t::ATTR_RANGE_ERROR; // prevent setting min=max
+                return HASP_ATTR_TYPE_RANGE_ERROR; // prevent setting min=max
             if(update)
                 lv_arc_set_range(obj, set_min ? val : min, set_max ? val : max);
             else
@@ -1395,7 +1395,7 @@ static hasp_attribute_type_t attribute_common_range(lv_obj_t* obj, int32_t& val,
 
         case LV_HASP_BAR:
             if(update && (set_min ? val : min) == (set_max ? val : max))
-                return hasp_attribute_type_t::ATTR_RANGE_ERROR; // prevent setting min=max
+                return HASP_ATTR_TYPE_RANGE_ERROR; // prevent setting min=max
             if(update)
                 lv_bar_set_range(obj, set_min ? val : min, set_max ? val : max);
             else
@@ -1404,7 +1404,7 @@ static hasp_attribute_type_t attribute_common_range(lv_obj_t* obj, int32_t& val,
 
         case LV_HASP_LINEMETER:
             if(update && (set_min ? val : min) == (set_max ? val : max))
-                return hasp_attribute_type_t::ATTR_RANGE_ERROR; // prevent setting min=max
+                return HASP_ATTR_TYPE_RANGE_ERROR; // prevent setting min=max
             if(update)
                 lv_linemeter_set_range(obj, set_min ? val : min, set_max ? val : max);
             else
@@ -1413,7 +1413,7 @@ static hasp_attribute_type_t attribute_common_range(lv_obj_t* obj, int32_t& val,
 
         case LV_HASP_CHART:
             if(update && (set_min ? val : min) == (set_max ? val : max))
-                return hasp_attribute_type_t::ATTR_RANGE_ERROR; // prevent setting min=max
+                return HASP_ATTR_TYPE_RANGE_ERROR; // prevent setting min=max
             if(update)
                 lv_chart_set_range(obj, set_min ? val : min, set_max ? val : max);
             else
@@ -1421,10 +1421,10 @@ static hasp_attribute_type_t attribute_common_range(lv_obj_t* obj, int32_t& val,
             break;
 
         default:
-            return hasp_attribute_type_t::ATTR_NOT_FOUND;
+            return HASP_ATTR_TYPE_NOT_FOUND;
     }
 
-    return hasp_attribute_type_t::ATTR_TYPE_INT;
+    return HASP_ATTR_TYPE_INT;
 }
 
 // ##################### Default Attributes ########################################################
@@ -1442,7 +1442,7 @@ static hasp_attribute_type_t attribute_common_method(lv_obj_t* obj, uint16_t att
 {
     switch(attr_hash) {
         case ATTR_DELETE:
-            if(!lv_obj_get_parent(obj)) return hasp_attribute_type_t::ATTR_TYPE_METHOD_INVALID_FOR_PAGE;
+            if(!lv_obj_get_parent(obj)) return HASP_ATTR_TYPE_METHOD_INVALID_FOR_PAGE;
             lv_obj_del_async(obj);
             break;
 
@@ -1451,18 +1451,18 @@ static hasp_attribute_type_t attribute_common_method(lv_obj_t* obj, uint16_t att
             break;
 
         case ATTR_TO_FRONT:
-            if(!lv_obj_get_parent(obj)) return hasp_attribute_type_t::ATTR_TYPE_METHOD_INVALID_FOR_PAGE;
+            if(!lv_obj_get_parent(obj)) return HASP_ATTR_TYPE_METHOD_INVALID_FOR_PAGE;
             lv_obj_move_foreground(obj);
             break;
 
         case ATTR_TO_BACK:
-            if(!lv_obj_get_parent(obj)) return hasp_attribute_type_t::ATTR_TYPE_METHOD_INVALID_FOR_PAGE;
+            if(!lv_obj_get_parent(obj)) return HASP_ATTR_TYPE_METHOD_INVALID_FOR_PAGE;
             lv_obj_move_background(obj);
             break;
 
         case ATTR_OPEN:
         case ATTR_CLOSE:
-            if(!obj_check_type(obj, LV_HASP_DROPDOWN)) return hasp_attribute_type_t::ATTR_NOT_FOUND;
+            if(!obj_check_type(obj, LV_HASP_DROPDOWN)) return HASP_ATTR_TYPE_NOT_FOUND;
             if(attr_hash == ATTR_OPEN)
                 lv_dropdown_open(obj);
             else
@@ -1470,10 +1470,10 @@ static hasp_attribute_type_t attribute_common_method(lv_obj_t* obj, uint16_t att
             break;
 
         default:
-            return hasp_attribute_type_t::ATTR_NOT_FOUND; // attribute_not found
+            return HASP_ATTR_TYPE_NOT_FOUND; // attribute_not found
     }
 
-    return hasp_attribute_type_t::ATTR_TYPE_METHOD_OK;
+    return HASP_ATTR_TYPE_METHOD_OK;
 }
 
 /**
@@ -1510,7 +1510,7 @@ static hasp_attribute_type_t attribute_common_int(lv_obj_t* obj, uint16_t attr_h
 
         case ATTR_OBJID:
             val = obj->user_data.objid;
-            if(update && val != obj->user_data.objid) hasp_attribute_type_t::ATTR_TYPE_INT_READONLY;
+            if(update && val != obj->user_data.objid) HASP_ATTR_TYPE_INT_READONLY;
             break; // attribute_found
 
         case ATTR_X:
@@ -1579,10 +1579,10 @@ static hasp_attribute_type_t attribute_common_int(lv_obj_t* obj, uint16_t attr_h
             break; // attribute_found
 
         default:
-            return hasp_attribute_type_t::ATTR_NOT_FOUND; // attribute_not found
+            return HASP_ATTR_TYPE_NOT_FOUND; // attribute_not found
     }
 
-    return hasp_attribute_type_t::ATTR_TYPE_INT;
+    return HASP_ATTR_TYPE_INT;
 }
 
 /**
@@ -1657,15 +1657,15 @@ static hasp_attribute_type_t attribute_common_bool(lv_obj_t* obj, uint16_t attr_
                     }
                     break; // attribute_found
                 default:
-                    return hasp_attribute_type_t::ATTR_NOT_FOUND; // attribute_not found
+                    return HASP_ATTR_TYPE_NOT_FOUND; // attribute_not found
             }
             break; // attribute_found
 
         default:
-            return hasp_attribute_type_t::ATTR_NOT_FOUND; // attribute_not found
+            return HASP_ATTR_TYPE_NOT_FOUND; // attribute_not found
     }
 
-    return hasp_attribute_type_t::ATTR_TYPE_BOOL;
+    return HASP_ATTR_TYPE_BOOL;
 }
 
 // ##################### Default Attributes ########################################################
@@ -1832,11 +1832,10 @@ void hasp_process_obj_attribute(lv_obj_t* obj, const char* attribute, const char
 
     lv_color_t color;
     int32_t val;
-    char temp_buffer[128] = "";              // buffer to hold return strings
-    char* text            = &temp_buffer[0]; // pointer to temp_buffer
-    hasp_attribute_type_t ret =
-        hasp_attribute_type_t::ATTR_NOT_FOUND; // the return code determines the attribute return value type
-    uint16_t attr_hash = Parser::get_sdbm(attribute);
+    char temp_buffer[128]     = "";                       // buffer to hold return strings
+    char* text                = &temp_buffer[0];          // pointer to temp_buffer
+    hasp_attribute_type_t ret = HASP_ATTR_TYPE_NOT_FOUND; // the return code determines the attribute return value type
+    uint16_t attr_hash        = Parser::get_sdbm(attribute);
 
     switch(attr_hash) {
         case ATTR_GROUPID:
@@ -1892,9 +1891,9 @@ void hasp_process_obj_attribute(lv_obj_t* obj, const char* attribute, const char
         case ATTR_OBJ:
             text = (char*)obj_get_type_name(obj);
             if(update)
-                ret = ATTR_TYPE_STR_READONLY;
+                ret = HASP_ATTR_TYPE_STR_READONLY;
             else
-                ret = ATTR_TYPE_STR;
+                ret = HASP_ATTR_TYPE_STR;
             break;
 
             // case ATTR_MODE:
@@ -1906,7 +1905,7 @@ void hasp_process_obj_attribute(lv_obj_t* obj, const char* attribute, const char
                 obj->user_data.actionid = Parser::get_action_id(payload);
             else
                 val = obj->user_data.actionid;
-            ret = ATTR_TYPE_INT;
+            ret = HASP_ATTR_TYPE_INT;
             break;
 
             // case ATTR_SYMBOL:
@@ -1923,7 +1922,7 @@ void hasp_process_obj_attribute(lv_obj_t* obj, const char* attribute, const char
             break;
 
         case ATTR_COMMENT:
-            ret = hasp_attribute_type_t::ATTR_TYPE_METHOD_OK;
+            ret = HASP_ATTR_TYPE_METHOD_OK;
             break;
 
         case ATTR_COLS:
@@ -1981,7 +1980,7 @@ void hasp_process_obj_attribute(lv_obj_t* obj, const char* attribute, const char
         }
     }
 
-    if(ret == ATTR_NOT_FOUND) {
+    if(ret == HASP_ATTR_TYPE_NOT_FOUND) {
         switch(obj_get_type(obj)) { // Properties by object type
 
             case LV_HASP_ARC:
@@ -2008,7 +2007,7 @@ void hasp_process_obj_attribute(lv_obj_t* obj, const char* attribute, const char
                     } else {
                         color = lv_cpicker_get_color(obj);
                     }
-                    ret = ATTR_TYPE_COLOR;
+                    ret = HASP_ATTR_TYPE_COLOR;
                 }
                 break;
 
@@ -2017,13 +2016,13 @@ void hasp_process_obj_attribute(lv_obj_t* obj, const char* attribute, const char
         }
     }
 
-    if(ret == ATTR_NOT_FOUND) {
+    if(ret == HASP_ATTR_TYPE_NOT_FOUND) {
         bool result;
         hasp_local_style_attr(obj, attribute, attr_hash, payload, update, result);
         if(result) {
-            ret = ATTR_TYPE_METHOD_OK;
+            ret = HASP_ATTR_TYPE_METHOD_OK;
         } else {
-            ret = ATTR_NOT_FOUND;
+            ret = HASP_ATTR_TYPE_NOT_FOUND;
         }
         LOG_VERBOSE(TAG_ATTR, "%s %d ret:%d", __FILE__, __LINE__, ret);
     }
@@ -2033,49 +2032,49 @@ void hasp_process_obj_attribute(lv_obj_t* obj, const char* attribute, const char
 
     // Output the returned value or warning
     switch(ret) {
-        case ATTR_NOT_FOUND:
+        case HASP_ATTR_TYPE_NOT_FOUND:
             LOG_WARNING(TAG_ATTR, F(D_ATTRIBUTE_UNKNOWN " (%d)"), attribute, attr_hash);
             break;
 
-        case ATTR_TYPE_INT_READONLY:
+        case HASP_ATTR_TYPE_INT_READONLY:
             LOG_WARNING(TAG_ATTR, F(D_ATTRIBUTE_READ_ONLY), attribute);
-        case ATTR_TYPE_INT:
+        case HASP_ATTR_TYPE_INT:
             attr_out_int(obj, attribute, val);
             break;
 
-        case ATTR_TYPE_BOOL_READONLY:
+        case HASP_ATTR_TYPE_BOOL_READONLY:
             LOG_WARNING(TAG_ATTR, F(D_ATTRIBUTE_READ_ONLY), attribute);
-        case ATTR_TYPE_BOOL:
+        case HASP_ATTR_TYPE_BOOL:
             attr_out_bool(obj, attribute, val);
             break;
 
-        case ATTR_TYPE_STR_READONLY:
+        case HASP_ATTR_TYPE_STR_READONLY:
             LOG_WARNING(TAG_ATTR, F(D_ATTRIBUTE_READ_ONLY), attribute);
-        case ATTR_TYPE_STR:
+        case HASP_ATTR_TYPE_STR:
             attr_out_str(obj, attribute, text);
             break;
 
-        case ATTR_TYPE_COLOR_INVALID:
+        case HASP_ATTR_TYPE_COLOR_INVALID:
             LOG_WARNING(TAG_ATTR, F(D_ATTRIBUTE_COLOR_INVALID), payload);
             break;
 
-        case ATTR_TYPE_COLOR:
+        case HASP_ATTR_TYPE_COLOR:
             attr_out_color(obj, attribute, color);
             break;
 
-        case ATTR_TYPE_ALIGN_INVALID:
+        case HASP_ATTR_TYPE_ALIGN_INVALID:
             LOG_WARNING(TAG_ATTR, F(D_ATTRIBUTE_ALIGN_INVALID), payload);
             break;
 
-        case ATTR_TYPE_ALIGN:
-        case ATTR_TYPE_DIRECTION_CLOCK:
-        case ATTR_TYPE_DIRECTION_XY:
+        case HASP_ATTR_TYPE_ALIGN:
+        case HASP_ATTR_TYPE_DIRECTION_CLOCK:
+        case HASP_ATTR_TYPE_DIRECTION_XY:
             attr_out_int(obj, attribute, val);
             break;
 
-        case ATTR_TYPE_METHOD_INVALID_FOR_PAGE:
+        case HASP_ATTR_TYPE_METHOD_INVALID_FOR_PAGE:
             LOG_ERROR(TAG_ATTR, F(D_ATTRIBUTE_PAGE_METHOD_INVALID), attribute);
-        case ATTR_TYPE_METHOD_OK:
+        case HASP_ATTR_TYPE_METHOD_OK:
             break;
 
         default:
