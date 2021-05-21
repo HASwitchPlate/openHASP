@@ -1922,6 +1922,10 @@ void hasp_process_obj_attribute(lv_obj_t* obj, const char* attribute, const char
             ret = attribute_common_method(obj, attr_hash, attribute, payload);
             break;
 
+        case ATTR_COMMENT:
+            ret = hasp_attribute_type_t::ATTR_TYPE_METHOD_OK;
+            break;
+
         case ATTR_COLS:
         case ATTR_ROWS:
         case ATTR_AUTO_CLOSE:
