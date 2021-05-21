@@ -888,7 +888,7 @@ static hasp_attribute_type_t hasp_process_gauge_attribute(lv_obj_t* obj, uint16_
 
 static hasp_attribute_type_t specific_page_attribute(lv_obj_t* obj, uint16_t attr_hash, int32_t& val, bool update)
 {
-    if(!obj_check_type(obj, LV_HASP_PAGE)) return hasp_attribute_type_t::ATTR_NOT_FOUND;
+    if(!obj_check_type(obj, LV_HASP_SCREEN)) return hasp_attribute_type_t::ATTR_NOT_FOUND;
 
     uint8_t pageid;
 
@@ -1659,6 +1659,7 @@ static hasp_attribute_type_t attribute_common_bool(lv_obj_t* obj, uint16_t attr_
                 default:
                     return hasp_attribute_type_t::ATTR_NOT_FOUND; // attribute_not found
             }
+            break; // attribute_found
 
         default:
             return hasp_attribute_type_t::ATTR_NOT_FOUND; // attribute_not found
