@@ -226,31 +226,29 @@ static lv_font_t* haspPayloadToFont(const char* payload)
     }
 }
 
-static void hasp_process_label_long_mode(lv_obj_t* obj, const char* payload, bool update)
+static hasp_attribute_type_t hasp_process_label_long_mode(lv_obj_t* obj, const char* payload, char** text, bool update)
 {
+    const char* arr[] = {PSTR("expand"), PSTR("break"), PSTR("dots"), PSTR("scroll"), PSTR("loop"), PSTR("crop")};
+    uint8_t count     = sizeof(arr) / sizeof(arr[0]);
+    uint8_t i         = 0;
+
     if(update) {
-        lv_label_long_mode_t mode = LV_LABEL_LONG_EXPAND;
-        if(!strcasecmp_P(payload, PSTR("expand"))) {
-            mode = LV_LABEL_LONG_EXPAND;
-        } else if(!strcasecmp_P(payload, PSTR("break"))) {
-            mode = LV_LABEL_LONG_BREAK;
-        } else if(!strcasecmp_P(payload, PSTR("dots"))) {
-            mode = LV_LABEL_LONG_DOT;
-        } else if(!strcasecmp_P(payload, PSTR("scroll"))) {
-            mode = LV_LABEL_LONG_SROLL;
-        } else if(!strcasecmp_P(payload, PSTR("loop"))) {
-            mode = LV_LABEL_LONG_SROLL_CIRC;
-        } else if(!strcasecmp_P(payload, PSTR("crop"))) {
-            mode = LV_LABEL_LONG_CROP;
-        } else {
-            LOG_WARNING(TAG_ATTR, F("Invalid long mode"));
-            return;
+        for(i = 0; i < count; i++) {
+            if(!strcasecmp_P(payload, arr[i])) {
+                lv_label_set_long_mode(obj, (lv_label_long_mode_t)i);
+                break;
+            }
         }
-        lv_label_set_long_mode(obj, mode);
     } else {
-        // Getter needed
-        attr_out_int(obj, "mode", lv_label_get_long_mode(obj));
+        i = lv_label_get_long_mode(obj);
     }
+
+    if(i < count) {
+        strcpy_P(*text, arr[i]);
+        return HASP_ATTR_TYPE_STR;
+    }
+
+    return HASP_ATTR_TYPE_NOT_FOUND;
 }
 
 static void hasp_attribute_get_part_state(lv_obj_t* obj, const char* attr_in, char* attr_out, uint8_t& part,
@@ -975,7 +973,8 @@ static hasp_attribute_type_t attribute_common_align(lv_obj_t* obj, const char* a
         } else if(!strcasecmp_P(payload, PSTR("auto"))) {
             val = LV_LABEL_ALIGN_AUTO;
         } else {
-            return HASP_ATTR_TYPE_ALIGN_INVALID;
+            val = atoi(payload);
+            if(val > LV_LABEL_ALIGN_AUTO) return HASP_ATTR_TYPE_ALIGN_INVALID;
         }
     }
 
@@ -1033,6 +1032,40 @@ static hasp_attribute_type_t attribute_common_align(lv_obj_t* obj, const char* a
     }
 
     return HASP_ATTR_TYPE_STR;
+}
+
+static hasp_attribute_type_t attribute_common_mode(lv_obj_t* obj, const char* payload, char** text, int32_t& val,
+                                                   bool update)
+{
+    switch(obj_get_type(obj)) {
+        case LV_HASP_BUTTON: {
+            lv_obj_t* label = FindButtonLabel(obj);
+            if(label) {
+                hasp_attribute_type_t ret = hasp_process_label_long_mode(label, payload, text, update);
+                lv_obj_set_width(label, lv_obj_get_width(obj));
+                return ret;
+            }
+            break; // not found
+        }
+
+        case LV_HASP_LABEL:
+            return hasp_process_label_long_mode(obj, payload, text, update);
+
+        case LV_HASP_ROLLER:
+            if(update) {
+                val = Parser::is_true(payload);
+                lv_roller_set_options(obj, lv_roller_get_options(obj), (lv_roller_mode_t)val);
+            } else {
+                lv_roller_ext_t* ext = (lv_roller_ext_t*)lv_obj_get_ext_attr(obj);
+                val                  = ext->mode;
+            }
+            return HASP_ATTR_TYPE_INT;
+
+        default:
+            break; // not found
+    }
+
+    return HASP_ATTR_TYPE_NOT_FOUND;
 }
 
 static hasp_attribute_type_t attribute_common_text(lv_obj_t* obj, const char* attr, const char* payload, char** text,
@@ -1685,33 +1718,6 @@ void old_process_obj_attribute(lv_obj_t* obj, const char* attr_p, const char* pa
     /* 16-bit Hash Lookup Table */
     switch(attr_hash) {
 
-        case ATTR_MODE:
-            switch(obj_get_type(obj)) {
-                case LV_HASP_BUTTON: {
-                    lv_obj_t* label = FindButtonLabel(obj);
-                    if(label) {
-                        hasp_process_label_long_mode(label, payload, update);
-                        lv_obj_set_width(label, lv_obj_get_width(obj));
-                    }
-                    return; // attribute_found
-                }
-                case LV_HASP_LABEL:
-                    hasp_process_label_long_mode(obj, payload, update);
-                    return; // attribute_found
-                case LV_HASP_ROLLER:
-                    if(update) {
-                        lv_roller_set_options(obj, lv_roller_get_options(obj),
-                                              (lv_roller_mode_t)Parser::is_true(payload));
-                    } else {
-                        lv_roller_ext_t* ext = (lv_roller_ext_t*)lv_obj_get_ext_attr(obj);
-                        attr_out_int(obj, attr_p, ext->mode);
-                    }
-                    return; // attribute_found
-                default:
-                    break; // not found
-            }
-            break; // not found
-
         case ATTR_OPTIONS:
             switch(obj_get_type(obj)) {
                 case LV_HASP_DROPDOWN:
@@ -1896,7 +1902,10 @@ void hasp_process_obj_attribute(lv_obj_t* obj, const char* attribute, const char
                 ret = HASP_ATTR_TYPE_STR;
             break;
 
-            // case ATTR_MODE:
+        case ATTR_MODE:
+            ret = attribute_common_mode(obj, payload, &text, val, update);
+            break;
+
             // case ATTR_OPTIONS:
             // case ATTR_BTN_POS:
 
