@@ -201,7 +201,7 @@ void guiSetup()
     //_lv_fs_init(); // lvgl File System -- not neaded, it done in lv_init() when LV_USE_FILESYSTEM is set
     LOG_VERBOSE(TAG_LVGL, F("Filesystem : " D_SETTING_ENABLED));
     lv_fs_if_init(); // auxilary file system drivers
-    filesystem_list_path("L:/");
+    // filesystem_list_path("L:/");
 
     lv_fs_file_t f;
     lv_fs_res_t res;
