@@ -179,8 +179,8 @@
             }, d.onchange = function(e) {
                 if (0 !== d.files.length) {
                     var t = d.files[0].name,
-                        n = /(?:.([^.]+))?$/.exec(t)[1],
-                        a = /(.*).[^.]+$/.exec(t)[1];
+                        n = /(?:\.([^.]+))?$/.exec(t)[1],
+                        a = /(.*)\.[^.]+$/.exec(t)[1];
                     void 0 !== typeof a && (t = a), void 0 !== typeof n && ("html" === n ? n = "htm" : "jpeg" === n && (n = "jpg"), t = t + "." + n), "/" === c.value || 0 === c.value.lastIndexOf("/") ? c.value = "/" + t : c.value = c.value.substring(0, c.value.lastIndexOf("/") + 1) + t
                 }
             }, s.onclick = function(e) {
@@ -206,66 +206,64 @@
             }
         }
 
-        function createTree(e, t) {
-            var n = document.getElementById("preview"),
-                a = document.createElement("div");
+        function createTree(e, r) {
+            var t = document.getElementById("preview"),
+                m = document.createElement("div");
 
-            function o(e) {
-                document.getElementById("editor").style.display = "none", n.style.display = "block", n.innerHTML = '<img src="' + e + "?_cb=" + Date.now() + '" style="max-width:100%; max - height: 100 % ; margin: auto; display: block;"/>'
+            function u(e) {
+                document.getElementById("editor").style.display = "none", t.style.display = "block", t.innerHTML = '<img src="' + e + "?_cb=" + Date.now() + '" style="max-width:100%; max - height: 100 % ; margin: auto; display: block;"/>'
             }
 
-            function d(e, n) {
-                var d = document.createElement("ul");
-                e.appendChild(d);
-                var c = document.createElement("li");
-                d.appendChild(c), l(n) ? (c.innerHTML = "<span>Edit</span>", c.onclick = function(a) {
-                    t.loadUrl(n), document.body.getElementsByClassName("cm").length > 0 && document.body.removeChild(e)
-                }) : i(n) && (c.innerHTML = "<span>Preview</span>", c.onclick = function(t) {
-                    o(n), document.body.getElementsByClassName("cm").length > 0 && document.body.removeChild(e)
-                });
-                var r = document.createElement("li");
-                d.appendChild(r), r.innerHTML = "<span>Download</span>", r.onclick = function(t) {
-                    ! function(e) {
-                        document.getElementById("download-frame").src = e + "?download=true"
-                    }(n), document.body.getElementsByClassName("cm").length > 0 && document.body.removeChild(e)
-                };
-                var m = document.createElement("li");
-                d.appendChild(m), m.innerHTML = "<span>Delete</span>", m.onclick = function(t) {
-                    ! function(e) {
-                        xmlHttp = new XMLHttpRequest, xmlHttp.onreadystatechange = function() {
-                            4 == xmlHttp.readyState && (200 != xmlHttp.status ? alert("ERROR[" + xmlHttp.status + "]: " + xmlHttp.responseText) : (a.removeChild(a.childNodes[0]), s(a, "/")))
-                        };
-                        var t = new FormData;
-                        t.append("path", e), xmlHttp.open("DELETE", "/edit"), xmlHttp.send(t)
-                    }(n), document.body.getElementsByClassName("cm").length > 0 && document.body.removeChild(e)
-                }
-            }
-
-            function c(e, n, a) {
-                var c = document.createElement("li");
-                c.id = ("/" == e ? "" : e) + "/" + n;
-                var s = document.createElement("span");
-                return s.innerText = n, c.appendChild(s), c.onclick = function(e) {
-                    l(c.id.toLowerCase()) ? t.loadUrl(c.id) : i(c.id.toLowerCase()) && o(c.id)
-                }, c.oncontextmenu = function(e) {
+            function c(e, t, n) {
+                var a = document.createElement("li");
+                a.id = ("/" == e ? "" : e) + "/" + t;
+                var o = document.createElement("span");
+                return o.innerText = t, a.appendChild(o), a.onclick = function(e) {
+                    p(a.id.toLowerCase()) ? r.loadUrl(a.id) : f(a.id.toLowerCase()) && u(a.id)
+                }, a.oncontextmenu = function(e) {
                     e.preventDefault(), e.stopPropagation(),
                         function(e, t, n) {
                             var a = document.createElement("div"),
                                 o = document.body.scrollTop ? document.body.scrollTop : document.documentElement.scrollTop,
-                                c = document.body.scrollLeft ? document.body.scrollLeft : document.documentElement.scrollLeft,
-                                l = event.clientX + c,
-                                i = event.clientY + o;
-                            a.className = "cm", a.style.display = "block", a.style.left = l + "px", a.style.top = i + "px", d(a, t), document.body.appendChild(a);
-                            var s = a.offsetWidth,
-                                r = a.offsetHeight;
+                                d = document.body.scrollLeft ? document.body.scrollLeft : document.documentElement.scrollLeft,
+                                c = event.clientX + d,
+                                l = event.clientY + o;
+                            a.className = "cm", a.style.display = "block", a.style.left = c + "px", a.style.top = l + "px",
+                                function(n, a) {
+                                    var e = document.createElement("ul");
+                                    n.appendChild(e);
+                                    var t = document.createElement("li");
+                                    e.appendChild(t), p(a) ? (t.innerHTML = "<span>Edit</span>", t.onclick = function(e) {
+                                        r.loadUrl(a), 0 < document.body.getElementsByClassName("cm").length && document.body.removeChild(n)
+                                    }) : f(a) && (t.innerHTML = "<span>Preview</span>", t.onclick = function(e) {
+                                        u(a), 0 < document.body.getElementsByClassName("cm").length && document.body.removeChild(n)
+                                    });
+                                    var o = document.createElement("li");
+                                    e.appendChild(o), o.innerHTML = "<span>Download</span>", o.onclick = function(e) {
+                                        var t;
+                                        t = a, document.getElementById("download-frame").src = t + "?download=true", 0 < document.body.getElementsByClassName("cm").length && document.body.removeChild(n)
+                                    };
+                                    var d = document.createElement("li");
+                                    e.appendChild(d), d.innerHTML = "<span>Delete</span>", d.onclick = function(e) {
+                                        ! function(e) {
+                                            xmlHttp = new XMLHttpRequest, xmlHttp.onreadystatechange = function() {
+                                                4 == xmlHttp.readyState && (200 != xmlHttp.status ? alert("ERROR[" + xmlHttp.status + "]: " + xmlHttp.responseText) : (m.removeChild(m.childNodes[0]), h(m, "/")))
+                                            };
+                                            var t = new FormData;
+                                            t.append("path", e), xmlHttp.open("DELETE", "/edit"), xmlHttp.send(t)
+                                        }(a), 0 < document.body.getElementsByClassName("cm").length && document.body.removeChild(n)
+                                    }
+                                }(a, t), document.body.appendChild(a);
+                            var i = a.offsetWidth,
+                                s = a.offsetHeight;
                             a.onmouseout = function(e) {
-                                (e.clientX < l || e.clientX > l + s || e.clientY < i || e.clientY > i + r) && document.body.getElementsByClassName("cm").length > 0 && document.body.removeChild(a)
+                                (e.clientX < c || e.clientX > c + i || e.clientY < l || e.clientY > l + s) && 0 < document.body.getElementsByClassName("cm").length && document.body.removeChild(a)
                             }
-                        }(0, c.id)
-                }, c
+                        }(0, a.id)
+                }, a
             }
 
-            function l(e) {
+            function p(e) {
                 var t = /(?:.([^.]+))?$/.exec(e)[1];
                 if (void 0 !== typeof t) switch (t) {
                     case "txt":
@@ -282,7 +280,7 @@
                 return !1
             }
 
-            function i(e) {
+            function f(e) {
                 var t = /(?:.([^.]+))?$/.exec(e)[1];
                 if (void 0 !== typeof t) switch (t) {
                     case "png":
@@ -293,20 +291,19 @@
                 return !1
             }
 
-            function s(e, t) {
-                xmlHttp = new XMLHttpRequest(e, t), xmlHttp.onreadystatechange = function(e, t) {
-                    return function() {
-                        4 == xmlHttp.readyState && 200 == xmlHttp.status && function(e, t, n) {
-                            var a = document.createElement("ul");
-                            e.appendChild(a);
-                            for (var o = n.length, d = 0; d < o; d++) "file" === n[d].type && a.appendChild(c(t, n[d].name, n[d].size))
-                        }(e, t, JSON.parse(xmlHttp.responseText))
-                    }
-                }(e, t), xmlHttp.open("GET", "/list?dir=" + t, !0), xmlHttp.send(null)
+            function h(e, t) {
+                var n, a;
+                xmlHttp = new XMLHttpRequest(e, t), xmlHttp.onreadystatechange = (n = e, a = t, function() {
+                    4 == xmlHttp.readyState && 200 == xmlHttp.status && function(e, t, n) {
+                        var a = document.createElement("ul");
+                        e.appendChild(a);
+                        for (var o = n.length, d = 0; d < o; d++) "file" === n[d].type && a.appendChild(c(t, n[d].name, n[d].size))
+                    }(n, a, JSON.parse(xmlHttp.responseText))
+                }), xmlHttp.open("GET", "/list?dir=" + t, !0), xmlHttp.send(null)
             }
-            return a.className = "tvu", document.getElementById(e).appendChild(a), this.refreshPath = function(e) {
-                a.removeChild(a.childNodes[0]), s(a, "/")
-            }, s(a, "/"), this
+            return m.className = "tvu", document.getElementById(e).appendChild(m), this.refreshPath = function(e) {
+                m.removeChild(m.childNodes[0]), h(m, "/")
+            }, h(m, "/"), this
         }
 
         function createEditor(e, t, n, a, o) {
@@ -373,7 +370,7 @@
                     win: "Ctrl-S",
                     mac: "Command-S"
                 },
-                exec: function(e) {
+                exec: function(a) {
                     ! function(e, t, n) {
                         (c = new XMLHttpRequest).onreadystatechange = i;
                         var a = new FormData;
@@ -381,14 +378,14 @@
                             type: n
                         }), e), c.open("POST", "/edit"), c.send(a)
                     }(t, function(e) {
-                        var t = e.getValue();
+                        var t = a.getValue();
                         try {
                             var n = JSON.parse(t);
                             return JSON.stringify(n)
                         } catch (e) {
                             return t + ""
                         }
-                    }(e), o)
+                    }(), o)
                 },
                 readOnly: !1
             }), l.commands.addCommand({
@@ -417,21 +414,21 @@
         }
 
         function onBodyLoad() {
-            var e = {},
-                t = (window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(t, n, a) {
-                    e[n] = a
-                }), createEditor("editor", e.file, e.lang, e.theme));
-            createFileUploader("uploader", createTree("tree", t), t), e.file && (document.getElementById("upload-path").value = e.file)
+            var a = {},
+                e = (window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(e, t, n) {
+                    a[t] = n
+                }), createEditor("editor", a.file, a.lang, a.theme));
+            createFileUploader("uploader", createTree("tree", e), e), a.file && (document.getElementById("upload-path").value = a.file)
         }
     </script>
     <script charset=utf-8 src=https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ace.js></script>
 </head>
 
-<body onload=onBodyLoad();>
+<body onload=onBodyLoad()>
     <div id=uploader></div>
     <div id=tree></div>
     <div id=editor></div>
-    <div id=preview style=display:none;></div><iframe id=download-frame style=display:none;></iframe>
+    <div id=preview style=display:none></div><iframe id=download-frame style=display:none></iframe>
 </body>
 
 </html>
