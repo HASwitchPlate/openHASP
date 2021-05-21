@@ -30,6 +30,7 @@ void attr_out_color(lv_obj_t* obj, const char* attribute, lv_color_t color);
 #endif
 
 typedef enum {
+    HASP_ATTR_TYPE_LONG_MODE_INVALID       = -10,
     HASP_ATTR_TYPE_RANGE_ERROR             = -9,
     HASP_ATTR_TYPE_METHOD_INVALID_FOR_PAGE = -8,
     HASP_ATTR_TYPE_ALIGN_INVALID           = -5,

@@ -89,6 +89,7 @@
 #define D_ATTRIBUTE_PAGE_METHOD_INVALID "Unable to call %s on a page"
 #define D_ATTRIBUTE_ALIGN_INVALID "Invalid align property: %s" // new
 #define D_ATTRIBUTE_COLOR_INVALID "Invalid color property: %s" // new
+#define D_ATTRIBUTE_LONG_MODE_INVALID "Invalid long mode: %s"  // new
 
 #define D_OOBE_SSID_VALIDATED "SSID %s validated"
 #define D_OOBE_AUTO_CALIBRATE "Auto calibrate enabled"
