@@ -701,21 +701,12 @@ void dispatch_moodlight(const char* topic, const char* payload)
             if(!json["brightness"].isNull()) moodlight.brightness = json["brightness"].as<uint8_t>();
 
             if(!json[F("color")].isNull()) {
-                if(!json[F("color")]["r"].isNull()) {
-                    moodlight.rgbww[0] = json[F("color")]["r"].as<uint8_t>();
+                lv_color32_t color;
+                if(Parser::haspPayloadToColor(json[F("color")].as<const char*>(), color)) {
+                    moodlight.rgbww[0] = color.ch.red;
+                    moodlight.rgbww[1] = color.ch.green;
+                    moodlight.rgbww[2] = color.ch.blue;
                 }
-                if(!json[F("color")]["g"].isNull()) {
-                    moodlight.rgbww[1] = json[F("color")]["g"].as<uint8_t>();
-                }
-                if(!json[F("color")]["b"].isNull()) {
-                    moodlight.rgbww[2] = json[F("color")]["b"].as<uint8_t>();
-                }
-                // lv_color32_t color;
-                // if(Parser::haspPayloadToColor(json[F("color")].as<const char*>(), color)) {
-                //     moodlight.r = color.ch.red;
-                //     moodlight.g = color.ch.green;
-                //     moodlight.b = color.ch.blue;
-                // }
             }
 
 #if HASP_USE_GPIO > 0
@@ -731,9 +722,10 @@ void dispatch_moodlight(const char* topic, const char* payload)
     snprintf_P(
         // buffer, sizeof(buffer),
         // PSTR("{\"state\":\"%s\",\"color\":\"#%02x%02x%02x\",\"r\":%u,\"g\":%u,\"b\":%u}"),
-        buffer, sizeof(buffer), PSTR("{\"state\":\"%s\",\"color\":{\"r\":%u,\"g\":%u,\"b\":%u,\"brightness\":%u}}"),
-        moodlight.power ? "ON" : "OFF", moodlight.rgbww[0], moodlight.rgbww[1], moodlight.rgbww[2],
-        moodlight.brightness);
+        buffer, sizeof(buffer),
+        PSTR("{\"state\":\"%s\",\"brightness\":%u,\"color\":\"#%02x%02x%02x\",\"r\":%u,\"g\":%u,\"b\":%u}"),
+        moodlight.power ? "ON" : "OFF", moodlight.brightness, moodlight.rgbww[0], moodlight.rgbww[1],
+        moodlight.rgbww[2], moodlight.rgbww[0], moodlight.rgbww[1], moodlight.rgbww[2]);
     dispatch_state_subtopic(out_topic, buffer);
 }
 
