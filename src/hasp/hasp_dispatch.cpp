@@ -40,7 +40,7 @@ dispatch_conf_t dispatch_setings = {.teleperiod = 300};
 
 uint32_t dispatchLastMillis = -3000000; // force discovery
 uint8_t nCommands           = 0;
-haspCommand_t commands[20];
+haspCommand_t commands[21];
 
 moodlight_t moodlight = {.brightness = 255};
 
@@ -709,9 +709,9 @@ void dispatch_moodlight(const char* topic, const char* payload)
                 }
             }
 
-#if HASP_USE_GPIO > 0
+            //#if HASP_USE_GPIO > 0
             gpio_set_moodlight(moodlight);
-#endif
+            //#endif
         }
     }
 
@@ -719,36 +719,68 @@ void dispatch_moodlight(const char* topic, const char* payload)
     char buffer[128];
     char out_topic[16];
     memcpy_P(out_topic, PSTR("moodlight"), 10);
-    snprintf_P(
-        // buffer, sizeof(buffer),
-        // PSTR("{\"state\":\"%s\",\"color\":\"#%02x%02x%02x\",\"r\":%u,\"g\":%u,\"b\":%u}"),
-        buffer, sizeof(buffer),
-        PSTR("{\"state\":\"%s\",\"brightness\":%u,\"color\":\"#%02x%02x%02x\",\"r\":%u,\"g\":%u,\"b\":%u}"),
-        moodlight.power ? "ON" : "OFF", moodlight.brightness, moodlight.rgbww[0], moodlight.rgbww[1],
-        moodlight.rgbww[2], moodlight.rgbww[0], moodlight.rgbww[1], moodlight.rgbww[2]);
+    snprintf_P(buffer, sizeof(buffer),
+               PSTR("{\"state\":\"%s\",\"brightness\":%u,\"color\":\"#%02x%02x%02x\",\"r\":%u,\"g\":%u,\"b\":%u}"),
+               moodlight.power ? "on" : "off", moodlight.brightness, moodlight.rgbww[0], moodlight.rgbww[1],
+               moodlight.rgbww[2], moodlight.rgbww[0], moodlight.rgbww[1], moodlight.rgbww[2]);
     dispatch_state_subtopic(out_topic, buffer);
 }
 
 void dispatch_backlight(const char*, const char* payload)
 {
+    bool power = haspDevice.get_backlight_power();
+
     // Set the current state
     if(strlen(payload) != 0) {
-        bool power = Parser::is_true(payload);
+        size_t maxsize = (128u * ((strlen(payload) / 128) + 1)) + 128;
+        DynamicJsonDocument json(maxsize);
 
-        if(haspDevice.get_backlight_power() != power) {
-            haspDevice.set_backlight_power(power);
-            if(power)
-                hasp_disable_wakeup_touch();
-            else
-                hasp_enable_wakeup_touch();
+        // Note: Deserialization needs to be (const char *) so the objects WILL be copied
+        // this uses more memory but otherwise the mqtt receive buffer can get overwritten by the send buffer !!
+        DeserializationError jsonError = deserializeJson(json, payload);
+        json.shrinkToFit();
+
+        if(jsonError) { // Couldn't parse incoming payload as json
+            power = Parser::is_true(payload);
+
+        } else {
+
+            // plain numbers are parsed as valid json object
+            if(json.is<uint8_t>()) {
+                uint8_t level = json.as<uint8_t>();
+
+                if(level <= 1)
+                    power = level;
+                else
+                    haspDevice.set_backlight_level(level);
+
+                // true and false are parsed as valid json object
+            } else if(json.is<bool>()) {
+                power = json.as<bool>();
+
+            } else {
+                if(!json[F("state")].isNull()) power = Parser::is_true(json[F("state")].as<std::string>().c_str());
+
+                if(!json[F("brightness")].isNull()) haspDevice.set_backlight_level(json[F("brightness")].as<uint8_t>());
+            }
         }
     }
 
+    // toggle power and wakeup touch if changed
+    if(haspDevice.get_backlight_power() != power) {
+        haspDevice.set_backlight_power(power);
+        if(power)
+            hasp_disable_wakeup_touch();
+        else
+            hasp_enable_wakeup_touch();
+    }
+
     // Return the current state
-    char topic[8];
-    char buffer[4];
-    memcpy_P(topic, PSTR("light"), 6);
-    memcpy_P(buffer, haspDevice.get_backlight_power() ? PSTR("on") : PSTR("off"), sizeof(buffer));
+    char topic[10];
+    char buffer[64];
+    memcpy_P(topic, PSTR("backlight"), 10);
+    snprintf_P(buffer, sizeof(buffer), PSTR("{\"state\":\"%s\",\"brightness\":%u}"),
+               haspDevice.get_backlight_power() ? "on" : "off", haspDevice.get_backlight_level());
     dispatch_state_subtopic(topic, buffer);
 }
 
@@ -965,10 +997,11 @@ void dispatchSetup()
     dispatch_add_command(PSTR("statusupdate"), dispatch_statusupdate);
     dispatch_add_command(PSTR("clearpage"), dispatch_clear_page);
     dispatch_add_command(PSTR("jsonl"), dispatch_parse_jsonl);
-    dispatch_add_command(PSTR("dim"), dispatch_dim);
+    dispatch_add_command(PSTR("dim"), dispatch_backlight); // dim
     dispatch_add_command(PSTR("idle"), dispatch_idle);
-    dispatch_add_command(PSTR("brightness"), dispatch_dim);
+    dispatch_add_command(PSTR("brightness"), dispatch_backlight); // dim
     dispatch_add_command(PSTR("light"), dispatch_backlight);
+    dispatch_add_command(PSTR("backlight"), dispatch_backlight);
     dispatch_add_command(PSTR("moodlight"), dispatch_moodlight);
     dispatch_add_command(PSTR("calibrate"), dispatch_calibrate);
     dispatch_add_command(PSTR("update"), dispatch_web_update);
