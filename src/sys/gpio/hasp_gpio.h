@@ -11,10 +11,6 @@
 using namespace ace_button;
 #endif
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct hasp_gpio_config_t
 {
     uint8_t pin : 8;           // pin number
@@ -30,6 +26,12 @@ struct hasp_gpio_config_t
     AceButton* btn;
 #endif
 };
+
+extern hasp_gpio_config_t gpioConfig[HASP_NUM_GPIO_CONFIG];
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 void gpioSetup(void);
 IRAM_ATTR void gpioLoop(void);

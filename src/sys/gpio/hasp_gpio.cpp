@@ -325,6 +325,7 @@ void gpioSetup(void)
     gpioSavePinConfig(1, 4, hasp_gpio_type_t::LIGHT_RELAY, 0, -1, false);
     gpioSavePinConfig(2, 13, hasp_gpio_type_t::LED, 0, -1, false);
     gpioSavePinConfig(3, 14, hasp_gpio_type_t::DAC, 0, -1, false);
+    gpioSavePinConfig(4, 5, hasp_gpio_type_t::MOTION, 0, -1, false);
 }
 IRAM_ATTR void gpioLoop(void)
 {}
@@ -339,6 +340,16 @@ static inline bool gpio_is_input(hasp_gpio_config_t* gpio)
 static inline bool gpio_is_output(hasp_gpio_config_t* gpio)
 {
     return (gpio->type > hasp_gpio_type_t::USED) && (gpio->type < 0x80);
+}
+
+void gpioEvery5Seconds(void)
+{
+    for(uint8_t i = 0; i < HASP_NUM_GPIO_CONFIG; i++) {
+        if(gpio_is_input(&gpioConfig[i])) {
+            gpioConfig[i].val = !gpioConfig[i].val;
+            event_gpio_input(gpioConfig[i].pin, gpioConfig[i].val);
+        }
+    }
 }
 
 /* ********************************* State Setters *************************************** */

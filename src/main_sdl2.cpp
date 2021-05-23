@@ -170,6 +170,7 @@ void loop()
         if(mainLoopCounter == 0 || mainLoopCounter == 5) {
 
             haspDevice.loop_5s();
+            gpioEvery5Seconds();
         }
 
         /* Reset loop counter every 10 seconds */
