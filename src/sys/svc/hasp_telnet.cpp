@@ -311,9 +311,9 @@ IRAM_ATTR void telnetLoop()
     if(telnetClient.connected()) {
         if(telnetConsole) {
             while(telnetConsole->readKey()) {
-                if(!telnetConsole) return; // the telnetConsole was destroyed
+                if(!telnetConsole) return;                                        // the telnetConsole was destroyed
+                if(bufferedTelnetClient.peek() < 0) bufferedTelnetClient.flush(); // flush pending updates
             };
-            bufferedTelnetClient.flush(); // flush pending updates
 
         } else {
             telnetConsole = new ConsoleInput(&bufferedTelnetClient, HASP_CONSOLE_BUFFER);

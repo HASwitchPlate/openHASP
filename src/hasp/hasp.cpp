@@ -104,14 +104,14 @@ lv_font_t* hasp_get_font(uint8_t fontid)
  */
 HASP_ATTRIBUTE_FAST_MEM void hasp_update_sleep_state()
 {
-    uint32_t idle = lv_disp_get_inactive_time(lv_disp_get_default());
+    uint32_t idle = lv_disp_get_inactive_time(lv_disp_get_default()) / 1000;
 
-    if(sleepTimeLong > 0 && idle >= (sleepTimeShort + sleepTimeLong) * 1000U) {
+    if(sleepTimeLong > 0 && idle >= (sleepTimeShort + sleepTimeLong)) {
         if(hasp_sleep_state != HASP_SLEEP_LONG) {
             hasp_sleep_state = HASP_SLEEP_LONG;
             dispatch_idle(NULL, NULL);
         }
-    } else if(sleepTimeShort > 0 && idle >= sleepTimeShort * 1000U) {
+    } else if(sleepTimeShort > 0 && idle >= sleepTimeShort) {
         if(hasp_sleep_state != HASP_SLEEP_SHORT) {
             hasp_sleep_state = HASP_SLEEP_SHORT;
             dispatch_idle(NULL, NULL);
