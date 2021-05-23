@@ -102,9 +102,9 @@ lv_font_t* hasp_get_font(uint8_t fontid)
 /**
  * Check if sleep state needs to be updated
  */
-HASP_ATTRIBUTE_FAST_MEM bool hasp_update_sleep_state()
+HASP_ATTRIBUTE_FAST_MEM void hasp_update_sleep_state()
 {
-    uint32_t idle = lv_disp_get_inactive_time(NULL);
+    uint32_t idle = lv_disp_get_inactive_time(lv_disp_get_default());
 
     if(sleepTimeLong > 0 && idle >= (sleepTimeShort + sleepTimeLong) * 1000U) {
         if(hasp_sleep_state != HASP_SLEEP_LONG) {
@@ -123,7 +123,7 @@ HASP_ATTRIBUTE_FAST_MEM bool hasp_update_sleep_state()
         }
     }
 
-    return (hasp_sleep_state != HASP_SLEEP_OFF);
+    //  return (hasp_sleep_state != HASP_SLEEP_OFF);
 }
 
 void hasp_set_sleep_state(uint8_t state)
