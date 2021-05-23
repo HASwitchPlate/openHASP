@@ -34,7 +34,7 @@ extern hasp_http_config_t http_config;
 #endif
 
 // Create a new Stream that buffers all writes to telnetClient
-WriteBufferingStream bufferedtelnetBufferedClientClient{telnetClient, HASP_CONSOLE_BUFFER};
+WriteBufferingClient bufferedTelnetClient{telnetClient, HASP_CONSOLE_BUFFER};
 
 uint8_t telnetLoginState   = TELNET_UNAUTHENTICATED;
 uint16_t telnetPort        = 23;
@@ -44,8 +44,8 @@ ConsoleInput* telnetConsole;
 
 void telnet_update_prompt()
 {
-    bufferedtelnetBufferedClientClient.print("hasp > ");
-    bufferedtelnetBufferedClientClient.flush();
+    if(telnetConsole) telnetConsole->update();
+    bufferedTelnetClient.flush();
 }
 
 void telnetClientDisconnect()
@@ -62,13 +62,13 @@ void telnetClientDisconnect()
 void telnetClientLogon()
 {
     telnetClient.println();
-    debugPrintHaspHeader(&bufferedtelnetBufferedClientClient);
+    debugPrintHaspHeader(&bufferedTelnetClient);
     telnetLoginState   = TELNET_AUTHENTICATED; // User and Pass are correct
     telnetLoginAttempt = 0;                    // Reset attempt counter
 
     /* Now register logger for telnet */
-    Log.registerOutput(1, &bufferedtelnetBufferedClientClient, LOG_LEVEL_VERBOSE, true);
-    telnetClient.flush();
+    Log.registerOutput(1, &bufferedTelnetClient, LOG_LEVEL_VERBOSE, true);
+    bufferedTelnetClient.flush();
     // telnetClient.setTimeout(10);
 
     LOG_TRACE(TAG_TELN, F(D_TELNET_CLIENT_LOGIN_FROM), telnetClient.remoteIP().toString().c_str());
@@ -310,10 +310,11 @@ IRAM_ATTR void telnetLoop()
     /* Active Client: Process user input */
     if(telnetClient.connected()) {
         if(telnetConsole) {
-            while(int16_t keypress = telnetConsole->readKey()) {
+            while(telnetConsole->readKey()) {
+                if(!telnetConsole) return; // the console was destroyed by quit/exit
             };
         } else {
-            telnetConsole = new ConsoleInput(&bufferedtelnetBufferedClientClient, HASP_CONSOLE_BUFFER);
+            telnetConsole = new ConsoleInput(&bufferedTelnetClient, HASP_CONSOLE_BUFFER);
             if(telnetConsole) {
                 telnetConsole->setLineCallback(telnetProcessLine);
             } else {
