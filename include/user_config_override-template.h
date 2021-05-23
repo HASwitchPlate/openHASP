@@ -53,28 +53,34 @@
 /***************************************************
  *        Timezone Settings
  **************************************************/
-#define MYTZ "CET-1CEST,M3.5.0,M10.5.0/3"            // A full list with possible timezones can be found here https://gist.github.com/alwynallan/24d96091655391107939
+#define MYTZ                                                                                                           \
+    "CET-1CEST,M3.5.0,M10.5.0/3" // A full list with possible timezones can be found here
+                                 // https://gist.github.com/alwynallan/24d96091655391107939
 
 /***************************************************
  *        Interface Language Settings
  **************************************************/
-#define HASP_LANGUAGE en_US                          // English
-// #define HASP_LANGUAGE nl_NL                       // Dutch
+#define HASP_LANGUAGE en_US // English
+// #define HASP_LANGUAGE es_ES                       // Spanish
+// #define HASP_LANGUAGE fr_FR                       // French
 // #define HASP_LANGUAGE hu_HU                       // Hungarian
+// #define HASP_LANGUAGE nl_NL                       // Dutch
+// #define HASP_LANGUAGE pt_BR                       // Brazilian Portuguese
+// #define HASP_LANGUAGE pt_PT                       // Portuguese
 // #define HASP_LANGUAGE ro_RO                       // Romanian
 
 /***************************************************
  *        Web interface coloring
  **************************************************/
 // Light theme (default)
-#define D_HTTP_COLOR_TEXT               "#000"       // Global text color - Black
-#define D_HTTP_COLOR_BACKGROUND         "#fff"       // Global background color - White
-#define D_HTTP_COLOR_INPUT_TEXT         "#000"       // Input text color - Black
-#define D_HTTP_COLOR_INPUT              "#fff"       // Input background color - White
-#define D_HTTP_COLOR_INPUT_WARNING      "#f00"       // Input warning border color - Red
-#define D_HTTP_COLOR_BUTTON_TEXT        "#fff"       // Button text color - White
-#define D_HTTP_COLOR_BUTTON             "#1fa3ec"    // Button color - Vivid blue
-#define D_HTTP_COLOR_BUTTON_RESET       "#f00"       // Restart/Reset button color - red
+#define D_HTTP_COLOR_TEXT "#000"          // Global text color - Black
+#define D_HTTP_COLOR_BACKGROUND "#fff"    // Global background color - White
+#define D_HTTP_COLOR_INPUT_TEXT "#000"    // Input text color - Black
+#define D_HTTP_COLOR_INPUT "#fff"         // Input background color - White
+#define D_HTTP_COLOR_INPUT_WARNING "#f00" // Input warning border color - Red
+#define D_HTTP_COLOR_BUTTON_TEXT "#fff"   // Button text color - White
+#define D_HTTP_COLOR_BUTTON "#1fa3ec"     // Button color - Vivid blue
+#define D_HTTP_COLOR_BUTTON_RESET "#f00"  // Restart/Reset button color - red
 
 /*
 // Dark theme
@@ -87,6 +93,26 @@
 #define D_HTTP_COLOR_BUTTON             "#1fa3ec"    // Button color - Vivid blue
 #define D_HTTP_COLOR_BUTTON_RESET       "#d43535"    // Restart/Reset/Delete button color - Strong red
 */
+
+/***************************************************
+ *        Font Settings
+ **************************************************/
+// #define HASP_FONT_1 robotocondensed_regular_16_latin1 // Use available fonts from src/fonts directory
+// #define HASP_FONT_2 robotocondensed_regular_22_latin1
+// #define HASP_FONT_3 robotocondensed_regular_40_latin1
+// #define HASP_FONT_4 robotocondensed_regular_48_latin1
+
+// #define ROBOTOCONDENSED_REGULAR_16_LATIN1 1           // Enable the selected fonts
+// #define ROBOTOCONDENSED_REGULAR_22_LATIN1 1
+// #define ROBOTOCONDENSED_REGULAR_40_LATIN1 1
+// #define ROBOTOCONDENSED_REGULAR_48_LATIN1 1
+
+// #define HASP_FONT_SIZE_1 16                           // Define used font sizes
+// #define HASP_FONT_SIZE_2 22
+// #define HASP_FONT_SIZE_3 40
+// #define HASP_FONT_SIZE_4 48
+
+#define LV_FONT_DEFAULT &HASP_FONT_1
 
 /***************************************************
  *        Other Settings
