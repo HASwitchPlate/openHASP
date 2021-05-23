@@ -328,7 +328,7 @@ static void log_event(const char* name, lv_event_t event)
  */
 void wakeup_event_handler(lv_obj_t* obj, lv_event_t event)
 {
-    log_event("wakeup", event);
+    //  log_event("wakeup", event);
 
     if(event == LV_EVENT_RELEASED && obj == lv_disp_get_layer_sys(NULL)) {
         hasp_update_sleep_state(); // wakeup?
