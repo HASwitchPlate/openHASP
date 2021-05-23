@@ -38,8 +38,8 @@
 
 dispatch_conf_t dispatch_setings = {.teleperiod = 300};
 
-uint32_t dispatchLastMillis = -3000000; // force discovery
-uint8_t nCommands           = 0;
+uint16_t dispatchSecondsToNextTeleperiod = 0;
+uint8_t nCommands                        = 0;
 haspCommand_t commands[21];
 
 moodlight_t moodlight = {.brightness = 255};
@@ -912,7 +912,7 @@ void dispatch_statusupdate(const char*, const char*)
 
     memcpy_P(topic, PSTR("statusupdate"), 13);
     dispatch_state_subtopic(topic, data);
-    dispatchLastMillis = millis();
+    dispatchSecondsToNextTeleperiod = dispatch_setings.teleperiod;
 
     /* if(updateEspAvailable) {
             mqttStatusPayload += F("\"updateEspAvailable\":true,");
@@ -1037,11 +1037,13 @@ IRAM_ATTR void dispatchLoop()
 #if 1 || ARDUINO
 void dispatchEverySecond()
 {
-    if(mqttIsConnected() && dispatch_setings.teleperiod > 0 &&
-       (millis() - dispatchLastMillis) >= dispatch_setings.teleperiod * 1000) {
-        dispatchLastMillis += dispatch_setings.teleperiod * 1000;
+    if(dispatchSecondsToNextTeleperiod > 1) {
+        dispatchSecondsToNextTeleperiod--;
+
+    } else if(dispatch_setings.teleperiod > 0 && mqttIsConnected()) {
         dispatch_statusupdate(NULL, NULL);
         dispatch_send_discovery(NULL, NULL);
+        dispatchSecondsToNextTeleperiod = dispatch_setings.teleperiod;
     }
 }
 #else
