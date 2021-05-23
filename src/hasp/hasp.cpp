@@ -126,6 +126,11 @@ HASP_ATTRIBUTE_FAST_MEM bool hasp_update_sleep_state()
     return (hasp_sleep_state != HASP_SLEEP_OFF);
 }
 
+void hasp_set_sleep_state(uint8_t state)
+{
+    hasp_sleep_state = state;
+}
+
 void hasp_get_sleep_state(char* payload)
 {
     switch(hasp_sleep_state) {

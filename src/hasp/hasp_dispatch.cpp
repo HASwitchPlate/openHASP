@@ -44,9 +44,6 @@ haspCommand_t commands[21];
 
 moodlight_t moodlight = {.brightness = 255};
 
-// static void dispatch_config(const char* topic, const char* payload);
-// void dispatch_group_value(uint8_t groupid, int16_t state, lv_obj_t * obj);
-
 /* Sends the payload out on the state/subtopic
  */
 void dispatch_state_subtopic(const char* subtopic, const char* payload)
@@ -234,7 +231,6 @@ void dispatch_command(const char* topic, const char* payload, bool update)
 
     /* =============================== Not standard payload commands ===================================== */
 
-    // if(topic == strstr_P(topic, PSTR("gpio/"))) {
     if(topic == strstr_P(topic, PSTR("output"))) {
 
         dispatch_gpio(topic + 6, payload);
@@ -709,9 +705,9 @@ void dispatch_moodlight(const char* topic, const char* payload)
                 }
             }
 
-            //#if HASP_USE_GPIO > 0
+#if HASP_USE_GPIO > 0
             gpio_set_moodlight(moodlight);
-            //#endif
+#endif
         }
     }
 
@@ -724,6 +720,13 @@ void dispatch_moodlight(const char* topic, const char* payload)
                moodlight.power ? "on" : "off", moodlight.brightness, moodlight.rgbww[0], moodlight.rgbww[1],
                moodlight.rgbww[2], moodlight.rgbww[0], moodlight.rgbww[1], moodlight.rgbww[2]);
     dispatch_state_subtopic(out_topic, buffer);
+}
+
+void dispatch_backlight_obsolete(const char* topic, const char* payload)
+{
+    LOG_WARNING(TAG_HASP, F("%s topic is obsolete, use backlight instead"),
+                topic); // TODO: obsolete dim, light and brightness
+    dispatch_backlight(topic, payload);
 }
 
 void dispatch_backlight(const char*, const char* payload)
@@ -934,8 +937,10 @@ void dispatch_calibrate(const char*, const char*)
     guiCalibrate();
 }
 
-void dispatch_wakeup(const char*, const char*)
+void dispatch_wakeup_obsolete(const char* topic, const char*)
 {
+    LOG_WARNING(TAG_HASP, F("%s topic is obsolete, use idle=off instead"),
+                topic); // TODO: obsolete wakeup
     lv_disp_trig_activity(NULL);
     hasp_disable_wakeup_touch();
 }
@@ -945,14 +950,22 @@ void dispatch_sleep(const char*, const char*)
     hasp_enable_wakeup_touch();
 }
 
-void dispatch_idle(const char*, const char*)
+void dispatch_idle(const char*, const char* payload)
 {
     char topic[6];
-    char payload[6];
-    memcpy_P(topic, PSTR("idle"), 5);
+    char buffer[6];
 
-    hasp_get_sleep_state(payload);
-    dispatch_state_subtopic(topic, payload);
+    // idle off command
+    if(payload && strlen(payload) && !Parser::is_true(payload)) {
+        hasp_disable_wakeup_touch();
+        hasp_set_sleep_state(HASP_SLEEP_OFF);
+        lv_disp_trig_activity(NULL);
+    }
+
+    // idle state
+    memcpy_P(topic, PSTR("idle"), 5);
+    hasp_get_sleep_state(buffer);
+    dispatch_state_subtopic(topic, buffer);
 }
 
 void dispatch_reboot(const char*, const char*)
@@ -992,17 +1005,17 @@ void dispatchSetup()
     /* WARNING: remember to expand the commands array when adding new commands */
     dispatch_add_command(PSTR("json"), dispatch_parse_json);
     dispatch_add_command(PSTR("page"), dispatch_page);
-    dispatch_add_command(PSTR("wakeup"), dispatch_wakeup);
     dispatch_add_command(PSTR("sleep"), dispatch_sleep);
     dispatch_add_command(PSTR("statusupdate"), dispatch_statusupdate);
     dispatch_add_command(PSTR("clearpage"), dispatch_clear_page);
     dispatch_add_command(PSTR("jsonl"), dispatch_parse_jsonl);
-    dispatch_add_command(PSTR("dim"), dispatch_backlight); // dim
-    dispatch_add_command(PSTR("idle"), dispatch_idle);
-    dispatch_add_command(PSTR("brightness"), dispatch_backlight); // dim
-    dispatch_add_command(PSTR("light"), dispatch_backlight);
     dispatch_add_command(PSTR("backlight"), dispatch_backlight);
     dispatch_add_command(PSTR("moodlight"), dispatch_moodlight);
+    dispatch_add_command(PSTR("idle"), dispatch_idle);
+    dispatch_add_command(PSTR("dim"), dispatch_backlight_obsolete);        // dim
+    dispatch_add_command(PSTR("brightness"), dispatch_backlight_obsolete); // dim
+    dispatch_add_command(PSTR("light"), dispatch_backlight_obsolete);
+    dispatch_add_command(PSTR("wakeup"), dispatch_wakeup_obsolete);
     dispatch_add_command(PSTR("calibrate"), dispatch_calibrate);
     dispatch_add_command(PSTR("update"), dispatch_web_update);
     dispatch_add_command(PSTR("reboot"), dispatch_reboot);
