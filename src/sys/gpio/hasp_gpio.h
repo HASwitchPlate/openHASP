@@ -40,6 +40,7 @@ void gpioEvery5Seconds(void);
 void gpio_set_normalized_group_values(hasp_update_value_t& value);
 void gpio_output_group_values(uint8_t group);
 
+bool gpio_input_pin_state(uint8_t pin);
 bool gpio_output_pin_state(uint8_t pin);
 bool gpio_get_pin_state(uint8_t pin, bool& power, int32_t& val);
 bool gpio_set_pin_state(uint8_t pin, bool power, int32_t val);

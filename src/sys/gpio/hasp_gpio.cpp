@@ -92,7 +92,8 @@ static void gpio_event_handler(AceButton* button, uint8_t eventType, uint8_t but
     switch(eventType) {
         case AceButton::kEventPressed:
             if(gpioConfig[btnid].type != hasp_gpio_type_t::BUTTON) {
-                eventid = HASP_EVENT_ON;
+                eventid                 = HASP_EVENT_ON;
+                gpioConfig[btnid].power = 1;
             } else {
                 eventid = HASP_EVENT_DOWN;
             }
@@ -115,7 +116,8 @@ static void gpio_event_handler(AceButton* button, uint8_t eventType, uint8_t but
         //     break;
         case AceButton::kEventReleased:
             if(gpioConfig[btnid].type != hasp_gpio_type_t::BUTTON) {
-                eventid = HASP_EVENT_OFF;
+                eventid                 = HASP_EVENT_OFF;
+                gpioConfig[btnid].power = 0;
             } else {
                 eventid = HASP_EVENT_RELEASE;
             }
@@ -348,8 +350,8 @@ void gpioEvery5Seconds(void)
 {
     for(uint8_t i = 0; i < HASP_NUM_GPIO_CONFIG; i++) {
         if(gpio_is_input(&gpioConfig[i])) {
-            gpioConfig[i].val = !gpioConfig[i].val;
-            event_gpio_input(gpioConfig[i].pin, gpioConfig[i].val);
+            gpioConfig[i].power = !gpioConfig[i].power;
+            event_gpio_input(gpioConfig[i].pin, gpioConfig[i].power);
         }
     }
 }
@@ -368,6 +370,11 @@ bool gpio_get_pin_state(uint8_t pin, bool& power, int32_t& val)
     return false;
 }
 
+static inline void gpio_input_state(hasp_gpio_config_t* gpio)
+{
+    event_gpio_input(gpio->pin, gpio->power);
+}
+
 void gpio_output_state(hasp_gpio_config_t* gpio)
 {
     char payload[32];
@@ -376,6 +383,17 @@ void gpio_output_state(hasp_gpio_config_t* gpio)
     snprintf_P(payload, sizeof(payload), PSTR("{\"state\":%d,\"val\":%d}"), gpio->power, gpio->val);
 
     dispatch_state_subtopic(topic, payload);
+}
+
+bool gpio_input_pin_state(uint8_t pin)
+{
+    for(uint8_t i = 0; i < HASP_NUM_GPIO_CONFIG; i++) {
+        if(gpioConfig[i].pin == pin && gpioConfigInUse(i)) {
+            gpio_input_state(&gpioConfig[i]);
+            return true;
+        }
+    }
+    return false;
 }
 
 bool gpio_output_pin_state(uint8_t pin)

@@ -147,7 +147,25 @@ static inline bool dispatch_parse_button_attribute(const char* topic_p, const ch
     return true;
 }
 
-static void dispatch_gpio(const char* topic, const char* payload)
+static void dispatch_input(const char* topic, const char* payload)
+{
+#if HASP_USE_GPIO > 0
+
+    if(!Parser::is_only_digits(topic)) {
+        LOG_WARNING(TAG_MSGR, F("Invalid pin %s"), topic);
+        return;
+    }
+
+    // just output the pin state
+    uint8_t pin = atoi(topic);
+    if(gpio_input_pin_state(pin)) return;
+
+    LOG_WARNING(TAG_GPIO, F(D_BULLET "Pin %d is not configured"), pin);
+
+#endif
+}
+
+static void dispatch_output(const char* topic, const char* payload)
 {
 #if HASP_USE_GPIO > 0
 
@@ -232,8 +250,10 @@ void dispatch_command(const char* topic, const char* payload, bool update)
     /* =============================== Not standard payload commands ===================================== */
 
     if(topic == strstr_P(topic, PSTR("output"))) {
+        dispatch_output(topic + 6, payload);
 
-        dispatch_gpio(topic + 6, payload);
+    } else if(topic == strstr_P(topic, PSTR("input"))) {
+        dispatch_input(topic + 5, payload);
 
         // } else if(strcasecmp_P(topic, PSTR("screenshot")) == 0) {
         //     guiTakeScreenshot("/screenshot.bmp"); // Literal String
