@@ -138,7 +138,7 @@ void setup()
     gpioSetup();
 #endif
 
-    mainLastLoopTime = millis() - 1000; // reset loop counter
+    mainLastLoopTime = millis(); // - 1000; // reset loop counter
     printf("%s %d\n", __FILE__, __LINE__);
     // delay(250);
 }

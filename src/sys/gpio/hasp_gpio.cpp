@@ -324,7 +324,9 @@ void gpioSetup(void)
     gpioSavePinConfig(0, 3, hasp_gpio_type_t::POWER_RELAY, 0, -1, false);
     gpioSavePinConfig(1, 4, hasp_gpio_type_t::LIGHT_RELAY, 0, -1, false);
     gpioSavePinConfig(2, 13, hasp_gpio_type_t::LED, 0, -1, false);
+    gpioConfig[2].max = 255;
     gpioSavePinConfig(3, 14, hasp_gpio_type_t::DAC, 0, -1, false);
+    gpioConfig[2].max = 4095;
     gpioSavePinConfig(4, 5, hasp_gpio_type_t::MOTION, 0, -1, false);
 }
 IRAM_ATTR void gpioLoop(void)
@@ -490,7 +492,7 @@ static bool gpio_set_output_value(hasp_gpio_config_t* gpio, bool power, uint16_t
     gpio->power = val == 0 ? 0 : power;
 
     // Only update the current value if power set to 1, otherwise retain previous value
-    if(power) gpio->val = gpio_limit(val, 0, gpio->max);
+    if(val != 0) gpio->val = gpio_limit(val, 0, gpio->max);
 
     switch(gpio->type) {
         case hasp_gpio_type_t::POWER_RELAY:
