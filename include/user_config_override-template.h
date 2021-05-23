@@ -115,6 +115,12 @@
 #define LV_FONT_DEFAULT &HASP_FONT_1
 
 /***************************************************
+ *        GPIO Settings
+ **************************************************/
+//#define HASP_GPIO_TEMPLATE "[197658,263456,329249,655628,655886,656155,0,0]"  // Lanbon L8 3-gang GPIO config
+//#define HASP_GPIO_TEMPLATE "[3214348,197658,263456,329249,94699520,0,0,0]" // Lanbon L8 Dimmer GPIO config
+
+/***************************************************
  *        Other Settings
  **************************************************/
 //#define HASP_USE_HA                                 // Enable Home Assistant auto-discovery
