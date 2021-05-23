@@ -7,6 +7,7 @@
 #define HASP_OTA_H
 
 #include "ArduinoJson.h"
+#include <ArduinoOTA.h>
 
 /* ===== Default Event Processors ===== */
 void otaSetup(void);
