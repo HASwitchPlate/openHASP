@@ -34,7 +34,7 @@ extern hasp_http_config_t http_config;
 #endif
 
 // Create a new Stream that buffers all writes to telnetClient
-WriteBufferingStream bufferedtelnetBufferedClientClient{telnetClient, 200};
+WriteBufferingStream bufferedtelnetBufferedClientClient{telnetClient, HASP_CONSOLE_BUFFER};
 
 uint8_t telnetLoginState   = TELNET_UNAUTHENTICATED;
 uint16_t telnetPort        = 23;
@@ -310,9 +310,10 @@ IRAM_ATTR void telnetLoop()
     /* Active Client: Process user input */
     if(telnetClient.connected()) {
         if(telnetConsole) {
-            int16_t keypress = telnetConsole->readKey();
+            while(int16_t keypress = telnetConsole->readKey()) {
+            };
         } else {
-            telnetConsole = new ConsoleInput(&telnetClient, HASP_CONSOLE_BUFFER);
+            telnetConsole = new ConsoleInput(&bufferedtelnetBufferedClientClient, HASP_CONSOLE_BUFFER);
             if(telnetConsole) {
                 telnetConsole->setLineCallback(telnetProcessLine);
             } else {
