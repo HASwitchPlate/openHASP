@@ -32,9 +32,8 @@ IRAM_ATTR void consoleLoop()
 {
     if(!consoleInputEnabled) return;
 
-    int16_t keypress;
-    do {
-        switch(keypress = debugConsole.readKey()) {
+    while(int16_t keypress = debugConsole.readKey()) {
+        switch(keypress) {
 
             case ConsoleInput::KEY_PAGE_UP:
                 dispatch_page_next(LV_SCR_LOAD_ANIM_NONE);
@@ -48,7 +47,7 @@ IRAM_ATTR void consoleLoop()
                 dispatch_set_page(keypress - ConsoleInput::KEY_FN, LV_SCR_LOAD_ANIM_NONE);
                 break;
         }
-    } while(keypress != 0);
+    }
 }
 
 #if HASP_USE_CONFIG > 0
