@@ -17,6 +17,7 @@ void telnetStart(void);
 void telnetStop(void);
 
 /* ===== Special Event Processors ===== */
+void telnet_update_prompt();
 
 /* ===== Getter and Setter Functions ===== */
 

@@ -279,7 +279,7 @@ void debugPrintSuffix(uint8_t tag, int level, Print* _logOutput)
     if(_logOutput == &Serial) {
         console_update_prompt();
     } else {
-        _logOutput->print("hasp > ");
+        telnet_update_prompt();
     }
 }
 

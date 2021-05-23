@@ -6,6 +6,7 @@
 #if HASP_USE_TELNET > 0
 
 #include "ConsoleInput.h"
+#include <StreamUtils.h>
 
 #include "hasp_debug.h"
 #include "hasp_config.h"
@@ -32,11 +33,20 @@ static EthernetServer telnetServer(23);
 extern hasp_http_config_t http_config;
 #endif
 
+// Create a new Stream that buffers all writes to telnetClient
+WriteBufferingStream bufferedtelnetBufferedClientClient{telnetClient, 200};
+
 uint8_t telnetLoginState   = TELNET_UNAUTHENTICATED;
 uint16_t telnetPort        = 23;
 uint8_t telnetEnabled      = true; // Enable telnet debug output
 uint8_t telnetLoginAttempt = 0;    // Initial attempt
 ConsoleInput* telnetConsole;
+
+void telnet_update_prompt()
+{
+    bufferedtelnetBufferedClientClient.print("hasp > ");
+    bufferedtelnetBufferedClientClient.flush();
+}
 
 void telnetClientDisconnect()
 {
@@ -52,12 +62,12 @@ void telnetClientDisconnect()
 void telnetClientLogon()
 {
     telnetClient.println();
-    debugPrintHaspHeader(&telnetClient);
+    debugPrintHaspHeader(&bufferedtelnetBufferedClientClient);
     telnetLoginState   = TELNET_AUTHENTICATED; // User and Pass are correct
     telnetLoginAttempt = 0;                    // Reset attempt counter
 
     /* Now register logger for telnet */
-    Log.registerOutput(1, &telnetClient, LOG_LEVEL_VERBOSE, true);
+    Log.registerOutput(1, &bufferedtelnetBufferedClientClient, LOG_LEVEL_VERBOSE, true);
     telnetClient.flush();
     // telnetClient.setTimeout(10);
 
