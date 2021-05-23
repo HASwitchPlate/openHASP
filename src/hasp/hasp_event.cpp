@@ -253,11 +253,10 @@ void event_gpio_input(uint8_t pin, uint8_t eventid)
     char eventname[8];
 
     snprintf_P(topic, sizeof(topic), PSTR("input%d"), pin);
+    Parser::get_event_name(eventid, eventname, sizeof(eventname));
     if(eventid == HASP_EVENT_ON || eventid == HASP_EVENT_OFF) {
-        Parser::get_event_name(HASP_EVENT_CHANGED, eventname, sizeof(eventname));
-        snprintf_P(payload, sizeof(payload), PSTR("{\"event\":\"%s\",\"val\":%d}"), eventname, eventid);
+        snprintf_P(payload, sizeof(payload), PSTR("{\"state\":\"%s\"}"), eventname);
     } else {
-        Parser::get_event_name(eventid, eventname, sizeof(eventname));
         snprintf_P(payload, sizeof(payload), PSTR("{\"event\":\"%s\"}"), eventname);
     }
     dispatch_state_subtopic(topic, payload);
