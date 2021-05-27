@@ -9,7 +9,7 @@
 #include "display/monitor.h"
 #include "indev/mouse.h"
 
-#include "drv/tft_driver.h"
+#include "drv/tft/tft_driver.h"
 #include "tft_driver_sdl2.h"
 
 #include "dev/device.h"

@@ -5,7 +5,7 @@
 #include "hasplib.h"
 
 #include "dev/device.h"
-#include "drv/tft_driver.h"
+#include "drv/tft/tft_driver.h"
 
 //#include "hasp_gui.h"
 
@@ -823,6 +823,9 @@ void dispatch_reboot(bool saveConfig)
 #endif
 #if HASP_USE_MQTT > 0 && defined(ARDUINO)
     mqttStop(); // Stop the MQTT Client first
+#endif
+#if HASP_USE_TELNET > 0
+    telnetStop();
 #endif
 #if HASP_USE_CONFIG > 0
     debugStop();
