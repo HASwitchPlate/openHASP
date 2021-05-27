@@ -1,32 +1,34 @@
 #if TOUCH_DRIVER == 5206
 
-    #include <Wire.h>
-    #include "FT5206.h"
-    #include "ArduinoLog.h"
+#include <Wire.h>
+#include "focaltech.h"
+#include "ArduinoLog.h"
 
-    #include "hasp_drv_ft5206.h"
+#include "hasp_drv_ft5206.h"
 
-    #define RST_PIN (TOUCH_RST) // -1 if pin is connected to VCC else set pin number
+#define RST_PIN (TOUCH_RST) // -1 if pin is connected to VCC else set pin number
 
-FT5206_Class * touchpanel;
+FocalTech_Class* touchpanel;
 
 // Read touch points
-bool FT5206_getXY(int16_t * touchX, int16_t * touchY, bool debug)
+bool FT5206_getXY(int16_t* touchX, int16_t* touchY, bool debug)
 {
-    if(!touchpanel->touched()) return false;
+    if(!touchpanel->getTouched()) return false;
 
-    TP_Point tp = touchpanel->getPoint(0);
-    *touchX     = tp.x;
-    *touchY     = tp.y;
+    uint16_t x;
+    uint16_t y;
+    bool res = touchpanel->getPoint(x, y);
+    *touchX  = x;
+    *touchY  = y;
 
     if(debug) {
-        LOG_VERBOSE(TAG_DRVR, F("FT5206 touched x: %d y: %d\n"), tp.x, tp.y);
+        LOG_VERBOSE(TAG_DRVR, F("FT5206 touched x: %d y: %d\n"), *touchX, *touchY);
     }
 
-    return true;
+    return res;
 }
 
-void scan(TwoWire & i2c)
+void scan(TwoWire& i2c)
 {
     byte error, address;
     int nDevices;
@@ -70,7 +72,7 @@ void FT5206_init()
 
     Wire1.begin(TOUCH_SDA, TOUCH_SCL, TOUCH_FREQUENCY);
     scan(Wire1);
-    touchpanel = new FT5206_Class();
+    touchpanel = new FocalTech_Class();
 
     if(touchpanel->begin(Wire1, FT5206_address)) {
         LOG_INFO(TAG_DRVR, F("FT5206 touch driver started"));

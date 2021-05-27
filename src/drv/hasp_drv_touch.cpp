@@ -102,6 +102,7 @@ static inline bool drv_touchpad_getXY(int16_t* touchX, int16_t* touchY)
     touched = Touch_getXY(&normal_x, &normal_y, false);
 
 #elif TOUCH_DRIVER == 5206
+    // WARNING : this library is slooow !! use 6336 instead
     touched = FT5206_getXY(&normal_x, &normal_y, false); // no debug
 
 #elif TOUCH_DRIVER == 6336
