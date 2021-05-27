@@ -48,15 +48,22 @@ void telnet_update_prompt()
     bufferedTelnetClient.flush();
 }
 
-void telnetClientDisconnect()
+
+
+void telnetStop(void)
 {
-    Log.unregisterOutput(1); // telnetClient
     LOG_TRACE(TAG_TELN, F(D_TELNET_CLOSING_CONNECTION), telnetClient.remoteIP().toString().c_str());
+    Log.unregisterOutput(1); // telnetClient
+    telnetClient.stop();
+    
     telnetLoginState   = TELNET_UNAUTHENTICATED;
     telnetLoginAttempt = 0; // Initial attempt
     delete telnetConsole;
-    telnetConsole = NULL;
-    telnetClient.stop();
+    telnetConsole = NULL;}
+
+    static inline void telnetClientDisconnect()
+{
+telnetStop();
 }
 
 void telnetClientLogon()
