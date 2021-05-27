@@ -311,6 +311,7 @@ bool oobeSetup()
     char pass[32];
 
     if(wifiShowAP(ssid, pass)) {
+        WiFi.scanNetworks(true);
         haspDevice.set_backlight_level(255);
         oobeSetupQR(ssid, pass);
         oobeSetupSsid();
@@ -339,6 +340,7 @@ void oobeFakeSetup(const char*, const char*)
     char ssid[32] = "HASP-ABCDEF";
     char pass[32] = "haspadmin";
 
+    WiFi.scanNetworks(true);
     haspDevice.set_backlight_level(255);
     oobeSetupQR(ssid, pass);
     oobeSetupSsid();

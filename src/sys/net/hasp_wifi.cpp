@@ -294,6 +294,20 @@ static void wifi_callback(system_event_id_t event, system_event_info_t info)
         case SYSTEM_EVENT_STA_GOT_IP:
             wifiConnected(IPAddress(info.got_ip.ip_info.ip.addr));
             break;
+        case SYSTEM_EVENT_SCAN_DONE: {
+            uint16_t count = WiFi.scanComplete();
+            for(int i = 0; i < count; ++i) {
+                // Print SSID and RSSI for each network found
+                Serial.print(i + 1);
+                Serial.print(": ");
+                Serial.print(WiFi.SSID(i));
+                Serial.print(" (");
+                Serial.print(WiFi.RSSI(i));
+                Serial.print(")");
+                Serial.println((WiFi.encryptionType(i) == WIFI_AUTH_OPEN) ? " " : "*");
+            }
+            break;
+        }
         case SYSTEM_EVENT_STA_DISCONNECTED:
             wifiDisconnected((const char*)info.disconnected.ssid, info.disconnected.reason);
             // NTP.stop(); // NTP sync can be disabled to avoid sync errors
@@ -467,9 +481,9 @@ bool wifiEvery5Seconds()
 bool wifiValidateSsid(const char* ssid, const char* pass)
 {
 #ifdef ARDUINO_ARCH_ESP32
-    WiFi.begin(wifiSsid, wifiPassword, WIFI_ALL_CHANNEL_SCAN);
+    WiFi.begin(ssid, pass, WIFI_ALL_CHANNEL_SCAN);
 #else
-    WiFi.begin(wifiSsid, wifiPassword);
+    WiFi.begin(ssid, pass);
 #endif
 
     uint8_t attempt = 0;
@@ -480,13 +494,13 @@ bool wifiValidateSsid(const char* ssid, const char* pass)
     char espIp[16];
     memset(espIp, 0, sizeof(espIp));
     snprintf_P(espIp, sizeof(espIp), PSTR("%d.%d.%d.%d"), ip[0], ip[1], ip[2], ip[3]);
-    while(attempt < 15 && (WiFi.status() != WL_CONNECTED || String(espIp) == F("0.0.0.0"))) {
+    while(attempt < 30 && (WiFi.status() != WL_CONNECTED || String(espIp) == F("0.0.0.0"))) {
 #else
-    while(attempt < 15 && (WiFi.status() != WL_CONNECTED || WiFi.localIP().toString() == F("0.0.0.0"))) {
+    while(attempt < 30 && (WiFi.status() != WL_CONNECTED || WiFi.localIP().toString() == F("0.0.0.0"))) {
 #endif
         attempt++;
-        LOG_INFO(TAG_WIFI, F(D_WIFI_CONNECTING_TO "... %u"), wifiSsid, attempt);
-        delay(500);
+        LOG_INFO(TAG_WIFI, F(D_WIFI_CONNECTING_TO "... %u"), ssid, attempt);
+        delay(250);
     }
 #if defined(STM32F4xx)
     LOG_INFO(TAG_WIFI, F(D_NETWORK_IP_ADDRESS_RECEIVED), espIp);
