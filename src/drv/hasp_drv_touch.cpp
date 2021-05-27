@@ -4,7 +4,7 @@
 #include "hasplib.h"
 
 #include "hasp_drv_touch.h"
-#include "drv/tft_driver.h"
+#include "drv/tft/tft_driver.h"
 
 #if TOUCH_DRIVER == 2046
 #if defined(USE_FSMC)
@@ -188,25 +188,28 @@ IRAM_ATTR bool drv_touch_read(lv_indev_drv_t* indev_driver, lv_indev_data_t* dat
         touched = drv_touchpad_getXY(&touchX, &touchY);
     }
 
-    // Ignore first press?
+    if(!touched) {
+        data->state = LV_INDEV_STATE_REL;
+        return false;
+    }
 
-    if(touched && hasp_sleep_state != HASP_SLEEP_OFF) hasp_update_sleep_state(); // update Idle
+    if(hasp_sleep_state /* != HASP_SLEEP_OFF */ ) hasp_update_sleep_state(); // update Idle
 
     if(touch_invert_x) {
-        touchX = indev_driver->disp->driver.hor_res - touchX;
+        data->point.x = indev_driver->disp->driver.hor_res - touchX;
+    } else {
+        data->point.x = touchX;
     }
 
     if(touch_invert_y) {
-        touchY = indev_driver->disp->driver.ver_res - touchY;
-    }
-
-    /*Save the state and save the pressed coordinate for cursor position */
-    data->state = touched ? LV_INDEV_STATE_PR : LV_INDEV_STATE_REL;
-    if(touched) {
-        data->point.x = touchX;
-        data->point.y = touchY;
+        data->point.y = indev_driver->disp->driver.ver_res - touchY;
+    } else {
+        data->point.x = touchY;
     }
 #endif
+
+    /*Save the state and save the pressed coordinate for cursor position */
+    data->state = LV_INDEV_STATE_PR;
 
     /*Return `false` because we are not buffering and no more data to read*/
     return false;
