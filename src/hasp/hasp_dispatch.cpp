@@ -744,8 +744,8 @@ void dispatch_moodlight(const char* topic, const char* payload)
 
 void dispatch_backlight_obsolete(const char* topic, const char* payload)
 {
-    LOG_WARNING(TAG_HASP, F("%s topic is obsolete, use backlight instead"),
-                topic); // TODO: obsolete dim, light and brightness
+    LOG_WARNING(TAG_HASP, F(D_ATTRIBUTE_OBSOLETE D_ATTRIBUTE_INSTEAD), topic,
+                "backlight"); // TODO: obsolete dim, light and brightness
     dispatch_backlight(topic, payload);
 }
 
@@ -962,8 +962,8 @@ void dispatch_calibrate(const char*, const char*)
 
 void dispatch_wakeup_obsolete(const char* topic, const char*)
 {
-    LOG_WARNING(TAG_HASP, F("%s topic is obsolete, use idle=off instead"),
-                topic); // TODO: obsolete wakeup
+    LOG_WARNING(TAG_HASP, F(D_ATTRIBUTE_OBSOLETE D_ATTRIBUTE_INSTEAD), topic,
+                "idle=off"); // TODO: obsolete dim, light and brightness
     lv_disp_trig_activity(NULL);
     hasp_disable_wakeup_touch();
 }
