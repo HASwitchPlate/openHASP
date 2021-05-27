@@ -9,7 +9,7 @@
 #if defined(TOUCH_CS)
 
 #include "dev/device.h"
-#include "drv/tft_driver.h"
+#include "drv/tft/tft_driver.h"
 
 #include "hasp_drv_tft_espi.h"
 #include "ArduinoLog.h"
