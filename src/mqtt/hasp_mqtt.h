@@ -11,6 +11,11 @@
 // #define __FlashStringHelper char
 // #endif
 
+#ifdef ARDUINO
+#include "PubSubClient.h"
+extern PubSubClient mqttClient;
+#endif
+
 typedef enum {
     MQTT_ERR_OK       = 0,
     MQTT_ERR_DISABLED = -1,
@@ -49,6 +54,10 @@ bool mqttSetConfig(const JsonObject& settings);
 
 #ifndef MQTT_TOPIC_COMMAND
 #define MQTT_TOPIC_COMMAND "command"
+#endif
+
+#ifndef MQTT_TOPIC_CONFIG
+#define MQTT_TOPIC_CONFIG "config"
 #endif
 
 #ifndef MQTT_TOPIC_DISCOVERY
