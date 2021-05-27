@@ -85,6 +85,9 @@
 #define D_OBJECT_EVENT_UNKNOWN "Eveniment necunoscut: %d"
 
 #define D_ATTRIBUTE_UNKNOWN "Proprietate necunoscută: %s"
+// D_ATTRIBUTE_OBSOLETE D_ATTRIBUTE_INSTEAD can be used together or just D_ATTRIBUTE_OBSOLETE alone
+#define D_ATTRIBUTE_OBSOLETE "%s is obsolete"  // new
+#define D_ATTRIBUTE_INSTEAD ", use %s instead" // new
 #define D_ATTRIBUTE_READ_ONLY "%s este numai în citire"
 #define D_ATTRIBUTE_PAGE_METHOD_INVALID "Nu se poate apela %s pe o pagină"
 #define D_ATTRIBUTE_ALIGN_INVALID "Invalid align property: %s" // new

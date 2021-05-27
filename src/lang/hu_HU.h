@@ -85,6 +85,9 @@
 #define D_OBJECT_EVENT_UNKNOWN "Ismeretlen esemény %d"
 
 #define D_ATTRIBUTE_UNKNOWN "Ismeretlen tulajdonság: %s"
+// D_ATTRIBUTE_OBSOLETE D_ATTRIBUTE_INSTEAD can be used together or just D_ATTRIBUTE_OBSOLETE alone
+#define D_ATTRIBUTE_OBSOLETE "%s is obsolete"  // new
+#define D_ATTRIBUTE_INSTEAD ", use %s instead" // new
 #define D_ATTRIBUTE_READ_ONLY "%s csak olvasható"
 #define D_ATTRIBUTE_PAGE_METHOD_INVALID "Nem lehet meghívni %s-t egy oldalon"
 #define D_ATTRIBUTE_ALIGN_INVALID "Invalid align property: %s" // new

@@ -84,7 +84,10 @@
 #define D_OBJECT_PAGE_UNKNOWN "ID de page %u non défini"
 #define D_OBJECT_EVENT_UNKNOWN "Inconnu Event %d"
 
-#define D_ATTRIBUTE_UNKNOWN "Unknown property %s"
+#define D_ATTRIBUTE_UNKNOWN "Propriété %s inconnue"
+// D_ATTRIBUTE_OBSOLETE D_ATTRIBUTE_INSTEAD can be used together or just D_ATTRIBUTE_OBSOLETE alone
+#define D_ATTRIBUTE_OBSOLETE "%s est obsolète"
+#define D_ATTRIBUTE_INSTEAD ", remplacé par %s"
 #define D_ATTRIBUTE_READ_ONLY "%s is read-only"
 #define D_ATTRIBUTE_PAGE_METHOD_INVALID "Unable to call %s on a page"
 #define D_ATTRIBUTE_ALIGN_INVALID "Invalid align property: %s" // new

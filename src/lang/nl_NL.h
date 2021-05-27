@@ -85,6 +85,9 @@
 #define D_OBJECT_EVENT_UNKNOWN "Onbekend Event %d"
 
 #define D_ATTRIBUTE_UNKNOWN "Onbekend attribuut %s"
+// D_ATTRIBUTE_OBSOLETE D_ATTRIBUTE_INSTEAD can be used together or just D_ATTRIBUTE_OBSOLETE alone
+#define D_ATTRIBUTE_OBSOLETE "%s is verouderd"
+#define D_ATTRIBUTE_INSTEAD ", gebruik nu %s"
 #define D_ATTRIBUTE_READ_ONLY "%s is alleen-lezen"
 #define D_ATTRIBUTE_PAGE_METHOD_INVALID "%s is ongeldig voor een pagina"
 #define D_ATTRIBUTE_ALIGN_INVALID "Ongeldig align attribuut: %s"

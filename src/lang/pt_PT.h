@@ -86,6 +86,9 @@
 #define D_OBJECT_EVENT_UNKNOWN "Não se conhece o evento %d "
 
 #define D_ATTRIBUTE_UNKNOWN "Propriedade %s desconhecida"
+// D_ATTRIBUTE_OBSOLETE D_ATTRIBUTE_INSTEAD can be used together or just D_ATTRIBUTE_OBSOLETE alone
+#define D_ATTRIBUTE_OBSOLETE "%s is obsolete"  // new
+#define D_ATTRIBUTE_INSTEAD ", use %s instead" // new
 #define D_ATTRIBUTE_READ_ONLY "%s é de leitura apenas"
 #define D_ATTRIBUTE_PAGE_METHOD_INVALID "Não foi possível chamar %s numa página"
 #define D_ATTRIBUTE_ALIGN_INVALID "Invalid align property: %s" // new
