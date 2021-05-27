@@ -1119,6 +1119,45 @@ static hasp_attribute_type_t attribute_common_text(lv_obj_t* obj, const char* at
     return HASP_ATTR_TYPE_STR;
 }
 
+static hasp_attribute_type_t specific_options_attribute(lv_obj_t* obj, const char* payload, char** text, bool update)
+{
+    switch(obj_get_type(obj)) {
+        case LV_HASP_DROPDOWN:
+            if(update) {
+                lv_dropdown_set_options(obj, payload);
+            } else {
+                *text = (char*)lv_dropdown_get_options(obj);
+            }
+            return hasp_attribute_type_t::HASP_ATTR_TYPE_STR;
+        case LV_HASP_ROLLER:
+            if(update) {
+                lv_roller_ext_t* ext = (lv_roller_ext_t*)lv_obj_get_ext_attr(obj);
+                lv_roller_set_options(obj, payload, ext->mode);
+            } else {
+                *text = (char*)lv_roller_get_options(obj);
+            }
+            return hasp_attribute_type_t::HASP_ATTR_TYPE_STR;
+        case LV_HASP_BTNMATRIX:
+            if(update) {
+                my_btnmatrix_set_map(obj, payload);
+            } else {
+                strcpy_P(*text, "Not implemented"); // TODO : Literal String
+            }
+            return hasp_attribute_type_t::HASP_ATTR_TYPE_METHOD_OK;
+        case LV_HASP_MSGBOX:
+            if(update) {
+                my_msgbox_set_map(obj, payload);
+            } else {
+                strcpy_P(*text, "Not implemented"); // TODO : Literal String
+            }
+            return hasp_attribute_type_t::HASP_ATTR_TYPE_METHOD_OK;
+        default:
+            break; // not found
+    }
+
+    return hasp_attribute_type_t::HASP_ATTR_TYPE_NOT_FOUND;
+}
+
 static hasp_attribute_type_t specific_bool_attribute(lv_obj_t* obj, uint16_t attr_hash, int32_t& val, bool update)
 {
     { // bool
@@ -1703,63 +1742,6 @@ static hasp_attribute_type_t attribute_common_bool(lv_obj_t* obj, uint16_t attr_
 
 // ##################### Default Attributes ########################################################
 
-/**
- * Change or Retrieve the value of the attribute of an object
- * @param obj lv_obj_t*: the object to get/set the attribute
- * @param attr_p char*: the attribute name (with or without leading ".")
- * @param payload char*: the new value of the attribute
- * @param update  bool: change/set the value if true, dispatch/get value if false
- * @note setting a value won't return anything, getting will dispatch the value
- */
-void old_process_obj_attribute(lv_obj_t* obj, const char* attr_p, const char* payload, bool update)
-{
-    uint16_t attr_hash;
-
-    /* 16-bit Hash Lookup Table */
-    switch(attr_hash) {
-
-        case ATTR_OPTIONS:
-            switch(obj_get_type(obj)) {
-                case LV_HASP_DROPDOWN:
-                    if(update) {
-                        lv_dropdown_set_options(obj, payload);
-                    } else {
-                        attr_out_str(obj, attr_p, lv_dropdown_get_options(obj));
-                    }
-                    return; // attribute_found
-                case LV_HASP_ROLLER:
-                    if(update) {
-                        lv_roller_ext_t* ext = (lv_roller_ext_t*)lv_obj_get_ext_attr(obj);
-                        lv_roller_set_options(obj, payload, ext->mode);
-                    } else {
-                        attr_out_str(obj, attr_p, lv_roller_get_options(obj));
-                    }
-                    return; // attribute_found
-                case LV_HASP_BTNMATRIX:
-                    if(update) {
-                        my_btnmatrix_set_map(obj, payload);
-                    } else {
-                        attr_out_str(obj, attr_p, "Not implemented"); // TODO : Literal String
-                    }
-                    return; // attribute_found
-                case LV_HASP_MSGBOX:
-                    if(update) {
-                        my_msgbox_set_map(obj, payload);
-                    } else {
-                        attr_out_str(obj, attr_p, "Not implemented"); // TODO : Literal String
-                    }
-                    return; // attribute_found
-                default:
-                    break; // not found
-            }
-            break; // not found
-
-            //  case ATTR_MODAL:
-    }
-
-    LOG_WARNING(TAG_ATTR, F(D_ATTRIBUTE_UNKNOWN " (%d)"), attr_p, attr_hash);
-}
-
 void attr_out_str(lv_obj_t* obj, const char* attribute, const char* data)
 {
     uint8_t pageid;
@@ -1885,7 +1867,7 @@ void hasp_process_obj_attribute(lv_obj_t* obj, const char* attribute, const char
             break;
 
         case ATTR_TXT: // TODO: remove
-            LOG_WARNING(TAG_HASP, F("txt property is obsolete, use text instead"));
+            LOG_WARNING(TAG_HASP, F(D_ATTRIBUTE_OBSOLETE D_ATTRIBUTE_INSTEAD), attribute, "text");
         case ATTR_TEXT:
             ret = attribute_common_text(obj, attribute, payload, &text, update);
             break;
@@ -1906,7 +1888,10 @@ void hasp_process_obj_attribute(lv_obj_t* obj, const char* attribute, const char
             ret = attribute_common_mode(obj, payload, &text, val, update);
             break;
 
-            // case ATTR_OPTIONS:
+        case ATTR_OPTIONS:
+            ret = specific_options_attribute(obj, payload, &text, update);
+            break;
+
             // case ATTR_BTN_POS:
 
         case ATTR_ACTION:
