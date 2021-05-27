@@ -295,9 +295,10 @@ void mqttStart()
     mqttSubscribeTo(topic);
     snprintf_P(topic, sizeof(topic), PSTR("%s" MQTT_TOPIC_COMMAND "/#"), mqttNodeTopic);
     mqttSubscribeTo(topic);
-    // F_topic = F("%sconfig/#");
-    // mqttSubscribeTo(F_topic, mqttGroupTopic);
-    // mqttSubscribeTo(F("%s"MQTT_TOPIC_LWT), mqttNodeTopic);
+    snprintf_P(topic, sizeof(topic), PSTR("%s" MQTT_TOPIC_CONFIG "/#"), mqttGroupTopic);
+    mqttSubscribeTo(topic);
+    snprintf_P(topic, sizeof(topic), PSTR("%s" MQTT_TOPIC_CONFIG "/#"), mqttNodeTopic);
+    mqttSubscribeTo(topic);
 
 #ifdef HASP_USE_BROADCAST
     snprintf_P(topic, sizeof(topic), PSTR(MQTT_PREFIX "/" MQTT_TOPIC_BROADCAST "/" MQTT_TOPIC_COMMAND "/#"));
