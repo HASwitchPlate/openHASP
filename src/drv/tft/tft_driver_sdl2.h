@@ -31,8 +31,9 @@ class TftSdl : BaseTft {
 
 } // namespace dev
 
+using dev::TftSdl;
+extern dev::TftSdl haspTft;
+
 #endif // defined(WINDOWS) || defined(POSIX)
 
 #endif // HASP_SDL2_DRIVER_H
-using dev::TftSdl;
-extern dev::TftSdl haspTft;

@@ -15,10 +15,6 @@
 #include "dev/device.h"
 #include "hasp_debug.h"
 
-#include "tft_driver_sdl2.h"
-
-//#include "bootscreen.h" // Sketch tab header for xbm images
-
 namespace dev {
 
 /**
