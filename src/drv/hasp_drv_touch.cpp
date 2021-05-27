@@ -204,7 +204,7 @@ IRAM_ATTR bool drv_touch_read(lv_indev_drv_t* indev_driver, lv_indev_data_t* dat
     if(touch_invert_y) {
         data->point.y = indev_driver->disp->driver.ver_res - touchY;
     } else {
-        data->point.x = touchY;
+        data->point.y = touchY;
     }
 #endif
 
