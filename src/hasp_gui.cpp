@@ -10,7 +10,7 @@
 #include "lv_fs_if.h"
 
 // Device Drivers
-#include "drv/tft_driver.h"
+#include "drv/tft/tft_driver.h"
 #include "dev/device.h"
 
 //#include "drv/hasp_drv_display.h"
