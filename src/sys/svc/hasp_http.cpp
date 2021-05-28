@@ -893,19 +893,22 @@ void webHandleFirmwareUpload()
 
         case UPLOAD_FILE_START: {
             if(!httpIsAuthenticated(F("update"))) return;
-            LOG_TRACE(TAG_HTTP, F("Update: %s"), upload->filename.c_str());
-            haspProgressMsg(upload->filename.c_str());
+
             // WiFiUDP::stopAll();
 
             int command = webServer.arg(F("cmd")).toInt();
             size_t size = 0;
             if(command == U_FLASH) {
+                LOG_TRACE(TAG_HTTP, F("Update flash: %s"), upload->filename.c_str());
                 size = (ESP.getFreeSketchSpace() - 0x1000) & 0xFFFFF000;
 #ifdef ESP32
             } else if(command == U_SPIFFS) {
+                LOG_TRACE(TAG_HTTP, F("Update filesystem: %s"), upload->filename.c_str());
                 size = UPDATE_SIZE_UNKNOWN;
 #endif
             }
+            haspProgressMsg(upload->filename.c_str());
+
             // if(!Update.begin(UPDATE_SIZE_UNKNOWN)) { // start with max available size
             //  const char label[] = "spiffs";
             if(!Update.begin(size, command, -1, 0U)) { // start with max available size
@@ -1508,12 +1511,59 @@ void webHandleGpioConfig()
                     httpMessage += F("'>");
 
                     switch(conf.type) {
-                        case hasp_gpio_type_t::SWITCH:
-                            httpMessage += F(D_GPIO_SWITCH);
-                            break;
+
                         case hasp_gpio_type_t::BUTTON:
                             httpMessage += F(D_GPIO_BUTTON);
                             break;
+                        case hasp_gpio_type_t::SWITCH:
+                            httpMessage += F(D_GPIO_SWITCH);
+                            break;
+                        case hasp_gpio_type_t::DOOR:
+                            httpMessage += F("door");
+                            break;
+                        case hasp_gpio_type_t::GARAGE_DOOR:
+                            httpMessage += F("garage_door");
+                            break;
+                        case hasp_gpio_type_t::GAS:
+                            httpMessage += F("gas");
+                            break;
+                        case hasp_gpio_type_t::LIGHT:
+                            httpMessage += F("light");
+                            break;
+                        case hasp_gpio_type_t::LOCK:
+                            httpMessage += F("lock");
+                            break;
+                        case hasp_gpio_type_t::MOISTURE:
+                            httpMessage += F("moisture");
+                            break;
+                        case hasp_gpio_type_t::MOTION:
+                            httpMessage += F("motion");
+                            break;
+                        case hasp_gpio_type_t::OCCUPANCY:
+                            httpMessage += F("occupancy");
+                            break;
+                        case hasp_gpio_type_t::OPENING:
+                            httpMessage += F("opening");
+                            break;
+                        case hasp_gpio_type_t::PRESENCE:
+                            httpMessage += F("presence");
+                            break;
+                        case hasp_gpio_type_t::PROBLEM:
+                            httpMessage += F("problem");
+                            break;
+                        case hasp_gpio_type_t::SAFETY:
+                            httpMessage += F("Safety");
+                            break;
+                        case hasp_gpio_type_t::SMOKE:
+                            httpMessage += F("Smoke");
+                            break;
+                        case hasp_gpio_type_t::VIBRATION:
+                            httpMessage += F("Vibration");
+                            break;
+                        case hasp_gpio_type_t::WINDOW:
+                            httpMessage += F("Window");
+                            break;
+
                         case hasp_gpio_type_t::TOUCH:
                             httpMessage += F(D_GPIO_TOUCH);
                             break;
