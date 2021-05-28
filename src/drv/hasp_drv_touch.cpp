@@ -9,23 +9,23 @@
 #if TOUCH_DRIVER == 2046
 #if defined(USE_FSMC)
 #else
-#include "drv/touch/hasp_drv_tft_espi.h"
+#include "drv/old/hasp_drv_tft_espi.h"
 #endif
 
 #elif TOUCH_DRIVER == 2046
 #include "indev/XPT2046.h"
 #elif TOUCH_DRIVER == 0x2046B
-#include "drv/touch/hasp_drv_xpt2046.h"
+#include "drv/old/hasp_drv_xpt2046.h"
 #elif TOUCH_DRIVER == 911
-#include "drv/touch/hasp_drv_gt911.h"
+#include "drv/old/hasp_drv_gt911.h"
 #elif TOUCH_DRIVER == 0xADC
-#include "drv/touch/hasp_drv_ft6336u.h"
+#include "drv/old/hasp_drv_ft6336u.h"
 #elif TOUCH_DRIVER == 5206
-#include "drv/touch/hasp_drv_ft5206.h"
+#include "drv/old/hasp_drv_ft5206.h"
 #elif TOUCH_DRIVER == 6336
-#include "drv/touch/hasp_drv_ft6336u.h"
+#include "drv/old/hasp_drv_ft6336u.h"
 #elif TOUCH_DRIVER == 610
-#include "drv/touch/hasp_drv_stmpe610.h"
+#include "drv/old/hasp_drv_stmpe610.h"
 #else
 //#include "tp_i2c.h"
 //#include "ft6x36.h"
@@ -93,7 +93,7 @@ static inline bool drv_touchpad_getXY(int16_t* touchX, int16_t* touchY)
     touched = haspTft.tft.getTouch((uint16_t*)&normal_x, (uint16_t*)&normal_y, 300);
 
 #elif TOUCH_DRIVER == 0x2046B
-    touched = XPT2046_getXY(&normal_x, &normal_y, true);
+    touched     = XPT2046_getXY(&normal_x, &normal_y, true);
 
 #elif TOUCH_DRIVER == 911
     touched = GT911_getXY(&normal_x, &normal_y, true);
@@ -188,28 +188,31 @@ IRAM_ATTR bool drv_touch_read(lv_indev_drv_t* indev_driver, lv_indev_data_t* dat
         touched = drv_touchpad_getXY(&touchX, &touchY);
     }
 
-    if(!touched) {
+    if(touched) {
+        if(hasp_sleep_state /* != HASP_SLEEP_OFF */) hasp_update_sleep_state(); // update Idle
+
+        if(touch_invert_x) {
+            data->point.x = indev_driver->disp->driver.hor_res - touchX;
+        } else {
+            data->point.x = touchX;
+        }
+
+        if(touch_invert_y) {
+            data->point.y = indev_driver->disp->driver.ver_res - touchY;
+        } else {
+            data->point.y = touchY;
+        }
+
+        /*Save the state and save the pressed coordinate for cursor position */
+        data->state = LV_INDEV_STATE_PR;
+    } else {
         data->state = LV_INDEV_STATE_REL;
-        return false;
-    }
 
-    if(hasp_sleep_state /* != HASP_SLEEP_OFF */ ) hasp_update_sleep_state(); // update Idle
+    } // touched
 
-    if(touch_invert_x) {
-        data->point.x = indev_driver->disp->driver.hor_res - touchX;
-    } else {
-        data->point.x = touchX;
-    }
-
-    if(touch_invert_y) {
-        data->point.y = indev_driver->disp->driver.ver_res - touchY;
-    } else {
-        data->point.y = touchY;
-    }
+#else
+    data->state = LV_INDEV_STATE_REL;
 #endif
-
-    /*Save the state and save the pressed coordinate for cursor position */
-    data->state = LV_INDEV_STATE_PR;
 
     /*Return `false` because we are not buffering and no more data to read*/
     return false;

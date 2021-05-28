@@ -15,7 +15,7 @@
 
 //#include "drv/hasp_drv_display.h"
 #include "drv/hasp_drv_touch.h"
-#include "drv/touch/hasp_drv_tft_espi.h"
+#include "drv/old/hasp_drv_tft_espi.h"
 
 #include "hasp_debug.h"
 #include "hasp_config.h"

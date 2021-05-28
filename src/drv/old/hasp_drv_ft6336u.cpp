@@ -1,4 +1,4 @@
-#if TOUCH_DRIVER == 6336
+#if 0 // TOUCH_DRIVER == 6336
 
 #include <Wire.h>
 #include "FT6336U.h"
@@ -13,14 +13,16 @@ FT6336U* touchpanel;
 // Read touch points
 HASP_ATTRIBUTE_FAST_MEM bool FT6336U_getXY(int16_t* touchX, int16_t* touchY, bool debug)
 {
-    if(touchpanel->read_touch_number() != 1) return false;
-
-    *touchX = touchpanel->read_touch1_x();
-    *touchY = touchpanel->read_touch1_y();
-    return true;
+    if(touchpanel->read_touch_number() == 1) {
+        *touchX = touchpanel->read_touch1_x();
+        *touchY = touchpanel->read_touch1_y();
+        return true;
+    } else {
+        return false;
+    }
 }
 
-void scan(TwoWire& i2c)
+static void scan(TwoWire& i2c)
 {
     byte error, address;
     int nDevices;
