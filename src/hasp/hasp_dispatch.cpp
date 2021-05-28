@@ -370,8 +370,8 @@ void dispatch_text_line(const char* cmnd)
 // Get or Set a part of the config.json file
 void dispatch_config(const char* topic, const char* payload)
 {
-    DynamicJsonDocument doc(128 * 2);
-    char buffer[128 * 2];
+    DynamicJsonDocument doc(128 * 3);
+    char buffer[128 * 3];
     JsonObject settings;
     bool update;
 
