@@ -1973,7 +1973,7 @@ void webHandleHaspConfig()
         httpMessage += F("</h1><hr>");
 
         httpMessage += F("<p><form action='/edit' method='POST' enctype='multipart/form-data'><input type='file' "
-                         "name='filename' accept='.jsonl,.zi'>");
+                         "name='filename' accept='.jsonl,.png,.zi'>");
         httpMessage += F("<button type='submit'>" D_HTTP_UPLOAD_FILE "</button></form></p><hr>");
 
         // httpMessage += F("<form method='POST' action='/config'>");
