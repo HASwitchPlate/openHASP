@@ -92,8 +92,7 @@ static void gpio_event_handler(AceButton* button, uint8_t eventType, uint8_t but
     switch(eventType) {
         case AceButton::kEventPressed:
             if(gpioConfig[btnid].type != hasp_gpio_type_t::BUTTON) {
-                eventid                 = HASP_EVENT_ON;
-                gpioConfig[btnid].power = 1;
+                eventid = HASP_EVENT_ON;
             } else {
                 eventid = HASP_EVENT_DOWN;
             }
@@ -116,8 +115,7 @@ static void gpio_event_handler(AceButton* button, uint8_t eventType, uint8_t but
         //     break;
         case AceButton::kEventReleased:
             if(gpioConfig[btnid].type != hasp_gpio_type_t::BUTTON) {
-                eventid                 = HASP_EVENT_OFF;
-                gpioConfig[btnid].power = 0;
+                eventid = HASP_EVENT_OFF;
             } else {
                 eventid = HASP_EVENT_RELEASE;
             }
@@ -126,6 +124,7 @@ static void gpio_event_handler(AceButton* button, uint8_t eventType, uint8_t but
             eventid = HASP_EVENT_LOST;
     }
 
+    gpioConfig[btnid].power = Parser::get_event_state(eventid);
     event_gpio_input(gpioConfig[btnid].pin, eventid);
 
     // update objects and gpios in this group
@@ -188,8 +187,9 @@ static void gpio_setup_pin(uint8_t index)
         return;
     }
 
-    uint8_t input_mode;
+    uint8_t input_mode = INPUT_PULLUP;
     bool default_state = gpio->inverted ? LOW : HIGH; // default pullup
+
     switch(gpio->gpio_function) {
         case hasp_gpio_function_t::OUTPUT_PIN:
             input_mode = OUTPUT;
@@ -207,7 +207,7 @@ static void gpio_setup_pin(uint8_t index)
 #endif
         case hasp_gpio_function_t::INTERNAL_PULLUP:
         default:
-            input_mode = INPUT_PULLUP;
+            break;
     }
 
     gpio->power = 1; // on by default, value is set to 0
@@ -277,9 +277,11 @@ static void gpio_setup_pin(uint8_t index)
             Serial1.begin(115200UL, SERIAL_8N1, UART_PIN_NO_CHANGE, gpio->pin,
                           gpio->type == hasp_gpio_type_t::SERIAL_DIMMER_EU); // true = EU, false = AU
             Serial1.flush();
-            delay(20);
-            Serial1.print("  ");
-            delay(20);
+            //delay(10);
+            //Serial1.print("  ");
+            Serial1.write(0x20);
+            Serial1.write(0x20);
+           // delay(10);
             Serial1.write((const uint8_t*)command, 8);
 #endif
             gpio_log_serial_dimmer(command);
@@ -611,6 +613,10 @@ bool gpio_set_pin_state(uint8_t pin, bool power, int32_t val)
     if(!gpio_is_output(gpio)) {
         LOG_WARNING(TAG_GPIO, F(D_BULLET "Pin %d can not be set"), pin);
         return false;
+    }
+
+    if(gpio->max == 1) {         // it's a relay
+        gpio->val = gpio->power; // val and power are equal
     }
 
     if(gpio->group) {
