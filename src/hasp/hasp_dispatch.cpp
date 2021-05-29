@@ -200,8 +200,9 @@ static void dispatch_output(const char* topic, const char* payload)
                 return;
             }
 
-            JsonVariant state = json[F("state")];
-            JsonVariant value = json[F("val")];
+            JsonVariant state      = json[F("state")];
+            JsonVariant value      = json[F("val")];
+            JsonVariant brightness = json[F("brightness")];
 
             // Check if the state needs to change
             if(!state.isNull() && power_state != state.as<bool>()) {
@@ -211,6 +212,9 @@ static void dispatch_output(const char* topic, const char* payload)
 
             if(!value.isNull() && state_value != value.as<int32_t>()) {
                 state_value = value.as<int32_t>();
+                updated     = true;
+            } else if(!brightness.isNull() && state_value != brightness.as<int32_t>()) {
+                state_value = brightness.as<int32_t>();
                 updated     = true;
             }
 

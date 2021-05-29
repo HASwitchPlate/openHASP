@@ -393,6 +393,12 @@ void gpio_output_state(hasp_gpio_config_t* gpio)
         case POWER_RELAY:
             snprintf_P(payload, sizeof(payload), PSTR("{\"state\":\"%s\"}"), statename);
             break;
+        case LED:
+        case SERIAL_DIMMER:
+        case SERIAL_DIMMER_AU:
+        case SERIAL_DIMMER_EU:
+            snprintf_P(payload, sizeof(payload), PSTR("{\"state\":\"%s\",\"brightness\":%d}"), statename, gpio->val);
+            break;
         default:
             snprintf_P(payload, sizeof(payload), PSTR("{\"state\":\"%s\",\"val\":%d}"), statename, gpio->val);
     }
