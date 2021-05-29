@@ -21,6 +21,8 @@
 #include "ArduinoJson.h"
 
 #define STR_LEN_HOSTNAME 64
+#define Q(x) #x
+#define QUOTE(x) Q(x)
 
 namespace dev {
 
@@ -31,8 +33,14 @@ class BaseDevice {
 
     virtual void reboot()
     {}
-    const char* get_hostname();
-    void set_hostname(const char*);
+    const char* get_hostname()
+    {
+        return _hostname; //.c_str();
+    }
+    void set_hostname(const char* hostname)
+    {
+        strncpy(_hostname, hostname, STR_LEN_HOSTNAME);
+    }
     const char* get_core_version()
     {
         return "";
@@ -41,8 +49,18 @@ class BaseDevice {
     {
         return "";
     }
-    virtual const char* get_model();
-    virtual const char* get_version();
+    const char* get_model()
+    {
+#ifdef HASP_MODEL
+        return QUOTE(HASP_MODEL);
+#else
+        return PIOENV;
+#endif
+    }
+    const char* get_version()
+    {
+        return (QUOTE(HASP_VER_MAJ) "." QUOTE(HASP_VER_MIN) "." QUOTE(HASP_VER_REV));
+    }
     virtual const char* get_hardware_id()
     {
         return "";
