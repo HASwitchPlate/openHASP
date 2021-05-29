@@ -381,7 +381,7 @@ static inline void gpio_input_state(hasp_gpio_config_t* gpio)
 
 void gpio_output_state(hasp_gpio_config_t* gpio)
 {
-    char payload[32];
+    char payload[40];
     char topic[12];
     char statename[8];
 
