@@ -125,7 +125,7 @@ typedef int16_t lv_coord_t;
 
    /* Input device read period in milliseconds */
 #ifndef LV_INDEV_DEF_READ_PERIOD
-#define LV_INDEV_DEF_READ_PERIOD          20      /*[ms]*/
+#define LV_INDEV_DEF_READ_PERIOD          25      /*[ms]*/
 #endif
 
 /* Drag threshold in pixels */
