@@ -14,7 +14,7 @@
 #define TS_MINY 100
 #define TS_MAXY 3750
 
-static Adafruit_STMPE610 touch = Adafruit_STMPE610(STMPE_CS);
+static Adafruit_STMPE610 touch = Adafruit_STMPE610(TOUCH_CS);
 
 // Read touch points from global variable
 HASP_ATTRIBUTE_FAST_MEM bool STMPE610_getXY(int16_t* touchX, int16_t* touchY, uint8_t touchRotation, bool debug)
