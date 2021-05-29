@@ -210,27 +210,30 @@ static void gpio_setup_pin(uint8_t index)
             break;
     }
 
-    gpio->power = 1; // on by default, value is set to 0
+    gpio->power = 0; // off by default, value is set to 0
     gpio->max   = 255;
     switch(gpio->type) {
         case hasp_gpio_type_t::SWITCH:
         case hasp_gpio_type_t::BATTERY... hasp_gpio_type_t::WINDOW:
             if(gpio->btn) delete gpio->btn;
-            gpio->btn = new AceButton(&switchConfig, gpio->pin, default_state, index);
-            pinMode(gpio->pin, INPUT_PULLUP);
+            gpio->btn   = new AceButton(&switchConfig, gpio->pin, default_state, index);
+            gpio->power = gpio->btn->isPressedRaw();
+            pinMode(gpio->pin, input_mode);
             gpio->max = 0;
             break;
         case hasp_gpio_type_t::BUTTON:
             if(gpio->btn) delete gpio->btn;
-            gpio->btn = new AceButton(&buttonConfig, gpio->pin, default_state, index);
-            pinMode(gpio->pin, INPUT_PULLUP);
+            gpio->btn   = new AceButton(&buttonConfig, gpio->pin, default_state, index);
+            gpio->power = gpio->btn->isPressedRaw();
+            pinMode(gpio->pin, input_mode);
             gpio->max = 0;
             break;
 #if defined(ARDUINO_ARCH_ESP32)
         case hasp_gpio_type_t::TOUCH:
             if(gpio->btn) delete gpio->btn;
-            gpio->btn = new AceButton(&touchConfig, gpio->pin, HIGH, index);
-            gpio->max = 0;
+            gpio->btn   = new AceButton(&touchConfig, gpio->pin, HIGH, index);
+            gpio->power = gpio->btn->isPressedRaw();
+            gpio->max   = 0;
             // touchAttachInterrupt(gpio->pin, gotTouch, 33);
             break;
 #endif
@@ -238,7 +241,9 @@ static void gpio_setup_pin(uint8_t index)
         case hasp_gpio_type_t::POWER_RELAY:
         case hasp_gpio_type_t::LIGHT_RELAY:
             pinMode(gpio->pin, OUTPUT);
-            gpio->max = 1; // on-off
+            gpio->power = gpio->inverted; // gpio is off, state is set to reflect the true output state of the gpio
+            gpio->max   = 1;              // on-off
+            gpio->val   = gpio->power;
             break;
 
         case hasp_gpio_type_t::PWM:
@@ -277,11 +282,8 @@ static void gpio_setup_pin(uint8_t index)
             Serial1.begin(115200UL, SERIAL_8N1, UART_PIN_NO_CHANGE, gpio->pin,
                           gpio->type == hasp_gpio_type_t::SERIAL_DIMMER_EU); // true = EU, false = AU
             Serial1.flush();
-            //delay(10);
-            //Serial1.print("  ");
             Serial1.write(0x20);
             Serial1.write(0x20);
-           // delay(10);
             Serial1.write((const uint8_t*)command, 8);
 #endif
             gpio_log_serial_dimmer(command);
@@ -381,9 +383,19 @@ void gpio_output_state(hasp_gpio_config_t* gpio)
 {
     char payload[32];
     char topic[12];
-    snprintf_P(topic, sizeof(topic), PSTR("output%d"), gpio->pin);
-    snprintf_P(payload, sizeof(payload), PSTR("{\"state\":%d,\"val\":%d}"), gpio->power, gpio->val);
+    char statename[8];
 
+    Parser::get_event_name(gpio->power, statename, sizeof(statename));
+    snprintf_P(topic, sizeof(topic), PSTR("output%d"), gpio->pin);
+
+    switch(gpio->type) {
+        case LIGHT_RELAY:
+        case POWER_RELAY:
+            snprintf_P(payload, sizeof(payload), PSTR("{\"state\":\"%s\"}"), statename);
+            break;
+        default:
+            snprintf_P(payload, sizeof(payload), PSTR("{\"state\":\"%s\",\"val\":%d}"), statename, gpio->val);
+    }
     dispatch_state_subtopic(topic, payload);
 }
 
