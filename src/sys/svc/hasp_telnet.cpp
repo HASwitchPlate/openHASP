@@ -318,7 +318,7 @@ IRAM_ATTR void telnetLoop()
         if(telnetConsole) {
             while(telnetConsole->readKey()) {
                 if(!telnetConsole) return;                                        // the telnetConsole was destroyed
-                if(bufferedTelnetClient.peek() < 0) bufferedTelnetClient.flush(); // flush pending updates
+                if(bufferedTelnetClient.available() <= 0) bufferedTelnetClient.flush(); // flush pending updates
             };
 
         } else {
