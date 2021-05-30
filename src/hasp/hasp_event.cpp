@@ -245,24 +245,6 @@ static inline void event_update_group(uint8_t group, lv_obj_t* obj, bool power, 
     dispatch_normalized_group_values(value);
 }
 
-#if HASP_USE_GPIO > 0
-void event_gpio_input(uint8_t pin, uint8_t eventid)
-{
-    char payload[32];
-    char topic[10];
-    char eventname[8];
-
-    snprintf_P(topic, sizeof(topic), PSTR("input%d"), pin);
-    Parser::get_event_name(eventid, eventname, sizeof(eventname));
-    if(eventid == HASP_EVENT_ON || eventid == HASP_EVENT_OFF) {
-        snprintf_P(payload, sizeof(payload), PSTR("{\"state\":\"%s\"}"), eventname);
-    } else {
-        snprintf_P(payload, sizeof(payload), PSTR("{\"event\":\"%s\"}"), eventname);
-    }
-    dispatch_state_subtopic(topic, payload);
-}
-#endif
-
 static void log_event(const char* name, lv_event_t event)
 {
     return;
