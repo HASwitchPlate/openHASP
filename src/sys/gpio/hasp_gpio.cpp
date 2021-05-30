@@ -38,6 +38,8 @@ hasp_gpio_config_t gpioConfig[HASP_NUM_GPIO_CONFIG] = {
 };
 uint8_t pwm_channel = 1; // Backlight has 0
 
+static inline void gpio_input_event(uint8_t pin, hasp_event_t eventid);
+
 static inline void gpio_update_group(uint8_t group, lv_obj_t* obj, bool power, int32_t val, int32_t min, int32_t max)
 {
     hasp_update_value_t value = {.obj = obj, .group = group, .min = min, .max = max, .val = val, .power = power};
@@ -87,7 +89,7 @@ void gpio_log_serial_dimmer(const char* command)
 static void gpio_event_handler(AceButton* button, uint8_t eventType, uint8_t buttonState)
 {
     uint8_t btnid = button->getId();
-    uint8_t eventid;
+    hasp_event_t eventid;
     bool state = false;
     switch(eventType) {
         case AceButton::kEventPressed:
@@ -125,7 +127,7 @@ static void gpio_event_handler(AceButton* button, uint8_t eventType, uint8_t but
     }
 
     gpioConfig[btnid].power = Parser::get_event_state(eventid);
-    event_gpio_input(gpioConfig[btnid].pin, eventid);
+    gpio_input_event(gpioConfig[btnid].pin, eventid);
 
     // update objects and gpios in this group
     if(gpioConfig[btnid].group && eventid != HASP_EVENT_LONG) // do not repeat DOWN + LONG
@@ -355,7 +357,7 @@ void gpioEvery5Seconds(void)
     for(uint8_t i = 0; i < HASP_NUM_GPIO_CONFIG; i++) {
         if(gpio_is_input(&gpioConfig[i])) {
             gpioConfig[i].power = !gpioConfig[i].power;
-            event_gpio_input(gpioConfig[i].pin, gpioConfig[i].power);
+            gpio_input_event(gpioConfig[i].pin, (hasp_event_t)gpioConfig[i].power);
         }
     }
 }
@@ -374,35 +376,37 @@ bool gpio_get_pin_state(uint8_t pin, bool& power, int32_t& val)
     return false;
 }
 
+static inline void gpio_input_event(uint8_t pin, hasp_event_t eventid)
+{
+    char topic[10];
+    snprintf_P(topic, sizeof(topic), PSTR("input%d"), pin);
+    dispatch_state_eventid(topic, eventid);
+}
+
 static inline void gpio_input_state(hasp_gpio_config_t* gpio)
 {
-    event_gpio_input(gpio->pin, gpio->power);
+    gpio_input_event(gpio->pin, (hasp_event_t)gpio->power);
 }
 
 void gpio_output_state(hasp_gpio_config_t* gpio)
 {
-    char payload[40];
     char topic[12];
-    char statename[8];
-
-    Parser::get_event_name(gpio->power, statename, sizeof(statename));
     snprintf_P(topic, sizeof(topic), PSTR("output%d"), gpio->pin);
 
     switch(gpio->type) {
         case LIGHT_RELAY:
         case POWER_RELAY:
-            snprintf_P(payload, sizeof(payload), PSTR("{\"state\":\"%s\"}"), statename);
+            dispatch_state_eventid(topic, (hasp_event_t)gpio->power);
             break;
         case LED:
         case SERIAL_DIMMER:
         case SERIAL_DIMMER_AU:
         case SERIAL_DIMMER_EU:
-            snprintf_P(payload, sizeof(payload), PSTR("{\"state\":\"%s\",\"brightness\":%d}"), statename, gpio->val);
+            dispatch_state_brightness(topic, (hasp_event_t)gpio->power, gpio->val);
             break;
         default:
-            snprintf_P(payload, sizeof(payload), PSTR("{\"state\":\"%s\",\"val\":%d}"), statename, gpio->val);
+            dispatch_state_val(topic, (hasp_event_t)gpio->power, gpio->val);
     }
-    dispatch_state_subtopic(topic, payload);
 }
 
 bool gpio_input_pin_state(uint8_t pin)
@@ -633,8 +637,8 @@ bool gpio_set_pin_state(uint8_t pin, bool power, int32_t val)
         return false;
     }
 
-    if(gpio->max == 1) {         // it's a relay
-        gpio->val = gpio->power; // val and power are equal
+    if(gpio->max == 1) { // it's a relay
+        val = power;     // val and power are equal
     }
 
     if(gpio->group) {
