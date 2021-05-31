@@ -366,8 +366,8 @@ static void hasp_attribute_get_part_state(lv_obj_t* obj, const char* attr_in, ch
  * @param update  bool: change/set the value if true, dispatch/get value if false
  * @note setting a value won't return anything, getting will dispatch the value
  */
-static void hasp_local_style_attr(lv_obj_t* obj, const char* attr_p, uint16_t attr_hash, const char* payload,
-                                  bool update, bool& result)
+static hasp_attribute_type_t hasp_local_style_attr(lv_obj_t* obj, const char* attr_p, uint16_t attr_hash,
+                                                   const char* payload, bool update, int32_t& val)
 {
     char attr[32];
     uint8_t part  = LV_OBJ_PART_MAIN;
@@ -383,50 +383,49 @@ static void hasp_local_style_attr(lv_obj_t* obj, const char* attr_p, uint16_t at
      * when using hasp_out use attr_p for the original attribute name
      * *************************************************************** */
 
-    result = true; // default return
-
     switch(attr_hash) {
 
 /* 1: Use other blend modes than normal (`LV_BLEND_MODE_...`)*/
 #if LV_USE_BLEND_MODES
         case ATTR_BG_BLEND_MODE:
-            return attribute_bg_blend_mode(obj, part, state, update, attr_p, (lv_blend_mode_t)var);
-        case ATTR_TEXT_BLEND_MODE:
-            return lv_obj_set_style_local_text_blend_mode(obj, part, state, (lv_blend_mode_t)var);
-        case ATTR_BORDER_BLEND_MODE:
-            return lv_obj_set_style_local_border_blend_mode(obj, part, state, (lv_blend_mode_t)var);
-        case ATTR_OUTLINE_BLEND_MODE:
-            return lv_obj_set_style_local_outline_blend_mode(obj, part, state, (lv_blend_mode_t)var);
-        case ATTR_SHADOW_BLEND_MODE:
-            return lv_obj_set_style_local_shadow_blend_mode(obj, part, state, (lv_blend_mode_t)var);
-        case ATTR_LINE_BLEND_MODE:
-            return lv_obj_set_style_local_line_blend_mode(obj, part, state, (lv_blend_mode_t)var);
-        case ATTR_VALUE_BLEND_MODE:
-            return lv_obj_set_style_local_value_blend_mode(obj, part, state, (lv_blend_mode_t)var);
-        case ATTR_PATTERN_BLEND_MODE:
-            return lv_obj_set_style_local_pattern_blend_mode(obj, part, state, (lv_blend_mode_t)var);
+            return attribute_bg_blend_mode(obj, part, state, update, (lv_blend_mode_t)var, val);
+            // case ATTR_TEXT_BLEND_MODE:
+            //     return lv_obj_set_style_local_text_blend_mode(obj, part, state, (lv_blend_mode_t)var);
+            // case ATTR_BORDER_BLEND_MODE:
+            //     return lv_obj_set_style_local_border_blend_mode(obj, part, state, (lv_blend_mode_t)var);
+            // case ATTR_OUTLINE_BLEND_MODE:
+            //     return lv_obj_set_style_local_outline_blend_mode(obj, part, state, (lv_blend_mode_t)var);
+            // case ATTR_SHADOW_BLEND_MODE:
+            //     return lv_obj_set_style_local_shadow_blend_mode(obj, part, state, (lv_blend_mode_t)var);
+            // case ATTR_LINE_BLEND_MODE:
+            //     return lv_obj_set_style_local_line_blend_mode(obj, part, state, (lv_blend_mode_t)var);
+            // case ATTR_VALUE_BLEND_MODE:
+            //     return lv_obj_set_style_local_value_blend_mode(obj, part, state, (lv_blend_mode_t)var);
+            // case ATTR_PATTERN_BLEND_MODE:
+            //     return lv_obj_set_style_local_pattern_blend_mode(obj, part, state, (lv_blend_mode_t)var);
 #endif
 
         case ATTR_SIZE:
-            return attribute_size(obj, part, state, update, attr_p, var);
+            return attribute_size(obj, part, state, update, var, val);
         case ATTR_RADIUS:
-            return attribute_radius(obj, part, state, update, attr_p, var);
+            return attribute_radius(obj, part, state, update, var, val);
         case ATTR_CLIP_CORNER:
-            return attribute_clip_corner(obj, part, state, update, attr_p, var);
+            return attribute_clip_corner(obj, part, state, update, var, val);
+
         case ATTR_OPA_SCALE:
-            return attribute_opa_scale(obj, part, state, update, attr_p, (lv_opa_t)var);
+            return attribute_opa_scale(obj, part, state, update, (lv_opa_t)var, val);
         case ATTR_TRANSFORM_WIDTH:
-            return attribute_transform_width(obj, part, state, update, attr_p, (lv_style_int_t)var);
+            return attribute_transform_width(obj, part, state, update, (lv_style_int_t)var, val);
         case ATTR_TRANSFORM_HEIGHT:
-            return attribute_transform_height(obj, part, state, update, attr_p, (lv_style_int_t)var);
+            return attribute_transform_height(obj, part, state, update, (lv_style_int_t)var, val);
 
             /* Background attributes */
         case ATTR_BG_MAIN_STOP:
-            return attribute_bg_main_stop(obj, part, state, update, attr_p, (lv_style_int_t)var);
+            return attribute_bg_main_stop(obj, part, state, update, (lv_style_int_t)var, val);
         case ATTR_BG_GRAD_STOP:
-            return attribute_bg_grad_stop(obj, part, state, update, attr_p, (lv_style_int_t)var);
+            return attribute_bg_grad_stop(obj, part, state, update, (lv_style_int_t)var, val);
         case ATTR_BG_GRAD_DIR:
-            return attribute_bg_grad_dir(obj, part, state, update, attr_p, (lv_grad_dir_t)var);
+            return attribute_bg_grad_dir(obj, part, state, update, (lv_grad_dir_t)var, val);
         case ATTR_BG_COLOR: {
             if(update) {
                 lv_color32_t c;
@@ -435,7 +434,7 @@ static void hasp_local_style_attr(lv_obj_t* obj, const char* attr_p, uint16_t at
             } else {
                 attr_out_color(obj, attr, lv_obj_get_style_bg_color(obj, part));
             }
-            return;
+            return HASP_ATTR_TYPE_METHOD_OK;
         }
         case ATTR_BG_GRAD_COLOR:
             if(update) {
@@ -446,33 +445,33 @@ static void hasp_local_style_attr(lv_obj_t* obj, const char* attr_p, uint16_t at
             } else {
                 attr_out_color(obj, attr, lv_obj_get_style_bg_grad_color(obj, part));
             }
-            return;
+            return HASP_ATTR_TYPE_METHOD_OK;
 
         case ATTR_BG_OPA:
-            return attribute_bg_opa(obj, part, state, update, attr_p, (lv_opa_t)var);
+            return attribute_bg_opa(obj, part, state, update, (lv_opa_t)var, val);
 
         /* Margin attributes */
         case ATTR_MARGIN_TOP:
-            return attribute_margin_top(obj, part, state, update, attr_p, (lv_style_int_t)var);
+            return attribute_margin_top(obj, part, state, update, (lv_style_int_t)var, val);
         case ATTR_MARGIN_BOTTOM:
-            return attribute_margin_bottom(obj, part, state, update, attr_p, (lv_style_int_t)var);
+            return attribute_margin_bottom(obj, part, state, update, (lv_style_int_t)var, val);
         case ATTR_MARGIN_LEFT:
-            return attribute_margin_left(obj, part, state, update, attr_p, (lv_style_int_t)var);
+            return attribute_margin_left(obj, part, state, update, (lv_style_int_t)var, val);
         case ATTR_MARGIN_RIGHT:
-            return attribute_margin_right(obj, part, state, update, attr_p, (lv_style_int_t)var);
+            return attribute_margin_right(obj, part, state, update, (lv_style_int_t)var, val);
 
         /* Padding attributes */
         case ATTR_PAD_TOP:
-            return attribute_pad_top(obj, part, state, update, attr_p, (lv_style_int_t)var);
+            return attribute_pad_top(obj, part, state, update, (lv_style_int_t)var, val);
         case ATTR_PAD_BOTTOM:
-            return attribute_pad_bottom(obj, part, state, update, attr_p, (lv_style_int_t)var);
+            return attribute_pad_bottom(obj, part, state, update, (lv_style_int_t)var, val);
         case ATTR_PAD_LEFT:
-            return attribute_pad_left(obj, part, state, update, attr_p, (lv_style_int_t)var);
+            return attribute_pad_left(obj, part, state, update, (lv_style_int_t)var, val);
         case ATTR_PAD_RIGHT:
-            return attribute_pad_right(obj, part, state, update, attr_p, (lv_style_int_t)var);
+            return attribute_pad_right(obj, part, state, update, (lv_style_int_t)var, val);
 #if LVGL_VERSION_MAJOR == 7
         case ATTR_PAD_INNER:
-            return attribute_pad_inner(obj, part, state, update, attr_p, (lv_style_int_t)var);
+            return attribute_pad_inner(obj, part, state, update, (lv_style_int_t)var, val);
 #endif
 
         /* Scale attributes */
@@ -485,7 +484,7 @@ static void hasp_local_style_attr(lv_obj_t* obj, const char* attr_p, uint16_t at
             } else {
                 attr_out_color(obj, attr, lv_obj_get_style_scale_grad_color(obj, part));
             }
-            return;
+            return HASP_ATTR_TYPE_METHOD_OK;
         }
         case ATTR_SCALE_END_COLOR:
             if(update) {
@@ -496,25 +495,25 @@ static void hasp_local_style_attr(lv_obj_t* obj, const char* attr_p, uint16_t at
             } else {
                 attr_out_color(obj, attr, lv_obj_get_style_scale_end_color(obj, part));
             }
-            return;
+            return HASP_ATTR_TYPE_METHOD_OK;
         case ATTR_SCALE_END_LINE_WIDTH:
-            return attribute_scale_end_line_width(obj, part, state, update, attr_p, (lv_style_int_t)var);
+            return attribute_scale_end_line_width(obj, part, state, update, (lv_style_int_t)var, val);
         case ATTR_SCALE_END_BORDER_WIDTH:
-            return attribute_scale_end_border_width(obj, part, state, update, attr_p, (lv_style_int_t)var);
+            return attribute_scale_end_border_width(obj, part, state, update, (lv_style_int_t)var, val);
         case ATTR_SCALE_BORDER_WIDTH:
-            return attribute_scale_border_width(obj, part, state, update, attr_p, (lv_style_int_t)var);
+            return attribute_scale_border_width(obj, part, state, update, (lv_style_int_t)var, val);
         case ATTR_SCALE_WIDTH:
-            return attribute_scale_width(obj, part, state, update, attr_p, (lv_style_int_t)var);
+            return attribute_scale_width(obj, part, state, update, (lv_style_int_t)var, val);
 
         /* Text attributes */
         case ATTR_TEXT_LETTER_SPACE:
-            return attribute_text_letter_space(obj, part, state, update, attr_p, (lv_style_int_t)var);
+            return attribute_text_letter_space(obj, part, state, update, (lv_style_int_t)var, val);
         case ATTR_TEXT_LINE_SPACE:
-            return attribute_text_line_space(obj, part, state, update, attr_p, (lv_style_int_t)var);
+            return attribute_text_line_space(obj, part, state, update, (lv_style_int_t)var, val);
         case ATTR_TEXT_DECOR:
-            return attribute_text_decor(obj, part, state, update, attr_p, (lv_text_decor_t)var);
+            return attribute_text_decor(obj, part, state, update, (lv_text_decor_t)var, val);
         case ATTR_TEXT_OPA:
-            return attribute_text_opa(obj, part, state, update, attr_p, (lv_opa_t)var);
+            return attribute_text_opa(obj, part, state, update, (lv_opa_t)var, val);
         case ATTR_TEXT_COLOR: {
             if(update) {
                 lv_color32_t c;
@@ -523,7 +522,7 @@ static void hasp_local_style_attr(lv_obj_t* obj, const char* attr_p, uint16_t at
             } else {
                 attr_out_color(obj, attr, lv_obj_get_style_text_color(obj, part));
             }
-            return;
+            return HASP_ATTR_TYPE_METHOD_OK;
         }
         case ATTR_TEXT_SEL_COLOR: {
             if(update) {
@@ -534,7 +533,7 @@ static void hasp_local_style_attr(lv_obj_t* obj, const char* attr_p, uint16_t at
             } else {
                 attr_out_color(obj, attr, lv_obj_get_style_text_sel_color(obj, part));
             }
-            return;
+            return HASP_ATTR_TYPE_METHOD_OK;
         }
         case ATTR_TEXT_FONT: {
             lv_font_t* font = haspPayloadToFont(payload);
@@ -555,18 +554,19 @@ static void hasp_local_style_attr(lv_obj_t* obj, const char* attr_p, uint16_t at
             } else {
                 LOG_WARNING(TAG_ATTR, F("Unknown Font ID %s"), payload);
             }
-            return;
+            return HASP_ATTR_TYPE_METHOD_OK;
         }
 
         /* Border attributes */
         case ATTR_BORDER_WIDTH:
-            return attribute_border_width(obj, part, state, update, attr_p, (lv_style_int_t)var);
+            return attribute_border_width(obj, part, state, update, (lv_style_int_t)var, val);
         case ATTR_BORDER_SIDE:
-            return attribute_border_side(obj, part, state, update, attr_p, (lv_border_side_t)var);
+            return attribute_border_side(obj, part, state, update, (lv_border_side_t)var, val);
         case ATTR_BORDER_POST:
-            return attribute_border_post(obj, part, state, update, attr_p, Parser::is_true(payload));
+            attribute_border_post(obj, part, state, update, Parser::is_true(payload), val);
+            return HASP_ATTR_TYPE_BOOL;
         case ATTR_BORDER_OPA:
-            return attribute_border_opa(obj, part, state, update, attr_p, (lv_opa_t)var);
+            return attribute_border_opa(obj, part, state, update, (lv_opa_t)var, val);
         case ATTR_BORDER_COLOR: {
             if(update) {
                 lv_color32_t c;
@@ -576,16 +576,16 @@ static void hasp_local_style_attr(lv_obj_t* obj, const char* attr_p, uint16_t at
             } else {
                 attr_out_color(obj, attr, lv_obj_get_style_border_color(obj, part));
             }
-            return;
+            return HASP_ATTR_TYPE_METHOD_OK;
         }
 
         /* Outline attributes */
         case ATTR_OUTLINE_WIDTH:
-            return attribute_outline_width(obj, part, state, update, attr_p, (lv_style_int_t)var);
+            return attribute_outline_width(obj, part, state, update, (lv_style_int_t)var, val);
         case ATTR_OUTLINE_PAD:
-            return attribute_outline_pad(obj, part, state, update, attr_p, (lv_style_int_t)var);
+            return attribute_outline_pad(obj, part, state, update, (lv_style_int_t)var, val);
         case ATTR_OUTLINE_OPA:
-            return attribute_outline_opa(obj, part, state, update, attr_p, (lv_opa_t)var);
+            return attribute_outline_opa(obj, part, state, update, (lv_opa_t)var, val);
         case ATTR_OUTLINE_COLOR: {
             if(update) {
                 lv_color32_t c;
@@ -595,21 +595,21 @@ static void hasp_local_style_attr(lv_obj_t* obj, const char* attr_p, uint16_t at
             } else {
                 attr_out_color(obj, attr, lv_obj_get_style_outline_color(obj, part));
             }
-            return;
+            return HASP_ATTR_TYPE_METHOD_OK;
         }
 
         /* Shadow attributes */
 #if LV_USE_SHADOW
         case ATTR_SHADOW_WIDTH:
-            return attribute_shadow_width(obj, part, state, update, attr_p, (lv_style_int_t)var);
+            return attribute_shadow_width(obj, part, state, update, (lv_style_int_t)var, val);
         case ATTR_SHADOW_OFS_X:
-            return attribute_shadow_ofs_x(obj, part, state, update, attr_p, (lv_style_int_t)var);
+            return attribute_shadow_ofs_x(obj, part, state, update, (lv_style_int_t)var, val);
         case ATTR_SHADOW_OFS_Y:
-            return attribute_shadow_ofs_y(obj, part, state, update, attr_p, (lv_style_int_t)var);
+            return attribute_shadow_ofs_y(obj, part, state, update, (lv_style_int_t)var, val);
         case ATTR_SHADOW_SPREAD:
-            return attribute_shadow_spread(obj, part, state, update, attr_p, (lv_style_int_t)var);
+            return attribute_shadow_spread(obj, part, state, update, (lv_style_int_t)var, val);
         case ATTR_SHADOW_OPA:
-            return attribute_shadow_opa(obj, part, state, update, attr_p, (lv_opa_t)var);
+            return attribute_shadow_opa(obj, part, state, update, (lv_opa_t)var, val);
         case ATTR_SHADOW_COLOR: {
             if(update) {
                 lv_color32_t c;
@@ -619,21 +619,22 @@ static void hasp_local_style_attr(lv_obj_t* obj, const char* attr_p, uint16_t at
             } else {
                 attr_out_color(obj, attr, lv_obj_get_style_shadow_color(obj, part));
             }
-            return;
+            return HASP_ATTR_TYPE_METHOD_OK;
         }
 #endif
 
         /* Line attributes */
         case ATTR_LINE_WIDTH:
-            return attribute_line_width(obj, part, state, update, attr_p, (lv_style_int_t)var);
+            return attribute_line_width(obj, part, state, update, (lv_style_int_t)var, val);
         case ATTR_LINE_DASH_WIDTH:
-            return attribute_line_dash_width(obj, part, state, update, attr_p, (lv_style_int_t)var);
+            return attribute_line_dash_width(obj, part, state, update, (lv_style_int_t)var, val);
         case ATTR_LINE_DASH_GAP:
-            return attribute_line_dash_gap(obj, part, state, update, attr_p, (lv_style_int_t)var);
+            return attribute_line_dash_gap(obj, part, state, update, (lv_style_int_t)var, val);
         case ATTR_LINE_ROUNDED:
-            return attribute_line_rounded(obj, part, state, update, attr_p, Parser::is_true(payload));
+            attribute_line_rounded(obj, part, state, update, Parser::is_true(payload), val);
+            return HASP_ATTR_TYPE_BOOL;
         case ATTR_LINE_OPA:
-            return attribute_line_opa(obj, part, state, update, attr_p, (lv_opa_t)var);
+            return attribute_line_opa(obj, part, state, update, (lv_opa_t)var, val);
         case ATTR_LINE_COLOR: {
             if(update) {
                 lv_color32_t c;
@@ -642,29 +643,29 @@ static void hasp_local_style_attr(lv_obj_t* obj, const char* attr_p, uint16_t at
             } else {
                 attr_out_color(obj, attr, lv_obj_get_style_line_color(obj, part));
             }
-            return;
+            return HASP_ATTR_TYPE_METHOD_OK;
         }
 
         /* Value attributes */
         case ATTR_VALUE_LETTER_SPACE:
-            return attribute_value_letter_space(obj, part, state, update, attr_p, (lv_style_int_t)var);
+            return attribute_value_letter_space(obj, part, state, update, (lv_style_int_t)var, val);
         case ATTR_VALUE_LINE_SPACE:
-            return attribute_value_line_space(obj, part, state, update, attr_p, (lv_style_int_t)var);
+            return attribute_value_line_space(obj, part, state, update, (lv_style_int_t)var, val);
         case ATTR_VALUE_OFS_X:
-            return attribute_value_ofs_x(obj, part, state, update, attr_p, (lv_style_int_t)var);
+            return attribute_value_ofs_x(obj, part, state, update, (lv_style_int_t)var, val);
         case ATTR_VALUE_OFS_Y:
-            return attribute_value_ofs_y(obj, part, state, update, attr_p, (lv_style_int_t)var);
+            return attribute_value_ofs_y(obj, part, state, update, (lv_style_int_t)var, val);
         case ATTR_VALUE_ALIGN:
-            return attribute_value_align(obj, part, state, update, attr_p, (lv_align_t)var);
+            return attribute_value_align(obj, part, state, update, (lv_align_t)var, val);
         case ATTR_VALUE_OPA:
-            return attribute_value_opa(obj, part, state, update, attr_p, (lv_opa_t)var);
+            return attribute_value_opa(obj, part, state, update, (lv_opa_t)var, val);
         case ATTR_VALUE_STR: {
             if(update) {
                 my_obj_set_value_str_text(obj, part, state, payload);
             } else {
                 attr_out_str(obj, attr, lv_obj_get_style_value_str(obj, part));
             }
-            return;
+            return HASP_ATTR_TYPE_METHOD_OK;
         }
         case ATTR_VALUE_COLOR: {
             if(update) {
@@ -675,25 +676,26 @@ static void hasp_local_style_attr(lv_obj_t* obj, const char* attr_p, uint16_t at
             } else {
                 attr_out_color(obj, attr, lv_obj_get_style_value_color(obj, part));
             }
-            return;
+            return HASP_ATTR_TYPE_METHOD_OK;
         }
         case ATTR_VALUE_FONT: {
             lv_font_t* font = haspPayloadToFont(payload);
             if(font) {
-                return lv_obj_set_style_local_value_font(obj, part, state, font);
+                lv_obj_set_style_local_value_font(obj, part, state, font);
             } else {
                 LOG_WARNING(TAG_ATTR, F("Unknown Font ID %s"), attr_p);
-                return;
             }
+            return HASP_ATTR_TYPE_METHOD_OK;
         }
 
         /* Pattern attributes */
         case ATTR_PATTERN_REPEAT:
-            return attribute_pattern_repeat(obj, part, state, update, attr_p, Parser::is_true(payload));
+            attribute_pattern_repeat(obj, part, state, update, Parser::is_true(payload), val);
+            return HASP_ATTR_TYPE_BOOL;
         case ATTR_PATTERN_OPA:
-            return attribute_pattern_opa(obj, part, state, update, attr_p, (lv_opa_t)var);
+            return attribute_pattern_opa(obj, part, state, update, (lv_opa_t)var, val);
         case ATTR_PATTERN_RECOLOR_OPA:
-            return attribute_pattern_recolor_opa(obj, part, state, update, attr_p, (lv_opa_t)var);
+            return attribute_pattern_recolor_opa(obj, part, state, update, (lv_opa_t)var, val);
         case ATTR_PATTERN_RECOLOR: {
             if(update) {
                 lv_color32_t c;
@@ -703,7 +705,7 @@ static void hasp_local_style_attr(lv_obj_t* obj, const char* attr_p, uint16_t at
             } else {
                 attr_out_color(obj, attr, lv_obj_get_style_pattern_recolor(obj, part));
             }
-            return;
+            return HASP_ATTR_TYPE_METHOD_OK;
         }
 
         case ATTR_PATTERN_IMAGE:
@@ -712,9 +714,9 @@ static void hasp_local_style_attr(lv_obj_t* obj, const char* attr_p, uint16_t at
 
             /* Image attributes */
         case ATTR_IMAGE_RECOLOR_OPA:
-            return attribute_image_recolor_opa(obj, part, state, update, attr_p, (lv_opa_t)var);
+            return attribute_image_recolor_opa(obj, part, state, update, (lv_opa_t)var, val);
         case ATTR_IMAGE_OPA:
-            return attribute_image_opa(obj, part, state, update, attr_p, (lv_opa_t)var);
+            return attribute_image_opa(obj, part, state, update, (lv_opa_t)var, val);
         case ATTR_IMAGE_RECOLOR: {
             if(update) {
                 lv_color32_t c;
@@ -724,7 +726,7 @@ static void hasp_local_style_attr(lv_obj_t* obj, const char* attr_p, uint16_t at
             } else {
                 attr_out_color(obj, attr, lv_obj_get_style_image_recolor(obj, part));
             }
-            return;
+            return HASP_ATTR_TYPE_METHOD_OK;
         }
 
             /* Transition attributes */
@@ -734,8 +736,9 @@ static void hasp_local_style_attr(lv_obj_t* obj, const char* attr_p, uint16_t at
             break;
     }
 
-    LOG_WARNING(TAG_ATTR, F(D_ATTRIBUTE_UNKNOWN " (%d)"), attr_p, attr_hash);
-    result = false;
+    // LOG_WARNING(TAG_ATTR, F(D_ATTRIBUTE_UNKNOWN " (%d)"), attr_p, attr_hash);
+    // result = false;
+    return HASP_ATTR_TYPE_NOT_FOUND;
 }
 
 static hasp_attribute_type_t hasp_process_arc_attribute(lv_obj_t* obj, uint16_t attr_hash, int32_t& val, bool update)
@@ -2011,14 +2014,14 @@ void hasp_process_obj_attribute(lv_obj_t* obj, const char* attribute, const char
     }
 
     if(ret == HASP_ATTR_TYPE_NOT_FOUND) {
-        bool result;
-        hasp_local_style_attr(obj, attribute, attr_hash, payload, update, result);
-        if(result) {
-            ret = HASP_ATTR_TYPE_METHOD_OK;
-        } else {
-            ret = HASP_ATTR_TYPE_NOT_FOUND;
-        }
-        LOG_VERBOSE(TAG_ATTR, "%s %d ret:%d", __FILE__, __LINE__, ret);
+        // bool result;
+        ret = hasp_local_style_attr(obj, attribute, attr_hash, payload, update, val);
+        // if(result) {
+        //     ret = HASP_ATTR_TYPE_METHOD_OK;
+        // } else {
+        //     ret = HASP_ATTR_TYPE_NOT_FOUND;
+        // }
+        // LOG_VERBOSE(TAG_ATTR, "%s %d ret:%d", __FILE__, __LINE__, ret);
     }
 
     // Positive return codes have returned a value, negative are warnings
