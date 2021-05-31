@@ -1973,7 +1973,7 @@ void hasp_process_obj_attribute(lv_obj_t* obj, const char* attribute, const char
             break;
 
         default: {
-            break; // not found
+            ret = hasp_local_style_attr(obj, attribute, attr_hash, payload, update, val);
         }
     }
 
@@ -2011,17 +2011,6 @@ void hasp_process_obj_attribute(lv_obj_t* obj, const char* attribute, const char
             default:
                 break; // not found
         }
-    }
-
-    if(ret == HASP_ATTR_TYPE_NOT_FOUND) {
-        // bool result;
-        ret = hasp_local_style_attr(obj, attribute, attr_hash, payload, update, val);
-        // if(result) {
-        //     ret = HASP_ATTR_TYPE_METHOD_OK;
-        // } else {
-        //     ret = HASP_ATTR_TYPE_NOT_FOUND;
-        // }
-        // LOG_VERBOSE(TAG_ATTR, "%s %d ret:%d", __FILE__, __LINE__, ret);
     }
 
     // Positive return codes have returned a value, negative are warnings
