@@ -74,11 +74,12 @@ void dispatch_idle(const char*, const char*);
 void dispatch_calibrate(const char*, const char*);
 void dispatch_wakeup(const char*, const char*);
 
-void dispatch_gpio_input_event(uint8_t pin, uint8_t group, uint8_t eventid);
-
 void dispatch_normalized_group_values(hasp_update_value_t& value);
 
 void dispatch_state_subtopic(const char* subtopic, const char* payload);
+void dispatch_state_eventid(const char* topic, hasp_event_t eventid);
+void dispatch_state_brightness(const char* topic, hasp_event_t eventid, int32_t val);
+void dispatch_state_val(const char* topic, hasp_event_t eventid, int32_t val);
 
 void dispatch_config(const char* topic, const char* payload);
 

@@ -49,6 +49,20 @@ typedef enum {
     HASP_ATTR_TYPE_METHOD_OK,
 } hasp_attribute_type_t;
 
+struct hasp_attr_local_opa_t
+{
+    uint16_t hash;
+    void (*set)(lv_obj_t*, uint8_t, lv_state_t, lv_opa_t);
+    lv_opa_t (*get)(const lv_obj_t*, uint8_t);
+};
+
+struct hasp_attr_local_int_t
+{
+    uint16_t hash;
+    void (*set)(lv_obj_t*, uint8_t, lv_state_t, lv_style_int_t);
+    lv_style_int_t (*get)(const lv_obj_t*, uint8_t);
+};
+
 struct hasp_attr_update_bool_const_t
 {
     lv_hasp_obj_type_t obj_type;
@@ -129,7 +143,7 @@ struct hasp_attr_update_char_const_t
     const char* (*get)(const lv_obj_t*);
 };
 
-#define _HASP_ATTRIBUTE(prop_name, func_name, value_type)                                                              \
+#define _HASP_ATTRIBUTE_OLD(prop_name, func_name, value_type)                                                          \
     static inline void attribute_##func_name(lv_obj_t* obj, uint8_t part, lv_state_t state, bool update,               \
                                              const char* attr, value_type val)                                         \
     {                                                                                                                  \
@@ -140,6 +154,15 @@ struct hasp_attr_update_char_const_t
             /*lv_obj_get_style_##func_name(obj, part, state, &temp);*/                                                 \
             return attr_out_int(obj, attr, temp);                                                                      \
         }                                                                                                              \
+    }
+
+#define _HASP_ATTRIBUTE(prop_name, func_name, value_type)                                                              \
+    static inline hasp_attribute_type_t attribute_##func_name(lv_obj_t* obj, uint8_t part, lv_state_t state, bool update,               \
+                                             value_type val, int32_t& res)                                             \
+    {                                                                                                                  \
+        if(update) lv_obj_set_style_local_##func_name(obj, part, state, (value_type)val);                              \
+        res = (int32_t)lv_obj_get_style_##func_name(obj, part);                                                        \
+        return HASP_ATTR_TYPE_INT;                                                                                                        \
     }
 
 _HASP_ATTRIBUTE(RADIUS, radius, lv_style_int_t)

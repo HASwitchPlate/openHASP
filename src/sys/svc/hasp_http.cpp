@@ -1652,7 +1652,7 @@ void webHandleGpioConfig()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-void webHandleGpioOptions()
+void webHandleGpioOutput()
 { // http://plate01/config/gpio/options
     if(!httpIsAuthenticated(F("config/gpio/options"))) return;
 
@@ -1673,9 +1673,7 @@ void webHandleGpioOptions()
         httpMessage += config_id;
         httpMessage += F("'>");
 
-        httpMessage += F("<p><b>GPIO Options");
-        httpMessage += config_id;
-        httpMessage += F(" Options</b></p>");
+        httpMessage += F("<p><b>GPIO Output</b></p>");
 
         httpMessage += F("<p><b>" D_GPIO_PIN "</b> <select id='pin' name='pin'>");
         hasp_gpio_config_t conf = gpioGetPinConfig(config_id);
@@ -1782,9 +1780,7 @@ void webHandleGpioInput()
         httpMessage += config_id;
         httpMessage += F("'>");
 
-        httpMessage += F("<p><b>GPIO Options");
-        httpMessage += config_id;
-        httpMessage += F(" Options</b></p>");
+        httpMessage += F("<p><b>GPIO Input</b></p>");
 
         httpMessage += F("<p><b>" D_GPIO_PIN "</b> <select id='pin' name='pin'>");
         hasp_gpio_config_t conf = gpioGetPinConfig(config_id);
@@ -2343,7 +2339,7 @@ void httpSetup()
 #endif
 #if HASP_USE_GPIO > 0
     webServer.on(F("/config/gpio"), webHandleGpioConfig);
-    webServer.on(F("/config/gpio/options"), webHandleGpioOptions);
+    webServer.on(F("/config/gpio/options"), webHandleGpioOutput);
     webServer.on(F("/config/gpio/input"), webHandleGpioInput);
 #endif
     webServer.on(F("/saveConfig"), webHandleSaveConfig);

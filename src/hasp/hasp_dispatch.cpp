@@ -75,21 +75,38 @@ void dispatch_state_subtopic(const char* subtopic, const char* payload)
 #endif
 }
 
-// Format filesystem and erase EEPROM
-bool dispatch_factory_reset()
+void dispatch_state_eventid(const char* topic, hasp_event_t eventid)
 {
-    bool formated = true;
-    bool erased   = true;
+    char payload[32];
+    char eventname[8];
 
-#if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
-    formated = HASP_FS.format();
-#endif
+    Parser::get_event_name(eventid, eventname, sizeof(eventname));
+    if(eventid == HASP_EVENT_ON || eventid == HASP_EVENT_OFF) {
+        snprintf_P(payload, sizeof(payload), PSTR("{\"state\":\"%s\"}"), eventname);
+    } else {
+        snprintf_P(payload, sizeof(payload), PSTR("{\"event\":\"%s\"}"), eventname);
+    }
+    dispatch_state_subtopic(topic, payload);
+}
 
-#if HASP_USE_EEPROM > 0
-    erased = false;
-#endif
+void dispatch_state_brightness(const char* topic, hasp_event_t eventid, int32_t val)
+{
+    char payload[64];
+    char eventname[8];
 
-    return formated && erased;
+    Parser::get_event_name(eventid, eventname, sizeof(eventname));
+    snprintf_P(payload, sizeof(payload), PSTR("{\"state\":\"%s\",\"brightness\":%d}"), eventname, val);
+    dispatch_state_subtopic(topic, payload);
+}
+
+void dispatch_state_val(const char* topic, hasp_event_t eventid, int32_t val)
+{
+    char payload[64];
+    char eventname[8];
+
+    Parser::get_event_name(eventid, eventname, sizeof(eventname));
+    snprintf_P(payload, sizeof(payload), PSTR("{\"state\":\"%s\",\"val\":%d}"), eventname, val);
+    dispatch_state_subtopic(topic, payload);
 }
 
 void dispatch_json_error(uint8_t tag, DeserializationError& jsonError)
@@ -200,8 +217,9 @@ static void dispatch_output(const char* topic, const char* payload)
                 return;
             }
 
-            JsonVariant state = json[F("state")];
-            JsonVariant value = json[F("val")];
+            JsonVariant state      = json[F("state")];
+            JsonVariant value      = json[F("val")];
+            JsonVariant brightness = json[F("brightness")];
 
             // Check if the state needs to change
             if(!state.isNull() && power_state != state.as<bool>()) {
@@ -211,6 +229,9 @@ static void dispatch_output(const char* topic, const char* payload)
 
             if(!value.isNull() && state_value != value.as<int32_t>()) {
                 state_value = value.as<int32_t>();
+                updated     = true;
+            } else if(!brightness.isNull() && state_value != brightness.as<int32_t>()) {
+                state_value = brightness.as<int32_t>();
                 updated     = true;
             }
 
@@ -800,11 +821,8 @@ void dispatch_backlight(const char*, const char* payload)
 
     // Return the current state
     char topic[10];
-    char buffer[64];
     memcpy_P(topic, PSTR("backlight"), 10);
-    snprintf_P(buffer, sizeof(buffer), PSTR("{\"state\":\"%s\",\"brightness\":%u}"),
-               haspDevice.get_backlight_power() ? "on" : "off", haspDevice.get_backlight_level());
-    dispatch_state_subtopic(topic, buffer);
+    dispatch_state_brightness(topic, (hasp_event_t)haspDevice.get_backlight_power(), haspDevice.get_backlight_level());
 }
 
 void dispatch_web_update(const char*, const char* espOtaUrl)
@@ -953,6 +971,23 @@ void dispatch_current_state()
     dispatch_idle(NULL, NULL);
     dispatch_current_page();
     dispatch_send_discovery(NULL, NULL);
+}
+
+// Format filesystem and erase EEPROM
+bool dispatch_factory_reset()
+{
+    bool formated = true;
+    bool erased   = true;
+
+#if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
+    formated = HASP_FS.format();
+#endif
+
+#if HASP_USE_EEPROM > 0
+    erased = false;
+#endif
+
+    return formated && erased;
 }
 
 void dispatch_calibrate(const char*, const char*)

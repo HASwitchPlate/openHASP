@@ -26,9 +26,4 @@ void msgbox_event_handler(lv_obj_t* obj, lv_event_t event);
 void cpicker_event_handler(lv_obj_t* obj, lv_event_t event);
 void calendar_event_handler(lv_obj_t* obj, lv_event_t event);
 
-#if HASP_USE_GPIO > 0
-// GPIO event Handler
-void event_gpio_input(uint8_t pin, uint8_t eventid);
-#endif
-
 #endif // HASP_EVENT_H

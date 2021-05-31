@@ -38,6 +38,8 @@ hasp_gpio_config_t gpioConfig[HASP_NUM_GPIO_CONFIG] = {
 };
 uint8_t pwm_channel = 1; // Backlight has 0
 
+static inline void gpio_input_event(uint8_t pin, hasp_event_t eventid);
+
 static inline void gpio_update_group(uint8_t group, lv_obj_t* obj, bool power, int32_t val, int32_t min, int32_t max)
 {
     hasp_update_value_t value = {.obj = obj, .group = group, .min = min, .max = max, .val = val, .power = power};
@@ -87,7 +89,7 @@ void gpio_log_serial_dimmer(const char* command)
 static void gpio_event_handler(AceButton* button, uint8_t eventType, uint8_t buttonState)
 {
     uint8_t btnid = button->getId();
-    uint8_t eventid;
+    hasp_event_t eventid;
     bool state = false;
     switch(eventType) {
         case AceButton::kEventPressed:
@@ -125,7 +127,7 @@ static void gpio_event_handler(AceButton* button, uint8_t eventType, uint8_t but
     }
 
     gpioConfig[btnid].power = Parser::get_event_state(eventid);
-    event_gpio_input(gpioConfig[btnid].pin, eventid);
+    gpio_input_event(gpioConfig[btnid].pin, eventid);
 
     // update objects and gpios in this group
     if(gpioConfig[btnid].group && eventid != HASP_EVENT_LONG) // do not repeat DOWN + LONG
@@ -210,27 +212,30 @@ static void gpio_setup_pin(uint8_t index)
             break;
     }
 
-    gpio->power = 1; // on by default, value is set to 0
+    gpio->power = 0; // off by default, value is set to 0
     gpio->max   = 255;
     switch(gpio->type) {
         case hasp_gpio_type_t::SWITCH:
         case hasp_gpio_type_t::BATTERY... hasp_gpio_type_t::WINDOW:
             if(gpio->btn) delete gpio->btn;
-            gpio->btn = new AceButton(&switchConfig, gpio->pin, default_state, index);
-            pinMode(gpio->pin, INPUT_PULLUP);
+            gpio->btn   = new AceButton(&switchConfig, gpio->pin, default_state, index);
+            gpio->power = gpio->btn->isPressedRaw();
+            pinMode(gpio->pin, input_mode);
             gpio->max = 0;
             break;
         case hasp_gpio_type_t::BUTTON:
             if(gpio->btn) delete gpio->btn;
-            gpio->btn = new AceButton(&buttonConfig, gpio->pin, default_state, index);
-            pinMode(gpio->pin, INPUT_PULLUP);
+            gpio->btn   = new AceButton(&buttonConfig, gpio->pin, default_state, index);
+            gpio->power = gpio->btn->isPressedRaw();
+            pinMode(gpio->pin, input_mode);
             gpio->max = 0;
             break;
 #if defined(ARDUINO_ARCH_ESP32)
         case hasp_gpio_type_t::TOUCH:
             if(gpio->btn) delete gpio->btn;
-            gpio->btn = new AceButton(&touchConfig, gpio->pin, HIGH, index);
-            gpio->max = 0;
+            gpio->btn   = new AceButton(&touchConfig, gpio->pin, HIGH, index);
+            gpio->power = gpio->btn->isPressedRaw();
+            gpio->max   = 0;
             // touchAttachInterrupt(gpio->pin, gotTouch, 33);
             break;
 #endif
@@ -238,7 +243,9 @@ static void gpio_setup_pin(uint8_t index)
         case hasp_gpio_type_t::POWER_RELAY:
         case hasp_gpio_type_t::LIGHT_RELAY:
             pinMode(gpio->pin, OUTPUT);
-            gpio->max = 1; // on-off
+            gpio->power = gpio->inverted; // gpio is off, state is set to reflect the true output state of the gpio
+            gpio->max   = 1;              // on-off
+            gpio->val   = gpio->power;
             break;
 
         case hasp_gpio_type_t::PWM:
@@ -277,11 +284,8 @@ static void gpio_setup_pin(uint8_t index)
             Serial1.begin(115200UL, SERIAL_8N1, UART_PIN_NO_CHANGE, gpio->pin,
                           gpio->type == hasp_gpio_type_t::SERIAL_DIMMER_EU); // true = EU, false = AU
             Serial1.flush();
-            //delay(10);
-            //Serial1.print("  ");
             Serial1.write(0x20);
             Serial1.write(0x20);
-           // delay(10);
             Serial1.write((const uint8_t*)command, 8);
 #endif
             gpio_log_serial_dimmer(command);
@@ -353,7 +357,7 @@ void gpioEvery5Seconds(void)
     for(uint8_t i = 0; i < HASP_NUM_GPIO_CONFIG; i++) {
         if(gpio_is_input(&gpioConfig[i])) {
             gpioConfig[i].power = !gpioConfig[i].power;
-            event_gpio_input(gpioConfig[i].pin, gpioConfig[i].power);
+            gpio_input_event(gpioConfig[i].pin, (hasp_event_t)gpioConfig[i].power);
         }
     }
 }
@@ -372,19 +376,37 @@ bool gpio_get_pin_state(uint8_t pin, bool& power, int32_t& val)
     return false;
 }
 
+static inline void gpio_input_event(uint8_t pin, hasp_event_t eventid)
+{
+    char topic[10];
+    snprintf_P(topic, sizeof(topic), PSTR("input%d"), pin);
+    dispatch_state_eventid(topic, eventid);
+}
+
 static inline void gpio_input_state(hasp_gpio_config_t* gpio)
 {
-    event_gpio_input(gpio->pin, gpio->power);
+    gpio_input_event(gpio->pin, (hasp_event_t)gpio->power);
 }
 
 void gpio_output_state(hasp_gpio_config_t* gpio)
 {
-    char payload[32];
     char topic[12];
     snprintf_P(topic, sizeof(topic), PSTR("output%d"), gpio->pin);
-    snprintf_P(payload, sizeof(payload), PSTR("{\"state\":%d,\"val\":%d}"), gpio->power, gpio->val);
 
-    dispatch_state_subtopic(topic, payload);
+    switch(gpio->type) {
+        case LIGHT_RELAY:
+        case POWER_RELAY:
+            dispatch_state_eventid(topic, (hasp_event_t)gpio->power);
+            break;
+        case LED:
+        case SERIAL_DIMMER:
+        case SERIAL_DIMMER_AU:
+        case SERIAL_DIMMER_EU:
+            dispatch_state_brightness(topic, (hasp_event_t)gpio->power, gpio->val);
+            break;
+        default:
+            dispatch_state_val(topic, (hasp_event_t)gpio->power, gpio->val);
+    }
 }
 
 bool gpio_input_pin_state(uint8_t pin)
@@ -615,8 +637,8 @@ bool gpio_set_pin_state(uint8_t pin, bool power, int32_t val)
         return false;
     }
 
-    if(gpio->max == 1) {         // it's a relay
-        gpio->val = gpio->power; // val and power are equal
+    if(gpio->max == 1) { // it's a relay
+        val = power;     // val and power are equal
     }
 
     if(gpio->group) {
