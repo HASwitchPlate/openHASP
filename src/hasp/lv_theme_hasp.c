@@ -226,8 +226,6 @@ static lv_style_int_t hasp_dpx(lv_style_int_t n)
 static void basic_init(lv_style_int_t border_width, lv_style_int_t outline_width, lv_color_t value_color,
                        lv_color_t color_scr_text)
 {
-    sizeof(lv_style_t);
-
     // Objects with transparent background, like Checkbox, container
     style_init_reset(&styles->transparent);
     lv_style_set_bg_opa(&styles->transparent, LV_STATE_DEFAULT, LV_OPA_TRANSP);
