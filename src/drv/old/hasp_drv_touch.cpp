@@ -31,7 +31,7 @@
 //#include "ft6x36.h"
 #endif
 
-#include "../hasp/hasp.h" // for hasp_sleep_state
+#include "../../hasp/hasp.h" // for hasp_sleep_state
 extern uint8_t hasp_sleep_state;
 static uint8_t drv_touch_rotation;
 

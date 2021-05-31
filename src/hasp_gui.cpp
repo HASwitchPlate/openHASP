@@ -15,7 +15,7 @@
 #include "drv/touch/touch_driver.h"
 
 //#include "drv/hasp_drv_display.h"
-// #include "drv/hasp_drv_touch.h"
+// #include "drv/old/hasp_drv_touch.h"
 // #include "drv/old/hasp_drv_tft_espi.h"
 
 #include "hasp_debug.h"
@@ -209,7 +209,7 @@ void guiSetup()
     disp_drv.hor_res = tft_width;
     disp_drv.ver_res = tft_height;
 
-    lv_disp_rot_t rotation[] = {LV_DISP_ROT_NONE, LV_DISP_ROT_270, LV_DISP_ROT_180, LV_DISP_ROT_90};
+    lv_disp_rot_t rotation[] = {LV_DISP_ROT_NONE, LV_DISP_ROT_90, LV_DISP_ROT_180, LV_DISP_ROT_270};
     lv_disp_t* display       = lv_disp_drv_register(&disp_drv);
     lv_disp_set_rotation(display, rotation[(4 + gui_settings.rotation - TFT_ROTATION) % 4]);
 
