@@ -7,7 +7,7 @@
 #include "hasp_oobe.h"
 #include "sys/net/hasp_network.h"
 #include "dev/device.h"
-#include "drv/hasp_drv_touch.h"
+// #include "drv/hasp_drv_touch.h"
 #include "ArduinoLog.h"
 
 #if HASP_USE_CONFIG > 0
@@ -22,7 +22,10 @@
 bool isConnected;
 uint8_t mainLoopCounter        = 0;
 unsigned long mainLastLoopTime = 0;
-uint8_t statLoopCounter        = 0;
+
+#ifdef HASP_USE_STAT_COUNTER
+uint8_t statLoopCounter = 0; // measures the average looptime
+#endif
 
 void setup()
 {
@@ -115,12 +118,16 @@ IRAM_ATTR void loop()
     networkLoop();
 
 #if HASP_USE_GPIO > 0
-    gpioLoop();
+    //  gpioLoop();
+    // Should be called every 4-5ms or faster, for the default debouncing time of ~20ms.
+    for(uint8_t i = 0; i < HASP_NUM_GPIO_CONFIG; i++) {
+        if(gpioConfig[i].btn) gpioConfig[i].btn->check();
+    }
 #endif // GPIO
 
 #if HASP_USE_MQTT > 0
-    mqttLoop();
-#endif // MQTT
+    mqttClient.loop(); // mqttLoop();
+#endif
 
     // haspDevice.loop();
 
@@ -129,7 +136,10 @@ IRAM_ATTR void loop()
     consoleLoop();
 #endif
 
-    statLoopCounter++;
+#ifdef HASP_USE_STAT_COUNTER
+    statLoopCounter++; // measures the average looptime
+#endif
+
     /* Timer Loop */
     if(millis() - mainLastLoopTime >= 1000) {
         mainLastLoopTime += 1000;
@@ -170,10 +180,11 @@ IRAM_ATTR void loop()
 
             case 5:
                 mainLoopCounter = 0;
-                // if(statLoopCounter)
-                //     LOG_VERBOSE(TAG_MAIN, F("%d millis per loop, %d counted"), 5000 / statLoopCounter,
-                //     statLoopCounter);
-                // statLoopCounter = 0;
+#ifdef HASP_USE_STAT_COUNTER
+                if(statLoopCounter)
+                    LOG_VERBOSE(TAG_MAIN, F("%d millis per loop, %d counted"), 5000 / statLoopCounter, statLoopCounter);
+                statLoopCounter = 0;
+#endif
                 break;
         }
     }

@@ -10,12 +10,13 @@
 #include "lv_fs_if.h"
 
 // Device Drivers
-#include "drv/tft/tft_driver.h"
 #include "dev/device.h"
+#include "drv/tft/tft_driver.h"
+#include "drv/touch/touch_driver.h"
 
 //#include "drv/hasp_drv_display.h"
-#include "drv/hasp_drv_touch.h"
-#include "drv/old/hasp_drv_tft_espi.h"
+// #include "drv/hasp_drv_touch.h"
+// #include "drv/old/hasp_drv_tft_espi.h"
 
 #include "hasp_debug.h"
 #include "hasp_config.h"
@@ -78,11 +79,16 @@ IRAM_ATTR void gui_flush_cb(lv_disp_drv_t* disp, const lv_area_t* area, lv_color
     haspTft.flush_pixels(disp, area, color_p);
 }
 
+// IRAM_ATTR bool touch_read(lv_indev_drv_t* indev_driver, lv_indev_data_t* data)
+// {
+//     return haspTouch.read(indev_driver, data);
+// }
+
 void guiCalibrate(void)
 {
 #if TOUCH_DRIVER == 2046 && USE_TFT_ESPI > 0
 #ifdef TOUCH_CS
-    tft_espi_calibrate(gui_settings.cal_data);
+    haspTouch.calibrate(gui_settings.cal_data);
 #endif
 
     for(int i = 0; i < 5; i++) {
@@ -97,7 +103,6 @@ void guiCalibrate(void)
 
 void guiSetup()
 {
-    // Register logger to capture lvgl_init output
     LOG_TRACE(TAG_TFT, F(D_SERVICE_STARTING));
 
     // Initialize the TFT
@@ -107,11 +112,6 @@ void guiSetup()
     haspTft.show_info();
 
     LOG_INFO(TAG_TFT, F(D_SERVICE_STARTED));
-    LOG_TRACE(TAG_LVGL, F(D_SERVICE_STARTING));
-
-#if LV_USE_LOG != 0
-    lv_log_register_print_cb(debugLvglLogEvent);
-#endif
 
     /* Create the Virtual Device Buffers */
 #if defined(ARDUINO_ARCH_ESP32)
@@ -159,6 +159,13 @@ void guiSetup()
     // lv_disp_buf_init(&disp_buf, guiVdbBuffer1, guiVdbBuffer2, guiVDBsize);
 #endif
 
+    LOG_TRACE(TAG_LVGL, F(D_SERVICE_STARTING));
+
+#if LV_USE_LOG != 0
+    // Register logger to capture lvgl_init output
+    lv_log_register_print_cb(debugLvglLogEvent);
+#endif
+
     /* Initialize lvgl */
     static lv_disp_buf_t disp_buf;
     if(guiVdbBuffer1 && guiVDBsize > 0) {
@@ -171,30 +178,72 @@ void guiSetup()
     LOG_VERBOSE(TAG_LVGL, F("Version    : %u.%u.%u %s"), LVGL_VERSION_MAJOR, LVGL_VERSION_MINOR, LVGL_VERSION_PATCH,
                 PSTR(LVGL_VERSION_INFO));
 
-    /* Initialize the display driver */
+    /* Initialize the LVGL display driver with correct orientation */
+#if TOUCH_DRIVER == 2046
+
     static lv_disp_drv_t disp_drv;
     lv_disp_drv_init(&disp_drv);
     disp_drv.buffer   = &disp_buf;
     disp_drv.flush_cb = gui_flush_cb;
-    disp_drv.hor_res  = tft_width;
-    disp_drv.ver_res  = tft_height;
 
-    switch(gui_settings.rotation) {
-        case 1:
-        case 3:
-        case 5:
-        case 7:
-            //     lv_disp_set_rotation(display, LV_DISP_ROT_90);
-            disp_drv.hor_res = tft_height;
-            disp_drv.ver_res = tft_width;
-            break;
-        default:
-            //           lv_disp_set_rotation(display, LV_DISP_ROT_NONE);
-            disp_drv.hor_res = tft_width;
-            disp_drv.ver_res = tft_height;
+    if(gui_settings.rotation % 2) {
+        disp_drv.hor_res = tft_height;
+        disp_drv.ver_res = tft_width;
+    } else {
+        disp_drv.hor_res = tft_width;
+        disp_drv.ver_res = tft_height;
     }
+
     lv_disp_t* display = lv_disp_drv_register(&disp_drv);
-    (void)display; // unused
+    lv_disp_set_rotation(display, LV_DISP_ROT_NONE);
+
+#else
+
+#if defined(LANBONL8)
+
+    static lv_disp_drv_t disp_drv;
+    lv_disp_drv_init(&disp_drv);
+    disp_drv.buffer   = &disp_buf;
+    disp_drv.flush_cb = gui_flush_cb;
+
+    disp_drv.hor_res = tft_width;
+    disp_drv.ver_res = tft_height;
+
+    lv_disp_rot_t rotation[] = {LV_DISP_ROT_NONE, LV_DISP_ROT_270, LV_DISP_ROT_180, LV_DISP_ROT_90};
+    lv_disp_t* display       = lv_disp_drv_register(&disp_drv);
+    lv_disp_set_rotation(display, rotation[(4 + gui_settings.rotation - TFT_ROTATION) % 4]);
+
+#elif defined(M5STACK)
+
+    static lv_disp_drv_t disp_drv;
+    lv_disp_drv_init(&disp_drv);
+    disp_drv.buffer   = &disp_buf;
+    disp_drv.flush_cb = gui_flush_cb;
+
+    disp_drv.hor_res = tft_height;
+    disp_drv.ver_res = tft_width;
+
+    lv_disp_rot_t rotation[] = {LV_DISP_ROT_NONE, LV_DISP_ROT_270, LV_DISP_ROT_180, LV_DISP_ROT_90};
+    lv_disp_t* display       = lv_disp_drv_register(&disp_drv);
+    lv_disp_set_rotation(display, rotation[(4 + gui_settings.rotation - TFT_ROTATION) % 4]);
+
+#else
+
+    static lv_disp_drv_t disp_drv;
+    lv_disp_drv_init(&disp_drv);
+    disp_drv.buffer   = &disp_buf;
+    disp_drv.flush_cb = gui_flush_cb;
+
+    disp_drv.hor_res = tft_width;
+    disp_drv.ver_res = tft_height;
+
+    lv_disp_rot_t rotation[] = {LV_DISP_ROT_NONE, LV_DISP_ROT_270, LV_DISP_ROT_180, LV_DISP_ROT_90};
+    lv_disp_t* display       = lv_disp_drv_register(&disp_drv);
+    lv_disp_set_rotation(display, rotation[(4 + gui_settings.rotation - TFT_ROTATION) % 4]);
+
+#endif
+
+#endif
 
     /* Initialize Filesystems */
 #if LV_USE_FS_IF != 0
@@ -243,7 +292,7 @@ void guiSetup()
 #if defined(WINDOWS) || defined(POSIX)
     indev_drv.read_cb = mouse_read;
 #else
-    indev_drv.read_cb = drv_touch_read;
+    indev_drv.read_cb = touch_read;
 #endif
     lv_indev_t* mouse_indev  = lv_indev_drv_register(&indev_drv);
     mouse_indev->driver.type = LV_INDEV_TYPE_POINTER;
@@ -273,7 +322,9 @@ void guiSetup()
     }
 
 #if !(defined(WINDOWS) || defined(POSIX))
-    drv_touch_init(gui_settings.rotation); // Touch driver
+    // drv_touch_init(gui_settings.rotation); // Touch driver
+    haspTouch.init(tft_width, tft_height);
+    haspTouch.set_rotation(gui_settings.rotation);
 #endif
 
     /* Initialize Global progress bar*/
@@ -305,7 +356,8 @@ IRAM_ATTR void guiLoop(void)
 #endif
 
 #if !(defined(WINDOWS) || defined(POSIX))
-    drv_touch_loop(); // update touch
+    // drv_touch_loop(); // update touch
+    haspTouch.loop();
 #endif
 }
 
@@ -376,7 +428,8 @@ bool guiGetConfig(const JsonObject& settings)
             changed = true;
 
 #if TOUCH_DRIVER == 2046 && USE_TFT_ESPI > 0 && defined(TOUCH_CS)
-            tft_espi_set_touch(gui_settings.cal_data);
+            // tft_espi_set_touch(gui_settings.cal_data);
+            haspTft.tft.setTouch(gui_settings.cal_data);
 #endif
         }
         i++;
@@ -391,7 +444,8 @@ bool guiGetConfig(const JsonObject& settings)
         changed = true;
 
 #if TOUCH_DRIVER == 2046 && USE_TFT_ESPI > 0 && defined(TOUCH_CS)
-        tft_espi_set_touch(gui_settings.cal_data);
+        // tft_espi_set_touch(gui_settings.cal_data);
+        haspTft.tft.setTouch(gui_settings.cal_data);
 #endif
     }
 
@@ -459,7 +513,8 @@ bool guiSetConfig(const JsonObject& settings)
         }
 
 #if TOUCH_DRIVER == 2046 && USE_TFT_ESPI > 0 && defined(TOUCH_CS)
-        if(status) tft_espi_set_touch(gui_settings.cal_data);
+        if(status) // tft_espi_set_touch(gui_settings.cal_data);
+            haspTft.tft.setTouch(gui_settings.cal_data);
 #endif
         changed |= status;
     }
