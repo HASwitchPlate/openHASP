@@ -748,7 +748,7 @@ typedef struct {
 #define LV_USE_IMGBTN   1
 #if LV_USE_IMGBTN
 /*1: The imgbtn requires left, mid and right parts and the width can be set freely*/
-#  define LV_IMGBTN_TILED 0
+#  define LV_IMGBTN_TILED 1
 #endif
 
 /*Keyboard (dependencies: lv_btnm)*/
