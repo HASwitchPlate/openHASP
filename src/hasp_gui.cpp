@@ -197,9 +197,7 @@ void guiSetup()
     lv_disp_t* display = lv_disp_drv_register(&disp_drv);
     lv_disp_set_rotation(display, LV_DISP_ROT_NONE);
 
-#else
-
-#if defined(LANBONL8)
+#elif defined(LANBONL8)
 
     static lv_disp_drv_t disp_drv;
     lv_disp_drv_init(&disp_drv);
@@ -209,7 +207,7 @@ void guiSetup()
     disp_drv.hor_res = tft_width;
     disp_drv.ver_res = tft_height;
 
-    lv_disp_rot_t rotation[] = {LV_DISP_ROT_NONE, LV_DISP_ROT_90, LV_DISP_ROT_180, LV_DISP_ROT_270};
+    lv_disp_rot_t rotation[] = {LV_DISP_ROT_NONE, LV_DISP_ROT_270, LV_DISP_ROT_180, LV_DISP_ROT_90};
     lv_disp_t* display       = lv_disp_drv_register(&disp_drv);
     lv_disp_set_rotation(display, rotation[(4 + gui_settings.rotation - TFT_ROTATION) % 4]);
 
@@ -240,8 +238,6 @@ void guiSetup()
     lv_disp_rot_t rotation[] = {LV_DISP_ROT_NONE, LV_DISP_ROT_270, LV_DISP_ROT_180, LV_DISP_ROT_90};
     lv_disp_t* display       = lv_disp_drv_register(&disp_drv);
     lv_disp_set_rotation(display, rotation[(4 + gui_settings.rotation - TFT_ROTATION) % 4]);
-
-#endif
 
 #endif
 
