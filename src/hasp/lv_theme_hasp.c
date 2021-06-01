@@ -512,8 +512,8 @@ static void slider_init(void)
 {
 #if LV_USE_SLIDER != 0
     style_init_reset(&styles->slider_knob);
-    // lv_style_set_bg_opa(&styles->slider_knob, LV_STATE_DEFAULT, LV_OPA_COVER);
-    // lv_style_set_bg_color(&styles->slider_knob, LV_STATE_DEFAULT, IS_LIGHT ? theme.color_primary : LV_COLOR_WHITE);
+    lv_style_set_bg_opa(&styles->slider_knob, LV_STATE_DEFAULT, LV_OPA_COVER);
+    lv_style_set_bg_color(&styles->slider_knob, LV_STATE_DEFAULT, IS_LIGHT ? LV_COLOR_GRAY: LV_COLOR_WHITE);
     // lv_style_set_value_color(&styles->slider_knob, LV_STATE_DEFAULT,
     //                          value_color);
     // lv_style_set_radius(&styles->slider_knob, LV_STATE_DEFAULT, LV_RADIUS_CIRCLE);
@@ -529,6 +529,8 @@ static void switch_init(void)
 {
 #if LV_USE_SWITCH != 0
     style_init_reset(&styles->sw_knob);
+    lv_style_set_bg_opa(&styles->sw_knob, LV_STATE_DEFAULT, LV_OPA_COVER);
+    lv_style_set_bg_color(&styles->sw_knob, LV_STATE_DEFAULT, IS_LIGHT ? LV_COLOR_GRAY: LV_COLOR_WHITE);
     // lv_style_set_bg_opa(&styles->sw_knob, LV_STATE_DEFAULT, LV_OPA_COVER);
     // lv_style_set_bg_color(&styles->sw_knob, LV_STATE_DEFAULT, LV_COLOR_WHITE);
     // lv_style_set_radius(&styles->sw_knob, LV_STATE_DEFAULT, LV_RADIUS_CIRCLE);
@@ -613,8 +615,10 @@ static void arc_init(void)
         lv_style_set_pad_all(&styles->pretty_color, LV_STATE_DEFAULT, LV_DPI / 50 >= 1 ? LV_DPI / 25 : 2);
     */
     style_init_reset(&styles->arc_knob);
+    lv_style_set_bg_opa(&styles->arc_knob, LV_STATE_DEFAULT, LV_OPA_COVER);
+    lv_style_set_bg_color(&styles->arc_knob, LV_STATE_DEFAULT, IS_LIGHT ? LV_COLOR_GRAY : LV_COLOR_WHITE);
     lv_style_set_radius(&styles->arc_knob, LV_STATE_DEFAULT, LV_RADIUS_CIRCLE);
-    lv_style_set_pad_all(&styles->arc_knob, LV_STATE_DEFAULT, HASP_DPX(0));
+    lv_style_set_pad_all(&styles->arc_knob, LV_STATE_DEFAULT, HASP_DPX(1));
 
 #endif
 }
