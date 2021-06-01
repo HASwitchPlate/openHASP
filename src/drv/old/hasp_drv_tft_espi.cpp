@@ -13,6 +13,7 @@
 
 #include "hasp_drv_tft_espi.h"
 #include "ArduinoLog.h"
+#include "hasp_debug.h"
 #include "hasp_macro.h"
 
 void tft_espi_calibrate(uint16_t* calData)

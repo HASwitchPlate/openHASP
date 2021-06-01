@@ -4,7 +4,10 @@
 #ifndef HASP_DEBUG_H
 #define HASP_DEBUG_H
 
+#include "hasp_conf.h"
+
 #include "ArduinoJson.h"
+#include "hasp_debug.h"
 #include "hasp_macro.h"
 #include "lvgl.h"
 

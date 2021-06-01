@@ -4,6 +4,11 @@
 #if defined(WINDOWS) || defined(POSIX)
 #define LOG_OUTPUT(x, ...) printf(__VA_ARGS__)
 #else
+
+#ifndef HASP_LOG_LEVEL
+#define HASP_LOG_LEVEL LOG_LEVEL_TRACE
+#endif
+
 #define LOG_OUTPUT(...) Log.output(...)
 
 #if HASP_LOG_LEVEL >= LOG_LEVEL_FATAL

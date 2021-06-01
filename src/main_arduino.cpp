@@ -12,6 +12,7 @@
 
 #if HASP_USE_CONFIG > 0
 #include "hasp_debug.h"
+#include "hasp_macro.h"
 #endif
 
 #if HASP_USE_CONFIG > 0
