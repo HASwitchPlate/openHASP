@@ -18,9 +18,9 @@ openHASP also adds ESP32 and STM32F4 support to take advantage of the additional
 
 ## Demo Screens
 
-![Screenshot](https://haswitchplate.github.io/openHASP-docs/assets/images/screenshots/demo_switches_covers.png) &nbsp; 
-![Screenshot](https://haswitchplate.github.io/openHASP-docs/assets/images/screenshots/demo_jaffa1.png) &nbsp; 
-![Screenshot](https://haswitchplate.github.io/openHASP-docs/assets/images/screenshots/demo_mediaplayer.png)
+![Screenshot](https://haswitchplate.github.io/openHASP-docs/0.6/assets/images/screenshots/demo_switches_covers.png) &nbsp; 
+![Screenshot](https://haswitchplate.github.io/openHASP-docs/0.6/assets/images/screenshots/demo_jaffa1.png) &nbsp; 
+![Screenshot](https://haswitchplate.github.io/openHASP-docs/0.6/assets/images/screenshots/demo_mediaplayer.png)
 
 ## Features
 
