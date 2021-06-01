@@ -639,10 +639,8 @@ void hasp_new_object(const JsonObject& config, uint8_t& saved_page_id)
         }
 #endif
 
-#if HASP_LOG_LEVEL >= LOG_LEVEL_VERBOSE
         /** verbose reporting **/
         LOG_VERBOSE(TAG_HASP, F(D_BULLET HASP_OBJECT_NOTATION " = %s"), pageid, id, obj_get_type_name(obj));
-#endif
 
 #ifdef HASP_DEBUG
         /* test double-check */
