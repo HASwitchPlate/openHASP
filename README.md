@@ -38,28 +38,6 @@ openHASP also adds ESP32 and STM32F4 support to take advantage of the additional
 | PNG images              | :x: no | :grey_question: tbd | :grey_question: tbd 
 | Network                 | :white_check_mark: Wifi | :white_check_mark: Wifi | :white_check_mark: Ethernet
 
-## Cloning
-
-Make sure to add the `--recursive` parameter when cloning the project. Otherwise git will not download the required submodules in the `/lib` subdirectory.
-
-```bash
-git clone --recursive https://github.com/HASwitchPlate/openHASP
-```
-
-If you already cloned openHASP without the submodules, you can fetch the submodules seperately using:
-
-```bash
-git submodule update --init --recursive
-```
-
-To build a defierent branch use:
-
-```bash
-git clone --recursive https://github.com/HASwitchPlate/openHASP
-cd openHASP
-git checkout 0.4.0
-git submodule update --init --recursive
-```
 
 ## Getting Started
 
