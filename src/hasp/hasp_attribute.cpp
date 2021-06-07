@@ -8,6 +8,21 @@
 #include "hasplib.h"
 #include "hasp_attribute_helper.h"
 
+/*** Image Improvement ***/
+#if defined(ARDUINO_ARCH_ESP8266)
+#include <ESP8266HTTPClient.h>
+#endif
+
+#if defined(ARDUINO_ARCH_ESP32)
+#include <HTTPClient.h>
+#endif
+
+#if HASP_USE_PNGDECODE > 0
+#include "lv_png.h"
+#include "lodepng.h"
+#endif
+/*** Image Improvement ***/
+
 LV_FONT_DECLARE(unscii_8_icon);
 extern const char** btnmatrix_default_map; // memory pointer to lvgl default btnmatrix map
 
@@ -948,8 +963,87 @@ static hasp_attribute_type_t special_attribute_src(lv_obj_t* obj, const char* pa
     if(!obj_check_type(obj, LV_HASP_IMAGE)) return HASP_ATTR_TYPE_NOT_FOUND;
 
     if(update) {
-        lv_img_cache_invalidate_src(lv_img_get_src(obj));
-        lv_img_set_src(obj, payload);
+        const void* src       = lv_img_get_src(obj);
+        lv_img_src_t src_type = lv_img_src_get_type(src);
+        lv_img_cache_invalidate_src(src);
+
+        if(src_type == LV_IMG_SRC_VARIABLE) {
+            lv_img_dsc_t* img_dsc = (lv_img_dsc_t*)src;
+            free((uint8_t*)img_dsc->data);
+            lv_mem_free(img_dsc);
+        }
+
+        if(payload != strstr_P(payload, PSTR("http://"))) {
+            lv_img_set_src(obj, payload);
+        } else {
+            HTTPClient http;
+            http.begin(payload);
+            int httpCode = http.GET();
+            if(httpCode == HTTP_CODE_OK) {
+                int total             = http.getSize();
+                int len               = total;
+                int read              = 0;
+                lv_img_dsc_t* img_dsc = (lv_img_dsc_t*)lv_mem_alloc(sizeof(lv_img_dsc_t));
+                uint8_t* img_buf      = (uint8_t*)(len > 0 ? malloc(len) : NULL);
+
+                LOG_VERBOSE(TAG_ATTR, "HTTP OK: buffer created of %d bytes", len);
+
+                if(img_dsc && img_buf && len > sizeof(lv_img_header_t)) { // total size must be larger then header size
+
+                    Stream* stream = http.getStreamPtr();
+                    while(http.connected() && (len > 0 || len == -1)) {
+                        size_t size = stream->available();
+                        int c       = 0;
+
+                        if(size) {
+                            if(read == 0 && size >= sizeof(lv_img_header_t)) { // read 4-byte header first
+                                c = stream->readBytes((uint8_t*)img_dsc, sizeof(lv_img_header_t));
+                                LOG_VERBOSE(TAG_ATTR, D_BULLET "HEADER READ: %d bytes", c);
+                            } else if(read != 0) { // header has been read
+                                c = stream->readBytes(img_buf + read - sizeof(lv_img_header_t), size);
+                                LOG_VERBOSE(TAG_ATTR, D_BULLET "HTTP READ: %d bytes", c);
+                            }
+
+                            if(len > 0) {
+                                len -= c;
+                                read += c;
+                            }
+                        }
+                        delay(1);
+                    }
+                    LOG_VERBOSE(TAG_ATTR, D_BULLET "HTTP DONE: %d bytes", read);
+
+                    img_dsc->data_size = total - 4;
+                    img_dsc->data      = img_buf;
+                    lv_img_set_src(obj, img_dsc);
+
+                    // /*Decode the PNG image*/
+                    // unsigned char* png_decoded; /*Will be pointer to the decoded image*/
+                    // uint32_t png_width;         /*Will be the width of the decoded image*/
+                    // uint32_t png_height;        /*Will be the width of the decoded image*/
+
+                    // /*Decode the loaded image in ARGB8888 */
+                    // uint32_t error = lodepng_decode32(&png_decoded, &png_width, &png_height, img_buf, (size_t)total);
+
+                    // if(error) {
+                    //     LOG_ERROR(TAG_ATTR, "error %u: %s\n", error, lodepng_error_text(error));
+                    // } else {
+                    //     img_dsc->header.always_zero = 0;                          /*It must be zero*/
+                    //     img_dsc->header.cf          = LV_IMG_CF_TRUE_COLOR_ALPHA; /*Set the color format*/
+                    //     img_dsc->header.w           = png_width;
+                    //     img_dsc->header.h           = png_height;
+                    //     img_dsc->data_size          = png_width * png_height * 3;
+                    //     img_dsc->data               = png_decoded;
+                    //     lv_img_set_src(obj, img_dsc);
+                    // }
+
+                } else {
+                    LOG_WARNING(TAG_ATTR, "image buffer creation failed %d", len);
+                }
+            } else {
+                LOG_WARNING(TAG_ATTR, "HTTP result %d", httpCode);
+            }
+        }
     } else {
         switch(lv_img_src_get_type(obj)) {
             case LV_IMG_SRC_FILE:

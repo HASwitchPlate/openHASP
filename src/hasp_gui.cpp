@@ -31,6 +31,18 @@
 #include "lv_png.h"
 #endif
 
+#if HASP_USE_BMPDECODE > 0
+#include "lv_bmp.h"
+#endif
+
+#if HASP_USE_GIFDECODE > 0
+#include "lv_gif.h"
+#endif
+
+#if HASP_USE_JPGDECODE > 0
+#include "lv_sjpg.h"
+#endif
+
 #define BACKLIGHT_CHANNEL 0 // pwm channel 0-15
 
 #if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
@@ -265,6 +277,21 @@ void guiSetup()
     /* Initialize PNG decoder */
 #if HASP_USE_PNGDECODE > 0
     lv_png_init();
+#endif
+
+    /* Initialize BMP decoder */
+#if HASP_USE_BMPDECODE > 0
+    lv_bmp_init();
+#endif
+
+    /* Initialize GIF decoder */
+#if HASP_USE_GIFDECODE > 0
+ //   lv_gif_init();
+#endif
+
+    /* Initialize JPG decoder */
+#if HASP_USE_JPGDECODE > 0
+    lv_split_jpeg_init();
 #endif
 
 #ifdef USE_DMA_TO_TFT
