@@ -57,3 +57,5 @@ For support using openHASP, please join the [#openHASP channel][6] on Discord.
 [4]: https://github.com/fvanroie/HMI-Font-Pack/releases
 [5]: https://fontawesome.com/cheatsheet/
 [6]: https://discord.gg/VCWyuhF
+[7]: https://haswitchplate.github.io/openHASP-docs/0.6/design/objects/#cheatsheet
+[8]: https://haswitchplate.github.io/openHASP-docs/0.6/design/objects/#image
