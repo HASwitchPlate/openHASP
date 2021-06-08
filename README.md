@@ -24,19 +24,19 @@ openHASP also adds ESP32 and STM32F4 support to take advantage of the additional
 
 ## Features
 
-| Feature                 | ESP8266 | ESP32   | STM32F4
+| Feature (v0.6.0)                 | ESP8266 | ESP32   | STM32F4
 |-------------------------|---------|---------|----------
 | SPI display             | :white_check_mark: yes | :white_check_mark: yes | :white_check_mark: yes
 | Parallel display        | :x: no | :white_check_mark: yes | :white_check_mark: yes
 | PWM Screen dimming      | :white_check_mark: yes | :white_check_mark: yes | :white_check_mark: yes
 | Maximum Page Count      | 4       | 12 | 12
-| Object Types / Widgets  | 14      | 15 | 15
+| [Object Types / Widgets][7]| 20      | 20 | 20
 | Dynamic Objects         | :white_check_mark: yes | :white_check_mark: yes | :white_check_mark: yes
-| [Lvgl Theme Support][3] | basic only | all themes | tbd
+| Theme Support           | yes     | yes     | yes
 | [Custom .zi V5 font][4] | :white_check_mark: yes (latin1) | :white_check_mark: yes (latin1) | no
-| [FontAwesome Icons][5]  | :white_check_mark: 1300+ | :white_check_mark: 1300+ | no
-| PNG images              | :x: no | :grey_question: tbd | :grey_question: tbd 
-| Network                 | :white_check_mark: Wifi | :white_check_mark: Wifi | :white_check_mark: Ethernet
+| MDI Icons               | :white_check_mark: yes | :white_check_mark: yes | no
+| [PNG images][8]         | :x: no | :white_check_mark: yes | :white_check_mark: yes
+| Network                 | :white_check_mark: Wi-Fi | :white_check_mark: Wi-Fi | :white_check_mark: Ethernet
 
 
 ## Getting Started
@@ -57,3 +57,5 @@ For support using openHASP, please join the [#openHASP channel][6] on Discord.
 [4]: https://github.com/fvanroie/HMI-Font-Pack/releases
 [5]: https://fontawesome.com/cheatsheet/
 [6]: https://discord.gg/VCWyuhF
+[7]: https://haswitchplate.github.io/openHASP-docs/0.6/design/objects/#cheatsheet
+[8]: https://haswitchplate.github.io/openHASP-docs/0.6/design/objects/#image
