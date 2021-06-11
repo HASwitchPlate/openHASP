@@ -10,9 +10,11 @@
 #include <ArduinoOTA.h>
 
 /* ===== Default Event Processors ===== */
+#if HASP_USE_OTA > 0
 void otaSetup(void);
 IRAM_ATTR void otaLoop(void);
 void otaEverySecond(void);
+#endif
 
 /* ===== Special Event Processors ===== */
 void otaHttpUpdate(const char* espOtaUrl);

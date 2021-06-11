@@ -6,6 +6,12 @@
 
 #include "ArduinoJson.h"
 
+#if defined(ARDUINO_ARCH_ESP32)
+#include <WiFi.h>
+#elif defined(ARDUINO_ARCH_ESP8266)
+#include <ESP8266WiFi.h>
+#endif
+
 void wifiSetup();
 bool wifiShowAP();
 bool wifiShowAP(char* ssid, char* pass);
