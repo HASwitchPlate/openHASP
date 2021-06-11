@@ -43,6 +43,7 @@
 #define D_NETWORK_ONLINE "online"
 #define D_NETWORK_OFFLINE "offline"
 #define D_NETWORK_CONNECTION_FAILED "Verbinding mislukt"
+#define D_NETWORK_CONNECTION_UNAUTHORIZED "Autorisatie mislukt"
 
 #define D_MQTT_DEFAULT_NAME "plaat_%s"
 #define D_MQTT_CONNECTING "Verbinden..."
@@ -64,7 +65,6 @@
 #define D_TELNET_CLIENT_LOGIN_FROM "Client aangemeld van %s"
 #define D_TELNET_CLIENT_CONNECT_FROM "Client verbonden van %s"
 #define D_TELNET_CLIENT_NOT_CONNECTED "Client NIET verbonden"
-#define D_TELNET_AUTHENTICATION_FAILED "Autorisatie mislukt!"
 #define D_TELNET_INCORRECT_LOGIN_ATTEMPT "Aanmelding van %s mislukt"
 #define D_TELNET_STARTED "Telnet console gestart"
 #define D_TELNET_FAILED "Telnet console starten is mislukt"

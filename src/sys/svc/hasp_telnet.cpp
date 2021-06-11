@@ -131,7 +131,7 @@ static inline void telnetProcessLine()
             } else {
                 telnetLoginState = TELNET_UNAUTHENTICATED;
                 telnetLoginAttempt++; // Subsequent attempt
-                telnetClient.println(F(D_TELNET_AUTHENTICATION_FAILED"\r\n"));
+                telnetClient.println(F(D_NETWORK_CONNECTION_UNAUTHORIZED"\r\n"));
                 LOG_WARNING(TAG_TELN, F(D_TELNET_INCORRECT_LOGIN_ATTEMPT), telnetClient.remoteIP().toString().c_str());
                 if(telnetLoginAttempt >= 3) {
                     telnetClientDisconnect();
@@ -217,7 +217,7 @@ static void telnetProcessLine(const char* input)
             } else {
                 telnetLoginState = TELNET_UNAUTHENTICATED;
                 telnetLoginAttempt++; // Subsequent attempt
-                telnetClient.println(F(D_TELNET_AUTHENTICATION_FAILED "\r\n"));
+                telnetClient.println(F(D_NETWORK_CONNECTION_UNAUTHORIZED "\r\n"));
                 LOG_WARNING(TAG_TELN, F(D_TELNET_INCORRECT_LOGIN_ATTEMPT), telnetClient.remoteIP().toString().c_str());
                 if(telnetLoginAttempt >= 3) {
                     telnetClientDisconnect();
