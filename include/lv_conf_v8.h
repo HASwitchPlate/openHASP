@@ -692,7 +692,7 @@ typedef struct {
  * 1: extra precision in the inner ring
  * 2. extra precision on the outer ring too
  */
-#  define LV_LINEMETER_PRECISE  1
+#  define LV_LINEMETER_PRECISE  2
 #endif
 /*Mask (dependencies: -)*/
 #define LV_USE_OBJMASK  1

@@ -738,6 +738,19 @@ typedef struct {
 #  define LV_DROPDOWN_DEF_ANIM_TIME     200
 #endif
 
+/*Linemeter (dependencies: -*/
+#define LV_USE_LINEMETER     1
+#if LV_USE_LINEMETER
+
+/* Set how precisely should the lines of the line meter be calculated.
+ * Higher precision means slower rendering.
+ * 0: normal
+ * 1: extra precision in the inner ring
+ * 2. extra precision on the outer ring too
+ */
+#  define LV_LINEMETER_PRECISE  2
+#endif
+
 /*Gauge (dependencies:lv_bar, lv_linemeter)*/
 #define LV_USE_GAUGE    1
 
