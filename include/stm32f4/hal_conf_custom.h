@@ -1,3 +1,6 @@
+/* MIT License - Copyright (c) 2019-2021 Francis Van Roie
+   For full license information read the LICENSE file in the project folder */
+
 /* Include the normal default core configuration */
 #include "stm32f4xx_hal_conf_default.h"
 
