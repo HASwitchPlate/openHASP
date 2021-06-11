@@ -44,6 +44,7 @@
 #define D_NETWORK_ONLINE "Online"
 #define D_NETWORK_OFFLINE "Offline"
 #define D_NETWORK_CONNECTION_FAILED "Falhou a ligação"
+#define D_NETWORK_CONNECTION_UNAUTHORIZED "Falhou a autorização"
 
 #define D_MQTT_DEFAULT_NAME "placa_%s"
 #define D_MQTT_CONNECTING "A ligar..."
@@ -64,7 +65,6 @@
 #define D_TELNET_CLOSING_CONNECTION "A fechar a ligação de %s"
 #define D_TELNET_CLIENT_LOGIN_FROM "Foi feito login ao cliente %s"
 #define D_TELNET_CLIENT_CONNECT_FROM "Foi conectado ao cliente %s"
-#define D_TELNET_AUTHENTICATION_FAILED "Falhou a autorização!"
 #define D_TELNET_INCORRECT_LOGIN_ATTEMPT "Tentativa de ligação incorreta desde %s"
 #define D_TELNET_STARTED "Consola inicializada"
 #define D_TELNET_FAILED "Falhou inicialização da consola"

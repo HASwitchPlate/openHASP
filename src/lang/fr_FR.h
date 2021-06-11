@@ -43,6 +43,7 @@
 #define D_NETWORK_ONLINE "en ligne"
 #define D_NETWORK_OFFLINE "déconnecté"
 #define D_NETWORK_CONNECTION_FAILED "Échec de la connexion "
+#define D_NETWORK_CONNECTION_UNAUTHORIZED "Échec de l'autorisation"
 
 #define D_MQTT_DEFAULT_NAME "plaque_%s"
 #define D_MQTT_CONNECTING "Connexion..."
@@ -64,7 +65,6 @@
 #define D_TELNET_CLIENT_LOGIN_FROM "Connexion client depuis %s"
 #define D_TELNET_CLIENT_CONNECT_FROM "Client connecté depuis %s"
 #define D_TELNET_CLIENT_NOT_CONNECTED "Client NON connecté"
-#define D_TELNET_AUTHENTICATION_FAILED "Échec de l'autorisation!"
 #define D_TELNET_INCORRECT_LOGIN_ATTEMPT "Tentative incorrecte de %s"
 #define D_TELNET_STARTED "Console Telnet démarré"
 #define D_TELNET_FAILED "Échec du démarrage de la console telnet"

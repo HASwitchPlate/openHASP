@@ -43,6 +43,7 @@
 #define D_NETWORK_ONLINE "online"
 #define D_NETWORK_OFFLINE "offline"
 #define D_NETWORK_CONNECTION_FAILED "Conexiune eșuată"
+#define D_NETWORK_CONNECTION_UNAUTHORIZED "Autorizatia a esuat"
 
 #define D_MQTT_DEFAULT_NAME "plate_%s"
 #define D_MQTT_CONNECTING "Conectare..."
@@ -64,7 +65,6 @@
 #define D_TELNET_CLIENT_LOGIN_FROM "Conectare client de la %s"
 #define D_TELNET_CLIENT_CONNECT_FROM "Client conectat de la %s"
 #define D_TELNET_CLIENT_NOT_CONNECTED "Clientul NU este conectat"
-#define D_TELNET_AUTHENTICATION_FAILED "Autorizatia a esuat!"
 #define D_TELNET_INCORRECT_LOGIN_ATTEMPT "Încercare incorectă de autentificare de la %s"
 #define D_TELNET_STARTED "Consola Telnet pornită"
 #define D_TELNET_FAILED "Nu s-a putut porni consola Telnet"
