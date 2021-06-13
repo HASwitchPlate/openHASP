@@ -20,6 +20,7 @@
 #if HASP_USE_PNGDECODE > 0
 #include "lv_png.h"
 #include "lodepng.h"
+#include "hasp_png.h"
 #endif
 /*** Image Improvement ***/
 
@@ -969,7 +970,7 @@ static hasp_attribute_type_t special_attribute_src(lv_obj_t* obj, const char* pa
 
         if(src_type == LV_IMG_SRC_VARIABLE) {
             lv_img_dsc_t* img_dsc = (lv_img_dsc_t*)src;
-            free((uint8_t*)img_dsc->data);
+            lodepng_free((uint8_t*)img_dsc->data);
             lv_mem_free(img_dsc);
         }
 
@@ -984,7 +985,7 @@ static hasp_attribute_type_t special_attribute_src(lv_obj_t* obj, const char* pa
                 int len               = total;
                 int read              = 0;
                 lv_img_dsc_t* img_dsc = (lv_img_dsc_t*)lv_mem_alloc(sizeof(lv_img_dsc_t));
-                uint8_t* img_buf      = (uint8_t*)(len > 0 ? malloc(len) : NULL);
+                uint8_t* img_buf      = (uint8_t*)(len > 0 ? lodepng_malloc(len) : NULL);
 
                 LOG_VERBOSE(TAG_ATTR, "HTTP OK: buffer created of %d bytes", len);
 
@@ -998,7 +999,8 @@ static hasp_attribute_type_t special_attribute_src(lv_obj_t* obj, const char* pa
                         if(size) {
                             if(read == 0 && size >= sizeof(lv_img_header_t)) { // read 4-byte header first
                                 c = stream->readBytes((uint8_t*)img_dsc, sizeof(lv_img_header_t));
-                                LOG_VERBOSE(TAG_ATTR, D_BULLET "HEADER READ: %d bytes", c);
+                                LOG_VERBOSE(TAG_ATTR, D_BULLET "HEADER READ: %d bytes  w=%d  h=%d", c,
+                                            img_dsc->header.w, img_dsc->header.h);
                             } else if(read != 0) { // header has been read
                                 c = stream->readBytes(img_buf + read - sizeof(lv_img_header_t), size);
                                 LOG_VERBOSE(TAG_ATTR, D_BULLET "HTTP READ: %d bytes", c);
@@ -1011,7 +1013,8 @@ static hasp_attribute_type_t special_attribute_src(lv_obj_t* obj, const char* pa
                         }
                         delay(1);
                     }
-                    LOG_VERBOSE(TAG_ATTR, D_BULLET "HTTP DONE: %d bytes", read);
+                    LOG_VERBOSE(TAG_ATTR, D_BULLET "HTTP TOTAL READ: %d bytes, %d expected", read,
+                                img_dsc->header.w * img_dsc->header.h * 2 + 4);
 
                     img_dsc->data_size = total - 4;
                     img_dsc->data      = img_buf;
