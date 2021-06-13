@@ -990,6 +990,7 @@ static hasp_attribute_type_t special_attribute_src(lv_obj_t* obj, const char* pa
                 LOG_VERBOSE(TAG_ATTR, "HTTP OK: buffer created of %d bytes", len);
 
                 if(img_dsc && img_buf && len > sizeof(lv_img_header_t)) { // total size must be larger then header size
+                    memset(img_buf, 0, len);
 
                     Stream* stream = http.getStreamPtr();
                     while(http.connected() && (len > 0 || len == -1)) {
