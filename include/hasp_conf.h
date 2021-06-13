@@ -106,6 +106,18 @@
 #define HASP_USE_PNGDECODE 0
 #endif
 
+#ifndef HASP_USE_BMPDECODE
+#define HASP_USE_BMPDECODE 0
+#endif
+
+#ifndef HASP_USE_GIFDECODE
+#define HASP_USE_GIFDECODE 0
+#endif
+
+#ifndef HASP_USE_JPGDECODE
+#define HASP_USE_JPGDECODE 0
+#endif
+
 #ifndef HASP_NUM_GPIO_CONFIG
 #define HASP_NUM_GPIO_CONFIG 8
 #endif
