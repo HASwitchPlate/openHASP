@@ -102,10 +102,15 @@ void TftEspi::show_info()
 
 void TftEspi::splashscreen()
 {
-    tft.fillScreen(TFT_DARKCYAN);
+    uint8_t fg[]       = logoFgColor;
+    uint8_t bg[]       = logoBgColor;
+    lv_color_t fgColor = lv_color_make(fg[0], fg[1], fg[2]);
+    lv_color_t bgColor = lv_color_make(bg[0], bg[1], bg[2]);
+
+    tft.fillScreen(bgColor.full);
     int x = (tft.width() - logoWidth) / 2;
     int y = (tft.height() - logoHeight) / 2;
-    tft.drawXBitmap(x, y, bootscreen, logoWidth, logoHeight, TFT_WHITE);
+    tft.drawXBitmap(x, y, bootImage, logoWidth, logoHeight, fgColor.full);
 }
 
 void TftEspi::set_rotation(uint8_t rotation)

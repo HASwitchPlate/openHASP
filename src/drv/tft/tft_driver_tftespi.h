@@ -15,7 +15,11 @@
 #include "dev/device.h"
 #include "hasp_debug.h"
 
+#ifdef HASP_CUSTOMIZE_BOOTLOGO
+#include "bootlogo.h" // Sketch tab header for xbm images
+#else
 #include "bootscreen.h" // Sketch tab header for xbm images
+#endif
 
 namespace dev {
 

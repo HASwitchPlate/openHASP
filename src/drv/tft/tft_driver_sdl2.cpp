@@ -3,6 +3,7 @@
 
 #if defined(WINDOWS) || defined(POSIX)
 
+#include "hasplib.h"
 #include "lvgl.h"
 #include <SDL2/SDL.h>
 
@@ -14,6 +15,12 @@
 
 #include "dev/device.h"
 #include "hasp_debug.h"
+
+#ifdef HASP_CUSTOMIZE_BOOTLOGO
+#include "custom/bootlogo.h" // Sketch tab header for xbm images
+#else
+#include "bootscreen.h" // Sketch tab header for xbm images
+#endif
 
 namespace dev {
 
@@ -59,6 +66,8 @@ void TftSdl::init(int w, int h)
 }
 void TftSdl::show_info()
 {
+    splashscreen();
+    
     SDL_version linked;
     SDL_GetVersion(&linked);
     LOG_VERBOSE(TAG_TFT, F("Driver     : SDL2"));
@@ -67,10 +76,11 @@ void TftSdl::show_info()
 
 void TftSdl::splashscreen()
 {
-    // tft.fillScreen(TFT_DARKCYAN);
-    // int x = (tft.width() - logoWidth) / 2;
-    // int y = (tft.height() - logoHeight) / 2;
-    // tft.drawXBitmap(x, y, bootscreen, logoWidth, logoHeight, TFT_WHITE);
+    uint8_t fg[]       = logoFgColor;
+    uint8_t bg[]       = logoBgColor;
+    lv_color_t fgColor = lv_color_make(fg[0], fg[1], fg[2]);
+    lv_color_t bgColor = lv_color_make(bg[0], bg[1], bg[2]);
+    monitor_splashscreen(logoImage, logoWidth, logoHeight, lv_color_to32(fgColor), lv_color_to32(bgColor));
 }
 void TftSdl::set_rotation(uint8_t rotation)
 {}
