@@ -9,6 +9,8 @@
 #include "ArduinoJson.h"
 #include <ArduinoOTA.h>
 
+#include "hasplib.h"
+
 /* ===== Default Event Processors ===== */
 #if HASP_USE_OTA > 0
 void otaSetup(void);
