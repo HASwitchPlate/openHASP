@@ -1,6 +1,3 @@
-/* MIT License - Copyright (c) 2019-2021 Francis Van Roie
-   For full license information read the LICENSE file in the project folder */
-
 #include "hasp_attribute.h" /*To see all the hashes*/
 
 static void set_style_attribute(lv_style_t * style, lv_state_t state, int16_t val)

@@ -1,5 +1,7 @@
-/* MIT License - Copyright (c) 2019-2021 Francis Van Roie
-   For full license information read the LICENSE file in the project folder */
+/**
+ * @file lv_zifont.h
+ *
+ */
 
 #ifndef LV_ZIFONT_H
 #define LV_ZIFONT_H

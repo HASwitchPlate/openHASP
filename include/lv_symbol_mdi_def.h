@@ -1,6 +1,3 @@
-/* MIT License - Copyright (c) 2019-2021 Francis Van Roie
-   For full license information read the LICENSE file in the project folder */
-
 #ifndef LV_SYMBOL_MDI_DEF_H
 #define LV_SYMBOL_MDI_DEF_H
 /* clang-format off */
