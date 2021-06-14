@@ -6,10 +6,10 @@
 #ifndef HASP_OTA_H
 #define HASP_OTA_H
 
+#include "hasp_conf.h"
+
 #include "ArduinoJson.h"
 #include <ArduinoOTA.h>
-
-#include "hasplib.h"
 
 /* ===== Default Event Processors ===== */
 #if HASP_USE_OTA > 0

@@ -17,7 +17,7 @@
 #include <ESP8266WiFi.h>
 #include <ArduinoOTA.h>
 #ifndef HASP_OTA_PORT
-#define HASP_OTA_PORT 3232
+#define HASP_OTA_PORT 8266
 #endif
 #endif
 
@@ -27,7 +27,7 @@
 #include <WiFi.h>
 #include <ArduinoOTA.h>
 #ifndef HASP_OTA_PORT
-#define HASP_OTA_PORT 8266
+#define HASP_OTA_PORT 3232
 #endif
 
 /**
