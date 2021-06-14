@@ -33,4 +33,3 @@ src/custom/*
 *.bak
 
 test/config.yaml
-tools/mklittlefs*
