@@ -110,7 +110,7 @@ void TftEspi::splashscreen()
     tft.fillScreen(bgColor.full);
     int x = (tft.width() - logoWidth) / 2;
     int y = (tft.height() - logoHeight) / 2;
-    tft.drawXBitmap(x, y, bootImage, logoWidth, logoHeight, fgColor.full);
+    tft.drawXBitmap(x, y, logoImage, logoWidth, logoHeight, fgColor.full);
 }
 
 void TftEspi::set_rotation(uint8_t rotation)
