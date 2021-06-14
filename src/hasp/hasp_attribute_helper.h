@@ -413,13 +413,6 @@ static void gauge_format_10k(lv_obj_t* gauge, char* buf, int bufsize, int32_t va
     snprintf(buf, bufsize, PSTR("%d"), value / 10000);
 }
 
-// OK - this function is missing in lvgl
-static uint16_t my_btnmatrix_get_count(const lv_obj_t* btnm)
-{
-    lv_btnmatrix_ext_t* ext = (lv_btnmatrix_ext_t*)lv_obj_get_ext_attr(btnm);
-    return ext->btn_cnt;
-}
-
 #if 0
 static bool attribute_lookup_lv_property(uint16_t hash, uint8_t * prop)
 {
