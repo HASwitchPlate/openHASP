@@ -16,9 +16,6 @@
 #include <ESP8266httpUpdate.h>
 #include <ESP8266WiFi.h>
 #include <ArduinoOTA.h>
-#ifndef HASP_OTA_PORT
-#define HASP_OTA_PORT 3232
-#endif
 #endif
 
 #if defined(ARDUINO_ARCH_ESP32)
@@ -26,9 +23,6 @@
 #include <HTTPUpdate.h>
 #include <WiFi.h>
 #include <ArduinoOTA.h>
-#ifndef HASP_OTA_PORT
-#define HASP_OTA_PORT 8266
-#endif
 
 /**
  * This is lets-encrypt-x3-cross-signed.pem
@@ -124,7 +118,6 @@ void otaOnProgress(unsigned int progress, unsigned int total)
     }
 }
 
-#if HASP_USE_OTA > 0
 void otaSetup(void)
 {
     if(strlen(otaUrl.c_str())) {
@@ -216,7 +209,6 @@ void otaEverySecond(void)
 {
     if(otaPrecentageComplete >= 0) otaProgress();
 }
-#endif
 
 void otaHttpUpdate(const char* espOtaUrl)
 { // Update ESP firmware from HTTP

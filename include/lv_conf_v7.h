@@ -349,35 +349,35 @@ typedef void* lv_indev_drv_user_data_t;            /*Type of user data in the in
 
 #if TFT_WIDTH>=320 || TFT_WIDTH>=480
 
-// #ifdef WT32SC01
+#ifdef WT32SC01
 
-// #ifndef HASP_FONT_1
-// #define HASP_FONT_1 robotocondensed_regular_16_ascii  /* 5% Width */
-// #endif
-// #ifndef HASP_FONT_2
-// #define HASP_FONT_2 robotocondensed_regular_24_ascii  /* 5% Width */
-// #endif
-// #ifndef HASP_FONT_3
-// #define HASP_FONT_3 robotocondensed_regular_32_ascii  /* 10% Width */
-// #endif
-// #ifndef HASP_FONT_4
-// #define HASP_FONT_4 robotocondensed_regular_48_ascii  /* 10% Height */
-// #endif
+#ifndef HASP_FONT_1
+#define HASP_FONT_1 robotocondensed_regular_16_ascii  /* 5% Width */
+#endif
+#ifndef HASP_FONT_2
+#define HASP_FONT_2 robotocondensed_regular_24_ascii  /* 5% Width */
+#endif
+#ifndef HASP_FONT_3
+#define HASP_FONT_3 robotocondensed_regular_32_ascii  /* 10% Width */
+#endif
+#ifndef HASP_FONT_4
+#define HASP_FONT_4 robotocondensed_regular_48_ascii  /* 10% Height */
+#endif
 
-// #ifndef ROBOTOCONDENSED_REGULAR_16_ASCII
-// #define ROBOTOCONDENSED_REGULAR_16_ASCII 1
-// #endif
-// #ifndef ROBOTOCONDENSED_REGULAR_24_ASCII
-// #define ROBOTOCONDENSED_REGULAR_24_ASCII 1
-// #endif
-// #ifndef ROBOTOCONDENSED_REGULAR_32_ASCII
-// #define ROBOTOCONDENSED_REGULAR_32_ASCII 1
-// #endif
-// #ifndef ROBOTOCONDENSED_REGULAR_48_ASCII
-// #define ROBOTOCONDENSED_REGULAR_48_ASCII 1
-// #endif
+#ifndef ROBOTOCONDENSED_REGULAR_16_ASCII
+#define ROBOTOCONDENSED_REGULAR_16_ASCII 1
+#endif
+#ifndef ROBOTOCONDENSED_REGULAR_24_ASCII
+#define ROBOTOCONDENSED_REGULAR_24_ASCII 1
+#endif
+#ifndef ROBOTOCONDENSED_REGULAR_32_ASCII
+#define ROBOTOCONDENSED_REGULAR_32_ASCII 1
+#endif
+#ifndef ROBOTOCONDENSED_REGULAR_48_ASCII
+#define ROBOTOCONDENSED_REGULAR_48_ASCII 1
+#endif
 
-// #else // not WT32SC01
+#else // not WT32SC01
 
 #ifndef HASP_FONT_1
 #define HASP_FONT_1 robotocondensed_regular_16_latin1  /* 5% Width */
@@ -405,7 +405,7 @@ typedef void* lv_indev_drv_user_data_t;            /*Type of user data in the in
 #define ROBOTOCONDENSED_REGULAR_48_LATIN1 1
 #endif
 
-//#endif // WT32SC01
+#endif // WT32SC01
 
 #ifndef HASP_FONT_SIZE_1
 #define HASP_FONT_SIZE_1 16
