@@ -43,7 +43,6 @@
 #define D_NETWORK_ONLINE "en linea"
 #define D_NETWORK_OFFLINE "fuera de línea"
 #define D_NETWORK_CONNECTION_FAILED "Falló la conexión"
-#define D_NETWORK_CONNECTION_UNAUTHORIZED "Falló la autorización"
 
 #define D_MQTT_DEFAULT_NAME "placa_%s"
 #define D_MQTT_CONNECTING "Conectando..."
@@ -64,6 +63,7 @@
 #define D_TELNET_CLOSING_CONNECTION "Cerrando sesión de %s"
 #define D_TELNET_CLIENT_LOGIN_FROM "Se ha firmado el cliente %s"
 #define D_TELNET_CLIENT_CONNECT_FROM "Se ha conectado el cliente %s"
+#define D_TELNET_AUTHENTICATION_FAILED "Falló la autorización!"
 #define D_TELNET_INCORRECT_LOGIN_ATTEMPT "Intento de conexión incorrecta desde %s"
 #define D_TELNET_STARTED "Console Telnet arrancada"
 #define D_TELNET_FAILED "Falló el arranque de la consola Telnet"
@@ -86,8 +86,8 @@
 
 #define D_ATTRIBUTE_UNKNOWN "Propiedad %s desconocida"
 // D_ATTRIBUTE_OBSOLETE D_ATTRIBUTE_INSTEAD can be used together or just D_ATTRIBUTE_OBSOLETE alone
-#define D_ATTRIBUTE_OBSOLETE "%s is obsolete"  // new
-#define D_ATTRIBUTE_INSTEAD ", use %s instead" // new
+#define D_ATTRIBUTE_OBSOLETE "%s is obsolete" // new
+#define D_ATTRIBUTE_INSTEAD ", use %s instead"  // new
 #define D_ATTRIBUTE_READ_ONLY "%s es solo lectura"
 #define D_ATTRIBUTE_PAGE_METHOD_INVALID "No se puede llamar %s en una página"
 #define D_ATTRIBUTE_ALIGN_INVALID "Invalid align property: %s" // new

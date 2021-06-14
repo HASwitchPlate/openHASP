@@ -1244,21 +1244,14 @@ static hasp_attribute_type_t specific_options_attribute(lv_obj_t* obj, const cha
             } else {
                 strcpy_P(*text, "Not implemented"); // TODO : Literal String
             }
-            return hasp_attribute_type_t::HASP_ATTR_TYPE_STR;
+            return hasp_attribute_type_t::HASP_ATTR_TYPE_METHOD_OK;
         case LV_HASP_MSGBOX:
             if(update) {
                 my_msgbox_set_map(obj, payload);
             } else {
                 strcpy_P(*text, "Not implemented"); // TODO : Literal String
             }
-            return hasp_attribute_type_t::HASP_ATTR_TYPE_STR;
-        case LV_HASP_LIST:
-            if(update) {
-                my_list_set_options(obj, payload);
-            } else {
-                strcpy_P(*text, "Not implemented"); // TODO : Literal String
-            }
-            return hasp_attribute_type_t::HASP_ATTR_TYPE_STR;
+            return hasp_attribute_type_t::HASP_ATTR_TYPE_METHOD_OK;
         default:
             break; // not found
     }
@@ -1429,11 +1422,6 @@ static bool my_obj_get_range(lv_obj_t* obj, int32_t& min, int32_t& max)
             max = my_chart_get_max_value(obj);
             break;
 
-        case LV_HASP_SPINBOX:
-            min = my_spinbox_get_min_value(obj);
-            max = my_spinbox_get_max_value(obj);
-            break;
-
         case LV_HASP_DROPDOWN:
         case LV_HASP_ROLLER:
             return false; // not supported yet
@@ -1446,102 +1434,70 @@ static bool my_obj_get_range(lv_obj_t* obj, int32_t& min, int32_t& max)
 
 static hasp_attribute_type_t attribute_common_val(lv_obj_t* obj, int32_t& val, bool update)
 {
-    switch(obj_get_type(obj)) {
-
-        case LV_HASP_BUTTON:
-            if(lv_btn_get_checkable(obj)) {
-                if(update) {
-                    if(val)
-                        lv_obj_add_state(obj, LV_STATE_CHECKED);
-                    else
-                        lv_obj_clear_state(obj, LV_STATE_CHECKED);
-                } else {
-                    val = lv_obj_get_state(obj, LV_BTN_PART_MAIN) & LV_STATE_CHECKED;
-                }
+    if(obj_check_type(obj, LV_HASP_BUTTON)) {
+        if(lv_btn_get_checkable(obj)) {
+            if(update) {
+                if(val)
+                    lv_obj_add_state(obj, LV_STATE_CHECKED);
+                else
+                    lv_obj_clear_state(obj, LV_STATE_CHECKED);
             } else {
-                return HASP_ATTR_TYPE_NOT_FOUND; // not checkable
+                val = lv_obj_get_state(obj, LV_BTN_PART_MAIN) & LV_STATE_CHECKED;
             }
-            break;
-
-        case LV_HASP_CHECKBOX:
-            if(update)
-                lv_checkbox_set_checked(obj, !!val);
-            else
-                val = lv_checkbox_is_checked(obj);
-            break;
-
-        case LV_HASP_SWITCH:
-            if(update)
-                !val ? lv_switch_off(obj, LV_ANIM_ON) : lv_switch_on(obj, LV_ANIM_ON);
-            else
-                val = lv_switch_get_state(obj);
-            break;
-
-        case LV_HASP_DROPDOWN:
-            lv_dropdown_set_selected(obj, (uint16_t)val);
-
-        case LV_HASP_LINEMETER:
-            if(update)
-                lv_linemeter_set_value(obj, val);
-            else
-                val = lv_linemeter_get_value(obj);
-            break;
-
-        case LV_HASP_SLIDER:
-            if(update)
-                lv_slider_set_value(obj, val, LV_ANIM_ON);
-            else
-                val = lv_slider_get_value(obj);
-            break;
-
-        case LV_HASP_LED:
-            if(update)
-                lv_led_set_bright(obj, (uint8_t)val);
-            else
-                val = lv_led_get_bright(obj);
-            break;
-
-        case LV_HASP_ARC:
-            if(update)
-                lv_arc_set_value(obj, val);
-            else
-                val = lv_arc_get_value(obj);
-            break;
-
-        case LV_HASP_GAUGE:
-            if(update)
-                lv_gauge_set_value(obj, 0, val);
-            else
-                val = lv_gauge_get_value(obj, 0);
-            break;
-
-        case LV_HASP_ROLLER:
-            lv_roller_set_selected(obj, (uint16_t)val, LV_ANIM_ON);
-            break;
-
-        case LV_HASP_BAR:
-            if(update)
-                lv_bar_set_value(obj, val, LV_ANIM_ON);
-            else
-                val = lv_bar_get_value(obj);
-            break;
-
-        case LV_HASP_SPINBOX:
-            if(update)
-                lv_spinbox_set_value(obj, val);
-            else
-                val = lv_spinbox_get_value(obj);
-            break;
-
-        case LV_HASP_TABVIEW:
-            if(update)
-                lv_tabview_set_tab_act(obj, val, LV_ANIM_ON);
-            else
-                val = lv_tabview_get_tab_act(obj);
-            break;
-
-        default:
-            return HASP_ATTR_TYPE_NOT_FOUND; // not found
+        } else {
+            return HASP_ATTR_TYPE_NOT_FOUND; // not checkable
+        }
+    } else if(obj_check_type(obj, LV_HASP_CHECKBOX)) {
+        if(update)
+            lv_checkbox_set_checked(obj, !!val);
+        else
+            val = lv_checkbox_is_checked(obj);
+    } else if(obj_check_type(obj, LV_HASP_SWITCH)) {
+        if(update)
+            !val ? lv_switch_off(obj, LV_ANIM_ON) : lv_switch_on(obj, LV_ANIM_ON);
+        else
+            val = lv_switch_get_state(obj);
+    } else if(obj_check_type(obj, LV_HASP_DROPDOWN)) {
+        lv_dropdown_set_selected(obj, (uint16_t)val);
+    } else if(obj_check_type(obj, LV_HASP_LINEMETER)) {
+        if(update)
+            lv_linemeter_set_value(obj, val);
+        else
+            val = lv_linemeter_get_value(obj);
+    } else if(obj_check_type(obj, LV_HASP_SLIDER)) {
+        if(update)
+            lv_slider_set_value(obj, val, LV_ANIM_ON);
+        else
+            val = lv_slider_get_value(obj);
+    } else if(obj_check_type(obj, LV_HASP_LED)) {
+        if(update)
+            lv_led_set_bright(obj, (uint8_t)val);
+        else
+            val = lv_led_get_bright(obj);
+    } else if(obj_check_type(obj, LV_HASP_ARC)) {
+        if(update)
+            lv_arc_set_value(obj, val);
+        else
+            val = lv_arc_get_value(obj);
+    } else if(obj_check_type(obj, LV_HASP_GAUGE)) {
+        if(update)
+            lv_gauge_set_value(obj, 0, val);
+        else
+            val = lv_gauge_get_value(obj, 0);
+    } else if(obj_check_type(obj, LV_HASP_ROLLER)) {
+        lv_roller_set_selected(obj, (uint16_t)val, LV_ANIM_ON);
+    } else if(obj_check_type(obj, LV_HASP_BAR)) {
+        if(update)
+            lv_bar_set_value(obj, val, LV_ANIM_ON);
+        else
+            val = lv_bar_get_value(obj);
+    } else if(obj_check_type(obj, LV_HASP_TABVIEW)) {
+        if(update)
+            lv_tabview_set_tab_act(obj, val, LV_ANIM_ON);
+        else
+            val = lv_tabview_get_tab_act(obj);
+    } else {
+        return HASP_ATTR_TYPE_NOT_FOUND; // not found
     }
 
     return HASP_ATTR_TYPE_INT; // found
@@ -1630,18 +1586,9 @@ static hasp_attribute_type_t attribute_common_range(lv_obj_t* obj, int32_t& val,
 
         case LV_HASP_CHART:
             if(update && (set_min ? val : min) == (set_max ? val : max))
-                return HASP_ATTR_TYPE_RANGE_ERROR; // prevent setting  min=max
-            if(update)
-                lv_chart_set_range(obj, set_min ? val : min, set_max ? val : max);
-            else
-                val = set_min ? min : max;
-            break;
-
-        case LV_HASP_SPINBOX:
-            if(update && (set_min ? val : min) == (set_max ? val : max))
                 return HASP_ATTR_TYPE_RANGE_ERROR; // prevent setting min=max
             if(update)
-                lv_spinbox_set_range(obj, set_min ? val : min, set_max ? val : max);
+                lv_chart_set_range(obj, set_min ? val : min, set_max ? val : max);
             else
                 val = set_min ? min : max;
             break;
@@ -2057,9 +2004,8 @@ void hasp_process_obj_attribute(lv_obj_t* obj, const char* attribute, const char
             break;
 
             // case ATTR_SYMBOL:
-            //     (update) ? lv_dropdown_set_symbol(obj, payload) :
-            //     attr_out_str(obj, attr, lv_dropdown_get_symbol(obj));
-            //     return true;
+            //     (update) ? lv_dropdown_set_symbol(obj, payload) : attr_out_str(obj, attr,
+            //     lv_dropdown_get_symbol(obj)); return true;
 
         case ATTR_DELETE:
         case ATTR_CLEAR:
