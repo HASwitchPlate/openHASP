@@ -18,7 +18,7 @@
 #ifdef HASP_CUSTOMIZE_BOOTLOGO
 #include "custom/bootlogo.h" // Sketch tab header for xbm images
 #else
-#include "bootscreen.h" // Sketch tab header for xbm images
+#include "custom/bootlogo_template.h" // Sketch tab header for xbm images
 #endif
 
 namespace dev {

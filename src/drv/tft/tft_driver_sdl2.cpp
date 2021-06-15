@@ -19,7 +19,7 @@
 #ifdef HASP_CUSTOMIZE_BOOTLOGO
 #include "custom/bootlogo.h" // Sketch tab header for xbm images
 #else
-#include "bootscreen.h" // Sketch tab header for xbm images
+#include "custom/bootlogo_template.h" // Sketch tab header for xbm images
 #endif
 
 namespace dev {
@@ -67,7 +67,7 @@ void TftSdl::init(int w, int h)
 void TftSdl::show_info()
 {
     splashscreen();
-    
+
     SDL_version linked;
     SDL_GetVersion(&linked);
     LOG_VERBOSE(TAG_TFT, F("Driver     : SDL2"));

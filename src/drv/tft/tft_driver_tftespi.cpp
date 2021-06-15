@@ -133,18 +133,15 @@ void IRAM_ATTR TftEspi::flush_pixels(lv_disp_drv_t* disp, const lv_area_t* area,
 {
     uint32_t w = (area->x2 - area->x1 + 1);
     uint32_t h = (area->y2 - area->y1 + 1);
-    // size_t len = lv_area_get_size(area);
     uint32_t len = w * h;
 
 #ifdef USE_DMA_TO_TFT
     tft.startWrite(); /* Start new TFT transaction */
-    //    tft.setWindow(area->x1, area->y1, area->x2, area->y2);
     tft.setAddrWindow(area->x1, area->y1, w, h); /* set the working window */
     tft.pushPixelsDMA((uint16_t*)color_p, len);  /* Write words at once */
     tft.endWrite();                              /* terminate TFT transaction */
 #else
     tft.startWrite(); /* Start new TFT transaction */
-    //    tft.setWindow(area->x1, area->y1, area->x2, area->y2);
     tft.setAddrWindow(area->x1, area->y1, w, h); /* set the working window */
     tft.pushPixels((uint16_t*)color_p, len);     /* Write words at once */
     tft.endWrite();                              /* terminate TFT transaction */

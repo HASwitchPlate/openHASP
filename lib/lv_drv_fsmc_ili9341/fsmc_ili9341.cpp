@@ -54,7 +54,7 @@ TFT_Class tft(io, controller, TFT_WIDTH, TFT_HEIGHT);
     #include <GxCTRL/GxCTRL_ILI9341/GxCTRL_ILI9341.h> // 240x320
     #include "GxReadRegisters.h"
 
-    #include "bootscreen.h" // Sketch tab header for xbm images
+    #include "custom/bootlogo_template.h" // Sketch tab header for xbm images
 
     /*********************
      *      DEFINES
