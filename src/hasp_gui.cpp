@@ -267,6 +267,12 @@ void guiSetup()
     lv_png_init();
 #endif
 
+#if defined(ARDUINO_ARCH_ESP32)
+    if(psramFound()) {
+        lv_img_cache_set_size(LV_IMG_CACHE_DEF_SIZE_PSRAM);
+    }
+#endif
+
 #ifdef USE_DMA_TO_TFT
     LOG_VERBOSE(TAG_GUI, F("DMA        : " D_SETTING_ENABLED));
 #else
