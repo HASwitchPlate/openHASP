@@ -6,6 +6,8 @@
 #ifndef HASP_OTA_H
 #define HASP_OTA_H
 
+#include "hasp_conf.h"
+
 #include "ArduinoJson.h"
 #include <ArduinoOTA.h>
 

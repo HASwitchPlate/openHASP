@@ -221,7 +221,12 @@ typedef void* lv_fs_drv_user_data_t;
  * With complex image decoders (e.g. PNG or JPG) caching can save the continuous open/decode of images.
  * However the opened images might consume additional RAM.
  * LV_IMG_CACHE_DEF_SIZE must be >= 1 */
+#ifndef LV_IMG_CACHE_DEF_SIZE
 #define LV_IMG_CACHE_DEF_SIZE       1
+#endif
+#ifndef LV_IMG_CACHE_DEF_SIZE_PSRAM
+#define LV_IMG_CACHE_DEF_SIZE_PSRAM 20    // special openHASP setting when PSRAM is used
+#endif
 
  /*Declare the type of the user data of image decoder (can be e.g. `void *`, `int`, `struct`)*/
 typedef void* lv_img_decoder_user_data_t;

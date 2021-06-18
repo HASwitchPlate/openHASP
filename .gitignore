@@ -18,6 +18,7 @@ build_output/firmware/*.bin
 build_output/firmware/*.exe
 src/custom/*
 !src/custom/README.md
+!src/custom/bootlogo_template.h
 
 ## Test result files
 *.xml

@@ -172,19 +172,19 @@ bool Parser::is_only_digits(const char* s)
 int Parser::format_bytes(size_t filesize, char* buf, size_t len)
 {
     if(filesize < D_FILE_SIZE_DIVIDER) return snprintf_P(buf, len, PSTR("%d " D_FILE_SIZE_BYTES), filesize);
-    filesize = filesize * 10;
+    filesize = filesize * 100;
 
-    filesize = filesize / D_FILE_SIZE_DIVIDER; // multiply by 10 for 1 decimal place
-    if(filesize < D_FILE_SIZE_DIVIDER * 10)
-        return snprintf_P(buf, len, PSTR("%d" D_DECIMAL_POINT "%d " D_FILE_SIZE_KILOBYTES), filesize / 10,
-                          filesize % 10);
+    filesize = filesize / D_FILE_SIZE_DIVIDER; // multiply by 100 for 2 decimal place
+    if(filesize < D_FILE_SIZE_DIVIDER * 100)
+        return snprintf_P(buf, len, PSTR("%d" D_DECIMAL_POINT "%02d " D_FILE_SIZE_KILOBYTES), filesize / 100,
+                          filesize % 100);
 
-    filesize = filesize / D_FILE_SIZE_DIVIDER; // multiply by 10 for 1 decimal place
-    if(filesize < D_FILE_SIZE_DIVIDER * 10)
-        return snprintf_P(buf, len, PSTR("%d" D_DECIMAL_POINT "%d " D_FILE_SIZE_MEGABYTES), filesize / 10,
-                          filesize % 10);
+    filesize = filesize / D_FILE_SIZE_DIVIDER; // multiply by 100 for 2 decimal place
+    if(filesize < D_FILE_SIZE_DIVIDER * 100)
+        return snprintf_P(buf, len, PSTR("%d" D_DECIMAL_POINT "%02d " D_FILE_SIZE_MEGABYTES), filesize / 100,
+                          filesize % 100);
 
-    return snprintf_P(buf, len, PSTR("%d" D_DECIMAL_POINT "%d " D_FILE_SIZE_GIGABYTES), filesize / 10, filesize % 10);
+    return snprintf_P(buf, len, PSTR("%d" D_DECIMAL_POINT "%02d " D_FILE_SIZE_GIGABYTES), filesize / 100, filesize % 100);
 }
 
 uint8_t Parser::get_action_id(const char* action)

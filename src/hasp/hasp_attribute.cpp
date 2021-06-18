@@ -1128,6 +1128,7 @@ static hasp_attribute_type_t specific_options_attribute(lv_obj_t* obj, const cha
         case LV_HASP_DROPDOWN:
             if(update) {
                 lv_dropdown_set_options(obj, payload);
+                lv_obj_invalidate(obj); // otherwise it won't refresh
             } else {
                 *text = (char*)lv_dropdown_get_options(obj);
             }
@@ -1399,7 +1400,11 @@ static hasp_attribute_type_t attribute_common_val(lv_obj_t* obj, int32_t& val, b
             break;
 
         case LV_HASP_DROPDOWN:
-            lv_dropdown_set_selected(obj, (uint16_t)val);
+            if(update)
+                lv_dropdown_set_selected(obj, (uint16_t)val);
+            else
+                val = lv_dropdown_get_selected(obj);
+            break;
 
         case LV_HASP_LINEMETER:
             if(update)
