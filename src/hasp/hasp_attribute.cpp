@@ -1367,18 +1367,21 @@ static hasp_attribute_type_t attribute_common_val(lv_obj_t* obj, int32_t& val, b
             break;
 
         case LV_HASP_BTNMATRIX:
-            if(update) {
-                if(!lv_btnmatrix_get_one_check(obj)) return HASP_ATTR_TYPE_NOT_FOUND;
+            if(!lv_btnmatrix_get_one_check(obj)) return HASP_ATTR_TYPE_NOT_FOUND;
 
+            if(update) {
                 if(val < 0 || val >= my_btnmatrix_get_count(obj)) {
-                    LOG_WARNING(TAG_ATTR, F("Invalid value %d"), val);
+                    LOG_WARNING(TAG_ATTR, F("Invalid index %d"), val);
                 } else {
                     lv_btnmatrix_clear_btn_ctrl_all(obj, LV_BTNMATRIX_CTRL_CHECK_STATE);
                     lv_btnmatrix_set_btn_ctrl(obj, val, LV_BTNMATRIX_CTRL_CHECK_STATE);
+
+                    lv_btnmatrix_ext_t* ext = (lv_btnmatrix_ext_t*)lv_obj_get_ext_attr(obj);
+                    ext->btn_id_act         = val;
                 }
 
             } else {
-                val = lv_checkbox_is_checked(obj);
+                val = lv_btnmatrix_get_active_btn(obj);
             }
             break;
 
