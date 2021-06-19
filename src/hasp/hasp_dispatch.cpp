@@ -29,6 +29,7 @@
 #include "sys/svc/hasp_ota.h"
 #include "mqtt/hasp_mqtt.h"
 #include "sys/net/hasp_network.h" // for network_get_status()
+extern SemaphoreHandle_t xSemaphore_lvgl;
 #endif
 #endif
 
@@ -43,6 +44,12 @@ uint8_t nCommands                        = 0;
 haspCommand_t commands[21];
 
 moodlight_t moodlight = {.brightness = 255};
+
+void dispatch_get_mutex(size_t line)
+{
+    if(xSemaphoreTake(xSemaphore_lvgl, 5000) == pdTRUE) return;
+    LOG_FATAL(TAG_MSGR, F("Failed to get lvgl mutex in %s line: %d"), __FILE__, line);
+}
 
 /* Sends the payload out on the state/subtopic
  */
@@ -160,7 +167,10 @@ static inline bool dispatch_parse_button_attribute(const char* topic_p, const ch
     if(*topic_p != '.') return false; // obligated seperator
     topic_p++;
 
+    dispatch_get_mutex(__LINE__);
     hasp_process_attribute(pageid, objid, topic_p, payload, update);
+    xSemaphoreGive(xSemaphore_lvgl);
+
     return true;
 }
 
@@ -555,8 +565,11 @@ void dispatch_parse_json(const char*, const char* payload)
         }
         // guiStart();
     } else if(json.is<JsonObject>()) { // handle json as a jsonl
+
+        dispatch_get_mutex(__LINE__);
         uint8_t savedPage = haspPages.get();
         hasp_new_object(json.as<JsonObject>(), savedPage);
+        xSemaphoreGive(xSemaphore_lvgl);
 
         // #ifdef ARDUINO
         //     } else if(json.is<String>()) { // handle json as a single command
@@ -593,11 +606,13 @@ void dispatch_parse_jsonl(std::istream& stream)
 #endif
 
     // guiStop();
+    dispatch_get_mutex(__LINE__);
     while(jsonError == DeserializationError::Ok) {
         hasp_new_object(jsonl.as<JsonObject>(), savedPage);
         jsonError = deserializeJson(jsonl, stream);
         line++;
     }
+    xSemaphoreGive(xSemaphore_lvgl);
     // guiStart();
 
     /* For debugging pourposes */
@@ -634,19 +649,28 @@ void dispatch_current_page()
 // Dispatch Page Get or Set
 void dispatch_page_next(lv_scr_load_anim_t animation)
 {
+    dispatch_get_mutex(__LINE__);
     haspPages.next(animation);
+    xSemaphoreGive(xSemaphore_lvgl);
+
     dispatch_current_page();
 }
 
 void dispatch_page_prev(lv_scr_load_anim_t animation)
 {
+    dispatch_get_mutex(__LINE__);
     haspPages.prev(animation);
+    xSemaphoreGive(xSemaphore_lvgl);
+
     dispatch_current_page();
 }
 
 void dispatch_page_back(lv_scr_load_anim_t animation)
 {
+    dispatch_get_mutex(__LINE__);
     haspPages.back(animation);
+    xSemaphoreGive(xSemaphore_lvgl);
+
     dispatch_current_page();
 }
 
@@ -657,7 +681,10 @@ void dispatch_set_page(uint8_t pageid)
 
 void dispatch_set_page(uint8_t pageid, lv_scr_load_anim_t animation)
 {
+    dispatch_get_mutex(__LINE__);
     haspPages.set(pageid, animation);
+    xSemaphoreGive(xSemaphore_lvgl);
+
     dispatch_current_page();
 }
 
@@ -686,31 +713,34 @@ void dispatch_page(const char*, const char* page)
 // Clears a page id or the current page if empty
 void dispatch_clear_page(const char*, const char* page)
 {
-    uint8_t pageid;
+    dispatch_get_mutex(__LINE__);
+
     if(strlen(page) > 0) {
         if(!strcasecmp_P(page, PSTR("all"))) {
-            for(pageid = 0; pageid < HASP_NUM_PAGES; pageid++) haspPages.clear(pageid);
+            for(uint8_t pageid = 0; pageid <= HASP_NUM_PAGES; pageid++) haspPages.clear(pageid);
         } else {
-            pageid = atoi(page);
+            uint8_t pageid = atoi(page);
+            haspPages.clear(pageid);
         }
     } else {
-        pageid = haspPages.get();
+        haspPages.clear(haspPages.get()); // clear current page
     }
-    haspPages.clear(pageid);
+
+    xSemaphoreGive(xSemaphore_lvgl);
 }
 
-void dispatch_dim(const char*, const char* level)
-{
-    // Set the current state
-    if(strlen(level) != 0) haspDevice.set_backlight_level(atoi(level));
+// void dispatch_dim(const char*, const char* level)
+// {
+//     // Set the current state
+//     if(strlen(level) != 0) haspDevice.set_backlight_level(atoi(level));
 
-    char topic[8];
-    char payload[8];
+//     char topic[8];
+//     char payload[8];
 
-    memcpy_P(topic, PSTR("dim"), 4);
-    snprintf_P(payload, sizeof(payload), PSTR("%d"), haspDevice.get_backlight_level());
-    dispatch_state_subtopic(topic, payload);
-}
+//     memcpy_P(topic, PSTR("dim"), 4);
+//     snprintf_P(payload, sizeof(payload), PSTR("%d"), haspDevice.get_backlight_level());
+//     dispatch_state_subtopic(topic, payload);
+// }
 
 void dispatch_moodlight(const char* topic, const char* payload)
 {
@@ -813,10 +843,13 @@ void dispatch_backlight(const char*, const char* payload)
     // toggle power and wakeup touch if changed
     if(haspDevice.get_backlight_power() != power) {
         haspDevice.set_backlight_power(power);
+
+        dispatch_get_mutex(__LINE__);
         if(power)
             hasp_disable_wakeup_touch();
         else
             hasp_enable_wakeup_touch();
+        xSemaphoreGive(xSemaphore_lvgl);
     }
 
     // Return the current state
@@ -920,7 +953,10 @@ void dispatch_statusupdate(const char*, const char*)
     {
         char buffer[128];
 
+        dispatch_get_mutex(__LINE__);
         hasp_get_sleep_state(topic);
+        xSemaphoreGive(xSemaphore_lvgl);
+
         snprintf_P(data, sizeof(data), PSTR("{\"node\":\"%s\",\"idle\":\"%s\",\"version\":\"%s\",\"uptime\":%lu,"),
                    haspDevice.get_hostname(), topic, haspDevice.get_version(),
                    long(millis() / 1000)); // \"status\":\"available\",
@@ -999,30 +1035,45 @@ void dispatch_wakeup_obsolete(const char* topic, const char*)
 {
     LOG_WARNING(TAG_HASP, F(D_ATTRIBUTE_OBSOLETE D_ATTRIBUTE_INSTEAD), topic,
                 "idle=off"); // TODO: obsolete dim, light and brightness
+
+    dispatch_get_mutex(__LINE__);
     lv_disp_trig_activity(NULL);
     hasp_disable_wakeup_touch();
+    xSemaphoreGive(xSemaphore_lvgl);
 }
 
 void dispatch_sleep(const char*, const char*)
 {
+    dispatch_get_mutex(__LINE__);
     hasp_enable_wakeup_touch();
+    xSemaphoreGive(xSemaphore_lvgl);
 }
 
+// Called from lvgl thread
+void dispatch_send_idle_state(const char* payload)
+{
+    char topic[6];
+    memcpy_P(topic, PSTR("idle"), 5);
+    dispatch_state_subtopic(topic, payload);
+}
+
+// Called from main thread
 void dispatch_idle(const char*, const char* payload)
 {
     char topic[6];
     char buffer[6];
 
     // idle off command
+    dispatch_get_mutex(__LINE__);
     if(payload && strlen(payload) && !Parser::is_true(payload)) {
         hasp_disable_wakeup_touch();
         hasp_set_sleep_state(HASP_SLEEP_OFF);
         lv_disp_trig_activity(NULL);
     }
-
-    // idle state
-    memcpy_P(topic, PSTR("idle"), 5);
     hasp_get_sleep_state(buffer);
+    xSemaphoreGive(xSemaphore_lvgl);
+
+    memcpy_P(topic, PSTR("idle"), 5);
     dispatch_state_subtopic(topic, buffer);
 }
 
@@ -1071,7 +1122,7 @@ void dispatchSetup()
     dispatch_add_command(PSTR("moodlight"), dispatch_moodlight);
     dispatch_add_command(PSTR("idle"), dispatch_idle);
     dispatch_add_command(PSTR("dim"), dispatch_backlight_obsolete);        // dim
-    dispatch_add_command(PSTR("brightness"), dispatch_backlight_obsolete); // dim
+    dispatch_add_command(PSTR("brightness"), dispatch_backlight_obsolete); // brightness
     dispatch_add_command(PSTR("light"), dispatch_backlight_obsolete);
     dispatch_add_command(PSTR("wakeup"), dispatch_wakeup_obsolete);
     dispatch_add_command(PSTR("calibrate"), dispatch_calibrate);

@@ -71,7 +71,7 @@ void dispatch_web_update(const char*, const char* espOtaUrl);
 void dispatch_statusupdate(const char*, const char*);
 void dispatch_send_discovery(const char*, const char*);
 void dispatch_idle(const char*, const char*);
-void hasp_send_idle_state(const char* payload);
+void dispatch_send_idle_state(const char* payload);
 void dispatch_calibrate(const char*, const char*);
 void dispatch_wakeup(const char*, const char*);
 
