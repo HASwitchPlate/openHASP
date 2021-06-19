@@ -3,11 +3,11 @@
 
 #if !(defined(WINDOWS) || defined(POSIX))
 
+#include "Arduino.h"
 #include "hasplib.h"
 #include "hasp_oobe.h"
 #include "sys/net/hasp_network.h"
 #include "dev/device.h"
-// #include "drv/old/hasp_drv_touch.h"
 #include "ArduinoLog.h"
 
 #if HASP_USE_CONFIG > 0
@@ -26,6 +26,40 @@ unsigned long mainLastLoopTime = 0;
 
 #ifdef HASP_USE_STAT_COUNTER
 uint8_t statLoopCounter = 0; // measures the average looptime
+#endif
+
+#ifdef ARDUINO_ARCH_ESP32
+SemaphoreHandle_t xSemaphore_lvgl = NULL;
+
+void guiTask(void* parameter)
+{
+    xSemaphoreTake(xSemaphore_lvgl, portMAX_DELAY);
+    guiSetup();
+
+#if HASP_USE_CONFIG > 0
+    if(!oobeSetup())
+#endif
+    {
+        xSemaphoreGive(xSemaphore_lvgl); // oobeSetup not running
+        haspSetup();
+    } else {
+        xSemaphoreGive(xSemaphore_lvgl); // oobeSetup complete
+    }
+
+    for(;;) {
+        if(xSemaphoreTake(xSemaphore_lvgl, 0) == pdTRUE) {
+            lv_task_handler(); // process animations
+            xSemaphoreGive(xSemaphore_lvgl);
+            vTaskDelay(2 / portTICK_PERIOD_MS);
+        } else {
+            vTaskDelay(1 / portTICK_PERIOD_MS);
+        }
+
+#if TOUCH_DRIVER == 911
+        guiLoop(); // update 911 Touch Driver
+#endif
+    }
+}
 #endif
 
 void setup()
@@ -57,14 +91,19 @@ void setup()
 #endif
 
     dispatchSetup(); // before hasp and oobe, asap after logging starts
+#ifdef ARDUINO_ARCH_ESP32
+    xSemaphore_lvgl = xSemaphoreCreateMutex();
+    xTaskCreatePinnedToCore(guiTask, "guiTask", 4096, (void*)1, 1, NULL, 0);
+#else
     guiSetup();
 
 #if HASP_USE_CONFIG > 0
     if(!oobeSetup())
-#endif
+#endif // HASP_USE_CONFIG
     {
         haspSetup();
     }
+#endif // ARDUINO_ARCH_ESP32
 
     /****************************
      * Apply User Configuration
@@ -113,8 +152,10 @@ void setup()
 
 IRAM_ATTR void loop()
 {
+#ifndef ARDUINO_ARCH_ESP32
     guiLoop();
     // haspLoop();
+#endif
 
     networkLoop();
 
