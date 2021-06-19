@@ -40,7 +40,7 @@ dispatch_conf_t dispatch_setings = {.teleperiod = 300};
 
 uint16_t dispatchSecondsToNextTeleperiod = 0;
 uint8_t nCommands                        = 0;
-haspCommand_t commands[21];
+haspCommand_t commands[22];
 
 moodlight_t moodlight = {.brightness = 255};
 
@@ -1081,6 +1081,9 @@ void dispatchSetup()
     dispatch_add_command(PSTR("screenshot"), dispatch_screenshot);
     dispatch_add_command(PSTR("discovery"), dispatch_send_discovery);
     dispatch_add_command(PSTR("factoryreset"), dispatch_factory_reset);
+#if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
+    dispatch_add_command(PSTR("unzip"), filesystemUnzip);
+#endif
 #if HASP_USE_CONFIG > 0
     dispatch_add_command(PSTR("setupap"), oobeFakeSetup);
 #endif
