@@ -16,6 +16,7 @@
 #include "hasp_gui.h"
 #include "hasp_debug.h"
 #include "hasp_config.h"
+//#include "hasp_filesystem.h"
 
 #if HASP_USE_HTTP > 0
 #include "sys/net/hasp_network.h"
@@ -105,7 +106,7 @@ const char MIT_LICENSE[] PROGMEM = "</br>MIT License</p>";
 const char HTTP_DOCTYPE[] PROGMEM = "<!DOCTYPE html><html lang=\"en\"><head><meta charset='utf-8'><meta "
                                     "name=\"viewport\" content=\"width=device-width,initial-scale=1,"
                                     "user-scalable=no\"/>";
-const char HTTP_META_GO_BACK[] PROGMEM = "<meta http-equiv='refresh' content='15;url=/'/>";
+const char HTTP_META_GO_BACK[] PROGMEM = "<meta http-equiv='refresh' content='11;url=/'/>";
 const char HTTP_HEADER[] PROGMEM       = "<title>%s</title>";
 const char HTTP_STYLE[] PROGMEM        = "<link rel=\"stylesheet\" href=\"/css\">";
 const char HTTP_CSS[] PROGMEM =
@@ -397,6 +398,9 @@ void webHandleRoot()
         }
 #endif
 
+        httpMessage += F("<p><form method='GET' action='fs'><button type='submit'>" "Manage File system"
+                         "</button></form></p>");
+
         httpMessage += F("<p><form method='GET' action='reboot'><button class='red' type='submit'>" D_HTTP_REBOOT
                          "</button></form></p>");
 
@@ -540,6 +544,83 @@ void webHandleAbout()
     // httpMessage.clear();
     webSendFooter();
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void webHandleFs()
+{ // http://plate01/fs
+    if(!httpIsAuthenticated(F("fs"))) return;
+
+    {
+        String httpMessage((char*)0);
+        httpMessage.reserve(HTTP_PAGE_SIZE);
+
+        httpMessage += F("<h1>");
+        httpMessage += haspDevice.get_hostname();
+        httpMessage += F("</h1><hr>");
+
+        httpMessage += F("<p><form action='/edit' method='POST' enctype='multipart/form-data'><input type='file' "
+                         "name='filename' accept='.jsonl,.png,.zi,.zip'>");
+        httpMessage += F("<button type='submit'>" D_HTTP_UPLOAD_FILE "</button></form></p><hr>");
+
+
+		httpMessage += F("<div id='f1' name='f1' style='display:block;'>"
+				"<div style='text-align:left;overflow:auto;height:250px;'>"
+				"<table>");
+
+
+		File root = HASP_FS.open("/", FILE_READ);
+		File file = root.openNextFile();
+		String output((char*)0);
+		output.reserve(HTTP_PAGE_SIZE);
+		output = "";
+
+		while(file) {
+		    output += F("<tr><td>");
+		    if(file.name()[0] == '/') {
+		        output += &(file.name()[1]);
+		    } else {
+		        output += file.name();
+		    }
+		    output += F("</td><td>");
+
+			output += F("<a href='/unzip?=");
+			output += file.name();
+			output += F("'>[unzip]</a> ");
+
+//			A WAY TO DETECT WHICH LINK TO SHOW BASED ON EXTENSION
+//		    if(strrchr(file.name(),'.').c_str() == 'zip') {
+//		        output += F("[unzip] ");
+//		    } else (strrchr(file.name(),'.').c_str() == 'jsonl') {
+//		        output += F("[edit] ");
+//		    }
+
+			output += F("<a href='/filedelete?=");
+			output += file.name();
+			output += F("'>[del]</a> ");
+
+            output += F("</td></tr>");
+
+
+		    file = root.openNextFile();
+		}
+
+		httpMessage += output;
+
+		httpMessage += F("</table></div>"
+		"</div>");
+
+
+
+        httpMessage += FPSTR(MAIN_MENU_BUTTON);
+
+        webSendPage(haspDevice.get_hostname(), httpMessage.length(), false);
+        webServer.sendContent(httpMessage);
+    }
+    // httpMessage.clear();
+    webSendFooter();
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -1073,6 +1154,55 @@ void handleFileDelete()
     // path.clear();
 }
 
+void handleFileDelFs()
+{
+    if(!httpIsAuthenticated(F("filedelete"))) return;
+
+    char mimetype[16];
+    snprintf_P(mimetype, sizeof(mimetype), PSTR("text/plain"));
+
+    if(webServer.args() == 0) {
+        return webServer.send_P(500, mimetype, PSTR("BAD ARGS"));
+    }
+    String path = webServer.arg(0);
+    LOG_TRACE(TAG_HTTP, F("handleFileDelFs: %s"), path.c_str());
+    if(path == "/") {
+        return webServer.send_P(500, mimetype, PSTR("BAD PATH"));
+    }
+    if(!HASP_FS.exists(path)) {
+        return webServer.send_P(404, mimetype, PSTR("FileNotFound"));
+    }
+    HASP_FS.remove(path);
+    webServer.sendHeader(String(F("Location")), String(F("/fs")), true);
+    webServer.send_P(302, PSTR("text/plain"), "");
+
+    // path.clear();
+}
+
+void handleFileUnzipFs()
+{
+    if(!httpIsAuthenticated(F("unzip"))) return;
+
+    char mimetype[16];
+    snprintf_P(mimetype, sizeof(mimetype), PSTR("text/plain"));
+
+    if(webServer.args() == 0) {
+        return webServer.send_P(500, mimetype, PSTR("BAD ARGS"));
+    }
+    String path = webServer.arg(0);
+    LOG_TRACE(TAG_HTTP, F("handleFileUnzipFs: %s"), path.c_str());
+    if(path == "/") {
+        return webServer.send_P(500, mimetype, PSTR("BAD PATH"));
+    }
+    if(!HASP_FS.exists(path)) {
+        return webServer.send_P(404, mimetype, PSTR("FileNotFound"));
+    }
+//	filesystemUnzip(NULL, path.c_str());
+    webServer.sendHeader(String(F("Location")), String(F("/fs")), true);
+    webServer.send_P(302, PSTR("text/plain"), "");
+}
+
+
 void handleFileCreate()
 {
     if(!httpIsAuthenticated(F("filecreate"))) return;
@@ -1183,6 +1313,7 @@ void handleFileList()
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+
 #if HASP_USE_CONFIG > 0
 void webHandleConfig()
 { // http://plate01/config
@@ -2297,6 +2428,10 @@ void httpSetup()
     });
 
 #if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
+    webServer.on(F("/fs"), webHandleFs);
+    webServer.on(F("/filedelete"), handleFileDelFs);
+    webServer.on(F("/unzip"), handleFileUnzipFs);
+
     webServer.on(F("/list"), HTTP_GET, handleFileList);
     // load editor
     webServer.on(F("/edit"), HTTP_GET, []() {
