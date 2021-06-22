@@ -645,10 +645,6 @@ void webHandleEdtx()
         httpMessage += F("</h1><hr>");
         httpMessage += F("<textarea id='t1' name='t1' rows='8' cols='80' maxlength='8192' style='font-size: 12pt'>");
 
-
-        httpMessage += F("<h1> abcd \n cfrg");
-
-
 		File fileedtx = HASP_FS.open("/pages.jsonl");
 
 
@@ -664,7 +660,6 @@ void webHandleEdtx()
 		}
 
 		fileedtx.close();
-
 
 
         httpMessage += F("</textarea>");
