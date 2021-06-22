@@ -16,7 +16,7 @@
 #include "hasp_gui.h"
 #include "hasp_debug.h"
 #include "hasp_config.h"
-//#include "hasp_filesystem.h"
+#include "hasp_filesystem.h"
 
 #if HASP_USE_HTTP > 0
 #include "sys/net/hasp_network.h"
@@ -574,10 +574,11 @@ void webHandleFs()
 		String output((char*)0);
 		output.reserve(HTTP_PAGE_SIZE);
 		output = "";
+		char * ext;
 
 		while(file) {
 		    output += F("<tr><td>");
-		    if(file.name()[0] == '/') {
+		    if (file.name()[0] == '/') {
 		        output += &(file.name()[1]);
 		    } else {
 		        output += file.name();
@@ -589,9 +590,17 @@ void webHandleFs()
 			output += F("'>[unzip]</a> ");
 
 //			A WAY TO DETECT WHICH LINK TO SHOW BASED ON EXTENSION
-//		    if(strrchr(file.name(),'.').c_str() == 'zip') {
+
+//		    if(file.name().startsWith("zip")) {
+//		        output += F("[unzip] "); 
+//		    } else if (file.name().startsWith("jsonl")) {
+//		        output += F("[edit] ");
+//		    }
+
+//			ext = strrchr(file.name(), '.');
+//		    if (strcmp(ext, "zip") == 0) {
 //		        output += F("[unzip] ");
-//		    } else (strrchr(file.name(),'.').c_str() == 'jsonl') {
+//		    } else if (strcmp(ext, "jsonl") == 0) {
 //		        output += F("[edit] ");
 //		    }
 
@@ -621,6 +630,53 @@ void webHandleFs()
     webSendFooter();
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void webHandleEdtx()
+{ // http://plate01/edtx
+    if(!httpIsAuthenticated(F("edtx"))) return;
+
+    {
+        String httpMessage((char*)0);
+        httpMessage.reserve(HTTP_PAGE_SIZE);
+
+        httpMessage += F("<h1>");
+        httpMessage += haspDevice.get_hostname();
+        httpMessage += F("</h1><hr>");
+        httpMessage += F("<textarea id='t1' name='t1' rows='8' cols='80' maxlength='8192' style='font-size: 12pt'>");
+
+
+        httpMessage += F("<h1> abcd \n cfrg");
+
+
+		File fileedtx = HASP_FS.open("/pages.jsonl");
+
+
+		if(!fileedtx){
+		    //("Failed to open file for reading");
+		    return;
+		}
+
+
+		while(fileedtx.available()){
+
+			httpMessage += fileedtx.read();
+		}
+
+		fileedtx.close();
+
+
+
+        httpMessage += F("</textarea>");
+
+        httpMessage += FPSTR(MAIN_MENU_BUTTON);
+
+        webSendPage(haspDevice.get_hostname(), httpMessage.length(), false);
+        webServer.sendContent(httpMessage);
+    }
+    // httpMessage.clear();
+    webSendFooter();
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -1197,7 +1253,7 @@ void handleFileUnzipFs()
     if(!HASP_FS.exists(path)) {
         return webServer.send_P(404, mimetype, PSTR("FileNotFound"));
     }
-//	filesystemUnzip(NULL, path.c_str());
+	filesystemUnzip(NULL, path.c_str());
     webServer.sendHeader(String(F("Location")), String(F("/fs")), true);
     webServer.send_P(302, PSTR("text/plain"), "");
 }
@@ -2431,6 +2487,7 @@ void httpSetup()
     webServer.on(F("/fs"), webHandleFs);
     webServer.on(F("/filedelete"), handleFileDelFs);
     webServer.on(F("/unzip"), handleFileUnzipFs);
+    webServer.on(F("/edtx"), webHandleEdtx);
 
     webServer.on(F("/list"), HTTP_GET, handleFileList);
     // load editor
