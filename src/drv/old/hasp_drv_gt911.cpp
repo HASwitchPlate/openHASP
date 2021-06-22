@@ -1,4 +1,5 @@
-#if TOUCH_DRIVER == 911
+/*
+#if TOUCH_DRIVER == 91100
 
     #include <Wire.h>
     #include "Goodix.h"
@@ -106,3 +107,4 @@ void GT911_loop()
     touch.loop();
 }
 #endif
+*/
