@@ -546,6 +546,7 @@ void webHandleAbout()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+// simple filesystem manager
 
 void webHandleFs()
 { // http://plate01/fs
@@ -574,7 +575,6 @@ void webHandleFs()
 		String output((char*)0);
 		output.reserve(HTTP_PAGE_SIZE);
 		output = "";
-		char * ext;
 
 		while(file) {
 		    output += F("<tr><td>");
@@ -583,30 +583,30 @@ void webHandleFs()
 		    } else {
 		        output += file.name();
 		    }
-		    output += F("</td><td>");
 
-			output += F("<a href='/unzip?=");
-			output += file.name();
-			output += F("'>[unzip]</a> ");
+		    String filename = file.name();
 
-//			A WAY TO DETECT WHICH LINK TO SHOW BASED ON EXTENSION
+		    output += F("</td><td style=text-align:right>");
 
-//		    if(file.name().startsWith("zip")) {
-//		        output += F("[unzip] "); 
-//		    } else if (file.name().startsWith("jsonl")) {
-//		        output += F("[edit] ");
-//		    }
+//			output += F("<a href='/unzip?=");
+//			output += file.name();
+//			output += F("'>[unzip]</a> ");
 
-//			ext = strrchr(file.name(), '.');
-//		    if (strcmp(ext, "zip") == 0) {
-//		        output += F("[unzip] ");
-//		    } else if (strcmp(ext, "jsonl") == 0) {
-//		        output += F("[edit] ");
-//		    }
+            if(filename.endsWith(".zip")) {
+                output += F("<a href='/unzip?=");
+                output += filename;
+                output += F("'>[unzip]</a> ");
+            }
+
+            if(filename.endsWith(".jsonl")) {
+                output += F("<a href='/edtx?=");
+                output += filename;
+                output += F("'>[edit]</a> ");
+            }
 
 			output += F("<a href='/filedelete?=");
-			output += file.name();
-			output += F("'>[del]</a> ");
+			output += filename; //file.name();
+			output += F("'>[delete]</a> ");
 
             output += F("</td></tr>");
 
@@ -631,10 +631,27 @@ void webHandleFs()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+// simple text file editor
 
 void webHandleEdtx()
 { // http://plate01/edtx
     if(!httpIsAuthenticated(F("edtx"))) return;
+
+
+    char mimetype[16];
+    snprintf_P(mimetype, sizeof(mimetype), PSTR("text/plain"));
+
+    if(webServer.args() == 0) {
+        return webServer.send_P(500, mimetype, PSTR("BAD ARGS"));
+    }
+    String path = webServer.arg(0);
+    LOG_TRACE(TAG_HTTP, F("webHandleEdtx: %s"), path.c_str());
+    if(path == "/") {
+        return webServer.send_P(500, mimetype, PSTR("BAD PATH"));
+    }
+    if(!HASP_FS.exists(path)) {
+        return webServer.send_P(404, mimetype, PSTR("FileNotFound"));
+    }
 
     {
         String httpMessage((char*)0);
@@ -643,24 +660,26 @@ void webHandleEdtx()
         httpMessage += F("<h1>");
         httpMessage += haspDevice.get_hostname();
         httpMessage += F("</h1><hr>");
-        httpMessage += F("<textarea id='t1' name='t1' rows='8' cols='80' maxlength='8192' style='font-size: 12pt'>");
+        httpMessage += F("<textarea id='t1' name='t1' rows='32' cols='200' maxlength='8192' style='font-size: 10pt'>");
 
-		File fileedtx = HASP_FS.open("/pages.jsonl");
-
+		File fileedtx = HASP_FS.open(path.c_str());
 
 		if(!fileedtx){
 		    //("Failed to open file for reading");
 		    return;
 		}
 
+//		size_t filesize = fileedtx.size();
+//		char string[filesize + 1];
 
 		while(fileedtx.available()){
-
-			httpMessage += fileedtx.read();
+			httpMessage += fileedtx.readString();
+//			fileedtx.read((uint8_t *)string, sizeof(string));  
 		}
 
 		fileedtx.close();
-
+		
+//		httpMessage += string;
 
         httpMessage += F("</textarea>");
 
@@ -1183,6 +1202,7 @@ void handleFileUpload()
 }
 
 void handleFileDelete()
+// edit.htm version
 {
     if(!httpIsAuthenticated(F("filedelete"))) return;
 
@@ -1206,6 +1226,7 @@ void handleFileDelete()
 }
 
 void handleFileDelFs()
+// simple file system manager version
 {
     if(!httpIsAuthenticated(F("filedelete"))) return;
 
@@ -1231,6 +1252,7 @@ void handleFileDelFs()
 }
 
 void handleFileUnzipFs()
+// simple file system manager version
 {
     if(!httpIsAuthenticated(F("unzip"))) return;
 
@@ -2151,7 +2173,7 @@ void webHandleHaspConfig()
         httpMessage += F("</h1><hr>");
 
         httpMessage += F("<p><form action='/edit' method='POST' enctype='multipart/form-data'><input type='file' "
-                         "name='filename' accept='.jsonl,.png,.zi'>");
+                         "name='filename' accept='.jsonl,.png,.zi,.zip'>");
         httpMessage += F("<button type='submit'>" D_HTTP_UPLOAD_FILE "</button></form></p><hr>");
 
         // httpMessage += F("<form method='POST' action='/config'>");
