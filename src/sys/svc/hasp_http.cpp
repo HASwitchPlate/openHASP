@@ -566,8 +566,8 @@ void webHandleFs()
 
 
 		httpMessage += F("<div id='f1' name='f1' style='display:block;'>"
-				"<div style='text-align:left;overflow:auto;height:250px;'>"
-				"<table>");
+				"<div style='text-align:left;overflow:auto;height:350px;'>"
+				"<table style='border-collapse:collapse;width:100%;'>");
 
 
 		File root = HASP_FS.open("/", FILE_READ);
@@ -578,38 +578,41 @@ void webHandleFs()
 
 		while(file) {
 		    output += F("<tr><td>");
+			String filename;
+
 		    if (file.name()[0] == '/') {
-		        output += &(file.name()[1]);
+				filename = &(file.name()[1]);
 		    } else {
-		        output += file.name();
+				filename = file.name();
 		    }
 
-		    String filename = file.name();
+		    output += F("<a href='");
+			output += filename;
+			output += F("?download=true' style='text-decoration:none;color:" D_HTTP_COLOR_BUTTON ";'>");
+			output += filename;
+			output += F("</a> ");
 
-		    output += F("</td><td style=text-align:right>");
+		    output += F("</td><td style='text-align:right'>");
 
-//			output += F("<a href='/unzip?=");
-//			output += file.name();
-//			output += F("'>[unzip]</a> ");
-
-            if(filename.endsWith(".zip")) {
-                output += F("<a href='/unzip?=");
+            if (filename.endsWith(".zip")) {
+                output += F("<a href='/unzip?=/");
                 output += filename;
-                output += F("'>[unzip]</a> ");
+                output += F("' style='text-decoration:none;color:" D_HTTP_COLOR_TEXT ";'>unz</a> ");
             }
 
-            if(filename.endsWith(".jsonl")) {
-                output += F("<a href='/edtx?=");
+            if (filename.endsWith(".jsonl")) {
+                output += F("<a href='/edtx?=/");
                 output += filename;
-                output += F("'>[edit]</a> ");
+                output += F("' style='text-decoration:none;color:" D_HTTP_COLOR_TEXT ";'>edt</a> ");
             }
 
-			output += F("<a href='/filedelete?=");
-			output += filename; //file.name();
-			output += F("'>[delete]</a> ");
+            if (!filename.endsWith("config.json")) {
+				output += F("<a href='/filedelete?=/");
+				output += filename;
+				output += F("' style='text-decoration:none;color:" D_HTTP_COLOR_BUTTON_RESET ";'>del</a>");
+            }
 
             output += F("</td></tr>");
-
 
 		    file = root.openNextFile();
 		}
@@ -618,8 +621,6 @@ void webHandleFs()
 
 		httpMessage += F("</table></div>"
 		"</div>");
-
-
 
         httpMessage += FPSTR(MAIN_MENU_BUTTON);
 
@@ -660,7 +661,15 @@ void webHandleEdtx()
         httpMessage += F("<h1>");
         httpMessage += haspDevice.get_hostname();
         httpMessage += F("</h1><hr>");
-        httpMessage += F("<textarea id='t1' name='t1' rows='32' cols='200' maxlength='8192' style='font-size: 10pt'>");
+
+        httpMessage += F("<p>Editing ");
+		httpMessage += path.c_str();
+        httpMessage += F("</p><hr>");
+
+
+        httpMessage += F("<p><form action='/edit' method='POST' enctype='multipart/form-data'>");
+
+        httpMessage += F("<textarea name='data' rows='32' cols='200' maxlength='8192' style='font-size: 10pt'>");
 
 		File fileedtx = HASP_FS.open(path.c_str());
 
@@ -669,19 +678,17 @@ void webHandleEdtx()
 		    return;
 		}
 
-//		size_t filesize = fileedtx.size();
-//		char string[filesize + 1];
 
 		while(fileedtx.available()){
 			httpMessage += fileedtx.readString();
-//			fileedtx.read((uint8_t *)string, sizeof(string));  
 		}
 
 		fileedtx.close();
 		
-//		httpMessage += string;
-
         httpMessage += F("</textarea>");
+
+        httpMessage += F("<button type='submit'>SAVE</button></form></p>");
+
 
         httpMessage += FPSTR(MAIN_MENU_BUTTON);
 
