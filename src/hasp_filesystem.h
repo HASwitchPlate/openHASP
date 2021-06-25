@@ -10,7 +10,10 @@ bool filesystemSetup(void);
 
 void filesystemList();
 void filesystemInfo();
+
+#if defined(ARDUINO_ARCH_ESP32)
 void filesystemUnzip(const char*, const char* filename);
+#endif
 
 enum { ZIP_NO_COMPRESSION = 0, ZIP_DEFLTATE = 8 };
 typedef uint16_t zip_compression_method_t;

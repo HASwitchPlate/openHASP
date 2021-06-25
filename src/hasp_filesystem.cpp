@@ -11,20 +11,9 @@
 
 #include "hasp_debug.h"
 #include "hasp_filesystem.h"
+
+#if defined(ARDUINO_ARCH_ESP32)
 #include "rom/crc.h"
-
-void filesystemInfo()
-{ // Get all information of your SPIFFS
-#ifdef ESP8266
-    FSInfo fs_info;
-    HASP_FS.info(fs_info);
-    Log.verbose(TAG_FILE, "Partition size: total: %d, used: %d", fs_info.totalBytes, fs_info.usedBytes);
-#endif
-
-#ifdef ESP32
-    Log.verbose(TAG_FILE, "Partition size: total: %d, used: %d", HASP_FS.totalBytes(), HASP_FS.usedBytes());
-#endif
-}
 
 void filesystemUnzip(const char*, const char* filename)
 {
@@ -136,6 +125,20 @@ void filesystemUnzip(const char*, const char* filename)
     }
     zipfile.close();
     LOG_VERBOSE(TAG_FILE, F("extracting %s complete"), filename);
+}
+#endif
+
+void filesystemInfo()
+{ // Get all information of your SPIFFS
+#ifdef ESP8266
+    FSInfo fs_info;
+    HASP_FS.info(fs_info);
+    Log.verbose(TAG_FILE, "Partition size: total: %d, used: %d", fs_info.totalBytes, fs_info.usedBytes);
+#endif
+
+#ifdef ESP32
+    Log.verbose(TAG_FILE, "Partition size: total: %d, used: %d", HASP_FS.totalBytes(), HASP_FS.usedBytes());
+#endif
 }
 
 void filesystemList()

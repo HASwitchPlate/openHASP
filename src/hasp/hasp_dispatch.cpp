@@ -1082,7 +1082,9 @@ void dispatchSetup()
     dispatch_add_command(PSTR("discovery"), dispatch_send_discovery);
     dispatch_add_command(PSTR("factoryreset"), dispatch_factory_reset);
 #if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
+#if defined(ARDUINO_ARCH_ESP32)
     dispatch_add_command(PSTR("unzip"), filesystemUnzip);
+#endif
 #endif
 #if HASP_USE_CONFIG > 0
     dispatch_add_command(PSTR("setupap"), oobeFakeSetup);
