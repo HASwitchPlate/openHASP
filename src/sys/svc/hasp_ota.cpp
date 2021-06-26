@@ -89,10 +89,6 @@ bool otaUpdateCheck()
 
     if(jsonError) { // Couldn't parse the returned JSON, so bail
         dispatch_json_error(TAG_OTA, jsonError);
-        // mqttClient.publish(mqttStateJSONTopic,
-        //                    String(F("{\"event\":\"jsonError\",\"event_source\":\"updateCheck()\",\"event_description\":"
-        //                             "\"Failed to parse incoming JSON command with error\"")) +
-        //                        String(jsonError.c_str()));
         return false;
     } else {
         if(!updateJson["d1_mini"]["version"].isNull()) {
