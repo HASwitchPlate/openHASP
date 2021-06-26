@@ -142,7 +142,6 @@ static void mqtt_message_cb(char* topic, char* payload, size_t length)
                 snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%s" MQTT_TOPIC_LWT), mqttNodeTopic);
                 snprintf_P(msg, sizeof(msg), PSTR("online"));
 
-                // /*bool res =*/mqttClient.publish(tmp_topic, msg, true);
                 mqttPublish(tmp_topic, msg, true);
             }
 
