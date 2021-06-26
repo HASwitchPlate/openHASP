@@ -209,31 +209,31 @@ bool Esp32Device::get_backlight_power()
 
 void Esp32Device::update_backlight()
 {
-    // if(_backlight_pin < GPIO_NUM_MAX) {
-    //     uint32_t duty = _backlight_power ? map(_backlight_level, 0, 255, 0, 4095) : 0;
-    //     if(_backlight_invert) duty = 4095 - duty;
-    //     ledcWrite(BACKLIGHT_CHANNEL, duty); // ledChannel and value
-    // }
+    if(_backlight_pin < GPIO_NUM_MAX) {
+        uint32_t duty = _backlight_power ? map(_backlight_level, 0, 255, 0, 4095) : 0;
+        if(_backlight_invert) duty = 4095 - duty;
+        ledcWrite(BACKLIGHT_CHANNEL, duty); // ledChannel and value
+    }
 
-    haspTft.tft.writecommand(0x53); // Write CTRL Display
-    if(_backlight_power)
-        haspTft.tft.writedata(0x24); // BL on, show image
-    else
-        haspTft.tft.writedata(0x20); // BL off, white screen
-
+    // haspTft.tft.writecommand(0x53); // Write CTRL Display
     // if(_backlight_power)
-    //     haspTft.tft.writecommand(0x29); // BL on, show image
+    //     haspTft.tft.writedata(0x24); // BL on, show image
     // else
-    //     haspTft.tft.writecommand(0x28); // BL off, white screen
+    //     haspTft.tft.writedata(0x20); // BL off, white screen
 
-    // haspTft.tft.writecommand(0x55); // Write Content Adaptive Brightness Control and Color Enhancement
-    // haspTft.tft.writedata(0x0);     // Off
+    // // if(_backlight_power)
+    // //     haspTft.tft.writecommand(0x29); // BL on, show image
+    // // else
+    // //     haspTft.tft.writecommand(0x28); // BL off, white screen
 
-    haspTft.tft.writecommand(0x5E);          // minimum brightness
-    haspTft.tft.writedata(_backlight_level); // 0-255
+    // // haspTft.tft.writecommand(0x55); // Write Content Adaptive Brightness Control and Color Enhancement
+    // // haspTft.tft.writedata(0x0);     // Off
 
-    haspTft.tft.writecommand(0x51);          //  Write Display Brightness
-    haspTft.tft.writedata(_backlight_level); // 0-255
+    // haspTft.tft.writecommand(0x5E);          // minimum brightness
+    // haspTft.tft.writedata(_backlight_level); // 0-255
+
+    // haspTft.tft.writecommand(0x51);          //  Write Display Brightness
+    // haspTft.tft.writedata(_backlight_level); // 0-255
 }
 
 size_t Esp32Device::get_free_max_block()
