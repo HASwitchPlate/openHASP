@@ -139,12 +139,16 @@ void PosixDevice::update_backlight()
 
 size_t PosixDevice::get_free_max_block()
 {
-    return 0;
+    struct sysinfo s_info;
+    if(sysinfo(&s_info) < 0) return 0;
+    return s_info.freeram;
 }
 
 size_t PosixDevice::get_free_heap(void)
 {
-    return 0;
+    struct sysinfo s_info;
+    if(sysinfo(&s_info) < 0) return 0;
+    return s_info.freeram;
 }
 
 uint8_t PosixDevice::get_heap_fragmentation()
@@ -165,10 +169,8 @@ bool PosixDevice::is_system_pin(uint8_t pin)
 long PosixDevice::get_uptime()
 {
     struct sysinfo s_info;
-    if(sysinfo(&s_info) == 0)
-        return s_info.uptime;
-    else
-        return 0;
+    if(sysinfo(&s_info) < 0) return 0;
+    return s_info.uptime;
 }
 
 } // namespace dev
