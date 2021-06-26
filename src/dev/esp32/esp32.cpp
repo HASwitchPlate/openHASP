@@ -16,7 +16,11 @@
 #include "esp32.h"
 #include "hasp_debug.h"
 
+#include "../../drv/tft/tft_driver.h" // for haspTft
+
 #define BACKLIGHT_CHANNEL 0
+
+uint8_t temprature_sens_read();
 
 namespace dev {
 
@@ -205,11 +209,31 @@ bool Esp32Device::get_backlight_power()
 
 void Esp32Device::update_backlight()
 {
-    if(_backlight_pin < GPIO_NUM_MAX) {
-        uint32_t duty = _backlight_power ? map(_backlight_level, 0, 255, 0, 4095) : 0;
-        if(_backlight_invert) duty = 4095 - duty;
-        ledcWrite(BACKLIGHT_CHANNEL, duty); // ledChannel and value
-    }
+    // if(_backlight_pin < GPIO_NUM_MAX) {
+    //     uint32_t duty = _backlight_power ? map(_backlight_level, 0, 255, 0, 4095) : 0;
+    //     if(_backlight_invert) duty = 4095 - duty;
+    //     ledcWrite(BACKLIGHT_CHANNEL, duty); // ledChannel and value
+    // }
+
+    haspTft.tft.writecommand(0x53); // Write CTRL Display
+    if(_backlight_power)
+        haspTft.tft.writedata(0x24); // BL on, show image
+    else
+        haspTft.tft.writedata(0x20); // BL off, white screen
+
+    // if(_backlight_power)
+    //     haspTft.tft.writecommand(0x29); // BL on, show image
+    // else
+    //     haspTft.tft.writecommand(0x28); // BL off, white screen
+
+    // haspTft.tft.writecommand(0x55); // Write Content Adaptive Brightness Control and Color Enhancement
+    // haspTft.tft.writedata(0x0);     // Off
+
+    haspTft.tft.writecommand(0x5E);          // minimum brightness
+    haspTft.tft.writedata(_backlight_level); // 0-255
+
+    haspTft.tft.writecommand(0x51);          //  Write Display Brightness
+    haspTft.tft.writedata(_backlight_level); // 0-255
 }
 
 size_t Esp32Device::get_free_max_block()
@@ -274,6 +298,18 @@ void Esp32Device::get_info(JsonDocument& doc)
 
     Parser::format_bytes(ESP.getFreeSketchSpace(), size_buf, sizeof(size_buf));
     info[F(D_INFO_SKETCH_FREE)] = size_buf;
+}
+
+void Esp32Device::get_sensors(JsonDocument& doc)
+{
+    JsonObject sensor        = doc.createNestedObject(F("ESP32"));
+    uint32_t temp            = (temprature_sens_read() - 32) * 100 / 1.8;
+    sensor[F("Temperature")] = serialized(String(1.0f * temp / 100, 2));
+}
+
+long Esp32Device::get_uptime()
+{
+    return esp_timer_get_time() / 1000000U;
 }
 
 } // namespace dev

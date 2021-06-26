@@ -16,6 +16,7 @@ class LanbonL8 : public Esp32Device {
   public:
     void init();
     void loop_5s();
+    void get_sensors(JsonDocument& doc);
 };
 
 } // namespace dev

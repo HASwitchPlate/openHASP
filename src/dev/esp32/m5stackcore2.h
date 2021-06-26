@@ -13,6 +13,7 @@ namespace dev {
 class M5StackCore2 : public Esp32Device {
   public:
     void init() override;
+    void get_sensors(JsonDocument& doc);
 };
 
 } // namespace dev

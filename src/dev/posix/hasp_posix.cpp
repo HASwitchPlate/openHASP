@@ -5,6 +5,7 @@
 
 #include <cstdint>
 #include <sys/utsname.h>
+#include <sys/sysinfo.h> // uptime
 
 #include "hasp_posix.h"
 
@@ -159,6 +160,15 @@ uint16_t PosixDevice::get_cpu_frequency()
 bool PosixDevice::is_system_pin(uint8_t pin)
 {
     return false;
+}
+
+long PosixDevice::get_uptime()
+{
+    struct sysinfo s_info;
+    if(sysinfo(&s_info) == 0)
+        return s_info.uptime;
+    else
+        return 0;
 }
 
 } // namespace dev

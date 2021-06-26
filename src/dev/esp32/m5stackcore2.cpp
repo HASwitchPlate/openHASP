@@ -8,12 +8,13 @@
 #include "AXP192.h" // Power Mgmt
 #include "dev/esp32/esp32.h"
 
+AXP192 Axp;
+
 // AXP192 Axp;
 namespace dev {
 
 void M5StackCore2::init(void)
 {
-    AXP192 Axp;
     Wire.begin(TOUCH_SDA, TOUCH_SCL);
     Axp.begin();
 
@@ -43,8 +44,22 @@ void M5StackCore2::init(void)
     Axp.SetLed(1);
 }
 
+void M5StackCore2::get_sensors(JsonDocument& doc)
+{
+    Esp32Device::get_sensors(doc);
+
+    JsonObject sensor              = doc.createNestedObject(F("AXP192"));
+    sensor[F("BattVoltage")]       = Axp.GetBatVoltage();
+    sensor[F("BattPower")]         = Axp.GetBatPower();
+   // sensor[F("Batt%")]             = Axp.getBattPercentage();
+    sensor[F("BattChargeCurrent")] = Axp.GetBatChargeCurrent();
+    sensor[F("Temperature")]         = Axp.GetTempInAXP192();
+    sensor[F("Charging")]          = Axp.isCharging();
+}
+
 } // namespace dev
 
 dev::M5StackCore2 haspDevice;
 
 #endif
+

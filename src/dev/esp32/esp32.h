@@ -9,6 +9,16 @@
 
 #if defined(ESP32)
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+uint8_t temprature_sens_read();
+
+#ifdef __cplusplus
+}
+#endif
+
 namespace dev {
 
 class Esp32Device : public BaseDevice {
@@ -34,6 +44,8 @@ class Esp32Device : public BaseDevice {
     uint8_t get_heap_fragmentation() override;
     uint16_t get_cpu_frequency() override;
     void get_info(JsonDocument& doc) override;
+    void get_sensors(JsonDocument& doc) override;
+    long get_uptime();
 
     bool is_system_pin(uint8_t pin) override;
 
