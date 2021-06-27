@@ -253,6 +253,8 @@ static void gpio_setup_pin(uint8_t index)
         case hasp_gpio_type_t::LED... hasp_gpio_type_t::LED_W:
             // case hasp_gpio_type_t::BACKLIGHT:
             pinMode(gpio->pin, OUTPUT);
+            gpio->power = gpio->inverted; // gpio is off, state is set to reflect the true output state of the gpio
+            gpio->val   = gpio->inverted ? 0 : gpio->max;
 #if defined(ARDUINO_ARCH_ESP32)
             if(pwm_channel < 16) {
                 // configure LED PWM functionalitites
