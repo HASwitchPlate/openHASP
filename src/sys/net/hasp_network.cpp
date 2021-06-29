@@ -30,8 +30,10 @@ void networkStart(void)
     // haspProgressVal(255); // hide
     haspReconnect();
     debugStartSyslog();
-    // mqttStart();
+// mqttStart();
+#if HASP_USE_HTTP > 0
     httpStart();
+#endif
 #if HASP_USE_MDNS > 0
     mdnsStart();
 #endif // HASP_USE_MDNS
@@ -43,7 +45,9 @@ void networkStop(void)
 
     debugStopSyslog();
     // mqttStop();
+#if HASP_USE_HTTP > 0
     httpStop();
+#endif
     mdnsStop();
 }
 

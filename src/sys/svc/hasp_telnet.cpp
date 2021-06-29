@@ -235,10 +235,13 @@ static void telnetProcessLine(const char* input)
                strcasecmp_P(input, PSTR("bye")) == 0) {
                 telnetClientDisconnect();
             } else if(strcasecmp_P(input, PSTR("logoff")) == 0) {
+#if HASP_USE_HTTP > 0
                 if(strcmp(input, http_config.password) == 0) {
                     telnetClient.println(F("\r\n" D_USERNAME " "));
                     telnetLoginState = TELNET_UNAUTHENTICATED;
-                } else {
+                } else
+#endif
+                {
                     telnetClientDisconnect();
                 }
             } else {
@@ -317,7 +320,7 @@ IRAM_ATTR void telnetLoop()
     if(telnetClient.connected()) {
         if(telnetConsole) {
             while(telnetConsole->readKey()) {
-                if(!telnetConsole) return;                                        // the telnetConsole was destroyed
+                if(!telnetConsole) return; // the telnetConsole was destroyed
                 if(bufferedTelnetClient.available() <= 0) bufferedTelnetClient.flush(); // flush pending updates
             };
 
