@@ -1421,7 +1421,6 @@ void webHandleWifiConfig()
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-#if HASP_USE_HTTP > 0
 void webHandleHttpConfig()
 { // http://plate01/config/http
     if(!httpIsAuthenticated(F("config/http"))) return;
@@ -1456,7 +1455,6 @@ void webHandleHttpConfig()
     // httpMessage.clear();
     webSendFooter();
 }
-#endif
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 #if HASP_USE_GPIO > 0
