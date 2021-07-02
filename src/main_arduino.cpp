@@ -90,7 +90,7 @@ void setup()
     otaSetup();
 #endif
 
-#if HASP_USE_HTTP > 0
+#if HASP_USE_HTTP > 0 || HASP_USE_HTTP_ASYNC > 0
     httpSetup();
 #endif
 
@@ -160,8 +160,8 @@ IRAM_ATTR void loop()
                 break;
 
             case 2:
-#if HASP_USE_HTTP > 0
-                // httpEvery5Seconds();
+#if HASP_USE_HTTP_ASYNC > 0
+                 httpEvery5Seconds();
 #endif
                 break;
 

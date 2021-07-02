@@ -58,6 +58,10 @@
 #define HASP_USE_HTTP (HASP_HAS_NETWORK)
 #endif
 
+#ifndef HASP_USE_HTTP_ASYNC
+#define HASP_USE_HTTP_ASYNC 0 //(HASP_HAS_NETWORK)
+#endif
+
 #ifndef HASP_USE_MDNS
 #define HASP_USE_MDNS (HASP_HAS_NETWORK)
 #endif
@@ -221,6 +225,10 @@ static WiFiSpiClass WiFi;
 #endif
 
 #if HASP_USE_HTTP > 0
+#include "sys/svc/hasp_http.h"
+#endif
+
+#if HASP_USE_HTTP_ASYNC > 0
 #include "sys/svc/hasp_http.h"
 #endif
 

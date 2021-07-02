@@ -29,7 +29,7 @@ EthernetClient telnetClient;
 static EthernetServer telnetServer(23);
 #endif
 
-#if HASP_USE_HTTP > 0
+#if HASP_USE_HTTP > 0 || HASP_USE_HTTP_ASYNC > 0
 extern hasp_http_config_t http_config;
 #endif
 
@@ -48,9 +48,10 @@ void telnet_update_prompt()
     bufferedTelnetClient.flush();
 }
 
-void telnetStop(void)
+static void telnetClientDisconnect()
 {
-    LOG_TRACE(TAG_TELN, F(D_TELNET_CLOSING_CONNECTION), telnetClient.remoteIP().toString().c_str());
+    if(telnetClient.connected())
+        LOG_TRACE(TAG_TELN, F(D_TELNET_CLOSING_CONNECTION), telnetClient.remoteIP().toString().c_str());
     Log.unregisterOutput(1); // telnetClient
     telnetClient.stop();
 
@@ -60,9 +61,11 @@ void telnetStop(void)
     telnetConsole = NULL;
 }
 
-static inline void telnetClientDisconnect()
+void telnetStop(void)
 {
-    telnetStop();
+    telnetClientDisconnect();
+    delete telnetServer;
+    telnetServer = NULL;
 }
 
 void telnetClientLogon()
@@ -99,7 +102,7 @@ void telnetAcceptClient()
     // telnetClient.print((char)0xFD);
     // telnetClient.print((char)0x1B);
 
-#if HASP_USE_HTTP > 0
+#if HASP_USE_HTTP > 0 || HASP_USE_HTTP_ASYNC > 0
     if(strlen(http_config.user) != 0 || strlen(http_config.password) != 0) {
         telnetClient.println(F("\r\n" D_USERNAME " "));
         telnetLoginState = TELNET_UNAUTHENTICATED;
@@ -119,7 +122,7 @@ static inline void telnetProcessLine()
     switch(telnetLoginState) {
         case TELNET_UNAUTHENTICATED: {
             telnetClient.printf(PSTR(D_PASSWORD" %c%c%c"), 0xFF, 0xFB, 0x01); // Hide characters
-#if HASP_USE_HTTP > 0
+#if HASP_USE_HTTP > 0 || HASP_USE_HTTP_ASYNC > 0
             telnetLoginState = strcmp(telnetInputBuffer, http_config.user) == 0 ? TELNET_USERNAME_OK : TELNET_USERNAME_NOK;
             break;
         }
@@ -205,7 +208,7 @@ static void telnetProcessLine(const char* input)
             snprintf_P(buffer, sizeof(buffer), PSTR(D_PASSWORD " %c%c%c\n"), 0xFF, 0xFB,
                        0x01); // Hide characters
             telnetClient.print(buffer);
-#if HASP_USE_HTTP > 0
+#if HASP_USE_HTTP > 0 || HASP_USE_HTTP_ASYNC > 0
             telnetLoginState = strcmp(input, http_config.user) == 0 ? TELNET_USERNAME_OK : TELNET_USERNAME_NOK;
             break;
         }
@@ -235,7 +238,7 @@ static void telnetProcessLine(const char* input)
                strcasecmp_P(input, PSTR("bye")) == 0) {
                 telnetClientDisconnect();
             } else if(strcasecmp_P(input, PSTR("logoff")) == 0) {
-#if HASP_USE_HTTP > 0
+#if HASP_USE_HTTP > 0 || HASP_USE_HTTP_ASYNC > 0
                 if(strcmp(input, http_config.password) == 0) {
                     telnetClient.println(F("\r\n" D_USERNAME " "));
                     telnetLoginState = TELNET_UNAUTHENTICATED;
@@ -250,7 +253,7 @@ static void telnetProcessLine(const char* input)
     }
 }
 
-void telnetSetup()
+void telnetStart()
 {
     // telnetSetConfig(settings);
 
@@ -282,6 +285,9 @@ void telnetSetup()
 #endif
     }
 }
+
+void telnetSetup()
+{telnetStart();}
 
 IRAM_ATTR void telnetLoop()
 {
