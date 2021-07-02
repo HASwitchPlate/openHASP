@@ -1173,6 +1173,8 @@ static hasp_attribute_type_t specific_bool_attribute(lv_obj_t* obj, uint16_t att
         hasp_attr_update_bool_const_t list[] = {
             {LV_HASP_ARC, ATTR_ADJUSTABLE, my_arc_set_adjustable, my_arc_get_adjustable},
             {LV_HASP_BTNMATRIX, ATTR_ONE_CHECK, lv_btnmatrix_set_one_check, lv_btnmatrix_get_one_check},
+            {LV_HASP_LINE, ATTR_Y_INVERT, lv_line_set_y_invert, lv_line_get_y_invert},
+            {LV_HASP_LINE, ATTR_AUTO_SIZE, lv_line_set_auto_size, lv_line_get_auto_size},
             {LV_HASP_IMAGE, ATTR_AUTO_SIZE, lv_img_set_auto_size, lv_img_get_auto_size}};
         if(do_attribute(list, obj, attr_hash, val, update)) return HASP_ATTR_TYPE_BOOL;
     }
@@ -2032,6 +2034,7 @@ void hasp_process_obj_attribute(lv_obj_t* obj, const char* attribute, const char
         case ATTR_ONE_CHECK:
         case ATTR_AUTO_SIZE:
         case ATTR_SHOW_SELECTED:
+        case ATTR_Y_INVERT:
             val = Parser::is_true(payload);
             ret = specific_bool_attribute(obj, attr_hash, val, update);
             break;
@@ -2076,9 +2079,8 @@ void hasp_process_obj_attribute(lv_obj_t* obj, const char* attribute, const char
                 break;
 
             case LV_HASP_LINE:
-                if(attr_hash == ATTR_POINTS) {
+                if(attr_hash == ATTR_POINTS)
                     ret = my_line_set_points(obj, payload) ? HASP_ATTR_TYPE_METHOD_OK : HASP_ATTR_TYPE_RANGE_ERROR;
-                }
                 break;
 
             case LV_HASP_CPICKER:
