@@ -508,6 +508,15 @@ void hasp_new_object(const JsonObject& config, uint8_t& saved_page_id)
                 }
                 break;
 
+            case LV_HASP_LINE:
+            case HASP_OBJ_LINE:
+                obj = lv_line_create(parent_obj, NULL);
+                if(obj) {
+                    lv_obj_set_event_cb(obj, delete_event_handler);
+                    obj->user_data.objid = LV_HASP_LINE;
+                }
+                break;
+
             case LV_HASP_BAR:
             case HASP_OBJ_BAR:
                 obj = lv_bar_create(parent_obj, NULL);

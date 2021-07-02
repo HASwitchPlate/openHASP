@@ -135,15 +135,13 @@ static void my_msgbox_set_map(lv_obj_t* obj, const char* payload)
 
 void line_clear_points(lv_obj_t* obj)
 {
-    lv_line_ext_t* ext = (lv_line_ext_t*)lv_obj_get_ext_attr(obj);
-    if(ext->point_array && (ext->point_num > 0)) {
-        const lv_point_t* ptr = ext->point_array;
-        lv_line_set_points(obj, NULL, 0);
-        lv_mem_free(ptr);
-    }
+    lv_line_ext_t* ext    = (lv_line_ext_t*)lv_obj_get_ext_attr(obj);
+    const lv_point_t* ptr = ext->point_array;
+    lv_line_set_points(obj, NULL, 0);
+    lv_mem_free(ptr);
 }
 
-static void line_set_points(lv_obj_t* obj, const char* payload)
+static bool my_line_set_points(lv_obj_t* obj, const char* payload)
 {
     line_clear_points(obj); // delete pointmap
 
@@ -155,7 +153,7 @@ static void line_set_points(lv_obj_t* obj, const char* payload)
 
     if(jsonError) { // Couldn't parse incoming JSON payload
         dispatch_json_error(TAG_ATTR, jsonError);
-        return;
+        return false;
     }
 
     JsonArray arr = doc.as<JsonArray>(); // Parse payload
@@ -164,7 +162,7 @@ static void line_set_points(lv_obj_t* obj, const char* payload)
     lv_point_t* point_arr = (lv_point_t*)lv_mem_alloc(tot_len);
     if(point_arr == NULL) {
         LOG_ERROR(TAG_ATTR, F("Out of memory while creating line points"));
-        return;
+        return false;
     }
     memset(point_arr, 0, tot_len);
 
@@ -177,9 +175,9 @@ static void line_set_points(lv_obj_t* obj, const char* payload)
         index++;
     }
 
+    line_clear_points(obj); // free previous pointlist!
     lv_line_set_points(obj, point_arr, arr.size());
-
-    // TO DO : free & destroy previous pointlist!
+    return true;
 }
 
 static lv_font_t* haspPayloadToFont(const char* payload)
@@ -2075,6 +2073,12 @@ void hasp_process_obj_attribute(lv_obj_t* obj, const char* attribute, const char
             case LV_HASP_LINEMETER:
                 val = strtol(payload, nullptr, DEC);
                 ret = hasp_process_lmeter_attribute(obj, attr_hash, val, update);
+                break;
+
+            case LV_HASP_LINE:
+                if(attr_hash == ATTR_POINTS) {
+                    ret = my_line_set_points(obj, payload) ? HASP_ATTR_TYPE_METHOD_OK : HASP_ATTR_TYPE_RANGE_ERROR;
+                }
                 break;
 
             case LV_HASP_CPICKER:

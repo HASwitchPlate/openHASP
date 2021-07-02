@@ -38,8 +38,10 @@ void swipe_event_handler(lv_obj_t* obj, lv_event_t event);
  * Clean-up allocated memory before an object is deleted
  * @param obj pointer to an object to clean-up
  */
-static void event_delete_object(lv_obj_t* obj)
+void delete_event_handler(lv_obj_t* obj, lv_event_t event)
 {
+    if(event != LV_EVENT_DELETE) return;
+
     switch(obj_get_type(obj)) {
         case LV_HASP_LINE:
             line_clear_points(obj);
@@ -175,7 +177,7 @@ static bool translate_event(lv_obj_t* obj, lv_event_t event, uint8_t& eventid)
 
         case LV_EVENT_DELETE:
             LOG_VERBOSE(TAG_EVENT, F(D_OBJECT_DELETED));
-            event_delete_object(obj);
+            delete_event_handler(obj, event);
             break;
 
         case LV_EVENT_PRESSED:
@@ -392,7 +394,7 @@ void generic_event_handler(lv_obj_t* obj, lv_event_t event)
 
         case LV_EVENT_DELETE:
             LOG_VERBOSE(TAG_EVENT, F(D_OBJECT_DELETED));
-            event_delete_object(obj); // free and destroy persistent memory allocated for certain objects
+            delete_event_handler(obj, event); // free and destroy persistent memory allocated for certain objects
             return;
 
         case LV_EVENT_PRESSING:

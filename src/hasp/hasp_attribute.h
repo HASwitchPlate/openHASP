@@ -157,12 +157,12 @@ struct hasp_attr_update_char_const_t
     }
 
 #define _HASP_ATTRIBUTE(prop_name, func_name, value_type)                                                              \
-    static inline hasp_attribute_type_t attribute_##func_name(lv_obj_t* obj, uint8_t part, lv_state_t state, bool update,               \
-                                             value_type val, int32_t& res)                                             \
+    static inline hasp_attribute_type_t attribute_##func_name(lv_obj_t* obj, uint8_t part, lv_state_t state,           \
+                                                              bool update, value_type val, int32_t& res)               \
     {                                                                                                                  \
         if(update) lv_obj_set_style_local_##func_name(obj, part, state, (value_type)val);                              \
         res = (int32_t)lv_obj_get_style_##func_name(obj, part);                                                        \
-        return HASP_ATTR_TYPE_INT;                                                                                                        \
+        return HASP_ATTR_TYPE_INT;                                                                                     \
     }
 
 _HASP_ATTRIBUTE(RADIUS, radius, lv_style_int_t)
@@ -467,6 +467,10 @@ _HASP_ATTRIBUTE(SCALE_END_LINE_WIDTH, scale_end_line_width, lv_style_int_t)
 #define ATTR_THICKNESS 24180
 //#define ATTR_ARC_LENGTH 755 - use ATTR_ANGLE
 // #define ATTR_DIRECTION 32415 - see Dropdown
+
+// Line
+#define ATTR_POINTS 8643
+#define ATTR_Y_INVERT 44252
 
 /* hasp user data */
 #define ATTR_ACTION 42102
