@@ -238,19 +238,21 @@ void Esp32Device::update_backlight()
 
 size_t Esp32Device::get_free_max_block()
 {
-    return ESP.getMaxAllocHeap();
+    // return ESP.getMaxAllocHeap();
+    return heap_caps_get_largest_free_block(MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT);
 }
 
 size_t Esp32Device::get_free_heap()
 {
-    return ESP.getFreeHeap();
+    // return ESP.getFreeHeap();
+    return heap_caps_get_free_size(MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT);
 }
 
 uint8_t Esp32Device::get_heap_fragmentation()
 {
-    uint32_t free = ESP.getFreeHeap();
+    uint32_t free = get_free_heap();
     if(free) {
-        return (int8_t)(100.00f - (float)ESP.getMaxAllocHeap() * 100.00f / (float)free);
+        return (int8_t)(100.00f - (float)get_free_max_block() * 100.00f / (float)free);
     } else {
         return 100; // no free memory
     }
