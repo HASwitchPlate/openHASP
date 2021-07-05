@@ -287,7 +287,9 @@ void telnetStart()
 }
 
 void telnetSetup()
-{telnetStart();}
+{
+    telnetStart();
+}
 
 IRAM_ATTR void telnetLoop()
 {
