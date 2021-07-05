@@ -157,8 +157,9 @@ static bool my_line_set_points(lv_obj_t* obj, const char* payload)
     }
 
     JsonArray arr = doc.as<JsonArray>(); // Parse payload
+    size_t tot_len = sizeof(lv_point_t*) * (arr.size());
+    if(tot_len == 0) return false; // bad input
 
-    size_t tot_len        = sizeof(lv_point_t*) * (arr.size());
     lv_point_t* point_arr = (lv_point_t*)lv_mem_alloc(tot_len);
     if(point_arr == NULL) {
         LOG_ERROR(TAG_ATTR, F("Out of memory while creating line points"));
@@ -168,15 +169,17 @@ static bool my_line_set_points(lv_obj_t* obj, const char* payload)
 
     size_t index = 0;
     for(JsonVariant v : arr) {
-        JsonArray point    = v.as<JsonArray>(); // Parse point
-        point_arr[index].x = point[0].as<int16_t>();
-        point_arr[index].y = point[1].as<int16_t>();
-        LOG_VERBOSE(TAG_ATTR, F(D_BULLET "Adding point %d: %d,%d"), index, point_arr[index].x, point_arr[index].y);
-        index++;
+        JsonArray point = v.as<JsonArray>(); // Parse point
+        if(point.size() == 2) {
+            point_arr[index].x = point[0].as<int16_t>();
+            point_arr[index].y = point[1].as<int16_t>();
+            LOG_VERBOSE(TAG_ATTR, F(D_BULLET "Adding point %d: %d,%d"), index, point_arr[index].x, point_arr[index].y);
+            index++;
+        }
     }
 
-    line_clear_points(obj); // free previous pointlist!
-    lv_line_set_points(obj, point_arr, arr.size());
+    line_clear_points(obj);                    // free previous pointlist
+    lv_line_set_points(obj, point_arr, index); // arr.size());
     return true;
 }
 
