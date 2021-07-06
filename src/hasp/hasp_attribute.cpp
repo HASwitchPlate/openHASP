@@ -156,7 +156,7 @@ static bool my_line_set_points(lv_obj_t* obj, const char* payload)
         return false;
     }
 
-    JsonArray arr = doc.as<JsonArray>(); // Parse payload
+    JsonArray arr  = doc.as<JsonArray>(); // Parse payload
     size_t tot_len = sizeof(lv_point_t*) * (arr.size());
     if(tot_len == 0) return false; // bad input
 
@@ -266,96 +266,82 @@ static void hasp_attribute_get_part_state(lv_obj_t* obj, const char* attr_in, ch
 
     // Drop Trailing partnumber
     if(attr_in[len - 1] == '0' || index > 0) {
-        part = LV_TABLE_PART_BG;
         len--;
     }
     strncpy(attr_out, attr_in, len);
     attr_out[len] = 0;
 
-    /* Attributes depending on objecttype */
-    // lv_obj_type_t list;
-    // lv_obj_get_type(obj, &list);
-    // const char * objtype = list.type[0];
-
-    if(obj_check_type(obj, LV_HASP_BUTTON)) {
-        switch(index) {
-            case 1:
-                state = LV_BTN_STATE_PRESSED;
-                break;
-            case 2:
-                state = LV_BTN_STATE_DISABLED;
-                break;
-            case 3:
-                state = LV_BTN_STATE_CHECKED_RELEASED;
-                break;
-            case 4:
-                state = LV_BTN_STATE_CHECKED_PRESSED;
-                break;
-            case 5:
-                state = LV_BTN_STATE_CHECKED_DISABLED;
-                break;
-            default:
-                state = LV_BTN_STATE_RELEASED;
-        }
-        part = LV_BTN_PART_MAIN;
-        return;
-    }
-
 #if(LV_SLIDER_PART_INDIC != LV_SWITCH_PART_INDIC) || (LV_SLIDER_PART_KNOB != LV_SWITCH_PART_KNOB) ||                   \
     (LV_SLIDER_PART_BG != LV_SWITCH_PART_BG) || (LV_SLIDER_PART_INDIC != LV_ARC_PART_INDIC) ||                         \
     (LV_SLIDER_PART_KNOB != LV_ARC_PART_KNOB) || (LV_SLIDER_PART_BG != LV_ARC_PART_BG) ||                              \
     (LV_SLIDER_PART_INDIC != LV_SPINNER_PART_INDIC) || (LV_SLIDER_PART_BG != LV_SPINNER_PART_BG) ||                    \
-    (LV_SLIDER_PART_INDIC != LV_BAR_PART_INDIC) || (LV_SLIDER_PART_BG != LV_BAR_PART_BG)
-#error "LV_SLIDER, LV_BAR, LV_ARC, LV_SPINNER, LV_SWITCH parts should match!"
+    (LV_SLIDER_PART_INDIC != LV_BAR_PART_INDIC) || (LV_SLIDER_PART_BG != LV_BAR_PART_BG) ||                            \
+    (LV_SLIDER_PART_KNOB != LV_GAUGE_PART_NEEDLE) || (LV_SLIDER_PART_INDIC != LV_GAUGE_PART_MAJOR) ||                  \
+    (LV_SLIDER_PART_BG != LV_GAUGE_PART_MAIN)
+#error "LV_SLIDER, LV_BAR, LV_ARC, LV_SPINNER, LV_SWITCH, LV_GAUGE parts should match!"
 #endif
 
-    if(obj_check_type(obj, LV_HASP_SLIDER) || obj_check_type(obj, LV_HASP_SWITCH) || obj_check_type(obj, LV_HASP_ARC) ||
-       obj_check_type(obj, LV_HASP_BAR) || obj_check_type(obj, LV_HASP_SPINNER)) {
-        if(index == 1) {
-            part = LV_SLIDER_PART_INDIC;
-        } else if(index == 2) {
-            if(!obj_check_type(obj, LV_HASP_BAR) && !obj_check_type(obj, LV_HASP_SPINNER)) part = LV_SLIDER_PART_KNOB;
-        } else {
-            part = LV_SLIDER_PART_BG;
-        }
-        state = LV_STATE_DEFAULT;
-        return;
-    }
+    /* Attributes depending on objecttype */
+    state = LV_STATE_DEFAULT;
 
-    if(obj_check_type(obj, LV_HASP_CHECKBOX)) {
-        if(index == 1) {
-            part = LV_CHECKBOX_PART_BULLET;
-        } else {
-            part = LV_CHECKBOX_PART_BG;
-        }
-        state = LV_STATE_DEFAULT;
-        return;
-    }
+    switch(obj_get_type(obj)) {
+        case LV_HASP_BUTTON:
+            switch(index) {
+                case 1:
+                    state = LV_BTN_STATE_PRESSED;
+                    break;
+                case 2:
+                    state = LV_BTN_STATE_DISABLED;
+                    break;
+                case 3:
+                    state = LV_BTN_STATE_CHECKED_RELEASED;
+                    break;
+                case 4:
+                    state = LV_BTN_STATE_CHECKED_PRESSED;
+                    break;
+                case 5:
+                    state = LV_BTN_STATE_CHECKED_DISABLED;
+                    break;
+                default:
+                    state = LV_BTN_STATE_RELEASED;
+            }
+            part = LV_BTN_PART_MAIN;
+            break;
 
-    if(obj_check_type(obj, LV_HASP_CPICKER)) {
-        if(index == 1) {
-            part = LV_CPICKER_PART_KNOB;
-        } else {
-            part = LV_CPICKER_PART_MAIN;
-        }
-        state = LV_STATE_DEFAULT;
-        return;
-    }
+        case LV_HASP_SLIDER:
+        case LV_HASP_SWITCH:
+        case LV_HASP_ARC:
+        case LV_HASP_BAR:
+        case LV_HASP_SPINNER:
+            if(index == 1) {
+                part = LV_SLIDER_PART_INDIC;
+            } else if(index == 2) {
+                if(!obj_check_type(obj, LV_HASP_BAR) && !obj_check_type(obj, LV_HASP_SPINNER))
+                    part = LV_SLIDER_PART_KNOB;
+            } else {
+                part = LV_SLIDER_PART_BG;
+            }
+            break;
 
-    if(obj_check_type(obj, LV_HASP_ROLLER)) {
-        if(index == 1) {
-            part = LV_ROLLER_PART_SELECTED;
-        } else {
-            part = LV_ROLLER_PART_BG;
-        }
-        state = LV_STATE_DEFAULT;
-        return;
-    }
+        case LV_HASP_CHECKBOX:
+            part = index == 1 ? LV_CHECKBOX_PART_BULLET : LV_CHECKBOX_PART_BG;
+            break;
 
-    // if(obj_check_type(obj, LV_HASP_LINEMETER)) {
-    //     state = LV_STATE_DEFAULT;
-    //     return;
-    // }
+        case LV_HASP_CPICKER:
+            part = index == 1 ? LV_CPICKER_PART_KNOB : LV_CPICKER_PART_MAIN;
+            break;
+
+        case LV_HASP_ROLLER:
+            part = index == 1 ? LV_ROLLER_PART_SELECTED : LV_ROLLER_PART_BG;
+            break;
+
+        case LV_HASP_GAUGE:
+            part = index <= LV_GAUGE_PART_NEEDLE ? index : LV_GAUGE_PART_MAIN;
+            break;
+
+        default:
+            part = LV_TABLE_PART_BG;
+    }
 }
 
 /**
