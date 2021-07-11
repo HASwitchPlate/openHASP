@@ -3,6 +3,7 @@
 
 #include "hasplib.h"
 #include "dev/device.h"
+#include "lv_datetime.h"
 
 #ifdef ARDUINO
 #include "ArduinoLog.h"
@@ -441,10 +442,10 @@ void haspSetup(void)
 #endif
 #endif
 
-    if(haspFonts[0] == nullptr) haspFonts[0] = &HASP_FONT_1; // LV_THEME_DEFAULT_FONT_SMALL;
-    if(haspFonts[1] == nullptr) haspFonts[1] = &HASP_FONT_2; // LV_THEME_DEFAULT_FONT_NORMAL;
-    if(haspFonts[2] == nullptr) haspFonts[2] = &HASP_FONT_3; // LV_THEME_DEFAULT_FONT_SUBTITLE;
-    if(haspFonts[3] == nullptr) haspFonts[3] = &HASP_FONT_4; // LV_THEME_DEFAULT_FONT_TITLE;
+    if(haspFonts[0] == nullptr) haspFonts[0] = LV_THEME_DEFAULT_FONT_SMALL;
+    if(haspFonts[1] == nullptr) haspFonts[1] = LV_THEME_DEFAULT_FONT_NORMAL;
+    if(haspFonts[2] == nullptr) haspFonts[2] = LV_THEME_DEFAULT_FONT_SUBTITLE;
+    if(haspFonts[3] == nullptr) haspFonts[3] = LV_THEME_DEFAULT_FONT_TITLE;
 
     // haspFonts[0] = lv_font_load("E:/font_1.fnt");
     // haspFonts[2] = lv_font_load("E:/font_2.fnt");
