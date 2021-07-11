@@ -3,7 +3,6 @@
 
 #include "hasplib.h"
 #include "dev/device.h"
-#include "lv_datetime.h"
 
 #ifdef ARDUINO
 #include "ArduinoLog.h"
