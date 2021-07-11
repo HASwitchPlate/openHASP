@@ -26,6 +26,7 @@
 #include "lv_fs_if.h"
 #include "hasp_gui.h"
 #include "hasp_config.h"
+#include "font/hasp_font_loader.h"
 //#include "hasp_filesystem.h" included in hasp_conf.h
 #endif
 
@@ -84,15 +85,15 @@ lv_style_t style_mbox_bg; /*Black bg. style with opacity*/
 lv_obj_t* kb;
 // lv_font_t * defaultFont;
 
-static lv_font_t* haspFonts[4] = {nullptr, nullptr, nullptr, nullptr};
-uint8_t current_page           = 1;
+static lv_font_t* haspFonts[12] = {nullptr};
+uint8_t current_page            = 1;
 
 /**
  * Get Font ID
  */
 lv_font_t* hasp_get_font(uint8_t fontid)
 {
-    if(fontid >= 4) {
+    if(fontid >= sizeof(haspFonts) / sizeof(haspFonts[0])) {
         return nullptr;
     } else {
         return haspFonts[fontid];
@@ -300,6 +301,84 @@ static void custom_font_apply_cb(lv_theme_t* th, lv_obj_t* obj, lv_theme_style_t
         } */
 }
 
+void hasp_set_theme(uint8_t themeid)
+{
+    lv_theme_t* th             = NULL;
+    lv_color_t color_primary   = lv_color_hsv_to_rgb(haspThemeHue, 100, 100);
+    lv_color_t color_secondary = lv_color_hsv_to_rgb(haspThemeHue, 100, 100);
+
+    /* ********** Theme Initializations ********** */
+    if(themeid == 8) themeid = 1;          // update old HASP id
+    if(themeid == 9) themeid = 5;          // update old material id
+    if(themeid < 0 || themeid > 5) return; // check bounds
+
+#if(LV_USE_THEME_HASP == 1)
+    uint32_t hasp_flags = LV_THEME_HASP_FLAG_LIGHT;
+#endif
+
+#if(LV_USE_THEME_MATERIAL == 1)
+    // LV_THEME_MATERIAL_FLAG_NO_TRANSITION : disable transitions(state change animations)
+    // LV_THEME_MATERIAL_FLAG_NO_FOCUS: disable indication of focused state)
+    uint32_t material_flags = LV_THEME_MATERIAL_FLAG_LIGHT + LV_THEME_MATERIAL_FLAG_NO_TRANSITION;
+#endif
+
+    switch(themeid) {
+#if(LV_USE_THEME_EMPTY == 1)
+        case 0:
+            th = lv_theme_empty_init(lv_color_hsv_to_rgb(haspThemeHue, 100, 100),
+                                     lv_color_hsv_to_rgb(haspThemeHue, 100, 100), LV_THEME_DEFAULT_FLAGS, haspFonts[0],
+                                     haspFonts[1], haspFonts[2], haspFonts[3]);
+            break;
+#endif
+
+#if(LV_USE_THEME_HASP == 1)
+        case 2: // Dark
+            hasp_flags = LV_THEME_HASP_FLAG_DARK;
+        case 1: // Light
+        case 8: // Light (old id)
+            th = lv_theme_hasp_init(color_primary, color_secondary, hasp_flags + LV_THEME_HASP_FLAG_NO_FOCUS,
+                                    haspFonts[0], haspFonts[1], haspFonts[2], haspFonts[3]);
+            break;
+#endif
+
+#if(LV_USE_THEME_MONO == 1)
+        case 3:
+            th = lv_theme_mono_init(color_primary, color_secondary, LV_THEME_DEFAULT_FLAGS, haspFonts[0], haspFonts[1],
+                                    haspFonts[2], haspFonts[3]);
+            break;
+#endif
+
+#if LV_USE_THEME_MATERIAL == 1
+        case 5: // Dark
+            material_flags = LV_THEME_MATERIAL_FLAG_DARK + LV_THEME_MATERIAL_FLAG_NO_TRANSITION;
+        case 4: // Light
+        case 9: // Light (old id)
+            th =
+                lv_theme_material_init(color_primary, color_secondary, material_flags + LV_THEME_MATERIAL_FLAG_NO_FOCUS,
+                                       haspFonts[0], haspFonts[1], haspFonts[2], haspFonts[3]);
+            break;
+#endif
+
+#if LV_USE_THEME_TEMPLATE == 1
+        case 7:
+            th = lv_theme_template_init(LV_COLOR_PURPLE, LV_COLOR_ORANGE, LV_THEME_DEFAULT_FLAGS, haspFonts[0],
+                                        haspFonts[1], haspFonts[2], haspFonts[3]);
+            break;
+#endif
+
+        default:
+
+            LOG_ERROR(TAG_HASP, F("Unknown theme selected"));
+    }
+
+    if(th) {
+        lv_theme_set_act(th);
+        LOG_INFO(TAG_HASP, F("Custom theme loaded"));
+    } else {
+        LOG_ERROR(TAG_HASP, F("Theme could not be loaded"));
+    }
+}
+
 /**
  * Create a demo application
  */
@@ -362,99 +441,17 @@ void haspSetup(void)
 #endif
 #endif
 
-    if(haspFonts[0] == nullptr) haspFonts[0] = LV_THEME_DEFAULT_FONT_SMALL;
-    if(haspFonts[1] == nullptr) haspFonts[1] = LV_THEME_DEFAULT_FONT_NORMAL;
-    if(haspFonts[2] == nullptr) haspFonts[2] = LV_THEME_DEFAULT_FONT_SUBTITLE;
-    if(haspFonts[3] == nullptr) haspFonts[3] = LV_THEME_DEFAULT_FONT_TITLE;
+    if(haspFonts[0] == nullptr) haspFonts[0] = &HASP_FONT_1; // LV_THEME_DEFAULT_FONT_SMALL;
+    if(haspFonts[1] == nullptr) haspFonts[1] = &HASP_FONT_2; // LV_THEME_DEFAULT_FONT_NORMAL;
+    if(haspFonts[2] == nullptr) haspFonts[2] = &HASP_FONT_3; // LV_THEME_DEFAULT_FONT_SUBTITLE;
+    if(haspFonts[3] == nullptr) haspFonts[3] = &HASP_FONT_4; // LV_THEME_DEFAULT_FONT_TITLE;
 
     // haspFonts[0] = lv_font_load("E:/font_1.fnt");
     // haspFonts[2] = lv_font_load("E:/font_2.fnt");
-    // haspFonts[3] = lv_font_load("E:/font_3.fnt");
 
-    /* ********** Theme Initializations ********** */
-    if(haspThemeId == 8) haspThemeId = 1;                   // update old HASP id
-    if(haspThemeId == 9) haspThemeId = 5;                   // update old material id
-    if(haspThemeId < 0 || haspThemeId > 5) haspThemeId = 1; // check bounds
+    // haspFonts[3] = hasp_font_load("L:/robotocondensed_60_latin1.bin");
 
-    lv_theme_t* th = NULL;
-#if(LV_USE_THEME_HASP == 1)
-    lv_theme_hasp_flag_t hasp_flags = LV_THEME_HASP_FLAG_LIGHT;
-#endif
-#if(LV_USE_THEME_MATERIAL == 1)
-    lv_theme_material_flag_t material_flags = LV_THEME_MATERIAL_FLAG_LIGHT;
-#endif
-
-    switch(haspThemeId) {
-#if(LV_USE_THEME_EMPTY == 1)
-        case 0:
-            th = lv_theme_empty_init(lv_color_hsv_to_rgb(haspThemeHue, 100, 100),
-                                     lv_color_hsv_to_rgb(haspThemeHue, 100, 100), LV_THEME_DEFAULT_FLAGS, haspFonts[0],
-                                     haspFonts[1], haspFonts[2], haspFonts[3]);
-            break;
-#endif
-
-#if(LV_USE_THEME_HASP == 1)
-        case 2: // Dark
-            hasp_flags = LV_THEME_HASP_FLAG_DARK;
-        case 1: // Light
-        case 8: // Light (old id)
-            th = lv_theme_hasp_init(
-                lv_color_hsv_to_rgb(haspThemeHue, 100, 100), lv_color_hsv_to_rgb(haspThemeHue, 100, 100),
-                hasp_flags + LV_THEME_HASP_FLAG_NO_FOCUS, haspFonts[0], haspFonts[1], haspFonts[2], haspFonts[3]);
-            break;
-#endif
-
-#if LV_USE_THEME_ALIEN == 1
-        case 1:
-            th = lv_theme_alien_init(haspThemeHue, defaultFont);
-            break;
-#endif
-
-#if LV_USE_THEME_NIGHT == 1
-        case 2:
-            th = lv_theme_night_init(haspThemeHue, defaultFont); // heavy
-            break;
-#endif
-
-#if(LV_USE_THEME_MONO == 1)
-        case 3:
-            th = lv_theme_mono_init(LV_COLOR_PURPLE, LV_COLOR_BLACK, LV_THEME_DEFAULT_FLAGS, haspFonts[0], haspFonts[1],
-                                    haspFonts[2], haspFonts[3]);
-            break;
-#endif
-
-            // LV_THEME_MATERIAL_FLAG_NO_TRANSITION : disable transitions(state change animations)
-            // LV_THEME_MATERIAL_FLAG_NO_FOCUS: disable indication of focused state)
-#if LV_USE_THEME_MATERIAL == 1
-        case 5: // Dark
-            material_flags = LV_THEME_MATERIAL_FLAG_DARK;
-        case 4: // Light
-        case 9: // Light (old id)
-            th = lv_theme_material_init(
-                lv_color_hsv_to_rgb(haspThemeHue, 100, 100), lv_color_hsv_to_rgb(haspThemeHue, 100, 100),
-                material_flags + LV_THEME_MATERIAL_FLAG_NO_FOCUS + LV_THEME_MATERIAL_FLAG_NO_TRANSITION, haspFonts[0],
-                haspFonts[1], haspFonts[2], haspFonts[3]);
-            break;
-#endif
-
-#if LV_USE_THEME_TEMPLATE == 1
-        case 7:
-            th = lv_theme_template_init(LV_COLOR_PURPLE, LV_COLOR_ORANGE, LV_THEME_DEFAULT_FLAGS, haspFonts[0],
-                                        haspFonts[1], haspFonts[2], haspFonts[3]);
-            break;
-#endif
-
-        default:
-
-            LOG_ERROR(TAG_HASP, F("Unknown theme selected"));
-    }
-
-    if(th) {
-        lv_theme_set_act(th);
-        LOG_INFO(TAG_HASP, F("Custom theme loaded"));
-    } else {
-        LOG_ERROR(TAG_HASP, F("Theme could not be loaded"));
-    }
+    hasp_set_theme(haspThemeId);
 
     /* Create all screens using the theme */
 
@@ -467,6 +464,11 @@ void haspSetup(void)
     hasp_init();
     hasp_load_json();
     haspPages.set(haspStartPage, LV_SCR_LOAD_ANIM_FADE_ON);
+
+    // lv_obj_t* obj        = lv_datetime_create(haspPages.get_obj(haspPages.get()), NULL);
+    // obj->user_data.objid = LV_HASP_DATETIME;
+    // obj->user_data.id    = 199;
+    // lv_datetime_set_text_fmt(obj,"%A, %B %d");
 }
 
 /**********************

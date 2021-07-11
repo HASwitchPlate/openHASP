@@ -40,7 +40,7 @@ dispatch_conf_t dispatch_setings = {.teleperiod = 300};
 
 uint16_t dispatchSecondsToNextTeleperiod = 0;
 uint8_t nCommands                        = 0;
-haspCommand_t commands[22];
+haspCommand_t commands[24];
 
 moodlight_t moodlight = {.brightness = 255};
 
@@ -468,7 +468,7 @@ void dispatch_config(const char* topic, const char* payload)
             mdnsGetConfig(settings);
     }
 #endif
-#if HASP_USE_HTTP > 0
+#if HASP_USE_HTTP > 0 || HASP_USE_HTTP_ASYNC > 0
     else if(strcasecmp_P(topic, PSTR("http")) == 0) {
         if(update)
             httpSetConfig(settings);
@@ -867,6 +867,64 @@ void dispatch_reboot(bool saveConfig)
 /******************************************* Command Wrapper Functions *********************************/
 
 // Periodically publish a JSON string indicating system status
+void dispatch_send_sensordata(const char*, const char*)
+{
+#if HASP_USE_MQTT > 0
+
+    StaticJsonDocument<1024> doc;
+
+    time_t rawtime;
+    time(&rawtime);
+    char buffer[80];
+    struct tm* timeinfo = localtime(&rawtime);
+
+    strftime(buffer, sizeof(buffer), "%FT%T", timeinfo);
+    doc[F("time")] = buffer;
+
+    long uptime         = haspDevice.get_uptime();
+    doc[F("uptimeSec")] = (uint32_t)uptime;
+
+    uint32_t seconds = uptime % 60;
+    uint32_t minutes = uptime / 60;
+    uint32_t hours   = minutes / 60;
+    uint32_t days    = hours / 24;
+    minutes          = minutes % 60;
+    hours            = hours % 24;
+    snprintf_P(buffer, sizeof(buffer), PSTR("%dT%02d:%02d:%02d"), days, hours, minutes, seconds);
+    doc[F("uptime")] = buffer;
+
+    haspDevice.get_sensors(doc);
+
+    //     JsonObject input = doc.createNestedObject(F("input"));
+    //     JsonArray relay  = doc.createNestedArray(F("power"));
+    //     JsonArray led    = doc.createNestedArray(F("light"));
+    //     JsonArray dimmer = doc.createNestedArray(F("dim"));
+
+    // #if HASP_USE_GPIO > 0
+    //     gpio_discovery(input, relay, led, dimmer);
+    // #endif
+
+    char data[1024];
+    size_t len = serializeJson(doc, data);
+
+    switch(mqtt_send_discovery(data, len)) {
+        case MQTT_ERR_OK:
+            LOG_TRACE(TAG_MQTT_PUB, F(MQTT_TOPIC_DISCOVERY " => %s"), data);
+            break;
+        case MQTT_ERR_PUB_FAIL:
+            LOG_ERROR(TAG_MQTT_PUB, F(D_MQTT_FAILED " " MQTT_TOPIC_DISCOVERY " => %s"), data);
+            break;
+        case MQTT_ERR_NO_CONN:
+            LOG_ERROR(TAG_MQTT, F(D_MQTT_NOT_CONNECTED));
+            break;
+        default:
+            LOG_ERROR(TAG_MQTT, F(D_ERROR_UNKNOWN));
+    }
+
+#endif
+}
+
+// Periodically publish a JSON string indicating system status
 void dispatch_send_discovery(const char*, const char*)
 {
 #if HASP_USE_MQTT > 0
@@ -1038,6 +1096,25 @@ void dispatch_factory_reset(const char*, const char*)
     dispatch_reboot(false); // don't save running config
 }
 
+void dispatch_theme(const char*, const char* themeid)
+{
+    hasp_set_theme(atoi(themeid));
+}
+
+void dispatch_service(const char*, const char* payload)
+{
+    if(!strcmp_P(payload, "start telnet")) {
+        telnetStart();
+    } else if(!strcmp_P(payload, "stop telnet")) {
+        telnetStop();
+    } else if(!strcmp_P(payload, "start http")) {
+        httpStart();
+    } else if(!strcmp_P(payload, "stop http")) {
+        httpStop();
+    } else {
+    }
+}
+
 /******************************************* Commands builder *******************************************/
 
 static void dispatch_add_command(const char* p_cmdstr, void (*func)(const char*, const char*))
@@ -1073,6 +1150,8 @@ void dispatchSetup()
     dispatch_add_command(PSTR("dim"), dispatch_backlight_obsolete);        // dim
     dispatch_add_command(PSTR("brightness"), dispatch_backlight_obsolete); // dim
     dispatch_add_command(PSTR("light"), dispatch_backlight_obsolete);
+    dispatch_add_command(PSTR("theme"), dispatch_theme);
+    dispatch_add_command(PSTR("service"), dispatch_service);
     dispatch_add_command(PSTR("wakeup"), dispatch_wakeup_obsolete);
     dispatch_add_command(PSTR("calibrate"), dispatch_calibrate);
     dispatch_add_command(PSTR("update"), dispatch_web_update);
@@ -1106,6 +1185,7 @@ void dispatchEverySecond()
     } else if(dispatch_setings.teleperiod > 0 && mqttIsConnected()) {
         dispatch_statusupdate(NULL, NULL);
         dispatch_send_discovery(NULL, NULL);
+        dispatch_send_sensordata(NULL, NULL);
         dispatchSecondsToNextTeleperiod = dispatch_setings.teleperiod;
     }
 }
