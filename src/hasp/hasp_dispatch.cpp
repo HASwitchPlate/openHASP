@@ -1103,16 +1103,21 @@ void dispatch_theme(const char*, const char* themeid)
 
 void dispatch_service(const char*, const char* payload)
 {
+#if HASP_USE_TELNET > 0
     if(!strcmp_P(payload, "start telnet")) {
         telnetStart();
     } else if(!strcmp_P(payload, "stop telnet")) {
         telnetStop();
-    } else if(!strcmp_P(payload, "start http")) {
+    }
+#endif
+
+#if HASP_USE_HTTP > 0 || HASP_USE_HTTP_ASYNC > 0
+    if(!strcmp_P(payload, "start http")) {
         httpStart();
     } else if(!strcmp_P(payload, "stop http")) {
         httpStop();
-    } else {
     }
+#endif
 }
 
 /******************************************* Commands builder *******************************************/
