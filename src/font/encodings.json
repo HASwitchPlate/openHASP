@@ -270,5 +270,47 @@
             "Bullet Symbol": "0x2022",
             "Euro Symbol": "0x20AC"
         }
+    },
+    "greek": {
+        "cpp": "src/font/greek/robotocondensed_regular_{}_greek.cpp",
+        "size": [
+            12,
+            14,
+            16,
+            20,
+            22,
+            24,
+            26,
+            28,
+            32,
+            36,
+            38,
+            40,
+            44,
+            48
+        ],
+        "textfont": "src/font/roboto/RobotoCondensed-Regular.ttf",
+        "iconfont": "src/font/materialdesignicons-webfont.ttf",
+        "chars": {
+            "ASCII range": "0x20-0x7E",
+            "Non-breaking space": "0xA0",
+            "Pound sign": "0xA3",
+            "0xA7": "0xA7",
+            "0xAD": "0xAD",
+            "Degree symbol": "0xB0",
+            "Plus-minus sign": "0xB1",
+            "Superscript two": "0xB2",
+            "Superscript three": "0xB3",
+            "Micro sign": "0xB5",
+            "Multiplication sign": "0xD7",
+            "Division sign": "0xF7",
+            "Greek capital letters": "0x391-0x3A9",
+            "Greek small letters": "0x3B1-0x3C9",
+            // "Greek Theta Symbol": "0x03D1",
+            // "Greek Upsilon with Hook Symbol": "0x03D2",
+            // "Greek Pi Symbol": "0x03D6",
+            "Bullet Symbol": "0x2022",
+            "Euro Symbol": "0x20AC"
+        }
     }
 }
