@@ -101,14 +101,19 @@ void guiCalibrate(void)
 #endif
 }
 
+void guiTftInit(void)
+{
+    haspTft.init(tft_width, tft_height);
+    haspTft.set_rotation(gui_settings.rotation);
+    haspTft.set_invert(gui_settings.invert_display);
+}
+
 void guiSetup()
 {
     LOG_TRACE(TAG_TFT, F(D_SERVICE_STARTING));
 
     // Initialize the TFT
-    haspTft.init(tft_width, tft_height);
-    haspTft.set_rotation(gui_settings.rotation);
-    haspTft.set_invert(gui_settings.invert_display);
+    guiTftInit();
     haspTft.show_info();
 
     LOG_INFO(TAG_TFT, F(D_SERVICE_STARTED));
