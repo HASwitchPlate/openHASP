@@ -26,6 +26,7 @@ void custom_every_second()
 void custom_every_5seconds()
 {
     Log.verbose(TAG_CUSTOM, "5 seconds have passsed...");
+    dispatch_state_subtopic("my_sensor","{\"test\":123}");
 }
 
 bool custom_pin_in_use(uint pin)
