@@ -15,7 +15,7 @@ void custom_setup()
 
 void custom_loop()
 {
-    // Non-blocking code here, this should execure very fast!
+    // Non-blocking code here, this should execute very fast!
 }
 
 void custom_every_second()
