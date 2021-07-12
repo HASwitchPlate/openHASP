@@ -2,9 +2,10 @@
    For full license information read the LICENSE file in the project folder */
 
 #include "hasplib.h"
-#include "custom/my_custom.h"
 
-#if HASP_USE_CUSTOM > 0
+#if HASP_USE_CUSTOM > 0 && false // <-- set this to true in your code
+
+#include "custom/my_custom.h"
 
 void custom_setup()
 {
