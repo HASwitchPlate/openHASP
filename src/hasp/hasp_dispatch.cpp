@@ -36,6 +36,10 @@
 #include "hasp_config.h"
 #endif
 
+#if HASP_USE_CUSTOM > 0
+#include "custom/my_custom.h"
+#endif
+
 dispatch_conf_t dispatch_setings = {.teleperiod = 300};
 
 uint16_t dispatchSecondsToNextTeleperiod = 0;
@@ -894,6 +898,10 @@ void dispatch_send_sensordata(const char*, const char*)
     doc[F("uptime")] = buffer;
 
     haspDevice.get_sensors(doc);
+
+#if HASP_USE_CUSTOM > 0
+    custom_get_sensors(doc);
+#endif
 
     //     JsonObject input = doc.createNestedObject(F("input"));
     //     JsonArray relay  = doc.createNestedArray(F("power"));

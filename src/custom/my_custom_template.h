@@ -22,8 +22,8 @@ void custom_every_5seconds();
 /* return true if the pin used by the custom code */
 bool custom_pin_in_use(uint pin);
 
-/* Add a key which defines a JsonObject to add to the sensor JSON output */
-void custom_get_sensors(JsonObject& doc);
+/* Add a key which defines a JsonObject to add to the sensor JSON document */
+void custom_get_sensors(JsonDocument& doc);
 
 #endif // HASP_USE_CUSTOM
 

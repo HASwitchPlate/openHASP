@@ -35,7 +35,7 @@ bool custom_pin_in_use(uint pin)
     return false;
 }
 
-void custom_get_sensors(JsonObject& doc)
+void custom_get_sensors(JsonDocument& doc)
 {
     /* Sensor Name */
     JsonObject sensor = doc.createNestedObject(F("Custom"));
