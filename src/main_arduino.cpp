@@ -20,6 +20,10 @@
 #include "hasp_gui.h"
 #endif
 
+#if HASP_USE_CUSTOM > 0
+#include "custom/my_custom.h"
+#endif
+
 bool isConnected;
 uint8_t mainLoopCounter        = 0;
 unsigned long mainLastLoopTime = 0;
@@ -106,6 +110,10 @@ void setup()
     slaveSetup();
 #endif
 
+#if HASP_USE_CUSTOM > 0
+    custom_setup();
+#endif
+
     mainLastLoopTime = -1000; // reset loop counter
     delay(20);
     // guiStart();
@@ -137,6 +145,10 @@ IRAM_ATTR void loop()
     consoleLoop();
 #endif
 
+#if HASP_USE_CUSTOM > 0
+    custom_loop();
+#endif
+
 #ifdef HASP_USE_STAT_COUNTER
     statLoopCounter++; // measures the average looptime
 #endif
@@ -152,6 +164,9 @@ IRAM_ATTR void loop()
         telnetEverySecond();
 #endif
 
+#if HASP_USE_CUSTOM > 0
+        custom_every_second();
+#endif
         // debugEverySecond();
 
         switch(++mainLoopCounter) {
@@ -161,13 +176,17 @@ IRAM_ATTR void loop()
 
             case 2:
 #if HASP_USE_HTTP_ASYNC > 0
-                 httpEvery5Seconds();
+                httpEvery5Seconds();
 #endif
                 break;
 
             case 3:
 #if HASP_USE_GPIO > 0
                 //   gpioEvery5Seconds();
+#endif
+
+#if HASP_USE_CUSTOM > 0
+                custom_every_5seconds();
 #endif
                 break;
 

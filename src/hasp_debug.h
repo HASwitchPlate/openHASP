@@ -191,7 +191,9 @@ enum {
 
     TAG_LVGL = 90,
     TAG_LVFS = 91,
-    TAG_FONT = 92
+    TAG_FONT = 92,
+
+    TAG_CUSTOM = 99
 };
 
 //#define TERM_COLOR_Black "\u001b[30m"
