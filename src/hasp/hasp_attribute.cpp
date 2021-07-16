@@ -339,6 +339,29 @@ static void hasp_attribute_get_part_state(lv_obj_t* obj, const char* attr_in, ch
             part = index <= LV_GAUGE_PART_NEEDLE ? index : LV_GAUGE_PART_MAIN;
             break;
 
+        case LV_HASP_TABVIEW:
+            switch(index) {
+                case 1:
+                    state = LV_BTN_STATE_PRESSED;
+                    break;
+                case 2:
+                    state = LV_BTN_STATE_DISABLED;
+                    break;
+                case 3:
+                    state = LV_BTN_STATE_CHECKED_RELEASED;
+                    break;
+                case 4:
+                    state = LV_BTN_STATE_CHECKED_PRESSED;
+                    break;
+                case 5:
+                    state = LV_BTN_STATE_CHECKED_DISABLED;
+                    break;
+                default:
+                    state = LV_BTN_STATE_RELEASED;
+            }
+            part = LV_TABVIEW_PART_TAB_BG;
+            break;
+
         default:
             part = LV_TABLE_PART_BG;
     }
