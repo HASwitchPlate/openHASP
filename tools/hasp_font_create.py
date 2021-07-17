@@ -68,10 +68,11 @@ for (item, data) in fonts.items():
 
         contents[13] = contents[13].replace(" 1", " 0     // default to off")
         contents.insert(0, "/* clang-format off */\n")  # Add c-lang directive
-
-        for line in contents:
-            if (line =="#if LV_VERSION_CHECK(7, 4, 0)"):
-                line = "#if LV_VERSION_CHECK(7, 4, 0) || LV_VERSION_CHECK(8, 0, 0)"
+              
+        for idx,line in enumerate(contents):
+            if "#if LV_VERSION_CHECK(7, 4, 0)" in line:
+                contents[idx] = "#if LV_VERSION_CHECK(7, 4, 0) || LV_VERSION_CHECK(8, 0, 0)\r"
+                print(line)
 
         with open(output, "w", encoding="utf8") as f:
             contents = "".join(contents)
