@@ -33,7 +33,7 @@ HASP_ATTRIBUTE_FAST_MEM bool FT6336U_getXY(int16_t* touchX, int16_t* touchY)
     }
 }
 
-IRAM_ATTR bool touch_read(lv_indev_drv_t* indev_driver, lv_indev_data_t* data)
+IRAM_ATTR void touch_read(lv_indev_drv_t* indev_driver, lv_indev_data_t* data)
 {
 
     if(ft6336u_touch->read_touch_number() == 1) {

@@ -1,4 +1,5 @@
 /* clang-format off */
+/* clang-format off */
 /*******************************************************************************
  * Size: 22 px
  * Bpp: 3
@@ -3410,7 +3411,7 @@ lv_font_t robotocondensed_regular_22_latin1 = {
 #if !(LVGL_VERSION_MAJOR == 6 && LVGL_VERSION_MINOR == 0)
     .subpx = LV_FONT_SUBPX_NONE,
 #endif
-#if LV_VERSION_CHECK(7, 4, 0)
+#if LV_VERSION_CHECK(7, 4, 0) || LV_VERSION_CHECK(8, 0, 0)
     .underline_position = -2,
     .underline_thickness = 1,
 #endif

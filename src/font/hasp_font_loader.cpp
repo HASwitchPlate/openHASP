@@ -11,7 +11,11 @@
 #include <stdbool.h>
 
 #include "lvgl.h"
+#if LV_VERSION_CHECK(8, 0, 0)
+#include "misc/lv_fs.h"
+#else
 #include "lv_misc/lv_fs.h"
+#endif
 #include "hasp_font_loader.h"
 
 #include "hasplib.h"

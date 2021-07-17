@@ -6,7 +6,7 @@
 #include "lv_drv_conf.h"
 
 // Filesystem Driver
-#include "lv_misc/lv_fs.h"
+#include "misc/lv_fs.h"
 #include "lv_fs_if.h"
 
 // Device Drivers
@@ -188,8 +188,8 @@ void guiSetup()
 
     static lv_disp_drv_t disp_drv;
     lv_disp_drv_init(&disp_drv);
-    disp_drv.buffer   = &disp_buf;
-    disp_drv.flush_cb = gui_flush_cb;
+    disp_drv.buffer    = &disp_buf;
+    disp_drv->flush_cb = gui_flush_cb;
 
     if(gui_settings.rotation % 2) {
         disp_drv.hor_res = tft_height;
@@ -206,7 +206,7 @@ void guiSetup()
 
     static lv_disp_drv_t disp_drv;
     lv_disp_drv_init(&disp_drv);
-    disp_drv.buffer   = &disp_buf;
+    disp_drv.draw_buf = &disp_buf;
     disp_drv.flush_cb = gui_flush_cb;
 
     disp_drv.hor_res = tft_width;
@@ -220,7 +220,7 @@ void guiSetup()
 
     static lv_disp_drv_t disp_drv;
     lv_disp_drv_init(&disp_drv);
-    disp_drv.buffer   = &disp_buf;
+    disp_drv.draw_buf = &disp_buf;
     disp_drv.flush_cb = gui_flush_cb;
 
     disp_drv.hor_res = tft_height;
@@ -234,7 +234,7 @@ void guiSetup()
 
     static lv_disp_drv_t disp_drv;
     lv_disp_drv_init(&disp_drv);
-    disp_drv.buffer   = &disp_buf;
+    disp_drv.draw_buf = &disp_buf;
     disp_drv.flush_cb = gui_flush_cb;
 
     disp_drv.hor_res = tft_width;
@@ -301,8 +301,8 @@ void guiSetup()
 #else
     indev_drv.read_cb = touch_read;
 #endif
-    lv_indev_t* mouse_indev  = lv_indev_drv_register(&indev_drv);
-    mouse_indev->driver.type = LV_INDEV_TYPE_POINTER;
+    lv_indev_t* mouse_indev   = lv_indev_drv_register(&indev_drv);
+    mouse_indev->driver->type = LV_INDEV_TYPE_POINTER;
 
     /*Set a cursor for the mouse*/
     if(gui_settings.show_pointer) {
@@ -316,14 +316,14 @@ void guiSetup()
 
 #if defined(ARDUINO_ARCH_ESP32)
         LV_IMG_DECLARE(mouse_cursor_icon);          /*Declare the image file.*/
-        cursor = lv_img_create(mouse_layer, NULL);  /*Create an image object for the cursor */
+        cursor = lv_img_create(mouse_layer);        /*Create an image object for the cursor */
         lv_img_set_src(cursor, &mouse_cursor_icon); /*Set the image source*/
 #else
-        cursor = lv_obj_create(mouse_layer, NULL); // show cursor object on every page
+        cursor = lv_obj_create(mouse_layer); // show cursor object on every page
         lv_obj_set_size(cursor, 9, 9);
-        lv_obj_set_style_local_radius(cursor, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_RADIUS_CIRCLE);
-        lv_obj_set_style_local_bg_color(cursor, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_RED);
-        lv_obj_set_style_local_bg_opa(cursor, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_COVER);
+        lv_obj_set_style_local_radius(cursor, LV_OBJ_PART_MAIN | LV_STATE_DEFAULT, LV_RADIUS_CIRCLE);
+        lv_obj_set_style_local_bg_color(cursor, LV_OBJ_PART_MAIN | LV_STATE_DEFAULT, LV_COLOR_RED);
+        lv_obj_set_style_bg_opa(cursor, LV_OBJ_PART_MAIN | LV_STATE_DEFAULT, LV_OPA_COVER);
 #endif
         lv_indev_set_cursor(mouse_indev, cursor); /*Connect the image  object to the driver*/
     }
@@ -336,19 +336,21 @@ void guiSetup()
 
     /* Initialize Global progress bar*/
     lv_obj_user_data_t udata = (lv_obj_user_data_t){10, 0, 10};
-    lv_obj_t* bar            = lv_bar_create(lv_layer_sys(), NULL);
-    lv_obj_set_user_data(bar, udata);
+    lv_obj_t* bar            = lv_bar_create(lv_layer_sys());
+    lv_obj_set_user_data(bar, (void*)&udata);
     lv_obj_set_hidden(bar, true);
     lv_bar_set_range(bar, 0, 100);
     lv_bar_set_value(bar, 10, LV_ANIM_OFF);
     lv_obj_set_size(bar, 200, 15);
-    lv_obj_align(bar, lv_layer_sys(), LV_ALIGN_CENTER, 0, -10);
-    lv_obj_set_style_local_value_color(bar, LV_BAR_PART_BG, LV_STATE_DEFAULT, LV_COLOR_WHITE);
-    lv_obj_set_style_local_value_align(bar, LV_BAR_PART_BG, LV_STATE_DEFAULT, LV_ALIGN_CENTER);
-    lv_obj_set_style_local_value_ofs_y(bar, LV_BAR_PART_BG, LV_STATE_DEFAULT, 20);
-    lv_obj_set_style_local_value_font(bar, LV_BAR_PART_BG, LV_STATE_DEFAULT, LV_FONT_DEFAULT);
-    lv_obj_set_style_local_bg_color(lv_layer_sys(), LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_BLACK);
-    lv_obj_set_style_local_bg_opa(lv_layer_sys(), LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_0);
+    // lv_obj_align(bar, lv_layer_sys(), LV_ALIGN_CENTER, 0, -10);
+#if 0
+    lv_obj_set_style_value_color(bar, LV_PART_MAIN | LV_STATE_DEFAULT, LV_COLOR_WHITE);
+    lv_obj_set_style_value_align(bar, LV_PART_MAIN | LV_STATE_DEFAULT, LV_ALIGN_CENTER);
+    lv_obj_set_style_local_value_ofs_y(bar, LV_PART_MAIN | LV_STATE_DEFAULT, 20);
+    lv_obj_set_style_local_value_font(bar, LV_PART_MAIN | LV_STATE_DEFAULT, LV_FONT_DEFAULT);
+    lv_obj_set_style_local_bg_color(lv_layer_sys(), LV_PART_MAIN | LV_STATE_DEFAULT, LV_COLOR_BLACK);
+    lv_obj_set_style_bg_opa(lv_layer_sys(), LV_PART_MAIN | LV_STATE_DEFAULT, LV_OPA_0);
+#endif
 
     // guiStart(); // Ticker
     LOG_INFO(TAG_LVGL, F(D_SERVICE_STARTED));
@@ -567,7 +569,7 @@ static void gui_get_bitmap_header(uint8_t* buffer, size_t bufsize)
     lv_obj_t* scr = lv_disp_get_scr_act(NULL);
 
     // file size
-    guiSetBmpHeader(&buffer[2], 122 + disp->driver.hor_res * disp->driver.ver_res * buffer[28] / 8);
+    guiSetBmpHeader(&buffer[2], 122 + disp->driver->hor_res * disp->driver->ver_res * buffer[28] / 8);
     // horizontal resolution
     guiSetBmpHeader(&buffer[18], lv_obj_get_width(scr));
     // guiSetBmpHeader(&buffer[18], disp->driver.hor_res);
@@ -640,13 +642,13 @@ void guiTakeScreenshot(const char* pFileName)
 
             /* Refresh screen to screenshot callback */
             lv_disp_t* disp = lv_disp_get_default();
-            void (*flush_cb)(struct _disp_drv_t * disp_drv, const lv_area_t* area, lv_color_t* color_p);
-            flush_cb              = disp->driver.flush_cb; /* store callback */
-            disp->driver.flush_cb = gui_screenshot_to_file;
+            void (*flush_cb)(struct _lv_disp_drv_t * disp_drv, const lv_area_t* area, lv_color_t* color_p);
+            flush_cb               = disp->driver->flush_cb; /* store callback */
+            disp->driver->flush_cb = gui_screenshot_to_file;
 
             lv_obj_invalidate(lv_scr_act());
-            lv_refr_now(NULL);                /* Will call our disp_drv.disp_flush function */
-            disp->driver.flush_cb = flush_cb; /* restore callback */
+            lv_refr_now(NULL);                 /* Will call our disp_drv.disp_flush function */
+            disp->driver->flush_cb = flush_cb; /* restore callback */
 
             LOG_VERBOSE(TAG_GUI, F("Bitmap data flushed to %s"), pFileName);
 
@@ -692,12 +694,12 @@ void guiTakeScreenshot()
 
         /* Refresh screen to screenshot callback */
         lv_disp_t* disp = lv_disp_get_default();
-        void (*flush_cb)(struct _disp_drv_t * disp_drv, const lv_area_t* area, lv_color_t* color_p);
-        flush_cb              = disp->driver.flush_cb; /* store callback */
-        disp->driver.flush_cb = gui_screenshot_to_http;
+        void (*flush_cb)(struct _lv_disp_drv_t * disp_drv, const lv_area_t* area, lv_color_t* color_p);
+        flush_cb               = disp->driver->flush_cb; /* store callback */
+        disp->driver->flush_cb = gui_screenshot_to_http;
         lv_obj_invalidate(lv_scr_act());
-        lv_refr_now(NULL);                /* Will call our disp_drv.disp_flush function */
-        disp->driver.flush_cb = flush_cb; /* restore callback */
+        lv_refr_now(NULL);                 /* Will call our disp_drv.disp_flush function */
+        disp->driver->flush_cb = flush_cb; /* restore callback */
 
         LOG_VERBOSE(TAG_GUI, F("Bitmap data flushed to webclient"));
     } else {

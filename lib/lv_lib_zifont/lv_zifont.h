@@ -63,7 +63,7 @@ typedef struct
     uint8_t Fontdataadd8byte;
     uint16_t reserved1; // Reserved 1
     uint32_t Actualnumchars;
-    uint32_t * reserved3; // Reserved 3
+    uint32_t* reserved3; // Reserved 3
 } zi_font_header_t;
 
 typedef struct
@@ -77,15 +77,15 @@ typedef struct
     uint32_t Startdataaddress;
     uint8_t Fontdataadd8byte;
     uint16_t last_glyph_id;
-    lv_zifont_char_t * last_glyph_dsc;
-    lv_zifont_char_t * ascii_glyph_dsc;
+    lv_zifont_char_t* last_glyph_dsc;
+    lv_zifont_char_t* ascii_glyph_dsc;
 } lv_font_fmt_zifont_dsc_t;
 
 /**********************
  * GLOBAL PROTOTYPES
  **********************/
 int lv_zifont_init(void);
-int lv_zifont_font_init(lv_font_t ** font, const char * font_path, uint16_t size);
+int lv_zifont_font_init(lv_font_t** font, const char* font_path, uint16_t size);
 
 /**********************
  *      MACROS

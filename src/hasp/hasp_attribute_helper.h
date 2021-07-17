@@ -3,6 +3,8 @@
 
 #include "hasplib.h"
 
+#if LVGL_VERSION_MAJOR == 7
+
 const char* my_tabview_get_tab_name(const lv_obj_t* tabview, uint16_t id)
 {
     if(id >= lv_tabview_get_tab_count(tabview)) return NULL;
@@ -115,19 +117,18 @@ lv_coord_t my_dropdown_get_max_height(lv_obj_t* obj)
     return lv_dropdown_get_max_height(obj);
 }
 
+#endif
+
 // OK
-lv_obj_t* FindButtonLabel(lv_obj_t* btn)
+lv_obj_t* FindButtonLabel(const lv_obj_t* btn)
 {
     if(btn) {
-        lv_obj_t* label = lv_obj_get_child_back(btn, NULL);
-        if(label) {
-            if(obj_check_type(label, LV_HASP_LABEL)) {
-                return label;
-            }
-
-        } else {
-            LOG_ERROR(TAG_ATTR, F("FindButtonLabel NULL Pointer encountered"));
+        for(uint32_t i = 0; i < lv_obj_get_child_cnt(btn); i++) {
+            lv_obj_t* child = lv_obj_get_child(btn, i);
+            if(lv_obj_check_type(child, &lv_label_class)) return child;
         }
+
+        LOG_ERROR(TAG_ATTR, F("FindButtonLabel NULL Pointer encountered"));
     } else {
         LOG_WARNING(TAG_ATTR, F("Button not defined"));
     }
@@ -186,30 +187,13 @@ static void my_label_set_text(lv_obj_t* label, const char* text)
 // OK
 static const char* my_btn_get_text(const lv_obj_t* obj)
 {
-    if(!obj) {
-        LOG_WARNING(TAG_ATTR, F("Button not defined"));
-        return NULL;
-    }
-
-    lv_obj_t* label = lv_obj_get_child_back(obj, NULL);
-    if(label) {
-#if 1
-        if(obj_check_type(label, LV_HASP_LABEL)) return lv_label_get_text(label);
-
-#else
-        lv_obj_type_t list;
-        lv_obj_get_type(label, &list);
-
-        if(obj_check_type(list.type[0], LV_HASP_LABEL)) {
-            text = lv_label_get_text(label);
-            return true;
-        }
-#endif
-
-    } else {
+    if(obj) {
+        const lv_obj_t* label = FindButtonLabel(obj);
+        if(label) return lv_label_get_text(label);
         LOG_WARNING(TAG_ATTR, F("my_btn_get_text NULL Pointer encountered"));
+    } else {
+        LOG_WARNING(TAG_ATTR, F("Button not defined"));
     }
-
     return NULL;
 }
 
@@ -217,10 +201,10 @@ static const char* my_btn_get_text(const lv_obj_t* obj)
 static inline void my_btn_set_text(lv_obj_t* obj, const char* value)
 {
     lv_obj_t* label = FindButtonLabel(obj);
-    if(label) {
-        my_label_set_text(label, value);
-    }
+    if(label) my_label_set_text(label, value);
 }
+
+#if LVGL_VERSION_MAJOR == 7
 
 /**
  * Set a new value_str for an object. Memory will be allocated to store the text by the object.
@@ -229,6 +213,8 @@ static inline void my_btn_set_text(lv_obj_t* obj, const char* value)
  */
 void my_obj_set_value_str_text(lv_obj_t* obj, uint8_t part, lv_state_t state, const char* text)
 {
+
+#if 0
     //  LOG_VERBOSE(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
 
     const void* value_str_p = lv_obj_get_style_value_str(obj, part);
@@ -236,7 +222,7 @@ void my_obj_set_value_str_text(lv_obj_t* obj, uint8_t part, lv_state_t state, co
 
     if(text == NULL || text[0] == 0) {
         // LOG_VERBOSE(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
-        lv_obj_set_style_local_value_str(obj, part, state, NULL);
+        lv_obj_set_style_value_str(obj, part, state, NULL);
         lv_mem_free(value_str_p);
         // LOG_VERBOSE(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
         return;
@@ -256,12 +242,12 @@ void my_obj_set_value_str_text(lv_obj_t* obj, uint8_t part, lv_state_t state, co
 
         // LOG_VERBOSE(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
         strncpy((char*)value_str_p, text, len);
-        lv_obj_set_style_local_value_str(obj, part, state, (char*)value_str_p);
+        lv_obj_set_style_value_str(obj, part, state, (char*)value_str_p);
         // LOG_VERBOSE(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
         return;
     }
 
-    // lv_obj_set_style_local_value_str(obj, part, state, str_p);
+    // lv_obj_set_style_value_str(obj, part, state, str_p);
 
     if(value_str_p == text) {
         /*If set its own text then reallocate it (maybe its size changed)*/
@@ -288,10 +274,11 @@ void my_obj_set_value_str_text(lv_obj_t* obj, uint8_t part, lv_state_t state, co
         value_str_p = lv_mem_alloc(len);
         LV_ASSERT_MEM(value_str_p);
         if(value_str_p != NULL) strcpy((char*)value_str_p, text);
-        lv_obj_set_style_local_value_str(obj, part, state, (char*)value_str_p);
+        lv_obj_set_style_value_str(obj, part, state, (char*)value_str_p);
     }
 
     // LOG_VERBOSE(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
+#endif
 }
 
 void my_list_set_options(lv_obj_t* obj, const char* payload)
@@ -572,7 +559,7 @@ static bool attribute_update_lv_property(lv_obj_t * obj, const char * attr_p, ui
 
     if(prop_type < LV_STYLE_ID_COLOR) {
         if(update) {
-            _lv_obj_set_style_local_int(obj, part, prop | (state << LV_STYLE_STATE_POS), atoi(payload))
+            _lv_obj_set_style_int(obj, part, prop | (state << LV_STYLE_STATE_POS), atoi(payload))
         } else {
             attr_out_str(obj, attr_p, lv_obj_get_style_value_str(obj, part));
         }
@@ -582,3 +569,4 @@ static bool attribute_update_lv_property(lv_obj_t * obj, const char * attr_p, ui
     }
 }
 #endif
+#endif // LVGL_VERSION_MAJOR == 7

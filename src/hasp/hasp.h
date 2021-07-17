@@ -61,7 +61,7 @@ bool haspGetConfig(const JsonObject& settings);
 bool haspSetConfig(const JsonObject& settings);
 #endif
 
-lv_font_t* hasp_get_font(uint8_t fontid);
+const lv_font_t* hasp_get_font(uint8_t fontid);
 
 HASP_ATTRIBUTE_FAST_MEM void hasp_update_sleep_state();
 void hasp_get_sleep_state(char* payload);

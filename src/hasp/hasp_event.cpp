@@ -27,33 +27,41 @@
 
 #include "hasplib.h"
 
+#if LVGL_VERSION_MAJOR == 7
 #include "lv_core/lv_obj.h" // for tabview ext
+#else
+#include "core/lv_obj.h" // for tabview ext
+#endif
 
 static lv_style_int_t last_value_sent;
 static lv_color_t last_color_sent;
 
-void swipe_event_handler(lv_obj_t* obj, lv_event_t event);
+void swipe_event_handler(lv_event_t* e);
 
 /**
  * Clean-up allocated memory before an object is deleted
  * @param obj pointer to an object to clean-up
  */
-void delete_event_handler(lv_obj_t* obj, lv_event_t event)
+void delete_event_handler(lv_event_t* e)
 {
+    lv_event_code_t event = lv_event_get_code(e);
+
+    lv_obj_t* obj = (lv_obj_t*)lv_event_get_target(e);
+
     if(event != LV_EVENT_DELETE) return;
 
     switch(obj_get_type(obj)) {
-        case LV_HASP_LINE:
-            line_clear_points(obj);
-            break;
+            // case LV_HASP_LINE:
+            //     line_clear_points(obj);
+            //     break;
 
-        case LV_HASP_BTNMATRIX:
-            my_btnmatrix_map_clear(obj);
-            break;
+            // case LV_HASP_BTNMATRIX:
+            //     my_btnmatrix_map_clear(obj);
+            //     break;
 
-        case LV_HASP_MSGBOX:
-            my_msgbox_map_clear(obj);
-            break;
+            // case LV_HASP_MSGBOX:
+            //     my_msgbox_map_clear(obj);
+            //     break;
 
         case LV_HASP_IMAGE:
             lv_img_cache_invalidate_src(NULL);
@@ -67,11 +75,11 @@ void delete_event_handler(lv_obj_t* obj, lv_event_t event)
     }
 
     // TODO: delete value_str data for ALL parts
-    my_obj_set_value_str_text(obj, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, NULL);
+    // V8 my_obj_set_value_str_text(obj, LV_PART_MAIN| LV_STATE_DEFAULT, NULL);
 }
 
 /* ============================== Timer Event  ============================ */
-void event_timer_calendar(lv_task_t* task)
+void event_timer_calendar(lv_timer_t* task)
 {
     hasp_task_user_data_t* data = (hasp_task_user_data_t*)task->user_data;
     lv_obj_t* obj               = NULL;
@@ -79,7 +87,7 @@ void event_timer_calendar(lv_task_t* task)
     if(data) obj = hasp_find_obj_from_page_id(data->pageid, data->objid);
     if(!obj || !data || !obj_check_type(obj, LV_HASP_CALENDER)) {
         if(data) lv_mem_free(data); // the object that the user_data points to is gone
-        lv_task_del(task);          // the calendar object for this task was deleted
+        lv_timer_del(task);         // the calendar object for this task was deleted
         LOG_WARNING(TAG_EVENT, "event_timer_calendar could not find the linked object");
         return;
     }
@@ -93,13 +101,13 @@ void event_timer_calendar(lv_task_t* task)
     (void)rslt; // unused
 
     if(timeinfo->tm_year < 120) {
-        lv_task_set_period(task, 60000); // try again in a minute
+        lv_timer_set_period(task, 60000); // try again in a minute
         LOG_WARNING(TAG_EVENT, "event_timer_calendar could not sync the clock");
         return;
     } else {
         uint32_t next_hour = (3600 - (t % 3600)) * 1000; // ms to next top of hour
-        // lv_task_set_period(task, next_hour + 128);       // small offset so all tasks don't run at once
-        lv_task_set_period(task, data->interval);
+        // lv_timer_set_period(task, next_hour + 128);       // small offset so all tasks don't run at once
+        lv_timer_set_period(task, data->interval);
     }
 
     date.day   = timeinfo->tm_mday;
@@ -109,10 +117,10 @@ void event_timer_calendar(lv_task_t* task)
     LOG_VERBOSE(TAG_EVENT, "event_timer_calendar called with user %d:%d:%d", timeinfo->tm_hour, timeinfo->tm_min,
                 timeinfo->tm_sec);
 
-    lv_calendar_set_today_date(obj, &date);
+    lv_calendar_set_today_date(obj, date.year, date.month, date.day);
 }
 
-void event_timer_clock(lv_task_t* task)
+void event_timer_clock(lv_timer_t* task)
 {
     hasp_task_user_data_t* data = (hasp_task_user_data_t*)task->user_data;
     lv_obj_t* obj;
@@ -120,7 +128,7 @@ void event_timer_clock(lv_task_t* task)
     if(data) obj = hasp_find_obj_from_page_id(data->pageid, data->objid);
     if(!obj || !data) {
         if(data) lv_mem_free(data); // the object that the user_data points to is gone
-        lv_task_del(task);          // the calendar object for this task was deleted
+        lv_timer_del(task);         // the calendar object for this task was deleted
         LOG_WARNING(TAG_EVENT, "event_timer_clock could not find the linked object");
         return;
     }
@@ -142,11 +150,11 @@ void event_timer_clock(lv_task_t* task)
     //             timeinfo->tm_sec);
 
     lv_label_set_text(obj, buffer);
-    lv_task_set_period(task, data->interval);
+    lv_timer_set_period(task, data->interval);
 }
 
 /* ============================== Timer Event  ============================ */
-void event_timer_refresh(lv_task_t* task)
+void event_timer_refresh(lv_timer_t* task)
 {
     lv_obj_t* obj = (lv_obj_t*)task->user_data;
     printf("event_timer_refresh called with user data\n");
@@ -168,16 +176,19 @@ void event_timer_refresh(lv_task_t* task)
  * @param event type of event that occured
  * @param eventid returns the hasp eventid
  */
-static bool translate_event(lv_obj_t* obj, lv_event_t event, uint8_t& eventid)
+static bool translate_event(lv_event_t* e, uint8_t& eventid)
 {
+    lv_event_code_t event = lv_event_get_code(e);
+    lv_obj_t* obj         = (lv_obj_t*)lv_event_get_target(e);
+
     switch(event) {
         case LV_EVENT_GESTURE:
-            swipe_event_handler(obj, event);
+            swipe_event_handler(e);
             break;
 
         case LV_EVENT_DELETE:
             LOG_VERBOSE(TAG_EVENT, F(D_OBJECT_DELETED));
-            delete_event_handler(obj, event);
+            delete_event_handler(e);
             break;
 
         case LV_EVENT_PRESSED:
@@ -247,7 +258,7 @@ static inline void event_update_group(uint8_t group, lv_obj_t* obj, bool power, 
     dispatch_normalized_group_values(value);
 }
 
-static void log_event(const char* name, lv_event_t event)
+static void log_event(const char* name, lv_event_code_t event)
 {
     return;
 
@@ -309,8 +320,11 @@ static void log_event(const char* name, lv_event_t event)
  * @param obj pointer to a button matrix
  * @param event type of event that occured
  */
-void wakeup_event_handler(lv_obj_t* obj, lv_event_t event)
+void wakeup_event_handler(lv_event_t* e)
 {
+    lv_event_code_t event = lv_event_get_code(e);
+    lv_obj_t* obj         = (lv_obj_t*)lv_event_get_target(e);
+
     //  log_event("wakeup", event);
 
     if(event == LV_EVENT_RELEASED && obj == lv_disp_get_layer_sys(NULL)) {
@@ -322,20 +336,23 @@ void wakeup_event_handler(lv_obj_t* obj, lv_event_t event)
     }
 }
 
-void swipe_event_handler(lv_obj_t* obj, lv_event_t event)
+void swipe_event_handler(lv_event_t* e)
 {
-    if(!obj || obj->user_data.swipeid == 0) return;
+    lv_event_code_t event         = lv_event_get_code(e);
+    lv_obj_t* obj                 = (lv_obj_t*)lv_event_get_target(e);
+    lv_obj_user_data_t* user_data = (lv_obj_user_data_t*)obj->user_data;
+    if(!obj || !user_data || user_data->swipeid == 0) return; // no swipe set
 
     if(event == LV_EVENT_GESTURE) {
-        lv_gesture_dir_t dir = lv_indev_get_gesture_dir(lv_indev_get_act());
+        lv_dir_t dir = lv_indev_get_gesture_dir(lv_indev_get_act());
         switch(dir) {
-            case LV_GESTURE_DIR_LEFT:
+            case LV_DIR_LEFT:
                 haspPages.next(LV_SCR_LOAD_ANIM_NONE);
                 break;
-            case LV_GESTURE_DIR_RIGHT:
+            case LV_DIR_RIGHT:
                 haspPages.prev(LV_SCR_LOAD_ANIM_NONE);
                 break;
-            case LV_GESTURE_DIR_BOTTOM:
+            case LV_DIR_BOTTOM:
                 haspPages.back(LV_SCR_LOAD_ANIM_NONE);
                 break;
             default:
@@ -350,13 +367,16 @@ void swipe_event_handler(lv_obj_t* obj, lv_event_t event)
  * @param obj pointer to a button object
  * @param event type of event that occured
  */
-void generic_event_handler(lv_obj_t* obj, lv_event_t event)
+void generic_event_handler(lv_event_t* e)
 {
+    lv_event_code_t event = lv_event_get_code(e);
+    lv_obj_t* obj         = (lv_obj_t*)lv_event_get_target(e);
+
     log_event("generic", event);
 
     switch(event) {
         case LV_EVENT_GESTURE:
-            swipe_event_handler(obj, event);
+            swipe_event_handler(e);
             return;
 
         case LV_EVENT_PRESSED:
@@ -394,8 +414,32 @@ void generic_event_handler(lv_obj_t* obj, lv_event_t event)
 
         case LV_EVENT_DELETE:
             LOG_VERBOSE(TAG_EVENT, F(D_OBJECT_DELETED));
-            delete_event_handler(obj, event); // free and destroy persistent memory allocated for certain objects
+            delete_event_handler(e); // free and destroy persistent memory allocated for certain objects
             return;
+
+        case LV_EVENT_COVER_CHECK:        /**< Check if the object fully covers an area. The event parameter is
+                                           *`lv_cover_check_info_t
+                                           *`.*/
+        case LV_EVENT_REFR_EXT_DRAW_SIZE: /**< Get the required extra draw area around the object (e.g. for shadow). The
+                                         event parameter is `lv_coord_t *` to store the size.*/
+        case LV_EVENT_DRAW_MAIN_BEGIN:    /**< Starting the main drawing phase*/
+        case LV_EVENT_DRAW_MAIN:          /**< Perform the main drawing*/
+        case LV_EVENT_DRAW_MAIN_END:      /**< Finishing the main drawing phase*/
+        case LV_EVENT_DRAW_POST_BEGIN:    /**< Starting the post draw phase (when all children are drawn)*/
+        case LV_EVENT_DRAW_POST:          /**< Perform the post draw phase (when all children are drawn)*/
+        case LV_EVENT_DRAW_POST_END:      /**< Finishing the post draw phase (when all children are drawn)*/
+        case LV_EVENT_DRAW_PART_BEGIN:    /**< Starting to draw a part. The event parameter is `lv_obj_draw_dsc_t
+                                           *`. */
+        case LV_EVENT_DRAW_PART_END:      /**< Finishing to draw a part. The event parameter is `lv_obj_draw_dsc_t *`.
+                                           */
+            return;                       // drawing events
+
+        case LV_EVENT_CHILD_CHANGED:  /**< Child was removed/added*/
+        case LV_EVENT_SIZE_CHANGED:   /**< Object coordinates/size have changed*/
+        case LV_EVENT_STYLE_CHANGED:  /**< Object's style has changed*/
+        case LV_EVENT_LAYOUT_CHANGED: /**< The children position has changed due to a layout recalculation*/
+        case LV_EVENT_GET_SELF_SIZE:  /**< Get the internal size of a widget*/
+            return;                   // special events
 
         case LV_EVENT_PRESSING:
         case LV_EVENT_FOCUSED:
@@ -411,10 +455,11 @@ void generic_event_handler(lv_obj_t* obj, lv_event_t event)
     if(last_value_sent == HASP_EVENT_LOST) return;
 
     /* If an actionid is attached, perform that action on UP event only */
-    if(obj->user_data.actionid) {
+    lv_obj_user_data_t* user_data = (lv_obj_user_data_t*)obj->user_data;
+    if(user_data->actionid) {
         if(last_value_sent == HASP_EVENT_UP || last_value_sent == HASP_EVENT_RELEASE) {
-            lv_scr_load_anim_t transitionid = (lv_scr_load_anim_t)obj->user_data.transitionid;
-            switch(obj->user_data.actionid) {
+            lv_scr_load_anim_t transitionid = (lv_scr_load_anim_t)user_data->transitionid;
+            switch(user_data->actionid) {
                 case HASP_NUM_PAGE_PREV:
                     haspPages.prev(transitionid);
                     break;
@@ -425,7 +470,7 @@ void generic_event_handler(lv_obj_t* obj, lv_event_t event)
                     haspPages.next(transitionid);
                     break;
                 default:
-                    haspPages.set(obj->user_data.actionid, transitionid);
+                    haspPages.set(user_data->actionid, transitionid);
             }
             dispatch_current_page();
         }
@@ -439,8 +484,9 @@ void generic_event_handler(lv_obj_t* obj, lv_event_t event)
 
     // Update group objects and gpios on release
     if(last_value_sent != LV_EVENT_LONG_PRESSED || last_value_sent != LV_EVENT_LONG_PRESSED_REPEAT) {
-        bool state = Parser::get_event_state(last_value_sent);
-        event_update_group(obj->user_data.groupid, obj, state, state, HASP_EVENT_OFF, HASP_EVENT_ON);
+        bool state                    = Parser::get_event_state(last_value_sent);
+        lv_obj_user_data_t* user_data = (lv_obj_user_data_t*)obj->user_data;
+        event_update_group(user_data->groupid, obj, state, state, HASP_EVENT_OFF, HASP_EVENT_ON);
     }
 }
 
@@ -449,16 +495,20 @@ void generic_event_handler(lv_obj_t* obj, lv_event_t event)
  * @param obj pointer to a switch object
  * @param event type of event that occured
  */
-void toggle_event_handler(lv_obj_t* obj, lv_event_t event)
+void toggle_event_handler(lv_event_t* e)
 {
+    lv_event_code_t event = lv_event_get_code(e);
+    lv_obj_t* obj         = (lv_obj_t*)lv_event_get_target(e);
+
     log_event("toggle", event);
 
     uint8_t hasp_event_id;
-    if(!translate_event(obj, event, hasp_event_id)) return;
+    if(!translate_event(e, hasp_event_id)) return;
     if(hasp_event_id != HASP_EVENT_DOWN && hasp_event_id != HASP_EVENT_UP) return; // only up or down wanted
 
     /* Get the new value */
-    switch(obj->user_data.objid) {
+    lv_obj_user_data_t* user_data = (lv_obj_user_data_t*)obj->user_data;
+    switch(user_data->objid) {
         case LV_HASP_SWITCH:
             last_value_sent = lv_switch_get_state(obj);
             break;
@@ -466,12 +516,12 @@ void toggle_event_handler(lv_obj_t* obj, lv_event_t event)
             /* case LV_HASP_CHECKBOX:
                 // This lvgl value is incorrect, it returns pressed instead of checked
                 // last_value_sent = lv_checkbox_is_checked(obj);
-                last_value_sent = lv_obj_get_state(obj, LV_BTN_PART_MAIN) & LV_STATE_CHECKED;
+                last_value_sent = lv_obj_get_state(obj) & LV_STATE_CHECKED;
                 break; */
 
         case LV_HASP_CHECKBOX:
         case LV_HASP_BUTTON: {
-            last_value_sent = lv_obj_get_state(obj, LV_BTN_PART_MAIN) & LV_STATE_CHECKED;
+            last_value_sent = lv_obj_get_state(obj) & LV_STATE_CHECKED;
             break;
         }
 
@@ -482,9 +532,8 @@ void toggle_event_handler(lv_obj_t* obj, lv_event_t event)
     event_object_val_event(obj, hasp_event_id, last_value_sent);
 
     // Update group objects and gpios on release
-    if(obj->user_data.groupid && hasp_event_id == HASP_EVENT_UP) {
-        event_update_group(obj->user_data.groupid, obj, last_value_sent, last_value_sent, HASP_EVENT_OFF,
-                           HASP_EVENT_ON);
+    if(user_data->groupid && hasp_event_id == HASP_EVENT_UP) {
+        event_update_group(user_data->groupid, obj, last_value_sent, last_value_sent, HASP_EVENT_OFF, HASP_EVENT_ON);
     }
 }
 
@@ -493,12 +542,15 @@ void toggle_event_handler(lv_obj_t* obj, lv_event_t event)
  * @param obj pointer to a dropdown list or roller
  * @param event type of event that occured
  */
-void selector_event_handler(lv_obj_t* obj, lv_event_t event)
+void selector_event_handler(lv_event_t* e)
 {
+    lv_event_code_t event = lv_event_get_code(e);
+    lv_obj_t* obj         = (lv_obj_t*)lv_event_get_target(e);
+
     log_event("selector", event);
 
     uint8_t hasp_event_id;
-    if(!translate_event(obj, event, hasp_event_id)) return; // Use LV_EVENT_VALUE_CHANGED
+    if(!translate_event(e, hasp_event_id)) return; // Use LV_EVENT_VALUE_CHANGED
 
     /* Get the new value */
     char buffer[128];
@@ -507,7 +559,8 @@ void selector_event_handler(lv_obj_t* obj, lv_event_t event)
     uint16_t max = 0;
 
     /* Get the text, val and max properties */
-    switch(obj->user_data.objid) {
+    lv_obj_user_data_t* user_data = (lv_obj_user_data_t*)obj->user_data;
+    switch(user_data->objid) {
         case LV_HASP_DROPDOWN:
             val = lv_dropdown_get_selected(obj);
             max = lv_dropdown_get_option_cnt(obj) - 1;
@@ -521,26 +574,26 @@ void selector_event_handler(lv_obj_t* obj, lv_event_t event)
             break;
 
         case LV_HASP_TABVIEW: {
-            val = lv_tabview_get_tab_act(obj);
-            max = lv_tabview_get_tab_count(obj) - 1;
+            // val = lv_tabview_get_tab_act(obj);
+            // max = lv_tabview_get_tab_count(obj) - 1;
 
-            lv_tabview_ext_t* ext = (lv_tabview_ext_t*)lv_obj_get_ext_attr(obj);
-            strcpy(buffer, ext->tab_name_ptr[val]);
+            // lv_tabview_ext_t* ext = (lv_tabview_ext_t*)lv_obj_get_ext_attr(obj);
+            // strcpy(buffer, ext->tab_name_ptr[val]);
             break;
         }
 
-        case LV_HASP_TABLE: {
-            uint16_t row;
-            uint16_t col;
-            if(lv_table_get_pressed_cell(obj, &row, &col) != LV_RES_OK) return; // outside any cell
+            // case LV_HASP_TABLE: {
+            //     uint16_t row;
+            //     uint16_t col;
+            //     //  if(lv_table_get_pressed_cell(obj, &row, &col) != LV_RES_OK) return; // outside any cell
 
-            const char* txt = lv_table_get_cell_value(obj, row, col);
-            strncpy(buffer, txt, sizeof(buffer));
+            //     const char* txt = lv_table_get_cell_value(obj, row, col);
+            //     strncpy(buffer, txt, sizeof(buffer));
 
-            snprintf_P(property, sizeof(property), PSTR("row\":%d,\"col\":%d,\"text"), row, col);
-            attr_out_str(obj, property, buffer);
-            return; // done sending
-        }
+            //     snprintf_P(property, sizeof(property), PSTR("row\":%d,\"col\":%d,\"text"), row, col);
+            //     attr_out_str(obj, property, buffer);
+            //     return; // done sending
+            // }
 
         default:
             return; // Invalid selector type
@@ -550,9 +603,9 @@ void selector_event_handler(lv_obj_t* obj, lv_event_t event)
     last_value_sent = val;
     event_object_selection_changed(obj, hasp_event_id, val, buffer);
 
-    if(obj->user_data.groupid && max > 0) // max a cannot be 0, its the divider
+    if(user_data->groupid && max > 0) // max a cannot be 0, its the divider
         if(hasp_event_id == HASP_EVENT_UP || hasp_event_id == LV_EVENT_VALUE_CHANGED) {
-            event_update_group(obj->user_data.groupid, obj, !!last_value_sent, last_value_sent, 0, max);
+            event_update_group(user_data->groupid, obj, !!last_value_sent, last_value_sent, 0, max);
         }
 
     // set the property
@@ -565,18 +618,21 @@ void selector_event_handler(lv_obj_t* obj, lv_event_t event)
  * @param obj pointer to a dropdown list or roller
  * @param event type of event that occured
  */
-void btnmatrix_event_handler(lv_obj_t* obj, lv_event_t event)
+void btnmatrix_event_handler(lv_event_t* e)
 {
+    lv_event_code_t event = lv_event_get_code(e);
+    lv_obj_t* obj         = (lv_obj_t*)lv_event_get_target(e);
+
     log_event("btnmatrix", event);
 
     uint8_t hasp_event_id;
-    if(!translate_event(obj, event, hasp_event_id)) return; // Use LV_EVENT_VALUE_CHANGED
+    if(!translate_event(e, hasp_event_id)) return; // Use LV_EVENT_VALUE_CHANGED
 
     /* Get the new value */
     char buffer[128];
     uint16_t val = 0;
 
-    val = lv_btnmatrix_get_active_btn(obj);
+    // val = lv_btnmatrix_get_active_btn(obj);
     if(val != LV_BTNMATRIX_BTN_NONE) {
         const char* txt = lv_btnmatrix_get_btn_text(obj, val);
         strncpy(buffer, txt, sizeof(buffer));
@@ -591,7 +647,7 @@ void btnmatrix_event_handler(lv_obj_t* obj, lv_event_t event)
 
     // if(max > 0) // max a cannot be 0, its the divider
     //     if(hasp_event_id == HASP_EVENT_UP || hasp_event_id == LV_EVENT_VALUE_CHANGED) {
-    //         event_update_group(obj->user_data.groupid, obj, last_value_sent, 0, max);
+    //         event_update_group(user_data->groupid, obj, last_value_sent, 0, max);
     //     }
 }
 
@@ -600,22 +656,25 @@ void btnmatrix_event_handler(lv_obj_t* obj, lv_event_t event)
  * @param obj pointer to a dropdown list or roller
  * @param event type of event that occured
  */
-void msgbox_event_handler(lv_obj_t* obj, lv_event_t event)
+void msgbox_event_handler(lv_event_t* e)
 {
+    lv_event_code_t event = lv_event_get_code(e);
+    lv_obj_t* obj         = lv_event_get_current_target(e);
+
     log_event("msgbox", event);
 
     uint8_t hasp_event_id;
-    if(!translate_event(obj, event, hasp_event_id)) return; // Use LV_EVENT_VALUE_CHANGED
+    if(!translate_event(e, hasp_event_id)) return; // Use LV_EVENT_VALUE_CHANGED
 
     /* Get the new value */
     char buffer[128];
     uint16_t val = 0;
 
-    val = lv_msgbox_get_active_btn(obj);
+    // val = lv_msgbox_get_active_btn(obj);
     if(val != LV_BTNMATRIX_BTN_NONE) {
         const char* txt = lv_msgbox_get_active_btn_text(obj);
         strncpy(buffer, txt, sizeof(buffer));
-        if(hasp_event_id == HASP_EVENT_UP || hasp_event_id == HASP_EVENT_RELEASE) lv_msgbox_start_auto_close(obj, 0);
+        if(hasp_event_id == HASP_EVENT_UP || hasp_event_id == HASP_EVENT_RELEASE) lv_msgbox_close(obj);
     } else {
         buffer[0] = 0; // empty string
     }
@@ -624,7 +683,7 @@ void msgbox_event_handler(lv_obj_t* obj, lv_event_t event)
 
     last_value_sent = val;
     event_object_selection_changed(obj, hasp_event_id, val, buffer);
-    // if(max > 0) event_update_group(obj->user_data.groupid, obj, val, 0, max);
+    // if(max > 0) event_update_group(user_data->groupid, obj, val, 0, max);
 }
 
 /**
@@ -632,28 +691,30 @@ void msgbox_event_handler(lv_obj_t* obj, lv_event_t event)
  * @param obj pointer to a slider
  * @param event type of event that occured
  */
-void slider_event_handler(lv_obj_t* obj, lv_event_t event)
+void slider_event_handler(lv_event_t* e)
 {
+    lv_event_code_t event = lv_event_get_code(e);
+    lv_obj_t* obj         = (lv_obj_t*)lv_event_get_target(e);
+
     log_event("slider", event);
 
     uint8_t hasp_event_id;
-    if(!translate_event(obj, event, hasp_event_id) || event == LV_EVENT_VALUE_CHANGED) return;
+    if(!translate_event(e, hasp_event_id) || event == LV_EVENT_VALUE_CHANGED) return;
 
     /* Get the new value */
     int16_t val;
     int16_t min;
     int16_t max;
 
-    if(obj->user_data.objid == LV_HASP_SLIDER) {
+    lv_obj_user_data_t* user_data = (lv_obj_user_data_t*)obj->user_data;
+    if(user_data->objid == LV_HASP_SLIDER) {
         val = lv_slider_get_value(obj);
         min = lv_slider_get_min_value(obj);
         max = lv_slider_get_max_value(obj);
-
-    } else if(obj->user_data.objid == LV_HASP_ARC) {
+    } else if(user_data->objid == LV_HASP_ARC) {
         val = lv_arc_get_value(obj);
         min = lv_arc_get_min_value(obj);
         max = lv_arc_get_max_value(obj);
-
     } else {
         return; // not a slider
     }
@@ -663,8 +724,8 @@ void slider_event_handler(lv_obj_t* obj, lv_event_t event)
     last_value_sent = val;
     event_object_val_event(obj, hasp_event_id, val);
 
-    if(obj->user_data.groupid && (hasp_event_id == HASP_EVENT_CHANGED || hasp_event_id == HASP_EVENT_UP) && min != max)
-        event_update_group(obj->user_data.groupid, obj, !!val, val, min, max);
+    if(user_data->groupid && (hasp_event_id == HASP_EVENT_CHANGED || hasp_event_id == HASP_EVENT_UP) && min != max)
+        event_update_group(user_data->groupid, obj, !!val, val, min, max);
 }
 
 /**
@@ -672,12 +733,15 @@ void slider_event_handler(lv_obj_t* obj, lv_event_t event)
  * @param obj pointer to a color picker
  * @param event type of event that occured
  */
-void cpicker_event_handler(lv_obj_t* obj, lv_event_t event)
+void cpicker_event_handler(lv_event_t* e)
 {
+    lv_event_code_t event = lv_event_get_code(e);
+    lv_obj_t* obj         = (lv_obj_t*)lv_event_get_target(e);
+
     log_event("cpicker", event);
 
     uint8_t hasp_event_id;
-    if(!translate_event(obj, event, hasp_event_id) || event == LV_EVENT_VALUE_CHANGED) return;
+    if(!translate_event(e, hasp_event_id) || event == LV_EVENT_VALUE_CHANGED) return;
 
     /* Get the new value */
     lv_color_t color = lv_cpicker_get_color(obj);
@@ -696,23 +760,26 @@ void cpicker_event_handler(lv_obj_t* obj, lv_event_t event)
                eventname, c32.ch.red, c32.ch.green, c32.ch.blue, c32.ch.red, c32.ch.green, c32.ch.blue);
     event_send_object_data(obj, data);
 
-    // event_update_group(obj->user_data.groupid, obj, val, min, max);
+    // event_update_group(user_data->groupid, obj, val, min, max);
 }
 
-void calendar_event_handler(lv_obj_t* obj, lv_event_t event)
+void calendar_event_handler(lv_event_t* e)
 {
+    lv_event_code_t event = lv_event_get_code(e);
+    lv_obj_t* obj         = (lv_obj_t*)lv_event_get_target(e);
+
     log_event("calendar", event);
 
     uint8_t hasp_event_id;
     if(event != LV_EVENT_PRESSED && event != LV_EVENT_RELEASED && event != LV_EVENT_VALUE_CHANGED) return;
-    if(!translate_event(obj, event, hasp_event_id)) return; // Use LV_EVENT_VALUE_CHANGED
+    if(!translate_event(e, hasp_event_id)) return; // Use LV_EVENT_VALUE_CHANGED
 
     /* Get the new value */
     lv_calendar_date_t* date;
     if(hasp_event_id == HASP_EVENT_CHANGED)
-        date = lv_calendar_get_pressed_date(obj); // pressed date
+        lv_calendar_get_pressed_date(obj, date); // pressed date
     else
-        date = lv_calendar_get_showed_date(obj); // current month
+        date = (lv_calendar_date_t*)lv_calendar_get_showed_date(obj); // current month
     if(!date) return;
 
     lv_style_int_t val = date->day + date->month * 31;
@@ -728,5 +795,5 @@ void calendar_event_handler(lv_obj_t* obj, lv_event_t event)
                eventname, date->day, date->year, date->month, date->day);
     event_send_object_data(obj, data);
 
-    // event_update_group(obj->user_data.groupid, obj, val, min, max);
+    // event_update_group(user_data->groupid, obj, val, min, max);
 }

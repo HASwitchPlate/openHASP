@@ -25,7 +25,7 @@ extern uint8_t hasp_sleep_state;
 
 static Adafruit_STMPE610 stmpe610_touchpanel = Adafruit_STMPE610(TOUCH_CS);
 
-bool touch_read(lv_indev_drv_t* indev_driver, lv_indev_data_t* data)
+IRAM_ATTR void touch_read(lv_indev_drv_t* indev_driver, lv_indev_data_t* data)
 {
     data->state = LV_INDEV_STATE_REL;
 
@@ -33,7 +33,7 @@ bool touch_read(lv_indev_drv_t* indev_driver, lv_indev_data_t* data)
     while(data->state == LV_INDEV_STATE_REL && stmpe610_touchpanel.touched()) {
 
         TS_Point point = stmpe610_touchpanel.getPoint();
-        Log.trace(TAG_DRVR, F("STMPE610: x=%i y=%i z=%i"), point.x, point.y, point.z);
+        // Log.trace(TAG_DRVR, F("STMPE610: x=%i y=%i z=%i"), point.x, point.y, point.z);
 
         if(point.z && point.x < 4096 && point.y < 4096) {                     // valid reading
             if(hasp_sleep_state != HASP_SLEEP_OFF) hasp_update_sleep_state(); // update Idle
@@ -48,9 +48,6 @@ bool touch_read(lv_indev_drv_t* indev_driver, lv_indev_data_t* data)
 #endif
         }
     }
-
-    /*Return `false` because we are not buffering and no more data to read*/
-    return false;
 }
 
 namespace dev {
@@ -58,9 +55,9 @@ namespace dev {
 class TouchStmpe610 : public BaseTouch {
 
   public:
-    IRAM_ATTR bool read(lv_indev_drv_t* indev_driver, lv_indev_data_t* data)
+    IRAM_ATTR void read(lv_indev_drv_t* indev_driver, lv_indev_data_t* data)
     {
-        return touch_read(indev_driver, data);
+        touch_read(indev_driver, data);
     }
 
     void init(int w, int h)

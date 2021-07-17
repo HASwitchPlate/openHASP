@@ -9,7 +9,7 @@
 #if TOUCH_DRIVER == 2046
 #if defined(USE_FSMC)
 #else
-#include "drv/old/hasp_drv_tft_espi.h"
+// #include "drv/old/hasp_drv_tft_espi.h"
 #endif
 
 #elif TOUCH_DRIVER == 2046
@@ -63,7 +63,7 @@ void drv_touch_init(uint8_t rotation)
 #endif
 
 #elif TOUCH_DRIVER == 911
-  //  GT911_init();
+        //  GT911_init();
 
 #elif TOUCH_DRIVER == 0xADC // Analog Digital Touch Conroller
         // Touch_init();
@@ -93,10 +93,10 @@ static inline bool drv_touchpad_getXY(int16_t* touchX, int16_t* touchY)
     touched = haspTft.tft.getTouch((uint16_t*)&normal_x, (uint16_t*)&normal_y, 300);
 
 #elif TOUCH_DRIVER == 0x2046B
-    touched     = XPT2046_getXY(&normal_x, &normal_y, true);
+    touched = XPT2046_getXY(&normal_x, &normal_y, true);
 
 #elif TOUCH_DRIVER == 911
-  //  touched = GT911_getXY(&normal_x, &normal_y, true);
+    //  touched = GT911_getXY(&normal_x, &normal_y, true);
 
 #elif TOUCH_DRIVER == 0xADC // Analog Digital Touch Conroller
     touched = Touch_getXY(&normal_x, &normal_y, false);
@@ -192,13 +192,13 @@ IRAM_ATTR bool drv_touch_read(lv_indev_drv_t* indev_driver, lv_indev_data_t* dat
         if(hasp_sleep_state /* != HASP_SLEEP_OFF */) hasp_update_sleep_state(); // update Idle
 
         if(touch_invert_x) {
-            data->point.x = indev_driver->disp->driver.hor_res - touchX;
+            data->point.x = indev_driver->disp->driver->hor_res - touchX;
         } else {
             data->point.x = touchX;
         }
 
         if(touch_invert_y) {
-            data->point.y = indev_driver->disp->driver.ver_res - touchY;
+            data->point.y = indev_driver->disp->driver->ver_res - touchY;
         } else {
             data->point.y = touchY;
         }
@@ -221,6 +221,6 @@ IRAM_ATTR bool drv_touch_read(lv_indev_drv_t* indev_driver, lv_indev_data_t* dat
 IRAM_ATTR void drv_touch_loop()
 {
 #if TOUCH_DRIVER == 911
-  //  GT911_loop();
+    //  GT911_loop();
 #endif
 }

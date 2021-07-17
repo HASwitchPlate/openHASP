@@ -1945,7 +1945,7 @@ void webHandleHaspConfig(AsyncWebServerRequest* request)
 #if LV_USE_THEME_MONO == 1
         httpMessage += getOption(3, F("Mono"), themeid == 3);
 #endif
-#if LV_USE_THEME_MATERIAL == 1
+#if LV_USE_THEME_MATERIAL == 1 || LV_USE_THEME_DEFAULT == 1
         httpMessage += getOption(5, F("Material Dark"), themeid == 5);
         httpMessage += getOption(4, F("Material Light"), themeid == 4);
 #endif

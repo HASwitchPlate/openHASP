@@ -25,7 +25,7 @@ extern "C" {
 #define LV_SYMBOL_CLOSE             "\xEE\x85\x96"  /* 0xE156, close */
 #define LV_SYMBOL_NEW_LINE          "\xEE\x98\x8C"  /* 0xE60C, subdirectory-arrow-left */
 #define LV_SYMBOL_BACKSPACE         "\xEE\x81\x8D"  /* 0xE04D, arrow-left */
-
+#define LV_SYMBOL_KEYBOARD "\xEF\xA3\xBF"
 /** Invalid symbol at (U+F8FF). If written before a string then `lv_img` will show it as a label*/
 #define LV_SYMBOL_DUMMY             "\xEF\xA3\xBF"
 

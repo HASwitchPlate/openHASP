@@ -22,16 +22,34 @@ const char* msgbox_default_map[] = {"OK", ""}; // memory pointer to hasp default
 
 // ##################### Object Finders ########################################################
 
+static inline uint8_t hasp_get_id(const lv_obj_t* obj)
+{
+    if(!obj || !obj->user_data) return 0;
+    return ((lv_obj_user_data_t*)obj->user_data)->id;
+}
+
+static inline uint8_t hasp_get_objid(const lv_obj_t* obj)
+{
+    if(!obj || !obj->user_data) return 0;
+    return ((lv_obj_user_data_t*)obj->user_data)->objid;
+}
+
+static inline uint8_t hasp_get_groupid(const lv_obj_t* obj)
+{
+    if(!obj || !obj->user_data) return 0;
+    return ((lv_obj_user_data_t*)obj->user_data)->groupid;
+}
+
 // Return a child object from a parent with a specific objid
 lv_obj_t* hasp_find_obj_from_parent_id(lv_obj_t* parent, uint8_t objid)
 {
     if(objid == 0 || parent == nullptr) return parent;
 
-    lv_obj_t* child;
-    child = lv_obj_get_child(parent, NULL);
-    while(child) {
+    for(uint32_t i = 0; i < lv_obj_get_child_cnt(parent); i++) {
+        lv_obj_t* child = lv_obj_get_child(parent, i);
+
         /* child found, return it */
-        if(objid == child->user_data.id) return child;
+        if(objid == hasp_get_id(child)) return child;
 
         /* check grandchildren */
         lv_obj_t* grandchild = hasp_find_obj_from_parent_id(child, objid);
@@ -39,21 +57,19 @@ lv_obj_t* hasp_find_obj_from_parent_id(lv_obj_t* parent, uint8_t objid)
 
         /* check tabs */
         if(obj_check_type(child, LV_HASP_TABVIEW)) {
-            uint16_t tabcount = lv_tabview_get_tab_count(child);
-            for(uint16_t i = 0; i < tabcount; i++) {
-                lv_obj_t* tab = lv_tabview_get_tab(child, i);
-                LOG_VERBOSE(TAG_HASP, "Found tab %i", i);
-                if(tab->user_data.objid && objid == tab->user_data.objid) return tab; /* tab found, return it */
+            // uint16_t tabcount = lv_tabview_get_tab_count(child);
+            // for(uint16_t i = 0; i < tabcount; i++) {
+            //     lv_obj_t* tab = lv_tabview_get_tab(child, i);
+            //     LOG_VERBOSE(TAG_HASP, "Found tab %i", i);
+            //     if(tab->user_data && objid == hasp_get_objid(tab)) return tab; /* tab found, return it */
 
-                /* check grandchildren */
-                grandchild = hasp_find_obj_from_parent_id(tab, objid);
-                if(grandchild) return grandchild; /* grandchild found, return it */
-            }
+            //     /* check grandchildren */
+            //     grandchild = hasp_find_obj_from_parent_id(tab, objid);
+            //     if(grandchild) return grandchild; /* grandchild found, return it */
+            // }
         }
-
-        /* try next sibling */
-        child = lv_obj_get_child(parent, child);
     }
+
     return NULL;
 }
 
@@ -67,8 +83,8 @@ lv_obj_t* hasp_find_obj_from_page_id(uint8_t pageid, uint8_t objid)
 bool hasp_find_id_from_obj(const lv_obj_t* obj, uint8_t* pageid, uint8_t* objid)
 {
     if(!obj || !haspPages.get_id(obj, pageid)) return false;
-    if(obj->user_data.id == 0 && obj != haspPages.get_obj(*pageid)) return false;
-    *objid = obj->user_data.id;
+    if(hasp_get_id(obj) == 0 && obj != haspPages.get_obj(*pageid)) return false;
+    *objid = hasp_get_id(obj);
     return true;
 }
 
@@ -78,32 +94,28 @@ void hasp_object_tree(const lv_obj_t* parent, uint8_t pageid, uint16_t level)
 
     /* Output parent info */
     char indent[31];
-    memset(indent, 32, 31);
+    memset(indent, 0x20, 31);
     if(level < 15) indent[level * 2] = 0;
     indent[30] = 0;
 
-    LOG_VERBOSE(TAG_HASP, F("%s- " HASP_OBJECT_NOTATION ": %s"), indent, pageid, parent->user_data.id,
+    LOG_VERBOSE(TAG_HASP, F("%s- " HASP_OBJECT_NOTATION ": %s"), indent, pageid, hasp_get_id(parent),
                 obj_get_type_name(parent));
 
-    lv_obj_t* child;
-    child = lv_obj_get_child(parent, NULL);
-    while(child) {
-        /* child found, process it */
+    uint32_t i;
+    for(i = 0; i < lv_obj_get_child_cnt(parent); i++) {
+        lv_obj_t* child = lv_obj_get_child(parent, i);
         hasp_object_tree(child, pageid, level + 1);
-
-        /* try next sibling */
-        child = lv_obj_get_child(parent, child);
     }
 
     /* check tabs */
     if(obj_check_type(parent, LV_HASP_TABVIEW)) {
 #if 1
-        uint16_t tabcount = lv_tabview_get_tab_count(parent);
-        for(uint16_t i = 0; i < tabcount; i++) {
-            lv_obj_t* tab = lv_tabview_get_tab(parent, i);
-            LOG_VERBOSE(TAG_HASP, "Found tab %i", i);
-            if(tab->user_data.objid) hasp_object_tree(tab, pageid, level + 1);
-        }
+        // uint16_t tabcount = lv_tabview_get_tab_count(parent);
+        // for(uint16_t i = 0; i < tabcount; i++) {
+        //     lv_obj_t* tab = lv_tabview_get_tab(parent, i);
+        //     LOG_VERBOSE(TAG_HASP, "Found tab %i", i);
+        //     if(tab->user_data.objid) hasp_object_tree(tab, pageid, level + 1);
+        // }
 #endif
     }
 }
@@ -126,23 +138,22 @@ void object_set_group_values(lv_obj_t* parent, hasp_update_value_t& value)
     if(parent == nullptr) return;
 
     // Update object if it's in the same group
-    if(value.group == parent->user_data.groupid && value.obj != parent) {
-        attribute_set_normalized_value(parent, value);
+    if(value.group == hasp_get_groupid(parent) && value.obj != parent) {
+        // attribute_set_normalized_value(parent, value);
     }
 
     /* check tabs */
     if(obj_get_type(parent) == LV_HASP_TABVIEW) {
-        uint16_t tabcount = lv_tabview_get_tab_count(parent);
-        for(uint16_t i = 0; i < tabcount; i++) {
-            lv_obj_t* tab = lv_tabview_get_tab(parent, i);
-            object_set_group_values(tab, value);
-        }
+        // uint16_t tabcount = lv_tabview_get_tab_count(parent);
+        // for(uint16_t i = 0; i < tabcount; i++) {
+        //     lv_obj_t* tab = lv_tabview_get_tab(parent, i);
+        //     object_set_group_values(tab, value);
+        // }
     } else {
-        lv_obj_t* child;
-        child = lv_obj_get_child(parent, NULL);
-        while(child) {
+        uint32_t i;
+        for(i = 0; i < lv_obj_get_child_cnt(parent); i++) {
+            lv_obj_t* child = lv_obj_get_child(parent, i);
             object_set_group_values(child, value);
-            child = lv_obj_get_child(parent, child);
         }
     }
 }
@@ -205,7 +216,7 @@ static inline int hasp_parse_json_attributes(lv_obj_t* obj, const JsonObject& do
     return i;
 }
 
-static void object_add_task(lv_obj_t* obj, uint8_t pageid, uint8_t objid, lv_task_cb_t task_xcb, uint16_t interval)
+static void object_add_task(lv_obj_t* obj, uint8_t pageid, uint8_t objid, lv_timer_cb_t task_xcb, uint16_t interval)
 {
     hasp_task_user_data_t* user_data = (hasp_task_user_data_t*)lv_mem_alloc(sizeof(hasp_task_user_data_t));
     if(!user_data) return;
@@ -213,8 +224,27 @@ static void object_add_task(lv_obj_t* obj, uint8_t pageid, uint8_t objid, lv_tas
     user_data->pageid   = pageid;
     user_data->objid    = objid;
     user_data->interval = interval;
-    lv_task_t* task     = lv_task_create(task_xcb, 25, LV_TASK_PRIO_LOWEST, (void*)user_data);
+    lv_timer_t* task    = lv_timer_create(task_xcb, 25, (void*)user_data);
     (void)task; // unused
+}
+
+bool object_set_user_data(lv_obj_t* obj, uint8_t id, uint8_t objid)
+{
+    if(!obj) return false;
+
+    if(!obj->user_data) obj->user_data = (lv_obj_user_data_t*)lv_mem_alloc(sizeof(lv_obj_user_data_t));
+    if(!obj->user_data) return false;
+
+    /* id tag the object */
+    lv_obj_user_data_t* user_data = (lv_obj_user_data_t*)obj->user_data;
+    user_data->id                 = id;
+    user_data->objid              = objid;
+    user_data->transitionid       = 0;
+    user_data->actionid           = 0;
+    user_data->groupid            = 0;
+    user_data->swipeid            = 0;
+
+    return true;
 }
 
 /**
@@ -279,63 +309,70 @@ void hasp_new_object(const JsonObject& config, uint8_t& saved_page_id)
             config.remove(FPSTR(FP_OBJID));
         }
 
-        switch(sdbm) {
-            /* ----- Basic Objects ------ */
-            case LV_HASP_BTNMATRIX:
-            case HASP_OBJ_BTNMATRIX:
-                obj = lv_btnmatrix_create(parent_obj, NULL);
-                if(obj) {
-                    lv_btnmatrix_set_recolor(obj, true);
-                    lv_obj_set_event_cb(obj, btnmatrix_event_handler);
+        uint8_t objid = 0;
 
-                    lv_btnmatrix_ext_t* ext = (lv_btnmatrix_ext_t*)lv_obj_get_ext_attr(obj);
-                    btnmatrix_default_map   = ext->map_p; // store the static pointer to the default lvgl btnmap
-                    obj->user_data.objid    = LV_HASP_BTNMATRIX;
-                }
-                break;
+        switch(sdbm) {
+                /* ----- Basic Objects ------ */
+                // case LV_HASP_BTNMATRIX:
+                // case HASP_OBJ_BTNMATRIX:
+                //     objid = LV_HASP_BTNMATRIX;
+                //     obj   = lv_btnmatrix_create(parent_obj);
+                //     if(obj) {
+                //         lv_btnmatrix_set_recolor(obj, true);
+                //         lv_obj_set_event_cb(obj, btnmatrix_event_handler);
+
+                //         lv_btnmatrix_ext_t* ext = (lv_btnmatrix_ext_t*)lv_obj_get_ext_attr(obj);
+                //         btnmatrix_default_map   = ext->map_p; // store the static pointer to the default lvgl btnmap
+                //         // obj->user_data.objid    = LV_HASP_BTNMATRIX;
+                //     }
+                //     break;
 
             case LV_HASP_TABLE:
             case HASP_OBJ_TABLE:
-                obj = lv_table_create(parent_obj, NULL);
+                objid = LV_HASP_TABLE;
+                obj   = lv_table_create(parent_obj);
                 if(obj) {
                     lv_obj_set_event_cb(obj, selector_event_handler);
-                    obj->user_data.objid = LV_HASP_TABLE;
+                    // obj->user_data.objid = LV_HASP_TABLE;
                 }
                 break;
 
             case LV_HASP_BUTTON:
             case HASP_OBJ_BTN:
-                obj = lv_btn_create(parent_obj, NULL);
+                objid = LV_HASP_BUTTON;
+                obj   = lv_btn_create(parent_obj);
                 if(obj) {
-                    lv_obj_t* lbl = lv_label_create(obj, NULL);
+                    lv_obj_t* lbl = lv_label_create(obj);
                     if(lbl) {
                         lv_label_set_text(lbl, "");
                         lv_label_set_recolor(lbl, true);
-                        lbl->user_data.objid = LV_HASP_LABEL;
-                        lv_obj_align(lbl, NULL, LV_ALIGN_CENTER, 0, 0);
+                        object_set_user_data(lbl, 0, LV_HASP_LABEL);
+                        lv_obj_align(lbl, LV_ALIGN_CENTER, 0, 0);
                     }
                     lv_obj_set_event_cb(obj, generic_event_handler);
-                    obj->user_data.objid = LV_HASP_BUTTON;
+                    // obj->user_data.objid = LV_HASP_BUTTON;
                 }
                 break;
 
             case LV_HASP_CHECKBOX:
             case HASP_OBJ_CHECKBOX:
-                obj = lv_checkbox_create(parent_obj, NULL);
+                objid = LV_HASP_CHECKBOX;
+                obj   = lv_checkbox_create(parent_obj);
                 if(obj) {
                     lv_obj_set_event_cb(obj, toggle_event_handler);
-                    obj->user_data.objid = LV_HASP_CHECKBOX;
+                    // obj->user_data.objid = LV_HASP_CHECKBOX;
                 }
                 break;
 
             case LV_HASP_LABEL:
             case HASP_OBJ_LABEL:
-                obj = lv_label_create(parent_obj, NULL);
+                objid = LV_HASP_LABEL;
+                obj   = lv_label_create(parent_obj);
                 if(obj) {
-                    lv_label_set_long_mode(obj, LV_LABEL_LONG_CROP);
+                    lv_label_set_long_mode(obj, LV_LABEL_LONG_CLIP);
                     lv_label_set_recolor(obj, true);
                     lv_obj_set_event_cb(obj, generic_event_handler);
-                    obj->user_data.objid = LV_HASP_LABEL;
+                    // obj->user_data.objid = LV_HASP_LABEL;
 
                     // object_add_task(obj, pageid, id, event_timer_clock, 1000);
                 }
@@ -343,52 +380,58 @@ void hasp_new_object(const JsonObject& config, uint8_t& saved_page_id)
 
             case LV_HASP_IMAGE:
             case HASP_OBJ_IMG:
-                obj = lv_img_create(parent_obj, NULL);
+                objid = LV_HASP_IMAGE;
+                obj   = lv_img_create(parent_obj);
                 if(obj) {
                     lv_obj_set_event_cb(obj, generic_event_handler);
-                    obj->user_data.objid = LV_HASP_IMAGE;
+                    // obj->user_data.objid = LV_HASP_IMAGE;
                 }
                 break;
 
             case LV_HASP_ARC:
             case HASP_OBJ_ARC:
-                obj = lv_arc_create(parent_obj, NULL);
+                objid = LV_HASP_ARC;
+                obj   = lv_arc_create(parent_obj);
                 if(obj) {
                     lv_obj_set_event_cb(obj, generic_event_handler);
-                    obj->user_data.objid = LV_HASP_ARC;
+                    // obj->user_data.objid = LV_HASP_ARC;
                 }
                 break;
 
             case LV_HASP_CONTAINER:
             case HASP_OBJ_CONT:
-                obj = lv_cont_create(parent_obj, NULL);
+                objid = LV_HASP_CONTAINER;
+                obj   = lv_cont_create(parent_obj);
                 if(obj) {
                     lv_obj_set_event_cb(obj, generic_event_handler);
-                    obj->user_data.objid = LV_HASP_CONTAINER;
+                    // obj->user_data.objid = LV_HASP_CONTAINER;
                 }
                 break;
 
             case LV_HASP_OBJECT:
             case HASP_OBJ_OBJ:
-                obj = lv_obj_create(parent_obj, NULL);
+                objid = LV_HASP_OBJECT;
+                obj   = lv_obj_create(parent_obj);
                 if(obj) {
                     lv_obj_set_event_cb(obj, generic_event_handler);
-                    obj->user_data.objid = LV_HASP_OBJECT;
+                    // obj->user_data.objid = LV_HASP_OBJECT;
                 }
                 break;
 
             case LV_HASP_PAGE:
             case HASP_OBJ_PAGE:
-                obj = lv_page_create(parent_obj, NULL);
-                if(obj) obj->user_data.objid = LV_HASP_PAGE;
+                objid = LV_HASP_PAGE;
+                obj   = lv_page_create(parent_obj);
+                // if(obj) obj->user_data.objid = LV_HASP_PAGE;
                 // No event handler for pages
                 break;
 
 #if LV_USE_WIN && LVGL_VERSION_MAJOR == 7
             case LV_HASP_WINDOW:
             case HASP_OBJ_WIN:
-                obj = lv_win_create(parent_obj, NULL);
-                if(obj) obj->user_data.objid = LV_HASP_WINDOW;
+                objid = LV_HASP_WINDOW;
+                obj   = lv_win_create(parent_obj);
+                // if(obj) obj->user_data.objid = LV_HASP_WINDOW;
                 // No event handler for pages
                 break;
 
@@ -397,65 +440,72 @@ void hasp_new_object(const JsonObject& config, uint8_t& saved_page_id)
 #if LVGL_VERSION_MAJOR == 8
             case LV_HASP_LED:
             case HASP_OBJ_LED:
-                obj = lv_led_create(parent_obj);
+                objid = LV_HASP_LED;
+                obj   = lv_led_create(parent_obj);
                 if(obj) {
                     lv_obj_set_event_cb(obj, generic_event_handler);
-                    obj->user_data.objid = LV_HASP_LED;
+                    // obj->user_data.objid = LV_HASP_LED;
                 }
                 break;
 
             case LV_HASP_TILEVIEW:
             case HASP_OBJ_TILEVIEW:
-                obj = lv_tileview_create(parent_obj);
-                if(obj) obj->user_data.objid = LV_HASP_TILEVIEW;
+                objid = LV_HASP_TILEVIEW;
+                obj   = lv_tileview_create(parent_obj);
+                // if(obj) obj->user_data.objid = LV_HASP_TILEVIEW;
                 // No event handler for tileviews
                 break;
 
             case LV_HASP_TABVIEW:
             case HASP_OBJ_TABVIEW:
-                obj = lv_tabview_create(parent_obj, LV_DIR_TOP, 100);
+                objid = LV_HASP_TABVIEW;
+                obj   = lv_tabview_create(parent_obj, LV_DIR_TOP, 100);
                 // No event handler for tabs
                 if(obj) {
                     lv_obj_set_event_cb(obj, selector_event_handler);
-                    obj->user_data.objid = LV_HASP_TABVIEW;
+                    // obj->user_data.objid = LV_HASP_TABVIEW;
                 }
                 break;
 
 #else
             case LV_HASP_LED:
             case HASP_OBJ_LED:
-                obj = lv_led_create(parent_obj, NULL);
+                objid = LV_HASP_LED;
+                obj   = lv_led_create(parent_obj);
                 if(obj) {
                     lv_obj_set_event_cb(obj, generic_event_handler);
-                    obj->user_data.objid = LV_HASP_LED;
+                    // obj->user_data.objid = LV_HASP_LED;
                 }
                 break;
 
             case LV_HASP_TILEVIEW:
             case HASP_OBJ_TILEVIEW:
-                obj = lv_tileview_create(parent_obj, NULL);
-                if(obj) obj->user_data.objid = LV_HASP_TILEVIEW;
+                objid = LV_HASP_TILEVIEW;
+                obj   = lv_tileview_create(parent_obj);
+                // if(obj) obj->user_data.objid = LV_HASP_TILEVIEW;
 
                 // No event handler for tileviews
                 break;
 
             case LV_HASP_TABVIEW:
             case HASP_OBJ_TABVIEW:
-                obj = lv_tabview_create(parent_obj, NULL);
+                objid = LV_HASP_TABVIEW;
+                obj   = lv_tabview_create(parent_obj);
                 // No event handler for tabs
                 if(obj) {
                     lv_obj_set_event_cb(obj, selector_event_handler);
-                    obj->user_data.objid = LV_HASP_TABVIEW;
+                    // obj->user_data.objid = LV_HASP_TABVIEW;
                 }
                 break;
 
             case LV_HASP_TAB:
             case HASP_OBJ_TAB:
+                objid = LV_HASP_TAB;
                 if(parent_obj && parent_obj->user_data.objid == LV_HASP_TABVIEW) {
                     obj = lv_tabview_add_tab(parent_obj, "Tab");
                     if(obj) {
                         lv_obj_set_event_cb(obj, generic_event_handler);
-                        obj->user_data.objid = LV_HASP_TAB;
+                        // obj->user_data.objid = LV_HASP_TAB;
                     }
                 } else {
                     LOG_WARNING(TAG_HASP, F("Parent of a tab must be a tabview object"));
@@ -467,19 +517,21 @@ void hasp_new_object(const JsonObject& config, uint8_t& saved_page_id)
             /* ----- Color Objects ------ */
             case LV_HASP_CPICKER:
             case HASP_OBJ_CPICKER:
-                obj = lv_cpicker_create(parent_obj, NULL);
+                objid = LV_HASP_CPICKER;
+                obj   = lv_colorwheel_create(parent_obj, true);
                 if(obj) {
                     lv_obj_set_event_cb(obj, cpicker_event_handler);
-                    obj->user_data.objid = LV_HASP_CPICKER;
+                    // obj->user_data.objid = LV_HASP_CPICKER;
                 }
                 break;
 
 #if LV_USE_SPINNER != 0
             case LV_HASP_SPINNER:
             case HASP_OBJ_SPINNER:
-                obj = lv_spinner_create(parent_obj, NULL);
+                objid = LV_HASP_SPINNER;
+                obj   = lv_spinner_create(parent_obj, 2000, 90);
                 if(obj) {
-                    obj->user_data.objid = LV_HASP_SPINNER;
+                    // obj->user_data.objid = LV_HASP_SPINNER;
                     lv_obj_set_event_cb(obj, generic_event_handler);
                 }
                 break;
@@ -488,150 +540,163 @@ void hasp_new_object(const JsonObject& config, uint8_t& saved_page_id)
             /* ----- Range Objects ------ */
             case LV_HASP_SLIDER:
             case HASP_OBJ_SLIDER:
-                obj = lv_slider_create(parent_obj, NULL);
+                objid = LV_HASP_SLIDER;
+                obj   = lv_slider_create(parent_obj);
                 if(obj) {
                     lv_slider_set_range(obj, 0, 100);
                     lv_obj_set_event_cb(obj, slider_event_handler);
-                    obj->user_data.objid = LV_HASP_SLIDER;
+                    // obj->user_data.objid = LV_HASP_SLIDER;
                 }
                 // bool knobin = config[F("knobin")].as<bool>() | true;
                 // lv_slider_set_knob_in(obj, knobin);
                 break;
 
-            case LV_HASP_GAUGE:
-            case HASP_OBJ_GAUGE:
-                obj = lv_gauge_create(parent_obj, NULL);
-                if(obj) {
-                    lv_gauge_set_range(obj, 0, 100);
-                    lv_obj_set_event_cb(obj, generic_event_handler);
-                    obj->user_data.objid = LV_HASP_GAUGE;
-                }
-                break;
+                // case LV_HASP_GAUGE:
+                // case HASP_OBJ_GAUGE:
+                //     objid = LV_HASP_GAUGE;
+                //     obj   = lv_gauge_create(parent_obj);
+                //     if(obj) {
+                //         lv_gauge_set_range(obj, 0, 100);
+                //         lv_obj_set_event_cb(obj, generic_event_handler);
+                //         // obj->user_data.objid = LV_HASP_GAUGE;
+                //     }
+                //     break;
 
             case LV_HASP_LINE:
             case HASP_OBJ_LINE:
-                obj = lv_line_create(parent_obj, NULL);
+                objid = LV_HASP_LINE;
+                obj   = lv_line_create(parent_obj);
                 if(obj) {
                     lv_obj_set_event_cb(obj, delete_event_handler);
-                    obj->user_data.objid = LV_HASP_LINE;
+                    // obj->user_data.objid = LV_HASP_LINE;
                 }
                 break;
 
             case LV_HASP_BAR:
             case HASP_OBJ_BAR:
-                obj = lv_bar_create(parent_obj, NULL);
+                objid = LV_HASP_BAR;
+                obj   = lv_bar_create(parent_obj);
                 if(obj) {
                     lv_bar_set_range(obj, 0, 100);
                     lv_obj_set_event_cb(obj, generic_event_handler);
-                    obj->user_data.objid = LV_HASP_BAR;
+                    // obj->user_data.objid = LV_HASP_BAR;
                 }
                 break;
 
-            case LV_HASP_LINEMETER:
-            case HASP_OBJ_LMETER: // obsolete
-            case HASP_OBJ_LINEMETER:
-                obj = lv_linemeter_create(parent_obj, NULL);
-                if(obj) {
-                    lv_linemeter_set_range(obj, 0, 100);
-                    lv_obj_set_event_cb(obj, generic_event_handler);
-                    obj->user_data.objid = LV_HASP_LINEMETER;
-                }
-                break;
+                // case LV_HASP_LINEMETER:
+                // case HASP_OBJ_LMETER: // obsolete
+                // case HASP_OBJ_LINEMETER:
+                //     objid = LV_HASP_LINEMETER;
+                //     obj   = lv_linemeter_create(parent_obj);
+                //     if(obj) {
+                //         lv_linemeter_set_range(obj, 0, 100);
+                //         lv_obj_set_event_cb(obj, generic_event_handler);
+                //         // obj->user_data.objid = LV_HASP_LINEMETER;
+                //     }
+                //     break;
 
             case LV_HASP_SPINBOX:
             case HASP_OBJ_SPINBOX:
-                obj = lv_spinbox_create(parent_obj, NULL);
+                objid = LV_HASP_SPINBOX;
+                obj   = lv_spinbox_create(parent_obj);
                 if(obj) {
                     lv_spinbox_set_range(obj, 0, 100);
                     lv_obj_set_event_cb(obj, slider_event_handler);
-                    obj->user_data.objid = LV_HASP_SPINBOX;
+                    // obj->user_data.objid = LV_HASP_SPINBOX;
                 }
                 break;
 
             case LV_HASP_LIST:
             case HASP_OBJ_LIST:
-                obj = lv_list_create(parent_obj, NULL);
+                objid = LV_HASP_LIST;
+                obj   = lv_list_create(parent_obj);
                 if(obj) {
                     // Callbacks are set on the individual buttons
-                    obj->user_data.objid = LV_HASP_LIST;
+                    // obj->user_data.objid = LV_HASP_LIST;
                 }
                 break;
 
-            case LV_HASP_CHART:
-            case HASP_OBJ_CHART:
-                obj = lv_chart_create(parent_obj, NULL);
-                if(obj) {
-                    lv_chart_set_range(obj, 0, 100);
-                    lv_obj_set_event_cb(obj, generic_event_handler);
+            // case LV_HASP_CHART:
+            // case HASP_OBJ_CHART:
+            //     objid = LV_HASP_CHART;
+            //     obj   = lv_chart_create(parent_obj);
+            //     if(obj) {
+            //         lv_chart_set_range(obj, 0, 100);
+            //         lv_obj_set_event_cb(obj, generic_event_handler);
 
-                    lv_chart_add_series(obj, LV_COLOR_RED);
-                    lv_chart_add_series(obj, LV_COLOR_GREEN);
-                    lv_chart_add_series(obj, LV_COLOR_BLUE);
+            //         lv_chart_add_series(obj, LV_COLOR_RED);
+            //         lv_chart_add_series(obj, LV_COLOR_GREEN);
+            //         lv_chart_add_series(obj, LV_COLOR_BLUE);
 
-                    lv_chart_series_t* ser = my_chart_get_series(obj, 2);
-                    lv_chart_set_next(obj, ser, 10);
-                    lv_chart_set_next(obj, ser, 20);
-                    lv_chart_set_next(obj, ser, 30);
-                    lv_chart_set_next(obj, ser, 40);
+            //         lv_chart_series_t* ser = my_chart_get_series(obj, 2);
+            //         lv_chart_set_next(obj, ser, 10);
+            //         lv_chart_set_next(obj, ser, 20);
+            //         lv_chart_set_next(obj, ser, 30);
+            //         lv_chart_set_next(obj, ser, 40);
 
-                    obj->user_data.objid = LV_HASP_CHART;
-                }
-                break;
+            //         // obj->user_data.objid = LV_HASP_CHART;
+            //     }
+            //     break;
 
             /* ----- On/Off Objects ------ */
             case LV_HASP_SWITCH:
             case HASP_OBJ_SWITCH:
-                obj = lv_switch_create(parent_obj, NULL);
+                objid = LV_HASP_SWITCH;
+                obj   = lv_switch_create(parent_obj);
                 if(obj) {
                     lv_obj_set_event_cb(obj, toggle_event_handler);
-                    obj->user_data.objid = LV_HASP_SWITCH;
+                    // obj->user_data.objid = LV_HASP_SWITCH;
                 }
                 break;
 
-            /* ----- List Object ------- */
+            /* ----- Dropdown Object ------- */
             case LV_HASP_DROPDOWN:
             case HASP_OBJ_DROPDOWN:
-                obj = lv_dropdown_create(parent_obj, NULL);
+                objid = LV_HASP_DROPDOWN;
+                obj   = lv_dropdown_create(parent_obj);
                 if(obj) {
                     lv_dropdown_set_draw_arrow(obj, true);
                     // lv_dropdown_set_anim_time(obj, 200);
                     lv_obj_set_top(obj, true);
-                    // lv_obj_align(obj, NULL, LV_ALIGN_IN_TOP_MID, 0, 20);
+                    // // lv_obj_align(obj, NULL, LV_ALIGN_IN_TOP_MID, 0, 20);
                     lv_obj_set_event_cb(obj, selector_event_handler);
-                    obj->user_data.objid = LV_HASP_DROPDOWN;
+                    // obj->user_data.objid = LV_HASP_DROPDOWN;
                 }
                 break;
 
             case LV_HASP_ROLLER:
             case HASP_OBJ_ROLLER:
-                obj = lv_roller_create(parent_obj, NULL);
-                // lv_obj_align(obj, NULL, LV_ALIGN_IN_TOP_MID, 0, 20);
+                objid = LV_HASP_ROLLER;
+                obj   = lv_roller_create(parent_obj);
+                // // lv_obj_align(obj, NULL, LV_ALIGN_IN_TOP_MID, 0, 20);
                 if(obj) {
                     lv_roller_set_auto_fit(obj, false);
                     lv_obj_set_event_cb(obj, selector_event_handler);
-                    obj->user_data.objid = LV_HASP_ROLLER;
+                    // obj->user_data.objid = LV_HASP_ROLLER;
                 }
                 break;
 
-            case LV_HASP_MSGBOX:
-            case HASP_OBJ_MSGBOX:
-                obj = lv_msgbox_create(parent_obj, NULL);
-                if(obj) {
-                    lv_obj_align(obj, NULL, LV_ALIGN_CENTER, 0, 0);
-                    lv_obj_set_auto_realign(obj, true);
-                    lv_obj_set_event_cb(obj, msgbox_event_handler);
-                    if(msgbox_default_map) lv_msgbox_add_btns(obj, msgbox_default_map);
-                    obj->user_data.objid = LV_HASP_MSGBOX;
-                }
-                break;
+                // case LV_HASP_MSGBOX:
+                // case HASP_OBJ_MSGBOX:
+                //     objid = LV_HASP_MSGBOX;
+                //     obj   = lv_msgbox_create(parent_obj);
+                //     if(obj) {
+                //         // lv_obj_align(obj, NULL, LV_ALIGN_CENTER, 0, 0);
+                //         lv_obj_set_auto_realign(obj, true);
+                //         lv_obj_set_event_cb(obj, msgbox_event_handler);
+                //         if(msgbox_default_map) lv_msgbox_add_btns(obj, msgbox_default_map);
+                //         // obj->user_data.objid = LV_HASP_MSGBOX;
+                //     }
+                //     break;
 
             case LV_HASP_CALENDER:
             case HASP_OBJ_CALENDAR:
-                obj = lv_calendar_create(parent_obj, NULL);
-                // lv_obj_align(obj, NULL, LV_ALIGN_IN_TOP_MID, 0, 20);
+                objid = LV_HASP_CALENDER;
+                obj   = lv_calendar_create(parent_obj);
+                // // lv_obj_align(obj, NULL, LV_ALIGN_IN_TOP_MID, 0, 20);
                 if(obj) {
                     lv_obj_set_event_cb(obj, calendar_event_handler);
-                    obj->user_data.objid = LV_HASP_CALENDER;
+                    // obj->user_data.objid = LV_HASP_CALENDER;
 
                     object_add_task(obj, pageid, id, event_timer_calendar, 5000);
                 }
@@ -650,16 +715,15 @@ void hasp_new_object(const JsonObject& config, uint8_t& saved_page_id)
 
         // Prevent losing press when the press is slid out of the objects.
         // (E.g. a Button can be released out of it if it was being pressed)
-        lv_obj_add_protect(obj, LV_PROTECT_PRESS_LOST);
-        lv_obj_set_gesture_parent(obj, false);
+        // V8 lv_obj_add_protect(obj, LV_PROTECT_PRESS_LOST);
+        // V8 lv_obj_set_gesture_parent(obj, false);
 
-        /* id tag the object */
-        obj->user_data.id = id;
+        if(!object_set_user_data(obj, id, objid)) return;
 
+#ifdef HASP_DEBUG
         uint8_t temp; // needed for debug tests
         (void)temp;
 
-#ifdef HASP_DEBUG
         /** testing start **/
         if(!hasp_find_id_from_obj(obj, &pageid, &temp)) {
             LOG_ERROR(TAG_HASP, F(D_OBJECT_LOST));

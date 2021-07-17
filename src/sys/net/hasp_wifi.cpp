@@ -67,11 +67,13 @@ static void wifiConnected(IPAddress ipaddress)
 #endif
     LOG_TRACE(TAG_WIFI, F(D_NETWORK_IP_ADDRESS_RECEIVED), wifiIpAddress);
 
+#if 0
     lv_obj_t* msgbox = lv_msgbox_create(lv_layer_sys(), NULL);
     lv_msgbox_set_text_fmt(msgbox, wifiIpAddress);
     lv_msgbox_start_auto_close(msgbox, 4000);
     lv_msgbox_set_anim_time(msgbox, 0);
     lv_obj_move_background(msgbox);
+#endif
 
     LOG_VERBOSE(TAG_WIFI, F("Connected = %s"),
                 WiFi.status() == WL_CONNECTED ? PSTR(D_NETWORK_ONLINE) : PSTR(D_NETWORK_OFFLINE));

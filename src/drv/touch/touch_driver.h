@@ -25,10 +25,8 @@ class BaseTouch {
     {}
     void set_invert(bool invert_display)
     {}
-    IRAM_ATTR bool read(lv_indev_drv_t* indev_driver, lv_indev_data_t* data)
-    {
-        return false;
-    }
+    IRAM_ATTR void read(lv_indev_drv_t* indev_driver, lv_indev_data_t* data)
+    {}
     void calibrate(uint16_t* calData)
     {}
     bool is_driver_pin(uint8_t)

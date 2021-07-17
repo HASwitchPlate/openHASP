@@ -37,12 +37,12 @@ IRAM_ATTR void GT911_setXY(int8_t contacts, GTPoint* points)
     // }
 }
 
-IRAM_ATTR bool touch_read(lv_indev_drv_t* indev_driver, lv_indev_data_t* data)
+IRAM_ATTR void touch_read(lv_indev_drv_t* indev_driver, lv_indev_data_t* data)
 {
     //  LOG_VERBOSE(TAG_GUI, F("Contacts: %d"), GT911_num_touches);
     static GTPoint points[5];
 
-    if(touch.readInput((uint8_t*)&points)>0) {
+    if(touch.readInput((uint8_t*)&points) > 0) {
 
         if(hasp_sleep_state != HASP_SLEEP_OFF) hasp_update_sleep_state(); // update Idle
 
@@ -51,7 +51,7 @@ IRAM_ATTR bool touch_read(lv_indev_drv_t* indev_driver, lv_indev_data_t* data)
         data->state   = LV_INDEV_STATE_PR;
 
     } else {
-        data->state       = LV_INDEV_STATE_REL;
+        data->state = LV_INDEV_STATE_REL;
     }
 
     touch.loop(); // reset IRQ

@@ -6,6 +6,19 @@
 
 #include "hasplib.h"
 
+static inline void lv_obj_set_event_cb(lv_obj_t* obj, lv_event_cb_t cb)
+{
+    lv_obj_add_event_cb(obj, cb, LV_EVENT_ALL, NULL);
+}
+#define lv_style_int_t lv_coord_t
+#define lv_anim_value_t lv_coord_t
+
+void attr_out_str(lv_obj_t* obj, const char* attribute, const char* data);
+void attr_out_int(lv_obj_t* obj, const char* attribute, int32_t val);
+void attr_out_color(lv_obj_t* obj, const char* attribute, lv_color_t color);
+
+#if LVGL_VERSION_MAJOR >= 7
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -20,10 +33,6 @@ void line_clear_points(lv_obj_t* obj);
 void hasp_process_obj_attribute(lv_obj_t* obj, const char* attr_p, const char* payload, bool update);
 
 bool attribute_set_normalized_value(lv_obj_t* obj, hasp_update_value_t& value);
-
-void attr_out_str(lv_obj_t* obj, const char* attribute, const char* data);
-void attr_out_int(lv_obj_t* obj, const char* attribute, int32_t val);
-void attr_out_color(lv_obj_t* obj, const char* attribute, lv_color_t color);
 
 #ifdef __cplusplus
 } /* extern "C" */
@@ -143,45 +152,118 @@ struct hasp_attr_update_char_const_t
     const char* (*get)(const lv_obj_t*);
 };
 
-#define _HASP_ATTRIBUTE_OLD(prop_name, func_name, value_type)                                                          \
-    static inline void attribute_##func_name(lv_obj_t* obj, uint8_t part, lv_state_t state, bool update,               \
-                                             const char* attr, value_type val)                                         \
+#define _HASP_ATTRIBUTE_V7(prop_name, func_name, value_type)                                                           \
+    static inline hasp_attribute_type_t attribute_##func_name(lv_obj_t* obj, uint8_t part, lv_state_t state,           \
+                                                              bool update, value_type val, int32_t& res)               \
     {                                                                                                                  \
-        if(update) {                                                                                                   \
-            return lv_obj_set_style_local_##func_name(obj, part, state, (value_type)val);                              \
-        } else {                                                                                                       \
-            value_type temp = lv_obj_get_style_##func_name(obj, part);                                                 \
-            /*lv_obj_get_style_##func_name(obj, part, state, &temp);*/                                                 \
-            return attr_out_int(obj, attr, temp);                                                                      \
-        }                                                                                                              \
+        if(update) lv_obj_set_style_##func_name(obj, part, state, (value_type)val);                                    \
+        res = (int32_t)lv_obj_get_style_##func_name(obj, part);                                                        \
+        return HASP_ATTR_TYPE_INT;                                                                                     \
     }
 
 #define _HASP_ATTRIBUTE(prop_name, func_name, value_type)                                                              \
     static inline hasp_attribute_type_t attribute_##func_name(lv_obj_t* obj, uint8_t part, lv_state_t state,           \
                                                               bool update, value_type val, int32_t& res)               \
     {                                                                                                                  \
-        if(update) lv_obj_set_style_local_##func_name(obj, part, state, (value_type)val);                              \
+        if(update) lv_obj_set_style_##func_name(obj, (value_type)val, part);                                           \
         res = (int32_t)lv_obj_get_style_##func_name(obj, part);                                                        \
         return HASP_ATTR_TYPE_INT;                                                                                     \
     }
 
-_HASP_ATTRIBUTE(RADIUS, radius, lv_style_int_t)
+_HASP_ATTRIBUTE(ALIGN, align, lv_align_t)
+_HASP_ATTRIBUTE(ANIM_SPEED, anim_speed, uint32_t)
+_HASP_ATTRIBUTE(ANIM_TIME, anim_time, uint32_t)
+// _HASP_ATTRIBUTE(ARC_COLOR, arc_color, lv_color_t)
+// _HASP_ATTRIBUTE(ARC_COLOR_FILTERED, arc_color_filtered, lv_color_t)
+_HASP_ATTRIBUTE(ARC_IMG_SRC, arc_img_src, const void*)
+_HASP_ATTRIBUTE(ARC_OPA, arc_opa, lv_opa_t)
+_HASP_ATTRIBUTE(ARC_ROUNDED, arc_rounded, lv_coord_t)
+_HASP_ATTRIBUTE(ARC_WIDTH, arc_width, lv_coord_t)
+_HASP_ATTRIBUTE(BASE_DIR, base_dir, lv_base_dir_t)
+// _HASP_ATTRIBUTE(BG_COLOR, bg_color, lv_color_t)
+// _HASP_ATTRIBUTE(BG_COLOR_FILTERED, bg_color_filtered, lv_color_t)
+// _HASP_ATTRIBUTE(BG_GRAD_COLOR, bg_grad_color, lv_color_t)
+// _HASP_ATTRIBUTE(BG_GRAD_COLOR_FILTERED, bg_grad_color_filtered, lv_color_t)
+_HASP_ATTRIBUTE(BG_GRAD_DIR, bg_grad_dir, lv_grad_dir_t)
+_HASP_ATTRIBUTE(BG_GRAD_STOP, bg_grad_stop, lv_coord_t)
+_HASP_ATTRIBUTE(BG_IMG_OPA, bg_img_opa, lv_opa_t)
+// _HASP_ATTRIBUTE(BG_IMG_RECOLOR, bg_img_recolor, lv_color_t)
+// _HASP_ATTRIBUTE(BG_IMG_RECOLOR_FILTERED, bg_img_recolor_filtered, lv_color_t)
+_HASP_ATTRIBUTE(BG_IMG_RECOLOR_OPA, bg_img_recolor_opa, lv_opa_t)
+_HASP_ATTRIBUTE(BG_IMG_SRC, bg_img_src, const void*)
+_HASP_ATTRIBUTE(BG_IMG_TILED, bg_img_tiled, bool)
+_HASP_ATTRIBUTE(BG_MAIN_STOP, bg_main_stop, lv_coord_t)
+_HASP_ATTRIBUTE(BG_OPA, bg_opa, lv_opa_t)
+_HASP_ATTRIBUTE(BLEND_MODE, blend_mode, lv_blend_mode_t)
+// _HASP_ATTRIBUTE(BORDER_COLOR, border_color, lv_color_t)
+// _HASP_ATTRIBUTE(BORDER_COLOR_FILTERED, border_color_filtered, lv_color_t)
+_HASP_ATTRIBUTE(BORDER_OPA, border_opa, lv_opa_t)
+_HASP_ATTRIBUTE(BORDER_POST, border_post, bool)
+_HASP_ATTRIBUTE(BORDER_SIDE, border_side, lv_border_side_t)
+_HASP_ATTRIBUTE(BORDER_WIDTH, border_width, lv_coord_t)
 _HASP_ATTRIBUTE(CLIP_CORNER, clip_corner, bool)
-_HASP_ATTRIBUTE(SIZE, size, lv_style_int_t)
-_HASP_ATTRIBUTE(TRANSFORM_WIDTH, transform_width, lv_style_int_t)
-_HASP_ATTRIBUTE(TRANSFORM_HEIGHT, transform_height, lv_style_int_t)
-_HASP_ATTRIBUTE(OPA_SCALE, opa_scale, lv_opa_t)
-_HASP_ATTRIBUTE(MARGIN_TOP, margin_top, lv_style_int_t)
-_HASP_ATTRIBUTE(MARGIN_BOTTOM, margin_bottom, lv_style_int_t)
-_HASP_ATTRIBUTE(MARGIN_LEFT, margin_left, lv_style_int_t)
-_HASP_ATTRIBUTE(MARGIN_RIGHT, margin_right, lv_style_int_t)
-_HASP_ATTRIBUTE(PAD_TOP, pad_top, lv_style_int_t)
-_HASP_ATTRIBUTE(PAD_BOTTOM, pad_bottom, lv_style_int_t)
-_HASP_ATTRIBUTE(PAD_LEFT, pad_left, lv_style_int_t)
-_HASP_ATTRIBUTE(PAD_RIGHT, pad_right, lv_style_int_t)
+_HASP_ATTRIBUTE(COLOR_FILTER_DSC, color_filter_dsc, const lv_color_filter_dsc_t*)
+_HASP_ATTRIBUTE(COLOR_FILTER_OPA, color_filter_opa, lv_opa_t)
+_HASP_ATTRIBUTE(HEIGHT, height, lv_coord_t)
+_HASP_ATTRIBUTE(IMG_OPA, img_opa, lv_opa_t)
+// _HASP_ATTRIBUTE(IMG_RECOLOR, img_recolor, lv_color_t)
+// _HASP_ATTRIBUTE(IMG_RECOLOR_FILTERED, img_recolor_filtered, lv_color_t)
+_HASP_ATTRIBUTE(IMG_RECOLOR_OPA, img_recolor_opa, lv_opa_t)
+_HASP_ATTRIBUTE(LAYOUT, layout, uint16_t)
+// _HASP_ATTRIBUTE(LINE_COLOR, line_color, lv_color_t)
+// _HASP_ATTRIBUTE(LINE_COLOR_FILTERED, line_color_filtered, lv_color_t)
+_HASP_ATTRIBUTE(LINE_DASH_GAP, line_dash_gap, lv_coord_t)
+_HASP_ATTRIBUTE(LINE_DASH_WIDTH, line_dash_width, lv_coord_t)
+_HASP_ATTRIBUTE(LINE_OPA, line_opa, lv_opa_t)
+_HASP_ATTRIBUTE(LINE_ROUNDED, line_rounded, lv_coord_t)
+_HASP_ATTRIBUTE(LINE_WIDTH, line_width, lv_coord_t)
+_HASP_ATTRIBUTE(MAX_HEIGHT, max_height, lv_coord_t)
+_HASP_ATTRIBUTE(MAX_WIDTH, max_width, lv_coord_t)
+_HASP_ATTRIBUTE(MIN_HEIGHT, min_height, lv_coord_t)
+_HASP_ATTRIBUTE(MIN_WIDTH, min_width, lv_coord_t)
+_HASP_ATTRIBUTE(OPA, opa, lv_opa_t)
+// _HASP_ATTRIBUTE(OUTLINE_COLOR, outline_color, lv_color_t)
+// _HASP_ATTRIBUTE(OUTLINE_COLOR_FILTERED, outline_color_filtered, lv_color_t)
+_HASP_ATTRIBUTE(OUTLINE_OPA, outline_opa, lv_opa_t)
+_HASP_ATTRIBUTE(OUTLINE_PAD, outline_pad, lv_coord_t)
+_HASP_ATTRIBUTE(OUTLINE_WIDTH, outline_width, lv_coord_t)
+_HASP_ATTRIBUTE(PAD_BOTTOM, pad_bottom, lv_coord_t)
+_HASP_ATTRIBUTE(PAD_COLUMN, pad_column, lv_coord_t)
+_HASP_ATTRIBUTE(PAD_LEFT, pad_left, lv_coord_t)
+_HASP_ATTRIBUTE(PAD_RIGHT, pad_right, lv_coord_t)
+_HASP_ATTRIBUTE(PAD_ROW, pad_row, lv_coord_t)
+_HASP_ATTRIBUTE(PAD_TOP, pad_top, lv_coord_t)
+_HASP_ATTRIBUTE(RADIUS, radius, lv_coord_t)
+// _HASP_ATTRIBUTE(SHADOW_COLOR, shadow_color, lv_color_t)
+// _HASP_ATTRIBUTE(SHADOW_COLOR_FILTERED, shadow_color_filtered, lv_color_t)
+_HASP_ATTRIBUTE(SHADOW_OFS_X, shadow_ofs_x, lv_coord_t)
+_HASP_ATTRIBUTE(SHADOW_OFS_Y, shadow_ofs_y, lv_coord_t)
+_HASP_ATTRIBUTE(SHADOW_OPA, shadow_opa, lv_opa_t)
+_HASP_ATTRIBUTE(SHADOW_SPREAD, shadow_spread, lv_coord_t)
+_HASP_ATTRIBUTE(SHADOW_WIDTH, shadow_width, lv_coord_t)
+_HASP_ATTRIBUTE(TEXT_ALIGN, text_align, lv_text_align_t)
+// _HASP_ATTRIBUTE(TEXT_COLOR, text_color, lv_color_t)
+// _HASP_ATTRIBUTE(TEXT_COLOR_FILTERED, text_color_filtered, lv_color_t)
+_HASP_ATTRIBUTE(TEXT_DECOR, text_decor, lv_text_decor_t)
+_HASP_ATTRIBUTE(TEXT_FONT, text_font, const lv_font_t*)
+_HASP_ATTRIBUTE(TEXT_LETTER_SPACE, text_letter_space, lv_coord_t)
+_HASP_ATTRIBUTE(TEXT_LINE_SPACE, text_line_space, lv_coord_t)
+_HASP_ATTRIBUTE(TEXT_OPA, text_opa, lv_opa_t)
+_HASP_ATTRIBUTE(TRANSFORM_ANGLE, transform_angle, lv_coord_t)
+_HASP_ATTRIBUTE(TRANSFORM_HEIGHT, transform_height, lv_coord_t)
+_HASP_ATTRIBUTE(TRANSFORM_WIDTH, transform_width, lv_coord_t)
+_HASP_ATTRIBUTE(TRANSFORM_ZOOM, transform_zoom, lv_coord_t)
+_HASP_ATTRIBUTE(TRANSITION, transition, const lv_style_transition_dsc_t*)
+_HASP_ATTRIBUTE(TRANSLATE_X, translate_x, lv_coord_t)
+_HASP_ATTRIBUTE(TRANSLATE_Y, translate_y, lv_coord_t)
+_HASP_ATTRIBUTE(WIDTH, width, lv_coord_t)
+_HASP_ATTRIBUTE(X, x, lv_coord_t)
+_HASP_ATTRIBUTE(Y, y, lv_coord_t)
+
 #if LVGL_VERSION_MAJOR == 7
 _HASP_ATTRIBUTE(PAD_INNER, pad_inner, lv_style_int_t)
 #endif
+
 #if LV_USE_BLEND_MODES
 _HASP_ATTRIBUTE(BG_BLEND_MODE, bg_blend_mode, lv_blend_mode_t)
 _HASP_ATTRIBUTE(BORDER_BLEND_MODE, border_blend_mode, lv_blend_mode_t)
@@ -193,21 +275,7 @@ _HASP_ATTRIBUTE(TEXT_BLEND_MODE, text_blend_mode, lv_blend_mode_t)
 _HASP_ATTRIBUTE(LINE_BLEND_MODE, line_blend_mode, lv_blend_mode_t)
 _HASP_ATTRIBUTE(IMAGE_BLEND_MODE, image_blend_mode, lv_blend_mode_t)
 #endif
-_HASP_ATTRIBUTE(BG_MAIN_STOP, bg_main_stop, lv_style_int_t)
-_HASP_ATTRIBUTE(BG_GRAD_STOP, bg_grad_stop, lv_style_int_t)
-_HASP_ATTRIBUTE(BG_GRAD_DIR, bg_grad_dir, lv_grad_dir_t)
-//_HASP_ATTRIBUTE(BG_COLOR, bg_color, lv_color_t, _color, nonscalar)
-//_HASP_ATTRIBUTE(BG_GRAD_COLOR, bg_grad_color, lv_color_t, _color, nonscalar)
-_HASP_ATTRIBUTE(BG_OPA, bg_opa, lv_opa_t)
-_HASP_ATTRIBUTE(BORDER_WIDTH, border_width, lv_style_int_t)
-_HASP_ATTRIBUTE(BORDER_SIDE, border_side, lv_border_side_t)
-_HASP_ATTRIBUTE(BORDER_POST, border_post, bool)
-//_HASP_ATTRIBUTE(BORDER_COLOR, border_color, lv_color_t, _color, nonscalar)
-_HASP_ATTRIBUTE(BORDER_OPA, border_opa, lv_opa_t)
-_HASP_ATTRIBUTE(OUTLINE_WIDTH, outline_width, lv_style_int_t)
-_HASP_ATTRIBUTE(OUTLINE_PAD, outline_pad, lv_style_int_t)
-//_HASP_ATTRIBUTE(OUTLINE_COLOR, outline_color, lv_color_t, _color, nonscalar)
-_HASP_ATTRIBUTE(OUTLINE_OPA, outline_opa, lv_opa_t)
+
 #if LV_USE_SHADOW
 _HASP_ATTRIBUTE(SHADOW_WIDTH, shadow_width, lv_style_int_t)
 _HASP_ATTRIBUTE(SHADOW_OFS_X, shadow_ofs_x, lv_style_int_t)
@@ -216,51 +284,6 @@ _HASP_ATTRIBUTE(SHADOW_SPREAD, shadow_spread, lv_style_int_t)
 //_HASP_ATTRIBUTE(SHADOW_COLOR, shadow_color, lv_color_t, _color, nonscalar)
 _HASP_ATTRIBUTE(SHADOW_OPA, shadow_opa, lv_opa_t)
 #endif
-_HASP_ATTRIBUTE(PATTERN_REPEAT, pattern_repeat, bool)
-//_HASP_ATTRIBUTE(PATTERN_RECOLOR, pattern_recolor, lv_color_t, _color, nonscalar)
-_HASP_ATTRIBUTE(PATTERN_OPA, pattern_opa, lv_opa_t)
-_HASP_ATTRIBUTE(PATTERN_RECOLOR_OPA, pattern_recolor_opa, lv_opa_t)
-//_HASP_ATTRIBUTE(PATTERN_IMAGE, pattern_image, const void *, _data_ptr, scalar)
-_HASP_ATTRIBUTE(VALUE_LETTER_SPACE, value_letter_space, lv_style_int_t)
-_HASP_ATTRIBUTE(VALUE_LINE_SPACE, value_line_space, lv_style_int_t)
-_HASP_ATTRIBUTE(VALUE_OFS_X, value_ofs_x, lv_style_int_t)
-_HASP_ATTRIBUTE(VALUE_OFS_Y, value_ofs_y, lv_style_int_t)
-_HASP_ATTRIBUTE(VALUE_ALIGN, value_align, lv_align_t)
-//_HASP_ATTRIBUTE(VALUE_COLOR, value_color, lv_color_t, _color, nonscalar)
-_HASP_ATTRIBUTE(VALUE_OPA, value_opa, lv_opa_t)
-//_HASP_ATTRIBUTE(VALUE_FONT, value_font, const lv_font_t *, _data_ptr, scalar)
-//_HASP_ATTRIBUTE(VALUE_STR, value_str, const char *, _data_ptr, scalar)
-_HASP_ATTRIBUTE(TEXT_LETTER_SPACE, text_letter_space, lv_style_int_t)
-_HASP_ATTRIBUTE(TEXT_LINE_SPACE, text_line_space, lv_style_int_t)
-_HASP_ATTRIBUTE(TEXT_DECOR, text_decor, lv_text_decor_t)
-//_HASP_ATTRIBUTE(TEXT_COLOR, text_color, lv_color_t, _color, nonscalar)
-//_HASP_ATTRIBUTE(TEXT_SEL_COLOR, text_sel_color, lv_color_t, _color, nonscalar)
-_HASP_ATTRIBUTE(TEXT_OPA, text_opa, lv_opa_t)
-//_HASP_ATTRIBUTE(TEXT_FONT, text_font, const lv_font_t *, _data_ptr, scalar)
-_HASP_ATTRIBUTE(LINE_WIDTH, line_width, lv_style_int_t)
-_HASP_ATTRIBUTE(LINE_DASH_WIDTH, line_dash_width, lv_style_int_t)
-_HASP_ATTRIBUTE(LINE_DASH_GAP, line_dash_gap, lv_style_int_t)
-_HASP_ATTRIBUTE(LINE_ROUNDED, line_rounded, bool)
-//_HASP_ATTRIBUTE(LINE_COLOR, line_color, lv_color_t, _color, nonscalar)
-_HASP_ATTRIBUTE(LINE_OPA, line_opa, lv_opa_t)
-//_HASP_ATTRIBUTE(IMAGE_RECOLOR, image_recolor, lv_color_t, _color, nonscalar)
-_HASP_ATTRIBUTE(IMAGE_OPA, image_opa, lv_opa_t)
-_HASP_ATTRIBUTE(IMAGE_RECOLOR_OPA, image_recolor_opa, lv_opa_t)
-_HASP_ATTRIBUTE(TRANSITION_TIME, transition_time, lv_style_int_t)
-_HASP_ATTRIBUTE(TRANSITION_DELAY, transition_delay, lv_style_int_t)
-_HASP_ATTRIBUTE(TRANSITION_PROP_1, transition_prop_1, lv_style_int_t)
-_HASP_ATTRIBUTE(TRANSITION_PROP_2, transition_prop_2, lv_style_int_t)
-_HASP_ATTRIBUTE(TRANSITION_PROP_3, transition_prop_3, lv_style_int_t)
-_HASP_ATTRIBUTE(TRANSITION_PROP_4, transition_prop_4, lv_style_int_t)
-_HASP_ATTRIBUTE(TRANSITION_PROP_5, transition_prop_5, lv_style_int_t)
-_HASP_ATTRIBUTE(TRANSITION_PROP_6, transition_prop_6, lv_style_int_t)
-
-_HASP_ATTRIBUTE(SCALE_WIDTH, scale_width, lv_style_int_t)
-_HASP_ATTRIBUTE(SCALE_BORDER_WIDTH, scale_border_width, lv_style_int_t)
-_HASP_ATTRIBUTE(SCALE_END_BORDER_WIDTH, scale_end_border_width, lv_style_int_t)
-_HASP_ATTRIBUTE(SCALE_END_LINE_WIDTH, scale_end_line_width, lv_style_int_t)
-//_HASP_ATTRIBUTE(SCALE_GRAD_COLOR, scale_grad_color, lv_color_t, _color, nonscalar)
-//_HASP_ATTRIBUTE(SCALE_END_COLOR, scale_end_color, lv_color_t, _color, nonscalar)
 
 /* attribute hashes */
 /* Object Part Attributes */
@@ -485,5 +508,7 @@ _HASP_ATTRIBUTE(SCALE_END_LINE_WIDTH, scale_end_line_width, lv_style_int_t)
 #define ATTR_TEXT_MODEL 54561
 #define ATTR_TEXT_VERSION 60178
 #define ATTR_TEXT_SSID 62981
+
+#endif
 
 #endif

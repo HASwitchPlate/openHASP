@@ -85,13 +85,13 @@ lv_style_t style_mbox_bg; /*Black bg. style with opacity*/
 lv_obj_t* kb;
 // lv_font_t * defaultFont;
 
-static lv_font_t* haspFonts[12] = {nullptr};
-uint8_t current_page            = 1;
+static const lv_font_t* haspFonts[12] = {nullptr};
+uint8_t current_page                  = 1;
 
 /**
  * Get Font ID
  */
-lv_font_t* hasp_get_font(uint8_t fontid)
+const lv_font_t* hasp_get_font(uint8_t fontid)
 {
     if(fontid >= sizeof(haspFonts) / sizeof(haspFonts[0])) {
         return nullptr;
@@ -230,16 +230,18 @@ void haspReconnect()
 // Shows/hides the the global progress bar and updates the value
 void haspProgressVal(uint8_t val)
 {
+    return;
+
     lv_obj_t* layer = lv_disp_get_layer_sys(NULL);
     lv_obj_t* bar   = hasp_find_obj_from_page_id(255U, 10U);
     if(layer && bar) {
         if(val == 255) {
             if(!lv_obj_get_hidden(bar)) {
                 lv_obj_set_hidden(bar, true);
-                lv_obj_set_style_local_bg_opa(layer, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_0);
+                lv_obj_set_style_bg_opa(layer, LV_PART_MAIN | LV_STATE_DEFAULT, LV_OPA_0);
 
-                // lv_obj_set_style_local_value_str(bar, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, "");
-                // lv_obj_set_value_str_txt(bar, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, NULL);
+                // lv_obj_set_style_value_str(bar, LV_PART_MAIN| LV_STATE_DEFAULT, "");
+                // lv_obj_set_value_str_txt(bar, LV_PART_MAIN| LV_STATE_DEFAULT, NULL);
                 // TODO: call our custom function to free the memory
 
 #if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
@@ -249,7 +251,7 @@ void haspProgressVal(uint8_t val)
         } else {
             if(lv_obj_get_hidden(bar)) {
                 lv_obj_set_hidden(bar, false);
-                lv_obj_set_style_local_bg_opa(layer, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_100);
+                lv_obj_set_style_bg_opa(layer, LV_PART_MAIN | LV_STATE_DEFAULT, LV_OPA_100);
             }
             lv_bar_set_value(bar, val, LV_ANIM_OFF);
         }
@@ -263,7 +265,7 @@ void haspProgressMsg(const char* msg)
     if(lv_obj_t* bar = hasp_find_obj_from_page_id(255U, 10U)) {
         char value_str[10];
         snprintf_P(value_str, sizeof(value_str), PSTR("value_str"));
-        hasp_process_obj_attribute(bar, value_str, msg, true);
+        // hasp_process_obj_attribute(bar, value_str, msg, true);
     }
 
     lv_task_handler(); // needed to let the GUI do its work during long updates
@@ -271,7 +273,7 @@ void haspProgressMsg(const char* msg)
     /* if(bar) {
          progress_str.reserve(64);
          progress_str = msg;
-         lv_obj_set_style_local_value_str(bar, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, progress_str.c_str());
+         lv_obj_set_style_value_str(bar, LV_PART_MAIN| LV_STATE_DEFAULT, progress_str.c_str());
 
         // lv_task_handler(); // let the GUI do its work
      } */
@@ -286,23 +288,24 @@ void haspProgressMsg(const __FlashStringHelper* msg)
 #endif
 
 /*Add a custom apply callback*/
-static void custom_font_apply_cb(lv_theme_t* th, lv_obj_t* obj, lv_theme_style_t name)
-{
-    /*    lv_style_list_t* list;
+// static void custom_font_apply_cb(lv_theme_t* th, lv_obj_t* obj, lv_theme_style_t name)
+// {
+//     /*    lv_style_list_t* list;
 
-        switch(name) {
-            case LV_THEME_BTN:
-                list = lv_obj_get_style_list(obj, LV_BTN_PART_MAIN);
-                // _lv_style_list_add_style(list, &my_style);
-                break;
-            default:
-                // nothing
-                ;
-        } */
-}
+//         switch(name) {
+//             case LV_THEME_BTN:
+//                 list = lv_obj_get_style_list(obj, LV_BTN_PART_MAIN);
+//                 // _lv_style_list_add_style(list, &my_style);
+//                 break;
+//             default:
+//                 // nothing
+//                 ;
+//         } */
+// }
 
 void hasp_set_theme(uint8_t themeid)
 {
+    lv_disp_t* disp            = lv_disp_get_default();
     lv_theme_t* th             = NULL;
     lv_color_t color_primary   = lv_color_hsv_to_rgb(haspThemeHue, 100, 100);
     lv_color_t color_secondary = lv_color_hsv_to_rgb(haspThemeHue, 100, 100);
@@ -320,6 +323,12 @@ void hasp_set_theme(uint8_t themeid)
     // LV_THEME_MATERIAL_FLAG_NO_TRANSITION : disable transitions(state change animations)
     // LV_THEME_MATERIAL_FLAG_NO_FOCUS: disable indication of focused state)
     uint32_t material_flags = LV_THEME_MATERIAL_FLAG_LIGHT + LV_THEME_MATERIAL_FLAG_NO_TRANSITION;
+#endif
+
+#if(LV_USE_THEME_DEFAULT == 1)
+    // LV_THEME_MATERIAL_FLAG_NO_TRANSITION : disable transitions(state change animations)
+    // LV_THEME_MATERIAL_FLAG_NO_FOCUS: disable indication of focused state)
+    uint32_t material_flags = LV_THEME_DEFAULT_DARK;
 #endif
 
     switch(themeid) {
@@ -343,8 +352,7 @@ void hasp_set_theme(uint8_t themeid)
 
 #if(LV_USE_THEME_MONO == 1)
         case 3:
-            th = lv_theme_mono_init(color_primary, color_secondary, LV_THEME_DEFAULT_FLAGS, haspFonts[0], haspFonts[1],
-                                    haspFonts[2], haspFonts[3]);
+            th = lv_theme_mono_init(disp, true, haspFonts[0]);
             break;
 #endif
 
@@ -356,6 +364,15 @@ void hasp_set_theme(uint8_t themeid)
             th =
                 lv_theme_material_init(color_primary, color_secondary, material_flags + LV_THEME_MATERIAL_FLAG_NO_FOCUS,
                                        haspFonts[0], haspFonts[1], haspFonts[2], haspFonts[3]);
+            break;
+#endif
+
+#if LV_USE_THEME_DEFAULT == 1
+        case 5: // Dark
+                // material_flags = LV_THEME_DEFAULT_FLAG_DARK;
+        case 4: // Light
+        case 9: // Light (old id)
+            th = lv_theme_default_init(disp, color_primary, color_secondary, false, haspFonts[1]);
             break;
 #endif
 
@@ -372,7 +389,8 @@ void hasp_set_theme(uint8_t themeid)
     }
 
     if(th) {
-        lv_theme_set_act(th);
+        // lv_theme_set_act(th);
+        lv_disp_set_theme(disp, th); /*Assign the theme to the display*/
         LOG_INFO(TAG_HASP, F("Custom theme loaded"));
     } else {
         LOG_ERROR(TAG_HASP, F("Theme could not be loaded"));

@@ -1,7 +1,7 @@
 /* MIT License - Copyright (c) 2019-2021 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
-#include "hasplib.h"
+//#include "hasplib.h"
 
 #if HASP_USE_CUSTOM > 0 && false // <-- set this to true in your code
 
@@ -26,7 +26,7 @@ void custom_every_second()
 void custom_every_5seconds()
 {
     Log.verbose(TAG_CUSTOM, "5 seconds have passsed...");
-    dispatch_state_subtopic("my_sensor","{\"test\":123}");
+    dispatch_state_subtopic("my_sensor", "{\"test\":123}");
 }
 
 bool custom_pin_in_use(uint pin)

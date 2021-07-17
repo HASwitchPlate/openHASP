@@ -131,9 +131,9 @@ const char HTTP_CSS[] PROGMEM =
 // const char HTTP_SCRIPT[] PROGMEM = "<script>function "
 //                                    "c(l){document.getElementById('s').value=l.innerText||l.textContent;document."
 //                                    "getElementById('p').focus();}</script>";
-const char HTTP_HEADER_END[] PROGMEM =
-    "</head><body><div id='doc'>";
-const char HTTP_FOOTER[] PROGMEM = "<div style='text-align:right;font-size:11px;'><hr/><a href='/about'>" D_MANUFACTURER " ";
+const char HTTP_HEADER_END[] PROGMEM = "</head><body><div id='doc'>";
+const char HTTP_FOOTER[] PROGMEM =
+    "<div style='text-align:right;font-size:11px;'><hr/><a href='/about'>" D_MANUFACTURER " ";
 const char HTTP_END[] PROGMEM = " " D_HTTP_FOOTER "</div></body></html>";
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -274,7 +274,7 @@ void webSendPage(const char* nodename, uint32_t httpdatalength, bool gohome = fa
         uint32_t contentLength = strlen(haspDevice.get_version()); // version length
         contentLength += sizeof(HTTP_DOCTYPE) - 1;
         contentLength += sizeof(HTTP_HEADER) - 1 - 2 + strlen(nodename); // -2 for %s
-    //    contentLength += sizeof(HTTP_SCRIPT) - 1;
+                                                                         //    contentLength += sizeof(HTTP_SCRIPT) - 1;
         contentLength += sizeof(HTTP_STYLE) - 1;
         // contentLength += sizeof(HASP_STYLE) - 1;
         if(gohome) contentLength += sizeof(HTTP_META_GO_BACK) - 1;
@@ -298,14 +298,14 @@ void webSendPage(const char* nodename, uint32_t httpdatalength, bool gohome = fa
     }
 
 #if defined(STM32F4xx)
- //   webServer.sendContent(HTTP_SCRIPT); // 131
-    webServer.sendContent(HTTP_STYLE);  // 487
+    //   webServer.sendContent(HTTP_SCRIPT); // 131
+    webServer.sendContent(HTTP_STYLE); // 487
     // webServer.sendContent(HASP_STYLE);                   // 145
     if(gohome) webServer.sendContent(HTTP_META_GO_BACK); // 47
     webServer.sendContent(HTTP_HEADER_END);              // 80
 #else
- //   webServer.sendContent_P(HTTP_SCRIPT);                 // 131
-    webServer.sendContent_P(HTTP_STYLE);                  // 487
+    //   webServer.sendContent_P(HTTP_SCRIPT);                 // 131
+    webServer.sendContent_P(HTTP_STYLE); // 487
     // webServer.sendContent_P(HASP_STYLE);                   // 145
     if(gohome) webServer.sendContent_P(HTTP_META_GO_BACK); // 47
     webServer.sendContent_P(HTTP_HEADER_END);              // 80
@@ -440,7 +440,7 @@ void webHandleScreenshot()
 
     if(webServer.hasArg(F("q"))) {
         lv_disp_t* disp = lv_disp_get_default();
-        webServer.setContentLength(122 + disp->driver.hor_res * disp->driver.ver_res * sizeof(lv_color_t));
+        webServer.setContentLength(122 + disp->driver->hor_res * disp->driver->ver_res * sizeof(lv_color_t));
         webServer.send_P(200, PSTR("image/bmp"), "");
         guiTakeScreenshot();
         webServer.client().stop();
@@ -1979,7 +1979,7 @@ void webHandleHaspConfig()
 #if LV_USE_THEME_MONO == 1
         httpMessage += getOption(3, F("Mono"), themeid == 3);
 #endif
-#if LV_USE_THEME_MATERIAL == 1
+#if LV_USE_THEME_MATERIAL == 1 || LV_USE_THEME_DEFAULT == 1
         httpMessage += getOption(5, F("Material Dark"), themeid == 5);
         httpMessage += getOption(4, F("Material Light"), themeid == 4);
 #endif

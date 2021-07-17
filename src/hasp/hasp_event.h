@@ -11,20 +11,22 @@
 #define HASP_NUM_PAGE_BACK (HASP_NUM_PAGES + 2)
 #define HASP_NUM_PAGE_NEXT (HASP_NUM_PAGES + 3)
 
+#define lv_task_t lv_timer_t
+
 // Timer event Handlers
 void event_timer_calendar(lv_task_t* task);
 void event_timer_clock(lv_task_t* task);
 
 // Object event Handlers
-void delete_event_handler(lv_obj_t* obj, lv_event_t event);
-void wakeup_event_handler(lv_obj_t* obj, lv_event_t event);
-void generic_event_handler(lv_obj_t* obj, lv_event_t event);
-void toggle_event_handler(lv_obj_t* obj, lv_event_t event);
-void slider_event_handler(lv_obj_t* obj, lv_event_t event);
-void selector_event_handler(lv_obj_t* obj, lv_event_t event);
-void btnmatrix_event_handler(lv_obj_t* obj, lv_event_t event);
-void msgbox_event_handler(lv_obj_t* obj, lv_event_t event);
-void cpicker_event_handler(lv_obj_t* obj, lv_event_t event);
-void calendar_event_handler(lv_obj_t* obj, lv_event_t event);
+void delete_event_handler(lv_event_t* e);
+void wakeup_event_handler(lv_event_t* e);
+void generic_event_handler(lv_event_t* e);
+void toggle_event_handler(lv_event_t* e);
+void slider_event_handler(lv_event_t* e);
+void selector_event_handler(lv_event_t* e);
+void btnmatrix_event_handler(lv_event_t* e);
+void msgbox_event_handler(lv_event_t* e);
+void cpicker_event_handler(lv_event_t* e);
+void calendar_event_handler(lv_event_t* e);
 
 #endif // HASP_EVENT_H

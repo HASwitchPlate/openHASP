@@ -34,7 +34,8 @@ uint8_t statLoopCounter = 0; // measures the average looptime
 
 void setup()
 {
-    //   hal_setup();
+    lv_init(); // needed first for mem_monitor in debug
+    // hal_setup();
 
     haspDevice.init();
 

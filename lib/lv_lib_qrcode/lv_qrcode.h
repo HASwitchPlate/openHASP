@@ -13,8 +13,11 @@ extern "C" {
 /*********************
  *      INCLUDES
  *********************/
+#ifdef LV_LVGL_H_INCLUDE_SIMPLE
 #include "lvgl.h"
-
+#else
+#include "lvgl/lvgl.h"
+#endif
 /*********************
  *      DEFINES
  *********************/
@@ -35,7 +38,7 @@ extern "C" {
  * @param light_color light color of the QR code
  * @return pointer to the created QR code object
  */
-lv_obj_t * lv_qrcode_create(lv_obj_t * parent, lv_coord_t size, lv_color_t dark_color, lv_color_t light_color);
+lv_obj_t* lv_qrcode_create(lv_obj_t* parent, lv_coord_t size, lv_color_t dark_color, lv_color_t light_color);
 
 /**
  * Set the data of a QR code object
@@ -44,13 +47,13 @@ lv_obj_t * lv_qrcode_create(lv_obj_t * parent, lv_coord_t size, lv_color_t dark_
  * @param data_len length of data in bytes
  * @return LV_RES_OK: if no error; LV_RES_INV: on error
  */
-lv_res_t lv_qrcode_update(lv_obj_t * qrcode, const void * data, uint32_t data_len);
+lv_res_t lv_qrcode_update(lv_obj_t* qrcode, const void* data, uint32_t data_len);
 
 /**
  * Delete a QR code object
  * @param qrcode pointer to a QR code object
  */
-void lv_qrcode_delete(lv_obj_t * qrcode);
+void lv_qrcode_delete(lv_obj_t* qrcode);
 
 /**********************
  *      MACROS

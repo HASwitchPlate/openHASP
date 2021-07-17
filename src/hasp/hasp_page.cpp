@@ -31,9 +31,8 @@ void Page::init(uint8_t start_page)
 
     for(int i = 0; i < count(); i++) {
         lv_obj_t* prev_page_obj = _pages[i];
-
-        _pages[i]                  = lv_obj_create(NULL, NULL);
-        _pages[i]->user_data.objid = LV_HASP_SCREEN;
+        _pages[i]               = lv_obj_create(NULL);
+        object_set_user_data(_pages[i], 0, LV_HASP_SCREEN);
         lv_obj_set_event_cb(_pages[i], generic_event_handler);
 
         /**< If the `indev` was pressing this object but swiped out while pressing do not search other object.*/

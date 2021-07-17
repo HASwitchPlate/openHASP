@@ -78,6 +78,7 @@ enum lv_hasp_obj_type_t {
 };
 
 void hasp_new_object(const JsonObject& config, uint8_t& saved_page_id);
+bool object_set_user_data(lv_obj_t* obj, uint8_t id, uint8_t objid);
 
 lv_obj_t* hasp_find_obj_from_parent_id(lv_obj_t* parent, uint8_t objid);
 lv_obj_t* hasp_find_obj_from_page_id(uint8_t pageid, uint8_t objid);
@@ -99,10 +100,14 @@ void object_set_normalized_group_values(hasp_update_value_t& value);
  */
 inline const char* obj_get_type_name(const lv_obj_t* obj)
 {
+#if LV_VERSION_CHECK(8, 0, 0)
+    return "unknown";
+#else
     lv_obj_type_t list;
     lv_obj_get_type(obj, &list);
     const char* objtype = list.type[0];
     return objtype + 3; // skip lv_
+#endif
 }
 /**
  * Get the hasp object type of a given LVGL object
@@ -112,7 +117,8 @@ inline const char* obj_get_type_name(const lv_obj_t* obj)
  */
 inline lv_hasp_obj_type_t obj_get_type(const lv_obj_t* obj)
 {
-    return (lv_hasp_obj_type_t)obj->user_data.objid;
+    lv_obj_user_data_t* user_data = (lv_obj_user_data_t*)obj->user_data;
+    return (lv_hasp_obj_type_t)user_data->objid;
 }
 /**
  * Check if an lvgl objecttype name corresponds to a given HASP object ID
@@ -124,8 +130,9 @@ inline lv_hasp_obj_type_t obj_get_type(const lv_obj_t* obj)
 inline bool obj_check_type(const lv_obj_t* obj, lv_hasp_obj_type_t haspobjtype)
 {
 #if 1
-    if(!obj) return false;
-    return obj->user_data.objid == (uint8_t)haspobjtype;
+    if(!obj || !obj->user_data) return false;
+    lv_obj_user_data_t* user_data = (lv_obj_user_data_t*)obj->user_data;
+    return user_data->objid == (uint8_t)haspobjtype;
 #else
     lv_obj_type_t list;
     lv_obj_get_type(obj, &list);

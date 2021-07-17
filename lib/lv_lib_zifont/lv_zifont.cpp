@@ -29,7 +29,7 @@
 #endif // ARDUINO_ARCH
 
 #include "lvgl.h"
-#include "lv_misc/lv_debug.h"
+//#include "lv_misc/lv_debug.h"
 #include "lv_zifont.h"
 #include "ArduinoLog.h"
 #include "hasp_macro.h"
@@ -68,6 +68,7 @@ HASP_ATTRIBUTE_FAST_MEM bool lv_font_get_glyph_dsc_fmt_zifont(const lv_font_t* f
 uint32_t charInBuffer = 0; // Last Character ID in the Bitmap Buffer
 // uint8_t filecharBitmap_p[20 * 1024];
 lv_zifont_char_t lastCharInfo; // Holds the last Glyph DSC
+size_t current_bitmap_size = 0;
 
 #if ESP32
 // static lv_zifont_char_t charCache[256 - 32]; // glyphID DSC cache
@@ -113,10 +114,11 @@ static inline bool openFont(File& file, const char* filename)
 
 static inline bool initCharacterFrame(size_t size)
 {
-    if(size > _lv_mem_get_size(charBitmap_p)) {
+    if(size > current_bitmap_size) {
         lv_mem_free(charBitmap_p);
-        charBitmap_p = (uint8_t*)lv_mem_alloc(size);
-        LOG_WARNING(TAG_FONT, F("Pixel buffer is %d bytes"), _lv_mem_get_size(charBitmap_p));
+        charBitmap_p        = (uint8_t*)lv_mem_alloc(size);
+        current_bitmap_size = size;
+        LOG_WARNING(TAG_FONT, F("Pixel buffer is %d bytes"), current_bitmap_size);
     }
 
     if(charBitmap_p != NULL) {

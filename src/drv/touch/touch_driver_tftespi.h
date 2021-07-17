@@ -14,7 +14,7 @@
 #include "../../hasp/hasp.h" // for hasp_sleep_state
 extern uint8_t hasp_sleep_state;
 
-IRAM_ATTR bool touch_read(lv_indev_drv_t* indev_driver, lv_indev_data_t* data)
+IRAM_ATTR void touch_read(lv_indev_drv_t* indev_driver, lv_indev_data_t* data)
 {
     if(haspTft.tft.getTouch((uint16_t*)&data->point.x, (uint16_t*)&data->point.y, 300)) {
         if(hasp_sleep_state != HASP_SLEEP_OFF) hasp_update_sleep_state(); // update Idle
@@ -23,9 +23,6 @@ IRAM_ATTR bool touch_read(lv_indev_drv_t* indev_driver, lv_indev_data_t* data)
     } else {
         data->state = LV_INDEV_STATE_REL;
     }
-
-    /*Return `false` because we are not buffering and no more data to read*/
-    return false;
 }
 
 namespace dev {
