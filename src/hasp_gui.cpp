@@ -321,9 +321,9 @@ void guiSetup()
 #else
         cursor = lv_obj_create(mouse_layer); // show cursor object on every page
         lv_obj_set_size(cursor, 9, 9);
-        lv_obj_set_style_local_radius(cursor, LV_OBJ_PART_MAIN | LV_STATE_DEFAULT, LV_RADIUS_CIRCLE);
-        lv_obj_set_style_local_bg_color(cursor, LV_OBJ_PART_MAIN | LV_STATE_DEFAULT, LV_COLOR_RED);
-        lv_obj_set_style_bg_opa(cursor, LV_OBJ_PART_MAIN | LV_STATE_DEFAULT, LV_OPA_COVER);
+        lv_obj_set_style_radius(cursor, LV_RADIUS_CIRCLE, LV_OBJ_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_bg_color(cursor, LV_COLOR_RED, LV_OBJ_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_bg_opa(cursor, LV_OPA_COVER, LV_OBJ_PART_MAIN | LV_STATE_DEFAULT);
 #endif
         lv_indev_set_cursor(mouse_indev, cursor); /*Connect the image  object to the driver*/
     }
