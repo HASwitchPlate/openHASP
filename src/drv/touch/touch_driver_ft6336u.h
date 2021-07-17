@@ -46,9 +46,6 @@ IRAM_ATTR void touch_read(lv_indev_drv_t* indev_driver, lv_indev_data_t* data)
     } else {
         data->state = LV_INDEV_STATE_REL;
     }
-
-    /*Return `false` because we are not buffering and no more data to read*/
-    return false;
 }
 
 static inline void FT6336U_drv_init()

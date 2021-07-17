@@ -188,8 +188,8 @@ void guiSetup()
 
     static lv_disp_drv_t disp_drv;
     lv_disp_drv_init(&disp_drv);
-    disp_drv.buffer    = &disp_buf;
-    disp_drv->flush_cb = gui_flush_cb;
+    disp_drv.draw_buf = &disp_buf;
+    disp_drv.flush_cb = gui_flush_cb;
 
     if(gui_settings.rotation % 2) {
         disp_drv.hor_res = tft_height;
