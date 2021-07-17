@@ -55,9 +55,6 @@ IRAM_ATTR void touch_read(lv_indev_drv_t* indev_driver, lv_indev_data_t* data)
     }
 
     touch.loop(); // reset IRQ
-
-    /*Return `false` because we are not buffering and no more data to read*/
-    return false;
 }
 
 namespace dev {
@@ -65,9 +62,9 @@ namespace dev {
 class TouchGt911 : public BaseTouch {
 
   public:
-    IRAM_ATTR bool read(lv_indev_drv_t* indev_driver, lv_indev_data_t* data)
+    IRAM_ATTR void read(lv_indev_drv_t* indev_driver, lv_indev_data_t* data)
     {
-        return touch_read(indev_driver, data);
+        touch_read(indev_driver, data);
     }
 
     void init(int w, int h)
