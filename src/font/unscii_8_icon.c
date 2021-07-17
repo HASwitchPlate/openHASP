@@ -498,13 +498,21 @@ static lv_font_fmt_txt_dsc_t font_dsc = {.glyph_bitmap  = gylph_bitmap,
  *----------------*/
 
 /*Initialize a public general font descriptor*/
+#if LV_VERSION_CHECK(8, 0, 0)
+const lv_font_t unscii_8_icon = {
+#else
 lv_font_t unscii_8_icon = {
+#endif
     .get_glyph_dsc    = lv_font_get_glyph_dsc_fmt_txt, /*Function pointer to get glyph's data*/
     .get_glyph_bitmap = lv_font_get_bitmap_fmt_txt,    /*Function pointer to get glyph's bitmap*/
     .line_height      = 16,                            /*The maximum line height required by the font*/
     .base_line        = 0,                             /*Baseline measured from the bottom of the line*/
 #if !(LVGL_VERSION_MAJOR == 6 && LVGL_VERSION_MINOR == 0)
     .subpx = LV_FONT_SUBPX_NONE,
+#endif
+#if LV_VERSION_CHECK(7, 4, 0) || LV_VERSION_CHECK(8, 0, 0)
+    .underline_position  = -1,
+    .underline_thickness = 1,
 #endif
     .dsc = &font_dsc /*The custom font data. Will be accessed by `get_glyph_bitmap/dsc` */
 };
