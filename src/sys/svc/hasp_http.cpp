@@ -2353,20 +2353,20 @@ void httpSetup()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-void httpReconnect()
-{
-    if(!http_config.enable) return;
+// static void httpReconnect()
+// {
+//     if(!http_config.enable) return;
 
-    if(webServerStarted) {
-        httpStop();
-    } else
-#if HASP_USE_WIFI > 0 && !defined(STM32F4xx)
-        if(WiFi.status() == WL_CONNECTED || WiFi.getMode() != WIFI_STA)
-#endif
-    {
-        httpStart();
-    }
-}
+//     if(webServerStarted) {
+//         httpStop();
+//     } else
+// #if HASP_USE_WIFI > 0 && !defined(STM32F4xx)
+//         if(WiFi.status() == WL_CONNECTED || WiFi.getMode() != WIFI_STA)
+// #endif
+//     {
+//         httpStart();
+//     }
+// }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 IRAM_ATTR void httpLoop(void)
