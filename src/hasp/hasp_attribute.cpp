@@ -342,28 +342,48 @@ static void hasp_attribute_get_part_state(lv_obj_t* obj, const char* attr_in, ch
         case LV_HASP_TABVIEW:
             switch(index) {
                 case 1:
-                    state = LV_BTN_STATE_PRESSED;
+                    part  = LV_TABVIEW_PART_TAB_BG;
+                    state = LV_BTN_STATE_RELEASED;
                     break;
                 case 2:
-                    state = LV_BTN_STATE_DISABLED;
+                    part  = LV_TABVIEW_PART_TAB_BG;
+                    state = LV_BTN_STATE_PRESSED;
                     break;
                 case 3:
-                    state = LV_BTN_STATE_CHECKED_RELEASED;
+                    part  = LV_TABVIEW_PART_TAB_BG;
+                    state = LV_BTN_STATE_DISABLED;
                     break;
                 case 4:
-                    state = LV_BTN_STATE_CHECKED_PRESSED;
+                    part  = LV_TABVIEW_PART_TAB_BG;
+                    state = LV_BTN_STATE_CHECKED_RELEASED;
                     break;
                 case 5:
+                    part  = LV_TABVIEW_PART_TAB_BG;
+                    state = LV_BTN_STATE_CHECKED_PRESSED;
+                    break;
+                case 6:
+                    part  = LV_TABVIEW_PART_TAB_BG;
                     state = LV_BTN_STATE_CHECKED_DISABLED;
                     break;
+
+                case 7:
+                    part = LV_TABVIEW_PART_TAB_BTN;
+                    break;
+
+                case 8:
+                    part = LV_TABVIEW_PART_INDIC;
+                    break;
+
+                case 9:
+                    part = LV_TABVIEW_PART_BG_SCROLLABLE;
+                    break;
+
                 default:
-                    state = LV_BTN_STATE_RELEASED;
+                    part = LV_TABVIEW_PART_BG;
             }
-            part = LV_TABVIEW_PART_TAB_BG;
             break;
 
         default:
-            part = LV_TABLE_PART_BG;
     }
 }
 
