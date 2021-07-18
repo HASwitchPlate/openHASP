@@ -54,6 +54,10 @@
 #define MQTT_NODENAME "plate"
 #endif
 
+#ifndef HASP_START_CONSOLE
+#define HASP_START_CONSOLE 1
+#endif
+
 #ifndef HASP_USE_HTTP
 #define HASP_USE_HTTP (HASP_HAS_NETWORK)
 #endif
