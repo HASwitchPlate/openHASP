@@ -343,7 +343,7 @@ void dispatch_topic_payload(const char* topic, const char* payload, bool update)
 // Parse one line of text and execute the command
 void dispatch_text_line(const char* cmnd)
 {
-    if (cmnd[0]=='/' && cmnd[1]=='/') return; // comment
+    if(cmnd[0] == '/' && cmnd[1] == '/') return; // comment
 
     switch(cmnd[0]) {
         case '#':
@@ -1161,7 +1161,8 @@ void dispatch_service(const char*, const char* payload)
 
 void dispatch_exec(const char*, const char* payload)
 {
-    File cmdfile = HASP_FS.open(payload, FILE_READ);
+#if ARDUINO
+    File cmdfile = HASP_FS.open(payload, "r");
     if(!cmdfile) return;
 
     char buffer[1024];
@@ -1186,6 +1187,7 @@ void dispatch_exec(const char*, const char* payload)
 
     cmdfile.close();
     LOG_VERBOSE(TAG_MSGR, F("running %s complete"), payload);
+#endif
 }
 
 /******************************************* Commands builder *******************************************/
