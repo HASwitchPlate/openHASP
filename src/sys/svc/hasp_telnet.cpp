@@ -288,7 +288,9 @@ void telnetStart()
 
 void telnetSetup()
 {
+#if HASP_START_TELNET
     telnetStart();
+#endif
 }
 
 IRAM_ATTR void telnetLoop()

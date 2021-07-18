@@ -62,6 +62,10 @@
 #define HASP_USE_HTTP_ASYNC 0 //(HASP_HAS_NETWORK)
 #endif
 
+#ifndef HASP_START_HTTP
+#define HASP_START_HTTP 1
+#endif
+
 #ifndef HASP_USE_MDNS
 #define HASP_USE_MDNS (HASP_HAS_NETWORK)
 #endif
@@ -72,6 +76,10 @@
 
 #ifndef HASP_USE_TELNET
 #define HASP_USE_TELNET 0
+#endif
+
+#ifndef HASP_START_TELNET
+#define HASP_START_TELNET 1
 #endif
 
 #ifndef HASP_USE_CONSOLE

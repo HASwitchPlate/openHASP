@@ -32,7 +32,9 @@ void networkStart(void)
     debugStartSyslog();
 // mqttStart();
 #if HASP_USE_HTTP > 0 || HASP_USE_HTTP_ASYNC > 0
+#if HASP_START_HTTP
     httpStart();
+#endif
 #endif
 #if HASP_USE_MDNS > 0
     mdnsStart();
