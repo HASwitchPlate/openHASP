@@ -383,7 +383,7 @@ static void hasp_attribute_get_part_state(lv_obj_t* obj, const char* attr_in, ch
             }
             break;
 
-        default:
+        default:; // nothing to do
     }
 }
 
