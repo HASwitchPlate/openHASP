@@ -20,6 +20,7 @@
 #include "../mqtt/hasp_mqtt.h"
 #else
 #include "StringStream.h"
+#include "StreamUtils.h" // for exec
 #include "CharStream.h"
 
 #include "hasp_oobe.h"
@@ -44,7 +45,7 @@ dispatch_conf_t dispatch_setings = {.teleperiod = 300};
 
 uint16_t dispatchSecondsToNextTeleperiod = 0;
 uint8_t nCommands                        = 0;
-haspCommand_t commands[24];
+haspCommand_t commands[25];
 
 moodlight_t moodlight = {.brightness = 255};
 
@@ -342,40 +343,62 @@ void dispatch_topic_payload(const char* topic, const char* payload, bool update)
 // Parse one line of text and execute the command
 void dispatch_text_line(const char* cmnd)
 {
-    size_t pos1 = std::string(cmnd).find("=");
-    size_t pos2 = std::string(cmnd).find(" ");
-    size_t pos  = 0;
-    bool update = false;
+    if (cmnd[0]=='/' && cmnd[1]=='/') return; // comment
 
-    // Find what comes first, ' ' or '='
-    if(pos1 != std::string::npos) {     // '=' found
-        if(pos2 != std::string::npos) { // ' ' found
-            pos = (pos1 < pos2 ? pos1 : pos2);
-        } else {
-            pos = pos1;
+    switch(cmnd[0]) {
+        case '#':
+            break; // comment
+
+        case '{':
+            dispatch_command("jsonl", cmnd, false);
+            break;
+
+        case '[':
+            dispatch_command("json", cmnd, false);
+            break; // comment
+
+        case ' ':
+            while(cmnd[0] == ' ') cmnd++; // skip leading spaces
+            dispatch_text_line(cmnd);
+            break;
+
+        default: {
+            size_t pos1 = std::string(cmnd).find("=");
+            size_t pos2 = std::string(cmnd).find(" ");
+            size_t pos  = 0;
+            bool update = false;
+
+            // Find what comes first, ' ' or '='
+            if(pos1 != std::string::npos) {     // '=' found
+                if(pos2 != std::string::npos) { // ' ' found
+                    pos = (pos1 < pos2 ? pos1 : pos2);
+                } else {
+                    pos = pos1;
+                }
+                update = pos == pos1; // equal sign wins
+
+            } else {
+                pos = (pos2 != std::string::npos) ? pos2 : 0;
+            }
+
+            if(pos > 0) { // ' ' or '=' found
+                char topic[64];
+                memset(topic, 0, sizeof(topic));
+                if(pos < sizeof(topic))
+                    memcpy(topic, cmnd, pos);
+                else
+                    memcpy(topic, cmnd, sizeof(topic) - 1);
+
+                // topic is before '=', payload is after '=' position
+                update |= strlen(cmnd + pos + 1) > 0; // equal sign OR space with payload
+                LOG_TRACE(TAG_MSGR, update ? F("%s=%s") : F("%s%s"), topic, cmnd + pos + 1);
+                dispatch_topic_payload(topic, cmnd + pos + 1, update);
+            } else {
+                char empty_payload[1] = {0};
+                LOG_TRACE(TAG_MSGR, cmnd);
+                dispatch_topic_payload(cmnd, empty_payload, false);
+            }
         }
-        update = pos == pos1; // equal sign wins
-
-    } else {
-        pos = (pos2 != std::string::npos) ? pos2 : 0;
-    }
-
-    if(pos > 0) { // ' ' or '=' found
-        char topic[64];
-        memset(topic, 0, sizeof(topic));
-        if(pos < sizeof(topic))
-            memcpy(topic, cmnd, pos);
-        else
-            memcpy(topic, cmnd, sizeof(topic) - 1);
-
-        // topic is before '=', payload is after '=' position
-        update |= strlen(cmnd + pos + 1) > 0; // equal sign OR space with payload
-        LOG_TRACE(TAG_MSGR, update ? F("%s=%s") : F("%s%s"), topic, cmnd + pos + 1);
-        dispatch_topic_payload(topic, cmnd + pos + 1, update);
-    } else {
-        char empty_payload[1] = {0};
-        LOG_TRACE(TAG_MSGR, cmnd);
-        dispatch_topic_payload(cmnd, empty_payload, false);
     }
 }
 
@@ -1126,6 +1149,43 @@ void dispatch_service(const char*, const char* payload)
         httpStop();
     }
 #endif
+
+#if 1
+    if(!strcmp_P(payload, "start console")) {
+        consoleStart();
+    } else if(!strcmp_P(payload, "stop console")) {
+        consoleStop();
+    }
+#endif
+}
+
+void dispatch_exec(const char*, const char* payload)
+{
+    File cmdfile = HASP_FS.open(payload, FILE_READ);
+    if(!cmdfile) return;
+
+    char buffer[1024];
+    ReadBufferingStream bufferedFile{cmdfile, 256};
+    cmdfile.seek(0);
+
+    while(bufferedFile.available()) {
+        // int l = bufferedFile.readBytesUntil('\n', buffer, sizeof(buffer) - 1);
+
+        size_t index = 0;
+        while(index < sizeof(buffer) - 1) {
+            int c = bufferedFile.read();
+            if(c < 0 || c == '\n' || c == '\r') { // CR or LF
+                break;
+            }
+            buffer[index] = (char)c;
+            index++;
+        }
+        buffer[index] = 0;                                            // terminate string
+        if(index > 0 && buffer[0] != '#') dispatch_text_line(buffer); // # for comments
+    }
+
+    cmdfile.close();
+    LOG_VERBOSE(TAG_MSGR, F("running %s complete"), payload);
 }
 
 /******************************************* Commands builder *******************************************/
@@ -1164,6 +1224,7 @@ void dispatchSetup()
     dispatch_add_command(PSTR("brightness"), dispatch_backlight_obsolete); // dim
     dispatch_add_command(PSTR("light"), dispatch_backlight_obsolete);
     dispatch_add_command(PSTR("theme"), dispatch_theme);
+    dispatch_add_command(PSTR("exec"), dispatch_exec);
     dispatch_add_command(PSTR("service"), dispatch_service);
     dispatch_add_command(PSTR("wakeup"), dispatch_wakeup_obsolete);
     dispatch_add_command(PSTR("calibrate"), dispatch_calibrate);
