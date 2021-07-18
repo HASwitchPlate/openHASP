@@ -14,7 +14,7 @@
 #define debug_print(io, ...) io->printf(__VA_ARGS__)
 #define debug_newline(io) io->println()
 
-bool debugSerialStarted = false;
+// bool debugSerialStarted = false;
 #else
 #include <stdio.h>
 #include <stdlib.h>
@@ -23,7 +23,7 @@ bool debugSerialStarted = false;
 #define debug_print(io, ...) fprintf(stdout, __VA_ARGS__)
 #define debug_newline(io) fprintf(stdout, "\n")
 
-bool debugSerialStarted = true;
+// bool debugSerialStarted = true;
 #endif
 
 bool debugAnsiCodes = true;
@@ -107,7 +107,7 @@ void debugEverySecond()
     // printLocalTime();
 }
 
-void debugStart()
+void debugStart(void)
 {
 
 #if defined(WINDOWS) || defined(POSIX)
@@ -115,25 +115,34 @@ void debugStart()
     debugPrintHaspHeader(NULL);
     debug_newline();
 
-    LOG_INFO(TAG_DEBG, F("Console started"));
     LOG_INFO(TAG_DEBG, F("Environment: " PIOENV));
+    LOG_INFO(TAG_DEBG, F("Console started"));
+
+    debug_flush();
+#else
+
+#if HASP_USE_CONSOLE > 0
+    consoleSetup();
 #endif
 
-    if(debugSerialStarted) {
-        debug_flush();
+#endif
 
-        // Serial.println();
-        // Serial.println(debugHaspHeader());
-        // debug_flush();
-    }
+    /*
+        if(debugSerialStarted) {
 
-    // prepare syslog configuration here (can be anywhere before first call of
-    // log/logf method)
+            // Serial.println();
+            // Serial.println(debugHaspHeader());
+            // debug_flush();
+        }
+
+        // prepare syslog configuration here (can be anywhere before first call of
+        // log/logf method)
+    */
 }
 
 void debugStop()
 {
-    if(debugSerialStarted) debug_flush();
+    // if(debugSerialStarted) debug_flush();
 }
 
 /* ===== Special Event Processors ===== */

@@ -57,7 +57,7 @@ void setup()
      * Read & Apply User Configuration
      ***************************/
 #if HASP_USE_CONFIG > 0
-    configSetup(); // also runs  debugSetup() and debugStart()
+    configSetup(); // also runs  debugSetup(), debugStart() and consoleSetup()
 #endif
 
     dispatchSetup(); // before hasp and oobe, asap after logging starts
@@ -98,9 +98,9 @@ void setup()
     httpSetup();
 #endif
 
-#if HASP_USE_CONSOLE > 0
-    consoleSetup();
-#endif
+// #if HASP_USE_CONSOLE > 0
+//     consoleSetup(); // the consoleSetup is called in debugSetup
+// #endif
 
 #if HASP_USE_TELNET > 0
     telnetSetup();
