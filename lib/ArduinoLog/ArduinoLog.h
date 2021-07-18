@@ -343,7 +343,7 @@ class Logging {
 #ifndef DISABLE_LOGGING
     int _level[3];
     bool _showLevel[3];
-    Print* _logOutput[3];
+    Print* _logOutput[3] = {NULL,NULL,NULL};
 
     printfunction _prefix = NULL;
     printfunction _suffix = NULL;
