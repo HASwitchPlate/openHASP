@@ -48,8 +48,8 @@ char wifiPassword[64] = WIFI_PASSW;
 #else
 char wifiPassword[64] = "";
 #endif
-char wifiIpAddress[16]       = "";
-uint8_t wifiReconnectCounter = 0;
+char wifiIpAddress[16]        = "";
+uint16_t wifiReconnectCounter = 0;
 
 // const byte DNS_PORT = 53;
 // DNSServer dnsServer;
@@ -67,11 +67,17 @@ static void wifiConnected(IPAddress ipaddress)
 #endif
     LOG_TRACE(TAG_WIFI, F(D_NETWORK_IP_ADDRESS_RECEIVED), wifiIpAddress);
 
-    lv_obj_t* msgbox = lv_msgbox_create(lv_layer_sys(), NULL);
-    lv_msgbox_set_text_fmt(msgbox, wifiIpAddress);
-    lv_msgbox_start_auto_close(msgbox, 4000);
-    lv_msgbox_set_anim_time(msgbox, 0);
-    lv_obj_move_background(msgbox);
+    // #if defined(HASP_NETWORK_POPUP)
+    //     lv_obj_t* msgbox = lv_msgbox_create(lv_layer_sys(), NULL);
+    //     lv_msgbox_set_text_fmt(msgbox, wifiIpAddress);
+    // #if HASP_NETWORK_POPUP > 0
+    //     lv_msgbox_start_auto_close(msgbox, HASP_NETWORK_POPUP);
+    // #endif
+    //     lv_msgbox_set_anim_time(msgbox, 0);
+    //     lv_obj_move_background(msgbox);
+    // #endif
+
+    dispatch_exec(NULL, "/online.cmd", TAG_WIFI);
 
     LOG_VERBOSE(TAG_WIFI, F("Connected = %s"),
                 WiFi.status() == WL_CONNECTED ? PSTR(D_NETWORK_ONLINE) : PSTR(D_NETWORK_OFFLINE));
@@ -80,16 +86,15 @@ static void wifiConnected(IPAddress ipaddress)
 
 static void wifiDisconnected(const char* ssid, uint8_t reason)
 {
-    wifiReconnectCounter++;
     char buffer[64];
 
     //  haspProgressVal(wifiReconnectCounter * 3);
     // networkStop();
 
-    if(wifiReconnectCounter > 33) {
-        LOG_ERROR(TAG_WIFI, F("Retries exceed %u: Rebooting..."), wifiReconnectCounter);
-        dispatch_reboot(false);
-    }
+    // if(wifiReconnectCounter > 33) {
+    //     LOG_ERROR(TAG_WIFI, F("Retries exceed %u: Rebooting..."), wifiReconnectCounter);
+    //     dispatch_reboot(false);
+    // }
 
     switch(reason) {
 #if defined(ARDUINO_ARCH_ESP8266)
@@ -258,7 +263,7 @@ static void wifiDisconnected(const char* ssid, uint8_t reason)
             snprintf_P(buffer, sizeof(buffer), PSTR("no AP found"));
             break;
         case WIFI_REASON_AUTH_FAIL:
-            snprintf_P(buffer, sizeof(buffer), PSTR("auth powercap"));
+            snprintf_P(buffer, sizeof(buffer), PSTR("auth failed"));
             break;
         case WIFI_REASON_ASSOC_FAIL:
             snprintf_P(buffer, sizeof(buffer), PSTR("assoc failed"));
@@ -275,7 +280,10 @@ static void wifiDisconnected(const char* ssid, uint8_t reason)
             snprintf_P(buffer, sizeof(buffer), PSTR(D_ERROR_UNKNOWN));
     }
 
-    LOG_WARNING(TAG_WIFI, F("Disconnected from %s (Reason: %s [%d])"), ssid, buffer, reason);
+    if(wifiReconnectCounter % 10 == 0)
+        LOG_WARNING(TAG_WIFI, F("Disconnected from %s (Reason: %s [%d])"), ssid, buffer, reason);
+    if(wifiReconnectCounter == 0) dispatch_exec(NULL, "/offline.cmd", TAG_WIFI);
+    if(wifiReconnectCounter != 0xFFFF) wifiReconnectCounter++;
 }
 
 static void wifiSsidConnected(const char* ssid)
@@ -446,6 +454,7 @@ void wifiSetup()
         WiFi.setSleep(false);
 #endif
 
+        WiFi.setAutoReconnect(true);
         wifiReconnect();
         LOG_TRACE(TAG_WIFI, F(D_WIFI_CONNECTING_TO), wifiSsid);
     }
@@ -465,15 +474,15 @@ bool wifiEvery5Seconds()
 #endif
         return true;
     } else {
-        wifiReconnectCounter++;
-        if(wifiReconnectCounter > 45) {
-            LOG_ERROR(TAG_WIFI, F("Retries exceeded %d: Rebooting..."), wifiReconnectCounter);
-            dispatch_reboot(false);
-        }
+        // wifiReconnectCounter++;
+        // if(wifiReconnectCounter > 45) {
+        //     LOG_ERROR(TAG_WIFI, F("Retries exceeded %d: Rebooting..."), wifiReconnectCounter);
+        //     dispatch_reboot(false);
+        // }
         LOG_WARNING(TAG_WIFI, F("No Connection... retry %d"), wifiReconnectCounter);
-        if(wifiReconnectCounter % 2 == 0) {
-            wifiReconnect();
-        }
+        // if(wifiReconnectCounter % 2 == 0) {
+        //     wifiReconnect();
+        // }
         return false;
     }
 }
