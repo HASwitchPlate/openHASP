@@ -148,13 +148,17 @@ void Page::load_jsonl(const char* pagesfile)
     }
 
     if(!HASP_FS.exists(pagesfile)) {
-        LOG_ERROR(TAG_HASP, F(D_FILE_LOAD_FAILED), pagesfile);
+        LOG_WARNING(TAG_HASP, F(D_FILE_NOT_FOUND ": %s"), pagesfile);
         return;
     }
 
     LOG_TRACE(TAG_HASP, F(D_FILE_LOADING), pagesfile);
 
     File file = HASP_FS.open(pagesfile, "r");
+    if(!file) {
+        LOG_ERROR(TAG_HASP, F(D_FILE_LOAD_FAILED), pagesfile);
+        return;
+    }
     dispatch_parse_jsonl(file);
     file.close();
 
