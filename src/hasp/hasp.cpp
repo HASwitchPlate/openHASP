@@ -110,17 +110,17 @@ HASP_ATTRIBUTE_FAST_MEM void hasp_update_sleep_state()
     if(sleepTimeLong > 0 && idle >= (sleepTimeShort + sleepTimeLong)) {
         if(hasp_sleep_state != HASP_SLEEP_LONG) {
             hasp_sleep_state = HASP_SLEEP_LONG;
-            dispatch_idle(NULL, NULL);
+            dispatch_idle(NULL, NULL, TAG_HASP);
         }
     } else if(sleepTimeShort > 0 && idle >= sleepTimeShort) {
         if(hasp_sleep_state != HASP_SLEEP_SHORT) {
             hasp_sleep_state = HASP_SLEEP_SHORT;
-            dispatch_idle(NULL, NULL);
+            dispatch_idle(NULL, NULL, TAG_HASP);
         }
     } else {
         if(hasp_sleep_state != HASP_SLEEP_OFF) {
             hasp_sleep_state = HASP_SLEEP_OFF;
-            dispatch_idle(NULL, NULL);
+            dispatch_idle(NULL, NULL, TAG_HASP);
         }
     }
 
