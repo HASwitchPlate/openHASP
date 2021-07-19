@@ -98,7 +98,7 @@ static void console_process_line(const char* input)
                 }
 #endif
             } else {
-                dispatch_text_line(input);
+                dispatch_text_line(input, TAG_CONS);
             }
     }
 }

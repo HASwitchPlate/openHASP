@@ -131,9 +131,9 @@ const char HTTP_CSS[] PROGMEM =
 // const char HTTP_SCRIPT[] PROGMEM = "<script>function "
 //                                    "c(l){document.getElementById('s').value=l.innerText||l.textContent;document."
 //                                    "getElementById('p').focus();}</script>";
-const char HTTP_HEADER_END[] PROGMEM =
-    "</head><body><div id='doc'>";
-const char HTTP_FOOTER[] PROGMEM = "<div style='text-align:right;font-size:11px;'><hr/><a href='/about'>" D_MANUFACTURER " ";
+const char HTTP_HEADER_END[] PROGMEM = "</head><body><div id='doc'>";
+const char HTTP_FOOTER[] PROGMEM =
+    "<div style='text-align:right;font-size:11px;'><hr/><a href='/about'>" D_MANUFACTURER " ";
 const char HTTP_END[] PROGMEM = " " D_HTTP_FOOTER "</div></body></html>";
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -274,7 +274,7 @@ void webSendPage(const char* nodename, uint32_t httpdatalength, bool gohome = fa
         uint32_t contentLength = strlen(haspDevice.get_version()); // version length
         contentLength += sizeof(HTTP_DOCTYPE) - 1;
         contentLength += sizeof(HTTP_HEADER) - 1 - 2 + strlen(nodename); // -2 for %s
-    //    contentLength += sizeof(HTTP_SCRIPT) - 1;
+                                                                         //    contentLength += sizeof(HTTP_SCRIPT) - 1;
         contentLength += sizeof(HTTP_STYLE) - 1;
         // contentLength += sizeof(HASP_STYLE) - 1;
         if(gohome) contentLength += sizeof(HTTP_META_GO_BACK) - 1;
@@ -298,14 +298,14 @@ void webSendPage(const char* nodename, uint32_t httpdatalength, bool gohome = fa
     }
 
 #if defined(STM32F4xx)
- //   webServer.sendContent(HTTP_SCRIPT); // 131
-    webServer.sendContent(HTTP_STYLE);  // 487
+    //   webServer.sendContent(HTTP_SCRIPT); // 131
+    webServer.sendContent(HTTP_STYLE); // 487
     // webServer.sendContent(HASP_STYLE);                   // 145
     if(gohome) webServer.sendContent(HTTP_META_GO_BACK); // 47
     webServer.sendContent(HTTP_HEADER_END);              // 80
 #else
- //   webServer.sendContent_P(HTTP_SCRIPT);                 // 131
-    webServer.sendContent_P(HTTP_STYLE);                  // 487
+    //   webServer.sendContent_P(HTTP_SCRIPT);                 // 131
+    webServer.sendContent_P(HTTP_STYLE); // 487
     // webServer.sendContent_P(HASP_STYLE);                   // 145
     if(gohome) webServer.sendContent_P(HTTP_META_GO_BACK); // 47
     webServer.sendContent_P(HTTP_HEADER_END);              // 80
@@ -1091,16 +1091,16 @@ void handleFileCreate()
         }
     }
     if(webServer.hasArg(F("init"))) {
-        dispatch_idle(NULL, "0");
+        dispatch_idle(NULL, "0", TAG_HTTP);
         hasp_init();
     }
     if(webServer.hasArg(F("load"))) {
-        dispatch_idle(NULL, "0");
+        dispatch_idle(NULL, "0", TAG_HTTP);
         hasp_load_json();
     }
     if(webServer.hasArg(F("page"))) {
         uint8_t pageid = atoi(webServer.arg(F("page")).c_str());
-        dispatch_idle(NULL, "0");
+        dispatch_idle(NULL, "0", TAG_HTTP);
         dispatch_set_page(pageid, LV_SCR_LOAD_ANIM_NONE);
     }
     webServer.send(200, PSTR("text/plain"), "");
@@ -1366,7 +1366,7 @@ void webHandleGuiConfig()
     }
     webSendFooter();
 
-    if(webServer.hasArg(F("cal"))) dispatch_calibrate(NULL, NULL);
+    if(webServer.hasArg(F("cal"))) dispatch_calibrate(NULL, NULL, TAG_HTTP);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2155,7 +2155,7 @@ void httpHandleEspFirmware()
     webSendFooter();
 
     LOG_TRACE(TAG_HTTP, F("Updating ESP firmware from: %s"), webServer.arg(url).c_str());
-    dispatch_web_update(NULL, webServer.arg(url).c_str());
+    dispatch_web_update(NULL, webServer.arg(url).c_str(), TAG_HTTP);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

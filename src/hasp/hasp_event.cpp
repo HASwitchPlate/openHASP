@@ -316,7 +316,7 @@ void wakeup_event_handler(lv_obj_t* obj, lv_event_t event)
     if(event == LV_EVENT_RELEASED && obj == lv_disp_get_layer_sys(NULL)) {
         hasp_update_sleep_state(); // wakeup?
         if(!haspDevice.get_backlight_power()) {
-            dispatch_backlight(NULL, "on"); // backlight on and also disable wakeup touch
+            dispatch_backlight(NULL, "on", TAG_EVENT); // backlight on and also disable wakeup touch
         }
         hasp_disable_wakeup_touch(); // only disable wakeup touch
     }

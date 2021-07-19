@@ -12,7 +12,7 @@ void filesystemList();
 void filesystemInfo();
 
 #if defined(ARDUINO_ARCH_ESP32)
-void filesystemUnzip(const char*, const char* filename);
+void filesystemUnzip(const char*, const char* filename, uint8_t source);
 #endif
 
 enum { ZIP_NO_COMPRESSION = 0, ZIP_DEFLTATE = 8 };

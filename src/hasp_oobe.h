@@ -5,6 +5,6 @@
 
 void oobeSetAutoCalibrate(bool cal);
 bool oobeSetup();
-void oobeFakeSetup(const char*, const char*); // for testing purposes only
+void oobeFakeSetup(const char*, const char*, uint8_t source); // for testing purposes only
 
 #endif // HASP_USE_CONFIG

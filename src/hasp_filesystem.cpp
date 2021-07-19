@@ -15,7 +15,7 @@
 #if defined(ARDUINO_ARCH_ESP32)
 #include "rom/crc.h"
 
-void filesystemUnzip(const char*, const char* filename)
+void filesystemUnzip(const char*, const char* filename, uint8_t source)
 {
     File zipfile = HASP_FS.open(filename, FILE_READ);
     if(!zipfile) {

@@ -155,7 +155,7 @@ static void mqtt_message_cb(char* topic, byte* payload, unsigned int length)
 
         // Group topic
         topic += strlen(mqttGroupTopic); // shorten topic
-        dispatch_topic_payload(topic, (const char*)payload, length > 0);
+        dispatch_topic_payload(topic, (const char*)payload, length > 0, TAG_MQTT);
         return;
 
 #ifdef HASP_USE_BROADCAST
@@ -163,7 +163,7 @@ static void mqtt_message_cb(char* topic, byte* payload, unsigned int length)
 
         // Broadcast topic
         topic += strlen_P(PSTR(MQTT_PREFIX "/" MQTT_TOPIC_BROADCAST "/")); // shorten topic
-        dispatch_topic_payload(topic, (const char*)payload, length > 0);
+        dispatch_topic_payload(topic, (const char*)payload, length > 0, TAG_MQTT);
         return;
 #endif
 
@@ -203,7 +203,7 @@ static void mqtt_message_cb(char* topic, byte* payload, unsigned int length)
                 }
                 else */
     {
-        dispatch_topic_payload(topic, (const char*)payload, length > 0);
+        dispatch_topic_payload(topic, (const char*)payload, length > 0, TAG_MQTT);
     }
 }
 
@@ -322,7 +322,7 @@ void mqttStart()
     haspReconnect();
     haspProgressVal(255);
 
-    dispatch_current_state();
+    dispatch_current_state(TAG_MQTT);
 }
 
 void mqttSetup()

@@ -248,7 +248,7 @@ static void telnetProcessLine(const char* input)
                     telnetClientDisconnect();
                 }
             } else {
-                dispatch_text_line(input);
+                dispatch_text_line(input, TAG_TELN);
             }
     }
 }

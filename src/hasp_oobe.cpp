@@ -334,7 +334,7 @@ bool oobeSetup()
 }
 
 // Thist is used for testing only !!
-void oobeFakeSetup(const char*, const char*)
+void oobeFakeSetup(const char*, const char*, uint8_t source)
 {
 #if HASP_USE_WIFI > 0
     char ssid[32] = "HASP-ABCDEF";
