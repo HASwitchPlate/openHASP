@@ -1150,7 +1150,7 @@ void dispatch_service(const char*, const char* payload)
     }
 #endif
 
-#if 1
+#if ARDUINO && HASP_USE_CONSOLE
     if(!strcmp_P(payload, "start console")) {
         consoleStart();
     } else if(!strcmp_P(payload, "stop console")) {
