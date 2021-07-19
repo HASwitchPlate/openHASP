@@ -792,7 +792,7 @@ void dispatch_moodlight(const char* topic, const char* payload)
 
 void dispatch_backlight_obsolete(const char* topic, const char* payload)
 {
-    LOG_WARNING(TAG_HASP, F(D_ATTRIBUTE_OBSOLETE D_ATTRIBUTE_INSTEAD), topic,
+    LOG_WARNING(TAG_MSGR, F(D_ATTRIBUTE_OBSOLETE D_ATTRIBUTE_INSTEAD), topic,
                 "backlight"); // TODO: obsolete dim, light and brightness
     dispatch_backlight(topic, payload);
 }
@@ -1086,7 +1086,7 @@ void dispatch_calibrate(const char*, const char*)
 
 void dispatch_wakeup_obsolete(const char* topic, const char*)
 {
-    LOG_WARNING(TAG_HASP, F(D_ATTRIBUTE_OBSOLETE D_ATTRIBUTE_INSTEAD), topic,
+    LOG_WARNING(TAG_MSGR, F(D_ATTRIBUTE_OBSOLETE D_ATTRIBUTE_INSTEAD), topic,
                 "idle=off"); // TODO: obsolete dim, light and brightness
     lv_disp_trig_activity(NULL);
     hasp_disable_wakeup_touch();
@@ -1162,8 +1162,18 @@ void dispatch_service(const char*, const char* payload)
 void dispatch_exec(const char*, const char* payload)
 {
 #if ARDUINO
+    if(!HASP_FS.exists(payload)) {
+        LOG_WARNING(TAG_MSGR, F(D_FILE_NOT_FOUND ": %s"), payload);
+        return;
+    }
+
+    LOG_TRACE(TAG_MSGR, F(D_FILE_LOADING), payload);
+
     File cmdfile = HASP_FS.open(payload, "r");
-    if(!cmdfile) return;
+    if(!cmdfile) {
+        LOG_ERROR(TAG_MSGR, F(D_FILE_LOAD_FAILED), payload);
+        return;
+    }
 
     char buffer[1024];
     ReadBufferingStream bufferedFile{cmdfile, 256};
@@ -1186,7 +1196,7 @@ void dispatch_exec(const char*, const char* payload)
     }
 
     cmdfile.close();
-    LOG_VERBOSE(TAG_MSGR, F("running %s complete"), payload);
+    LOG_INFO(TAG_MSGR, F(D_FILE_LOADED), payload);
 #endif
 }
 
