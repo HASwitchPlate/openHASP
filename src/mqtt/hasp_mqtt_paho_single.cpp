@@ -111,7 +111,7 @@ static void mqtt_message_cb(char* topic, char* payload, size_t length)
 
         // Group topic
         topic += mqttGroupTopic.length(); // shorten topic
-        dispatch_topic_payload(topic, (const char*)payload, length > 0);
+        dispatch_topic_payload(topic, (const char*)payload, length > 0, TAG_MQTT);
         return;
 
 #ifdef HASP_USE_BROADCAST
@@ -120,14 +120,14 @@ static void mqtt_message_cb(char* topic, char* payload, size_t length)
 
         // /" MQTT_TOPIC_BROADCAST "/ topic
         topic += strlen(MQTT_PREFIX "/" MQTT_TOPIC_BROADCAST "/"); // shorten topic
-        dispatch_topic_payload(topic, (const char*)payload, length > 0);
+        dispatch_topic_payload(topic, (const char*)payload, length > 0, TAG_MQTT);
         return;
 #endif
 
 #ifdef HASP_USE_HA
     } else if(topic == strstr_P(topic, PSTR("homeassistant/status"))) { // HA discovery topic
         if(mqttHAautodiscover && !strcasecmp_P((char*)payload, PSTR("online"))) {
-            dispatch_current_state();
+            dispatch_current_state( TAG_MQTT);
             mqtt_ha_register_auto_discovery();
         }
         return;
@@ -152,7 +152,7 @@ static void mqtt_message_cb(char* topic, char* payload, size_t length)
             // LOG_TRACE(TAG_MQTT, F("ignoring LWT = online"));
         }
     } else {
-        dispatch_topic_payload(topic, (const char*)payload, length > 0);
+        dispatch_topic_payload(topic, (const char*)payload, length > 0, TAG_MQTT);
     }
 }
 
