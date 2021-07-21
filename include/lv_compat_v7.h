@@ -233,11 +233,16 @@
     (((lv_img_ext_t*)lv_obj_get_ext_attr(img))->src_type == LV_IMG_SRC_FILE)                                           \
         ? (const char*)((lv_img_ext_t*)lv_obj_get_ext_attr(img))->src                                                  \
         : ""
+#define lv_list_clean lv_obj_clean
 #define lv_disp_buf_init lv_disp_draw_buf_init
 #define lv_obj_refresh_style _lv_obj_refresh_style
 #define lv_obj_get_style_list _lv_obj_get_style_list
 #define lv_obj_add_style_list _lv_obj_add_style_list
 #define lv_obj_report_style_mod lv_obj_report_style_change
+
+#define lv_tabview_get_tab_count(obj) ((lv_tabview_t*)obj)->tab_cnt
+#define lv_tabview_get_tab(tabview, id)                                                                                \
+    (id >= 0 && id < lv_tabview_get_tab_count(tabview) ? lv_obj_get_child(lv_tabview_get_content(tabview), id) : NULL)
 
 /*********************
  *     v7 OBSOLETE APIS
@@ -251,6 +256,7 @@
 #define lv_cont_set_layout(obj, layout) // Use: lv_obj_set_layout(obj, type) // with LV_LAYOUT_FLEX or LV_LAYOUT_GRID
 #define lv_obj_set_style_value_str(a, b, c)
 #define lv_textarea_set_cursor_hidden(a, b)
+#define lv_tabview_set_tab_name(obj, id, name)
 
 #endif // LV_VERSION_CHECK(8, 0, 0)
 
