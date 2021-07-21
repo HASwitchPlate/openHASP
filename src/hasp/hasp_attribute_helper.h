@@ -3,15 +3,21 @@
 
 #include "hasplib.h"
 
-#if LVGL_VERSION_MAJOR == 7
-
-const char* my_tabview_get_tab_name(const lv_obj_t* tabview, uint16_t id)
+const char* my_tabview_get_tab_name(const lv_obj_t* obj, uint16_t id)
 {
-    if(id >= lv_tabview_get_tab_count(tabview)) return NULL;
+    if(id >= lv_tabview_get_tab_count(obj)) return NULL;
 
-    lv_tabview_ext_t* ext = (lv_tabview_ext_t*)lv_obj_get_ext_attr(tabview);
-    return ext->tab_name_ptr[id];
+    lv_tabview_t* tabview = (lv_tabview_t*)obj;
+    char** map            = tabview->map;
+
+    if(tabview->tab_pos & LV_DIR_VER) {
+        return map[id];
+    } else {
+        return map[id * 2];
+    }
 }
+
+#if LVGL_VERSION_MAJOR == 7
 
 // OK - this function is missing in lvgl
 static uint8_t my_roller_get_visible_row_count(const lv_obj_t* roller)
@@ -204,14 +210,14 @@ static inline void my_btn_set_text(lv_obj_t* obj, const char* value)
     if(label) my_label_set_text(label, value);
 }
 
-#if LVGL_VERSION_MAJOR == 7
+#if LVGL_VERSION_MAJOR >= 7
 
 /**
  * Set a new value_str for an object. Memory will be allocated to store the text by the object.
  * @param obj pointer to a object
  * @param text '\0' terminated character string. NULL to refresh with the current text.
  */
-void my_obj_set_value_str_text(lv_obj_t* obj, uint8_t part, lv_state_t state, const char* text)
+void my_obj_set_value_str_text(lv_obj_t* obj, lv_part_t part, lv_state_t state, const char* text)
 {
 
 #if 0
@@ -314,7 +320,7 @@ void my_list_set_options(lv_obj_t* obj, const char* payload)
 
 void my_tabview_set_text(lv_obj_t* obj, const char* payload)
 {
-    uint16_t id = lv_tabview_get_tab_act(obj);
+    uint16_t id = lv_tabview_get_tab_act((lv_obj_t*)obj);
 
     if(id < lv_tabview_get_tab_count(obj)) {
         lv_tabview_set_tab_name(obj, id, (char*)payload);
@@ -323,7 +329,7 @@ void my_tabview_set_text(lv_obj_t* obj, const char* payload)
 
 const char* my_tabview_get_text(const lv_obj_t* obj)
 {
-    uint16_t id = lv_tabview_get_tab_act(obj);
+    uint16_t id = lv_tabview_get_tab_act((lv_obj_t*)obj);
 
     if(id < lv_tabview_get_tab_count(obj)) {
         return my_tabview_get_tab_name(obj, id);
@@ -343,8 +349,9 @@ void my_tab_set_text(lv_obj_t* obj, const char* payload)
     if(!obj_check_type(tabview, LV_HASP_TABVIEW))
         return LOG_WARNING(TAG_ATTR, F("LV_HASP_TABVIEW not found %d"), obj_get_type(tabview));
 
-    for(uint16_t id = 0; id < lv_tabview_get_tab_count(tabview); id++) {
-        if(obj == lv_tabview_get_tab(tabview, id)) {
+    lv_obj_t* cont = lv_tabview_get_content(tabview);
+    for(uint16_t id = 0; id < lv_obj_get_child_cnt(cont); id++) {
+        if(obj == lv_obj_get_child(cont, id)) {
             lv_tabview_set_tab_name(tabview, id, (char*)payload);
             return;
         }
@@ -401,10 +408,10 @@ static void gauge_format_10k(lv_obj_t* gauge, char* buf, int bufsize, int32_t va
 }
 
 // OK - this function is missing in lvgl
-static uint16_t my_btnmatrix_get_count(const lv_obj_t* btnm)
+static inline uint16_t my_btnmatrix_get_count(const lv_obj_t* obj)
 {
-    lv_btnmatrix_ext_t* ext = (lv_btnmatrix_ext_t*)lv_obj_get_ext_attr(btnm);
-    return ext->btn_cnt;
+    lv_btnmatrix_t* btnm = (lv_btnmatrix_t*)obj;
+    return btnm->btn_cnt;
 }
 
 #if 0
