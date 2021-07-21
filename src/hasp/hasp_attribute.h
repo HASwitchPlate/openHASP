@@ -10,8 +10,6 @@ static inline void lv_obj_set_event_cb(lv_obj_t* obj, lv_event_cb_t cb)
 {
     lv_obj_add_event_cb(obj, cb, LV_EVENT_ALL, NULL);
 }
-#define lv_style_int_t lv_coord_t
-#define lv_anim_value_t lv_coord_t
 
 void attr_out_str(lv_obj_t* obj, const char* attribute, const char* data);
 void attr_out_int(lv_obj_t* obj, const char* attribute, int32_t val);
