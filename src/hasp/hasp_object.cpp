@@ -312,21 +312,22 @@ void hasp_new_object(const JsonObject& config, uint8_t& saved_page_id)
         uint8_t objid = 0;
 
         switch(sdbm) {
-                /* ----- Basic Objects ------ */
-                // case LV_HASP_BTNMATRIX:
-                // case HASP_OBJ_BTNMATRIX:
-                //     objid = LV_HASP_BTNMATRIX;
-                //     obj   = lv_btnmatrix_create(parent_obj);
-                //     if(obj) {
-                //         lv_btnmatrix_set_recolor(obj, true);
-                //         lv_obj_set_event_cb(obj, btnmatrix_event_handler);
+            /* ----- Basic Objects ------ */
+            // case LV_HASP_BTNMATRIX:
+            // case HASP_OBJ_BTNMATRIX:
+            //     objid = LV_HASP_BTNMATRIX;
+            //     obj   = lv_btnmatrix_create(parent_obj);
+            //     if(obj) {
+            //         lv_btnmatrix_set_recolor(obj, true);
+            //         lv_obj_set_event_cb(obj, btnmatrix_event_handler);
 
-                //         lv_btnmatrix_ext_t* ext = (lv_btnmatrix_ext_t*)lv_obj_get_ext_attr(obj);
-                //         btnmatrix_default_map   = ext->map_p; // store the static pointer to the default lvgl btnmap
-                //         // obj->user_data.objid    = LV_HASP_BTNMATRIX;
-                //     }
-                //     break;
+            //         lv_btnmatrix_ext_t* ext = (lv_btnmatrix_ext_t*)lv_obj_get_ext_attr(obj);
+            //         btnmatrix_default_map   = ext->map_p; // store the static pointer to the default lvgl btnmap
+            //         // obj->user_data.objid    = LV_HASP_BTNMATRIX;
+            //     }
+            //     break;
 
+#if LV_USE_TABLE
             case LV_HASP_TABLE:
             case HASP_OBJ_TABLE:
                 objid = LV_HASP_TABLE;
@@ -336,7 +337,9 @@ void hasp_new_object(const JsonObject& config, uint8_t& saved_page_id)
                     // obj->user_data.objid = LV_HASP_TABLE;
                 }
                 break;
+#endif
 
+#if LV_USE_BTN
             case LV_HASP_BUTTON:
             case HASP_OBJ_BTN:
                 objid = LV_HASP_BUTTON;
@@ -353,7 +356,9 @@ void hasp_new_object(const JsonObject& config, uint8_t& saved_page_id)
                     // obj->user_data.objid = LV_HASP_BUTTON;
                 }
                 break;
+#endif
 
+#if LV_USE_CHECKBOX
             case LV_HASP_CHECKBOX:
             case HASP_OBJ_CHECKBOX:
                 objid = LV_HASP_CHECKBOX;
@@ -363,7 +368,9 @@ void hasp_new_object(const JsonObject& config, uint8_t& saved_page_id)
                     // obj->user_data.objid = LV_HASP_CHECKBOX;
                 }
                 break;
+#endif
 
+#if LV_USE_LABEL
             case LV_HASP_LABEL:
             case HASP_OBJ_LABEL:
                 objid = LV_HASP_LABEL;
@@ -377,7 +384,9 @@ void hasp_new_object(const JsonObject& config, uint8_t& saved_page_id)
                     // object_add_task(obj, pageid, id, event_timer_clock, 1000);
                 }
                 break;
+#endif
 
+#if LV_USE_IMAGE
             case LV_HASP_IMAGE:
             case HASP_OBJ_IMG:
                 objid = LV_HASP_IMAGE;
@@ -387,7 +396,9 @@ void hasp_new_object(const JsonObject& config, uint8_t& saved_page_id)
                     // obj->user_data.objid = LV_HASP_IMAGE;
                 }
                 break;
+#endif
 
+#if LV_USE_ARC
             case LV_HASP_ARC:
             case HASP_OBJ_ARC:
                 objid = LV_HASP_ARC;
@@ -397,6 +408,7 @@ void hasp_new_object(const JsonObject& config, uint8_t& saved_page_id)
                     // obj->user_data.objid = LV_HASP_ARC;
                 }
                 break;
+#endif
 
             case LV_HASP_CONTAINER:
             case HASP_OBJ_CONT:
@@ -434,7 +446,6 @@ void hasp_new_object(const JsonObject& config, uint8_t& saved_page_id)
                 // if(obj) obj->user_data.objid = LV_HASP_WINDOW;
                 // No event handler for pages
                 break;
-
 #endif
 
 #if LVGL_VERSION_MAJOR == 8
@@ -514,7 +525,9 @@ void hasp_new_object(const JsonObject& config, uint8_t& saved_page_id)
                 break;
 
 #endif
-            /* ----- Color Objects ------ */
+
+                /* ----- Color Objects ------ */
+#if LV_USE_COLORWHEEL
             case LV_HASP_CPICKER:
             case HASP_OBJ_CPICKER:
                 objid = LV_HASP_CPICKER;
@@ -524,6 +537,7 @@ void hasp_new_object(const JsonObject& config, uint8_t& saved_page_id)
                     // obj->user_data.objid = LV_HASP_CPICKER;
                 }
                 break;
+#endif
 
 #if LV_USE_SPINNER != 0
             case LV_HASP_SPINNER:

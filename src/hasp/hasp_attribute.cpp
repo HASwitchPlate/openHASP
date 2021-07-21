@@ -719,16 +719,18 @@ static hasp_attribute_type_t hasp_local_style_attr(lv_obj_t* obj, const char* at
     // result = false;
     return HASP_ATTR_TYPE_NOT_FOUND;
 }
+#endif
 
+#if LV_USE_ARC
 static hasp_attribute_type_t hasp_process_arc_attribute(lv_obj_t* obj, uint16_t attr_hash, int32_t& val, bool update)
 {
     // We already know it's a arc object
     switch(attr_hash) {
         case ATTR_TYPE:
             if(update)
-                lv_arc_set_type(obj, val % 3);
+                lv_arc_set_mode(obj, val % 3);
             else
-                val = lv_arc_get_type(obj);
+                val = lv_arc_get_mode(obj);
             break;
 
         default:
@@ -737,7 +739,9 @@ static hasp_attribute_type_t hasp_process_arc_attribute(lv_obj_t* obj, uint16_t 
 
     return HASP_ATTR_TYPE_INT;
 }
+#endif
 
+#if LVGL_VERSION_MAJOR == 7
 static hasp_attribute_type_t hasp_process_lmeter_attribute(lv_obj_t* obj, uint16_t attr_hash, int32_t& val, bool update)
 {
     // We already know it's a linemeter object
@@ -949,7 +953,7 @@ static hasp_attribute_type_t special_attribute_src(lv_obj_t* obj, const char* pa
 static hasp_attribute_type_t attribute_common_align(lv_obj_t* obj, const char* attr, const char* payload, char** text,
                                                     bool update)
 {
-    lv_text_align_t val;
+    lv_text_align_t val = LV_TEXT_ALIGN_AUTO;
 
     if(update) {
         if(!strcasecmp_P(payload, PSTR("left"))) {
@@ -1529,6 +1533,7 @@ static hasp_attribute_type_t attribute_common_range(lv_obj_t* obj, int32_t& val,
 
     return HASP_ATTR_TYPE_INT;
 }
+#endif
 
 // ##################### Default Attributes ########################################################
 
@@ -1578,8 +1583,6 @@ static hasp_attribute_type_t attribute_common_method(lv_obj_t* obj, uint16_t att
 
     return HASP_ATTR_TYPE_METHOD_OK;
 }
-
-#endif
 
 static hasp_attribute_type_t attribute_common_text(lv_obj_t* obj, const char* attr, const char* payload, char** text,
                                                    bool update)
@@ -2068,12 +2071,12 @@ void hasp_process_obj_attribute(lv_obj_t* obj, const char* attribute, const char
 
     if(ret == HASP_ATTR_TYPE_NOT_FOUND) {
         switch(obj_get_type(obj)) { // Properties by object type
-
+#if LV_USE_ARC
             case LV_HASP_ARC:
                 val = strtol(payload, nullptr, DEC);
-                // ret = hasp_process_arc_attribute(obj, attr_hash, val, update);
+                ret = hasp_process_arc_attribute(obj, attr_hash, val, update);
                 break;
-
+#endif
             case LV_HASP_GAUGE:
                 val = strtol(payload, nullptr, DEC);
                 // ret = hasp_process_gauge_attribute(obj, attr_hash, val, update);
@@ -2084,11 +2087,13 @@ void hasp_process_obj_attribute(lv_obj_t* obj, const char* attribute, const char
                 // ret = hasp_process_lmeter_attribute(obj, attr_hash, val, update);
                 break;
 
+#if LV_USE_LINE
             case LV_HASP_LINE:
                 // if(attr_hash == ATTR_POINTS)
                 //     ret = my_line_set_points(obj, payload) ? HASP_ATTR_TYPE_METHOD_OK : HASP_ATTR_TYPE_RANGE_ERROR;
                 break;
-
+#endif
+#if LV_USE_COLORWHEEL
             case LV_HASP_CPICKER:
                 if(attr_hash == ATTR_COLOR) {
                     if(update) {
@@ -2101,7 +2106,7 @@ void hasp_process_obj_attribute(lv_obj_t* obj, const char* attribute, const char
                     ret = HASP_ATTR_TYPE_COLOR;
                 }
                 break;
-
+#endif
             default:
                 break; // not found
         }
