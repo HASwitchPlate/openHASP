@@ -14,6 +14,7 @@
 
 #include "lv_conf.h"
 #include "lvgl.h"
+#include "lv_attr_compat_v7.h"
 
 #include "hasp/hasp.h"
 #include "hasp/hasp_attribute.h"
