@@ -359,9 +359,9 @@ static hasp_attribute_type_t hasp_local_style_attr(lv_obj_t* obj, const char* at
                                                    const char* payload, bool update, int32_t& val)
 {
     char attr[32];
-    uint8_t part  = LV_PART_MAIN;
-    uint8_t state = LV_STATE_DEFAULT;
-    int16_t var   = atoi(payload);
+    lv_part_t part   = LV_PART_MAIN;
+    lv_state_t state = LV_STATE_DEFAULT;
+    int32_t var      = atoi(payload);
 
     // test_prop(attr_hash);
 
