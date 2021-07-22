@@ -218,6 +218,7 @@
 #define lv_style_int_t int32_t // lv_style_value_t::num
 #define lv_anim_value_t lv_coord_t
 #define lv_disp_buf_t lv_disp_draw_buf_t
+#define lv_task_t lv_timer_t
 
 /*********************
  *     v7 COMPATIBILITY APIS
