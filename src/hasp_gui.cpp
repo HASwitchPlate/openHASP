@@ -150,11 +150,11 @@ void guiSetup()
     // lv_disp_buf_init(&disp_buf, guiVdbBuffer1, NULL, guiVDBsize);
 
     static lv_color_t* guiVdbBuffer1;
-    const size_t guiVDBsize = 2 * 512u; // 4 KBytes * 2
+    const size_t guiVDBsize = 2 * 512u; // 2 KBytes * 2
     guiVdbBuffer1           = (lv_color_t*)malloc(sizeof(lv_color_t) * guiVDBsize);
 
 #elif defined(WINDOWS) || defined(POSIX)
-    const size_t guiVDBsize = LV_HOR_RES_MAX * 10;
+    const size_t guiVDBsize = 1920 * 50;
     static lv_color_t guiVdbBuffer1[guiVDBsize]; /*Declare a buffer for 10 lines*/
 
 #else
