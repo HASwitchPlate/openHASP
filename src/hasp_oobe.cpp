@@ -44,11 +44,12 @@ void gotoPage1_cb(lv_event_t* e)
 static void peek_password_cb(lv_event_t* e)
 {
     lv_event_code_t event = lv_event_get_code(e);
+    lv_obj_t* obj         = lv_event_get_target(e);
 
     if(event == LV_EVENT_VALUE_CHANGED) {
         // lv_obj_set_style_value_str(obj, LV_PART_MAIN | LV_STATE_DEFAULT,
         //                                  lv_btn_get_state(obj) ? LV_SYMBOL_EYE_OPEN : LV_SYMBOL_EYE_CLOSE);
-        // lv_textarea_set_password_mode(pwd_ta, !lv_btn_get_state(obj));
+        lv_textarea_set_password_mode(pwd_ta, !lv_btn_get_state(obj));
     }
 }
 
@@ -271,15 +272,15 @@ static void oobeSetupSsid(void)
 #endif
 
     // lv_obj_set_style_pad_inner(oobekb, LV_BTNMATRIX_PART_BG, LV_STATE_DEFAULT, 0);
-    // lv_obj_set_style_border_width(oobekb, LV_BTNMATRIX_PART_BG, LV_STATE_DEFAULT, 0);
-    // lv_obj_set_style_border_width(oobekb, LV_BTNMATRIX_PART_BTN, LV_STATE_DEFAULT, 1);
-    // lv_obj_set_style_radius(oobekb, LV_BTNMATRIX_PART_BTN, LV_STATE_DEFAULT, 0);
+    lv_obj_set_style_border_width(oobekb, 0, LV_BTNMATRIX_PART_BG + LV_STATE_DEFAULT);
+    lv_obj_set_style_border_width(oobekb, 1, LV_BTNMATRIX_PART_BTN + LV_STATE_DEFAULT);
+    lv_obj_set_style_radius(oobekb, 0, LV_BTNMATRIX_PART_BTN + LV_STATE_DEFAULT);
 
-    // lv_obj_set_style_text_font(oobekb, LV_KEYBOARD_PART_BG, LV_STATE_DEFAULT, defaultfont);
-    // lv_obj_set_style_radius(oobekb, LV_KEYBOARD_PART_BG, LV_STATE_DEFAULT, 0);
-    // lv_obj_set_style_border_color(oobekb, LV_KEYBOARD_PART_BTN, LV_STATE_DEFAULT, LV_COLOR_SILVER);
-    // lv_obj_set_style_border_color(oobekb, LV_KEYBOARD_PART_BTN, LV_STATE_PRESSED, LV_COLOR_PURPLE);
-    // lv_obj_set_style_bg_color(oobekb, LV_KEYBOARD_PART_BTN, LV_BTN_STATE_PRESSED, LV_COLOR_PURPLE);
+    lv_obj_set_style_text_font(oobekb, defaultfont, LV_KEYBOARD_PART_BG + LV_STATE_DEFAULT);
+    lv_obj_set_style_radius(oobekb, 0, LV_KEYBOARD_PART_BG + LV_STATE_DEFAULT);
+    lv_obj_set_style_border_color(oobekb, LV_COLOR_SILVER, LV_KEYBOARD_PART_BTN + LV_STATE_DEFAULT);
+    lv_obj_set_style_border_color(oobekb, LV_COLOR_PURPLE, LV_KEYBOARD_PART_BTN + LV_STATE_PRESSED);
+    lv_obj_set_style_bg_color(oobekb, LV_COLOR_PURPLE, LV_KEYBOARD_PART_BTN + LV_BTN_STATE_PRESSED);
 
     lv_obj_set_event_cb(oobekb, kb_event_cb);
     /* Setting a custom event handler stops the keyboard from closing automatically */
