@@ -893,7 +893,7 @@ void dispatch_reboot(bool saveConfig)
 
 /******************************************* Command Wrapper Functions *********************************/
 
-// Periodically publish a JSON string indicating system status
+// Periodically publish a JSON string indicating sensor status
 void dispatch_send_sensordata(const char*, const char*, uint8_t source)
 {
 #if HASP_USE_MQTT > 0
@@ -938,12 +938,12 @@ void dispatch_send_sensordata(const char*, const char*, uint8_t source)
     char data[1024];
     size_t len = serializeJson(doc, data);
 
-    switch(mqtt_send_discovery(data, len)) {
+    switch(mqtt_send_state(MQTT_TOPIC_SENSORS, data)) {
         case MQTT_ERR_OK:
-            LOG_TRACE(TAG_MQTT_PUB, F(MQTT_TOPIC_DISCOVERY " => %s"), data);
+            LOG_TRACE(TAG_MQTT_PUB, F(MQTT_TOPIC_SENSORS " => %s"), data);
             break;
         case MQTT_ERR_PUB_FAIL:
-            LOG_ERROR(TAG_MQTT_PUB, F(D_MQTT_FAILED " " MQTT_TOPIC_DISCOVERY " => %s"), data);
+            LOG_ERROR(TAG_MQTT_PUB, F(D_MQTT_FAILED " " MQTT_TOPIC_SENSORS " => %s"), data);
             break;
         case MQTT_ERR_NO_CONN:
             LOG_ERROR(TAG_MQTT, F(D_MQTT_NOT_CONNECTED));
@@ -955,7 +955,7 @@ void dispatch_send_sensordata(const char*, const char*, uint8_t source)
 #endif
 }
 
-// Periodically publish a JSON string indicating system status
+// Periodically publish a JSON string facilitating plate discovery
 void dispatch_send_discovery(const char*, const char*, uint8_t source)
 {
 #if HASP_USE_MQTT > 0
@@ -1183,7 +1183,8 @@ void dispatch_exec(const char*, const char* payload, uint8_t source)
     cmdfile.seek(0);
 
     while(bufferedFile.available()) {
-        size_t index = 0; buffer="";
+        size_t index = 0;
+        buffer       = "";
         // while(index < sizeof(buffer) - 1) {
         while(index < MQTT_MAX_PACKET_SIZE) {
             int c = bufferedFile.read();
