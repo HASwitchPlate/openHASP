@@ -92,7 +92,7 @@ extern const uint8_t EDIT_HTM_GZ_START[] asm("_binary_data_edit_htm_gz_start");
 extern const uint8_t EDIT_HTM_GZ_END[] asm("_binary_data_edit_htm_gz_end");
 #endif // ESP32
 
-AsyncWebSocket ws("/ws");           // access at ws://[esp ip]/ws
+AsyncWebSocket ws("/ws"); // access at ws://[esp ip]/ws
 
 // HTTPUpload* upload;
 
@@ -132,9 +132,9 @@ const char HTTP_CSS[] PROGMEM =
 // const char HTTP_SCRIPT[] PROGMEM = "<script>function "
 //                                    "c(l){document.getElementById('s').value=l.innerText||l.textContent;document."
 //                                    "getElementById('p').focus();}</script>";
-const char HTTP_HEADER_END[] PROGMEM =
-    "</head><body><div id='doc'>";
-const char HTTP_FOOTER[] PROGMEM = "<div style='text-align:right;font-size:11px;'><hr/><a href='/about'>" D_MANUFACTURER " ";
+const char HTTP_HEADER_END[] PROGMEM = "</head><body><div id='doc'>";
+const char HTTP_FOOTER[] PROGMEM =
+    "<div style='text-align:right;font-size:11px;'><hr/><a href='/about'>" D_MANUFACTURER " ";
 const char HTTP_END[] PROGMEM = " " D_HTTP_FOOTER "</div></body></html>";
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -285,7 +285,7 @@ void webSendPage(AsyncWebServerRequest* request, const char* nodename, const cha
     contentLength += sizeof(HTTP_END) - 1;
     contentLength += sizeof(HTTP_FOOTER) - 1;
 
-    if(httpdatalength > HTTP_PAGE_SIZE*0) {
+    if(httpdatalength > HTTP_PAGE_SIZE * 0) {
         LOG_WARNING(TAG_HTTP, F("Sending page with %u static and %u dynamic bytes"), contentLength, httpdatalength);
     }
 
@@ -293,7 +293,7 @@ void webSendPage(AsyncWebServerRequest* request, const char* nodename, const cha
 #if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
     response->printf_P(HTTP_DOCTYPE); // 122
 #else
-    response->print(HTTP_DOCTYPE);   // 122
+    response->print(HTTP_DOCTYPE); // 122
 #endif
 
     snprintf_P(buffer, sizeof(buffer), HTTP_HEADER, nodename);
@@ -307,7 +307,7 @@ void webSendPage(AsyncWebServerRequest* request, const char* nodename, const cha
     // webSendFooter(reponse);(HTTP_HEADER_END);              // 80
 #else
     // response->printf_P(HTTP_SCRIPT); // 131
-    response->printf_P(HTTP_STYLE);  // 487
+    response->printf_P(HTTP_STYLE); // 487
     // //webSendFooter(reponse);_P(HASP_STYLE);                   // 145
     if(gohome) response->printf_P(HTTP_META_GO_BACK); // 47
     response->printf_P(HTTP_HEADER_END);              // 80
@@ -1310,6 +1310,7 @@ void webHandleGuiConfig(AsyncWebServerRequest* request)
 #if defined(ARDUINO_ARCH_ESP32)
         add_gpio_select_option(httpMessage, 5, bcklpin);  // D8 on ESP32 for D1 mini 32
         add_gpio_select_option(httpMessage, 12, bcklpin); // TFT_LED on the Liligo Pi
+        add_gpio_select_option(httpMessage, 13, bcklpin); // TFT_LED on the D1 R32 + Waveshare
         add_gpio_select_option(httpMessage, 15, bcklpin); // TFT_LED on the AZ Touch
         add_gpio_select_option(httpMessage, 16, bcklpin); // D4 on ESP32 for D1 mini 32
         add_gpio_select_option(httpMessage, 17, bcklpin); // D3 on ESP32 for D1 mini 32
@@ -1379,11 +1380,11 @@ void webHandleWifiConfig(AsyncWebServerRequest* request)
 
     webSendPage(request, haspDevice.get_hostname(), httpMessage.c_str(), false);
     // //webSendFooter(reponse);(httpMessage);
-// #if defined(STM32F4xx)
-//     httpMessage = "";
-// #else
-//     httpMessage.clear();
-// #endif
+    // #if defined(STM32F4xx)
+    //     httpMessage = "";
+    // #else
+    //     httpMessage.clear();
+    // #endif
 }
 #endif
 
@@ -2225,7 +2226,6 @@ void httpSetup()
     webServer.onNotFound(httpHandleNotFound);
 
 #if HASP_USE_WIFI > 0
-
 
 #if !defined(STM32F4xx)
 
