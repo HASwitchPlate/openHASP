@@ -17,8 +17,8 @@ class BaseTouch {
   public:
     void init(int w, int h)
     {}
-    void loop()
-    {}
+    // void loop()
+    // {}
     void show_info()
     {}
     void set_rotation(uint8_t rotation)

@@ -363,8 +363,7 @@ IRAM_ATTR void guiLoop(void)
 #endif
 
 #if !(defined(WINDOWS) || defined(POSIX))
-    // drv_touch_loop(); // update touch
-    haspTouch.loop();
+    // haspTouch.loop();
 #endif
 }
 
