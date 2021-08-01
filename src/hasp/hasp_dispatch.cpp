@@ -1240,7 +1240,7 @@ void dispatchSetup()
     dispatch_add_command(PSTR("brightness"), dispatch_backlight_obsolete); // dim
     dispatch_add_command(PSTR("light"), dispatch_backlight_obsolete);
     dispatch_add_command(PSTR("theme"), dispatch_theme);
-    dispatch_add_command(PSTR("exec"), dispatch_exec);
+    dispatch_add_command(PSTR("run"), dispatch_exec);
     dispatch_add_command(PSTR("service"), dispatch_service);
     dispatch_add_command(PSTR("wakeup"), dispatch_wakeup_obsolete);
     dispatch_add_command(PSTR("calibrate"), dispatch_calibrate);
