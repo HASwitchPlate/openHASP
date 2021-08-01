@@ -51,6 +51,7 @@ char wifiPassword[64] = "";
 char wifiIpAddress[16]        = "";
 uint16_t wifiReconnectCounter = 0;
 bool wifiOnline               = false;
+bool haspOnline               = false;
 
 // const byte DNS_PORT = 53;
 // DNSServer dnsServer;
@@ -84,11 +85,11 @@ static void wifiConnected(IPAddress ipaddress)
         wifiOnline = true; // now we are connected
 
     wifiReconnectCounter = 0;
-    dispatch_exec(NULL, "/online.cmd", TAG_WIFI);
+    // dispatch_exec(NULL, "/online.cmd", TAG_WIFI);
 
     LOG_VERBOSE(TAG_WIFI, F("Connected = %s"),
                 WiFi.status() == WL_CONNECTED ? PSTR(D_NETWORK_ONLINE) : PSTR(D_NETWORK_OFFLINE));
-    networkStart();
+    // networkStart();
 }
 
 static void wifiDisconnected(const char* ssid, uint8_t reason)
@@ -287,8 +288,10 @@ static void wifiDisconnected(const char* ssid, uint8_t reason)
     else
         wifiOnline = false; // now we are disconnected
 
-    dispatch_exec(NULL, "/offline.cmd", TAG_WIFI);
-    networkStop();
+    // dispatch_exec(NULL, "/offline.cmd", TAG_WIFI);
+    LOG_VERBOSE(TAG_WIFI, F("Connected = %s"),
+                WiFi.status() == WL_CONNECTED ? PSTR(D_NETWORK_ONLINE) : PSTR(D_NETWORK_OFFLINE));
+    // networkStop();
 }
 
 static void wifiSsidConnected(const char* ssid)
@@ -470,18 +473,31 @@ bool wifiEvery5Seconds()
 #if defined(STM32F4xx)
     if(wifiShowAP()) { // no ssid is set yet wait for user on-screen input
         return false;
-    } else if(WiFi.status() == WL_CONNECTED) {
+    }
 #else
     if(WiFi.getMode() != WIFI_STA) {
         return false;
-    } else if(WiFi.status() == WL_CONNECTED) {
-#endif
-        return true;
-    } else {
-        LOG_WARNING(TAG_WIFI, F("No Connection... retry %d"), wifiReconnectCounter);
-        wifiReconnect();
-        return false;
     }
+#endif
+
+    if(wifiOnline != haspOnline) {
+        if(wifiOnline) {
+            dispatch_exec(NULL, "/online.cmd", TAG_WIFI);
+            networkStart();
+        } else {
+            dispatch_exec(NULL, "/offline.cmd", TAG_WIFI);
+            networkStop();
+        }
+        haspOnline = wifiOnline;
+    }
+
+    if(WiFi.status() == WL_CONNECTED) {
+        return true;
+    }
+
+    LOG_WARNING(TAG_WIFI, F("No Connection... retry %d"), wifiReconnectCounter);
+    wifiReconnect();
+    return false;
 }
 
 bool wifiValidateSsid(const char* ssid, const char* pass)

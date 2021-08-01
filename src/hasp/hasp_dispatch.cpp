@@ -1175,24 +1175,28 @@ void dispatch_exec(const char*, const char* payload, uint8_t source)
         return;
     }
 
-    char buffer[1024];
+    // char buffer[512]; // use stack
+    String buffer((char*)0); // use heap
+    buffer.reserve(256);
+
     ReadBufferingStream bufferedFile{cmdfile, 256};
     cmdfile.seek(0);
 
     while(bufferedFile.available()) {
-        // int l = bufferedFile.readBytesUntil('\n', buffer, sizeof(buffer) - 1);
-
-        size_t index = 0;
-        while(index < sizeof(buffer) - 1) {
+        size_t index = 0; buffer="";
+        // while(index < sizeof(buffer) - 1) {
+        while(index < MQTT_MAX_PACKET_SIZE) {
             int c = bufferedFile.read();
             if(c < 0 || c == '\n' || c == '\r') { // CR or LF
                 break;
             }
-            buffer[index] = (char)c;
+            // buffer[index] = (char)c;
+            buffer += (char)c;
             index++;
         }
-        buffer[index] = 0;                                                      // terminate string
-        if(index > 0 && buffer[0] != '#') dispatch_text_line(buffer, TAG_FILE); // # for comments
+        // buffer[index] = 0;                                                      // terminate string
+        // if(index > 0 && buffer[0] != '#') dispatch_text_line(buffer.c_str(), TAG_FILE); // # for comments
+        if(index > 0 && buffer.charAt(0) != '#') dispatch_text_line(buffer.c_str(), TAG_FILE); // # for comments
     }
 
     cmdfile.close();
