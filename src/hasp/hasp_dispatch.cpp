@@ -1059,6 +1059,7 @@ void dispatch_current_state(uint8_t source)
     dispatch_statusupdate(NULL, NULL, source);
     dispatch_idle(NULL, NULL, source);
     dispatch_current_page();
+    dispatch_send_sensordata(NULL, NULL, source);
     dispatch_send_discovery(NULL, NULL, source);
 }
 
