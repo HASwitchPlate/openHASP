@@ -58,6 +58,8 @@ static void scan(TwoWire& i2c)
 
 void FT6336U_init()
 {
+    scan(Wire1);
+
     LOG_INFO(TAG_DRVR, F("Touch SDA     : %d"), TOUCH_SDA);
     LOG_INFO(TAG_DRVR, F("Touch SCL     : %d"), TOUCH_SCL);
     LOG_INFO(TAG_DRVR, F("Touch freq.   : %d"), TOUCH_FREQUENCY);
@@ -77,8 +79,6 @@ void FT6336U_init()
     Wire1.write(0xA4); // address
     Wire1.write(0x00); // data
     Wire1.endTransmission();
-
-    scan(Wire1);
 
     if(touchpanel->read_chip_id() != 0) {
         LOG_INFO(TAG_DRVR, F("FT6336U touch driver started chipid: %d"), touchpanel->read_chip_id());
