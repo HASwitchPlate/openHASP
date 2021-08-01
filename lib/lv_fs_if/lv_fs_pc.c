@@ -302,6 +302,8 @@ static lv_fs_res_t fs_trunc(lv_fs_drv_t* drv, void* file_p)
 
     fflush(*fp); /*If not syncronized fclose can write the truncated part*/
     uint32_t p = ftell(*fp);
+    (void)p; // unused
+
     // ftruncate(fileno(*fp), p);
     return LV_FS_RES_OK;
 }
