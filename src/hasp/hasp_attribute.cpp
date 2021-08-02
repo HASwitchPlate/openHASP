@@ -1007,6 +1007,7 @@ static hasp_attribute_type_t special_attribute_src(lv_obj_t* obj, const char* pa
         if(payload != strstr_P(payload, PSTR("http://"))) {
             lv_img_set_src(obj, payload);
         } else {
+#ifdef ARDUINO
             HTTPClient http;
             http.begin(payload);
             int httpCode = http.GET();
@@ -1077,6 +1078,7 @@ static hasp_attribute_type_t special_attribute_src(lv_obj_t* obj, const char* pa
             } else {
                 LOG_WARNING(TAG_ATTR, "HTTP result %d", httpCode);
             }
+#endif
         }
     } else {
         switch(lv_img_src_get_type(obj)) {
