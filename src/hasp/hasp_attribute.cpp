@@ -1215,7 +1215,7 @@ static hasp_attribute_type_t attribute_common_text(lv_obj_t* obj, const char* at
 #if LV_USE_WIN != 0
         {LV_HASP_WINDOW, ATTR_TEXT, lv_win_set_title, lv_win_get_title},
 #endif
-        {LV_HASP_MSGBOX, ATTR_TEXT, lv_msgbox_set_text, lv_msgbox_get_text}
+        {LV_HASP_MSGBOX, ATTR_TEXT, my_msgbox_set_text, lv_msgbox_get_text}
     };
 
     for(int i = 0; i < sizeof(list) / sizeof(list[0]); i++) {
