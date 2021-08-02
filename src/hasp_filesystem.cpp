@@ -5,6 +5,20 @@
 
 #if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
 
+#ifndef HASP_ONLINE_CMD
+#define HASP_ONLINE_CMD "jsonl {\"page\":0,\"id\":239,\"obj\":\"msgbox\",\"txt\":\"%ip%\", \"auto_close\":20000}"
+#endif
+
+#ifndef HASP_OFFLINE_CMD
+#define HASP_OFFLINE_CMD                                                                                               \
+    "jsonl {\"page\":0,\"id\":239,\"obj\":\"msgbox\",\"txt\":\"" D_NETWORK_OFFLINE "\", \"auto_close\":20000}"
+#endif
+
+#ifndef HASP_PAGES_JSONL
+#define HASP_PAGES_JSONL                                                                                               \
+    "{\"page\":1,\"id\":10,\"w\":240,\"obj\":\"label\",\"txt\":\"%hostname%\"}"
+#endif
+
 #include <Arduino.h>
 #include "ArduinoJson.h"
 #include "ArduinoLog.h"
@@ -147,7 +161,7 @@ void filesystemList()
 #if defined(ARDUINO_ARCH_ESP8266)
     if(!HASP_FS.begin()) {
 #else
-    if(!HASP_FS.begin(true)) { // default vfs path: /littlefs
+    if(!HASP_FS.begin(true)) {            // default vfs path: /littlefs
 #endif
         LOG_ERROR(TAG_FILE, F("Flash file system not mouted."));
     } else {
@@ -172,6 +186,22 @@ void filesystemList()
 #endif
 }
 
+static inline void filesystemCreateFile(const char* filename, const char* data)
+{
+    if(HASP_FS.exists(filename)) return;
+    File file = HASP_FS.open(filename, "w");
+    if(!file) return;
+    file.print(data);
+    file.close();
+}
+
+static inline void filesystemSetupFiles()
+{
+    filesystemCreateFile("/pages.jsonl", HASP_PAGES_JSONL);
+    filesystemCreateFile("/online.cmd", HASP_ONLINE_CMD);
+    filesystemCreateFile("/offline.cmd", HASP_OFFLINE_CMD);
+}
+
 bool filesystemSetup(void)
 {
     // no SPIFFS settings, as settings depend on SPIFFS
@@ -184,11 +214,14 @@ bool filesystemSetup(void)
 #if defined(ARDUINO_ARCH_ESP8266)
     if(!HASP_FS.begin()) {
 #else
-    if(!HASP_FS.begin(true)) {
+    if(HASP_FS.begin(false)) return true; // already formated
+
+    if(!HASP_FS.begin(true)) { // format partition
 #endif
         // LOG_ERROR(TAG_FILE, F("SPI flash init failed. Unable to mount FS."));
         return false;
     } else {
+        filesystemSetupFiles();
         // LOG_INFO(TAG_FILE, F("SPI Flash FS mounted"));
         return true;
     }
