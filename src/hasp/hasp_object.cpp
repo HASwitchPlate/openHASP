@@ -508,6 +508,15 @@ void hasp_new_object(const JsonObject& config, uint8_t& saved_page_id)
                 }
                 break;
 
+            case LV_HASP_LINE:
+            case HASP_OBJ_LINE:
+                obj = lv_line_create(parent_obj, NULL);
+                if(obj) {
+                    lv_obj_set_event_cb(obj, delete_event_handler);
+                    obj->user_data.objid = LV_HASP_LINE;
+                }
+                break;
+
             case LV_HASP_BAR:
             case HASP_OBJ_BAR:
                 obj = lv_bar_create(parent_obj, NULL);
@@ -526,6 +535,25 @@ void hasp_new_object(const JsonObject& config, uint8_t& saved_page_id)
                     lv_linemeter_set_range(obj, 0, 100);
                     lv_obj_set_event_cb(obj, generic_event_handler);
                     obj->user_data.objid = LV_HASP_LINEMETER;
+                }
+                break;
+
+            case LV_HASP_SPINBOX:
+            case HASP_OBJ_SPINBOX:
+                obj = lv_spinbox_create(parent_obj, NULL);
+                if(obj) {
+                    lv_spinbox_set_range(obj, 0, 100);
+                    lv_obj_set_event_cb(obj, slider_event_handler);
+                    obj->user_data.objid = LV_HASP_SPINBOX;
+                }
+                break;
+
+            case LV_HASP_LIST:
+            case HASP_OBJ_LIST:
+                obj = lv_list_create(parent_obj, NULL);
+                if(obj) {
+                    // Callbacks are set on the individual buttons
+                    obj->user_data.objid = LV_HASP_LIST;
                 }
                 break;
 

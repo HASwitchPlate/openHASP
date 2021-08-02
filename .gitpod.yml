@@ -1,6 +1,6 @@
 tasks:
   - init: cp platformio_override-template.ini platformio_override.ini
-  - before: platformio upgrade
+  - before: platformio upgrade; npm install -g lv_font_conv
   - command: echo "Please open 'platformio_override.ini', uncomment the platform, override and environment you wish to build for, save and then run command 'platformio run'."
 
 image:

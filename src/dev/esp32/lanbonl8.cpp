@@ -39,6 +39,8 @@ hw_timer_t* timer                 = NULL; // Instancia do timer
 esp_adc_cal_characteristics_t* adc_chars =
     new esp_adc_cal_characteristics_t; // adc_chars = calloc(1, sizeof(esp_adc_cal_characteristics_t));
 
+int16_t watt_10 = 0;
+
 namespace dev {
 
 static void check_efuse(void)
@@ -130,10 +132,24 @@ void LanbonL8::loop_5s()
     uint32_t newPulses = OverflowCounter * 10000 + PulseCounter;
     uint32_t delta     = newPulses - totalPulses;
     totalPulses        = newPulses;
-    int16_t watt_10    = DEC / 5 * delta * MEASURED_WATTS / MEASURED_PULSES_PER_SECOND;
+    watt_10            = DEC / 5 * delta * MEASURED_WATTS / MEASURED_PULSES_PER_SECOND;
     int16_t kwh_10     = DEC * totalPulses * MEASURED_WATTS / MEASURED_PULSES_PER_SECOND / 3600 / 1000;
-    LOG_VERBOSE(TAG_DEV, F("Pulse Counter %d.%d W / %d / %d.%d kWh"), watt_10 / DEC, watt_10 % DEC, totalPulses,
-                kwh_10 / DEC, kwh_10 % DEC);
+    // LOG_VERBOSE(TAG_DEV, F("Pulse Counter %d.%d W / %d / %d.%d kWh"), watt_10 / DEC, watt_10 % DEC, totalPulses,
+    //             kwh_10 / DEC, kwh_10 % DEC);
+    // uint32_t temp = (temprature_sens_read() - 32) * 100 / 1.8;
+    // LOG_VERBOSE(TAG_DEV, F("Temperature %d C"), temp);
+}
+
+void LanbonL8::get_sensors(JsonDocument& doc)
+{
+    Esp32Device::get_sensors(doc);
+
+    JsonObject sensor = doc.createNestedObject(F("Energy"));
+
+    //  int16_t kwh_10     = DEC * totalPulses * MEASURED_WATTS / MEASURED_PULSES_PER_SECOND / 3600 / 1000;
+
+    /* Pulse counter Stats */
+    sensor[F("Power")] = serialized(String(1.0f * watt_10 / DEC, 2));
 }
 
 //------------------------------------------------------------

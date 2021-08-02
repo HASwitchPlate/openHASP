@@ -71,6 +71,7 @@ class Win32Device : public BaseDevice {
     size_t get_free_heap();
     uint8_t get_heap_fragmentation();
     uint16_t get_cpu_frequency();
+    long get_uptime();
 
     bool is_system_pin(uint8_t pin) override;
 

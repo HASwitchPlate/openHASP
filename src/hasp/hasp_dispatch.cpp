@@ -20,6 +20,7 @@
 #include "../mqtt/hasp_mqtt.h"
 #else
 #include "StringStream.h"
+#include "StreamUtils.h" // for exec
 #include "CharStream.h"
 
 #include "hasp_oobe.h"
@@ -36,11 +37,15 @@
 #include "hasp_config.h"
 #endif
 
+#if HASP_USE_CUSTOM > 0
+#include "custom/my_custom.h"
+#endif
+
 dispatch_conf_t dispatch_setings = {.teleperiod = 300};
 
 uint16_t dispatchSecondsToNextTeleperiod = 0;
 uint8_t nCommands                        = 0;
-haspCommand_t commands[21];
+haspCommand_t commands[25];
 
 moodlight_t moodlight = {.brightness = 255};
 
@@ -253,7 +258,7 @@ static void dispatch_output(const char* topic, const char* payload)
 }
 
 // objectattribute=value
-void dispatch_command(const char* topic, const char* payload, bool update)
+void dispatch_command(const char* topic, const char* payload, bool update, uint8_t source)
 {
     /* ================================= Standard payload commands ======================================= */
 
@@ -263,7 +268,7 @@ void dispatch_command(const char* topic, const char* payload, bool update)
     for(int i = 0; i < nCommands; i++) {
         if(!strcasecmp_P(topic, commands[i].p_cmdstr)) {
             // LOG_DEBUG(TAG_MSGR, F("Command %d found in array !!!"), i);
-            commands[i].func(topic, payload); /* execute command */
+            commands[i].func(topic, payload, source); /* execute command */
             return;
         }
     }
@@ -311,67 +316,89 @@ void dispatch_command(const char* topic, const char* payload, bool update)
 }
 
 // Strip command/config prefix from the topic and process the payload
-void dispatch_topic_payload(const char* topic, const char* payload, bool update)
+void dispatch_topic_payload(const char* topic, const char* payload, bool update, uint8_t source)
 {
     if(!strcmp_P(topic, PSTR(MQTT_TOPIC_COMMAND))) {
-        dispatch_text_line((char*)payload);
+        dispatch_text_line((char*)payload, source);
         return;
     }
 
     if(topic == strstr_P(topic, PSTR(MQTT_TOPIC_COMMAND "/"))) { // startsWith command/
         topic += 8u;
-        dispatch_command(topic, (char*)payload, update);
+        dispatch_command(topic, (char*)payload, update, source);
         return;
     }
 
 #if HASP_USE_CONFIG > 0
     if(topic == strstr_P(topic, PSTR("config/"))) { // startsWith config/
         topic += 7u;
-        dispatch_config(topic, (char*)payload);
+        dispatch_config(topic, (char*)payload, source);
         return;
     }
 #endif
 
-    dispatch_command(topic, (char*)payload, update); // dispatch as is
+    dispatch_command(topic, (char*)payload, update, source); // dispatch as is
 }
 
 // Parse one line of text and execute the command
-void dispatch_text_line(const char* cmnd)
+void dispatch_text_line(const char* cmnd, uint8_t source)
 {
-    size_t pos1 = std::string(cmnd).find("=");
-    size_t pos2 = std::string(cmnd).find(" ");
-    size_t pos  = 0;
-    bool update = false;
+    if(cmnd[0] == '/' && cmnd[1] == '/') return; // comment
 
-    // Find what comes first, ' ' or '='
-    if(pos1 != std::string::npos) {     // '=' found
-        if(pos2 != std::string::npos) { // ' ' found
-            pos = (pos1 < pos2 ? pos1 : pos2);
-        } else {
-            pos = pos1;
+    switch(cmnd[0]) {
+        case '#':
+            break; // comment
+
+        case '{':
+            dispatch_command("jsonl", cmnd, false, source);
+            break;
+
+        case '[':
+            dispatch_command("json", cmnd, false, source);
+            break; // comment
+
+        case ' ':
+            while(cmnd[0] == ' ') cmnd++; // skip leading spaces
+            dispatch_text_line(cmnd, source);
+            break;
+
+        default: {
+            size_t pos1 = std::string(cmnd).find("=");
+            size_t pos2 = std::string(cmnd).find(" ");
+            size_t pos  = 0;
+            bool update = false;
+
+            // Find what comes first, ' ' or '='
+            if(pos1 != std::string::npos) {     // '=' found
+                if(pos2 != std::string::npos) { // ' ' found
+                    pos = (pos1 < pos2 ? pos1 : pos2);
+                } else {
+                    pos = pos1;
+                }
+                update = pos == pos1; // equal sign wins
+
+            } else {
+                pos = (pos2 != std::string::npos) ? pos2 : 0;
+            }
+
+            if(pos > 0) { // ' ' or '=' found
+                char topic[64];
+                memset(topic, 0, sizeof(topic));
+                if(pos < sizeof(topic))
+                    memcpy(topic, cmnd, pos);
+                else
+                    memcpy(topic, cmnd, sizeof(topic) - 1);
+
+                // topic is before '=', payload is after '=' position
+                update |= strlen(cmnd + pos + 1) > 0; // equal sign OR space with payload
+                LOG_TRACE(TAG_MSGR, update ? F("%s=%s") : F("%s%s"), topic, cmnd + pos + 1);
+                dispatch_topic_payload(topic, cmnd + pos + 1, update, source);
+            } else {
+                char empty_payload[1] = {0};
+                LOG_TRACE(TAG_MSGR, cmnd);
+                dispatch_topic_payload(cmnd, empty_payload, false, source);
+            }
         }
-        update = pos == pos1; // equal sign wins
-
-    } else {
-        pos = (pos2 != std::string::npos) ? pos2 : 0;
-    }
-
-    if(pos > 0) { // ' ' or '=' found
-        char topic[64];
-        memset(topic, 0, sizeof(topic));
-        if(pos < sizeof(topic))
-            memcpy(topic, cmnd, pos);
-        else
-            memcpy(topic, cmnd, sizeof(topic) - 1);
-
-        // topic is before '=', payload is after '=' position
-        update |= strlen(cmnd + pos + 1) > 0; // equal sign OR space with payload
-        LOG_TRACE(TAG_MSGR, update ? F("%s=%s") : F("%s%s"), topic, cmnd + pos + 1);
-        dispatch_topic_payload(topic, cmnd + pos + 1, update);
-    } else {
-        char empty_payload[1] = {0};
-        LOG_TRACE(TAG_MSGR, cmnd);
-        dispatch_topic_payload(cmnd, empty_payload, false);
     }
 }
 
@@ -389,7 +416,7 @@ void dispatch_text_line(const char* cmnd)
 
 #if HASP_USE_CONFIG > 0
 // Get or Set a part of the config.json file
-void dispatch_config(const char* topic, const char* payload)
+void dispatch_config(const char* topic, const char* payload, uint8_t source)
 {
     DynamicJsonDocument doc(128 * 3);
     char buffer[128 * 3];
@@ -468,7 +495,7 @@ void dispatch_config(const char* topic, const char* payload)
             mdnsGetConfig(settings);
     }
 #endif
-#if HASP_USE_HTTP > 0
+#if HASP_USE_HTTP > 0 || HASP_USE_HTTP_ASYNC > 0
     else if(strcasecmp_P(topic, PSTR("http")) == 0) {
         if(update)
             httpSetConfig(settings);
@@ -509,7 +536,7 @@ void dispatch_normalized_group_values(hasp_update_value_t& value)
 
 /********************************************** Native Commands ****************************************/
 
-void dispatch_screenshot(const char*, const char* filename)
+void dispatch_screenshot(const char*, const char* filename, uint8_t source)
 {
 #if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
 
@@ -528,7 +555,7 @@ void dispatch_screenshot(const char*, const char* filename)
 #endif
 }
 
-void dispatch_parse_json(const char*, const char* payload)
+void dispatch_parse_json(const char*, const char* payload, uint8_t source)
 { // Parse an incoming JSON array into individual commands
     /*  if(strPayload.endsWith(",]")) {
           // Trailing null array elements are an artifact of older Home Assistant automations
@@ -551,7 +578,7 @@ void dispatch_parse_json(const char*, const char* payload)
         JsonArray arr = json.as<JsonArray>();
         // guiStop();
         for(JsonVariant command : arr) {
-            dispatch_text_line(command.as<const char*>());
+            dispatch_text_line(command.as<const char*>(), source);
         }
         // guiStart();
     } else if(json.is<JsonObject>()) { // handle json as a jsonl
@@ -563,11 +590,11 @@ void dispatch_parse_json(const char*, const char* payload)
         //         dispatch_text_line(json.as<String>().c_str());
         // #else
     } else if(json.is<std::string>()) { // handle json as a single command
-        dispatch_text_line(json.as<std::string>().c_str());
+        dispatch_text_line(json.as<std::string>().c_str(), source);
         // #endif
 
     } else if(json.is<const char*>()) { // handle json as a single command
-        dispatch_text_line(json.as<const char*>());
+        dispatch_text_line(json.as<const char*>(), source);
 
         // } else if(json.is<char*>()) { // handle json as a single command
         //     dispatch_text_line(json.as<char*>());
@@ -609,7 +636,7 @@ void dispatch_parse_jsonl(std::istream& stream)
     }
 }
 
-void dispatch_parse_jsonl(const char*, const char* payload)
+void dispatch_parse_jsonl(const char*, const char* payload, uint8_t source)
 {
 #if HASP_USE_CONFIG > 0
     CharStream stream((char*)payload);
@@ -661,7 +688,7 @@ void dispatch_set_page(uint8_t pageid, lv_scr_load_anim_t animation)
     dispatch_current_page();
 }
 
-void dispatch_page(const char*, const char* page)
+void dispatch_page(const char*, const char* page, uint8_t source)
 {
     if(strlen(page) == 0) {
         dispatch_current_page(); // No payload, send current page
@@ -684,7 +711,7 @@ void dispatch_page(const char*, const char* page)
 }
 
 // Clears a page id or the current page if empty
-void dispatch_clear_page(const char*, const char* page)
+void dispatch_clear_page(const char*, const char* page, uint8_t source)
 {
     uint8_t pageid;
     if(strlen(page) > 0) {
@@ -712,7 +739,7 @@ void dispatch_dim(const char*, const char* level)
     dispatch_state_subtopic(topic, payload);
 }
 
-void dispatch_moodlight(const char* topic, const char* payload)
+void dispatch_moodlight(const char* topic, const char* payload, uint8_t source)
 {
     // Set the current state
     if(strlen(payload) != 0) {
@@ -763,14 +790,14 @@ void dispatch_moodlight(const char* topic, const char* payload)
     dispatch_state_subtopic(out_topic, buffer);
 }
 
-void dispatch_backlight_obsolete(const char* topic, const char* payload)
+void dispatch_backlight_obsolete(const char* topic, const char* payload, uint8_t source)
 {
-    LOG_WARNING(TAG_HASP, F(D_ATTRIBUTE_OBSOLETE D_ATTRIBUTE_INSTEAD), topic,
+    LOG_WARNING(TAG_MSGR, F(D_ATTRIBUTE_OBSOLETE D_ATTRIBUTE_INSTEAD), topic,
                 "backlight"); // TODO: obsolete dim, light and brightness
-    dispatch_backlight(topic, payload);
+    dispatch_backlight(topic, payload, source);
 }
 
-void dispatch_backlight(const char*, const char* payload)
+void dispatch_backlight(const char*, const char* payload, uint8_t source)
 {
     bool power = haspDevice.get_backlight_power();
 
@@ -825,7 +852,7 @@ void dispatch_backlight(const char*, const char* payload)
     dispatch_state_brightness(topic, (hasp_event_t)haspDevice.get_backlight_power(), haspDevice.get_backlight_level());
 }
 
-void dispatch_web_update(const char*, const char* espOtaUrl)
+void dispatch_web_update(const char*, const char* espOtaUrl, uint8_t source)
 {
 #if HASP_USE_OTA > 0
     LOG_TRACE(TAG_MSGR, F(D_OTA_CHECK_UPDATE), espOtaUrl);
@@ -866,8 +893,70 @@ void dispatch_reboot(bool saveConfig)
 
 /******************************************* Command Wrapper Functions *********************************/
 
-// Periodically publish a JSON string indicating system status
-void dispatch_send_discovery(const char*, const char*)
+// Periodically publish a JSON string indicating sensor status
+void dispatch_send_sensordata(const char*, const char*, uint8_t source)
+{
+#if HASP_USE_MQTT > 0
+
+    StaticJsonDocument<1024> doc;
+
+    time_t rawtime;
+    time(&rawtime);
+    char buffer[80];
+    struct tm* timeinfo = localtime(&rawtime);
+
+    strftime(buffer, sizeof(buffer), "%FT%T", timeinfo);
+    doc[F("time")] = buffer;
+
+    long uptime         = haspDevice.get_uptime();
+    doc[F("uptimeSec")] = (uint32_t)uptime;
+
+    uint32_t seconds = uptime % 60;
+    uint32_t minutes = uptime / 60;
+    uint32_t hours   = minutes / 60;
+    uint32_t days    = hours / 24;
+    minutes          = minutes % 60;
+    hours            = hours % 24;
+    snprintf_P(buffer, sizeof(buffer), PSTR("%dT%02d:%02d:%02d"), days, hours, minutes, seconds);
+    doc[F("uptime")] = buffer;
+
+    haspDevice.get_sensors(doc);
+
+#if HASP_USE_CUSTOM > 0
+    custom_get_sensors(doc);
+#endif
+
+    //     JsonObject input = doc.createNestedObject(F("input"));
+    //     JsonArray relay  = doc.createNestedArray(F("power"));
+    //     JsonArray led    = doc.createNestedArray(F("light"));
+    //     JsonArray dimmer = doc.createNestedArray(F("dim"));
+
+    // #if HASP_USE_GPIO > 0
+    //     gpio_discovery(input, relay, led, dimmer);
+    // #endif
+
+    char data[1024];
+    size_t len = serializeJson(doc, data);
+
+    switch(mqtt_send_state(MQTT_TOPIC_SENSORS, data)) {
+        case MQTT_ERR_OK:
+            LOG_TRACE(TAG_MQTT_PUB, F(MQTT_TOPIC_SENSORS " => %s"), data);
+            break;
+        case MQTT_ERR_PUB_FAIL:
+            LOG_ERROR(TAG_MQTT_PUB, F(D_MQTT_FAILED " " MQTT_TOPIC_SENSORS " => %s"), data);
+            break;
+        case MQTT_ERR_NO_CONN:
+            LOG_ERROR(TAG_MQTT, F(D_MQTT_NOT_CONNECTED));
+            break;
+        default:
+            LOG_ERROR(TAG_MQTT, F(D_ERROR_UNKNOWN));
+    }
+
+#endif
+}
+
+// Periodically publish a JSON string facilitating plate discovery
+void dispatch_send_discovery(const char*, const char*, uint8_t source)
 {
 #if HASP_USE_MQTT > 0
 
@@ -911,7 +1000,7 @@ void dispatch_send_discovery(const char*, const char*)
 }
 
 // Periodically publish a JSON string indicating system status
-void dispatch_statusupdate(const char*, const char*)
+void dispatch_statusupdate(const char*, const char*, uint8_t source)
 {
 #if HASP_USE_MQTT > 0
 
@@ -965,12 +1054,13 @@ void dispatch_statusupdate(const char*, const char*)
 #endif
 }
 
-void dispatch_current_state()
+void dispatch_current_state(uint8_t source)
 {
-    dispatch_statusupdate(NULL, NULL);
-    dispatch_idle(NULL, NULL);
+    dispatch_statusupdate(NULL, NULL, source);
+    dispatch_idle(NULL, NULL, source);
     dispatch_current_page();
-    dispatch_send_discovery(NULL, NULL);
+    dispatch_send_sensordata(NULL, NULL, source);
+    dispatch_send_discovery(NULL, NULL, source);
 }
 
 // Format filesystem and erase EEPROM
@@ -990,25 +1080,25 @@ bool dispatch_factory_reset()
     return formated && erased;
 }
 
-void dispatch_calibrate(const char*, const char*)
+void dispatch_calibrate(const char*, const char*, uint8_t source)
 {
     guiCalibrate();
 }
 
-void dispatch_wakeup_obsolete(const char* topic, const char*)
+void dispatch_wakeup_obsolete(const char* topic, const char*, uint8_t source)
 {
-    LOG_WARNING(TAG_HASP, F(D_ATTRIBUTE_OBSOLETE D_ATTRIBUTE_INSTEAD), topic,
+    LOG_WARNING(TAG_MSGR, F(D_ATTRIBUTE_OBSOLETE D_ATTRIBUTE_INSTEAD), topic,
                 "idle=off"); // TODO: obsolete dim, light and brightness
     lv_disp_trig_activity(NULL);
     hasp_disable_wakeup_touch();
 }
 
-void dispatch_sleep(const char*, const char*)
+void dispatch_sleep(const char*, const char*, uint8_t source)
 {
     hasp_enable_wakeup_touch();
 }
 
-void dispatch_idle(const char*, const char* payload)
+void dispatch_idle(const char*, const char* payload, uint8_t source)
 {
     char topic[6];
     char buffer[6];
@@ -1026,21 +1116,99 @@ void dispatch_idle(const char*, const char* payload)
     dispatch_state_subtopic(topic, buffer);
 }
 
-void dispatch_reboot(const char*, const char*)
+void dispatch_reboot(const char*, const char*, uint8_t source)
 {
     dispatch_reboot(true);
 }
 
-void dispatch_factory_reset(const char*, const char*)
+void dispatch_factory_reset(const char*, const char*, uint8_t source)
 {
     dispatch_factory_reset();
     delay(500);
     dispatch_reboot(false); // don't save running config
 }
 
+void dispatch_theme(const char*, const char* themeid, uint8_t source)
+{
+    hasp_set_theme(atoi(themeid));
+}
+
+void dispatch_service(const char*, const char* payload, uint8_t source)
+{
+#if HASP_USE_TELNET > 0
+    if(!strcmp_P(payload, "start telnet")) {
+        telnetStart();
+    } else if(!strcmp_P(payload, "stop telnet")) {
+        telnetStop();
+    }
+#endif
+
+#if HASP_USE_HTTP > 0 || HASP_USE_HTTP_ASYNC > 0
+    if(!strcmp_P(payload, "start http")) {
+        httpStart();
+    } else if(!strcmp_P(payload, "stop http")) {
+        httpStop();
+    }
+#endif
+
+#if ARDUINO && HASP_USE_CONSOLE
+    if(!strcmp_P(payload, "start console")) {
+        consoleStart();
+    } else if(!strcmp_P(payload, "stop console")) {
+        consoleStop();
+    }
+#endif
+}
+
+void dispatch_exec(const char*, const char* payload, uint8_t source)
+{
+#if ARDUINO
+    if(!HASP_FS.exists(payload)) {
+        LOG_WARNING(TAG_MSGR, F(D_FILE_NOT_FOUND ": %s"), payload);
+        return;
+    }
+
+    LOG_TRACE(TAG_MSGR, F(D_FILE_LOADING), payload);
+
+    File cmdfile = HASP_FS.open(payload, "r");
+    if(!cmdfile) {
+        LOG_ERROR(TAG_MSGR, F(D_FILE_LOAD_FAILED), payload);
+        return;
+    }
+
+    // char buffer[512]; // use stack
+    String buffer((char*)0); // use heap
+    buffer.reserve(256);
+
+    ReadBufferingStream bufferedFile{cmdfile, 256};
+    cmdfile.seek(0);
+
+    while(bufferedFile.available()) {
+        size_t index = 0;
+        buffer       = "";
+        // while(index < sizeof(buffer) - 1) {
+        while(index < MQTT_MAX_PACKET_SIZE) {
+            int c = bufferedFile.read();
+            if(c < 0 || c == '\n' || c == '\r') { // CR or LF
+                break;
+            }
+            // buffer[index] = (char)c;
+            buffer += (char)c;
+            index++;
+        }
+        // buffer[index] = 0;                                                      // terminate string
+        // if(index > 0 && buffer[0] != '#') dispatch_text_line(buffer.c_str(), TAG_FILE); // # for comments
+        if(index > 0 && buffer.charAt(0) != '#') dispatch_text_line(buffer.c_str(), TAG_FILE); // # for comments
+    }
+
+    cmdfile.close();
+    LOG_INFO(TAG_MSGR, F(D_FILE_LOADED), payload);
+#endif
+}
+
 /******************************************* Commands builder *******************************************/
 
-static void dispatch_add_command(const char* p_cmdstr, void (*func)(const char*, const char*))
+static void dispatch_add_command(const char* p_cmdstr, void (*func)(const char*, const char*, uint8_t))
 {
     if(nCommands >= sizeof(commands) / sizeof(haspCommand_t)) {
         LOG_FATAL(TAG_MSGR, F("CMD_OVERFLOW %d"), nCommands);
@@ -1073,6 +1241,9 @@ void dispatchSetup()
     dispatch_add_command(PSTR("dim"), dispatch_backlight_obsolete);        // dim
     dispatch_add_command(PSTR("brightness"), dispatch_backlight_obsolete); // dim
     dispatch_add_command(PSTR("light"), dispatch_backlight_obsolete);
+    dispatch_add_command(PSTR("theme"), dispatch_theme);
+    dispatch_add_command(PSTR("run"), dispatch_exec);
+    dispatch_add_command(PSTR("service"), dispatch_service);
     dispatch_add_command(PSTR("wakeup"), dispatch_wakeup_obsolete);
     dispatch_add_command(PSTR("calibrate"), dispatch_calibrate);
     dispatch_add_command(PSTR("update"), dispatch_web_update);
@@ -1081,6 +1252,11 @@ void dispatchSetup()
     dispatch_add_command(PSTR("screenshot"), dispatch_screenshot);
     dispatch_add_command(PSTR("discovery"), dispatch_send_discovery);
     dispatch_add_command(PSTR("factoryreset"), dispatch_factory_reset);
+#if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
+#if defined(ARDUINO_ARCH_ESP32)
+    dispatch_add_command(PSTR("unzip"), filesystemUnzip);
+#endif
+#endif
 #if HASP_USE_CONFIG > 0
     dispatch_add_command(PSTR("setupap"), oobeFakeSetup);
 #endif
@@ -1099,8 +1275,9 @@ void dispatchEverySecond()
         dispatchSecondsToNextTeleperiod--;
 
     } else if(dispatch_setings.teleperiod > 0 && mqttIsConnected()) {
-        dispatch_statusupdate(NULL, NULL);
-        dispatch_send_discovery(NULL, NULL);
+        dispatch_statusupdate(NULL, NULL, TAG_MSGR);
+        dispatch_send_discovery(NULL, NULL, TAG_MSGR);
+        dispatch_send_sensordata(NULL, NULL, TAG_MSGR);
         dispatchSecondsToNextTeleperiod = dispatch_setings.teleperiod;
     }
 }

@@ -151,15 +151,13 @@ static void my_msgbox_set_map(lv_obj_t* obj, const char* payload)
 
 void line_clear_points(lv_obj_t* obj)
 {
-    lv_line_ext_t* ext = (lv_line_ext_t*)lv_obj_get_ext_attr(obj);
-    if(ext->point_array && (ext->point_num > 0)) {
-        const lv_point_t* ptr = ext->point_array;
-        lv_line_set_points(obj, NULL, 0);
-        lv_mem_free(ptr);
-    }
+    lv_line_ext_t* ext    = (lv_line_ext_t*)lv_obj_get_ext_attr(obj);
+    const lv_point_t* ptr = ext->point_array;
+    lv_line_set_points(obj, NULL, 0);
+    lv_mem_free(ptr);
 }
 
-static void line_set_points(lv_obj_t* obj, const char* payload)
+static bool my_line_set_points(lv_obj_t* obj, const char* payload)
 {
     line_clear_points(obj); // delete pointmap
 
@@ -171,31 +169,34 @@ static void line_set_points(lv_obj_t* obj, const char* payload)
 
     if(jsonError) { // Couldn't parse incoming JSON payload
         dispatch_json_error(TAG_ATTR, jsonError);
-        return;
+        return false;
     }
 
-    JsonArray arr = doc.as<JsonArray>(); // Parse payload
+    JsonArray arr  = doc.as<JsonArray>(); // Parse payload
+    size_t tot_len = sizeof(lv_point_t*) * (arr.size());
+    if(tot_len == 0) return false; // bad input
 
-    size_t tot_len        = sizeof(lv_point_t*) * (arr.size());
     lv_point_t* point_arr = (lv_point_t*)lv_mem_alloc(tot_len);
     if(point_arr == NULL) {
         LOG_ERROR(TAG_ATTR, F("Out of memory while creating line points"));
-        return;
+        return false;
     }
     memset(point_arr, 0, tot_len);
 
     size_t index = 0;
     for(JsonVariant v : arr) {
-        JsonArray point    = v.as<JsonArray>(); // Parse point
-        point_arr[index].x = point[0].as<int16_t>();
-        point_arr[index].y = point[1].as<int16_t>();
-        LOG_VERBOSE(TAG_ATTR, F(D_BULLET "Adding point %d: %d,%d"), index, point_arr[index].x, point_arr[index].y);
-        index++;
+        JsonArray point = v.as<JsonArray>(); // Parse point
+        if(point.size() == 2) {
+            point_arr[index].x = point[0].as<int16_t>();
+            point_arr[index].y = point[1].as<int16_t>();
+            LOG_VERBOSE(TAG_ATTR, F(D_BULLET "Adding point %d: %d,%d"), index, point_arr[index].x, point_arr[index].y);
+            index++;
+        }
     }
 
-    lv_line_set_points(obj, point_arr, arr.size());
-
-    // TO DO : free & destroy previous pointlist!
+    line_clear_points(obj);                    // free previous pointlist
+    lv_line_set_points(obj, point_arr, index); // arr.size());
+    return true;
 }
 
 static lv_font_t* haspPayloadToFont(const char* payload)
@@ -281,96 +282,125 @@ static void hasp_attribute_get_part_state(lv_obj_t* obj, const char* attr_in, ch
 
     // Drop Trailing partnumber
     if(attr_in[len - 1] == '0' || index > 0) {
-        part = LV_TABLE_PART_BG;
         len--;
     }
     strncpy(attr_out, attr_in, len);
     attr_out[len] = 0;
 
-    /* Attributes depending on objecttype */
-    // lv_obj_type_t list;
-    // lv_obj_get_type(obj, &list);
-    // const char * objtype = list.type[0];
-
-    if(obj_check_type(obj, LV_HASP_BUTTON)) {
-        switch(index) {
-            case 1:
-                state = LV_BTN_STATE_PRESSED;
-                break;
-            case 2:
-                state = LV_BTN_STATE_DISABLED;
-                break;
-            case 3:
-                state = LV_BTN_STATE_CHECKED_RELEASED;
-                break;
-            case 4:
-                state = LV_BTN_STATE_CHECKED_PRESSED;
-                break;
-            case 5:
-                state = LV_BTN_STATE_CHECKED_DISABLED;
-                break;
-            default:
-                state = LV_BTN_STATE_RELEASED;
-        }
-        part = LV_BTN_PART_MAIN;
-        return;
-    }
-
 #if(LV_SLIDER_PART_INDIC != LV_SWITCH_PART_INDIC) || (LV_SLIDER_PART_KNOB != LV_SWITCH_PART_KNOB) ||                   \
     (LV_SLIDER_PART_BG != LV_SWITCH_PART_BG) || (LV_SLIDER_PART_INDIC != LV_ARC_PART_INDIC) ||                         \
     (LV_SLIDER_PART_KNOB != LV_ARC_PART_KNOB) || (LV_SLIDER_PART_BG != LV_ARC_PART_BG) ||                              \
     (LV_SLIDER_PART_INDIC != LV_SPINNER_PART_INDIC) || (LV_SLIDER_PART_BG != LV_SPINNER_PART_BG) ||                    \
-    (LV_SLIDER_PART_INDIC != LV_BAR_PART_INDIC) || (LV_SLIDER_PART_BG != LV_BAR_PART_BG)
-#error "LV_SLIDER, LV_BAR, LV_ARC, LV_SPINNER, LV_SWITCH parts should match!"
+    (LV_SLIDER_PART_INDIC != LV_BAR_PART_INDIC) || (LV_SLIDER_PART_BG != LV_BAR_PART_BG) ||                            \
+    (LV_SLIDER_PART_KNOB != LV_GAUGE_PART_NEEDLE) || (LV_SLIDER_PART_INDIC != LV_GAUGE_PART_MAJOR) ||                  \
+    (LV_SLIDER_PART_BG != LV_GAUGE_PART_MAIN)
+#error "LV_SLIDER, LV_BAR, LV_ARC, LV_SPINNER, LV_SWITCH, LV_GAUGE parts should match!"
 #endif
 
-    if(obj_check_type(obj, LV_HASP_SLIDER) || obj_check_type(obj, LV_HASP_SWITCH) || obj_check_type(obj, LV_HASP_ARC) ||
-       obj_check_type(obj, LV_HASP_BAR) || obj_check_type(obj, LV_HASP_SPINNER)) {
-        if(index == 1) {
-            part = LV_SLIDER_PART_INDIC;
-        } else if(index == 2) {
-            if(!obj_check_type(obj, LV_HASP_BAR) && !obj_check_type(obj, LV_HASP_SPINNER)) part = LV_SLIDER_PART_KNOB;
-        } else {
-            part = LV_SLIDER_PART_BG;
-        }
-        state = LV_STATE_DEFAULT;
-        return;
-    }
+    /* Attributes depending on objecttype */
+    state = LV_STATE_DEFAULT;
 
-    if(obj_check_type(obj, LV_HASP_CHECKBOX)) {
-        if(index == 1) {
-            part = LV_CHECKBOX_PART_BULLET;
-        } else {
-            part = LV_CHECKBOX_PART_BG;
-        }
-        state = LV_STATE_DEFAULT;
-        return;
-    }
+    switch(obj_get_type(obj)) {
+        case LV_HASP_BUTTON:
+            switch(index) {
+                case 1:
+                    state = LV_BTN_STATE_PRESSED;
+                    break;
+                case 2:
+                    state = LV_BTN_STATE_DISABLED;
+                    break;
+                case 3:
+                    state = LV_BTN_STATE_CHECKED_RELEASED;
+                    break;
+                case 4:
+                    state = LV_BTN_STATE_CHECKED_PRESSED;
+                    break;
+                case 5:
+                    state = LV_BTN_STATE_CHECKED_DISABLED;
+                    break;
+                default:
+                    state = LV_BTN_STATE_RELEASED;
+            }
+            part = LV_BTN_PART_MAIN;
+            break;
 
-    if(obj_check_type(obj, LV_HASP_CPICKER)) {
-        if(index == 1) {
-            part = LV_CPICKER_PART_KNOB;
-        } else {
-            part = LV_CPICKER_PART_MAIN;
-        }
-        state = LV_STATE_DEFAULT;
-        return;
-    }
+        case LV_HASP_SLIDER:
+        case LV_HASP_SWITCH:
+        case LV_HASP_ARC:
+        case LV_HASP_BAR:
+        case LV_HASP_SPINNER:
+            if(index == 1) {
+                part = LV_SLIDER_PART_INDIC;
+            } else if(index == 2) {
+                if(!obj_check_type(obj, LV_HASP_BAR) && !obj_check_type(obj, LV_HASP_SPINNER))
+                    part = LV_SLIDER_PART_KNOB;
+            } else {
+                part = LV_SLIDER_PART_BG;
+            }
+            break;
 
-    if(obj_check_type(obj, LV_HASP_ROLLER)) {
-        if(index == 1) {
-            part = LV_ROLLER_PART_SELECTED;
-        } else {
-            part = LV_ROLLER_PART_BG;
-        }
-        state = LV_STATE_DEFAULT;
-        return;
-    }
+        case LV_HASP_CHECKBOX:
+            part = index == 1 ? LV_CHECKBOX_PART_BULLET : LV_CHECKBOX_PART_BG;
+            break;
 
-    // if(obj_check_type(obj, LV_HASP_LINEMETER)) {
-    //     state = LV_STATE_DEFAULT;
-    //     return;
-    // }
+        case LV_HASP_CPICKER:
+            part = index == 1 ? LV_CPICKER_PART_KNOB : LV_CPICKER_PART_MAIN;
+            break;
+
+        case LV_HASP_ROLLER:
+            part = index == 1 ? LV_ROLLER_PART_SELECTED : LV_ROLLER_PART_BG;
+            break;
+
+        case LV_HASP_GAUGE:
+            part = index <= LV_GAUGE_PART_NEEDLE ? index : LV_GAUGE_PART_MAIN;
+            break;
+
+        case LV_HASP_TABVIEW:
+            switch(index) {
+                case 1:
+                    part  = LV_TABVIEW_PART_TAB_BG;
+                    state = LV_BTN_STATE_RELEASED;
+                    break;
+                case 2:
+                    part  = LV_TABVIEW_PART_TAB_BG;
+                    state = LV_BTN_STATE_PRESSED;
+                    break;
+                case 3:
+                    part  = LV_TABVIEW_PART_TAB_BG;
+                    state = LV_BTN_STATE_DISABLED;
+                    break;
+                case 4:
+                    part  = LV_TABVIEW_PART_TAB_BG;
+                    state = LV_BTN_STATE_CHECKED_RELEASED;
+                    break;
+                case 5:
+                    part  = LV_TABVIEW_PART_TAB_BG;
+                    state = LV_BTN_STATE_CHECKED_PRESSED;
+                    break;
+                case 6:
+                    part  = LV_TABVIEW_PART_TAB_BG;
+                    state = LV_BTN_STATE_CHECKED_DISABLED;
+                    break;
+
+                case 7:
+                    part = LV_TABVIEW_PART_TAB_BTN;
+                    break;
+
+                case 8:
+                    part = LV_TABVIEW_PART_INDIC;
+                    break;
+
+                case 9:
+                    part = LV_TABVIEW_PART_BG_SCROLLABLE;
+                    break;
+
+                default:
+                    part = LV_TABVIEW_PART_BG;
+            }
+            break;
+
+        default:; // nothing to do
+    }
 }
 
 /**
@@ -1226,6 +1256,7 @@ static hasp_attribute_type_t specific_options_attribute(lv_obj_t* obj, const cha
         case LV_HASP_DROPDOWN:
             if(update) {
                 lv_dropdown_set_options(obj, payload);
+                lv_obj_invalidate(obj); // otherwise it won't refresh
             } else {
                 *text = (char*)lv_dropdown_get_options(obj);
             }
@@ -1244,14 +1275,21 @@ static hasp_attribute_type_t specific_options_attribute(lv_obj_t* obj, const cha
             } else {
                 strcpy_P(*text, "Not implemented"); // TODO : Literal String
             }
-            return hasp_attribute_type_t::HASP_ATTR_TYPE_METHOD_OK;
+            return hasp_attribute_type_t::HASP_ATTR_TYPE_STR;
         case LV_HASP_MSGBOX:
             if(update) {
                 my_msgbox_set_map(obj, payload);
             } else {
                 strcpy_P(*text, "Not implemented"); // TODO : Literal String
             }
-            return hasp_attribute_type_t::HASP_ATTR_TYPE_METHOD_OK;
+            return hasp_attribute_type_t::HASP_ATTR_TYPE_STR;
+        case LV_HASP_LIST:
+            if(update) {
+                my_list_set_options(obj, payload);
+            } else {
+                strcpy_P(*text, "Not implemented"); // TODO : Literal String
+            }
+            return hasp_attribute_type_t::HASP_ATTR_TYPE_STR;
         default:
             break; // not found
     }
@@ -1265,6 +1303,8 @@ static hasp_attribute_type_t specific_bool_attribute(lv_obj_t* obj, uint16_t att
         hasp_attr_update_bool_const_t list[] = {
             {LV_HASP_ARC, ATTR_ADJUSTABLE, my_arc_set_adjustable, my_arc_get_adjustable},
             {LV_HASP_BTNMATRIX, ATTR_ONE_CHECK, lv_btnmatrix_set_one_check, lv_btnmatrix_get_one_check},
+            {LV_HASP_LINE, ATTR_Y_INVERT, lv_line_set_y_invert, lv_line_get_y_invert},
+            {LV_HASP_LINE, ATTR_AUTO_SIZE, lv_line_set_auto_size, lv_line_get_auto_size},
             {LV_HASP_IMAGE, ATTR_AUTO_SIZE, lv_img_set_auto_size, lv_img_get_auto_size}};
         if(do_attribute(list, obj, attr_hash, val, update)) return HASP_ATTR_TYPE_BOOL;
     }
@@ -1422,6 +1462,11 @@ static bool my_obj_get_range(lv_obj_t* obj, int32_t& min, int32_t& max)
             max = my_chart_get_max_value(obj);
             break;
 
+        case LV_HASP_SPINBOX:
+            min = my_spinbox_get_min_value(obj);
+            max = my_spinbox_get_max_value(obj);
+            break;
+
         case LV_HASP_DROPDOWN:
         case LV_HASP_ROLLER:
             return false; // not supported yet
@@ -1434,70 +1479,129 @@ static bool my_obj_get_range(lv_obj_t* obj, int32_t& min, int32_t& max)
 
 static hasp_attribute_type_t attribute_common_val(lv_obj_t* obj, int32_t& val, bool update)
 {
-    if(obj_check_type(obj, LV_HASP_BUTTON)) {
-        if(lv_btn_get_checkable(obj)) {
-            if(update) {
-                if(val)
-                    lv_obj_add_state(obj, LV_STATE_CHECKED);
-                else
-                    lv_obj_clear_state(obj, LV_STATE_CHECKED);
+    switch(obj_get_type(obj)) {
+
+        case LV_HASP_BUTTON:
+            if(lv_btn_get_checkable(obj)) {
+                if(update) {
+                    if(val)
+                        lv_obj_add_state(obj, LV_STATE_CHECKED);
+                    else
+                        lv_obj_clear_state(obj, LV_STATE_CHECKED);
+                } else {
+                    val = lv_obj_get_state(obj, LV_BTN_PART_MAIN) & LV_STATE_CHECKED;
+                }
             } else {
-                val = lv_obj_get_state(obj, LV_BTN_PART_MAIN) & LV_STATE_CHECKED;
+                return HASP_ATTR_TYPE_NOT_FOUND; // not checkable
             }
-        } else {
-            return HASP_ATTR_TYPE_NOT_FOUND; // not checkable
-        }
-    } else if(obj_check_type(obj, LV_HASP_CHECKBOX)) {
-        if(update)
-            lv_checkbox_set_checked(obj, !!val);
-        else
-            val = lv_checkbox_is_checked(obj);
-    } else if(obj_check_type(obj, LV_HASP_SWITCH)) {
-        if(update)
-            !val ? lv_switch_off(obj, LV_ANIM_ON) : lv_switch_on(obj, LV_ANIM_ON);
-        else
-            val = lv_switch_get_state(obj);
-    } else if(obj_check_type(obj, LV_HASP_DROPDOWN)) {
-        lv_dropdown_set_selected(obj, (uint16_t)val);
-    } else if(obj_check_type(obj, LV_HASP_LINEMETER)) {
-        if(update)
-            lv_linemeter_set_value(obj, val);
-        else
-            val = lv_linemeter_get_value(obj);
-    } else if(obj_check_type(obj, LV_HASP_SLIDER)) {
-        if(update)
-            lv_slider_set_value(obj, val, LV_ANIM_ON);
-        else
-            val = lv_slider_get_value(obj);
-    } else if(obj_check_type(obj, LV_HASP_LED)) {
-        if(update)
-            lv_led_set_bright(obj, (uint8_t)val);
-        else
-            val = lv_led_get_bright(obj);
-    } else if(obj_check_type(obj, LV_HASP_ARC)) {
-        if(update)
-            lv_arc_set_value(obj, val);
-        else
-            val = lv_arc_get_value(obj);
-    } else if(obj_check_type(obj, LV_HASP_GAUGE)) {
-        if(update)
-            lv_gauge_set_value(obj, 0, val);
-        else
-            val = lv_gauge_get_value(obj, 0);
-    } else if(obj_check_type(obj, LV_HASP_ROLLER)) {
-        lv_roller_set_selected(obj, (uint16_t)val, LV_ANIM_ON);
-    } else if(obj_check_type(obj, LV_HASP_BAR)) {
-        if(update)
-            lv_bar_set_value(obj, val, LV_ANIM_ON);
-        else
-            val = lv_bar_get_value(obj);
-    } else if(obj_check_type(obj, LV_HASP_TABVIEW)) {
-        if(update)
-            lv_tabview_set_tab_act(obj, val, LV_ANIM_ON);
-        else
-            val = lv_tabview_get_tab_act(obj);
-    } else {
-        return HASP_ATTR_TYPE_NOT_FOUND; // not found
+            break;
+
+        case LV_HASP_BTNMATRIX:
+            if(!lv_btnmatrix_get_one_check(obj)) return HASP_ATTR_TYPE_NOT_FOUND;
+
+            if(update) {
+                if(val < -1 || val >= my_btnmatrix_get_count(obj)) {
+                    LOG_WARNING(TAG_ATTR, F("Invalid index %d"), val);
+                } else {
+                    lv_btnmatrix_clear_btn_ctrl_all(obj, LV_BTNMATRIX_CTRL_CHECK_STATE);
+                    lv_btnmatrix_ext_t* ext = (lv_btnmatrix_ext_t*)lv_obj_get_ext_attr(obj);
+                    if(val == -1) {
+                        ext->btn_id_act = LV_BTNMATRIX_BTN_NONE;
+                    } else {
+                        lv_btnmatrix_set_btn_ctrl(obj, val, LV_BTNMATRIX_CTRL_CHECK_STATE);
+                        ext->btn_id_act = val;
+                    }
+                }
+
+            } else {
+                uint16_t btn_id_act = lv_btnmatrix_get_active_btn(obj);
+                val                 = (btn_id_act == LV_BTNMATRIX_BTN_NONE) ? -1 : btn_id_act;
+            }
+            break;
+
+        case LV_HASP_CHECKBOX:
+            if(update)
+                lv_checkbox_set_checked(obj, !!val);
+            else
+                val = lv_checkbox_is_checked(obj);
+            break;
+
+        case LV_HASP_SWITCH:
+            if(update)
+                !val ? lv_switch_off(obj, LV_ANIM_ON) : lv_switch_on(obj, LV_ANIM_ON);
+            else
+                val = lv_switch_get_state(obj);
+            break;
+
+        case LV_HASP_DROPDOWN:
+            if(update)
+                lv_dropdown_set_selected(obj, (uint16_t)val);
+            else
+                val = lv_dropdown_get_selected(obj);
+            break;
+
+        case LV_HASP_LINEMETER:
+            if(update)
+                lv_linemeter_set_value(obj, val);
+            else
+                val = lv_linemeter_get_value(obj);
+            break;
+
+        case LV_HASP_SLIDER:
+            if(update)
+                lv_slider_set_value(obj, val, LV_ANIM_ON);
+            else
+                val = lv_slider_get_value(obj);
+            break;
+
+        case LV_HASP_LED:
+            if(update)
+                lv_led_set_bright(obj, (uint8_t)val);
+            else
+                val = lv_led_get_bright(obj);
+            break;
+
+        case LV_HASP_ARC:
+            if(update)
+                lv_arc_set_value(obj, val);
+            else
+                val = lv_arc_get_value(obj);
+            break;
+
+        case LV_HASP_GAUGE:
+            if(update)
+                lv_gauge_set_value(obj, 0, val);
+            else
+                val = lv_gauge_get_value(obj, 0);
+            break;
+
+        case LV_HASP_ROLLER:
+            lv_roller_set_selected(obj, (uint16_t)val, LV_ANIM_ON);
+            break;
+
+        case LV_HASP_BAR:
+            if(update)
+                lv_bar_set_value(obj, val, LV_ANIM_ON);
+            else
+                val = lv_bar_get_value(obj);
+            break;
+
+        case LV_HASP_SPINBOX:
+            if(update)
+                lv_spinbox_set_value(obj, val);
+            else
+                val = lv_spinbox_get_value(obj);
+            break;
+
+        case LV_HASP_TABVIEW:
+            if(update)
+                lv_tabview_set_tab_act(obj, val, LV_ANIM_ON);
+            else
+                val = lv_tabview_get_tab_act(obj);
+            break;
+
+        default:
+            return HASP_ATTR_TYPE_NOT_FOUND; // not found
     }
 
     return HASP_ATTR_TYPE_INT; // found
@@ -1586,9 +1690,18 @@ static hasp_attribute_type_t attribute_common_range(lv_obj_t* obj, int32_t& val,
 
         case LV_HASP_CHART:
             if(update && (set_min ? val : min) == (set_max ? val : max))
-                return HASP_ATTR_TYPE_RANGE_ERROR; // prevent setting min=max
+                return HASP_ATTR_TYPE_RANGE_ERROR; // prevent setting  min=max
             if(update)
                 lv_chart_set_range(obj, set_min ? val : min, set_max ? val : max);
+            else
+                val = set_min ? min : max;
+            break;
+
+        case LV_HASP_SPINBOX:
+            if(update && (set_min ? val : min) == (set_max ? val : max))
+                return HASP_ATTR_TYPE_RANGE_ERROR; // prevent setting min=max
+            if(update)
+                lv_spinbox_set_range(obj, set_min ? val : min, set_max ? val : max);
             else
                 val = set_min ? min : max;
             break;
@@ -2004,8 +2117,9 @@ void hasp_process_obj_attribute(lv_obj_t* obj, const char* attribute, const char
             break;
 
             // case ATTR_SYMBOL:
-            //     (update) ? lv_dropdown_set_symbol(obj, payload) : attr_out_str(obj, attr,
-            //     lv_dropdown_get_symbol(obj)); return true;
+            //     (update) ? lv_dropdown_set_symbol(obj, payload) :
+            //     attr_out_str(obj, attr, lv_dropdown_get_symbol(obj));
+            //     return true;
 
         case ATTR_DELETE:
         case ATTR_CLEAR:
@@ -2050,6 +2164,7 @@ void hasp_process_obj_attribute(lv_obj_t* obj, const char* attribute, const char
         case ATTR_ONE_CHECK:
         case ATTR_AUTO_SIZE:
         case ATTR_SHOW_SELECTED:
+        case ATTR_Y_INVERT:
             val = Parser::is_true(payload);
             ret = specific_bool_attribute(obj, attr_hash, val, update);
             break;
@@ -2091,6 +2206,11 @@ void hasp_process_obj_attribute(lv_obj_t* obj, const char* attribute, const char
             case LV_HASP_LINEMETER:
                 val = strtol(payload, nullptr, DEC);
                 ret = hasp_process_lmeter_attribute(obj, attr_hash, val, update);
+                break;
+
+            case LV_HASP_LINE:
+                if(attr_hash == ATTR_POINTS)
+                    ret = my_line_set_points(obj, payload) ? HASP_ATTR_TYPE_METHOD_OK : HASP_ATTR_TYPE_RANGE_ERROR;
                 break;
 
             case LV_HASP_CPICKER:

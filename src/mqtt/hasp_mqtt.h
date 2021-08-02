@@ -68,6 +68,10 @@ bool mqttSetConfig(const JsonObject& settings);
 #define MQTT_TOPIC_BROADCAST "broadcast"
 #endif
 
+#ifndef MQTT_TOPIC_SENSORS
+#define MQTT_TOPIC_SENSORS "sensors"
+#endif
+
 #define MQTT_TOPIC_LWT "LWT"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

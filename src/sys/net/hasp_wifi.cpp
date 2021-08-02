@@ -48,8 +48,10 @@ char wifiPassword[64] = WIFI_PASSW;
 #else
 char wifiPassword[64] = "";
 #endif
-char wifiIpAddress[16]       = "";
-uint8_t wifiReconnectCounter = 0;
+char wifiIpAddress[16]        = "";
+uint16_t wifiReconnectCounter = 0;
+bool wifiOnline               = false;
+bool haspOnline               = false;
 
 // const byte DNS_PORT = 53;
 // DNSServer dnsServer;
@@ -67,29 +69,32 @@ static void wifiConnected(IPAddress ipaddress)
 #endif
     LOG_TRACE(TAG_WIFI, F(D_NETWORK_IP_ADDRESS_RECEIVED), wifiIpAddress);
 
-    lv_obj_t* msgbox = lv_msgbox_create(lv_layer_sys(), NULL);
-    lv_msgbox_set_text_fmt(msgbox, wifiIpAddress);
-    lv_msgbox_start_auto_close(msgbox, 4000);
-    lv_msgbox_set_anim_time(msgbox, 0);
-    lv_obj_move_background(msgbox);
+    // #if defined(HASP_NETWORK_POPUP)
+    //     lv_obj_t* msgbox = lv_msgbox_create(lv_layer_sys(), NULL);
+    //     lv_msgbox_set_text_fmt(msgbox, wifiIpAddress);
+    // #if HASP_NETWORK_POPUP > 0
+    //     lv_msgbox_start_auto_close(msgbox, HASP_NETWORK_POPUP);
+    // #endif
+    //     lv_msgbox_set_anim_time(msgbox, 0);
+    //     lv_obj_move_background(msgbox);
+    // #endif
+
+    if(wifiOnline)
+        return; // already connected
+    else
+        wifiOnline = true; // now we are connected
+
+    wifiReconnectCounter = 0;
+    // dispatch_exec(NULL, "/online.cmd", TAG_WIFI);
 
     LOG_VERBOSE(TAG_WIFI, F("Connected = %s"),
                 WiFi.status() == WL_CONNECTED ? PSTR(D_NETWORK_ONLINE) : PSTR(D_NETWORK_OFFLINE));
-    networkStart();
+    // networkStart();
 }
 
 static void wifiDisconnected(const char* ssid, uint8_t reason)
 {
-    wifiReconnectCounter++;
     char buffer[64];
-
-    //  haspProgressVal(wifiReconnectCounter * 3);
-    // networkStop();
-
-    if(wifiReconnectCounter > 33) {
-        LOG_ERROR(TAG_WIFI, F("Retries exceed %u: Rebooting..."), wifiReconnectCounter);
-        dispatch_reboot(false);
-    }
 
     switch(reason) {
 #if defined(ARDUINO_ARCH_ESP8266)
@@ -258,7 +263,7 @@ static void wifiDisconnected(const char* ssid, uint8_t reason)
             snprintf_P(buffer, sizeof(buffer), PSTR("no AP found"));
             break;
         case WIFI_REASON_AUTH_FAIL:
-            snprintf_P(buffer, sizeof(buffer), PSTR("auth powercap"));
+            snprintf_P(buffer, sizeof(buffer), PSTR("auth failed"));
             break;
         case WIFI_REASON_ASSOC_FAIL:
             snprintf_P(buffer, sizeof(buffer), PSTR("assoc failed"));
@@ -275,13 +280,23 @@ static void wifiDisconnected(const char* ssid, uint8_t reason)
             snprintf_P(buffer, sizeof(buffer), PSTR(D_ERROR_UNKNOWN));
     }
 
-    LOG_WARNING(TAG_WIFI, F("Disconnected from %s (Reason: %s [%d])"), ssid, buffer, reason);
+    if(wifiReconnectCounter++ % 5 == 0)
+        LOG_WARNING(TAG_WIFI, F("Disconnected from %s (Reason: %s [%d])"), ssid, buffer, reason);
+
+    if(!wifiOnline)
+        return; // we were not connected
+    else
+        wifiOnline = false; // now we are disconnected
+
+    // dispatch_exec(NULL, "/offline.cmd", TAG_WIFI);
+    LOG_VERBOSE(TAG_WIFI, F("Connected = %s"),
+                WiFi.status() == WL_CONNECTED ? PSTR(D_NETWORK_ONLINE) : PSTR(D_NETWORK_OFFLINE));
+    // networkStop();
 }
 
 static void wifiSsidConnected(const char* ssid)
 {
     LOG_TRACE(TAG_WIFI, F(D_WIFI_CONNECTED_TO), ssid);
-    wifiReconnectCounter = 0;
 }
 
 #if defined(ARDUINO_ARCH_ESP32)
@@ -447,6 +462,7 @@ void wifiSetup()
 #endif
 
         wifiReconnect();
+        WiFi.setAutoReconnect(false); // done in wifiEvery5Seconds
         LOG_TRACE(TAG_WIFI, F(D_WIFI_CONNECTING_TO), wifiSsid);
     }
 #endif
@@ -457,25 +473,31 @@ bool wifiEvery5Seconds()
 #if defined(STM32F4xx)
     if(wifiShowAP()) { // no ssid is set yet wait for user on-screen input
         return false;
-    } else if(WiFi.status() == WL_CONNECTED) {
+    }
 #else
     if(WiFi.getMode() != WIFI_STA) {
         return false;
-    } else if(WiFi.status() == WL_CONNECTED) {
-#endif
-        return true;
-    } else {
-        wifiReconnectCounter++;
-        if(wifiReconnectCounter > 45) {
-            LOG_ERROR(TAG_WIFI, F("Retries exceeded %d: Rebooting..."), wifiReconnectCounter);
-            dispatch_reboot(false);
-        }
-        LOG_WARNING(TAG_WIFI, F("No Connection... retry %d"), wifiReconnectCounter);
-        if(wifiReconnectCounter % 2 == 0) {
-            wifiReconnect();
-        }
-        return false;
     }
+#endif
+
+    if(wifiOnline != haspOnline) {
+        if(wifiOnline) {
+            dispatch_exec(NULL, "/online.cmd", TAG_WIFI);
+            networkStart();
+        } else {
+            dispatch_exec(NULL, "/offline.cmd", TAG_WIFI);
+            networkStop();
+        }
+        haspOnline = wifiOnline;
+    }
+
+    if(WiFi.status() == WL_CONNECTED) {
+        return true;
+    }
+
+    LOG_WARNING(TAG_WIFI, F("No Connection... retry %d"), wifiReconnectCounter);
+    wifiReconnect();
+    return false;
 }
 
 bool wifiValidateSsid(const char* ssid, const char* pass)

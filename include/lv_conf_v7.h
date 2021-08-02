@@ -221,7 +221,12 @@ typedef void* lv_fs_drv_user_data_t;
  * With complex image decoders (e.g. PNG or JPG) caching can save the continuous open/decode of images.
  * However the opened images might consume additional RAM.
  * LV_IMG_CACHE_DEF_SIZE must be >= 1 */
+#ifndef LV_IMG_CACHE_DEF_SIZE
 #define LV_IMG_CACHE_DEF_SIZE       1
+#endif
+#ifndef LV_IMG_CACHE_DEF_SIZE_PSRAM
+#define LV_IMG_CACHE_DEF_SIZE_PSRAM 20    // special openHASP setting when PSRAM is used
+#endif
 
  /*Declare the type of the user data of image decoder (can be e.g. `void *`, `int`, `struct`)*/
 typedef void* lv_img_decoder_user_data_t;
@@ -349,36 +354,6 @@ typedef void* lv_indev_drv_user_data_t;            /*Type of user data in the in
 
 #if TFT_WIDTH>=320 || TFT_WIDTH>=480
 
-#ifdef WT32SC01
-
-#ifndef HASP_FONT_1
-#define HASP_FONT_1 robotocondensed_regular_16_ascii  /* 5% Width */
-#endif
-#ifndef HASP_FONT_2
-#define HASP_FONT_2 robotocondensed_regular_24_ascii  /* 5% Width */
-#endif
-#ifndef HASP_FONT_3
-#define HASP_FONT_3 robotocondensed_regular_32_ascii  /* 10% Width */
-#endif
-#ifndef HASP_FONT_4
-#define HASP_FONT_4 robotocondensed_regular_48_ascii  /* 10% Height */
-#endif
-
-#ifndef ROBOTOCONDENSED_REGULAR_16_ASCII
-#define ROBOTOCONDENSED_REGULAR_16_ASCII 1
-#endif
-#ifndef ROBOTOCONDENSED_REGULAR_24_ASCII
-#define ROBOTOCONDENSED_REGULAR_24_ASCII 1
-#endif
-#ifndef ROBOTOCONDENSED_REGULAR_32_ASCII
-#define ROBOTOCONDENSED_REGULAR_32_ASCII 1
-#endif
-#ifndef ROBOTOCONDENSED_REGULAR_48_ASCII
-#define ROBOTOCONDENSED_REGULAR_48_ASCII 1
-#endif
-
-#else // not WT32SC01
-
 #ifndef HASP_FONT_1
 #define HASP_FONT_1 robotocondensed_regular_16_latin1  /* 5% Width */
 #endif
@@ -404,8 +379,6 @@ typedef void* lv_indev_drv_user_data_t;            /*Type of user data in the in
 #ifndef ROBOTOCONDENSED_REGULAR_48_LATIN1
 #define ROBOTOCONDENSED_REGULAR_48_LATIN1 1
 #endif
-
-#endif // WT32SC01
 
 #ifndef HASP_FONT_SIZE_1
 #define HASP_FONT_SIZE_1 16
@@ -655,8 +628,8 @@ typedef void* lv_font_user_data_t;
 #endif
 
   /*Change the built in (v)snprintf functions*/
-#define LV_SPRINTF_CUSTOM   0
-#if LV_SPRINTF_CUSTOM
+#define LV_SPRINTF_CUSTOM   1   // saves 1.4 KiB
+#if LV_SPRINTF_CUSTOM 
 #  define LV_SPRINTF_INCLUDE <stdio.h>
 #  define lv_snprintf     snprintf
 #  define lv_vsnprintf    vsnprintf
@@ -736,6 +709,19 @@ typedef struct {
 #if LV_USE_DROPDOWN != 0
 /*Open and close default animation time [ms] (0: no animation)*/
 #  define LV_DROPDOWN_DEF_ANIM_TIME     200
+#endif
+
+/*Linemeter (dependencies: -*/
+#define LV_USE_LINEMETER     1
+#if LV_USE_LINEMETER
+
+/* Set how precisely should the lines of the line meter be calculated.
+ * Higher precision means slower rendering.
+ * 0: normal
+ * 1: extra precision in the inner ring
+ * 2. extra precision on the outer ring too
+ */
+#  define LV_LINEMETER_PRECISE  2
 #endif
 
 /*Gauge (dependencies:lv_bar, lv_linemeter)*/

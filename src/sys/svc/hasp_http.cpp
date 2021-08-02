@@ -103,8 +103,7 @@ const char MAIN_MENU_BUTTON[] PROGMEM =
 const char MIT_LICENSE[] PROGMEM = "</br>MIT License</p>";
 
 const char HTTP_DOCTYPE[] PROGMEM = "<!DOCTYPE html><html lang=\"en\"><head><meta charset='utf-8'><meta "
-                                    "name=\"viewport\" content=\"width=device-width,initial-scale=1,"
-                                    "user-scalable=no\"/>";
+                                    "name=\"viewport\" content=\"width=device-width,initial-scale=1\"/>";
 const char HTTP_META_GO_BACK[] PROGMEM = "<meta http-equiv='refresh' content='15;url=/'/>";
 const char HTTP_HEADER[] PROGMEM       = "<title>%s</title>";
 const char HTTP_STYLE[] PROGMEM        = "<link rel=\"stylesheet\" href=\"/css\">";
@@ -123,19 +122,19 @@ const char HTTP_CSS[] PROGMEM =
     ";line-height:2.4rem;font-size:1.2rem;width:100%;}"
     //".q{float:right;width:64px;text-align:right;}"
     ".red{background-color:" D_HTTP_COLOR_BUTTON_RESET ";}"
+    "#doc{text-align:left;display:inline-block;color:" D_HTTP_COLOR_TEXT ";min-width:260px;}"
     // ".button3{background-color:#f44336;}"
     // ".button4{background-color:#e7e7e7;color:black;}"
     // ".button5{background-color:#555555;}"
     // ".button6{background-color:#4CAF50;}"
     "td{font-size:0.87rem;padding-bottom:0px;padding-top:0px;}th{padding-top:0.5em;}";
-const char HTTP_SCRIPT[] PROGMEM = "<script>function "
-                                   "c(l){document.getElementById('s').value=l.innerText||l.textContent;document."
-                                   "getElementById('p').focus();}</script>";
-const char HTTP_HEADER_END[] PROGMEM =
-    "</head><body><div style='text-align:left;display:inline-block;color:" D_HTTP_COLOR_TEXT ";min-width:260px;'>";
-const char HTTP_END[] PROGMEM = "<div style='text-align:right;font-size:11px;'><hr/><a href='/about' "
-                                "style='color:" D_HTTP_COLOR_TEXT ";'>" D_MANUFACTURER " ";
-const char HTTP_FOOTER[] PROGMEM = " " D_HTTP_FOOTER "</div></body></html>";
+// const char HTTP_SCRIPT[] PROGMEM = "<script>function "
+//                                    "c(l){document.getElementById('s').value=l.innerText||l.textContent;document."
+//                                    "getElementById('p').focus();}</script>";
+const char HTTP_HEADER_END[] PROGMEM = "</head><body><div id='doc'>";
+const char HTTP_FOOTER[] PROGMEM =
+    "<div style='text-align:right;font-size:11px;'><hr/><a href='/about'>" D_MANUFACTURER " ";
+const char HTTP_END[] PROGMEM = " " D_HTTP_FOOTER "</div></body></html>";
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -145,12 +144,6 @@ const char HTTP_FOOTER[] PROGMEM = " " D_HTTP_FOOTER "</div></body></html>";
 // String espFirmwareUrl = "http://haswitchplate.com/update/HASwitchPlate.ino.d1_mini.bin";
 // // Default link to compiled Nextion firmware images
 // String lcdFirmwareUrl = "http://haswitchplate.com/update/HASwitchPlate.tft";
-
-// #if HASP_USE_MQTT > 0
-// extern char mqttNodeName[16];
-// #else
-// char mqttNodeName[3] = "na";
-// #endif
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 String getOption(int value, String label, bool selected)
@@ -251,13 +244,13 @@ bool httpIsAuthenticated(const __FlashStringHelper* notused)
 void webSendFooter()
 {
 #if defined(STM32F4xx)
-    webServer.sendContent(HTTP_END);
-    webServer.sendContent(haspDevice.get_version());
     webServer.sendContent(HTTP_FOOTER);
-#else
-    webServer.sendContent_P(HTTP_END);
     webServer.sendContent(haspDevice.get_version());
+    webServer.sendContent(HTTP_END);
+#else
     webServer.sendContent_P(HTTP_FOOTER);
+    webServer.sendContent(haspDevice.get_version());
+    webServer.sendContent_P(HTTP_END);
 #endif
 }
 
@@ -281,13 +274,13 @@ void webSendPage(const char* nodename, uint32_t httpdatalength, bool gohome = fa
         uint32_t contentLength = strlen(haspDevice.get_version()); // version length
         contentLength += sizeof(HTTP_DOCTYPE) - 1;
         contentLength += sizeof(HTTP_HEADER) - 1 - 2 + strlen(nodename); // -2 for %s
-        contentLength += sizeof(HTTP_SCRIPT) - 1;
+                                                                         //    contentLength += sizeof(HTTP_SCRIPT) - 1;
         contentLength += sizeof(HTTP_STYLE) - 1;
         // contentLength += sizeof(HASP_STYLE) - 1;
         if(gohome) contentLength += sizeof(HTTP_META_GO_BACK) - 1;
         contentLength += sizeof(HTTP_HEADER_END) - 1;
-        contentLength += sizeof(HTTP_END) - 1;
         contentLength += sizeof(HTTP_FOOTER) - 1;
+        contentLength += sizeof(HTTP_END) - 1;
 
         if(httpdatalength > HTTP_PAGE_SIZE) {
             LOG_WARNING(TAG_HTTP, F("Sending page with %u static and %u dynamic bytes"), contentLength, httpdatalength);
@@ -305,14 +298,14 @@ void webSendPage(const char* nodename, uint32_t httpdatalength, bool gohome = fa
     }
 
 #if defined(STM32F4xx)
-    webServer.sendContent(HTTP_SCRIPT); // 131
-    webServer.sendContent(HTTP_STYLE);  // 487
+    //   webServer.sendContent(HTTP_SCRIPT); // 131
+    webServer.sendContent(HTTP_STYLE); // 487
     // webServer.sendContent(HASP_STYLE);                   // 145
     if(gohome) webServer.sendContent(HTTP_META_GO_BACK); // 47
     webServer.sendContent(HTTP_HEADER_END);              // 80
 #else
-    webServer.sendContent_P(HTTP_SCRIPT);                 // 131
-    webServer.sendContent_P(HTTP_STYLE);                  // 487
+    //   webServer.sendContent_P(HTTP_SCRIPT);                 // 131
+    webServer.sendContent_P(HTTP_STYLE); // 487
     // webServer.sendContent_P(HASP_STYLE);                   // 145
     if(gohome) webServer.sendContent_P(HTTP_META_GO_BACK); // 47
     webServer.sendContent_P(HTTP_HEADER_END);              // 80
@@ -1098,16 +1091,16 @@ void handleFileCreate()
         }
     }
     if(webServer.hasArg(F("init"))) {
-        dispatch_idle(NULL, "0");
+        dispatch_idle(NULL, "0", TAG_HTTP);
         hasp_init();
     }
     if(webServer.hasArg(F("load"))) {
-        dispatch_idle(NULL, "0");
+        dispatch_idle(NULL, "0", TAG_HTTP);
         hasp_load_json();
     }
     if(webServer.hasArg(F("page"))) {
         uint8_t pageid = atoi(webServer.arg(F("page")).c_str());
-        dispatch_idle(NULL, "0");
+        dispatch_idle(NULL, "0", TAG_HTTP);
         dispatch_set_page(pageid, LV_SCR_LOAD_ANIM_NONE);
     }
     webServer.send(200, PSTR("text/plain"), "");
@@ -1341,6 +1334,7 @@ void webHandleGuiConfig()
 #if defined(ARDUINO_ARCH_ESP32)
         add_gpio_select_option(httpMessage, 5, bcklpin);  // D8 on ESP32 for D1 mini 32
         add_gpio_select_option(httpMessage, 12, bcklpin); // TFT_LED on the Liligo Pi
+        add_gpio_select_option(httpMessage, 13, bcklpin); // TFT_LED on the D1 R32 + Waveshare
         add_gpio_select_option(httpMessage, 15, bcklpin); // TFT_LED on the AZ Touch
         add_gpio_select_option(httpMessage, 16, bcklpin); // D4 on ESP32 for D1 mini 32
         add_gpio_select_option(httpMessage, 17, bcklpin); // D3 on ESP32 for D1 mini 32
@@ -1373,7 +1367,7 @@ void webHandleGuiConfig()
     }
     webSendFooter();
 
-    if(webServer.hasArg(F("cal"))) dispatch_calibrate(NULL, NULL);
+    if(webServer.hasArg(F("cal"))) dispatch_calibrate(NULL, NULL, TAG_HTTP);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1421,7 +1415,6 @@ void webHandleWifiConfig()
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-#if HASP_USE_HTTP > 0
 void webHandleHttpConfig()
 { // http://plate01/config/http
     if(!httpIsAuthenticated(F("config/http"))) return;
@@ -1456,7 +1449,6 @@ void webHandleHttpConfig()
     // httpMessage.clear();
     webSendFooter();
 }
-#endif
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 #if HASP_USE_GPIO > 0
@@ -2164,7 +2156,7 @@ void httpHandleEspFirmware()
     webSendFooter();
 
     LOG_TRACE(TAG_HTTP, F("Updating ESP firmware from: %s"), webServer.arg(url).c_str());
-    dispatch_web_update(NULL, webServer.arg(url).c_str());
+    dispatch_web_update(NULL, webServer.arg(url).c_str(), TAG_HTTP);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2362,20 +2354,20 @@ void httpSetup()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-void httpReconnect()
-{
-    if(!http_config.enable) return;
+// static void httpReconnect()
+// {
+//     if(!http_config.enable) return;
 
-    if(webServerStarted) {
-        httpStop();
-    } else
-#if HASP_USE_WIFI > 0 && !defined(STM32F4xx)
-        if(WiFi.status() == WL_CONNECTED || WiFi.getMode() != WIFI_STA)
-#endif
-    {
-        httpStart();
-    }
-}
+//     if(webServerStarted) {
+//         httpStop();
+//     } else
+// #if HASP_USE_WIFI > 0 && !defined(STM32F4xx)
+//         if(WiFi.status() == WL_CONNECTED || WiFi.getMode() != WIFI_STA)
+// #endif
+//     {
+//         httpStart();
+//     }
+// }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 IRAM_ATTR void httpLoop(void)

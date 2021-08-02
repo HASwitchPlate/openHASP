@@ -63,7 +63,7 @@ void drv_touch_init(uint8_t rotation)
 #endif
 
 #elif TOUCH_DRIVER == 911
-    GT911_init();
+  //  GT911_init();
 
 #elif TOUCH_DRIVER == 0xADC // Analog Digital Touch Conroller
         // Touch_init();
@@ -96,7 +96,7 @@ static inline bool drv_touchpad_getXY(int16_t* touchX, int16_t* touchY)
     touched     = XPT2046_getXY(&normal_x, &normal_y, true);
 
 #elif TOUCH_DRIVER == 911
-    touched = GT911_getXY(&normal_x, &normal_y, true);
+  //  touched = GT911_getXY(&normal_x, &normal_y, true);
 
 #elif TOUCH_DRIVER == 0xADC // Analog Digital Touch Conroller
     touched = Touch_getXY(&normal_x, &normal_y, false);
@@ -221,6 +221,6 @@ IRAM_ATTR bool drv_touch_read(lv_indev_drv_t* indev_driver, lv_indev_data_t* dat
 IRAM_ATTR void drv_touch_loop()
 {
 #if TOUCH_DRIVER == 911
-    GT911_loop();
+  //  GT911_loop();
 #endif
 }

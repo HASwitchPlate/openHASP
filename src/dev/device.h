@@ -107,6 +107,8 @@ class BaseDevice {
     }
     virtual void get_info(JsonDocument& doc)
     {}
+    virtual void get_sensors(JsonDocument& doc)
+    {}
     virtual bool is_system_pin(uint8_t pin)
     {
         return false;

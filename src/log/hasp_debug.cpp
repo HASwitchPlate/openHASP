@@ -84,7 +84,7 @@ WiFiUDP* syslogClient;
 // char serialInputBuffer[220] = "";
 // uint16_t historyIndex       = sizeof(serialInputBuffer) - 1; // Empty buffer
 uint16_t debugSerialBaud = SERIAL_SPEED / 10; // Multiplied by 10
-extern bool debugSerialStarted;
+// extern bool debugSerialStarted;
 extern bool debugAnsiCodes;
 
 extern dispatch_conf_t dispatch_setings;
@@ -278,24 +278,23 @@ void debugPrintSuffix(uint8_t tag, int level, Print* _logOutput)
 
     if(_logOutput == &Serial) {
         console_update_prompt();
+#if HASP_USE_TELNET > 0
     } else {
         telnet_update_prompt();
+#endif
     }
 }
 
-// Do NOT call Log function before debugSetup is called
-void debugSetup(JsonObject settings)
+// Start Serial Port at correct
+void debugStartSerial()
 {
-    Log.begin(LOG_LEVEL_WARNING, true);
-    Log.setPrefix(debugPrintPrefix); // Uncomment to get timestamps as prefix
-    Log.setSuffix(debugPrintSuffix); // Uncomment to get newline as suffix
-
     uint32_t baudrate = 0;
-#if HASP_USE_CONFIG > 0
-    baudrate = settings[FPSTR(FP_CONFIG_BAUD)].as<uint32_t>() * 10;
-#endif
+    if(debugSerialBaud == 0) {
+        baudrate = SERIAL_SPEED;
+    } else {
+        baudrate = debugSerialBaud * 10;
+    }
 
-    if(baudrate == 0) baudrate = SERIAL_SPEED;
     if(baudrate >= 9600u) { /* the baudrates are stored divided by 10 */
 
 #if defined(STM32F4xx)
@@ -307,7 +306,8 @@ void debugSetup(JsonObject settings)
         Serial.begin(baudrate); /* prepare for possible serial debug */
         delay(10);
         Log.registerOutput(0, &Serial, LOG_LEVEL_VERBOSE, true); // LOG_LEVEL_VERBOSE
-        debugSerialStarted = true;
+
+        // debugSerialStarted = true;
 
         Serial.println();
         debugPrintHaspHeader(&Serial);
@@ -315,7 +315,25 @@ void debugSetup(JsonObject settings)
 
         LOG_INFO(TAG_DEBG, F(D_SERVICE_STARTED " @ %u Bps"), baudrate);
         LOG_INFO(TAG_DEBG, F("Environment: " PIOENV));
+
+    } else {
+        LOG_WARNING(TAG_DEBG, F(D_SERVICE_DISABLED " (%u Bps)"), baudrate);
     }
+}
+
+// Do NOT call Log function before debugSetup is called
+void debugSetup(JsonObject settings)
+{
+    Log.begin(LOG_LEVEL_WARNING, true);
+    Log.setPrefix(debugPrintPrefix); // Uncomment to get timestamps as prefix
+    Log.setSuffix(debugPrintSuffix); // Uncomment to get newline as suffix
+    Log.unregisterOutput(0);
+    Log.unregisterOutput(1);
+    Log.unregisterOutput(3);
+
+#if HASP_USE_CONFIG > 0
+    debugSerialBaud = settings[FPSTR(FP_CONFIG_BAUD)].as<uint16_t>();
+#endif
 }
 
 IRAM_ATTR void debugLoop(void)

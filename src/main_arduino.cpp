@@ -20,6 +20,10 @@
 #include "hasp_gui.h"
 #endif
 
+#if HASP_USE_CUSTOM > 0
+#include "custom/my_custom.h"
+#endif
+
 bool isConnected;
 uint8_t mainLoopCounter        = 0;
 unsigned long mainLastLoopTime = 0;
@@ -53,7 +57,7 @@ void setup()
      * Read & Apply User Configuration
      ***************************/
 #if HASP_USE_CONFIG > 0
-    configSetup(); // also runs  debugSetup() and debugStart()
+    configSetup(); // also runs  debugSetup(), debugStart() and consoleSetup()
 #endif
 
     dispatchSetup(); // before hasp and oobe, asap after logging starts
@@ -90,13 +94,13 @@ void setup()
     otaSetup();
 #endif
 
-#if HASP_USE_HTTP > 0
+#if HASP_USE_HTTP > 0 || HASP_USE_HTTP_ASYNC > 0
     httpSetup();
 #endif
 
-#if HASP_USE_CONSOLE > 0
-    consoleSetup();
-#endif
+// #if HASP_USE_CONSOLE > 0
+//     consoleSetup(); // the consoleSetup is called in debugSetup
+// #endif
 
 #if HASP_USE_TELNET > 0
     telnetSetup();
@@ -104,6 +108,10 @@ void setup()
 
 #if HASP_USE_TASMOTA_CLIENT > 0
     slaveSetup();
+#endif
+
+#if HASP_USE_CUSTOM > 0
+    custom_setup();
 #endif
 
     mainLastLoopTime = -1000; // reset loop counter
@@ -137,6 +145,10 @@ IRAM_ATTR void loop()
     consoleLoop();
 #endif
 
+#if HASP_USE_CUSTOM > 0
+    custom_loop();
+#endif
+
 #ifdef HASP_USE_STAT_COUNTER
     statLoopCounter++; // measures the average looptime
 #endif
@@ -152,6 +164,9 @@ IRAM_ATTR void loop()
         telnetEverySecond();
 #endif
 
+#if HASP_USE_CUSTOM > 0
+        custom_every_second();
+#endif
         // debugEverySecond();
 
         switch(++mainLoopCounter) {
@@ -160,14 +175,18 @@ IRAM_ATTR void loop()
                 break;
 
             case 2:
-#if HASP_USE_HTTP > 0
-                // httpEvery5Seconds();
+#if HASP_USE_HTTP_ASYNC > 0
+                httpEvery5Seconds();
 #endif
                 break;
 
             case 3:
 #if HASP_USE_GPIO > 0
                 //   gpioEvery5Seconds();
+#endif
+
+#if HASP_USE_CUSTOM > 0
+                custom_every_5seconds();
 #endif
                 break;
 

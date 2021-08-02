@@ -16,6 +16,9 @@
 #include <ESP8266httpUpdate.h>
 #include <ESP8266WiFi.h>
 #include <ArduinoOTA.h>
+#ifndef HASP_OTA_PORT
+#define HASP_OTA_PORT 8266
+#endif
 #endif
 
 #if defined(ARDUINO_ARCH_ESP32)
@@ -23,6 +26,9 @@
 #include <HTTPUpdate.h>
 #include <WiFi.h>
 #include <ArduinoOTA.h>
+#ifndef HASP_OTA_PORT
+#define HASP_OTA_PORT 3232
+#endif
 
 /**
  * This is lets-encrypt-x3-cross-signed.pem
@@ -83,10 +89,6 @@ bool otaUpdateCheck()
 
     if(jsonError) { // Couldn't parse the returned JSON, so bail
         dispatch_json_error(TAG_OTA, jsonError);
-        // mqttClient.publish(mqttStateJSONTopic,
-        //                    String(F("{\"event\":\"jsonError\",\"event_source\":\"updateCheck()\",\"event_description\":"
-        //                             "\"Failed to parse incoming JSON command with error\"")) +
-        //                        String(jsonError.c_str()));
         return false;
     } else {
         if(!updateJson["d1_mini"]["version"].isNull()) {
@@ -118,6 +120,7 @@ void otaOnProgress(unsigned int progress, unsigned int total)
     }
 }
 
+#if HASP_USE_OTA > 0
 void otaSetup(void)
 {
     if(strlen(otaUrl.c_str())) {
@@ -209,6 +212,7 @@ void otaEverySecond(void)
 {
     if(otaPrecentageComplete >= 0) otaProgress();
 }
+#endif
 
 void otaHttpUpdate(const char* espOtaUrl)
 { // Update ESP firmware from HTTP

@@ -13,6 +13,17 @@ namespace dev {
 class M5StackCore2 : public Esp32Device {
   public:
     void init() override;
+    void get_sensors(JsonDocument& doc);
+
+    void set_backlight_level(uint8_t level);
+    uint8_t get_backlight_level();
+    void set_backlight_power(bool power);
+    bool get_backlight_power();
+    void update_backlight();
+
+  private:
+    uint8_t _backlight_level;
+    uint8_t _backlight_power;
 };
 
 } // namespace dev

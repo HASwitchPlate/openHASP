@@ -132,6 +132,11 @@ bool Win32Device::is_system_pin(uint8_t pin)
     return false;
 }
 
+long Win32Device::get_uptime()
+{
+    return GetTickCount64() / 1000;
+}
+
 } // namespace dev
 
 dev::Win32Device haspDevice;

@@ -35,6 +35,7 @@ class Esp8266Device : public BaseDevice {
     size_t get_free_heap() override;
     uint8_t get_heap_fragmentation() override;
     uint16_t get_cpu_frequency() override;
+    long get_uptime();
 
     bool is_system_pin(uint8_t pin) override;
 

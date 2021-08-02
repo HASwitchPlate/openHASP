@@ -140,6 +140,11 @@ bool Esp8266Device::is_system_pin(uint8_t pin)
     return false;
 }
 
+long Esp8266Device::get_uptime()
+{
+    return millis() / 1000U;
+}
+
 } // namespace dev
 
 dev::Esp8266Device haspDevice;

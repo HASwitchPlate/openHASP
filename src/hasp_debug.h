@@ -138,6 +138,7 @@ void debugLvglLogEvent(lv_log_level_t level, const char* file, uint32_t line, co
 IRAM_ATTR void debugLoop(void);
 void debugEverySecond(void);
 void debugStart(void);
+void debugStartSerial(void);
 void debugStop(void);
 void debugPrintHaspHeader(Print* output);
 void debugPrintTag(uint8_t tag, Print* _logOutput);
@@ -191,7 +192,9 @@ enum {
 
     TAG_LVGL = 90,
     TAG_LVFS = 91,
-    TAG_FONT = 92
+    TAG_FONT = 92,
+
+    TAG_CUSTOM = 99
 };
 
 //#define TERM_COLOR_Black "\u001b[30m"

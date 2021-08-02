@@ -113,14 +113,19 @@ void guiCalibrate(void)
 #endif
 }
 
+void guiTftInit(void)
+{
+    haspTft.init(tft_width, tft_height);
+    haspTft.set_rotation(gui_settings.rotation);
+    haspTft.set_invert(gui_settings.invert_display);
+}
+
 void guiSetup()
 {
     LOG_TRACE(TAG_TFT, F(D_SERVICE_STARTING));
 
     // Initialize the TFT
-    haspTft.init(tft_width, tft_height);
-    haspTft.set_rotation(gui_settings.rotation);
-    haspTft.set_invert(gui_settings.invert_display);
+    guiTftInit();
     haspTft.show_info();
 
     LOG_INFO(TAG_TFT, F(D_SERVICE_STARTED));
@@ -294,6 +299,12 @@ void guiSetup()
     lv_split_jpeg_init();
 #endif
 
+#if defined(ARDUINO_ARCH_ESP32)
+    if(psramFound()) {
+        lv_img_cache_set_size(LV_IMG_CACHE_DEF_SIZE_PSRAM);
+    }
+#endif
+
 #ifdef USE_DMA_TO_TFT
     LOG_VERBOSE(TAG_GUI, F("DMA        : " D_SETTING_ENABLED));
 #else
@@ -379,8 +390,7 @@ IRAM_ATTR void guiLoop(void)
 #endif
 
 #if !(defined(WINDOWS) || defined(POSIX))
-    // drv_touch_loop(); // update touch
-    haspTouch.loop();
+    // haspTouch.loop();
 #endif
 }
 

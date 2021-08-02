@@ -43,6 +43,7 @@
 #define D_NETWORK_ONLINE "online"
 #define D_NETWORK_OFFLINE "offline"
 #define D_NETWORK_CONNECTION_FAILED "Connection failed"
+#define D_NETWORK_CONNECTION_UNAUTHORIZED "Authorization failed"
 
 #define D_MQTT_DEFAULT_NAME "plate_%s"
 #define D_MQTT_CONNECTING "Connecting..."
@@ -64,7 +65,6 @@
 #define D_TELNET_CLIENT_LOGIN_FROM "Client login from %s"
 #define D_TELNET_CLIENT_CONNECT_FROM "Client connected from %s"
 #define D_TELNET_CLIENT_NOT_CONNECTED "Client NOT connected"
-#define D_TELNET_AUTHENTICATION_FAILED "Authorization failed!"
 #define D_TELNET_INCORRECT_LOGIN_ATTEMPT "Incorrect login attempt from %s"
 #define D_TELNET_STARTED "Telnet console started"
 #define D_TELNET_FAILED "Failed to start telnet console"

@@ -155,7 +155,7 @@ static void mqtt_message_cb(char* topic, byte* payload, unsigned int length)
 
         // Group topic
         topic += strlen(mqttGroupTopic); // shorten topic
-        dispatch_topic_payload(topic, (const char*)payload, length > 0);
+        dispatch_topic_payload(topic, (const char*)payload, length > 0, TAG_MQTT);
         return;
 
 #ifdef HASP_USE_BROADCAST
@@ -163,7 +163,7 @@ static void mqtt_message_cb(char* topic, byte* payload, unsigned int length)
 
         // Broadcast topic
         topic += strlen_P(PSTR(MQTT_PREFIX "/" MQTT_TOPIC_BROADCAST "/")); // shorten topic
-        dispatch_topic_payload(topic, (const char*)payload, length > 0);
+        dispatch_topic_payload(topic, (const char*)payload, length > 0, TAG_MQTT);
         return;
 #endif
 
@@ -203,7 +203,7 @@ static void mqtt_message_cb(char* topic, byte* payload, unsigned int length)
                 }
                 else */
     {
-        dispatch_topic_payload(topic, (const char*)payload, length > 0);
+        dispatch_topic_payload(topic, (const char*)payload, length > 0, TAG_MQTT);
     }
 }
 
@@ -322,7 +322,7 @@ void mqttStart()
     haspReconnect();
     haspProgressVal(255);
 
-    dispatch_current_state();
+    dispatch_current_state(TAG_MQTT);
 }
 
 void mqttSetup()
@@ -343,7 +343,6 @@ void mqttSetup()
 
 IRAM_ATTR void mqttLoop(void)
 {
-    // if(mqttEnabled)
     mqttClient.loop();
 }
 
@@ -354,11 +353,6 @@ void mqttEvery5Seconds(bool networkIsConnected)
         mqttStart();
     }
 }
-
-// String mqttGetNodename()
-// {
-//     return mqttNodeName;
-// }
 
 void mqttStop()
 {
@@ -372,7 +366,7 @@ void mqttStop()
 
 void mqtt_get_info(JsonDocument& doc)
 {
-    char mqttClientId[64];
+    char buffer[64];
     String mac((char*)0);
     mac.reserve(64);
 
@@ -382,15 +376,33 @@ void mqtt_get_info(JsonDocument& doc)
 
     mac = halGetMacAddress(3, "");
     mac.toLowerCase();
-    snprintf_P(mqttClientId, sizeof(mqttClientId), PSTR("%s-%s"), haspDevice.get_hostname(), mac.c_str());
-    info[F(D_INFO_CLIENTID)] = mqttClientId;
+    snprintf_P(buffer, sizeof(buffer), PSTR("%s-%s"), haspDevice.get_hostname(), mac.c_str());
+    info[F(D_INFO_CLIENTID)] = buffer;
 
-    if(mqttIsConnected()) { // Check MQTT connection
-        info[F(D_INFO_STATUS)] = F(D_INFO_CONNECTED);
-    } else {
-        info[F(D_INFO_STATUS)] = F("<font color='red'><b>" D_INFO_DISCONNECTED "</b></font>, return code: ");
-        //     +String(mqttClient.returnCode());
+    switch(mqttClient.state()) {
+        case MQTT_CONNECT_UNAUTHORIZED:
+            snprintf_P(buffer, sizeof(buffer), PSTR(D_NETWORK_CONNECTION_UNAUTHORIZED));
+            break;
+        case MQTT_CONNECT_FAILED:
+            snprintf_P(buffer, sizeof(buffer), PSTR(D_NETWORK_CONNECTION_FAILED));
+            break;
+        case MQTT_DISCONNECTED:
+            snprintf_P(buffer, sizeof(buffer), PSTR(D_INFO_DISCONNECTED));
+            break;
+        case MQTT_CONNECTED:
+            snprintf_P(buffer, sizeof(buffer), PSTR(D_INFO_CONNECTED));
+            break;
+        case MQTT_CONNECTION_TIMEOUT:
+        case MQTT_CONNECTION_LOST:
+        case MQTT_CONNECT_BAD_PROTOCOL:
+        case MQTT_CONNECT_BAD_CLIENT_ID:
+        case MQTT_CONNECT_UNAVAILABLE:
+        case MQTT_CONNECT_BAD_CREDENTIALS:
+        default:
+            snprintf_P(buffer, sizeof(buffer), PSTR(D_INFO_DISCONNECTED " (%d)"), mqttClient.state());
+            break;
     }
+    info[F(D_INFO_STATUS)] = buffer;
 
     info[F(D_INFO_RECEIVED)]  = mqttReceiveCount;
     info[F(D_INFO_PUBLISHED)] = mqttPublishCount;

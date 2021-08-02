@@ -17,8 +17,8 @@ class BaseTouch {
   public:
     void init(int w, int h)
     {}
-    void loop()
-    {}
+    // void loop()
+    // {}
     void show_info()
     {}
     void set_rotation(uint8_t rotation)
@@ -51,15 +51,18 @@ class BaseTouch {
 #warning Building for XPT2046
 //#include "touch_driver_xpt2046.h"
 #include "touch_driver_tftespi.h"
+#elif TOUCH_DRIVER == 5206
+#warning Building for FT5206
+#include "touch_driver_ft5206.h"
 #elif TOUCH_DRIVER == 6336
 #warning Building for FT6336
 #include "touch_driver_ft6336u.h"
 #elif TOUCH_DRIVER == 610
 #warning Building for STMPE610
 #include "touch_driver_stmpe610.h"
-#elif TOUCH_DRIVER == 5206
-#warning Building for FT5206
-#include "touch_driver_ft5206.h"
+#elif TOUCH_DRIVER == 911
+#warning Building for GT911
+#include "touch_driver_gt911.h"
 #else
 #warning Building for Generic Touch
 using dev::BaseTouch;

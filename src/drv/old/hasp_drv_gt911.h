@@ -1,10 +1,11 @@
 /* MIT License - Copyright (c) 2019-2021 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
+/*
 #ifndef HASP_DRV_911_H
 #define HASP_DRV_911_H
 
-#if TOUCH_DRIVER == 911
+#if TOUCH_DRIVER == 91100
 
 #include "hasp_debug.h" // for TAG_DRVR
 
@@ -14,3 +15,4 @@ void GT911_loop();
 
 #endif
 #endif
+*/

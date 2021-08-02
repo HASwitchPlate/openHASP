@@ -1,7 +1,11 @@
+/* MIT License - Copyright (c) 2019-2021 Francis Van Roie
+   For full license information read the LICENSE file in the project folder */
+
 #if defined(POSIX)
 
 #include <cstdint>
 #include <sys/utsname.h>
+#include <sys/sysinfo.h> // uptime
 
 #include "hasp_posix.h"
 
@@ -135,12 +139,16 @@ void PosixDevice::update_backlight()
 
 size_t PosixDevice::get_free_max_block()
 {
-    return 0;
+    struct sysinfo s_info;
+    if(sysinfo(&s_info) < 0) return 0;
+    return s_info.freeram;
 }
 
 size_t PosixDevice::get_free_heap(void)
 {
-    return 0;
+    struct sysinfo s_info;
+    if(sysinfo(&s_info) < 0) return 0;
+    return s_info.freeram;
 }
 
 uint8_t PosixDevice::get_heap_fragmentation()
@@ -156,6 +164,13 @@ uint16_t PosixDevice::get_cpu_frequency()
 bool PosixDevice::is_system_pin(uint8_t pin)
 {
     return false;
+}
+
+long PosixDevice::get_uptime()
+{
+    struct sysinfo s_info;
+    if(sysinfo(&s_info) < 0) return 0;
+    return s_info.uptime;
 }
 
 } // namespace dev

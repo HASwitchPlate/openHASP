@@ -6,6 +6,7 @@
 
 #if defined(ARDUINO_ARCH_ESP32)
 #include <ESPmDNS.h>
+#include <mdns.h>
 #elif defined(ARDUINO_ARCH_ESP8266)
 #include <ESP8266mDNS.h>
 // MDNSResponder::hMDNSService hMDNSService;
@@ -75,6 +76,17 @@ void mdnsStart()
     } else {
         LOG_ERROR(TAG_MDNS, F(D_SERVICE_START_FAILED));
     }
+}
+
+bool mdns_remove_service(char* service, char* proto)
+{
+#if ESP32
+    return mdns_service_remove("_arduino", "_tcp") == ESP_OK;
+#endif
+
+#if ESP8266
+    return MDNS.removeService(haspDevice.get_hostname(),"_arduino", "_tcp");
+#endif
 }
 
 IRAM_ATTR void mdnsLoop(void)

@@ -76,6 +76,20 @@ lv_chart_series_t* my_chart_get_series(lv_obj_t* chart, uint8_t ser_num)
     return ser;
 }
 
+// OK - this function is missing in lvgl
+static inline int16_t my_spinbox_get_min_value(lv_obj_t* chart)
+{
+    lv_spinbox_ext_t* ext = (lv_spinbox_ext_t*)lv_obj_get_ext_attr(chart);
+    return ext->range_min;
+}
+
+// OK - this function is missing in lvgl
+static inline int16_t my_spinbox_get_max_value(lv_obj_t* chart)
+{
+    lv_spinbox_ext_t* ext = (lv_spinbox_ext_t*)lv_obj_get_ext_attr(chart);
+    return ext->range_max;
+}
+
 // OK
 static inline lv_color_t haspLogColor(lv_color_t color)
 {
@@ -280,6 +294,37 @@ void my_obj_set_value_str_text(lv_obj_t* obj, uint8_t part, lv_state_t state, co
     // LOG_VERBOSE(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
 }
 
+void my_list_set_options(lv_obj_t* obj, const char* payload)
+{ // Reserve memory for JsonDocument
+    size_t maxsize = (128u * ((strlen(payload) / 128) + 1)) + 256;
+    DynamicJsonDocument doc(maxsize);
+    DeserializationError jsonError = deserializeJson(doc, payload);
+
+    if(jsonError) { // Couldn't parse incoming JSON payload
+        dispatch_json_error(TAG_ATTR, jsonError);
+        return;
+    }
+
+    doc.shrinkToFit();
+    lv_list_clean(obj);
+
+    JsonArray arr = doc.as<JsonArray>(); // Parse payload
+    lv_obj_t* btn = NULL;
+    for(JsonVariant v : arr) {
+        const char* c = v.as<const char*>();
+        if(*c == 0xee || *c == 0xef) {
+            char icon[4];
+            memcpy(icon, c, 3);
+            icon[3] = '\0';
+            btn     = lv_list_add_btn(obj, icon, c + 3);
+
+        } else
+            btn = lv_list_add_btn(obj, NULL, c);
+    }
+
+    if(btn) lv_obj_set_event_cb(btn, selector_event_handler);
+}
+
 void my_tabview_set_text(lv_obj_t* obj, const char* payload)
 {
     uint16_t id = lv_tabview_get_tab_act(obj);
@@ -366,6 +411,13 @@ static void gauge_format_1k(lv_obj_t* gauge, char* buf, int bufsize, int32_t val
 static void gauge_format_10k(lv_obj_t* gauge, char* buf, int bufsize, int32_t value)
 {
     snprintf(buf, bufsize, PSTR("%d"), value / 10000);
+}
+
+// OK - this function is missing in lvgl
+static uint16_t my_btnmatrix_get_count(const lv_obj_t* btnm)
+{
+    lv_btnmatrix_ext_t* ext = (lv_btnmatrix_ext_t*)lv_obj_get_ext_attr(btnm);
+    return ext->btn_cnt;
 }
 
 #if 0

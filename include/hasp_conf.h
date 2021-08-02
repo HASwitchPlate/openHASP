@@ -1,3 +1,6 @@
+/* MIT License - Copyright (c) 2019-2021 Francis Van Roie
+   For full license information read the LICENSE file in the project folder */
+
 #ifndef HASP_CONF_H
 #define HASP_CONF_H
 
@@ -36,7 +39,7 @@
     (ARDUINO_ARCH_ESP32 > 0 || ARDUINO_ARCH_ESP8266 > 0 || HASP_USE_ETHERNET > 0 || HASP_USE_WIFI > 0)
 
 #ifndef HASP_USE_OTA
-#define HASP_USE_OTA (HASP_HAS_NETWORK)
+#define HASP_USE_OTA 0 //(HASP_HAS_NETWORK)
 #endif
 
 #ifndef HASP_USE_MQTT
@@ -51,8 +54,20 @@
 #define MQTT_NODENAME "plate"
 #endif
 
+#ifndef HASP_START_CONSOLE
+#define HASP_START_CONSOLE 1
+#endif
+
 #ifndef HASP_USE_HTTP
 #define HASP_USE_HTTP (HASP_HAS_NETWORK)
+#endif
+
+#ifndef HASP_USE_HTTP_ASYNC
+#define HASP_USE_HTTP_ASYNC 0 //(HASP_HAS_NETWORK)
+#endif
+
+#ifndef HASP_START_HTTP
+#define HASP_START_HTTP 1
 #endif
 
 #ifndef HASP_USE_MDNS
@@ -65,6 +80,10 @@
 
 #ifndef HASP_USE_TELNET
 #define HASP_USE_TELNET 0
+#endif
+
+#ifndef HASP_START_TELNET
+#define HASP_START_TELNET 1
 #endif
 
 #ifndef HASP_USE_CONSOLE
@@ -120,6 +139,10 @@
 
 #ifndef HASP_NUM_GPIO_CONFIG
 #define HASP_NUM_GPIO_CONFIG 8
+#endif
+
+#ifndef HASP_USE_CUSTOM
+#define HASP_USE_CUSTOM 0
 #endif
 
 // #ifndef HASP_NUM_OUTPUTS
@@ -233,6 +256,10 @@ static WiFiSpiClass WiFi;
 #include "sys/svc/hasp_http.h"
 #endif
 
+#if HASP_USE_HTTP_ASYNC > 0
+#include "sys/svc/hasp_http.h"
+#endif
+
 #if HASP_USE_CONSOLE > 0
 #include "sys/svc/hasp_console.h"
 #endif
@@ -247,13 +274,6 @@ static WiFiSpiClass WiFi;
 
 #if HASP_USE_OTA > 0
 #include "sys/svc/hasp_ota.h"
-#ifndef HASP_OTA_PORT
-#if defined(ARDUINO_ARCH_ESP32)
-#define HASP_OTA_PORT 3232
-#elif defined(ARDUINO_ARCH_ESP8266)
-#define HASP_OTA_PORT 8266
-#endif
-#endif
 #endif
 
 #if HASP_USE_TASMOTA_CLIENT > 0

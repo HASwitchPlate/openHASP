@@ -43,6 +43,7 @@
 #define D_NETWORK_ONLINE "online"
 #define D_NETWORK_OFFLINE "offline"
 #define D_NETWORK_CONNECTION_FAILED "A kapcsolódás meghiúsult"
+#define D_NETWORK_CONNECTION_UNAUTHORIZED "A hitelesítés sikertelen"
 
 #define D_MQTT_DEFAULT_NAME "plate_%s"
 #define D_MQTT_CONNECTING "Csatlakozás..."
@@ -64,7 +65,6 @@
 #define D_TELNET_CLIENT_LOGIN_FROM "Kliens bejelentkezés innen: %s"
 #define D_TELNET_CLIENT_CONNECT_FROM "Kliens csatlakozva innen: %s"
 #define D_TELNET_CLIENT_NOT_CONNECTED "Kliens NEM csatlakozik"
-#define D_TELNET_AUTHENTICATION_FAILED "A hitelesítés sikertelen!"
 #define D_TELNET_INCORRECT_LOGIN_ATTEMPT "Helytelen bejelentkezési kísérlet %s-ről"
 #define D_TELNET_STARTED "Telnet konzol elindítva"
 #define D_TELNET_FAILED "Telnet konzol elindítása meghiúsult"
