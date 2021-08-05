@@ -5,7 +5,14 @@
 
 #include <cstdint>
 #include <sys/utsname.h>
+#ifndef TARGET_OS_MAC
 #include <sys/sysinfo.h> // uptime
+#else
+#include <chrono> // for all examples :)
+#include <time.h>
+#include <errno.h>
+#include <sys/sysctl.h>
+#endif
 
 #include "hasp_posix.h"
 
@@ -139,16 +146,24 @@ void PosixDevice::update_backlight()
 
 size_t PosixDevice::get_free_max_block()
 {
+#ifndef TARGET_OS_MAC
     struct sysinfo s_info;
     if(sysinfo(&s_info) < 0) return 0;
     return s_info.freeram;
+#else
+    return 0;
+#endif
 }
 
 size_t PosixDevice::get_free_heap(void)
 {
+#ifndef TARGET_OS_MAC
     struct sysinfo s_info;
     if(sysinfo(&s_info) < 0) return 0;
     return s_info.freeram;
+#else
+    return 0;
+#endif
 }
 
 uint8_t PosixDevice::get_heap_fragmentation()
@@ -166,12 +181,32 @@ bool PosixDevice::is_system_pin(uint8_t pin)
     return false;
 }
 
+#ifndef TARGET_OS_MAC
 long PosixDevice::get_uptime()
 {
     struct sysinfo s_info;
     if(sysinfo(&s_info) < 0) return 0;
     return s_info.uptime;
 }
+#else
+long PosixDevice::get_uptime()
+{
+    using namespace std::chrono;
+    timeval ts;
+    auto ts_len = sizeof(ts);
+    int mib[2] = {CTL_KERN, KERN_BOOTTIME};
+    auto constexpr mib_len = sizeof(mib) / sizeof(mib[0]);
+    std::chrono::seconds sec;
+    if(sysctl(mib, mib_len, &ts, &ts_len, nullptr, 0) == 0) {
+        system_clock::time_point boot{seconds{ts.tv_sec} + microseconds{ts.tv_usec}};
+        sec = duration_cast<seconds>(system_clock::now() - boot);
+    } else {
+        sec = 0s;
+    }
+    return (long)sec.count();
+}
+
+#endif
 
 } // namespace dev
 
