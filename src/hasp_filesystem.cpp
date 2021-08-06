@@ -195,7 +195,7 @@ static inline void filesystemCreateFile(const char* filename, const char* data)
     file.close();
 }
 
-static inline void filesystemSetupFiles()
+void filesystemSetupFiles()
 {
     filesystemCreateFile("/pages.jsonl", HASP_PAGES_JSONL);
     filesystemCreateFile("/online.cmd", HASP_ONLINE_CMD);

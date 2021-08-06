@@ -1071,6 +1071,7 @@ bool dispatch_factory_reset()
 
 #if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
     formated = HASP_FS.format();
+    if (formated) filesystemSetupFiles();
 #endif
 
 #if HASP_USE_EEPROM > 0

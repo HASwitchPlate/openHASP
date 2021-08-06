@@ -10,6 +10,7 @@ bool filesystemSetup(void);
 
 void filesystemList();
 void filesystemInfo();
+void filesystemSetupFiles();
 
 #if defined(ARDUINO_ARCH_ESP32)
 void filesystemUnzip(const char*, const char* filename, uint8_t source);
