@@ -11,6 +11,8 @@
 /*** Image Improvement ***/
 #if defined(ARDUINO_ARCH_ESP8266)
 #include <ESP8266HTTPClient.h>
+#define lodepng_malloc malloc
+#define lodepng_free free
 #endif
 
 #if defined(ARDUINO_ARCH_ESP32)
@@ -1007,7 +1009,7 @@ static hasp_attribute_type_t special_attribute_src(lv_obj_t* obj, const char* pa
         if(payload != strstr_P(payload, PSTR("http://"))) {
             lv_img_set_src(obj, payload);
         } else {
-#ifdef ARDUINO
+#if defined(ARDUINO) && defined(ARDUINO_ARCH_ESP32)
             HTTPClient http;
             http.begin(payload);
             int httpCode = http.GET();
