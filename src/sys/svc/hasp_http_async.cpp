@@ -485,7 +485,7 @@ void webHandleAbout(AsyncWebServerRequest* request)
     String httpMessage((char*)0);
     httpMessage.reserve(HTTP_PAGE_SIZE);
 
-    httpMessage += F("<p><h3>HASP OpenHardware edition</h3>Copyright&copy; 2020 Francis Van Roie ");
+    httpMessage += F("<p><h3>openHASP/h3>Copyright&copy; 2019-2021 Francis Van Roie ");
     httpMessage += FPSTR(MIT_LICENSE);
     httpMessage += F("<p>Based on the previous work of the following open source developers.</p><hr>");
     httpMessage += F("<p><h3>HASwitchPlate</h3>Copyright&copy; 2019 Allen Derusha allen@derusha.org</b>");
@@ -494,14 +494,14 @@ void webHandleAbout(AsyncWebServerRequest* request)
         F("<p><h3>LittlevGL</h3>Copyright&copy; 2016 G&aacute;bor Kiss-V&aacute;mosi</br>Copyright&copy; 2019 "
           "LittlevGL");
     httpMessage += FPSTR(MIT_LICENSE);
-    httpMessage += F("<p><h3>zi Font Engine</h3>Copyright&copy; 2020 Francis Van Roie");
+    httpMessage += F("<p><h3>zi Font Engine</h3>Copyright&copy; 2020-2021 Francis Van Roie");
     httpMessage += FPSTR(MIT_LICENSE);
     httpMessage += F("<p><h3>TFT_eSPI Library</h3>Copyright&copy; 2020 Bodmer (https://github.com/Bodmer) All "
                      "rights reserved.</br>FreeBSD License</p>");
     httpMessage +=
         F("<p><i>includes parts from the <b>Adafruit_GFX library</b></br>Copyright&copy; 2012 Adafruit Industries. "
           "All rights reserved</br>BSD License</i></p>");
-    httpMessage += F("<p><h3>ArduinoJson</h3>Copyright&copy; 2014-2020 Benoit BLANCHON");
+    httpMessage += F("<p><h3>ArduinoJson</h3>Copyright&copy; 2014-2021 Benoit BLANCHON");
     httpMessage += FPSTR(MIT_LICENSE);
     httpMessage += F("<p><h3>PubSubClient</h3>Copyright&copy; 2008-2015 Nicholas O'Leary");
     httpMessage += FPSTR(MIT_LICENSE);
