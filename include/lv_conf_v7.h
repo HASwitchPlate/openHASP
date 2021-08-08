@@ -684,7 +684,7 @@ typedef struct {
 #define LV_USE_BTNMATRIX     1
 
 /*Calendar (dependencies: -)*/
-#define LV_USE_CALENDAR 1
+#define LV_USE_CALENDAR 0
 
 /*Canvas (dependencies: lv_img)*/
 #define LV_USE_CANVAS   1
@@ -693,7 +693,7 @@ typedef struct {
 #define LV_USE_CHECKBOX       1
 
 /*Chart (dependencies: -)*/
-#define LV_USE_CHART    1
+#define LV_USE_CHART    0
 #if LV_USE_CHART
 #  define LV_CHART_AXIS_TICK_LABEL_MAX_LEN    20
 #endif
@@ -774,7 +774,7 @@ typedef struct {
 #define LV_USE_LMETER   1
 
 /*Mask (dependencies: -)*/
-#define LV_USE_OBJMASK  1
+#define LV_USE_OBJMASK  0
 
 /*Message box (dependencies: lv_rect, lv_btnm, lv_label)*/
 #define LV_USE_MSGBOX     1
@@ -808,7 +808,7 @@ typedef struct {
 #define LV_USE_SLIDER    1
 
 /*Spinbox (dependencies: lv_ta)*/
-#define LV_USE_SPINBOX       1
+#define LV_USE_SPINBOX       0
 
 /*Switch (dependencies: lv_slider)*/
 #define LV_USE_SWITCH       1
@@ -821,7 +821,7 @@ typedef struct {
 #endif
 
 /*Table (dependencies: lv_label)*/
-#define LV_USE_TABLE    1 //(LV_HIGH_RESOURCE_MCU)
+#define LV_USE_TABLE    0 //(LV_HIGH_RESOURCE_MCU)
 #if LV_USE_TABLE
 #  define LV_TABLE_COL_MAX    12
 #endif
@@ -834,14 +834,14 @@ typedef struct {
 #endif
 
 /*Tileview (dependencies: lv_page) */
-#define LV_USE_TILEVIEW     1
+#define LV_USE_TILEVIEW     0
 #if LV_USE_TILEVIEW
 /*Time of slide animation [ms] (0: no animation)*/
 #  define LV_TILEVIEW_DEF_ANIM_TIME   300
 #endif
 
 /*Window (dependencies: lv_cont, lv_btn, lv_label, lv_img, lv_page)*/
-#define LV_USE_WIN      1
+#define LV_USE_WIN      0
 
 /*==================
  * Non-user section

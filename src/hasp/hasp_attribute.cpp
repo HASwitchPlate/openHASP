@@ -1348,8 +1348,11 @@ static hasp_attribute_type_t specific_int_attribute(lv_obj_t* obj, uint16_t attr
             {LV_HASP_PAGE, ATTR_ANIM_TIME, lv_page_set_anim_time, lv_page_get_anim_time},
             {LV_HASP_ROLLER, ATTR_ANIM_TIME, lv_roller_set_anim_time, lv_roller_get_anim_time},
             {LV_HASP_TABVIEW, ATTR_ANIM_TIME, lv_tabview_set_anim_time, lv_tabview_get_anim_time},
+#if LV_USE_WINDOW > 0
             {LV_HASP_WINDOW, ATTR_ANIM_TIME, lv_win_set_anim_time, lv_win_get_anim_time},
-            {LV_HASP_LABEL, ATTR_ANIM_SPEED, lv_label_set_anim_speed, lv_label_get_anim_speed}};
+#endif
+            {LV_HASP_LABEL, ATTR_ANIM_SPEED, lv_label_set_anim_speed, lv_label_get_anim_speed}
+        };
         if(do_attribute(list, obj, attr_hash, val, update)) return HASP_ATTR_TYPE_INT;
     }
 
@@ -1362,10 +1365,15 @@ static hasp_attribute_type_t specific_int_attribute(lv_obj_t* obj, uint16_t attr
             {LV_HASP_ARC, ATTR_END_ANGLE1, lv_arc_set_end_angle, lv_arc_get_angle_end},
             {LV_HASP_LINEMETER, ATTR_ROTATION, lv_linemeter_set_angle_offset, lv_linemeter_get_angle_offset},
             {LV_HASP_GAUGE, ATTR_ROTATION, lv_gauge_set_angle_offset, lv_gauge_get_angle_offset},
-            {LV_HASP_SLIDER, ATTR_ANIM_TIME, lv_slider_set_anim_time, lv_slider_get_anim_time},
+#if LV_USE_TABLE > 0
             {LV_HASP_TABLE, ATTR_COLS, lv_table_set_col_cnt, lv_table_get_col_cnt},
             {LV_HASP_TABLE, ATTR_ROWS, lv_table_set_row_cnt, lv_table_get_row_cnt},
-            {LV_HASP_TILEVIEW, ATTR_ANIM_TIME, lv_tileview_set_anim_time, lv_tileview_get_anim_time}};
+#endif
+#if LV_USE_TILEVIEW > 0
+            {LV_HASP_TILEVIEW, ATTR_ANIM_TIME, lv_tileview_set_anim_time, lv_tileview_get_anim_time}
+#endif
+            {LV_HASP_SLIDER, ATTR_ANIM_TIME, lv_slider_set_anim_time, lv_slider_get_anim_time},
+        };
         if(do_attribute(list, obj, attr_hash, val, update)) return HASP_ATTR_TYPE_INT;
     }
 
@@ -1461,15 +1469,19 @@ static bool my_obj_get_range(lv_obj_t* obj, int32_t& min, int32_t& max)
             if(max == 0) return false; // only one tab available
             break;
 
+#if LV_USE_CHART > 0
         case LV_HASP_CHART:
             min = my_chart_get_min_value(obj);
             max = my_chart_get_max_value(obj);
             break;
+#endif
 
+#if LV_USE_SPINBOX > 0
         case LV_HASP_SPINBOX:
             min = my_spinbox_get_min_value(obj);
             max = my_spinbox_get_max_value(obj);
             break;
+#endif
 
         case LV_HASP_DROPDOWN:
         case LV_HASP_ROLLER:
@@ -1590,12 +1602,14 @@ static hasp_attribute_type_t attribute_common_val(lv_obj_t* obj, int32_t& val, b
                 val = lv_bar_get_value(obj);
             break;
 
+#if LV_USE_SPINBOX > 0
         case LV_HASP_SPINBOX:
             if(update)
                 lv_spinbox_set_value(obj, val);
             else
                 val = lv_spinbox_get_value(obj);
             break;
+#endif
 
         case LV_HASP_TABVIEW:
             if(update)
@@ -1692,6 +1706,7 @@ static hasp_attribute_type_t attribute_common_range(lv_obj_t* obj, int32_t& val,
                 val = set_min ? min : max;
             break;
 
+#if LV_USE_CHART > 0
         case LV_HASP_CHART:
             if(update && (set_min ? val : min) == (set_max ? val : max))
                 return HASP_ATTR_TYPE_RANGE_ERROR; // prevent setting  min=max
@@ -1700,7 +1715,9 @@ static hasp_attribute_type_t attribute_common_range(lv_obj_t* obj, int32_t& val,
             else
                 val = set_min ? min : max;
             break;
+#endif
 
+#if LV_USE_SPINBOX > 0
         case LV_HASP_SPINBOX:
             if(update && (set_min ? val : min) == (set_max ? val : max))
                 return HASP_ATTR_TYPE_RANGE_ERROR; // prevent setting min=max
@@ -1709,6 +1726,7 @@ static hasp_attribute_type_t attribute_common_range(lv_obj_t* obj, int32_t& val,
             else
                 val = set_min ? min : max;
             break;
+#endif
 
         default:
             return HASP_ATTR_TYPE_NOT_FOUND;

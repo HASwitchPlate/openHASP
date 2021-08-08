@@ -71,6 +71,7 @@ void delete_event_handler(lv_obj_t* obj, lv_event_t event)
 }
 
 /* ============================== Timer Event  ============================ */
+#if LV_USE_CALENDAR > 0
 void event_timer_calendar(lv_task_t* task)
 {
     hasp_task_user_data_t* data = (hasp_task_user_data_t*)task->user_data;
@@ -111,6 +112,7 @@ void event_timer_calendar(lv_task_t* task)
 
     lv_calendar_set_today_date(obj, &date);
 }
+#endif
 
 void event_timer_clock(lv_task_t* task)
 {
@@ -529,6 +531,7 @@ void selector_event_handler(lv_obj_t* obj, lv_event_t event)
             break;
         }
 
+#if LV_USE_TABLE > 0
         case LV_HASP_TABLE: {
             uint16_t row;
             uint16_t col;
@@ -541,6 +544,7 @@ void selector_event_handler(lv_obj_t* obj, lv_event_t event)
             attr_out_str(obj, property, buffer);
             return; // done sending
         }
+#endif
 
         default:
             return; // Invalid selector type
@@ -699,6 +703,7 @@ void cpicker_event_handler(lv_obj_t* obj, lv_event_t event)
     // event_update_group(obj->user_data.groupid, obj, val, min, max);
 }
 
+#if LV_USE_CALENDAR > 0
 void calendar_event_handler(lv_obj_t* obj, lv_event_t event)
 {
     log_event("calendar", event);
@@ -730,3 +735,4 @@ void calendar_event_handler(lv_obj_t* obj, lv_event_t event)
 
     // event_update_group(obj->user_data.groupid, obj, val, min, max);
 }
+#endif

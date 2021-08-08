@@ -10,9 +10,11 @@
 extern "C" {
 #endif
 
+#if LV_USE_CHART>0
 lv_chart_series_t* my_chart_get_series(lv_obj_t* chart, uint8_t ser_num);
-void my_obj_set_value_str_text(lv_obj_t* obj, uint8_t part, lv_state_t state, const char* text);
+#endif
 
+void my_obj_set_value_str_text(lv_obj_t* obj, uint8_t part, lv_state_t state, const char* text);
 void my_btnmatrix_map_clear(lv_obj_t* obj);
 void my_msgbox_map_clear(lv_obj_t* obj);
 void line_clear_points(lv_obj_t* obj);

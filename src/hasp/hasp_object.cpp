@@ -294,6 +294,7 @@ void hasp_new_object(const JsonObject& config, uint8_t& saved_page_id)
                 }
                 break;
 
+#if LV_USE_TABLE > 0
             case LV_HASP_TABLE:
             case HASP_OBJ_TABLE:
                 obj = lv_table_create(parent_obj, NULL);
@@ -302,6 +303,7 @@ void hasp_new_object(const JsonObject& config, uint8_t& saved_page_id)
                     obj->user_data.objid = LV_HASP_TABLE;
                 }
                 break;
+#endif
 
             case LV_HASP_BUTTON:
             case HASP_OBJ_BTN:
@@ -431,6 +433,7 @@ void hasp_new_object(const JsonObject& config, uint8_t& saved_page_id)
                 }
                 break;
 
+#if LV_USE_TILEVIEW > 0
             case LV_HASP_TILEVIEW:
             case HASP_OBJ_TILEVIEW:
                 obj = lv_tileview_create(parent_obj, NULL);
@@ -438,6 +441,7 @@ void hasp_new_object(const JsonObject& config, uint8_t& saved_page_id)
 
                 // No event handler for tileviews
                 break;
+#endif
 
             case LV_HASP_TABVIEW:
             case HASP_OBJ_TABVIEW:
@@ -538,6 +542,7 @@ void hasp_new_object(const JsonObject& config, uint8_t& saved_page_id)
                 }
                 break;
 
+#if LV_USE_SPINBOX > 0
             case LV_HASP_SPINBOX:
             case HASP_OBJ_SPINBOX:
                 obj = lv_spinbox_create(parent_obj, NULL);
@@ -547,6 +552,7 @@ void hasp_new_object(const JsonObject& config, uint8_t& saved_page_id)
                     obj->user_data.objid = LV_HASP_SPINBOX;
                 }
                 break;
+#endif
 
             case LV_HASP_LIST:
             case HASP_OBJ_LIST:
@@ -557,6 +563,7 @@ void hasp_new_object(const JsonObject& config, uint8_t& saved_page_id)
                 }
                 break;
 
+#if LV_USE_CHART > 0
             case LV_HASP_CHART:
             case HASP_OBJ_CHART:
                 obj = lv_chart_create(parent_obj, NULL);
@@ -577,6 +584,7 @@ void hasp_new_object(const JsonObject& config, uint8_t& saved_page_id)
                     obj->user_data.objid = LV_HASP_CHART;
                 }
                 break;
+#endif
 
             /* ----- On/Off Objects ------ */
             case LV_HASP_SWITCH:
@@ -625,6 +633,7 @@ void hasp_new_object(const JsonObject& config, uint8_t& saved_page_id)
                 }
                 break;
 
+#if LV_USE_CALENDAR > 0
             case LV_HASP_CALENDER:
             case HASP_OBJ_CALENDAR:
                 obj = lv_calendar_create(parent_obj, NULL);
@@ -636,6 +645,7 @@ void hasp_new_object(const JsonObject& config, uint8_t& saved_page_id)
                     object_add_task(obj, pageid, id, event_timer_calendar, 5000);
                 }
                 break;
+#endif
 
                 /* ----- Other Object ------ */
                 // default:

@@ -51,6 +51,7 @@ static inline uint16_t my_arc_get_rotation(lv_obj_t* arc)
     return ext->rotation_angle;
 }
 
+#if LV_USE_CHART > 0
 // OK - this function is missing in lvgl
 static inline int16_t my_chart_get_min_value(lv_obj_t* chart)
 {
@@ -75,7 +76,9 @@ lv_chart_series_t* my_chart_get_series(lv_obj_t* chart, uint8_t ser_num)
     }
     return ser;
 }
+#endif
 
+#if LV_USE_SPINBOX > 0
 // OK - this function is missing in lvgl
 static inline int16_t my_spinbox_get_min_value(lv_obj_t* chart)
 {
@@ -89,6 +92,7 @@ static inline int16_t my_spinbox_get_max_value(lv_obj_t* chart)
     lv_spinbox_ext_t* ext = (lv_spinbox_ext_t*)lv_obj_get_ext_attr(chart);
     return ext->range_max;
 }
+#endif
 
 // OK
 static inline lv_color_t haspLogColor(lv_color_t color)
