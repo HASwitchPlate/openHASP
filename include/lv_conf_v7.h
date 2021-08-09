@@ -231,10 +231,6 @@ typedef void* lv_fs_drv_user_data_t;
  /*Declare the type of the user data of image decoder (can be e.g. `void *`, `int`, `struct`)*/
 typedef void* lv_img_decoder_user_data_t;
 
-#if (HASP_USE_PNGDECODE > 0) && (LV_USE_FILESYSTEM > 0)
-//#define LV_PNG_USE_LV_FILESYSTEM 1
-#endif
-
 /*=====================
  *  Compiler settings
  *====================*/

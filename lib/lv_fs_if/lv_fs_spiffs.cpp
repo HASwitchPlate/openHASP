@@ -6,7 +6,7 @@
 /*********************
  *      INCLUDES
  *********************/
-#ifdef ARDUINO
+#if 0 &&defined(ARDUINO)
 
 #include <Arduino.h>
 #include "lv_fs_if.h"

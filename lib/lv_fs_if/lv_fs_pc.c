@@ -150,11 +150,11 @@ static lv_fs_res_t fs_open(lv_fs_drv_t* drv, void* file_p, const char* path, lv_
     char buf[256];
     sprintf(buf, LV_FS_PC_PATH "\\%s", path);
 #endif
-    printf("Opening file: %s\n", path);
+    // printf("Opening file: %s (%s)\n", buf, path);
 
     file_t f = fopen(buf, flags);
     if(f == NULL) {
-        printf("Failed to open %s\n", buf);
+        // printf("Failed to open %s\n", buf);
         return LV_FS_RES_UNKNOWN;
     }
     /*Be sure we are the beginning of the file*/
@@ -231,6 +231,7 @@ static lv_fs_res_t fs_seek(lv_fs_drv_t* drv, void* file_p, uint32_t pos)
     (void)drv;           /*Unused*/
     file_t* fp = file_p; /*Just avoid the confusing casings*/
     fseek(*fp, pos, SEEK_SET);
+    // printf("Seek size: %u\n", pos);
     return LV_FS_RES_OK;
 }
 
@@ -250,6 +251,7 @@ static lv_fs_res_t fs_size(lv_fs_drv_t* drv, void* file_p, uint32_t* size_p)
 
     fseek(*fp, 0L, SEEK_END);
     *size_p = ftell(*fp);
+    // printf("File size: %u\n", *size_p);
 
     /*Restore file pointer*/
     fseek(*fp, cur, SEEK_SET);
