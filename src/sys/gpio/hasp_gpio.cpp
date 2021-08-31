@@ -585,7 +585,11 @@ static void gpio_set_normalized_value(hasp_gpio_config_t* gpio, hasp_update_valu
             case hasp_gpio_type_t::SERIAL_DIMMER:
             case hasp_gpio_type_t::SERIAL_DIMMER_AU:
             case hasp_gpio_type_t::SERIAL_DIMMER_EU:
-                val = map(val, value.min, value.max, 0, gpio->max);
+                if(value.max == 1) {
+                    val = gpio->val; // only switch power, keep current val
+                } else {
+                    val = map(val, value.min, value.max, 0, gpio->max); // update power and val
+                }
                 break;
 
             default:
