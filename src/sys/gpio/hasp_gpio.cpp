@@ -335,7 +335,7 @@ void gpioSetup(void)
     gpioSavePinConfig(1, 4, hasp_gpio_type_t::LIGHT_RELAY, 0, -1, false);
     gpioSavePinConfig(2, 13, hasp_gpio_type_t::LED, 0, -1, false);
     gpioConfig[2].max = 255;
-    gpioSavePinConfig(3, 14, hasp_gpio_type_t::DAC, 0, -1, false);
+    gpioSavePinConfig(3, 14, hasp_gpio_type_t::HASP_DAC, 0, -1, false);
     gpioConfig[2].max = 4095;
     gpioSavePinConfig(4, 5, hasp_gpio_type_t::MOTION, 0, -1, false);
 }
