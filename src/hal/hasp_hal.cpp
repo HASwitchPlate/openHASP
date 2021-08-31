@@ -258,7 +258,7 @@ String halGetMacAddress(int start, const char* seperator)
 {
     byte mac[6];
 
-#if defined(STM32F4xx)
+#if defined(STM32F4xx) || defined(STM32F7xx) || defined(STM32H7xx)
     uint8_t* mac_p = nullptr;
 #if HASP_USE_ETHERNET > 0
 #if USE_BUILTIN_ETHERNET > 0

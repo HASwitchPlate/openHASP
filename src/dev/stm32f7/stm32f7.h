@@ -7,14 +7,14 @@
 #include "hasp_conf.h"
 #include "dev/device.h"
 
-#if defined(STM32F4xx)
+#if defined(STM32F7xx)
 
 namespace dev {
 
-class Stm32f4Device : public BaseDevice {
+class Stm32f7Device : public BaseDevice {
 
   public:
-    Stm32f4Device()
+    Stm32f7Device()
     {
         _hostname         = MQTT_NODENAME;
         _backlight_power  = 1;
@@ -59,9 +59,9 @@ class Stm32f4Device : public BaseDevice {
 
 } // namespace dev
 
-using dev::Stm32f4Device;
-extern dev::Stm32f4Device haspDevice;
+using dev::Stm32f7Device;
+extern dev::Stm32f7Device haspDevice;
 
-#endif // STM32F4xx
+#endif // STM32F7xx
 
 #endif // HASP_DEVICE_STM32F4_H

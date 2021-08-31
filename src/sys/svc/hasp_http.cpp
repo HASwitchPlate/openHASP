@@ -1583,7 +1583,7 @@ void webHandleGpioConfig()
                         case hasp_gpio_type_t::PWM:
                             httpMessage += F(D_GPIO_PWM);
                             break;
-                        case hasp_gpio_type_t::DAC:
+                        case hasp_gpio_type_t::HASP_DAC:
                             httpMessage += F(D_GPIO_DAC);
                             break;
 
@@ -1701,8 +1701,8 @@ void webHandleGpioOutput()
         selected = (conf.type == hasp_gpio_type_t::SHUTTER_RELAY);
         httpMessage += getOption(hasp_gpio_type_t::SHUTTER_RELAY, F("Shutter Relay"), selected);
 
-        selected = (conf.type == hasp_gpio_type_t::DAC);
-        httpMessage += getOption(hasp_gpio_type_t::DAC, F(D_GPIO_DAC), selected);
+        selected = (conf.type == hasp_gpio_type_t::HASP_DAC);
+        httpMessage += getOption(hasp_gpio_type_t::HASP_DAC, F(D_GPIO_DAC), selected);
 
         // selected = (conf.type == hasp_gpio_type_t::SERIAL_DIMMER);
         // httpMessage += getOption(hasp_gpio_type_t::SERIAL_DIMMER, F(D_GPIO_SERIAL_DIMMER), selected);

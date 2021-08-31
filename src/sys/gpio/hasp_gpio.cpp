@@ -268,7 +268,7 @@ static void gpio_setup_pin(uint8_t index)
 #endif
             break;
 
-        case hasp_gpio_type_t::DAC:
+        case hasp_gpio_type_t::HASP_DAC:
 #if defined(ARDUINO_ARCH_ESP32)
             gpio_num_t pin;
             if(dac_pad_get_io_num(DAC_CHANNEL_1, &pin) == ESP_OK)
@@ -548,7 +548,7 @@ static bool gpio_set_output_value(hasp_gpio_config_t* gpio, bool power, uint16_t
         case hasp_gpio_type_t::PWM:
             return gpio_set_analog_value(gpio);
 
-        case hasp_gpio_type_t::DAC:
+        case hasp_gpio_type_t::HASP_DAC:
             return gpio_set_dac_value(gpio);
 
         case hasp_gpio_type_t::SERIAL_DIMMER:
@@ -580,7 +580,7 @@ static void gpio_set_normalized_value(hasp_gpio_config_t* gpio, hasp_update_valu
                 break;
 
             case hasp_gpio_type_t::LED... hasp_gpio_type_t::LED_W:
-            case hasp_gpio_type_t::DAC:
+            case hasp_gpio_type_t::HASP_DAC:
             case hasp_gpio_type_t::PWM:
             case hasp_gpio_type_t::SERIAL_DIMMER:
             case hasp_gpio_type_t::SERIAL_DIMMER_AU:
@@ -872,7 +872,7 @@ void gpio_discovery(JsonObject& input, JsonArray& relay, JsonArray& light, JsonA
                 relay.add(gpioConfig[i].pin);
                 break;
 
-            case hasp_gpio_type_t::DAC:
+            case hasp_gpio_type_t::HASP_DAC:
             case hasp_gpio_type_t::LED: // Don't include the moodlight
             case hasp_gpio_type_t::SERIAL_DIMMER:
             case hasp_gpio_type_t::SERIAL_DIMMER_AU:

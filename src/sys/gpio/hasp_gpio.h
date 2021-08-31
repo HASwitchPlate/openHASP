@@ -88,7 +88,7 @@ enum hasp_gpio_type_t {
     SHUTTER_CLOSE    = 0x1B,
     BACKLIGHT        = 0x20,
     PWM              = 0x21,
-    DAC              = 0x22,
+    HASP_DAC         = 0x22,
     SERIAL_DIMMER    = 0x30,
     SERIAL_DIMMER_EU = 0x31,
     SERIAL_DIMMER_AU = 0x32,
@@ -136,7 +136,7 @@ enum hasp_gpio_type_t {
     BUTTON_TOGGLE_BOTH = 0xF3,
     TOUCH              = 0xF4,
 
-    ADC = 0xF9,
+    HASP_ADC = 0xF9,
 
     COUNTER_RISE = 0xFA, // User Counters
     COUNTER_FALL = 0xFB,

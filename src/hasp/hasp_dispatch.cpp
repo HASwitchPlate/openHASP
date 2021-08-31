@@ -1,6 +1,8 @@
 /* MIT License - Copyright (c) 2019-2021 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
+#include <time.h>
+
 //#include "ArduinoLog.h"
 #include "hasplib.h"
 
@@ -648,6 +650,72 @@ void dispatch_parse_jsonl(const char*, const char* payload, uint8_t source)
 #endif
 }
 
+void dispatch_exec(const char*, const char* payload, uint8_t source)
+{
+#if ARDUINO
+    if(!HASP_FS.exists(payload)) {
+        LOG_WARNING(TAG_MSGR, F(D_FILE_NOT_FOUND ": %s"), payload);
+        return;
+    }
+
+    LOG_TRACE(TAG_MSGR, F(D_FILE_LOADING), payload);
+
+    File cmdfile = HASP_FS.open(payload, "r");
+    if(!cmdfile) {
+        LOG_ERROR(TAG_MSGR, F(D_FILE_LOAD_FAILED), payload);
+        return;
+    }
+
+    // char buffer[512]; // use stack
+    String buffer((char*)0); // use heap
+    buffer.reserve(256);
+
+    ReadBufferingStream bufferedFile{cmdfile, 256};
+    cmdfile.seek(0);
+
+    while(bufferedFile.available()) {
+        size_t index = 0;
+        buffer       = "";
+        // while(index < sizeof(buffer) - 1) {
+        while(index < MQTT_MAX_PACKET_SIZE) {
+            int c = bufferedFile.read();
+            if(c < 0 || c == '\n' || c == '\r') { // CR or LF
+                break;
+            }
+            // buffer[index] = (char)c;
+            buffer += (char)c;
+            index++;
+        }
+        // buffer[index] = 0;                                                      // terminate string
+        // if(index > 0 && buffer[0] != '#') dispatch_text_line(buffer.c_str(), TAG_FILE); // # for comments
+        if(index > 0 && buffer.charAt(0) != '#') dispatch_text_line(buffer.c_str(), TAG_FILE); // # for comments
+    }
+
+    cmdfile.close();
+    LOG_INFO(TAG_MSGR, F(D_FILE_LOADED), payload);
+#else
+    char path[strlen(payload) + 4];
+    path[0] = '.';
+    path[1] = '\0';
+    strcat(path, payload);
+    path[1] = '\\';
+
+    LOG_TRACE(TAG_HASP, F("Loading %s from disk..."), path);
+    std::ifstream f(path); // taking file as inputstream
+    if(f) {
+        std::string line;
+        while(std::getline(f, line)) {
+            LOG_VERBOSE(TAG_HASP, line.c_str());
+            if(!line.empty() && line[0] != '#') dispatch_text_line(line.c_str(), TAG_FILE); // # for comments
+        }
+    } else {
+        LOG_ERROR(TAG_MSGR, F(D_FILE_LOAD_FAILED), payload);
+    }
+    f.close();
+    LOG_INFO(TAG_HASP, F("Loaded %s from disk"), path);
+#endif
+}
+
 void dispatch_current_page()
 {
     char topic[8];
@@ -1071,7 +1139,7 @@ bool dispatch_factory_reset()
 
 #if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
     formated = HASP_FS.format();
-    if (formated) filesystemSetupFiles();
+    if(formated) filesystemSetupFiles();
 #endif
 
 #if HASP_USE_EEPROM > 0
@@ -1158,52 +1226,6 @@ void dispatch_service(const char*, const char* payload, uint8_t source)
     } else if(!strcmp_P(payload, "stop console")) {
         consoleStop();
     }
-#endif
-}
-
-void dispatch_exec(const char*, const char* payload, uint8_t source)
-{
-#if ARDUINO
-    if(!HASP_FS.exists(payload)) {
-        LOG_WARNING(TAG_MSGR, F(D_FILE_NOT_FOUND ": %s"), payload);
-        return;
-    }
-
-    LOG_TRACE(TAG_MSGR, F(D_FILE_LOADING), payload);
-
-    File cmdfile = HASP_FS.open(payload, "r");
-    if(!cmdfile) {
-        LOG_ERROR(TAG_MSGR, F(D_FILE_LOAD_FAILED), payload);
-        return;
-    }
-
-    // char buffer[512]; // use stack
-    String buffer((char*)0); // use heap
-    buffer.reserve(256);
-
-    ReadBufferingStream bufferedFile{cmdfile, 256};
-    cmdfile.seek(0);
-
-    while(bufferedFile.available()) {
-        size_t index = 0;
-        buffer       = "";
-        // while(index < sizeof(buffer) - 1) {
-        while(index < MQTT_MAX_PACKET_SIZE) {
-            int c = bufferedFile.read();
-            if(c < 0 || c == '\n' || c == '\r') { // CR or LF
-                break;
-            }
-            // buffer[index] = (char)c;
-            buffer += (char)c;
-            index++;
-        }
-        // buffer[index] = 0;                                                      // terminate string
-        // if(index > 0 && buffer[0] != '#') dispatch_text_line(buffer.c_str(), TAG_FILE); // # for comments
-        if(index > 0 && buffer.charAt(0) != '#') dispatch_text_line(buffer.c_str(), TAG_FILE); // # for comments
-    }
-
-    cmdfile.close();
-    LOG_INFO(TAG_MSGR, F(D_FILE_LOADED), payload);
 #endif
 }
 

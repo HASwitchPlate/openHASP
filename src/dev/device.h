@@ -136,6 +136,9 @@ class BaseDevice {
 #elif defined(STM32F4)
 // #warning Building for STM32F4xx Devices
 #include "stm32f4/stm32f4.h"
+#elif defined(STM32F7)
+#warning Building for STM32F7xx Devices
+#include "stm32f7/stm32f7.h"
 #elif defined(WINDOWS)
 // #warning Building for Win32 Devices
 #include "win32/hasp_win32.h"
@@ -144,7 +147,7 @@ class BaseDevice {
 #include "posix/hasp_posix.h"
 
 #else
-// #warning Building for Generic Devices
+#warning Building for Generic Devices
 using dev::BaseDevice;
 extern dev::BaseDevice haspDevice;
 #endif
