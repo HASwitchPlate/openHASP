@@ -224,7 +224,7 @@ void mqttStart()
     static uint8_t mqttReconnectCount = 0;
     //   bool mqttFirstConnect             = true;
 
-    mqttClient.setServer(mqttServer, 1883);
+    mqttClient.setServer(mqttServer, mqttPort);
     // mqttClient.setSocketTimeout(10); //in seconds
 
     /* Construct unique Client ID*/
