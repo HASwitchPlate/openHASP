@@ -1452,15 +1452,15 @@ void webHandleCaptivePortalWifiConfig()
     }
 #endif
 
-    webServer.send(200, "text/html", httpMessage);
-    //webSendPage(haspDevice.get_hostname(), httpMessage.length(), false);
-    //webServer.sendContent(httpMessage);
+    //webServer.send(200, "text/html", httpMessage);
+    webSendPage(haspDevice.get_hostname(), httpMessage.length(), false);
+    webServer.sendContent(httpMessage);
 #if defined(STM32F4xx)
     httpMessage = "";
 #else
     httpMessage.clear();
 #endif
-    //webSendFooter();
+    webSendFooter();
 }
 
 #endif
