@@ -3,6 +3,7 @@
 
 #include "hasplib.h"
 #include <fstream>
+#include "StreamUtils.h" // For EEPromStream
 
 namespace hasp {
 
