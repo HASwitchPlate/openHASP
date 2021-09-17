@@ -3,7 +3,6 @@
 
 #include <time.h>
 #include <sys/time.h>
-#include "StreamUtils.h" // For ReadBufferingStream
 
 //#include "ArduinoLog.h"
 #include "hasplib.h"
@@ -24,7 +23,7 @@
 #include "../mqtt/hasp_mqtt.h"
 #else
 #include "StringStream.h"
-#include "StreamUtils.h" // for exec
+#include "StreamUtils.h" // for exec ReadBufferingStream
 #include "CharStream.h"
 
 #include "hasp_oobe.h"
