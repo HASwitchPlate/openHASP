@@ -290,6 +290,7 @@ static void gpio_setup_pin(uint8_t index)
             Serial1.write(0x20);
             Serial1.write((const uint8_t*)command, 8);
 #endif
+            gpio->val = gpio->max;
             gpio_log_serial_dimmer(command);
             break;
         }
