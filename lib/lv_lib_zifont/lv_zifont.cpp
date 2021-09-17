@@ -5,7 +5,7 @@
  *      INCLUDES
  *********************/
 
-#if !(defined(WINDOWS) || defined(POSIX))
+#if !(defined(WINDOWS) || defined(POSIX) || defined(STM32F7xx))
 
 #include <Arduino.h>
 #include <stdio.h>

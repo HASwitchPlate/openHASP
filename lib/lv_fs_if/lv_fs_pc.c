@@ -13,7 +13,7 @@
 #include <stdio.h>
 #include <errno.h>
 #include <unistd.h>
-#if !defined(ARDUINO_ARCH_ESP8266) && !defined(STM32F4xx)
+#if !defined(ARDUINO_ARCH_ESP8266) && !defined(STM32F4xx) && !defined(STM32F7xx)
 #include <dirent.h>
 #endif
 #ifdef WIN32

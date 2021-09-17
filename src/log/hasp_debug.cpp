@@ -25,7 +25,7 @@
 #elif defined(ARDUINO_ARCH_ESP32)
 #include <WiFi.h>
 #include <WiFiUdp.h>
-#elif defined(STM32F4xx)
+#elif defined(STM32F4xx) || defined(STM32F7xx)
 #include <time.h>
 #endif
 
@@ -297,12 +297,13 @@ void debugStartSerial()
 
     if(baudrate >= 9600u) { /* the baudrates are stored divided by 10 */
 
-#if defined(STM32F4xx)
+#if defined(STM32F4xx) || defined(STM32F7xx)
 #ifndef STM32_SERIAL1      // Define what Serial port to use for log output
         Serial.setRx(PA3); // User Serial2
         Serial.setTx(PA2);
 #endif
 #endif
+
         Serial.begin(baudrate); /* prepare for possible serial debug */
         delay(10);
         Log.registerOutput(0, &Serial, LOG_LEVEL_VERBOSE, true); // LOG_LEVEL_VERBOSE

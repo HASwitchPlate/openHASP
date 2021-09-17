@@ -6,7 +6,7 @@
 #include "hasp_debug.h"
 #include "hal/hasp_hal.h"
 
-#if HASP_USE_ETHERNET > 0 && defined(STM32F4xx)
+#if HASP_USE_ETHERNET > 0 && (defined(STM32F4xx) || defined(STM32F7xx))
 
 EthernetClient EthClient;
 IPAddress ip;
@@ -109,4 +109,29 @@ void ethernet_get_statusupdate(char* buffer, size_t len)
     snprintf_P(buffer, len, PSTR("\"eth\":\"%s\",\"link\":%d,\"ip\":\"%d.%d.%d.%d\","), state ? F("on") : F("off"), 10,
                ip[0], ip[1], ip[2], ip[3]);
 }
+
+void ethernet_get_info(JsonDocument& doc)
+{
+    char size_buf[32];
+    String buffer((char*)0);
+    buffer.reserve(64);
+
+    JsonObject info = doc.createNestedObject(F(D_INFO_ETHERNET));
+
+    // buffer = Ethernet.linkSpeed();
+    // buffer += F(" Mbps");
+    // if(Ethernet.fullDuplex()) {
+    //     buffer += F(" " D_INFO_FULL_DUPLEX);
+    // }
+
+    // info[F(D_INFO_LINK_SPEED)] = buffer;
+
+    IPAddress ip = Ethernet.localIP();
+    snprintf_P(size_buf, sizeof(size_buf), PSTR("%d.%d.%d.%d"), ip[0], ip[1], ip[2], ip[3]);
+    info[F(D_INFO_IP_ADDRESS)] = size_buf;
+    // info[F(D_INFO_GATEWAY)]     = Ethernet.gatewayIP().toString();
+    // info[F(D_INFO_DNS_SERVER)]  = Ethernet.dnsIP().toString();
+    // info[F(D_INFO_MAC_ADDRESS)] = Ethernet.macAddress();
+}
+
 #endif

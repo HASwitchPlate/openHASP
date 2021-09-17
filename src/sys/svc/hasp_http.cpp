@@ -67,7 +67,7 @@ hasp_http_config_t http_config;
 
 #define HTTP_PAGE_SIZE (6 * 256)
 
-#if defined(STM32F4xx) && HASP_USE_ETHERNET > 0
+#if(defined(STM32F4xx) || defined(STM32F7xx)) && HASP_USE_ETHERNET > 0
 #include <EthernetWebServer_STM32.h>
 EthernetWebServer webServer(80);
 #endif
@@ -594,7 +594,7 @@ void webHandleInfoJson()
     webSendPage(haspDevice.get_hostname(), htmldata.length(), false);
     webServer.sendContent(htmldata);
 
-    htmldata.clear();
+   // htmldata.clear();
     webSendFooter();
 }
 
