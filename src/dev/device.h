@@ -109,6 +109,10 @@ class BaseDevice {
     {}
     virtual void get_sensors(JsonDocument& doc)
     {}
+    virtual long get_uptime()
+    {
+        return 0;
+    }
     virtual bool is_system_pin(uint8_t pin)
     {
         return false;
@@ -137,7 +141,7 @@ class BaseDevice {
 // #warning Building for STM32F4xx Devices
 #include "stm32f4/stm32f4.h"
 #elif defined(STM32F7)
-#warning Building for STM32F7xx Devices
+//#warning Building for STM32F7xx Devices
 #include "stm32f7/stm32f7.h"
 #elif defined(WINDOWS)
 // #warning Building for Win32 Devices

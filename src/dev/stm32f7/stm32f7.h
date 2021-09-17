@@ -8,6 +8,9 @@
 #include "dev/device.h"
 
 #if defined(STM32F7xx)
+extern "C" {
+  int _gettimeofday(struct timeval *tv, struct timezone *tz);
+}
 
 namespace dev {
 

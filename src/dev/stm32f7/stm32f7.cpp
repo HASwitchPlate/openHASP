@@ -12,6 +12,11 @@
 
 #define BACKLIGHT_CHANNEL 0
 
+int _gettimeofday(struct timeval *tv, struct timezone *tz)
+{
+  return 0;
+}
+
 namespace dev {
 
 void Stm32f7Device::reboot()
