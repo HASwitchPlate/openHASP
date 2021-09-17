@@ -187,7 +187,7 @@ typedef void* lv_group_user_data_t;
 typedef void* lv_fs_drv_user_data_t;
 
 /*File system interface*/
-#define LV_USE_FS_IF	      1
+#define LV_USE_FS_IF	      !defined(STM32)
 #if LV_USE_FS_IF
 #  define LV_FS_IF_FATFS    '\0'
 #if defined(STM32F4xx) // || defined(ARDUINO_ARCH_ESP8266)
