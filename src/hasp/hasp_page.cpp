@@ -3,7 +3,10 @@
 
 #include "hasplib.h"
 #include <fstream>
+
+#if defined(ARDUINO)
 #include "StreamUtils.h" // For EEPromStream
+#endif
 
 namespace hasp {
 
