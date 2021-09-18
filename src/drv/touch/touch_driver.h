@@ -63,6 +63,9 @@ class BaseTouch {
 #elif TOUCH_DRIVER == 911
 #warning Building for GT911
 #include "touch_driver_gt911.h"
+#elif TOUCH_DRIVER == 404
+#warning Building for analog touch
+#include "touch_driver_analog.h"
 #else
 #warning Building for Generic Touch
 using dev::BaseTouch;
