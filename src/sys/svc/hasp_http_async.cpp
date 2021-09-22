@@ -482,43 +482,44 @@ void webHandleAbout(AsyncWebServerRequest* request)
 { // http://plate01/about
     if(!httpIsAuthenticated(request, F("about"))) return;
 
+    String mitLicense((char*)0);
+    mitLicense = FPSTR(MIT_LICENSE);
+
     String httpMessage((char*)0);
     httpMessage.reserve(HTTP_PAGE_SIZE);
 
-    httpMessage += F("<p><h3>openHASP/h3>Copyright&copy; 2019-2021 Francis Van Roie ");
-    httpMessage += FPSTR(MIT_LICENSE);
+    httpMessage += F("<p><h3>openHASP</h3>Copyright&copy; 2019-2021 Francis Van Roie ");
+    httpMessage += mitLicense;
     httpMessage += F("<p>Based on the previous work of the following open source developers.</p><hr>");
     httpMessage += F("<p><h3>HASwitchPlate</h3>Copyright&copy; 2019 Allen Derusha allen@derusha.org</b>");
-    httpMessage += FPSTR(MIT_LICENSE);
-    httpMessage +=
-        F("<p><h3>LittlevGL</h3>Copyright&copy; 2016 G&aacute;bor Kiss-V&aacute;mosi</br>Copyright&copy; 2019 "
-          "LittlevGL");
-    httpMessage += FPSTR(MIT_LICENSE);
+    httpMessage += mitLicense;
+    httpMessage += F("<p><h3>LVGL</h3>Copyright&copy; 2021 LVGL Kft");
+    httpMessage += mitLicense;
     httpMessage += F("<p><h3>zi Font Engine</h3>Copyright&copy; 2020-2021 Francis Van Roie");
-    httpMessage += FPSTR(MIT_LICENSE);
+    httpMessage += mitLicense;
     httpMessage += F("<p><h3>TFT_eSPI Library</h3>Copyright&copy; 2020 Bodmer (https://github.com/Bodmer) All "
                      "rights reserved.</br>FreeBSD License</p>");
     httpMessage +=
         F("<p><i>includes parts from the <b>Adafruit_GFX library</b></br>Copyright&copy; 2012 Adafruit Industries. "
           "All rights reserved</br>BSD License</i></p>");
     httpMessage += F("<p><h3>ArduinoJson</h3>Copyright&copy; 2014-2021 Benoit BLANCHON");
-    httpMessage += FPSTR(MIT_LICENSE);
+    httpMessage += mitLicense;
     httpMessage += F("<p><h3>PubSubClient</h3>Copyright&copy; 2008-2015 Nicholas O'Leary");
-    httpMessage += FPSTR(MIT_LICENSE);
+    httpMessage += mitLicense;
     httpMessage += F("<p><h3>ArduinoLog</h3>Copyright&copy; 2017,2018 Thijs Elenbaas, MrRobot62, rahuldeo2047, NOX73, "
                      "dhylands, Josha blemasle, mfalkvidd");
-    httpMessage += FPSTR(MIT_LICENSE);
+    httpMessage += mitLicense;
 #if HASP_USE_SYSLOG > 0
     // Replaced with WiFiUDP client
     // httpMessage += F("<p><h3>Syslog</h3>Copyright&copy; 2016 Martin Sloup");
-    // httpMessage += FPSTR(MIT_LICENSE);
+    // httpMessage += mitLicense;
 #endif
 #if HASP_USE_QRCODE > 0
     httpMessage += F("<p><h3>QR Code generator</h3>Copyright&copy; Project Nayuki");
-    httpMessage += FPSTR(MIT_LICENSE);
+    httpMessage += mitLicense;
 #endif
     httpMessage += F("<p><h3>AceButton</h3>Copyright&copy; 2018 Brian T. Park");
-    httpMessage += FPSTR(MIT_LICENSE);
+    httpMessage += mitLicense;
 
     httpMessage += FPSTR(MAIN_MENU_BUTTON);
 
