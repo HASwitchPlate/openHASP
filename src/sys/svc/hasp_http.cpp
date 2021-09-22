@@ -20,6 +20,8 @@
 #if HASP_USE_HTTP > 0
 #include "sys/net/hasp_network.h"
 
+#include <DNSServer.h>
+
 // #ifdef USE_CONFIG_OVERRIDE
 // #include "user_config_override.h"
 // #endif
@@ -58,6 +60,11 @@ File fsUploadFile;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 bool webServerStarted = false;
+
+//Captive Portal definitions
+DNSServer dnsServer;
+IPAddress apIP(192, 168, 4, 1);
+const byte DNS_PORT = 53;
 
 // bool httpEnable       = true;
 // uint16_t httpPort     = 80;
@@ -1412,6 +1419,50 @@ void webHandleWifiConfig()
 #endif
     webSendFooter();
 }
+
+//I'm not an experienced programmer, this was the only way I managed to get it to work..
+void webHandleCaptivePortalWifiConfig()
+{ // http://plate01/config/wifi
+    if(!httpIsAuthenticated(F("config/wifi"))) return;
+
+    StaticJsonDocument<256> settings;
+    wifiGetConfig(settings.to<JsonObject>());
+
+    String httpMessage((char*)0);
+    httpMessage.reserve(HTTP_PAGE_SIZE);
+    httpMessage += F("<h1>");
+    httpMessage += haspDevice.get_hostname();
+    httpMessage += F("</h1><hr>");
+
+    httpMessage += F("<form method='POST' action='/config'>");
+    httpMessage += F("<b>WiFi SSID</b> <i><small>(required)</small></i><input id='ssid' required "
+                     "name='ssid' maxlength=31 placeholder='WiFi SSID' value='");
+    httpMessage += settings[FPSTR(FP_CONFIG_SSID)].as<String>();
+    httpMessage += F("'><br/><b>WiFi Password</b> <i><small>(required)</small></i><input id='pass' required "
+                     "name='pass' type='password' maxlength=63 placeholder='WiFi Password' value='");
+    if(settings[FPSTR(FP_CONFIG_PASS)].as<String>() != "") {
+        httpMessage += F(D_PASSWORD_MASK);
+    }
+    httpMessage +=
+        F("'><p><button type='submit' name='save' value='wifi'>" D_HTTP_SAVE_SETTINGS "</button></p></form>");
+
+#if HASP_USE_WIFI > 0 && !defined(STM32F4xx)
+    if(WiFi.getMode() == WIFI_STA) {
+        add_form_button(httpMessage, F(D_BACK_ICON D_HTTP_CONFIGURATION), F("/config"), F(""));
+    }
+#endif
+
+    //webServer.send(200, "text/html", httpMessage);
+    webSendPage(haspDevice.get_hostname(), httpMessage.length(), false);
+    webServer.sendContent(httpMessage);
+#if defined(STM32F4xx)
+    httpMessage = "";
+#else
+    httpMessage.clear();
+#endif
+    webSendFooter();
+}
+
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2272,6 +2323,15 @@ void httpSetup()
 
 #if HASP_USE_CONFIG > 0
     if(WiFi.getMode() != WIFI_STA) {
+        // if DNSServer is started with "*" for domain name, it will reply with
+        // provided IP to all DNS request
+        dnsServer.start(DNS_PORT, "*", apIP);
+        // replay to all requests with same HTML
+        webServer.onNotFound([]() {
+            webHandleCaptivePortalWifiConfig();
+            //webServer.send(200, "text/html", responseHTML);
+            //webServer.on(F("/"), webHandleWifiConfig);
+        });
         webServer.on(F("/"), webHandleWifiConfig);
         LOG_TRACE(TAG_HTTP, F("Wifi access point"));
         return;
@@ -2373,6 +2433,7 @@ void httpSetup()
 IRAM_ATTR void httpLoop(void)
 {
     // if(http_config.enable)
+    dnsServer.processNextRequest();
     webServer.handleClient();
 }
 
