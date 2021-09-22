@@ -99,7 +99,7 @@ static inline bool drv_touchpad_getXY(int16_t* touchX, int16_t* touchY)
   //  touched = GT911_getXY(&normal_x, &normal_y, true);
 
 #elif TOUCH_DRIVER == 0xADC // Analog Digital Touch Conroller
-    touched = Touch_getXY(&normal_x, &normal_y, false);
+    // touched = Touch_getXY(&normal_x, &normal_y, false);
 
 #elif TOUCH_DRIVER == 5206
     // WARNING : this library is slooow !! use 6336 instead

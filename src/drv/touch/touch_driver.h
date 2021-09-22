@@ -63,7 +63,7 @@ class BaseTouch {
 #elif TOUCH_DRIVER == 911
 #warning Building for GT911
 #include "touch_driver_gt911.h"
-#elif TOUCH_DRIVER == 404
+#elif TOUCH_DRIVER == 0xADC
 #warning Building for analog touch
 #include "touch_driver_analog.h"
 #else
@@ -76,9 +76,3 @@ extern dev::BaseTouch haspTouch;
 
 // #elif TOUCH_DRIVER == 0x2046B
 //     touched = XPT2046_getXY(&normal_x, &normal_y, true);
-
-// #elif TOUCH_DRIVER == 911
-//     touched = GT911_getXY(&normal_x, &normal_y, true);
-
-// #elif TOUCH_DRIVER == 0xADC // Analog Digital Touch Conroller
-//     touched = Touch_getXY(&normal_x, &normal_y, false);

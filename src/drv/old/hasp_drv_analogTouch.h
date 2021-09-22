@@ -2,7 +2,6 @@
 // as oversampling to avoid 'bouncing'
 // (c) ladyada / adafruit
 // Code under MIT License
-// Code under MIT License
 
 #ifndef _ADAFRUIT_TOUCHSCREEN_H_
 #define _ADAFRUIT_TOUCHSCREEN_H_
@@ -81,8 +80,6 @@ TSPoint TouchScreen::getPoint(void)
     int samples[NUMSAMPLES];
     uint8_t i;
 
-    valid = 1;
-
     pinMode(_yp, INPUT);
     pinMode(_ym, INPUT);
     pinMode(_xp, OUTPUT);
@@ -107,7 +104,6 @@ TSPoint TouchScreen::getPoint(void)
     digitalWrite(_yp, HIGH);
 
     for(i = 0; i < NUMSAMPLES; i++) {
-
         samples[i] = analogRead(aXM);
     }
 
