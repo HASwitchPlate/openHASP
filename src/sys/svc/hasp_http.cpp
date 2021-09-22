@@ -20,7 +20,9 @@
 #if HASP_USE_HTTP > 0
 #include "sys/net/hasp_network.h"
 
+#if(HASP_USE_CAPTIVE_PORTAL > 0) && (HASP_USE_WIFI > 0)
 #include <DNSServer.h>
+#endif
 
 // #ifdef USE_CONFIG_OVERRIDE
 // #include "user_config_override.h"
@@ -61,10 +63,13 @@ File fsUploadFile;
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 bool webServerStarted = false;
 
-//Captive Portal definitions
+#if(HASP_USE_CAPTIVE_PORTAL > 0) && (HASP_USE_WIFI > 0)
 DNSServer dnsServer;
 IPAddress apIP(192, 168, 4, 1);
-const byte DNS_PORT = 53;
+#ifndef DNS_PORT
+#define DNS_PORT 53
+#endif // DNS_PORT
+#endif // HASP_USE_CAPTIVE_PORTAL
 
 // bool httpEnable       = true;
 // uint16_t httpPort     = 80;
@@ -601,7 +606,7 @@ void webHandleInfoJson()
     webSendPage(haspDevice.get_hostname(), htmldata.length(), false);
     webServer.sendContent(htmldata);
 
-   // htmldata.clear();
+    // htmldata.clear();
     webSendFooter();
 }
 
@@ -1420,7 +1425,8 @@ void webHandleWifiConfig()
     webSendFooter();
 }
 
-//I'm not an experienced programmer, this was the only way I managed to get it to work..
+#if HASP_USE_CAPTIVE_PORTAL > 0
+// I'm not an experienced programmer, this was the only way I managed to get it to work..
 void webHandleCaptivePortalWifiConfig()
 { // http://plate01/config/wifi
     if(!httpIsAuthenticated(F("config/wifi"))) return;
@@ -1452,7 +1458,7 @@ void webHandleCaptivePortalWifiConfig()
     }
 #endif
 
-    //webServer.send(200, "text/html", httpMessage);
+    // webServer.send(200, "text/html", httpMessage);
     webSendPage(haspDevice.get_hostname(), httpMessage.length(), false);
     webServer.sendContent(httpMessage);
 #if defined(STM32F4xx)
@@ -1462,8 +1468,9 @@ void webHandleCaptivePortalWifiConfig()
 #endif
     webSendFooter();
 }
+#endif // HASP_USE_CAPTIVE_PORTAL
 
-#endif
+#endif // HASP_USE_WIFI
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 void webHandleHttpConfig()
@@ -2323,15 +2330,17 @@ void httpSetup()
 
 #if HASP_USE_CONFIG > 0
     if(WiFi.getMode() != WIFI_STA) {
+#if HASP_USE_CAPTIVE_PORTAL > 0
         // if DNSServer is started with "*" for domain name, it will reply with
         // provided IP to all DNS request
         dnsServer.start(DNS_PORT, "*", apIP);
         // replay to all requests with same HTML
         webServer.onNotFound([]() {
             webHandleCaptivePortalWifiConfig();
-            //webServer.send(200, "text/html", responseHTML);
-            //webServer.on(F("/"), webHandleWifiConfig);
+            // webServer.send(200, "text/html", responseHTML);
+            // webServer.on(F("/"), webHandleWifiConfig);
         });
+#endif
         webServer.on(F("/"), webHandleWifiConfig);
         LOG_TRACE(TAG_HTTP, F("Wifi access point"));
         return;
@@ -2432,8 +2441,9 @@ void httpSetup()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 IRAM_ATTR void httpLoop(void)
 {
-    // if(http_config.enable)
+#if(HASP_USE_CAPTIVE_PORTAL > 0) && (HASP_USE_WIFI > 0)
     dnsServer.processNextRequest();
+#endif
     webServer.handleClient();
 }
 

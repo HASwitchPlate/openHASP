@@ -32,7 +32,11 @@
 #endif
 
 #ifndef HASP_USE_WIFI
-#define HASP_USE_WIFI (ARDUINO_ARCH_ESP32 > 0 || ARDUINO_ARCH_ESP8266 > 0 || HASP_USE_WIFI > 0)
+#define HASP_USE_WIFI (ARDUINO_ARCH_ESP32 > 0 || ARDUINO_ARCH_ESP8266 > 0)
+#endif
+
+#ifndef HASP_USE_CAPTIVE_PORTAL
+#define HASP_USE_CAPTIVE_PORTAL (ARDUINO_ARCH_ESP32 > 0) && (HASP_USE_WIFI > 0)
 #endif
 
 #define HASP_HAS_NETWORK                                                                                               \
