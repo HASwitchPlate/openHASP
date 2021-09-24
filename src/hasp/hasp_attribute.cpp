@@ -1313,9 +1313,10 @@ static hasp_attribute_type_t specific_bool_attribute(lv_obj_t* obj, uint16_t att
         if(do_attribute(list, obj, attr_hash, val, update)) return HASP_ATTR_TYPE_BOOL;
     }
 
-    { // bool
+    { // bool but obj is not const
         hasp_attr_update_bool_t list[] = {
-            {LV_HASP_DROPDOWN, ATTR_SHOW_SELECTED, lv_dropdown_set_show_selected, lv_dropdown_get_show_selected}};
+            {LV_HASP_DROPDOWN, ATTR_SHOW_SELECTED, lv_dropdown_set_show_selected, lv_dropdown_get_show_selected},
+            {LV_HASP_IMAGE, ATTR_ANTIALIAS, lv_img_set_antialias, lv_img_get_antialias}};
         if(do_attribute(list, obj, attr_hash, val, update)) return HASP_ATTR_TYPE_BOOL;
     }
 
@@ -1364,6 +1365,7 @@ static hasp_attribute_type_t specific_int_attribute(lv_obj_t* obj, uint16_t attr
             {LV_HASP_ARC, ATTR_START_ANGLE1, lv_arc_set_start_angle, lv_arc_get_angle_start},
             {LV_HASP_ARC, ATTR_END_ANGLE1, lv_arc_set_end_angle, lv_arc_get_angle_end},
             {LV_HASP_LINEMETER, ATTR_ROTATION, lv_linemeter_set_angle_offset, lv_linemeter_get_angle_offset},
+            {LV_HASP_IMAGE, ATTR_ZOOM, lv_img_set_zoom, lv_img_get_zoom},
             {LV_HASP_GAUGE, ATTR_ROTATION, lv_gauge_set_angle_offset, lv_gauge_get_angle_offset},
 #if LV_USE_TABLE > 0
             {LV_HASP_TABLE, ATTR_COLS, lv_table_set_col_cnt, lv_table_get_col_cnt},
@@ -1410,6 +1412,18 @@ static hasp_attribute_type_t specific_int_attribute(lv_obj_t* obj, uint16_t attr
                     lv_tabview_set_btns_pos(obj, val);
                 } else {
                     val = lv_tabview_get_btns_pos(obj);
+                }
+                return HASP_ATTR_TYPE_INT;
+        }
+    }
+
+    if(obj_check_type(obj, LV_HASP_IMAGE)) {
+        switch(attr_hash) {
+            case ATTR_ANGLE:
+                if(update) {
+                    lv_img_set_angle(obj, val);
+                } else {
+                    val = lv_img_get_angle(obj);
                 }
                 return HASP_ATTR_TYPE_INT;
         }
@@ -2164,6 +2178,7 @@ void hasp_process_obj_attribute(lv_obj_t* obj, const char* attribute, const char
         case ATTR_ANIM_SPEED:
         case ATTR_ANGLE:
         case ATTR_ROTATION:
+        case ATTR_ZOOM:
         case ATTR_START_VALUE:
         case ATTR_START_ANGLE:
         case ATTR_END_ANGLE:
@@ -2177,6 +2192,8 @@ void hasp_process_obj_attribute(lv_obj_t* obj, const char* attribute, const char
 
         case ATTR_OFFSET_X:
         case ATTR_OFFSET_Y:
+        case ATTR_PIVOT_X:
+        case ATTR_PIVOT_Y:
         case ATTR_MAX_HEIGHT:
             val = strtol(payload, nullptr, DEC);
             ret = specific_coord_attribute(obj, attr_hash, val, update);
@@ -2187,6 +2204,7 @@ void hasp_process_obj_attribute(lv_obj_t* obj, const char* attribute, const char
         case ATTR_AUTO_SIZE:
         case ATTR_SHOW_SELECTED:
         case ATTR_Y_INVERT:
+        case ATTR_ANTIALIAS:
             val = Parser::is_true(payload);
             ret = specific_bool_attribute(obj, attr_hash, val, update);
             break;

@@ -10,7 +10,7 @@
 extern "C" {
 #endif
 
-#if LV_USE_CHART>0
+#if LV_USE_CHART > 0
 lv_chart_series_t* my_chart_get_series(lv_obj_t* chart, uint8_t ser_num);
 #endif
 
@@ -462,7 +462,11 @@ _HASP_ATTRIBUTE(SCALE_END_LINE_WIDTH, scale_end_line_width, lv_style_int_t)
 // Image
 #define ATTR_OFFSET_X 65388
 #define ATTR_OFFSET_Y 65389
+#define ATTR_PIVOT_X 42715
+#define ATTR_PIVOT_Y 42716
+#define ATTR_ZOOM 20403
 #define ATTR_AUTO_SIZE 63729
+#define ATTR_ANTIALIAS 55278
 
 // Spinner
 #define ATTR_SPEED 14375
