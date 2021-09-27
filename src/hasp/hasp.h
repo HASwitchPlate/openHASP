@@ -68,8 +68,8 @@ void hasp_get_sleep_state(char* payload);
 void hasp_set_sleep_state(uint8_t state);
 void hasp_get_sleep_time(uint16_t& short_time, uint16_t& long_time);
 void hasp_set_sleep_time(uint16_t short_time, uint16_t long_time);
-void hasp_enable_wakeup_touch();
-void hasp_disable_wakeup_touch();
+void hasp_set_wakeup_touch(bool en);
+void hasp_set_anti_burnin(bool en);
 
 void hasp_init(void);
 void hasp_load_json(void);

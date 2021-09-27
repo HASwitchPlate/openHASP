@@ -914,10 +914,7 @@ void dispatch_backlight(const char*, const char* payload, uint8_t source)
     // toggle power and wakeup touch if changed
     if(haspDevice.get_backlight_power() != power) {
         haspDevice.set_backlight_power(power);
-        if(power)
-            hasp_disable_wakeup_touch();
-        else
-            hasp_enable_wakeup_touch();
+        hasp_set_wakeup_touch(!power);
     }
 
     // Return the current state
@@ -1011,6 +1008,7 @@ void dispatch_send_sensordata(const char*, const char*, uint8_t source)
 
     char data[1024];
     size_t len = serializeJson(doc, data);
+    (void)len; // unused
 
     switch(mqtt_send_state(MQTT_TOPIC_SENSORS, data)) {
         case MQTT_ERR_OK:
@@ -1165,12 +1163,12 @@ void dispatch_wakeup_obsolete(const char* topic, const char*, uint8_t source)
     LOG_WARNING(TAG_MSGR, F(D_ATTRIBUTE_OBSOLETE D_ATTRIBUTE_INSTEAD), topic,
                 "idle=off"); // TODO: obsolete dim, light and brightness
     lv_disp_trig_activity(NULL);
-    hasp_disable_wakeup_touch();
+    hasp_set_wakeup_touch(false);
 }
 
 void dispatch_sleep(const char*, const char*, uint8_t source)
 {
-    hasp_enable_wakeup_touch();
+    hasp_set_wakeup_touch(false);
 }
 
 void dispatch_idle(const char*, const char* payload, uint8_t source)
@@ -1180,7 +1178,7 @@ void dispatch_idle(const char*, const char* payload, uint8_t source)
 
     // idle off command
     if(payload && strlen(payload) && !Parser::is_true(payload)) {
-        hasp_disable_wakeup_touch();
+        hasp_set_wakeup_touch(false);
         hasp_set_sleep_state(HASP_SLEEP_OFF);
         lv_disp_trig_activity(NULL);
     }

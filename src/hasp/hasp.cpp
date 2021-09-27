@@ -146,13 +146,14 @@ void hasp_get_sleep_state(char* payload)
     }
 }
 
-/* ****** Anti Burn-in protection ******* */
-
+/**
+* Anti Burn-in protection
+*/
 static lv_task_t* anti_burnin_task;
 
 void hasp_anti_burnin_cb(lv_task_t* task)
 {
-    lv_color_t color[6] = {LV_COLOR_WHITE, LV_COLOR_BLACK, LV_COLOR_RED, LV_COLOR_LIME, LV_COLOR_BLUE};
+    lv_color_t color[6] = {LV_COLOR_BLACK, LV_COLOR_WHITE, LV_COLOR_RED, LV_COLOR_LIME, LV_COLOR_BLUE};
     lv_obj_set_style_local_bg_color(lv_disp_get_layer_sys(NULL), LV_OBJ_PART_MAIN, LV_STATE_DEFAULT,
                                     color[task->repeat_count % 5]);
 
@@ -163,6 +164,9 @@ void hasp_anti_burnin_cb(lv_task_t* task)
     }
 }
 
+/**
+* Enable/Disable Anti Burn-in protection
+*/
 void hasp_set_anti_burnin(bool en)
 {
     lv_obj_t* layer = lv_disp_get_layer_sys(NULL);
