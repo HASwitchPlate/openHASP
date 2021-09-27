@@ -146,17 +146,55 @@ void hasp_get_sleep_state(char* payload)
     }
 }
 
-void hasp_enable_wakeup_touch()
+/* ****** Anti Burn-in protection ******* */
+
+static lv_task_t* anti_burnin_task;
+
+void hasp_anti_burnin_cb(lv_task_t* task)
 {
-    lv_obj_set_click(lv_disp_get_layer_sys(NULL), true); // enable first touch
-    lv_obj_set_event_cb(lv_disp_get_layer_sys(NULL), wakeup_event_handler);
-    LOG_INFO(TAG_HASP, F("Wakeup touch enabled"));
+    lv_color_t color[6] = {LV_COLOR_WHITE, LV_COLOR_BLACK, LV_COLOR_RED, LV_COLOR_LIME, LV_COLOR_BLUE};
+    lv_obj_set_style_local_bg_color(lv_disp_get_layer_sys(NULL), LV_OBJ_PART_MAIN, LV_STATE_DEFAULT,
+                                    color[task->repeat_count % 5]);
+
+    // task is about to get deleted
+    if(task->repeat_count == 1) {
+        //   lv_obj_set_style_local_bg_opa(lv_disp_get_layer_sys(NULL), LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_0);
+        anti_burnin_task = NULL;
+    }
 }
 
-void hasp_disable_wakeup_touch()
+void hasp_set_anti_burnin(bool en)
 {
-    lv_obj_set_click(lv_disp_get_layer_sys(NULL), false); // disable first touch
-    LOG_INFO(TAG_HASP, F("Wakeup touch disabled"));
+    lv_obj_t* layer = lv_disp_get_layer_sys(NULL);
+    if(!layer) return;
+
+    if(en) {
+        lv_obj_set_style_local_bg_opa(layer, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_100);
+        anti_burnin_task = lv_task_create(hasp_anti_burnin_cb, 2000, LV_TASK_PRIO_LOWEST, NULL);
+        lv_task_set_repeat_count(anti_burnin_task, 25);
+        LOG_INFO(TAG_HASP, F("Anti burn-in enabled"));
+    } else {
+        if(anti_burnin_task) lv_task_del(anti_burnin_task);
+        anti_burnin_task = NULL;
+        lv_obj_set_style_local_bg_opa(layer, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_0);
+        LOG_INFO(TAG_HASP, F("Anti burn-in disabled"));
+    }
+}
+
+/**
+ * Enable/Disable Wake-up Touch
+ */
+
+void hasp_set_wakeup_touch(bool en)
+{
+    lv_obj_set_click(lv_disp_get_layer_sys(NULL), en);
+    if(en) {
+        lv_obj_set_event_cb(lv_disp_get_layer_sys(NULL), wakeup_event_handler);
+        LOG_INFO(TAG_HASP, F("Wakeup touch enabled"));
+    } else {
+        LOG_INFO(TAG_HASP, F("Wakeup touch disabled"));
+    }
+    hasp_set_anti_burnin(en);
 }
 
 /**
