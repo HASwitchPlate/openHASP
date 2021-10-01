@@ -36,6 +36,10 @@
 
 #include "dev/device.h"
 
+#if HASP_USE_CUSTOM > 0
+#include "custom/my_custom.h"
+#endif
+
 bool isConnected;
 bool isRunning = 1;
 
@@ -138,6 +142,10 @@ void setup()
     gpioSetup();
 #endif
 
+#if HASP_USE_CUSTOM > 0
+    custom_setup();
+#endif
+
     mainLastLoopTime = millis(); // - 1000; // reset loop counter
     printf("%s %d\n", __FILE__, __LINE__);
     // delay(250);
@@ -156,6 +164,10 @@ void loop()
     gpioLoop();
 #endif
 
+#if HASP_USE_CUSTOM > 0
+    custom_loop();
+#endif
+
     /* Timer Loop */
     if(millis() - mainLastLoopTime >= 1000) {
         /* Runs Every Second */
@@ -166,11 +178,19 @@ void loop()
         otaEverySecond(); // progressbar
 #endif
 
+#if HASP_USE_CUSTOM > 0
+    custom_every_second();
+#endif
+
         /* Runs Every 5 Seconds */
         if(mainLoopCounter == 0 || mainLoopCounter == 5) {
 
             haspDevice.loop_5s();
             gpioEvery5Seconds();
+
+#if HASP_USE_CUSTOM > 0
+            custom_every_5seconds();
+#endif
         }
 
         /* Reset loop counter every 10 seconds */
