@@ -15,8 +15,7 @@
 #endif
 
 #ifndef HASP_PAGES_JSONL
-#define HASP_PAGES_JSONL                                                                                               \
-    "{\"page\":1,\"id\":10,\"w\":240,\"obj\":\"label\",\"txt\":\"%hostname%\"}"
+#define HASP_PAGES_JSONL "{\"page\":1,\"id\":10,\"w\":240,\"obj\":\"label\",\"txt\":\"%hostname%\"}"
 #endif
 
 #include <Arduino.h>
@@ -186,20 +185,27 @@ void filesystemList()
 #endif
 }
 
-static inline void filesystemCreateFile(const char* filename, const char* data)
+static void filesystem_write_file(const char* filename, const char* data)
 {
     if(HASP_FS.exists(filename)) return;
+
+    LOG_TRACE(TAG_CONF, F(D_FILE_SAVING), filename);
     File file = HASP_FS.open(filename, "w");
-    if(!file) return;
-    file.print(data);
-    file.close();
+
+    if(file) {
+        file.print(data);
+        file.close();
+        LOG_INFO(TAG_CONF, F(D_FILE_SAVED), filename);
+    } else {
+        LOG_ERROR(TAG_FILE, D_FILE_SAVE_FAILED, filename);
+    }
 }
 
 void filesystemSetupFiles()
 {
-    filesystemCreateFile("/pages.jsonl", HASP_PAGES_JSONL);
-    filesystemCreateFile("/online.cmd", HASP_ONLINE_CMD);
-    filesystemCreateFile("/offline.cmd", HASP_OFFLINE_CMD);
+    filesystem_write_file("/pages.jsonl", HASP_PAGES_JSONL);
+    filesystem_write_file("/online.cmd", HASP_ONLINE_CMD);
+    filesystem_write_file("/offline.cmd", HASP_OFFLINE_CMD);
 }
 
 bool filesystemSetup(void)

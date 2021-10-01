@@ -518,10 +518,8 @@ bool configClearEeprom()
         LOG_ERROR(TAG_CONF, F("Failed to clear to EEPROM"));
         return false;
     }
-#elif HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
-    return HASP_FS.format();
 #else
-    return false;
+    return true; // nothing to clear
 #endif
 }
 

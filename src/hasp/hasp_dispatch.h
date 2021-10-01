@@ -63,6 +63,7 @@ void dispatch_page_next(lv_scr_load_anim_t effectid);
 void dispatch_page_prev(lv_scr_load_anim_t effectid);
 void dispatch_page_back(lv_scr_load_anim_t effectid);
 
+bool dispatch_factory_reset();
 void dispatch_reboot(bool saveConfig);
 void dispatch_current_state(uint8_t source);
 void dispatch_current_page();

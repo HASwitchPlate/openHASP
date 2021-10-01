@@ -2241,7 +2241,7 @@ void httpHandleResetConfig()
         httpMessage += F("</h1><hr>");
 
         if(resetConfirmed) { // User has confirmed, so reset everything
-            bool formatted = configClearEeprom();
+            bool formatted = dispatch_factory_reset(); // configClearEeprom();
             if(formatted) {
                 httpMessage += F("<b>Resetting all saved settings and restarting device</b>");
             } else {

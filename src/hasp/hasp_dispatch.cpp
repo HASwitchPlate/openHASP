@@ -615,7 +615,7 @@ void dispatch_parse_jsonl(std::istream& stream)
 {
     uint8_t savedPage = haspPages.get();
     uint16_t line     = 1;
-    DynamicJsonDocument jsonl(MQTT_MAX_PACKET_SIZE / 2 + 128); // max ~256 characters per line
+    DynamicJsonDocument jsonl(MQTT_MAX_PACKET_SIZE / 2 + 128); 
     DeserializationError jsonError = deserializeJson(jsonl, stream);
 
 #ifdef ARDUINO
@@ -1147,7 +1147,7 @@ bool dispatch_factory_reset()
 #endif
 
 #if HASP_USE_EEPROM > 0
-    erased = false;
+    erased = configClearEeprom();
 #endif
 
     return formated && erased;
