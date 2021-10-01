@@ -340,6 +340,14 @@ void dispatch_topic_payload(const char* topic, const char* payload, bool update,
     }
 #endif
 
+#if HASP_USE_CUSTOM > 0
+    if(topic == strstr_P(topic, PSTR(MQTT_TOPIC_CUSTOM "/"))) { // startsWith custom
+        topic += 7u;
+        custom_topic_payload(topic, (char*)payload, source);
+        return;
+    }
+#endif
+
     dispatch_command(topic, (char*)payload, update, source); // dispatch as is
 }
 
@@ -615,7 +623,7 @@ void dispatch_parse_jsonl(std::istream& stream)
 {
     uint8_t savedPage = haspPages.get();
     uint16_t line     = 1;
-    DynamicJsonDocument jsonl(MQTT_MAX_PACKET_SIZE / 2 + 128); 
+    DynamicJsonDocument jsonl(MQTT_MAX_PACKET_SIZE / 2 + 128);
     DeserializationError jsonError = deserializeJson(jsonl, stream);
 
 #ifdef ARDUINO

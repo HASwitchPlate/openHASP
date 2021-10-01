@@ -119,7 +119,7 @@ int mqtt_send_object_state(uint8_t pageid, uint8_t btnid, const char* payload)
 
 int mqtt_send_state(const char* subtopic, const char* payload)
 {
-    char tmp_topic[strlen(mqttNodeTopic) + 20];
+    char tmp_topic[strlen(mqttNodeTopic) + strlen(subtopic) + 16];
     snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%s" MQTT_TOPIC_STATE "/%s"), mqttNodeTopic, subtopic);
     return mqttPublish(tmp_topic, payload, false);
 }
@@ -299,6 +299,13 @@ void mqttStart()
     mqttSubscribeTo(topic);
     snprintf_P(topic, sizeof(topic), PSTR("%s" MQTT_TOPIC_CONFIG "/#"), mqttNodeTopic);
     mqttSubscribeTo(topic);
+
+#if HASP_USE_CUSTOM > 0
+    snprintf_P(topic, sizeof(topic), PSTR("%s" MQTT_TOPIC_CUSTOM "/#"), mqttGroupTopic);
+    mqttSubscribeTo(topic);
+    snprintf_P(topic, sizeof(topic), PSTR("%s" MQTT_TOPIC_CUSTOM "/#"), mqttNodeTopic);
+    mqttSubscribeTo(topic);
+#endif
 
 #ifdef HASP_USE_BROADCAST
     snprintf_P(topic, sizeof(topic), PSTR(MQTT_PREFIX "/" MQTT_TOPIC_BROADCAST "/" MQTT_TOPIC_COMMAND "/#"));

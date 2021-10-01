@@ -264,6 +264,14 @@ static void onConnect(void* context)
     topic = mqttNodeTopic + "config/#";
     mqtt_subscribe(mqtt_client, topic.c_str());
 
+#if HASP_USE_CUSTOM > 0
+    topic = mqttGroupTopic + MQTT_TOPIC_CUSTOM "/#";
+    mqtt_subscribe(mqtt_client, topic.c_str());
+
+    topic = mqttNodeTopic + MQTT_TOPIC_CUSTOM "/#";
+    mqtt_subscribe(mqtt_client, topic.c_str());
+#endif
+
 #ifdef HASP_USE_BROADCAST
     topic = MQTT_PREFIX "/" MQTT_TOPIC_BROADCAST "/" MQTT_TOPIC_COMMAND "/#";
     mqtt_subscribe(mqtt_client, topic.c_str());
