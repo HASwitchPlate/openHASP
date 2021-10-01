@@ -347,6 +347,7 @@ void hasp_new_object(const JsonObject& config, uint8_t& saved_page_id)
             case HASP_OBJ_IMG:
                 obj = lv_img_create(parent_obj, NULL);
                 if(obj) {
+                    lv_obj_set_click(obj, true);
                     lv_obj_set_event_cb(obj, generic_event_handler);
                     obj->user_data.objid = LV_HASP_IMAGE;
                 }
