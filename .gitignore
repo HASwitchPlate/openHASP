@@ -21,6 +21,7 @@ src/custom/*
 !src/custom/bootlogo_template.h
 !src/custom/my_custom_template.h
 !src/custom/my_custom_template.cpp
+!src/custom/my_custom_fan_template.cpp
 
 ## Test result files
 *.xml
