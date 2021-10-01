@@ -1006,13 +1006,13 @@ static hasp_attribute_type_t special_attribute_src(lv_obj_t* obj, const char* pa
             lv_mem_free(img_dsc);
         }
 
-        if(payload != strstr_P(payload, PSTR("http://"))) {        // not start with http
-            if(payload == strstr_P(payload, PSTR("/littlefs/"))) { // startsWith command/
-                char tempsrc[64] = "L:";
-                strncpy(tempsrc + 2, payload + 9, sizeof(tempsrc) - 2);
-                lv_img_set_src(obj, tempsrc);
-            } else if(payload == strstr_P(payload, PSTR("L:"))) { // startsWith command/
+        if(payload != strstr_P(payload, PSTR("http://"))) { // not start with http
+            if(payload == strstr_P(payload, PSTR("L:"))) {  // startsWith command/
                 lv_img_set_src(obj, payload);
+            } else if(payload == strstr_P(payload, PSTR("/littlefs/"))) { // startsWith command/
+                char tempsrc[64] = "L:";
+                strncpy(tempsrc + 2, payload + 10, sizeof(tempsrc) - 2);
+                lv_img_set_src(obj, tempsrc);
             } else {
                 char tempsrc[64] = LV_SYMBOL_DUMMY;
                 strncpy(tempsrc + 3, payload, sizeof(tempsrc) - 3);
@@ -1106,7 +1106,7 @@ static hasp_attribute_type_t special_attribute_src(lv_obj_t* obj, const char* pa
 static hasp_attribute_type_t attribute_common_align(lv_obj_t* obj, const char* attr, const char* payload, char** text,
                                                     bool update)
 {
-    lv_label_align_t val;
+    lv_label_align_t val = 0;
 
     if(update) {
         if(!strcasecmp_P(payload, PSTR("left"))) {
