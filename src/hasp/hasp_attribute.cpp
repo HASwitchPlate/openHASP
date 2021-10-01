@@ -1006,8 +1006,18 @@ static hasp_attribute_type_t special_attribute_src(lv_obj_t* obj, const char* pa
             lv_mem_free(img_dsc);
         }
 
-        if(payload != strstr_P(payload, PSTR("http://"))) {
-            lv_img_set_src(obj, payload);
+        if(payload != strstr_P(payload, PSTR("http://"))) {        // not start with http
+            if(payload == strstr_P(payload, PSTR("/littlefs/"))) { // startsWith command/
+                char tempsrc[64] = "L:";
+                strncpy(tempsrc + 2, payload + 9, sizeof(tempsrc) - 2);
+                lv_img_set_src(obj, tempsrc);
+            } else if(payload == strstr_P(payload, PSTR("L:"))) { // startsWith command/
+                lv_img_set_src(obj, payload);
+            } else {
+                char tempsrc[64] = LV_SYMBOL_DUMMY;
+                strncpy(tempsrc + 3, payload, sizeof(tempsrc) - 3);
+                lv_img_set_src(obj, tempsrc);
+            }
         } else {
 #if defined(ARDUINO) && defined(ARDUINO_ARCH_ESP32)
             HTTPClient http;
