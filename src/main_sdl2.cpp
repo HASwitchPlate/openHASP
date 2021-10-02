@@ -309,8 +309,8 @@ int main(int argc, char* argv[])
     // fflush(stdout);
 
     debugPrintHaspHeader(stdout);
-    LOG_NOTICE(TAG_MAIN, "resolution %d x %d", tft_width, tft_height);
-    LOG_NOTICE(TAG_MAIN, "pre setup");
+    LOG_INFO(TAG_MAIN, "resolution %d x %d", tft_width, tft_height);
+    LOG_INFO(TAG_MAIN, "pre setup");
 
     setup();
 
