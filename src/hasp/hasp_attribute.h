@@ -1,8 +1,8 @@
 /* MIT License - Copyright (c) 2019-2021 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
-#ifndef HASP_ATTR_SET_H
-#define HASP_ATTR_SET_H
+#ifndef HASP_ATTRIBUTE_H
+#define HASP_ATTRIBUTE_H
 
 #include "hasplib.h"
 
@@ -17,7 +17,8 @@ lv_chart_series_t* my_chart_get_series(lv_obj_t* chart, uint8_t ser_num);
 void my_obj_set_value_str_text(lv_obj_t* obj, uint8_t part, lv_state_t state, const char* text);
 void my_btnmatrix_map_clear(lv_obj_t* obj);
 void my_msgbox_map_clear(lv_obj_t* obj);
-void line_clear_points(lv_obj_t* obj);
+void my_line_clear_points(lv_obj_t* obj);
+void my_image_release_resources(lv_obj_t* obj);
 
 void hasp_process_obj_attribute(lv_obj_t* obj, const char* attr_p, const char* payload, bool update);
 
@@ -492,4 +493,4 @@ _HASP_ATTRIBUTE(SCALE_END_LINE_WIDTH, scale_end_line_width, lv_style_int_t)
 #define ATTR_TEXT_VERSION 60178
 #define ATTR_TEXT_SSID 62981
 
-#endif
+#endif // HASP_ATTRIBUTE_H

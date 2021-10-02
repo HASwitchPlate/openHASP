@@ -44,7 +44,7 @@ void delete_event_handler(lv_obj_t* obj, lv_event_t event)
 
     switch(obj_get_type(obj)) {
         case LV_HASP_LINE:
-            line_clear_points(obj);
+            my_line_clear_points(obj);
             break;
 
         case LV_HASP_BTNMATRIX:
@@ -56,7 +56,7 @@ void delete_event_handler(lv_obj_t* obj, lv_event_t event)
             break;
 
         case LV_HASP_IMAGE:
-            lv_img_cache_invalidate_src(NULL);
+            my_image_release_resources(obj);
             break;
 
         case LV_HASP_GAUGE:

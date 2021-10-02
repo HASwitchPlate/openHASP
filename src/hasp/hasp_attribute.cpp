@@ -29,6 +29,28 @@
 LV_FONT_DECLARE(unscii_8_icon);
 extern const char** btnmatrix_default_map; // memory pointer to lvgl default btnmatrix map
 
+void my_image_release_resources(lv_obj_t* obj)
+{
+    const void* src       = lv_img_get_src(obj);
+    lv_img_src_t src_type = lv_img_src_get_type(src);
+
+    switch(src_type) {
+        case LV_IMG_SRC_VARIABLE: {
+            lv_img_dsc_t* img_dsc = (lv_img_dsc_t*)src;
+            free((uint8_t*)img_dsc->data); // free image data
+            lv_mem_free(img_dsc);          // free image descriptor
+            break;
+        }
+
+        case LV_IMG_SRC_FILE:
+            lv_img_cache_invalidate_src(src);
+            break;
+
+        default:
+            break;
+    }
+}
+
 void my_btnmatrix_map_clear(lv_obj_t* obj)
 {
     lv_btnmatrix_ext_t* ext = (lv_btnmatrix_ext_t*)lv_obj_get_ext_attr(obj);
@@ -151,7 +173,7 @@ static void my_msgbox_set_map(lv_obj_t* obj, const char* payload)
     LOG_VERBOSE(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
 }
 
-void line_clear_points(lv_obj_t* obj)
+void my_line_clear_points(lv_obj_t* obj)
 {
     lv_line_ext_t* ext    = (lv_line_ext_t*)lv_obj_get_ext_attr(obj);
     const lv_point_t* ptr = ext->point_array;
@@ -161,7 +183,7 @@ void line_clear_points(lv_obj_t* obj)
 
 static bool my_line_set_points(lv_obj_t* obj, const char* payload)
 {
-    line_clear_points(obj); // delete pointmap
+    my_line_clear_points(obj); // delete pointmap
 
     // Create new points
     // Reserve memory for JsonDocument
@@ -196,7 +218,7 @@ static bool my_line_set_points(lv_obj_t* obj, const char* payload)
         }
     }
 
-    line_clear_points(obj);                    // free previous pointlist
+    my_line_clear_points(obj);                    // free previous pointlist
     lv_line_set_points(obj, point_arr, index); // arr.size());
     return true;
 }
@@ -996,15 +1018,7 @@ static hasp_attribute_type_t special_attribute_src(lv_obj_t* obj, const char* pa
     if(!obj_check_type(obj, LV_HASP_IMAGE)) return HASP_ATTR_TYPE_NOT_FOUND;
 
     if(update) {
-        const void* src       = lv_img_get_src(obj);
-        lv_img_src_t src_type = lv_img_src_get_type(src);
-        lv_img_cache_invalidate_src(src);
-
-        if(src_type == LV_IMG_SRC_VARIABLE) {
-            lv_img_dsc_t* img_dsc = (lv_img_dsc_t*)src;
-            lodepng_free((uint8_t*)img_dsc->data);
-            lv_mem_free(img_dsc);
-        }
+        my_image_release_resources(obj);
 
         if(payload != strstr_P(payload, PSTR("http://"))) { // not start with http
             if(payload == strstr_P(payload, PSTR("L:"))) {  // startsWith command/
