@@ -191,9 +191,9 @@ static void my_label_set_text(lv_obj_t* label, const char* text)
  * Resize the button holder to fit
  * @param mbox pointer to message box object
  */
-static void my_mbox_realign(lv_obj_t * mbox)
+static void my_mbox_realign(lv_obj_t* mbox)
 {
-    lv_msgbox_ext_t * ext = (lv_msgbox_ext_t*) lv_obj_get_ext_attr(mbox);
+    lv_msgbox_ext_t* ext = (lv_msgbox_ext_t*)lv_obj_get_ext_attr(mbox);
 
     lv_coord_t w = lv_obj_get_width_fit(mbox);
 
@@ -202,33 +202,33 @@ static void my_mbox_realign(lv_obj_t * mbox)
     }
 
     if(ext->btnm) {
-        lv_style_int_t bg_top = lv_obj_get_style_pad_top(mbox, LV_MSGBOX_PART_BTN_BG);
-        lv_style_int_t bg_bottom = lv_obj_get_style_pad_bottom(mbox, LV_MSGBOX_PART_BTN_BG);
-        lv_style_int_t bg_inner = lv_obj_get_style_pad_inner(mbox, LV_MSGBOX_PART_BTN_BG);
-        lv_style_int_t btn_top = lv_obj_get_style_pad_top(mbox, LV_MSGBOX_PART_BTN);
+        lv_style_int_t bg_top     = lv_obj_get_style_pad_top(mbox, LV_MSGBOX_PART_BTN_BG);
+        lv_style_int_t bg_bottom  = lv_obj_get_style_pad_bottom(mbox, LV_MSGBOX_PART_BTN_BG);
+        lv_style_int_t bg_inner   = lv_obj_get_style_pad_inner(mbox, LV_MSGBOX_PART_BTN_BG);
+        lv_style_int_t btn_top    = lv_obj_get_style_pad_top(mbox, LV_MSGBOX_PART_BTN);
         lv_style_int_t btn_bottom = lv_obj_get_style_pad_bottom(mbox, LV_MSGBOX_PART_BTN);
-        const lv_font_t * font = lv_obj_get_style_text_font(mbox, LV_MSGBOX_PART_BTN);
+        const lv_font_t* font     = lv_obj_get_style_text_font(mbox, LV_MSGBOX_PART_BTN);
 
-        uint16_t btnm_lines = 1;
-        const char ** btnm_map = lv_btnmatrix_get_map_array(ext->btnm);
+        uint16_t btnm_lines   = 1;
+        const char** btnm_map = lv_btnmatrix_get_map_array(ext->btnm);
         uint16_t i;
         for(i = 0; btnm_map[i][0] != '\0'; i++) {
             if(btnm_map[i][0] == '\n') btnm_lines++;
         }
 
         lv_coord_t font_h = lv_font_get_line_height(font);
-        lv_coord_t btn_h = font_h + btn_top + btn_bottom;
+        lv_coord_t btn_h  = font_h + btn_top + btn_bottom;
         lv_obj_set_size(ext->btnm, w, btn_h * btnm_lines + bg_inner * (btnm_lines - 1) + bg_top + bg_bottom);
     }
 }
 
 /* allows for static text label */
-void my_msgbox_set_text(lv_obj_t * mbox, const char * txt)
+void my_msgbox_set_text(lv_obj_t* mbox, const char* txt)
 {
     LV_ASSERT_OBJ(mbox, LV_OBJX_NAME);
     LV_ASSERT_STR(txt);
 
-    lv_msgbox_ext_t * ext = (lv_msgbox_ext_t*)lv_obj_get_ext_attr(mbox);
+    lv_msgbox_ext_t* ext = (lv_msgbox_ext_t*)lv_obj_get_ext_attr(mbox);
     my_label_set_text(ext->text, txt);
 
     my_mbox_realign(mbox);
