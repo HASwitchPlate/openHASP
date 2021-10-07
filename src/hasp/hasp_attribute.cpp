@@ -1353,6 +1353,8 @@ static hasp_attribute_type_t specific_coord_attribute(lv_obj_t* obj, uint16_t at
         hasp_attr_update_lv_coord_t list[] = {
             {LV_HASP_IMAGE, ATTR_OFFSET_X, lv_img_set_offset_x, lv_img_get_offset_x},
             {LV_HASP_IMAGE, ATTR_OFFSET_Y, lv_img_set_offset_y, lv_img_get_offset_y},
+            {LV_HASP_IMAGE, ATTR_PIVOT_X, my_img_set_pivot_x, my_img_get_pivot_x},
+            {LV_HASP_IMAGE, ATTR_PIVOT_Y, my_img_set_pivot_y, my_img_get_pivot_y},
             {LV_HASP_DROPDOWN, ATTR_MAX_HEIGHT, lv_dropdown_set_max_height, my_dropdown_get_max_height}};
         if(do_attribute(list, obj, attr_hash, val, update)) return HASP_ATTR_TYPE_INT;
     }

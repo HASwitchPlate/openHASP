@@ -11,6 +11,34 @@ const char* my_tabview_get_tab_name(const lv_obj_t* tabview, uint16_t id)
     return ext->tab_name_ptr[id];
 }
 
+static void my_img_set_pivot_x(lv_obj_t* obj, lv_coord_t x)
+{
+    lv_point_t point;
+    lv_img_get_pivot(obj, &point);
+    lv_img_set_pivot(obj, x, point.y);
+}
+
+static void my_img_set_pivot_y(lv_obj_t* obj, lv_coord_t y)
+{
+    lv_point_t point;
+    lv_img_get_pivot(obj, &point);
+    lv_img_set_pivot(obj, point.x, y);
+}
+
+static lv_coord_t my_img_get_pivot_x(lv_obj_t* obj)
+{
+    lv_point_t point;
+    lv_img_get_pivot(obj, &point);
+    return point.x;
+}
+
+static lv_coord_t my_img_get_pivot_y(lv_obj_t* obj)
+{
+    lv_point_t point;
+    lv_img_get_pivot(obj, &point);
+    return point.y;
+}
+
 // OK - this function is missing in lvgl
 static uint8_t my_roller_get_visible_row_count(const lv_obj_t* roller)
 {
