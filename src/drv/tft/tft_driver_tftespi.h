@@ -4,7 +4,7 @@
 #ifndef HASP_TFTESPI_DRIVER_H
 #define HASP_TFTESPI_DRIVER_H
 
-#ifdef ARDUINO
+#if defined(ARDUINO) && defined(USER_SETUP_LOADED)
 #include "Arduino.h"
 
 #include "lvgl.h"
