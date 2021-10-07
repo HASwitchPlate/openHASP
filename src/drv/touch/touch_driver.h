@@ -70,6 +70,11 @@ class BaseTouch {
 #warning Building for Generic Touch
 using dev::BaseTouch;
 extern dev::BaseTouch haspTouch;
+IRAM_ATTR bool touch_read(lv_indev_drv_t* indev_driver, lv_indev_data_t* data)
+{
+    data->state = LV_INDEV_STATE_REL;
+    return false;
+}
 #endif
 
 #endif
