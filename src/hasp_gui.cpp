@@ -98,7 +98,7 @@ IRAM_ATTR void gui_flush_cb(lv_disp_drv_t* disp, const lv_area_t* area, lv_color
 
 void guiCalibrate(void)
 {
-#if TOUCH_DRIVER == 2046 && USE_TFT_ESPI > 0
+#if TOUCH_DRIVER == 2046 && defined(USER_SETUP_LOADED)
 #ifdef TOUCH_CS
     haspTouch.calibrate(gui_settings.cal_data);
 #endif
@@ -460,7 +460,7 @@ bool guiGetConfig(const JsonObject& settings)
         } else {
             changed = true;
 
-#if TOUCH_DRIVER == 2046 && USE_TFT_ESPI > 0 && defined(TOUCH_CS)
+#if TOUCH_DRIVER == 2046 && defined(USER_SETUP_LOADED) && defined(TOUCH_CS)
             // tft_espi_set_touch(gui_settings.cal_data);
             haspTft.tft.setTouch(gui_settings.cal_data);
 #endif
@@ -476,7 +476,7 @@ bool guiGetConfig(const JsonObject& settings)
         }
         changed = true;
 
-#if TOUCH_DRIVER == 2046 && USE_TFT_ESPI > 0 && defined(TOUCH_CS)
+#if TOUCH_DRIVER == 2046 && defined(USER_SETUP_LOADED)  && defined(TOUCH_CS)
         // tft_espi_set_touch(gui_settings.cal_data);
         haspTft.tft.setTouch(gui_settings.cal_data);
 #endif
@@ -545,7 +545,7 @@ bool guiSetConfig(const JsonObject& settings)
             oobeSetAutoCalibrate(true);
         }
 
-#if TOUCH_DRIVER == 2046 && USE_TFT_ESPI > 0 && defined(TOUCH_CS)
+#if TOUCH_DRIVER == 2046 && defined(USER_SETUP_LOADED) && defined(TOUCH_CS)
         if(status) // tft_espi_set_touch(gui_settings.cal_data);
             haspTft.tft.setTouch(gui_settings.cal_data);
 #endif

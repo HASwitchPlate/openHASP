@@ -36,9 +36,12 @@ class BaseTft {
 
 } // namespace dev
 
-#if defined(ESP32)
-// #warning Building for ESP32 Tfts
+#if defined(ESP32) && defined(USER_SETUP_LOADED)
+// #warning Building for ESP32 TFT_eSPI
 #include "tft_driver_tftespi.h"
+#elif defined(ESP32) && defined(LGFX_USE_V1)
+// #warning Building for ESP32 LovyanGfx
+#include "tft_driver_lovyangfx.h"
 #elif defined(ESP8266)
 // #warning Building for ESP8266 Tfts
 #include "tft_driver_tftespi.h"

@@ -6,7 +6,7 @@
  *********************/
 #include "hasp_conf.h"
 
-#if defined(TOUCH_CS)
+#if defined(TOUCH_CS) && defined(USER_SETUP_LAODED)
 
 #include "dev/device.h"
 #include "drv/tft/tft_driver.h"
@@ -34,7 +34,7 @@ void tft_espi_calibrate(uint16_t* calData)
 
 void tft_espi_set_touch(uint16_t* calData)
 {
-    haspTft.tft.setTouch(calData);
+   haspTft.tft.setTouch(calData);
 }
 
 bool tft_espi_get_touch(int16_t* touchX, int16_t* touchY, uint16_t threshold)
