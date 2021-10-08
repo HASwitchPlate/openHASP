@@ -48,34 +48,6 @@ void custom_loop()
     }
 }
 
-void custom_every_second()
-{
-    Serial.print("#");
-}
-
-void custom_every_5seconds()
-{
-    Log.verbose(TAG_CUSTOM, "5 seconds have passsed...");
-    dispatch_state_subtopic("my_sensor", "{\"test\":123}");
-}
-
-bool custom_pin_in_use(uint pin)
-{
-    if(pin == 1024) return true; // fictuous used pin
-
-    // otherwise the pin is not used
-    return false;
-}
-
-void custom_get_sensors(JsonDocument& doc)
-{
-    /* Sensor Name */
-    JsonObject sensor = doc.createNestedObject(F("Custom"));
-
-    /* Key-Value pair of the sensor value */
-    sensor[F("Random")] = random(256);
-}
-
 /* Receive custom topic & payload messages */
 void custom_topic_payload(const char* topic, const char* payload, uint8_t source)
 {
