@@ -168,7 +168,7 @@ typedef struct
 #if LV_USE_ANIMATION
     lv_style_t edge_flash;
 #endif
-#endif
+#endif // LV_USE_PAGE
 
 #if LV_USE_SLIDER
     lv_style_t slider_knob, slider_bg;
@@ -513,7 +513,7 @@ static void slider_init(void)
 #if LV_USE_SLIDER != 0
     style_init_reset(&styles->slider_knob);
     lv_style_set_bg_opa(&styles->slider_knob, LV_STATE_DEFAULT, LV_OPA_COVER);
-    lv_style_set_bg_color(&styles->slider_knob, LV_STATE_DEFAULT, IS_LIGHT ? LV_COLOR_GRAY: LV_COLOR_WHITE);
+    lv_style_set_bg_color(&styles->slider_knob, LV_STATE_DEFAULT, IS_LIGHT ? LV_COLOR_GRAY : LV_COLOR_WHITE);
     // lv_style_set_value_color(&styles->slider_knob, LV_STATE_DEFAULT,
     //                          value_color);
     // lv_style_set_radius(&styles->slider_knob, LV_STATE_DEFAULT, LV_RADIUS_CIRCLE);
@@ -530,7 +530,7 @@ static void switch_init(void)
 #if LV_USE_SWITCH != 0
     style_init_reset(&styles->sw_knob);
     lv_style_set_bg_opa(&styles->sw_knob, LV_STATE_DEFAULT, LV_OPA_COVER);
-    lv_style_set_bg_color(&styles->sw_knob, LV_STATE_DEFAULT, IS_LIGHT ? LV_COLOR_GRAY: LV_COLOR_WHITE);
+    lv_style_set_bg_color(&styles->sw_knob, LV_STATE_DEFAULT, IS_LIGHT ? LV_COLOR_GRAY : LV_COLOR_WHITE);
     // lv_style_set_bg_opa(&styles->sw_knob, LV_STATE_DEFAULT, LV_OPA_COVER);
     // lv_style_set_bg_color(&styles->sw_knob, LV_STATE_DEFAULT, LV_COLOR_WHITE);
     // lv_style_set_radius(&styles->sw_knob, LV_STATE_DEFAULT, LV_RADIUS_CIRCLE);
@@ -1179,6 +1179,7 @@ static void theme_apply(lv_theme_t* th, lv_obj_t* obj, lv_theme_style_t name)
         case LV_THEME_SPINNER:
             list = lv_obj_get_style_list(obj, LV_SPINNER_PART_BG);
             _lv_style_list_add_style(list, &styles->pretty);
+            _lv_style_list_add_style(list, &styles->transparent);
 
             list = lv_obj_get_style_list(obj, LV_SPINNER_PART_INDIC);
             _lv_style_list_add_style(list, &styles->arc_indic);
