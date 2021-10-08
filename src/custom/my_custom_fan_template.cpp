@@ -50,30 +50,23 @@ void custom_loop()
 
 void custom_every_second()
 {
-    Serial.print("#");
+    // Unused
 }
 
 void custom_every_5seconds()
 {
-    Log.verbose(TAG_CUSTOM, "5 seconds have passsed...");
-    dispatch_state_subtopic("my_sensor", "{\"test\":123}");
+    // Unused
 }
 
 bool custom_pin_in_use(uint pin)
 {
-    if(pin == 1024) return true; // fictuous used pin
-
-    // otherwise the pin is not used
+    // no pins are used
     return false;
 }
 
 void custom_get_sensors(JsonDocument& doc)
 {
-    /* Sensor Name */
-    JsonObject sensor = doc.createNestedObject(F("Custom"));
-
-    /* Key-Value pair of the sensor value */
-    sensor[F("Random")] = random(256);
+    // Unused
 }
 
 /* Receive custom topic & payload messages */
