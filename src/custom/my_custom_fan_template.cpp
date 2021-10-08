@@ -48,6 +48,27 @@ void custom_loop()
     }
 }
 
+void custom_every_second()
+{
+    // Unused
+}
+
+void custom_every_5seconds()
+{
+    // Unused
+}
+
+bool custom_pin_in_use(uint pin)
+{
+    // no pins are used
+    return false;
+}
+
+void custom_get_sensors(JsonDocument& doc)
+{
+    // Unused
+}
+
 /* Receive custom topic & payload messages */
 void custom_topic_payload(const char* topic, const char* payload, uint8_t source)
 {
