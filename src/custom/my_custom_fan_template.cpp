@@ -1,7 +1,7 @@
 /* MIT License - Copyright (c) 2019-2021 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
-// USAGE: - Copy this file and rename it to my_custom_fan_rotator.cpp
+// USAGE: - Copy this file and rename it to my_custom_fan_rotator.cpp, also copy my_custom_template.h and rename it to my_custom.h
 //        - Change false to true on line 15
 //        - Set the page and id of your object on lines 25 and 26
 //        - Optionally set the default rotation state and angle on lines 19 and 20
