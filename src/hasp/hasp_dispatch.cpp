@@ -40,7 +40,7 @@
 #include "hasp_config.h"
 #endif
 
-#if HASP_USE_CUSTOM > 0
+#if defined(HASP_USE_CUSTOM)
 #include "custom/my_custom.h"
 #endif
 
@@ -340,7 +340,7 @@ void dispatch_topic_payload(const char* topic, const char* payload, bool update,
     }
 #endif
 
-#if HASP_USE_CUSTOM > 0
+#if defined(HASP_USE_CUSTOM)
     if(topic == strstr_P(topic, PSTR(MQTT_TOPIC_CUSTOM "/"))) { // startsWith custom
         topic += 7u;
         custom_topic_payload(topic, (char*)payload, source);
@@ -1001,7 +1001,7 @@ void dispatch_send_sensordata(const char*, const char*, uint8_t source)
 
     haspDevice.get_sensors(doc);
 
-#if HASP_USE_CUSTOM > 0
+#if defined(HASP_USE_CUSTOM)
     custom_get_sensors(doc);
 #endif
 

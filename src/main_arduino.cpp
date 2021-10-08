@@ -20,7 +20,7 @@
 #include "hasp_gui.h"
 #endif
 
-#if HASP_USE_CUSTOM > 0
+#if defined(HASP_USE_CUSTOM)
 #include "custom/my_custom.h"
 #endif
 
@@ -110,7 +110,7 @@ void setup()
     slaveSetup();
 #endif
 
-#if HASP_USE_CUSTOM > 0
+#if defined(HASP_USE_CUSTOM)
     custom_setup();
 #endif
 
@@ -145,7 +145,7 @@ IRAM_ATTR void loop()
     consoleLoop();
 #endif
 
-#if HASP_USE_CUSTOM > 0
+#if defined(HASP_USE_CUSTOM)
     custom_loop();
 #endif
 
@@ -164,7 +164,7 @@ IRAM_ATTR void loop()
         telnetEverySecond();
 #endif
 
-#if HASP_USE_CUSTOM > 0
+#if defined(HASP_USE_CUSTOM)
         custom_every_second();
 #endif
         // debugEverySecond();
@@ -185,7 +185,7 @@ IRAM_ATTR void loop()
                 //   gpioEvery5Seconds();
 #endif
 
-#if HASP_USE_CUSTOM > 0
+#if defined(HASP_USE_CUSTOM)
                 custom_every_5seconds();
 #endif
                 break;

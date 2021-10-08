@@ -300,7 +300,7 @@ void mqttStart()
     snprintf_P(topic, sizeof(topic), PSTR("%s" MQTT_TOPIC_CONFIG "/#"), mqttNodeTopic);
     mqttSubscribeTo(topic);
 
-#if HASP_USE_CUSTOM > 0
+#if defined(HASP_USE_CUSTOM)
     snprintf_P(topic, sizeof(topic), PSTR("%s" MQTT_TOPIC_CUSTOM "/#"), mqttGroupTopic);
     mqttSubscribeTo(topic);
     snprintf_P(topic, sizeof(topic), PSTR("%s" MQTT_TOPIC_CUSTOM "/#"), mqttNodeTopic);

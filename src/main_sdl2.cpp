@@ -36,7 +36,7 @@
 
 #include "dev/device.h"
 
-#if HASP_USE_CUSTOM > 0
+#if defined(HASP_USE_CUSTOM)
 #include "custom/my_custom.h"
 #endif
 
@@ -142,7 +142,7 @@ void setup()
     gpioSetup();
 #endif
 
-#if HASP_USE_CUSTOM > 0
+#if defined(HASP_USE_CUSTOM)
     custom_setup();
 #endif
 
@@ -164,7 +164,7 @@ void loop()
     gpioLoop();
 #endif
 
-#if HASP_USE_CUSTOM > 0
+#if defined(HASP_USE_CUSTOM)
     custom_loop();
 #endif
 
@@ -178,7 +178,7 @@ void loop()
         otaEverySecond(); // progressbar
 #endif
 
-#if HASP_USE_CUSTOM > 0
+#if defined(HASP_USE_CUSTOM)
     custom_every_second();
 #endif
 
@@ -188,7 +188,7 @@ void loop()
             haspDevice.loop_5s();
             gpioEvery5Seconds();
 
-#if HASP_USE_CUSTOM > 0
+#if defined(HASP_USE_CUSTOM)
             custom_every_5seconds();
 #endif
         }

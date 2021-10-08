@@ -145,9 +145,9 @@
 #define HASP_NUM_GPIO_CONFIG 8
 #endif
 
-#ifndef HASP_USE_CUSTOM
-#define HASP_USE_CUSTOM 0
-#endif
+// #ifndef HASP_USE_CUSTOM
+// #define HASP_USE_CUSTOM 0
+// #endif
 
 // #ifndef HASP_NUM_OUTPUTS
 // #define HASP_NUM_OUTPUTS 3
