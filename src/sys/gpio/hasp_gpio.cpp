@@ -802,6 +802,12 @@ bool gpioIsSystemPin(uint8_t gpio)
 #endif
 #endif
 
+    if(haspDevice.is_system_pin(gpio)) return true;
+
+#if defined(HASP_USE_CUSTOM)
+    if(custom_pin_in_use(gpio)) return true;
+#endif
+
     return false;
 }
 

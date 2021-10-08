@@ -1549,7 +1549,7 @@ void webHandleGpioConfig()
         for(uint8_t gpio = 0; gpio < NUM_DIGITAL_PINS; gpio++) {
             for(uint8_t id = 0; id < HASP_NUM_GPIO_CONFIG; id++) {
                 hasp_gpio_config_t conf = gpioGetPinConfig(id);
-                if((conf.pin == gpio) && gpioConfigInUse(id) && gpioInUse(gpio) && !gpioIsSystemPin(gpio)) {
+                if((conf.pin == gpio) && gpioConfigInUse(id) && !gpioIsSystemPin(gpio)) {
                     httpMessage += F("<tr><td>");
                     // httpMessage += halGpioName(gpio);
                     httpMessage += haspDevice.gpio_name(gpio).c_str();
