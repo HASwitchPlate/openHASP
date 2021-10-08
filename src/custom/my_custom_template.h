@@ -20,10 +20,13 @@ void custom_every_second();
 void custom_every_5seconds();
 
 /* return true if the pin used by the custom code */
-bool custom_pin_in_use(uint pin);
+bool custom_pin_in_use(uint8_t pin);
 
-/* Add a key which defines a JsonObject to add to the sensor JSON document */
+/* Add a key which defines a JsonObject to add to the sensor JSON output */
 void custom_get_sensors(JsonDocument& doc);
+
+/* Receive custom topic & payload messages */
+void custom_topic_payload(const char* topic, const char* payload, uint8_t source);
 
 #endif // HASP_USE_CUSTOM
 
