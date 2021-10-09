@@ -110,7 +110,7 @@ bool networkEvery5Seconds(void)
     return false;
 }
 
-bool networkEverySecond(void)
+/* bool networkEverySecond(void)
 {
     bool connected = false;
 
@@ -127,7 +127,7 @@ bool networkEverySecond(void)
 #endif
 
     return true;
-}
+} */
 
 void network_get_statusupdate(char* buffer, size_t len)
 {
