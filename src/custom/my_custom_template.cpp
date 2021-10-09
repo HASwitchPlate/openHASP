@@ -50,4 +50,8 @@ void custom_get_sensors(JsonDocument& doc)
     sensor[F("Random")] = random(256);
 }
 
+void custom_topic_payload(const char* topic, const char* payload, uint8_t source){
+    // Not used
+}
+
 #endif // HASP_USE_CUSTOM
