@@ -135,7 +135,7 @@ void event_timer_clock(lv_task_t* task)
 
     char buffer[24] = {0};
     if(timeinfo->tm_year < 120) {
-        snprintf_P(buffer, sizeof(buffer), PSTR("%d"), seconds);
+        snprintf_P(buffer, sizeof(buffer), PSTR("%ld"), seconds);
     } else {
         strftime(buffer, sizeof(buffer), D_TIMESTAMP, timeinfo); // Literal String
     }
