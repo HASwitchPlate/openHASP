@@ -58,7 +58,7 @@ void custom_every_5seconds()
     // Unused
 }
 
-bool custom_pin_in_use(uint pin)
+bool custom_pin_in_use(uint8_t pin)
 {
     // no pins are used
     return false;

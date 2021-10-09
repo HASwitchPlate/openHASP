@@ -32,7 +32,7 @@ void custom_every_5seconds()
     dispatch_state_subtopic("my_sensor","{\"test\":123}");
 }
 
-bool custom_pin_in_use(uint pin)
+bool custom_pin_in_use(uint8_t pin)
 {
     if(pin == 1024) return true; // fictuous used pin
 
