@@ -123,6 +123,7 @@
 /***************************************************
  *        Other Settings
  **************************************************/
+//#define HASP_USE_CUSTOM 1                           // Enable compilation of custom code from /src/custom
 //#define HASP_USE_HA                                 // Enable Home Assistant auto-discovery
 //#define HASP_START_CONSOLE 0                        // Disable starting of serial console at boot
 //#define HASP_START_TELNET 0                         // Disable starting of telnet service at boot
