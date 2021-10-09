@@ -117,7 +117,7 @@ void event_timer_calendar(lv_task_t* task)
 void event_timer_clock(lv_task_t* task)
 {
     hasp_task_user_data_t* data = (hasp_task_user_data_t*)task->user_data;
-    lv_obj_t* obj;
+    lv_obj_t* obj               = NULL;
 
     if(data) obj = hasp_find_obj_from_page_id(data->pageid, data->objid);
     if(!obj || !data) {
@@ -504,7 +504,9 @@ void selector_event_handler(lv_obj_t* obj, lv_event_t event)
 
     /* Get the new value */
     char buffer[128];
+#if LV_USE_TABLE > 0
     char property[36];
+#endif
     uint16_t val = 0;
     uint16_t max = 0;
 
