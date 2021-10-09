@@ -546,12 +546,18 @@ typedef void* lv_font_user_data_t;
                                LV_FONT_DECLARE(HASP_FONT_3) \
                                LV_FONT_DECLARE(HASP_FONT_4) \
 
+#ifndef LV_FONT_DEFAULT
 #define LV_FONT_DEFAULT        &HASP_FONT_2 //&lv_font_montserrat_16
-#else
-#define LV_FONT_CUSTOM_DECLARE LV_FONT_DECLARE(unscii_8_icon);
-#define LV_FONT_DEFAULT        &unscii_8_icon //&lv_font_unscii_8
-//#define LV_FONT_DEFAULT        my_font
 #endif
+
+#else
+
+#define LV_FONT_CUSTOM_DECLARE LV_FONT_DECLARE(unscii_8_icon);
+#ifndef LV_FONT_DEFAULT
+#define LV_FONT_DEFAULT        &unscii_8_icon //&lv_font_unscii_8
+#endif
+
+#endif // LV_HIGH_RESOURCE_MCU
 
 /*================
  *  THEME USAGE
