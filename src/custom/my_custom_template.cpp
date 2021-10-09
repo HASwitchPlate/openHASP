@@ -8,6 +8,7 @@
 
 #if defined(HASP_USE_CUSTOM) && false // <-- set this to true in your code
 
+#include "hasp_debug.h"
 #include "custom/my_custom.h"
 
 void custom_setup()
@@ -28,7 +29,7 @@ void custom_every_second()
 
 void custom_every_5seconds()
 {
-    Log.verbose(TAG_CUSTOM, "5 seconds have passsed...");
+    LOG_VERBOSE(TAG_CUSTOM, "5 seconds have passsed...");
     dispatch_state_subtopic("my_sensor","{\"test\":123}");
 }
 

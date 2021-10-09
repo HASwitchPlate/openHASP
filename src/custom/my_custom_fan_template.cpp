@@ -14,6 +14,7 @@
 
 #if defined(HASP_USE_CUSTOM) && false // <-- set this to true in your code
 
+#include "hasp_debug.h"
 #include "custom/my_custom.h"
 
 uint16_t fanspeed       = 0;   // rotation off by default (the time between angle turns in ms)
@@ -73,7 +74,7 @@ void custom_get_sensors(JsonDocument& doc)
 void custom_topic_payload(const char* topic, const char* payload, uint8_t source)
 {
     bool update = strlen(payload) > 0;
-    Log.notice(TAG_CUSTOM, "Handling custom message: %s => %s", topic, payload);
+    LOG_INFO(TAG_CUSTOM, "Handling custom message: %s => %s", topic, payload);
 
     if(update) {
         if(!strcmp(topic, "fanspeed")) {
@@ -95,7 +96,7 @@ void custom_topic_payload(const char* topic, const char* payload, uint8_t source
         }
     }
 
-    // Log.verbose(TAG_CUSTOM, "Handled custom message: %s => %s", topic, payload);
+    // LOG_VERBOSE(TAG_CUSTOM, "Handled custom message: %s => %s", topic, payload);
 }
 
 #endif // HASP_USE_CUSTOM
