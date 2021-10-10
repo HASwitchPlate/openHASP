@@ -3,6 +3,7 @@
 
 #include "hasplib.h"
 #include "dev/device.h"
+// #include "lv_datetime.h"
 
 #ifdef ARDUINO
 #include "ArduinoLog.h"
@@ -147,58 +148,71 @@ void hasp_get_sleep_state(char* payload)
 }
 
 /**
-* Anti Burn-in protection
-*/
+ * Anti Burn-in protection
+ */
 static lv_task_t* anti_burnin_task;
 
-void hasp_anti_burnin_cb(lv_task_t* task)
+void hasp_stop_anti_burn(lv_obj_t* layer)
 {
-    lv_color_t color[6] = {LV_COLOR_BLACK, LV_COLOR_WHITE, LV_COLOR_RED, LV_COLOR_LIME, LV_COLOR_BLUE};
-    lv_obj_set_style_local_bg_color(lv_disp_get_layer_sys(NULL), LV_OBJ_PART_MAIN, LV_STATE_DEFAULT,
-                                    color[task->repeat_count % 5]);
-
-    // task is about to get deleted
-    if(task->repeat_count == 1) {
-        //   lv_obj_set_style_local_bg_opa(lv_disp_get_layer_sys(NULL), LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_0);
-        anti_burnin_task = NULL;
-    }
+    anti_burnin_task = NULL;
+    lv_obj_set_style_local_bg_opa(layer, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_TRANSP);
+    hasp_set_wakeup_touch(haspDevice.get_backlight_power() == false); // enabled if backlight is OFF
+    LOG_INFO(TAG_HASP, F("Antiburn disabled"));
 }
 
-/**
-* Enable/Disable Anti Burn-in protection
-*/
-void hasp_set_anti_burnin(bool en)
+void hasp_anti_burnin_cb(lv_task_t* task)
 {
     lv_obj_t* layer = lv_disp_get_layer_sys(NULL);
     if(!layer) return;
 
-    if(en) {
-        lv_obj_set_style_local_bg_opa(layer, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_100);
-        anti_burnin_task = lv_task_create(hasp_anti_burnin_cb, 2000, LV_TASK_PRIO_LOWEST, NULL);
-        lv_task_set_repeat_count(anti_burnin_task, 25);
-        LOG_INFO(TAG_HASP, F("Anti burn-in enabled"));
+    lv_color_t color[5] = {LV_COLOR_BLACK, LV_COLOR_WHITE, LV_COLOR_RED, LV_COLOR_LIME, LV_COLOR_BLUE};
+    lv_obj_set_style_local_bg_color(layer, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, color[task->repeat_count % 5]);
+    lv_obj_set_style_local_bg_opa(layer, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_COVER);
+
+    // task is about to get deleted
+    if(task->repeat_count == 1) hasp_stop_anti_burn(layer);
+}
+
+/**
+ * Enable/Disable Anti Burn-in protection
+ */
+void hasp_set_anti_burn(int32_t repeat_count, uint32_t period)
+{
+    lv_obj_t* layer = lv_disp_get_layer_sys(NULL);
+    if(!layer) return;
+
+    if(repeat_count != 0) {
+        anti_burnin_task = lv_task_create(hasp_anti_burnin_cb, period, LV_TASK_PRIO_LOWEST, NULL);
+        if(anti_burnin_task) {
+            // hasp_set_wakeup_touch(true);
+            lv_obj_set_event_cb(layer, first_touch_event_handler);
+            lv_obj_set_click(layer, true);
+            lv_task_set_repeat_count(anti_burnin_task, repeat_count);
+            LOG_INFO(TAG_HASP, F("Antiburn %s"), D_SETTING_ENABLED);
+        } else {
+            LOG_INFO(TAG_HASP, F("Antiburn %s"), D_INFO_FAILED);
+        }
     } else {
-        if(anti_burnin_task) lv_task_del(anti_burnin_task);
-        anti_burnin_task = NULL;
-        lv_obj_set_style_local_bg_opa(layer, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_0);
-        LOG_INFO(TAG_HASP, F("Anti burn-in disabled"));
+        if(anti_burnin_task) {
+            lv_task_del(anti_burnin_task);
+            hasp_stop_anti_burn(layer);
+        }
     }
 }
 
 /**
  * Enable/Disable Wake-up Touch
  */
-
 void hasp_set_wakeup_touch(bool en)
 {
-    lv_obj_set_click(lv_disp_get_layer_sys(NULL), en);
-    if(en) {
-        lv_obj_set_event_cb(lv_disp_get_layer_sys(NULL), wakeup_event_handler);
-        LOG_INFO(TAG_HASP, F("Wakeup touch enabled"));
-    } else {
-        LOG_INFO(TAG_HASP, F("Wakeup touch disabled"));
+    lv_obj_t* layer = lv_disp_get_layer_sys(NULL);
+    if(!layer) return;
+
+    if(lv_obj_get_click(layer) != en) {
+        lv_obj_set_event_cb(layer, first_touch_event_handler);
+        lv_obj_set_click(layer, en);
+        LOG_INFO(TAG_HASP, F("First touch %s"), en ? D_SETTING_ENABLED : D_SETTING_DISABLED);
     }
-    hasp_set_anti_burnin(en);
 }
 
 /**
