@@ -36,7 +36,6 @@ static void my_rotate_fan()
 void custom_setup()
 {
     // Initialization code here
-    randomSeed(millis());
     prev_loop = millis();
 }
 
