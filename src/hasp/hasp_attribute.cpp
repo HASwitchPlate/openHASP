@@ -1875,8 +1875,8 @@ static hasp_attribute_type_t attribute_common_int(lv_obj_t* obj, uint16_t attr_h
             break; // attribute_found
 
         case ATTR_OBJID:
+            if(update && val != obj->user_data.objid) return HASP_ATTR_TYPE_INT_READONLY;
             val = obj->user_data.objid;
-            if(update && val != obj->user_data.objid) HASP_ATTR_TYPE_INT_READONLY;
             break; // attribute_found
 
         case ATTR_X:
