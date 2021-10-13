@@ -144,13 +144,7 @@ void Parser::get_event_name(uint8_t eventid, char* buffer, size_t size)
 uint16_t Parser::get_sdbm(const char* str)
 {
     uint16_t hash = 0;
-    char c;
-
-    // while(c = *str++) hash = c + (hash << 6) + (hash << 16) - hash;
-    while((c = *str++)) {
-        hash = tolower(c) + (hash << 6) - hash;
-    }
-
+    while(char c = *str++) hash = tolower(c) + (hash << 6) - hash; // case insensitive
     return hash;
 }
 
@@ -184,7 +178,8 @@ int Parser::format_bytes(size_t filesize, char* buf, size_t len)
         return snprintf_P(buf, len, PSTR("%d" D_DECIMAL_POINT "%02d " D_FILE_SIZE_MEGABYTES), filesize / 100,
                           filesize % 100);
 
-    return snprintf_P(buf, len, PSTR("%d" D_DECIMAL_POINT "%02d " D_FILE_SIZE_GIGABYTES), filesize / 100, filesize % 100);
+    return snprintf_P(buf, len, PSTR("%d" D_DECIMAL_POINT "%02d " D_FILE_SIZE_GIGABYTES), filesize / 100,
+                      filesize % 100);
 }
 
 uint8_t Parser::get_action_id(const char* action)
