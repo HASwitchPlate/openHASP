@@ -3,6 +3,13 @@
 
 #include "hasplib.h"
 
+lv_label_align_t my_textarea_get_text_align(lv_obj_t* ta)
+{
+    lv_textarea_ext_t* ext = (lv_textarea_ext_t*)lv_obj_get_ext_attr(ta);
+    lv_obj_t* label        = lv_textarea_get_label(ta);
+    return lv_label_get_align(label);
+}
+
 const char* my_tabview_get_tab_name(const lv_obj_t* tabview, uint16_t id)
 {
     if(id >= lv_tabview_get_tab_count(tabview)) return NULL;

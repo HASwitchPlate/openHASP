@@ -255,7 +255,7 @@ static void log_event(const char* name, lv_event_t event)
 
     switch(event) {
         case LV_EVENT_PRESSED:
-            LOG_TRACE(TAG_EVENT, "%s Pressed", name);
+            LOG_TRACE(TAG_EVENT, "%s Changed", name);
             break;
 
         case LV_EVENT_PRESS_LOST:
@@ -345,6 +345,35 @@ void swipe_event_handler(lv_obj_t* obj, lv_event_t event)
                 return;
         }
         dispatch_current_page();
+    }
+}
+
+/**
+ * Called when a textarea is clicked
+ * @param obj pointer to a textarea object
+ * @param event type of event that occured
+ */
+void textarea_event_handler(lv_obj_t* obj, lv_event_t event)
+{
+    log_event("textarea", event);
+
+    if(event == LV_EVENT_VALUE_CHANGED) {
+        LOG_TRACE(TAG_EVENT, "Changed to: %s", lv_textarea_get_text(obj));
+
+        uint8_t hasp_event_id;
+        if(!translate_event(obj, event, hasp_event_id)) return;
+
+        char data[100];
+        char eventname[8];
+        Parser::get_event_name(hasp_event_id, eventname, sizeof(eventname));
+
+        snprintf_P(data, sizeof(data), PSTR("{\"event\":\"%s\",\"text\":\"%s\"}"), eventname,
+                   lv_textarea_get_text(obj));
+        event_send_object_data(obj, data);
+    } else if(event == LV_EVENT_FOCUSED) {
+        lv_textarea_set_cursor_hidden(obj, false);
+    } else if(event == LV_EVENT_DEFOCUSED) {
+        lv_textarea_set_cursor_hidden(obj, true);
     }
 }
 

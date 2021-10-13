@@ -291,7 +291,7 @@ void guiSetup()
 
     /* Initialize GIF decoder */
 #if HASP_USE_GIFDECODE > 0
- //   lv_gif_init();
+    // lv_gif_init();
 #endif
 
     /* Initialize JPG decoder */
@@ -476,7 +476,7 @@ bool guiGetConfig(const JsonObject& settings)
         }
         changed = true;
 
-#if TOUCH_DRIVER == 2046 && defined(USER_SETUP_LOADED)  && defined(TOUCH_CS)
+#if TOUCH_DRIVER == 2046 && defined(USER_SETUP_LOADED) && defined(TOUCH_CS)
         // tft_espi_set_touch(gui_settings.cal_data);
         haspTft.tft.setTouch(gui_settings.cal_data);
 #endif

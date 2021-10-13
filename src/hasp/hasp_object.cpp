@@ -343,6 +343,16 @@ void hasp_new_object(const JsonObject& config, uint8_t& saved_page_id)
                 }
                 break;
 
+            case LV_HASP_TEXTAREA:
+            case HASP_OBJ_TEXTAREA:
+                obj = lv_textarea_create(parent_obj, NULL);
+                if(obj) {
+                    lv_obj_set_event_cb(obj, textarea_event_handler);
+                    lv_textarea_set_cursor_click_pos(obj, true);
+                    obj->user_data.objid = LV_HASP_TEXTAREA;
+                }
+                break;
+
             case LV_HASP_IMAGE:
             case HASP_OBJ_IMG:
                 obj = lv_img_create(parent_obj, NULL);
@@ -380,12 +390,14 @@ void hasp_new_object(const JsonObject& config, uint8_t& saved_page_id)
                 }
                 break;
 
+#if LVGL_VERSION_MAJOR == 7 && LV_USE_PAGE
             case LV_HASP_PAGE:
             case HASP_OBJ_PAGE:
                 obj = lv_page_create(parent_obj, NULL);
                 if(obj) obj->user_data.objid = LV_HASP_PAGE;
                 // No event handler for pages
                 break;
+#endif
 
 #if LV_USE_WIN && LVGL_VERSION_MAJOR == 7
             case LV_HASP_WINDOW:

@@ -218,7 +218,7 @@ static bool my_line_set_points(lv_obj_t* obj, const char* payload)
         }
     }
 
-    my_line_clear_points(obj);                    // free previous pointlist
+    my_line_clear_points(obj);                 // free previous pointlist
     lv_line_set_points(obj, point_arr, index); // arr.size());
     return true;
 }
@@ -829,7 +829,8 @@ static hasp_attribute_type_t hasp_process_arc_attribute(lv_obj_t* obj, uint16_t 
     return HASP_ATTR_TYPE_INT;
 }
 
-static hasp_attribute_type_t hasp_process_spinner_attribute(lv_obj_t* obj, uint16_t attr_hash, int32_t& val, bool update)
+static hasp_attribute_type_t hasp_process_spinner_attribute(lv_obj_t* obj, uint16_t attr_hash, int32_t& val,
+                                                            bool update)
 {
     // We already know it's a spnner object
     switch(attr_hash) {
@@ -1182,6 +1183,13 @@ static hasp_attribute_type_t attribute_common_align(lv_obj_t* obj, const char* a
                 val = lv_label_get_align(obj);
             break;
 
+        case LV_HASP_TEXTAREA:
+            if(update)
+                lv_textarea_set_text_align(obj, val);
+            else
+                val = my_textarea_get_text_align(obj);
+            break;
+
         case LV_HASP_ROLLER:
             if(update)
                 lv_roller_set_align(obj, val);
@@ -1255,6 +1263,7 @@ static hasp_attribute_type_t attribute_common_text(lv_obj_t* obj, const char* at
         {LV_HASP_LABEL, ATTR_TEXT, my_label_set_text, my_label_get_text},
         {LV_HASP_CHECKBOX, ATTR_TEXT, lv_checkbox_set_text, lv_checkbox_get_text},
         {LV_HASP_TABVIEW, ATTR_TEXT, my_tabview_set_text, my_tabview_get_text},
+        {LV_HASP_TEXTAREA, ATTR_TEXT, lv_textarea_set_text, lv_textarea_get_text},
         {LV_HASP_TAB, ATTR_TEXT, my_tab_set_text, my_tab_get_text},
 #if LV_USE_WIN != 0
         {LV_HASP_WINDOW, ATTR_TEXT, lv_win_set_title, lv_win_get_title},
@@ -1390,9 +1399,11 @@ static hasp_attribute_type_t specific_int_attribute(lv_obj_t* obj, uint16_t attr
             {LV_HASP_SWITCH, ATTR_ANIM_TIME, lv_switch_set_anim_time, lv_switch_get_anim_time},
             {LV_HASP_LIST, ATTR_ANIM_TIME, lv_list_set_anim_time, lv_list_get_anim_time},
             {LV_HASP_MSGBOX, ATTR_ANIM_TIME, lv_msgbox_set_anim_time, lv_msgbox_get_anim_time},
-            {LV_HASP_PAGE, ATTR_ANIM_TIME, lv_page_set_anim_time, lv_page_get_anim_time},
             {LV_HASP_ROLLER, ATTR_ANIM_TIME, lv_roller_set_anim_time, lv_roller_get_anim_time},
             {LV_HASP_TABVIEW, ATTR_ANIM_TIME, lv_tabview_set_anim_time, lv_tabview_get_anim_time},
+#if LVGL_VERSION_MAJOR == 7 && LV_USE_PAGE
+            {LV_HASP_PAGE, ATTR_ANIM_TIME, lv_page_set_anim_time, lv_page_get_anim_time},
+#endif
 #if LV_USE_WINDOW > 0
             {LV_HASP_WINDOW, ATTR_ANIM_TIME, lv_win_set_anim_time, lv_win_get_anim_time},
 #endif
