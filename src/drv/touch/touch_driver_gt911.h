@@ -13,6 +13,7 @@
 #include "ArduinoLog.h"
 
 #include "touch_driver.h" // base class
+#include "touch_helper.h" // i2c scanner
 
 #include "../../hasp/hasp.h" // for hasp_sleep_state
 extern uint8_t hasp_sleep_state;
@@ -42,7 +43,7 @@ IRAM_ATTR bool touch_read(lv_indev_drv_t* indev_driver, lv_indev_data_t* data)
     //  LOG_VERBOSE(TAG_GUI, F("Contacts: %d"), GT911_num_touches);
     static GTPoint points[5];
 
-    if(touch.readInput((uint8_t*)&points)>0) {
+    if(touch.readInput((uint8_t*)&points) > 0) {
 
         if(hasp_sleep_state != HASP_SLEEP_OFF) hasp_update_sleep_state(); // update Idle
 
@@ -51,7 +52,7 @@ IRAM_ATTR bool touch_read(lv_indev_drv_t* indev_driver, lv_indev_data_t* data)
         data->state   = LV_INDEV_STATE_PR;
 
     } else {
-        data->state       = LV_INDEV_STATE_REL;
+        data->state = LV_INDEV_STATE_REL;
     }
 
     touch.loop(); // reset IRQ
@@ -73,30 +74,16 @@ class TouchGt911 : public BaseTouch {
     void init(int w, int h)
     {
         Wire.begin(TOUCH_SDA, TOUCH_SCL, I2C_TOUCH_FREQUENCY);
-        delay(300);
+        // delay(300); // already happens in touch.begin()
+        touch_scan(Wire);
 
         touch.setHandler(GT911_setXY);
 
         if(touch.begin(INT_PIN, RST_PIN)) {
-            LOG_VERBOSE(TAG_DRVR, F("Goodix GT911 reset OK"));
+            LOG_INFO(TAG_DRVR, F("GT911 " D_SERVICE_STARTED));
         } else {
-            LOG_WARNING(TAG_DRVR, F("Goodix GT911 reset failed"));
+            LOG_WARNING(TAG_DRVR, F("GT911 " D_SERVICE_START_FAILED));
         }
-
-        Serial.print("Check ACK on addr request on 0x");
-        //     Serial.print(touch.i2cAddr, HEX);
-
-        //   Wire.beginTransmission(touch.i2cAddr);
-        int error;
-        // = Wire.endTransmission();
-        if(error == 0) {
-            //     Serial.println(": SUCCESS");
-        } else {
-            //     Serial.print(": ERROR #");
-            //     Serial.println(error);
-        }
-
-        LOG_INFO(TAG_DRVR, F("Goodix GT911 touch driver started"));
     }
 };
 

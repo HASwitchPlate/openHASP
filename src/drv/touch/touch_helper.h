@@ -16,7 +16,7 @@ void touch_scan(TwoWire& i2c)
     byte error, address;
     int nDevices;
 
-    LOG_VERBOSE(TAG_DRVR, F("Scanning..."));
+    LOG_VERBOSE(TAG_DRVR, F("Scanning I2C..."));
 
     nDevices = 0;
     for(address = 1; address < 127; address++) {
@@ -27,12 +27,12 @@ void touch_scan(TwoWire& i2c)
         error = i2c.endTransmission();
 
         if(error == 0) {
-            snprintf_P(buffer, sizeof(buffer), PSTR("I2C device found at address 0x%02x"), address);
+            snprintf_P(buffer, sizeof(buffer), PSTR(D_BULLET " Found device 0x%02x"), address);
             LOG_VERBOSE(TAG_DRVR, buffer, address);
             nDevices++;
         } else if(error == 4) {
-            snprintf_P(buffer, sizeof(buffer), PSTR("Unknown error at address 0x%02x"), address);
-            LOG_VERBOSE(TAG_DRVR, buffer, address);
+            snprintf_P(buffer, sizeof(buffer), PSTR(D_BULLET "Unknown error at address 0x%02x"), address);
+            LOG_WARNING(TAG_DRVR, buffer, address);
         }
     }
     if(nDevices == 0)
