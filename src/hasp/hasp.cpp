@@ -182,12 +182,12 @@ void hasp_set_antiburn(int32_t repeat_count, uint32_t period)
     if(!layer) return;
 
     if(repeat_count != 0) {
-        antiburn_task = lv_task_create(hasp_antiburn_cb, period, LV_TASK_PRIO_LOWEST, NULL);
+        if(!antiburn_task) antiburn_task = lv_task_create(hasp_antiburn_cb, period, LV_TASK_PRIO_LOWEST, NULL);
         if(antiburn_task) {
-            // hasp_set_wakeup_touch(true);
             lv_obj_set_event_cb(layer, first_touch_event_handler);
             lv_obj_set_click(layer, true);
             lv_task_set_repeat_count(antiburn_task, repeat_count);
+            lv_task_set_period(antiburn_task, period);
             dispatch_state_antiburn(HASP_EVENT_ON);
         } else {
             LOG_INFO(TAG_HASP, F("Antiburn %s"), D_INFO_FAILED);
