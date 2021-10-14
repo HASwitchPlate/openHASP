@@ -83,6 +83,7 @@ void dispatch_state_subtopic(const char* subtopic, const char* payload);
 void dispatch_state_eventid(const char* topic, hasp_event_t eventid);
 void dispatch_state_brightness(const char* topic, hasp_event_t eventid, int32_t val);
 void dispatch_state_val(const char* topic, hasp_event_t eventid, int32_t val);
+void dispatch_state_antiburn(hasp_event_t eventid);
 
 /* ===== Getter and Setter Functions ===== */
 

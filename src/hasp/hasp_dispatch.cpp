@@ -48,7 +48,7 @@ dispatch_conf_t dispatch_setings = {.teleperiod = 300};
 
 uint16_t dispatchSecondsToNextTeleperiod = 0;
 uint8_t nCommands                        = 0;
-haspCommand_t commands[25];
+haspCommand_t commands[26];
 
 moodlight_t moodlight = {.brightness = 255};
 
@@ -104,6 +104,18 @@ void dispatch_state_brightness(const char* topic, hasp_event_t eventid, int32_t 
 
     Parser::get_event_name(eventid, eventname, sizeof(eventname));
     snprintf_P(payload, sizeof(payload), PSTR("{\"state\":\"%s\",\"brightness\":%d}"), eventname, val);
+    dispatch_state_subtopic(topic, payload);
+}
+
+void dispatch_state_antiburn( hasp_event_t eventid)
+{
+    char topic[9];
+    char payload[64];
+    char eventname[8];
+
+    Parser::get_event_name(eventid, eventname, sizeof(eventname));
+    snprintf_P(topic, sizeof(topic), PSTR("antiburn"));
+    snprintf_P(payload, sizeof(payload), PSTR("{\"state\":\"%s\"}"), eventname);
     dispatch_state_subtopic(topic, payload);
 }
 
@@ -939,6 +951,12 @@ void dispatch_web_update(const char*, const char* espOtaUrl, uint8_t source)
 #endif
 }
 
+void dispatch_antiburn(const char*, const char* payload, uint8_t source)
+{
+    bool state = Parser::is_true(payload);   // ON, TRUE, YES or 1
+    hasp_set_antiburn(state ? 30 : 0, 1000); // ON = 25 cycles of 1000 milli seconds (i.e. 25 sec)
+}
+
 // restart the device
 void dispatch_reboot(bool saveConfig)
 {
@@ -1280,6 +1298,7 @@ void dispatchSetup()
     dispatch_add_command(PSTR("run"), dispatch_exec);
     dispatch_add_command(PSTR("service"), dispatch_service);
     dispatch_add_command(PSTR("wakeup"), dispatch_wakeup_obsolete);
+    dispatch_add_command(PSTR("antiburn"), dispatch_antiburn);
     dispatch_add_command(PSTR("calibrate"), dispatch_calibrate);
     dispatch_add_command(PSTR("update"), dispatch_web_update);
     dispatch_add_command(PSTR("reboot"), dispatch_reboot);

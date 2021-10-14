@@ -150,17 +150,17 @@ void hasp_get_sleep_state(char* payload)
 /**
  * Anti Burn-in protection
  */
-static lv_task_t* anti_burnin_task;
+static lv_task_t* antiburn_task;
 
-void hasp_stop_anti_burn(lv_obj_t* layer)
+void hasp_stop_antiburn(lv_obj_t* layer)
 {
-    anti_burnin_task = NULL;
+    antiburn_task = NULL;
     lv_obj_set_style_local_bg_opa(layer, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_TRANSP);
     hasp_set_wakeup_touch(haspDevice.get_backlight_power() == false); // enabled if backlight is OFF
-    LOG_INFO(TAG_HASP, F("Antiburn disabled"));
+    dispatch_state_antiburn(HASP_EVENT_OFF);
 }
 
-void hasp_anti_burnin_cb(lv_task_t* task)
+void hasp_antiburn_cb(lv_task_t* task)
 {
     lv_obj_t* layer = lv_disp_get_layer_sys(NULL);
     if(!layer) return;
@@ -170,34 +170,42 @@ void hasp_anti_burnin_cb(lv_task_t* task)
     lv_obj_set_style_local_bg_opa(layer, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_COVER);
 
     // task is about to get deleted
-    if(task->repeat_count == 1) hasp_stop_anti_burn(layer);
+    if(task->repeat_count == 1) hasp_stop_antiburn(layer);
 }
 
 /**
  * Enable/Disable Anti Burn-in protection
  */
-void hasp_set_anti_burn(int32_t repeat_count, uint32_t period)
+void hasp_set_antiburn(int32_t repeat_count, uint32_t period)
 {
     lv_obj_t* layer = lv_disp_get_layer_sys(NULL);
     if(!layer) return;
 
     if(repeat_count != 0) {
-        anti_burnin_task = lv_task_create(hasp_anti_burnin_cb, period, LV_TASK_PRIO_LOWEST, NULL);
-        if(anti_burnin_task) {
+        antiburn_task = lv_task_create(hasp_antiburn_cb, period, LV_TASK_PRIO_LOWEST, NULL);
+        if(antiburn_task) {
             // hasp_set_wakeup_touch(true);
             lv_obj_set_event_cb(layer, first_touch_event_handler);
             lv_obj_set_click(layer, true);
-            lv_task_set_repeat_count(anti_burnin_task, repeat_count);
-            LOG_INFO(TAG_HASP, F("Antiburn %s"), D_SETTING_ENABLED);
+            lv_task_set_repeat_count(antiburn_task, repeat_count);
+            dispatch_state_antiburn(HASP_EVENT_ON);
         } else {
             LOG_INFO(TAG_HASP, F("Antiburn %s"), D_INFO_FAILED);
         }
     } else {
-        if(anti_burnin_task) {
-            lv_task_del(anti_burnin_task);
-            hasp_stop_anti_burn(layer);
+        if(antiburn_task) {
+            lv_task_del(antiburn_task);
+            hasp_stop_antiburn(layer);
         }
     }
+}
+
+/**
+ * Check if Anti Burn-in protection is enabled
+ */
+bool hasp_get_antiburn()
+{
+    return antiburn_task != NULL;
 }
 
 /**

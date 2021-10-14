@@ -321,7 +321,7 @@ void first_touch_event_handler(lv_obj_t* obj, lv_event_t event)
             dispatch_backlight(NULL, "on", TAG_EVENT); // backlight on and also disable wakeup touch
         }
         hasp_set_wakeup_touch(false); // only disable wakeup touch
-        hasp_set_anti_burn(0, 0);     // disable antiburn task
+        hasp_set_antiburn(0, 0);      // disable antiburn task
     }
 }
 
