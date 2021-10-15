@@ -118,32 +118,8 @@ const char HTTP_DOCTYPE[] PROGMEM = "<!DOCTYPE html><html lang=\"en\"><head><met
                                     "name=\"viewport\" content=\"width=device-width,initial-scale=1\"/>";
 const char HTTP_META_GO_BACK[] PROGMEM = "<meta http-equiv='refresh' content='15;url=/'/>";
 const char HTTP_HEADER[] PROGMEM       = "<title>%s</title>";
-const char HTTP_STYLE[] PROGMEM        = "<link rel=\"stylesheet\" href=\"/css\">";
-const char HTTP_CSS[] PROGMEM =
-    "body,.c{text-align:center;}"
-    "div,input{padding:5px;font-size:1em;}"
-    "a{color:" D_HTTP_COLOR_TEXT "}"
-    "input:not([type=file]){width:90%;background-color:" D_HTTP_COLOR_INPUT ";color:" D_HTTP_COLOR_INPUT_TEXT ";}"
-    "input[type=checkbox],input[type=radio]{width:1em;}"
-    "select{background-color:" D_HTTP_COLOR_INPUT ";color:" D_HTTP_COLOR_INPUT_TEXT ";}"
-    "input:invalid{border:1px solid " D_HTTP_COLOR_INPUT_WARNING ";}"
-    //"#hue{width:100%;}"
-    "body{font-family:verdana;width:60%;margin:auto;background:" D_HTTP_COLOR_BACKGROUND ";color:" D_HTTP_COLOR_TEXT
-    ";}"
-    "button{border:0;border-radius:0.6rem;background-color:" D_HTTP_COLOR_BUTTON ";color:" D_HTTP_COLOR_BUTTON_TEXT
-    ";line-height:2.4rem;font-size:1.2rem;width:100%;}"
-    //".q{float:right;width:64px;text-align:right;}"
-    ".red{background-color:" D_HTTP_COLOR_BUTTON_RESET ";}"
-    "#doc{text-align:left;display:inline-block;color:" D_HTTP_COLOR_TEXT ";min-width:260px;}"
-    // ".button3{background-color:#f44336;}"
-    // ".button4{background-color:#e7e7e7;color:black;}"
-    // ".button5{background-color:#555555;}"
-    // ".button6{background-color:#4CAF50;}"
-    "td{font-size:0.87rem;padding-bottom:0px;padding-top:0px;}th{padding-top:0.5em;}";
-// const char HTTP_SCRIPT[] PROGMEM = "<script>function "
-//                                    "c(l){document.getElementById('s').value=l.innerText||l.textContent;document."
-//                                    "getElementById('p').focus();}</script>";
-const char HTTP_HEADER_END[] PROGMEM = "</head><body><div id='doc'>";
+const char HTTP_HEADER_END[] PROGMEM =
+    "<script src=\"/js\"></script><link rel=\"stylesheet\" href=\"/css\"></head><body><div id='doc'>";
 const char HTTP_FOOTER[] PROGMEM =
     "<div style='text-align:right;font-size:11px;'><hr/><a href='/about'>" D_MANUFACTURER " ";
 const char HTTP_END[] PROGMEM = " " D_HTTP_FOOTER "</div></body></html>";
@@ -158,27 +134,20 @@ const char HTTP_END[] PROGMEM = " " D_HTTP_FOOTER "</div></body></html>";
 // String lcdFirmwareUrl = "http://haswitchplate.com/update/HASwitchPlate.tft";
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-String getOption(int value, String label, bool selected)
+String getOption(int value, String label, int current_value)
 {
     char buffer[128];
     snprintf_P(buffer, sizeof(buffer), PSTR("<option value='%d'%s>%s</option>"), value,
-               (selected ? PSTR(" selected") : ""), label.c_str());
+               (value == current_value ? PSTR(" selected") : ""), label.c_str());
     return buffer;
 }
 
-String getOption(String value, String label, bool selected)
+String getOption(String& value, String& label, String& current_value)
 {
     char buffer[128];
     snprintf_P(buffer, sizeof(buffer), PSTR("<option value='%s'%s>%s</option>"), value.c_str(),
-               (selected ? PSTR(" selected") : ""), label.c_str());
+               (value == current_value ? PSTR(" selected") : ""), label.c_str());
     return buffer;
-}
-
-static void add_gpio_select_option(String& str, uint8_t gpio, uint8_t bcklpin)
-{
-    char buffer[10];
-    snprintf_P(buffer, sizeof(buffer), PSTR("GPIO %d"), gpio);
-    str += getOption(gpio, buffer, bcklpin == gpio);
 }
 
 static void add_button(String& str, const __FlashStringHelper* label, const __FlashStringHelper* extra)
@@ -287,8 +256,6 @@ void webSendPage(const char* nodename, uint32_t httpdatalength, bool gohome = fa
         contentLength += sizeof(HTTP_DOCTYPE) - 1;
         contentLength += sizeof(HTTP_HEADER) - 1 - 2 + strlen(nodename); // -2 for %s
                                                                          //    contentLength += sizeof(HTTP_SCRIPT) - 1;
-        contentLength += sizeof(HTTP_STYLE) - 1;
-        // contentLength += sizeof(HASP_STYLE) - 1;
         if(gohome) contentLength += sizeof(HTTP_META_GO_BACK) - 1;
         contentLength += sizeof(HTTP_HEADER_END) - 1;
         contentLength += sizeof(HTTP_FOOTER) - 1;
@@ -310,14 +277,14 @@ void webSendPage(const char* nodename, uint32_t httpdatalength, bool gohome = fa
     }
 
 #if defined(STM32F4xx)
-    //   webServer.sendContent(HTTP_SCRIPT); // 131
-    webServer.sendContent(HTTP_STYLE); // 487
+    // webServer.sendContent(HTTP_SCRIPT); // 131
+    // webServer.sendContent(HTTP_STYLE); // 487
     // webServer.sendContent(HASP_STYLE);                   // 145
     if(gohome) webServer.sendContent(HTTP_META_GO_BACK); // 47
     webServer.sendContent(HTTP_HEADER_END);              // 80
 #else
-    //   webServer.sendContent_P(HTTP_SCRIPT);                 // 131
-    webServer.sendContent_P(HTTP_STYLE); // 487
+    // webServer.sendContent_P(HTTP_SCRIPT);                 // 131
+    // webServer.sendContent_P(HTTP_STYLE); // 487
     // webServer.sendContent_P(HASP_STYLE);                   // 145
     if(gohome) webServer.sendContent_P(HTTP_META_GO_BACK); // 47
     webServer.sendContent_P(HTTP_HEADER_END);              // 80
@@ -465,9 +432,9 @@ void webHandleScreenshot()
             httpMessage += haspDevice.get_hostname();
             httpMessage += F("</h1><hr>");
 
-            httpMessage +=
-                F("<script>function aref(t){setTimeout(function() {ref('');}, t*1000)} function ref(a){ var t=new "
-                  "Date().getTime();document.getElementById('bmp').src='?a='+a+'&q='+t;return false;}</script>");
+            // httpMessage +=
+            //     F("<script>function aref(t){setTimeout(function() {ref('');}, t*1000)} function ref(a){ var t=new "
+            //       "Date().getTime();document.getElementById('bmp').src='?a='+a+'&q='+t;return false;}</script>");
             httpMessage += F("<p class='c'><img id='bmp' src='?q=0'");
 
             // Automatic refresh
@@ -1323,14 +1290,14 @@ void webHandleGuiConfig()
 
         int8_t rotation = settings[FPSTR(FP_GUI_ROTATION)].as<int8_t>();
         httpMessage += F("<p><b>Orientation</b> <select id='rotate' name='rotate'>");
-        httpMessage += getOption(0, F("0 degrees"), rotation == 0);
-        httpMessage += getOption(1, F("90 degrees"), rotation == 1);
-        httpMessage += getOption(2, F("180 degrees"), rotation == 2);
-        httpMessage += getOption(3, F("270 degrees"), rotation == 3);
-        httpMessage += getOption(6, F("0 degrees - mirrored"), rotation == 6);
-        httpMessage += getOption(7, F("90 degrees - mirrored"), rotation == 7);
-        httpMessage += getOption(4, F("180 degrees - mirrored"), rotation == 4);
-        httpMessage += getOption(5, F("270 degrees - mirrored"), rotation == 5);
+        httpMessage += getOption(0, F("0 degrees"), rotation);
+        httpMessage += getOption(1, F("90 degrees"), rotation);
+        httpMessage += getOption(2, F("180 degrees"), rotation);
+        httpMessage += getOption(3, F("270 degrees"), rotation);
+        httpMessage += getOption(6, F("0 degrees - mirrored"), rotation);
+        httpMessage += getOption(7, F("90 degrees - mirrored"), rotation);
+        httpMessage += getOption(4, F("180 degrees - mirrored"), rotation);
+        httpMessage += getOption(5, F("270 degrees - mirrored"), rotation);
         httpMessage += F("</select></p>");
 
         httpMessage += F("<p><input id='inv' name='inv' type='checkbox' ");
@@ -1343,25 +1310,19 @@ void webHandleGuiConfig()
 
         int8_t bcklpin = settings[FPSTR(FP_GUI_BACKLIGHTPIN)].as<int8_t>();
         httpMessage += F("<p><b>Backlight Control</b> <select id='bckl' name='bckl'>");
-        httpMessage += getOption(-1, F("None"), bcklpin == -1);
+        httpMessage += getOption(-1, F("None"), bcklpin);
 #if defined(ARDUINO_ARCH_ESP32)
-        add_gpio_select_option(httpMessage, 5, bcklpin);  // D8 on ESP32 for D1 mini 32
-        add_gpio_select_option(httpMessage, 12, bcklpin); // TFT_LED on the Liligo Pi
-        add_gpio_select_option(httpMessage, 13, bcklpin); // TFT_LED on the D1 R32 + Waveshare
-        add_gpio_select_option(httpMessage, 15, bcklpin); // TFT_LED on the AZ Touch
-        add_gpio_select_option(httpMessage, 16, bcklpin); // D4 on ESP32 for D1 mini 32
-        add_gpio_select_option(httpMessage, 17, bcklpin); // D3 on ESP32 for D1 mini 32
-        add_gpio_select_option(httpMessage, 18, bcklpin); // D5 on ESP32 for D1 mini 32
-        add_gpio_select_option(httpMessage, 19, bcklpin); // D6 on ESP32 for D1 mini 32
-        add_gpio_select_option(httpMessage, 21, bcklpin); // D1 on ESP32 for D1 mini 32
-        add_gpio_select_option(httpMessage, 22, bcklpin); // D2 on ESP32 for D1 mini 32
-        add_gpio_select_option(httpMessage, 23, bcklpin); // D7 on ESP32 for D1 mini 32
-        add_gpio_select_option(httpMessage, 32, bcklpin); // TFT_LED on the Lolin D32 Pro
+        char buffer[10];
+        uint8_t pins[] = {5, 12, 13, 15, 16, 17, 18, 19, 21, 22, 23, 32};
+        for(uint8_t i = 0; i < sizeof(pins); i++) {
+            snprintf_P(buffer, sizeof(buffer), PSTR("GPIO %d"), pins[i]);
+            httpMessage += getOption(pins[i], buffer, bcklpin);
+        }
 #else
-        httpMessage += getOption(5, F("D1 - GPIO 5"), bcklpin == 5);
-        httpMessage += getOption(4, F("D2 - GPIO 4"), bcklpin == 4);
-        httpMessage += getOption(0, F("D3 - GPIO 0"), bcklpin == 0);
-        httpMessage += getOption(2, F("D4 - GPIO 2"), bcklpin == 2);
+        httpMessage += getOption(5, F("D1 - GPIO 5"), bcklpin);
+        httpMessage += getOption(4, F("D2 - GPIO 4"), bcklpin);
+        httpMessage += getOption(0, F("D3 - GPIO 0"), bcklpin);
+        httpMessage += getOption(2, F("D4 - GPIO 2"), bcklpin);
 #endif
         httpMessage += F("</select></p>");
 
@@ -1731,7 +1692,7 @@ void webHandleGpioOutput()
 
         for(uint8_t io = 0; io < NUM_DIGITAL_PINS; io++) {
             if(((conf.pin == io) || !gpioInUse(io)) && !gpioIsSystemPin(io)) {
-                httpMessage += getOption(io, haspDevice.gpio_name(io).c_str(), conf.pin == io);
+                httpMessage += getOption(io, haspDevice.gpio_name(io).c_str(), conf.pin);
             }
         }
         httpMessage += F("</select></p>");
@@ -1739,60 +1700,39 @@ void webHandleGpioOutput()
         bool selected;
         httpMessage += F("<p><b>Type</b> <select id='type' name='type'>");
 
-        selected = (conf.type == hasp_gpio_type_t::LED);
-        httpMessage += getOption(hasp_gpio_type_t::LED, F(D_GPIO_LED), selected);
-
-        selected = (conf.type == hasp_gpio_type_t::LED_R);
-        httpMessage += getOption(hasp_gpio_type_t::LED_R, F(D_GPIO_LED_R), selected);
-
-        selected = (conf.type == hasp_gpio_type_t::LED_G);
-        httpMessage += getOption(hasp_gpio_type_t::LED_G, F(D_GPIO_LED_G), selected);
-
-        selected = (conf.type == hasp_gpio_type_t::LED_B);
-        httpMessage += getOption(hasp_gpio_type_t::LED_B, F(D_GPIO_LED_B), selected);
-
-        selected = (conf.type == hasp_gpio_type_t::LIGHT_RELAY);
-        httpMessage += getOption(hasp_gpio_type_t::LIGHT_RELAY, F(D_GPIO_LIGHT_RELAY), selected);
-
-        selected = (conf.type == hasp_gpio_type_t::POWER_RELAY);
-        httpMessage += getOption(hasp_gpio_type_t::POWER_RELAY, F(D_GPIO_POWER_RELAY), selected);
-
-        selected = (conf.type == hasp_gpio_type_t::SHUTTER_RELAY);
-        httpMessage += getOption(hasp_gpio_type_t::SHUTTER_RELAY, F("Shutter Relay"), selected);
-
-        selected = (conf.type == hasp_gpio_type_t::HASP_DAC);
-        httpMessage += getOption(hasp_gpio_type_t::HASP_DAC, F(D_GPIO_DAC), selected);
-
-        // selected = (conf.type == hasp_gpio_type_t::SERIAL_DIMMER);
-        // httpMessage += getOption(hasp_gpio_type_t::SERIAL_DIMMER, F(D_GPIO_SERIAL_DIMMER), selected);
+        httpMessage += getOption(hasp_gpio_type_t::LED, F(D_GPIO_LED), conf.type);
+        httpMessage += getOption(hasp_gpio_type_t::LED_R, F(D_GPIO_LED_R), conf.type);
+        httpMessage += getOption(hasp_gpio_type_t::LED_G, F(D_GPIO_LED_G), conf.type);
+        httpMessage += getOption(hasp_gpio_type_t::LED_B, F(D_GPIO_LED_B), conf.type);
+        httpMessage += getOption(hasp_gpio_type_t::LIGHT_RELAY, F(D_GPIO_LIGHT_RELAY), conf.type);
+        httpMessage += getOption(hasp_gpio_type_t::POWER_RELAY, F(D_GPIO_POWER_RELAY), conf.type);
+        httpMessage += getOption(hasp_gpio_type_t::SHUTTER_RELAY, F("Shutter Relay"), conf.type);
+        httpMessage += getOption(hasp_gpio_type_t::HASP_DAC, F(D_GPIO_DAC), conf.type);
+        // httpMessage += getOption(hasp_gpio_type_t::SERIAL_DIMMER, F(D_GPIO_SERIAL_DIMMER), conf.type);
 
 #if defined(LANBONL8)
-        selected = (conf.type == hasp_gpio_type_t::SERIAL_DIMMER_AU);
-        httpMessage += getOption(hasp_gpio_type_t::SERIAL_DIMMER_AU, F("L8-HD (AU)"), selected);
-
-        selected = (conf.type == hasp_gpio_type_t::SERIAL_DIMMER_EU);
-        httpMessage += getOption(hasp_gpio_type_t::SERIAL_DIMMER_EU, F("L8-HD (EU)"), selected);
+        httpMessage += getOption(hasp_gpio_type_t::SERIAL_DIMMER_AU, F("L8-HD (AU)"), conf.type);
+        httpMessage += getOption(hasp_gpio_type_t::SERIAL_DIMMER_EU, F("L8-HD (EU)"), conf.type);
 #endif
 
         if(digitalPinHasPWM(webServer.arg(0).toInt())) {
-            selected = (conf.type == hasp_gpio_type_t::PWM);
-            httpMessage += getOption(hasp_gpio_type_t::PWM, F(D_GPIO_PWM), selected);
+            httpMessage += getOption(hasp_gpio_type_t::PWM, F(D_GPIO_PWM), conf.type);
         }
         httpMessage += F("</select></p>");
 
         httpMessage += F("<p><b>" D_GPIO_GROUP "</b> <select id='group' name='group'>");
-        httpMessage += getOption(0, F(D_GPIO_GROUP_NONE), conf.group == 0);
+        httpMessage += getOption(0, F(D_GPIO_GROUP_NONE), conf.group);
         String group((char*)0);
         group.reserve(10);
         for(int i = 1; i < 15; i++) {
             group = F(D_GPIO_GROUP " ");
             group += i;
-            httpMessage += getOption(i, group, conf.group == i);
+            httpMessage += getOption(i, group, conf.group);
         }
         httpMessage += F("</select></p>");
 
         httpMessage += F("<p><b>Value</b> <select id='state' name='state'>");
-        httpMessage += getOption(0, F(D_GPIO_STATE_NORMAL), !conf.inverted);
+        httpMessage += getOption(0, F(D_GPIO_STATE_NORMAL), conf.inverted);
         httpMessage += getOption(1, F(D_GPIO_STATE_INVERTED), conf.inverted);
         httpMessage += F("</select></p>");
 
@@ -1838,7 +1778,7 @@ void webHandleGpioInput()
 
         for(uint8_t io = 0; io < NUM_DIGITAL_PINS; io++) {
             if(((conf.pin == io) || !gpioInUse(io)) && !gpioIsSystemPin(io)) {
-                httpMessage += getOption(io, haspDevice.gpio_name(io).c_str(), conf.pin == io);
+                httpMessage += getOption(io, haspDevice.gpio_name(io).c_str(), conf.pin);
             }
         }
         httpMessage += F("</select></p>");
@@ -1846,72 +1786,39 @@ void webHandleGpioInput()
         bool selected;
         httpMessage += F("<p><b>Type</b> <select id='type' name='type'>");
 
-        selected = (conf.type == hasp_gpio_type_t::BUTTON);
-        httpMessage += getOption(hasp_gpio_type_t::BUTTON, F(D_GPIO_BUTTON), selected);
-
-        selected = (conf.type == hasp_gpio_type_t::SWITCH);
-        httpMessage += getOption(hasp_gpio_type_t::SWITCH, F(D_GPIO_SWITCH), selected);
-
-        selected = (conf.type == hasp_gpio_type_t::DOOR);
-        httpMessage += getOption(hasp_gpio_type_t::DOOR, F("door"), selected);
-
-        selected = (conf.type == hasp_gpio_type_t::GARAGE_DOOR);
-        httpMessage += getOption(hasp_gpio_type_t::GARAGE_DOOR, F("garage_door"), selected);
-
-        selected = (conf.type == hasp_gpio_type_t::GAS);
-        httpMessage += getOption(hasp_gpio_type_t::GAS, F("gas"), selected);
-
-        selected = (conf.type == hasp_gpio_type_t::LIGHT);
-        httpMessage += getOption(hasp_gpio_type_t::LIGHT, F("light"), selected);
-
-        selected = (conf.type == hasp_gpio_type_t::LOCK);
-        httpMessage += getOption(hasp_gpio_type_t::LOCK, F("lock"), selected);
-
-        selected = (conf.type == hasp_gpio_type_t::MOISTURE);
-        httpMessage += getOption(hasp_gpio_type_t::MOISTURE, F("moisture"), selected);
-
-        selected = (conf.type == hasp_gpio_type_t::MOTION);
-        httpMessage += getOption(hasp_gpio_type_t::MOTION, F("motion"), selected);
-
-        selected = (conf.type == hasp_gpio_type_t::OCCUPANCY);
-        httpMessage += getOption(hasp_gpio_type_t::OCCUPANCY, F("occupancy"), selected);
-
-        selected = (conf.type == hasp_gpio_type_t::OPENING);
-        httpMessage += getOption(hasp_gpio_type_t::OPENING, F("opening"), selected);
-
-        selected = (conf.type == hasp_gpio_type_t::PRESENCE);
-        httpMessage += getOption(hasp_gpio_type_t::PRESENCE, F("presence"), selected);
-
-        selected = (conf.type == hasp_gpio_type_t::PROBLEM);
-        httpMessage += getOption(hasp_gpio_type_t::PROBLEM, F("problem"), selected);
-
-        selected = (conf.type == hasp_gpio_type_t::SAFETY);
-        httpMessage += getOption(hasp_gpio_type_t::SAFETY, F("Safety"), selected);
-
-        selected = (conf.type == hasp_gpio_type_t::SMOKE);
-        httpMessage += getOption(hasp_gpio_type_t::SMOKE, F("Smoke"), selected);
-
-        selected = (conf.type == hasp_gpio_type_t::VIBRATION);
-        httpMessage += getOption(hasp_gpio_type_t::VIBRATION, F("Vibration"), selected);
-
-        selected = (conf.type == hasp_gpio_type_t::WINDOW);
-        httpMessage += getOption(hasp_gpio_type_t::WINDOW, F("Window"), selected);
+        httpMessage += getOption(hasp_gpio_type_t::BUTTON, F(D_GPIO_BUTTON), conf.type);
+        httpMessage += getOption(hasp_gpio_type_t::SWITCH, F(D_GPIO_SWITCH), conf.type);
+        httpMessage += getOption(hasp_gpio_type_t::DOOR, F("door"), conf.type);
+        httpMessage += getOption(hasp_gpio_type_t::GARAGE_DOOR, F("garage_door"), conf.type);
+        httpMessage += getOption(hasp_gpio_type_t::GAS, F("gas"), conf.type);
+        httpMessage += getOption(hasp_gpio_type_t::LIGHT, F("light"), conf.type);
+        httpMessage += getOption(hasp_gpio_type_t::LOCK, F("lock"), conf.type);
+        httpMessage += getOption(hasp_gpio_type_t::MOISTURE, F("moisture"), conf.type);
+        httpMessage += getOption(hasp_gpio_type_t::MOTION, F("motion"), conf.type);
+        httpMessage += getOption(hasp_gpio_type_t::OCCUPANCY, F("occupancy"), conf.type);
+        httpMessage += getOption(hasp_gpio_type_t::OPENING, F("opening"), conf.type);
+        httpMessage += getOption(hasp_gpio_type_t::PRESENCE, F("presence"), conf.type);
+        httpMessage += getOption(hasp_gpio_type_t::PROBLEM, F("problem"), conf.type);
+        httpMessage += getOption(hasp_gpio_type_t::SAFETY, F("Safety"), conf.type);
+        httpMessage += getOption(hasp_gpio_type_t::SMOKE, F("Smoke"), conf.type);
+        httpMessage += getOption(hasp_gpio_type_t::VIBRATION, F("Vibration"), conf.type);
+        httpMessage += getOption(hasp_gpio_type_t::WINDOW, F("Window"), conf.type);
 
         httpMessage += F("</select></p>");
 
         httpMessage += F("<p><b>" D_GPIO_GROUP "</b> <select id='group' name='group'>");
-        httpMessage += getOption(0, F(D_GPIO_GROUP_NONE), conf.group == 0);
+        httpMessage += getOption(0, F(D_GPIO_GROUP_NONE), conf.group);
         String group((char*)0);
         group.reserve(10);
         for(int i = 1; i < 15; i++) {
             group = F(D_GPIO_GROUP " ");
             group += i;
-            httpMessage += getOption(i, group, conf.group == i);
+            httpMessage += getOption(i, group, conf.group);
         }
         httpMessage += F("</select></p>");
 
         httpMessage += F("<p><b>Default State</b> <select id='state' name='state'>");
-        httpMessage += getOption(0, F("Normally Open"), !conf.inverted);
+        httpMessage += getOption(0, F("Normally Open"), conf.inverted);
         httpMessage += getOption(1, F("Normally Closed"), conf.inverted);
         httpMessage += F("</select></p>");
 
@@ -1956,13 +1863,13 @@ void webHandleDebugConfig()
 
         uint16_t baudrate = settings[FPSTR(FP_CONFIG_BAUD)].as<uint16_t>();
         httpMessage += F("<p><b>Serial Port</b> <select id='baud' name='baud'>");
-        httpMessage += getOption(1, F(D_SETTING_DISABLED), baudrate == 1); // Don't use 0 here which is default 115200
-        httpMessage += getOption(960, F("9600"), baudrate == 960);
-        httpMessage += getOption(1920, F("19200"), baudrate == 1920);
-        httpMessage += getOption(3840, F("38400"), baudrate == 3840);
-        httpMessage += getOption(5760, F("57600"), baudrate == 5760);
-        httpMessage += getOption(7488, F("74880"), baudrate == 7488);
-        httpMessage += getOption(11520, F("115200"), baudrate == 11520);
+        httpMessage += getOption(1, F(D_SETTING_DISABLED), baudrate); // Don't use 0 here which is default 115200
+        httpMessage += getOption(960, F("9600"), baudrate);
+        httpMessage += getOption(1920, F("19200"), baudrate);
+        httpMessage += getOption(3840, F("38400"), baudrate);
+        httpMessage += getOption(5760, F("57600"), baudrate);
+        httpMessage += getOption(7488, F("74880"), baudrate);
+        httpMessage += getOption(11520, F("115200"), baudrate);
         httpMessage += F("</select></p><p><b>Telemetry Period</b> <i><small>(Seconds, 0=disable)</small></i> "
                          "<input id='tele' required name='tele' type='number' min='0' max='65535' value='");
         httpMessage += settings[FPSTR(FP_DEBUG_TELEPERIOD)].as<String>();
@@ -1979,7 +1886,7 @@ void webHandleDebugConfig()
         httpMessage += F("'><b>Syslog Facility</b> <select id='log' name='log'>");
         uint8_t logid = settings[FPSTR(FP_CONFIG_LOG)].as<uint8_t>();
         for(int i = 0; i < 8; i++) {
-            httpMessage += getOption(i, String(F("Local")) + i, i == logid);
+            httpMessage += getOption(i, String(F("Local")) + i, logid);
         }
 
         httpMessage += F("</select></br><b>Syslog Protocol</b> <input id='proto' name='proto' type='radio' value='0'");
@@ -2028,23 +1935,23 @@ void webHandleHaspConfig()
         httpMessage += F("<p><b>UI Theme</b> <i><small>(required)</small></i><select id='theme' name='theme'>");
 
         uint8_t themeid = settings[FPSTR(FP_CONFIG_THEME)].as<uint8_t>();
-        // httpMessage += getOption(0, F("Built-in"), themeid == 0);
+        // httpMessage += getOption(0, F("Built-in"), themeid );
 #if LV_USE_THEME_HASP == 1
-        httpMessage += getOption(2, F("Hasp Dark"), themeid == 2);
-        httpMessage += getOption(1, F("Hasp Light"), themeid == 1);
+        httpMessage += getOption(2, F("Hasp Dark"), themeid);
+        httpMessage += getOption(1, F("Hasp Light"), themeid);
 #endif
 #if LV_USE_THEME_EMPTY == 1
-        httpMessage += getOption(0, F("Empty"), themeid == 0);
+        httpMessage += getOption(0, F("Empty"), themeid);
 #endif
 #if LV_USE_THEME_MONO == 1
-        httpMessage += getOption(3, F("Mono"), themeid == 3);
+        httpMessage += getOption(3, F("Mono"), themeid);
 #endif
 #if LV_USE_THEME_MATERIAL == 1
-        httpMessage += getOption(5, F("Material Dark"), themeid == 5);
-        httpMessage += getOption(4, F("Material Light"), themeid == 4);
+        httpMessage += getOption(5, F("Material Dark"), themeid);
+        httpMessage += getOption(4, F("Material Light"), themeid);
 #endif
 #if LV_USE_THEME_TEMPLATE == 1
-        httpMessage += getOption(7, F("Template"), themeid == 7);
+        httpMessage += getOption(7, F("Template"), themeid);
 #endif
         httpMessage += F("</select></br>");
         httpMessage += F("<b>Hue</b><div style='width:100%;background-image:linear-gradient(to "
@@ -2056,24 +1963,23 @@ void webHandleHaspConfig()
         httpMessage += F("<p><b>Default Font</b><select id='font' name='font'><option value=''>None</option>");
 
 #if defined(ARDUINO_ARCH_ESP32)
-        File root = HASP_FS.open("/");
-        File file = root.openNextFile();
+        File root        = HASP_FS.open("/");
+        File file        = root.openNextFile();
+        String main_font = settings[FPSTR(FP_CONFIG_ZIFONT)].as<String>();
 
         while(file) {
             String filename = file.name();
-            if(filename.endsWith(".zi"))
-                httpMessage +=
-                    getOption(file.name(), file.name(), filename == settings[FPSTR(FP_CONFIG_ZIFONT)].as<String>());
+            if(filename.endsWith(".zi")) httpMessage += getOption(filename, filename, main_font);
             file = root.openNextFile();
         }
 #elif defined(ARDUINO_ARCH_ESP8266)
         Dir dir = HASP_FS.openDir("/");
+        String main_font = settings[FPSTR(FP_CONFIG_ZIFONT)].as<String>();
+
         while(dir.next()) {
             File file = dir.openFile("r");
             String filename = file.name();
-            if(filename.endsWith(".zi"))
-                httpMessage +=
-                    getOption(file.name(), file.name(), filename == settings[FPSTR(FP_CONFIG_ZIFONT)].as<String>());
+            if(filename.endsWith(".zi")) httpMessage += getOption(filename, filename, main_font);
             file.close();
         }
 #endif
@@ -2240,7 +2146,7 @@ void httpHandleResetConfig()
         httpMessage += haspDevice.get_hostname();
         httpMessage += F("</h1><hr>");
 
-        if(resetConfirmed) { // User has confirmed, so reset everything
+        if(resetConfirmed) {                           // User has confirmed, so reset everything
             bool formatted = dispatch_factory_reset(); // configClearEeprom();
             if(formatted) {
                 httpMessage += F("<b>Resetting all saved settings and restarting device</b>");
@@ -2307,6 +2213,42 @@ void httpStop()
     LOG_WARNING(TAG_HTTP, F(D_SERVICE_STOPPED));
 }
 
+// Do not keep CSS in memory because it is cached in the browser
+void webSendCss()
+{
+    String HTTP_CSS =
+        F("body,.c{text-align:center;}"
+          "div,input{padding:5px;font-size:1em;}"
+          "a{color:" D_HTTP_COLOR_TEXT "}"
+          "input:not([type=file]){width:90%;background-color:" D_HTTP_COLOR_INPUT ";color:" D_HTTP_COLOR_INPUT_TEXT ";}"
+          "input[type=checkbox],input[type=radio]{width:1em;}"
+          "select{background-color:" D_HTTP_COLOR_INPUT ";color:" D_HTTP_COLOR_INPUT_TEXT ";}"
+          "input:invalid{border:1px solid " D_HTTP_COLOR_INPUT_WARNING ";}"
+          //"#hue{width:100%;}"
+          "body{font-family:verdana;width:60%;margin:auto;background:" D_HTTP_COLOR_BACKGROUND
+          ";color:" D_HTTP_COLOR_TEXT ";}"
+          "button{border:0;border-radius:0.6rem;background-color:" D_HTTP_COLOR_BUTTON
+          ";color:" D_HTTP_COLOR_BUTTON_TEXT ";line-height:2.4rem;font-size:1.2rem;width:100%;}"
+          //".q{float:right;width:64px;text-align:right;}"
+          ".red{background-color:" D_HTTP_COLOR_BUTTON_RESET ";}"
+          "#doc{text-align:left;display:inline-block;color:" D_HTTP_COLOR_TEXT ";min-width:260px;}"
+          // ".button3{background-color:#f44336;}"
+          // ".button4{background-color:#e7e7e7;color:black;}"
+          // ".button5{background-color:#555555;}"
+          // ".button6{background-color:#4CAF50;}"
+          "td{font-size:0.87rem;padding-bottom:0px;padding-top:0px;}th{padding-top:0.5em;}");
+    webSendCached(200, PSTR("text/css"), HTTP_CSS.c_str(), HTTP_CSS.length());
+}
+
+// Do not keep JS in memory because it is cached in the browser
+void webSendJavascript()
+{
+    String javascript = F("function aref(t){setTimeout(function() {ref('');}, t*1000)}"
+                          "function ref(a){ var t=new "
+                          "Date().getTime();document.getElementById('bmp').src='?a='+a+'&q='+t;return false;}");
+    webSendCached(200, PSTR("text/javascript"), javascript.c_str(), javascript.length());
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 void httpSetup()
 {
@@ -2314,12 +2256,17 @@ void httpSetup()
 
     // ask server to track these headers
     const char* headerkeys[] = {"Content-Length"}; // "Authentication"
-    size_t headerkeyssize    = sizeof(headerkeys) / sizeof(char*);
+
+    // const char HTTP_SCRIPT[] PROGMEM = "<script>function "
+    //                                    "c(l){document.getElementById('s').value=l.innerText||l.textContent;document."
+    //                                    "getElementById('p').focus();}</script>";
+    size_t headerkeyssize = sizeof(headerkeys) / sizeof(char*);
     webServer.collectHeaders(headerkeys, headerkeyssize);
 
     // Shared pages
     webServer.on(F("/about"), webHandleAbout);
-    webServer.on(F("/css"), []() { webSendCached(200, PSTR("text/css"), HTTP_CSS, sizeof(HTTP_CSS) - 1); });
+    webServer.on(F("/css"), webSendCss);
+    webServer.on(F("/js"), webSendJavascript);
     webServer.onNotFound(httpHandleNotFound);
 
 #if HASP_USE_WIFI > 0
