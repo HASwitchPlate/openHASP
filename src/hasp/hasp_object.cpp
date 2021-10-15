@@ -641,10 +641,15 @@ void hasp_new_object(const JsonObject& config, uint8_t& saved_page_id)
             case HASP_OBJ_MSGBOX:
                 obj = lv_msgbox_create(parent_obj, NULL);
                 if(obj) {
+                    /* Assign default OK btnmap and enable recolor */
+                    if(msgbox_default_map) lv_msgbox_add_btns(obj, msgbox_default_map);
+                    lv_msgbox_ext_t* ext = (lv_msgbox_ext_t*)lv_obj_get_ext_attr(obj);
+                    if(ext && ext->btnm) lv_btnmatrix_set_recolor(ext->btnm, true);
+
+                    /* msgbox parameters */
                     lv_obj_align(obj, NULL, LV_ALIGN_CENTER, 0, 0);
                     lv_obj_set_auto_realign(obj, true);
                     lv_obj_set_event_cb(obj, msgbox_event_handler);
-                    if(msgbox_default_map) lv_msgbox_add_btns(obj, msgbox_default_map);
                     obj->user_data.objid = LV_HASP_MSGBOX;
                 }
                 break;
