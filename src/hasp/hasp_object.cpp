@@ -225,6 +225,9 @@ static void object_add_task(lv_obj_t* obj, uint8_t pageid, uint8_t objid, lv_tas
  */
 void hasp_new_object(const JsonObject& config, uint8_t& saved_page_id)
 {
+    /* Skip line detection */
+    if(!config[FPSTR(FP_SKIP)].isNull() && config[FPSTR(FP_SKIP)].as<bool>()) return;
+
     /* Page selection */
     uint8_t pageid = saved_page_id;
     if(!config[FPSTR(FP_PAGE)].isNull()) {

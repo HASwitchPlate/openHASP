@@ -6,6 +6,7 @@
 
 #include "hasplib.h"
 
+const char FP_SKIP[] PROGMEM     = "skip";
 const char FP_PAGE[] PROGMEM     = "page";
 const char FP_ID[] PROGMEM       = "id";
 const char FP_OBJ[] PROGMEM      = "obj";
@@ -62,6 +63,7 @@ enum lv_hasp_obj_type_t {
     LV_HASP_ARC       = 26,
     LV_HASP_SPINNER   = 27,
     LV_HASP_CHART     = 28,
+    LV_HASP_DATETIME  = 40,
 
     /* Selectors */
     LV_HASP_DROPDOWN = 29,
