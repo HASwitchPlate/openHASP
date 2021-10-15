@@ -1335,6 +1335,7 @@ void webHandleGuiConfig()
         add_form_button(httpMessage, F(D_HTTP_CALIBRATE), F("/config/gui"), F("name='cal' value='1'"));
 #endif
 
+        add_form_button(httpMessage, F(D_HTTP_ANTIBURN), F("/config/gui"), F("name='brn' value='1'"));
         add_form_button(httpMessage, F(D_BACK_ICON D_HTTP_CONFIGURATION), F("/config"), F(""));
         webSendPage(haspDevice.get_hostname(), httpMessage.length(), false);
         webServer.sendContent(httpMessage);
@@ -1342,6 +1343,7 @@ void webHandleGuiConfig()
     webSendFooter();
 
     if(webServer.hasArg(F("cal"))) dispatch_calibrate(NULL, NULL, TAG_HTTP);
+    if(webServer.hasArg(F("brn"))) dispatch_antiburn(NULL, "on", TAG_HTTP);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

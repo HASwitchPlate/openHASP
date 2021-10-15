@@ -135,6 +135,7 @@
 #define D_HTTP_PREV_PAGE "Pagina anterioară"
 #define D_HTTP_NEXT_PAGE "Pagina următoare"
 #define D_HTTP_CALIBRATE "Calibrare"
+#define D_HTTP_ANTIBURN "Run Anti Burn-in" // New
 #define D_HTTP_SCREENSHOT "Captură de ecran"
 #define D_HTTP_FILE_BROWSER "Browser de fișiere"
 #define D_HTTP_FIRMWARE_UPGRADE "Actualizare firmware"

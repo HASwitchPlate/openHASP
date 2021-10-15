@@ -135,6 +135,7 @@
 #define D_HTTP_PREV_PAGE "Előző oldal"
 #define D_HTTP_NEXT_PAGE "Következő oldal"
 #define D_HTTP_CALIBRATE "Kalibrálás"
+#define D_HTTP_ANTIBURN "Run Anti Burn-in" // New
 #define D_HTTP_SCREENSHOT "Képernyőkép"
 #define D_HTTP_FILE_BROWSER "Fájlkezelő"
 #define D_HTTP_FIRMWARE_UPGRADE "Firmware frissítés"

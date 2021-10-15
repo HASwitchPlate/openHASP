@@ -135,6 +135,7 @@
 #define D_HTTP_PREV_PAGE "Vorige Pagina"
 #define D_HTTP_NEXT_PAGE "Volgende Pagina"
 #define D_HTTP_CALIBRATE "Calibratie"
+#define D_HTTP_ANTIBURN "Inbranden Voorkomen" // New
 #define D_HTTP_SCREENSHOT "Schermafbeelding"
 #define D_HTTP_FILE_BROWSER "Bestandseditor"
 #define D_HTTP_FIRMWARE_UPGRADE "Firmware Upgrade"

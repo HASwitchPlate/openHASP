@@ -135,6 +135,7 @@
 #define D_HTTP_PREV_PAGE "Página Previa"
 #define D_HTTP_NEXT_PAGE "Siguiente Página"
 #define D_HTTP_CALIBRATE "Calibrar"
+#define D_HTTP_ANTIBURN "Run Anti Burn-in" // New
 #define D_HTTP_SCREENSHOT "Imagen de Pantalla"
 #define D_HTTP_FILE_BROWSER "Editor de Archivos"
 #define D_HTTP_FIRMWARE_UPGRADE "Actualización de firmware"
