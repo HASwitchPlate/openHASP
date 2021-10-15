@@ -28,6 +28,7 @@
 
 LV_FONT_DECLARE(unscii_8_icon);
 extern const char** btnmatrix_default_map; // memory pointer to lvgl default btnmatrix map
+extern const char* msgbox_default_map[];   // memory pointer to lvgl default btnmatrix map
 
 void my_image_release_resources(lv_obj_t* obj)
 {
@@ -78,8 +79,17 @@ void my_btnmatrix_map_clear(lv_obj_t* obj)
 
 void my_msgbox_map_clear(lv_obj_t* obj)
 {
-    lv_msgbox_ext_t* ext = (lv_msgbox_ext_t*)lv_obj_get_ext_attr(obj);
-    if(ext && ext->btnm) my_btnmatrix_map_clear(ext->btnm); // Clear the button map if it exists yet
+    lv_msgbox_ext_t* ext_msgbox = (lv_msgbox_ext_t*)lv_obj_get_ext_attr(obj);
+    if(!ext_msgbox) return;
+
+    lv_obj_t* btnmatrix = ext_msgbox->btnm; // Get buttonmatrix object
+    if(!btnmatrix) return;
+
+    lv_btnmatrix_ext_t* ext_btnmatrix = (lv_btnmatrix_ext_t*)lv_obj_get_ext_attr(btnmatrix);
+    if(!ext_btnmatrix) return;
+
+    if(ext_btnmatrix->map_p != msgbox_default_map) // Dont clear the default btnmap
+        my_btnmatrix_map_clear(btnmatrix);         // Clear the custom button map if it exists
 }
 
 // Create new btnmatrix button map from json array
@@ -1140,12 +1150,15 @@ static hasp_attribute_type_t attribute_common_align(lv_obj_t* obj, const char* a
                                                     bool update)
 {
     lv_label_align_t val = 0;
+    lv_align_t pos       = LV_ALIGN_CENTER;
 
     if(update) {
         if(!strcasecmp_P(payload, PSTR("left"))) {
             val = LV_LABEL_ALIGN_LEFT;
+          //  pos = LV_ALIGN_IN_LEFT_MID;
         } else if(!strcasecmp_P(payload, PSTR("right"))) {
             val = LV_LABEL_ALIGN_RIGHT;
+           // pos = LV_ALIGN_IN_RIGHT_MID;
         } else if(!strcasecmp_P(payload, PSTR("center"))) {
             val = LV_LABEL_ALIGN_CENTER;
         } else if(!strcasecmp_P(payload, PSTR("auto"))) {
@@ -1160,9 +1173,10 @@ static hasp_attribute_type_t attribute_common_align(lv_obj_t* obj, const char* a
         case LV_HASP_BUTTON: {
             lv_obj_t* label = FindButtonLabel(obj);
             if(label) {
-                if(update)
+                if(update) {
+                  //  lv_obj_align(label, NULL, pos, 0, 0);
                     lv_label_set_align(label, val);
-                else
+                } else
                     val = lv_label_get_align(label);
             } else {
                 return HASP_ATTR_TYPE_NOT_FOUND; // not found
