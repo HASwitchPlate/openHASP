@@ -1699,9 +1699,7 @@ void webHandleGpioOutput()
         }
         httpMessage += F("</select></p>");
 
-        bool selected;
         httpMessage += F("<p><b>Type</b> <select id='type' name='type'>");
-
         httpMessage += getOption(hasp_gpio_type_t::LED, F(D_GPIO_LED), conf.type);
         httpMessage += getOption(hasp_gpio_type_t::LED_R, F(D_GPIO_LED_R), conf.type);
         httpMessage += getOption(hasp_gpio_type_t::LED_G, F(D_GPIO_LED_G), conf.type);
@@ -1711,12 +1709,10 @@ void webHandleGpioOutput()
         httpMessage += getOption(hasp_gpio_type_t::SHUTTER_RELAY, F("Shutter Relay"), conf.type);
         httpMessage += getOption(hasp_gpio_type_t::HASP_DAC, F(D_GPIO_DAC), conf.type);
         // httpMessage += getOption(hasp_gpio_type_t::SERIAL_DIMMER, F(D_GPIO_SERIAL_DIMMER), conf.type);
-
 #if defined(LANBONL8)
         httpMessage += getOption(hasp_gpio_type_t::SERIAL_DIMMER_AU, F("L8-HD (AU)"), conf.type);
         httpMessage += getOption(hasp_gpio_type_t::SERIAL_DIMMER_EU, F("L8-HD (EU)"), conf.type);
 #endif
-
         if(digitalPinHasPWM(webServer.arg(0).toInt())) {
             httpMessage += getOption(hasp_gpio_type_t::PWM, F(D_GPIO_PWM), conf.type);
         }
@@ -1785,9 +1781,7 @@ void webHandleGpioInput()
         }
         httpMessage += F("</select></p>");
 
-        bool selected;
         httpMessage += F("<p><b>Type</b> <select id='type' name='type'>");
-
         httpMessage += getOption(hasp_gpio_type_t::BUTTON, F(D_GPIO_BUTTON), conf.type);
         httpMessage += getOption(hasp_gpio_type_t::SWITCH, F(D_GPIO_SWITCH), conf.type);
         httpMessage += getOption(hasp_gpio_type_t::DOOR, F("door"), conf.type);
@@ -1805,7 +1799,6 @@ void webHandleGpioInput()
         httpMessage += getOption(hasp_gpio_type_t::SMOKE, F("Smoke"), conf.type);
         httpMessage += getOption(hasp_gpio_type_t::VIBRATION, F("Vibration"), conf.type);
         httpMessage += getOption(hasp_gpio_type_t::WINDOW, F("Window"), conf.type);
-
         httpMessage += F("</select></p>");
 
         httpMessage += F("<p><b>" D_GPIO_GROUP "</b> <select id='group' name='group'>");

@@ -73,6 +73,7 @@ void dispatch_statusupdate(const char*, const char*, uint8_t source);
 void dispatch_send_discovery(const char*, const char*, uint8_t source);
 void dispatch_idle(const char*, const char*, uint8_t source);
 void dispatch_calibrate(const char*, const char*, uint8_t source);
+void dispatch_antiburn(const char*, const char* payload, uint8_t source);
 void dispatch_wakeup(const char*, const char*, uint8_t source);
 void dispatch_exec(const char*, const char* payload, uint8_t source);
 void dispatch_config(const char* topic, const char* payload, uint8_t source);
