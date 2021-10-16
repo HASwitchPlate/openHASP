@@ -1,6 +1,12 @@
 name: Build branch
 
-on: [push, workflow_dispatch]
+on:
+  push:
+    paths-ignore:
+      - '**.md'
+  workflow_dispatch:
+    paths-ignore:
+      - '**.md'
 
 jobs:
   build:
