@@ -18,6 +18,9 @@
 #include "hasp/hasp.h"
 
 #if defined(ARDUINO_ARCH_ESP32)
+#ifndef ESP_ARDUINO_VERSION_VAL
+#define ESP_ARDUINO_VERSION_VAL(major, minor, patch) ((major << 16) | (minor << 8) | (patch))
+#endif
 #include <WiFi.h>
 #elif defined(ARDUINO_ARCH_ESP8266)
 #include <ESP8266WiFi.h>
@@ -300,11 +303,15 @@ static void wifiSsidConnected(const char* ssid)
 }
 
 #if defined(ARDUINO_ARCH_ESP32)
-static void wifi_callback(system_event_id_t event, system_event_info_t info)
+static void wifi_callback(WiFiEvent_t event, WiFiEventInfo_t info)
 {
     switch(event) {
         case SYSTEM_EVENT_STA_CONNECTED:
+#if ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(2, 0, 0)
+            wifiSsidConnected((const char*)info.wifi_sta_connected.ssid);
+#else
             wifiSsidConnected((const char*)info.connected.ssid);
+#endif
             break;
         case SYSTEM_EVENT_STA_GOT_IP:
             wifiConnected(IPAddress(info.got_ip.ip_info.ip.addr));
@@ -324,7 +331,11 @@ static void wifi_callback(system_event_id_t event, system_event_info_t info)
             break;
         }
         case SYSTEM_EVENT_STA_DISCONNECTED:
+#if ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(2, 0, 0)
+            wifiDisconnected((const char*)info.wifi_sta_disconnected.ssid, info.wifi_sta_disconnected.reason);
+#else
             wifiDisconnected((const char*)info.disconnected.ssid, info.disconnected.reason);
+#endif
             // NTP.stop(); // NTP sync can be disabled to avoid sync errors
             break;
         default:
