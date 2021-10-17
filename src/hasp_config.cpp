@@ -178,9 +178,19 @@ DeserializationError configRead(JsonDocument& settings, bool setupdebug = false)
     LOG_ERROR(TAG_CONF, F(D_FILE_LOAD_FAILED), configFile.c_str());
 #endif
 
+#if HASP_USE_EEPROM > 0
     configFile = F("EEPROM");
     LOG_TRACE(TAG_CONF, F(D_FILE_LOADING), configFile.c_str());
     LOG_INFO(TAG_CONF, F(D_FILE_LOADED), configFile.c_str());
+#endif
+
+#if HASP_USE_CONFIG > 0 && defined(HASP_GPIO_TEMPLATE)
+    // Load custom GPIO template
+    char json[96];
+    snprintf(json, sizeof(json), PSTR("{\"%s\":%s}"), (char*)(FPSTR(FP_GPIO_CONFIG)), (char*)(FPSTR(FP_GPIO_TEMPLATE)));
+    dispatch_config((char*)(FPSTR(FP_GPIO)), json);
+#endif
+
     return error;
 }
 
