@@ -187,8 +187,8 @@ DeserializationError configRead(JsonDocument& settings, bool setupdebug = false)
 #if HASP_USE_CONFIG > 0 && defined(HASP_GPIO_TEMPLATE)
     // Load custom GPIO template
     char json[96];
-    snprintf(json, sizeof(json), PSTR("{\"%s\":%s}"), (char*)(FPSTR(FP_GPIO_CONFIG)), (char*)(FPSTR(FP_GPIO_TEMPLATE)));
-    dispatch_config((char*)(FPSTR(FP_GPIO)), json);
+    snprintf(json, sizeof(json), PSTR("{\"%s\":%s}"), (char*)(FPSTR(FP_GPIO_CONFIG)), (char*)(FPSTR(HASP_GPIO_TEMPLATE)));
+    dispatch_config((char*)(FPSTR(FP_GPIO)), json, TAG_CONF);
 #endif
 
     return error;
