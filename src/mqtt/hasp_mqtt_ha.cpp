@@ -16,9 +16,14 @@
 
 #define RETAINED true
 
-// extern char mqttNodeName[16];
+#if defined(WINDOWS) || defined(POSIX)
 extern std::string mqttNodeTopic;
 extern std::string mqttGroupTopic;
+#else
+extern char mqttNodeTopic[];
+extern char mqttGroupTopic[];
+#endif
+
 extern bool mqttEnabled;
 extern bool mqttHAautodiscover;
 

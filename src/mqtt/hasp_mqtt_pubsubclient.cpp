@@ -99,13 +99,12 @@ bool mqtt_send_lwt(bool online)
 {
     char tmp_payload[8];
     char tmp_topic[strlen(mqttNodeTopic) + 4];
+
     strncpy(tmp_topic, mqttNodeTopic, sizeof(tmp_topic));
     strncat_P(tmp_topic, PSTR(MQTT_TOPIC_LWT), sizeof(tmp_topic));
-    // snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%s" MQTT_TOPIC_LWT), mqttNodeTopic);
 
     size_t len = snprintf_P(tmp_payload, sizeof(tmp_payload), online ? PSTR("online") : PSTR("offline"));
     bool res   = mqttPublish(tmp_topic, tmp_payload, len, true);
-
     return res;
 }
 
