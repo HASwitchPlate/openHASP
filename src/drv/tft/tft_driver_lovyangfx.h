@@ -24,7 +24,8 @@
 namespace dev {
 class LGFX : public lgfx::LGFX_Device {
   public:
-    lgfx::Panel_ILI9488 _panel_instance;
+    // lgfx::Panel_ILI9481 _panel_instance;
+    lgfx::Panel_LCD* _panel_instance;
     lgfx::IBus* _bus_instance; // SPIバスのインスタンス
     lgfx::Light_PWM _light_instance;
     lgfx::Touch_XPT2046 _touch_instance;
