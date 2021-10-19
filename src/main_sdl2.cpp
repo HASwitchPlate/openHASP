@@ -46,6 +46,10 @@ bool isRunning = 1;
 uint8_t mainLoopCounter        = 0;
 unsigned long mainLastLoopTime = 0;
 
+#ifdef HASP_USE_STAT_COUNTER
+uint16_t statLoopCounter = 0; // measures the average looptime
+#endif
+
 extern uint16_t tft_width;
 extern uint16_t tft_height;
 
@@ -168,6 +172,10 @@ void loop()
     custom_loop();
 #endif
 
+#ifdef HASP_USE_STAT_COUNTER
+    statLoopCounter++; // measures the average looptime
+#endif
+
     /* Timer Loop */
     if(millis() - mainLastLoopTime >= 1000) {
         /* Runs Every Second */
@@ -179,7 +187,7 @@ void loop()
 #endif
 
 #if defined(HASP_USE_CUSTOM)
-    custom_every_second();
+        custom_every_second();
 #endif
 
         /* Runs Every 5 Seconds */

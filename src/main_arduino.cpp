@@ -29,7 +29,7 @@ uint8_t mainLoopCounter        = 0;
 unsigned long mainLastLoopTime = 0;
 
 #ifdef HASP_USE_STAT_COUNTER
-uint8_t statLoopCounter = 0; // measures the average looptime
+uint16_t statLoopCounter = 0; // measures the average looptime
 #endif
 
 void setup()
