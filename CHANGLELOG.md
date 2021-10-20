@@ -23,15 +23,12 @@
 - Add Waveshare ESP32 One development board with Rpi MHS4001(B) or Waveshare RPi(C) LCD display
 - Add D1-R32 ESP32 development board with with Waveshare ILI9486 Touch Shield
 
-### Fonts
-~~- Add font loader on devices with PSram~~
-
 ### Bug fixes
 - Fix bug that caused a crash when both `btnmatrix` and `msgbox` where used (thanks @AndreTeixeira1998)
 - Fix L8-HD dimmer brightness initialization after a reboot (thanks @Stupco)
 - Keep last dimmer value when toggling dimmer state on/off 
-- Fix configurable mqttPort (thanks @ Qargh)
-- Fix opaque background of `spinner` object in HASP theme (thanks @ nagyrobi)
+- Fix configurable mqttPort (thanks @Qargh)
+- Fix opaque background of `spinner` object in HASP theme (thanks @nagyrobi)
 
 Updated AceButton to 1.9.1 and ArduinoJson to 6.18.5
 
