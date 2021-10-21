@@ -71,6 +71,7 @@ void dispatch_backlight(const char*, const char* payload, uint8_t source);
 void dispatch_web_update(const char*, const char* espOtaUrl, uint8_t source);
 void dispatch_statusupdate(const char*, const char*, uint8_t source);
 void dispatch_send_discovery(const char*, const char*, uint8_t source);
+void dispatch_send_sensordata(const char*, const char*, uint8_t source);
 void dispatch_idle(const char*, const char*, uint8_t source);
 void dispatch_calibrate(const char*, const char*, uint8_t source);
 void dispatch_antiburn(const char*, const char* payload, uint8_t source);
