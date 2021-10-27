@@ -25,7 +25,7 @@ openHASP also adds ESP32 and STM32F4 support to take advantage of the additional
 
 ## Features
 
-| Feature (v0.6.0)                 | ESP8266 | ESP32   | STM32F4
+| Feature (v0.6.x)                 | ESP8266 | ESP32   | STM32F4
 |-------------------------|---------|---------|----------
 | SPI display             | :white_check_mark: yes | :white_check_mark: yes | :white_check_mark: yes
 | Parallel display        | :x: no | :white_check_mark: yes | :white_check_mark: yes
