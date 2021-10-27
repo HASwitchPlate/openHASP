@@ -13,7 +13,9 @@
 extern "C" {
 #endif
 
+#ifndef ESP32S2
 uint8_t temprature_sens_read();
+#endif
 
 #ifdef __cplusplus
 }
