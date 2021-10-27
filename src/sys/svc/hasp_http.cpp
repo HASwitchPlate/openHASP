@@ -7,6 +7,7 @@
 
 #if defined(ARDUINO_ARCH_ESP32)
 #include "Update.h"
+#include "sdkconfig.h" // for CONFIG_IDF_TARGET_ESP32* defines
 #endif
 
 #include "hasp_conf.h"
@@ -101,8 +102,12 @@ ESP8266WebServer webServer(80);
 #include <WebServer.h>
 #include <detail/mimetable.h>
 WebServer webServer(80);
+
+#if defined(CONFIG_IDF_TARGET_ESP32)
 extern const uint8_t EDIT_HTM_GZ_START[] asm("_binary_data_edit_htm_gz_start");
 extern const uint8_t EDIT_HTM_GZ_END[] asm("_binary_data_edit_htm_gz_end");
+#endif // CONFIG_IDF_TARGET_ESP32
+
 #endif // ESP32
 
 HTTPUpload* upload;
@@ -963,7 +968,7 @@ int handleFileRead(String path)
         return 200; // OK
     }
 
-#ifdef ARDUINO_ARCH_ESP32
+#if defined(ARDUINO_ARCH_ESP32) && defined(CONFIG_IDF_TARGET_ESP32)
     if(path == F("/edit.htm")) {
         size_t size = EDIT_HTM_GZ_END - EDIT_HTM_GZ_START;
         webServer.sendHeader(F("Content-Encoding"), F("gzip"));
