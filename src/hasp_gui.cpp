@@ -91,10 +91,10 @@ IRAM_ATTR void gui_flush_cb(lv_disp_drv_t* disp, const lv_area_t* area, lv_color
     haspTft.flush_pixels(disp, area, color_p);
 }
 
-// IRAM_ATTR bool touch_read(lv_indev_drv_t* indev_driver, lv_indev_data_t* data)
-// {
-//     return haspTouch.read(indev_driver, data);
-// }
+IRAM_ATTR bool gui_touch_read(lv_indev_drv_t* indev_driver, lv_indev_data_t* data)
+{
+    return haspTouch.read(indev_driver, data);
+}
 
 void guiCalibrate(void)
 {
@@ -326,7 +326,7 @@ void guiSetup()
 #if defined(WINDOWS) || defined(POSIX)
     indev_drv.read_cb = mouse_read;
 #else
-    indev_drv.read_cb = touch_read;
+    indev_drv.read_cb = gui_touch_read;
 #endif
     lv_indev_t* mouse_indev  = lv_indev_drv_register(&indev_drv);
     mouse_indev->driver.type = LV_INDEV_TYPE_POINTER;
