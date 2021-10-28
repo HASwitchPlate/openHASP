@@ -12,6 +12,26 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    strategy:
+      matrix:
+
+        environments:
+          - lolin-d32-pro_ili9341
+          - arduitouch-esp32_ili9341
+          - esp32-one_st7796
+          - makerfabs-tft35-cap
+          - yeacreate-nscreen32
+          - d1-mini-esp32_ili9341
+          - esp32-touchdown
+          - freetouchdeck
+          - huzzah32-featherwing-24
+          - huzzah32-featherwing-35
+          - lanbon_l8
+          - m5stack-core2
+          - wt32-sc01
+          - d1-mini-esp8266_ili9341
+          - linux_sdl_64bits
+
     steps:
       - uses: actions/checkout@v2
       - name: Cache pip
@@ -50,11 +70,11 @@ jobs:
         run: |
           cat platformio_override.ini
       - name: Run PlatformIO
-        run: pio run -e lolin-d32-pro_ili9341 -e arduitouch-esp32_ili9341 -e esp32-one_st7796 -e makerfabs-tft35-cap -e yeacreate-nscreen32 -e d1-mini-esp32_ili9341 -e esp32-touchdown -e freetouchdeck -e huzzah32-featherwing-24 -e huzzah32-featherwing-35 -e lanbon_l8 -e m5stack-core2 -e wt32-sc01 -e d1-mini-esp8266_ili9341 -e linux_sdl_64bits
+        run: pio run -e ${{ matrix.environments }}
       - name: Upload output file
         uses: actions/upload-artifact@v2
         with:
-          name: openHASP firmware.zip
+          name: ${{ matrix.environments }}.zip
           path: build_output/firmware/*.bin
     #- name: Create release and upload firmware
     #  run: |
