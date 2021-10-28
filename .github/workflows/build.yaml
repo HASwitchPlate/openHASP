@@ -13,8 +13,8 @@ jobs:
     runs-on: ubuntu-latest
 
     strategy:
+      fail-fast: false
       matrix:
-
         environments:
           - lolin-d32-pro_ili9341
           - arduitouch-esp32_ili9341
