@@ -25,33 +25,33 @@ extern uint8_t hasp_sleep_state;
 
 static Adafruit_STMPE610 stmpe610_touchpanel = Adafruit_STMPE610(TOUCH_CS);
 
-bool touch_read(lv_indev_drv_t* indev_driver, lv_indev_data_t* data)
-{
-    data->state = LV_INDEV_STATE_REL;
+// bool touch_read(lv_indev_drv_t* indev_driver, lv_indev_data_t* data)
+// {
+//     data->state = LV_INDEV_STATE_REL;
 
-    // while touched, but the state is released => read next point
-    while(data->state == LV_INDEV_STATE_REL && stmpe610_touchpanel.touched()) {
+//     // while touched, but the state is released => read next point
+//     while(data->state == LV_INDEV_STATE_REL && stmpe610_touchpanel.touched()) {
 
-        TS_Point point = stmpe610_touchpanel.getPoint();
-        Log.trace(TAG_DRVR, F("STMPE610: x=%i y=%i z=%i"), point.x, point.y, point.z);
+//         TS_Point point = stmpe610_touchpanel.getPoint();
+//         Log.trace(TAG_DRVR, F("STMPE610: x=%i y=%i z=%i"), point.x, point.y, point.z);
 
-        if(point.z && point.x < 4096 && point.y < 4096) {                     // valid reading
-            if(hasp_sleep_state != HASP_SLEEP_OFF) hasp_update_sleep_state(); // update Idle
-            data->state = LV_INDEV_STATE_PR;
+//         if(point.z && point.x < 4096 && point.y < 4096) {                     // valid reading
+//             if(hasp_sleep_state != HASP_SLEEP_OFF) hasp_update_sleep_state(); // update Idle
+//             data->state = LV_INDEV_STATE_PR;
 
-#if HX8357D_DRIVER == 1
-            data->point.x = map(point.x, TS_MINX, TS_MAXX, TFT_WIDTH, 0);
-            data->point.y = map(point.y, TS_MINY, TS_MAXY, 0, TFT_HEIGHT);
-#else
-            data->point.x = map(point.x, TS_MINX, TS_MAXX, 0, TFT_WIDTH);
-            data->point.y = map(point.y, TS_MINY, TS_MAXY, 0, TFT_HEIGHT);
-#endif
-        }
-    }
+// #if HX8357D_DRIVER == 1
+//             data->point.x = map(point.x, TS_MINX, TS_MAXX, TFT_WIDTH, 0);
+//             data->point.y = map(point.y, TS_MINY, TS_MAXY, 0, TFT_HEIGHT);
+// #else
+//             data->point.x = map(point.x, TS_MINX, TS_MAXX, 0, TFT_WIDTH);
+//             data->point.y = map(point.y, TS_MINY, TS_MAXY, 0, TFT_HEIGHT);
+// #endif
+//         }
+//     }
 
-    /*Return `false` because we are not buffering and no more data to read*/
-    return false;
-}
+//     /*Return `false` because we are not buffering and no more data to read*/
+//     return false;
+// }
 
 namespace dev {
 
@@ -60,7 +60,30 @@ class TouchStmpe610 : public BaseTouch {
   public:
     IRAM_ATTR bool read(lv_indev_drv_t* indev_driver, lv_indev_data_t* data)
     {
-        return touch_read(indev_driver, data);
+        data->state = LV_INDEV_STATE_REL;
+
+        // while touched, but the state is released => read next point
+        while(data->state == LV_INDEV_STATE_REL && stmpe610_touchpanel.touched()) {
+
+            TS_Point point = stmpe610_touchpanel.getPoint();
+            Log.trace(TAG_DRVR, F("STMPE610: x=%i y=%i z=%i"), point.x, point.y, point.z);
+
+            if(point.z && point.x < 4096 && point.y < 4096) {                     // valid reading
+                if(hasp_sleep_state != HASP_SLEEP_OFF) hasp_update_sleep_state(); // update Idle
+                data->state = LV_INDEV_STATE_PR;
+
+#if HX8357D_DRIVER == 1
+                data->point.x = map(point.x, TS_MINX, TS_MAXX, TFT_WIDTH, 0);
+                data->point.y = map(point.y, TS_MINY, TS_MAXY, 0, TFT_HEIGHT);
+#else
+                data->point.x = map(point.x, TS_MINX, TS_MAXX, 0, TFT_WIDTH);
+                data->point.y = map(point.y, TS_MINY, TS_MAXY, 0, TFT_HEIGHT);
+#endif
+            }
+        }
+
+        /*Return `false` because we are not buffering and no more data to read*/
+        return false;
     }
 
     void init(int w, int h)

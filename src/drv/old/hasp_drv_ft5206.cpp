@@ -67,10 +67,10 @@ void FT5206_init()
 {
     LOG_INFO(TAG_DRVR, F("Touch SDA     : %d"), TOUCH_SDA);
     LOG_INFO(TAG_DRVR, F("Touch SCL     : %d"), TOUCH_SCL);
-    LOG_INFO(TAG_DRVR, F("Touch freq.   : %d"), TOUCH_FREQUENCY);
+    LOG_INFO(TAG_DRVR, F("Touch freq.   : %d"), I2C_TOUCH_FREQUENCY);
     LOG_INFO(TAG_DRVR, F("Touch address : %02x"), FT5206_address);
 
-    Wire1.begin(TOUCH_SDA, TOUCH_SCL, TOUCH_FREQUENCY);
+    Wire1.begin(TOUCH_SDA, TOUCH_SCL, I2C_TOUCH_FREQUENCY);
     scan(Wire1);
     touchpanel = new FocalTech_Class();
 

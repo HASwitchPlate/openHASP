@@ -40,7 +40,7 @@ void LovyanGfx::init(int w, int h)
 #ifdef USE_DMA_TO_TFT
     int dma_channel = 1; // Set the DMA channel (1 or 2. 0=disable)
 #else
-    int dma_channel = 1; // Set the DMA channel (1 or 2. 0=disable)
+    int dma_channel = 0; // Set the DMA channel (1 or 2. 0=disable)
 #endif
 
     uint32_t tft_driver = 0;
@@ -73,7 +73,7 @@ else if (tft_driver == 0x7796)
     { // バス制御の設定を行います。
         auto bus     = (lgfx::v1::Bus_SPI*)tft._bus_instance;
         auto cfg     = bus->config(); // バス設定用の構造体を取得します。
-        cfg.spi_host = VSPI_HOST;     // 使用するSPIを選択  (VSPI_HOST or HSPI_HOST)
+        cfg.spi_host = HSPI_HOST;     // 使用するSPIを選択  (VSPI_HOST or HSPI_HOST)
         cfg.spi_mode = 0;             // SPI通信モードを設定 (0 ~ 3)
         cfg.freq_write = SPI_FREQUENCY; // 送信時のSPIクロック (最大80MHz, 80MHzを整数で割った値に丸められます)
         cfg.freq_read   = SPI_READ_FREQUENCY; // 受信時のSPIクロック
@@ -137,7 +137,7 @@ else if (tft_driver == 0x7796)
         cfg.pin_int         = -1;   // INTが接続されているピン番号
         cfg.bus_shared      = true; // 画面と共通のバスを使用している場合 trueを設定
         cfg.offset_rotation = 0; // 表示とタッチの向きのが一致しない場合の調整 0~7の値で設定
-        cfg.spi_host        = VSPI_HOST; // 使用するSPIを選択 (HSPI_HOST or VSPI_HOST)
+        cfg.spi_host        = HSPI_HOST; // 使用するSPIを選択 (HSPI_HOST or VSPI_HOST)
         cfg.pin_sclk        = TFT_SCLK;  // SCLKが接続されているピン番号
         cfg.pin_mosi        = TFT_MOSI;  // MOSIが接続されているピン番号
         cfg.pin_miso        = TFT_MISO;  // MISOが接続されているピン番号

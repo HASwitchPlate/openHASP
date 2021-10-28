@@ -62,7 +62,7 @@ void FT6336U_init()
 
     LOG_INFO(TAG_DRVR, F("Touch SDA     : %d"), TOUCH_SDA);
     LOG_INFO(TAG_DRVR, F("Touch SCL     : %d"), TOUCH_SCL);
-    LOG_INFO(TAG_DRVR, F("Touch freq.   : %d"), TOUCH_FREQUENCY);
+    LOG_INFO(TAG_DRVR, F("Touch freq.   : %d"), I2C_TOUCH_FREQUENCY);
     LOG_INFO(TAG_DRVR, F("Touch address : %x"), I2C_ADDR_FT6336U);
 
     touchpanel = new FT6336U(TOUCH_SDA, TOUCH_SCL, TOUCH_RST, TOUCH_IRQ);

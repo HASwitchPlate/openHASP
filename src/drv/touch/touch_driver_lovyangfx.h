@@ -1,8 +1,8 @@
 /* MIT License - Copyright (c) 2019-2021 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
-#ifndef HASP_TFTESPI_TOUCH_DRIVER_H
-#define HASP_TFTESPI_TOUCH_DRIVER_H
+#ifndef HASP_LOVYANGFX_TOUCH_DRIVER_H
+#define HASP_LOVYANGFX_TOUCH_DRIVER_H
 
 #ifdef ARDUINO
 #include "Arduino.h"
@@ -30,14 +30,21 @@ extern uint8_t hasp_sleep_state;
 
 namespace dev {
 
-class TouchTftEspi : public BaseTouch {
+class TouchLovyanGfx : public BaseTouch {
 
   public:
-    IRAM_ATTR bool read(lv_indev_drv_t* indev_driver, lv_indev_data_t* data)
+    static IRAM_ATTR bool read(lv_indev_drv_t* indev_driver, lv_indev_data_t* data)
     {
-        if(haspTft.tft.getTouch((uint16_t*)&data->point.x, (uint16_t*)&data->point.y, 300)) {
+        int16_t touchX = 0;
+        int16_t touchY = 0;
+
+        if(haspTft.tft.getTouch((uint16_t*)&touchX, (uint16_t*)&touchY, 300)) {
             if(hasp_sleep_state != HASP_SLEEP_OFF) hasp_update_sleep_state(); // update Idle
-            data->state = LV_INDEV_STATE_PR;
+
+            data->point.x = touchX;
+            data->point.y = touchY;
+            data->state   = LV_INDEV_STATE_PR;
+
         } else {
             data->state = LV_INDEV_STATE_REL;
         }
@@ -65,9 +72,9 @@ class TouchTftEspi : public BaseTouch {
 
 } // namespace dev
 
-using dev::TouchTftEspi;
-extern dev::TouchTftEspi haspTouch;
+using dev::TouchLovyanGfx;
+extern dev::TouchLovyanGfx haspTouch;
 
 #endif // ARDUINO
 
-#endif // HASP_TFTESPI_TOUCH_DRIVER_H
+#endif // HASP_LOVYANGFX_TOUCH_DRIVER_H

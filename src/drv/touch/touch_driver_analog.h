@@ -18,29 +18,26 @@ extern uint8_t hasp_sleep_state;
 #define MINPRESSURE 200
 #define MAXPRESSURE 2400
 
-const int XP=TFT_D6,XM=TFT_DC,YP=TFT_WR,YM=TFT_D7; //ID=0x9341
-const int TS_LEFT=560,TS_RT=3670,TS_TOP=3850,TS_BOT=580;
-int max_x = 4095,max_y=4095;
+const int XP = TFT_D6, XM = TFT_DC, YP = TFT_WR, YM = TFT_D7; // ID=0x9341
+const int TS_LEFT = 560, TS_RT = 3670, TS_TOP = 3850, TS_BOT = 580;
+int max_x = 4095, max_y = 4095;
 
 static TouchScreen ts = TouchScreen(XP, YP, XM, YM, 300);
 
-IRAM_ATTR bool touch_read(lv_indev_drv_t* indev_driver, lv_indev_data_t* data)
-{
-    static TSPoint tp;
-    tp = ts.getPoint();
-    if (tp.z < MINPRESSURE){
-        data->state = LV_INDEV_STATE_REL;
-    }else{
-        data->point.x = map(tp.x,TS_LEFT,TS_RT,0,max_x);
-        data->point.y = map(tp.y,TS_BOT,TS_TOP,max_y,0);
-        data->state   = LV_INDEV_STATE_PR;
-    }
+// IRAM_ATTR bool touch_read(lv_indev_drv_t* indev_driver, lv_indev_data_t* data)
+// {
+//     static TSPoint tp;
+//     tp = ts.getPoint();
+//     if(tp.z < MINPRESSURE) {
+//         data->state = LV_INDEV_STATE_REL;
+//     } else {
+//         data->point.x = map(tp.x, TS_LEFT, TS_RT, 0, max_x);
+//         data->point.y = map(tp.y, TS_BOT, TS_TOP, max_y, 0);
+//         data->state   = LV_INDEV_STATE_PR;
+//     }
 
-    return false;
-
-    /*Return `false` because we are not buffering and no more data to read*/
-    // return false;
-}
+//     return false;
+// }
 
 namespace dev {
 
@@ -52,10 +49,20 @@ class AnalogTouch : public BaseTouch {
         max_x = w;
         max_y = h;
     }
-    
+
     IRAM_ATTR bool read(lv_indev_drv_t* indev_driver, lv_indev_data_t* data)
     {
-        return touch_read(indev_driver, data);
+        static TSPoint tp;
+        tp = ts.getPoint();
+        if(tp.z < MINPRESSURE) {
+            data->state = LV_INDEV_STATE_REL;
+        } else {
+            data->point.x = map(tp.x, TS_LEFT, TS_RT, 0, max_x);
+            data->point.y = map(tp.y, TS_BOT, TS_TOP, max_y, 0);
+            data->state   = LV_INDEV_STATE_PR;
+        }
+
+        return false;
     }
 };
 
