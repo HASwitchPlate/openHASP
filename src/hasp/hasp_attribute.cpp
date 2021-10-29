@@ -1155,10 +1155,10 @@ static hasp_attribute_type_t attribute_common_align(lv_obj_t* obj, const char* a
     if(update) {
         if(!strcasecmp_P(payload, PSTR("left"))) {
             val = LV_LABEL_ALIGN_LEFT;
-          //  pos = LV_ALIGN_IN_LEFT_MID;
+            //  pos = LV_ALIGN_IN_LEFT_MID;
         } else if(!strcasecmp_P(payload, PSTR("right"))) {
             val = LV_LABEL_ALIGN_RIGHT;
-           // pos = LV_ALIGN_IN_RIGHT_MID;
+            // pos = LV_ALIGN_IN_RIGHT_MID;
         } else if(!strcasecmp_P(payload, PSTR("center"))) {
             val = LV_LABEL_ALIGN_CENTER;
         } else if(!strcasecmp_P(payload, PSTR("auto"))) {
@@ -1174,7 +1174,7 @@ static hasp_attribute_type_t attribute_common_align(lv_obj_t* obj, const char* a
             lv_obj_t* label = FindButtonLabel(obj);
             if(label) {
                 if(update) {
-                  //  lv_obj_align(label, NULL, pos, 0, 0);
+                    //  lv_obj_align(label, NULL, pos, 0, 0);
                     lv_label_set_align(label, val);
                 } else
                     val = lv_label_get_align(label);
@@ -2197,10 +2197,12 @@ void hasp_process_obj_attribute(lv_obj_t* obj, const char* attribute, const char
 
         case ATTR_OBJ:
             text = (char*)obj_get_type_name(obj);
-            if(update)
-                ret = HASP_ATTR_TYPE_STR_READONLY;
+            if(update && strcasecmp(payload, text) == 0)
+                ret = HASP_ATTR_TYPE_METHOD_OK; // Value is already correct
+            else if(update)
+                ret = HASP_ATTR_TYPE_STR_READONLY; // Can't change to the new value
             else
-                ret = HASP_ATTR_TYPE_STR;
+                ret = HASP_ATTR_TYPE_STR; // Reply the current value
             break;
 
         case ATTR_MODE:
