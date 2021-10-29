@@ -7,7 +7,7 @@
 #ifdef ARDUINO
 #include "hasp_conf.h"
 
-#include "Arduino.h"
+#include <Arduino.h>
 #include "../old/hasp_drv_analogTouch.h"
 #include "ArduinoLog.h"
 

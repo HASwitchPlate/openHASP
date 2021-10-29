@@ -5,7 +5,7 @@
 #define HASP_TOUCH_HELPER_H
 
 #ifdef ARDUINO
-#include "Arduino.h"
+#include <Arduino.h>
 #include <Wire.h>
 #include "ArduinoLog.h"
 #include "hasp_debug.h"

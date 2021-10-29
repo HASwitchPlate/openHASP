@@ -5,11 +5,12 @@
 #define HASP_FT6336T_TOUCH_DRIVER_H
 
 #ifdef ARDUINO
-#include "Arduino.h"
-#include "lvgl.h"
+#include "hasp_conf.h"
 
+#include <Arduino.h>
 #include <Wire.h>
 #include "FT6336U.h"
+#include "ArduinoLog.h"
 
 #include "touch_driver.h" // base class
 #include "touch_helper.h" // i2c scanner
@@ -18,8 +19,6 @@
 extern uint8_t hasp_sleep_state;
 
 #define RST_PIN (TOUCH_RST) // -1 if pin is connected to VCC else set pin number
-
-FT6336U* ft6336u_touch;
 
 // Read touch points
 // HASP_ATTRIBUTE_FAST_MEM bool FT6336U_getXY(int16_t* touchX, int16_t* touchY)
@@ -56,6 +55,25 @@ namespace dev {
 class TouchFt6336u : public BaseTouch {
 
   public:
+    FT6336U* ft6336u_touch;
+
+    IRAM_ATTR bool read(lv_indev_drv_t* indev_driver, lv_indev_data_t* data)
+    {
+        if(ft6336u_touch->read_touch_number() == 1) {
+            if(hasp_sleep_state != HASP_SLEEP_OFF) hasp_update_sleep_state(); // update Idle
+
+            data->point.x = ft6336u_touch->read_touch1_x();
+            data->point.y = ft6336u_touch->read_touch1_y();
+            data->state   = LV_INDEV_STATE_PR;
+
+        } else {
+            data->state = LV_INDEV_STATE_REL;
+        }
+
+        /*Return `false` because we are not buffering and no more data to read*/
+        return false;
+    }
+
     void init(int w, int h)
     {
         LOG_INFO(TAG_DRVR, F("Touch SDA     : %d"), TOUCH_SDA);
@@ -86,30 +104,13 @@ class TouchFt6336u : public BaseTouch {
             LOG_ERROR(TAG_DRVR, F("FT6336U touch driver failed to start"));
         }
     }
-
-    IRAM_ATTR bool read(lv_indev_drv_t* indev_driver, lv_indev_data_t* data)
-    {
-        if(ft6336u_touch->read_touch_number() == 1) {
-            if(hasp_sleep_state != HASP_SLEEP_OFF) hasp_update_sleep_state(); // update Idle
-
-            data->point.x = ft6336u_touch->read_touch1_x();
-            data->point.y = ft6336u_touch->read_touch1_y();
-            data->state   = LV_INDEV_STATE_PR;
-
-        } else {
-            data->state = LV_INDEV_STATE_REL;
-        }
-
-        /*Return `false` because we are not buffering and no more data to read*/
-        return false;
-    }
 };
 
 } // namespace dev
 
 #warning Using FT6336
 using dev::TouchFt6336u;
-extern dev::TouchFt6336u haspTouch;
+dev::TouchFt6336u haspTouch;
 
 #endif // ARDUINO
 

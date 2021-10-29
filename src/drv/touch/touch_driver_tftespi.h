@@ -5,7 +5,7 @@
 #define HASP_TFTESPI_TOUCH_DRIVER_H
 
 #ifdef ARDUINO
-#include "Arduino.h"
+#include <Arduino.h>
 
 #include "touch_driver.h" // base class
 #include "dev/device.h"   // for haspTft

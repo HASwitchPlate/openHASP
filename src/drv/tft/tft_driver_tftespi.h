@@ -5,7 +5,7 @@
 #define HASP_TFTESPI_DRIVER_H
 
 #if defined(ARDUINO) && defined(USER_SETUP_LOADED)
-#include "Arduino.h"
+#include <Arduino.h>
 
 #include "lvgl.h"
 #include "TFT_eSPI.h"

@@ -9,7 +9,7 @@
 #include <stdint.h>
 
 #ifdef ARDUINO
-#include "Arduino.h"
+#include <Arduino.h>
 
 #define ADC_MAX 4095   // maximum value for ESP32 ADC (default 11db, 12 bits)
 #define aXM TOUCH_anDC // analog input pin connected to LCD_RS

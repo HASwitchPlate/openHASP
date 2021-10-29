@@ -7,7 +7,7 @@
 #ifdef ARDUINO
 #include "hasp_conf.h"
 
-#include "Arduino.h"
+#include <Arduino.h>
 #include <Wire.h>
 #include "Goodix.h"
 #include "ArduinoLog.h"

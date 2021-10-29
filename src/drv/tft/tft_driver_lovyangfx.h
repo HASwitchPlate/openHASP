@@ -5,7 +5,7 @@
 #define HASP_LOVYANGFX_DRIVER_H
 
 #if defined(ARDUINO) && defined(LGFX_USE_V1)
-#include "Arduino.h"
+#include <Arduino.h>
 
 #include "lvgl.h"
 #include "LovyanGFX.hpp"

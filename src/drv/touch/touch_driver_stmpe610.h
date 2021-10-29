@@ -5,7 +5,7 @@
 #define HASP_STMPE610_TOUCH_DRIVER_H
 
 #ifdef ARDUINO
-#include "Arduino.h"
+#include <Arduino.h>
 #include <SPI.h>
 #include "Adafruit_STMPE610.h"
 #include "ArduinoLog.h"
@@ -22,8 +22,6 @@ extern uint8_t hasp_sleep_state;
 #define TS_MAXX 100
 #define TS_MINY 100
 #define TS_MAXY 3750
-
-static Adafruit_STMPE610 stmpe610_touchpanel = Adafruit_STMPE610(TOUCH_CS);
 
 // bool touch_read(lv_indev_drv_t* indev_driver, lv_indev_data_t* data)
 // {
@@ -58,6 +56,8 @@ namespace dev {
 class TouchStmpe610 : public BaseTouch {
 
   public:
+    Adafruit_STMPE610 stmpe610_touchpanel = Adafruit_STMPE610(TOUCH_CS);
+
     IRAM_ATTR bool read(lv_indev_drv_t* indev_driver, lv_indev_data_t* data)
     {
         data->state = LV_INDEV_STATE_REL;

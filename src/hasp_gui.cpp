@@ -93,7 +93,7 @@ IRAM_ATTR void gui_flush_cb(lv_disp_drv_t* disp, const lv_area_t* area, lv_color
 
 IRAM_ATTR bool gui_touch_read(lv_indev_drv_t* indev_driver, lv_indev_data_t* data)
 {
-   // return haspTouch.read(indev_driver, data);
+    return haspTouch.read(indev_driver, data);
 }
 
 void guiCalibrate(void)

@@ -5,7 +5,7 @@
 #define HASP_LOVYANGFX_TOUCH_DRIVER_H
 
 #ifdef ARDUINO
-#include "Arduino.h"
+#include <Arduino.h>
 
 #include "touch_driver.h" // base class
 #include "dev/device.h"   // for haspTft
@@ -33,7 +33,7 @@ namespace dev {
 class TouchLovyanGfx : public BaseTouch {
 
   public:
-    static IRAM_ATTR bool read(lv_indev_drv_t* indev_driver, lv_indev_data_t* data)
+    IRAM_ATTR bool read(lv_indev_drv_t* indev_driver, lv_indev_data_t* data)
     {
         int16_t touchX = 0;
         int16_t touchY = 0;

@@ -5,7 +5,7 @@
 #define HASP_BASE_TFT_DRIVER_H
 
 #ifdef ARDUINO
-#include "Arduino.h"
+#include <Arduino.h>
 #endif
 
 #include "lvgl.h"
