@@ -100,7 +100,7 @@ class TouchStmpe610 : public BaseTouch {
 } // namespace dev
 
 using dev::TouchStmpe610;
-extern dev::TouchStmpe610 haspTouch;
+dev::TouchStmpe610 haspTouch;
 
 #endif // ARDUINO
 
