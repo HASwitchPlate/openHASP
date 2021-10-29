@@ -23,7 +23,7 @@
 #ifndef _XPT2046_Touchscreen_h_
 #define _XPT2046_Touchscreen_h_
 
-#include "Arduino.h"
+#include <Arduino.h>
 #include <SPI.h>
 
 #if ARDUINO < 10600

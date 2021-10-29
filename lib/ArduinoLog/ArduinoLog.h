@@ -17,7 +17,7 @@ Licensed under the MIT License <http://opensource.org/licenses/MIT>.
 #include <inttypes.h>
 #include <stdarg.h>
 #if defined(ARDUINO) && ARDUINO >= 100
-#include "Arduino.h"
+#include <Arduino.h>
 #else
 #include "WProgram.h"
 #endif

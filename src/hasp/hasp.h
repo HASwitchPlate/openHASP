@@ -5,7 +5,7 @@
 #define HASP_H
 
 #ifdef ARDUINO
-#include "Arduino.h"
+#include <Arduino.h>
 #endif
 
 #include "hasplib.h"

@@ -21,6 +21,7 @@
 #ifndef ESP_ARDUINO_VERSION_VAL
 #define ESP_ARDUINO_VERSION_VAL(major, minor, patch) ((major << 16) | (minor << 8) | (patch))
 #endif
+
 #include <WiFi.h>
 #elif defined(ARDUINO_ARCH_ESP8266)
 #include <ESP8266WiFi.h>

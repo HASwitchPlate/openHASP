@@ -3,7 +3,7 @@
 
 #if defined(STM32F4xx)
 
-#include "Arduino.h"
+#include <Arduino.h>
 
 #include "stm32f4.h"
 

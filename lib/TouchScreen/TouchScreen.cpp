@@ -4,7 +4,7 @@
 // Code under MIT License
 // Code under MIT License
 
-#include "Arduino.h"
+#include <Arduino.h>
 #include "pins_arduino.h"
 
 #ifdef __AVR

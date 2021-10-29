@@ -23,7 +23,7 @@
  *   out of or in connection with the Software or the use or other dealings in the
  *   Software.
  */
-#include "Arduino.h" // for PROGMEM
+#include <Arduino.h> // for PROGMEM
 
 #include <assert.h>
 #include <limits.h>

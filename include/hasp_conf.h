@@ -169,7 +169,7 @@
 #include "Windows.h"
 #elif defined(POSIX)
 #else
-#include "Arduino.h"
+#include <Arduino.h>
 #endif
 
 #if HASP_USE_SPIFFS > 0

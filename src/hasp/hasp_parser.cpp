@@ -3,7 +3,7 @@
 
 #ifdef ARDUINO
 #include "pgmspace.h"
-#include "Arduino.h"
+#include <Arduino.h>
 #endif
 
 #include "hasplib.h"

@@ -2,6 +2,8 @@
    For full license information read the LICENSE file in the project folder */
 
 #include "hasplib.h"
+#include "hasp_filesystem.h"
+
 #include <fstream>
 
 #if defined(ARDUINO)

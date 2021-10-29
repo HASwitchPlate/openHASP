@@ -6,7 +6,7 @@
 #if HASP_USE_EEPROM > 0
 
 #ifdef ARDUINO
-#include "Arduino.h"
+#include <Arduino.h>
 #endif
 
 #include "EEPROM.h"

@@ -5,7 +5,7 @@
 
 #if defined(LANBONL8)
 
-#include "Arduino.h"
+#include <Arduino.h>
 #include "dev/esp32/esp32.h"
 
 #include "driver/pcnt.h" // Pulse count driver
