@@ -1,0 +1,13 @@
+:root {
+    --txt: #000;
+    --bg: #fff;
+    --btnfg: #fff;
+    --btnbg: #1fa3ec;
+    --btnbghi: #0083cc;
+    --grpbg: #f2f2f2;
+    --fldbg: #fff;
+    --fldfg: #000;
+    --btnred: #f00;
+    --btnredhi: #b00;
+    --btnbrd: transparent;
+}

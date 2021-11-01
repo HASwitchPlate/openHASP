@@ -106,6 +106,8 @@ WebServer webServer(80);
 #if defined(CONFIG_IDF_TARGET_ESP32)
 extern const uint8_t EDIT_HTM_GZ_START[] asm("_binary_data_edit_htm_gz_start");
 extern const uint8_t EDIT_HTM_GZ_END[] asm("_binary_data_edit_htm_gz_end");
+extern const uint8_t STYLE_CSS_GZ_START[] asm("_binary_data_style_css_gz_start");
+extern const uint8_t STYLE_CSS_GZ_END[] asm("_binary_data_style_css_gz_end");
 #endif // CONFIG_IDF_TARGET_ESP32
 
 #endif // ESP32
@@ -115,19 +117,17 @@ HTTPUpload* upload;
 static const char HTTP_MENU_BUTTON[] PROGMEM =
     "<p><form method='GET' action='%s'><button type='submit'>%s</button></form></p>";
 
-const char MAIN_MENU_BUTTON[] PROGMEM =
-    "</p><p><form method='GET' action='/'><button type='submit'>" D_HTTP_MAIN_MENU "</button></form>";
-const char MIT_LICENSE[] PROGMEM = "</br>MIT License</p>";
+const char MAIN_MENU_BUTTON[] PROGMEM = "<a href='/'>" D_HTTP_MAIN_MENU "</a>";
+const char MIT_LICENSE[] PROGMEM      = "</br>MIT License</p>";
 
 const char HTTP_DOCTYPE[] PROGMEM = "<!DOCTYPE html><html lang=\"en\"><head><meta charset='utf-8'><meta "
                                     "name=\"viewport\" content=\"width=device-width,initial-scale=1\"/>";
 const char HTTP_META_GO_BACK[] PROGMEM = "<meta http-equiv='refresh' content='15;url=/'/>";
 const char HTTP_HEADER[] PROGMEM       = "<title>%s</title>";
-const char HTTP_HEADER_END[] PROGMEM =
-    "<script src=\"/js\"></script><link rel=\"stylesheet\" href=\"/css\"></head><body><div id='doc'>";
-const char HTTP_FOOTER[] PROGMEM =
-    "<div style='text-align:right;font-size:11px;'><hr/><a href='/about'>" D_MANUFACTURER " ";
-const char HTTP_END[] PROGMEM = " " D_HTTP_FOOTER "</div></body></html>";
+const char HTTP_HEADER_END[] PROGMEM = "<script src=\"/js\"></script><link rel=\"stylesheet\" href=\"/vars.css\"><link "
+                                       "rel=\"stylesheet\" href=\"/style.css\"></head><body><div id='doc'>";
+const char HTTP_FOOTER[] PROGMEM = "<div class='clear'><hr/><a class='foot' href='/about'>" D_MANUFACTURER " ";
+const char HTTP_END[] PROGMEM    = " " D_HTTP_FOOTER "</div></body></html>";
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -172,11 +172,11 @@ static void close_form(String& str)
 static void add_form_button(String& str, const __FlashStringHelper* label, const __FlashStringHelper* action,
                             const __FlashStringHelper* extra)
 {
-    str += F("<p><form method='GET' action='");
+    str += F("<a href='");
     str += action;
     str += F("'>");
-    add_button(str, label, extra);
-    close_form(str);
+    str += label;
+    str += F("</a>");
 }
 
 static String getContentType(const String& path)
@@ -240,9 +240,15 @@ void webSendFooter()
 #endif
 }
 
+void webSendCacheHeader(int size, int age)
+{
+    webServer.sendHeader(F("Content-Length"), (String)(size));
+    webServer.sendHeader(F("Cache-Control"), F("max-age=3600, public"));
+}
+
 static int webSendCached(int statuscode, const char* contenttype, const char* data, size_t size)
 {
-    webServer.sendHeader(F("Cache-Control"), F("public, max-age=604800, immutable"));
+    webSendCacheHeader(size, 3600);
 #if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
     webServer.send_P(statuscode, contenttype, data, size);
 #else
@@ -348,19 +354,11 @@ void webHandleRoot()
         httpMessage += haspDevice.get_hostname();
         httpMessage += F("</h1><hr>");
 
-        httpMessage += F("<p><form method='GET' action='/config/hasp'><button type='submit'>" D_HTTP_HASP_DESIGN
-                         "</button></form></p>");
-
-        httpMessage += F("<p><form method='GET' action='screenshot'><button type='submit'>" D_HTTP_SCREENSHOT
-                         "</button></form></p>");
-        httpMessage +=
-            F("<p><form method='GET' action='info'><button type='submit'>" D_HTTP_INFORMATION "</button></form></p>");
-        add_form_button(httpMessage, F(D_HTTP_CONFIGURATION), F("/config"), F(""));
-        // httpMessage += F("<p><form method='GET' action='config'><button type='submit'>" D_HTTP_CONFIGURATION
-        //                  "</button></form></p>");
-
-        httpMessage += F("<p><form method='GET' action='firmware'><button type='submit'>" D_HTTP_FIRMWARE_UPGRADE
-                         "</button></form></p>");
+        httpMessage += F("<a href='/config/hasp'>" D_HTTP_HASP_DESIGN "</a>");
+        httpMessage += F("<a href='/screenshot'>" D_HTTP_SCREENSHOT "</a>");
+        httpMessage += F("<a href='/info'>" D_HTTP_INFORMATION "</a>");
+        httpMessage += F("<a href='/config'>" D_HTTP_CONFIGURATION "</a>");
+        httpMessage += F("<a href='/firmware'>" D_HTTP_FIRMWARE_UPGRADE "</a>");
 
 #if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
 #ifdef ARDUINO_ARCH_ESP32
@@ -369,18 +367,15 @@ void webHandleRoot()
         bool flashfile = false;
 #endif
         if(flashfile || HASP_FS.exists(F("/edit.htm.gz")) || HASP_FS.exists(F("/edit.htm"))) {
-            httpMessage += F("<p><form method='GET' action='edit.htm?file=/'><button type='submit'>" D_HTTP_FILE_BROWSER
-                             "</button></form></p>");
+            httpMessage += F("<a href='/edit.htm?file=/'>" D_HTTP_FILE_BROWSER "</a>");
         }
 #endif
 
-        httpMessage += F("<p><form method='GET' action='reboot'><button class='red' type='submit'>" D_HTTP_REBOOT
-                         "</button></form></p>");
+        httpMessage += F("<a href='/reboot' class='red'>" D_HTTP_REBOOT "</a>");
 
         webSendPage(haspDevice.get_hostname(), httpMessage.length(), false);
         webServer.sendContent(httpMessage);
     }
-    // httpMessage.clear();
     webSendFooter();
 }
 
@@ -428,39 +423,28 @@ void webHandleScreenshot()
         webServer.send_P(200, PSTR("image/bmp"), "");
         guiTakeScreenshot();
         webServer.client().stop();
-
-    } else {
-        {
-            String httpMessage((char*)0);
-            httpMessage.reserve(HTTP_PAGE_SIZE);
-            httpMessage += F("<h1>");
-            httpMessage += haspDevice.get_hostname();
-            httpMessage += F("</h1><hr>");
-
-            // httpMessage +=
-            //     F("<script>function aref(t){setTimeout(function() {ref('');}, t*1000)} function ref(a){ var t=new "
-            //       "Date().getTime();document.getElementById('bmp').src='?a='+a+'&q='+t;return false;}</script>");
-            httpMessage += F("<p class='c'><img id='bmp' src='?q=0'");
-
-            // Automatic refresh
-            httpMessage += F(" onload=\"aref(5)\" onerror=\"aref(5)\"/></p>");
-
-            httpMessage += F("<p><form method='GET' onsubmit=\"return ref('')\"><button type='submit'>" D_HTTP_REFRESH
-                             "</button></form></p>");
-            httpMessage +=
-                F("<p><form method='GET' onsubmit=\"return ref('prev');\"><button type='submit'>" D_HTTP_PREV_PAGE
-                  "</button></form></p>");
-            httpMessage +=
-                F("<p><form method='GET' onsubmit=\"return ref('next');\"><button type='submit'>" D_HTTP_NEXT_PAGE
-                  "</button></form></p>");
-            httpMessage += FPSTR(MAIN_MENU_BUTTON);
-
-            webSendPage(haspDevice.get_hostname(), httpMessage.length(), false);
-            webServer.sendContent(httpMessage);
-        }
-        // httpMessage.clear();
-        webSendFooter();
+        return;
     }
+
+    {
+        String httpMessage((char*)0);
+        httpMessage.reserve(HTTP_PAGE_SIZE);
+        httpMessage += F("<h1>");
+        httpMessage += haspDevice.get_hostname();
+        httpMessage += F("</h1><hr>");
+
+        httpMessage += F("<p class='c'><img id='bmp' src='?q=0'");
+        httpMessage += F(" onload=\"aref(5)\" onerror=\"aref(15)\"/></p>"); // Automatic refresh
+
+        httpMessage += F("<a href='#' onclick=\"return ref('')\">" D_HTTP_REFRESH "</a>");
+        httpMessage += F("<a href='#' onclick=\"return ref('prev')\">" D_HTTP_PREV_PAGE "</a>");
+        httpMessage += F("<a href='#' onclick=\"return ref('next')\">" D_HTTP_NEXT_PAGE "</a>");
+        httpMessage += FPSTR(MAIN_MENU_BUTTON);
+
+        webSendPage(haspDevice.get_hostname(), httpMessage.length(), false);
+        webServer.sendContent(httpMessage);
+    }
+    webSendFooter();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -976,6 +960,14 @@ int handleFileRead(String path)
     }
 #endif
 
+#if defined(ARDUINO_ARCH_ESP32) && defined(CONFIG_IDF_TARGET_ESP32)
+    if(path == F("/style.css")) {
+        size_t size = STYLE_CSS_GZ_END - STYLE_CSS_GZ_START;
+        webServer.sendHeader(F("Content-Encoding"), F("gzip"));
+        return webSendCached(200, PSTR("text/css"), (const char*)STYLE_CSS_GZ_START, size); // OK
+    }
+#endif
+
     if(!strcasecmp_P(path.c_str(), PSTR("/favicon.ico")))
         return webSendCached(204, PSTR("image/bmp"), "", 0); // No content
 
@@ -1183,30 +1175,20 @@ void webHandleConfig()
         httpMessage += F("</h1><hr>");
 
 #if HASP_USE_WIFI > 0
-        add_form_button(httpMessage, F(D_HTTP_WIFI_SETTINGS), F("/config/wifi"), F(""));
+        httpMessage += F("<a href='/config/wifi'>" D_HTTP_WIFI_SETTINGS "</a>");
 #endif
 #if HASP_USE_MQTT > 0
-        add_form_button(httpMessage, F(D_HTTP_MQTT_SETTINGS), F("/config/mqtt"), F(""));
+        httpMessage += F("<a href='/config/mqtt'>" D_HTTP_MQTT_SETTINGS "</a>");
 #endif
-        add_form_button(httpMessage, F(D_HTTP_HTTP_SETTINGS), F("/config/http"), F(""));
-        add_form_button(httpMessage, F(D_HTTP_GUI_SETTINGS), F("/config/gui"), F(""));
-
-        // httpMessage +=
-        //     F("<p><form method='GET' action='/config/hasp'><button type='submit'>HASP
-        //     Settings</button></form></p>");
+        httpMessage += F("<a href='/config/http'>" D_HTTP_HTTP_SETTINGS "</a>");
+        httpMessage += F("<a href='/config/gui'>" D_HTTP_GUI_SETTINGS "</a>");
 
 #if HASP_USE_GPIO > 0
-        httpMessage += F("<p><form method='GET' action='/config/gpio'><button type='submit'>" D_HTTP_GPIO_SETTINGS
-                         "</button></form></p>");
+        httpMessage += F("<a href='/config/gpio'>" D_HTTP_GPIO_SETTINGS "</a>");
 #endif
 
-        httpMessage += F("<p><form method='GET' action='/config/debug'><button type='submit'>" D_HTTP_DEBUG_SETTINGS
-                         "</button></form></p>");
-
-        httpMessage +=
-            F("<p><form method='GET' action='resetConfig'><button class='red' type='submit'>" D_HTTP_FACTORY_RESET
-              "</button></form>");
-
+        httpMessage += F("<a href='/config/debug'>" D_HTTP_DEBUG_SETTINGS "</a>");
+        httpMessage += F("<a href='/resetConfig' class='red'>" D_HTTP_FACTORY_RESET "</a>");
         httpMessage += FPSTR(MAIN_MENU_BUTTON);
 
         webSendPage(haspDevice.get_hostname(), httpMessage.length(), false);
@@ -1226,36 +1208,64 @@ void webHandleMqttConfig()
     mqttGetConfig(settings.to<JsonObject>());
 
     {
-        // char buffer[128];
         String httpMessage((char*)0);
         httpMessage.reserve(HTTP_PAGE_SIZE);
         httpMessage += F("<h1>");
         httpMessage += haspDevice.get_hostname();
         httpMessage += F("</h1><hr>");
+        httpMessage += F("<h2>" D_HTTP_MQTT_SETTINGS "</h2>");
 
-        httpMessage += F("<form method='POST' action='/config'>");
-        httpMessage += F("<b>HASP Node Name</b> <i><small>(required. lowercase letters, numbers, and _ only)</small>"
-                         "</i><input id='name' required name='name' maxlength=15 "
-                         "placeholder='HASP Node Name' pattern='[a-z0-9_]*' value='");
-        httpMessage += settings[FPSTR(FP_CONFIG_NAME)].as<String>();
-        httpMessage += F("'><br/><br/><b>Group Name</b> <i><small>(required)</small></i><input id='group' required "
-                         "name='group' maxlength=15 placeholder='Group Name' value='");
-        httpMessage += settings[FPSTR(FP_CONFIG_GROUP)].as<String>();
-        httpMessage += F("'><br/><br/><b>MQTT Broker</b> <i><small>(required)</small></i><input id='host' required "
-                         "name='host' maxlength=63 placeholder='mqttServer' value='");
-        httpMessage += settings[FPSTR(FP_CONFIG_HOST)].as<String>();
-        httpMessage += F("'><br/><b>MQTT Port</b> <i><small>(required)</small></i><input id='port' required "
-                         "name='port' type='number' maxlength=5 placeholder='mqttPort' value='");
-        httpMessage += settings[FPSTR(FP_CONFIG_PORT)].as<uint16_t>();
-        httpMessage += F("'><br/><b>MQTT User</b> <i><small>(optional)</small></i><input id='mqttUser' name='user' "
-                         "maxlength=31 placeholder='user' value='");
-        httpMessage += settings[FPSTR(FP_CONFIG_USER)].as<String>();
-        httpMessage += F("'><br/><b>MQTT Password</b> <i><small>(optional)</small></i><input id='pass' "
-                         "name='pass' type='password' maxlength=31 placeholder='mqttPassword' value='");
-        if(settings[FPSTR(FP_CONFIG_PASS)].as<String>() != "") httpMessage += F(D_PASSWORD_MASK);
+        // Form
+        httpMessage += F("<div class='container'><form method='POST' action='/config'>");
 
+        // Node Name
         httpMessage +=
-            F("'><p><button type='submit' name='save' value='mqtt'>" D_HTTP_SAVE_SETTINGS "</button></form></p>");
+            F("<div class='row'><div class='col-25'><label class='required' for='name'>Plate Name</label></div>");
+        httpMessage +=
+            F("<div class='col-75'><input required type='text' id='name' name='name' maxlength=15 pattern='[a-z0-9_]*' "
+              "placeholder='Plate Name' value='");
+        httpMessage += settings[FPSTR(FP_CONFIG_NAME)].as<String>();
+        httpMessage += F("'></div></div>");
+
+        // Group Name
+        httpMessage += F("<div class='row gap'><div class='col-25'><label for='group'>Group Name</label></div>");
+        httpMessage +=
+            F("<div class='col-75'><input type='text' id='group' name='group' maxlength=15 pattern='[a-z0-9_]*' "
+              "placeholder='Group Name' value='");
+        httpMessage += settings[FPSTR(FP_CONFIG_GROUP)].as<String>();
+        httpMessage += F("'></div></div>");
+
+        // Broker
+        httpMessage += F("<div class='row'><div class='col-25'><label for='host'>Broker</label></div>");
+        httpMessage += F("<div class='col-75'><input type='text' id='host' name='host' maxlength=63 "
+                         "placeholder='Server Name' value='");
+        httpMessage += settings[FPSTR(FP_CONFIG_HOST)].as<String>();
+        httpMessage += F("'></div></div>");
+
+        // Mqtt Port
+        httpMessage += F("<div class='row gap'><div class='col-25'><label for='port'>Port</label></div>");
+        httpMessage += F("<div class='col-75'><input type='number' id='port' name='port' min='0' max='65535' "
+                         "placeholder='1883' value='");
+        httpMessage += settings[FPSTR(FP_CONFIG_PORT)].as<uint16_t>();
+        httpMessage += F("'></div></div>");
+
+        // Mqtt User
+        httpMessage += F("<div class='row'><div class='col-25'><label for='user'>User</label></div>");
+        httpMessage += F("<div class='col-75'><input type='text' id='user' name='user' maxlength=31 "
+                         "placeholder='MQTT User' value='");
+        httpMessage += settings[FPSTR(FP_CONFIG_USER)].as<String>();
+        httpMessage += F("'></div></div>");
+
+        // Mqtt Password
+        httpMessage += F("<div class='row'><div class='col-25'><label for='pass'>Password</label></div>");
+        httpMessage += F("<div class='col-75'><input type='password' id='pass' name='pass' maxlength=63 "
+                         "placeholder='MQTT Password' value='");
+        if(settings[FPSTR(FP_CONFIG_PASS)].as<String>() != "") httpMessage += F(D_PASSWORD_MASK);
+        httpMessage += F("'></div></div>");
+
+        // Submit & End Form
+        httpMessage += F("<button type='submit' name='save' value='mqtt'>" D_HTTP_SAVE_SETTINGS "</button>");
+        httpMessage += F("</form></div>");
 
         add_form_button(httpMessage, F(D_BACK_ICON D_HTTP_CONFIGURATION), F("/config"), F(""));
         webSendPage(haspDevice.get_hostname(), httpMessage.length(), false);
@@ -1280,21 +1290,29 @@ void webHandleGuiConfig()
         httpMessage += F("<h1>");
         httpMessage += haspDevice.get_hostname();
         httpMessage += F("</h1><hr>");
+        httpMessage += F("<h2>" D_HTTP_GUI_SETTINGS "</h2>");
 
-        httpMessage += F("<form method='POST' action='/config'>");
+        // Form
+        httpMessage += F("<div class='container'><form method='POST' action='/config'>");
 
-        httpMessage += F("<p><b>Short Idle</b> <input id='idle1' required "
-                         "name='idle1' type='number' min='0' max='32400' value='");
+        // Short Idle
+        httpMessage += F("<div class='row'><div class='col-25'><label for='idle1'>Short Idle</label></div>");
+        httpMessage += F("<div class='col-75'><input type='number' id='idle1' name='idle1' min='0' max='32400' "
+                         "value='");
         httpMessage += settings[FPSTR(FP_GUI_IDLEPERIOD1)].as<String>();
-        httpMessage += F("'></p>");
+        httpMessage += F("'></div></div>");
 
-        httpMessage += F("<p><b>Long Idle</b> <input id='idle2' required "
-                         "name='idle2' type='number' min='0' max='32400' value='");
+        // Long Idle
+        httpMessage += F("<div class='row gap'><div class='col-25'><label for='idle2'>Long Idle</label></div>");
+        httpMessage += F("<div class='col-75'><input type='number' id='idle2' name='idle2' min='0' max='32400' "
+                         "value='");
         httpMessage += settings[FPSTR(FP_GUI_IDLEPERIOD2)].as<String>();
-        httpMessage += F("'></p>");
+        httpMessage += F("'></div></div>");
 
+        // Rotation
         int8_t rotation = settings[FPSTR(FP_GUI_ROTATION)].as<int8_t>();
-        httpMessage += F("<p><b>Orientation</b> <select id='rotate' name='rotate'>");
+        httpMessage += F("<div class='row'><div class='col-25'><label for='group'>Orientation</label></div>");
+        httpMessage += F("<div class='col-75'><select id='rotate' name='rotate'>");
         httpMessage += getOption(0, F("0 degrees"), rotation);
         httpMessage += getOption(1, F("90 degrees"), rotation);
         httpMessage += getOption(2, F("180 degrees"), rotation);
@@ -1303,18 +1321,24 @@ void webHandleGuiConfig()
         httpMessage += getOption(7, F("90 degrees - mirrored"), rotation);
         httpMessage += getOption(4, F("180 degrees - mirrored"), rotation);
         httpMessage += getOption(5, F("270 degrees - mirrored"), rotation);
-        httpMessage += F("</select></p>");
+        httpMessage += F("</select></div></div>");
 
-        httpMessage += F("<p><input id='inv' name='inv' type='checkbox' ");
+        // Invert
+        httpMessage += F("<div class='row'><div class='col-25'><label for='inv'></label></div>");
+        httpMessage += F("<div class='col-75'><input type='checkbox' id='inv' name='inv'");
         if(settings[FPSTR(FP_GUI_INVERT)].as<bool>()) httpMessage += F(" checked");
-        httpMessage += F("><b>Invert Colors</b>");
+        httpMessage += F(">Invert Colors</div></div>");
 
-        httpMessage += F("<p><input id='cur' name='cur' type='checkbox' ");
+        // Cursor
+        httpMessage += F("<div class='row gap'><div class='col-25'><label for='cur'></label></div>");
+        httpMessage += F("<div class='col-75'><input type='checkbox' id='cur' name='cur'");
         if(settings[FPSTR(FP_GUI_POINTER)].as<bool>()) httpMessage += F(" checked");
-        httpMessage += F("><b>Show Pointer</b>");
+        httpMessage += F(">Show Pointer</div></div>");
 
+        // Backlight
         int8_t bcklpin = settings[FPSTR(FP_GUI_BACKLIGHTPIN)].as<int8_t>();
-        httpMessage += F("<p><b>Backlight Control</b> <select id='bckl' name='bckl'>");
+        httpMessage += F("<div class='row'><div class='col-25'><label for='group'>Backlight Control</label></div>");
+        httpMessage += F("<div class='col-75'><select id='bckl' name='bckl'>");
         httpMessage += getOption(-1, F("None"), bcklpin);
 #if defined(ARDUINO_ARCH_ESP32)
         char buffer[10];
@@ -1329,18 +1353,17 @@ void webHandleGuiConfig()
         httpMessage += getOption(0, F("D3 - GPIO 0"), bcklpin);
         httpMessage += getOption(2, F("D4 - GPIO 2"), bcklpin);
 #endif
-        httpMessage += F("</select></p>");
+        httpMessage += F("</select></div></div>");
 
-        add_button(httpMessage, F(D_HTTP_SAVE_SETTINGS), F("name='save' value='gui'"));
-        close_form(httpMessage);
-        // httpMessage +=
-        //     F("<p><button type='submit' name='save' value='gui'>" D_HTTP_SAVE_SETTINGS "</button></p></form>");
+        // Submit & End Form
+        httpMessage += F("<button type='submit' name='save' value='gui'>" D_HTTP_SAVE_SETTINGS "</button>");
+        httpMessage += F("</form></div>");
 
 #if TOUCH_DRIVER == 2046 && defined(TOUCH_CS)
-        add_form_button(httpMessage, F(D_HTTP_CALIBRATE), F("/config/gui"), F("name='cal' value='1'"));
+        add_form_button(httpMessage, F(D_HTTP_CALIBRATE), F("/config/gui?cal=1"), F("name='cal' value='1'"));
 #endif
 
-        add_form_button(httpMessage, F(D_HTTP_ANTIBURN), F("/config/gui"), F("name='brn' value='1'"));
+        add_form_button(httpMessage, F(D_HTTP_ANTIBURN), F("/config/gui?brn=1"), F("name='brn' value='1'"));
         add_form_button(httpMessage, F(D_BACK_ICON D_HTTP_CONFIGURATION), F("/config"), F(""));
         webSendPage(haspDevice.get_hostname(), httpMessage.length(), false);
         webServer.sendContent(httpMessage);
@@ -1365,18 +1388,30 @@ void webHandleWifiConfig()
     httpMessage += F("<h1>");
     httpMessage += haspDevice.get_hostname();
     httpMessage += F("</h1><hr>");
+    httpMessage += F("<h2>" D_HTTP_WIFI_SETTINGS "</h2>");
 
-    httpMessage += F("<form method='POST' action='/config'>");
-    httpMessage += F("<b>WiFi SSID</b> <i><small>(required)</small></i><input id='ssid' required "
-                     "name='ssid' maxlength=31 placeholder='WiFi SSID' value='");
+    // Form
+    httpMessage += F("<div class='container'><form method='POST' action='/config'>");
+
+    // Wifi SSID
+    httpMessage += F("<div class='row'><div class='col-25 required'><label for='ssid'>SSID</label></div>");
+    httpMessage += F("<div class='col-75'><input required type='text' id='ssid' name='ssid' maxlength=31 "
+                     "placeholder='SSID' value='");
     httpMessage += settings[FPSTR(FP_CONFIG_SSID)].as<String>();
-    httpMessage += F("'><br/><b>WiFi Password</b> <i><small>(required)</small></i><input id='pass' required "
-                     "name='pass' type='password' maxlength=63 placeholder='WiFi Password' value='");
+    httpMessage += F("'></div></div>");
+
+    // Wifi Password
+    httpMessage += F("<div class='row'><div class='col-25 required'><label for='pass'>Password</label></div>");
+    httpMessage += F("<div class='col-75'><input required type='password' id='pass' name='pass' maxlength=63 "
+                     "placeholder='Password' value='");
     if(settings[FPSTR(FP_CONFIG_PASS)].as<String>() != "") {
         httpMessage += F(D_PASSWORD_MASK);
     }
-    httpMessage +=
-        F("'><p><button type='submit' name='save' value='wifi'>" D_HTTP_SAVE_SETTINGS "</button></p></form>");
+    httpMessage += F("'></div></div>");
+
+    // Submit & End Form
+    httpMessage += F("<button type='submit' name='save' value='wifi'>" D_HTTP_SAVE_SETTINGS "</button>");
+    httpMessage += F("</form></div>");
 
 #if HASP_USE_WIFI > 0 && !defined(STM32F4xx)
     if(WiFi.getMode() == WIFI_STA) {
@@ -1473,7 +1508,6 @@ void webHandleHttpConfig()
         webSendPage(haspDevice.get_hostname(), len, false);
         webServer.sendContent(httpMessage);
     }
-    // httpMessage.clear();
     webSendFooter();
 }
 
@@ -1508,6 +1542,7 @@ void webHandleGpioConfig()
         httpMessage += F("<h1>");
         httpMessage += haspDevice.get_hostname();
         httpMessage += F("</h1><hr>");
+        httpMessage += F("<h2>" D_HTTP_GPIO_SETTINGS "</h2>");
 
         httpMessage += F("<form method='POST' action='/config'>");
 
@@ -1647,21 +1682,16 @@ void webHandleGpioConfig()
         httpMessage += F("</table></form>");
 
         if(configCount < HASP_NUM_GPIO_CONFIG) {
-            httpMessage += F("<p><form method='GET' action='gpio/input'>");
-            httpMessage += F("<input type='hidden' name='id' value='");
+            httpMessage += F("<a href='gpio/input?id=");
             httpMessage += gpioGetFreeConfigId();
-            httpMessage += F("'><button type='submit'>" D_HTTP_ADD_GPIO " Input</button></form></p>");
+            httpMessage += F("'>" D_HTTP_ADD_GPIO " Input</a>");
 
-            httpMessage += F("<p><form method='GET' action='gpio/options'>");
-            httpMessage += F("<input type='hidden' name='id' value='");
+            httpMessage += F("<a href='gpio/options?id=");
             httpMessage += gpioGetFreeConfigId();
-            httpMessage += F("'><button type='submit'>" D_HTTP_ADD_GPIO " Output</button></form></p>");
+            httpMessage += F("'>" D_HTTP_ADD_GPIO " Output</a>");
         }
 
         add_form_button(httpMessage, F(D_BACK_ICON D_HTTP_CONFIGURATION), F("/config"), F(""));
-        //    httpMessage += F("<p><form method='GET' action='/config'><button type='submit'>&#8617; "
-        //    D_HTTP_CONFIGURATION
-        //                      "</button></form></p>");
 
         webSendPage(haspDevice.get_hostname(), httpMessage.length(), false);
         webServer.sendContent(httpMessage);
@@ -1858,11 +1888,15 @@ void webHandleDebugConfig()
         httpMessage += F("<h1>");
         httpMessage += haspDevice.get_hostname();
         httpMessage += F("</h1><hr>");
+        httpMessage += F("<h2>" D_HTTP_DEBUG_SETTINGS "</h2>");
 
-        httpMessage += F("<form method='POST' action='/config'>");
+        // Form
+        httpMessage += F("<div class='container'><form method='POST' action='/config'>");
 
+        // Baudrate
         uint16_t baudrate = settings[FPSTR(FP_CONFIG_BAUD)].as<uint16_t>();
-        httpMessage += F("<p><b>Serial Port</b> <select id='baud' name='baud'>");
+        httpMessage += F("<div class='row'><div class='col-25'><label for='baud'>Serial Port</label></div>");
+        httpMessage += F("<div class='col-75'><select id='baud' name='baud'>");
         httpMessage += getOption(1, F(D_SETTING_DISABLED), baudrate); // Don't use 0 here which is default 115200
         httpMessage += getOption(960, F("9600"), baudrate);
         httpMessage += getOption(1920, F("19200"), baudrate);
@@ -1870,39 +1904,57 @@ void webHandleDebugConfig()
         httpMessage += getOption(5760, F("57600"), baudrate);
         httpMessage += getOption(7488, F("74880"), baudrate);
         httpMessage += getOption(11520, F("115200"), baudrate);
-        httpMessage += F("</select></p><p><b>Telemetry Period</b> <i><small>(Seconds, 0=disable)</small></i> "
-                         "<input id='tele' required name='tele' type='number' min='0' max='65535' value='");
+        httpMessage += F("</select></div></div>");
+
+        // Telemetry Period
+        httpMessage += F("<div class='row gap'><div class='col-25'><label for='tele'>Telemetry Period</label></div>");
+        httpMessage += F("<div class='col-75'><input type='number' id='tele' name='tele' min='0' max='65535' "
+                         "value='");
         httpMessage += settings[FPSTR(FP_DEBUG_TELEPERIOD)].as<String>();
-        httpMessage += F("'></p>");
+        httpMessage += F("'></div></div>");
 
 #if HASP_USE_SYSLOG > 0
-        httpMessage += F("<b>Syslog Hostname</b> <i><small>(optional)</small></i><input id='host' "
-                         "name='host' maxlength=31 placeholder='logserver' value='");
+        // Syslog host
+        httpMessage += F("<div class='row'><div class='col-25'><label for='host'>Syslog Server</label></div>");
+        httpMessage += F("<div class='col-75'><input type='text' id='host' name='host' maxlength='31' "
+                         "value='");
         httpMessage += settings[FPSTR(FP_CONFIG_HOST)].as<String>();
-        httpMessage += F("'><br/><b>Syslog Port</b> <i><small>(optional)</small></i> <input id='port' required "
-                         "name='port' type='number' min='0' max='65535' value='");
-        httpMessage += settings[FPSTR(FP_CONFIG_PORT)].as<String>();
+        httpMessage += F("'></div></div>");
 
-        httpMessage += F("'><b>Syslog Facility</b> <select id='log' name='log'>");
+        // Syslog Port
+        httpMessage += F("<div class='row'><div class='col-25'><label for='port'>Syslog Port</label></div>");
+        httpMessage += F("<div class='col-75'><input type='number' id='port' name='port' min='0' max='65535' "
+                         "value='");
+        httpMessage += settings[FPSTR(FP_CONFIG_PORT)].as<String>();
+        httpMessage += F("'></div></div>");
+
+        // Syslog Facility
         uint8_t logid = settings[FPSTR(FP_CONFIG_LOG)].as<uint8_t>();
+        httpMessage += F("<div class='row'><div class='col-25'><label for='log'>Syslog Facility</label></div>");
+        httpMessage += F("<div class='col-75'><select id='log' name='log'>");
         for(int i = 0; i < 8; i++) {
             httpMessage += getOption(i, String(F("Local")) + i, logid);
         }
+        httpMessage += F("</select></div></div>");
 
-        httpMessage += F("</select></br><b>Syslog Protocol</b> <input id='proto' name='proto' type='radio' value='0'");
-        if(settings[FPSTR(FP_CONFIG_PROTOCOL)].as<uint8_t>() == 0) httpMessage += F(" checked");
+        // Syslog Protocol
+        uint8_t proto = settings[FPSTR(FP_CONFIG_PROTOCOL)].as<uint8_t>();
+        httpMessage += F("<div class='row'><div class='col-25'><label for='proto'>Syslog Protocol</label></div>");
+        httpMessage += F("<div class='col-75'><input id='proto' name='proto' type='radio' value='0'");
+        if(proto == 0) httpMessage += F(" checked");
         httpMessage += F(">IETF (RFC 5424) &nbsp; <input id='proto' name='proto' type='radio' value='1'");
-        if(settings[FPSTR(FP_CONFIG_PROTOCOL)].as<uint8_t>() == 1) httpMessage += F(" checked");
+        if(proto == 1) httpMessage += F(" checked");
         httpMessage += F(">BSD (RFC 3164)");
+        httpMessage += F("</div></div>");
 #endif
 
-        httpMessage +=
-            F("</p><p><button type='submit' name='save' value='debug'>" D_HTTP_SAVE_SETTINGS "</button></p></form>");
+        // Submit & End Form
+        httpMessage += F("<button type='submit' name='save' value='debug'>" D_HTTP_SAVE_SETTINGS "</button>");
+        httpMessage += F("</form></div>");
+
+        // *******************************************************************
 
         add_form_button(httpMessage, F(D_BACK_ICON D_HTTP_CONFIGURATION), F("/config"), F(""));
-        // httpMessage += PSTR("<p><form method='GET' action='/config'><button type='submit'>&#8617; "
-        // D_HTTP_CONFIGURATION
-        //                     "</button></form></p>");
 
         webSendPage(haspDevice.get_hostname(), httpMessage.length(), false);
         webServer.sendContent(httpMessage);
@@ -1925,6 +1977,7 @@ void webHandleHaspConfig()
         httpMessage += F("<h1>");
         httpMessage += haspDevice.get_hostname();
         httpMessage += F("</h1><hr>");
+        httpMessage += F("<h2>" D_HTTP_HASP_DESIGN "</h2>");
 
         httpMessage += F("<p><form action='/edit' method='POST' enctype='multipart/form-data'><input type='file' "
                          "name='filename' accept='.jsonl,.png,.zi'>");
@@ -2216,27 +2269,33 @@ void httpStop()
 // Do not keep CSS in memory because it is cached in the browser
 void webSendCss()
 {
-    String HTTP_CSS =
-        F("body,.c{text-align:center;}"
-          "div,input{padding:5px;font-size:1em;}"
-          "a{color:" D_HTTP_COLOR_TEXT "}"
-          "input:not([type=file]){width:90%;background-color:" D_HTTP_COLOR_INPUT ";color:" D_HTTP_COLOR_INPUT_TEXT ";}"
-          "input[type=checkbox],input[type=radio]{width:1em;}"
-          "select{background-color:" D_HTTP_COLOR_INPUT ";color:" D_HTTP_COLOR_INPUT_TEXT ";}"
-          "input:invalid{border:1px solid " D_HTTP_COLOR_INPUT_WARNING ";}"
-          //"#hue{width:100%;}"
-          "body{font-family:verdana;width:60%;margin:auto;background:" D_HTTP_COLOR_BACKGROUND
-          ";color:" D_HTTP_COLOR_TEXT ";}"
-          "button{border:0;border-radius:0.6rem;background-color:" D_HTTP_COLOR_BUTTON
-          ";color:" D_HTTP_COLOR_BUTTON_TEXT ";line-height:2.4rem;font-size:1.2rem;width:100%;}"
-          //".q{float:right;width:64px;text-align:right;}"
-          ".red{background-color:" D_HTTP_COLOR_BUTTON_RESET ";}"
-          "#doc{text-align:left;display:inline-block;color:" D_HTTP_COLOR_TEXT ";min-width:260px;}"
-          // ".button3{background-color:#f44336;}"
-          // ".button4{background-color:#e7e7e7;color:black;}"
-          // ".button5{background-color:#555555;}"
-          // ".button6{background-color:#4CAF50;}"
-          "td{font-size:0.87rem;padding-bottom:0px;padding-top:0px;}th{padding-top:0.5em;}");
+    char filename[32];
+    strncpy(filename, webServer.uri().c_str(), sizeof(filename));
+
+    if(HASP_FS.exists(filename)) {
+        String contentType((char*)0);
+        contentType = getContentType(filename);
+        File file   = HASP_FS.open(filename, "r");
+        webSendCacheHeader(file.size(), 3600);
+        webServer.streamFile(file, contentType);
+        file.close();
+        return;
+    }
+
+    String HTTP_CSS = F(":root{"
+                        "--txt:" D_HTTP_COLOR_TEXT ";"
+                        "--bg:" D_HTTP_COLOR_BACKGROUND ";"
+                        "--btnfg:" D_HTTP_COLOR_BUTTON_TEXT ";"
+                        "--btnbg:" D_HTTP_COLOR_BUTTON ";"
+                        "--btnbghi: #0083cc;"
+                        "--btnred:" D_HTTP_COLOR_BUTTON_RESET ";"
+                        "--btnredhi: #b00;"
+                        "--btnbrd: transparent;"
+                        "--grpbg: #f2f2f2;"
+                        "--fldbg:" D_HTTP_COLOR_INPUT ";"
+                        "--fldfg:" D_HTTP_COLOR_INPUT_TEXT ";"
+                        "--fldred:" D_HTTP_COLOR_INPUT_WARNING ";"
+                        "}");
     webSendCached(200, PSTR("text/css"), HTTP_CSS.c_str(), HTTP_CSS.length());
 }
 
@@ -2265,7 +2324,7 @@ void httpSetup()
 
     // Shared pages
     webServer.on(F("/about"), webHandleAbout);
-    webServer.on(F("/css"), webSendCss);
+    webServer.on(F("/vars.css"), webSendCss);
     webServer.on(F("/js"), webSendJavascript);
     webServer.onNotFound(httpHandleNotFound);
 
@@ -2394,7 +2453,6 @@ IRAM_ATTR void httpLoop(void)
 #endif
     webServer.handleClient();
 }
-
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 #if HASP_USE_CONFIG > 0

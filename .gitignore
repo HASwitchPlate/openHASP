@@ -7,6 +7,9 @@
 data/*
 !data/edit.htm
 !data/edit.htm.gz
+!data/vars.css
+!data/style.css
+!data/style.css.gz
 src/user_setups/active/*
 include/user_config_override.h
 src/user_config_override.h
