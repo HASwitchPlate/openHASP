@@ -79,7 +79,7 @@ class TouchFt6336u : public BaseTouch {
         LOG_INFO(TAG_DRVR, F("Touch SDA     : %d"), TOUCH_SDA);
         LOG_INFO(TAG_DRVR, F("Touch SCL     : %d"), TOUCH_SCL);
         LOG_INFO(TAG_DRVR, F("Touch freq.   : %d"), I2C_TOUCH_FREQUENCY);
-        LOG_INFO(TAG_DRVR, F("Touch address : %x"), I2C_ADDR_FT6336U);
+        LOG_INFO(TAG_DRVR, F("Touch address : %x"), I2C_TOUCH_ADDRESS);
 
         ft6336u_touch = new FT6336U(TOUCH_SDA, TOUCH_SCL, TOUCH_RST, TOUCH_IRQ);
         ft6336u_touch->begin();
@@ -91,7 +91,7 @@ class TouchFt6336u : public BaseTouch {
         // handle these events. So instead, we set the INT wire to polled mode,
         // so it simply goes low as long as there is at least one valid touch.
         // ft6336u_touch->writeByte(0xA4, 0x00);
-        Wire1.beginTransmission(I2C_ADDR_FT6336U);
+        Wire1.beginTransmission(I2C_TOUCH_ADDRESS);
         Wire1.write(0xA4); // address
         Wire1.write(0x00); // data
         Wire1.endTransmission();

@@ -6,8 +6,10 @@
 
 #ifdef ARDUINO
 #include <Arduino.h>
+#include <Wire.h>
 
 #include "touch_driver.h" // base class
+#include "touch_helper.h" // wire scan
 #include "dev/device.h"   // for haspTft
 #include "drv/tft/tft_driver.h"
 
@@ -38,12 +40,13 @@ class TouchLovyanGfx : public BaseTouch {
         int16_t touchX = 0;
         int16_t touchY = 0;
 
-        if(haspTft.tft.getTouch((uint16_t*)&touchX, (uint16_t*)&touchY, 300)) {
+        if(haspTft.tft.getTouch((uint16_t*)&touchX, (uint16_t*)&touchY)) {
             if(hasp_sleep_state != HASP_SLEEP_OFF) hasp_update_sleep_state(); // update Idle
 
             data->point.x = touchX;
             data->point.y = touchY;
             data->state   = LV_INDEV_STATE_PR;
+            LOG_VERBOSE(TAG_DRVR, F("Touch: %d %d"), touchX, touchY);
 
         } else {
             data->state = LV_INDEV_STATE_REL;
@@ -51,6 +54,13 @@ class TouchLovyanGfx : public BaseTouch {
 
         /*Return `false` because we are not buffering and no more data to read*/
         return false;
+    }
+
+    void init(int w, int h)
+    {
+        Wire.begin(TOUCH_SDA, TOUCH_SCL, I2C_TOUCH_FREQUENCY);
+        // delay(300); // already happens in touch.begin()
+        touch_scan(Wire);
     }
 
     void calibrate(uint16_t* calData)
@@ -66,7 +76,7 @@ class TouchLovyanGfx : public BaseTouch {
         haspTft.tft.setTextFont(1);
         delay(500);
         haspTft.tft.calibrateTouch(calData, TFT_MAGENTA, TFT_BLACK, 15);
-        haspTft.tft.setTouch(calData);
+        // haspTft.tft.setTouch(calData);
     }
 };
 

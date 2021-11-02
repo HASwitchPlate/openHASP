@@ -28,7 +28,7 @@ class LGFX : public lgfx::LGFX_Device {
     lgfx::Panel_LCD* _panel_instance;
     lgfx::IBus* _bus_instance; // SPIバスのインスタンス
     lgfx::Light_PWM _light_instance;
-    lgfx::Touch_XPT2046 _touch_instance;
+    lgfx::ITouch* _touch_instance;
 
     LGFX(void)
     {

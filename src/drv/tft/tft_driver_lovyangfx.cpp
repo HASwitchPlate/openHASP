@@ -61,14 +61,14 @@ void LovyanGfx::init(int w, int h)
     tft_driver = 0x9488;
 #endif
 
-if (tft_driver == 0x9341)
-    tft._panel_instance = new lgfx::Panel_ILI9341();
-else if (tft_driver == 0x9481)
-    tft._panel_instance = new lgfx::Panel_ILI9481();
-else if (tft_driver == 0x9488)
-    tft._panel_instance = new lgfx::Panel_ILI9488();
-else if (tft_driver == 0x7796)
-    tft._panel_instance = new lgfx::Panel_ST7796();
+    if(tft_driver == 0x9341)
+        tft._panel_instance = new lgfx::Panel_ILI9341();
+    else if(tft_driver == 0x9481)
+        tft._panel_instance = new lgfx::Panel_ILI9481();
+    else if(tft_driver == 0x9488)
+        tft._panel_instance = new lgfx::Panel_ILI9488();
+    else if(tft_driver == 0x7796)
+        tft._panel_instance = new lgfx::Panel_ST7796();
 
     { // バス制御の設定を行います。
         auto bus     = (lgfx::v1::Bus_SPI*)tft._bus_instance;
@@ -128,8 +128,9 @@ else if (tft_driver == 0x7796)
         tft._panel_instance->setLight(&tft._light_instance); // バックライトをパネルにセットします。
     }
 
+    tft._touch_instance = new lgfx::Touch_FT5x06();
     { // タッチスクリーン制御の設定を行います。（必要なければ削除）
-        auto cfg            = tft._touch_instance.config();
+        auto cfg            = tft._touch_instance->config();
         cfg.x_min           = 0;    // タッチスクリーンから得られる最小のX値(生の値)
         cfg.x_max           = 319;  // タッチスクリーンから得られる最大のX値(生の値)
         cfg.y_min           = 0;    // タッチスクリーンから得られる最小のY値(生の値)
@@ -137,20 +138,22 @@ else if (tft_driver == 0x7796)
         cfg.pin_int         = -1;   // INTが接続されているピン番号
         cfg.bus_shared      = true; // 画面と共通のバスを使用している場合 trueを設定
         cfg.offset_rotation = 0; // 表示とタッチの向きのが一致しない場合の調整 0~7の値で設定
-        cfg.spi_host        = HSPI_HOST; // 使用するSPIを選択 (HSPI_HOST or VSPI_HOST)
-        cfg.pin_sclk        = TFT_SCLK;  // SCLKが接続されているピン番号
-        cfg.pin_mosi        = TFT_MOSI;  // MOSIが接続されているピン番号
-        cfg.pin_miso        = TFT_MISO;  // MISOが接続されているピン番号
 #ifdef TOUCH_CS
-        cfg.pin_cs = TOUCH_CS;            //   CSが接続されているピン番号
-        cfg.freq   = SPI_TOUCH_FREQUENCY; // SPIクロックを設定
+        cfg.spi_host = HSPI_HOST;           // 使用するSPIを選択 (HSPI_HOST or VSPI_HOST)
+        cfg.pin_sclk = TFT_SCLK;            // SCLKが接続されているピン番号
+        cfg.pin_mosi = TFT_MOSI;            // MOSIが接続されているピン番号
+        cfg.pin_miso = TFT_MISO;            // MISOが接続されているピン番号
+        cfg.pin_cs   = TOUCH_CS;            //   CSが接続されているピン番号
+        cfg.freq     = SPI_TOUCH_FREQUENCY; // SPIクロックを設定
 #else
-        cfg.pin_sda = TOUCH_SDA;
-        cfg.pin_scl = TOUCH_SCL;
-        cfg.freq    = I2C_TOUCH_FREQUENCY; // SPIクロックを設定
+        cfg.pin_sda  = TOUCH_SDA;
+        cfg.pin_scl  = TOUCH_SCL;
+        cfg.i2c_port = I2C_TOUCH_PORT;      // 使用するI2Cを選択 (0 or 1)
+        cfg.i2c_addr = I2C_TOUCH_ADDRESS;   // I2Cデバイスアドレス番号
+        cfg.freq     = I2C_TOUCH_FREQUENCY; // SPIクロックを設定
 #endif
-        tft._touch_instance.config(cfg);
-        tft._panel_instance->setTouch(&tft._touch_instance); // タッチスクリーンをパネルにセットします。
+        tft._touch_instance->config(cfg);
+        tft._panel_instance->setTouch(tft._touch_instance); // タッチスクリーンをパネルにセットします。
     }
     tft.setPanel(tft._panel_instance); // 使用するパネルをセットします。
 
@@ -191,11 +194,19 @@ void LovyanGfx::show_info()
     }
 
     {
-        auto cfg = tft._touch_instance.config(); // バス設定用の構造体を取得します。
+        auto cfg = tft._touch_instance->config(); // バス設定用の構造体を取得します。
         if(cfg.pin_cs != -1) {
             tftPinInfo(F("TOUCH_CS"), cfg.pin_cs);
             uint32_t freq = cfg.freq / 100000;
             LOG_VERBOSE(TAG_TFT, F("Touch SPI freq.   : %d.%d MHz"), freq / 10, freq % 10);
+        }
+        if(cfg.pin_sda != -1) {
+            tftPinInfo(F("TOUCH_SDA"), cfg.pin_sda);
+        }
+        if(cfg.pin_scl != -1) {
+            tftPinInfo(F("TOUCH_SCL"), cfg.pin_scl);
+            uint32_t freq = cfg.freq / 100000;
+            LOG_VERBOSE(TAG_TFT, F("Touch I2C freq.   : %d.%d MHz"), freq / 10, freq % 10);
         }
     }
 

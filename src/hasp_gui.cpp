@@ -196,8 +196,7 @@ void guiSetup()
                 PSTR(LVGL_VERSION_INFO));
 
     /* Initialize the LVGL display driver with correct orientation */
-#if TOUCH_DRIVER == 2046
-
+#if(TOUCH_DRIVER == 2046) || defined(LGFX_USE_V1) // Use native display driver to rotate display and touch
     static lv_disp_drv_t disp_drv;
     lv_disp_drv_init(&disp_drv);
     disp_drv.buffer   = &disp_buf;
@@ -214,22 +213,22 @@ void guiSetup()
     lv_disp_t* display = lv_disp_drv_register(&disp_drv);
     lv_disp_set_rotation(display, LV_DISP_ROT_NONE);
 
-#elif defined(LANBONL8)
+    /*
+    #elif defined(LANBONL8) // Screen is 0 deg. rotated
+        static lv_disp_drv_t disp_drv;
+        lv_disp_drv_init(&disp_drv);
+        disp_drv.buffer   = &disp_buf;
+        disp_drv.flush_cb = gui_flush_cb;
 
-    static lv_disp_drv_t disp_drv;
-    lv_disp_drv_init(&disp_drv);
-    disp_drv.buffer   = &disp_buf;
-    disp_drv.flush_cb = gui_flush_cb;
+        disp_drv.hor_res = tft_width;
+        disp_drv.ver_res = tft_height;
 
-    disp_drv.hor_res = tft_width;
-    disp_drv.ver_res = tft_height;
+        lv_disp_rot_t rotation[] = {LV_DISP_ROT_NONE, LV_DISP_ROT_270, LV_DISP_ROT_180, LV_DISP_ROT_90};
+        lv_disp_t* display       = lv_disp_drv_register(&disp_drv);
+        lv_disp_set_rotation(display, rotation[(4 + gui_settings.rotation - TFT_ROTATION) % 4]);
+    */
 
-    lv_disp_rot_t rotation[] = {LV_DISP_ROT_NONE, LV_DISP_ROT_270, LV_DISP_ROT_180, LV_DISP_ROT_90};
-    lv_disp_t* display       = lv_disp_drv_register(&disp_drv);
-    lv_disp_set_rotation(display, rotation[(4 + gui_settings.rotation - TFT_ROTATION) % 4]);
-
-#elif defined(M5STACK)
-
+#elif defined(M5STACK) // Screen is 90 deg. rotated
     static lv_disp_drv_t disp_drv;
     lv_disp_drv_init(&disp_drv);
     disp_drv.buffer   = &disp_buf;
@@ -242,8 +241,7 @@ void guiSetup()
     lv_disp_t* display       = lv_disp_drv_register(&disp_drv);
     lv_disp_set_rotation(display, rotation[(4 + gui_settings.rotation - TFT_ROTATION) % 4]);
 
-#else
-
+#else // Use lvgl transformations
     static lv_disp_drv_t disp_drv;
     lv_disp_drv_init(&disp_drv);
     disp_drv.buffer   = &disp_buf;
