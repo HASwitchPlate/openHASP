@@ -21,6 +21,10 @@
 #include "custom/bootlogo_template.h" // Sketch tab header for xbm images
 #endif
 
+#ifndef TOUCH_IRQ
+#define TOUCH_IRQ -1
+#endif
+
 namespace dev {
 class LGFX : public lgfx::LGFX_Device {
   public:
