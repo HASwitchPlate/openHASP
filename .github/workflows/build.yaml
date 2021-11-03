@@ -28,6 +28,7 @@ jobs:
           - lolin-d32-pro_ili9341
           - m5stack-core2
           - makerfabs-tft35-cap
+          - ttgo-t7-v1.5_ili9341
           - wt32-sc01
           - yeacreate-nscreen32
           - linux_sdl_64bits
