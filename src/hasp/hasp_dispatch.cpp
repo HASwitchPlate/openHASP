@@ -1264,9 +1264,7 @@ void dispatch_service(const char*, const char* payload, uint8_t source)
 static void dispatch_add_command(const char* p_cmdstr, void (*func)(const char*, const char*, uint8_t))
 {
     if(nCommands >= sizeof(commands) / sizeof(haspCommand_t)) {
-        LOG_FATAL(TAG_MSGR, F("CMD_OVERFLOW %d"), nCommands);
-        while(1) {
-        }
+        LOG_FATAL(TAG_MSGR, F("CMD_OVERFLOW %d"), nCommands); // Needs to be in curly braces
     } else {
         commands[nCommands].p_cmdstr = p_cmdstr;
         commands[nCommands].func     = func;

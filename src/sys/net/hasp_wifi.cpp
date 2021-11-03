@@ -433,17 +433,11 @@ void wifiSetup()
 
     // check for the presence of the shield:
     if(WiFiSpi.status() == WL_NO_SHIELD) {
-        LOG_FATAL(TAG_WIFI, F("WiFi shield not present"));
-        // don't continue:
-        while(true)
-            ;
+        LOG_FATAL(TAG_WIFI, F("WiFi shield not present")); // Needs to be in curly braces
     }
 
     if(!WiFiSpi.checkProtocolVersion()) {
-        LOG_FATAL(TAG_WIFI, F("Protocol version mismatch. Please upgrade the firmware"));
-        // don't continue:
-        while(true)
-            ;
+        LOG_FATAL(TAG_WIFI, F("Protocol version mismatch. Please upgrade the firmware")); // Needs to be in curly braces
     }
 
     // attempt to connect to Wifi network
