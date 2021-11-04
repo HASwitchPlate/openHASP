@@ -66,7 +66,7 @@ class TouchTftEspi : public BaseTouch {
 } // namespace dev
 
 using dev::TouchTftEspi;
-extern dev::TouchTftEspi haspTouch;
+dev::TouchTftEspi haspTouch;
 
 #endif // ARDUINO
 
