@@ -2,13 +2,16 @@
    For full license information read the LICENSE file in the project folder */
 
 #include "hasplib.h"
-#include "hasp_filesystem.h"
 
 #include <fstream>
 
 #if defined(ARDUINO)
 #include "StreamUtils.h" // For EEPromStream
+
+#if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
+#include "hasp_filesystem.h"
 #endif
+#endif // ARDUINO
 
 namespace hasp {
 
