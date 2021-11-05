@@ -15,8 +15,20 @@
 #include "SPIFFS.h"
 #define FS SPIFFS
 #elif HASP_USE_LITTLEFS > 0
+
+#ifndef ESP_ARDUINO_VERSION_VAL
+#define ESP_ARDUINO_VERSION_VAL(major, minor, patch) ((major << 16) | (minor << 8) | (patch))
+#endif
+
+#if ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(2, 0, 0)
+#include <LittleFS.h>
+#define FS LittleFS
+#else
 #include "LITTLEFS.h"
+#include "esp_littlefs.h"
 #define FS LITTLEFS
+#endif // ESP_ARDUINO_VERSION
+
 #endif
 #elif defined(ARDUINO_ARCH_ESP8266)
 #include "LittleFS.h"

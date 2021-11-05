@@ -39,8 +39,20 @@ typedef struct
 #include "SPIFFS.h"
 #define HASP_FS SPIFFS
 #elif HASP_USE_LITTLEFS > 0
+
+#ifndef ESP_ARDUINO_VERSION_VAL
+#define ESP_ARDUINO_VERSION_VAL(major, minor, patch) ((major << 16) | (minor << 8) | (patch))
+#endif
+
+#if ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(2, 0, 0)
+#include <LittleFS.h>
+#define HASP_FS LittleFS
+#else
 #include "LITTLEFS.h"
+#include "esp_littlefs.h"
 #define HASP_FS LITTLEFS
+#endif // ESP_ARDUINO_VERSION
+
 #endif
 #elif defined(ARDUINO_ARCH_ESP8266)
 // included by default
