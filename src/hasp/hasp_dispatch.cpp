@@ -107,7 +107,7 @@ void dispatch_state_brightness(const char* topic, hasp_event_t eventid, int32_t 
     dispatch_state_subtopic(topic, payload);
 }
 
-void dispatch_state_antiburn( hasp_event_t eventid)
+void dispatch_state_antiburn(hasp_event_t eventid)
 {
     char topic[9];
     char payload[64];
@@ -1059,6 +1059,8 @@ void dispatch_send_discovery(const char*, const char*, uint8_t source)
 #if HASP_USE_MQTT > 0
 
     StaticJsonDocument<1024> doc;
+    char data[1024];
+    char buffer[64];
 
     doc[F("node")]  = haspDevice.get_hostname();
     doc[F("mdl")]   = haspDevice.get_model();
@@ -1066,6 +1068,13 @@ void dispatch_send_discovery(const char*, const char*, uint8_t source)
     doc[F("hwid")]  = haspDevice.get_hardware_id();
     doc[F("pages")] = haspPages.count();
     doc[F("sw")]    = haspDevice.get_version();
+
+#if HASP_USE_HTTP > 0
+    network_get_ipaddress(buffer, sizeof(buffer));
+    doc[F("uri")] = String(F("http://")) + String(buffer);
+#elif defined(WINDOWS) || defined(POSIX)
+    doc[F("uri")] = "http://google.pt";
+#endif
 
     JsonObject input = doc.createNestedObject(F("input"));
     JsonArray relay  = doc.createNestedArray(F("power"));
@@ -1076,7 +1085,6 @@ void dispatch_send_discovery(const char*, const char*, uint8_t source)
     gpio_discovery(input, relay, led, dimmer);
 #endif
 
-    char data[1024];
     size_t len = serializeJson(doc, data);
 
     switch(mqtt_send_discovery(data, len)) {

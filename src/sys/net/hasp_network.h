@@ -16,6 +16,7 @@ void networkStop(void);
 
 /* ===== Getter and Setter Functions ===== */
 void network_get_statusupdate(char* buffer, size_t len);
+void network_get_ipaddress(char* buffer, size_t len);
 void network_get_info(JsonDocument& doc);
 
 /* ===== Read/Write Configuration ===== */

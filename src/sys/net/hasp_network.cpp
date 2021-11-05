@@ -140,6 +140,30 @@ void network_get_statusupdate(char* buffer, size_t len)
 #endif
 }
 
+void network_get_ipaddress(char* buffer, size_t len)
+{
+#if HASP_USE_ETHERNET > 0
+    IPAddress ip = Ethernet.localIP();
+    snprintf_P(buffer, len, PSTR("%d.%d.%d.%d"), ip[0], ip[1], ip[2], ip[3]);
+    return;
+#endif
+
+#if HASP_USE_WIFI > 0
+
+#if defined(STM32F4xx)
+    IPAddress ip;
+    ip = WiFi.localIP();
+    snprintf_P(buffer, len, PSTR("%d.%d.%d.%d"), ip[0], ip[1], ip[2], ip[3]);
+#else
+    strncpy(buffer, WiFi.localIP().toString().c_str(), len);
+#endif
+
+    return;
+#endif // HASP_USE_WIFI
+
+    snprintf(buffer, len, "");
+}
+
 void network_get_info(JsonDocument& doc)
 {
 #if HASP_USE_ETHERNET > 0
