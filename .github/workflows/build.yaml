@@ -75,7 +75,7 @@ jobs:
       - name: Upload output file
         uses: actions/upload-artifact@v2
         with:
-          name: ${{ matrix.environments }}.zip
+          name: ${{ matrix.environments }}
           path: build_output/firmware/*.bin
     #- name: Create release and upload firmware
     #  run: |
