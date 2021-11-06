@@ -960,32 +960,29 @@ void dispatch_antiburn(const char*, const char* payload, uint8_t source)
 
     size_t maxsize = (128u * ((strlen(payload) / 128) + 1)) + 128;
     DynamicJsonDocument json(maxsize);
-    bool state = false;
 
     // Note: Deserialization needs to be (const char *) so the objects WILL be copied
     // this uses more memory but otherwise the mqtt receive buffer can get overwritten by the send buffer !!
     DeserializationError jsonError = deserializeJson(json, payload);
     json.shrinkToFit();
+    bool state = false;
 
     if(jsonError) { // Couldn't parse incoming payload as json
         state = Parser::is_true(payload);
-
     } else {
-
-        // plain numbers are parsed as valid json object
-        if(json.is<uint8_t>()) {
+        if(json.is<uint8_t>()) { // plain numbers are parsed as valid json object
             state = json.as<uint8_t>();
 
-            // true and false are parsed as valid json object
-        } else if(json.is<bool>()) {
+        } else if(json.is<bool>()) { // true and false are parsed as valid json object
             state = json.as<bool>();
 
-        } else {
-            if(!json[F("state")].isNull()) state = Parser::is_true(json[F("state")].as<std::string>().c_str());
+        } else { // other text
+            JsonVariant key = json[F("state")];
+            if(!key.isNull()) state = Parser::is_true(key.as<std::string>().c_str());
         }
     }
 
-    hasp_set_antiburn(state ? 30 : 0, 1000); // ON = 25 cycles of 1000 milli seconds (i.e. 25 sec)
+    hasp_set_antiburn(state ? 30 : 0, 1000); // ON = 30 cycles of 1000 milli seconds (i.e. 30 sec)
 }
 
 // restart the device
