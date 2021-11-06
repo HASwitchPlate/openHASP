@@ -68,6 +68,7 @@ gui_conf_t gui_settings = {.show_pointer   = false,
                            .rotation       = TFT_ROTATION,
                            .invert_display = INVERT_COLORS,
                            .cal_data       = {0, 65535, 0, 65535, 0}};
+lv_obj_t* cursor;
 
 uint16_t tft_width  = TFT_WIDTH;
 uint16_t tft_height = TFT_HEIGHT;
@@ -85,6 +86,11 @@ uint16_t tft_height = TFT_HEIGHT;
 // {
 //     lv_tick_inc(LVGL_TICK_PERIOD);
 // }
+
+void gui_hide_pointer(bool hidden)
+{
+    if(cursor) lv_obj_set_hidden(cursor, hidden || !gui_settings.show_pointer);
+}
 
 IRAM_ATTR void gui_flush_cb(lv_disp_drv_t* disp, const lv_area_t* area, lv_color_t* color_p)
 {
@@ -330,28 +336,22 @@ void guiSetup()
     mouse_indev->driver.type = LV_INDEV_TYPE_POINTER;
 
     /*Set a cursor for the mouse*/
-    if(gui_settings.show_pointer) {
-        // lv_obj_t * label = lv_label_create(lv_layer_sys(), NULL);
-        // lv_label_set_text(label, "<");
-        // lv_indev_set_cursor(mouse_indev, label); // connect the object to the driver
-
-        LOG_TRACE(TAG_GUI, F("Initialize Cursor"));
-        lv_obj_t* cursor;
-        lv_obj_t* mouse_layer = lv_disp_get_layer_sys(NULL); // default display
+    LOG_TRACE(TAG_GUI, F("Initialize Cursor"));
+    lv_obj_t* mouse_layer = lv_disp_get_layer_sys(NULL); // default display
 
 #if defined(ARDUINO_ARCH_ESP32)
-        LV_IMG_DECLARE(mouse_cursor_icon);          /*Declare the image file.*/
-        cursor = lv_img_create(mouse_layer, NULL);  /*Create an image object for the cursor */
-        lv_img_set_src(cursor, &mouse_cursor_icon); /*Set the image source*/
+    LV_IMG_DECLARE(mouse_cursor_icon);          /*Declare the image file.*/
+    cursor = lv_img_create(mouse_layer, NULL);  /*Create an image object for the cursor */
+    lv_img_set_src(cursor, &mouse_cursor_icon); /*Set the image source*/
 #else
-        cursor = lv_obj_create(mouse_layer, NULL); // show cursor object on every page
-        lv_obj_set_size(cursor, 9, 9);
-        lv_obj_set_style_local_radius(cursor, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_RADIUS_CIRCLE);
-        lv_obj_set_style_local_bg_color(cursor, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_RED);
-        lv_obj_set_style_local_bg_opa(cursor, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_COVER);
+    cursor            = lv_obj_create(mouse_layer, NULL); // show cursor object on every page
+    lv_obj_set_size(cursor, 9, 9);
+    lv_obj_set_style_local_radius(cursor, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_RADIUS_CIRCLE);
+    lv_obj_set_style_local_bg_color(cursor, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_RED);
+    lv_obj_set_style_local_bg_opa(cursor, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_COVER);
 #endif
-        lv_indev_set_cursor(mouse_indev, cursor); /*Connect the image  object to the driver*/
-    }
+    gui_hide_pointer(false);
+    lv_indev_set_cursor(mouse_indev, cursor); /*Connect the image  object to the driver*/
 
 #if !(defined(WINDOWS) || defined(POSIX))
     // drv_touch_init(gui_settings.rotation); // Touch driver
@@ -517,6 +517,7 @@ bool guiSetConfig(const JsonObject& settings)
         changed |= gui_settings.show_pointer != settings[FPSTR(FP_GUI_POINTER)].as<bool>();
 
         gui_settings.show_pointer = settings[FPSTR(FP_GUI_POINTER)].as<bool>();
+        gui_hide_pointer(false);
     }
 
     if(!settings[FPSTR(FP_GUI_CALIBRATION)].isNull()) {

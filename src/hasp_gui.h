@@ -22,6 +22,7 @@ IRAM_ATTR void guiLoop(void);
 void guiEverySecond(void);
 void guiStart(void);
 void guiStop(void);
+void gui_hide_pointer(bool hidden);
 
 /* ===== Special Event Processors ===== */
 void guiCalibrate(void);
