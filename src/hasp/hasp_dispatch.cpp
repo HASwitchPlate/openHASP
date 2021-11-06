@@ -953,12 +953,39 @@ void dispatch_web_update(const char*, const char* espOtaUrl, uint8_t source)
 
 void dispatch_antiburn(const char*, const char* payload, uint8_t source)
 {
-    if(strlen(payload) > 0) {
-        bool state = Parser::is_true(payload);   // ON, TRUE, YES or 1
-        hasp_set_antiburn(state ? 30 : 0, 1000); // ON = 25 cycles of 1000 milli seconds (i.e. 25 sec)
-    } else {
+    if(strlen(payload) == 0) {
         dispatch_state_antiburn(hasp_get_antiburn());
+        return;
     }
+
+    size_t maxsize = (128u * ((strlen(payload) / 128) + 1)) + 128;
+    DynamicJsonDocument json(maxsize);
+    bool state = false;
+
+    // Note: Deserialization needs to be (const char *) so the objects WILL be copied
+    // this uses more memory but otherwise the mqtt receive buffer can get overwritten by the send buffer !!
+    DeserializationError jsonError = deserializeJson(json, payload);
+    json.shrinkToFit();
+
+    if(jsonError) { // Couldn't parse incoming payload as json
+        state = Parser::is_true(payload);
+
+    } else {
+
+        // plain numbers are parsed as valid json object
+        if(json.is<uint8_t>()) {
+            state = json.as<uint8_t>();
+
+            // true and false are parsed as valid json object
+        } else if(json.is<bool>()) {
+            state = json.as<bool>();
+
+        } else {
+            if(!json[F("state")].isNull()) state = Parser::is_true(json[F("state")].as<std::string>().c_str());
+        }
+    }
+
+    hasp_set_antiburn(state ? 30 : 0, 1000); // ON = 25 cycles of 1000 milli seconds (i.e. 25 sec)
 }
 
 // restart the device
