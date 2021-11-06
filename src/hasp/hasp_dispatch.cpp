@@ -953,8 +953,12 @@ void dispatch_web_update(const char*, const char* espOtaUrl, uint8_t source)
 
 void dispatch_antiburn(const char*, const char* payload, uint8_t source)
 {
-    bool state = Parser::is_true(payload);   // ON, TRUE, YES or 1
-    hasp_set_antiburn(state ? 30 : 0, 1000); // ON = 25 cycles of 1000 milli seconds (i.e. 25 sec)
+    if(strlen(payload) > 0) {
+        bool state = Parser::is_true(payload);   // ON, TRUE, YES or 1
+        hasp_set_antiburn(state ? 30 : 0, 1000); // ON = 25 cycles of 1000 milli seconds (i.e. 25 sec)
+    } else {
+        dispatch_state_antiburn(hasp_get_antiburn());
+    }
 }
 
 // restart the device
@@ -1167,6 +1171,7 @@ void dispatch_current_state(uint8_t source)
     dispatch_current_page();
     dispatch_send_sensordata(NULL, NULL, source);
     dispatch_send_discovery(NULL, NULL, source);
+    dispatch_state_antiburn(hasp_get_antiburn());
 }
 
 // Format filesystem and erase EEPROM

@@ -203,9 +203,9 @@ void hasp_set_antiburn(int32_t repeat_count, uint32_t period)
 /**
  * Check if Anti Burn-in protection is enabled
  */
-bool hasp_get_antiburn()
+hasp_event_t hasp_get_antiburn()
 {
-    return antiburn_task != NULL;
+    return (antiburn_task != NULL) ? HASP_EVENT_ON : HASP_EVENT_OFF;
 }
 
 /**
