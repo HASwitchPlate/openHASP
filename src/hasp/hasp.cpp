@@ -4,6 +4,7 @@
 #include "hasplib.h"
 #include "dev/device.h"
 // #include "lv_datetime.h"
+#include "hasp_gui.h"
 
 #ifdef ARDUINO
 #include "ArduinoLog.h"
@@ -25,7 +26,6 @@
 
 #if HASP_USE_CONFIG > 0
 #include "lv_fs_if.h"
-#include "hasp_gui.h"
 #include "hasp_config.h"
 #include "font/hasp_font_loader.h"
 //#include "hasp_filesystem.h" included in hasp_conf.h
