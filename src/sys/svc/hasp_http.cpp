@@ -52,8 +52,23 @@
 #ifndef D_HTTP_COLOR_BUTTON
 #define D_HTTP_COLOR_BUTTON             "#1fa3ec"    // Button color - Vivid blue
 #endif
+#ifndef D_HTTP_COLOR_BUTTON_HOVER
+#define D_HTTP_COLOR_BUTTON_HOVER       "#008ecc"    // Button color - Olympic blue
+#endif
 #ifndef D_HTTP_COLOR_BUTTON_RESET
 #define D_HTTP_COLOR_BUTTON_RESET       "#f00"       // Restart/Reset button color - red
+#endif
+#ifndef D_HTTP_COLOR_BUTTON_RESET_HOVER
+#define D_HTTP_COLOR_BUTTON_RESET_HOVER "#b00"       // Restart/Reset button color - Dark red
+#endif
+#ifndef D_HTTP_COLOR_GROUP_TEXT
+#define D_HTTP_COLOR_GROUP_TEXT         "#000"       // Container text color - Black
+#endif
+#ifndef D_HTTP_COLOR_GROUP
+#define D_HTTP_COLOR_GROUP              "#f3f3f3"    // Container color - Light gray
+#endif
+#ifndef D_HTTP_COLOR_FOOTER_TEXT
+#define D_HTTP_COLOR_FOOTER_TEXT        "#008ecc"    // Text color of the page footer
 #endif
 /* clang-format on */
 
@@ -2287,14 +2302,16 @@ void webSendCss()
                         "--bg:" D_HTTP_COLOR_BACKGROUND ";"
                         "--btnfg:" D_HTTP_COLOR_BUTTON_TEXT ";"
                         "--btnbg:" D_HTTP_COLOR_BUTTON ";"
-                        "--btnbghi: #0083cc;"
+                        "--btnbghi:" D_HTTP_COLOR_BUTTON_HOVER ";"
                         "--btnred:" D_HTTP_COLOR_BUTTON_RESET ";"
-                        "--btnredhi: #b00;"
+                        "--btnredhi:" D_HTTP_COLOR_BUTTON_RESET_HOVER ";"
                         "--btnbrd: transparent;"
-                        "--grpbg: #f2f2f2;"
+                        "--grpfg:" D_HTTP_COLOR_GROUP_TEXT ";"
+                        "--grpbg:" D_HTTP_COLOR_GROUP ";"
                         "--fldbg:" D_HTTP_COLOR_INPUT ";"
                         "--fldfg:" D_HTTP_COLOR_INPUT_TEXT ";"
                         "--fldred:" D_HTTP_COLOR_INPUT_WARNING ";"
+                        "--footfg:" D_HTTP_COLOR_FOOTER_TEXT ";"
                         "}");
     webSendCached(200, PSTR("text/css"), HTTP_CSS.c_str(), HTTP_CSS.length());
 }
