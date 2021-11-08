@@ -4,7 +4,7 @@
 #ifndef HASP_DRV_FT6336U_H
 #define HASP_DRV_FT6336U_H
 
-#if TOUCH_DRIVER == 6336
+#if TOUCH_DRIVER == 0x6336
 
 #include "hasp_debug.h" // for TAG_DRVR
 

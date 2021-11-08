@@ -1,4 +1,4 @@
-#if TOUCH_DRIVER == 610
+#if TOUCH_DRIVER == 0x0610
 
 #include "hasp_conf.h"
 

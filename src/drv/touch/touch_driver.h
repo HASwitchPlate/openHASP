@@ -51,23 +51,23 @@ class BaseTouch {
 #if defined(LGFX_USE_V1)
 #warning Building for LovyanGfx Touch
 #include "touch_driver_lovyangfx.h"
-#elif TOUCH_DRIVER == 2046 && defined(USER_SETUP_LOADED)
+#elif TOUCH_DRIVER == 0x2046 && defined(USER_SETUP_LOADED)
 #warning Building for XPT2046
 //#include "touch_driver_xpt2046.h"
 #include "touch_driver_tftespi.h"
-#elif TOUCH_DRIVER == 5206
+#elif TOUCH_DRIVER == 0x5206
 #warning Building for FT5206
 #include "touch_driver_ft5206.h"
-#elif TOUCH_DRIVER == 6336
+#elif TOUCH_DRIVER == 0x6336
 #warning Building for FT6336
 #include "touch_driver_ft6336u.h"
-#elif TOUCH_DRIVER == 610
+#elif TOUCH_DRIVER == 0x0610
 #warning Building for STMPE610
 #include "touch_driver_stmpe610.h"
-#elif TOUCH_DRIVER == 911
+#elif TOUCH_DRIVER == 0x0911
 #warning Building for GT911
 #include "touch_driver_gt911.h"
-#elif TOUCH_DRIVER == 0xADC
+#elif TOUCH_DRIVER == 0x0ADC
 #warning Building for analog touch
 #include "touch_driver_analog.h"
 #else

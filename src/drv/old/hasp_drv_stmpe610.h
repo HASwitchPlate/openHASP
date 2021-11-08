@@ -4,7 +4,7 @@
 #ifndef HASP_DRV_STMPE610_H
 #define HASP_DRV_STMPE610_H
 
-#if TOUCH_DRIVER == 610
+#if TOUCH_DRIVER == 0x0610
 
 #include "hasp_debug.h" // for TAG_DRVR
 

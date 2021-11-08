@@ -1334,7 +1334,7 @@ void webHandleGuiConfig(AsyncWebServerRequest* request)
         // httpMessage +=
         //     F("<p><button type='submit' name='save' value='gui'>" D_HTTP_SAVE_SETTINGS "</button></p></form>");
 
-#if TOUCH_DRIVER == 2046 && defined(TOUCH_CS)
+#if TOUCH_DRIVER == 0x2046 && defined(TOUCH_CS)
         add_form_button(httpMessage, F(D_HTTP_CALIBRATE), F("/config/gui"), F("name='cal' value='1'"));
 #endif
 

@@ -1,4 +1,4 @@
-#if TOUCH_DRIVER == 6336
+#if TOUCH_DRIVER == 0x6336
 
 #include <Wire.h>
 #include "FT6336U.h"

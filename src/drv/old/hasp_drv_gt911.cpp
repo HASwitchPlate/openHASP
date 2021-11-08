@@ -1,5 +1,5 @@
 /*
-#if TOUCH_DRIVER == 91100
+#if TOUCH_DRIVER == 0x091100
 
     #include <Wire.h>
     #include "Goodix.h"

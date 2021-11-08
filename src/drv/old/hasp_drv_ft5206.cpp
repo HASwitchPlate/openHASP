@@ -1,4 +1,4 @@
-#if TOUCH_DRIVER == 5206
+#if TOUCH_DRIVER == 0x5206
 
 #include <Wire.h>
 #include "focaltech.h"

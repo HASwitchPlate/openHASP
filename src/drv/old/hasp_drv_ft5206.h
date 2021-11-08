@@ -4,7 +4,7 @@
 #ifndef HASP_DRV_FT5206_H
 #define HASP_DRV_FT5206_H
 
-#if TOUCH_DRIVER == 5206
+#if TOUCH_DRIVER == 0x5206
 
 #define FT5206_address 0x38
 

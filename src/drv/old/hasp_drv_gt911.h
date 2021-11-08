@@ -5,7 +5,7 @@
 #ifndef HASP_DRV_911_H
 #define HASP_DRV_911_H
 
-#if TOUCH_DRIVER == 91100
+#if TOUCH_DRIVER == 0x091100
 
 #include "hasp_debug.h" // for TAG_DRVR
 

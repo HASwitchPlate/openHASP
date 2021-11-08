@@ -104,7 +104,7 @@ IRAM_ATTR bool gui_touch_read(lv_indev_drv_t* indev_driver, lv_indev_data_t* dat
 
 void guiCalibrate(void)
 {
-#if TOUCH_DRIVER == 2046 && defined(USER_SETUP_LOADED)
+#if TOUCH_DRIVER == 0x2046 && defined(USER_SETUP_LOADED)
 #ifdef TOUCH_CS
     haspTouch.calibrate(gui_settings.cal_data);
 #endif
@@ -202,7 +202,7 @@ void guiSetup()
                 PSTR(LVGL_VERSION_INFO));
 
     /* Initialize the LVGL display driver with correct orientation */
-#if(TOUCH_DRIVER == 2046) || defined(LGFX_USE_V1) // Use native display driver to rotate display and touch
+#if(TOUCH_DRIVER == 0x2046) || defined(LGFX_USE_V1) // Use native display driver to rotate display and touch
     static lv_disp_drv_t disp_drv;
     lv_disp_drv_init(&disp_drv);
     disp_drv.buffer   = &disp_buf;
@@ -458,7 +458,7 @@ bool guiGetConfig(const JsonObject& settings)
         } else {
             changed = true;
 
-#if TOUCH_DRIVER == 2046 && defined(USER_SETUP_LOADED) && defined(TOUCH_CS)
+#if TOUCH_DRIVER == 0x2046 && defined(USER_SETUP_LOADED) && defined(TOUCH_CS)
             // tft_espi_set_touch(gui_settings.cal_data);
             haspTft.tft.setTouch(gui_settings.cal_data);
 #endif
@@ -474,7 +474,7 @@ bool guiGetConfig(const JsonObject& settings)
         }
         changed = true;
 
-#if TOUCH_DRIVER == 2046 && defined(USER_SETUP_LOADED) && defined(TOUCH_CS)
+#if TOUCH_DRIVER == 0x2046 && defined(USER_SETUP_LOADED) && defined(TOUCH_CS)
         // tft_espi_set_touch(gui_settings.cal_data);
         haspTft.tft.setTouch(gui_settings.cal_data);
 #endif
@@ -544,7 +544,7 @@ bool guiSetConfig(const JsonObject& settings)
             oobeSetAutoCalibrate(true);
         }
 
-#if TOUCH_DRIVER == 2046 && defined(USER_SETUP_LOADED) && defined(TOUCH_CS)
+#if TOUCH_DRIVER == 0x2046 && defined(USER_SETUP_LOADED) && defined(TOUCH_CS)
         if(status) // tft_espi_set_touch(gui_settings.cal_data);
             haspTft.tft.setTouch(gui_settings.cal_data);
 #endif

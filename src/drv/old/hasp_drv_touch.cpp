@@ -6,25 +6,25 @@
 #include "hasp_drv_touch.h"
 #include "drv/tft/tft_driver.h"
 
-#if TOUCH_DRIVER == 2046
+#if TOUCH_DRIVER == 0x2046
 #if defined(USE_FSMC)
 #else
 #include "drv/old/hasp_drv_tft_espi.h"
 #endif
 
-#elif TOUCH_DRIVER == 2046
+#elif TOUCH_DRIVER == 0x2046
 #include "indev/XPT2046.h"
 #elif TOUCH_DRIVER == 0x2046B
 #include "drv/old/hasp_drv_xpt2046.h"
-#elif TOUCH_DRIVER == 911
+#elif TOUCH_DRIVER == 0x0911
 #include "drv/old/hasp_drv_gt911.h"
-#elif TOUCH_DRIVER == 0xADC
+#elif TOUCH_DRIVER == 0x0ADC
 #include "drv/old/hasp_drv_ft6336u.h"
-#elif TOUCH_DRIVER == 5206
+#elif TOUCH_DRIVER == 0x5206
 #include "drv/old/hasp_drv_ft5206.h"
-#elif TOUCH_DRIVER == 6336
+#elif TOUCH_DRIVER == 0x6336
 #include "drv/old/hasp_drv_ft6336u.h"
-#elif TOUCH_DRIVER == 610
+#elif TOUCH_DRIVER == 0x0610
 #include "drv/old/hasp_drv_stmpe610.h"
 #else
 //#include "tp_i2c.h"
@@ -54,7 +54,7 @@ void drv_touch_init(uint8_t rotation)
             touch_rotate = false;
     }
 
-#if TOUCH_DRIVER == 2046 // XPT2046 Resistive touch panel driver
+#if TOUCH_DRIVER == 0x2046 // XPT2046 Resistive touch panel driver
 #if defined(USE_FSMC)
     xpt2046_init(rotation);
 #else
@@ -62,19 +62,19 @@ void drv_touch_init(uint8_t rotation)
         // tft_espi_init(rotation);
 #endif
 
-#elif TOUCH_DRIVER == 911
+#elif TOUCH_DRIVER == 0x0911
   //  GT911_init();
 
-#elif TOUCH_DRIVER == 0xADC // Analog Digital Touch Conroller
+#elif TOUCH_DRIVER == 0x0ADC // Analog Digital Touch Conroller
         // Touch_init();
 
-#elif TOUCH_DRIVER == 5206
+#elif TOUCH_DRIVER == 0x5206
     FT5206_init();
 
-#elif TOUCH_DRIVER == 6336
+#elif TOUCH_DRIVER == 0x6336
     FT6336U_init();
 
-#elif TOUCH_DRIVER == 610
+#elif TOUCH_DRIVER == 0x0610
     STMPE610_init();
 
 #else
@@ -89,26 +89,26 @@ static inline bool drv_touchpad_getXY(int16_t* touchX, int16_t* touchY)
     bool touched;
     int16_t normal_x;
     int16_t normal_y;
-#if TOUCH_DRIVER == 2046 // XPT2046 Resistive touch panel driver
+#if TOUCH_DRIVER == 0x2046 // XPT2046 Resistive touch panel driver
     touched = haspTft.tft.getTouch((uint16_t*)&normal_x, (uint16_t*)&normal_y, 300);
 
 #elif TOUCH_DRIVER == 0x2046B
     touched     = XPT2046_getXY(&normal_x, &normal_y, true);
 
-#elif TOUCH_DRIVER == 911
+#elif TOUCH_DRIVER == 0x0911
   //  touched = GT911_getXY(&normal_x, &normal_y, true);
 
-#elif TOUCH_DRIVER == 0xADC // Analog Digital Touch Conroller
+#elif TOUCH_DRIVER == 0x0ADC // Analog Digital Touch Conroller
     // touched = Touch_getXY(&normal_x, &normal_y, false);
 
-#elif TOUCH_DRIVER == 5206
+#elif TOUCH_DRIVER == 0x5206
     // WARNING : this library is slooow !! use 6336 instead
     touched = FT5206_getXY(&normal_x, &normal_y, false); // no debug
 
-#elif TOUCH_DRIVER == 6336
+#elif TOUCH_DRIVER == 0x6336
     touched = FT6336U_getXY(&normal_x, &normal_y, false); // no debug
 
-#elif TOUCH_DRIVER == 610
+#elif TOUCH_DRIVER == 0x0610
     touched = STMPE610_getXY(&normal_x, &normal_y, drv_touch_rotation, false); // no debug
 
 #else
@@ -220,7 +220,7 @@ IRAM_ATTR bool drv_touch_read(lv_indev_drv_t* indev_driver, lv_indev_data_t* dat
 
 IRAM_ATTR void drv_touch_loop()
 {
-#if TOUCH_DRIVER == 911
+#if TOUCH_DRIVER == 0x0911
   //  GT911_loop();
 #endif
 }
