@@ -53,7 +53,7 @@
 #define D_HTTP_COLOR_BUTTON             "#1fa3ec"    // Button color - Vivid blue
 #endif
 #ifndef D_HTTP_COLOR_BUTTON_HOVER
-#define D_HTTP_COLOR_BUTTON_HOVER       "#008ecc"    // Button color - Olympic blue
+#define D_HTTP_COLOR_BUTTON_HOVER       "#0083cc"    // Button color - Olympic blue
 #endif
 #ifndef D_HTTP_COLOR_BUTTON_RESET
 #define D_HTTP_COLOR_BUTTON_RESET       "#f00"       // Restart/Reset button color - red
@@ -68,7 +68,7 @@
 #define D_HTTP_COLOR_GROUP              "#f3f3f3"    // Container color - Light gray
 #endif
 #ifndef D_HTTP_COLOR_FOOTER_TEXT
-#define D_HTTP_COLOR_FOOTER_TEXT        "#008ecc"    // Text color of the page footer
+#define D_HTTP_COLOR_FOOTER_TEXT        "#0083cc"    // Text color of the page footer
 #endif
 /* clang-format on */
 

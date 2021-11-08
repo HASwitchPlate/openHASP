@@ -80,12 +80,12 @@
 #define D_HTTP_COLOR_INPUT_WARNING "#f00"      // Input warning border color - Red
 #define D_HTTP_COLOR_BUTTON_TEXT "#fff"        // Button text color - White
 #define D_HTTP_COLOR_BUTTON "#1fa3ec"          // Button color - Vivid blue
-#define D_HTTP_COLOR_BUTTON_HOVER "#008ecc"    // Button color - Olympic blue
+#define D_HTTP_COLOR_BUTTON_HOVER "#0083cc"    // Button color - Olympic blue
 #define D_HTTP_COLOR_BUTTON_RESET "#f00"       // Restart/Reset button color - red
 #define D_HTTP_COLOR_BUTTON_RESET_HOVER "#b00" // Restart/Reset button color - Dark red
 #define D_HTTP_COLOR_GROUP "#f3f3f3"           // Group container background color
 #define D_HTTP_COLOR_GROUP_TEXT "#000"         // Group container text color - black
-#define D_HTTP_COLOR_FOOTER_TEXT "#008ecc"     // Footer text color - Olympic blue
+#define D_HTTP_COLOR_FOOTER_TEXT "#0083cc"     // Footer text color - Olympic blue
 
 /*
 // Dark theme
@@ -96,7 +96,7 @@
 #define D_HTTP_COLOR_INPUT_WARNING      "#ff5661"    // Warning text color - Brick Red
 #define D_HTTP_COLOR_BUTTON_TEXT        "#faffff"    // Button text color - Very pale (mostly white) cyan
 #define D_HTTP_COLOR_BUTTON             "#1fa3ec"    // Button color - Vivid blue
-#define D_HTTP_COLOR_BUTTON_HOVER       "#008ecc"    // Button color - Olympic Blue
+#define D_HTTP_COLOR_BUTTON_HOVER       "#0083cc"    // Button color - Olympic Blue
 #define D_HTTP_COLOR_BUTTON_RESET       "#d43535"    // Restart/Reset/Delete button color - Strong red
 #define D_HTTP_COLOR_BUTTON_RESET_HOVER "#b00"       // Restart/Reset button color - Dark red
 #define D_HTTP_COLOR_GROUP              "#444"       // Group container background color - Dark gray
