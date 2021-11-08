@@ -94,19 +94,6 @@ void hasp_process_attribute(uint8_t pageid, uint8_t objid, const char* attr, con
 void object_set_normalized_group_values(hasp_update_value_t& value);
 
 /**
- * Get the object type name of an object
- * @param obj an lv_obj_t* of the object to check its type
- * @return name of the object type
- * @note
- */
-inline const char* obj_get_type_name(const lv_obj_t* obj)
-{
-    lv_obj_type_t list;
-    lv_obj_get_type(obj, &list);
-    const char* objtype = list.type[0];
-    return objtype + 3; // skip lv_
-}
-/**
  * Get the hasp object type of a given LVGL object
  * @param obj an lv_obj_t* of the object to check its type
  * @return lv_hasp_obj_type_t
@@ -115,6 +102,21 @@ inline const char* obj_get_type_name(const lv_obj_t* obj)
 inline lv_hasp_obj_type_t obj_get_type(const lv_obj_t* obj)
 {
     return (lv_hasp_obj_type_t)obj->user_data.objid;
+}
+/**
+ * Get the object type name of an object
+ * @param obj an lv_obj_t* of the object to check its type
+ * @return name of the object type
+ * @note
+ */
+inline const char* obj_get_type_name(const lv_obj_t* obj)
+{
+    if (obj_get_type(obj) == LV_HASP_TAB) return "tab"; // LVGL reports tab objects as "lv_page"
+
+    lv_obj_type_t list;
+    lv_obj_get_type(obj, &list);
+    const char* objtype = list.type[0];
+    return objtype + 3; // skip lv_
 }
 /**
  * Check if an lvgl objecttype name corresponds to a given HASP object ID
