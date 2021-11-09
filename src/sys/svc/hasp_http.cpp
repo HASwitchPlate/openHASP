@@ -565,6 +565,7 @@ static void webHandleInfoJson()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+/*
 static void webHandleInfo()
 { // http://plate01/
     if(!httpIsAuthenticated(F("info"))) return;
@@ -577,7 +578,7 @@ static void webHandleInfo()
         httpMessage += haspDevice.get_hostname();
         httpMessage += F("</h1><hr>");
 
-        /* HASP Stats */
+        // HASP Stats
         httpMessage += F("<b>HASP Version: </b>");
         httpMessage += haspDevice.get_version();
         httpMessage += F("<br/><b>Build DateTime: </b>");
@@ -627,7 +628,7 @@ static void webHandleInfo()
         }
 #endif
 
-        /* LVGL Stats */
+        // LVGL Stats
         lv_mem_monitor_t mem_mon;
         lv_mem_monitor(&mem_mon);
         httpMessage += F("</p><p><b>LVGL Memory: </b>");
@@ -645,7 +646,7 @@ static void webHandleInfo()
         httpMessage += F("</p/><p><b>LCD Active Page: </b>");
         httpMessage += String(haspPages.get());
 
-        /* Wifi Stats */
+        // Wifi Stats
 #if HASP_USE_WIFI > 0
         httpMessage += F("</p/><p><b>SSID: </b>");
         httpMessage += String(WiFi.SSID());
@@ -707,7 +708,8 @@ static void webHandleInfo()
         httpMessage += String(ETH.macAddress());
 #endif
 #endif
-/* Mqtt Stats */
+
+// Mqtt Stats
 #if HASP_USE_MQTT > 0
         httpMessage += F("</p/><p><b>MQTT Status: </b>");
         if(mqttIsConnected()) { // Check MQTT connection
@@ -728,7 +730,7 @@ static void webHandleInfo()
 
 #endif // MQTT
 
-        /* ESP Stats */
+        // ESP Stats
         httpMessage += F("</p/><p><b>MCU Model: </b>");
         httpMessage += haspDevice.get_chip_model();
         httpMessage += F("<br/><b>CPU Frequency: </b>");
@@ -766,6 +768,7 @@ static void webHandleInfo()
     }
     webSendFooter();
 }
+*/
 
 /* String urldecode(String str)
 {
@@ -2473,20 +2476,22 @@ void httpSetup()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-// static void httpReconnect()
-// {
-//     if(!http_config.enable) return;
+/*
+static void httpReconnect()
+{
+    if(!http_config.enable) return;
 
-//     if(webServerStarted) {
-//         httpStop();
-//     } else
-// #if HASP_USE_WIFI > 0 && !defined(STM32F4xx)
-//         if(WiFi.status() == WL_CONNECTED || WiFi.getMode() != WIFI_STA)
-// #endif
-//     {
-//         httpStart();
-//     }
-// }
+    if(webServerStarted) {
+        httpStop();
+    } else
+#if HASP_USE_WIFI > 0 && !defined(STM32F4xx)
+        if(WiFi.status() == WL_CONNECTED || WiFi.getMode() != WIFI_STA)
+#endif
+    {
+        httpStart();
+    }
+}
+*/
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 IRAM_ATTR void httpLoop(void)
