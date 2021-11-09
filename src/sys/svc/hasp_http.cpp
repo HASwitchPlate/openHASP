@@ -913,6 +913,9 @@ static int handleFileRead(String path)
     if(path.endsWith("/")) {
         path += F("index.htm");
     }
+    
+    String style_css = F("/style.css");
+    bool is_style_css = (path == style_css);
 
     String pathWithGz = path + F(".gz");
     if(HASP_FS.exists(pathWithGz) || HASP_FS.exists(path)) {
@@ -945,6 +948,9 @@ static int handleFileRead(String path)
 
         } else {
 
+            // Only styles.css can be cached
+            if(is_style_css) webSendCacheHeader(file.size(), 3600);
+
             // Stream other files directly from filesystem
             webServer.streamFile(file, contentType);
             file.close();
@@ -962,7 +968,7 @@ static int handleFileRead(String path)
 #endif
 
 #if defined(ARDUINO_ARCH_ESP32) && defined(CONFIG_IDF_TARGET_ESP32)
-    if(path == F("/style.css")) {
+    if(path == style_css) {
         size_t size = STYLE_CSS_GZ_END - STYLE_CSS_GZ_START;
         webServer.sendHeader(F("Content-Encoding"), F("gzip"));
         return webSendCached(200, PSTR("text/css"), (const char*)STYLE_CSS_GZ_START, size); // OK
