@@ -197,7 +197,7 @@ static String getContentType(const String& path)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void webHandleHaspConfig();
+static void webHandleHaspConfig();
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -227,7 +227,7 @@ bool httpIsAuthenticated(const __FlashStringHelper* notused)
     return true;
 }
 
-void webSendFooter()
+static void webSendFooter()
 {
 #if defined(STM32F4xx)
     webServer.sendContent(HTTP_FOOTER);
@@ -240,7 +240,7 @@ void webSendFooter()
 #endif
 }
 
-void webSendCacheHeader(int size, int age)
+static void webSendCacheHeader(int size, int age)
 {
     webServer.sendHeader(F("Content-Length"), (String)(size));
     webServer.sendHeader(F("Cache-Control"), F("max-age=3600, public"));
@@ -257,7 +257,7 @@ static int webSendCached(int statuscode, const char* contenttype, const char* da
     return statuscode;
 }
 
-void webSendPage(const char* nodename, uint32_t httpdatalength, bool gohome = false)
+static void webSendHeader(const char* nodename, uint32_t httpdatalength, bool gohome = false)
 {
     {
         char buffer[64];
@@ -342,7 +342,7 @@ void saveConfig()
     }
 }
 
-void webHandleRoot()
+static void webHandleRoot()
 {
     if(!httpIsAuthenticated(F("root"))) return;
 
@@ -373,18 +373,18 @@ void webHandleRoot()
 
         httpMessage += F("<a href='/reboot' class='red'>" D_HTTP_REBOOT "</a>");
 
-        webSendPage(haspDevice.get_hostname(), httpMessage.length(), false);
+        webSendHeader(haspDevice.get_hostname(), httpMessage.length(), false);
         webServer.sendContent(httpMessage);
     }
     webSendFooter();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-void httpHandleReboot()
+static void httpHandleReboot()
 { // http://plate01/reboot
     if(!httpIsAuthenticated(F("reboot"))) return;
 
-    {
+    { // Send Content
         String httpMessage((char*)0);
         httpMessage.reserve(HTTP_PAGE_SIZE);
         httpMessage += F("<h1>");
@@ -392,41 +392,44 @@ void httpHandleReboot()
         httpMessage += F("</h1><hr>");
         httpMessage = F(D_DISPATCH_REBOOT);
 
-        webSendPage(haspDevice.get_hostname(), httpMessage.length(), true);
+        webSendHeader(haspDevice.get_hostname(), httpMessage.length(), true);
         webServer.sendContent(httpMessage);
     }
-    // httpMessage.clear();
     webSendFooter();
 
-    delay(200);
-    dispatch_reboot(true);
+    { // Execute Actions
+        // delay(200);
+        dispatch_reboot(true);
+    }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-void webHandleScreenshot()
+static void webHandleScreenshot()
 { // http://plate01/screenshot
     if(!httpIsAuthenticated(F("screenshot"))) return;
 
-    if(webServer.hasArg(F("a"))) {
-        if(webServer.arg(F("a")) == F("next")) {
-            dispatch_page_next(LV_SCR_LOAD_ANIM_NONE);
-        } else if(webServer.arg(F("a")) == F("prev")) {
-            dispatch_page_prev(LV_SCR_LOAD_ANIM_NONE);
-        } else if(webServer.arg(F("a")) == F("back")) {
-            dispatch_page_back(LV_SCR_LOAD_ANIM_NONE);
+    { // Execute actions
+        if(webServer.hasArg(F("a"))) {
+            if(webServer.arg(F("a")) == F("next")) {
+                dispatch_page_next(LV_SCR_LOAD_ANIM_NONE);
+            } else if(webServer.arg(F("a")) == F("prev")) {
+                dispatch_page_prev(LV_SCR_LOAD_ANIM_NONE);
+            } else if(webServer.arg(F("a")) == F("back")) {
+                dispatch_page_back(LV_SCR_LOAD_ANIM_NONE);
+            }
+        }
+
+        if(webServer.hasArg(F("q"))) {
+            lv_disp_t* disp = lv_disp_get_default();
+            webServer.setContentLength(122 + disp->driver.hor_res * disp->driver.ver_res * sizeof(lv_color_t));
+            webServer.send_P(200, PSTR("image/bmp"), "");
+            guiTakeScreenshot();
+            webServer.client().stop();
+            return;
         }
     }
 
-    if(webServer.hasArg(F("q"))) {
-        lv_disp_t* disp = lv_disp_get_default();
-        webServer.setContentLength(122 + disp->driver.hor_res * disp->driver.ver_res * sizeof(lv_color_t));
-        webServer.send_P(200, PSTR("image/bmp"), "");
-        guiTakeScreenshot();
-        webServer.client().stop();
-        return;
-    }
-
-    {
+    { // Send Content
         String httpMessage((char*)0);
         httpMessage.reserve(HTTP_PAGE_SIZE);
         httpMessage += F("<h1>");
@@ -441,19 +444,18 @@ void webHandleScreenshot()
         httpMessage += F("<a href='#' onclick=\"return ref('next')\">" D_HTTP_NEXT_PAGE "</a></div>");
         httpMessage += FPSTR(MAIN_MENU_BUTTON);
 
-        webSendPage(haspDevice.get_hostname(), httpMessage.length(), false);
+        webSendHeader(haspDevice.get_hostname(), httpMessage.length(), false);
         webServer.sendContent(httpMessage);
     }
     webSendFooter();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void webHandleAbout()
+static void webHandleAbout()
 { // http://plate01/about
     if(!httpIsAuthenticated(F("about"))) return;
 
-    {
+    { // Send Content
         String mitLicense((char*)0);
         mitLicense = FPSTR(MIT_LICENSE);
 
@@ -496,16 +498,14 @@ void webHandleAbout()
 
         httpMessage += FPSTR(MAIN_MENU_BUTTON);
 
-        webSendPage(haspDevice.get_hostname(), httpMessage.length(), false);
+        webSendHeader(haspDevice.get_hostname(), httpMessage.length(), false);
         webServer.sendContent(httpMessage);
     }
-    // httpMessage.clear();
     webSendFooter();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void add_json(String& data, JsonDocument& doc)
+static void add_json(String& data, JsonDocument& doc)
 {
     char buffer[512];
     size_t len = serializeJson(doc, buffer, sizeof(buffer));
@@ -517,62 +517,59 @@ void add_json(String& data, JsonDocument& doc)
     doc.clear();
 }
 
-void webHandleInfoJson()
+static void webHandleInfoJson()
 { // http://plate01/
     if(!httpIsAuthenticated(F("infojson"))) return;
 
-    String htmldata((char*)0);
-    htmldata.reserve(HTTP_PAGE_SIZE);
-    DynamicJsonDocument doc(512);
+    { // Send Content
+        String htmldata((char*)0);
+        htmldata.reserve(HTTP_PAGE_SIZE);
+        DynamicJsonDocument doc(512);
 
-    htmldata += F("<h1>");
-    htmldata += haspDevice.get_hostname();
-    htmldata += F("</h1><hr>");
+        htmldata += F("<h1>");
+        htmldata += haspDevice.get_hostname();
+        htmldata += F("</h1><hr>");
 
-    htmldata += "<div id=\"info\"></div><script>window.addEventListener(\"load\", function(){ var data = '{";
-    //  htmldata = "{";
+        htmldata += "<div id=\"info\"></div><script>window.addEventListener(\"load\", function(){ var data = '{";
+        //  htmldata = "{";
 
-    hasp_get_info(doc);
-    add_json(htmldata, doc);
+        hasp_get_info(doc);
+        add_json(htmldata, doc);
 
 #if HASP_USE_MQTT > 0
-    mqtt_get_info(doc);
-    add_json(htmldata, doc);
+        mqtt_get_info(doc);
+        add_json(htmldata, doc);
 #endif
 
-    network_get_info(doc);
-    add_json(htmldata, doc);
+        network_get_info(doc);
+        add_json(htmldata, doc);
 
-    haspDevice.get_info(doc);
-    add_json(htmldata, doc);
+        haspDevice.get_info(doc);
+        add_json(htmldata, doc);
 
-    htmldata[htmldata.length() - 1] = '}'; // Replace last comma with a bracket
+        htmldata[htmldata.length() - 1] = '}'; // Replace last comma with a bracket
 
-    htmldata += "'; data = JSON.parse(data); var table = \"<table>\"; for(let header in data) { "
-                "table += `<tr><td colspan=2></td></ tr><tr><th colspan=2>${header}</ th></ tr>`;"
-                "for(let key in data[header]) { "
-                "table += `<tr><td>${key}: </ td><td> ${data[header][key]}</ td></ tr>`;"
-                "}} table += \"</table>\"; "
-                "document.getElementById(\"info\").innerHTML = table;});</script>";
+        htmldata += "'; data = JSON.parse(data); var table = \"<table>\"; for(let header in data) { "
+                    "table += `<tr><td colspan=2></td></ tr><tr><th colspan=2>${header}</ th></ tr>`;"
+                    "for(let key in data[header]) { "
+                    "table += `<tr><td>${key}: </ td><td> ${data[header][key]}</ td></ tr>`;"
+                    "}} table += \"</table>\"; "
+                    "document.getElementById(\"info\").innerHTML = table;});</script>";
 
-    // String path = F(".html");
-    // webServer.send(200, getContentType(path), htmldata);
+        htmldata += FPSTR(MAIN_MENU_BUTTON);
 
-    htmldata += FPSTR(MAIN_MENU_BUTTON);
-
-    webSendPage(haspDevice.get_hostname(), htmldata.length(), false);
-    webServer.sendContent(htmldata);
-
-    // htmldata.clear();
+        webSendHeader(haspDevice.get_hostname(), htmldata.length(), false);
+        webServer.sendContent(htmldata);
+    }
     webSendFooter();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-void webHandleInfo()
+static void webHandleInfo()
 { // http://plate01/
     if(!httpIsAuthenticated(F("info"))) return;
 
-    {
+    { // Send Content
         char size_buf[32];
         String httpMessage((char*)0);
         httpMessage.reserve(HTTP_PAGE_SIZE);
@@ -764,10 +761,9 @@ void webHandleInfo()
 
         httpMessage += FPSTR(MAIN_MENU_BUTTON);
 
-        webSendPage(haspDevice.get_hostname(), httpMessage.length(), false);
+        webSendHeader(haspDevice.get_hostname(), httpMessage.length(), false);
         webServer.sendContent(httpMessage);
     }
-    // httpMessage.clear();
     webSendFooter();
 }
 
@@ -798,7 +794,7 @@ void webHandleInfo()
 } */
 
 static unsigned long htppLastLoopTime = 0;
-void webUploadProgress()
+static void webUploadProgress()
 {
     long t = webServer.header("Content-Length").toInt();
     if(millis() - htppLastLoopTime >= 1250) {
@@ -825,11 +821,11 @@ static inline void webUpdatePrintError()
 #endif
 }
 
-void webUpdateReboot()
+static void webUpdateReboot()
 {
     LOG_INFO(TAG_HTTP, F("Update Success: %u bytes received. Rebooting..."), upload->totalSize);
 
-    {
+    { // Send Content
         String httpMessage((char*)0);
         httpMessage.reserve(HTTP_PAGE_SIZE);
         httpMessage += F("<h1>");
@@ -837,17 +833,19 @@ void webUpdateReboot()
         httpMessage += F("</h1><hr>");
         httpMessage += F("<b>Upload complete. Rebooting device, please wait...</b>");
 
-        webSendPage(haspDevice.get_hostname(), httpMessage.length(), true);
+        webSendHeader(haspDevice.get_hostname(), httpMessage.length(), true);
         webServer.sendContent(httpMessage);
     }
-    // httpMessage.clear();
     webSendFooter();
 
-    delay(250);
-    dispatch_reboot(true); // Save the current config
+    // Exectute Actions
+    {
+        // delay(250);
+        dispatch_reboot(true); // Save the current config
+    }
 }
 
-void webHandleFirmwareUpload()
+static void webHandleFirmwareUpload()
 {
     upload = &webServer.upload();
 
@@ -903,7 +901,7 @@ void webHandleFirmwareUpload()
 #endif
 
 #if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
-int handleFileRead(String path)
+static int handleFileRead(String path)
 {
     // if(!httpIsAuthenticated(F("fileread"))) return false;
     if(!httpIsAuthenticated()) return false;
@@ -974,7 +972,7 @@ int handleFileRead(String path)
     return 404; // Not found
 }
 
-void handleFileUpload()
+static void handleFileUpload()
 {
     if(webServer.uri() != "/edit") {
         return;
@@ -1020,7 +1018,7 @@ void handleFileUpload()
     }
 }
 
-void handleFileDelete()
+static void handleFileDelete()
 {
     if(!httpIsAuthenticated(F("filedelete"))) return;
 
@@ -1043,7 +1041,7 @@ void handleFileDelete()
     // path.clear();
 }
 
-void handleFileCreate()
+static void handleFileCreate()
 {
     if(!httpIsAuthenticated(F("filecreate"))) return;
 
@@ -1083,7 +1081,7 @@ void handleFileCreate()
     webServer.send(200, PSTR("text/plain"), "");
 }
 
-void handleFileList()
+static void handleFileList()
 {
     if(!httpIsAuthenticated(F("filelist"))) return;
 
@@ -1154,7 +1152,7 @@ void handleFileList()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 #if HASP_USE_CONFIG > 0
-void webHandleConfig()
+static void webHandleConfig()
 { // http://plate01/config
     if(!httpIsAuthenticated(F("config"))) return;
 
@@ -1191,23 +1189,22 @@ void webHandleConfig()
         httpMessage += F("<a href='/resetConfig' class='red'>" D_HTTP_FACTORY_RESET "</a>");
         httpMessage += FPSTR(MAIN_MENU_BUTTON);
 
-        webSendPage(haspDevice.get_hostname(), httpMessage.length(), false);
+        webSendHeader(haspDevice.get_hostname(), httpMessage.length(), false);
         webServer.sendContent(httpMessage);
     }
-    // httpMessage.clear();
     webSendFooter();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 #if HASP_USE_MQTT > 0
-void webHandleMqttConfig()
+static void webHandleMqttConfig()
 { // http://plate01/config/mqtt
     if(!httpIsAuthenticated(F("config/mqtt"))) return;
 
-    StaticJsonDocument<256> settings;
-    mqttGetConfig(settings.to<JsonObject>());
+    { // Send Content
+        StaticJsonDocument<256> settings;
+        mqttGetConfig(settings.to<JsonObject>());
 
-    {
         String httpMessage((char*)0);
         httpMessage.reserve(HTTP_PAGE_SIZE);
         httpMessage += F("<h1>");
@@ -1268,20 +1265,19 @@ void webHandleMqttConfig()
         httpMessage += F("</form></div>");
 
         add_form_button(httpMessage, F(D_BACK_ICON D_HTTP_CONFIGURATION), F("/config"));
-        webSendPage(haspDevice.get_hostname(), httpMessage.length(), false);
+        webSendHeader(haspDevice.get_hostname(), httpMessage.length(), false);
         webServer.sendContent(httpMessage);
     }
-    // httpMessage.clear();
     webSendFooter();
 }
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-void webHandleGuiConfig()
+static void webHandleGuiConfig()
 { // http://plate01/config/wifi
     if(!httpIsAuthenticated(F("config/gui"))) return;
 
-    {
+    { // Send Content
         StaticJsonDocument<256> settings;
         guiGetConfig(settings.to<JsonObject>());
 
@@ -1365,111 +1361,106 @@ void webHandleGuiConfig()
 
         add_form_button(httpMessage, F(D_HTTP_ANTIBURN), F("/config/gui?brn=1"));
         add_form_button(httpMessage, F(D_BACK_ICON D_HTTP_CONFIGURATION), F("/config"));
-        webSendPage(haspDevice.get_hostname(), httpMessage.length(), false);
+        webSendHeader(haspDevice.get_hostname(), httpMessage.length(), false);
         webServer.sendContent(httpMessage);
     }
     webSendFooter();
 
-    if(webServer.hasArg(F("cal"))) dispatch_calibrate(NULL, NULL, TAG_HTTP);
-    if(webServer.hasArg(F("brn"))) dispatch_antiburn(NULL, "on", TAG_HTTP);
+    { // Execute Actions
+        if(webServer.hasArg(F("cal"))) dispatch_calibrate(NULL, NULL, TAG_HTTP);
+        if(webServer.hasArg(F("brn"))) dispatch_antiburn(NULL, "on", TAG_HTTP);
+    }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 #if HASP_USE_WIFI > 0
-void webHandleWifiConfig()
+static void webHandleWifiConfig()
 { // http://plate01/config/wifi
     if(!httpIsAuthenticated(F("config/wifi"))) return;
 
-    StaticJsonDocument<256> settings;
-    wifiGetConfig(settings.to<JsonObject>());
+    { // Send Content
+        StaticJsonDocument<256> settings;
+        wifiGetConfig(settings.to<JsonObject>());
 
-    String httpMessage((char*)0);
-    httpMessage.reserve(HTTP_PAGE_SIZE);
-    httpMessage += F("<h1>");
-    httpMessage += haspDevice.get_hostname();
-    httpMessage += F("</h1><hr>");
-    httpMessage += F("<h2>" D_HTTP_WIFI_SETTINGS "</h2>");
+        String httpMessage((char*)0);
+        httpMessage.reserve(HTTP_PAGE_SIZE);
+        httpMessage += F("<h1>");
+        httpMessage += haspDevice.get_hostname();
+        httpMessage += F("</h1><hr>");
+        httpMessage += F("<h2>" D_HTTP_WIFI_SETTINGS "</h2>");
 
-    // Form
-    httpMessage += F("<div class='container'><form method='POST' action='/config'>");
+        // Form
+        httpMessage += F("<div class='container'><form method='POST' action='/config'>");
 
-    // Wifi SSID
-    httpMessage += F("<div class='row'><div class='col-25 required'><label for='ssid'>SSID</label></div>");
-    httpMessage += F("<div class='col-75'><input required type='text' id='ssid' name='ssid' maxlength=31 "
-                     "placeholder='SSID' value='");
-    httpMessage += settings[FPSTR(FP_CONFIG_SSID)].as<String>();
-    httpMessage += F("'></div></div>");
+        // Wifi SSID
+        httpMessage += F("<div class='row'><div class='col-25 required'><label for='ssid'>SSID</label></div>");
+        httpMessage += F("<div class='col-75'><input required type='text' id='ssid' name='ssid' maxlength=31 "
+                         "placeholder='SSID' value='");
+        httpMessage += settings[FPSTR(FP_CONFIG_SSID)].as<String>();
+        httpMessage += F("'></div></div>");
 
-    // Wifi Password
-    httpMessage += F("<div class='row'><div class='col-25 required'><label for='pass'>Password</label></div>");
-    httpMessage += F("<div class='col-75'><input required type='password' id='pass' name='pass' maxlength=63 "
-                     "placeholder='Password' value='");
-    if(settings[FPSTR(FP_CONFIG_PASS)].as<String>() != "") {
-        httpMessage += F(D_PASSWORD_MASK);
-    }
-    httpMessage += F("'></div></div>");
+        // Wifi Password
+        httpMessage += F("<div class='row'><div class='col-25 required'><label for='pass'>Password</label></div>");
+        httpMessage += F("<div class='col-75'><input required type='password' id='pass' name='pass' maxlength=63 "
+                         "placeholder='Password' value='");
+        if(settings[FPSTR(FP_CONFIG_PASS)].as<String>() != "") {
+            httpMessage += F(D_PASSWORD_MASK);
+        }
+        httpMessage += F("'></div></div>");
 
-    // Submit & End Form
-    httpMessage += F("<button type='submit' name='save' value='wifi'>" D_HTTP_SAVE_SETTINGS "</button>");
-    httpMessage += F("</form></div>");
+        // Submit & End Form
+        httpMessage += F("<button type='submit' name='save' value='wifi'>" D_HTTP_SAVE_SETTINGS "</button>");
+        httpMessage += F("</form></div>");
 
 #if HASP_USE_WIFI > 0 && !defined(STM32F4xx)
-    if(WiFi.getMode() == WIFI_STA) {
-        add_form_button(httpMessage, F(D_BACK_ICON D_HTTP_CONFIGURATION), F("/config"));
-    }
+        if(WiFi.getMode() == WIFI_STA) {
+            add_form_button(httpMessage, F(D_BACK_ICON D_HTTP_CONFIGURATION), F("/config"));
+        }
 #endif
 
-    webSendPage(haspDevice.get_hostname(), httpMessage.length(), false);
-    webServer.sendContent(httpMessage);
-#if defined(STM32F4xx)
-    httpMessage = "";
-#else
-    httpMessage.clear();
-#endif
+        webSendHeader(haspDevice.get_hostname(), httpMessage.length(), false);
+        webServer.sendContent(httpMessage);
+    }
     webSendFooter();
 }
 
 #if HASP_USE_CAPTIVE_PORTAL > 0
 // I'm not an experienced programmer, this was the only way I managed to get it to work..
-void webHandleCaptivePortalWifiConfig()
+static void webHandleCaptivePortalWifiConfig()
 { // http://plate01/config/wifi
     if(!httpIsAuthenticated(F("config/wifi"))) return;
 
-    StaticJsonDocument<256> settings;
-    wifiGetConfig(settings.to<JsonObject>());
+    { // Send Content
+        StaticJsonDocument<256> settings;
+        wifiGetConfig(settings.to<JsonObject>());
 
-    String httpMessage((char*)0);
-    httpMessage.reserve(HTTP_PAGE_SIZE);
-    httpMessage += F("<h1>");
-    httpMessage += haspDevice.get_hostname();
-    httpMessage += F("</h1><hr>");
+        String httpMessage((char*)0);
+        httpMessage.reserve(HTTP_PAGE_SIZE);
+        httpMessage += F("<h1>");
+        httpMessage += haspDevice.get_hostname();
+        httpMessage += F("</h1><hr>");
 
-    httpMessage += F("<form method='POST' action='/config'>");
-    httpMessage += F("<b>WiFi SSID</b> <i><small>(required)</small></i><input id='ssid' required "
-                     "name='ssid' maxlength=31 placeholder='WiFi SSID' value='");
-    httpMessage += settings[FPSTR(FP_CONFIG_SSID)].as<String>();
-    httpMessage += F("'><br/><b>WiFi Password</b> <i><small>(required)</small></i><input id='pass' required "
-                     "name='pass' type='password' maxlength=63 placeholder='WiFi Password' value='");
-    if(settings[FPSTR(FP_CONFIG_PASS)].as<String>() != "") {
-        httpMessage += F(D_PASSWORD_MASK);
-    }
-    httpMessage +=
-        F("'><p><button type='submit' name='save' value='wifi'>" D_HTTP_SAVE_SETTINGS "</button></p></form>");
+        httpMessage += F("<form method='POST' action='/config'>");
+        httpMessage += F("<b>WiFi SSID</b> <i><small>(required)</small></i><input id='ssid' required "
+                         "name='ssid' maxlength=31 placeholder='WiFi SSID' value='");
+        httpMessage += settings[FPSTR(FP_CONFIG_SSID)].as<String>();
+        httpMessage += F("'><br/><b>WiFi Password</b> <i><small>(required)</small></i><input id='pass' required "
+                         "name='pass' type='password' maxlength=63 placeholder='WiFi Password' value='");
+        if(settings[FPSTR(FP_CONFIG_PASS)].as<String>() != "") {
+            httpMessage += F(D_PASSWORD_MASK);
+        }
+        httpMessage +=
+            F("'><p><button type='submit' name='save' value='wifi'>" D_HTTP_SAVE_SETTINGS "</button></p></form>");
 
 #if HASP_USE_WIFI > 0 && !defined(STM32F4xx)
-    if(WiFi.getMode() == WIFI_STA) {
-        add_form_button(httpMessage, F(D_BACK_ICON D_HTTP_CONFIGURATION), F("/config"));
-    }
+        if(WiFi.getMode() == WIFI_STA) {
+            add_form_button(httpMessage, F(D_BACK_ICON D_HTTP_CONFIGURATION), F("/config"));
+        }
 #endif
 
-    // webServer.send(200, "text/html", httpMessage);
-    webSendPage(haspDevice.get_hostname(), httpMessage.length(), false);
-    webServer.sendContent(httpMessage);
-#if defined(STM32F4xx)
-    httpMessage = "";
-#else
-    httpMessage.clear();
-#endif
+        webSendHeader(haspDevice.get_hostname(), httpMessage.length(), false);
+        webServer.sendContent(httpMessage);
+    }
     webSendFooter();
 }
 #endif // HASP_USE_CAPTIVE_PORTAL
@@ -1477,35 +1468,47 @@ void webHandleCaptivePortalWifiConfig()
 #endif // HASP_USE_WIFI
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-void webHandleHttpConfig()
+static void webHandleHttpConfig()
 { // http://plate01/config/http
     if(!httpIsAuthenticated(F("config/http"))) return;
 
-    {
+    { // Send Content
         StaticJsonDocument<256> settings;
         httpGetConfig(settings.to<JsonObject>());
 
-        char httpMessage[HTTP_PAGE_SIZE];
+        String httpMessage((char*)0);
+        httpMessage.reserve(HTTP_PAGE_SIZE);
+        httpMessage += F("<h1>");
+        httpMessage += haspDevice.get_hostname();
+        httpMessage += F("</h1><hr>");
+        httpMessage += F("<h2>" D_HTTP_HTTP_SETTINGS "</h2>");
 
-        size_t len = snprintf_P(
-            httpMessage, sizeof(httpMessage),
-            PSTR("<h1>%s</h1><hr>"
-                 "<form method='POST' action='/config'>"
-                 "<b>Web Username</b> <i><small>(optional)</small></i>"
-                 "<input id='user' name='user' maxlength=31 placeholder='admin' value='%s'><br/>"
-                 "<b>Web Password</b> <i><small>(optional)</small></i>"
-                 "<input id='pass' name='pass' type='password' maxlength=63 placeholder='Password' value='%s'>"
-                 "<p><button type='submit' name='save' value='http'>" D_HTTP_SAVE_SETTINGS "</button></p></form>"
-                 "<p><form method='GET' action='/config'><button type='submit'>&#8617; " D_HTTP_CONFIGURATION
-                 "</button></form></p>"),
-            haspDevice.get_hostname(), settings[FPSTR(FP_CONFIG_USER)].as<String>().c_str(),
-            settings[FPSTR(FP_CONFIG_PASS)].as<String>().c_str());
+        // Form
+        httpMessage += F("<div class='container'><form method='POST' action='/config'>");
 
-        // if(settings[FPSTR(FP_CONFIG_PASS)].as<String>() != "") {
-        //     httpMessage += F(D_PASSWORD_MASK);
-        // }
+        // Username
+        httpMessage += F("<div class='row'><div class='col-25'><label for='user'>Username</label></div>");
+        httpMessage += F("<div class='col-75'><input type='text' id='user' name='user' maxlength=31 "
+                         "placeholder='Username' value='");
+        httpMessage += settings[FPSTR(FP_CONFIG_USER)].as<String>();
+        httpMessage += F("'></div></div>");
 
-        webSendPage(haspDevice.get_hostname(), len, false);
+        // Password
+        httpMessage += F("<div class='row'><div class='col-25'><label for='pass'>Password</label></div>");
+        httpMessage += F("<div class='col-75'><input type='password' id='pass' name='pass' maxlength=63 "
+                         "placeholder='Password' value='");
+        if(settings[FPSTR(FP_CONFIG_PASS)].as<String>() != "") {
+            httpMessage += F(D_PASSWORD_MASK);
+        }
+        httpMessage += F("'></div></div>");
+
+        // Submit & End Form
+        httpMessage += F("<button type='submit' name='save' value='http'>" D_HTTP_SAVE_SETTINGS "</button>");
+        httpMessage += F("</form></div>");
+
+        httpMessage += F("<a href='/config'>" D_HTTP_CONFIGURATION "</a>");
+
+        webSendHeader(haspDevice.get_hostname(), httpMessage.length(), false);
         webServer.sendContent(httpMessage);
     }
     webSendFooter();
@@ -1513,30 +1516,29 @@ void webHandleHttpConfig()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 #if HASP_USE_GPIO > 0
-void webHandleGpioConfig()
+static void webHandleGpioConfig()
 { // http://plate01/config/gpio
     if(!httpIsAuthenticated(F("config/gpio"))) return;
     uint8_t configCount = 0;
 
-    //   StaticJsonDocument<256> settings;
-    // gpioGetConfig(settings.to<JsonObject>());
-
-    if(webServer.hasArg(PSTR("save"))) {
-        uint8_t id      = webServer.arg(F("id")).toInt();
-        uint8_t pin     = webServer.arg(F("pin")).toInt();
-        uint8_t type    = webServer.arg(F("type")).toInt();
-        uint8_t group   = webServer.arg(F("group")).toInt();
-        uint8_t pinfunc = webServer.arg(F("func")).toInt();
-        bool inverted   = webServer.arg(F("state")).toInt();
-        gpioSavePinConfig(id, pin, type, group, pinfunc, inverted);
-    }
-    if(webServer.hasArg(PSTR("del"))) {
+    { // Execute Actions
         uint8_t id  = webServer.arg(F("id")).toInt();
         uint8_t pin = webServer.arg(F("pin")).toInt();
-        gpioSavePinConfig(id, pin, hasp_gpio_type_t::FREE, 0, 0, false);
+
+        if(webServer.hasArg(PSTR("save"))) {
+            uint8_t type    = webServer.arg(F("type")).toInt();
+            uint8_t group   = webServer.arg(F("group")).toInt();
+            uint8_t pinfunc = webServer.arg(F("func")).toInt();
+            bool inverted   = webServer.arg(F("state")).toInt();
+            gpioSavePinConfig(id, pin, type, group, pinfunc, inverted);
+        }
+
+        if(webServer.hasArg(PSTR("del"))) {
+            gpioSavePinConfig(id, pin, hasp_gpio_type_t::FREE, 0, 0, false);
+        }
     }
 
-    {
+    { // Send Content
         String httpMessage((char*)0);
         httpMessage.reserve(HTTP_PAGE_SIZE);
         httpMessage += F("<h1>");
@@ -1693,19 +1695,18 @@ void webHandleGpioConfig()
 
         add_form_button(httpMessage, F(D_BACK_ICON D_HTTP_CONFIGURATION), F("/config"));
 
-        webSendPage(haspDevice.get_hostname(), httpMessage.length(), false);
+        webSendHeader(haspDevice.get_hostname(), httpMessage.length(), false);
         webServer.sendContent(httpMessage);
     }
-    // httpMessage.clear();
     webSendFooter();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-void webHandleGpioOutput()
+static void webHandleGpioOutput()
 { // http://plate01/config/gpio/options
     if(!httpIsAuthenticated(F("config/gpio/options"))) return;
 
-    {
+    { // Send Content
         StaticJsonDocument<256> settings;
         guiGetConfig(settings.to<JsonObject>());
 
@@ -1775,7 +1776,7 @@ void webHandleGpioOutput()
         httpMessage += PSTR("<p><form method='GET' action='/config/gpio'><button type='submit'>&#8617; " D_HTTP_BACK
                             "</button></form></p>");
 
-        webSendPage(haspDevice.get_hostname(), httpMessage.length(), false);
+        webSendHeader(haspDevice.get_hostname(), httpMessage.length(), false);
         webServer.sendContent(httpMessage);
     }
     webSendFooter();
@@ -1784,10 +1785,11 @@ void webHandleGpioOutput()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-void webHandleGpioInput()
+static void webHandleGpioInput()
 { // http://plate01/config/gpio/options
     if(!httpIsAuthenticated(F("config/gpio/input"))) return;
-    {
+
+    { // Send Content
         StaticJsonDocument<256> settings;
         guiGetConfig(settings.to<JsonObject>());
 
@@ -1865,7 +1867,7 @@ void webHandleGpioInput()
         httpMessage += PSTR("<p><form method='GET' action='/config/gpio'><button type='submit'>&#8617; " D_HTTP_BACK
                             "</button></form></p>");
 
-        webSendPage(haspDevice.get_hostname(), httpMessage.length(), false);
+        webSendHeader(haspDevice.get_hostname(), httpMessage.length(), false);
         webServer.sendContent(httpMessage);
     }
     webSendFooter();
@@ -1875,14 +1877,14 @@ void webHandleGpioInput()
 #endif // HASP_USE_GPIO
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-void webHandleDebugConfig()
+static void webHandleDebugConfig()
 { // http://plate01/config/debug
     if(!httpIsAuthenticated(F("config/debug"))) return;
 
-    StaticJsonDocument<256> settings;
-    debugGetConfig(settings.to<JsonObject>());
+    { // Send Content
+        StaticJsonDocument<256> settings;
+        debugGetConfig(settings.to<JsonObject>());
 
-    {
         String httpMessage((char*)0);
         httpMessage.reserve(HTTP_PAGE_SIZE);
         httpMessage += F("<h1>");
@@ -1956,22 +1958,21 @@ void webHandleDebugConfig()
 
         add_form_button(httpMessage, F(D_BACK_ICON D_HTTP_CONFIGURATION), F("/config"));
 
-        webSendPage(haspDevice.get_hostname(), httpMessage.length(), false);
+        webSendHeader(haspDevice.get_hostname(), httpMessage.length(), false);
         webServer.sendContent(httpMessage);
     }
-    // httpMessage.clear();
     webSendFooter();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-void webHandleHaspConfig()
+static void webHandleHaspConfig()
 { // http://plate01/config/http
     if(!httpIsAuthenticated(F("config/hasp"))) return;
 
-    StaticJsonDocument<256> settings;
-    haspGetConfig(settings.to<JsonObject>());
+    { // Send Content
+        StaticJsonDocument<256> settings;
+        haspGetConfig(settings.to<JsonObject>());
 
-    {
         String httpMessage((char*)0);
         httpMessage.reserve(HTTP_PAGE_SIZE);
         httpMessage += F("<h1>");
@@ -1979,16 +1980,35 @@ void webHandleHaspConfig()
         httpMessage += F("</h1><hr>");
         httpMessage += F("<h2>" D_HTTP_HASP_DESIGN "</h2>");
 
-        httpMessage += F("<p><form action='/edit' method='POST' enctype='multipart/form-data'><input type='file' "
-                         "name='filename' accept='.jsonl,.png,.zi'>");
-        httpMessage += F("<button type='submit'>" D_HTTP_UPLOAD_FILE "</button></form></p><hr>");
+#if defined(ARDUINO_ARCH_ESP8266)
+        // Form
+        httpMessage += F("<div class='container'><form method='POST' action='/edit' enctype='multipart/form-data'>");
 
-        // httpMessage += F("<form method='POST' action='/config'>");
-        httpMessage += F("<form method='POST' action='/'>");
-        httpMessage += F("<p><b>UI Theme</b> <i><small>(required)</small></i><select id='theme' name='theme'>");
+        // File
+        httpMessage +=
+            F("<div class='row'><div class='col-25'><label class='required' for='filename'>From File</label></div>");
+        httpMessage +=
+            F("<div class='col-75'><input required type='file' name='filename'  accept='.jsonl,.png,.zi'></div></div>");
 
+        // Destination
+        httpMessage += F("<div class='row'><div class='col-25'><label for='file'>Target</label></div>");
+        httpMessage +=
+            F("<div class='col-75'><input id='cmd' name='cmd' type='radio' value='0' checked>Firmware &nbsp; "
+              "<input id='cmd' name='cmd' type='radio' value='100'>Filesystem</div></div>");
+
+        // Submit & End Form
+        httpMessage += F("<button type='submit' name='save' value='debug'>" D_HTTP_UPLOAD_FILE "</button>");
+        httpMessage += F("</form></div>");
+#endif
+
+        // Form
+        // httpMessage += F("<div class='container'><form method='POST' action='/config'>");
+        httpMessage += F("<div class='container'><form method='POST' action='/'>");
+
+        // Theme
+        httpMessage += F("<div class='row'><div class='col-25'><label for='theme'>UI Theme</label></div>");
+        httpMessage += F("<div class='col-75'><select id='theme' name='theme'>");
         uint8_t themeid = settings[FPSTR(FP_CONFIG_THEME)].as<uint8_t>();
-        // httpMessage += getOption(0, F("Built-in"), themeid );
 #if LV_USE_THEME_HASP == 1
         httpMessage += getOption(2, F("Hasp Dark"), themeid);
         httpMessage += getOption(1, F("Hasp Light"), themeid);
@@ -2006,15 +2026,20 @@ void webHandleHaspConfig()
 #if LV_USE_THEME_TEMPLATE == 1
         httpMessage += getOption(7, F("Template"), themeid);
 #endif
-        httpMessage += F("</select></br>");
-        httpMessage += F("<b>Hue</b><div style='width:100%;background-image:linear-gradient(to "
-                         "right,red,orange,yellow,green,blue,indigo,violet);'><input "
+        httpMessage += F("</select></div></div>");
+
+        // Hue
+        httpMessage += F("<div class='row'><div class='col-25'><label for='hue'>Hue</label></div>");
+        httpMessage += F("<div class='col-75'><div style='width:100%;background-image:linear-gradient(to "
+                         "right,red,orange,yellow,green,blue,indigo,violet,red);'><input "
                          "style='align:center;padding:0px;width:100%;' "
                          "name='hue' type='range' min='0' max='360' value='");
         httpMessage += settings[FPSTR(FP_CONFIG_HUE)].as<String>();
-        httpMessage += F("'></div></p>");
-        httpMessage += F("<p><b>Default Font</b><select id='font' name='font'><option value=''>None</option>");
+        httpMessage += F("'></div></div></div>");
 
+        // Font
+        httpMessage += F("<div class='row gap'><div class='col-25'><label for='font'>Default Font</label></div>");
+        httpMessage += F("<div class='col-75'><select id='font' name='font'><option value=''>None</option>");
 #if defined(ARDUINO_ARCH_ESP32)
         File root        = HASP_FS.open("/");
         File file        = root.openNextFile();
@@ -2036,39 +2061,44 @@ void webHandleHaspConfig()
             file.close();
         }
 #endif
-        httpMessage += F("</select></p>");
+        httpMessage += F("</select></div></div>");
 
-        httpMessage += F("<p><b>Startup Layout</b> <i><small>(optional)</small></i><input id='pages' "
-                         "name='pages' maxlength=31 placeholder='/pages.jsonl' value='");
-
+        // Pages.jsonl
+        httpMessage += F("<div class='row'><div class='col-25'><label for='pages'>Startup Layout</label></div>");
+        httpMessage +=
+            F("<div class='col-75'><input id='pages' name='pages' maxlength=31 placeholder='/pages.jsonl' value='");
         httpMessage += settings[FPSTR(FP_CONFIG_PAGES)].as<String>();
-        httpMessage += F("'></br><b>Startup Page</b> <i><small>(required)</small></i><input id='startpage' required "
+        httpMessage += F("'></div></div>");
+
+        // Startup Page
+        httpMessage += F("<div class='row'><div class='col-25'><label for='startpage'>Startup Page</label></div>");
+        httpMessage += F("<div class='col-75'><input id='startpage' required "
                          "name='startpage' type='number' min='1' max='12' value='");
         httpMessage += settings[FPSTR(FP_CONFIG_STARTPAGE)].as<String>();
-        httpMessage +=
-            F("'></p><p><b>Startup Brightness</b> <i><small>(required)</small></i><input id='startpage' required "
-              "name='startdim' type='number' min='0' max='255' value='");
+        httpMessage += F("'></div></div>");
+
+        // Startup Brightness
+        httpMessage += F("<div class='row'><div class='col-25'><label for='startdim'>Startup Brightness</label></div>");
+        httpMessage += F("<div class='col-75'><input id='startpage' required name='startdim' type='number' min='0' "
+                         "max='255' value='");
         httpMessage += settings[FPSTR(FP_CONFIG_STARTDIM)].as<String>();
-        httpMessage += F("'></p>");
+        httpMessage += F("'></div></div>");
 
-        httpMessage +=
-            F("<p><button type='submit' name='save' value='hasp'>" D_HTTP_SAVE_SETTINGS "</button></form></p>");
+        // Submit & End Form
+        httpMessage += F("<button type='submit' name='save' value='hasp'>" D_HTTP_SAVE_SETTINGS "</button>");
+        httpMessage += F("</form></div>");
 
-        // httpMessage +=
-        //     F("<p><form method='GET' action='/config'><button
-        //     type='submit'>"D_HTTP_CONFIGURATION"</button></form></p>");
         httpMessage += FPSTR(MAIN_MENU_BUTTON);
 
-        webSendPage(haspDevice.get_hostname(), httpMessage.length(), false);
+        webSendHeader(haspDevice.get_hostname(), httpMessage.length(), false);
         webServer.sendContent(httpMessage);
     }
-    // httpMessage.clear();
     webSendFooter();
 }
 #endif // HASP_USE_CONFIG
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-void httpHandleNotFound()
+static void httpHandleNotFound()
 { // webServer 404
 #if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
     int statuscode = handleFileRead(webServer.uri());
@@ -2108,11 +2138,11 @@ void httpHandleNotFound()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-void webHandleFirmware()
+static void webHandleFirmware()
 {
     if(!httpIsAuthenticated(F("firmware"))) return;
 
-    {
+    { // Send Content
         String httpMessage((char*)0);
         httpMessage.reserve(HTTP_PAGE_SIZE);
         httpMessage += F("<h1>");
@@ -2152,21 +2182,19 @@ void webHandleFirmware()
 
         httpMessage += FPSTR(MAIN_MENU_BUTTON);
 
-        webSendPage(haspDevice.get_hostname(), httpMessage.length(), false);
+        webSendHeader(haspDevice.get_hostname(), httpMessage.length(), false);
         webServer.sendContent(httpMessage);
     }
-    // httpMessage.clear();
     webSendFooter();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-void httpHandleEspFirmware()
+static void httpHandleEspFirmware()
 { // http://plate01/espfirmware
-    char url[4];
-    memcpy_P(url, PSTR("url"), 4);
-
     if(!httpIsAuthenticated(F("espfirmware"))) return;
+    if(!webServer.hasArg(F("url"))) return;
 
+    const char* url = webServer.arg(F("url")).c_str();
     {
         String httpMessage((char*)0);
         httpMessage.reserve(HTTP_PAGE_SIZE);
@@ -2175,34 +2203,34 @@ void httpHandleEspFirmware()
         httpMessage += F("</h1><hr>");
 
         httpMessage += F("<p><b>ESP update</b></p>Updating ESP firmware from: ");
-        httpMessage += webServer.arg(url);
+        httpMessage += url;
 
-        webSendPage(haspDevice.get_hostname(), httpMessage.length(), true);
+        webSendHeader(haspDevice.get_hostname(), httpMessage.length(), true);
         webServer.sendContent(httpMessage);
-        // httpMessage.clear();
     }
     webSendFooter();
 
-    LOG_TRACE(TAG_HTTP, F("Updating ESP firmware from: %s"), webServer.arg(url).c_str());
-    dispatch_web_update(NULL, webServer.arg(url).c_str(), TAG_HTTP);
+    LOG_TRACE(TAG_HTTP, F("Updating ESP firmware from: %s"), url);
+    dispatch_web_update(NULL, url, TAG_HTTP);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 #if HASP_USE_CONFIG > 0
-void webHandleSaveConfig()
+static void webHandleSaveConfig()
 {
     if(!httpIsAuthenticated(F("saveConfig"))) return;
+
     configWrite();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-void httpHandleResetConfig()
+static void httpHandleResetConfig()
 { // http://plate01/resetConfig
     if(!httpIsAuthenticated(F("resetConfig"))) return;
 
     bool resetConfirmed = webServer.arg(F("confirm")) == F("yes");
 
-    {
+    { // Send Content
         String httpMessage((char*)0);
         httpMessage.reserve(HTTP_PAGE_SIZE);
         httpMessage += F("<h1>");
@@ -2233,14 +2261,16 @@ void httpHandleResetConfig()
             add_form_button(httpMessage, F(D_BACK_ICON D_HTTP_CONFIGURATION), F("/config"));
         }
 
-        webSendPage(haspDevice.get_hostname(), httpMessage.length(), resetConfirmed);
+        webSendHeader(haspDevice.get_hostname(), httpMessage.length(), resetConfirmed);
         webServer.sendContent(httpMessage);
     }
     webSendFooter();
 
-    if(resetConfirmed) {
-        delay(250);
-        dispatch_reboot(false); // Do NOT save the current config
+    { // Execute Actions
+        if(resetConfirmed) {
+            // delay(250);
+            dispatch_reboot(false); // Do NOT save the current config
+        }
     }
 }
 #endif // HASP_USE_CONFIG
@@ -2277,7 +2307,7 @@ void httpStop()
 }
 
 // Do not keep CSS in memory because it is cached in the browser
-void webSendCss()
+static void webSendCssVars()
 {
     char filename[32];
     strncpy(filename, webServer.uri().c_str(), sizeof(filename));
@@ -2312,7 +2342,7 @@ void webSendCss()
 }
 
 // Do not keep JS in memory because it is cached in the browser
-void webSendJavascript()
+static void webSendJavascript()
 {
     String javascript = F("function aref(t){setTimeout(function() {ref('');}, t*1000)}"
                           "function ref(a){ var t=new "
@@ -2321,27 +2351,40 @@ void webSendJavascript()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+static inline void webStartConfigPortal()
+{
+#if HASP_USE_CAPTIVE_PORTAL > 0
+    // if DNSServer is started with "*" for domain name, it will reply with
+    // provided IP to all DNS request
+    dnsServer.start(DNS_PORT, "*", apIP);
+    // replay to all requests with same HTML
+    webServer.onNotFound([]() {
+        webHandleCaptivePortalWifiConfig();
+        // webServer.send(200, "text/html", responseHTML);
+        // webServer.on(F("/"), webHandleWifiConfig);
+    });
+#endif // HASP_USE_CAPTIVE_PORTAL
+
+    webServer.on(F("/"), webHandleWifiConfig);
+    LOG_TRACE(TAG_HTTP, F("Wifi access point"));
+}
+
 void httpSetup()
 {
     // httpSetConfig(settings);
 
     // ask server to track these headers
     const char* headerkeys[] = {"Content-Length"}; // "Authentication"
-
-    // const char HTTP_SCRIPT[] PROGMEM = "<script>function "
-    //                                    "c(l){document.getElementById('s').value=l.innerText||l.textContent;document."
-    //                                    "getElementById('p').focus();}</script>";
-    size_t headerkeyssize = sizeof(headerkeys) / sizeof(char*);
+    size_t headerkeyssize    = sizeof(headerkeys) / sizeof(char*);
     webServer.collectHeaders(headerkeys, headerkeyssize);
 
-    // Shared pages
+    // Shared pages between STA and AP
     webServer.on(F("/about"), webHandleAbout);
-    webServer.on(F("/vars.css"), webSendCss);
+    webServer.on(F("/vars.css"), webSendCssVars);
     webServer.on(F("/js"), webSendJavascript);
     webServer.onNotFound(httpHandleNotFound);
 
 #if HASP_USE_WIFI > 0
-
     // These two endpoints are needed in STA and AP mode
     webServer.on(F("/config"), webHandleConfig);
 
@@ -2349,19 +2392,7 @@ void httpSetup()
 
 #if HASP_USE_CONFIG > 0
     if(WiFi.getMode() != WIFI_STA) {
-#if HASP_USE_CAPTIVE_PORTAL > 0
-        // if DNSServer is started with "*" for domain name, it will reply with
-        // provided IP to all DNS request
-        dnsServer.start(DNS_PORT, "*", apIP);
-        // replay to all requests with same HTML
-        webServer.onNotFound([]() {
-            webHandleCaptivePortalWifiConfig();
-            // webServer.send(200, "text/html", responseHTML);
-            // webServer.on(F("/"), webHandleWifiConfig);
-        });
-#endif
-        webServer.on(F("/"), webHandleWifiConfig);
-        LOG_TRACE(TAG_HTTP, F("Wifi access point"));
+        webStartConfigPortal();
         return;
     }
 
