@@ -170,22 +170,7 @@ String getOption(String& value, String& label, String& current_value)
     return buffer;
 }
 
-static void add_button(String& str, const __FlashStringHelper* label, const __FlashStringHelper* extra)
-{
-    str += F("<button type='submit' ");
-    str += extra;
-    str += F(">");
-    str += label;
-    str += F("</button>");
-}
-
-static void close_form(String& str)
-{
-    str += F("</form></p>");
-}
-
-static void add_form_button(String& str, const __FlashStringHelper* label, const __FlashStringHelper* action,
-                            const __FlashStringHelper* extra)
+static void add_form_button(String& str, const __FlashStringHelper* label, const __FlashStringHelper* action)
 {
     str += F("<a href='");
     str += action;
@@ -451,9 +436,9 @@ void webHandleScreenshot()
         httpMessage += F("<p class='c'><img id='bmp' src='?q=0'");
         httpMessage += F(" onload=\"aref(5)\" onerror=\"aref(15)\"/></p>"); // Automatic refresh
 
+        httpMessage += F("<div class=\"dist\"><a href='#' onclick=\"return ref('prev')\">" D_HTTP_PREV_PAGE "</a>");
         httpMessage += F("<a href='#' onclick=\"return ref('')\">" D_HTTP_REFRESH "</a>");
-        httpMessage += F("<a href='#' onclick=\"return ref('prev')\">" D_HTTP_PREV_PAGE "</a>");
-        httpMessage += F("<a href='#' onclick=\"return ref('next')\">" D_HTTP_NEXT_PAGE "</a>");
+        httpMessage += F("<a href='#' onclick=\"return ref('next')\">" D_HTTP_NEXT_PAGE "</a></div>");
         httpMessage += FPSTR(MAIN_MENU_BUTTON);
 
         webSendPage(haspDevice.get_hostname(), httpMessage.length(), false);
@@ -1282,7 +1267,7 @@ void webHandleMqttConfig()
         httpMessage += F("<button type='submit' name='save' value='mqtt'>" D_HTTP_SAVE_SETTINGS "</button>");
         httpMessage += F("</form></div>");
 
-        add_form_button(httpMessage, F(D_BACK_ICON D_HTTP_CONFIGURATION), F("/config"), F(""));
+        add_form_button(httpMessage, F(D_BACK_ICON D_HTTP_CONFIGURATION), F("/config"));
         webSendPage(haspDevice.get_hostname(), httpMessage.length(), false);
         webServer.sendContent(httpMessage);
     }
@@ -1375,11 +1360,11 @@ void webHandleGuiConfig()
         httpMessage += F("</form></div>");
 
 #if TOUCH_DRIVER == 0x2046 && defined(TOUCH_CS)
-        add_form_button(httpMessage, F(D_HTTP_CALIBRATE), F("/config/gui?cal=1"), F("name='cal' value='1'"));
+        add_form_button(httpMessage, F(D_HTTP_CALIBRATE), F("/config/gui?cal=1"));
 #endif
 
-        add_form_button(httpMessage, F(D_HTTP_ANTIBURN), F("/config/gui?brn=1"), F("name='brn' value='1'"));
-        add_form_button(httpMessage, F(D_BACK_ICON D_HTTP_CONFIGURATION), F("/config"), F(""));
+        add_form_button(httpMessage, F(D_HTTP_ANTIBURN), F("/config/gui?brn=1"));
+        add_form_button(httpMessage, F(D_BACK_ICON D_HTTP_CONFIGURATION), F("/config"));
         webSendPage(haspDevice.get_hostname(), httpMessage.length(), false);
         webServer.sendContent(httpMessage);
     }
@@ -1430,7 +1415,7 @@ void webHandleWifiConfig()
 
 #if HASP_USE_WIFI > 0 && !defined(STM32F4xx)
     if(WiFi.getMode() == WIFI_STA) {
-        add_form_button(httpMessage, F(D_BACK_ICON D_HTTP_CONFIGURATION), F("/config"), F(""));
+        add_form_button(httpMessage, F(D_BACK_ICON D_HTTP_CONFIGURATION), F("/config"));
     }
 #endif
 
@@ -1473,7 +1458,7 @@ void webHandleCaptivePortalWifiConfig()
 
 #if HASP_USE_WIFI > 0 && !defined(STM32F4xx)
     if(WiFi.getMode() == WIFI_STA) {
-        add_form_button(httpMessage, F(D_BACK_ICON D_HTTP_CONFIGURATION), F("/config"), F(""));
+        add_form_button(httpMessage, F(D_BACK_ICON D_HTTP_CONFIGURATION), F("/config"));
     }
 #endif
 
@@ -1706,7 +1691,7 @@ void webHandleGpioConfig()
             httpMessage += F("'>" D_HTTP_ADD_GPIO " Output</a>");
         }
 
-        add_form_button(httpMessage, F(D_BACK_ICON D_HTTP_CONFIGURATION), F("/config"), F(""));
+        add_form_button(httpMessage, F(D_BACK_ICON D_HTTP_CONFIGURATION), F("/config"));
 
         webSendPage(haspDevice.get_hostname(), httpMessage.length(), false);
         webServer.sendContent(httpMessage);
@@ -1969,7 +1954,7 @@ void webHandleDebugConfig()
 
         // *******************************************************************
 
-        add_form_button(httpMessage, F(D_BACK_ICON D_HTTP_CONFIGURATION), F("/config"), F(""));
+        add_form_button(httpMessage, F(D_BACK_ICON D_HTTP_CONFIGURATION), F("/config"));
 
         webSendPage(haspDevice.get_hostname(), httpMessage.length(), false);
         webServer.sendContent(httpMessage);
@@ -2133,27 +2118,37 @@ void webHandleFirmware()
         httpMessage += F("<h1>");
         httpMessage += haspDevice.get_hostname();
         httpMessage += F("</h1><hr>");
+        httpMessage += F("<h2>" D_HTTP_FIRMWARE_UPGRADE "</h2>");
 
-        httpMessage += F("<p><form action='/update' method='POST' enctype='multipart/form-data'><input type='file' "
-                         "name='filename' accept='.bin'>");
-        // httpMessage += F("<button type='submit'>" D_HTTP_UPDATE_FIRMWARE "</button></form></p>");
+        // Form
+        httpMessage += F("<div class='container'><form method='POST' action='/update' enctype='multipart/form-data'>");
 
-        httpMessage += F("<input id='cmd' name='cmd' type='radio' value='0' checked>Firmware &nbsp; "
-                         "<input id='cmd' name='cmd' type='radio' value='100'>Filesystem");
+        // File
+        httpMessage +=
+            F("<div class='row'><div class='col-25'><label class='required' for='filename'>From File</label></div>");
+        httpMessage += F("<div class='col-75'><input required type='file' name='filename' accept='.bin'></div></div>");
 
-        add_button(httpMessage, F(D_HTTP_UPDATE_FIRMWARE), F(""));
-        httpMessage += F("</form></p>");
+        // Destination
+        httpMessage += F("<div class='row'><div class='col-25'><label for='file'>Target</label></div>");
+        httpMessage +=
+            F("<div class='col-75'><input id='cmd' name='cmd' type='radio' value='0' checked>Firmware &nbsp; "
+              "<input id='cmd' name='cmd' type='radio' value='100'>Filesystem</div></div>");
 
-        // httpMessage += F("<p><form action='/update' method='POST' enctype='multipart/form-data'><input
-        // type='file' "
-        //                  "name='filename' accept='.spiffs'>");
-        // httpMessage += F("<button type='submit'>Replace Filesystem Image</button></form></p>");
+        // Submit & End Form
+        httpMessage += F("<button type='submit' name='save' value='debug'>" D_HTTP_UPDATE_FIRMWARE "</button>");
+        httpMessage += F("</form></div>");
 
-        httpMessage += F("<form method='GET' action='/espfirmware'>");
-        httpMessage += F("<br/><b>Update ESP from URL</b>");
-        httpMessage += F("<br/><input id='url' name='url' value='");
-        httpMessage += "";
-        httpMessage += F("'><br/><br/><button type='submit'>Update ESP from URL</button></form>");
+        // Form
+        httpMessage += F("<div class='container'><form method='POST' action='/espfirmware'>");
+
+        // URL
+        httpMessage +=
+            F("<div class='row'><div class='col-25'><label class='required' for='url'>From URL</label></div>");
+        httpMessage += F("<div class='col-75'><input required id='url' name='url' value=''></div></div>");
+
+        // Submit & End Form
+        httpMessage += F("<button type='submit' name='save' value='debug'>Update from URL</button>");
+        httpMessage += F("</form></div>");
 
         httpMessage += FPSTR(MAIN_MENU_BUTTON);
 
@@ -2213,39 +2208,39 @@ void httpHandleResetConfig()
         httpMessage += F("<h1>");
         httpMessage += haspDevice.get_hostname();
         httpMessage += F("</h1><hr>");
+        httpMessage += F("<h2>" D_HTTP_FACTORY_RESET "</h2>");
 
         if(resetConfirmed) {                           // User has confirmed, so reset everything
             bool formatted = dispatch_factory_reset(); // configClearEeprom();
             if(formatted) {
-                httpMessage += F("<b>Resetting all saved settings and restarting device</b>");
+                httpMessage += F("<div class=\"success\">Reset all saved settings. Restarting device...</div>");
             } else {
-                httpMessage += F("<b>Failed to format the internal flash partition</b>");
+                httpMessage +=
+                    F("<div class=\"error\">Failed to reset the internal storage to factory settings!</div>");
                 resetConfirmed = false;
             }
         } else {
+            // Form
+            httpMessage += F("<form method='POST' action='/resetConfig'>");
             httpMessage +=
-                F("<h2>Warning</h2><b>This process will reset all settings to the default values. The internal flash "
-                  "will be erased and the device is restarted. You may need to connect to the WiFi AP displayed on "
-                  "the "
-                  "panel to re-configure the device before accessing it again. ALL FILES WILL BE LOST!</b>"
-                  "<br/><hr><br/><form method='GET' action='resetConfig'>");
+                F("<div class=\"warning\"><b>Warning</b><p>This process will reset all settings to the default values. "
+                  "The internal flash will be erased and the device is restarted. You may need to connect to the WiFi "
+                  "AP displayed on the panel to reconfigure the device before accessing it again.</p>"
+                  "<p>ALL FILES WILL BE LOST!</p></div>");
+            httpMessage += F("<p><button class='red' type='submit' name='confirm' value='yes'>" D_HTTP_ERASE_DEVICE
+                             "</button></p></form>");
 
-            add_button(httpMessage, F(D_HTTP_ERASE_DEVICE), F("name='confirm' value='yes'"));
-            close_form(httpMessage);
-
-            add_form_button(httpMessage, F(D_BACK_ICON D_HTTP_CONFIGURATION), F("/config"), F(""));
+            add_form_button(httpMessage, F(D_BACK_ICON D_HTTP_CONFIGURATION), F("/config"));
         }
 
         webSendPage(haspDevice.get_hostname(), httpMessage.length(), resetConfirmed);
         webServer.sendContent(httpMessage);
     }
-    // httpMessage.clear();
     webSendFooter();
 
     if(resetConfirmed) {
         delay(250);
-        // configClearSaved();
-        dispatch_reboot(false); // Do not save the current config
+        dispatch_reboot(false); // Do NOT save the current config
     }
 }
 #endif // HASP_USE_CONFIG

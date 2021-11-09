@@ -2174,7 +2174,6 @@ void httpHandleResetConfig(AsyncWebServerRequest* request)
 
     if(resetConfirmed) {
         delay(250);
-        // configClearSaved();
         dispatch_reboot(false); // Do not save the current config
     }
 }
