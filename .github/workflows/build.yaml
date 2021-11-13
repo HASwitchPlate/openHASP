@@ -16,22 +16,22 @@ jobs:
       fail-fast: false
       matrix:
         environments:
-          - d1-mini-esp8266_ili9341
-          - arduitouch-esp32_ili9341
-          - d1-mini-esp32_ili9341
-          - esp32-one_st7796
-          - esp32-touchdown
-          - freetouchdeck
-          - huzzah32-featherwing-24
-          - huzzah32-featherwing-35
-          - lanbon_l8
-          - lolin-d32-pro_ili9341
-          - m5stack-core2
-          - makerfabs-tft35-cap
-          - ttgo-t7-v1.5_ili9341
-          - wt32-sc01
-          - yeacreate-nscreen32
-          - linux_sdl_64bits
+          # - d1-mini-esp8266_ili9341
+          - '-e arduitouch-esp32_ili9341'
+          - '-e d1-mini-esp32_ili9341'
+          - '-e esp32-one_st7796'
+          - '-e esp32-touchdown'
+          - '-e freetouchdeck'
+          - '-e huzzah32-featherwing-24'
+          - '-e huzzah32-featherwing-35'
+          - '-e lanbon_l8'
+          - '-e lolin-d32-pro_ili9341'
+          - '-e m5stack-core2'
+          - '-e makerfabs-tft35-cap'
+          - '-e ttgo-t7-v1.5_ili9341'
+          - '-e wt32-sc01'
+          - '-e yeacreate-nscreen32'
+          - '-e linux_sdl_64bits'
 
     steps:
       - uses: actions/checkout@v2
@@ -73,7 +73,7 @@ jobs:
         run: |
           cat platformio_override.ini
       - name: Run PlatformIO
-        run: pio run -e ${{ matrix.environments }}
+        run: pio run ${{ matrix.environments }}
       - name: Upload output file
         uses: actions/upload-artifact@v2
         with:
