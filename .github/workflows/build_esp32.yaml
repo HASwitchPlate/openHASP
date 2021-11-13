@@ -15,22 +15,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        environments:
+        environment:
           # - d1-mini-esp8266_ili9341
-          - arduitouch-esp32_ili9341
-          - d1-mini-esp32_ili9341
-          - esp32-one_st7796
-          - esp32-touchdown
-          - freetouchdeck
-          - huzzah32-featherwing-24
-          - huzzah32-featherwing-35
-          - lanbon_l8
-          - lolin-d32-pro_ili9341
-          - m5stack-core2
-          - makerfabs-tft35-cap
-          - ttgo-t7-v1.5_ili9341
-          - wt32-sc01
-          - yeacreate-nscreen32
+          - arduitouch-esp32_ili9341:
+            - env: arduitouch-esp32_ili9341
+            - out: arduitouch-esp32_ili9341
 
     steps:
       - uses: actions/checkout@v2
@@ -72,11 +61,11 @@ jobs:
         run: |
           cat platformio_override.ini
       - name: Run PlatformIO
-        run: pio run -e ${{ matrix.environments }}
+        run: pio run -e ${{ matrix.environment.env }}
       - name: Upload output file
         uses: actions/upload-artifact@v2
         with:
-          name: ${{ matrix.environments }}
+          name: ${{ matrix.environment.out }}
           path: build_output/firmware/*.bin
     #- name: Create release and upload firmware
     #  run: |
