@@ -15,7 +15,7 @@ namespace dev {
 
 void M5StackCore2::init(void)
 {
-    Wire.begin(TOUCH_SDA, TOUCH_SCL);
+    Wire.begin(TOUCH_SDA, TOUCH_SCL, (uint32_t)I2C_TOUCH_FREQUENCY);
     Axp.begin();
 
     Axp.SetCHGCurrent(AXP192::kCHG_100mA);

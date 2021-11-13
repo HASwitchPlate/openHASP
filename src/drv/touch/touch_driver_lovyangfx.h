@@ -58,7 +58,7 @@ class TouchLovyanGfx : public BaseTouch {
 
     void init(int w, int h)
     {
-        Wire.begin(TOUCH_SDA, TOUCH_SCL, I2C_TOUCH_FREQUENCY);
+        Wire.begin(TOUCH_SDA, TOUCH_SCL, (uint32_t)I2C_TOUCH_FREQUENCY);
         // delay(300); // already happens in touch.begin()
         touch_scan(Wire);
     }
