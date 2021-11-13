@@ -32,7 +32,7 @@ def copy_merge_bins(source, target, env):
     name =str(target[0]).split(os.path.sep)[2]
     flash_size = env.GetProjectOption("board_upload.flash_size")
 
-    bootloader = "{}tools{}sdk{}bin{}bootloader_dio_40m.bin".format(FRAMEWORK_DIR, os.path.sep, os.path.sep, os.path.sep, os.path.sep)
+    bootloader = "{}tools{}sdk{}esp32{}bin{}bootloader_dio_40m.bin".format(FRAMEWORK_DIR, os.path.sep, os.path.sep, os.path.sep, os.path.sep, os.path.sep)
     partitions = "{}{}partitions.bin".format(env.subst("$BUILD_DIR"), os.path.sep)
     boot_app0 = "{}tools{}partitions{}boot_app0.bin".format(FRAMEWORK_DIR, os.path.sep, os.path.sep, os.path.sep)
     firmware_dst ="{}firmware{}{}_full_{}_{}.bin".format(OUTPUT_DIR, os.path.sep, name, flash_size, version)
