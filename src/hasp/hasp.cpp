@@ -501,6 +501,7 @@ void haspSetup(void)
     LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, haspFonts[0]);
     // LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, &robotocondensed_regular_16);
 
+/* ZiFonts
 #if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
 #if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
 
@@ -521,6 +522,7 @@ void haspSetup(void)
 
 #endif
 #endif
+*/
 
     if(haspFonts[0] == nullptr) haspFonts[0] = LV_THEME_DEFAULT_FONT_SMALL;
     if(haspFonts[1] == nullptr) haspFonts[1] = LV_THEME_DEFAULT_FONT_NORMAL;
@@ -534,7 +536,7 @@ void haspSetup(void)
 
     lv_ft_info_t info;
     info.name   = "L:/mdi.ttf";
-    info.weight = 12;
+    info.weight = 48;
     info.style  = FT_FONT_STYLE_NORMAL;
     lv_ft_font_init(&info);
     haspFonts[7] = info.font;

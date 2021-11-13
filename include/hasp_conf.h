@@ -192,7 +192,7 @@
 
 #if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
 #if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
-#include "lv_zifont.h"
+// #include "lv_zifont.h"
 #endif
 #endif
 
