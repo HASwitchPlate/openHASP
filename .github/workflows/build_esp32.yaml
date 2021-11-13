@@ -27,10 +27,8 @@ jobs:
             out: esp32-touchdown
           - env: freetouchdeck
             out: freetouchdeck
-          - env: huzzah32-featherwing-24
-            out: featherwing
-          - env: huzzah32-featherwing-24
-            out: featherwing
+          - out: featherwing
+            env: "huzzah32-featherwing-24 -e huzzah32-featherwing-35"
           - env: lanbon_l8
             out: lanbon_l8
           - env: lolin-d32-pro_ili9341
