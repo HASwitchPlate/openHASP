@@ -535,7 +535,7 @@ void haspSetup(void)
     haspFonts[6] = hasp_font_load("L:/RobotoCondensedRegular.bin");
 
     lv_ft_info_t info;
-    info.name   = "L:/mdi.ttf";
+    info.name   = "L:/arial.ttf";
     info.weight = 48;
     info.style  = FT_FONT_STYLE_NORMAL;
     lv_ft_font_init(&info);
