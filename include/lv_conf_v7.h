@@ -357,10 +357,10 @@ typedef void* lv_indev_drv_user_data_t;            /*Type of user data in the in
 #define HASP_FONT_2 robotocondensed_regular_24_latin1  /* 5% Width */
 #endif
 #ifndef HASP_FONT_3
-#define HASP_FONT_3 robotocondensed_regular_32_latin1  /* 10% Width */
+#define HASP_FONT_3 robotocondensed_regular_16_latin1  /* 10% Width */
 #endif
 #ifndef HASP_FONT_4
-#define HASP_FONT_4 robotocondensed_regular_48_latin1  /* 10% Height */
+#define HASP_FONT_4 robotocondensed_regular_16_latin1  /* 10% Height */
 #endif
 
 #ifndef ROBOTOCONDENSED_REGULAR_16_LATIN1
@@ -370,10 +370,10 @@ typedef void* lv_indev_drv_user_data_t;            /*Type of user data in the in
 #define ROBOTOCONDENSED_REGULAR_24_LATIN1 1
 #endif
 #ifndef ROBOTOCONDENSED_REGULAR_32_LATIN1
-#define ROBOTOCONDENSED_REGULAR_32_LATIN1 1
+#define ROBOTOCONDENSED_REGULAR_32_LATIN1 0
 #endif
 #ifndef ROBOTOCONDENSED_REGULAR_48_LATIN1
-#define ROBOTOCONDENSED_REGULAR_48_LATIN1 1
+#define ROBOTOCONDENSED_REGULAR_48_LATIN1 0
 #endif
 
 #ifndef HASP_FONT_SIZE_1
