@@ -1,6 +1,8 @@
 #ifndef HASP_LANG_RO_RO_H
 #define HASP_LANG_RO_RO_H
 
+#define D_ISO_LANG_CODE "ro-RO"
+
 #define D_USERNAME "Nume de utilizator:"
 #define D_PASSWORD "Parola:"
 #define D_SSID "SSID:"

@@ -1,6 +1,8 @@
 #ifndef HASP_LANG_PT_PT_H
 #define HASP_LANG_PT_PT_H
 
+#define D_ISO_LANG_CODE "pt-PT"
+
 #define D_USERNAME "Utilizador:"
 #define D_PASSWORD "Palavra-passe:"
 #define D_SSID "SSID:"
