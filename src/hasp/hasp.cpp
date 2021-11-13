@@ -31,6 +31,8 @@
 //#include "hasp_filesystem.h" included in hasp_conf.h
 #endif
 
+#include "lv_freetype.h"
+
 #if HASP_USE_EEPROM > 0
 #include "EEPROM.h"
 #endif
@@ -455,6 +457,16 @@ void haspSetup(void)
 {
     haspDevice.set_backlight_level(haspStartDim);
 
+    // #ifdef 1 || USE_LVGL_FREETYPE
+    // initialize the FreeType renderer
+    if(lv_freetype_init(USE_LVGL_FREETYPE_MAX_FACES, USE_LVGL_FREETYPE_MAX_SIZES, psramFound() ? USE_LVGL_FREETYPE_MAX_BYTES_PSRAM : USE_LVGL_FREETYPE_MAX_BYTES)) {
+        LOG_VERBOSE(TAG_FONT, F("FreeType v%d.%d.%d " D_SERVICE_STARTED), FREETYPE_MAJOR, FREETYPE_MINOR,
+                    FREETYPE_PATCH);
+    } else {
+        LOG_ERROR(TAG_FONT, F("FreeType " D_SERVICE_START_FAILED));
+    }
+    // #endif
+
     /******* File System Test ********************************************************************/
     // lv_fs_file_t f;
     // lv_fs_res_t res;
@@ -518,7 +530,14 @@ void haspSetup(void)
     // haspFonts[0] = lv_font_load("E:/font_1.fnt");
     // haspFonts[2] = lv_font_load("E:/font_2.fnt");
 
-    // haspFonts[3] = hasp_font_load("L:/robotocondensed_60_latin1.bin");
+    haspFonts[6] = hasp_font_load("L:/RobotoCondensedRegular.bin");
+
+    lv_ft_info_t info;
+    info.name   = "L:/mdi.ttf";
+    info.weight = 12;
+    info.style  = FT_FONT_STYLE_NORMAL;
+    lv_ft_font_init(&info);
+    haspFonts[7] = info.font;
 
     hasp_set_theme(haspThemeId);
 

@@ -1,6 +1,3 @@
 [submodule "lib/freetype"]
 	path = lib/freetype
 	url = https://github.com/fvanroie/freetype
-[submodule "lib/lv_lib_freetype"]
-	path = lib/lv_lib_freetype
-	url = https://github.com/fvanroie/lv_lib_freetype
