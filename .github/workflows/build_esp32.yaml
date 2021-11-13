@@ -26,9 +26,9 @@ jobs:
           - env: esp32-touchdown
             out: esp32-touchdown
           - env: freetouchdeck
-              out: freetouchdeck
+            out: freetouchdeck
           - env: huzzah32-featherwing-24
-              out: featherwing
+            out: featherwing
           - env: huzzah32-featherwing-24
             out: featherwing
           - env: lanbon_l8
@@ -38,7 +38,7 @@ jobs:
           - env: m5stack-core2
             out: m5stack
           - env: makerfabs-tft35-cap
-           out: makerfabs-tft
+            out: makerfabs-tft
           - env: ttgo-t7-v1.5_ili9341
             out: ttgo-t7
           - env: wt32-sc01
