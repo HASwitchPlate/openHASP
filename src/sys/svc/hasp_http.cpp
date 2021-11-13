@@ -123,6 +123,8 @@ extern const uint8_t EDIT_HTM_GZ_START[] asm("_binary_data_edit_htm_gz_start");
 extern const uint8_t EDIT_HTM_GZ_END[] asm("_binary_data_edit_htm_gz_end");
 extern const uint8_t STYLE_CSS_GZ_START[] asm("_binary_data_style_css_gz_start");
 extern const uint8_t STYLE_CSS_GZ_END[] asm("_binary_data_style_css_gz_end");
+extern const uint8_t SCRIPT_JS_GZ_START[] asm("_binary_data_script_js_gz_start");
+extern const uint8_t SCRIPT_JS_GZ_END[] asm("_binary_data_script_js_gz_end");
 #endif // CONFIG_IDF_TARGET_ESP32
 
 #endif // ESP32
@@ -139,8 +141,9 @@ const char HTTP_DOCTYPE[] PROGMEM = "<!DOCTYPE html><html lang=\"en\"><head><met
                                     "name=\"viewport\" content=\"width=device-width,initial-scale=1\"/>";
 const char HTTP_META_GO_BACK[] PROGMEM = "<meta http-equiv='refresh' content='15;url=/'/>";
 const char HTTP_HEADER[] PROGMEM       = "<title>%s</title>";
-const char HTTP_HEADER_END[] PROGMEM = "<script src=\"/js\"></script><link rel=\"stylesheet\" href=\"/vars.css\"><link "
-                                       "rel=\"stylesheet\" href=\"/style.css\"></head><body><div id='doc'>";
+const char HTTP_HEADER_END[] PROGMEM =
+    "<script src=\"/script.js\"></script><link rel=\"stylesheet\" href=\"/vars.css\">"
+    "<link rel=\"stylesheet\" href=\"/style.css\"></head><body><div id='doc'>";
 const char HTTP_FOOTER[] PROGMEM = "<div class='clear'><hr/><a class='foot' href='/about'>" D_MANUFACTURER " ";
 const char HTTP_END[] PROGMEM    = " " D_HTTP_FOOTER "</div></body></html>";
 
@@ -462,40 +465,40 @@ static void webHandleAbout()
         String httpMessage((char*)0);
         httpMessage.reserve(HTTP_PAGE_SIZE);
 
-        httpMessage += F("<p><h3>openHASP</h3>Copyright&copy; 2019-2021 Francis Van Roie ");
-        httpMessage += mitLicense;
-        httpMessage += F("<p>Based on the previous work of the following open source developers.</p><hr>");
-        httpMessage += F("<p><h3>HASwitchPlate</h3>Copyright&copy; 2019 Allen Derusha allen@derusha.org</b>");
-        httpMessage += mitLicense;
-        httpMessage += F("<p><h3>LVGL</h3>Copyright&copy; 2021 LVGL Kft");
-        httpMessage += mitLicense;
-        httpMessage += F("<p><h3>zi Font Engine</h3>Copyright&copy; 2020-2021 Francis Van Roie");
-        httpMessage += mitLicense;
-        httpMessage += F("<p><h3>TFT_eSPI Library</h3>Copyright&copy; 2020 Bodmer (https://github.com/Bodmer) All "
-                         "rights reserved.</br>FreeBSD License</p>");
-        httpMessage +=
-            F("<p><i>includes parts from the <b>Adafruit_GFX library</b></br>Copyright&copy; 2012 Adafruit Industries. "
-              "All rights reserved</br>BSD License</i></p>");
-        httpMessage += F("<p><h3>ArduinoJson</h3>Copyright&copy; 2014-2021 Benoit BLANCHON");
-        httpMessage += mitLicense;
-        httpMessage += F("<p><h3>PubSubClient</h3>Copyright&copy; 2008-2015 Nicholas O'Leary");
-        httpMessage += mitLicense;
-        httpMessage +=
-            F("<p><h3>ArduinoLog</h3>Copyright&copy; 2017,2018 Thijs Elenbaas, MrRobot62, rahuldeo2047, NOX73, "
-              "dhylands, Josha blemasle, mfalkvidd");
-        httpMessage += mitLicense;
-#if HASP_USE_SYSLOG > 0
-        // Replaced with WiFiUDP client
-        // httpMessage += F("<p><h3>Syslog</h3>Copyright&copy; 2016 Martin Sloup");
-        // httpMessage += mitLicense;
-#endif
-#if HASP_USE_QRCODE > 0
-        httpMessage += F("<p><h3>QR Code generator</h3>Copyright&copy; Project Nayuki");
-        httpMessage += mitLicense;
-#endif
-        httpMessage += F("<p><h3>AceButton</h3>Copyright&copy; 2018 Brian T. Park");
-        httpMessage += mitLicense;
-
+        /*
+                httpMessage += F("<p><h3>openHASP</h3>Copyright&copy; 2019-2021 Francis Van Roie ");
+                httpMessage += mitLicense;
+                httpMessage += F("<p>Based on the previous work of the following open source developers.</p><hr>");
+                httpMessage += F("<p><h3>HASwitchPlate</h3>Copyright&copy; 2019 Allen Derusha allen@derusha.org</b>");
+                httpMessage += mitLicense;
+                httpMessage += F("<p><h3>LVGL</h3>Copyright&copy; 2021 LVGL Kft");
+                httpMessage += mitLicense;
+                httpMessage += F("<p><h3>TFT_eSPI Library</h3>Copyright&copy; 2020 Bodmer (https://github.com/Bodmer)
+        All " "rights reserved.</br>FreeBSD License</p>"); httpMessage += F("<p><i>includes parts from the
+        <b>Adafruit_GFX library</b></br>Copyright&copy; 2012 Adafruit Industries. " "All rights reserved</br>BSD
+        License</i></p>"); httpMessage += F("<p><h3>ArduinoJson</h3>Copyright&copy; 2014-2021 Benoit BLANCHON");
+                httpMessage += mitLicense;
+                httpMessage += F("<p><h3>PubSubClient</h3>Copyright&copy; 2008-2015 Nicholas O'Leary");
+                httpMessage += mitLicense;
+                httpMessage += F("<p><h3>FreeType</h3>Copyright&copy; 1996-2002, 2006 David Turner, Robert Wilhelm, "
+                                 "and Werner Lemberg.</br>FreeType License</p>");
+                httpMessage +=
+                    F("<p><h3>ArduinoLog</h3>Copyright&copy; 2017,2018 Thijs Elenbaas, MrRobot62, rahuldeo2047, NOX73, "
+                      "dhylands, Josha blemasle, mfalkvidd");
+                httpMessage += mitLicense;
+        #if HASP_USE_SYSLOG > 0
+                // Replaced with WiFiUDP client
+                // httpMessage += F("<p><h3>Syslog</h3>Copyright&copy; 2016 Martin Sloup");
+                // httpMessage += mitLicense;
+        #endif
+        #if HASP_USE_QRCODE > 0
+                httpMessage += F("<p><h3>QR Code generator</h3>Copyright&copy; Project Nayuki");
+                httpMessage += mitLicense;
+        #endif
+                httpMessage += F("<p><h3>AceButton</h3>Copyright&copy; 2018 Brian T. Park");
+                httpMessage += mitLicense;
+        */
+        httpMessage += "<div id='doc'></div><script>window.addEventListener('load', about());</script>";
         httpMessage += FPSTR(MAIN_MENU_BUTTON);
 
         webSendHeader(haspDevice.get_hostname(), httpMessage.length(), false);
@@ -913,9 +916,10 @@ static int handleFileRead(String path)
     if(path.endsWith("/")) {
         path += F("index.htm");
     }
-    
+
     String style_css = F("/style.css");
-    bool is_style_css = (path == style_css);
+    String script_js = F("/script.js");
+    bool is_cached   = (path == style_css) || (path == script_js);
 
     String pathWithGz = path + F(".gz");
     if(HASP_FS.exists(pathWithGz) || HASP_FS.exists(path)) {
@@ -948,8 +952,8 @@ static int handleFileRead(String path)
 
         } else {
 
-            // Only styles.css can be cached
-            if(is_style_css) webSendCacheHeader(file.size(), 3600);
+            // script.js and styles.css can be cached
+            if(is_cached) webSendCacheHeader(file.size(), 3600);
 
             // Stream other files directly from filesystem
             webServer.streamFile(file, contentType);
@@ -963,7 +967,7 @@ static int handleFileRead(String path)
     if(path == F("/edit.htm")) {
         size_t size = EDIT_HTM_GZ_END - EDIT_HTM_GZ_START;
         webServer.sendHeader(F("Content-Encoding"), F("gzip"));
-        return webSendCached(200, PSTR("text/html"), (const char*)EDIT_HTM_GZ_START, size); // OK
+        return webSendCached(200, PSTR("text/html"), (const char*)EDIT_HTM_GZ_START, size);
     }
 #endif
 
@@ -971,7 +975,15 @@ static int handleFileRead(String path)
     if(path == style_css) {
         size_t size = STYLE_CSS_GZ_END - STYLE_CSS_GZ_START;
         webServer.sendHeader(F("Content-Encoding"), F("gzip"));
-        return webSendCached(200, PSTR("text/css"), (const char*)STYLE_CSS_GZ_START, size); // OK
+        return webSendCached(200, PSTR("text/css"), (const char*)STYLE_CSS_GZ_START, size);
+    }
+#endif
+
+#if defined(ARDUINO_ARCH_ESP32) && defined(CONFIG_IDF_TARGET_ESP32)
+    if(path == script_js) {
+        size_t size = SCRIPT_JS_GZ_END - SCRIPT_JS_GZ_START;
+        webServer.sendHeader(F("Content-Encoding"), F("gzip"));
+        return webSendCached(200, PSTR("text/javascript"), (const char*)SCRIPT_JS_GZ_START, size);
     }
 #endif
 
@@ -2350,14 +2362,46 @@ static void webSendCssVars()
     webSendCached(200, PSTR("text/css"), HTTP_CSS.c_str(), HTTP_CSS.length());
 }
 
+/*
 // Do not keep JS in memory because it is cached in the browser
 static void webSendJavascript()
 {
+    // Refresh screenshot
     String javascript = F("function aref(t){setTimeout(function() {ref('');}, t*1000)}"
                           "function ref(a){ var t=new "
-                          "Date().getTime();document.getElementById('bmp').src='?a='+a+'&q='+t;return false;}");
+                          "Date().getTime();document.getElementById('bmp').src='?a='+a+'&q='+t;return false;};");
+    // This string can be gzipped:
+    javascript +=
+        "function about(){document.getElementById('doc').innerHTML='<h3>" D_MANUFACTURER
+        "</h3>Copyright&copy; 2019-2021 Francis Van Roie</br>MIT License</p>"
+        "<p>Permission is hereby granted, free of charge, to any person obtaining a copy of this software and "
+        "associated documentation files(the \"Software\"), to deal in the Software without restriction, including "
+        "without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and / or sell "
+        "copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the "
+        "following conditions:</p>"
+        "<p>The above copyright notice and this permission notice shall be included in all copies or substantial "
+        "portions of the Software.</p><p>THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, "
+        "EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR "
+        "PURPOSE AND NONINFRINGEMENT.IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, "
+        "DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN "
+        "CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</p><hr>"
+        "<p>Based on the previous work of the following open source developers:</p>"
+        "<h3>HASwitchPlate</h3><p>Copyright&copy; 2019 Allen Derusha allen@derusha.org</b></br>MIT License</p>"
+        "<h3>LVGL</h3><p>Copyright&copy; 2021 LVGL Kft</br>MIT License</p>"
+        "<h3>zi Font Engine</h3><p>Copyright&copy; 2020-2021 Francis Van Roie</br>MIT License</p>"
+        "<h3>TFT_eSPI Library</h3><p>Copyright&copy; 2020 Bodmer (https://github.com/Bodmer) All rights "
+        "reserved.</br>FreeBSD License</p>"
+        "<p><i>includes parts from the <b>Adafruit_GFX library</b></br>Copyright&copy; 2012 Adafruit Industries. All "
+        "rights reserved</br>BSD License</i></p>"
+        "<h3>ArduinoJson</h3><p>Copyright&copy; 2014-2021 Benoit BLANCHON</br>MIT License</p>"
+        "<h3>PubSubClient</h3><p>Copyright&copy; 2008-2015 Nicholas O&apos;Leary</br>MIT License</p>"
+        "<h3>ArduinoLog</h3><p>Copyright&copy; 2017,2018 Thijs Elenbaas, MrRobot62, rahuldeo2047, NOX73, dhylands, "
+        "Josha blemasle, mfalkvidd</br>MIT License</p>"
+        "<h3>QR Code generator</h3><p>Copyright&copy; Project Nayuki</br>MIT License</p>"
+        "<h3>AceButton</h3><p>Copyright&copy; 2018 Brian T. Park</br>MIT License</p>';}";
     webSendCached(200, PSTR("text/javascript"), javascript.c_str(), javascript.length());
 }
+*/
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 static inline void webStartConfigPortal()
@@ -2390,7 +2434,7 @@ void httpSetup()
     // Shared pages between STA and AP
     webServer.on(F("/about"), webHandleAbout);
     webServer.on(F("/vars.css"), webSendCssVars);
-    webServer.on(F("/js"), webSendJavascript);
+    // webServer.on(F("/js"), webSendJavascript);
     webServer.onNotFound(httpHandleNotFound);
 
 #if HASP_USE_WIFI > 0

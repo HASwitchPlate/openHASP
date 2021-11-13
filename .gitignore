@@ -10,6 +10,8 @@ data/*
 !data/vars.css
 !data/style.css
 !data/style.css.gz
+!data/script.js
+!data/script.js.gz
 src/user_setups/active/*
 include/user_config_override.h
 src/user_config_override.h
