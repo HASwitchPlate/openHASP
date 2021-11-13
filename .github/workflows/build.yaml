@@ -17,21 +17,21 @@ jobs:
       matrix:
         environments:
           # - d1-mini-esp8266_ili9341
-          - 'arduitouch-esp32_ili9341'
-          - 'd1-mini-esp32_ili9341'
-          - 'esp32-one_st7796'
-          - 'esp32-touchdown'
-          - 'freetouchdeck -e freetouchdeck_8MB'
-          - 'huzzah32-featherwing-24'
-          - 'huzzah32-featherwing-35'
-          - 'lanbon_l8'
-          - 'lolin-d32-pro_ili9341'
-          - 'm5stack-core2'
-          - 'makerfabs-tft35-cap'
-          - 'ttgo-t7-v1.5_ili9341'
-          - 'wt32-sc01'
-          - 'yeacreate-nscreen32'
-          - 'linux_sdl_64bits'
+          - arduitouch-esp32_ili9341
+          - d1-mini-esp32_ili9341
+          - esp32-one_st7796
+          - esp32-touchdown
+          - freetouchdeck
+          - huzzah32-featherwing-24
+          - huzzah32-featherwing-35
+          - lanbon_l8
+          - lolin-d32-pro_ili9341
+          - m5stack-core2
+          - makerfabs-tft35-cap
+          - ttgo-t7-v1.5_ili9341
+          - wt32-sc01
+          - yeacreate-nscreen32
+          - linux_sdl_64bits
 
     steps:
       - uses: actions/checkout@v2
