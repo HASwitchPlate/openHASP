@@ -19,7 +19,46 @@ jobs:
           # - d1-mini-esp8266_ili9341
           - arduitouch-esp32_ili9341:
             env: arduitouch-esp32_ili9341
-            out: arduitouch-esp32_ili9341
+            out: arduitouch
+          - d1-mini-esp32_ili9341:
+            env: d1-mini-esp32_ili9341
+            out: d1-mini-esp32
+          - esp32-one_st7796:
+            env: esp32-one_st7796
+            out: esp32-one
+          - esp32-touchdown:
+            env: esp32-touchdown
+            out: esp32-touchdown
+          - freetouchdeck:
+            env: freetouchdeck
+            out: freetouchdeck
+          - huzzah32-featherwing-24:
+            env: huzzah32-featherwing-24
+            out: featherwing
+          - huzzah32-featherwing-35:
+            env: huzzah32-featherwing-24
+            out: featherwing
+          - lanbon_l8:
+            env: lanbon_l8
+            out: lanbon_l8
+          - lolin-d32-pro_ili9341:
+            env: lolin-d32-pro_ili9341
+            out: lolin-d32-pro
+          - m5stack-core2:
+            env: m5stack-core2
+            out: m5stack
+          - makerfabs-tft35-cap
+            env: makerfabs-tft35-cap
+            out: makerfabs-tft
+          - ttgo-t7-v1.5_ili9341
+            env: ttgo-t7-v1.5_ili9341
+            out: ttgo-t7
+          - wt32-sc01:
+            env: wt32-sc01
+            out: wt32-sc01
+          - yeacreate-nscreen32:
+            env: yeacreate-nscreen32
+            out: yeacreate
 
     steps:
       - uses: actions/checkout@v2
