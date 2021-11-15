@@ -87,10 +87,6 @@ IPAddress apIP(192, 168, 4, 1);
 #endif // DNS_PORT
 #endif // HASP_USE_CAPTIVE_PORTAL
 
-// bool httpEnable       = true;
-// uint16_t httpPort     = 80;
-// char httpUser[32]     = "";
-// char httpPassword[32] = "";
 hasp_http_config_t http_config;
 
 #define HTTP_PAGE_SIZE (6 * 256)
@@ -207,7 +203,7 @@ static void webHandleHaspConfig();
 bool httpIsAuthenticated()
 {
     if(http_config.password[0] != '\0') { // Request HTTP auth if httpPassword is set
-        if(!webServer.authenticate(http_config.user, http_config.password)) {
+        if(!webServer.authenticate(http_config.username, http_config.password)) {
             webServer.requestAuthentication();
             return false;
         }
@@ -568,211 +564,6 @@ static void webHandleInfoJson()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/*
-static void webHandleInfo()
-{ // http://plate01/
-    if(!httpIsAuthenticated(F("info"))) return;
-
-    { // Send Content
-        char size_buf[32];
-        String httpMessage((char*)0);
-        httpMessage.reserve(HTTP_PAGE_SIZE);
-        httpMessage += F("<h1>");
-        httpMessage += haspDevice.get_hostname();
-        httpMessage += F("</h1><hr>");
-
-        // HASP Stats
-        httpMessage += F("<b>HASP Version: </b>");
-        httpMessage += haspDevice.get_version();
-        httpMessage += F("<br/><b>Build DateTime: </b>");
-        httpMessage += __DATE__;
-        httpMessage += F(" ");
-        httpMessage += __TIME__;
-        httpMessage += F(" UTC<br/><b>Uptime: </b>"); // Github buildservers are in UTC
-
-        unsigned long time = millis() / 1000;
-        uint16_t day       = time / 86400;
-        time               = time % 86400;
-        uint8_t hour       = time / 3600;
-        time               = time % 3600;
-        uint8_t min        = time / 60;
-        time               = time % 60;
-        uint8_t sec        = time;
-
-        if(day > 0) {
-            httpMessage += String(day);
-            httpMessage += F("d ");
-        }
-        if(day > 0 || hour > 0) {
-            httpMessage += String(hour);
-            httpMessage += F("h ");
-        }
-        if(day > 0 || hour > 0 || min > 0) {
-            httpMessage += String(min);
-            httpMessage += F("m ");
-        }
-        httpMessage += String(sec);
-        httpMessage += F("s");
-
-        httpMessage += F("<br/><b>Free Memory: </b>");
-        Parser::format_bytes(haspDevice.get_free_heap(), size_buf, sizeof(size_buf));
-        httpMessage += size_buf;
-        httpMessage += F("<br/><b>Memory Fragmentation: </b>");
-        httpMessage += String(haspDevice.get_heap_fragmentation());
-
-#if ARDUINO_ARCH_ESP32
-        if(psramFound()) {
-            httpMessage += F("<br/><b>Free PSRam: </b>");
-            Parser::format_bytes(ESP.getFreePsram(), size_buf, sizeof(size_buf));
-            httpMessage += size_buf;
-            httpMessage += F("<br/><b>PSRam Size: </b>");
-            Parser::format_bytes(ESP.getPsramSize(), size_buf, sizeof(size_buf));
-            httpMessage += size_buf;
-        }
-#endif
-
-        // LVGL Stats
-        lv_mem_monitor_t mem_mon;
-        lv_mem_monitor(&mem_mon);
-        httpMessage += F("</p><p><b>LVGL Memory: </b>");
-        Parser::format_bytes(mem_mon.total_size, size_buf, sizeof(size_buf));
-        httpMessage += size_buf;
-        httpMessage += F("<br/><b>LVGL Free: </b>");
-        Parser::format_bytes(mem_mon.free_size, size_buf, sizeof(size_buf));
-        httpMessage += size_buf;
-        httpMessage += F("<br/><b>LVGL Fragmentation: </b>");
-        httpMessage += mem_mon.frag_pct;
-
-        // httpMessage += F("<br/><b>LCD Model: </b>")) + String(LV_HASP_HOR_RES_MAX) + " x " +
-        // String(LV_HASP_VER_RES_MAX); httpMessage += F("<br/><b>LCD Version: </b>")) +
-        // String(lcdVersion);
-        httpMessage += F("</p/><p><b>LCD Active Page: </b>");
-        httpMessage += String(haspPages.get());
-
-        // Wifi Stats
-#if HASP_USE_WIFI > 0
-        httpMessage += F("</p/><p><b>SSID: </b>");
-        httpMessage += String(WiFi.SSID());
-        httpMessage += F("</br><b>Signal Strength: </b>");
-
-        int8_t rssi = WiFi.RSSI();
-        httpMessage += String(rssi);
-        httpMessage += F("dBm (");
-
-        if(rssi >= -50) {
-            httpMessage += F("Excellent)");
-        } else if(rssi >= -60) {
-            httpMessage += F("Good)");
-        } else if(rssi >= -70) {
-            httpMessage += F("Fair)");
-        } else if(rssi >= -80) {
-            httpMessage += F("Weak)");
-        } else {
-            httpMessage += F("Very Bad)");
-        }
-#if defined(STM32F4xx)
-        byte mac[6];
-        WiFi.macAddress(mac);
-        char macAddress[16];
-        snprintf_P(macAddress, sizeof(macAddress), PSTR("%02x%02x%02x"), mac[0], mac[1], mac[2], mac[3], mac[4],
-                   mac[5]);
-        httpMessage += F("</br><b>IP Address: </b>");
-        httpMessage += String(WiFi.localIP());
-        httpMessage += F("</br><b>Gateway: </b>");
-        httpMessage += String(WiFi.gatewayIP());
-        httpMessage += F("</br><b>MAC Address: </b>");
-        httpMessage += String(macAddress);
-#else
-        httpMessage += F("</br><b>IP Address: </b>");
-        httpMessage += String(WiFi.localIP().toString());
-        httpMessage += F("</br><b>Gateway: </b>");
-        httpMessage += String(WiFi.gatewayIP().toString());
-        httpMessage += F("</br><b>DNS Server: </b>");
-        httpMessage += String(WiFi.dnsIP().toString());
-        httpMessage += F("</br><b>MAC Address: </b>");
-        httpMessage += String(WiFi.macAddress());
-#endif
-#endif
-#if HASP_USE_ETHERNET > 0
-#if defined(ARDUINO_ARCH_ESP32)
-        httpMessage += F("</p/><p><b>Ethernet: </b>");
-        httpMessage += String(ETH.linkSpeed());
-        httpMessage += F(" Mbps");
-        if(ETH.fullDuplex()) {
-            httpMessage += F(" " D_INFO_FULL_DUPLEX);
-        }
-        httpMessage += F("</br><b>IP Address: </b>");
-        httpMessage += String(ETH.localIP().toString());
-        httpMessage += F("</br><b>Gateway: </b>");
-        httpMessage += String(ETH.gatewayIP().toString());
-        httpMessage += F("</br><b>DNS Server: </b>");
-        httpMessage += String(ETH.dnsIP().toString());
-        httpMessage += F("</br><b>MAC Address: </b>");
-        httpMessage += String(ETH.macAddress());
-#endif
-#endif
-
-// Mqtt Stats
-#if HASP_USE_MQTT > 0
-        httpMessage += F("</p/><p><b>MQTT Status: </b>");
-        if(mqttIsConnected()) { // Check MQTT connection
-            httpMessage += F("Connected");
-        } else {
-            httpMessage += F("<font color='red'><b>Disconnected</b></font>, return code: ");
-            //     +String(mqttClient.returnCode());
-        }
-        httpMessage += F("<br/><b>MQTT ClientID: </b>");
-
-        {
-            char mqttClientId[64];
-            String mac = halGetMacAddress(3, "");
-            mac.toLowerCase();
-            snprintf_P(mqttClientId, sizeof(mqttClientId), PSTR("%s-%s"), haspDevice.get_hostname(), mac.c_str());
-            httpMessage += mqttClientId;
-        }
-
-#endif // MQTT
-
-        // ESP Stats
-        httpMessage += F("</p/><p><b>MCU Model: </b>");
-        httpMessage += haspDevice.get_chip_model();
-        httpMessage += F("<br/><b>CPU Frequency: </b>");
-        httpMessage += String(haspDevice.get_cpu_frequency());
-        httpMessage += F("MHz");
-
-#if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
-        httpMessage += F("<br/><b>Flash Chip Size: </b>");
-        Parser::format_bytes(ESP.getFlashChipSize(), size_buf, sizeof(size_buf));
-        httpMessage += size_buf;
-
-        httpMessage += F("</br><b>Program Size Used: </b>");
-        Parser::format_bytes(ESP.getSketchSize(), size_buf, sizeof(size_buf));
-        httpMessage += size_buf;
-
-        httpMessage += F("<br/><b>Program Size Free: </b>");
-        Parser::format_bytes(ESP.getFreeSketchSpace(), size_buf, sizeof(size_buf));
-        httpMessage += size_buf;
-#endif
-
-        //#if defined(ARDUINO_ARCH_ESP32)
-        //        httpMessage += F("<br/><b>ESP SDK version: </b>");
-        //        httpMessage += String(ESP.getSdkVersion());
-        //#else
-        httpMessage += F("<br/><b>Core version: </b>");
-        httpMessage += haspDevice.get_core_version();
-        //#endif
-        httpMessage += F("<br/><b>Last Reset: </b>");
-        //  httpMessage += halGetResetInfo();
-
-        httpMessage += FPSTR(MAIN_MENU_BUTTON);
-
-        webSendHeader(haspDevice.get_hostname(), httpMessage.length(), false);
-        webServer.sendContent(httpMessage);
-    }
-    webSendFooter();
-}
-*/
-
 /* String urldecode(String str)
 {
     String encodedString = "";
@@ -2563,8 +2354,8 @@ bool httpGetConfig(const JsonObject& settings)
     if(http_config.port != settings[FPSTR(FP_CONFIG_PORT)].as<uint16_t>()) changed = true;
     settings[FPSTR(FP_CONFIG_PORT)] = http_config.port;
 
-    if(strcmp(http_config.user, settings[FPSTR(FP_CONFIG_USER)].as<String>().c_str()) != 0) changed = true;
-    settings[FPSTR(FP_CONFIG_USER)] = http_config.user;
+    if(strcmp(http_config.username, settings[FPSTR(FP_CONFIG_USER)].as<String>().c_str()) != 0) changed = true;
+    settings[FPSTR(FP_CONFIG_USER)] = http_config.username;
 
     if(strcmp(http_config.password, settings[FPSTR(FP_CONFIG_PASS)].as<String>().c_str()) != 0) changed = true;
     settings[FPSTR(FP_CONFIG_PASS)] = http_config.password;
@@ -2589,8 +2380,8 @@ bool httpSetConfig(const JsonObject& settings)
     changed |= configSet(http_config.port, settings[FPSTR(FP_CONFIG_PORT)], F("httpPort"));
 
     if(!settings[FPSTR(FP_CONFIG_USER)].isNull()) {
-        changed |= strcmp(http_config.user, settings[FPSTR(FP_CONFIG_USER)]) != 0;
-        strncpy(http_config.user, settings[FPSTR(FP_CONFIG_USER)], sizeof(http_config.user));
+        changed |= strcmp(http_config.username, settings[FPSTR(FP_CONFIG_USER)]) != 0;
+        strncpy(http_config.username, settings[FPSTR(FP_CONFIG_USER)], sizeof(http_config.username));
     }
 
     if(!settings[FPSTR(FP_CONFIG_PASS)].isNull()) {

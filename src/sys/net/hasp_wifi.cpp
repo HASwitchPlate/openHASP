@@ -38,20 +38,16 @@ SPIClass espSPI(ESPSPI_MOSI, ESPSPI_MISO, ESPSPI_SCLK); // SPI port where esp is
 #endif
 //#include "DNSserver.h"
 
-// #ifdef USE_CONFIG_OVERRIDE
-// #include "user_config_override.h"
-// #endif
+#ifndef WIFI_SSID
+#define WIFI_SSID ""
+#endif
 
-#ifdef WIFI_SSID
-char wifiSsid[32] = WIFI_SSID;
-#else
-char wifiSsid[32]     = "";
+#ifndef WIFI_PASSW
+#define WIFI_PASSW ""
 #endif
-#ifdef WIFI_PASSW
-char wifiPassword[64] = WIFI_PASSW;
-#else
-char wifiPassword[64] = "";
-#endif
+
+char wifiSsid[MAX_USERNAME_LENGTH] = WIFI_SSID;
+char wifiPassword[MAX_PASSWORD_LENGTH] = WIFI_PASSW;
 char wifiIpAddress[16]        = "";
 uint16_t wifiReconnectCounter = 0;
 bool wifiOnline               = false;

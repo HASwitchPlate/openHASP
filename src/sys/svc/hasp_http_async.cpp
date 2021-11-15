@@ -58,7 +58,7 @@ bool webServerStarted = false;
 // bool httpEnable       = true;
 // uint16_t httpPort     = 80;
 // char httpUser[32]     = "";
-// char httpPassword[32] = "";
+// char httpPassword[MAX_PASSWORD_LENGTH] = "";
 hasp_http_config_t http_config;
 
 #define HTTP_PAGE_SIZE (6 * 256)
@@ -219,7 +219,7 @@ void webHandleHaspConfig(AsyncWebServerRequest* request);
 bool httpIsAuthenticated()
 {
     if(http_config.password[0] != '\0') { // Request HTTP auth if httpPassword is set
-        // if(!webServer.authenticate(http_config.user, http_config.password)) {
+        // if(!webServer.authenticate(http_config.username, http_config.password)) {
         //     return false;
         // }
     }
@@ -2347,8 +2347,8 @@ bool httpGetConfig(const JsonObject& settings)
     if(http_config.port != settings[FPSTR(FP_CONFIG_PORT)].as<uint16_t>()) changed = true;
     settings[FPSTR(FP_CONFIG_PORT)] = http_config.port;
 
-    if(strcmp(http_config.user, settings[FPSTR(FP_CONFIG_USER)].as<String>().c_str()) != 0) changed = true;
-    settings[FPSTR(FP_CONFIG_USER)] = http_config.user;
+    if(strcmp(http_config.username, settings[FPSTR(FP_CONFIG_USER)].as<String>().c_str()) != 0) changed = true;
+    settings[FPSTR(FP_CONFIG_USER)] = http_config.username;
 
     if(strcmp(http_config.password, settings[FPSTR(FP_CONFIG_PASS)].as<String>().c_str()) != 0) changed = true;
     settings[FPSTR(FP_CONFIG_PASS)] = http_config.password;
@@ -2373,8 +2373,8 @@ bool httpSetConfig(const JsonObject& settings)
     changed |= configSet(http_config.port, settings[FPSTR(FP_CONFIG_PORT)], F("httpPort"));
 
     if(!settings[FPSTR(FP_CONFIG_USER)].isNull()) {
-        changed |= strcmp(http_config.user, settings[FPSTR(FP_CONFIG_USER)]) != 0;
-        strncpy(http_config.user, settings[FPSTR(FP_CONFIG_USER)], sizeof(http_config.user));
+        changed |= strcmp(http_config.username, settings[FPSTR(FP_CONFIG_USER)]) != 0;
+        strncpy(http_config.username, settings[FPSTR(FP_CONFIG_USER)], sizeof(http_config.username));
     }
 
     if(!settings[FPSTR(FP_CONFIG_PASS)].isNull()) {

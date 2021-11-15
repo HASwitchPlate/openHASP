@@ -2063,19 +2063,22 @@ static hasp_attribute_type_t attribute_common_bool(lv_obj_t* obj, uint16_t attr_
 
 void attr_out_str(lv_obj_t* obj, const char* attribute, const char* data)
 {
+    const size_t size = 64 + strlen(data);
     uint8_t pageid;
     uint8_t objid;
 
     if(!attribute || !hasp_find_id_from_obj(obj, &pageid, &objid)) return;
+    char payload[size];
 
-    StaticJsonDocument<32> doc; // Total (recommended) size
+{
+    StaticJsonDocument<size> doc; // Total (recommended) size
     if(data)
         doc[attribute].set(data);
     else
         doc[attribute].set(nullptr);
-
-    char payload[MQTT_MAX_PACKET_SIZE];
     serializeJson(doc, payload, MQTT_MAX_PACKET_SIZE);
+}
+
     object_dispatch_state(pageid, objid, payload);
 }
 

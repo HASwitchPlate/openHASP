@@ -11,6 +11,17 @@
 // language specific defines
 #include "lang/lang.h"
 
+// Lengths
+#ifndef MAX_PASSWORD_LENGTH
+#define MAX_PASSWORD_LENGTH 64
+#endif
+#ifndef MAX_USERNAME_LENGTH
+#define MAX_USERNAME_LENGTH 32
+#endif
+#ifndef MAX_HOSTNAME_LENGTH
+#define MAX_HOSTNAME_LENGTH 128
+#endif
+
 // TFT defines
 #ifndef TFT_BACKLIGHT_ON
 #define TFT_BACKLIGHT_ON HIGH
