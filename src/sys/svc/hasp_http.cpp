@@ -1046,8 +1046,9 @@ static void webHandleMqttConfig()
 
         // Broker
         httpMessage += F("<div class='row'><div class='col-25'><label for='host'>Broker</label></div>");
-        httpMessage += F("<div class='col-75'><input type='text' id='host' name='host' maxlength=63 "
-                         "placeholder='Server Name' value='");
+        httpMessage += F("<div class='col-75'><input type='text' id='host' name='host' maxlength=");
+        httpMessage += MAX_HOSTNAME_LENGTH - 1;
+        httpMessage += F(" placeholder='Server Name' value='");
         httpMessage += settings[FPSTR(FP_CONFIG_HOST)].as<String>();
         httpMessage += F("'></div></div>");
 
@@ -1060,15 +1061,17 @@ static void webHandleMqttConfig()
 
         // Mqtt User
         httpMessage += F("<div class='row'><div class='col-25'><label for='user'>User</label></div>");
-        httpMessage += F("<div class='col-75'><input type='text' id='user' name='user' maxlength=31 "
-                         "placeholder='MQTT User' value='");
+        httpMessage += F("<div class='col-75'><input type='text' id='user' name='user' maxlength=");
+        httpMessage += MAX_USERNAME_LENGTH - 1;
+        httpMessage += F(" placeholder='MQTT User' value='");
         httpMessage += settings[FPSTR(FP_CONFIG_USER)].as<String>();
         httpMessage += F("'></div></div>");
 
         // Mqtt Password
         httpMessage += F("<div class='row'><div class='col-25'><label for='pass'>Password</label></div>");
-        httpMessage += F("<div class='col-75'><input type='password' id='pass' name='pass' maxlength=63 "
-                         "placeholder='MQTT Password' value='");
+        httpMessage += F("<div class='col-75'><input type='password' id='pass' name='pass' maxlength=");
+        httpMessage += MAX_PASSWORD_LENGTH - 1;
+        httpMessage += F(" placeholder='MQTT Password' value='");
         if(settings[FPSTR(FP_CONFIG_PASS)].as<String>() != "") httpMessage += F(D_PASSWORD_MASK);
         httpMessage += F("'></div></div>");
 
@@ -1206,15 +1209,17 @@ static void webHandleWifiConfig()
 
         // Wifi SSID
         httpMessage += F("<div class='row'><div class='col-25 required'><label for='ssid'>SSID</label></div>");
-        httpMessage += F("<div class='col-75'><input required type='text' id='ssid' name='ssid' maxlength=31 "
-                         "placeholder='SSID' value='");
+        httpMessage += F("<div class='col-75'><input required type='text' id='ssid' name='ssid' maxlength=");
+        httpMessage += MAX_USERNAME_LENGTH - 1;
+        httpMessage += F(" placeholder='SSID' value='");
         httpMessage += settings[FPSTR(FP_CONFIG_SSID)].as<String>();
         httpMessage += F("'></div></div>");
 
         // Wifi Password
         httpMessage += F("<div class='row'><div class='col-25 required'><label for='pass'>Password</label></div>");
-        httpMessage += F("<div class='col-75'><input required type='password' id='pass' name='pass' maxlength=63 "
-                         "placeholder='Password' value='");
+        httpMessage += F("<div class='col-75'><input required type='password' id='pass' name='pass' maxlength=");
+        httpMessage += MAX_PASSWORD_LENGTH - 1;
+        httpMessage += F(" placeholder='Password' value='");
         if(settings[FPSTR(FP_CONFIG_PASS)].as<String>() != "") {
             httpMessage += F(D_PASSWORD_MASK);
         }
@@ -1251,18 +1256,32 @@ static void webHandleCaptivePortalWifiConfig()
         httpMessage += F("<h1>");
         httpMessage += haspDevice.get_hostname();
         httpMessage += F("</h1><hr>");
+        httpMessage += F("<h2>" D_HTTP_WIFI_SETTINGS "</h2>");
 
-        httpMessage += F("<form method='POST' action='/config'>");
-        httpMessage += F("<b>WiFi SSID</b> <i><small>(required)</small></i><input id='ssid' required "
-                         "name='ssid' maxlength=31 placeholder='WiFi SSID' value='");
+        // Form
+        httpMessage += F("<div class='container'><form method='POST' action='/config'>");
+
+        // Wifi SSID
+        httpMessage += F("<div class='row'><div class='col-25 required'><label for='ssid'>SSID</label></div>");
+        httpMessage += F("<div class='col-75'><input required type='text' id='ssid' name='ssid' maxlength=");
+        httpMessage += MAX_USERNAME_LENGTH - 1;
+        httpMessage += F(" placeholder='SSID' value='");
         httpMessage += settings[FPSTR(FP_CONFIG_SSID)].as<String>();
-        httpMessage += F("'><br/><b>WiFi Password</b> <i><small>(required)</small></i><input id='pass' required "
-                         "name='pass' type='password' maxlength=63 placeholder='WiFi Password' value='");
+        httpMessage += F("'></div></div>");
+
+        // Wifi Password
+        httpMessage += F("<div class='row'><div class='col-25 required'><label for='pass'>Password</label></div>");
+        httpMessage += F("<div class='col-75'><input required type='password' id='pass' name='pass' maxlength=");
+        httpMessage += MAX_PASSWORD_LENGTH - 1;
+        httpMessage += F(" placeholder='Password' value='");
         if(settings[FPSTR(FP_CONFIG_PASS)].as<String>() != "") {
             httpMessage += F(D_PASSWORD_MASK);
         }
-        httpMessage +=
-            F("'><p><button type='submit' name='save' value='wifi'>" D_HTTP_SAVE_SETTINGS "</button></p></form>");
+        httpMessage += F("'></div></div>");
+
+        // Submit & End Form
+        httpMessage += F("<button type='submit' name='save' value='wifi'>" D_HTTP_SAVE_SETTINGS "</button>");
+        httpMessage += F("</form></div>");
 
 #if HASP_USE_WIFI > 0 && !defined(STM32F4xx)
         if(WiFi.getMode() == WIFI_STA) {
@@ -1487,7 +1506,7 @@ static void webHandleGpioConfig()
                     httpMessage += id;
                     httpMessage += ("&pin=");
                     httpMessage += conf.pin;
-                    httpMessage += ("'>Delete</a></td><tr>");
+                    httpMessage += ("' class='trash'></a></td><tr>");
                     configCount++;
                 }
             }
@@ -1730,8 +1749,9 @@ static void webHandleDebugConfig()
 #if HASP_USE_SYSLOG > 0
         // Syslog host
         httpMessage += F("<div class='row'><div class='col-25'><label for='host'>Syslog Server</label></div>");
-        httpMessage += F("<div class='col-75'><input type='text' id='host' name='host' maxlength='31' "
-                         "value='");
+        httpMessage += F("<div class='col-75'><input type='text' id='host' name='host' maxlength=");
+        httpMessage += MAX_HOSTNAME_LENGTH - 1;
+        httpMessage += F(" value='");
         httpMessage += settings[FPSTR(FP_CONFIG_HOST)].as<String>();
         httpMessage += F("'></div></div>");
 

@@ -11,7 +11,7 @@ struct hasp_http_config_t
     bool enable   = true;
     uint16_t port = 80;
 
-    char username[MAX_USERNAME_LENGTH]     = "";
+    char username[MAX_USERNAME_LENGTH] = "";
     char password[MAX_PASSWORD_LENGTH] = "";
 };
 
