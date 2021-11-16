@@ -6,16 +6,16 @@
 #if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
 
 #ifndef HASP_ONLINE_CMD
-#define HASP_ONLINE_CMD "jsonl {\"page\":0,\"id\":239,\"obj\":\"msgbox\",\"txt\":\"%ip%\", \"auto_close\":20000}"
+#define HASP_ONLINE_CMD "jsonl {\"page\":0,\"id\":239,\"obj\":\"msgbox\",\"text\":\"%ip%\", \"auto_close\":20000}"
 #endif
 
 #ifndef HASP_OFFLINE_CMD
 #define HASP_OFFLINE_CMD                                                                                               \
-    "jsonl {\"page\":0,\"id\":239,\"obj\":\"msgbox\",\"txt\":\"" D_NETWORK_OFFLINE "\", \"auto_close\":20000}"
+    "jsonl {\"page\":0,\"id\":239,\"obj\":\"msgbox\",\"text\":\"" D_NETWORK_OFFLINE "\", \"auto_close\":20000}"
 #endif
 
 #ifndef HASP_PAGES_JSONL
-#define HASP_PAGES_JSONL "{\"page\":1,\"id\":10,\"w\":240,\"obj\":\"label\",\"txt\":\"%hostname%\"}"
+#define HASP_PAGES_JSONL "{\"page\":1,\"id\":10,\"w\":240,\"obj\":\"label\",\"text\":\"%hostname%\"}"
 #endif
 
 #include <Arduino.h>
@@ -93,7 +93,6 @@ void filesystemUnzip(const char*, const char* filename, uint8_t source)
                             if(len != 512) done = true;
                             fh.compressed_size -= len;
                             crc32 = crc32_le(crc32, buffer, len);
-                            //   crc2 = crc32_be(crc2, buffer, len);
                             f.write(buffer, len);
                         }
 
@@ -102,7 +101,6 @@ void filesystemUnzip(const char*, const char* filename, uint8_t source)
                             if(len != fh.compressed_size) done = true;
                             fh.compressed_size -= len;
                             crc32 = crc32_le(crc32, buffer, len);
-                            // crc2 = crc32_be(crc2, buffer, len);
                             f.write(buffer, len);
                         }
 
@@ -225,7 +223,7 @@ bool filesystemSetup(void)
     if(!HASP_FS.begin(true)) { // format partition
 #endif
         // LOG_ERROR(TAG_FILE, F("SPI flash init failed. Unable to mount FS."));
-        return false;
+        // return false;
     } else {
         filesystemSetupFiles();
         // LOG_INFO(TAG_FILE, F("SPI Flash FS mounted"));
