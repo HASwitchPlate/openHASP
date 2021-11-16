@@ -48,7 +48,7 @@ jobs:
       run: |
         cat platformio_override.ini
     - name: Run PlatformIO
-      run: pio run -e lolin-d32-pro_ili9341 -e arduitouch-esp32_ili9341 -e esp32-one_st7796 -e makerfabs-tft35-cap -e yeacreate-nscreen32 -e d1-mini-esp32_ili9341 -e esp32-touchdown -e freetouchdeck -e huzzah32-featherwing-24 -e huzzah32-featherwing-35 -e lanbon_l8 -e m5stack-core2 -e wt32-sc01 -e d1-mini-esp8266_ili9341 -e linux_sdl_64bits
+      run: pio run -e lolin-d32-pro_ili9341 -e arduitouch-esp32_ili9341 -e esp32-one_st7796 -e makerfabs-tft35-cap -e yeacreate-nscreen32 -e d1-mini-esp32_ili9341 -e esp32-touchdown -e freetouchdeck -e huzzah32-featherwing-24 -e huzzah32-featherwing-35 -e lanbon_l8 -e m5stack-core2 -e wt32-sc01 -e linux_sdl_64bits
     - name: Upload output file
       uses: actions/upload-artifact@v2
       with:

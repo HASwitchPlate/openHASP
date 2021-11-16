@@ -14,7 +14,7 @@ This project is a re-implementation of the popular HASwitchPlate sketch created 
 The [HASPone][1] project uses a Wemos D1 mini and requires a Nextion/TJC HMI display.
 This rewrite removes the Nextion/TJC hardware requirement by using the [Light and Versatile Graphics Library][2] on the MCU to drive a commodity display.
 
-openHASP also adds ESP32 and STM32F4 support to take advantage of the additional hardware capabilities.
+openHASP uses the ESP32 and STM32F4 to take advantage of the hardware capabilities.
 
 
 ## Demo Screens
@@ -25,19 +25,18 @@ openHASP also adds ESP32 and STM32F4 support to take advantage of the additional
 
 ## Features
 
-| Feature (v0.6.x)                 | ESP8266 | ESP32   | STM32F4
-|-------------------------|---------|---------|----------
-| SPI display             | :white_check_mark: yes | :white_check_mark: yes | :white_check_mark: yes
-| Parallel display        | :x: no | :white_check_mark: yes | :white_check_mark: yes
-| PWM Screen dimming      | :white_check_mark: yes | :white_check_mark: yes | :white_check_mark: yes
-| Maximum Page Count      | 4       | 12 | 12
-| [Object Types / Widgets][7]| 20      | 20 | 20
-| Dynamic Objects         | :white_check_mark: yes | :white_check_mark: yes | :white_check_mark: yes
-| Theme Support           | yes     | yes     | yes
-| [Custom .zi V5 font][4] | :white_check_mark: yes (latin1) | :white_check_mark: yes (latin1) | no
-| MDI Icons               | :white_check_mark: yes | :white_check_mark: yes | no
-| [PNG images][8]         | :x: no | :white_check_mark: yes | :white_check_mark: yes
-| Network                 | :white_check_mark: Wi-Fi | :white_check_mark: Wi-Fi | :white_check_mark: Ethernet
+| Feature (v0.6.x)        | ESP32   | STM32F4
+|-------------------------|---------|---------
+| SPI display             | :white_check_mark: yes | :white_check_mark: yes
+| Parallel display        | :white_check_mark: yes | :white_check_mark: yes
+| PWM Screen dimming      | :white_check_mark: yes | :white_check_mark: yes
+| Maximum Page Count      | 12      | 12
+| [Object Types / Widgets][7]| 20      | 20
+| Dynamic Objects         | :white_check_mark: yes | :white_check_mark: yes
+| Theme Support           | yes     | yes
+| MDI Icons               | :white_check_mark: yes | :white_check_mark: yes
+| [PNG images][8]         | :white_check_mark: yes | :white_check_mark: yes
+| Network                 | :white_check_mark: Wi-Fi | :white_check_mark: Ethernet
 
 
 ## Getting Started

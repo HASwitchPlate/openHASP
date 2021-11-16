@@ -25,7 +25,8 @@
 - Moved to Arduino 2.0 with native LittleFS library
 - Moved to ESP-IDF 4.4 with fix for FragAttacks CVEs
 - Prepare support for ESP32S2
-- Removed support for ESP8266
+- Breaking: Removed support for ESP8266
+
 
 ## v0.6.2
 
