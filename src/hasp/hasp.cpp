@@ -457,16 +457,6 @@ void haspSetup(void)
 {
     haspDevice.set_backlight_level(haspStartDim);
 
-    // #ifdef 1 || USE_LVGL_FREETYPE
-    // initialize the FreeType renderer
-    if(lv_freetype_init(USE_LVGL_FREETYPE_MAX_FACES, USE_LVGL_FREETYPE_MAX_SIZES, psramFound() ? USE_LVGL_FREETYPE_MAX_BYTES_PSRAM : USE_LVGL_FREETYPE_MAX_BYTES)) {
-        LOG_VERBOSE(TAG_FONT, F("FreeType v%d.%d.%d " D_SERVICE_STARTED), FREETYPE_MAJOR, FREETYPE_MINOR,
-                    FREETYPE_PATCH);
-    } else {
-        LOG_ERROR(TAG_FONT, F("FreeType " D_SERVICE_START_FAILED));
-    }
-    // #endif
-
     /******* File System Test ********************************************************************/
     // lv_fs_file_t f;
     // lv_fs_res_t res;
@@ -501,29 +491,6 @@ void haspSetup(void)
     LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, haspFonts[0]);
     // LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, &robotocondensed_regular_16);
 
-/* ZiFonts
-#if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
-#if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
-
-    lv_font_t* hasp_font = nullptr; // required or font init will crash
-    lv_zifont_init();
-
-    // WARNING: hasp_font needs to be null !
-    if(lv_zifont_font_init(&hasp_font, haspZiFontPath, 32) != 0) {
-        if(strlen(haspZiFontPath) > 0) LOG_WARNING(TAG_HASP, F("Failed to set font to %s"), haspZiFontPath);
-        haspFonts[0] = LV_THEME_DEFAULT_FONT_SMALL;
-    } else {
-        // defaultFont = haspFonts[0];
-        haspFonts[0] = hasp_font; // save it
-    }
-
-    //  LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, robotocondensed_regular_16);
-    LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, *hasp_font);
-
-#endif
-#endif
-*/
-
     if(haspFonts[0] == nullptr) haspFonts[0] = LV_THEME_DEFAULT_FONT_SMALL;
     if(haspFonts[1] == nullptr) haspFonts[1] = LV_THEME_DEFAULT_FONT_NORMAL;
     if(haspFonts[2] == nullptr) haspFonts[2] = LV_THEME_DEFAULT_FONT_SUBTITLE;
@@ -532,14 +499,28 @@ void haspSetup(void)
     // haspFonts[0] = lv_font_load("E:/font_1.fnt");
     // haspFonts[2] = lv_font_load("E:/font_2.fnt");
 
-    haspFonts[6] = hasp_font_load("L:/RobotoCondensedRegular.bin");
+    lv_ft_info_t info1;
+    info1.name   = "L:/arial.ttf";
+    info1.weight = 48;
+    info1.style  = FT_FONT_STYLE_NORMAL;
+    lv_ft_font_init(&info1);
+    haspFonts[4] = info1.font;
 
-    lv_ft_info_t info;
-    info.name   = "L:/arial.ttf";
-    info.weight = 48;
-    info.style  = FT_FONT_STYLE_NORMAL;
-    lv_ft_font_init(&info);
-    haspFonts[7] = info.font;
+    lv_ft_info_t info2;
+    info2.name   = "L:/mdi.ttf";
+    info2.weight = 32;
+    info2.style  = FT_FONT_STYLE_NORMAL;
+    lv_ft_font_init(&info2);
+    haspFonts[5] = info2.font;
+
+    lv_ft_info_t info3;
+    info3.name   = "L:/robotocondensed.ttf";
+    info3.weight = 32;
+    info3.style  = FT_FONT_STYLE_NORMAL;
+    lv_ft_font_init(&info3);
+    haspFonts[6] = info3.font;
+
+    haspFonts[7] = hasp_font_load("L:/RobotoCondensedRegular.bin");
 
     hasp_set_theme(haspThemeId);
 
