@@ -42,7 +42,7 @@ lv_obj_t* hasp_find_obj_from_parent_id(lv_obj_t* parent, uint8_t objid)
             uint16_t tabcount = lv_tabview_get_tab_count(child);
             for(uint16_t i = 0; i < tabcount; i++) {
                 lv_obj_t* tab = lv_tabview_get_tab(child, i);
-                LOG_VERBOSE(TAG_HASP, "Found tab %i", i);
+                // LOG_DEBUG(TAG_HASP, "Found tab %i", i);
                 if(tab->user_data.objid && objid == tab->user_data.objid) return tab; /* tab found, return it */
 
                 /* check grandchildren */
@@ -201,7 +201,7 @@ static inline int hasp_parse_json_attributes(lv_obj_t* obj, const JsonObject& do
         i++;
     }
 #endif
-    LOG_VERBOSE(TAG_HASP, F("%d attributes processed"), i);
+    // LOG_DEBUG(TAG_HASP, F("%d keys processed"), i);
     return i;
 }
 

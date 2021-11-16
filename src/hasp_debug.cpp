@@ -248,7 +248,7 @@ void debug_get_tag(uint8_t tag, char* buffer)
             break;
 
         case TAG_CONS:
-            memcpy_P(buffer, PSTR("CONS"), 5);
+            memcpy_P(buffer, PSTR("UART"), 5);
             break;
         case TAG_DEBG:
             memcpy_P(buffer, PSTR("DBUG"), 5);
