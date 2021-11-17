@@ -9,7 +9,7 @@ on:
       - '**.md'
 
 jobs:
-  build:
+  build_esp32:
     runs-on: ubuntu-latest
 
     strategy:
@@ -100,6 +100,9 @@ jobs:
     #    hub release create "${assets[@]}" -m "$tag_name" "$tag_name"
     #  env:
     #    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  linux_build:
+    runs-on: ubuntu-latest
+    steps:
       - name: Enable Linux platform from platformio_override.ini
         run: |
           sed -i 's/; user_setups\/linux/user_setups\/linux/g' platformio_override.ini
