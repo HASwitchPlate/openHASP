@@ -26,6 +26,7 @@
 //#include "tpcal.h"
 
 //#include "Ticker.h"
+#include "lv_freetype.h"
 
 #if HASP_USE_PNGDECODE > 0
 #include "lv_png.h"
@@ -73,6 +74,8 @@ lv_obj_t* cursor;
 uint16_t tft_width  = TFT_WIDTH;
 uint16_t tft_height = TFT_HEIGHT;
 
+static lv_disp_buf_t disp_buf;
+
 // #if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
 // static Ticker tick; /* timer for interrupt handler */
 // #else
@@ -86,6 +89,76 @@ uint16_t tft_height = TFT_HEIGHT;
 // {
 //     lv_tick_inc(LVGL_TICK_PERIOD);
 // }
+
+static inline void gui_init_lvgl()
+{
+    LOG_VERBOSE(TAG_LVGL, F("Version    : %u.%u.%u %s"), LVGL_VERSION_MAJOR, LVGL_VERSION_MINOR, LVGL_VERSION_PATCH,
+                PSTR(LVGL_VERSION_INFO));
+    lv_init();
+
+#if LV_USE_LOG != 0
+    // Register logger to capture lvgl_init output
+    lv_log_register_print_cb(debugLvglLogEvent);
+#endif
+
+    static lv_color_t *guiVdbBuffer1, *guiVdbBuffer2 = NULL;
+
+    /* Create the Virtual Device Buffers */
+#if defined(ARDUINO_ARCH_ESP32)
+
+#ifdef USE_DMA_TO_TFT
+    // DMA: len must be less than 32767
+    const size_t guiVDBsize = 15 * 1024u; // 30 KBytes
+    guiVdbBuffer1           = (lv_color_t*)heap_caps_calloc(guiVDBsize, sizeof(lv_color_t), MALLOC_CAP_DMA);
+    // guiVdbBuffer2 = (lv_color_t *)heap_caps_malloc(sizeof(lv_color_t) * guiVDBsize,   MALLOC_CAP_DMA);
+    // lv_disp_buf_init(&disp_buf, guiVdbBuffer1, guiVdbBuffer2, guiVDBsize);
+#else
+    const size_t guiVDBsize = 16 * 1024u; // 32 KBytes
+
+    if(0 && psramFound()) {
+        guiVdbBuffer1 = (lv_color_t*)ps_calloc(guiVDBsize, sizeof(lv_color_t)); // too slow for VDB
+    } else {
+        guiVdbBuffer1 = (lv_color_t*)calloc(guiVDBsize, sizeof(lv_color_t));
+    }
+
+#endif
+
+    // static lv_color_t * guiVdbBuffer2 = (lv_color_t *)malloc(sizeof(lv_color_t) * guiVDBsize);
+    // lv_disp_buf_init(&disp_buf, guiVdbBuffer1, guiVdbBuffer2, guiVDBsize);
+
+#elif defined(ARDUINO_ARCH_ESP8266)
+    /* allocate on heap */
+    // static lv_color_t guiVdbBuffer1[2 * 512u]; // 4 KBytes
+    // size_t guiVDBsize = sizeof(guiVdbBuffer1) / sizeof(guiVdbBuffer1[0]);
+    // lv_disp_buf_init(&disp_buf, guiVdbBuffer1, NULL, guiVDBsize);
+
+    const size_t guiVDBsize = 2 * 512u; // 4 KBytes * 2
+    guiVdbBuffer1           = (lv_color_t*)malloc(sizeof(lv_color_t) * guiVDBsize);
+
+#elif defined(WINDOWS) || defined(POSIX)
+    const size_t guiVDBsize = LV_HOR_RES_MAX * 10;
+    //  static lv_color_t guiVdbBuffer1[guiVDBsize]; /*Declare a buffer for 10 lines*/
+    guiVdbBuffer1 = (lv_color_t*)calloc(guiVDBsize, sizeof(lv_color_t));
+
+#else
+    static lv_color_t guiVdbBuffer1[16 * 512u]; // 16 KBytes
+    // static lv_color_t guiVdbBuffer2[16 * 512u]; // 16 KBytes
+    size_t guiVDBsize = sizeof(guiVdbBuffer1) / sizeof(guiVdbBuffer1[0]);
+    // lv_disp_buf_init(&disp_buf, guiVdbBuffer1, guiVdbBuffer2, guiVDBsize);
+#endif
+
+    /* Initialize VDB */
+    if(guiVdbBuffer1 && guiVDBsize > 0) {
+        lv_disp_buf_init(&disp_buf, guiVdbBuffer1, NULL, guiVDBsize);
+    } else {
+        LOG_FATAL(TAG_GUI, F(D_ERROR_OUT_OF_MEMORY));
+    }
+
+#ifdef LV_MEM_SIZE
+    LOG_VERBOSE(TAG_LVGL, F("MEM size   : %d"), LV_MEM_SIZE);
+#endif
+    LOG_VERBOSE(TAG_LVGL, F("VFB size   : %d"), (size_t)sizeof(lv_color_t) * guiVDBsize);
+}
 
 void gui_hide_pointer(bool hidden)
 {
@@ -119,87 +192,108 @@ void guiCalibrate(void)
 #endif
 }
 
-void guiTftInit(void)
+// fast init
+void gui_start_tft(void)
 {
+    /* Setup Backlight Control Pin */
+    haspDevice.set_backlight_pin(gui_settings.backlight_pin);
+
     haspTft.init(tft_width, tft_height);
     haspTft.set_rotation(gui_settings.rotation);
     haspTft.set_invert(gui_settings.invert_display);
 }
 
-void guiSetup()
+static inline void gui_init_tft(void)
 {
+    // Initialize TFT
     LOG_TRACE(TAG_TFT, F(D_SERVICE_STARTING));
+    gui_start_tft();
 
-    // Initialize the TFT
-    guiTftInit();
     haspTft.show_info();
-
-    LOG_INFO(TAG_TFT, F(D_SERVICE_STARTED));
-
-    /* Create the Virtual Device Buffers */
-#if defined(ARDUINO_ARCH_ESP32)
-
 #ifdef USE_DMA_TO_TFT
-    static lv_color_t *guiVdbBuffer1, *guiVdbBuffer2 = NULL;
-    // DMA: len must be less than 32767
-    const size_t guiVDBsize = 15 * 1024u; // 30 KBytes
-    guiVdbBuffer1           = (lv_color_t*)heap_caps_calloc(guiVDBsize, sizeof(lv_color_t), MALLOC_CAP_DMA);
-    // guiVdbBuffer2 = (lv_color_t *)heap_caps_malloc(sizeof(lv_color_t) * guiVDBsize,   MALLOC_CAP_DMA);
-    // lv_disp_buf_init(&disp_buf, guiVdbBuffer1, guiVdbBuffer2, guiVDBsize);
+    LOG_VERBOSE(TAG_TFT, F("DMA        : " D_SETTING_ENABLED));
 #else
-    static lv_color_t* guiVdbBuffer1;
-    const size_t guiVDBsize = 16 * 1024u; // 32 KBytes
+    LOG_VERBOSE(TAG_TFT, F("DMA        : " D_SETTING_DISABLED));
+#endif
+    LOG_INFO(TAG_TFT, F(D_SERVICE_STARTED));
+}
 
-    if(0 && psramFound()) {
-        guiVdbBuffer1 = (lv_color_t*)ps_calloc(guiVDBsize, sizeof(lv_color_t)); // too slow for VDB
-    } else {
-        guiVdbBuffer1 = (lv_color_t*)calloc(guiVDBsize, sizeof(lv_color_t));
-    }
-
+// initialize the image decoders
+static inline void gui_init_images()
+{
+#if HASP_USE_PNGDECODE > 0
+    lv_png_init(); // Initialize PNG decoder
 #endif
 
-    // static lv_color_t * guiVdbBuffer2 = (lv_color_t *)malloc(sizeof(lv_color_t) * guiVDBsize);
-    // lv_disp_buf_init(&disp_buf, guiVdbBuffer1, guiVdbBuffer2, guiVDBsize);
+#if HASP_USE_BMPDECODE > 0
+    lv_bmp_init(); // Initialize BMP decoder
+#endif
 
-#elif defined(ARDUINO_ARCH_ESP8266)
-    /* allocate on heap */
-    // static lv_color_t guiVdbBuffer1[2 * 512u]; // 4 KBytes
-    // size_t guiVDBsize = sizeof(guiVdbBuffer1) / sizeof(guiVdbBuffer1[0]);
-    // lv_disp_buf_init(&disp_buf, guiVdbBuffer1, NULL, guiVDBsize);
+#if HASP_USE_GIFDECODE > 0
+    lv_gif_init(); // Initialize GIF decoder
+#endif
 
-    static lv_color_t* guiVdbBuffer1;
-    const size_t guiVDBsize = 2 * 512u; // 4 KBytes * 2
-    guiVdbBuffer1           = (lv_color_t*)malloc(sizeof(lv_color_t) * guiVDBsize);
+#if HASP_USE_JPGDECODE > 0
+    lv_split_jpeg_init(); // Initialize JPG decoder
+#endif
+
+#if defined(ARDUINO_ARCH_ESP32)
+    if(psramFound()) lv_img_cache_set_size(LV_IMG_CACHE_DEF_SIZE_PSRAM);
+#endif
+}
+
+// initialize the FreeType renderer
+static inline void gui_init_freetype()
+{
+// #ifdef 1 || USE_LVGL_FREETYPE
+#if defined(ARDUINO_ARCH_ESP32)
+    if(lv_freetype_init(USE_LVGL_FREETYPE_MAX_FACES, USE_LVGL_FREETYPE_MAX_SIZES,
+                        psramFound() ? USE_LVGL_FREETYPE_MAX_BYTES_PSRAM : USE_LVGL_FREETYPE_MAX_BYTES)) {
+        LOG_VERBOSE(TAG_FONT, F("FreeType v%d.%d.%d " D_SERVICE_STARTED), FREETYPE_MAJOR, FREETYPE_MINOR,
+                    FREETYPE_PATCH);
+    } else {
+        LOG_ERROR(TAG_FONT, F("FreeType " D_SERVICE_START_FAILED));
+    }
 
 #elif defined(WINDOWS) || defined(POSIX)
-    const size_t guiVDBsize = LV_HOR_RES_MAX * 10;
-    static lv_color_t guiVdbBuffer1[guiVDBsize]; /*Declare a buffer for 10 lines*/
-
 #else
-    static lv_color_t guiVdbBuffer1[16 * 512u]; // 16 KBytes
-    // static lv_color_t guiVdbBuffer2[16 * 512u]; // 16 KBytes
-    size_t guiVDBsize = sizeof(guiVdbBuffer1) / sizeof(guiVdbBuffer1[0]);
-    // lv_disp_buf_init(&disp_buf, guiVdbBuffer1, guiVdbBuffer2, guiVDBsize);
 #endif
+}
 
-    LOG_TRACE(TAG_LVGL, F(D_SERVICE_STARTING));
+static inline void gui_init_filesystems()
+{
+#if LV_USE_FS_IF != 0
+    //_lv_fs_init(); // lvgl File System -- not needed, it done in lv_init() when LV_USE_FILESYSTEM is set
+    LOG_VERBOSE(TAG_LVGL, F("Filesystem : " D_SETTING_ENABLED));
+    lv_fs_if_init(); // auxilary file system drivers
+    // filesystem_list_path("L:/");
 
-#if LV_USE_LOG != 0
-    // Register logger to capture lvgl_init output
-    lv_log_register_print_cb(debugLvglLogEvent);
-#endif
-
-    /* Initialize lvgl */
-    static lv_disp_buf_t disp_buf;
-    if(guiVdbBuffer1 && guiVDBsize > 0) {
-        lv_init();
-        lv_disp_buf_init(&disp_buf, guiVdbBuffer1, NULL, guiVDBsize);
+    lv_fs_file_t f;
+    lv_fs_res_t res;
+    res = lv_fs_open(&f, "L:/config.json", LV_FS_MODE_RD);
+    if(res == LV_FS_RES_OK) {
+        LOG_VERBOSE(TAG_HASP, F("TEST Opening config.json OK"));
+        lv_fs_close(&f);
     } else {
-        LOG_FATAL(TAG_GUI, F(D_ERROR_OUT_OF_MEMORY));
+        LOG_ERROR(TAG_HASP, F("TEST Opening config.json from FS failed %d"), res);
     }
 
-    LOG_VERBOSE(TAG_LVGL, F("Version    : %u.%u.%u %s"), LVGL_VERSION_MAJOR, LVGL_VERSION_MINOR, LVGL_VERSION_PATCH,
-                PSTR(LVGL_VERSION_INFO));
+#else
+    LOG_VERBOSE(TAG_LVGL, F("Filesystem : " D_SETTING_DISABLED));
+#endif
+}
+
+void guiSetup()
+{
+    // Initialize hardware drivers
+    gui_init_tft();
+
+    // Initialize LVGL
+    LOG_TRACE(TAG_LVGL, F(D_SERVICE_STARTING));
+    gui_init_lvgl();
+    gui_init_images();
+    gui_init_freetype();
+    gui_init_filesystems();
 
     /* Initialize the LVGL display driver with correct orientation */
 #if(TOUCH_DRIVER == 0x2046) || defined(LGFX_USE_V1) // Use native display driver to rotate display and touch
@@ -261,67 +355,6 @@ void guiSetup()
     lv_disp_set_rotation(display, rotation[(4 + gui_settings.rotation - TFT_ROTATION) % 4]);
 
 #endif
-
-    /* Initialize Filesystems */
-#if LV_USE_FS_IF != 0
-    //_lv_fs_init(); // lvgl File System -- not neaded, it done in lv_init() when LV_USE_FILESYSTEM is set
-    LOG_VERBOSE(TAG_LVGL, F("Filesystem : " D_SETTING_ENABLED));
-    lv_fs_if_init(); // auxilary file system drivers
-    // filesystem_list_path("L:/");
-
-    lv_fs_file_t f;
-    lv_fs_res_t res;
-    res = lv_fs_open(&f, "L:/config.json", LV_FS_MODE_RD);
-    if(res == LV_FS_RES_OK) {
-        LOG_VERBOSE(TAG_HASP, F("TEST Opening config.json OK"));
-        lv_fs_close(&f);
-    } else {
-        LOG_ERROR(TAG_HASP, F("TEST Opening config.json from FS failed %d"), res);
-    }
-
-#else
-    LOG_VERBOSE(TAG_LVGL, F("Filesystem : " D_SETTING_DISABLED));
-#endif
-
-    /* Initialize PNG decoder */
-#if HASP_USE_PNGDECODE > 0
-    lv_png_init();
-#endif
-
-    /* Initialize BMP decoder */
-#if HASP_USE_BMPDECODE > 0
-    lv_bmp_init();
-#endif
-
-    /* Initialize GIF decoder */
-#if HASP_USE_GIFDECODE > 0
-    // lv_gif_init();
-#endif
-
-    /* Initialize JPG decoder */
-#if HASP_USE_JPGDECODE > 0
-    lv_split_jpeg_init();
-#endif
-
-#if defined(ARDUINO_ARCH_ESP32)
-    if(psramFound()) {
-        lv_img_cache_set_size(LV_IMG_CACHE_DEF_SIZE_PSRAM);
-    }
-#endif
-
-#ifdef USE_DMA_TO_TFT
-    LOG_VERBOSE(TAG_GUI, F("DMA        : " D_SETTING_ENABLED));
-#else
-    LOG_VERBOSE(TAG_GUI, F("DMA        : " D_SETTING_DISABLED));
-#endif
-
-    /* Setup Backlight Control Pin */
-    haspDevice.set_backlight_pin(gui_settings.backlight_pin);
-
-#ifdef LV_MEM_SIZE
-    LOG_VERBOSE(TAG_LVGL, F("MEM size   : %d"), LV_MEM_SIZE);
-#endif
-    LOG_VERBOSE(TAG_LVGL, F("VFB size   : %d"), (size_t)sizeof(lv_color_t) * guiVDBsize);
 
     /* Initialize the touch pad */
     static lv_indev_drv_t indev_drv;
