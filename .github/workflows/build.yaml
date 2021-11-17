@@ -45,8 +45,6 @@ jobs:
             out: yeacreate
 
     steps:
-    runs-on: ubuntu-latest
-    steps:
       - uses: actions/checkout@v2
         with:
           submodules: 'true'
