@@ -3,6 +3,8 @@
  *
  */
 
+#if defined(ARDUINO_ARCH_ESP32)
+
 /*********************
  *      INCLUDES
  *********************/
@@ -467,3 +469,5 @@ void FT_loop_task(void *pvParameters) {
         }
     }
 }
+
+#endif

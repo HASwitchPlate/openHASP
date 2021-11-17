@@ -496,9 +496,10 @@ void haspSetup(void)
     if(haspFonts[2] == nullptr) haspFonts[2] = LV_THEME_DEFAULT_FONT_SUBTITLE;
     if(haspFonts[3] == nullptr) haspFonts[3] = LV_THEME_DEFAULT_FONT_TITLE;
 
-    // haspFonts[0] = lv_font_load("E:/font_1.fnt");
-    // haspFonts[2] = lv_font_load("E:/font_2.fnt");
+        // haspFonts[0] = lv_font_load("E:/font_1.fnt");
+        // haspFonts[2] = lv_font_load("E:/font_2.fnt");
 
+#if defined(ARDUINO_ARCH_ESP32)
     lv_ft_info_t info1;
     info1.name   = "L:/arial.ttf";
     info1.weight = 48;
@@ -521,6 +522,7 @@ void haspSetup(void)
     haspFonts[6] = info3.font;
 
     haspFonts[7] = hasp_font_load("L:/RobotoCondensedRegular.bin");
+#endif
 
     hasp_set_theme(haspThemeId);
 
