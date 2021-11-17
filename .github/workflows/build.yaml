@@ -3,13 +3,13 @@ name: Build branch
 on:
   push:
     paths-ignore:
-      - '**.md'
+      - "**.md"
   workflow_dispatch:
     paths-ignore:
-      - '**.md'
+      - "**.md"
 
 jobs:
-  build_esp32:
+  esp32:
     runs-on: ubuntu-latest
 
     strategy:
@@ -46,7 +46,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
-          submodules: 'true'
+          submodules: "true"
       - name: Cache pip
         uses: actions/cache@v2
         with:
@@ -100,12 +100,12 @@ jobs:
     #    hub release create "${assets[@]}" -m "$tag_name" "$tag_name"
     #  env:
     #    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  linux_build:
+  linux:
     runs-on: ubuntu-latest
     steps:
       - name: Enable Linux platform from platformio_override.ini
         run: |
-          sed -i 's/; user_setups\/linux/user_setups\/linux/g' platformio_override.ini
+          sed 's/; user_setups\/linux/user_setups\/linux/g' platformio_override-template.ini > platformio_override.ini
           mkdir -p .pio/libdeps/linux_sdl_64bits/paho/src
       - name: Install SDL2 library
         run: |
