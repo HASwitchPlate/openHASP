@@ -100,3 +100,13 @@ jobs:
     #    hub release create "${assets[@]}" -m "$tag_name" "$tag_name"
     #  env:
     #    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Enable Linux platform from platformio_override.ini
+        run: |
+          sed -i 's/; user_setups\/linux/user_setups\/linux/g' platformio_override.ini
+          mkdir -p .pio/libdeps/linux_sdl_64bits/paho/src
+      - name: Install SDL2 library
+        run: |
+          sudo apt-get update
+          sudo apt-get install libsdl2-dev
+      - name: Run PlatformIO
+        run: pio run -e linux_sdl_64bits
