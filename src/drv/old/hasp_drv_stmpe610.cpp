@@ -61,7 +61,7 @@ HASP_ATTRIBUTE_FAST_MEM bool STMPE610_getXY(int16_t* touchX, int16_t* touchY, ui
 
 void STMPE610_init()
 {
-    LOG_INFO(TAG_DRVR, F("STMPE610 " D_SERVICE_STARTING));
+    LOG_TRACE(TAG_DRVR, F("STMPE610 " D_SERVICE_STARTING));
     if(!touch.begin()) {
         LOG_ERROR(TAG_DRVR, F("STMPE610 " D_SERVICE_START_FAILED));
     } else {

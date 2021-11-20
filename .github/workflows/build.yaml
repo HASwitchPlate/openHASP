@@ -9,32 +9,44 @@ on:
       - '**.md'
 
 jobs:
-  build:
+  build_esp32:
     runs-on: ubuntu-latest
 
     strategy:
       fail-fast: false
       matrix:
-        environments:
-          - d1-mini-esp8266_ili9341
-          - arduitouch-esp32_ili9341
-          - d1-mini-esp32_ili9341
-          - esp32-one_st7796
-          - esp32-touchdown
-          - freetouchdeck
-          - huzzah32-featherwing-24
-          - huzzah32-featherwing-35
-          - lanbon_l8
-          - lolin-d32-pro_ili9341
-          - m5stack-core2
-          - makerfabs-tft35-cap
-          - ttgo-t7-v1.5_ili9341
-          - wt32-sc01
-          - yeacreate-nscreen32
-          - linux_sdl_64bits
+        environment:
+          - env: arduitouch-esp32_ili9341
+            out: arduitouch
+          - env: d1-mini-esp32_ili9341
+            out: d1-mini-esp32
+          - env: esp32-one_st7796
+            out: esp32-one
+          - env: esp32-touchdown
+            out: esp32-touchdown
+          - env: freetouchdeck
+            out: freetouchdeck
+          - out: featherwing
+            env: "huzzah32-featherwing-24 -e huzzah32-featherwing-35"
+          - env: lanbon_l8
+            out: lanbon_l8
+          - env: lolin-d32-pro_ili9341
+            out: lolin-d32-pro
+          - env: m5stack-core2
+            out: m5stack
+          - env: makerfabs-tft35-cap
+            out: makerfabs-tft
+          - env: ttgo-t7-v1.5_ili9341
+            out: ttgo-t7
+          - env: wt32-sc01
+            out: wt32-sc01
+          - env: yeacreate-nscreen32
+            out: yeacreate
 
     steps:
       - uses: actions/checkout@v2
+        with:
+          submodules: 'true'
       - name: Cache pip
         uses: actions/cache@v2
         with:
@@ -53,17 +65,9 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install --upgrade platformio
-      - name: Enable ESP platforms from platformio_override-template.ini
+      - name: Enable ESP32 platforms from platformio_override-template.ini
         run: |
-          sed 's/; user_setups\/esp/user_setups\/esp/g' platformio_override-template.ini > platformio_override.ini
-      - name: Enable Linux platform from platformio_override.ini
-        run: |
-          sed -i 's/; user_setups\/linux/user_setups\/linux/g' platformio_override.ini
-          mkdir -p .pio/libdeps/linux_sdl_64bits/paho/src
-      - name: Install SDL2 library
-        run: |
-          sudo apt-get update
-          sudo apt-get install libsdl2-dev
+          sed 's/; user_setups\/esp32/user_setups\/esp32/g' platformio_override-template.ini > platformio_override.ini
       - name: List all files in current folder
         run: |
           ls -la
@@ -71,11 +75,11 @@ jobs:
         run: |
           cat platformio_override.ini
       - name: Run PlatformIO
-        run: pio run -e ${{ matrix.environments }}
+        run: pio run -e ${{ matrix.environment.env }}
       - name: Upload output file
         uses: actions/upload-artifact@v2
         with:
-          name: ${{ matrix.environments }}
+          name: ${{ matrix.environment.out }}
           path: build_output/firmware/*.bin
     #- name: Create release and upload firmware
     #  run: |
@@ -88,3 +92,51 @@ jobs:
     #    hub release create "${assets[@]}" -m "$tag_name" "$tag_name"
     #  env:
     #    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  linux_build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: 'true'
+      - name: Cache pip
+        uses: actions/cache@v2
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+      - name: Cache PlatformIO
+        uses: actions/cache@v2
+        with:
+          path: ~/.platformio
+          key: ${{ runner.os }}-${{ hashFiles('**/lockfiles') }}
+      - name: Set up Python
+        uses: actions/setup-python@v2
+      - name: Install PlatformIO
+        run: |
+          python -m pip install --upgrade pip
+          pip install --upgrade platformio
+      - name: Enable Linux platform from platformio_override.ini
+        run: |
+          sed 's/; user_setups\/linux/user_setups\/linux/g' platformio_override-template.ini > platformio_override.ini
+          mkdir -p .pio/libdeps/linux_sdl_64bits/paho/src
+      - name: Install SDL2 library
+        run: |
+          sudo apt-get update
+          sudo apt-get install libsdl2-dev
+      - name: List all files in current folder
+        run: |
+          ls -la
+      - name: Cat platformio_override.ini
+        run: |
+          cat platformio_override.ini
+      - name: Enable Linux platform from platformio_override.ini
+        run: |
+          sed -i 's/; user_setups\/linux/user_setups\/linux/g' platformio_override.ini
+          mkdir -p .pio/libdeps/linux_sdl_64bits/paho/src
+      - name: Install SDL2 library
+        run: |
+          sudo apt-get update
+          sudo apt-get install libsdl2-dev
+      - name: Run PlatformIO
+        run: pio run -e linux_sdl_64bits

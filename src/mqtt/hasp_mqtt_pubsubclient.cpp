@@ -54,9 +54,9 @@ uint32_t mqttPublishCount;
 uint32_t mqttReceiveCount;
 uint32_t mqttFailedCount;
 
-char mqttServer[16]   = MQTT_HOST;
-char mqttUser[23]     = MQTT_USER;
-char mqttPassword[32] = MQTT_PASSW;
+char mqttServer[MAX_USERNAME_LENGTH]   = MQTT_HOST;
+char mqttUsername[MAX_USERNAME_LENGTH] = MQTT_USER;
+char mqttPassword[MAX_PASSWORD_LENGTH] = MQTT_PASSW;
 // char mqttNodeName[16]  = MQTT_NODENAME;
 char mqttGroupName[16] = MQTT_GROUPNAME;
 uint16_t mqttPort      = MQTT_PORT;
@@ -241,7 +241,7 @@ void mqttStart()
 
     haspProgressMsg(F(D_MQTT_CONNECTING));
     haspProgressVal(mqttReconnectCount * 5);
-    if(!mqttClient.connect(mqttClientId, mqttUser, mqttPassword, buffer, 0, true, lastWillPayload, true)) {
+    if(!mqttClient.connect(mqttClientId, mqttUsername, mqttPassword, buffer, 0, true, lastWillPayload, true)) {
         // Retry until we give up and restart after connectTimeout seconds
         mqttReconnectCount++;
 
@@ -383,7 +383,7 @@ void mqtt_get_info(JsonDocument& doc)
 
     JsonObject info          = doc.createNestedObject(F("MQTT"));
     info[F(D_INFO_SERVER)]   = mqttServer;
-    info[F(D_INFO_USERNAME)] = mqttUser;
+    info[F(D_INFO_USERNAME)] = mqttUsername;
 
     mac = halGetMacAddress(3, "");
     mac.toLowerCase();
@@ -437,8 +437,8 @@ bool mqttGetConfig(const JsonObject& settings)
     if(mqttPort != settings[FPSTR(FP_CONFIG_PORT)].as<uint16_t>()) changed = true;
     settings[FPSTR(FP_CONFIG_PORT)] = mqttPort;
 
-    if(strcmp(mqttUser, settings[FPSTR(FP_CONFIG_USER)].as<String>().c_str()) != 0) changed = true;
-    settings[FPSTR(FP_CONFIG_USER)] = mqttUser;
+    if(strcmp(mqttUsername, settings[FPSTR(FP_CONFIG_USER)].as<String>().c_str()) != 0) changed = true;
+    settings[FPSTR(FP_CONFIG_USER)] = mqttUsername;
 
     if(strcmp(mqttPassword, settings[FPSTR(FP_CONFIG_PASS)].as<String>().c_str()) != 0) changed = true;
     settings[FPSTR(FP_CONFIG_PASS)] = mqttPassword;
@@ -493,8 +493,8 @@ bool mqttSetConfig(const JsonObject& settings)
     }
 
     if(!settings[FPSTR(FP_CONFIG_USER)].isNull()) {
-        changed |= strcmp(mqttUser, settings[FPSTR(FP_CONFIG_USER)]) != 0;
-        strncpy(mqttUser, settings[FPSTR(FP_CONFIG_USER)], sizeof(mqttUser));
+        changed |= strcmp(mqttUsername, settings[FPSTR(FP_CONFIG_USER)]) != 0;
+        strncpy(mqttUsername, settings[FPSTR(FP_CONFIG_USER)], sizeof(mqttUsername));
     }
 
     if(!settings[FPSTR(FP_CONFIG_PASS)].isNull() &&

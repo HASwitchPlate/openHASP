@@ -65,7 +65,7 @@ class TouchStmpe610 : public BaseTouch {
 
     void init(int w, int h)
     {
-        LOG_INFO(TAG_DRVR, F("STMPE610 " D_SERVICE_STARTING));
+        LOG_TRACE(TAG_DRVR, F("STMPE610 " D_SERVICE_STARTING));
         if(!stmpe610_touchpanel.begin()) {
             LOG_ERROR(TAG_DRVR, F("STMPE610 " D_SERVICE_START_FAILED));
         } else {

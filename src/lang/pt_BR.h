@@ -4,6 +4,9 @@
 #include "pt_PT.h" // Common language file
 
 // Overrides
+#undef D_ISO_LANG_CODE
+#define D_ISO_LANG_CODE "pt-BR"
+
 #undef D_USERNAME
 #define D_USERNAME "Usuário:"
 

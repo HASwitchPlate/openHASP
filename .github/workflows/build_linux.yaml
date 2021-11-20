@@ -1,0 +1,74 @@
+name: Build branch
+
+on:
+  workflow_dispatch:
+    paths-ignore:
+      - '**.md'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        environments:
+          - linux_sdl_64bits
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: 'true'
+      - name: Cache pip
+        uses: actions/cache@v2
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+      - name: Cache PlatformIO
+        uses: actions/cache@v2
+        with:
+          path: ~/.platformio
+          key: ${{ runner.os }}-${{ hashFiles('**/lockfiles') }}
+      - name: Set up Python
+        uses: actions/setup-python@v2
+      - name: Install PlatformIO
+        run: |
+          python -m pip install --upgrade pip
+          pip install --upgrade platformio
+      # - name: Enable ESP platforms from platformio_override-template.ini
+      #   run: |
+      #     sed 's/; user_setups\/esp/user_setups\/esp/g' platformio_override-template.ini > platformio_override.ini
+      - name: Enable Linux platform from platformio_override.ini
+        run: |
+          sed -i 's/; user_setups\/linux/user_setups\/linux/g' platformio_override.ini
+          mkdir -p .pio/libdeps/linux_sdl_64bits/paho/src
+      - name: Install SDL2 library
+        run: |
+          sudo apt-get update
+          sudo apt-get install libsdl2-dev
+      - name: List all files in current folder
+        run: |
+          ls -la
+      - name: Cat platformio_override.ini
+        run: |
+          cat platformio_override.ini
+      - name: Run PlatformIO
+        run: pio run -e ${{ matrix.environments }}
+      # - name: Upload output file
+      #   uses: actions/upload-artifact@v2
+      #   with:
+      #     name: ${{ matrix.environments }}
+      #     path: build_output/firmware/*.bin
+      #- name: Create release and upload firmware
+      #  run: |
+      #    set -x
+      #    assets=()
+      #    for asset in build_output/firmware/*.bin; do
+      #      assets+=("-a" "$asset")
+      #    done
+      #    tag_name="${GITHUB_REF##*/}"
+      #    hub release create "${assets[@]}" -m "$tag_name" "$tag_name"
+      #  env:
+      #    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

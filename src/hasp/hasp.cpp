@@ -31,6 +31,8 @@
 //#include "hasp_filesystem.h" included in hasp_conf.h
 #endif
 
+#include "lv_freetype.h"
+
 #if HASP_USE_EEPROM > 0
 #include "EEPROM.h"
 #endif
@@ -489,36 +491,38 @@ void haspSetup(void)
     LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, haspFonts[0]);
     // LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, &robotocondensed_regular_16);
 
-#if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
-#if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
-
-    lv_font_t* hasp_font = nullptr; // required or font init will crash
-    lv_zifont_init();
-
-    // WARNING: hasp_font needs to be null !
-    if(lv_zifont_font_init(&hasp_font, haspZiFontPath, 32) != 0) {
-        if(strlen(haspZiFontPath) > 0) LOG_WARNING(TAG_HASP, F("Failed to set font to %s"), haspZiFontPath);
-        haspFonts[0] = LV_THEME_DEFAULT_FONT_SMALL;
-    } else {
-        // defaultFont = haspFonts[0];
-        haspFonts[0] = hasp_font; // save it
-    }
-
-    //  LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, robotocondensed_regular_16);
-    LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, *hasp_font);
-
-#endif
-#endif
-
     if(haspFonts[0] == nullptr) haspFonts[0] = LV_THEME_DEFAULT_FONT_SMALL;
     if(haspFonts[1] == nullptr) haspFonts[1] = LV_THEME_DEFAULT_FONT_NORMAL;
     if(haspFonts[2] == nullptr) haspFonts[2] = LV_THEME_DEFAULT_FONT_SUBTITLE;
     if(haspFonts[3] == nullptr) haspFonts[3] = LV_THEME_DEFAULT_FONT_TITLE;
 
-    // haspFonts[0] = lv_font_load("E:/font_1.fnt");
-    // haspFonts[2] = lv_font_load("E:/font_2.fnt");
+        // haspFonts[0] = lv_font_load("E:/font_1.fnt");
+        // haspFonts[2] = lv_font_load("E:/font_2.fnt");
 
-    // haspFonts[3] = hasp_font_load("L:/robotocondensed_60_latin1.bin");
+#if defined(ARDUINO_ARCH_ESP32)
+    lv_ft_info_t info1;
+    info1.name   = "L:/arial.ttf";
+    info1.weight = 48;
+    info1.style  = FT_FONT_STYLE_NORMAL;
+    lv_ft_font_init(&info1);
+    haspFonts[4] = info1.font;
+
+    lv_ft_info_t info2;
+    info2.name   = "L:/mdi.ttf";
+    info2.weight = 32;
+    info2.style  = FT_FONT_STYLE_NORMAL;
+    lv_ft_font_init(&info2);
+    haspFonts[5] = info2.font;
+
+    lv_ft_info_t info3;
+    info3.name   = "L:/robotocondensed.ttf";
+    info3.weight = 32;
+    info3.style  = FT_FONT_STYLE_NORMAL;
+    lv_ft_font_init(&info3);
+    haspFonts[6] = info3.font;
+
+    haspFonts[7] = hasp_font_load("L:/RobotoCondensedRegular.bin");
+#endif
 
     hasp_set_theme(haspThemeId);
 

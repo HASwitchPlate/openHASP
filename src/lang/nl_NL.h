@@ -1,6 +1,8 @@
 #ifndef HASP_LANG_NL_NL_H
 #define HASP_LANG_NL_NL_H
 
+#define D_ISO_LANG_CODE "nl-NL"
+
 #define D_USERNAME "Gebruikersnaam:"
 #define D_PASSWORD "Wachtwoord:"
 #define D_SSID "Ssid:"

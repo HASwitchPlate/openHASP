@@ -87,10 +87,6 @@ IPAddress apIP(192, 168, 4, 1);
 #endif // DNS_PORT
 #endif // HASP_USE_CAPTIVE_PORTAL
 
-// bool httpEnable       = true;
-// uint16_t httpPort     = 80;
-// char httpUser[32]     = "";
-// char httpPassword[32] = "";
 hasp_http_config_t http_config;
 
 #define HTTP_PAGE_SIZE (6 * 256)
@@ -123,6 +119,8 @@ extern const uint8_t EDIT_HTM_GZ_START[] asm("_binary_data_edit_htm_gz_start");
 extern const uint8_t EDIT_HTM_GZ_END[] asm("_binary_data_edit_htm_gz_end");
 extern const uint8_t STYLE_CSS_GZ_START[] asm("_binary_data_style_css_gz_start");
 extern const uint8_t STYLE_CSS_GZ_END[] asm("_binary_data_style_css_gz_end");
+extern const uint8_t SCRIPT_JS_GZ_START[] asm("_binary_data_script_js_gz_start");
+extern const uint8_t SCRIPT_JS_GZ_END[] asm("_binary_data_script_js_gz_end");
 #endif // CONFIG_IDF_TARGET_ESP32
 
 #endif // ESP32
@@ -139,8 +137,9 @@ const char HTTP_DOCTYPE[] PROGMEM = "<!DOCTYPE html><html lang=\"en\"><head><met
                                     "name=\"viewport\" content=\"width=device-width,initial-scale=1\"/>";
 const char HTTP_META_GO_BACK[] PROGMEM = "<meta http-equiv='refresh' content='15;url=/'/>";
 const char HTTP_HEADER[] PROGMEM       = "<title>%s</title>";
-const char HTTP_HEADER_END[] PROGMEM = "<script src=\"/js\"></script><link rel=\"stylesheet\" href=\"/vars.css\"><link "
-                                       "rel=\"stylesheet\" href=\"/style.css\"></head><body><div id='doc'>";
+const char HTTP_HEADER_END[] PROGMEM =
+    "<script src=\"/script.js\"></script><link rel=\"stylesheet\" href=\"/vars.css\">"
+    "<link rel=\"stylesheet\" href=\"/style.css\"></head><body><div id='doc'>";
 const char HTTP_FOOTER[] PROGMEM = "<div class='clear'><hr/><a class='foot' href='/about'>" D_MANUFACTURER " ";
 const char HTTP_END[] PROGMEM    = " " D_HTTP_FOOTER "</div></body></html>";
 
@@ -204,7 +203,7 @@ static void webHandleHaspConfig();
 bool httpIsAuthenticated()
 {
     if(http_config.password[0] != '\0') { // Request HTTP auth if httpPassword is set
-        if(!webServer.authenticate(http_config.user, http_config.password)) {
+        if(!webServer.authenticate(http_config.username, http_config.password)) {
             webServer.requestAuthentication();
             return false;
         }
@@ -462,40 +461,40 @@ static void webHandleAbout()
         String httpMessage((char*)0);
         httpMessage.reserve(HTTP_PAGE_SIZE);
 
-        httpMessage += F("<p><h3>openHASP</h3>Copyright&copy; 2019-2021 Francis Van Roie ");
-        httpMessage += mitLicense;
-        httpMessage += F("<p>Based on the previous work of the following open source developers.</p><hr>");
-        httpMessage += F("<p><h3>HASwitchPlate</h3>Copyright&copy; 2019 Allen Derusha allen@derusha.org</b>");
-        httpMessage += mitLicense;
-        httpMessage += F("<p><h3>LVGL</h3>Copyright&copy; 2021 LVGL Kft");
-        httpMessage += mitLicense;
-        httpMessage += F("<p><h3>zi Font Engine</h3>Copyright&copy; 2020-2021 Francis Van Roie");
-        httpMessage += mitLicense;
-        httpMessage += F("<p><h3>TFT_eSPI Library</h3>Copyright&copy; 2020 Bodmer (https://github.com/Bodmer) All "
-                         "rights reserved.</br>FreeBSD License</p>");
-        httpMessage +=
-            F("<p><i>includes parts from the <b>Adafruit_GFX library</b></br>Copyright&copy; 2012 Adafruit Industries. "
-              "All rights reserved</br>BSD License</i></p>");
-        httpMessage += F("<p><h3>ArduinoJson</h3>Copyright&copy; 2014-2021 Benoit BLANCHON");
-        httpMessage += mitLicense;
-        httpMessage += F("<p><h3>PubSubClient</h3>Copyright&copy; 2008-2015 Nicholas O'Leary");
-        httpMessage += mitLicense;
-        httpMessage +=
-            F("<p><h3>ArduinoLog</h3>Copyright&copy; 2017,2018 Thijs Elenbaas, MrRobot62, rahuldeo2047, NOX73, "
-              "dhylands, Josha blemasle, mfalkvidd");
-        httpMessage += mitLicense;
-#if HASP_USE_SYSLOG > 0
-        // Replaced with WiFiUDP client
-        // httpMessage += F("<p><h3>Syslog</h3>Copyright&copy; 2016 Martin Sloup");
-        // httpMessage += mitLicense;
-#endif
-#if HASP_USE_QRCODE > 0
-        httpMessage += F("<p><h3>QR Code generator</h3>Copyright&copy; Project Nayuki");
-        httpMessage += mitLicense;
-#endif
-        httpMessage += F("<p><h3>AceButton</h3>Copyright&copy; 2018 Brian T. Park");
-        httpMessage += mitLicense;
-
+        /*
+                httpMessage += F("<p><h3>openHASP</h3>Copyright&copy; 2019-2021 Francis Van Roie ");
+                httpMessage += mitLicense;
+                httpMessage += F("<p>Based on the previous work of the following open source developers.</p><hr>");
+                httpMessage += F("<p><h3>HASwitchPlate</h3>Copyright&copy; 2019 Allen Derusha allen@derusha.org</b>");
+                httpMessage += mitLicense;
+                httpMessage += F("<p><h3>LVGL</h3>Copyright&copy; 2021 LVGL Kft");
+                httpMessage += mitLicense;
+                httpMessage += F("<p><h3>TFT_eSPI Library</h3>Copyright&copy; 2020 Bodmer (https://github.com/Bodmer)
+        All " "rights reserved.</br>FreeBSD License</p>"); httpMessage += F("<p><i>includes parts from the
+        <b>Adafruit_GFX library</b></br>Copyright&copy; 2012 Adafruit Industries. " "All rights reserved</br>BSD
+        License</i></p>"); httpMessage += F("<p><h3>ArduinoJson</h3>Copyright&copy; 2014-2021 Benoit BLANCHON");
+                httpMessage += mitLicense;
+                httpMessage += F("<p><h3>PubSubClient</h3>Copyright&copy; 2008-2015 Nicholas O'Leary");
+                httpMessage += mitLicense;
+                httpMessage += F("<p><h3>FreeType</h3>Copyright&copy; 1996-2002, 2006 David Turner, Robert Wilhelm, "
+                                 "and Werner Lemberg.</br>FreeType License</p>");
+                httpMessage +=
+                    F("<p><h3>ArduinoLog</h3>Copyright&copy; 2017,2018 Thijs Elenbaas, MrRobot62, rahuldeo2047, NOX73, "
+                      "dhylands, Josha blemasle, mfalkvidd");
+                httpMessage += mitLicense;
+        #if HASP_USE_SYSLOG > 0
+                // Replaced with WiFiUDP client
+                // httpMessage += F("<p><h3>Syslog</h3>Copyright&copy; 2016 Martin Sloup");
+                // httpMessage += mitLicense;
+        #endif
+        #if HASP_USE_QRCODE > 0
+                httpMessage += F("<p><h3>QR Code generator</h3>Copyright&copy; Project Nayuki");
+                httpMessage += mitLicense;
+        #endif
+                httpMessage += F("<p><h3>AceButton</h3>Copyright&copy; 2018 Brian T. Park");
+                httpMessage += mitLicense;
+        */
+        httpMessage += "<div id='doc'></div><script>window.addEventListener('load', about());</script>";
         httpMessage += FPSTR(MAIN_MENU_BUTTON);
 
         webSendHeader(haspDevice.get_hostname(), httpMessage.length(), false);
@@ -565,211 +564,6 @@ static void webHandleInfoJson()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/*
-static void webHandleInfo()
-{ // http://plate01/
-    if(!httpIsAuthenticated(F("info"))) return;
-
-    { // Send Content
-        char size_buf[32];
-        String httpMessage((char*)0);
-        httpMessage.reserve(HTTP_PAGE_SIZE);
-        httpMessage += F("<h1>");
-        httpMessage += haspDevice.get_hostname();
-        httpMessage += F("</h1><hr>");
-
-        // HASP Stats
-        httpMessage += F("<b>HASP Version: </b>");
-        httpMessage += haspDevice.get_version();
-        httpMessage += F("<br/><b>Build DateTime: </b>");
-        httpMessage += __DATE__;
-        httpMessage += F(" ");
-        httpMessage += __TIME__;
-        httpMessage += F(" UTC<br/><b>Uptime: </b>"); // Github buildservers are in UTC
-
-        unsigned long time = millis() / 1000;
-        uint16_t day       = time / 86400;
-        time               = time % 86400;
-        uint8_t hour       = time / 3600;
-        time               = time % 3600;
-        uint8_t min        = time / 60;
-        time               = time % 60;
-        uint8_t sec        = time;
-
-        if(day > 0) {
-            httpMessage += String(day);
-            httpMessage += F("d ");
-        }
-        if(day > 0 || hour > 0) {
-            httpMessage += String(hour);
-            httpMessage += F("h ");
-        }
-        if(day > 0 || hour > 0 || min > 0) {
-            httpMessage += String(min);
-            httpMessage += F("m ");
-        }
-        httpMessage += String(sec);
-        httpMessage += F("s");
-
-        httpMessage += F("<br/><b>Free Memory: </b>");
-        Parser::format_bytes(haspDevice.get_free_heap(), size_buf, sizeof(size_buf));
-        httpMessage += size_buf;
-        httpMessage += F("<br/><b>Memory Fragmentation: </b>");
-        httpMessage += String(haspDevice.get_heap_fragmentation());
-
-#if ARDUINO_ARCH_ESP32
-        if(psramFound()) {
-            httpMessage += F("<br/><b>Free PSRam: </b>");
-            Parser::format_bytes(ESP.getFreePsram(), size_buf, sizeof(size_buf));
-            httpMessage += size_buf;
-            httpMessage += F("<br/><b>PSRam Size: </b>");
-            Parser::format_bytes(ESP.getPsramSize(), size_buf, sizeof(size_buf));
-            httpMessage += size_buf;
-        }
-#endif
-
-        // LVGL Stats
-        lv_mem_monitor_t mem_mon;
-        lv_mem_monitor(&mem_mon);
-        httpMessage += F("</p><p><b>LVGL Memory: </b>");
-        Parser::format_bytes(mem_mon.total_size, size_buf, sizeof(size_buf));
-        httpMessage += size_buf;
-        httpMessage += F("<br/><b>LVGL Free: </b>");
-        Parser::format_bytes(mem_mon.free_size, size_buf, sizeof(size_buf));
-        httpMessage += size_buf;
-        httpMessage += F("<br/><b>LVGL Fragmentation: </b>");
-        httpMessage += mem_mon.frag_pct;
-
-        // httpMessage += F("<br/><b>LCD Model: </b>")) + String(LV_HASP_HOR_RES_MAX) + " x " +
-        // String(LV_HASP_VER_RES_MAX); httpMessage += F("<br/><b>LCD Version: </b>")) +
-        // String(lcdVersion);
-        httpMessage += F("</p/><p><b>LCD Active Page: </b>");
-        httpMessage += String(haspPages.get());
-
-        // Wifi Stats
-#if HASP_USE_WIFI > 0
-        httpMessage += F("</p/><p><b>SSID: </b>");
-        httpMessage += String(WiFi.SSID());
-        httpMessage += F("</br><b>Signal Strength: </b>");
-
-        int8_t rssi = WiFi.RSSI();
-        httpMessage += String(rssi);
-        httpMessage += F("dBm (");
-
-        if(rssi >= -50) {
-            httpMessage += F("Excellent)");
-        } else if(rssi >= -60) {
-            httpMessage += F("Good)");
-        } else if(rssi >= -70) {
-            httpMessage += F("Fair)");
-        } else if(rssi >= -80) {
-            httpMessage += F("Weak)");
-        } else {
-            httpMessage += F("Very Bad)");
-        }
-#if defined(STM32F4xx)
-        byte mac[6];
-        WiFi.macAddress(mac);
-        char macAddress[16];
-        snprintf_P(macAddress, sizeof(macAddress), PSTR("%02x%02x%02x"), mac[0], mac[1], mac[2], mac[3], mac[4],
-                   mac[5]);
-        httpMessage += F("</br><b>IP Address: </b>");
-        httpMessage += String(WiFi.localIP());
-        httpMessage += F("</br><b>Gateway: </b>");
-        httpMessage += String(WiFi.gatewayIP());
-        httpMessage += F("</br><b>MAC Address: </b>");
-        httpMessage += String(macAddress);
-#else
-        httpMessage += F("</br><b>IP Address: </b>");
-        httpMessage += String(WiFi.localIP().toString());
-        httpMessage += F("</br><b>Gateway: </b>");
-        httpMessage += String(WiFi.gatewayIP().toString());
-        httpMessage += F("</br><b>DNS Server: </b>");
-        httpMessage += String(WiFi.dnsIP().toString());
-        httpMessage += F("</br><b>MAC Address: </b>");
-        httpMessage += String(WiFi.macAddress());
-#endif
-#endif
-#if HASP_USE_ETHERNET > 0
-#if defined(ARDUINO_ARCH_ESP32)
-        httpMessage += F("</p/><p><b>Ethernet: </b>");
-        httpMessage += String(ETH.linkSpeed());
-        httpMessage += F(" Mbps");
-        if(ETH.fullDuplex()) {
-            httpMessage += F(" " D_INFO_FULL_DUPLEX);
-        }
-        httpMessage += F("</br><b>IP Address: </b>");
-        httpMessage += String(ETH.localIP().toString());
-        httpMessage += F("</br><b>Gateway: </b>");
-        httpMessage += String(ETH.gatewayIP().toString());
-        httpMessage += F("</br><b>DNS Server: </b>");
-        httpMessage += String(ETH.dnsIP().toString());
-        httpMessage += F("</br><b>MAC Address: </b>");
-        httpMessage += String(ETH.macAddress());
-#endif
-#endif
-
-// Mqtt Stats
-#if HASP_USE_MQTT > 0
-        httpMessage += F("</p/><p><b>MQTT Status: </b>");
-        if(mqttIsConnected()) { // Check MQTT connection
-            httpMessage += F("Connected");
-        } else {
-            httpMessage += F("<font color='red'><b>Disconnected</b></font>, return code: ");
-            //     +String(mqttClient.returnCode());
-        }
-        httpMessage += F("<br/><b>MQTT ClientID: </b>");
-
-        {
-            char mqttClientId[64];
-            String mac = halGetMacAddress(3, "");
-            mac.toLowerCase();
-            snprintf_P(mqttClientId, sizeof(mqttClientId), PSTR("%s-%s"), haspDevice.get_hostname(), mac.c_str());
-            httpMessage += mqttClientId;
-        }
-
-#endif // MQTT
-
-        // ESP Stats
-        httpMessage += F("</p/><p><b>MCU Model: </b>");
-        httpMessage += haspDevice.get_chip_model();
-        httpMessage += F("<br/><b>CPU Frequency: </b>");
-        httpMessage += String(haspDevice.get_cpu_frequency());
-        httpMessage += F("MHz");
-
-#if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
-        httpMessage += F("<br/><b>Flash Chip Size: </b>");
-        Parser::format_bytes(ESP.getFlashChipSize(), size_buf, sizeof(size_buf));
-        httpMessage += size_buf;
-
-        httpMessage += F("</br><b>Program Size Used: </b>");
-        Parser::format_bytes(ESP.getSketchSize(), size_buf, sizeof(size_buf));
-        httpMessage += size_buf;
-
-        httpMessage += F("<br/><b>Program Size Free: </b>");
-        Parser::format_bytes(ESP.getFreeSketchSpace(), size_buf, sizeof(size_buf));
-        httpMessage += size_buf;
-#endif
-
-        //#if defined(ARDUINO_ARCH_ESP32)
-        //        httpMessage += F("<br/><b>ESP SDK version: </b>");
-        //        httpMessage += String(ESP.getSdkVersion());
-        //#else
-        httpMessage += F("<br/><b>Core version: </b>");
-        httpMessage += haspDevice.get_core_version();
-        //#endif
-        httpMessage += F("<br/><b>Last Reset: </b>");
-        //  httpMessage += halGetResetInfo();
-
-        httpMessage += FPSTR(MAIN_MENU_BUTTON);
-
-        webSendHeader(haspDevice.get_hostname(), httpMessage.length(), false);
-        webServer.sendContent(httpMessage);
-    }
-    webSendFooter();
-}
-*/
-
 /* String urldecode(String str)
 {
     String encodedString = "";
@@ -913,9 +707,10 @@ static int handleFileRead(String path)
     if(path.endsWith("/")) {
         path += F("index.htm");
     }
-    
+
     String style_css = F("/style.css");
-    bool is_style_css = (path == style_css);
+    String script_js = F("/script.js");
+    bool is_cached   = (path == style_css) || (path == script_js);
 
     String pathWithGz = path + F(".gz");
     if(HASP_FS.exists(pathWithGz) || HASP_FS.exists(path)) {
@@ -948,8 +743,8 @@ static int handleFileRead(String path)
 
         } else {
 
-            // Only styles.css can be cached
-            if(is_style_css) webSendCacheHeader(file.size(), 3600);
+            // script.js and styles.css can be cached
+            if(is_cached) webSendCacheHeader(file.size(), 3600);
 
             // Stream other files directly from filesystem
             webServer.streamFile(file, contentType);
@@ -963,7 +758,7 @@ static int handleFileRead(String path)
     if(path == F("/edit.htm")) {
         size_t size = EDIT_HTM_GZ_END - EDIT_HTM_GZ_START;
         webServer.sendHeader(F("Content-Encoding"), F("gzip"));
-        return webSendCached(200, PSTR("text/html"), (const char*)EDIT_HTM_GZ_START, size); // OK
+        return webSendCached(200, PSTR("text/html"), (const char*)EDIT_HTM_GZ_START, size);
     }
 #endif
 
@@ -971,7 +766,15 @@ static int handleFileRead(String path)
     if(path == style_css) {
         size_t size = STYLE_CSS_GZ_END - STYLE_CSS_GZ_START;
         webServer.sendHeader(F("Content-Encoding"), F("gzip"));
-        return webSendCached(200, PSTR("text/css"), (const char*)STYLE_CSS_GZ_START, size); // OK
+        return webSendCached(200, PSTR("text/css"), (const char*)STYLE_CSS_GZ_START, size);
+    }
+#endif
+
+#if defined(ARDUINO_ARCH_ESP32) && defined(CONFIG_IDF_TARGET_ESP32)
+    if(path == script_js) {
+        size_t size = SCRIPT_JS_GZ_END - SCRIPT_JS_GZ_START;
+        webServer.sendHeader(F("Content-Encoding"), F("gzip"));
+        return webSendCached(200, PSTR("text/javascript"), (const char*)SCRIPT_JS_GZ_START, size);
     }
 #endif
 
@@ -1243,8 +1046,9 @@ static void webHandleMqttConfig()
 
         // Broker
         httpMessage += F("<div class='row'><div class='col-25'><label for='host'>Broker</label></div>");
-        httpMessage += F("<div class='col-75'><input type='text' id='host' name='host' maxlength=63 "
-                         "placeholder='Server Name' value='");
+        httpMessage += F("<div class='col-75'><input type='text' id='host' name='host' maxlength=");
+        httpMessage += MAX_HOSTNAME_LENGTH - 1;
+        httpMessage += F(" placeholder='Server Name' value='");
         httpMessage += settings[FPSTR(FP_CONFIG_HOST)].as<String>();
         httpMessage += F("'></div></div>");
 
@@ -1257,15 +1061,17 @@ static void webHandleMqttConfig()
 
         // Mqtt User
         httpMessage += F("<div class='row'><div class='col-25'><label for='user'>User</label></div>");
-        httpMessage += F("<div class='col-75'><input type='text' id='user' name='user' maxlength=31 "
-                         "placeholder='MQTT User' value='");
+        httpMessage += F("<div class='col-75'><input type='text' id='user' name='user' maxlength=");
+        httpMessage += MAX_USERNAME_LENGTH - 1;
+        httpMessage += F(" placeholder='MQTT User' value='");
         httpMessage += settings[FPSTR(FP_CONFIG_USER)].as<String>();
         httpMessage += F("'></div></div>");
 
         // Mqtt Password
         httpMessage += F("<div class='row'><div class='col-25'><label for='pass'>Password</label></div>");
-        httpMessage += F("<div class='col-75'><input type='password' id='pass' name='pass' maxlength=63 "
-                         "placeholder='MQTT Password' value='");
+        httpMessage += F("<div class='col-75'><input type='password' id='pass' name='pass' maxlength=");
+        httpMessage += MAX_PASSWORD_LENGTH - 1;
+        httpMessage += F(" placeholder='MQTT Password' value='");
         if(settings[FPSTR(FP_CONFIG_PASS)].as<String>() != "") httpMessage += F(D_PASSWORD_MASK);
         httpMessage += F("'></div></div>");
 
@@ -1403,15 +1209,17 @@ static void webHandleWifiConfig()
 
         // Wifi SSID
         httpMessage += F("<div class='row'><div class='col-25 required'><label for='ssid'>SSID</label></div>");
-        httpMessage += F("<div class='col-75'><input required type='text' id='ssid' name='ssid' maxlength=31 "
-                         "placeholder='SSID' value='");
+        httpMessage += F("<div class='col-75'><input required type='text' id='ssid' name='ssid' maxlength=");
+        httpMessage += MAX_USERNAME_LENGTH - 1;
+        httpMessage += F(" placeholder='SSID' value='");
         httpMessage += settings[FPSTR(FP_CONFIG_SSID)].as<String>();
         httpMessage += F("'></div></div>");
 
         // Wifi Password
         httpMessage += F("<div class='row'><div class='col-25 required'><label for='pass'>Password</label></div>");
-        httpMessage += F("<div class='col-75'><input required type='password' id='pass' name='pass' maxlength=63 "
-                         "placeholder='Password' value='");
+        httpMessage += F("<div class='col-75'><input required type='password' id='pass' name='pass' maxlength=");
+        httpMessage += MAX_PASSWORD_LENGTH - 1;
+        httpMessage += F(" placeholder='Password' value='");
         if(settings[FPSTR(FP_CONFIG_PASS)].as<String>() != "") {
             httpMessage += F(D_PASSWORD_MASK);
         }
@@ -1448,18 +1256,32 @@ static void webHandleCaptivePortalWifiConfig()
         httpMessage += F("<h1>");
         httpMessage += haspDevice.get_hostname();
         httpMessage += F("</h1><hr>");
+        httpMessage += F("<h2>" D_HTTP_WIFI_SETTINGS "</h2>");
 
-        httpMessage += F("<form method='POST' action='/config'>");
-        httpMessage += F("<b>WiFi SSID</b> <i><small>(required)</small></i><input id='ssid' required "
-                         "name='ssid' maxlength=31 placeholder='WiFi SSID' value='");
+        // Form
+        httpMessage += F("<div class='container'><form method='POST' action='/config'>");
+
+        // Wifi SSID
+        httpMessage += F("<div class='row'><div class='col-25 required'><label for='ssid'>SSID</label></div>");
+        httpMessage += F("<div class='col-75'><input required type='text' id='ssid' name='ssid' maxlength=");
+        httpMessage += MAX_USERNAME_LENGTH - 1;
+        httpMessage += F(" placeholder='SSID' value='");
         httpMessage += settings[FPSTR(FP_CONFIG_SSID)].as<String>();
-        httpMessage += F("'><br/><b>WiFi Password</b> <i><small>(required)</small></i><input id='pass' required "
-                         "name='pass' type='password' maxlength=63 placeholder='WiFi Password' value='");
+        httpMessage += F("'></div></div>");
+
+        // Wifi Password
+        httpMessage += F("<div class='row'><div class='col-25 required'><label for='pass'>Password</label></div>");
+        httpMessage += F("<div class='col-75'><input required type='password' id='pass' name='pass' maxlength=");
+        httpMessage += MAX_PASSWORD_LENGTH - 1;
+        httpMessage += F(" placeholder='Password' value='");
         if(settings[FPSTR(FP_CONFIG_PASS)].as<String>() != "") {
             httpMessage += F(D_PASSWORD_MASK);
         }
-        httpMessage +=
-            F("'><p><button type='submit' name='save' value='wifi'>" D_HTTP_SAVE_SETTINGS "</button></p></form>");
+        httpMessage += F("'></div></div>");
+
+        // Submit & End Form
+        httpMessage += F("<button type='submit' name='save' value='wifi'>" D_HTTP_SAVE_SETTINGS "</button>");
+        httpMessage += F("</form></div>");
 
 #if HASP_USE_WIFI > 0 && !defined(STM32F4xx)
         if(WiFi.getMode() == WIFI_STA) {
@@ -1684,7 +1506,7 @@ static void webHandleGpioConfig()
                     httpMessage += id;
                     httpMessage += ("&pin=");
                     httpMessage += conf.pin;
-                    httpMessage += ("'>Delete</a></td><tr>");
+                    httpMessage += ("' class='trash'></a></td><tr>");
                     configCount++;
                 }
             }
@@ -1927,8 +1749,9 @@ static void webHandleDebugConfig()
 #if HASP_USE_SYSLOG > 0
         // Syslog host
         httpMessage += F("<div class='row'><div class='col-25'><label for='host'>Syslog Server</label></div>");
-        httpMessage += F("<div class='col-75'><input type='text' id='host' name='host' maxlength='31' "
-                         "value='");
+        httpMessage += F("<div class='col-75'><input type='text' id='host' name='host' maxlength=");
+        httpMessage += MAX_HOSTNAME_LENGTH - 1;
+        httpMessage += F(" value='");
         httpMessage += settings[FPSTR(FP_CONFIG_HOST)].as<String>();
         httpMessage += F("'></div></div>");
 
@@ -2350,14 +2173,46 @@ static void webSendCssVars()
     webSendCached(200, PSTR("text/css"), HTTP_CSS.c_str(), HTTP_CSS.length());
 }
 
+/*
 // Do not keep JS in memory because it is cached in the browser
 static void webSendJavascript()
 {
+    // Refresh screenshot
     String javascript = F("function aref(t){setTimeout(function() {ref('');}, t*1000)}"
                           "function ref(a){ var t=new "
-                          "Date().getTime();document.getElementById('bmp').src='?a='+a+'&q='+t;return false;}");
+                          "Date().getTime();document.getElementById('bmp').src='?a='+a+'&q='+t;return false;};");
+    // This string can be gzipped:
+    javascript +=
+        "function about(){document.getElementById('doc').innerHTML='<h3>" D_MANUFACTURER
+        "</h3>Copyright&copy; 2019-2021 Francis Van Roie</br>MIT License</p>"
+        "<p>Permission is hereby granted, free of charge, to any person obtaining a copy of this software and "
+        "associated documentation files(the \"Software\"), to deal in the Software without restriction, including "
+        "without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and / or sell "
+        "copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the "
+        "following conditions:</p>"
+        "<p>The above copyright notice and this permission notice shall be included in all copies or substantial "
+        "portions of the Software.</p><p>THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, "
+        "EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR "
+        "PURPOSE AND NONINFRINGEMENT.IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, "
+        "DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN "
+        "CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</p><hr>"
+        "<p>Based on the previous work of the following open source developers:</p>"
+        "<h3>HASwitchPlate</h3><p>Copyright&copy; 2019 Allen Derusha allen@derusha.org</b></br>MIT License</p>"
+        "<h3>LVGL</h3><p>Copyright&copy; 2021 LVGL Kft</br>MIT License</p>"
+        "<h3>zi Font Engine</h3><p>Copyright&copy; 2020-2021 Francis Van Roie</br>MIT License</p>"
+        "<h3>TFT_eSPI Library</h3><p>Copyright&copy; 2020 Bodmer (https://github.com/Bodmer) All rights "
+        "reserved.</br>FreeBSD License</p>"
+        "<p><i>includes parts from the <b>Adafruit_GFX library</b></br>Copyright&copy; 2012 Adafruit Industries. All "
+        "rights reserved</br>BSD License</i></p>"
+        "<h3>ArduinoJson</h3><p>Copyright&copy; 2014-2021 Benoit BLANCHON</br>MIT License</p>"
+        "<h3>PubSubClient</h3><p>Copyright&copy; 2008-2015 Nicholas O&apos;Leary</br>MIT License</p>"
+        "<h3>ArduinoLog</h3><p>Copyright&copy; 2017,2018 Thijs Elenbaas, MrRobot62, rahuldeo2047, NOX73, dhylands, "
+        "Josha blemasle, mfalkvidd</br>MIT License</p>"
+        "<h3>QR Code generator</h3><p>Copyright&copy; Project Nayuki</br>MIT License</p>"
+        "<h3>AceButton</h3><p>Copyright&copy; 2018 Brian T. Park</br>MIT License</p>';}";
     webSendCached(200, PSTR("text/javascript"), javascript.c_str(), javascript.length());
 }
+*/
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 static inline void webStartConfigPortal()
@@ -2390,7 +2245,7 @@ void httpSetup()
     // Shared pages between STA and AP
     webServer.on(F("/about"), webHandleAbout);
     webServer.on(F("/vars.css"), webSendCssVars);
-    webServer.on(F("/js"), webSendJavascript);
+    // webServer.on(F("/js"), webSendJavascript);
     webServer.onNotFound(httpHandleNotFound);
 
 #if HASP_USE_WIFI > 0
@@ -2519,8 +2374,8 @@ bool httpGetConfig(const JsonObject& settings)
     if(http_config.port != settings[FPSTR(FP_CONFIG_PORT)].as<uint16_t>()) changed = true;
     settings[FPSTR(FP_CONFIG_PORT)] = http_config.port;
 
-    if(strcmp(http_config.user, settings[FPSTR(FP_CONFIG_USER)].as<String>().c_str()) != 0) changed = true;
-    settings[FPSTR(FP_CONFIG_USER)] = http_config.user;
+    if(strcmp(http_config.username, settings[FPSTR(FP_CONFIG_USER)].as<String>().c_str()) != 0) changed = true;
+    settings[FPSTR(FP_CONFIG_USER)] = http_config.username;
 
     if(strcmp(http_config.password, settings[FPSTR(FP_CONFIG_PASS)].as<String>().c_str()) != 0) changed = true;
     settings[FPSTR(FP_CONFIG_PASS)] = http_config.password;
@@ -2545,8 +2400,8 @@ bool httpSetConfig(const JsonObject& settings)
     changed |= configSet(http_config.port, settings[FPSTR(FP_CONFIG_PORT)], F("httpPort"));
 
     if(!settings[FPSTR(FP_CONFIG_USER)].isNull()) {
-        changed |= strcmp(http_config.user, settings[FPSTR(FP_CONFIG_USER)]) != 0;
-        strncpy(http_config.user, settings[FPSTR(FP_CONFIG_USER)], sizeof(http_config.user));
+        changed |= strcmp(http_config.username, settings[FPSTR(FP_CONFIG_USER)]) != 0;
+        strncpy(http_config.username, settings[FPSTR(FP_CONFIG_USER)], sizeof(http_config.username));
     }
 
     if(!settings[FPSTR(FP_CONFIG_PASS)].isNull()) {

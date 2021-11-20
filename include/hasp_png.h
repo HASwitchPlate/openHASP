@@ -12,6 +12,7 @@
 extern "C" {
 #endif
 
+void* lodepng_calloc(size_t num,size_t size);
 void* lodepng_malloc(size_t size);
 void* lodepng_realloc(void* ptr, size_t new_size);
 void lodepng_free(void* ptr);

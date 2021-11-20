@@ -64,7 +64,7 @@ static void console_process_line(const char* input)
                        0x01); // Hide characters
             bufferedSerialClient->print(buffer);
 #if HASP_USE_HTTP > 0 || HASP_USE_HTTP_ASYNC > 0
-            consoleLoginState = strcmp(input, http_config.user) == 0 ? CONSOLE_USERNAME_OK : CONSOLE_USERNAME_NOK;
+            consoleLoginState = strcmp(input, http_config.username) == 0 ? CONSOLE_USERNAME_OK : CONSOLE_USERNAME_NOK;
             break;
         }
         case CONSOLE_USERNAME_OK:

@@ -1,6 +1,8 @@
 #ifndef HASP_LANG_EN_US_H
 #define HASP_LANG_EN_US_H
 
+#define D_ISO_LANG_CODE "en-US"
+
 #define D_USERNAME "Username:"
 #define D_PASSWORD "Password:"
 #define D_SSID "Ssid:"

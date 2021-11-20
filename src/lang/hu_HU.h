@@ -1,6 +1,8 @@
 #ifndef HASP_LANG_HU_HU_H
 #define HASP_LANG_HU_HU_H
 
+#define D_ISO_LANG_CODE "hu-HU"
+
 #define D_USERNAME "Felhasználónév:"
 #define D_PASSWORD "Jelszó:"
 #define D_SSID "SSID:"

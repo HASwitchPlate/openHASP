@@ -1,5 +1,33 @@
 # openHASP Changelog
 
+## v0.7.0
+
+### Fonts
+- Use FreeType fonts from flash
+- Use LVGL binary fonts from flash, loaded into PSram
+- Removed defunct .zi font support
+- Breaking: The UTF codes for the built-in icons have changed from the previous list!
+- _Breaking: Font ID is replaced by xxxx?_
+
+### Web UI
+- Updated to modern responsive design
+- Allow for a customizible `vars.css`, `style.css`, `script.js` and `edit.htm`
+- _Selectable dark/light theme?_
+
+### Commands
+- Hide cursor during `antiburn` and `idle` if the pointer is enabled
+
+### Custom component
+- Expose `antiburn` for the CC
+- Expose the device URL in discovery messages
+
+### Architecture
+- Moved to Arduino 2.0 with native LittleFS library
+- Moved to ESP-IDF 4.4 with fix for FragAttacks CVEs
+- Prepare support for ESP32S2
+- Breaking: Removed support for ESP8266
+
+
 ## v0.6.2
 
 ### Initial Setup

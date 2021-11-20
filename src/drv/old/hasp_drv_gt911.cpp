@@ -94,7 +94,7 @@ void GT911_init()
 {
     // Wire.setClock(400000);
     // Wire.begin();
-    Wire.begin(TOUCH_SDA, TOUCH_SCL, I2C_TOUCH_FREQUENCY);
+    Wire.begin(TOUCH_SDA, TOUCH_SCL, (uint32_t)I2C_TOUCH_FREQUENCY);
     delay(300);
 
     touch.setHandler(GT911_setXY);

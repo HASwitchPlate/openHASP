@@ -310,7 +310,7 @@ static void gpio_setup_pin(uint8_t index)
 
 void gpioSetup()
 {
-    LOG_INFO(TAG_GPIO, F(D_SERVICE_STARTING));
+    LOG_TRACE(TAG_GPIO, F(D_SERVICE_STARTING));
 #if defined(ARDUINO_ARCH_ESP32)
     LOG_WARNING(TAG_GPIO, F("Reboot counter %d"), rtcRecordCounter++);
 #endif
