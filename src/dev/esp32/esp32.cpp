@@ -150,14 +150,18 @@ const char* Esp32Device::get_chip_model()
         case CHIP_ESP32:
             return "ESP32";
 
-#ifdef CHIP_ESP32S2
+#ifdef ESP32
         case CHIP_ESP32S2:
             return "ESP32-S2";
-#endif
 
-#ifdef CHIP_ESP32S3
         case CHIP_ESP32S3:
             return "ESP32-S3";
+
+        case CHIP_ESP32C3:
+            return "ESP32-C3";
+
+        case CHIP_ESP32H2:
+            return "ESP32-H2";
 #endif
 
         default:
