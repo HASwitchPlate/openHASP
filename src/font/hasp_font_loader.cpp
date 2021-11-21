@@ -412,14 +412,7 @@ static int32_t load_glyph(lv_fs_file_t* fp, lv_font_fmt_txt_dsc_t* font_dsc, uin
     }
 
     uint8_t* glyph_bmp;
-#ifdef ESP32
-    if(psramFound())
-        glyph_bmp = (uint8_t*)ps_malloc(sizeof(uint8_t) * cur_bmp_size);
-    else
-        glyph_bmp = (uint8_t*)malloc(sizeof(uint8_t) * cur_bmp_size);
-#else
-    glyph_bmp = (uint8_t*)malloc(sizeof(uint8_t) * cur_bmp_size);
-#endif
+    glyph_bmp = (uint8_t*)hasp_malloc(sizeof(uint8_t) * cur_bmp_size);
 
     font_dsc->glyph_bitmap = glyph_bmp;
 

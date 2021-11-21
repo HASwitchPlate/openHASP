@@ -11,6 +11,7 @@
 #include <stdint.h>
 
 #include "hasp_conf.h"
+#include "hasp_mem.h"
 
 #include "lv_conf.h"
 #include "lvgl.h"

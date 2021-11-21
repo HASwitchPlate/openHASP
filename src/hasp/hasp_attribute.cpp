@@ -9,12 +9,6 @@
 #include "hasp_attribute_helper.h"
 
 /*** Image Improvement ***/
-#if defined(ARDUINO_ARCH_ESP8266)
-#include <ESP8266HTTPClient.h>
-#define lodepng_malloc malloc
-#define lodepng_free free
-#endif
-
 #if defined(ARDUINO_ARCH_ESP32)
 #include <HTTPClient.h>
 #endif
@@ -22,7 +16,6 @@
 #if HASP_USE_PNGDECODE > 0
 #include "lv_png.h"
 #include "lodepng.h"
-#include "hasp_png.h"
 #endif
 /*** Image Improvement ***/
 
@@ -1071,7 +1064,7 @@ static hasp_attribute_type_t special_attribute_src(lv_obj_t* obj, const char* pa
                 int len               = total;
                 int read              = 0;
                 lv_img_dsc_t* img_dsc = (lv_img_dsc_t*)lv_mem_alloc(sizeof(lv_img_dsc_t));
-                uint8_t* img_buf      = (uint8_t*)(len > 0 ? lodepng_malloc(len) : NULL);
+                uint8_t* img_buf      = (uint8_t*)(len > 0 ? hasp_malloc(len) : NULL);
 
                 LOG_VERBOSE(TAG_ATTR, "HTTP OK: buffer created of %d bytes", len);
 
