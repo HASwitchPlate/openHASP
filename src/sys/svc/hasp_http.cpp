@@ -114,7 +114,7 @@ ESP8266WebServer webServer(80);
 #include <detail/mimetable.h>
 WebServer webServer(80);
 
-#if defined(CONFIG_IDF_TARGET_ESP32)
+#if defined(CONFIG_IDF_TARGET_ESP32) || defined(CONFIG_IDF_TARGET_ESP32S2)
 extern const uint8_t EDIT_HTM_GZ_START[] asm("_binary_data_edit_htm_gz_start");
 extern const uint8_t EDIT_HTM_GZ_END[] asm("_binary_data_edit_htm_gz_end");
 extern const uint8_t STYLE_CSS_GZ_START[] asm("_binary_data_style_css_gz_start");
@@ -723,13 +723,13 @@ static int handleFileRead(String path)
 
         if(!HASP_FS.exists(path) && HASP_FS.exists(pathWithGz))
             path = pathWithGz; // Only use .gz if normal file doesn't exist
-        File file = HASP_FS.open(path, "r");
+
+        LOG_TRACE(TAG_HTTP, F(D_HTTP_SENDING_PAGE), path.c_str(), webServer.client().remoteIP().toString().c_str());
 
         String configFile((char*)0); // Verify if the file is config.json
-        configFile = String(FPSTR(FP_HASP_CONFIG_FILE));
+        configFile = FPSTR(FP_HASP_CONFIG_FILE);
 
-        if(!strncasecmp(file.name(), configFile.c_str(), configFile.length())) {
-            file.close();
+        if(path.endsWith(configFile.c_str())) { // "//config.json" is also a valid path!
             DynamicJsonDocument settings(8 * 256);
             DeserializationError error = configParseFile(configFile, settings);
 
@@ -742,6 +742,7 @@ static int handleFileRead(String path)
             webServer.send(200, contentType, buffer);
 
         } else {
+            File file = HASP_FS.open(path, "r");
 
             // script.js and styles.css can be cached
             if(is_cached) webSendCacheHeader(file.size(), 3600);
@@ -754,29 +755,25 @@ static int handleFileRead(String path)
         return 200; // OK
     }
 
-#if defined(ARDUINO_ARCH_ESP32) && defined(CONFIG_IDF_TARGET_ESP32)
+#if defined(CONFIG_IDF_TARGET_ESP32) || defined(CONFIG_IDF_TARGET_ESP32S2)
     if(path == F("/edit.htm")) {
         size_t size = EDIT_HTM_GZ_END - EDIT_HTM_GZ_START;
         webServer.sendHeader(F("Content-Encoding"), F("gzip"));
         return webSendCached(200, PSTR("text/html"), (const char*)EDIT_HTM_GZ_START, size);
     }
-#endif
 
-#if defined(ARDUINO_ARCH_ESP32) && defined(CONFIG_IDF_TARGET_ESP32)
     if(path == style_css) {
         size_t size = STYLE_CSS_GZ_END - STYLE_CSS_GZ_START;
         webServer.sendHeader(F("Content-Encoding"), F("gzip"));
         return webSendCached(200, PSTR("text/css"), (const char*)STYLE_CSS_GZ_START, size);
     }
-#endif
 
-#if defined(ARDUINO_ARCH_ESP32) && defined(CONFIG_IDF_TARGET_ESP32)
     if(path == script_js) {
         size_t size = SCRIPT_JS_GZ_END - SCRIPT_JS_GZ_START;
         webServer.sendHeader(F("Content-Encoding"), F("gzip"));
         return webSendCached(200, PSTR("text/javascript"), (const char*)SCRIPT_JS_GZ_START, size);
     }
-#endif
+#endif // ARDUINO_ARCH_ESP32
 
     if(!strcasecmp_P(path.c_str(), PSTR("/favicon.ico")))
         return webSendCached(204, PSTR("image/bmp"), "", 0); // No content
