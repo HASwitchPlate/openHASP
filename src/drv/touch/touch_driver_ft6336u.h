@@ -81,9 +81,13 @@ class TouchFt6336u : public BaseTouch {
         LOG_INFO(TAG_DRVR, F("Touch freq.   : %d"), I2C_TOUCH_FREQUENCY);
         LOG_INFO(TAG_DRVR, F("Touch address : %x"), I2C_TOUCH_ADDRESS);
 
+      LOG_VERBOSE(TAG_DRVR, F("%s %d"), __FILE__, __LINE__);
+
         ft6336u_touch = new FT6336U(TOUCH_SDA, TOUCH_SCL, TOUCH_RST, TOUCH_IRQ);
+      LOG_VERBOSE(TAG_DRVR, F("%s %d"), __FILE__, __LINE__);
         ft6336u_touch->begin();
 
+      LOG_VERBOSE(TAG_DRVR, F("%s %d"), __FILE__, __LINE__);
         // From:  M5Core2/src/M5Touch.cpp
         // By default, the FT6336 will pulse the INT line for every touch
         // event. But because it shares the Wire1 TwoWire/I2C with other
@@ -91,12 +95,13 @@ class TouchFt6336u : public BaseTouch {
         // handle these events. So instead, we set the INT wire to polled mode,
         // so it simply goes low as long as there is at least one valid touch.
         // ft6336u_touch->writeByte(0xA4, 0x00);
-        Wire1.beginTransmission(I2C_TOUCH_ADDRESS);
-        Wire1.write(0xA4); // address
-        Wire1.write(0x00); // data
-        Wire1.endTransmission();
+        // Wire1.beginTransmission(I2C_TOUCH_ADDRESS);
+        // Wire1.write(0xA4); // address
+        // Wire1.write(0x00); // data
+        // Wire1.endTransmission();
 
-        touch_scan(Wire1);
+      LOG_VERBOSE(TAG_DRVR, F("%s %d"), __FILE__, __LINE__);
+      //  touch_scan(Wire1);
 
         if(ft6336u_touch->read_chip_id() != 0) {
             LOG_INFO(TAG_DRVR, F("FT6336U touch driver started chipid: %d"), ft6336u_touch->read_chip_id());
