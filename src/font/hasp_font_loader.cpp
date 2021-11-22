@@ -102,19 +102,19 @@ lv_font_t* hasp_font_load(const char* font_name)
 
     if(res == LV_FS_RES_OK) {
         success = lvgl_load_font(&file, font);
+    }
 
-        if(!success) {
-            LOG_WARNING(TAG_FONT, "Error loading font file: %s\n", font_name);
-            /*
-             * When `lvgl_load_font` fails it can leak some pointers.
-             * All non-null pointers can be assumed as allocated and
-             * `lv_font_free` should free them correctly.
-             */
-            hasp_font_free(font);
-            font = NULL;
-        }
+    lv_fs_close(&file);
 
-        lv_fs_close(&file);
+    if(!success) {
+        LOG_WARNING(TAG_FONT, "Error loading font %s", font_name);
+        /*
+         * When `lvgl_load_font` fails it can leak some pointers.
+         * All non-null pointers can be assumed as allocated and
+         * `lv_font_free` should free them correctly.
+         */
+        hasp_font_free(font);
+        font = NULL;
     }
 
     return font;
