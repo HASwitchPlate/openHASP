@@ -228,46 +228,51 @@ static bool my_line_set_points(lv_obj_t* obj, const char* payload)
 
 static lv_font_t* haspPayloadToFont(const char* payload)
 {
-    uint8_t var = atoi(payload);
+    if(Parser::is_only_digits(payload)) {
+        uint8_t var = atoi(payload);
 
-    switch(var) {
-        case 0 ... 7:
-            // LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, robotocondensed_regular_12);
-            return hasp_get_font(var);
+        switch(var) {
+            case 0 ... 7:
+                return hasp_get_font(var);
 
-        case 8:
-            return &unscii_8_icon;
+            case 8:
+                return &unscii_8_icon;
 
 #ifndef ARDUINO_ARCH_ESP8266
 
 #ifdef HASP_FONT_1
-        case HASP_FONT_SIZE_1:
-            return &HASP_FONT_1;
+            case HASP_FONT_SIZE_1:
+                return &HASP_FONT_1;
 #endif
 
 #ifdef HASP_FONT_2
-        case HASP_FONT_SIZE_2:
-            LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, HASP_FONT_2);
-            return &HASP_FONT_2;
+            case HASP_FONT_SIZE_2:
+                LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, HASP_FONT_2);
+                return &HASP_FONT_2;
 #endif
 
 #ifdef HASP_FONT_3
-        case HASP_FONT_SIZE_3:
-            LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, HASP_FONT_3);
-            return &HASP_FONT_3;
+            case HASP_FONT_SIZE_3:
+                LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, HASP_FONT_3);
+                return &HASP_FONT_3;
 #endif
 
 #ifdef HASP_FONT_4
-        case HASP_FONT_SIZE_4:
-            LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, HASP_FONT_4);
-            return &HASP_FONT_4;
+            case HASP_FONT_SIZE_4:
+                LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, HASP_FONT_4);
+                return &HASP_FONT_4;
 #endif
 
 #endif
 
-        default:
-            return nullptr;
+            default:
+                return nullptr;
+        }
+    } else {
+        return get_font(payload);
     }
+
+    return nullptr;
 }
 
 static hasp_attribute_type_t hasp_process_label_long_mode(lv_obj_t* obj, const char* payload, char** text, bool update)
@@ -611,7 +616,7 @@ static hasp_attribute_type_t hasp_local_style_attr(lv_obj_t* obj, const char* at
         case ATTR_TEXT_FONT: {
             lv_font_t* font = haspPayloadToFont(payload);
             if(font) {
-                LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, *font);
+                LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, font);
                 uint8_t count = 3;
                 if(obj_check_type(obj, LV_HASP_ROLLER)) count = my_roller_get_visible_row_count(obj);
                 lv_obj_set_style_local_text_font(obj, part, state, font);

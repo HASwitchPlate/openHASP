@@ -298,8 +298,9 @@ void guiSetup()
     LOG_TRACE(TAG_LVGL, F(D_SERVICE_STARTING));
     gui_init_lvgl();
     gui_init_images();
-    gui_init_freetype();
     gui_init_filesystems();
+    gui_init_freetype();
+    font_setup();
 
     /* Initialize the LVGL display driver with correct orientation */
 #if(TOUCH_DRIVER == 0x2046) || defined(LGFX_USE_V1) // Use native display driver to rotate display and touch
