@@ -1150,11 +1150,11 @@ static void webHandleGuiConfig()
         httpMessage += getOption(-1, F("None"), bcklpin);
 #if defined(ARDUINO_ARCH_ESP32)
         char buffer[10];
-        uint8_t pins[] = {0, 5, 12, 13, 15, 16, 17, 18, 19, 21, 22, 23, 32};
+        uint8_t pins[] = {0, 5, 12, 13, 15, 16, 17, 18, 19, 21, 22, 23, 27, 32};
         for(uint8_t i = 0; i < sizeof(pins); i++) {
             // if(!gpioIsSystemPin(pins[i])) {
-                snprintf_P(buffer, sizeof(buffer), PSTR("GPIO %d"), pins[i]);
-                httpMessage += getOption(pins[i], buffer, bcklpin);
+            snprintf_P(buffer, sizeof(buffer), PSTR("GPIO %d"), pins[i]);
+            httpMessage += getOption(pins[i], buffer, bcklpin);
             // }
         }
 #else
