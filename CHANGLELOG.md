@@ -6,8 +6,8 @@
 - Use FreeType fonts from flash
 - Use LVGL binary fonts from flash, loaded into PSram
 - Removed defunct .zi font support
-- Breaking: The UTF codes for the built-in icons have changed from the previous list!
-- _Breaking: Font ID is replaced by xxxx?_
+- ~~Breaking: The UTF codes for the built-in icons have changed from the previous list!~~
+- Font ID is replaced by `namexx` (`where xx is the size`) but the previous Font ID still works for backwards compatibility
 
 ### Web UI
 - Updated to modern responsive design
