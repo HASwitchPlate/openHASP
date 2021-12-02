@@ -50,6 +50,7 @@ For support using openHASP, please join the [#openHASP channel][6] on Discord.
 ## [Buy me a coffee](https://www.buymeacoffee.com/aktdCofU)
 
 [![Buy me a coffee](https://www.buymeacoffee.com/assets/img/custom_images/black_img.png)](https://www.buymeacoffee.com/aktdCofU)
+[![Paypal donation](https://www.paypalobjects.com/en_US/i/btn/btn_donate_SM.gif)][9]
 
 [1]: https://github.com/HASwitchPlate/HASPone
 [2]: https://github.com/lvgl/lvgl
@@ -59,3 +60,4 @@ For support using openHASP, please join the [#openHASP channel][6] on Discord.
 [6]: https://discord.gg/VCWyuhF
 [7]: https://haswitchplate.github.io/openHASP-docs/0.6/design/objects#cheatsheet
 [8]: https://haswitchplate.github.io/openHASP-docs/0.6/design/objects#image
+[9]: https://www.paypal.com/donate/?business=E76SN28JLZCXU&currency_code=EUR
