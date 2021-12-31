@@ -37,6 +37,18 @@ void confDebugSet(const __FlashStringHelper* fstr_name)
     LOG_VERBOSE(TAG_CONF, F(D_BULLET "%S set"), fstr_name);
 }
 
+bool configSet(bool& value, const JsonVariant& setting, const __FlashStringHelper* fstr_name)
+{
+    if(!setting.isNull()) {
+        bool val = setting.as<bool>();
+        if(value != val) {
+            confDebugSet(fstr_name);
+            value = val;
+            return true;
+        }
+    }
+    return false;
+}
 bool configSet(int8_t& value, const JsonVariant& setting, const __FlashStringHelper* fstr_name)
 {
     if(!setting.isNull()) {

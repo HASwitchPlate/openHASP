@@ -24,6 +24,7 @@ void configOutput(const JsonObject& settings, uint8_t tag = TAG_CONF);
 bool configClearEeprom(void);
 
 /* ===== Getter and Setter Functions ===== */
+bool configSet(bool& value, const JsonVariant& setting, const __FlashStringHelper* fstr_name);
 bool configSet(int8_t& value, const JsonVariant& setting, const __FlashStringHelper* fstr_name);
 bool configSet(uint8_t& value, const JsonVariant& setting, const __FlashStringHelper* fstr_name);
 bool configSet(uint16_t& value, const JsonVariant& setting, const __FlashStringHelper* fstr_name);
@@ -60,6 +61,7 @@ const char FP_GUI_CALIBRATION[] PROGMEM  = "calibration";
 const char FP_GUI_BACKLIGHTPIN[] PROGMEM = "bckl";
 const char FP_GUI_POINTER[] PROGMEM      = "cursor";
 const char FP_DEBUG_TELEPERIOD[] PROGMEM = "tele";
+const char FP_DEBUG_ANSI[] PROGMEM       = "ansi";
 const char FP_GPIO_CONFIG[] PROGMEM      = "config";
 
 const char FP_HASP_CONFIG_FILE[] PROGMEM = "/config.json";

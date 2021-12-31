@@ -324,6 +324,7 @@ void saveConfig()
                 guiSetConfig(settings.as<JsonObject>());
 
             } else if(save == String(PSTR("debug"))) {
+                settings[FPSTR(FP_DEBUG_ANSI)] = webServer.hasArg(PSTR("ansi"));
                 debugSetConfig(settings.as<JsonObject>());
 
             } else if(save == String(PSTR("http"))) {
@@ -1739,11 +1740,17 @@ static void webHandleDebugConfig()
         httpMessage += F("</select></div></div>");
 
         // Telemetry Period
-        httpMessage += F("<div class='row gap'><div class='col-25'><label for='tele'>Telemetry Period</label></div>");
+        httpMessage += F("<div class='row'><div class='col-25'><label for='tele'>Telemetry Period</label></div>");
         httpMessage += F("<div class='col-75'><input type='number' id='tele' name='tele' min='0' max='65535' "
                          "value='");
         httpMessage += settings[FPSTR(FP_DEBUG_TELEPERIOD)].as<String>();
         httpMessage += F("'></div></div>");
+
+        // Invert
+        httpMessage += F("<div class='row gap'><div class='col-25'><label for='ansi'></label></div>");
+        httpMessage += F("<div class='col-75'><input type='checkbox' id='ansi' name='ansi'");
+        if(settings[FPSTR(FP_DEBUG_ANSI)].as<bool>()) httpMessage += F(" checked");
+        httpMessage += F(">Use ANSI Colors</div></div>");
 
 #if HASP_USE_SYSLOG > 0
         // Syslog host

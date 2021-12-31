@@ -139,6 +139,9 @@ bool debugGetConfig(const JsonObject& settings)
 {
     bool changed = false;
 
+    if(debugAnsiCodes != settings[FPSTR(FP_DEBUG_ANSI)].as<bool>()) changed = true;
+    settings[FPSTR(FP_DEBUG_ANSI)] = debugAnsiCodes;
+
     if(debugSerialBaud != settings[FPSTR(FP_CONFIG_BAUD)].as<uint16_t>()) changed = true;
     settings[FPSTR(FP_CONFIG_BAUD)] = debugSerialBaud;
 
@@ -176,13 +179,16 @@ bool debugSetConfig(const JsonObject& settings)
     configOutput(settings, TAG_DEBG);
     bool changed = false;
 
-    /* Serial Settings*/
+    /* Ansi Code Settings */
+    changed |= configSet(debugAnsiCodes, settings[FPSTR(FP_DEBUG_ANSI)], F("debugAnsi"));
+
+    /* Serial Settings */
     changed |= configSet(debugSerialBaud, settings[FPSTR(FP_CONFIG_BAUD)], F("debugSerialBaud"));
 
-    /* Teleperiod Settings*/
+    /* Teleperiod Settings */
     changed |= configSet(dispatch_setings.teleperiod, settings[FPSTR(FP_DEBUG_TELEPERIOD)], F("debugTelePeriod"));
 
-/* Syslog Settings*/
+/* Syslog Settings */
 #if HASP_USE_SYSLOG > 0
     if(!settings[FPSTR(FP_CONFIG_HOST)].isNull()) {
         changed |= strcmp(debugSyslogHost, settings[FPSTR(FP_CONFIG_HOST)]) != 0;
