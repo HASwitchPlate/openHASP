@@ -54,7 +54,7 @@ uint32_t mqttPublishCount;
 uint32_t mqttReceiveCount;
 uint32_t mqttFailedCount;
 
-char mqttServer[MAX_USERNAME_LENGTH]   = MQTT_HOST;
+char mqttServer[MAX_HOSTNAME_LENGTH]   = MQTT_HOST;
 char mqttUsername[MAX_USERNAME_LENGTH] = MQTT_USER;
 char mqttPassword[MAX_PASSWORD_LENGTH] = MQTT_PASSW;
 // char mqttNodeName[16]  = MQTT_NODENAME;
