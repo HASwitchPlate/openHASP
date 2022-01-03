@@ -6,7 +6,7 @@
 [![Discord](https://img.shields.io/discord/538814618106331137?color=%237289DA&label=discord&logo=discord&logoColor=white)][6]
 [![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](#Contributing)
 [![GitHub](https://img.shields.io/github/license/mashape/apistatus.svg)](https://github.com/HASwitchPlate/openHASP/blob/master/LICENSE)
-[!["Buy Me A Coffee"](https://img.shields.io/badge/buy%20me%20a%20coffee-donate-yellow.svg)](https://www.buymeacoffee.com/aktdCofU)
+[!["PayPal"](https://img.shields.io/badge/Paypal-donate-00457C.svg?logo=paypal)][9]
 
 Control your home-automation devices from a customizable touchscreen UI connected via MQTT.
 
