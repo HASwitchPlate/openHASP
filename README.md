@@ -47,10 +47,10 @@ Support
 ---------------------------
 For support using openHASP, please join the [#openHASP channel][6] on Discord.
 
-## [Doante][9]
+## [Donate][9]
 
 [![Buy me a coffee](https://www.buymeacoffee.com/assets/img/custom_images/black_img.png)](https://www.buymeacoffee.com/aktdCofU)
-[![Paypal donation](https://www.paypalobjects.com/en_US/i/btn/btn_donate_SM.gif)][9]
+[![Paypal donation](https://img.shields.io/badge/Paypal-donate-00457C?style=for-the-badge&logo=paypal)][9]
 
 [1]: https://github.com/HASwitchPlate/HASPone
 [2]: https://github.com/lvgl/lvgl
