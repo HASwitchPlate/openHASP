@@ -47,7 +47,7 @@ Support
 ---------------------------
 For support using openHASP, please join the [#openHASP channel][6] on Discord.
 
-## [Buy me a coffee](https://www.buymeacoffee.com/aktdCofU)
+## [Doante][9]
 
 [![Buy me a coffee](https://www.buymeacoffee.com/assets/img/custom_images/black_img.png)](https://www.buymeacoffee.com/aktdCofU)
 [![Paypal donation](https://www.paypalobjects.com/en_US/i/btn/btn_donate_SM.gif)][9]
