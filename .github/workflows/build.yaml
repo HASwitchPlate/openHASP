@@ -20,6 +20,12 @@ jobs:
             out: arduitouch
           - env: d1-mini-esp32_ili9341
             out: d1-mini-esp32
+          - env: d1-r32-waveshare_ili9486
+            out: d1-r32-espduino32
+          - env: d1-r32-unoshield_ili9341_adc
+            out: d1-r32-espduino32
+          - env: d1-r32-unoshield_ili9486_adc
+            out: d1-r32-espduino32
           - env: esp32-one_st7796
             out: esp32-one
           - env: esp32-touchdown
