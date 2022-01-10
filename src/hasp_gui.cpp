@@ -1,4 +1,4 @@
-/* MIT License - Copyright (c) 2019-2021 Francis Van Roie
+/* MIT License - Copyright (c) 2019-2022 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
 #include "hasplib.h"
@@ -15,8 +15,8 @@
 #include "drv/touch/touch_driver.h"
 
 //#include "drv/hasp_drv_display.h"
-// #include "drv/old/hasp_drv_touch.h"
-// #include "drv/old/hasp_drv_tft_espi.h"
+//#include "drv/old/hasp_drv_touch.h"
+//#include "drv/old/hasp_drv_tft_espi.h"
 
 #include "hasp_debug.h"
 #include "hasp_config.h"

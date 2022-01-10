@@ -1,4 +1,4 @@
-/* MIT License - Copyright (c) 2019-2021 Francis Van Roie
+/* MIT License - Copyright (c) 2019-2022 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
 #include <Arduino.h>
@@ -46,12 +46,12 @@ SPIClass espSPI(ESPSPI_MOSI, ESPSPI_MISO, ESPSPI_SCLK); // SPI port where esp is
 #define WIFI_PASSW ""
 #endif
 
-char wifiSsid[MAX_USERNAME_LENGTH] = WIFI_SSID;
+char wifiSsid[MAX_USERNAME_LENGTH]     = WIFI_SSID;
 char wifiPassword[MAX_PASSWORD_LENGTH] = WIFI_PASSW;
-char wifiIpAddress[16]        = "";
-uint16_t wifiReconnectCounter = 0;
-bool wifiOnline               = false;
-bool haspOnline               = false;
+char wifiIpAddress[16]                 = "";
+uint16_t wifiReconnectCounter          = 0;
+bool wifiOnline                        = false;
+bool haspOnline                        = false;
 
 // const byte DNS_PORT = 53;
 // DNSServer dnsServer;
@@ -400,14 +400,16 @@ static void wifiReconnect(void)
 #if defined(ARDUINO_ARCH_ESP8266)
     WiFi.disconnect();
     WiFi.begin(wifiSsid, wifiPassword);
+    WiFi.mode(WIFI_STA);
     WiFi.hostname(haspDevice.get_hostname());
 
 #elif defined(ARDUINO_ARCH_ESP32)
     // https://github.com/espressif/arduino-esp32/issues/3438#issuecomment-721428310
     WiFi.disconnect();
+    WiFi.setHostname(haspDevice.get_hostname());
+    WiFi.mode(WIFI_STA);
     WiFi.begin(wifiSsid, wifiPassword, WIFI_ALL_CHANNEL_SCAN);
     // WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE); // causes 255.255.255.255 IP errors
-    WiFi.setHostname(haspDevice.get_hostname());
 #endif
 }
 
@@ -451,7 +453,7 @@ void wifiSetup()
     if(wifiShowAP()) {
         WiFi.mode(WIFI_AP_STA);
     } else {
-        WiFi.mode(WIFI_STA);
+        //   WiFi.mode(WIFI_STA);
 
 #if defined(ARDUINO_ARCH_ESP8266)
         // wifiEventHandler[0]      = WiFi.onStationModeConnected(wifiSTAConnected);

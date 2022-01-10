@@ -1,4 +1,4 @@
-/* MIT License - Copyright (c) 2019-2021 Francis Van Roie
+/* MIT License - Copyright (c) 2019-2022 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
 //#include "webServer.h"
@@ -469,7 +469,7 @@ static void webHandleAbout()
         httpMessage.reserve(HTTP_PAGE_SIZE);
 
         /*
-                httpMessage += F("<p><h3>openHASP</h3>Copyright&copy; 2019-2021 Francis Van Roie ");
+                httpMessage += F("<p><h3>openHASP</h3>Copyright&copy; 2019-2022 Francis Van Roie ");
                 httpMessage += mitLicense;
                 httpMessage += F("<p>Based on the previous work of the following open source developers.</p><hr>");
                 httpMessage += F("<p><h3>HASwitchPlate</h3>Copyright&copy; 2019 Allen Derusha allen@derusha.org</b>");
@@ -2200,7 +2200,7 @@ static void webSendJavascript()
     // This string can be gzipped:
     javascript +=
         "function about(){document.getElementById('doc').innerHTML='<h3>" D_MANUFACTURER
-        "</h3>Copyright&copy; 2019-2021 Francis Van Roie</br>MIT License</p>"
+        "</h3>Copyright&copy; 2019-2022 Francis Van Roie</br>MIT License</p>"
         "<p>Permission is hereby granted, free of charge, to any person obtaining a copy of this software and "
         "associated documentation files(the \"Software\"), to deal in the Software without restriction, including "
         "without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and / or sell "
