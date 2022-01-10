@@ -38,7 +38,7 @@
 #define D_SERVICE_CONNECTED "Conectado"
 #define D_SERVICE_DISCONNECTED "Desconectado"
 
-#define D_SETTING_ENABLED "habilitado"     // New
+#define D_SETTING_ENABLED "Habilitado"     // New
 #define D_SETTING_DISABLED "Deshabilitado" // New
 
 #define D_NETWORK_IP_ADDRESS_RECEIVED "Se recibió la dirección IP: %s"
@@ -88,8 +88,8 @@
 
 #define D_ATTRIBUTE_UNKNOWN "Propiedad %s desconocida"
 // D_ATTRIBUTE_OBSOLETE D_ATTRIBUTE_INSTEAD can be used together or just D_ATTRIBUTE_OBSOLETE alone
-#define D_ATTRIBUTE_OBSOLETE "%s is obsolete"  // new
-#define D_ATTRIBUTE_INSTEAD ", use %s instead" // new
+#define D_ATTRIBUTE_OBSOLETE "%s está obsoleto"
+#define D_ATTRIBUTE_INSTEAD ", usa %s en su lugar"
 #define D_ATTRIBUTE_READ_ONLY "%s es solo lectura"
 #define D_ATTRIBUTE_PAGE_METHOD_INVALID "No se puede llamar %s en una página"
 #define D_ATTRIBUTE_ALIGN_INVALID "Invalid align property: %s" // new
@@ -146,8 +146,8 @@
 #define D_HTTP_MAIN_MENU "Menú principal"
 #define D_HTTP_REBOOT "Reiniciar"
 #define D_HTTP_CONFIGURATION "Configuración"
-#define D_HTTP_CONFIG_CHANGED "Configuration has changed, please click <a href='/reboot'>Restart</a> to save changes to flash."
-#define D_HTTP_SENDING_PAGE "Se envió pagina %S a %s" // New
+#define D_HTTP_CONFIG_CHANGED "La configuración ha cambiado, haga clic en <a href='/reboot'>Reiniciar</a> para guardar los cambios en la memoria flash."
+#define D_HTTP_SENDING_PAGE "Se envió pagina %S a %s"
 #define D_HTTP_FOOTER "por Francis Van Roie"
 
 #define D_INFO_VERSION "Versión"

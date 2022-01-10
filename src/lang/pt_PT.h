@@ -147,7 +147,7 @@
 #define D_HTTP_MAIN_MENU "Menu Principal"
 #define D_HTTP_REBOOT "Reiniciar"
 #define D_HTTP_CONFIGURATION "Configuração"
-#define D_HTTP_CONFIG_CHANGED "Configuration has changed, please click <a href='/reboot'>Restart</a> to save changes to flash."
+#define D_HTTP_CONFIG_CHANGED "Configuration has changed, please click <a href='/reboot'>Restart</a> to save changes to flash." // New
 #define D_HTTP_SENDING_PAGE "Foi enviado página %S a %s"
 #define D_HTTP_FOOTER "por Francis Van Roie"
 

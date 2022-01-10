@@ -137,7 +137,7 @@
 #define D_HTTP_PREV_PAGE "Page précédente"
 #define D_HTTP_NEXT_PAGE "Page suivante"
 #define D_HTTP_CALIBRATE "Calibrer"
-#define D_HTTP_ANTIBURN "Anti-Brûle" // New
+#define D_HTTP_ANTIBURN "Anti-Brûle"
 #define D_HTTP_SCREENSHOT "Capture d'écran"
 #define D_HTTP_FILE_BROWSER "Éditeur de fichiers"
 #define D_HTTP_FIRMWARE_UPGRADE "Mise à jour du micrologiciel"
@@ -146,8 +146,8 @@
 #define D_HTTP_MAIN_MENU "Menu principal"
 #define D_HTTP_REBOOT "Redémarrer"
 #define D_HTTP_CONFIGURATION "Configuration"
-#define D_HTTP_CONFIG_CHANGED "Configuration has changed, please click <a href='/reboot'>Restart</a> to save changes to flash."
-#define D_HTTP_SENDING_PAGE "La page %S a été envoyée à %s"
+#define D_HTTP_CONFIG_CHANGED "La configuration a changé, cliquez sur <a href='/reboot'>Redémarrer</a> pour enregistrer les modifications dans le flash."
+#define D_HTTP_SENDING_PAGE "La page %S envoyée à %s"
 #define D_HTTP_FOOTER "par Francis Van Roie"
 
 #define D_INFO_VERSION "Version"

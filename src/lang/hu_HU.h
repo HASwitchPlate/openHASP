@@ -146,7 +146,7 @@
 #define D_HTTP_MAIN_MENU "Főmenü"
 #define D_HTTP_REBOOT "Újraindítás"
 #define D_HTTP_CONFIGURATION "Beállítások"
-#define D_HTTP_CONFIG_CHANGED "Configuration has changed, please click <a href='/reboot'>Restart</a> to save changes to flash."
+#define D_HTTP_CONFIG_CHANGED "Configuration has changed, please click <a href='/reboot'>Restart</a> to save changes to flash." // New
 #define D_HTTP_SENDING_PAGE "%S oldal küldése %s-re"
 #define D_HTTP_FOOTER "készítette: Francis Van Roie"
 
