@@ -146,6 +146,7 @@
 #define D_HTTP_MAIN_MENU "Hoofdmenu"
 #define D_HTTP_REBOOT "Herstarten"
 #define D_HTTP_CONFIGURATION "Configuratie"
+#define D_HTTP_CONFIG_CHANGED "Configuration has changed, please click <a href='/reboot'>Restart</a> to save changes to flash."
 #define D_HTTP_SENDING_PAGE "Pagina %S verstuurd naar %s" // New
 #define D_HTTP_FOOTER "door Francis Van Roie"
 

@@ -301,58 +301,64 @@ static void webSendHeader(const char* nodename, uint32_t httpdatalength, bool go
 #endif
 }
 
-void saveConfig()
+bool saveConfig()
 {
-    if(webServer.method() == HTTP_POST) {
-        if(webServer.hasArg(PSTR("save"))) {
-            String save = webServer.arg(PSTR("save"));
+    bool updated = false;
 
-            StaticJsonDocument<256> settings;
-            for(int i = 0; i < webServer.args(); i++) settings[webServer.argName(i)] = webServer.arg(i);
+    if(webServer.method() == HTTP_POST && webServer.hasArg(PSTR("save"))) {
+        String save = webServer.arg(PSTR("save"));
 
-            if(save == String(PSTR("hasp"))) {
-                haspSetConfig(settings.as<JsonObject>());
+        StaticJsonDocument<256> settings;
+        for(int i = 0; i < webServer.args(); i++) settings[webServer.argName(i)] = webServer.arg(i);
+
+        if(save == String(PSTR("hasp"))) {
+            updated = haspSetConfig(settings.as<JsonObject>());
 
 #if HASP_USE_MQTT > 0
-            } else if(save == String(PSTR("mqtt"))) {
-                mqttSetConfig(settings.as<JsonObject>());
+        } else if(save == String(PSTR("mqtt"))) {
+            updated = mqttSetConfig(settings.as<JsonObject>());
 #endif
 
-            } else if(save == String(PSTR("gui"))) {
-                settings[FPSTR(FP_GUI_POINTER)] = webServer.hasArg(PSTR("cur"));
-                settings[FPSTR(FP_GUI_INVERT)]  = webServer.hasArg(PSTR("inv"));
-                guiSetConfig(settings.as<JsonObject>());
+        } else if(save == String(PSTR("gui"))) {
+            settings[FPSTR(FP_GUI_POINTER)] = webServer.hasArg(PSTR("cur"));
+            settings[FPSTR(FP_GUI_INVERT)]  = webServer.hasArg(PSTR("inv"));
+            updated                         = guiSetConfig(settings.as<JsonObject>());
 
-            } else if(save == String(PSTR("debug"))) {
-                settings[FPSTR(FP_DEBUG_ANSI)] = webServer.hasArg(PSTR("ansi"));
-                debugSetConfig(settings.as<JsonObject>());
+        } else if(save == String(PSTR("debug"))) {
+            settings[FPSTR(FP_DEBUG_ANSI)] = webServer.hasArg(PSTR("ansi"));
+            updated                        = debugSetConfig(settings.as<JsonObject>());
 
-            } else if(save == String(PSTR("http"))) {
-                httpSetConfig(settings.as<JsonObject>());
+        } else if(save == String(PSTR("http"))) {
+            updated = httpSetConfig(settings.as<JsonObject>());
 
-                // Password might have changed
-                if(!httpIsAuthenticated(F("config"))) return;
+            // Password might have changed
+            if(!httpIsAuthenticated(F("config"))) return updated;
 
 #if HASP_USE_WIFI > 0
-            } else if(save == String(PSTR("wifi"))) {
-                wifiSetConfig(settings.as<JsonObject>());
+        } else if(save == String(PSTR("wifi"))) {
+            updated = wifiSetConfig(settings.as<JsonObject>());
 #endif
-            }
         }
     }
+
+    return updated;
 }
 
 static void webHandleRoot()
 {
     if(!httpIsAuthenticated(F("root"))) return;
+    bool updated = saveConfig();
 
-    saveConfig();
     {
         String httpMessage((char*)0);
         httpMessage.reserve(HTTP_PAGE_SIZE);
         httpMessage += F("<h1>");
         httpMessage += haspDevice.get_hostname();
         httpMessage += F("</h1><hr>");
+
+        if(updated) {
+            httpMessage += F("<p class='info'>" D_HTTP_CONFIG_CHANGED "</p>");
+        }
 
         httpMessage += F("<a href='/config/hasp'>" D_HTTP_HASP_DESIGN "</a>");
         httpMessage += F("<a href='/screenshot'>" D_HTTP_SCREENSHOT "</a>");
@@ -966,7 +972,7 @@ static void webHandleConfig()
 { // http://plate01/config
     if(!httpIsAuthenticated(F("config"))) return;
 
-    saveConfig();
+    bool updated = saveConfig();
 
 // Reboot after saving wifi config in AP mode
 #if HASP_USE_WIFI > 0 && !defined(STM32F4xx)
@@ -981,6 +987,10 @@ static void webHandleConfig()
         httpMessage += F("<h1>");
         httpMessage += haspDevice.get_hostname();
         httpMessage += F("</h1><hr>");
+
+        if(updated) {
+            httpMessage += F("<p class='info'>" D_HTTP_CONFIG_CHANGED "</p>");
+        }
 
 #if HASP_USE_WIFI > 0
         httpMessage += F("<a href='/config/wifi'>" D_HTTP_WIFI_SETTINGS "</a>");

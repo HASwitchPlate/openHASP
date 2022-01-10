@@ -146,6 +146,7 @@
 #define D_HTTP_MAIN_MENU "Meniu principal"
 #define D_HTTP_REBOOT "Repornire"
 #define D_HTTP_CONFIGURATION "Setări"
+#define D_HTTP_CONFIG_CHANGED "Configuration has changed, please click <a href='/reboot'>Restart</a> to save changes to flash."
 #define D_HTTP_SENDING_PAGE "Pagina %S trimisă la %s"
 #define D_HTTP_FOOTER "de Francis Van Roie"
 
