@@ -51,6 +51,7 @@ static lv_font_t* font_add_to_list(const char* payload)
     lv_font_t* font = hasp_font_load(filename);
     char* name_p    = NULL;
 
+#if defined(ARDUINO_ARCH_ESP32)
     if(!font) {
         // Try .ttf file
 
@@ -85,6 +86,7 @@ static lv_font_t* font_add_to_list(const char* payload)
             font = info.font;
         }
     }
+#endif
 
     if(!font) return NULL;
     LOG_VERBOSE(TAG_FONT, F("Loaded font %s size %d"), filename, font->line_height);
