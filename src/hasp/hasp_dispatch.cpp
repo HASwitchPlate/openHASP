@@ -1113,6 +1113,11 @@ void dispatch_send_discovery(const char*, const char*, uint8_t source)
     gpio_discovery(input, relay, led, dimmer);
 #endif
 
+    // Display resolution
+    JsonArray disp = doc.createNestedArray(F("disp"));
+    disp.add(haspTft.tft.width());
+    disp.add(haspTft.tft.height());
+
     size_t len = serializeJson(doc, data);
 
     switch(mqtt_send_discovery(data, len)) {
