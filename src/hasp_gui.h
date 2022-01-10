@@ -28,6 +28,7 @@ void gui_hide_pointer(bool hidden);
 void guiCalibrate(void);
 void guiTakeScreenshot(const char* pFileName); // to file
 void guiTakeScreenshot(void);                  // webclient
+void guiGetDisplayRes(uint16_t pInfoArr[3]);   // HA Discovery
 
 /* ===== Read/Write Configuration ===== */
 #if HASP_USE_CONFIG > 0

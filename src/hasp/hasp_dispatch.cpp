@@ -1109,6 +1109,17 @@ void dispatch_send_discovery(const char*, const char*, uint8_t source)
     JsonArray led    = doc.createNestedArray(F("light"));
     JsonArray dimmer = doc.createNestedArray(F("dim"));
 
+    // Display information; orientation and resolution
+    JsonObject display_info = doc.createNestedObject(F("disp"));
+    uint16_t disp_info[3];
+    guiGetDisplayRes(disp_info);
+    LOG_VERBOSE(TAG_MQTT_PUB, F("guiGetDisplayInfo. disp_info: %u, %u, %u"), disp_info[0], disp_info[1], disp_info[2]);
+
+    // We could also drop the orientation and just send the x/y and let the client infer orientation from x/y?
+    display_info[F("xres")] = disp_info[0];
+    display_info[F("yres")] = disp_info[1];
+    display_info[F("ori")]  = disp_info[2];
+
 #if HASP_USE_GPIO > 0
     gpio_discovery(input, relay, led, dimmer);
 #endif

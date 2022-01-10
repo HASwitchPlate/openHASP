@@ -770,3 +770,14 @@ void guiTakeScreenshot()
     }
 }
 #endif
+
+/** (basic) display info
+ *
+ **/
+void guiGetDisplayRes(uint16_t pInfoArr[3])
+{
+    // X,Y dimensions assuming default orientation
+    pInfoArr[0] = tft_width;
+    pInfoArr[1] = tft_height;
+    pInfoArr[2] = gui_settings.rotation;
+}
