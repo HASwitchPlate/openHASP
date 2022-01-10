@@ -41,7 +41,16 @@ static int tick_thread(void* data)
     return 0;
 }
 
-void TftSdl::init(int w, int h)
+int32_t TftSdl::width()
+{
+    return _width;
+}
+int32_t TftSdl::height()
+{
+    return _height;
+}
+
+void TftSdl::init(int32_t w, int h)
 {
 
 // Workaround for sdl2 `-m32` crash
@@ -49,6 +58,9 @@ void TftSdl::init(int w, int h)
 #ifndef WIN32
     setenv("DBUS_FATAL_WARNINGS", "0", 1);
 #endif
+
+    _width  = w;
+    _height = h;
 
     /* Add a display
      * Use the 'monitor' driver which creates window on PC's monitor to simulate a display*/

@@ -1115,8 +1115,8 @@ void dispatch_send_discovery(const char*, const char*, uint8_t source)
 
     // Display resolution
     JsonArray disp = doc.createNestedArray(F("disp"));
-    disp.add(haspTft.tft.width());
-    disp.add(haspTft.tft.height());
+    disp.add(haspTft.width());
+    disp.add(haspTft.height());
 
     size_t len = serializeJson(doc, data);
 

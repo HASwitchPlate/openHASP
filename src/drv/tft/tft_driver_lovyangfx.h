@@ -61,6 +61,13 @@ class LovyanGfx : BaseTft {
 
     const char* get_tft_model();
 
+    int32_t width(){
+        return tft.width();
+    }
+    int32_t height(){
+        return tft.height();
+    }
+
   private:
     uint32_t get_tft_driver();
     uint32_t get_touch_driver();

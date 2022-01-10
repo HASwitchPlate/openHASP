@@ -40,6 +40,13 @@ class TftEspi : BaseTft {
 
     const char* get_tft_model();
 
+    int32_t width(){
+        return tft.width();
+    }
+    int32_t height(){
+        return tft.height();
+    }
+
   private:
     void tftOffsetInfo(uint8_t pin, uint8_t x_offset, uint8_t y_offset)
     {

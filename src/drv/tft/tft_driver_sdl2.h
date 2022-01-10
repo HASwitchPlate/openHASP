@@ -27,6 +27,12 @@ class TftSdl : BaseTft {
     bool is_driver_pin(uint8_t pin);
 
     const char* get_tft_model();
+
+    int32_t width();
+    int32_t height();
+
+  private:
+    int32_t _width, _height;
 };
 
 } // namespace dev
