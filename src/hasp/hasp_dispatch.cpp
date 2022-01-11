@@ -1175,7 +1175,7 @@ void dispatch_statusupdate(const char*, const char*, uint8_t source)
         // #endif
 
         snprintf_P(buffer, sizeof(buffer), PSTR("\"tftDriver\":\"%s\",\"tftWidth\":%u,\"tftHeight\":%u}"),
-                   haspTft.get_tft_model(), (TFT_WIDTH), (TFT_HEIGHT));
+                   haspTft.get_tft_model(), haspTft.width(), haspTft.height());
         strcat(data, buffer);
     }
 
