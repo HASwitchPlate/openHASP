@@ -6,6 +6,7 @@
 - Use FreeType fonts from flash
 - Use LVGL binary fonts from flash, loaded into PSram
 - Removed defunct .zi font support
+- Added Vietnamese encoding (thanks @kydang789)
 - ~~Breaking: The UTF codes for the built-in icons have changed from the previous list!~~
 - Font ID is replaced by `namexx` (`where xx is the size`) but the previous Font ID still works for backwards compatibility
 
@@ -13,19 +14,24 @@
 - Updated to modern responsive design
 - Allow for a customizible `vars.css`, `style.css`, `script.js` and `edit.htm`
 - _Selectable dark/light theme?_
+- Add checkbox to toggle ANSI codes (thanks @geiseri)
+- Display info message when configuration is changed and reboot is needed
 
-### Commands
+### GUI
 - Hide cursor during `antiburn` and `idle` if the pointer is enabled
 
 ### Custom component
-- Expose `antiburn` for the CC
-- Expose the device URL in discovery messages
+- Expose `antiburn` for the CC (thanks @dgomes)
+- Expose the device URL in discovery message
+- Add display resolution to discovery message
 
 ### Architecture
-- Moved to Arduino 2.0 with native LittleFS library
+- Moved to Arduino 2.0.2 with native LittleFS library
 - Moved to ESP-IDF 4.4 with fix for FragAttacks CVEs
-- Prepare support for ESP32S2
+- Prepare support for ESP32-S2
 - Breaking: Removed support for ESP8266
+
+Updated ArduinoJson to 6.19.1
 
 
 ## v0.6.2
