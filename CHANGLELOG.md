@@ -31,7 +31,7 @@
 - Prepare support for ESP32-S2
 - Breaking: Removed support for ESP8266
 
-Updated ArduinoJson to 6.19.1 and TFT_eSPI to 2.4.25
+Update libraries to ArduinoJson 6.19.1, TFT_eSPI 2.4.25, LovyanGFX 0.4.11 and Adafruit STMPE610 1.1.4
 
 
 ## v0.6.2
