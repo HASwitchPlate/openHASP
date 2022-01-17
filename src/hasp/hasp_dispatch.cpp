@@ -1279,6 +1279,14 @@ void dispatch_service(const char*, const char* payload, uint8_t source)
     }
 #endif
 
+#if HASP_USE_FTP > 0
+    if(!strcmp_P(payload, "start ftp")) {
+        ftpStart();
+    } else if(!strcmp_P(payload, "stop ftp")) {
+        ftpStop();
+    }
+#endif
+
 #if HASP_USE_HTTP > 0 || HASP_USE_HTTP_ASYNC > 0
     if(!strcmp_P(payload, "start http")) {
         httpStart();

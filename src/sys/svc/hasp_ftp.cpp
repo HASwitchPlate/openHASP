@@ -16,18 +16,14 @@
 #include "FtpServerKey.h"
 #include "SimpleFTPServer.h"
 
+#if HASP_USE_HTTP > 0 || HASP_USE_HTTP_ASYNC > 0
+extern hasp_http_config_t http_config;
+#endif
+
 FtpServer ftpSrv; // set #define FTP_DEBUG in ESP8266FtpServer.h to see ftp verbose on serial
 
 uint16_t ftpPort   = 23;
 uint8_t ftpEnabled = true; // Enable telnet debug output
-
-#if HASP_USE_HTTP > 0 || HASP_USE_HTTP_ASYNC > 0
-extern hasp_http_config_t http_config;
-static inline bool telnet_has_password()
-{
-    return (strlen(http_config.username) != 0) || (strlen(http_config.password) != 0);
-}
-#endif
 
 void _callback(FtpOperation ftpOperation, unsigned int freeSpace, unsigned int totalSpace)
 {
@@ -81,16 +77,25 @@ void _transferCallback(FtpTransferOperation ftpOperation, const char* name, unsi
 };
 
 void ftpStop(void)
-{}
+{
+    // LOG_WARNING(TAG_FTP, F("Service cannot be stopped"));
+    ftpSrv.end();
+    LOG_INFO(TAG_FTP, F(D_SERVICE_STOPPED));
+}
 
 void ftpStart()
 {
-    LOG_TRACE(TAG_TFT, F(D_SERVICE_STARTING));
+    LOG_TRACE(TAG_FTP, F(D_SERVICE_STARTING));
     ftpSrv.setCallback(_callback);
     ftpSrv.setTransferCallback(_transferCallback);
 
-    ftpSrv.begin("esp8266", "esp8266"); // username, password for ftp.   (default 21, 50009 for PASV)
-    LOG_INFO(TAG_TFT, F(D_SERVICE_STARTED));
+#if HASP_USE_HTTP > 0 || HASP_USE_HTTP_ASYNC > 0
+    ftpSrv.begin(http_config.username, http_config.password); // Password must be non-empty
+#else
+    ftpSrv.begin("ftpuser", "haspadmin"); // username, password for ftp.   (default 21, 50009 for PASV)
+#endif
+
+    LOG_INFO(TAG_FTP, F(D_SERVICE_STARTED));
 }
 
 void ftpSetup()
