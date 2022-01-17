@@ -253,6 +253,9 @@ void debug_get_tag(uint8_t tag, char* buffer)
         case TAG_DEBG:
             memcpy_P(buffer, PSTR("DBUG"), 5);
             break;
+        case TAG_FTP:
+            memcpy_P(buffer, PSTR("FTP "), 5);
+            break;
         case TAG_TELN:
             memcpy_P(buffer, PSTR("TELN"), 5);
             break;

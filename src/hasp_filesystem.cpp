@@ -141,15 +141,22 @@ void filesystemUnzip(const char*, const char* filename, uint8_t source)
 
 void filesystemInfo()
 { // Get all information of your SPIFFS
+    char used[16]  = "";
+    char total[16] = "";
+
 #ifdef ESP8266
     FSInfo fs_info;
     HASP_FS.info(fs_info);
-    Log.verbose(TAG_FILE, "Partition size: total: %d, used: %d", fs_info.totalBytes, fs_info.usedBytes);
+    Parser::format_bytes(fs_info.usedBytes(), used, sizeof(used));
+    Parser::format_bytes(fs_info.totalBytes(), total, sizeof(total));
 #endif
 
 #ifdef ESP32
-    Log.verbose(TAG_FILE, "Partition size: total: %d, used: %d", HASP_FS.totalBytes(), HASP_FS.usedBytes());
+    Parser::format_bytes(HASP_FS.usedBytes(), used, sizeof(used));
+    Parser::format_bytes(HASP_FS.totalBytes(), total, sizeof(total));
 #endif
+
+    Log.verbose(TAG_FILE, "Partition size: used: %s / total: %s", total, used);
 }
 
 void filesystemList()

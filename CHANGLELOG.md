@@ -50,6 +50,9 @@ Update libraries to ArduinoJson 6.19.1, TFT_eSPI 2.4.25, LovyanGFX 0.4.11 and Ad
 ### Objects
 - Add `antiburn` command to prevent static parts of the screen to create a *ghosting* effect in some LCDs or conditions
 
+## Services
+- Add SimpleFTPServer to easily upload and download files to the plate *(one simultanious connection only)*
+
 ### Devices
 - Add Analog touch driver for Unoshield displays (thanks @wesleygas)
 - Add Arduitouch MOD ESP32 with 2.4" or 2.8"
