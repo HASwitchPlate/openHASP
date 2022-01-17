@@ -22,8 +22,10 @@ extern hasp_http_config_t http_config;
 
 FtpServer ftpSrv; // set #define FTP_DEBUG in ESP8266FtpServer.h to see ftp verbose on serial
 
-uint16_t ftpPort   = 23;
-uint8_t ftpEnabled = true; // Enable telnet debug output
+uint16_t ftpPort         = 23;
+uint8_t ftpEnabled       = true; // Enable telnet debug output
+size_t transferSize      = 0;
+const char* transferName = NULL;
 
 void _callback(FtpOperation ftpOperation, unsigned int freeSpace, unsigned int totalSpace)
 {
@@ -35,7 +37,7 @@ void _callback(FtpOperation ftpOperation, unsigned int freeSpace, unsigned int t
             LOG_VERBOSE(TAG_FTP, F(D_SERVICE_DISCONNECTED));
             break;
         case FTP_FREE_SPACE_CHANGE:
-            LOG_VERBOSE(TAG_FTP, "Free space change, free %u of %u!\n", freeSpace, totalSpace);
+            filesystemInfo();
             break;
         default:
             break;
@@ -43,22 +45,40 @@ void _callback(FtpOperation ftpOperation, unsigned int freeSpace, unsigned int t
 };
 void _transferCallback(FtpTransferOperation ftpOperation, const char* name, unsigned int transferredSize)
 {
+    transferName = name;
+    transferSize = transferredSize;
+
     switch(ftpOperation) {
-        case FTP_UPLOAD_START:
-            LOG_VERBOSE(TAG_FTP, "Start upload of file %s byte %u\n", name, transferredSize);
-            break;
+        case FTP_UPLOAD_START: {
+            char size[16];
+            Parser::format_bytes(transferredSize, size, sizeof(size));
+            LOG_VERBOSE(TAG_FTP, "Start upload of file %s (%s)", name, size);
+            return;
+        }
+        case FTP_DOWNLOAD_START: {
+            char size[16];
+            Parser::format_bytes(transferredSize, size, sizeof(size));
+            LOG_VERBOSE(TAG_FTP, "Start download of file %s (%s)", name, size);
+            return;
+        }
         case FTP_UPLOAD:
-            LOG_VERBOSE(TAG_FTP, "Upload of file %s byte %u\n", name, transferredSize);
+        case FTP_DOWNLOAD:
+            return;
+        case FTP_TRANSFER_STOP: {
+            char size[16];
+            Parser::format_bytes(transferredSize, size, sizeof(size));
+            LOG_VERBOSE(TAG_FTP, "Completed transfer of file %s (%s)", name, size);
             break;
-        case FTP_TRANSFER_STOP:
-            LOG_VERBOSE(TAG_FTP, "Completed upload of file %s byte %u\n", name, transferredSize);
-            break;
+        }
         case FTP_TRANSFER_ERROR:
             LOG_VERBOSE(TAG_FTP, ("Transfer error!"));
             break;
         default:
             break;
     }
+
+    transferName = NULL;
+    transferSize = 0;
 
     /* FTP_UPLOAD_START = 0,
      * FTP_UPLOAD = 1,
@@ -95,6 +115,7 @@ void ftpStart()
     ftpSrv.begin("ftpuser", "haspadmin"); // username, password for ftp.   (default 21, 50009 for PASV)
 #endif
 
+    LOG_VERBOSE(TAG_FTP, F(FTP_SERVER_VERSION));
     LOG_INFO(TAG_FTP, F(D_SERVICE_STARTED));
 }
 
@@ -111,7 +132,13 @@ IRAM_ATTR void ftpLoop()
 }
 
 void ftpEverySecond(void)
-{}
+{
+    if(!transferSize || !transferName) return;
+
+    char size[16];
+    Parser::format_bytes(transferSize, size, sizeof(size));
+    LOG_VERBOSE(TAG_FTP, D_BULLET "%s (%s)", transferName, size);
+}
 
 #if HASP_USE_CONFIG > 0
 bool ftpGetConfig(const JsonObject& settings)
