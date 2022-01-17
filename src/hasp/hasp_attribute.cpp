@@ -1855,7 +1855,7 @@ static hasp_attribute_type_t attribute_common_method(lv_obj_t* obj, uint16_t att
             if(attr_hash == ATTR_OPEN)
                 lv_dropdown_open(obj);
             else
-                lv_dropdown_open(obj);
+                lv_dropdown_close(obj);
             break;
 
         default:
