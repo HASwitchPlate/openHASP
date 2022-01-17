@@ -106,6 +106,10 @@ void setup()
     telnetSetup();
 #endif
 
+#if HASP_USE_FTP > 0
+    ftpSetup();
+#endif
+
 #if HASP_USE_TASMOTA_CLIENT > 0
     slaveSetup();
 #endif

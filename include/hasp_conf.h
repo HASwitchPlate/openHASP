@@ -85,6 +85,10 @@
 #define HASP_START_HTTP 1
 #endif
 
+#ifndef HASP_START_FTP
+#define HASP_START_FTP 1
+#endif
+
 #ifndef HASP_USE_MDNS
 #define HASP_USE_MDNS (HASP_HAS_NETWORK)
 #endif
@@ -93,8 +97,16 @@
 #define HASP_USE_SYSLOG (HASP_HAS_NETWORK)
 #endif
 
+#ifndef HASP_USE_FTP
+#define HASP_USE_FTP 0
+#endif
+
 #ifndef HASP_USE_TELNET
 #define HASP_USE_TELNET 0
+#endif
+
+#ifndef HASP_START_FTP
+#define HASP_START_FTP 1
 #endif
 
 #ifndef HASP_START_TELNET
@@ -277,6 +289,10 @@ static WiFiSpiClass WiFi;
 
 #if HASP_USE_CONSOLE > 0
 #include "sys/svc/hasp_console.h"
+#endif
+
+#if HASP_USE_FTP > 0
+#include "sys/svc/hasp_ftp.h"
 #endif
 
 #if HASP_USE_TELNET > 0

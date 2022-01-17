@@ -1,0 +1,19 @@
+{
+	"name": "SimpleFTPServer",
+	"description": "Simple FTP Server for using esp8266 and esp32 SPIFFs",
+	"keywords": "esp8266, ftp, spiffs",
+	"authors":
+		{
+			"name": "Renzo Mischianti",
+			"email": "renzo.mischianti@gmail.com",
+			"url": "https://www.mischianti.org"
+		},
+	"repository":
+	{
+		"type": "git",
+		"url": "https://github.com/xreef/SimpleFTPServer"
+	},
+	"url": "https://www.mischianti.org",
+	"frameworks": "Arduino",
+	"platforms": "*"
+}

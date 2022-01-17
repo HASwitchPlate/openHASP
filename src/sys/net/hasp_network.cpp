@@ -92,9 +92,13 @@ IRAM_ATTR void networkLoop(void)
     mdnsLoop();
 #endif // MDNS
 
+#if HASP_USE_FTP > 0
+    ftpLoop();
+#endif // FTP
+
 #if HASP_USE_TELNET > 0
-    telnetLoop(); // Console
-#endif            // TELNET
+    telnetLoop();
+#endif // TELNET
 }
 
 bool networkEvery5Seconds(void)
