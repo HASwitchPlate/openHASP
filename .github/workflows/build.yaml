@@ -32,6 +32,8 @@ jobs:
             out: esp32-touchdown
           - env: freetouchdeck
             out: freetouchdeck
+          - env: freetouchdeck_8MB
+            out: freetouchdeck
           - out: featherwing
             env: "huzzah32-featherwing-24 -e huzzah32-featherwing-35"
           - env: lanbon_l8
@@ -45,6 +47,8 @@ jobs:
           - env: ttgo-t7-v1.5_ili9341
             out: ttgo-t7
           - env: wt32-sc01
+            out: wt32-sc01
+          - env: wt32-sc01_16MB
             out: wt32-sc01
           - env: yeacreate-nscreen32
             out: yeacreate
