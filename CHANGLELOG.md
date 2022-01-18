@@ -20,10 +20,13 @@
 ### GUI
 - Hide cursor during `antiburn` and `idle` if the pointer is enabled
 
+### Bug fixes
+- Fix bug `close` bug in `dropdownlist` (thanks @htvekov)
+- Fix screen dimensions in `statusupdate` message, taking into account current orientation (thanks @kquinsland)
+
 ### Custom component
 - Expose `antiburn` for the CC (thanks @dgomes)
 - Expose the device URL in discovery message
-- Add display resolution to discovery message
 
 ### Architecture
 - Moved to Arduino 2.0.2 with native LittleFS library
@@ -31,7 +34,7 @@
 - Prepare support for ESP32-S2
 - Breaking: Removed support for ESP8266
 
-Update libraries to ArduinoJson 6.19.1, TFT_eSPI 2.4.25, LovyanGFX 0.4.11 and Adafruit STMPE610 1.1.4
+Update libraries to ArduinoJson 6.19.1, TFT_eSPI 2.4.25, LovyanGFX 0.4.12 and Adafruit STMPE610 1.1.4
 
 
 ## v0.6.2
