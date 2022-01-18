@@ -53,6 +53,9 @@
 /***************************************************
  *        Timezone Settings
  **************************************************/
+#define NTPSERVER1 "pool.ntp.org"
+#define NTPSERVER2 "time.nist.gov"
+#define NTPSERVER3 "time.google.com"
 #define MYTZ                                                                                                           \
     "CET-1CEST,M3.5.0,M10.5.0/3" // A full list with possible timezones can be found here
                                  // https://gist.github.com/alwynallan/24d96091655391107939
