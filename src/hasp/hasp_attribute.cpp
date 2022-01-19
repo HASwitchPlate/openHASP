@@ -1047,8 +1047,9 @@ static hasp_attribute_type_t special_attribute_src(lv_obj_t* obj, const char* pa
     if(update) {
         my_image_release_resources(obj);
 
-        if(payload != strstr_P(payload, PSTR("http://"))) { // not start with http
-            if(payload == strstr_P(payload, PSTR("L:"))) {  // startsWith command/
+        if(payload != strstr_P(payload, PSTR("http://")) ||  // not start with http
+           payload != strstr_P(payload, PSTR("https://"))) { // not start with https
+            if(payload == strstr_P(payload, PSTR("L:"))) {   // startsWith command/
                 lv_img_set_src(obj, payload);
             } else if(payload == strstr_P(payload, PSTR("/littlefs/"))) { // startsWith command/
                 char tempsrc[64] = "L:";
@@ -1131,14 +1132,21 @@ static hasp_attribute_type_t special_attribute_src(lv_obj_t* obj, const char* pa
             } else {
                 LOG_WARNING(TAG_ATTR, "HTTP result %d", httpCode);
             }
+            http.end();
 #endif
         }
     } else {
         switch(lv_img_src_get_type(obj)) {
             case LV_IMG_SRC_FILE:
                 *text = (char*)lv_img_get_file_name(obj);
+                break;
             case LV_IMG_SRC_SYMBOL:
                 *text = (char*)lv_img_get_src(obj);
+                *text += strlen(LV_SYMBOL_DUMMY);
+                break;
+            case LV_IMG_SRC_VARIABLE:
+                // src_ptr + sizeof(lv_img_dsc_t) + w*h* depth
+                break;
         }
     }
     return HASP_ATTR_TYPE_STR;
