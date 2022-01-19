@@ -150,6 +150,7 @@ const char* Esp32Device::get_chip_model()
         case CHIP_ESP32:
             return "ESP32";
 
+#if ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(2, 0, 0)
 #ifdef ESP32
         case CHIP_ESP32S2:
             return "ESP32-S2";
@@ -162,6 +163,7 @@ const char* Esp32Device::get_chip_model()
 
         case CHIP_ESP32H2:
             return "ESP32-H2";
+#endif
 #endif
 
         default:
