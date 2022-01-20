@@ -260,8 +260,13 @@
 		#define FTP_FILE_WRITE_APPEND "a+"
 		#define FTP_FILE_WRITE_CREATE "w+"
 	#else
-		#include "LittleFS.h"
-		#define STORAGE_MANAGER LittleFS
+		#if 1
+			#include "LittleFS.h"
+			#define STORAGE_MANAGER LittleFS
+		#else
+			#include "LITTLEFS.h"
+			#define STORAGE_MANAGER LITTLEFS
+		#endif
 		#define FTP_FILE File
 		#define FTP_DIR File
 
@@ -509,7 +514,11 @@ private:
 	#elif STORAGE_TYPE == STORAGE_FATFS
 	  return file->fileName();
 	#else
-	  return file->path();
+		#if 1
+	  		return file->path();
+		#else
+	  		return file->name();
+		#endif
 	#endif
   }
   bool     exists( const char * path ) {
