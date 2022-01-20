@@ -25,19 +25,24 @@ extern const char* msgbox_default_map[];   // memory pointer to lvgl default btn
 
 void my_image_release_resources(lv_obj_t* obj)
 {
+    if(!obj) return;
+
     const void* src       = lv_img_get_src(obj);
     lv_img_src_t src_type = lv_img_src_get_type(src);
 
     switch(src_type) {
         case LV_IMG_SRC_VARIABLE: {
+            lv_img_set_src(obj, LV_SYMBOL_DUMMY); // empty symbol to clear the image
+            lv_img_cache_invalidate_src(src);     // remove src from cache
+
             lv_img_dsc_t* img_dsc = (lv_img_dsc_t*)src;
-            free((uint8_t*)img_dsc->data); // free image data
-            lv_mem_free(img_dsc);          // free image descriptor
+            hasp_free((uint8_t*)img_dsc->data); // free image data
+            lv_mem_free(img_dsc);               // free image descriptor
             break;
         }
 
         case LV_IMG_SRC_FILE:
-            lv_img_cache_invalidate_src(src);
+            lv_img_cache_invalidate_src(src); // remove src from cache
             break;
 
         default:
@@ -1047,88 +1052,127 @@ static hasp_attribute_type_t special_attribute_src(lv_obj_t* obj, const char* pa
     if(update) {
         my_image_release_resources(obj);
 
-        if(payload != strstr_P(payload, PSTR("http://")) ||  // not start with http
+        if(payload != strstr_P(payload, PSTR("http://")) &&  // not start with http
            payload != strstr_P(payload, PSTR("https://"))) { // not start with https
-            if(payload == strstr_P(payload, PSTR("L:"))) {   // startsWith command/
+
+            if(payload == strstr_P(payload, PSTR("L:"))) { // startsWith command/
                 lv_img_set_src(obj, payload);
+
             } else if(payload == strstr_P(payload, PSTR("/littlefs/"))) { // startsWith command/
                 char tempsrc[64] = "L:";
                 strncpy(tempsrc + 2, payload + 10, sizeof(tempsrc) - 2);
                 lv_img_set_src(obj, tempsrc);
+
             } else {
                 char tempsrc[64] = LV_SYMBOL_DUMMY;
                 strncpy(tempsrc + 3, payload, sizeof(tempsrc) - 3);
                 lv_img_set_src(obj, tempsrc);
             }
+
         } else {
 #if defined(ARDUINO) && defined(ARDUINO_ARCH_ESP32)
             HTTPClient http;
             http.begin(payload);
+
+            const char* hdrs[] = {"Content-Type"};
+            size_t numhdrs     = sizeof(hdrs) / sizeof(char*);
+            http.collectHeaders(hdrs, numhdrs);
+
             int httpCode = http.GET();
             if(httpCode == HTTP_CODE_OK) {
-                int total             = http.getSize();
-                int len               = total;
-                int read              = 0;
-                lv_img_dsc_t* img_dsc = (lv_img_dsc_t*)lv_mem_alloc(sizeof(lv_img_dsc_t));
-                uint8_t* img_buf      = (uint8_t*)(len > 0 ? hasp_malloc(len) : NULL);
+                int total   = http.getSize();
+                int url_len = strlen(payload) + 1;
+                int buf_len = total - sizeof(lv_img_header_t);
+                int dsc_len = sizeof(lv_img_dsc_t) + url_len;
 
-                LOG_VERBOSE(TAG_ATTR, "HTTP OK: buffer created of %d bytes", len);
-
-                if(img_dsc && img_buf && len > sizeof(lv_img_header_t)) { // total size must be larger then header size
-                    memset(img_buf, 0, len);
-
-                    Stream* stream = http.getStreamPtr();
-                    while(http.connected() && (len > 0 || len == -1)) {
-                        size_t size = stream->available();
-                        int c       = 0;
-
-                        if(size) {
-                            if(read == 0 && size >= sizeof(lv_img_header_t)) { // read 4-byte header first
-                                c = stream->readBytes((uint8_t*)img_dsc, sizeof(lv_img_header_t));
-                                LOG_VERBOSE(TAG_ATTR, D_BULLET "HEADER READ: %d bytes  w=%d  h=%d", c,
-                                            img_dsc->header.w, img_dsc->header.h);
-                            } else if(read != 0) { // header has been read
-                                c = stream->readBytes(img_buf + read - sizeof(lv_img_header_t), size);
-                                LOG_VERBOSE(TAG_ATTR, D_BULLET "HTTP READ: %d bytes", c);
-                            }
-
-                            if(len > 0) {
-                                len -= c;
-                                read += c;
-                            }
-                        }
-                        delay(1);
-                    }
-                    LOG_VERBOSE(TAG_ATTR, D_BULLET "HTTP TOTAL READ: %d bytes, %d expected", read,
-                                img_dsc->header.w * img_dsc->header.h * 2 + 4);
-
-                    img_dsc->data_size = total - 4;
-                    img_dsc->data      = img_buf;
-                    lv_img_set_src(obj, img_dsc);
-
-                    // /*Decode the PNG image*/
-                    // unsigned char* png_decoded; /*Will be pointer to the decoded image*/
-                    // uint32_t png_width;         /*Will be the width of the decoded image*/
-                    // uint32_t png_height;        /*Will be the width of the decoded image*/
-
-                    // /*Decode the loaded image in ARGB8888 */
-                    // uint32_t error = lodepng_decode32(&png_decoded, &png_width, &png_height, img_buf, (size_t)total);
-
-                    // if(error) {
-                    //     LOG_ERROR(TAG_ATTR, "error %u: %s\n", error, lodepng_error_text(error));
-                    // } else {
-                    //     img_dsc->header.always_zero = 0;                          /*It must be zero*/
-                    //     img_dsc->header.cf          = LV_IMG_CF_TRUE_COLOR_ALPHA; /*Set the color format*/
-                    //     img_dsc->header.w           = png_width;
-                    //     img_dsc->header.h           = png_height;
-                    //     img_dsc->data_size          = png_width * png_height * 3;
-                    //     img_dsc->data               = png_decoded;
-                    //     lv_img_set_src(obj, img_dsc);
-                    // }
-
-                } else {
-                    LOG_WARNING(TAG_ATTR, "image buffer creation failed %d", len);
+                if(buf_len <= 0) { // header could not fit
+                    LOG_ERROR(TAG_ATTR, "img data size is too small %d", buf_len);
+                    return HASP_ATTR_TYPE_STR;
                 }
+
+                Stream* stream = http.getStreamPtr();
+                if(!stream) {
+                    LOG_ERROR(TAG_ATTR, "failed to get http data stream");
+                    return HASP_ATTR_TYPE_STR;
+                }
+
+                lv_img_dsc_t* img_dsc = (lv_img_dsc_t*)lv_mem_alloc(dsc_len);
+                if(!img_dsc) {
+                    LOG_ERROR(TAG_ATTR, "img header creation failed %d", dsc_len);
+                    return HASP_ATTR_TYPE_STR;
+                }
+                char* url = ((char*)img_dsc) + sizeof(lv_img_dsc_t);
+
+                uint8_t* img_buf = (uint8_t*)(buf_len > 0 ? hasp_malloc(buf_len) : NULL);
+                if(!img_buf) {
+                    lv_mem_free(img_dsc); // destroy header too
+                    LOG_ERROR(TAG_ATTR, "img buffer creation failed %d", buf_len);
+                    return HASP_ATTR_TYPE_STR;
+                }
+
+                // LOG_VERBOSE(TAG_ATTR, "img buffers created of %d and %d bytes", dsc_len, buf_len);
+                LOG_VERBOSE(TAG_ATTR, "img Content-Type: %s", http.header((size_t)0).c_str());
+
+                memset(img_buf, 0, buf_len);    // empty data buffer
+                memset(img_dsc, 0, dsc_len);    // empty img descriptor + url
+                strncpy(url, payload, url_len); // store the url behind the img_dsc data
+                img_dsc->data = img_buf;        // store pointer to the start of the data buffer
+                // LOG_WARNING(TAG_ATTR, "%s %d %x == %x", __FILE__, __LINE__, img_dsc->data, img_buf);
+
+                int read = 0;
+                // while(http.connected() && (buf_len > 0 || buf_len == -1)) {
+                while(http.connected() && (buf_len > 0)) {
+
+                    if(size_t size = stream->available()) {
+                        int c = 0;
+
+                        if(read != 0) { // header has already been read, read data
+                            c = stream->readBytes(img_buf, size);
+                            LOG_WARNING(TAG_ATTR, "%s %d %x -> %x", __FILE__, __LINE__, img_dsc->data, img_buf);
+                            img_buf += c;
+                            buf_len -= c;
+                            LOG_VERBOSE(TAG_ATTR, D_BULLET "IMG DATA: %d bytes read=%d buf_len=%d", c, read, buf_len);
+
+                        } else if(read == 0 && size >= sizeof(lv_img_header_t)) { // read 4-byte header first
+                            c = stream->readBytes((uint8_t*)img_dsc, sizeof(lv_img_header_t));
+                            LOG_VERBOSE(TAG_ATTR, D_BULLET "IMG HEADER: %d bytes  w=%d  h=%d", c, img_dsc->header.w,
+                                        img_dsc->header.h);
+                        }
+
+                        read += c;
+
+                    } else {
+                        delay(2); // wait for data
+                    }
+                }
+                LOG_VERBOSE(TAG_ATTR, D_BULLET "HTTP TOTAL READ: %d bytes, %d expected, %d buffered", read,
+                            img_dsc->header.w * img_dsc->header.h * 2 + sizeof(lv_img_header_t),
+                            img_buf - img_dsc->data);
+
+                img_dsc->data_size = img_buf - img_dsc->data; // end of buffer - start of buffer
+                lv_img_set_src(obj, img_dsc);
+                LOG_WARNING(TAG_ATTR, "%s %d %x -> %x", __FILE__, __LINE__, img_dsc->data, img_buf);
+
+                // /*Decode the PNG image*/
+                // unsigned char* png_decoded; /*Will be pointer to the decoded image*/
+                // uint32_t png_width;         /*Will be the width of the decoded image*/
+                // uint32_t png_height;        /*Will be the width of the decoded image*/
+
+                // /*Decode the loaded image in ARGB8888 */
+                // uint32_t error = lodepng_decode32(&png_decoded, &png_width, &png_height, img_buf, (size_t)total);
+
+                // if(error) {
+                //     LOG_ERROR(TAG_ATTR, "error %u: %s\n", error, lodepng_error_text(error));
+                // } else {
+                //     img_dsc->header.always_zero = 0;                          /*It must be zero*/
+                //     img_dsc->header.cf          = LV_IMG_CF_TRUE_COLOR_ALPHA; /*Set the color format*/
+                //     img_dsc->header.w           = png_width;
+                //     img_dsc->header.h           = png_height;
+                //     img_dsc->data_size          = png_width * png_height * 3;
+                //     img_dsc->data               = png_decoded;
+                //     lv_img_set_src(obj, img_dsc);
+                // }
+
             } else {
                 LOG_WARNING(TAG_ATTR, "HTTP result %d", httpCode);
             }
@@ -1136,17 +1180,22 @@ static hasp_attribute_type_t special_attribute_src(lv_obj_t* obj, const char* pa
 #endif
         }
     } else {
-        switch(lv_img_src_get_type(obj)) {
+        const void* src = lv_img_get_src(obj);
+        switch(lv_img_src_get_type(src)) {
             case LV_IMG_SRC_FILE:
+                LOG_VERBOSE(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
                 *text = (char*)lv_img_get_file_name(obj);
                 break;
             case LV_IMG_SRC_SYMBOL:
-                *text = (char*)lv_img_get_src(obj);
-                *text += strlen(LV_SYMBOL_DUMMY);
+                LOG_VERBOSE(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
+                *text = (char*)src + strlen(LV_SYMBOL_DUMMY);
                 break;
             case LV_IMG_SRC_VARIABLE:
-                // src_ptr + sizeof(lv_img_dsc_t) + w*h* depth
+                LOG_VERBOSE(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
+                *text = (char*)src + sizeof(lv_img_dsc_t);
                 break;
+            default:
+                LOG_VERBOSE(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
         }
     }
     return HASP_ATTR_TYPE_STR;
