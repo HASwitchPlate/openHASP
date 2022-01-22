@@ -87,8 +87,9 @@ void LovyanGfx::init(int w, int h)
         cfg.pin_d4     = TFT_D4;
         cfg.pin_d5     = TFT_D5;
         cfg.pin_d6     = TFT_D6;
-        cfg.pin_d7     = TFT_D7 bus->config(cfg); // 設定値をバスに反映します。
-        tft._panel_instance.setBus(bus);          // Set the bus on the panel.
+        cfg.pin_d7     = TFT_D7;
+        bus->config(cfg); // 設定値をバスに反映します。
+        tft._panel_instance->setBus(bus);          // Set the bus on the panel.
     }
 #else
     {                    // Set SPI bus control
