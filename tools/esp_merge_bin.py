@@ -30,7 +30,7 @@ def get_fw_version(source, target, env):
 def copy_merge_bins(source, target, env):
     version = 'v' + str(HASP_VER_MAJ) + '.' + str(HASP_VER_MIN) + '.' + str(HASP_VER_REV)
     name = str(target[0]).split(os.path.sep)[2]
-    name = name.replace('_8MB', '').replace('_16MB', '')
+    name = name.replace('_4MB', '').replace('_8MB', '').replace('_16MB', '').replace('_32MB', '')
     flash_size = env.GetProjectOption("board_upload.flash_size")
 
     bootloader = "{}tools{}sdk{}esp32{}bin{}bootloader_dio_40m.bin".format(FRAMEWORK_DIR, os.path.sep, os.path.sep, os.path.sep, os.path.sep, os.path.sep)
@@ -70,7 +70,7 @@ def copy_merge_bins(source, target, env):
 def copy_ota(source, target, env):
     version = 'v' + str(HASP_VER_MAJ) + '.' + str(HASP_VER_MIN) + '.' + str(HASP_VER_REV)
     name =str(target[0]).split(os.path.sep)[2]
-    name = name.replace('_8MB', '').replace('_16MB', '')
+    name = name.replace('_4MB', '').replace('_8MB', '').replace('_16MB', '').replace('_32MB', '')
 
     firmware_src = str(target[0])
     firmware_dst ="{}firmware{}{}_ota_{}.bin".format(OUTPUT_DIR, os.path.sep, name, version)

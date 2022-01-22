@@ -11,6 +11,15 @@
 - Font ID is replaced by `namexx` (`where xx is the size`) but the previous Font ID still works for backwards compatibility
 
 ### Web UI
+- _Selectable dark/light theme?_
+
+### Services
+- Add SimpleFTPServer to easily upload and download files to the plate *(one simultanious connection only)*
+
+
+## v0.6.3
+
+### Web UI
 - Updated to modern responsive design
 - Allow for a customizible `vars.css`, `style.css`, `script.js` and `edit.htm`
 - _Selectable dark/light theme?_
@@ -21,7 +30,7 @@
 - Hide cursor during `antiburn` and `idle` if the pointer is enabled
 
 ### Objects
-- `img.src` now accepts `https` urls, needs testing
+- `img.src` now accepts `https` urls (thanks @htvekov)
 
 ### Bug fixes
 - Fix a bug in `dropdownlist` were `close` method performed `open` instead (thanks @htvekov)
@@ -36,9 +45,9 @@
 - Moved to Arduino 2.0.2 with native LittleFS library
 - Moved to ESP-IDF 4.4 with fix for FragAttacks CVEs
 - Prepare support for ESP32-S2
-- Breaking: Removed support for ESP8266
+- **Breaking:** Removed support for ESP8266!
 
-Update libraries to ArduinoJson 6.19.1, TFT_eSPI 2.4.25, LovyanGFX 0.4.12 and Adafruit STMPE610 1.1.4
+Updated libraries to ArduinoJson 6.19.1, TFT_eSPI 2.4.25, LovyanGFX 0.4.12 and Adafruit STMPE610 1.1.4
 
 
 ## v0.6.2
@@ -57,12 +66,9 @@ Update libraries to ArduinoJson 6.19.1, TFT_eSPI 2.4.25, LovyanGFX 0.4.12 and Ad
 ### Objects
 - Add `antiburn` command to prevent static parts of the screen to create a *ghosting* effect in some LCDs or conditions
 
-## Services
-- Add SimpleFTPServer to easily upload and download files to the plate *(one simultanious connection only)*
-
 ### Devices
 - Add Analog touch driver for Unoshield displays (thanks @wesleygas)
-- Add Arduitouch MOD ESP32 with 2.4" or 2.8"
+- Add AZ-Touch MOD ESP32 with 2.4" or 2.8"
 - Add Lilygo®Ttgo Pi ESP32 with TFT 3.5"
 - Add Waveshare ESP32 One development board with Rpi MHS4001(B) or Waveshare RPi(C) LCD display
 - Add D1-R32 ESP32 development board with with Waveshare ILI9486 Touch Shield
@@ -74,7 +80,7 @@ Update libraries to ArduinoJson 6.19.1, TFT_eSPI 2.4.25, LovyanGFX 0.4.12 and Ad
 - Fix configurable mqttPort (thanks @Qargh)
 - Fix opaque background of `spinner` object in HASP theme (thanks @nagyrobi)
 
-Updated AceButton to 1.9.1 and ArduinoJson to 6.18.5
+Updated libraries to AceButton 1.9.1 and ArduinoJson 6.18.5
 
 
 ## v0.6.1
@@ -152,7 +158,7 @@ Updated AceButton to 1.9.1 and ArduinoJson to 6.18.5
 - Allow dynamic configuration of HA entities using the [openHASP Custom Component](https://github.com/HASwitchPlate/openHASP-custom-component/releases/) (thanks @dgomes)
 - Add Manufacturer and Model to statusupdate
 
-### Updated lvgl to 7.11.0, ArduinoJson to 6.18.0 and TFT_eSPI to 2.3.70
+Updated libraries to lvgl 7.11.0, ArduinoJson 6.18.0 and TFT_eSPI 2.3.70
 
 ### Internationalization:
 - Added French language
@@ -183,7 +189,7 @@ Name changed to openHASP - https://haswitchplate.github.io/openHASP-docs/
 - Add `action` property for local page navigation
 - Add `back`, `prev`, `next` attributes to pages #114
 - JSON Serialize text in payloads containing text attributes #140
-- Add arduitouch-esp32_ili9341 config and allow for TFT_BACKLIGHT_ON set to LOW #131
+- Add az-touch-mod-esp32_ili9341 config and allow for TFT_BACKLIGHT_ON set to LOW #131
 - Add [FreeTouchDeck](https://haswitchplate.github.io/openHASP-docs/#devices/freetouchdeck/) and [ESP32-Touchdown](https://haswitchplate.github.io/openHASP-docs/#devices/esp32-touchdown/) configs
 - Add roller `mode` `infinite` attribute
 - Add btnmatrix `toggle` and `one_check` attributes
