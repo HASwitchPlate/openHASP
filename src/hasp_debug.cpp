@@ -383,9 +383,6 @@ static void debugPrintLvglMemory(int level, Print* _logOutput)
 
 static void debugPrintPriority(int level, Print* _logOutput)
 {
-    // if(_logOutput == &syslogClient) {
-    // }
-
     switch(level) {
         case LOG_LEVEL_FATAL ... LOG_LEVEL_ERROR:
             debugSendAnsiCode(F(TERM_COLOR_RED), _logOutput);
@@ -414,35 +411,12 @@ static void debugPrintPriority(int level, Print* _logOutput)
 void debugPrintPrefix(uint8_t tag, int level, Print* _logOutput)
 {
     char buffer[10];
+    debug_get_tag(tag, buffer);
 
-#if 0 && HASP_USE_SYSLOG > 0
-
-    if(_logOutput == syslogClient && syslogClient) {
-        if(syslogClient->beginPacket(debugSyslogHost, debugSyslogPort)) {
-
-            // IETF Doc: https://tools.ietf.org/html/rfc5424 - The Syslog Protocol
-            // BSD Doc: https://tools.ietf.org/html/rfc3164 - The BSD syslog Protocol
-
-            syslogClient->print(F("<"));
-            syslogClient->print((16 + debugSyslogFacility) * 8 + level);
-            syslogClient->print(F(">"));
-
-            if(debugSyslogProtocol == SYSLOG_PROTO_IETF) {
-                syslogClient->print(F("1 - "));
-            }
-
-            debug_get_tag(tag, buffer);
-            syslogClient->print(F("%s %s"), haspDevice.get_hostname(), buffer);
-
-            if(debugSyslogProtocol == SYSLOG_PROTO_IETF) {
-                syslogClient->print(F(" - - - \xEF\xBB\xBF")); // include UTF-8 BOM
-            } else {
-                syslogClient->print(F(": "));
-            }
-
-            debugPrintHaspMemory(level, _logOutput);
-            debugPrintLvglMemory(level, _logOutput);
-        }
+#if HASP_USE_SYSLOG > 0
+    if(debugSyslogPrefix(tag, level, _logOutput, buffer)) {
+        debugPrintHaspMemory(level, _logOutput);
+        debugPrintLvglMemory(level, _logOutput);
         return;
     }
 #endif // HASP_USE_SYSLOG
@@ -460,7 +434,6 @@ void debugPrintPrefix(uint8_t tag, int level, Print* _logOutput)
         debugPrintPriority(level, _logOutput);
     }
 
-    debug_get_tag(tag, buffer);
 #ifdef ARDUINO
     _logOutput->printf(PSTR(" %s: "), buffer);
 #else

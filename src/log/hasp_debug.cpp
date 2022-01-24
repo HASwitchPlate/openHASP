@@ -69,7 +69,7 @@ uint8_t debugSyslogFacility = 0;
 uint8_t debugSyslogProtocol = 0;
 
 // A UDP instance to let us send and receive packets over UDP
-WiFiUDP* syslogClient;
+WiFiUDP* syslogClient = NULL;
 #define SYSLOG_PROTO_IETF 0
 
 // Create a new syslog instance with LOG_KERN facility
@@ -268,10 +268,62 @@ void debugGetHistoryLine(size_t num)
 }
 */
 
+bool debugSyslogPrefix(uint8_t tag, int level, Print* _logOutput, const char* processname)
+{
+
+#if HASP_USE_SYSLOG > 0
+
+    if(syslogClient && _logOutput == syslogClient) {
+        if(syslogClient->beginPacket(debugSyslogHost, debugSyslogPort)) {
+
+            // IETF Doc: https://tools.ietf.org/html/rfc5424 - The Syslog Protocol
+            // BSD Doc: https://tools.ietf.org/html/rfc3164 - The BSD syslog Protocol
+            char buffer[32 + STR_LEN_HOSTNAME];
+            int len;
+            uint priority = (16 + debugSyslogFacility) * 8 + level;
+
+            if(debugSyslogProtocol == SYSLOG_PROTO_IETF) {
+                len = snprintf_P(buffer, sizeof(buffer), PSTR("<%d>1 - %s %s - - \xEF\xBB\xBF"), priority,
+                                 haspDevice.get_hostname(), processname);
+            } else {
+                len = snprintf_P(buffer, sizeof(buffer), PSTR("<%d>%s %s: "), priority, haspDevice.get_hostname(),
+                                 processname);
+            }
+
+            if(len > 0) syslogClient->write((uint8_t*)buffer, len);
+
+            // syslogClient->print(F("<"));
+            // syslogClient->print((16 + debugSyslogFacility) * 8 + level);
+            // syslogClient->print(F(">"));
+
+            // if(debugSyslogProtocol == SYSLOG_PROTO_IETF) {
+            //     syslogClient->print(F("1 - "));
+            // }
+
+            // // debug_get_tag(tag, buffer);
+            // char buffer[10];
+            // syslogClient->print(F("%s %s"), haspDevice.get_hostname(), buffer);
+
+            // if(debugSyslogProtocol == SYSLOG_PROTO_IETF) {
+            //     syslogClient->print(F(" - - - \xEF\xBB\xBF")); // include UTF-8 BOM
+            // } else {
+            //     syslogClient->print(F(": "));
+            // }
+
+            // debugPrintHaspMemory(level, _logOutput);
+            // debugPrintLvglMemory(level, _logOutput);
+        }
+        return true;
+    }
+#endif // HASP_USE_SYSLOG
+
+    return false;
+}
+
 void debugPrintSuffix(uint8_t tag, int level, Print* _logOutput)
 {
 #if HASP_USE_SYSLOG > 0
-    if(_logOutput == syslogClient && syslogClient) {
+    if(syslogClient && _logOutput == syslogClient) {
         syslogClient->endPacket();
         return;
     }

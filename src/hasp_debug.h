@@ -143,6 +143,7 @@ void debugStop(void);
 void debugPrintHaspHeader(Print* output);
 void debugPrintTag(uint8_t tag, Print* _logOutput);
 void debugPrintPrefix(uint8_t tag, int level, Print* _logOutput);
+bool debugSyslogPrefix(uint8_t tag, int level, Print* _logOutput, const char* processname);
 
 #ifdef __cplusplus
 }
