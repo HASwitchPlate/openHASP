@@ -23,8 +23,8 @@
 - Updated to modern responsive design
 - Allow for a customizible `vars.css`, `style.css`, `script.js` and `edit.htm`
 - _Selectable dark/light theme?_
-- Add checkbox to toggle ANSI codes (thanks @geiseri)
 - Display info message when configuration is changed and reboot is needed
+- Add checkbox to toggle ANSI codes (thanks @geiseri)
 
 ### GUI
 - Hide cursor during `antiburn` and `idle` if the pointer is enabled
@@ -36,6 +36,7 @@
 - Fix a bug in `dropdownlist` were `close` method performed `open` instead (thanks @htvekov)
 - Fix `src` bug in `img` objects that could corrupt images sent over http (thanks @htvekov)
 - Fix screen dimensions in `statusupdate` message, taking into account current orientation (thanks @kquinsland)
+- Fix syslog message format (thanks @geiseri)
 
 ### Custom component
 - Expose `antiburn` for the CC (thanks @dgomes)
