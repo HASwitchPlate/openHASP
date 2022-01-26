@@ -1969,9 +1969,9 @@ void webHandleHaspConfig(AsyncWebServerRequest* request)
 
         while(file) {
             String filename = file.name();
-            if(filename.endsWith(".zi"))
-                httpMessage +=
-                    getOption(file.name(), file.name(), filename == settings[FPSTR(FP_CONFIG_ZIFONT)].as<String>());
+            // if(filename.endsWith(".zi"))
+            //     httpMessage +=
+            //         getOption(file.name(), file.name(), filename == settings[FPSTR(FP_CONFIG_ZIFONT)].as<String>());
             file = root.openNextFile();
         }
 #elif defined(ARDUINO_ARCH_ESP8266)
@@ -2145,7 +2145,7 @@ void httpHandleResetConfig(AsyncWebServerRequest* request)
         httpMessage += haspDevice.get_hostname();
         httpMessage += F("</h1><hr>");
 
-        if(resetConfirmed) { // User has confirmed, so reset everything
+        if(resetConfirmed) {                           // User has confirmed, so reset everything
             bool formatted = dispatch_factory_reset(); // configClearEeprom();
             if(formatted) {
                 httpMessage += F("<b>Resetting all saved settings and restarting device</b>");
@@ -2328,7 +2328,6 @@ void httpReconnect()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 IRAM_ATTR void httpLoop(void)
 {}
-
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 void httpEverySecond()

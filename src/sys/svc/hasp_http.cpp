@@ -1895,7 +1895,7 @@ static void webHandleHaspConfig()
 
         while(file) {
             String filename = file.name();
-            if(filename.endsWith(".zi")) httpMessage += getOption(filename, filename, main_font);
+            // if(filename.endsWith(".zi")) httpMessage += getOption(filename, filename, main_font);
             file = root.openNextFile();
         }
 #elif defined(ARDUINO_ARCH_ESP8266)
