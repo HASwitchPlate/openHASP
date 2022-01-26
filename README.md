@@ -49,7 +49,7 @@ For support using openHASP, please join the [#openHASP channel][6] on Discord.
 
 ## [Donate][9]
 
-[![Buy me a coffee](https://www.buymeacoffee.com/assets/img/custom_images/black_img.png)](https://www.buymeacoffee.com/aktdCofU)
+[![Buy me a coffee](https://img.shields.io/badge/Kofi-donate-FF5E5B?style=for-the-badge&logo=kofi)](https://ko-fi.com/openhasp)
 [![Paypal donation](https://img.shields.io/badge/Paypal-donate-00457C?style=for-the-badge&logo=paypal)][9]
 
 [1]: https://github.com/HASwitchPlate/HASPone

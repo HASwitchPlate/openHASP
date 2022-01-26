@@ -6,12 +6,11 @@
 - _Selectable dark/light theme?_
 
 ### Objects
-- All objects can have a custom `tag` which can contain JSON data (or numbers or text) (thanks @nagyrobi)
+- All objects have a custom `tag` property which can contain abritrary JSON data *(or numbers or text)* (thanks @nagyrobi)
 
 ### Fonts
 - Use FreeType fonts from flash
 - Use LVGL binary fonts from flash, loaded into PSram
-- Removed defunct .zi font support
 - ~~Breaking: The UTF codes for the built-in icons have changed from the previous list!~~
 - Font ID is replaced by `namexx` (`where xx is the size`) but the previous Font ID still works for backwards compatibility
 
@@ -24,7 +23,6 @@
 ### Web UI
 - Updated to modern responsive design
 - Allow for a customizible `vars.css`, `style.css`, `script.js` and `edit.htm`
-- _Selectable dark/light theme?_
 - Display info message when configuration is changed and reboot is needed
 - Add checkbox to toggle ANSI codes (thanks @geiseri)
 
@@ -33,10 +31,11 @@
 
 ### Objects
 - `img.src` now accepts both `http` and `https` urls (thanks @htvekov)
-- `img.src` now accepts `png` and `binary` image urls
+- `img.src` now accepts `png` and `binary` image urls, PSram is *highly* recommended
 
 ### Fonts
 - Added Vietnamese encoding build option (thanks @kydang789)
+- **Breaking:** Removed defunct .zi font support
 
 ### Bug fixes
 - Fix a bug in `dropdownlist` were `close` method performed `open` instead (thanks @htvekov)
