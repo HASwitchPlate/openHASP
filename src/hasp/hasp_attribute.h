@@ -15,6 +15,8 @@ lv_chart_series_t* my_chart_get_series(lv_obj_t* chart, uint8_t ser_num);
 #endif
 
 void my_obj_set_value_str_text(lv_obj_t* obj, uint8_t part, lv_state_t state, const char* text);
+void my_obj_set_tag(lv_obj_t* obj, const char* tag);
+const char* my_obj_get_tag(lv_obj_t* obj);
 void my_btnmatrix_map_clear(lv_obj_t* obj);
 void my_msgbox_map_clear(lv_obj_t* obj);
 void my_line_clear_points(lv_obj_t* obj);
@@ -25,6 +27,7 @@ void hasp_process_obj_attribute(lv_obj_t* obj, const char* attr_p, const char* p
 bool attribute_set_normalized_value(lv_obj_t* obj, hasp_update_value_t& value);
 
 void attr_out_str(lv_obj_t* obj, const char* attribute, const char* data);
+void attr_out_json(lv_obj_t* obj, const char* attribute, const char* data);
 void attr_out_int(lv_obj_t* obj, const char* attribute, int32_t val);
 void attr_out_color(lv_obj_t* obj, const char* attribute, lv_color_t color);
 
@@ -36,8 +39,9 @@ typedef enum {
     HASP_ATTR_TYPE_LONG_MODE_INVALID       = -10,
     HASP_ATTR_TYPE_RANGE_ERROR             = -9,
     HASP_ATTR_TYPE_METHOD_INVALID_FOR_PAGE = -8,
-    HASP_ATTR_TYPE_ALIGN_INVALID           = -5,
-    HASP_ATTR_TYPE_COLOR_INVALID           = -4,
+    HASP_ATTR_TYPE_ALIGN_INVALID           = -6,
+    HASP_ATTR_TYPE_COLOR_INVALID           = -5,
+    HASP_ATTR_TYPE_JSON_READONLY           = -4,
     HASP_ATTR_TYPE_STR_READONLY            = -3,
     HASP_ATTR_TYPE_BOOL_READONLY           = -2,
     HASP_ATTR_TYPE_INT_READONLY            = -1,
@@ -45,6 +49,7 @@ typedef enum {
     HASP_ATTR_TYPE_INT,
     HASP_ATTR_TYPE_BOOL,
     HASP_ATTR_TYPE_STR,
+    HASP_ATTR_TYPE_JSON,
     HASP_ATTR_TYPE_COLOR,
     HASP_ATTR_TYPE_ALIGN,
     HASP_ATTR_TYPE_DIRECTION_XY,
@@ -418,6 +423,7 @@ _HASP_ATTRIBUTE(SCALE_END_LINE_WIDTH, scale_end_line_width, lv_style_int_t)
 #define ATTR_ANIM_SPEED 281
 #define ATTR_START_VALUE 11828
 #define ATTR_COMMENT 62559
+#define ATTR_TAG 7866
 
 // methods
 #define ATTR_DELETE 50027

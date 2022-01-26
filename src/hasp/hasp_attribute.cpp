@@ -33,7 +33,7 @@ void my_image_release_resources(lv_obj_t* obj)
     switch(src_type) {
         case LV_IMG_SRC_VARIABLE: {
             lv_img_set_src(obj, LV_SYMBOL_DUMMY); // empty symbol to clear the image
-            lv_img_cache_invalidate_src(src);     // remove src from cache
+            lv_img_cache_invalidate_src(src);     // remove src from image cache
 
             lv_img_dsc_t* img_dsc = (lv_img_dsc_t*)src;
             hasp_free((uint8_t*)img_dsc->data); // free image data
@@ -42,7 +42,7 @@ void my_image_release_resources(lv_obj_t* obj)
         }
 
         case LV_IMG_SRC_FILE:
-            lv_img_cache_invalidate_src(src); // remove src from cache
+            lv_img_cache_invalidate_src(src); // remove src from image cache
             break;
 
         default:
@@ -1082,7 +1082,7 @@ static hasp_attribute_type_t special_attribute_src(lv_obj_t* obj, const char* pa
             if(httpCode == HTTP_CODE_OK) {
                 int total   = http.getSize();
                 int url_len = strlen(payload) + 1;
-                int buf_len = total - sizeof(lv_img_header_t);
+                int buf_len = total;
                 int dsc_len = sizeof(lv_img_dsc_t) + url_len;
 
                 if(buf_len <= 0) { // header could not fit
@@ -1103,8 +1103,9 @@ static hasp_attribute_type_t special_attribute_src(lv_obj_t* obj, const char* pa
                 }
                 char* url = ((char*)img_dsc) + sizeof(lv_img_dsc_t);
 
-                uint8_t* img_buf = (uint8_t*)(buf_len > 0 ? hasp_malloc(buf_len) : NULL);
-                if(!img_buf) {
+                uint8_t* img_buf_start = (uint8_t*)(buf_len > 0 ? hasp_malloc(buf_len) : NULL);
+                uint8_t* img_buf_pos   = img_buf_start;
+                if(!img_buf_start) {
                     lv_mem_free(img_dsc); // destroy header too
                     LOG_ERROR(TAG_ATTR, "img buffer creation failed %d", buf_len);
                     return HASP_ATTR_TYPE_STR;
@@ -1113,65 +1114,59 @@ static hasp_attribute_type_t special_attribute_src(lv_obj_t* obj, const char* pa
                 // LOG_VERBOSE(TAG_ATTR, "img buffers created of %d and %d bytes", dsc_len, buf_len);
                 LOG_VERBOSE(TAG_ATTR, "img Content-Type: %s", http.header((size_t)0).c_str());
 
-                memset(img_buf, 0, buf_len);    // empty data buffer
-                memset(img_dsc, 0, dsc_len);    // empty img descriptor + url
-                strncpy(url, payload, url_len); // store the url behind the img_dsc data
-                img_dsc->data = img_buf;        // store pointer to the start of the data buffer
+                // Initialize the buffers
+                memset(img_buf_start, 0, buf_len);           // empty data buffer
+                memset(img_dsc, 0, dsc_len);                 // empty img descriptor + url
+                strncpy(url, payload, url_len);              // store the url behind the img_dsc data
+                img_dsc->data               = img_buf_start; // store pointer to the start of the data buffer
+                img_dsc->header.always_zero = 0;
+
                 // LOG_WARNING(TAG_ATTR, "%s %d %x == %x", __FILE__, __LINE__, img_dsc->data, img_buf);
 
                 int read = 0;
-                // while(http.connected() && (buf_len > 0 || buf_len == -1)) {
                 while(http.connected() && (buf_len > 0)) {
 
                     if(size_t size = stream->available()) {
-                        int c = 0;
-
-                        if(read != 0) { // header has already been read, read data
-                            c = stream->readBytes(img_buf, size);
-                            LOG_WARNING(TAG_ATTR, "%s %d %x -> %x", __FILE__, __LINE__, img_dsc->data, img_buf);
-                            img_buf += c;
-                            buf_len -= c;
-                            LOG_VERBOSE(TAG_ATTR, D_BULLET "IMG DATA: %d bytes read=%d buf_len=%d", c, read, buf_len);
-
-                        } else if(read == 0 && size >= sizeof(lv_img_header_t)) { // read 4-byte header first
-                            c = stream->readBytes((uint8_t*)img_dsc, sizeof(lv_img_header_t));
-                            LOG_VERBOSE(TAG_ATTR, D_BULLET "IMG HEADER: %d bytes  w=%d  h=%d", c, img_dsc->header.w,
-                                        img_dsc->header.h);
-                        }
-
+                        int c = stream->readBytes(img_buf_pos, size > buf_len ? buf_len : size); // don't read too far
+                        // LOG_WARNING(TAG_ATTR, "%s %d %x -> %x", __FILE__, __LINE__, img_dsc->data, img_buf);
+                        img_buf_pos += c;
+                        buf_len -= c;
+                        LOG_VERBOSE(TAG_ATTR, D_BULLET "IMG DATA: %d bytes read=%d buf_len=%d", c, read, buf_len);
                         read += c;
 
                     } else {
-                        delay(2); // wait for data
+                        delay(1); // wait for data
                     }
                 }
-                LOG_VERBOSE(TAG_ATTR, D_BULLET "HTTP TOTAL READ: %d bytes, %d expected, %d buffered", read,
-                            img_dsc->header.w * img_dsc->header.h * 2 + sizeof(lv_img_header_t),
-                            img_buf - img_dsc->data);
+                LOG_VERBOSE(TAG_ATTR, D_BULLET "HTTP TOTAL READ: %d bytes, %d buffered", read,
+                            img_buf_pos - img_buf_start);
 
-                img_dsc->data_size = img_buf - img_dsc->data; // end of buffer - start of buffer
+                const uint8_t png_magic[] = {0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a};
+                if(total > 16 && !memcmp(png_magic, img_dsc->data, sizeof(png_magic))) {
+                    // PNG format, get image size from header
+                    img_dsc->header.always_zero = 0;
+                    img_dsc->header.w           = img_buf_start[19] + (img_buf_start[18] << 8);
+                    img_dsc->header.h           = img_buf_start[23] + (img_buf_start[22] << 8);
+                    img_dsc->data_size          = img_buf_pos - img_buf_start; // end of buffer - start of buffer
+                    img_dsc->header.cf          = LV_IMG_CF_RAW_ALPHA;
+                    // img_dsc->data            = img_dsc->data; // already set
+                    LOG_VERBOSE(TAG_ATTR, D_BULLET "PNG image: w=%d h=%d cf=%d len=%d", img_dsc->header.w,
+                                img_dsc->header.h, img_dsc->header.cf, img_dsc->data_size);
+                } else {
+                    // BIN format, includes a header
+                    lv_img_header_t* header     = (lv_img_header_t*)img_buf_start;
+                    img_dsc->header.always_zero = 0;
+                    img_dsc->header.w           = header->w;
+                    img_dsc->header.h           = header->h;
+                    img_dsc->header.cf          = header->cf;
+                    img_dsc->data               = img_buf_start + sizeof(lv_img_header_t); // start of buf + skip header
+                    img_dsc->data_size = img_buf_pos - img_buf_start - sizeof(lv_img_header_t); // end buf - start buf
+                    LOG_VERBOSE(TAG_ATTR, D_BULLET "BIN image: w=%d h=%d cf=%d len=%d", img_dsc->header.w,
+                                img_dsc->header.h, img_dsc->header.cf, img_dsc->data_size);
+                }
+
                 lv_img_set_src(obj, img_dsc);
-                LOG_WARNING(TAG_ATTR, "%s %d %x -> %x", __FILE__, __LINE__, img_dsc->data, img_buf);
-
-                // /*Decode the PNG image*/
-                // unsigned char* png_decoded; /*Will be pointer to the decoded image*/
-                // uint32_t png_width;         /*Will be the width of the decoded image*/
-                // uint32_t png_height;        /*Will be the width of the decoded image*/
-
-                // /*Decode the loaded image in ARGB8888 */
-                // uint32_t error = lodepng_decode32(&png_decoded, &png_width, &png_height, img_buf, (size_t)total);
-
-                // if(error) {
-                //     LOG_ERROR(TAG_ATTR, "error %u: %s\n", error, lodepng_error_text(error));
-                // } else {
-                //     img_dsc->header.always_zero = 0;                          /*It must be zero*/
-                //     img_dsc->header.cf          = LV_IMG_CF_TRUE_COLOR_ALPHA; /*Set the color format*/
-                //     img_dsc->header.w           = png_width;
-                //     img_dsc->header.h           = png_height;
-                //     img_dsc->data_size          = png_width * png_height * 3;
-                //     img_dsc->data               = png_decoded;
-                //     lv_img_set_src(obj, img_dsc);
-                // }
+                // LOG_WARNING(TAG_ATTR, "%s %d %x -> %x", __FILE__, __LINE__, img_buf_start, img_buf_start_pos);
 
             } else {
                 LOG_WARNING(TAG_ATTR, "HTTP result %d", httpCode);
@@ -1320,6 +1315,24 @@ static hasp_attribute_type_t attribute_common_mode(lv_obj_t* obj, const char* pa
     }
 
     return HASP_ATTR_TYPE_NOT_FOUND;
+}
+
+static hasp_attribute_type_t attribute_common_tag(lv_obj_t* obj, uint16_t attr_hash, const char* payload, char** text,
+                                                  bool update)
+{
+    switch(attr_hash) {
+        case ATTR_TAG:
+            if(update)
+                my_obj_set_tag(obj, payload);
+            else
+                *text = (char*)my_obj_get_tag(obj);
+            break; // attribute_found
+
+        default:
+            return HASP_ATTR_TYPE_NOT_FOUND;
+    }
+
+    return HASP_ATTR_TYPE_JSON;
 }
 
 static hasp_attribute_type_t attribute_common_text(lv_obj_t* obj, const char* attr, const char* payload, char** text,
@@ -2116,58 +2129,56 @@ static hasp_attribute_type_t attribute_common_bool(lv_obj_t* obj, uint16_t attr_
 
 // ##################### Default Attributes ########################################################
 
-void attr_out_str(lv_obj_t* obj, const char* attribute, const char* data)
+void attr_out(lv_obj_t* obj, const char* attribute, const char* data, bool is_json)
 {
     uint8_t pageid;
     uint8_t objid;
 
     if(!attribute || !hasp_find_id_from_obj(obj, &pageid, &objid)) return;
 
-    const size_t size = 32 + strlen(attribute) + strlen(data);
+    size_t len = 10;
+    if(data) {
+        len = strlen(data); // crashes if NULL
+    }
+
+    const size_t size = 32 + strlen(attribute) + len;
     char payload[size];
+
     {
         StaticJsonDocument<64> doc; // Total (recommended) size for const char*
         if(data)
-            doc[attribute].set(data);
+            if(is_json)
+                doc[attribute].set(serialized(data));
+            else
+                doc[attribute].set(data);
         else
             doc[attribute].set(nullptr);
         serializeJson(doc, payload, size);
     }
+
     object_dispatch_state(pageid, objid, payload);
+}
+
+void attr_out_str(lv_obj_t* obj, const char* attribute, const char* data)
+{
+    attr_out(obj, attribute, data, false);
+}
+
+void attr_out_json(lv_obj_t* obj, const char* attribute, const char* data)
+{
+    attr_out(obj, attribute, data, true);
 }
 
 void attr_out_int(lv_obj_t* obj, const char* attribute, int32_t val)
 {
-    uint8_t pageid;
-    uint8_t objid;
-
-    if(!attribute || !hasp_find_id_from_obj(obj, &pageid, &objid)) return;
-
-    const size_t size = 32 + strlen(attribute);
-    char payload[size];
-    {
-        StaticJsonDocument<64> doc; // Total (recommended) size for const char*
-        doc[attribute].set(val);
-        serializeJson(doc, payload, size);
-    }
-    object_dispatch_state(pageid, objid, payload);
+    char data[9];
+    itoa(val, data, sizeof(data));
+    attr_out(obj, attribute, data, true);
 }
 
 void attr_out_bool(lv_obj_t* obj, const char* attribute, bool val)
 {
-    uint8_t pageid;
-    uint8_t objid;
-
-    if(!attribute || !hasp_find_id_from_obj(obj, &pageid, &objid)) return;
-
-    const size_t size = 32 + strlen(attribute);
-    char payload[size];
-    {
-        StaticJsonDocument<64> doc; // Total (recommended) size for const char*
-        doc[attribute].set(val);
-        serializeJson(doc, payload, size);
-    }
-    object_dispatch_state(pageid, objid, payload);
+    attr_out(obj, attribute, val ? "true" : "false", true);
 }
 
 void attr_out_color(lv_obj_t* obj, const char* attribute, lv_color_t color)
@@ -2266,6 +2277,9 @@ void hasp_process_obj_attribute(lv_obj_t* obj, const char* attribute, const char
         case ATTR_ALIGN:
             ret = attribute_common_align(obj, attribute, payload, &text, update);
             break;
+        case ATTR_TAG:
+            ret = attribute_common_tag(obj, attr_hash, payload, &text, update);
+            break;
 
         case ATTR_OBJ:
             text = (char*)obj_get_type_name(obj);
@@ -2309,7 +2323,7 @@ void hasp_process_obj_attribute(lv_obj_t* obj, const char* attribute, const char
             ret = attribute_common_method(obj, attr_hash, attribute, payload);
             break;
 
-        case ATTR_COMMENT:
+        case ATTR_COMMENT: // skip this key
             ret = HASP_ATTR_TYPE_METHOD_OK;
             break;
 
@@ -2444,6 +2458,12 @@ void hasp_process_obj_attribute(lv_obj_t* obj, const char* attribute, const char
             LOG_WARNING(TAG_ATTR, F(D_ATTRIBUTE_READ_ONLY), attribute);
         case HASP_ATTR_TYPE_STR:
             attr_out_str(obj, attribute, text);
+            break;
+
+        case HASP_ATTR_TYPE_JSON_READONLY:
+            LOG_WARNING(TAG_ATTR, F(D_ATTRIBUTE_READ_ONLY), attribute);
+        case HASP_ATTR_TYPE_JSON:
+            attr_out_json(obj, attribute, text);
             break;
 
         case HASP_ATTR_TYPE_COLOR_INVALID:

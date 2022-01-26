@@ -68,6 +68,7 @@ void delete_event_handler(lv_obj_t* obj, lv_event_t event)
 
     // TODO: delete value_str data for ALL parts
     my_obj_set_value_str_text(obj, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, NULL);
+    my_obj_set_tag(obj, (char*)NULL);
 }
 
 /* ============================== Timer Event  ============================ */
@@ -222,22 +223,34 @@ static void event_send_object_data(lv_obj_t* obj, const char* data)
 // Send out events with a val attribute
 static void event_object_val_event(lv_obj_t* obj, uint8_t eventid, int16_t val)
 {
-    char data[40];
-    char eventname[8];
+    char data[512];
+    {
+        // StaticJsonDocument<96> doc; // allocate on stack
 
-    Parser::get_event_name(eventid, eventname, sizeof(eventname));
-    snprintf_P(data, sizeof(data), PSTR("{\"event\":\"%s\",\"val\":%d}"), eventname, val);
+        char eventname[8];
+        Parser::get_event_name(eventid, eventname, sizeof(eventname));
+        // doc["event"] = eventname;
+        // doc["val"]   = val;
+
+        // if(obj->user_data.tag) doc["tag"] = serialized((const char*)obj->user_data.tag);
+        // serializeJson(doc, data);
+        const char* tag = my_obj_get_tag(obj);
+        snprintf_P(data, sizeof(data), PSTR("{\"event\":\"%s\",\"val\":%d,\"tag\":%s}"), eventname, val, tag);
+    }
     event_send_object_data(obj, data);
 }
 
 // Send out events with a val and text attribute
 static void event_object_selection_changed(lv_obj_t* obj, uint8_t eventid, int16_t val, const char* text)
 {
-    char data[200];
+    char data[512];
     char eventname[8];
+    const char* tag = my_obj_get_tag(obj);
 
     Parser::get_event_name(eventid, eventname, sizeof(eventname));
-    snprintf_P(data, sizeof(data), PSTR("{\"event\":\"%s\",\"val\":%d,\"text\":\"%s\"}"), eventname, val, text);
+    snprintf_P(data, sizeof(data), PSTR("{\"event\":\"%s\",\"val\":%d,\"text\":\"%s\",\"tag\":%s}"), eventname, val,
+               text, tag);
+
     event_send_object_data(obj, data);
 }
 
@@ -465,7 +478,8 @@ void generic_event_handler(lv_obj_t* obj, lv_event_t event)
         char data[40];
         char eventname[8];
         Parser::get_event_name(last_value_sent, eventname, sizeof(eventname));
-        snprintf_P(data, sizeof(data), PSTR("{\"event\":\"%s\"}"), eventname);
+        const char* tag = my_obj_get_tag(obj);
+        snprintf_P(data, sizeof(data), PSTR("{\"event\":\"%s\",\"tag\":%s}"), eventname, tag);
         event_send_object_data(obj, data);
     }
 
@@ -609,15 +623,13 @@ void btnmatrix_event_handler(lv_obj_t* obj, lv_event_t event)
     if(!translate_event(obj, event, hasp_event_id)) return; // Use LV_EVENT_VALUE_CHANGED
 
     /* Get the new value */
-    char buffer[128];
-    uint16_t val = 0;
+    char buffer[128] = "";
+    uint16_t val     = 0;
 
     val = lv_btnmatrix_get_active_btn(obj);
     if(val != LV_BTNMATRIX_BTN_NONE) {
         const char* txt = lv_btnmatrix_get_btn_text(obj, val);
         strncpy(buffer, txt, sizeof(buffer));
-    } else {
-        buffer[0] = 0; // empty string
     }
 
     if(hasp_event_id == HASP_EVENT_CHANGED && last_value_sent == val) return; // same value as before
@@ -723,13 +735,15 @@ void cpicker_event_handler(lv_obj_t* obj, lv_event_t event)
     char data[100];
     char eventname[8];
     Parser::get_event_name(hasp_event_id, eventname, sizeof(eventname));
+    const char* tag = my_obj_get_tag(obj);
 
     lv_color32_t c32;
     c32.full        = lv_color_to32(color);
     last_color_sent = color;
 
-    snprintf_P(data, sizeof(data), PSTR("{\"event\":\"%s\",\"color\":\"#%02x%02x%02x\",\"r\":%d,\"g\":%d,\"b\":%d}"),
-               eventname, c32.ch.red, c32.ch.green, c32.ch.blue, c32.ch.red, c32.ch.green, c32.ch.blue);
+    snprintf_P(data, sizeof(data),
+               PSTR("{\"event\":\"%s\",\"color\":\"#%02x%02x%02x\",\"r\":%d,\"g\":%d,\"b\":%d,\"tag\":%s}"), eventname,
+               c32.ch.red, c32.ch.green, c32.ch.blue, c32.ch.red, c32.ch.green, c32.ch.blue, tag);
     event_send_object_data(obj, data);
 
     // event_update_group(obj->user_data.groupid, obj, val, min, max);
