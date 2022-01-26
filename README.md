@@ -6,7 +6,7 @@
 [![Discord](https://img.shields.io/discord/538814618106331137?color=%237289DA&label=discord&logo=discord&logoColor=white)][6]
 [![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](#Contributing)
 [![GitHub](https://img.shields.io/github/license/mashape/apistatus.svg)](https://github.com/HASwitchPlate/openHASP/blob/master/LICENSE)
-[!["PayPal"](https://img.shields.io/badge/Paypal-donate-00457C.svg?logo=paypal)][9]
+[!["PayPal"](https://img.shields.io/badge/Paypal-donate-00457C.svg?logo=paypal)](https://github.com/HASwitchPlate/openHASP#donate)
 
 Control your home-automation devices from a customizable touchscreen UI connected via MQTT.
 
@@ -49,8 +49,9 @@ For support using openHASP, please join the [#openHASP channel][6] on Discord.
 
 ## [Donate][9]
 
-[![Buy me a coffee](https://img.shields.io/badge/Kofi-donate-FF5E5B?style=for-the-badge&logo=kofi)](https://ko-fi.com/openhasp)
 [![Paypal donation](https://img.shields.io/badge/Paypal-donate-00457C?style=for-the-badge&logo=paypal)][9]
+[![Buy a coffee](https://img.shields.io/badge/Kofi-donate-FF5E5B?style=for-the-badge&logo=kofi)](https://ko-fi.com/openhasp)
+[![Buy me a coffee](https://img.shields.io/badge/Buy_Me_a_Coffee-donate-FFDD00?style=for-the-badge&logo=buymeacoffee)](https://www.buymeacoffee.com/aktdCofU)
 
 [1]: https://github.com/HASwitchPlate/HASPone
 [2]: https://github.com/lvgl/lvgl
