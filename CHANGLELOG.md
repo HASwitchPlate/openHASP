@@ -2,16 +2,18 @@
 
 ## v0.7.0
 
+### Web UI
+- _Selectable dark/light theme?_
+
+### Objects
+- All objects can have a custom `tag` which can contain JSON data (or numbers or text) (thanks @nagyrobi)
+
 ### Fonts
 - Use FreeType fonts from flash
 - Use LVGL binary fonts from flash, loaded into PSram
 - Removed defunct .zi font support
-- Added Vietnamese encoding (thanks @kydang789)
 - ~~Breaking: The UTF codes for the built-in icons have changed from the previous list!~~
 - Font ID is replaced by `namexx` (`where xx is the size`) but the previous Font ID still works for backwards compatibility
-
-### Web UI
-- _Selectable dark/light theme?_
 
 ### Services
 - Add SimpleFTPServer to easily upload and download files to the plate *(one simultanious connection only)*
@@ -30,7 +32,11 @@
 - Hide cursor during `antiburn` and `idle` if the pointer is enabled
 
 ### Objects
-- `img.src` now accepts `https` urls (thanks @htvekov)
+- `img.src` now accepts both `http` and `https` urls (thanks @htvekov)
+- `img.src` now accepts `png` and `binary` image urls
+
+### Fonts
+- Added Vietnamese encoding build option (thanks @kydang789)
 
 ### Bug fixes
 - Fix a bug in `dropdownlist` were `close` method performed `open` instead (thanks @htvekov)
