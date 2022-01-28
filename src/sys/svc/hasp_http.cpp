@@ -8,6 +8,8 @@
 #if defined(ARDUINO_ARCH_ESP32)
 #include "Update.h"
 #include "sdkconfig.h" // for CONFIG_IDF_TARGET_ESP32* defines
+#include <uri/UriBraces.h>
+#include <uri/UriRegex.h>
 #endif
 
 #include "hasp_conf.h"
@@ -457,6 +459,54 @@ static void webHandleScreenshot()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+static void add_json(String& data, JsonDocument& doc)
+{
+    char buffer[512];
+    size_t len = serializeJson(doc, buffer, sizeof(buffer));
+    if(doc.isNull()) return; // empty document
+
+    buffer[len - 1] = ',';
+    char* start     = buffer + 1;
+    data += String(start);
+    doc.clear();
+}
+
+static void webHandleApi()
+{ // http://plate01/about
+    if(!httpIsAuthenticated(F("api"))) return;
+
+    String endpoint((char*)0);
+    endpoint = webServer.pathArg(0);
+
+    if(!strcasecmp_P(endpoint.c_str(), PSTR("info"))) {
+        String htmldata((char*)0);
+        htmldata.reserve(HTTP_PAGE_SIZE);
+        DynamicJsonDocument doc(512);
+
+        htmldata = "{";
+
+        hasp_get_info(doc);
+        add_json(htmldata, doc);
+
+#if HASP_USE_MQTT > 0
+        mqtt_get_info(doc);
+        add_json(htmldata, doc);
+#endif
+
+        network_get_info(doc);
+        add_json(htmldata, doc);
+
+        haspDevice.get_info(doc);
+        add_json(htmldata, doc);
+
+        htmldata[htmldata.length() - 1] = '}'; // Replace last comma with a bracket
+
+        String contentType = getContentType(F(".json"));
+        webServer.send(200, contentType, htmldata);
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 static void webHandleAbout()
 { // http://plate01/about
     if(!httpIsAuthenticated(F("about"))) return;
@@ -511,18 +561,6 @@ static void webHandleAbout()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-static void add_json(String& data, JsonDocument& doc)
-{
-    char buffer[512];
-    size_t len = serializeJson(doc, buffer, sizeof(buffer));
-    if(doc.isNull()) return; // empty document
-
-    buffer[len - 1] = ',';
-    char* start     = buffer + 1;
-    data += String(start);
-    doc.clear();
-}
-
 static void webHandleInfoJson()
 { // http://plate01/
     if(!httpIsAuthenticated(F("infojson"))) return;
@@ -2263,6 +2301,7 @@ void httpSetup()
     webServer.on(F("/vars.css"), webSendCssVars);
     // webServer.on(F("/js"), webSendJavascript);
     webServer.onNotFound(httpHandleNotFound);
+    webServer.on(UriBraces(F("/api/{}")), webHandleApi);
 
 #if HASP_USE_WIFI > 0
     // These two endpoints are needed in STA and AP mode
