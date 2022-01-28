@@ -3,7 +3,7 @@
 
 #define D_ISO_LANG_CODE "ro-RO"
 
-#define D_USERNAME "Nume de utilizator:"
+#define D_USERNAME "Nume utilizator:"
 #define D_PASSWORD "Parola:"
 #define D_SSID "SSID:"
 #define D_YES "Da"
@@ -203,23 +203,23 @@
 #define D_WIFI_RSSI_BAD "Foarte slabă"
 
 // new
-#define D_GPIO_SWITCH "Switch"
-#define D_GPIO_BUTTON "Button"
-#define D_GPIO_TOUCH "Capacitive Touch" // new
+#define D_GPIO_SWITCH "Întrerupător"
+#define D_GPIO_BUTTON "Buton"
+#define D_GPIO_TOUCH "Atingere capacitivă"
 #define D_GPIO_LED "Led"
-#define D_GPIO_LED_R "Mood Red"
-#define D_GPIO_LED_G "Mood Green"
-#define D_GPIO_LED_B "Mood Blue"
-#define D_GPIO_POWER_RELAY "Power Relay" // new
-#define D_GPIO_LIGHT_RELAY "Light Relay" // new
+#define D_GPIO_LED_R "Ramă Roșu"
+#define D_GPIO_LED_G "Ramă Verde"
+#define D_GPIO_LED_B "Ramă Albastru"
+#define D_GPIO_POWER_RELAY "Releu general"
+#define D_GPIO_LIGHT_RELAY "Releu iluminare"
 #define D_GPIO_PWM "PWM"
 #define D_GPIO_DAC "DAC"
-#define D_GPIO_SERIAL_DIMMER "Serial Dimmer"
-#define D_GPIO_UNKNOWN "Unknown"
+#define D_GPIO_SERIAL_DIMMER "Dimer Serial"
+#define D_GPIO_UNKNOWN "Necunoscut"
 #define D_GPIO_PIN "Pin"
-#define D_GPIO_GROUP "Group"
-#define D_GPIO_GROUP_NONE "None"
-#define D_GPIO_STATE_NORMAL "Normal"     // new
-#define D_GPIO_STATE_INVERTED "Inverted" // new
+#define D_GPIO_GROUP "Grup"
+#define D_GPIO_GROUP_NONE "Nimic"
+#define D_GPIO_STATE_NORMAL "Normal"
+#define D_GPIO_STATE_INVERTED "Invertat"
 
 #endif
