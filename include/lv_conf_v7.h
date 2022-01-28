@@ -82,27 +82,23 @@ typedef int16_t lv_coord_t;
 /* Size of the memory used by `lv_mem_alloc` in bytes (>= 2kB)*/
 
 #ifndef LV_MEM_SIZE
-
 #if defined(ARDUINO_ARCH_ESP8266)
-#  define LV_MEM_SIZE    (10 * 1024U) // Minimum 10 Kb
+#  define LV_MEM_SIZE    (12 * 1024U) // Minimum 12 Kb
 #elif defined(ARDUINO_ARCH_ESP32)
 #  define LV_MEM_SIZE    (48 * 1024U)  // 48Kb is much better
 #else
-#  define LV_MEM_SIZE    (64 * 1024U)  // native app
+#  define LV_MEM_SIZE    (256 * 1024U) // native app
 #endif
-
 #endif // LV_MEM_SIZE
 
 #ifndef LV_VDB_SIZE
-
 #if defined(ARDUINO_ARCH_ESP8266)
-#  define LV_VDB_SIZE    (10 * 1024U) // Minimum 10 Kb
+#  define LV_VDB_SIZE    (8 * 1024U)   // Minimum 8 Kb
 #elif defined(ARDUINO_ARCH_ESP32)
 #  define LV_VDB_SIZE    (32 * 1024U)  // 32kB draw buffer
 #else
-#  define LV_VDB_SIZE    (64 * 1024U)  // native app
+#  define LV_VDB_SIZE    (128 * 1024U) // native app
 #endif
-
 #endif // LV_VDB_SIZE
 
 
