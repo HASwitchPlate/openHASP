@@ -27,8 +27,8 @@
 #define D_FILE_SIZE_KILOBYTES "Kio"
 #define D_FILE_SIZE_MEGABYTES "Mio"
 #define D_FILE_SIZE_GIGABYTES "Gio"
-#define D_FILE_SIZE_DIVIDER 1024 // new, kibi or kilo bytes
-#define D_DECIMAL_POINT ","      // new, decimal comma or point
+#define D_FILE_SIZE_DIVIDER 1024 // kibi or kilo bytes
+#define D_DECIMAL_POINT ","      // decimal comma or point
 
 #define D_SERVICE_STARTING "Démarer..."
 #define D_SERVICE_STARTED "Démaré"

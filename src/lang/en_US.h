@@ -6,8 +6,8 @@
 #define D_USERNAME "Username:"
 #define D_PASSWORD "Password:"
 #define D_SSID "Ssid:"
-#define D_YES "Yes" // New
-#define D_NO "No"   // New
+#define D_YES "Yes"
+#define D_NO "No"
 
 #define D_ERROR_OUT_OF_MEMORY "Out of memory"
 #define D_ERROR_UNKNOWN "Unkown error"
@@ -22,13 +22,13 @@
 #define D_FILE_SAVING "Saving %s"
 #define D_FILE_SAVED "Saved %s"
 #define D_FILE_SAVE_FAILED "Failed to save %s"
-#define D_FILE_NOT_FOUND "File not found" // new
-#define D_FILE_SIZE_BYTES "bytes"         // new
-#define D_FILE_SIZE_KILOBYTES "KiB"       // new
-#define D_FILE_SIZE_MEGABYTES "MiB"       // new
-#define D_FILE_SIZE_GIGABYTES "GiB"       // new
-#define D_FILE_SIZE_DIVIDER 1024          // new, kibi or kilo bytes
-#define D_DECIMAL_POINT "."               // new, decimal comma or point
+#define D_FILE_NOT_FOUND "File not found" 
+#define D_FILE_SIZE_BYTES "bytes"         
+#define D_FILE_SIZE_KILOBYTES "KiB"       
+#define D_FILE_SIZE_MEGABYTES "MiB"      
+#define D_FILE_SIZE_GIGABYTES "GiB"       
+#define D_FILE_SIZE_DIVIDER 1024          // kibi or kilo bytes
+#define D_DECIMAL_POINT "."               // decimal comma or point
 
 #define D_SERVICE_STARTING "Starting..."
 #define D_SERVICE_STARTED "Started"
@@ -38,8 +38,8 @@
 #define D_SERVICE_CONNECTED "Connected"
 #define D_SERVICE_DISCONNECTED "Disconnected"
 
-#define D_SETTING_ENABLED "Enabled"   // New
-#define D_SETTING_DISABLED "Disabled" // New
+#define D_SETTING_ENABLED "Enabled"   
+#define D_SETTING_DISABLED "Disabled"
 
 #define D_NETWORK_IP_ADDRESS_RECEIVED "Received IP address %s"
 #define D_NETWORK_ONLINE "online"
@@ -146,7 +146,8 @@
 #define D_HTTP_MAIN_MENU "Main Menu"
 #define D_HTTP_REBOOT "Restart"
 #define D_HTTP_CONFIGURATION "Configuration"
-#define D_HTTP_CONFIG_CHANGED "The configuration has changed, please click <a href='/reboot'>Restart</a> to save changes to flash."
+#define D_HTTP_CONFIG_CHANGED                                                                                          \
+    "The configuration has changed, please click <a href='/reboot'>Restart</a> to save changes to flash."
 #define D_HTTP_SENDING_PAGE "Sent %S page to %s"
 #define D_HTTP_FOOTER "by Francis Van Roie"
 
@@ -204,13 +205,13 @@
 // new
 #define D_GPIO_SWITCH "Switch"
 #define D_GPIO_BUTTON "Push Button"
-#define D_GPIO_TOUCH "Capacitive Touch" // new
+#define D_GPIO_TOUCH "Capacitive Touch"
 #define D_GPIO_LED "Led"
 #define D_GPIO_LED_R "Mood Red"
 #define D_GPIO_LED_G "Mood Green"
 #define D_GPIO_LED_B "Mood Blue"
-#define D_GPIO_POWER_RELAY "Power Relay" // new
-#define D_GPIO_LIGHT_RELAY "Light Relay" // new
+#define D_GPIO_POWER_RELAY "Power Relay"
+#define D_GPIO_LIGHT_RELAY "Light Relay"
 #define D_GPIO_PWM "PWM"
 #define D_GPIO_DAC "DAC"
 #define D_GPIO_SERIAL_DIMMER "Serial Dimmer"
@@ -218,7 +219,7 @@
 #define D_GPIO_PIN "Pin"
 #define D_GPIO_GROUP "Group"
 #define D_GPIO_GROUP_NONE "None"
-#define D_GPIO_STATE_NORMAL "Normal"     // new
-#define D_GPIO_STATE_INVERTED "Inverted" // new
+#define D_GPIO_STATE_NORMAL "Normal"
+#define D_GPIO_STATE_INVERTED "Inverted"
 
 #endif
