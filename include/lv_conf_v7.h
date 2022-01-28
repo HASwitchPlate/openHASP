@@ -85,10 +85,26 @@ typedef int16_t lv_coord_t;
 
 #if defined(ARDUINO_ARCH_ESP8266)
 #  define LV_MEM_SIZE    (10 * 1024U) // Minimum 10 Kb
+#elif defined(ARDUINO_ARCH_ESP32)
+#  define LV_MEM_SIZE    (48 * 1024U)  // 48Kb is much better
 #else
-#  define LV_MEM_SIZE    (20 * 1024U)  // 20Kb is much better
+#  define LV_MEM_SIZE    (64 * 1024U)  // native app
 #endif
+
+#endif // LV_MEM_SIZE
+
+#ifndef LV_VDB_SIZE
+
+#if defined(ARDUINO_ARCH_ESP8266)
+#  define LV_VDB_SIZE    (10 * 1024U) // Minimum 10 Kb
+#elif defined(ARDUINO_ARCH_ESP32)
+#  define LV_VDB_SIZE    (32 * 1024U)  // 32kB draw buffer
+#else
+#  define LV_VDB_SIZE    (64 * 1024U)  // native app
 #endif
+
+#endif // LV_VDB_SIZE
+
 
 /* Complier prefix for a big array declaration */
 #  define LV_MEM_ATTR

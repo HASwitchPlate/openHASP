@@ -702,7 +702,11 @@ void hasp_get_info(JsonDocument& doc)
     itoa(sec, size_buf, DEC);
     buffer += size_buf;
     buffer += "s";
-    info[F(D_INFO_UPTIME)] = buffer;
+    info[F(D_INFO_ENVIRONMENT)] = PIOENV;
+    info[F(D_INFO_UPTIME)]      = buffer;
+    hasp_get_sleep_state(size_buf);
+    info[F("Idle")]        = size_buf;
+    info[F("Active Page")] = haspPages.get();
 
     info = doc.createNestedObject(F(D_INFO_DEVICE_MEMORY));
     Parser::format_bytes(haspDevice.get_free_heap(), size_buf, sizeof(size_buf));
@@ -728,11 +732,6 @@ void hasp_get_info(JsonDocument& doc)
     Parser::format_bytes(mem_mon.free_size, size_buf, sizeof(size_buf));
     info[F(D_INFO_FREE_MEMORY)]   = size_buf;
     info[F(D_INFO_FRAGMENTATION)] = mem_mon.frag_pct;
-
-    info = doc.createNestedObject(F("HASP State"));
-    hasp_get_sleep_state(size_buf);
-    info[F("Idle")]        = size_buf;
-    info[F("Active Page")] = haspPages.get();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
