@@ -137,7 +137,7 @@
 #define D_HTTP_PREV_PAGE "Vorige Pagina"
 #define D_HTTP_NEXT_PAGE "Volgende Pagina"
 #define D_HTTP_CALIBRATE "Calibratie"
-#define D_HTTP_ANTIBURN "Inbranden Voorkomen" // New
+#define D_HTTP_ANTIBURN "Inbranden Tegengaan"
 #define D_HTTP_SCREENSHOT "Schermafbeelding"
 #define D_HTTP_FILE_BROWSER "Bestandseditor"
 #define D_HTTP_FIRMWARE_UPGRADE "Firmware Upgrade"
@@ -147,11 +147,12 @@
 #define D_HTTP_REBOOT "Herstarten"
 #define D_HTTP_CONFIGURATION "Configuratie"
 #define D_HTTP_CONFIG_CHANGED "De configuratie is gewijzigd, klik op <a href='/reboot'>Herstart</a> om de wijzigingen naar flash te schrijven."
-#define D_HTTP_SENDING_PAGE "Pagina %S verstuurd naar %s" // New
+#define D_HTTP_SENDING_PAGE "Pagina %S verstuurd naar %s"
 #define D_HTTP_FOOTER "door Francis Van Roie"
 
 #define D_INFO_VERSION "Versie"
 #define D_INFO_BUILD_DATETIME "Gecompileerd"
+#define D_INFO_ENVIRONMENT "Omgeving"
 #define D_INFO_UPTIME "Opgestart"
 #define D_INFO_FREE_HEAP "Vrije Heap"
 #define D_INFO_FREE_BLOCK "Vrije Blok"

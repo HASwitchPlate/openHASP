@@ -152,6 +152,7 @@
 
 #define D_INFO_VERSION "Versiune"
 #define D_INFO_BUILD_DATETIME "Data Build-ului"
+#define D_INFO_ENVIRONMENT "Environment" // new
 #define D_INFO_UPTIME "Uptime"
 #define D_INFO_FREE_HEAP "Heap liber"
 #define D_INFO_FREE_BLOCK "Bloc liber"

@@ -153,6 +153,7 @@
 
 #define D_INFO_VERSION "Versão"
 #define D_INFO_BUILD_DATETIME "Compilado a"
+#define D_INFO_ENVIRONMENT "Environment" // new
 #define D_INFO_UPTIME "Tempo ativo"
 #define D_INFO_FREE_HEAP "Heap livre"
 #define D_INFO_FREE_BLOCK "Blocos livres"

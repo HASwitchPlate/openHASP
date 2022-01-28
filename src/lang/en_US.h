@@ -22,13 +22,13 @@
 #define D_FILE_SAVING "Saving %s"
 #define D_FILE_SAVED "Saved %s"
 #define D_FILE_SAVE_FAILED "Failed to save %s"
-#define D_FILE_NOT_FOUND "File not found" 
-#define D_FILE_SIZE_BYTES "bytes"         
-#define D_FILE_SIZE_KILOBYTES "KiB"       
-#define D_FILE_SIZE_MEGABYTES "MiB"      
-#define D_FILE_SIZE_GIGABYTES "GiB"       
-#define D_FILE_SIZE_DIVIDER 1024          // kibi or kilo bytes
-#define D_DECIMAL_POINT "."               // decimal comma or point
+#define D_FILE_NOT_FOUND "File not found"
+#define D_FILE_SIZE_BYTES "bytes"
+#define D_FILE_SIZE_KILOBYTES "KiB"
+#define D_FILE_SIZE_MEGABYTES "MiB"
+#define D_FILE_SIZE_GIGABYTES "GiB"
+#define D_FILE_SIZE_DIVIDER 1024 // kibi or kilo bytes
+#define D_DECIMAL_POINT "."      // decimal comma or point
 
 #define D_SERVICE_STARTING "Starting..."
 #define D_SERVICE_STARTED "Started"
@@ -38,7 +38,7 @@
 #define D_SERVICE_CONNECTED "Connected"
 #define D_SERVICE_DISCONNECTED "Disconnected"
 
-#define D_SETTING_ENABLED "Enabled"   
+#define D_SETTING_ENABLED "Enabled"
 #define D_SETTING_DISABLED "Disabled"
 
 #define D_NETWORK_IP_ADDRESS_RECEIVED "Received IP address %s"
@@ -153,6 +153,7 @@
 
 #define D_INFO_VERSION "Version"
 #define D_INFO_BUILD_DATETIME "Build DateTime"
+#define D_INFO_ENVIRONMENT "Environment"
 #define D_INFO_UPTIME "Uptime"
 #define D_INFO_FREE_HEAP "Free Heap"
 #define D_INFO_FREE_BLOCK "Free Block"

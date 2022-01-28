@@ -152,6 +152,7 @@
 
 #define D_INFO_VERSION "Verziószám"
 #define D_INFO_BUILD_DATETIME "Build időpontja"
+#define D_INFO_ENVIRONMENT "Environment" // new
 #define D_INFO_UPTIME "Uptime"
 #define D_INFO_FREE_HEAP "Szabad Heap"
 #define D_INFO_FREE_BLOCK "Szabad Blokk"

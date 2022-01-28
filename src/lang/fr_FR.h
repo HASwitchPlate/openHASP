@@ -152,6 +152,7 @@
 
 #define D_INFO_VERSION "Version"
 #define D_INFO_BUILD_DATETIME "Date/heure de compilation"
+#define D_INFO_ENVIRONMENT "Environnement"
 #define D_INFO_UPTIME "Disponibilité"
 #define D_INFO_FREE_HEAP "Tas libre"
 #define D_INFO_FREE_BLOCK "Blocage libre"
