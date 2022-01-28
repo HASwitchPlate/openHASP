@@ -376,7 +376,7 @@ void textarea_event_handler(lv_obj_t* obj, lv_event_t event)
         uint8_t hasp_event_id;
         if(!translate_event(obj, event, hasp_event_id)) return;
 
-        char data[100];
+        char data[512];
         char eventname[8];
         Parser::get_event_name(hasp_event_id, eventname, sizeof(eventname));
 
@@ -475,7 +475,7 @@ void generic_event_handler(lv_obj_t* obj, lv_event_t event)
             dispatch_current_page();
         }
     } else {
-        char data[40];
+        char data[512];
         char eventname[8];
         Parser::get_event_name(last_value_sent, eventname, sizeof(eventname));
         const char* tag = my_obj_get_tag(obj);
@@ -732,7 +732,7 @@ void cpicker_event_handler(lv_obj_t* obj, lv_event_t event)
 
     if(hasp_event_id == HASP_EVENT_CHANGED && last_color_sent.full == color.full) return; // same value as before
 
-    char data[100];
+    char data[512];
     char eventname[8];
     Parser::get_event_name(hasp_event_id, eventname, sizeof(eventname));
     const char* tag = my_obj_get_tag(obj);
@@ -769,7 +769,7 @@ void calendar_event_handler(lv_obj_t* obj, lv_event_t event)
     lv_style_int_t val = date->day + date->month * 31;
     if(hasp_event_id == HASP_EVENT_CHANGED && last_value_sent == val) return; // same value as before
 
-    char data[100];
+    char data[512];
     char eventname[8];
     Parser::get_event_name(hasp_event_id, eventname, sizeof(eventname));
 
