@@ -141,5 +141,7 @@
 //#define HASP_START_CONSOLE 0                        // Disable starting of serial console at boot
 //#define HASP_START_TELNET 0                         // Disable starting of telnet service at boot
 //#define HASP_START_HTTP 0                           // Disable starting of web interface at boot
+//#define LV_MEM_SIZE (64 * 1024U)                    // 64KiB of lvgl memory (default 48)
+//#define LV_VDB_SIZE (32 * 1024U)                    // 32KiB of lvgl draw buffer (default 32)
 
 #endif
