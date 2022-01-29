@@ -37,11 +37,7 @@ void my_obj_set_tag(lv_obj_t* obj, const char* tag)
 // the tag data is stored as SERIALIZED JSON data
 const char* my_obj_get_tag(lv_obj_t* obj)
 {
-    if(obj->user_data.tag) {
-        return (char*)obj->user_data.tag;
-    } else {
-        return "null";
-    }
+    return (char*)obj->user_data.tag;
 }
 
 lv_label_align_t my_textarea_get_text_align(lv_obj_t* ta)

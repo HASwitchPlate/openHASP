@@ -1322,10 +1322,15 @@ static hasp_attribute_type_t attribute_common_tag(lv_obj_t* obj, uint16_t attr_h
 {
     switch(attr_hash) {
         case ATTR_TAG:
-            if(update)
+            if(update) {
                 my_obj_set_tag(obj, payload);
-            else
-                *text = (char*)my_obj_get_tag(obj);
+            } else {
+                if(my_obj_get_tag(obj)) {
+                    *text = (char*)my_obj_get_tag(obj);
+                } else {
+                    strcpy_P(*text, "null"); // TODO : Literal String
+                }
+            }
             break; // attribute_found
 
         default:
