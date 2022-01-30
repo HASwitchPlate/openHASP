@@ -360,7 +360,7 @@ typedef void* lv_indev_drv_user_data_t;            /*Type of user data in the in
  *    FONT USAGE
  *===================*/
 
-#if TFT_WIDTH>=320 || TFT_WIDTH>=480
+#if TFT_HEIGHT>=480 || TFT_WIDTH>=480
 
 #ifndef HASP_FONT_1
 #define HASP_FONT_1 robotocondensed_regular_16_latin1  /* 5% Width */

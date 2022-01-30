@@ -139,8 +139,8 @@ bool debugGetConfig(const JsonObject& settings)
 {
     bool changed = false;
 
-    if(debugAnsiCodes != settings[FPSTR(FP_DEBUG_ANSI)].as<bool>()) changed = true;
-    settings[FPSTR(FP_DEBUG_ANSI)] = debugAnsiCodes;
+    if(debugAnsiCodes != settings[FPSTR(FP_DEBUG_ANSI)]) changed = true;
+    settings[FPSTR(FP_DEBUG_ANSI)] = (uint8_t)debugAnsiCodes;
 
     if(debugSerialBaud != settings[FPSTR(FP_CONFIG_BAUD)].as<uint16_t>()) changed = true;
     settings[FPSTR(FP_CONFIG_BAUD)] = debugSerialBaud;

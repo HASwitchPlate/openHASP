@@ -482,10 +482,10 @@ bool guiGetConfig(const JsonObject& settings)
     settings[FPSTR(FP_GUI_ROTATION)] = gui_settings.rotation;
 
     if(gui_settings.show_pointer != settings[FPSTR(FP_GUI_POINTER)].as<bool>()) changed = true;
-    settings[FPSTR(FP_GUI_POINTER)] = gui_settings.show_pointer;
+    settings[FPSTR(FP_GUI_POINTER)] = (uint8_t)gui_settings.show_pointer;
 
     if(gui_settings.invert_display != settings[FPSTR(FP_GUI_INVERT)].as<bool>()) changed = true;
-    settings[FPSTR(FP_GUI_INVERT)] = gui_settings.invert_display;
+    settings[FPSTR(FP_GUI_INVERT)] = (uint8_t)gui_settings.invert_display;
 
     /* Check CalData array has changed */
     JsonArray array = settings[FPSTR(FP_GUI_CALIBRATION)].as<JsonArray>();
@@ -545,8 +545,10 @@ bool guiSetConfig(const JsonObject& settings)
     changed |= configSet(gui_settings.backlight_pin, settings[FPSTR(FP_GUI_BACKLIGHTPIN)], F("guiBacklightPin"));
     changed |= configSet(guiSleepTime1, settings[FPSTR(FP_GUI_IDLEPERIOD1)], F("guiSleepTime1"));
     changed |= configSet(guiSleepTime2, settings[FPSTR(FP_GUI_IDLEPERIOD2)], F("guiSleepTime2"));
-    changed |= configSet(gui_settings.rotation, settings[FPSTR(FP_GUI_ROTATION)], F("gui_settings.rotation"));
-    changed |= configSet(gui_settings.invert_display, settings[FPSTR(FP_GUI_INVERT)], F("guiInvertDisplay"));
+    changed |=
+        configSet(gui_settings.rotation, settings[FPSTR(FP_GUI_ROTATION)], F("gui_settings.rotation"));
+    changed |=
+        configSet(gui_settings.invert_display, settings[FPSTR(FP_GUI_INVERT)], F("guiInvertDisplay"));
 
     hasp_set_sleep_time(guiSleepTime1, guiSleepTime2);
 
