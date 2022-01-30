@@ -434,471 +434,491 @@ bool FtpServer::processCommand()
         dataServer.begin();
         if((((uint32_t)NET_CLASS.localIP()) & ((uint32_t)NET_CLASS.subnetMask())) ==
            (((uint32_t)client.remoteIP()) & ((uint32_t)NET_CLASS.subnetMask()))) {
-            dataIp = NET_CLASS.localIP();
-        } else {
-            dataIp = localIp;
-        }
-        dataPort = pasvPort;
-        DEBUG_PRINTLN(F(" Connection management set to passive"));
-        DEBUG_PRINT(F(" Listening at "));
+            if((uint32_t)localIp > 0) {
+                dataIp = localIp; // same subnet with manual IP set
+            } else {
+                dataIp = NET_CLASS.localIP(); // same subnet without manual IP set
+            }
+        } else{
+            dataIp = NET_CLASS.localIP(); // other subnet, no NAT
+    }
+    dataPort = pasvPort;
+    DEBUG_PRINTLN(F(" Connection management set to passive"));
+    DEBUG_PRINT(F(" Listening at "));
+    DEBUG_PRINT(int(dataIp[0]));
+    DEBUG_PRINT(F("."));
+    DEBUG_PRINT(int(dataIp[1]));
+    DEBUG_PRINT(F("."));
+    DEBUG_PRINT(int(dataIp[2]));
+    DEBUG_PRINT(F("."));
+    DEBUG_PRINT(int(dataIp[3]));
+    DEBUG_PRINT(F(":"));
+    DEBUG_PRINTLN(dataPort);
+
+    client.print(F("227 Entering Passive Mode"));
+    client.print(F(" ("));
+    client.print(int(dataIp[0]));
+    client.print(F(","));
+    client.print(int(dataIp[1]));
+    client.print(F(","));
+    client.print(int(dataIp[2]));
+    client.print(F(","));
+    client.print(int(dataIp[3]));
+    client.print(F(","));
+    client.print((dataPort >> 8));
+    client.print(F(","));
+    client.print((dataPort & 255));
+    client.println(F(")"));
+    dataConn = FTP_Pasive;
+}
+//
+//  PORT - Data Port
+//
+else if(CommandIs("PORT"))
+{
+    data.stop();
+    // get IP of data client
+    dataIp[0] = atoi(parameter);
+    char* p   = strchr(parameter, ',');
+    for(uint8_t i = 1; i < 4; i++) {
+        dataIp[i] = atoi(++p);
+        p         = strchr(p, ',');
+    }
+    // get port of data client
+    dataPort = 256 * atoi(++p);
+    p        = strchr(p, ',');
+    dataPort += atoi(++p);
+    if(p == NULL) {
+        client.println(F("501 Can't interpret parameters"));
+    } else {
+        DEBUG_PRINT(F(" Data IP set to "));
         DEBUG_PRINT(int(dataIp[0]));
         DEBUG_PRINT(F("."));
         DEBUG_PRINT(int(dataIp[1]));
         DEBUG_PRINT(F("."));
         DEBUG_PRINT(int(dataIp[2]));
         DEBUG_PRINT(F("."));
-        DEBUG_PRINT(int(dataIp[3]));
-        DEBUG_PRINT(F(":"));
+        DEBUG_PRINTLN(int(dataIp[3]));
+        DEBUG_PRINT(F(" Data port set to "));
         DEBUG_PRINTLN(dataPort);
 
-        client.print(F("227 Entering Passive Mode"));
-        client.print(F(" ("));
-        client.print(int(dataIp[0]));
-        client.print(F(","));
-        client.print(int(dataIp[1]));
-        client.print(F(","));
-        client.print(int(dataIp[2]));
-        client.print(F(","));
-        client.print(int(dataIp[3]));
-        client.print(F(","));
-        client.print((dataPort >> 8));
-        client.print(F(","));
-        client.print((dataPort & 255));
-        client.println(F(")"));
-        dataConn = FTP_Pasive;
+        client.println(F("200 PORT command successful"));
+        dataConn = FTP_Active;
     }
-    //
-    //  PORT - Data Port
-    //
-    else if(CommandIs("PORT")) {
-        data.stop();
-        // get IP of data client
-        dataIp[0] = atoi(parameter);
-        char* p   = strchr(parameter, ',');
-        for(uint8_t i = 1; i < 4; i++) {
-            dataIp[i] = atoi(++p);
-            p         = strchr(p, ',');
-        }
-        // get port of data client
-        dataPort = 256 * atoi(++p);
-        p        = strchr(p, ',');
-        dataPort += atoi(++p);
-        if(p == NULL) {
-            client.println(F("501 Can't interpret parameters"));
+}
+//
+//  STRU - File Structure
+//
+else if(CommandIs("STRU"))
+{
+    if(ParameterIs("F")) {
+        client.println(F("200 F Ok"));
+        // else if( ParameterIs( "R" ))
+        //  client.println(F("200 B Ok") );
+    } else {
+        client.println(F("504 Only F(ile) is suported"));
+    }
+}
+//
+//  TYPE - Data Type
+//
+else if(CommandIs("TYPE"))
+{
+    if(ParameterIs("A")) {
+        client.println(F("200 TYPE is now ASCII"));
+    } else if(ParameterIs("I")) {
+        client.println(F("200 TYPE is now 8-bit binary"));
+    } else {
+        client.println(F("504 Unknow TYPE"));
+    }
+}
+
+///////////////////////////////////////
+//                                   //
+//        FTP SERVICE COMMANDS       //
+//                                   //
+///////////////////////////////////////
+
+//
+//  ABOR - Abort
+//
+else if(CommandIs("ABOR"))
+{
+    abortTransfer();
+    client.println(F("226 Data connection closed"));
+}
+//
+//  DELE - Delete a File
+//
+else if(CommandIs("DELE"))
+{
+    char path[FTP_CWD_SIZE];
+    if(haveParameter() && makeExistsPath(path)) {
+        if(remove(path)) {
+            if(FtpServer::_callback) {
+                FtpServer::_callback(FTP_FREE_SPACE_CHANGE, free(), capacity());
+            }
+
+            client.print(F("250 Deleted "));
+            client.println(parameter);
         } else {
-            DEBUG_PRINT(F(" Data IP set to "));
-            DEBUG_PRINT(int(dataIp[0]));
-            DEBUG_PRINT(F("."));
-            DEBUG_PRINT(int(dataIp[1]));
-            DEBUG_PRINT(F("."));
-            DEBUG_PRINT(int(dataIp[2]));
-            DEBUG_PRINT(F("."));
-            DEBUG_PRINTLN(int(dataIp[3]));
-            DEBUG_PRINT(F(" Data port set to "));
-            DEBUG_PRINTLN(dataPort);
-
-            client.println(F("200 PORT command successful"));
-            dataConn = FTP_Active;
-        }
-    }
-    //
-    //  STRU - File Structure
-    //
-    else if(CommandIs("STRU")) {
-        if(ParameterIs("F")) {
-            client.println(F("200 F Ok"));
-            // else if( ParameterIs( "R" ))
-            //  client.println(F("200 B Ok") );
-        } else {
-            client.println(F("504 Only F(ile) is suported"));
-        }
-    }
-    //
-    //  TYPE - Data Type
-    //
-    else if(CommandIs("TYPE")) {
-        if(ParameterIs("A")) {
-            client.println(F("200 TYPE is now ASCII"));
-        } else if(ParameterIs("I")) {
-            client.println(F("200 TYPE is now 8-bit binary"));
-        } else {
-            client.println(F("504 Unknow TYPE"));
-        }
-    }
-
-    ///////////////////////////////////////
-    //                                   //
-    //        FTP SERVICE COMMANDS       //
-    //                                   //
-    ///////////////////////////////////////
-
-    //
-    //  ABOR - Abort
-    //
-    else if(CommandIs("ABOR")) {
-        abortTransfer();
-        client.println(F("226 Data connection closed"));
-    }
-    //
-    //  DELE - Delete a File
-    //
-    else if(CommandIs("DELE")) {
-        char path[FTP_CWD_SIZE];
-        if(haveParameter() && makeExistsPath(path)) {
-            if(remove(path)) {
-                if(FtpServer::_callback) {
-                    FtpServer::_callback(FTP_FREE_SPACE_CHANGE, free(), capacity());
-                }
-
-                client.print(F("250 Deleted "));
-                client.println(parameter);
-            } else {
-                client.print(F("450 Can't delete "));
-                client.println(parameter);
-            }
-        }
-    }
-    //
-    //  LIST - List
-    //  NLST - Name List
-    //  MLSD - Listing for Machine Processing (see RFC 3659)
-    //
-    else if(CommandIs("LIST") || CommandIs("NLST") || CommandIs("MLSD")) {
-        DEBUG_PRINT("List of file!!");
-
-        if(dataConnect()) {
-            if(openDir(&dir)) {
-                DEBUG_PRINT("Dir opened!!");
-
-                nbMatch = 0;
-                if(CommandIs("LIST"))
-                    transferStage = FTP_List;
-                else if(CommandIs("NLST"))
-                    transferStage = FTP_Nlst;
-                else
-                    transferStage = FTP_Mlsd;
-            } else {
-                DEBUG_PRINT("List Data stop!!");
-                data.stop();
-            }
-        }
-    }
-    //
-    //  MLST - Listing for Machine Processing (see RFC 3659)
-    //
-    else if(CommandIs("MLST")) {
-        char path[FTP_CWD_SIZE];
-        uint16_t dat, tim;
-        char dtStr[15];
-        bool isdir;
-        if(haveParameter() && makeExistsPath(path)) {
-            if(!getFileModTime(path, &dat, &tim)) {
-                client.print(F("550 Unable to retrieve time for "));
-                client.println(parameter);
-            } else {
-                isdir = isDir(path);
-                client.println(F("250-Begin"));
-                client.print(F(" Type="));
-                client.print((isdir ? F("dir") : F("file")));
-                client.print(F(";Modify="));
-                client.print(makeDateTimeStr(dtStr, dat, tim));
-                if(!isdir) {
-                    if(openFile(path, FTP_FILE_READ)) {
-                        client.print(F(";Size="));
-                        client.print(long(fileSize(file)));
-                        file.close();
-                    }
-                }
-                client.print(F("; "));
-                client.println(path);
-                client.println(F("250 End."));
-            }
-        }
-    }
-    //
-    //  NOOP
-    //
-    else if(CommandIs("NOOP")) {
-        client.println(F("200 Zzz..."));
-    }
-    //
-    //  RETR - Retrieve
-    //
-    else if(CommandIs("RETR")) {
-        char path[FTP_CWD_SIZE];
-        if(haveParameter() && makeExistsPath(path)) {
-            if(!openFile(path, FTP_FILE_READ)) {
-                client.print(F("450 Can't open "));
-                client.print(parameter);
-            } else if(dataConnect(false)) {
-                DEBUG_PRINT(F(" Sending "));
-                DEBUG_PRINT(parameter);
-                DEBUG_PRINT(F(" size "));
-                DEBUG_PRINTLN(long(fileSize(file)));
-
-                if(FtpServer::_transferCallback) {
-                    FtpServer::_transferCallback(FTP_DOWNLOAD_START, path, long(fileSize(file)));
-                }
-
-                client.print(F("150-Connected to port "));
-                client.println(dataPort);
-                client.print(F("150 "));
-                client.print(long(fileSize(file)));
-                client.println(F(" bytes to download"));
-                millisBeginTrans = millis();
-                bytesTransfered  = 0;
-                transferStage    = FTP_Retrieve;
-            }
-        }
-    }
-    //
-    //  STOR - Store
-    //  APPE - Append
-    //
-    else if(CommandIs("STOR") || CommandIs("APPE")) {
-        char path[FTP_CWD_SIZE];
-        if(haveParameter() && makePath(path)) {
-            bool open;
-            if(exists(path)) {
-                DEBUG_PRINTLN(F("APPEND FILE!!"));
-                open = openFile(path, (CommandIs("APPE") ? FTP_FILE_WRITE_APPEND : FTP_FILE_WRITE_CREATE));
-            } else {
-                DEBUG_PRINTLN(F("CREATE FILE!!"));
-                open = openFile(path, FTP_FILE_WRITE_CREATE);
-            }
-
-            data.stop();
-            data.flush();
-
-            DEBUG_PRINT(F("open/create "));
-            DEBUG_PRINTLN(open);
-            if(!open) {
-                client.print(F("451 Can't open/create "));
-                client.println(parameter);
-            } else if(!dataConnect()) // && !data.available())
-                file.close();
-            else {
-                DEBUG_PRINT(F(" Receiving "));
-                DEBUG_PRINTLN(parameter);
-
-                millisBeginTrans = millis();
-                bytesTransfered  = 0;
-                transferStage    = FTP_Store;
-
-                if(FtpServer::_transferCallback) {
-
-                    //			  FtpServer::_transferCallback(FTP_UPLOAD_START, parameter, bytesTransfered);
-                    FtpServer::_transferCallback(FTP_UPLOAD_START, path, bytesTransfered);
-                }
-            }
-        }
-    }
-    //
-    //  MKD - Make Directory
-    //
-    else if(CommandIs("MKD")) {
-        char path[FTP_CWD_SIZE];
-        if(haveParameter() && makePath(path)) {
-            if(exists(path)) {
-                client.print(F("521 \""));
-                client.print(parameter);
-                client.println(F("\" directory already exists"));
-            } else {
-                DEBUG_PRINT(F(" Creating directory "));
-                DEBUG_PRINTLN(parameter);
-
-#if STORAGE_TYPE != STORAGE_SPIFFS
-                if(makeDir(path)) {
-                    client.print(F("257 \""));
-                    client.print(parameter);
-                    client.print(F("\""));
-                    client.println(F(" created"));
-                } else {
-#endif
-                    client.print(F("550 Can't create \""));
-                    client.print(parameter);
-                    client.println(F("\""));
-#if STORAGE_TYPE != STORAGE_SPIFFS
-                }
-#endif
-            }
-        }
-    }
-    //
-    //  RMD - Remove a Directory
-    //
-    else if(CommandIs("RMD")) {
-        char path[FTP_CWD_SIZE];
-        if(haveParameter() && makeExistsPath(path)) {
-            if(removeDir(path)) {
-                DEBUG_PRINT(F(" Deleting "));
-                DEBUG_PRINTLN(path);
-
-                client.print(F("250 \""));
-                client.print(parameter);
-                client.println(F("\" deleted"));
-            } else {
-                client.print(F("550 Can't remove \""));
-                client.print(parameter);
-                client.println(F("\". Directory not empty?"));
-            }
-        }
-    }
-    //
-    //  RNFR - Rename From
-    //
-    else if(CommandIs("RNFR")) {
-        rnfrName[0] = 0;
-        if(haveParameter() && makeExistsPath(rnfrName)) {
-            DEBUG_PRINT(F(" Ready for renaming "));
-            DEBUG_PRINTLN(rnfrName);
-
-            client.println(F("350 RNFR accepted - file exists, ready for destination"));
-            rnfrCmd = true;
-        }
-    }
-    //
-    //  RNTO - Rename To
-    //
-    else if(CommandIs("RNTO")) {
-        char path[FTP_CWD_SIZE];
-        char dirp[FTP_FIL_SIZE];
-        if(strlen(rnfrName) == 0 || !rnfrCmd) {
-            client.println(F("503 Need RNFR before RNTO"));
-        } else if(haveParameter() && makePath(path)) {
-            if(exists(path)) {
-                client.print(F("553 "));
-                client.print(parameter);
-                client.println(F(" already exists"));
-            } else {
-                strcpy(dirp, path);
-                char* psep = strrchr(dirp, '/');
-                bool fail  = psep == NULL;
-                if(!fail) {
-                    if(psep == dirp) psep++;
-                    *psep = 0;
-                    //          fail = ! isDir( dirp );
-                    //          if( fail ) {
-                    //        	  client.print( F("550 \"") ); client.print( dirp ); client.println( F("\" is not
-                    //        directory") );
-                    //          } else
-                    //          {
-                    DEBUG_PRINT(F(" Renaming "));
-                    DEBUG_PRINT(rnfrName);
-                    DEBUG_PRINT(F(" to "));
-                    DEBUG_PRINTLN(path);
-
-                    if(rename(rnfrName, path))
-                        client.println(F("250 File successfully renamed or moved"));
-                    else
-                        fail = true;
-                    //          }
-                }
-                if(fail) client.println(F("451 Rename/move failure"));
-            }
-        }
-        rnfrCmd = false;
-    }
-    /*
-    //
-    //  SYST - System
-    //
-    else if( CommandIs( "SYST" ))
-      FtpOutCli << F("215 MSDOS") << endl;
-    */
-
-    ///////////////////////////////////////
-    //                                   //
-    //   EXTENSIONS COMMANDS (RFC 3659)  //
-    //                                   //
-    ///////////////////////////////////////
-
-    //
-    //  MDTM && MFMT - File Modification Time (see RFC 3659)
-    //
-    else if(CommandIs("MDTM") || CommandIs("MFMT")) {
-        if(haveParameter()) {
-            char path[FTP_CWD_SIZE];
-            char* fname = parameter;
-            uint16_t year;
-            uint8_t month, day, hour, minute, second, setTime;
-            char dt[15];
-            bool mdtm = CommandIs("MDTM");
-
-            setTime = getDateTime(dt, &year, &month, &day, &hour, &minute, &second);
-            // fname point to file name
-            fname += setTime;
-            if(strlen(fname) <= 0) {
-                client.println(F("501 No file name"));
-            } else if(makeExistsPath(path, fname)) {
-                if(setTime) // set file modification time
-                {
-                    if(timeStamp(path, year, month, day, hour, minute, second)) {
-                        client.print(F("213 "));
-                        client.println(dt);
-                    } else {
-                        client.println(F("550 Unable to modify time"));
-                    }
-                } else if(mdtm) // get file modification time
-                {
-                    uint16_t dat, tim;
-                    char dtStr[15];
-                    if(getFileModTime(path, &dat, &tim)) {
-                        client.print(F("213 "));
-                        client.println(makeDateTimeStr(dtStr, dat, tim));
-                    } else {
-                        client.println("550 Unable to retrieve time");
-                    }
-                }
-            }
-        }
-    }
-    //
-    //  SIZE - Size of the file
-    //
-    else if(CommandIs("SIZE")) {
-        char path[FTP_CWD_SIZE];
-        if(haveParameter() && makeExistsPath(path)) {
-            if(!openFile(path, FTP_FILE_READ)) {
-                client.print(F("450 Can't open "));
-                client.println(parameter);
-            } else {
-                client.print(F("213 "));
-                client.println(long(fileSize(file)));
-                file.close();
-            }
-        }
-    }
-    //
-    //  SITE - System command
-    //
-    else if(CommandIs("SITE")) {
-        if(ParameterIs("FREE")) {
-            uint32_t capa = capacity();
-            if((capa >> 10) < 1000) { // less than 1 Giga
-                client.print(F("200 "));
-                client.print(free());
-                client.print(F(" kB free of "));
-                client.print(capa);
-                client.println(F(" kB capacity"));
-            } else {
-                client.print(F("200 "));
-                client.print((free() >> 10));
-                client.print(F(" MB free of "));
-                client.print((capa >> 10));
-                client.println(F(" MB capacity"));
-            }
-        } else {
-            client.print(F("500 Unknow SITE command "));
+            client.print(F("450 Can't delete "));
             client.println(parameter);
         }
     }
-    //
-    //  Unrecognized commands ...
-    //
-    else
-        client.println(F("500 Unknow command"));
-    return true;
+}
+//
+//  LIST - List
+//  NLST - Name List
+//  MLSD - Listing for Machine Processing (see RFC 3659)
+//
+else if(CommandIs("LIST") || CommandIs("NLST") || CommandIs("MLSD"))
+{
+    DEBUG_PRINT("List of file!!");
+
+    if(dataConnect()) {
+        if(openDir(&dir)) {
+            DEBUG_PRINT("Dir opened!!");
+
+            nbMatch = 0;
+            if(CommandIs("LIST"))
+                transferStage = FTP_List;
+            else if(CommandIs("NLST"))
+                transferStage = FTP_Nlst;
+            else
+                transferStage = FTP_Mlsd;
+        } else {
+            DEBUG_PRINT("List Data stop!!");
+            data.stop();
+        }
+    }
+}
+//
+//  MLST - Listing for Machine Processing (see RFC 3659)
+//
+else if(CommandIs("MLST"))
+{
+    char path[FTP_CWD_SIZE];
+    uint16_t dat, tim;
+    char dtStr[15];
+    bool isdir;
+    if(haveParameter() && makeExistsPath(path)) {
+        if(!getFileModTime(path, &dat, &tim)) {
+            client.print(F("550 Unable to retrieve time for "));
+            client.println(parameter);
+        } else {
+            isdir = isDir(path);
+            client.println(F("250-Begin"));
+            client.print(F(" Type="));
+            client.print((isdir ? F("dir") : F("file")));
+            client.print(F(";Modify="));
+            client.print(makeDateTimeStr(dtStr, dat, tim));
+            if(!isdir) {
+                if(openFile(path, FTP_FILE_READ)) {
+                    client.print(F(";Size="));
+                    client.print(long(fileSize(file)));
+                    file.close();
+                }
+            }
+            client.print(F("; "));
+            client.println(path);
+            client.println(F("250 End."));
+        }
+    }
+}
+//
+//  NOOP
+//
+else if(CommandIs("NOOP"))
+{
+    client.println(F("200 Zzz..."));
+}
+//
+//  RETR - Retrieve
+//
+else if(CommandIs("RETR"))
+{
+    char path[FTP_CWD_SIZE];
+    if(haveParameter() && makeExistsPath(path)) {
+        if(!openFile(path, FTP_FILE_READ)) {
+            client.print(F("450 Can't open "));
+            client.print(parameter);
+        } else if(dataConnect(false)) {
+            DEBUG_PRINT(F(" Sending "));
+            DEBUG_PRINT(parameter);
+            DEBUG_PRINT(F(" size "));
+            DEBUG_PRINTLN(long(fileSize(file)));
+
+            if(FtpServer::_transferCallback) {
+                FtpServer::_transferCallback(FTP_DOWNLOAD_START, path, long(fileSize(file)));
+            }
+
+            client.print(F("150-Connected to port "));
+            client.println(dataPort);
+            client.print(F("150 "));
+            client.print(long(fileSize(file)));
+            client.println(F(" bytes to download"));
+            millisBeginTrans = millis();
+            bytesTransfered  = 0;
+            transferStage    = FTP_Retrieve;
+        }
+    }
+}
+//
+//  STOR - Store
+//  APPE - Append
+//
+else if(CommandIs("STOR") || CommandIs("APPE"))
+{
+    char path[FTP_CWD_SIZE];
+    if(haveParameter() && makePath(path)) {
+        bool open;
+        if(exists(path)) {
+            DEBUG_PRINTLN(F("APPEND FILE!!"));
+            open = openFile(path, (CommandIs("APPE") ? FTP_FILE_WRITE_APPEND : FTP_FILE_WRITE_CREATE));
+        } else {
+            DEBUG_PRINTLN(F("CREATE FILE!!"));
+            open = openFile(path, FTP_FILE_WRITE_CREATE);
+        }
+
+        data.stop();
+        data.flush();
+
+        DEBUG_PRINT(F("open/create "));
+        DEBUG_PRINTLN(open);
+        if(!open) {
+            client.print(F("451 Can't open/create "));
+            client.println(parameter);
+        } else if(!dataConnect()) // && !data.available())
+            file.close();
+        else {
+            DEBUG_PRINT(F(" Receiving "));
+            DEBUG_PRINTLN(parameter);
+
+            millisBeginTrans = millis();
+            bytesTransfered  = 0;
+            transferStage    = FTP_Store;
+
+            if(FtpServer::_transferCallback) {
+
+                //			  FtpServer::_transferCallback(FTP_UPLOAD_START, parameter, bytesTransfered);
+                FtpServer::_transferCallback(FTP_UPLOAD_START, path, bytesTransfered);
+            }
+        }
+    }
+}
+//
+//  MKD - Make Directory
+//
+else if(CommandIs("MKD"))
+{
+    char path[FTP_CWD_SIZE];
+    if(haveParameter() && makePath(path)) {
+        if(exists(path)) {
+            client.print(F("521 \""));
+            client.print(parameter);
+            client.println(F("\" directory already exists"));
+        } else {
+            DEBUG_PRINT(F(" Creating directory "));
+            DEBUG_PRINTLN(parameter);
+
+#if STORAGE_TYPE != STORAGE_SPIFFS
+            if(makeDir(path)) {
+                client.print(F("257 \""));
+                client.print(parameter);
+                client.print(F("\""));
+                client.println(F(" created"));
+            } else {
+#endif
+                client.print(F("550 Can't create \""));
+                client.print(parameter);
+                client.println(F("\""));
+#if STORAGE_TYPE != STORAGE_SPIFFS
+            }
+#endif
+        }
+    }
+}
+//
+//  RMD - Remove a Directory
+//
+else if(CommandIs("RMD"))
+{
+    char path[FTP_CWD_SIZE];
+    if(haveParameter() && makeExistsPath(path)) {
+        if(removeDir(path)) {
+            DEBUG_PRINT(F(" Deleting "));
+            DEBUG_PRINTLN(path);
+
+            client.print(F("250 \""));
+            client.print(parameter);
+            client.println(F("\" deleted"));
+        } else {
+            client.print(F("550 Can't remove \""));
+            client.print(parameter);
+            client.println(F("\". Directory not empty?"));
+        }
+    }
+}
+//
+//  RNFR - Rename From
+//
+else if(CommandIs("RNFR"))
+{
+    rnfrName[0] = 0;
+    if(haveParameter() && makeExistsPath(rnfrName)) {
+        DEBUG_PRINT(F(" Ready for renaming "));
+        DEBUG_PRINTLN(rnfrName);
+
+        client.println(F("350 RNFR accepted - file exists, ready for destination"));
+        rnfrCmd = true;
+    }
+}
+//
+//  RNTO - Rename To
+//
+else if(CommandIs("RNTO"))
+{
+    char path[FTP_CWD_SIZE];
+    char dirp[FTP_FIL_SIZE];
+    if(strlen(rnfrName) == 0 || !rnfrCmd) {
+        client.println(F("503 Need RNFR before RNTO"));
+    } else if(haveParameter() && makePath(path)) {
+        if(exists(path)) {
+            client.print(F("553 "));
+            client.print(parameter);
+            client.println(F(" already exists"));
+        } else {
+            strcpy(dirp, path);
+            char* psep = strrchr(dirp, '/');
+            bool fail  = psep == NULL;
+            if(!fail) {
+                if(psep == dirp) psep++;
+                *psep = 0;
+                //          fail = ! isDir( dirp );
+                //          if( fail ) {
+                //        	  client.print( F("550 \"") ); client.print( dirp ); client.println( F("\" is not
+                //        directory") );
+                //          } else
+                //          {
+                DEBUG_PRINT(F(" Renaming "));
+                DEBUG_PRINT(rnfrName);
+                DEBUG_PRINT(F(" to "));
+                DEBUG_PRINTLN(path);
+
+                if(rename(rnfrName, path))
+                    client.println(F("250 File successfully renamed or moved"));
+                else
+                    fail = true;
+                //          }
+            }
+            if(fail) client.println(F("451 Rename/move failure"));
+        }
+    }
+    rnfrCmd = false;
+}
+/*
+//
+//  SYST - System
+//
+else if( CommandIs( "SYST" ))
+  FtpOutCli << F("215 MSDOS") << endl;
+*/
+
+///////////////////////////////////////
+//                                   //
+//   EXTENSIONS COMMANDS (RFC 3659)  //
+//                                   //
+///////////////////////////////////////
+
+//
+//  MDTM && MFMT - File Modification Time (see RFC 3659)
+//
+else if(CommandIs("MDTM") || CommandIs("MFMT"))
+{
+    if(haveParameter()) {
+        char path[FTP_CWD_SIZE];
+        char* fname = parameter;
+        uint16_t year;
+        uint8_t month, day, hour, minute, second, setTime;
+        char dt[15];
+        bool mdtm = CommandIs("MDTM");
+
+        setTime = getDateTime(dt, &year, &month, &day, &hour, &minute, &second);
+        // fname point to file name
+        fname += setTime;
+        if(strlen(fname) <= 0) {
+            client.println(F("501 No file name"));
+        } else if(makeExistsPath(path, fname)) {
+            if(setTime) // set file modification time
+            {
+                if(timeStamp(path, year, month, day, hour, minute, second)) {
+                    client.print(F("213 "));
+                    client.println(dt);
+                } else {
+                    client.println(F("550 Unable to modify time"));
+                }
+            } else if(mdtm) // get file modification time
+            {
+                uint16_t dat, tim;
+                char dtStr[15];
+                if(getFileModTime(path, &dat, &tim)) {
+                    client.print(F("213 "));
+                    client.println(makeDateTimeStr(dtStr, dat, tim));
+                } else {
+                    client.println("550 Unable to retrieve time");
+                }
+            }
+        }
+    }
+}
+//
+//  SIZE - Size of the file
+//
+else if(CommandIs("SIZE"))
+{
+    char path[FTP_CWD_SIZE];
+    if(haveParameter() && makeExistsPath(path)) {
+        if(!openFile(path, FTP_FILE_READ)) {
+            client.print(F("450 Can't open "));
+            client.println(parameter);
+        } else {
+            client.print(F("213 "));
+            client.println(long(fileSize(file)));
+            file.close();
+        }
+    }
+}
+//
+//  SITE - System command
+//
+else if(CommandIs("SITE"))
+{
+    if(ParameterIs("FREE")) {
+        uint32_t capa = capacity();
+        if((capa >> 10) < 1000) { // less than 1 Giga
+            client.print(F("200 "));
+            client.print(free());
+            client.print(F(" kB free of "));
+            client.print(capa);
+            client.println(F(" kB capacity"));
+        } else {
+            client.print(F("200 "));
+            client.print((free() >> 10));
+            client.print(F(" MB free of "));
+            client.print((capa >> 10));
+            client.println(F(" MB capacity"));
+        }
+    } else {
+        client.print(F("500 Unknow SITE command "));
+        client.println(parameter);
+    }
+}
+//
+//  Unrecognized commands ...
+//
+else client.println(F("500 Unknow command"));
+return true;
 }
 
 int FtpServer::dataConnect(bool out150)
