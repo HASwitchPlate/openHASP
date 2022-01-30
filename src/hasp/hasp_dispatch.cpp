@@ -242,8 +242,8 @@ static void dispatch_output(const char* topic, const char* payload)
             JsonVariant brightness = json[F("brightness")];
 
             // Check if the state needs to change
-            if(!state.isNull() && power_state != state.as<bool>()) {
-                power_state = state.as<bool>();
+            if(!state.isNull() && power_state != Parser::is_true(state.as<const char*>())) {
+                power_state = Parser::is_true(state.as<const char*>());
                 updated     = true;
             }
 
@@ -257,7 +257,7 @@ static void dispatch_output(const char* topic, const char* payload)
 
             // Set new state
             if(updated && gpio_set_pin_state(pin, power_state, state_value)) {
-                return; // value was set and state output already
+                return; // value was set and state output already in gpio_set_pin_state
             } else {
                 // output the new state to the log
             }
