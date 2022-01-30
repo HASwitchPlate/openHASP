@@ -242,8 +242,8 @@ static void dispatch_output(const char* topic, const char* payload)
             JsonVariant brightness = json[F("brightness")];
 
             // Check if the state needs to change
-            if(!state.isNull() && power_state != Parser::is_true(state.as<const char*>())) {
-                power_state = Parser::is_true(state.as<const char*>());
+            if(!state.isNull() && power_state != Parser::is_true(state)) {
+                power_state = Parser::is_true(state);
                 updated     = true;
             }
 
@@ -849,9 +849,8 @@ void dispatch_moodlight(const char* topic, const char* payload, uint8_t source)
         if(jsonError) { // Couldn't parse incoming JSON command
             dispatch_json_error(TAG_MSGR, jsonError);
         } else {
-
-            if(!json[F("state")].isNull())
-                moodlight.power = Parser::is_true(json[F("state")].as<std::string>().c_str());
+            JsonVariant state = json[F("state")];
+            if(!state.isNull()) moodlight.power = Parser::is_true(state);
 
             if(!json["r"].isNull()) moodlight.rgbww[0] = json["r"].as<uint8_t>();
             if(!json["g"].isNull()) moodlight.rgbww[1] = json["g"].as<uint8_t>();
@@ -924,9 +923,11 @@ void dispatch_backlight(const char*, const char* payload, uint8_t source)
                 power = json.as<bool>();
 
             } else {
-                if(!json[F("state")].isNull()) power = Parser::is_true(json[F("state")].as<std::string>().c_str());
+                JsonVariant state      = json[F("state")];
+                JsonVariant brightness = json[F("brightness")];
 
-                if(!json[F("brightness")].isNull()) haspDevice.set_backlight_level(json[F("brightness")].as<uint8_t>());
+                if(!state.isNull()) power = Parser::is_true(state);
+                if(!brightness.isNull()) haspDevice.set_backlight_level(brightness.as<uint8_t>());
             }
         }
     }
@@ -978,7 +979,7 @@ void dispatch_antiburn(const char*, const char* payload, uint8_t source)
 
         } else { // other text
             JsonVariant key = json[F("state")];
-            if(!key.isNull()) state = Parser::is_true(key.as<std::string>().c_str());
+            if(!key.isNull()) state = Parser::is_true(key);
         }
     }
 
