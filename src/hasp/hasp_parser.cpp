@@ -154,6 +154,11 @@ bool Parser::is_true(const char* s)
             !strcmp_P(s, PSTR("1")));
 }
 
+bool Parser::is_true(JsonVariant json)
+{
+    return is_true(json.as<std::string>().c_str());
+}
+
 bool Parser::is_only_digits(const char* s)
 {
     size_t digits = 0;
