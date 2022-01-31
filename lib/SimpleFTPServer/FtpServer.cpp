@@ -61,15 +61,18 @@ FtpServer::FtpServer(uint16_t _cmdPort, uint16_t _pasvPort) : ftpServer(_cmdPort
 
 void FtpServer::end()
 {
+    DEBUG_PRINTLN(F("Stop server!"));
+
     if(client.connected()) {
         disconnectClient();
     }
 
     ftpServer.end();
     dataServer.end();
-    DEBUG_PRINTLN(F("Stop server!"));
 
-    cmdStage = FTP_Init;
+    cmdStage = FTP_Stop;
+    transferStage = FTP_Close;
+    dataConn = FTP_NoConn;
 }
 
 void FtpServer::begin(const char* _user, const char* _pass, const char* _welcomeMessage)
