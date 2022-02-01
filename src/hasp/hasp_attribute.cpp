@@ -1110,9 +1110,9 @@ static hasp_attribute_type_t special_attribute_src(lv_obj_t* obj, const char* pa
             HTTPClient http;
             http.begin(payload);
 
-            const char* hdrs[] = {"Content-Type"};
-            size_t numhdrs     = sizeof(hdrs) / sizeof(char*);
-            http.collectHeaders(hdrs, numhdrs);
+            // const char* hdrs[] = {"Content-Type"};
+            // size_t numhdrs     = sizeof(hdrs) / sizeof(char*);
+            // http.collectHeaders(hdrs, numhdrs);
 
             int httpCode = http.GET();
             if(httpCode == HTTP_CODE_OK) {
@@ -1121,7 +1121,7 @@ static hasp_attribute_type_t special_attribute_src(lv_obj_t* obj, const char* pa
                 int buf_len = total;
                 int dsc_len = sizeof(lv_img_dsc_t) + url_len;
 
-                if(buf_len <= 0) { // header could not fit
+                if(buf_len <= 8) { // header could not fit
                     LOG_ERROR(TAG_ATTR, "img data size is too small %d", buf_len);
                     return HASP_ATTR_TYPE_STR;
                 }
@@ -1160,42 +1160,82 @@ static hasp_attribute_type_t special_attribute_src(lv_obj_t* obj, const char* pa
                 // LOG_WARNING(TAG_ATTR, "%s %d %x == %x", __FILE__, __LINE__, img_dsc->data, img_buf);
 
                 int read = 0;
-                while(http.connected() && (buf_len > 0)) {
+                while(http.connected() && (stream->available() < 8) && read < 250) {
+                    delay(1); // wait for header
+                    read++;   // time-out check
+                }
 
+                // Read image header
+                read                      = 0;
+                const uint8_t png_magic[] = {0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a};
+                if(stream->available() >= 8) {
+                    int c = stream->readBytes(img_buf_pos, 8); // don't read too far
+
+                    if(!memcmp(png_magic, img_buf_pos, sizeof(png_magic))) {
+                        // PNG image, keep all data and advance buffer
+                        LOG_VERBOSE(TAG_ATTR, D_BULLET "PNG HEADER: %d bytes read=%d buf_len=%d", c, read, buf_len);
+                        img_buf_pos += c;
+                        buf_len -= c;
+                        read += c;
+                    } else {
+                        // BIN format, copy the header
+                        lv_img_header_t* header     = (lv_img_header_t*)img_buf_pos;
+                        img_dsc->header.always_zero = 0;
+                        img_dsc->header.w           = header->w;
+                        img_dsc->header.h           = header->h;
+                        img_dsc->header.cf          = header->cf;
+
+                        LOG_VERBOSE(TAG_ATTR, D_BULLET "BIN image: w=%d h=%d cf=%d len=%d", img_dsc->header.w,
+                                    img_dsc->header.h, img_dsc->header.cf, img_dsc->data_size);
+                        img_buf_pos += sizeof(lv_img_header_t);
+                        // shift remainder of 8 data-bytes to the start of the buffer
+                        memcpy(img_buf_start, img_buf_pos, 8U - sizeof(lv_img_header_t));
+                        buf_len -= c;
+                        read += c;
+                    }
+                } else {
+                    // disconnected
+                    hasp_free(img_buf_start);
+                    lv_mem_free(img_dsc); // destroy header too
+                    LOG_ERROR(TAG_ATTR, "img header read failed %d", buf_len);
+                    return HASP_ATTR_TYPE_STR;
+                }
+
+                // Read image data
+                while(http.connected() && (buf_len > 0)) {
                     if(size_t size = stream->available()) {
                         int c = stream->readBytes(img_buf_pos, size > buf_len ? buf_len : size); // don't read too far
                         // LOG_WARNING(TAG_ATTR, "%s %d %x -> %x", __FILE__, __LINE__, img_dsc->data, img_buf);
                         img_buf_pos += c;
                         buf_len -= c;
-                        LOG_VERBOSE(TAG_ATTR, D_BULLET "IMG DATA: %d bytes read=%d buf_len=%d", c, read, buf_len);
+                        // LOG_VERBOSE(TAG_ATTR, D_BULLET "IMG DATA: %d bytes read=%d buf_len=%d", c, read, buf_len);
                         read += c;
-
                     } else {
-                        delay(1); // wait for data
+                        //  delay(1); // wait for data
                     }
                 }
+
+                // disconnected
+                if(buf_len > 0) {
+                    hasp_free(img_buf_start);
+                    lv_mem_free(img_dsc); // destroy header too
+                    LOG_ERROR(TAG_ATTR, "img data read failed %d", buf_len);
+                    return HASP_ATTR_TYPE_STR;
+                }
+
                 LOG_VERBOSE(TAG_ATTR, D_BULLET "HTTP TOTAL READ: %d bytes, %d buffered", read,
                             img_buf_pos - img_buf_start);
 
-                const uint8_t png_magic[] = {0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a};
-                if(total > 16 && !memcmp(png_magic, img_dsc->data, sizeof(png_magic))) {
+                if(total > 24 && !memcmp(png_magic, img_dsc->data, sizeof(png_magic))) {
                     // PNG format, get image size from header
                     img_dsc->header.always_zero = 0;
                     img_dsc->header.w           = img_buf_start[19] + (img_buf_start[18] << 8);
                     img_dsc->header.h           = img_buf_start[23] + (img_buf_start[22] << 8);
                     img_dsc->data_size          = img_buf_pos - img_buf_start; // end of buffer - start of buffer
                     img_dsc->header.cf          = LV_IMG_CF_RAW_ALPHA;
-                    // img_dsc->data            = img_dsc->data; // already set
                     LOG_VERBOSE(TAG_ATTR, D_BULLET "PNG image: w=%d h=%d cf=%d len=%d", img_dsc->header.w,
                                 img_dsc->header.h, img_dsc->header.cf, img_dsc->data_size);
                 } else {
-                    // BIN format, includes a header
-                    lv_img_header_t* header     = (lv_img_header_t*)img_buf_start;
-                    img_dsc->header.always_zero = 0;
-                    img_dsc->header.w           = header->w;
-                    img_dsc->header.h           = header->h;
-                    img_dsc->header.cf          = header->cf;
-                    img_dsc->data               = img_buf_start + sizeof(lv_img_header_t); // start of buf + skip header
                     img_dsc->data_size = img_buf_pos - img_buf_start - sizeof(lv_img_header_t); // end buf - start buf
                     LOG_VERBOSE(TAG_ATTR, D_BULLET "BIN image: w=%d h=%d cf=%d len=%d", img_dsc->header.w,
                                 img_dsc->header.h, img_dsc->header.cf, img_dsc->data_size);
@@ -1379,15 +1419,17 @@ static hasp_attribute_type_t attribute_common_json(lv_obj_t* obj, uint16_t attr_
                                                    bool update)
 {
     switch(attr_hash) {
-        case ATTR_JSONL:
+        case ATTR_JSONL: {
+            DeserializationError jsonError;
+
             if(update) {
 
                 size_t maxsize = (512u + JSON_OBJECT_SIZE(25));
                 DynamicJsonDocument json(maxsize);
 
                 // Note: Deserialization can to be (char *) so the objects WILL NOT be copied
-                // this uses less memory since the data is already copied from the mqtt receive buffer and cannot get
-                // overwritten by the send buffer !!
+                // this uses less memory since the data is already copied from the mqtt receive buffer and cannot
+                // get overwritten by the send buffer !!
                 DeserializationError jsonError = deserializeJson(json, (char*)payload);
                 json.shrinkToFit();
 
@@ -1398,17 +1440,18 @@ static hasp_attribute_type_t attribute_common_json(lv_obj_t* obj, uint16_t attr_
                     } else {
                         jsonError = DeserializationError::InvalidInput;
                     }
+                } else {
+                    jsonError = DeserializationError::IncompleteInput;
                 }
-
-                if(jsonError) { // Couldn't parse incoming JSON object
-                    dispatch_json_error(TAG_ATTR, jsonError);
-                    return HASP_ATTR_TYPE_METHOD_OK;
-                }
-
-            } else {
-                return HASP_ATTR_TYPE_NOT_FOUND;
             }
+
+            if(jsonError) { // Couldn't parse incoming JSON object
+                dispatch_json_error(TAG_ATTR, jsonError);
+                return HASP_ATTR_TYPE_JSON_INVALID;
+            }
+
             break; // attribute_found
+        }
 
         default:
             return HASP_ATTR_TYPE_NOT_FOUND;
