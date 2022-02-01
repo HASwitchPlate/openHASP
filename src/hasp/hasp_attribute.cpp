@@ -1375,6 +1375,47 @@ static hasp_attribute_type_t attribute_common_tag(lv_obj_t* obj, uint16_t attr_h
 
     return HASP_ATTR_TYPE_JSON;
 }
+static hasp_attribute_type_t attribute_common_json(lv_obj_t* obj, uint16_t attr_hash, const char* payload, char** text,
+                                                   bool update)
+{
+    switch(attr_hash) {
+        case ATTR_JSONL:
+            if(update) {
+
+                size_t maxsize = (512u + JSON_OBJECT_SIZE(25));
+                DynamicJsonDocument json(maxsize);
+
+                // Note: Deserialization can to be (char *) so the objects WILL NOT be copied
+                // this uses less memory since the data is already copied from the mqtt receive buffer and cannot get
+                // overwritten by the send buffer !!
+                DeserializationError jsonError = deserializeJson(json, (char*)payload);
+                json.shrinkToFit();
+
+                if(!jsonError) {
+                    // Make sure we have a valid JsonObject to start from
+                    if(JsonObject keys = json.as<JsonObject>()) {
+                        hasp_parse_json_attributes(obj, keys); // json is valid object, cast as a JsonObject
+                    } else {
+                        jsonError = DeserializationError::InvalidInput;
+                    }
+                }
+
+                if(jsonError) { // Couldn't parse incoming JSON object
+                    dispatch_json_error(TAG_ATTR, jsonError);
+                    return HASP_ATTR_TYPE_METHOD_OK;
+                }
+
+            } else {
+                return HASP_ATTR_TYPE_NOT_FOUND;
+            }
+            break; // attribute_found
+
+        default:
+            return HASP_ATTR_TYPE_NOT_FOUND;
+    }
+
+    return HASP_ATTR_TYPE_METHOD_OK;
+}
 
 static hasp_attribute_type_t attribute_common_text(lv_obj_t* obj, const char* attr, const char* payload, char** text,
                                                    bool update)
@@ -2321,6 +2362,9 @@ void hasp_process_obj_attribute(lv_obj_t* obj, const char* attribute, const char
             break;
         case ATTR_TAG:
             ret = attribute_common_tag(obj, attr_hash, payload, &text, update);
+            break;
+        case ATTR_JSONL:
+            ret = attribute_common_json(obj, attr_hash, payload, &text, update);
             break;
 
         case ATTR_OBJ:

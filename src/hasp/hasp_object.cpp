@@ -174,14 +174,13 @@ void hasp_process_attribute(uint8_t pageid, uint8_t objid, const char* attr, con
 
 // ##################### Object Creator ########################################################
 
-// Called from hasp_new_object only to process all attributes
-static inline int hasp_parse_json_attributes(lv_obj_t* obj, const JsonObject& doc)
+// Called from hasp_new_object or TAG_JSON to process all attributes
+int hasp_parse_json_attributes(lv_obj_t* obj, const JsonObject& doc)
 {
     int i = 0;
-#if defined(WINDOWS) || defined(POSIX)
-    // String v((char *)0);
-    // v.reserve(64);
+#if defined(WINDOWS) || defined(POSIX) || defined(ESP32)
     std::string v;
+    v.reserve(64);
 
     for(JsonPair keyValue : doc) {
         // LOG_VERBOSE(TAG_HASP, F(D_BULLET "%s=%s"), keyValue.key().c_str(),
