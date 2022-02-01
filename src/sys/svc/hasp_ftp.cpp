@@ -20,14 +20,15 @@
 extern hasp_http_config_t http_config;
 #endif
 
-FtpServer ftpSrv; // set #define FTP_DEBUG in ESP8266FtpServer.h to see ftp verbose on serial
+FtpServer* ftpSrv; // set #define FTP_DEBUG in ESP8266FtpServer.h to see ftp verbose on serial
 
-uint16_t ftpPort         = 23;
-uint8_t ftpEnabled       = true; // Enable telnet debug output
+uint16_t ftpCtrlPort     = 21;
+uint16_t ftpDataPort     = 50009;
+uint8_t ftpEnabled       = true;
 size_t transferSize      = 0;
 const char* transferName = NULL;
 
-void _callback(FtpOperation ftpOperation, unsigned int freeSpace, unsigned int totalSpace)
+void ftp_callback(FtpOperation ftpOperation, unsigned int freeSpace, unsigned int totalSpace)
 {
     switch(ftpOperation) {
         case FTP_CONNECT:
@@ -43,7 +44,7 @@ void _callback(FtpOperation ftpOperation, unsigned int freeSpace, unsigned int t
             break;
     }
 };
-void _transferCallback(FtpTransferOperation ftpOperation, const char* name, unsigned int transferredSize)
+void ftp_transfer_callback(FtpTransferOperation ftpOperation, const char* name, unsigned int transferredSize)
 {
     transferName = name;
     transferSize = transferredSize;
@@ -98,19 +99,33 @@ void _transferCallback(FtpTransferOperation ftpOperation, const char* name, unsi
 
 void ftpStop(void)
 {
-    // LOG_WARNING(TAG_FTP, F("Service cannot be stopped"));
-    ftpSrv.end();
+    if(ftpSrv) {
+        ftpSrv->end();
+        delete(ftpSrv);
+        ftpSrv = NULL;
+    }
+
+    transferSize = 0;
+    transferName = NULL;
+
     LOG_INFO(TAG_FTP, F(D_SERVICE_STOPPED));
 }
 
 void ftpStart()
 {
     LOG_TRACE(TAG_FTP, F(D_SERVICE_STARTING));
-    ftpSrv.setCallback(_callback);
-    ftpSrv.setTransferCallback(_transferCallback);
+
+    ftpSrv = new FtpServer(ftpCtrlPort, ftpDataPort);
+    if(!ftpSrv) {
+        LOG_INFO(TAG_FTP, F(D_SERVICE_START_FAILED));
+        return;
+    }
+
+    ftpSrv->setCallback(ftp_callback);
+    ftpSrv->setTransferCallback(ftp_transfer_callback);
 
 #if HASP_USE_HTTP > 0 || HASP_USE_HTTP_ASYNC > 0
-    ftpSrv.begin(http_config.username, http_config.password); // Password must be non-empty
+    ftpSrv->begin(http_config.username, http_config.password, D_MANUFACTURER); // Password must be non-empty
 #else
     ftpSrv.begin("ftpuser", "haspadmin"); // username, password for ftp.   (default 21, 50009 for PASV)
 #endif
@@ -128,7 +143,7 @@ void ftpSetup()
 
 IRAM_ATTR void ftpLoop()
 {
-    ftpSrv.handleFTP(); // make sure in loop you call handleFTP()!!
+    if(ftpSrv) ftpSrv->handleFTP(); // make sure in loop you call handleFTP()!!
 }
 
 void ftpEverySecond(void)
