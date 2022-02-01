@@ -10,7 +10,7 @@ void my_obj_set_tag(lv_obj_t* obj, const char* tag)
 
     // release old tag
     if(obj->user_data.tag) {
-        lv_mem_free(obj->user_data.tag);
+        hasp_free(obj->user_data.tag);
         obj->user_data.tag = NULL;
     }
 
@@ -26,7 +26,7 @@ void my_obj_set_tag(lv_obj_t* obj, const char* tag)
         if(error != DeserializationError::Ok) doc.set(tag); // use tag as-is
 
         const size_t size = measureJson(doc) + 1;
-        if(char* str = (char*)lv_mem_alloc(size)) {
+        if(char* str = (char*)hasp_malloc(size)) {
             len                = serializeJson(doc, str, size); // tidy-up the json object
             obj->user_data.tag = (void*)str;
             LOG_VERBOSE(TAG_ATTR, "new json: %s", str);
