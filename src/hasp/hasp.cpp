@@ -384,13 +384,14 @@ void hasp_set_theme(uint8_t themeid)
     if(themeid < 0 || themeid > 5) return; // check bounds
 
 #if(LV_USE_THEME_HASP == 1)
-    uint32_t hasp_flags = LV_THEME_HASP_FLAG_LIGHT;
+    uint32_t hasp_flags = LV_THEME_HASP_FLAG_LIGHT + LV_THEME_HASP_FLAG_NO_TRANSITION + LV_THEME_HASP_FLAG_NO_FOCUS;
 #endif
 
 #if(LV_USE_THEME_MATERIAL == 1)
     // LV_THEME_MATERIAL_FLAG_NO_TRANSITION : disable transitions(state change animations)
     // LV_THEME_MATERIAL_FLAG_NO_FOCUS: disable indication of focused state)
-    uint32_t material_flags = LV_THEME_MATERIAL_FLAG_LIGHT + LV_THEME_MATERIAL_FLAG_NO_TRANSITION;
+    uint32_t material_flags =
+        LV_THEME_MATERIAL_FLAG_LIGHT + LV_THEME_MATERIAL_FLAG_NO_TRANSITION + LV_THEME_MATERIAL_FLAG_NO_FOCUS;
 #endif
 
     switch(themeid) {
@@ -404,11 +405,11 @@ void hasp_set_theme(uint8_t themeid)
 
 #if(LV_USE_THEME_HASP == 1)
         case 2: // Dark
-            hasp_flags = LV_THEME_HASP_FLAG_DARK;
+            hasp_flags = LV_THEME_HASP_FLAG_DARK + LV_THEME_HASP_FLAG_NO_TRANSITION + LV_THEME_HASP_FLAG_NO_FOCUS;
         case 1: // Light
         case 8: // Light (old id)
-            th = lv_theme_hasp_init(color_primary, color_secondary, hasp_flags + LV_THEME_HASP_FLAG_NO_FOCUS,
-                                    haspFonts[0], haspFonts[1], haspFonts[2], haspFonts[3]);
+            th = lv_theme_hasp_init(color_primary, color_secondary, hasp_flags, haspFonts[0], haspFonts[1],
+                                    haspFonts[2], haspFonts[3]);
             break;
 #endif
 
@@ -421,12 +422,12 @@ void hasp_set_theme(uint8_t themeid)
 
 #if LV_USE_THEME_MATERIAL == 1
         case 5: // Dark
-            material_flags = LV_THEME_MATERIAL_FLAG_DARK + LV_THEME_MATERIAL_FLAG_NO_TRANSITION;
+            material_flags =
+                LV_THEME_MATERIAL_FLAG_DARK + LV_THEME_MATERIAL_FLAG_NO_TRANSITION + LV_THEME_MATERIAL_FLAG_NO_FOCUS;
         case 4: // Light
         case 9: // Light (old id)
-            th =
-                lv_theme_material_init(color_primary, color_secondary, material_flags + LV_THEME_MATERIAL_FLAG_NO_FOCUS,
-                                       haspFonts[0], haspFonts[1], haspFonts[2], haspFonts[3]);
+            th = lv_theme_material_init(color_primary, color_secondary, material_flags, haspFonts[0], haspFonts[1],
+                                        haspFonts[2], haspFonts[3]);
             break;
 #endif
 
@@ -638,24 +639,6 @@ void haspClearPage(uint16_t pageid)
     } else {
         LOG_TRACE(TAG_HASP, F(D_HASP_CLEAR_PAGE), pageid);
         lv_obj_clean(page);
-    }
-}
-
-uint8_t haspGetPage()
-{
-    return current_page;
-}
-
-void haspSetPage(uint8_t pageid)
-{
-    lv_obj_t* page = haspPages.get_obj(pageid);
-    if(!page || pageid == 0 || pageid > HASP_NUM_PAGES) {
-        LOG_WARNING(TAG_HASP, F(D_HASP_INVALID_PAGE), pageid);
-    } else {
-        LOG_TRACE(TAG_HASP, F(D_HASP_CHANGE_PAGE), pageid);
-        current_page = pageid;
-        lv_scr_load(page);
-        hasp_object_tree(page, pageid, 0);
     }
 }
 

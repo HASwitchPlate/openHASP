@@ -91,7 +91,9 @@ void Page::set(uint8_t pageid, lv_scr_load_anim_t animation)
         if(page != lv_scr_act()) {
             LOG_TRACE(TAG_HASP, F(D_HASP_CHANGE_PAGE), pageid);
             lv_scr_load_anim(page, animation, 500, 0, false);
+#if defined(HASP_DEBUG_OBJ_TREE)
             hasp_object_tree(page, pageid, 0);
+#endif
         }
     }
 }
