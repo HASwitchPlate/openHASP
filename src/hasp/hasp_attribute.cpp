@@ -1963,6 +1963,7 @@ static hasp_attribute_type_t attribute_common_method(lv_obj_t* obj, uint16_t att
         case ATTR_OPEN:
         case ATTR_CLOSE:
             if(!obj_check_type(obj, LV_HASP_DROPDOWN)) return HASP_ATTR_TYPE_NOT_FOUND;
+            event_reset_last_value_sent(); // Prevents manual selection bug because no manual 'down' occured
             if(attr_hash == ATTR_OPEN)
                 lv_dropdown_open(obj);
             else

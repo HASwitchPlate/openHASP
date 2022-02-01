@@ -28,4 +28,7 @@ void cpicker_event_handler(lv_obj_t* obj, lv_event_t event);
 void calendar_event_handler(lv_obj_t* obj, lv_event_t event);
 void textarea_event_handler(lv_obj_t* obj, lv_event_t event);
 
+// Other functions
+void event_reset_last_value_sent();
+
 #endif // HASP_EVENT_H

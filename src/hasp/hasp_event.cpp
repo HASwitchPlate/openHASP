@@ -30,9 +30,17 @@
 #include "lv_core/lv_obj.h" // for tabview ext
 
 static lv_style_int_t last_value_sent;
+static lv_obj_t* last_obj_sent = NULL;
 static lv_color_t last_color_sent;
 
 void swipe_event_handler(lv_obj_t* obj, lv_event_t event);
+
+// resets the last_value_sent
+void event_reset_last_value_sent()
+{
+    last_obj_sent   = NULL;
+    last_value_sent = INT16_MIN;
+}
 
 /**
  * Clean-up allocated memory before an object is deleted
@@ -403,6 +411,7 @@ void textarea_event_handler(lv_obj_t* obj, lv_event_t event)
 void generic_event_handler(lv_obj_t* obj, lv_event_t event)
 {
     log_event("generic", event);
+    last_obj_sent = obj; // updated but not used in this function
 
     switch(event) {
         case LV_EVENT_GESTURE:
@@ -479,6 +488,7 @@ void generic_event_handler(lv_obj_t* obj, lv_event_t event)
             }
             dispatch_current_page();
         }
+
     } else {
         char data[512];
         {
@@ -494,7 +504,7 @@ void generic_event_handler(lv_obj_t* obj, lv_event_t event)
     }
 
     // Update group objects and gpios on release
-    if(last_value_sent != LV_EVENT_LONG_PRESSED || last_value_sent != LV_EVENT_LONG_PRESSED_REPEAT) {
+    if(last_value_sent != LV_EVENT_LONG_PRESSED && last_value_sent != LV_EVENT_LONG_PRESSED_REPEAT) {
         bool state = Parser::get_event_state(last_value_sent);
         event_update_group(obj->user_data.groupid, obj, state, state, HASP_EVENT_OFF, HASP_EVENT_ON);
     }
@@ -508,6 +518,7 @@ void generic_event_handler(lv_obj_t* obj, lv_event_t event)
 void toggle_event_handler(lv_obj_t* obj, lv_event_t event)
 {
     log_event("toggle", event);
+    last_obj_sent = obj; // updated but not used in this function
 
     uint8_t hasp_event_id;
     if(!translate_event(obj, event, hasp_event_id)) return;
@@ -606,8 +617,11 @@ void selector_event_handler(lv_obj_t* obj, lv_event_t event)
             return; // Invalid selector type
     }
 
-    if(hasp_event_id == HASP_EVENT_CHANGED && last_value_sent == val) return; // same value as before
+    if(hasp_event_id == HASP_EVENT_CHANGED && last_value_sent == val && last_obj_sent == obj)
+        return; // same object and value as before
+
     last_value_sent = val;
+    last_obj_sent   = obj;
     event_object_selection_changed(obj, hasp_event_id, val, buffer);
 
     if(obj->user_data.groupid && max > 0) // max a cannot be 0, its the divider
@@ -642,9 +656,11 @@ void btnmatrix_event_handler(lv_obj_t* obj, lv_event_t event)
         strncpy(buffer, txt, sizeof(buffer));
     }
 
-    if(hasp_event_id == HASP_EVENT_CHANGED && last_value_sent == val) return; // same value as before
+    if(hasp_event_id == HASP_EVENT_CHANGED && last_value_sent == val && last_obj_sent == obj)
+        return; // same object and value as before
 
     last_value_sent = val;
+    last_obj_sent   = obj;
     event_object_selection_changed(obj, hasp_event_id, val, buffer);
 
     // if(max > 0) // max a cannot be 0, its the divider
@@ -678,9 +694,11 @@ void msgbox_event_handler(lv_obj_t* obj, lv_event_t event)
         buffer[0] = 0; // empty string
     }
 
-    if(hasp_event_id == HASP_EVENT_CHANGED && last_value_sent == val) return; // same value as before
+    if(hasp_event_id == HASP_EVENT_CHANGED && last_value_sent == val && last_obj_sent == obj)
+        return; // same object and value as before
 
     last_value_sent = val;
+    last_obj_sent   = obj;
     event_object_selection_changed(obj, hasp_event_id, val, buffer);
     // if(max > 0) event_update_group(obj->user_data.groupid, obj, val, 0, max);
 }
@@ -716,9 +734,11 @@ void slider_event_handler(lv_obj_t* obj, lv_event_t event)
         return; // not a slider
     }
 
-    if(hasp_event_id == HASP_EVENT_CHANGED && last_value_sent == val) return; // same value as before
+    if(hasp_event_id == HASP_EVENT_CHANGED && last_value_sent == val && last_obj_sent == obj)
+        return; // same object and value as before
 
     last_value_sent = val;
+    last_obj_sent   = obj;
     event_object_val_event(obj, hasp_event_id, val);
 
     if(obj->user_data.groupid && (hasp_event_id == HASP_EVENT_CHANGED || hasp_event_id == HASP_EVENT_UP) && min != max)
@@ -783,7 +803,8 @@ void calendar_event_handler(lv_obj_t* obj, lv_event_t event)
     if(!date) return;
 
     lv_style_int_t val = date->day + date->month * 31;
-    if(hasp_event_id == HASP_EVENT_CHANGED && last_value_sent == val) return; // same value as before
+    if(hasp_event_id == HASP_EVENT_CHANGED && last_value_sent == val && last_obj_sent == obj)
+        return; // same object and value as before
 
     char data[512];
     {
@@ -791,6 +812,7 @@ void calendar_event_handler(lv_obj_t* obj, lv_event_t event)
         Parser::get_event_name(hasp_event_id, eventname, sizeof(eventname));
 
         last_value_sent = val;
+        last_obj_sent   = obj;
 
         if(const char* tag = my_obj_get_tag(obj))
             snprintf_P(data, sizeof(data),
