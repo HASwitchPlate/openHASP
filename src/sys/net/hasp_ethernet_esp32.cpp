@@ -66,8 +66,9 @@ bool ethernetEvery5Seconds()
 
 void ethernet_get_statusupdate(char* buffer, size_t len)
 {
-    snprintf_P(buffer, len, PSTR("\"eth\":\"%s\",\"link\":\"%d Mbps\",\"ip\":\"%s\","),
-               eth_connected ? F("on") : F("off"), ETH.linkSpeed(), ETH.localIP().toString().c_str());
+    snprintf_P(buffer, len, PSTR("\"eth\":\"%s\",\"link\":\"%d Mbps\",\"ip\":\"%s\",\"mac\":\"%s\","),
+               eth_connected ? F("on") : F("off"), ETH.linkSpeed(), ETH.localIP().toString().c_str(),
+               ETH.macAddress().c_str());
 }
 
 void ethernet_get_info(JsonDocument& doc)

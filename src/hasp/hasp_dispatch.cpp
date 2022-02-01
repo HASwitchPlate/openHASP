@@ -1153,8 +1153,8 @@ void dispatch_statusupdate(const char*, const char*, uint8_t source)
         network_get_statusupdate(buffer, sizeof(buffer));
         strcat(data, buffer);
 
-        snprintf_P(buffer, sizeof(buffer), PSTR("\"mac\":\"%s\","), halGetMacAddress(0, ":").c_str());
-        strcat(data, buffer);
+        // snprintf_P(buffer, sizeof(buffer), PSTR("\"mac\":\"%s\","), halGetMacAddress(0, ":").c_str());
+        // strcat(data, buffer);
 #endif
 
         snprintf_P(buffer, sizeof(buffer), PSTR("\"heapFree\":%u,\"heapFrag\":%u,\"core\":\"%s\","),

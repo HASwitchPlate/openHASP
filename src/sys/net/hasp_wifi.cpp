@@ -558,12 +558,12 @@ void wifi_get_statusupdate(char* buffer, size_t len)
     ip = WiFi.localIP();
     char espIp[16];
     memset(espIp, 0, sizeof(espIp));
-    snprintf_P(buffer, len, PSTR("\"ssid\":\"%s\",\"rssi\":%i,\"ip\":\"%d.%d.%d.%d\","), WiFi.SSID(), WiFi.RSSI(),
-               ip[0], ip[1], ip[2], ip[3]);
+    snprintf_P(buffer, len, PSTR("\"ssid\":\"%s\",\"rssi\":%i,\"ip\":\"%d.%d.%d.%d\",\"mac\":\"%s\","), WiFi.SSID(),
+               WiFi.RSSI(), ip[0], ip[1], ip[2], ip[3], "TODO");
 #else
     strncpy(wifiIpAddress, WiFi.localIP().toString().c_str(), sizeof(wifiIpAddress));
-    snprintf_P(buffer, len, PSTR("\"ssid\":\"%s\",\"rssi\":%i,\"ip\":\"%s\","), WiFi.SSID().c_str(), WiFi.RSSI(),
-               wifiIpAddress);
+    snprintf_P(buffer, len, PSTR("\"ssid\":\"%s\",\"rssi\":%i,\"ip\":\"%s\",\"mac\":\"%s\","), WiFi.SSID().c_str(),
+               WiFi.RSSI(), wifiIpAddress, WiFi.macAddress().c_str());
 #endif
 }
 

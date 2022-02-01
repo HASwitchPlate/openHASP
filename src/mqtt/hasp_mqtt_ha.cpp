@@ -78,7 +78,7 @@ void mqtt_ha_add_device_ids(JsonDocument& doc)
     JsonObject device = doc.createNestedObject(FPSTR(FP_MQTT_HA_DEVICE));
     JsonArray ids     = device.createNestedArray(FPSTR(FP_MQTT_HA_IDENTIFIERS));
     ids.add(haspDevice.get_hostname());
-    ids.add(HASP_MAC_ADDRESS_STR);
+    ids.add(haspDevice.get_hardware_id());
 
     device[F("sw")]                        = haspDevice.get_version();
     device[FPSTR(FP_MQTT_HA_NAME)]         = haspDevice.get_hostname();
@@ -96,7 +96,7 @@ void mqtt_ha_add_unique_id(JsonDocument& doc, char* item)
     snprintf_P(buffer, sizeof(buffer), PSTR("%s %s"), haspDevice.get_hostname(), item);
     doc[FPSTR(FP_MQTT_HA_NAME)] = buffer;
 
-    snprintf_P(buffer, sizeof(buffer), PSTR("hasp_%s-%s"), HASP_MAC_ADDRESS, item);
+    snprintf_P(buffer, sizeof(buffer), PSTR("hasp_%s-%s"), haspDevice.get_hostname(), item);
     doc[F("uniq_id")] = buffer;
 }
 

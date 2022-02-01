@@ -25,7 +25,7 @@ void ethernetSetup()
         eth_connected = true;
     }
 
-    LOG_TRACE(TAG_ETH, F("MAC Address %s"), halGetMacAddress(0, ":"));
+    LOG_TRACE(TAG_ETH, F("MAC Address %s"), Ethernet.macAddress().c_str());
 
 #else
     byte mac[6];
