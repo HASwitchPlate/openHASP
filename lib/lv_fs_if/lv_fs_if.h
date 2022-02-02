@@ -38,10 +38,11 @@ void lv_fs_if_init(void);
  *      MACROS
  **********************/
 
-#endif /*LV_USE_FS_IF*/
+#endif	/*LV_USE_FS_IF*/
 
 #ifdef __cplusplus
 } /* extern "C" */
 #endif
 
 #endif /*LV_FS_IF_H*/
+

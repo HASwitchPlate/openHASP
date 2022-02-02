@@ -127,7 +127,7 @@ int lv_ft_fseek(lv_ft_stream_t* stream, long int offset, int origin)
         offset = 0;
     }
 
-    lv_fs_res_t res = lv_fs_seek(f_ptr, start + offset);
+    lv_fs_res_t res = LV_FS_SEEK(f_ptr, start + offset);
     return res == LV_FS_RES_OK ? 0 : -1;
 }
 

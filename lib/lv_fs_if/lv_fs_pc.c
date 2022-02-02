@@ -12,10 +12,8 @@
 
 #include <stdio.h>
 #include <errno.h>
-#include <unistd.h>
-#if !defined(ARDUINO_ARCH_ESP8266) && !defined(STM32F4xx) && !defined(STM32F7xx)
 #include <dirent.h>
-#endif
+#include <unistd.h>
 #ifdef WIN32
 #include <windows.h>
 #endif
@@ -24,12 +22,10 @@
  *      DEFINES
  *********************/
 #ifndef LV_FS_PC_PATH
-#if defined(ESP32)
-#define LV_FS_PC_PATH "/littlefs" /*Projet root*/
-#elif defined(WIN32)
+#ifndef WIN32
 #define LV_FS_PC_PATH "./" /*Projet root*/
 #else
-#define LV_FS_PC_PATH "" /*Projet root*/
+#define LV_FS_PC_PATH ".\\" /*Projet root*/
 #endif
 #endif /*LV_FS_PATH*/
 
@@ -41,12 +37,10 @@
 typedef FILE* file_t;
 
 /*Similarly to `file_t` create a type for directory reading too */
-#if defined(WIN32)
-typedef HANDLE dir_t;
-#elif defined(ARDUINO_ARCH_ESP8266) || defined(STM32F4xx)
-typedef FILE* dir_t;
-#else
+#ifndef WIN32
 typedef DIR* dir_t;
+#else
+typedef HANDLE dir_t;
 #endif
 
 /**********************
@@ -89,7 +83,7 @@ void lv_fs_if_pc_init(void)
      *--------------------------------------------------*/
 
     /* Add a simple drive to open images */
-    static lv_fs_drv_t fs_drv; /*A driver descriptor*/
+    lv_fs_drv_t fs_drv; /*A driver descriptor*/
     lv_fs_drv_init(&fs_drv);
 
     /*Set up fields...*/
@@ -113,6 +107,11 @@ void lv_fs_if_pc_init(void)
     fs_drv.dir_read_cb  = fs_dir_read;
 
     lv_fs_drv_register(&fs_drv);
+
+    // char cur_path[512] = "";
+    // getcwd(cur_path, sizeof(cur_path));
+    LV_LOG_USER("LV_FS_PC is initialized with.");
+    // LV_LOG_USER("The following path is considered as root directory:\n%s", cur_path);
 }
 
 /**********************
@@ -150,13 +149,10 @@ static lv_fs_res_t fs_open(lv_fs_drv_t* drv, void* file_p, const char* path, lv_
     char buf[256];
     sprintf(buf, LV_FS_PC_PATH "\\%s", path);
 #endif
-    // printf("Opening file: %s (%s)\n", buf, path);
 
     file_t f = fopen(buf, flags);
-    if(f == NULL) {
-        // printf("Failed to open %s\n", buf);
-        return LV_FS_RES_UNKNOWN;
-    }
+    if(f == NULL) return LV_FS_RES_UNKNOWN;
+
     /*Be sure we are the beginning of the file*/
     fseek(f, 0, SEEK_SET);
 
@@ -231,7 +227,6 @@ static lv_fs_res_t fs_seek(lv_fs_drv_t* drv, void* file_p, uint32_t pos)
     (void)drv;           /*Unused*/
     file_t* fp = file_p; /*Just avoid the confusing casings*/
     fseek(*fp, pos, SEEK_SET);
-    // printf("Seek size: %u\n", pos);
     return LV_FS_RES_OK;
 }
 
@@ -251,7 +246,6 @@ static lv_fs_res_t fs_size(lv_fs_drv_t* drv, void* file_p, uint32_t* size_p)
 
     fseek(*fp, 0L, SEEK_END);
     *size_p = ftell(*fp);
-    // printf("File size: %u\n", *size_p);
 
     /*Restore file pointer*/
     fseek(*fp, cur, SEEK_SET);
@@ -304,9 +298,7 @@ static lv_fs_res_t fs_trunc(lv_fs_drv_t* drv, void* file_p)
 
     fflush(*fp); /*If not syncronized fclose can write the truncated part*/
     uint32_t p = ftell(*fp);
-    (void)p; // unused
-
-    // ftruncate(fileno(*fp), p);
+  //  ftruncate(fileno(*fp), p);
     return LV_FS_RES_OK;
 }
 
@@ -326,14 +318,12 @@ static lv_fs_res_t fs_rename(lv_fs_drv_t* drv, const char* oldname, const char* 
     sprintf(old, LV_FS_PC_PATH "/%s", oldname);
     sprintf(new, LV_FS_PC_PATH "/%s", newname);
 
-    return LV_FS_RES_UNKNOWN;
+    int r = rename(old, new);
 
-    // int r = rename(old, new);
-
-    // if(r == 0)
-    //     return LV_FS_RES_OK;
-    // else
-    //     return LV_FS_RES_UNKNOWN;
+    if(r == 0)
+        return LV_FS_RES_OK;
+    else
+        return LV_FS_RES_UNKNOWN;
 }
 
 /**
@@ -369,10 +359,7 @@ static lv_fs_res_t fs_dir_open(lv_fs_drv_t* drv, void* dir_p, const char* path)
 {
     (void)drv; /*Unused*/
     dir_t d;
-#if defined(ARDUINO_ARCH_ESP8266) || defined(STM32F4xx)
-    return LV_FS_RES_UNKNOWN;
-
-#elif !defined(WIN32)
+#ifndef WIN32
     /*Make the path relative to the current directory (the projects root folder)*/
     char buf[256];
     sprintf(buf, LV_FS_PC_PATH "/%s", path);
@@ -429,13 +416,12 @@ static lv_fs_res_t fs_dir_read(lv_fs_drv_t* drv, void* dir_p, char* fn)
     (void)drv;         /*Unused*/
     dir_t* dp = dir_p; /*Just avoid the confusing casings*/
 
-#ifdef ARDUINO_ARCH_ESP32
+#ifndef WIN32
     struct dirent* entry;
     do {
         entry = readdir(*dp);
 
         if(entry) {
-
             if(entry->d_type == DT_DIR)
                 sprintf(fn, "/%s", entry->d_name);
             else
@@ -444,9 +430,7 @@ static lv_fs_res_t fs_dir_read(lv_fs_drv_t* drv, void* dir_p, char* fn)
             strcpy(fn, "");
         }
     } while(strcmp(fn, "/.") == 0 || strcmp(fn, "/..") == 0);
-#endif
-
-#ifdef WIN32
+#else
     strcpy(fn, next_fn);
 
     strcpy(next_fn, "");
@@ -481,10 +465,7 @@ static lv_fs_res_t fs_dir_close(lv_fs_drv_t* drv, void* dir_p)
 {
     (void)drv; /*Unused*/
     dir_t* dp = dir_p;
-#if defined(ARDUINO_ARCH_ESP8266) || defined(STM32F4xx)
-    return LV_FS_RES_UNKNOWN;
-
-#elif !defined(WIN32)
+#ifndef WIN32
     closedir(*dp);
 #else
     FindClose(*dp);

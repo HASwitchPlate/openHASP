@@ -76,6 +76,10 @@ typedef int16_t lv_coord_t;
  /* LittelvGL's internal memory manager's settings.
   * The graphical objects and other related data are stored here. */
 
+//#define LV_FS_SEEK(x, y) lv_fs_seek(x, y, LV_FS_SEEK_SET)
+#define LV_FS_SEEK(x, y) lv_fs_seek(x, y)
+#define _lv_img_decoder_t _lv_img_decoder
+
   /* 1: use custom malloc/free, 0: use the built-in `lv_mem_alloc` and `lv_mem_free` */
 #define LV_MEM_CUSTOM      0
 #if LV_MEM_CUSTOM == 0
@@ -211,6 +215,7 @@ typedef void* lv_fs_drv_user_data_t;
 //#  define LV_FS_IF_SPIFFS   '\0'  // no internal esp Flash
 #endif
 #endif  /*LV_USE_FS_IF*/
+#define LV_FS_PC_PATH "/littlefs"
 
 #endif
 
