@@ -545,10 +545,8 @@ bool guiSetConfig(const JsonObject& settings)
     changed |= configSet(gui_settings.backlight_pin, settings[FPSTR(FP_GUI_BACKLIGHTPIN)], F("guiBacklightPin"));
     changed |= configSet(guiSleepTime1, settings[FPSTR(FP_GUI_IDLEPERIOD1)], F("guiSleepTime1"));
     changed |= configSet(guiSleepTime2, settings[FPSTR(FP_GUI_IDLEPERIOD2)], F("guiSleepTime2"));
-    changed |=
-        configSet(gui_settings.rotation, settings[FPSTR(FP_GUI_ROTATION)], F("gui_settings.rotation"));
-    changed |=
-        configSet(gui_settings.invert_display, settings[FPSTR(FP_GUI_INVERT)], F("guiInvertDisplay"));
+    changed |= configSet(gui_settings.rotation, settings[FPSTR(FP_GUI_ROTATION)], F("gui_settings.rotation"));
+    changed |= configSet(gui_settings.invert_display, settings[FPSTR(FP_GUI_INVERT)], F("guiInvertDisplay"));
 
     hasp_set_sleep_time(guiSleepTime1, guiSleepTime2);
 
@@ -617,11 +615,42 @@ static void guiSetBmpHeader(uint8_t* buffer_p, int32_t data)
  **/
 static void gui_get_bitmap_header(uint8_t* buffer, size_t bufsize)
 {
-    memset(buffer, 0, bufsize);
-
     lv_disp_t* disp = lv_disp_get_default();
-    buffer[0]       = 0x42; // B
-    buffer[1]       = 0x4D; // M
+
+    // memset(buffer, 0, bufsize);
+    char* bm = "BM";
+    memcpy(buffer, bm, strlen(bm));
+    buffer += strlen(bm);
+
+    bmp_header_t* bmp = (bmp_header_t*)buffer;
+    bmp->bfSize       = (uint32_t)(disp->driver.hor_res * disp->driver.ver_res * LV_COLOR_DEPTH / 8);
+    bmp->bfReserved   = 0;
+    bmp->bfOffBits    = 66;
+
+    bmp->biSize          = 40;
+    bmp->biWidth         = disp->driver.hor_res;
+    bmp->biHeight        = -disp->driver.ver_res;
+    bmp->biPlanes        = 1;
+    bmp->biBitCount      = LV_COLOR_DEPTH;
+    bmp->biCompression   = 3; // BI_BITFIELDS
+    bmp->biSizeImage     = bmp->bfSize;
+    bmp->biXPelsPerMeter = 2836;
+    bmp->biYPelsPerMeter = 2836;
+    bmp->biClrUsed       = 0;
+    bmp->biClrImportant  = 0;
+
+    // R: 1111 1000 | 0000 0000
+    bmp->bdMask[0] = 0xF800; // Red bitmask
+                             // G: 0000 0111 | 1110 0000
+    bmp->bdMask[1] = 0x07E0; // Green bitmask
+                             // B: 0000 0000 | 0001 1111
+    bmp->bdMask[2] = 0x001F; // Blue bitmask
+
+/*
+    return;
+    // lv_disp_t* disp = lv_disp_get_default();
+    buffer[0] = 0x42; // B
+    buffer[1] = 0x4D; // M
 
     buffer[10 + 0] = 122;      // full header size
     buffer[14 + 0] = 122 - 14; // dib header size
@@ -662,6 +691,7 @@ static void gui_get_bitmap_header(uint8_t* buffer, size_t bufsize)
     buffer[70 + 2] = 0x69;
     buffer[70 + 1] = 0x6E;
     buffer[70 + 0] = 0x20;
+    */
 }
 
 void gui_flush_not_complete()
@@ -701,8 +731,8 @@ void guiTakeScreenshot(const char* pFileName)
     pFileOut = HASP_FS.open(pFileName, "w");
     if(pFileOut) {
 
-        size_t len = pFileOut.write(buffer, 122);
-        if(len == 122) {
+        size_t len = pFileOut.write(buffer, 66);
+        if(len == 66) {
             LOG_VERBOSE(TAG_GUI, F("Bitmap header written"));
 
             /* Refresh screen to screenshot callback */
@@ -754,7 +784,7 @@ void guiTakeScreenshot()
     uint8_t buffer[128];
     gui_get_bitmap_header(buffer, sizeof(buffer));
 
-    if(httpClientWrite(buffer, 122) == 122) {
+    if(httpClientWrite(buffer, 66) == 66) { // 122
         LOG_VERBOSE(TAG_GUI, F("Bitmap header sent"));
 
         /* Refresh screen to screenshot callback */

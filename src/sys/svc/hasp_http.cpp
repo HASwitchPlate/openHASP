@@ -429,7 +429,7 @@ static void webHandleScreenshot()
 
         if(webServer.hasArg(F("q"))) {
             lv_disp_t* disp = lv_disp_get_default();
-            webServer.setContentLength(122 + disp->driver.hor_res * disp->driver.ver_res * sizeof(lv_color_t));
+            webServer.setContentLength(66 + disp->driver.hor_res * disp->driver.ver_res * sizeof(lv_color_t));
             webServer.send_P(200, PSTR("image/bmp"), "");
             guiTakeScreenshot();
             webServer.client().stop();
