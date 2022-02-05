@@ -1,6 +1,7 @@
 {
     "ascii": {
         "cpp": "src/font/ascii/robotocondensed_regular_{}_ascii.cpp",
+        "bin": "roboto_ascii{}.bin",
         "size": [
             12,
             14,
@@ -36,6 +37,7 @@
     },
     "latin1": {
         "cpp": "src/font/latin1/robotocondensed_regular_{}_latin1.cpp",
+        "bin": "roboto_latin1{}.bin",
         "size": [
             12,
             14,
@@ -143,6 +145,7 @@
     },
     "latin2": {
         "cpp": "src/font/latin2/robotocondensed_regular_{}_latin2.cpp",
+        "bin": "roboto_latin2{}.bin",
         "size": [
             12,
             14,
@@ -233,6 +236,7 @@
     },
     "cyrillic": {
         "cpp": "src/font/cyrillic/robotocondensed_regular_{}_cyrillic.cpp",
+        "bin": "roboto_cyrillic{}.bin",
         "size": [
             12,
             14,
@@ -273,6 +277,7 @@
     },
     "greek": {
         "cpp": "src/font/greek/robotocondensed_regular_{}_greek.cpp",
+        "bin": "roboto_greek{}.bin",
         "size": [
             12,
             14,
@@ -315,7 +320,8 @@
         }
     },
     "vietnamese": {
-        "cpp": "src/font/latin1/robotocondensed_regular_{}_vietnamese.cpp",
+        "cpp": "src/font/vietnamese/robotocondensed_regular_{}_vietnamese.cpp",
+        "bin": "roboto_vietnamese{}.bin",
         "size": [
             12,
             14,
