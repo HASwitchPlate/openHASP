@@ -28,10 +28,12 @@
 
 ### GUI
 - Hide cursor during `antiburn` and `idle` if the pointer is enabled
+- Screenshot images now display properly in Safari on macOS/iOS (thanks @masto)
 
 ### Objects
 - `img.src` now accepts both `http` and `https` urls (thanks @htvekov)
 - `img.src` now accepts `png` and `binary` image urls, PSram is *highly* recommended
+- `img.src` now accepts 16-bit BMP files stored in flash
 
 ### Fonts
 - Added Vietnamese encoding build option (thanks @kydang789)
@@ -43,6 +45,7 @@
 - Fix `src` bug in `img` objects that could corrupt images sent over http (thanks @htvekov)
 - Fix screen dimensions in `statusupdate` message, taking into account current orientation (thanks @kquinsland)
 - Fix syslog message format (thanks @geiseri)
+- Fix for HTTP password that could be overwritten by 8 asterisks when it was not changed in the web UI
 
 ### Custom component
 - Expose `antiburn` for the CC (thanks @dgomes)
