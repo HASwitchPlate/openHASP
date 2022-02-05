@@ -534,7 +534,8 @@ static void webHandleApiConfig()
         return;
     }
 
-    if(!settings[FPSTR(FP_CONFIG_PASS)].isNull()) {
+    // Mask non-blank passwords
+    if(!settings[FPSTR(FP_CONFIG_PASS)].isNull() && settings[FPSTR(FP_CONFIG_PASS)].as<String>().length() != 0) {
         settings[FPSTR(FP_CONFIG_PASS)] = D_PASSWORD_MASK;
     }
 
@@ -2458,7 +2459,8 @@ bool httpSetConfig(const JsonObject& settings)
         strncpy(http_config.username, settings[FPSTR(FP_CONFIG_USER)], sizeof(http_config.username));
     }
 
-    if(!settings[FPSTR(FP_CONFIG_PASS)].isNull()) {
+    if(!settings[FPSTR(FP_CONFIG_PASS)].isNull() &&
+       settings[FPSTR(FP_CONFIG_PASS)].as<String>() != String(FPSTR(D_PASSWORD_MASK))) {
         changed |= strcmp(http_config.password, settings[FPSTR(FP_CONFIG_PASS)]) != 0;
         strncpy(http_config.password, settings[FPSTR(FP_CONFIG_PASS)], sizeof(http_config.password));
     }
