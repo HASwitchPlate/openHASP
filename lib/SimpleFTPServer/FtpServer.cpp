@@ -70,9 +70,9 @@ void FtpServer::end()
     ftpServer.end();
     dataServer.end();
 
-    cmdStage = FTP_Stop;
+    cmdStage      = FTP_Init;
     transferStage = FTP_Close;
-    dataConn = FTP_NoConn;
+    dataConn      = FTP_NoConn;
 }
 
 void FtpServer::begin(const char* _user, const char* _pass, const char* _welcomeMessage)
@@ -118,12 +118,16 @@ void FtpServer::begin(const char* _user, const char* _pass, const char* _welcome
 
 void FtpServer::credentials(const char* _user, const char* _pass)
 {
+    this->user = user;
+    this->pass = _pass;
+
+    /*
     if(strlen(_user) > 0 && strlen(_user) < FTP_CRED_SIZE)
         //    strcpy( user, _user );
         this->user = user;
     if(strlen(_pass) > 0 && strlen(_pass) < FTP_CRED_SIZE)
         //    strcpy( pass, _pass );
-        this->pass = _pass;
+        this->pass = _pass; */
 }
 
 void FtpServer::iniVariables()
@@ -313,9 +317,13 @@ bool FtpServer::processCommand()
         if(cmdStage != FTP_Pass) {
             client.println(F("503 "));
             cmdStage = FTP_Stop;
-        }
-        if(!strcmp(parameter, pass)) {
+        } else if(!strcmp(parameter, pass)) {
             DEBUG_PRINTLN(F(" Authentication Ok. Waiting for commands."));
+
+            client.println(F("230 Ok"));
+            cmdStage = FTP_Cmd;
+        } else if(!strcmp("anonymous", user)) {
+            DEBUG_PRINTLN(F(" Anonymous login. Waiting for commands."));
 
             client.println(F("230 Ok"));
             cmdStage = FTP_Cmd;
