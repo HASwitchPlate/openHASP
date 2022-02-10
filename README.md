@@ -19,9 +19,9 @@ openHASP uses the ESP32 and STM32F4 to take advantage of the hardware capabiliti
 
 ## Demo Screens
 
-![Screenshot](https://haswitchplate.github.io/openHASP-docs/0.6/assets/images/screenshots/demo_switches_covers.png) &nbsp; 
-![Screenshot](https://haswitchplate.github.io/openHASP-docs/0.6/assets/images/screenshots/demo_jaffa1.png) &nbsp; 
-![Screenshot](https://haswitchplate.github.io/openHASP-docs/0.6/assets/images/screenshots/demo_mediaplayer.png)
+![Screenshot](https://openhasp.haswitchplate.com/0.6/assets/images/screenshots/demo_switches_covers.png) &nbsp; 
+![Screenshot](https://openhasp.haswitchplate.com/0.6/assets/images/screenshots/demo_jaffa1.png) &nbsp; 
+![Screenshot](https://openhasp.haswitchplate.com/0.6/assets/images/screenshots/demo_mediaplayer.png)
 
 ## Features
 
@@ -41,7 +41,7 @@ openHASP uses the ESP32 and STM32F4 to take advantage of the hardware capabiliti
 
 ## Getting Started
 
-Check out the [documentation](https://haswitchplate.github.io/openHASP-docs/) for how-to's, information and frequently asked questions.
+Check out the [documentation](https://openhasp.haswitchplate.com/) for how-to's, information and frequently asked questions.
 
 Support
 ---------------------------
@@ -55,10 +55,8 @@ For support using openHASP, please join the [#openHASP channel][6] on Discord.
 
 [1]: https://github.com/HASwitchPlate/HASPone
 [2]: https://github.com/lvgl/lvgl
-[3]: https://littlevgl.com/themes
-[4]: https://github.com/fvanroie/HMI-Font-Pack/releases
 [5]: https://fontawesome.com/cheatsheet/
-[6]: https://discord.gg/VCWyuhF
-[7]: https://haswitchplate.github.io/openHASP-docs/0.6/design/objects#cheatsheet
-[8]: https://haswitchplate.github.io/openHASP-docs/0.6/design/objects#image
+[6]: https://openhasp.haswitchplate.com/discord
+[7]: https://openhasp.haswitchplate.com/0.6/design/objects#cheatsheet
+[8]: https://openhasp.haswitchplate.com/0.6/design/objects#image
 [9]: https://www.paypal.com/donate/?business=E76SN28JLZCXU&currency_code=EUR
