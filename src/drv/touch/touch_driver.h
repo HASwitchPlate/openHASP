@@ -70,6 +70,9 @@ class BaseTouch {
 #elif TOUCH_DRIVER == 0x0ADC
 #warning Building for analog touch
 #include "touch_driver_analog.h"
+#elif TOUCH_DRIVER == 0x1680
+#warning Building for GSL1680
+#include "touch_driver_gslx680.h"
 #else
 #warning Building for Generic Touch
 using dev::BaseTouch;
