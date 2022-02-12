@@ -18,21 +18,22 @@
 #include "../../hasp/hasp.h" // for hasp_sleep_state
 extern uint8_t hasp_sleep_state;
 
+GSL2038 TS = GSL2038(1, 1); // error & info
+
+// Interrupt handling
+volatile uint8_t gsl16380IRQ = 0;
+
+// Store touch points into global variable
+static void ICACHE_RAM_ATTR ontouch_irq()
+{
+    noInterrupts();
+    gsl16380IRQ = 1;
+    interrupts();
+}
+
 namespace dev {
 
 class TouchGsl1680 : public BaseTouch {
-  private:
-    // Interrupt handling
-    volatile uint8_t gsl16380IRQ = 0;
-    static GSL2038 TS            = GSL2038(1, 1); // error & info
-
-    // Store touch points into global variable
-    void ICACHE_RAM_ATTR ontouch_irq()
-    {
-        noInterrupts();
-        gsl16380IRQ = 1;
-        interrupts();
-    }
 
   public:
     IRAM_ATTR bool read(lv_indev_drv_t* indev_driver, lv_indev_data_t* data)
@@ -76,7 +77,7 @@ class TouchGsl1680 : public BaseTouch {
         touch_scan(Wire);
 
         // Startup sequence CONTROLER part
-        TS.begin(TOUCH_SDA, TOUCH_SCL, TOUCH_RST, TOUCH_IRQ);
+        TS.begin(TOUCH_RST, TOUCH_IRQ);
 
         // Setup Interrupt handler
         pinMode(TOUCH_IRQ, INPUT);
