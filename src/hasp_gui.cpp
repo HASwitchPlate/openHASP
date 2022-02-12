@@ -618,7 +618,7 @@ static void gui_get_bitmap_header(uint8_t* buffer, size_t bufsize)
     lv_disp_t* disp = lv_disp_get_default();
 
     // memset(buffer, 0, bufsize);
-    char* bm = "BM";
+    const char* bm = "BM";
     memcpy(buffer, bm, strlen(bm));
     buffer += strlen(bm);
 
