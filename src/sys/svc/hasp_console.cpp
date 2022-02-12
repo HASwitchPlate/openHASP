@@ -29,7 +29,7 @@ ConsoleInput* console;
 
 void console_update_prompt()
 {
-    if(console) console->update();
+    if(console) console->update(__LINE__);
     bufferedSerialClient->flush();
 }
 
@@ -118,6 +118,7 @@ void consoleStart()
 
         console->setLineCallback(console_process_line);
         console_logon(); // todo: logon
+        console->setPrompt("Prompt > ");
     } else {
         console_logoff();
         LOG_ERROR(TAG_CONS, F(D_SERVICE_START_FAILED));
