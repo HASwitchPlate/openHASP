@@ -4,6 +4,7 @@
 ## Project files ######
 .git
 .pio
+bin/*
 data/*
 !data/edit.htm
 !data/edit.htm.gz
