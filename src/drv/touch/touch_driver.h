@@ -48,10 +48,7 @@ class BaseTouch {
 #define TOUCH_DRIVER -1 // No Touch
 #endif
 
-#if defined(LGFX_USE_V1)
-#warning Building for LovyanGfx Touch
-#include "touch_driver_lovyangfx.h"
-#elif TOUCH_DRIVER == 0x2046 && defined(USER_SETUP_LOADED)
+if TOUCH_DRIVER == 0x2046 && defined(USER_SETUP_LOADED)
 #warning Building for XPT2046
 //#include "touch_driver_xpt2046.h"
 #include "touch_driver_tftespi.h"
@@ -73,6 +70,9 @@ class BaseTouch {
 #elif TOUCH_DRIVER == 0x1680
 #warning Building for GSL1680
 #include "touch_driver_gslx680.h"
+#elif defined(LGFX_USE_V1)
+#warning Building for LovyanGfx Touch
+#include "touch_driver_lovyangfx.h"
 #else
 #warning Building for Generic Touch
 using dev::BaseTouch;
