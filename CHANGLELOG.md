@@ -46,6 +46,7 @@
 - Fix screen dimensions in `statusupdate` message, taking into account current orientation (thanks @kquinsland)
 - Fix syslog message format (thanks @geiseri)
 - Fix for HTTP password that could be overwritten by 8 asterisks when it was not changed in the web UI
+- Fixed MQTT hostname limit (again)
 
 ### Custom component
 - Expose `antiburn` for the CC (thanks @dgomes)
@@ -57,7 +58,7 @@
 - Prepare support for ESP32-S2
 - **Breaking:** Removed support for ESP8266!
 
-Updated libraries to ArduinoJson 6.19.1, TFT_eSPI 2.4.32, LovyanGFX 0.4.12 and Adafruit STMPE610 1.1.4
+Updated libraries to ArduinoJson 6.19.1,  ArduinoStreamUtils 1.6.2, TFT_eSPI 2.4.32, LovyanGFX 0.4.12 and Adafruit STMPE610 1.1.4
 
 
 ## v0.6.2
