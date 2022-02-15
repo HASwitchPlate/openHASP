@@ -135,8 +135,8 @@ static const char HTTP_MENU_BUTTON[] PROGMEM =
 const char MAIN_MENU_BUTTON[] PROGMEM = "<a href='/'>" D_HTTP_MAIN_MENU "</a>";
 const char MIT_LICENSE[] PROGMEM      = "</br>MIT License</p>";
 
-const char HTTP_DOCTYPE[] PROGMEM = "<!DOCTYPE html><html lang=\"en\"><head><meta charset='utf-8'><meta "
-                                    "name=\"viewport\" content=\"width=device-width,initial-scale=1\"/>";
+const char HTTP_DOCTYPE[] PROGMEM      = "<!DOCTYPE html><html lang=\"en\"><head><meta charset='utf-8'><meta "
+                                         "name=\"viewport\" content=\"width=device-width,initial-scale=1\"/>";
 const char HTTP_META_GO_BACK[] PROGMEM = "<meta http-equiv='refresh' content='15;url=/'/>";
 const char HTTP_HEADER[] PROGMEM       = "<title>%s</title>";
 const char HTTP_HEADER_END[] PROGMEM =
@@ -2053,17 +2053,19 @@ static void webHandleFirmware()
         httpMessage += F("<button type='submit' name='save' value='debug'>" D_HTTP_UPDATE_FIRMWARE "</button>");
         httpMessage += F("</form></div>");
 
-        // Form
-        httpMessage += F("<div class='container'><form method='POST' action='/espfirmware'>");
+        /* Update from URL
+            // Form
+            httpMessage += F("<div class='container'><form method='POST' action='/espfirmware'>");
 
-        // URL
-        httpMessage +=
-            F("<div class='row'><div class='col-25'><label class='required' for='url'>From URL</label></div>");
-        httpMessage += F("<div class='col-75'><input required id='url' name='url' value=''></div></div>");
+            // URL
+            httpMessage +=
+                F("<div class='row'><div class='col-25'><label class='required' for='url'>From URL</label></div>");
+            httpMessage += F("<div class='col-75'><input required id='url' name='url' value=''></div></div>");
 
-        // Submit & End Form
-        httpMessage += F("<button type='submit' name='save' value='debug'>Update from URL</button>");
-        httpMessage += F("</form></div>");
+            // Submit & End Form
+            httpMessage += F("<button type='submit' name='save' value='debug'>Update from URL</button>");
+            httpMessage += F("</form></div>");
+        */
 
         httpMessage += FPSTR(MAIN_MENU_BUTTON);
 
@@ -2384,7 +2386,7 @@ void httpSetup()
             LOG_VERBOSE(TAG_HTTP, F("Total size: %s"), webServer.hostHeader().c_str());
         },
         webHandleFirmwareUpload);
-    webServer.on(F("/espfirmware"), httpHandleEspFirmware);
+    // webServer.on(F("/espfirmware"), httpHandleEspFirmware);
 #endif
 
     LOG_INFO(TAG_HTTP, F(D_SERVICE_STARTED));
