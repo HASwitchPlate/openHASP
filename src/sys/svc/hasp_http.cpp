@@ -1275,8 +1275,12 @@ static void webHandleWifiConfig()
 #if HASP_USE_WIFI > 0 && !defined(STM32F4xx)
         if(WiFi.getMode() == WIFI_STA) {
             add_form_button(httpMessage, F(D_BACK_ICON D_HTTP_CONFIGURATION), F("/config"));
+#if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
+        } else {
+            add_form_button(httpMessage, F(D_HTTP_FIRMWARE_UPGRADE), F("/firmware"));
+#endif // ARDUINO_ARCH_ESP
         }
-#endif
+#endif // HASP_USE_WIFI
 
         httpMessage += F("<script>filler(\"GET\",\"/api/config/wifi/\")</script>");
 
@@ -1285,61 +1289,6 @@ static void webHandleWifiConfig()
     }
     webSendFooter();
 }
-
-#if HASP_USE_CAPTIVE_PORTAL > 0
-// I'm not an experienced programmer, this was the only way I managed to get it to work..
-static void webHandleCaptivePortalWifiConfig()
-{ // http://plate01/config/wifi
-    if(!httpIsAuthenticated(F("config/wifi"))) return;
-
-    { // Send Content
-        StaticJsonDocument<256> settings;
-        wifiGetConfig(settings.to<JsonObject>());
-
-        String httpMessage((char*)0);
-        httpMessage.reserve(HTTP_PAGE_SIZE);
-        httpMessage += F("<h1>");
-        httpMessage += haspDevice.get_hostname();
-        httpMessage += F("</h1><hr>");
-        httpMessage += F("<h2>" D_HTTP_WIFI_SETTINGS "</h2>");
-
-        // Form
-        httpMessage += F("<div class='container'><form method='POST' action='/config'>");
-
-        // Wifi SSID
-        httpMessage += F("<div class='row'><div class='col-25 required'><label for='ssid'>SSID</label></div>");
-        httpMessage += F("<div class='col-75'><input required type='text' id='ssid' name='ssid' maxlength=");
-        httpMessage += MAX_USERNAME_LENGTH - 1;
-        httpMessage += F(" placeholder='SSID' value='");
-        httpMessage += settings[FPSTR(FP_CONFIG_SSID)].as<String>();
-        httpMessage += F("'></div></div>");
-
-        // Wifi Password
-        httpMessage += F("<div class='row'><div class='col-25 required'><label for='pass'>Password</label></div>");
-        httpMessage += F("<div class='col-75'><input required type='password' id='pass' name='pass' maxlength=");
-        httpMessage += MAX_PASSWORD_LENGTH - 1;
-        httpMessage += F(" placeholder='Password' value='");
-        if(settings[FPSTR(FP_CONFIG_PASS)].as<String>() != "") {
-            httpMessage += F(D_PASSWORD_MASK);
-        }
-        httpMessage += F("'></div></div>");
-
-        // Submit & End Form
-        httpMessage += F("<button type='submit' name='save' value='wifi'>" D_HTTP_SAVE_SETTINGS "</button>");
-        httpMessage += F("</form></div>");
-
-#if HASP_USE_WIFI > 0 && !defined(STM32F4xx)
-        if(WiFi.getMode() == WIFI_STA) {
-            add_form_button(httpMessage, F(D_BACK_ICON D_HTTP_CONFIGURATION), F("/config"));
-        }
-#endif
-
-        webSendHeader(haspDevice.get_hostname(), httpMessage.length(), false);
-        webServer.sendContent(httpMessage);
-    }
-    webSendFooter();
-}
-#endif // HASP_USE_CAPTIVE_PORTAL
 
 #endif // HASP_USE_WIFI
 
@@ -1983,7 +1932,7 @@ static void webHandleHaspConfig()
 #endif // HASP_USE_CONFIG
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-static void httpHandleNotFound()
+static void httpHandleFileFromFlash()
 { // webServer 404
 #if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
     int statuscode = handleFileRead(webServer.uri());
@@ -2228,46 +2177,6 @@ static void webSendCssVars()
     webSendCached(200, PSTR("text/css"), HTTP_CSS.c_str(), HTTP_CSS.length());
 }
 
-/*
-// Do not keep JS in memory because it is cached in the browser
-static void webSendJavascript()
-{
-    // Refresh screenshot
-    String javascript = F("function aref(t){setTimeout(function() {ref('');}, t*1000)}"
-                          "function ref(a){ var t=new "
-                          "Date().getTime();document.getElementById('bmp').src='?a='+a+'&q='+t;return false;};");
-    // This string can be gzipped:
-    javascript +=
-        "function about(){document.getElementById('doc').innerHTML='<h3>" D_MANUFACTURER
-        "</h3>Copyright&copy; 2019-2022 Francis Van Roie</br>MIT License</p>"
-        "<p>Permission is hereby granted, free of charge, to any person obtaining a copy of this software and "
-        "associated documentation files(the \"Software\"), to deal in the Software without restriction, including "
-        "without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and / or sell "
-        "copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the "
-        "following conditions:</p>"
-        "<p>The above copyright notice and this permission notice shall be included in all copies or substantial "
-        "portions of the Software.</p><p>THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, "
-        "EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR "
-        "PURPOSE AND NONINFRINGEMENT.IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, "
-        "DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN "
-        "CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</p><hr>"
-        "<p>Based on the previous work of the following open source developers:</p>"
-        "<h3>HASwitchPlate</h3><p>Copyright&copy; 2019 Allen Derusha allen@derusha.org</b></br>MIT License</p>"
-        "<h3>LVGL</h3><p>Copyright&copy; 2021 LVGL Kft</br>MIT License</p>"
-        "<h3>zi Font Engine</h3><p>Copyright&copy; 2020-2021 Francis Van Roie</br>MIT License</p>"
-        "<h3>TFT_eSPI Library</h3><p>Copyright&copy; 2020 Bodmer (https://github.com/Bodmer) All rights "
-        "reserved.</br>FreeBSD License</p>"
-        "<p><i>includes parts from the <b>Adafruit_GFX library</b></br>Copyright&copy; 2012 Adafruit Industries. All "
-        "rights reserved</br>BSD License</i></p>"
-        "<h3>ArduinoJson</h3><p>Copyright&copy; 2014-2021 Benoit BLANCHON</br>MIT License</p>"
-        "<h3>PubSubClient</h3><p>Copyright&copy; 2008-2015 Nicholas O&apos;Leary</br>MIT License</p>"
-        "<h3>ArduinoLog</h3><p>Copyright&copy; 2017,2018 Thijs Elenbaas, MrRobot62, rahuldeo2047, NOX73, dhylands, "
-        "Josha blemasle, mfalkvidd</br>MIT License</p>"
-        "<h3>QR Code generator</h3><p>Copyright&copy; Project Nayuki</br>MIT License</p>"
-        "<h3>AceButton</h3><p>Copyright&copy; 2018 Brian T. Park</br>MIT License</p>';}";
-    webSendCached(200, PSTR("text/javascript"), javascript.c_str(), javascript.length());
-}
-*/
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 static inline void webStartConfigPortal()
@@ -2276,15 +2185,14 @@ static inline void webStartConfigPortal()
     // if DNSServer is started with "*" for domain name, it will reply with
     // provided IP to all DNS request
     dnsServer.start(DNS_PORT, "*", apIP);
-    // replay to all requests with same HTML
-    webServer.onNotFound([]() {
-        webHandleCaptivePortalWifiConfig();
-        // webServer.send(200, "text/html", responseHTML);
-        // webServer.on(F("/"), webHandleWifiConfig);
-    });
 #endif // HASP_USE_CAPTIVE_PORTAL
 
-    webServer.on(F("/"), webHandleWifiConfig);
+    // replay to all requests with same HTML
+    webServer.onNotFound([]() { webHandleWifiConfig(); });
+
+    webServer.on(F("/style.css"), httpHandleFileFromFlash);
+    webServer.on(F("/script.js"), httpHandleFileFromFlash);
+
     LOG_TRACE(TAG_HTTP, F("Wifi access point"));
 }
 
@@ -2301,9 +2209,20 @@ void httpSetup()
     webServer.on(F("/about"), webHandleAbout);
     webServer.on(F("/vars.css"), webSendCssVars);
     // webServer.on(F("/js"), webSendJavascript);
-    webServer.onNotFound(httpHandleNotFound);
     webServer.on(UriBraces(F("/api/{}/")), webHandleApi);
     webServer.on(UriBraces(F("/api/config/{}/")), webHandleApiConfig);
+
+#if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
+    webServer.on(F("/firmware"), webHandleFirmware);
+    webServer.on(
+        F("/update"), HTTP_POST,
+        []() {
+            webServer.send(200, "text/plain", "");
+            LOG_VERBOSE(TAG_HTTP, F("Total size: %s"), webServer.hostHeader().c_str());
+        },
+        webHandleFirmwareUpload);
+    // webServer.on(F("/espfirmware"), httpHandleEspFirmware);
+#endif
 
 #if HASP_USE_WIFI > 0
     // These two endpoints are needed in STA and AP mode
@@ -2355,7 +2274,6 @@ void httpSetup()
     webServer.on(F("/info"), webHandleInfoJson);
     // webServer.on(F("/info"), webHandleInfo);
     webServer.on(F("/screenshot"), webHandleScreenshot);
-    webServer.on(F("/firmware"), webHandleFirmware);
     webServer.on(F("/reboot"), httpHandleReboot);
 
 #if HASP_USE_CONFIG > 0
@@ -2377,17 +2295,7 @@ void httpSetup()
     webServer.on(F("/saveConfig"), webHandleSaveConfig);
     webServer.on(F("/resetConfig"), httpHandleResetConfig);
 #endif // HASP_USE_CONFIG
-
-#if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
-    webServer.on(
-        F("/update"), HTTP_POST,
-        []() {
-            webServer.send(200, "text/plain", "");
-            LOG_VERBOSE(TAG_HTTP, F("Total size: %s"), webServer.hostHeader().c_str());
-        },
-        webHandleFirmwareUpload);
-    // webServer.on(F("/espfirmware"), httpHandleEspFirmware);
-#endif
+    webServer.onNotFound(httpHandleFileFromFlash);
 
     LOG_INFO(TAG_HTTP, F(D_SERVICE_STARTED));
     // webStart();  Wait for network connection
