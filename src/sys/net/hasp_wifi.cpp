@@ -67,7 +67,14 @@ static void wifiConnected(IPAddress ipaddress)
 #else
     strncpy(wifiIpAddress, ipaddress.toString().c_str(), sizeof(wifiIpAddress));
 #endif
-    LOG_TRACE(TAG_WIFI, F(D_NETWORK_IP_ADDRESS_RECEIVED), wifiIpAddress);
+
+    if((uint32_t)ipaddress == 0) {
+        LOG_ERROR(TAG_WIFI, F(D_NETWORK_IP_ADDRESS_RECEIVED), wifiIpAddress);
+        wifiOnline = false;
+        return;
+    } else {
+        LOG_TRACE(TAG_WIFI, F(D_NETWORK_IP_ADDRESS_RECEIVED), wifiIpAddress);
+    }
 
     // #if defined(HASP_NETWORK_POPUP)
     //     lv_obj_t* msgbox = lv_msgbox_create(lv_layer_sys(), NULL);
