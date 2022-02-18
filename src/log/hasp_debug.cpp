@@ -114,7 +114,7 @@ void debugStartSyslog()
 
         if(syslogClient) {
             if(syslogClient->beginPacket(debugSyslogHost, debugSyslogPort)) {
-                Log.registerOutput(2, syslogClient, LOG_LEVEL_VERBOSE, true);
+                Log.registerOutput(2, syslogClient, HASP_LOG_LEVEL, true);
                 LOG_INFO(TAG_SYSL, F(D_SERVICE_STARTED));
             }
         } else {
@@ -364,7 +364,7 @@ void debugStartSerial()
 
         Serial.begin(baudrate); /* prepare for possible serial debug */
         delay(10);
-        Log.registerOutput(0, &Serial, LOG_LEVEL_VERBOSE, true); // LOG_LEVEL_VERBOSE
+        Log.registerOutput(0, &Serial, HASP_LOG_LEVEL, true); // LOG_LEVEL_VERBOSE
 
         // debugSerialStarted = true;
 

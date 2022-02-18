@@ -210,7 +210,7 @@ IRAM_ATTR void loop()
                 mainLoopCounter = 0;
 #ifdef HASP_USE_STAT_COUNTER
                 if(statLoopCounter)
-                    LOG_VERBOSE(TAG_MAIN, F("%d millis per loop, %d counted"), 5000 / statLoopCounter, statLoopCounter);
+                    LOG_DEBUG(TAG_MAIN, F("%d millis per loop, %d counted"), 5000 / statLoopCounter, statLoopCounter);
                 statLoopCounter = 0;
 #endif
                 break;

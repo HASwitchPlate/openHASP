@@ -111,7 +111,7 @@ void consoleStart()
         debugStartSerial(); // open Serial port
 
         /* Now register logger for serial */
-        Log.registerOutput(0, bufferedSerialClient, LOG_LEVEL_VERBOSE, true);
+        Log.registerOutput(0, bufferedSerialClient, HASP_LOG_LEVEL, true);
         bufferedSerialClient->flush();
 
         LOG_INFO(TAG_CONS, F(D_SERVICE_STARTED));
