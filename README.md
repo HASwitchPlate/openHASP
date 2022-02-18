@@ -42,12 +42,9 @@ openHASP uses the ESP32 and STM32F4 to take advantage of the hardware capabiliti
 ## Getting Started
 
 Check out the [documentation](https://openhasp.haswitchplate.com/) for how-to's, information and frequently asked questions.
-
-Support
----------------------------
 For support using openHASP, please join the [#openHASP channel][6] on Discord.
 
-## [Donate][9]
+## Donate
 
 [![Paypal donation](https://img.shields.io/badge/Paypal-donate-00457C?style=for-the-badge&logo=paypal)][9]
 [![Buy a coffee](https://img.shields.io/badge/Kofi-donate-FF5E5B?style=for-the-badge&logo=kofi)](https://ko-fi.com/openhasp)
