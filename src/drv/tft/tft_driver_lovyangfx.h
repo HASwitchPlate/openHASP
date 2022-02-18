@@ -29,19 +29,85 @@
 #define TOUCH_IRQ -1
 #endif
 
+#ifndef TFT_MOSI
+#define TFT_MOSI -1
+#endif
+#ifndef TFT_MISO
+#define TFT_MISO -1
+#endif
+#ifndef TFT_SCLK
+#define TFT_SCLK -1
+#endif
+#ifndef TFT_BUSY
+#define TFT_BUSY -1
+#endif
+
+#ifndef TFT_D0
+#define TFT_D0 -1
+#endif
+#ifndef TFT_D1
+#define TFT_D1 -1
+#endif
+#ifndef TFT_D2
+#define TFT_D2 -1
+#endif
+#ifndef TFT_D3
+#define TFT_D3 -1
+#endif
+#ifndef TFT_D4
+#define TFT_D4 -1
+#endif
+#ifndef TFT_D5
+#define TFT_D5 -1
+#endif
+#ifndef TFT_D6
+#define TFT_D6 -1
+#endif
+#ifndef TFT_D7
+#define TFT_D7 -1
+#endif
+#ifndef TFT_D8
+#define TFT_D8 -1
+#endif
+#ifndef TFT_D9
+#define TFT_D9 -1
+#endif
+#ifndef TFT_D10
+#define TFT_D10 -1
+#endif
+#ifndef TFT_D11
+#define TFT_D11 -1
+#endif
+#ifndef TFT_D12
+#define TFT_D12 -1
+#endif
+#ifndef TFT_D13
+#define TFT_D13 -1
+#endif
+#ifndef TFT_D14
+#define TFT_D14 -1
+#endif
+#ifndef TFT_D15
+#define TFT_D15 -1
+#endif
+#ifndef TFT_RD
+#define TFT_RD -1
+#endif
+#ifndef TFT_WR
+#define TFT_WR -1
+#endif
+#ifndef TFT_DC
+#define TFT_DC -1
+#endif
+#ifndef SPI_READ_FREQUENCY
+#define SPI_READ_FREQUENCY 0
+#endif
+
 namespace dev {
 class LGFX : public lgfx::LGFX_Device {
   public:
-    // lgfx::Panel_ILI9481 _panel_instance;
-    lgfx::Panel_LCD* _panel_instance;
-    lgfx::IBus* _bus_instance; // SPIバスのインスタンス
-    lgfx::Light_PWM _light_instance;
-    lgfx::ITouch* _touch_instance;
-
-     LGFX(void)
-    {
-        _bus_instance = new lgfx::v1::Bus_SPI();
-    }
+    LGFX(void)
+    {}
 };
 
 class LovyanGfx : BaseTft {
@@ -61,10 +127,12 @@ class LovyanGfx : BaseTft {
 
     const char* get_tft_model();
 
-    int32_t width(){
+    int32_t width()
+    {
         return tft.width();
     }
-    int32_t height(){
+    int32_t height()
+    {
         return tft.height();
     }
 
@@ -79,16 +147,6 @@ class LovyanGfx : BaseTft {
         }
         if(y_offset != 0) {
             LOG_VERBOSE(TAG_TFT, F("R%u y offset = %i"), pin, y_offset);
-        }
-    }
-
-    void tftPinInfo(const __FlashStringHelper* pinfunction, int8_t pin)
-    {
-        if(pin != -1) {
-            char buffer[64];
-            snprintf_P(buffer, sizeof(buffer), PSTR("%-11s: %s (GPIO %02d)"), String(pinfunction).c_str(),
-                       haspDevice.gpio_name(pin).c_str(), pin);
-            LOG_VERBOSE(TAG_TFT, buffer);
         }
     }
 };

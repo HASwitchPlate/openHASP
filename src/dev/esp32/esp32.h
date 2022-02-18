@@ -13,7 +13,7 @@
 extern "C" {
 #endif
 
-#ifndef ESP32S2
+#if !defined(CONFIG_IDF_TARGET_ESP32S2)
 uint8_t temprature_sens_read();
 #endif
 
