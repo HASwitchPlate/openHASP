@@ -127,7 +127,7 @@ void ftpStart()
 #if HASP_USE_HTTP > 0 || HASP_USE_HTTP_ASYNC > 0
     ftpSrv->begin(http_config.username, http_config.password, D_MANUFACTURER); // Password must be non-empty
 #else
-    ftpSrv.begin("ftpuser", "haspadmin"); // username, password for ftp.   (default 21, 50009 for PASV)
+    ftpSrv->begin("ftpuser", "haspadmin"); // username, password for ftp.   (default 21, 50009 for PASV)
 #endif
 
     LOG_VERBOSE(TAG_FTP, F(FTP_SERVER_VERSION));
