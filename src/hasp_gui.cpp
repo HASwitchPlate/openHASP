@@ -640,12 +640,9 @@ static void gui_get_bitmap_header(uint8_t* buffer, size_t bufsize)
     bmp->biClrUsed       = 0;
     bmp->biClrImportant  = 0;
 
-    // R: 1111 1000 | 0000 0000
-    bmp->bdMask[0] = 0xF800; // Red bitmask
-                             // G: 0000 0111 | 1110 0000
-    bmp->bdMask[1] = 0x07E0; // Green bitmask
-                             // B: 0000 0000 | 0001 1111
-    bmp->bdMask[2] = 0x001F; // Blue bitmask
+    bmp->bdMask[0] = 0xF800; // Red bitmask  : 1111 1000 | 0000 0000
+    bmp->bdMask[1] = 0x07E0; // Green bitmask: 0000 0111 | 1110 0000
+    bmp->bdMask[2] = 0x001F; // Blue bitmask : 0000 0000 | 0001 1111
 }
 
 void gui_flush_not_complete()
