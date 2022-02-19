@@ -44,8 +44,8 @@ jobs:
             out: makerfabs-tft
           - env: ttgo-t7-v1.5_ili9341
             out: ttgo-t7
-          - out: wt32-sc01
-            env: "wt32-sc01_4MB -e wt32-sc01_16MB"
+          - out: wireless-tag
+            env: "wt32-sc01_4MB -e wt32-sc01_16MB -e wt-86-32-3zw1"
           - env: yeacreate-nscreen32
             out: yeacreate
 
