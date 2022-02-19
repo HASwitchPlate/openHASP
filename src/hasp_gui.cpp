@@ -615,21 +615,22 @@ static void guiSetBmpHeader(uint8_t* buffer_p, int32_t data)
  **/
 static void gui_get_bitmap_header(uint8_t* buffer, size_t bufsize)
 {
-    lv_disp_t* disp = lv_disp_get_default();
+    lv_obj_t* scr     = lv_disp_get_scr_act(NULL);
+    lv_coord_t width  = lv_obj_get_width(scr);
+    lv_coord_t height = lv_obj_get_height(scr);
 
-    // memset(buffer, 0, bufsize);
     const char* bm = "BM";
     memcpy(buffer, bm, strlen(bm));
     buffer += strlen(bm);
 
     bmp_header_t* bmp = (bmp_header_t*)buffer;
-    bmp->bfSize       = (uint32_t)(disp->driver.hor_res * disp->driver.ver_res * LV_COLOR_DEPTH / 8);
+    bmp->bfSize       = (uint32_t)(width * height * LV_COLOR_DEPTH / 8);
     bmp->bfReserved   = 0;
     bmp->bfOffBits    = 66;
 
     bmp->biSize          = 40;
-    bmp->biWidth         = disp->driver.hor_res;
-    bmp->biHeight        = -disp->driver.ver_res;
+    bmp->biWidth         = width;
+    bmp->biHeight        = -height;
     bmp->biPlanes        = 1;
     bmp->biBitCount      = LV_COLOR_DEPTH;
     bmp->biCompression   = 3; // BI_BITFIELDS
@@ -645,53 +646,6 @@ static void gui_get_bitmap_header(uint8_t* buffer, size_t bufsize)
     bmp->bdMask[1] = 0x07E0; // Green bitmask
                              // B: 0000 0000 | 0001 1111
     bmp->bdMask[2] = 0x001F; // Blue bitmask
-
-/*
-    return;
-    // lv_disp_t* disp = lv_disp_get_default();
-    buffer[0] = 0x42; // B
-    buffer[1] = 0x4D; // M
-
-    buffer[10 + 0] = 122;      // full header size
-    buffer[14 + 0] = 122 - 14; // dib header size
-    buffer[26 + 0] = 1;        // number of color planes
-    buffer[28 + 0] = 16;       // or 24, bbp
-    buffer[30 + 0] = 3;        // compression, 0 = RGB / 3 = RGBA
-
-    // The refresh draws the active screen only, so we need the dimensions of the active screen
-    // This could in be diferent from the display driver width/height if the screen has been resized
-    lv_obj_t* scr = lv_disp_get_scr_act(NULL);
-
-    // file size
-    guiSetBmpHeader(&buffer[2], 122 + disp->driver.hor_res * disp->driver.ver_res * buffer[28] / 8);
-    // horizontal resolution
-    guiSetBmpHeader(&buffer[18], lv_obj_get_width(scr));
-    // guiSetBmpHeader(&buffer[18], disp->driver.hor_res);
-    // vertical resolution
-    guiSetBmpHeader(&buffer[22], -lv_obj_get_height(scr));
-    // guiSetBmpHeader(&buffer[22], -disp->driver.ver_res);
-    // bitmap size
-    guiSetBmpHeader(&buffer[34], lv_obj_get_width(scr) * lv_obj_get_height(scr) * buffer[28 + 0] / 8);
-    // guiSetBmpHeader(&buffer[34], disp->driver.hor_res * disp->driver.ver_res * buffer[28 + 0] / 8);
-    // horizontal pixels per meter
-    guiSetBmpHeader(&buffer[38], 2836);
-    // vertical pixels per meter
-    guiSetBmpHeader(&buffer[42], 2836);
-    // R: 1111 1000 | 0000 0000
-    guiSetBmpHeader(&buffer[54], 0xF800); // Red bitmask
-    // G: 0000 0111 | 1110 0000
-    guiSetBmpHeader(&buffer[58], 0x07E0); // Green bitmask
-    // B: 0000 0000 | 0001 1111
-    guiSetBmpHeader(&buffer[62], 0x001F); // Blue bitmask
-    // A: 0000 0000 | 0000 0000
-    guiSetBmpHeader(&buffer[66], 0x0000); // No Aplpha Mask
-
-    // "Win
-    buffer[70 + 3] = 0x57;
-    buffer[70 + 2] = 0x69;
-    buffer[70 + 1] = 0x6E;
-    buffer[70 + 0] = 0x20;
-    */
 }
 
 void gui_flush_not_complete()
