@@ -33,33 +33,46 @@ uint8_t Page::count()
     return (uint8_t)(sizeof(_pages) / sizeof(*_pages));
 }
 
+void Page::swap(lv_obj_t* page, uint8_t id)
+{
+    if(id > count()) {
+        LOG_WARNING(TAG_HASP, "Invalid page id %d", id);
+        return;
+    }
+
+    // Swap page objects
+    lv_obj_t* prev_page_obj     = _pages[id];
+    _pages[id]                  = page;
+    _pages[id]->user_data.objid = LV_HASP_SCREEN;
+    _pages[id]->user_data.id    = 0;
+
+    /**< If the `indev` was pressing this object but swiped out while pressing do not search other object.*/
+    lv_obj_add_protect(_pages[id], LV_PROTECT_PRESS_LOST);
+    lv_obj_set_event_cb(_pages[id], generic_event_handler);
+
+    // Delete previous page object
+    if(prev_page_obj) {
+        if(prev_page_obj == lv_scr_act()) {
+            lv_scr_load_anim(_pages[id], LV_SCR_LOAD_ANIM_NONE, 500, 0, false); // update page screen obj
+            lv_obj_del_async(prev_page_obj);
+        } else
+            lv_obj_del(prev_page_obj);
+    }
+}
+
 void Page::init(uint8_t start_page)
 {
     lv_obj_t* scr_act = lv_scr_act();
     lv_obj_clean(lv_layer_top());
 
     for(int i = 0; i < count(); i++) {
-        lv_obj_t* prev_page_obj = _pages[i];
-
-        _pages[i]                  = lv_obj_create(NULL, NULL);
-        _pages[i]->user_data.objid = LV_HASP_SCREEN;
-        lv_obj_set_event_cb(_pages[i], generic_event_handler);
-
-        /**< If the `indev` was pressing this object but swiped out while pressing do not search other object.*/
-        lv_obj_add_protect(_pages[i], LV_PROTECT_PRESS_LOST);
+        lv_obj_t* page = lv_obj_create(NULL, NULL);
+        Page::swap(page, i);
 
         uint16_t thispage  = i + PAGE_START_INDEX;
         _meta_data[i].prev = thispage == PAGE_START_INDEX ? HASP_NUM_PAGES : thispage - PAGE_START_INDEX;
         _meta_data[i].next = thispage == HASP_NUM_PAGES ? PAGE_START_INDEX : thispage + PAGE_START_INDEX;
         _meta_data[i].back = start_page;
-
-        if(prev_page_obj) {
-            if(scr_act == prev_page_obj) {
-                lv_scr_load_anim(_pages[i], LV_SCR_LOAD_ANIM_NONE, 500, 0, false); // update page screen obj
-                lv_obj_del_async(prev_page_obj);
-            } else
-                lv_obj_del(prev_page_obj);
-        }
     }
 }
 
@@ -150,6 +163,7 @@ uint8_t Page::get()
 
 void Page::load_jsonl(const char* pagesfile)
 {
+    uint8_t savedPage = haspPages.get();
 #if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
     if(pagesfile[0] == '\0') return;
 
@@ -170,7 +184,7 @@ void Page::load_jsonl(const char* pagesfile)
         LOG_ERROR(TAG_HASP, F(D_FILE_LOAD_FAILED), pagesfile);
         return;
     }
-    dispatch_parse_jsonl(file);
+    dispatch_parse_jsonl(file, savedPage);
     file.close();
 
     LOG_INFO(TAG_HASP, F(D_FILE_LOADED), pagesfile);
@@ -178,7 +192,7 @@ void Page::load_jsonl(const char* pagesfile)
 #elif HASP_USE_EEPROM > 0
     LOG_TRACE(TAG_HASP, F("Loading jsonl from EEPROM..."));
     EepromStream eepromStream(4096, 1024);
-    dispatch_parse_jsonl(eepromStream);
+    dispatch_parse_jsonl(eepromStream, savedPage);
     LOG_INFO(TAG_HASP, F("Loaded jsonl from EEPROM"));
 
 #else
@@ -192,7 +206,7 @@ void Page::load_jsonl(const char* pagesfile)
     LOG_TRACE(TAG_HASP, F("Loading %s from disk..."), path);
     std::ifstream f(path); // taking file as inputstream
     if(f) {
-        dispatch_parse_jsonl(f);
+        dispatch_parse_jsonl(f, savedPage);
     }
     f.close();
     LOG_INFO(TAG_HASP, F("Loaded %s from disk"), path);
@@ -211,7 +225,7 @@ void Page::load_jsonl(const char* pagesfile)
     //     LOG_ERROR(TAG_HASP, F("TEST Opening %q from FS failed %d"), path, res);
     // }
 
-    // dispatch_parse_jsonl(file);
+    // dispatch_parse_jsonl(file, savedPage);
     // res = lv_fs_close(&file);
     // if(res == LV_FS_RES_OK) {
     //     LOG_VERBOSE(TAG_HASP, F("Closing %s OK"), path);

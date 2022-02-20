@@ -50,9 +50,9 @@ void dispatch_topic_payload(const char* topic, const char* payload, bool update,
 void dispatch_text_line(const char* cmnd, uint8_t source);
 
 #ifdef ARDUINO
-void dispatch_parse_jsonl(Stream& stream);
+void dispatch_parse_jsonl(Stream& stream, uint8_t& saved_page_id);
 #else
-void dispatch_parse_jsonl(std::istream& stream);
+void dispatch_parse_jsonl(std::istream& stream, uint8_t& saved_page_id);
 #endif
 
 void dispatch_clear_page(const char* page);

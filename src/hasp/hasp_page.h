@@ -37,6 +37,7 @@ class Page {
     void clear(uint8_t pageid);
     //    void set(uint8_t pageid);
     void set(uint8_t pageid, lv_scr_load_anim_t animation);
+    void swap(lv_obj_t* page, uint8_t id);
 
     void next(lv_scr_load_anim_t animation);
     void prev(lv_scr_load_anim_t animation);

@@ -50,7 +50,8 @@ uint16_t dispatchSecondsToNextTeleperiod = 0;
 uint8_t nCommands                        = 0;
 haspCommand_t commands[26];
 
-moodlight_t moodlight = {.brightness = 255};
+moodlight_t moodlight    = {.brightness = 255};
+uint8_t saved_jsonl_page = 0;
 
 /* Sends the payload out on the state/subtopic
  */
@@ -628,13 +629,13 @@ void dispatch_parse_json(const char*, const char* payload, uint8_t source)
 }
 
 #ifdef ARDUINO
-void dispatch_parse_jsonl(Stream& stream)
+void dispatch_parse_jsonl(Stream& stream, uint8_t& saved_page_id)
 #else
-void dispatch_parse_jsonl(std::istream& stream)
+void dispatch_parse_jsonl(std::istream& stream, uint8_t& saved_page_id)
 #endif
 {
-    uint8_t savedPage = haspPages.get();
-    uint16_t line     = 1;
+    // uint8_t savedPage = haspPages.get();
+    uint16_t line = 1;
     DynamicJsonDocument jsonl(MQTT_MAX_PACKET_SIZE / 2 + 128);
     DeserializationError jsonError = deserializeJson(jsonl, stream);
 
@@ -644,30 +645,33 @@ void dispatch_parse_jsonl(std::istream& stream)
 
     // guiStop();
     while(jsonError == DeserializationError::Ok) {
-        hasp_new_object(jsonl.as<JsonObject>(), savedPage);
+        hasp_new_object(jsonl.as<JsonObject>(), saved_page_id);
         jsonError = deserializeJson(jsonl, stream);
         line++;
     }
     // guiStart();
 
-    /* For debugging pourposes */
+    /* For debugging purposes */
     if(jsonError == DeserializationError::EmptyInput) {
         LOG_INFO(TAG_MSGR, F(D_JSONL_SUCCEEDED));
 
     } else {
         LOG_ERROR(TAG_MSGR, F(D_JSONL_FAILED ": %s"), line, jsonError.c_str());
     }
+
+    saved_jsonl_page = saved_page_id;
 }
 
 void dispatch_parse_jsonl(const char*, const char* payload, uint8_t source)
 {
+    if(source != TAG_MQTT) saved_jsonl_page = haspPages.get();
 #if HASP_USE_CONFIG > 0
     CharStream stream((char*)payload);
     // stream.setTimeout(10);
-    dispatch_parse_jsonl(stream);
+    dispatch_parse_jsonl(stream, saved_jsonl_page);
 #else
     std::istringstream stream((char*)payload);
-    dispatch_parse_jsonl(stream);
+    dispatch_parse_jsonl(stream, saved_jsonl_page);
 #endif
 }
 
