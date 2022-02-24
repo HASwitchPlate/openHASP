@@ -9,10 +9,12 @@
 #include "dev/esp32/esp32.h"
 
 #include "driver/pcnt.h" // Pulse count driver
+#if ESP_ARDUINO_VERSION_MAJOR >= 2
 #include "hal/pcnt_hal.h"
 #include "hal/gpio_hal.h"
 #include "soc/pcnt_periph.h"
 #include "esp_rom_gpio.h"
+#endif
 
 #include "driver/adc.h"
 #include "esp_adc_cal.h"
