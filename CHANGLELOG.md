@@ -17,6 +17,10 @@
 ### Services
 - Add SimpleFTPServer to easily upload and download files to the plate *(one simultanious connection only)*
 
+### Architecture
+- Moved to Arduino 2.0.2 with native LittleFS library
+- Moved to ESP-IDF 4.4 with fix for FragAttacks CVEs
+
 
 ## v0.6.3
 
@@ -29,6 +33,9 @@
 ### GUI
 - Hide cursor during `antiburn` and `idle` if the pointer is enabled
 - Screenshot images now display properly in Safari on macOS/iOS (thanks @masto)
+
+### MQTT
+-  Remember last `page` id for mqtt messages
 
 ### Objects
 - `img.src` now accepts both `http` and `https` urls (thanks @htvekov)
@@ -53,8 +60,6 @@
 - Expose the device URL in discovery message
 
 ### Architecture
-- Moved to Arduino 2.0.2 with native LittleFS library
-- Moved to ESP-IDF 4.4 with fix for FragAttacks CVEs
 - Prepare support for ESP32-S2
 - **Breaking:** Removed support for ESP8266!
 
