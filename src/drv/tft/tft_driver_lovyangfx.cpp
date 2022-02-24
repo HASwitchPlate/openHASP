@@ -144,17 +144,25 @@ static lgfx::Bus_SPI* init_spi_bus(Preferences* prefs)
         case 1:
             // SPI_HOST (SPI1_HOST) is not supported by the SPI Master and SPI Slave driver on ESP32-S2 and later
             LOG_DEBUG(TAG_TFT, F("%s - %d"), __FILE__, __LINE__);
-            cfg.spi_host = SPI1_HOST;
+            cfg.spi_host = SPI_HOST;
             break;
 #endif
-        case 2: // HSPI on ESP32 and HSPI on ESP32-S2
+        case 2: // HSPI on ESP32 and FSPI on ESP32-S2
             LOG_DEBUG(TAG_TFT, F("%s - %d"), __FILE__, __LINE__);
-            cfg.spi_host = SPI2_HOST;
+#ifdef CONFIG_IDF_TARGET_ESP32
+            cfg.spi_host = HSPI_HOST;
+#elif CONFIG_IDF_TARGET_ESP32S2
+            cfg.spi_host = FSPI_HOST;
+#endif
             break;
         case 3:
-        default: // VSPI on ESP32 and FSPI on ESP32-S2
+        default: // VSPI on ESP32 and HSPI on ESP32-S2
             LOG_DEBUG(TAG_TFT, F("%s - %d"), __FILE__, __LINE__);
-            cfg.spi_host = SPI3_HOST;
+#ifdef CONFIG_IDF_TARGET_ESP32
+            cfg.spi_host = VSPI_HOST;
+#elif CONFIG_IDF_TARGET_ESP32S2
+            cfg.spi_host = HSPI_HOST;
+#endif
     }
     bus->config(cfg); // The set value is reflected on the bus.
     bus->init();
@@ -190,7 +198,7 @@ static void init_panel(lgfx::Panel_Device* panel, Preferences* prefs)
     cfg.invert =
         prefs->getBool("invert", INVERT_COLORS != 0); // true if the light and darkness of the panel is reversed
 #else
-    cfg.invert    = prefs->getBool("invert", false);    // true if the light and darkness of the panel is reversed
+    cfg.invert = prefs->getBool("invert", false);       // true if the light and darkness of the panel is reversed
 #endif
 #ifdef TFT_RGB_ORDER
     cfg.rgb_order = prefs->getBool("rgb_order", true); // true if the red and blue of the panel are swapped
@@ -336,8 +344,8 @@ void LovyanGfx::show_info()
     {
         LOG_VERBOSE(TAG_TFT, F("Interface  : Serial"));
         auto panel = tft.getPanel();
-        auto bus   = (lgfx::Bus_SPI*)panel->getBus();
-        auto cfg   = bus->config(); // Get the structure for bus configuration.
+        auto bus = (lgfx::Bus_SPI*)panel->getBus();
+        auto cfg = bus->config(); // Get the structure for bus configuration.
         tftPinInfo(F("MOSI"), cfg.pin_mosi);
         tftPinInfo(F("MISO"), cfg.pin_miso);
         tftPinInfo(F("SCLK"), cfg.pin_sclk);
