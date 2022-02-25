@@ -3,6 +3,14 @@
 #include "hasplib.h"
 #if HASP_USE_FREETYPE > 0
 #include "lv_freetype.h"
+#else
+typedef struct
+{
+    const char* name; /* The name of the font file */
+    lv_font_t* font;  /* point to lvgl font */
+    uint16_t weight;  /* font size */
+    uint16_t style;   /* font style */
+} lv_ft_info_t;
 #endif
 
 #include "hasp_mem.h"
