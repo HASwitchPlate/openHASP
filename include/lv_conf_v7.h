@@ -89,9 +89,9 @@ typedef int16_t lv_coord_t;
 #if defined(ARDUINO_ARCH_ESP8266)
 #  define LV_MEM_SIZE    (12 * 1024U) // Minimum 12 Kb
 #elif defined(ESP32S2)
-#  define LV_MEM_SIZE    (20 * 1024U)  // 20Kb is much better
+#  define LV_MEM_SIZE    (32 * 1024U)  // 32Kb on ESP32-S2
 #elif defined(ARDUINO_ARCH_ESP32)
-#  define LV_MEM_SIZE    (48 * 1024U)  // 48Kb is much better
+#  define LV_MEM_SIZE    (48 * 1024U)  // 48Kb on ESP32
 #else
 #  define LV_MEM_SIZE    (256 * 1024U) // native app
 #endif
