@@ -185,7 +185,11 @@ void Esp32Device::set_backlight_pin(uint8_t pin)
     /* Setup Backlight Control Pin */
     if(pin < GPIO_NUM_MAX) {
         LOG_VERBOSE(TAG_GUI, F("Backlight  : Pin %d"), pin);
-        ledcSetup(BACKLIGHT_CHANNEL, 2000, 10);
+#ifndef ESP32S2
+        ledcSetup(BACKLIGHT_CHANNEL, 20000, 12);
+#else
+        ledcSetup(BACKLIGHT_CHANNEL, 20000, 10);
+#endif
         ledcAttachPin(pin, BACKLIGHT_CHANNEL);
         update_backlight();
     } else {
@@ -218,9 +222,15 @@ bool Esp32Device::get_backlight_power()
 void Esp32Device::update_backlight()
 {
     if(_backlight_pin < GPIO_NUM_MAX) {
+#ifndef ESP32S2
+        uint32_t duty = _backlight_power ? map(_backlight_level, 0, 255, 0, 4095) : 0;
+        if(_backlight_invert) duty = 4095 - duty;
+        ledcWrite(BACKLIGHT_CHANNEL, duty); // ledChannel and value
+#else
         uint32_t duty = _backlight_power ? map(_backlight_level, 0, 255, 0, 1023) : 0;
         if(_backlight_invert) duty = 1023 - duty;
         ledcWrite(BACKLIGHT_CHANNEL, duty); // ledChannel and value
+#endif
     }
 
     // haspTft.tft.writecommand(0x53); // Write CTRL Display
@@ -330,7 +340,7 @@ long Esp32Device::get_uptime()
 // #warning Building for Lanbon L8
 #include "dev/esp32/lanbonl8.h"
 #elif defined(M5STACK)
-  // #warning Building for M5Stack core2
+                                            // #warning Building for M5Stack core2
 #include "dev/esp32/m5stackcore2.h"
 #else
 dev::Esp32Device haspDevice;
