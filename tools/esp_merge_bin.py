@@ -3,6 +3,7 @@ import os
 import sys
 import shutil
 import subprocess
+import pkg_resources
 
 buildFlags = env.ParseFlags(env['BUILD_FLAGS'])
 OUTPUT_DIR = "build_output{}".format(os.path.sep)
@@ -11,6 +12,21 @@ platform = env.PioPlatform()
 FRAMEWORK_DIR = platform.get_package_dir("framework-arduinoespressif32")
 FRAMEWORK_DIR = "{}{}".format(FRAMEWORK_DIR, os.path.sep)
 
+required_pkgs = {'dulwich'}
+installed_pkgs = {pkg.key for pkg in pkg_resources.working_set}
+missing_pkgs = required_pkgs - installed_pkgs
+
+if missing_pkgs:
+    env.Execute('$PYTHONEXE -m pip install dulwich --global-option="--pure"')
+
+from dulwich import porcelain
+from dulwich.repo import Repo
+
+def get_firmware_commit_hash():
+    r = Repo('.')
+    commit_hash = r.head().decode("utf-8")[0:7]
+    print ("Commit Hash: " + commit_hash)
+    return (commit_hash)
 
 def get_fw_version(source, target, env):
     global HASP_VER_MAJ
@@ -28,7 +44,7 @@ def get_fw_version(source, target, env):
 
 
 def copy_merge_bins(source, target, env):
-    version = 'v' + str(HASP_VER_MAJ) + '.' + str(HASP_VER_MIN) + '.' + str(HASP_VER_REV)
+    version = 'v' + str(HASP_VER_MAJ) + '.' + str(HASP_VER_MIN) + '.' + str(HASP_VER_REV) + '_' + get_firmware_commit_hash()
     name = str(target[0]).split(os.path.sep)[2]
     name = name.replace('_4MB', '').replace('_8MB', '').replace('_16MB', '').replace('_32MB', '')
     flash_size = env.GetProjectOption("board_upload.flash_size")
@@ -70,7 +86,7 @@ def copy_merge_bins(source, target, env):
     print(stderr.decode("utf-8") )
 
 def copy_ota(source, target, env):
-    version = 'v' + str(HASP_VER_MAJ) + '.' + str(HASP_VER_MIN) + '.' + str(HASP_VER_REV)
+    version = 'v' + str(HASP_VER_MAJ) + '.' + str(HASP_VER_MIN) + '.' + str(HASP_VER_REV) + '_' + get_firmware_commit_hash()
     name =str(target[0]).split(os.path.sep)[2]
     name = name.replace('_4MB', '').replace('_8MB', '').replace('_16MB', '').replace('_32MB', '')
 
