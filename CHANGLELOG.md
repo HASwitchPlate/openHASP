@@ -63,7 +63,7 @@
 - Prepare support for ESP32-S2
 - **Breaking:** Removed support for ESP8266!
 
-Updated libraries to ArduinoJson 6.19.2,  ArduinoStreamUtils 1.6.2, TFT_eSPI 2.4.42, LovyanGFX 0.4.12 and Adafruit STMPE610 1.1.4
+Updated libraries to ArduinoJson 6.19.3,  ArduinoStreamUtils 1.6.2, TFT_eSPI 2.4.42, LovyanGFX 0.4.14 and Adafruit STMPE610 1.1.4
 
 
 ## v0.6.2
