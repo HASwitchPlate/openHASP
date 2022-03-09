@@ -649,7 +649,12 @@ void hasp_get_info(JsonDocument& doc)
     char size_buf[32];
     JsonObject info = doc.createNestedObject(F(D_MANUFACTURER));
 
-    info[F(D_INFO_VERSION)] = haspDevice.get_version();
+    buffer = haspDevice.get_version();
+#ifdef COMMIT_HASH
+    buffer += " ";
+    buffer += COMMIT_HASH;
+#endif
+    info[F(D_INFO_VERSION)] = buffer;
 
     buffer = __DATE__;
     buffer += (" ");
