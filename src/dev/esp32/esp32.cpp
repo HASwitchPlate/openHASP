@@ -186,9 +186,9 @@ void Esp32Device::set_backlight_pin(uint8_t pin)
     if(pin < GPIO_NUM_MAX) {
         LOG_VERBOSE(TAG_GUI, F("Backlight  : Pin %d"), pin);
 #ifndef ESP32S2
-        ledcSetup(BACKLIGHT_CHANNEL, 20000, 12);
+        ledcSetup(BACKLIGHT_CHANNEL, BACKLIGHT_FREQUENCY, 12);
 #else
-        ledcSetup(BACKLIGHT_CHANNEL, 20000, 10);
+        ledcSetup(BACKLIGHT_CHANNEL, BACKLIGHT_FREQUENCY, 10);
 #endif
         ledcAttachPin(pin, BACKLIGHT_CHANNEL);
         update_backlight();

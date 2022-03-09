@@ -9,6 +9,10 @@
 
 #if defined(ESP32)
 
+#ifndef BACKLIGHT_FREQUENCY
+#define BACKLIGHT_FREQUENCY 20000
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
