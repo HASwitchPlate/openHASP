@@ -185,8 +185,8 @@ void Esp32Device::set_backlight_pin(uint8_t pin)
     /* Setup Backlight Control Pin */
     if(pin < GPIO_NUM_MAX) {
         LOG_VERBOSE(TAG_GUI, F("Backlight  : Pin %d"), pin);
-#ifndef ESP32S2
-        ledcSetup(BACKLIGHT_CHANNEL, BACKLIGHT_FREQUENCY, 12);
+#if !defined(CONFIG_IDF_TARGET_ESP32S2)
+        ledcSetup(BACKLIGHT_CHANNEL, BACKLIGHT_FREQUENCY, 10);
 #else
         ledcSetup(BACKLIGHT_CHANNEL, BACKLIGHT_FREQUENCY, 10);
 #endif
@@ -222,9 +222,9 @@ bool Esp32Device::get_backlight_power()
 void Esp32Device::update_backlight()
 {
     if(_backlight_pin < GPIO_NUM_MAX) {
-#ifndef ESP32S2
-        uint32_t duty = _backlight_power ? map(_backlight_level, 0, 255, 0, 4095) : 0;
-        if(_backlight_invert) duty = 4095 - duty;
+#if !defined(CONFIG_IDF_TARGET_ESP32S2)
+        uint32_t duty = _backlight_power ? map(_backlight_level, 0, 255, 0, 1023) : 0;
+        if(_backlight_invert) duty = 1023 - duty;
         ledcWrite(BACKLIGHT_CHANNEL, duty); // ledChannel and value
 #else
         uint32_t duty = _backlight_power ? map(_backlight_level, 0, 255, 0, 1023) : 0;
