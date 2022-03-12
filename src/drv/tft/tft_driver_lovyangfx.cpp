@@ -194,12 +194,12 @@ static void init_panel(lgfx::Panel_Device* panel, Preferences* prefs)
         prefs->getUInt("dummy_read_bits", 1);         // bits of dummy read before reading data other than pixels
     cfg.readable = prefs->getBool("readable", false); // true if data can be read
 
-#ifdef INVERT_COLORS
-    cfg.invert =
-        prefs->getBool("invert", INVERT_COLORS != 0); // true if the light and darkness of the panel is reversed
-#else
+// #ifdef INVERT_COLORS   // This is configurable un Web UI
+//     cfg.invert =
+//         prefs->getBool("invert", INVERT_COLORS != 0); // true if the light and darkness of the panel is reversed
+// #else
     cfg.invert = prefs->getBool("invert", false);       // true if the light and darkness of the panel is reversed
-#endif
+// #endif
 #ifdef TFT_RGB_ORDER
     cfg.rgb_order = prefs->getBool("rgb_order", true); // true if the red and blue of the panel are swapped
 #else
