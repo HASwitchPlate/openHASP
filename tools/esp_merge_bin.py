@@ -49,7 +49,10 @@ def copy_merge_bins(source, target, env):
     name = name.replace('_4MB', '').replace('_8MB', '').replace('_16MB', '').replace('_32MB', '')
     flash_size = env.GetProjectOption("board_upload.flash_size")
 
-    bootloader = "{}tools{}sdk{}esp32{}bin{}bootloader_dio_40m.bin".format(FRAMEWORK_DIR, os.path.sep, os.path.sep, os.path.sep, os.path.sep, os.path.sep)
+    board = env.BoardConfig()
+    mcu = board.get("build.mcu", "esp32")
+
+    bootloader = "{}tools{}sdk{}{}{}bin{}bootloader_dio_40m.bin".format(FRAMEWORK_DIR, os.path.sep, os.path.sep, mcu, os.path.sep, os.path.sep, os.path.sep)
     if not os.path.isfile(bootloader):
         bootloader = "{}tools{}sdk{}bin{}bootloader_dio_40m.bin".format(FRAMEWORK_DIR, os.path.sep, os.path.sep, os.path.sep, os.path.sep, os.path.sep)
     partitions = "{}{}partitions.bin".format(env.subst("$BUILD_DIR"), os.path.sep)
@@ -77,7 +80,7 @@ def copy_merge_bins(source, target, env):
     print(firmware_dst)
     print(flash_size)
 
-    process = subprocess.Popen(['python', 'tools/esptool_with_merge_bin.py', '--chip', 'esp32', 'merge_bin', '--output', firmware_dst, '--flash_mode', 'dio', '--flash_size', flash_size, '0x1000', bootloader, '0x8000', partitions, '0xe000', boot_app0, '0x10000', firmware_src],
+    process = subprocess.Popen(['python', 'tools/esptool_with_merge_bin.py', '--chip', mcu, 'merge_bin', '--output', firmware_dst, '--flash_mode', 'dio', '--flash_size', flash_size, '0x1000', bootloader, '0x8000', partitions, '0xe000', boot_app0, '0x10000', firmware_src],
                         stdout=subprocess.PIPE, 
                         stderr=subprocess.PIPE)
     stdout, stderr = process.communicate()
