@@ -781,6 +781,20 @@ bool gpioIsSystemPin(uint8_t gpio)
 #ifdef TFT_D15
        || (gpio == TFT_D15)
 #endif
+//Cant assign the touch pins to the generic GPIO. Maybe in future if sensors are added
+#ifdef TOUCH_SDA    
+       || (gpio == TOUCH_SDA)
+#endif
+#ifdef TOUCH_SCL    
+       || (gpio == TOUCH_SCL)
+#endif
+#ifdef TOUCH_IRQ    
+       || (gpio == TOUCH_IRQ)
+#endif
+#ifdef TOUCH_RST    
+       || (gpio == TOUCH_RST)
+#endif
+
     ) {
         return true;
     } // if tft_espi pins
@@ -791,6 +805,8 @@ bool gpioIsSystemPin(uint8_t gpio)
     // Serial GPIOs
     // Tasmota Client GPIOs
 
+//NG. Remove the checks here since the is_system_pin function does the same check. Best to keep the code in 1 place only.    
+/*
 #ifdef ARDUINO_ARCH_ESP32
     if((gpio >= 6) && (gpio <= 11)) return true;  // integrated SPI flash
     if((gpio == 37) || (gpio == 38)) return true; // unavailable
@@ -801,10 +817,12 @@ bool gpioIsSystemPin(uint8_t gpio)
 
 #ifdef ARDUINO_ARCH_ESP8266
     if((gpio >= 6) && (gpio <= 11)) return true; // integrated SPI flash
-#ifndef TFT_SPI_OVERLAP
-    if((gpio >= 12) && (gpio <= 14)) return true; // HSPI
+    #ifndef TFT_SPI_OVERLAP
+        if((gpio >= 12) && (gpio <= 14)) return true; // HSPI
+    #endif
 #endif
-#endif
+*/
+
 
     if(haspDevice.is_system_pin(gpio)) return true;
 
