@@ -260,13 +260,14 @@
 		#define FTP_FILE_WRITE_APPEND "a+"
 		#define FTP_FILE_WRITE_CREATE "w+"
 	#else
-		#if 1
-			#include "LittleFS.h"
-			#define STORAGE_MANAGER LittleFS
-		#else
-			#include "LITTLEFS.h"
-			#define STORAGE_MANAGER LITTLEFS
-		#endif
+#if ESP_ARDUINO_VERSION_MAJOR >= 2
+		#include "FS.h"
+		#include "LittleFS.h"
+		#define STORAGE_MANAGER LittleFS
+#else
+		#include "LITTLEFS.h"
+		#define STORAGE_MANAGER LITTLEFS
+#endif
 		#define FTP_FILE File
 		#define FTP_DIR File
 
@@ -514,7 +515,7 @@ private:
 	#elif STORAGE_TYPE == STORAGE_FATFS
 	  return file->fileName();
 	#else
-		#if 1
+		#if ESP_ARDUINO_VERSION_MAJOR >= 2
 	  		return file->path();
 		#else
 	  		return file->name();

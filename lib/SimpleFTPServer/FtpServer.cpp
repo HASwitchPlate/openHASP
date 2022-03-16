@@ -64,13 +64,14 @@ void FtpServer::end()
     DEBUG_PRINTLN(F("Stop server!"));
 
     if(client.connected()) {
+        DEBUG_PRINTLN(F("Disconnect client!"));
         disconnectClient();
     }
 
     ftpServer.end();
     dataServer.end();
 
-    cmdStage      = FTP_Init;
+    cmdStage      = FTP_Stop;
     transferStage = FTP_Close;
     dataConn      = FTP_NoConn;
 }
@@ -1194,12 +1195,12 @@ bool FtpServer::doList()
 #endif
     {
 
-        if(dir.isDirectory()) {
-            data.print(F("+/,\t"));
-            DEBUG_PRINT(F("+/,\t"));
+        if(fileDir.isDirectory()) {
+            data.print(F("drw-rw-rw-   1 hasp     hasp     "));
+            DEBUG_PRINT(F("drw-rw-rw- "));
         } else {
-            data.print(F("+r,s"));
-            DEBUG_PRINT(F("+r,s"));
+            data.print(F("-rw-rw-rw-   1 hasp     hasp     "));
+            DEBUG_PRINT(F("-rw-rw-rw- "));
         }
 #if ESP8266
         data.print(long(dir.fileSize()));
@@ -1214,11 +1215,13 @@ bool FtpServer::doList()
         long fz = fileDir.size();
 #else
         data.print(long(fileDir.size()));
-        data.print(F(",\t"));
+        data.print(F(" "));
+        data.print(long(fileDir.getLastWrite()));
+        data.print(F(" "));
         data.println(fileDir.name());
 
         DEBUG_PRINT(long(fileDir.size()));
-        DEBUG_PRINT(F(",\t"));
+        DEBUG_PRINT(F(" "));
         DEBUG_PRINTLN(fileDir.name());
 
 #endif

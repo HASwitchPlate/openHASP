@@ -1,7 +1,17 @@
 #include <string.h>
 
 #include "hasplib.h"
+#if HASP_USE_FREETYPE > 0
 #include "lv_freetype.h"
+#else
+typedef struct
+{
+    const char* name; /* The name of the font file */
+    lv_font_t* font;  /* point to lvgl font */
+    uint16_t weight;  /* font size */
+    uint16_t style;   /* font style */
+} lv_ft_info_t;
+#endif
 
 #include "hasp_mem.h"
 #include "font/hasp_font_loader.h"
@@ -51,28 +61,28 @@ static lv_font_t* font_add_to_list(const char* payload)
     lv_font_t* font = hasp_font_load(filename);
     char* name_p    = NULL;
 
-#if defined(ARDUINO_ARCH_ESP32)
-    if(!font) {
-        // Try .ttf file
+#if defined(ARDUINO_ARCH_ESP32) && (HASP_USE_FREETYPE > 0)
+    // if(!font) {
+    //     // Try .ttf file
 
-        size_t pos = font_split_payload(payload);
-        if(pos > 0 && pos < 56) {
-            uint16_t size = atoi(payload + pos);
+    //     size_t pos = font_split_payload(payload);
+    //     if(pos > 0 && pos < 56) {
+    //         uint16_t size = atoi(payload + pos);
 
-            char fontname[64];
-            memset(fontname, 0, sizeof(fontname));
-            strncpy(fontname, payload, pos);
-            snprintf_P(filename, sizeof(filename), PSTR("L:\\%s.ttf"), fontname);
+    //         char fontname[64];
+    //         memset(fontname, 0, sizeof(fontname));
+    //         strncpy(fontname, payload, pos);
+    //         snprintf_P(filename, sizeof(filename), PSTR("L:\\%s.ttf"), fontname);
 
-            lv_ft_info_t info;
-            info.name   = filename;
-            info.weight = size;
-            info.style  = FT_FONT_STYLE_NORMAL;
-            if(lv_ft_font_init(&info)) {
-                font = info.font;
-            }
-        }
-    }
+    //         lv_ft_info_t info;
+    //         info.name   = filename;
+    //         info.weight = size;
+    //         info.style  = FT_FONT_STYLE_NORMAL;
+    //         if(lv_ft_font_init(&info)) {
+    //             font = info.font;
+    //         }
+    //     }
+    // }
 
     if(!font) {
         // Try .otf file

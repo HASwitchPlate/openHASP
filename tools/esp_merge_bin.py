@@ -3,6 +3,7 @@ import os
 import sys
 import shutil
 import subprocess
+import pkg_resources
 
 buildFlags = env.ParseFlags(env['BUILD_FLAGS'])
 OUTPUT_DIR = "build_output{}".format(os.path.sep)
@@ -11,6 +12,21 @@ platform = env.PioPlatform()
 FRAMEWORK_DIR = platform.get_package_dir("framework-arduinoespressif32")
 FRAMEWORK_DIR = "{}{}".format(FRAMEWORK_DIR, os.path.sep)
 
+required_pkgs = {'dulwich'}
+installed_pkgs = {pkg.key for pkg in pkg_resources.working_set}
+missing_pkgs = required_pkgs - installed_pkgs
+
+if missing_pkgs:
+    env.Execute('$PYTHONEXE -m pip install dulwich --global-option="--pure"')
+
+from dulwich import porcelain
+from dulwich.repo import Repo
+
+def get_firmware_commit_hash():
+    r = Repo('.')
+    commit_hash = r.head().decode("utf-8")[0:7]
+    print ("Commit Hash: " + commit_hash)
+    return (commit_hash)
 
 def get_fw_version(source, target, env):
     global HASP_VER_MAJ
@@ -28,12 +44,17 @@ def get_fw_version(source, target, env):
 
 
 def copy_merge_bins(source, target, env):
-    version = 'v' + str(HASP_VER_MAJ) + '.' + str(HASP_VER_MIN) + '.' + str(HASP_VER_REV)
+    version = 'v' + str(HASP_VER_MAJ) + '.' + str(HASP_VER_MIN) + '.' + str(HASP_VER_REV) + '_' + get_firmware_commit_hash()
     name = str(target[0]).split(os.path.sep)[2]
     name = name.replace('_4MB', '').replace('_8MB', '').replace('_16MB', '').replace('_32MB', '')
     flash_size = env.GetProjectOption("board_upload.flash_size")
 
-    bootloader = "{}tools{}sdk{}esp32{}bin{}bootloader_dio_40m.bin".format(FRAMEWORK_DIR, os.path.sep, os.path.sep, os.path.sep, os.path.sep, os.path.sep)
+    board = env.BoardConfig()
+    mcu = board.get("build.mcu", "esp32")
+
+    bootloader = "{}tools{}sdk{}{}{}bin{}bootloader_dio_40m.bin".format(FRAMEWORK_DIR, os.path.sep, os.path.sep, mcu, os.path.sep, os.path.sep, os.path.sep)
+    if not os.path.isfile(bootloader):
+        bootloader = "{}tools{}sdk{}bin{}bootloader_dio_40m.bin".format(FRAMEWORK_DIR, os.path.sep, os.path.sep, os.path.sep, os.path.sep, os.path.sep)
     partitions = "{}{}partitions.bin".format(env.subst("$BUILD_DIR"), os.path.sep)
     boot_app0 = "{}tools{}partitions{}boot_app0.bin".format(FRAMEWORK_DIR, os.path.sep, os.path.sep, os.path.sep)
     firmware_dst ="{}firmware{}{}_full_{}_{}.bin".format(OUTPUT_DIR, os.path.sep, name, flash_size, version)
@@ -59,7 +80,7 @@ def copy_merge_bins(source, target, env):
     print(firmware_dst)
     print(flash_size)
 
-    process = subprocess.Popen(['python', 'tools/esptool_with_merge_bin.py', '--chip', 'esp32', 'merge_bin', '--output', firmware_dst, '--flash_mode', 'dio', '--flash_size', flash_size, '0x1000', bootloader, '0x8000', partitions, '0xe000', boot_app0, '0x10000', firmware_src],
+    process = subprocess.Popen(['python', 'tools/esptool_with_merge_bin.py', '--chip', mcu, 'merge_bin', '--output', firmware_dst, '--flash_mode', 'dio', '--flash_size', flash_size, '0x1000', bootloader, '0x8000', partitions, '0xe000', boot_app0, '0x10000', firmware_src],
                         stdout=subprocess.PIPE, 
                         stderr=subprocess.PIPE)
     stdout, stderr = process.communicate()
@@ -68,7 +89,7 @@ def copy_merge_bins(source, target, env):
     print(stderr.decode("utf-8") )
 
 def copy_ota(source, target, env):
-    version = 'v' + str(HASP_VER_MAJ) + '.' + str(HASP_VER_MIN) + '.' + str(HASP_VER_REV)
+    version = 'v' + str(HASP_VER_MAJ) + '.' + str(HASP_VER_MIN) + '.' + str(HASP_VER_REV) + '_' + get_firmware_commit_hash()
     name =str(target[0]).split(os.path.sep)[2]
     name = name.replace('_4MB', '').replace('_8MB', '').replace('_16MB', '').replace('_32MB', '')
 
