@@ -27,7 +27,9 @@ jobs:
           - env: d1-r32-unoshield_ili9486_adc
             out: d1-r32-espduino32
           - env: esp32-one_st7796
-            out: esp32-one
+            out: waveshare
+          - env: esp32-one_ili9486
+            out: waveshare
           - env: esp32-touchdown
             out: esp32-touchdown
           - out: freetouchdeck
