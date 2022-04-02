@@ -49,6 +49,7 @@ void gui_hide_pointer(bool hidden);
 void guiCalibrate(void);
 void guiTakeScreenshot(const char* pFileName); // to file
 void guiTakeScreenshot(void);                  // webclient
+bool guiScreenshotIsDirty();
 
 /* ===== Read/Write Configuration ===== */
 #if HASP_USE_CONFIG > 0

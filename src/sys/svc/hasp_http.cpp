@@ -22,6 +22,7 @@
 
 #if HASP_USE_HTTP > 0
 #include "sys/net/hasp_network.h"
+#include "sys/net/hasp_time.h"
 
 #if(HASP_USE_CAPTIVE_PORTAL > 0) && (HASP_USE_WIFI > 0)
 #include <DNSServer.h>
@@ -322,9 +323,10 @@ bool saveConfig()
 #endif
 
         } else if(save == String(PSTR("gui"))) {
-            settings[FPSTR(FP_GUI_POINTER)] = webServer.hasArg(PSTR("cursor"));
-            settings[FPSTR(FP_GUI_INVERT)]  = webServer.hasArg(PSTR("invert"));
-            updated                         = guiSetConfig(settings.as<JsonObject>());
+            settings[FPSTR(FP_GUI_POINTER)]         = webServer.hasArg(PSTR("cursor"));
+            settings[FPSTR(FP_GUI_INVERT)]          = webServer.hasArg(PSTR("invert"));
+            settings[FPSTR(FP_GUI_BACKLIGHTINVERT)] = webServer.hasArg(PSTR("bcklinv"));
+            updated                                 = guiSetConfig(settings.as<JsonObject>());
 
         } else if(save == String(PSTR("debug"))) {
             settings[FPSTR(FP_DEBUG_ANSI)] = webServer.hasArg(PSTR("ansi"));
@@ -427,6 +429,16 @@ static void webHandleScreenshot()
             }
         }
 
+        // Check if screenshot bitmap is dirty
+        if(webServer.hasArg(F("d"))) {
+            if(guiScreenshotIsDirty())
+                webServer.send(200, F("text/text"), "1");
+            else
+                webServer.send(304, F("text/text"), "0");
+            return;
+        }
+
+        // Send bitmap
         if(webServer.hasArg(F("q"))) {
             lv_disp_t* disp = lv_disp_get_default();
             webServer.setContentLength(66 + disp->driver.hor_res * disp->driver.ver_res * sizeof(lv_color_t));
@@ -447,9 +459,9 @@ static void webHandleScreenshot()
         httpMessage += F("<p class='c'><img id='bmp' src='?q=0'");
         httpMessage += F(" onload=\"aref(5)\" onerror=\"aref(15)\"/></p>"); // Automatic refresh
 
-        httpMessage += F("<div class=\"dist\"><a href='#' onclick=\"return ref('prev')\">" D_HTTP_PREV_PAGE "</a>");
-        httpMessage += F("<a href='#' onclick=\"return ref('')\">" D_HTTP_REFRESH "</a>");
-        httpMessage += F("<a href='#' onclick=\"return ref('next')\">" D_HTTP_NEXT_PAGE "</a></div>");
+        httpMessage += F("<div class=\"dist\"><a href='#' onclick=\"return upd('prev')\">" D_HTTP_PREV_PAGE "</a>");
+        httpMessage += F("<a href='#' onclick=\"return upd('')\">" D_HTTP_REFRESH "</a>");
+        httpMessage += F("<a href='#' onclick=\"return upd('next')\">" D_HTTP_NEXT_PAGE "</a></div>");
         httpMessage += FPSTR(MAIN_MENU_BUTTON);
 
         webSendHeader(haspDevice.get_hostname(), httpMessage.length(), false);
@@ -512,12 +524,33 @@ static void webHandleApiConfig()
 { // http://plate01/about
     if(!httpIsAuthenticated(F("api"))) return;
 
+    if(webServer.method() != HTTP_GET && webServer.method() != HTTP_POST) {
+        return;
+    }
+
     DynamicJsonDocument doc(800);
+    JsonObject settings;
     String contentType = getContentType(F(".json"));
     String endpoint((char*)0);
     endpoint = webServer.pathArg(0);
 
-    JsonObject settings = doc.to<JsonObject>(); // Settings are invalid, force creation of an empty JsonObject
+    String postBody = webServer.arg("plain");
+
+    if(webServer.method() == HTTP_GET) {
+        // Make sure we have a valid JsonObject to start from
+        settings = doc.to<JsonObject>();
+
+    } else if(webServer.method() == HTTP_POST) {
+        DeserializationError jsonError = deserializeJson(doc, postBody);
+        if(jsonError) { // Couldn't parse incoming JSON command
+            dispatch_json_error(TAG_HTTP, jsonError);
+            return;
+        }
+        settings = doc.as<JsonObject>();
+    } else {
+        webServer.send(400, contentType, "Bad Request");
+        return;
+    }
 
     if(!strcasecmp_P(endpoint.c_str(), PSTR("wifi"))) {
         wifiGetConfig(settings);
@@ -529,22 +562,38 @@ static void webHandleApiConfig()
         guiGetConfig(settings);
     } else if(!strcasecmp_P(endpoint.c_str(), PSTR("debug"))) {
         debugGetConfig(settings);
+    } else if(!strcasecmp_P(endpoint.c_str(), PSTR("time"))) {
+        if(webServer.method() == HTTP_POST) {
+            configOutput(settings, TAG_HTTP);
+            timeSetConfig(settings);
+        }
+        settings = doc.to<JsonObject>();
+        timeGetConfig(settings);
+        configOutput(settings, TAG_HTTP);
     } else {
         webServer.send(400, contentType, "Bad Request");
         return;
     }
 
+    LOG_WARNING(TAG_HTTP, "%s - %d", __FILE__, __LINE__);
     // Mask non-blank passwords
     if(!settings[FPSTR(FP_CONFIG_PASS)].isNull() && settings[FPSTR(FP_CONFIG_PASS)].as<String>().length() != 0) {
         settings[FPSTR(FP_CONFIG_PASS)] = D_PASSWORD_MASK;
     }
 
+    LOG_WARNING(TAG_HTTP, "%s - %d", __FILE__, __LINE__);
     doc.shrinkToFit();
+    LOG_WARNING(TAG_HTTP, "%s - %d", __FILE__, __LINE__);
     const size_t size = measureJson(doc) + 1;
+    LOG_WARNING(TAG_HTTP, "%s - %d", __FILE__, __LINE__);
     char jsondata[size];
+    LOG_WARNING(TAG_HTTP, "%s - %d", __FILE__, __LINE__);
     memset(jsondata, 0, size);
+    LOG_WARNING(TAG_HTTP, "%s - %d", __FILE__, __LINE__);
     serializeJson(doc, jsondata, size);
+    LOG_WARNING(TAG_HTTP, "%s - %d", __FILE__, __LINE__);
     webServer.send(200, contentType, jsondata);
+    LOG_WARNING(TAG_HTTP, "%s - %d", __FILE__, __LINE__);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1185,7 +1234,7 @@ static void webHandleGuiConfig()
         // if(settings[FPSTR(FP_GUI_POINTER)].as<bool>()) httpMessage += F(" checked");
         httpMessage += F(">Show Pointer</div></div>");
 
-        // Backlight
+        // Backlight Pin
         int8_t bcklpin = settings[FPSTR(FP_GUI_BACKLIGHTPIN)].as<int8_t>();
         httpMessage += F("<div class='row'><div class='col-25'><label for='group'>Backlight Control</label></div>");
         httpMessage += F("<div class='col-75'><select id='bckl' name='bckl'>");
@@ -1206,6 +1255,11 @@ static void webHandleGuiConfig()
         httpMessage += getOption(2, F("D4 - GPIO 2"), bcklpin);
 #endif
         httpMessage += F("</select></div></div>");
+
+        // Backlight Invert
+        httpMessage += F("<div class='row'><div class='col-25'><label for='bcklinv'></label></div>");
+        httpMessage += F("<div class='col-75'><input type='checkbox' id='bcklinv' name='bcklinv' value='1'");
+        httpMessage += F(">Invert Backlight</div></div>");
 
         // Submit & End Form
         httpMessage += F("<button type='submit' name='save' value='gui'>" D_HTTP_SAVE_SETTINGS "</button>");
@@ -2176,7 +2230,6 @@ static void webSendCssVars()
                         "}");
     webSendCached(200, PSTR("text/css"), HTTP_CSS.c_str(), HTTP_CSS.length());
 }
-
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 static inline void webStartConfigPortal()

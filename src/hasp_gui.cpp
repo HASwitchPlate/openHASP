@@ -74,6 +74,8 @@ lv_obj_t* cursor;
 uint16_t tft_width  = TFT_WIDTH;
 uint16_t tft_height = TFT_HEIGHT;
 
+bool screenshotIsDirty = true;
+
 static lv_disp_buf_t disp_buf;
 
 // #if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
@@ -174,6 +176,7 @@ void gui_hide_pointer(bool hidden)
 IRAM_ATTR void gui_flush_cb(lv_disp_drv_t* disp, const lv_area_t* area, lv_color_t* color_p)
 {
     haspTft.flush_pixels(disp, area, color_p);
+    screenshotIsDirty = true;
 }
 
 IRAM_ATTR bool gui_touch_read(lv_indev_drv_t* indev_driver, lv_indev_data_t* data)
@@ -461,7 +464,8 @@ void guiStop()
 #if HASP_USE_CONFIG > 0
 bool guiGetConfig(const JsonObject& settings)
 {
-    bool changed = false;
+    bool changed          = false;
+    bool backlight_invert = haspDevice.get_backlight_invert();
     uint16_t guiSleepTime1;
     uint16_t guiSleepTime2;
     hasp_get_sleep_time(guiSleepTime1, guiSleepTime2);
@@ -477,6 +481,9 @@ bool guiGetConfig(const JsonObject& settings)
 
     if(gui_settings.backlight_pin != settings[FPSTR(FP_GUI_BACKLIGHTPIN)].as<int8_t>()) changed = true;
     settings[FPSTR(FP_GUI_BACKLIGHTPIN)] = gui_settings.backlight_pin;
+
+    if(backlight_invert != settings[FPSTR(FP_GUI_BACKLIGHTINVERT)].as<bool>()) changed = true;
+    settings[FPSTR(FP_GUI_BACKLIGHTINVERT)] = (uint8_t)backlight_invert;
 
     if(gui_settings.rotation != settings[FPSTR(FP_GUI_ROTATION)].as<uint8_t>()) changed = true;
     settings[FPSTR(FP_GUI_ROTATION)] = gui_settings.rotation;
@@ -535,7 +542,8 @@ bool guiGetConfig(const JsonObject& settings)
 bool guiSetConfig(const JsonObject& settings)
 {
     configOutput(settings, TAG_GUI);
-    bool changed = false;
+    bool changed             = false;
+    uint8_t backlight_invert = haspDevice.get_backlight_invert();
     uint16_t guiSleepTime1;
     uint16_t guiSleepTime2;
 
@@ -543,12 +551,14 @@ bool guiSetConfig(const JsonObject& settings)
 
     // changed |= configSet(guiTickPeriod, settings[FPSTR(FP_GUI_TICKPERIOD)], F("guiTickPeriod"));
     changed |= configSet(gui_settings.backlight_pin, settings[FPSTR(FP_GUI_BACKLIGHTPIN)], F("guiBacklightPin"));
+    changed |= configSet(backlight_invert, settings[FPSTR(FP_GUI_BACKLIGHTINVERT)], F("guiBacklightInvert"));
     changed |= configSet(guiSleepTime1, settings[FPSTR(FP_GUI_IDLEPERIOD1)], F("guiSleepTime1"));
     changed |= configSet(guiSleepTime2, settings[FPSTR(FP_GUI_IDLEPERIOD2)], F("guiSleepTime2"));
     changed |= configSet(gui_settings.rotation, settings[FPSTR(FP_GUI_ROTATION)], F("gui_settings.rotation"));
     changed |= configSet(gui_settings.invert_display, settings[FPSTR(FP_GUI_INVERT)], F("guiInvertDisplay"));
 
     hasp_set_sleep_time(guiSleepTime1, guiSleepTime2);
+    haspDevice.set_backlight_invert(backlight_invert); // Update if changed
 
     if(!settings[FPSTR(FP_GUI_POINTER)].isNull()) {
         if(gui_settings.show_pointer != settings[FPSTR(FP_GUI_POINTER)].as<bool>()) {
@@ -746,10 +756,16 @@ void guiTakeScreenshot()
         lv_obj_invalidate(lv_scr_act());
         lv_refr_now(NULL);                /* Will call our disp_drv.disp_flush function */
         disp->driver.flush_cb = flush_cb; /* restore callback */
+        screenshotIsDirty     = false;
 
         LOG_VERBOSE(TAG_GUI, F("Bitmap data flushed to webclient"));
     } else {
         LOG_ERROR(TAG_GUI, F("Data sent does not match header size"));
     }
+}
+
+bool guiScreenshotIsDirty()
+{
+    return screenshotIsDirty;
 }
 #endif
