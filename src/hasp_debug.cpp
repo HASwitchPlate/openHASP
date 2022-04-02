@@ -286,6 +286,9 @@ void debug_get_tag(uint8_t tag, char* buffer)
             memcpy_P(buffer, PSTR("GPIO"), 5);
             break;
 
+        case TAG_TIME:
+            memcpy_P(buffer, PSTR("TIME"), 5);
+            break;
         case TAG_ETH:
             memcpy_P(buffer, PSTR("ETH "), 5);
             break;

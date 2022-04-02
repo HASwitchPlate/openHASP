@@ -1,12 +1,6 @@
 /* MIT License - Copyright (c) 2019-2022 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
-#include <time.h>
-#include <sys/time.h>
-
-#include <Arduino.h>
-#include "ArduinoLog.h"
-
 #include "hasp_conf.h"
 #include "hal/hasp_hal.h"
 #include "hasp_debug.h"
@@ -15,42 +9,9 @@
 #include "hasp/hasp.h"
 #include "sys/svc/hasp_mdns.h"
 
-#if defined(ARDUINO_ARCH_ESP32)
-#include "Preferences.h"
-#endif
-
-#ifndef MYTZ
-#define MYTZ "EST5EDT,M3.2.0/2,M11.1.0"
-#endif
-
-#ifndef NTPSERVER1
-#define NTPSERVER1 "pool.ntp.org"
-#endif
-
-#ifndef NTPSERVER2
-#define NTPSERVER2 "time.nist.gov"
-#endif
-
-#ifndef NTPSERVER3
-#define NTPSERVER3 "time.google.com"
-#endif
-
-#if defined(ARDUINO_ARCH_ESP32)
-// These strings must be constant and kept in memory
-String mytz((char*)0);
-String ntp1((char*)0);
-String ntp2((char*)0);
-String ntp3((char*)0);
-#endif
-
 #if HASP_USE_ETHERNET > 0 || HASP_USE_WIFI > 0
 void networkStart(void)
 {
-#if defined(ARDUINO_ARCH_ESP8266)
-    LOG_WARNING(TAG_MAIN, F("TIMEZONE: %s"), MYTZ);
-    configTzTime(MYTZ, NTPSERVER1, NTPSERVER2, NTPSERVER3); // literal string
-#endif
-
     // haspProgressVal(255); // hide
     haspReconnect();
     debugStartSyslog();
@@ -83,22 +44,6 @@ void networkStop(void)
 
 void networkSetup()
 {
-#if defined(ARDUINO_ARCH_ESP32)
-    Preferences preferences;
-    preferences.begin("time", false);
-
-    mytz = preferences.getString("tz", MYTZ);
-    ntp1 = preferences.getString("ntp1", NTPSERVER1);
-    ntp2 = preferences.getString("ntp2", NTPSERVER2);
-    ntp3 = preferences.getString("ntp3", NTPSERVER3);
-
-    LOG_WARNING(TAG_MAIN, F("TIMEZONE: %s"), mytz.c_str());
-    LOG_WARNING(TAG_MAIN, F("NTPSERVER: %s %s %s"), ntp1.c_str(), ntp2.c_str(), ntp3.c_str());
-
-    configTzTime(mytz.c_str(), ntp1.c_str(), ntp2.c_str(), ntp3.c_str());
-    preferences.end();
-#endif
-
 #if HASP_USE_ETHERNET > 0
     ethernetSetup();
 #endif

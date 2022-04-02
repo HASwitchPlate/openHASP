@@ -6,6 +6,7 @@
 #include "hasplib.h"
 #include "hasp_oobe.h"
 #include "sys/net/hasp_network.h"
+#include "sys/net/hasp_time.h"
 #include "dev/device.h"
 // #include "drv/old/hasp_drv_touch.h"
 #include "ArduinoLog.h"
@@ -84,6 +85,7 @@ void setup()
 
 #if HASP_USE_WIFI > 0 || HASP_USE_ETHERNET > 0
     networkSetup();
+    timeSetup();
 #endif
 
 #if HASP_USE_MDNS > 0

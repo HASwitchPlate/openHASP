@@ -191,6 +191,7 @@ enum {
     TAG_MQTT_PUB = 66,
     TAG_MQTT_RCV = 67,
     TAG_FTP      = 68,
+    TAG_TIME     = 69,
 
     TAG_LVGL = 90,
     TAG_LVFS = 91,

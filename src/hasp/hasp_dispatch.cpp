@@ -33,6 +33,7 @@
 #include "sys/svc/hasp_ota.h"
 #include "mqtt/hasp_mqtt.h"
 #include "sys/net/hasp_network.h" // for network_get_status()
+#include "sys/net/hasp_time.h"
 #endif
 #endif
 
@@ -498,6 +499,13 @@ void dispatch_config(const char* topic, const char* payload, uint8_t source)
             wifiSetConfig(settings);
         else
             wifiGetConfig(settings);
+    }
+
+    else if(strcasecmp_P(topic, PSTR("time")) == 0) {
+        if(update)
+            timeSetConfig(settings);
+        else
+            timeGetConfig(settings);
     }
 #if HASP_USE_MQTT > 0
     else if(strcasecmp_P(topic, PSTR("mqtt")) == 0) {
