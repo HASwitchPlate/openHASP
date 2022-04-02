@@ -197,6 +197,17 @@ void Esp32Device::set_backlight_pin(uint8_t pin)
     }
 }
 
+void Esp32Device::set_backlight_invert(bool invert)
+{
+    _backlight_invert = invert;
+    update_backlight();
+}
+
+bool Esp32Device::get_backlight_invert()
+{
+    return _backlight_invert;
+}
+
 void Esp32Device::set_backlight_level(uint8_t level)
 {
     _backlight_level = level;
@@ -229,7 +240,7 @@ void Esp32Device::update_backlight()
 #else
         uint32_t duty = _backlight_power ? map(_backlight_level, 0, 255, 0, 1023) : 0;
         if(_backlight_invert) duty = 1023 - duty;
-        ledcWrite(BACKLIGHT_CHANNEL, duty); // ledChannel and value
+        ledcWrite(BACKLIGHT_CHANNEL, duty);     // ledChannel and value
 #endif
     }
 
@@ -283,31 +294,32 @@ uint16_t Esp32Device::get_cpu_frequency()
 
 bool Esp32Device::is_system_pin(uint8_t pin)
 {
-    //Also see esp32.cpp / hasp_gpio.cpp
-    #if defined(ESP32S2)    //Arduino NUM_DIGITAL_PINS = 48 (but espressif says it only has 46)
-        //From https://hggh.github.io/esp32/2021/01/06/ESP32-S2-pinout.html, it looks like IO26 is for PSRAM
-        //More info https://docs.espressif.com/projects/esp-idf/en/latest/esp32s2/_images/esp32-s2_saola1-pinout.jpg
-        //Datasheet https://www.espressif.com/sites/default/files/documentation/esp32-s2-wroom_esp32-s2-wroom-i_datasheet_en.pdf
+// Also see esp32.cpp / hasp_gpio.cpp
+#if defined(ESP32S2) // Arduino NUM_DIGITAL_PINS = 48 (but espressif says it only has 46)
+    // From https://hggh.github.io/esp32/2021/01/06/ESP32-S2-pinout.html, it looks like IO26 is for PSRAM
+    // More info https://docs.espressif.com/projects/esp-idf/en/latest/esp32s2/_images/esp32-s2_saola1-pinout.jpg
+    // Datasheet
+    // https://www.espressif.com/sites/default/files/documentation/esp32-s2-wroom_esp32-s2-wroom-i_datasheet_en.pdf
 
-        //From the ESP32S2-Wroom pdf, the flash appears to be on the upper set of IO.
-        //SPICS0 = IO10 or IO34 ?
-        //SPICLK = IO12 or IO36 
-        //SPIHD = IO9 or IO33
-        //SPID = IO11 or IO35
-        //SPIQ = IO13 or IO37
-        //SPIWP = IO14 or IO38
-        if((pin >= 33) && (pin <= 38)) return true;  // SPI flash
+    // From the ESP32S2-Wroom pdf, the flash appears to be on the upper set of IO.
+    // SPICS0 = IO10 or IO34 ?
+    // SPICLK = IO12 or IO36
+    // SPIHD = IO9 or IO33
+    // SPID = IO11 or IO35
+    // SPIQ = IO13 or IO37
+    // SPIWP = IO14 or IO38
+    if((pin >= 33) && (pin <= 38)) return true; // SPI flash
 
-        if(psramFound()) {
-            if((pin == 26) ) return true; // PSRAM. IO26 = SPICS1, the rest are shared with the flash
-        }
-    #else
-        if((pin >= 6) && (pin <= 11)) return true;  // integrated SPI flash
-        if((pin == 37) || (pin == 38)) return true; // unavailable
-        if(psramFound()) {
-            if((pin == 16) || (pin == 17)) return true; // PSRAM
-        }
-    #endif
+    if(psramFound()) {
+        if((pin == 26)) return true; // PSRAM. IO26 = SPICS1, the rest are shared with the flash
+    }
+#else
+    if((pin >= 6) && (pin <= 11)) return true;  // integrated SPI flash
+    if((pin == 37) || (pin == 38)) return true; // unavailable
+    if(psramFound()) {
+        if((pin == 16) || (pin == 17)) return true; // PSRAM
+    }
+#endif
     return false;
 }
 
@@ -360,7 +372,7 @@ long Esp32Device::get_uptime()
 // #warning Building for Lanbon L8
 #include "dev/esp32/lanbonl8.h"
 #elif defined(M5STACK)
-                                            // #warning Building for M5Stack core2
+  // #warning Building for M5Stack core2
 #include "dev/esp32/m5stackcore2.h"
 #else
 dev::Esp32Device haspDevice;

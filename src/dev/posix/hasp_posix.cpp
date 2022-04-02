@@ -105,6 +105,17 @@ void PosixDevice::set_backlight_pin(uint8_t pin)
     // PosixDevice::backlight_pin = pin;
 }
 
+void PosixDevice::set_backlight_invert(bool invert)
+{
+    _backlight_invert = invert;
+    update_backlight();
+}
+
+bool PosixDevice::get_backlight_invert()
+{
+    return _backlight_invert;
+}
+
 void PosixDevice::set_backlight_level(uint8_t level)
 {
     uint8_t new_level = level;

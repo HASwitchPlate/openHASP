@@ -77,6 +77,8 @@ class BaseDevice {
     {}
     virtual void set_backlight_pin(uint8_t pin)
     {}
+    virtual void set_backlight_invert(bool override)
+    {}
     virtual void set_backlight_level(uint8_t level)
     {}
     virtual uint8_t get_backlight_level()
@@ -85,6 +87,10 @@ class BaseDevice {
     }
     virtual void set_backlight_power(bool power)
     {}
+    virtual bool get_backlight_invert()
+    {
+        return false;
+    }
     virtual bool get_backlight_power()
     {
         return true;

@@ -77,6 +77,17 @@ const char* Stm32f4Device::get_chip_model()
 #endif
 }
 
+void Stm32f4Device::set_backlight_invert(bool invert)
+{
+    _backlight_invert = invert;
+    update_backlight();
+}
+
+bool Stm32f4Device::get_backlight_invert()
+{
+    return _backlight_invert;
+}
+
 void Stm32f4Device::set_backlight_level(uint8_t level)
 {
     _backlight_level = level;

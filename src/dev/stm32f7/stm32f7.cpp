@@ -12,9 +12,9 @@
 
 #define BACKLIGHT_CHANNEL 0
 
-int _gettimeofday(struct timeval *tv, struct timezone *tz)
+int _gettimeofday(struct timeval* tv, struct timezone* tz)
 {
-  return 0;
+    return 0;
 }
 
 namespace dev {
@@ -80,6 +80,17 @@ const char* Stm32f7Device::get_chip_model()
 #else
     return "Unknown STM32";
 #endif
+}
+
+void Stm32f7Device::set_backlight_invert(bool invert)
+{
+    _backlight_invert = invert;
+    update_backlight();
+}
+
+bool Stm32f7Device::get_backlight_invert()
+{
+    return _backlight_invert;
 }
 
 void Stm32f7Device::set_backlight_level(uint8_t level)

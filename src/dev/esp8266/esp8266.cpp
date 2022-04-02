@@ -82,6 +82,17 @@ void Esp8266Device::set_backlight_pin(uint8_t pin)
     }
 }
 
+void Esp8266Device::set_backlight_invert(bool invert)
+{
+    _backlight_invert = invert;
+    update_backlight();
+}
+
+bool Esp8266Device::get_backlight_invert()
+{
+    return _backlight_invert;
+}
+
 void Esp8266Device::set_backlight_level(uint8_t level)
 {
     _backlight_level = level;

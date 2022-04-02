@@ -9,7 +9,7 @@
 
 #if defined(STM32F7xx)
 extern "C" {
-  int _gettimeofday(struct timeval *tv, struct timezone *tz);
+int _gettimeofday(struct timeval* tv, struct timezone* tz);
 }
 
 namespace dev {
@@ -36,9 +36,11 @@ class Stm32f7Device : public BaseDevice {
     const char* get_hardware_id();
 
     void set_backlight_pin(uint8_t pin) override;
+    void set_backlight_invert(bool invert) override;
     void set_backlight_level(uint8_t val) override;
     uint8_t get_backlight_level() override;
     void set_backlight_power(bool power) override;
+    bool get_backlight_invert() override;
     bool get_backlight_power() override;
 
     size_t get_free_max_block() override;
