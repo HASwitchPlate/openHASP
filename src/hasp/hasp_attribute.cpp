@@ -1868,7 +1868,10 @@ static hasp_attribute_type_t attribute_common_val(lv_obj_t* obj, int32_t& val, b
             break;
 
         case LV_HASP_ROLLER:
-            lv_roller_set_selected(obj, (uint16_t)val, LV_ANIM_ON);
+            if(update)
+                lv_roller_set_selected(obj, (uint16_t)val, LV_ANIM_ON);
+            else
+                val = lv_roller_get_selected(obj);
             break;
 
         case LV_HASP_BAR:
