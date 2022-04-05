@@ -54,7 +54,7 @@ static lgfx::Bus_Parallel16* init_parallel_16_bus(Preferences* prefs, int8_t dat
     cfg.pin_wr                = prefs->getInt("wr", TFT_WR);
     cfg.pin_rs                = prefs->getInt("rs", TFT_DC);
     cfg.freq_write            = prefs->getUInt("write_freq", SPI_FREQUENCY);
-    uint8_t port              = prefs->getUInt("port", 0);
+    uint8_t port              = prefs->getUInt("i2s_port", 0);
     switch(port) {
 #if SOC_I2S_NUM > 1
         case 1:
@@ -81,7 +81,7 @@ static lgfx::Bus_Parallel8* init_parallel_8_bus(Preferences* prefs, int8_t data_
     cfg.pin_wr               = prefs->getInt("wr", TFT_WR);
     cfg.pin_rs               = prefs->getInt("rs", TFT_DC);
     cfg.freq_write           = prefs->getUInt("write_freq", SPI_FREQUENCY);
-    uint8_t port             = prefs->getUInt("port", 0);
+    uint8_t port             = prefs->getUInt("i2s_port", 0);
     switch(port) {
 #if SOC_I2S_NUM > 1
         case 1:
@@ -169,7 +169,7 @@ static lgfx::Bus_SPI* init_spi_bus(Preferences* prefs)
     return bus;
 }
 
-static void init_panel(lgfx::Panel_Device* panel, Preferences* prefs)
+static void configure_panel(lgfx::Panel_Device* panel, Preferences* prefs)
 {
     auto cfg = panel->config(); // Get the structure for display panel settings.
 
@@ -194,14 +194,15 @@ static void init_panel(lgfx::Panel_Device* panel, Preferences* prefs)
         prefs->getUInt("dummy_read_bits", 1);         // bits of dummy read before reading data other than pixels
     cfg.readable = prefs->getBool("readable", false); // true if data can be read
 
-// #ifdef INVERT_COLORS   // This is configurable un Web UI
-//     cfg.invert =
-//         prefs->getBool("invert", INVERT_COLORS != 0); // true if the light and darkness of the panel is reversed
-// #else
-    cfg.invert = prefs->getBool("invert", false);       // true if the light and darkness of the panel is reversed
+    // #ifdef INVERT_COLORS   // This is configurable un Web UI
+    //     cfg.invert =
+    //         prefs->getBool("invert", INVERT_COLORS != 0); // true if the light and darkness of the panel is reversed
+    // #else
+    cfg.invert = prefs->getBool("invert", false); // true if the light and darkness of the panel is reversed
 // #endif
 #ifdef TFT_RGB_ORDER
-    cfg.rgb_order = prefs->getBool("rgb_order", true); // true if the red and blue of the panel are swapped
+    cfg.rgb_order =
+        prefs->getBool("rgb_order", TFT_RGB_ORDER != 0); // true if the red and blue of the panel are swapped
 #else
     cfg.rgb_order = prefs->getBool("rgb_order", false); // true if the red and blue of the panel are swapped
 #endif
@@ -211,94 +212,80 @@ static void init_panel(lgfx::Panel_Device* panel, Preferences* prefs)
     panel->config(cfg);
 }
 
-void LovyanGfx::init(int w, int h)
+// Initialize the bus
+lgfx::IBus* _init_bus(Preferences* preferences)
 {
-    LOG_TRACE(TAG_TFT, F(D_SERVICE_STARTING));
+    if(!preferences) return nullptr;
 
-    Preferences preferences;
-    preferences.begin("tft", false);
-
-    lgfx::IBus* bus;
-    { // Initialize the bus
-        char key[8];
-        int8_t data_pins[16] = {TFT_D0, TFT_D1, TFT_D2,  TFT_D3,  TFT_D4,  TFT_D5,  TFT_D6,  TFT_D7,
-                                TFT_D8, TFT_D9, TFT_D10, TFT_D11, TFT_D12, TFT_D13, TFT_D14, TFT_D15};
-        for(uint8_t i = 0; i < 16; i++) {
-            snprintf(key, sizeof(key), "d%d", i + 1);
-            data_pins[i] = preferences.getInt(key, data_pins[i]);
-            LOG_DEBUG(TAG_TFT, F("D%d: %d"), i + 1, data_pins[i]);
-        }
-
-        LOG_DEBUG(TAG_TFT, F("%s - %d"), __FILE__, __LINE__);
-        bool is_8bit  = true;
-        bool is_16bit = true;
-        for(uint8_t i = 0; i < 16; i++) {
-            if(i < 8) is_8bit = is_8bit && (data_pins[i] >= 0);
-            is_16bit = is_16bit && (data_pins[i] >= 0);
-        }
-
-        LOG_DEBUG(TAG_TFT, F("%s - %d"), __FILE__, __LINE__);
-#if defined(ESP32S2)
-        if(is_16bit) {
-            is_8bit = false;
-            bus     = init_parallel_16_bus(&preferences, data_pins, 16);
-        } else
-#endif // ESP32S2
-            if(is_8bit) {
-                is_16bit = false;
-                bus      = init_parallel_8_bus(&preferences, data_pins, 8);
-            } else {
-                bus = init_spi_bus(&preferences);
-            }
+    char key[8];
+    int8_t data_pins[16] = {TFT_D0, TFT_D1, TFT_D2,  TFT_D3,  TFT_D4,  TFT_D5,  TFT_D6,  TFT_D7,
+                            TFT_D8, TFT_D9, TFT_D10, TFT_D11, TFT_D12, TFT_D13, TFT_D14, TFT_D15};
+    for(uint8_t i = 0; i < 16; i++) {
+        snprintf(key, sizeof(key), "d%d", i + 1);
+        data_pins[i] = preferences->getInt(key, data_pins[i]);
+        LOG_DEBUG(TAG_TFT, F("D%d: %d"), i + 1, data_pins[i]);
     }
 
-    uint32_t tft_driver = preferences.getUInt("DRIVER", get_tft_driver());
+    LOG_DEBUG(TAG_TFT, F("%s - %d"), __FILE__, __LINE__);
+    bool is_8bit  = true;
+    bool is_16bit = true;
+    for(uint8_t i = 0; i < 16; i++) {
+        if(i < 8) is_8bit = is_8bit && (data_pins[i] >= 0);
+        is_16bit = is_16bit && (data_pins[i] >= 0);
+    }
+
+    LOG_DEBUG(TAG_TFT, F("%s - %d"), __FILE__, __LINE__);
+#if defined(ESP32S2)
+    if(is_16bit) {
+        is_8bit = false;
+        return init_parallel_16_bus(preferences, data_pins, 16);
+    } else
+#endif // ESP32S2
+        if(is_8bit) {
+            is_16bit = false;
+            return init_parallel_8_bus(preferences, data_pins, 8);
+        } else {
+            return init_spi_bus(preferences);
+        }
+    return nullptr;
+}
+
+lgfx::Panel_Device* LovyanGfx::_init_panel(lgfx::IBus* bus)
+{
+    lgfx::Panel_Device* panel = nullptr;
     switch(tft_driver) {
         case 0x9341: {
-            auto panel = new lgfx::Panel_ILI9341();
-            panel->setBus(bus);
-            init_panel(panel, &preferences);
-            tft.setPanel(panel);
+            panel = new lgfx::Panel_ILI9341();
             LOG_DEBUG(TAG_TFT, F("%s - %d"), __FILE__, __LINE__);
             break;
         }
         case 0x9342: {
-            auto panel = new lgfx::Panel_ILI9342();
-            panel->setBus(bus);
-            init_panel(panel, &preferences);
-            tft.setPanel(panel);
+            panel = new lgfx::Panel_ILI9342();
             LOG_DEBUG(TAG_TFT, F("%s - %d"), __FILE__, __LINE__);
             break;
         }
         case 0x9481: {
-            auto panel = new lgfx::Panel_ILI9481();
-            panel->setBus(bus);
-            init_panel(panel, &preferences);
-            tft.setPanel(panel);
+            panel = new lgfx::Panel_ILI9481();
             LOG_DEBUG(TAG_TFT, F("%s - %d"), __FILE__, __LINE__);
             break;
         }
         case 0x9488: {
-            auto panel = new lgfx::Panel_ILI9488();
-            panel->setBus(bus);
-            init_panel(panel, &preferences);
-            tft.setPanel(panel);
+            panel = new lgfx::Panel_ILI9488();
+            LOG_DEBUG(TAG_TFT, F("%s - %d"), __FILE__, __LINE__);
+            break;
+        }
+        case 0x7789: {
+            panel = new lgfx::Panel_ST7789();
             LOG_DEBUG(TAG_TFT, F("%s - %d"), __FILE__, __LINE__);
             break;
         }
         case 0x7796: {
-            auto panel = new lgfx::Panel_ST7796();
-            panel->setBus(bus);
-            init_panel(panel, &preferences);
-            tft.setPanel(panel);
+            panel = new lgfx::Panel_ST7796();
             LOG_DEBUG(TAG_TFT, F("%s - %d"), __FILE__, __LINE__);
             break;
         }
         case 0x8357D: {
-            auto panel = new lgfx::Panel_HX8357D();
-            panel->setBus(bus);
-            init_panel(panel, &preferences);
-            tft.setPanel(panel);
+            panel = new lgfx::Panel_HX8357D();
             LOG_DEBUG(TAG_TFT, F("%s - %d"), __FILE__, __LINE__);
             break;
         }
@@ -306,6 +293,26 @@ void LovyanGfx::init(int w, int h)
             LOG_FATAL(TAG_TFT, F(D_SERVICE_START_FAILED ": %s line %d"), __FILE__, __LINE__);
         }
     }
+
+    return panel;
+}
+
+void LovyanGfx::init(int w, int h)
+{
+    LOG_TRACE(TAG_TFT, F(D_SERVICE_STARTING));
+
+    Preferences preferences;
+    preferences.begin("tft", false);
+
+    lgfx::IBus* bus           = _init_bus(&preferences);
+    this->tft_driver           = preferences.getUInt("DRIVER", get_tft_driver());
+    lgfx::Panel_Device* panel = _init_panel(bus);
+    if(panel != nullptr) {
+        panel->setBus(bus);
+        configure_panel(panel, &preferences);
+    }
+    tft.setPanel(panel);
+
     LOG_DEBUG(TAG_TFT, F("%s - %d"), __FILE__, __LINE__);
 
     /* TFT init */
@@ -589,10 +596,10 @@ uint32_t LovyanGfx::get_tft_driver()
     return 0xED;
 #elif defined(ST7789_DRIVER)
     return 0x7789;
-#elif defined(R61581_DRIVER)
-    return 0x61581;
 #elif defined(ST7789_2_DRIVER)
     return 0x77892;
+#elif defined(R61581_DRIVER)
+    return 0x61581;
 #elif defined(RM68140_DRIVER)
     return 0x68140;
 #else

@@ -137,8 +137,12 @@ class LovyanGfx : BaseTft {
     }
 
   private:
+    uint32_t tft_driver;
+
     uint32_t get_tft_driver();
     uint32_t get_touch_driver();
+
+    lgfx::Panel_Device* _init_panel(lgfx::IBus* bus);
 
     void tftOffsetInfo(uint8_t pin, uint8_t x_offset, uint8_t y_offset)
     {
