@@ -10,6 +10,7 @@
 #include <rom/rtc.h> // needed to get the ResetInfo
 #include "driver/adc.h"
 #include "esp_adc_cal.h"
+#include "esp_efuse.h"
 
 #include "hasp_conf.h"
 #include "../device.h"
@@ -141,36 +142,93 @@ const char* Esp32Device::get_core_version()
 }
 const char* Esp32Device::get_chip_model()
 {
+    /*
     esp_chip_info_t chip_info;
     esp_chip_info(&chip_info);
+
+#if ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(2, 0, 0)
+    uint32_t chip_ver = esp_efuse_get_chip_ver();
+    uint32_t pkg_ver  = esp_efuse_get_pkg_ver();
+#else
+    uint32_t chip_ver = REG_GET_FIELD(EFUSE_BLK0_RDATA3_REG, EFUSE_RD_CHIP_VER_PKG);
+    uint32_t pkg_ver  = chip_ver & 0x7;
+#endif
 
     //  model = chip_info.cores;
     //  model += F("core ");
     switch(chip_info.model) {
         case CHIP_ESP32:
-            return "ESP32";
+            _chip_model = "ESP32";
+            switch(pkg_ver) {
+                case 0: // EFUSE_RD_CHIP_VER_PKG_ESP32D0WDQ6
+                    _chip_model += "-D0WDQ6";
+                    break;
+                case 1: // EFUSE_RD_CHIP_VER_PKG_ESP32D0WDQ5
+                    _chip_model += "-D0WDQ5";
+                    break;
+                case 2: // EFUSE_RD_CHIP_VER_PKG_ESP32D2WDQ5
+                    _chip_model += "-D2WDQ5";
+                    break;
+                case 4: // EFUSE_RD_CHIP_VER_PKG_ESP32U4WDH:
+                    _chip_model += "-U4WDH";
+                    break;
+                case 5: // EFUSE_RD_CHIP_VER_PKG_ESP32PICOD4
+                    _chip_model += "-PICO-D4";
+                    break;
+                case 6: // EFUSE_RD_CHIP_VER_PKG_ESP32PICOV302
+                    _chip_model += "-PICO-V3-02";
+                    break;
+                case 7: // EFUSE_RD_CHIP_VER_PKG_ESP32D0WDR2V3
+                    _chip_model = "-D0WDR2-V3";
+                    break;
+                default:
+                    _chip_model = "-Unknown";
+            }
+            break;
 
 #if ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(2, 0, 0)
 #ifdef ESP32
         case CHIP_ESP32S2:
-            return "ESP32-S2";
+            _chip_model = "ESP32-S2";
+            switch(pkg_ver) {
+                case 0:
+                    break;
+                case 1:
+                    _chip_model += "-MINI-1";
+                    break;
+                case 2:
+                    _chip_model += "FH4";
+                    break;
+                case 3:
+                    _chip_model += "-MINI-1U";
+                    break;
+                default:
+                    _chip_model = "-Unknown";
+            }
+            break;
 
         case CHIP_ESP32S3:
-            return "ESP32-S3";
+            _chip_model = "ESP32-S3";
+            break;
 
         case CHIP_ESP32C3:
-            return "ESP32-C3";
+            _chip_model = "ESP32-C3";
+            break;
 
         case CHIP_ESP32H2:
-            return "ESP32-H2";
+            _chip_model = "ESP32-H2";
+            break;
 #endif
 #endif
 
         default:
-            return "Unknown ESP32";
+            _chip_model = "Unknown ESP32";
     }
-    // model += F(" rev");
-    // model += chip_info.revision;
+    */
+    _chip_model = ESP.getChipModel();
+    _chip_model += " rev";
+    _chip_model += std::to_string(ESP.getChipRevision());
+    return _chip_model.c_str();
 }
 
 const char* Esp32Device::get_hardware_id()

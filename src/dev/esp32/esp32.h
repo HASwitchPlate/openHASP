@@ -59,6 +59,7 @@ class Esp32Device : public BaseDevice {
 
   private:
     std::string _hardware_id;
+    std::string _chip_model;
     uint32_t _sketch_size; // cached because function is slow
 
     uint8_t _backlight_pin;
