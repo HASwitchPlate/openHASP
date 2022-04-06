@@ -135,17 +135,22 @@ HASP_ATTRIBUTE_FAST_MEM void hasp_update_sleep_state()
     //  return (hasp_sleep_state != HASP_SLEEP_OFF);
 }
 
+void hasp_set_sleep_offset(uint32_t offset)
+{
+    sleepTimeOffset = offset;
+}
+
 void hasp_set_sleep_state(uint8_t state)
 {
     switch(state) {
         case HASP_SLEEP_LONG:
-            sleepTimeOffset = (sleepTimeShort + sleepTimeLong);
+            hasp_set_sleep_offset(sleepTimeShort + sleepTimeLong);
             break;
         case HASP_SLEEP_SHORT:
-            sleepTimeOffset = sleepTimeShort;
+            hasp_set_sleep_offset(sleepTimeShort);
             break;
         case HASP_SLEEP_OFF:
-            sleepTimeOffset = 0;
+            hasp_set_sleep_offset(0);
             break;
         default:
             return;
