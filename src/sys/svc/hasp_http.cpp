@@ -608,8 +608,9 @@ static void webHandleAbout()
         String httpMessage((char*)0);
         httpMessage.reserve(HTTP_PAGE_SIZE);
 
-        httpMessage += "<div id='doc'></div><script>window.addEventListener('load', about());</script>";
+        httpMessage += "<div id='lic'></div>";
         httpMessage += FPSTR(MAIN_MENU_BUTTON);
+        httpMessage += "<div id='pkg'></div><script>window.addEventListener('load', about());</script>";
 
         webSendHeader(haspDevice.get_hostname(), httpMessage.length(), false);
         webServer.sendContent(httpMessage);
