@@ -73,9 +73,10 @@ LV_IMG_DECLARE(img_bubble_pattern)
  **********************/
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-uint8_t hasp_sleep_state       = HASP_SLEEP_OFF; // Used in hasp_drv_touch.cpp
-static uint16_t sleepTimeShort = 60;             // 1 second resolution
-static uint16_t sleepTimeLong  = 120;            // 1 second resolution
+uint8_t hasp_sleep_state        = HASP_SLEEP_OFF; // Used in hasp_drv_touch.cpp
+static uint16_t sleepTimeShort  = 60;             // 1 second resolution
+static uint16_t sleepTimeLong   = 120;            // 1 second resolution
+static uint32_t sleepTimeOffset = 0;              // 1 second resolution
 
 uint8_t haspStartDim   = 255;
 uint8_t haspStartPage  = 1;
@@ -109,6 +110,7 @@ lv_font_t* hasp_get_font(uint8_t fontid)
 HASP_ATTRIBUTE_FAST_MEM void hasp_update_sleep_state()
 {
     uint32_t idle = lv_disp_get_inactive_time(lv_disp_get_default()) / 1000;
+    idle += sleepTimeOffset; // To force a specific state
 
     if(sleepTimeLong > 0 && idle >= (sleepTimeShort + sleepTimeLong)) {
         if(hasp_sleep_state != HASP_SLEEP_LONG) {
@@ -135,6 +137,20 @@ HASP_ATTRIBUTE_FAST_MEM void hasp_update_sleep_state()
 
 void hasp_set_sleep_state(uint8_t state)
 {
+    switch(state) {
+        case HASP_SLEEP_LONG:
+            sleepTimeOffset = (sleepTimeShort + sleepTimeLong);
+            break;
+        case HASP_SLEEP_SHORT:
+            sleepTimeOffset = sleepTimeShort;
+            break;
+        case HASP_SLEEP_OFF:
+            sleepTimeOffset = 0;
+            break;
+        default:
+            return;
+    }
+    lv_disp_trig_activity(NULL);
     hasp_sleep_state = state;
 }
 

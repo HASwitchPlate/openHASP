@@ -31,6 +31,7 @@ extern "C" {
 #define HASP_SLEEP_OFF 0
 #define HASP_SLEEP_SHORT 1
 #define HASP_SLEEP_LONG 2
+#define HASP_SLEEP_LAST 3
 
 /**********************
  *      TYPEDEFS

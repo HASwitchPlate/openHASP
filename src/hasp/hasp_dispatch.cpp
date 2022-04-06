@@ -904,7 +904,8 @@ void dispatch_backlight_obsolete(const char* topic, const char* payload, uint8_t
 
 void dispatch_backlight(const char*, const char* payload, uint8_t source)
 {
-    bool power = haspDevice.get_backlight_power();
+    bool power    = haspDevice.get_backlight_power();
+    uint8_t level = haspDevice.get_backlight_level();
 
     // Set the current state
     if(strlen(payload) != 0) {
@@ -917,18 +918,25 @@ void dispatch_backlight(const char*, const char* payload, uint8_t source)
         json.shrinkToFit();
 
         if(jsonError) { // Couldn't parse incoming payload as json
-            power = Parser::is_true(payload);
+            if(Parser::is_only_digits(payload)) {
+                uint8_t temp_level = atoi(payload);
+                if(temp_level <= 1)
+                    power = temp_level == 1;
+                else
+                    level = temp_level;
+            } else {
+                power = Parser::is_true(payload);
+            }
 
         } else {
 
             // plain numbers are parsed as valid json object
             if(json.is<uint8_t>()) {
-                uint8_t level = json.as<uint8_t>();
-
-                if(level <= 1)
-                    power = level;
+                uint8_t temp_level = json.as<uint8_t>();
+                if(temp_level <= 1)
+                    power = temp_level == 1;
                 else
-                    haspDevice.set_backlight_level(level);
+                    level = temp_level;
 
                 // true and false are parsed as valid json object
             } else if(json.is<bool>()) {
@@ -939,16 +947,18 @@ void dispatch_backlight(const char*, const char* payload, uint8_t source)
                 JsonVariant brightness = json[F("brightness")];
 
                 if(!state.isNull()) power = Parser::is_true(state);
-                if(!brightness.isNull()) haspDevice.set_backlight_level(brightness.as<uint8_t>());
+                if(!brightness.isNull()) level = brightness.as<uint8_t>();
             }
         }
     }
 
     // toggle power and wakeup touch if changed
+    if(power) haspDevice.set_backlight_level(level); // set level before power on
     if(haspDevice.get_backlight_power() != power) {
         haspDevice.set_backlight_power(power);
         hasp_set_wakeup_touch(!power);
     }
+    if(!power) haspDevice.set_backlight_level(level); // set level after power off
 
     // Return the current state
     char topic[10];
@@ -1249,18 +1259,27 @@ void dispatch_sleep(const char*, const char*, uint8_t source)
 
 void dispatch_idle(const char*, const char* payload, uint8_t source)
 {
-    char topic[6];
-    char buffer[6];
+    char topic[8];
+    char buffer[8];
 
     // idle off command
-    if(payload && strlen(payload) && !Parser::is_true(payload)) {
-        hasp_set_wakeup_touch(false);
-        hasp_set_sleep_state(HASP_SLEEP_OFF);
-        lv_disp_trig_activity(NULL);
+    if(payload && strlen(payload)) {
+        uint8_t state = HASP_SLEEP_LAST;
+        if(!strcmp_P(payload, "off")) {
+            hasp_set_wakeup_touch(false);
+            state = HASP_SLEEP_OFF;
+        } else if(!strcmp_P(payload, "short")) {
+            state = HASP_SLEEP_SHORT;
+        } else if(!strcmp_P(payload, "long")) {
+            state = HASP_SLEEP_LONG;
+        } else {
+            state = HASP_SLEEP_LAST;
+        }
+        hasp_set_sleep_state(state);
     }
 
     // idle state
-    memcpy_P(topic, PSTR("idle"), 5);
+    memcpy_P(topic, PSTR("idle"), 8);
     hasp_get_sleep_state(buffer);
     dispatch_state_subtopic(topic, buffer);
 }
