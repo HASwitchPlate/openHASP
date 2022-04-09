@@ -313,8 +313,6 @@ void LovyanGfx::init(int w, int h)
     }
     tft.setPanel(panel);
 
-    LOG_DEBUG(TAG_TFT, F("%s - %d"), __FILE__, __LINE__);
-
     /* TFT init */
     LOG_DEBUG(TAG_TFT, F("%s - %d"), __FILE__, __LINE__);
     tft.begin();
