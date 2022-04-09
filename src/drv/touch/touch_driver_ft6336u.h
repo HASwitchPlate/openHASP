@@ -65,6 +65,7 @@ class TouchFt6336u : public BaseTouch {
             data->point.x = ft6336u_touch->read_touch1_x();
             data->point.y = ft6336u_touch->read_touch1_y();
             data->state   = LV_INDEV_STATE_PR;
+            hasp_set_sleep_offset(0); // Reset the offset
 
         } else {
             data->state = LV_INDEV_STATE_REL;
@@ -95,13 +96,13 @@ class TouchFt6336u : public BaseTouch {
         // handle these events. So instead, we set the INT wire to polled mode,
         // so it simply goes low as long as there is at least one valid touch.
         // ft6336u_touch->writeByte(0xA4, 0x00);
-       /* Wire1.beginTransmission(I2C_TOUCH_ADDRESS);
-        Wire1.write(0xA4); // address
-        Wire1.write(0x00); // data
-        Wire1.endTransmission();
+        /* Wire1.beginTransmission(I2C_TOUCH_ADDRESS);
+         Wire1.write(0xA4); // address
+         Wire1.write(0x00); // data
+         Wire1.endTransmission();
 
-        LOG_VERBOSE(TAG_DRVR, F("%s %d"), __FILE__, __LINE__);
-        touch_scan(Wire1);*/
+         LOG_VERBOSE(TAG_DRVR, F("%s %d"), __FILE__, __LINE__);
+         touch_scan(Wire1);*/
 
         if(ft6336u_touch->read_chip_id() != 0) {
             LOG_INFO(TAG_DRVR, F("FT6336U touch driver started chipid: %d"), ft6336u_touch->read_chip_id());

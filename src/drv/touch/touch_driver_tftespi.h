@@ -38,7 +38,8 @@ class TouchTftEspi : public BaseTouch {
         if(haspTft.tft.getTouch((uint16_t*)&data->point.x, (uint16_t*)&data->point.y, 300)) {
             if(hasp_sleep_state != HASP_SLEEP_OFF) hasp_update_sleep_state(); // update Idle
             data->state = LV_INDEV_STATE_PR;
-        } else {
+            hasp_set_sleep_offset(0);  // Reset the offset
+    } else {
             data->state = LV_INDEV_STATE_REL;
         }
 

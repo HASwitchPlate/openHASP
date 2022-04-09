@@ -38,6 +38,7 @@ bool touch_read(lv_indev_drv_t* indev_driver, lv_indev_data_t* data)
         if(point.z && point.x < 4096 && point.y < 4096) {                     // valid reading
             if(hasp_sleep_state != HASP_SLEEP_OFF) hasp_update_sleep_state(); // update Idle
             data->state = LV_INDEV_STATE_PR;
+        hasp_set_sleep_offset(0);  // Reset the offset
 
 #if HX8357D_DRIVER == 1
             data->point.x = map(point.x, TS_MINX, TS_MAXX, TFT_WIDTH, 0);

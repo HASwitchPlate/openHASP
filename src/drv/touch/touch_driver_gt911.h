@@ -78,6 +78,7 @@ class TouchGt911 : public BaseTouch {
             data->point.x = points[0].x;
             data->point.y = points[0].y;
             data->state   = LV_INDEV_STATE_PR;
+            hasp_set_sleep_offset(0); // Reset the offset
 
         } else {
             data->state = LV_INDEV_STATE_REL;

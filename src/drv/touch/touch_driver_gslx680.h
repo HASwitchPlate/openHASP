@@ -61,6 +61,7 @@ class TouchGsl1680 : public BaseTouch {
                 data->point.y = TFT_HEIGHT;
 
             data->state = LV_INDEV_STATE_PR;
+            hasp_set_sleep_offset(0); // Reset the offset
 
         } else {
             data->state = LV_INDEV_STATE_REL;

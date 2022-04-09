@@ -60,6 +60,7 @@ class AnalogTouch : public BaseTouch {
             data->point.x = map(tp.x, TS_LEFT, TS_RT, 0, max_x);
             data->point.y = map(tp.y, TS_BOT, TS_TOP, max_y, 0);
             data->state   = LV_INDEV_STATE_PR;
+            hasp_set_sleep_offset(0); // Reset the offset
         }
 
         return false;
