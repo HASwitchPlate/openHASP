@@ -48,8 +48,10 @@
 dispatch_conf_t dispatch_setings = {.teleperiod = 300};
 
 uint16_t dispatchSecondsToNextTeleperiod = 0;
+uint16_t dispatchSecondsToNextSensordata = 0;
+uint16_t dispatchSecondsToNextDiscovery  = 0;
 uint8_t nCommands                        = 0;
-haspCommand_t commands[26];
+haspCommand_t commands[27];
 
 moodlight_t moodlight    = {.brightness = 255};
 uint8_t saved_jsonl_page = 0;
@@ -976,36 +978,36 @@ void dispatch_web_update(const char*, const char* espOtaUrl, uint8_t source)
 
 void dispatch_antiburn(const char*, const char* payload, uint8_t source)
 {
-    if(strlen(payload) == 0) {
-        dispatch_state_antiburn(hasp_get_antiburn());
-        return;
-    }
+    if(strlen(payload) >= 0) {
+        size_t maxsize = (128u * ((strlen(payload) / 128) + 1)) + 128;
+        DynamicJsonDocument json(maxsize);
 
-    size_t maxsize = (128u * ((strlen(payload) / 128) + 1)) + 128;
-    DynamicJsonDocument json(maxsize);
+        // Note: Deserialization needs to be (const char *) so the objects WILL be copied
+        // this uses more memory but otherwise the mqtt receive buffer can get overwritten by the send buffer !!
+        DeserializationError jsonError = deserializeJson(json, payload);
+        json.shrinkToFit();
+        int32_t count   = 30;
+        uint32_t period = 1000;
+        bool state      = false;
 
-    // Note: Deserialization needs to be (const char *) so the objects WILL be copied
-    // this uses more memory but otherwise the mqtt receive buffer can get overwritten by the send buffer !!
-    DeserializationError jsonError = deserializeJson(json, payload);
-    json.shrinkToFit();
-    bool state = false;
+        if(jsonError) { // Couldn't parse incoming payload as json
+            state = Parser::is_true(payload);
+        } else {
+            if(json.is<uint8_t>()) { // plain numbers are parsed as valid json object
+                state = json.as<uint8_t>();
 
-    if(jsonError) { // Couldn't parse incoming payload as json
-        state = Parser::is_true(payload);
-    } else {
-        if(json.is<uint8_t>()) { // plain numbers are parsed as valid json object
-            state = json.as<uint8_t>();
+            } else if(json.is<bool>()) { // true and false are parsed as valid json object
+                state = json.as<bool>();
 
-        } else if(json.is<bool>()) { // true and false are parsed as valid json object
-            state = json.as<bool>();
-
-        } else { // other text
-            JsonVariant key = json[F("state")];
-            if(!key.isNull()) state = Parser::is_true(key);
+            } else { // other text
+                JsonVariant key = json[F("state")];
+                if(!key.isNull()) state = Parser::is_true(key);
+            }
         }
+        hasp_set_antiburn(state ? count : 0, period); // ON = 30 cycles of 1000 milli seconds (i.e. 30 sec)
     }
 
-    hasp_set_antiburn(state ? 30 : 0, 1000); // ON = 30 cycles of 1000 milli seconds (i.e. 30 sec)
+    dispatch_state_antiburn(hasp_get_antiburn()); // Always publish the current state in response
 }
 
 // restart the device
@@ -1100,6 +1102,7 @@ void dispatch_send_sensordata(const char*, const char*, uint8_t source)
         default:
             LOG_ERROR(TAG_MQTT, F(D_ERROR_UNKNOWN));
     }
+    dispatchSecondsToNextSensordata = dispatch_setings.teleperiod;
 
 #endif
 }
@@ -1151,7 +1154,7 @@ void dispatch_send_discovery(const char*, const char*, uint8_t source)
         default:
             LOG_ERROR(TAG_MQTT, F(D_ERROR_UNKNOWN));
     }
-        // dispatchLastMillis = millis();
+    dispatchSecondsToNextDiscovery = dispatch_setings.teleperiod;
 
 #endif
 }
@@ -1358,21 +1361,18 @@ void dispatchSetup()
 
     /* WARNING: remember to expand the commands array when adding new commands */
     dispatch_add_command(PSTR("json"), dispatch_parse_json);
-    dispatch_add_command(PSTR("page"), dispatch_page);
-    dispatch_add_command(PSTR("sleep"), dispatch_sleep);
-    dispatch_add_command(PSTR("statusupdate"), dispatch_statusupdate);
-    dispatch_add_command(PSTR("clearpage"), dispatch_clear_page);
     dispatch_add_command(PSTR("jsonl"), dispatch_parse_jsonl);
+    dispatch_add_command(PSTR("page"), dispatch_page);
     dispatch_add_command(PSTR("backlight"), dispatch_backlight);
     dispatch_add_command(PSTR("moodlight"), dispatch_moodlight);
     dispatch_add_command(PSTR("idle"), dispatch_idle);
-    dispatch_add_command(PSTR("dim"), dispatch_backlight_obsolete);        // dim
-    dispatch_add_command(PSTR("brightness"), dispatch_backlight_obsolete); // dim
-    dispatch_add_command(PSTR("light"), dispatch_backlight_obsolete);
+    dispatch_add_command(PSTR("sleep"), dispatch_sleep);
+    dispatch_add_command(PSTR("statusupdate"), dispatch_statusupdate);
+    dispatch_add_command(PSTR("clearpage"), dispatch_clear_page);
+    dispatch_add_command(PSTR("sensors"), dispatch_send_sensordata);
     dispatch_add_command(PSTR("theme"), dispatch_theme);
     dispatch_add_command(PSTR("run"), dispatch_exec);
     dispatch_add_command(PSTR("service"), dispatch_service);
-    dispatch_add_command(PSTR("wakeup"), dispatch_wakeup_obsolete);
     dispatch_add_command(PSTR("antiburn"), dispatch_antiburn);
     dispatch_add_command(PSTR("calibrate"), dispatch_calibrate);
     dispatch_add_command(PSTR("update"), dispatch_web_update);
@@ -1381,6 +1381,13 @@ void dispatchSetup()
     dispatch_add_command(PSTR("screenshot"), dispatch_screenshot);
     dispatch_add_command(PSTR("discovery"), dispatch_send_discovery);
     dispatch_add_command(PSTR("factoryreset"), dispatch_factory_reset);
+    
+    /* obsolete commands */
+    dispatch_add_command(PSTR("dim"), dispatch_backlight_obsolete);
+    dispatch_add_command(PSTR("brightness"), dispatch_backlight_obsolete);
+    dispatch_add_command(PSTR("wakeup"), dispatch_wakeup_obsolete);
+    dispatch_add_command(PSTR("light"), dispatch_backlight_obsolete);
+
 #if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
 #if defined(ARDUINO_ARCH_ESP32)
     dispatch_add_command(PSTR("unzip"), filesystemUnzip);
@@ -1402,12 +1409,23 @@ void dispatchEverySecond()
 {
     if(dispatchSecondsToNextTeleperiod > 1) {
         dispatchSecondsToNextTeleperiod--;
-
     } else if(dispatch_setings.teleperiod > 0 && mqttIsConnected()) {
         dispatch_statusupdate(NULL, NULL, TAG_MSGR);
-        dispatch_send_discovery(NULL, NULL, TAG_MSGR);
-        dispatch_send_sensordata(NULL, NULL, TAG_MSGR);
         dispatchSecondsToNextTeleperiod = dispatch_setings.teleperiod;
+    }
+
+    if(dispatchSecondsToNextSensordata > 1) {
+        dispatchSecondsToNextSensordata--;
+    } else if(dispatch_setings.teleperiod > 0 && mqttIsConnected()) {
+        dispatch_send_sensordata(NULL, NULL, TAG_MSGR);
+        dispatchSecondsToNextSensordata = dispatch_setings.teleperiod;
+    }
+
+    if(dispatchSecondsToNextDiscovery > 1) {
+        dispatchSecondsToNextDiscovery--;
+    } else if(dispatch_setings.teleperiod > 0 && mqttIsConnected()) {
+        dispatch_send_discovery(NULL, NULL, TAG_MSGR);
+        dispatchSecondsToNextDiscovery = dispatch_setings.teleperiod;
     }
 }
 #else
