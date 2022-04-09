@@ -1,12 +1,11 @@
 /* MIT License - Copyright (c) 2019-2022 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
-#include "hasp_conf.h"
+#include "hasplib.h"
+
 #include "hal/hasp_hal.h"
 #include "hasp_debug.h"
 #include "hasp_network.h"
-
-#include "hasp/hasp.h"
 #include "sys/svc/hasp_mdns.h"
 
 #if HASP_USE_ETHERNET > 0 || HASP_USE_WIFI > 0
