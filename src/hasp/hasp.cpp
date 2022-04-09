@@ -178,26 +178,29 @@ void hasp_get_sleep_state(char* payload)
  */
 static lv_task_t* antiburn_task;
 
-void hasp_stop_antiburn(lv_obj_t* layer)
+void hasp_stop_antiburn()
 {
+    lv_obj_t* layer = lv_disp_get_layer_sys(NULL);
+    if(layer) lv_obj_set_style_local_bg_opa(layer, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_TRANSP);
+    if(antiburn_task) lv_task_del(antiburn_task);
     antiburn_task = NULL;
-    lv_obj_set_style_local_bg_opa(layer, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_TRANSP);
     hasp_set_wakeup_touch(haspDevice.get_backlight_power() == false); // enabled if backlight is OFF
     gui_hide_pointer(false);
-    dispatch_state_antiburn(HASP_EVENT_OFF);
 }
 
 void hasp_antiburn_cb(lv_task_t* task)
 {
     lv_obj_t* layer = lv_disp_get_layer_sys(NULL);
-    if(!layer) return;
-
-    lv_color_t color[5] = {LV_COLOR_BLACK, LV_COLOR_WHITE, LV_COLOR_RED, LV_COLOR_LIME, LV_COLOR_BLUE};
-    lv_obj_set_style_local_bg_color(layer, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, color[task->repeat_count % 5]);
-    lv_obj_set_style_local_bg_opa(layer, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_COVER);
+    if(layer) {
+        lv_color_t color[5] = {LV_COLOR_BLACK, LV_COLOR_WHITE, LV_COLOR_RED, LV_COLOR_LIME, LV_COLOR_BLUE};
+        lv_obj_set_style_local_bg_color(layer, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, color[task->repeat_count % 5]);
+        lv_obj_set_style_local_bg_opa(layer, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_COVER);
+        if(task->repeat_count != 1) return; // don't stop yet
+    }
 
     // task is about to get deleted
-    if(task->repeat_count == 1) hasp_stop_antiburn(layer);
+    hasp_stop_antiburn();
+    dispatch_state_antiburn(HASP_EVENT_OFF);
 }
 
 /**
@@ -205,10 +208,10 @@ void hasp_antiburn_cb(lv_task_t* task)
  */
 void hasp_set_antiburn(int32_t repeat_count, uint32_t period)
 {
-    lv_obj_t* layer = lv_disp_get_layer_sys(NULL);
-    if(!layer) return;
-
     if(repeat_count != 0) {
+        lv_obj_t* layer = lv_disp_get_layer_sys(NULL);
+        if(!layer) return;
+
         if(!antiburn_task) antiburn_task = lv_task_create(hasp_antiburn_cb, period, LV_TASK_PRIO_LOWEST, NULL);
         if(antiburn_task) {
             lv_obj_set_event_cb(layer, first_touch_event_handler);
@@ -216,15 +219,11 @@ void hasp_set_antiburn(int32_t repeat_count, uint32_t period)
             lv_task_set_repeat_count(antiburn_task, repeat_count);
             lv_task_set_period(antiburn_task, period);
             gui_hide_pointer(true);
-            dispatch_state_antiburn(HASP_EVENT_ON);
         } else {
             LOG_INFO(TAG_HASP, F("Antiburn %s"), D_INFO_FAILED);
         }
     } else {
-        if(antiburn_task) {
-            lv_task_del(antiburn_task);
-            hasp_stop_antiburn(layer);
-        }
+        hasp_stop_antiburn();
     }
 }
 
