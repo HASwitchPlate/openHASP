@@ -33,7 +33,11 @@ struct gui_conf_t
     int8_t backlight_pin;
     uint8_t rotation;
     uint8_t invert_display;
+#if defined(USER_SETUP_LOADED)
     uint16_t cal_data[5];
+#else
+    uint16_t cal_data[8];
+#endif
 };
 
 /* ===== Default Event Processors ===== */

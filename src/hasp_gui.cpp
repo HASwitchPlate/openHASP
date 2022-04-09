@@ -191,9 +191,10 @@ void guiCalibrate(void)
     haspTouch.calibrate(gui_settings.cal_data);
 #endif
 
-    for(int i = 0; i < 5; i++) {
+    size_t len = sizeof(gui_settings.cal_data) / sizeof(gui_settings.cal_data[0]);
+    for(int i = 0; i < len; i++) {
         Serial.print(gui_settings.cal_data[i]);
-        if(i < 4) Serial.print(", ");
+        if(i < len - 1) Serial.print(", ");
     }
 
     delay(500);
@@ -497,9 +498,10 @@ bool guiGetConfig(const JsonObject& settings)
     /* Check CalData array has changed */
     JsonArray array = settings[FPSTR(FP_GUI_CALIBRATION)].as<JsonArray>();
     uint8_t i       = 0;
+    size_t len      = sizeof(gui_settings.cal_data) / sizeof(gui_settings.cal_data[0]);
     for(JsonVariant v : array) {
         LOG_VERBOSE(TAG_GUI, F("GUI CONF: %d: %d <=> %d"), i, gui_settings.cal_data[i], v.as<uint16_t>());
-        if(i < 5) {
+        if(i < len) {
             if(gui_settings.cal_data[i] != v.as<uint16_t>()) changed = true;
             v.set(gui_settings.cal_data[i]);
         } else {
@@ -514,9 +516,9 @@ bool guiGetConfig(const JsonObject& settings)
     }
 
     /* Build new CalData array if the count is not correct */
-    if(i != 5) {
+    if(i != len) {
         array = settings[FPSTR(FP_GUI_CALIBRATION)].to<JsonArray>(); // Clear JsonArray
-        for(int i = 0; i < 5; i++) {
+        for(int i = 0; i < len; i++) {
             array.add(gui_settings.cal_data[i]);
         }
         changed = true;
@@ -573,10 +575,11 @@ bool guiSetConfig(const JsonObject& settings)
     if(!settings[FPSTR(FP_GUI_CALIBRATION)].isNull()) {
         bool status = false;
         int i       = 0;
+        size_t len  = sizeof(gui_settings.cal_data) / sizeof(gui_settings.cal_data[0]);
 
         JsonArray array = settings[FPSTR(FP_GUI_CALIBRATION)].as<JsonArray>();
         for(JsonVariant v : array) {
-            if(i < 5) {
+            if(i < len) {
                 if(gui_settings.cal_data[i] != v.as<uint16_t>()) status = true;
                 gui_settings.cal_data[i] = v.as<uint16_t>();
             }
