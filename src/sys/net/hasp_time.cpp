@@ -76,6 +76,7 @@ bool timeGetConfig(const JsonObject& settings)
     settings["ntp"][2] = preferences.getString("ntp3", NTPSERVER3);
     preferences.end();
 
+#if ESP_ARDUINO_VERSION_MAJOR >= 2
     nvs_iterator_t it = nvs_entry_find("nvs", "time", NVS_TYPE_ANY);
     while(it != NULL) {
         nvs_entry_info_t info;
@@ -83,6 +84,7 @@ bool timeGetConfig(const JsonObject& settings)
         it = nvs_entry_next(it);
         printf("key '%s', type '%d' \n", info.key, info.type);
     };
+#endif
 
     if(changed) configOutput(settings, TAG_TIME);
 
