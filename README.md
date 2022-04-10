@@ -1,6 +1,6 @@
 # openHASP firmware
 
-[![GitHub Workflow Status](https://img.shields.io/github/workflow/status/HASwitchPlate/openHASP/PlatformIO%20CI?label=build%20status&logo=github&logoColor=%23dddddd)](https://github.com/HASwitchPlate/openHASP/actions)
+[![GitHub Workflow Status](https://img.shields.io/github/workflow/status/HASwitchPlate/openHASP/Build%20branch?label=build%20status&logo=github&logoColor=%23dddddd)](https://github.com/HASwitchPlate/openHASP/actions)
 [![GitHub release](https://img.shields.io/github/v/release/HASwitchPlate/openHASP?include_prereleases)](https://github.com/HASwitchPlate/openHASP/releases)
 [![GitHub issues](https://img.shields.io/github/issues/HASwitchPlate/openHASP.svg)](http://github.com/HASwitchPlate/openHASP/issues)
 [![Discord](https://img.shields.io/discord/538814618106331137?color=%237289DA&label=discord&logo=discord&logoColor=white)][6]
