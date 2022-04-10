@@ -8,7 +8,7 @@
 #include "hasp_conf.h"
 
 #include <Arduino.h>
-#include "../old/hasp_drv_analogTouch.h"
+#include "hasp_drv_analogTouch.h"
 #include "ArduinoLog.h"
 
 #include "touch_driver.h" // base class
