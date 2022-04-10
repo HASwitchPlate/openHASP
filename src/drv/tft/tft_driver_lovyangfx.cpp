@@ -264,6 +264,7 @@ lgfx::Panel_Device* LovyanGfx::_init_panel(lgfx::IBus* bus)
             LOG_DEBUG(TAG_TFT, F("%s - %d"), __FILE__, __LINE__);
             break;
         }
+        case 0x61529:
         case 0x9481: {
             panel = new lgfx::Panel_ILI9481();
             LOG_DEBUG(TAG_TFT, F("%s - %d"), __FILE__, __LINE__);
@@ -305,7 +306,7 @@ void LovyanGfx::init(int w, int h)
     preferences.begin("tft", false);
 
     lgfx::IBus* bus           = _init_bus(&preferences);
-    this->tft_driver           = preferences.getUInt("DRIVER", get_tft_driver());
+    this->tft_driver          = preferences.getUInt("DRIVER", get_tft_driver());
     lgfx::Panel_Device* panel = _init_panel(bus);
     if(panel != nullptr) {
         panel->setBus(bus);
@@ -563,6 +564,8 @@ const char* LovyanGfx::get_tft_model()
     return "R61581";
 #elif defined(ST7789_2_DRIVER)
     return "ST7789_2";
+#elif defined(R61529_DRIVER)
+    return "R61529";
 #elif defined(RM68140_DRIVER)
     return "RM68140";
 #else
@@ -598,10 +601,12 @@ uint32_t LovyanGfx::get_tft_driver()
     return 0x77892;
 #elif defined(R61581_DRIVER)
     return 0x61581;
+#elif defined(R61529_DRIVER)
+    return 0x61529;
 #elif defined(RM68140_DRIVER)
     return 0x68140;
 #else
-    return 0;
+    return 0x0;
 #endif
 }
 
