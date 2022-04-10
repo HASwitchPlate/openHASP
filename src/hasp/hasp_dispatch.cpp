@@ -1216,12 +1216,14 @@ void dispatch_statusupdate(const char*, const char*, uint8_t source)
 
 void dispatch_current_state(uint8_t source)
 {
-    dispatch_statusupdate(NULL, NULL, source);
     dispatch_idle(NULL, NULL, source);
     dispatch_current_page();
-    dispatch_send_sensordata(NULL, NULL, source);
-    dispatch_send_discovery(NULL, NULL, source);
     dispatch_state_antiburn(hasp_get_antiburn());
+
+    // delayed published topic
+    dispatchSecondsToNextTeleperiod = 0;
+    dispatchSecondsToNextSensordata = 1;
+    dispatchSecondsToNextDiscovery  = 2;
 }
 
 // Format filesystem and erase EEPROM
@@ -1381,7 +1383,7 @@ void dispatchSetup()
     dispatch_add_command(PSTR("screenshot"), dispatch_screenshot);
     dispatch_add_command(PSTR("discovery"), dispatch_send_discovery);
     dispatch_add_command(PSTR("factoryreset"), dispatch_factory_reset);
-    
+
     /* obsolete commands */
     dispatch_add_command(PSTR("dim"), dispatch_backlight_obsolete);
     dispatch_add_command(PSTR("brightness"), dispatch_backlight_obsolete);
