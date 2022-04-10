@@ -227,7 +227,11 @@ const char* Esp32Device::get_chip_model()
     */
     _chip_model = ESP.getChipModel();
     _chip_model += " rev";
+#if ESP_ARDUINO_VERSION_MAJOR >= 2
     _chip_model += std::to_string(ESP.getChipRevision());
+#else
+    _chip_model += String(ESP.getChipRevision()).c_str();
+#endif
     return _chip_model.c_str();
 }
 
