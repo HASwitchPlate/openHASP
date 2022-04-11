@@ -1169,7 +1169,7 @@ void dispatch_statusupdate(const char*, const char*, uint8_t source)
     {
         char buffer[128];
 
-        hasp_get_sleep_state(topic);
+        hasp_get_sleep_payload(hasp_get_sleep_state(), topic);
         snprintf_P(data, sizeof(data), PSTR("{\"node\":\"%s\",\"idle\":\"%s\",\"version\":\"%s\",\"uptime\":%lu,"),
                    haspDevice.get_hostname(), topic, haspDevice.get_version(),
                    long(millis() / 1000)); // \"status\":\"available\",
@@ -1216,8 +1216,8 @@ void dispatch_statusupdate(const char*, const char*, uint8_t source)
 
 void dispatch_current_state(uint8_t source)
 {
-    dispatch_idle(NULL, NULL, source);
     dispatch_current_page();
+    dispatch_idle_state(hasp_get_sleep_state());
     dispatch_state_antiburn(hasp_get_antiburn());
 
     // delayed published topic
@@ -1249,11 +1249,18 @@ void dispatch_calibrate(const char*, const char*, uint8_t source)
     guiCalibrate();
 }
 
+void dispatch_wakeup()
+{
+    if(hasp_get_sleep_state() == HASP_SLEEP_OFF) return;
+    hasp_set_sleep_state(HASP_SLEEP_OFF);
+    dispatch_idle_state(HASP_SLEEP_OFF);
+}
+
 void dispatch_wakeup_obsolete(const char* topic, const char*, uint8_t source)
 {
     LOG_WARNING(TAG_MSGR, F(D_ATTRIBUTE_OBSOLETE D_ATTRIBUTE_INSTEAD), topic,
                 "idle=off"); // TODO: obsolete dim, light and brightness
-    lv_disp_trig_activity(NULL);
+    dispatch_wakeup();
     hasp_set_wakeup_touch(false);
 }
 
@@ -1262,31 +1269,32 @@ void dispatch_sleep(const char*, const char*, uint8_t source)
     hasp_set_wakeup_touch(false);
 }
 
-void dispatch_idle(const char*, const char* payload, uint8_t source)
+void dispatch_idle_state(uint8_t state)
 {
     char topic[8];
     char buffer[8];
+    memcpy_P(topic, PSTR("idle"), 8);
+    hasp_get_sleep_payload(state, buffer);
+    dispatch_state_subtopic(topic, buffer);
+}
 
-    // idle off command
+void dispatch_idle(const char*, const char* payload, uint8_t source)
+{
     if(payload && strlen(payload)) {
         uint8_t state = HASP_SLEEP_LAST;
         if(!strcmp_P(payload, "off")) {
-            hasp_set_wakeup_touch(false);
-            state = HASP_SLEEP_OFF;
+            hasp_set_sleep_state(HASP_SLEEP_OFF);
         } else if(!strcmp_P(payload, "short")) {
-            state = HASP_SLEEP_SHORT;
+            hasp_set_sleep_state(HASP_SLEEP_SHORT);
         } else if(!strcmp_P(payload, "long")) {
-            state = HASP_SLEEP_LONG;
+            hasp_set_sleep_state(HASP_SLEEP_LONG);
         } else {
-            state = HASP_SLEEP_LAST;
+            LOG_WARNING(TAG_MSGR, F("Invalid idle value %s"), payload);
+            return;
         }
-        hasp_set_sleep_state(state);
     }
 
-    // idle state
-    memcpy_P(topic, PSTR("idle"), 8);
-    hasp_get_sleep_state(buffer);
-    dispatch_state_subtopic(topic, buffer);
+    dispatch_idle_state(hasp_get_sleep_state()); // always send the current state
 }
 
 void dispatch_reboot(const char*, const char*, uint8_t source)

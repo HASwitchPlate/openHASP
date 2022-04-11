@@ -114,30 +114,33 @@ HASP_ATTRIBUTE_FAST_MEM void hasp_update_sleep_state()
 
     if(sleepTimeLong > 0 && idle >= (sleepTimeShort + sleepTimeLong)) {
         if(hasp_sleep_state != HASP_SLEEP_LONG) {
-            hasp_sleep_state = HASP_SLEEP_LONG;
             gui_hide_pointer(true);
-            dispatch_idle(NULL, NULL, TAG_HASP);
+            hasp_sleep_state = HASP_SLEEP_LONG;
+            dispatch_idle_state(HASP_SLEEP_LONG);
         }
     } else if(sleepTimeShort > 0 && idle >= sleepTimeShort) {
         if(hasp_sleep_state != HASP_SLEEP_SHORT) {
-            hasp_sleep_state = HASP_SLEEP_SHORT;
             gui_hide_pointer(true);
-            dispatch_idle(NULL, NULL, TAG_HASP);
+            hasp_sleep_state = HASP_SLEEP_SHORT;
+            dispatch_idle_state(HASP_SLEEP_SHORT);
         }
     } else {
         if(hasp_sleep_state != HASP_SLEEP_OFF) {
-            hasp_sleep_state = HASP_SLEEP_OFF;
             gui_hide_pointer(false);
-            dispatch_idle(NULL, NULL, TAG_HASP);
+            hasp_sleep_state = HASP_SLEEP_OFF;
+            dispatch_idle_state(HASP_SLEEP_OFF);
         }
     }
-
-    //  return (hasp_sleep_state != HASP_SLEEP_OFF);
 }
 
 void hasp_set_sleep_offset(uint32_t offset)
 {
     sleepTimeOffset = offset;
+}
+
+uint8_t hasp_get_sleep_state()
+{
+    return hasp_sleep_state;
 }
 
 void hasp_set_sleep_state(uint8_t state)
@@ -151,6 +154,7 @@ void hasp_set_sleep_state(uint8_t state)
             break;
         case HASP_SLEEP_OFF:
             hasp_set_sleep_offset(0);
+            hasp_set_wakeup_touch(false);
             break;
         default:
             return;
@@ -159,9 +163,9 @@ void hasp_set_sleep_state(uint8_t state)
     hasp_sleep_state = state;
 }
 
-void hasp_get_sleep_state(char* payload)
+void hasp_get_sleep_payload(uint8_t state, char* payload)
 {
-    switch(hasp_sleep_state) {
+    switch(state) {
         case HASP_SLEEP_LONG:
             memcpy_P(payload, PSTR("long"), 5);
             break;
@@ -712,7 +716,7 @@ void hasp_get_info(JsonDocument& doc)
     buffer += "s";
     info[F(D_INFO_ENVIRONMENT)] = PIOENV;
     info[F(D_INFO_UPTIME)]      = buffer;
-    hasp_get_sleep_state(size_buf);
+    hasp_get_sleep_payload(hasp_get_sleep_state(), size_buf);
     info[F("Idle")]        = size_buf;
     info[F("Active Page")] = haspPages.get();
 

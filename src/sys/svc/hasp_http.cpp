@@ -961,16 +961,16 @@ static void handleFileCreate()
         }
     }
     if(webServer.hasArg(F("init"))) {
-        dispatch_idle(NULL, "0", TAG_HTTP);
+        dispatch_wakeup();
         hasp_init();
     }
     if(webServer.hasArg(F("load"))) {
-        dispatch_idle(NULL, "0", TAG_HTTP);
+        dispatch_wakeup();
         hasp_load_json();
     }
     if(webServer.hasArg(F("page"))) {
+        dispatch_wakeup();
         uint8_t pageid = atoi(webServer.arg(F("page")).c_str());
-        dispatch_idle(NULL, "0", TAG_HTTP);
         dispatch_set_page(pageid, LV_SCR_LOAD_ANIM_NONE);
     }
     webServer.send(200, PSTR("text/plain"), "");
