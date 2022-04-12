@@ -29,3 +29,23 @@
 #include "hasp/lv_theme_hasp.h"
 
 #include "ArduinoJson.h"
+
+#if HASP_USE_FREETYPE > 0
+#include "lv_freetype.h"
+#endif
+
+#if HASP_USE_PNGDECODE > 0
+#include "lv_png.h"
+#endif
+
+#if HASP_USE_BMPDECODE > 0
+#include "lv_bmp.h"
+#endif
+
+#if HASP_USE_GIFDECODE > 0
+#include "lv_gif.h"
+#endif
+
+#if HASP_USE_JPGDECODE > 0
+#include "lv_sjpg.h"
+#endif

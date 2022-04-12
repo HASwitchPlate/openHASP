@@ -26,23 +26,6 @@
 //#include "tpcal.h"
 
 //#include "Ticker.h"
-#include "lv_freetype.h"
-
-#if HASP_USE_PNGDECODE > 0
-#include "lv_png.h"
-#endif
-
-#if HASP_USE_BMPDECODE > 0
-#include "lv_bmp.h"
-#endif
-
-#if HASP_USE_GIFDECODE > 0
-#include "lv_gif.h"
-#endif
-
-#if HASP_USE_JPGDECODE > 0
-#include "lv_sjpg.h"
-#endif
 
 #define BACKLIGHT_CHANNEL 0 // pwm channel 0-15
 
@@ -218,8 +201,8 @@ static inline void gui_init_tft(void)
     // Initialize TFT
     LOG_TRACE(TAG_TFT, F(D_SERVICE_STARTING));
     gui_start_tft();
-
     haspTft.show_info();
+
 #ifdef USE_DMA_TO_TFT
     LOG_VERBOSE(TAG_TFT, F("DMA        : " D_SETTING_ENABLED));
 #else
@@ -257,6 +240,9 @@ static inline void gui_init_freetype()
 {
 // #ifdef 1 || USE_LVGL_FREETYPE
 #if defined(ARDUINO_ARCH_ESP32)
+
+#if(HASP_USE_FREETYPE > 0)
+
     if(lv_freetype_init(USE_LVGL_FREETYPE_MAX_FACES, USE_LVGL_FREETYPE_MAX_SIZES,
                         hasp_use_psram() ? USE_LVGL_FREETYPE_MAX_BYTES_PSRAM : USE_LVGL_FREETYPE_MAX_BYTES)) {
         LOG_VERBOSE(TAG_FONT, F("FreeType v%d.%d.%d " D_SERVICE_STARTED), FREETYPE_MAJOR, FREETYPE_MINOR,
@@ -264,6 +250,9 @@ static inline void gui_init_freetype()
     } else {
         LOG_ERROR(TAG_FONT, F("FreeType " D_SERVICE_START_FAILED));
     }
+#else
+    LOG_VERBOSE(TAG_FONT, F("FreeType " D_SERVICE_DISABLED));
+#endif
 
 #elif defined(WINDOWS) || defined(POSIX)
 #else
@@ -297,6 +286,7 @@ void guiSetup()
 {
     // Initialize hardware drivers
     gui_init_tft();
+    haspDevice.show_info(); // debug info + preload app flash size
 
     // Initialize LVGL
     LOG_TRACE(TAG_LVGL, F(D_SERVICE_STARTING));
