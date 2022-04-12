@@ -1420,7 +1420,7 @@ static hasp_attribute_type_t attribute_common_json(lv_obj_t* obj, uint16_t attr_
 {
     switch(attr_hash) {
         case ATTR_JSONL: {
-            DeserializationError jsonError;
+            DeserializationError jsonError = DeserializationError::Ok;
 
             if(update) {
 
@@ -1433,17 +1433,20 @@ static hasp_attribute_type_t attribute_common_json(lv_obj_t* obj, uint16_t attr_
                 DeserializationError jsonError = deserializeJson(json, (char*)payload);
                 json.shrinkToFit();
 
-                if(!jsonError) {
+                if(jsonError == DeserializationError::Ok) {
                     // Make sure we have a valid JsonObject to start from
                     if(JsonObject keys = json.as<JsonObject>()) {
                         hasp_parse_json_attributes(obj, keys); // json is valid object, cast as a JsonObject
                     } else {
+                        LOG_WARNING(TAG_ATTR, "%s %d", __FILE__, __LINE__);
                         jsonError = DeserializationError::InvalidInput;
                     }
                 } else {
+                    LOG_WARNING(TAG_ATTR, "%s %d", __FILE__, __LINE__);
                     jsonError = DeserializationError::IncompleteInput;
                 }
             }
+            LOG_WARNING(TAG_ATTR, "%s %d", __FILE__, __LINE__);
 
             if(jsonError) { // Couldn't parse incoming JSON object
                 dispatch_json_error(TAG_ATTR, jsonError);
