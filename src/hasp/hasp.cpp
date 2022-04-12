@@ -3,6 +3,7 @@
 
 #include "hasplib.h"
 #include "dev/device.h"
+#include "drv/tft/tft_driver.h"
 // #include "lv_datetime.h"
 #include "hasp_gui.h"
 
@@ -30,8 +31,6 @@
 #include "font/hasp_font_loader.h"
 //#include "hasp_filesystem.h" included in hasp_conf.h
 #endif
-
-#include "lv_freetype.h"
 
 #if HASP_USE_EEPROM > 0
 #include "EEPROM.h"
@@ -78,10 +77,13 @@ static uint16_t sleepTimeShort  = 60;             // 1 second resolution
 static uint16_t sleepTimeLong   = 120;            // 1 second resolution
 static uint32_t sleepTimeOffset = 0;              // 1 second resolution
 
-uint8_t haspStartDim   = 255;
-uint8_t haspStartPage  = 1;
-uint8_t haspThemeId    = 2;
-uint16_t haspThemeHue  = 200;
+uint8_t haspStartDim       = 255;
+uint8_t haspStartPage      = 1;
+uint8_t haspThemeId        = 2;
+uint16_t haspThemeHue      = 200;
+lv_color_t color_primary   = lv_color_hsv_to_rgb(200, 100, 100);
+lv_color_t color_secondary = lv_color_hsv_to_rgb(200, 100, 100);
+
 char haspPagesPath[32] = "/pages.jsonl";
 char haspZiFontPath[32];
 
@@ -398,9 +400,7 @@ static void custom_font_apply_cb(lv_theme_t* th, lv_obj_t* obj, lv_theme_style_t
 
 void hasp_set_theme(uint8_t themeid)
 {
-    lv_theme_t* th             = NULL;
-    lv_color_t color_primary   = lv_color_hsv_to_rgb(haspThemeHue, 100, 100);
-    lv_color_t color_secondary = lv_color_hsv_to_rgb(haspThemeHue, 100, 100);
+    lv_theme_t* th = NULL;
 
     /* ********** Theme Initializations ********** */
     if(themeid == 8) themeid = 1;          // update old HASP id
@@ -750,7 +750,12 @@ void hasp_get_info(JsonDocument& doc)
 #if HASP_USE_CONFIG > 0
 bool haspGetConfig(const JsonObject& settings)
 {
+    char buffer1[8];
+    char buffer2[8];
     bool changed = false;
+
+    Parser::ColorToHaspPayload(color_primary, buffer1, sizeof(buffer1));
+    Parser::ColorToHaspPayload(color_secondary, buffer2, sizeof(buffer2));
 
     if(haspStartPage != settings[FPSTR(FP_CONFIG_STARTPAGE)].as<uint8_t>()) changed = true;
     settings[FPSTR(FP_CONFIG_STARTPAGE)] = haspStartPage;
@@ -761,8 +766,14 @@ bool haspGetConfig(const JsonObject& settings)
     if(haspThemeId != settings[FPSTR(FP_CONFIG_THEME)].as<uint8_t>()) changed = true;
     settings[FPSTR(FP_CONFIG_THEME)] = haspThemeId;
 
-    if(haspThemeHue != settings[FPSTR(FP_CONFIG_HUE)].as<uint16_t>()) changed = true;
-    settings[FPSTR(FP_CONFIG_HUE)] = haspThemeHue;
+    // if(haspThemeHue != settings[FPSTR(FP_CONFIG_HUE)].as<uint16_t>()) changed = true;
+    // settings[FPSTR(FP_CONFIG_HUE)] = haspThemeHue;
+
+    if(strcmp(buffer1, settings[FPSTR(FP_CONFIG_COLOR1)].as<String>().c_str()) != 0) changed = true;
+    settings[FPSTR(FP_CONFIG_COLOR1)] = buffer1;
+
+    if(strcmp(buffer2, settings[FPSTR(FP_CONFIG_COLOR2)].as<String>().c_str()) != 0) changed = true;
+    settings[FPSTR(FP_CONFIG_COLOR2)] = buffer2;
 
     if(strcmp(haspZiFontPath, settings[FPSTR(FP_CONFIG_ZIFONT)].as<String>().c_str()) != 0) changed = true;
     settings[FPSTR(FP_CONFIG_ZIFONT)] = haspZiFontPath;
@@ -785,12 +796,28 @@ bool haspGetConfig(const JsonObject& settings)
 bool haspSetConfig(const JsonObject& settings)
 {
     configOutput(settings, TAG_HASP);
+    lv_color32_t c;
+    JsonVariant color_str;
     bool changed = false;
 
     changed |= configSet(haspStartPage, settings[FPSTR(FP_CONFIG_STARTPAGE)], F("haspStartPage"));
     changed |= configSet(haspStartDim, settings[FPSTR(FP_CONFIG_STARTDIM)], F("haspStartDim"));
-    changed |= configSet(haspThemeId, settings[FPSTR(FP_CONFIG_THEME)], F("haspThemeId"));
-    changed |= configSet(haspThemeHue, settings[FPSTR(FP_CONFIG_HUE)], F("haspThemeHue"));
+
+    { // Theme related settings
+        // Set from Hue first
+        bool theme_changed = false;
+        theme_changed |= configSet(haspThemeId, settings[FPSTR(FP_CONFIG_THEME)], F("haspThemeId"));
+        theme_changed |= configSet(haspThemeHue, settings[FPSTR(FP_CONFIG_HUE)], F("haspThemeHue"));
+        color_primary   = lv_color_hsv_to_rgb(haspThemeHue, 100, 100);
+        color_secondary = lv_color_hsv_to_rgb(haspThemeHue, 100, 100);
+
+        // Check for color1 and color2
+        theme_changed |= configSet(color_primary, settings[FPSTR(FP_CONFIG_COLOR1)], F("haspColor1"));
+        theme_changed |= configSet(color_secondary, settings[FPSTR(FP_CONFIG_COLOR2)], F("haspColor2"));
+
+        changed |= theme_changed;
+        // if(theme_changed) hasp_set_theme(haspThemeId); // LVGL is not inited at config load time
+    }
 
     if(haspStartPage == 0) { // TODO: fase out migration code
         haspStartPage = 1;

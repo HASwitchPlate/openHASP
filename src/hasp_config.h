@@ -28,6 +28,7 @@ bool configSet(bool& value, const JsonVariant& setting, const __FlashStringHelpe
 bool configSet(int8_t& value, const JsonVariant& setting, const __FlashStringHelper* fstr_name);
 bool configSet(uint8_t& value, const JsonVariant& setting, const __FlashStringHelper* fstr_name);
 bool configSet(uint16_t& value, const JsonVariant& setting, const __FlashStringHelper* fstr_name);
+bool configSet(lv_color_t& value, const JsonVariant& setting, const __FlashStringHelper* fstr_name);
 void configMaskPasswords(JsonDocument& settings);
 
 /* ===== Read/Write Configuration ===== */
@@ -41,6 +42,8 @@ const char FP_CONFIG_THEME[] PROGMEM        = "theme";
 const char FP_CONFIG_HUE[] PROGMEM          = "hue";
 const char FP_CONFIG_ZIFONT[] PROGMEM       = "font";
 const char FP_CONFIG_PAGES[] PROGMEM        = "pages";
+const char FP_CONFIG_COLOR1[] PROGMEM       = "color1";
+const char FP_CONFIG_COLOR2[] PROGMEM       = "color2";
 const char FP_CONFIG_ENABLE[] PROGMEM       = "enable";
 const char FP_CONFIG_HOST[] PROGMEM         = "host";
 const char FP_CONFIG_PORT[] PROGMEM         = "port";
