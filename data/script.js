@@ -14,30 +14,8 @@ async function ref(e) {
 function about() {
   document.getElementById("lic").innerHTML =
     '<h3>openHASP</h3>Copyright&copy; 2019-2022 Francis Van Roie</br>MIT License</p><p>Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files(the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and / or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:</p><p>The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.</p><p>THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</p>';
-  var e =
-    "<hr><p>Based on the previous work of the following open source developers:</p>";
-  (e +=
-    "<h3>HASwitchPlate</h3><p>Copyright&copy; 2019 Allen Derusha allen @derusha.org</b></br>MIT License</p><h3>LVGL</h3><p>Copyright&copy; 2021 LVGL Kft</br>MIT License</p>"),
-    1 == tft &&
-      (e +=
-        "<h3>LovyanGFX</h3><p>Copyright&copy; 2020 lovyan03 (https://github.com/lovyan03) All rights reserved.</br>FreeBSD License</p>"),
-    (e +=
-      "<h3>TFT_eSPI</h3><p>Copyright&copy; 2020 Bodmer (https://github.com/Bodmer) All rights reserved.</br>FreeBSD License</p>"),
-    (e +=
-      "<h3>Adafruit_GFX</h3><p>Copyright&copy; 2012 Adafruit Industries. All rights reserved</br>BSD License</p>"),
-    (e +=
-      "<h3>ArduinoJson</h3><p>Copyright&copy; 2014-2021 Benoit BLANCHON</br>MIT License</p>"),
-    (e +=
-      "<h3>PubSubClient</h3><p>Copyright&copy; 2008-2015 Nicholas O&apos;Leary</br>MIT License</p>"),
-    (e +=
-      "<h3>ArduinoLog</h3><p>Copyright&copy; 2017,2018 Thijs Elenbaas, MrRobot62, rahuldeo2047, NOX73, dhylands, Josha blemasle, mfalkvidd</br>MIT License</p>"),
-    (e +=
-      "<h3>QR Code generator</h3><p>Copyright&copy; Project Nayuki</br>MIT License</p>"),
-    (e +=
-      "<h3>SimpleFTPServer</h3><p>Copyright&copy; 2017 Renzo Mischianti www.mischianti.org All right reserved.</br>MIT License</p>"),
-    (e +=
-      "<h3>AceButton</h3><p>Copyright&copy; 2018 Brian T. Park</br>MIT License</p>"),
-    (document.getElementById("pkg").innerHTML = e);
+  document.getElementById("pkg").innerHTML =
+    "<hr><p>Based on the previous work of the following open source developers:</p><h3>HASwitchPlate</h3><p>Copyright&copy; 2019 Allen Derusha allen @derusha.org</b></br>MIT License</p><h3>LVGL</h3><p>Copyright&copy; 2021 LVGL Kft</br>MIT License</p><h3>LovyanGFX</h3><p>Copyright&copy; 2020 lovyan03 (https://github.com/lovyan03) All rights reserved.</br>FreeBSD License</p><h3>TFT_eSPI</h3><p>Copyright&copy; 2020 Bodmer (https://github.com/Bodmer) All rights reserved.</br>FreeBSD License</p><h3>Adafruit_GFX</h3><p>Copyright&copy; 2012 Adafruit Industries. All rights reserved</br>BSD License</p><h3>ArduinoJson</h3><p>Copyright&copy; 2014-2021 Benoit BLANCHON</br>MIT License</p><h3>PubSubClient</h3><p>Copyright&copy; 2008-2015 Nicholas O&apos;Leary</br>MIT License</p><h3>ArduinoLog</h3><p>Copyright&copy; 2017,2018 Thijs Elenbaas, MrRobot62, rahuldeo2047, NOX73, dhylands, Josha blemasle, mfalkvidd</br>MIT License</p><h3>QR Code generator</h3><p>Copyright&copy; Project Nayuki</br>MIT License</p><h3>SimpleFTPServer</h3><p>Copyright&copy; 2017 Renzo Mischianti www.mischianti.org All right reserved.</br>MIT License</p><h3>AceButton</h3><p>Copyright&copy; 2018 Brian T. Park</br>MIT License</p>";
 }
 function handleSubmit(e) {
   e.preventDefault();
@@ -107,8 +85,8 @@ function populate(e, t, o) {
               a[c].checked = s.indexOf(Number(a[c].value)) > -1;
             break;
           case "checkbox":
-            s = i.constructor === Array ? i : [i];
-            a.checked = s.indexOf(Number(a.value)) > -1;
+            (s = i.constructor === Array ? i : [i]),
+              (a.checked = s.indexOf(Number(a.value)) > -1);
             break;
           case "select-multiple":
             s = i.constructor === Array ? i : [i];
