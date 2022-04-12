@@ -20,7 +20,7 @@
 ## v0.6.3
 
 ### Commands
-- Updates `idle` parameters to accept `off`, `short` and `long`
+- Additional `idle` parameters now accept `off`, `short` and `long`
 - Add `sensors` command to trigger the sensors state message
 - Run `/boot.cmd` when the plate is (re)booted and the script exists
 
@@ -34,7 +34,7 @@
 - Updated to modern responsive design
 - Add `/api/*/` endpoints for `info/` and `config/*/`
 - Allow for a customizible `vars.css`, `style.css`, `script.js` and `edit.htm`
-- Display info message when the configuration is changed and a reboot is needed
+- Display a message when the configuration is changed and a reboot is needed
 - Add checkbox for backlight inversion to Display settings (thanks @wolffman122)
 - Add checkbox to toggle ANSI codes (thanks @geiseri)
 
@@ -56,9 +56,9 @@
 - Fix a bug in `dropdownlist` were `close` method performed `open` instead (thanks @htvekov)
 - Fix `src` bug in `img` objects that could corrupt images sent over http (thanks @htvekov)
 - Fix screen dimensions in `statusupdate` message, taking into account current orientation (thanks @kquinsland)
-- Fix syslog message format (thanks @geiseri)
 - Fix for HTTP password that could be overwritten by 8 asterisks when it was not changed in the web UI
-- Fixed MQTT hostname limit (again)
+- Fixed MQTT hostname limit *again*...
+- Syslog message format fixes and improvements (thanks @geiseri)
 
 ### Custom component
 - Expose `antiburn` for the CC (thanks @dgomes)
@@ -70,7 +70,7 @@
 - Add support for ESP32-S2
 - ⚠️ **Breaking:** Removed support for ESP8266!
 
-Updated libraries to ArduinoJson 6.19.3, ArduinoStreamUtils 1.6.2, TFT_eSPI 2.4.42, LovyanGFX 0.4.15 and Adafruit STMPE610 1.1.4
+Updated libraries to ArduinoJson 6.19.4, ArduinoStreamUtils 1.6.2, AceButton 1.9.2, TFT_eSPI 2.4.42, LovyanGFX 0.4.15 and Adafruit STMPE610 1.1.4
 
 
 ## v0.6.2
