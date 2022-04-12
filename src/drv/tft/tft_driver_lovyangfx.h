@@ -108,6 +108,10 @@
 #ifndef TOUCH_OFFSET_ROTATION
 #define TOUCH_OFFSET_ROTATION 0
 #endif
+#ifndef I2C_TOUCH_PORT
+#define I2C_TOUCH_PORT 0
+#endif
+
 namespace dev {
 class LGFX : public lgfx::LGFX_Device {
   public:
