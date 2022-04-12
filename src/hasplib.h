@@ -49,3 +49,7 @@
 #if HASP_USE_JPGDECODE > 0
 #include "lv_sjpg.h"
 #endif
+
+#if defined(HASP_USE_CUSTOM)
+#include "custom/my_custom.h"
+#endif

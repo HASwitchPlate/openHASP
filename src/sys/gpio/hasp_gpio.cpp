@@ -8,10 +8,6 @@
 #include "hasp_gpio.h"
 #include "hasp_config.h"
 
-#if defined(HASP_USE_CUSTOM)
-#include "custom/my_custom.h"
-#endif
-
 #ifdef ARDUINO_ARCH_ESP8266
 #define INPUT_PULLDOWN INPUT
 #endif

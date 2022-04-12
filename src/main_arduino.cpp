@@ -20,10 +20,6 @@
 #include "hasp_gui.h"
 #endif
 
-#if defined(HASP_USE_CUSTOM)
-#include "custom/my_custom.h"
-#endif
-
 bool isConnected;
 uint8_t mainLoopCounter        = 0;
 unsigned long mainLastLoopTime = 0;

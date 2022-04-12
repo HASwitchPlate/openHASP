@@ -41,10 +41,6 @@
 #include "hasp_config.h"
 #endif
 
-#if defined(HASP_USE_CUSTOM)
-#include "custom/my_custom.h"
-#endif
-
 dispatch_conf_t dispatch_setings = {.teleperiod = 300};
 
 uint16_t dispatchSecondsToNextTeleperiod = 0;

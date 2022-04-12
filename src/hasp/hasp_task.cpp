@@ -16,10 +16,6 @@ For full license information read the LICENSE file in the project folder */
 #include "hasp_gui.h"
 #endif
 
-#if defined(HASP_USE_CUSTOM)
-#include "custom/my_custom.h"
-#endif
-
 #ifdef HASP_USE_STAT_COUNTER
 extern uint16_t statLoopCounter; // measures the average looptime
 #endif

@@ -102,7 +102,7 @@ static lv_font_t* font_add_to_list(const char* payload)
     if(!font) return NULL;
     LOG_VERBOSE(TAG_FONT, F("Loaded font %s size %d"), filename, font->line_height);
 
-    /* allox payload str */
+    /* alloc payload str */
     size_t len = strlen(payload);
     name_p     = (char*)calloc(sizeof(char), len + 1);
     if(!name_p) return NULL;

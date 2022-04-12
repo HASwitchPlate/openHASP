@@ -16,7 +16,6 @@
 #if defined(HASP_USE_CUSTOM) && false // <-- set this to true in your code
 
 #include "hasp_debug.h"
-#include "custom/my_custom.h"
 
 uint16_t fanspeed       = 0;   // rotation off by default (the time between angle turns in ms)
 uint16_t fanangle       = 450; // default angle of one turn (0.1 degree precision, so this means 45°)

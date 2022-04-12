@@ -9,7 +9,6 @@
 #if defined(HASP_USE_CUSTOM) && false // <-- set this to true in your code
 
 #include "hasp_debug.h"
-#include "custom/my_custom.h"
 
 void custom_setup()
 {
