@@ -293,7 +293,7 @@ void guiSetup()
     font_setup();
 
     /* Initialize the LVGL display driver with correct orientation */
-#if(TOUCH_DRIVER == 0x2046) || defined(LGFX_USE_V1) // Use native display driver to rotate display and touch
+#if(TOUCH_DRIVER == 0x2046) // || defined(LGFX_USE_V1) // Use native display driver to rotate display and touch
     static lv_disp_drv_t disp_drv;
     lv_disp_drv_init(&disp_drv);
     disp_drv.buffer   = &disp_buf;
