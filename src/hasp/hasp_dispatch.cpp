@@ -705,27 +705,25 @@ void dispatch_exec(const char*, const char* payload, uint8_t source)
 
     // char buffer[512]; // use stack
     String buffer((char*)0); // use heap
-    buffer.reserve(256);
+    buffer.reserve(512);
 
-    ReadBufferingStream bufferedFile{cmdfile, 256};
+    ReadBufferingStream bufferedFile{cmdfile, 512};
     cmdfile.seek(0);
 
     while(bufferedFile.available()) {
         size_t index = 0;
         buffer       = "";
-        // while(index < sizeof(buffer) - 1) {
         while(index < MQTT_MAX_PACKET_SIZE) {
             int c = bufferedFile.read();
             if(c < 0 || c == '\n' || c == '\r') { // CR or LF
                 break;
             }
-            // buffer[index] = (char)c;
             buffer += (char)c;
             index++;
         }
-        // buffer[index] = 0;                                                      // terminate string
-        // if(index > 0 && buffer[0] != '#') dispatch_text_line(buffer.c_str(), TAG_FILE); // # for comments
-        if(index > 0 && buffer.charAt(0) != '#') dispatch_text_line(buffer.c_str(), TAG_FILE); // # for comments
+        if(index > 0 && buffer.charAt(0) != '#') { // Check for comments
+            dispatch_text_line(buffer.c_str(), TAG_FILE);
+        }
     }
 
     cmdfile.close();

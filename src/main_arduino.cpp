@@ -121,6 +121,7 @@ void setup()
 
     mainLastLoopTime = -1000; // reset loop counter
     delay(20);
+    dispatch_exec(NULL, "/boot.cmd", TAG_HASP);
     // guiStart();
 }
 
