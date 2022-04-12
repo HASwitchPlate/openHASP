@@ -3,6 +3,9 @@
 <!--
 ## v0.7.0
 
+### Objects
+- Support for State and Part properties
+
 ### Web UI
 - _Selectable dark/light theme?_
 
@@ -23,6 +26,7 @@
 - Additional `idle` parameters now accept `off`, `short` and `long`
 - Add `sensors` command to trigger the sensors state message
 - Run `/boot.cmd` when the plate is (re)booted and the script exists
+- You can now use `pXbY.jsonl` command to update multiple object properties at once (thanks @nagyrobi)
 
 ### Objects
 - All objects have a custom `tag` property which can contain abritrary JSON data *(or numbers or text)* (thanks @nagyrobi)
@@ -31,18 +35,22 @@
 - `img.src` now accepts 16-bit BMP files stored in flash
 
 ### Web UI
-- Updated to modern responsive design
+- Updated to modern responsive design *(requires JavaScript)*
 - Add `/api/*/` endpoints for `info/` and `config/*/`
 - Allow for a customizible `vars.css`, `style.css`, `script.js` and `edit.htm`
 - Display a message when the configuration is changed and a reboot is needed
 - Add checkbox for backlight inversion to Display settings (thanks @wolffman122)
 - Add checkbox to toggle ANSI codes (thanks @geiseri)
+- Allow firmware upgrade/downgrade in AP mode
+
+### Devices
+- Add support for Wireless-Tag WT-86-32-3ZW1
 
 ### GUI
 - Hide cursor during `antiburn` and `idle` if the pointer is enabled
 
 ### MQTT
--  Remember last `page` id for mqtt messages, so multiple messages behave like `jsonl` files (thanks @arovak)
+-  Remember last `page` id of `jsonl` messages. Multiple messages behave like `jsonl` files (thanks @arovak)
 
 ### Fonts
 - Custom LVGL binary fonts can be read from flash and loaded into memory, PSram is *highly* recommended
@@ -67,7 +75,7 @@
 ### Architecture
 - Moved to Tasmota Arduino 2.0.3rc1 with native LittleFS library (thanks @Jason2866)
 - Moved to ESP-IDF 4.4 with fixes for FragAttacks CVEs (thanks @nagyrobi)
-- Add support for ESP32-S2
+- Add support for ESP32-S2 devices
 - ⚠️ **Breaking:** Removed support for ESP8266!
 
 Updated libraries to ArduinoJson 6.19.4, ArduinoStreamUtils 1.6.2, AceButton 1.9.2, TFT_eSPI 2.4.42, LovyanGFX 0.4.15 and Adafruit STMPE610 1.1.4
