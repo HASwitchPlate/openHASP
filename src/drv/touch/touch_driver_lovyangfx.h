@@ -33,7 +33,7 @@ class TouchLovyanGfx : public BaseTouch {
             data->point.y = touchY;
             data->state   = LV_INDEV_STATE_PR;
             hasp_set_sleep_offset(0); // Reset the offset
-            
+
             LOG_VERBOSE(TAG_DRVR, F("Touch: %d %d"), touchX, touchY);
         } else {
             data->state = LV_INDEV_STATE_REL;
@@ -46,7 +46,6 @@ class TouchLovyanGfx : public BaseTouch {
     void init(int w, int h)
     {
         Wire.begin(TOUCH_SDA, TOUCH_SCL, (uint32_t)I2C_TOUCH_FREQUENCY);
-        // delay(300); // already happens in touch.begin()
         touch_scan(Wire);
     }
 

@@ -185,9 +185,10 @@ static void configure_panel(lgfx::Panel_Device* panel, Preferences* prefs)
     cfg.memory_width  = prefs->getUInt("memory_width", cfg.panel_width);   // Maximum width supported by driver IC
     cfg.memory_height = prefs->getUInt("memory_height", cfg.panel_height); // Maximum height supported by driver IC
 
-    cfg.offset_x        = prefs->getUInt("offset_x", 0);        // Amount of offset in the X direction of the panel
-    cfg.offset_y        = prefs->getUInt("offset_y", 0);        // Amount of offset in the Y direction of the panel
-    cfg.offset_rotation = prefs->getUInt("offset_rotation", 0); // Offset of the rotation 0 ~ 7 (4 ~ 7 is upside down)
+    cfg.offset_x = prefs->getUInt("offset_x", 0); // Amount of offset in the X direction of the panel
+    cfg.offset_y = prefs->getUInt("offset_y", 0); // Amount of offset in the Y direction of the panel
+    cfg.offset_rotation =
+        prefs->getUInt("offset_rotation", TFT_OFFSET_ROTATION); // Offset of the rotation 0 ~ 7 (4 ~ 7 is upside down)
 
     cfg.dummy_read_pixel = prefs->getUInt("dummy_read_pixel", 8); // Number of dummy read bits before pixel read
     cfg.dummy_read_bits =
@@ -298,6 +299,52 @@ lgfx::Panel_Device* LovyanGfx::_init_panel(lgfx::IBus* bus)
     return panel;
 }
 
+lgfx::ITouch* _init_touch(Preferences* preferences)
+{
+    // lgfx::ITouch* touch = nullptr;
+    // switch(tft_driver) {
+    //     default:
+    // case 0x9341: {
+    LOG_DEBUG(TAG_TFT, F("%s - %d"), __FILE__, __LINE__);
+    // break;
+    //       }
+
+#if 0 && TOUCH_DRIVER == 0x6336
+    { // タッチスクリーン制御の設定を行います。（必要なければ削除）
+        auto touch = new lgfx::Touch_FT5x06();
+        auto cfg   = touch->config();
+
+        cfg.x_min      = 0;              // タッチスクリーンから得られる最小のX値(生の値)
+        cfg.x_max      = TFT_WIDTH - 1;  // タッチスクリーンから得られる最大のX値(生の値)
+        cfg.y_min      = 0;              // タッチスクリーンから得られる最小のY値(生の値)
+        cfg.y_max      = TFT_HEIGHT - 1; // タッチスクリーンから得られる最大のY値(生の値)
+        cfg.pin_int    = TOUCH_IRQ;      // INTが接続されているピン番号
+        cfg.bus_shared = true;           // 画面と共通のバスを使用している場合 trueを設定
+        cfg.offset_rotation = TOUCH_OFFSET_ROTATION; // 表示とタッチの向きのが一致しない場合の調整 0~7の値で設定
+
+        // SPI接続の場合
+        // cfg.spi_host = VSPI_HOST; // 使用するSPIを選択 (HSPI_HOST or VSPI_HOST)
+        // cfg.freq     = 1000000;   // SPIクロックを設定
+        // cfg.pin_sclk = 18;        // SCLKが接続されているピン番号
+        // cfg.pin_mosi = 23;        // MOSIが接続されているピン番号
+        // cfg.pin_miso = 19;        // MISOが接続されているピン番号
+        // cfg.pin_cs   = 5;         //   CSが接続されているピン番号
+
+        // I2C接続の場合
+        cfg.i2c_port = I2C_TOUCH_PORT;      // 使用するI2Cを選択 (0 or 1)
+        cfg.i2c_addr = I2C_TOUCH_ADDRESS;   // I2Cデバイスアドレス番号
+        cfg.pin_sda  = TOUCH_SDA;           // SDAが接続されているピン番号
+        cfg.pin_scl  = TOUCH_SCL;           // SCLが接続されているピン番号
+        cfg.freq     = I2C_TOUCH_FREQUENCY; // I2Cクロックを設定
+
+        touch->config(cfg);
+        return touch;
+    }
+#endif
+
+    return nullptr;
+}
+
 void LovyanGfx::init(int w, int h)
 {
     LOG_TRACE(TAG_TFT, F(D_SERVICE_STARTING));
@@ -312,6 +359,12 @@ void LovyanGfx::init(int w, int h)
         panel->setBus(bus);
         configure_panel(panel, &preferences);
     }
+
+    lgfx::ITouch* touch = _init_touch(&preferences);
+    if(touch != nullptr) {
+        panel->setTouch(touch);
+    }
+
     tft.setPanel(panel);
 
     /* TFT init */

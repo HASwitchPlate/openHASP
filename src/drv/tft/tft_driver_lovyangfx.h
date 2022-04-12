@@ -102,7 +102,12 @@
 #ifndef SPI_READ_FREQUENCY
 #define SPI_READ_FREQUENCY 0
 #endif
-
+#ifndef TFT_OFFSET_ROTATION
+#define TFT_OFFSET_ROTATION 0
+#endif
+#ifndef TOUCH_OFFSET_ROTATION
+#define TOUCH_OFFSET_ROTATION 0
+#endif
 namespace dev {
 class LGFX : public lgfx::LGFX_Device {
   public:
