@@ -8,8 +8,17 @@
 
 #include "hasplib.h"
 
+void Parser::ColorToHaspPayload(lv_color_t color, char* payload, size_t size)
+{
+    lv_color32_t c32;
+    c32.full = lv_color_to32(color);
+    snprintf_P(payload, size, PSTR("#%02x%02x%02x"), c32.ch.red, c32.ch.green, c32.ch.blue);
+}
+
 bool Parser::haspPayloadToColor(const char* payload, lv_color32_t& color)
 {
+    if(!payload) return false;
+
     /* HEX format #rrggbb or #rgb */
     if(*payload == '#') {
         if(strlen(payload) >= 8) return false;
