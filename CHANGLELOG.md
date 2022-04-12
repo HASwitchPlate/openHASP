@@ -1,6 +1,6 @@
 # openHASP Changelog
 
-<!-->
+<!--
 ## v0.7.0
 
 ### Web UI
