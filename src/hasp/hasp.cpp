@@ -198,9 +198,26 @@ void hasp_antiburn_cb(lv_task_t* task)
 {
     lv_obj_t* layer = lv_disp_get_layer_sys(NULL);
     if(layer) {
-        lv_color_t color[5] = {LV_COLOR_BLACK, LV_COLOR_WHITE, LV_COLOR_RED, LV_COLOR_LIME, LV_COLOR_BLUE};
-        lv_obj_set_style_local_bg_color(layer, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, color[task->repeat_count % 5]);
-        lv_obj_set_style_local_bg_opa(layer, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_COVER);
+        // lv_color_t color[5] = {LV_COLOR_BLACK, LV_COLOR_WHITE, LV_COLOR_RED, LV_COLOR_LIME, LV_COLOR_BLUE};
+        // lv_obj_set_style_local_bg_color(layer, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, color[task->repeat_count % 5]);
+        // lv_obj_set_style_local_bg_opa(layer, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_COVER);
+        lv_disp_t* disp         = lv_disp_get_default();
+        lv_disp_drv_t* disp_drv = &disp->driver;
+        lv_area_t area;
+
+        area.x1 = 0;
+        area.x2 = disp_drv->hor_res - 1;
+        lv_color_t color[disp_drv->hor_res];
+
+        for(lv_coord_t y = 0; y < disp_drv->ver_res; y++) {
+            for(lv_coord_t x = 0; x < disp_drv->hor_res; x++) {
+                color[x].full = random(UINT16_MAX);
+            }
+            area.y1 = y;
+            area.y2 = y;
+            haspTft.flush_pixels(disp_drv, &area, color);
+        }
+
         if(task->repeat_count != 1) return; // don't stop yet
     }
 
