@@ -532,7 +532,8 @@ static void webHandleApiConfig()
     JsonObject settings;
     String contentType = getContentType(F(".json"));
     String endpoint((char*)0);
-    endpoint = webServer.pathArg(0);
+    endpoint                 = webServer.pathArg(0);
+    const char* endpoint_key = endpoint.c_str();
 
     String postBody = webServer.arg("plain");
 
@@ -540,7 +541,7 @@ static void webHandleApiConfig()
         // Make sure we have a valid JsonObject to start from
         settings = doc.to<JsonObject>();
 
-    } else if(webServer.method() == HTTP_POST) {
+    } else if(webServer.method() == HTTP_POST || webServer.method() == HTTP_PUT) {
         DeserializationError jsonError = deserializeJson(doc, postBody);
         if(jsonError) { // Couldn't parse incoming JSON command
             dispatch_json_error(TAG_HTTP, jsonError);
@@ -552,28 +553,49 @@ static void webHandleApiConfig()
         return;
     }
 
-    if(!strcasecmp_P(endpoint.c_str(), PSTR("wifi"))) {
-        wifiGetConfig(settings);
-    } else if(!strcasecmp_P(endpoint.c_str(), PSTR("mqtt"))) {
-        mqttGetConfig(settings);
-    } else if(!strcasecmp_P(endpoint.c_str(), PSTR("http"))) {
-        httpGetConfig(settings);
-    } else if(!strcasecmp_P(endpoint.c_str(), PSTR("gui"))) {
-        guiGetConfig(settings);
-    } else if(!strcasecmp_P(endpoint.c_str(), PSTR("debug"))) {
-        debugGetConfig(settings);
-    } else if(!strcasecmp_P(endpoint.c_str(), PSTR("time"))) {
-        if(webServer.method() == HTTP_POST) {
-            configOutput(settings, TAG_HTTP);
+    if(webServer.method() == HTTP_POST || webServer.method() == HTTP_PUT) {
+        configOutput(settings, TAG_HTTP); // Log input JSON config
+
+        if(!strcasecmp_P(endpoint_key, PSTR("wifi"))) {
+            wifiSetConfig(settings);
+        } else if(!strcasecmp_P(endpoint_key, PSTR("mqtt"))) {
+            mqttSetConfig(settings);
+        } else if(!strcasecmp_P(endpoint_key, PSTR("hasp"))) {
+            haspSetConfig(settings);
+        } else if(!strcasecmp_P(endpoint_key, PSTR("http"))) {
+            httpSetConfig(settings);
+        } else if(!strcasecmp_P(endpoint_key, PSTR("gui"))) {
+            guiSetConfig(settings);
+        } else if(!strcasecmp_P(endpoint_key, PSTR("debug"))) {
+            debugSetConfig(settings);
+        } else if(!strcasecmp_P(endpoint_key, PSTR("time"))) {
             timeSetConfig(settings);
+        } else {
+            LOG_WARNING(TAG_HTTP, F("Invalid module %s"), endpoint_key);
+            return;
         }
-        settings = doc.to<JsonObject>();
+    }
+
+    settings = doc.to<JsonObject>();
+    if(!strcasecmp_P(endpoint_key, PSTR("wifi"))) {
+        wifiGetConfig(settings);
+    } else if(!strcasecmp_P(endpoint_key, PSTR("mqtt"))) {
+        mqttGetConfig(settings);
+    } else if(!strcasecmp_P(endpoint_key, PSTR("hasp"))) {
+        haspGetConfig(settings);
+    } else if(!strcasecmp_P(endpoint_key, PSTR("http"))) {
+        httpGetConfig(settings);
+    } else if(!strcasecmp_P(endpoint_key, PSTR("gui"))) {
+        guiGetConfig(settings);
+    } else if(!strcasecmp_P(endpoint_key, PSTR("debug"))) {
+        debugGetConfig(settings);
+    } else if(!strcasecmp_P(endpoint_key, PSTR("time"))) {
         timeGetConfig(settings);
-        configOutput(settings, TAG_HTTP);
     } else {
         webServer.send(400, contentType, "Bad Request");
         return;
     }
+    configOutput(settings, TAG_HTTP); // Log current JSON config
 
     LOG_WARNING(TAG_HTTP, "%s - %d", __FILE__, __LINE__);
     // Mask non-blank passwords
@@ -1117,42 +1139,31 @@ static void webHandleMqttConfig()
         // Node Name
         httpMessage +=
             F("<div class='row'><div class='col-25'><label class='required' for='name'>Plate Name</label></div>");
-        httpMessage +=
-            F("<div class='col-75'><input required type='text' id='name' name='name' maxlength=15 pattern='[a-z0-9_]*' "
-              "placeholder='Plate Name' value='");
-        // httpMessage += settings[FPSTR(FP_CONFIG_NAME)].as<String>();
-        httpMessage += F("'></div></div>");
+        httpMessage += F("<div class='col-75'><input required type='text' id='name' name='name' maxlength=15 "
+                         "pattern='[a-z0-9_]*' placeholder='Plate Name' value=''></div></div>");
 
         // Group Name
         httpMessage += F("<div class='row gap'><div class='col-25'><label for='group'>Group Name</label></div>");
         httpMessage +=
             F("<div class='col-75'><input type='text' id='group' name='group' maxlength=15 pattern='[a-z0-9_]*' "
-              "placeholder='Group Name' value='");
-        // httpMessage += settings[FPSTR(FP_CONFIG_GROUP)].as<String>();
-        httpMessage += F("'></div></div>");
+              "placeholder='Group Name' value=''></div></div>");
 
         // Broker
         httpMessage += F("<div class='row'><div class='col-25'><label for='host'>Broker</label></div>");
         httpMessage += F("<div class='col-75'><input type='text' id='host' name='host' maxlength=");
         httpMessage += MAX_HOSTNAME_LENGTH - 1;
-        httpMessage += F(" placeholder='Server Name' value='");
-        // httpMessage += settings[FPSTR(FP_CONFIG_HOST)].as<String>();
-        httpMessage += F("'></div></div>");
+        httpMessage += F(" placeholder='Server Name' value=''></div></div>");
 
         // Mqtt Port
         httpMessage += F("<div class='row gap'><div class='col-25'><label for='port'>Port</label></div>");
         httpMessage += F("<div class='col-75'><input type='number' id='port' name='port' min='0' max='65535' "
-                         "placeholder='1883' value='");
-        // httpMessage += settings[FPSTR(FP_CONFIG_PORT)].as<uint16_t>();
-        httpMessage += F("'></div></div>");
+                         "placeholder='1883' value=''></div></div>");
 
         // Mqtt User
         httpMessage += F("<div class='row'><div class='col-25'><label for='user'>User</label></div>");
         httpMessage += F("<div class='col-75'><input type='text' id='user' name='user' maxlength=");
         httpMessage += MAX_USERNAME_LENGTH - 1;
-        httpMessage += F(" placeholder='MQTT User' value='");
-        // httpMessage += settings[FPSTR(FP_CONFIG_USER)].as<String>();
-        httpMessage += F("'></div></div>");
+        httpMessage += F(" placeholder='MQTT User' value=''></div></div>");
 
         // Mqtt Password
         httpMessage += F("<div class='row'><div class='col-25'><label for='pass'>Password</label></div>");
@@ -1876,8 +1887,8 @@ static void webHandleHaspConfig()
         // File
         httpMessage +=
             F("<div class='row'><div class='col-25'><label class='required' for='filename'>From File</label></div>");
-        httpMessage +=
-            F("<div class='col-75'><input required type='file' name='filename'  accept='.jsonl,.png,.zi'></div></div>");
+        httpMessage += F("<div class='col-75'><input required type='file' name='filename'  "
+                         "accept='.jsonl,.png,.zi'></div></div>");
 
         // Destination
         httpMessage += F("<div class='row'><div class='col-25'><label for='file'>Target</label></div>");
@@ -1891,7 +1902,6 @@ static void webHandleHaspConfig()
 #endif
 
         // Form
-        // httpMessage += F("<div class='container'><form method='POST' action='/config'>");
         httpMessage += F("<div class='container'><form method='POST' action='/'>");
 
         // Theme
@@ -1918,13 +1928,19 @@ static void webHandleHaspConfig()
         httpMessage += F("</select></div></div>");
 
         // Hue
-        httpMessage += F("<div class='row'><div class='col-25'><label for='hue'>Hue</label></div>");
-        httpMessage += F("<div class='col-75'><div style='width:100%;background-image:linear-gradient(to "
-                         "right,red,orange,yellow,green,blue,indigo,violet,red);'><input "
-                         "style='align:center;padding:0px;width:100%;' "
-                         "name='hue' type='range' min='0' max='360' value='");
-        httpMessage += settings[FPSTR(FP_CONFIG_HUE)].as<String>();
-        httpMessage += F("'></div></div></div>");
+        // httpMessage += F("<div class='row'><div class='col-25'><label for='hue'>Hue</label></div>");
+        // httpMessage += F("<div class='col-75'><div style='width:100%;background-image:linear-gradient(to "
+        //                  "right,red,orange,yellow,green,blue,indigo,violet,red);'><input "
+        //                  "style='align:center;padding:0px;width:100%;' "
+        //                  "name='hue' type='range' min='0' max='360' value=''></div></div></div>");
+
+        // Primary Color
+        httpMessage += F("<div class='row'><div class='col-25'><label for='color1'>Primary Color</label></div>");
+        httpMessage += F("<div class='col-75'><input id='color1' name='color1' type='color'></div></div>");
+
+        // Secondary Color
+        httpMessage += F("<div class='row'><div class='col-25'><label for='color2'>Secondary Color</label></div>");
+        httpMessage += F("<div class='col-75'><input id='color2' name='color2' type='color'></div></div>");
 
         // Font
         httpMessage += F("<div class='row gap'><div class='col-25'><label for='font'>Default Font</label></div>");
@@ -1954,30 +1970,25 @@ static void webHandleHaspConfig()
 
         // Pages.jsonl
         httpMessage += F("<div class='row'><div class='col-25'><label for='pages'>Startup Layout</label></div>");
-        httpMessage +=
-            F("<div class='col-75'><input id='pages' name='pages' maxlength=31 placeholder='/pages.jsonl' value='");
-        httpMessage += settings[FPSTR(FP_CONFIG_PAGES)].as<String>();
-        httpMessage += F("'></div></div>");
+        httpMessage += F("<div class='col-75'><input id='pages' name='pages' maxlength=31 placeholder='/pages.jsonl' "
+                         "value=''></div></div>");
 
         // Startup Page
         httpMessage += F("<div class='row'><div class='col-25'><label for='startpage'>Startup Page</label></div>");
         httpMessage += F("<div class='col-75'><input id='startpage' required "
-                         "name='startpage' type='number' min='1' max='12' value='");
-        httpMessage += settings[FPSTR(FP_CONFIG_STARTPAGE)].as<String>();
-        httpMessage += F("'></div></div>");
+                         "name='startpage' type='number' min='1' max='12' value=''></div></div>");
 
         // Startup Brightness
         httpMessage += F("<div class='row'><div class='col-25'><label for='startdim'>Startup Brightness</label></div>");
-        httpMessage += F("<div class='col-75'><input id='startpage' required name='startdim' type='number' min='0' "
-                         "max='255' value='");
-        httpMessage += settings[FPSTR(FP_CONFIG_STARTDIM)].as<String>();
-        httpMessage += F("'></div></div>");
+        httpMessage += F("<div class='col-75'><input id='startdim' required name='startdim' type='number' min='0' "
+                         "max='255' value=''></div></div>");
 
         // Submit & End Form
         httpMessage += F("<button type='submit' name='save' value='hasp'>" D_HTTP_SAVE_SETTINGS "</button>");
         httpMessage += F("</form></div>");
 
         httpMessage += FPSTR(MAIN_MENU_BUTTON);
+        httpMessage += F("<script>filler(\"GET\",\"/api/config/hasp/\")</script>");
 
         webSendHeader(haspDevice.get_hostname(), httpMessage.length(), false);
         webServer.sendContent(httpMessage);
@@ -2141,11 +2152,11 @@ static void httpHandleResetConfig()
         } else {
             // Form
             httpMessage += F("<form method='POST' action='/resetConfig'>");
-            httpMessage +=
-                F("<div class=\"warning\"><b>Warning</b><p>This process will reset all settings to the default values. "
-                  "The internal flash will be erased and the device is restarted. You may need to connect to the WiFi "
-                  "AP displayed on the panel to reconfigure the device before accessing it again.</p>"
-                  "<p>ALL FILES WILL BE LOST!</p></div>");
+            httpMessage += F(
+                "<div class=\"warning\"><b>Warning</b><p>This process will reset all settings to the "
+                "default values. The internal flash will be erased and the device is restarted. You may need to "
+                "connect to the WiFi AP displayed on the panel to reconfigure the device before accessing it again.</p>"
+                "<p>ALL FILES WILL BE LOST!</p></div>");
             httpMessage += F("<p><button class='red' type='submit' name='confirm' value='yes'>" D_HTTP_ERASE_DEVICE
                              "</button></p></form>");
 
