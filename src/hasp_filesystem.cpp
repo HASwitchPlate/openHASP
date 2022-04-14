@@ -156,7 +156,7 @@ void filesystemInfo()
     Parser::format_bytes(HASP_FS.totalBytes(), total, sizeof(total));
 #endif
 
-    Log.verbose(TAG_FILE, "Partition size: used: %s / total: %s", total, used);
+    Log.verbose(TAG_FILE, "Partition size: used: %s / total: %s", used, total);
 }
 
 void filesystemList()
