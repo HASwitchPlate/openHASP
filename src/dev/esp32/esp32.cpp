@@ -108,7 +108,7 @@ Esp32Device::Esp32Device()
     _backlight_invert = (TFT_BACKLIGHT_ON == LOW);
     _backlight_power  = 1;
     _backlight_level  = 255;
-    _backlight_pin    = TFT_BCKL;
+    _backlight_pin    = 255; // not TFT_BCKL because it is unkown at this stage
 
     /* fill unique identifier with wifi mac */
     byte mac[6];
