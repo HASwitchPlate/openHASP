@@ -115,7 +115,7 @@ label {
     background-repeat: no-repeat
 }
 
-.edit::before {
+.edit:before {
     content: "\0000a0"
 }
 
@@ -129,7 +129,7 @@ label {
     text-decoration: none
 }
 
-.trash::before {
+.trash:before {
     content: "\0000a0"
 }
 
