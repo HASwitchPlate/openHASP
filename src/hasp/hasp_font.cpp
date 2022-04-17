@@ -63,38 +63,26 @@ static lv_font_t* font_add_to_list(const char* payload)
     char* name_p    = NULL;
 
 #if defined(ARDUINO_ARCH_ESP32) && (HASP_USE_FREETYPE > 0)
-    if(!font) {
-        // Try .ttf file
+    char* ext[] = {"ttf", "otf"};
+    for(size_t i = 0; i < 2; i++) {
+        if(!font) {
+            size_t pos = font_split_payload(payload);
+            if(pos > 0 && pos < 56) {
+                uint16_t size = atoi(payload + pos);
 
-        size_t pos = font_split_payload(payload);
-        if(pos > 0 && pos < 56) {
-            uint16_t size = atoi(payload + pos);
+                char fontname[64];
+                memset(fontname, 0, sizeof(fontname));
+                strncpy(fontname, payload, pos);
+                snprintf_P(filename, sizeof(filename), PSTR("L:\\%s.%s"), fontname, ext[i]);
 
-            char fontname[64];
-            memset(fontname, 0, sizeof(fontname));
-            strncpy(fontname, payload, pos);
-            snprintf_P(filename, sizeof(filename), PSTR("L:\\%s.ttf"), fontname);
-
-            lv_ft_info_t info;
-            info.name   = filename;
-            info.weight = size;
-            info.style  = FT_FONT_STYLE_NORMAL;
-            if(lv_ft_font_init(&info)) {
-                font = info.font;
+                lv_ft_info_t info;
+                info.name   = filename;
+                info.weight = size;
+                info.style  = FT_FONT_STYLE_NORMAL;
+                if(lv_ft_font_init(&info)) {
+                    font = info.font;
+                }
             }
-        }
-    }
-
-    if(!font) {
-        // Try .otf file
-        snprintf_P(filename, sizeof(filename), PSTR("L:\\%s.otf"), payload);
-
-        lv_ft_info_t info;
-        info.name   = filename;
-        info.weight = 56;
-        info.style  = FT_FONT_STYLE_NORMAL;
-        if(lv_ft_font_init(&info)) {
-            font = info.font;
         }
     }
 #endif
