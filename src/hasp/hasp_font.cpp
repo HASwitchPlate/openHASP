@@ -66,6 +66,7 @@ static lv_font_t* font_add_to_list(const char* payload)
     char* ext[] = {"ttf", "otf"};
     for(size_t i = 0; i < 2; i++) {
         if(!font) {
+
             size_t pos = font_split_payload(payload);
             if(pos > 0 && pos < 56) {
                 uint16_t size = atoi(payload + pos);
@@ -74,6 +75,19 @@ static lv_font_t* font_add_to_list(const char* payload)
                 memset(fontname, 0, sizeof(fontname));
                 strncpy(fontname, payload, pos);
                 snprintf_P(filename, sizeof(filename), PSTR("L:\\%s.%s"), fontname, ext[i]);
+                LOG_WARNING(TAG_FONT, F("Trying %s"), filename);
+
+                // Test if the file exists and can be opened
+                lv_fs_file_t f;
+                lv_fs_res_t res;
+                res = lv_fs_open(&f, filename, LV_FS_MODE_RD);
+                if(res != LV_FS_RES_OK) {
+                    LOG_WARNING(TAG_FONT, F(D_FILE_NOT_FOUND ": %s"), filename);
+                    continue;
+                } else {
+                    lv_fs_close(&f);
+                    LOG_WARNING(TAG_FONT, F(D_FILE_LOADING), filename);
+                }
 
                 lv_ft_info_t info;
                 info.name   = filename;
