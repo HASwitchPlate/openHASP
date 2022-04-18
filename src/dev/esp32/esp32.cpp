@@ -412,6 +412,15 @@ void Esp32Device::get_info(JsonDocument& doc)
 
     Parser::format_bytes(ESP.getFreeSketchSpace(), size_buf, sizeof(size_buf));
     info[F(D_INFO_SKETCH_FREE)] = size_buf;
+
+    Parser::format_bytes(HASP_FS.totalBytes(), size_buf, sizeof(size_buf));
+    info[F(D_INFO_FS_SIZE)] = size_buf;
+
+    Parser::format_bytes(HASP_FS.usedBytes(), size_buf, sizeof(size_buf));
+    info[F(D_INFO_FS_USED)] = size_buf;
+
+    Parser::format_bytes(HASP_FS.totalBytes() - HASP_FS.usedBytes(), size_buf, sizeof(size_buf));
+    info[F(D_INFO_FS_FREE)] = size_buf;
 }
 
 void Esp32Device::get_sensors(JsonDocument& doc)
