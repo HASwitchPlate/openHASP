@@ -75,18 +75,17 @@ static lv_font_t* font_add_to_list(const char* payload)
                 memset(fontname, 0, sizeof(fontname));
                 strncpy(fontname, payload, pos);
                 snprintf_P(filename, sizeof(filename), PSTR("L:\\%s.%s"), fontname, ext[i]);
-                LOG_WARNING(TAG_FONT, F("Trying %s"), filename);
 
                 // Test if the file exists and can be opened
                 lv_fs_file_t f;
                 lv_fs_res_t res;
                 res = lv_fs_open(&f, filename, LV_FS_MODE_RD);
                 if(res != LV_FS_RES_OK) {
-                    LOG_WARNING(TAG_FONT, F(D_FILE_NOT_FOUND ": %s"), filename);
+                    LOG_VERBOSE(TAG_FONT, F(D_FILE_NOT_FOUND ": %s"), filename);
                     continue;
                 } else {
                     lv_fs_close(&f);
-                    LOG_WARNING(TAG_FONT, F(D_FILE_LOADING), filename);
+                    LOG_VERBOSE(TAG_FONT, F(D_FILE_LOADING), filename);
                 }
 
                 lv_ft_info_t info;
