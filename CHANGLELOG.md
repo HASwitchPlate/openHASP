@@ -9,23 +9,25 @@
 ### Web UI
 - _Selectable dark/light theme?_
 
-### Fonts
-- Use FreeType fonts from flash
-
 ### Services
 - Add SimpleFTPServer to easily upload and download files to the plate *(one simultanious connection only)*
 
-### Architecture
+### Devices
+- Add support for Wireless-Tag WT-86-32-3ZW1
 
+### Architecture
+- Moved to Tasmota Arduino 2.0.3rc1 with native LittleFS library (thanks @Jason2866)
+- Moved to ESP-IDF 4.4 with fixes for FragAttacks CVEs (thanks @nagyrobi)
+- Add support for ESP32-S2 devices
 
 -->
 
-## v0.6.3
+## v0.6.3-dev
 
 ### Commands
 - Additional `idle` parameters now accept `off`, `short` and `long`
 - Add `sensors` command to trigger the sensors state message
-- Run `/boot.cmd` when the plate is (re)booted and the script exists
+- Run `/boot.cmd` when the plate is (re)booted if the script exists
 - You can now use `pXbY.jsonl` command to update multiple object properties at once (thanks @nagyrobi)
 
 ### Objects
@@ -36,23 +38,22 @@
 
 ### Web UI
 - Updated to modern responsive design *(requires JavaScript)*
-- Add `/api/*/` endpoints for `info/` and `config/*/`
+- Add `/api/info/` and `/api/config/*/` endpoints
 - Allow for a customizible `vars.css`, `style.css`, `script.js` and `edit.htm`
 - Display a message when the configuration is changed and a reboot is needed
 - Add checkbox for backlight inversion to Display settings (thanks @wolffman122)
 - Add checkbox to toggle ANSI codes (thanks @geiseri)
 - Allow firmware upgrade/downgrade in AP mode
 
-### Devices
-- Add support for Wireless-Tag WT-86-32-3ZW1
-
 ### GUI
+- `antiburn` displays random pixels *aka.* white noise
 - Hide cursor during `antiburn` and `idle` if the pointer is enabled
 
 ### MQTT
 -  Remember last `page` id of `jsonl` messages. Multiple messages behave like `jsonl` files (thanks @arovak)
 
 ### Fonts
+- Use TrueType fonts from flash, PSram is *highly* recommended (thanks to @s-hadinger)
 - Custom LVGL binary fonts can be read from flash and loaded into memory, PSram is *highly* recommended
 - Font ID is replaced by `namexx` *(where `xx` is the font size)* but the previous Font IDs still work for backwards compatibility
 - Added build option for Vietnamese character set (thanks @kydang789)
@@ -69,13 +70,10 @@
 - Syslog message format fixes and improvements (thanks @geiseri)
 
 ### Custom component
-- Expose `antiburn` for the CC (thanks @dgomes)
-- Expose the device URL in discovery message
+- Expose `antiburn` and `page` in the CC (thanks @dgomes)
+- Expose the device URL in discovery message and CC
 
 ### Architecture
-- Moved to Tasmota Arduino 2.0.3rc1 with native LittleFS library (thanks @Jason2866)
-- Moved to ESP-IDF 4.4 with fixes for FragAttacks CVEs (thanks @nagyrobi)
-- Add support for ESP32-S2 devices
 - ⚠️ **Breaking:** Removed support for ESP8266!
 
 Updated libraries to ArduinoJson 6.19.4, ArduinoStreamUtils 1.6.2, AceButton 1.9.2, TFT_eSPI 2.4.42, LovyanGFX 0.4.15 and Adafruit STMPE610 1.1.4
