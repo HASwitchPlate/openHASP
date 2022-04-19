@@ -71,10 +71,11 @@ int mqttPublish(const char* topic, const char* payload, size_t len, bool retain)
         return MQTT_ERR_NO_CONN;
     }
 
+    // Write directly to the client, don't use the buffer
     if(mqttClient.beginPublish(topic, len, retain)) {
-        mqttPublishCount++;
         mqttClient.write((uint8_t*)payload, len);
         mqttClient.endPublish();
+        mqttPublishCount++;
         return MQTT_ERR_OK;
     }
 

@@ -78,6 +78,7 @@ void task_every_second_cb(lv_task_t* task)
 
 void task_teleperiod_cb(lv_task_t* task)
 {
+#if HASP_USE_MQTT > 0
     if(!mqttIsConnected()) return;
 
     switch(task->repeat_count) {
@@ -94,4 +95,5 @@ void task_teleperiod_cb(lv_task_t* task)
 
     // task is about to get deleted
     if(task->repeat_count == 1) task->repeat_count = 4;
+#endif
 }

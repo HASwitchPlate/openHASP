@@ -126,7 +126,9 @@ IRAM_ATTR void loop()
     guiLoop();
     // haspLoop();
 
+#if HASP_USE_WIFI > 0 || HASP_USE_EHTERNET > 0
     networkLoop();
+#endif
 
 #if HASP_USE_GPIO > 0
     //  gpioLoop();
@@ -197,10 +199,12 @@ IRAM_ATTR void loop()
                 break;
 
             case 4:
+#if HASP_USE_WIFI > 0 || HASP_USE_EHTERNET > 0
                 isConnected = networkEvery5Seconds(); // Check connection
 
 #if HASP_USE_MQTT > 0
                 mqttEvery5Seconds(isConnected);
+#endif
 #endif
                 break;
 
@@ -215,11 +219,11 @@ IRAM_ATTR void loop()
         }
     }
 
+// allow the cpu to switch to other tasks
 #ifdef ARDUINO_ARCH_ESP8266
     delay(2); // ms
 #else
     delay(3); // ms
-              // delay((lv_task_get_idle() >> 5) + 3); // 2..5 ms
 #endif
 }
 

@@ -56,7 +56,7 @@ uint8_t saved_jsonl_page = 0;
  */
 void dispatch_state_subtopic(const char* subtopic, const char* payload)
 {
-#if !defined(HASP_USE_MQTT) && !defined(HASP_USE_TASMOTA_CLIENT)
+#if HASP_USE_MQTT == 0 && HASP_USE_TASMOTA_CLIENT == 0
     LOG_TRACE(TAG_MSGR, F("%s => %s"), subtopic, payload);
 #else
 
@@ -1413,6 +1413,7 @@ IRAM_ATTR void dispatchLoop()
 #if 1 || ARDUINO
 void dispatchEverySecond()
 {
+#if HASP_USE_MQTT > 0
     if(dispatchSecondsToNextTeleperiod > 1) {
         dispatchSecondsToNextTeleperiod--;
     } else if(dispatch_setings.teleperiod > 0 && mqttIsConnected()) {
@@ -1433,6 +1434,7 @@ void dispatchEverySecond()
         dispatch_send_discovery(NULL, NULL, TAG_MSGR);
         dispatchSecondsToNextDiscovery = dispatch_setings.teleperiod;
     }
+#endif
 }
 #else
 #include <chrono>

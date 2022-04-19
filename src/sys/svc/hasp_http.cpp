@@ -505,8 +505,10 @@ static void webHandleApi()
         add_json(jsondata, doc);
 #endif
 
+#if HASP_USE_WIFI > 0 || HASP_USE_EHTERNET > 0
         network_get_info(doc);
         add_json(jsondata, doc);
+#endif
 
         haspDevice.get_info(doc);
         add_json(jsondata, doc);
@@ -556,42 +558,62 @@ static void webHandleApiConfig()
     if(webServer.method() == HTTP_POST || webServer.method() == HTTP_PUT) {
         configOutput(settings, TAG_HTTP); // Log input JSON config
 
-        if(!strcasecmp_P(endpoint_key, PSTR("wifi"))) {
-            wifiSetConfig(settings);
-        } else if(!strcasecmp_P(endpoint_key, PSTR("mqtt"))) {
-            mqttSetConfig(settings);
-        } else if(!strcasecmp_P(endpoint_key, PSTR("hasp"))) {
+        if(!strcasecmp_P(endpoint_key, PSTR("hasp"))) {
             haspSetConfig(settings);
-        } else if(!strcasecmp_P(endpoint_key, PSTR("http"))) {
-            httpSetConfig(settings);
         } else if(!strcasecmp_P(endpoint_key, PSTR("gui"))) {
             guiSetConfig(settings);
         } else if(!strcasecmp_P(endpoint_key, PSTR("debug"))) {
             debugSetConfig(settings);
+        } else
+#if HASP_USE_WIFI > 0
+            if(!strcasecmp_P(endpoint_key, PSTR("wifi"))) {
+            wifiSetConfig(settings);
         } else if(!strcasecmp_P(endpoint_key, PSTR("time"))) {
             timeSetConfig(settings);
-        } else {
+        } else
+#endif
+#if HASP_USE_MQTT > 0
+            if(!strcasecmp_P(endpoint_key, PSTR("mqtt"))) {
+            mqttSetConfig(settings);
+        } else
+#endif
+#if HASP_USE_HTTP > 0
+            if(!strcasecmp_P(endpoint_key, PSTR("http"))) {
+            httpSetConfig(settings);
+        } else
+#endif
+        {
             LOG_WARNING(TAG_HTTP, F("Invalid module %s"), endpoint_key);
             return;
         }
     }
 
     settings = doc.to<JsonObject>();
-    if(!strcasecmp_P(endpoint_key, PSTR("wifi"))) {
-        wifiGetConfig(settings);
-    } else if(!strcasecmp_P(endpoint_key, PSTR("mqtt"))) {
-        mqttGetConfig(settings);
-    } else if(!strcasecmp_P(endpoint_key, PSTR("hasp"))) {
+    if(!strcasecmp_P(endpoint_key, PSTR("hasp"))) {
         haspGetConfig(settings);
-    } else if(!strcasecmp_P(endpoint_key, PSTR("http"))) {
-        httpGetConfig(settings);
     } else if(!strcasecmp_P(endpoint_key, PSTR("gui"))) {
         guiGetConfig(settings);
     } else if(!strcasecmp_P(endpoint_key, PSTR("debug"))) {
         debugGetConfig(settings);
+    } else
+#if HASP_USE_WIFI > 0
+        if(!strcasecmp_P(endpoint_key, PSTR("wifi"))) {
+        wifiGetConfig(settings);
     } else if(!strcasecmp_P(endpoint_key, PSTR("time"))) {
         timeGetConfig(settings);
-    } else {
+    } else
+#endif
+#if HASP_USE_MQTT > 0
+        if(!strcasecmp_P(endpoint_key, PSTR("mqtt"))) {
+        mqttGetConfig(settings);
+    } else
+#endif
+#if HASP_USE_HTTP > 0
+        if(!strcasecmp_P(endpoint_key, PSTR("http"))) {
+        httpGetConfig(settings);
+    } else
+#endif
+    {
         webServer.send(400, contentType, "Bad Request");
         return;
     }
@@ -2152,11 +2174,12 @@ static void httpHandleResetConfig()
         } else {
             // Form
             httpMessage += F("<form method='POST' action='/resetConfig'>");
-            httpMessage += F(
-                "<div class=\"warning\"><b>Warning</b><p>This process will reset all settings to the "
-                "default values. The internal flash will be erased and the device is restarted. You may need to "
-                "connect to the WiFi AP displayed on the panel to reconfigure the device before accessing it again.</p>"
-                "<p>ALL FILES WILL BE LOST!</p></div>");
+            httpMessage +=
+                F("<div class=\"warning\"><b>Warning</b><p>This process will reset all settings to the "
+                  "default values. The internal flash will be erased and the device is restarted. You may need to "
+                  "connect to the WiFi AP displayed on the panel to reconfigure the device before accessing it "
+                  "again.</p>"
+                  "<p>ALL FILES WILL BE LOST!</p></div>");
             httpMessage += F("<p><button class='red' type='submit' name='confirm' value='yes'>" D_HTTP_ERASE_DEVICE
                              "</button></p></form>");
 
@@ -2190,7 +2213,8 @@ void httpStart()
     LOG_INFO(TAG_HTTP, F(D_SERVICE_STARTED " @ http://%s"),
              (WiFi.getMode() != WIFI_STA ? WiFi.softAPIP().toString().c_str() : WiFi.localIP().toString().c_str()));
 #endif
-#else
+#endif
+#if HASP_USE_ETHERNET > 0
     IPAddress ip;
 #if defined(ARDUINO_ARCH_ESP32)
     ip = ETH.localIP();
@@ -2252,8 +2276,10 @@ static inline void webStartConfigPortal()
     dnsServer.start(DNS_PORT, "*", apIP);
 #endif // HASP_USE_CAPTIVE_PORTAL
 
+#if HASP_USE_WIFI > 0
     // replay to all requests with same HTML
     webServer.onNotFound([]() { webHandleWifiConfig(); });
+#endif
 
     webServer.on(F("/style.css"), httpHandleFileFromFlash);
     webServer.on(F("/script.js"), httpHandleFileFromFlash);
