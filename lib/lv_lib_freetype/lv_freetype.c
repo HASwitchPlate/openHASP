@@ -211,8 +211,8 @@ bool lv_ft_font_init(lv_ft_info_t* info)
     font->user_data           = dsc;
     font->get_glyph_dsc       = get_glyph_dsc_cb;
     font->get_glyph_bitmap    = get_glyph_bitmap_cb;
-    font->line_height         = ((dsc->face->size->metrics.height + 32) >> 6);
-    font->base_line           = -((dsc->face->size->metrics.descender + 32) >> 6);
+    font->line_height         = ((dsc->face->size->metrics.ascender - dsc->face->size->metrics.descender + 32) >> 6);
+    font->base_line           = ((-dsc->face->size->metrics.descender + 32) >> 6);
     font->subpx               = LV_FONT_SUBPX_NONE;
     font->underline_position  = dsc->face->underline_position;
     font->underline_thickness = dsc->face->underline_thickness;
