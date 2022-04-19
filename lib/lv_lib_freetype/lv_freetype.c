@@ -201,6 +201,14 @@ bool lv_ft_font_init(lv_ft_info_t* info)
         face_info->cnt++;
 #endif
     }
+
+    FT_Error error = FT_Set_Char_Size(face, 0, info->weight * 64, 0, 0);
+    if(error) {
+        lv_mem_free(face_info);
+        LV_LOG_WARN("set char size error(%d)", error);
+        goto Fail;
+    }
+
     FT_Set_Pixel_Sizes(face, 0, info->weight);
 
     dsc->face                 = face;
