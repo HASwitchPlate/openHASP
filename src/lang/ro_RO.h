@@ -22,13 +22,13 @@
 #define D_FILE_SAVING "Se salvează %s"
 #define D_FILE_SAVED "S-a salvat %s"
 #define D_FILE_SAVE_FAILED "Salvarea %s a eșuat"
-#define D_FILE_NOT_FOUND "File not found" // new
-#define D_FILE_SIZE_BYTES "bytes"         // new
-#define D_FILE_SIZE_KILOBYTES "KiB"       // new
-#define D_FILE_SIZE_MEGABYTES "MiB"       // new
-#define D_FILE_SIZE_GIGABYTES "GiB"       // new
-#define D_FILE_SIZE_DIVIDER 1024          // new, kibi or kilo bytes
-#define D_DECIMAL_POINT ","               // new, decimal comma or point
+#define D_FILE_NOT_FOUND "Lipsă fișier"
+#define D_FILE_SIZE_BYTES "baiți"
+#define D_FILE_SIZE_KILOBYTES "KiB"
+#define D_FILE_SIZE_MEGABYTES "MiB"
+#define D_FILE_SIZE_GIGABYTES "GiB"
+#define D_FILE_SIZE_DIVIDER 1024
+#define D_DECIMAL_POINT ","
 
 #define D_SETTING_ENABLED "Activ"
 #define D_SETTING_DISABLED "Inactiv"
@@ -88,13 +88,13 @@
 
 #define D_ATTRIBUTE_UNKNOWN "Proprietate necunoscută: %s"
 // D_ATTRIBUTE_OBSOLETE D_ATTRIBUTE_INSTEAD can be used together or just D_ATTRIBUTE_OBSOLETE alone
-#define D_ATTRIBUTE_OBSOLETE "%s is obsolete"  // new
-#define D_ATTRIBUTE_INSTEAD ", use %s instead" // new
+#define D_ATTRIBUTE_OBSOLETE "%s s-a scos din uz"
+#define D_ATTRIBUTE_INSTEAD ", folosiți %s"
 #define D_ATTRIBUTE_READ_ONLY "%s este numai în citire"
 #define D_ATTRIBUTE_PAGE_METHOD_INVALID "Nu se poate apela %s pe o pagină"
-#define D_ATTRIBUTE_ALIGN_INVALID "Invalid align property: %s" // new
-#define D_ATTRIBUTE_COLOR_INVALID "Invalid color property: %s" // new
-#define D_ATTRIBUTE_LONG_MODE_INVALID "Invalid long mode: %s"  // new
+#define D_ATTRIBUTE_ALIGN_INVALID "Aliniere invalidă (align): %s"
+#define D_ATTRIBUTE_COLOR_INVALID "Culoare invalidă (color): %s"
+#define D_ATTRIBUTE_LONG_MODE_INVALID "Invalid long mode: %s"
 
 #define D_OOBE_SSID_VALIDATED "SSID %s validat"
 #define D_OOBE_AUTO_CALIBRATE "Calibrarea automată este activă"
@@ -137,7 +137,7 @@
 #define D_HTTP_PREV_PAGE "Pagina anterioară"
 #define D_HTTP_NEXT_PAGE "Pagina următoare"
 #define D_HTTP_CALIBRATE "Calibrare"
-#define D_HTTP_ANTIBURN "Run Anti Burn-in" // New
+#define D_HTTP_ANTIBURN "Protecție ardere ecran"
 #define D_HTTP_SCREENSHOT "Captură de ecran"
 #define D_HTTP_FILE_BROWSER "Browser de fișiere"
 #define D_HTTP_FIRMWARE_UPGRADE "Actualizare firmware"
@@ -146,13 +146,13 @@
 #define D_HTTP_MAIN_MENU "Meniu principal"
 #define D_HTTP_REBOOT "Repornire"
 #define D_HTTP_CONFIGURATION "Setări"
-#define D_HTTP_CONFIG_CHANGED "Configuration has changed, please click <a href='/reboot'>Restart</a> to save changes to flash." // New
+#define D_HTTP_CONFIG_CHANGED "Configuration has changed, please click <a href='/reboot'>Restart</a> to save changes to flash."
 #define D_HTTP_SENDING_PAGE "Pagina %S trimisă la %s"
 #define D_HTTP_FOOTER "de Francis Van Roie"
 
 #define D_INFO_VERSION "Versiune"
 #define D_INFO_BUILD_DATETIME "Data Build-ului"
-#define D_INFO_ENVIRONMENT "Environment" // new
+#define D_INFO_ENVIRONMENT "Mediu"
 #define D_INFO_UPTIME "Uptime"
 #define D_INFO_FREE_HEAP "Heap liber"
 #define D_INFO_FREE_BLOCK "Bloc liber"
@@ -186,7 +186,7 @@
 #define D_INFO_ETHERNET "Ethernet"
 #define D_INFO_WIFI "WiFi"
 #define D_INFO_LINK_SPEED "Viteză Link"
-#define D_INFO_FULL_DUPLEX "Full Duplex" // new
+#define D_INFO_FULL_DUPLEX "Duplexitate completă"
 #define D_INFO_SSID "SSID"
 #define D_INFO_RSSI "Putere semnal"
 #define D_INFO_IP_ADDRESS "Addresa IP"
