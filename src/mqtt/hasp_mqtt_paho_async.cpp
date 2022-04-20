@@ -66,9 +66,9 @@ bool mqttHAautodiscover = true;
 std::recursive_mutex dispatch_mtx;
 std::recursive_mutex publish_mtx;
 
-char mqttServer[MAX_HOSTNAME_LENGTH]   = MQTT_HOST;
-char mqttUser[MAX_USERNAME_LENGTH]     = MQTT_USER;
-char mqttPassword[MAX_PASSWORD_LENGTH] = MQTT_PASSW;
+char mqttServer[MAX_HOSTNAME_LENGTH]   = MQTT_HOSTNAME;
+char mqttUser[MAX_USERNAME_LENGTH]     = MQTT_USERNAME;
+char mqttPassword[MAX_PASSWORD_LENGTH] = MQTT_PASSWORD;
 // char mqttNodeName[16]  = MQTT_NODENAME;
 char mqttGroupName[16] = MQTT_GROUPNAME;
 uint16_t mqttPort      = MQTT_PORT;

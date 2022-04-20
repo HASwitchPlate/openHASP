@@ -7,15 +7,6 @@
 #include <stdint.h>
 #include "hasplib.h"
 
-// #if defined(WINDOWS) || defined(POSIX)
-// #define __FlashStringHelper char
-// #endif
-
-#ifdef ARDUINO
-#include "PubSubClient.h"
-extern PubSubClient mqttClient;
-#endif
-
 typedef enum {
     MQTT_ERR_OK       = 0,
     MQTT_ERR_DISABLED = -1,
@@ -85,20 +76,32 @@ bool mqttSetConfig(const JsonObject& settings);
 #define MQTT_GROUPNAME "plates";
 #endif
 
+#ifndef MQTT_HOSTNAME
 #ifndef MQTT_HOST
-#define MQTT_HOST "";
+#define MQTT_HOSTNAME "";
+#else
+#define MQTT_HOSTNAME MQTT_HOST;
+#endif
 #endif
 
 #ifndef MQTT_PORT
 #define MQTT_PORT 1883;
 #endif
 
+#ifndef MQTT_USERNAME
 #ifndef MQTT_USER
-#define MQTT_USER "";
+#define MQTT_USERNAME "";
+#else
+#define MQTT_USERNAME MQTT_USER;
+#endif
 #endif
 
+#ifndef MQTT_PASSWORD
 #ifndef MQTT_PASSW
-#define MQTT_PASSW "";
+#define MQTT_PASSWORD "";
+#else
+#define MQTT_PASSWORD MQTT_PASSW;
+#endif
 #endif
 
 #endif // HASP_MQTT_H

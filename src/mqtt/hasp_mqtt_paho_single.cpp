@@ -63,9 +63,9 @@ uint32_t mqttPublishCount;
 uint32_t mqttReceiveCount;
 uint32_t mqttFailedCount;
 
-std::string mqttServer    = MQTT_HOST;
-std::string mqttUser      = MQTT_USER;
-std::string mqttPassword  = MQTT_PASSW;
+std::string mqttServer    = MQTT_HOSTNAME;
+std::string mqttUser      = MQTT_USERNAME;
+std::string mqttPassword  = MQTT_PASSWORD;
 std::string mqttGroupName = MQTT_GROUPNAME;
 uint16_t mqttPort         = MQTT_PORT;
 

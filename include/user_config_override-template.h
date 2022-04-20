@@ -18,15 +18,21 @@
           WiFi Settings
  **************************************************/
 #define WIFI_SSID ""
-#define WIFI_PASSW ""
+#define WIFI_PASSWORD ""
 
 /***************************************************
-          MQTT Settings
+          Http Server Settings
  **************************************************/
-#define MQTT_HOST ""
+#define HTTP_USERNAME ""
+#define HTTP_PASSWORD ""
+
+/***************************************************
+          MQTT Client Settings
+ **************************************************/
+#define MQTT_HOSTNAME ""
 #define MQTT_PORT 1883
-#define MQTT_USER ""
-#define MQTT_PASSW ""
+#define MQTT_USERNAME ""
+#define MQTT_PASSWORD ""
 #define MQTT_PREFIX "hasp"
 #define MQTT_NODENAME "plate01"
 #define MQTT_GROUPNAME "plates"
