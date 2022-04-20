@@ -19,16 +19,16 @@
 #define D_FILE_LOADING "%s betöltése"
 #define D_FILE_LOADED "%s betöltve"
 #define D_FILE_LOAD_FAILED "%s betöltése nem sikerült"
-#define D_FILE_NOT_FOUND "File not found" // new
+#define D_FILE_NOT_FOUND "Fájl nem található"
 #define D_FILE_SAVING "%s mentése"
 #define D_FILE_SAVED "%s mentve"
 #define D_FILE_SAVE_FAILED "%s mentése meghiúsult"
-#define D_FILE_SIZE_BYTES "bytes"   // new
-#define D_FILE_SIZE_KILOBYTES "KiB" // new
-#define D_FILE_SIZE_MEGABYTES "MiB" // new
-#define D_FILE_SIZE_GIGABYTES "GiB" // new
-#define D_FILE_SIZE_DIVIDER 1024    // new, kibi or kilo bytes
-#define D_DECIMAL_POINT ","         // new, decimal comma or point
+#define D_FILE_SIZE_BYTES "bájt"
+#define D_FILE_SIZE_KILOBYTES "KiB"
+#define D_FILE_SIZE_MEGABYTES "MiB"
+#define D_FILE_SIZE_GIGABYTES "GiB"
+#define D_FILE_SIZE_DIVIDER 1024
+#define D_DECIMAL_POINT "," 
 
 #define D_SERVICE_STARTING "Indítás..."
 #define D_SERVICE_STARTED "Elindítva"
@@ -88,13 +88,13 @@
 
 #define D_ATTRIBUTE_UNKNOWN "Ismeretlen tulajdonság: %s"
 // D_ATTRIBUTE_OBSOLETE D_ATTRIBUTE_INSTEAD can be used together or just D_ATTRIBUTE_OBSOLETE alone
-#define D_ATTRIBUTE_OBSOLETE "%s is obsolete"  // new
-#define D_ATTRIBUTE_INSTEAD ", use %s instead" // new
+#define D_ATTRIBUTE_OBSOLETE "%s elavult"
+#define D_ATTRIBUTE_INSTEAD ", helyette %s-t kell használni"
 #define D_ATTRIBUTE_READ_ONLY "%s csak olvasható"
 #define D_ATTRIBUTE_PAGE_METHOD_INVALID "Nem lehet meghívni %s-t egy oldalon"
-#define D_ATTRIBUTE_ALIGN_INVALID "Invalid align property: %s" // new
-#define D_ATTRIBUTE_COLOR_INVALID "Invalid color property: %s" // new
-#define D_ATTRIBUTE_LONG_MODE_INVALID "Invalid long mode: %s"  // new
+#define D_ATTRIBUTE_ALIGN_INVALID "Helytelen elrendezés (align): %s"
+#define D_ATTRIBUTE_COLOR_INVALID "Helytelen szín (color): %s"
+#define D_ATTRIBUTE_LONG_MODE_INVALID "Helytelen long mód: %s"
 
 #define D_OOBE_SSID_VALIDATED "%s SSID érvényes"
 #define D_OOBE_AUTO_CALIBRATE "Automatikus kalibrálás engedélyezve"
@@ -137,7 +137,7 @@
 #define D_HTTP_PREV_PAGE "Előző oldal"
 #define D_HTTP_NEXT_PAGE "Következő oldal"
 #define D_HTTP_CALIBRATE "Kalibrálás"
-#define D_HTTP_ANTIBURN "Run Anti Burn-in" // New
+#define D_HTTP_ANTIBURN "Beégésvédelem futtatás"
 #define D_HTTP_SCREENSHOT "Képernyőkép"
 #define D_HTTP_FILE_BROWSER "Fájlkezelő"
 #define D_HTTP_FIRMWARE_UPGRADE "Firmware frissítés"
@@ -146,13 +146,13 @@
 #define D_HTTP_MAIN_MENU "Főmenü"
 #define D_HTTP_REBOOT "Újraindítás"
 #define D_HTTP_CONFIGURATION "Beállítások"
-#define D_HTTP_CONFIG_CHANGED "Configuration has changed, please click <a href='/reboot'>Restart</a> to save changes to flash." // New
+#define D_HTTP_CONFIG_CHANGED "A konfiguráció meg lett változtatva. <a href='/reboot'>Indítson újra</a> a beállítások mentéséhez!"
 #define D_HTTP_SENDING_PAGE "%S oldal küldése %s-re"
 #define D_HTTP_FOOTER "készítette: Francis Van Roie"
 
 #define D_INFO_VERSION "Verziószám"
 #define D_INFO_BUILD_DATETIME "Build időpontja"
-#define D_INFO_ENVIRONMENT "Environment" // new
+#define D_INFO_ENVIRONMENT "Környezet"
 #define D_INFO_UPTIME "Uptime"
 #define D_INFO_FREE_HEAP "Szabad Heap"
 #define D_INFO_FREE_BLOCK "Szabad Blokk"
@@ -186,7 +186,7 @@
 #define D_INFO_ETHERNET "Ethernet"
 #define D_INFO_WIFI "WiFi"
 #define D_INFO_LINK_SPEED "Linksebesség"
-#define D_INFO_FULL_DUPLEX "Full Duplex" // new
+#define D_INFO_FULL_DUPLEX "Full Duplex"
 #define D_INFO_SSID "SSID"
 #define D_INFO_RSSI "Jelerősség"
 #define D_INFO_IP_ADDRESS "IP cím"
