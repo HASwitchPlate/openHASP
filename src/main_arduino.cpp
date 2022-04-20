@@ -139,7 +139,7 @@ IRAM_ATTR void loop()
 #endif // GPIO
 
 #if HASP_USE_MQTT > 0
-    mqttClient.loop(); // mqttLoop();
+    mqttLoop();
 #endif
 
     // haspDevice.loop();
