@@ -105,10 +105,6 @@
 #define HASP_USE_TELNET 0
 #endif
 
-#ifndef HASP_START_FTP
-#define HASP_START_FTP 1
-#endif
-
 #ifndef HASP_START_TELNET
 #define HASP_START_TELNET 1
 #endif

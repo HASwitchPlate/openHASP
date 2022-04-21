@@ -76,7 +76,7 @@
 ### Architecture
 - ⚠️ **Breaking:** Removed support for ESP8266!
 
-Updated libraries to ArduinoJson 6.19.4, ArduinoStreamUtils 1.6.2, AceButton 1.9.2, TFT_eSPI 2.4.42, LovyanGFX 0.4.15 and Adafruit STMPE610 1.1.4
+Updated libraries to ArduinoJson 6.19.4, ArduinoStreamUtils 1.6.2, AceButton 1.9.2, TFT_eSPI 2.4.50, LovyanGFX 0.4.16 and Adafruit STMPE610 1.1.4
 
 
 ## v0.6.2
