@@ -88,6 +88,8 @@ typedef int16_t lv_coord_t;
 #ifndef LV_MEM_SIZE
 #if defined(ARDUINO_ARCH_ESP8266)
 #  define LV_MEM_SIZE    (12 * 1024U) // Minimum 12 Kb
+#elif defined(ESP32S2) && defined(BOARD_HAS_PSRAM)
+#  define LV_MEM_SIZE    (48 * 1024U)  // 48Kb on ESP32-S2 with PSram
 #elif defined(ESP32S2)
 #  define LV_MEM_SIZE    (32 * 1024U)  // 32Kb on ESP32-S2
 #elif defined(ARDUINO_ARCH_ESP32) && defined(BOARD_HAS_PSRAM)
