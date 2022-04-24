@@ -459,7 +459,20 @@ static inline bool gpio_set_analog_value(hasp_gpio_config_t* gpio)
     ledcWrite(gpio->channel, val); // 12 bits
     return true;                   // sent
 
-#elif defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
+#elif defined(ARDUINO_ARCH_ESP32)
+
+    if(gpio->max == 255)
+        val = SCALE_8BIT_TO_10BIT(gpio->val);
+    else if(gpio->max == 4095)
+        val = gpio->val >> 2;
+
+    if(!gpio->power) val = 0;
+    if(gpio->inverted) val = 1023 - val;
+
+    ledcWrite(gpio->channel, val); // 10 bits
+    return true;                   // sent
+
+#elif defined(ARDUINO_ARCH_ESP8266)
 
     if(gpio->max == 255)
         val = SCALE_8BIT_TO_10BIT(gpio->val);
