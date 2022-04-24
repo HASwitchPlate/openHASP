@@ -15,11 +15,6 @@
 ### Devices
 - Add support for Wireless-Tag WT-86-32-3ZW1
 
-### Architecture
-- Moved to Tasmota Arduino 2.0.3rc1 with native LittleFS library (thanks @Jason2866)
-- Moved to ESP-IDF 4.4 with fixes for FragAttacks CVEs (thanks @nagyrobi)
-- Add support for ESP32-S2 devices
-
 -->
 
 ## v0.6.3-dev
@@ -74,9 +69,12 @@
 - Expose the device URL in discovery message and CC
 
 ### Architecture
+- Moved to Tasmota Arduino 2.0.3rc1 with native LittleFS library (thanks @Jason2866)
+- Moved to ESP-IDF 4.4.0 with fixes for FragAttacks CVEs (thanks @nagyrobi)
+- Add support for ESP32-S2 devices
 - ⚠️ **Breaking:** Removed support for ESP8266!
 
-Updated libraries to ArduinoJson 6.19.4, ArduinoStreamUtils 1.6.2, AceButton 1.9.2, TFT_eSPI 2.4.50, LovyanGFX 0.4.16 and Adafruit STMPE610 1.1.4
+Updated libraries to ArduinoJson 6.19.4, ArduinoStreamUtils 1.6.2, AceButton 1.9.2, TFT_eSPI 2.4.51, LovyanGFX 0.4.16 and Adafruit STMPE610 1.1.4
 
 
 ## v0.6.2
