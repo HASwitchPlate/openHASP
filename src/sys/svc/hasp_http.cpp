@@ -987,7 +987,7 @@ static void handleFileList()
     }
 
     String path = webServer.arg(F("dir"));
-    //  LOG_TRACE(TAG_HTTP, F("handleFileList: %s"), path.c_str());
+    // LOG_TRACE(TAG_HTTP, F("handleFileList: %s"), path.c_str());
     path.clear();
 
 #if defined(ARDUINO_ARCH_ESP32)

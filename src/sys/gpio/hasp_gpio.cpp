@@ -48,6 +48,7 @@ static inline void gpio_update_group(uint8_t group, lv_obj_t* obj, bool power, i
 
 #if defined(ARDUINO_ARCH_ESP32)
 #include "driver/uart.h"
+#include "driver/ledc.h"
 #include <driver/dac.h>
 
 volatile bool touchdetected        = false;
@@ -256,9 +257,9 @@ static void gpio_setup_pin(uint8_t index)
             gpio->power = gpio->inverted; // gpio is off, state is set to reflect the true output state of the gpio
             gpio->val   = gpio->inverted ? 0 : gpio->max;
 #if defined(ARDUINO_ARCH_ESP32)
-            if(pwm_channel < 16) {
+            if(pwm_channel < LEDC_CHANNEL_MAX) {
                 // configure LED PWM functionalitites
-                ledcSetup(pwm_channel, 20000, 12);
+                ledcSetup(pwm_channel, 20000, 10);
                 // attach the channel to the GPIO to be controlled
                 ledcAttachPin(gpio->pin, pwm_channel);
                 gpio->channel = pwm_channel++;
@@ -445,7 +446,7 @@ static inline int32_t gpio_limit(int32_t val, int32_t min, int32_t max)
 static inline bool gpio_set_analog_value(hasp_gpio_config_t* gpio)
 {
     uint16_t val = 0;
-#if defined(ARDUINO_ARCH_ESP32)
+#if 0 && defined(ARDUINO_ARCH_ESP32)
 
     if(gpio->max == 255)
         val = SCALE_8BIT_TO_12BIT(gpio->val);
@@ -458,7 +459,7 @@ static inline bool gpio_set_analog_value(hasp_gpio_config_t* gpio)
     ledcWrite(gpio->channel, val); // 12 bits
     return true;                   // sent
 
-#elif defined(ARDUINO_ARCH_ESP8266)
+#elif defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
 
     if(gpio->max == 255)
         val = SCALE_8BIT_TO_10BIT(gpio->val);
@@ -777,17 +778,17 @@ bool gpioIsSystemPin(uint8_t gpio)
 #ifdef TFT_D15
        || (gpio == TFT_D15)
 #endif
-//Cant assign the touch pins to the generic GPIO. Maybe in future if sensors are added
-#ifdef TOUCH_SDA    
+// Cant assign the touch pins to the generic GPIO. Maybe in future if sensors are added
+#ifdef TOUCH_SDA
        || (gpio == TOUCH_SDA)
 #endif
-#ifdef TOUCH_SCL    
+#ifdef TOUCH_SCL
        || (gpio == TOUCH_SCL)
 #endif
-#ifdef TOUCH_IRQ    
+#ifdef TOUCH_IRQ
        || (gpio == TOUCH_IRQ)
 #endif
-#ifdef TOUCH_RST    
+#ifdef TOUCH_RST
        || (gpio == TOUCH_RST)
 #endif
 
@@ -801,24 +802,24 @@ bool gpioIsSystemPin(uint8_t gpio)
     // Serial GPIOs
     // Tasmota Client GPIOs
 
-//NG. Remove the checks here since the is_system_pin function does the same check. Best to keep the code in 1 place only.    
-/*
-#ifdef ARDUINO_ARCH_ESP32
-    if((gpio >= 6) && (gpio <= 11)) return true;  // integrated SPI flash
-    if((gpio == 37) || (gpio == 38)) return true; // unavailable
-    if(psramFound()) {
-        if((gpio == 16) || (gpio == 17)) return true; // PSRAM
-    }
-#endif
-
-#ifdef ARDUINO_ARCH_ESP8266
-    if((gpio >= 6) && (gpio <= 11)) return true; // integrated SPI flash
-    #ifndef TFT_SPI_OVERLAP
-        if((gpio >= 12) && (gpio <= 14)) return true; // HSPI
+    // NG. Remove the checks here since the is_system_pin function does the same check. Best to keep the code in 1 place
+    // only.
+    /*
+    #ifdef ARDUINO_ARCH_ESP32
+        if((gpio >= 6) && (gpio <= 11)) return true;  // integrated SPI flash
+        if((gpio == 37) || (gpio == 38)) return true; // unavailable
+        if(psramFound()) {
+            if((gpio == 16) || (gpio == 17)) return true; // PSRAM
+        }
     #endif
-#endif
-*/
 
+    #ifdef ARDUINO_ARCH_ESP8266
+        if((gpio >= 6) && (gpio <= 11)) return true; // integrated SPI flash
+        #ifndef TFT_SPI_OVERLAP
+            if((gpio >= 12) && (gpio <= 14)) return true; // HSPI
+        #endif
+    #endif
+    */
 
     if(haspDevice.is_system_pin(gpio)) return true;
 
