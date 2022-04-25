@@ -33,8 +33,8 @@ void font_setup()
 #if defined(ARDUINO_ARCH_ESP32)
     if(lv_freetype_init(LVGL_FREETYPE_MAX_FACES, LVGL_FREETYPE_MAX_SIZES,
                         hasp_use_psram() ? LVGL_FREETYPE_MAX_BYTES_PSRAM : LVGL_FREETYPE_MAX_BYTES)) {
-        LOG_VERBOSE(TAG_FONT, F("FreeType v%d.%d.%d " D_SERVICE_STARTED), FREETYPE_MAJOR, FREETYPE_MINOR,
-                    FREETYPE_PATCH);
+        LOG_VERBOSE(TAG_FONT, F("FreeType v%d.%d.%d " D_SERVICE_STARTED " = %d"), FREETYPE_MAJOR, FREETYPE_MINOR,
+                    FREETYPE_PATCH, hasp_use_psram());
     } else {
         LOG_ERROR(TAG_FONT, F("FreeType " D_SERVICE_START_FAILED));
     }
@@ -92,7 +92,8 @@ static lv_font_t* font_find_in_list(const char* payload)
     hasp_font_info_t* font_p = (hasp_font_info_t*)_lv_ll_get_head(&hasp_fonts_ll);
     while(font_p) {
         if(strcmp(font_p->payload, payload) == 0) { // name and size
-            LOG_DEBUG(TAG_FONT, F("Payload %s found => line height = %d"), payload, font_p->font->line_height);
+            LOG_DEBUG(TAG_FONT, F("Payload %s found => line height = %d - base_line = %d"), payload,
+                      font_p->font->line_height, font_p->font->base_line);
             return font_p->font;
         }
         font_p = (hasp_font_info_t*)_lv_ll_get_next(&hasp_fonts_ll, font_p);
