@@ -398,8 +398,9 @@ static void wifiReconnect(void)
 {
 #if defined(ARDUINO_ARCH_ESP8266)
     WiFi.disconnect();
-    WiFi.begin(wifiSsid, wifiPassword);
     WiFi.mode(WIFI_STA);
+    WiFi.setSleepMode(WIFI_NONE_SLEEP);
+    WiFi.begin(wifiSsid, wifiPassword);
     WiFi.hostname(haspDevice.get_hostname());
 
 #elif defined(ARDUINO_ARCH_ESP32)
@@ -407,6 +408,7 @@ static void wifiReconnect(void)
     WiFi.disconnect();
     WiFi.setHostname(haspDevice.get_hostname());
     WiFi.mode(WIFI_STA);
+    WiFi.setSleep(false);
     WiFi.begin(wifiSsid, wifiPassword, WIFI_ALL_CHANNEL_SCAN);
     // WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE); // causes 255.255.255.255 IP errors
 #endif
@@ -458,10 +460,8 @@ void wifiSetup()
         // wifiEventHandler[0]      = WiFi.onStationModeConnected(wifiSTAConnected);
         gotIpEventHandler        = WiFi.onStationModeGotIP(wifiSTAGotIP); // As soon WiFi is connected, start NTP Client
         disconnectedEventHandler = WiFi.onStationModeDisconnected(wifiSTADisconnected);
-        WiFi.setSleepMode(WIFI_NONE_SLEEP);
 #elif defined(ARDUINO_ARCH_ESP32)
         WiFi.onEvent(wifi_callback);
-        WiFi.setSleep(false);
 #endif
 
         wifiReconnect();
