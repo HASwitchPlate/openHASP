@@ -13,6 +13,15 @@ bool hasp_use_psram()
 }
 #endif
 
+void* hasp_calloc(size_t num, size_t size)
+{
+#ifdef ESP32
+    return hasp_use_psram() ? ps_calloc(num, size) : calloc(num, size);
+#else
+    return calloc(num, size);
+#endif
+}
+
 void* hasp_malloc(size_t size)
 {
 #ifdef ESP32

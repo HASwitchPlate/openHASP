@@ -608,9 +608,10 @@ IRAM_ATTR void haspLoop(void)
     dispatchLoop();
 }
 
+// Replaces all pages with new ones
 void hasp_init(void)
 {
-    haspPages.init(haspStartPage);
+    haspPages.init(haspStartPage); // StartPage is used for the BACK action
 }
 
 void hasp_load_json(void)

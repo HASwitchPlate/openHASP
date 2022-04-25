@@ -6,5 +6,6 @@
 
 void font_setup();
 lv_font_t* get_font(const char* payload);
+void font_clear_list();
 
 #endif

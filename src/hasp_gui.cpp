@@ -231,30 +231,6 @@ static inline void gui_init_images()
 #endif
 }
 
-// initialize the FreeType renderer
-static inline void gui_init_freetype()
-{
-// #ifdef 1 || USE_LVGL_FREETYPE
-#if defined(ARDUINO_ARCH_ESP32)
-
-#if(HASP_USE_FREETYPE > 0)
-
-    if(lv_freetype_init(USE_LVGL_FREETYPE_MAX_FACES, USE_LVGL_FREETYPE_MAX_SIZES,
-                        hasp_use_psram() ? USE_LVGL_FREETYPE_MAX_BYTES_PSRAM : USE_LVGL_FREETYPE_MAX_BYTES)) {
-        LOG_VERBOSE(TAG_FONT, F("FreeType v%d.%d.%d " D_SERVICE_STARTED), FREETYPE_MAJOR, FREETYPE_MINOR,
-                    FREETYPE_PATCH);
-    } else {
-        LOG_ERROR(TAG_FONT, F("FreeType " D_SERVICE_START_FAILED));
-    }
-#else
-    LOG_VERBOSE(TAG_FONT, F("FreeType " D_SERVICE_DISABLED));
-#endif
-
-#elif defined(WINDOWS) || defined(POSIX)
-#else
-#endif
-}
-
 static inline void gui_init_filesystems()
 {
 #if LV_USE_FS_IF != 0
@@ -289,7 +265,6 @@ void guiSetup()
     gui_init_lvgl();
     gui_init_images();
     gui_init_filesystems();
-    gui_init_freetype();
     font_setup();
 
     /* Initialize the LVGL display driver with correct orientation */
