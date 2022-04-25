@@ -661,7 +661,7 @@ void dispatch_parse_jsonl(std::istream& stream, uint8_t& saved_page_id)
 
     /* For debugging purposes */
     if(jsonError == DeserializationError::EmptyInput) {
-        LOG_INFO(TAG_MSGR, F(D_JSONL_SUCCEEDED));
+        LOG_DEBUG(TAG_MSGR, F(D_JSONL_SUCCEEDED));
 
     } else {
         LOG_ERROR(TAG_MSGR, F(D_JSONL_FAILED ": %s"), line, jsonError.c_str());
@@ -820,9 +820,7 @@ void dispatch_clear_page(const char*, const char* page, uint8_t source)
     uint8_t pageid;
     if(strlen(page) > 0) {
         if(!strcasecmp_P(page, PSTR("all"))) {
-            // for(pageid = 0; pageid < HASP_NUM_PAGES; pageid++) haspPages.clear(pageid);
             hasp_init();
-            font_clear_list(); // free TTF resources
         } else {
             pageid = atoi(page);
         }
