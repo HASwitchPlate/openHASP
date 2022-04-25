@@ -76,7 +76,10 @@ void font_clear_list()
         }
 
         /* Free the allocated font_name last */
-        hasp_free(font_p->payload);
+        if(font_p->payload) {
+            LOG_DEBUG(TAG_FONT, F("Released font %s"), font_p->payload);
+            hasp_free(font_p->payload);
+        }
 
         _lv_ll_remove(&hasp_fonts_ll, node);
         lv_mem_free(node);
