@@ -130,13 +130,13 @@ const char** my_map_create(const char* payload)
     memset(buffer_addr, 0, tot_len); // Important, last index needs to be 0 => empty string ""
 
     /* Point of no return, destroy & free the previous map */
-    LOG_VERBOSE(TAG_ATTR, F("%s %d   map addr:  %x"), __FILE__, __LINE__, map_data_str);
+    LOG_DEBUG(TAG_ATTR, F("%s %d   map addr:  %x"), __FILE__, __LINE__, map_data_str);
     // my_btnmatrix_map_clear(obj); // Free previous map
 
     // Fill buffer
     size_t index = 0;
     size_t pos   = 0;
-    LOG_VERBOSE(TAG_ATTR, F("%s %d   lbl addr:  %x"), __FILE__, __LINE__, buffer_addr);
+    LOG_DEBUG(TAG_ATTR, F("%s %d   lbl addr:  %x"), __FILE__, __LINE__, buffer_addr);
     for(JsonVariant btn : arr) {
         // size_t len = btn.as<String>().length() + 1;
         size_t len = strlen(btn.as<const char*>()) + 1;
@@ -157,28 +157,28 @@ const char** my_map_create(const char* payload)
 
 static void my_btnmatrix_set_map(lv_obj_t* obj, const char* payload)
 {
-    LOG_VERBOSE(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
+    LOG_DEBUG(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
     const char** map = my_map_create(payload);
     if(!map) return;
 
-    LOG_VERBOSE(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
+    LOG_DEBUG(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
     my_btnmatrix_map_clear(obj); // Free previous map
-    LOG_VERBOSE(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
+    LOG_DEBUG(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
     lv_btnmatrix_set_map(obj, map);
-    LOG_VERBOSE(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
+    LOG_DEBUG(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
 }
 
 static void my_msgbox_set_map(lv_obj_t* obj, const char* payload)
 {
-    LOG_VERBOSE(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
+    LOG_DEBUG(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
     const char** map = my_map_create(payload);
     if(!map) return;
 
-    LOG_VERBOSE(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
+    LOG_DEBUG(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
     my_msgbox_map_clear(obj); // Free previous map
-    LOG_VERBOSE(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
+    LOG_DEBUG(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
     lv_msgbox_add_btns(obj, map);
-    LOG_VERBOSE(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
+    LOG_DEBUG(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
 }
 
 void my_line_clear_points(lv_obj_t* obj)
@@ -252,19 +252,19 @@ static lv_font_t* haspPayloadToFont(const char* payload)
 
 #ifdef HASP_FONT_2
             case HASP_FONT_SIZE_2:
-                LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, HASP_FONT_2);
+                LOG_DEBUG(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, HASP_FONT_2);
                 return &HASP_FONT_2;
 #endif
 
 #ifdef HASP_FONT_3
             case HASP_FONT_SIZE_3:
-                LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, HASP_FONT_3);
+                LOG_DEBUG(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, HASP_FONT_3);
                 return &HASP_FONT_3;
 #endif
 
 #ifdef HASP_FONT_4
             case HASP_FONT_SIZE_4:
-                LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, HASP_FONT_4);
+                LOG_DEBUG(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, HASP_FONT_4);
                 return &HASP_FONT_4;
 #endif
 
@@ -657,7 +657,7 @@ static hasp_attribute_type_t hasp_local_style_attr(lv_obj_t* obj, const char* at
         case ATTR_TEXT_FONT: {
             lv_font_t* font = haspPayloadToFont(payload);
             if(font) {
-                LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, font);
+                LOG_DEBUG(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, font);
                 uint8_t count = 3;
                 if(obj_check_type(obj, LV_HASP_ROLLER)) count = my_roller_get_visible_row_count(obj);
                 lv_obj_set_style_local_text_font(obj, part, state, font);
@@ -1157,7 +1157,7 @@ static hasp_attribute_type_t special_attribute_src(lv_obj_t* obj, const char* pa
                 img_dsc->data               = img_buf_start; // store pointer to the start of the data buffer
                 img_dsc->header.always_zero = 0;
 
-                // LOG_WARNING(TAG_ATTR, "%s %d %x == %x", __FILE__, __LINE__, img_dsc->data, img_buf);
+                // LOG_DEBUG(TAG_ATTR, "%s %d %x == %x", __FILE__, __LINE__, img_dsc->data, img_buf);
 
                 int read = 0;
                 while(http.connected() && (stream->available() < 8) && read < 250) {
@@ -1205,10 +1205,10 @@ static hasp_attribute_type_t special_attribute_src(lv_obj_t* obj, const char* pa
                 while(http.connected() && (buf_len > 0)) {
                     if(size_t size = stream->available()) {
                         int c = stream->readBytes(img_buf_pos, size > buf_len ? buf_len : size); // don't read too far
-                        // LOG_WARNING(TAG_ATTR, "%s %d %x -> %x", __FILE__, __LINE__, img_dsc->data, img_buf);
+                        // LOG_DEBUG(TAG_ATTR, "%s %d %x -> %x", __FILE__, __LINE__, img_dsc->data, img_buf);
                         img_buf_pos += c;
                         buf_len -= c;
-                        // LOG_VERBOSE(TAG_ATTR, D_BULLET "IMG DATA: %d bytes read=%d buf_len=%d", c, read, buf_len);
+                        // LOG_DEBUG(TAG_ATTR, D_BULLET "IMG DATA: %d bytes read=%d buf_len=%d", c, read, buf_len);
                         read += c;
                     } else {
                         //  delay(1); // wait for data
@@ -1242,7 +1242,7 @@ static hasp_attribute_type_t special_attribute_src(lv_obj_t* obj, const char* pa
                 }
 
                 lv_img_set_src(obj, img_dsc);
-                // LOG_WARNING(TAG_ATTR, "%s %d %x -> %x", __FILE__, __LINE__, img_buf_start, img_buf_start_pos);
+                // LOG_DEBUG(TAG_ATTR, "%s %d %x -> %x", __FILE__, __LINE__, img_buf_start, img_buf_start_pos);
 
             } else {
                 LOG_WARNING(TAG_ATTR, "HTTP result %d", httpCode);
@@ -1254,19 +1254,19 @@ static hasp_attribute_type_t special_attribute_src(lv_obj_t* obj, const char* pa
         const void* src = lv_img_get_src(obj);
         switch(lv_img_src_get_type(src)) {
             case LV_IMG_SRC_FILE:
-                LOG_VERBOSE(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
+                LOG_DEBUG(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
                 *text = (char*)lv_img_get_file_name(obj);
                 break;
             case LV_IMG_SRC_SYMBOL:
-                LOG_VERBOSE(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
+                LOG_DEBUG(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
                 *text = (char*)src + strlen(LV_SYMBOL_DUMMY);
                 break;
             case LV_IMG_SRC_VARIABLE:
-                LOG_VERBOSE(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
+                LOG_DEBUG(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
                 *text = (char*)src + sizeof(lv_img_dsc_t);
                 break;
             default:
-                LOG_VERBOSE(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
+                LOG_DEBUG(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
         }
     }
     return HASP_ATTR_TYPE_STR;
@@ -1438,15 +1438,15 @@ static hasp_attribute_type_t attribute_common_json(lv_obj_t* obj, uint16_t attr_
                     if(JsonObject keys = json.as<JsonObject>()) {
                         hasp_parse_json_attributes(obj, keys); // json is valid object, cast as a JsonObject
                     } else {
-                        LOG_WARNING(TAG_ATTR, "%s %d", __FILE__, __LINE__);
+                        LOG_DEBUG(TAG_ATTR, "%s %d", __FILE__, __LINE__);
                         jsonError = DeserializationError::InvalidInput;
                     }
                 } else {
-                    LOG_WARNING(TAG_ATTR, "%s %d", __FILE__, __LINE__);
+                    LOG_DEBUG(TAG_ATTR, "%s %d", __FILE__, __LINE__);
                     jsonError = DeserializationError::IncompleteInput;
                 }
             }
-            LOG_WARNING(TAG_ATTR, "%s %d", __FILE__, __LINE__);
+            LOG_DEBUG(TAG_ATTR, "%s %d", __FILE__, __LINE__);
 
             if(jsonError) { // Couldn't parse incoming JSON object
                 dispatch_json_error(TAG_ATTR, jsonError);

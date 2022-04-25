@@ -64,20 +64,19 @@ void font_clear_list()
     void* node = _lv_ll_get_head(&hasp_fonts_ll);
     while(node) {
 
-        if(hasp_font_info_t* font_p = (hasp_font_info_t*)node) {
-            if(font_p->font) {
-                if(font_p->font->user_data) { // It's a FreeType font
+        hasp_font_info_t* font_p = (hasp_font_info_t*)node;
+        if(font_p->font) {
+            if(font_p->font->user_data) { // It's a FreeType font
 #if(HASP_USE_FREETYPE > 0)
-                    lv_ft_font_destroy(font_p->font);
+                lv_ft_font_destroy(font_p->font);
 #endif
-                } else { // It's a binary font
-                    hasp_font_free(font_p->font);
-                }
+            } else { // It's a binary font
+                hasp_font_free(font_p->font);
             }
-
-            /* Free the allocated font_name last */
-            hasp_free(font_p->payload);
         }
+
+        /* Free the allocated font_name last */
+        hasp_free(font_p->payload);
 
         _lv_ll_remove(&hasp_fonts_ll, node);
         lv_mem_free(node);
@@ -90,7 +89,7 @@ static lv_font_t* font_find_in_list(const char* payload)
     hasp_font_info_t* font_p = (hasp_font_info_t*)_lv_ll_get_head(&hasp_fonts_ll);
     while(font_p) {
         if(strcmp(font_p->payload, payload) == 0) { // name and size
-            // LOG_DEBUG(TAG_FONT, F("Payload %s found => line height = %d"), payload, font_p->font->line_height);
+            LOG_DEBUG(TAG_FONT, F("Payload %s found => line height = %d"), payload, font_p->font->line_height);
             return font_p->font;
         }
         font_p = (hasp_font_info_t*)_lv_ll_get_next(&hasp_fonts_ll, font_p);
