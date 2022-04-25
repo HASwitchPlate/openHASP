@@ -28,26 +28,23 @@ void font_setup()
 {
     _lv_ll_init(&hasp_fonts_ll, sizeof(hasp_font_info_t));
 
-    // initialize the FreeType renderer
-// #ifdef 1 || USE_LVGL_FREETYPE
+#if(HASP_USE_FREETYPE > 0) // initialize the FreeType renderer
+
 #if defined(ARDUINO_ARCH_ESP32)
-
-#if(HASP_USE_FREETYPE > 0)
-
-    if(lv_freetype_init(USE_LVGL_FREETYPE_MAX_FACES, USE_LVGL_FREETYPE_MAX_SIZES,
-                        hasp_use_psram() ? USE_LVGL_FREETYPE_MAX_BYTES_PSRAM : USE_LVGL_FREETYPE_MAX_BYTES)) {
+    if(lv_freetype_init(LVGL_FREETYPE_MAX_FACES, LVGL_FREETYPE_MAX_SIZES,
+                        hasp_use_psram() ? LVGL_FREETYPE_MAX_BYTES_PSRAM : LVGL_FREETYPE_MAX_BYTES)) {
         LOG_VERBOSE(TAG_FONT, F("FreeType v%d.%d.%d " D_SERVICE_STARTED), FREETYPE_MAJOR, FREETYPE_MINOR,
                     FREETYPE_PATCH);
     } else {
         LOG_ERROR(TAG_FONT, F("FreeType " D_SERVICE_START_FAILED));
     }
-#else
-    LOG_VERBOSE(TAG_FONT, F("FreeType " D_SERVICE_DISABLED));
-#endif
-
 #elif defined(WINDOWS) || defined(POSIX)
 #else
 #endif
+
+#else
+    LOG_VERBOSE(TAG_FONT, F("FreeType " D_SERVICE_DISABLED));
+#endif // HASP_USE_FREETYPE
 }
 
 size_t font_split_payload(const char* payload)
@@ -70,7 +67,9 @@ void font_clear_list()
         if(hasp_font_info_t* font_p = (hasp_font_info_t*)node) {
             if(font_p->font) {
                 if(font_p->font->user_data) { // It's a FreeType font
+#if(HASP_USE_FREETYPE > 0)
                     lv_ft_font_destroy(font_p->font);
+#endif
                 } else { // It's a binary font
                     hasp_font_free(font_p->font);
                 }
