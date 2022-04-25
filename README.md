@@ -23,25 +23,10 @@ openHASP uses the ESP32 and STM32F4 to take advantage of the hardware capabiliti
 ![Screenshot](https://openhasp.haswitchplate.com/0.6/assets/images/screenshots/demo_jaffa1.png) &nbsp; 
 ![Screenshot](https://openhasp.haswitchplate.com/0.6/assets/images/screenshots/demo_mediaplayer.png)
 
-## Features
-
-| Feature (v0.6.x)        | ESP32   | STM32F4
-|-------------------------|---------|---------
-| SPI display             | :white_check_mark: yes | :white_check_mark: yes
-| Parallel display        | :white_check_mark: yes | :white_check_mark: yes
-| PWM Screen dimming      | :white_check_mark: yes | :white_check_mark: yes
-| Maximum Page Count      | 12      | 12
-| [Object Types / Widgets][7]| 20      | 20
-| Dynamic Objects         | :white_check_mark: yes | :white_check_mark: yes
-| Theme Support           | yes     | yes
-| MDI Icons               | :white_check_mark: yes | :white_check_mark: yes
-| [PNG images][8]         | :white_check_mark: yes | :white_check_mark: yes
-| Network                 | :white_check_mark: Wi-Fi | :white_check_mark: Ethernet
-
 
 ## Getting Started
 
-Check out the [documentation](https://openhasp.haswitchplate.com/) for how-to's, information and frequently asked questions.
+Check out the [documentation](https://openhasp.haswitchplate.com/) for how-to's, information and frequently asked questions.</br>>
 For support using openHASP, please join the [#openHASP channel][6] on Discord.
 
 ## Donate
