@@ -4,7 +4,9 @@
 #ifndef HASP_MACRO_H
 #define HASP_MACRO_H
 
+#ifdef ARDUINO
 #include "ArduinoLog.h"
+#endif
 
 #ifdef USE_CONFIG_OVERRIDE
 #include "user_config_override.h"
