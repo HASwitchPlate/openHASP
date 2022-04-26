@@ -42,10 +42,6 @@ EthernetClient mqttNetworkClient;
 
 #include "../hasp/hasp_dispatch.h"
 
-// #ifdef USE_CONFIG_OVERRIDE
-// #include "user_config_override.h"
-// #endif
-
 char mqttNodeTopic[24];
 char mqttGroupTopic[24];
 bool mqttEnabled        = false;

@@ -1,5 +1,3 @@
-#include "ArduinoLog.h"
-
 #ifdef USE_CONFIG_OVERRIDE
 #include "user_config_override.h"
 #endif

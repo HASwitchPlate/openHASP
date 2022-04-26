@@ -28,10 +28,6 @@
 #include <DNSServer.h>
 #endif
 
-// #ifdef USE_CONFIG_OVERRIDE
-// #include "user_config_override.h"
-// #endif
-
 #if defined(ARDUINO_ARCH_ESP8266) || defined(ARDUINO_ARCH_ESP32)
 File fsUploadFile;
 #endif
