@@ -5,12 +5,12 @@
 #define HASP_GSL1680_TOUCH_DRIVER_H
 
 #ifdef ARDUINO
+#include <Arduino.h>
+#include "ArduinoLog.h"
 #include "hasp_conf.h"
 
-#include <Arduino.h>
 #include <Wire.h>
 #include "GSL2038.h"
-#include "ArduinoLog.h"
 
 #include "touch_driver.h" // base class
 #include "touch_helper.h" // i2c scanner

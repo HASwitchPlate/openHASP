@@ -3,6 +3,11 @@
 
 #ifdef ARDUINO
 #include <Arduino.h>
+#include "ArduinoLog.h"
+#endif
+
+#ifdef USE_CONFIG_OVERRIDE
+#include "user_config_override.h"
 #endif
 
 #include <cstdlib>

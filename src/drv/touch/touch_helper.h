@@ -6,8 +6,10 @@
 
 #ifdef ARDUINO
 #include <Arduino.h>
-#include <Wire.h>
 #include "ArduinoLog.h"
+#include "hasp_conf.h"
+
+#include <Wire.h>
 #include "hasp_debug.h"
 
 void touch_scan(TwoWire& i2c)

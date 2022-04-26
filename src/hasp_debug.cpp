@@ -9,7 +9,6 @@
 #include "hasp_macro.h"
 
 #if(!defined(WINDOWS)) && (!defined(POSIX))
-#include "ArduinoLog.h"
 
 #define debug_print(io, ...) io->printf(__VA_ARGS__)
 #define debug_newline(io) io->println()

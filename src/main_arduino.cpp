@@ -8,7 +8,6 @@
 #include "sys/net/hasp_network.h"
 #include "sys/net/hasp_time.h"
 #include "dev/device.h"
-#include "ArduinoLog.h"
 
 #if HASP_USE_CONFIG > 0
 #include "hasp_debug.h"

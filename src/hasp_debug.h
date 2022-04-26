@@ -4,6 +4,10 @@
 #ifndef HASP_DEBUG_H
 #define HASP_DEBUG_H
 
+#ifdef ARDUINO
+#include "ArduinoLog.h"
+#endif
+
 #include "hasp_conf.h"
 
 #include "ArduinoJson.h"
@@ -14,8 +18,6 @@
 #include "lang/lang.h"
 
 #if(!defined(WINDOWS)) && (!defined(POSIX))
-#include "ArduinoLog.h"
-
 /* ===== Default Event Processors ===== */
 void debugSetup(JsonObject settings);
 

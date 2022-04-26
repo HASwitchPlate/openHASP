@@ -8,7 +8,6 @@
 #include <Arduino.h>
 #include <SPI.h>
 #include "Adafruit_STMPE610.h"
-#include "ArduinoLog.h"
 
 #include "touch_driver.h" // base class
 

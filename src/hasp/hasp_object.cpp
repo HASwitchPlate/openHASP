@@ -11,10 +11,6 @@
  *
  ******************************************************************************************** */
 
-#ifdef ARDUINO
-#include "ArduinoLog.h"
-#endif
-
 #include "hasplib.h"
 
 const char** btnmatrix_default_map;            // memory pointer to lvgl default btnmatrix map

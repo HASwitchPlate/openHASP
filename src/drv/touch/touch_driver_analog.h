@@ -5,12 +5,11 @@
 #define HASP_ANALOG_TOUCH_DRIVER_H
 
 #ifdef ARDUINO
+#include <Arduino.h>
+#include "ArduinoLog.h"
 #include "hasp_conf.h"
 
-#include <Arduino.h>
 #include "hasp_drv_analogTouch.h"
-#include "ArduinoLog.h"
-
 #include "touch_driver.h" // base class
 
 #include "../../hasp/hasp.h" // for hasp_sleep_state
