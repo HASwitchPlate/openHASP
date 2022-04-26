@@ -4,6 +4,8 @@
 #ifndef HASP_MACRO_H
 #define HASP_MACRO_H
 
+#include "ArduinoLog.h"
+
 #ifdef USE_CONFIG_OVERRIDE
 #include "user_config_override.h"
 #endif
@@ -11,8 +13,6 @@
 #if defined(WINDOWS) || defined(POSIX)
 #define LOG_OUTPUT(x, ...) printf(__VA_ARGS__)
 #else
-
-#include "ArduinoLog.h"
 
 #ifndef HASP_LOG_LEVEL
 #define HASP_LOG_LEVEL LOG_LEVEL_TRACE
