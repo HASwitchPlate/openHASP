@@ -301,6 +301,7 @@ static hasp_attribute_type_t hasp_process_label_long_mode(lv_obj_t* obj, const c
     return HASP_ATTR_TYPE_NOT_FOUND;
 }
 
+#ifdef HASP_USE_NEW_PART_STATE
 size_t hasp_attribute_split_payload(const char* payload)
 {
     size_t pos = 0;
@@ -342,7 +343,7 @@ static void hasp_attribute_get_part_state(lv_obj_t* obj, const char* attr_in, ch
 #error "LV_SLIDER, LV_BAR, LV_ARC, LV_SPINNER, LV_SWITCH, LV_GAUGE parts should match!"
 #endif
 
-    /* Attributes depending on objecttype */
+    /* States */
     switch(state_num) {
         case 1:
             state = LV_STATE_CHECKED;
@@ -363,7 +364,9 @@ static void hasp_attribute_get_part_state(lv_obj_t* obj, const char* attr_in, ch
             state = LV_STATE_DEFAULT;
     }
 
+    /* Parts */
     switch(obj_get_type(obj)) {
+        case LV_HASP_OBJECT:
         case LV_HASP_BUTTON:
             part = LV_BTN_PART_MAIN;
             break;
@@ -438,6 +441,178 @@ static void hasp_attribute_get_part_state(lv_obj_t* obj, const char* attr_in, ch
         default:; // nothing to do
     }
 }
+#else
+static void hasp_attribute_get_part_state(lv_obj_t* obj, const char* attr_in, char* attr_out, uint8_t& part,
+                                          uint8_t& state)
+{
+    int len = strlen(attr_in);
+    if(len <= 0 || len >= 32) {
+        attr_out[0] = 0; // empty string
+        part        = LV_OBJ_PART_MAIN;
+        state       = LV_STATE_DEFAULT;
+        return;
+    }
+    int index = atoi(&attr_in[len - 1]);
+
+    if(attr_in[len - 1] == '0') {
+        len--; // Drop Trailing partnumber
+    } else if(index > 0) {
+        len--; // Drop Trailing partnumber
+    } else {
+        index = -1; // force default state when no trailing number is found
+    }
+    strncpy(attr_out, attr_in, len);
+    attr_out[len] = 0;
+
+#if(LV_SLIDER_PART_INDIC != LV_SWITCH_PART_INDIC) || (LV_SLIDER_PART_KNOB != LV_SWITCH_PART_KNOB) ||                   \
+    (LV_SLIDER_PART_BG != LV_SWITCH_PART_BG) || (LV_SLIDER_PART_INDIC != LV_ARC_PART_INDIC) ||                         \
+    (LV_SLIDER_PART_KNOB != LV_ARC_PART_KNOB) || (LV_SLIDER_PART_BG != LV_ARC_PART_BG) ||                              \
+    (LV_SLIDER_PART_INDIC != LV_SPINNER_PART_INDIC) || (LV_SLIDER_PART_BG != LV_SPINNER_PART_BG) ||                    \
+    (LV_SLIDER_PART_INDIC != LV_BAR_PART_INDIC) || (LV_SLIDER_PART_BG != LV_BAR_PART_BG) ||                            \
+    (LV_SLIDER_PART_KNOB != LV_GAUGE_PART_NEEDLE) || (LV_SLIDER_PART_INDIC != LV_GAUGE_PART_MAJOR) ||                  \
+    (LV_SLIDER_PART_BG != LV_GAUGE_PART_MAIN)
+#error "LV_SLIDER, LV_BAR, LV_ARC, LV_SPINNER, LV_SWITCH, LV_GAUGE parts should match!"
+#endif
+
+    /* Attributes depending on objecttype */
+    state = LV_STATE_DEFAULT;
+    part  = LV_BTN_PART_MAIN;
+
+    switch(obj_get_type(obj)) {
+        case LV_HASP_BUTTON:
+            switch(index) {
+                case 1:
+                    state = LV_STATE_CHECKED;
+                    break;
+                case 2:
+                    state = LV_STATE_PRESSED + LV_STATE_DEFAULT;
+                    break;
+                case 3:
+                    state = LV_STATE_PRESSED + LV_STATE_CHECKED;
+                    break;
+                case 4:
+                    state = LV_STATE_DISABLED + LV_STATE_DEFAULT;
+                    break;
+                case 5:
+                    state = LV_STATE_DISABLED + LV_STATE_CHECKED;
+                    break;
+                default: // 0 or -1
+                    state = LV_STATE_DEFAULT;
+            }
+            break;
+
+        case LV_HASP_BTNMATRIX:
+            switch(index) {
+                case 0:
+                    part  = LV_BTNMATRIX_PART_BTN;
+                    state = LV_STATE_DEFAULT;
+                    break;
+                case 1:
+                    part  = LV_BTNMATRIX_PART_BTN;
+                    state = LV_STATE_CHECKED;
+                    break;
+                case 2:
+                    part  = LV_BTNMATRIX_PART_BTN;
+                    state = LV_STATE_PRESSED + LV_STATE_DEFAULT;
+                    break;
+                case 3:
+                    part  = LV_BTNMATRIX_PART_BTN;
+                    state = LV_STATE_PRESSED + LV_STATE_CHECKED;
+                    break;
+                case 4:
+                    part  = LV_BTNMATRIX_PART_BTN;
+                    state = LV_STATE_DISABLED + LV_STATE_DEFAULT;
+                    break;
+                case 5:
+                    part  = LV_BTNMATRIX_PART_BTN;
+                    state = LV_STATE_DISABLED + LV_STATE_CHECKED;
+                    break;
+                default: // -1
+                    state = LV_STATE_DEFAULT;
+                    part  = LV_BTNMATRIX_PART_BG;
+            }
+            break;
+
+        case LV_HASP_SLIDER:
+        case LV_HASP_SWITCH:
+        case LV_HASP_ARC:
+        case LV_HASP_BAR:
+        case LV_HASP_SPINNER:
+            if(index == 1) {
+                part = LV_SLIDER_PART_INDIC;
+            } else if(index == 2) {
+                if(!obj_check_type(obj, LV_HASP_BAR) && !obj_check_type(obj, LV_HASP_SPINNER))
+                    part = LV_SLIDER_PART_KNOB;
+            } else { // index = 0 or -1
+                part = LV_SLIDER_PART_BG;
+            }
+            break;
+
+        case LV_HASP_CHECKBOX:
+            part = index == 1 ? LV_CHECKBOX_PART_BULLET : LV_CHECKBOX_PART_BG;
+            break;
+
+        case LV_HASP_CPICKER:
+            part = index == 1 ? LV_CPICKER_PART_KNOB : LV_CPICKER_PART_MAIN;
+            break;
+
+        case LV_HASP_ROLLER:
+            part = index == 1 ? LV_ROLLER_PART_SELECTED : LV_ROLLER_PART_BG;
+            break;
+
+        case LV_HASP_GAUGE:
+            part = (index > 0) && (index <= LV_GAUGE_PART_NEEDLE) ? index : LV_GAUGE_PART_MAIN;
+            break;
+
+        case LV_HASP_TABVIEW:
+            switch(index) {
+                case 0:
+                    part  = LV_TABVIEW_PART_TAB_BTN; // Button Matrix
+                    state = LV_STATE_DEFAULT;
+                    break;
+                case 1:
+                    part  = LV_TABVIEW_PART_TAB_BTN; // Button Matrix
+                    state = LV_STATE_CHECKED;
+                    break;
+                case 2:
+                    part  = LV_TABVIEW_PART_TAB_BTN; // Button Matrix
+                    state = LV_STATE_PRESSED + LV_STATE_DEFAULT;
+                    break;
+                case 3:
+                    part  = LV_TABVIEW_PART_TAB_BTN; // Button Matrix
+                    state = LV_STATE_PRESSED + LV_STATE_CHECKED;
+                    break;
+                case 4:
+                    part  = LV_TABVIEW_PART_TAB_BTN; // Button Matrix
+                    state = LV_STATE_DISABLED + LV_STATE_DEFAULT;
+                    break;
+                case 5:
+                    part  = LV_TABVIEW_PART_TAB_BTN; // Button Matrix
+                    state = LV_STATE_DISABLED + LV_STATE_CHECKED;
+                    break;
+                case 6:
+                    part = LV_TABVIEW_PART_TAB_BG; // Matrix background
+                                                   // state = LV_STATE_DEFAULT;
+                    break;
+                case 7:
+                    part = LV_TABVIEW_PART_INDIC; // Rectangle-like object under the currently selected tab
+                                                  // state = LV_STATE_DEFAULT;
+                    break;
+                case 8:
+                    part = LV_TABVIEW_PART_BG_SCROLLABLE; // It holds the content of the tabs next to each other
+                                                          // state = LV_STATE_DEFAULT;
+                    break;
+
+                default: // 9 or -1
+                    part = LV_TABVIEW_PART_BG;
+                    // state = LV_STATE_DEFAULT;
+            }
+            break;
+
+        default:; // nothing to do
+    }
+}
+#endif
 
 /**
  * Change or Retrieve the value of a local attribute of an object PART
