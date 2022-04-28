@@ -1082,7 +1082,7 @@ static void webHandleConfig()
 #endif
 
         httpMessage += F("<a href='/config/debug'>" D_HTTP_DEBUG_SETTINGS "</a>");
-        httpMessage += F("<a href='/resetConfig' class='red'>" D_HTTP_FACTORY_RESET "</a>");
+        httpMessage += F("<a href='/config/reset' class='red'>" D_HTTP_FACTORY_RESET "</a>");
         httpMessage += FPSTR(MAIN_MENU_BUTTON);
 
         webSendHeader(haspDevice.get_hostname(), httpMessage.length(), false);
@@ -2092,18 +2092,18 @@ static void httpHandleEspFirmware()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-#if HASP_USE_CONFIG > 0
-static void webHandleSaveConfig()
-{
-    if(!httpIsAuthenticated(F("saveConfig"))) return;
+// #if HASP_USE_CONFIG > 0
+// static void webHandleSaveConfig()
+// {
+//     if(!httpIsAuthenticated(F("saveConfig"))) return;
 
-    configWrite();
-}
+//     configWrite();
+// }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 static void httpHandleResetConfig()
-{ // http://plate01/resetConfig
-    if(!httpIsAuthenticated(F("resetConfig"))) return;
+{ // http://plate01/config/reset
+    if(!httpIsAuthenticated(F("reset"))) return;
 
     bool resetConfirmed = webServer.arg(F("confirm")) == F("yes");
 
@@ -2126,7 +2126,7 @@ static void httpHandleResetConfig()
             }
         } else {
             // Form
-            httpMessage += F("<form method='POST' action='/resetConfig'>");
+            httpMessage += F("<form method='POST' action='/config/reset'>");
             httpMessage +=
                 F("<div class=\"warning\"><b>Warning</b><p>This process will reset all settings to the "
                   "default values. The internal flash will be erased and the device is restarted. You may need to "
@@ -2336,8 +2336,8 @@ void httpSetup()
     webServer.on(F("/config/gpio/options"), webHandleGpioOutput);
     webServer.on(F("/config/gpio/input"), webHandleGpioInput);
 #endif
-    webServer.on(F("/saveConfig"), webHandleSaveConfig);
-    webServer.on(F("/resetConfig"), httpHandleResetConfig);
+    // webServer.on(F("/saveConfig"), webHandleSaveConfig);
+    webServer.on(F("/config/reset"), httpHandleResetConfig);
 #endif // HASP_USE_CONFIG
     webServer.onNotFound(httpHandleFileFromFlash);
 
