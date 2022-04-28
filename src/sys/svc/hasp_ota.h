@@ -16,10 +16,12 @@
 void otaSetup(void);
 IRAM_ATTR void otaLoop(void);
 void otaEverySecond(void);
-#endif
+#endif // HASP_USE_OTA
 
 /* ===== Special Event Processors ===== */
-void otaHttpUpdate(const char* espOtaUrl);
+#if HASP_USE_HTTP_UPDATE > 0
+void ota_http_update(const char* espOtaUrl);
+#endif // HASP_USE_HTTP_UPDATE
 
 #endif
 #endif

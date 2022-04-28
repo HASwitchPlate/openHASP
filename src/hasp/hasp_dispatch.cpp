@@ -966,9 +966,9 @@ void dispatch_backlight(const char*, const char* payload, uint8_t source)
 
 void dispatch_web_update(const char*, const char* espOtaUrl, uint8_t source)
 {
-#if HASP_USE_OTA > 0
+#if HASP_USE_HTTP_UPDATE > 0
     LOG_TRACE(TAG_MSGR, F(D_OTA_CHECK_UPDATE), espOtaUrl);
-    otaHttpUpdate(espOtaUrl);
+    ota_http_update(espOtaUrl);
 #endif
 }
 

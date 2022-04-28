@@ -2092,7 +2092,8 @@ static void httpHandleEspFirmware()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-// #if HASP_USE_CONFIG > 0
+#if HASP_USE_CONFIG > 0
+
 // static void webHandleSaveConfig()
 // {
 //     if(!httpIsAuthenticated(F("saveConfig"))) return;

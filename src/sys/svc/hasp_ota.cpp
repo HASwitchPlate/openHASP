@@ -30,34 +30,36 @@
 /**
  * This is lets-encrypt-x3-cross-signed.pem
  */
-const char* rootCACertificate = "-----BEGIN CERTIFICATE-----\n"
-                                "MIIEkjCCA3qgAwIBAgIQCgFBQgAAAVOFc2oLheynCDANBgkqhkiG9w0BAQsFADA/\n"
-                                "MSQwIgYDVQQKExtEaWdpdGFsIFNpZ25hdHVyZSBUcnVzdCBDby4xFzAVBgNVBAMT\n"
-                                "DkRTVCBSb290IENBIFgzMB4XDTE2MDMxNzE2NDA0NloXDTIxMDMxNzE2NDA0Nlow\n"
-                                "SjELMAkGA1UEBhMCVVMxFjAUBgNVBAoTDUxldCdzIEVuY3J5cHQxIzAhBgNVBAMT\n"
-                                "GkxldCdzIEVuY3J5cHQgQXV0aG9yaXR5IFgzMIIBIjANBgkqhkiG9w0BAQEFAAOC\n"
-                                "AQ8AMIIBCgKCAQEAnNMM8FrlLke3cl03g7NoYzDq1zUmGSXhvb418XCSL7e4S0EF\n"
-                                "q6meNQhY7LEqxGiHC6PjdeTm86dicbp5gWAf15Gan/PQeGdxyGkOlZHP/uaZ6WA8\n"
-                                "SMx+yk13EiSdRxta67nsHjcAHJyse6cF6s5K671B5TaYucv9bTyWaN8jKkKQDIZ0\n"
-                                "Z8h/pZq4UmEUEz9l6YKHy9v6Dlb2honzhT+Xhq+w3Brvaw2VFn3EK6BlspkENnWA\n"
-                                "a6xK8xuQSXgvopZPKiAlKQTGdMDQMc2PMTiVFrqoM7hD8bEfwzB/onkxEz0tNvjj\n"
-                                "/PIzark5McWvxI0NHWQWM6r6hCm21AvA2H3DkwIDAQABo4IBfTCCAXkwEgYDVR0T\n"
-                                "AQH/BAgwBgEB/wIBADAOBgNVHQ8BAf8EBAMCAYYwfwYIKwYBBQUHAQEEczBxMDIG\n"
-                                "CCsGAQUFBzABhiZodHRwOi8vaXNyZy50cnVzdGlkLm9jc3AuaWRlbnRydXN0LmNv\n"
-                                "bTA7BggrBgEFBQcwAoYvaHR0cDovL2FwcHMuaWRlbnRydXN0LmNvbS9yb290cy9k\n"
-                                "c3Ryb290Y2F4My5wN2MwHwYDVR0jBBgwFoAUxKexpHsscfrb4UuQdf/EFWCFiRAw\n"
-                                "VAYDVR0gBE0wSzAIBgZngQwBAgEwPwYLKwYBBAGC3xMBAQEwMDAuBggrBgEFBQcC\n"
-                                "ARYiaHR0cDovL2Nwcy5yb290LXgxLmxldHNlbmNyeXB0Lm9yZzA8BgNVHR8ENTAz\n"
-                                "MDGgL6AthitodHRwOi8vY3JsLmlkZW50cnVzdC5jb20vRFNUUk9PVENBWDNDUkwu\n"
-                                "Y3JsMB0GA1UdDgQWBBSoSmpjBH3duubRObemRWXv86jsoTANBgkqhkiG9w0BAQsF\n"
-                                "AAOCAQEA3TPXEfNjWDjdGBX7CVW+dla5cEilaUcne8IkCJLxWh9KEik3JHRRHGJo\n"
-                                "uM2VcGfl96S8TihRzZvoroed6ti6WqEBmtzw3Wodatg+VyOeph4EYpr/1wXKtx8/\n"
-                                "wApIvJSwtmVi4MFU5aMqrSDE6ea73Mj2tcMyo5jMd6jmeWUHK8so/joWUoHOUgwu\n"
-                                "X4Po1QYz+3dszkDqMp4fklxBwXRsW10KXzPMTZ+sOPAveyxindmjkW8lGy+QsRlG\n"
-                                "PfZ+G6Z6h7mjem0Y+iWlkYcV4PIWL1iwBi8saCbGS5jN2p8M+X+Q7UNKEkROb3N6\n"
-                                "KOqkqm57TH2H3eDJAkSnh6/DNFu0Qg==\n"
-                                "-----END CERTIFICATE-----\n";
-#endif
+// const char* rootCACertificate = "-----BEGIN CERTIFICATE-----\n"
+//                                 "MIIEkjCCA3qgAwIBAgIQCgFBQgAAAVOFc2oLheynCDANBgkqhkiG9w0BAQsFADA/\n"
+//                                 "MSQwIgYDVQQKExtEaWdpdGFsIFNpZ25hdHVyZSBUcnVzdCBDby4xFzAVBgNVBAMT\n"
+//                                 "DkRTVCBSb290IENBIFgzMB4XDTE2MDMxNzE2NDA0NloXDTIxMDMxNzE2NDA0Nlow\n"
+//                                 "SjELMAkGA1UEBhMCVVMxFjAUBgNVBAoTDUxldCdzIEVuY3J5cHQxIzAhBgNVBAMT\n"
+//                                 "GkxldCdzIEVuY3J5cHQgQXV0aG9yaXR5IFgzMIIBIjANBgkqhkiG9w0BAQEFAAOC\n"
+//                                 "AQ8AMIIBCgKCAQEAnNMM8FrlLke3cl03g7NoYzDq1zUmGSXhvb418XCSL7e4S0EF\n"
+//                                 "q6meNQhY7LEqxGiHC6PjdeTm86dicbp5gWAf15Gan/PQeGdxyGkOlZHP/uaZ6WA8\n"
+//                                 "SMx+yk13EiSdRxta67nsHjcAHJyse6cF6s5K671B5TaYucv9bTyWaN8jKkKQDIZ0\n"
+//                                 "Z8h/pZq4UmEUEz9l6YKHy9v6Dlb2honzhT+Xhq+w3Brvaw2VFn3EK6BlspkENnWA\n"
+//                                 "a6xK8xuQSXgvopZPKiAlKQTGdMDQMc2PMTiVFrqoM7hD8bEfwzB/onkxEz0tNvjj\n"
+//                                 "/PIzark5McWvxI0NHWQWM6r6hCm21AvA2H3DkwIDAQABo4IBfTCCAXkwEgYDVR0T\n"
+//                                 "AQH/BAgwBgEB/wIBADAOBgNVHQ8BAf8EBAMCAYYwfwYIKwYBBQUHAQEEczBxMDIG\n"
+//                                 "CCsGAQUFBzABhiZodHRwOi8vaXNyZy50cnVzdGlkLm9jc3AuaWRlbnRydXN0LmNv\n"
+//                                 "bTA7BggrBgEFBQcwAoYvaHR0cDovL2FwcHMuaWRlbnRydXN0LmNvbS9yb290cy9k\n"
+//                                 "c3Ryb290Y2F4My5wN2MwHwYDVR0jBBgwFoAUxKexpHsscfrb4UuQdf/EFWCFiRAw\n"
+//                                 "VAYDVR0gBE0wSzAIBgZngQwBAgEwPwYLKwYBBAGC3xMBAQEwMDAuBggrBgEFBQcC\n"
+//                                 "ARYiaHR0cDovL2Nwcy5yb290LXgxLmxldHNlbmNyeXB0Lm9yZzA8BgNVHR8ENTAz\n"
+//                                 "MDGgL6AthitodHRwOi8vY3JsLmlkZW50cnVzdC5jb20vRFNUUk9PVENBWDNDUkwu\n"
+//                                 "Y3JsMB0GA1UdDgQWBBSoSmpjBH3duubRObemRWXv86jsoTANBgkqhkiG9w0BAQsF\n"
+//                                 "AAOCAQEA3TPXEfNjWDjdGBX7CVW+dla5cEilaUcne8IkCJLxWh9KEik3JHRRHGJo\n"
+//                                 "uM2VcGfl96S8TihRzZvoroed6ti6WqEBmtzw3Wodatg+VyOeph4EYpr/1wXKtx8/\n"
+//                                 "wApIvJSwtmVi4MFU5aMqrSDE6ea73Mj2tcMyo5jMd6jmeWUHK8so/joWUoHOUgwu\n"
+//                                 "X4Po1QYz+3dszkDqMp4fklxBwXRsW10KXzPMTZ+sOPAveyxindmjkW8lGy+QsRlG\n"
+//                                 "PfZ+G6Z6h7mjem0Y+iWlkYcV4PIWL1iwBi8saCbGS5jN2p8M+X+Q7UNKEkROb3N6\n"
+//                                 "KOqkqm57TH2H3eDJAkSnh6/DNFu0Qg==\n"
+//                                 "-----END CERTIFICATE-----\n";
+
+extern const uint8_t rootca_crt_bundle_start[] asm("_binary_data_cert_x509_crt_bundle_bin_start");
+#endif // ARDUINO_ARCH_ESP32
 
 static WiFiClient otaClient;
 std::string otaUrl           = "http://ota.netwize.be";
@@ -109,12 +111,89 @@ static inline void otaProgress(void)
                 otaPrecentageComplete);
 }
 
-void otaOnProgress(unsigned int progress, unsigned int total)
+static void ota_on_start(void)
 {
-    if(total != 0) {
-        otaPrecentageComplete = progress * 100 / total;
-        haspProgressVal(otaPrecentageComplete);
+    if(ArduinoOTA.getCommand() == U_FLASH) {
+    } else { // U_SPIFFS
+        // NOTE: if updating SPIFFS this would be the place to unmount SPIFFS using SPIFFS.end()
     }
+
+    LOG_TRACE(TAG_OTA, F(D_SERVICE_STARTING));
+    haspProgressMsg(F(D_OTA_UPDATE_FIRMWARE));
+    haspProgressVal(0);
+    otaPrecentageComplete = 0;
+}
+
+static void ota_on_end(void)
+{
+    otaPrecentageComplete = 100;
+    LOG_TRACE(TAG_OTA, F(D_OTA_UPDATE_COMPLETE));
+    haspProgressVal(100);
+    haspProgressMsg(F(D_OTA_UPDATE_APPLY));
+    otaProgress();
+    otaPrecentageComplete = -1;
+    dispatch_reboot(true);
+}
+
+static void ota_on_progress(unsigned int progress, unsigned int total)
+{
+    if(total == 0) return;
+    otaPrecentageComplete = progress * 100 / total;
+    haspProgressVal(otaPrecentageComplete);
+}
+
+static void ota_on_error(ota_error_t error)
+{
+    char buffer[32];
+    switch(error) {
+        case OTA_AUTH_ERROR:
+            snprintf_P(buffer, sizeof(buffer), PSTR("Auth failed"));
+            break;
+        case OTA_BEGIN_ERROR:
+            snprintf_P(buffer, sizeof(buffer), PSTR("Begin failed"));
+            break;
+        case OTA_CONNECT_ERROR:
+            snprintf_P(buffer, sizeof(buffer), PSTR("Connect failed"));
+            break;
+        case OTA_RECEIVE_ERROR:
+            snprintf_P(buffer, sizeof(buffer), PSTR("Receive failed"));
+            break;
+        case OTA_END_ERROR:
+            snprintf_P(buffer, sizeof(buffer), PSTR("End failed"));
+            break;
+        default:
+            snprintf_P(buffer, sizeof(buffer), PSTR("Unknown Error"));
+    }
+
+    otaPrecentageComplete = -1;
+    LOG_ERROR(TAG_OTA, F("%s (%d)"), buffer, error);
+    haspProgressMsg(F(D_OTA_UPDATE_FAILED));
+    // delay(5000);
+}
+
+static void ota_on_http_progress(unsigned int progress, unsigned int total)
+{
+    if(total == 0) return;
+    otaPrecentageComplete = progress * 100 / total;
+    haspProgressVal(otaPrecentageComplete);
+    LOG_VERBOSE(TAG_OTA, F("%s %3u%"), F(D_OTA_UPDATING_FIRMWARE), otaPrecentageComplete);
+}
+
+static void ota_on_http_end(void)
+{
+    otaPrecentageComplete = 100;
+    LOG_TRACE(TAG_OTA, F(D_OTA_UPDATE_COMPLETE));
+    haspProgressVal(100);
+    haspProgressMsg(F(D_OTA_UPDATE_APPLY));
+    otaPrecentageComplete = -1;
+    dispatch_reboot(true);
+}
+
+static void ota_on_http_error(int error)
+{
+    otaPrecentageComplete = -1;
+    LOG_ERROR(TAG_OTA, F("%s (%d)"), "HTTP Update error", error);
+    haspProgressMsg(F(D_OTA_UPDATE_FAILED));
 }
 
 #if HASP_USE_OTA > 0
@@ -125,55 +204,10 @@ void otaSetup(void)
     }
 
     if(otaPort > 0) {
-        ArduinoOTA.onStart([]() {
-            if(ArduinoOTA.getCommand() == U_FLASH) {
-            } else { // U_SPIFFS
-                // NOTE: if updating SPIFFS this would be the place to unmount SPIFFS using SPIFFS.end()
-            }
-
-            LOG_TRACE(TAG_OTA, F(D_SERVICE_STARTING));
-            haspProgressMsg(F(D_OTA_UPDATE_FIRMWARE));
-            haspProgressVal(0);
-            otaPrecentageComplete = 0;
-        });
-        ArduinoOTA.onEnd([]() {
-            otaPrecentageComplete = 100;
-            LOG_TRACE(TAG_OTA, F(D_OTA_UPDATE_COMPLETE));
-            haspProgressVal(100);
-            haspProgressMsg(F(D_OTA_UPDATE_APPLY));
-            otaProgress();
-            otaPrecentageComplete = -1;
-            // setup();
-            dispatch_reboot(true);
-        });
-        ArduinoOTA.onProgress(otaOnProgress);
-        ArduinoOTA.onError([](ota_error_t error) {
-            char buffer[32];
-            switch(error) {
-                case OTA_AUTH_ERROR:
-                    snprintf_P(buffer, sizeof(buffer), PSTR("Auth failed"));
-                    break;
-                case OTA_BEGIN_ERROR:
-                    snprintf_P(buffer, sizeof(buffer), PSTR("Begin failed"));
-                    break;
-                case OTA_CONNECT_ERROR:
-                    snprintf_P(buffer, sizeof(buffer), PSTR("Connect failed"));
-                    break;
-                case OTA_RECEIVE_ERROR:
-                    snprintf_P(buffer, sizeof(buffer), PSTR("Receive failed"));
-                    break;
-                case OTA_END_ERROR:
-                    snprintf_P(buffer, sizeof(buffer), PSTR("End failed"));
-                    break;
-                default:
-                    snprintf_P(buffer, sizeof(buffer), PSTR("Unknown Error"));
-            }
-
-            otaPrecentageComplete = -1;
-            LOG_ERROR(TAG_OTA, F("%s (%d)"), buffer, error);
-            haspProgressMsg(F(D_OTA_UPDATE_FAILED));
-            // delay(5000);
-        });
+        ArduinoOTA.onStart(ota_on_start);
+        ArduinoOTA.onEnd(ota_on_end);
+        ArduinoOTA.onProgress(ota_on_progress);
+        ArduinoOTA.onError(ota_on_error);
 
         ArduinoOTA.setHostname(haspDevice.get_hostname());
         // ArduinoOTA.setPassword(configPassword); // See OTA_PASSWORD
@@ -181,11 +215,10 @@ void otaSetup(void)
 
 #if ESP32
 #if HASP_USE_MDNS > 0
-        ArduinoOTA.setMdnsEnabled(true);
-#else
-        ArduinoOTA.setMdnsEnabled(false);
+        ArduinoOTA.setMdnsEnabled(false);                    // it's already started
+        MDNS.enableArduino(_port, (_password.length() > 0)); // Add the Arduino SVC
 #endif
-        // ArduinoOTA.setTimeout(1000);
+        // ArduinoOTA.setTimeout(1000); // default
 #endif
         ArduinoOTA.setRebootOnSuccess(false); // We do that ourselves
 
@@ -209,10 +242,13 @@ void otaEverySecond(void)
 {
     if(otaPrecentageComplete >= 0) otaProgress();
 }
-#endif
+#endif // HASP_USE_OTA
 
-void otaHttpUpdate(const char* espOtaUrl)
+#if HASP_USE_HTTP_UPDATE > 0
+void ota_http_update(const char* espOtaUrl)
 { // Update ESP firmware from HTTP
+    t_httpUpdate_return returnCode;
+
 #if HASP_USE_MDNS > 0
     mdnsStop(); // Keep mDNS responder from breaking things
 #endif
@@ -224,17 +260,31 @@ void otaHttpUpdate(const char* espOtaUrl)
     // ESPhttpUpdate.onError(update_error);
     ESP8266HTTPUpdate httpUpdate;
     httpUpdate.rebootOnUpdate(false); // We do that ourselves
-    t_httpUpdate_return returnCode = httpUpdate.update(otaClient, espOtaUrl);
+    returnCode = httpUpdate.update(otaClient, espOtaUrl);
 
 #else
     HTTPUpdate httpUpdate;
-    WiFiClientSecure secClient;
-    secClient.setCACert(rootCACertificate);
 
-    // Reading data over SSL may be slow, use an adequate timeout
-    secClient.setTimeout(12000 / 1000); // timeout argument is defined in seconds for setTimeout
-    httpUpdate.rebootOnUpdate(false);   // We do that ourselves
-    t_httpUpdate_return returnCode = httpUpdate.update(secClient, espOtaUrl);
+    httpUpdate.onStart(ota_on_start);
+    httpUpdate.onEnd(ota_on_http_end);
+    httpUpdate.onProgress(ota_on_progress);
+    httpUpdate.onError(ota_on_http_error);
+    httpUpdate.rebootOnUpdate(false); // We do that ourselves
+
+    if(espOtaUrl != strstr_P(espOtaUrl, PSTR("https://"))) { // not start with https
+        returnCode = httpUpdate.update(otaClient, espOtaUrl);
+    } else {
+        WiFiClientSecure secureClient;
+        //  Reading data over SSL may be slow, use an adequate timeout
+        secureClient.setTimeout(12); // timeout argument is defined in seconds
+        /*
+         * This method is similar to the single root certificate verfication, but it uses a standard set of root
+         * certificates from Mozilla to authenticate against. This allows the client to connect to all public SSL
+         * servers.
+         */
+        secureClient.setCACertBundle(rootca_crt_bundle_start);
+        returnCode = httpUpdate.update(secureClient, espOtaUrl);
+    }
 
 #endif
 
@@ -257,5 +307,6 @@ void otaHttpUpdate(const char* espOtaUrl)
     mdnsStart();
 #endif // HASP_USE_MDNS
 }
+#endif // HASP_USE_HTTP_UPDATE
 
 #endif // ARDUINO_ARCH_ESP8266 || ARDUINO_ARCH_ESP32

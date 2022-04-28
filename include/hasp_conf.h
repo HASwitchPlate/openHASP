@@ -57,6 +57,10 @@
 #define HASP_USE_OTA 0 //(HASP_HAS_NETWORK)
 #endif
 
+#ifndef HASP_USE_HTTP_UPDATE
+#define HASP_USE_HTTP_UPDATE (HASP_HAS_NETWORK)
+#endif
+
 #ifndef HASP_USE_MQTT
 #define HASP_USE_MQTT (HASP_HAS_NETWORK)
 #endif
