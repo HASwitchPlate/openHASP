@@ -5,7 +5,7 @@
 .git
 .pio
 bin/*
-data/*
+#data/*
 !data/edit.htm
 !data/edit.htm.gz
 !data/vars.css
