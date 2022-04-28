@@ -5,7 +5,7 @@
 .git
 .pio
 bin/*
-#data/*
+data/*
 !data/edit.htm
 !data/edit.htm.gz
 !data/vars.css
@@ -13,6 +13,7 @@ bin/*
 !data/style.css.gz
 !data/script.js
 !data/script.js.gz
+!data/cert/
 !data/cert/x509_crt_bundle.bin
 src/user_setups/active/*
 include/user_config_override.h
@@ -32,7 +33,6 @@ src/custom/*
 
 ## Test result files
 *.xml
-*.bin
 
 ## Visual Studio Code specific ######
 !.vscode
