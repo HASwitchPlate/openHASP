@@ -690,6 +690,8 @@ static inline void webUpdatePrintError()
 #elif defined(ARDUINO_ARCH_ESP32)
     LOG_ERROR(TAG_HTTP, Update.errorString()); // ESP32 has errorString()
     haspProgressMsg(Update.errorString());
+    Update.abort();
+    Update.end(false);
 #endif
 }
 
@@ -750,10 +752,12 @@ static void webHandleFirmwareUpload()
         }
 
         case UPLOAD_FILE_WRITE: // flashing firmware to ESP
-            if(Update.write(upload->buf, upload->currentSize) != upload->currentSize) {
-                webUpdatePrintError();
-            } else {
-                webUploadProgress();
+            if(!Update.isFinished()) {
+                if(Update.write(upload->buf, upload->currentSize) != upload->currentSize) {
+                    webUpdatePrintError();
+                } else {
+                    webUploadProgress();
+                }
             }
             break;
 
