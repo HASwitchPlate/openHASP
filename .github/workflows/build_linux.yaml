@@ -2,8 +2,6 @@ name: Build branch
 
 on:
   workflow_dispatch:
-    paths-ignore:
-      - '**.md'
 
 jobs:
   build:

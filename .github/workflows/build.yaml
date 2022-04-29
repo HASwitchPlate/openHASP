@@ -5,8 +5,6 @@ on:
     paths-ignore:
       - '**.md'
   workflow_dispatch:
-    paths-ignore:
-      - '**.md'
 
 jobs:
   build_esp32:
