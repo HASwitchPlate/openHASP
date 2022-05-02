@@ -278,12 +278,14 @@ void ota_http_update(const char* espOtaUrl)
         WiFiClientSecure secureClient;
         //  Reading data over SSL may be slow, use an adequate timeout
         secureClient.setTimeout(12); // timeout argument is defined in seconds
-        /*
-         * This method is similar to the single root certificate verfication, but it uses a standard set of root
+
+#if ESP_ARDUINO_VERSION_MAJOR >= 2
+        /* This method is similar to the single root certificate verfication, but it uses a standard set of root
          * certificates from Mozilla to authenticate against. This allows the client to connect to all public SSL
-         * servers.
-         */
+         * servers. */
         secureClient.setCACertBundle(rootca_crt_bundle_start);
+#endif
+
         returnCode = httpUpdate.update(secureClient, espOtaUrl);
     }
 
