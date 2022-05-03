@@ -612,7 +612,6 @@ IRAM_ATTR void haspLoop(void)
 void hasp_init(void)
 {
     haspPages.init(haspStartPage); // StartPage is used for the BACK action
-    font_clear_list();             // free TTF resources
 }
 
 void hasp_load_json(void)
