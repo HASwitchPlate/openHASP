@@ -44,6 +44,7 @@ char wifiIpAddress[16]                 = "";
 uint16_t wifiReconnectCounter          = 0;
 bool wifiOnline                        = false;
 bool haspOnline                        = false;
+bool wifiEnabled                       = true;
 
 // const byte DNS_PORT = 53;
 // DNSServer dnsServer;
@@ -363,7 +364,7 @@ static void wifiSTADisconnected(WiFiEventStationModeDisconnected info)
 
 bool wifiShowAP()
 {
-    if(strlen(wifiSsid) != 0)
+    if(wifiEnabled && strlen(wifiSsid) != 0)
         return false;
     else
         return true;
@@ -405,11 +406,11 @@ static void wifiReconnect(void)
 
 #elif defined(ARDUINO_ARCH_ESP32)
     // https://github.com/espressif/arduino-esp32/issues/3438#issuecomment-721428310
-    WiFi.disconnect();
+    WiFi.disconnect(true);
     WiFi.setHostname(haspDevice.get_hostname());
     WiFi.mode(WIFI_STA);
     WiFi.setSleep(false);
-    WiFi.begin(wifiSsid, wifiPassword, WIFI_ALL_CHANNEL_SCAN);
+    WiFi.begin(wifiSsid, wifiPassword);
     // WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE); // causes 255.255.255.255 IP errors
 #endif
 }
@@ -498,8 +499,11 @@ bool wifiEvery5Seconds()
         return true;
     }
 
-    LOG_WARNING(TAG_WIFI, F("No Connection... retry %d"), wifiReconnectCounter);
-    wifiReconnect();
+    if(wifiEnabled) {
+        LOG_WARNING(TAG_WIFI, F("No Connection... retry %d"), wifiReconnectCounter);
+        wifiReconnect();
+    }
+
     return false;
 }
 
