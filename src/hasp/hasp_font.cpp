@@ -106,27 +106,27 @@ void font_clear_list(const char* payload)
     }
 }
 
-void font_clear_list2(const char* payload)
-{
-    hasp_font_info_t* font_p = (hasp_font_info_t*)_lv_ll_get_head(&hasp_fonts_ll);
-    while(font_p) {
-        if(font_p->type == 1) {
-            lv_font_fmt_ft_dsc_t* dsc = (lv_font_fmt_ft_dsc_t*)font_p->font->dsc;
-            if(strcmp(dsc->name, payload) == 0) { // name and size
-                lv_ft_font_destroy(font_p->font);
-                *font_p->font = HASP_FONT_1;
-                font_p->type  = 255;
-            }
-        }
-        // if(strcmp(font_p->payload, payload) == 0) { // name and size
-        //     LOG_DEBUG(TAG_FONT, F("Payload %s found => line height = %d - base_line = %d"), payload,
-        //               font_p->font->line_height, font_p->font->base_line);
-        //     return font_p->font;
-        // }
+// void font_clear_list2(const char* payload)
+// {
+//     hasp_font_info_t* font_p = (hasp_font_info_t*)_lv_ll_get_head(&hasp_fonts_ll);
+//     while(font_p) {
+//         if(font_p->type == 1) {
+//             lv_font_fmt_ft_dsc_t* dsc = (lv_font_fmt_ft_dsc_t*)font_p->font->dsc;
+//             if(strcmp(dsc->name, payload) == 0) { // name and size
+//                 lv_ft_font_destroy(font_p->font);
+//                 *font_p->font = HASP_FONT_1;
+//                 font_p->type  = 255;
+//             }
+//         }
+//         // if(strcmp(font_p->payload, payload) == 0) { // name and size
+//         //     LOG_DEBUG(TAG_FONT, F("Payload %s found => line height = %d - base_line = %d"), payload,
+//         //               font_p->font->line_height, font_p->font->base_line);
+//         //     return font_p->font;
+//         // }
 
-        font_p = (hasp_font_info_t*)_lv_ll_get_next(&hasp_fonts_ll, font_p);
-    }
-}
+//         font_p = (hasp_font_info_t*)_lv_ll_get_next(&hasp_fonts_ll, font_p);
+//     }
+// }
 
 static lv_font_t* font_find_in_list(const char* payload)
 {
