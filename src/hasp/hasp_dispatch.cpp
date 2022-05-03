@@ -47,7 +47,7 @@ uint16_t dispatchSecondsToNextTeleperiod = 0;
 uint16_t dispatchSecondsToNextSensordata = 0;
 uint16_t dispatchSecondsToNextDiscovery  = 0;
 uint8_t nCommands                        = 0;
-haspCommand_t commands[27];
+haspCommand_t commands[28];
 
 moodlight_t moodlight    = {.brightness = 255};
 uint8_t saved_jsonl_page = 0;
@@ -814,18 +814,26 @@ void dispatch_page(const char*, const char* page, uint8_t source)
     }
 }
 
+// Clears all fonts
+void dispatch_clear_font(const char*, const char* payload, uint8_t source)
+{
+    hasp_init();
+    font_clear_list(payload);
+}
+
 // Clears a page id or the current page if empty
 void dispatch_clear_page(const char*, const char* page, uint8_t source)
 {
+    if(!strcasecmp_P(page, PSTR("all"))) {
+        hasp_init();
+        return;
+    }
+
     uint8_t pageid;
-    if(strlen(page) > 0) {
-        if(!strcasecmp_P(page, PSTR("all"))) {
-            hasp_init();
-        } else {
-            pageid = atoi(page);
-        }
-    } else {
+    if(strlen(page) == 0) {
         pageid = haspPages.get();
+    } else {
+        pageid = atoi(page);
     }
     haspPages.clear(pageid);
 }
@@ -1375,6 +1383,7 @@ void dispatchSetup()
     dispatch_add_command(PSTR("sleep"), dispatch_sleep);
     dispatch_add_command(PSTR("statusupdate"), dispatch_statusupdate);
     dispatch_add_command(PSTR("clearpage"), dispatch_clear_page);
+    dispatch_add_command(PSTR("clearfont"), dispatch_clear_font);
     dispatch_add_command(PSTR("sensors"), dispatch_send_sensordata);
     dispatch_add_command(PSTR("theme"), dispatch_theme);
     dispatch_add_command(PSTR("run"), dispatch_exec);
