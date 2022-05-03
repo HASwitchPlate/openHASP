@@ -398,7 +398,7 @@ bool wifiShowAP(char* ssid, char* pass)
 static void wifiReconnect(void)
 {
 #if defined(ARDUINO_ARCH_ESP8266)
-    WiFi.disconnect();
+    WiFi.disconnect(true);
     WiFi.mode(WIFI_STA);
     WiFi.setSleepMode(WIFI_NONE_SLEEP);
     WiFi.begin(wifiSsid, wifiPassword);
@@ -406,10 +406,11 @@ static void wifiReconnect(void)
 
 #elif defined(ARDUINO_ARCH_ESP32)
     // https://github.com/espressif/arduino-esp32/issues/3438#issuecomment-721428310
+    WiFi.persistent(false);
     WiFi.disconnect(true);
-    WiFi.setHostname(haspDevice.get_hostname());
     WiFi.mode(WIFI_STA);
     WiFi.setSleep(false);
+    WiFi.setHostname(haspDevice.get_hostname());
     WiFi.begin(wifiSsid, wifiPassword);
     // WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE); // causes 255.255.255.255 IP errors
 #endif
@@ -540,14 +541,14 @@ bool wifiValidateSsid(const char* ssid, const char* pass)
 #endif
 
     LOG_WARNING(TAG_WIFI, F(D_NETWORK_IP_ADDRESS_RECEIVED), WiFi.localIP().toString().c_str());
-    WiFi.disconnect();
+    WiFi.disconnect(true);
     return false;
 }
 
 void wifiStop()
 {
     wifiReconnectCounter = 0; // Prevent endless loop in wifiDisconnected
-    WiFi.disconnect();
+    WiFi.disconnect(true);
 #if !defined(STM32F4xx)
     WiFi.mode(WIFI_OFF);
 #endif
