@@ -2,7 +2,14 @@
 
 #include "hasplib.h"
 #if HASP_USE_FREETYPE > 0
+
+#ifndef LV_USE_FREETYPE
+#define LV_USE_FREETYPE 1
+#endif
+
 #include "lv_freetype.h"
+#include "ft2build.h"  // for FT_FREETYPE_H macro
+#include FT_FREETYPE_H // for FREETYPE_VERSION macros
 #else
 typedef struct
 {
@@ -22,7 +29,18 @@ typedef struct
 {
     char* payload;   /* The payload with name and size */
     lv_font_t* font; /* point to lvgl font */
+    uint8_t type;
 } hasp_font_info_t;
+
+bool font_dummy_glyph_dsc(const struct _lv_font_struct*, lv_font_glyph_dsc_t*, uint32_t letter, uint32_t letter_next)
+{
+    return false;
+}
+
+const uint8_t* font_dummy_glyph_bitmap(const struct _lv_font_struct*, uint32_t)
+{
+    return NULL;
+}
 
 void font_setup()
 {
@@ -57,33 +75,56 @@ size_t font_split_payload(const char* payload)
     return 0;
 }
 
-void font_clear_list()
+static void font_release(void* node)
+{
+    hasp_font_info_t* font_p = (hasp_font_info_t*)node;
+    if(font_p->font) {
+        if(font_p->type = 1) { // It's a FreeType font
+#if(HASP_USE_FREETYPE > 0)
+            lv_ft_font_destroy(font_p->font);
+#endif
+        } else if(font_p->type = 0) { // It's a binary font
+            hasp_font_free(font_p->font);
+        }
+    }
+
+    /* Free the allocated font_name last */
+    if(font_p->payload) {
+        LOG_DEBUG(TAG_FONT, F("Released font %s"), font_p->payload);
+        hasp_free(font_p->payload);
+    }
+}
+
+void font_clear_list(const char* payload)
 {
     if(_lv_ll_is_empty(&hasp_fonts_ll)) return;
 
-    void* node = _lv_ll_get_head(&hasp_fonts_ll);
-    while(node) {
-
-        hasp_font_info_t* font_p = (hasp_font_info_t*)node;
-        if(font_p->font) {
-            if(font_p->font->user_data) { // It's a FreeType font
-#if(HASP_USE_FREETYPE > 0)
-                lv_ft_font_destroy(font_p->font);
-#endif
-            } else { // It's a binary font
-                hasp_font_free(font_p->font);
-            }
-        }
-
-        /* Free the allocated font_name last */
-        if(font_p->payload) {
-            LOG_DEBUG(TAG_FONT, F("Released font %s"), font_p->payload);
-            hasp_free(font_p->payload);
-        }
-
+    while(void* node = _lv_ll_get_head(&hasp_fonts_ll)) {
+        font_release(node);
         _lv_ll_remove(&hasp_fonts_ll, node);
         lv_mem_free(node);
-        node = _lv_ll_get_head(&hasp_fonts_ll);
+    }
+}
+
+void font_clear_list2(const char* payload)
+{
+    hasp_font_info_t* font_p = (hasp_font_info_t*)_lv_ll_get_head(&hasp_fonts_ll);
+    while(font_p) {
+        if(font_p->type == 1) {
+            lv_font_fmt_ft_dsc_t* dsc = (lv_font_fmt_ft_dsc_t*)font_p->font->dsc;
+            if(strcmp(dsc->name, payload) == 0) { // name and size
+                lv_ft_font_destroy(font_p->font);
+                *font_p->font = HASP_FONT_1;
+                font_p->type  = 255;
+            }
+        }
+        // if(strcmp(font_p->payload, payload) == 0) { // name and size
+        //     LOG_DEBUG(TAG_FONT, F("Payload %s found => line height = %d - base_line = %d"), payload,
+        //               font_p->font->line_height, font_p->font->base_line);
+        //     return font_p->font;
+        // }
+
+        font_p = (hasp_font_info_t*)_lv_ll_get_next(&hasp_fonts_ll, font_p);
     }
 }
 
@@ -108,8 +149,9 @@ static lv_font_t* font_add_to_list(const char* payload)
 
     // Try .bin file
     snprintf_P(filename, sizeof(filename), PSTR("L:\\%s.bin"), payload);
-    lv_font_t* font = hasp_font_load(filename);
-    char* name_p    = NULL;
+    lv_font_t* font   = hasp_font_load(filename);
+    char* name_p      = NULL;
+    uint8_t font_type = 0;
 
 #if defined(ARDUINO_ARCH_ESP32) && (HASP_USE_FREETYPE > 0)
     char* ext[] = {"ttf", "otf"};
@@ -140,9 +182,12 @@ static lv_font_t* font_add_to_list(const char* payload)
                 lv_ft_info_t info;
                 info.name   = filename;
                 info.weight = size;
+                info.mem    = NULL;
                 info.style  = FT_FONT_STYLE_NORMAL;
+                LOG_VERBOSE(TAG_FONT, F("Loading font %s size %d"), filename, size);
                 if(lv_ft_font_init(&info)) {
-                    font = info.font;
+                    font      = info.font;
+                    font_type = 1;
                 }
             }
         }
@@ -150,7 +195,7 @@ static lv_font_t* font_add_to_list(const char* payload)
 #endif
 
     if(!font) return NULL;
-    LOG_VERBOSE(TAG_FONT, F("Loaded font %s size %d"), filename, font->line_height);
+    LOG_VERBOSE(TAG_FONT, F("Loaded font %s line_height %d"), filename, font->line_height);
 
     /* alloc payload str */
     size_t len = strlen(payload);
@@ -164,6 +209,7 @@ static lv_font_t* font_add_to_list(const char* payload)
 
     new_font_item->payload = name_p;
     new_font_item->font    = font;
+    new_font_item->type    = font_type;
     return font;
 }
 
