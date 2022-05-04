@@ -69,8 +69,8 @@
 - Expose the device URL in discovery message and CC
 
 ### Architecture
-- Moved to Tasmota Arduino 2.0.3rc1 with native LittleFS library (thanks @Jason2866)
-- Moved to ESP-IDF 4.4.0 with fixes for FragAttacks CVEs (thanks @nagyrobi)
+- Moved to Tasmota Arduino 2.0.3 with native LittleFS library (thanks @Jason2866)
+- Moved to ESP-IDF 4.4.1 with fixes for FragAttacks CVEs (thanks @nagyrobi)
 - Add support for ESP32-S2 devices
 - ⚠️ **Breaking:** Removed support for ESP8266!
 
