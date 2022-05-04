@@ -1,7 +1,6 @@
 /* MIT License - Copyright (c) 2019-2022 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
-//#include "webServer.h"
 #include "hasplib.h"
 #include "ArduinoLog.h"
 
@@ -2021,7 +2020,26 @@ static void webHandleFirmware()
 {
     if(!httpIsAuthenticated(F("firmware"))) return;
 
-    { // Send Content
+    if(webServer.method() == HTTP_POST && webServer.hasArg(PSTR("url"))) {
+        String url = webServer.arg(PSTR("url"));
+        {
+            String httpMessage((char*)0);
+            httpMessage.reserve(HTTP_PAGE_SIZE);
+            httpMessage += F("<h1>");
+            httpMessage += haspDevice.get_hostname();
+            httpMessage += F("</h1><hr>");
+
+            httpMessage += F("<p><b>ESP update</b></p>Updating ESP firmware from: ");
+            httpMessage += url;
+
+            webSendHeader(haspDevice.get_hostname(), httpMessage.length(), true);
+            webServer.sendContent(httpMessage);
+        }
+
+        LOG_TRACE(TAG_HTTP, F("Updating ESP firmware from: %s"), url.c_str());
+        dispatch_web_update(NULL, url.c_str(), TAG_HTTP);
+    } else {
+        // Send Firmware page
         String httpMessage((char*)0);
         httpMessage.reserve(HTTP_PAGE_SIZE);
         httpMessage += F("<h1>");
@@ -2047,19 +2065,18 @@ static void webHandleFirmware()
         httpMessage += F("<button type='submit' name='save' value='debug'>" D_HTTP_UPDATE_FIRMWARE "</button>");
         httpMessage += F("</form></div>");
 
-        /* Update from URL
-            // Form
-            httpMessage += F("<div class='container'><form method='POST' action='/espfirmware'>");
+        // Update from URL
+        // Form
+        httpMessage += F("<div class='container'><form method='POST' action='/firmware'>");
 
-            // URL
-            httpMessage +=
-                F("<div class='row'><div class='col-25'><label class='required' for='url'>From URL</label></div>");
-            httpMessage += F("<div class='col-75'><input required id='url' name='url' value=''></div></div>");
+        // URL
+        httpMessage +=
+            F("<div class='row'><div class='col-25'><label class='required' for='url'>From URL</label></div>");
+        httpMessage += F("<div class='col-75'><input required id='url' name='url' value=''></div></div>");
 
-            // Submit & End Form
-            httpMessage += F("<button type='submit' name='save' value='debug'>Update from URL</button>");
-            httpMessage += F("</form></div>");
-        */
+        // Submit & End Form
+        httpMessage += F("<button type='submit' name='save' value='debug'>Update from URL</button>");
+        httpMessage += F("</form></div>");
 
         httpMessage += FPSTR(MAIN_MENU_BUTTON);
 
@@ -2270,7 +2287,7 @@ void httpSetup()
             LOG_VERBOSE(TAG_HTTP, F("Total size: %s"), webServer.hostHeader().c_str());
         },
         webHandleFirmwareUpload);
-    // webServer.on(F("/espfirmware"), httpHandleEspFirmware);
+    //  webServer.on(F("/espfirmware"), httpHandleEspFirmware);
 #endif
 
 #if HASP_USE_WIFI > 0
