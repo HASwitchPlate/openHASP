@@ -1394,17 +1394,6 @@ void dispatch_m5stack_shutdown(const char*, const char*, uint8_t source)
     }
 }
 
- void dispatch_m5stack_vibrate(const char*, const char* vibr, uint8_t source)
-{
-    if(strlen(vibr) == 0) {
-        return;
-    }
-    if(Parser::is_true(vibr)) {
-        haspDevice.vibrate(1);
-    } else {
-        haspDevice.vibrate(0);
-    }
-}
 #endif
 /******************************************* Commands builder *******************************************/
 
