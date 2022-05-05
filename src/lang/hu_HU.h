@@ -28,7 +28,7 @@
 #define D_FILE_SIZE_MEGABYTES "MiB"
 #define D_FILE_SIZE_GIGABYTES "GiB"
 #define D_FILE_SIZE_DIVIDER 1024
-#define D_DECIMAL_POINT "," 
+#define D_DECIMAL_POINT ","
 
 #define D_SERVICE_STARTING "Indítás..."
 #define D_SERVICE_STARTED "Elindítva"
@@ -40,6 +40,7 @@
 
 #define D_SETTING_ENABLED "Engedélyezve"
 #define D_SETTING_DISABLED "Letiltva"
+#define D_SETTING_DEFAULT "Alapértelmezett"
 
 #define D_NETWORK_IP_ADDRESS_RECEIVED "Beállított IP-cím: %s"
 #define D_NETWORK_ONLINE "online"
@@ -146,7 +147,8 @@
 #define D_HTTP_MAIN_MENU "Főmenü"
 #define D_HTTP_REBOOT "Újraindítás"
 #define D_HTTP_CONFIGURATION "Beállítások"
-#define D_HTTP_CONFIG_CHANGED "A konfiguráció meg lett változtatva. <a href='/reboot'>Indítson újra</a> a beállítások mentéséhez!"
+#define D_HTTP_CONFIG_CHANGED                                                                                          \
+    "A konfiguráció meg lett változtatva. <a href='/reboot'>Indítson újra</a> a beállítások mentéséhez!"
 #define D_HTTP_SENDING_PAGE "%S oldal küldése %s-re"
 #define D_HTTP_FOOTER "készítette: Francis Van Roie"
 

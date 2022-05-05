@@ -13,7 +13,6 @@
 #define debug_print(io, ...) io->printf(__VA_ARGS__)
 #define debug_newline(io) io->println()
 
-// bool debugSerialStarted = false;
 #else
 #include <stdio.h>
 #include <stdlib.h>
@@ -22,7 +21,6 @@
 #define debug_print(io, ...) fprintf(stdout, __VA_ARGS__)
 #define debug_newline(io) fprintf(stdout, "\n")
 
-// bool debugSerialStarted = true;
 #endif
 
 bool debugAnsiCodes = true;
@@ -125,24 +123,10 @@ void debugStart(void)
 #endif
 
 #endif
-
-    /*
-        if(debugSerialStarted) {
-
-            // Serial.println();
-            // Serial.println(debugHaspHeader());
-            // debug_flush();
-        }
-
-        // prepare syslog configuration here (can be anywhere before first call of
-        // log/logf method)
-    */
 }
 
 void debugStop()
-{
-    // if(debugSerialStarted) debug_flush();
-}
+{}
 
 /* ===== Special Event Processors ===== */
 

@@ -40,6 +40,7 @@
 
 #define D_SETTING_ENABLED "Activé"
 #define D_SETTING_DISABLED "Désactivé"
+#define D_SETTING_DEFAULT "Défaut"
 
 #define D_NETWORK_IP_ADDRESS_RECEIVED "Adresse IP reçue %s"
 #define D_NETWORK_ONLINE "en ligne"
@@ -146,7 +147,9 @@
 #define D_HTTP_MAIN_MENU "Menu principal"
 #define D_HTTP_REBOOT "Redémarrer"
 #define D_HTTP_CONFIGURATION "Configuration"
-#define D_HTTP_CONFIG_CHANGED "La configuration a changé, cliquez sur <a href='/reboot'>Redémarrer</a> pour enregistrer les modifications dans le flash."
+#define D_HTTP_CONFIG_CHANGED                                                                                            \
+    "La configuration a changé, cliquez sur <a href='/reboot'>Redémarrer</a> pour enregistrer les modifications dans " \
+    "le flash."
 #define D_HTTP_SENDING_PAGE "La page %S envoyée à %s"
 #define D_HTTP_FOOTER "par Francis Van Roie"
 

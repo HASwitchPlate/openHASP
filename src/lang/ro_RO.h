@@ -32,6 +32,7 @@
 
 #define D_SETTING_ENABLED "Activ"
 #define D_SETTING_DISABLED "Inactiv"
+#define D_SETTING_DEFAULT "Implicit"
 
 #define D_SERVICE_STARTING "Pornire..."
 #define D_SERVICE_STARTED "Pornit"
@@ -146,7 +147,8 @@
 #define D_HTTP_MAIN_MENU "Meniu principal"
 #define D_HTTP_REBOOT "Repornire"
 #define D_HTTP_CONFIGURATION "Setări"
-#define D_HTTP_CONFIG_CHANGED "Configurația s-a modificat, pentru a se salva, este necesară <a href='/reboot'>repornirea</a> dispozitivului."
+#define D_HTTP_CONFIG_CHANGED                                                                                          \
+    "Configurația s-a modificat, pentru a se salva, este necesară <a href='/reboot'>repornirea</a> dispozitivului."
 #define D_HTTP_SENDING_PAGE "Pagina %S trimisă la %s"
 #define D_HTTP_FOOTER "de Francis Van Roie"
 

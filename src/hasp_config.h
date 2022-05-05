@@ -28,6 +28,7 @@ bool configSet(bool& value, const JsonVariant& setting, const __FlashStringHelpe
 bool configSet(int8_t& value, const JsonVariant& setting, const __FlashStringHelper* fstr_name);
 bool configSet(uint8_t& value, const JsonVariant& setting, const __FlashStringHelper* fstr_name);
 bool configSet(uint16_t& value, const JsonVariant& setting, const __FlashStringHelper* fstr_name);
+bool configSet(int32_t& value, const JsonVariant& setting, const __FlashStringHelper* fstr_name);
 bool configSet(lv_color_t& value, const JsonVariant& setting, const __FlashStringHelper* fstr_name);
 void configMaskPasswords(JsonDocument& settings);
 

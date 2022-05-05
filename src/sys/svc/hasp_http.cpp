@@ -82,11 +82,10 @@ extern const uint8_t SCRIPT_JS_GZ_END[] asm("_binary_data_script_js_gz_end");
 
 HTTPUpload* upload;
 
-static const char HTTP_MENU_BUTTON[] PROGMEM =
-    "<p><form method='GET' action='%s'><button type='submit'>%s</button></form></p>";
+// const char HTTP_MENU_BUTTON[] PROGMEM =
+//     "<p><form method='GET' action='%s'><button type='submit'>%s</button></form></p>";
 
 const char MAIN_MENU_BUTTON[] PROGMEM = "<a href='/'>" D_HTTP_MAIN_MENU "</a>";
-const char MIT_LICENSE[] PROGMEM      = "</br>MIT License</p>";
 
 const char HTTP_DOCTYPE[] PROGMEM      = "<!DOCTYPE html><html lang=\"en\"><head><meta charset='utf-8'><meta "
                                          "name=\"viewport\" content=\"width=device-width,initial-scale=1\"/>";
@@ -598,9 +597,6 @@ static void webHandleAbout()
     if(!httpIsAuthenticated(F("about"))) return;
 
     { // Send Content
-        String mitLicense((char*)0);
-        mitLicense = FPSTR(MIT_LICENSE);
-
         String httpMessage((char*)0);
         httpMessage.reserve(HTTP_PAGE_SIZE);
 
@@ -1769,13 +1765,17 @@ static void webHandleDebugConfig()
         uint16_t baudrate = settings[FPSTR(FP_CONFIG_BAUD)].as<uint16_t>();
         httpMessage += F("<div class='row'><div class='col-25'><label for='baud'>Serial Port</label></div>");
         httpMessage += F("<div class='col-75'><select id='baud' name='baud'>");
-        httpMessage += getOption(1, F(D_SETTING_DISABLED), baudrate); // Don't use 0 here which is default 115200
-        httpMessage += getOption(960, F("9600"), baudrate);
-        httpMessage += getOption(1920, F("19200"), baudrate);
-        httpMessage += getOption(3840, F("38400"), baudrate);
-        httpMessage += getOption(5760, F("57600"), baudrate);
-        httpMessage += getOption(7488, F("74880"), baudrate);
-        httpMessage += getOption(11520, F("115200"), baudrate);
+        httpMessage += getOption(-1, F(D_SETTING_DISABLED), baudrate); // Don't use 0 here which is default 115200
+        httpMessage += getOption(0, F(D_SETTING_DEFAULT), baudrate);   // Don't use 0 here which is default 115200
+        httpMessage += getOption(9600, F("9600"), baudrate);
+        httpMessage += getOption(19200, F("19200"), baudrate);
+        httpMessage += getOption(38400, F("38400"), baudrate);
+        httpMessage += getOption(57600, F("57600"), baudrate);
+        httpMessage += getOption(74880, F("74880"), baudrate);
+        httpMessage += getOption(115200, F("115200"), baudrate);
+        httpMessage += getOption(230400, F("230400"), baudrate);
+        httpMessage += getOption(460800, F("460800"), baudrate);
+        httpMessage += getOption(921600, F("921600"), baudrate);
         httpMessage += F("</select></div></div>");
 
         // Telemetry Period
