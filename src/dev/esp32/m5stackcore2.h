@@ -20,7 +20,8 @@ class M5StackCore2 : public Esp32Device {
     void set_backlight_power(bool power);
     bool get_backlight_power();
     void update_backlight();
-
+    void set_led(bool led);
+    void shutdown();
   private:
     uint8_t _backlight_level;
     uint8_t _backlight_power;

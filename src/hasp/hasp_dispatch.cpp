@@ -47,7 +47,7 @@ uint16_t dispatchSecondsToNextTeleperiod = 0;
 uint16_t dispatchSecondsToNextSensordata = 0;
 uint16_t dispatchSecondsToNextDiscovery  = 0;
 uint8_t nCommands                        = 0;
-haspCommand_t commands[28];
+haspCommand_t commands[31];
 
 moodlight_t moodlight    = {.brightness = 255};
 uint8_t saved_jsonl_page = 0;
@@ -1353,6 +1353,59 @@ void dispatch_service(const char*, const char* payload, uint8_t source)
 #endif
 }
 
+#if defined(M5STACK)
+void dispatch_m5stack_shutdown(const char*, const char*, uint8_t source)
+{
+    #if HASP_USE_CONFIG > 0
+     configWrite();
+    #endif
+    #if HASP_USE_MQTT > 0 && defined(ARDUINO)
+        mqttStop(); // Stop the MQTT Client first
+    #endif
+    #if HASP_USE_TELNET > 0
+        telnetStop();
+    #endif
+    #if HASP_USE_CONFIG > 0
+        debugStop();
+    #endif
+    #if HASP_USE_WIFI > 0
+        wifiStop();
+    #endif
+        LOG_VERBOSE(TAG_MSGR, F("-------------------------------------"));
+        LOG_TRACE(TAG_MSGR, F(D_DISPATCH_REBOOT));
+
+    #if defined(WINDOWS) || defined(POSIX)
+        fflush(stdout);
+    #else
+        Serial.flush();
+    #endif
+    haspDevice.shutdown();
+ }
+
+ void dispatch_m5stack_led1(const char*, const char* led1, uint8_t source)
+{
+    if(strlen(led1) == 0) {
+        return;
+    }
+    if(Parser::is_true(led1)) {
+        haspDevice.set_led(1);
+    } else {
+        haspDevice.set_led(0);
+    }
+}
+
+ void dispatch_m5stack_vibrate(const char*, const char* vibr, uint8_t source)
+{
+    if(strlen(vibr) == 0) {
+        return;
+    }
+    if(Parser::is_true(vibr)) {
+        haspDevice.vibrate(1);
+    } else {
+        haspDevice.vibrate(0);
+    }
+}
+#endif
 /******************************************* Commands builder *******************************************/
 
 static void dispatch_add_command(const char* p_cmdstr, void (*func)(const char*, const char*, uint8_t))
@@ -1410,6 +1463,11 @@ void dispatchSetup()
 #endif
 #if HASP_USE_CONFIG > 0
     dispatch_add_command(PSTR("setupap"), oobeFakeSetup);
+#endif
+#if defined(M5STACK)
+    dispatch_add_command(PSTR("shutdown"), dispatch_m5stack_shutdown);
+    dispatch_add_command(PSTR("poweroff"), dispatch_m5stack_shutdown);
+    dispatch_add_command(PSTR("led1"), dispatch_m5stack_led1);
 #endif
     /* WARNING: remember to expand the commands array when adding new commands */
 
