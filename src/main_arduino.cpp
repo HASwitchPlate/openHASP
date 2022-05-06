@@ -114,27 +114,24 @@ void setup()
     custom_setup();
 #endif
 
-    mainLastLoopTime = -1000; // reset loop counter
-    delay(20);
-    dispatch_exec(NULL, "/boot.cmd", TAG_HASP);
     // guiStart();
+
+    delay(20);
+    dispatch_exec(NULL, "L:/boot.cmd", TAG_HASP);
+    wifi_run_scripts();
+    mainLastLoopTime = -1000; // reset loop counter
 }
 
 IRAM_ATTR void loop()
 {
     guiLoop();
-    // haspLoop();
 
 #if HASP_USE_WIFI > 0 || HASP_USE_EHTERNET > 0
     networkLoop();
 #endif
 
 #if HASP_USE_GPIO > 0
-    //  gpioLoop();
-    // Should be called every 4-5ms or faster, for the default debouncing time of ~20ms.
-    for(uint8_t i = 0; i < HASP_NUM_GPIO_CONFIG; i++) {
-        if(gpioConfig[i].btn) gpioConfig[i].btn->check();
-    }
+    gpioLoop();
 #endif // GPIO
 
 #if HASP_USE_MQTT > 0
