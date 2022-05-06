@@ -688,14 +688,18 @@ void dispatch_exec(const char*, const char* payload, uint8_t source)
 #if ARDUINO
 #if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
 
-    if(!HASP_FS.exists(payload)) {
+    const char* filename = payload;
+
+    if(filename[0] == 'L' && filename[1] == ':') filename += 2; // strip littlefs drive letter
+
+    if(!HASP_FS.exists(filename)) {
         LOG_WARNING(TAG_MSGR, F(D_FILE_NOT_FOUND ": %s"), payload);
         return;
     }
 
     LOG_TRACE(TAG_MSGR, F(D_FILE_LOADING), payload);
 
-    File cmdfile = HASP_FS.open(payload, "r");
+    File cmdfile = HASP_FS.open(filename, "r");
     if(!cmdfile) {
         LOG_ERROR(TAG_MSGR, F(D_FILE_LOAD_FAILED), payload);
         return;
