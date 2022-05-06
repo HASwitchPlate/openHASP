@@ -91,25 +91,6 @@ bool timeGetConfig(const JsonObject& settings)
     return changed;
 }
 
-bool nvsUpateString(Preferences& preferences, const char* key, JsonVariant value)
-{
-    bool changed    = false;
-    const char* val = value.as<const char*>();
-
-    if(!value.isNull()) {                                            // Json key exists
-        if(preferences.isKey(key)) {                                 // Nvs key exists
-            changed = preferences.getString(key, "") != String(val); // Value changed
-        } else
-            changed = true; // Nvs key doesnot exist, create it
-        if(changed) {
-            size_t len = preferences.putString(key, val);
-            LOG_VERBOSE(TAG_TIME, F(D_BULLET "Wrote %s => %s (%d bytes)"), key, val, len);
-        }
-    }
-
-    return changed;
-}
-
 bool timeSetConfig(const JsonObject& settings)
 {
     Preferences preferences;
@@ -119,10 +100,10 @@ bool timeSetConfig(const JsonObject& settings)
     bool changed = false;
 
     char key[16] = "tz";
-    changed |= nvsUpateString(preferences, key, settings[key]);
-    changed |= nvsUpateString(preferences, "ntp1", settings["ntp"][0]);
-    changed |= nvsUpateString(preferences, "ntp2", settings["ntp"][1]);
-    changed |= nvsUpateString(preferences, "ntp3", settings["ntp"][2]);
+    changed |= nvsUpdateString(preferences, key, settings[key]);
+    changed |= nvsUpdateString(preferences, "ntp1", settings["ntp"][0]);
+    changed |= nvsUpdateString(preferences, "ntp2", settings["ntp"][1]);
+    changed |= nvsUpdateString(preferences, "ntp3", settings["ntp"][2]);
 
     preferences.end();
     timeSetup();

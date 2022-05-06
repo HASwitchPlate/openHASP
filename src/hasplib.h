@@ -33,6 +33,10 @@
 
 #include "hasp/lv_theme_hasp.h"
 
+#ifdef ESP32
+#include "hasp/hasp_nvs.h"
+#endif
+
 #include "ArduinoJson.h"
 
 #if HASP_USE_FREETYPE > 0
