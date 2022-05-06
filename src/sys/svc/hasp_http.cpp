@@ -89,7 +89,7 @@ const char MAIN_MENU_BUTTON[] PROGMEM = "<a href='/'>" D_HTTP_MAIN_MENU "</a>";
 
 const char HTTP_DOCTYPE[] PROGMEM      = "<!DOCTYPE html><html lang=\"en\"><head><meta charset='utf-8'><meta "
                                          "name=\"viewport\" content=\"width=device-width,initial-scale=1\"/>";
-const char HTTP_META_GO_BACK[] PROGMEM = "<meta http-equiv='refresh' content='15;url=/'/>";
+const char HTTP_META_GO_BACK[] PROGMEM = "<meta http-equiv='refresh' content='%d;url=/'/>";
 const char HTTP_HEADER[] PROGMEM       = "<title>%s</title>";
 const char HTTP_HEADER_END[] PROGMEM =
     "<script src=\"/script.js\"></script><link rel=\"stylesheet\" href=\"/vars.css\">"
@@ -210,7 +210,7 @@ static int webSendCached(int statuscode, const char* contenttype, const char* da
     return statuscode;
 }
 
-static void webSendHeader(const char* nodename, uint32_t httpdatalength, bool gohome = false)
+static void webSendHeader(const char* nodename, uint32_t httpdatalength, uint8_t gohome = 0)
 {
     {
         char buffer[64];
@@ -219,8 +219,12 @@ static void webSendHeader(const char* nodename, uint32_t httpdatalength, bool go
         uint32_t contentLength = strlen(haspDevice.get_version()); // version length
         contentLength += sizeof(HTTP_DOCTYPE) - 1;
         contentLength += sizeof(HTTP_HEADER) - 1 - 2 + strlen(nodename); // -2 for %s
-                                                                         //    contentLength += sizeof(HTTP_SCRIPT) - 1;
-        if(gohome) contentLength += sizeof(HTTP_META_GO_BACK) - 1;
+        if(gohome > 0) {
+            snprintf_P(buffer, sizeof(buffer), HTTP_META_GO_BACK, gohome);
+            contentLength += strlen(buffer); // gohome
+        } else {
+            buffer[0] = '\0';
+        }
         contentLength += sizeof(HTTP_HEADER_END) - 1;
         contentLength += sizeof(HTTP_FOOTER) - 1;
         contentLength += sizeof(HTTP_END) - 1;
@@ -235,6 +239,7 @@ static void webSendHeader(const char* nodename, uint32_t httpdatalength, bool go
 #else
         webServer.send(200, ("text/html"), HTTP_DOCTYPE); // 122
 #endif
+        webServer.sendContent(buffer); // gohome
 
         snprintf_P(buffer, sizeof(buffer), HTTP_HEADER, nodename);
         webServer.sendContent(buffer); // 17-2+len
@@ -244,14 +249,12 @@ static void webSendHeader(const char* nodename, uint32_t httpdatalength, bool go
     // webServer.sendContent(HTTP_SCRIPT); // 131
     // webServer.sendContent(HTTP_STYLE); // 487
     // webServer.sendContent(HASP_STYLE);                   // 145
-    if(gohome) webServer.sendContent(HTTP_META_GO_BACK); // 47
-    webServer.sendContent(HTTP_HEADER_END);              // 80
+    webServer.sendContent(HTTP_HEADER_END); // 80
 #else
     // webServer.sendContent_P(HTTP_SCRIPT);                 // 131
     // webServer.sendContent_P(HTTP_STYLE); // 487
     // webServer.sendContent_P(HASP_STYLE);                   // 145
-    if(gohome) webServer.sendContent_P(HTTP_META_GO_BACK); // 47
-    webServer.sendContent_P(HTTP_HEADER_END);              // 80
+    webServer.sendContent_P(HTTP_HEADER_END); // 80
 #endif
 }
 
@@ -334,7 +337,7 @@ static void webHandleRoot()
 
         httpMessage += F("<a href='/reboot' class='red'>" D_HTTP_REBOOT "</a>");
 
-        webSendHeader(haspDevice.get_hostname(), httpMessage.length(), false);
+        webSendHeader(haspDevice.get_hostname(), httpMessage.length(), 0);
         webServer.sendContent(httpMessage);
     }
     webSendFooter();
@@ -353,7 +356,7 @@ static void httpHandleReboot()
         httpMessage += F("</h1><hr>");
         httpMessage = F(D_DISPATCH_REBOOT);
 
-        webSendHeader(haspDevice.get_hostname(), httpMessage.length(), true);
+        webSendHeader(haspDevice.get_hostname(), httpMessage.length(), 6);
         webServer.sendContent(httpMessage);
     }
     webSendFooter();
@@ -415,7 +418,7 @@ static void webHandleScreenshot()
         httpMessage += F("<a href='#' onclick=\"return upd('next')\">" D_HTTP_NEXT_PAGE "</a></div>");
         httpMessage += FPSTR(MAIN_MENU_BUTTON);
 
-        webSendHeader(haspDevice.get_hostname(), httpMessage.length(), false);
+        webSendHeader(haspDevice.get_hostname(), httpMessage.length(), 0);
         webServer.sendContent(httpMessage);
     }
     webSendFooter();
@@ -604,7 +607,7 @@ static void webHandleAbout()
         httpMessage += FPSTR(MAIN_MENU_BUTTON);
         httpMessage += "<div id='pkg'></div><script>window.addEventListener('load', about());</script>";
 
-        webSendHeader(haspDevice.get_hostname(), httpMessage.length(), false);
+        webSendHeader(haspDevice.get_hostname(), httpMessage.length(), 0);
         webServer.sendContent(httpMessage);
     }
     webSendFooter();
@@ -627,7 +630,7 @@ static void webHandleInfoJson()
         htmldata += "<div id=\"info\"></div><script>loader(\"GET\", \"/api/info/\", info)</script>";
         htmldata += FPSTR(MAIN_MENU_BUTTON);
 
-        webSendHeader(haspDevice.get_hostname(), htmldata.length(), false);
+        webSendHeader(haspDevice.get_hostname(), htmldata.length(), 0);
         webServer.sendContent(htmldata);
     }
     webSendFooter();
@@ -702,16 +705,11 @@ static void webUpdateReboot()
         httpMessage += F("</h1><hr>");
         httpMessage += F("<b>Upload complete. Rebooting device, please wait...</b>");
 
-        webSendHeader(haspDevice.get_hostname(), httpMessage.length(), true);
+        webSendHeader(haspDevice.get_hostname(), httpMessage.length(), 10);
         webServer.sendContent(httpMessage);
     }
     webSendFooter();
-
-    // Exectute Actions
-    {
-        // delay(250);
-        dispatch_reboot(true); // Save the current config
-    }
+    dispatch_reboot(true); // Save the current config
 }
 
 static void webHandleFirmwareUpload()
@@ -1084,7 +1082,7 @@ static void webHandleConfig()
         httpMessage += F("<a href='/config/reset' class='red'>" D_HTTP_FACTORY_RESET "</a>");
         httpMessage += FPSTR(MAIN_MENU_BUTTON);
 
-        webSendHeader(haspDevice.get_hostname(), httpMessage.length(), false);
+        webSendHeader(haspDevice.get_hostname(), httpMessage.length(), 0);
         webServer.sendContent(httpMessage);
     }
     webSendFooter();
@@ -1154,7 +1152,7 @@ static void webHandleMqttConfig()
         add_form_button(httpMessage, F(D_BACK_ICON D_HTTP_CONFIGURATION), F("/config"));
         httpMessage += "<script>filler(\"GET\", \"/api/config/mqtt/\")</script>";
 
-        webSendHeader(haspDevice.get_hostname(), httpMessage.length(), false);
+        webSendHeader(haspDevice.get_hostname(), httpMessage.length(), 0);
         webServer.sendContent(httpMessage);
     }
     webSendFooter();
@@ -1259,7 +1257,7 @@ static void webHandleGuiConfig()
         add_form_button(httpMessage, F(D_BACK_ICON D_HTTP_CONFIGURATION), F("/config"));
         httpMessage += F("<script>filler(\"GET\",\"/api/config/gui/\")</script>");
 
-        webSendHeader(haspDevice.get_hostname(), httpMessage.length(), false);
+        webSendHeader(haspDevice.get_hostname(), httpMessage.length(), 0);
         webServer.sendContent(httpMessage);
     }
     webSendFooter();
@@ -1324,7 +1322,7 @@ static void webHandleWifiConfig()
 
         httpMessage += F("<script>filler(\"GET\",\"/api/config/wifi/\")</script>");
 
-        webSendHeader(haspDevice.get_hostname(), httpMessage.length(), false);
+        webSendHeader(haspDevice.get_hostname(), httpMessage.length(), 0);
         webServer.sendContent(httpMessage);
     }
     webSendFooter();
@@ -1374,7 +1372,7 @@ static void webHandleHttpConfig()
         httpMessage += F("<a href='/config'>" D_HTTP_CONFIGURATION "</a>");
         httpMessage += F("<script>filler(\"GET\",\"/api/config/http/\")</script>");
 
-        webSendHeader(haspDevice.get_hostname(), httpMessage.length(), false);
+        webSendHeader(haspDevice.get_hostname(), httpMessage.length(), 0);
         webServer.sendContent(httpMessage);
     }
     webSendFooter();
@@ -1561,7 +1559,7 @@ static void webHandleGpioConfig()
 
         add_form_button(httpMessage, F(D_BACK_ICON D_HTTP_CONFIGURATION), F("/config"));
 
-        webSendHeader(haspDevice.get_hostname(), httpMessage.length(), false);
+        webSendHeader(haspDevice.get_hostname(), httpMessage.length(), 0);
         webServer.sendContent(httpMessage);
     }
     webSendFooter();
@@ -1642,7 +1640,7 @@ static void webHandleGpioOutput()
         httpMessage += PSTR("<p><form method='GET' action='/config/gpio'><button type='submit'>&#8617; " D_HTTP_BACK
                             "</button></form></p>");
 
-        webSendHeader(haspDevice.get_hostname(), httpMessage.length(), false);
+        webSendHeader(haspDevice.get_hostname(), httpMessage.length(), 0);
         webServer.sendContent(httpMessage);
     }
     webSendFooter();
@@ -1733,7 +1731,7 @@ static void webHandleGpioInput()
         httpMessage += PSTR("<p><form method='GET' action='/config/gpio'><button type='submit'>&#8617; " D_HTTP_BACK
                             "</button></form></p>");
 
-        webSendHeader(haspDevice.get_hostname(), httpMessage.length(), false);
+        webSendHeader(haspDevice.get_hostname(), httpMessage.length(), 0);
         webServer.sendContent(httpMessage);
     }
     webSendFooter();
@@ -1836,7 +1834,7 @@ static void webHandleDebugConfig()
         add_form_button(httpMessage, F(D_BACK_ICON D_HTTP_CONFIGURATION), F("/config"));
         httpMessage += F("<script>filler(\"GET\",\"/api/config/debug/\")</script>");
 
-        webSendHeader(haspDevice.get_hostname(), httpMessage.length(), false);
+        webSendHeader(haspDevice.get_hostname(), httpMessage.length(), 0);
         webServer.sendContent(httpMessage);
     }
     webSendFooter();
@@ -1968,7 +1966,7 @@ static void webHandleHaspConfig()
         httpMessage += FPSTR(MAIN_MENU_BUTTON);
         httpMessage += F("<script>filler(\"GET\",\"/api/config/hasp/\")</script>");
 
-        webSendHeader(haspDevice.get_hostname(), httpMessage.length(), false);
+        webSendHeader(haspDevice.get_hostname(), httpMessage.length(), 0);
         webServer.sendContent(httpMessage);
     }
     webSendFooter();
@@ -2032,7 +2030,7 @@ static void webHandleFirmware()
             httpMessage += F("<p><b>ESP update</b></p>Updating ESP firmware from: ");
             httpMessage += url;
 
-            webSendHeader(haspDevice.get_hostname(), httpMessage.length(), true);
+            webSendHeader(haspDevice.get_hostname(), httpMessage.length(), 30);
             webServer.sendContent(httpMessage);
         }
 
@@ -2080,36 +2078,10 @@ static void webHandleFirmware()
 
         httpMessage += FPSTR(MAIN_MENU_BUTTON);
 
-        webSendHeader(haspDevice.get_hostname(), httpMessage.length(), false);
+        webSendHeader(haspDevice.get_hostname(), httpMessage.length(), 0);
         webServer.sendContent(httpMessage);
     }
     webSendFooter();
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-static void httpHandleEspFirmware()
-{ // http://plate01/espfirmware
-    if(!httpIsAuthenticated(F("espfirmware"))) return;
-    if(!webServer.hasArg(F("url"))) return;
-
-    const char* url = webServer.arg(F("url")).c_str();
-    {
-        String httpMessage((char*)0);
-        httpMessage.reserve(HTTP_PAGE_SIZE);
-        httpMessage += F("<h1>");
-        httpMessage += haspDevice.get_hostname();
-        httpMessage += F("</h1><hr>");
-
-        httpMessage += F("<p><b>ESP update</b></p>Updating ESP firmware from: ");
-        httpMessage += url;
-
-        webSendHeader(haspDevice.get_hostname(), httpMessage.length(), true);
-        webServer.sendContent(httpMessage);
-    }
-    webSendFooter();
-
-    LOG_TRACE(TAG_HTTP, F("Updating ESP firmware from: %s"), url);
-    dispatch_web_update(NULL, url, TAG_HTTP);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2161,7 +2133,7 @@ static void httpHandleResetConfig()
             add_form_button(httpMessage, F(D_BACK_ICON D_HTTP_CONFIGURATION), F("/config"));
         }
 
-        webSendHeader(haspDevice.get_hostname(), httpMessage.length(), resetConfirmed);
+        webSendHeader(haspDevice.get_hostname(), httpMessage.length(), resetConfirmed ? 10 : 0);
         webServer.sendContent(httpMessage);
     }
     webSendFooter();
@@ -2287,7 +2259,6 @@ void httpSetup()
             LOG_VERBOSE(TAG_HTTP, F("Total size: %s"), webServer.hostHeader().c_str());
         },
         webHandleFirmwareUpload);
-    //  webServer.on(F("/espfirmware"), httpHandleEspFirmware);
 #endif
 
 #if HASP_USE_WIFI > 0
