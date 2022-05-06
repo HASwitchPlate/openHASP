@@ -97,6 +97,22 @@ extern dispatch_conf_t dispatch_setings;
 // }
 // #endif
 
+// TODO: Remove old compatibility options
+static int32_t multiply_legacy_baudrate(int32_t baud)
+{
+    switch(baud) {
+        case 960:
+        case 1920:
+        case 3840:
+        case 5760:
+        case 7488:
+        case 11520:
+            baud *= 10; // multiply old values
+            break;
+    }
+    return baud;
+}
+
 void debugStartSyslog()
 {
 
@@ -181,16 +197,7 @@ bool debugSetConfig(const JsonObject& settings)
     /* Serial Settings */
     changed |= configSet(debugSerialBaud, settings[FPSTR(FP_CONFIG_BAUD)], F("debugSerialBaud"));
     if(changed) { // baudrate was changed
-        switch(debugSerialBaud) {
-            case 960:
-            case 1920:
-            case 3840:
-            case 5760:
-            case 7488:
-            case 11520:
-                debugSerialBaud *= 10; // multiply old values
-                break;
-        }
+        debugSerialBaud = multiply_legacy_baudrate(debugSerialBaud);
     }
 
     /* Ansi Code Settings */
@@ -396,7 +403,7 @@ void debugSetup(JsonObject settings)
 
 #if HASP_USE_CONFIG > 0
     if(!settings[FPSTR(FP_CONFIG_BAUD)].isNull()) {
-        debugSerialBaud = settings[FPSTR(FP_CONFIG_BAUD)].as<int32_t>();
+        debugSerialBaud = multiply_legacy_baudrate(settings[FPSTR(FP_CONFIG_BAUD)].as<int32_t>());
     }
 #endif
 }
