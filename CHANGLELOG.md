@@ -17,7 +17,7 @@
 
 -->
 
-## v0.6.3-dev
+## v0.6.3-rc1
 
 ### Commands
 - Additional `idle` parameters now accept `off`, `short` and `long`
@@ -62,6 +62,7 @@
 - Fix screen dimensions in `statusupdate` message, taking into account current orientation (thanks @kquinsland)
 - Fix for HTTP password that could be overwritten by 8 asterisks when it was not changed in the web UI
 - Fixed MQTT hostname limit *again*...
+- Fixed a bug that prevented Wifi from connecting to different BSSID (thanks @Braehead)
 - Syslog message format fixes and improvements (thanks @geiseri)
 
 ### Custom component
@@ -69,8 +70,7 @@
 - Expose the device URL in discovery message and CC
 
 ### Architecture
-- Moved to Tasmota Arduino 2.0.3 with native LittleFS library (thanks @Jason2866)
-- Moved to ESP-IDF 4.4.1 with fixes for FragAttacks CVEs (thanks @nagyrobi)
+- Moved to Tasmota Arduino 2.0.3 with native LittleFS library (thanks @Jason2866) and ESP-IDF 4.4.1 fixes for FragAttacks CVEs (thanks @nagyrobi)
 - Add support for ESP32-S2 devices
 - ⚠️ **Breaking:** Removed support for ESP8266!
 
