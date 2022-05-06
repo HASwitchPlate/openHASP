@@ -685,12 +685,11 @@ void dispatch_parse_jsonl(const char*, const char* payload, uint8_t source)
 
 void dispatch_exec(const char*, const char* payload, uint8_t source)
 {
+    const char* filename = payload;
+    if(filename[0] == 'L' && filename[1] == ':') filename += 2; // strip littlefs drive letter
+
 #if ARDUINO
 #if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
-
-    const char* filename = payload;
-
-    if(filename[0] == 'L' && filename[1] == ':') filename += 2; // strip littlefs drive letter
 
     if(!HASP_FS.exists(filename)) {
         LOG_WARNING(TAG_MSGR, F(D_FILE_NOT_FOUND ": %s"), payload);
@@ -731,13 +730,13 @@ void dispatch_exec(const char*, const char* payload, uint8_t source)
     cmdfile.close();
     LOG_INFO(TAG_MSGR, F(D_FILE_LOADED), payload);
 #else
-    LOG_INFO(TAG_MSGR, F(D_FILE_LOAD_FAILED), payload);
+    LOG_ERROR(TAG_MSGR, F(D_FILE_LOAD_FAILED), payload);
 #endif
 #else
-    char path[strlen(payload) + 4];
+    char path[strlen(filename) + 4];
     path[0] = '.';
     path[1] = '\0';
-    strcat(path, payload);
+    strcat(path, filename);
     path[1] = '\\';
 
     LOG_TRACE(TAG_HASP, F("Loading %s from disk..."), path);
