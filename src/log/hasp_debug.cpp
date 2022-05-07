@@ -83,8 +83,7 @@ WiFiUDP* syslogClient = NULL;
 // uint16_t serialInputIndex   = 0; // Empty buffer
 // char serialInputBuffer[220] = "";
 // uint16_t historyIndex       = sizeof(serialInputBuffer) - 1; // Empty buffer
-uint16_t debugSerialBaud = SERIAL_SPEED / 10; // Multiplied by 10
-// extern bool debugSerialStarted;
+int32_t debugSerialBaud = SERIAL_SPEED;
 extern bool debugAnsiCodes;
 
 extern dispatch_conf_t dispatch_setings;
@@ -97,6 +96,22 @@ extern dispatch_conf_t dispatch_setings;
 //     }
 // }
 // #endif
+
+// TODO: Remove old compatibility options
+static int32_t multiply_legacy_baudrate(int32_t baud)
+{
+    switch(baud) {
+        case 960:
+        case 1920:
+        case 3840:
+        case 5760:
+        case 7488:
+        case 11520:
+            baud *= 10; // multiply old values
+            break;
+    }
+    return baud;
+}
 
 void debugStartSyslog()
 {
@@ -142,7 +157,7 @@ bool debugGetConfig(const JsonObject& settings)
     if(debugAnsiCodes != settings[FPSTR(FP_DEBUG_ANSI)]) changed = true;
     settings[FPSTR(FP_DEBUG_ANSI)] = (uint8_t)debugAnsiCodes;
 
-    if(debugSerialBaud != settings[FPSTR(FP_CONFIG_BAUD)].as<uint16_t>()) changed = true;
+    if(debugSerialBaud != settings[FPSTR(FP_CONFIG_BAUD)]) changed = true;
     settings[FPSTR(FP_CONFIG_BAUD)] = debugSerialBaud;
 
     if(dispatch_setings.teleperiod != settings[FPSTR(FP_DEBUG_TELEPERIOD)].as<uint16_t>()) changed = true;
@@ -179,11 +194,14 @@ bool debugSetConfig(const JsonObject& settings)
     configOutput(settings, TAG_DEBG);
     bool changed = false;
 
-    /* Ansi Code Settings */
-    changed |= configSet(debugAnsiCodes, settings[FPSTR(FP_DEBUG_ANSI)], F("debugAnsi"));
-
     /* Serial Settings */
     changed |= configSet(debugSerialBaud, settings[FPSTR(FP_CONFIG_BAUD)], F("debugSerialBaud"));
+    if(changed) { // baudrate was changed
+        debugSerialBaud = multiply_legacy_baudrate(debugSerialBaud);
+    }
+
+    /* Ansi Code Settings */
+    changed |= configSet(debugAnsiCodes, settings[FPSTR(FP_DEBUG_ANSI)], F("debugAnsi"));
 
     /* Teleperiod Settings */
     changed |= configSet(dispatch_setings.teleperiod, settings[FPSTR(FP_DEBUG_TELEPERIOD)], F("debugTelePeriod"));
@@ -346,38 +364,31 @@ void debugPrintSuffix(uint8_t tag, int level, Print* _logOutput)
 // Start Serial Port at correct
 void debugStartSerial()
 {
-    uint32_t baudrate = 0;
-    if(debugSerialBaud == 0) {
-        baudrate = SERIAL_SPEED;
-    } else {
-        baudrate = debugSerialBaud * 10;
+    if(debugSerialBaud < 0) {
+        LOG_WARNING(TAG_DEBG, F(D_SERVICE_DISABLED " (%u Bps)"), debugSerialBaud);
+        //  return;
     }
 
-    if(baudrate >= 9600u) { /* the baudrates are stored divided by 10 */
+    uint32_t baudrate = debugSerialBaud;
+    if(baudrate < 9600) baudrate = SERIAL_SPEED;
 
 #if defined(STM32F4xx) || defined(STM32F7xx)
-#ifndef STM32_SERIAL1      // Define what Serial port to use for log output
-        Serial.setRx(PA3); // User Serial2
-        Serial.setTx(PA2);
+#ifndef STM32_SERIAL1  // Define what Serial port to use for log output
+    Serial.setRx(PA3); // User Serial2
+    Serial.setTx(PA2);
 #endif
 #endif
 
-        Serial.begin(baudrate); /* prepare for possible serial debug */
-        delay(10);
-        Log.registerOutput(0, &Serial, HASP_LOG_LEVEL, true); // LOG_LEVEL_VERBOSE
+    Serial.begin(baudrate); /* prepare for possible serial debug */
+    delay(10);
+    Log.registerOutput(0, &Serial, HASP_LOG_LEVEL, true); // LOG_LEVEL_VERBOSE
 
-        // debugSerialStarted = true;
+    Serial.println();
+    debugPrintHaspHeader(&Serial);
+    Serial.flush();
 
-        Serial.println();
-        debugPrintHaspHeader(&Serial);
-        Serial.flush();
-
-        LOG_INFO(TAG_DEBG, F(D_SERVICE_STARTED " @ %u Bps"), baudrate);
-        LOG_INFO(TAG_DEBG, F("Environment: " PIOENV));
-
-    } else {
-        LOG_WARNING(TAG_DEBG, F(D_SERVICE_DISABLED " (%u Bps)"), baudrate);
-    }
+    LOG_INFO(TAG_DEBG, F(D_SERVICE_STARTED " @ %u bps"), debugSerialBaud);
+    LOG_INFO(TAG_DEBG, F(D_INFO_ENVIRONMENT ": " PIOENV));
 }
 
 // Do NOT call Log function before debugSetup is called
@@ -391,7 +402,9 @@ void debugSetup(JsonObject settings)
     Log.unregisterOutput(3);
 
 #if HASP_USE_CONFIG > 0
-    debugSerialBaud = settings[FPSTR(FP_CONFIG_BAUD)].as<uint16_t>();
+    if(!settings[FPSTR(FP_CONFIG_BAUD)].isNull()) {
+        debugSerialBaud = multiply_legacy_baudrate(settings[FPSTR(FP_CONFIG_BAUD)].as<int32_t>());
+    }
 #endif
 }
 

@@ -51,6 +51,20 @@ bool wifiEnabled                       = true;
 
 /* ============ Connection Event Handlers =============================================================== */
 
+void wifi_run_scripts()
+{
+    if(wifiOnline != haspOnline) {
+        if(wifiOnline) {
+            dispatch_exec(NULL, "L:/online.cmd", TAG_WIFI);
+            networkStart();
+        } else {
+            dispatch_exec(NULL, "L:/offline.cmd", TAG_WIFI);
+            networkStop();
+        }
+        haspOnline = wifiOnline;
+    }
+}
+
 static void wifiConnected(IPAddress ipaddress)
 {
 #if defined(STM32F4xx)
@@ -69,27 +83,12 @@ static void wifiConnected(IPAddress ipaddress)
         LOG_TRACE(TAG_WIFI, F(D_NETWORK_IP_ADDRESS_RECEIVED), wifiIpAddress);
     }
 
-    // #if defined(HASP_NETWORK_POPUP)
-    //     lv_obj_t* msgbox = lv_msgbox_create(lv_layer_sys(), NULL);
-    //     lv_msgbox_set_text_fmt(msgbox, wifiIpAddress);
-    // #if HASP_NETWORK_POPUP > 0
-    //     lv_msgbox_start_auto_close(msgbox, HASP_NETWORK_POPUP);
-    // #endif
-    //     lv_msgbox_set_anim_time(msgbox, 0);
-    //     lv_obj_move_background(msgbox);
-    // #endif
+    if(wifiOnline) return; // already connected
 
-    if(wifiOnline)
-        return; // already connected
-    else
-        wifiOnline = true; // now we are connected
-
+    wifiOnline           = true; // now we are connected
     wifiReconnectCounter = 0;
-    // dispatch_exec(NULL, "/online.cmd", TAG_WIFI);
-
     LOG_VERBOSE(TAG_WIFI, F("Connected = %s"),
                 WiFi.status() == WL_CONNECTED ? PSTR(D_NETWORK_ONLINE) : PSTR(D_NETWORK_OFFLINE));
-    // networkStart();
 }
 
 static void wifiDisconnected(const char* ssid, uint8_t reason)
@@ -283,15 +282,11 @@ static void wifiDisconnected(const char* ssid, uint8_t reason)
     if(wifiReconnectCounter++ % 5 == 0)
         LOG_WARNING(TAG_WIFI, F("Disconnected from %s (Reason: %s [%d])"), ssid, buffer, reason);
 
-    if(!wifiOnline)
-        return; // we were not connected
-    else
-        wifiOnline = false; // now we are disconnected
+    if(!wifiOnline) return; // we were not connected
 
-    // dispatch_exec(NULL, "/offline.cmd", TAG_WIFI);
+    wifiOnline = false; // now we are disconnected
     LOG_VERBOSE(TAG_WIFI, F("Connected = %s"),
                 WiFi.status() == WL_CONNECTED ? PSTR(D_NETWORK_ONLINE) : PSTR(D_NETWORK_OFFLINE));
-    // networkStop();
 }
 
 static void wifiSsidConnected(const char* ssid)
@@ -303,17 +298,60 @@ static void wifiSsidConnected(const char* ssid)
 static void wifi_callback(WiFiEvent_t event, WiFiEventInfo_t info)
 {
     switch(event) {
-        case SYSTEM_EVENT_STA_CONNECTED:
+        case SYSTEM_EVENT_WIFI_READY:             /*!< ESP32 WiFi ready */
+        case SYSTEM_EVENT_STA_START:              /*!< ESP32 station start */
+        case SYSTEM_EVENT_STA_STOP:               /*!< ESP32 station stop */
+        case SYSTEM_EVENT_STA_AUTHMODE_CHANGE:    /*!< the auth mode of AP connected by ESP32 station changed */
+        case SYSTEM_EVENT_STA_BSS_RSSI_LOW:       /*!< ESP32 station connected BSS rssi goes below threshold */
+        case SYSTEM_EVENT_STA_WPS_ER_SUCCESS:     /*!< ESP32 station wps succeeds in enrollee mode */
+        case SYSTEM_EVENT_STA_WPS_ER_FAILED:      /*!< ESP32 station wps fails in enrollee mode */
+        case SYSTEM_EVENT_STA_WPS_ER_TIMEOUT:     /*!< ESP32 station wps timeout in enrollee mode */
+        case SYSTEM_EVENT_STA_WPS_ER_PIN:         /*!< ESP32 station wps pin code in enrollee mode */
+        case SYSTEM_EVENT_STA_WPS_ER_PBC_OVERLAP: /*!< ESP32 station wps overlap in enrollee mode */
+        case SYSTEM_EVENT_AP_START:               /*!< ESP32 soft-AP start */
+        case SYSTEM_EVENT_AP_STOP:                /*!< ESP32 soft-AP stop */
+        case SYSTEM_EVENT_AP_STACONNECTED:        /*!< a station connected to ESP32 soft-AP */
+        case SYSTEM_EVENT_AP_STADISCONNECTED:     /*!< a station disconnected from ESP32 soft-AP */
+        case SYSTEM_EVENT_AP_STAIPASSIGNED:       /*!< ESP32 soft-AP assign an IP to a connected station */
+        case SYSTEM_EVENT_AP_PROBEREQRECVED:      /*!< Receive probe request packet in soft-AP interface */
+        case SYSTEM_EVENT_ACTION_TX_STATUS:       /*!< Receive status of Action frame transmitted */
+        case SYSTEM_EVENT_ROC_DONE:               /*!< Indicates the completion of Remain-on-Channel operation status */
+        case SYSTEM_EVENT_STA_BEACON_TIMEOUT:     /*!< ESP32 station beacon timeout */
+        case SYSTEM_EVENT_FTM_REPORT:             /*!< Receive report of FTM procedure */
+        case SYSTEM_EVENT_GOT_IP6:          /*!< ESP32 station or ap or ethernet interface v6IP addr is preferred */
+        case SYSTEM_EVENT_ETH_START:        /*!< ESP32 ethernet start */
+        case SYSTEM_EVENT_ETH_STOP:         /*!< ESP32 ethernet stop */
+        case SYSTEM_EVENT_ETH_CONNECTED:    /*!< ESP32 ethernet phy link up */
+        case SYSTEM_EVENT_ETH_DISCONNECTED: /*!< ESP32 ethernet phy link down */
+        case SYSTEM_EVENT_ETH_GOT_IP:       /*!< ESP32 ethernet got IP from connected AP */
+        case SYSTEM_EVENT_ETH_LOST_IP:      /*!< ESP32 ethernet lost IP and the IP is reset to 0 */
+        case SYSTEM_EVENT_MAX:              /*!< Number of members in this enum */
+            LOG_DEBUG(TAG_WIFI, F("Other Event: %d"), event);
+            break;
+
+        case SYSTEM_EVENT_STA_CONNECTED: /*!< ESP32 station connected to AP */
 #if ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(2, 0, 0)
             wifiSsidConnected((const char*)info.wifi_sta_connected.ssid);
 #else
             wifiSsidConnected((const char*)info.connected.ssid);
 #endif
             break;
-        case SYSTEM_EVENT_STA_GOT_IP:
+
+        case SYSTEM_EVENT_STA_LOST_IP:      /*!< ESP32 station lost IP and the IP is reset to 0 */
+        case SYSTEM_EVENT_STA_DISCONNECTED: /*!< ESP32 station disconnected from AP */
+#if ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(2, 0, 0)
+            wifiDisconnected((const char*)info.wifi_sta_disconnected.ssid, info.wifi_sta_disconnected.reason);
+#else
+            wifiDisconnected((const char*)info.disconnected.ssid, info.disconnected.reason);
+#endif
+            // NTP.stop(); // NTP sync can be disabled to avoid sync errors
+            break;
+
+        case SYSTEM_EVENT_STA_GOT_IP: /*!< ESP32 station got IP from connected AP */
             wifiConnected(IPAddress(info.got_ip.ip_info.ip.addr));
             break;
-        case SYSTEM_EVENT_SCAN_DONE: {
+
+        case SYSTEM_EVENT_SCAN_DONE: { /*!< ESP32 finish scanning AP */
             uint16_t count = WiFi.scanComplete();
             for(int i = 0; i < count; ++i) {
                 // Print SSID and RSSI for each network found
@@ -327,14 +365,7 @@ static void wifi_callback(WiFiEvent_t event, WiFiEventInfo_t info)
             }
             break;
         }
-        case SYSTEM_EVENT_STA_DISCONNECTED:
-#if ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(2, 0, 0)
-            wifiDisconnected((const char*)info.wifi_sta_disconnected.ssid, info.wifi_sta_disconnected.reason);
-#else
-            wifiDisconnected((const char*)info.disconnected.ssid, info.disconnected.reason);
-#endif
-            // NTP.stop(); // NTP sync can be disabled to avoid sync errors
-            break;
+
         default:
             break;
     }
@@ -408,11 +439,23 @@ static void wifiReconnect(void)
     // https://github.com/espressif/arduino-esp32/issues/3438#issuecomment-721428310
     WiFi.persistent(false);
     WiFi.disconnect(true);
-    WiFi.mode(WIFI_STA);
-    WiFi.setSleep(false);
     WiFi.setHostname(haspDevice.get_hostname());
+    WiFi.setSleep(false);
+
+    IPAddress ip((uint32_t)0);
+    IPAddress net((uint32_t)0);
+    // IPAddress ip(192, 168, 0, 60);
+    // IPAddress net(255, 255, 255, 0);
+    IPAddress gw((uint32_t)0);
+    IPAddress dns1((uint32_t)0);
+    IPAddress dns2((uint32_t)0);
+
+    if(ip && net)
+        WiFi.config(ip, gw, net, dns1, dns2);
+    else
+        WiFi.mode(WIFI_STA);
+
     WiFi.begin(wifiSsid, wifiPassword);
-    // WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE); // causes 255.255.255.255 IP errors
 #endif
 }
 
@@ -485,16 +528,7 @@ bool wifiEvery5Seconds()
     }
 #endif
 
-    if(wifiOnline != haspOnline) {
-        if(wifiOnline) {
-            dispatch_exec(NULL, "/online.cmd", TAG_WIFI);
-            networkStart();
-        } else {
-            dispatch_exec(NULL, "/offline.cmd", TAG_WIFI);
-            networkStop();
-        }
-        haspOnline = wifiOnline;
-    }
+    if(wifiOnline != haspOnline) wifi_run_scripts();
 
     if(WiFi.status() == WL_CONNECTED) {
         return true;

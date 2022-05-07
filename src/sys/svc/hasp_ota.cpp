@@ -222,12 +222,17 @@ void otaEverySecond(void)
 #endif // HASP_USE_OTA
 
 #if HASP_USE_HTTP_UPDATE > 0
+static unsigned long htppLastLoopTime = 0;
+
 static void ota_on_http_progress(unsigned int progress, unsigned int total)
 {
     if(total == 0) return;
     otaPrecentageComplete = progress * 100 / total;
     haspProgressVal(otaPrecentageComplete);
+
+    if(millis() - htppLastLoopTime < 1250) return;
     LOG_VERBOSE(TAG_OTA, F(D_OTA_UPDATING_FIRMWARE " %d%%"), otaPrecentageComplete);
+    htppLastLoopTime = millis();
 }
 
 static void ota_on_http_end(void)
@@ -286,7 +291,7 @@ void ota_http_update(const char* espOtaUrl)
         secureClient.setCACertBundle(rootca_crt_bundle_start);
 #endif
 
-        returnCode = httpUpdate.update(secureClient, espOtaUrl);
+        returnCode = httpUpdate.update(secureClient, espOtaUrl, haspDevice.get_version());
     }
 
 #endif

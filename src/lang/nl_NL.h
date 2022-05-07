@@ -32,6 +32,7 @@
 
 #define D_SETTING_ENABLED "Ingeschakeld"
 #define D_SETTING_DISABLED "Uitgeschakeld"
+#define D_SETTING_DEFAULT "Standaard"
 
 #define D_SERVICE_STARTING "Starten..."
 #define D_SERVICE_STARTED "Gestart"
@@ -146,7 +147,8 @@
 #define D_HTTP_MAIN_MENU "Hoofdmenu"
 #define D_HTTP_REBOOT "Herstarten"
 #define D_HTTP_CONFIGURATION "Configuratie"
-#define D_HTTP_CONFIG_CHANGED "De configuratie is gewijzigd, klik op <a href='/reboot'>Herstart</a> om de wijzigingen naar flash te schrijven."
+#define D_HTTP_CONFIG_CHANGED                                                                                          \
+    "De configuratie is gewijzigd, klik op <a href='/reboot'>Herstart</a> om de wijzigingen naar flash te schrijven."
 #define D_HTTP_SENDING_PAGE "Pagina %S verstuurd naar %s"
 #define D_HTTP_FOOTER "door Francis Van Roie"
 

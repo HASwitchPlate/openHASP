@@ -127,7 +127,7 @@ static inline void gui_init_lvgl()
     // #endif
 
     /* Dynamic VDB allocation */
-    const size_t guiVDBsize          = LV_VDB_SIZE / 2;
+    const size_t guiVDBsize          = LV_VDB_SIZE / sizeof(lv_color_t);
     static lv_color_t* guiVdbBuffer1 = (lv_color_t*)malloc(sizeof(lv_color_t) * guiVDBsize);
 
     /* Static VDB allocation */

@@ -40,6 +40,7 @@
 
 #define D_SETTING_ENABLED "Enabled"
 #define D_SETTING_DISABLED "Disabled"
+#define D_SETTING_DEFAULT "Default"
 
 #define D_NETWORK_IP_ADDRESS_RECEIVED "Received IP address %s"
 #define D_NETWORK_ONLINE "online"

@@ -96,8 +96,8 @@ AsyncWebSocket ws("/ws"); // access at ws://[esp ip]/ws
 
 // HTTPUpload* upload;
 
-static const char HTTP_MENU_BUTTON[] PROGMEM =
-    "<p><form method='GET' action='%s'><button type='submit'>%s</button></form></p>";
+// static const char HTTP_MENU_BUTTON[] PROGMEM =
+//     "<p><form method='GET' action='%s'><button type='submit'>%s</button></form></p>";
 
 const char MAIN_MENU_BUTTON[] PROGMEM =
     "</p><p><form method='GET' action='/'><button type='submit'>" D_HTTP_MAIN_MENU "</button></form>";

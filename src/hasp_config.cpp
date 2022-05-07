@@ -85,6 +85,18 @@ bool configSet(uint16_t& value, const JsonVariant& setting, const __FlashStringH
     }
     return false;
 }
+bool configSet(int32_t& value, const JsonVariant& setting, const __FlashStringHelper* fstr_name)
+{
+    if(!setting.isNull()) {
+        int32_t val = setting.as<int32_t>();
+        if(value != val) {
+            confDebugSet(fstr_name);
+            value = val;
+            return true;
+        }
+    }
+    return false;
+}
 bool configSet(lv_color_t& value, const JsonVariant& setting, const __FlashStringHelper* fstr_name)
 {
     lv_color32_t c32;
