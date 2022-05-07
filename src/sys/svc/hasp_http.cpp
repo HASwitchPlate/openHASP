@@ -536,6 +536,11 @@ static void webHandleApiConfig()
             httpSetConfig(settings);
         } else
 #endif
+#if HASP_USE_OTA > 0 || HASP_USE_HTTP_UPDATE > 0
+            if(!strcasecmp_P(endpoint_key, PSTR("ota"))) {
+            otaSetConfig(settings);
+        } else
+#endif
         {
             LOG_WARNING(TAG_HTTP, F("Invalid module %s"), endpoint_key);
             return;
@@ -567,31 +572,36 @@ static void webHandleApiConfig()
         httpGetConfig(settings);
     } else
 #endif
+#if HASP_USE_OTA > 0 || HASP_USE_HTTP_UPDATE > 0
+        if(!strcasecmp_P(endpoint_key, PSTR("ota"))) {
+        otaGetConfig(settings);
+    } else
+#endif
     {
         webServer.send(400, contentType, "Bad Request");
         return;
     }
     configOutput(settings, TAG_HTTP); // Log current JSON config
 
-    LOG_WARNING(TAG_HTTP, "%s - %d", __FILE__, __LINE__);
+    LOG_DEBUG(TAG_HTTP, "%s - %d", __FILE__, __LINE__);
     // Mask non-blank passwords
     if(!settings[FPSTR(FP_CONFIG_PASS)].isNull() && settings[FPSTR(FP_CONFIG_PASS)].as<String>().length() != 0) {
         settings[FPSTR(FP_CONFIG_PASS)] = D_PASSWORD_MASK;
     }
 
-    LOG_WARNING(TAG_HTTP, "%s - %d", __FILE__, __LINE__);
+    LOG_DEBUG(TAG_HTTP, "%s - %d", __FILE__, __LINE__);
     doc.shrinkToFit();
-    LOG_WARNING(TAG_HTTP, "%s - %d", __FILE__, __LINE__);
+    LOG_DEBUG(TAG_HTTP, "%s - %d", __FILE__, __LINE__);
     const size_t size = measureJson(doc) + 1;
-    LOG_WARNING(TAG_HTTP, "%s - %d", __FILE__, __LINE__);
+    LOG_DEBUG(TAG_HTTP, "%s - %d", __FILE__, __LINE__);
     char jsondata[size];
-    LOG_WARNING(TAG_HTTP, "%s - %d", __FILE__, __LINE__);
+    LOG_DEBUG(TAG_HTTP, "%s - %d", __FILE__, __LINE__);
     memset(jsondata, 0, size);
-    LOG_WARNING(TAG_HTTP, "%s - %d", __FILE__, __LINE__);
+    LOG_DEBUG(TAG_HTTP, "%s - %d", __FILE__, __LINE__);
     serializeJson(doc, jsondata, size);
-    LOG_WARNING(TAG_HTTP, "%s - %d", __FILE__, __LINE__);
+    LOG_DEBUG(TAG_HTTP, "%s - %d", __FILE__, __LINE__);
     webServer.send(200, contentType, jsondata);
-    LOG_WARNING(TAG_HTTP, "%s - %d", __FILE__, __LINE__);
+    LOG_DEBUG(TAG_HTTP, "%s - %d", __FILE__, __LINE__);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2019,6 +2029,10 @@ static void webHandleFirmware()
     if(!httpIsAuthenticated(F("firmware"))) return;
 
     if(webServer.method() == HTTP_POST && webServer.hasArg(PSTR("url"))) {
+        StaticJsonDocument<512> settings;
+        for(int i = 0; i < webServer.args(); i++) settings[webServer.argName(i)] = webServer.arg(i);
+        bool updated = otaSetConfig(settings.as<JsonObject>());
+
         String url = webServer.arg(PSTR("url"));
         {
             String httpMessage((char*)0);
@@ -2027,14 +2041,17 @@ static void webHandleFirmware()
             httpMessage += haspDevice.get_hostname();
             httpMessage += F("</h1><hr>");
 
-            httpMessage += F("<p><b>ESP update</b></p>Updating ESP firmware from: ");
+            httpMessage += F("<h2>" D_HTTP_FIRMWARE_UPGRADE "</h2>");
+            httpMessage += F("<p>Updating firmware from: ");
             httpMessage += url;
+            httpMessage += F("</p><p>Please wait...</p>");
 
-            webSendHeader(haspDevice.get_hostname(), httpMessage.length(), 30);
+            httpMessage += FPSTR(MAIN_MENU_BUTTON);
+
+            webSendHeader(haspDevice.get_hostname(), httpMessage.length(), 20);
             webServer.sendContent(httpMessage);
         }
 
-        LOG_TRACE(TAG_HTTP, F("Updating ESP firmware from: %s"), url.c_str());
         dispatch_web_update(NULL, url.c_str(), TAG_HTTP);
     } else {
         // Send Firmware page
@@ -2050,7 +2067,7 @@ static void webHandleFirmware()
 
         // File
         httpMessage +=
-            F("<div class='row'><div class='col-25'><label class='required' for='filename'>From File</label></div>");
+            F("<div class='row'><div class='col-25'><label class='required' for='filename'>OTA File</label></div>");
         httpMessage += F("<div class='col-75'><input required type='file' name='filename' accept='.bin'></div></div>");
 
         // Destination
@@ -2069,14 +2086,23 @@ static void webHandleFirmware()
 
         // URL
         httpMessage +=
-            F("<div class='row'><div class='col-25'><label class='required' for='url'>From URL</label></div>");
+            F("<div class='row'><div class='col-25'><label class='required' for='url'>OTA URL</label></div>");
         httpMessage += F("<div class='col-75'><input required id='url' name='url' value=''></div></div>");
 
+        // Redirect
+        httpMessage += F("<div class='row'><div class='col-25'><label for='redirect'>Follow Redirects</label></div>");
+        httpMessage += F("<div class='col-75'><select id='redirect' name='redirect'>");
+        httpMessage += getOption(0, F("Disabled"), -1);
+        httpMessage += getOption(1, F("Strict"), -1);
+        httpMessage += getOption(2, F("Always"), -1);
+        httpMessage += F("</select></div></div>");
+
         // Submit & End Form
-        httpMessage += F("<button type='submit' name='save' value='debug'>Update from URL</button>");
+        httpMessage += F("<button type='submit' name='save' value='debug'>" D_HTTP_UPDATE_FIRMWARE "</button>");
         httpMessage += F("</form></div>");
 
         httpMessage += FPSTR(MAIN_MENU_BUTTON);
+        httpMessage += "<script>filler(\"GET\", \"/api/config/ota/\")</script>";
 
         webSendHeader(haspDevice.get_hostname(), httpMessage.length(), 0);
         webServer.sendContent(httpMessage);

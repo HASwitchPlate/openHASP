@@ -6,6 +6,7 @@
 #include "hasplib.h"
 
 #include "hasp_debug.h"
+#include "hasp_config.h"
 #include "hasp_ota.h"
 
 #if defined(ARDUINO_ARCH_ESP8266)
@@ -13,8 +14,8 @@
 #include <ESP8266httpUpdate.h>
 #include <ESP8266WiFi.h>
 #include <ArduinoOTA.h>
-#ifndef HASP_OTA_PORT
-#define HASP_OTA_PORT 8266
+#ifndef HASP_ARDUINOOTA_PORT
+#define HASP_ARDUINOOTA_PORT 8266
 #endif
 #endif
 
@@ -23,8 +24,12 @@
 #include <HTTPUpdate.h>
 #include <WiFi.h>
 #include <ArduinoOTA.h>
-#ifndef HASP_OTA_PORT
-#define HASP_OTA_PORT 3232
+#ifndef HASP_ARDUINOOTA_PORT
+#define HASP_ARDUINOOTA_PORT 3232
+#endif
+
+#ifndef HASP_OTA_URL
+#define HASP_OTA_URL ""
 #endif
 
 /**
@@ -63,10 +68,58 @@ const char* rootCACertificate = "-----BEGIN CERTIFICATE-----\n"
 extern const uint8_t rootca_crt_bundle_start[] asm("_binary_data_cert_x509_crt_bundle_bin_start");
 #endif // ARDUINO_ARCH_ESP32
 
-static WiFiClient otaClient;
-std::string otaUrl           = "http://ota.netwize.be";
-int16_t otaPort              = HASP_OTA_PORT;
+static WiFiClientSecure secureClient;
+std::string otaUrl = "http://ota.netwize.be";
+
+int16_t arduinoOtaPort       = HASP_ARDUINOOTA_PORT;
 int8_t otaPrecentageComplete = -1;
+
+void otaSetup(void)
+{
+#if ESP_ARDUINO_VERSION_MAJOR >= 2
+    /* This method is similar to the single root certificate verfication, but it uses a standard set of root
+     * certificates from Mozilla to authenticate against. This allows the client to connect to all public SSL
+     * servers. */
+    secureClient.setCACertBundle(rootca_crt_bundle_start);
+#endif
+    //  Reading data over SSL may be slow, use an adequate timeout
+    secureClient.setTimeout(12); // timeout argument is defined in seconds
+
+#if HASP_USE_OTA > 0
+    if(strlen(otaUrl.c_str())) {
+        LOG_INFO(TAG_OTA, otaUrl.c_str());
+    }
+
+    if(arduinoOtaPort > 0) {
+        ArduinoOTA.onStart(ota_on_start);
+        ArduinoOTA.onEnd(ota_on_end);
+        ArduinoOTA.onProgress(ota_on_progress);
+        ArduinoOTA.onError(ota_on_error);
+
+        ArduinoOTA.setHostname(haspDevice.get_hostname());
+        // ArduinoOTA.setPassword(configPassword); // See OTA_PASSWORD
+        ArduinoOTA.setPort(arduinoOtaPort);
+
+#if ESP32
+#if HASP_USE_MDNS > 0
+        ArduinoOTA.setMdnsEnabled(false);                    // it's already started
+        MDNS.enableArduino(_port, (_password.length() > 0)); // Add the Arduino SVC
+#endif
+        // ArduinoOTA.setTimeout(1000); // default
+#endif
+        ArduinoOTA.setRebootOnSuccess(false); // We do that ourselves
+
+#ifdef OTA_PASSWORD
+        ArduinoOTA.setPassword(OTA_PASSWORD); // TODO
+#endif
+
+        ArduinoOTA.begin();
+        LOG_INFO(TAG_OTA, F(D_SERVICE_STARTED));
+    } else {
+        LOG_WARNING(TAG_OTA, F(D_SERVICE_DISABLED));
+    }
+#endif // HASP_USE_OTA
+}
 
 bool otaUpdateCheck()
 { // firmware update check
@@ -174,42 +227,6 @@ static void ota_on_error(ota_error_t error)
     // delay(5000);
 }
 
-void otaSetup(void)
-{
-    if(strlen(otaUrl.c_str())) {
-        LOG_INFO(TAG_OTA, otaUrl.c_str());
-    }
-
-    if(otaPort > 0) {
-        ArduinoOTA.onStart(ota_on_start);
-        ArduinoOTA.onEnd(ota_on_end);
-        ArduinoOTA.onProgress(ota_on_progress);
-        ArduinoOTA.onError(ota_on_error);
-
-        ArduinoOTA.setHostname(haspDevice.get_hostname());
-        // ArduinoOTA.setPassword(configPassword); // See OTA_PASSWORD
-        ArduinoOTA.setPort(otaPort);
-
-#if ESP32
-#if HASP_USE_MDNS > 0
-        ArduinoOTA.setMdnsEnabled(false);                    // it's already started
-        MDNS.enableArduino(_port, (_password.length() > 0)); // Add the Arduino SVC
-#endif
-        // ArduinoOTA.setTimeout(1000); // default
-#endif
-        ArduinoOTA.setRebootOnSuccess(false); // We do that ourselves
-
-#ifdef OTA_PASSWORD
-        ArduinoOTA.setPassword(OTA_PASSWORD); // TODO
-#endif
-
-        ArduinoOTA.begin();
-        LOG_INFO(TAG_OTA, F(D_SERVICE_STARTED));
-    } else {
-        LOG_WARNING(TAG_OTA, F(D_SERVICE_DISABLED));
-    }
-}
-
 IRAM_ATTR void otaLoop(void)
 {
     ArduinoOTA.handle();
@@ -251,9 +268,37 @@ static void ota_on_http_error(int error)
     haspProgressMsg(F(D_OTA_UPDATE_FAILED));
 }
 
-void ota_http_update(const char* espOtaUrl)
+void ota_http_update(const char* url)
 { // Update ESP firmware from HTTP
+
     t_httpUpdate_return returnCode;
+    followRedirects_t redirectCode;
+
+    if(secureClient.connected() && url == strstr_P(url, PSTR("https://"))) { // not start with https
+        LOG_ERROR(TAG_OTA, F("HTTP_UPDATE_FAILED client is already connected"));
+        return;
+    } else {
+        StaticJsonDocument<512> doc; // update update url, get redirect setting
+        JsonObject settings;
+        settings        = doc.to<JsonObject>(); // force creation of an empty JsonObject
+        otaGetConfig(settings);
+        settings["url"] = url;
+        switch(settings["redirect"].as<uint8_t>()) {
+            case 1:
+                redirectCode = HTTPC_STRICT_FOLLOW_REDIRECTS;
+                LOG_VERBOSE(TAG_OTA, F("Strict follow redirects"));
+                break;
+            case 2:
+                redirectCode = HTTPC_FORCE_FOLLOW_REDIRECTS;
+                LOG_VERBOSE(TAG_OTA, F("Force follow redirects"));
+                break;
+            default:
+                redirectCode = HTTPC_DISABLE_FOLLOW_REDIRECTS;
+                LOG_VERBOSE(TAG_OTA, F("Disable follow redirects"));
+                settings["redirect"] = 0;
+        }
+        otaSetConfig(settings);
+    }
 
 #if HASP_USE_MDNS > 0
     mdnsStop(); // Keep mDNS responder from breaking things
@@ -266,7 +311,7 @@ void ota_http_update(const char* espOtaUrl)
     // ESPhttpUpdate.onError(update_error);
     ESP8266HTTPUpdate httpUpdate;
     httpUpdate.rebootOnUpdate(false); // We do that ourselves
-    returnCode = httpUpdate.update(otaClient, espOtaUrl);
+    returnCode = httpUpdate.update(otaClient, url);
 
 #else
     HTTPUpdate httpUpdate;
@@ -276,38 +321,29 @@ void ota_http_update(const char* espOtaUrl)
     httpUpdate.onProgress(ota_on_http_progress);
     httpUpdate.onError(ota_on_http_error);
     httpUpdate.rebootOnUpdate(false); // We do that ourselves
+    httpUpdate.setFollowRedirects(redirectCode);
 
-    if(espOtaUrl != strstr_P(espOtaUrl, PSTR("https://"))) { // not start with https
-        returnCode = httpUpdate.update(otaClient, espOtaUrl);
+    if(url != strstr_P(url, PSTR("https://"))) { // not start with https
+        WiFiClient otaClient;
+        returnCode = httpUpdate.update(otaClient, url);
     } else {
-        WiFiClientSecure secureClient;
-        //  Reading data over SSL may be slow, use an adequate timeout
-        secureClient.setTimeout(12); // timeout argument is defined in seconds
-
-#if ESP_ARDUINO_VERSION_MAJOR >= 2
-        /* This method is similar to the single root certificate verfication, but it uses a standard set of root
-         * certificates from Mozilla to authenticate against. This allows the client to connect to all public SSL
-         * servers. */
-        secureClient.setCACertBundle(rootca_crt_bundle_start);
-#endif
-
-        returnCode = httpUpdate.update(secureClient, espOtaUrl, haspDevice.get_version());
+        returnCode = httpUpdate.update(secureClient, url, haspDevice.get_version());
     }
 
 #endif
 
     switch(returnCode) {
         case HTTP_UPDATE_FAILED:
-            LOG_ERROR(TAG_FWUP, F("HTTP_UPDATE_FAILED error %i %s"), httpUpdate.getLastError(),
+            LOG_ERROR(TAG_OTA, F("HTTP_UPDATE_FAILED error %i %s"), httpUpdate.getLastError(),
                       httpUpdate.getLastErrorString().c_str());
             break;
 
         case HTTP_UPDATE_NO_UPDATES:
-            LOG_TRACE(TAG_FWUP, F("HTTP_UPDATE_NO_UPDATES"));
+            LOG_TRACE(TAG_OTA, F("HTTP_UPDATE_NO_UPDATES"));
             break;
 
         case HTTP_UPDATE_OK:
-            LOG_TRACE(TAG_FWUP, F("HTTP_UPDATE_OK"));
+            LOG_TRACE(TAG_OTA, F("HTTP_UPDATE_OK"));
             dispatch_reboot(true);
             delay(5000);
     }
@@ -317,5 +353,47 @@ void ota_http_update(const char* espOtaUrl)
 #endif // HASP_USE_MDNS
 }
 #endif // HASP_USE_HTTP_UPDATE
+
+/* ===== Read/Write Configuration ===== */
+#if HASP_USE_CONFIG > 0
+bool otaGetConfig(const JsonObject& settings)
+{
+    Preferences preferences;
+    bool changed = false;
+
+    preferences.begin("ota", true);
+    settings["url"]      = preferences.getString("url", HASP_OTA_URL);
+    settings["redirect"] = preferences.getUInt("redirect", 0);
+    preferences.end();
+
+    // #if ESP_ARDUINO_VERSION_MAJOR >= 2
+    //     nvs_iterator_t it = nvs_entry_find("nvs", "ota", NVS_TYPE_ANY);
+    //     while(it != NULL) {
+    //         nvs_entry_info_t info;
+    //         nvs_entry_info(it, &info);
+    //         it = nvs_entry_next(it);
+    //         printf("key '%s', type '%d' \n", info.key, info.type);
+    //     };
+    // #endif
+
+    if(changed) configOutput(settings, TAG_TIME);
+
+    return changed;
+}
+
+bool otaSetConfig(const JsonObject& settings)
+{
+    Preferences preferences;
+    preferences.begin("ota", false);
+
+    configOutput(settings, TAG_OTA);
+    bool changed = false;
+    changed |= nvsUpdateString(preferences, "url", settings["url"]);
+    changed |= nvsUpdateUInt(preferences, "redirect", settings["redirect"]);
+
+    preferences.end();
+    return changed;
+}
+#endif // HASP_USE_CONFIG
 
 #endif // ARDUINO_ARCH_ESP8266 || ARDUINO_ARCH_ESP32

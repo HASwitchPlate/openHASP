@@ -535,6 +535,14 @@ void dispatch_config(const char* topic, const char* payload, uint8_t source)
             httpGetConfig(settings);
     }
 #endif
+#if HASP_USE_OTA > 0 || HASP_USE_HTTP_UPDATE > 0
+    else if(strcasecmp_P(topic, PSTR("ota")) == 0) {
+        if(update)
+            otaSetConfig(settings);
+        else
+            otaGetConfig(settings);
+    }
+#endif
 #endif
 
     // Send output
@@ -1238,6 +1246,11 @@ bool dispatch_factory_reset()
 {
     bool formated = true;
     bool erased   = true;
+    bool cleared  = true;
+
+#if ESP32
+    erased = nvs_clear_user_config();
+#endif
 
 #if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
     formated = HASP_FS.format();
@@ -1248,7 +1261,7 @@ bool dispatch_factory_reset()
     erased = configClearEeprom();
 #endif
 
-    return formated && erased;
+    return formated && erased && cleared;
 }
 
 void dispatch_calibrate(const char*, const char*, uint8_t source)

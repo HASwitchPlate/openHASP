@@ -110,8 +110,8 @@
 #define D_JSONL_SUCCEEDED "Jsonl volledig verwerkt"
 
 #define D_OTA_CHECK_UPDATE "Controle update URL: %s"
-#define D_OTA_CHECK_COMPLETE "Update controle klaar"
-#define D_OTA_CHECK_FAILED "Update check failed: %s"
+#define D_OTA_CHECK_COMPLETE "Update gecontroleerd"
+#define D_OTA_CHECK_FAILED "Update controle mislukt: %s"
 #define D_OTA_UPDATE_FIRMWARE "OTA Firmware bijwerken"
 #define D_OTA_UPDATE_COMPLETE "OTA Firmware bijgewerkt"
 #define D_OTA_UPDATE_APPLY "Firmware Schrijven & Herstart"

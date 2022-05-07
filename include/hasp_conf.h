@@ -303,7 +303,7 @@ static WiFiSpiClass WiFi;
 #include "sys/svc/hasp_mdns.h"
 #endif
 
-#if HASP_USE_OTA > 0
+#if HASP_USE_OTA > 0 || HASP_USE_HTTP_UPDATE > 0
 #include "sys/svc/hasp_ota.h"
 #endif
 
