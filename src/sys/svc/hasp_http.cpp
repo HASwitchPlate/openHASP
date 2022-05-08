@@ -90,12 +90,12 @@ const char MAIN_MENU_BUTTON[] PROGMEM = "<a href='/'>" D_HTTP_MAIN_MENU "</a>";
 const char HTTP_DOCTYPE[] PROGMEM      = "<!DOCTYPE html><html lang=\"en\"><head><meta charset='utf-8'><meta "
                                          "name=\"viewport\" content=\"width=device-width,initial-scale=1\"/>";
 const char HTTP_META_GO_BACK[] PROGMEM = "<meta http-equiv='refresh' content='%d;url=/'/>";
+const char HTTP_STYLESHEET[] PROGMEM   = "<link rel=\"stylesheet\" href=\"/%s.css\">";
 const char HTTP_HEADER[] PROGMEM       = "<title>%s</title>";
-const char HTTP_HEADER_END[] PROGMEM =
-    "<script src=\"/script.js\"></script><link rel=\"stylesheet\" href=\"/vars.css\">"
-    "<link rel=\"stylesheet\" href=\"/style.css\"></head><body><div id='doc'>";
-const char HTTP_FOOTER[] PROGMEM = "<div class='clear'><hr/><a class='foot' href='/about'>" D_MANUFACTURER " ";
-const char HTTP_END[] PROGMEM    = " " D_HTTP_FOOTER "</div></body></html>";
+const char HTTP_HEADER_END[] PROGMEM   = "<script src=\"/script.js\"></script>"
+                                         "<link rel=\"stylesheet\" href=\"/style.css\"></head><body><div id='doc'>";
+const char HTTP_FOOTER[] PROGMEM       = "<div class='clear'><hr/><a class='foot' href='/about'>" D_MANUFACTURER " ";
+const char HTTP_END[] PROGMEM          = " " D_HTTP_FOOTER "</div></body></html>";
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -218,7 +218,8 @@ static void webSendHeader(const char* nodename, uint32_t httpdatalength, uint8_t
         /* Calculate Content Length upfront */
         uint32_t contentLength = strlen(haspDevice.get_version()); // version length
         contentLength += sizeof(HTTP_DOCTYPE) - 1;
-        contentLength += sizeof(HTTP_HEADER) - 1 - 2 + strlen(nodename); // -2 for %s
+        contentLength += sizeof(HTTP_HEADER) - 1 - 2 + strlen(nodename);   // -2 for %s
+        contentLength += sizeof(HTTP_STYLESHEET) - 1 - 2 + strlen("vars"); // -2 for %s
         if(gohome > 0) {
             snprintf_P(buffer, sizeof(buffer), HTTP_META_GO_BACK, gohome);
             contentLength += strlen(buffer); // gohome
@@ -240,6 +241,9 @@ static void webSendHeader(const char* nodename, uint32_t httpdatalength, uint8_t
         webServer.send(200, ("text/html"), HTTP_DOCTYPE); // 122
 #endif
         webServer.sendContent(buffer); // gohome
+
+        snprintf_P(buffer, sizeof(buffer), HTTP_STYLESHEET, "vars");
+        webServer.sendContent(buffer); // stylesheet
 
         snprintf_P(buffer, sizeof(buffer), HTTP_HEADER, nodename);
         webServer.sendContent(buffer); // 17-2+len
@@ -1230,7 +1234,7 @@ static void webHandleGuiConfig()
 
         // Backlight Pin
         int8_t bcklpin = settings[FPSTR(FP_GUI_BACKLIGHTPIN)].as<int8_t>();
-        httpMessage += F("<div class='row'><div class='col-25'><label for='group'>Backlight Control</label></div>");
+        httpMessage += F("<div class='row'><div class='col-25'><label for='group'>Backlight Pin</label></div>");
         httpMessage += F("<div class='col-75'><select id='bckl' name='bckl'>");
         httpMessage += getOption(-1, F("None"), bcklpin);
 #if defined(ARDUINO_ARCH_ESP32)
@@ -2048,11 +2052,13 @@ static void webHandleFirmware()
 
             httpMessage += FPSTR(MAIN_MENU_BUTTON);
 
-            webSendHeader(haspDevice.get_hostname(), httpMessage.length(), 20);
+            webSendHeader(haspDevice.get_hostname(), httpMessage.length(), 50);
             webServer.sendContent(httpMessage);
         }
 
+        webSendFooter();
         dispatch_web_update(NULL, url.c_str(), TAG_HTTP);
+        return;
     } else {
         // Send Firmware page
         String httpMessage((char*)0);

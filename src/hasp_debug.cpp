@@ -297,9 +297,6 @@ void debug_get_tag(uint8_t tag, char* buffer)
         case TAG_OTA:
             memcpy_P(buffer, PSTR("OTA "), 5);
             break;
-        case TAG_FWUP:
-            memcpy_P(buffer, PSTR("FWUP"), 5);
-            break;
 
         case TAG_LVGL:
             memcpy_P(buffer, PSTR("LVGL"), 5);
