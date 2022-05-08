@@ -22,8 +22,8 @@
 ### Commands
 - Additional `idle` parameters now accept `off`, `short` and `long`
 - Add `sensors` command to trigger the sensors state message
-- Run `/boot.cmd` when the plate is (re)booted if the script exists
-- You can now use `pXbY.jsonl` command to update multiple object properties at once (thanks @nagyrobi)
+- Run `L:/boot.cmd` when the plate is (re)booted if the script exists
+- You can now use the `pXbY.jsonl` command to update multiple object properties at once (thanks @nagyrobi)
 
 ### Objects
 - All objects have a custom `tag` property which can contain abritrary JSON data *(or numbers or text)* (thanks @nagyrobi)
@@ -45,7 +45,7 @@
 - Hide cursor during `antiburn` and `idle` if the pointer is enabled
 
 ### MQTT
--  Remember last `page` id of `jsonl` messages. Multiple messages behave like `jsonl` files (thanks @arovak)
+-  Remember last `page` id of `jsonl` messages. Sending multiple messages now behaves like `jsonl` files (thanks @arovak)
 
 ### Fonts
 - Use TrueType fonts from flash, PSram is *highly* recommended (thanks to @s-hadinger)
