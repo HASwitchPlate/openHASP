@@ -188,6 +188,18 @@ static void ota_on_error(ota_error_t error)
     // delay(5000);
 }
 
+IRAM_ATTR void otaLoop(void)
+{
+    ArduinoOTA.handle();
+}
+
+void otaEverySecond(void)
+{
+    if(otaPrecentageComplete >= 0) otaProgress();
+}
+#endif // HASP_USE_ARDUINOOTA
+
+
 void otaSetup(void)
 {
 #if ESP_ARDUINO_VERSION_MAJOR >= 2
@@ -235,17 +247,6 @@ void otaSetup(void)
     }
 #endif // HASP_USE_ARDUINOOTA
 }
-
-IRAM_ATTR void otaLoop(void)
-{
-    ArduinoOTA.handle();
-}
-
-void otaEverySecond(void)
-{
-    if(otaPrecentageComplete >= 0) otaProgress();
-}
-#endif // HASP_USE_ARDUINOOTA
 
 #if HASP_USE_HTTP_UPDATE > 0
 static unsigned long htppLastLoopTime = 0;
