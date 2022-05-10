@@ -85,7 +85,7 @@ void otaSetup(void)
     //  Reading data over SSL may be slow, use an adequate timeout
     secureClient.setTimeout(12); // timeout argument is defined in seconds
 
-#if HASP_USE_OTA > 0
+#if HASP_USE_ARDUINOOTA > 0
     if(strlen(otaUrl.c_str())) {
         LOG_INFO(TAG_OTA, otaUrl.c_str());
     }
@@ -97,7 +97,6 @@ void otaSetup(void)
         ArduinoOTA.onError(ota_on_error);
 
         ArduinoOTA.setHostname(haspDevice.get_hostname());
-        // ArduinoOTA.setPassword(configPassword); // See OTA_PASSWORD
         ArduinoOTA.setPort(arduinoOtaPort);
 
 #if ESP32
@@ -118,7 +117,7 @@ void otaSetup(void)
     } else {
         LOG_WARNING(TAG_OTA, F(D_SERVICE_DISABLED));
     }
-#endif // HASP_USE_OTA
+#endif // HASP_USE_ARDUINOOTA
 }
 
 bool otaUpdateCheck()
@@ -179,7 +178,7 @@ static void ota_on_start(void)
     otaPrecentageComplete = 0;
 }
 
-#if HASP_USE_OTA > 0
+#if HASP_USE_ARDUINOOTA > 0
 static void ota_on_end(void)
 {
     otaPrecentageComplete = 100;
@@ -236,7 +235,7 @@ void otaEverySecond(void)
 {
     if(otaPrecentageComplete >= 0) otaProgress();
 }
-#endif // HASP_USE_OTA
+#endif // HASP_USE_ARDUINOOTA
 
 #if HASP_USE_HTTP_UPDATE > 0
 static unsigned long htppLastLoopTime = 0;

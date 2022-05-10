@@ -174,7 +174,7 @@ void loop()
         haspEverySecond();     // sleep timer
         dispatchEverySecond(); // sleep timer
 
-#if HASP_USE_OTA > 0
+#if HASP_USE_ARDUINOOTA > 0
         otaEverySecond(); // progressbar
 #endif
 

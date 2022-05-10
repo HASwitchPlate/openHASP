@@ -531,7 +531,7 @@ static void webHandleApiConfig()
             httpSetConfig(settings);
         } else
 #endif
-#if HASP_USE_OTA > 0 || HASP_USE_HTTP_UPDATE > 0
+#if HASP_USE_ARDUINOOTA > 0 || HASP_USE_HTTP_UPDATE > 0
             if(!strcasecmp_P(endpoint_key, PSTR("ota"))) {
             otaSetConfig(settings);
         } else
@@ -567,7 +567,7 @@ static void webHandleApiConfig()
         httpGetConfig(settings);
     } else
 #endif
-#if HASP_USE_OTA > 0 || HASP_USE_HTTP_UPDATE > 0
+#if HASP_USE_ARDUINOOTA > 0 || HASP_USE_HTTP_UPDATE > 0
         if(!strcasecmp_P(endpoint_key, PSTR("ota"))) {
         otaGetConfig(settings);
     } else

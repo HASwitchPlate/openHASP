@@ -13,10 +13,10 @@
 
 /* ===== Default Event Processors ===== */
 void otaSetup(void);
-#if HASP_USE_OTA > 0
+#if HASP_USE_ARDUINOOTA > 0
 IRAM_ATTR void otaLoop(void);
 void otaEverySecond(void);
-#endif // HASP_USE_OTA
+#endif // HASP_USE_ARDUINOOTA
 
 /* ===== Special Event Processors ===== */
 #if HASP_USE_HTTP_UPDATE > 0

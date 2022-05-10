@@ -70,7 +70,7 @@ IRAM_ATTR void networkLoop(void)
     httpLoop();
 #endif // HTTP
 
-#if HASP_USE_OTA > 0
+#if HASP_USE_ARDUINOOTA > 0
     otaLoop();
 #endif // OTA
 
@@ -112,7 +112,7 @@ bool networkEvery5Seconds(void)
     // connected |= wifiEverySecond();
 #endif
 
-#if HASP_USE_OTA > 0
+#if HASP_USE_ARDUINOOTA > 0
     otaEverySecond(); // progressbar
 #endif
 

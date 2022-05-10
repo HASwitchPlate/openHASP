@@ -535,7 +535,7 @@ void dispatch_config(const char* topic, const char* payload, uint8_t source)
             httpGetConfig(settings);
     }
 #endif
-#if HASP_USE_OTA > 0 || HASP_USE_HTTP_UPDATE > 0
+#if HASP_USE_ARDUINOOTA > 0 || HASP_USE_HTTP_UPDATE > 0
     else if(strcasecmp_P(topic, PSTR("ota")) == 0) {
         if(update)
             otaSetConfig(settings);
