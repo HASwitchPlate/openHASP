@@ -184,14 +184,22 @@ void hasp_get_sleep_payload(uint8_t state, char* payload)
  */
 static lv_task_t* antiburn_task;
 
-void hasp_stop_antiburn()
+bool hasp_stop_antiburn()
 {
+    bool changed    = false;
     lv_obj_t* layer = lv_disp_get_layer_sys(NULL);
-   // if(layer) lv_obj_set_style_local_bg_opa(layer, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_TRANSP);
-    if(antiburn_task) lv_task_del(antiburn_task);
+
+    // if(layer) lv_obj_set_style_local_bg_opa(layer, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_TRANSP);
+    if(antiburn_task) {
+        lv_task_del(antiburn_task);
+        lv_obj_invalidate(lv_scr_act());
+        changed = true;
+    }
     antiburn_task = NULL;
     hasp_set_wakeup_touch(haspDevice.get_backlight_power() == false); // enabled if backlight is OFF
     gui_hide_pointer(false);
+
+    return changed;
 }
 
 void hasp_antiburn_cb(lv_task_t* task)
