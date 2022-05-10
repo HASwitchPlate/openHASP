@@ -28,6 +28,14 @@
 #define HASP_ARDUINOOTA_PORT 3232
 #endif
 
+#if HASP_USE_MDNS > 0
+#if defined(ARDUINO_ARCH_ESP32)
+#include <ESPmDNS.h>
+#elif defined(ARDUINO_ARCH_ESP8266)
+#include <ESP8266mDNS.h>
+#endif
+#endif // HASP_USE_MDNS
+
 #ifndef HASP_OTA_URL
 #define HASP_OTA_URL ""
 #endif
@@ -71,54 +79,8 @@ extern const uint8_t rootca_crt_bundle_start[] asm("_binary_data_cert_x509_crt_b
 static WiFiClientSecure secureClient;
 std::string otaUrl = "http://ota.netwize.be";
 
-int16_t arduinoOtaPort       = HASP_ARDUINOOTA_PORT;
+uint16_t arduinoOtaPort       = HASP_ARDUINOOTA_PORT;
 int8_t otaPrecentageComplete = -1;
-
-void otaSetup(void)
-{
-#if ESP_ARDUINO_VERSION_MAJOR >= 2
-    /* This method is similar to the single root certificate verfication, but it uses a standard set of root
-     * certificates from Mozilla to authenticate against. This allows the client to connect to all public SSL
-     * servers. */
-    secureClient.setCACertBundle(rootca_crt_bundle_start);
-#endif
-    //  Reading data over SSL may be slow, use an adequate timeout
-    secureClient.setTimeout(12); // timeout argument is defined in seconds
-
-#if HASP_USE_ARDUINOOTA > 0
-    if(strlen(otaUrl.c_str())) {
-        LOG_INFO(TAG_OTA, otaUrl.c_str());
-    }
-
-    if(arduinoOtaPort > 0) {
-        ArduinoOTA.onStart(ota_on_start);
-        ArduinoOTA.onEnd(ota_on_end);
-        ArduinoOTA.onProgress(ota_on_progress);
-        ArduinoOTA.onError(ota_on_error);
-
-        ArduinoOTA.setHostname(haspDevice.get_hostname());
-        ArduinoOTA.setPort(arduinoOtaPort);
-
-#if ESP32
-#if HASP_USE_MDNS > 0
-        ArduinoOTA.setMdnsEnabled(false);                    // it's already started
-        MDNS.enableArduino(_port, (_password.length() > 0)); // Add the Arduino SVC
-#endif
-        // ArduinoOTA.setTimeout(1000); // default
-#endif
-        ArduinoOTA.setRebootOnSuccess(false); // We do that ourselves
-
-#ifdef ARDUINOOTA_PASSWORD
-        ArduinoOTA.setPassword(ARDUINOOTA_PASSWORD); // TODO
-#endif
-
-        ArduinoOTA.begin();
-        LOG_INFO(TAG_OTA, F(D_SERVICE_STARTED));
-    } else {
-        LOG_WARNING(TAG_OTA, F(D_SERVICE_DISABLED));
-    }
-#endif // HASP_USE_ARDUINOOTA
-}
 
 bool otaUpdateCheck()
 { // firmware update check
@@ -226,6 +188,54 @@ static void ota_on_error(ota_error_t error)
     // delay(5000);
 }
 
+void otaSetup(void)
+{
+#if ESP_ARDUINO_VERSION_MAJOR >= 2
+    /* This method is similar to the single root certificate verfication, but it uses a standard set of root
+     * certificates from Mozilla to authenticate against. This allows the client to connect to all public SSL
+     * servers. */
+    secureClient.setCACertBundle(rootca_crt_bundle_start);
+#endif
+    //  Reading data over SSL may be slow, use an adequate timeout
+    secureClient.setTimeout(12); // timeout argument is defined in seconds
+
+#if HASP_USE_ARDUINOOTA > 0
+    if(strlen(otaUrl.c_str())) {
+        LOG_INFO(TAG_OTA, otaUrl.c_str());
+    }
+
+    if(arduinoOtaPort > 0) {
+        ArduinoOTA.onStart(ota_on_start);
+        ArduinoOTA.onEnd(ota_on_end);
+        ArduinoOTA.onProgress(ota_on_progress);
+        ArduinoOTA.onError(ota_on_error);
+
+        ArduinoOTA.setHostname(haspDevice.get_hostname());
+        ArduinoOTA.setPort(arduinoOtaPort);
+        ArduinoOTA.setRebootOnSuccess(false); // We do that ourselves
+                                              // ArduinoOTA.setTimeout(1000); // default
+
+#if ESP32
+#if HASP_USE_MDNS > 0
+        ArduinoOTA.setMdnsEnabled(false); // it's already started
+#ifdef ARDUINOOTA_PASSWORD
+        MDNS.enableArduino(arduinoOtaPort, strlen(ARDUINOOTA_PASSWORD) > 0);
+#endif // ARDUINOOTA_PASSWORD
+#endif // HASP_USE_MDNS
+#endif // ESP32
+
+#ifdef ARDUINOOTA_PASSWORD
+        ArduinoOTA.setPassword(ARDUINOOTA_PASSWORD);
+#endif // ARDUINOOTA_PASSWORD
+
+        ArduinoOTA.begin();
+        LOG_INFO(TAG_OTA, F(D_SERVICE_STARTED));
+    } else {
+        LOG_WARNING(TAG_OTA, F(D_SERVICE_DISABLED));
+    }
+#endif // HASP_USE_ARDUINOOTA
+}
+
 IRAM_ATTR void otaLoop(void)
 {
     ArduinoOTA.handle();
@@ -279,7 +289,7 @@ void ota_http_update(const char* url)
     } else {
         StaticJsonDocument<512> doc; // update update url, get redirect setting
         JsonObject settings;
-        settings        = doc.to<JsonObject>(); // force creation of an empty JsonObject
+        settings = doc.to<JsonObject>(); // force creation of an empty JsonObject
         otaGetConfig(settings);
         settings["url"] = url;
         switch(settings["redirect"].as<uint8_t>()) {
