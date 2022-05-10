@@ -464,8 +464,8 @@ static bool lv_ft_font_init_cache(lv_ft_info_t* info)
     font->get_glyph_dsc    = get_glyph_dsc_cb;
     font->get_glyph_bitmap = get_glyph_bitmap_cb_cache;
     font->subpx            = LV_FONT_SUBPX_NONE;
-    font->line_height      = (face_size->face->size->metrics.height >> 6);
-    font->base_line        = -(face_size->face->size->metrics.descender >> 6);
+    font->line_height      = ((dsc->face->size->metrics.ascender - dsc->face->size->metrics.descender) >> 6);
+    font->base_line        = -((dsc->face->size->metrics.descender) >> 6);
 
     FT_Fixed scale            = face_size->face->size->metrics.y_scale;
     int8_t thickness          = FT_MulFix(scale, face_size->face->underline_thickness) >> 6;
