@@ -108,8 +108,8 @@ void otaSetup(void)
 #endif
         ArduinoOTA.setRebootOnSuccess(false); // We do that ourselves
 
-#ifdef OTA_PASSWORD
-        ArduinoOTA.setPassword(OTA_PASSWORD); // TODO
+#ifdef ARDUINOOTA_PASSWORD
+        ArduinoOTA.setPassword(ARDUINOOTA_PASSWORD); // TODO
 #endif
 
         ArduinoOTA.begin();

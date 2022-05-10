@@ -1981,7 +1981,7 @@ static void webHandleFirmware()
 
             httpMessage += FPSTR(MAIN_MENU_BUTTON);
 
-            webSendHeader(haspDevice.get_hostname(), httpMessage.length(), 50);
+            webSendHeader(haspDevice.get_hostname(), httpMessage.length(), 60);
             webServer.sendContent(httpMessage);
         }
 

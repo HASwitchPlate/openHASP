@@ -41,13 +41,12 @@
 #define MQTT_STATEPERIOD 300000
 
 /***************************************************
- *        Server Settings
+ *        OTA Settings
  **************************************************/
-#define OTA_HOSTNAME ""
-#define OTA_SERVER ""
-#define OTA_PORT 80
+//#define HASP_USE_ARDUINOOTA 1                       // Enable the Arduino OTA service
+#define ARDUINOOTA_PORT 3232
+#define ARDUINOOTA_PASSWORD ""
 #define OTA_URL ""
-#define OTA_PASSWORD ""
 
 /***************************************************
  *        Syslog Settings
@@ -152,4 +151,5 @@
 //#define LV_VDB_SIZE (32 * 1024U)                    // 32KiB of lvgl draw buffer (default 32)
 //#define HASP_DEBUG_OBJ_TREE                         // Output all objects to the log on page changes
 //#define HASP_LOG_LEVEL LOG_LEVEL_VERBOSE            // LOG_LEVEL_* can be DEBUG, VERBOSE, TRACE, INFO, WARNING, ERROR, CRITICAL, ALERT, FATAL, SILENT
-#endif
+
+#endif // HASP_USER_CONFIG_OVERRIDE_H
