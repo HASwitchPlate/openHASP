@@ -374,6 +374,21 @@ typedef void* lv_indev_drv_user_data_t;            /*Type of user data in the in
  *===================*/
 
 #if TFT_HEIGHT>=480 || TFT_WIDTH>=480
+#ifndef ROBOTOCONDENSED_REGULAR_16_LATIN1
+#define ROBOTOCONDENSED_REGULAR_16_LATIN1 1
+#endif
+#ifndef ROBOTOCONDENSED_REGULAR_24_LATIN1
+#define ROBOTOCONDENSED_REGULAR_24_LATIN1 1
+#endif
+#ifndef ROBOTOCONDENSED_REGULAR_32_LATIN1
+#define ROBOTOCONDENSED_REGULAR_32_LATIN1 1
+#endif
+#ifndef ROBOTOCONDENSED_REGULAR_48_LATIN1
+#define ROBOTOCONDENSED_REGULAR_48_LATIN1 1
+#endif
+#ifndef ROBOTOCONDENSED_REGULAR_12_LATIN1
+#define ROBOTOCONDENSED_REGULAR_12_LATIN1 1
+#endif
 
 #ifndef HASP_FONT_1
 #define HASP_FONT_1 robotocondensed_regular_16_latin1  /* 5% Width */
@@ -387,18 +402,8 @@ typedef void* lv_indev_drv_user_data_t;            /*Type of user data in the in
 #ifndef HASP_FONT_4
 #define HASP_FONT_4 robotocondensed_regular_48_latin1  /* 10% Height */
 #endif
-
-#ifndef ROBOTOCONDENSED_REGULAR_16_LATIN1
-#define ROBOTOCONDENSED_REGULAR_16_LATIN1 1
-#endif
-#ifndef ROBOTOCONDENSED_REGULAR_24_LATIN1
-#define ROBOTOCONDENSED_REGULAR_24_LATIN1 1
-#endif
-#ifndef ROBOTOCONDENSED_REGULAR_32_LATIN1
-#define ROBOTOCONDENSED_REGULAR_32_LATIN1 1
-#endif
-#ifndef ROBOTOCONDENSED_REGULAR_48_LATIN1
-#define ROBOTOCONDENSED_REGULAR_48_LATIN1 1
+#ifndef HASP_FONT_5
+#define HASP_FONT_5 robotocondensed_regular_12_latin1  /* 5% Width */
 #endif
 
 #ifndef HASP_FONT_SIZE_1
@@ -413,7 +418,9 @@ typedef void* lv_indev_drv_user_data_t;            /*Type of user data in the in
 #ifndef HASP_FONT_SIZE_4
 #define HASP_FONT_SIZE_4 48
 #endif
-
+#ifndef HASP_FONT_SIZE_5
+#define HASP_FONT_SIZE_5 12
+#endif
 #else // not 320x480
 
 #ifndef HASP_FONT_1
@@ -441,6 +448,9 @@ typedef void* lv_indev_drv_user_data_t;            /*Type of user data in the in
 #ifndef ROBOTOCONDENSED_REGULAR_32_LATIN1
 #define ROBOTOCONDENSED_REGULAR_32_LATIN1 1
 #endif
+#ifndef ROBOTOCONDENSED_REGULAR_48_LATIN1
+#define ROBOTOCONDENSED_REGULAR_48_LATIN1 1
+#endif
 
 #ifndef HASP_FONT_SIZE_1
 #define HASP_FONT_SIZE_1 12
@@ -453,6 +463,9 @@ typedef void* lv_indev_drv_user_data_t;            /*Type of user data in the in
 #endif
 #ifndef HASP_FONT_SIZE_4
 #define HASP_FONT_SIZE_4 32
+#endif
+#ifndef HASP_FONT_SIZE_5
+#define HASP_FONT_SIZE_5 48
 #endif
 
 #endif
@@ -570,6 +583,7 @@ typedef void* lv_font_user_data_t;
                                LV_FONT_DECLARE(HASP_FONT_2) \
                                LV_FONT_DECLARE(HASP_FONT_3) \
                                LV_FONT_DECLARE(HASP_FONT_4) \
+                               LV_FONT_DECLARE(HASP_FONT_5) \
 
 #ifndef LV_FONT_DEFAULT
 #define LV_FONT_DEFAULT        &HASP_FONT_2 //&lv_font_montserrat_16

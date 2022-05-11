@@ -161,6 +161,7 @@ static lv_font_t* font_add_to_list(const char* payload)
             size_t pos = font_split_payload(payload);
             if(pos > 0 && pos < 56) {
                 uint16_t size = atoi(payload + pos);
+                if(payload[pos - 1] == '_') pos--; // trancate trailing underscore
 
                 char fontname[64];
                 memset(fontname, 0, sizeof(fontname));

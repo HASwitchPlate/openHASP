@@ -264,6 +264,12 @@ static lv_font_t* haspPayloadToFont(const char* payload)
                 return &HASP_FONT_4;
 #endif
 
+#ifdef HASP_FONT_5
+            case HASP_FONT_SIZE_5:
+                LOG_DEBUG(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, HASP_FONT_5);
+                return &HASP_FONT_5;
+#endif
+
 #endif
 
             default:
