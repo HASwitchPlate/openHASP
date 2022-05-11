@@ -301,7 +301,6 @@ static hasp_attribute_type_t hasp_process_label_long_mode(lv_obj_t* obj, const c
     return HASP_ATTR_TYPE_NOT_FOUND;
 }
 
-#ifdef HASP_USE_NEW_PART_STATE
 size_t hasp_attribute_split_payload(const char* payload)
 {
     size_t pos = 0;
@@ -312,8 +311,8 @@ size_t hasp_attribute_split_payload(const char* payload)
     return pos;
 }
 
-static void hasp_attribute_get_part_state(lv_obj_t* obj, const char* attr_in, char* attr_out, uint8_t& part,
-                                          uint8_t& state)
+static void hasp_attribute_get_part_state_new(lv_obj_t* obj, const char* attr_in, char* attr_out, uint8_t& part,
+                                              uint8_t& state)
 {
     state = LV_STATE_DEFAULT;
     part  = LV_OBJ_PART_MAIN;
@@ -366,15 +365,21 @@ static void hasp_attribute_get_part_state(lv_obj_t* obj, const char* attr_in, ch
 
     /* Parts */
     switch(obj_get_type(obj)) {
-        case LV_HASP_OBJECT:
         case LV_HASP_BUTTON:
+        case LV_HASP_LABEL:
+        case LV_HASP_LED:
+        case LV_HASP_LINE:
+        case LV_HASP_LINEMETER:
+        case LV_HASP_IMAGE:
+        case LV_HASP_IMGBTN:
+        case LV_HASP_OBJECT:
+        case LV_HASP_TAB:
             part = LV_BTN_PART_MAIN;
             break;
 
         case LV_HASP_BTNMATRIX:
             switch(part_num) {
-                case 10:
-                case 20:
+                case LV_HASP_PART_ITEMS:
                     part = LV_BTNMATRIX_PART_BTN;
                     break;
                 default:
@@ -385,18 +390,21 @@ static void hasp_attribute_get_part_state(lv_obj_t* obj, const char* attr_in, ch
         case LV_HASP_SLIDER:
         case LV_HASP_SWITCH:
         case LV_HASP_ARC:
-            if(part_num == 10) {
-                part = LV_SLIDER_PART_INDIC;
-            } else if(part_num == 20) {
-                part = LV_SLIDER_PART_KNOB;
-            } else {
-                part = LV_SLIDER_PART_BG;
+            switch(part_num) {
+                case LV_HASP_PART_INDICATOR:
+                    part = LV_SLIDER_PART_INDIC;
+                    break;
+                case LV_HASP_PART_KNOB:
+                    part = LV_SLIDER_PART_KNOB;
+                    break;
+                default:
+                    part = LV_SLIDER_PART_BG;
             }
             break;
 
         case LV_HASP_BAR:
         case LV_HASP_SPINNER:
-            if(part_num == 10) {
+            if(part_num == LV_HASP_PART_INDICATOR) {
                 part = LV_SLIDER_PART_INDIC;
             } else {
                 part = LV_SLIDER_PART_BG;
@@ -404,33 +412,77 @@ static void hasp_attribute_get_part_state(lv_obj_t* obj, const char* attr_in, ch
             break;
 
         case LV_HASP_CHECKBOX:
-            part = part_num == 10 ? LV_CHECKBOX_PART_BULLET : LV_CHECKBOX_PART_BG;
+            part = part_num == LV_HASP_PART_INDICATOR ? LV_CHECKBOX_PART_BULLET : LV_CHECKBOX_PART_BG;
             break;
 
         case LV_HASP_CPICKER:
-            part = part_num == 20 ? LV_CPICKER_PART_KNOB : LV_CPICKER_PART_MAIN;
+            part = part_num == LV_HASP_PART_KNOB ? LV_CPICKER_PART_KNOB : LV_CPICKER_PART_MAIN;
             break;
 
         case LV_HASP_ROLLER:
-            part = part_num == 10 ? LV_ROLLER_PART_SELECTED : LV_ROLLER_PART_BG;
+            switch(part_num) {
+                case LV_HASP_PART_SELECTED:
+                    part = LV_ROLLER_PART_SELECTED;
+                    break;
+                default:
+                    part = LV_ROLLER_PART_BG;
+            }
+            break;
+
+        case LV_HASP_DROPDOWN:
+            switch(part_num) {
+                case LV_HASP_PART_ITEMS:
+                    part = LV_DROPDOWN_PART_LIST;
+                    break;
+                case LV_HASP_PART_SELECTED:
+                    part = LV_DROPDOWN_PART_SELECTED;
+                    break;
+                case LV_HASP_PART_SCROLLBAR:
+                    part = LV_DROPDOWN_PART_SCROLLBAR;
+                    break;
+                default:
+                    part = LV_DROPDOWN_PART_MAIN;
+            }
             break;
 
         case LV_HASP_GAUGE:
-            part = (part_num == 10) ? LV_GAUGE_PART_NEEDLE : LV_GAUGE_PART_MAIN;
+            switch(part_num) {
+                case LV_HASP_PART_INDICATOR:
+                    part = LV_GAUGE_PART_NEEDLE;
+                    break;
+                case LV_HASP_PART_TICKS:
+                    part = LV_GAUGE_PART_MAJOR;
+                    break;
+                default:
+                    part = LV_GAUGE_PART_MAIN;
+            }
+            break;
+
+        case LV_HASP_MSGBOX:
+            switch(part_num) {
+                case LV_HASP_PART_ITEMS_BG:
+                    part = LV_MSGBOX_PART_BTN_BG; // Button Matrix Background
+                    break;
+                case LV_HASP_PART_ITEMS:
+                    part = LV_MSGBOX_PART_BTN; // Button Matrix Buttons
+                    break;
+                default:
+                    part = LV_MSGBOX_PART_BG;
+            }
             break;
 
         case LV_HASP_TABVIEW:
             switch(part_num) {
-                case 10:
+                case LV_HASP_PART_INDICATOR:
                     part = LV_TABVIEW_PART_INDIC; // Rectangle-like object under the currently selected tab
                     break;
-                case 20:
-                    part = LV_TABVIEW_PART_TAB_BTN; // knob = Button Matrix Button
+                case LV_HASP_PART_ITEMS_BG:
+                    part = LV_TABVIEW_PART_TAB_BG; // Button Matrix background
                     break;
-                case 30:
-                    part = LV_TABVIEW_PART_TAB_BG; // Matrix background
+                case LV_HASP_PART_ITEMS:
+                    part = LV_TABVIEW_PART_TAB_BTN; // Button Matrix Button
                     break;
-                case 40:
+                case LV_HASP_PART_SELECTED:
                     part = LV_TABVIEW_PART_BG_SCROLLABLE; // It holds the content of the tabs next to each other
                     break;
                 default:
@@ -441,9 +493,9 @@ static void hasp_attribute_get_part_state(lv_obj_t* obj, const char* attr_in, ch
         default:; // nothing to do
     }
 }
-#else
-static void hasp_attribute_get_part_state(lv_obj_t* obj, const char* attr_in, char* attr_out, uint8_t& part,
-                                          uint8_t& state)
+
+static void hasp_attribute_get_part_state_old(lv_obj_t* obj, const char* attr_in, char* attr_out, uint8_t& part,
+                                              uint8_t& state)
 {
     int len = strlen(attr_in);
     if(len <= 0 || len >= 32) {
@@ -612,7 +664,16 @@ static void hasp_attribute_get_part_state(lv_obj_t* obj, const char* attr_in, ch
         default:; // nothing to do
     }
 }
-#endif
+
+static void hasp_attribute_get_part_state(lv_obj_t* obj, const char* attr_in, char* attr_out, uint8_t& part,
+                                          uint8_t& state)
+{
+    size_t pos = hasp_attribute_split_payload(attr_in);
+    if(strlen(attr_in + pos) == 2)
+        hasp_attribute_get_part_state_new(obj, attr_in, attr_out, part, state);
+    else
+        hasp_attribute_get_part_state_old(obj, attr_in, attr_out, part, state);
+}
 
 /**
  * Change or Retrieve the value of a local attribute of an object PART
