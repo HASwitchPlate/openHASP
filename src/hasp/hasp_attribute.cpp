@@ -232,49 +232,40 @@ static lv_font_t* haspPayloadToFont(const char* payload)
     if(Parser::is_only_digits(payload)) {
         uint8_t var = atoi(payload);
 
-        switch(var) {
-            case 0 ... 7:
-                return hasp_get_font(var);
-
-            case 8:
-                return &unscii_8_icon;
+        if(var >= 0 && var < 8)
+            return hasp_get_font(var);
+        else if(var == 8)
+            return &unscii_8_icon;
 
 #ifndef ARDUINO_ARCH_ESP8266
 
 #ifdef HASP_FONT_1
-            case HASP_FONT_SIZE_1:
-                return &HASP_FONT_1;
+        else if(var == HASP_FONT_SIZE_1)
+            return &HASP_FONT_1;
 #endif
 
 #ifdef HASP_FONT_2
-            case HASP_FONT_SIZE_2:
-                LOG_DEBUG(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, HASP_FONT_2);
-                return &HASP_FONT_2;
+        else if(var == HASP_FONT_SIZE_2)
+            return &HASP_FONT_2;
 #endif
 
 #ifdef HASP_FONT_3
-            case HASP_FONT_SIZE_3:
-                LOG_DEBUG(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, HASP_FONT_3);
-                return &HASP_FONT_3;
+        else if(var == HASP_FONT_SIZE_3)
+            return &HASP_FONT_3;
 #endif
 
 #ifdef HASP_FONT_4
-            case HASP_FONT_SIZE_4:
-                LOG_DEBUG(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, HASP_FONT_4);
-                return &HASP_FONT_4;
+        else if(var == HASP_FONT_SIZE_4)
+            return &HASP_FONT_4;
 #endif
 
 #ifdef HASP_FONT_5
-            case HASP_FONT_SIZE_5:
-                LOG_DEBUG(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, HASP_FONT_5);
-                return &HASP_FONT_5;
+        else if(var == HASP_FONT_SIZE_5)
+            return &HASP_FONT_5;
 #endif
 
-#endif
+#endif // ARDUINO_ARCH_ESP8266
 
-            default:
-                return nullptr;
-        }
     } else {
         return get_font(payload);
     }
