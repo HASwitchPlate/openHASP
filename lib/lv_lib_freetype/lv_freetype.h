@@ -80,6 +80,9 @@ bool lv_ft_font_init(lv_ft_info_t* info);
  */
 void lv_ft_font_destroy(lv_font_t* font);
 
+// Unsed Task memory
+size_t lv_ft_freetype_high_watermark();
+
 /**********************
  *      MACROS
  **********************/

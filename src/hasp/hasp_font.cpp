@@ -63,6 +63,7 @@ void font_setup()
 #else
     LOG_VERBOSE(TAG_FONT, F("FreeType " D_SERVICE_DISABLED));
 #endif // HASP_USE_FREETYPE
+    LOG_DEBUG(TAG_FONT, F("FreeType High Watermark %u"), lv_ft_freetype_high_watermark());
 }
 
 size_t font_split_payload(const char* payload)
@@ -217,6 +218,8 @@ static lv_font_t* font_add_to_list(const char* payload)
 // Convert the payload to a font pointer
 lv_font_t* get_font(const char* payload)
 {
+    LOG_DEBUG(TAG_FONT, F("FreeType High Watermark %u"), lv_ft_freetype_high_watermark());
+
     lv_font_t* font = font_find_in_list(payload);
     if(font) return font;
 
