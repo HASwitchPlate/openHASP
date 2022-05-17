@@ -17,7 +17,7 @@
 
 -->
 
-## v0.6.3-rc1
+## v0.6.3-rc2
 
 ### Commands
 - Additional `idle` parameters now accept `off`, `short` and `long`
