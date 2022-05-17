@@ -4,7 +4,7 @@
 #if HASP_USE_FREETYPE > 0
 
 #ifndef LV_USE_FREETYPE
-#define LV_USE_FREETYPE 
+#define LV_USE_FREETYPE
 #endif
 
 #include "lv_freetype.h"
@@ -62,8 +62,8 @@ void font_setup()
 
 #else
     LOG_VERBOSE(TAG_FONT, F("FreeType " D_SERVICE_DISABLED));
-#endif // HASP_USE_FREETYPE
     LOG_DEBUG(TAG_FONT, F("FreeType High Watermark %u"), lv_ft_freetype_high_watermark());
+#endif // HASP_USE_FREETYPE
 }
 
 size_t font_split_payload(const char* payload)
