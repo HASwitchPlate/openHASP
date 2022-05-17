@@ -37,7 +37,7 @@
 - Allow for a customizible `vars.css`, `style.css`, `script.js` and `edit.htm`
 - Display a message when the configuration is changed and a reboot is needed
 - Add checkbox for backlight inversion to Display settings (thanks @wolffman122)
-- Add checkbox to toggle ANSI codes (thanks @geiseri)
+- Add checkbox to toggle ANSI codes #261 (thanks @geiseri)
 - Allow firmware upgrade/downgrade in AP mode
 
 ### GUI
@@ -54,16 +54,20 @@
 - Added build option for Vietnamese character set (thanks @kydang789)
 - ⚠️ **Breaking:** Removed defunct .zi font support!
 
+### Devices
+- Fixed Lanbon L8 v1.17 PCB screen corruption #316 (thanks @DJBenson)
+
 ### Bug fixes
 - Fix for screenshots not showing properly in Safari on macOS/iOS (thanks @masto)
 - Fix bug that would not accept `on` state for setting output GPIOs (thanks @freshnas and @cerietke)
-- Fix a bug in `dropdownlist` were `close` method performed `open` instead (thanks @htvekov)
+- Fix a bug in `dropdownlist` were `close` method performed `open` instead #299 (thanks @htvekov)
 - Fix `src` bug in `img` objects that could corrupt images sent over http (thanks @htvekov)
-- Fix screen dimensions in `statusupdate` message, taking into account current orientation (thanks @kquinsland)
+- Fix screen dimensions in `statusupdate` message, taking into account current orientation #278 (thanks @kquinsland)
 - Fix for HTTP password that could be overwritten by 8 asterisks when it was not changed in the web UI
-- Fixed MQTT hostname limit *again*...
+- Fixed MQTT hostname limit *again*... #304 (thanks @fake-name)
+- Fixed firmware upgrade from URL #300 (thank @nagyrobi)
 - Fixed a bug that prevented Wifi from connecting to different BSSID (thanks @Braehead)
-- Syslog message format fixes and improvements (thanks @geiseri)
+- Syslog message format fixes and improvements #285 (thanks @geiseri)
 
 ### Custom component
 - Expose `antiburn` and `page` in the CC (thanks @dgomes)
