@@ -26,7 +26,7 @@
 - You can now use the `pXbY.jsonl` command to update multiple object properties at once (thanks @nagyrobi)
 
 ### Objects
-- All objects have a custom `tag` property which can contain abritrary JSON data *(or numbers or text)* (thanks @nagyrobi)
+- All objects have a custom `tag` property which can contain arbitrary JSON data *(or numbers or text)* (thanks @nagyrobi)
 - `img.src` now accepts both `http` and `https` urls (thanks @htvekov)
 - `img.src` now accepts `png` and `binary` image urls, PSram is *highly* recommended
 - `img.src` now accepts 16-bit BMP files stored in flash
