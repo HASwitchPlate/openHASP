@@ -7,7 +7,7 @@
  *      INCLUDES
  *********************/
 #include "lv_freetype.h"
-#if HASP_USE_FREETYPE
+#if LV_USE_FREETYPE
 
 #include "ft2build.h"
 #include FT_FREETYPE_H

@@ -4,7 +4,7 @@
 #if HASP_USE_FREETYPE > 0
 
 #ifndef LV_USE_FREETYPE
-#define LV_USE_FREETYPE 1
+#define LV_USE_FREETYPE 
 #endif
 
 #include "lv_freetype.h"
@@ -18,7 +18,7 @@ typedef struct
     uint16_t weight;  /* font size */
     uint16_t style;   /* font style */
 } lv_ft_info_t;
-#endif
+#endif // HASP_USE_FREETYPE
 
 #include "hasp_mem.h"
 #include "font/hasp_font_loader.h"
@@ -218,7 +218,9 @@ static lv_font_t* font_add_to_list(const char* payload)
 // Convert the payload to a font pointer
 lv_font_t* get_font(const char* payload)
 {
+#if HASP_USE_FREETYPE > 0
     LOG_DEBUG(TAG_FONT, F("FreeType High Watermark %u"), lv_ft_freetype_high_watermark());
+#endif
 
     lv_font_t* font = font_find_in_list(payload);
     if(font) return font;
