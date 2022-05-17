@@ -53,6 +53,7 @@ void font_setup()
                         hasp_use_psram() ? LVGL_FREETYPE_MAX_BYTES_PSRAM : LVGL_FREETYPE_MAX_BYTES)) {
         LOG_VERBOSE(TAG_FONT, F("FreeType v%d.%d.%d " D_SERVICE_STARTED " = %d"), FREETYPE_MAJOR, FREETYPE_MINOR,
                     FREETYPE_PATCH, hasp_use_psram());
+        LOG_DEBUG(TAG_FONT, F("FreeType High Watermark %u"), lv_ft_freetype_high_watermark());
     } else {
         LOG_ERROR(TAG_FONT, F("FreeType " D_SERVICE_START_FAILED));
     }
@@ -62,7 +63,6 @@ void font_setup()
 
 #else
     LOG_VERBOSE(TAG_FONT, F("FreeType " D_SERVICE_DISABLED));
-    LOG_DEBUG(TAG_FONT, F("FreeType High Watermark %u"), lv_ft_freetype_high_watermark());
 #endif // HASP_USE_FREETYPE
 }
 
