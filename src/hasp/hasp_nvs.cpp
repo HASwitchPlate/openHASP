@@ -3,6 +3,20 @@
 #include "hasplib.h"
 #include "hasp_nvs.h"
 
+bool nvs_clear_user_config()
+{
+    const char* name[8] = {"time", "ota"};
+    Preferences preferences;
+
+    for(int i = 0; i < 2; i++) {
+        preferences.begin(name[i], false);
+        preferences.clear();
+        preferences.end();
+    }
+
+    return true;
+}
+
 bool nvsUpdateString(Preferences& preferences, const char* key, JsonVariant value)
 {
     bool changed    = false;
@@ -15,7 +29,26 @@ bool nvsUpdateString(Preferences& preferences, const char* key, JsonVariant valu
             changed = true; // Nvs key doesnot exist, create it
         if(changed) {
             size_t len = preferences.putString(key, val);
-            LOG_VERBOSE(TAG_TIME, F(D_BULLET "Wrote %s => %s (%d bytes)"), key, val, len);
+            LOG_DEBUG(TAG_TIME, F(D_BULLET "Wrote %s => %s (%d bytes)"), key, val, len);
+        }
+    }
+
+    return changed;
+}
+
+bool nvsUpdateUInt(Preferences& preferences, const char* key, JsonVariant value)
+{
+    bool changed = false;
+    uint32_t val = value.as<uint32_t>();
+
+    if(!value.isNull()) {                                 // Json key exists
+        if(preferences.isKey(key)) {                      // Nvs key exists
+            changed = preferences.getUInt(key, 0) != val; // Value changed
+        } else
+            changed = true; // Nvs key doesnot exist, create it
+        if(changed) {
+            size_t len = preferences.putUInt(key, val);
+            LOG_DEBUG(TAG_TIME, F(D_BULLET "Wrote %s => %d"), key, val);
         }
     }
 

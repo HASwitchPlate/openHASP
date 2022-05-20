@@ -182,8 +182,6 @@ enum {
     TAG_FILE = 31,
     TAG_GPIO = 40,
 
-    TAG_FWUP = 50,
-
     TAG_ETH      = 60,
     TAG_WIFI     = 61,
     TAG_HTTP     = 62,

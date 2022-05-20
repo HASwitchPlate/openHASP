@@ -7,7 +7,7 @@
  *      INCLUDES
  *********************/
 #include "lv_freetype.h"
-#if HASP_USE_FREETYPE
+#if LV_USE_FREETYPE
 
 #include "ft2build.h"
 #include FT_FREETYPE_H
@@ -213,6 +213,11 @@ void lv_ft_font_destroy(lv_font_t* font)
 #else
     lv_ft_font_destroy_nocache(font);
 #endif
+}
+
+size_t lv_ft_freetype_high_watermark()
+{
+    return uxTaskGetStackHighWaterMark(FTTaskHandle);
 }
 
 /**********************
@@ -464,8 +469,8 @@ static bool lv_ft_font_init_cache(lv_ft_info_t* info)
     font->get_glyph_dsc    = get_glyph_dsc_cb;
     font->get_glyph_bitmap = get_glyph_bitmap_cb_cache;
     font->subpx            = LV_FONT_SUBPX_NONE;
-    font->line_height      = (face_size->face->size->metrics.height >> 6);
-    font->base_line        = -(face_size->face->size->metrics.descender >> 6);
+    font->line_height = ((face_size->face->size->metrics.ascender - face_size->face->size->metrics.descender) >> 6);
+    font->base_line   = -(face_size->face->size->metrics.descender >> 6);
 
     FT_Fixed scale            = face_size->face->size->metrics.y_scale;
     int8_t thickness          = FT_MulFix(scale, face_size->face->underline_thickness) >> 6;

@@ -9,7 +9,9 @@
 #include "hasplib.h"
 #include <Preferences.h>
 
+bool nvs_clear_user_config();
 bool nvsUpdateString(Preferences& preferences, const char* key, JsonVariant value);
+bool nvsUpdateUInt(Preferences& preferences, const char* key, JsonVariant value);
 
 #endif // ESP32
 

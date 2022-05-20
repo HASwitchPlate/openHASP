@@ -40,9 +40,8 @@ function loader(e, t, o) {
   });
 }
 function fill() {
-  (data = JSON.parse(this.response)),
-    (form = document.forms.item(0)),
-    populate(form, data);
+  data = JSON.parse(this.response);
+  for (const form of document.forms) populate(form, data);
 }
 function filler(e, t) {
   window.addEventListener("load", function () {

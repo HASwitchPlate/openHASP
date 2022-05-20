@@ -86,7 +86,7 @@ void setup()
     mdnsSetup();
 #endif
 
-#if HASP_USE_OTA > 0
+#if HASP_USE_ARDUINOOTA > 0 || HASP_USE_HTTP_UPDATE > 0
     otaSetup();
 #endif
 

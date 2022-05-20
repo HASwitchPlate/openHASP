@@ -17,16 +17,16 @@
 
 -->
 
-## v0.6.3-rc1
+## v0.6.3-rc2
 
 ### Commands
 - Additional `idle` parameters now accept `off`, `short` and `long`
 - Add `sensors` command to trigger the sensors state message
-- Run `/boot.cmd` when the plate is (re)booted if the script exists
-- You can now use `pXbY.jsonl` command to update multiple object properties at once (thanks @nagyrobi)
+- Run `L:/boot.cmd` when the plate is (re)booted if the script exists
+- You can now use the `pXbY.jsonl` command to update multiple object properties at once (thanks @nagyrobi)
 
 ### Objects
-- All objects have a custom `tag` property which can contain abritrary JSON data *(or numbers or text)* (thanks @nagyrobi)
+- All objects have a custom `tag` property which can contain arbitrary JSON data *(or numbers or text)* (thanks @nagyrobi)
 - `img.src` now accepts both `http` and `https` urls (thanks @htvekov)
 - `img.src` now accepts `png` and `binary` image urls, PSram is *highly* recommended
 - `img.src` now accepts 16-bit BMP files stored in flash
@@ -37,7 +37,7 @@
 - Allow for a customizible `vars.css`, `style.css`, `script.js` and `edit.htm`
 - Display a message when the configuration is changed and a reboot is needed
 - Add checkbox for backlight inversion to Display settings (thanks @wolffman122)
-- Add checkbox to toggle ANSI codes (thanks @geiseri)
+- Add checkbox to toggle ANSI codes #261 (thanks @geiseri)
 - Allow firmware upgrade/downgrade in AP mode
 
 ### GUI
@@ -45,7 +45,7 @@
 - Hide cursor during `antiburn` and `idle` if the pointer is enabled
 
 ### MQTT
--  Remember last `page` id of `jsonl` messages. Multiple messages behave like `jsonl` files (thanks @arovak)
+-  Remember last `page` id of `jsonl` messages. Sending multiple messages now behaves like `jsonl` files (thanks @arovak)
 
 ### Fonts
 - Use TrueType fonts from flash, PSram is *highly* recommended (thanks to @s-hadinger)
@@ -55,15 +55,16 @@
 - ⚠️ **Breaking:** Removed defunct .zi font support!
 
 ### Bug fixes
-- Fix for screenshots not showing properly in Safari on macOS/iOS (thanks @masto)
-- Fix bug that would not accept `on` state for setting output GPIOs (thanks @freshnas and @cerietke)
-- Fix a bug in `dropdownlist` were `close` method performed `open` instead (thanks @htvekov)
+- Fixed Lanbon L8 v1.17 PCB screen corruption #316 (thanks @DJBenson)- Fix for screenshots not showing properly in Safari on macOS/iOS (thanks @masto)
+- Fix bug that would not accept `on` state for setting output GPIOs #275 (thanks @freshnas and @cerietke)
+- Fix a bug in `dropdownlist` were `close` method performed `open` instead #299 (thanks @htvekov)
 - Fix `src` bug in `img` objects that could corrupt images sent over http (thanks @htvekov)
-- Fix screen dimensions in `statusupdate` message, taking into account current orientation (thanks @kquinsland)
+- Fix screen dimensions in `statusupdate` message, taking into account current orientation #278 (thanks @kquinsland)
 - Fix for HTTP password that could be overwritten by 8 asterisks when it was not changed in the web UI
-- Fixed MQTT hostname limit *again*...
-- Fixed a bug that prevented Wifi from connecting to different BSSID (thanks @Braehead)
-- Syslog message format fixes and improvements (thanks @geiseri)
+- Fixed MQTT hostname limit *again*... #304 (thanks @fake-name)
+- Fixed firmware upgrade from URL #300 (thank @nagyrobi)
+- Fixed a bug that prevented Wifi from connecting to different BSSID #330 (thanks @Braehead)
+- Syslog message format fixes and improvements #285 (thanks @geiseri)
 
 ### Custom component
 - Expose `antiburn` and `page` in the CC (thanks @dgomes)
@@ -74,7 +75,8 @@
 - Add support for ESP32-S2 devices
 - ⚠️ **Breaking:** Removed support for ESP8266!
 
-Updated libraries to ArduinoJson 6.19.4, ArduinoStreamUtils 1.6.2, AceButton 1.9.2, TFT_eSPI 2.4.51, LovyanGFX 0.4.17 and Adafruit STMPE610 1.1.4
+Updated libraries to ArduinoJson 6.19.4, ArduinoStreamUtils 1.6.2, AceButton 1.9.2, TFT_eSPI 2.4.61, LovyanGFX 0.4.17 and Adafruit STMPE610 1.1.4
+
 
 
 ## v0.6.2

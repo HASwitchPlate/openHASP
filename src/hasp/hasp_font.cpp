@@ -4,7 +4,7 @@
 #if HASP_USE_FREETYPE > 0
 
 #ifndef LV_USE_FREETYPE
-#define LV_USE_FREETYPE 1
+#define LV_USE_FREETYPE
 #endif
 
 #include "lv_freetype.h"
@@ -18,7 +18,7 @@ typedef struct
     uint16_t weight;  /* font size */
     uint16_t style;   /* font style */
 } lv_ft_info_t;
-#endif
+#endif // HASP_USE_FREETYPE
 
 #include "hasp_mem.h"
 #include "font/hasp_font_loader.h"
@@ -53,6 +53,7 @@ void font_setup()
                         hasp_use_psram() ? LVGL_FREETYPE_MAX_BYTES_PSRAM : LVGL_FREETYPE_MAX_BYTES)) {
         LOG_VERBOSE(TAG_FONT, F("FreeType v%d.%d.%d " D_SERVICE_STARTED " = %d"), FREETYPE_MAJOR, FREETYPE_MINOR,
                     FREETYPE_PATCH, hasp_use_psram());
+        LOG_DEBUG(TAG_FONT, F("FreeType High Watermark %u"), lv_ft_freetype_high_watermark());
     } else {
         LOG_ERROR(TAG_FONT, F("FreeType " D_SERVICE_START_FAILED));
     }
@@ -161,6 +162,7 @@ static lv_font_t* font_add_to_list(const char* payload)
             size_t pos = font_split_payload(payload);
             if(pos > 0 && pos < 56) {
                 uint16_t size = atoi(payload + pos);
+                if(payload[pos - 1] == '_') pos--; // trancate trailing underscore
 
                 char fontname[64];
                 memset(fontname, 0, sizeof(fontname));
@@ -216,6 +218,10 @@ static lv_font_t* font_add_to_list(const char* payload)
 // Convert the payload to a font pointer
 lv_font_t* get_font(const char* payload)
 {
+#if HASP_USE_FREETYPE > 0
+    LOG_DEBUG(TAG_FONT, F("FreeType High Watermark %u"), lv_ft_freetype_high_watermark());
+#endif
+
     lv_font_t* font = font_find_in_list(payload);
     if(font) return font;
 

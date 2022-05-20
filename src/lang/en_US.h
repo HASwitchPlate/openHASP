@@ -109,7 +109,7 @@
 #define D_JSONL_FAILED "JSONL parsing failed at line %u"
 #define D_JSONL_SUCCEEDED "Jsonl fully parsed"
 
-#define D_OTA_CHECK_UPDATE "Checking updates URL: %s"
+#define D_OTA_CHECK_UPDATE "Trying update URL: %s"
 #define D_OTA_CHECK_COMPLETE "Update check complete"
 #define D_OTA_CHECK_FAILED "Update check failed: %s"
 #define D_OTA_UPDATE_FIRMWARE "OTA Firmware Update"

@@ -97,27 +97,27 @@
 #define D_ATTRIBUTE_COLOR_INVALID "Invalid color property: %s" // new
 #define D_ATTRIBUTE_LONG_MODE_INVALID "Invalid long mode: %s"  // new
 
-#define D_OOBE_SSID_VALIDATED "SSID %s validated"
-#define D_OOBE_AUTO_CALIBRATE "Auto calibrate enabled"
-#define D_OOBE_CALIBRATED "Already calibrated"
+#define D_OOBE_SSID_VALIDATED "SSID %s validated"      // new
+#define D_OOBE_AUTO_CALIBRATE "Auto calibrate enabled" // new
+#define D_OOBE_CALIBRATED "Already calibrated"         // new
 
-#define D_DISPATCH_COMMAND_NOT_FOUND "Command '%s' not found"
-#define D_DISPATCH_INVALID_PAGE "Invalid page %s"
-#define D_DISPATCH_REBOOT "Rebooting the MCU now!"
+#define D_DISPATCH_COMMAND_NOT_FOUND "Command '%s' not found" // new
+#define D_DISPATCH_INVALID_PAGE "Invalid page %s"             // new
+#define D_DISPATCH_REBOOT "Rebooting the MCU now!"            // new
 
-#define D_JSON_FAILED "JSON parsing failed:"
-#define D_JSONL_FAILED "JSONL parsing failed at line %u"
-#define D_JSONL_SUCCEEDED "Jsonl fully parsed"
+#define D_JSON_FAILED "JSON parsing failed:"             // new
+#define D_JSONL_FAILED "JSONL parsing failed at line %u" // new
+#define D_JSONL_SUCCEEDED "Jsonl fully parsed"           // new
 
-#define D_OTA_CHECK_UPDATE "Checking updates URL: %s"
-#define D_OTA_CHECK_COMPLETE "Update check complete"
-#define D_OTA_CHECK_FAILED "Update check failed: %s"
-#define D_OTA_UPDATE_FIRMWARE "OTA Firmware Update"
-#define D_OTA_UPDATE_COMPLETE "OTA Update complete"
-#define D_OTA_UPDATE_APPLY "Applying Firmware & Reboot"
-#define D_OTA_UPDATE_FAILED "OTA Update failed"
-#define D_OTA_UPDATING_FIRMWARE "Updating firmware..."
-#define D_OTA_UPDATING_FILESYSTEM "Updating filesystem..."
+#define D_OTA_CHECK_UPDATE "Checking update URL: %s"       // new
+#define D_OTA_CHECK_COMPLETE "Update check complete"       // new
+#define D_OTA_CHECK_FAILED "Update check failed: %s"       // new
+#define D_OTA_UPDATE_FIRMWARE "OTA Firmware Update"        // new
+#define D_OTA_UPDATE_COMPLETE "OTA Update complete"        // new
+#define D_OTA_UPDATE_APPLY "Applying Firmware & Reboot"    // new
+#define D_OTA_UPDATE_FAILED "OTA Update failed"            // new
+#define D_OTA_UPDATING_FIRMWARE "Updating firmware..."     // new
+#define D_OTA_UPDATING_FILESYSTEM "Updating filesystem..." // new
 
 #define D_HTTP_HASP_DESIGN "Conception HASP"
 #define D_HTTP_INFORMATION "Information"

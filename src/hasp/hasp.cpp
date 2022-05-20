@@ -184,14 +184,22 @@ void hasp_get_sleep_payload(uint8_t state, char* payload)
  */
 static lv_task_t* antiburn_task;
 
-void hasp_stop_antiburn()
+bool hasp_stop_antiburn()
 {
+    bool changed    = false;
     lv_obj_t* layer = lv_disp_get_layer_sys(NULL);
-   // if(layer) lv_obj_set_style_local_bg_opa(layer, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_TRANSP);
-    if(antiburn_task) lv_task_del(antiburn_task);
+
+    // if(layer) lv_obj_set_style_local_bg_opa(layer, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_TRANSP);
+    if(antiburn_task) {
+        lv_task_del(antiburn_task);
+        lv_obj_invalidate(lv_scr_act());
+        changed = true;
+    }
     antiburn_task = NULL;
     hasp_set_wakeup_touch(haspDevice.get_backlight_power() == false); // enabled if backlight is OFF
     gui_hide_pointer(false);
+
+    return changed;
 }
 
 void hasp_antiburn_cb(lv_task_t* task)
@@ -541,43 +549,6 @@ void haspSetup(void)
     if(haspFonts[1] == nullptr) haspFonts[1] = LV_THEME_DEFAULT_FONT_NORMAL;
     if(haspFonts[2] == nullptr) haspFonts[2] = LV_THEME_DEFAULT_FONT_SUBTITLE;
     if(haspFonts[3] == nullptr) haspFonts[3] = LV_THEME_DEFAULT_FONT_TITLE;
-
-    // haspFonts[0] = lv_font_load("E:/font_1.fnt");
-    // haspFonts[2] = lv_font_load("E:/font_2.fnt");
-
-    /*
-#if defined(ARDUINO_ARCH_ESP32)
-    // lv_ft_info_t info1;
-    // info1.name   = "L:/arial.ttf";
-    // info1.weight = 48;
-    // info1.style  = FT_FONT_STYLE_NORMAL;
-    // lv_ft_font_init(&info1);
-    // haspFonts[4] = info1.font;
-    haspFonts[4] = get_font("arial"); // "L:/arial.ttf", 45, FT_FONT_STYLE_NORMAL);
-    LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, haspFonts[4]);
-
-    // lv_ft_info_t info2;
-    // info2.name   = "L:/mdi.ttf";
-    // info2.weight = 92;
-    // info2.style  = FT_FONT_STYLE_NORMAL;
-    // lv_ft_font_init(&info2);
-    // haspFonts[5] = info2.font;
-    haspFonts[5] = get_font("mdi"); // "L:/mdi.ttf", 80, FT_FONT_STYLE_NORMAL);
-    LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, haspFonts[5]);
-
-    // lv_ft_info_t info3;
-    // info3.name   = "L:/robotocondensed.ttf";
-    // info3.weight = 48;
-    // info3.style  = FT_FONT_STYLE_NORMAL;
-    // lv_ft_font_init(&info3);
-    // haspFonts[6] = info3.font;
-    haspFonts[6] = get_font("robotocondensed"); // "L:/robotocondensed.ttf", 48, FT_FONT_STYLE_NORMAL);
-    LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, haspFonts[6]);
-
-    haspFonts[7] = hasp_font_load("L:/RobotoCondensedRegular.bin");
-    LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, haspFonts[7]);
-#endif
-*/
 
     hasp_set_theme(haspThemeId);
 
