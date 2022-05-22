@@ -1093,6 +1093,25 @@ static hasp_attribute_type_t hasp_process_spinner_attribute(lv_obj_t* obj, uint1
     return HASP_ATTR_TYPE_INT;
 }
 
+static hasp_attribute_type_t hasp_process_slider_attribute(lv_obj_t* obj, uint16_t attr_hash, int32_t& val,
+                                                            bool update)
+{
+    // We already know it's a slider object
+    switch(attr_hash) {
+        case ATTR_TYPE:
+            if(update)
+                lv_slider_set_type(obj, val % 3);
+            else
+                val = lv_slider_get_type(obj);
+            break;
+
+        default:
+            return HASP_ATTR_TYPE_NOT_FOUND;
+    }
+
+    return HASP_ATTR_TYPE_INT;
+}
+
 static hasp_attribute_type_t hasp_process_lmeter_attribute(lv_obj_t* obj, uint16_t attr_hash, int32_t& val, bool update)
 {
     // We already know it's a linemeter object
@@ -2724,6 +2743,11 @@ void hasp_process_obj_attribute(lv_obj_t* obj, const char* attribute, const char
             case LV_HASP_ARC:
                 val = strtol(payload, nullptr, DEC);
                 ret = hasp_process_arc_attribute(obj, attr_hash, val, update);
+                break;
+
+            case LV_HASP_SLIDER:
+                val = strtol(payload, nullptr, DEC);
+                ret = hasp_process_slider_attribute(obj, attr_hash, val, update);
                 break;
 
             case LV_HASP_SPINNER:
