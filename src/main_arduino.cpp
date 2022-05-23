@@ -58,10 +58,11 @@ void setup()
     dispatchSetup(); // before hasp and oobe, asap after logging starts
     guiSetup();
 
+    bool oobe = false;
 #if HASP_USE_CONFIG > 0
-    if(!oobeSetup())
+    oobe = oobeSetup();
 #endif
-    {
+    if(!oobe) {
         haspSetup();
     }
 
@@ -117,8 +118,10 @@ void setup()
     // guiStart();
 
     delay(20);
-    dispatch_exec(NULL, "L:/boot.cmd", TAG_HASP);
-    wifi_run_scripts();
+    if(!oobe) {
+        dispatch_exec(NULL, "L:/boot.cmd", TAG_HASP);
+        wifi_run_scripts();
+    }
     mainLastLoopTime = -1000; // reset loop counter
 }
 
