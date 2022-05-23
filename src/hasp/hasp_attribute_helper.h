@@ -354,7 +354,10 @@ void my_obj_set_value_str_text(lv_obj_t* obj, uint8_t part, lv_state_t state, co
 {
     //  LOG_VERBOSE(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
 
+    lv_state_t old_state = lv_obj_get_state(obj, part);
+    lv_obj_set_state(obj, state);
     const void* value_str_p = lv_obj_get_style_value_str(obj, part);
+    lv_obj_set_state(obj, old_state);
     lv_obj_invalidate(obj);
 
     if(text == NULL || text[0] == 0) {
