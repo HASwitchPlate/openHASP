@@ -24,7 +24,6 @@ void wifi_get_statusupdate(char* buffer, size_t len);
 void wifi_get_info(JsonDocument& doc);
 const char* wifi_get_ssid();
 const char* wifi_get_ip_address();
-void wifi_run_scripts();
 
 #if HASP_USE_CONFIG > 0
 bool wifiGetConfig(const JsonObject& settings);

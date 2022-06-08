@@ -8,6 +8,8 @@
 #include "hasp_network.h"
 #include "sys/svc/hasp_mdns.h"
 
+bool haspOnline = false;
+
 #if HASP_USE_ETHERNET > 0 || HASP_USE_WIFI > 0
 void networkStart(void)
 {
@@ -24,6 +26,8 @@ void networkStart(void)
 #if HASP_USE_MDNS > 0
     mdnsStart();
 #endif // HASP_USE_MDNS
+
+    dispatch_exec(NULL, "L:/online.cmd", TAG_WIFI);
 }
 
 void networkStop(void)
@@ -39,10 +43,14 @@ void networkStop(void)
 #if HASP_USE_MDNS > 0
     mdnsStop();
 #endif
+
+    dispatch_exec(NULL, "L:/offline.cmd", TAG_WIFI);
 }
 
 void networkSetup()
 {
+    dispatch_exec(NULL, "L:/offline.cmd", TAG_WIFI);
+    
 #if HASP_USE_ETHERNET > 0
     ethernetSetup();
 #endif
@@ -90,11 +98,33 @@ IRAM_ATTR void networkLoop(void)
 bool networkEvery5Seconds(void)
 {
 #if HASP_USE_ETHERNET > 0
-    return ethernetEvery5Seconds();
+    if(ethernetEvery5Seconds() != haspOnline) {
+        haspOnline = !haspOnline;
+        LOG_WARNING(TAG_ETH, haspOnline ? F(D_NETWORK_ONLINE) : F(D_NETWORK_OFFLINE));
+        
+        if(haspOnline) {
+            networkStart();
+        } else {
+            networkStop();
+        }
+    }
+    
+    return haspOnline;
 #endif
 
 #if HASP_USE_WIFI > 0
-    return wifiEvery5Seconds();
+    if(wifiEvery5Seconds() != haspOnline) {
+        haspOnline = !haspOnline;
+        LOG_WARNING(TAG_WIFI, haspOnline ? F(D_NETWORK_ONLINE) : F(D_NETWORK_OFFLINE));
+        
+        if(haspOnline) {
+            networkStart();
+        } else {
+            networkStop();
+        }
+    }
+    
+    return haspOnline;
 #endif
 
     return false;
@@ -133,7 +163,15 @@ void network_get_statusupdate(char* buffer, size_t len)
 void network_get_ipaddress(char* buffer, size_t len)
 {
 #if HASP_USE_ETHERNET > 0
+#if defined(ARDUINO_ARCH_ESP32)
+#if HASP_USE_SPI_ETHERNET > 0
+    IPAddress ip = WiFi.localIP();
+#else
+    IPAddress ip = ETH.localIP();
+#endif
+#else
     IPAddress ip = Ethernet.localIP();
+#endif
     snprintf_P(buffer, len, PSTR("%d.%d.%d.%d"), ip[0], ip[1], ip[2], ip[3]);
     return;
 #endif
