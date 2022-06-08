@@ -53,8 +53,6 @@ void EthernetEvent(WiFiEvent_t event)
 
 void ethernetSetup()
 {
-   LOG_TRACE(TAG_ETH, F("ethernetSetup()"));
-
 #if HASP_USE_WIFI == 0
   // Need to make sure we get the Ethernet Events
   WiFi.begin();
@@ -62,10 +60,7 @@ void ethernetSetup()
 #endif
 
   WiFi.onEvent(EthernetEvent);
-  bool started = ETHSPI.begin();
-  
-  if(started)
-   LOG_TRACE(TAG_ETH, F("ETHSPI Started "));
+  ETHSPI.begin();
 }
 
 IRAM_ATTR void ethernetLoop(void)

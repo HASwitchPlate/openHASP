@@ -26,8 +26,6 @@ void networkStart(void)
 #if HASP_USE_MDNS > 0
     mdnsStart();
 #endif // HASP_USE_MDNS
-
-    dispatch_exec(NULL, "L:/online.cmd", TAG_WIFI);
 }
 
 void networkStop(void)
@@ -43,14 +41,10 @@ void networkStop(void)
 #if HASP_USE_MDNS > 0
     mdnsStop();
 #endif
-
-    dispatch_exec(NULL, "L:/offline.cmd", TAG_WIFI);
 }
 
 void networkSetup()
 {
-    dispatch_exec(NULL, "L:/offline.cmd", TAG_WIFI);
-    
 #if HASP_USE_ETHERNET > 0
     ethernetSetup();
 #endif
@@ -58,6 +52,14 @@ void networkSetup()
 #if HASP_USE_WIFI > 0
     wifiSetup();
 #endif
+}
+
+void network_run_scripts()
+{
+    if(haspOnline)
+        dispatch_exec(NULL, "L:/online.cmd", TAG_WIFI);
+    else
+        dispatch_exec(NULL, "L:/offline.cmd", TAG_WIFI);
 }
 
 IRAM_ATTR void networkLoop(void)
@@ -107,6 +109,8 @@ bool networkEvery5Seconds(void)
         } else {
             networkStop();
         }
+        
+        network_run_scripts();
     }
     
     return haspOnline;
@@ -122,6 +126,8 @@ bool networkEvery5Seconds(void)
         } else {
             networkStop();
         }
+        
+        network_run_scripts();
     }
     
     return haspOnline;

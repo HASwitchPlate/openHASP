@@ -120,8 +120,8 @@ void setup()
     delay(20);
     if(!oobe) {
         dispatch_exec(NULL, "L:/boot.cmd", TAG_HASP);
-#if HASP_USE_WIFI > 0
-        wifi_run_scripts();
+#if HASP_USE_WIFI > 0 || HASP_USE_ETHERNET > 0
+        network_run_scripts();
 #endif
     }
     mainLastLoopTime = -1000; // reset loop counter
