@@ -120,7 +120,9 @@ void setup()
     delay(20);
     if(!oobe) {
         dispatch_exec(NULL, "L:/boot.cmd", TAG_HASP);
-        wifi_run_scripts();
+#if HASP_USE_WIFI > 0 || HASP_USE_ETHERNET > 0
+        network_run_scripts();
+#endif
     }
     mainLastLoopTime = -1000; // reset loop counter
 }
@@ -129,8 +131,8 @@ IRAM_ATTR void loop()
 {
     guiLoop();
 
-#if HASP_USE_WIFI > 0 || HASP_USE_EHTERNET > 0
-    networkLoop();
+#if HASP_USE_WIFI > 0 || HASP_USE_ETHERNET > 0
+   networkLoop();
 #endif
 
 #if HASP_USE_GPIO > 0
@@ -198,7 +200,7 @@ IRAM_ATTR void loop()
                 break;
 
             case 4:
-#if HASP_USE_WIFI > 0 || HASP_USE_EHTERNET > 0
+#if HASP_USE_WIFI > 0 || HASP_USE_ETHERNET > 0
                 isConnected = networkEvery5Seconds(); // Check connection
 
 #if HASP_USE_MQTT > 0

@@ -2117,7 +2117,11 @@ void httpStart()
 #if HASP_USE_ETHERNET > 0
     IPAddress ip;
 #if defined(ARDUINO_ARCH_ESP32)
+#if HASP_USE_SPI_ETHERNET > 0
+    ip = ETHSPI.localIP();
+#else
     ip = ETH.localIP();
+#endif
 #else
     ip = Ethernet.localIP();
 #endif
@@ -2212,10 +2216,9 @@ void httpSetup()
         webHandleFirmwareUpload);
 #endif
 
-#if HASP_USE_WIFI > 0
-    // These two endpoints are needed in STA and AP mode
     webServer.on(F("/config"), webHandleConfig);
 
+#if HASP_USE_WIFI > 0
 #if !defined(STM32F4xx)
 
 #if HASP_USE_CONFIG > 0

@@ -43,7 +43,6 @@ char wifiPassword[MAX_PASSWORD_LENGTH] = WIFI_PASSWORD;
 char wifiIpAddress[16]                 = "";
 uint16_t wifiReconnectCounter          = 0;
 bool wifiOnline                        = false;
-bool haspOnline                        = false;
 bool wifiEnabled                       = true;
 
 // const byte DNS_PORT = 53;
@@ -51,19 +50,6 @@ bool wifiEnabled                       = true;
 
 /* ============ Connection Event Handlers =============================================================== */
 
-void wifi_run_scripts()
-{
-    if(wifiOnline != haspOnline) {
-        if(wifiOnline) {
-            dispatch_exec(NULL, "L:/online.cmd", TAG_WIFI);
-            networkStart();
-        } else {
-            dispatch_exec(NULL, "L:/offline.cmd", TAG_WIFI);
-            networkStop();
-        }
-        haspOnline = wifiOnline;
-    }
-}
 
 static void wifiConnected(IPAddress ipaddress)
 {
@@ -527,8 +513,6 @@ bool wifiEvery5Seconds()
         return false;
     }
 #endif
-
-    if(wifiOnline != haspOnline) wifi_run_scripts();
 
     if(WiFi.status() == WL_CONNECTED) {
         return true;
