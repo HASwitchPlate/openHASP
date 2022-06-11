@@ -63,7 +63,7 @@ void delete_event_handler(lv_obj_t* obj, lv_event_t event)
 
         case LV_HASP_MSGBOX:
             my_msgbox_map_clear(obj);
-          break;
+            break;
 
         case LV_HASP_IMAGE:
             my_image_release_resources(obj);
@@ -645,6 +645,50 @@ void selector_event_handler(lv_obj_t* obj, lv_event_t event)
     // set the property
     // snprintf_P(property, sizeof(property), PSTR("val\":%d,\"text"), val);
     // attr_out_str(obj, property, buffer);
+}
+
+/**
+ * Called when a btnmatrix value has changed
+ * @param obj pointer to a dropdown list or roller
+ * @param event type of event that occured
+ */
+void alarm_event_handler(lv_obj_t* obj, lv_event_t event)
+{
+    log_event("alarm", event);
+
+    uint8_t hasp_event_id;
+    if(!translate_event(obj, event, hasp_event_id)) return; // Use LV_EVENT_VALUE_CHANGED
+
+    /* Get the new value */
+    // char buffer[128] = "";
+    uint16_t val = 0;
+
+    val = lv_btnmatrix_get_active_btn(obj);
+    if(val != LV_BTNMATRIX_BTN_NONE && hasp_event_id == HASP_EVENT_UP) {
+        lv_obj_t* ta    = hasp_find_obj_from_parent_id(lv_obj_get_parent(obj), 5);
+        const char* txt = lv_btnmatrix_get_btn_text(obj, val);
+        if(!strcmp(txt, LV_SYMBOL_BACKSPACE))
+            lv_textarea_del_char(ta);
+        else if(!strcmp(txt, LV_SYMBOL_CLOSE))
+            lv_textarea_set_text(ta, "");
+        else if(strlen(txt) == 1)
+            lv_textarea_add_text(ta, txt);
+        else
+            ;
+        // strncpy(buffer, txt, sizeof(buffer));
+    }
+
+    if(hasp_event_id == HASP_EVENT_CHANGED && last_value_sent == val && last_obj_sent == obj)
+        return; // same object and value as before
+
+    last_value_sent = val;
+    last_obj_sent   = obj;
+    // event_object_selection_changed(obj, hasp_event_id, val, buffer);
+
+    // if(max > 0) // max a cannot be 0, its the divider
+    //     if(hasp_event_id == HASP_EVENT_UP || hasp_event_id == LV_EVENT_VALUE_CHANGED) {
+    //         event_update_group(obj->user_data.groupid, obj, last_value_sent, 0, max);
+    //     }
 }
 
 /**
