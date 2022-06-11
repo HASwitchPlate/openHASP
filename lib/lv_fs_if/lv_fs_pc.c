@@ -110,7 +110,7 @@ void lv_fs_if_pc_init(void)
 
     // char cur_path[512] = "";
     // getcwd(cur_path, sizeof(cur_path));
-    LV_LOG_USER("LV_FS_PC is initialized with.");
+    LV_LOG_USER("LV_FS_PC ready");
     // LV_LOG_USER("The following path is considered as root directory:\n%s", cur_path);
 }
 
