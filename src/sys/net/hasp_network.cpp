@@ -8,9 +8,50 @@
 #include "hasp_network.h"
 #include "sys/svc/hasp_mdns.h"
 
-bool haspOnline = false;
+bool last_network_state            = false;
+bool current_network_state         = false;
+uint16_t network_reconnect_counter = 0;
 
 #if HASP_USE_ETHERNET > 0 || HASP_USE_WIFI > 0
+
+void network_disconnected()
+{
+
+    // if(wifiReconnectCounter++ % 5 == 0)
+    //     LOG_WARNING(TAG_NETW, F("Disconnected from %s (Reason: %s [%d])"), ssid, buffer, reason);
+
+    // if(!current_network_state) return; // we were not connected
+
+    current_network_state = false; // now we are disconnected
+    network_reconnect_counter++;
+    // LOG_VERBOSE(TAG_NETW, F("Connected = %s"),
+    //             WiFi.status() == WL_CONNECTED ? PSTR(D_NETWORK_ONLINE) : PSTR(D_NETWORK_OFFLINE));
+}
+
+void network_connected()
+{
+    if(current_network_state) return; // already connected
+
+    current_network_state     = true; // now we are connected
+    network_reconnect_counter = 0;
+    LOG_VERBOSE(TAG_NETW, F("Connected = %s"),
+                WiFi.status() == WL_CONNECTED ? PSTR(D_NETWORK_ONLINE) : PSTR(D_NETWORK_OFFLINE));
+}
+
+void network_run_scripts()
+{
+    if(last_network_state != current_network_state) {
+        if(current_network_state) {
+            dispatch_exec(NULL, "L:/online.cmd", TAG_NETW);
+            networkStart();
+        } else {
+            dispatch_exec(NULL, "L:/offline.cmd", TAG_NETW);
+            networkStop();
+        }
+        last_network_state = current_network_state;
+    }
+}
+
 void networkStart(void)
 {
     // haspProgressVal(255); // hide
@@ -31,6 +72,7 @@ void networkStart(void)
 void networkStop(void)
 {
     haspProgressMsg(F("Network Disconnected"));
+    network_reconnect_counter = 0; // Prevent endless loop in wifiDisconnected
 
     debugStopSyslog();
     // mqttStop();
@@ -41,8 +83,15 @@ void networkStop(void)
 #if HASP_USE_MDNS > 0
     mdnsStop();
 #endif
-}
 
+#if HASP_USE_ETHERNET > 0
+    // ethernetStop();
+#endif
+
+#if HASP_USE_WIFI > 0
+    wifiStop();
+#endif
+}
 void networkSetup()
 {
 #if HASP_USE_ETHERNET > 0
@@ -52,14 +101,6 @@ void networkSetup()
 #if HASP_USE_WIFI > 0
     wifiSetup();
 #endif
-}
-
-void network_run_scripts()
-{
-    if(haspOnline)
-        dispatch_exec(NULL, "L:/online.cmd", TAG_WIFI);
-    else
-        dispatch_exec(NULL, "L:/offline.cmd", TAG_WIFI);
 }
 
 IRAM_ATTR void networkLoop(void)
@@ -99,41 +140,8 @@ IRAM_ATTR void networkLoop(void)
 
 bool networkEvery5Seconds(void)
 {
-#if HASP_USE_ETHERNET > 0
-    if(ethernetEvery5Seconds() != haspOnline) {
-        haspOnline = !haspOnline;
-        LOG_WARNING(TAG_ETH, haspOnline ? F(D_NETWORK_ONLINE) : F(D_NETWORK_OFFLINE));
-        
-        if(haspOnline) {
-            networkStart();
-        } else {
-            networkStop();
-        }
-        
-        network_run_scripts();
-    }
-    
-    return haspOnline;
-#endif
-
-#if HASP_USE_WIFI > 0
-    if(wifiEvery5Seconds() != haspOnline) {
-        haspOnline = !haspOnline;
-        LOG_WARNING(TAG_WIFI, haspOnline ? F(D_NETWORK_ONLINE) : F(D_NETWORK_OFFLINE));
-        
-        if(haspOnline) {
-            networkStart();
-        } else {
-            networkStop();
-        }
-        
-        network_run_scripts();
-    }
-    
-    return haspOnline;
-#endif
-
-    return false;
+    if(current_network_state != last_network_state) network_run_scripts();
+    return current_network_state;
 }
 
 /* bool networkEverySecond(void)
@@ -180,6 +188,7 @@ void network_get_ipaddress(char* buffer, size_t len)
 #endif
     snprintf_P(buffer, len, PSTR("%d.%d.%d.%d"), ip[0], ip[1], ip[2], ip[3]);
     return;
+    ethernet_get_ipaddress(buffer, len);
 #endif
 
 #if HASP_USE_WIFI > 0

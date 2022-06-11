@@ -1320,7 +1320,7 @@ static hasp_attribute_type_t special_attribute_src(lv_obj_t* obj, const char* pa
             }
 
         } else {
-#if defined(ARDUINO) && defined(ARDUINO_ARCH_ESP32)
+#if defined(ARDUINO) && defined(ARDUINO_ARCH_ESP32) && 1
             HTTPClient http;
             http.begin(payload);
 

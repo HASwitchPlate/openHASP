@@ -1040,9 +1040,7 @@ void dispatch_reboot(bool saveConfig)
 #if HASP_USE_CONFIG > 0
     debugStop();
 #endif
-#if HASP_USE_WIFI > 0
-    wifiStop();
-#endif
+    networkStop();
     LOG_VERBOSE(TAG_MSGR, F("-------------------------------------"));
     LOG_TRACE(TAG_MSGR, F(D_DISPATCH_REBOOT));
 
