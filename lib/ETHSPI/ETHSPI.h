@@ -10,7 +10,7 @@
 #include "driver/spi_master.h"
 
 #ifndef ETHSPI_HOST
-#define ETHSPI_HOST VSPI_HOST
+#define ETHSPI_HOST HSPI_HOST
 #endif
 
 #ifndef ETHSPI_CLOCK_MHZ
