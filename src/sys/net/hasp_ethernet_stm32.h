@@ -6,8 +6,6 @@
 
 #include "ArduinoJson.h"
 
-static bool eth_connected = false;
-
 void ethernetSetup();
 void ethernetLoop(void);
 

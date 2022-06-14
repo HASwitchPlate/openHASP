@@ -17,7 +17,7 @@
 
 -->
 
-## v0.6.3-rc2
+## v0.6.3
 
 ### Commands
 - Additional `idle` parameters now accept `off`, `short` and `long`
@@ -75,7 +75,7 @@
 - Add support for ESP32-S2 devices
 - ⚠️ **Breaking:** Removed support for ESP8266!
 
-Updated libraries to ArduinoJson 6.19.4, ArduinoStreamUtils 1.6.2, AceButton 1.9.2, TFT_eSPI 2.4.61, LovyanGFX 0.4.17 and Adafruit STMPE610 1.1.4
+Updated libraries to ArduinoJson 6.19.4, ArduinoStreamUtils 1.6.3, AceButton 1.9.2, TFT_eSPI 2.4.61, LovyanGFX 0.4.17 and Adafruit STMPE610 1.1.4
 
 
 

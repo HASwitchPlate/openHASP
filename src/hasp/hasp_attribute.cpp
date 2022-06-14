@@ -51,7 +51,7 @@ void my_btnmatrix_map_clear(lv_obj_t* obj)
     lv_btnmatrix_ext_t* ext = (lv_btnmatrix_ext_t*)lv_obj_get_ext_attr(obj);
     const char** map_p_tmp  = ext->map_p; // store current pointer
 
-    LOG_VERBOSE(TAG_ATTR, "%s %d %x   btn_cnt: %d", __FILE__, __LINE__, map_p_tmp, ext->btn_cnt);
+    LOG_DEBUG(TAG_ATTR, "%s %d %x   btn_cnt: %d", __FILE__, __LINE__, map_p_tmp, ext->btn_cnt);
 
     if(ext->map_p && (ext->btn_cnt > 0)) {
 
@@ -147,7 +147,7 @@ const char** my_map_create(const char* payload)
     }
     map_data_str[index] = buffer_addr + pos; // save pointer to the last \0 byte
 
-    LOG_VERBOSE(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
+    LOG_DEBUG(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
     return map_data_str;
 }
 
@@ -327,7 +327,7 @@ static void hasp_attribute_get_part_state_new(lv_obj_t* obj, const char* attr_in
     uint8_t state_num = index % 10;
     uint8_t part_num  = index - state_num;
 
-    LOG_VERBOSE(TAG_ATTR, F("Parsed %s to %s with part %d and state %d"), attr_in, attr_out, part_num, state_num);
+    LOG_DEBUG(TAG_ATTR, F("Parsed %s to %s with part %d and state %d"), attr_in, attr_out, part_num, state_num);
 
 #if(LV_SLIDER_PART_INDIC != LV_SWITCH_PART_INDIC) || (LV_SLIDER_PART_KNOB != LV_SWITCH_PART_KNOB) ||                   \
     (LV_SLIDER_PART_BG != LV_SWITCH_PART_BG) || (LV_SLIDER_PART_INDIC != LV_ARC_PART_INDIC) ||                         \
@@ -978,7 +978,7 @@ static hasp_attribute_type_t hasp_local_style_attr(lv_obj_t* obj, const char* at
             if(update) {
                 my_obj_set_value_str_text(obj, part, state, payload);
             } else {
-                attr_out_str(obj, attr, lv_obj_get_style_value_str(obj, part));
+                attr_out_str(obj, attr, my_obj_get_value_str_text(obj, part, state));
             }
             return HASP_ATTR_TYPE_METHOD_OK;
         }
@@ -1084,6 +1084,24 @@ static hasp_attribute_type_t hasp_process_spinner_attribute(lv_obj_t* obj, uint1
                 lv_spinner_set_type(obj, val % 3);
             else
                 val = lv_spinner_get_type(obj);
+            break;
+
+        default:
+            return HASP_ATTR_TYPE_NOT_FOUND;
+    }
+
+    return HASP_ATTR_TYPE_INT;
+}
+
+static hasp_attribute_type_t hasp_process_slider_attribute(lv_obj_t* obj, uint16_t attr_hash, int32_t& val, bool update)
+{
+    // We already know it's a slider object
+    switch(attr_hash) {
+        case ATTR_TYPE:
+            if(update)
+                lv_slider_set_type(obj, val % 3);
+            else
+                val = lv_slider_get_type(obj);
             break;
 
         default:
@@ -1302,7 +1320,7 @@ static hasp_attribute_type_t special_attribute_src(lv_obj_t* obj, const char* pa
             }
 
         } else {
-#if defined(ARDUINO) && defined(ARDUINO_ARCH_ESP32)
+#if defined(ARDUINO) && defined(ARDUINO_ARCH_ESP32) && 1
             HTTPClient http;
             http.begin(payload);
 
@@ -2724,6 +2742,11 @@ void hasp_process_obj_attribute(lv_obj_t* obj, const char* attribute, const char
             case LV_HASP_ARC:
                 val = strtol(payload, nullptr, DEC);
                 ret = hasp_process_arc_attribute(obj, attr_hash, val, update);
+                break;
+
+            case LV_HASP_SLIDER:
+                val = strtol(payload, nullptr, DEC);
+                ret = hasp_process_slider_attribute(obj, attr_hash, val, update);
                 break;
 
             case LV_HASP_SPINNER:

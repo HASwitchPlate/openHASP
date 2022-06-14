@@ -1,9 +1,15 @@
 name: Build branch
 
 on:
+  release:
+    types: [created]
   push:
+    branches:
+      - master
     paths-ignore:
       - '**.md'
+      - '**.yml'
+      - '**.yaml'
   workflow_dispatch:
 
 jobs:
@@ -87,6 +93,18 @@ jobs:
         with:
           name: ${{ matrix.environment.out }}
           path: build_output/firmware/*.bin
+      - name: Create release and upload firmware
+        if: github.ref != 'refs/heads/master'
+        run: |
+          set -x
+          assets=()
+          for asset in build_output/firmware/*.bin; do
+            assets+=("-a" "$asset")
+          done
+          tag_name="${GITHUB_REF##*/}"
+          hub release edit "${assets[@]}" -m "$tag_name" "$tag_name"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     #- name: Create release and upload firmware
     #  run: |
     #    set -x

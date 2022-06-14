@@ -346,6 +346,22 @@ static inline void my_btn_set_text(lv_obj_t* obj, const char* value)
 }
 
 /**
+ * Get the value_str for an object part and state.
+ * @param obj pointer to a object
+ * @param result text '\0' terminated character string.
+ */
+const char* my_obj_get_value_str_text(lv_obj_t* obj, uint8_t part, lv_state_t state)
+{
+    lv_state_t old_state = lv_obj_get_state(obj, part);
+    lv_obj_set_state(obj, state);
+    lv_obj_refresh_style(obj, part, LV_STYLE_VALUE_STR);
+    const char* value_str_p = lv_obj_get_style_value_str(obj, part);
+    lv_obj_set_state(obj, old_state);
+    lv_obj_refresh_style(obj, part, LV_STYLE_VALUE_STR);
+    return value_str_p;
+}
+
+/**
  * Set a new value_str for an object. Memory will be allocated to store the text by the object.
  * @param obj pointer to a object
  * @param text '\0' terminated character string. NULL to refresh with the current text.
@@ -353,68 +369,50 @@ static inline void my_btn_set_text(lv_obj_t* obj, const char* value)
 void my_obj_set_value_str_text(lv_obj_t* obj, uint8_t part, lv_state_t state, const char* text)
 {
     //  LOG_VERBOSE(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
+    lv_state_t old_state = lv_obj_get_state(obj, part);
 
-    const void* value_str_p = lv_obj_get_style_value_str(obj, part);
-    lv_obj_invalidate(obj);
-
-    if(text == NULL || text[0] == 0) {
-        // LOG_VERBOSE(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
-        lv_obj_set_style_local_value_str(obj, part, state, NULL);
-        lv_mem_free(value_str_p);
-        // LOG_VERBOSE(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
-        return;
+    // the lower priority state to check inheritance of the value_str against
+    lv_state_t prev_state;
+    switch(state) {
+        case LV_STATE_CHECKED:
+        case(LV_STATE_PRESSED + LV_STATE_DEFAULT):
+        case(LV_STATE_DISABLED + LV_STATE_DEFAULT):
+            prev_state = LV_STATE_DEFAULT;
+            break;
+        case(LV_STATE_DISABLED + LV_STATE_CHECKED):
+        case(LV_STATE_PRESSED + LV_STATE_CHECKED):
+            prev_state = LV_STATE_CHECKED;
+            break;
     }
 
-    LV_ASSERT_STR(text);
-
-    if(value_str_p == NULL) {
-        /*Get the size of the text*/
-        size_t len = strlen(text) + 1;
-
-        /*Allocate space for the new text*/
-        //   LOG_VERBOSE(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
-        value_str_p = (char*)lv_mem_alloc(len);
-        LV_ASSERT_MEM(value_str_p);
-        if(value_str_p == NULL) return;
-
-        // LOG_VERBOSE(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
-        strncpy((char*)value_str_p, text, len);
-        lv_obj_set_style_local_value_str(obj, part, state, (char*)value_str_p);
-        // LOG_VERBOSE(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
-        return;
+    const char* prev_value_str_p = NULL;
+    if(state != LV_STATE_DEFAULT) {
+        prev_value_str_p = my_obj_get_value_str_text(obj, part, prev_state);
     }
 
-    // lv_obj_set_style_local_value_str(obj, part, state, str_p);
+    // The value_str pointer of the current state to check inheritance
+    lv_obj_set_state(obj, state);
+    lv_obj_refresh_style(obj, part, LV_STYLE_VALUE_STR);
+    const char* curr_value_str_p = lv_obj_get_style_value_str(obj, part);
 
-    if(value_str_p == text) {
-        /*If set its own text then reallocate it (maybe its size changed)*/
-        LOG_DEBUG(TAG_ATTR, "%s %d", __FILE__, __LINE__);
-        return; // don't touch the data
-
-        // value_str_p = lv_mem_realloc(value_str_p, strlen(text) + 1);
-
-        // LV_ASSERT_MEM(value_str_p);
-        // if(value_str_p == NULL) return;
-    } else {
-        /*Free the old text*/
-        if(value_str_p != NULL) {
-            //        LOG_DEBUG(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
-            lv_mem_free(value_str_p);
-            value_str_p = NULL;
-            //        LOG_DEBUG(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
-        }
-
-        /*Get the size of the text*/
-        size_t len = strlen(text) + 1;
-
-        /*Allocate space for the new text*/
-        value_str_p = lv_mem_alloc(len);
-        LV_ASSERT_MEM(value_str_p);
-        if(value_str_p != NULL) strcpy((char*)value_str_p, text);
-        lv_obj_set_style_local_value_str(obj, part, state, (char*)value_str_p);
+    // Only free if there is no value_str state inheritance
+    if(prev_value_str_p != curr_value_str_p && curr_value_str_p != NULL) {
+        LOG_DEBUG(TAG_ATTR, "Releasing %s", curr_value_str_p);
+        lv_mem_free(curr_value_str_p);
     }
 
-    // LOG_VERBOSE(TAG_ATTR, F("%s %d"), __FILE__, __LINE__);
+    /*Get the size of the new text*/
+    size_t len = 0;
+    if(text != NULL && text[0] != '\0') len = strlen(text) + 1;
+
+    /*Allocate space for the new text*/
+    char* str_p = NULL;
+    if(len > 0) str_p = (char*)lv_mem_alloc(len);
+    if(str_p != NULL) strncpy(str_p, text, len);
+    lv_obj_set_style_local_value_str(obj, part, state, str_p);
+
+    lv_obj_set_state(obj, old_state);
+    lv_obj_refresh_style(obj, part, LV_STYLE_VALUE_STR);
 }
 
 void my_list_set_options(lv_obj_t* obj, const char* payload)

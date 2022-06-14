@@ -77,6 +77,9 @@ enum lv_hasp_obj_type_t {
     LV_HASP_IMAGE  = 37, // placeholder
     LV_HASP_CANVAS = 38, // placeholder
     LV_HASP_MASK   = 39, // placeholder
+
+    /* Custom */
+    LV_HASP_ALARM = 60,
 };
 
 void hasp_new_object(const JsonObject& config, uint8_t& saved_page_id);
@@ -112,7 +115,7 @@ inline lv_hasp_obj_type_t obj_get_type(const lv_obj_t* obj)
  */
 inline const char* obj_get_type_name(const lv_obj_t* obj)
 {
-    if (obj_get_type(obj) == LV_HASP_TAB) return "tab"; // LVGL reports tab objects as "lv_page"
+    if(obj_get_type(obj) == LV_HASP_TAB) return "tab"; // LVGL reports tab objects as "lv_page"
 
     lv_obj_type_t list;
     lv_obj_get_type(obj, &list);
@@ -175,5 +178,6 @@ inline bool obj_check_type(const lv_obj_t* obj, lv_hasp_obj_type_t haspobjtype)
 #define HASP_OBJ_TABVIEW 63226
 #define HASP_OBJ_TAB 7861
 #define HASP_OBJ_ARC 64594
+#define HASP_OBJ_ALARM 3153
 
 #endif

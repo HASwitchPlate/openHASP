@@ -58,10 +58,11 @@ void setup()
     dispatchSetup(); // before hasp and oobe, asap after logging starts
     guiSetup();
 
+    bool oobe = false;
 #if HASP_USE_CONFIG > 0
-    if(!oobeSetup())
+    oobe = oobeSetup();
 #endif
-    {
+    if(!oobe) {
         haspSetup();
     }
 
@@ -117,8 +118,12 @@ void setup()
     // guiStart();
 
     delay(20);
-    dispatch_exec(NULL, "L:/boot.cmd", TAG_HASP);
-    wifi_run_scripts();
+    if(!oobe) {
+        dispatch_exec(NULL, "L:/boot.cmd", TAG_HASP);
+#if HASP_USE_WIFI > 0 || HASP_USE_ETHERNET > 0
+        network_run_scripts();
+#endif
+    }
     mainLastLoopTime = -1000; // reset loop counter
 }
 
@@ -126,8 +131,8 @@ IRAM_ATTR void loop()
 {
     guiLoop();
 
-#if HASP_USE_WIFI > 0 || HASP_USE_EHTERNET > 0
-    networkLoop();
+#if HASP_USE_WIFI > 0 || HASP_USE_ETHERNET > 0
+   networkLoop();
 #endif
 
 #if HASP_USE_GPIO > 0
@@ -195,7 +200,7 @@ IRAM_ATTR void loop()
                 break;
 
             case 4:
-#if HASP_USE_WIFI > 0 || HASP_USE_EHTERNET > 0
+#if HASP_USE_WIFI > 0 || HASP_USE_ETHERNET > 0
                 isConnected = networkEvery5Seconds(); // Check connection
 
 #if HASP_USE_MQTT > 0

@@ -234,8 +234,13 @@ static WiFiSpiClass WiFi;
 
 #if HASP_USE_ETHERNET > 0
 #if defined(ARDUINO_ARCH_ESP32)
-#include <ETH.h>
+#include "sys/net/hasp_ethernet_esp32.h"
+#if HASP_USE_SPI_ETHERNET > 0
+#include <ETHSPI.h>
+#warning Using ESP32 Ethernet SPI W5500
+#define HASP_ETHERNET ETHSPI
 
+#else
 #define ETH_ADDR 0
 #define ETH_POWER_PIN -1
 #define ETH_MDC_PIN 23
@@ -243,9 +248,10 @@ static WiFiSpiClass WiFi;
 #define NRST 5
 #define ETH_TYPE ETH_PHY_LAN8720
 #define ETH_CLKMODE ETH_CLOCK_GPIO17_OUT
-
-#include "sys/net/hasp_ethernet_esp32.h"
+#include <ETH.h>
 #warning Using ESP32 Ethernet LAN8720
+#define HASP_ETHERNET ETH
+#endif // HASP_USE_SPI_ETHERNET
 
 #else
 #if USE_BUILTIN_ETHERNET > 0

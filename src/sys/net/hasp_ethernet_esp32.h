@@ -6,14 +6,13 @@
 
 #include "ArduinoJson.h"
 
-static bool eth_connected = false;
-
 void ethernetSetup();
 IRAM_ATTR void ethernetLoop(void);
 
 bool ethernetEverySecond();
 bool ethernetEvery5Seconds();
 void ethernet_get_statusupdate(char* buffer, size_t len);
+void ethernet_get_ipaddress(char* buffer, size_t len);
 
 void ethernet_get_info(JsonDocument& doc);
 

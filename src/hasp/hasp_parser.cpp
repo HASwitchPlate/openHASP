@@ -153,7 +153,8 @@ void Parser::get_event_name(uint8_t eventid, char* buffer, size_t size)
 uint16_t Parser::get_sdbm(const char* str)
 {
     uint16_t hash = 0;
-    while(char c = *str++) hash = tolower(c) + (hash << 6) - hash; // case insensitive
+    while(char c = tolower(*str++))
+        if(c > 57 || c < 48) hash = c + (hash << 6) - hash; // exclude numbers which can cause collisions
     return hash;
 }
 

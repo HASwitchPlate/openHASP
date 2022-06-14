@@ -41,29 +41,13 @@ SPIClass espSPI(ESPSPI_MOSI, ESPSPI_MISO, ESPSPI_SCLK); // SPI port where esp is
 char wifiSsid[MAX_USERNAME_LENGTH]     = WIFI_SSID;
 char wifiPassword[MAX_PASSWORD_LENGTH] = WIFI_PASSWORD;
 char wifiIpAddress[16]                 = "";
-uint16_t wifiReconnectCounter          = 0;
-bool wifiOnline                        = false;
-bool haspOnline                        = false;
 bool wifiEnabled                       = true;
+extern uint16_t network_reconnect_counter;
 
 // const byte DNS_PORT = 53;
 // DNSServer dnsServer;
 
 /* ============ Connection Event Handlers =============================================================== */
-
-void wifi_run_scripts()
-{
-    if(wifiOnline != haspOnline) {
-        if(wifiOnline) {
-            dispatch_exec(NULL, "L:/online.cmd", TAG_WIFI);
-            networkStart();
-        } else {
-            dispatch_exec(NULL, "L:/offline.cmd", TAG_WIFI);
-            networkStop();
-        }
-        haspOnline = wifiOnline;
-    }
-}
 
 static void wifiConnected(IPAddress ipaddress)
 {
@@ -77,18 +61,13 @@ static void wifiConnected(IPAddress ipaddress)
 
     if((uint32_t)ipaddress == 0) {
         LOG_ERROR(TAG_WIFI, F(D_NETWORK_IP_ADDRESS_RECEIVED), wifiIpAddress);
-        wifiOnline = false;
+        network_disconnected();
         return;
     } else {
         LOG_TRACE(TAG_WIFI, F(D_NETWORK_IP_ADDRESS_RECEIVED), wifiIpAddress);
     }
 
-    if(wifiOnline) return; // already connected
-
-    wifiOnline           = true; // now we are connected
-    wifiReconnectCounter = 0;
-    LOG_VERBOSE(TAG_WIFI, F("Connected = %s"),
-                WiFi.status() == WL_CONNECTED ? PSTR(D_NETWORK_ONLINE) : PSTR(D_NETWORK_OFFLINE));
+    network_connected();
 }
 
 static void wifiDisconnected(const char* ssid, uint8_t reason)
@@ -279,14 +258,7 @@ static void wifiDisconnected(const char* ssid, uint8_t reason)
             snprintf_P(buffer, sizeof(buffer), PSTR(D_ERROR_UNKNOWN));
     }
 
-    if(wifiReconnectCounter++ % 5 == 0)
-        LOG_WARNING(TAG_WIFI, F("Disconnected from %s (Reason: %s [%d])"), ssid, buffer, reason);
-
-    if(!wifiOnline) return; // we were not connected
-
-    wifiOnline = false; // now we are disconnected
-    LOG_VERBOSE(TAG_WIFI, F("Connected = %s"),
-                WiFi.status() == WL_CONNECTED ? PSTR(D_NETWORK_ONLINE) : PSTR(D_NETWORK_OFFLINE));
+    network_disconnected();
 }
 
 static void wifiSsidConnected(const char* ssid)
@@ -528,14 +500,12 @@ bool wifiEvery5Seconds()
     }
 #endif
 
-    if(wifiOnline != haspOnline) wifi_run_scripts();
-
     if(WiFi.status() == WL_CONNECTED) {
         return true;
     }
 
     if(wifiEnabled) {
-        LOG_WARNING(TAG_WIFI, F("No Connection... retry %d"), wifiReconnectCounter);
+        LOG_WARNING(TAG_WIFI, F("No Connection... retry %d"), network_reconnect_counter);
         wifiReconnect();
     }
 
@@ -581,7 +551,6 @@ bool wifiValidateSsid(const char* ssid, const char* pass)
 
 void wifiStop()
 {
-    wifiReconnectCounter = 0; // Prevent endless loop in wifiDisconnected
     WiFi.disconnect(true);
 #if !defined(STM32F4xx)
     WiFi.mode(WIFI_OFF);

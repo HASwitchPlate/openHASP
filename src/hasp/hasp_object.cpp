@@ -39,7 +39,7 @@ lv_obj_t* hasp_find_obj_from_parent_id(lv_obj_t* parent, uint8_t objid)
             for(uint16_t i = 0; i < tabcount; i++) {
                 lv_obj_t* tab = lv_tabview_get_tab(child, i);
                 // LOG_DEBUG(TAG_HASP, "Found tab %i", i);
-                if(tab->user_data.objid && objid == tab->user_data.objid) return tab; /* tab found, return it */
+                if(tab->user_data.id && objid == tab->user_data.id) return tab; /* tab found, return it */
 
                 /* check grandchildren */
                 grandchild = hasp_find_obj_from_parent_id(tab, objid);
@@ -278,13 +278,23 @@ void hasp_new_object(const JsonObject& config, uint8_t& saved_page_id)
         }
 
         switch(sdbm) {
+                /* ----- Custom Objects ------ */
+            case LV_HASP_ALARM:
+            case HASP_OBJ_ALARM:
+                obj = lv_obj_create(parent_obj, NULL);
+                if(obj) obj->user_data.objid = LV_HASP_ALARM;
+                break;
+
             /* ----- Basic Objects ------ */
             case LV_HASP_BTNMATRIX:
             case HASP_OBJ_BTNMATRIX:
                 obj = lv_btnmatrix_create(parent_obj, NULL);
                 if(obj) {
                     lv_btnmatrix_set_recolor(obj, true);
-                    lv_obj_set_event_cb(obj, btnmatrix_event_handler);
+                    if(obj_check_type(parent_obj, LV_HASP_ALARM))
+                        lv_obj_set_event_cb(obj, alarm_event_handler);
+                    else
+                        lv_obj_set_event_cb(obj, btnmatrix_event_handler);
 
                     lv_btnmatrix_ext_t* ext = (lv_btnmatrix_ext_t*)lv_obj_get_ext_attr(obj);
                     btnmatrix_default_map   = ext->map_p; // store the static pointer to the default lvgl btnmap

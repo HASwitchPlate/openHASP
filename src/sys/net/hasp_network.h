@@ -13,6 +13,9 @@ void networkStart(void);
 void networkStop(void);
 
 /* ===== Special Event Processors ===== */
+void network_connected();
+void network_disconnected();
+void network_run_scripts();
 
 /* ===== Getter and Setter Functions ===== */
 void network_get_statusupdate(char* buffer, size_t len);
