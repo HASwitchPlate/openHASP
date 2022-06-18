@@ -40,12 +40,12 @@ void EthernetEvent(WiFiEvent_t event)
             }
             LOG_TRACE(TAG_ETH, F(D_INFO_LINK_SPEED " %d Mbps"), HASP_ETHERNET.linkSpeed());
             eth_connected = true;
-            networkStart(); // Start network services
+            network_connected(); // Start network services
             break;
         case ARDUINO_EVENT_ETH_DISCONNECTED:
             LOG_TRACE(TAG_ETH, F(D_SERVICE_DISCONNECTED));
             eth_connected = false;
-            networkStop(); // Stop network services
+            network_disconnected(); // Stop network services
             break;
         case ARDUINO_EVENT_ETH_STOP:
             LOG_WARNING(TAG_ETH, F(D_SERVICE_STOPPED));
