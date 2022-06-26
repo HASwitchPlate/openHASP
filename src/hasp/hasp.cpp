@@ -219,7 +219,9 @@ void hasp_antiburn_cb(lv_task_t* task)
 
         for(lv_coord_t y = 0; y < disp_drv->ver_res; y++) {
             for(lv_coord_t x = 0; x < disp_drv->hor_res; x++) {
-#ifdef ARDUINO
+#if defined(WINDOWS) || defined(POSIX)
+                color[x].full = rand() * UINT16_MAX;
+#elif defined(ARDUINO)
                 color[x].full = random(UINT16_MAX);
 #else
                 color[x].full = random() * UINT16_MAX;
