@@ -572,14 +572,6 @@ bool guiSetConfig(const JsonObject& settings)
 /* **************************** SCREENSHOTS ************************************** */
 #if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0 || HASP_USE_HTTP > 0
 
-static void guiSetBmpHeader(uint8_t* buffer_p, int32_t data)
-{
-    *buffer_p++ = data & 0xFF;
-    *buffer_p++ = (data >> 8) & 0xFF;
-    *buffer_p++ = (data >> 16) & 0xFF;
-    *buffer_p++ = (data >> 24) & 0xFF;
-}
-
 /** Send Bitmap Header.
  *
  * Sends a header in BMP format for the size of the screen.
@@ -597,11 +589,13 @@ static void gui_get_bitmap_header(uint8_t* buffer, size_t bufsize)
     memcpy(buffer, bm, strlen(bm));
     buffer += strlen(bm);
 
+    // Bitmap file header
     bmp_header_t* bmp = (bmp_header_t*)buffer;
     bmp->bfSize       = (uint32_t)(width * height * LV_COLOR_DEPTH / 8);
     bmp->bfReserved   = 0;
-    bmp->bfOffBits    = 66;
+    bmp->bfOffBits    = bufsize;
 
+    // Bitmap information header
     bmp->biSize          = 40;
     bmp->biWidth         = width;
     bmp->biHeight        = -height;
@@ -611,9 +605,10 @@ static void gui_get_bitmap_header(uint8_t* buffer, size_t bufsize)
     bmp->biSizeImage     = bmp->bfSize;
     bmp->biXPelsPerMeter = 2836;
     bmp->biYPelsPerMeter = 2836;
-    bmp->biClrUsed       = 0;
+    bmp->biClrUsed       = 0; // zero defaults to 2^n
     bmp->biClrImportant  = 0;
 
+    // BI_BITFIELDS
     bmp->bdMask[0] = 0xF800; // Red bitmask  : 1111 1000 | 0000 0000
     bmp->bdMask[1] = 0x07E0; // Green bitmask: 0000 0111 | 1110 0000
     bmp->bdMask[2] = 0x001F; // Blue bitmask : 0000 0000 | 0001 1111
@@ -650,14 +645,14 @@ static void gui_screenshot_to_file(lv_disp_drv_t* disp, const lv_area_t* area, l
  **/
 void guiTakeScreenshot(const char* pFileName)
 {
-    uint8_t buffer[128];
+    uint8_t buffer[sizeof(bmp_header_t) + 2];
     gui_get_bitmap_header(buffer, sizeof(buffer));
 
     pFileOut = HASP_FS.open(pFileName, "w");
     if(pFileOut) {
 
-        size_t len = pFileOut.write(buffer, 66);
-        if(len == 66) {
+        size_t len = pFileOut.write(buffer, sizeof(buffer));
+        if(len == sizeof(buffer)) {
             LOG_VERBOSE(TAG_GUI, F("Bitmap header written"));
 
             /* Refresh screen to screenshot callback */
@@ -706,10 +701,10 @@ static void gui_screenshot_to_http(lv_disp_drv_t* disp, const lv_area_t* area, l
  **/
 void guiTakeScreenshot()
 {
-    uint8_t buffer[128];
+    uint8_t buffer[sizeof(bmp_header_t) + 2];
     gui_get_bitmap_header(buffer, sizeof(buffer));
 
-    if(httpClientWrite(buffer, 66) == 66) { // 122
+    if(httpClientWrite(buffer, sizeof(buffer)) == sizeof(buffer)) {
         LOG_VERBOSE(TAG_GUI, F("Bitmap header sent"));
 
         /* Refresh screen to screenshot callback */
