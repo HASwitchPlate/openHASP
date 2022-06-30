@@ -23,6 +23,7 @@
 #endif
 
 #include <WiFi.h>
+#include <esp_wifi.h> // For getting/setting conf directly ( Hack for wifi: support 802.11k and 802.11v #347)
 #elif defined(ARDUINO_ARCH_ESP8266)
 #include <ESP8266WiFi.h>
 #include "user_interface.h" // Wifi Reasons
@@ -304,6 +305,13 @@ static void wifi_callback(WiFiEvent_t event, WiFiEventInfo_t info)
         case SYSTEM_EVENT_STA_CONNECTED: /*!< ESP32 station connected to AP */
 #if ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(2, 0, 0)
             wifiSsidConnected((const char*)info.wifi_sta_connected.ssid);
+
+            /* Hack for wifi: support 802.11k and 802.11v #347 */
+            wifi_config_t conf;
+            esp_wifi_get_config((wifi_interface_t)ESP_IF_WIFI_STA, &conf);
+            LOG_DEBUG(TAG_WIFI, F("BTM: %s"), conf.sta.btm_enabled ? D_SETTING_ENABLED : D_SETTING_DISABLED);
+            LOG_DEBUG(TAG_WIFI, F("RM : %s"), conf.sta.rm_enabled ? D_SETTING_ENABLED : D_SETTING_DISABLED);
+
 #else
             wifiSsidConnected((const char*)info.connected.ssid);
 #endif
@@ -428,6 +436,14 @@ static void wifiReconnect(void)
         WiFi.mode(WIFI_STA);
 
     WiFi.begin(wifiSsid, wifiPassword);
+
+    /* Hack for wifi: support 802.11k and 802.11v #347 */
+    wifi_config_t conf;
+    esp_wifi_get_config((wifi_interface_t)ESP_IF_WIFI_STA, &conf);
+    conf.sta.btm_enabled = true;
+    conf.sta.rm_enabled  = true;
+    esp_wifi_set_config((wifi_interface_t)ESP_IF_WIFI_STA, &conf);
+    WiFi.begin();
 #endif
 }
 
