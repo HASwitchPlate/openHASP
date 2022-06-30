@@ -24,7 +24,7 @@ struct bmp_header_t
     uint32_t biClrUsed;
     uint32_t biClrImportant;
 
-    uint32_t bdMask[3];
+    uint32_t bdMask[3]; // RGB
 };
 
 struct gui_conf_t
