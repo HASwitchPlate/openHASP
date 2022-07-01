@@ -24,6 +24,8 @@
 
 #include <WiFi.h>
 #include <esp_wifi.h> // For getting/setting conf directly ( Hack for wifi: support 802.11k and 802.11v #347)
+#include "esp_wnm.h"  // esp_wnm_is_btm_supported_connection
+#include "esp_rrm.h"  // esp_rrm_is_rrm_supported_connection
 #elif defined(ARDUINO_ARCH_ESP8266)
 #include <ESP8266WiFi.h>
 #include "user_interface.h" // Wifi Reasons
@@ -259,6 +261,7 @@ static void wifiDisconnected(const char* ssid, uint8_t reason)
             snprintf_P(buffer, sizeof(buffer), PSTR(D_ERROR_UNKNOWN));
     }
 
+    LOG_WARNING(TAG_NETW, F("Disconnected from %s (Reason: %s [%d])"), ssid, buffer, reason);
     network_disconnected();
 }
 
@@ -271,38 +274,41 @@ static void wifiSsidConnected(const char* ssid)
 static void wifi_callback(WiFiEvent_t event, WiFiEventInfo_t info)
 {
     switch(event) {
-        case SYSTEM_EVENT_WIFI_READY:             /*!< ESP32 WiFi ready */
-        case SYSTEM_EVENT_STA_START:              /*!< ESP32 station start */
-        case SYSTEM_EVENT_STA_STOP:               /*!< ESP32 station stop */
-        case SYSTEM_EVENT_STA_AUTHMODE_CHANGE:    /*!< the auth mode of AP connected by ESP32 station changed */
-        case SYSTEM_EVENT_STA_BSS_RSSI_LOW:       /*!< ESP32 station connected BSS rssi goes below threshold */
-        case SYSTEM_EVENT_STA_WPS_ER_SUCCESS:     /*!< ESP32 station wps succeeds in enrollee mode */
-        case SYSTEM_EVENT_STA_WPS_ER_FAILED:      /*!< ESP32 station wps fails in enrollee mode */
-        case SYSTEM_EVENT_STA_WPS_ER_TIMEOUT:     /*!< ESP32 station wps timeout in enrollee mode */
-        case SYSTEM_EVENT_STA_WPS_ER_PIN:         /*!< ESP32 station wps pin code in enrollee mode */
-        case SYSTEM_EVENT_STA_WPS_ER_PBC_OVERLAP: /*!< ESP32 station wps overlap in enrollee mode */
-        case SYSTEM_EVENT_AP_START:               /*!< ESP32 soft-AP start */
-        case SYSTEM_EVENT_AP_STOP:                /*!< ESP32 soft-AP stop */
-        case SYSTEM_EVENT_AP_STACONNECTED:        /*!< a station connected to ESP32 soft-AP */
-        case SYSTEM_EVENT_AP_STADISCONNECTED:     /*!< a station disconnected from ESP32 soft-AP */
-        case SYSTEM_EVENT_AP_STAIPASSIGNED:       /*!< ESP32 soft-AP assign an IP to a connected station */
-        case SYSTEM_EVENT_AP_PROBEREQRECVED:      /*!< Receive probe request packet in soft-AP interface */
-        case SYSTEM_EVENT_ACTION_TX_STATUS:       /*!< Receive status of Action frame transmitted */
-        case SYSTEM_EVENT_ROC_DONE:               /*!< Indicates the completion of Remain-on-Channel operation status */
-        case SYSTEM_EVENT_STA_BEACON_TIMEOUT:     /*!< ESP32 station beacon timeout */
-        case SYSTEM_EVENT_FTM_REPORT:             /*!< Receive report of FTM procedure */
-        case SYSTEM_EVENT_GOT_IP6:          /*!< ESP32 station or ap or ethernet interface v6IP addr is preferred */
-        case SYSTEM_EVENT_ETH_START:        /*!< ESP32 ethernet start */
-        case SYSTEM_EVENT_ETH_STOP:         /*!< ESP32 ethernet stop */
-        case SYSTEM_EVENT_ETH_CONNECTED:    /*!< ESP32 ethernet phy link up */
-        case SYSTEM_EVENT_ETH_DISCONNECTED: /*!< ESP32 ethernet phy link down */
-        case SYSTEM_EVENT_ETH_GOT_IP:       /*!< ESP32 ethernet got IP from connected AP */
-        case SYSTEM_EVENT_ETH_LOST_IP:      /*!< ESP32 ethernet lost IP and the IP is reset to 0 */
-        case SYSTEM_EVENT_MAX:              /*!< Number of members in this enum */
+        case ARDUINO_EVENT_WIFI_READY:               /*!< ESP32 WiFi ready */
+        case ARDUINO_EVENT_WIFI_STA_START:           /*!< ESP32 station start */
+        case ARDUINO_EVENT_WIFI_STA_STOP:            /*!< ESP32 station stop */
+        case ARDUINO_EVENT_WIFI_STA_AUTHMODE_CHANGE: /*!< the auth mode of AP connected by ESP32 station changed */
+        case ARDUINO_EVENT_WPS_ER_SUCCESS:           /*!< ESP32 station wps succeeds in enrollee mode */
+        case ARDUINO_EVENT_WPS_ER_FAILED:            /*!< ESP32 station wps fails in enrollee mode */
+        case ARDUINO_EVENT_WPS_ER_TIMEOUT:           /*!< ESP32 station wps timeout in enrollee mode */
+        case ARDUINO_EVENT_WPS_ER_PIN:               /*!< ESP32 station wps pin code in enrollee mode */
+        case ARDUINO_EVENT_WPS_ER_PBC_OVERLAP:       /*!< ESP32 station wps overlap in enrollee mode */
+        case ARDUINO_EVENT_WIFI_AP_START:            /*!< ESP32 soft-AP start */
+        case ARDUINO_EVENT_WIFI_AP_STOP:             /*!< ESP32 soft-AP stop */
+        case ARDUINO_EVENT_WIFI_AP_STACONNECTED:     /*!< a station connected to ESP32 soft-AP */
+        case ARDUINO_EVENT_WIFI_AP_STADISCONNECTED:  /*!< a station disconnected from ESP32 soft-AP */
+        case ARDUINO_EVENT_WIFI_AP_STAIPASSIGNED:    /*!< ESP32 soft-AP assign an IP to a connected station */
+        case ARDUINO_EVENT_WIFI_AP_PROBEREQRECVED:   /*!< Receive probe request packet in soft-AP interface */
+            // case ARDUINO_EVENT_ACTION_TX_STATUS:         /*!< Receive status of Action frame transmitted */
+            // case ARDUINO_EVENT_ROC_DONE:           /*!< Indicates the completion of Remain-on-Channel operation
+            // status */ case ARDUINO_EVENT_STA_BEACON_TIMEOUT: /*!< ESP32 station beacon timeout */
+        case ARDUINO_EVENT_WIFI_FTM_REPORT:  /*!< Receive report of FTM procedure */
+        case ARDUINO_EVENT_WIFI_STA_GOT_IP6: /*!< ESP32 station or ap or ethernet interface v6IP addr is preferred */
+        case ARDUINO_EVENT_ETH_START:        /*!< ESP32 ethernet start */
+        case ARDUINO_EVENT_ETH_STOP:         /*!< ESP32 ethernet stop */
+        case ARDUINO_EVENT_ETH_CONNECTED:    /*!< ESP32 ethernet phy link up */
+        case ARDUINO_EVENT_ETH_DISCONNECTED: /*!< ESP32 ethernet phy link down */
+        case ARDUINO_EVENT_ETH_GOT_IP:       /*!< ESP32 ethernet got IP from connected AP */
+            // case ARDUINO_EVENT_ETH_LOST_IP:        /*!< ESP32 ethernet lost IP and the IP is reset to 0 */
+        case ARDUINO_EVENT_MAX: /*!< Number of members in this enum */
             LOG_DEBUG(TAG_WIFI, F("Other Event: %d"), event);
             break;
 
-        case SYSTEM_EVENT_STA_CONNECTED: /*!< ESP32 station connected to AP */
+            // case ARDUINO_EVENT_STA_BSS_RSSI_LOW: /*!< ESP32 station connected BSS rssi goes below threshold */
+            //     LOG_VERBOSE(TAG_WIFI, F("connected BSS rssi goes below threshold"));
+            //     break;
+
+        case ARDUINO_EVENT_WIFI_STA_CONNECTED: /*!< ESP32 station connected to AP */
 #if ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(2, 0, 0)
             wifiSsidConnected((const char*)info.wifi_sta_connected.ssid);
 
@@ -312,26 +318,44 @@ static void wifi_callback(WiFiEvent_t event, WiFiEventInfo_t info)
             LOG_DEBUG(TAG_WIFI, F("BTM: %s"), conf.sta.btm_enabled ? D_SETTING_ENABLED : D_SETTING_DISABLED);
             LOG_DEBUG(TAG_WIFI, F("RM : %s"), conf.sta.rm_enabled ? D_SETTING_ENABLED : D_SETTING_DISABLED);
 
+            // if(esp_rrm_is_rrm_supported_connection()) {
+            //     LOG_DEBUG(TAG_WIFI, "RRM supported");
+            // } else {
+            //     LOG_DEBUG(TAG_WIFI, "RRM not supported");
+            // }
+            // if(esp_wnm_is_btm_supported_connection()) {
+            //     LOG_DEBUG(TAG_WIFI, "BTM supported");
+            // } else {
+            //     LOG_DEBUG(TAG_WIFI, "BTM not supported");
+            // }
+
 #else
             wifiSsidConnected((const char*)info.connected.ssid);
 #endif
             break;
 
-        case SYSTEM_EVENT_STA_LOST_IP:      /*!< ESP32 station lost IP and the IP is reset to 0 */
-        case SYSTEM_EVENT_STA_DISCONNECTED: /*!< ESP32 station disconnected from AP */
+        case ARDUINO_EVENT_WIFI_STA_LOST_IP:        /*!< ESP32 station lost IP and the IP is reset to 0 */
+        case ARDUINO_EVENT_WIFI_STA_DISCONNECTED: { /*!< ESP32 station disconnected from AP */
 #if ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(2, 0, 0)
-            wifiDisconnected((const char*)info.wifi_sta_disconnected.ssid, info.wifi_sta_disconnected.reason);
+            wifi_event_sta_disconnected_t disconnect = info.wifi_sta_disconnected;
+            LOG_DEBUG(TAG_WIFI, "station got disconnected reason=%d", disconnect.reason);
+            if(event == ARDUINO_EVENT_WIFI_STA_DISCONNECTED && disconnect.reason == WIFI_REASON_ROAMING) {
+                LOG_DEBUG(TAG_WIFI, "station roaming, do nothing");
+            } else {
+                wifiDisconnected((const char*)disconnect.ssid, disconnect.reason);
+            }
 #else
             wifiDisconnected((const char*)info.disconnected.ssid, info.disconnected.reason);
 #endif
             // NTP.stop(); // NTP sync can be disabled to avoid sync errors
             break;
+        }
 
-        case SYSTEM_EVENT_STA_GOT_IP: /*!< ESP32 station got IP from connected AP */
+        case ARDUINO_EVENT_WIFI_STA_GOT_IP: /*!< ESP32 station got IP from connected AP */
             wifiConnected(IPAddress(info.got_ip.ip_info.ip.addr));
             break;
 
-        case SYSTEM_EVENT_SCAN_DONE: { /*!< ESP32 finish scanning AP */
+        case ARDUINO_EVENT_SC_SCAN_DONE: { /*!< ESP32 finish scanning AP */
             uint16_t count = WiFi.scanComplete();
             for(int i = 0; i < count; ++i) {
                 // Print SSID and RSSI for each network found
@@ -440,8 +464,8 @@ static void wifiReconnect(void)
     /* Hack for wifi: support 802.11k and 802.11v #347 */
     wifi_config_t conf;
     esp_wifi_get_config((wifi_interface_t)ESP_IF_WIFI_STA, &conf);
-    conf.sta.btm_enabled = true;
-    conf.sta.rm_enabled  = true;
+    conf.sta.btm_enabled = true; // 802.11v (Wireless Network Management - WNM)
+    conf.sta.rm_enabled  = true; // 802.11k (Radio Resource Management - RRM)
     esp_wifi_set_config((wifi_interface_t)ESP_IF_WIFI_STA, &conf);
     WiFi.begin();
 #endif
