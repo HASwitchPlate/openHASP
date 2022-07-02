@@ -55,6 +55,11 @@ void setup()
     configSetup(); // also runs  debugSetup(), debugStart() and consoleSetup()
 #endif
 
+#if HASP_USE_WIFI > 0 || HASP_USE_ETHERNET > 0
+    networkSetup();
+    timeSetup();
+#endif
+
     dispatchSetup(); // before hasp and oobe, asap after logging starts
     guiSetup();
 
@@ -78,10 +83,7 @@ void setup()
     gpioSetup();
 #endif
 
-#if HASP_USE_WIFI > 0 || HASP_USE_ETHERNET > 0
-    networkSetup();
-    timeSetup();
-#endif
+
 
 #if HASP_USE_MDNS > 0
     mdnsSetup();
