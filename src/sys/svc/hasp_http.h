@@ -7,11 +7,11 @@
 #include "hasp_conf.h"
 
 #ifndef HTTP_USERNAME
-#define HTTP_USERNAME "";
+#define HTTP_USERNAME ""
 #endif
 
 #ifndef HTTP_PASSWORD
-#define HTTP_PASSWORD "";
+#define HTTP_PASSWORD ""
 #endif
 
 struct hasp_http_config_t
