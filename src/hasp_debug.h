@@ -180,6 +180,7 @@ enum {
 
     TAG_EPRM = 30,
     TAG_FILE = 31,
+    TAG_NVS  = 32,
     TAG_GPIO = 40,
 
     TAG_ETH      = 60,

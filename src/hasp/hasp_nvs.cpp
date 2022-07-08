@@ -29,7 +29,7 @@ bool nvsUpdateString(Preferences& preferences, const char* key, JsonVariant valu
             changed = true; // Nvs key doesnot exist, create it
         if(changed) {
             size_t len = preferences.putString(key, val);
-            LOG_DEBUG(TAG_TIME, F(D_BULLET "Wrote %s => %s (%d bytes)"), key, val, len);
+            LOG_DEBUG(TAG_NVS, F(D_BULLET "Wrote %s => %s (%d bytes)"), key, val, len);
         }
     }
 
