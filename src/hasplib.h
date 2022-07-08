@@ -20,6 +20,7 @@
 
 #include "lv_conf.h"
 #include "lvgl.h"
+#include "lv_fs_if.h"
 
 #include "hasp/hasp.h"
 #include "hasp/hasp_attribute.h"
