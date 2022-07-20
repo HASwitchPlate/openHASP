@@ -24,7 +24,9 @@
 #include <WiFiUdp.h>
 #elif defined(ARDUINO_ARCH_ESP32)
 #include <WiFi.h>
+#if HASP_USE_SYSLOG > 0
 #include <WiFiUdp.h>
+#endif
 #elif defined(STM32F4xx) || defined(STM32F7xx)
 #include <time.h>
 #endif
@@ -44,7 +46,6 @@
 #endif
 
 #if HASP_USE_SYSLOG > 0
-#include <WiFiUdp.h>
 
 #ifndef SYSLOG_SERVER
 #define SYSLOG_SERVER ""
