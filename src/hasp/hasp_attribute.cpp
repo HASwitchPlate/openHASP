@@ -1320,7 +1320,8 @@ static hasp_attribute_type_t special_attribute_src(lv_obj_t* obj, const char* pa
             }
 
         } else {
-#if defined(ARDUINO) && defined(ARDUINO_ARCH_ESP32) && 1
+#if defined(ARDUINO) && defined(ARDUINO_ARCH_ESP32)
+#if HASP_USE_WIFI > 0 || HASP_USE_ETHERNET > 0
             HTTPClient http;
             http.begin(payload);
 
@@ -1462,7 +1463,8 @@ static hasp_attribute_type_t special_attribute_src(lv_obj_t* obj, const char* pa
                 LOG_WARNING(TAG_ATTR, "HTTP result %d", httpCode);
             }
             http.end();
-#endif
+#endif // HASP_USE_NETWORK
+#endif // ESP32
         }
     } else {
         const void* src = lv_img_get_src(obj);
