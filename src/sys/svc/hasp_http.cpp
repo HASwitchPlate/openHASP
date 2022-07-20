@@ -1111,13 +1111,14 @@ static void webHandleMqttConfig()
         // Node Name
         httpMessage +=
             F("<div class='row'><div class='col-25'><label class='required' for='name'>Plate Name</label></div>");
-        httpMessage += F("<div class='col-75'><input required type='text' id='name' name='name' maxlength=15 "
-                         "pattern='[a-z0-9_]*' placeholder='Plate Name' value=''></div></div>");
+        httpMessage += F("<div class='col-75'><input required type='text' id='name' name='name' maxlength= ");
+        httpMessage += STR_LEN_HOSTNAME - 1;
+        httpMessage += F("pattern='[a-z0-9_]*' placeholder='Plate Name' value=''></div></div>");
 
         // Group Name
         httpMessage += F("<div class='row gap'><div class='col-25'><label for='group'>Group Name</label></div>");
         httpMessage +=
-            F("<div class='col-75'><input type='text' id='group' name='group' maxlength=15 pattern='[a-z0-9_]*' "
+            F("<div class='col-75'><input type='text' id='group' name='group' maxlength=15 pattern='[a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\\-]*[a-zA-Z0-9]' "
               "placeholder='Group Name' value=''></div></div>");
 
         // Broker
@@ -2193,6 +2194,12 @@ static inline void webStartConfigPortal()
 
 void httpSetup()
 {
+    Preferences preferences;
+    preferences.begin("http", true);
+    String password = preferences.getString(FP_CONFIG_PASS, HTTP_PASSWORD);
+    strncpy(http_config.password, password.c_str(), sizeof(http_config.password));
+    LOG_DEBUG(TAG_HTTP, F(D_BULLET "Read %s => %s (%d bytes)"), FP_CONFIG_PASS, password.c_str(), password.length());
+
     // ask server to track these headers
     const char* headerkeys[] = {"Content-Length"}; // "Authentication"
     size_t headerkeyssize    = sizeof(headerkeys) / sizeof(char*);
@@ -2313,8 +2320,10 @@ bool httpGetConfig(const JsonObject& settings)
     if(strcmp(http_config.username, settings[FPSTR(FP_CONFIG_USER)].as<String>().c_str()) != 0) changed = true;
     settings[FPSTR(FP_CONFIG_USER)] = http_config.username;
 
-    if(strcmp(http_config.password, settings[FPSTR(FP_CONFIG_PASS)].as<String>().c_str()) != 0) changed = true;
-    settings[FPSTR(FP_CONFIG_PASS)] = http_config.password;
+    // if(strcmp(http_config.password, settings[FPSTR(FP_CONFIG_PASS)].as<String>().c_str()) != 0) changed = true;
+    // settings[FPSTR(FP_CONFIG_PASS)] = http_config.password;
+    if(strcmp(D_PASSWORD_MASK, settings[FPSTR(FP_CONFIG_PASS)].as<String>().c_str()) != 0) changed = true;
+    settings[FPSTR(FP_CONFIG_PASS)] = D_PASSWORD_MASK;
 
     if(changed) configOutput(settings, TAG_HTTP);
     return changed;
@@ -2330,6 +2339,9 @@ bool httpGetConfig(const JsonObject& settings)
  **/
 bool httpSetConfig(const JsonObject& settings)
 {
+    Preferences preferences;
+    preferences.begin("http", false);
+
     configOutput(settings, TAG_HTTP);
     bool changed = false;
 
@@ -2342,8 +2354,9 @@ bool httpSetConfig(const JsonObject& settings)
 
     if(!settings[FPSTR(FP_CONFIG_PASS)].isNull() &&
        settings[FPSTR(FP_CONFIG_PASS)].as<String>() != String(FPSTR(D_PASSWORD_MASK))) {
-        changed |= strcmp(http_config.password, settings[FPSTR(FP_CONFIG_PASS)]) != 0;
+        changed |= strcmp(FP_CONFIG_PASS, settings[FPSTR(FP_CONFIG_PASS)]) != 0;
         strncpy(http_config.password, settings[FPSTR(FP_CONFIG_PASS)], sizeof(http_config.password));
+        nvsUpdateString(preferences, FP_CONFIG_PASS, settings[FPSTR(FP_CONFIG_PASS)]);
     }
 
     return changed;
