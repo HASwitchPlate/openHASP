@@ -52,8 +52,8 @@ static void kb_event_cb(lv_obj_t* event_kb, lv_event_t event)
 {
     if(event == LV_EVENT_APPLY) {
         StaticJsonDocument<256> settings;
-        char ssid[64] = "";
-        char pass[64] = "";
+        char ssid[MAX_SSID_LEN] = "";
+        char pass[MAX_PASSPHRASE_LEN] = "";
         lv_obj_t* obj;
 
         obj = hasp_find_obj_from_parent_id(oobepage[1], (uint8_t)10);
