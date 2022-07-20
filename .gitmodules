@@ -1,4 +1,4 @@
-[submodule "lib/freetype"]
-	path = lib/freetype
-	url = https://github.com/fvanroie/freetype
+#[submodule "lib/freetype"]
+#	path = lib/freetype
+#	url = https://github.com/fvanroie/freetype
 	
