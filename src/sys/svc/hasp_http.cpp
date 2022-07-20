@@ -1117,9 +1117,9 @@ static void webHandleMqttConfig()
 
         // Group Name
         httpMessage += F("<div class='row gap'><div class='col-25'><label for='group'>Group Name</label></div>");
-        httpMessage +=
-            F("<div class='col-75'><input type='text' id='group' name='group' maxlength=15 pattern='[a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\\-]*[a-zA-Z0-9]' "
-              "placeholder='Group Name' value=''></div></div>");
+        httpMessage += F("<div class='col-75'><input type='text' id='group' name='group' maxlength=15 "
+                         "pattern='[a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\\-]*[a-zA-Z0-9]' "
+                         "placeholder='Group Name' value=''></div></div>");
 
         // Broker
         httpMessage += F("<div class='row'><div class='col-25'><label for='host'>Broker</label></div>");
@@ -1279,14 +1279,14 @@ static void webHandleWifiConfig()
         // Wifi SSID
         httpMessage += F("<div class='row'><div class='col-25 required'><label for='ssid'>SSID</label></div>");
         httpMessage += F("<div class='col-75'><input required type='text' id='ssid' name='ssid' maxlength=");
-        httpMessage += MAX_USERNAME_LENGTH - 1;
+        httpMessage += MAX_SSID_LEN - 1;
         httpMessage += F(" placeholder='SSID' value='");
         httpMessage += F("'></div></div>");
 
         // Wifi Password
         httpMessage += F("<div class='row'><div class='col-25 required'><label for='pass'>Password</label></div>");
         httpMessage += F("<div class='col-75'><input required type='password' id='pass' name='pass' maxlength=");
-        httpMessage += MAX_PASSWORD_LENGTH - 1;
+        httpMessage += MAX_PASSPHRASE_LEN - 1;
         httpMessage += F(" placeholder='Password' value='");
         httpMessage += F("'></div></div>");
 
