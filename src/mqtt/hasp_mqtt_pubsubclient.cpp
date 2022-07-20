@@ -14,7 +14,10 @@
 
 #if defined(ARDUINO_ARCH_ESP32)
 #include <WiFi.h>
+#include <WiFiClientSecure.h>
 WiFiClient mqttNetworkClient;
+// WiFiClientSecure mqttNetworkClient;
+extern const uint8_t rootca_crt_bundle_start[] asm("_binary_data_cert_x509_crt_bundle_bin_start");
 #elif defined(ARDUINO_ARCH_ESP8266)
 #include <ESP8266WiFi.h>
 #include <EEPROM.h>
@@ -44,6 +47,7 @@ EthernetClient mqttNetworkClient;
 
 char mqttNodeTopic[24];
 char mqttGroupTopic[24];
+char mqttClientId[64];
 bool mqttEnabled        = false;
 bool mqttHAautodiscover = true;
 uint32_t mqttPublishCount;
@@ -215,11 +219,13 @@ static void mqttSubscribeTo(const char* topic)
 void mqttStart()
 {
     char buffer[64];
-    char mqttClientId[64];
     char lastWillPayload[8];
     static uint8_t mqttReconnectCount = 0;
     //   bool mqttFirstConnect             = true;
 
+    // mqttNetworkClient.setCACertBundle(rootca_crt_bundle_start);
+    // mqttNetworkClient.setInsecure();
+    mqttNetworkClient.setTimeout(12);
     mqttClient.setServer(mqttServer, mqttPort);
     // mqttClient.setSocketTimeout(10); //in seconds
 
@@ -228,7 +234,9 @@ void mqttStart()
         String mac = halGetMacAddress(3, "");
         mac.toLowerCase();
         memset(mqttClientId, 0, sizeof(mqttClientId));
-        snprintf_P(mqttClientId, sizeof(mqttClientId), PSTR(D_MQTT_DEFAULT_NAME), mac.c_str());
+        snprintf_P(mqttClientId, sizeof(mqttClientId), haspDevice.get_hostname());
+        size_t len = strlen(mqttClientId);
+        snprintf_P(mqttClientId + len, sizeof(mqttClientId) - len, PSTR("_%s"), mac.c_str());
         LOG_INFO(TAG_MQTT, mqttClientId);
     }
 
@@ -249,9 +257,16 @@ void mqttStart()
             case MQTT_CONNECTION_LOST:
                 LOG_WARNING(TAG_MQTT, F("Connection lost"));
                 break;
-            case MQTT_CONNECT_FAILED:
+            case MQTT_CONNECT_FAILED: {
                 LOG_WARNING(TAG_MQTT, F("Connection failed"));
+                char err_buf[100];
+                // if(mqttNetworkClient.lastError(err_buf, 100) < 0) {
+                //     Serial.println(err_buf);
+                // } else {
+                Serial.println("Connection error");
+                // }
                 break;
+            }
             case MQTT_DISCONNECTED:
                 snprintf_P(buffer, sizeof(buffer), PSTR(D_MQTT_DISCONNECTED));
                 break;
@@ -375,17 +390,18 @@ void mqttStop()
 void mqtt_get_info(JsonDocument& doc)
 {
     char buffer[64];
-    String mac((char*)0);
-    mac.reserve(64);
+    // String mac((char*)0);
+    // mac.reserve(64);
 
     JsonObject info          = doc.createNestedObject(F("MQTT"));
     info[F(D_INFO_SERVER)]   = mqttServer;
     info[F(D_INFO_USERNAME)] = mqttUsername;
+    info[F(D_INFO_CLIENTID)] = mqttClientId;
 
-    mac = halGetMacAddress(3, "");
-    mac.toLowerCase();
-    snprintf_P(buffer, sizeof(buffer), PSTR("%s-%s"), haspDevice.get_hostname(), mac.c_str());
-    info[F(D_INFO_CLIENTID)] = buffer;
+    // mac = halGetMacAddress(3, "");
+    // mac.toLowerCase();
+    // snprintf_P(buffer, sizeof(buffer), PSTR("%s-%s"), haspDevice.get_hostname(), mac.c_str());
+    // info[F(D_INFO_CLIENTID)] = buffer;
 
     switch(mqttClient.state()) {
         case MQTT_CONNECT_UNAUTHORIZED:
