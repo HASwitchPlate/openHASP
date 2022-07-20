@@ -4,9 +4,6 @@
 #include "hasplib.h"
 
 #include "lv_drv_conf.h"
-
-// Filesystem Driver
-#include "lv_misc/lv_fs.h"
 #include "lv_fs_if.h"
 
 // Device Drivers
