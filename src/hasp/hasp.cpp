@@ -214,11 +214,13 @@ void hasp_antiburn_cb(lv_task_t* task)
         lv_area_t area;
 
         area.x1 = 0;
-        area.x2 = disp_drv->hor_res - 1;
-        lv_color_t color[disp_drv->hor_res];
+        // area.x2 = disp_drv->hor_res - 1;
+        // lv_color_t color[disp_drv->hor_res];
+        area.x2 = lv_obj_get_width(layer) - 1;
+        lv_color_t color[area.x2];
 
-        for(lv_coord_t y = 0; y < disp_drv->ver_res; y++) {
-            for(lv_coord_t x = 0; x < disp_drv->hor_res; x++) {
+        for(lv_coord_t y = 0; y < lv_obj_get_height(layer); y++) {
+            for(lv_coord_t x = 0; x < area.x2; x++) {
 #if defined(WINDOWS) || defined(POSIX)
                 color[x].full = rand() * UINT16_MAX;
 #elif defined(ARDUINO)
