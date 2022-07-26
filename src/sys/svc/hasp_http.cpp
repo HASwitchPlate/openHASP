@@ -85,7 +85,8 @@ HTTPUpload* upload;
 const char MAIN_MENU_BUTTON[] PROGMEM = "<a href='/'>" D_HTTP_MAIN_MENU "</a>";
 
 const char HTTP_DOCTYPE[] PROGMEM      = "<!DOCTYPE html><html lang=\"en\"><head><meta charset='utf-8'><meta "
-                                         "name=\"viewport\" content=\"width=device-width,initial-scale=1\"/>";
+                                         "name=\"viewport\" content=\"width=device-width,initial-scale=1\"/>"
+                                         "<meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'self';img-src 'self' data:;style-src 'self' data:;\">";
 const char HTTP_META_GO_BACK[] PROGMEM = "<meta http-equiv='refresh' content='%d;url=/'/>";
 const char HTTP_STYLESHEET[] PROGMEM   = "<link rel=\"stylesheet\" href=\"/%s.css\">";
 const char HTTP_HEADER[] PROGMEM       = "<title>%s</title>";
@@ -1106,7 +1107,7 @@ static void webHandleMqttConfig()
         httpMessage += F("<h2>" D_HTTP_MQTT_SETTINGS "</h2>");
 
         // Form
-        httpMessage += F("<div class='container'><form method='POST' action='/config'>");
+        httpMessage += F("<div class='container'><form method='POST' action='/config' id='mqtt'>");
 
         // Node Name
         httpMessage +=
@@ -1150,7 +1151,7 @@ static void webHandleMqttConfig()
         httpMessage += F("</form></div>");
 
         add_form_button(httpMessage, F(D_BACK_ICON D_HTTP_CONFIGURATION), F("/config"));
-        httpMessage += "<script>filler(\"GET\", \"/api/config/mqtt/\")</script>";
+        // httpMessage += "<script>filler(\"GET\", \"/api/config/mqtt/\")</script>";
 
         webSendHeader(haspDevice.get_hostname(), httpMessage.length(), 0);
         webServer.sendContent(httpMessage);
@@ -1173,7 +1174,7 @@ static void webHandleGuiConfig()
         httpMessage += F("<h2>" D_HTTP_GUI_SETTINGS "</h2>");
 
         // Form
-        httpMessage += F("<div class='container'><form method='POST' action='/config'>");
+        httpMessage += F("<div class='container'><form method='POST' action='/config' id='gui'>");
 
         // Short Idle
         httpMessage += F("<div class='row'><div class='col-25'><label for='idle1'>Short Idle</label></div>");
@@ -1246,7 +1247,7 @@ static void webHandleGuiConfig()
 
         add_form_button(httpMessage, F(D_HTTP_ANTIBURN), F("/config/gui?brn=1"));
         add_form_button(httpMessage, F(D_BACK_ICON D_HTTP_CONFIGURATION), F("/config"));
-        httpMessage += F("<script>filler(\"GET\",\"/api/config/gui/\")</script>");
+        // httpMessage += F("<script>filler(\"GET\",\"/api/config/gui/\")</script>");
 
         webSendHeader(haspDevice.get_hostname(), httpMessage.length(), 0);
         webServer.sendContent(httpMessage);
@@ -1274,7 +1275,7 @@ static void webHandleWifiConfig()
         httpMessage += F("<h2>" D_HTTP_WIFI_SETTINGS "</h2>");
 
         // Form
-        httpMessage += F("<div class='container'><form method='POST' action='/config'>");
+        httpMessage += F("<div class='container'><form method='POST' action='/config' id='wifi'>");
 
         // Wifi SSID
         httpMessage += F("<div class='row'><div class='col-25 required'><label for='ssid'>SSID</label></div>");
@@ -1304,7 +1305,7 @@ static void webHandleWifiConfig()
         }
 #endif // HASP_USE_WIFI
 
-        httpMessage += F("<script>filler(\"GET\",\"/api/config/wifi/\")</script>");
+        // httpMessage += F("<script>filler(\"GET\",\"/api/config/wifi/\")</script>");
 
         webSendHeader(haspDevice.get_hostname(), httpMessage.length(), 0);
         webServer.sendContent(httpMessage);
@@ -1328,7 +1329,7 @@ static void webHandleHttpConfig()
         httpMessage += F("<h2>" D_HTTP_HTTP_SETTINGS "</h2>");
 
         // Form
-        httpMessage += F("<div class='container'><form method='POST' action='/config'>");
+        httpMessage += F("<div class='container'><form method='POST' action='/config' id='http'>");
 
         // Username
         httpMessage += F("<div class='row'><div class='col-25'><label for='user'>Username</label></div>");
@@ -1347,7 +1348,7 @@ static void webHandleHttpConfig()
         httpMessage += F("</form></div>");
 
         httpMessage += F("<a href='/config'>" D_HTTP_CONFIGURATION "</a>");
-        httpMessage += F("<script>filler(\"GET\",\"/api/config/http/\")</script>");
+        // httpMessage += F("<script>filler(\"GET\",\"/api/config/http/\")</script>");
 
         webSendHeader(haspDevice.get_hostname(), httpMessage.length(), 0);
         webServer.sendContent(httpMessage);
@@ -1725,7 +1726,7 @@ static void webHandleDebugConfig()
         httpMessage += F("<h2>" D_HTTP_DEBUG_SETTINGS "</h2>");
 
         // Form
-        httpMessage += F("<div class='container'><form method='POST' action='/config'>");
+        httpMessage += F("<div class='container'><form method='POST' action='/config' id='debug'>");
 
         // Baudrate
         httpMessage += F("<div class='row'><div class='col-25'><label for='baud'>Serial Port</label></div>");
@@ -1791,7 +1792,7 @@ static void webHandleDebugConfig()
         // *******************************************************************
 
         add_form_button(httpMessage, F(D_BACK_ICON D_HTTP_CONFIGURATION), F("/config"));
-        httpMessage += F("<script>filler(\"GET\",\"/api/config/debug/\")</script>");
+        // httpMessage += F("<script>filler(\"GET\",\"/api/config/debug/\")</script>");
 
         webSendHeader(haspDevice.get_hostname(), httpMessage.length(), 0);
         webServer.sendContent(httpMessage);
@@ -1834,7 +1835,7 @@ static void webHandleHaspConfig()
 #endif
 
         // Form
-        httpMessage += F("<div class='container'><form method='POST' action='/'>");
+        httpMessage += F("<div class='container'><form method='POST' action='/' id='hasp'>");
 
         // Theme
         httpMessage += F("<div class='row'><div class='col-25'><label for='theme'>UI Theme</label></div>");
@@ -1908,7 +1909,7 @@ static void webHandleHaspConfig()
         httpMessage += F("</form></div>");
 
         httpMessage += FPSTR(MAIN_MENU_BUTTON);
-        httpMessage += F("<script>filler(\"GET\",\"/api/config/hasp/\")</script>");
+        // httpMessage += F("<script>filler(\"GET\",\"/api/config/hasp/\")</script>");
 
         webSendHeader(haspDevice.get_hostname(), httpMessage.length(), 0);
         webServer.sendContent(httpMessage);
@@ -1999,7 +2000,7 @@ static void webHandleFirmware()
         httpMessage += F("<h2>" D_HTTP_FIRMWARE_UPGRADE "</h2>");
 
         // Form
-        httpMessage += F("<div class='container'><form method='POST' action='/update' enctype='multipart/form-data'>");
+        httpMessage += F("<div class='container'><form method='POST' action='/update' enctype='multipart/form-data' id='ota'>");
 
         // File
         httpMessage +=
@@ -2038,7 +2039,7 @@ static void webHandleFirmware()
         httpMessage += F("</form></div>");
 
         httpMessage += FPSTR(MAIN_MENU_BUTTON);
-        httpMessage += "<script>filler(\"GET\", \"/api/config/ota/\")</script>";
+        // httpMessage += "<script>filler(\"GET\", \"/api/config/ota/\")</script>";
 
         webSendHeader(haspDevice.get_hostname(), httpMessage.length(), 0);
         webServer.sendContent(httpMessage);

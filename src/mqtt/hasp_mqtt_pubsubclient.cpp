@@ -4,7 +4,7 @@
 #include "hasp_conf.h"
 
 #if HASP_USE_MQTT > 0
-#ifdef USE_PUBSUBCLIENT
+#ifdef HASP_USE_PUBSUBCLIENT
 
 #include "PubSubClient.h"
 
@@ -398,11 +398,6 @@ void mqtt_get_info(JsonDocument& doc)
     info[F(D_INFO_USERNAME)] = mqttUsername;
     info[F(D_INFO_CLIENTID)] = mqttClientId;
 
-    // mac = halGetMacAddress(3, "");
-    // mac.toLowerCase();
-    // snprintf_P(buffer, sizeof(buffer), PSTR("%s-%s"), haspDevice.get_hostname(), mac.c_str());
-    // info[F(D_INFO_CLIENTID)] = buffer;
-
     switch(mqttClient.state()) {
         case MQTT_CONNECT_UNAUTHORIZED:
             snprintf_P(buffer, sizeof(buffer), PSTR(D_NETWORK_CONNECTION_UNAUTHORIZED));
@@ -411,10 +406,10 @@ void mqtt_get_info(JsonDocument& doc)
             snprintf_P(buffer, sizeof(buffer), PSTR(D_NETWORK_CONNECTION_FAILED));
             break;
         case MQTT_DISCONNECTED:
-            snprintf_P(buffer, sizeof(buffer), PSTR(D_INFO_DISCONNECTED));
+            snprintf_P(buffer, sizeof(buffer), PSTR(D_SERVICE_DISCONNECTED));
             break;
         case MQTT_CONNECTED:
-            snprintf_P(buffer, sizeof(buffer), PSTR(D_INFO_CONNECTED));
+            snprintf_P(buffer, sizeof(buffer), PSTR(D_SERVICE_CONNECTED));
             break;
         case MQTT_CONNECTION_TIMEOUT:
         case MQTT_CONNECTION_LOST:
@@ -423,7 +418,7 @@ void mqtt_get_info(JsonDocument& doc)
         case MQTT_CONNECT_UNAVAILABLE:
         case MQTT_CONNECT_BAD_CREDENTIALS:
         default:
-            snprintf_P(buffer, sizeof(buffer), PSTR(D_INFO_DISCONNECTED " (%d)"), mqttClient.state());
+            snprintf_P(buffer, sizeof(buffer), PSTR(D_SERVICE_DISCONNECTED " (%d)"), mqttClient.state());
             break;
     }
     info[F(D_INFO_STATUS)] = buffer;

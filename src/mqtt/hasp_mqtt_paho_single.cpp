@@ -421,9 +421,9 @@ void mqtt_get_info(JsonDocument& doc)
     info[F(D_INFO_CLIENTID)] = haspDevice.get_hostname();
 
     if(mqttIsConnected()) { // Check MQTT connection
-        info[F(D_INFO_STATUS)] = F(D_INFO_CONNECTED);
+        info[F(D_INFO_STATUS)] = F(D_SERVICE_CONNECTED);
     } else {
-        info[F(D_INFO_STATUS)] = F("<font color='red'><b>" D_INFO_DISCONNECTED "</b></font>, return code: ");
+        info[F(D_INFO_STATUS)] = F("<font color='red'><b>" D_SERVICE_DISCONNECTED "</b></font>, return code: ");
         //     +String(mqttClient.returnCode());
     }
 

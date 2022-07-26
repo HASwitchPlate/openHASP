@@ -276,8 +276,8 @@ static WiFiSpiClass WiFi;
 #if defined(WINDOWS) || defined(POSIX)
 #define USE_PAHO
 #else
-#define USE_ESP_MQTT
-//#define USE_PUBSUBCLIENT
+#define HASP_USE_ESP_MQTT
+//#define HASP_USE_PUBSUBCLIENT
 #endif
 
 #endif
