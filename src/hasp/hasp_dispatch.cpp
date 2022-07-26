@@ -1360,6 +1360,14 @@ void dispatch_service(const char*, const char* payload, uint8_t source)
     }
 #endif
 
+#if HASP_USE_MQTT > 0 && defined(HASP_USE_ESP_MQTT)
+    if(!strcmp_P(payload, "start mqtt")) {
+        mqttStart();
+    } else if(!strcmp_P(payload, "stop mqtt")) {
+        mqttStop();
+    }
+#endif
+
 #if ARDUINO && HASP_USE_CONSOLE
     if(!strcmp_P(payload, "start console")) {
         consoleStart();
