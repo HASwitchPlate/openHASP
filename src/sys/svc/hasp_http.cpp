@@ -611,7 +611,8 @@ static void webHandleAbout()
 
         httpMessage += "<div id='lic'></div>";
         httpMessage += FPSTR(MAIN_MENU_BUTTON);
-        httpMessage += "<div id='pkg'></div><script>window.addEventListener('load', about());</script>";
+        httpMessage += "<div id='pkg'></div>";
+        // TOREMOVE httpMessage += "<script>window.addEventListener('load', about());</script>";
 
         webSendHeader(haspDevice.get_hostname(), httpMessage.length(), 0);
         webServer.sendContent(httpMessage);
@@ -633,7 +634,8 @@ static void webHandleInfoJson()
         htmldata += haspDevice.get_hostname();
         htmldata += F("</h1><hr>");
 
-        htmldata += "<div id=\"info\"></div><script>loader(\"GET\", \"/api/info/\", info)</script>";
+        htmldata += "<div id=\"info\"></div>";
+        // TOREMOVE httpdata += "<script>loader(\"GET\", \"/api/info/\", info)</script>";
         htmldata += FPSTR(MAIN_MENU_BUTTON);
 
         webSendHeader(haspDevice.get_hostname(), htmldata.length(), 0);
@@ -1151,7 +1153,7 @@ static void webHandleMqttConfig()
         httpMessage += F("</form></div>");
 
         add_form_button(httpMessage, F(D_BACK_ICON D_HTTP_CONFIGURATION), F("/config"));
-        // httpMessage += "<script>filler(\"GET\", \"/api/config/mqtt/\")</script>";
+        // TOREMOVE httpMessage += "<script>filler(\"GET\", \"/api/config/mqtt/\")</script>";
 
         webSendHeader(haspDevice.get_hostname(), httpMessage.length(), 0);
         webServer.sendContent(httpMessage);
@@ -1247,7 +1249,7 @@ static void webHandleGuiConfig()
 
         add_form_button(httpMessage, F(D_HTTP_ANTIBURN), F("/config/gui?brn=1"));
         add_form_button(httpMessage, F(D_BACK_ICON D_HTTP_CONFIGURATION), F("/config"));
-        // httpMessage += F("<script>filler(\"GET\",\"/api/config/gui/\")</script>");
+        // TOREMOVE httpMessage += F("<script>filler(\"GET\",\"/api/config/gui/\")</script>");
 
         webSendHeader(haspDevice.get_hostname(), httpMessage.length(), 0);
         webServer.sendContent(httpMessage);
@@ -1305,7 +1307,7 @@ static void webHandleWifiConfig()
         }
 #endif // HASP_USE_WIFI
 
-        // httpMessage += F("<script>filler(\"GET\",\"/api/config/wifi/\")</script>");
+        // TOREMOVE httpMessage += F("<script>filler(\"GET\",\"/api/config/wifi/\")</script>");
 
         webSendHeader(haspDevice.get_hostname(), httpMessage.length(), 0);
         webServer.sendContent(httpMessage);
@@ -1348,7 +1350,7 @@ static void webHandleHttpConfig()
         httpMessage += F("</form></div>");
 
         httpMessage += F("<a href='/config'>" D_HTTP_CONFIGURATION "</a>");
-        // httpMessage += F("<script>filler(\"GET\",\"/api/config/http/\")</script>");
+        // TOREMOVE httpMessage += F("<script>filler(\"GET\",\"/api/config/http/\")</script>");
 
         webSendHeader(haspDevice.get_hostname(), httpMessage.length(), 0);
         webServer.sendContent(httpMessage);
@@ -1792,7 +1794,7 @@ static void webHandleDebugConfig()
         // *******************************************************************
 
         add_form_button(httpMessage, F(D_BACK_ICON D_HTTP_CONFIGURATION), F("/config"));
-        // httpMessage += F("<script>filler(\"GET\",\"/api/config/debug/\")</script>");
+        // TOREMOVE httpMessage += F("<script>filler(\"GET\",\"/api/config/debug/\")</script>");
 
         webSendHeader(haspDevice.get_hostname(), httpMessage.length(), 0);
         webServer.sendContent(httpMessage);
@@ -1909,7 +1911,7 @@ static void webHandleHaspConfig()
         httpMessage += F("</form></div>");
 
         httpMessage += FPSTR(MAIN_MENU_BUTTON);
-        // httpMessage += F("<script>filler(\"GET\",\"/api/config/hasp/\")</script>");
+        // TOREMOVE httpMessage += F("<script>filler(\"GET\",\"/api/config/hasp/\")</script>");
 
         webSendHeader(haspDevice.get_hostname(), httpMessage.length(), 0);
         webServer.sendContent(httpMessage);
@@ -2039,7 +2041,7 @@ static void webHandleFirmware()
         httpMessage += F("</form></div>");
 
         httpMessage += FPSTR(MAIN_MENU_BUTTON);
-        // httpMessage += "<script>filler(\"GET\", \"/api/config/ota/\")</script>";
+        // TOREMOVE TOREMOVE httpMessage += "<script>filler(\"GET\", \"/api/config/ota/\")</script>";
 
         webSendHeader(haspDevice.get_hostname(), httpMessage.length(), 0);
         webServer.sendContent(httpMessage);
