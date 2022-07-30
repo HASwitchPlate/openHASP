@@ -314,10 +314,10 @@ static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
                 case MQTT_ERROR_TYPE_NONE:
                 default:;
             }
+            break;
         }
         default:
             LOG_WARNING(TAG_MQTT, "mqtt_event_handler %d", event->event_id);
-            break;
     }
     return ESP_OK;
 }
@@ -345,11 +345,10 @@ void mqttStart()
 {
     char buffer[64];
     char lastWillPayload[8];
-    // static uint8_t mqttReconnectCount = 0;
-    // bool mqttFirstConnect             = true;
 
-    if(mqttClient) {
-        LOG_INFO(TAG_MQTT, F(D_SERVICE_STARTED));
+    mqttEnabled = strlen(mqttServer) > 0 && mqttPort > 0;
+    if(!mqttEnabled) {
+        LOG_WARNING(TAG_MQTT, F(D_MQTT_NOT_CONFIGURED));
         return;
     }
 
@@ -368,74 +367,71 @@ void mqttStart()
     strncat_P(mqttLwtTopic, PSTR(MQTT_TOPIC_LWT), sizeof(mqttLwtTopic));
     LOG_WARNING(TAG_MQTT, mqttLwtTopic);
 
-    if(mqttEnabled) {
-        mqtt_cfg.event_handle         = mqtt_event_handler;
-        mqtt_cfg.buffer_size          = MQTT_MAX_PACKET_SIZE;
-        mqtt_cfg.out_buffer_size      = 512;
-        mqtt_cfg.reconnect_timeout_ms = 5000;
-        mqtt_cfg.keepalive            = 15; /* seconds */
+    mqtt_cfg.event_handle           = mqtt_event_handler;
+    mqtt_cfg.buffer_size            = MQTT_MAX_PACKET_SIZE;
+    mqtt_cfg.out_buffer_size        = 512;
+    mqtt_cfg.reconnect_timeout_ms   = 5000;
+    mqtt_cfg.disable_auto_reconnect = false;
+    mqtt_cfg.keepalive              = 15; /* seconds */
+    mqtt_cfg.disable_clean_session  = true;
 
-        mqtt_cfg.protocol_ver = MQTT_PROTOCOL_V_3_1_1;
-        mqtt_cfg.transport    = MQTT_TRANSPORT_OVER_TCP;
-        mqtt_cfg.host         = mqttServer;
-        mqtt_cfg.port         = mqttPort;
-        mqtt_cfg.username     = mqttUsername;
-        mqtt_cfg.password     = mqttPassword;
-        mqtt_cfg.client_id    = mqttClientId;
+    mqtt_cfg.protocol_ver = MQTT_PROTOCOL_V_3_1_1;
+    mqtt_cfg.transport    = MQTT_TRANSPORT_OVER_TCP;
+    mqtt_cfg.host         = mqttServer;
+    mqtt_cfg.port         = mqttPort;
+    mqtt_cfg.username     = mqttUsername;
+    mqtt_cfg.password     = mqttPassword;
+    mqtt_cfg.client_id    = mqttClientId;
 
-        mqtt_cfg.lwt_msg    = "offline";
-        mqtt_cfg.lwt_retain = true;
-        mqtt_cfg.lwt_topic  = mqttLwtTopic;
-        mqtt_cfg.lwt_qos    = 1;
+    mqtt_cfg.lwt_msg    = "offline";
+    mqtt_cfg.lwt_retain = true;
+    mqtt_cfg.lwt_topic  = mqttLwtTopic;
+    mqtt_cfg.lwt_qos    = 1;
 
-        // mqtt_cfg.crt_bundle_attach = esp_crt_bundle_attach;
+    // mqtt_cfg.crt_bundle_attach = esp_crt_bundle_attach;
 
-        // test Mosquitto doesn't need a user/pwd
-        //    // mqtt_cfg.username=(const char *)mqtt_user;
-        //    // mqtt_cfg.password=(const char *)mqtt_pwd;
+    // test Mosquitto doesn't need a user/pwd
+    //    // mqtt_cfg.username=(const char *)mqtt_user;
+    //    // mqtt_cfg.password=(const char *)mqtt_pwd;
 
+    if(mqttClient) {
+        esp_mqtt_set_config(mqttClient, &mqtt_cfg);
+    } else {
         mqttClient = esp_mqtt_client_init(&mqtt_cfg);
-        // mqttStart();
-    } else {
-        LOG_WARNING(TAG_MQTT, F(D_MQTT_NOT_CONFIGURED));
+        if(esp_mqtt_client_start(mqttClient) != ESP_OK) {
+            LOG_WARNING(TAG_MQTT, F(D_SERVICE_START_FAILED));
+            return;
+        }
     }
 
-    //  haspProgressMsg(F(D_MQTT_CONNECTING));
-    //  haspProgressVal(mqttReconnectCount * 5);
-    if(esp_mqtt_client_start(mqttClient) != ESP_OK) {
-        LOG_WARNING(TAG_MQTT, F(D_SERVICE_START_FAILED));
-        // Retry until we give up and restart after connectTimeout seconds
-        // mqttReconnectCount++;
-
-        // switch(0) {
-        //     default:
-        //         LOG_WARNING(TAG_MQTT, F("Unknown failure"));
-        // }
-
-        // if(mqttReconnectCount > 20) {
-        //     LOG_ERROR(TAG_MQTT, F("Retry count exceeded, rebooting..."));
-        //     dispatch_reboot(false);
-        // }
-        return;
-    } else {
-        LOG_INFO(TAG_MQTT, F(D_SERVICE_STARTING));
-    }
+    LOG_INFO(TAG_MQTT, F(D_SERVICE_STARTING));
 }
 
 void mqttStop()
 {
     if(!mqttEnabled) {
         LOG_WARNING(TAG_MQTT, F(D_SERVICE_DISABLED));
-    } else if(!mqttClientConnected) {
-        LOG_WARNING(TAG_MQTT, F(D_SERVICE_DISCONNECTED));
-    } else {
-        LOG_TRACE(TAG_MQTT, F(D_MQTT_DISCONNECTING));
-        mqtt_send_lwt(false);
-        esp_mqtt_client_stop(mqttClient);
-        LOG_INFO(TAG_MQTT, F(D_MQTT_DISCONNECTED));
+        return;
+    }
 
-        mqttClient          = NULL;
-        mqttClientConnected = false;
+    if(mqttClient != NULL) {
+        if(mqttClientConnected) {
+            LOG_TRACE(TAG_MQTT, F(D_MQTT_DISCONNECTING));
+        }
+        mqtt_send_lwt(false);
+        // esp_err_t err = esp_mqtt_client_stop(mqttClient); // Cannot be called from the *MQTT* event handler
+        mqtt_cfg.disable_auto_reconnect = true;
+        esp_mqtt_set_config(mqttClient, &mqtt_cfg);
+        esp_err_t err = esp_mqtt_client_disconnect(mqttClient);
+        if(err == ESP_OK) {
+            // mqttClient          = NULL;
+            mqttClientConnected = false;
+            LOG_INFO(TAG_MQTT, F(D_MQTT_DISCONNECTED));
+        } else {
+            LOG_ERROR(TAG_MQTT, F(D_MQTT_FAILED " %d"), err);
+        }
+    } else {
+        LOG_INFO(TAG_MQTT, F(D_SERVICE_STOPPED));
     }
 }
 
@@ -570,7 +566,6 @@ bool mqttSetConfig(const JsonObject& settings)
     snprintf_P(mqttNodeTopic, sizeof(mqttNodeTopic), PSTR(MQTT_PREFIX "/%s/"), haspDevice.get_hostname());
     snprintf_P(mqttGroupTopic, sizeof(mqttGroupTopic), PSTR(MQTT_PREFIX "/%s/"), mqttGroupName);
 
-    mqttEnabled = strlen(mqttServer) > 0 && mqttPort > 0;
     return changed;
 }
 #endif // HASP_USE_CONFIG
