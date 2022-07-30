@@ -638,7 +638,7 @@ void selector_event_handler(lv_obj_t* obj, lv_event_t event)
     event_object_selection_changed(obj, hasp_event_id, val, buffer);
 
     if(obj->user_data.groupid && max > 0) // max a cannot be 0, its the divider
-        if(hasp_event_id == HASP_EVENT_UP || hasp_event_id == LV_EVENT_VALUE_CHANGED) {
+        if(hasp_event_id == HASP_EVENT_UP || hasp_event_id == HASP_EVENT_CHANGED) {
             event_update_group(obj->user_data.groupid, obj, !!last_value_sent, last_value_sent, 0, max);
         }
 
