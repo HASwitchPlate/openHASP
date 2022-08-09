@@ -84,9 +84,11 @@ HTTPUpload* upload;
 
 const char MAIN_MENU_BUTTON[] PROGMEM = "<a href='/'>" D_HTTP_MAIN_MENU "</a>";
 
-const char HTTP_DOCTYPE[] PROGMEM      = "<!DOCTYPE html><html lang=\"en\"><head><meta charset='utf-8'><meta "
-                                         "name=\"viewport\" content=\"width=device-width,initial-scale=1\"/>"
-                                         "<meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'self';img-src 'self' data:;style-src 'self' data:;\">";
+const char HTTP_DOCTYPE[] PROGMEM =
+    "<!DOCTYPE html><html lang=\"en\"><head>"
+    //  "<meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'self';img-src "
+    //  "'self' data:;style-src 'self' data:;\">"
+    "<meta charset='utf-8'><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"/>";
 const char HTTP_META_GO_BACK[] PROGMEM = "<meta http-equiv='refresh' content='%d;url=/'/>";
 const char HTTP_STYLESHEET[] PROGMEM   = "<link rel=\"stylesheet\" href=\"/%s.css\">";
 const char HTTP_HEADER[] PROGMEM       = "<title>%s</title>";
@@ -437,7 +439,7 @@ static void webHandleApi()
 { // http://plate01/about
     if(!httpIsAuthenticated(F("api"))) return;
 
-    DynamicJsonDocument doc(800);
+    DynamicJsonDocument doc(2048);
     String contentType = getContentType(F(".json"));
     String endpoint((char*)0);
     endpoint = webServer.pathArg(0);
@@ -466,6 +468,95 @@ static void webHandleApi()
         jsondata[jsondata.length() - 1] = '}'; // Replace last comma with a bracket
 
         webServer.send(200, contentType, jsondata);
+        return;
+
+    } else if(!strcasecmp_P(endpoint.c_str(), PSTR("config"))) {
+
+        JsonObject settings;
+        String postBody((char*)0);
+        postBody = webServer.arg("plain");
+
+        if(webServer.method() == HTTP_GET) {
+            // Make sure we have a valid JsonObject to start from
+            settings = doc.to<JsonObject>();
+
+        } else if(webServer.method() == HTTP_POST || webServer.method() == HTTP_PUT) {
+            DeserializationError jsonError = deserializeJson(doc, postBody);
+            if(jsonError) { // Couldn't parse incoming JSON command
+                dispatch_json_error(TAG_HTTP, jsonError);
+                return;
+            }
+            settings = doc.as<JsonObject>();
+        } else {
+            webServer.send(400, contentType, "Bad Request");
+            return;
+        }
+
+        settings = doc.to<JsonObject>();
+        const __FlashStringHelper* module;
+
+        module = FPSTR(FP_HASP);
+        settings.createNestedObject(module);
+        haspGetConfig(settings[module]);
+
+        module = FPSTR(FP_GUI);
+        settings.createNestedObject(module);
+        guiGetConfig(settings[module]);
+
+        module = FPSTR(FP_DEBUG);
+        settings.createNestedObject(module);
+        debugGetConfig(settings[module]);
+
+#if HASP_USE_WIFI > 0
+        module = FPSTR(FP_WIFI);
+        settings.createNestedObject(module);
+        wifiGetConfig(settings[module]);
+
+        module = FPSTR(FP_TIME);
+        settings.createNestedObject(module);
+        timeGetConfig(settings[module]);
+#endif
+#if HASP_USE_MQTT > 0
+        module = FPSTR(FP_MQTT);
+        settings.createNestedObject(module);
+        mqttGetConfig(settings[module]);
+#endif
+#if HASP_USE_HTTP > 0
+        module = FPSTR(FP_HTTP);
+        settings.createNestedObject(module);
+        httpGetConfig(settings[module]);
+#endif
+#if HASP_USE_ARDUINOOTA > 0 || HASP_USE_HTTP_UPDATE > 0
+        module = FPSTR(FP_OTA);
+        settings.createNestedObject(module);
+        otaGetConfig(settings[module]);
+#endif
+#if HASP_USE_GPIO > 0
+        module = FPSTR(FP_GPIO);
+        settings.createNestedObject(module);
+        gpioGetConfig(settings[module]);
+#endif
+        configOutput(settings, TAG_HTTP); // Log current JSON config
+
+        LOG_DEBUG(TAG_HTTP, "%s - %d", __FILE__, __LINE__);
+        // Mask non-blank passwords
+        // if(!settings[FPSTR(FP_CONFIG_PASS)].isNull() && settings[FPSTR(FP_CONFIG_PASS)].as<String>().length() != 0) {
+        //     settings[FPSTR(FP_CONFIG_PASS)] = D_PASSWORD_MASK;
+        // }
+
+        LOG_DEBUG(TAG_HTTP, "%s - %d", __FILE__, __LINE__);
+        doc.shrinkToFit();
+        LOG_DEBUG(TAG_HTTP, "%s - %d", __FILE__, __LINE__);
+        const size_t size = measureJson(doc) + 1;
+        LOG_DEBUG(TAG_HTTP, "%s - %d", __FILE__, __LINE__);
+        char jsondata[size];
+        LOG_DEBUG(TAG_HTTP, "%s - %d", __FILE__, __LINE__);
+        memset(jsondata, 0, size);
+        LOG_DEBUG(TAG_HTTP, "%s - %d", __FILE__, __LINE__);
+        serializeJson(doc, jsondata, size);
+        LOG_DEBUG(TAG_HTTP, "%s - %d", __FILE__, __LINE__);
+        webServer.send(200, contentType, jsondata);
+        LOG_DEBUG(TAG_HTTP, "%s - %d", __FILE__, __LINE__);
 
     } else {
         webServer.send(400, contentType, "Bad Request");
@@ -782,7 +873,7 @@ static int handleFileRead(String path)
 {
     if(!httpIsAuthenticated()) return false;
 
-    path = webServer.urlDecode(path).substring(0, 31);
+    // path = webServer.urlDecode(path).substring(0, 31);
     if(path.endsWith("/")) {
         path += F("index.htm");
     }
@@ -866,48 +957,64 @@ static void handleFileUpload()
         return;
     }
     upload = &webServer.upload();
-    if(upload->status == UPLOAD_FILE_START) {
-        if(!httpIsAuthenticated(F("fileupload"))) return;
-        LOG_INFO(TAG_HTTP, F("Total size: %s"), webServer.headerName(0).c_str());
-        String filename((char*)0);
-        filename.reserve(64);
-        filename = upload->filename;
-        if(!filename.startsWith("/")) {
-            filename = "/";
-            filename += upload->filename;
-        }
-        if(filename.length() < 32) {
+    switch(upload->status) {
+        case UPLOAD_FILE_START: {
+            if(!httpIsAuthenticated(F("fileupload"))) return;
+            LOG_INFO(TAG_HTTP, F("Total size: %s"), webServer.headerName(0).c_str());
+            String filename((char*)0);
+            filename.reserve(64);
+            filename = upload->filename;
+            if(!filename.startsWith("/")) {
+                filename = "/";
+                filename += upload->filename;
+            }
             fsUploadFile = HASP_FS.open(filename, "w");
-            if(!fsUploadFile || fsUploadFile.isDirectory()) {
-                LOG_WARNING(TAG_HTTP, F(D_FILE_SAVE_FAILED), filename.c_str());
+            if(fsUploadFile) {
+                if(!fsUploadFile || fsUploadFile.isDirectory()) {
+                    LOG_WARNING(TAG_HTTP, F(D_FILE_SAVE_FAILED), filename.c_str());
+                    webServer.send_P(400, PSTR("text/plain"), PSTR("Invalid filename"));
+                    fsUploadFile.close();
+                    fsUploadFile = File();
+                } else {
+                    LOG_TRACE(TAG_HTTP, F("handleFileUpload Name: %s"), filename.c_str());
+                    haspProgressMsg(fsUploadFile.name());
+                }
+            } else {
+                LOG_ERROR(TAG_HTTP, F("Could not open file %s for writing"), filename.c_str());
+                webServer.send_P(400, PSTR("text/plain"), PSTR("Could not open file for writing"));
+            }
+            break;
+        }
+        case UPLOAD_FILE_WRITE: {
+            if(fsUploadFile) {
+                if(fsUploadFile.write(upload->buf, upload->currentSize) != upload->currentSize) {
+                    LOG_ERROR(TAG_HTTP, F("Failed to write received data to file"));
+                    webServer.send_P(400, PSTR("text/plain"), PSTR("Failed to write received data to file"));
+                    fsUploadFile.close();
+                    fsUploadFile = File();
+                } else {
+                    webUploadProgress(); // Moved to httpEverySecond Loop
+                }
+            }
+            break;
+        }
+        case UPLOAD_FILE_END: {
+            if(fsUploadFile) {
+                LOG_INFO(TAG_HTTP, F("Uploaded %s (%u bytes)"), fsUploadFile.name(), upload->totalSize);
                 fsUploadFile.close();
-            } else {
-                LOG_TRACE(TAG_HTTP, F("handleFileUpload Name: %s"), filename.c_str());
-                haspProgressMsg(fsUploadFile.name());
-            }
-        } else {
-            LOG_ERROR(TAG_HTTP, F("Filename %s is too long"), filename.c_str());
-        }
-    } else if(upload->status == UPLOAD_FILE_WRITE) {
-        if(fsUploadFile) {
-            if(fsUploadFile.write(upload->buf, upload->currentSize) != upload->currentSize) {
-                LOG_ERROR(TAG_HTTP, F("Failed to write received data to file"));
-            } else {
-                webUploadProgress(); // Moved to httpEverySecond Loop
-            }
-        }
-    } else if(upload->status == UPLOAD_FILE_END) {
-        if(fsUploadFile) {
-            LOG_INFO(TAG_HTTP, F("Uploaded %s (%u bytes)"), fsUploadFile.name(), upload->totalSize);
-            fsUploadFile.close();
 
-            // Redirect to /config/hasp page. This flushes the web buffer and frees the memory
-            webServer.sendHeader(String(F("Location")), String(F("/config/hasp")), true);
-            webServer.send_P(302, PSTR("text/plain"), "");
-        } else {
-            webServer.send_P(400, PSTR("text/plain"), "Bad Request");
+                // Redirect to /config/hasp page. This flushes the web buffer and frees the memory
+                webServer.sendHeader(String(F("Location")), String(F("/config/hasp")), true);
+                webServer.send_P(302, PSTR("text/plain"), "");
+            }
+            haspProgressVal(255);
+            break;
         }
-        haspProgressVal(255);
+        default:
+            LOG_WARNING(TAG_HTTP, F("File upload aborted"));
+            webServer.send_P(400, PSTR("text/plain"), PSTR("File upload aborted"));
+            fsUploadFile.close();
+            fsUploadFile = File();
     }
 }
 
@@ -2002,7 +2109,8 @@ static void webHandleFirmware()
         httpMessage += F("<h2>" D_HTTP_FIRMWARE_UPGRADE "</h2>");
 
         // Form
-        httpMessage += F("<div class='container'><form method='POST' action='/update' enctype='multipart/form-data' id='ota'>");
+        httpMessage +=
+            F("<div class='container'><form method='POST' action='/update' enctype='multipart/form-data' id='ota'>");
 
         // File
         httpMessage +=
