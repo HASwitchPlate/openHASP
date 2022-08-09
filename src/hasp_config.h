@@ -80,6 +80,7 @@ const char FP_HASP[] PROGMEM  = "hasp";
 const char FP_GUI[] PROGMEM   = "gui";
 const char FP_DEBUG[] PROGMEM = "debug";
 const char FP_TIME[] PROGMEM  = "time";
+const char FP_OTA[] PROGMEM   = "ota";
 
 #endif
 
