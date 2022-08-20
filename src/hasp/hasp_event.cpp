@@ -365,13 +365,13 @@ void swipe_event_handler(lv_obj_t* obj, lv_event_t event)
         lv_gesture_dir_t dir = lv_indev_get_gesture_dir(lv_indev_get_act());
         switch(dir) {
             case LV_GESTURE_DIR_LEFT:
-                haspPages.next(LV_SCR_LOAD_ANIM_NONE);
+                haspPages.next(LV_SCR_LOAD_ANIM_NONE, 500, 0);
                 break;
             case LV_GESTURE_DIR_RIGHT:
-                haspPages.prev(LV_SCR_LOAD_ANIM_NONE);
+                haspPages.prev(LV_SCR_LOAD_ANIM_NONE, 500, 0);
                 break;
             case LV_GESTURE_DIR_BOTTOM:
-                haspPages.back(LV_SCR_LOAD_ANIM_NONE);
+                haspPages.back(LV_SCR_LOAD_ANIM_NONE, 500, 0);
                 break;
             default:
                 return;
@@ -488,16 +488,16 @@ void generic_event_handler(lv_obj_t* obj, lv_event_t event)
             lv_scr_load_anim_t transitionid = (lv_scr_load_anim_t)obj->user_data.transitionid;
             switch(obj->user_data.actionid) {
                 case HASP_NUM_PAGE_PREV:
-                    haspPages.prev(transitionid);
+                    haspPages.prev(transitionid, 500, 0);
                     break;
                 case HASP_NUM_PAGE_BACK:
-                    haspPages.back(transitionid);
+                    haspPages.back(transitionid, 500, 0);
                     break;
                 case HASP_NUM_PAGE_NEXT:
-                    haspPages.next(transitionid);
+                    haspPages.next(transitionid, 500, 0);
                     break;
                 default:
-                    haspPages.set(obj->user_data.actionid, transitionid);
+                    haspPages.set(obj->user_data.actionid, transitionid, 500, 0);
             }
             dispatch_current_page();
         }

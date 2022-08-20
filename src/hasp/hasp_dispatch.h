@@ -58,10 +58,11 @@ void dispatch_parse_jsonl(std::istream& stream, uint8_t& saved_page_id);
 void dispatch_clear_page(const char* page);
 void dispatch_json_error(uint8_t tag, DeserializationError& jsonError);
 
-void dispatch_set_page(uint8_t pageid, lv_scr_load_anim_t effectid);
+void dispatch_set_page(uint8_t pageid, lv_scr_load_anim_t animation, uint32_t time, uint32_t delay);
 void dispatch_page_next(lv_scr_load_anim_t effectid);
 void dispatch_page_prev(lv_scr_load_anim_t effectid);
 void dispatch_page_back(lv_scr_load_anim_t effectid);
+void dispatch_page(const char*, const char* payload, uint8_t source);
 
 bool dispatch_factory_reset();
 void dispatch_reboot(bool saveConfig);

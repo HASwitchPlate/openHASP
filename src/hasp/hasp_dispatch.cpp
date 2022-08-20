@@ -776,53 +776,71 @@ void dispatch_current_page()
 // Dispatch Page Get or Set
 void dispatch_page_next(lv_scr_load_anim_t animation)
 {
-    haspPages.next(animation);
+    haspPages.next(animation, 500, 0);
     dispatch_current_page();
 }
 
 void dispatch_page_prev(lv_scr_load_anim_t animation)
 {
-    haspPages.prev(animation);
+    haspPages.prev(animation, 500, 0);
     dispatch_current_page();
 }
 
 void dispatch_page_back(lv_scr_load_anim_t animation)
 {
-    haspPages.back(animation);
+    haspPages.back(animation, 500, 0);
     dispatch_current_page();
 }
 
 void dispatch_set_page(uint8_t pageid)
 {
-    dispatch_set_page(pageid, LV_SCR_LOAD_ANIM_NONE);
+    dispatch_set_page(pageid, LV_SCR_LOAD_ANIM_NONE, 500, 0);
 }
 
-void dispatch_set_page(uint8_t pageid, lv_scr_load_anim_t animation)
+void dispatch_set_page(uint8_t pageid, lv_scr_load_anim_t animation, uint32_t time, uint32_t delay)
 {
-    haspPages.set(pageid, animation);
-    dispatch_current_page();
+    haspPages.set(pageid, animation, time, delay);
 }
 
-void dispatch_page(const char*, const char* page, uint8_t source)
+void dispatch_page(const char*, const char* payload, uint8_t source)
 {
-    if(strlen(page) == 0) {
+    if(!payload || strlen(payload) == 0) {
         dispatch_current_page(); // No payload, send current page
         return;
     }
 
     lv_scr_load_anim_t animation = LV_SCR_LOAD_ANIM_NONE;
-    if(Parser::is_only_digits(page)) {
-        uint8_t pageid = atoi(page);
-        dispatch_set_page(pageid, animation);
-    } else if(!strcasecmp_P(page, PSTR("prev"))) {
-        dispatch_page_prev(animation);
-    } else if(!strcasecmp_P(page, PSTR("next"))) {
-        dispatch_page_next(animation);
-    } else if(!strcasecmp_P(page, PSTR("back"))) {
-        dispatch_page_back(animation);
-    } else {
-        LOG_WARNING(TAG_MSGR, PSTR(D_DISPATCH_INVALID_PAGE), page);
+    uint32_t time                = 500;
+    uint32_t delay               = 0;
+    uint8_t pageid               = Parser::haspPayloadToPageid(payload);
+
+    if(pageid == 0) {
+        size_t maxsize = (128u * ((strlen(payload) / 128) + 1)) + 128;
+        DynamicJsonDocument json(maxsize);
+
+        // Note: Deserialization needs to be (const char *) so the objects WILL be copied
+        // this uses more memory but otherwise the mqtt receive buffer can get overwritten by the send buffer !!
+        DeserializationError jsonError = deserializeJson(json, payload);
+        json.shrinkToFit();
+
+        if(!jsonError && json.is<JsonObject>()) { // Only JsonObject is valid
+            JsonVariant prop;
+
+            prop = json[F("page")];
+            if(!prop.isNull()) pageid = Parser::haspPayloadToPageid(prop.as<const char*>());
+
+            prop = json[F("transition")];
+            if(!prop.isNull()) animation = (lv_scr_load_anim_t)prop.as<uint8_t>();
+
+            prop = json[F("time")];
+            if(!prop.isNull()) time = prop.as<uint32_t>();
+
+            prop = json[F("delay")];
+            if(!prop.isNull()) delay = prop.as<uint32_t>();
+        }
     }
+
+    dispatch_set_page(pageid, animation, time, delay);
 }
 
 // Clears all fonts
@@ -1122,6 +1140,15 @@ void dispatch_send_sensordata(const char*, const char*, uint8_t source)
 #endif
 }
 
+void dispatch_queue_discovery(const char*, const char*, uint8_t source)
+{
+    long seconds = random(10);
+    if(dispatchSecondsToNextTeleperiod == seconds) seconds++;
+    if(dispatchSecondsToNextSensordata == seconds) seconds++;
+    LOG_VERBOSE(TAG_MSGR, F("Discovery queued in %d seconds"), seconds);
+    dispatchSecondsToNextDiscovery = seconds;
+}
+
 // Periodically publish a JSON string facilitating plate discovery
 void dispatch_send_discovery(const char*, const char*, uint8_t source)
 {
@@ -1169,7 +1196,7 @@ void dispatch_send_discovery(const char*, const char*, uint8_t source)
         default:
             LOG_ERROR(TAG_MQTT, F(D_ERROR_UNKNOWN));
     }
-    dispatchSecondsToNextDiscovery = dispatch_setings.teleperiod;
+    dispatchSecondsToNextDiscovery = dispatch_setings.teleperiod * 2 + random(10);
 
 #endif
 }
@@ -1418,7 +1445,7 @@ void dispatchSetup()
     dispatch_add_command(PSTR("reboot"), dispatch_reboot);
     dispatch_add_command(PSTR("restart"), dispatch_reboot);
     dispatch_add_command(PSTR("screenshot"), dispatch_screenshot);
-    dispatch_add_command(PSTR("discovery"), dispatch_send_discovery);
+    dispatch_add_command(PSTR("discovery"), dispatch_queue_discovery);
     dispatch_add_command(PSTR("factoryreset"), dispatch_factory_reset);
 
     /* obsolete commands */
@@ -1451,21 +1478,18 @@ void dispatchEverySecond()
         dispatchSecondsToNextTeleperiod--;
     } else if(dispatch_setings.teleperiod > 0 && mqttIsConnected()) {
         dispatch_statusupdate(NULL, NULL, TAG_MSGR);
-        dispatchSecondsToNextTeleperiod = dispatch_setings.teleperiod;
     }
 
     if(dispatchSecondsToNextSensordata > 1) {
         dispatchSecondsToNextSensordata--;
     } else if(dispatch_setings.teleperiod > 0 && mqttIsConnected()) {
         dispatch_send_sensordata(NULL, NULL, TAG_MSGR);
-        dispatchSecondsToNextSensordata = dispatch_setings.teleperiod;
     }
 
     if(dispatchSecondsToNextDiscovery > 1) {
         dispatchSecondsToNextDiscovery--;
     } else if(dispatch_setings.teleperiod > 0 && mqttIsConnected()) {
         dispatch_send_discovery(NULL, NULL, TAG_MSGR);
-        dispatchSecondsToNextDiscovery = dispatch_setings.teleperiod;
     }
 #endif
 }

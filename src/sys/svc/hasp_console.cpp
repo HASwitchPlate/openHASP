@@ -158,7 +158,7 @@ IRAM_ATTR void consoleLoop()
                 break;
 
             case(ConsoleInput::KEY_FN)...(ConsoleInput::KEY_FN + 12):
-                dispatch_set_page(keypress - ConsoleInput::KEY_FN, LV_SCR_LOAD_ANIM_NONE);
+                dispatch_set_page(keypress - ConsoleInput::KEY_FN, LV_SCR_LOAD_ANIM_NONE, 500, 0);
                 break;
         }
     }

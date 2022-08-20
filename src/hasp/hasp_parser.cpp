@@ -93,6 +93,25 @@ bool Parser::haspPayloadToColor(const char* payload, lv_color32_t& color)
     return false; /* Color not found */
 }
 
+uint8_t Parser::haspPayloadToPageid(const char* payload)
+{
+    if(!payload || strlen(payload) == 0) return 0;
+
+    uint8_t pageid       = 0;
+    uint8_t current_page = haspPages.get();
+
+    if(!strcasecmp_P(payload, PSTR("prev"))) {
+        pageid = haspPages.get_prev(current_page);
+    } else if(!strcasecmp_P(payload, PSTR("next"))) {
+        pageid = haspPages.get_next(current_page);
+    } else if(!strcasecmp_P(payload, PSTR("back"))) {
+        pageid = haspPages.get_back(current_page);
+    } else if(is_only_digits(payload)) {
+        pageid = atoi(payload);
+    }
+    return pageid;
+}
+
 // Map events to either ON or OFF (UP or DOWN)
 bool Parser::get_event_state(uint8_t eventid)
 {

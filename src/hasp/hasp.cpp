@@ -566,7 +566,7 @@ void haspSetup(void)
 
     hasp_init();
     hasp_load_json();
-    haspPages.set(haspStartPage, LV_SCR_LOAD_ANIM_FADE_ON);
+    haspPages.set(haspStartPage, LV_SCR_LOAD_ANIM_FADE_ON, 500, 0);
 
     // lv_obj_t* obj        = lv_datetime_create(haspPages.get_obj(haspPages.get()), NULL);
     // obj->user_data.objid = LV_HASP_DATETIME;

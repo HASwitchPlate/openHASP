@@ -1074,8 +1074,9 @@ static void handleFileCreate()
     }
     if(webServer.hasArg(F("page"))) {
         dispatch_wakeup();
-        uint8_t pageid = atoi(webServer.arg(F("page")).c_str());
-        dispatch_set_page(pageid, LV_SCR_LOAD_ANIM_NONE);
+        dispatch_page(NULL, webServer.arg(F("page")).c_str(), TAG_HTTP);
+        // uint8_t pageid = atoi(webServer.arg(F("page")).c_str());
+        // dispatch_set_page(pageid, LV_SCR_LOAD_ANIM_NONE);
     }
     webServer.send(200, PSTR("text/plain"), "");
 }
@@ -2353,7 +2354,8 @@ void httpSetup()
     webServer.on(F("/page/"), []() {
         String pageid = webServer.arg(F("page"));
         webServer.send(200, PSTR("text/plain"), "Page: '" + pageid + "'");
-        dispatch_set_page(pageid.toInt(), LV_SCR_LOAD_ANIM_NONE);
+        dispatch_page(NULL, webServer.arg(F("page")).c_str(), TAG_HTTP);
+        // dispatch_set_page(pageid.toInt(), LV_SCR_LOAD_ANIM_NONE);
     });
 
 #if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0

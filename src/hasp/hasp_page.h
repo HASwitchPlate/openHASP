@@ -26,6 +26,7 @@ namespace hasp {
 
 class Page {
   private:
+    char* _pagenames[HASP_NUM_PAGES + 1];             // index 0 = Page 0
     hasp_page_meta_data_t _meta_data[HASP_NUM_PAGES]; // index 0 = Page 1 etc.
     lv_obj_t* _pages[HASP_NUM_PAGES];                 // index 0 = Page 1 etc.
     uint8_t _current_page;
@@ -36,20 +37,22 @@ class Page {
     void init(uint8_t start_page);
     void clear(uint8_t pageid);
     //    void set(uint8_t pageid);
-    void set(uint8_t pageid, lv_scr_load_anim_t animation);
+    void set(uint8_t pageid, lv_scr_load_anim_t anim_type, uint32_t time, uint32_t delay);
     void swap(lv_obj_t* page, uint8_t id);
 
-    void next(lv_scr_load_anim_t animation);
-    void prev(lv_scr_load_anim_t animation);
-    void back(lv_scr_load_anim_t animation);
+    void next(lv_scr_load_anim_t anim_type, uint32_t time, uint32_t delay);
+    void prev(lv_scr_load_anim_t anim_type, uint32_t time, uint32_t delay);
+    void back(lv_scr_load_anim_t anim_type, uint32_t time, uint32_t delay);
 
     uint8_t get_next(uint8_t pageid);
     uint8_t get_prev(uint8_t pageid);
     uint8_t get_back(uint8_t pageid);
+    char* get_name(uint8_t pageid);
 
     void set_next(uint8_t pageid, uint8_t nextid);
     void set_prev(uint8_t pageid, uint8_t previd);
     void set_back(uint8_t pageid, uint8_t backid);
+    void set_name(uint8_t pageid, const char* name);
 
     uint8_t get();
     void load_jsonl(const char* pagesfile);

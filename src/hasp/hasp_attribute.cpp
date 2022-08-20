@@ -2723,6 +2723,19 @@ void hasp_process_obj_attribute(lv_obj_t* obj, const char* attribute, const char
             val = strtol(payload, nullptr, DEC);
             ret = specific_page_attribute(obj, attr_hash, val, update);
             break;
+        case ATTR_NAME: {
+            uint8_t pageid = 99;
+            haspPages.get_id(obj, &pageid);
+            if(update) {
+                haspPages.set_name(pageid, payload);
+                LOG_VERBOSE(TAG_HASP, F("%s %d"), haspPages.get_name(pageid), pageid);
+            } else {
+                text = haspPages.get_name(pageid);
+                LOG_VERBOSE(TAG_HASP, F("%s %d"), haspPages.get_name(pageid), pageid);
+            }
+            ret = HASP_ATTR_TYPE_STR;
+            break;
+        }
 
         case ATTR_DIRECTION:
             val = strtol(payload, nullptr, DEC);

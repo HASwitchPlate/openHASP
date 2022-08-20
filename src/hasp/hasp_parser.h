@@ -9,6 +9,7 @@
 class Parser {
 
   public:
+    static uint8_t haspPayloadToPageid(const char* payload);
     static void ColorToHaspPayload(lv_color_t color, char* payload, size_t len);
     static bool haspPayloadToColor(const char* payload, lv_color32_t& color);
     static bool get_event_state(uint8_t eventid);

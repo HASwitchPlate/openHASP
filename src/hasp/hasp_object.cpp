@@ -109,8 +109,12 @@ void hasp_object_tree(const lv_obj_t* parent, uint8_t pageid, uint16_t level)
 /* Sends the data out on the state/pxby topic */
 void object_dispatch_state(uint8_t pageid, uint8_t btnid, const char* payload)
 {
-    char topic[16];
-    snprintf_P(topic, sizeof(topic), PSTR(HASP_OBJECT_NOTATION), pageid, btnid);
+    char topic[64];
+    char* pagename = haspPages.get_name(pageid);
+    if (pagename)
+        snprintf_P(topic, sizeof(topic), PSTR("%s.b%u"), pagename, btnid);
+    else
+        snprintf_P(topic, sizeof(topic), PSTR(HASP_OBJECT_NOTATION), pageid, btnid);
     dispatch_state_subtopic(topic, payload);
 }
 

@@ -391,6 +391,7 @@ _HASP_ATTRIBUTE(SCALE_END_LINE_WIDTH, scale_end_line_width, lv_style_int_t)
 #define ATTR_NEXT 60915
 #define ATTR_PREV 21587
 #define ATTR_BACK 57799
+#define ATTR_NAME 44331
 
 /* Object Attributes */
 #define ATTR_X 120
