@@ -180,8 +180,7 @@ void Page::set_name(uint8_t pageid, const char* name)
         _pagenames[pageid] = (char*)hasp_calloc(sizeof(char), size);
         LOG_VERBOSE(TAG_HASP, F("%s - %d"), __FILE__, __LINE__);
         if(_pagenames[pageid] == NULL) return;
-        memset(_pagenames[pageid], 0, size);
-        strlcpy(_pagenames[pageid], name, size);
+        strncpy(_pagenames[pageid], name, size);
         LOG_VERBOSE(TAG_HASP, F("%s"), _pagenames[pageid]);
     }
     LOG_VERBOSE(TAG_HASP, F("%s - %d"), __FILE__, __LINE__);
