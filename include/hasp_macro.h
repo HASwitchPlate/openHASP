@@ -13,6 +13,14 @@
 #endif
 
 #if defined(WINDOWS) || defined(POSIX)
+#define HASP_RANDOM(x) rand() * x
+#elif defined(ARDUINO)
+#define HASP_RANDOM(x) random(x)
+#else
+#define HASP_RANDOM(x) random() * x
+#endif
+
+#if defined(WINDOWS) || defined(POSIX)
 #define LOG_OUTPUT(x, ...) printf(__VA_ARGS__)
 #else
 

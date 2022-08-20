@@ -1142,7 +1142,7 @@ void dispatch_send_sensordata(const char*, const char*, uint8_t source)
 
 void dispatch_queue_discovery(const char*, const char*, uint8_t source)
 {
-    long seconds = random(10);
+    long seconds = HASP_RANDOM(10);
     if(dispatchSecondsToNextTeleperiod == seconds) seconds++;
     if(dispatchSecondsToNextSensordata == seconds) seconds++;
     LOG_VERBOSE(TAG_MSGR, F("Discovery queued in %d seconds"), seconds);
@@ -1196,7 +1196,7 @@ void dispatch_send_discovery(const char*, const char*, uint8_t source)
         default:
             LOG_ERROR(TAG_MQTT, F(D_ERROR_UNKNOWN));
     }
-    dispatchSecondsToNextDiscovery = dispatch_setings.teleperiod * 2 + random(10);
+    dispatchSecondsToNextDiscovery = dispatch_setings.teleperiod * 2 + HASP_RANDOM(10);
 
 #endif
 }

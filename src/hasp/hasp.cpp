@@ -221,13 +221,7 @@ void hasp_antiburn_cb(lv_task_t* task)
 
         for(lv_coord_t y = 0; y < lv_obj_get_height(layer); y++) {
             for(lv_coord_t x = 0; x < area.x2; x++) {
-#if defined(WINDOWS) || defined(POSIX)
-                color[x].full = rand() * UINT16_MAX;
-#elif defined(ARDUINO)
-                color[x].full = random(UINT16_MAX);
-#else
-                color[x].full = random() * UINT16_MAX;
-#endif
+                color[x].full = HASP_RANDOM(UINT16_MAX);
             }
             area.y1 = y;
             area.y2 = y;
