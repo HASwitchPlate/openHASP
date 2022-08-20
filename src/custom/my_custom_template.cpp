@@ -46,7 +46,7 @@ void custom_get_sensors(JsonDocument& doc)
     JsonObject sensor = doc.createNestedObject(F("Custom"));
 
     /* Key-Value pair of the sensor value */
-    sensor[F("Random")] = random(256);
+    sensor[F("Random")] = HASP_RANDOM(256);
 }
 
 void custom_topic_payload(const char* topic, const char* payload, uint8_t source){
