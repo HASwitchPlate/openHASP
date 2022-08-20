@@ -99,11 +99,8 @@ int mqtt_send_state(const char* subtopic, const char* payload)
 
 int mqtt_send_discovery(const char* payload, size_t len)
 {
-    char tmp_topic[64];
-    size_t size = sizeof(tmp_topic);
-    snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR(MQTT_PREFIX "/" MQTT_TOPIC_DISCOVERY "/"));
-    size -= strlen(tmp_topic);
-    strlcat(tmp_topic, haspDevice.get_hardware_id(), size);
+    char tmp_topic[128];
+    snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR(MQTT_PREFIX "/" MQTT_TOPIC_DISCOVERY "/%s"),haspDevice.get_hardware_id());
     return mqttPublish(tmp_topic, payload, len, false);
 }
 
