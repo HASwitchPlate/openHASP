@@ -7,13 +7,14 @@
  *      INCLUDES
  *********************/
 #include <stdlib.h>
+#include "ftstdlib.h"
 #include "lv_fs_freetype.h"
 
 /*********************
  *      DEFINES
  *********************/
 #if LV_USE_FS_IF
-#include "lv_fs_if.h"
+#include "lvgl.h"
 
 /**********************
  *      TYPEDEFS
@@ -36,7 +37,7 @@
  **********************/
 
 // FILE * fopen ( const char * filename, const char * mode );
-lv_ft_stream_t* lv_ft_fopen(const char* filename, const char* mode)
+hasp_FILE* lv_ft_fopen(const char* filename, const char* mode)
 {
     lv_fs_file_t* file_p = malloc(sizeof(lv_fs_file_t)); // reserve memory
 
@@ -45,7 +46,7 @@ lv_ft_stream_t* lv_ft_fopen(const char* filename, const char* mode)
         lv_fs_res_t res = lv_fs_open(file_p, filename, rw);
 
         if(res == LV_FS_RES_OK) { // success
-            return (lv_ft_stream_t*)file_p;
+            return (hasp_FILE*)file_p;
         } else {          // error
             free(file_p); // release memory
         }
@@ -55,7 +56,7 @@ lv_ft_stream_t* lv_ft_fopen(const char* filename, const char* mode)
 }
 
 // int fclose ( FILE * stream );
-int lv_ft_fclose(lv_ft_stream_t* stream)
+int lv_ft_fclose(hasp_FILE* stream)
 {
     lv_fs_file_t* f_ptr = (lv_fs_file_t*)stream;
 
@@ -66,7 +67,7 @@ int lv_ft_fclose(lv_ft_stream_t* stream)
 }
 
 // size_t fread ( void * ptr, size_t size, size_t count, FILE * stream );
-size_t lv_ft_fread(void* ptr, size_t size, size_t count, lv_ft_stream_t* stream)
+size_t lv_ft_fread(void* ptr, size_t size, size_t count, hasp_FILE* stream)
 {
     lv_fs_file_t* f_ptr = (lv_fs_file_t*)stream;
     uint32_t bytes_read;
@@ -80,7 +81,7 @@ size_t lv_ft_fread(void* ptr, size_t size, size_t count, lv_ft_stream_t* stream)
 }
 
 // long int ftell ( FILE * stream );
-int lv_ft_ftell(lv_ft_stream_t* stream)
+int lv_ft_ftell(hasp_FILE* stream)
 {
     lv_fs_file_t* f_ptr = (lv_fs_file_t*)stream;
     uint32_t pos;
@@ -92,7 +93,7 @@ int lv_ft_ftell(lv_ft_stream_t* stream)
 }
 
 // int fseek ( FILE * stream, long int offset, int origin );
-int lv_ft_fseek(lv_ft_stream_t* stream, long int offset, int origin)
+int lv_ft_fseek(hasp_FILE* stream, long int offset, int origin)
 {
     lv_fs_file_t* f_ptr = (lv_fs_file_t*)stream;
     uint32_t start      = 0;

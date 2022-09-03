@@ -61,7 +61,7 @@ void filesystemUnzip(const char*, const char* filename, uint8_t source)
                     continue;
                 }
 
-                if(fh.filename_length >= 31) {
+                if(fh.filename_length >= 255) {
                     LOG_WARNING(TAG_FILE, F("filename length too long %d"), fh.filename_length);
                     zipfile.seek(fh.filename_length + fh.extra_length, SeekCur); // skip extra field
                     continue;
@@ -69,7 +69,7 @@ void filesystemUnzip(const char*, const char* filename, uint8_t source)
                     //     LOG_WARNING(TAG_FILE, F("min %d - flag %d - len %d - xtra %d"), fh.min_version, fh.flags,
                     //                 fh.filename_length, fh.extra_length);
                 }
-                char name[32] = {0};
+                char name[257] = {0};
                 name[0]       = '/';
 
                 len = zipfile.read((uint8_t*)&name[1], fh.filename_length);
