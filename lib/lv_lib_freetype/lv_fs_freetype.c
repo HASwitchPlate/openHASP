@@ -7,7 +7,6 @@
  *      INCLUDES
  *********************/
 #include <stdlib.h>
-#include "ftstdlib.h"
 #include "lv_fs_freetype.h"
 
 /*********************
