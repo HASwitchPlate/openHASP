@@ -216,14 +216,11 @@ static void dispatch_output(const char* topic, const char* payload)
     uint8_t pin = atoi(topic);
 
     if(strlen(payload) > 0) {
-
-        size_t maxsize = (128u * ((strlen(payload) / 128) + 1)) + 128;
-        DynamicJsonDocument json(maxsize);
+        StaticJsonDocument<128> json;
 
         // Note: Deserialization needs to be (const char *) so the objects WILL be copied
         // this uses more memory but otherwise the mqtt receive buffer can get overwritten by the send buffer !!
         DeserializationError jsonError = deserializeJson(json, payload);
-        json.shrinkToFit();
 
         if(jsonError) { // Couldn't parse incoming JSON command
             dispatch_json_error(TAG_MSGR, jsonError);
@@ -443,8 +440,8 @@ void dispatch_text_line(const char* cmnd, uint8_t source)
 // Get or Set a part of the config.json file
 void dispatch_config(const char* topic, const char* payload, uint8_t source)
 {
-    DynamicJsonDocument doc(128 * 3);
-    char buffer[128 * 3];
+    StaticJsonDocument<384> doc;
+    char buffer[384];
     JsonObject settings;
     bool update;
 
@@ -603,13 +600,14 @@ void dispatch_parse_json(const char*, const char* payload, uint8_t source)
           strPayload.remove(strPayload.length() - 2, 2);
           strPayload.concat("]");
       }*/
-    size_t maxsize = (128u * ((strlen(payload) / 128) + 1)) + 512;
-    DynamicJsonDocument json(maxsize);
+    // size_t maxsize = (128u * ((strlen(payload) / 128) + 1)) + 512;
+    // DynamicJsonDocument json(maxsize);
+    StaticJsonDocument<1024> json;
 
     // Note: Deserialization needs to be (const char *) so the objects WILL be copied
     // this uses more memory but otherwise the mqtt receive buffer can get overwritten by the send buffer !!
     DeserializationError jsonError = deserializeJson(json, payload);
-    json.shrinkToFit();
+    // json.shrinkToFit();
 
     if(jsonError) { // Couldn't parse incoming JSON command
         dispatch_json_error(TAG_MSGR, jsonError);
@@ -652,7 +650,7 @@ void dispatch_parse_jsonl(std::istream& stream, uint8_t& saved_page_id)
 {
     // uint8_t savedPage = haspPages.get();
     uint16_t line = 1;
-    DynamicJsonDocument jsonl(MQTT_MAX_PACKET_SIZE / 2 + 128);
+    StaticJsonDocument<1024> jsonl;
     DeserializationError jsonError = deserializeJson(jsonl, stream);
 
 #ifdef ARDUINO
@@ -815,13 +813,12 @@ void dispatch_page(const char*, const char* payload, uint8_t source)
     uint8_t pageid               = Parser::haspPayloadToPageid(payload);
 
     if(pageid == 0) {
-        size_t maxsize = (128u * ((strlen(payload) / 128) + 1)) + 128;
-        DynamicJsonDocument json(maxsize);
+        StaticJsonDocument<128> json;
 
         // Note: Deserialization needs to be (const char *) so the objects WILL be copied
         // this uses more memory but otherwise the mqtt receive buffer can get overwritten by the send buffer !!
         DeserializationError jsonError = deserializeJson(json, payload);
-        json.shrinkToFit();
+        // json.shrinkToFit();
 
         if(!jsonError && json.is<JsonObject>()) { // Only JsonObject is valid
             JsonVariant prop;
@@ -884,14 +881,12 @@ void dispatch_moodlight(const char* topic, const char* payload, uint8_t source)
 {
     // Set the current state
     if(strlen(payload) != 0) {
-
-        size_t maxsize = (128u * ((strlen(payload) / 128) + 1)) + 128;
-        DynamicJsonDocument json(maxsize);
+        StaticJsonDocument<128> json;
 
         // Note: Deserialization needs to be (const char *) so the objects WILL be copied
         // this uses more memory but otherwise the mqtt receive buffer can get overwritten by the send buffer !!
         DeserializationError jsonError = deserializeJson(json, payload);
-        json.shrinkToFit();
+        // json.shrinkToFit();
 
         if(jsonError) { // Couldn't parse incoming JSON command
             dispatch_json_error(TAG_MSGR, jsonError);
@@ -944,13 +939,12 @@ void dispatch_backlight(const char*, const char* payload, uint8_t source)
 
     // Set the current state
     if(strlen(payload) != 0) {
-        size_t maxsize = (128u * ((strlen(payload) / 128) + 1)) + 128;
-        DynamicJsonDocument json(maxsize);
+        StaticJsonDocument<128> json;
 
         // Note: Deserialization needs to be (const char *) so the objects WILL be copied
         // this uses more memory but otherwise the mqtt receive buffer can get overwritten by the send buffer !!
         DeserializationError jsonError = deserializeJson(json, payload);
-        json.shrinkToFit();
+        // json.shrinkToFit();
 
         if(jsonError) { // Couldn't parse incoming payload as json
             if(Parser::is_only_digits(payload)) {
@@ -1012,13 +1006,12 @@ void dispatch_web_update(const char*, const char* espOtaUrl, uint8_t source)
 void dispatch_antiburn(const char*, const char* payload, uint8_t source)
 {
     if(strlen(payload) >= 0) {
-        size_t maxsize = (128u * ((strlen(payload) / 128) + 1)) + 128;
-        DynamicJsonDocument json(maxsize);
+        StaticJsonDocument<128> json;
 
         // Note: Deserialization needs to be (const char *) so the objects WILL be copied
         // this uses more memory but otherwise the mqtt receive buffer can get overwritten by the send buffer !!
         DeserializationError jsonError = deserializeJson(json, payload);
-        json.shrinkToFit();
+        // json.shrinkToFit();
         int32_t count   = 30;
         uint32_t period = 1000;
         bool state      = false;

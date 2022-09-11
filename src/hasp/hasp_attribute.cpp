@@ -90,8 +90,9 @@ void my_msgbox_map_clear(lv_obj_t* obj)
 const char** my_map_create(const char* payload)
 {
     // Reserve memory for JsonDocument
-    size_t maxsize = (128u * ((strlen(payload) / 128) + 1)) + 256;
-    DynamicJsonDocument map_doc(maxsize);
+    // size_t maxsize = (128u * ((strlen(payload) / 128) + 1)) + 256;
+    // DynamicJsonDocument map_doc(maxsize);
+    StaticJsonDocument<1024> map_doc;
     DeserializationError jsonError = deserializeJson(map_doc, payload);
 
     if(jsonError) { // Couldn't parse incoming JSON payload
@@ -191,8 +192,9 @@ static bool my_line_set_points(lv_obj_t* obj, const char* payload)
 
     // Create new points
     // Reserve memory for JsonDocument
-    size_t maxsize = (128u * ((strlen(payload) / 128) + 1)) + 256;
-    DynamicJsonDocument doc(maxsize);
+    // size_t maxsize = (128u * ((strlen(payload) / 128) + 1)) + 256;
+    // DynamicJsonDocument doc(maxsize);
+    StaticJsonDocument<1024> doc;
     DeserializationError jsonError = deserializeJson(doc, payload);
 
     if(jsonError) { // Couldn't parse incoming JSON payload
@@ -1640,14 +1642,15 @@ static hasp_attribute_type_t attribute_common_json(lv_obj_t* obj, uint16_t attr_
 
             if(update) {
 
-                size_t maxsize = (512u + JSON_OBJECT_SIZE(25));
-                DynamicJsonDocument json(maxsize);
+                // size_t maxsize = (512u + JSON_OBJECT_SIZE(25));
+                // DynamicJsonDocument json(maxsize);
+                StaticJsonDocument<1024> json;
 
                 // Note: Deserialization can to be (char *) so the objects WILL NOT be copied
                 // this uses less memory since the data is already copied from the mqtt receive buffer and cannot
                 // get overwritten by the send buffer !!
                 DeserializationError jsonError = deserializeJson(json, (char*)payload);
-                json.shrinkToFit();
+                // json.shrinkToFit();
 
                 if(jsonError == DeserializationError::Ok) {
                     // Make sure we have a valid JsonObject to start from

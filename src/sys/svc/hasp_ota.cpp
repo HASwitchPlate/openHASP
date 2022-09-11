@@ -79,7 +79,7 @@ extern const uint8_t rootca_crt_bundle_start[] asm("_binary_data_cert_x509_crt_b
 static WiFiClientSecure secureClient;
 std::string otaUrl = "http://ota.netwize.be";
 
-uint16_t arduinoOtaPort       = HASP_ARDUINOOTA_PORT;
+uint16_t arduinoOtaPort      = HASP_ARDUINOOTA_PORT;
 int8_t otaPrecentageComplete = -1;
 
 bool otaUpdateCheck()
@@ -98,7 +98,7 @@ bool otaUpdateCheck()
         return false;
     }
 
-    DynamicJsonDocument updateJson(1024);
+    StaticJsonDocument<1024> updateJson;
     DeserializationError jsonError = deserializeJson(updateJson, updateClient.getString());
     updateClient.end();
 
@@ -198,7 +198,6 @@ void otaEverySecond(void)
     if(otaPrecentageComplete >= 0) otaProgress();
 }
 #endif // HASP_USE_ARDUINOOTA
-
 
 void otaSetup(void)
 {
