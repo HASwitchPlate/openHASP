@@ -6,7 +6,7 @@
 #include "hasplib.h"
 
 #if HASP_USE_MQTT > 0
-#ifdef USE_PAHO
+#ifdef HASP_USE_PAHO
 
 /*******************************************************************************
  * Copyright (c) 2012, 2020 IBM Corp.
@@ -127,7 +127,7 @@ static void mqtt_message_cb(char* topic, char* payload, size_t length)
 #ifdef HASP_USE_HA
     } else if(topic == strstr_P(topic, PSTR("homeassistant/status"))) { // HA discovery topic
         if(mqttHAautodiscover && !strcasecmp_P((char*)payload, PSTR("online"))) {
-            dispatch_current_state( TAG_MQTT);
+            dispatch_current_state(TAG_MQTT);
             mqtt_ha_register_auto_discovery();
         }
         return;
@@ -232,7 +232,9 @@ int mqtt_send_state(const __FlashStringHelper* subtopic, const char* payload)
 int mqtt_send_discovery(const char* payload, size_t len)
 {
     char tmp_topic[128];
-    snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR(MQTT_PREFIX "/" MQTT_TOPIC_DISCOVERY "/%s"),haspDevice.get_hardware_id());
+    // snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR(MQTT_PREFIX "/" MQTT_TOPIC_DISCOVERY
+    // "/%s"),haspDevice.get_hardware_id());
+    snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR(MQTT_PREFIX "/" MQTT_TOPIC_DISCOVERY));
     return mqttPublish(tmp_topic, payload, len, false);
 }
 
@@ -432,5 +434,5 @@ void mqtt_get_info(JsonDocument& doc)
     info[F(D_INFO_FAILED)]    = mqttFailedCount;
 }
 
-#endif // USE_PAHO
+#endif // HASP_USE_PAHO
 #endif // USE_MQTT

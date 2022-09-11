@@ -8,7 +8,7 @@
 #include "hasp_conf.h"
 
 #if HASP_USE_MQTT_ASYNC > 0
-#ifdef USE_PAHO
+#ifdef HASP_USE_PAHO
 
 /*******************************************************************************
  * Copyright (c) 2012, 2020 IBM Corp.
@@ -403,5 +403,5 @@ IRAM_ATTR void mqttLoop(){};
 
 void mqttEvery5Seconds(bool wifiIsConnected){};
 
-#endif // USE_PAHO
+#endif // HASP_USE_PAHO
 #endif // USE_MQTT

@@ -274,7 +274,7 @@ static WiFiSpiClass WiFi;
 #include "mqtt/hasp_mqtt.h"
 
 #if defined(WINDOWS) || defined(POSIX)
-#define USE_PAHO
+#define HASP_USE_PAHO
 #else
 #define HASP_USE_ESP_MQTT
 //#define HASP_USE_PUBSUBCLIENT
