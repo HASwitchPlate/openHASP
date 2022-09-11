@@ -317,6 +317,8 @@ void gpioSetup()
     for(uint8_t i = 0; i < HASP_NUM_GPIO_CONFIG; i++) {
         gpio_setup_pin(i);
     }
+    moodlight_t moodlight = {.brightness = 255};
+    gpio_set_moodlight(moodlight);
 
     LOG_INFO(TAG_GPIO, F(D_SERVICE_STARTED));
 }
