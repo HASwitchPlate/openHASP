@@ -6,6 +6,7 @@
 /*********************
  *      INCLUDES
  *********************/
+#include "lvgl.h"
 #include "lv_fs_if.h"
 
 #if LV_USE_FS_IF

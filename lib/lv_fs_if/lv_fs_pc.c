@@ -6,6 +6,7 @@
 /*********************
  *      INCLUDES
  *********************/
+#include "lvgl.h"
 #include "lv_fs_if.h"
 #if LV_USE_FS_IF
 #if LV_FS_IF_PC != '\0'
@@ -149,6 +150,9 @@ static lv_fs_res_t fs_open(lv_fs_drv_t* drv, void* file_p, const char* path, lv_
     char buf[256];
     sprintf(buf, LV_FS_PC_PATH "\\%s", path);
 #endif
+
+    LV_LOG_USER(LV_FS_PC_PATH "/%%s");
+    LV_LOG_USER(buf);
 
     file_t f = fopen(buf, flags);
     if(f == NULL) return LV_FS_RES_UNKNOWN;
@@ -298,7 +302,7 @@ static lv_fs_res_t fs_trunc(lv_fs_drv_t* drv, void* file_p)
 
     fflush(*fp); /*If not syncronized fclose can write the truncated part*/
     uint32_t p = ftell(*fp);
-  //  ftruncate(fileno(*fp), p);
+    //  ftruncate(fileno(*fp), p);
     return LV_FS_RES_OK;
 }
 
