@@ -18,7 +18,7 @@ void configStop(void);
 
 /* ===== Special Event Processors ===== */
 DeserializationError configParseFile(String& configFile, JsonDocument& settings);
-DeserializationError configRead(JsonDocument& settings, bool setupdebug = false);
+DeserializationError configRead(JsonDocument& settings, bool setupdebug);
 void configWrite(void);
 void configOutput(const JsonObject& settings, uint8_t tag = TAG_CONF);
 bool configClearEeprom(void);

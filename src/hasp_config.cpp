@@ -162,7 +162,7 @@ DeserializationError configParseFile(String& configFile, JsonDocument& settings)
 #endif
 }
 
-DeserializationError configRead(JsonDocument& settings, bool setupdebug =false)
+DeserializationError configRead(JsonDocument& settings, bool setupdebug)
 {
     String configFile((char*)0);
     configFile.reserve(32);
