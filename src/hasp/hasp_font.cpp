@@ -146,7 +146,7 @@ static lv_font_t* font_find_in_list(const char* payload)
 
 static lv_font_t* font_add_to_list(const char* payload)
 {
-    char filename[64];
+    char filename[256];
 
     // Try .bin file
     snprintf_P(filename, sizeof(filename), PSTR("L:\\%s.bin"), payload);
@@ -164,7 +164,7 @@ static lv_font_t* font_add_to_list(const char* payload)
                 uint16_t size = atoi(payload + pos);
                 if(payload[pos - 1] == '_') pos--; // trancate trailing underscore
 
-                char fontname[64];
+                char fontname[256];
                 memset(fontname, 0, sizeof(fontname));
                 strncpy(fontname, payload, pos);
                 snprintf_P(filename, sizeof(filename), PSTR("L:\\%s.%s"), fontname, ext[i]);
