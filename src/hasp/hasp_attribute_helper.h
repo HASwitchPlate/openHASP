@@ -225,7 +225,7 @@ static void my_label_set_text(lv_obj_t* label, const char* text)
 
         switch(hash) {
             case ATTR_TEXT_MAC:
-                if(len == 4) break;
+                if(len == 5) static_text = haspDevice.get_hardware_id();
                 break;
 
 #if HASP_USE_WIFI > 0
