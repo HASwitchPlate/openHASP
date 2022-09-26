@@ -272,7 +272,6 @@ static void wifi_callback(WiFiEvent_t event, WiFiEventInfo_t info)
     switch(event) {
         case SYSTEM_EVENT_WIFI_READY:             /*!< ESP32 WiFi ready */
         case SYSTEM_EVENT_STA_START:              /*!< ESP32 station start */
-        case SYSTEM_EVENT_STA_STOP:               /*!< ESP32 station stop */
         case SYSTEM_EVENT_STA_AUTHMODE_CHANGE:    /*!< the auth mode of AP connected by ESP32 station changed */
         case SYSTEM_EVENT_STA_BSS_RSSI_LOW:       /*!< ESP32 station connected BSS rssi goes below threshold */
         case SYSTEM_EVENT_STA_WPS_ER_SUCCESS:     /*!< ESP32 station wps succeeds in enrollee mode */
@@ -281,7 +280,6 @@ static void wifi_callback(WiFiEvent_t event, WiFiEventInfo_t info)
         case SYSTEM_EVENT_STA_WPS_ER_PIN:         /*!< ESP32 station wps pin code in enrollee mode */
         case SYSTEM_EVENT_STA_WPS_ER_PBC_OVERLAP: /*!< ESP32 station wps overlap in enrollee mode */
         case SYSTEM_EVENT_AP_START:               /*!< ESP32 soft-AP start */
-        case SYSTEM_EVENT_AP_STOP:                /*!< ESP32 soft-AP stop */
         case SYSTEM_EVENT_AP_STACONNECTED:        /*!< a station connected to ESP32 soft-AP */
         case SYSTEM_EVENT_AP_STADISCONNECTED:     /*!< a station disconnected from ESP32 soft-AP */
         case SYSTEM_EVENT_AP_STAIPASSIGNED:       /*!< ESP32 soft-AP assign an IP to a connected station */
@@ -301,6 +299,10 @@ static void wifi_callback(WiFiEvent_t event, WiFiEventInfo_t info)
             LOG_DEBUG(TAG_WIFI, F("Other Event: %d"), event);
             break;
 
+        case SYSTEM_EVENT_AP_STOP:  /*!< ESP32 soft-AP stop */
+        case SYSTEM_EVENT_STA_STOP: /*!< ESP32 station stop */
+            wifiSetup();
+            break;
         case SYSTEM_EVENT_STA_CONNECTED: /*!< ESP32 station connected to AP */
 #if ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(2, 0, 0)
             wifiSsidConnected((const char*)info.wifi_sta_connected.ssid);
