@@ -1,18 +1,19 @@
 /* MIT License - Copyright (c) 2022 Ben Suffolk, ben@vanilla.net
    For full license information read the LICENSE file in the project folder */
 
+#if defined(HASP_USE_ETHSPI)
+
 #include "ETHSPI.h"
 #include "esp_netif.h"
 #include "esp_eth.h"
+#include "esp_eth_mac.h"
 #include "esp_event.h"
 #include "esp_log.h"
 #include "driver/gpio.h"
 #include "sdkconfig.h"
 #include "lwip/err.h"
 #include "lwip/dns.h"
-
 extern void tcpipInit();
-
 
 ETHSPIClass::ETHSPIClass()
  :initialized(false)
@@ -339,3 +340,5 @@ String ETHSPIClass::macAddress(void)
 }
 
 ETHSPIClass ETHSPI;
+
+#endif
