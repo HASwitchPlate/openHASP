@@ -55,9 +55,9 @@ void TftEspi::show_info()
     //    if(tftSetup.r3_y_offset != 0) Serial.printf("R3 y offset = %i \n", tftSetup.r3_y_offset);
     */
 
-    tftPinInfo(F("MOSI"), tftSetup.pin_tft_mosi);
-    tftPinInfo(F("MISO"), tftSetup.pin_tft_miso);
-    tftPinInfo(F("SCLK"), tftSetup.pin_tft_clk);
+    tftPinInfo(F("TFT_MOSI"), tftSetup.pin_tft_mosi);
+    tftPinInfo(F("TFT_MISO"), tftSetup.pin_tft_miso);
+    tftPinInfo(F("TFT_SCLK"), tftSetup.pin_tft_clk);
 
 #if defined(ARDUINO_ARCH_ESP8266)
     if(tftSetup.overlap == true) {
@@ -115,7 +115,7 @@ void TftEspi::splashscreen()
 
 void TftEspi::set_rotation(uint8_t rotation)
 {
-    LOG_VERBOSE(TAG_TFT, F("Rotation   : %d"), rotation);
+    LOG_VERBOSE(TAG_TFT, F("Rotation    : %d"), rotation);
     tft.setRotation(rotation);
 }
 
@@ -124,24 +124,24 @@ void TftEspi::set_invert(bool invert)
     char buffer[4];
     memcpy_P(buffer, invert ? PSTR(D_YES) : PSTR(D_NO), sizeof(buffer));
 
-    LOG_VERBOSE(TAG_TFT, F("Invert Disp: %s"), buffer);
+    LOG_VERBOSE(TAG_TFT, F("Invert Color: %s"), buffer);
     tft.invertDisplay(invert);
 }
 
 /* Update TFT */
 void IRAM_ATTR TftEspi::flush_pixels(lv_disp_drv_t* disp, const lv_area_t* area, lv_color_t* color_p)
 {
-    uint32_t w = (area->x2 - area->x1 + 1);
-    uint32_t h = (area->y2 - area->y1 + 1);
+    uint32_t w   = (area->x2 - area->x1 + 1);
+    uint32_t h   = (area->y2 - area->y1 + 1);
     uint32_t len = w * h;
 
 #ifdef USE_DMA_TO_TFT
-    tft.startWrite(); /* Start new TFT transaction */
+    tft.startWrite();                            /* Start new TFT transaction */
     tft.setAddrWindow(area->x1, area->y1, w, h); /* set the working window */
     tft.pushPixelsDMA((uint16_t*)color_p, len);  /* Write words at once */
     tft.endWrite();                              /* terminate TFT transaction */
 #else
-    tft.startWrite(); /* Start new TFT transaction */
+    tft.startWrite();                            /* Start new TFT transaction */
     tft.setAddrWindow(area->x1, area->y1, w, h); /* set the working window */
     tft.pushPixels((uint16_t*)color_p, len);     /* Write words at once */
     tft.endWrite();                              /* terminate TFT transaction */

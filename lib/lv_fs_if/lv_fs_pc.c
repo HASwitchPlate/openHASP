@@ -151,7 +151,6 @@ static lv_fs_res_t fs_open(lv_fs_drv_t* drv, void* file_p, const char* path, lv_
     sprintf(buf, LV_FS_PC_PATH "\\%s", path);
 #endif
 
-    LV_LOG_USER(LV_FS_PC_PATH "/%%s");
     LV_LOG_USER(buf);
 
     file_t f = fopen(buf, flags);

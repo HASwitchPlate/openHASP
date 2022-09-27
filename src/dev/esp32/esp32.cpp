@@ -21,7 +21,7 @@
 
 #define BACKLIGHT_CHANNEL 0
 
-#if !defined(CONFIG_IDF_TARGET_ESP32S2)
+#if defined(CONFIG_IDF_TARGET_ESP32)
 uint8_t temprature_sens_read();
 #endif
 
@@ -425,7 +425,7 @@ void Esp32Device::get_info(JsonDocument& doc)
 
 void Esp32Device::get_sensors(JsonDocument& doc)
 {
-#if !defined(CONFIG_IDF_TARGET_ESP32S2)
+#if defined(CONFIG_IDF_TARGET_ESP32)
     JsonObject sensor        = doc.createNestedObject(F("ESP32"));
     uint32_t temp            = (temprature_sens_read() - 32) * 100 / 1.8;
     sensor[F("Temperature")] = serialized(String(1.0f * temp / 100, 2));
