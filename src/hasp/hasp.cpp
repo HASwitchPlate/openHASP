@@ -716,7 +716,7 @@ void hasp_get_info(JsonDocument& doc)
     info[F(D_INFO_FREE_HEAP)] = size_buf;
     Parser::format_bytes(haspDevice.get_free_max_block(), size_buf, sizeof(size_buf));
     info[F(D_INFO_FREE_BLOCK)]    = size_buf;
-    info[F(D_INFO_FRAGMENTATION)] = std::string(haspDevice.get_heap_fragmentation()) + "%";
+    info[F(D_INFO_FRAGMENTATION)] = std::to_string(haspDevice.get_heap_fragmentation()) + "%";
 
 #if ARDUINO_ARCH_ESP32
     if(psramFound()) {
@@ -734,7 +734,7 @@ void hasp_get_info(JsonDocument& doc)
     info[F(D_INFO_TOTAL_MEMORY)] = size_buf;
     Parser::format_bytes(mem_mon.free_size, size_buf, sizeof(size_buf));
     info[F(D_INFO_FREE_MEMORY)]   = size_buf;
-    info[F(D_INFO_FRAGMENTATION)] = std::string(mem_mon.frag_pct) + "%";
+    info[F(D_INFO_FRAGMENTATION)] = std::to_string(mem_mon.frag_pct) + "%";
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
