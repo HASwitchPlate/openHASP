@@ -54,6 +54,7 @@ void guiCalibrate(void);
 void guiTakeScreenshot(const char* pFileName); // to file
 void guiTakeScreenshot(void);                  // webclient
 bool guiScreenshotIsDirty();
+uint32_t guiScreenshotEtag();
 
 /* ===== Read/Write Configuration ===== */
 #if HASP_USE_CONFIG > 0

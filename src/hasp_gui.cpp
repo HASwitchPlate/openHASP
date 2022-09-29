@@ -18,8 +18,6 @@
 
 //#include "tpcal.h"
 
-//#include "Ticker.h"
-
 #define BACKLIGHT_CHANNEL 0 // pwm channel 0-15
 
 #if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
@@ -50,23 +48,11 @@ lv_obj_t* cursor;
 uint16_t tft_width  = TFT_WIDTH;
 uint16_t tft_height = TFT_HEIGHT;
 
-bool screenshotIsDirty = true;
+bool screenshotIsDirty  = true;
+uint32_t screenshotEtag = 0;
 
 static lv_disp_buf_t disp_buf;
 
-// #if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
-// static Ticker tick; /* timer for interrupt handler */
-// #else
-// static Ticker tick(lv_tick_handler, LVGL_TICK_PERIOD); // guiTickPeriod);
-// #endif
-
-/* **************************** GUI TICKER ************************************** */
-
-/* Interrupt driven periodic handler */
-// static void ICACHE_RAM_ATTR lv_tick_handler(void)
-// {
-//     lv_tick_inc(LVGL_TICK_PERIOD);
-// }
 
 static inline void gui_init_lvgl()
 {
@@ -155,6 +141,13 @@ IRAM_ATTR void gui_flush_cb(lv_disp_drv_t* disp, const lv_area_t* area, lv_color
     screenshotIsDirty = true;
 }
 
+IRAM_ATTR void gui_monitor_cb(lv_disp_drv_t* disp_drv, uint32_t time, uint32_t px)
+{
+    // if(screenshotIsDirty) return;
+    LOG_DEBUG(TAG_GUI, F("The Screen is dirty"));
+    screenshotIsDirty = true;
+}
+
 IRAM_ATTR bool gui_touch_read(lv_indev_drv_t* indev_driver, lv_indev_data_t* data)
 {
     return haspTouch.read(indev_driver, data);
@@ -162,7 +155,7 @@ IRAM_ATTR bool gui_touch_read(lv_indev_drv_t* indev_driver, lv_indev_data_t* dat
 
 void guiCalibrate(void)
 {
-#if TOUCH_DRIVER == 0x2046 && defined(USER_SETUP_LOADED)
+#if TOUCH_DRIVER == 0x2046 //&& defined(USER_SETUP_LOADED)
 #ifdef TOUCH_CS
     haspTouch.calibrate(gui_settings.cal_data);
 #endif
@@ -324,6 +317,7 @@ void guiSetup()
     lv_disp_set_rotation(display, rotation[(4 + gui_settings.rotation - TFT_ROTATION) % 4]);
 
 #endif
+    disp_drv.monitor_cb = gui_monitor_cb;
 
     /* Initialize the touch pad */
     static lv_indev_drv_t indev_drv;
@@ -377,7 +371,6 @@ void guiSetup()
     lv_obj_set_style_local_bg_color(lv_layer_sys(), LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_BLACK);
     lv_obj_set_style_local_bg_opa(lv_layer_sys(), LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_0);
 
-    // guiStart(); // Ticker
     LOG_INFO(TAG_LVGL, F(D_SERVICE_STARTED));
 }
 
@@ -397,26 +390,6 @@ IRAM_ATTR void guiLoop(void)
 void guiEverySecond(void)
 {
     // nothing
-}
-
-void guiStart()
-{
-    /*Initialize the graphics library's tick*/
-    // #if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
-    //     tick.attach_ms(LVGL_TICK_PERIOD, lv_tick_handler);
-    // #else
-    //     tick.start();
-    // #endif
-}
-
-void guiStop()
-{
-    /*Deinitialize the graphics library's tick*/
-    // #if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
-    //     tick.detach();
-    // #else
-    //     tick.stop();
-    // #endif
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -484,6 +457,8 @@ bool guiGetConfig(const JsonObject& settings)
 #if TOUCH_DRIVER == 0x2046 && defined(USER_SETUP_LOADED) && defined(TOUCH_CS)
         // tft_espi_set_touch(gui_settings.cal_data);
         haspTft.tft.setTouch(gui_settings.cal_data);
+#elif 0
+        haspTft.tft.setTouchCalibrate(gui_settings.cal_data);
 #endif
     }
 
@@ -723,5 +698,12 @@ void guiTakeScreenshot()
 bool guiScreenshotIsDirty()
 {
     return screenshotIsDirty;
+}
+
+uint32_t guiScreenshotEtag()
+{
+    screenshotEtag += screenshotIsDirty;
+    LOG_DEBUG(TAG_GUI, F("The ETag is %u"), screenshotEtag);
+    return screenshotEtag;
 }
 #endif
