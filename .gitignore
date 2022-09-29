@@ -15,6 +15,9 @@ data/*
 !data/script.js.gz
 !data/cert/
 !data/cert/x509_crt_bundle.bin
+!data/static/
+!data/static/*.gz
+data/static/*.js
 src/user_setups/active/*
 include/user_config_override.h
 src/user_config_override.h
