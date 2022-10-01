@@ -141,6 +141,12 @@ IRAM_ATTR void networkLoop(void)
 bool networkEvery5Seconds(void)
 {
     if(current_network_state != last_network_state) network_run_scripts();
+#if HASP_USE_ETHERNET > 0
+    networkEvery5Seconds();
+#endif
+#if HASP_USE_WIFI > 0
+    wifiEvery5Seconds();
+#endif
     return current_network_state;
 }
 

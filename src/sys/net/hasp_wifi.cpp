@@ -299,10 +299,6 @@ static void wifi_callback(WiFiEvent_t event, WiFiEventInfo_t info)
             LOG_DEBUG(TAG_WIFI, F("Other Event: %d"), event);
             break;
 
-        case SYSTEM_EVENT_AP_STOP:  /*!< ESP32 soft-AP stop */
-        case SYSTEM_EVENT_STA_STOP: /*!< ESP32 station stop */
-            wifiSetup();
-            break;
         case SYSTEM_EVENT_STA_CONNECTED: /*!< ESP32 station connected to AP */
 #if ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(2, 0, 0)
             wifiSsidConnected((const char*)info.wifi_sta_connected.ssid);
@@ -311,6 +307,10 @@ static void wifi_callback(WiFiEvent_t event, WiFiEventInfo_t info)
 #endif
             break;
 
+        case SYSTEM_EVENT_AP_STOP:          /*!< ESP32 soft-AP stop */
+        case SYSTEM_EVENT_STA_STOP:         /*!< ESP32 station stop */
+                                            // wifiSetup();
+                                            // break;
         case SYSTEM_EVENT_STA_LOST_IP:      /*!< ESP32 station lost IP and the IP is reset to 0 */
         case SYSTEM_EVENT_STA_DISCONNECTED: /*!< ESP32 station disconnected from AP */
 #if ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(2, 0, 0)
@@ -497,7 +497,7 @@ bool wifiEvery5Seconds()
         return false;
     }
 #else
-    if(WiFi.getMode() != WIFI_STA) {
+    if(WiFi.getMode() == WIFI_AP) {
         return false;
     }
 #endif
