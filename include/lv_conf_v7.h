@@ -81,7 +81,7 @@ typedef int16_t lv_coord_t;
 #define _lv_img_decoder_t _lv_img_decoder
 
   /* 1: use custom malloc/free, 0: use the built-in `lv_mem_alloc` and `lv_mem_free` */
-#define LV_MEM_CUSTOM      0
+#define LV_MEM_CUSTOM      1
 #if LV_MEM_CUSTOM == 0
 /* Size of the memory used by `lv_mem_alloc` in bytes (>= 2kB)*/
 
@@ -101,19 +101,6 @@ typedef int16_t lv_coord_t;
 #endif
 #endif // LV_MEM_SIZE
 
-#ifndef LV_VDB_SIZE
-#if defined(ARDUINO_ARCH_ESP8266)
-#  define LV_VDB_SIZE    (8 * 1024U)   // Minimum 8 Kb
-#elif defined(ESP32S2)
-#  define LV_VDB_SIZE    (16 * 1024U)  // 16kB draw buffer
-#elif defined(ARDUINO_ARCH_ESP32)
-#  define LV_VDB_SIZE    (32 * 1024U)  // 32kB draw buffer
-#else
-#  define LV_VDB_SIZE    (128 * 1024U) // native app
-#endif
-#endif // LV_VDB_SIZE
-
-
 /* Complier prefix for a big array declaration */
 #  define LV_MEM_ATTR
 
@@ -126,10 +113,24 @@ typedef int16_t lv_coord_t;
  /* Automatically defrag. on free. Defrag. means joining the adjacent free cells. */
 #  define LV_MEM_AUTO_DEFRAG  1
 #else       /*LV_MEM_CUSTOM*/
-#  define LV_MEM_CUSTOM_INCLUDE <stdlib.h>   /*Header for the dynamic memory function*/
-#  define LV_MEM_CUSTOM_ALLOC   malloc       /*Wrapper to malloc*/
-#  define LV_MEM_CUSTOM_FREE    free         /*Wrapper to free*/
+#define LV_MEM_CUSTOM_INCLUDE <stdlib.h>   /*Header for the dynamic memory function*/
+#define LV_MEM_CUSTOM_ALLOC   malloc       /*Wrapper to malloc*/
+#define LV_MEM_CUSTOM_FREE    free         /*Wrapper to free*/
 #endif     /*LV_MEM_CUSTOM*/
+
+#ifndef LV_VDB_SIZE
+#if defined(ARDUINO_ARCH_ESP8266)
+#  define LV_VDB_SIZE    (8 * 1024U)   // Minimum 8 Kb
+#elif defined(ESP32S2)
+#  define LV_VDB_SIZE    (16 * 1024U)  // 16kB draw buffer
+#elif defined(ESP32S3)
+#  define LV_VDB_SIZE    (32 * 1024U)  // 16kB draw buffer
+#elif defined(ARDUINO_ARCH_ESP32)
+#  define LV_VDB_SIZE    (32 * 1024U)  // 32kB draw buffer
+#else
+#  define LV_VDB_SIZE    (128 * 1024U) // native app
+#endif
+#endif // LV_VDB_SIZE
 
 /* Garbage Collector settings
  * Used if lvgl is binded to higher level language and the memory is managed by that language */
