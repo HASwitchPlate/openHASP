@@ -50,9 +50,9 @@ uint16_t tft_height = TFT_HEIGHT;
 
 bool screenshotIsDirty  = true;
 uint32_t screenshotEtag = 0;
+void (*drv_display_flush_cb)(struct _disp_drv_t* disp_drv, const lv_area_t* area, lv_color_t* color_p);
 
 static lv_disp_buf_t disp_buf;
-
 
 static inline void gui_init_lvgl()
 {
@@ -139,6 +139,27 @@ IRAM_ATTR void gui_flush_cb(lv_disp_drv_t* disp, const lv_area_t* area, lv_color
 {
     haspTft.flush_pixels(disp, area, color_p);
     screenshotIsDirty = true;
+}
+
+void gui_antiburn_cb(lv_disp_drv_t* disp, const lv_area_t* area, lv_color_t* color_p)
+{
+    /*  uint32_t w   = (area->x2 - area->x1 + 1);
+        uint32_t h   = (area->y2 - area->y1 + 1);
+        uint32_t len = w * h;
+
+        lv_color_t dots[w];
+        lv_area_t line = *area;
+
+        for(lv_coord_t y = 0; y < h; y++) {
+            for(lv_coord_t x = 0; x < w; x++) {
+                dots[x].full = HASP_RANDOM(UINT16_MAX);
+            }
+            line.y1 = area->y1 + y;
+            line.y2 = line.y1;
+            haspTft.flush_pixels(disp, &line, dots);
+        } */
+    /* Tell lvgl that flushing is done */
+    lv_disp_flush_ready(disp);
 }
 
 IRAM_ATTR void gui_monitor_cb(lv_disp_drv_t* disp_drv, uint32_t time, uint32_t px)
@@ -602,8 +623,7 @@ static void gui_screenshot_to_file(lv_disp_drv_t* disp, const lv_area_t* area, l
     if(res != len) gui_flush_not_complete();
 
     // indirect callback to flush screenshot data to the screen
-    // drv_display_flush_cb(disp, area, color_p);
-    haspTft.flush_pixels(disp, area, color_p);
+    drv_display_flush_cb(disp, area, color_p);
 }
 
 /** Take Screenshot.
@@ -628,14 +648,13 @@ void guiTakeScreenshot(const char* pFileName)
             LOG_VERBOSE(TAG_GUI, F("Bitmap header written"));
 
             /* Refresh screen to screenshot callback */
-            lv_disp_t* disp = lv_disp_get_default();
-            void (*flush_cb)(struct _disp_drv_t * disp_drv, const lv_area_t* area, lv_color_t* color_p);
-            flush_cb              = disp->driver.flush_cb; /* store callback */
+            lv_disp_t* disp       = lv_disp_get_default();
+            drv_display_flush_cb  = disp->driver.flush_cb; /* store callback */
             disp->driver.flush_cb = gui_screenshot_to_file;
 
             lv_obj_invalidate(lv_scr_act());
-            lv_refr_now(NULL);                /* Will call our disp_drv.disp_flush function */
-            disp->driver.flush_cb = flush_cb; /* restore callback */
+            lv_refr_now(NULL);                            /* Will call our disp_drv.disp_flush function */
+            disp->driver.flush_cb = drv_display_flush_cb; /* restore callback */
 
             LOG_VERBOSE(TAG_GUI, F("Bitmap data flushed to %s"), pFileName);
 
@@ -660,8 +679,7 @@ static void gui_screenshot_to_http(lv_disp_drv_t* disp, const lv_area_t* area, l
     if(res != len) gui_flush_not_complete();
 
     // indirect callback to flush screenshot data to the screen
-    // drv_display_flush_cb(disp, area, color_p);
-    haspTft.flush_pixels(disp, area, color_p);
+    drv_display_flush_cb(disp, area, color_p);
 }
 
 /** Take Screenshot.
@@ -680,13 +698,12 @@ void guiTakeScreenshot()
         LOG_VERBOSE(TAG_GUI, F("Bitmap header sent"));
 
         /* Refresh screen to screenshot callback */
-        lv_disp_t* disp = lv_disp_get_default();
-        void (*flush_cb)(struct _disp_drv_t * disp_drv, const lv_area_t* area, lv_color_t* color_p);
-        flush_cb              = disp->driver.flush_cb; /* store callback */
+        lv_disp_t* disp       = lv_disp_get_default();
+        drv_display_flush_cb  = disp->driver.flush_cb; /* store callback */
         disp->driver.flush_cb = gui_screenshot_to_http;
         lv_obj_invalidate(lv_scr_act());
-        lv_refr_now(NULL);                /* Will call our disp_drv.disp_flush function */
-        disp->driver.flush_cb = flush_cb; /* restore callback */
+        lv_refr_now(NULL);                            /* Will call our disp_drv.disp_flush function */
+        disp->driver.flush_cb = drv_display_flush_cb; /* restore callback */
         screenshotIsDirty     = false;
 
         LOG_VERBOSE(TAG_GUI, F("Bitmap data flushed to webclient"));

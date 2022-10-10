@@ -56,6 +56,10 @@ void guiTakeScreenshot(void);                  // webclient
 bool guiScreenshotIsDirty();
 uint32_t guiScreenshotEtag();
 
+/* ===== Callbacks ===== */
+void gui_flush_cb(lv_disp_drv_t* disp, const lv_area_t* area, lv_color_t* color_p);
+void gui_antiburn_cb(lv_disp_drv_t* disp, const lv_area_t* area, lv_color_t* color_p);
+
 /* ===== Read/Write Configuration ===== */
 #if HASP_USE_CONFIG > 0
 bool guiGetConfig(const JsonObject& settings);

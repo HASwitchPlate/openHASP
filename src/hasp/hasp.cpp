@@ -186,10 +186,15 @@ static lv_task_t* antiburn_task;
 
 bool hasp_stop_antiburn()
 {
-    bool changed    = false;
-    lv_obj_t* layer = lv_disp_get_layer_sys(NULL);
+    bool changed = false;
 
+    /* Refresh screen to flush callback */
+    lv_disp_t* disp       = lv_disp_get_default();
+    disp->driver.flush_cb = gui_flush_cb;
+
+    // lv_obj_t* layer = lv_disp_get_layer_sys(NULL);
     // if(layer) lv_obj_set_style_local_bg_opa(layer, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_TRANSP);
+
     if(antiburn_task) {
         lv_task_del(antiburn_task);
         lv_obj_invalidate(lv_scr_act());
@@ -197,8 +202,8 @@ bool hasp_stop_antiburn()
     }
     antiburn_task = NULL;
     hasp_set_wakeup_touch(haspDevice.get_backlight_power() == false); // enabled if backlight is OFF
-    gui_hide_pointer(false);
 
+    // gui_hide_pointer(false);
     return changed;
 }
 
@@ -208,7 +213,6 @@ void hasp_antiburn_cb(lv_task_t* task)
     if(layer) {
         // lv_color_t color[5] = {LV_COLOR_BLACK, LV_COLOR_WHITE, LV_COLOR_RED, LV_COLOR_LIME, LV_COLOR_BLUE};
         // lv_obj_set_style_local_bg_color(layer, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, color[task->repeat_count % 5]);
-        // lv_obj_set_style_local_bg_opa(layer, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_COVER);
         lv_disp_t* disp         = lv_disp_get_default();
         lv_disp_drv_t* disp_drv = &disp->driver;
         lv_area_t area;
@@ -231,6 +235,9 @@ void hasp_antiburn_cb(lv_task_t* task)
         if(task->repeat_count != 1) return; // don't stop yet
     }
 
+    // lv_obj_invalidate(lv_scr_act());
+    if(task->repeat_count != 1) return; // don't stop yet
+
     // task is about to get deleted
     hasp_stop_antiburn();
     dispatch_state_antiburn(HASP_EVENT_OFF);
@@ -245,13 +252,21 @@ void hasp_set_antiburn(int32_t repeat_count, uint32_t period)
         lv_obj_t* layer = lv_disp_get_layer_sys(NULL);
         if(!layer) return;
 
-        if(!antiburn_task) antiburn_task = lv_task_create(hasp_antiburn_cb, period, LV_TASK_PRIO_LOWEST, NULL);
+        if(!antiburn_task) antiburn_task = lv_task_create(hasp_antiburn_cb, period, LV_TASK_PRIO_LOW, NULL);
         if(antiburn_task) {
+            // lv_obj_set_style_local_bg_color(layer, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_BLACK);
+            // lv_obj_set_style_local_bg_opa(layer, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_COVER);
             lv_obj_set_event_cb(layer, first_touch_event_handler);
             lv_obj_set_click(layer, true);
             lv_task_set_repeat_count(antiburn_task, repeat_count);
             lv_task_set_period(antiburn_task, period);
-            gui_hide_pointer(true);
+            //  gui_hide_pointer(true);
+
+            /* Refresh screen to antiburn callback */
+            lv_disp_t* disp       = lv_disp_get_default();
+            disp->driver.flush_cb = gui_antiburn_cb;
+            lv_obj_invalidate(lv_scr_act());
+
         } else {
             LOG_INFO(TAG_HASP, F("Antiburn %s"), D_INFO_FAILED);
         }
