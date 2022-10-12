@@ -32,8 +32,8 @@ void mqtt_get_info(JsonDocument& doc);
 
 #if HASP_USE_CONFIG > 0
 bool mqttGetConfig(const JsonObject& settings);
-bool mqttSetConfig(const JsonObject& settings);
 #endif
+bool mqttSetConfig(const JsonObject& settings);
 
 #ifndef MQTT_PREFIX
 #define MQTT_PREFIX "hasp"

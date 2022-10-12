@@ -60,7 +60,7 @@ void BindStdHandlesToConsole()
     HANDLE hStdout = CreateFile("CONOUT$", GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL,
                                 OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
     HANDLE hStdin  = CreateFile("CONIN$", GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL,
-                               OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+                                OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 
     SetStdHandle(STD_OUTPUT_HANDLE, hStdout);
     SetStdHandle(STD_ERROR_HANDLE, hStdout);
@@ -123,18 +123,18 @@ void setup()
     // hal_setup();
     guiSetup();
 
-    printf("%s %d\n", __FILE__, __LINE__);
+    LOG_DEBUG(TAG_MAIN, "%s %d", __FILE__, __LINE__);
     dispatchSetup(); // for hasp and oobe
     haspSetup();
 
 #if HASP_USE_MQTT > 0
-    printf("%s %d\n", __FILE__, __LINE__);
+    LOG_DEBUG(TAG_MAIN, "%s %d", __FILE__, __LINE__);
     mqttSetup(); // Hasp must be running
     mqttStart();
 #endif
 
 #if HASP_USE_GPIO > 0
-    printf("%s %d\n", __FILE__, __LINE__);
+    LOG_DEBUG(TAG_MAIN, "%s %d", __FILE__, __LINE__);
     gpioSetup();
 #endif
 
@@ -143,7 +143,7 @@ void setup()
 #endif
 
     mainLastLoopTime = millis(); // - 1000; // reset loop counter
-    printf("%s %d\n", __FILE__, __LINE__);
+    LOG_DEBUG(TAG_MAIN, "%s %d", __FILE__, __LINE__);
     // delay(250);
 }
 
@@ -188,6 +188,10 @@ void loop()
             haspDevice.loop_5s();
             gpioEvery5Seconds();
 
+#if defined(HASP_USE_MQTT)
+            mqttEvery5Seconds(true);
+#endif
+
 #if defined(HASP_USE_CUSTOM)
             custom_every_5seconds();
 #endif
@@ -204,20 +208,23 @@ void loop()
     // delay(6);
 }
 
-void usage(const char* progName)
+void usage(const char* progName, const char* version)
 {
-    std::cout << progName << " [options]" << std::endl
+    std::cout << "\n\n"
+              << progName << " " << version << " [options]" << std::endl
               << std::endl
               << "Options:" << std::endl
-              << "    -h | --help        Print this help" << std::endl
-              << "    -n | --name        Plate hostname used in the mqtt topic"
+              << "    -?  | --help        Print this help" << std::endl
+              << "    -w  | --width       Width of the window" << std::endl
+              << "    -h  | --height      Height of the window" << std::endl
+              << "    --mqttname          MQTT device name topic (default: computer hostname)" << std::endl
+              << "    --mqtthost          MQTT broker hostname or IP address" << std::endl
+              << "    --mqttport          MQTT broker port (default: 1883)" << std::endl
+              << "    --mqttuser          MQTT username" << std::endl
+              << "    --mqttpass          MQTT password" << std::endl
+              << "    --mqttgroup         MQTT groupname (default: plates)" << std::endl
               << std::endl
-              //   << "    -b | --broker      Mqtt broker name or ip address" << std::endl
-              //   << "    -P | --port        Mqtt broker port (default: 1883)" << std::endl
-              //   << "    -u | --user        Mqtt username (optional)" << std::endl
-              //   << "    -p | --pass        Mqtt password (optional)" << std::endl
               //   << "    -t | --topic       Base topic of the mqtt messages (default: hasp)" << std::endl
-              //   << "    -g | --group       Group topic of on which to accept incoming messages (default: plates)"
               //   << std::endl
               //   << "    -f | --fullscreen  Open the application fullscreen" << std::endl
               //   << "    -v | --verbose     Verbosity level" << std::endl
@@ -263,28 +270,71 @@ int main(int argc, char* argv[])
     for(count = 0; count < argc; count++)
         std::cout << "  argv[" << count << "]   " << argv[count] << std::endl << std::flush;
 
+    StaticJsonDocument<1024> settings;
+
     for(count = 0; count < argc; count++) {
         if(argv[count][0] == '-') {
 
-            if(strncmp(argv[count], "--help", 6) == 0 || strncmp(argv[count], "-h", 2) == 0) {
+            if(strncmp(argv[count], "--help", 6) == 0 || strncmp(argv[count], "-?", 2) == 0) {
                 showhelp = true;
             }
 
-            if(strncmp(argv[count], "--width", 7) == 0 || strncmp(argv[count], "-x", 2) == 0) {
+            if(strncmp(argv[count], "--width", 7) == 0 || strncmp(argv[count], "-w", 2) == 0) {
                 int w = atoi(argv[count + 1]);
                 if(w > 0) tft_width = w;
             }
 
-            if(strncmp(argv[count], "--height", 8) == 0 || strncmp(argv[count], "-y", 2) == 0) {
+            if(strncmp(argv[count], "--height", 8) == 0 || strncmp(argv[count], "-h", 2) == 0) {
                 int h = atoi(argv[count + 1]);
                 if(h > 0) tft_height = h;
             }
 
-            if(strncmp(argv[count], "--name", 6) == 0 || strncmp(argv[count], "-n", 2) == 0) {
+            if(strncmp(argv[count], "--mqttname", 10) == 0 || strncmp(argv[count], "-n", 2) == 0) {
                 std::cout << "  argv[" << count << "]   " << argv[count] << std::endl << std::flush;
                 fflush(stdout);
                 if(count + 1 < argc) {
                     haspDevice.set_hostname(argv[count + 1]);
+                    settings["mqtt"]["name"] = argv[count + 1];
+                } else {
+                    showhelp = true;
+                }
+            }
+
+            if(strncmp(argv[count], "--mqtthost", 10) == 0) {
+                std::cout << "  argv[" << count << "]   " << argv[count] << std::endl << std::flush;
+                fflush(stdout);
+                if(count + 1 < argc) {
+                    settings["mqtt"]["host"] = argv[count + 1];
+                } else {
+                    showhelp = true;
+                }
+            }
+
+            if(strncmp(argv[count], "--mqttport", 10) == 0) {
+                std::cout << "  argv[" << count << "]   " << argv[count] << std::endl << std::flush;
+                fflush(stdout);
+                if(count + 1 < argc) {
+                    settings["mqtt"]["port"] = atoi(argv[count + 1]);
+                } else {
+                    showhelp = true;
+                }
+            }
+
+            if(strncmp(argv[count], "--mqttuser", 10) == 0) {
+                std::cout << "  argv[" << count << "]   " << argv[count] << std::endl << std::flush;
+                fflush(stdout);
+                if(count + 1 < argc) {
+                    settings["mqtt"]["user"] = argv[count + 1];
+                } else {
+                    showhelp = true;
+                }
+            }
+
+            if(strncmp(argv[count], "--mqttpass", 10) == 0) {
+                std::cout << "  argv[" << count << "]   " << argv[count] << std::endl << std::flush;
+                fflush(stdout);
+                if(count + 1 < argc) {
+                    settings["mqtt"]["pass"] = argv[count + 1];
                 } else {
                     showhelp = true;
                 }
@@ -293,10 +343,10 @@ int main(int argc, char* argv[])
     }
 
     if(showhelp) {
-        usage("openHASP");
+        usage("openHASP", haspDevice.get_version());
 
 #if defined(WINDOWS)
-        WriteConsole(std_out, "bye\n", 3, NULL, NULL);
+        WriteConsole(std_out, "bye\n\n", 3, NULL, NULL);
         std::cout << std::endl << std::flush;
         fflush(stdout);
         FreeConsole();
@@ -305,6 +355,11 @@ int main(int argc, char* argv[])
         return 0;
     }
 
+    char buffer[2048];
+    serializeJson(settings, buffer, sizeof(buffer));
+    std::cout << buffer << std::endl << std::flush;
+    fflush(stdout);
+    mqttSetConfig(settings["mqtt"]);
     // printf("%s %d\n", __FILE__, __LINE__);
     // fflush(stdout);
 
@@ -319,6 +374,14 @@ int main(int argc, char* argv[])
         loop();
     }
     LOG_TRACE(TAG_MAIN, "main loop completed");
+
+#if defined(WINDOWS)
+        WriteConsole(std_out, "bye\n\n", 3, NULL, NULL);
+        std::cout << std::endl << std::flush;
+        fflush(stdout);
+        FreeConsole();
+        exit(0);
+#endif
 
     return 0;
 }

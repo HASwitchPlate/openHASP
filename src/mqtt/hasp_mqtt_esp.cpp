@@ -108,15 +108,7 @@ int mqtt_send_discovery(const char* payload, size_t len)
 // Receive incoming messages
 static void mqtt_message_cb(const char* topic, byte* payload, unsigned int length)
 { // Handle incoming commands from MQTT
-  // if(length + 1 >= mqttClient.getBufferSize()) {
-  //     mqttFailedCount++;
-  //     LOG_ERROR(TAG_MQTT_RCV, F(D_MQTT_PAYLOAD_TOO_LONG), (uint32_t)length);
-  //     return;
-  // } else {
     mqttReceiveCount++;
-    //     payload[length] = '\0';
-    // }
-
     LOG_TRACE(TAG_MQTT_RCV, F("%s = %s"), topic, (char*)payload);
 
     if(topic == strstr(topic, mqttNodeTopic)) { // startsWith mqttNodeTopic

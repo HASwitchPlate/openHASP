@@ -13,11 +13,11 @@
 #endif
 
 #if defined(WINDOWS) || defined(POSIX)
-#define HASP_RANDOM(x) rand() * x
+#define HASP_RANDOM(x) rand() % x
 #elif defined(ARDUINO)
 #define HASP_RANDOM(x) random(x)
 #else
-#define HASP_RANDOM(x) random() * x
+#define HASP_RANDOM(x) random() % x
 #endif
 
 #if defined(WINDOWS) || defined(POSIX)
