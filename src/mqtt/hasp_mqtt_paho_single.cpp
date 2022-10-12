@@ -88,7 +88,7 @@ int mqttPublish(const char* topic, const char* payload, size_t len, bool retain)
 
 void connlost(void* context, char* cause)
 {
-    LOG_WARNING(TAG_MQTT, F(D_MQTT_DISCONNECTED) ": %s", cause);
+    LOG_WARNING(TAG_MQTT, F(D_MQTT_DISCONNECTED ": %s"), cause);
 }
 
 // Receive incoming messages
