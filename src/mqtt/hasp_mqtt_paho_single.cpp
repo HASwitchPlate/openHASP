@@ -234,7 +234,7 @@ int mqtt_send_state(const __FlashStringHelper* subtopic, const char* payload)
 int mqtt_send_discovery(const char* payload, size_t len)
 {
     char tmp_topic[128];
-    snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR(MQTT_PREFIX "/" MQTT_TOPIC_DISCOVERY));
+    snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR(MQTT_PREFIX "/" MQTT_TOPIC_DISCOVERY "/%s"),haspDevice.get_hardware_id());
     return mqttPublish(tmp_topic, payload, len, false);
 }
 
