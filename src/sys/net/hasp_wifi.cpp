@@ -411,24 +411,25 @@ static void wifiReconnect(void)
 
 #elif defined(ARDUINO_ARCH_ESP32)
     // https://github.com/espressif/arduino-esp32/issues/3438#issuecomment-721428310
-    WiFi.persistent(false);
+    WiFi.persistent(true);
     WiFi.disconnect(true);
     WiFi.setHostname(haspDevice.get_hostname());
     WiFi.setSleep(false);
 
-    IPAddress ip((uint32_t)0);
-    IPAddress net((uint32_t)0);
+    IPAddress ip(INADDR_NONE);
     // IPAddress ip(192, 168, 0, 60);
+    IPAddress net(INADDR_NONE);
     // IPAddress net(255, 255, 255, 0);
-    IPAddress gw((uint32_t)0);
-    IPAddress dns1((uint32_t)0);
-    IPAddress dns2((uint32_t)0);
+    IPAddress gw(INADDR_NONE);
+    IPAddress dns1(INADDR_NONE);
+    IPAddress dns2(INADDR_NONE);
 
     if(ip && net)
         WiFi.config(ip, gw, net, dns1, dns2);
     else
-        WiFi.mode(WIFI_STA);
+        WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE, INADDR_NONE, INADDR_NONE);
 
+    WiFi.mode(WIFI_STA);
     WiFi.begin(wifiSsid, wifiPassword);
 #endif
 }
