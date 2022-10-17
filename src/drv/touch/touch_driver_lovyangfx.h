@@ -4,9 +4,10 @@
 #ifndef HASP_LOVYANGFX_TOUCH_DRIVER_H
 #define HASP_LOVYANGFX_TOUCH_DRIVER_H
 
-#ifdef ARDUINO
+#if defined(ARDUINO) && defined(LGFX_USE_V1) && defined(HASP_USE_LGFX_TOUCH)
 #include <Arduino.h>
 #include <Wire.h>
+#include "LovyanGFX.hpp"
 
 #include "touch_driver.h" // base class
 #include "touch_helper.h" // wire scan
@@ -23,20 +24,21 @@ class TouchLovyanGfx : public BaseTouch {
   public:
     IRAM_ATTR bool read(lv_indev_drv_t* indev_driver, lv_indev_data_t* data)
     {
-        int16_t touchX = 0;
-        int16_t touchY = 0;
+        lgfx::v1::touch_point_t tp;
 
-        if(haspTft.tft.getTouch((uint16_t*)&touchX, (uint16_t*)&touchY)) {
+        if(haspTft.tft.getTouch(&tp, 1)) {
             if(hasp_sleep_state != HASP_SLEEP_OFF) hasp_update_sleep_state(); // update Idle
 
-            data->point.x = touchX;
-            data->point.y = touchY;
+            data->point.x = tp.x;
+            data->point.y = tp.y;
             data->state   = LV_INDEV_STATE_PR;
             hasp_set_sleep_offset(0); // Reset the offset
 
-            LOG_VERBOSE(TAG_DRVR, F("Touch: %d %d"), touchX, touchY);
+            LOG_DEBUG(TAG_DRVR, F("Touch: %d %d"), tp.x, tp.y);
+            // HASP_SERIAL.print('#');
         } else {
             data->state = LV_INDEV_STATE_REL;
+            // HASP_SERIAL.print('x');
         }
 
         /*Return `false` because we are not buffering and no more data to read*/
@@ -52,14 +54,14 @@ class TouchLovyanGfx : public BaseTouch {
     void calibrate(uint16_t* calData)
     {
         haspTft.tft.fillScreen(TFT_BLACK);
-        haspTft.tft.setCursor(20, 0);
-        haspTft.tft.setTextFont(1);
-        haspTft.tft.setTextSize(1);
-        haspTft.tft.setTextColor(TFT_WHITE, TFT_BLACK);
+        // haspTft.tft.setCursor(20, 0);
+        // haspTft.tft.setTextFont(1);
+        // haspTft.tft.setTextSize(1);
+        // haspTft.tft.setTextColor(TFT_WHITE, TFT_BLACK);
 
-        // tft.println(PSTR("Touch corners as indicated"));
+        // // tft.println(PSTR("Touch corners as indicated"));
 
-        haspTft.tft.setTextFont(1);
+        // haspTft.tft.setTextFont(1);
         delay(500);
         haspTft.tft.calibrateTouch(calData, TFT_MAGENTA, TFT_BLACK, 15);
         // haspTft.tft.setTouch(calData);
@@ -68,6 +70,7 @@ class TouchLovyanGfx : public BaseTouch {
 
 } // namespace dev
 
+#warning Using Lovyan Touch
 using dev::TouchLovyanGfx;
 extern dev::TouchLovyanGfx haspTouch;
 
