@@ -253,13 +253,13 @@ size_t debugHistoryIndex(size_t num)
 void debugShowHistory()
 {
     size_t num = debugHistorycount();
-    Serial.println();
+    HASP_SERIAL.println();
     for(int i = 0; i <= num; i++) {
-        Serial.print("[");
-        Serial.print(i);
-        Serial.print("] ");
+        HASP_SERIAL.print("[");
+        HASP_SERIAL.print(i);
+        HASP_SERIAL.print("] ");
         size_t pos = debugHistoryIndex(i);
-        if(pos < sizeof(serialInputBuffer)) Serial.println((char *)(serialInputBuffer + pos));
+        if(pos < sizeof(serialInputBuffer)) HASP_SERIAL.println((char *)(serialInputBuffer + pos));
     }
 }
 
@@ -375,18 +375,18 @@ void debugStartSerial()
 
 #if defined(STM32F4xx) || defined(STM32F7xx)
 #ifndef STM32_SERIAL1  // Define what Serial port to use for log output
-    Serial.setRx(PA3); // User Serial2
-    Serial.setTx(PA2);
+    HASP_SERIAL.setRx(PA3); // User Serial2
+    HASP_SERIAL.setTx(PA2);
 #endif
 #endif
 
-    Serial.begin(baudrate); /* prepare for possible serial debug */
+    HASP_SERIAL.begin(baudrate); /* prepare for possible serial debug */
     delay(10);
     Log.registerOutput(0, &Serial, HASP_LOG_LEVEL, true); // LOG_LEVEL_VERBOSE
 
-    Serial.println();
+    HASP_SERIAL.println();
     debugPrintHaspHeader(&Serial);
-    Serial.flush();
+    HASP_SERIAL.flush();
 
     LOG_INFO(TAG_DEBG, F(D_SERVICE_STARTED " @ %u bps"), debugSerialBaud);
     LOG_INFO(TAG_DEBG, F(D_INFO_ENVIRONMENT ": " PIOENV));
@@ -424,12 +424,12 @@ void printLocalTime()
     timeinfo = localtime(&rawtime);
 
     strftime(buffer, sizeof(buffer), "%b %d %H:%M:%S.", timeinfo);
-    Serial.println(buffer);
+    HASP_SERIAL.println(buffer);
     // struct tm timeinfo;
     // time_t now = time(nullptr);
 
     // Serial-.print(ctime(&now));
-    // Serial.print(&timeinfo, " %d %B %Y %H:%M:%S ");
+    // HASP_SERIAL.print(&timeinfo, " %d %B %Y %H:%M:%S ");
 
 #if LWIP_VERSION_MAJOR > 1
 
@@ -438,13 +438,13 @@ void printLocalTime()
         IPAddress sntp   = *sntp_getserver(i);
         const char* name = sntp_getservername(i);
         if(sntp.isSet()) {
-            Serial.printf("sntp%d:     ", i);
+            HASP_SERIAL.printf("sntp%d:     ", i);
             if(name) {
-                Serial.printf("%s (%s) ", name, sntp.toString().c_str());
+                HASP_SERIAL.printf("%s (%s) ", name, sntp.toString().c_str());
             } else {
-                Serial.printf("%s ", sntp.toString().c_str());
+                HASP_SERIAL.printf("%s ", sntp.toString().c_str());
             }
-            Serial.printf("IPv6: %s Reachability: %o\n", sntp.isV6() ? D_YES : D_NO, sntp_getreachability(i));
+            HASP_SERIAL.printf("IPv6: %s Reachability: %o\n", sntp.isV6() ? D_YES : D_NO, sntp_getreachability(i));
         }
     }
 #endif

@@ -202,6 +202,8 @@ enum {
     TAG_CUSTOM = 99
 };
 
+#define HASP_SERIAL Serial
+
 //#define TERM_COLOR_Black "\u001b[30m"
 #define TERM_COLOR_GRAY "\e[37m"
 #define TERM_COLOR_RED "\e[91m"

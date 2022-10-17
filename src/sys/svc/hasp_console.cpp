@@ -19,7 +19,7 @@ extern hasp_http_config_t http_config;
 #endif
 
 // Create a new Stream that buffers all writes to serialClient
-HardwareSerial* bufferedSerialClient = &Serial;
+HardwareSerial* bufferedSerialClient = (HardwareSerial*)&Serial;
 
 uint8_t consoleLoginState   = CONSOLE_UNAUTHENTICATED;
 uint16_t serialPort         = 0;
@@ -129,7 +129,7 @@ void consoleStop()
 {
     console_logoff();
     Log.unregisterOutput(0); // serialClient
-    Serial.end();
+    HASP_SERIAL.end();
 
     delete console;
     console = NULL;

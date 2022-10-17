@@ -87,7 +87,7 @@ static void debugPrintTimestamp(int level, Print* _logOutput)
 static inline void debug_flush()
 {
 #if defined(ARDUINO)
-    Serial.flush();
+    HASP_SERIAL.flush();
 #endif
 
 #if defined(WINDOWS) || defined(POSIX)
