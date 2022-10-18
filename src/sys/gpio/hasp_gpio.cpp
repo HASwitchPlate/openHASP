@@ -8,6 +8,11 @@
 #include "hasp_gpio.h"
 #include "hasp_config.h"
 
+// Device Drivers
+#include "dev/device.h"
+#include "drv/tft/tft_driver.h"
+//#include "drv/touch/touch_driver.h"
+
 #ifdef ARDUINO_ARCH_ESP8266
 #define INPUT_PULLDOWN INPUT
 #endif
@@ -47,9 +52,26 @@ static inline void gpio_update_group(uint8_t group, lv_obj_t* obj, bool power, i
 }
 
 #if defined(ARDUINO_ARCH_ESP32)
-#include "driver/uart.h"
+
+// /**
+//  * @brief ADC digital controller (DMA mode) clock system setting.
+//  *        Calculation formula: controller_clk = (`APLL` or `APB`) / (div_num + div_a / div_b + 1).
+//  *
+//  * @note: The clocks of the DAC digital controller use the ADC digital controller clock divider.
+//  */
+// typedef struct {
+//     bool use_apll;      /*!<true: use APLL clock; false: use APB clock. */
+//     uint32_t div_num;   /*!<Division factor. Range: 0 ~ 255.
+//                             Note: When a higher frequency clock is used (the division factor is less than 9),
+//                             the ADC reading value will be slightly offset. */
+//     uint32_t div_b;     /*!<Division factor. Range: 1 ~ 63. */
+//     uint32_t div_a;     /*!<Division factor. Range: 0 ~ 63. */
+// } adc_digi_clk_t;
+#include "driver/adc.h"
+//#include "driver/dac_common.h"
 #include "driver/ledc.h"
-#include <driver/dac.h>
+#include "driver/uart.h"
+#include "esp32-hal-dac.h"
 
 volatile bool touchdetected        = false;
 RTC_DATA_ATTR int rtcRecordCounter = 0;
@@ -270,12 +292,12 @@ static void gpio_setup_pin(uint8_t index)
             break;
 
         case hasp_gpio_type_t::HASP_DAC:
-#if defined(ARDUINO_ARCH_ESP32)
-            gpio_num_t pin;
-            if(dac_pad_get_io_num(DAC_CHANNEL_1, &pin) == ESP_OK)
-                if(gpio->pin == pin) dac_output_enable(DAC_CHANNEL_1);
-            if(dac_pad_get_io_num(DAC_CHANNEL_2, &pin) == ESP_OK)
-                if(gpio->pin == pin) dac_output_enable(DAC_CHANNEL_2);
+#if defined(CONFIG_IDF_TARGET_ESP32)
+            // gpio_num_t pin;
+            // if(dac_pad_get_io_num(DAC_CHANNEL_1, &pin) == ESP_OK)
+            //     if(gpio->pin == pin) dac_output_enable(DAC_CHANNEL_1);
+            // if(dac_pad_get_io_num(DAC_CHANNEL_2, &pin) == ESP_OK)
+            //     if(gpio->pin == pin) dac_output_enable(DAC_CHANNEL_2);
 #endif
             break;
 
@@ -515,20 +537,21 @@ static inline bool gpio_set_serial_dimmer(hasp_gpio_config_t* gpio)
 
 static inline bool gpio_set_dac_value(hasp_gpio_config_t* gpio)
 {
-#ifdef ARDUINO_ARCH_ESP32
+#if defined(CONFIG_IDF_TARGET_ESP32)
     uint16_t val = gpio_limit(gpio->val, 0, 255);
     gpio_num_t pin;
 
     if(!gpio->power) val = 0;
     if(gpio->inverted) val = 255 - val;
 
-    if(dac_pad_get_io_num(DAC_CHANNEL_1, &pin) == ESP_OK && gpio->pin == pin)
-        dac_output_voltage(DAC_CHANNEL_1, gpio->val);
-    else if(dac_pad_get_io_num(DAC_CHANNEL_2, &pin) == ESP_OK && gpio->pin == pin)
-        dac_output_voltage(DAC_CHANNEL_2, gpio->val);
-    else
-        return false; // not found
-    return true;      // found
+    // if(dac_pad_get_io_num(DAC_CHANNEL_1, &pin) == ESP_OK && gpio->pin == pin)
+    //     dac_output_voltage(DAC_CHANNEL_1, gpio->val);
+    // else if(dac_pad_get_io_num(DAC_CHANNEL_2, &pin) == ESP_OK && gpio->pin == pin)
+    //     dac_output_voltage(DAC_CHANNEL_2, gpio->val);
+    // else
+    //     return false; // not found
+    dacWrite(pin, val);
+    return true; // found
 #else
     return false; // not implemented
 #endif
@@ -710,141 +733,6 @@ void gpio_set_moodlight(moodlight_t& moodlight)
     // TODO: Update objects when the Mood Color Pin is in a group
 }
 
-bool gpioIsSystemPin(uint8_t gpio)
-{
-    if((gpio >= NUM_DIGITAL_PINS) // invalid pins
-
-// Use individual checks instead of switch statement, as some case labels could be duplicated
-#ifdef TOUCH_CS
-       || (gpio == TOUCH_CS)
-#endif
-#ifdef TFT_MOSI
-       || (gpio == TFT_MOSI)
-#endif
-#ifdef TFT_MISO
-       || (gpio == TFT_MISO)
-#endif
-#ifdef TFT_SCLK
-       || (gpio == TFT_SCLK)
-#endif
-#ifdef TFT_CS
-       || (gpio == TFT_CS)
-#endif
-#ifdef TFT_DC
-       || (gpio == TFT_DC)
-#endif
-#ifdef TFT_BL
-       || (gpio == TFT_BL)
-#endif
-#ifdef TFT_RST
-       || (gpio == TFT_RST)
-#endif
-#ifdef TFT_WR
-       || (gpio == TFT_WR)
-#endif
-#ifdef TFT_RD
-       || (gpio == TFT_RD)
-#endif
-#ifdef TFT_D0
-       || (gpio == TFT_D0)
-#endif
-#ifdef TFT_D1
-       || (gpio == TFT_D1)
-#endif
-#ifdef TFT_D2
-       || (gpio == TFT_D2)
-#endif
-#ifdef TFT_D3
-       || (gpio == TFT_D3)
-#endif
-#ifdef TFT_D4
-       || (gpio == TFT_D4)
-#endif
-#ifdef TFT_D5
-       || (gpio == TFT_D5)
-#endif
-#ifdef TFT_D6
-       || (gpio == TFT_D6)
-#endif
-#ifdef TFT_D7
-       || (gpio == TFT_D7)
-#endif
-#ifdef TFT_D8
-       || (gpio == TFT_D8)
-#endif
-#ifdef TFT_D9
-       || (gpio == TFT_D9)
-#endif
-#ifdef TFT_D10
-       || (gpio == TFT_D10)
-#endif
-#ifdef TFT_D11
-       || (gpio == TFT_D11)
-#endif
-#ifdef TFT_D12
-       || (gpio == TFT_D12)
-#endif
-#ifdef TFT_D13
-       || (gpio == TFT_D13)
-#endif
-#ifdef TFT_D14
-       || (gpio == TFT_D14)
-#endif
-#ifdef TFT_D15
-       || (gpio == TFT_D15)
-#endif
-// Cant assign the touch pins to the generic GPIO. Maybe in future if sensors are added
-#ifdef TOUCH_SDA
-       || (gpio == TOUCH_SDA)
-#endif
-#ifdef TOUCH_SCL
-       || (gpio == TOUCH_SCL)
-#endif
-#ifdef TOUCH_IRQ
-       || (gpio == TOUCH_IRQ)
-#endif
-#ifdef TOUCH_RST
-       || (gpio == TOUCH_RST)
-#endif
-
-    ) {
-        return true;
-    } // if tft_espi pins
-
-    // To-do:
-    // Backlight GPIO
-    // Network GPIOs
-    // Serial GPIOs
-    // Tasmota Client GPIOs
-
-    // NG. Remove the checks here since the is_system_pin function does the same check. Best to keep the code in 1 place
-    // only.
-    /*
-    #ifdef ARDUINO_ARCH_ESP32
-        if((gpio >= 6) && (gpio <= 11)) return true;  // integrated SPI flash
-        if((gpio == 37) || (gpio == 38)) return true; // unavailable
-        if(psramFound()) {
-            if((gpio == 16) || (gpio == 17)) return true; // PSRAM
-        }
-    #endif
-
-    #ifdef ARDUINO_ARCH_ESP8266
-        if((gpio >= 6) && (gpio <= 11)) return true; // integrated SPI flash
-        #ifndef TFT_SPI_OVERLAP
-            if((gpio >= 12) && (gpio <= 14)) return true; // HSPI
-        #endif
-    #endif
-    */
-
-    if(haspDevice.is_system_pin(gpio)) return true;
-
-#if defined(HASP_USE_CUSTOM)
-    if(custom_pin_in_use(gpio)) return true;
-#endif
-
-    return false;
-}
-
 bool gpioInUse(uint8_t pin)
 {
     for(uint8_t i = 0; i < HASP_NUM_GPIO_CONFIG; i++) {
@@ -852,6 +740,33 @@ bool gpioInUse(uint8_t pin)
             return true; // pin matches and is in use
         }
     }
+
+    return false;
+}
+
+bool gpioIsSystemPin(uint8_t gpio)
+{
+    if(haspTft.is_driver_pin(gpio)) {
+        LOG_DEBUG(TAG_GPIO, F(D_BULLET D_GPIO_PIN " %d => TFT"), gpio);
+        return true;
+    }
+    if(haspDevice.is_system_pin(gpio)) {
+        LOG_DEBUG(TAG_GPIO, F(D_BULLET D_GPIO_PIN " %d => ESP"), gpio);
+        return true;
+    }
+
+#if defined(HASP_USE_CUSTOM)
+    if(custom_pin_in_use(gpio)) {
+        LOG_DEBUG(TAG_GPIO, F(D_BULLET D_GPIO_PIN " %d => Custom"), gpio);
+        return true;
+    }
+#endif
+
+    // To-do:
+    // Backlight GPIO
+    // Network GPIOs
+    // Serial GPIOs
+    // Tasmota Client GPIOs
 
     return false;
 }
@@ -1001,7 +916,8 @@ void gpio_discovery(JsonObject& input, JsonArray& relay, JsonArray& light, JsonA
                 break;
         }
 
-        if(gpioConfig[i].type >= hasp_gpio_type_t::SWITCH && gpioConfig[i].type <= hasp_gpio_type_t::WINDOW) {
+        if((gpioConfig[i].type >= hasp_gpio_type_t::SWITCH && gpioConfig[i].type <= hasp_gpio_type_t::WINDOW) ||
+           (gpioConfig[i].type >= hasp_gpio_type_t::BUTTON && gpioConfig[i].type <= hasp_gpio_type_t::TOUCH)) {
             JsonArray arr = input[description];
             if(arr.isNull()) arr = input.createNestedArray(description);
             arr.add(gpioConfig[i].pin);

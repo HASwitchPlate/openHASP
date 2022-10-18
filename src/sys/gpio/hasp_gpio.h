@@ -131,8 +131,8 @@ enum hasp_gpio_type_t {
     SHUTTER = 0xBF,
 
     BUTTON             = 0xF0,
-    BUTTON_TOGGLE_ON   = 0xF1,
-    BUTTON_TOGGLE_OFF  = 0xF2,
+    BUTTON_TOGGLE_UP   = 0xF1,
+    BUTTON_TOGGLE_DOWN = 0xF2,
     BUTTON_TOGGLE_BOTH = 0xF3,
     TOUCH              = 0xF4,
 
