@@ -1455,12 +1455,15 @@ static void webHandleGuiConfig()
         httpMessage += getOption(-1, F("None"));
 #if defined(ARDUINO_ARCH_ESP32)
         char buffer[10];
-        uint8_t pins[] = {0, 5, 12, 13, 15, 16, 17, 18, 19, 21, 22, 23, 26, 27, 32};
-        for(uint8_t i = 0; i < sizeof(pins); i++) {
-            // if(!gpioIsSystemPin(pins[i])) {
-            snprintf_P(buffer, sizeof(buffer), PSTR("GPIO %d"), pins[i]);
-            httpMessage += getOption(pins[i], buffer);
-            // }
+        // uint8_t pins[] = {0, 5, 12, 13, 15, 16, 17, 18, 19, 21, 22, 23, 26, 27, 32};
+        // for(uint8_t i = 0; i < sizeof(pins); i++) {
+        for(uint8_t gpio = 0; gpio < NUM_DIGITAL_PINS; gpio++) {
+            if(!gpioIsSystemPin(gpio)) {
+                snprintf_P(buffer, sizeof(buffer), PSTR("GPIO %d"), gpio);
+                httpMessage += getOption(gpio, buffer);
+            } else {
+                LOG_WARNING(TAG_HTTP, F("pin %d"), gpio);
+            }
         }
 #else
         httpMessage += getOption(5, F("D1 - GPIO 5"));
@@ -2471,13 +2474,11 @@ static inline void webStartConfigPortal()
     dnsServer.start(DNS_PORT, "*", apIP);
 #endif // HASP_USE_CAPTIVE_PORTAL
 
-#if HASP_USE_WIFI > 0
-    // reply to all requests with same HTML
-    // webServer.onNotFound([]() { webHandleWifiConfig(); });
-#endif
-
+    webServer.on(F("/vars.css"), httpHandleFileUri);
     webServer.on(F("/style.css"), httpHandleFileUri);
     webServer.on(F("/script.js"), httpHandleFileUri);
+    // reply to all requests with same HTML
+    webServer.onNotFound(webHandleWifiConfig);
 
     LOG_TRACE(TAG_HTTP, F("Wifi access point"));
 }

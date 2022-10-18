@@ -498,7 +498,7 @@ bool wifiEvery5Seconds()
         return false;
     }
 #else
-    if(WiFi.getMode() == WIFI_AP) {
+    if(WiFi.getMode() != WIFI_STA) {
         return false;
     }
 #endif
