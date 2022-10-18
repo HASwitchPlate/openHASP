@@ -3,6 +3,61 @@
 
 #include "hasplib.h"
 
+lv_task_t* my_obj_get_task(const lv_obj_t* obj)
+{
+    lv_task_t* task = lv_task_get_next(NULL);
+    while(task) {
+        if(task->user_data) {
+            hasp_task_user_data_t* data = (hasp_task_user_data_t*)task->user_data;
+            if(data->obj == obj) return task;
+        }
+        task = lv_task_get_next(task);
+    }
+    return NULL;
+}
+
+void my_obj_del_task(const lv_obj_t* obj)
+{
+    lv_task_t* task = my_obj_get_task(obj);
+    if(!task || !task->user_data) return;
+
+    hasp_task_user_data_t* data = (hasp_task_user_data_t*)task->user_data;
+    // hasp_free(data->templ);
+    // hasp_free(data);
+}
+
+const char* my_obj_get_template(const lv_obj_t* obj)
+{
+    lv_task_t* task = my_obj_get_task(obj);
+    if(!task || !task->user_data) return NULL;
+
+    hasp_task_user_data_t* data = (hasp_task_user_data_t*)task->user_data;
+    return data->templ;
+}
+
+void my_obj_set_template(lv_obj_t* obj, const char* text)
+{
+    lv_task_t* task = my_obj_get_task(obj);
+    if(!task || !task->user_data) {
+        // create new task
+    };
+
+    hasp_task_user_data_t* data = (hasp_task_user_data_t*)task->user_data;
+    if(data->templ != D_TIMESTAMP) hasp_free(data->templ);
+    data->templ = NULL;
+    if(!text) return;
+
+    size_t size = strlen(text);
+    if(size == 0) return;
+
+    size++; // terminating \0 character
+    data->templ = (char*)hasp_calloc(sizeof(char), size);
+    if(data->templ)
+        strncpy(data->templ, text, size);
+    else
+        LOG_WARNING(TAG_ATTR, "Failed to allocate memory!");
+}
+
 // the tag data is stored as SERIALIZED JSON data
 void my_obj_set_tag(lv_obj_t* obj, const char* tag)
 {

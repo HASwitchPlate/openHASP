@@ -16,8 +16,8 @@ const char FP_GROUPID[] PROGMEM  = "groupid";
 
 typedef struct
 {
-    uint8_t pageid;
-    uint8_t objid;
+    lv_obj_t* obj;
+    char* templ;
     uint16_t interval;
 } hasp_task_user_data_t;
 

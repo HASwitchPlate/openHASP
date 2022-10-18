@@ -135,34 +135,39 @@ void event_timer_calendar(lv_task_t* task)
 void event_timer_clock(lv_task_t* task)
 {
     hasp_task_user_data_t* data = (hasp_task_user_data_t*)task->user_data;
-    lv_obj_t* obj               = NULL;
 
-    if(data) obj = hasp_find_obj_from_page_id(data->pageid, data->objid);
-    if(!obj || !data) {
-        if(data) lv_mem_free(data); // the object that the user_data points to is gone
-        lv_task_del(task);          // the calendar object for this task was deleted
+    if(!data || !data->obj || !lv_debug_check_obj_valid(data->obj)) {
+        if(data) {
+            if(data->templ != D_TIMESTAMP) hasp_free(data->templ);
+            lv_mem_free(data); // the object that the user_data points to is gone}
+        }
+        lv_task_del(task); // the calendar object for this task was deleted
         LOG_WARNING(TAG_EVENT, "event_timer_clock could not find the linked object");
         return;
+        
+    } else if(!data->templ) {
+        return; // nothing to do
     }
 
     timeval curTime;
-    int rslt       = gettimeofday(&curTime, NULL);
-    time_t seconds = curTime.tv_sec;
-    tm* timeinfo   = localtime(&seconds);
+    int rslt = gettimeofday(&curTime, NULL);
     (void)rslt; // unused
+    time_t seconds      = curTime.tv_sec;
+    useconds_t tv_msec = curTime.tv_usec / 1000;
+    tm* timeinfo        = localtime(&seconds);
+    lv_task_set_period(task, data->interval - tv_msec);
 
-    char buffer[24] = {0};
-    if(timeinfo->tm_year < 120) {
-        snprintf_P(buffer, sizeof(buffer), PSTR("%ld"), seconds);
-    } else {
-        strftime(buffer, sizeof(buffer), D_TIMESTAMP, timeinfo); // Literal String
-    }
+    char buffer[128] = {0};
+    /* if(timeinfo->tm_year < 120) {
+         snprintf_P(buffer, sizeof(buffer), PSTR("%ld"), seconds);
+     } else */
+    strftime(buffer, sizeof(buffer), data->templ, timeinfo);
 
     // LOG_VERBOSE(TAG_EVENT, "event_timer_clock called with user %d:%d:%d", timeinfo->tm_hour, timeinfo->tm_min,
     //             timeinfo->tm_sec);
 
-    lv_label_set_text(obj, buffer);
-    lv_task_set_period(task, data->interval);
+    if(!strcmp(buffer, lv_label_get_text(data->obj))) return; // No change
+    lv_label_set_text(data->obj, buffer);
 }
 
 /* ============================== Timer Event  ============================ */

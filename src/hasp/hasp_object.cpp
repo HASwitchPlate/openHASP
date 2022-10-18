@@ -111,7 +111,7 @@ void object_dispatch_state(uint8_t pageid, uint8_t btnid, const char* payload)
 {
     char topic[64];
     char* pagename = haspPages.get_name(pageid);
-    if (pagename)
+    if(pagename)
         snprintf_P(topic, sizeof(topic), PSTR("%s.b%u"), pagename, btnid);
     else
         snprintf_P(topic, sizeof(topic), PSTR(HASP_OBJECT_NOTATION), pageid, btnid);
@@ -204,16 +204,18 @@ int hasp_parse_json_attributes(lv_obj_t* obj, const JsonObject& doc)
     return i;
 }
 
-static void object_add_task(lv_obj_t* obj, uint8_t pageid, uint8_t objid, lv_task_cb_t task_xcb, uint16_t interval)
+static void object_add_task(lv_obj_t* obj, lv_task_cb_t task_xcb, uint16_t interval)
 {
     hasp_task_user_data_t* user_data = (hasp_task_user_data_t*)lv_mem_alloc(sizeof(hasp_task_user_data_t));
     if(!user_data) return;
 
-    user_data->pageid   = pageid;
-    user_data->objid    = objid;
+    user_data->obj      = obj;
+    user_data->templ    = (char*)D_TIMESTAMP;
     user_data->interval = interval;
-    lv_task_t* task     = lv_task_create(task_xcb, 25, LV_TASK_PRIO_LOWEST, (void*)user_data);
-    (void)task; // unused
+    lv_task_t* task     = lv_task_create(task_xcb, interval, LV_TASK_PRIO_LOWEST, (void*)user_data);
+    lv_task_set_repeat_count(task, -1); // Infinite
+    lv_task_ready(task);                // trigger it
+    // (void)task; // unused
 }
 
 /**
@@ -351,7 +353,7 @@ void hasp_new_object(const JsonObject& config, uint8_t& saved_page_id)
                     lv_obj_set_event_cb(obj, generic_event_handler);
                     obj->user_data.objid = LV_HASP_LABEL;
 
-                    // object_add_task(obj, pageid, id, event_timer_clock, 1000);
+                    if(id == 200) object_add_task(obj, event_timer_clock, 1000);
                 }
                 break;
 
@@ -696,10 +698,9 @@ void hasp_new_object(const JsonObject& config, uint8_t& saved_page_id)
         /* id tag the object */
         obj->user_data.id = id;
 
+#ifdef HASP_DEBUG
         uint8_t temp; // needed for debug tests
         (void)temp;
-
-#ifdef HASP_DEBUG
         /** testing start **/
         if(!hasp_find_id_from_obj(obj, &pageid, &temp)) {
             LOG_ERROR(TAG_HASP, F(D_OBJECT_LOST));

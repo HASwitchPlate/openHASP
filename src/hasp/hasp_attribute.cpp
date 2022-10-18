@@ -1682,7 +1682,7 @@ static hasp_attribute_type_t attribute_common_json(lv_obj_t* obj, uint16_t attr_
     return HASP_ATTR_TYPE_METHOD_OK;
 }
 
-static hasp_attribute_type_t attribute_common_text(lv_obj_t* obj, const char* attr, const char* payload, char** text,
+static hasp_attribute_type_t attribute_common_text(lv_obj_t* obj, uint16_t attr_hash, const char* payload, char** text,
                                                    bool update)
 {
     uint8_t obj_type = obj_get_type(obj);
@@ -1690,6 +1690,7 @@ static hasp_attribute_type_t attribute_common_text(lv_obj_t* obj, const char* at
     hasp_attr_update_char_const_t list[] = {
         {LV_HASP_BUTTON, ATTR_TEXT, my_btn_set_text, my_btn_get_text},
         {LV_HASP_LABEL, ATTR_TEXT, my_label_set_text, my_label_get_text},
+        {LV_HASP_LABEL, ATTR_TEMPLATE, my_obj_set_template, my_obj_get_template},
         {LV_HASP_CHECKBOX, ATTR_TEXT, lv_checkbox_set_text, lv_checkbox_get_text},
         {LV_HASP_TABVIEW, ATTR_TEXT, my_tabview_set_text, my_tabview_get_text},
         {LV_HASP_TEXTAREA, ATTR_TEXT, lv_textarea_set_text, lv_textarea_get_text},
@@ -1701,7 +1702,7 @@ static hasp_attribute_type_t attribute_common_text(lv_obj_t* obj, const char* at
     };
 
     for(int i = 0; i < sizeof(list) / sizeof(list[0]); i++) {
-        if(obj_type == list[i].obj_type) {
+        if(obj_type == list[i].obj_type && attr_hash == list[i].hash) {
             if(update)
                 list[i].set(obj, payload);
             else
@@ -1711,24 +1712,26 @@ static hasp_attribute_type_t attribute_common_text(lv_obj_t* obj, const char* at
         }
     }
 
-    // Special cases
-    // {LV_HASP_DROPDOWN, set_text_not_implemented, my_dropdown_get_text},
-    // {LV_HASP_ROLLER, set_text_not_implemented, my_roller_get_text},
-    switch(obj_get_type(obj)) {
-        case LV_HASP_DROPDOWN: {
-            lv_dropdown_get_selected_str(obj, *text, 128);
-            if(update) return HASP_ATTR_TYPE_STR_READONLY;
-            break;
-        }
+    if(attr_hash == ATTR_TEXT || attr_hash == ATTR_TXT) {
+        // Special cases
+        // {LV_HASP_DROPDOWN, set_text_not_implemented, my_dropdown_get_text},
+        // {LV_HASP_ROLLER, set_text_not_implemented, my_roller_get_text},
+        switch(obj_get_type(obj)) {
+            case LV_HASP_DROPDOWN: {
+                lv_dropdown_get_selected_str(obj, *text, 128);
+                if(update) return HASP_ATTR_TYPE_STR_READONLY;
+                break;
+            }
 
-        case LV_HASP_ROLLER: {
-            lv_roller_get_selected_str(obj, *text, 128);
-            if(update) return HASP_ATTR_TYPE_STR_READONLY;
-            break;
-        }
+            case LV_HASP_ROLLER: {
+                lv_roller_get_selected_str(obj, *text, 128);
+                if(update) return HASP_ATTR_TYPE_STR_READONLY;
+                break;
+            }
 
-        default:
-            return HASP_ATTR_TYPE_NOT_FOUND;
+            default:
+                return HASP_ATTR_TYPE_NOT_FOUND;
+        }
     }
 
     return HASP_ATTR_TYPE_STR;
@@ -2622,7 +2625,8 @@ void hasp_process_obj_attribute(lv_obj_t* obj, const char* attribute, const char
         case ATTR_TXT: // TODO: remove
             LOG_WARNING(TAG_HASP, F(D_ATTRIBUTE_OBSOLETE D_ATTRIBUTE_INSTEAD), attribute, "text");
         case ATTR_TEXT:
-            ret = attribute_common_text(obj, attribute, payload, &text, update);
+        case ATTR_TEMPLATE:
+            ret = attribute_common_text(obj, attr_hash, payload, &text, update);
             break;
 
         case ATTR_ALIGN:
