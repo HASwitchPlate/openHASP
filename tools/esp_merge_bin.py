@@ -50,13 +50,13 @@ def copy_merge_bins(source, target, env):
     flash_size = env.GetProjectOption("board_upload.flash_size")
 
     board = env.BoardConfig()
-    mcu = board.get("build.mcu", "esp32")
     flash_mode = board.get("build.flash_mode", "dio")
     f_flash = board.get("build.f_flash", "40000000L")
     flash_freq = '40m'
     if (f_flash == '80000000L'):
         flash_freq = '80m'
 
+    mcu = board.get("build.mcu", "esp32")
     bootloader = "{}tools{}sdk{}{}{}bin{}bootloader_{}_{}.bin".format(FRAMEWORK_DIR, os.path.sep, os.path.sep, mcu, os.path.sep, os.path.sep, flash_mode, flash_freq)
     # if not os.path.isfile(bootloader):
     #     bootloader = "{}tools{}sdk{}bin{}bootloader_dio_40m.bin".format(FRAMEWORK_DIR, os.path.sep, os.path.sep, os.path.sep, os.path.sep, os.path.sep)
@@ -65,7 +65,7 @@ def copy_merge_bins(source, target, env):
     bootloader_location = '0x1000'
     if (mcu == 'esp32s3'):
         bootloader_location = '0x0000'
-        
+
     partitions = "{}{}partitions.bin".format(env.subst("$BUILD_DIR"), os.path.sep)
     boot_app0 = "{}tools{}partitions{}boot_app0.bin".format(FRAMEWORK_DIR, os.path.sep, os.path.sep, os.path.sep)
     firmware_dst ="{}firmware{}{}_full_{}_{}.bin".format(OUTPUT_DIR, os.path.sep, name, flash_size, version)
