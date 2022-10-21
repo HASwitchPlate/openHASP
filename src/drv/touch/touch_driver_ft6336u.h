@@ -4,7 +4,7 @@
 #ifndef HASP_FT6336T_TOUCH_DRIVER_H
 #define HASP_FT6336T_TOUCH_DRIVER_H
 
-#ifdef ARDUINO
+#if defined(ARDUINO) && !defined(HASP_USE_LGFX_TOUCH)
 #include <Arduino.h>
 #include "ArduinoLog.h"
 #include "hasp_conf.h"
