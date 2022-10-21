@@ -492,22 +492,21 @@ void LovyanGfx::init(int w, int h)
 
     Preferences preferences;
     preferences.begin("tft", false);
+    this->tft_driver = preferences.getUInt("DRIVER", get_tft_driver());
 
     lgfx::IBus* _bus_instance = _init_bus(&preferences);
-    this->tft_driver = preferences.getUInt("DRIVER", get_tft_driver());
     lgfx::Panel_Device* _panel_instance = _init_panel(_bus_instance);
+    lgfx::ITouch* _touch_instance = _init_touch(&preferences);
+
     if(_panel_instance != nullptr) {
         _panel_instance->setBus(_bus_instance);
         configure_panel(_panel_instance, &preferences);
     }
-
-    lgfx::ITouch* touch = _init_touch(&preferences);
 #endif
 
     tft.setPanel(_panel_instance);
 
-    lgfx::v1::ITouch* touch = _panel_instance->getTouch();
-    if(touch) {
+    if(_touch_instance) {
         LOG_INFO(TAG_TFT, F("Touch " D_SERVICE_STARTED));
     } else {
         LOG_WARNING(TAG_TFT, F("Touch " D_SERVICE_START_FAILED));
@@ -692,7 +691,7 @@ bool LovyanGfx::is_driver_pin(uint8_t pin)
                pin == cfg.pin_d11 || pin == cfg.pin_d12 || pin == cfg.pin_d13 || pin == cfg.pin_d14 ||
                pin == cfg.pin_d15)
                 return true;
-                #endif
+#endif
 
         } else if(bus_type == lgfx::v1::bus_spi) {
             auto bus = (lgfx::Bus_SPI*)panel->getBus();
