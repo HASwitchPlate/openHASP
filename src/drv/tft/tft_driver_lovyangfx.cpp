@@ -45,7 +45,7 @@ static uint32_t _read_panel_id(lgfx::Bus_SPI* bus, int32_t pin_cs, uint32_t cmd 
     return res;
 }
 
-#if defined(ESP32S2)
+#if defined(ESP32S2) || defined(ESP32S3)
 static lgfx::Bus_Parallel16* init_parallel_16_bus(Preferences* prefs, int8_t data_pins[], uint8_t num)
 {
     lgfx::Bus_Parallel16* bus = new lgfx::v1::Bus_Parallel16();
@@ -550,6 +550,7 @@ void LovyanGfx::show_info()
         tftPinInfo(F("TFT_D7"), cfg.pin_d7);
     }
 
+#if defined(ESP32S2) || defined(ESP32S3)
     if(bus_type == lgfx::v1::bus_parallel16) {
         LOG_VERBOSE(TAG_TFT, F("Interface  : Parallel 16bit"));
         auto bus = (lgfx::v1::Bus_Parallel16*)panel->getBus();
@@ -575,6 +576,7 @@ void LovyanGfx::show_info()
         tftPinInfo(F("TFT_D1"), cfg.pin_d14);
         tftPinInfo(F("TFT_D1"), cfg.pin_d15);
     }
+#endif
 
     if(bus_type == lgfx::v1::bus_spi) {
         LOG_VERBOSE(TAG_TFT, F("Interface   : Serial"));
@@ -680,6 +682,7 @@ bool LovyanGfx::is_driver_pin(uint8_t pin)
                pin == cfg.pin_d7)
                 return true;
 
+#if defined(ESP32S2) || defined(ESP32S3)
         } else if(bus_type == lgfx::v1::bus_parallel16) {
             auto bus = (lgfx::v1::Bus_Parallel16*)panel->getBus();
             auto cfg = bus->config(); // Get the structure for bus configuration.
@@ -689,6 +692,7 @@ bool LovyanGfx::is_driver_pin(uint8_t pin)
                pin == cfg.pin_d11 || pin == cfg.pin_d12 || pin == cfg.pin_d13 || pin == cfg.pin_d14 ||
                pin == cfg.pin_d15)
                 return true;
+                #endif
 
         } else if(bus_type == lgfx::v1::bus_spi) {
             auto bus = (lgfx::Bus_SPI*)panel->getBus();
