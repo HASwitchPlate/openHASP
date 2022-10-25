@@ -46,12 +46,12 @@ jobs:
             out: lolin-d32-pro
           - env: m5stack-core2
             out: m5stack
-          - env: makerfabs-tft35-cap
-            out: makerfabs-tft
+          - out: makerfabs
+            env: "makerfabs-tft35-cap -e makerfabs-s3-tft35-spi"
           - out: ttgo
             env: "ttgo-t7-v1.5_ili9341_4MB -e ttgo-t7-v1.5_ili9341_16MB"
           - out: wireless-tag
-            env: "wt32-sc01_4MB -e wt32-sc01_16MB -e wt-86-32-3zw1"
+            env: "wt32-sc01_4MB -e wt32-sc01_16MB -e wt-86-32-3zw1 -e wt-sc01-plus_8MB"
           - env: yeacreate-nscreen32
             out: yeacreate
 
