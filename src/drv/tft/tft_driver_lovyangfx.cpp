@@ -49,7 +49,7 @@ static uint32_t _read_panel_id(lgfx::Bus_SPI* bus, int32_t pin_cs, uint32_t cmd 
 static lgfx::Bus_Parallel16* init_parallel_16_bus(Preferences* prefs, int8_t data_pins[], uint8_t num)
 {
     lgfx::Bus_Parallel16* bus = new lgfx::v1::Bus_Parallel16();
-    auto cfg                  = bus->config(); // バス設定用の構造体を取得します。
+    auto cfg                  = bus->config();
     cfg.pin_rd                = prefs->getInt("rd", TFT_RD);
     cfg.pin_wr                = prefs->getInt("wr", TFT_WR);
     cfg.pin_rs                = prefs->getInt("rs", TFT_DC);
@@ -70,7 +70,7 @@ static lgfx::Bus_Parallel16* init_parallel_16_bus(Preferences* prefs, int8_t dat
         cfg.pin_data[i] = data_pins[i];
     }
     bus->config(cfg); // The set value is reflected on the bus.
-    LOG_VERBOSE(TAG_TFT, F("%s - %d"), __FILE__, __LINE__);
+    LOG_DEBUG(TAG_TFT, F("%s - %d"), __FILE__, __LINE__);
     return bus;
 }
 #endif // ESP32S2
@@ -78,7 +78,7 @@ static lgfx::Bus_Parallel16* init_parallel_16_bus(Preferences* prefs, int8_t dat
 static lgfx::Bus_Parallel8* init_parallel_8_bus(Preferences* prefs, int8_t data_pins[], uint8_t num)
 {
     lgfx::Bus_Parallel8* bus = new lgfx::v1::Bus_Parallel8();
-    auto cfg                 = bus->config(); // バス設定用の構造体を取得します。
+    auto cfg                 = bus->config();
     cfg.pin_rd               = prefs->getInt("rd", TFT_RD);
     cfg.pin_wr               = prefs->getInt("wr", TFT_WR);
     cfg.pin_rs               = prefs->getInt("rs", TFT_DC);
@@ -99,14 +99,14 @@ static lgfx::Bus_Parallel8* init_parallel_8_bus(Preferences* prefs, int8_t data_
         cfg.pin_data[i] = data_pins[i];
     }
     bus->config(cfg); // The set value is reflected on the bus.
-    LOG_VERBOSE(TAG_TFT, F("%s - %d"), __FILE__, __LINE__);
+    LOG_DEBUG(TAG_TFT, F("%s - %d"), __FILE__, __LINE__);
     return bus;
 }
 
 static lgfx::Bus_SPI* init_spi_bus(Preferences* prefs)
 {
     lgfx::Bus_SPI* bus = new lgfx::v1::Bus_SPI();
-    auto cfg           = bus->config(); // バス設定用の構造体を取得します。
+    auto cfg           = bus->config();
     cfg.pin_miso       = prefs->getInt("miso", TFT_MISO);
     cfg.pin_mosi       = prefs->getInt("mosi", TFT_MOSI);
     cfg.pin_sclk       = prefs->getInt("sclk", TFT_SCLK);
@@ -118,7 +118,7 @@ static lgfx::Bus_SPI* init_spi_bus(Preferences* prefs)
     cfg.dma_channel    = prefs->getUInt("dma_channel", 0);
     cfg.spi_mode       = prefs->getUInt("spi_mode", 0);
     uint8_t host       = prefs->getUInt("host", 3);
-    LOG_VERBOSE(TAG_TFT, F("%s - %d"), __FILE__, __LINE__);
+    LOG_DEBUG(TAG_TFT, F("%s - %d"), __FILE__, __LINE__);
 
     // #if CONFIG_IDF_TARGET_ESP32C3
     // #define FSPI 0
@@ -349,17 +349,17 @@ lgfx::ITouch* _init_touch(Preferences* preferences)
 #endif
 
 #if TOUCH_DRIVER == 0x6336
-    { // タッチスクリーン制御の設定を行います。（必要なければ削除）
+    {
         auto touch = new lgfx::Touch_FT5x06();
         auto cfg   = touch->config();
 
-        cfg.x_min      = 0;              // タッチスクリーンから得られる最小のX値(生の値)
-        cfg.x_max      = TFT_WIDTH - 1;  // タッチスクリーンから得られる最大のX値(生の値)
-        cfg.y_min      = 0;              // タッチスクリーンから得られる最小のY値(生の値)
-        cfg.y_max      = TFT_HEIGHT - 1; // タッチスクリーンから得られる最大のY値(生の値)
-        cfg.pin_int    = TOUCH_IRQ;      // INTが接続されているピン番号
-        cfg.bus_shared = true;           // 画面と共通のバスを使用している場合 trueを設定
-        cfg.offset_rotation = TOUCH_OFFSET_ROTATION; // 表示とタッチの向きのが一致しない場合の調整 0~7の値で設定
+        cfg.x_min           = 0;
+        cfg.x_max           = TFT_WIDTH - 1;
+        cfg.y_min           = 0;
+        cfg.y_max           = TFT_HEIGHT - 1;
+        cfg.pin_int         = TOUCH_IRQ;
+        cfg.bus_shared      = true;
+        cfg.offset_rotation = TOUCH_OFFSET_ROTATION;
 
         // SPI接続の場合
         // cfg.spi_host = VSPI_HOST; // 使用するSPIを選択 (HSPI_HOST or VSPI_HOST)
@@ -370,11 +370,11 @@ lgfx::ITouch* _init_touch(Preferences* preferences)
         // cfg.pin_cs   = 5;         //   CSが接続されているピン番号
 
         // I2C接続の場合
-        cfg.i2c_port = I2C_TOUCH_PORT;      // 使用するI2Cを選択 (0 or 1)
-        cfg.i2c_addr = I2C_TOUCH_ADDRESS;   // I2Cデバイスアドレス番号
-        cfg.pin_sda  = TOUCH_SDA;           // SDAが接続されているピン番号
-        cfg.pin_scl  = TOUCH_SCL;           // SCLが接続されているピン番号
-        cfg.freq     = I2C_TOUCH_FREQUENCY; // I2Cクロックを設定
+        cfg.i2c_port = I2C_TOUCH_PORT;
+        cfg.i2c_addr = I2C_TOUCH_ADDRESS;
+        cfg.pin_sda  = TOUCH_SDA;
+        cfg.pin_scl  = TOUCH_SCL;
+        cfg.freq     = I2C_TOUCH_FREQUENCY;
 
         touch->config(cfg);
         return touch;
@@ -383,21 +383,20 @@ lgfx::ITouch* _init_touch(Preferences* preferences)
 
 #if TOUCH_DRIVER == 0x2046
 
-    { // タッチスクリーン制御の設定を行います。（必要なければ削除）
+    {
         auto touch = new lgfx::Touch_XPT2046();
         auto cfg   = touch->config();
         LOG_DEBUG(TAG_TFT, F("%s - %d"), __FILE__, __LINE__);
 
-        cfg.bus_shared      = true; // 画面と共通のバスを使用している場合 trueを設定
-        cfg.offset_rotation = 0; // 表示とタッチの向きのが一致しない場合の調整 0~7の値で設定
+        cfg.bus_shared      = true;
+        cfg.offset_rotation = 0;
 
-        // SPI接続の場合
-        cfg.spi_host = VSPI_HOST;   // 使用するSPIを選択 (HSPI_HOST or VSPI_HOST)
-        cfg.pin_sclk = 18;          // SCLKが接続されているピン番号
-        cfg.pin_mosi = 23;          // MOSIが接続されているピン番号
-        cfg.pin_miso = 19;          // MISOが接続されているピン番号
-        cfg.pin_cs   = 21;          //   CSが接続されているピン番号
-        cfg.pin_int  = GPIO_NUM_NC; // INTが接続されているピン番号
+        cfg.spi_host = VSPI_HOST;
+        cfg.pin_sclk = 18;
+        cfg.pin_mosi = 23;
+        cfg.pin_miso = 19;
+        cfg.pin_cs   = 21;
+        cfg.pin_int  = GPIO_NUM_NC;
 
         touch->config(cfg);
         return touch;
@@ -413,80 +412,115 @@ void LovyanGfx::init(int w, int h)
 {
     LOG_TRACE(TAG_TFT, F(D_SERVICE_STARTING));
 
-#ifdef WTSC01PLUS
+#if defined(WTSC01PLUS)
     auto _panel_instance = new lgfx::Panel_ST7796();
     auto _bus_instance   = new lgfx::v1::Bus_Parallel8();
-    auto _touch_instance = new lgfx::Touch_FT5x06(); // FT5206, FT5306, FT5406, FT6206, FT6236, FT6336, FT6436
-    {                                                // バス制御の設定を行います。
-        auto cfg = _bus_instance->config();          // バス設定用の構造体を取得します。
-                                                     // 8ビットパラレルバスの設定
-        // cfg.i2s_port = I2S_NUM_0;     // 使用するI2Sポートを選択 (I2S_NUM_0 or I2S_NUM_1) (ESP32のI2S
-        // LCDモードを使用します)
-        cfg.freq_write = 20000000; // 送信クロック (最大20MHz, 80MHzを整数で割った値に丸められます)
-        cfg.pin_wr     = 47;       // WR を接続しているピン番号
-        cfg.pin_rd     = -1;       // RD を接続しているピン番号
-        cfg.pin_rs     = 0;        // RS(D/C)を接続しているピン番号
-        cfg.pin_d0     = 9;        // D0を接続しているピン番号
-        cfg.pin_d1     = 46;       // D1を接続しているピン番号
-        cfg.pin_d2     = 3;        // D2を接続しているピン番号
-        cfg.pin_d3     = 8;        // D3を接続しているピン番号
-        cfg.pin_d4     = 18;       // D4を接続しているピン番号
-        cfg.pin_d5     = 17;       // D5を接続しているピン番号
-        cfg.pin_d6     = 16;       // D6を接続しているピン番号
-        cfg.pin_d7     = 15;       // D7を接続しているピン番号
-        _bus_instance->config(cfg);             // 設定値をバスに反映します。
-        _panel_instance->setBus(_bus_instance); // バスをパネルにセットします。
+    auto _touch_instance = new lgfx::Touch_FT5x06();
+    {
+        auto cfg = _bus_instance->config();
+
+        cfg.freq_write = 20000000;
+        cfg.pin_wr     = 47;
+        cfg.pin_rd     = -1;
+        cfg.pin_rs     = 0;
+        cfg.pin_d0     = 9;
+        cfg.pin_d1     = 46;
+        cfg.pin_d2     = 3;
+        cfg.pin_d3     = 8;
+        cfg.pin_d4     = 18;
+        cfg.pin_d5     = 17;
+        cfg.pin_d6     = 16;
+        cfg.pin_d7     = 15;
+        _bus_instance->config(cfg);
+        _panel_instance->setBus(_bus_instance);
     }
 
-    {                                         // 表示パネル制御の設定を行います。
-        auto cfg = _panel_instance->config(); // 表示パネル設定用の構造体を取得します。
+    {
+        auto cfg = _panel_instance->config();
 
-        cfg.pin_cs   = -1; // CSが接続されているピン番号   (-1 = disable)
-        cfg.pin_rst  = 4;  // RSTが接続されているピン番号  (-1 = disable)
-        cfg.pin_busy = -1; // BUSYが接続されているピン番号 (-1 = disable)
+        cfg.pin_cs   = -1;
+        cfg.pin_rst  = 4;
+        cfg.pin_busy = -1;
 
-        // ※
-        // 以下の設定値はパネル毎に一般的な初期値が設定されていますので、不明な項目はコメントアウトして試してみてください。
-
-        cfg.panel_width      = 320;   // 実際に表示可能な幅
-        cfg.panel_height     = 480;   // 実際に表示可能な高さ
-        cfg.offset_x         = 0;     // パネルのX方向オフセット量
-        cfg.offset_y         = 0;     // パネルのY方向オフセット量
-        cfg.offset_rotation  = 0;     // 回転方向の値のオフセット 0~7 (4~7は上下反転)
-        cfg.dummy_read_pixel = 8;     // ピクセル読出し前のダミーリードのビット数
-        cfg.dummy_read_bits  = 1;     // ピクセル以外のデータ読出し前のダミーリードのビット数
-        cfg.readable         = true;  // データ読出しが可能な場合 trueに設定
-        cfg.invert           = true;  // パネルの明暗が反転してしまう場合 trueに設定
-        cfg.rgb_order        = false; // パネルの赤と青が入れ替わってしまう場合 trueに設定
-        cfg.dlen_16bit = false; // 16bitパラレルやSPIでデータ長を16bit単位で送信するパネルの場合 trueに設定
-        cfg.bus_shared = true; // SDカードとバスを共有している場合 trueに設定(drawJpgFile等でバス制御を行います)
-
-        // 以下はST7735やILI9163のようにピクセル数が可変のドライバで表示がずれる場合にのみ設定してください。
-        //    cfg.memory_width     =   240;  // ドライバICがサポートしている最大の幅
-        //    cfg.memory_height    =   320;  // ドライバICがサポートしている最大の高さ
+        cfg.panel_width      = 320;
+        cfg.panel_height     = 480;
+        cfg.offset_x         = 0;
+        cfg.offset_y         = 0;
+        cfg.offset_rotation  = 0;
+        cfg.dummy_read_pixel = 8;
+        cfg.dummy_read_bits  = 1;
+        cfg.readable         = true;
+        cfg.invert           = true;
+        cfg.rgb_order        = false;
+        cfg.dlen_16bit       = false;
+        cfg.bus_shared       = true;
 
         _panel_instance->config(cfg);
     }
 
-    { // タッチスクリーン制御の設定を行います。（必要なければ削除）
+    {
         auto cfg = _touch_instance->config();
 
-        cfg.x_min           = 0;    // タッチスクリーンから得られる最小のX値(生の値)
-        cfg.x_max           = 319;  // タッチスクリーンから得られる最大のX値(生の値)
-        cfg.y_min           = 0;    // タッチスクリーンから得られる最小のY値(生の値)
-        cfg.y_max           = 479;  // タッチスクリーンから得られる最大のY値(生の値)
-        cfg.pin_int         = 7;    // INTが接続されているピン番号
-        cfg.bus_shared      = true; // 画面と共通のバスを使用している場合 trueを設定
-        cfg.offset_rotation = 0; // 表示とタッチの向きのが一致しない場合の調整 0~7の値で設定
-                                 // I2C接続の場合
-        cfg.i2c_port = 1;        // 使用するI2Cを選択 (0 or 1)
-        cfg.i2c_addr = 0x38;     // I2Cデバイスアドレス番号
-        cfg.pin_sda  = 6;        // SDAが接続されているピン番号
-        cfg.pin_scl  = 5;        // SCLが接続されているピン番号
-        cfg.freq     = 400000;   // I2Cクロックを設定
+        cfg.x_min           = 0;
+        cfg.x_max           = 319;
+        cfg.y_min           = 0;
+        cfg.y_max           = 479;
+        cfg.pin_int         = 7;
+        cfg.bus_shared      = true;
+        cfg.offset_rotation = 0;
+
+        cfg.i2c_port = 1;
+        cfg.i2c_addr = 0x38;
+        cfg.pin_sda  = 6;
+        cfg.pin_scl  = 5;
+        cfg.freq     = 400000;
 
         _touch_instance->config(cfg);
-        _panel_instance->setTouch(_touch_instance); // タッチスクリーンをパネルにセットします。
+        _panel_instance->setTouch(_touch_instance);
+    }
+
+#elif 0 && defined(LILYGOPI)
+    auto _panel_instance = new lgfx::Panel_ST7796();
+    auto _bus_instance = new lgfx::Bus_SPI();
+    auto _touch_instance = new lgfx::Touch_FT5x06();
+    {
+        auto cfg = _bus_instance->config();
+        cfg.spi_host = VSPI_HOST;
+        cfg.spi_mode = 0;
+        cfg.freq_write = 40000000;
+        cfg.freq_read = 16000000;
+        cfg.spi_3wire = false;
+        cfg.use_lock = true;
+        cfg.dma_channel = 1;
+        cfg.pin_sclk = 18;
+        cfg.pin_mosi = 19;
+        cfg.pin_miso = 23;
+        cfg.pin_dc = 27;
+        _bus_instance->config(cfg);
+        _panel_instance->setBus(_bus_instance);
+    }
+
+    {
+        auto cfg = _panel_instance->config();
+        cfg.pin_cs = 5;
+        cfg.pin_rst = -1;
+        cfg.pin_busy = -1;
+        cfg.memory_width = 320;
+        cfg.memory_height = 480;
+        cfg.panel_width = 320;
+        cfg.panel_height = 480;
+        cfg.offset_x = 0;
+        cfg.offset_y = 0;
+        cfg.offset_rotation = 0;
+        cfg.dummy_read_pixel = 8;
+        cfg.dummy_read_bits = 1;
+        cfg.readable = true;
+        cfg.invert = false;
+        cfg.rgb_order = false;
+        cfg.dlen_16bit = false;
+        cfg.bus_shared = true;
+
+        _panel_instance->config(cfg);
     }
 #else
 
@@ -494,19 +528,20 @@ void LovyanGfx::init(int w, int h)
     preferences.begin("tft", false);
     this->tft_driver = preferences.getUInt("DRIVER", get_tft_driver());
 
-    lgfx::IBus* _bus_instance = _init_bus(&preferences);
+    lgfx::IBus* _bus_instance           = _init_bus(&preferences);
     lgfx::Panel_Device* _panel_instance = _init_panel(_bus_instance);
-    lgfx::ITouch* _touch_instance = _init_touch(&preferences);
+    lgfx::ITouch* _touch_instance       = _init_touch(&preferences);
 
     if(_panel_instance != nullptr) {
         _panel_instance->setBus(_bus_instance);
         configure_panel(_panel_instance, &preferences);
+        _panel_instance->setTouch(_touch_instance);
     }
 #endif
 
     tft.setPanel(_panel_instance);
 
-    if(_touch_instance) {
+    if(_touch_instance != nullptr) {
         LOG_INFO(TAG_TFT, F("Touch " D_SERVICE_STARTED));
     } else {
         LOG_WARNING(TAG_TFT, F("Touch " D_SERVICE_START_FAILED));
@@ -566,14 +601,14 @@ void LovyanGfx::show_info()
         tftPinInfo(F("TFT_D5"), cfg.pin_d5);
         tftPinInfo(F("TFT_D6"), cfg.pin_d6);
         tftPinInfo(F("TFT_D7"), cfg.pin_d7);
-        tftPinInfo(F("TFT_D1"), cfg.pin_d8);
-        tftPinInfo(F("TFT_D1"), cfg.pin_d9);
-        tftPinInfo(F("TFT_D1"), cfg.pin_d10);
-        tftPinInfo(F("TFT_D1"), cfg.pin_d11);
-        tftPinInfo(F("TFT_D1"), cfg.pin_d12);
-        tftPinInfo(F("TFT_D1"), cfg.pin_d13);
-        tftPinInfo(F("TFT_D1"), cfg.pin_d14);
-        tftPinInfo(F("TFT_D1"), cfg.pin_d15);
+        tftPinInfo(F("TFT_D8"), cfg.pin_d8);
+        tftPinInfo(F("TFT_D9"), cfg.pin_d9);
+        tftPinInfo(F("TFT_D01"), cfg.pin_d10);
+        tftPinInfo(F("TFT_D11"), cfg.pin_d11);
+        tftPinInfo(F("TFT_D12"), cfg.pin_d12);
+        tftPinInfo(F("TFT_D13"), cfg.pin_d13);
+        tftPinInfo(F("TFT_D14"), cfg.pin_d14);
+        tftPinInfo(F("TFT_D15"), cfg.pin_d15);
     }
 #endif
 
@@ -658,10 +693,10 @@ void IRAM_ATTR LovyanGfx::flush_pixels(lv_disp_drv_t* disp, const lv_area_t* are
     uint32_t h   = (area->y2 - area->y1 + 1);
     uint32_t len = w * h;
 
-    tft.startWrite();                            /* Start new TFT transaction */
-    tft.setAddrWindow(area->x1, area->y1, w, h); /* set the working window */
-    tft.writePixels((uint16_t*)color_p, len);    /* Write words at once */
-    tft.endWrite();                              /* terminate TFT transaction */
+    tft.startWrite();                                        /* Start new TFT transaction */
+    tft.setAddrWindow(area->x1, area->y1, w, h);             /* set the working window */
+    tft.writePixels((lgfx::rgb565_t*)&color_p->full, w * h); /* Write words at once */
+    tft.endWrite();                                          /* terminate TFT transaction */
 
     /* Tell lvgl that flushing is done */
     lv_disp_flush_ready(disp);

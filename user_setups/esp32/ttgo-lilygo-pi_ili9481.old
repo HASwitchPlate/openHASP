@@ -5,7 +5,7 @@
 ;               - GT911 touch controller            ;
 ;***************************************************;
 
-[env:ttgo-lilygo-pi_ili9481]
+[env:ttgo-lilygo-pi_ili9481b]
 extends = esp32_16mb_v2
 board = esp32dev
 

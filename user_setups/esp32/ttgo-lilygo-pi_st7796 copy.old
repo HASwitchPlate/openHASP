@@ -5,7 +5,7 @@
 ;               - FT6236 touch controller           ;
 ;***************************************************;
 
-[env:ttgo-lilygo-pi_st7796]
+[env:ttgo-lilygo-pi_st7796b]
 extends = esp32_16mb_v2
 board = esp32dev
 
