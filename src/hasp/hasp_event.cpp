@@ -144,7 +144,7 @@ void event_timer_clock(lv_task_t* task)
         lv_task_del(task); // the calendar object for this task was deleted
         LOG_WARNING(TAG_EVENT, "event_timer_clock could not find the linked object");
         return;
-        
+
     } else if(!data->templ) {
         return; // nothing to do
     }
@@ -152,9 +152,9 @@ void event_timer_clock(lv_task_t* task)
     timeval curTime;
     int rslt = gettimeofday(&curTime, NULL);
     (void)rslt; // unused
-    time_t seconds      = curTime.tv_sec;
+    time_t seconds     = curTime.tv_sec;
     useconds_t tv_msec = curTime.tv_usec / 1000;
-    tm* timeinfo        = localtime(&seconds);
+    tm* timeinfo       = localtime(&seconds);
     lv_task_set_period(task, data->interval - tv_msec);
 
     char buffer[128] = {0};
@@ -379,9 +379,8 @@ void swipe_event_handler(lv_obj_t* obj, lv_event_t event)
                 haspPages.back(LV_SCR_LOAD_ANIM_NONE, 500, 0);
                 break;
             default:
-                return;
+                dispatch_current_page();
         }
-        dispatch_current_page();
     }
 }
 
