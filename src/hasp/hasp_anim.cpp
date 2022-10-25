@@ -20,7 +20,8 @@ static void my_scr_load_anim_start(lv_anim_t* a)
     lv_disp_load_scr(page);
     if(hasp_find_id_from_obj(page, &pageid, &objid)) {
         LOG_TRACE(TAG_HASP, F(D_HASP_CHANGE_PAGE), pageid);
-        dispatch_current_page();
+        haspPages.set(pageid, LV_SCR_LOAD_ANIM_NONE, 0, 0);
+
 #if defined(HASP_DEBUG_OBJ_TREE)
         hasp_object_tree(page, pageid, 0);
 #endif
