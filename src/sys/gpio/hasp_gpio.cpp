@@ -302,12 +302,12 @@ static void gpio_setup_pin(uint8_t index)
             break;
 
         case hasp_gpio_type_t::SERIAL_DIMMER:
-        case hasp_gpio_type_t::SERIAL_DIMMER_AU:
-        case hasp_gpio_type_t::SERIAL_DIMMER_EU: {
+        case hasp_gpio_type_t::SERIAL_DIMMER_L8_HD:
+        case hasp_gpio_type_t::SERIAL_DIMMER_L8_HD_INVERTED: {
             const char command[9] = "\xEF\x01\x4D\xA3"; // Start Lanbon Dimmer
 #if defined(ARDUINO_ARCH_ESP32)
             Serial1.begin(115200UL, SERIAL_8N1, UART_PIN_NO_CHANGE, gpio->pin,
-                          gpio->type == hasp_gpio_type_t::SERIAL_DIMMER_EU); // true = EU, false = AU
+                          gpio->type == hasp_gpio_type_t::SERIAL_DIMMER_L8_HD_INVERTED); // true = EU, false = AU
             Serial1.flush();
             Serial1.write(0x20);
             Serial1.write(0x20);
@@ -428,8 +428,8 @@ void gpio_output_state(hasp_gpio_config_t* gpio)
             break;
         case LED:
         case SERIAL_DIMMER:
-        case SERIAL_DIMMER_AU:
-        case SERIAL_DIMMER_EU:
+        case SERIAL_DIMMER_L8_HD:
+        case SERIAL_DIMMER_L8_HD_INVERTED:
             dispatch_state_brightness(topic, (hasp_event_t)gpio->power, gpio->val);
             break;
         default:
@@ -592,8 +592,8 @@ static bool gpio_set_output_value(hasp_gpio_config_t* gpio, bool power, uint16_t
             return gpio_set_dac_value(gpio);
 
         case hasp_gpio_type_t::SERIAL_DIMMER:
-        case hasp_gpio_type_t::SERIAL_DIMMER_AU:
-        case hasp_gpio_type_t::SERIAL_DIMMER_EU:
+        case hasp_gpio_type_t::SERIAL_DIMMER_L8_HD:
+        case hasp_gpio_type_t::SERIAL_DIMMER_L8_HD_INVERTED:
             return gpio_set_serial_dimmer(gpio);
 
         default:
@@ -623,8 +623,8 @@ static void gpio_set_normalized_value(hasp_gpio_config_t* gpio, hasp_update_valu
             case hasp_gpio_type_t::HASP_DAC:
             case hasp_gpio_type_t::PWM:
             case hasp_gpio_type_t::SERIAL_DIMMER:
-            case hasp_gpio_type_t::SERIAL_DIMMER_AU:
-            case hasp_gpio_type_t::SERIAL_DIMMER_EU:
+            case hasp_gpio_type_t::SERIAL_DIMMER_L8_HD:
+            case hasp_gpio_type_t::SERIAL_DIMMER_L8_HD_INVERTED:
                 if(value.max == 1) {
                     val = gpio->val; // only switch power, keep current val
                 } else {
@@ -831,8 +831,8 @@ void gpio_discovery(JsonObject& input, JsonArray& relay, JsonArray& light, JsonA
             case hasp_gpio_type_t::HASP_DAC:
             case hasp_gpio_type_t::LED: // Don't include the moodlight
             case hasp_gpio_type_t::SERIAL_DIMMER:
-            case hasp_gpio_type_t::SERIAL_DIMMER_AU:
-            case hasp_gpio_type_t::SERIAL_DIMMER_EU:
+            case hasp_gpio_type_t::SERIAL_DIMMER_L8_HD:
+            case hasp_gpio_type_t::SERIAL_DIMMER_L8_HD_INVERTED:
                 dimmer.add(gpioConfig[i].pin);
                 break;
 

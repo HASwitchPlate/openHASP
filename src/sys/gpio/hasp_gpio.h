@@ -90,8 +90,8 @@ enum hasp_gpio_type_t {
     PWM              = 0x21,
     HASP_DAC         = 0x22,
     SERIAL_DIMMER    = 0x30,
-    SERIAL_DIMMER_EU = 0x31,
-    SERIAL_DIMMER_AU = 0x32,
+    SERIAL_DIMMER_L8_HD_INVERTED = 0x31,
+    SERIAL_DIMMER_L8_HD = 0x32,
     BUZZER           = 0x40,
     HAPTIC           = 0x41,
 

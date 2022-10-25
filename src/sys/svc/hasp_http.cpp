@@ -1734,11 +1734,11 @@ static void webHandleGpioConfig()
                             // case hasp_gpio_type_t::SERIAL_DIMMER:
                             //     httpMessage += F(D_GPIO_SERIAL_DIMMER);
                             //     break;
-                        case hasp_gpio_type_t::SERIAL_DIMMER_EU:
-                            httpMessage += F("L8-HD (EU)");
+                        case hasp_gpio_type_t::SERIAL_DIMMER_L8_HD_INVERTED:
+                            httpMessage += F("L8-HD (inv.)");
                             break;
-                        case hasp_gpio_type_t::SERIAL_DIMMER_AU:
-                            httpMessage += F("L8-HD (AU)");
+                        case hasp_gpio_type_t::SERIAL_DIMMER_L8_HD:
+                            httpMessage += F("L8-HD");
                             break;
 #endif
                         default:
@@ -1822,8 +1822,8 @@ static void webHandleGpioOutput()
         httpMessage += getOption(hasp_gpio_type_t::HASP_DAC, F(D_GPIO_DAC), conf.type);
         // httpMessage += getOption(hasp_gpio_type_t::SERIAL_DIMMER, F(D_GPIO_SERIAL_DIMMER), conf.type);
 #if defined(LANBONL8)
-        httpMessage += getOption(hasp_gpio_type_t::SERIAL_DIMMER_AU, F("L8-HD (AU)"), conf.type);
-        httpMessage += getOption(hasp_gpio_type_t::SERIAL_DIMMER_EU, F("L8-HD (EU)"), conf.type);
+        httpMessage += getOption(hasp_gpio_type_t::SERIAL_DIMMER_L8_HD, F("L8-HD"), conf.type);
+        httpMessage += getOption(hasp_gpio_type_t::SERIAL_DIMMER_L8_HD_INVERTED, F("L8-HD (inv.)"), conf.type);
 #endif
         if(digitalPinHasPWM(webServer.arg(0).toInt())) {
             httpMessage += getOption(hasp_gpio_type_t::PWM, F(D_GPIO_PWM), conf.type);
