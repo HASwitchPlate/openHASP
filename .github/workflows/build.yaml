@@ -51,7 +51,7 @@ jobs:
           - out: ttgo
             env: "ttgo-t7-v1.5_ili9341_4MB -e ttgo-t7-v1.5_ili9341_16MB"
           - out: wireless-tag
-            env: "wt32-sc01_4MB -e wt32-sc01_16MB -e wt-86-32-3zw1 -e wt-sc01-plus_8MB"
+            env: "wt32-sc01_4MB -e wt32-sc01_16MB -e wt-86-32-3zw1 -e wt32-sc01-plus_8MB"
           - env: yeacreate-nscreen32
             out: yeacreate
 
