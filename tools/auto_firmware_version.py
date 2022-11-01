@@ -7,7 +7,7 @@ installed_pkgs = {pkg.key for pkg in pkg_resources.working_set}
 missing_pkgs = required_pkgs - installed_pkgs
 
 if missing_pkgs:
-    env.Execute('$PYTHONEXE -m pip install dulwich --global-option="--pure"')
+    env.Execute('$PYTHONEXE -m pip install dulwich --global-option="--pure" --use-pep517')
 
 from dulwich import porcelain
 from dulwich.repo import Repo
