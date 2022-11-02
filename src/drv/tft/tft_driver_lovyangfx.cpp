@@ -3,6 +3,7 @@
 
 #if defined(ARDUINO) && defined(LGFX_USE_V1)
 #include "tft_driver_lovyangfx.h"
+#include "Panel_ILI9481b.hpp"
 #include <Preferences.h>
 
 namespace dev {
@@ -243,13 +244,16 @@ lgfx::IBus* _init_bus(Preferences* preferences)
 #if defined(ESP32S2)
     if(is_16bit) {
         is_8bit = false;
+        LOG_VERBOSE(TAG_TFT, F("16-bit TFT bus"));
         return init_parallel_16_bus(preferences, data_pins, 16);
     } else
 #endif // ESP32S2
         if(is_8bit) {
             is_16bit = false;
+            LOG_VERBOSE(TAG_TFT, F("8-bit TFT bus"));
             return init_parallel_8_bus(preferences, data_pins, 8);
         } else {
+            LOG_VERBOSE(TAG_TFT, F("SPI TFT bus"));
             return init_spi_bus(preferences);
         }
     return nullptr;
@@ -261,38 +265,38 @@ lgfx::Panel_Device* LovyanGfx::_init_panel(lgfx::IBus* bus)
     switch(tft_driver) {
         case 0x9341: {
             panel = new lgfx::Panel_ILI9341();
-            LOG_DEBUG(TAG_TFT, F("%s - %d"), __FILE__, __LINE__);
+            LOG_VERBOSE(TAG_TFT, F("Panel_ILI9341"));
             break;
         }
         case 0x9342: {
             panel = new lgfx::Panel_ILI9342();
-            LOG_DEBUG(TAG_TFT, F("%s - %d"), __FILE__, __LINE__);
+            LOG_VERBOSE(TAG_TFT, F("Panel_ILI9342"));
             break;
         }
         case 0x61529:
         case 0x9481: {
-            panel = new lgfx::Panel_ILI9481();
-            LOG_DEBUG(TAG_TFT, F("%s - %d"), __FILE__, __LINE__);
+            panel = new lgfx::Panel_ILI9481_b();
+            LOG_VERBOSE(TAG_TFT, F("Panel_ILI9481_b"));
             break;
         }
         case 0x9488: {
             panel = new lgfx::Panel_ILI9488();
-            LOG_DEBUG(TAG_TFT, F("%s - %d"), __FILE__, __LINE__);
+            LOG_VERBOSE(TAG_TFT, F("Panel_ILI9488"));
             break;
         }
         case 0x7789: {
             panel = new lgfx::Panel_ST7789();
-            LOG_DEBUG(TAG_TFT, F("%s - %d"), __FILE__, __LINE__);
+            LOG_VERBOSE(TAG_TFT, F("Panel_ST7789"));
             break;
         }
         case 0x7796: {
             panel = new lgfx::Panel_ST7796();
-            LOG_DEBUG(TAG_TFT, F("%s - %d"), __FILE__, __LINE__);
+            LOG_VERBOSE(TAG_TFT, F("Panel_ST7796"));
             break;
         }
         case 0x8357D: {
             panel = new lgfx::Panel_HX8357D();
-            LOG_DEBUG(TAG_TFT, F("%s - %d"), __FILE__, __LINE__);
+            LOG_VERBOSE(TAG_TFT, F("Panel_HX8357D"));
             break;
         }
         default: { // Needs to be in curly braces
