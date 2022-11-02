@@ -48,8 +48,10 @@ jobs:
             out: m5stack
           - out: makerfabs
             env: "makerfabs-tft35-cap -e makerfabs-s3-tft35-spi"
+          - out: sunton
+            env: "esp32-3248s035c_4MB -e esp32-3248s035r_4MB"
           - out: ttgo
-            env: "ttgo-t7-v1.5_ili9341_4MB -e ttgo-t7-v1.5_ili9341_16MB"
+            env: "ttgo-t7-v1.5_ili9341_4MB -e ttgo-t7-v1.5_ili9341_16MB -e ttgo-lilygo-pi_ili9481 -e ttgo-lilygo-pi_st7796"
           - out: wireless-tag
             env: "wt32-sc01_4MB -e wt32-sc01_16MB -e wt-86-32-3zw1 -e wt32-sc01-plus_8MB"
           - env: yeacreate-nscreen32
