@@ -73,6 +73,7 @@ LV_IMG_DECLARE(img_bubble_pattern)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 uint8_t hasp_sleep_state        = HASP_SLEEP_OFF; // Used in hasp_drv_touch.cpp
+bool hasp_first_touch_state     = false;          // Track first touch state
 static uint16_t sleepTimeShort  = 60;             // 1 second resolution
 static uint16_t sleepTimeLong   = 120;            // 1 second resolution
 static uint32_t sleepTimeOffset = 0;              // 1 second resolution
@@ -111,6 +112,8 @@ lv_font_t* hasp_get_font(uint8_t fontid)
  */
 HASP_ATTRIBUTE_FAST_MEM void hasp_update_sleep_state()
 {
+    if (hasp_first_touch_state) return; // don't update sleep when first touch is still active
+
     uint32_t idle = lv_disp_get_inactive_time(lv_disp_get_default()) / 1000;
     idle += sleepTimeOffset; // To force a specific state
 
@@ -256,8 +259,7 @@ void hasp_set_antiburn(int32_t repeat_count, uint32_t period)
         if(antiburn_task) {
             // lv_obj_set_style_local_bg_color(layer, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_BLACK);
             // lv_obj_set_style_local_bg_opa(layer, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_COVER);
-            lv_obj_set_event_cb(layer, first_touch_event_handler);
-            lv_obj_set_click(layer, true);
+            hasp_set_wakeup_touch(true);
             lv_task_set_repeat_count(antiburn_task, repeat_count);
             lv_task_set_period(antiburn_task, period);
             //  gui_hide_pointer(true);
@@ -292,6 +294,7 @@ void hasp_set_wakeup_touch(bool en)
     if(!layer) return;
 
     if(lv_obj_get_click(layer) != en) {
+        hasp_first_touch_state = en;
         lv_obj_set_event_cb(layer, first_touch_event_handler);
         lv_obj_set_click(layer, en);
         LOG_INFO(TAG_HASP, F("First touch %s"), en ? D_SETTING_ENABLED : D_SETTING_DISABLED);
@@ -575,7 +578,7 @@ void haspSetup(void)
 
     hasp_init();
     hasp_load_json();
-    haspPages.set(haspStartPage, LV_SCR_LOAD_ANIM_FADE_ON, 500, 0);
+    haspPages.set(haspStartPage, LV_SCR_LOAD_ANIM_NONE, 0, 0);
 
     // lv_obj_t* obj        = lv_datetime_create(haspPages.get_obj(haspPages.get()), NULL);
     // obj->user_data.objid = LV_HASP_DATETIME;
