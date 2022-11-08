@@ -18,6 +18,14 @@
 #include "hasp_config.h"
 
 #include "../hasp/hasp_dispatch.h"
+#include "freertos/queue.h"
+
+QueueHandle_t queue;
+typedef struct
+{
+    char topic[64];
+    char payload[512];
+} mqtt_message_t;
 
 char mqttLwtTopic[28];
 char mqttNodeTopic[24];
@@ -100,7 +108,8 @@ int mqtt_send_state(const char* subtopic, const char* payload)
 int mqtt_send_discovery(const char* payload, size_t len)
 {
     char tmp_topic[128];
-    snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR(MQTT_PREFIX "/" MQTT_TOPIC_DISCOVERY "/%s"),haspDevice.get_hardware_id());
+    snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR(MQTT_PREFIX "/" MQTT_TOPIC_DISCOVERY "/%s"),
+               haspDevice.get_hardware_id());
     return mqttPublish(tmp_topic, payload, len, false);
 }
 
@@ -109,7 +118,7 @@ int mqtt_send_discovery(const char* payload, size_t len)
 static void mqtt_message_cb(const char* topic, byte* payload, unsigned int length)
 { // Handle incoming commands from MQTT
     mqttReceiveCount++;
-    LOG_TRACE(TAG_MQTT_RCV, F("%s = %s"), topic, (char*)payload);
+    LOG_TRACE(TAG_MQTT_RCV, F("[%s] %s = %s"), pcTaskGetTaskName(NULL), topic, (char*)payload);
 
     if(topic == strstr(topic, mqttNodeTopic)) { // startsWith mqttNodeTopic
 
@@ -168,7 +177,15 @@ static void mqtt_message_cb(const char* topic, byte* payload, unsigned int lengt
                 }
                 else */
     {
-        dispatch_topic_payload(topic, (const char*)payload, length > 0, TAG_MQTT);
+        mqtt_message_t data;
+        snprintf(data.topic, sizeof(data.topic), topic);
+        snprintf(data.payload, sizeof(data.payload), (const char*)payload);
+        size_t attempt = 0;
+        while(xQueueSend(queue, &data, (TickType_t)0) == errQUEUE_FULL && attempt < 100) {
+            vTaskDelay(5 / portTICK_PERIOD_MS);
+            attempt++;
+        };
+        // dispatch_topic_payload(topic, (const char*)payload, length > 0, TAG_MQTT);
     }
 }
 
@@ -316,6 +333,8 @@ static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
 
 void mqttSetup()
 {
+    queue = xQueueCreate(20, sizeof(mqtt_message_t));
+
     esp_crt_bundle_set(rootca_crt_bundle_start);
     mqttStart();
 }
@@ -323,6 +342,13 @@ void mqttSetup()
 IRAM_ATTR void mqttLoop(void)
 {
     // mqttClient.loop();
+    mqtt_message_t data;
+    while(xQueueReceive(queue, &data, (TickType_t)0)) {
+        LOG_INFO(TAG_MQTT, F("[%s] Received data from queue == %s\n"), pcTaskGetTaskName(NULL), data.topic);
+        size_t length = strlen(data.payload);
+        dispatch_topic_payload(data.topic, data.payload, length > 0, TAG_MQTT);
+        delay(1);
+    }
 }
 
 void mqttEvery5Seconds(bool networkIsConnected)

@@ -59,7 +59,7 @@
 
 /* Default display refresh period.
  * Can be changed in the display driver (`lv_disp_drv_t`).*/
-#define LV_DISP_DEF_REFR_PERIOD      30      /*[ms]*/
+#define LV_DISP_DEF_REFR_PERIOD      50      /*[ms]*/
 
  /* Dot Per Inch: used to initialize default sizes.
   * E.g. a button with width = LV_DPI / 2 -> half inch wide
