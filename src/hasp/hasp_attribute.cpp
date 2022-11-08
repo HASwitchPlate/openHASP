@@ -2528,7 +2528,7 @@ void attr_out_json(lv_obj_t* obj, const char* attribute, const char* data)
 
 void attr_out_int(lv_obj_t* obj, const char* attribute, int32_t val)
 {
-    char data[9];
+    char data[16];
     itoa(val, data, sizeof(data));
     attr_out(obj, attribute, data, true);
 }
