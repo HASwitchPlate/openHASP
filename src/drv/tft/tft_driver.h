@@ -42,6 +42,9 @@ class BaseTft {
 #elif defined(ESP32) && defined(LGFX_USE_V1)
 // #warning Building for ESP32 LovyanGfx
 #include "tft_driver_lovyangfx.h"
+#elif defined(HASP_USE_ARDUINOGFX)
+#warning Building for ESP32 ArduinoGfx
+#include "tft_driver_arduinogfx.h"
 #elif defined(ESP8266)
 // #warning Building for ESP8266 Tfts
 #include "tft_driver_tftespi.h"

@@ -84,6 +84,7 @@ stages:
       topic: hasp/{plate}/command/jsonl
       json:
         obj: "{obj}"
+        page: 1
         id: 1
         x: 128
         y: 128

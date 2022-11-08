@@ -50,10 +50,11 @@ marks:
   - parametrize:
       key: obj
       vals:
-        - cpicker
-        - table
+#        - cpicker
+#        - table
         - tabview
-        - chart
+#        - chart
+        - spinner
         - gauge
         - btn
         - label
@@ -66,7 +67,6 @@ marks:
         - obj
         - linemeter
         - dropdown
-        - spinner
         - roller
         - btnmatrix
 
@@ -113,6 +113,7 @@ stages:
       topic: hasp/{plate}/command/jsonl
       json:
         obj: "{obj}"
+        page: 1
         id: 1
         x: 0
         y: 0
