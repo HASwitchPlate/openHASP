@@ -18,7 +18,7 @@
 #include "../../hasp/hasp.h" // for hasp_sleep_state
 extern uint8_t hasp_sleep_state;
 
-#define RST_PIN (TOUCH_RST) // -1 if pin is connected to VCC else set pin number
+// #define RST_PIN (TOUCH_RST) // -1 if pin is connected to VCC else set pin number
 
 // Read touch points
 // HASP_ATTRIBUTE_FAST_MEM bool FT6336U_getXY(int16_t* touchX, int16_t* touchY)

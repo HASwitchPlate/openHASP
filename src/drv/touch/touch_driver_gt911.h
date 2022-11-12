@@ -18,9 +18,6 @@
 #include "../../hasp/hasp.h" // for hasp_sleep_state
 extern uint8_t hasp_sleep_state;
 
-#define INT_PIN (TOUCH_IRQ)
-#define RST_PIN (TOUCH_RST) // -1 if pin is connected to VCC else set pin number
-
 static Goodix touch = Goodix();
 // static int8_t GT911_num_touches;
 // static GTPoint* GT911_points;
@@ -84,7 +81,7 @@ class TouchGt911 : public BaseTouch {
             data->state = LV_INDEV_STATE_REL;
         }
 
-        touch.loop(); // reset IRQ
+       // touch.loop(); // reset IRQ (now in readInput)
 
         /*Return `false` because we are not buffering and no more data to read*/
         return false;
@@ -98,7 +95,7 @@ class TouchGt911 : public BaseTouch {
 
         touch.setHandler(GT911_setXY);
 
-        if(touch.begin(INT_PIN, RST_PIN)) {
+        if(touch.begin(TOUCH_IRQ, TOUCH_RST)) {
             LOG_INFO(TAG_DRVR, F("GT911 " D_SERVICE_STARTED));
         } else {
             LOG_WARNING(TAG_DRVR, F("GT911 " D_SERVICE_START_FAILED));

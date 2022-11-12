@@ -20,6 +20,8 @@ jobs:
       fail-fast: false
       matrix:
         environment:
+          - out: adafruit
+            env: "huzzah32-featherwing-24 -e huzzah32-featherwing-35"
           - out: az-touch
             env: "az-touch-mod-esp32_ili9341_4MB -e az-touch-mod-esp32_ili9341_8MB"
           - env: d1-mini-esp32_ili9341
@@ -30,22 +32,18 @@ jobs:
             out: d1-r32-espduino32
           - env: d1-r32-unoshield_ili9486_adc
             out: d1-r32-espduino32
-          - env: esp32-one_st7796
-            out: waveshare
-          - env: esp32-one_ili9486
-            out: waveshare
-          - env: esp32-touchdown
-            out: esp32-touchdown
-          - out: freetouchdeck
-            env: "freetouchdeck_4MB -e freetouchdeck_8MB"
-          - out: featherwing
-            env: "huzzah32-featherwing-24 -e huzzah32-featherwing-35"
-          - env: lanbon_l8
-            out: lanbon_l8
-          - env: lolin-d32-pro_ili9341
-            out: lolin-d32-pro
-          - env: m5stack-core2
-            out: m5stack
+          - out: waveshare
+            env: "esp32-one_ili9486 -e esp32-one_st7796"
+          - out: dustinwatts
+            env: "freetouchdeck_4MB -e freetouchdeck_8MB -e esp32-touchdown"
+          - out: globalsecurity
+            env: gs-t3e_16MB
+          - out: lanbon
+            env: lanbon_l8
+          - out: lolin
+            env: lolin-d32-pro_ili9341
+          - out: m5stack
+            env: m5stack-core2
           - out: makerfabs
             env: "makerfabs-tft35-cap -e makerfabs-s3-tft35-spi"
           - out: sunton
@@ -54,8 +52,8 @@ jobs:
             env: "ttgo-t7-v1.5_ili9341_4MB -e ttgo-t7-v1.5_ili9341_16MB -e ttgo-lilygo-pi_ili9481 -e ttgo-lilygo-pi_st7796"
           - out: wireless-tag
             env: "wt32-sc01_4MB -e wt32-sc01_16MB -e wt-86-32-3zw1 -e wt32-sc01-plus_8MB"
-          - env: yeacreate-nscreen32
-            out: yeacreate
+          - out: yeacreate
+            env: yeacreate-nscreen32
 
     steps:
       - uses: actions/checkout@v3
