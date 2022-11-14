@@ -15,8 +15,8 @@ build_flags =
     ${esp32.ps_ram}
     
 ;region -- TFT_eSPI build options ------------------------
-    -D LGFX_USE_V1=1
-    ;-D USER_SETUP_LOADED=1
+    ;-D LGFX_USE_V1=1
+    -D USER_SETUP_LOADED=1
     -D ILI9481_DRIVER=1
     -D INVERT_COLORS=1
     -D TFT_INVERSION_ON   ; for inverted colors
@@ -36,7 +36,7 @@ build_flags =
     -D I2C_TOUCH_FREQUENCY=400000
     -D I2C_TOUCH_PORT=1
     -D I2C_TOUCH_ADDRESS=0x5D ; or 0x14
-    -D TOUCH_DRIVER=0x0911 ; GT911 Capacitive I2C touch panel driver
+    ;-D TOUCH_DRIVER=0x0911 ; GT911 Capacitive I2C touch panel driver
     -D TOUCH_IRQ=34
     -D TOUCH_RST=-1
     -D TOUCH_SDA=21
@@ -52,7 +52,8 @@ lib_deps =
     ${env.lib_deps}
     ${esp32.lib_deps}
     ${arduino_esp32_v2.lib_deps}
-    ${lovyangfx.lib_deps}
+    ;${lovyangfx.lib_deps}
+    ${tft_espi.lib_deps}
     ${goodix.lib_deps}
 
 lib_ignore =
