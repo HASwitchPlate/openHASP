@@ -573,11 +573,11 @@ void LovyanGfx::init(int w, int h)
         auto cfg            = _touch_instance->config();
         cfg.x_min           = 300;
         cfg.x_max           = 3900;
-        cfg.y_min           = 200;
-        cfg.y_max           = 3700;
+        cfg.y_min           = 3700;
+        cfg.y_max           = 200;
         cfg.pin_int         = -1;
         cfg.bus_shared      = false;
-        cfg.offset_rotation = 6;
+        cfg.offset_rotation = TOUCH_OFFSET_ROTATION;
         cfg.spi_host        = VSPI_HOST;
         cfg.freq            = 1000000;
         cfg.pin_sclk        = 25;
@@ -617,6 +617,13 @@ void LovyanGfx::init(int w, int h)
     tft.begin();
     LOG_DEBUG(TAG_TFT, F("%s - %d"), __FILE__, __LINE__);
     tft.setSwapBytes(true); /* set endianess */
+
+// #if esp32_2432S028R
+//     LOG_VERBOSE(TAG_TFT, "Setting up touch calibration for esp32_2432S028R")
+//     uint16_t calData[] = {239, 3926, 233, 265, 3856, 3896, 3714, 308};
+//     tft.setTouchCalibrate(calData);
+// #endif
+
     LOG_INFO(TAG_TFT, F(D_SERVICE_STARTED));
 }
 

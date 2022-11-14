@@ -479,7 +479,7 @@ bool guiGetConfig(const JsonObject& settings)
 #if TOUCH_DRIVER == 0x2046 && defined(USER_SETUP_LOADED) && defined(TOUCH_CS)
         // tft_espi_set_touch(gui_settings.cal_data);
         haspTft.tft.setTouch(gui_settings.cal_data);
-#elif 0
+#elif TOUCH_DRIVER == 0x2046 && defined(HASP_USE_LGFX_TOUCH)
         haspTft.tft.setTouchCalibrate(gui_settings.cal_data);
 #endif
     }

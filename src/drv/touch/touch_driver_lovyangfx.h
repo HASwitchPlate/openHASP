@@ -55,7 +55,6 @@ class TouchLovyanGfx : public BaseTouch {
 
     void calibrate(uint16_t* calData)
     {
-        /*
 
         haspTft.tft.fillScreen(TFT_BLACK);
         // haspTft.tft.setCursor(20, 0);
@@ -70,7 +69,6 @@ class TouchLovyanGfx : public BaseTouch {
         haspTft.tft.calibrateTouch(calData, TFT_MAGENTA, TFT_BLACK, 15);
         // haspTft.tft.setTouch(calData);
 
-        */
     }
 };
 
