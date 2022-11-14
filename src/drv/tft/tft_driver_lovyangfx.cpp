@@ -534,31 +534,31 @@ void LovyanGfx::init(int w, int h)
         auto cfg        = _bus_instance->config();
         cfg.spi_host    = SPI2_HOST;
         cfg.spi_mode    = 0;
-        cfg.freq_write  = 40000000;
-        cfg.freq_read   = 16000000;
+        cfg.freq_write  = SPI_FREQUENCY;
+        cfg.freq_read   = SPI_READ_FREQUENCY;
         cfg.spi_3wire   = false;
         cfg.use_lock    = true;
         cfg.dma_channel = 1;
-        cfg.pin_sclk    = 14;
-        cfg.pin_mosi    = 13;
-        cfg.pin_miso    = 12;
-        cfg.pin_dc      = 2;
+        cfg.pin_sclk    = TFT_SCLK;
+        cfg.pin_mosi    = TFT_MOSI;
+        cfg.pin_miso    = TFT_MISO;
+        cfg.pin_dc      = TFT_DC;
         _bus_instance->config(cfg);
         _panel_instance->setBus(_bus_instance);
     }
 
     {
         auto cfg             = _panel_instance->config();
-        cfg.pin_cs           = 15;
-        cfg.pin_rst          = -1;
-        cfg.pin_busy         = -1;
-        cfg.memory_width     = 240;
-        cfg.memory_height    = 320;
-        cfg.panel_width      = 240;
-        cfg.panel_height     = 320;
+        cfg.pin_cs           = TFT_CS;
+        cfg.pin_rst          = TFT_RST;
+        cfg.pin_busy         = TFT_BUSY;
+        cfg.memory_width     = TFT_WIDTH;
+        cfg.memory_height    = TFT_HEIGHT;
+        cfg.panel_width      = TFT_WIDTH;
+        cfg.panel_height     = TFT_HEIGHT;
         cfg.offset_x         = 0;
         cfg.offset_y         = 0;
-        cfg.offset_rotation  = 0;
+        cfg.offset_rotation  = TFT_ROTATION;
         cfg.dummy_read_pixel = 8;
         cfg.dummy_read_bits  = 1;
         cfg.readable         = true;
@@ -571,19 +571,19 @@ void LovyanGfx::init(int w, int h)
 
     {
         auto cfg            = _touch_instance->config();
-        cfg.x_min           = 300;
-        cfg.x_max           = 3900;
-        cfg.y_min           = 3700;
-        cfg.y_max           = 200;
-        cfg.pin_int         = -1;
+        cfg.x_min           = 0;
+        cfg.x_max           = 4095;
+        cfg.y_min           = 4095;
+        cfg.y_max           = 0;
+        cfg.pin_int         = TOUCH_IRQ;
         cfg.bus_shared      = false;
         cfg.offset_rotation = TOUCH_OFFSET_ROTATION;
         cfg.spi_host        = VSPI_HOST;
-        cfg.freq            = 1000000;
-        cfg.pin_sclk        = 25;
-        cfg.pin_mosi        = 32;
-        cfg.pin_miso        = 39;
-        cfg.pin_cs          = 33;
+        cfg.freq            = SPI_TOUCH_FREQUENCY;
+        cfg.pin_sclk        = TOUCH_SCLK;
+        cfg.pin_mosi        = TOUCH_MOSI;
+        cfg.pin_miso        = TOUCH_MISO;
+        cfg.pin_cs          = TOUCH_CS;
         _touch_instance->config(cfg);
         _panel_instance->setTouch(_touch_instance);
     }
@@ -617,12 +617,6 @@ void LovyanGfx::init(int w, int h)
     tft.begin();
     LOG_DEBUG(TAG_TFT, F("%s - %d"), __FILE__, __LINE__);
     tft.setSwapBytes(true); /* set endianess */
-
-// #if esp32_2432S028R
-//     LOG_VERBOSE(TAG_TFT, "Setting up touch calibration for esp32_2432S028R")
-//     uint16_t calData[] = {239, 3926, 233, 265, 3856, 3896, 3714, 308};
-//     tft.setTouchCalibrate(calData);
-// #endif
 
     LOG_INFO(TAG_TFT, F(D_SERVICE_STARTED));
 }

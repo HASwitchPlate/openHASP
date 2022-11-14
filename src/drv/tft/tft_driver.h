@@ -9,6 +9,7 @@
 #endif
 
 #include "lvgl.h"
+#include "tft_defines.h"
 
 namespace dev {
 
