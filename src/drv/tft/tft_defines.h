@@ -6,7 +6,7 @@
 
 #if defined(ARDUINO)
 
-#ifndef TOUCH_CS
+#if !defined(TOUCH_CS) && !defined(USER_SETUP_LOADED)
 #define TOUCH_CS -1
 #endif
 
