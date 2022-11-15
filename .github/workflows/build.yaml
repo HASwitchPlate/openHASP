@@ -49,7 +49,7 @@ jobs:
           - out: makerfabs
             env: "makerfabs-tft35-cap -e makerfabs-s3-tft35-spi"
           - out: sunton
-            env: "esp32-3248s035c_4MB -e esp32-3248s035r_4MB"
+            env: "esp32-2432s028r_4MB -e esp32-3248s035c_4MB -e esp32-3248s035r_4MB"
           - out: wireless-tag
             env: "wt32-sc01_4MB -e wt32-sc01_16MB -e wt-86-32-3zw1 -e wt32-sc01-plus_8MB"
           - out: yeacreate
