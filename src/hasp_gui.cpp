@@ -177,17 +177,14 @@ IRAM_ATTR bool gui_touch_read(lv_indev_drv_t* indev_driver, lv_indev_data_t* dat
 void guiCalibrate(void)
 {
 #if TOUCH_DRIVER == 0x2046 //&& defined(USER_SETUP_LOADED)
-#ifdef TOUCH_CS
     haspTouch.calibrate(gui_settings.cal_data);
-#endif
 
-    size_t len = sizeof(gui_settings.cal_data) / sizeof(gui_settings.cal_data[0]);
-    for(int i = 0; i < len; i++) {
-        Serial.print(gui_settings.cal_data[i]);
-        if(i < len - 1) Serial.print(", ");
-    }
+    // size_t len = sizeof(gui_settings.cal_data) / sizeof(gui_settings.cal_data[0]);
+    // for(int i = 0; i < len; i++) {
+    //     Serial.print(gui_settings.cal_data[i]);
+    //     if(i < len - 1) Serial.print(", ");
+    // }
 
-    delay(500);
     lv_obj_invalidate(lv_disp_get_layer_sys(NULL));
 #endif
 }
@@ -462,13 +459,12 @@ bool guiGetConfig(const JsonObject& settings)
             changed = true;
 
 #if TOUCH_DRIVER == 0x2046 && defined(USER_SETUP_LOADED) && defined(TOUCH_CS)
-        // haspTft.tft.setTouch(gui_settings.cal_data);
-        haspTouch.set_calibration(gui_settings.cal_data);
+            // haspTft.tft.setTouch(gui_settings.cal_data);
+            haspTouch.set_calibration(gui_settings.cal_data);
 #elif TOUCH_DRIVER == 0x2046 && defined(HASP_USE_LGFX_TOUCH)
-        // haspTft.tft.setTouchCalibrate(gui_settings.cal_data);
-        haspTouch.set_calibration(gui_settings.cal_data);
+            // haspTft.tft.setTouchCalibrate(gui_settings.cal_data);
+            haspTouch.set_calibration(gui_settings.cal_data);
 #endif
-
         }
         i++;
     }

@@ -76,6 +76,7 @@ class TouchLovyanGfx : public BaseTouch {
         delay(500);
         haspTft.tft.calibrateTouch(calData, TFT_MAGENTA, TFT_BLACK, 15);
         set_calibration(calData);
+        delay(500);
         }
     }
 };
