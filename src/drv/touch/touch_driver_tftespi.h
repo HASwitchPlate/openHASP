@@ -38,13 +38,18 @@ class TouchTftEspi : public BaseTouch {
         if(haspTft.tft.getTouch((uint16_t*)&data->point.x, (uint16_t*)&data->point.y, 300)) {
             if(hasp_sleep_state != HASP_SLEEP_OFF) hasp_update_sleep_state(); // update Idle
             data->state = LV_INDEV_STATE_PR;
-            hasp_set_sleep_offset(0);  // Reset the offset
-    } else {
+            hasp_set_sleep_offset(0); // Reset the offset
+        } else {
             data->state = LV_INDEV_STATE_REL;
         }
 
         /*Return `false` because we are not buffering and no more data to read*/
         return false;
+    }
+
+    void set_calibration(uint16_t* calData)
+    {
+        haspTft.tft.setTouch(calData);
     }
 
     void calibrate(uint16_t* calData)
@@ -60,7 +65,7 @@ class TouchTftEspi : public BaseTouch {
         haspTft.tft.setTextFont(1);
         delay(500);
         haspTft.tft.calibrateTouch(calData, TFT_MAGENTA, TFT_BLACK, 15);
-        haspTft.tft.setTouch(calData);
+        set_calibration(calData);
     }
 };
 

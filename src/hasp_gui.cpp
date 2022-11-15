@@ -374,6 +374,7 @@ void guiSetup()
 #if !(defined(WINDOWS) || defined(POSIX))
     // drv_touch_init(gui_settings.rotation); // Touch driver
     haspTouch.init(tft_width, tft_height);
+    haspTouch.set_calibration(gui_settings.cal_data);
     haspTouch.set_rotation(gui_settings.rotation);
 #endif
 
@@ -461,9 +462,13 @@ bool guiGetConfig(const JsonObject& settings)
             changed = true;
 
 #if TOUCH_DRIVER == 0x2046 && defined(USER_SETUP_LOADED) && defined(TOUCH_CS)
-            // tft_espi_set_touch(gui_settings.cal_data);
-            haspTft.tft.setTouch(gui_settings.cal_data);
+        // haspTft.tft.setTouch(gui_settings.cal_data);
+        haspTouch.set_calibration(gui_settings.cal_data);
+#elif TOUCH_DRIVER == 0x2046 && defined(HASP_USE_LGFX_TOUCH)
+        // haspTft.tft.setTouchCalibrate(gui_settings.cal_data);
+        haspTouch.set_calibration(gui_settings.cal_data);
 #endif
+
         }
         i++;
     }
@@ -477,10 +482,11 @@ bool guiGetConfig(const JsonObject& settings)
         changed = true;
 
 #if TOUCH_DRIVER == 0x2046 && defined(USER_SETUP_LOADED) && defined(TOUCH_CS)
-        // tft_espi_set_touch(gui_settings.cal_data);
-        haspTft.tft.setTouch(gui_settings.cal_data);
+        // haspTft.tft.setTouch(gui_settings.cal_data);
+        haspTouch.set_calibration(gui_settings.cal_data);
 #elif TOUCH_DRIVER == 0x2046 && defined(HASP_USE_LGFX_TOUCH)
-        haspTft.tft.setTouchCalibrate(gui_settings.cal_data);
+        // haspTft.tft.setTouchCalibrate(gui_settings.cal_data);
+        haspTouch.set_calibration(gui_settings.cal_data);
 #endif
     }
 
@@ -553,9 +559,13 @@ bool guiSetConfig(const JsonObject& settings)
         }
 
 #if TOUCH_DRIVER == 0x2046 && defined(USER_SETUP_LOADED) && defined(TOUCH_CS)
-        if(status) // tft_espi_set_touch(gui_settings.cal_data);
-            haspTft.tft.setTouch(gui_settings.cal_data);
+        // haspTft.tft.setTouch(gui_settings.cal_data);
+        if(status) haspTouch.set_calibration(gui_settings.cal_data);
+#elif TOUCH_DRIVER == 0x2046 && defined(HASP_USE_LGFX_TOUCH)
+        // haspTft.tft.setTouchCalibrate(gui_settings.cal_data);
+        if(status) haspTouch.set_calibration(gui_settings.cal_data);
 #endif
+
         changed |= status;
     }
 

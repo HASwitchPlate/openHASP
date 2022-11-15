@@ -32,6 +32,8 @@ class BaseTouch {
     }
     void calibrate(uint16_t* calData)
     {}
+    void set_calibration(uint16_t* calData)
+    {}
     bool is_driver_pin(uint8_t)
     {
         return false;

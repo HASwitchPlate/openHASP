@@ -53,8 +53,16 @@ class TouchLovyanGfx : public BaseTouch {
 #endif
     }
 
+    void set_calibration(uint16_t* calData)
+    {
+        if(haspTft.tft.panel() && haspTft.tft.width() && haspTft.tft.height()) {
+            haspTft.tft.setTouchCalibrate(calData);
+        }
+    }
+
     void calibrate(uint16_t* calData)
     {
+        if(haspTft.tft.panel() && haspTft.tft.width() && haspTft.tft.height()) {
 
         haspTft.tft.fillScreen(TFT_BLACK);
         // haspTft.tft.setCursor(20, 0);
@@ -67,8 +75,8 @@ class TouchLovyanGfx : public BaseTouch {
         // haspTft.tft.setTextFont(1);
         delay(500);
         haspTft.tft.calibrateTouch(calData, TFT_MAGENTA, TFT_BLACK, 15);
-        // haspTft.tft.setTouch(calData);
-
+        set_calibration(calData);
+        }
     }
 };
 
