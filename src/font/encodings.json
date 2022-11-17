@@ -5,6 +5,7 @@
         "size": [
             12,
             14,
+            18,
             16,
             20,
             22,
@@ -16,7 +17,8 @@
             38,
             40,
             44,
-            48
+            48,
+            64
         ],
         "textfont": "src/font/roboto/RobotoCondensed-Regular.ttf",
         "iconfont": "src/font/materialdesignicons-webfont.ttf",
@@ -42,6 +44,7 @@
         "size": [
             12,
             14,
+            18,
             16,
             20,
             22,
@@ -152,6 +155,7 @@
         "size": [
             12,
             14,
+            18,
             16,
             20,
             22,
@@ -163,7 +167,8 @@
             38,
             40,
             44,
-            48
+            48,
+            64
         ],
         "textfont": "src/font/roboto/RobotoCondensed-Regular.ttf",
         "iconfont": "src/font/materialdesignicons-webfont.ttf",
@@ -244,6 +249,7 @@
         "size": [
             12,
             14,
+            18,
             16,
             20,
             22,
@@ -255,7 +261,8 @@
             38,
             40,
             44,
-            48
+            48,
+            64
         ],
         "textfont": "src/font/roboto/RobotoCondensed-Regular.ttf",
         "iconfont": "src/font/materialdesignicons-webfont.ttf",
@@ -286,6 +293,7 @@
         "size": [
             12,
             14,
+            18,
             16,
             20,
             22,
@@ -297,7 +305,8 @@
             38,
             40,
             44,
-            48
+            48,
+            64
         ],
         "textfont": "src/font/roboto/RobotoCondensed-Regular.ttf",
         "iconfont": "src/font/materialdesignicons-webfont.ttf",
@@ -331,6 +340,7 @@
         "size": [
             12,
             14,
+            18,
             16,
             20,
             22,
@@ -342,7 +352,8 @@
             38,
             40,
             44,
-            48
+            48,
+            64
         ],
         "textfont": "src/font/roboto/RobotoCondensed-Regular.ttf",
         "iconfont": "src/font/materialdesignicons-webfont.ttf",
@@ -454,12 +465,7 @@
             24,
             26,
             28,
-            32,
-            36,
-            38,
-            40,
-            44,
-            48
+            32
         ],
         "textfont": "src/font/notosans/NotoSansSC-Regular.otf",
         "iconfont": "src/font/materialdesignicons-webfont.ttf",
