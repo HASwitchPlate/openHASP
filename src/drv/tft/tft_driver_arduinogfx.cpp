@@ -21,6 +21,7 @@ void ArduinoGfx::init(int w, int h)
 {
     LOG_TRACE(TAG_TFT, F(D_SERVICE_STARTING));
 
+#if(TFT_WIDTH == 480) && (TFT_HEIGHT == 480)
     /* More data bus class: https://github.com/moononournation/Arduino_GFX/wiki/Data-Bus-Class */
     Arduino_ESP32RGBPanel* bus = new Arduino_ESP32RGBPanel(
         39 /* CS */, 15 /* SCK */, 14 /* SDA */, 18 /* DE */, 17 /* VSYNC */, 16 /* HSYNC */, 21 /* PCLK */, 4 /* R0 */,
@@ -31,6 +32,30 @@ void ArduinoGfx::init(int w, int h)
     tft = new Arduino_ST7701_RGBPanel(bus, GFX_NOT_DEFINED /* RST */, 0 /* rotation */, true /* IPS */, 480 /* width */,
                                       480 /* height */, st7701_type1_init_operations,
                                       sizeof(st7701_type1_init_operations), true /* BGR */);
+#elif 1
+    Arduino_ESP32RGBPanel* bus = new Arduino_ESP32RGBPanel(
+        GFX_NOT_DEFINED /* CS */, GFX_NOT_DEFINED /* SCK */, GFX_NOT_DEFINED /* SDA */, 40 /* DE */, 41 /* VSYNC */,
+        39 /* HSYNC */, 42 /* PCLK */, 45 /* R0 */, 48 /* R1 */, 47 /* R2 */, 21 /* R3 */, 14 /* R4 */, 5 /* G0 */,
+        6 /* G1 */, 7 /* G2 */, 15 /* G3 */, 16 /* G4 */, 4 /* G5 */, 8 /* B0 */, 3 /* B1 */, 46 /* B2 */, 9 /* B3 */,
+        1 /* B4 */
+    );
+#if(TFT_WIDTH == 480) && (TFT_HEIGHT == 272)
+    // ILI6485 LCD 480x272
+    tft = new Arduino_RPi_DPI_RGBPanel(bus, 480 /* width */, 0 /* hsync_polarity */, 8 /* hsync_front_porch */,
+                                       4 /* hsync_pulse_width */, 43 /* hsync_back_porch */, 272 /* height */,
+                                       0 /* vsync_polarity */, 8 /* vsync_front_porch */, 4 /* vsync_pulse_width */,
+                                       12 /* vsync_back_porch */, 1 /* pclk_active_neg */, 9000000 /* prefer_speed */,
+                                       true /* auto_flush */);
+#elif(TFT_WIDTH == 800) && (TFT_HEIGHT == 480)
+    // ST7262 IPS LCD 800x480
+    tft = new Arduino_RPi_DPI_RGBPanel(bus, 800 /* width */, 0 /* hsync_polarity */, 8 /* hsync_front_porch */,
+                                       4 /* hsync_pulse_width */, 8 /* hsync_back_porch */, 480 /* height */,
+                                       0 /* vsync_polarity */, 8 /* vsync_front_porch */, 4 /* vsync_pulse_width */,
+                                       8 /* vsync_back_porch */, 1 /* pclk_active_neg */, 14000000 /* prefer_speed */,
+                                       true /* auto_flush */);
+#endif
+
+#endif
 
     /* TFT init */
     LOG_DEBUG(TAG_TFT, F("%s - %d"), __FILE__, __LINE__);

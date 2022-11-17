@@ -53,7 +53,8 @@
             38,
             40,
             44,
-            48
+            48,
+            64
         ],
         "textfont": "src/font/roboto/RobotoCondensed-Regular.ttf",
         "iconfont": "src/font/materialdesignicons-webfont.ttf",

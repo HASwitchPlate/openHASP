@@ -121,10 +121,10 @@ typedef int16_t lv_coord_t;
 #ifndef LV_VDB_SIZE
 #if defined(ARDUINO_ARCH_ESP8266)
 #  define LV_VDB_SIZE    (8 * 1024U)   // Minimum 8 Kb
-#elif defined(ESP32S2)
+#elif defined(CONFIG_IDF_TARGET_ESP32S2)
 #  define LV_VDB_SIZE    (16 * 1024U)  // 16kB draw buffer
-#elif defined(ESP32S3)
-#  define LV_VDB_SIZE    (32 * 1024U)  // 16kB draw buffer
+#elif defined(CONFIG_IDF_TARGET_ESP32S3)
+#  define LV_VDB_SIZE    (48 * 1024U)  // 16kB draw buffer
 #elif defined(ARDUINO_ARCH_ESP32)
 #  define LV_VDB_SIZE    (32 * 1024U)  // 32kB draw buffer
 #else
@@ -376,8 +376,56 @@ typedef void* lv_indev_drv_user_data_t;            /*Type of user data in the in
 /*==================
  *    FONT USAGE
  *===================*/
+#if TFT_HEIGHT>=480 && TFT_WIDTH>=480
+#ifndef ROBOTOCONDENSED_REGULAR_24_LATIN1
+#define ROBOTOCONDENSED_REGULAR_24_LATIN1 1
+#endif
+#ifndef ROBOTOCONDENSED_REGULAR_32_LATIN1
+#define ROBOTOCONDENSED_REGULAR_32_LATIN1 1
+#endif
+#ifndef ROBOTOCONDENSED_REGULAR_48_LATIN1
+#define ROBOTOCONDENSED_REGULAR_48_LATIN1 1
+#endif
+#ifndef ROBOTOCONDENSED_REGULAR_64_LATIN1
+#define ROBOTOCONDENSED_REGULAR_64_LATIN1 1
+#endif
+#ifndef ROBOTOCONDENSED_REGULAR_16_LATIN1
+#define ROBOTOCONDENSED_REGULAR_16_LATIN1 1
+#endif
 
-#if TFT_HEIGHT>=480 || TFT_WIDTH>=480
+#ifndef HASP_FONT_1
+#define HASP_FONT_1 robotocondensed_regular_24_latin1  /* 5% Width */
+#endif
+#ifndef HASP_FONT_2
+#define HASP_FONT_2 robotocondensed_regular_32_latin1  /* 5% Width */
+#endif
+#ifndef HASP_FONT_3
+#define HASP_FONT_3 robotocondensed_regular_48_latin1  /* 10% Width */
+#endif
+#ifndef HASP_FONT_4
+#define HASP_FONT_4 robotocondensed_regular_64_latin1  /* 10% Height */
+#endif
+#ifndef HASP_FONT_5
+#define HASP_FONT_5 robotocondensed_regular_16_latin1  /* 5% Width */
+#endif
+
+#ifndef HASP_FONT_SIZE_1
+#define HASP_FONT_SIZE_1 24
+#endif
+#ifndef HASP_FONT_SIZE_2
+#define HASP_FONT_SIZE_2 32
+#endif
+#ifndef HASP_FONT_SIZE_3
+#define HASP_FONT_SIZE_3 48
+#endif
+#ifndef HASP_FONT_SIZE_4
+#define HASP_FONT_SIZE_4 64
+#endif
+#ifndef HASP_FONT_SIZE_5
+#define HASP_FONT_SIZE_5 16
+#endif
+
+#elif TFT_HEIGHT>=320 && TFT_WIDTH>=320
 #ifndef ROBOTOCONDENSED_REGULAR_16_LATIN1
 #define ROBOTOCONDENSED_REGULAR_16_LATIN1 1
 #endif
@@ -425,7 +473,57 @@ typedef void* lv_indev_drv_user_data_t;            /*Type of user data in the in
 #ifndef HASP_FONT_SIZE_5
 #define HASP_FONT_SIZE_5 12
 #endif
-#else // not 320x480
+
+#elif TFT_HEIGHT>=272 && TFT_WIDTH>=272
+#ifndef ROBOTOCONDENSED_REGULAR_14_LATIN1
+#define ROBOTOCONDENSED_REGULAR_14_LATIN1 1
+#endif
+#ifndef ROBOTOCONDENSED_REGULAR_18_LATIN1
+#define ROBOTOCONDENSED_REGULAR_18_LATIN1 1
+#endif
+#ifndef ROBOTOCONDENSED_REGULAR_28_LATIN1
+#define ROBOTOCONDENSED_REGULAR_28_LATIN1 1
+#endif
+#ifndef ROBOTOCONDENSED_REGULAR_36_LATIN1
+#define ROBOTOCONDENSED_REGULAR_36_LATIN1 1
+#endif
+#ifndef ROBOTOCONDENSED_REGULAR_48_LATIN1
+#define ROBOTOCONDENSED_REGULAR_48_LATIN1 1
+#endif
+
+#ifndef HASP_FONT_1
+#define HASP_FONT_1 robotocondensed_regular_14_latin1  /* 5% Width */
+#endif
+#ifndef HASP_FONT_2
+#define HASP_FONT_2 robotocondensed_regular_18_latin1  /* 5% Width */
+#endif
+#ifndef HASP_FONT_3
+#define HASP_FONT_3 robotocondensed_regular_28_latin1  /* 10% Width */
+#endif
+#ifndef HASP_FONT_4
+#define HASP_FONT_4 robotocondensed_regular_36_latin1  /* 10% Height */
+#endif
+#ifndef HASP_FONT_5
+#define HASP_FONT_5 robotocondensed_regular_48_latin1  /* 5% Width */
+#endif
+
+#ifndef HASP_FONT_SIZE_1
+#define HASP_FONT_SIZE_1 14
+#endif
+#ifndef HASP_FONT_SIZE_2
+#define HASP_FONT_SIZE_2 18
+#endif
+#ifndef HASP_FONT_SIZE_3
+#define HASP_FONT_SIZE_3 28
+#endif
+#ifndef HASP_FONT_SIZE_4
+#define HASP_FONT_SIZE_4 36
+#endif
+#ifndef HASP_FONT_SIZE_5
+#define HASP_FONT_SIZE_5 48
+#endif
+
+#else // smaller than 272
 
 #ifndef HASP_FONT_1
 #define HASP_FONT_1 robotocondensed_regular_12_latin1  /* 5% Width */

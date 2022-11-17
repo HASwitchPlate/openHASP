@@ -34,6 +34,11 @@ src/custom/*
 !src/custom/my_custom_template.cpp
 !src/custom/my_custom_fan_template.cpp
 
+#npm filter
+node_modules/*
+package.json
+package-lock.json
+
 ## Test result files
 *.xml
 

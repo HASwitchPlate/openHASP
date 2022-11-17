@@ -61,7 +61,6 @@ IRAM_ATTR void GT911_setXY(int8_t contacts, GTPoint* points)
 namespace dev {
 
 class TouchGt911 : public BaseTouch {
-
   public:
     IRAM_ATTR bool read(lv_indev_drv_t* indev_driver, lv_indev_data_t* data)
     {
@@ -72,16 +71,26 @@ class TouchGt911 : public BaseTouch {
 
             if(hasp_sleep_state != HASP_SLEEP_OFF) hasp_update_sleep_state(); // update Idle
 
+#ifdef TOUCH_WIDTH
+            data->point.x = map(points[0].x, 0, TOUCH_WIDTH - 1, 0, TFT_WIDTH - 1);
+#else
             data->point.x = points[0].x;
+#endif
+
+#ifdef TOUCH_HEIGHT
+            data->point.y = map(points[0].y, 0, TOUCH_HEIGHT - 1, 0, TFT_HEIGHT - 1);
+#else
             data->point.y = points[0].y;
-            data->state   = LV_INDEV_STATE_PR;
+#endif
+
+            data->state = LV_INDEV_STATE_PR;
             hasp_set_sleep_offset(0); // Reset the offset
 
         } else {
             data->state = LV_INDEV_STATE_REL;
         }
 
-       // touch.loop(); // reset IRQ (now in readInput)
+        // touch.loop(); // reset IRQ (now in readInput)
 
         /*Return `false` because we are not buffering and no more data to read*/
         return false;
