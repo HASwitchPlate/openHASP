@@ -55,30 +55,34 @@ class TouchLovyanGfx : public BaseTouch {
 
     void set_calibration(uint16_t* calData)
     {
+#if TOUCH_DRIVER == 0x2046
         if(haspTft.tft.panel() && haspTft.tft.width() && haspTft.tft.height()) {
             haspTft.tft.setTouchCalibrate(calData);
         }
+#endif
     }
 
     void calibrate(uint16_t* calData)
     {
+#if TOUCH_DRIVER == 0x2046
         if(haspTft.tft.panel() && haspTft.tft.width() && haspTft.tft.height()) {
 
-        haspTft.tft.fillScreen(TFT_BLACK);
-        // haspTft.tft.setCursor(20, 0);
-        // haspTft.tft.setTextFont(1);
-        // haspTft.tft.setTextSize(1);
-        // haspTft.tft.setTextColor(TFT_WHITE, TFT_BLACK);
+            haspTft.tft.fillScreen(TFT_BLACK);
+            // haspTft.tft.setCursor(20, 0);
+            // haspTft.tft.setTextFont(1);
+            // haspTft.tft.setTextSize(1);
+            // haspTft.tft.setTextColor(TFT_WHITE, TFT_BLACK);
 
-        // // tft.println(PSTR("Touch corners as indicated"));
+            // // tft.println(PSTR("Touch corners as indicated"));
 
-        // haspTft.tft.setTextFont(1);
-        delay(500);
-        haspTft.tft.calibrateTouch(calData, TFT_MAGENTA, TFT_BLACK, 15);
-        set_calibration(calData);
-        delay(500);
+            // haspTft.tft.setTextFont(1);
+            delay(500);
+            haspTft.tft.calibrateTouch(calData, TFT_MAGENTA, TFT_BLACK, 15);
+            set_calibration(calData);
+            delay(500);
         }
     }
+#endif
 };
 
 } // namespace dev

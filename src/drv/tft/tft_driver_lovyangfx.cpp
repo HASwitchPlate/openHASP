@@ -313,7 +313,6 @@ lgfx::ITouch* _init_touch(Preferences* preferences)
     // switch(tft_driver) {
     //     default:
     // case 0x9341: {
-    LOG_DEBUG(TAG_TFT, F("%s - %d"), __FILE__, __LINE__);
     // break;
     //       }
 
@@ -331,20 +330,12 @@ lgfx::ITouch* _init_touch(Preferences* preferences)
         cfg.bus_shared = false;          // 画面と共通のバスを使用している場合 trueを設定
         cfg.offset_rotation = TOUCH_OFFSET_ROTATION; // 表示とタッチの向きのが一致しない場合の調整 0~7の値で設定
 
-        // SPI接続の場合
-        // cfg.spi_host = VSPI_HOST; // 使用するSPIを選択 (HSPI_HOST or VSPI_HOST)
-        // cfg.freq     = 1000000;   // SPIクロックを設定
-        // cfg.pin_sclk = 18;        // SCLKが接続されているピン番号
-        // cfg.pin_mosi = 23;        // MOSIが接続されているピン番号
-        // cfg.pin_miso = 19;        // MISOが接続されているピン番号
-        // cfg.pin_cs   = 5;         //   CSが接続されているピン番号
-
         // I2C接続の場合
         cfg.i2c_port = I2C_TOUCH_PORT;      // 使用するI2Cを選択 (0 or 1)
         cfg.i2c_addr = I2C_TOUCH_ADDRESS;   // I2Cデバイスアドレス番号
         cfg.pin_sda  = TOUCH_SDA;           // SDAが接続されているピン番号
         cfg.pin_scl  = TOUCH_SCL;           // SCLが接続されているピン番号
-        cfg.pin_int  = -1;                  // INTが接続されているピン番号
+        cfg.pin_int  = TOUCH_IRQ;           // INTが接続されているピン番号
         cfg.freq     = I2C_TOUCH_FREQUENCY; // I2Cクロックを設定
 
         touch->config(cfg);
