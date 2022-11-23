@@ -81,8 +81,8 @@ class TouchLovyanGfx : public BaseTouch {
             set_calibration(calData);
             delay(500);
         }
-    }
 #endif
+    }
 };
 
 } // namespace dev
