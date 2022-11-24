@@ -34,28 +34,14 @@ void ArduinoGfx::init(int w, int h)
                                       sizeof(st7701_type1_init_operations), true /* BGR */);
 #elif 1
     Arduino_ESP32RGBPanel* bus = new Arduino_ESP32RGBPanel(
-        GFX_NOT_DEFINED /* CS */, GFX_NOT_DEFINED /* SCK */, GFX_NOT_DEFINED /* SDA */, 40 /* DE */, 41 /* VSYNC */,
-        39 /* HSYNC */, 42 /* PCLK */, 45 /* R0 */, 48 /* R1 */, 47 /* R2 */, 21 /* R3 */, 14 /* R4 */, 5 /* G0 */,
-        6 /* G1 */, 7 /* G2 */, 15 /* G3 */, 16 /* G4 */, 4 /* G5 */, 8 /* B0 */, 3 /* B1 */, 46 /* B2 */, 9 /* B3 */,
-        1 /* B4 */
-    );
+        GFX_NOT_DEFINED /* CS */, GFX_NOT_DEFINED /* SCK */, GFX_NOT_DEFINED /* SDA */, TFT_DE, TFT_VSYNC, TFT_HSYNC,
+        TFT_PCLK, TFT_R0, TFT_R1, TFT_R2, TFT_R3, TFT_R4, TFT_G0, TFT_G1, TFT_G2, TFT_G3, TFT_G4, TFT_G5, TFT_B0,
+        TFT_B1, TFT_B2, TFT_B3, TFT_B4);
 
-#if(TFT_WIDTH == 480) && (TFT_HEIGHT == 272)
-    // ILI6485 LCD 480x272
-    tft = new Arduino_RPi_DPI_RGBPanel(bus, 480 /* width */, 0 /* hsync_polarity */, 8 /* hsync_front_porch */,
-                                       4 /* hsync_pulse_width */, 43 /* hsync_back_porch */, 272 /* height */,
-                                       0 /* vsync_polarity */, 8 /* vsync_front_porch */, 4 /* vsync_pulse_width */,
-                                       12 /* vsync_back_porch */, 1 /* pclk_active_neg */, 9000000 /* prefer_speed */,
-                                       true /* auto_flush */);
-#elif(TFT_WIDTH == 800) && (TFT_HEIGHT == 480)
-    // ST7262 IPS LCD 800x480
-    tft = new Arduino_RPi_DPI_RGBPanel(bus, 800 /* width */, 0 /* hsync_polarity */, 8 /* hsync_front_porch */,
-                                       4 /* hsync_pulse_width */, 8 /* hsync_back_porch */, 480 /* height */,
-                                       0 /* vsync_polarity */, 8 /* vsync_front_porch */, 4 /* vsync_pulse_width */,
-                                       8 /* vsync_back_porch */, 1 /* pclk_active_neg */, 14000000 /* prefer_speed */,
-                                       true /* auto_flush */);                                 
-#endif
-
+    tft = new Arduino_RPi_DPI_RGBPanel(bus, TFT_WIDTH, TFT_HSYNC_POLARITY, TFT_HSYNC_FRONT_PORCH, TFT_HSYNC_PULSE_WIDTH,
+                                       TFT_HSYNC_BACK_PORCH, TFT_HEIGHT, TFT_VSYNC_POLARITY, TFT_VSYNC_FRONT_PORCH,
+                                       TFT_VSYNC_PULSE_WIDTH, TFT_VSYNC_BACK_PORCH, TFT_PCLK_ACTIVE_NEG,
+                                       TFT_PREFER_SPEED, TFT_AUTO_FLUSH);
 #endif
 
     /* TFT init */
