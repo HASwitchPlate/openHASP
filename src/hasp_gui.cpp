@@ -66,52 +66,13 @@ static inline void gui_init_lvgl()
 #endif
 
     /* Create the Virtual Device Buffers */
-    // #if defined(ARDUINO_ARCH_ESP32)
-    //
-    // #ifdef USE_DMA_TO_TFT
-    //     // DMA: len must be less than 32767
-    //     const size_t guiVDBsize = 15 * 1024u; // 30 KBytes
-    //     guiVdbBuffer1           = (lv_color_t*)heap_caps_calloc(guiVDBsize, sizeof(lv_color_t), MALLOC_CAP_DMA);
-    //     // guiVdbBuffer2 = (lv_color_t *)heap_caps_malloc(sizeof(lv_color_t) * guiVDBsize,   MALLOC_CAP_DMA);
-    //     // lv_disp_buf_init(&disp_buf, guiVdbBuffer1, guiVdbBuffer2, guiVDBsize);
-    // #else
-    //     const size_t guiVDBsize = 8 * 1024u; // 32 KBytes
-
-    //     if(0 && psramFound()) {
-    //         guiVdbBuffer1 = (lv_color_t*)ps_calloc(guiVDBsize, sizeof(lv_color_t)); // too slow for VDB
-    //     } else {
-    //         guiVdbBuffer1 = (lv_color_t*)calloc(guiVDBsize, sizeof(lv_color_t));
-    //     }
-
-    // #endif
-
-    //     // static lv_color_t * guiVdbBuffer2 = (lv_color_t *)malloc(sizeof(lv_color_t) * guiVDBsize);
-    //     // lv_disp_buf_init(&disp_buf, guiVdbBuffer1, guiVdbBuffer2, guiVDBsize);
-
-    // #elif defined(ARDUINO_ARCH_ESP8266)
-    //     /* allocate on heap */
-    //     // static lv_color_t guiVdbBuffer1[2 * 512u]; // 4 KBytes
-    //     // size_t guiVDBsize = sizeof(guiVdbBuffer1) / sizeof(guiVdbBuffer1[0]);
-    //     // lv_disp_buf_init(&disp_buf, guiVdbBuffer1, NULL, guiVDBsize);
-
-    //     const size_t guiVDBsize = 2 * 512u; // 4 KBytes * 2
-    //     guiVdbBuffer1           = (lv_color_t*)malloc(sizeof(lv_color_t) * guiVDBsize);
-
-    // #elif defined(WINDOWS) || defined(POSIX)
-    //     const size_t guiVDBsize = LV_HOR_RES_MAX * 10;
-    //     //  static lv_color_t guiVdbBuffer1[guiVDBsize]; /*Declare a buffer for 10 lines*/
-    //     guiVdbBuffer1 = (lv_color_t*)calloc(guiVDBsize, sizeof(lv_color_t));
-
-    // #else
-    //     static lv_color_t guiVdbBuffer1[16 * 512u]; // 16 KBytes
-    //     // static lv_color_t guiVdbBuffer2[16 * 512u]; // 16 KBytes
-    //     size_t guiVDBsize = sizeof(guiVdbBuffer1) / sizeof(guiVdbBuffer1[0]);
-    //     // lv_disp_buf_init(&disp_buf, guiVdbBuffer1, guiVdbBuffer2, guiVDBsize);
-    // #endif
-
-    /* Dynamic VDB allocation */
     const size_t guiVDBsize          = LV_VDB_SIZE / sizeof(lv_color_t);
+#ifdef ESP32
+    static lv_color_t* guiVdbBuffer1 =
+        (lv_color_t*)heap_caps_malloc(sizeof(lv_color_t) * guiVDBsize, MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT);
+#else
     static lv_color_t* guiVdbBuffer1 = (lv_color_t*)malloc(sizeof(lv_color_t) * guiVDBsize);
+#endif
 
     /* Static VDB allocation */
     // static lv_color_t guiVdbBuffer1[LV_VDB_SIZE * 512u];
