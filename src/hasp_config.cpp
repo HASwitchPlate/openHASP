@@ -436,9 +436,6 @@ void configSetup()
     DynamicJsonDocument settings(1024 + 512);
 
     for(uint32_t i = 0; i < 2; i++) {
-        Serial.print(__FILE__);
-        Serial.println(__LINE__);
-
         if(i == 0) {
 #if HASP_USE_SPIFFS > 0
             EepromStream eepromStream(0, 2048);
