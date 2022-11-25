@@ -23,10 +23,12 @@ typedef struct
 #include "hasp_mem.h"
 #include "font/hasp_font_loader.h"
 
+#if defined(ARDUINO_ARCH_ESP32) && (HASP_USE_FREETYPE > 0)
 extern const uint8_t OPENHASP_TTF_START[] asm("_binary_data_openhasp_ttf_start");
 extern const uint8_t OPENHASP_TTF_END[] asm("_binary_data_openhasp_ttf_end");
-extern const uint8_t OPENHASPLITE_TTF_START[] asm("_binary_data_openhasplite_ttf_start");
-extern const uint8_t OPENHASPLITE_TTF_END[] asm("_binary_data_openhasplite_ttf_end");
+// extern const uint8_t OPENHASPLITE_TTF_START[] asm("_binary_data_openhasplite_ttf_start");
+// extern const uint8_t OPENHASPLITE_TTF_END[] asm("_binary_data_openhasplite_ttf_end");
+#endif
 
 static lv_ll_t hasp_fonts_ll;
 
@@ -208,7 +210,7 @@ static lv_font_t* font_add_to_list(const char* payload)
             lv_ft_info_t info;
             info.name     = filename;
             info.weight   = size;
-            info.mem      = (const void*) OPENHASP_TTF_START;
+            info.mem      = (const void*)OPENHASP_TTF_START;
             info.mem_size = OPENHASP_TTF_END - OPENHASP_TTF_START;
             info.style    = FT_FONT_STYLE_NORMAL;
             LOG_VERBOSE(TAG_FONT, F("Loading font %s size %d"), filename, size);
