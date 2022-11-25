@@ -23,6 +23,11 @@ typedef struct
 #include "hasp_mem.h"
 #include "font/hasp_font_loader.h"
 
+extern const uint8_t OPENHASP_TTF_START[] asm("_binary_data_openhasp_ttf_start");
+extern const uint8_t OPENHASP_TTF_END[] asm("_binary_data_openhasp_ttf_end");
+extern const uint8_t OPENHASPLITE_TTF_START[] asm("_binary_data_openhasplite_ttf_start");
+extern const uint8_t OPENHASPLITE_TTF_END[] asm("_binary_data_openhasplite_ttf_end");
+
 static lv_ll_t hasp_fonts_ll;
 
 typedef struct
@@ -162,7 +167,7 @@ static lv_font_t* font_add_to_list(const char* payload)
             size_t pos = font_split_payload(payload);
             if(pos > 0 && pos < 56) {
                 uint16_t size = atoi(payload + pos);
-                if(payload[pos - 1] == '_') pos--; // trancate trailing underscore
+                if(payload[pos - 1] == '_') pos--; // truncate trailing underscore
 
                 char fontname[256];
                 memset(fontname, 0, sizeof(fontname));
@@ -182,15 +187,34 @@ static lv_font_t* font_add_to_list(const char* payload)
                 }
 
                 lv_ft_info_t info;
-                info.name   = filename;
-                info.weight = size;
-                info.mem    = NULL;
-                info.style  = FT_FONT_STYLE_NORMAL;
+                info.name     = filename;
+                info.weight   = size;
+                info.mem      = NULL;
+                info.mem_size = 0;
+                info.style    = FT_FONT_STYLE_NORMAL;
                 LOG_VERBOSE(TAG_FONT, F("Loading font %s size %d"), filename, size);
                 if(lv_ft_font_init(&info)) {
                     font      = info.font;
                     font_type = 1;
                 }
+            }
+        }
+    }
+
+    if(!font) {
+        strcpy(filename, "openhasp");
+        uint16_t size = atoi(payload);
+        if(size > 8) {
+            lv_ft_info_t info;
+            info.name     = filename;
+            info.weight   = size;
+            info.mem      = (const void*) OPENHASP_TTF_START;
+            info.mem_size = OPENHASP_TTF_END - OPENHASP_TTF_START;
+            info.style    = FT_FONT_STYLE_NORMAL;
+            LOG_VERBOSE(TAG_FONT, F("Loading font %s size %d"), filename, size);
+            if(lv_ft_font_init(&info)) {
+                font      = info.font;
+                font_type = 1;
             }
         }
     }

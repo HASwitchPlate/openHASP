@@ -6,7 +6,6 @@
 /*********************
  *      INCLUDES
  *********************/
-#include "lv_freetype.h"
 #if LV_USE_FREETYPE
 
 #include "ft2build.h"
