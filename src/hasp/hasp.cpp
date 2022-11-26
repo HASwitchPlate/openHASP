@@ -112,7 +112,7 @@ lv_font_t* hasp_get_font(uint8_t fontid)
  */
 HASP_ATTRIBUTE_FAST_MEM void hasp_update_sleep_state()
 {
-    if (hasp_first_touch_state) return; // don't update sleep when first touch is still active
+    if(hasp_first_touch_state) return; // don't update sleep when first touch is still active
 
     uint32_t idle = lv_disp_get_inactive_time(lv_disp_get_default()) / 1000;
     idle += sleepTimeOffset; // To force a specific state
@@ -560,6 +560,32 @@ void haspSetup(void)
     LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, nullptr);
     LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, haspFonts[0]);
     // LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, &robotocondensed_regular_16);
+
+#if HASP_USE_FREETYPE > 0
+
+#if TFT_HEIGHT >= 480 && TFT_WIDTH >= 480
+    haspFonts[0] = get_font(" 24");
+    haspFonts[1] = get_font(" 32");
+    haspFonts[2] = get_font(" 48");
+    haspFonts[3] = get_font(" 64");
+#elif TFT_HEIGHT >= 320 && TFT_WIDTH >= 320
+    haspFonts[0] = get_font(" 16");
+    haspFonts[1] = get_font(" 24");
+    haspFonts[2] = get_font(" 32");
+    haspFonts[3] = get_font(" 48");
+#elif TFT_HEIGHT >= 272 && TFT_WIDTH >= 272
+    haspFonts[0] = get_font(" 14");
+    haspFonts[1] = get_font(" 18");
+    haspFonts[2] = get_font(" 28");
+    haspFonts[3] = get_font(" 36");
+#else // smaller than 272
+    haspFonts[0] = get_font(" 12");
+    haspFonts[1] = get_font(" 16");
+    haspFonts[2] = get_font(" 24");
+    haspFonts[3] = get_font(" 32");
+#endif
+
+#endif // HASP_USE_FREETYPE
 
     if(haspFonts[0] == nullptr) haspFonts[0] = LV_THEME_DEFAULT_FONT_SMALL;
     if(haspFonts[1] == nullptr) haspFonts[1] = LV_THEME_DEFAULT_FONT_NORMAL;
