@@ -376,200 +376,201 @@ typedef void* lv_indev_drv_user_data_t;            /*Type of user data in the in
 /*==================
  *    FONT USAGE
  *===================*/
-#if TFT_HEIGHT>=480 && TFT_WIDTH>=480
-#ifndef ROBOTOCONDENSED_REGULAR_24_LATIN1
-#define ROBOTOCONDENSED_REGULAR_24_LATIN1 1
-#endif
-#ifndef ROBOTOCONDENSED_REGULAR_32_LATIN1
-#define ROBOTOCONDENSED_REGULAR_32_LATIN1 1
-#endif
-#ifndef ROBOTOCONDENSED_REGULAR_48_LATIN1
-#define ROBOTOCONDENSED_REGULAR_48_LATIN1 1
-#endif
-#ifndef ROBOTOCONDENSED_REGULAR_64_LATIN1
-#define ROBOTOCONDENSED_REGULAR_64_LATIN1 1
-#endif
-#ifndef ROBOTOCONDENSED_REGULAR_16_LATIN1
-#define ROBOTOCONDENSED_REGULAR_16_LATIN1 1
-#endif
+#if HASP_USE_FREETYPE<=0
+  #if TFT_HEIGHT>=480 && TFT_WIDTH>=480
+    #ifndef ROBOTOCONDENSED_REGULAR_24_LATIN1
+    #define ROBOTOCONDENSED_REGULAR_24_LATIN1 1
+    #endif
+    #ifndef ROBOTOCONDENSED_REGULAR_32_LATIN1
+    #define ROBOTOCONDENSED_REGULAR_32_LATIN1 1
+    #endif
+    #ifndef ROBOTOCONDENSED_REGULAR_48_LATIN1
+    #define ROBOTOCONDENSED_REGULAR_48_LATIN1 1
+    #endif
+    #ifndef ROBOTOCONDENSED_REGULAR_64_LATIN1
+    #define ROBOTOCONDENSED_REGULAR_64_LATIN1 1
+    #endif
+    #ifndef ROBOTOCONDENSED_REGULAR_16_LATIN1
+    #define ROBOTOCONDENSED_REGULAR_16_LATIN1 1
+    #endif
 
-#ifndef HASP_FONT_1
-#define HASP_FONT_1 robotocondensed_regular_24_latin1  /* 5% Width */
-#endif
-#ifndef HASP_FONT_2
-#define HASP_FONT_2 robotocondensed_regular_32_latin1  /* 5% Width */
-#endif
-#ifndef HASP_FONT_3
-#define HASP_FONT_3 robotocondensed_regular_48_latin1  /* 10% Width */
-#endif
-#ifndef HASP_FONT_4
-#define HASP_FONT_4 robotocondensed_regular_64_latin1  /* 10% Height */
-#endif
-#ifndef HASP_FONT_5
-#define HASP_FONT_5 robotocondensed_regular_16_latin1  /* 5% Width */
-#endif
+    #ifndef HASP_FONT_1
+    #define HASP_FONT_1 robotocondensed_regular_24_latin1  /* 5% Width */
+    #endif
+    #ifndef HASP_FONT_2
+    #define HASP_FONT_2 robotocondensed_regular_32_latin1  /* 5% Width */
+    #endif
+    #ifndef HASP_FONT_3
+    #define HASP_FONT_3 robotocondensed_regular_48_latin1  /* 10% Width */
+    #endif
+    #ifndef HASP_FONT_4
+    #define HASP_FONT_4 robotocondensed_regular_64_latin1  /* 10% Height */
+    #endif
+    #ifndef HASP_FONT_5
+    #define HASP_FONT_5 robotocondensed_regular_16_latin1  /* 5% Width */
+    #endif
 
-#ifndef HASP_FONT_SIZE_1
-#define HASP_FONT_SIZE_1 24
-#endif
-#ifndef HASP_FONT_SIZE_2
-#define HASP_FONT_SIZE_2 32
-#endif
-#ifndef HASP_FONT_SIZE_3
-#define HASP_FONT_SIZE_3 48
-#endif
-#ifndef HASP_FONT_SIZE_4
-#define HASP_FONT_SIZE_4 64
-#endif
-#ifndef HASP_FONT_SIZE_5
-#define HASP_FONT_SIZE_5 16
-#endif
+    #ifndef HASP_FONT_SIZE_1
+    #define HASP_FONT_SIZE_1 24
+    #endif
+    #ifndef HASP_FONT_SIZE_2
+    #define HASP_FONT_SIZE_2 32
+    #endif
+    #ifndef HASP_FONT_SIZE_3
+    #define HASP_FONT_SIZE_3 48
+    #endif
+    #ifndef HASP_FONT_SIZE_4
+    #define HASP_FONT_SIZE_4 64
+    #endif
+    #ifndef HASP_FONT_SIZE_5
+    #define HASP_FONT_SIZE_5 16
+    #endif
 
-#elif TFT_HEIGHT>=320 && TFT_WIDTH>=320
-#ifndef ROBOTOCONDENSED_REGULAR_16_LATIN1
-#define ROBOTOCONDENSED_REGULAR_16_LATIN1 1
-#endif
-#ifndef ROBOTOCONDENSED_REGULAR_24_LATIN1
-#define ROBOTOCONDENSED_REGULAR_24_LATIN1 1
-#endif
-#ifndef ROBOTOCONDENSED_REGULAR_32_LATIN1
-#define ROBOTOCONDENSED_REGULAR_32_LATIN1 1
-#endif
-#ifndef ROBOTOCONDENSED_REGULAR_48_LATIN1
-#define ROBOTOCONDENSED_REGULAR_48_LATIN1 1
-#endif
-#ifndef ROBOTOCONDENSED_REGULAR_12_LATIN1
-#define ROBOTOCONDENSED_REGULAR_12_LATIN1 1
-#endif
+  #elif TFT_HEIGHT>=320 && TFT_WIDTH>=320
+    #ifndef ROBOTOCONDENSED_REGULAR_16_LATIN1
+    #define ROBOTOCONDENSED_REGULAR_16_LATIN1 1
+    #endif
+    #ifndef ROBOTOCONDENSED_REGULAR_24_LATIN1
+    #define ROBOTOCONDENSED_REGULAR_24_LATIN1 1
+    #endif
+    #ifndef ROBOTOCONDENSED_REGULAR_32_LATIN1
+    #define ROBOTOCONDENSED_REGULAR_32_LATIN1 1
+    #endif
+    #ifndef ROBOTOCONDENSED_REGULAR_48_LATIN1
+    #define ROBOTOCONDENSED_REGULAR_48_LATIN1 1
+    #endif
+    #ifndef ROBOTOCONDENSED_REGULAR_12_LATIN1
+    #define ROBOTOCONDENSED_REGULAR_12_LATIN1 1
+    #endif
 
-#ifndef HASP_FONT_1
-#define HASP_FONT_1 robotocondensed_regular_16_latin1  /* 5% Width */
-#endif
-#ifndef HASP_FONT_2
-#define HASP_FONT_2 robotocondensed_regular_24_latin1  /* 5% Width */
-#endif
-#ifndef HASP_FONT_3
-#define HASP_FONT_3 robotocondensed_regular_32_latin1  /* 10% Width */
-#endif
-#ifndef HASP_FONT_4
-#define HASP_FONT_4 robotocondensed_regular_48_latin1  /* 10% Height */
-#endif
-#ifndef HASP_FONT_5
-#define HASP_FONT_5 robotocondensed_regular_12_latin1  /* 5% Width */
-#endif
+    #ifndef HASP_FONT_1
+    #define HASP_FONT_1 robotocondensed_regular_16_latin1  /* 5% Width */
+    #endif
+    #ifndef HASP_FONT_2
+    #define HASP_FONT_2 robotocondensed_regular_24_latin1  /* 5% Width */
+    #endif
+    #ifndef HASP_FONT_3
+    #define HASP_FONT_3 robotocondensed_regular_32_latin1  /* 10% Width */
+    #endif
+    #ifndef HASP_FONT_4
+    #define HASP_FONT_4 robotocondensed_regular_48_latin1  /* 10% Height */
+    #endif
+    #ifndef HASP_FONT_5
+    #define HASP_FONT_5 robotocondensed_regular_12_latin1  /* 5% Width */
+    #endif
 
-#ifndef HASP_FONT_SIZE_1
-#define HASP_FONT_SIZE_1 16
-#endif
-#ifndef HASP_FONT_SIZE_2
-#define HASP_FONT_SIZE_2 24
-#endif
-#ifndef HASP_FONT_SIZE_3
-#define HASP_FONT_SIZE_3 32
-#endif
-#ifndef HASP_FONT_SIZE_4
-#define HASP_FONT_SIZE_4 48
-#endif
-#ifndef HASP_FONT_SIZE_5
-#define HASP_FONT_SIZE_5 12
-#endif
+    #ifndef HASP_FONT_SIZE_1
+    #define HASP_FONT_SIZE_1 16
+    #endif
+    #ifndef HASP_FONT_SIZE_2
+    #define HASP_FONT_SIZE_2 24
+    #endif
+    #ifndef HASP_FONT_SIZE_3
+    #define HASP_FONT_SIZE_3 32
+    #endif
+    #ifndef HASP_FONT_SIZE_4
+    #define HASP_FONT_SIZE_4 48
+    #endif
+    #ifndef HASP_FONT_SIZE_5
+    #define HASP_FONT_SIZE_5 12
+    #endif
 
-#elif TFT_HEIGHT>=272 && TFT_WIDTH>=272
-#ifndef ROBOTOCONDENSED_REGULAR_14_LATIN1
-#define ROBOTOCONDENSED_REGULAR_14_LATIN1 1
-#endif
-#ifndef ROBOTOCONDENSED_REGULAR_18_LATIN1
-#define ROBOTOCONDENSED_REGULAR_18_LATIN1 1
-#endif
-#ifndef ROBOTOCONDENSED_REGULAR_28_LATIN1
-#define ROBOTOCONDENSED_REGULAR_28_LATIN1 1
-#endif
-#ifndef ROBOTOCONDENSED_REGULAR_36_LATIN1
-#define ROBOTOCONDENSED_REGULAR_36_LATIN1 1
-#endif
-#ifndef ROBOTOCONDENSED_REGULAR_48_LATIN1
-#define ROBOTOCONDENSED_REGULAR_48_LATIN1 1
-#endif
+  #elif TFT_HEIGHT>=272 && TFT_WIDTH>=272
+    #ifndef ROBOTOCONDENSED_REGULAR_14_LATIN1
+    #define ROBOTOCONDENSED_REGULAR_14_LATIN1 1
+    #endif
+    #ifndef ROBOTOCONDENSED_REGULAR_18_LATIN1
+    #define ROBOTOCONDENSED_REGULAR_18_LATIN1 1
+    #endif
+    #ifndef ROBOTOCONDENSED_REGULAR_28_LATIN1
+    #define ROBOTOCONDENSED_REGULAR_28_LATIN1 1
+    #endif
+    #ifndef ROBOTOCONDENSED_REGULAR_36_LATIN1
+    #define ROBOTOCONDENSED_REGULAR_36_LATIN1 1
+    #endif
+    #ifndef ROBOTOCONDENSED_REGULAR_48_LATIN1
+    #define ROBOTOCONDENSED_REGULAR_48_LATIN1 1
+    #endif
 
-#ifndef HASP_FONT_1
-#define HASP_FONT_1 robotocondensed_regular_14_latin1  /* 5% Width */
-#endif
-#ifndef HASP_FONT_2
-#define HASP_FONT_2 robotocondensed_regular_18_latin1  /* 5% Width */
-#endif
-#ifndef HASP_FONT_3
-#define HASP_FONT_3 robotocondensed_regular_28_latin1  /* 10% Width */
-#endif
-#ifndef HASP_FONT_4
-#define HASP_FONT_4 robotocondensed_regular_36_latin1  /* 10% Height */
-#endif
-#ifndef HASP_FONT_5
-#define HASP_FONT_5 robotocondensed_regular_48_latin1  /* 5% Width */
-#endif
+    #ifndef HASP_FONT_1
+    #define HASP_FONT_1 robotocondensed_regular_14_latin1  /* 5% Width */
+    #endif
+    #ifndef HASP_FONT_2
+    #define HASP_FONT_2 robotocondensed_regular_18_latin1  /* 5% Width */
+    #endif
+    #ifndef HASP_FONT_3
+    #define HASP_FONT_3 robotocondensed_regular_28_latin1  /* 10% Width */
+    #endif
+    #ifndef HASP_FONT_4
+    #define HASP_FONT_4 robotocondensed_regular_36_latin1  /* 10% Height */
+    #endif
+    #ifndef HASP_FONT_5
+    #define HASP_FONT_5 robotocondensed_regular_48_latin1  /* 5% Width */
+    #endif
 
-#ifndef HASP_FONT_SIZE_1
-#define HASP_FONT_SIZE_1 14
-#endif
-#ifndef HASP_FONT_SIZE_2
-#define HASP_FONT_SIZE_2 18
-#endif
-#ifndef HASP_FONT_SIZE_3
-#define HASP_FONT_SIZE_3 28
-#endif
-#ifndef HASP_FONT_SIZE_4
-#define HASP_FONT_SIZE_4 36
-#endif
-#ifndef HASP_FONT_SIZE_5
-#define HASP_FONT_SIZE_5 48
-#endif
+    #ifndef HASP_FONT_SIZE_1
+    #define HASP_FONT_SIZE_1 14
+    #endif
+    #ifndef HASP_FONT_SIZE_2
+    #define HASP_FONT_SIZE_2 18
+    #endif
+    #ifndef HASP_FONT_SIZE_3
+    #define HASP_FONT_SIZE_3 28
+    #endif
+    #ifndef HASP_FONT_SIZE_4
+    #define HASP_FONT_SIZE_4 36
+    #endif
+    #ifndef HASP_FONT_SIZE_5
+    #define HASP_FONT_SIZE_5 48
+    #endif
 
-#else // smaller than 272
+  #else // smaller than 272
 
-#ifndef HASP_FONT_1
-#define HASP_FONT_1 robotocondensed_regular_12_latin1  /* 5% Width */
-#endif
-#ifndef HASP_FONT_2
-#define HASP_FONT_2 robotocondensed_regular_16_latin1  /* 5% Width */
-#endif
-#ifndef HASP_FONT_3
-#define HASP_FONT_3 robotocondensed_regular_24_latin1  /* 10% Width */
-#endif
-#ifndef HASP_FONT_4
-#define HASP_FONT_4 robotocondensed_regular_32_latin1  /* 10% Height */
-#endif
+    #ifndef HASP_FONT_1
+    #define HASP_FONT_1 robotocondensed_regular_12_latin1  /* 5% Width */
+    #endif
+    #ifndef HASP_FONT_2
+    #define HASP_FONT_2 robotocondensed_regular_16_latin1  /* 5% Width */
+    #endif
+    #ifndef HASP_FONT_3
+    #define HASP_FONT_3 robotocondensed_regular_24_latin1  /* 10% Width */
+    #endif
+    #ifndef HASP_FONT_4
+    #define HASP_FONT_4 robotocondensed_regular_32_latin1  /* 10% Height */
+    #endif
 
-#ifndef ROBOTOCONDENSED_REGULAR_12_LATIN1
-#define ROBOTOCONDENSED_REGULAR_12_LATIN1 1
-#endif
-#ifndef ROBOTOCONDENSED_REGULAR_16_LATIN1
-#define ROBOTOCONDENSED_REGULAR_16_LATIN1 1
-#endif
-#ifndef ROBOTOCONDENSED_REGULAR_24_LATIN1
-#define ROBOTOCONDENSED_REGULAR_24_LATIN1 1
-#endif
-#ifndef ROBOTOCONDENSED_REGULAR_32_LATIN1
-#define ROBOTOCONDENSED_REGULAR_32_LATIN1 1
-#endif
-#ifndef ROBOTOCONDENSED_REGULAR_48_LATIN1
-#define ROBOTOCONDENSED_REGULAR_48_LATIN1 1
-#endif
+    #ifndef ROBOTOCONDENSED_REGULAR_12_LATIN1
+    #define ROBOTOCONDENSED_REGULAR_12_LATIN1 1
+    #endif
+    #ifndef ROBOTOCONDENSED_REGULAR_16_LATIN1
+    #define ROBOTOCONDENSED_REGULAR_16_LATIN1 1
+    #endif
+    #ifndef ROBOTOCONDENSED_REGULAR_24_LATIN1
+    #define ROBOTOCONDENSED_REGULAR_24_LATIN1 1
+    #endif
+    #ifndef ROBOTOCONDENSED_REGULAR_32_LATIN1
+    #define ROBOTOCONDENSED_REGULAR_32_LATIN1 1
+    #endif
+    #ifndef ROBOTOCONDENSED_REGULAR_48_LATIN1
+    #define ROBOTOCONDENSED_REGULAR_48_LATIN1 1
+    #endif
 
-#ifndef HASP_FONT_SIZE_1
-#define HASP_FONT_SIZE_1 12
-#endif
-#ifndef HASP_FONT_SIZE_2
-#define HASP_FONT_SIZE_2 16
-#endif
-#ifndef HASP_FONT_SIZE_3
-#define HASP_FONT_SIZE_3 24
-#endif
-#ifndef HASP_FONT_SIZE_4
-#define HASP_FONT_SIZE_4 32
-#endif
-#ifndef HASP_FONT_SIZE_5
-#define HASP_FONT_SIZE_5 48
-#endif
-
+    #ifndef HASP_FONT_SIZE_1
+    #define HASP_FONT_SIZE_1 12
+    #endif
+    #ifndef HASP_FONT_SIZE_2
+    #define HASP_FONT_SIZE_2 16
+    #endif
+    #ifndef HASP_FONT_SIZE_3
+    #define HASP_FONT_SIZE_3 24
+    #endif
+    #ifndef HASP_FONT_SIZE_4
+    #define HASP_FONT_SIZE_4 32
+    #endif
+    #ifndef HASP_FONT_SIZE_5
+    #define HASP_FONT_SIZE_5 48
+    #endif
+  #endif
 #endif
 
 /* The built-in fonts contains the ASCII range and some Symbols with 4 bit-per-pixel.
@@ -673,7 +674,7 @@ typedef void* lv_font_user_data_t;
 // #define HASP_FONT_4 FONT_CONCAT(HASP_FONT_4_base, HASP_CHARACTER_SET)
 
 /*Always set a default font from the built-in fonts*/
-#if LV_HIGH_RESOURCE_MCU>0
+#if HASP_USE_FREETYPE<=0 // LV_HIGH_RESOURCE_MCU>0
 // #define LV_FONT_CUSTOM_DECLARE LV_FONT_DECLARE(lv_font_montserrat_16);
 
 // #define LV_FONT_CUSTOM_12     LV_FONT_DECLARE(robotocondensed_regular_12)
@@ -711,7 +712,7 @@ typedef void* lv_font_user_data_t;
 #define LV_THEME_DEFAULT_COLOR_PRIMARY      LV_COLOR_RED
 #define LV_THEME_DEFAULT_COLOR_SECONDARY    LV_COLOR_BLUE
 #define LV_THEME_DEFAULT_FLAG               0 //LV_THEME_MATERIAL_FLAG_NONE
-#if LV_HIGH_RESOURCE_MCU
+#if HASP_USE_FREETYPE<=0 //LV_HIGH_RESOURCE_MCU
 #define LV_THEME_DEFAULT_FONT_SMALL         &HASP_FONT_1 //&lv_font_montserrat_12
 #define LV_THEME_DEFAULT_FONT_NORMAL        &HASP_FONT_2 //&lv_font_montserrat_16
 #define LV_THEME_DEFAULT_FONT_SUBTITLE      &HASP_FONT_3 //&lv_font_montserrat_22
