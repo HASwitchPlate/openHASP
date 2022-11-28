@@ -24,6 +24,11 @@
 File pFileOut;
 #endif
 
+#if ESP32
+static SemaphoreHandle_t xGuiSemaphore = NULL;
+static TaskHandle_t g_lvgl_task_handle;
+#endif
+
 #define LVGL_TICK_PERIOD 20
 
 #ifndef TFT_BCKL
@@ -66,7 +71,7 @@ static inline void gui_init_lvgl()
 #endif
 
     /* Create the Virtual Device Buffers */
-    const size_t guiVDBsize          = LV_VDB_SIZE / sizeof(lv_color_t);
+    const size_t guiVDBsize = LV_VDB_SIZE / sizeof(lv_color_t);
 #ifdef ESP32
     static lv_color_t* guiVdbBuffer1 =
         (lv_color_t*)heap_caps_malloc(sizeof(lv_color_t) * guiVDBsize, MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT);
@@ -225,6 +230,15 @@ static inline void gui_init_filesystems()
 
 void guiSetup()
 {
+#if ESP32
+    g_lvgl_task_handle = xTaskGetCurrentTaskHandle();
+
+    xGuiSemaphore = xSemaphoreCreateMutex();
+    if(!xGuiSemaphore) {
+        LOG_FATAL(TAG_GUI, "Create mutex for LVGL failed");
+    }
+#endif
+
     // Initialize hardware drivers
     gui_init_tft();
     haspDevice.show_info(); // debug info + preload app flash size
@@ -357,7 +371,14 @@ void guiSetup()
 
 IRAM_ATTR void guiLoop(void)
 {
+#if ESP32
+    if(pdTRUE == xSemaphoreTake(xGuiSemaphore, portMAX_DELAY)) {
+        lv_task_handler();
+        xSemaphoreGive(xGuiSemaphore);
+    }
+#else
     lv_task_handler(); // process animations
+#endif
 
 #if defined(STM32F4xx)
     //  tick.update();
@@ -371,6 +392,22 @@ IRAM_ATTR void guiLoop(void)
 void guiEverySecond(void)
 {
     // nothing
+}
+
+void gui_acquire(void)
+{
+    TaskHandle_t task = xTaskGetCurrentTaskHandle();
+    if(g_lvgl_task_handle != task) {
+        xSemaphoreTake(xGuiSemaphore, portMAX_DELAY);
+    }
+}
+
+void gui_release(void)
+{
+    TaskHandle_t task = xTaskGetCurrentTaskHandle();
+    if(g_lvgl_task_handle != task) {
+        xSemaphoreGive(xGuiSemaphore);
+    }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

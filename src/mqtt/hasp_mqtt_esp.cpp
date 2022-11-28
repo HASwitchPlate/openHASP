@@ -16,22 +16,23 @@
 #include "hal/hasp_hal.h"
 #include "hasp_debug.h"
 #include "hasp_config.h"
+#include "hasp_gui.h"
 
 #include "../hasp/hasp_dispatch.h"
-#include "freertos/queue.h"
+/* #include "freertos/queue.h"
 
 QueueHandle_t queue;
 typedef struct
 {
     char topic[64];
     char payload[512];
-} mqtt_message_t;
+} mqtt_message_t; */
 
 char mqttLwtTopic[28];
 char mqttNodeTopic[24];
 char mqttClientId[64];
 char mqttGroupTopic[24];
-bool mqttEnabled = false;
+bool mqttEnabled        = false;
 bool mqttHAautodiscover = true;
 uint32_t mqttPublishCount;
 uint32_t mqttReceiveCount;
@@ -56,22 +57,22 @@ uint16_t mqtt_reconnect_counter = 0;
 void mqtt_run_scripts()
 {
     if(last_mqtt_state != current_mqtt_state) {
-        mqtt_message_t data;
-        snprintf(data.topic, sizeof(data.topic), "run");
+        // mqtt_message_t data;
+        // snprintf(data.topic, sizeof(data.topic), "run");
 
-        if(current_mqtt_state) {
-            snprintf(data.payload, sizeof(data.payload), "L:/mqtt_on.cmd");
-            // networkStart();
-        } else {
-            snprintf(data.payload, sizeof(data.payload), "L:/mqtt_off.cmd");
-            // networkStop();
-        }
+        // if(current_mqtt_state) {
+        //     snprintf(data.payload, sizeof(data.payload), "L:/mqtt_on.cmd");
+        //     // networkStart();
+        // } else {
+        //     snprintf(data.payload, sizeof(data.payload), "L:/mqtt_off.cmd");
+        //     // networkStop();
+        // }
 
-        size_t attempt = 0;
-        while(xQueueSend(queue, &data, (TickType_t)0) == errQUEUE_FULL && attempt < 100) {
-            vTaskDelay(5 / portTICK_PERIOD_MS);
-            attempt++;
-        };
+        // size_t attempt = 0;
+        // while(xQueueSend(queue, &data, (TickType_t)0) == errQUEUE_FULL && attempt < 100) {
+        //     vTaskDelay(5 / portTICK_PERIOD_MS);
+        //     attempt++;
+        // };
 
         last_mqtt_state = current_mqtt_state;
     }
@@ -220,17 +221,24 @@ static void mqtt_message_cb(const char* topic, byte* payload, unsigned int lengt
                 }
                 }
                 else */
+
     {
-        mqtt_message_t data;
-        snprintf(data.topic, sizeof(data.topic), topic);
-        snprintf(data.payload, sizeof(data.payload), (const char*)payload);
-        size_t attempt = 0;
-        while(xQueueSend(queue, &data, (TickType_t)0) == errQUEUE_FULL && attempt < 100) {
-            vTaskDelay(5 / portTICK_PERIOD_MS);
-            attempt++;
-        };
-        // dispatch_topic_payload(topic, (const char*)payload, length > 0, TAG_MQTT);
+        gui_acquire();
+        dispatch_topic_payload(topic, (const char*)payload, length > 0, TAG_MQTT);
+        gui_release();
     }
+
+    /*    {
+            mqtt_message_t data;
+            snprintf(data.topic, sizeof(data.topic), topic);
+            snprintf(data.payload, sizeof(data.payload), (const char*)payload);
+            size_t attempt = 0;
+            while(xQueueSend(queue, &data, (TickType_t)0) == errQUEUE_FULL && attempt < 100) {
+                vTaskDelay(5 / portTICK_PERIOD_MS);
+                attempt++;
+            };
+            // dispatch_topic_payload(topic, (const char*)payload, length > 0, TAG_MQTT);
+        }  */
 }
 
 static void mqttSubscribeTo(const char* topic)
@@ -377,7 +385,7 @@ static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
 
 void mqttSetup()
 {
-    queue = xQueueCreate(20, sizeof(mqtt_message_t));
+    /*queue = xQueueCreate(20, sizeof(mqtt_message_t)); */
 
     esp_crt_bundle_set(rootca_crt_bundle_start);
     mqttStart();
@@ -386,6 +394,8 @@ void mqttSetup()
 IRAM_ATTR void mqttLoop(void)
 {
     // mqttClient.loop();
+
+    /*
     mqtt_message_t data;
     while(xQueueReceive(queue, &data, (TickType_t)0)) {
         LOG_DEBUG(TAG_MQTT, F("[%s] Received data from queue == %s\n"), pcTaskGetTaskName(NULL), data.topic);
@@ -393,6 +403,7 @@ IRAM_ATTR void mqttLoop(void)
         dispatch_topic_payload(data.topic, data.payload, length > 0, TAG_MQTT);
         delay(1);
     }
+    */
 }
 
 void mqttEvery5Seconds(bool networkIsConnected)
