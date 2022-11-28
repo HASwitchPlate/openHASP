@@ -561,7 +561,7 @@ void haspSetup(void)
     LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, haspFonts[0]);
     // LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, &robotocondensed_regular_16);
 
-#if HASP_USE_FREETYPE > 0
+#if 0 && HASP_USE_FREETYPE > 0
 
 #if TFT_HEIGHT >= 480 && TFT_WIDTH >= 480
     haspFonts[0] = get_font(" 24");
