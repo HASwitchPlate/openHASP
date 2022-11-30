@@ -38,7 +38,8 @@ stages:
     mqtt_publish:
       topic: hasp/{plate}/command/jsonl
       json:
-        objid: 12
+        page: 1
+        obj: label
         id: 1
     delay_after: 0.02
 

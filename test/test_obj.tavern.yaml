@@ -102,6 +102,7 @@ stages:
     mqtt_publish:
       topic: hasp/{plate}/command/jsonl
       json:
+        page: 1
         obj: "{obj}"
         id: 1
         x: 128
