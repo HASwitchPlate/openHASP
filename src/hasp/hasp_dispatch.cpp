@@ -365,11 +365,13 @@ void dispatch_topic_payload(const char* topic, const char* payload, bool update,
 // Parse one line of text and execute the command
 void dispatch_text_line(const char* cmnd, uint8_t source)
 {
-    if(cmnd[0] == '/' && cmnd[1] == '/') return; // comment
+    while(cmnd[0] == ' ' || cmnd[0] == '\t') cmnd++; // skip leading spaces
+    if(cmnd[0] == '/' && cmnd[1] == '/') return;     // comment
 
     switch(cmnd[0]) {
-        case '#':
-            break; // comment
+        case '#':  // comment
+        case '\0': // empty line
+            break;
 
         case '{':
             dispatch_command("jsonl", cmnd, false, source);
@@ -380,7 +382,6 @@ void dispatch_text_line(const char* cmnd, uint8_t source)
             break; // comment
 
         case ' ':
-            while(cmnd[0] == ' ') cmnd++; // skip leading spaces
             dispatch_text_line(cmnd, source);
             break;
 
@@ -689,7 +690,7 @@ void dispatch_parse_jsonl(const char*, const char* payload, uint8_t source)
 #endif
 }
 
-void dispatch_exec(const char*, const char* payload, uint8_t source)
+void dispatch_run_script(const char*, const char* payload, uint8_t source)
 {
     const char* filename = payload;
     if(filename[0] == 'L' && filename[1] == ':') filename += 2; // strip littlefs drive letter
@@ -1430,7 +1431,7 @@ void dispatchSetup()
     dispatch_add_command(PSTR("clearfont"), dispatch_clear_font);
     dispatch_add_command(PSTR("sensors"), dispatch_send_sensordata);
     dispatch_add_command(PSTR("theme"), dispatch_theme);
-    dispatch_add_command(PSTR("run"), dispatch_exec);
+    dispatch_add_command(PSTR("run"), dispatch_run_script);
     dispatch_add_command(PSTR("service"), dispatch_service);
     dispatch_add_command(PSTR("antiburn"), dispatch_antiburn);
     dispatch_add_command(PSTR("calibrate"), dispatch_calibrate);

@@ -42,10 +42,10 @@ void network_run_scripts()
 {
     if(last_network_state != current_network_state) {
         if(current_network_state) {
-            dispatch_exec(NULL, "L:/online.cmd", TAG_NETW);
+            dispatch_run_script(NULL, "L:/online.cmd", TAG_HASP);
             networkStart();
         } else {
-            dispatch_exec(NULL, "L:/offline.cmd", TAG_NETW);
+            dispatch_run_script(NULL, "L:/offline.cmd", TAG_HASP);
             networkStop();
         }
         last_network_state = current_network_state;
