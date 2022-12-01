@@ -162,7 +162,7 @@ void object_set_normalized_group_values(hasp_update_value_t& value)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// Used in the dispatcher & hasp_new_object
+// Used in the dispatcher
 void hasp_process_attribute(uint8_t pageid, uint8_t objid, const char* attr, const char* payload, bool update)
 {
     if(lv_obj_t* obj = hasp_find_obj_from_page_id(pageid, objid)) {
@@ -178,6 +178,7 @@ void hasp_process_attribute(uint8_t pageid, uint8_t objid, const char* attr, con
 int hasp_parse_json_attributes(lv_obj_t* obj, const JsonObject& doc)
 {
     int i = 0;
+
 #if defined(WINDOWS) || defined(POSIX) || defined(ESP32)
     std::string v;
     v.reserve(64);
@@ -543,6 +544,7 @@ void hasp_new_object(const JsonObject& config, uint8_t& saved_page_id)
             case HASP_OBJ_LINE:
                 obj = lv_line_create(parent_obj, NULL);
                 if(obj) {
+                    lv_obj_set_style_local_line_width(obj, LV_LINE_PART_MAIN, LV_STATE_DEFAULT, 1);
                     lv_obj_set_event_cb(obj, delete_event_handler);
                     obj->user_data.objid = LV_HASP_LINE;
                 }
