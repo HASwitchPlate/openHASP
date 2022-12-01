@@ -19,7 +19,7 @@ extern hasp_http_config_t http_config;
 #endif
 
 // Create a new Stream that buffers all writes to serialClient
-HardwareSerial* bufferedSerialClient = (HardwareSerial*)&Serial;
+HardwareSerial* bufferedSerialClient = (HardwareSerial*)&HASP_SERIAL;
 
 uint8_t consoleLoginState   = CONSOLE_UNAUTHENTICATED;
 uint16_t serialPort         = 0;

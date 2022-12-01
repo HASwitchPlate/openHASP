@@ -17,6 +17,7 @@
 #include "ConsoleInput.h"
 #include "lvgl.h"
 //#include "time.h"
+#include <StreamUtils.h>
 
 #if defined(ARDUINO_ARCH_ESP8266)
 #include <sntp.h> // sntp_servermode_dhcp()
@@ -70,7 +71,8 @@ uint8_t debugSyslogFacility = 0;
 uint8_t debugSyslogProtocol = 0;
 
 // A UDP instance to let us send and receive packets over UDP
-WiFiUDP* syslogClient = NULL;
+WiFiUDP* syslogClient                      = NULL;
+WriteBufferingStream* bufferedSyslogClient = NULL;
 #define SYSLOG_PROTO_IETF 0
 
 // Create a new syslog instance with LOG_KERN facility
@@ -130,7 +132,8 @@ void debugStartSyslog()
 
         if(syslogClient) {
             if(syslogClient->beginPacket(debugSyslogHost, debugSyslogPort)) {
-                Log.registerOutput(2, syslogClient, HASP_LOG_LEVEL, true);
+                if(!bufferedSyslogClient) bufferedSyslogClient = new WriteBufferingStream(syslogClient, 256);
+                Log.registerOutput(2, bufferedSyslogClient ? bufferedSyslogClient : syslogClient, HASP_LOG_LEVEL, true);
                 LOG_INFO(TAG_SYSL, F(D_SERVICE_STARTED));
             }
         } else {
@@ -345,6 +348,10 @@ void debugPrintSuffix(uint8_t tag, int level, Print* _logOutput)
     if(syslogClient && _logOutput == syslogClient) {
         syslogClient->endPacket();
         return;
+    } else if(bufferedSyslogClient && _logOutput == bufferedSyslogClient) {
+        bufferedSyslogClient.flush();
+        syslogClient->endPacket();
+        return;
     }
 #endif
 
@@ -374,7 +381,7 @@ void debugStartSerial()
     if(baudrate < 9600) baudrate = SERIAL_SPEED;
 
 #if defined(STM32F4xx) || defined(STM32F7xx)
-#ifndef STM32_SERIAL1  // Define what Serial port to use for log output
+#ifndef STM32_SERIAL1       // Define what Serial port to use for log output
     HASP_SERIAL.setRx(PA3); // User Serial2
     HASP_SERIAL.setTx(PA2);
 #endif
@@ -382,10 +389,10 @@ void debugStartSerial()
 
     HASP_SERIAL.begin(baudrate); /* prepare for possible serial debug */
     delay(10);
-    Log.registerOutput(0, &Serial, HASP_LOG_LEVEL, true); // LOG_LEVEL_VERBOSE
+    Log.registerOutput(0, &HASP_SERIAL, HASP_LOG_LEVEL, true); // LOG_LEVEL_VERBOSE
 
     HASP_SERIAL.println();
-    debugPrintHaspHeader(&Serial);
+    debugPrintHaspHeader(&HASP_SERIAL);
     HASP_SERIAL.flush();
 
     LOG_INFO(TAG_DEBG, F(D_SERVICE_STARTED " @ %u bps"), debugSerialBaud);
