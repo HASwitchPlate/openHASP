@@ -34,7 +34,7 @@ class TouchLovyanGfx : public BaseTouch {
             data->state   = LV_INDEV_STATE_PR;
             hasp_set_sleep_offset(0); // Reset the offset
 
-            LOG_DEBUG(TAG_DRVR, F("Touch: %d %d"), tp.x, tp.y);
+            // LOG_DEBUG(TAG_DRVR, F("Touch: %d %d"), tp.x, tp.y);
             // HASP_SERIAL.print('#');
         } else {
             data->state = LV_INDEV_STATE_REL;
