@@ -3,6 +3,16 @@
 
 #if !(defined(WINDOWS) || defined(POSIX))
 
+/*
+#ifdef CORE_DEBUG_LEVEL
+#undef CORE_DEBUG_LEVEL
+#endif
+#define CORE_DEBUG_LEVEL 3
+#define LOG_LOCAL_LEVEL ESP_LOG_DEBUG
+
+#include "esp_log.h"
+*/
+
 #include "hasplib.h"
 #include "hasp_oobe.h"
 #include "sys/net/hasp_network.h"
@@ -31,6 +41,11 @@ void setup()
 {
     //   hal_setup();
 
+    esp_log_level_set("*", ESP_LOG_NONE); // set all components to ERROR level
+    // esp_log_level_set("wifi", ESP_LOG_NONE);              // enable WARN logs from WiFi stack
+    // esp_log_level_set("dhcpc", ESP_LOG_INFO);             // enable INFO logs from DHCP client
+    // esp_log_level_set("esp_crt_bundle", ESP_LOG_VERBOSE); // enable WARN logs from WiFi stack
+    // esp_log_level_set("esp_tls", ESP_LOG_VERBOSE);        // enable WARN logs from WiFi stack
     haspDevice.init();
 
     /****************************
@@ -75,15 +90,13 @@ void setup()
      * Apply User Configuration
      ***************************/
 
-#if HASP_USE_MQTT > 0
-    mqttSetup(); // Load Hostname before starting WiFi
-#endif
+    // #if HASP_USE_MQTT > 0
+    //     mqttSetup(); // Load Hostname before starting WiFi
+    // #endif
 
 #if HASP_USE_GPIO > 0
     gpioSetup();
 #endif
-
-
 
 #if HASP_USE_MDNS > 0
     mdnsSetup();
@@ -120,21 +133,38 @@ void setup()
     // guiStart();
 
     delay(20);
+
     if(!oobe) {
-        dispatch_exec(NULL, "L:/boot.cmd", TAG_HASP);
+        dispatch_run_script(NULL, "L:/boot.cmd", TAG_HASP);
 #if HASP_USE_WIFI > 0 || HASP_USE_ETHERNET > 0
         network_run_scripts();
 #endif
     }
+
+#if HASP_USE_MQTT > 0
+    mqttSetup();
+#endif
+
     mainLastLoopTime = -1000; // reset loop counter
+    gui_release();
 }
 
 IRAM_ATTR void loop()
 {
+#if defined(ESP32) && defined(HASP_USE_ESP_MQTT)
+    if(!gui_acquire()) {
+        // LOG_ERROR(TAG_MAIN, F("TAKE Mutex"));
+        delay(10); // ms
+        return;
+    }
+#endif
+
+#if HASP_USE_LVGL_TASK == 0
     guiLoop();
+#endif
 
 #if HASP_USE_WIFI > 0 || HASP_USE_ETHERNET > 0
-   networkLoop();
+    networkLoop();
 #endif
 
 #if HASP_USE_GPIO > 0
@@ -222,11 +252,19 @@ IRAM_ATTR void loop()
         }
     }
 
+#if defined(ESP32) && defined(HASP_USE_ESP_MQTT)
+    gui_release();
+#endif
+
 // allow the cpu to switch to other tasks
+#if HASP_USE_LVGL_TASK == 0
 #ifdef ARDUINO_ARCH_ESP8266
     delay(2); // ms
 #else
-    delay(3); // ms
+    delay(5); // ms
+#endif
+#else // HASP_USE_LVGL_TASK != 0
+    delay(10); // ms
 #endif
 }
 

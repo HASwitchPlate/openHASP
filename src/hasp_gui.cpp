@@ -230,15 +230,6 @@ static inline void gui_init_filesystems()
 
 void guiSetup()
 {
-#if ESP32
-    g_lvgl_task_handle = xTaskGetCurrentTaskHandle();
-
-    xGuiSemaphore = xSemaphoreCreateMutex();
-    if(!xGuiSemaphore) {
-        LOG_FATAL(TAG_GUI, "Create mutex for LVGL failed");
-    }
-#endif
-
     // Initialize hardware drivers
     gui_init_tft();
     haspDevice.show_info(); // debug info + preload app flash size
@@ -366,19 +357,23 @@ void guiSetup()
     lv_obj_set_style_local_bg_color(lv_layer_sys(), LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_BLACK);
     lv_obj_set_style_local_bg_opa(lv_layer_sys(), LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_0);
 
+#if defined(ESP32) && defined(HASP_USE_ESP_MQTT)
+    xGuiSemaphore = xSemaphoreCreateMutex();
+    if(!xGuiSemaphore) {
+        LOG_FATAL(TAG_GUI, "Create mutex for LVGL failed");
+    }
+    gui_acquire(); // Block LVGL until plate is fully booted
+#if HASP_USE_LVGL_TASK
+    gui_setup_lvgl_task();
+#endif // HASP_USE_LVGL_TASK
+#endif // ESP32 && HASP_USE_ESP_MQTT
+
     LOG_INFO(TAG_LVGL, F(D_SERVICE_STARTED));
 }
 
 IRAM_ATTR void guiLoop(void)
 {
-#if ESP32
-    if(pdTRUE == xSemaphoreTake(xGuiSemaphore, portMAX_DELAY)) {
-        lv_task_handler();
-        xSemaphoreGive(xGuiSemaphore);
-    }
-#else
     lv_task_handler(); // process animations
-#endif
 
 #if defined(STM32F4xx)
     //  tick.update();
@@ -394,21 +389,63 @@ void guiEverySecond(void)
     // nothing
 }
 
-void gui_acquire(void)
+#if defined(ESP32) && defined(HASP_USE_ESP_MQTT)
+
+#if HASP_USE_LVGL_TASK == 1
+static void gui_task(void* args)
 {
+    LOG_TRACE(TAG_GUI, "Start to run LVGL");
+    while(1) {
+        vTaskDelay(pdMS_TO_TICKS(10));
+
+        /* Try to take the semaphore, call lvgl related function on success */
+        if(pdTRUE == xSemaphoreTake(xGuiSemaphore, pdMS_TO_TICKS(10))) {
+            lv_task_handler();
+            xSemaphoreGive(xGuiSemaphore);
+        }
+    }
+}
+
+esp_err_t gui_setup_lvgl_task()
+{
+#if CONFIG_FREERTOS_UNICORE == 0
+    int err = xTaskCreatePinnedToCore(gui_task, "lvglTask", 1024 * 8, NULL, 5, &g_lvgl_task_handle, 1);
+#else
+    int err = xTaskCreatePinnedToCore(gui_task, "lvglTask", 1024 * 8, NULL, 5, &g_lvgl_task_handle, 0);
+#endif
+    if(!err) {
+        LOG_FATAL(TAG_GUI, "Create task for LVGL failed");
+        return ESP_FAIL;
+    }
+    return ESP_OK;
+}
+#endif // HASP_USE_LVGL_TASK
+
+bool gui_acquire(void)
+{
+#if ESP32
     TaskHandle_t task = xTaskGetCurrentTaskHandle();
     if(g_lvgl_task_handle != task) {
-        xSemaphoreTake(xGuiSemaphore, portMAX_DELAY);
+        if(xSemaphoreTake(xGuiSemaphore, pdMS_TO_TICKS(30)) != pdTRUE) {
+            return false;
+        }
     }
+#endif
+    return true;
 }
 
 void gui_release(void)
 {
+#if ESP32
     TaskHandle_t task = xTaskGetCurrentTaskHandle();
     if(g_lvgl_task_handle != task) {
         xSemaphoreGive(xGuiSemaphore);
+        // LOG_VERBOSE(TAG_TFT, F("GIVE"));
     }
+#endif
 }
+
+#endif // ESP32 && HASP_USE_ESP_MQTT
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 #if HASP_USE_CONFIG > 0

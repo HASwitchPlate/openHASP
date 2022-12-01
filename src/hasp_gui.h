@@ -61,8 +61,9 @@ void gui_flush_cb(lv_disp_drv_t* disp, const lv_area_t* area, lv_color_t* color_
 void gui_antiburn_cb(lv_disp_drv_t* disp, const lv_area_t* area, lv_color_t* color_p);
 
 /* ===== Locks ===== */
-void gui_acquire(void);
+bool gui_acquire(void);
 void gui_release(void);
+esp_err_t gui_setup_lvgl_task();
 
 /* ===== Read/Write Configuration ===== */
 #if HASP_USE_CONFIG > 0

@@ -19,14 +19,14 @@
 #include "hasp_gui.h"
 
 #include "../hasp/hasp_dispatch.h"
-/* #include "freertos/queue.h"
+#include "freertos/queue.h"
 
 QueueHandle_t queue;
 typedef struct
 {
-    char topic[64];
-    char payload[512];
-} mqtt_message_t; */
+    char* topic;   //[64];
+    char* payload; //[512];
+} mqtt_message_t;
 
 char mqttLwtTopic[28];
 char mqttNodeTopic[24];
@@ -74,6 +74,12 @@ void mqtt_run_scripts()
         //     attempt++;
         // };
 
+        if(current_mqtt_state) {
+            dispatch_run_script(NULL, "L:/mqtt_on.cmd", TAG_HASP);
+        } else {
+            dispatch_run_script(NULL, "L:/mqtt_off.cmd", TAG_HASP);
+        }
+
         last_mqtt_state = current_mqtt_state;
     }
 }
@@ -101,6 +107,10 @@ int mqttPublish(const char* topic, const char* payload, size_t len, bool retain)
 
     // Write directly to the client, don't use the buffer
     if(current_mqtt_state && esp_mqtt_client_publish(mqttClient, topic, payload, len, 0, retain) != ESP_FAIL) {
+
+        // Enqueue a message to the outbox, to be sent later
+        // if(current_mqtt_state && esp_mqtt_client_enqueue(mqttClient, topic, payload, len, 0, retain, true) !=
+        // ESP_FAIL) {
         mqttPublishCount++;
         return MQTT_ERR_OK;
     }
@@ -158,12 +168,52 @@ int mqtt_send_discovery(const char* payload, size_t len)
     return mqttPublish(tmp_topic, payload, len, false);
 }
 
+static inline size_t mqtt_msg_length(size_t len)
+{
+    return (len / 64) * 64 + 64;
+}
+
+void mqtt_process_topic_payload(const char* topic, const char* payload, unsigned int length)
+{
+    if(gui_acquire()) {
+        mqttLoop(); // First empty the MQTT queue
+        LOG_TRACE(TAG_MQTT_RCV, F("%s = %s"), topic, payload);
+        dispatch_topic_payload(topic, payload, length > 0, TAG_MQTT);
+        gui_release();
+    } else {
+        // Add new message to the queue
+        mqtt_message_t data;
+
+        size_t topic_len   = strlen(topic);
+        size_t payload_len = length;
+        data.topic         = (char*)hasp_calloc(sizeof(char), mqtt_msg_length(topic_len + 1));
+        data.payload       = (char*)hasp_calloc(sizeof(char), mqtt_msg_length(payload_len + 1));
+
+        if(!data.topic || !data.payload) {
+            LOG_ERROR(TAG_MQTT_RCV, D_ERROR_OUT_OF_MEMORY);
+            hasp_free(data.topic);
+            hasp_free(data.payload);
+            return;
+        }
+        memcpy(data.topic, topic, topic_len);
+        memcpy(data.payload, payload, payload_len);
+
+        {
+            size_t attempt = 0;
+            while(xQueueSend(queue, &data, (TickType_t)0) == errQUEUE_FULL && attempt < 100) {
+                delay(5);
+                attempt++;
+            };
+        }
+    }
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Receive incoming messages
 static void mqtt_message_cb(const char* topic, byte* payload, unsigned int length)
 { // Handle incoming commands from MQTT
     mqttReceiveCount++;
-    LOG_TRACE(TAG_MQTT_RCV, F("[%s] %s = %s"), pcTaskGetTaskName(NULL), topic, (char*)payload);
+    // LOG_TRACE(TAG_MQTT_RCV, F("%s = %s"), topic, (char*)payload);
 
     if(topic == strstr(topic, mqttNodeTopic)) { // startsWith mqttNodeTopic
 
@@ -174,16 +224,12 @@ static void mqtt_message_cb(const char* topic, byte* payload, unsigned int lengt
 
         // Group topic
         topic += strlen(mqttGroupTopic); // shorten topic
-                                         // dispatch_topic_payload(topic, (const char*)payload, length > 0, TAG_MQTT);
-                                         // return;
 
 #ifdef HASP_USE_BROADCAST
     } else if(topic == strstr_P(topic, PSTR(MQTT_PREFIX "/" MQTT_TOPIC_BROADCAST "/"))) { // broadcast  topic
 
         // Broadcast topic
         topic += strlen_P(PSTR(MQTT_PREFIX "/" MQTT_TOPIC_BROADCAST "/")); // shorten topic
-        // dispatch_topic_payload(topic, (const char*)payload, length > 0, TAG_MQTT);
-        // return;
 #endif
 
 #ifdef HASP_USE_HA
@@ -223,9 +269,7 @@ static void mqtt_message_cb(const char* topic, byte* payload, unsigned int lengt
                 else */
 
     {
-        gui_acquire();
-        dispatch_topic_payload(topic, (const char*)payload, length > 0, TAG_MQTT);
-        gui_release();
+        mqtt_process_topic_payload(topic, (const char*)payload, length);
     }
 
     /*    {
@@ -326,8 +370,8 @@ static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
     int msg_id;
     switch(event->event_id) {
         case MQTT_EVENT_DISCONNECTED:
-            mqtt_disconnected();
             LOG_WARNING(TAG_MQTT, F(D_MQTT_DISCONNECTED));
+            mqtt_disconnected();
             break;
         case MQTT_EVENT_BEFORE_CONNECT:
             // LOG_INFO(TAG_MQTT, F(D_MQTT_CONNECTING));
@@ -338,7 +382,7 @@ static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
             onMqttConnect(event->client);
             break;
         case MQTT_EVENT_SUBSCRIBED:
-            // onMqttSubscribed(event);
+            onMqttSubscribed(event);
             break;
         case MQTT_EVENT_DATA:
             onMqttData(event);
@@ -385,8 +429,7 @@ static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
 
 void mqttSetup()
 {
-    /*queue = xQueueCreate(20, sizeof(mqtt_message_t)); */
-
+    queue = xQueueCreate(64, sizeof(mqtt_message_t));
     esp_crt_bundle_set(rootca_crt_bundle_start);
     mqttStart();
 }
@@ -395,15 +438,17 @@ IRAM_ATTR void mqttLoop(void)
 {
     // mqttClient.loop();
 
-    /*
+    if(!uxQueueMessagesWaiting(queue)) return;
+
     mqtt_message_t data;
     while(xQueueReceive(queue, &data, (TickType_t)0)) {
-        LOG_DEBUG(TAG_MQTT, F("[%s] Received data from queue == %s\n"), pcTaskGetTaskName(NULL), data.topic);
+        LOG_WARNING(TAG_MQTT, F("[%d] QUE %s => %s"), uxQueueMessagesWaiting(queue), data.topic, data.payload);
         size_t length = strlen(data.payload);
         dispatch_topic_payload(data.topic, data.payload, length > 0, TAG_MQTT);
-        delay(1);
+        hasp_free(data.topic);
+        hasp_free(data.payload);
+        // delay(1);
     }
-    */
 }
 
 void mqttEvery5Seconds(bool networkIsConnected)
@@ -460,6 +505,8 @@ void mqttStart()
     mqtt_cfg.lwt_retain = true;
     mqtt_cfg.lwt_topic  = mqttLwtTopic;
     mqtt_cfg.lwt_qos    = 1;
+
+    mqtt_cfg.task_prio = 1;
 
     // mqtt_cfg.crt_bundle_attach = esp_crt_bundle_attach;
 
