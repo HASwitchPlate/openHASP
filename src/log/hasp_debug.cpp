@@ -132,8 +132,11 @@ void debugStartSyslog()
 
         if(syslogClient) {
             if(syslogClient->beginPacket(debugSyslogHost, debugSyslogPort)) {
-                if(!bufferedSyslogClient) bufferedSyslogClient = new WriteBufferingStream(syslogClient, 256);
-                Log.registerOutput(2, bufferedSyslogClient ? bufferedSyslogClient : syslogClient, HASP_LOG_LEVEL, true);
+                if(!bufferedSyslogClient) bufferedSyslogClient = new WriteBufferingStream(*syslogClient, 256);
+                if(!bufferedSyslogClient)
+                    Log.registerOutput(2, bufferedSyslogClient, HASP_LOG_LEVEL, true);
+                else
+                    Log.registerOutput(2, syslogClient, HASP_LOG_LEVEL, true);
                 LOG_INFO(TAG_SYSL, F(D_SERVICE_STARTED));
             }
         } else {
@@ -349,7 +352,7 @@ void debugPrintSuffix(uint8_t tag, int level, Print* _logOutput)
         syslogClient->endPacket();
         return;
     } else if(bufferedSyslogClient && _logOutput == bufferedSyslogClient) {
-        bufferedSyslogClient.flush();
+        bufferedSyslogClient->flush();
         syslogClient->endPacket();
         return;
     }
