@@ -23,7 +23,7 @@ typedef struct
 #include "hasp_mem.h"
 #include "font/hasp_font_loader.h"
 
-#if defined(ARDUINO_ARCH_ESP32) && (HASP_USE_FREETYPE > 0)
+#if defined(ARDUINO_ARCH_ESP32) && (HASP_USE_FREETYPE > 0) && defined(ESP32S3)
 extern const uint8_t OPENHASP_TTF_START[] asm("_binary_data_openhasp_ttf_start");
 extern const uint8_t OPENHASP_TTF_END[] asm("_binary_data_openhasp_ttf_end");
 // extern const uint8_t OPENHASPLITE_TTF_START[] asm("_binary_data_openhasplite_ttf_start");
@@ -203,8 +203,9 @@ static lv_font_t* font_add_to_list(const char* payload)
         }
     }
 
+#if defined(ESP32S3)
     if(!font) {
-        strcpy(filename, "openhasp");
+        strcpy(filename, "default");
         uint16_t size = atoi(payload);
         if(size > 8) {
             lv_ft_info_t info;
@@ -216,11 +217,13 @@ static lv_font_t* font_add_to_list(const char* payload)
             LOG_VERBOSE(TAG_FONT, F("Loading font %s size %d"), filename, size);
             if(lv_ft_font_init(&info)) {
                 font      = info.font;
-                font_type = 1;
+                font_type = 2; // Flash embedded TTF
             }
         }
     }
-#endif
+#endif // ESP32S3
+
+#endif // ESP32 && HASP_USE_FREETYPE
 
     if(!font) return NULL;
     LOG_VERBOSE(TAG_FONT, F("Loaded font %s line_height %d"), filename, font->line_height);
