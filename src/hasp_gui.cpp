@@ -27,6 +27,8 @@ File pFileOut;
 #if ESP32
 static SemaphoreHandle_t xGuiSemaphore = NULL;
 static TaskHandle_t g_lvgl_task_handle;
+
+esp_err_t gui_setup_lvgl_task(void);
 #endif
 
 #define LVGL_TICK_PERIOD 20

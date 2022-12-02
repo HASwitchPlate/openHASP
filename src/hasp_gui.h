@@ -63,12 +63,11 @@ void gui_antiburn_cb(lv_disp_drv_t* disp, const lv_area_t* area, lv_color_t* col
 /* ===== Locks ===== */
 bool gui_acquire(void);
 void gui_release(void);
-esp_err_t gui_setup_lvgl_task();
 
 /* ===== Read/Write Configuration ===== */
 #if HASP_USE_CONFIG > 0
 bool guiGetConfig(const JsonObject& settings);
 bool guiSetConfig(const JsonObject& settings);
-#endif
+#endif // HASP_USE_CONFIG
 
-#endif
+#endif // HASP_GUI_H
