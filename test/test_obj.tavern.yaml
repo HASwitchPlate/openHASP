@@ -23,9 +23,9 @@ marks:
       vals:
         - btnmatrix
         - cpicker
-        - table
+        #- table
         - tabview
-        - chart
+        #- chart
         - gauge
         - btn
         - label
@@ -38,7 +38,7 @@ marks:
         - obj
         - linemeter
         - dropdown
-        - calendar
+        #- calendar
         - spinner
         - roller
   - parametrize:
