@@ -184,7 +184,7 @@ void network_get_ipaddress(char* buffer, size_t len)
 {
 #if HASP_USE_ETHERNET > 0
 #if defined(ARDUINO_ARCH_ESP32)
-#if HASP_USE_SPI_ETHERNET > 0
+#if HASP_USE_ETHSPI > 0
     IPAddress ip = WiFi.localIP();
 #else
     IPAddress ip = ETH.localIP();
