@@ -78,9 +78,9 @@ static uint16_t sleepTimeShort  = 60;             // 1 second resolution
 static uint16_t sleepTimeLong   = 120;            // 1 second resolution
 static uint32_t sleepTimeOffset = 0;              // 1 second resolution
 
-uint8_t haspStartDim       = 255;
-uint8_t haspStartPage      = 1;
-uint8_t haspThemeId        = 2;
+uint8_t haspStartDim       = HASP_START_DIM;
+uint8_t haspStartPage      = HASP_START_PAGE;
+uint8_t haspThemeId        = HASP_THEME_ID;
 uint16_t haspThemeHue      = 200;
 lv_color_t color_primary   = lv_color_hsv_to_rgb(200, 100, 100);
 lv_color_t color_secondary = lv_color_hsv_to_rgb(200, 100, 100);

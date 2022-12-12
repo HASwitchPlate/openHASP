@@ -10,6 +10,18 @@
 
 #include "hasplib.h"
 
+#ifndef HASP_START_DIM
+#define HASP_START_DIM 255
+#endif
+
+#ifndef HASP_START_PAGE
+#define HASP_START_PAGE 1
+#endif
+
+#ifndef HASP_THEME_ID
+#define HASP_THEME_ID 2
+#endif
+
 #if HASP_USE_DEBUG > 0
 #include "../hasp_debug.h"
 #include "dev/device.h"
