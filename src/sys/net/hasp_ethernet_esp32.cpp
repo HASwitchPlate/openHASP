@@ -66,7 +66,7 @@ void ethernetSetup()
 
     bool started = false;
     WiFi.onEvent(EthernetEvent);
-#if HASP_USE_SPI_ETHERNET > 0
+#if HASP_USE_ETHSPI > 0
     started = HASP_ETHERNET.begin(ETHSPI_MOSI_GPIO, ETHSPI_MISO_GPIO, ETHSPI_SCLK_GPIO, ETHSPI_CS_GPIO, ETHSPI_INT_GPIO,
                                   ETHSPI_HOST);
 #else

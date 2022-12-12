@@ -2407,7 +2407,7 @@ void httpStart()
 #if HASP_USE_ETHERNET > 0
     IPAddress ip;
 #if defined(ARDUINO_ARCH_ESP32)
-#if HASP_USE_SPI_ETHERNET > 0
+#if HASP_USE_ETHSPI > 0
     ip = ETHSPI.localIP();
 #else
     ip = ETH.localIP();
@@ -2478,8 +2478,9 @@ static inline void webStartConfigPortal()
     webServer.on(F("/style.css"), httpHandleFileUri);
     webServer.on(F("/script.js"), httpHandleFileUri);
     // reply to all requests with same HTML
+#if HASP_USE_WIFI > 0
     webServer.onNotFound(webHandleWifiConfig);
-
+#endif
     LOG_TRACE(TAG_HTTP, F("Wifi access point"));
 }
 
