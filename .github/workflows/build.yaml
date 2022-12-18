@@ -7,9 +7,9 @@ on:
     branches:
       - master
     paths-ignore:
-      - '**.md'
-      - '**.yml'
-      - '**.yaml'
+      - "**.md"
+      - "**.yml"
+      - "**.yaml"
   workflow_dispatch:
 
 jobs:
@@ -48,17 +48,19 @@ jobs:
             env: m5stack-core2
           - out: makerfabs
             env: "makerfabs-tft35-cap -e makerfabs-s3-tft35-spi"
+          - out: panlee
+            env: "panlee-zw3d95ce01s-ar-4848_16MB -e panlee-zw3d95ce01s-ur-4848_16MB"
           - out: sunton
             env: "esp32-2432s028r_4MB -e esp32-3248s035c_4MB -e esp32-3248s035r_4MB -e sunton-4827s043c_16MB -e sunton-8048s043c_16MB -e sunton-8048s050c_16MB -e sunton-8048s070c_16MB"
           - out: wireless-tag
-            env: "wt32-sc01_4MB -e wt32-sc01_16MB -e wt-86-32-3zw1 -e wt32-sc01-plus_8MB"
+            env: "wt32-sc01_4MB -e wt32-sc01_16MB -e wt-86-32-3zw1 -e wt32-sc01-plus_8MB -e wt32-sc01-plus_16MB"
           - out: yeacreate
             env: yeacreate-nscreen32
 
     steps:
       - uses: actions/checkout@v3
         with:
-          submodules: 'true'
+          submodules: "true"
       - name: Cache pip
         uses: actions/cache@v3
         with:
@@ -74,7 +76,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.x'
+          python-version: "3.x"
       - name: Install PlatformIO
         run: |
           python -m pip install --upgrade pip
@@ -123,7 +125,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          submodules: 'true'
+          submodules: "true"
       - name: Cache pip
         uses: actions/cache@v3
         with:
@@ -139,7 +141,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.x'
+          python-version: "3.x"
       - name: Install PlatformIO
         run: |
           python -m pip install --upgrade pip

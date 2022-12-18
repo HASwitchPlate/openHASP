@@ -145,8 +145,11 @@ void setup()
     mqttSetup();
 #endif
 
+#if HASP_USE_LVGL_TASK && defined(ESP32)
+    gui_setup_lvgl_task();
+#endif // HASP_USE_LVGL_TASK
+
     mainLastLoopTime = -1000; // reset loop counter
-    gui_release();
 }
 
 IRAM_ATTR void loop()

@@ -27,8 +27,6 @@ File pFileOut;
 #if ESP32
 static SemaphoreHandle_t xGuiSemaphore = NULL;
 static TaskHandle_t g_lvgl_task_handle;
-
-esp_err_t gui_setup_lvgl_task(void);
 #endif
 
 #define LVGL_TICK_PERIOD 20
@@ -364,10 +362,6 @@ void guiSetup()
     if(!xGuiSemaphore) {
         LOG_FATAL(TAG_GUI, "Create mutex for LVGL failed");
     }
-    gui_acquire(); // Block LVGL until plate is fully booted
-#if HASP_USE_LVGL_TASK
-    gui_setup_lvgl_task();
-#endif // HASP_USE_LVGL_TASK
 #endif // ESP32 && HASP_USE_ESP_MQTT
 
     LOG_INFO(TAG_LVGL, F(D_SERVICE_STARTED));
