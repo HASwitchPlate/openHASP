@@ -215,6 +215,15 @@ void filesystemSetupFiles()
     filesystem_write_file("/pages.jsonl", HASP_PAGES_JSONL);
     filesystem_write_file("/online.cmd", HASP_ONLINE_CMD);
     filesystem_write_file("/offline.cmd", HASP_OFFLINE_CMD);
+#ifdef HASP_BOOT_CMD
+    filesystem_write_file("/boot.cmd", HASP_BOOT_CMD);
+#endif
+#ifdef HASP_MQTT_ON_CMD
+    filesystem_write_file("/mqtt_on.cmd", HASP_MQTT_ON_CMD);
+#endif
+#ifdef HASP_MQTT_OFF_CMD
+    filesystem_write_file("/mqtt_off.cmd", HASP_MQTT_OFF_CMD);
+#endif
 }
 
 bool filesystemSetup(void)
