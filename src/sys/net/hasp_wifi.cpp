@@ -23,6 +23,7 @@
 #endif
 
 #include <WiFi.h>
+#include "Preferences.h"
 #elif defined(ARDUINO_ARCH_ESP8266)
 #include <ESP8266WiFi.h>
 #include "user_interface.h" // Wifi Reasons
@@ -36,7 +37,7 @@ static WiFiEventHandler gotIpEventHandler, disconnectedEventHandler;
 SPIClass espSPI(ESPSPI_MOSI, ESPSPI_MISO, ESPSPI_SCLK); // SPI port where esp is connected
 
 #endif
-//#include "DNSserver.h"
+// #include "DNSserver.h"
 
 char wifiSsid[MAX_SSID_LEN]           = WIFI_SSID;
 char wifiPassword[MAX_PASSPHRASE_LEN] = WIFI_PASSWORD;
@@ -482,6 +483,13 @@ void wifiSetup()
         disconnectedEventHandler = WiFi.onStationModeDisconnected(wifiSTADisconnected);
 #elif defined(ARDUINO_ARCH_ESP32)
         WiFi.onEvent(wifi_callback);
+
+        Preferences preferences;
+        preferences.begin("wifi", true);
+        String password = preferences.getString(FP_CONFIG_PASS, WIFI_PASSWORD);
+        strncpy(wifiPassword, password.c_str(), sizeof(wifiPassword));
+        LOG_DEBUG(TAG_WIFI, F(D_BULLET "Read %s => %s (%d bytes)"), FP_CONFIG_PASS, password.c_str(),
+                  password.length());
 #endif
 
         wifiReconnect();
@@ -638,8 +646,10 @@ bool wifiGetConfig(const JsonObject& settings)
     if(strcmp(wifiSsid, settings[FPSTR(FP_CONFIG_SSID)].as<String>().c_str()) != 0) changed = true;
     settings[FPSTR(FP_CONFIG_SSID)] = wifiSsid;
 
-    if(strcmp(wifiPassword, settings[FPSTR(FP_CONFIG_PASS)].as<String>().c_str()) != 0) changed = true;
-    settings[FPSTR(FP_CONFIG_PASS)] = wifiPassword;
+    // if(strcmp(wifiPassword, settings[FPSTR(FP_CONFIG_PASS)].as<String>().c_str()) != 0) changed = true;
+    // settings[FPSTR(FP_CONFIG_PASS)] = wifiPassword;
+    if(strcmp(D_PASSWORD_MASK, settings[FPSTR(FP_CONFIG_PASS)].as<String>().c_str()) != 0) changed = true;
+    settings[FPSTR(FP_CONFIG_PASS)] = D_PASSWORD_MASK;
 
     if(changed) configOutput(settings, TAG_WIFI);
     return changed;
@@ -655,6 +665,9 @@ bool wifiGetConfig(const JsonObject& settings)
  **/
 bool wifiSetConfig(const JsonObject& settings)
 {
+    Preferences preferences;
+    preferences.begin("wifi", false);
+
     configOutput(settings, TAG_WIFI);
     bool changed = false;
 
@@ -667,6 +680,7 @@ bool wifiSetConfig(const JsonObject& settings)
        settings[FPSTR(FP_CONFIG_PASS)].as<String>() != String(FPSTR(D_PASSWORD_MASK))) {
         changed |= strcmp(wifiPassword, settings[FPSTR(FP_CONFIG_PASS)]) != 0;
         strncpy(wifiPassword, settings[FPSTR(FP_CONFIG_PASS)], sizeof(wifiPassword));
+        nvsUpdateString(preferences, FP_CONFIG_PASS, settings[FPSTR(FP_CONFIG_PASS)]);
     }
 
     return changed;

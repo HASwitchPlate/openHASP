@@ -36,9 +36,9 @@ bool wifiSetConfig(const JsonObject& settings);
 
 #ifndef WIFI_PASSWORD
 #ifndef WIFI_PASSW
-#define WIFI_PASSWORD "";
+#define WIFI_PASSWORD ""
 #else
-#define WIFI_PASSWORD WIFI_PASSW;
+#define WIFI_PASSWORD WIFI_PASSW
 #endif
 #endif
 

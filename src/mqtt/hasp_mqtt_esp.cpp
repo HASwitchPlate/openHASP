@@ -8,6 +8,7 @@
 
 #include "mqtt_client.h"
 #include "esp_crt_bundle.h"
+#include "Preferences.h"
 
 #include "hasp/hasp.h"
 #include "hasp_mqtt.h"
@@ -429,8 +430,14 @@ static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
 
 void mqttSetup()
 {
+    Preferences preferences;
+    preferences.begin("mqtt", true);
+    String password = preferences.getString(FP_CONFIG_PASS, MQTT_PASSWORD);
+    strncpy(mqttPassword, password.c_str(), sizeof(mqttPassword));
+    LOG_DEBUG(TAG_MQTT, F(D_BULLET "Read %s => %s (%d bytes)"), FP_CONFIG_PASS, password.c_str(), password.length());
+
     queue = xQueueCreate(64, sizeof(mqtt_message_t));
-    esp_crt_bundle_set(rootca_crt_bundle_start);
+    arduino_esp_crt_bundle_set(rootca_crt_bundle_start);
     mqttStart();
 }
 
@@ -619,8 +626,10 @@ bool mqttGetConfig(const JsonObject& settings)
     if(strcmp(mqttUsername, settings[FPSTR(FP_CONFIG_USER)].as<String>().c_str()) != 0) changed = true;
     settings[FPSTR(FP_CONFIG_USER)] = mqttUsername;
 
-    if(strcmp(mqttPassword, settings[FPSTR(FP_CONFIG_PASS)].as<String>().c_str()) != 0) changed = true;
-    settings[FPSTR(FP_CONFIG_PASS)] = mqttPassword;
+    // if(strcmp(mqttPassword, settings[FPSTR(FP_CONFIG_PASS)].as<String>().c_str()) != 0) changed = true;
+    // settings[FPSTR(FP_CONFIG_PASS)] = mqttPassword;
+    if(strcmp(D_PASSWORD_MASK, settings[FPSTR(FP_CONFIG_PASS)].as<String>().c_str()) != 0) changed = true;
+    settings[FPSTR(FP_CONFIG_PASS)] = D_PASSWORD_MASK;
 
     if(changed) configOutput(settings, TAG_MQTT);
     return changed;
@@ -636,6 +645,9 @@ bool mqttGetConfig(const JsonObject& settings)
  **/
 bool mqttSetConfig(const JsonObject& settings)
 {
+    Preferences preferences;
+    preferences.begin("mqtt", false);
+
     configOutput(settings, TAG_MQTT);
     bool changed = false;
 
@@ -680,6 +692,7 @@ bool mqttSetConfig(const JsonObject& settings)
        settings[FPSTR(FP_CONFIG_PASS)].as<String>() != String(FPSTR(D_PASSWORD_MASK))) {
         changed |= strcmp(mqttPassword, settings[FPSTR(FP_CONFIG_PASS)]) != 0;
         strncpy(mqttPassword, settings[FPSTR(FP_CONFIG_PASS)], sizeof(mqttPassword));
+        nvsUpdateString(preferences, FP_CONFIG_PASS, settings[FPSTR(FP_CONFIG_PASS)]);
     }
 
     snprintf_P(mqttNodeTopic, sizeof(mqttNodeTopic), PSTR(MQTT_PREFIX "/%s/"), haspDevice.get_hostname());

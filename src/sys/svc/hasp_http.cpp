@@ -8,6 +8,7 @@
 
 #if defined(ARDUINO_ARCH_ESP32)
 #include "Update.h"
+#include "Preferences.h"
 #include "sdkconfig.h" // for CONFIG_IDF_TARGET_ESP32* defines
 #include <uri/UriBraces.h>
 #include <uri/UriRegex.h>
