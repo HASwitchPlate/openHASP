@@ -78,19 +78,19 @@ bool mqttSetConfig(const JsonObject& settings);
 
 #ifndef MQTT_HOSTNAME
 #ifndef MQTT_HOST
-#define MQTT_HOSTNAME "";
+#define MQTT_HOSTNAME ""
 #else
-#define MQTT_HOSTNAME MQTT_HOST;
+#define MQTT_HOSTNAME MQTT_HOST
 #endif
 #endif
 
 #ifndef MQTT_PORT
-#define MQTT_PORT 1883;
+#define MQTT_PORT 1883
 #endif
 
 #ifndef MQTT_USERNAME
 #ifndef MQTT_USER
-#define MQTT_USERNAME "";
+#define MQTT_USERNAME ""
 #else
 #define MQTT_USERNAME MQTT_USER;
 #endif
@@ -98,9 +98,9 @@ bool mqttSetConfig(const JsonObject& settings);
 
 #ifndef MQTT_PASSWORD
 #ifndef MQTT_PASSW
-#define MQTT_PASSWORD "";
+#define MQTT_PASSWORD ""
 #else
-#define MQTT_PASSWORD MQTT_PASSW;
+#define MQTT_PASSWORD MQTT_PASSW
 #endif
 #endif
 
