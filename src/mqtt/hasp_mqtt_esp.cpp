@@ -437,7 +437,7 @@ void mqttSetup()
     LOG_DEBUG(TAG_MQTT, F(D_BULLET "Read %s => %s (%d bytes)"), FP_CONFIG_PASS, password.c_str(), password.length());
 
     queue = xQueueCreate(64, sizeof(mqtt_message_t));
-    arduino_esp_crt_bundle_set(rootca_crt_bundle_start);
+    esp_crt_bundle_set(rootca_crt_bundle_start);
     mqttStart();
 }
 
