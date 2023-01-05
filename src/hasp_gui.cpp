@@ -16,7 +16,7 @@
 #include "hasp_gui.h"
 #include "hasp_oobe.h"
 
-//#include "tpcal.h"
+// #include "tpcal.h"
 
 #define BACKLIGHT_CHANNEL 0 // pwm channel 0-15
 
@@ -291,16 +291,18 @@ void guiSetup()
 #else // Use lvgl transformations
     static lv_disp_drv_t disp_drv;
     lv_disp_drv_init(&disp_drv);
-    disp_drv.buffer   = &disp_buf;
-    disp_drv.flush_cb = gui_flush_cb;
+    disp_drv.buffer    = &disp_buf;
+    disp_drv.flush_cb  = gui_flush_cb;
+    disp_drv.hor_res   = tft_width;
+    disp_drv.ver_res   = tft_height;
 
-    disp_drv.hor_res = tft_width;
-    disp_drv.ver_res = tft_height;
+#if defined(HASP_LV_USE_SW_ROTATE)
+    disp_drv.sw_rotate = 1; // enable special bit order in framebuffer bitmaps
+#endif
 
     lv_disp_rot_t rotation[] = {LV_DISP_ROT_NONE, LV_DISP_ROT_270, LV_DISP_ROT_180, LV_DISP_ROT_90};
     lv_disp_t* display       = lv_disp_drv_register(&disp_drv);
     lv_disp_set_rotation(display, rotation[(4 + gui_settings.rotation - TFT_ROTATION) % 4]);
-
 #endif
     disp_drv.monitor_cb = gui_monitor_cb;
 
@@ -716,6 +718,13 @@ static void gui_screenshot_to_http(lv_disp_drv_t* disp, const lv_area_t* area, l
     size_t res = httpClientWrite((uint8_t*)color_p, len);
     if(res != len) gui_flush_not_complete();
 
+    lv_disp_flush_ready(disp);
+}
+
+static void gui_screenshot_to_both(lv_disp_drv_t* disp, const lv_area_t* area, lv_color_t* color_p)
+{
+    gui_screenshot_to_http(disp, area, color_p);
+
     // indirect callback to flush screenshot data to the screen
     drv_display_flush_cb(disp, area, color_p);
 }
@@ -735,15 +744,28 @@ void guiTakeScreenshot()
     if(httpClientWrite(buffer, sizeof(buffer)) == sizeof(buffer)) {
         LOG_VERBOSE(TAG_GUI, F("Bitmap header sent"));
 
-        /* Refresh screen to screenshot callback */
-        lv_disp_t* disp       = lv_disp_get_default();
-        drv_display_flush_cb  = disp->driver.flush_cb; /* store callback */
-        disp->driver.flush_cb = gui_screenshot_to_http;
-        lv_obj_invalidate(lv_scr_act());
-        lv_refr_now(NULL);                            /* Will call our disp_drv.disp_flush function */
-        disp->driver.flush_cb = drv_display_flush_cb; /* restore callback */
-        screenshotIsDirty     = false;
+        lv_disp_t* disp      = lv_disp_get_default();
+        drv_display_flush_cb = disp->driver.flush_cb; /* store callback */
 
+        if(disp->driver.sw_rotate) {
+            disp->driver.flush_cb  = gui_screenshot_to_http;
+            disp->driver.sw_rotate = 0;
+            lv_obj_invalidate(lv_scr_act());
+            lv_refr_now(NULL);                            /* Will call our disp_drv.disp_flush function */
+            disp->driver.flush_cb = drv_display_flush_cb; /* restore callback */
+
+            disp->driver.sw_rotate = 1; /* redraw to screen */
+            lv_obj_invalidate(lv_scr_act());
+            lv_refr_now(NULL);
+        } else {
+            /* Refresh screen to screenshot callback */
+            disp->driver.flush_cb = gui_screenshot_to_both;
+            lv_obj_invalidate(lv_scr_act());
+            lv_refr_now(NULL);                            /* Will call our disp_drv.disp_flush function */
+            disp->driver.flush_cb = drv_display_flush_cb; /* restore callback */
+        }
+
+        screenshotIsDirty = false;
         LOG_VERBOSE(TAG_GUI, F("Bitmap data flushed to webclient"));
     } else {
         LOG_ERROR(TAG_GUI, F("Data sent does not match header size"));

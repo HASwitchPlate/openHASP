@@ -5,6 +5,8 @@
 #include "tft_driver_arduinogfx.h"
 #include <Preferences.h>
 
+#include "Arduino_RPi_DPI_RGBPanel_mod.h"
+#include "Arduino_ESP32RGBPanel_mod.h"
 namespace dev {
 
 void tftPinInfo(const __FlashStringHelper* pinfunction, int8_t pin)
@@ -21,12 +23,12 @@ void ArduinoGfx::init(int w, int h)
 {
     LOG_TRACE(TAG_TFT, F(D_SERVICE_STARTING));
 #if(TFT_WIDTH == 480) && (TFT_HEIGHT == 480) && defined(GC9503V_DRIVER)
-    Arduino_DataBus* bus = new Arduino_SWSPI(TFT_DC, TFT_CS, TFT_SCLK, TFT_MOSI, TFT_MISO);
+    Arduino_DataBus* bus            = new Arduino_SWSPI(TFT_DC, TFT_CS, TFT_SCLK, TFT_MOSI, TFT_MISO);
     Arduino_ESP32RGBPanel* rgbpanel = new Arduino_ESP32RGBPanel(
-        TFT_DE, TFT_VSYNC, TFT_HSYNC, TFT_PCLK, TFT_R0, TFT_R1, TFT_R2, TFT_R3, TFT_R4, TFT_G0, TFT_G1, TFT_G2,
-        TFT_G3, TFT_G4, TFT_G5, TFT_B0, TFT_B1, TFT_B2, TFT_B3, TFT_B4, TFT_HSYNC_POLARITY, TFT_HSYNC_FRONT_PORCH,
-        TFT_HSYNC_PULSE_WIDTH, TFT_HSYNC_BACK_PORCH, TFT_VSYNC_POLARITY, TFT_VSYNC_FRONT_PORCH,
-        TFT_VSYNC_PULSE_WIDTH, TFT_VSYNC_BACK_PORCH);
+        TFT_DE, TFT_VSYNC, TFT_HSYNC, TFT_PCLK, TFT_R0, TFT_R1, TFT_R2, TFT_R3, TFT_R4, TFT_G0, TFT_G1, TFT_G2, TFT_G3,
+        TFT_G4, TFT_G5, TFT_B0, TFT_B1, TFT_B2, TFT_B3, TFT_B4, TFT_HSYNC_POLARITY, TFT_HSYNC_FRONT_PORCH,
+        TFT_HSYNC_PULSE_WIDTH, TFT_HSYNC_BACK_PORCH, TFT_VSYNC_POLARITY, TFT_VSYNC_FRONT_PORCH, TFT_VSYNC_PULSE_WIDTH,
+        TFT_VSYNC_BACK_PORCH);
     tft = new Arduino_RGB_Display(w, h, rgbpanel, 0 /* rotation */, TFT_AUTO_FLUSH, bus, TFT_RST,
                                   gc9503v_type1_init_operations, sizeof(gc9503v_type1_init_operations));
 
@@ -42,15 +44,16 @@ void ArduinoGfx::init(int w, int h)
                                       480 /* height */, st7701_type1_init_operations,
                                       sizeof(st7701_type1_init_operations), true /* BGR */);
 #elif 1
-    Arduino_ESP32RGBPanel* bus = new Arduino_ESP32RGBPanel(
+    Arduino_ESP32RGBPanel_Mod* bus = new Arduino_ESP32RGBPanel_Mod(
         GFX_NOT_DEFINED /* CS */, GFX_NOT_DEFINED /* SCK */, GFX_NOT_DEFINED /* SDA */, TFT_DE, TFT_VSYNC, TFT_HSYNC,
         TFT_PCLK, TFT_R0, TFT_R1, TFT_R2, TFT_R3, TFT_R4, TFT_G0, TFT_G1, TFT_G2, TFT_G3, TFT_G4, TFT_G5, TFT_B0,
         TFT_B1, TFT_B2, TFT_B3, TFT_B4);
 
-    tft = new Arduino_RPi_DPI_RGBPanel(bus, TFT_WIDTH, TFT_HSYNC_POLARITY, TFT_HSYNC_FRONT_PORCH, TFT_HSYNC_PULSE_WIDTH,
-                                       TFT_HSYNC_BACK_PORCH, TFT_HEIGHT, TFT_VSYNC_POLARITY, TFT_VSYNC_FRONT_PORCH,
-                                       TFT_VSYNC_PULSE_WIDTH, TFT_VSYNC_BACK_PORCH, TFT_PCLK_ACTIVE_NEG,
-                                       TFT_PREFER_SPEED, TFT_AUTO_FLUSH);
+    tft = new Arduino_RGBPanel_Mod(bus, TFT_WIDTH, TFT_HSYNC_POLARITY, TFT_HSYNC_FRONT_PORCH, TFT_HSYNC_PULSE_WIDTH,
+                                   TFT_HSYNC_BACK_PORCH, TFT_HEIGHT, TFT_VSYNC_POLARITY, TFT_VSYNC_FRONT_PORCH,
+                                   TFT_VSYNC_PULSE_WIDTH, TFT_VSYNC_BACK_PORCH, TFT_PCLK_ACTIVE_NEG, TFT_PREFER_SPEED,
+                                   TFT_AUTO_FLUSH);
+    // fb  = ((Arduino_RGBPanel_Mod*)tft)->getFramebuffer();
 #endif
 
     /* TFT init */
@@ -172,8 +175,7 @@ void ArduinoGfx::splashscreen()
     tft->fillScreen(bgColor.full);
     int x = (tft->width() - logoWidth) / 2;
     int y = (tft->height() - logoHeight) / 2;
-    tft->drawXBitmap(x, y, logoImage, logoWidth, logoHeight, fgColor.full);
-    // tft.fillSmoothRoundRect(x, y, logoWidth, logoWidth, 15, fgColor.full);
+     tft->drawXBitmap(x, y, logoImage, logoWidth, logoHeight, fgColor.full);
 }
 
 void ArduinoGfx::set_rotation(uint8_t rotation)

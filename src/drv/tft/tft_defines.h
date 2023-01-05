@@ -26,6 +26,16 @@
 #ifndef TFT_BUSY
 #define TFT_BUSY -1
 #endif
+#ifndef TFT_CS
+#define TFT_CS -1
+#endif
+#ifndef TFT_RST
+#define TFT_RST -1
+#endif
+
+#ifndef SPI_FREQUENCY
+#define SPI_FREQUENCY 40000000
+#endif
 
 #ifndef TFT_D0
 #define TFT_D0 -1

@@ -1,19 +1,43 @@
 # openHASP Changelog
 
 <!--
+
 ## v0.7.0
 
 ### Objects
-- Support for State and Part properties
+? Support for State and Part properties
+- Set default line_width of line object to 1
+
+### Fonts
+- Use embedded TrueType font for default fonts instead of bitmapped font sizes
+
 
 ### Web UI
 - _Selectable dark/light theme?_
 
 ### Services
-- Add SimpleFTPServer to easily upload and download files to the plate *(one simultanious connection only)*
+- Change MQTT client from PubSubClient to asynchronic Espressif esp_mstt client
+- Add service start/stop mqtt
+? Add SimpleFTPServer to easily upload and download files to the plate *(one simultanious connection only)*
 
 ### Devices
-- Add support for Wireless-Tag WT-86-32-3ZW1
+- Add GS-T3E Smart Panel
+- Add Lilygo Ttgo Lily Pi ESP32
+- Add Makerfabs ESP32-S3 SPI
+- Add Sunton ESP32-S3 TFT 4.3", 5.0" and 7.0"
+- Add Sunton ESP32-2432S028R ESP32-3248S035C ESP32-3248S035R
+- Add support for Wireless-Tag WT32-SC01 Plus and WT-86-32-3ZW1
+
+## Bug fixes
+- Fix for first touch nog working properly
+- Add button GPIOs to input discovery message
+
+### Architecture
+- Moved to Tasmota Arduino 2.0.6 and ESP-IDF 4.4.3 (thanks @Jason2866)
+- Add support for ESP32-S3 devices
+- Add Arduino-GFX display driver
+
+Updated libraries to ArduinoJson 6.20.0, ArduinoStreamUtils 1.7.0, TFT_eSPI 2.4.79 and LovyanGFX 0.5.0
 
 -->
 
