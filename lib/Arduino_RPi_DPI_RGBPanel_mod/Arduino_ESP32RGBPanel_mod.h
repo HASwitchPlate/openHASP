@@ -1,7 +1,6 @@
+#if defined(ESP32) && (CONFIG_IDF_TARGET_ESP32S3) && defined(HASP_USE_ARDUINOGFX)
+
 #include "Arduino_DataBus.h"
-
-#if defined(ESP32) && (CONFIG_IDF_TARGET_ESP32S3)
-
 #include "databus/Arduino_ESP32RGBPanel.h" // struct esp_rgb_panel_t
 
 #ifndef _ARDUINO_ESP32RGBPANEL_MOD_H_

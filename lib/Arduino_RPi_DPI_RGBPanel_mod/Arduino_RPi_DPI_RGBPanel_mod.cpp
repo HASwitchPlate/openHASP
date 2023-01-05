@@ -1,6 +1,6 @@
-#include "Arduino_DataBus.h"
+#if defined(ESP32) && (CONFIG_IDF_TARGET_ESP32S3) && defined(HASP_USE_ARDUINOGFX)
 
-#if defined(ESP32) && (CONFIG_IDF_TARGET_ESP32S3)
+#include "Arduino_DataBus.h"
 
 #include "Arduino_GFX.h"
 #include "Arduino_RPi_DPI_RGBPanel_mod.h"
