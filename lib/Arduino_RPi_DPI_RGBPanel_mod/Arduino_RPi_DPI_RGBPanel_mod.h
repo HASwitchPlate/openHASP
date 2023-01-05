@@ -1,3 +1,8 @@
+#ifdef HASP_USE_ARDUINOGFX
+#include "Arduino.h"
+#include "Arduino_DataBus.h"
+#endif
+
 #if defined(ESP32) && (CONFIG_IDF_TARGET_ESP32S3) && defined(HASP_USE_ARDUINOGFX)
 
 #include "Arduino_DataBus.h"

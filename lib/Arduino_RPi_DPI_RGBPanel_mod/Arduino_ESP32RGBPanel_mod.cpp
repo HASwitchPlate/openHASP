@@ -1,6 +1,6 @@
-#if defined(ESP32) && (CONFIG_IDF_TARGET_ESP32S3) && defined(HASP_USE_ARDUINOGFX)
-
 #include "Arduino_ESP32RGBPanel_mod.h"
+
+#if defined(ESP32) && (CONFIG_IDF_TARGET_ESP32S3)
 
 Arduino_ESP32RGBPanel_Mod::Arduino_ESP32RGBPanel_Mod(
     int8_t cs, int8_t sck, int8_t sda,

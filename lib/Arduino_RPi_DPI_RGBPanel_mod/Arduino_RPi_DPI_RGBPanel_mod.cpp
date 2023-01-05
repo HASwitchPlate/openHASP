@@ -1,10 +1,10 @@
+#include "Arduino_ESP32RGBPanel_mod.h"
+
 #if defined(ESP32) && (CONFIG_IDF_TARGET_ESP32S3) && defined(HASP_USE_ARDUINOGFX)
 
-#include "Arduino_DataBus.h"
-
 #include "Arduino_GFX.h"
+#include "Arduino_DataBus.h"
 #include "Arduino_RPi_DPI_RGBPanel_mod.h"
-#include "Arduino_ESP32RGBPanel_mod.h"
 
 Arduino_RGBPanel_Mod::Arduino_RGBPanel_Mod(Arduino_ESP32RGBPanel_Mod* bus, int16_t w, uint16_t hsync_polarity,
                                                    uint16_t hsync_front_porch, uint16_t hsync_pulse_width,
