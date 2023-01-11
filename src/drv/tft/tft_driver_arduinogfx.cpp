@@ -35,15 +35,16 @@ void ArduinoGfx::init(int w, int h)
 
 #elif(TFT_WIDTH == 480) && (TFT_HEIGHT == 480)
     /* More data bus class: https://github.com/moononournation/Arduino_GFX/wiki/Data-Bus-Class */
-    Arduino_ESP32RGBPanel* bus = new Arduino_ESP32RGBPanel(
-        39 /* CS */, 15 /* SCK */, 14 /* SDA */, 18 /* DE */, 17 /* VSYNC */, 16 /* HSYNC */, 21 /* PCLK */, 4 /* R0 */,
-        3 /* R1 */, 2 /* R2 */, 1 /* R3 */, 0 /* R4 */, 10 /* G0 */, 9 /* G1 */, 8 /* G2 */, 7 /* G3 */, 6 /* G4 */,
-        5 /* G5 */, 15 /* B0 */, 14 /* B1 */, 13 /* B2 */, 12 /* B3 */, 11 /* B4 */);
+    Arduino_DataBus* bus            = new Arduino_SWSPI(TFT_DC, TFT_CS, TFT_SCLK, TFT_MOSI, TFT_MISO);
+    Arduino_ESP32RGBPanel* rgbpanel = new Arduino_ESP32RGBPanel(
+        18 /* DE */, 17 /* VSYNC */, 16 /* HSYNC */, 21 /* PCLK */, 4 /* R0 */, 3 /* R1 */, 2 /* R2 */, 1 /* R3 */,
+        0 /* R4 */, 10 /* G0 */, 9 /* G1 */, 8 /* G2 */, 7 /* G3 */, 6 /* G4 */, 5 /* G5 */, 15 /* B0 */, 14 /* B1 */,
+        13 /* B2 */, 12 /* B3 */, 11 /* B4 */, TFT_HSYNC_POLARITY, TFT_HSYNC_FRONT_PORCH, TFT_HSYNC_PULSE_WIDTH,
+        TFT_HSYNC_BACK_PORCH, TFT_VSYNC_POLARITY, TFT_VSYNC_FRONT_PORCH, TFT_VSYNC_PULSE_WIDTH, TFT_VSYNC_BACK_PORCH);
 
     /* More display class: https://github.com/moononournation/Arduino_GFX/wiki/Display-Class */
-    tft = new Arduino_ST7701_RGBPanel(bus, GFX_NOT_DEFINED /* RST */, 0 /* rotation */, true /* IPS */, 480 /* width */,
-                                      480 /* height */, st7701_type1_init_operations,
-                                      sizeof(st7701_type1_init_operations), true /* BGR */);
+    tft = new Arduino_RGB_Display(480 /* width */, 480 /* height */, rgbpanel, 0 /* rotation */, TFT_AUTO_FLUSH, bus,
+                                  TFT_RST, st7701_type1_init_operations, sizeof(st7701_type1_init_operations));
 #elif 1
     /* Reset is not implemented in the panel */
     if(TFT_RST != GFX_NOT_DEFINED) {
@@ -63,7 +64,7 @@ void ArduinoGfx::init(int w, int h)
         TFT_VSYNC_BACK_PORCH, TFT_PCLK_ACTIVE_NEG, TFT_PREFER_SPEED);
 
     Arduino_RGB_Display_Mod* gfx = new Arduino_RGB_Display_Mod(TFT_WIDTH, TFT_HEIGHT, bus);
-    tft                      = gfx;
+    tft                          = gfx;
     // fb  = ((Arduino_RGBPanel_Mod*)tft)->getFramebuffer();
 #endif
 
