@@ -189,6 +189,7 @@
 #define D_INFO_WIFI "WiFi"
 #define D_INFO_LINK_SPEED "Viteză Link"
 #define D_INFO_FULL_DUPLEX "Duplexitate completă"
+#define D_INFO_BSSID "BSSID"
 #define D_INFO_SSID "SSID"
 #define D_INFO_RSSI "Putere semnal"
 #define D_INFO_IP_ADDRESS "Addresa IP"

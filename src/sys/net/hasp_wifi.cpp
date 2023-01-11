@@ -274,7 +274,6 @@ static void wifi_callback(WiFiEvent_t event, WiFiEventInfo_t info)
         case SYSTEM_EVENT_WIFI_READY:             /*!< ESP32 WiFi ready */
         case SYSTEM_EVENT_STA_START:              /*!< ESP32 station start */
         case SYSTEM_EVENT_STA_AUTHMODE_CHANGE:    /*!< the auth mode of AP connected by ESP32 station changed */
-        case SYSTEM_EVENT_STA_BSS_RSSI_LOW:       /*!< ESP32 station connected BSS rssi goes below threshold */
         case SYSTEM_EVENT_STA_WPS_ER_SUCCESS:     /*!< ESP32 station wps succeeds in enrollee mode */
         case SYSTEM_EVENT_STA_WPS_ER_FAILED:      /*!< ESP32 station wps fails in enrollee mode */
         case SYSTEM_EVENT_STA_WPS_ER_TIMEOUT:     /*!< ESP32 station wps timeout in enrollee mode */
@@ -306,6 +305,10 @@ static void wifi_callback(WiFiEvent_t event, WiFiEventInfo_t info)
 #else
             wifiSsidConnected((const char*)info.connected.ssid);
 #endif
+            break;
+
+        case SYSTEM_EVENT_STA_BSS_RSSI_LOW:
+            LOG_WARNING(TAG_WIFI, F("BSS rssi goes below threshold"));
             break;
 
         case SYSTEM_EVENT_AP_STOP:          /*!< ESP32 soft-AP stop */
@@ -507,11 +510,13 @@ bool wifiEvery5Seconds()
     }
 #else
     if(WiFi.getMode() != WIFI_STA) {
+        LOG_DEBUG(TAG_WIFI, F("5sec not STA %d"), WiFi.getMode());
         return false;
     }
 #endif
 
-    if(WiFi.status() == WL_CONNECTED) {
+    if(WiFi.status() == WL_CONNECTED && WiFi.localIP() > 0) {
+        LOG_DEBUG(TAG_WIFI, F("5sec OK"));
         return true;
     }
 
@@ -600,7 +605,8 @@ void wifi_get_info(JsonDocument& doc)
     String buffer((char*)0);
     buffer.reserve(64);
 
-    JsonObject info = doc.createNestedObject(F(D_INFO_WIFI));
+    JsonObject info       = doc.createNestedObject(F(D_INFO_WIFI));
+    info[F(D_INFO_BSSID)] = WiFi.BSSIDstr();
 
     int8_t rssi = WiFi.RSSI();
     buffer += String(rssi);

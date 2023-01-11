@@ -189,6 +189,7 @@
 #define D_INFO_WIFI "WiFi"
 #define D_INFO_LINK_SPEED "Linksebesség"
 #define D_INFO_FULL_DUPLEX "Full Duplex"
+#define D_INFO_BSSID "BSSID"
 #define D_INFO_SSID "SSID"
 #define D_INFO_RSSI "Jelerősség"
 #define D_INFO_IP_ADDRESS "IP cím"

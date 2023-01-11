@@ -190,6 +190,7 @@
 #define D_INFO_WIFI "Wifi"
 #define D_INFO_LINK_SPEED "Vitesse de liaison"
 #define D_INFO_FULL_DUPLEX "Duplex intégral"
+#define D_INFO_BSSID "BSSID"
 #define D_INFO_SSID "SSID"
 #define D_INFO_RSSI "Force du signal"
 #define D_INFO_IP_ADDRESS "Adresse IP"
