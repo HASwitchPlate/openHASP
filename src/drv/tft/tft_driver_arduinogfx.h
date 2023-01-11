@@ -9,6 +9,8 @@
 
 #include "lvgl.h"
 #include <Arduino_GFX_Library.h>
+#include "Arduino_RGBPanel_mod.h"
+#include "Arduino_RGB_Display_mod.h"
 
 #include "tft_driver.h"
 #include "hal/hasp_hal.h"

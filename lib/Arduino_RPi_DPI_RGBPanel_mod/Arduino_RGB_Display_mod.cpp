@@ -1,35 +1,61 @@
-#include "Arduino_ESP32RGBPanel_mod.h"
+#include "Arduino_RGB_Display_mod.h"
 
 #if defined(ESP32) && (CONFIG_IDF_TARGET_ESP32S3) && defined(HASP_USE_ARDUINOGFX)
 
 #include "Arduino_GFX.h"
 #include "Arduino_DataBus.h"
-#include "Arduino_RPi_DPI_RGBPanel_mod.h"
+#include "Arduino_RGB_Display_mod.h"
 
-Arduino_RGBPanel_Mod::Arduino_RGBPanel_Mod(Arduino_ESP32RGBPanel_Mod* bus, int16_t w, uint16_t hsync_polarity,
-                                                   uint16_t hsync_front_porch, uint16_t hsync_pulse_width,
-                                                   uint16_t hsync_back_porch, int16_t h, uint16_t vsync_polarity,
-                                                   uint16_t vsync_front_porch, uint16_t vsync_pulse_width,
-                                                   uint16_t vsync_back_porch, uint16_t pclk_active_neg,
-                                                   int32_t prefer_speed, bool auto_flush)
-    : Arduino_GFX(w, h), _bus(bus), _hsync_polarity(hsync_polarity), _hsync_front_porch(hsync_front_porch),
-      _hsync_pulse_width(hsync_pulse_width), _hsync_back_porch(hsync_back_porch), _vsync_polarity(vsync_polarity),
-      _vsync_front_porch(vsync_front_porch), _vsync_pulse_width(vsync_pulse_width), _vsync_back_porch(vsync_back_porch),
-      _pclk_active_neg(pclk_active_neg), _prefer_speed(prefer_speed), _auto_flush(auto_flush)
+Arduino_RGB_Display_Mod::Arduino_RGB_Display_Mod(int16_t w, int16_t h, Arduino_RGBPanel_Mod* rgbpanel, uint8_t r,
+                                                 bool auto_flush, Arduino_DataBus* bus, int8_t rst,
+                                                 const uint8_t* init_operations, size_t init_operations_len)
+    : Arduino_GFX(w, h), _rgbpanel(rgbpanel), _auto_flush(auto_flush), _bus(bus), _rst(rst),
+      _init_operations(init_operations), _init_operations_len(init_operations_len)
 {
     _framebuffer_size = w * h * 2;
+    _rotation         = r;
 }
 
-void Arduino_RGBPanel_Mod::begin(int32_t speed)
+bool Arduino_RGB_Display_Mod::begin(int32_t speed)
 {
-    _bus->begin(speed);
+    _rgbpanel->begin(speed);
 
-    _framebuffer = _bus->getFrameBuffer(_width, _height, _hsync_pulse_width, _hsync_back_porch, _hsync_front_porch,
-                                        _hsync_polarity, _vsync_pulse_width, _vsync_back_porch, _vsync_front_porch,
-                                        _vsync_polarity, _pclk_active_neg, _prefer_speed);
+    if(_bus) {
+        _bus->begin();
+    }
+
+    if(_rst != GFX_NOT_DEFINED) {
+        pinMode(_rst, OUTPUT);
+        digitalWrite(_rst, HIGH);
+        delay(100);
+        digitalWrite(_rst, LOW);
+        delay(120);
+        digitalWrite(_rst, HIGH);
+        delay(120);
+    } else {
+        if(_bus) {
+            // Software Rest
+            _bus->sendCommand(0x01);
+            delay(120);
+        }
+    }
+
+    if(_bus) {
+        if(_init_operations_len > 0) {
+            _bus->batchOperation((uint8_t*)_init_operations, _init_operations_len);
+        }
+    }
+
+    _framebuffer = _rgbpanel->getFrameBuffer(WIDTH, HEIGHT);
+
+    if(!_framebuffer) {
+        return false;
+    }
+
+    return true;
 }
 
-void Arduino_RGBPanel_Mod::writePixelPreclipped(int16_t x, int16_t y, uint16_t color)
+void Arduino_RGB_Display_Mod::writePixelPreclipped(int16_t x, int16_t y, uint16_t color)
 {
     uint16_t* fb = _framebuffer;
     fb += (int32_t)y * _width;
@@ -40,7 +66,7 @@ void Arduino_RGBPanel_Mod::writePixelPreclipped(int16_t x, int16_t y, uint16_t c
     }
 }
 
-void Arduino_RGBPanel_Mod::writeFastVLine(int16_t x, int16_t y, int16_t h, uint16_t color)
+void Arduino_RGB_Display_Mod::writeFastVLine(int16_t x, int16_t y, int16_t h, uint16_t color)
 {
     if(_ordered_in_range(x, 0, _max_x) && h) { // X on screen, nonzero height
         if(h < 0) {                            // If negative height...
@@ -77,7 +103,7 @@ void Arduino_RGBPanel_Mod::writeFastVLine(int16_t x, int16_t y, int16_t h, uint1
     }
 }
 
-void Arduino_RGBPanel_Mod::writeFastHLine(int16_t x, int16_t y, int16_t w, uint16_t color)
+void Arduino_RGB_Display_Mod::writeFastHLine(int16_t x, int16_t y, int16_t w, uint16_t color)
 {
     if(_ordered_in_range(y, 0, _max_y) && w) { // Y on screen, nonzero width
         if(w < 0) {                            // If negative width...
@@ -110,7 +136,7 @@ void Arduino_RGBPanel_Mod::writeFastHLine(int16_t x, int16_t y, int16_t w, uint1
     }
 }
 
-void Arduino_RGBPanel_Mod::writeFillRectPreclipped(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color)
+void Arduino_RGB_Display_Mod::writeFillRectPreclipped(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color)
 {
     uint16_t* row = _framebuffer;
     row += y * _width;
@@ -127,19 +153,20 @@ void Arduino_RGBPanel_Mod::writeFillRectPreclipped(int16_t x, int16_t y, int16_t
     }
 }
 
-void Arduino_RGBPanel_Mod::setRotation(uint8_t r)
+void Arduino_RGB_Display_Mod::setRotation(uint8_t r)
 {
-    esp_err_t err = esp_lcd_panel_swap_xy(_bus->_panel_handle, r & 1);
-    err           = esp_lcd_panel_mirror(_bus->_panel_handle, r & 4, r & 2);
-}
-void Arduino_RGBPanel_Mod::invertDisplay(bool i)
-{
-    esp_err_t err = esp_lcd_panel_invert_color(_bus->_panel_handle, i);
+    esp_err_t err = esp_lcd_panel_swap_xy(_rgbpanel->_panel_handle, r & 1);
+    err           = esp_lcd_panel_mirror(_rgbpanel->_panel_handle, r & 4, r & 2);
 }
 
-void Arduino_RGBPanel_Mod::draw16bitRGBBitmap(int16_t x, int16_t y, uint16_t* bitmap, int16_t w, int16_t h)
+void Arduino_RGB_Display_Mod::invertDisplay(bool i)
 {
-    esp_err_t err = esp_lcd_panel_draw_bitmap(_bus->_panel_handle, x, y, x + w, y + h, bitmap);
+    esp_err_t err = esp_lcd_panel_invert_color(_rgbpanel->_panel_handle, i);
+}
+
+void Arduino_RGB_Display_Mod::draw16bitRGBBitmap(int16_t x, int16_t y, uint16_t* bitmap, int16_t w, int16_t h)
+{
+    esp_err_t err = esp_lcd_panel_draw_bitmap(_rgbpanel->_panel_handle, x, y, x + w, y + h, bitmap);
     return;
 
     if(((x + w - 1) < 0) || // Outside left
@@ -201,7 +228,7 @@ void Arduino_RGBPanel_Mod::draw16bitRGBBitmap(int16_t x, int16_t y, uint16_t* bi
     }
 }
 
-void Arduino_RGBPanel_Mod::draw16bitBeRGBBitmap(int16_t x, int16_t y, uint16_t* bitmap, int16_t w, int16_t h)
+void Arduino_RGB_Display_Mod::draw16bitBeRGBBitmap(int16_t x, int16_t y, uint16_t* bitmap, int16_t w, int16_t h)
 {
     if(((x + w - 1) < 0) || // Outside left
        ((y + h - 1) < 0) || // Outside top
@@ -248,14 +275,14 @@ void Arduino_RGBPanel_Mod::draw16bitBeRGBBitmap(int16_t x, int16_t y, uint16_t* 
     }
 }
 
-void Arduino_RGBPanel_Mod::flush(void)
+void Arduino_RGB_Display_Mod::flush(void)
 {
     if(!_auto_flush) {
         Cache_WriteBack_Addr((uint32_t)_framebuffer, _framebuffer_size);
     }
 }
 
-uint16_t* Arduino_RGBPanel_Mod::getFramebuffer()
+uint16_t* Arduino_RGB_Display_Mod::getFramebuffer()
 {
     return _framebuffer;
 }
