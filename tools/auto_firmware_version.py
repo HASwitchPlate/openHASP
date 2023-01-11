@@ -25,6 +25,12 @@ def get_firmware_commit_hash():
     print ("Commit Hash: " + commit_hash)
     return (build_flag)
 
+def get_flash_size():
+    flash_size = int(env.BoardConfig().get("upload.maximum_size")/1024/1024)
+    build_flag = "-D ESP_FLASH_SIZE=" + str(flash_size)
+    print ("ESP Flash Size: " + str(flash_size))
+    return (build_flag)
+
 env.Append(
-    BUILD_FLAGS=[get_firmware_commit_hash()]
+    BUILD_FLAGS=[get_firmware_commit_hash(),get_flash_size()]
 )

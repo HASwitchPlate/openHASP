@@ -23,7 +23,7 @@ typedef struct
 #include "hasp_mem.h"
 #include "font/hasp_font_loader.h"
 
-#if defined(ARDUINO_ARCH_ESP32) && (HASP_USE_FREETYPE > 0) && defined(ESP32S3)
+#if defined(ARDUINO_ARCH_ESP32) && (HASP_USE_FREETYPE > 0) // && defined(ESP32S3)
 extern const uint8_t OPENHASP_TTF_START[] asm("_binary_data_openhasp_ttf_start");
 extern const uint8_t OPENHASP_TTF_END[] asm("_binary_data_openhasp_ttf_end");
 // extern const uint8_t OPENHASPLITE_TTF_START[] asm("_binary_data_openhasplite_ttf_start");
@@ -203,7 +203,7 @@ static lv_font_t* font_add_to_list(const char* payload)
         }
     }
 
-#if defined(ESP32S3)
+#if 1 || defined(ESP32S3)
     if(!font) {
         strcpy(filename, "default");
         uint16_t size = atoi(payload);

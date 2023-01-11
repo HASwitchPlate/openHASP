@@ -2175,10 +2175,10 @@ static inline int handleFirmwareFile(String path)
         return http_send_static_file(HTTP_VARS_CSS, HTTP_VARS_CSS + sizeof(HTTP_VARS_CSS) - 1, contentType);
     } else if(path == F("/script.js")) {
         return http_send_static_gzip_file(SCRIPT_JS_GZ_START, SCRIPT_JS_GZ_END, contentType);
-    } else if(path == F("/logo.svg")) {
-        return http_send_static_gzip_file(LOGO_SVG_GZ_START, LOGO_SVG_GZ_END, contentType);
+#if ESP_FLASH_SIZE > 4
     } else if(path == F("/ace.js")) {
         return http_send_static_gzip_file(ACE_JS_GZ_START, ACE_JS_GZ_END, contentType);
+#endif
     } else if(path == F("/petite-vue.hasp.js")) {
         return http_send_static_gzip_file(PETITE_VUE_HASP_JS_GZ_START, PETITE_VUE_HASP_JS_GZ_END, contentType);
     }
