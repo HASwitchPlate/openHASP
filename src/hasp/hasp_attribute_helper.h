@@ -95,6 +95,42 @@ const char* my_obj_get_tag(lv_obj_t* obj)
     return (char*)obj->user_data.tag;
 }
 
+// the action data is stored as SERIALIZED JSON data
+void my_obj_set_action(lv_obj_t* obj, const char* action)
+{
+    // release old action
+    if(obj->user_data.action) {
+        hasp_free(obj->user_data.action);
+        obj->user_data.action = NULL;
+    }
+
+    // new action is blank
+    if(action == NULL || action[0] == '\0') return;
+
+    // create new action
+    {
+        StaticJsonDocument<512> doc;
+        // size_t len = action ? strlen(action) : 0;
+
+        // check if it is a proper JSON object
+        DeserializationError error = deserializeJson(doc, action /*, len*/);
+        if(error != DeserializationError::Ok) doc.set(action); // use tag as-is
+
+        const size_t size = measureJson(doc) + 1;
+        if(char* str = (char*)hasp_malloc(size)) {
+            size_t len            = serializeJson(doc, str, size); // tidy-up the json object
+            obj->user_data.action = str;
+            LOG_VERBOSE(TAG_ATTR, "new json: %s", str);
+        }
+    }
+}
+
+// the tag data is stored as SERIALIZED JSON data
+const char* my_obj_get_action(lv_obj_t* obj)
+{
+    return obj->user_data.action;
+}
+
 lv_label_align_t my_textarea_get_text_align(lv_obj_t* ta)
 {
     lv_textarea_ext_t* ext = (lv_textarea_ext_t*)lv_obj_get_ext_attr(ta);

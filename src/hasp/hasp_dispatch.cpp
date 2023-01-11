@@ -4,13 +4,13 @@
 #include <time.h>
 #include <sys/time.h>
 
-//#include "ArduinoLog.h"
+// #include "ArduinoLog.h"
 #include "hasplib.h"
 
 #include "dev/device.h"
 #include "drv/tft/tft_driver.h"
 
-//#include "hasp_gui.h"
+// #include "hasp_gui.h"
 
 #if HASP_USE_DEBUG > 0
 #include "../hasp_debug.h"
@@ -272,7 +272,7 @@ static void dispatch_output(const char* topic, const char* payload)
 }
 
 // objectattribute=value
-void dispatch_command(const char* topic, const char* payload, bool update, uint8_t source)
+static void dispatch_command(const char* topic, const char* payload, bool update, uint8_t source)
 {
     /* ================================= Standard payload commands ======================================= */
 
@@ -323,47 +323,14 @@ void dispatch_command(const char* topic, const char* payload, bool update, uint8
 #endif // HASP_USE_CONFIG
     } else {
         if(strlen(payload) == 0) {
-            //    dispatch_text_line(topic); // Could cause an infinite loop!
+            //    dispatch_simple_text_command(topic); // Could cause an infinite loop!
         }
         LOG_WARNING(TAG_MSGR, F(D_DISPATCH_COMMAND_NOT_FOUND " => %s"), topic, payload);
     }
 }
 
-// Strip command/config prefix from the topic and process the payload
-void dispatch_topic_payload(const char* topic, const char* payload, bool update, uint8_t source)
-{
-    if(!strcmp_P(topic, PSTR(MQTT_TOPIC_COMMAND))) {
-        dispatch_text_line((char*)payload, source);
-        return;
-    }
-
-    if(topic == strstr_P(topic, PSTR(MQTT_TOPIC_COMMAND "/"))) { // startsWith command/
-        topic += 8u;
-        dispatch_command(topic, (char*)payload, update, source);
-        return;
-    }
-
-#if HASP_USE_CONFIG > 0
-    if(topic == strstr_P(topic, PSTR("config/"))) { // startsWith config/
-        topic += 7u;
-        dispatch_config(topic, (char*)payload, source);
-        return;
-    }
-#endif
-
-#if defined(HASP_USE_CUSTOM)
-    if(topic == strstr_P(topic, PSTR(MQTT_TOPIC_CUSTOM "/"))) { // startsWith custom
-        topic += 7u;
-        custom_topic_payload(topic, (char*)payload, source);
-        return;
-    }
-#endif
-
-    dispatch_command(topic, (char*)payload, update, source); // dispatch as is
-}
-
 // Parse one line of text and execute the command
-void dispatch_text_line(const char* cmnd, uint8_t source)
+static void dispatch_simple_text_command(const char* cmnd, uint8_t source)
 {
     while(cmnd[0] == ' ' || cmnd[0] == '\t') cmnd++; // skip leading spaces
     if(cmnd[0] == '/' && cmnd[1] == '/') return;     // comment
@@ -381,9 +348,9 @@ void dispatch_text_line(const char* cmnd, uint8_t source)
             dispatch_command("json", cmnd, false, source);
             break; // comment
 
-        case ' ':
-            dispatch_text_line(cmnd, source);
-            break;
+        // case ' ':
+        //     dispatch_simple_text_command(cmnd, source);
+        //     break;
 
         default: {
             size_t pos1 = std::string(cmnd).find("=");
@@ -423,6 +390,39 @@ void dispatch_text_line(const char* cmnd, uint8_t source)
             }
         }
     }
+}
+
+// Strip command/config prefix from the topic and process the payload
+void dispatch_topic_payload(const char* topic, const char* payload, bool update, uint8_t source)
+{
+    if(!strcmp_P(topic, PSTR(MQTT_TOPIC_COMMAND))) {
+        dispatch_simple_text_command((char*)payload, source);
+        return;
+    }
+
+    if(topic == strstr_P(topic, PSTR(MQTT_TOPIC_COMMAND "/"))) { // startsWith command/
+        topic += 8u;
+        dispatch_command(topic, (char*)payload, update, source);
+        return;
+    }
+
+#if HASP_USE_CONFIG > 0
+    if(topic == strstr_P(topic, PSTR("config/"))) { // startsWith config/
+        topic += 7u;
+        dispatch_config(topic, (char*)payload, source);
+        return;
+    }
+#endif
+
+#if defined(HASP_USE_CUSTOM)
+    if(topic == strstr_P(topic, PSTR(MQTT_TOPIC_CUSTOM "/"))) { // startsWith custom
+        topic += 7u;
+        custom_topic_payload(topic, (char*)payload, source);
+        return;
+    }
+#endif
+
+    dispatch_command(topic, (char*)payload, update, source); // dispatch as is
 }
 
 // void dispatch_output_group_state(uint8_t groupid, uint16_t state)
@@ -593,54 +593,69 @@ void dispatch_screenshot(const char*, const char* filename, uint8_t source)
 #endif
 }
 
-void dispatch_parse_json(const char*, const char* payload, uint8_t source)
-{ // Parse an incoming JSON array into individual commands
-    /*  if(strPayload.endsWith(",]")) {
-          // Trailing null array elements are an artifact of older Home Assistant automations
-          // and need to be removed before parsing by ArduinoJSON 6+
-          strPayload.remove(strPayload.length() - 2, 2);
-          strPayload.concat("]");
-      }*/
-    // size_t maxsize = (128u * ((strlen(payload) / 128) + 1)) + 512;
-    // DynamicJsonDocument json(maxsize);
-    StaticJsonDocument<1024> json;
-
-    // Note: Deserialization needs to be (const char *) so the objects WILL be copied
-    // this uses more memory but otherwise the mqtt receive buffer can get overwritten by the send buffer !!
-    DeserializationError jsonError = deserializeJson(json, payload);
-    // json.shrinkToFit();
-
-    if(jsonError) { // Couldn't parse incoming JSON command
-        dispatch_json_error(TAG_MSGR, jsonError);
-
-    } else if(json.is<JsonArray>()) { // handle json as an array of commands
+bool dispatch_json_variant(JsonVariant& json, uint8_t& savedPage, uint8_t source)
+{
+    if(json.is<JsonArray>()) { // handle json as an array of commands
         JsonArray arr = json.as<JsonArray>();
-        // guiStop();
+        LOG_WARNING(TAG_MSGR, "TEXT = ARRAY");
         for(JsonVariant command : arr) {
-            dispatch_text_line(command.as<const char*>(), source);
+            dispatch_json_variant(command, savedPage, source);
         }
-        // guiStart();
+
     } else if(json.is<JsonObject>()) { // handle json as a jsonl
-        uint8_t savedPage = haspPages.get();
+        LOG_WARNING(TAG_MSGR, "TEXT = OBJECT");
         hasp_new_object(json.as<JsonObject>(), savedPage);
 
-        // #ifdef ARDUINO
-        //     } else if(json.is<String>()) { // handle json as a single command
-        //         dispatch_text_line(json.as<String>().c_str());
-        // #else
     } else if(json.is<std::string>()) { // handle json as a single command
-        dispatch_text_line(json.as<std::string>().c_str(), source);
-        // #endif
+        LOG_WARNING(TAG_MSGR, "TEXT = %s", json.as<std::string>().c_str());
+        dispatch_simple_text_command(json.as<std::string>().c_str(), source);
 
     } else if(json.is<const char*>()) { // handle json as a single command
-        dispatch_text_line(json.as<const char*>(), source);
-
-        // } else if(json.is<char*>()) { // handle json as a single command
-        //     dispatch_text_line(json.as<char*>());
+        LOG_WARNING(TAG_MSGR, "TEXT = %s", json.as<const char*>());
+        dispatch_simple_text_command(json.as<const char*>(), source);
 
     } else {
-        LOG_WARNING(TAG_MSGR, F(D_DISPATCH_COMMAND_NOT_FOUND), payload);
+        LOG_WARNING(TAG_MSGR, "TEXT = unknown type");
+        return false;
     }
+    return true;
+}
+
+void dispatch_text_line(const char* payload, uint8_t source)
+{
+
+    {
+        // size_t maxsize = (128u * ((strlen(payload) / 128) + 1)) + 512;
+        // DynamicJsonDocument json(maxsize);
+        StaticJsonDocument<1024> doc;
+
+        // Note: Deserialization needs to be (const char *) so the objects WILL be copied
+        // this uses more memory but otherwise the mqtt receive buffer can get overwritten by the send buffer !!
+        DeserializationError jsonError = deserializeJson(doc, payload);
+        // json.shrinkToFit();
+
+        if(jsonError) {
+           // dispatch_json_error(TAG_MSGR, jsonError);
+
+        } else {
+            JsonVariant json  = doc.as<JsonVariant>();
+            uint8_t savedPage = haspPages.get();
+            if(!dispatch_json_variant(json, savedPage, source)) {
+                LOG_WARNING(TAG_MSGR, F(D_DISPATCH_COMMAND_NOT_FOUND), payload);
+                // dispatch_simple_text_command(payload, source);
+            }
+
+            return;
+        }
+    }
+
+    // Could not parse as json
+    dispatch_simple_text_command(payload, source);
+}
+
+void dispatch_parse_json(const char*, const char* payload, uint8_t source)
+{ // Parse an incoming JSON array into individual commands
+    dispatch_simple_text_command(payload, source);
 }
 
 #ifdef ARDUINO
@@ -730,7 +745,7 @@ void dispatch_run_script(const char*, const char* payload, uint8_t source)
             index++;
         }
         if(index > 0 && buffer.charAt(0) != '#') { // Check for comments
-            dispatch_text_line(buffer.c_str(), TAG_FILE);
+            dispatch_simple_text_command(buffer.c_str(), TAG_FILE);
         }
     }
 
@@ -752,7 +767,7 @@ void dispatch_run_script(const char*, const char* payload, uint8_t source)
         std::string line;
         while(std::getline(f, line)) {
             LOG_VERBOSE(TAG_HASP, line.c_str());
-            if(!line.empty() && line[0] != '#') dispatch_text_line(line.c_str(), TAG_FILE); // # for comments
+            if(!line.empty() && line[0] != '#') dispatch_simple_text_command(line.c_str(), TAG_FILE); // # for comments
         }
     } else {
         LOG_ERROR(TAG_MSGR, F(D_FILE_LOAD_FAILED), payload);
@@ -841,17 +856,10 @@ void dispatch_page(const char*, const char* payload, uint8_t source)
     dispatch_set_page(pageid, animation, time, delay);
 }
 
-// Clears all fonts
-void dispatch_clear_font(const char*, const char* payload, uint8_t source)
-{
-    hasp_init();
-    font_clear_list(payload);
-}
-
 // Clears a page id or the current page if empty
 void dispatch_clear_page(const char*, const char* page, uint8_t source)
 {
-    if(!strcasecmp_P(page, PSTR("all"))) {
+    if(!strcasecmp(page, "all")) {
         hasp_init();
         return;
     }
@@ -863,6 +871,14 @@ void dispatch_clear_page(const char*, const char* page, uint8_t source)
         pageid = atoi(page);
     }
     haspPages.clear(pageid);
+}
+
+// Clears all fonts
+void dispatch_clear_font(const char*, const char* payload, uint8_t source)
+{
+    dispatch_clear_page(NULL, "all", source);
+    hasp_init();
+    font_clear_list(payload);
 }
 
 void dispatch_dim(const char*, const char* level)

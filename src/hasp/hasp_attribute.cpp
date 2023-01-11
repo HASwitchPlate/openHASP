@@ -1630,6 +1630,18 @@ static hasp_attribute_type_t attribute_common_tag(lv_obj_t* obj, uint16_t attr_h
             }
             break; // attribute_found
 
+        case ATTR_ACTION:
+            if(update) {
+                my_obj_set_action(obj, payload);
+            } else {
+                if(my_obj_get_action(obj)) {
+                    *text = (char*)my_obj_get_action(obj);
+                } else {
+                    strcpy_P(*text, "null"); // TODO : Literal String
+                }
+            }
+            break; // attribute_found
+
         default:
             return HASP_ATTR_TYPE_NOT_FOUND;
     }
@@ -2636,6 +2648,7 @@ void hasp_process_obj_attribute(lv_obj_t* obj, const char* attribute, const char
             ret = attribute_common_align(obj, attribute, payload, &text, update);
             break;
         case ATTR_TAG:
+        case ATTR_ACTION:
             ret = attribute_common_tag(obj, attr_hash, payload, &text, update);
             break;
         case ATTR_JSONL:
@@ -2662,13 +2675,13 @@ void hasp_process_obj_attribute(lv_obj_t* obj, const char* attribute, const char
 
             // case ATTR_BTN_POS:
 
-        case ATTR_ACTION:
-            if(update)
-                obj->user_data.actionid = Parser::get_action_id(payload);
-            else
-                val = obj->user_data.actionid;
-            ret = HASP_ATTR_TYPE_INT;
-            break;
+            /*    case ATTR_ACTION:
+                    if(update)
+                        obj->user_data.actionid = Parser::get_action_id(payload);
+                    else
+                        val = obj->user_data.actionid;
+                    ret = HASP_ATTR_TYPE_INT;
+                    break;*/
 
             // case ATTR_SYMBOL:
             //     (update) ? lv_dropdown_set_symbol(obj, payload) :

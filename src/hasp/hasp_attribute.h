@@ -16,6 +16,7 @@ lv_chart_series_t* my_chart_get_series(lv_obj_t* chart, uint8_t ser_num);
 
 void my_obj_set_value_str_text(lv_obj_t* obj, uint8_t part, lv_state_t state, const char* text);
 void my_obj_set_tag(lv_obj_t* obj, const char* tag);
+void my_obj_set_action(lv_obj_t* obj, const char* tag);
 const char* my_obj_get_tag(lv_obj_t* obj);
 void my_btnmatrix_map_clear(lv_obj_t* obj);
 void my_msgbox_map_clear(lv_obj_t* obj);
@@ -482,8 +483,8 @@ _HASP_ATTRIBUTE(SCALE_END_LINE_WIDTH, scale_end_line_width, lv_style_int_t)
 // Spinner
 #define ATTR_SPEED 14375
 #define ATTR_THICKNESS 24180
-//#define ATTR_ARC_LENGTH 755 - use ATTR_ANGLE
-// #define ATTR_DIRECTION 32415 - see Dropdown
+// #define ATTR_ARC_LENGTH 755 - use ATTR_ANGLE
+//  #define ATTR_DIRECTION 32415 - see Dropdown
 
 // Line
 #define ATTR_POINTS 8643

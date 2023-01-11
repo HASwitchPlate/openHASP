@@ -86,6 +86,7 @@ void delete_event_handler(lv_obj_t* obj, lv_event_t event)
         my_obj_set_value_str_text(obj, part, LV_STATE_DISABLED + LV_STATE_CHECKED, NULL);
     }
     my_obj_set_tag(obj, (char*)NULL);
+    my_obj_set_action(obj, (char*)NULL);
 }
 
 /* ============================== Timer Event  ============================ */
@@ -491,8 +492,31 @@ void generic_event_handler(lv_obj_t* obj, lv_event_t event)
 
     if(last_value_sent == HASP_EVENT_LOST) return;
 
-    /* If an actionid is attached, perform that action on UP event only */
-    if(obj->user_data.actionid) {
+    if(obj->user_data.action) {
+     //   if(last_value_sent == HASP_EVENT_UP || last_value_sent == HASP_EVENT_RELEASE) {
+            // dispatch_text_line(obj->user_data.action, TAG_EVENT);
+
+            StaticJsonDocument<256> doc;
+            StaticJsonDocument<64> filter;
+            char eventname[8];
+
+            Parser::get_event_name(last_value_sent, eventname, sizeof(eventname));
+            filter[eventname] = true;
+            DeserializationError jsonError =
+                deserializeJson(doc, (const char*)obj->user_data.action, DeserializationOption::Filter(filter));
+
+            if(!jsonError) {
+                JsonVariant json  = doc[eventname].as<JsonVariant>();
+                uint8_t savedPage = haspPages.get();
+                if(!dispatch_json_variant(json, savedPage, TAG_EVENT)) {
+                    LOG_WARNING(TAG_MSGR, F(D_DISPATCH_COMMAND_NOT_FOUND), eventname);
+                    // dispatch_simple_text_command(payload, source);
+                }
+            }
+      //  }
+
+    } else if(obj->user_data.actionid) {
+        /* If an actionid is attached, perform that action on UP event only */
         if(last_value_sent == HASP_EVENT_UP || last_value_sent == HASP_EVENT_RELEASE) {
             lv_scr_load_anim_t transitionid = (lv_scr_load_anim_t)obj->user_data.transitionid;
             switch(obj->user_data.actionid) {
