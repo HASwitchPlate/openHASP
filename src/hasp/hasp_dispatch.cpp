@@ -348,9 +348,9 @@ static void dispatch_simple_text_command(const char* cmnd, uint8_t source)
             dispatch_command("json", cmnd, false, source);
             break; // comment
 
-        // case ' ':
-        //     dispatch_simple_text_command(cmnd, source);
-        //     break;
+            // case ' ':
+            //     dispatch_simple_text_command(cmnd, source);
+            //     break;
 
         default: {
             size_t pos1 = std::string(cmnd).find("=");
@@ -395,7 +395,7 @@ static void dispatch_simple_text_command(const char* cmnd, uint8_t source)
 // Strip command/config prefix from the topic and process the payload
 void dispatch_topic_payload(const char* topic, const char* payload, bool update, uint8_t source)
 {
-    if(!strcmp_P(topic, PSTR(MQTT_TOPIC_COMMAND))) {
+    if(!strcmp_P(topic, PSTR(MQTT_TOPIC_COMMAND)) || topic[0] == '\0') {
         dispatch_simple_text_command((char*)payload, source);
         return;
     }
@@ -596,9 +596,8 @@ void dispatch_screenshot(const char*, const char* filename, uint8_t source)
 bool dispatch_json_variant(JsonVariant& json, uint8_t& savedPage, uint8_t source)
 {
     if(json.is<JsonArray>()) { // handle json as an array of commands
-        JsonArray arr = json.as<JsonArray>();
         LOG_WARNING(TAG_MSGR, "TEXT = ARRAY");
-        for(JsonVariant command : arr) {
+        for(JsonVariant command : json.as<JsonArray>()) {
             dispatch_json_variant(command, savedPage, source);
         }
 
@@ -635,7 +634,7 @@ void dispatch_text_line(const char* payload, uint8_t source)
         // json.shrinkToFit();
 
         if(jsonError) {
-           // dispatch_json_error(TAG_MSGR, jsonError);
+            // dispatch_json_error(TAG_MSGR, jsonError);
 
         } else {
             JsonVariant json  = doc.as<JsonVariant>();
@@ -655,7 +654,19 @@ void dispatch_text_line(const char* payload, uint8_t source)
 
 void dispatch_parse_json(const char*, const char* payload, uint8_t source)
 { // Parse an incoming JSON array into individual commands
-    dispatch_simple_text_command(payload, source);
+    StaticJsonDocument<2048> doc;
+    DeserializationError jsonError = deserializeJson(doc, payload);
+
+    if(jsonError) {
+        dispatch_json_error(TAG_MSGR, jsonError);
+        return;
+    }
+
+    JsonVariant json  = doc.as<JsonVariant>();
+    uint8_t savedPage = haspPages.get();
+    if(!dispatch_json_variant(json, savedPage, TAG_EVENT)) {
+        LOG_WARNING(TAG_MSGR, F(D_DISPATCH_COMMAND_NOT_FOUND), "");
+    }
 }
 
 #ifdef ARDUINO
