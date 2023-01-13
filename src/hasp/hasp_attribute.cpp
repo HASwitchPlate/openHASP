@@ -1328,6 +1328,8 @@ static hasp_attribute_type_t special_attribute_src(lv_obj_t* obj, const char* pa
 #if HASP_USE_WIFI > 0 || HASP_USE_ETHERNET > 0
             HTTPClient http;
             http.begin(payload);
+            http.setTimeout(1000);
+            http.setConnectTimeout(5000);
 
             // const char* hdrs[] = {"Content-Type"};
             // size_t numhdrs     = sizeof(hdrs) / sizeof(char*);
@@ -1430,7 +1432,7 @@ static hasp_attribute_type_t special_attribute_src(lv_obj_t* obj, const char* pa
                         // LOG_DEBUG(TAG_ATTR, D_BULLET "IMG DATA: %d bytes read=%d buf_len=%d", c, read, buf_len);
                         read += c;
                     } else {
-                        //  delay(1); // wait for data
+                        delay(1); // wait for data
                     }
                 }
 
