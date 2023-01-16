@@ -1,4 +1,4 @@
-/* MIT License - Copyright (c) 2019-2022 Francis Van Roie
+/* MIT License - Copyright (c) 2019-2023 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
 #include "hasplib.h"
@@ -527,7 +527,10 @@ static void webHandleApi()
     String endpoint((char*)0);
     endpoint = webServer.pathArg(0);
 
-    if(!strcasecmp_P(endpoint.c_str(), PSTR("info"))) {
+    if(!strcasecmp_P(endpoint.c_str(), PSTR("files"))) {
+        webServer.send(200, contentType.c_str(), filesystem_list(HASP_FS, "/", 5).c_str());
+
+    } else if(!strcasecmp_P(endpoint.c_str(), PSTR("info"))) {
         String jsondata((char*)0);
         jsondata.reserve(HTTP_PAGE_SIZE);
         jsondata = "{";
@@ -1502,59 +1505,6 @@ static void webHandleGuiConfig()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-#if HASP_USE_WIFI > 0
-static void webHandleWifiConfig()
-{ // http://plate01/config/wifi
-    if(!http_is_authenticated(F("config/wifi"))) return;
-
-    { // Send Content
-        String httpMessage((char*)0);
-        httpMessage.reserve(HTTP_PAGE_SIZE);
-        httpMessage += F("<h1>");
-        httpMessage += haspDevice.get_hostname();
-        httpMessage += F("</h1><hr>");
-        httpMessage += F("<h2>" D_HTTP_WIFI_SETTINGS "</h2>");
-
-        // Form
-        httpMessage += F("<div class='container'><form method='POST' action='/config' id='wifi'>");
-
-        // Wifi SSID
-        httpMessage += F("<div class='row'><div class='col-25 required'><label for='ssid'>SSID</label></div>");
-        httpMessage += F("<div class='col-75'><input required type='text' id='ssid' name='ssid' maxlength=");
-        httpMessage += MAX_SSID_LEN - 1;
-        httpMessage += F(" placeholder='SSID' value='");
-        httpMessage += F("'></div></div>");
-
-        // Wifi Password
-        httpMessage += F("<div class='row'><div class='col-25 required'><label for='pass'>Password</label></div>");
-        httpMessage += F("<div class='col-75'><input required type='password' id='pass' name='pass' maxlength=");
-        httpMessage += MAX_PASSPHRASE_LEN - 1;
-        httpMessage += F(" placeholder='Password' value='");
-        httpMessage += F("'></div></div>");
-
-        // Submit & End Form
-        httpMessage += F("<button type='submit' name='save' value='wifi'>" D_HTTP_SAVE_SETTINGS "</button>");
-        httpMessage += F("</form></div>");
-
-#if HASP_USE_WIFI > 0 && !defined(STM32F4xx)
-        if(WiFi.getMode() == WIFI_STA) {
-            add_form_button(httpMessage, F(D_BACK_ICON D_HTTP_CONFIGURATION), F("/config"));
-#if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
-        } else {
-            add_form_button(httpMessage, F(D_HTTP_FIRMWARE_UPGRADE), F("/firmware"));
-#endif // ARDUINO_ARCH_ESP
-        }
-#endif // HASP_USE_WIFI
-
-        webSendHtmlHeader(haspDevice.get_hostname(), httpMessage.length(), 0);
-        webServer.sendContent(httpMessage);
-    }
-    webSendFooter();
-}
-
-#endif // HASP_USE_WIFI
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
 static void webHandleHttpConfig()
 { // http://plate01/config/http
     if(!http_is_authenticated(F("config/http"))) return;
@@ -2156,6 +2106,59 @@ static void webHandleHaspConfig()
 
 #endif // HTTP_LEGACY
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+#if HASP_USE_WIFI > 0
+static void webHandleWifiConfig()
+{ // http://plate01/config/wifi
+    if(!http_is_authenticated(F("config/wifi"))) return;
+
+    { // Send Content
+        String httpMessage((char*)0);
+        httpMessage.reserve(HTTP_PAGE_SIZE);
+        httpMessage += F("<h1>");
+        httpMessage += haspDevice.get_hostname();
+        httpMessage += F("</h1><hr>");
+        httpMessage += F("<h2>" D_HTTP_WIFI_SETTINGS "</h2>");
+
+        // Form
+        httpMessage += F("<div class='container'><form method='POST' action='/config' id='wifi'>");
+
+        // Wifi SSID
+        httpMessage += F("<div class='row'><div class='col-25 required'><label for='ssid'>SSID</label></div>");
+        httpMessage += F("<div class='col-75'><input required type='text' id='ssid' name='ssid' maxlength=");
+        httpMessage += MAX_SSID_LEN - 1;
+        httpMessage += F(" placeholder='SSID' value='");
+        httpMessage += F("'></div></div>");
+
+        // Wifi Password
+        httpMessage += F("<div class='row'><div class='col-25 required'><label for='pass'>Password</label></div>");
+        httpMessage += F("<div class='col-75'><input required type='password' id='pass' name='pass' maxlength=");
+        httpMessage += MAX_PASSPHRASE_LEN - 1;
+        httpMessage += F(" placeholder='Password' value='");
+        httpMessage += F("'></div></div>");
+
+        // Submit & End Form
+        httpMessage += F("<button type='submit' name='save' value='wifi'>" D_HTTP_SAVE_SETTINGS "</button>");
+        httpMessage += F("</form></div>");
+
+#if HASP_USE_WIFI > 0 && !defined(STM32F4xx)
+        if(WiFi.getMode() == WIFI_STA) {
+            add_form_button(httpMessage, F(D_BACK_ICON D_HTTP_CONFIGURATION), F("/config"));
+#if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
+        } else {
+            add_form_button(httpMessage, F(D_HTTP_FIRMWARE_UPGRADE), F("/firmware"));
+#endif // ARDUINO_ARCH_ESP
+        }
+#endif // HASP_USE_WIFI
+
+        webSendHtmlHeader(haspDevice.get_hostname(), httpMessage.length(), 0);
+        webServer.sendContent(httpMessage);
+    }
+    webSendFooter();
+}
+
+#endif // HASP_USE_WIFI
+
 static inline int handleFirmwareFile(String path)
 {
     String contentType((char*)0);
@@ -2167,7 +2170,7 @@ static inline int handleFirmwareFile(String path)
 #if defined(CONFIG_IDF_TARGET_ESP32) || defined(CONFIG_IDF_TARGET_ESP32S2) || defined(CONFIG_IDF_TARGET_ESP32S3)
     if(path == F("/edit.htm")) {
         return http_send_static_gzip_file(EDIT_HTM_GZ_START, EDIT_HTM_GZ_END, contentType);
-    } else if(path == F("/logo.svg")) {
+    } else if(path == F("/logo.svg")) { // 300 bytes
         return http_send_static_gzip_file(LOGO_SVG_GZ_START, LOGO_SVG_GZ_END, contentType);
     } else if(path == F("/style.css")) {
         return http_send_static_gzip_file(STYLE_CSS_GZ_START, STYLE_CSS_GZ_END, contentType);
@@ -2176,11 +2179,11 @@ static inline int handleFirmwareFile(String path)
     } else if(path == F("/script.js")) {
         return http_send_static_gzip_file(SCRIPT_JS_GZ_START, SCRIPT_JS_GZ_END, contentType);
 #if ESP_FLASH_SIZE > 4
-    } else if(path == F("/ace.js")) {
+    } else if(path == F("/ace.js")) { // 96 kB
         return http_send_static_gzip_file(ACE_JS_GZ_START, ACE_JS_GZ_END, contentType);
-#endif
-    } else if(path == F("/petite-vue.hasp.js")) {
+    } else if(path == F("/petite-vue.hasp.js")) { // 9 kB
         return http_send_static_gzip_file(PETITE_VUE_HASP_JS_GZ_START, PETITE_VUE_HASP_JS_GZ_END, contentType);
+#endif
     }
 #endif // ARDUINO_ARCH_ESP32
 
@@ -2504,6 +2507,8 @@ void httpSetup()
     // webServer.on(F("/js"), webSendJavascript);
     webServer.on(UriBraces(F("/api/{}/")), webHandleApi);
     webServer.on(UriBraces(F("/api/config/{}/")), webHandleApiConfig);
+    webServer.on(UriBraces(F("/{}/")), HTTP_GET, []() { httpHandleFile(F("/hasp.htm")); });
+    webServer.on(UriBraces(F("/config/{}/")), HTTP_GET, []() { httpHandleFile(F("/hasp.htm")); });
 
 #if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
     webServer.on(F("/firmware"), webHandleFirmware);
