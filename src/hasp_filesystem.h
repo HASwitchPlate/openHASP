@@ -1,20 +1,17 @@
-/* MIT License - Copyright (c) 2019-2022 Francis Van Roie
+/* MIT License - Copyright (c) 2019-2023 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
 #ifndef HASP_FILESYSTEM_H
 #define HASP_FILESYSTEM_H
 
 #include <Arduino.h>
+#include <FS.h>
 
 bool filesystemSetup(void);
 
 void filesystemList();
 void filesystemInfo();
 void filesystemSetupFiles();
-
-#if defined(ARDUINO_ARCH_ESP32)
-void filesystemUnzip(const char*, const char* filename, uint8_t source);
-#endif
 
 enum { ZIP_NO_COMPRESSION = 0, ZIP_DEFLTATE = 8 };
 typedef uint16_t zip_compression_method_t;
@@ -54,6 +51,7 @@ typedef struct
 #endif // ESP_ARDUINO_VERSION
 
 #endif
+
 #elif defined(ARDUINO_ARCH_ESP8266)
 // included by default
 #include <LittleFS.h>
@@ -64,5 +62,10 @@ typedef struct
 #include <FS.h>
 #include <Esp.h>
 #endif // ARDUINO_ARCH
+
+#if defined(ARDUINO_ARCH_ESP32)
+void filesystemUnzip(const char*, const char* filename, uint8_t source);
+String filesystem_list(fs::FS& fs, const char* dirname, uint8_t levels);
+#endif
 
 #endif // HASP_FILESYSTEM_H

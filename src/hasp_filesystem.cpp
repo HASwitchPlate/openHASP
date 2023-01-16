@@ -1,8 +1,10 @@
-/* MIT License - Copyright (c) 2019-2022 Francis Van Roie
+/* MIT License - Copyright (c) 2019-2023 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
 #ifdef ARDUINO
+#include <Arduino.h>
 #include "ArduinoLog.h"
+#include "FS.h"
 #endif
 
 #include "hasp_conf.h" // include first
@@ -10,12 +12,12 @@
 #if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
 
 #ifndef HASP_ONLINE_CMD
-#define HASP_ONLINE_CMD "jsonl {\"page\":0,\"id\":239,\"obj\":\"msgbox\",\"text\":\"%ip%\", \"auto_close\":20000}"
+#define HASP_ONLINE_CMD "jsonl {\"page\":0,\"id\":239,\"obj\":\"msgbox\",\"text\":\"%ip%\",\"auto_close\":20000}"
 #endif
 
 #ifndef HASP_OFFLINE_CMD
 #define HASP_OFFLINE_CMD                                                                                               \
-    "jsonl {\"page\":0,\"id\":239,\"obj\":\"msgbox\",\"text\":\"" D_NETWORK_OFFLINE "\", \"auto_close\":20000}"
+    "jsonl {\"page\":0,\"id\":239,\"obj\":\"msgbox\",\"text\":\"" D_NETWORK_OFFLINE "\",\"auto_close\":20000}"
 #endif
 
 #ifndef HASP_PAGES_JSONL
@@ -70,7 +72,7 @@ void filesystemUnzip(const char*, const char* filename, uint8_t source)
                     //                 fh.filename_length, fh.extra_length);
                 }
                 char name[257] = {0};
-                name[0]       = '/';
+                name[0]        = '/';
 
                 len = zipfile.read((uint8_t*)&name[1], fh.filename_length);
                 if(len != fh.filename_length) {
@@ -193,6 +195,50 @@ void filesystemList()
     }
 #endif
 }
+
+#if defined(ARDUINO_ARCH_ESP32)
+String filesystem_list(fs::FS& fs, const char* dirname, uint8_t levels)
+{
+    LOG_VERBOSE(TAG_FILE, "Listing directory: %s\n", dirname);
+    String data = "[";
+
+    File root = fs.open(dirname);
+    if(!root) {
+        LOG_WARNING(TAG_FILE, "Failed to open directory");
+    } else if(!root.isDirectory()) {
+        LOG_WARNING(TAG_FILE, "Not a directory");
+    } else {
+        File file = root.openNextFile();
+        while(file) {
+
+            if(data != "[") {
+                data += ",";
+            }
+            data += "{\"name\":\"";
+            data += file.name();
+            data += "\"";
+
+            if(file.isDirectory()) {
+                data += ",\"children\":";
+                if(levels) {
+                    String dir = dirname;
+                    dir += file.name();
+                    dir += '/';
+                    data += filesystem_list(fs, dir.c_str(), levels - 1);
+                } else {
+                    data += "[]";
+                }
+            }
+            data += "}";
+            file = root.openNextFile();
+        }
+        root.close();
+    }
+
+    data += "]";
+    return data;
+}
+#endif
 
 static void filesystem_write_file(const char* filename, const char* data)
 {
