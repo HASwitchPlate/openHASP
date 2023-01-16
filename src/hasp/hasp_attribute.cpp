@@ -1,4 +1,4 @@
-/* MIT License - Copyright (c) 2019-2022 Francis Van Roie
+/* MIT License - Copyright (c) 2019-2023 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
 #include "hasplib.h"
@@ -261,10 +261,10 @@ static lv_font_t* haspPayloadToFont(const char* payload)
             return &HASP_FONT_4;
 #endif
 
-#ifdef HASP_FONT_5
-        else if(var == HASP_FONT_SIZE_5)
-            return &HASP_FONT_5;
-#endif
+// #if defined(HASP_FONT_5)
+//         else if(var == HASP_FONT_SIZE_5)
+//             return &HASP_FONT_5;
+// #endif
 
 #endif // ARDUINO_ARCH_ESP8266
 
