@@ -198,6 +198,9 @@ static void wifiDisconnected(const char* ssid, uint8_t reason)
         case WIFI_REASON_DISASSOC_SUPCHAN_BAD:
             snprintf_P(buffer, sizeof(buffer), PSTR("bad supchan"));
             break;
+        case WIFI_REASON_BSS_TRANSITION_DISASSOC:
+            snprintf_P(buffer, sizeof(buffer), PSTR("bss transition disassoc"));
+            break;
         case WIFI_REASON_IE_INVALID:
             snprintf_P(buffer, sizeof(buffer), PSTR("ie invalid"));
             break;
@@ -235,6 +238,10 @@ static void wifiDisconnected(const char* ssid, uint8_t reason)
             snprintf_P(buffer, sizeof(buffer), PSTR("cipher suite rejected"));
             break;
 
+        case WIFI_REASON_INVALID_PMKID:
+            snprintf_P(buffer, sizeof(buffer), PSTR("invalid pmkid"));
+            break;
+
         case WIFI_REASON_BEACON_TIMEOUT:
             snprintf_P(buffer, sizeof(buffer), PSTR("beacon timeout"));
             break;
@@ -253,12 +260,15 @@ static void wifiDisconnected(const char* ssid, uint8_t reason)
         case WIFI_REASON_CONNECTION_FAIL:
             snprintf_P(buffer, sizeof(buffer), PSTR(D_NETWORK_CONNECTION_FAILED));
             break;
+        case WIFI_REASON_AP_TSF_RESET:
+        case WIFI_REASON_ROAMING:
 #endif
 
         default:
-            snprintf_P(buffer, sizeof(buffer), PSTR(D_ERROR_UNKNOWN));
+            snprintf_P(buffer, sizeof(buffer), PSTR(D_ERROR_UNKNOWN " (%d)"), reason);
     }
 
+    LOG_WARNING(TAG_WIFI, buffer);
     network_disconnected();
 }
 
@@ -271,8 +281,12 @@ static void wifiSsidConnected(const char* ssid)
 static void wifi_callback(WiFiEvent_t event, WiFiEventInfo_t info)
 {
     switch(event) {
-        case SYSTEM_EVENT_WIFI_READY:             /*!< ESP32 WiFi ready */
-        case SYSTEM_EVENT_STA_START:              /*!< ESP32 station start */
+        case SYSTEM_EVENT_WIFI_READY: /*!< ESP32 WiFi ready */
+            LOG_VERBOSE(TAG_WIFI, F("ready"));
+            break;
+        case SYSTEM_EVENT_STA_START: /*!< ESP32 station start */
+            LOG_VERBOSE(TAG_WIFI, F("station start"));
+            break;
         case SYSTEM_EVENT_STA_AUTHMODE_CHANGE:    /*!< the auth mode of AP connected by ESP32 station changed */
         case SYSTEM_EVENT_STA_WPS_ER_SUCCESS:     /*!< ESP32 station wps succeeds in enrollee mode */
         case SYSTEM_EVENT_STA_WPS_ER_FAILED:      /*!< ESP32 station wps fails in enrollee mode */
@@ -509,8 +523,8 @@ bool wifiEvery5Seconds()
         return false;
     }
 #else
-    if(WiFi.getMode() != WIFI_STA) {
-        LOG_DEBUG(TAG_WIFI, F("5sec not STA %d"), WiFi.getMode());
+    if(WiFi.getMode() == WIFI_AP || WiFi.getMode() == WIFI_AP_STA) {
+        LOG_DEBUG(TAG_WIFI, F("5sec mode AP %d"), WiFi.getMode());
         return false;
     }
 #endif
