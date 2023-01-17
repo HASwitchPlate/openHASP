@@ -261,18 +261,16 @@ static lv_font_t* haspPayloadToFont(const char* payload)
             return &HASP_FONT_4;
 #endif
 
-// #if defined(HASP_FONT_5)
-//         else if(var == HASP_FONT_SIZE_5)
-//             return &HASP_FONT_5;
-// #endif
+            // #if defined(HASP_FONT_5)
+            //         else if(var == HASP_FONT_SIZE_5)
+            //             return &HASP_FONT_5;
+            // #endif
 
 #endif // ARDUINO_ARCH_ESP8266
 
-    } else {
-        return get_font(payload);
     }
 
-    return nullptr;
+    return get_font(payload); 
 }
 
 static hasp_attribute_type_t hasp_process_label_long_mode(lv_obj_t* obj, const char* payload, char** text, bool update)
