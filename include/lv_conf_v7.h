@@ -376,7 +376,7 @@ typedef void* lv_indev_drv_user_data_t;            /*Type of user data in the in
 /*==================
  *    FONT USAGE
  *===================*/
-#if 1 || HASP_USE_FREETYPE<=0
+#if HASP_USE_FREETYPE<=0
   #if TFT_HEIGHT>=480 && TFT_WIDTH>=480
     #ifndef ROBOTOCONDENSED_REGULAR_24_LATIN1
     #define ROBOTOCONDENSED_REGULAR_24_LATIN1 1
@@ -674,7 +674,7 @@ typedef void* lv_font_user_data_t;
 // #define HASP_FONT_4 FONT_CONCAT(HASP_FONT_4_base, HASP_CHARACTER_SET)
 
 /*Always set a default font from the built-in fonts*/
-#if 1 || HASP_USE_FREETYPE<=0 // LV_HIGH_RESOURCE_MCU>0
+#if HASP_USE_FREETYPE<=0 // LV_HIGH_RESOURCE_MCU>0
 // #define LV_FONT_CUSTOM_DECLARE LV_FONT_DECLARE(lv_font_montserrat_16);
 
 // #define LV_FONT_CUSTOM_12     LV_FONT_DECLARE(robotocondensed_regular_12)
@@ -712,7 +712,7 @@ typedef void* lv_font_user_data_t;
 #define LV_THEME_DEFAULT_COLOR_PRIMARY      LV_COLOR_RED
 #define LV_THEME_DEFAULT_COLOR_SECONDARY    LV_COLOR_BLUE
 #define LV_THEME_DEFAULT_FLAG               0 //LV_THEME_MATERIAL_FLAG_NONE
-#if 1 || HASP_USE_FREETYPE<=0 //LV_HIGH_RESOURCE_MCU
+#if HASP_USE_FREETYPE<=0 //LV_HIGH_RESOURCE_MCU
 #define LV_THEME_DEFAULT_FONT_SMALL         &HASP_FONT_1 //&lv_font_montserrat_12
 #define LV_THEME_DEFAULT_FONT_NORMAL        &HASP_FONT_2 //&lv_font_montserrat_16
 #define LV_THEME_DEFAULT_FONT_SUBTITLE      &HASP_FONT_3 //&lv_font_montserrat_22
