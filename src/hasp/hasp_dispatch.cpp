@@ -1,4 +1,4 @@
-/* MIT License - Copyright (c) 2019-2022 Francis Van Roie
+/* MIT License - Copyright (c) 2019-2023 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
 #include <time.h>
@@ -624,14 +624,14 @@ void dispatch_text_line(const char* payload, uint8_t source)
 {
 
     {
-        // size_t maxsize = (128u * ((strlen(payload) / 128) + 1)) + 512;
-        // DynamicJsonDocument json(maxsize);
-        StaticJsonDocument<1024> doc;
+        // StaticJsonDocument<1024> doc;
+        size_t maxsize = (128u * ((strlen(payload) / 128) + 1)) + 512;
+        DynamicJsonDocument doc(maxsize);
 
         // Note: Deserialization needs to be (const char *) so the objects WILL be copied
         // this uses more memory but otherwise the mqtt receive buffer can get overwritten by the send buffer !!
         DeserializationError jsonError = deserializeJson(doc, payload);
-        // json.shrinkToFit();
+        doc.shrinkToFit();
 
         if(jsonError) {
             // dispatch_json_error(TAG_MSGR, jsonError);
@@ -654,8 +654,11 @@ void dispatch_text_line(const char* payload, uint8_t source)
 
 void dispatch_parse_json(const char*, const char* payload, uint8_t source)
 { // Parse an incoming JSON array into individual commands
-    StaticJsonDocument<2048> doc;
+  // StaticJsonDocument<2048> doc;
+    size_t maxsize = (128u * ((strlen(payload) / 128) + 1)) + 512;
+    DynamicJsonDocument doc(maxsize);
     DeserializationError jsonError = deserializeJson(doc, payload);
+    doc.shrinkToFit();
 
     if(jsonError) {
         dispatch_json_error(TAG_MSGR, jsonError);
@@ -675,22 +678,21 @@ void dispatch_parse_jsonl(Stream& stream, uint8_t& saved_page_id)
 void dispatch_parse_jsonl(std::istream& stream, uint8_t& saved_page_id)
 #endif
 {
-    // uint8_t savedPage = haspPages.get();
-    uint16_t line = 1;
-    StaticJsonDocument<1024> jsonl;
+    // StaticJsonDocument<1024> jsonl;
+    DynamicJsonDocument jsonl(MQTT_MAX_PACKET_SIZE / 2 + 128);
     DeserializationError jsonError = deserializeJson(jsonl, stream);
+    jsonl.shrinkToFit();
 
 #ifdef ARDUINO
     stream.setTimeout(25);
 #endif
 
-    // guiStop();
+    uint16_t line = 1;
     while(jsonError == DeserializationError::Ok) {
         hasp_new_object(jsonl.as<JsonObject>(), saved_page_id);
         jsonError = deserializeJson(jsonl, stream);
         line++;
     }
-    // guiStart();
 
     /* For debugging purposes */
     if(jsonError == DeserializationError::EmptyInput) {
