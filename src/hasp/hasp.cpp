@@ -585,6 +585,7 @@ void haspSetup(void)
     haspFonts[3] = get_font("32");
 #endif
 
+    // Check for failed font pointers
     if(haspFonts[0] == nullptr) haspFonts[0] = LV_FONT_DEFAULT;
     if(haspFonts[1] == nullptr) haspFonts[1] = LV_FONT_DEFAULT;
     if(haspFonts[2] == nullptr) haspFonts[2] = LV_FONT_DEFAULT;

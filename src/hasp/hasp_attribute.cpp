@@ -239,7 +239,7 @@ static lv_font_t* haspPayloadToFont(const char* payload)
         else if(var == 8)
             return &unscii_8_icon;
 
-#ifndef ARDUINO_ARCH_ESP8266
+#if !defined(ARDUINO_ARCH_ESP8266) && (HASP_USE_FREETYPE == 0)
 
 #ifdef HASP_FONT_1
         else if(var == HASP_FONT_SIZE_1)
@@ -266,11 +266,10 @@ static lv_font_t* haspPayloadToFont(const char* payload)
             //             return &HASP_FONT_5;
             // #endif
 
-#endif // ARDUINO_ARCH_ESP8266
-
+#endif
     }
 
-    return get_font(payload); 
+    return get_font(payload);
 }
 
 static hasp_attribute_type_t hasp_process_label_long_mode(lv_obj_t* obj, const char* payload, char** text, bool update)
