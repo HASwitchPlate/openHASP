@@ -848,7 +848,6 @@ static void webHandleInfoJson()
     { // Send Content
         String htmldata((char*)0);
         htmldata.reserve(HTTP_PAGE_SIZE);
-        StaticJsonDocument<1024> doc;
 
         htmldata += F("<h1>");
         htmldata += haspDevice.get_hostname();

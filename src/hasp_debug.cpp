@@ -1,4 +1,4 @@
-/* MIT License - Copyright (c) 2019-2022 Francis Van Roie
+/* MIT License - Copyright (c) 2019-2023 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
 #include "hasplib.h"
@@ -364,6 +364,13 @@ static void debugPrintLvglMemory(int level, Print* _logOutput)
 #endif // LV_MEM_CUSTOM
 }
 
+#if defined(ESP32) && defined(HASP_LOG_TASKS)
+static void debugPrintTaskName(int level, Print* _logOutput)
+{
+    debug_print(_logOutput, "[%s%6u]", pcTaskGetTaskName(NULL), uxTaskGetStackHighWaterMark(NULL));
+}
+#endif
+
 static void debugPrintPriority(int level, Print* _logOutput)
 {
     switch(level) {
@@ -408,6 +415,9 @@ void debugPrintPrefix(uint8_t tag, int level, Print* _logOutput)
     debugPrintTimestamp(level, _logOutput);
     debugPrintHaspMemory(level, _logOutput);
     debugPrintLvglMemory(level, _logOutput);
+#if defined(ESP32) && defined(HASP_LOG_TASKS)
+    debugPrintTaskName(level, _logOutput);
+#endif
 
     if(tag == TAG_MQTT_PUB && level == LOG_LEVEL_NOTICE) {
         debugSendAnsiCode(F(TERM_COLOR_GREEN), _logOutput);

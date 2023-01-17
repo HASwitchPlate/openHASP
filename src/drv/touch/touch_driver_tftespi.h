@@ -1,10 +1,10 @@
-/* MIT License - Copyright (c) 2019-2022 Francis Van Roie
+/* MIT License - Copyright (c) 2019-2023 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
 #ifndef HASP_TFTESPI_TOUCH_DRIVER_H
 #define HASP_TFTESPI_TOUCH_DRIVER_H
 
-#ifdef ARDUINO&& defined(USER_SETUP_LOADED)
+#ifdef ARDUINO && defined(USER_SETUP_LOADED)
 #include <Arduino.h>
 
 #include "touch_driver.h" // base class
