@@ -1,4 +1,4 @@
-/* MIT License - Copyright (c) 2019-2022 Francis Van Roie
+/* MIT License - Copyright (c) 2019-2023 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
 #include "hasplib.h"
@@ -29,14 +29,14 @@
 #include "lv_fs_if.h"
 #include "hasp_config.h"
 #include "font/hasp_font_loader.h"
-//#include "hasp_filesystem.h" included in hasp_conf.h
+// #include "hasp_filesystem.h" included in hasp_conf.h
 #endif
 
 #if HASP_USE_EEPROM > 0
 #include "EEPROM.h"
 #endif
 
-//#if LV_USE_HASP
+// #if LV_USE_HASP
 
 /*********************
  *      DEFINES
@@ -561,36 +561,43 @@ void haspSetup(void)
     LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, haspFonts[0]);
     // LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, &robotocondensed_regular_16);
 
-#if 0 && HASP_USE_FREETYPE > 0
+#if HASP_USE_FREETYPE > 0
 
 #if TFT_HEIGHT >= 480 && TFT_WIDTH >= 480
-    haspFonts[0] = get_font(" 24");
-    haspFonts[1] = get_font(" 32");
-    haspFonts[2] = get_font(" 48");
-    haspFonts[3] = get_font(" 64");
+    haspFonts[0] = get_font("24");
+    haspFonts[1] = get_font("32");
+    haspFonts[2] = get_font("48");
+    haspFonts[3] = get_font("64");
 #elif TFT_HEIGHT >= 320 && TFT_WIDTH >= 320
-    haspFonts[0] = get_font(" 16");
-    haspFonts[1] = get_font(" 24");
-    haspFonts[2] = get_font(" 32");
-    haspFonts[3] = get_font(" 48");
+    haspFonts[0] = get_font("16");
+    haspFonts[1] = get_font("24");
+    haspFonts[2] = get_font("32");
+    haspFonts[3] = get_font("48");
 #elif TFT_HEIGHT >= 272 && TFT_WIDTH >= 272
-    haspFonts[0] = get_font(" 14");
-    haspFonts[1] = get_font(" 18");
-    haspFonts[2] = get_font(" 28");
-    haspFonts[3] = get_font(" 36");
+    haspFonts[0] = get_font("14");
+    haspFonts[1] = get_font("18");
+    haspFonts[2] = get_font("28");
+    haspFonts[3] = get_font("36");
 #else // smaller than 272
-    haspFonts[0] = get_font(" 12");
-    haspFonts[1] = get_font(" 16");
-    haspFonts[2] = get_font(" 24");
-    haspFonts[3] = get_font(" 32");
+    haspFonts[0] = get_font("12");
+    haspFonts[1] = get_font("16");
+    haspFonts[2] = get_font("24");
+    haspFonts[3] = get_font("32");
 #endif
 
-#endif // HASP_USE_FREETYPE
+    if(haspFonts[0] == nullptr) haspFonts[0] = LV_FONT_DEFAULT;
+    if(haspFonts[1] == nullptr) haspFonts[1] = LV_FONT_DEFAULT;
+    if(haspFonts[2] == nullptr) haspFonts[2] = LV_FONT_DEFAULT;
+    if(haspFonts[3] == nullptr) haspFonts[3] = LV_FONT_DEFAULT;
+
+#else
 
     if(haspFonts[0] == nullptr) haspFonts[0] = LV_THEME_DEFAULT_FONT_SMALL;
     if(haspFonts[1] == nullptr) haspFonts[1] = LV_THEME_DEFAULT_FONT_NORMAL;
     if(haspFonts[2] == nullptr) haspFonts[2] = LV_THEME_DEFAULT_FONT_SUBTITLE;
     if(haspFonts[3] == nullptr) haspFonts[3] = LV_THEME_DEFAULT_FONT_TITLE;
+
+#endif // HASP_USE_FREETYPE
 
     hasp_set_theme(haspThemeId);
 
