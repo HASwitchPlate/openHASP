@@ -441,8 +441,8 @@ void dispatch_topic_payload(const char* topic, const char* payload, bool update,
 // Get or Set a part of the config.json file
 void dispatch_config(const char* topic, const char* payload, uint8_t source)
 {
-    StaticJsonDocument<384> doc;
-    char buffer[384];
+    DynamicJsonDocument doc(512);
+    char buffer[512];
     JsonObject settings;
     bool update;
 
@@ -678,21 +678,30 @@ void dispatch_parse_jsonl(Stream& stream, uint8_t& saved_page_id)
 void dispatch_parse_jsonl(std::istream& stream, uint8_t& saved_page_id)
 #endif
 {
-    // StaticJsonDocument<1024> jsonl;
-    DynamicJsonDocument jsonl(MQTT_MAX_PACKET_SIZE / 2 + 128);
-    DeserializationError jsonError = deserializeJson(jsonl, stream);
-    jsonl.shrinkToFit();
-
 #ifdef ARDUINO
     stream.setTimeout(25);
 #endif
 
+    // StaticJsonDocument<1024> jsonl;
+    DynamicJsonDocument jsonl(MQTT_MAX_PACKET_SIZE / 2 + 128);
+    DeserializationError jsonError; // = deserializeJson(jsonl, stream);
     uint16_t line = 1;
-    while(jsonError == DeserializationError::Ok) {
-        hasp_new_object(jsonl.as<JsonObject>(), saved_page_id);
+
+    // while(jsonError == DeserializationError::Ok) {
+    //     hasp_new_object(jsonl.as<JsonObject>(), saved_page_id);
+    //     jsonError = deserializeJson(jsonl, stream);
+    //     line++;
+    // }
+
+    while(1) {
         jsonError = deserializeJson(jsonl, stream);
-        line++;
-    }
+        if(jsonError == DeserializationError::Ok) {
+            hasp_new_object(jsonl.as<JsonObject>(), saved_page_id);
+            line++;
+        } else {
+            break;
+        }
+    };
 
     /* For debugging purposes */
     if(jsonError == DeserializationError::EmptyInput) {
