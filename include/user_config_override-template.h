@@ -156,5 +156,6 @@
 //#define LV_VDB_SIZE (32 * 1024U)                    // 32KiB of lvgl draw buffer (default 32)
 //#define HASP_DEBUG_OBJ_TREE                         // Output all objects to the log on page changes
 //#define HASP_LOG_LEVEL LOG_LEVEL_VERBOSE            // LOG_LEVEL_* can be DEBUG, VERBOSE, TRACE, INFO, WARNING, ERROR, CRITICAL, ALERT, FATAL, SILENT
+//#define HASP_LOG_TASKS                              // Also log the Taskname and watermark of ESP32 tasks
 
 #endif // HASP_USER_CONFIG_OVERRIDE_H
