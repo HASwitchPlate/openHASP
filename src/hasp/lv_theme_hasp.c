@@ -239,7 +239,7 @@ static void basic_init(lv_style_int_t border_width, lv_style_int_t outline_width
     lv_style_set_border_opa(&styles->transparent, LV_STATE_DEFAULT, LV_OPA_TRANSP);
     lv_style_set_outline_opa(&styles->transparent, LV_STATE_DEFAULT, LV_OPA_TRANSP);
     lv_style_set_value_color(&styles->transparent, LV_STATE_DEFAULT, color_scr_text);
-    lv_style_set_value_font(&styles->transparent, LV_STATE_DEFAULT, theme.font_subtitle);
+    lv_style_set_value_font(&styles->transparent, LV_STATE_DEFAULT, theme.font_normal);
 
     if(!NO_FOCUS) lv_style_set_outline_width(&styles->transparent, LV_STATE_DEFAULT, outline_width);
 
@@ -264,7 +264,7 @@ static void basic_init(lv_style_int_t border_width, lv_style_int_t outline_width
     // lv_style_set_text_color(&styles->pretty, LV_STATE_DEFAULT, color_scr_text);
 
     // lv_style_set_value_color(&styles->pretty, LV_STATE_DEFAULT, color_scr_text);
-    lv_style_set_value_font(&styles->pretty, LV_STATE_DEFAULT, theme.font_subtitle);
+    lv_style_set_value_font(&styles->pretty, LV_STATE_DEFAULT, theme.font_normal);
 
     lv_style_set_border_opa(&styles->pretty, LV_STATE_DEFAULT, LV_OPA_30);
     lv_style_set_border_width(&styles->pretty, LV_STATE_DEFAULT, border_width);
@@ -299,7 +299,7 @@ static void basic_init(lv_style_int_t border_width, lv_style_int_t outline_width
 
     my_style_set_fg_color(&styles->pretty_color, LV_STATE_DEFAULT, color_scr_text);
     // lv_style_set_value_color(&styles->pretty_color, LV_STATE_DEFAULT, color_scr_text);
-    lv_style_set_value_font(&styles->pretty_color, LV_STATE_DEFAULT, theme.font_subtitle);
+    lv_style_set_value_font(&styles->pretty_color, LV_STATE_DEFAULT, theme.font_normal);
 
     lv_style_set_border_opa(&styles->pretty_color, LV_STATE_DEFAULT, LV_OPA_50);
     lv_style_set_border_width(&styles->pretty_color, LV_STATE_DEFAULT, border_width);

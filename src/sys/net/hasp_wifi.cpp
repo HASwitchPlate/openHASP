@@ -530,7 +530,6 @@ bool wifiEvery5Seconds()
 #endif
 
     if(WiFi.status() == WL_CONNECTED && WiFi.localIP() > 0) {
-        LOG_DEBUG(TAG_WIFI, F("5sec OK"));
         return true;
     }
 
