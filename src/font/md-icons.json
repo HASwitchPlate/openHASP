@@ -5,7 +5,9 @@
             "arrow-down",
             "arrow-down-box",
             "arrow-left",
+            "arrow-left-box", // new
             "arrow-right",
+            "arrow-right-box", // new
             "arrow-up",
             "arrow-up-box",
             "chevron-down",
@@ -20,6 +22,7 @@
             "fire",
             "radiator",
             "radiator-disabled",
+            "radiator-off", // new
             "snowflake",
             "thermometer",
             "water",
@@ -27,9 +30,11 @@
             "weather-cloudy",
             "weather-fog",
             "weather-hail",
+            "weather-hazy",  // new
             "weather-lightning",
             "weather-lightning-rainy",
             "weather-night",
+            "weather-night-partly-cloudy",  // new
             "weather-partly-cloudy",
             "weather-pouring",
             "weather-rainy",
@@ -79,7 +84,14 @@
             "leaf",
             "lightning-bolt",
             "power",
-            "power-plug"
+            "power-plug",
+            "solar-panel", // new
+            "solar-panel-large", // new
+            "solar-power", // new
+            "solar-power-variant-outline", // new
+            "transmission-tower", // new
+            "transmission-tower-export", // new
+            "transmission-tower-import" // new
         ],
         "light": [
             "ceiling-light",

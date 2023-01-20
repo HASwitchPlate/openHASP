@@ -239,32 +239,28 @@ static lv_font_t* haspPayloadToFont(const char* payload)
         else if(var == 8)
             return &unscii_8_icon;
 
-#if !defined(ARDUINO_ARCH_ESP8266) && (HASP_USE_FREETYPE == 0)
+#if !defined(ARDUINO_ARCH_ESP8266) // && (HASP_USE_FREETYPE == 0)
 
-#ifdef HASP_FONT_1
+#if defined(HASP_FONT_1) && defined(HASP_FONT_1)
         else if(var == HASP_FONT_SIZE_1)
             return &HASP_FONT_1;
 #endif
-
-#ifdef HASP_FONT_2
+#if defined(HASP_FONT_2) && defined(HASP_FONT_2)
         else if(var == HASP_FONT_SIZE_2)
             return &HASP_FONT_2;
 #endif
-
-#ifdef HASP_FONT_3
+#if defined(HASP_FONT_3) && defined(HASP_FONT_3)
         else if(var == HASP_FONT_SIZE_3)
             return &HASP_FONT_3;
 #endif
-
-#ifdef HASP_FONT_4
+#if defined(HASP_FONT_4) && defined(HASP_FONT_4)
         else if(var == HASP_FONT_SIZE_4)
             return &HASP_FONT_4;
 #endif
-
-            // #if defined(HASP_FONT_5)
-            //         else if(var == HASP_FONT_SIZE_5)
-            //             return &HASP_FONT_5;
-            // #endif
+#if defined(HASP_FONT_5) && defined(HASP_FONT_5)
+        else if(var == HASP_FONT_SIZE_5)
+            return &HASP_FONT_5;
+#endif
 
 #endif
     }
