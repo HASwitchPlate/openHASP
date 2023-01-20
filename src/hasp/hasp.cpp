@@ -563,8 +563,8 @@ void haspSetup(void)
 
     haspFonts[0] = LV_THEME_DEFAULT_FONT_SMALL;
     haspFonts[1] = LV_THEME_DEFAULT_FONT_NORMAL;
-    haspFonts[2] = LV_THEME_DEFAULT_FONT_SUBTITLE
-    haspFonts[3] = LV_THEME_DEFAULT_FONT_TITLE
+    haspFonts[2] = LV_THEME_DEFAULT_FONT_SUBTITLE;
+    haspFonts[3] = LV_THEME_DEFAULT_FONT_TITLE;
 
     hasp_set_theme(haspThemeId);
 
