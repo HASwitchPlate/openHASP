@@ -568,40 +568,40 @@ static void webHandleApi()
         {
             JsonObject obj;
             obj = doc.createNestedObject();
-            add_license(obj, "HASwitchPlate", "2019", "Allen Derusha allen@derusha.org", "MIT");
+            add_license(obj, "HASwitchPlate", "2019", "Allen Derusha allen@derusha.org", "mit");
             obj = doc.createNestedObject();
-            add_license(obj, "Tasmota Core", "2016", "Tasmota", "Apache2");
+            add_license(obj, "Tasmota Core", "2016", "Tasmota", "apache2");
             obj = doc.createNestedObject();
-            add_license(obj, "LVGL", "2021", "LVGL Kft", "MIT");
+            add_license(obj, "LVGL", "2021", "LVGL Kft", "mit");
 #if defined(LGFX_USE_V1)
             obj = doc.createNestedObject();
-            add_license(obj, "LovyanGFX", "2020", "lovyan03 (https://github.com/lovyan03)", "FreeBSD", 1);
+            add_license(obj, "LovyanGFX", "2020", "lovyan03 (https://github.com/lovyan03)", "freebsd", 1);
 #endif
             obj = doc.createNestedObject();
-            add_license(obj, "TFT_eSPI", "2020", "Bodmer (https://github.com/Bodmer)", "FreeBSD", 1);
+            add_license(obj, "TFT_eSPI", "2020", "Bodmer (https://github.com/Bodmer)", "freebsd", 1);
             obj = doc.createNestedObject();
-            add_license(obj, "Adafruit_GFX", "2021", "Adafruit Industries.", "BSD", 1);
+            add_license(obj, "Adafruit_GFX", "2021", "Adafruit Industries.", "bsd", 1);
 #if defined(HASP_USE_ARDUINOGFX)
             obj = doc.createNestedObject();
             add_license(obj, "Arduino_GFX", "", "moononournation", "", 0);
 #endif
 #if HASP_USE_MQTT > 0 && defined(HASP_USE_PUBSUBCLIENT)
             obj = doc.createNestedObject();
-            add_license(obj, "PubSubClient", "2008-2015", "Nicholas O'Leary", "MIT");
+            add_license(obj, "PubSubClient", "2008-2015", "Nicholas O'Leary", "mit");
 #endif
             obj = doc.createNestedObject();
-            add_license(obj, "ArduinoJson", "2014-2022", "Benoit BLANCHON", "MIT");
+            add_license(obj, "ArduinoJson", "2014-2022", "Benoit BLANCHON", "mit");
             obj = doc.createNestedObject();
             add_license(obj, "ArduinoLog", "2017-2018",
-                        "Thijs Elenbaas, MrRobot62, rahuldeo2047, NOX73, dhylands, Josha blemasle, mfalkvidd", "MIT");
+                        "Thijs Elenbaas, MrRobot62, rahuldeo2047, NOX73, dhylands, Josha blemasle, mfalkvidd", "mit");
 #if HASP_USE_FTP > 0
             obj = doc.createNestedObject();
-            add_license(obj, "SimpleFTPServer", "2017", "Renzo Mischianti www.mischianti.org", "MIT", 1);
+            add_license(obj, "SimpleFTPServer", "2017", "Renzo Mischianti www.mischianti.org", "mit", 1);
 #endif
             obj = doc.createNestedObject();
-            add_license(obj, "AceButton", "2018", "Brian T. Park", "MIT");
+            add_license(obj, "AceButton", "2018", "Brian T. Park", "mit");
             obj = doc.createNestedObject();
-            add_license(obj, "QR Code generator", "", "Project Nayuki", "MIT");
+            add_license(obj, "QR Code generator", "", "Project Nayuki", "mit");
         }
         {
             char output[HTTP_PAGE_SIZE];
