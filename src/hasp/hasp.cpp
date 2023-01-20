@@ -561,38 +561,10 @@ void haspSetup(void)
     // LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, haspFonts[0]);
     // LOG_WARNING(TAG_ATTR, "%s %d %x", __FILE__, __LINE__, &robotocondensed_regular_16);
 
-#if HASP_USE_FREETYPE > 0
-
-#if TFT_HEIGHT >= 480 && TFT_WIDTH >= 480
-    haspFonts[0] = get_font("24");
-    haspFonts[1] = get_font("32");
-#elif TFT_HEIGHT >= 320 && TFT_WIDTH >= 320
-    haspFonts[0] = get_font("16");
-    haspFonts[1] = get_font("24");
-#elif TFT_HEIGHT >= 272 && TFT_WIDTH >= 272
-    haspFonts[0] = get_font("14");
-    haspFonts[1] = get_font("18");
-#else // smaller than 272
-    haspFonts[0] = get_font("12");
-    haspFonts[1] = get_font("16");
-#endif
-
-    // Check for failed font pointers
-    if(haspFonts[0] == nullptr) haspFonts[0] = LV_FONT_DEFAULT;
-    if(haspFonts[1] == nullptr) haspFonts[1] = LV_FONT_DEFAULT;
-
-#else
-
-    if(haspFonts[0] == nullptr) haspFonts[0] = LV_THEME_DEFAULT_FONT_SMALL;
-    if(haspFonts[1] == nullptr) haspFonts[1] = LV_THEME_DEFAULT_FONT_NORMAL;
-
-        // if(haspFonts[2] == nullptr) haspFonts[2] = LV_THEME_DEFAULT_FONT_SUBTITLE;
-        // if(haspFonts[3] == nullptr) haspFonts[3] = LV_THEME_DEFAULT_FONT_TITLE;
-
-#endif // HASP_USE_FREETYPE
-
-    haspFonts[2] = haspFonts[1]; // subtitle isn't used in themes, set to normal font
-    haspFonts[3] = haspFonts[1]; // title isn't used in themes, set to normal font
+    haspFonts[0] = LV_THEME_DEFAULT_FONT_SMALL;
+    haspFonts[1] = LV_THEME_DEFAULT_FONT_NORMAL;
+    haspFonts[2] = LV_THEME_DEFAULT_FONT_SUBTITLE
+    haspFonts[3] = LV_THEME_DEFAULT_FONT_TITLE
 
     hasp_set_theme(haspThemeId);
 
