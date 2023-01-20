@@ -1,9 +1,10 @@
-# Two application partitions of 1664 kB
-# 704 kB filesystem
+# Two application partitions of 1.687 MB
+# 560 kB filesystem
 #
 # Name,   Type, SubType, Offset,  Size, Flags
 nvs,      data, nvs,     36K,     20K,
 otadata,  data, ota,     56K,     8K,
-app0,     app,  ota_0,   64K,     1664K,
-app1,     app,  ota_1,   1728K,   1664K,
-spiffs,   data, spiffs,  3392K,   704K,
+app0,     app,  ota_0,   64K,     1728K,
+app1,     app,  ota_1,   1792K,   1728K,
+config,   data, nvs,     3520K,   16K,
+spiffs,   data, spiffs,  3536K,   560K,

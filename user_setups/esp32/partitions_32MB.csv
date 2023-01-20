@@ -4,6 +4,8 @@
 # Name,   Type, SubType, Offset,  Size, Flags
 nvs,      data, nvs,     36K,   20K,
 otadata,  data, ota,     56K,   8K,
-app0,     app,  ota_0,   64K,   2048K,
-app1,     app,  ota_1,   2112K, 2048K,
+app0,     app,  ota_0,   64K,   1984K,
+app1,     app,  ota_1,   2048K, 1984K,
+device,   data, nvs,     4032K, 64K,
+config,   data, nvs,     4096K, 64K,
 spiffs,   data, spiffs,  4160K, 28608K,
