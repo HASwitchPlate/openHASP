@@ -85,6 +85,13 @@ extern const uint8_t ACE_JS_GZ_START[] asm("_binary_data_static_ace_1_9_6_min_js
 extern const uint8_t ACE_JS_GZ_END[] asm("_binary_data_static_ace_1_9_6_min_js_gz_end");
 extern const uint8_t PETITE_VUE_HASP_JS_GZ_START[] asm("_binary_data_static_petite_vue_hasp_js_gz_start");
 extern const uint8_t PETITE_VUE_HASP_JS_GZ_END[] asm("_binary_data_static_petite_vue_hasp_js_gz_end");
+extern const uint8_t MAIN_JS_GZ_START[] asm("_binary_data_static_main_js_gz_start");
+extern const uint8_t MAIN_JS_GZ_END[] asm("_binary_data_static_main_js_gz_end");
+extern const uint8_t EN_JSON_GZ_START[] asm("_binary_data_static_en_json_gz_start");
+extern const uint8_t EN_JSON_GZ_END[] asm("_binary_data_static_en_json_gz_end");
+extern const uint8_t HASP_HTM_GZ_START[] asm("_binary_data_static_hasp_htm_gz_start");
+extern const uint8_t HASP_HTM_GZ_END[] asm("_binary_data_static_hasp_htm_gz_end");
+
 #endif // CONFIG_IDF_TARGET_ESP32
 
 #endif // ESP32
@@ -508,7 +515,7 @@ static void add_json(String& data, JsonDocument& doc)
     doc.clear();
 }
 
-static void add_license(JsonObject& obj, String title, String year, String author, String license,
+static void add_license(JsonObject& obj, const char* title, const char* year, const char* author, const char* license,
                         uint8_t allrightsreserved = 0)
 {
     obj["t"] = title;
@@ -561,37 +568,40 @@ static void webHandleApi()
         {
             JsonObject obj;
             obj = doc.createNestedObject();
-            add_license(obj, F("HASwitchPlate"), F("2019"), F("Allen Derusha allen@derusha.org"), F("MIT"));
+            add_license(obj, "HASwitchPlate", "2019", "Allen Derusha allen@derusha.org", "MIT");
             obj = doc.createNestedObject();
-            add_license(obj, F("Tasmota Core"), F("2016"), F("Tasmota"), F("Apache2"));
+            add_license(obj, "Tasmota Core", "2016", "Tasmota", "Apache2");
             obj = doc.createNestedObject();
-            add_license(obj, F("LVGL"), F("2021"), F("LVGL Kft"), F("MIT"));
+            add_license(obj, "LVGL", "2021", "LVGL Kft", "MIT");
 #if defined(LGFX_USE_V1)
             obj = doc.createNestedObject();
-            add_license(obj, F("LovyanGFX"), F("2020"), F("lovyan03 (https://github.com/lovyan03)"), F("FreeBSD"), 1);
+            add_license(obj, "LovyanGFX", "2020", "lovyan03 (https://github.com/lovyan03)", "FreeBSD", 1);
 #endif
             obj = doc.createNestedObject();
-            add_license(obj, F("TFT_eSPI"), F("2020"), F("Bodmer (https://github.com/Bodmer)"), F("FreeBSD"), 1);
+            add_license(obj, "TFT_eSPI", "2020", "Bodmer (https://github.com/Bodmer)", "FreeBSD", 1);
             obj = doc.createNestedObject();
-            add_license(obj, F("Adafruit_GFX"), F("2012"), F("Adafruit Industries."), F("BSD"), 1);
+            add_license(obj, "Adafruit_GFX", "2021", "Adafruit Industries.", "BSD", 1);
+#if defined(HASP_USE_ARDUINOGFX)
             obj = doc.createNestedObject();
+            add_license(obj, "Arduino_GFX", "", "moononournation", "", 0);
+#endif
 #if HASP_USE_MQTT > 0 && defined(HASP_USE_PUBSUBCLIENT)
             obj = doc.createNestedObject();
-            add_license(obj, F("PubSubClient"), F("2008-2015"), F("Nicholas O'Leary"), F("MIT"));
+            add_license(obj, "PubSubClient", "2008-2015", "Nicholas O'Leary", "MIT");
 #endif
-            add_license(obj, F("ArduinoJson"), F("2014-2022"), F("Benoit BLANCHON"), F("MIT"));
             obj = doc.createNestedObject();
-            add_license(obj, F("ArduinoLog"), F("2017-2018"),
-                        F("Thijs Elenbaas, MrRobot62, rahuldeo2047, NOX73, dhylands, Josha blemasle, mfalkvidd"),
-                        F("MIT"));
+            add_license(obj, "ArduinoJson", "2014-2022", "Benoit BLANCHON", "MIT");
+            obj = doc.createNestedObject();
+            add_license(obj, "ArduinoLog", "2017-2018",
+                        "Thijs Elenbaas, MrRobot62, rahuldeo2047, NOX73, dhylands, Josha blemasle, mfalkvidd", "MIT");
 #if HASP_USE_FTP > 0
             obj = doc.createNestedObject();
-            add_license(obj, F("SimpleFTPServer"), F("2017"), F("Renzo Mischianti www.mischianti.org"), F("MIT"), 1);
+            add_license(obj, "SimpleFTPServer", "2017", "Renzo Mischianti www.mischianti.org", "MIT", 1);
 #endif
             obj = doc.createNestedObject();
-            add_license(obj, F("AceButton"), F("2018"), F("Brian T. Park"), F("MIT"));
+            add_license(obj, "AceButton", "2018", "Brian T. Park", "MIT");
             obj = doc.createNestedObject();
-            add_license(obj, F("QR Code generator"), F(""), F("Project Nayuki"), F("MIT"));
+            add_license(obj, "QR Code generator", "", "Project Nayuki", "MIT");
         }
         {
             char output[HTTP_PAGE_SIZE];
@@ -2169,19 +2179,25 @@ static inline int handleFirmwareFile(String path)
 #if defined(CONFIG_IDF_TARGET_ESP32) || defined(CONFIG_IDF_TARGET_ESP32S2) || defined(CONFIG_IDF_TARGET_ESP32S3)
     if(path == F("/edit.htm")) {
         return http_send_static_gzip_file(EDIT_HTM_GZ_START, EDIT_HTM_GZ_END, contentType);
+    } else if(path == F("/hasp.htm")) { // 39 kB
+        return http_send_static_gzip_file(HASP_HTM_GZ_START, HASP_HTM_GZ_END, contentType);
     } else if(path == F("/logo.svg")) { // 300 bytes
         return http_send_static_gzip_file(LOGO_SVG_GZ_START, LOGO_SVG_GZ_END, contentType);
-    } else if(path == F("/style.css")) {
+    } else if(path == F("/style.css")) { // 11 kB
         return http_send_static_gzip_file(STYLE_CSS_GZ_START, STYLE_CSS_GZ_END, contentType);
     } else if(path == F("/vars.css")) {
         return http_send_static_file(HTTP_VARS_CSS, HTTP_VARS_CSS + sizeof(HTTP_VARS_CSS) - 1, contentType);
-    } else if(path == F("/script.js")) {
+    } else if(path == F("/script.js")) { // 3 kB
         return http_send_static_gzip_file(SCRIPT_JS_GZ_START, SCRIPT_JS_GZ_END, contentType);
+    } else if(path == F("/en.json")) { // 2 kB
+        return http_send_static_gzip_file(EN_JSON_GZ_START, EN_JSON_GZ_END, contentType);
+    } else if(path == F("/main.js")) { // 9 kB
+        return http_send_static_gzip_file(MAIN_JS_GZ_START, MAIN_JS_GZ_END, contentType);
+    } else if(path == F("/petite-vue.hasp.js")) { // 9 kB
+        return http_send_static_gzip_file(PETITE_VUE_HASP_JS_GZ_START, PETITE_VUE_HASP_JS_GZ_END, contentType);
 #if ESP_FLASH_SIZE > 4
     } else if(path == F("/ace.js")) { // 96 kB
         return http_send_static_gzip_file(ACE_JS_GZ_START, ACE_JS_GZ_END, contentType);
-    } else if(path == F("/petite-vue.hasp.js")) { // 9 kB
-        return http_send_static_gzip_file(PETITE_VUE_HASP_JS_GZ_START, PETITE_VUE_HASP_JS_GZ_END, contentType);
 #endif
     }
 #endif // ARDUINO_ARCH_ESP32
