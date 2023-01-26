@@ -1,4 +1,4 @@
-/* MIT License - Copyright (c) 2019-2022 Francis Van Roie
+/* MIT License - Copyright (c) 2019-2023 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
 #ifndef HASP_OBJECT_H
@@ -41,8 +41,10 @@ enum lv_hasp_obj_type_t {
     LV_HASP_TABVIEW   = 6, // placeholder
     LV_HASP_TAB       = 7, // placeholder
     LV_HASP_PAGE      = 8, // Obsolete in v8
+    LV_HASP_SPAN      = 9, // placeholder
 
     /* Controls */
+    LV_HASP_KEYBOARD  = 10, // placeholder
     LV_HASP_OBJECT    = 11,
     LV_HASP_BUTTON    = 12,
     LV_HASP_BTNMATRIX = 13,
@@ -71,12 +73,14 @@ enum lv_hasp_obj_type_t {
     LV_HASP_LIST     = 31, // placeholder
     LV_HASP_TABLE    = 32,
     LV_HASP_CALENDER = 33,
+    LV_HASP_MENU     = 34, // placeholder
 
     /* Graphics */
-    LV_HASP_LINE   = 36,
-    LV_HASP_IMAGE  = 37, // placeholder
-    LV_HASP_CANVAS = 38, // placeholder
-    LV_HASP_MASK   = 39, // placeholder
+    LV_HASP_LINE      = 36,
+    LV_HASP_IMAGE     = 37, // placeholder
+    LV_HASP_ANIMIMAGE = 38, // placeholder
+    LV_HASP_CANVAS    = 39, // placeholder
+    LV_HASP_MASK      = 40, // placeholder
 
     /* Custom */
     LV_HASP_ALARM = 60,

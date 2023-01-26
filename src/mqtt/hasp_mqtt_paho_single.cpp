@@ -1,4 +1,4 @@
-/* MIT License - Copyright (c) 2019-2022 Francis Van Roie
+/* MIT License - Copyright (c) 2019-2023 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
 /* Single threaded synchronous paho client */
@@ -238,13 +238,13 @@ int mqtt_send_discovery(const char* payload, size_t len)
     return mqttPublish(tmp_topic, payload, len, false);
 }
 
-int mqtt_send_object_state(uint8_t pageid, uint8_t btnid, const char* payload)
-{
-    char tmp_topic[mqttNodeTopic.length() + 20];
-    snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%s" MQTT_TOPIC_STATE "/p%ub%u"), mqttNodeTopic.c_str(), pageid,
-               btnid);
-    return mqttPublish(tmp_topic, payload, strlen(payload), false);
-}
+// int mqtt_send_object_state(uint8_t pageid, uint8_t btnid, const char* payload)
+// {
+//     char tmp_topic[mqttNodeTopic.length() + 20];
+//     snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%s" MQTT_TOPIC_STATE "/p%ub%u"), mqttNodeTopic.c_str(), pageid,
+//                btnid);
+//     return mqttPublish(tmp_topic, payload, strlen(payload), false);
+// }
 
 static void onConnect(void* context)
 {

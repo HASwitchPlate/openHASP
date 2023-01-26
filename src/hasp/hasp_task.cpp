@@ -1,4 +1,4 @@
-/* MIT License - Copyright (c) 2019-2022 Francis Van Roie
+/* MIT License - Copyright (c) 2019-2023 Francis Van Roie
 For full license information read the LICENSE file in the project folder */
 
 #include "hasplib.h"
@@ -12,7 +12,6 @@ For full license information read the LICENSE file in the project folder */
 #endif
 
 #if HASP_USE_CONFIG > 0
-#include "hasp_config.h"
 #include "hasp_gui.h"
 #endif
 

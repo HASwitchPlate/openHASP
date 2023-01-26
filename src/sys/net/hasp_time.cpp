@@ -1,3 +1,6 @@
+/* MIT License - Copyright (c) 2019-2023 Francis Van Roie
+   For full license information read the LICENSE file in the project folder */
+
 #include <time.h>
 #include <sys/time.h>
 
@@ -47,15 +50,15 @@ void timeSetup()
 #endif
 #if defined(ARDUINO_ARCH_ESP32)
     Preferences preferences;
-    preferences.begin("time", true);
+    nvs_user_begin(preferences,"time", true);
 
     mytz = preferences.getString("tz", MYTZ);
     ntp1 = preferences.getString("ntp1", NTPSERVER1);
     ntp2 = preferences.getString("ntp2", NTPSERVER2);
     ntp3 = preferences.getString("ntp3", NTPSERVER3);
 
-    LOG_WARNING(TAG_TIME, F("TIMEZONE: %s"), mytz.c_str());
-    LOG_WARNING(TAG_TIME, F("NTPSERVER: %s %s %s"), ntp1.c_str(), ntp2.c_str(), ntp3.c_str());
+    LOG_VERBOSE(TAG_TIME, F("TIMEZONE: %s"), mytz.c_str());
+    LOG_VERBOSE(TAG_TIME, F("NTPSERVER: %s %s %s"), ntp1.c_str(), ntp2.c_str(), ntp3.c_str());
 
     configTzTime(mytz.c_str(), ntp1.c_str(), ntp2.c_str(), ntp3.c_str());
     preferences.end();
@@ -69,7 +72,7 @@ bool timeGetConfig(const JsonObject& settings)
     Preferences preferences;
     bool changed = false;
 
-    preferences.begin("time", true);
+    nvs_user_begin(preferences,"time", true);
     settings["tz"]     = preferences.getString("tz", MYTZ);
     settings["ntp"][0] = preferences.getString("ntp1", NTPSERVER1);
     settings["ntp"][1] = preferences.getString("ntp2", NTPSERVER2);
@@ -94,7 +97,7 @@ bool timeGetConfig(const JsonObject& settings)
 bool timeSetConfig(const JsonObject& settings)
 {
     Preferences preferences;
-    preferences.begin("time", false);
+    nvs_user_begin(preferences,"time", false);
 
     configOutput(settings, TAG_TIME);
     bool changed = false;

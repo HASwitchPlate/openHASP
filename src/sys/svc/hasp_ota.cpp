@@ -1,4 +1,4 @@
-/* MIT License - Copyright (c) 2019-2022 Francis Van Roie
+/* MIT License - Copyright (c) 2019-2023 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
 #if defined(ARDUINO_ARCH_ESP8266) || defined(ARDUINO_ARCH_ESP32)
@@ -6,7 +6,6 @@
 #include "hasplib.h"
 
 #include "hasp_debug.h"
-#include "hasp_config.h"
 #include "hasp_ota.h"
 
 #if defined(ARDUINO_ARCH_ESP8266)
@@ -370,7 +369,7 @@ bool otaGetConfig(const JsonObject& settings)
     Preferences preferences;
     bool changed = false;
 
-    preferences.begin("ota", true);
+    nvs_user_begin(preferences,"ota", true);
     settings["url"]      = preferences.getString("url", HASP_OTA_URL);
     settings["redirect"] = preferences.getUInt("redirect", 0);
     preferences.end();
@@ -393,7 +392,7 @@ bool otaGetConfig(const JsonObject& settings)
 bool otaSetConfig(const JsonObject& settings)
 {
     Preferences preferences;
-    preferences.begin("ota", false);
+    nvs_user_begin(preferences,"ota", false);
 
     configOutput(settings, TAG_OTA);
     bool changed = false;

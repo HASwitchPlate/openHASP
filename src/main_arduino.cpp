@@ -1,4 +1,4 @@
-/* MIT License - Copyright (c) 2019-2022 Francis Van Roie
+/* MIT License - Copyright (c) 2019-2023 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
 #if !(defined(WINDOWS) || defined(POSIX))
@@ -25,7 +25,6 @@
 #endif
 
 #if HASP_USE_CONFIG > 0
-#include "hasp_config.h"
 #include "hasp_gui.h"
 #endif
 
@@ -51,6 +50,7 @@ void setup()
     /****************************
      * Storage initializations
      ***************************/
+    // nvs_setup();
 #if HASP_USE_EEPROM > 0
     eepromSetup(); // Don't start at boot, only at write
 #endif

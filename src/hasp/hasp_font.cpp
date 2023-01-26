@@ -57,8 +57,6 @@ const uint8_t* font_dummy_glyph_bitmap(const struct _lv_font_struct*, uint32_t)
 
 void font_setup()
 {
-    _lv_ll_init(&hasp_fonts_ll, sizeof(hasp_font_info_t));
-
 #if(HASP_USE_FREETYPE > 0) // initialize the FreeType renderer
 
 #if defined(ARDUINO_ARCH_ESP32)
@@ -77,6 +75,8 @@ void font_setup()
 #else
     LOG_VERBOSE(TAG_FONT, F("FreeType " D_SERVICE_DISABLED));
 #endif // HASP_USE_FREETYPE
+
+    _lv_ll_init(&hasp_fonts_ll, sizeof(hasp_font_info_t));
 }
 
 size_t font_split_payload(const char* payload)

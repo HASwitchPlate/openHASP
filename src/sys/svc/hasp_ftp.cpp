@@ -1,4 +1,4 @@
-/* MIT License - Copyright (c) 2019-2022 Francis Van Roie
+/* MIT License - Copyright (c) 2019-2023 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
 #include "hasplib.h"
@@ -6,7 +6,6 @@
 #if HASP_USE_FTP > 0
 
 #include "hasp_debug.h"
-#include "hasp_config.h"
 #include "hasp_ftp.h"
 #include "hasp_http.h"
 #include "hasp_filesystem.h"

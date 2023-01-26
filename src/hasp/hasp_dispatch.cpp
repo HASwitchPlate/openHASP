@@ -37,10 +37,6 @@
 #endif
 #endif
 
-#if HASP_USE_CONFIG > 0
-#include "hasp_config.h"
-#endif
-
 dispatch_conf_t dispatch_setings = {.teleperiod = 300};
 
 uint16_t dispatchSecondsToNextTeleperiod = 0;

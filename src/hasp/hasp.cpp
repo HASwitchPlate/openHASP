@@ -27,7 +27,6 @@
 
 #if HASP_USE_CONFIG > 0
 #include "lv_fs_if.h"
-#include "hasp_config.h"
 #include "font/hasp_font_loader.h"
 // #include "hasp_filesystem.h" included in hasp_conf.h
 #endif

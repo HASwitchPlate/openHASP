@@ -20,7 +20,6 @@
 
 #include "hasp_gui.h"
 #include "hasp_debug.h"
-#include "hasp_config.h"
 
 #if HASP_USE_HTTP > 0
 #include "sys/net/hasp_network.h"
@@ -2506,7 +2505,7 @@ static inline void webStartConfigPortal()
 void httpSetup()
 {
     Preferences preferences;
-    preferences.begin("http", true);
+    nvs_user_begin(preferences,"http", true);
     String password = preferences.getString(FP_CONFIG_PASS, HTTP_PASSWORD);
     strncpy(http_config.password, password.c_str(), sizeof(http_config.password));
     LOG_DEBUG(TAG_HTTP, F(D_BULLET "Read %s => %s (%d bytes)"), FP_CONFIG_PASS, password.c_str(), password.length());
@@ -2654,7 +2653,7 @@ bool httpGetConfig(const JsonObject& settings)
 bool httpSetConfig(const JsonObject& settings)
 {
     Preferences preferences;
-    preferences.begin("http", false);
+    nvs_user_begin(preferences,"http", false);
 
     configOutput(settings, TAG_HTTP);
     bool changed = false;

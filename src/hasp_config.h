@@ -1,4 +1,4 @@
-/* MIT License - Copyright (c) 2019-2022 Francis Van Roie
+/* MIT License - Copyright (c) 2019-2023 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
 #if HASP_USE_CONFIG > 0
@@ -52,7 +52,9 @@ const char FP_CONFIG_NAME[] PROGMEM         = "name";
 const char FP_CONFIG_USER[] PROGMEM         = "user";
 const char FP_CONFIG_PASS[] PROGMEM         = "pass";
 const char FP_CONFIG_SSID[] PROGMEM         = "ssid";
+const char FP_CONFIG_NODE[] PROGMEM         = "node";
 const char FP_CONFIG_GROUP[] PROGMEM        = "group";
+const char FP_CONFIG_BROADCAST[] PROGMEM    = "group";
 const char FP_CONFIG_BAUD[] PROGMEM         = "baud";
 const char FP_CONFIG_LOG[] PROGMEM          = "log";
 const char FP_CONFIG_PROTOCOL[] PROGMEM     = "proto";

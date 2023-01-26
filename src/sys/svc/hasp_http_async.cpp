@@ -1,4 +1,4 @@
-/* MIT License - Copyright (c) 2019-2022 Francis Van Roie
+/* MIT License - Copyright (c) 2019-2023 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
 //#include "webServer.h"
@@ -15,7 +15,6 @@
 
 #include "hasp_gui.h"
 #include "hasp_debug.h"
-#include "hasp_config.h"
 
 #if HASP_USE_HTTP_ASYNC > 0
 #include "sys/net/hasp_network.h"

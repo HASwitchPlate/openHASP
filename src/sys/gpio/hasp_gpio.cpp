@@ -1,4 +1,4 @@
-/* MIT License - Copyright (c) 2019-2022 Francis Van Roie
+/* MIT License - Copyright (c) 2019-2023 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
 #include "lv_conf.h" // For timing defines
@@ -6,7 +6,6 @@
 #include "hasplib.h"
 
 #include "hasp_gpio.h"
-#include "hasp_config.h"
 
 // Device Drivers
 #include "dev/device.h"
