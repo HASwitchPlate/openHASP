@@ -29,7 +29,7 @@
 - Add support for Wireless-Tag WT32-SC01 Plus and WT-86-32-3ZW1
 
 ## Bug fixes
-- Fix for first touch nog working properly
+- Fix for first touch not working properly
 - Add button GPIOs to input discovery message
 
 ### Architecture
