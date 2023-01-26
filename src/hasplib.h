@@ -15,6 +15,8 @@
 #include <string>
 #include <stdint.h>
 
+#include "ArduinoJson.h"
+
 #include "hasp_conf.h"
 #include "hasp_mem.h"
 
@@ -37,8 +39,6 @@
 #ifdef ESP32
 #include "hasp/hasp_nvs.h"
 #endif
-
-#include "ArduinoJson.h"
 
 #if HASP_USE_FREETYPE > 0
 #include "lv_freetype.h"

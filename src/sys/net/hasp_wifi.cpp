@@ -1,4 +1,4 @@
-/* MIT License - Copyright (c) 2019-2022 Francis Van Roie
+/* MIT License - Copyright (c) 2019-2023 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
 #include <Arduino.h>
@@ -502,7 +502,7 @@ void wifiSetup()
         WiFi.onEvent(wifi_callback);
 
         Preferences preferences;
-        preferences.begin("wifi", true);
+        nvs_user_begin(preferences,"wifi", true);
         String password = preferences.getString(FP_CONFIG_PASS, WIFI_PASSWORD);
         strncpy(wifiPassword, password.c_str(), sizeof(wifiPassword));
         LOG_DEBUG(TAG_WIFI, F(D_BULLET "Read %s => %s (%d bytes)"), FP_CONFIG_PASS, password.c_str(),
@@ -685,7 +685,7 @@ bool wifiGetConfig(const JsonObject& settings)
 bool wifiSetConfig(const JsonObject& settings)
 {
     Preferences preferences;
-    preferences.begin("wifi", false);
+    nvs_user_begin(preferences,"wifi", false);
 
     configOutput(settings, TAG_WIFI);
     bool changed = false;
