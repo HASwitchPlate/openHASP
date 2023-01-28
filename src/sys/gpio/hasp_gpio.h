@@ -1,4 +1,4 @@
-/* MIT License - Copyright (c) 2019-2022 Francis Van Roie
+/* MIT License - Copyright (c) 2019-2023 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
 #ifndef HASP_GPIO_H
@@ -74,26 +74,34 @@ enum hasp_gpio_type_t {
     USED = 0x01,
 
     /* Outputs */
-    LED              = 0x02,
-    LED_R            = 0x03,
-    LED_G            = 0x04,
-    LED_B            = 0x05,
-    LED_CW           = 0x06,
-    LED_WW           = 0x07,
-    LED_W            = 0x08,
-    LIGHT_RELAY      = 0x0A,
-    POWER_RELAY      = 0x0B,
-    SHUTTER_RELAY    = 0x0C,
-    SHUTTER_OPEN     = 0x1A,
-    SHUTTER_CLOSE    = 0x1B,
-    BACKLIGHT        = 0x20,
-    PWM              = 0x21,
-    HASP_DAC         = 0x22,
-    SERIAL_DIMMER    = 0x30,
+    LED                          = 0x02,
+    LED_R                        = 0x03,
+    LED_G                        = 0x04,
+    LED_B                        = 0x05,
+    LED_CW                       = 0x06,
+    LED_WW                       = 0x07,
+    LED_W                        = 0x08,
+    LIGHT_RELAY                  = 0x0A,
+    POWER_RELAY                  = 0x0B,
+    SHUTTER_RELAY                = 0x0C,
+    SHUTTER_OPEN                 = 0x1A,
+    SHUTTER_CLOSE                = 0x1B,
+    BACKLIGHT                    = 0x20,
+    PWM                          = 0x21,
+    HASP_DAC                     = 0x22,
+    SERIAL_DIMMER                = 0x30,
     SERIAL_DIMMER_L8_HD_INVERTED = 0x31,
-    SERIAL_DIMMER_L8_HD = 0x32,
-    BUZZER           = 0x40,
-    HAPTIC           = 0x41,
+    SERIAL_DIMMER_L8_HD          = 0x32,
+    BUZZER                       = 0x40,
+    HAPTIC                       = 0x41,
+
+    AWNING  = 0x89,
+    BLIND   = 0x8A,
+    CURTAIN = 0x8B,
+    DAMPER  = 0x8C,
+    GATE    = 0x8D,
+    SHADE   = 0x8E,
+    SHUTTER = 0x8F,
 
     /* Inputs */
     SWITCH           = 0xA0, // Binary Sensors
@@ -121,14 +129,10 @@ enum hasp_gpio_type_t {
     SOUND            = 0xB6,
     VIBRATION        = 0xB7,
     WINDOW           = 0xB8,
-
-    AWNING  = 0xB9,
-    BLIND   = 0xBA,
-    CURTAIN = 0xBB,
-    DAMPER  = 0xBC,
-    GATE    = 0xBD,
-    SHADE   = 0xBE,
-    SHUTTER = 0xBF,
+    CARBON_MONOXIDE  = 0xB9,
+    RUNNING          = 0xBA,
+    TAMPER           = 0xBB,
+    UPDATE           = 0xBC,
 
     BUTTON             = 0xF0,
     BUTTON_TOGGLE_UP   = 0xF1,
