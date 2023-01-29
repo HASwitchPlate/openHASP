@@ -1,24 +1,25 @@
 # openHASP Changelog
 
-<!--
-
 ## v0.7.0
 
 ### Objects
-? Support for State and Part properties
-- Set default line_width of line object to 1
+<!-- ? Support for State and Part properties -->
+- Set default line_width of new `line` objects to 1
 
 ### Fonts
-- Use embedded TrueType font for default fonts instead of bitmapped font sizes
+- Firmware files include the bitmapped font sizes 12, 16, 24 and 32pt
+- Use embedded TrueType font for other font sizes (PSram highly recommended)
+- Add glyphs from character sets Cyrillic, Latin-2, Greek and Viernamese to default fonts
 
-
+<!--
 ### Web UI
 - _Selectable dark/light theme?_
+-->
 
 ### Services
-- Change MQTT client from PubSubClient to asynchronic Espressif esp_mstt client
+- Change MQTT client from _PubSubClient_ to asynchronic Espressif _esp_mqtt_ client
 - Add service start/stop mqtt
-? Add SimpleFTPServer to easily upload and download files to the plate *(one simultanious connection only)*
+<!-- ? Add SimpleFTPServer to easily upload and download files to the plate *(one simultanious connection only)* -->
 
 ### Devices
 - Add GS-T3E Smart Panel
@@ -33,13 +34,12 @@
 - Add button GPIOs to input discovery message
 
 ### Architecture
-- Moved to Tasmota Arduino 2.0.6 and ESP-IDF 4.4.3 (thanks @Jason2866)
+<!-- - Moved to Tasmota Arduino 2.0.6 and ESP-IDF 4.4.3 (thanks @Jason2866) -->
 - Add support for ESP32-S3 devices
 - Add Arduino-GFX display driver
 
-Updated libraries to ArduinoJson 6.20.0, ArduinoStreamUtils 1.7.0, TFT_eSPI 2.4.79 and LovyanGFX 0.5.0
+Updated libraries to ArduinoJson 6.20.0, ArduinoStreamUtils 1.7.0, TFT_eSPI 2.5.0 and LovyanGFX 0.5.0
 
--->
 
 ## v0.6.3
 
