@@ -1,73 +1,169 @@
+/* Icons SVG files */
 :root {
+    --info: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" id="mdi-information-outline" viewBox="0 0 24 24"><path d="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z" /></svg>');
+    --home: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" id="mdi-home-outline" viewBox="0 0 24 24"><path d="M12 5.69L17 10.19V18H15V12H9V18H7V10.19L12 5.69M12 3L2 12H5V20H11V14H13V20H19V12H22" /></svg>');
+    --shot: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" id="mdi-camera-outline" viewBox="0 0 24 24"><path d="M20,4H16.83L15,2H9L7.17,4H4A2,2 0 0,0 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6A2,2 0 0,0 20,4M20,18H4V6H8.05L9.88,4H14.12L15.95,6H20V18M12,7A5,5 0 0,0 7,12A5,5 0 0,0 12,17A5,5 0 0,0 17,12A5,5 0 0,0 12,7M12,15A3,3 0 0,1 9,12A3,3 0 0,1 12,9A3,3 0 0,1 15,12A3,3 0 0,1 12,15Z" /></svg>');
+    --ota: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" id="mdi-cpu-32-bit" viewBox="0 0 24 24"><path d="M9,3V5H7A2,2 0 0,0 5,7V9H3V11H5V13H3V15H5V17A2,2 0 0,0 7,19H9V21H11V19H13V21H15V19H17A2,2 0 0,0 19,17V15H21V13H19V11H21V9H19V7A2,2 0 0,0 17,5H15V3H13V5H11V3M7,9H10.5A1,1 0 0,1 11.5,10V14A1,1 0 0,1 10.5,15H7V13.5H10V12.75H8.5V11.25H10V10.5H7M12.5,9H16A1,1 0 0,1 17,10V11.75A1,1 0 0,1 16,12.75H14V13.5H17V15H12.5V12.25A1,1 0 0,1 13.5,11.25H15.5V10.5H12.5" /></svg>');
+    --browse: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" id="mdi-file-edit-outline" viewBox="0 0 24 24"><path d="M10 20H6V4H13V9H18V12.1L20 10.1V8L14 2H6C4.9 2 4 2.9 4 4V20C4 21.1 4.9 22 6 22H10V20M20.2 13C20.3 13 20.5 13.1 20.6 13.2L21.9 14.5C22.1 14.7 22.1 15.1 21.9 15.3L20.9 16.3L18.8 14.2L19.8 13.2C19.9 13.1 20 13 20.2 13M20.2 16.9L14.1 23H12V20.9L18.1 14.8L20.2 16.9Z" /></svg>');
+    --cog: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" id="mdi-cog-outline" viewBox="0 0 24 24"><path d="M12,8A4,4 0 0,1 16,12A4,4 0 0,1 12,16A4,4 0 0,1 8,12A4,4 0 0,1 12,8M12,10A2,2 0 0,0 10,12A2,2 0 0,0 12,14A2,2 0 0,0 14,12A2,2 0 0,0 12,10M10,22C9.75,22 9.54,21.82 9.5,21.58L9.13,18.93C8.5,18.68 7.96,18.34 7.44,17.94L4.95,18.95C4.73,19.03 4.46,18.95 4.34,18.73L2.34,15.27C2.21,15.05 2.27,14.78 2.46,14.63L4.57,12.97L4.5,12L4.57,11L2.46,9.37C2.27,9.22 2.21,8.95 2.34,8.73L4.34,5.27C4.46,5.05 4.73,4.96 4.95,5.05L7.44,6.05C7.96,5.66 8.5,5.32 9.13,5.07L9.5,2.42C9.54,2.18 9.75,2 10,2H14C14.25,2 14.46,2.18 14.5,2.42L14.87,5.07C15.5,5.32 16.04,5.66 16.56,6.05L19.05,5.05C19.27,4.96 19.54,5.05 19.66,5.27L21.66,8.73C21.79,8.95 21.73,9.22 21.54,9.37L19.43,11L19.5,12L19.43,13L21.54,14.63C21.73,14.78 21.79,15.05 21.66,15.27L19.66,18.73C19.54,18.95 19.27,19.04 19.05,18.95L16.56,17.95C16.04,18.34 15.5,18.68 14.87,18.93L14.5,21.58C14.46,21.82 14.25,22 14,22H10M11.25,4L10.88,6.61C9.68,6.86 8.62,7.5 7.85,8.39L5.44,7.35L4.69,8.65L6.8,10.2C6.4,11.37 6.4,12.64 6.8,13.8L4.68,15.36L5.43,16.66L7.86,15.62C8.63,16.5 9.68,17.14 10.87,17.38L11.24,20H12.76L13.13,17.39C14.32,17.14 15.37,16.5 16.14,15.62L18.57,16.66L19.32,15.36L17.2,13.81C17.6,12.64 17.6,11.37 17.2,10.2L19.31,8.65L18.56,7.35L16.15,8.39C15.38,7.5 14.32,6.86 13.12,6.62L12.75,4H11.25Z" /></svg>');
     --star: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="-10 -6 16 16"><line y1="-3" y2="3" stroke="red" transform="rotate(15)"></line><line y1="-3" y2="3" stroke="red" transform="rotate(75)"></line><line y1="-3" y2="3" stroke="red" transform="rotate(-45)"></line></svg>');
-    --trash: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" id="mdi-trash-can-outline" width="24" height="24" viewBox="0 0 24 24"><path d="M9,3V4H4V6H5V19A2,2 0 0,0 7,21H17A2,2 0 0,0 19,19V6H20V4H15V3H9M7,6H17V19H7V6M9,8V17H11V8H9M13,8V17H15V8H13Z" /></svg>')
+    --trash: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" id="mdi-trash-can-outline" width="24" height="24" viewBox="0 0 24 24"><path d="M9,3V4H4V6H5V19A2,2 0 0,0 7,21H17A2,2 0 0,0 19,19V6H20V4H15V3H9M7,6H17V19H7V6M9,8V17H11V8H9M13,8V17H15V8H13Z" /></svg>');
+    --download: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" id="mdi-download" width="24" height="24" viewBox="0 0 24 24"><path d="M5,20H19V18H5M19,9H15V3H9V9H5L12,16L19,9Z" /></svg>')
 }
 
-a.foot:link,
-a.foot:visited {
-    color: var(--footfg)
+.fa {
+  display: block;
+  text-indent: -9999px;
+  width: clamp(2rem, 7.5vw, 5rem);
+  height: 2rem;
+  mask-size: auto;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  -webkit-mask-size: auto;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  background-color: var(--clr-primary-400);
+  transition: 0.5s;
+  padding: 1rem;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+.fa-browse  { mask-image: var(--browse);    -webkit-mask-image: var(--browse)}
+.fa-cog     { mask-image: var(--cog);       -webkit-mask-image: var(--cog)}
+.fa-download{ mask-image: var(--download);  -webkit-mask-image: var(--download)}
+.fa-home    { mask-image: var(--home);      -webkit-mask-image: var(--home)}
+.fa-info    { mask-image: var(--info);      -webkit-mask-image: var(--info)}
+.fa-ota     { mask-image: var(--ota);       -webkit-mask-image: var(--ota)}
+.fa-shot    { mask-image: var(--shot);      -webkit-mask-image: var(--shot)}
+.fa-star    { mask-image: var(--star);      -webkit-mask-image: var(--star)}
+.fa-trash   { mask-image: var(--trash);     -webkit-mask-image: var(--trask)}
+
+#ctx {
+	display: none;
+	top: 10px;
+	left: 50px;
+	position: absolute;
+	background: #fff;
+	z-index: 10;
+	padding: 0.75rem;
+	border-radius: 0.5rem;
+	box-shadow: 0 0.5rem 0.75rem rgba(0,0,0,0.25);
+}
+#ctx > ul {
+	padding-left: 0px;
+}
+#ctx > ul > li,
+.sub_div > ul > li {
+  cursor: pointer; 
+}
+#ctx > ul > li:hover {
+  background: #ccc;
 }
 
-input:not([type=file]) {
-    background-color: var(--fldbg);
-    color: var(--fldfg)
+.nav-list {
+  font-size: var(--fs-nav);
+  padding: 0;
+  display: flex;
+  justify-content: space-evenly;
+  gap: clamp(1.5rem, 10vw, var(--size-500));
+  width: clamp(275px, 80vw, 600px);
+}
+.nav-list a {
+  position: relative;
+  display: flex;
+  justify-content: space-evenly;
+  align-items: center;
+  flex-direction: column;
+  text-decoration: none;
+  color: var(--clr-primary-400);
+}
+.nav-list a:hover,
+.nav-list a:focus-visible {
+  color: var(--clr-accent-400);
+}
+.nav-list a .text {
+  position: absolute;
+  letter-spacing: -0.05rem;
+  font-size: var(--fs-500);
+  font-weight: var(--fw-semi-bold);
+  white-space: nowrap;
+  opacity: 0;
+  transition: 0.5s;
+  transform: translateY(0.5rem);
+}
+.nav-list a:hover .text,
+.nav-list a:focus-visible .text {
+  opacity: 1;
+  transform: translateY(1rem);
+}
+.nav-list a:hover .fa,
+.nav-list a:focus-visible .fa {
+  background-color: var(--clr-accent-400);
+  transform: translateY(-0.5rem);
 }
 
-input[type=checkbox],
-input[type=radio] {
-    width: 1em
+/* Box sizing rules */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
 }
 
-input[type=color] {
-    width: 30%;
-    padding: 5px
+/* Set default margin */
+* {
+   margin: 0px;
+   padding: 0px;
+}
+P {
+  margin: 1em 0px;
 }
 
-select {
-    background-color: var(--fldbg);
-    color: var(--fldfg)
-}
-
-input:invalid {
-    border: 1px solid var(--fldred)
-}
-
+/* Main Style */
 body {
-    font-family: verdana;
-    margin: auto;
+    font-family: 'Inter', sans-serif;
+    line-height: 1.5;
+    height: 100%;
     background: var(--bg);
     color: var(--txt)
 }
-
-.c,
-body {
-    text-align: center
+a {
+    text-decoration: none;
+}
+a[href],
+input[type='submit'],
+label[for],
+select,
+button,
+.pointer {
+    cursor: pointer;
 }
 
-.clear {
-    clear: both
+/* Message Fields */
+.error,
+.info,
+.success,
+.validation,
+.warning {
+    border: 1px solid;
+    margin: 1rem auto;
+    padding: 2rem 1rem 1rem 3rem;
+    background-repeat: no-repeat;
+    background-position: 10px center;
+    max-width: 500px
+}
+.info   { color: #00529B; background-color: #BDE5F8 }
+.success{ color: #4F8A10; background-color: #DFF2BF }
+.warning{ color: #9F6000; background-color: #FEEFB3 }
+.error  { color: #D8000C; background-color: #FFD2D2 }
+
+
+/* Navigation bar */
+
+#filebrowser {
+  display: none
 }
 
-.foot {
-    background-color: transparent !important;
-    all: revert;
-    float: right;
-    margin: 0;
-    font-size: .6em
-}
-
-#doc>a.red,
-button.red {
-    background-color: var(--btnred)
-}
-
-#doc>a.red:focus,
-#doc>a.red:hover,
-button.red:focus,
-button.red:hover {
-    background-color: var(--btnredhi)
-}
-
+/* Main Page */
 #doc {
     text-align: left;
     margin: 0 auto;
@@ -79,75 +175,12 @@ button.red:hover {
     display: table
 }
 
-td {
-    font-size: .87rem;
-    padding-bottom: 0;
-    padding-top: 0
-}
-
-th {
-    padding-top: .5em
-}
-
-* {
-    box-sizing: border-box
-}
-
-input,
-select,
-textarea {
-    width: 100%;
-    padding: 12px;
-    border: 1px solid #ccc;
-    border-radius: .6rem;
-    resize: vertical
-}
-
-label {
-    padding: 12px 18px 12px 0;
-    display: inline-block
-}
-
-.required {
-    background-image: var(--star);
-    background-size: 1.5em 1.5em;
-    background-position: right;
-    background-repeat: no-repeat
-}
-
-.edit:before {
-    content: "\0000a0"
-}
-
-.edit {
-    background-image: var(--edit);
-    background-size: 1.5em 1.5em;
-    background-position: left;
-    background-repeat: no-repeat;
-    width: 1.5em;
-    display: inline-block;
-    text-decoration: none
-}
-
-.trash:before {
-    content: "\0000a0"
-}
-
-.trash {
-    background-image: var(--trash);
-    background-size: 1.5em 1.5em;
-    background-position: left;
-    background-repeat: no-repeat;
-    width: 1.5em;
-    display: inline-block;
-    text-decoration: none
-}
-
 #doc>a,
 .dist>a,
-button,
-input[type=submit] {
-    padding: 12px;
+#doc button,
+#doc input[type=submit] {
+    // padding: 12px;
+    height: 3rem;
     border: 1px solid var(--btnbrd);
     border-radius: .6rem;
     background-color: var(--btnbg);
@@ -164,11 +197,110 @@ input[type=submit] {
 
 #doc>a:hover,
 .dist>a:hover,
-button:hover,
-input[type=submit]:hover {
+#doc button:hover,
+#doc input[type=submit]:hover {
     background-color: var(--btnbghi)
 }
 
+#doc input:not([type=file]) {
+    background-color: var(--fldbg);
+    color: var(--fldfg)
+}
+#doc input[type=checkbox],
+#doc input[type=radio] {
+  width: 1rem;
+  height: 1rem;
+  margin: 0.25rem
+}
+#doc input[type=color] {
+    width: 30%;
+    padding: 5px
+}
+#doc input:invalid {
+    border: 1px solid var(--fldred)
+}
+#doc select {
+    background-color: var(--fldbg);
+    color: var(--fldfg)
+}
+
+.c {
+    text-align: center
+}
+
+#doc>a.red,
+#doc button.red {
+    background-color: var(--btnred)
+}
+
+#doc>a.red:focus,
+#doc>a.red:hover,
+#doc button.red:focus,
+#doc button.red:hover {
+    background-color: var(--btnredhi)
+}
+
+#doc td {
+    padding-bottom: 0;
+    padding-top: 0
+}
+#doc th {
+    padding-top: .5em
+}
+
+#doc input,
+#doc select,
+#doc textarea {
+    width: 100%;
+    padding: 1rem;
+    border: 1px solid #ccc;
+    border-radius: .6rem;
+    resize: vertical
+}
+#doc select {
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.7' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right .8rem center;
+  background-size: 1em
+}
+
+#doc label {
+    padding-right: 18px;
+    padding-left: .25rem;
+    display: inline-block
+}
+
+.required {
+    background-image: var(--star);
+    background-position: right;
+    background-repeat: no-repeat;
+    background-size: 1.5em 1.5em;
+}
+
+.icon {
+    background-size: 1.05em 1.05em;
+    background-position: left;
+    background-repeat: no-repeat;
+    width: 1.5em;
+    display: inline-block;
+    text-decoration: none
+}
+
+.icon:before {
+    content: "\0000a0"
+}
+.edit {
+    background-image: var(--browse);
+}
+.trash {
+    background-image: var(--trash);
+}
+.download {
+    background-image: var(--download);
+}
+
+/* Forms */
 .container {
     background-color: var(--grpbg);
     color: var(--grpfg);
@@ -180,7 +312,8 @@ input[type=submit]:hover {
 .dist {
     display: flex;
     justify-content: space-between;
-    width: 100%
+    width: 100%;
+    margin: 1rem 0
 }
 
 .dist>a {
@@ -196,19 +329,6 @@ input[type=submit]:hover {
     margin-right: 0
 }
 
-.col-25 {
-    float: left;
-    width: 25%;
-    text-align: right;
-    margin: 0
-}
-
-.col-75 {
-    margin: 0;
-    float: left;
-    width: 75%
-}
-
 .row:after {
     content: "";
     display: table;
@@ -216,53 +336,61 @@ input[type=submit]:hover {
 }
 
 .row {
-    font-size: .833rem;
+    // font-size: .833rem;
     margin: 5px
 }
 
 .gap,
 .row:last-of-type {
-    margin: 5px 5px 20px
+    margin-bottom: 1rem
 }
 
-.error,
-.info,
-.success,
-.validation,
-.warning {
-    border: 1px solid;
-    margin: 10px auto;
-    padding: 15px 10px 15px 50px;
-    background-repeat: no-repeat;
-    background-position: 10px center;
-    max-width: 500px
+.col-25 {
+    // float: left;
+    // width: 25%;
+    text-align: left;
 }
 
-.info {
-    color: #00529B;
-    background-color: #BDE5F8
+.col-75 {
+    // float: left;
+    // width: 75%
 }
 
-.success {
-    color: #4F8A10;
-    background-color: #DFF2BF
+#doc label,
+#doc legend {
+    padding: 5px 18px 5px 0;
+}
+#doc fieldset {
+    display: contents
+}
+    
+@media screen and (min-width:800px) {
+    .row {
+      display:flex;
+      align-items:center
+    }
+    .col-25,
+    .col-75
+    {
+        float: left;
+        width: 75%;
+        margin-top: 0
+    }
+
+    .col-25 {
+        width: 25%;
+        text-align: right
+    }
 }
 
-.warning {
-    color: #9F6000;
-    background-color: #FEEFB3
-}
 
-.error {
-    color: #D8000C;
-    background-color: #FFD2D2
-}
-
+/*
 @media screen and (max-width:800px) {
 
+    // #doc input[type=submit],
     .col-25,
-    .col-75,
-    input[type=submit] {
+    .col-75
+    {
         width: 100%;
         margin-top: 0
     }
@@ -271,7 +399,100 @@ input[type=submit]:hover {
         text-align: left
     }
 
-    label {
+    #doc label {
         padding: 5px 18px 5px 0
     }
+}
+*/
+
+/* Page Footer */
+.foot {
+    background-color: transparent !important;
+    all: revert;
+    float: right;
+    margin: 0;
+    font-size: .6em
+}
+a.foot:link,
+a.foot:visited {
+    color: var(--footfg)
+}
+.clear {
+    clear: both
+}
+
+/* File Editor */
+.container__editor {
+	display: none;
+
+	/* Misc */
+	border: 0;
+	width: 100vw;
+	height: 100vh;
+	background-color: burlywood;
+}
+.container__left {
+	/* Initially, the left takes 3/4 width */
+	width: clamp(10rem, 15vw, 20rem);
+	max-width: 20rem;
+
+	/* Misc */
+	/* align-items: center; */
+	display: flex;
+	justify-content: left;
+	overflow-x: clip;
+	overflow-y: scroll;
+
+	/* Popout */
+	top: 0;
+	bottom: 0;
+	left: 0;
+	right: clamp(10rem, 15vw, 80rem);
+	z-index: 10;
+	/* position: absolute; */
+	/* visibility: hidden; */
+}
+.resizer {
+	background-color: #d5dbe2;
+	cursor: ew-resize;
+	height: 100%;
+	width: 5px;
+}
+.container__right {
+	/* Take the remaining width */
+	flex: 1;
+	flex-direction: column;
+
+	/* Misc */
+	align-items: center;
+	display: flex;
+	justify-content: center;
+	background-color: brown;
+}
+.toolbar {
+	/* Take the remaining width */
+	height: 3rem;
+	background-color: gray;
+
+	/* Misc */
+	align-items: center;
+	display: flex;
+	justify-content: center;
+	width: 100%;
+}
+.container__bottom {
+	/* Take the remaining width */
+	flex: 1;
+
+	/* Misc */
+	align-items: center;
+	display: flex;
+	justify-content: center;
+	top: 0;
+	bottom: 0;
+	width: 100%;
+	/* background-color: bisque; */
+}
+#sizeList {
+	width: 4rem;
 }
