@@ -971,7 +971,7 @@ bool gpioGetConfig(const JsonObject& settings)
         changed = true;
     }
 
-    if(changed) configOutput(settings);
+    if(changed) configOutput(settings, TAG_GPIO);
     return changed;
 }
 
@@ -985,7 +985,7 @@ bool gpioGetConfig(const JsonObject& settings)
  **/
 bool gpioSetConfig(const JsonObject& settings)
 {
-    configOutput(settings);
+    configOutput(settings, TAG_GPIO);
     bool changed = false;
 
     if(!settings[FPSTR(FP_GPIO_CONFIG)].isNull()) {
