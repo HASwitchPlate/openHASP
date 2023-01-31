@@ -106,6 +106,8 @@
             "Z with caron": "0x017D-0x017E",
             "Capital Letter Sharp S": "0x1E9E",
             "Bullet Symbol": "0x2022",
+            "Per Mille Sign": "0x2030",
+            "Per Ten Thousand Sign": "0x2031",
             "Euro Symbol": "0x20AC",
 
             // Latin 2 extras
