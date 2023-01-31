@@ -7,7 +7,6 @@
 #define HASP_CONFIG_H
 
 #include "hasplib.h"
-#include "hasp_debug.h" // for TAG_CONF
 
 /* ===== Default Event Processors ===== */
 void configSetup(void);
@@ -20,7 +19,7 @@ void configStop(void);
 DeserializationError configParseFile(String& configFile, JsonDocument& settings);
 DeserializationError configRead(JsonDocument& settings, bool setupdebug);
 void configWrite(void);
-void configOutput(const JsonObject& settings, uint8_t tag = TAG_CONF);
+void configOutput(const JsonObject& settings, uint8_t tag);
 bool configClearEeprom(void);
 
 /* ===== Getter and Setter Functions ===== */
@@ -48,6 +47,7 @@ const char FP_CONFIG_COLOR2[] PROGMEM       = "color2";
 const char FP_CONFIG_ENABLE[] PROGMEM       = "enable";
 const char FP_CONFIG_HOST[] PROGMEM         = "host";
 const char FP_CONFIG_PORT[] PROGMEM         = "port";
+const char FP_CONFIG_PASV[] PROGMEM         = "pasv";
 const char FP_CONFIG_NAME[] PROGMEM         = "name";
 const char FP_CONFIG_USER[] PROGMEM         = "user";
 const char FP_CONFIG_PASS[] PROGMEM         = "pass";
@@ -76,6 +76,7 @@ const char FP_HASP_CONFIG_FILE[] PROGMEM = "/config.json";
 const char FP_WIFI[] PROGMEM  = "wifi";
 const char FP_MQTT[] PROGMEM  = "mqtt";
 const char FP_HTTP[] PROGMEM  = "http";
+const char FP_FTP[] PROGMEM   = "ftp";
 const char FP_GPIO[] PROGMEM  = "gpio";
 const char FP_MDNS[] PROGMEM  = "mdns";
 const char FP_HASP[] PROGMEM  = "hasp";

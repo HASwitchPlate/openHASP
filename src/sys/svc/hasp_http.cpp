@@ -72,12 +72,12 @@ ESP8266WebServer webServer(80);
 WebServer webServer(80);
 
 #if defined(CONFIG_IDF_TARGET_ESP32) || defined(CONFIG_IDF_TARGET_ESP32S2) || defined(CONFIG_IDF_TARGET_ESP32S3)
-extern const uint8_t EDIT_HTM_GZ_START[] asm("_binary_data_edit_htm_gz_start");
-extern const uint8_t EDIT_HTM_GZ_END[] asm("_binary_data_edit_htm_gz_end");
-extern const uint8_t STYLE_CSS_GZ_START[] asm("_binary_data_style_css_gz_start");
-extern const uint8_t STYLE_CSS_GZ_END[] asm("_binary_data_style_css_gz_end");
-extern const uint8_t SCRIPT_JS_GZ_START[] asm("_binary_data_script_js_gz_start");
-extern const uint8_t SCRIPT_JS_GZ_END[] asm("_binary_data_script_js_gz_end");
+extern const uint8_t EDIT_HTM_GZ_START[] asm("_binary_data_static_edit_htm_gz_start");
+extern const uint8_t EDIT_HTM_GZ_END[] asm("_binary_data_static_edit_htm_gz_end");
+extern const uint8_t STYLE_CSS_GZ_START[] asm("_binary_data_static_style_css_gz_start");
+extern const uint8_t STYLE_CSS_GZ_END[] asm("_binary_data_static_style_css_gz_end");
+extern const uint8_t SCRIPT_JS_GZ_START[] asm("_binary_data_static_script_js_gz_start");
+extern const uint8_t SCRIPT_JS_GZ_END[] asm("_binary_data_static_script_js_gz_end");
 extern const uint8_t LOGO_SVG_GZ_START[] asm("_binary_data_static_logo_svg_gz_start");
 extern const uint8_t LOGO_SVG_GZ_END[] asm("_binary_data_static_logo_svg_gz_end");
 extern const uint8_t ACE_JS_GZ_START[] asm("_binary_data_static_ace_1_9_6_min_js_gz_start");
@@ -331,8 +331,12 @@ bool http_save_config()
             updated = haspSetConfig(settings.as<JsonObject>());
 
 #if HASP_USE_MQTT > 0
-        } else if(save == String(PSTR("mqtt"))) {
+        } else if(save == String(PSTR(FP_MQTT))) {
             updated = mqttSetConfig(settings.as<JsonObject>());
+#endif
+#if HASP_USE_FTP > 0
+        } else if(save == String(PSTR(FP_FTP))) {
+            updated = ftpSetConfig(settings.as<JsonObject>());
 #endif
 
         } else if(save == String(PSTR("gui"))) {
@@ -345,7 +349,7 @@ bool http_save_config()
             settings[FPSTR(FP_DEBUG_ANSI)] = webServer.hasArg(PSTR("ansi"));
             updated                        = debugSetConfig(settings.as<JsonObject>());
 
-        } else if(save == String(PSTR("http"))) {
+        } else if(save == String(PSTR(FP_HTTP))) {
             updated = httpSetConfig(settings.as<JsonObject>());
 
             // Password might have changed
@@ -659,6 +663,11 @@ static void webHandleApi()
         settings.createNestedObject(module);
         mqttGetConfig(settings[module]);
 #endif
+#if HASP_USE_FTP > 0
+        module = FPSTR(FP_FTP);
+        settings.createNestedObject(module);
+        ftpGetConfig(settings[module]);
+#endif
 #if HASP_USE_HTTP > 0
         module = FPSTR(FP_HTTP);
         settings.createNestedObject(module);
@@ -752,12 +761,17 @@ static void webHandleApiConfig()
         } else
 #endif
 #if HASP_USE_MQTT > 0
-            if(!strcasecmp_P(endpoint_key, PSTR("mqtt"))) {
+            if(!strcasecmp_P(endpoint_key, PSTR(FP_MQTT))) {
             mqttSetConfig(settings);
         } else
 #endif
+#if HASP_USE_FTP > 0
+            if(!strcasecmp_P(endpoint_key, PSTR(FP_FTP))) {
+            ftpSetConfig(settings);
+        } else
+#endif
 #if HASP_USE_HTTP > 0
-            if(!strcasecmp_P(endpoint_key, PSTR("http"))) {
+            if(!strcasecmp_P(endpoint_key, PSTR(FP_HTTP))) {
             httpSetConfig(settings);
         } else
 #endif
@@ -788,12 +802,17 @@ static void webHandleApiConfig()
     } else
 #endif
 #if HASP_USE_MQTT > 0
-        if(!strcasecmp_P(endpoint_key, PSTR("mqtt"))) {
+        if(!strcasecmp_P(endpoint_key, PSTR(FP_MQTT))) {
         mqttGetConfig(settings);
     } else
 #endif
+#if HASP_USE_FTP > 0
+        if(!strcasecmp_P(endpoint_key, PSTR(FP_FTP))) {
+        ftpGetConfig(settings);
+    } else
+#endif
 #if HASP_USE_HTTP > 0
-        if(!strcasecmp_P(endpoint_key, PSTR("http"))) {
+        if(!strcasecmp_P(endpoint_key, PSTR(FP_HTTP))) {
         httpGetConfig(settings);
     } else
 #endif
@@ -1324,6 +1343,9 @@ static void webHandleConfig()
         httpMessage += F("<a href='/config/mqtt'>" D_HTTP_MQTT_SETTINGS "</a>");
 #endif
         httpMessage += F("<a href='/config/http'>" D_HTTP_HTTP_SETTINGS "</a>");
+#if HASP_USE_FTP > 0
+        httpMessage += F("<a href='/config/ftp'>" D_HTTP_FTP_SETTINGS "</a>");
+#endif
         httpMessage += F("<a href='/config/gui'>" D_HTTP_GUI_SETTINGS "</a>");
 
 #if HASP_USE_GPIO > 0
@@ -1551,6 +1573,57 @@ static void webHandleHttpConfig()
     }
     webSendFooter();
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+static void webHandleFtpConfig()
+{ // http://plate01/config/http
+    if(!http_is_authenticated(F("config/ftp"))) return;
+
+    { // Send Content
+        String httpMessage((char*)0);
+        httpMessage.reserve(HTTP_PAGE_SIZE);
+        httpMessage += F("<h1>");
+        httpMessage += haspDevice.get_hostname();
+        httpMessage += F("</h1><hr>");
+        httpMessage += F("<h2>" D_HTTP_FTP_SETTINGS "</h2>");
+
+        // Form
+        httpMessage += F("<div class='container'><form method='POST' action='/config' id='ftp'>");
+
+        // Username
+        httpMessage += F("<div class='row'><div class='col-25'><label for='user'>Username</label></div>");
+        httpMessage += F("<div class='col-75'><input type='text' id='user' name='user' maxlength=31 "
+                         "placeholder='Username' value='");
+        httpMessage += F("'></div></div>");
+
+        // Password
+        httpMessage += F("<div class='row'><div class='col-25'><label for='pass'>Password</label></div>");
+        httpMessage += F("<div class='col-75'><input type='password' id='pass' name='pass' maxlength=63 "
+                         "placeholder='Password' value='");
+        httpMessage += F("'></div></div>");
+
+        // Ftp Port
+        httpMessage += F("<div class='row gap'><div class='col-25'><label for='port'>Port</label></div>");
+        httpMessage += F("<div class='col-75'><input type='number' id='port' name='port' min='0' max='65535' "
+                         "placeholder='21' value=''></div></div>");
+
+        // Passiv Port
+        httpMessage += F("<div class='row'><div class='col-25'><label for='pasv'>Passif Port</label></div>");
+        httpMessage += F("<div class='col-75'><input type='number' id='pasv' name='pasv' min='0' max='65535' "
+                         "placeholder='50009' value=''></div></div>");
+
+        // Submit & End Form
+        httpMessage += F("<button type='submit' name='save' value='ftp'>" D_HTTP_SAVE_SETTINGS "</button>");
+        httpMessage += F("</form></div>");
+
+        httpMessage += F("<a href='/config'>" D_HTTP_CONFIGURATION "</a>");
+
+        webSendHtmlHeader(haspDevice.get_hostname(), httpMessage.length(), 0);
+        webServer.sendContent(httpMessage);
+    }
+    webSendFooter();
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 #if HASP_USE_GPIO > 0
@@ -2505,7 +2578,7 @@ static inline void webStartConfigPortal()
 void httpSetup()
 {
     Preferences preferences;
-    nvs_user_begin(preferences,"http", true);
+    nvs_user_begin(preferences, FP_HTTP, true);
     String password = preferences.getString(FP_CONFIG_PASS, HTTP_PASSWORD);
     strncpy(http_config.password, password.c_str(), sizeof(http_config.password));
     LOG_DEBUG(TAG_HTTP, F(D_BULLET "Read %s => %s (%d bytes)"), FP_CONFIG_PASS, password.c_str(), password.length());
@@ -2593,6 +2666,9 @@ void httpSetup()
 #if HASP_USE_MQTT > 0
     webServer.on(F("/config/mqtt"), webHandleMqttConfig);
 #endif
+#if HASP_USE_FTP > 0
+    webServer.on(F("/config/ftp"), webHandleFtpConfig);
+#endif
 #if HASP_USE_WIFI > 0
     webServer.on(F("/config/wifi"), webHandleWifiConfig);
 #endif
@@ -2653,7 +2729,7 @@ bool httpGetConfig(const JsonObject& settings)
 bool httpSetConfig(const JsonObject& settings)
 {
     Preferences preferences;
-    nvs_user_begin(preferences,"http", false);
+    nvs_user_begin(preferences, FP_HTTP, false);
 
     configOutput(settings, TAG_HTTP);
     bool changed = false;

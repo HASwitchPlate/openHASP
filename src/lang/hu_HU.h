@@ -122,6 +122,7 @@
 #define D_HTTP_HASP_DESIGN "Képernyő dizájn"
 #define D_HTTP_INFORMATION "Információk"
 #define D_HTTP_HTTP_SETTINGS "HTTP beállítások"
+#define D_HTTP_FTP_SETTINGS "FTP beállítások"
 #define D_HTTP_WIFI_SETTINGS "WiFi beállítások"
 #define D_HTTP_MQTT_SETTINGS "MQTT beállítások"
 #define D_HTTP_GPIO_SETTINGS "GPIO beállítások"

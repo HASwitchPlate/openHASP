@@ -3,11 +3,26 @@
 [Instruction on FTP server on esp8266 and esp32](https://www.mischianti.org/2020/02/08/ftp-server-on-esp8266-and-esp32)
 [Simple FTP Server library now with support for Wio Terminal and SD](https://www.mischianti.org/2021/07/01/simple-ftp-server-library-now-with-support-for-wio-terminal-and-sd/)
 
-Simple FTP Server for 
+#### Simple FTP Server for 
+ - Raspberry Pi Pico W (Flash: LittleFS) (To test SD and SdFat)
  - esp8266 (Flash: SPIFFs, LittleFS. SD: SD, SdFat 2)
- - esp32 (SPIFFS, LITTLEFS, FFAT, SdFat)
- - Arduino (SD with 8.3 file format, SdFat 2)
- - Wio Terminal (SdFat 2, and native FAT)
+ - esp32 (SPIFFS, LITTLEFS, FFAT, SD: SD, SdFat)
+ - stm32 (SdFat, SPI flash)
+ - Arduino (SD with 8.3 file format, SD: SD, SdFat 2)
+ - Wio Terminal (SdFat 2, Seed SD, and native FAT)
+
+#### Changelog
+- 2022-01-13 2.1.5 Fix SPIFM external SPI Flash date management (add SPIFM esp32 example)
+- 2022-09-21 2.1.4 Add support for Raspberry Pi Pico W and rp2040 boards, Fix SD card config
+- 2022-09-20 2.1.3 Soft AP IP management, more disconnect event and SD_MCC
+- 2022-05-21 2.1.2 Fix SD path (#19)
+- 2022-05-21 2.1.1 Minor fix
+- 2022-03-30 2.1.0 Add UTF8 support and enabled It by default (Thanks to @plaber)
+- 2022-03-30 2.0.0 Complete support for STM32 with SD and SPI Flash minor bux fix and HELP command support
+- 2022-03-17 1.3.0 Fix enc28j60 and w5500 support and restructuring for local settings
+- 2022-02-25 1.2.1 Fix anonymous user begin and fix SPIFFS wrong display
+- 2022-02-22 1.2.0 Add anonymous user and implement correct RFC (#9 now work correctly with File Explorer)
+- 2022-02-01 1.1.1 Add workaround to start FTP server before connection, add end and setLocalIP method.
 
 <!-- wp:paragraph -->
 <p>When I develop a new solution I'd like to divide the application in layer, and so I'd like focus my attention in only one aspect at time. </p>
@@ -88,3 +103,5 @@ void loop(void){
  
 }
 ```
+
+https://downloads.arduino.cc/libraries/logs/github.com/xreef/SimpleFTPServer/

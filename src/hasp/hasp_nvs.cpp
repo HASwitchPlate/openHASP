@@ -22,12 +22,12 @@ bool nvs_user_begin(Preferences& preferences, const char* key, bool readonly)
 
 bool nvs_clear_user_config()
 {
-    const char* name[8] = {"time", "ota", "http", "mqtt", "wifi"};
+    const char* name[8] = {FP_TIME, FP_OTA, FP_HTTP, FP_FTP, FP_MQTT, FP_WIFI};
     Preferences preferences;
 
-    for(int i = 0; i < 5; i++) {
-        preferences.begin(name[i], false);
-        preferences.clear();
+    for(int i = 0; i < 6; i++) {
+        if(!preferences.begin(name[i], false)) return false;
+        if(!preferences.clear()) return false;
         preferences.end();
     }
 
@@ -65,6 +65,25 @@ bool nvsUpdateUInt(Preferences& preferences, const char* key, JsonVariant value)
             changed = true; // Nvs key doesnot exist, create it
         if(changed) {
             size_t len = preferences.putUInt(key, val);
+            LOG_DEBUG(TAG_TIME, F(D_BULLET "Wrote %s => %d"), key, val);
+        }
+    }
+
+    return changed;
+}
+
+bool nvsUpdateUShort(Preferences& preferences, const char* key, JsonVariant value)
+{
+    bool changed = false;
+    uint32_t val = value.as<uint32_t>();
+
+    if(!value.isNull()) {                                   // Json key exists
+        if(preferences.isKey(key)) {                        // Nvs key exists
+            changed = preferences.getUShort(key, 0) != val; // Value changed
+        } else
+            changed = true; // Nvs key doesnot exist, create it
+        if(changed) {
+            size_t len = preferences.putUShort(key, val);
             LOG_DEBUG(TAG_TIME, F(D_BULLET "Wrote %s => %d"), key, val);
         }
     }
@@ -202,10 +221,10 @@ void nvs_setup()
            nvs_stats.free_entries, nvs_stats.total_entries);
 
     { // TODO: remove migratrion of keys from default NVS partition to CONFIG partition
-        const char* name[8] = {"time", "ota", "http", "mqtt", "wifi"};
+        const char* name[8] = {FP_TIME, FP_OTA, FP_HTTP, FP_FTP, FP_MQTT, FP_WIFI};
         Preferences oldPrefs, newPrefs;
 
-        for(int i = 0; i < 5; i++) {
+        for(int i = 0; i < 6; i++) {
             if(oldPrefs.begin(name[i], false) && newPrefs.begin(name[i], false, "config")) {
                 LOG_INFO(TAG_NVS, "opened %s", name[i]);
                 String password = oldPrefs.getString(FP_CONFIG_PASS, D_PASSWORD_MASK);
@@ -253,7 +272,7 @@ void nvs_setup2()
         dbgprint("Partition %s not found!", partname);
         return;
     }
-    namespace_ID = FindNsID(nvs, "mqtt"); // Find ID of our namespace in NVS
+    namespace_ID = FindNsID(nvs, FP_MQTT); // Find ID of our namespace in NVS
     dbgprint("Namespace ID of ESP32Radio is %d", namespace_ID);
     while(offset < nvs->size) {
         result = esp_partition_read(nvs, offset, // Read 1 page in nvs partition

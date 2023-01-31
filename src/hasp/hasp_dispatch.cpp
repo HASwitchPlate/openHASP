@@ -502,7 +502,7 @@ void dispatch_config(const char* topic, const char* payload, uint8_t source)
             timeGetConfig(settings);
     }
 #if HASP_USE_MQTT > 0
-    else if(strcasecmp_P(topic, PSTR("mqtt")) == 0) {
+    else if(strcasecmp_P(topic, PSTR(FP_MQTT)) == 0) {
         if(update)
             mqttSetConfig(settings);
         else
@@ -522,15 +522,23 @@ void dispatch_config(const char* topic, const char* payload, uint8_t source)
     }
 #endif
 #if HASP_USE_HTTP > 0 || HASP_USE_HTTP_ASYNC > 0
-    else if(strcasecmp_P(topic, PSTR("http")) == 0) {
+    else if(strcasecmp_P(topic, PSTR(FP_HTTP)) == 0) {
         if(update)
             httpSetConfig(settings);
         else
             httpGetConfig(settings);
     }
 #endif
+#if HASP_USE_FTP > 0
+    else if(strcasecmp_P(topic, PSTR(FP_FTP)) == 0) {
+        if(update)
+            ftpSetConfig(settings);
+        else
+            ftpGetConfig(settings);
+    }
+#endif
 #if HASP_USE_ARDUINOOTA > 0 || HASP_USE_HTTP_UPDATE > 0
-    else if(strcasecmp_P(topic, PSTR("ota")) == 0) {
+    else if(strcasecmp_P(topic, PSTR(FP_OTA)) == 0) {
         if(update)
             otaSetConfig(settings);
         else
@@ -542,7 +550,7 @@ void dispatch_config(const char* topic, const char* payload, uint8_t source)
     // Send output
     if(!update) {
         char subtopic[8];
-        settings.remove(F("pass")); // hide password in output
+        settings.remove(FP_CONFIG_PASS); // hide password in output
 
         /* size_t size = */ serializeJson(doc, buffer, sizeof(buffer));
         memcpy_P(subtopic, PSTR("config"), 7);

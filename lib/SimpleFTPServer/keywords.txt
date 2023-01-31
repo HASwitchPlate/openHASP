@@ -9,6 +9,8 @@ SimpleFtpServer	KEYWORD1
 #######################################
 
 begin	KEYWORD2
+end	KEYWORD2
+setLocalIp	KEYWORD2
 credentials	KEYWORD2
 setCallback	KEYWORD2
 setTransferCallback	KEYWORD2

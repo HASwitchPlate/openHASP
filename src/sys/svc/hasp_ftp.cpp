@@ -7,7 +7,6 @@
 
 #include "hasp_debug.h"
 #include "hasp_ftp.h"
-#include "hasp_http.h"
 #include "hasp_filesystem.h"
 
 #include "../../hasp/hasp_dispatch.h"
@@ -15,12 +14,10 @@
 #include "FtpServerKey.h"
 #include "SimpleFTPServer.h"
 
-#if HASP_USE_HTTP > 0 || HASP_USE_HTTP_ASYNC > 0
-extern hasp_http_config_t http_config;
-#endif
-
 FtpServer* ftpSrv; // set #define FTP_DEBUG in ESP8266FtpServer.h to see ftp verbose on serial
 
+String ftpUsername       = "";
+String ftpPassword       = "";
 uint16_t ftpCtrlPort     = 21;
 uint16_t ftpDataPort     = 50009;
 uint8_t ftpEnabled       = true;
@@ -52,13 +49,13 @@ void ftp_transfer_callback(FtpTransferOperation ftpOperation, const char* name, 
         case FTP_UPLOAD_START: {
             char size[16];
             Parser::format_bytes(transferredSize, size, sizeof(size));
-            LOG_VERBOSE(TAG_FTP, "Start upload of file %s (%s)", name, size);
+            LOG_VERBOSE(TAG_FTP, "Receiving file %s (%s)", name, size);
             return;
         }
         case FTP_DOWNLOAD_START: {
             char size[16];
             Parser::format_bytes(transferredSize, size, sizeof(size));
-            LOG_VERBOSE(TAG_FTP, "Start download of file %s (%s)", name, size);
+            LOG_VERBOSE(TAG_FTP, "Sending file %s (%s)", name, size);
             return;
         }
         case FTP_UPLOAD:
@@ -67,11 +64,11 @@ void ftp_transfer_callback(FtpTransferOperation ftpOperation, const char* name, 
         case FTP_TRANSFER_STOP: {
             char size[16];
             Parser::format_bytes(transferredSize, size, sizeof(size));
-            LOG_VERBOSE(TAG_FTP, "Completed transfer of file %s (%s)", name, size);
+            LOG_VERBOSE(TAG_FTP, "Completed file %s (%s)", name, size);
             break;
         }
         case FTP_TRANSFER_ERROR:
-            LOG_VERBOSE(TAG_FTP, ("Transfer error!"));
+            LOG_ERROR(TAG_FTP, ("Transfer error!"));
             break;
         default:
             break;
@@ -79,22 +76,17 @@ void ftp_transfer_callback(FtpTransferOperation ftpOperation, const char* name, 
 
     transferName = NULL;
     transferSize = 0;
-
-    /* FTP_UPLOAD_START = 0,
-     * FTP_UPLOAD = 1,
-     *
-     * FTP_DOWNLOAD_START = 2,
-     * FTP_DOWNLOAD = 3,
-     *
-     * FTP_TRANSFER_STOP = 4,
-     * FTP_DOWNLOAD_STOP = 4,
-     * FTP_UPLOAD_STOP = 4,
-     *
-     * FTP_TRANSFER_ERROR = 5,
-     * FTP_DOWNLOAD_ERROR = 5,
-     * FTP_UPLOAD_ERROR = 5
-     */
 };
+
+static void ftpInitializePorts()
+{
+    Preferences preferences;
+
+    nvs_user_begin(preferences, FP_FTP, true);
+    ftpCtrlPort = preferences.getUShort(FP_CONFIG_PORT, ftpCtrlPort); // Read from NVS if it exists
+    ftpDataPort = preferences.getUShort(FP_CONFIG_PASV, ftpDataPort); // Read from NVS if it exists
+    preferences.end();
+}
 
 void ftpStop(void)
 {
@@ -106,35 +98,47 @@ void ftpStop(void)
 
     transferSize = 0;
     transferName = NULL;
+    ftpInitializePorts();
 
     LOG_INFO(TAG_FTP, F(D_SERVICE_STOPPED));
 }
 
 void ftpStart()
 {
-    LOG_TRACE(TAG_FTP, F(D_SERVICE_STARTING));
-
-    ftpSrv = new FtpServer(ftpCtrlPort, ftpDataPort);
     if(!ftpSrv) {
-        LOG_INFO(TAG_FTP, F(D_SERVICE_START_FAILED));
-        return;
+        LOG_TRACE(TAG_FTP, F(D_SERVICE_STARTING));
+        Preferences preferences;
+
+        nvs_user_begin(preferences, FP_FTP, true);
+        ftpUsername = preferences.getString(FP_CONFIG_USER, ftpUsername); // Read from NVS if it exists
+        ftpPassword = preferences.getString(FP_CONFIG_PASS, ftpPassword); // Read from NVS if it exists
+        preferences.end();
+
+        if(!ftpEnabled || ftpUsername == "" || ftpUsername == "anonymous" || ftpCtrlPort == 0) {
+            LOG_INFO(TAG_FTP, F(D_SERVICE_DISABLED));
+            return;
+        }
+
+        ftpSrv = new FtpServer(ftpCtrlPort, ftpDataPort);
+        if(!ftpSrv) {
+            LOG_INFO(TAG_FTP, F(D_SERVICE_START_FAILED));
+            return;
+        }
+
+        ftpSrv->setCallback(ftp_callback);
+        ftpSrv->setTransferCallback(ftp_transfer_callback);
+        ftpSrv->begin(ftpUsername.c_str(), ftpPassword.c_str(), D_MANUFACTURER); // Password must be non-empty
+
+        LOG_VERBOSE(TAG_FTP, F(FTP_SERVER_VERSION));
     }
 
-    ftpSrv->setCallback(ftp_callback);
-    ftpSrv->setTransferCallback(ftp_transfer_callback);
-
-#if HASP_USE_HTTP > 0 || HASP_USE_HTTP_ASYNC > 0
-    ftpSrv->begin(http_config.username, http_config.password, D_MANUFACTURER); // Password must be non-empty
-#else
-    ftpSrv->begin("ftpuser", "haspadmin"); // username, password for ftp.   (default 21, 50009 for PASV)
-#endif
-
-    LOG_VERBOSE(TAG_FTP, F(FTP_SERVER_VERSION));
     LOG_INFO(TAG_FTP, F(D_SERVICE_STARTED));
 }
 
 void ftpSetup()
 {
+    ftpInitializePorts();
+
 #if HASP_START_FTP
     ftpStart();
 #endif
@@ -154,10 +158,33 @@ void ftpEverySecond(void)
     LOG_VERBOSE(TAG_FTP, D_BULLET "%s (%s)", transferName, size);
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
 #if HASP_USE_CONFIG > 0
 bool ftpGetConfig(const JsonObject& settings)
 {
     bool changed = false;
+    Preferences preferences;
+
+    nvs_user_begin(preferences, FP_FTP, true);
+    String nvsUsername = preferences.getString(FP_CONFIG_USER, ftpUsername); // Read from NVS if it exists
+    String nvsPassword = preferences.getString(FP_CONFIG_PASS, ftpPassword); // Read from NVS if it exists
+    uint16_t nvsPort   = preferences.getUShort(FP_CONFIG_PORT, ftpCtrlPort); // Read from NVS if it exists
+    uint16_t nvsData   = preferences.getUShort(FP_CONFIG_PASV, ftpDataPort); // Read from NVS if it exists
+    preferences.end();
+
+    settings[FPSTR(FP_CONFIG_ENABLE)] = ftpEnabled;
+
+    if(nvsPort != settings[FPSTR(FP_CONFIG_PORT)].as<uint16_t>()) changed = true;
+    settings[FPSTR(FP_CONFIG_PORT)] = nvsPort;
+
+    if(nvsData != settings[FPSTR(FP_CONFIG_PASV)].as<uint16_t>()) changed = true;
+    settings[FPSTR(FP_CONFIG_PASV)] = nvsData;
+
+    if(strcmp(nvsUsername.c_str(), settings[FP_CONFIG_USER].as<String>().c_str()) != 0) changed = true;
+    settings[FP_CONFIG_USER] = nvsUsername;
+
+    if(strcmp(D_PASSWORD_MASK, settings[FP_CONFIG_PASS].as<String>().c_str()) != 0) changed = true;
+    settings[FP_CONFIG_PASS] = D_PASSWORD_MASK;
 
     if(changed) configOutput(settings, TAG_FTP);
     return changed;
@@ -167,15 +194,31 @@ bool ftpGetConfig(const JsonObject& settings)
  *
  * Read the settings from json and sets the application variables.
  *
- * @note: read config.json into memory
+ * @note: data pixel should be formated to uint32_t RGBA. Imagemagick requirements.
  *
  * @param[in] settings    JsonObject with the config settings.
  **/
 bool ftpSetConfig(const JsonObject& settings)
 {
+    Preferences preferences;
+    nvs_user_begin(preferences, FP_FTP, false);
+
     configOutput(settings, TAG_FTP);
     bool changed = false;
 
+    changed |= nvsUpdateUShort(preferences, FP_CONFIG_PORT, settings[FPSTR(FP_CONFIG_PORT)]);
+    changed |= nvsUpdateUShort(preferences, FP_CONFIG_PASV, settings[FPSTR(FP_CONFIG_PASV)]);
+
+    if(!settings[FPSTR(FP_CONFIG_USER)].isNull()) {
+        changed |= nvsUpdateString(preferences, FP_CONFIG_USER, settings[FPSTR(FP_CONFIG_USER)]);
+    }
+
+    if(!settings[FPSTR(FP_CONFIG_PASS)].isNull() &&
+       settings[FPSTR(FP_CONFIG_PASS)].as<String>() != String(FPSTR(D_PASSWORD_MASK))) {
+        changed |= nvsUpdateString(preferences, FP_CONFIG_PASS, settings[FPSTR(FP_CONFIG_PASS)]);
+    }
+
+    preferences.end();
     return changed;
 }
 #endif // HASP_USE_CONFIG

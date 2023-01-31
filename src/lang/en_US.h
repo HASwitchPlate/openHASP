@@ -122,6 +122,7 @@
 #define D_HTTP_HASP_DESIGN "HASP Design"
 #define D_HTTP_INFORMATION "Information"
 #define D_HTTP_HTTP_SETTINGS "HTTP Settings"
+#define D_HTTP_FTP_SETTINGS "FTP Settings"
 #define D_HTTP_WIFI_SETTINGS "Wifi Settings"
 #define D_HTTP_MQTT_SETTINGS "MQTT Settings"
 #define D_HTTP_GPIO_SETTINGS "GPIO Settings"

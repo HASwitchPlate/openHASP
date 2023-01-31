@@ -122,6 +122,7 @@
 #define D_HTTP_HASP_DESIGN "Desenul ecranului"
 #define D_HTTP_INFORMATION "Informații"
 #define D_HTTP_HTTP_SETTINGS "Setări HTTP"
+#define D_HTTP_FTP_SETTINGS "Setări FTP"
 #define D_HTTP_WIFI_SETTINGS "Setări WiFi"
 #define D_HTTP_MQTT_SETTINGS "Setări MQTT"
 #define D_HTTP_GPIO_SETTINGS "Setări GPIO"
