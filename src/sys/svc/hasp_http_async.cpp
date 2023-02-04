@@ -331,7 +331,7 @@ void saveConfig()
                     haspSetConfig(settings.as<JsonObject>());
 
     #if HASP_USE_MQTT > 0
-                } else if(save == String(PSTR("mqtt"))) {
+                } else if(save == String(PSTR(FP_MQTT))) {
                     mqttSetConfig(settings.as<JsonObject>());
     #endif
 
@@ -343,7 +343,7 @@ void saveConfig()
                 } else if(save == String(PSTR("debug"))) {
                     debugSetConfig(settings.as<JsonObject>());
 
-                } else if(save == String(PSTR("http"))) {
+                } else if(save == String(PSTR(FP_HTTP))) {
                     httpSetConfig(settings.as<JsonObject>());
 
                     // Password might have changed
