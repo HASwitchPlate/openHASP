@@ -5,6 +5,7 @@
 ### Objects
 <!-- ? Support for State and Part properties -->
 - Set default line_width of new `line` objects to 1
+- Allow line and block comments in pages.jsonl
 
 ### Fonts
 - Firmware files include the bitmapped font sizes 12, 16, 24 and 32pt
