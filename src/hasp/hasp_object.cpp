@@ -354,7 +354,7 @@ void hasp_new_object(const JsonObject& config, uint8_t& saved_page_id)
                     lv_obj_set_event_cb(obj, generic_event_handler);
                     obj->user_data.objid = LV_HASP_LABEL;
 
-                    if(id == 200) object_add_task(obj, event_timer_clock, 1000);
+                    if(id >= 250) object_add_task(obj, event_timer_clock, 1000);
                 }
                 break;
 
@@ -372,7 +372,6 @@ void hasp_new_object(const JsonObject& config, uint8_t& saved_page_id)
             case HASP_OBJ_IMG:
                 obj = lv_img_create(parent_obj, NULL);
                 if(obj) {
-                    lv_obj_set_click(obj, true);
                     lv_obj_set_event_cb(obj, generic_event_handler);
                     obj->user_data.objid = LV_HASP_IMAGE;
                 }
@@ -696,6 +695,7 @@ void hasp_new_object(const JsonObject& config, uint8_t& saved_page_id)
         // (E.g. a Button can be released out of it if it was being pressed)
         lv_obj_add_protect(obj, LV_PROTECT_PRESS_LOST);
         lv_obj_set_gesture_parent(obj, false);
+        lv_obj_set_click(obj, true);
 
         /* id tag the object */
         obj->user_data.id = id;
