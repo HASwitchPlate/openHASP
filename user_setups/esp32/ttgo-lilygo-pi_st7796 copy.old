@@ -6,7 +6,7 @@
 ;***************************************************;
 
 [env:ttgo-lilygo-pi_st7796b]
-extends = esp32_16mb_v2
+extends = flash_16mb
 board = esp32dev
 
 build_flags =

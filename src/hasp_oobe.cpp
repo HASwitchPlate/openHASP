@@ -51,7 +51,7 @@ static void kb_event_cb(lv_obj_t* event_kb, lv_event_t event)
 {
     if(event == LV_EVENT_APPLY) {
         StaticJsonDocument<256> settings;
-        char ssid[MAX_SSID_LEN] = "";
+        char ssid[MAX_SSID_LEN]       = "";
         char pass[MAX_PASSPHRASE_LEN] = "";
         lv_obj_t* obj;
 
@@ -113,8 +113,10 @@ static void ta_event_cb(lv_obj_t* ta, lv_event_t event)
 
 static void oobeSetupQR(const char* ssid, const char* pass)
 {
-    lv_disp_t* disp = lv_disp_get_default();
-    oobepage[0]     = lv_obj_create(NULL, NULL);
+    lv_disp_t* disp    = lv_disp_get_default();
+    lv_coord_t hor_res = lv_disp_get_hor_res(disp);
+    lv_coord_t ver_res = lv_disp_get_ver_res(disp);
+    oobepage[0]        = lv_obj_create(NULL, NULL);
     char buffer[128];
     lv_obj_t* container = lv_cont_create(oobepage[0], NULL);
     lv_obj_set_pos(container, 5, 5);
@@ -131,14 +133,16 @@ static void oobeSetupQR(const char* ssid, const char* pass)
     snprintf_P(buffer, sizeof(buffer), PSTR(D_OOBE_SCAN_TO_CONNECT));
     lv_label_set_text(qrlabel, buffer);
 
-    if(disp->driver.hor_res <= disp->driver.ver_res) {
+    if(hor_res <= ver_res) {
         lv_obj_align(qr, NULL, LV_ALIGN_IN_BOTTOM_MID, 0, -5);
-        lv_obj_set_size(container, disp->driver.hor_res - 10, disp->driver.ver_res - 10 - 125);
+        lv_obj_set_size(container, hor_res - 10, ver_res - 10 - 125);
         lv_obj_align(qrlabel, container, LV_ALIGN_IN_BOTTOM_MID, 0, 0);
+        LOG_INFO(TAG_OOBE, "h: %d - v: %d", hor_res, ver_res);
     } else {
-        lv_obj_align(qr, NULL, LV_ALIGN_IN_RIGHT_MID, -5, 0);
-        lv_obj_set_size(container, disp->driver.hor_res - 10 - 125, disp->driver.ver_res - 10);
+        lv_obj_align(qr, NULL, LV_ALIGN_IN_RIGHT_MID, -5, -6);
+        lv_obj_set_size(container, hor_res - 10 - 125, ver_res - 10);
         lv_obj_align(qrlabel, qr, LV_ALIGN_OUT_BOTTOM_MID, 0, 5);
+        LOG_INFO(TAG_OOBE, "h: %d - v: %d", hor_res, ver_res);
     }
 
 #else
