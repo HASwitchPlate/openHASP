@@ -31,16 +31,17 @@
 #define COLOR_SCR_TEXT (IS_LIGHT ? lv_color_hex(0x3b3e42) : lv_color_hex(0xefefef))
 //#define HUE_COLOR lv_color_hex(0x2F8CD8)
 #define HUE_COLOR theme.color_primary
+#define CHK_COLOR theme.color_secondary
 
 /*BUTTON*/
 #define COLOR_BTN (lv_color_lighten(HUE_COLOR, LV_OPA_30))
 #define COLOR_BTN_GRAD (lv_color_darken(HUE_COLOR, LV_OPA_30))
-#define COLOR_BTN_PR (lv_color_darken(COLOR_BTN_CHK, LV_OPA_20))
+#define COLOR_BTN_PR (lv_color_darken(COLOR_BTN, LV_OPA_20))
 #define COLOR_BTN_PR_GRAD lv_color_darken(COLOR_BTN_GRAD, LV_OPA_20)
-#define COLOR_BTN_CHK lv_color_darken(COLOR_BTN_GRAD, LV_OPA_20)
-#define COLOR_BTN_CHK_GRAD lv_color_darken(COLOR_BTN_GRAD, LV_OPA_10)
+#define COLOR_BTN_CHK (lv_color_lighten(CHK_COLOR, LV_OPA_30))
+#define COLOR_BTN_CHK_GRAD (lv_color_darken(CHK_COLOR, LV_OPA_30))
 #define COLOR_BTN_CHK_PR (lv_color_darken(COLOR_BTN_CHK, LV_OPA_20))
-#define COLOR_BTN_CHK_PR_GRAD (lv_color_darken(COLOR_BTN_CHK_GRAD, LV_OPA_30))
+#define COLOR_BTN_CHK_PR_GRAD (lv_color_darken(COLOR_BTN_CHK_GRAD, LV_OPA_20))
 #define COLOR_BTN_DIS (IS_LIGHT ? lv_color_hex3(0xccc) : lv_color_hex3(0x888))
 
 #define COLOR_BTN_BORDER (IS_LIGHT ? (lv_color_darken(HUE_COLOR, LV_OPA_50)) : (lv_color_lighten(HUE_COLOR, LV_OPA_40)))
@@ -357,7 +358,7 @@ static void basic_init(lv_style_int_t border_width, lv_style_int_t outline_width
     lv_style_set_bg_color(&styles->btn, LV_STATE_PRESSED, COLOR_BTN_PR);
 
     lv_style_set_bg_grad_color(&styles->btn, LV_STATE_DEFAULT, COLOR_BTN_GRAD);
-    lv_style_set_bg_grad_color(&styles->btn, LV_STATE_PRESSED, COLOR_BTN_CHK_GRAD);
+    lv_style_set_bg_grad_color(&styles->btn, LV_STATE_PRESSED, COLOR_BTN_PR_GRAD);
 
     lv_style_set_bg_grad_dir(&styles->btn, LV_STATE_DEFAULT, LV_GRAD_DIR_VER);
     //    lv_style_set_bg_color(&styles->btn, LV_STATE_DEFAULT, COLOR_BTN);
