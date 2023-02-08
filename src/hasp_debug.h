@@ -140,7 +140,7 @@ void debugLvglLogEvent(lv_log_level_t level, const char* file, uint32_t line, co
 IRAM_ATTR void debugLoop(void);
 void debugEverySecond(void);
 void debugStart(void);
-void debugStartSerial(void);
+bool debugStartSerial(void);
 void debugStop(void);
 void debugPrintHaspHeader(Print* output);
 void debugPrintTag(uint8_t tag, Print* _logOutput);

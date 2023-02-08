@@ -107,7 +107,10 @@ void consoleStart()
     LOG_TRACE(TAG_MSGR, F(D_SERVICE_STARTING));
     console = new ConsoleInput(bufferedSerialClient, HASP_CONSOLE_BUFFER);
     if(console) {
-        debugStartSerial(); // open Serial port
+        if(!debugStartSerial()) { // failed to open Serial port
+            LOG_INFO(TAG_CONS, F(D_SERVICE_DISABLED));
+            return;
+        }
 
         /* Now register logger for serial */
         Log.registerOutput(0, bufferedSerialClient, HASP_LOG_LEVEL, true);

@@ -16,7 +16,7 @@
 #include "hasp_conf.h"
 #include "ConsoleInput.h"
 #include "lvgl.h"
-//#include "time.h"
+// #include "time.h"
 #include <StreamUtils.h>
 
 #if defined(ARDUINO_ARCH_ESP8266)
@@ -373,15 +373,15 @@ void debugPrintSuffix(uint8_t tag, int level, Print* _logOutput)
 }
 
 // Start Serial Port at correct
-void debugStartSerial()
+bool debugStartSerial()
 {
     if(debugSerialBaud < 0) {
         LOG_WARNING(TAG_DEBG, F(D_SERVICE_DISABLED " (%u Bps)"), debugSerialBaud);
-        //  return;
+        return false;
     }
 
     uint32_t baudrate = debugSerialBaud;
-    if(baudrate < 9600) baudrate = SERIAL_SPEED;
+    if(baudrate < 9600) baudrate = SERIAL_SPEED; // 9600 baud minimum
 
 #if defined(STM32F4xx) || defined(STM32F7xx)
 #ifndef STM32_SERIAL1       // Define what Serial port to use for log output
@@ -400,6 +400,7 @@ void debugStartSerial()
 
     LOG_INFO(TAG_DEBG, F(D_SERVICE_STARTED " @ %u bps"), debugSerialBaud);
     LOG_INFO(TAG_DEBG, F(D_INFO_ENVIRONMENT ": " PIOENV));
+    return true;
 }
 
 // Do NOT call Log function before debugSetup is called
