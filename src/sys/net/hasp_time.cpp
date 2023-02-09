@@ -41,7 +41,6 @@ void timeSetup()
     String zone((char*)0);
     zone = preferences.getString("zone", TIMEZONE);
 
-    // mytz = preferences.getString("tz", MYTZ);
     mytz = time_zone_to_possix(zone.c_str());
     ntp1 = preferences.getString("ntp1", NTPSERVER1);
     ntp2 = preferences.getString("ntp2", NTPSERVER2);
@@ -60,6 +59,7 @@ String time_zone_to_possix(const char* timezone)
 #if defined(ARDUINO_ARCH_ESP32)
     uint16_t sdbm = 0;
 
+    // sdbm doesn't parse numbers in the string; get the Etc/GMT hash from the offset to Greenwich
     if(timezone == strstr(timezone, "Etc/GMT")) { // startsWith Etc/GMT
         int offset           = atoi(timezone + 7);
         const uint16_t gmt[] = {TZ_ETC_GMT__14, TZ_ETC_GMT__13, TZ_ETC_GMT__12, TZ_ETC_GMT__11, TZ_ETC_GMT__10,
@@ -68,12 +68,12 @@ String time_zone_to_possix(const char* timezone)
                                 TZ_ETC_GMT1,    TZ_ETC_GMT2,    TZ_ETC_GMT3,    TZ_ETC_GMT4,    TZ_ETC_GMT5,
                                 TZ_ETC_GMT6,    TZ_ETC_GMT7,    TZ_ETC_GMT8,    TZ_ETC_GMT9,    TZ_ETC_GMT10,
                                 TZ_ETC_GMT11,   TZ_ETC_GMT12};
-        offset += 14;
-        if(offset >= 0 && offset < sizeof(gmt) / sizeof(gmt[0])) {
-            sdbm = gmt[offset];
-            LOG_DEBUG(TAG_TIME, "Etc/GMT%d (%d)", offset - 14, sdbm);
+        int index            = offset + 14;
+        if(index >= 0 && index < sizeof(gmt) / sizeof(gmt[0])) {
+            sdbm = gmt[index];
+            LOG_DEBUG(TAG_TIME, "Etc/GMT%d (%d)", offset, sdbm);
         } else {
-            LOG_WARNING(TAG_TIME, "Invalid offset Etc/GMT%d", offset - 14);
+            LOG_WARNING(TAG_TIME, "Invalid offset Etc/GMT%d", offset);
         }
     } else {
         sdbm = Parser::get_sdbm(timezone);
@@ -636,8 +636,8 @@ String time_zone_to_possix(const char* timezone)
             return "WITA-8";
     }
 #endif
-    LOG_WARNING(TAG_TIME, F("Timezone %s (%d) not found, using %s"), timezone, sdbm, MYTZ);
-    return MYTZ;
+    LOG_WARNING(TAG_TIME, F("Timezone %s (%d) not found, using %s"), timezone, sdbm, TIMEZONE);
+    return TIMEZONE;
 }
 
 /* ===== Read/Write Configuration ===== */
@@ -649,7 +649,7 @@ bool timeGetConfig(const JsonObject& settings)
 
     nvs_user_begin(preferences, "time", true);
     settings["zone"]   = preferences.getString("zone", TIMEZONE);
-    settings["region"] = preferences.getString("region", "");
+    settings["region"] = preferences.getString("region", "etc");
     settings["ntp"][0] = preferences.getString("ntp1", NTPSERVER1);
     settings["ntp"][1] = preferences.getString("ntp2", NTPSERVER2);
     settings["ntp"][2] = preferences.getString("ntp3", NTPSERVER3);
