@@ -6,6 +6,7 @@
 <!-- ? Support for State and Part properties -->
 - Set default line_width of new `line` objects to 1
 - Allow line and block comments in pages.jsonl
+- HASP theme: Toggle objects now use the secondary color when they are in the toggled state.
 
 ### Fonts
 - Firmware files include the bitmapped font sizes 12, 16, 24 and 32pt
@@ -39,7 +40,7 @@
 - Add support for ESP32-S3 devices
 - Add Arduino-GFX display driver
 
-Updated libraries to ArduinoJson 6.20.0, ArduinoStreamUtils 1.7.0, TFT_eSPI 2.5.0 and LovyanGFX 0.5.0
+Updated libraries to ArduinoJson 6.20.1, ArduinoStreamUtils 1.7.0, TFT_eSPI 2.5.0 and LovyanGFX 1.1.2
 
 
 ## v0.6.3
