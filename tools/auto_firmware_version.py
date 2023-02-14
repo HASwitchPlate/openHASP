@@ -37,7 +37,7 @@ env.Append(
 
 r = Repo('.')
 commit_hash = r.head().decode("utf-8")[0:7]
-with open("data/editor.htm", "r", encoding="utf-8") as f:
+with open("data/edit.htm", "r", encoding="utf-8") as f:
     html=f.read()
 html = html.replace("COMMIT_HASH", commit_hash)
 with gzip.open('data/static/edit.htm.gz', 'wb') as f:

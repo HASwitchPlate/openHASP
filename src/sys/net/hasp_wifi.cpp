@@ -429,7 +429,7 @@ static void wifiReconnect(void)
 
 #elif defined(ARDUINO_ARCH_ESP32)
     // https://github.com/espressif/arduino-esp32/issues/3438#issuecomment-721428310
-    WiFi.persistent(true);
+    WiFi.persistent(false);
     WiFi.disconnect(true);
     WiFi.setHostname(haspDevice.get_hostname());
     WiFi.setSleep(false);
@@ -502,11 +502,12 @@ void wifiSetup()
         WiFi.onEvent(wifi_callback);
 
         Preferences preferences;
-        nvs_user_begin(preferences,"wifi", true);
+        nvs_user_begin(preferences, "wifi", true);
         String password = preferences.getString(FP_CONFIG_PASS, WIFI_PASSWORD);
         strncpy(wifiPassword, password.c_str(), sizeof(wifiPassword));
         LOG_DEBUG(TAG_WIFI, F(D_BULLET "Read %s => %s (%d bytes)"), FP_CONFIG_PASS, password.c_str(),
                   password.length());
+        preferences.end();
 #endif
 
         wifiReconnect();
@@ -685,7 +686,7 @@ bool wifiGetConfig(const JsonObject& settings)
 bool wifiSetConfig(const JsonObject& settings)
 {
     Preferences preferences;
-    nvs_user_begin(preferences,"wifi", false);
+    nvs_user_begin(preferences, "wifi", false);
 
     configOutput(settings, TAG_WIFI);
     bool changed = false;

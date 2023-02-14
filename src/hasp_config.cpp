@@ -1,4 +1,4 @@
-/* MIT License - Copyright (c) 2019-2022 Francis Van Roie
+/* MIT License - Copyright (c) 2019-2023 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
 #if HASP_USE_CONFIG > 0
@@ -147,11 +147,11 @@ DeserializationError configParseFile(String& configFile, JsonDocument& settings)
     DeserializationError result;
 
     if(file) {
-        size_t size = file.size();
-        if(size > 1024) {
-            LOG_ERROR(TAG_CONF, F("Config file size is too large"));
-            return DeserializationError::NoMemory;
-        }
+        // size_t size = file.size();
+        // if(size > 1024) {
+        //     LOG_ERROR(TAG_CONF, F("Config file size is too large"));
+        //     return DeserializationError::NoMemory;
+        // }
         result = deserializeJson(settings, file);
         file.close();
         return result;

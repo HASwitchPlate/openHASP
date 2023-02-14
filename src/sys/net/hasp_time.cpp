@@ -54,6 +54,7 @@ void timeSetup()
 #endif
 }
 
+// https://github.com/nayarsystems/posix_tz_db
 String time_zone_to_possix(const char* timezone)
 {
 #if defined(ARDUINO_ARCH_ESP32)

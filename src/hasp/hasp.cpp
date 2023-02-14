@@ -763,6 +763,7 @@ void hasp_get_info(JsonDocument& doc)
     }
 #endif
 
+#if LV_MEM_CUSTOM == 0
     info = doc.createNestedObject(F(D_INFO_LVGL_MEMORY));
     lv_mem_monitor_t mem_mon;
     lv_mem_monitor(&mem_mon);
@@ -771,6 +772,7 @@ void hasp_get_info(JsonDocument& doc)
     Parser::format_bytes(mem_mon.free_size, size_buf, sizeof(size_buf));
     info[F(D_INFO_FREE_MEMORY)]   = size_buf;
     info[F(D_INFO_FRAGMENTATION)] = std::to_string(mem_mon.frag_pct) + "%";
+#endif
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
