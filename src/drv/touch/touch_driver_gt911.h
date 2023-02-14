@@ -1,4 +1,4 @@
-/* MIT License - Copyright (c) 2019-2022 Francis Van Roie
+/* MIT License - Copyright (c) 2019-2023 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
 #ifndef HASP_GT911_TOUCH_DRIVER_H
@@ -99,16 +99,14 @@ class TouchGt911 : public BaseTouch {
     void init(int w, int h)
     {
         Wire.begin(TOUCH_SDA, TOUCH_SCL, (uint32_t)I2C_TOUCH_FREQUENCY);
-        // delay(300); // already happens in touch.begin()
-        touch_scan(Wire);
-
         touch.setHandler(GT911_setXY);
 
-        if(touch.begin(TOUCH_IRQ, TOUCH_RST)) {
+        if(touch.begin(TOUCH_IRQ, TOUCH_RST, I2C_TOUCH_ADDRESS)) {
             LOG_INFO(TAG_DRVR, F("GT911 " D_SERVICE_STARTED));
         } else {
             LOG_WARNING(TAG_DRVR, F("GT911 " D_SERVICE_START_FAILED));
         }
+        touch_scan(Wire); // The address could change during begin, so scan afterwards
     }
 };
 
