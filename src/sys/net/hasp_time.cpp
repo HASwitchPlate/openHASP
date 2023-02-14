@@ -65,7 +65,7 @@ String time_zone_to_possix(const char* timezone)
         int offset           = atoi(timezone + 7);
         const uint16_t gmt[] = {TZ_ETC_GMT__14, TZ_ETC_GMT__13, TZ_ETC_GMT__12, TZ_ETC_GMT__11, TZ_ETC_GMT__10,
                                 TZ_ETC_GMT__9,  TZ_ETC_GMT__8,  TZ_ETC_GMT__7,  TZ_ETC_GMT__6,  TZ_ETC_GMT__5,
-                                TZ_ETC_GMT__4,  TZ_ETC_GMT__3,  TZ_ETC_GMT__2,  TZ_ETC_GMT__1,  TZ_ETC_GMT0,
+                                TZ_ETC_GMT__4,  TZ_ETC_GMT__3,  TZ_ETC_GMT__2,  TZ_ETC_GMT__1,  TZ_ETC_GMT,
                                 TZ_ETC_GMT1,    TZ_ETC_GMT2,    TZ_ETC_GMT3,    TZ_ETC_GMT4,    TZ_ETC_GMT5,
                                 TZ_ETC_GMT6,    TZ_ETC_GMT7,    TZ_ETC_GMT8,    TZ_ETC_GMT9,    TZ_ETC_GMT10,
                                 TZ_ETC_GMT11,   TZ_ETC_GMT12};
