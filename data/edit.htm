@@ -1,1 +1,665 @@
-<!DOCTYPE html><html lang=en><head><meta charset=utf-8><title>File Editor</title><style media=screen>.cm{z-index:300;position:absolute;left:5px;border:1px solid #444;background-color:#f5f5f5;display:none;box-shadow:0 0 10px rgba(0,0,0,.4);font-size:12px;font-family:sans-serif;font-weight:700}.cm ul{list-style:none;top:0;left:0;margin:0;padding:0}.cm li{position:relative;min-width:60px;cursor:pointer}.cm span{color:#444;display:inline-block;padding:6px}.cm li:hover{background:#444}.cm li:hover span{color:#eee}.tvu li,.tvu ul{padding:0;margin:0;list-style:none}.tvu input{position:absolute;opacity:0}.tvu{font:normal 12px Verdana,Arial,Sans-serif;-moz-user-select:none;-webkit-user-select:none;user-select:none;color:#444;line-height:16px}.tvu span{margin-bottom:5px;padding:0 0 0 18px;white-space:nowrap;cursor:pointer;display:inline-block;height:16px;vertical-align:middle;background:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAQAAAC1+jfqAAAABGdBTUEAAK/INwWK6QAAABl0RVh0U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAADoSURBVBgZBcExblNBGAbA2ceegTRBuIKOgiihSZNTcC5LUHAihNJR0kGKCDcYJY6D3/77MdOinTvzAgCw8ysThIvn/VojIyMjIyPP+bS1sUQIV2s95pBDDvmbP/mdkft83tpYguZq5Jh/OeaYh+yzy8hTHvNlaxNNczm+la9OTlar1UdA/+C2A4trRCnD3jS8BB1obq2Gk6GU6QbQAS4BUaYSQAf4bhhKKTFdAzrAOwAxEUAH+KEM01SY3gM6wBsEAQB0gJ+maZoC3gI6iPYaAIBJsiRmHU0AALOeFC3aK2cWAACUXe7+AwO0lc9eTHYTAAAAAElFTkSuQmCC) no-repeat;background-position:0 0}.tvu span:hover{text-decoration:underline}@media screen and (-webkit-min-device-pixel-ratio:0){.tvu{-webkit-animation:webkit-adjacent-element-selector-bugfix infinite 1s}}@-webkit-keyframes webkit-adjacent-element-selector-bugfix{from{padding:0}to{padding:0}}#uploader{position:absolute;top:0;right:0;left:0;height:28px;line-height:24px;padding-left:10px;padding-right:10px;background-color:#444;color:#eee}#tree{position:absolute;top:28px;bottom:0;left:0;width:160px;padding:8px}#editor,#preview{position:absolute;top:28px;right:0;bottom:0;left:160px;border-left:1px solid #eee}#preview{background-color:#eee;padding:5px}button.right{float:right}input.number{float:right;width:48px}</style><script>function createFileUploader(p,y,g){var w=document.createElement("button");w.innerHTML="Main Menu",document.getElementById(p).appendChild(w);var f,q=document.createElement("input");q.type="file",q.multiple=!1,q.name="data",document.getElementById(p).appendChild(q);var v=document.createElement("input");v.id="upload-path",v.type="text",v.name="path",v.defaultValue="/",document.getElementById(p).appendChild(v);var j=document.createElement("button");j.innerHTML="Upload",document.getElementById(p).appendChild(j);var k=document.createElement("button");k.innerHTML="Create",document.getElementById(p).appendChild(k);var z=document.createElement("button");z.innerHTML="Reload Pages",document.getElementById(p).appendChild(z),z.className="right";var b=document.createElement("button");b.innerHTML="Clear Pages",document.getElementById(p).appendChild(b),b.className="right";var h=document.createElement("input");function x(){4==f.readyState&&(200!=f.status?alert("ERROR["+f.status+"]: "+f.responseText):y.refreshPath(v.value))}h.setAttribute("type","number"),h.setAttribute("min",1),h.setAttribute("max",12),document.getElementById(p).appendChild(h),h.className="number",k.onclick=function(a){-1!==v.value.indexOf(".")&&(function(d){(f=new XMLHttpRequest).onreadystatechange=x;var c=new FormData;c.append("path",d),f.open("PUT","/edit"),f.send(c)}(v.value),g.loadUrl(v.value))},j.onclick=function(c){if(0!==q.files.length){(f=new XMLHttpRequest).onreadystatechange=x;var a=new FormData;a.append("data",q.files[0],v.value),f.open("POST","/edit"),f.send(a)}},q.onchange=function(i){if(0!==q.files.length){var d=q.files[0].name,l=/(?:\.([^.]+))?$/.exec(d)[1],c=/(.*)\.[^.]+$/.exec(d)[1];void 0!==typeof c&&(d=c),void 0!==typeof l&&("html"===l?l="htm":"jpeg"===l&&(l="jpg"),d=d+"."+l),"/"===v.value||0===v.value.lastIndexOf("/")?v.value="/"+d:v.value=v.value.substring(0,v.value.lastIndexOf("/")+1)+d}},z.onclick=function(a){!function(d){(f=new XMLHttpRequest).onreadystatechange=x;var c=new FormData;c.append("load",d),f.open("PUT","/edit"),f.send(c)}(v.value)},b.onclick=function(a){!function(d){(f=new XMLHttpRequest).onreadystatechange=x;var c=new FormData;c.append("init",d),f.open("PUT","/edit"),f.send(c)}(v.value)},w.onclick=function(a){v.value,window.location.href="/"},h.onchange=function(a){!function(d){(f=new XMLHttpRequest).onreadystatechange=x;var c=new FormData;c.append("page",d),f.open("PUT","/edit"),f.send(c)}(h.value)}}function createTree(j,q){var f=document.getElementById("preview"),p=document.createElement("div");function b(a){document.getElementById("editor").style.display="none",f.style.display="block",f.innerHTML='<img src="'+a+"?_cb="+Date.now()+'" style="max-width:100%; max - height: 100 % ; margin: auto; display: block;" />'}function k(l,t){var o=document.createElement("ul");l.appendChild(o);var s=document.createElement("li");o.appendChild(s),g(t)?(s.innerHTML="<span>Edit</span>",s.onclick=function(c){q.loadUrl(t),document.body.getElementsByClassName("cm").length>0&&document.body.removeChild(l)}):h(t)&&(s.innerHTML="<span>Preview</span>",s.onclick=function(c){b(t),document.body.getElementsByClassName("cm").length>0&&document.body.removeChild(l)});var i=document.createElement("li");o.appendChild(i),i.innerHTML="<span>Download</span>",i.onclick=function(c){!function(d){document.getElementById("download-frame").src=d+"?download=true"}(t),document.body.getElementsByClassName("cm").length>0&&document.body.removeChild(l)};var a=document.createElement("li");o.appendChild(a),a.innerHTML="<span>Delete</span>",a.onclick=function(c){!function(n){xmlHttp=new XMLHttpRequest,xmlHttp.onreadystatechange=function(){4==xmlHttp.readyState&&(200!=xmlHttp.status?alert("ERROR["+xmlHttp.status+"]: "+xmlHttp.responseText):(p.removeChild(p.childNodes[0]),r(p,"/")))};var d=new FormData;d.append("path",n),xmlHttp.open("DELETE","/edit"),xmlHttp.send(d)}(t),document.body.getElementsByClassName("cm").length>0&&document.body.removeChild(l)}}function m(l,t,d){var o=document.createElement("li");o.id=("/"==l?"":l)+"/"+t;var i=document.createElement("span");return i.innerText=t,o.appendChild(i),o.onclick=function(a){g(o.id.toLowerCase())?q.loadUrl(o.id):h(o.id.toLowerCase())&&b(o.id)},o.oncontextmenu=function(a){a.preventDefault(),a.stopPropagation(),function(z,C,w){var B=document.createElement("div"),v=document.body.scrollTop?document.body.scrollTop:document.documentElement.scrollTop,A=document.body.scrollLeft?document.body.scrollLeft:document.documentElement.scrollLeft,x=event.clientX+A,y=event.clientY+v;B.className="cm",B.style.display="block",B.style.left=x+"px",B.style.top=y+"px",k(B,C),document.body.appendChild(B);var D=B.offsetWidth,u=B.offsetHeight;B.onmouseout=function(c){(c.clientX<x||c.clientX>x+D||c.clientY<y||c.clientY>y+u)&&document.body.getElementsByClassName("cm").length>0&&document.body.removeChild(B)}}(0,o.id)},o}function g(c){var a=/(?:\.([^.]+))?$/.exec(c)[1];if(void 0!==typeof a){switch(a){case"txt":case"cmd":case"json":case"jsonl":case"htm":case"js":case"c":case"cpp":case"css":case"xml":return !0}}return !1}function h(c){var a=/(?:\.([^.]+))?$/.exec(c)[1];if(void 0!==typeof a){switch(a){case"bmp":case"png":case"jpg":case"gif":return !0}}return !1}function r(c,a){xmlHttp=new XMLHttpRequest(c,a),xmlHttp.onreadystatechange=function(i,d){return function(){4==xmlHttp.readyState&&200==xmlHttp.status&&function(u,s,x){var l=document.createElement("ul");u.appendChild(l);for(var w=x.length,v=0;v<w;v++){"file"===x[v].type&&l.appendChild(m(s,x[v].name,x[v].size))}}(i,d,JSON.parse(xmlHttp.responseText))}}(c,a),xmlHttp.open("GET","/list?dir="+a,!0),xmlHttp.send(null)}return p.className="tvu",document.getElementById(j).appendChild(p),this.refreshPath=function(a){p.removeChild(p.childNodes[0]),r(p,"/")},r(p,"/"),this}function createEditor(k,u,g,q,f){function m(c){var a="plain",d=/(?:\.([^.]+))?$/.exec(c)[1];if(void 0!==typeof d){switch(d){case"txt":case"cmd":a="plain";break;case"htm":a="html";break;case"js":a="javascript";break;case"jsonl":a="json";break;case"c":case"cpp":a="c_cpp";break;case"css":case"scss":case"php":case"html":case"json":case"xml":a=d}}return a}void 0===u&&(u="/"),void 0===g&&(g=m(u)),void 0===q&&(q="textmate"),void 0===f&&(f="text/"+g,"c_cpp"===g&&(f="text/plain"));var p=null,h=ace.edit(k,{useWorker:!1,wrap:!0,indentedSoftWrap:!1});function j(){4==p.readyState&&200!=p.status&&alert("ERROR["+p.status+"]: "+p.responseText)}function v(){4==p.readyState&&(document.getElementById("preview").style.display="none",document.getElementById("editor").style.display="block",function(c,a){if(200==a.status){try{var d=JSON.parse(a.responseText);c.setValue(JSON.stringify(d,null,4))}catch(d){c.setValue(a.responseText)}}else{c.setValue("")}c.resize(!0),c.scrollToLine(1,!0,!0,function(){}),c.gotoLine(1,0,!0),c.clearSelection()}(h,p))}function b(a){(p=new XMLHttpRequest).onreadystatechange=v,p.open("GET",a,!0),p.send(null)}return"plain"!==g&&h.getSession().setMode("ace/mode/"+g),h.setTheme("ace/theme/"+q),h.$blockScrolling=1/0,h.getSession().setUseSoftTabs(!0),h.getSession().setTabSize(2),h.setHighlightActiveLine(!0),h.setShowPrintMargin(!1),h.commands.addCommand({name:"saveCommand",bindKey:{win:"Ctrl-S",mac:"Command-S"},exec:function(a){!function(i,d,l){(p=new XMLHttpRequest).onreadystatechange=j;var c=new FormData;c.append("data",new Blob([d],{type:l}),i),p.open("POST","/edit"),p.send(c)}(u,function(d){var c=d.getValue();try{var i=JSON.parse(c);return JSON.stringify(i)}catch(d){return c+""}}(a),f)},readOnly:!1}),h.commands.addCommand({name:"undoCommand",bindKey:{win:"Ctrl-Z",mac:"Command-Z"},exec:function(a){a.getSession().getUndoManager().undo(!1)},readOnly:!1}),h.commands.addCommand({name:"redoCommand",bindKey:{win:"Ctrl-Shift-Z",mac:"Command-Shift-Z"},exec:function(a){a.getSession().getUndoManager().redo(!1)},readOnly:!1}),b(u),h.loadUrl=function(a){g=m(u=a),f="text/"+g,"plain"!==g&&h.getSession().setMode("ace/mode/"+g),b(u),document.getElementById("upload-path").value=a},h}function onBodyLoad(){var b={},a=(window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi,function(d,e,c){b[e]=c}),createEditor("editor",b.file,b.lang,b.theme));createFileUploader("uploader",createTree("tree",a),a),b.file&&(document.getElementById("upload-path").value=b.file)};</script><script src=https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ace.js></script></head><body onload=onBodyLoad()><div id=uploader></div><div id=tree></div><div id=editor></div><div id=preview style=display:none></div><iframe id=download-frame style=display:none></iframe></body></html>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    
+    <script type="module" src="/static/main.js?COMMIT_HASH"></script>
+  	<!-- script src="/static/ace.js?v=1.9.6"></script -->
+  	<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.15.0/ace.min.js"></script>
+  	<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.15.0/theme-monokai.js"></script>
+  	<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.15.0/mode-html.js"></script>
+
+    <title>openHASP</title>
+    <link rel="stylesheet" href="/static/vars.css?COMMIT_HASH"/>
+    <link rel="stylesheet" href="/static/style.css?COMMIT_HASH"/>
+    <link rel="icon" href="/static/logo.svg?COMMIT_HASH" type="image/svg+xml">
+    
+    <link href="https://fonts.cdnfonts.com/css/jetbrains-mono" rel="stylesheet">
+    <link href="https://fonts.cdnfonts.com/css/source-code-pro" rel="stylesheet">
+    
+    <style>
+      ul {
+        list-style-type: none;
+        padding-left: 20px;
+      }
+    </style>
+
+  </head>
+  <body v-cloak v-scope @vue:mounted="mounted" onLoad="prepare()">
+
+  	<div class="container__editor" onmousedown="hidectx()">
+    	<div class="container__left">
+  	     <div id=tree>
+          <div class="sub_div">
+
+          </div>
+        </div>
+    	</div>
+    	<div class="resizer" id="dragMe"></div>
+    	<div class="container__right">
+    		<div class="toolbar">
+          <input type="file" id="upload" name="upload" multiple hidden onChange="doUpload()">
+    			<span class="left"><button id="home">Home</button><button onClick="_('upload').click()">Upload</button><button id="save">Save</button></span>
+    			<div class="right">
+          <input id="page" type="number" min="1" max="12" class="number">
+          <button id="load">Reload Pages</button>
+          <button id="init">Clear Pages</button>
+          </div>
+    			<span class="left"><button id="cut">Cut</button><button id="copy">Copy</button><button id="paste">Paste</button></span>
+    			<span id="name">config.jsonl</span>
+    			<span class="left"><button id="undo">Undo</button><button id="redo">Redo</button></span>
+    			<span class="left"><select id="font">
+    				<option>JetBrains Mono</option>
+    				<option selected>Source Code Pro</option>
+    			<input id="fontsize" type="number" step="any" min="9" max="40" value="12"></input></span>
+    		</div>
+    		<div id="editor" class="container__bottom"></div>
+    		<div id="preview" class="container__bottom"><img id="pic" src="/static/logo.svg?COMMIT_HASH"/></div>
+        <iframe id=download-frame></iframe>
+    	</div>
+    	<div id="ctx" onmousedown="event.stopPropagation()">
+        <ul>
+          <li><span class="icon file"></span>New File</li>
+          <li><span class="icon edit"></span>Edit</li>
+          <li><span class="icon eye"></span>Preview</li>
+          <li><span class="icon download"></span>Download</li>
+          <li><span class="icon trash"></span>Delete</li>
+        </ul>
+      </div>
+    </div>
+
+    <script>
+  		function _(id) { return document.getElementById(id)	}
+      function hidectx() { _("ctx").style.display = "none"; }
+    	
+			// https://www.kirupa.com/html5/detect_whether_font_is_installed.htm
+			function doesFontExist(fontName) {
+				// creating our in-memory Canvas element where the magic happens
+				var canvas = document.createElement("canvas");
+				var context = canvas.getContext("2d");
+				
+				// the text whose final pixel size I want to measure
+				var text = "abcdefghijklmnopqrstuvwxyz0123456789";
+				
+				// specifying the baseline font
+				context.font = "72px monospace";
+				
+				// checking the size of the baseline text
+				var baselineSize = context.measureText(text).width;
+				
+				// specifying the font whose existence we want to check
+				context.font = "72px '" + fontName + "', monospace";
+				
+				// checking the size of the font we want to check
+				var newSize = context.measureText(text).width;
+				
+				// removing the Canvas element we created
+				canvas = null;
+				
+				//
+				// If the size of the two text instances is the same, the font does not exist because it is being rendered
+				// using the default sans-serif font
+				//
+				if (newSize == baselineSize) {
+					return false;
+				} else {
+					return true;
+				}
+			}
+
+			function createEditor(id, path, lang, theme, mime) {
+				function texttype(file) {
+					let mode = "plain_text",
+						ext = /(?:\.([^.]+))?$/.exec(file)[1];
+					if (undefined !== typeof ext) {
+						switch (ext) {
+							// case "txt":
+							// 
+							//     return "plain";
+							case "htm":
+							case "html":
+								return "html";
+							case "js":
+								return "javascript";
+							case "cmd":
+							case "json":
+							case "jsonl":
+								return "json";
+							// case "c":
+							// case "cpp":
+							//     return "c_cpp";
+							case "css":
+							case "svg":
+							case "xml":
+							// case "scss":
+							// case "php":
+								return ext;
+						}
+					}
+					return mode
+				}
+				undefined === path && (path = "/"), undefined === lang && (lang = texttype(path)), undefined === mime && (mime = "text/" + lang);
+
+				/* Load optional modules from the CDN */
+				const paths = ["basePath","modePath","themePath"];
+				paths.forEach((p) => {
+					ace.config.set(p, "https://cdnjs.cloudflare.com/ajax/libs/ace/1.15.0");
+				});
+
+				var editor = ace.edit(id, {
+						useWorker: false,
+						wrap: true,
+						indentedSoftWrap: false,
+						showPrintMargin: false,
+						highlightGutterLine: true,
+						setUseSoftTabs: true,
+						tabSize: 2
+					});
+				editor.setFontSize(parseFloat(getComputedStyle(document.documentElement).fontSize));
+				editor.on("focus", function() { _("ctx").style.display = "none" });
+
+				if (undefined === theme) theme = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? "monokai" : "textmate";
+
+				function j() {
+					4 == req.readyState && 200 != req.status && alert("ERROR[" + req.status + "]: " + req.responseText)
+				}
+
+				var saveBtn = _("save"),
+				    undoBtn = _("undo"),
+				    redoBtn = _("redo"),
+				    cutBtn  = _("cut"),
+				    copyBtn = _("copy"),
+				    pasteBtn= _("paste"),
+				    fontSel = _("font"),
+				    // themeSel = _("theme"),
+				    sizeSel = _("fontsize"),
+				    isShown = _(id).display !== "none";
+				sizeSel.value = parseFloat(editor.getFontSize()).toFixed(1);
+
+				function addFont(item, index) {
+					if (doesFontExist(item)) {
+						var option = document.createElement("option");
+						option.text = item;
+						fontSel.add(option); 
+					}
+				}
+
+				fontSel.onchange = function() { editor.setOption("fontFamily", "'" + fontSel.value + "',monospace") }
+				// themeSel.onchange = function() { editor.setTheme("ace/theme/" + themeSel.value) }
+				sizeSel.onchange = function () {
+					var size = parseFloat(sizeSel.value);
+					if (!isNaN(size) && size >= 9 && size <= 40) {
+						editor.setFontSize(size);
+					}
+					sizeSel.value = parseFloat(editor.getFontSize()).toFixed(1);
+				}
+				
+				const monofonts = ["Courier New","Monaco","Lucida Console","Monospace","ui-monospace","Roboto Mono","Inconsolata","IBM Plex Mono","Space Mono","PT Mono","Ubuntu Mono","Nanum Gothic Coding",
+				"Cousine","Fira Mono","Share Tech Mono","Courier Prime","Anonymous Pro","Cutive Mono","Overpass Mono","Fira Code","VT323","DM Mono","Oxygen Mono",
+				"Nova Mono","B612 Mono","Spline Sans Mono","Noto Sans Mono","Major Mono Display","Azeret Mono","Red Hat Mono","Syne Mono","Xanh Mono"];
+				monofonts.sort().forEach(addFont);
+
+				function updateCutCopy() {
+				  let state = !isShown || editor.session.getSelection().isEmpty();
+					cutBtn.disabled = state;
+					copyBtn.disabled = state;
+				}
+				function updateToolbar() {
+				  let undo = editor.session.getUndoManager();
+					saveBtn.disabled = !isShown || undo.isClean();
+					undoBtn.disabled = !isShown || !undo.hasUndo();
+					redoBtn.disabled = !isShown || !undo.hasRedo();
+					//updateCutCopy();
+				}
+				saveBtn !== null && undoBtn !== null && redoBtn !== null && editor.on("input", updateToolbar);
+				editor.session.selection.on("changeCursor", updateCutCopy);
+
+				function getData(edtr) {
+					var data = edtr.getValue();
+					try {
+						var json = JSON.parse(data);
+						return JSON.stringify(json)
+					} catch (error) {
+						return data + ""
+					}
+				}
+
+				function save() {
+				    const d = getData(editor);
+            const data = new FormData;
+            data.append("data", new Blob([d], {
+                type: mime
+            }), path);
+
+            fetch('/edit', {
+                method: "POST",
+                body: data
+            })
+  					.then((response) => {
+							if (response.ok) {
+                return response.text().then(text => { console.log('Save OK /edit ' + text); })                
+							}
+							return response.text().then(text => { console.log('Save FAIL /edit'); throw new Error(text) })                
+						})
+						.then((data) => {
+               console.log(data);
+						}) 
+						.catch((error) => {
+							console.warn(error.name === "AbortError" ? "Promise Aborted" : "Promise Rejected");
+							alert(error);
+						})
+						.finally(() => {
+							updateToolbar();   
+						});
+				}
+				function paste() {
+					try {
+						navigator.clipboard.readText()
+						.then((text) => {
+							editor.execCommand("paste", text)
+						})
+						.catch((error) => {
+							pasteBtn.disabled = true;
+						})
+					}
+					catch {
+						pasteBtn.disabled = true;
+					}
+				}
+				function copyToClipboard() {
+					var text = editor.getCopyText();
+					if (window.clipboardData && window.clipboardData.setData) {
+						// Internet Explorer-specific code path to prevent textarea being shown while dialog is visible.
+						return window.clipboardData.setData("Text", text);
+					}
+					else if (document.queryCommandSupported && document.queryCommandSupported("copy")) {
+						editor.focus();
+						try {
+							return document.execCommand("copy");  // Security exception may be thrown by some browsers.
+						}
+						catch (ex) {
+							console.warn("Copy to clipboard failed.", ex);
+							return prompt("Copy to clipboard: Ctrl+C, Enter", text);
+						}
+					}
+				}
+				
+				saveBtn.onclick = save;
+				undoBtn.onclick = (e)=>{editor.undo() && editor.focus()}
+				redoBtn.onclick = (e)=>{editor.redo() && editor.focus()}
+				cutBtn.onclick = (e)=>{copyToClipboard() && editor.execCommand("cut")};
+				copyBtn.onclick = (e)=>{copyToClipboard() && editor.execCommand("copy")};
+				pasteBtn.onclick = paste;
+				
+				function openfile(filename) {
+				  _("name").innerHTML = filename;
+					res = fetch(filename)
+						.then((response) => {
+							if (response.ok) { console.log('OK '+filename); return response.text() }
+							return response.text().then(text => { console.log('ERROR '+url); throw new Error(text) })                
+						})
+						.then((data) => {
+							try {
+								var json = JSON.parse(data);
+								editor.setValue(JSON.stringify(json, null, 4));
+								console.log('parse json OK');
+							} catch (error) {
+								editor.setValue(data)
+								console.log('parse json FAIL');
+							}
+							if (_("preview") !== null) _("preview").style.display = "none";
+							if (_("editor") !== null) _("editor").style.display = "block";
+							isShown = true;
+							editor.resize();
+							updateToolbar();
+						})
+						.catch((error) => {
+							console.log(error);
+							alert(error);
+						})
+						.finally(() => {
+							editor.resize(true),
+							editor.scrollToLine(1, true, true, function() {}),
+							editor.gotoLine(1, 0, true),
+							editor.clearSelection(),
+							editor.getSession().setUndoManager(new ace.UndoManager())
+						});
+				}
+				editor.loadUrl = function(dirname,filename) {
+					lang = texttype(path = dirname + filename),
+				  mime = "text/" + lang,
+					"plain" !== lang && editor.getSession().setMode("ace/mode/" + lang),
+					openfile(dirname+filename)
+				}
+
+				return "plain" !== lang && editor.getSession().setMode("ace/mode/" + lang), editor.setTheme("ace/theme/" + theme), editor.$blockScrolling = 1 / 0,
+				editor.commands.addCommand({
+					name: "save",
+					bindKey: {
+						win: "Ctrl-S",
+						mac: "Command-S"
+					},
+					exec: save,
+					readOnly: false
+				}), editor.commands.addCommand({
+					name: "undo",
+					bindKey: {
+						win: "Ctrl-Z",
+						mac: "Command-Z"
+					},
+					exec: function() { editor.undo() }
+				}), editor.commands.addCommand({
+					name: "redo",
+					bindKey: {
+						win: "Ctrl-Y",
+						mac: "Command-Y"
+					},
+					exec: function() { editor.redo() }
+				}), undefined !== path && openfile(path),
+				editor.resize(),
+				editor
+			}
+			h=createEditor("editor",undefined,undefined,undefined);
+
+			document.addEventListener('DOMContentLoaded', function () {
+				// Query the element
+  			const resizer = document.getElementById('dragMe');
+				const leftSide = resizer.previousElementSibling;
+				const rightSide = resizer.nextElementSibling;
+
+				// The current position of mouse
+				let x = 0;
+				let y = 0;
+				let leftWidth = 0;
+
+				// Handle the mousedown event
+				// that's triggered when user drags the resizer
+				const mouseDownHandler = function (e) {
+					// Get the current mouse position
+					x = e.clientX;
+					y = e.clientY;
+					leftWidth = leftSide.getBoundingClientRect().width;
+  				// Attach the listeners to `document`
+					document.addEventListener('mousemove', mouseMoveHandler);
+					document.addEventListener('mouseup', mouseUpHandler);
+				};
+
+				const mouseMoveHandler = function (e) {
+					// How far the mouse has been moved
+					const dx = e.clientX - x;
+					const dy = e.clientY - y;
+
+					const newLeftWidth = ((leftWidth + dx) * 100) / resizer.parentNode.getBoundingClientRect().width;
+					leftSide.style.width = `${newLeftWidth}%`;
+					leftSide.style.right = leftSide.style.width;
+
+					resizer.style.cursor = 'col-resize';
+					document.body.style.cursor = 'col-resize';
+
+					leftSide.style.userSelect = 'none';
+					leftSide.style.pointerEvents = 'none';
+
+					rightSide.style.userSelect = 'none';
+					rightSide.style.pointerEvents = 'none';
+
+					ace.edit("editor").resize();
+				};
+
+				const mouseUpHandler = function () {
+					resizer.style.removeProperty('cursor');
+					document.body.style.removeProperty('cursor');
+
+					leftSide.style.removeProperty('user-select');
+					leftSide.style.removeProperty('pointer-events');
+
+					rightSide.style.removeProperty('user-select');
+					rightSide.style.removeProperty('pointer-events');
+
+					// Remove the handlers of `mousemove` and `mouseup`
+					document.removeEventListener('mousemove', mouseMoveHandler);
+					document.removeEventListener('mouseup', mouseUpHandler);
+				};
+
+				// Attach the handler
+				resizer.addEventListener('mousedown', mouseDownHandler);
+				resizer.addEventListener('dblclick', () => {
+					var show = leftSide.style.visibility = leftSide.style.visibility === 'hidden';
+					leftSide.style.visibility = show ? 'unset' : 'hidden';
+					leftSide.style.position = show ? 'unset' : 'absolute';
+					ace.edit("editor").resize();
+				})
+			});
+			
+      document.addEventListener('blur', function () { hidectx() });
+
+      var uploader;
+      function checkUpload() {
+            4 == uploader.readyState && (200 != uploader.status ? alert("ERROR[" + uploader.status + "]: " + uploader.responseText) : showEditor())
+      }
+      function doUpload() {
+        const q = _('upload');
+        if (0 !== q.files.length) {
+          (uploader = new XMLHttpRequest).onreadystatechange = checkUpload;
+          var data = new FormData;
+          for (let i = 0; i < q.files.length; i++) {
+            data.append("data", q.files[i], q.files[i].name)
+          } 
+          uploader.open("POST", "/edit"), uploader.send(data)
+        }
+      }
+      
+      function isFolder(model) {
+        return model.children && model.children.length
+      }
+      function isText(model) {
+        var a = /(?:\.([^.]+))?$/.exec(model.name)[1];
+        if (void 0 !== typeof a) {
+            switch (a) {
+                case "txt": case "cmd": case "json": case "jsonl": case "htm": case "html": case "js": case "c": case "cpp": case "css": case "svg": case "xml": return !0
+            }
+        }
+        return !1
+      }
+      function isImage(model) {
+        var a = /(?:\.([^.]+))?$/.exec(model.name)[1];
+        if (void 0 !== typeof a) {
+            switch (a) {
+                case "bmp": case "png": case "jpg": case "gif": case "svg": return !0
+            }
+        }
+        return !1
+      }
+      function icon(model) {
+        if (isFolder(model)) { return 'dir'}
+        var a = /(?:\.([^.]+))?$/.exec(model.name)[1];
+        if (void 0 !== typeof a) {
+          switch (a) {
+              case "cmd": case "css": case "json": case "jsonl": case "html": case "zip": case "txt": return a;
+              case "gz": return 'zip';
+              case "htm": return 'html';
+              case "js": case "c": case "cpp": case "xml": return 'file';
+              case "bmp": case "png": case "svg": case "jpg": case "gif": return 'image';
+          }
+        }
+        return 'file';
+      }
+      function preview(model,path) {
+        if (isImage(model)) {
+          const pr = _("preview");
+          const ed = _("editor");
+          pr.innerHTML = '<img src="'+path+model.name+'?a='+Date.now()+'"/>';
+          pr.style.display = "block";
+          ed.style.display = "none"
+        }
+      }
+      function edit(model,path) {
+        if (isText(model)) {
+          const pr = _("preview");
+          const ed = _("editor");
+          ed.style.display = "block";
+          pr.style.display = "none";
+          ace.edit("editor").loadUrl(path, model.name)
+        }
+      }
+      function url(model,path) {
+        console.log('click ' + path + model.name);
+        if (isImage(model)) {
+          preview(model,path);
+        } else if (isText(model)) {
+          edit(model,path);
+        }
+      }
+      function fetchData(uri,method,data) {
+        fetch(uri, { method: method, body: data })
+  			.then((response) => {
+  				if (response.ok) {
+  				  console.log(method+' OK '+uri);
+  				  return response.text()
+  				}
+  				return response.text().then(text => { console.log(method+' FAIL '+uri); throw new Error(text) })
+  			})
+  			.then((data) => {
+           console.log(data);
+  			}) 
+  			.catch((error) => {
+  				console.warn(error.name === "AbortError" ? "Promise Aborted" : "Promise Rejected");
+  				alert(error);
+  			})
+  			.finally(() => {
+  			});
+      }
+      function download(model,path) {
+        console.log('download ' + path + model.name);
+        document.getElementById("download-frame").src = path + model.name + "?download=true"
+      }
+      function remove(model,path,li) {
+        console.log('remove ' + path + model.name);
+        const data = new FormData;
+        data.append("path", path + model.name);
+        fetchData('/edit','DELETE', data);
+        li.remove();
+      }
+      function create(path) {
+        var name = window.prompt("Create File in "+path,"");
+        if (name == null || name == "" || name.includes('/')) return;
+  
+        const data = new FormData;
+        data.append("path", path + name);     
+        this.fetchData('/edit','PUT', data);
+  
+        fetch('/api/files/')
+          .then((res) => res.json())
+          .then((data) => {
+            console.log(data)
+          })
+      }
+      function ctx(e,model,path,li) {
+        console.log('ctx ' + path + model+name);
+        var c = _("ctx");
+        c.style.display = "block";
+        
+        let el;
+        c.getElementsByTagName("li")[0].onclick = function() { hidectx(); create(path) };
+
+        el = c.getElementsByTagName("li")[1];
+        el.onclick = function() { edit(model,path);hidectx() };
+        el.style.display = isText(model) ? "block" : "none";
+  
+        el = c.getElementsByTagName("li")[2];
+        el.onclick = function() { preview(model,path);hidectx() };
+        el.style.display = isImage(model) ? "block" : "none";
+
+        c.getElementsByTagName("li")[3].onclick = function() { download(model,path);hidectx() };
+        c.getElementsByTagName("li")[4].onclick = function() { remove(model,path,li);hidectx() };
+        
+        var dy = document.body.scrollTop ? document.body.scrollTop : document.documentElement.scrollTop;
+        var dx = document.body.scrollLeft ? document.body.scrollLeft : document.documentElement.scrollLeft;
+        var x = e.clientX + dx +10;
+        var y = e.clientY + dy -20;
+        var ofw = c.offsetWidth;
+        var ofh = c.offsetHeight;
+        var doch = document.documentElement.clientHeight;
+        if(y+ofh>doch) { y = doch-ofh-20}
+        c.style.left = x + "px";
+        c.style.top = y + "px";
+
+        console.log(e);
+        e.preventDefault();
+      }
+
+      
+      function prepare() {
+        listFiles(document.getElementsByClassName('sub_div')[0],null,'/');
+        _("load").onclick = function(e) {
+          const data = new FormData;
+          data.append("load", "");     
+          fetchData('/edit','PUT', data);
+        }
+        _("init").onclick = function(e) {
+          const data = new FormData;
+          data.append("init", "");     
+          fetchData('/edit','PUT', data);
+        }
+        _("home").onclick = function(e) {
+            window.location.href = "/"
+        }
+        _("page").onchange = function(e) {
+          const data = new FormData;
+          data.append("page", _('page').value);     
+          fetchData('/edit','PUT', data);
+        }
+      }
+
+      function listFiles(sd,div,p) {
+        console.log('listFiles');
+        fetch('/api/files/?dir='+p)
+        .then((res) => res.json())
+        .then((data) => {
+          // sd.removeChild(sd.firstElementChild);
+          const ul = document.createElement("ul");
+          sd.appendChild(ul);
+
+          div && (div.onclick = function(e) {
+            ul.remove();
+            div.onclick = function(e) {
+                listFiles(sd,div,p);
+            };   
+            e.stopPropagation();
+          });
+          
+          for (var i in data) {
+            const obj = data[i];
+            const name = obj.name;
+            const path = p;
+            const li = document.createElement("li");
+            ul.appendChild(li);
+            const div = document.createElement("div");
+            li.appendChild(div);
+            div.innerHTML = '<span class="fi fa-'+icon(data[i])+'" title="'+name+'"></span><span class="fn">'+name+'</span>';
+      
+            if (isFolder(obj)) {
+              div.classList.add("bold");
+              div.onclick = function(e) {
+                  console.log(obj);
+                  listFiles(li,div,path+obj.name+'/');
+              };      
+              continue;
+            }
+            
+            div.onclick = function(e) {
+                console.log(obj);
+                url(obj,path);
+            };      
+            div.oncontextmenu = function(e) {
+              console.log(obj);
+              ctx(e,obj,path,li);
+            };
+          }
+          ul.scrollIntoView()
+        })
+      }
+		</script>
+    
+  </body>
+</html>

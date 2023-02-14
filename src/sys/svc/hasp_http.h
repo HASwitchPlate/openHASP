@@ -77,6 +77,16 @@ bool httpSetConfig(const JsonObject& settings);
 #ifndef D_HTTP_COLOR_FOOTER_TEXT
 #define D_HTTP_COLOR_FOOTER_TEXT        "#0083cc"    // Text color of the page footer
 #endif
+#ifndef D_HTTP_COLOR_TOOLBAR
+#define D_HTTP_COLOR_TOOLBAR            D_HTTP_COLOR_BUTTON
+#endif
+#ifndef D_HTTP_COLOR_TREE
+#define D_HTTP_COLOR_TREE               D_HTTP_COLOR_GROUP               
+#endif
+#ifndef D_HTTP_COLOR_PREVIEW
+#define D_HTTP_COLOR_PREVIEW            "#888"
+#endif
+
 /* clang-format on */
 
 #endif

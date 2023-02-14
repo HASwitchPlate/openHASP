@@ -8,9 +8,35 @@
     --cog: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" id="mdi-cog-outline" viewBox="0 0 24 24"><path d="M12,8A4,4 0 0,1 16,12A4,4 0 0,1 12,16A4,4 0 0,1 8,12A4,4 0 0,1 12,8M12,10A2,2 0 0,0 10,12A2,2 0 0,0 12,14A2,2 0 0,0 14,12A2,2 0 0,0 12,10M10,22C9.75,22 9.54,21.82 9.5,21.58L9.13,18.93C8.5,18.68 7.96,18.34 7.44,17.94L4.95,18.95C4.73,19.03 4.46,18.95 4.34,18.73L2.34,15.27C2.21,15.05 2.27,14.78 2.46,14.63L4.57,12.97L4.5,12L4.57,11L2.46,9.37C2.27,9.22 2.21,8.95 2.34,8.73L4.34,5.27C4.46,5.05 4.73,4.96 4.95,5.05L7.44,6.05C7.96,5.66 8.5,5.32 9.13,5.07L9.5,2.42C9.54,2.18 9.75,2 10,2H14C14.25,2 14.46,2.18 14.5,2.42L14.87,5.07C15.5,5.32 16.04,5.66 16.56,6.05L19.05,5.05C19.27,4.96 19.54,5.05 19.66,5.27L21.66,8.73C21.79,8.95 21.73,9.22 21.54,9.37L19.43,11L19.5,12L19.43,13L21.54,14.63C21.73,14.78 21.79,15.05 21.66,15.27L19.66,18.73C19.54,18.95 19.27,19.04 19.05,18.95L16.56,17.95C16.04,18.34 15.5,18.68 14.87,18.93L14.5,21.58C14.46,21.82 14.25,22 14,22H10M11.25,4L10.88,6.61C9.68,6.86 8.62,7.5 7.85,8.39L5.44,7.35L4.69,8.65L6.8,10.2C6.4,11.37 6.4,12.64 6.8,13.8L4.68,15.36L5.43,16.66L7.86,15.62C8.63,16.5 9.68,17.14 10.87,17.38L11.24,20H12.76L13.13,17.39C14.32,17.14 15.37,16.5 16.14,15.62L18.57,16.66L19.32,15.36L17.2,13.81C17.6,12.64 17.6,11.37 17.2,10.2L19.31,8.65L18.56,7.35L16.15,8.39C15.38,7.5 14.32,6.86 13.12,6.62L12.75,4H11.25Z" /></svg>');
     --star: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="-10 -6 16 16"><line y1="-3" y2="3" stroke="red" transform="rotate(15)"></line><line y1="-3" y2="3" stroke="red" transform="rotate(75)"></line><line y1="-3" y2="3" stroke="red" transform="rotate(-45)"></line></svg>');
     --trash: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" id="mdi-trash-can-outline" width="24" height="24" viewBox="0 0 24 24"><path d="M9,3V4H4V6H5V19A2,2 0 0,0 7,21H17A2,2 0 0,0 19,19V6H20V4H15V3H9M7,6H17V19H7V6M9,8V17H11V8H9M13,8V17H15V8H13Z" /></svg>');
-    --download: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" id="mdi-download" width="24" height="24" viewBox="0 0 24 24"><path d="M5,20H19V18H5M19,9H15V3H9V9H5L12,16L19,9Z" /></svg>')
+    --download: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" id="mdi-download" width="24" height="24" viewBox="0 0 24 24"><path d="M5,20H19V18H5M19,9H15V3H9V9H5L12,16L19,9Z" /></svg>');
+    --file: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" id="mdi-file-outline" viewBox="0 0 24 24"><path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z" /></svg>');
+    --dir: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" id="mdi-folder-outline" viewBox="0 0 24 24"><path d="M20,18H4V8H20M20,6H12L10,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V8C22,6.89 21.1,6 20,6Z" /></svg>');
+    --diropen: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" id="mdi-folder-open-outline" viewBox="0 0 24 24"><path d="M6.1,10L4,18V8H21A2,2 0 0,0 19,6H12L10,4H4A2,2 0 0,0 2,6V18A2,2 0 0,0 4,20H19C19.9,20 20.7,19.4 20.9,18.5L23.2,10H6.1M19,18H6L7.6,12H20.6L19,18Z" /></svg>');
+    --html: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" id="mdi-code-tags" viewBox="0 0 24 24"><path d="M14.6,16.6L19.2,12L14.6,7.4L16,6L22,12L16,18L14.6,16.6M9.4,16.6L4.8,12L9.4,7.4L8,6L2,12L8,18L9.4,16.6Z" /></svg>');
+    --image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" id="mdi-file-image-outline" viewBox="0 0 24 24"><path d="M14,2L20,8V20A2,2 0 0,1 18,22H6A2,2 0 0,1 4,20V4A2,2 0 0,1 6,2H14M18,20V9H13V4H6V20H18M17,13V19H7L12,14L14,16M10,10.5A1.5,1.5 0 0,1 8.5,12A1.5,1.5 0 0,1 7,10.5A1.5,1.5 0 0,1 8.5,9A1.5,1.5 0 0,1 10,10.5Z" /></svg>');
+    --zip: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" id="mdi-file-cabinet" viewBox="0 0 24 24"><path d="M14,8H10V6H14V8M20,4V20C20,21.11 19.11,22 18,22H6C4.89,22 4,21.11 4,20V4A2,2 0 0,1 6,2H18C19.11,2 20,2.9 20,4M18,13H6V20H18V13M18,4H6V11H18V4M14,15H10V17H14V15Z" /></svg>');
+    --cmd: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" id="mdi-application-outline" viewBox="0 0 24 24"><path d="M21 2H3C1.9 2 1 2.9 1 4V20C1 21.1 1.9 22 3 22H21C22.1 22 23 21.1 23 20V4C23 2.9 22.1 2 21 2M21 20H3V6H21V20Z" /></svg>');
+    --css: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" id="mdi-script-outline" viewBox="0 0 24 24"><path d="M15,20A1,1 0 0,0 16,19V4H8A1,1 0 0,0 7,5V16H5V5A3,3 0 0,1 8,2H19A3,3 0 0,1 22,5V6H20V5A1,1 0 0,0 19,4A1,1 0 0,0 18,5V9L18,19A3,3 0 0,1 15,22H5A3,3 0 0,1 2,19V18H13A2,2 0 0,0 15,20Z" /></svg>');
+    --eye: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" id="mdi-eye-outline" viewBox="0 0 24 24"><path d="M12,9A3,3 0 0,1 15,12A3,3 0 0,1 12,15A3,3 0 0,1 9,12A3,3 0 0,1 12,9M12,4.5C17,4.5 21.27,7.61 23,12C21.27,16.39 17,19.5 12,19.5C7,19.5 2.73,16.39 1,12C2.73,7.61 7,4.5 12,4.5M3.18,12C4.83,15.36 8.24,17.5 12,17.5C15.76,17.5 19.17,15.36 20.82,12C19.17,8.64 15.76,6.5 12,6.5C8.24,6.5 4.83,8.64 3.18,12Z" /></svg>');
+    --json: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" id="mdi-code-braces" viewBox="0 0 24 24"><path d="M8,3A2,2 0 0,0 6,5V9A2,2 0 0,1 4,11H3V13H4A2,2 0 0,1 6,15V19A2,2 0 0,0 8,21H10V19H8V14A2,2 0 0,0 6,12A2,2 0 0,0 8,10V5H10V3M16,3A2,2 0 0,1 18,5V9A2,2 0 0,0 20,11H21V13H20A2,2 0 0,0 18,15V19A2,2 0 0,1 16,21H14V19H16V14A2,2 0 0,1 18,12A2,2 0 0,1 16,10V5H14V3H16Z" /></svg>');
 }
 
+.fn:hover {
+  text-decoration: underline;
+}
+.fi {
+  display: inline-block;
+  vertical-align: middle;
+  width: 1.1rem;
+  height: 1.25rem;
+  mask-size: auto;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  -webkit-mask-size: auto;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  background-color: var(--txt);
+}
 .fa {
   display: block;
   text-indent: -9999px;
@@ -37,28 +63,17 @@
 .fa-shot    { mask-image: var(--shot);      -webkit-mask-image: var(--shot)}
 .fa-star    { mask-image: var(--star);      -webkit-mask-image: var(--star)}
 .fa-trash   { mask-image: var(--trash);     -webkit-mask-image: var(--trask)}
-
-#ctx {
-	display: none;
-	top: 10px;
-	left: 50px;
-	position: absolute;
-	background: #fff;
-	z-index: 10;
-	padding: 0.75rem;
-	border-radius: 0.5rem;
-	box-shadow: 0 0.5rem 0.75rem rgba(0,0,0,0.25);
-}
-#ctx > ul {
-	padding-left: 0px;
-}
-#ctx > ul > li,
-.sub_div > ul > li {
-  cursor: pointer; 
-}
-#ctx > ul > li:hover {
-  background: #ccc;
-}
+.fa-file    { mask-image: var(--file);      -webkit-mask-image: var(--file)}
+.fa-dir     { mask-image: var(--dir);       -webkit-mask-image: var(--dir)}
+.fa-diropen { mask-image: var(--diropen);   -webkit-mask-image: var(--diropen)}
+.fa-eye     { mask-image: var(--eye);       -webkit-mask-image: var(--eye)}
+.fa-zip     { mask-image: var(--zip);       -webkit-mask-image: var(--zip)}
+.fa-css     { mask-image: var(--css);       -webkit-mask-image: var(--css)}
+.fa-cmd     { mask-image: var(--cmd);       -webkit-mask-image: var(--cmd)}
+.fa-json    { mask-image: var(--json);      -webkit-mask-image: var(--json)}
+.fa-jsonl   { mask-image: var(--json);      -webkit-mask-image: var(--json)}
+.fa-image   { mask-image: var(--image);     -webkit-mask-image: var(--image)}
+.fa-html    { mask-image: var(--html);      -webkit-mask-image: var(--html)}
 
 .nav-list {
   font-size: var(--fs-nav);
@@ -114,7 +129,7 @@
    margin: 0px;
    padding: 0px;
 }
-P {
+p {
   margin: 1em 0px;
 }
 
@@ -156,30 +171,27 @@ button,
 .warning{ color: #9F6000; background-color: #FEEFB3 }
 .error  { color: #D8000C; background-color: #FFD2D2 }
 
-
-/* Navigation bar */
-
-#filebrowser {
-  display: none
-}
+.left { float: left }
+.right { float: right }
+.bold { font-weight: bold }
 
 /* Main Page */
 #doc {
     text-align: left;
     margin: 0 auto;
-    display: inline-block;
+    /* display: inline-block;
+    display: table; */
     color: var(--txt);
     width: 80%;
     min-width: 300px;
     max-width: 600px;
-    display: table
 }
 
 #doc>a,
 .dist>a,
 #doc button,
 #doc input[type=submit] {
-    // padding: 12px;
+    /* padding: 12px; */
     height: 3rem;
     border: 1px solid var(--btnbrd);
     border-radius: .6rem;
@@ -245,7 +257,7 @@ button,
     padding-top: 0
 }
 #doc th {
-    padding-top: .5em
+    padding-top: .5rem
 }
 
 #doc input,
@@ -262,7 +274,7 @@ button,
   background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.7' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
   background-repeat: no-repeat;
   background-position: right .8rem center;
-  background-size: 1em
+  background-size: 1rem
 }
 
 #doc label {
@@ -271,34 +283,30 @@ button,
     display: inline-block
 }
 
+#bmp {
+  max-width: 100%;
+  height: auto;
+}
+
 .required {
     background-image: var(--star);
     background-position: right;
     background-repeat: no-repeat;
-    background-size: 1.5em 1.5em;
+    background-size: 1.5rem 1.5rem;
 }
 
 .icon {
-    background-size: 1.05em 1.05em;
+    background-size: 1.25rem 1.25rem;
     background-position: left;
     background-repeat: no-repeat;
-    width: 1.5em;
+    width: 1.5rem;
     display: inline-block;
     text-decoration: none
 }
 
-.icon:before {
-    content: "\0000a0"
-}
-.edit {
-    background-image: var(--browse);
-}
-.trash {
-    background-image: var(--trash);
-}
-.download {
-    background-image: var(--download);
-}
+.icon:before{content: "\0000a0"}
+.edit{background-image: var(--browse)}
+.trash{background-image: var(--trash)}
 
 /* Forms */
 .container {
@@ -336,7 +344,7 @@ button,
 }
 
 .row {
-    // font-size: .833rem;
+    /* font-size: .833rem; */
     margin: 5px
 }
 
@@ -346,15 +354,15 @@ button,
 }
 
 .col-25 {
-    // float: left;
-    // width: 25%;
+    /* float: left;
+    width: 25%; */
     text-align: left;
 }
 
-.col-75 {
-    // float: left;
-    // width: 75%
-}
+/* .col-75 {
+    float: left;
+    width: 75%
+} */
 
 #doc label,
 #doc legend {
@@ -363,6 +371,9 @@ button,
 #doc fieldset {
     display: contents
 }
+[v-cloak] > * { display:none }
+/* [v-cloak]::before { content: "Loading…"; margin: auto; } */
+
     
 @media screen and (min-width:800px) {
     .row {
@@ -405,13 +416,13 @@ button,
 }
 */
 
-/* Page Footer */
+/* ********** Page Footer ********** */
 .foot {
     background-color: transparent !important;
     all: revert;
     float: right;
     margin: 0;
-    font-size: .6em
+    font-size: .6rem
 }
 a.foot:link,
 a.foot:visited {
@@ -421,19 +432,21 @@ a.foot:visited {
     clear: both
 }
 
-/* File Editor */
+/* ********** File Editor ********** */
 .container__editor {
-	display: none;
+	/* display: none; */
+	display: flex;
 
 	/* Misc */
 	border: 0;
 	width: 100vw;
 	height: 100vh;
-	background-color: burlywood;
+	background-color: var(--bg);
 }
 .container__left {
 	/* Initially, the left takes 3/4 width */
-	width: clamp(10rem, 15vw, 20rem);
+	width: 10rem;
+	min-width: 6rem;
 	max-width: 20rem;
 
 	/* Misc */
@@ -467,18 +480,14 @@ a.foot:visited {
 	align-items: center;
 	display: flex;
 	justify-content: center;
-	background-color: brown;
+	background-color: var(--grpbg)
 }
 .toolbar {
-	/* Take the remaining width */
-	height: 3rem;
-	background-color: gray;
-
-	/* Misc */
-	align-items: center;
-	display: flex;
-	justify-content: center;
+	text-align: center;
 	width: 100%;
+	padding: 0.5rem;
+	color: var(--btnfg);
+	background-color: var(--toolbg)
 }
 .container__bottom {
 	/* Take the remaining width */
@@ -496,3 +505,62 @@ a.foot:visited {
 #sizeList {
 	width: 4rem;
 }
+#ctx {
+	display: none;
+	top: 10px;
+	left: 50px;
+	position: absolute;
+	background: #fff;
+	z-index: 10;
+	padding: 0.75rem;
+	border-radius: 0.5rem;
+	box-shadow: 0 0.5rem 0.75rem rgba(0,0,0,0.25);
+}
+#ctx > ul {
+	padding-left: 0px;
+}
+#ctx > ul > li,
+.sub_div > ul > li {
+  cursor: pointer;
+  white-space: nowrap
+}
+#ctx > ul > li:hover {
+  background: #ccc;
+}
+#fontsize, #page {
+  width: 3rem
+}
+#preview {
+  background-color: #888;
+  padding: 5px;
+  overflow: scroll;
+}
+#preview > img {
+  max-width:100%;
+  max-height:100%;
+ 	height: 100%;
+  margin: auto;
+  display: block
+}
+#download-frame,
+#preview {
+  display:none;
+}
+#tree {
+  width: 100%;
+  line-height: 1.3rem;
+  font-size: 0.95rem;
+	background-color: var(--treebg)
+}
+.download{background-image: var(--download)}
+.eye{background-image: var(--eye)}
+.file{background-image: var(--file)}
+.zip{background-image: var(--zip)}
+.css{background-image: var(--css)}
+.cmd{background-image: var(--cmd)}
+.json{background-image: var(--json)}
+.jsonl{background-image: var(--json)}
+.image{background-image: var(--image)}
+.html{background-image: var(--html)}
+.dir{background-image: var(--dir)}
+.diropen{background-image: var(--diropen)}
