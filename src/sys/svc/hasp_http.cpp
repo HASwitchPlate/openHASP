@@ -1413,13 +1413,9 @@ static void http_handle_mqtt()
 <h2 v-t="'mqtt.title'"></h2>
 <div class="container" v-cloak v-if="config.mqtt">
 <form @submit.prevent="submitOldConfig('mqtt') ">
-<div class="row">
+<div class="row gap">
 <div class="col-25"><label class="required" for="name" v-t="'mqtt.name'"></label></div>
 <div class="col-75"><input required="" type="text" id="name" maxlength="63" pattern="[a-z0-9_]*" placeholder="Plate Name" v-model="config.mqtt.name"></div>
-</div>
-<div class="row gap">
-<div class="col-25"><label for="group" v-t="'mqtt.group'"></label></div>
-<div class="col-75"><input type="text" id="group" maxlength="15" pattern="[a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9]" placeholder="Group Name" v-model="config.mqtt.group"></div>
 </div>
 <div class="row">
 <div class="col-25"><label for="host" v-t="'mqtt.host'"></label></div>

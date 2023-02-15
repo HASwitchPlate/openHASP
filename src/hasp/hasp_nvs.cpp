@@ -22,16 +22,21 @@ bool nvs_user_begin(Preferences& preferences, const char* key, bool readonly)
 
 bool nvs_clear_user_config()
 {
-    const char* name[8] = {FP_TIME, FP_OTA, FP_HTTP, FP_FTP, FP_MQTT, FP_WIFI};
+    const char* name[] = {FP_TIME, FP_OTA, FP_HTTP, FP_FTP, FP_MQTT, FP_WIFI};
     Preferences preferences;
+    bool state = true;
 
-    for(int i = 0; i < 6; i++) {
-        if(!preferences.begin(name[i], false)) return false;
-        if(!preferences.clear()) return false;
+    for(int i = 0; i < sizeof(name) / sizeof(name[0]); i++) {
+        if(preferences.begin(name[i], false) && !preferences.clear()) state = false;
         preferences.end();
     }
 
-    return true;
+    for(int i = 0; i < sizeof(name) / sizeof(name[0]); i++) {
+        if(preferences.begin(name[i], false, "config") && !preferences.clear()) state = false;
+        preferences.end();
+    }
+
+    return state;
 }
 
 bool nvsUpdateString(Preferences& preferences, const char* key, JsonVariant value)
