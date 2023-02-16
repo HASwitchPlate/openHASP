@@ -851,12 +851,12 @@ typedef void* lv_font_user_data_t;
 typedef struct {
   uint8_t id:8;
   uint8_t objid:6;
-  uint8_t transitionid:4;
-  uint8_t actionid:4;
+  //uint8_t transitionid:4;
+  //uint8_t actionid:4;
   uint8_t groupid:4;
-  uint8_t swipeid:4;
-  void* tag;
-  char* action;
+  // uint8_t swipeid:4;
+  void* ext;
+  // char* action;
 } lv_obj_user_data_t;
 
 /*1: enable `lv_obj_realaign()` based on `lv_obj_align()` parameters*/

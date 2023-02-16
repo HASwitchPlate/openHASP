@@ -42,6 +42,25 @@ void event_reset_last_value_sent()
     last_value_sent = INT16_MIN;
 }
 
+void script_event_handler(const char* eventname, const char* json)
+{
+    StaticJsonDocument<256> doc;
+    StaticJsonDocument<64> filter;
+
+    filter[eventname]              = true;
+    DeserializationError jsonError = deserializeJson(doc, json, DeserializationOption::Filter(filter));
+
+    if(!jsonError) {
+        JsonVariant json  = doc[eventname].as<JsonVariant>();
+        uint8_t savedPage = haspPages.get();
+        if(!dispatch_json_variant(json, savedPage, TAG_EVENT)) {
+            LOG_WARNING(TAG_EVENT, F(D_DISPATCH_COMMAND_NOT_FOUND), eventname);
+        }
+    } else {
+        dispatch_json_error(TAG_EVENT, jsonError);
+    }
+}
+
 /**
  * Clean-up allocated memory before an object is deleted
  * @param obj pointer to an object to clean-up
@@ -87,6 +106,7 @@ void delete_event_handler(lv_obj_t* obj, lv_event_t event)
     }
     my_obj_set_tag(obj, (char*)NULL);
     my_obj_set_action(obj, (char*)NULL);
+    my_obj_set_swipe(obj, (char*)NULL);
 }
 
 /* ============================== Timer Event  ============================ */
@@ -239,7 +259,7 @@ static void event_send_object_data(lv_obj_t* obj, const char* data)
         if(!data) return;
         object_dispatch_state(pageid, objid, data);
     } else {
-        LOG_ERROR(TAG_MSGR, F(D_OBJECT_UNKNOWN));
+        LOG_ERROR(TAG_EVENT, F(D_OBJECT_UNKNOWN));
     }
 }
 
@@ -370,22 +390,22 @@ void first_touch_event_handler(lv_obj_t* obj, lv_event_t event)
 
 void swipe_event_handler(lv_obj_t* obj, lv_event_t event)
 {
-    if(!obj || obj->user_data.swipeid == 0) return;
+    if(event != LV_EVENT_GESTURE || !obj || !obj->user_data.ext) return;
 
-    if(event == LV_EVENT_GESTURE) {
+    if(const char* swipe = my_obj_get_swipe(obj)) {
         lv_gesture_dir_t dir = lv_indev_get_gesture_dir(lv_indev_get_act());
         switch(dir) {
             case LV_GESTURE_DIR_LEFT:
-                haspPages.next(LV_SCR_LOAD_ANIM_NONE, 500, 0);
+                script_event_handler("left", swipe);
                 break;
             case LV_GESTURE_DIR_RIGHT:
-                haspPages.prev(LV_SCR_LOAD_ANIM_NONE, 500, 0);
+                script_event_handler("right", swipe);
                 break;
             case LV_GESTURE_DIR_BOTTOM:
-                haspPages.back(LV_SCR_LOAD_ANIM_NONE, 500, 0);
+                script_event_handler("down", swipe);
                 break;
             default:
-                dispatch_current_page();
+                script_event_handler("up", swipe);
         }
     }
 }
@@ -492,49 +512,10 @@ void generic_event_handler(lv_obj_t* obj, lv_event_t event)
 
     if(last_value_sent == HASP_EVENT_LOST) return;
 
-    if(obj->user_data.action) {
-     //   if(last_value_sent == HASP_EVENT_UP || last_value_sent == HASP_EVENT_RELEASE) {
-            // dispatch_text_line(obj->user_data.action, TAG_EVENT);
-
-            StaticJsonDocument<256> doc;
-            StaticJsonDocument<64> filter;
-            char eventname[8];
-
-            Parser::get_event_name(last_value_sent, eventname, sizeof(eventname));
-            filter[eventname] = true;
-            DeserializationError jsonError =
-                deserializeJson(doc, (const char*)obj->user_data.action, DeserializationOption::Filter(filter));
-
-            if(!jsonError) {
-                JsonVariant json  = doc[eventname].as<JsonVariant>();
-                uint8_t savedPage = haspPages.get();
-                if(!dispatch_json_variant(json, savedPage, TAG_EVENT)) {
-                    LOG_WARNING(TAG_MSGR, F(D_DISPATCH_COMMAND_NOT_FOUND), eventname);
-                    // dispatch_simple_text_command(payload, source);
-                }
-            }
-      //  }
-
-    } else if(obj->user_data.actionid) {
-        /* If an actionid is attached, perform that action on UP event only */
-        if(last_value_sent == HASP_EVENT_UP || last_value_sent == HASP_EVENT_RELEASE) {
-            lv_scr_load_anim_t transitionid = (lv_scr_load_anim_t)obj->user_data.transitionid;
-            switch(obj->user_data.actionid) {
-                case HASP_NUM_PAGE_PREV:
-                    haspPages.prev(transitionid, 500, 0);
-                    break;
-                case HASP_NUM_PAGE_BACK:
-                    haspPages.back(transitionid, 500, 0);
-                    break;
-                case HASP_NUM_PAGE_NEXT:
-                    haspPages.next(transitionid, 500, 0);
-                    break;
-                default:
-                    haspPages.set(obj->user_data.actionid, transitionid, 500, 0);
-            }
-            dispatch_current_page();
-        }
-
+    if(const char* action = my_obj_get_action(obj)) {
+        char eventname[8];
+        Parser::get_event_name(last_value_sent, eventname, sizeof(eventname));
+        script_event_handler(eventname, action);
     } else {
         char data[512];
         {

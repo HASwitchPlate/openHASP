@@ -1637,6 +1637,18 @@ static hasp_attribute_type_t attribute_common_tag(lv_obj_t* obj, uint16_t attr_h
             }
             break; // attribute_found
 
+        case ATTR_SWIPE:
+            if(update) {
+                my_obj_set_swipe(obj, payload);
+            } else {
+                if(my_obj_get_swipe(obj)) {
+                    *text = (char*)my_obj_get_swipe(obj);
+                } else {
+                    strcpy_P(*text, "null"); // TODO : Literal String
+                }
+            }
+            break; // attribute_found
+
         default:
             return HASP_ATTR_TYPE_NOT_FOUND;
     }
@@ -2324,12 +2336,12 @@ static hasp_attribute_type_t attribute_common_int(lv_obj_t* obj, uint16_t attr_h
                 val = obj->user_data.groupid;
             break; // attribute_found
 
-        case ATTR_TRANSITION:
-            if(update)
-                obj->user_data.transitionid = (uint8_t)val;
-            else
-                val = obj->user_data.transitionid;
-            break; // attribute_found
+        // case ATTR_TRANSITION:
+        //     if(update)
+        //         obj->user_data.transitionid = (uint8_t)val;
+        //     else
+        //         val = obj->user_data.transitionid;
+        //     break; // attribute_found
 
         case ATTR_OBJID:
             if(update && val != obj->user_data.objid) return HASP_ATTR_TYPE_INT_READONLY;
@@ -2450,12 +2462,12 @@ static hasp_attribute_type_t attribute_common_bool(lv_obj_t* obj, uint16_t attr_
                 val = !(lv_obj_get_state(obj, LV_BTN_PART_MAIN) & LV_STATE_DISABLED);
             break; // attribute_found
 
-        case ATTR_SWIPE:
-            if(update)
-                obj->user_data.swipeid = (!!val) % 16;
-            else
-                val = obj->user_data.swipeid;
-            break; // attribute_found
+        // case ATTR_SWIPE:
+        //     if(update)
+        //         obj->user_data.swipeid = (!!val) % 16;
+        //     else
+        //         val = obj->user_data.swipeid;
+        //     break; // attribute_found
 
         case ATTR_TOGGLE:
             switch(obj_get_type(obj)) {
@@ -2594,7 +2606,7 @@ void hasp_process_obj_attribute(lv_obj_t* obj, const char* attribute, const char
     switch(attr_hash) {
         case ATTR_GROUPID:
         case ATTR_ID:
-        case ATTR_TRANSITION:
+        // case ATTR_TRANSITION:
         case ATTR_OBJID:
         case ATTR_X:
         case ATTR_Y:
@@ -2611,7 +2623,7 @@ void hasp_process_obj_attribute(lv_obj_t* obj, const char* attribute, const char
         case ATTR_HIDDEN:
         case ATTR_TOGGLE:
         case ATTR_CLICK:
-        case ATTR_SWIPE:
+        // case ATTR_SWIPE:
         case ATTR_ENABLED:
             val = Parser::is_true(payload);
             ret = attribute_common_bool(obj, attr_hash, val, update);
@@ -2644,6 +2656,7 @@ void hasp_process_obj_attribute(lv_obj_t* obj, const char* attribute, const char
             break;
         case ATTR_TAG:
         case ATTR_ACTION:
+        case ATTR_SWIPE:
             ret = attribute_common_tag(obj, attr_hash, payload, &text, update);
             break;
         case ATTR_JSONL:

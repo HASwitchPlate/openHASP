@@ -16,6 +16,13 @@ const char FP_GROUPID[] PROGMEM  = "groupid";
 
 typedef struct
 {
+    char* action;
+    char* swipe;
+    char* tag;
+} hasp_ext_user_data_t;
+
+typedef struct
+{
     lv_obj_t* obj;
     char* templ;
     uint16_t interval;
