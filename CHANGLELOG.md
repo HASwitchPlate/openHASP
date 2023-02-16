@@ -2,8 +2,11 @@
 
 ## v0.7.0
 
+!!! THE PARTITION SCHEME OF THE INTERNAL FLASH HAS CHANGED !!!
+
 ### Objects
 <!-- ? Support for State and Part properties -->
+- `action` and `swipe` can now be set to any command
 - Set default line_width of new `line` objects to 1
 - Allow line and block comments in pages.jsonl
 - HASP theme: Toggle objects now use the secondary color when they are in the toggled state.
@@ -13,15 +16,19 @@
 - Use embedded TrueType font for other font sizes (PSram highly recommended)
 - Add glyphs from character sets Cyrillic, Latin-2, Greek and Viernamese to default fonts
 
-<!--
 ### Web UI
-- _Selectable dark/light theme?_
--->
+- Update Web UI to petite-vue app
+- Redesigned the File Editor
+<!-- - _Selectable dark/light theme?_ -->
 
 ### Services
 - Change MQTT client from _PubSubClient_ to asynchronic Espressif _esp_mqtt_ client
+- Make the MQTT topics configurable
+- MQTT discovery now uses a subtopic of `hasp/discovery`. Discovery requires version 0.7.x of the Custom Component.
 - Add service start/stop mqtt
-<!-- ? Add SimpleFTPServer to easily upload and download files to the plate *(one simultanious connection only)* -->
+- Add SimpleFTPServer to easily upload and download files to the plate *(one simultanious connection only)*
+- Add service start/stop ftp
+- Add configuration for NTP servers and timezone
 
 ### Devices
 - Add GS-T3E Smart Panel
@@ -36,11 +43,12 @@
 - Add button GPIOs to input discovery message
 
 ### Architecture
-<!-- - Moved to Tasmota Arduino 2.0.6 and ESP-IDF 4.4.3 (thanks @Jason2866) -->
-- Add support for ESP32-S3 devices
+- Moved to Tasmota Arduino 2.0.6 and ESP-IDF 4.4.3 (thanks @Jason2866)
 - Add Arduino-GFX display driver
+- Add support for ESP32-S3 devices
+- Deprication of support for ESP32-S2 devices due to lack of sRAM
 
-Updated libraries to ArduinoJson 6.20.1, ArduinoStreamUtils 1.7.0, TFT_eSPI 2.5.0 and LovyanGFX 1.1.2
+Updated libraries to ArduinoJson 6.20.1, ArduinoStreamUtils 1.7.0, TFT_eSPI 2.5.0, LovyanGFX 1.1.2 and SimpleFTPServer 2.1.5
 
 
 ## v0.6.3
