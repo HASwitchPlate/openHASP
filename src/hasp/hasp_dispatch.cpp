@@ -67,6 +67,8 @@ void dispatch_state_subtopic(const char* subtopic, const char* payload)
         case MQTT_ERR_NO_CONN:
             LOG_ERROR(TAG_MQTT, F(D_MQTT_NOT_CONNECTED " %s => %s"), subtopic, payload);
             break;
+        case MQTT_ERR_DISABLED:
+            break;
         default:
             LOG_ERROR(TAG_MQTT, F(D_ERROR_UNKNOWN " %s => %s"), subtopic, payload);
     }
@@ -600,25 +602,28 @@ void dispatch_screenshot(const char*, const char* filename, uint8_t source)
 bool dispatch_json_variant(JsonVariant& json, uint8_t& savedPage, uint8_t source)
 {
     if(json.is<JsonArray>()) { // handle json as an array of commands
-        LOG_WARNING(TAG_MSGR, "TEXT = ARRAY");
+        LOG_DEBUG(TAG_MSGR, "Json ARRAY");
         for(JsonVariant command : json.as<JsonArray>()) {
             dispatch_json_variant(command, savedPage, source);
         }
 
     } else if(json.is<JsonObject>()) { // handle json as a jsonl
-        LOG_WARNING(TAG_MSGR, "TEXT = OBJECT");
+        LOG_DEBUG(TAG_MSGR, "Json OBJECT");
         hasp_new_object(json.as<JsonObject>(), savedPage);
 
     } else if(json.is<std::string>()) { // handle json as a single command
-        LOG_WARNING(TAG_MSGR, "TEXT = %s", json.as<std::string>().c_str());
+        LOG_DEBUG(TAG_MSGR, "Json text = %s", json.as<std::string>().c_str());
         dispatch_simple_text_command(json.as<std::string>().c_str(), source);
 
     } else if(json.is<const char*>()) { // handle json as a single command
-        LOG_WARNING(TAG_MSGR, "TEXT = %s", json.as<const char*>());
+        LOG_DEBUG(TAG_MSGR, "Json text = %s", json.as<const char*>());
         dispatch_simple_text_command(json.as<const char*>(), source);
 
+    } else if(json.isNull()) { // event handler not found
+                               // nothing to do
+
     } else {
-        LOG_WARNING(TAG_MSGR, "TEXT = unknown type");
+        LOG_WARNING(TAG_MSGR, "Json has unknown type");
         return false;
     }
     return true;
