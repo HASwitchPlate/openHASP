@@ -465,7 +465,8 @@ static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
 void mqttSetup()
 {
     queue = xQueueCreate(64, sizeof(mqtt_message_t));
-    esp_crt_bundle_set(rootca_crt_bundle_start);
+    //esp_crt_bundle_set(rootca_crt_bundle_start);
+    arduino_esp_crt_bundle_set(rootca_crt_bundle_start);
     mqttStart();
 }
 
@@ -701,7 +702,7 @@ bool mqttGetConfig(const JsonObject& settings)
         String nvsOldGroup = MQTT_PREFIX "/"; // recover group setting
         nvsOldGroup += preferences.getString(FP_CONFIG_GROUP, "plates");
         nvsOldGroup += "/%topic%";
-        
+
         String nvsGroupTopic =
             preferences.getString(FP_CONFIG_GROUP_TOPIC, nvsOldGroup.c_str()); // Read from NVS if it exists
         if(strcmp(nvsGroupTopic.c_str(), settings["topic"][FP_CONFIG_GROUP].as<String>().c_str()) != 0) changed = true;
