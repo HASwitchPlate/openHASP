@@ -838,7 +838,7 @@ bool haspSetConfig(const JsonObject& settings)
         theme_changed |= configSet(haspThemeId, settings[FPSTR(FP_CONFIG_THEME)], F("haspThemeId"));
         theme_changed |= configSet(haspThemeHue, settings[FPSTR(FP_CONFIG_HUE)], F("haspThemeHue"));
         color_primary   = lv_color_hsv_to_rgb(haspThemeHue, 100, 100);
-        color_secondary = lv_color_hsv_to_rgb(haspThemeHue, 100, 100);
+        color_secondary = lv_color_hsv_to_rgb(20, 60, 100);
 
         // Check for color1 and color2
         theme_changed |= configSet(color_primary, settings[FPSTR(FP_CONFIG_COLOR1)], F("haspColor1"));
