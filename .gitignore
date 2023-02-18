@@ -7,13 +7,11 @@
 bin/*
 data/*
 !data/edit.htm
+!data/en.json
 !data/main.js
-!data/edit.htm.gz
 !data/openhasp.ttf
 !data/style.css
-!data/style.css.gz
 !data/script.js
-!data/script.js.gz
 !data/vars.css
 !data/cert/
 !data/cert/x509_crt_bundle.bin
