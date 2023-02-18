@@ -80,16 +80,16 @@ extern const uint8_t SCRIPT_JS_GZ_START[] asm("_binary_data_static_script_js_gz_
 extern const uint8_t SCRIPT_JS_GZ_END[] asm("_binary_data_static_script_js_gz_end");
 extern const uint8_t LOGO_SVG_GZ_START[] asm("_binary_data_static_logo_svg_gz_start");
 extern const uint8_t LOGO_SVG_GZ_END[] asm("_binary_data_static_logo_svg_gz_end");
-extern const uint8_t ACE_JS_GZ_START[] asm("_binary_data_static_ace_1_9_6_min_js_gz_start");
-extern const uint8_t ACE_JS_GZ_END[] asm("_binary_data_static_ace_1_9_6_min_js_gz_end");
 extern const uint8_t PETITE_VUE_HASP_JS_GZ_START[] asm("_binary_data_static_petite_vue_hasp_js_gz_start");
 extern const uint8_t PETITE_VUE_HASP_JS_GZ_END[] asm("_binary_data_static_petite_vue_hasp_js_gz_end");
 extern const uint8_t MAIN_JS_GZ_START[] asm("_binary_data_static_main_js_gz_start");
 extern const uint8_t MAIN_JS_GZ_END[] asm("_binary_data_static_main_js_gz_end");
 extern const uint8_t EN_JSON_GZ_START[] asm("_binary_data_static_en_json_gz_start");
 extern const uint8_t EN_JSON_GZ_END[] asm("_binary_data_static_en_json_gz_end");
-extern const uint8_t HASP_HTM_GZ_START[] asm("_binary_data_static_hasp_htm_gz_start");
-extern const uint8_t HASP_HTM_GZ_END[] asm("_binary_data_static_hasp_htm_gz_end");
+// extern const uint8_t HASP_HTM_GZ_START[] asm("_binary_data_static_hasp_htm_gz_start");
+// extern const uint8_t HASP_HTM_GZ_END[] asm("_binary_data_static_hasp_htm_gz_end");
+// extern const uint8_t ACE_JS_GZ_START[] asm("_binary_data_static_ace_1_9_6_min_js_gz_start");
+// extern const uint8_t ACE_JS_GZ_END[] asm("_binary_data_static_ace_1_9_6_min_js_gz_end");
 
 #endif // CONFIG_IDF_TARGET_ESP32
 
@@ -1218,22 +1218,31 @@ static void handleFileDelete()
 {
     if(!http_is_authenticated(F("filedelete"))) return;
 
-    char mimetype[16];
-    snprintf_P(mimetype, sizeof(mimetype), PSTR("text/plain"));
+    const char mimetype[] = "text/plain";
 
-    if(webServer.args() == 0) {
-        return webServer.send_P(500, mimetype, PSTR("BAD ARGS"));
+    if(!webServer.hasArg("path")) {
+        return webServer.send(500, mimetype, "BAD ARGS");
     }
-    String path = webServer.arg(0);
+    String path = webServer.arg("path");
     LOG_TRACE(TAG_HTTP, F("handleFileDelete: %s"), path.c_str());
     if(path == "/") {
-        return webServer.send_P(500, mimetype, PSTR("BAD PATH"));
+        return webServer.send(500, mimetype, "BAD PATH");
     }
     if(!HASP_FS.exists(path)) {
-        return webServer.send_P(404, mimetype, PSTR("FileNotFound"));
+        return webServer.send(404, mimetype, "FileNotFound");
     }
-    HASP_FS.remove(path);
-    webServer.send(200, mimetype, String(""));
+    bool result;
+    if(path.endsWith("/")) {
+        path.remove(path.length() - 1);
+        result = HASP_FS.rmdir(path);
+    } else {
+        result = HASP_FS.remove(path);
+    }
+    if(result) {
+        webServer.send(200, mimetype, String(""));
+    } else {
+        webServer.send(405, mimetype, "RemoveFailed");
+    }
 }
 
 static void handleFileCreate()
@@ -2275,16 +2284,16 @@ static inline int handleFirmwareFile(String path)
 #if defined(CONFIG_IDF_TARGET_ESP32) || defined(CONFIG_IDF_TARGET_ESP32S2) || defined(CONFIG_IDF_TARGET_ESP32S3)
     if(path == F("/edit.htm")) {
         return http_send_static_gzip_file(EDIT_HTM_GZ_START, EDIT_HTM_GZ_END, contentType);
-    } else if(path == F("/hasp.htm")) { // 39 kB
-        return http_send_static_gzip_file(HASP_HTM_GZ_START, HASP_HTM_GZ_END, contentType);
+        // } else if(path == F("/hasp.htm")) { // 39 kB
+        //     return http_send_static_gzip_file(HASP_HTM_GZ_START, HASP_HTM_GZ_END, contentType);
     } else if(path == F("/logo.svg")) { // 300 bytes
         return http_send_static_gzip_file(LOGO_SVG_GZ_START, LOGO_SVG_GZ_END, contentType);
     } else if(path == F("/style.css")) { // 11 kB
         return http_send_static_gzip_file(STYLE_CSS_GZ_START, STYLE_CSS_GZ_END, contentType);
     } else if(path == F("/vars.css")) {
         return http_send_static_file(HTTP_VARS_CSS, HTTP_VARS_CSS + sizeof(HTTP_VARS_CSS) - 1, contentType);
-        // } else if(path == F("/script.js")) { // 3 kB
-        //    return http_send_static_gzip_file(SCRIPT_JS_GZ_START, SCRIPT_JS_GZ_END, contentType);
+    } else if(path == F("/script.js")) { // 3 kB
+        return http_send_static_gzip_file(SCRIPT_JS_GZ_START, SCRIPT_JS_GZ_END, contentType);
     } else if(path == F("/en.json")) { // 2 kB
         return http_send_static_gzip_file(EN_JSON_GZ_START, EN_JSON_GZ_END, contentType);
     } else if(path == F("/main.js")) { // 9 kB
@@ -2292,8 +2301,8 @@ static inline int handleFirmwareFile(String path)
     } else if(path == F("/petite-vue.hasp.js")) { // 9 kB
         return http_send_static_gzip_file(PETITE_VUE_HASP_JS_GZ_START, PETITE_VUE_HASP_JS_GZ_END, contentType);
 #if ESP_FLASH_SIZE > 4
-    } else if(path == F("/ace.js")) { // 96 kB
-        return http_send_static_gzip_file(ACE_JS_GZ_START, ACE_JS_GZ_END, contentType);
+        // } else if(path == F("/ace.js")) { // 96 kB
+        //     return http_send_static_gzip_file(ACE_JS_GZ_START, ACE_JS_GZ_END, contentType);
 #endif
     }
 #endif // ARDUINO_ARCH_ESP32

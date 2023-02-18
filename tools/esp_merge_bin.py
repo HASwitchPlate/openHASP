@@ -58,10 +58,11 @@ def copy_merge_bins(source, target, env):
 
     mcu = board.get("build.mcu", "esp32")
     bootloader = "{}tools{}sdk{}{}{}bin{}bootloader_{}_{}.bin".format(FRAMEWORK_DIR, os.path.sep, os.path.sep, mcu, os.path.sep, os.path.sep, flash_mode, flash_freq)
+    # # if not os.path.isfile(bootloader):
+    # #     bootloader = "{}tools{}sdk{}bin{}bootloader_dio_40m.bin".format(FRAMEWORK_DIR, os.path.sep, os.path.sep, os.path.sep, os.path.sep, os.path.sep)
     # if not os.path.isfile(bootloader):
-    #     bootloader = "{}tools{}sdk{}bin{}bootloader_dio_40m.bin".format(FRAMEWORK_DIR, os.path.sep, os.path.sep, os.path.sep, os.path.sep, os.path.sep)
-    if not os.path.isfile(bootloader):
-        bootloader = "{}tools{}sdk{}{}{}bin{}bootloader_{}_{}.bin".format(FRAMEWORK_DIR, os.path.sep, os.path.sep, mcu, os.path.sep, os.path.sep, flash_mode, flash_freq)
+    #     bootloader = "{}tools{}sdk{}{}{}bin{}bootloader_{}_{}.bin".format(FRAMEWORK_DIR, os.path.sep, os.path.sep, mcu, os.path.sep, os.path.sep, flash_mode, flash_freq)
+    bootloader = str(target[0]).replace('firmware.bin','bootloader.bin')
     bootloader_location = '0x1000'
     if (mcu == 'esp32s3'):
         bootloader_location = '0x0000'
@@ -94,7 +95,10 @@ def copy_merge_bins(source, target, env):
     print(f_flash)
     print(flash_mode)
 
-    process = subprocess.Popen(['python', 'tools/esptool_with_merge_bin.py', '--chip', mcu, 'merge_bin', '--output', firmware_dst, '--flash_mode', 'dio', '--flash_size', flash_size, '--flash_freq', flash_freq, bootloader_location, bootloader, '0x8000', partitions, '0xe000', boot_app0, '0x10000', firmware_src],
+    # esptool = 'tools/esptool_with_merge_bin.py'
+    esptool = '{}{}esptool.py'.format(platform.get_package_dir("tool-esptoolpy"),os.path.sep)
+    print(esptool)
+    process = subprocess.Popen(['python', esptool, '--chip', mcu, 'merge_bin', '--output', firmware_dst, '--flash_mode', 'dio', '--flash_size', flash_size, '--flash_freq', flash_freq, bootloader_location, bootloader, '0x8000', partitions, '0xe000', boot_app0, '0x10000', firmware_src],
                         stdout=subprocess.PIPE, 
                         stderr=subprocess.PIPE)
     stdout, stderr = process.communicate()

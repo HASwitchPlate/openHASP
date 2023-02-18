@@ -48,3 +48,21 @@ with open("data/main.js", "r", encoding="utf-8") as f:
 html = html.replace("COMMIT_HASH", commit_hash)
 with gzip.open('data/static/main.js.gz', 'wb') as f:
   f.write(html.encode('utf-8'))
+
+with open("data/script.js", "r", encoding="utf-8") as f:
+    html=f.read()
+html = html.replace("COMMIT_HASH", commit_hash)
+with gzip.open('data/static/script.js.gz', 'wb') as f:
+  f.write(html.encode('utf-8'))
+
+with open("data/en.json", "r", encoding="utf-8") as f:
+    html=f.read()
+html = html.replace("COMMIT_HASH", commit_hash)
+with gzip.open('data/static/en.json.gz', 'wb') as f:
+  f.write(html.encode('utf-8'))
+
+with open("data/style.css", "r", encoding="utf-8") as f:
+    html=f.read()
+html = html.replace("COMMIT_HASH", commit_hash)
+with gzip.open('data/static/style.css.gz', 'wb') as f:
+  f.write(html.encode('utf-8'))

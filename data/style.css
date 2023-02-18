@@ -9,6 +9,8 @@
     --star: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="-10 -6 16 16"><line y1="-3" y2="3" stroke="red" transform="rotate(15)"></line><line y1="-3" y2="3" stroke="red" transform="rotate(75)"></line><line y1="-3" y2="3" stroke="red" transform="rotate(-45)"></line></svg>');
     --trash: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" id="mdi-trash-can-outline" width="24" height="24" viewBox="0 0 24 24"><path d="M9,3V4H4V6H5V19A2,2 0 0,0 7,21H17A2,2 0 0,0 19,19V6H20V4H15V3H9M7,6H17V19H7V6M9,8V17H11V8H9M13,8V17H15V8H13Z" /></svg>');
     --download: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" id="mdi-download" width="24" height="24" viewBox="0 0 24 24"><path d="M5,20H19V18H5M19,9H15V3H9V9H5L12,16L19,9Z" /></svg>');
+    --upload: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" id="mdi-file-upload-outline" viewBox="0 0 24 24"><path d="M14,2L20,8V20A2,2 0 0,1 18,22H6A2,2 0 0,1 4,20V4A2,2 0 0,1 6,2H14M18,20V9H13V4H6V20H18M12,12L16,16H13.5V19H10.5V16H8L12,12Z" /></svg>');
+    --flash: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" id="mdi-chip" viewBox="0 0 24 24"><path d="M6,4H18V5H21V7H18V9H21V11H18V13H21V15H18V17H21V19H18V20H6V19H3V17H6V15H3V13H6V11H3V9H6V7H3V5H6V4M11,15V18H12V15H11M13,15V18H14V15H13M15,15V18H16V15H15Z" /></svg>');
     --file: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" id="mdi-file-outline" viewBox="0 0 24 24"><path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z" /></svg>');
     --dir: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" id="mdi-folder-outline" viewBox="0 0 24 24"><path d="M20,18H4V8H20M20,6H12L10,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V8C22,6.89 21.1,6 20,6Z" /></svg>');
     --diropen: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" id="mdi-folder-open-outline" viewBox="0 0 24 24"><path d="M6.1,10L4,18V8H21A2,2 0 0,0 19,6H12L10,4H4A2,2 0 0,0 2,6V18A2,2 0 0,0 4,20H19C19.9,20 20.7,19.4 20.9,18.5L23.2,10H6.1M19,18H6L7.6,12H20.6L19,18Z" /></svg>');
@@ -17,8 +19,10 @@
     --zip: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" id="mdi-file-cabinet" viewBox="0 0 24 24"><path d="M14,8H10V6H14V8M20,4V20C20,21.11 19.11,22 18,22H6C4.89,22 4,21.11 4,20V4A2,2 0 0,1 6,2H18C19.11,2 20,2.9 20,4M18,13H6V20H18V13M18,4H6V11H18V4M14,15H10V17H14V15Z" /></svg>');
     --cmd: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" id="mdi-application-outline" viewBox="0 0 24 24"><path d="M21 2H3C1.9 2 1 2.9 1 4V20C1 21.1 1.9 22 3 22H21C22.1 22 23 21.1 23 20V4C23 2.9 22.1 2 21 2M21 20H3V6H21V20Z" /></svg>');
     --css: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" id="mdi-script-outline" viewBox="0 0 24 24"><path d="M15,20A1,1 0 0,0 16,19V4H8A1,1 0 0,0 7,5V16H5V5A3,3 0 0,1 8,2H19A3,3 0 0,1 22,5V6H20V5A1,1 0 0,0 19,4A1,1 0 0,0 18,5V9L18,19A3,3 0 0,1 15,22H5A3,3 0 0,1 2,19V18H13A2,2 0 0,0 15,20Z" /></svg>');
+    --ttf: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" id="mdi-format-text" viewBox="0 0 24 24"><path d="M18.5,4L19.66,8.35L18.7,8.61C18.25,7.74 17.79,6.87 17.26,6.43C16.73,6 16.11,6 15.5,6H13V16.5C13,17 13,17.5 13.33,17.75C13.67,18 14.33,18 15,18V19H9V18C9.67,18 10.33,18 10.67,17.75C11,17.5 11,17 11,16.5V6H8.5C7.89,6 7.27,6 6.74,6.43C6.21,6.87 5.75,7.74 5.3,8.61L4.34,8.35L5.5,4H18.5Z" /></svg>');
     --eye: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" id="mdi-eye-outline" viewBox="0 0 24 24"><path d="M12,9A3,3 0 0,1 15,12A3,3 0 0,1 12,15A3,3 0 0,1 9,12A3,3 0 0,1 12,9M12,4.5C17,4.5 21.27,7.61 23,12C21.27,16.39 17,19.5 12,19.5C7,19.5 2.73,16.39 1,12C2.73,7.61 7,4.5 12,4.5M3.18,12C4.83,15.36 8.24,17.5 12,17.5C15.76,17.5 19.17,15.36 20.82,12C19.17,8.64 15.76,6.5 12,6.5C8.24,6.5 4.83,8.64 3.18,12Z" /></svg>');
     --json: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" id="mdi-code-braces" viewBox="0 0 24 24"><path d="M8,3A2,2 0 0,0 6,5V9A2,2 0 0,1 4,11H3V13H4A2,2 0 0,1 6,15V19A2,2 0 0,0 8,21H10V19H8V14A2,2 0 0,0 6,12A2,2 0 0,0 8,10V5H10V3M16,3A2,2 0 0,1 18,5V9A2,2 0 0,0 20,11H21V13H20A2,2 0 0,0 18,15V19A2,2 0 0,1 16,21H14V19H16V14A2,2 0 0,1 18,12A2,2 0 0,1 16,10V5H14V3H16Z" /></svg>');
+    --audio: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" id="mdi-file-music-outline" viewBox="0 0 24 24"><path d="M14,2L20,8V20A2,2 0 0,1 18,22H6A2,2 0 0,1 4,20V4A2,2 0 0,1 6,2H14M18,20V9H13V4H6V20H18M13,10V12H11V17A2,2 0 0,1 9,19A2,2 0 0,1 7,17A2,2 0 0,1 9,15C9.4,15 9.7,15.1 10,15.3V10H13Z" /></svg>');
 }
 
 .fn:hover {
@@ -57,12 +61,14 @@
 .fa-browse  { mask-image: var(--browse);    -webkit-mask-image: var(--browse)}
 .fa-cog     { mask-image: var(--cog);       -webkit-mask-image: var(--cog)}
 .fa-download{ mask-image: var(--download);  -webkit-mask-image: var(--download)}
+.fa-upload  { mask-image: var(--upload);    -webkit-mask-image: var(--upload)}
 .fa-home    { mask-image: var(--home);      -webkit-mask-image: var(--home)}
 .fa-info    { mask-image: var(--info);      -webkit-mask-image: var(--info)}
 .fa-ota     { mask-image: var(--ota);       -webkit-mask-image: var(--ota)}
 .fa-shot    { mask-image: var(--shot);      -webkit-mask-image: var(--shot)}
 .fa-star    { mask-image: var(--star);      -webkit-mask-image: var(--star)}
 .fa-trash   { mask-image: var(--trash);     -webkit-mask-image: var(--trask)}
+.fa-flash   { mask-image: var(--flash);     -webkit-mask-image: var(--flash)}
 .fa-file    { mask-image: var(--file);      -webkit-mask-image: var(--file)}
 .fa-dir     { mask-image: var(--dir);       -webkit-mask-image: var(--dir)}
 .fa-diropen { mask-image: var(--diropen);   -webkit-mask-image: var(--diropen)}
@@ -73,7 +79,9 @@
 .fa-json    { mask-image: var(--json);      -webkit-mask-image: var(--json)}
 .fa-jsonl   { mask-image: var(--json);      -webkit-mask-image: var(--json)}
 .fa-image   { mask-image: var(--image);     -webkit-mask-image: var(--image)}
+.fa-audio   { mask-image: var(--audio);     -webkit-mask-image: var(--audio)}
 .fa-html    { mask-image: var(--html);      -webkit-mask-image: var(--html)}
+.fa-ttf     { mask-image: var(--ttf);       -webkit-mask-image: var(--ttf)}
 
 .nav-list {
   font-size: var(--fs-nav);
@@ -455,6 +463,7 @@ a.foot:visited {
 	justify-content: left;
 	overflow-x: clip;
 	overflow-y: scroll;
+	background-color: var(--treebg);
 
 	/* Popout */
 	top: 0;
@@ -479,8 +488,7 @@ a.foot:visited {
 	/* Misc */
 	align-items: center;
 	display: flex;
-	justify-content: center;
-	background-color: var(--grpbg)
+  background-color: #888;
 }
 .toolbar {
 	text-align: center;
@@ -519,9 +527,7 @@ a.foot:visited {
 #ctx > ul {
 	padding-left: 0px;
 }
-#ctx > ul > li,
-.sub_div > ul > li {
-  cursor: pointer;
+#ctx > ul > li {
   white-space: nowrap
 }
 #ctx > ul > li:hover {
@@ -531,8 +537,7 @@ a.foot:visited {
   width: 3rem
 }
 #preview {
-  background-color: #888;
-  padding: 5px;
+  padding: 0.3rem;
   overflow: scroll;
 }
 #preview > img {
@@ -550,10 +555,11 @@ a.foot:visited {
   width: 100%;
   line-height: 1.3rem;
   font-size: 0.95rem;
-	background-color: var(--treebg)
 }
 .download{background-image: var(--download)}
+.upload{background-image: var(--upload)}
 .eye{background-image: var(--eye)}
+.flash{background-image: var(--flash)}
 .file{background-image: var(--file)}
 .zip{background-image: var(--zip)}
 .css{background-image: var(--css)}
@@ -561,6 +567,41 @@ a.foot:visited {
 .json{background-image: var(--json)}
 .jsonl{background-image: var(--json)}
 .image{background-image: var(--image)}
+.audio{background-image: var(--audio)}
 .html{background-image: var(--html)}
 .dir{background-image: var(--dir)}
 .diropen{background-image: var(--diropen)}
+
+
+#toast {
+  position: fixed;
+  bottom: 1rem;
+  right: 1.5rem;
+  display: grid;
+  align-items: end;
+  align-content: end;
+  gap: 1rem;
+}
+
+.toast {
+  font-size: 1rem;
+  margin: 0;
+  font-weight: bold;
+  line-height: 1;
+  padding: 0.5em 1em;
+  background-color: lightblue;
+  animation: toastIt 3000ms cubic-bezier(0.785, 0.135, 0.15, 0.86) forwards;
+}
+
+@keyframes toastIt {
+  0%,
+  100% {
+    transform: translateY(150%);
+    opacity: 0;
+  }
+  10%,
+  90% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
