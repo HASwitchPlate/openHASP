@@ -17,8 +17,8 @@ const char FP_GROUPID[] PROGMEM  = "groupid";
 typedef struct
 {
     char* action;
-    char* swipe;
     char* tag;
+    const char* swipe;
 } hasp_ext_user_data_t;
 
 typedef struct

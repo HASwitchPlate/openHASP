@@ -390,7 +390,7 @@ void first_touch_event_handler(lv_obj_t* obj, lv_event_t event)
 
 void swipe_event_handler(lv_obj_t* obj, lv_event_t event)
 {
-    if(event != LV_EVENT_GESTURE || !obj || !obj->user_data.ext) return;
+    if(event != LV_EVENT_GESTURE) return;
 
     if(const char* swipe = my_obj_get_swipe(obj)) {
         lv_gesture_dir_t dir = lv_indev_get_gesture_dir(lv_indev_get_act());
