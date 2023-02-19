@@ -949,13 +949,15 @@ static void http_handle_info()
 static unsigned long htppLastLoopTime = 0;
 static void http_upload_progress()
 {
-    long t = webServer.header("Content-Length").toInt();
     if(millis() - htppLastLoopTime >= 1250) {
+        long t = webServer.header("Content-Length").toInt();
         LOG_VERBOSE(TAG_HTTP, F(D_BULLET "Uploaded %u / %d bytes"), upload->totalSize + upload->currentSize, t);
         htppLastLoopTime = millis();
+        if(t > 0) t = (upload->totalSize + upload->currentSize) * 100 / t;
+        haspProgressVal(t);
     }
-    if(t > 0) t = (upload->totalSize + upload->currentSize) * 100 / t;
-    haspProgressVal(t);
+    // if(t > 0) t = (upload->totalSize + upload->currentSize) * 100 / t;
+    // haspProgressVal(t);
 }
 
 #if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
@@ -1018,6 +1020,7 @@ static void webHandleFirmwareUpload()
 #endif
             }
             haspProgressMsg(upload->filename.c_str());
+            htppLastLoopTime = millis();
 
             // if(!Update.begin(UPDATE_SIZE_UNKNOWN)) { // start with max available size
             //  const char label[] = "spiffs";
@@ -1167,6 +1170,7 @@ static void handleFileUpload()
                 } else {
                     LOG_TRACE(TAG_HTTP, F("handleFileUpload Name: %s"), filename.c_str());
                     haspProgressMsg(fsUploadFile.name());
+                    htppLastLoopTime = millis();
                 }
             } else {
                 // Clear upload filesize, fix Response Content-Length
@@ -2422,7 +2426,10 @@ static void webHandleFirmware()
 <form method="POST" action="/update" enctype="multipart/form-data" id="ota">
 <div class="row">
 <div class="col-25"><label class="required" for="filename" v-t="'ota.file'"></label></div>
-<div class="col-75"><input required="" type="file" id="filename" accept=".bin"></div>
+<div class="col-75">
+<input required="" type="file" name="filename" accept=".bin">
+<input type="hidden" name="cmd" value="0">
+</div>
 </div>
 <button type="submit" value="ota" v-t="'ota.submit'"></button>
 </form>
