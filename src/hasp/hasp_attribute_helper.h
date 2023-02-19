@@ -58,7 +58,20 @@ void my_obj_set_template(lv_obj_t* obj, const char* text)
         LOG_WARNING(TAG_ATTR, "Failed to allocate memory!");
 }
 
-static hasp_ext_user_data_t* my_create_ext_tag(lv_obj_t* obj)
+// free the extended user_data when all properies are NULL
+static void my_prune_ext_tags(lv_obj_t* obj)
+{
+    if(!obj || !obj->user_data.ext) return;
+
+    hasp_ext_user_data_t* ext = (hasp_ext_user_data_t*)obj->user_data.ext;
+    if(!ext->action && !ext->swipe && !ext->tag) {
+        hasp_free(ext);
+        obj->user_data.ext = NULL;
+    }
+}
+
+// create extended user_data properies object
+static hasp_ext_user_data_t* my_create_ext_tags(lv_obj_t* obj)
 {
     void* ext          = hasp_calloc(1, sizeof(hasp_ext_user_data_t));
     obj->user_data.ext = ext;
@@ -76,84 +89,43 @@ void my_obj_set_tag(lv_obj_t* obj, const char* payload)
     }
 
     // new tag is blank
-    if(payload == NULL || payload[0] == '\0') {
-        // my_prune_ext_tag(obj); // delete extended data if all extended properties are NULL
-        return;
-    }
+    if(payload == NULL || payload[0] == '\0') goto prune;
 
     // create new extended tags
-    if(!ext) {
-        ext = my_create_ext_tag(obj);
-    }
+    if(!ext) ext = my_create_ext_tags(obj);
 
-    // create new tag
     if(ext) {
+        // create new tag
         StaticJsonDocument<512> doc;
         size_t len = payload ? strlen(payload) : 0;
 
         // check if it is a proper JSON object
-        DeserializationError error = deserializeJson(doc, payload, len);
-        if(error != DeserializationError::Ok) doc.set(payload); // use tag as-is
+        DeserializationError res = deserializeJson(doc, payload, len);
+        if(res != DeserializationError::Ok) doc.set(payload); // use tag as-is
 
         const size_t size = measureJson(doc) + 1;
         if(char* str = (char*)hasp_malloc(size)) {
             len      = serializeJson(doc, str, size); // tidy-up the json object
             ext->tag = str;
             LOG_VERBOSE(TAG_ATTR, "new json: %s", str);
-            return;
+            return; // no error & no prune
         }
     }
 
-    // ext or str was NULL
-    LOG_WARNING(TAG_ATTR, D_ERROR_OUT_OF_MEMORY);
+error:
+    LOG_WARNING(TAG_ATTR, D_ERROR_OUT_OF_MEMORY); // ext or str was NULL
+
+prune:
+    my_prune_ext_tags(obj); // delete extended data if all extended properties are NULL
 }
 
 // the tag data is stored as SERIALIZED JSON data
 const char* my_obj_get_tag(lv_obj_t* obj)
 {
+    if(!obj) return NULL;
     hasp_ext_user_data_t* ext = (hasp_ext_user_data_t*)obj->user_data.ext;
-    if(!ext) return NULL;
-    return ext->tag;
+    return ext ? ext->tag : NULL;
 }
-
-/*
-// the tag data is stored as SERIALIZED JSON data
-void my_obj_set_tag2(lv_obj_t* obj, const char* tag)
-{
-    size_t len = tag ? strlen(tag) : 0;
-
-    // release old tag
-    if(obj->user_data.tag) {
-        hasp_free(obj->user_data.tag);
-        obj->user_data.tag = NULL;
-    }
-
-    // new tag is blank
-    if(tag == NULL || tag[0] == '\0') return;
-
-    // create new tag
-    {
-        StaticJsonDocument<512> doc;
-
-        // check if it is a proper JSON object
-        DeserializationError error = deserializeJson(doc, tag, len);
-        if(error != DeserializationError::Ok) doc.set(tag); // use tag as-is
-
-        const size_t size = measureJson(doc) + 1;
-        if(char* str = (char*)hasp_malloc(size)) {
-            len                = serializeJson(doc, str, size); // tidy-up the json object
-            obj->user_data.tag = (void*)str;
-            LOG_VERBOSE(TAG_ATTR, "new json: %s", str);
-        }
-    }
-}
-
-// the tag data is stored as SERIALIZED JSON data
-const char* my_obj_get_tag2(lv_obj_t* obj)
-{
-    return (char*)obj->user_data.tag;
-}
-*/
 
 // the action data is stored as SERIALIZED JSON data
 void my_obj_set_action(lv_obj_t* obj, const char* payload)
@@ -167,44 +139,46 @@ void my_obj_set_action(lv_obj_t* obj, const char* payload)
     }
 
     // new tag is blank
-    if(payload == NULL || payload[0] == '\0') {
-        // my_prune_ext_tag(obj); // delete extended data if all extended properties are NULL
-        return;
-    }
+    if(payload == NULL || payload[0] == '\0') goto prune;
 
     // create new extended tags
-    if(!ext) {
-        ext = my_create_ext_tag(obj);
-    }
+    if(!ext) ext = my_create_ext_tags(obj);
 
     // create new action
-    {
+    if(ext) {
         StaticJsonDocument<512> doc;
-        size_t len = payload ? strlen(payload) : 0;
+        size_t len  = payload ? strlen(payload) : 0;
+        ext->action = NULL;
 
         // check if it is a proper JSON object
-        DeserializationError error = deserializeJson(doc, payload, len);
-        if(error != DeserializationError::Ok) doc.set(payload); // use tag as-is
+        DeserializationError res = deserializeJson(doc, payload, len);
+        if(res != DeserializationError::Ok) {
+            LOG_WARNING(TAG_ATTR, "Invalid parameter");
+            goto prune;
+        }
 
         const size_t size = measureJson(doc) + 1;
         if(char* str = (char*)hasp_malloc(size)) {
             size_t len  = serializeJson(doc, str, size); // tidy-up the json object
             ext->action = str;
             LOG_VERBOSE(TAG_ATTR, "new json: %s", str);
-            return;
+            return; // no error & no prune
         }
     }
 
-    // ext or str was NULL
-    LOG_WARNING(TAG_ATTR, D_ERROR_OUT_OF_MEMORY);
+error:
+    LOG_WARNING(TAG_ATTR, D_ERROR_OUT_OF_MEMORY); // ext or str was NULL
+
+prune:
+    my_prune_ext_tags(obj); // delete extended data if all extended properties are NULL
 }
 
 // the tag data is stored as SERIALIZED JSON data
 const char* my_obj_get_action(lv_obj_t* obj)
 {
+    if(!obj) return NULL;
     hasp_ext_user_data_t* ext = (hasp_ext_user_data_t*)obj->user_data.ext;
-    if(!ext) return NULL;
-    return ext->action;
+    return ext ? ext->action : NULL;
 }
 
 // the swipe data is stored as SERIALIZED JSON data
@@ -223,55 +197,49 @@ void my_obj_set_swipe(lv_obj_t* obj, const char* payload)
     if(payload == NULL || payload[0] == '\0') goto prune;
 
     // create new extended tags
-    if(!ext) {
-        ext = my_create_ext_tag(obj);
-        if(!ext) goto error;
-    }
+    if(!ext) ext = my_create_ext_tags(obj);
 
-    if(Parser::is_true(payload)) {
-        ext->swipe = _swipejson; // backwards compatibility: use static action
-        return;                  // no error & no prune
-    } else {
+    if(ext) {
+        if(Parser::is_true(payload)) {
+            ext->swipe = _swipejson; // backwards compatibility: use static action
+            return;                  // no error & no prune
+        }
 
         // create new action
         StaticJsonDocument<512> doc;
         size_t len = payload ? strlen(payload) : 0;
+        ext->swipe = NULL;
 
         // check if it is a proper JSON object
         DeserializationError res = deserializeJson(doc, payload, len);
         if(res != DeserializationError::Ok) {
             LOG_WARNING(TAG_ATTR, "Invalid parameter");
-            ext->swipe = NULL;
             goto prune;
-        } else if(doc.isNull()) {
-            ext->swipe = NULL;
-            goto prune;
-        } else if(doc.is<bool>() || doc.is<uint8_t>()) {
+        }
+        if(doc.isNull()) goto prune;
+        if(doc.is<bool>() || doc.is<uint8_t>()) {
             if(doc.as<bool>()) { // backwards compatibility: use static action
                 ext->swipe = _swipejson;
                 return; // no error & no prune
-            }
-        } else {
-            const size_t size = measureJson(doc) + 1;
-            if(char* str = (char*)hasp_malloc(size)) {
-                size_t len = serializeJson(doc, str, size); // tidy-up the json object
-                ext->swipe = str;
-                LOG_VERBOSE(TAG_ATTR, "new json: %s", str);
-                return; // no error & no prune
             } else {
-                ext->swipe = NULL;
-                goto error;
+                goto prune;
             }
         }
+
+        const size_t size = measureJson(doc) + 1;
+        if(char* str = (char*)hasp_malloc(size)) {
+            size_t len = serializeJson(doc, str, size); // tidy-up the json object
+            ext->swipe = str;
+            LOG_VERBOSE(TAG_ATTR, "new json: %s", str);
+            return; // no error & no prune
+        }
     }
-    goto prune;
 
 error:
     LOG_WARNING(TAG_ATTR, D_ERROR_OUT_OF_MEMORY); // ext or str was NULL
 
 prune:
-    // my_prune_ext_tag(obj); // delete extended data if all extended properties are NULL
-    return;
+    my_prune_ext_tags(obj); // delete extended data if all extended properties are NULL
 }
 
 // the tag data is stored as SERIALIZED JSON data
@@ -279,8 +247,7 @@ const char* my_obj_get_swipe(lv_obj_t* obj)
 {
     if(!obj) return NULL;
     hasp_ext_user_data_t* ext = (hasp_ext_user_data_t*)obj->user_data.ext;
-    if(!ext) return NULL;
-    return ext->swipe;
+    return ext ? ext->swipe : NULL;
 }
 
 lv_label_align_t my_textarea_get_text_align(lv_obj_t* ta)
