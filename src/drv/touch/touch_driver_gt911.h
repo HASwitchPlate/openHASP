@@ -98,15 +98,16 @@ class TouchGt911 : public BaseTouch {
 
     void init(int w, int h)
     {
-        Wire.begin(TOUCH_SDA, TOUCH_SCL, (uint32_t)I2C_TOUCH_FREQUENCY);
-        touch.setHandler(GT911_setXY);
-
         if(touch.begin(TOUCH_IRQ, TOUCH_RST, I2C_TOUCH_ADDRESS)) {
             LOG_INFO(TAG_DRVR, F("GT911 " D_SERVICE_STARTED));
         } else {
             LOG_WARNING(TAG_DRVR, F("GT911 " D_SERVICE_START_FAILED));
         }
+        touch.setHandler(GT911_setXY);
+
+        Wire.begin(TOUCH_SDA, TOUCH_SCL, (uint32_t)I2C_TOUCH_FREQUENCY);
         touch_scan(Wire); // The address could change during begin, so scan afterwards
+
     }
 };
 
