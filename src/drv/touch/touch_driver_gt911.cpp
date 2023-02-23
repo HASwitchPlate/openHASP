@@ -96,9 +96,33 @@ void TouchGt911::init(int w, int h)
 {
     Wire.begin(TOUCH_SDA, TOUCH_SCL, (uint32_t)I2C_TOUCH_FREQUENCY);
     touch.setHandler(GT911_setXY);
+    GTInfo* info;
 
     if(touch.begin(TOUCH_IRQ, TOUCH_RST, I2C_TOUCH_ADDRESS)) {
-        GTInfo* info = touch.readInfo();
+        info = touch.readInfo();
+        if(info->xResolution > 0 && info->yResolution > 0) goto found;
+    }
+#if TOUCH_IRQ == -1
+    if(touch.begin(TOUCH_IRQ, TOUCH_RST, 0x5d)) {
+        info = touch.readInfo();
+        if(info->xResolution > 0 && info->yResolution > 0) goto found;
+    }
+    if(touch.begin(TOUCH_IRQ, TOUCH_RST, 0x5d)) {
+        info = touch.readInfo();
+        if(info->xResolution > 0 && info->yResolution > 0) goto found;
+    }
+    if(touch.begin(TOUCH_IRQ, TOUCH_RST, 0x14)) {
+        info = touch.readInfo();
+        if(info->xResolution > 0 && info->yResolution > 0) goto found;
+    }
+    if(touch.begin(TOUCH_IRQ, TOUCH_RST, 0x14)) {
+        info = touch.readInfo();
+        if(info->xResolution > 0 && info->yResolution > 0) goto found;
+    }
+#endif
+
+found:
+    if(info->xResolution != 0 && info->yResolution != 0) {
         LOG_INFO(TAG_DRVR, "GT911 %s (%dx%d)", D_SERVICE_STARTED, info->xResolution, info->yResolution);
         // uint8_t len = touch.fwResolution(480, 272);
     } else {
