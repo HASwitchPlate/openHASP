@@ -30,7 +30,7 @@ void touch_scan(TwoWire& i2c)
 
         if(error == 0) {
             snprintf_P(buffer, sizeof(buffer), PSTR(D_BULLET " Found device 0x%02x"), address);
-            LOG_VERBOSE(TAG_DRVR, buffer, address);
+            LOG_INFO(TAG_DRVR, buffer, address);
             nDevices++;
         } else if(error == 4) {
             snprintf_P(buffer, sizeof(buffer), PSTR(D_BULLET "Unknown error at address 0x%02x"), address);
