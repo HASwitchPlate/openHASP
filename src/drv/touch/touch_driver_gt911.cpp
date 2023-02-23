@@ -102,23 +102,14 @@ void TouchGt911::init(int w, int h)
         info = touch.readInfo();
         if(info->xResolution > 0 && info->yResolution > 0) goto found;
     }
+    
 #if TOUCH_IRQ == -1
-    if(touch.begin(TOUCH_IRQ, TOUCH_RST, 0x5d)) {
-        info = touch.readInfo();
-        if(info->xResolution > 0 && info->yResolution > 0) goto found;
-    }
-    if(touch.begin(TOUCH_IRQ, TOUCH_RST, 0x5d)) {
-        info = touch.readInfo();
-        if(info->xResolution > 0 && info->yResolution > 0) goto found;
-    }
-    if(touch.begin(TOUCH_IRQ, TOUCH_RST, 0x14)) {
-        info = touch.readInfo();
-        if(info->xResolution > 0 && info->yResolution > 0) goto found;
-    }
-    if(touch.begin(TOUCH_IRQ, TOUCH_RST, 0x14)) {
-        info = touch.readInfo();
-        if(info->xResolution > 0 && info->yResolution > 0) goto found;
-    }
+    // Probe both addresses if IRQ is not connected
+    for(uint8_t i = 0; i < 4; i++)
+        if(touch.begin(TOUCH_IRQ, TOUCH_RST, i < 2 ? 0x5d : 0x14)) {
+            info = touch.readInfo();
+            if(info->xResolution > 0 && info->yResolution > 0) goto found;
+        }
 #endif
 
 found:
