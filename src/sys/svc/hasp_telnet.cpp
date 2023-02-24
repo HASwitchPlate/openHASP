@@ -26,7 +26,7 @@ static WiFiServer* telnetServer;
 WiFiClient telnetClient;
 static WiFiServer* telnetServer;
 #else
-//#include <STM32Ethernet.h>
+// #include <STM32Ethernet.h>
 EthernetClient telnetClient;
 static EthernetServer telnetServer(23);
 #endif
@@ -376,7 +376,18 @@ IRAM_ATTR void telnetLoop()
     /* Active Client: Process user input */
     if(telnetClient.connected()) {
         if(telnetConsole) {
-            while(telnetConsole->readKey()) {
+            while(int16_t key = telnetConsole->readKey()) {
+                switch(key) {
+                    case 0xf8:
+                    case KEY_CTRL('C'): // ^C = Cancel (Quit)
+                        telnetClientDisconnect();
+                        break;
+
+                    case 0xec:
+                    case KEY_CTRL('D'): // ^D = Disconnect (Logout)
+                        LOG_DEBUG(TAG_TELN, "Ctrl-D");
+                        break;
+                }
                 if(!telnetConsole) return; // the telnetConsole was destroyed
                 if(bufferedTelnetClient.available() <= 0) bufferedTelnetClient.flush(); // flush pending updates
             };
@@ -385,6 +396,7 @@ IRAM_ATTR void telnetLoop()
             telnetConsole = new ConsoleInput(&bufferedTelnetClient, HASP_CONSOLE_BUFFER);
             if(telnetConsole) {
                 telnetConsole->setLineCallback(telnetProcessLine);
+                telnetConsole->setDebug(true);
             } else {
                 telnetClientDisconnect();
                 LOG_ERROR(TAG_TELN, F(D_TELNET_FAILED));
