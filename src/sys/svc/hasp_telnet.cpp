@@ -396,7 +396,9 @@ IRAM_ATTR void telnetLoop()
             telnetConsole = new ConsoleInput(&bufferedTelnetClient, HASP_CONSOLE_BUFFER);
             if(telnetConsole) {
                 telnetConsole->setLineCallback(telnetProcessLine);
+#ifdef HASP_DEBUG
                 telnetConsole->setDebug(true);
+#endif
             } else {
                 telnetClientDisconnect();
                 LOG_ERROR(TAG_TELN, F(D_TELNET_FAILED));
