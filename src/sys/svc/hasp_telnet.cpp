@@ -379,7 +379,7 @@ IRAM_ATTR void telnetLoop()
             while(int16_t key = telnetConsole->readKey()) {
                 switch(key) {
                     case 0xf8:
-                    case KEY_CTRL('C'): // ^C = Cancel (Quit)
+                    case KEY_CTRL('C'): // 0x03 = ^C = Cancel (Quit)
                         telnetClientDisconnect();
                         break;
 
