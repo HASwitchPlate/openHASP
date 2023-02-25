@@ -2241,7 +2241,7 @@ static void http_handle_wifi()
     html[min(i++, len)] = haspDevice.get_hostname();
     html[min(i++, len)] = "</h1><hr>";
     html[min(i++, len)] = R"(
-<h2 v-t="'wifi.title'"></h2>
+<h2 v-t="'wifi.title'" @vue:mounted="showConfig('wifi');"></h2>
 <div class="container" v-cloak v-if="config.wifi">
 <form @submit.prevent="submitOldConfig('wifi') ">
 <div class="row">
@@ -2580,7 +2580,7 @@ static inline void webStartConfigPortal()
 #endif // HASP_USE_CAPTIVE_PORTAL
 
     webServer.on("/vars.css", httpHandleFileUri);
-    webServer.on(UriBraces("/static/{}/"), httpHandleFileUri);
+    webServer.on(UriBraces("/static/{}"), httpHandleFileUri);
     // webServer.on("/script.js", httpHandleFileUri);
 // reply to all requests with same HTML
 #if HASP_USE_WIFI > 0
