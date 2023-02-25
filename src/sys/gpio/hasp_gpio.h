@@ -16,10 +16,10 @@ struct hasp_gpio_config_t
     uint8_t pin : 8;           // pin number
     uint8_t group : 8;         // groupid
     uint8_t gpio_function : 7; // INPUT, OUTPUT, PULLUP, etc
+    uint8_t type; // switch, button, ...
     uint8_t inverted : 1;
     uint8_t channel : 4; // pwmchannel
     uint8_t power : 1;
-    uint8_t type; // switch, button, ...
     uint16_t val;
     uint16_t max;
 #ifdef ARDUINO
