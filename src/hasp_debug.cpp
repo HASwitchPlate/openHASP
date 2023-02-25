@@ -23,7 +23,7 @@
 
 #endif
 
-bool debugAnsiCodes = true;
+bool debugAnsiCodes = false;
 
 inline void debugSendAnsiCode(const __FlashStringHelper* code, Print* _logOutput)
 {
