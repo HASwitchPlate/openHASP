@@ -16,14 +16,40 @@ lv_task_t* my_obj_get_task(const lv_obj_t* obj)
     return NULL;
 }
 
+lv_task_t* my_obj_new_task(lv_obj_t* obj)
+{
+    if(!obj) return NULL;
+
+    lv_task_t* task                  = NULL;
+    hasp_task_user_data_t* user_data = (hasp_task_user_data_t*)lv_mem_alloc(sizeof(hasp_task_user_data_t));
+    if(user_data) {
+        user_data->obj      = obj;
+        user_data->templ    = (char*)D_TIMESTAMP;
+        user_data->interval = 1000;
+        task = lv_task_create(event_timer_clock, user_data->interval, LV_TASK_PRIO_LOWEST, (void*)user_data);
+        if(task) {
+            lv_task_set_repeat_count(task, -1); // Infinite
+        } else {
+            lv_mem_free(user_data);
+        }
+
+        // lv_task_ready(task);                // trigger it
+        // (void)task; // unused
+    }
+    return task;
+}
+
 void my_obj_del_task(const lv_obj_t* obj)
 {
     lv_task_t* task = my_obj_get_task(obj);
-    if(!task || !task->user_data) return;
+    if(!task) return;
 
     hasp_task_user_data_t* data = (hasp_task_user_data_t*)task->user_data;
-    // hasp_free(data->templ);
-    // hasp_free(data);
+    if(data) {
+        if(data->templ != D_TIMESTAMP) hasp_free(data->templ);
+        lv_mem_free(data);
+    }
+    lv_task_del(task);
 }
 
 const char* my_obj_get_template(const lv_obj_t* obj)
@@ -39,8 +65,8 @@ void my_obj_set_template(lv_obj_t* obj, const char* text)
 {
     lv_task_t* task = my_obj_get_task(obj);
     if(!task || !task->user_data) {
-        // create new task
-    };
+        task = my_obj_new_task(obj);
+    }
 
     hasp_task_user_data_t* data = (hasp_task_user_data_t*)task->user_data;
     if(data->templ != D_TIMESTAMP) hasp_free(data->templ);
@@ -150,11 +176,37 @@ void my_obj_set_action(lv_obj_t* obj, const char* payload)
         size_t len  = payload ? strlen(payload) : 0;
         ext->action = NULL;
 
-        // check if it is a proper JSON object
-        DeserializationError res = deserializeJson(doc, payload, len);
-        if(res != DeserializationError::Ok) {
-            LOG_WARNING(TAG_ATTR, "Invalid parameter");
-            goto prune;
+        // Backwards compatibility
+        if(uint8_t page = Parser::get_action_id(payload)) {
+            char json[64] = "{\"up\":\"page ";
+            switch(page) {
+                case 0:
+                    LOG_WARNING(TAG_ATTR, "Invalid parameter");
+                    goto prune;
+                case HASP_NUM_PAGE_PREV:
+                    strcat(json, "prev");
+                    break;
+                case HASP_NUM_PAGE_NEXT:
+                    strcat(json, "next");
+                    break;
+                case HASP_NUM_PAGE_BACK:
+                    strcat(json, "back");
+                    break;
+                default: {
+                    char str[64];
+                    itoa(page, str, DEC);
+                    strcat(json, str);
+                }
+            }
+            strcat(json, "\"}");
+            deserializeJson(doc, json);
+        } else {
+            // Check for new json action format
+            DeserializationError res = deserializeJson(doc, payload, len);
+            if(res != DeserializationError::Ok) {
+                LOG_WARNING(TAG_ATTR, "Invalid parameter");
+                goto prune;
+            }
         }
 
         const size_t size = measureJson(doc) + 1;
