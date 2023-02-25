@@ -119,6 +119,7 @@ void consoleStart()
         LOG_INFO(TAG_CONS, F(D_SERVICE_STARTED));
 
         console->setLineCallback(console_process_line);
+        console->setAutoUpdate(false);
         console_logon(); // todo: logon
         console->setPrompt("Prompt > ");
     } else {
@@ -148,6 +149,7 @@ IRAM_ATTR void consoleLoop()
 {
     if(!console) return;
 
+    bool update = false;
     while(int16_t keypress = console->readKey()) {
         switch(keypress) {
 
@@ -162,8 +164,17 @@ IRAM_ATTR void consoleLoop()
             case(ConsoleInput::KEY_FN)...(ConsoleInput::KEY_FN + 12):
                 dispatch_set_page(keypress - ConsoleInput::KEY_FN, LV_SCR_LOAD_ANIM_NONE, 500, 0);
                 break;
+
+            case 0:
+            case -1:
+                break;
+                
+            default: {
+                update = true;
+            }
         }
     }
+    if(update) console_update_prompt();
 }
 
 #if HASP_USE_CONFIG > 0
