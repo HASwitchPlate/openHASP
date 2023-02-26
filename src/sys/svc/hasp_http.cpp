@@ -2245,12 +2245,12 @@ static void http_handle_wifi()
 <div class="container" v-cloak v-if="config.wifi">
 <form @submit.prevent="submitOldConfig('wifi') ">
 <div class="row">
-<div class="col-25"><label class="required" for="ssid" v-t="'wifi.ssid'"></label></div>
-<div class="col-75"><input required="" type="text" id="ssid" maxlength="31" placeholder="SSID" v-model="config.wifi.ssid"></div>
+<div class="col-25"><label for="ssid" v-t="'wifi.ssid'"></label></div>
+<div class="col-75"><input type="text" id="ssid" maxlength="31" placeholder="SSID" v-model="config.wifi.ssid"></div>
 </div>
 <div class="row gap">
-<div class="col-25"><label class="required" for="pass" v-t="'pass'"></label></div>
-<div class="col-75"><input required="" type="password" id="pass" maxlength="63" placeholder="Password" v-model="config.wifi.pass"></div>
+<div class="col-25"><label for="pass" v-t="'pass'"></label></div>
+<div class="col-75"><input type="password" id="pass" maxlength="63" placeholder="Password" v-model="config.wifi.pass"></div>
 </div>
 <!--div class="row">
 <div class="col-25"><label class="required" for="ip" v-t="'wifi.ip'"></label></div>
