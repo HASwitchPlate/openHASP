@@ -38,7 +38,7 @@ ButtonConfig switchConfig; // Clicks only
 // An array of button pins, led pins, and the led states. Cannot be const
 // because ledState is mutable.
 hasp_gpio_config_t gpioConfig[HASP_NUM_GPIO_CONFIG] = {
-#if defined(LANBONL8_HS)
+#if defined(LANBON_L8HS)
     {.pin = RELAY_1, .group = 1, .gpio_function = OUTPUT, .type = LIGHT_RELAY},
     {.pin = RELAY_2, .group = 2, .gpio_function = OUTPUT, .type = LIGHT_RELAY},
     {.pin = LED_RED, .group = 4, .gpio_function = OUTPUT, .type = LED_R},

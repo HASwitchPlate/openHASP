@@ -1,0 +1,63 @@
+{"page":0,"comment":"Page Navigation Buttons"}
+{"id":1,"obj":"btn","action":"prev","x":0,"y":290,"w":79,"h":32,"bg_color":"#2C3E50","text":"\uE141","text_color":"#FFFFFF","radius":0,"border_side":0,"text_font":28}
+{"id":2,"obj":"btn","action":"back","x":80,"y":290,"w":80,"h":32,"bg_color":"#2C3E50","text":"\uE2DC","text_color":"#FFFFFF","radius":0,"border_side":0,"text_font":22}
+{"id":3,"obj":"btn","action":"next","x":161,"y":290,"w":79,"h":32,"bg_color":"#2C3E50","text":"\uE142","text_color":"#FFFFFF","radius":0,"border_side":0,"text_font":28}
+
+{"page":1,"comment":"Connected Relay Buttons"}
+{"id":1,"obj":"switch","x":30,"y":40,"w":180,"h":75,"radius":40,"radius20":40,"groupid":1}
+{"id":2,"obj":"switch","x":30,"y":122,"w":180,"h":75,"radius":40,"radius20":40,"groupid":2}
+{"id":3,"obj":"switch","x":30,"y":205,"w":180,"h":75,"radius":40,"radius20":40,"groupid":3}
+
+{"page":2,"comment":"WLED Control Panel"}
+{"id":103,"obj":"switch","x":12,"y":29,"w":60,"h":20,"radius":15}
+{"id":104,"obj":"label","x":10,"y":5,"w":180,"h":32,"text":"Night Light","text_color":"#FFFFFF"}
+{"id":105,"obj":"label","x":5,"y":57,"w":180,"h":32,"text":"Brightness","text_color":"#FFFFFF"}
+{"id":106,"obj":"slider","x":34,"y":82,"w":14,"h":90,"min":0,"max":255}
+{"id":107,"obj":"cpicker","x":85,"y":10,"w":150,"h":150}
+{"id":108,"obj":"dropdown","x":10,"y":200,"w":115,"h":30,"options":""}
+{"id":110,"obj":"btn","x":10,"y":255,"w":115,"h":30}
+{"id":111,"obj":"label","x":15,"y":180,"w":180,"h":32,"text":"Preset","text_color":"#FFFFFF"}
+{"id":112,"obj":"label","x":15,"y":260,"w":180,"h":32,"text":"","text_color":"#FFFFFF"}
+{"id":113,"obj":"label","x":160,"y":180,"w":180,"h":32,"text":"Intensity","text_color":"#FFFFFF"}
+{"id":114,"obj":"label","x":160,"y":233,"w":180,"h":32,"text":"Speed","text_color":"#FFFFFF"}
+{"id":115,"obj":"slider","x":145,"y":205,"w":90,"h":14,"min":0,"max":255}
+{"id":116,"obj":"slider","x":145,"y":260,"w":90,"h":14,"min":0,"max":255}
+{"id":117,"obj":"label","x":15,"y":233,"w":180,"h":32,"text":"Random Effect","text_color":"#FFFFFF"}
+
+{"page":3,"comment":"Media Player"}
+{"id":10,"obj":"obj","x":5,"y":35,"w":230,"h":250,"click":0,"bg_opa":0,"shadow_opa":140,"shadow_color":"black","shadow_width":20,"shadow_spread":0}
+{"id":13,"obj":"label","x":0,"y":5,"w":117,"h":30,"text":"-","mode":"scroll","align":1}
+{"id":12,"obj":"label","x":120,"y":5,"w":120,"h":30,"text":"-","mode":"scroll","align":1}
+{"id":14,"obj":"bar","x":8,"y":278,"w":200,"h":5,"min":0,"max":100,"border_opa":0,"pad_top":0,"pad_bottom":0,"pad_left":0,"pad_right":0}
+{"id":21,"obj":"obj","x":8,"y":35,"w":200,"h":200,"radius":6,"clip_corner":1,"hidden":1}
+{"id":22,"obj":"img","x":0,"y":0,"w":200,"h":200,"parentid":21,"src":"","auto_size":1}
+{"id":17,"obj":"btn","x":8,"y":226,"w":50,"h":50,"toggle":false,"text":"\uE4AE","text_font":32}
+{"id":18,"obj":"btn","x":66,"y":226,"w":83,"h":50,"toggle":false,"text":"\uE40A","text_font":32}
+{"id":19,"obj":"btn","x":157,"y":226,"w":51,"h":50,"toggle":false,"text":"\uE4AD","text_font":32}
+{"id":20,"obj":"slider","x":212,"y":38,"w":20,"h":244,"min":0,"max":100,"val":85}
+
+{"page":4,"comment":"Thermostat"}
+{"id":1,"obj":"label","x":5,"y":5,"w":230,"h":25,"text":"Master Bedroom","align":"center"}
+{"id":10,"obj":"obj","x":5,"y":35,"w":230,"h":250,"click":0}
+{"id":20,"obj":"arc","x":5,"y":37,"w":230,"h":230,"min":170,"max":300,"val":250,"border_side":0,"type":0,"rotation":0,"start_angle":135,"end_angle":45,"adjustable":"true","line_width":21,"line_width10":21,"line_color10":"#34bdeb","bg_opa":0,"pad_top20":5,"pad_bottom20":5,"pad_left20":5,"pad_right20":5,"pad_top":5,"pad_bottom":5,"pad_left":5,"pad_right":5}
+{"id":21,"obj":"gauge","x":28,"y":28,"w":175,"h":175,"parentid":20,"min":170,"max":300,"val":224,"format":1,"critical_value":301,"label_count":14,"line_count":27,"border_width":0,"pad_top":2,"pad_bottom":2,"pad_left":2,"pad_right":2,"value_str":"°C","value_ofs_y":55,"value_font":16,"bg_opa":0,"line_width10":3,"line_rounded10":1,"line_color":"#348feb","line_color60":"#348feb","scale_grad_color":"#eb4934","scale_grad_color60":"#eb4934","scale_end_color60":"#eb4934"}
+{"id":22,"obj":"obj","x":85,"y":85,"w":60,"h":60,"parentid":20,"click":0,"radius":30,"border_width":2,"border_opa":200}
+{"id":23,"obj":"label","x":80,"y":100,"w":70,"h":30,"parentid":20,"text":"22.4","text_font":24,"align":"center"}
+{"id":24,"obj":"obj","x":145,"y":245,"w":60,"h":30,"click":0,"radius":5}
+{"id":25,"obj":"label","x":145,"y":245,"w":60,"h":30,"text":"25","text_font":24,"align":"center"}
+{"id":26,"obj":"label","x":90,"y":220,"w":60,"h":30,"text":"#909090 \u2022# #000000 \u2022# #909090 \u2022#","text_font":24,"align":"center","text_color":"grey","border_width":0}
+{"id":30,"obj":"tabview","x":0,"y":235,"w":240,"h":80,"btn_pos":0,"bg_opa":0,"border_width":0,"radius":0}
+{"id":31,"obj":"tab","parentid":30}
+{"id":32,"obj":"tab","parentid":30}
+{"id":33,"obj":"tab","parentid":30}
+{"id":41,"obj":"switch","x":35,"y":10,"w":60,"h":30,"parentid":31,"radius":25,"radius20":25}
+{"id":42,"obj":"dropdown","x":15,"y":10,"w":110,"h":30,"parentid":32,"options":"fan_modes","direction":"1","radius":5}
+{"id":43,"obj":"dropdown","x":15,"y":10,"w":110,"h":30,"parentid":33,"options":"hvac_modes","direction":"1","radius":5}
+
+{"page":5,"comment":"Moodlight"}
+{"id":1,"obj":"btn","x":20,"y":40,"w":90,"h":75,"text":"Red","action":{"up":"moodlight {'state':'on','brightness':255,'color':'red'}","hold":"moodlight {'state':'on','brightness':255,'color':'maroon'}"}}
+{"id":2,"obj":"btn","x":20,"y":122,"w":90,"h":75,"text":"Green","action":{"up":"moodlight {'state':'on','brightness':255,'color':'green'}","hold":"moodlight {'state':'on','brightness':255,'color':'lime'}"}}
+{"id":3,"obj":"btn","x":20,"y":205,"w":90,"h":75,"text":"Blue","action":{"up":"moodlight {'state':'on','brightness':255,'color':'blue'}","hold":"moodlight {'state':'on','brightness':255,'color':'cyan'}"}}
+{"id":4,"obj":"btn","x":130,"y":40,"w":90,"h":75,"text":"Yellow","action":{"up":"moodlight {'state':'on','brightness':255,'color':'yellow'}","hold":"moodlight {'state':'on','brightness':255,'color':'orange'}"}}
+{"id":5,"obj":"btn","x":130,"y":122,"w":90,"h":75,"text":"Purple","action":{"up":"moodlight {'state':'on','brightness':255,'color':'purple'}","hold":"moodlight {'state':'on','brightness':255,'color':'magenta'}"}}
+{"id":6,"obj":"btn","x":130,"y":205,"w":90,"h":75,"text":"Off","action":{"up":"moodlight {'state':'off'}","hold":"moodlight {'state':'on','brightness':255,'color':'white'}"}}

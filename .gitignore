@@ -15,8 +15,15 @@ data/*
 !data/vars.css
 !data/cert/
 !data/cert/x509_crt_bundle.bin
+!data/pages/
+!data/pages/*.jsonl
 !data/static/
 !data/static/*.gz
+data/static/edit.htm.gz
+data/static/en.json.gz
+data/static/main.js.gz
+data/static/script.js.gz
+data/static/style.css.gz
 data/static/*.js
 src/user_setups/active/*
 include/user_config_override.h
