@@ -1,8 +1,3 @@
-{"page":0,"comment":"Page Navigation Buttons"}
-{"id":1,"obj":"btn","action":"prev","x":0,"y":290,"w":79,"h":32,"bg_color":"#2C3E50","text":"\uE141","text_color":"#FFFFFF","radius":0,"border_side":0,"text_font":28}
-{"id":2,"obj":"btn","action":"back","x":80,"y":290,"w":80,"h":32,"bg_color":"#2C3E50","text":"\uE2DC","text_color":"#FFFFFF","radius":0,"border_side":0,"text_font":22}
-{"id":3,"obj":"btn","action":"next","x":161,"y":290,"w":79,"h":32,"bg_color":"#2C3E50","text":"\uE142","text_color":"#FFFFFF","radius":0,"border_side":0,"text_font":28}
-
 {"page":1,"comment":"Connected Relay Buttons"}
 {"id":1,"obj":"switch","x":30,"y":40,"w":180,"h":75,"radius":40,"radius20":40,"groupid":1}
 {"id":2,"obj":"switch","x":30,"y":122,"w":180,"h":75,"radius":40,"radius20":40,"groupid":2}
@@ -54,10 +49,25 @@
 {"id":42,"obj":"dropdown","x":15,"y":10,"w":110,"h":30,"parentid":32,"options":"fan_modes","direction":"1","radius":5}
 {"id":43,"obj":"dropdown","x":15,"y":10,"w":110,"h":30,"parentid":33,"options":"hvac_modes","direction":"1","radius":5}
 
-{"page":5,"comment":"Moodlight"}
-{"id":1,"obj":"btn","x":20,"y":40,"w":90,"h":75,"text":"Red","action":{"up":"moodlight {'state':'on','brightness':255,'color':'red'}","hold":"moodlight {'state':'on','brightness':255,'color':'maroon'}"}}
-{"id":2,"obj":"btn","x":20,"y":122,"w":90,"h":75,"text":"Green","action":{"up":"moodlight {'state':'on','brightness':255,'color':'green'}","hold":"moodlight {'state':'on','brightness':255,'color':'lime'}"}}
-{"id":3,"obj":"btn","x":20,"y":205,"w":90,"h":75,"text":"Blue","action":{"up":"moodlight {'state':'on','brightness':255,'color':'blue'}","hold":"moodlight {'state':'on','brightness':255,'color':'cyan'}"}}
-{"id":4,"obj":"btn","x":130,"y":40,"w":90,"h":75,"text":"Yellow","action":{"up":"moodlight {'state':'on','brightness':255,'color':'yellow'}","hold":"moodlight {'state':'on','brightness':255,'color':'orange'}"}}
-{"id":5,"obj":"btn","x":130,"y":122,"w":90,"h":75,"text":"Purple","action":{"up":"moodlight {'state':'on','brightness':255,'color':'purple'}","hold":"moodlight {'state':'on','brightness':255,'color':'magenta'}"}}
-{"id":6,"obj":"btn","x":130,"y":205,"w":90,"h":75,"text":"Off","action":{"up":"moodlight {'state':'off'}","hold":"moodlight {'state':'on','brightness':255,'color':'white'}"}}
+{"page":5,"comment":"Backlight"}
+{"id":1,"obj":"label","x":5,"y":5,"w":230,"h":25,"text":"Backlight","align":"center"}
+{"id":10,"obj":"btn","x":20,"y":40,"w":90,"h":75,"text":"10%","action":{"up":"backlight {'state':'on','brightness':26}"}}
+{"id":11,"obj":"btn","x":130,"y":40,"w":90,"h":75,"text":"40%","action":{"up":"backlight {'state':'on','brightness':103}"}}
+{"id":12,"obj":"btn","x":20,"y":122,"w":90,"h":75,"text":"70%","action":{"up":"backlight {'state':'on','brightness':179}"}}
+{"id":13,"obj":"btn","x":130,"y":122,"w":90,"h":75,"text":"100%","action":{"up":"backlight {'state':'on','brightness':255}"}}
+{"id":14,"obj":"btn","x":20,"y":205,"w":200,"h":75,"text":"Off","action":{"up":"backlight {'state':'off'}"}}
+
+{"page":6,"comment":"Moodlight"}
+{"id":1,"obj":"label","x":5,"y":5,"w":230,"h":25,"text":"Moodlight","align":"center"}
+{"id":10,"obj":"btn","x":20,"y":40,"w":90,"h":75,"text":"Red","action":{"up":"moodlight {'state':'on','brightness':255,'color':'red'}","hold":"moodlight {'state':'on','brightness':255,'color':'maroon'}"}}
+{"id":11,"obj":"btn","x":20,"y":122,"w":90,"h":75,"text":"Green","action":{"up":"moodlight {'state':'on','brightness':255,'color':'green'}","hold":"moodlight {'state':'on','brightness':255,'color':'lime'}"}}
+{"id":12,"obj":"btn","x":20,"y":205,"w":90,"h":75,"text":"Blue","action":{"up":"moodlight {'state':'on','brightness':255,'color':'blue'}","hold":"moodlight {'state':'on','brightness':255,'color':'cyan'}"}}
+{"id":13,"obj":"btn","x":130,"y":40,"w":90,"h":75,"text":"Yellow","action":{"up":"moodlight {'state':'on','brightness':255,'color':'yellow'}","hold":"moodlight {'state':'on','brightness':255,'color':'orange'}"}}
+{"id":14,"obj":"btn","x":130,"y":122,"w":90,"h":75,"text":"Purple","action":{"up":"moodlight {'state':'on','brightness':255,'color':'purple'}","hold":"moodlight {'state':'on','brightness':255,'color':'magenta'}"}}
+{"id":15,"obj":"btn","x":130,"y":205,"w":90,"h":75,"text":"Off","action":{"up":"moodlight {'state':'off'}","hold":"moodlight {'state':'on','brightness':255,'color':'white'}"}}
+
+{"page":0,"comment":"Connected Relay Buttons"}
+{"id":1,"obj":"btn","action":"prev","x":0,"y":290,"w":79,"h":32,"bg_color":"#2C3E50","text":"\uE141","text_color":"#FFFFFF","radius":0,"border_side":0,"text_font":28}
+{"id":2,"obj":"btn","action":"p1","x":80,"y":290,"w":80,"h":32,"bg_color":"#2C3E50","text":"\uE2DC","text_color":"#FFFFFF","radius":0,"border_side":0,"text_font":22}
+{"id":3,"obj":"btn","action":"next","x":161,"y":290,"w":79,"h":32,"bg_color":"#2C3E50","text":"\uE142","text_color":"#FFFFFF","radius":0,"border_side":0,"text_font":28}
+{"id":6,"obj":"obj","swipe":1,"x":0,"y":0,"h":30,"w":240,"opacity":0,"comment":"swipe-area-at-top"}
