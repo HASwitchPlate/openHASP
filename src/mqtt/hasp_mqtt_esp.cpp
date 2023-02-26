@@ -759,7 +759,7 @@ bool mqttSetConfig(const JsonObject& settings)
 
     if(!settings[FP_CONFIG_PORT].isNull()) {
         // changed |= configSet(mqttPort, settings[FP_CONFIG_PORT], F("mqttPort"));
-        changed |= nvsUpdateString(preferences, FP_CONFIG_PORT, settings[FP_CONFIG_PORT]);
+        changed |= nvsUpdateUShort(preferences, FP_CONFIG_PORT, settings[FP_CONFIG_PORT]);
     }
 
     if(!settings[FP_CONFIG_NAME].isNull()) {
