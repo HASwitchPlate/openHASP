@@ -354,7 +354,7 @@ void hasp_new_object(const JsonObject& config, uint8_t& saved_page_id)
                     lv_obj_set_event_cb(obj, generic_event_handler);
                     obj->user_data.objid = LV_HASP_LABEL;
 
-                    if(id >= 250) object_add_task(obj, event_timer_clock, 1000);
+                    // if(id >= 250) object_add_task(obj, event_timer_clock, 1000);
                 }
                 break;
 

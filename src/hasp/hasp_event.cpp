@@ -69,8 +69,6 @@ void delete_event_handler(lv_obj_t* obj, lv_event_t event)
 {
     if(event != LV_EVENT_DELETE) return;
 
-    uint8_t part_cnt = LV_OBJ_PART_MAIN;
-
     switch(obj_get_type(obj)) {
         case LV_HASP_LINE:
             my_line_clear_points(obj);
@@ -91,11 +89,16 @@ void delete_event_handler(lv_obj_t* obj, lv_event_t event)
         case LV_HASP_GAUGE:
             break;
 
+        case LV_HASP_LABEL:
+            my_obj_del_task(obj);
+            break;
+
         default:
             break;
     }
 
     // TODO: delete value_str data for ALL parts
+    uint8_t part_cnt = LV_OBJ_PART_MAIN;
     for(uint8_t part = 0; part <= part_cnt; part++) {
         my_obj_set_value_str_text(obj, part, LV_STATE_DEFAULT, NULL);
         my_obj_set_value_str_text(obj, part, LV_STATE_CHECKED, NULL);
@@ -187,7 +190,8 @@ void event_timer_clock(lv_task_t* task)
     // LOG_VERBOSE(TAG_EVENT, "event_timer_clock called with user %d:%d:%d", timeinfo->tm_hour, timeinfo->tm_min,
     //             timeinfo->tm_sec);
 
-    if(!strcmp(buffer, lv_label_get_text(data->obj))) return; // No change
+    char* cur_text = lv_label_get_text(data->obj);
+    if(!cur_text || !strcmp(buffer, cur_text)) return; // No change
     lv_label_set_text(data->obj, buffer);
 }
 
