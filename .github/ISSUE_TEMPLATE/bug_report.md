@@ -16,7 +16,7 @@ or join the [#openHASP channel](https://discord.gg/VCWyuhF) on Discord.
 -->
 
 ### Perform all steps below and tick them with [x]
-- [ ] Check the related part of the [Documentation](https://haswitchplate.github.io/openHASP-docs/)
+- [ ] Check the related part of the [Documentation](https://www.openhasp.com/)
 - [ ] Update openHASP to the latest version
 - [ ] Reproduce the issue and describe all steps
 
