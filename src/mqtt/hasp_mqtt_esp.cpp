@@ -350,10 +350,10 @@ void onMqttConnect(esp_mqtt_client_handle_t client)
     // mqttSubscribeTo(mqttNodeTopic + subtopic);
 
 #if defined(HASP_USE_CUSTOM)
-    subtopic = F(MQTT_TOPIC_CUSTOM "/#");
-    mqttSubscribeTo(mqttGroupTopic + subtopic);
-    mqttSubscribeTo(mqttNodeTopic + subtopic);
-#endif
+    String subtopic = F(MQTT_TOPIC_CUSTOM "/#");
+    mqttSubscribeTo(mqttGroupCommandTopic + subtopic);
+    mqttSubscribeTo(mqttNodeCommandTopic + subtopic);
+#endif 
 
     /* Home Assistant auto-configuration */
 #ifdef HASP_USE_HA
