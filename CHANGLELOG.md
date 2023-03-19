@@ -7,14 +7,14 @@
 ### Objects
 <!-- ? Support for State and Part properties -->
 - `action` and `swipe` can now be set to any command
-- Set default line_width of new `line` objects to 1
+- Set default `line_width` of new `line` objects to 1
 - Allow line and block comments in pages.jsonl
 - HASP theme: Toggle objects now use the secondary color when they are in the toggled state.
 
 ### Fonts
 - Firmware files include the bitmapped font sizes 12, 16, 24 and 32pt
 - Use embedded TrueType font for other font sizes (PSram highly recommended)
-- Add glyphs from character sets Cyrillic, Latin-2, Greek and Viernamese to default fonts
+- Add glyphs from Cyrillic, Latin-2, Greek and Viernamese character sets to default fonts
 
 ### Web UI
 - Update Web UI to petite-vue app
@@ -48,7 +48,7 @@
 - Add support for ESP32-S3 devices
 - Deprication of support for ESP32-S2 devices due to lack of sRAM
 
-Updated libraries to ArduinoJson 6.20.1, ArduinoStreamUtils 1.7.0, TFT_eSPI 2.5.0, LovyanGFX 1.1.2 and SimpleFTPServer 2.1.5
+Updated libraries to ArduinoJson 6.21.0, ArduinoStreamUtils 1.7.0, TFT_eSPI 2.5.0, LovyanGFX 1.1.2 and SimpleFTPServer 2.1.5
 
 
 ## v0.6.3
