@@ -23,7 +23,21 @@ void tftPinInfo(const __FlashStringHelper* pinfunction, int8_t pin)
 void ArduinoGfx::init(int w, int h)
 {
     LOG_TRACE(TAG_TFT, F(D_SERVICE_STARTING));
-#if(TFT_WIDTH == 480) && (TFT_HEIGHT == 480) && defined(GC9503V_DRIVER)
+
+#if(TFT_WIDTH == 480) && (TFT_HEIGHT == 480) && defined(LILYGO_T_RGB)
+    Wire.begin(8 /* SDA */, 48 /* SCL */, 800000L /* speed */);
+    Arduino_DataBus* bus            = new Arduino_XL9535SWSPI(8 /* SDA */, 48 /* SCL */, 2 /* XL PWD */, 3 /* XL CS */,
+                                                              5 /* XL SCK */, 4 /* XL MOSI */);
+    Arduino_ESP32RGBPanel* rgbpanel = new Arduino_ESP32RGBPanel(
+        45 /* DE */, 41 /* VSYNC */, 47 /* HSYNC */, 42 /* PCLK */, 21 /* R0 */, 18 /* R1 */, 17 /* R2 */, 46 /* R3 */,
+        15 /* R4 */, 14 /* G0 */, 13 /* G1 */, 12 /* G2 */, 11 /* G3 */, 10 /* G4 */, 9 /* G5 */, 7 /* B0 */,
+        6 /* B1 */, 5 /* B2 */, 3 /* B3 */, 2 /* B4 */, 1 /* hsync_polarity */, 50 /* hsync_front_porch */,
+        1 /* hsync_pulse_width */, 30 /* hsync_back_porch */, 1 /* vsync_polarity */, 20 /* vsync_front_porch */,
+        1 /* vsync_pulse_width */, 30 /* vsync_back_porch */, 1 /* pclk_active_neg */);
+    tft = new Arduino_RGB_Display(w, h, rgbpanel, 0 /* rotation */, TFT_AUTO_FLUSH, bus, TFT_RST,
+                                  st7701_type4_init_operations, sizeof(st7701_type4_init_operations));
+
+#elif(TFT_WIDTH == 480) && (TFT_HEIGHT == 480) && defined(GC9503V_DRIVER)
     Arduino_DataBus* bus            = new Arduino_SWSPI(TFT_DC, TFT_CS, TFT_SCLK, TFT_MOSI, TFT_MISO);
     Arduino_ESP32RGBPanel* rgbpanel = new Arduino_ESP32RGBPanel(
         TFT_DE, TFT_VSYNC, TFT_HSYNC, TFT_PCLK, TFT_R0, TFT_R1, TFT_R2, TFT_R3, TFT_R4, TFT_G0, TFT_G1, TFT_G2, TFT_G3,
@@ -33,18 +47,18 @@ void ArduinoGfx::init(int w, int h)
     tft = new Arduino_RGB_Display(w, h, rgbpanel, 0 /* rotation */, TFT_AUTO_FLUSH, bus, TFT_RST,
                                   gc9503v_type1_init_operations, sizeof(gc9503v_type1_init_operations));
 
-#elif(TFT_WIDTH == 480) && (TFT_HEIGHT == 480)
+#elif(TFT_WIDTH == 480) && (TFT_HEIGHT == 480) && defined(ST7701_DRIVER)
     /* More data bus class: https://github.com/moononournation/Arduino_GFX/wiki/Data-Bus-Class */
     Arduino_DataBus* bus            = new Arduino_SWSPI(TFT_DC, TFT_CS, TFT_SCLK, TFT_MOSI, TFT_MISO);
     Arduino_ESP32RGBPanel* rgbpanel = new Arduino_ESP32RGBPanel(
-        18 /* DE */, 17 /* VSYNC */, 16 /* HSYNC */, 21 /* PCLK */, 4 /* R0 */, 3 /* R1 */, 2 /* R2 */, 1 /* R3 */,
-        0 /* R4 */, 10 /* G0 */, 9 /* G1 */, 8 /* G2 */, 7 /* G3 */, 6 /* G4 */, 5 /* G5 */, 15 /* B0 */, 14 /* B1 */,
-        13 /* B2 */, 12 /* B3 */, 11 /* B4 */, TFT_HSYNC_POLARITY, TFT_HSYNC_FRONT_PORCH, TFT_HSYNC_PULSE_WIDTH,
-        TFT_HSYNC_BACK_PORCH, TFT_VSYNC_POLARITY, TFT_VSYNC_FRONT_PORCH, TFT_VSYNC_PULSE_WIDTH, TFT_VSYNC_BACK_PORCH);
+        TFT_DE, TFT_VSYNC, TFT_HSYNC, TFT_PCLK, TFT_R0, TFT_R1, TFT_R2, TFT_R3, TFT_R4, TFT_G0, TFT_G1, TFT_G2, TFT_G3,
+        TFT_G4, TFT_G5, TFT_B0, TFT_B1, TFT_B2, TFT_B3, TFT_B4, TFT_HSYNC_POLARITY, TFT_HSYNC_FRONT_PORCH,
+        TFT_HSYNC_PULSE_WIDTH, TFT_HSYNC_BACK_PORCH, TFT_VSYNC_POLARITY, TFT_VSYNC_FRONT_PORCH, TFT_VSYNC_PULSE_WIDTH,
+        TFT_VSYNC_BACK_PORCH);
 
     /* More display class: https://github.com/moononournation/Arduino_GFX/wiki/Display-Class */
-    tft = new Arduino_RGB_Display(480 /* width */, 480 /* height */, rgbpanel, 0 /* rotation */, TFT_AUTO_FLUSH, bus,
-                                  TFT_RST, st7701_type1_init_operations, sizeof(st7701_type1_init_operations));
+    tft = new Arduino_RGB_Display(w, h, rgbpanel, 0 /* rotation */, TFT_AUTO_FLUSH, bus, TFT_RST,
+                                  st7701_type1_init_operations, sizeof(st7701_type1_init_operations));
 #elif 1
     /* Reset is not implemented in the panel */
     if(TFT_RST != GFX_NOT_DEFINED) {
