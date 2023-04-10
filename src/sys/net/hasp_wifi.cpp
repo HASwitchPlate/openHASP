@@ -387,10 +387,7 @@ static void wifiSTADisconnected(WiFiEventStationModeDisconnected info)
 
 bool wifiShowAP()
 {
-    if(wifiEnabled && strlen(wifiSsid) != 0)
-        return false;
-    else
-        return true;
+    return wifiEnabled && strlen(wifiSsid) == 0;
 }
 
 bool wifiShowAP(char* ssid, char* pass)
