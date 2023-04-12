@@ -4,11 +4,15 @@
 
 !!! THE PARTITION SCHEME OF THE INTERNAL FLASH HAS CHANGED !!!
 
+### Commands
+- Removed deprecated `dim`, `brightness` and `light` commands, use `backlight` instead
+
 ### Objects
 <!-- ? Support for State and Part properties -->
 - `action` and `swipe` can now be set to any command
 - Set default `line_width` of new `line` objects to 1
 - Allow line and block comments in pages.jsonl
+- Removed deprecated `txt` property, use `text` instead
 - HASP theme: Toggle objects now use the secondary color when they are in the toggled state.
 
 ### Fonts
@@ -48,7 +52,7 @@
 - Add support for ESP32-S3 devices
 - Deprication of support for ESP32-S2 devices due to lack of sRAM
 
-Updated libraries to ArduinoJson 6.21.1, ArduinoStreamUtils 1.7.0, TFT_eSPI 2.5.0, LovyanGFX 1.1.2 and SimpleFTPServer 2.1.5
+Updated libraries to ArduinoJson 6.21.2, ArduinoStreamUtils 1.7.0, TFT_eSPI 2.5.0, LovyanGFX 1.1.2 and SimpleFTPServer 2.1.5
 
 
 ## v0.6.3
