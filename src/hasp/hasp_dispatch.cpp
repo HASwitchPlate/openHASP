@@ -973,12 +973,12 @@ void dispatch_moodlight(const char* topic, const char* payload, uint8_t source)
     dispatch_state_subtopic(out_topic, buffer);
 }
 
-void dispatch_backlight_obsolete(const char* topic, const char* payload, uint8_t source)
-{
-    LOG_WARNING(TAG_MSGR, F(D_ATTRIBUTE_OBSOLETE D_ATTRIBUTE_INSTEAD), topic,
-                "backlight"); // TODO: obsolete dim, light and brightness
-    dispatch_backlight(topic, payload, source);
-}
+// void dispatch_backlight_obsolete(const char* topic, const char* payload, uint8_t source)
+// {
+//     LOG_WARNING(TAG_MSGR, F(D_ATTRIBUTE_OBSOLETE D_ATTRIBUTE_INSTEAD), topic,
+//                 "backlight"); // TODO: obsolete dim, light and brightness
+//     dispatch_backlight(topic, payload, source);
+// }
 
 void dispatch_backlight(const char*, const char* payload, uint8_t source)
 {
@@ -1347,7 +1347,7 @@ void dispatch_wakeup()
 void dispatch_wakeup_obsolete(const char* topic, const char*, uint8_t source)
 {
     LOG_WARNING(TAG_MSGR, F(D_ATTRIBUTE_OBSOLETE D_ATTRIBUTE_INSTEAD), topic,
-                "idle=off"); // TODO: obsolete dim, light and brightness
+                "idle=off"); // TODO: obsolete wakeup
     dispatch_wakeup();
     hasp_set_wakeup_touch(false);
 }
@@ -1490,10 +1490,10 @@ void dispatchSetup()
     dispatch_add_command(PSTR("factoryreset"), dispatch_factory_reset);
 
     /* obsolete commands */
-    dispatch_add_command(PSTR("dim"), dispatch_backlight_obsolete);
-    dispatch_add_command(PSTR("brightness"), dispatch_backlight_obsolete);
-    dispatch_add_command(PSTR("wakeup"), dispatch_wakeup_obsolete);
-    dispatch_add_command(PSTR("light"), dispatch_backlight_obsolete);
+    // dispatch_add_command(PSTR("dim"), dispatch_backlight_obsolete);
+    // dispatch_add_command(PSTR("brightness"), dispatch_backlight_obsolete);
+    // dispatch_add_command(PSTR("light"), dispatch_backlight_obsolete);
+    dispatch_add_command(PSTR("wakeup"), dispatch_wakeup_obsolete); // used in CC
 
 #if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
 #if defined(ARDUINO_ARCH_ESP32)

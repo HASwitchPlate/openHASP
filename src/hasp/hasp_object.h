@@ -10,7 +10,7 @@ const char FP_SKIP[] PROGMEM     = "skip";
 const char FP_PAGE[] PROGMEM     = "page";
 const char FP_ID[] PROGMEM       = "id";
 const char FP_OBJ[] PROGMEM      = "obj";
-const char FP_OBJID[] PROGMEM    = "objid";
+// const char FP_OBJID[] PROGMEM    = "objid"; // obsolete
 const char FP_PARENTID[] PROGMEM = "parentid";
 const char FP_GROUPID[] PROGMEM  = "groupid";
 

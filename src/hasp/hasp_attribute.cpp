@@ -2644,8 +2644,8 @@ void hasp_process_obj_attribute(lv_obj_t* obj, const char* attribute, const char
             ret = attribute_common_val(obj, val, update);
             break;
 
-        case ATTR_TXT: // TODO: remove
-            LOG_WARNING(TAG_HASP, F(D_ATTRIBUTE_OBSOLETE D_ATTRIBUTE_INSTEAD), attribute, "text");
+        // case ATTR_TXT: // TODO: remove
+        //     LOG_WARNING(TAG_HASP, F(D_ATTRIBUTE_OBSOLETE D_ATTRIBUTE_INSTEAD), attribute, "text");
         case ATTR_TEXT:
         case ATTR_TEMPLATE:
             ret = attribute_common_text(obj, attr_hash, payload, &text, update);
