@@ -13,6 +13,7 @@
 - Set default `line_width` of new `line` objects to 1
 - Allow line and block comments in pages.jsonl
 - Removed deprecated `txt` property, use `text` instead
+- Removed deprecated `objid` property, use `obj` instead
 - HASP theme: Toggle objects now use the secondary color when they are in the toggled state.
 
 ### Fonts

@@ -270,19 +270,19 @@ void hasp_new_object(const JsonObject& config, uint8_t& saved_page_id)
         /* Create the object first */
 
         /* Validate type */
-        if(config[FPSTR(FP_OBJID)].isNull()) { // TODO: obsolete objid
+       // if(config[FPSTR(FP_OBJID)].isNull()) { // TODO: obsolete objid
             if(config[FPSTR(FP_OBJ)].isNull()) {
                 return; // comments
             } else {
                 sdbm = Parser::get_sdbm(config[FPSTR(FP_OBJ)].as<const char*>());
                 config.remove(FPSTR(FP_OBJ));
             }
-        } else {
-            LOG_WARNING(TAG_HASP, F(D_ATTRIBUTE_OBSOLETE D_ATTRIBUTE_INSTEAD), "objid",
-                        "obj"); // TODO: obsolete objid
-            sdbm = config[FPSTR(FP_OBJID)].as<uint8_t>();
-            config.remove(FPSTR(FP_OBJID));
-        }
+        // } else {
+        //     LOG_WARNING(TAG_HASP, F(D_ATTRIBUTE_OBSOLETE D_ATTRIBUTE_INSTEAD), "objid",
+        //                 "obj"); // TODO: obsolete objid
+        //     sdbm = config[FPSTR(FP_OBJID)].as<uint8_t>();
+        //     config.remove(FPSTR(FP_OBJID));
+        // }
 
         switch(sdbm) {
                 /* ----- Custom Objects ------ */
