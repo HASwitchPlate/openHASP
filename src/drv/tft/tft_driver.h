@@ -13,6 +13,28 @@
 
 namespace dev {
 
+enum lv_hasp_obj_type_t {
+    TFT_PANEL_UNKNOWN = 0,
+    TFT_PANEL_ILI9341,
+    TFT_PANEL_ILI9342,
+    TFT_PANEL_ILI9163,
+    TFT_PANEL_ILI9486,
+    TFT_PANEL_ILI9481,
+    TFT_PANEL_ILI9488,
+    TFT_PANEL_HX8357D,
+    TFT_PANEL_ST7735,
+    TFT_PANEL_ST7789,
+    TFT_PANEL_ST7789B,
+    TFT_PANEL_ST7796,
+    TFT_PANEL_S6D02A1,
+    TFT_PANEL_R61581,
+    TFT_PANEL_R61529,
+    TFT_PANEL_RM68140,
+    TFT_PANEL_RGB,
+    TFT_PANEL_EPD,
+    TFT_PANEL_LAST,
+};
+
 class BaseTft {
   public:
     virtual void init(int w, int h)

@@ -1,10 +1,21 @@
-/* MIT License - Copyright (c) 2019-2022 Francis Van Roie
+/* MIT License - Copyright (c) 2019-2023 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
 #if defined(ARDUINO) && defined(LGFX_USE_V1)
+#include <Arduino.h>
+#include <Preferences.h>
+#include <sdkconfig.h>
+
+#include "LovyanGFX.hpp"
+// #if defined(ESP32S3)
+#include "lgfx/v1/platforms/esp32s3/Panel_RGB.hpp"
+#include "lgfx/v1/platforms/esp32s3/Bus_RGB.hpp"
+// #endif
+
+#include "tft_driver.h"
 #include "tft_driver_lovyangfx.h"
 #include "Panel_ILI9481b.hpp"
-#include <Preferences.h>
+#include "M5Stack.hpp"
 
 namespace dev {
 
@@ -263,40 +274,45 @@ lgfx::Panel_Device* LovyanGfx::_init_panel(lgfx::IBus* bus)
 {
     lgfx::Panel_Device* panel = nullptr;
     switch(tft_driver) {
-        case 0x9341: {
+        case TFT_PANEL_ILI9341: {
             panel = new lgfx::Panel_ILI9341();
             LOG_VERBOSE(TAG_TFT, F("Panel_ILI9341"));
             break;
         }
-        case 0x9342: {
+        case TFT_PANEL_ILI9342: {
             panel = new lgfx::Panel_ILI9342();
             LOG_VERBOSE(TAG_TFT, F("Panel_ILI9342"));
             break;
         }
-        case 0x61529:
-        case 0x9481: {
+        case TFT_PANEL_R61529:
+        case TFT_PANEL_ILI9481: {
             panel = new lgfx::Panel_ILI9481_b();
             LOG_VERBOSE(TAG_TFT, F("Panel_ILI9481_b"));
             break;
         }
-        case 0x9488: {
+        case TFT_PANEL_ILI9488: {
             panel = new lgfx::Panel_ILI9488();
             LOG_VERBOSE(TAG_TFT, F("Panel_ILI9488"));
             break;
         }
-        case 0x7789: {
+        case TFT_PANEL_ST7789: {
             panel = new lgfx::Panel_ST7789();
             LOG_VERBOSE(TAG_TFT, F("Panel_ST7789"));
             break;
         }
-        case 0x7796: {
+        case TFT_PANEL_ST7796: {
             panel = new lgfx::Panel_ST7796();
             LOG_VERBOSE(TAG_TFT, F("Panel_ST7796"));
             break;
         }
-        case 0x8357D: {
+        case TFT_PANEL_HX8357D: {
             panel = new lgfx::Panel_HX8357D();
             LOG_VERBOSE(TAG_TFT, F("Panel_HX8357D"));
+            break;
+        }
+        case TFT_PANEL_RGB: {
+            // panel = new lgfx::Panel_RGB();
+            LOG_VERBOSE(TAG_TFT, F("Panel_RGB"));
             break;
         }
         default: { // Needs to be in curly braces
@@ -385,13 +401,17 @@ lgfx::ITouch* _init_touch(Preferences* preferences)
         cfg.bus_shared      = true;
         cfg.offset_rotation = 0;
 
-        cfg.spi_host = VSPI_HOST;
-        cfg.pin_sclk = 18;
-        cfg.pin_mosi = 23;
-        cfg.pin_miso = 19;
-        cfg.pin_cs   = 21;
-        cfg.pin_int  = GPIO_NUM_NC;
-
+        cfg.spi_host = SPI3_HOST;
+        // cfg.pin_sclk = 18;
+        // cfg.pin_mosi = 23;
+        // cfg.pin_miso = 19;
+        // cfg.pin_cs   = 21;
+        // cfg.pin_int  = GPIO_NUM_NC;
+        cfg.pin_sclk = TOUCH_SCLK;
+        cfg.pin_miso = TOUCH_MISO;
+        cfg.pin_mosi = TOUCH_MOSI;
+        cfg.pin_cs   = TOUCH_CS;
+        cfg.pin_int  = TOUCH_IRQ;
         touch->config(cfg);
         return touch;
     }
@@ -516,6 +536,70 @@ void LovyanGfx::init(int w, int h)
 
         _panel_instance->config(cfg);
     }
+#elif defined(M5STACKLGFX)
+
+    using namespace m5stack;
+
+    auto _panel_instance = new Panel_M5StackCore2();
+    auto _bus_instance   = new lgfx::Bus_SPI();
+    // auto _touch_instance = new lgfx::Touch_FT5x06();
+    auto _touch_instance = new Touch_M5Tough();
+
+    // AXP192_LDO2 = LCD PWR
+    // AXP192_IO4  = LCD RST
+    // AXP192_DC3  = LCD BL (Core2)
+    // AXP192_LDO3 = LCD BL (Tough)
+    // AXP192_IO1  = TP RST (Tough)
+    lgfx::i2c::writeRegister8(axp_i2c_port, axp_i2c_addr, 0x28, 0xF0, ~0, axp_i2c_freq); // set LDO2 3300mv // LCD PWR
+    lgfx::i2c::writeRegister8(axp_i2c_port, axp_i2c_addr, 0x12, 0x04, ~0, axp_i2c_freq); // LDO2 enable
+    lgfx::i2c::writeRegister8(axp_i2c_port, axp_i2c_addr, 0x92, 0x00, 0xF8,
+                              axp_i2c_freq); // GPIO1 OpenDrain (M5Tough TOUCH)
+    lgfx::i2c::writeRegister8(axp_i2c_port, axp_i2c_addr, 0x95, 0x84, 0x72, axp_i2c_freq); // GPIO4 enable
+    if(/*use_reset*/ true) {
+        lgfx::i2c::writeRegister8(axp_i2c_port, axp_i2c_addr, 0x96, 0, ~0x02, axp_i2c_freq); // GPIO4 LOW (LCD RST)
+        lgfx::i2c::writeRegister8(axp_i2c_port, axp_i2c_addr, 0x94, 0, ~0x02,
+                                  axp_i2c_freq); // GPIO1 LOW (M5Tough TOUCH RST)
+        lgfx::delay(1);
+    }
+    lgfx::i2c::writeRegister8(axp_i2c_port, axp_i2c_addr, 0x96, 0x02, ~0, axp_i2c_freq); // GPIO4 HIGH (LCD RST)
+    lgfx::i2c::writeRegister8(axp_i2c_port, axp_i2c_addr, 0x94, 0x02, ~0,
+                              axp_i2c_freq); // GPIO1 HIGH (M5Tough TOUCH RST)
+
+    {
+        auto bus_cfg       = _bus_instance->config();
+        bus_cfg.pin_mosi   = GPIO_NUM_23;
+        bus_cfg.pin_miso   = GPIO_NUM_38;
+        bus_cfg.pin_sclk   = GPIO_NUM_18;
+        bus_cfg.pin_dc     = GPIO_NUM_15;
+        bus_cfg.spi_3wire  = false;
+        bus_cfg.freq_write = 40000000;
+        bus_cfg.freq_read  = 16000000;
+        _bus_instance->config(bus_cfg);
+        _bus_instance->init();
+    }
+    _panel_instance->bus(_bus_instance);
+
+    {
+        auto cfg       = _touch_instance->config();
+        cfg.pin_int    = GPIO_NUM_39;       // INT pin number
+        cfg.pin_sda    = GPIO_NUM_21;       // I2C SDA pin number
+        cfg.pin_scl    = GPIO_NUM_22;       // I2C SCL pin number
+        cfg.i2c_addr   = I2C_TOUCH_ADDRESS; // I2C device addr
+        cfg.i2c_port   = I2C_NUM_1;         // I2C port number
+        cfg.freq       = 400000;            // I2C freq
+        cfg.x_min      = 0;
+        cfg.x_max      = 319;
+        cfg.y_min      = 0;
+        cfg.y_max      = 239;
+        cfg.bus_shared = false;
+        _touch_instance->config(cfg);
+    }
+    _panel_instance->touch(_touch_instance);
+    // float affine[6] = {1, 0, 0, 0, 1, 0};
+    //_panel_instance->setCalibrateAffine(affine);
+    //_panel_instance->setLight(new Light_M5StackCore2());
+    _panel_instance->setLight(new Light_M5Tough());
+
 #elif defined(ESP32_2432S028R)
     auto _panel_instance = new lgfx::Panel_ILI9341();
     auto _bus_instance   = new lgfx::Bus_SPI();
@@ -578,10 +662,293 @@ void LovyanGfx::init(int w, int h)
         _touch_instance->config(cfg);
         _panel_instance->setTouch(_touch_instance);
     }
+
+#elif defined(TTGO_T_HMI)
+    auto _panel_instance = new lgfx::Panel_ST7789();
+    auto _bus_instance   = new lgfx::Bus_Parallel8();
+    auto _touch_instance = new lgfx::Touch_XPT2046();
+
+    {
+        auto cfg       = _bus_instance->config();
+        cfg.freq_write = 16000000;
+        cfg.pin_wr     = TFT_WR;
+        cfg.pin_rd     = TFT_RD;
+        cfg.pin_rs     = TFT_DC; // D/C
+        cfg.pin_d0     = TFT_D0;
+        cfg.pin_d1     = TFT_D1;
+        cfg.pin_d2     = TFT_D2;
+        cfg.pin_d3     = TFT_D3;
+        cfg.pin_d4     = TFT_D4;
+        cfg.pin_d5     = TFT_D5;
+        cfg.pin_d6     = TFT_D6;
+        cfg.pin_d7     = TFT_D7;
+        _bus_instance->config(cfg);
+        _panel_instance->setBus(_bus_instance);
+    }
+
+    {
+        auto cfg             = _panel_instance->config();
+        cfg.pin_cs           = TFT_CS;
+        cfg.pin_rst          = TFT_RST;
+        cfg.pin_busy         = TFT_BUSY;
+        cfg.memory_width     = TFT_WIDTH;
+        cfg.memory_height    = TFT_HEIGHT;
+        cfg.panel_width      = TFT_WIDTH;
+        cfg.panel_height     = TFT_HEIGHT;
+        cfg.offset_x         = 0;
+        cfg.offset_y         = 0;
+        cfg.offset_rotation  = TFT_ROTATION;
+        cfg.dummy_read_pixel = 8;
+        cfg.dummy_read_bits  = 1;
+        cfg.readable         = true;
+        cfg.invert           = false;
+        cfg.rgb_order        = false;
+        cfg.dlen_16bit       = false;
+        cfg.bus_shared       = false;
+        _panel_instance->config(cfg);
+    }
+
+    {
+        auto cfg            = _touch_instance->config();
+        cfg.x_min           = 0;
+        cfg.x_max           = 4095;
+        cfg.y_min           = 4095;
+        cfg.y_max           = 0;
+        cfg.pin_int         = TOUCH_IRQ;
+        cfg.bus_shared      = false;
+        cfg.offset_rotation = TOUCH_OFFSET_ROTATION;
+        cfg.spi_host        = SPI3_HOST;
+        cfg.freq            = SPI_TOUCH_FREQUENCY;
+        cfg.pin_sclk        = TOUCH_SCLK;
+        cfg.pin_mosi        = TOUCH_MOSI;
+        cfg.pin_miso        = TOUCH_MISO;
+        cfg.pin_cs          = TOUCH_CS;
+        _touch_instance->config(cfg);
+        _panel_instance->setTouch(_touch_instance);
+    }
+#elif 0
+    auto _panel_instance = new lgfx::Panel_ST7796();
+    auto _bus_instance   = new lgfx::Bus_SPI();
+    auto _touch_instance = new lgfx::Touch_FT5x06();
+    {
+        auto cfg        = _bus_instance->config();
+        cfg.spi_host    = VSPI_HOST;
+        cfg.spi_mode    = 0;
+        cfg.freq_write  = 40000000;
+        cfg.freq_read   = 16000000;
+        cfg.spi_3wire   = false;
+        cfg.use_lock    = true;
+        cfg.dma_channel = 1;
+        cfg.pin_sclk    = 18;
+        cfg.pin_mosi    = 19;
+        cfg.pin_miso    = 23;
+        cfg.pin_dc      = 27;
+        _bus_instance->config(cfg);
+        _panel_instance->setBus(_bus_instance);
+    }
+
+    {
+        auto cfg             = _panel_instance->config();
+        cfg.pin_cs           = 5;
+        cfg.pin_rst          = -1;
+        cfg.pin_busy         = -1;
+        cfg.memory_width     = 320;
+        cfg.memory_height    = 480;
+        cfg.panel_width      = 320;
+        cfg.panel_height     = 480;
+        cfg.offset_x         = 0;
+        cfg.offset_y         = 0;
+        cfg.offset_rotation  = 0;
+        cfg.dummy_read_pixel = 8;
+        cfg.dummy_read_bits  = 1;
+        cfg.readable         = true;
+        cfg.invert           = false;
+        cfg.rgb_order        = false;
+        cfg.dlen_16bit       = false;
+        cfg.bus_shared       = true;
+
+        _panel_instance->config(cfg);
+    }
+#elif defined(MKFBS_TFT_S3_40_RGB)
+    auto _panel_instance = new lgfx::Panel_RGB();
+    auto _bus_instance   = new lgfx::Bus_RGB();
+    auto _touch_instance = new lgfx::Touch_GT911();
+
+#elif defined(MKFBS_TFT_S3_43_RGB)
+    auto _panel_instance = new lgfx::Panel_RGB();
+    auto _bus_instance   = new lgfx::Bus_RGB();
+    auto _touch_instance = new lgfx::Touch_GT911();
+    auto _light_instance = new lgfx::Light_PWM();
+
+    {
+        auto cfg          = _panel_instance->config();
+        cfg.memory_width  = TFT_WIDTH;
+        cfg.memory_height = TFT_HEIGHT;
+        cfg.panel_width   = TFT_WIDTH;
+        cfg.panel_height  = TFT_HEIGHT;
+
+        cfg.offset_x = 0;
+        cfg.offset_y = 0;
+        _panel_instance->config(cfg);
+    }
+
+    {
+        auto cfg      = _panel_instance->config_detail();
+        cfg.use_psram = 1;
+        _panel_instance->config_detail(cfg);
+    }
+
+    {
+        auto cfg    = _bus_instance->config();
+        cfg.panel   = _panel_instance;
+        cfg.pin_d0  = GPIO_NUM_8;  // B0
+        cfg.pin_d1  = GPIO_NUM_3;  // B1
+        cfg.pin_d2  = GPIO_NUM_46; // B2
+        cfg.pin_d3  = GPIO_NUM_9;  // B3
+        cfg.pin_d4  = GPIO_NUM_1;  // B4
+        cfg.pin_d5  = GPIO_NUM_5;  // G0
+        cfg.pin_d6  = GPIO_NUM_6;  // G1
+        cfg.pin_d7  = GPIO_NUM_7;  // G2
+        cfg.pin_d8  = GPIO_NUM_15; // G3
+        cfg.pin_d9  = GPIO_NUM_16; // G4
+        cfg.pin_d10 = GPIO_NUM_4;  // G5
+        cfg.pin_d11 = GPIO_NUM_45; // R0
+        cfg.pin_d12 = GPIO_NUM_48; // R1
+        cfg.pin_d13 = GPIO_NUM_47; // R2
+        cfg.pin_d14 = GPIO_NUM_21; // R3
+        cfg.pin_d15 = GPIO_NUM_14; // R4
+
+        cfg.pin_henable = GPIO_NUM_40;
+        cfg.pin_vsync   = GPIO_NUM_41;
+        cfg.pin_hsync   = GPIO_NUM_39;
+        cfg.pin_pclk    = GPIO_NUM_42;
+        cfg.freq_write  = 14000000;
+
+        cfg.hsync_polarity    = 0;
+        cfg.hsync_front_porch = 8;
+        cfg.hsync_pulse_width = 4;
+        cfg.hsync_back_porch  = 16;
+        cfg.vsync_polarity    = 0;
+        cfg.vsync_front_porch = 4;
+        cfg.vsync_pulse_width = 4;
+        cfg.vsync_back_porch  = 4;
+        cfg.pclk_idle_high    = 1;
+        _bus_instance->config(cfg);
+        _panel_instance->setBus(_bus_instance);
+    }
+
+    {
+        auto cfg            = _touch_instance->config();
+        cfg.x_min           = 0;
+        cfg.y_min           = 0;
+        cfg.bus_shared      = false;
+        cfg.offset_rotation = 0;
+        // I2C接続
+        cfg.i2c_port = I2C_NUM_1;
+        cfg.pin_sda  = GPIO_NUM_17;
+        cfg.pin_scl  = GPIO_NUM_18;
+        cfg.freq     = 400000;
+
+        // for Board v1.3
+        cfg.pin_int = GPIO_NUM_NC;
+        cfg.pin_rst = GPIO_NUM_38;
+        cfg.x_max   = 800;
+        cfg.y_max   = 480;
+
+        _touch_instance->config(cfg);
+        _panel_instance->setTouch(_touch_instance);
+    }
+
+    {
+        auto cfg   = _light_instance->config();
+        cfg.pin_bl = GPIO_NUM_2;
+        _light_instance->config(cfg);
+        _panel_instance->setLight(_light_instance);
+    }
+
+#elif defined(ESP32_8040S070C) || defined(RGB_DRIVER)
+    auto _panel_instance = new lgfx::Panel_RGB();
+    auto _bus_instance   = new lgfx::Bus_RGB();
+    auto _touch_instance = new lgfx::Touch_GT911();
+
+    {
+        auto cfg          = _panel_instance->config();
+        cfg.memory_width  = TFT_WIDTH;
+        cfg.memory_height = TFT_HEIGHT;
+        cfg.panel_width   = TFT_WIDTH;
+        cfg.panel_height  = TFT_HEIGHT;
+
+        cfg.offset_x = 0;
+        cfg.offset_y = 0;
+        _panel_instance->config(cfg);
+    }
+
+    {
+        auto cfg      = _panel_instance->config_detail();
+        cfg.use_psram = 1;
+        _panel_instance->config_detail(cfg);
+    }
+
+    {
+        auto cfg    = _bus_instance->config();
+        cfg.panel   = _panel_instance;
+        cfg.pin_d0  = TFT_B0; // B0
+        cfg.pin_d1  = TFT_B1; // B1
+        cfg.pin_d2  = TFT_B2; // B2
+        cfg.pin_d3  = TFT_B3; // B3
+        cfg.pin_d4  = TFT_B4; // B4
+        cfg.pin_d5  = TFT_G0; // G0
+        cfg.pin_d6  = TFT_G1; // G1
+        cfg.pin_d7  = TFT_G2; // G2
+        cfg.pin_d8  = TFT_G3; // G3
+        cfg.pin_d9  = TFT_G4; // G4
+        cfg.pin_d10 = TFT_G5; // G5
+        cfg.pin_d11 = TFT_R0; // R0
+        cfg.pin_d12 = TFT_R1; // R1
+        cfg.pin_d13 = TFT_R2; // R2
+        cfg.pin_d14 = TFT_R3; // R3
+        cfg.pin_d15 = TFT_R4; // R4
+
+        cfg.pin_henable = TFT_DE;
+        cfg.pin_vsync   = TFT_VSYNC;
+        cfg.pin_hsync   = TFT_HSYNC;
+        cfg.pin_pclk    = TFT_PCLK;
+        cfg.freq_write  = TFT_PREFER_SPEED;
+
+        cfg.hsync_polarity    = TFT_HSYNC_POLARITY;
+        cfg.hsync_front_porch = TFT_HSYNC_FRONT_PORCH;
+        cfg.hsync_pulse_width = TFT_HSYNC_PULSE_WIDTH;
+        cfg.hsync_back_porch  = TFT_HSYNC_BACK_PORCH;
+        cfg.vsync_polarity    = TFT_VSYNC_POLARITY;
+        cfg.vsync_front_porch = TFT_VSYNC_FRONT_PORCH;
+        cfg.vsync_pulse_width = TFT_VSYNC_PULSE_WIDTH;
+        cfg.vsync_back_porch  = TFT_VSYNC_BACK_PORCH;
+        cfg.pclk_idle_high    = 1;
+        _bus_instance->config(cfg);
+        _panel_instance->setBus(_bus_instance);
+    }
+
+    {
+        auto cfg            = _touch_instance->config();
+        cfg.x_min           = 0;
+        cfg.x_max           = TFT_WIDTH;
+        cfg.y_min           = 0;
+        cfg.y_max           = TFT_HEIGHT;
+        cfg.pin_int         = TOUCH_IRQ;
+        cfg.bus_shared      = false;
+        cfg.offset_rotation = TOUCH_OFFSET_ROTATION;
+        cfg.i2c_port        = I2C_TOUCH_PORT;
+        cfg.pin_sda         = TOUCH_SDA;
+        cfg.pin_scl         = TOUCH_SCL;
+        cfg.freq            = 400000;
+        cfg.i2c_addr        = 0x14; // 0x5D , 0x14
+        _touch_instance->config(cfg);
+        _panel_instance->setTouch(_touch_instance);
+    }
 #else
 
     Preferences preferences;
-    preferences.begin("tft", false);
+    nvs_user_begin(preferences, "tft", false);
     this->tft_driver = preferences.getUInt("DRIVER", get_tft_driver());
 
     lgfx::IBus* _bus_instance           = _init_bus(&preferences);
@@ -593,6 +960,7 @@ void LovyanGfx::init(int w, int h)
         configure_panel(_panel_instance, &preferences);
         _panel_instance->setTouch(_touch_instance);
     }
+    preferences.end();
 #endif
 
     tft.setPanel(_panel_instance);
@@ -853,37 +1221,41 @@ const char* LovyanGfx::get_tft_model()
 uint32_t LovyanGfx::get_tft_driver()
 {
 #if defined(ILI9341_DRIVER)
-    return 0x9341;
-#elif defined(ST7735_DRIVER)
-    return 0x7735;
+    return TFT_PANEL_ILI9341;
+#elif defined(ILI9342_DRIVER)
+    return TFT_PANEL_ILI9342;
 #elif defined(ILI9163_DRIVER)
-    return 0x9163;
-#elif defined(S6D02A1_DRIVER)
-    return 0x6D02A1;
-#elif defined(ST7796_DRIVER)
-    return 0x7796;
+    return TFT_PANEL_ILI9163;
 #elif defined(ILI9486_DRIVER)
-    return 0x9486;
+    return TFT_PANEL_ILI9486;
 #elif defined(ILI9481_DRIVER)
-    return 0x9481;
+    return TFT_PANEL_ILI9481;
 #elif defined(ILI9488_DRIVER)
-    return 0x9488;
+    return TFT_PANEL_ILI9488;
 #elif defined(HX8357D_DRIVER)
-    return 0x8357D;
-#elif defined(EPD_DRIVER)
-    return 0xED;
+    return TFT_PANEL_HX8357D;
+#elif defined(ST7735_DRIVER)
+    return TFT_PANEL_ST7735;
 #elif defined(ST7789_DRIVER)
-    return 0x7789;
+    return TFT_PANEL_ST7789;
 #elif defined(ST7789_2_DRIVER)
-    return 0x77892;
+    return TFT_PANEL_ST7789B;
+#elif defined(ST7796_DRIVER)
+    return TFT_PANEL_ST7796;
+#elif defined(S6D02A1_DRIVER)
+    return TFT_PANEL_S6D02A1;
 #elif defined(R61581_DRIVER)
-    return 0x61581;
+    return TFT_PANEL_R61581;
 #elif defined(R61529_DRIVER)
-    return 0x61529;
+    return TFT_PANEL_R61529;
 #elif defined(RM68140_DRIVER)
-    return 0x68140;
+    return TFT_PANEL_RM68140;
+#elif defined(EPD_DRIVER)
+    return TFT_PANEL_EPD;
+#elif defined(RGB_DRIVER)
+    return TFT_PANEL_RGB;
 #else
-    return 0x0;
+    return TFT_PANEL_UNKNOWN;
 #endif
 }
 
