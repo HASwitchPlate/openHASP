@@ -322,6 +322,16 @@ void guiSetup()
     lv_obj_t* mouse_layer = lv_disp_get_layer_sys(NULL); // default display
 
 #if defined(ARDUINO_ARCH_ESP32)
+    Preferences preferences;
+    nvs_user_begin(preferences, "gui", true);
+    // indev_drv.drag_limit           = preferences.getUChar(key, LV_INDEV_DEF_DRAG_LIMIT);
+    // indev_drv.drag_throw           = preferences.getUChar(key, LV_INDEV_DEF_DRAG_THROW);
+    indev_drv.long_press_time     = preferences.getUShort(FP_GUI_LONG_TIME, LV_INDEV_DEF_LONG_PRESS_TIME);
+    indev_drv.long_press_rep_time = preferences.getUShort(FP_GUI_REPEAT_TIME, LV_INDEV_DEF_LONG_PRESS_REP_TIME);
+    // indev_drv.gesture_limit        = preferences.getUChar(key, LV_INDEV_DEF_GESTURE_LIMIT);
+    // indev_drv.gesture_min_velocity = preferences.getUChar(key, LV_INDEV_DEF_GESTURE_MIN_VELOCITY);
+    preferences.end();
+
     LV_IMG_DECLARE(mouse_cursor_icon);          /*Declare the image file.*/
     cursor = lv_img_create(mouse_layer, NULL);  /*Create an image object for the cursor */
     lv_img_set_src(cursor, &mouse_cursor_icon); /*Set the image source*/
@@ -393,12 +403,12 @@ static void gui_task(void* args)
 {
     LOG_TRACE(TAG_GUI, "Start to run LVGL");
     while(1) {
-        vTaskDelay(pdMS_TO_TICKS(10));
-
         /* Try to take the semaphore, call lvgl related function on success */
-        if(pdTRUE == xSemaphoreTake(xGuiSemaphore, pdMS_TO_TICKS(10))) {
+        // if(pdTRUE == xSemaphoreTake(xGuiSemaphore, pdMS_TO_TICKS(10))) {
+        if(pdTRUE == xSemaphoreTake(xGuiSemaphore, portMAX_DELAY)) {
             lv_task_handler();
             xSemaphoreGive(xGuiSemaphore);
+            vTaskDelay(pdMS_TO_TICKS(5));
         }
     }
 }
@@ -418,27 +428,23 @@ esp_err_t gui_setup_lvgl_task()
 }
 #endif // HASP_USE_LVGL_TASK
 
-bool gui_acquire(void)
+IRAM_ATTR bool gui_acquire(TickType_t timeout)
 {
 #if ESP32
     TaskHandle_t task = xTaskGetCurrentTaskHandle();
-    if(g_lvgl_task_handle != task) {
-        if(xSemaphoreTake(xGuiSemaphore, pdMS_TO_TICKS(30)) != pdTRUE) {
-            return false;
-        }
-    }
+    if(g_lvgl_task_handle == task) return true;
+    if(xSemaphoreTake(xGuiSemaphore, timeout) != pdTRUE) return false;
 #endif
     return true;
 }
 
-void gui_release(void)
+IRAM_ATTR void gui_release(void)
 {
 #if ESP32
     TaskHandle_t task = xTaskGetCurrentTaskHandle();
-    if(g_lvgl_task_handle != task) {
-        xSemaphoreGive(xGuiSemaphore);
-        // LOG_VERBOSE(TAG_TFT, F("GIVE"));
-    }
+    if(g_lvgl_task_handle == task) return;
+    xSemaphoreGive(xGuiSemaphore);
+    // LOG_VERBOSE(TAG_TFT, F("GIVE"));
 #endif
 }
 

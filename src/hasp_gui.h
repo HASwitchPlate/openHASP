@@ -61,8 +61,8 @@ void gui_flush_cb(lv_disp_drv_t* disp, const lv_area_t* area, lv_color_t* color_
 void gui_antiburn_cb(lv_disp_drv_t* disp, const lv_area_t* area, lv_color_t* color_p);
 
 /* ===== Locks ===== */
-bool gui_acquire(void);
-void gui_release(void);
+IRAM_ATTR bool gui_acquire(TickType_t timeout);
+IRAM_ATTR void gui_release(void);
 #ifdef ESP32
 esp_err_t gui_setup_lvgl_task(void);
 #endif
