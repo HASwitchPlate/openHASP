@@ -155,9 +155,9 @@ void setup()
 IRAM_ATTR void loop()
 {
 #if defined(ESP32) && defined(HASP_USE_ESP_MQTT)
-    if(!gui_acquire()) {
+    if(!gui_acquire(portMAX_DELAY)) {
         // LOG_ERROR(TAG_MAIN, F("TAKE Mutex"));
-        delay(10); // ms
+        delay(5); // ms
         return;
     }
 #endif
@@ -264,10 +264,10 @@ IRAM_ATTR void loop()
 #ifdef ARDUINO_ARCH_ESP8266
     delay(2); // ms
 #else
-    delay(5); // ms
+    delay(2); // ms
 #endif
 #else // HASP_USE_LVGL_TASK != 0
-    delay(10); // ms
+    delay(2); // ms
 #endif
 }
 
