@@ -1,4 +1,4 @@
-/* MIT License - Copyright (c) 2019-2022 Francis Van Roie
+/* MIT License - Copyright (c) 2019-2023 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
 #ifndef HASP_DEVICE_ESP32_H
@@ -75,7 +75,7 @@ class Esp32Device : public BaseDevice {
 #if defined(LANBONL8)
 // #warning Building for Lanbon L8
 #include "lanbonl8.h"
-#elif defined(M5STACK)
+#elif defined(M5STACK) || defined (M5STACKLGFX)
 // #warning Building for M5Stack core2
 #include "m5stackcore2.h"
 #else
