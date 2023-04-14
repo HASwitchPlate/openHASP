@@ -370,15 +370,20 @@ bool Esp32Device::is_system_pin(uint8_t pin)
     // SPID = IO11 or IO35
     // SPIQ = IO13 or IO37
     // SPIWP = IO14 or IO38
-    if((pin >= 33) && (pin <= 38)) return true; // SPI flash
-    if(psramFound() &&(pin == 26)) return true; // PSRAM. IO26 = SPICS1, the rest are shared with the flash
+    if((pin >= 33) && (pin <= 38)) return true;  // SPI flash
+    if(psramFound() && (pin == 26)) return true; // PSRAM. IO26 = SPICS1, the rest are shared with the flash
 #elif defined(ESP32S3)
     if((pin >= 22) && (pin <= 25)) return true; // unavailable
     if((pin >= 26) && (pin <= 32)) return true; // integrated SPI flash
     if((pin >= 33) && (pin <= 37)) return true; // octal flash or PSram
 #else
     if((pin >= 6) && (pin <= 11)) return true;                    // integrated SPI flash
-    if((pin == 37) || (pin == 38)) return true;                   // unavailable
+#ifndef HASP_USE_GPIO37
+    if(pin == 37) return true;                                    // unavailable
+#endif
+#ifndef HASP_USE_GPIO38
+    if(pin == 38) return true;                                    // unavailable
+#endif
     if(psramFound() && ((pin == 16) || (pin == 17))) return true; // PSRAM
 
 #endif
@@ -442,8 +447,9 @@ long Esp32Device::get_uptime()
 #if defined(LANBONL8)
 // #warning Building for Lanbon L8
 #include "dev/esp32/lanbonl8.h"
-#elif defined(M5STACK)
-                                                // #warning Building for M5Stack core2
+
+#elif defined(M5STACK) || defined(M5STACKLGFX)
+#warning Building for M5Stack core2
 #include "dev/esp32/m5stackcore2.h"
 #else
 dev::Esp32Device haspDevice;
