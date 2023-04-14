@@ -158,7 +158,7 @@ void hasp_set_sleep_state(uint8_t state)
             break;
         case HASP_SLEEP_OFF:
             hasp_set_sleep_offset(0);
-            hasp_set_wakeup_touch(false);
+            // hasp_set_wakeup_touch(false);
             break;
         default:
             return;

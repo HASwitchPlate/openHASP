@@ -1274,15 +1274,15 @@ static void handleFileCreate()
         }
     }
     if(webServer.hasArg(F("init"))) {
-        dispatch_wakeup();
+        dispatch_wakeup(TAG_HTTP);
         hasp_init();
     }
     if(webServer.hasArg(F("load"))) {
-        dispatch_wakeup();
+        dispatch_wakeup(TAG_HTTP);
         hasp_load_json();
     }
     if(webServer.hasArg(F("page"))) {
-        dispatch_wakeup();
+        dispatch_wakeup(TAG_HTTP);
         dispatch_page(NULL, webServer.arg(F("page")).c_str(), TAG_HTTP);
         // uint8_t pageid = atoi(webServer.arg(F("page")).c_str());
         // dispatch_set_page(pageid, LV_SCR_LOAD_ANIM_NONE);

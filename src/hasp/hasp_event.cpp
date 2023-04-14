@@ -377,12 +377,14 @@ void first_touch_event_handler(lv_obj_t* obj, lv_event_t event)
     if(event == LV_EVENT_RELEASED) {
         bool changed = hasp_stop_antiburn(); // Disable antiburn task
 
-        if(!haspDevice.get_backlight_power()) {
-            dispatch_backlight(NULL, "on", TAG_EVENT); // backlight on and also disable wakeup touch
-            hasp_set_wakeup_touch(false);              // only disable wakeup touch
-        } else {
-            hasp_set_wakeup_touch(false); // only disable wakeup touch
-        }
+        /*  if(!haspDevice.get_backlight_power()) { */
+
+        dispatch_backlight(NULL, "on", TAG_EVENT); // backlight on and also disable wakeup touch
+        hasp_set_wakeup_touch(false);              // only disable wakeup touch
+
+        /*  } else {
+              hasp_set_wakeup_touch(false); // only disable wakeup touch
+          }*/
 
         hasp_update_sleep_state();                                // wakeup, send Idle off
         if(changed) dispatch_state_antiburn(hasp_get_antiburn()); // publish the new state

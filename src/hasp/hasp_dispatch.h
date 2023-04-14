@@ -78,7 +78,7 @@ void dispatch_send_sensordata(const char*, const char*, uint8_t source);
 void dispatch_idle_state(uint8_t state);
 void dispatch_calibrate(const char*, const char*, uint8_t source);
 void dispatch_antiburn(const char*, const char* payload, uint8_t source);
-void dispatch_wakeup();
+void dispatch_wakeup(uint8_t source);
 void dispatch_run_script(const char*, const char* payload, uint8_t source);
 void dispatch_config(const char* topic, const char* payload, uint8_t source);
 

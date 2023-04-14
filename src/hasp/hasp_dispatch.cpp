@@ -1337,21 +1337,6 @@ void dispatch_calibrate(const char*, const char*, uint8_t source)
     guiCalibrate();
 }
 
-void dispatch_wakeup()
-{
-    if(hasp_get_sleep_state() == HASP_SLEEP_OFF) return;
-    hasp_set_sleep_state(HASP_SLEEP_OFF);
-    dispatch_idle_state(HASP_SLEEP_OFF);
-}
-
-void dispatch_wakeup_obsolete(const char* topic, const char*, uint8_t source)
-{
-    LOG_WARNING(TAG_MSGR, F(D_ATTRIBUTE_OBSOLETE D_ATTRIBUTE_INSTEAD), topic,
-                "idle=off"); // TODO: obsolete wakeup
-    dispatch_wakeup();
-    hasp_set_wakeup_touch(false);
-}
-
 void dispatch_sleep(const char*, const char*, uint8_t source)
 {
     hasp_set_wakeup_touch(false);
@@ -1383,6 +1368,20 @@ void dispatch_idle(const char*, const char* payload, uint8_t source)
     }
 
     dispatch_idle_state(hasp_get_sleep_state()); // always send the current state
+}
+
+void dispatch_wakeup(uint8_t source)
+{
+    //  if(hasp_get_sleep_state() == HASP_SLEEP_OFF) return;
+    dispatch_idle(NULL, "off", source);
+}
+
+void dispatch_wakeup_obsolete(const char* topic, const char*, uint8_t source)
+{
+    LOG_WARNING(TAG_MSGR, F(D_ATTRIBUTE_OBSOLETE D_ATTRIBUTE_INSTEAD), topic,
+                "idle=off"); // TODO: obsolete wakeup
+    dispatch_wakeup(source);
+    hasp_set_wakeup_touch(false);
 }
 
 void dispatch_reboot(const char*, const char*, uint8_t source)
