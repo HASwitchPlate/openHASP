@@ -25,12 +25,13 @@ data/static/main.js.gz
 data/static/script.js.gz
 data/static/style.css.gz
 data/static/*.js
-src/user_setups/active/*
+
 include/user_config_override.h
 src/user_config_override.h
 user_config_override.h
 platformio_override.ini
 user_setups/active/*
+user_setups/custom/*
 build_output/*
 build_output/firmware/*.bin
 build_output/firmware/*.exe
