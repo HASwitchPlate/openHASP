@@ -664,6 +664,9 @@ void LovyanGfx::init(int w, int h)
     }
 
 #elif defined(TTGO_T_HMI)
+    pinMode(PWR_EN, OUTPUT);
+    digitalWrite(PWR_EN, HIGH);
+
     auto _panel_instance = new lgfx::Panel_ST7789();
     auto _bus_instance   = new lgfx::Bus_Parallel8();
     auto _touch_instance = new lgfx::Touch_XPT2046();
