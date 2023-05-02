@@ -66,7 +66,7 @@
 {"id":14,"obj":"btn","x":130,"y":122,"w":90,"h":75,"text":"Purple","action":{"up":"moodlight {'state':'on','brightness':255,'color':'purple'}","hold":"moodlight {'state':'on','brightness':255,'color':'magenta'}"}}
 {"id":15,"obj":"btn","x":130,"y":205,"w":90,"h":75,"text":"Off","action":{"up":"moodlight {'state':'off'}","hold":"moodlight {'state':'on','brightness':255,'color':'white'}"}}
 
-{"page":0,"comment":"Connected Relay Buttons"}
+{"page":0,"comment":"Page Navigation"}
 {"id":1,"obj":"btn","action":"prev","x":0,"y":290,"w":79,"h":32,"bg_color":"#2C3E50","text":"\uE141","text_color":"#FFFFFF","radius":0,"border_side":0,"text_font":28}
 {"id":2,"obj":"btn","action":"p1","x":80,"y":290,"w":80,"h":32,"bg_color":"#2C3E50","text":"\uE2DC","text_color":"#FFFFFF","radius":0,"border_side":0,"text_font":22}
 {"id":3,"obj":"btn","action":"next","x":161,"y":290,"w":79,"h":32,"bg_color":"#2C3E50","text":"\uE142","text_color":"#FFFFFF","radius":0,"border_side":0,"text_font":28}
