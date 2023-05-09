@@ -437,13 +437,13 @@ void haspProgressMsg(const char* msg)
      } */
 }
 
-#ifdef ARDUINO
-// Sets the value string of the global progress bar
-void haspProgressMsg(const __FlashStringHelper* msg)
-{
-    haspProgressMsg(String(msg).c_str());
-}
-#endif
+// #ifdef ARDUINO
+// // Sets the value string of the global progress bar
+// void haspProgressMsg(const __FlashStringHelper* msg)
+// {
+//     haspProgressMsg(String(msg).c_str());
+// }
+// #endif
 
 /*Add a custom apply callback*/
 static void custom_font_apply_cb(lv_theme_t* th, lv_obj_t* obj, lv_theme_style_t name)

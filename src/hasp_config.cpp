@@ -29,7 +29,7 @@ extern uint32_t dispatchLastMillis;
 extern gui_conf_t gui_settings;
 extern dispatch_conf_t dispatch_settings;
 
-void confDebugSet(const __FlashStringHelper* fstr_name)
+void confDebugSet(const char* fstr_name)
 {
     /*char buffer[128];
     snprintf_P(buffer, sizeof(buffer), PSTR("   * %s set"), name);
@@ -37,7 +37,7 @@ void confDebugSet(const __FlashStringHelper* fstr_name)
     LOG_VERBOSE(TAG_CONF, F(D_BULLET "%S set"), fstr_name);
 }
 
-bool configSet(bool& value, const JsonVariant& setting, const __FlashStringHelper* fstr_name)
+bool configSet(bool& value, const JsonVariant& setting, const char* fstr_name)
 {
     if(!setting.isNull()) {
         bool val = setting.as<bool>();
@@ -49,7 +49,7 @@ bool configSet(bool& value, const JsonVariant& setting, const __FlashStringHelpe
     }
     return false;
 }
-bool configSet(int8_t& value, const JsonVariant& setting, const __FlashStringHelper* fstr_name)
+bool configSet(int8_t& value, const JsonVariant& setting, const char* fstr_name)
 {
     if(!setting.isNull()) {
         int8_t val = setting.as<int8_t>();
@@ -61,7 +61,7 @@ bool configSet(int8_t& value, const JsonVariant& setting, const __FlashStringHel
     }
     return false;
 }
-bool configSet(uint8_t& value, const JsonVariant& setting, const __FlashStringHelper* fstr_name)
+bool configSet(uint8_t& value, const JsonVariant& setting, const char* fstr_name)
 {
     if(!setting.isNull()) {
         uint8_t val = setting.as<uint8_t>();
@@ -73,7 +73,7 @@ bool configSet(uint8_t& value, const JsonVariant& setting, const __FlashStringHe
     }
     return false;
 }
-bool configSet(uint16_t& value, const JsonVariant& setting, const __FlashStringHelper* fstr_name)
+bool configSet(uint16_t& value, const JsonVariant& setting, const char* fstr_name)
 {
     if(!setting.isNull()) {
         uint16_t val = setting.as<uint16_t>();
@@ -85,7 +85,7 @@ bool configSet(uint16_t& value, const JsonVariant& setting, const __FlashStringH
     }
     return false;
 }
-bool configSet(int32_t& value, const JsonVariant& setting, const __FlashStringHelper* fstr_name)
+bool configSet(int32_t& value, const JsonVariant& setting, const char* fstr_name)
 {
     if(!setting.isNull()) {
         int32_t val = setting.as<int32_t>();
@@ -97,7 +97,7 @@ bool configSet(int32_t& value, const JsonVariant& setting, const __FlashStringHe
     }
     return false;
 }
-bool configSet(lv_color_t& value, const JsonVariant& setting, const __FlashStringHelper* fstr_name)
+bool configSet(lv_color_t& value, const JsonVariant& setting, const char* fstr_name)
 {
     lv_color32_t c32;
     if(!setting.isNull() && Parser::haspPayloadToColor(setting.as<const char*>(), c32)) {
@@ -118,7 +118,7 @@ void configSetupDebug(JsonDocument& settings)
 
 void configStorePasswords(JsonDocument& settings, String& wifiPass, String& mqttPass, String& httpPass)
 {
-    const __FlashStringHelper* pass = F("pass");
+    const char* pass = F("pass");
 
     wifiPass = settings[FPSTR(FP_WIFI)][pass].as<String>();
     mqttPass = settings[FPSTR(FP_MQTT)][pass].as<String>();
@@ -127,7 +127,7 @@ void configStorePasswords(JsonDocument& settings, String& wifiPass, String& mqtt
 
 void configRestorePasswords(JsonDocument& settings, String& wifiPass, String& mqttPass, String& httpPass)
 {
-    const __FlashStringHelper* pass = F("pass");
+    const char* pass = F("pass");
 
     if(!settings[FPSTR(FP_WIFI)][pass].isNull()) settings[FPSTR(FP_WIFI)][pass] = wifiPass;
     if(!settings[FPSTR(FP_MQTT)][pass].isNull()) settings[FPSTR(FP_MQTT)][pass] = mqttPass;
@@ -287,7 +287,7 @@ void configWrite()
 
     bool writefile = false;
     bool changed   = false;
-    const __FlashStringHelper* module;
+    const char* module;
 
 #if HASP_USE_WIFI > 0
     module = FPSTR(FP_WIFI);

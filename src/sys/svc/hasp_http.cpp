@@ -160,13 +160,13 @@ String getOption(String& value, String& label, String& current_value)
     return buffer;
 }
 
-static void add_form_button(String& str, const __FlashStringHelper* label, const __FlashStringHelper* action)
+static void add_form_button(String& str, const char* label, const char* action)
 {
-    str += F("<a href='");
+    str += "<a href='";
     str += action;
-    str += F("'>");
+    str += "'>";
     str += label;
-    str += F("</a>");
+    str += "</a>";
 }
 
 static String http_get_content_type(const String& path)
@@ -200,7 +200,7 @@ bool http_is_authenticated()
     if(http_config.password[0] != '\0') { // Request HTTP auth if httpPassword is set
         if(!webServer.authenticate(http_config.username, http_config.password)) {
             webServer.requestAuthentication();
-            LOG_WARNING(TAG_HTTP, F(D_TELNET_INCORRECT_LOGIN_ATTEMPT),
+            LOG_WARNING(TAG_HTTP, D_TELNET_INCORRECT_LOGIN_ATTEMPT,
                         webServer.client().remoteIP().toString().c_str());
             return false;
         }
@@ -209,15 +209,15 @@ bool http_is_authenticated()
 }
 
 // Check authentication and create Log entry
-bool http_is_authenticated(const __FlashStringHelper* notused)
+bool http_is_authenticated(const char* notused)
 {
     if(!http_is_authenticated()) return false;
 
 #if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
-    LOG_VERBOSE(TAG_HTTP, F(D_HTTP_SENDING_PAGE), webServer.uri().c_str(),
+    LOG_VERBOSE(TAG_HTTP, D_HTTP_SENDING_PAGE, webServer.uri().c_str(),
                 webServer.client().remoteIP().toString().c_str());
 #else
-        // LOG_INFO(TAG_HTTP,F(D_HTTP_SENDING_PAGE), page,
+        // LOG_INFO(TAG_HTTP,D_HTTP_SENDING_PAGE, page,
         //             String(webServer.client().remoteIP()).c_str());
 #endif
 
@@ -240,7 +240,7 @@ static void webSendFooter()
 static void http_send_cache_header(int size, int age = 3600)
 {
     webServer.sendHeader("Content-Length", (String)(size));
-    webServer.sendHeader(F("Cache-Control"), (String)(F("public, max-age=")) + (String)(age));
+    webServer.sendHeader("Cache-Control", (String)(F("public, max-age=")) + (String)(age));
 }
 
 static int http_send_cached(int statuscode, const char* contenttype, const char* data, size_t size, int age = 3600)
@@ -263,7 +263,7 @@ static int http_send_static_file(const uint8_t* start, const uint8_t* end, Strin
 
 static int http_send_static_gzip_file(const uint8_t* start, const uint8_t* end, String& contentType)
 {
-    webServer.sendHeader(F("Content-Encoding"), F("gzip"));
+    webServer.sendHeader("Content-Encoding", "gzip");
     return http_send_static_file(start, end, contentType);
 }
 
@@ -337,9 +337,9 @@ static void http_send_etag(String& etag)
     newTag = "\"";
     newTag += etag;
     newTag += "\"";
-    webServer.sendHeader(F("Cache-Control"), F("no-cache, must-revalidate, public"));
-    webServer.sendHeader(F("Expires"), F("Fri, 30 Oct 1998 14:19:41 GMT"));
-    webServer.sendHeader(F("ETag"), newTag);
+    webServer.sendHeader("Cache-Control", F("no-cache, must-revalidate, public"));
+    webServer.sendHeader("Expires", F("Fri, 30 Oct 1998 14:19:41 GMT"));
+    webServer.sendHeader("ETag", newTag);
 }
 
 bool http_save_config()
@@ -378,7 +378,7 @@ bool http_save_config()
             updated = httpSetConfig(settings.as<JsonObject>());
 
             // Password might have changed
-            if(!http_is_authenticated(F("config"))) return updated;
+            if(!http_is_authenticated("config")) return updated;
 
 #if HASP_USE_WIFI > 0
         } else if(save == FP_WIFI) {
@@ -392,7 +392,7 @@ bool http_save_config()
 
 static void http_handle_root()
 {
-    if(!http_is_authenticated(F("root"))) return;
+    if(!http_is_authenticated("root")) return;
     bool updated = http_save_config();
 
     const char* html[20];
@@ -420,7 +420,7 @@ static void http_handle_root()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 static void http_handle_reboot()
 { // http://plate01/reboot
-    if(!http_is_authenticated(F("reboot"))) return;
+    if(!http_is_authenticated("reboot")) return;
 
     const char* html[20];
     int i   = 0;
@@ -441,21 +441,21 @@ static void http_handle_reboot()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 static void http_handle_screenshot()
 { // http://plate01/screenshot
-    if(!http_is_authenticated(F("screenshot"))) return;
+    if(!http_is_authenticated("screenshot")) return;
 
     { // Execute actions
-        if(webServer.hasArg(F("a"))) {
-            if(webServer.arg(F("a")) == F("next")) {
+        if(webServer.hasArg("a")) {
+            if(webServer.arg("a") == "next") {
                 dispatch_page_next(LV_SCR_LOAD_ANIM_NONE);
-            } else if(webServer.arg(F("a")) == F("prev")) {
+            } else if(webServer.arg("a") == "prev") {
                 dispatch_page_prev(LV_SCR_LOAD_ANIM_NONE);
-            } else if(webServer.arg(F("a")) == F("back")) {
+            } else if(webServer.arg("a") == "back") {
                 dispatch_page_back(LV_SCR_LOAD_ANIM_NONE);
             }
         }
 
         // Check if screenshot bitmap is dirty
-        if(webServer.hasArg(F("d"))) {
+        if(webServer.hasArg("d")) {
             if(guiScreenshotIsDirty())
                 webServer.send(200, F("text/text"), "1");
             else
@@ -479,7 +479,7 @@ static void http_handle_screenshot()
         }
 
         // Send actual bitmap
-        if(webServer.hasArg(F("q"))) {
+        if(webServer.hasArg("q")) {
             lv_disp_t* disp = lv_disp_get_default();
             etag            = (String)(modified);
             http_send_etag(etag); // Send new tag with modification version
@@ -534,7 +534,7 @@ static void add_license(JsonObject& obj, const char* title, const char* year, co
 
 static void webHandleApi()
 { // http://plate01/api
-    if(!http_is_authenticated(F("api"))) return;
+    if(!http_is_authenticated("api")) return;
 
     DynamicJsonDocument doc(2048);
     String contentType = http_get_content_type(F(".json"));
@@ -542,7 +542,7 @@ static void webHandleApi()
     endpoint = webServer.pathArg(0);
 
     if(!strcasecmp(endpoint.c_str(), "files")) {
-        String path = webServer.arg(F("dir"));
+        String path = webServer.arg("dir");
         webServer.send(200, contentType.c_str(), filesystem_list(HASP_FS, path.c_str(), 5).c_str());
 
     } else if(!strcasecmp(endpoint.c_str(), "info")) {
@@ -640,7 +640,7 @@ static void webHandleApi()
         }
 
         settings = doc.to<JsonObject>();
-        const __FlashStringHelper* module;
+        const char* module;
 
         module = FPSTR(FP_HASP);
         settings.createNestedObject(module);
@@ -717,7 +717,7 @@ static void webHandleApi()
 
 static void webHandleApiConfig()
 { // http://plate01/about
-    if(!http_is_authenticated(F("api"))) return;
+    if(!http_is_authenticated("api")) return;
 
     if(webServer.method() != HTTP_GET && webServer.method() != HTTP_POST) {
         return;
@@ -861,7 +861,7 @@ static void webHandleApiConfig()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 static void http_handle_about()
 { // http://plate01/about
-    if(!http_is_authenticated(F("about"))) return;
+    if(!http_is_authenticated("about")) return;
 
     const char* form = R"(
 <template id="credit-template">
@@ -891,7 +891,7 @@ static void http_handle_about()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 static void http_handle_info()
 { // http://plate01/
-    if(!http_is_authenticated(F("info"))) return;
+    if(!http_is_authenticated("info")) return;
 
     const char* html[20];
     int i   = 0;
@@ -1004,11 +1004,11 @@ static void webHandleFirmwareUpload()
     switch(upload->status) {
 
         case UPLOAD_FILE_START: {
-            if(!http_is_authenticated(F("update"))) return;
+            if(!http_is_authenticated("update")) return;
 
             // WiFiUDP::stopAll();
 
-            int command = webServer.arg(F("cmd")).toInt();
+            int command = webServer.arg("cmd").toInt();
             size_t size = 0;
             if(command == U_FLASH) {
                 LOG_TRACE(TAG_HTTP, F("Update flash: %s"), upload->filename.c_str());
@@ -1043,7 +1043,7 @@ static void webHandleFirmwareUpload()
         case UPLOAD_FILE_END:
             haspProgressVal(100);
             if(Update.end(true)) { // true to set the size to the current progress
-                haspProgressMsg(F(D_OTA_UPDATE_APPLY));
+                haspProgressMsg(D_OTA_UPDATE_APPLY);
                 webUpdateReboot();
             } else {
                 webUpdatePrintError();
@@ -1071,14 +1071,14 @@ static inline int handleFilesystemFile(String path)
 
     if(HASP_FS.exists(pathWithGz) /* || HASP_FS.exists(pathWithBr) */ || HASP_FS.exists(path)) {
 
-        if(webServer.hasArg(F("download"))) contentType = F("application/octet-stream");
+        if(webServer.hasArg("download")) contentType = F("application/octet-stream");
 
         if(!HASP_FS.exists(path) && HASP_FS.exists(pathWithGz))
             path = pathWithGz; // Only use .gz if normal file doesn't exist
         // if(!HASP_FS.exists(path) && HASP_FS.exists(pathWithBr))
         //     path = pathWithBr; // Only use .gz if normal file doesn't exist
 
-        LOG_TRACE(TAG_HTTP, F(D_HTTP_SENDING_PAGE), path.c_str(), webServer.client().remoteIP().toString().c_str());
+        LOG_TRACE(TAG_HTTP, D_HTTP_SENDING_PAGE, path.c_str(), webServer.client().remoteIP().toString().c_str());
 
         String configFile((char*)0); // Verify if the file is config.json
         configFile = FPSTR(FP_HASP_CONFIG_FILE);
@@ -1119,7 +1119,7 @@ static inline int handleFilesystemFile(String path)
             /* Only needed for brotli encoding. Gzip is handled automatically in streamfile() */
             /* Brotli is not supported over HTTP/1.1 */
             // if(path.endsWith(".br") && contentType != String(FPSTR(mime::mimeTable[mime::type::none].mimeType))) {
-            //     webServer.sendHeader(F("Content-Encoding"), F("br"));
+            //     webServer.sendHeader("Content-Encoding", "br");
             //     webServer.streamFile(file, contentType);
             //     LOG_DEBUG(TAG_HTTP, F("Headers: OK"));
 
@@ -1150,7 +1150,7 @@ static void handleFileUpload()
     upload = &webServer.upload();
     switch(upload->status) {
         case UPLOAD_FILE_START: {
-            if(!http_is_authenticated(F("fileupload"))) return;
+            if(!http_is_authenticated("fileupload")) return;
             String filename((char*)0);
             filename.reserve(64);
             filename = upload->filename;
@@ -1166,7 +1166,7 @@ static void handleFileUpload()
                     webServer.send_P(400, PSTR("text/plain"), PSTR("Invalid filename"));
                     fsUploadFile.close();
                     fsUploadFile = File();
-                    LOG_WARNING(TAG_HTTP, F(D_FILE_SAVE_FAILED), filename.c_str());
+                    LOG_WARNING(TAG_HTTP, D_FILE_SAVE_FAILED, filename.c_str());
                 } else {
                     LOG_TRACE(TAG_HTTP, F("handleFileUpload Name: %s"), filename.c_str());
                     haspProgressMsg(fsUploadFile.name());
@@ -1188,7 +1188,7 @@ static void handleFileUpload()
                     webServer.send_P(400, PSTR("text/plain"), PSTR("Failed to write received data to file"));
                     fsUploadFile.close();
                     fsUploadFile = File();
-                    LOG_ERROR(TAG_HTTP, F("Failed to write received data to file"));
+                    LOG_ERROR(TAG_HTTP, "Failed to write received data to file");
                 } else {
                     http_upload_progress(); // Moved to httpEverySecond Loop
                 }
@@ -1201,7 +1201,7 @@ static void handleFileUpload()
                 fsUploadFile.close();
 
                 // Redirect to /config/hasp page. This flushes the web buffer and frees the memory
-                // webServer.sendHeader(String(F("Location")), String(F("/config/hasp")), true);
+                // webServer.sendHeader(String("Location"), String(F("/config/hasp")), true);
 
                 // Clear upload filesize, fix Response Content-Length
                 webServer.setContentLength(CONTENT_LENGTH_NOT_SET);
@@ -1211,7 +1211,7 @@ static void handleFileUpload()
             break;
         }
         default:
-            LOG_WARNING(TAG_HTTP, F("File upload aborted"));
+            LOG_WARNING(TAG_HTTP, "File upload aborted");
             webServer.send_P(400, PSTR("text/plain"), PSTR("File upload aborted"));
             fsUploadFile.close();
             fsUploadFile = File();
@@ -1220,7 +1220,7 @@ static void handleFileUpload()
 
 static void handleFileDelete()
 {
-    if(!http_is_authenticated(F("filedelete"))) return;
+    if(!http_is_authenticated("filedelete")) return;
 
     const char mimetype[] = "text/plain";
 
@@ -1251,14 +1251,14 @@ static void handleFileDelete()
 
 static void handleFileCreate()
 {
-    if(!http_is_authenticated(F("filecreate"))) return;
+    if(!http_is_authenticated("filecreate")) return;
 
     if(webServer.args() == 0) {
         return webServer.send(500, PSTR("text/plain"), PSTR("BAD ARGS"));
     }
 
-    if(webServer.hasArg(F("path"))) {
-        String path = webServer.arg(F("path"));
+    if(webServer.hasArg("path")) {
+        String path = webServer.arg("path");
         LOG_TRACE(TAG_HTTP, F("handleFileCreate: %s"), path.c_str());
         if(path == "/") {
             return webServer.send(500, PSTR("text/plain"), PSTR("BAD PATH"));
@@ -1273,18 +1273,18 @@ static void handleFileCreate()
             return webServer.send(500, PSTR("text/plain"), PSTR("CREATE FAILED"));
         }
     }
-    if(webServer.hasArg(F("init"))) {
+    if(webServer.hasArg("init")) {
         dispatch_wakeup(TAG_HTTP);
         hasp_init();
     }
-    if(webServer.hasArg(F("load"))) {
+    if(webServer.hasArg("load")) {
         dispatch_wakeup(TAG_HTTP);
         hasp_load_json();
     }
-    if(webServer.hasArg(F("page"))) {
+    if(webServer.hasArg("page")) {
         dispatch_wakeup(TAG_HTTP);
-        dispatch_page(NULL, webServer.arg(F("page")).c_str(), TAG_HTTP);
-        // uint8_t pageid = atoi(webServer.arg(F("page")).c_str());
+        dispatch_page(NULL, webServer.arg("page").c_str(), TAG_HTTP);
+        // uint8_t pageid = atoi(webServer.arg("page").c_str());
         // dispatch_set_page(pageid, LV_SCR_LOAD_ANIM_NONE);
     }
     webServer.send(200, PSTR("text/plain"), "");
@@ -1292,14 +1292,14 @@ static void handleFileCreate()
 
 static void handleFileList()
 {
-    if(!http_is_authenticated(F("filelist"))) return;
+    if(!http_is_authenticated("filelist")) return;
 
-    if(!webServer.hasArg(F("dir"))) {
+    if(!webServer.hasArg("dir")) {
         webServer.send(500, PSTR("text/plain"), PSTR("BAD ARGS"));
         return;
     }
 
-    String path = webServer.arg(F("dir"));
+    String path = webServer.arg("dir");
     // LOG_TRACE(TAG_HTTP, F("handleFileList: %s"), path.c_str());
     // path.clear();
 
@@ -1316,7 +1316,7 @@ static void handleFileList()
         }
         bool isDir = file.isDirectory();
         output += F("{\"type\":\"");
-        output += (isDir) ? F("dir") : F("file");
+        output += (isDir) ? "dir" : "file";
         output += F("\",\"name\":\"");
         if(file.name()[0] == '/') {
             output += &(file.name()[1]);
@@ -1343,7 +1343,7 @@ static void handleFileList()
         }
         bool isDir = false;
         output += F("{\"type\":\"");
-        output += (isDir) ? F("dir") : F("file");
+        output += (isDir) ? "dir" : "file";
         output += F("\",\"name\":\"");
         if(entry.name()[0] == '/') {
             output += &(entry.name()[1]);
@@ -1365,7 +1365,7 @@ static void handleFileList()
 #if HASP_USE_CONFIG > 0
 static void http_handle_config()
 { // http://plate01/config
-    if(!http_is_authenticated(F("config"))) return;
+    if(!http_is_authenticated("config")) return;
 
     bool updated = http_save_config();
 
@@ -1522,7 +1522,7 @@ static void http_handle_gui()
 
     String httpGpio((char*)0);
     httpGpio.reserve(256);
-    httpGpio += getOption(-1, F("None"));
+    httpGpio += getOption(-1, "None");
 #if defined(ARDUINO_ARCH_ESP32)
     char buffer[10];
     for(uint8_t gpio = 0; gpio < NUM_DIGITAL_PINS; gpio++) {
@@ -1552,8 +1552,8 @@ static void http_handle_gui()
     http_send_content(html, min(i, len));
 
     { // Execute Actions
-        if(webServer.hasArg(F("cal"))) dispatch_calibrate(NULL, NULL, TAG_HTTP);
-        if(webServer.hasArg(F("brn"))) dispatch_antiburn(NULL, "on", TAG_HTTP);
+        if(webServer.hasArg("cal")) dispatch_calibrate(NULL, NULL, TAG_HTTP);
+        if(webServer.hasArg("brn")) dispatch_antiburn(NULL, "on", TAG_HTTP);
     }
 }
 
@@ -1703,14 +1703,14 @@ static void webHandleGpioConfig()
     uint8_t configCount = 0;
 
     { // Execute Actions
-        uint8_t id  = webServer.arg(F("id")).toInt();
-        uint8_t pin = webServer.arg(F("pin")).toInt();
+        uint8_t id  = webServer.arg("id").toInt();
+        uint8_t pin = webServer.arg("pin").toInt();
 
         if(webServer.hasArg("save")) {
-            uint8_t type    = webServer.arg(F("type")).toInt();
-            uint8_t group   = webServer.arg(F("group")).toInt();
-            uint8_t pinfunc = webServer.arg(F("func")).toInt();
-            bool inverted   = webServer.arg(F("state")).toInt();
+            uint8_t type    = webServer.arg("type").toInt();
+            uint8_t group   = webServer.arg("group").toInt();
+            uint8_t pinfunc = webServer.arg("func").toInt();
+            bool inverted   = webServer.arg("state").toInt();
             gpioSavePinConfig(id, pin, type, group, pinfunc, inverted);
         }
 
@@ -1750,91 +1750,91 @@ static void webHandleGpioConfig()
                     switch(conf.type) {
 
                         case hasp_gpio_type_t::BUTTON:
-                            httpMessage += F(D_GPIO_BUTTON);
+                            httpMessage += D_GPIO_BUTTON;
                             break;
                         case hasp_gpio_type_t::SWITCH:
-                            httpMessage += F(D_GPIO_SWITCH);
+                            httpMessage += D_GPIO_SWITCH;
                             break;
                         case hasp_gpio_type_t::DOOR:
-                            httpMessage += F("door");
+                            httpMessage += "door";
                             break;
                         case hasp_gpio_type_t::GARAGE_DOOR:
-                            httpMessage += F("garage_door");
+                            httpMessage += "garage_door";
                             break;
                         case hasp_gpio_type_t::GAS:
-                            httpMessage += F("gas");
+                            httpMessage += "gas";
                             break;
                         case hasp_gpio_type_t::LIGHT:
-                            httpMessage += F("light");
+                            httpMessage += "light";
                             break;
                         case hasp_gpio_type_t::LOCK:
-                            httpMessage += F("lock");
+                            httpMessage += "lock";
                             break;
                         case hasp_gpio_type_t::MOISTURE:
-                            httpMessage += F("moisture");
+                            httpMessage += "moisture";
                             break;
                         case hasp_gpio_type_t::MOTION:
-                            httpMessage += F("motion");
+                            httpMessage += "motion";
                             break;
                         case hasp_gpio_type_t::OCCUPANCY:
-                            httpMessage += F("occupancy");
+                            httpMessage += "occupancy";
                             break;
                         case hasp_gpio_type_t::OPENING:
-                            httpMessage += F("opening");
+                            httpMessage += "opening";
                             break;
                         case hasp_gpio_type_t::PRESENCE:
-                            httpMessage += F("presence");
+                            httpMessage += "presence";
                             break;
                         case hasp_gpio_type_t::PROBLEM:
-                            httpMessage += F("problem");
+                            httpMessage += "problem";
                             break;
                         case hasp_gpio_type_t::SAFETY:
-                            httpMessage += F("Safety");
+                            httpMessage += "Safety";
                             break;
                         case hasp_gpio_type_t::SMOKE:
-                            httpMessage += F("Smoke");
+                            httpMessage += "Smoke";
                             break;
                         case hasp_gpio_type_t::VIBRATION:
-                            httpMessage += F("Vibration");
+                            httpMessage += "Vibration";
                             break;
                         case hasp_gpio_type_t::WINDOW:
-                            httpMessage += F("Window");
+                            httpMessage += "Window";
                             break;
 
                         case hasp_gpio_type_t::TOUCH:
-                            httpMessage += F(D_GPIO_TOUCH);
+                            httpMessage += D_GPIO_TOUCH;
                             break;
                         case hasp_gpio_type_t::LED:
-                            httpMessage += F(D_GPIO_LED);
+                            httpMessage += D_GPIO_LED;
                             break;
                         case hasp_gpio_type_t::LED_R:
-                            httpMessage += F(D_GPIO_LED_R);
+                            httpMessage += D_GPIO_LED_R;
                             break;
                         case hasp_gpio_type_t::LED_G:
-                            httpMessage += F(D_GPIO_LED_G);
+                            httpMessage += D_GPIO_LED_G;
                             break;
                         case hasp_gpio_type_t::LED_B:
-                            httpMessage += F(D_GPIO_LED_B);
+                            httpMessage += D_GPIO_LED_B;
                             break;
                         case hasp_gpio_type_t::LIGHT_RELAY:
-                            httpMessage += F(D_GPIO_LIGHT_RELAY);
+                            httpMessage += D_GPIO_LIGHT_RELAY;
                             break;
                         case hasp_gpio_type_t::POWER_RELAY:
-                            httpMessage += F(D_GPIO_POWER_RELAY);
+                            httpMessage += D_GPIO_POWER_RELAY;
                             break;
                         case hasp_gpio_type_t::SHUTTER_RELAY:
-                            httpMessage += F("SHUTTER_RELAY");
+                            httpMessage += "SHUTTER_RELAY";
                             break;
                         case hasp_gpio_type_t::PWM:
-                            httpMessage += F(D_GPIO_PWM);
+                            httpMessage += D_GPIO_PWM;
                             break;
                         case hasp_gpio_type_t::HASP_DAC:
-                            httpMessage += F(D_GPIO_DAC);
+                            httpMessage += D_GPIO_DAC;
                             break;
 
 #if defined(LANBONL8)
                             // case hasp_gpio_type_t::SERIAL_DIMMER:
-                            //     httpMessage += F(D_GPIO_SERIAL_DIMMER);
+                            //     httpMessage += D_GPIO_SERIAL_DIMMER;
                             //     break;
                         case hasp_gpio_type_t::SERIAL_DIMMER_L8_HD_INVERTED:
                             httpMessage += F("L8-HD (inv.)");
@@ -1844,13 +1844,13 @@ static void webHandleGpioConfig()
                             break;
 #endif
                         default:
-                            httpMessage += F(D_GPIO_UNKNOWN);
+                            httpMessage += D_GPIO_UNKNOWN;
                     }
 
                     httpMessage += F("</a></td><td>");
                     httpMessage += conf.group;
                     httpMessage += F("</td><td>");
-                    httpMessage += (conf.inverted) ? F(D_GPIO_STATE_INVERTED) : F(D_GPIO_STATE_NORMAL);
+                    httpMessage += (conf.inverted) ? D_GPIO_STATE_INVERTED : D_GPIO_STATE_NORMAL;
 
                     httpMessage += ("</td><td><a href='/config/gpio?del=&id=");
                     httpMessage += id;
@@ -1874,7 +1874,7 @@ static void webHandleGpioConfig()
             httpMessage += F("'>" D_HTTP_ADD_GPIO " Output</a>");
         }
 
-        add_form_button(httpMessage, F(D_BACK_ICON D_HTTP_CONFIGURATION), F("/config"));
+        add_form_button(httpMessage, D_BACK_ICON D_HTTP_CONFIGURATION, F("/config"));
 
         webSendHtmlHeader(haspDevice.get_hostname(), httpMessage.length(), 0);
         webServer.sendContent(httpMessage);
@@ -1888,7 +1888,7 @@ static void webHandleGpioOutput()
     if(!http_is_authenticated(F("config/gpio/options"))) return;
 
     { // Send Content
-        uint8_t config_id = webServer.arg(F("id")).toInt();
+        uint8_t config_id = webServer.arg("id").toInt();
 
         String httpMessage((char*)0);
         httpMessage.reserve(HTTP_PAGE_SIZE);
@@ -1914,38 +1914,38 @@ static void webHandleGpioOutput()
         httpMessage += F("</select></p>");
 
         httpMessage += F("<p><b>Type</b> <select id='type' name='type'>");
-        httpMessage += getOption(hasp_gpio_type_t::LED, F(D_GPIO_LED), conf.type);
-        httpMessage += getOption(hasp_gpio_type_t::LED_R, F(D_GPIO_LED_R), conf.type);
-        httpMessage += getOption(hasp_gpio_type_t::LED_G, F(D_GPIO_LED_G), conf.type);
-        httpMessage += getOption(hasp_gpio_type_t::LED_B, F(D_GPIO_LED_B), conf.type);
-        httpMessage += getOption(hasp_gpio_type_t::LIGHT_RELAY, F(D_GPIO_LIGHT_RELAY), conf.type);
-        httpMessage += getOption(hasp_gpio_type_t::POWER_RELAY, F(D_GPIO_POWER_RELAY), conf.type);
-        httpMessage += getOption(hasp_gpio_type_t::SHUTTER_RELAY, F("Shutter Relay"), conf.type);
-        httpMessage += getOption(hasp_gpio_type_t::HASP_DAC, F(D_GPIO_DAC), conf.type);
-        // httpMessage += getOption(hasp_gpio_type_t::SERIAL_DIMMER, F(D_GPIO_SERIAL_DIMMER), conf.type);
+        httpMessage += getOption(hasp_gpio_type_t::LED, D_GPIO_LED, conf.type);
+        httpMessage += getOption(hasp_gpio_type_t::LED_R, D_GPIO_LED_R, conf.type);
+        httpMessage += getOption(hasp_gpio_type_t::LED_G, D_GPIO_LED_G, conf.type);
+        httpMessage += getOption(hasp_gpio_type_t::LED_B, D_GPIO_LED_B, conf.type);
+        httpMessage += getOption(hasp_gpio_type_t::LIGHT_RELAY, D_GPIO_LIGHT_RELAY, conf.type);
+        httpMessage += getOption(hasp_gpio_type_t::POWER_RELAY, D_GPIO_POWER_RELAY, conf.type);
+        httpMessage += getOption(hasp_gpio_type_t::SHUTTER_RELAY, "Shutter Relay", conf.type);
+        httpMessage += getOption(hasp_gpio_type_t::HASP_DAC, D_GPIO_DAC, conf.type);
+        // httpMessage += getOption(hasp_gpio_type_t::SERIAL_DIMMER, D_GPIO_SERIAL_DIMMER, conf.type);
 #if defined(LANBONL8)
         httpMessage += getOption(hasp_gpio_type_t::SERIAL_DIMMER_L8_HD, F("L8-HD"), conf.type);
         httpMessage += getOption(hasp_gpio_type_t::SERIAL_DIMMER_L8_HD_INVERTED, F("L8-HD (inv.)"), conf.type);
 #endif
         if(digitalPinHasPWM(webServer.arg(0).toInt())) {
-            httpMessage += getOption(hasp_gpio_type_t::PWM, F(D_GPIO_PWM), conf.type);
+            httpMessage += getOption(hasp_gpio_type_t::PWM, D_GPIO_PWM, conf.type);
         }
         httpMessage += F("</select></p>");
 
         httpMessage += F("<p><b>" D_GPIO_GROUP "</b> <select id='group' name='group'>");
-        httpMessage += getOption(0, F(D_GPIO_GROUP_NONE), conf.group);
+        httpMessage += getOption(0, D_GPIO_GROUP_NONE, conf.group);
         String group((char*)0);
         group.reserve(10);
         for(int i = 1; i < 15; i++) {
-            group = F(D_GPIO_GROUP " ");
+            group = D_GPIO_GROUP " ";
             group += i;
             httpMessage += getOption(i, group, conf.group);
         }
         httpMessage += F("</select></p>");
 
         httpMessage += F("<p><b>Value</b> <select id='state' name='state'>");
-        httpMessage += getOption(0, F(D_GPIO_STATE_NORMAL), conf.inverted);
-        httpMessage += getOption(1, F(D_GPIO_STATE_INVERTED), conf.inverted);
+        httpMessage += getOption(0, D_GPIO_STATE_NORMAL, conf.inverted);
+        httpMessage += getOption(1, D_GPIO_STATE_INVERTED, conf.inverted);
         httpMessage += F("</select></p>");
 
         httpMessage +=
@@ -1959,7 +1959,7 @@ static void webHandleGpioOutput()
     }
     webSendFooter();
 
-    // if(webServer.hasArg(F("action"))) dispatch_text_line(webServer.arg(F("action")).c_str()); // Security check
+    // if(webServer.hasArg("action")) dispatch_text_line(webServer.arg("action").c_str()); // Security check
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1968,7 +1968,7 @@ static void webHandleGpioInput()
     if(!http_is_authenticated(F("config/gpio/input"))) return;
 
     { // Send Content
-        uint8_t config_id = webServer.arg(F("id")).toInt();
+        uint8_t config_id = webServer.arg("id").toInt();
 
         String httpMessage((char*)0);
         httpMessage.reserve(HTTP_PAGE_SIZE);
@@ -1994,46 +1994,46 @@ static void webHandleGpioInput()
         httpMessage += F("</select></p>");
 
         httpMessage += F("<p><b>Type</b> <select id='type' name='type'>");
-        httpMessage += getOption(hasp_gpio_type_t::BUTTON, F(D_GPIO_BUTTON), conf.type);
-        httpMessage += getOption(hasp_gpio_type_t::SWITCH, F(D_GPIO_SWITCH), conf.type);
-        httpMessage += getOption(hasp_gpio_type_t::DOOR, F("door"), conf.type);
-        httpMessage += getOption(hasp_gpio_type_t::GARAGE_DOOR, F("garage_door"), conf.type);
-        httpMessage += getOption(hasp_gpio_type_t::GAS, F("gas"), conf.type);
-        httpMessage += getOption(hasp_gpio_type_t::LIGHT, F("light"), conf.type);
-        httpMessage += getOption(hasp_gpio_type_t::LOCK, F("lock"), conf.type);
-        httpMessage += getOption(hasp_gpio_type_t::MOISTURE, F("moisture"), conf.type);
-        httpMessage += getOption(hasp_gpio_type_t::MOTION, F("motion"), conf.type);
-        httpMessage += getOption(hasp_gpio_type_t::OCCUPANCY, F("occupancy"), conf.type);
-        httpMessage += getOption(hasp_gpio_type_t::OPENING, F("opening"), conf.type);
-        httpMessage += getOption(hasp_gpio_type_t::PRESENCE, F("presence"), conf.type);
-        httpMessage += getOption(hasp_gpio_type_t::PROBLEM, F("problem"), conf.type);
-        httpMessage += getOption(hasp_gpio_type_t::SAFETY, F("Safety"), conf.type);
-        httpMessage += getOption(hasp_gpio_type_t::SMOKE, F("Smoke"), conf.type);
-        httpMessage += getOption(hasp_gpio_type_t::VIBRATION, F("Vibration"), conf.type);
-        httpMessage += getOption(hasp_gpio_type_t::WINDOW, F("Window"), conf.type);
+        httpMessage += getOption(hasp_gpio_type_t::BUTTON, D_GPIO_BUTTON, conf.type);
+        httpMessage += getOption(hasp_gpio_type_t::SWITCH, D_GPIO_SWITCH, conf.type);
+        httpMessage += getOption(hasp_gpio_type_t::DOOR, "door", conf.type);
+        httpMessage += getOption(hasp_gpio_type_t::GARAGE_DOOR, "garage_door", conf.type);
+        httpMessage += getOption(hasp_gpio_type_t::GAS, "gas", conf.type);
+        httpMessage += getOption(hasp_gpio_type_t::LIGHT, "light", conf.type);
+        httpMessage += getOption(hasp_gpio_type_t::LOCK, "lock", conf.type);
+        httpMessage += getOption(hasp_gpio_type_t::MOISTURE, "moisture", conf.type);
+        httpMessage += getOption(hasp_gpio_type_t::MOTION, "motion", conf.type);
+        httpMessage += getOption(hasp_gpio_type_t::OCCUPANCY, "occupancy", conf.type);
+        httpMessage += getOption(hasp_gpio_type_t::OPENING, "opening", conf.type);
+        httpMessage += getOption(hasp_gpio_type_t::PRESENCE, "presence", conf.type);
+        httpMessage += getOption(hasp_gpio_type_t::PROBLEM, "problem", conf.type);
+        httpMessage += getOption(hasp_gpio_type_t::SAFETY, "Safety", conf.type);
+        httpMessage += getOption(hasp_gpio_type_t::SMOKE, "Smoke", conf.type);
+        httpMessage += getOption(hasp_gpio_type_t::VIBRATION, "Vibration", conf.type);
+        httpMessage += getOption(hasp_gpio_type_t::WINDOW, "Window", conf.type);
         httpMessage += F("</select></p>");
 
         httpMessage += F("<p><b>" D_GPIO_GROUP "</b> <select id='group' name='group'>");
-        httpMessage += getOption(0, F(D_GPIO_GROUP_NONE), conf.group);
+        httpMessage += getOption(0, D_GPIO_GROUP_NONE, conf.group);
         String group((char*)0);
         group.reserve(10);
         for(int i = 1; i < 15; i++) {
-            group = F(D_GPIO_GROUP " ");
+            group = D_GPIO_GROUP " ";
             group += i;
             httpMessage += getOption(i, group, conf.group);
         }
         httpMessage += F("</select></p>");
 
         httpMessage += F("<p><b>Default State</b> <select id='state' name='state'>");
-        httpMessage += getOption(0, F("Normally Open"), conf.inverted);
-        httpMessage += getOption(1, F("Normally Closed"), conf.inverted);
+        httpMessage += getOption(0, "Normally Open", conf.inverted);
+        httpMessage += getOption(1, "Normally Closed", conf.inverted);
         httpMessage += F("</select></p>");
 
         httpMessage += F("<p><b>Resistor</b> <select id='func' name='func'>");
-        httpMessage += getOption(hasp_gpio_function_t::INTERNAL_PULLUP, F("Internal Pullup"), conf.gpio_function);
-        httpMessage += getOption(hasp_gpio_function_t::INTERNAL_PULLDOWN, F("Internal Pulldown"), conf.gpio_function);
-        httpMessage += getOption(hasp_gpio_function_t::EXTERNAL_PULLUP, F("External Pullup"), conf.gpio_function);
-        httpMessage += getOption(hasp_gpio_function_t::EXTERNAL_PULLDOWN, F("External Pulldown"), conf.gpio_function);
+        httpMessage += getOption(hasp_gpio_function_t::INTERNAL_PULLUP, "Internal Pullup", conf.gpio_function);
+        httpMessage += getOption(hasp_gpio_function_t::INTERNAL_PULLDOWN, "Internal Pulldown", conf.gpio_function);
+        httpMessage += getOption(hasp_gpio_function_t::EXTERNAL_PULLUP, "External Pullup", conf.gpio_function);
+        httpMessage += getOption(hasp_gpio_function_t::EXTERNAL_PULLDOWN, "External Pulldown", conf.gpio_function);
         httpMessage += F("</select></p>");
 
         httpMessage +=
@@ -2047,7 +2047,7 @@ static void webHandleGpioInput()
     }
     webSendFooter();
 
-    // if(webServer.hasArg(F("action"))) dispatch_text_line(webServer.arg(F("action")).c_str()); // Security check
+    // if(webServer.hasArg("action")) dispatch_text_line(webServer.arg("action").c_str()); // Security check
 }
 #endif // HASP_USE_GPIO
 
@@ -2146,21 +2146,21 @@ static void webHandleHaspConfig()
 
     /*
     #if LV_USE_THEME_HASP == 1
-        httpMessage += getOption(2, F("Hasp Dark"));
-        httpMessage += getOption(1, F("Hasp Light"));
+        httpMessage += getOption(2, "Hasp Dark");
+        httpMessage += getOption(1, "Hasp Light");
     #endif
     #if LV_USE_THEME_EMPTY == 1
-        httpMessage += getOption(0, F("Empty"));
+        httpMessage += getOption(0, "Empty");
     #endif
     #if LV_USE_THEME_MONO == 1
-        httpMessage += getOption(3, F("Mono"));
+        httpMessage += getOption(3, "Mono");
     #endif
     #if LV_USE_THEME_MATERIAL == 1
-        httpMessage += getOption(5, F("Material Dark"));
-        httpMessage += getOption(4, F("Material Light"));
+        httpMessage += getOption(5, "Material Dark");
+        httpMessage += getOption(4, "Material Light");
     #endif
     #if LV_USE_THEME_TEMPLATE == 1
-        httpMessage += getOption(7, F("Template"));
+        httpMessage += getOption(7, "Template");
     #endif
 
     #if defined(ARDUINO_ARCH_ESP32)
@@ -2324,9 +2324,9 @@ static inline void httpHandleInvalidRequest(int statuscode, String& path)
     httpMessage.reserve(HTTP_PAGE_SIZE);
 
     if(statuscode == 500)
-        httpMessage += F("Internal Server Error");
+        httpMessage += "Internal Server Error";
     else
-        httpMessage += F(D_FILE_NOT_FOUND);
+        httpMessage += D_FILE_NOT_FOUND;
 
     httpMessage += F("\n\nURI: ");
     httpMessage += path;
@@ -2377,7 +2377,7 @@ static void httpHandleFileUri()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 static void webHandleFirmware()
 {
-    if(!http_is_authenticated(F("firmware"))) return;
+    if(!http_is_authenticated("firmware")) return;
 
     const char* html[20];
     int i   = 0;
@@ -2445,9 +2445,9 @@ static void webHandleFirmware()
 
 static void httpHandleResetConfig()
 { // http://plate01/config/reset
-    if(!http_is_authenticated(F("reset"))) return;
+    if(!http_is_authenticated("reset")) return;
 
-    bool resetConfirmed = webServer.arg(F("confirm")) == F("yes");
+    bool resetConfirmed = webServer.arg("confirm") == "yes";
 
     { // Send Content
         String httpMessage((char*)0);
@@ -2478,7 +2478,7 @@ static void httpHandleResetConfig()
             httpMessage += F("<p><button class='red' type='submit' name='confirm' value='yes'>" D_HTTP_ERASE_DEVICE
                              "</button></p></form>");
 
-            add_form_button(httpMessage, F(D_BACK_ICON D_HTTP_CONFIGURATION), F("/config"));
+            add_form_button(httpMessage, D_BACK_ICON D_HTTP_CONFIGURATION, F("/config"));
         }
 
         webSendHtmlHeader(haspDevice.get_hostname(), httpMessage.length(), resetConfirmed ? 10 : 0);
@@ -2528,14 +2528,14 @@ void httpStop()
 {
     webServer.stop();
     webServerStarted = false;
-    LOG_WARNING(TAG_HTTP, F(D_SERVICE_STOPPED));
+    LOG_WARNING(TAG_HTTP, D_SERVICE_STOPPED);
 }
 
 // Do not keep CSS in memory because it is cached in the browser
 /*
 static void webSendCssVars()
 {
-    if(!http_is_authenticated(F("cssvars"))) return;
+    if(!http_is_authenticated("cssvars")) return;
 
     char filename[32];
     strncpy(filename, webServer.uri().c_str(), sizeof(filename));
@@ -2586,7 +2586,7 @@ static inline void webStartConfigPortal()
 #if HASP_USE_WIFI > 0
     webServer.onNotFound(http_handle_wifi);
 #endif
-    LOG_TRACE(TAG_HTTP, F("Wifi access point"));
+    LOG_TRACE(TAG_HTTP, "Wifi access point");
 }
 
 void httpSetup()
@@ -2643,9 +2643,9 @@ void httpSetup()
 
     // The following endpoints are only needed in STA mode
     webServer.on("/page/", []() {
-        String pageid = webServer.arg(F("page"));
+        String pageid = webServer.arg("page");
         webServer.send(200, PSTR("text/plain"), "Page: '" + pageid + "'");
-        dispatch_page(NULL, webServer.arg(F("page")).c_str(), TAG_HTTP);
+        dispatch_page(NULL, webServer.arg("page").c_str(), TAG_HTTP);
         // dispatch_set_page(pageid.toInt(), LV_SCR_LOAD_ANIM_NONE);
     });
 
@@ -2700,7 +2700,7 @@ void httpSetup()
 #endif // HASP_USE_CONFIG
     webServer.onNotFound(httpHandleFileUri);
 
-    LOG_INFO(TAG_HTTP, F(D_SERVICE_STARTED));
+    LOG_INFO(TAG_HTTP, D_SERVICE_STARTED);
     // webStart();  Wait for network connection
 }
 
@@ -2752,7 +2752,7 @@ bool httpSetConfig(const JsonObject& settings)
     configOutput(settings, TAG_HTTP);
     bool changed = false;
 
-    changed |= configSet(http_config.port, settings[FPSTR(FP_CONFIG_PORT)], F("httpPort"));
+    changed |= configSet(http_config.port, settings[FPSTR(FP_CONFIG_PORT)], "httpPort");
 
     if(!settings[FPSTR(FP_CONFIG_USER)].isNull()) {
         changed |= strcmp(http_config.username, settings[FPSTR(FP_CONFIG_USER)]) != 0;

@@ -19,11 +19,21 @@
 
 namespace dev {
 
-void tftPinInfo(const __FlashStringHelper* pinfunction, int8_t pin)
+// void tftPinInfo(const __FlashStringHelper* pinfunction, int8_t pin)
+// {
+//     if(pin != -1) {
+//         char buffer[64];
+//         snprintf_P(buffer, sizeof(buffer), PSTR("%-12s: %s (GPIO %02d)"), String(pinfunction).c_str(),
+//                    haspDevice.gpio_name(pin).c_str(), pin);
+//         LOG_VERBOSE(TAG_TFT, buffer);
+//     }
+// }
+
+void tftPinInfo(const char* pinfunction, int8_t pin)
 {
     if(pin != -1) {
         char buffer[64];
-        snprintf_P(buffer, sizeof(buffer), PSTR("%-12s: %s (GPIO %02d)"), String(pinfunction).c_str(),
+        snprintf_P(buffer, sizeof(buffer), PSTR("%-12s: %s (GPIO %02d)"), pinfunction,
                    haspDevice.gpio_name(pin).c_str(), pin);
         LOG_VERBOSE(TAG_TFT, buffer);
     }
@@ -187,7 +197,7 @@ static lgfx::Bus_SPI* init_spi_bus(Preferences* prefs)
 
 static void configure_panel(lgfx::Panel_Device* panel, Preferences* prefs)
 {
-    auto cfg = panel->config(); // Get the structure for display panel settings.
+    auto cfg = panel->config();                     // Get the structure for display panel settings.
 
     cfg.pin_cs   = prefs->getInt("cs", TFT_CS);     // CS required
     cfg.pin_rst  = prefs->getInt("rst", TFT_RST);   // RST sum development board RST linkage
@@ -201,27 +211,27 @@ static void configure_panel(lgfx::Panel_Device* panel, Preferences* prefs)
     cfg.memory_width  = prefs->getUInt("memory_width", cfg.panel_width);   // Maximum width supported by driver IC
     cfg.memory_height = prefs->getUInt("memory_height", cfg.panel_height); // Maximum height supported by driver IC
 
-    cfg.offset_x = prefs->getUInt("offset_x", 0); // Amount of offset in the X direction of the panel
-    cfg.offset_y = prefs->getUInt("offset_y", 0); // Amount of offset in the Y direction of the panel
+    cfg.offset_x = prefs->getUInt("offset_x", 0);                 // Amount of offset in the X direction of the panel
+    cfg.offset_y = prefs->getUInt("offset_y", 0);                 // Amount of offset in the Y direction of the panel
     cfg.offset_rotation =
-        prefs->getUInt("offset_rotation", TFT_OFFSET_ROTATION); // Offset of the rotation 0 ~ 7 (4 ~ 7 is upside down)
+        prefs->getUInt("offset_rotation", TFT_OFFSET_ROTATION);   // Offset of the rotation 0 ~ 7 (4 ~ 7 is upside down)
 
     cfg.dummy_read_pixel = prefs->getUInt("dummy_read_pixel", 8); // Number of dummy read bits before pixel read
     cfg.dummy_read_bits =
         prefs->getUInt("dummy_read_bits", 1);         // bits of dummy read before reading data other than pixels
     cfg.readable = prefs->getBool("readable", false); // true if data can be read
 
-#ifdef INVERT_COLORS // This is configurable un Web UI
+#ifdef INVERT_COLORS                                  // This is configurable un Web UI
     cfg.invert =
         prefs->getBool("invert", INVERT_COLORS != 0); // true if the light and darkness of the panel is reversed
 #else
-    cfg.invert = prefs->getBool("invert", false);       // true if the light and darkness of the panel is reversed
+    cfg.invert           = prefs->getBool("invert", false); // true if the light and darkness of the panel is reversed
 #endif
 #ifdef TFT_RGB_ORDER
     cfg.rgb_order =
         prefs->getBool("rgb_order", TFT_RGB_ORDER != 0); // true if the red and blue of the panel are swapped
 #else
-    cfg.rgb_order = prefs->getBool("rgb_order", false); // true if the red and blue of the panel are swapped
+    cfg.rgb_order        = prefs->getBool("rgb_order", false); // true if the red and blue of the panel are swapped
 #endif
     cfg.dlen_16bit = prefs->getBool("dlen_16bit", false); // true for panels that send data length in 16-bit units
     cfg.bus_shared = prefs->getBool("bus_shared", true);  // true if the bus is shared with the SD card
@@ -495,44 +505,44 @@ void LovyanGfx::init(int w, int h)
 
 #elif 0 && defined(LILYGOPI)
     auto _panel_instance = new lgfx::Panel_ST7796();
-    auto _bus_instance = new lgfx::Bus_SPI();
+    auto _bus_instance   = new lgfx::Bus_SPI();
     auto _touch_instance = new lgfx::Touch_FT5x06();
     {
-        auto cfg = _bus_instance->config();
-        cfg.spi_host = VSPI_HOST;
-        cfg.spi_mode = 0;
-        cfg.freq_write = 40000000;
-        cfg.freq_read = 16000000;
-        cfg.spi_3wire = false;
-        cfg.use_lock = true;
+        auto cfg        = _bus_instance->config();
+        cfg.spi_host    = VSPI_HOST;
+        cfg.spi_mode    = 0;
+        cfg.freq_write  = 40000000;
+        cfg.freq_read   = 16000000;
+        cfg.spi_3wire   = false;
+        cfg.use_lock    = true;
         cfg.dma_channel = 1;
-        cfg.pin_sclk = 18;
-        cfg.pin_mosi = 19;
-        cfg.pin_miso = 23;
-        cfg.pin_dc = 27;
+        cfg.pin_sclk    = 18;
+        cfg.pin_mosi    = 19;
+        cfg.pin_miso    = 23;
+        cfg.pin_dc      = 27;
         _bus_instance->config(cfg);
         _panel_instance->setBus(_bus_instance);
     }
 
     {
-        auto cfg = _panel_instance->config();
-        cfg.pin_cs = 5;
-        cfg.pin_rst = -1;
-        cfg.pin_busy = -1;
-        cfg.memory_width = 320;
-        cfg.memory_height = 480;
-        cfg.panel_width = 320;
-        cfg.panel_height = 480;
-        cfg.offset_x = 0;
-        cfg.offset_y = 0;
-        cfg.offset_rotation = 0;
+        auto cfg             = _panel_instance->config();
+        cfg.pin_cs           = 5;
+        cfg.pin_rst          = -1;
+        cfg.pin_busy         = -1;
+        cfg.memory_width     = 320;
+        cfg.memory_height    = 480;
+        cfg.panel_width      = 320;
+        cfg.panel_height     = 480;
+        cfg.offset_x         = 0;
+        cfg.offset_y         = 0;
+        cfg.offset_rotation  = 0;
         cfg.dummy_read_pixel = 8;
-        cfg.dummy_read_bits = 1;
-        cfg.readable = true;
-        cfg.invert = false;
-        cfg.rgb_order = false;
-        cfg.dlen_16bit = false;
-        cfg.bus_shared = true;
+        cfg.dummy_read_bits  = 1;
+        cfg.readable         = true;
+        cfg.invert           = false;
+        cfg.rgb_order        = false;
+        cfg.dlen_16bit       = false;
+        cfg.bus_shared       = true;
 
         _panel_instance->config(cfg);
     }
@@ -554,7 +564,7 @@ void LovyanGfx::init(int w, int h)
     lgfx::i2c::writeRegister8(axp_i2c_port, axp_i2c_addr, 0x12, 0x04, ~0, axp_i2c_freq); // LDO2 enable
     lgfx::i2c::writeRegister8(axp_i2c_port, axp_i2c_addr, 0x92, 0x00, 0xF8,
                               axp_i2c_freq); // GPIO1 OpenDrain (M5Tough TOUCH)
-    lgfx::i2c::writeRegister8(axp_i2c_port, axp_i2c_addr, 0x95, 0x84, 0x72, axp_i2c_freq); // GPIO4 enable
+    lgfx::i2c::writeRegister8(axp_i2c_port, axp_i2c_addr, 0x95, 0x84, 0x72, axp_i2c_freq);   // GPIO4 enable
     if(/*use_reset*/ true) {
         lgfx::i2c::writeRegister8(axp_i2c_port, axp_i2c_addr, 0x96, 0, ~0x02, axp_i2c_freq); // GPIO4 LOW (LCD RST)
         lgfx::i2c::writeRegister8(axp_i2c_port, axp_i2c_addr, 0x94, 0, ~0x02,
