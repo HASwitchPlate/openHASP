@@ -10,12 +10,12 @@
 #include "hasp_gui.h"
 #include "hal/hasp_hal.h"
 
-//#include "hasp_ota.h" included in conf
-//#include "hasp_filesystem.h" included in conf
-//#include "hasp_telnet.h" included in conf
-//#include "hasp_gpio.h" included in conf
+// #include "hasp_ota.h" included in conf
+// #include "hasp_filesystem.h" included in conf
+// #include "hasp_telnet.h" included in conf
+// #include "hasp_gpio.h" included in conf
 
-//#include "hasp_eeprom.h"
+// #include "hasp_eeprom.h"
 
 #if HASP_USE_EEPROM > 0
 #include "EEPROM.h"
@@ -29,12 +29,93 @@ extern uint32_t dispatchLastMillis;
 extern gui_conf_t gui_settings;
 extern dispatch_conf_t dispatch_settings;
 
-void confDebugSet(const char* fstr_name)
+void confDebugSet(const __FlashStringHelper* fstr_name)
 {
     /*char buffer[128];
     snprintf_P(buffer, sizeof(buffer), PSTR("   * %s set"), name);
     debugPrintln(buffer);*/
     LOG_VERBOSE(TAG_CONF, F(D_BULLET "%S set"), fstr_name);
+}
+void confDebugSet(const char* fstr_name)
+{
+    /*char buffer[128];
+    snprintf_P(buffer, sizeof(buffer), PSTR("   * %s set"), name);
+    debugPrintln(buffer);*/
+    LOG_VERBOSE(TAG_CONF, F(D_BULLET "%s set"), fstr_name);
+}
+
+bool configSet(bool& value, const JsonVariant& setting, const __FlashStringHelper* fstr_name)
+{
+    if(!setting.isNull()) {
+        bool val = setting.as<bool>();
+        if(value != val) {
+            confDebugSet(fstr_name);
+            value = val;
+            return true;
+        }
+    }
+    return false;
+}
+bool configSet(int8_t& value, const JsonVariant& setting, const __FlashStringHelper* fstr_name)
+{
+    if(!setting.isNull()) {
+        int8_t val = setting.as<int8_t>();
+        if(value != val) {
+            confDebugSet(fstr_name);
+            value = val;
+            return true;
+        }
+    }
+    return false;
+}
+bool configSet(uint8_t& value, const JsonVariant& setting, const __FlashStringHelper* fstr_name)
+{
+    if(!setting.isNull()) {
+        uint8_t val = setting.as<uint8_t>();
+        if(value != val) {
+            confDebugSet(fstr_name);
+            value = val;
+            return true;
+        }
+    }
+    return false;
+}
+bool configSet(uint16_t& value, const JsonVariant& setting, const __FlashStringHelper* fstr_name)
+{
+    if(!setting.isNull()) {
+        uint16_t val = setting.as<uint16_t>();
+        if(value != val) {
+            confDebugSet(fstr_name);
+            value = val;
+            return true;
+        }
+    }
+    return false;
+}
+bool configSet(int32_t& value, const JsonVariant& setting, const __FlashStringHelper* fstr_name)
+{
+    if(!setting.isNull()) {
+        int32_t val = setting.as<int32_t>();
+        if(value != val) {
+            confDebugSet(fstr_name);
+            value = val;
+            return true;
+        }
+    }
+    return false;
+}
+bool configSet(lv_color_t& value, const JsonVariant& setting, const __FlashStringHelper* fstr_name)
+{
+    lv_color32_t c32;
+    if(!setting.isNull() && Parser::haspPayloadToColor(setting.as<const char*>(), c32)) {
+        lv_color_t val = lv_color_make(c32.ch.red, c32.ch.green, c32.ch.blue);
+        if(value.full != val.full) {
+            confDebugSet(fstr_name);
+            value = val;
+            return true;
+        }
+    }
+    return false;
 }
 
 bool configSet(bool& value, const JsonVariant& setting, const char* fstr_name)
@@ -110,6 +191,7 @@ bool configSet(lv_color_t& value, const JsonVariant& setting, const char* fstr_n
     }
     return false;
 }
+
 void configSetupDebug(JsonDocument& settings)
 {
     debugSetup(settings[FPSTR(FP_DEBUG)]);
@@ -118,7 +200,7 @@ void configSetupDebug(JsonDocument& settings)
 
 void configStorePasswords(JsonDocument& settings, String& wifiPass, String& mqttPass, String& httpPass)
 {
-    const char* pass = F("pass");
+    const char* pass = ("pass");
 
     wifiPass = settings[FPSTR(FP_WIFI)][pass].as<String>();
     mqttPass = settings[FPSTR(FP_MQTT)][pass].as<String>();
@@ -127,7 +209,7 @@ void configStorePasswords(JsonDocument& settings, String& wifiPass, String& mqtt
 
 void configRestorePasswords(JsonDocument& settings, String& wifiPass, String& mqttPass, String& httpPass)
 {
-    const char* pass = F("pass");
+    const char* pass = ("pass");
 
     if(!settings[FPSTR(FP_WIFI)][pass].isNull()) settings[FPSTR(FP_WIFI)][pass] = wifiPass;
     if(!settings[FPSTR(FP_MQTT)][pass].isNull()) settings[FPSTR(FP_MQTT)][pass] = mqttPass;
@@ -287,7 +369,7 @@ void configWrite()
 
     bool writefile = false;
     bool changed   = false;
-    const char* module;
+    const __FlashStringHelper* module;
 
 #if HASP_USE_WIFI > 0
     module = FPSTR(FP_WIFI);
@@ -453,7 +535,7 @@ void configSetup()
             configRead(settings, true);
         }
 
-        //#if HASP_USE_SPIFFS > 0
+        // #if HASP_USE_SPIFFS > 0
         LOG_INFO(TAG_DEBG, F("Loading debug settings"));
         debugSetConfig(settings[FPSTR(FP_DEBUG)]);
         LOG_INFO(TAG_GPIO, F("Loading GUI settings"));
@@ -494,7 +576,7 @@ void configSetup()
 
         LOG_INFO(TAG_CONF, F(D_CONFIG_LOADED));
     }
-    //#endif
+    // #endif
 }
 
 void configLoop(void)

@@ -169,6 +169,15 @@ static void add_form_button(String& str, const char* label, const char* action)
     str += "</a>";
 }
 
+static void add_form_button(String& str, const char* label, const __FlashStringHelper* action)
+{
+    str += "<a href='";
+    str += action;
+    str += "'>";
+    str += label;
+    str += "</a>";
+}
+
 static String http_get_content_type(const String& path)
 {
     char buffer[sizeof(mime::mimeTable[0].mimeType)];
@@ -205,6 +214,22 @@ bool http_is_authenticated()
             return false;
         }
     }
+    return true;
+}
+
+// Check authentication and create Log entry
+bool http_is_authenticated(const __FlashStringHelper* notused)
+{
+    if(!http_is_authenticated()) return false;
+
+#if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
+    LOG_VERBOSE(TAG_HTTP, D_HTTP_SENDING_PAGE, webServer.uri().c_str(),
+                webServer.client().remoteIP().toString().c_str());
+#else
+        // LOG_INFO(TAG_HTTP,D_HTTP_SENDING_PAGE, page,
+        //             String(webServer.client().remoteIP()).c_str());
+#endif
+
     return true;
 }
 
@@ -640,7 +665,7 @@ static void webHandleApi()
         }
 
         settings = doc.to<JsonObject>();
-        const char* module;
+        const __FlashStringHelper* module;
 
         module = FPSTR(FP_HASP);
         settings.createNestedObject(module);

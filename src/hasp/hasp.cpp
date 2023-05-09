@@ -437,13 +437,13 @@ void haspProgressMsg(const char* msg)
      } */
 }
 
-// #ifdef ARDUINO
-// // Sets the value string of the global progress bar
-// void haspProgressMsg(const __FlashStringHelper* msg)
-// {
-//     haspProgressMsg(String(msg).c_str());
-// }
-// #endif
+#ifdef ARDUINO
+// Sets the value string of the global progress bar
+void haspProgressMsg(const __FlashStringHelper* msg)
+{
+    haspProgressMsg(String(msg).c_str());
+}
+#endif
 
 /*Add a custom apply callback*/
 static void custom_font_apply_cb(lv_theme_t* th, lv_obj_t* obj, lv_theme_style_t name)
@@ -829,20 +829,20 @@ bool haspSetConfig(const JsonObject& settings)
     JsonVariant color_str;
     bool changed = false;
 
-    changed |= configSet(haspStartPage, settings[FPSTR(FP_CONFIG_STARTPAGE)], F("haspStartPage"));
-    changed |= configSet(haspStartDim, settings[FPSTR(FP_CONFIG_STARTDIM)], F("haspStartDim"));
+    changed |= configSet(haspStartPage, settings[FPSTR(FP_CONFIG_STARTPAGE)], "haspStartPage");
+    changed |= configSet(haspStartDim, settings[FPSTR(FP_CONFIG_STARTDIM)], "haspStartDim");
 
     { // Theme related settings
         // Set from Hue first
         bool theme_changed = false;
-        theme_changed |= configSet(haspThemeId, settings[FPSTR(FP_CONFIG_THEME)], F("haspThemeId"));
-        theme_changed |= configSet(haspThemeHue, settings[FPSTR(FP_CONFIG_HUE)], F("haspThemeHue"));
+        theme_changed |= configSet(haspThemeId, settings[FPSTR(FP_CONFIG_THEME)], "haspThemeId");
+        theme_changed |= configSet(haspThemeHue, settings[FPSTR(FP_CONFIG_HUE)], "haspThemeHue");
         color_primary   = lv_color_hsv_to_rgb(haspThemeHue, 100, 100);
         color_secondary = lv_color_hsv_to_rgb(20, 60, 100);
 
         // Check for color1 and color2
-        theme_changed |= configSet(color_primary, settings[FPSTR(FP_CONFIG_COLOR1)], F("haspColor1"));
-        theme_changed |= configSet(color_secondary, settings[FPSTR(FP_CONFIG_COLOR2)], F("haspColor2"));
+        theme_changed |= configSet(color_primary, settings[FPSTR(FP_CONFIG_COLOR1)], "haspColor1");
+        theme_changed |= configSet(color_secondary, settings[FPSTR(FP_CONFIG_COLOR2)], "haspColor2");
 
         changed |= theme_changed;
         // if(theme_changed) hasp_set_theme(haspThemeId); // LVGL is not inited at config load time

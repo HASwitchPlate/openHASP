@@ -105,8 +105,8 @@ void hasp_set_theme(uint8_t themeid);
 #endif
 
 void haspProgressMsg(const char* msg);
-// #ifdef ARDUINO
-// void haspProgressMsg(const __FlashStringHelper* msg);
-// #endif
+#ifdef ARDUINO
+void haspProgressMsg(const __FlashStringHelper* msg);
+#endif
 
 #endif /*HASP_H*/
