@@ -48,7 +48,7 @@
 - Add button GPIOs to input discovery message
 
 ### Architecture
-- Moved to Tasmota Arduino 2.0.6 and ESP-IDF 4.4.3 (thanks @Jason2866)
+- Moved to Tasmota Arduino 2.0.9 and ESP-IDF 4.4.4 (thanks @Jason2866)
 - Add Arduino-GFX display driver
 - Add support for ESP32-S3 devices
 - Deprication of support for ESP32-S2 devices due to lack of sRAM
