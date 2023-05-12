@@ -19,21 +19,11 @@
 
 namespace dev {
 
-// void tftPinInfo(const __FlashStringHelper* pinfunction, int8_t pin)
-// {
-//     if(pin != -1) {
-//         char buffer[64];
-//         snprintf_P(buffer, sizeof(buffer), PSTR("%-12s: %s (GPIO %02d)"), String(pinfunction).c_str(),
-//                    haspDevice.gpio_name(pin).c_str(), pin);
-//         LOG_VERBOSE(TAG_TFT, buffer);
-//     }
-// }
-
-void tftPinInfo(const char* pinfunction, int8_t pin)
+void tftPinInfo(const __FlashStringHelper* pinfunction, int8_t pin)
 {
     if(pin != -1) {
         char buffer[64];
-        snprintf_P(buffer, sizeof(buffer), PSTR("%-12s: %s (GPIO %02d)"), pinfunction,
+        snprintf_P(buffer, sizeof(buffer), PSTR("%-12s: %s (GPIO %02d)"), String(pinfunction).c_str(),
                    haspDevice.gpio_name(pin).c_str(), pin);
         LOG_VERBOSE(TAG_TFT, buffer);
     }
