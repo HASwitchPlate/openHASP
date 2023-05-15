@@ -34,14 +34,14 @@ inline void debugSendAnsiCode(const __FlashStringHelper* code, Print* _logOutput
 #endif
 }
 
-inline void debugSendAnsiCode(const char* code, Print* _logOutput)
-{
-#ifdef ARDUINO
-    if(debugAnsiCodes) _logOutput->print(code);
-#else
-    if(debugAnsiCodes) debug_print(_logOutput, code);
-#endif
-}
+// inline void debugSendAnsiCode(const char* code, Print* _logOutput)
+// {
+// #ifdef ARDUINO
+//     if(debugAnsiCodes) _logOutput->print(code);
+// #else
+//     if(debugAnsiCodes) debug_print(_logOutput, code);
+// #endif
+// }
 
 /*
 void debug_timestamp()
