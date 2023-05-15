@@ -2,7 +2,7 @@
 
 ## v0.7.0
 
-!!! THE PARTITION SCHEME OF THE INTERNAL FLASH HAS CHANGED !!!
+!!! THE PARTITION SCHEME OF THE INTERNAL FLASH HAS CHANGED, CHECK THE DOCS BEFORE UPGRADING !!!
 
 ### Commands
 - Removed deprecated `dim`, `brightness` and `light` commands, use `backlight` instead
