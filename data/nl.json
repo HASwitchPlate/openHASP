@@ -1,153 +1,153 @@
 {
     "en": {
-        "language": "English",
+        "language": "Nederlands",
         "home": {
-            "title": "Main Menu",
-            "btn": "Main Menu",
-            "nav": "Home"
+            "title": "Hoofdmenu",
+            "btn": "Hoofdmenu",
+            "nav": "Hoofdpagina"
         },
-        "save": "Save Settings",
-        "user": "Username",
-        "pass": "Password",
+        "save": "Instellingen Opslaan",
+        "user": "Gebruikersnaam",
+        "pass": "Wachtwoord",
         "hasp": {
             "title": "HASP Design",
             "btn": "HASP Design",
-            "theme": "UI Theme",
-            "color1": "Primary color",
-            "color2": "Secondary color",
-            "pages": "Start Layout",
-            "font": "Default Font",
-            "startpage": "Startup Page",
-            "startdim": "Startup Dim"
+            "theme": "UI Thema",
+            "color1": "Primaire Kleur",
+            "color2": "Secundaire Kleur",
+            "pages": "Start Lay-out",
+            "font": "Standaard Lettertype",
+            "startpage": "Startpagina",
+            "startdim": "Start Helderheid"
         },
         "screenshot": {
-            "title": "Screenshot",
-            "btn": "Screenshot",
-            "nav": "Screenshot",
-            "prev": "Prev Page",
-            "next": "Next Page",
-            "refresh": "Refresh"
+            "title": "Schermafdruk",
+            "btn": "Schermafdruk",
+            "nav": "Schermafdruk",
+            "prev": "Vorige Pagina",
+            "next": "Volgende Pagina",
+            "refresh": "Vernieuwen"
         },
         "info": {
-            "title": "Information",
-            "btn": "Information",
-            "nav": "Information"
+            "title": "Informatie",
+            "btn": "Informatie",
+            "nav": "Informatie"
         },
         "config": {
-            "title": "Configuration",
-            "btn": "Configuration",
-            "nav": "Settings"
+            "title": "Instellingen",
+            "btn": "Instellingen",
+            "nav": "Instellingen"
         },
         "ota": {
-            "title": "Firmware Update",
-            "btn": "Firmware Update",
+            "title": "Firmware Bijwerken",
+            "btn": "Firmware Bijwerken",
             "nav": "Firmware",
-            "submit": "Update Firmware",
-            "file": "Firmware File",
+            "submit": "Firmware Bijwerken",
+            "file": "Firmware Bestand",
             "url": "Firmware URL",
-            "redirect": "Follow Redirects",
-            "never": "Never",
-            "strict": "Strict",
-            "always": "Always"
+            "redirect": "Volg Redirects",
+            "never": "Nooit",
+            "strict": "Strikt",
+            "always": "Altijd"
         },
         "editor": {
-            "title": "File Editor",
-            "btn": "File Editor",
-            "nav": "File Editor"
+            "title": "Bestands Editor",
+            "btn": "Bestands Editor",
+            "nav": "Bestands Editor"
         },
         "reset": {
-            "title": "Factory Reset",
-            "btn": "Factory Reset",
-            "warning": "Warning",
-            "message": "This process will reset all settings to the default values. The internal flash will be erased and the device is restarted. You may need to connect to the WiFi AP displayed on the panel to reconfigure the device before accessing it again.",
-            "fileloss": "ALL FILES WILL BE LOST!"
+            "title": "Fabrieksinstellingen",
+            "btn": "Fabrieksinstellingen",
+            "warning": "Waarschuwing",
+            "message": "Dit proces zal alle instellingen terugzetten naar de standaardwaarden. De interne flash zal worden gewist en het apparaat wordt opnieuw gestart. U moet mogelijk verbinding maken met het Wifi AP die wordt weergegeven op het paneel om het apparaat opnieuw te configureren voordat u weer toegang krijgt.",
+            "fileloss": "ALLE BESTANDEN WORDEN VERWIJDERD!"
         },
         "reboot": {
-            "title": "Rebooting...",
-            "btn": "Restart",
-            "nav": "Reboot",
-            "message": "The device is rebooting."
+            "title": "Herstarten...",
+            "btn": "Herstarten",
+            "nav": "Herstart",
+            "message": "Het apparaat wordt herstart."
         },
         "about": {
-            "credits": "Based on the previous work of the following open source developers:",
+            "credits": "Gebaseerd op het eerdere werk van de volgende Open Source ontwikkelaars:",
             "copyright": "Copyright ",
-            "rights": "All rights reserved.",
+            "rights": "Alle rechten voorbehouden.",
             "clause1": "Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files(the \"Software\"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and / or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:",
             "clause2": "The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.",
             "clause3": "THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.",
-            "mit": "MIT License",
-            "bsd": "BSD License",
-            "freebsd": "FreeBSD License",
-            "apache2": "Apache2 License"
+            "mit": "MIT Licentie",
+            "bsd": "BSD Licentie",
+            "freebsd": "FreeBSD Licentie",
+            "apache2": "Apache2 Licentie"
         },
         "wifi": {
-            "title": "Wifi Settings",
-            "btn": "Wifi Settings",
+            "title": "Wifi Instellingen",
+            "btn": "Wifi Instellingen",
             "ssid": "SSID"
         },
         "mqtt": {
-            "title": "MQTT Settings",
-            "btn": "MQTT Settings",
-            "name": "Hostname",
-            "group": "Groupname",
+            "title": "MQTT Instellingen",
+            "btn": "MQTT Instellingen",
+            "name": "Hostnaam",
+            "group": "Groepsnaam",
             "host": "Broker",
-            "port": "Port",
-            "node_t": "Node Topic",
-            "group_t": "Group Topic",
-            "broadcast_t": "Broadcast Topic",
-            "hass_t": "HA LWT Topic"
+            "port": "Poort",
+            "node_t": "Node Onderwerp",
+            "group_t": "Groep Onderwerp",
+            "broadcast_t": "Broadcast Onderwerp",
+            "hass_t": "HA LWT Onderwerp"
         },
         "http": {
-            "title": "HTTP Settings",
-            "btn": "HTTP Settings"
+            "title": "HTTP Instellingen",
+            "btn": "HTTP Instellingen"
         },
         "ftp": {
-            "title": "FTP Settings",
-            "btn": "FTP Settings",
-            "port": "FTP Port",
-            "pasv": "Passive Port"
+            "title": "FTP Instellingen",
+            "btn": "FTP Instellingen",
+            "port": "FTP Poort",
+            "pasv": "Passieve Poort"
         },
         "gui": {
-            "title": "Display Settings",
-            "btn": "Display Settings",
-            "antiburn": "Antiburn",
-            "calibrate": "Calibrate"
+            "title": "Weergave Instellingen",
+            "btn": "Weergave Instellingen",
+            "antiburn": "Inbranden Voorkomen",
+            "calibrate": "Kalibreer"
         },
-        "gpio": "GPIO Settings",
+        "gpio": "GPIO Instellingen",
         "debug": {
-            "title": "Debug Settings",
-            "btn": "Debug Settings",
+            "title": "Debug Instellingen",
+            "btn": "Debug Instellingen",
             "baud": "Baudrate",
-            "tele": "Tele Period",
-            "ansi": "Use ANSI codes",
+            "tele": "Tele Periode",
+            "ansi": "Gebruik ANSI-codes",
             "host": "Syslog Server",
-            "port": "Syslog Port",
+            "port": "Syslog Poort",
             "ietf": "IETF (RFC 5424)",
             "bsd": "BSD (RFC 3164)",
-            "log": "Facility"
+            "log": "Faciliteit"
         },
         "time": {
-            "title": "Time Settings",
-            "btn": "Time Settings",
-            "region": "Region",
-            "zone": "Timezone",
-            "tz": "Timezone",
+            "title": "Tijd Instellingen",
+            "btn": "Tijd Instellingen",
+            "region": "Regio",
+            "zone": "Tijdzone",
+            "tz": "Tijdzone",
             "ntp": "NTP Servers"
         },
         "region": {
             "etc": "Etcetera ",
-            "continents": "Continents ",
-            "af": "Africa ",
-            "as": "Asia ",
-            "au": "Australia ",
+            "continents": "Continenten ",
+            "af": "Afrika ",
+            "as": "Azië ",
+            "au": "Australië ",
             "aq": "Antarctica ",
-            "eu": "Europe ",
-            "na": "North America ",
-            "sa": "South America ",
-            "islands": "Islands ",
-            "at": "Atlantic Ocean ",
-            "in": "Indian Ocean ",
-            "pa": "Pacific Ocean "
+            "eu": "Europa ",
+            "na": "Noord-Amerika ",
+            "sa": "Zuid-Amerika ",
+            "islands": "Eilanden ",
+            "at": "Atlantische Oceaan ",
+            "in": "Indische Oceaan ",
+            "pa": "Stille Oceaan "
         }
     }
 }
