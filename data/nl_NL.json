@@ -1,0 +1,153 @@
+{
+    "en": {
+        "language": "Nederlands",
+        "home": {
+            "title": "Hoofdmenu",
+            "btn": "Hoofdmenu",
+            "nav": "Hoofdpagina"
+        },
+        "save": "Instellingen Opslaan",
+        "user": "Gebruikersnaam",
+        "pass": "Wachtwoord",
+        "hasp": {
+            "title": "HASP Design",
+            "btn": "HASP Design",
+            "theme": "UI Thema",
+            "color1": "Primaire Kleur",
+            "color2": "Secundaire Kleur",
+            "pages": "Start Lay-out",
+            "font": "Standaard Lettertype",
+            "startpage": "Startpagina",
+            "startdim": "Start Helderheid"
+        },
+        "screenshot": {
+            "title": "Schermafdruk",
+            "btn": "Schermafdruk",
+            "nav": "Schermafdruk",
+            "prev": "Vorige Pagina",
+            "next": "Volgende Pagina",
+            "refresh": "Vernieuwen"
+        },
+        "info": {
+            "title": "Informatie",
+            "btn": "Informatie",
+            "nav": "Informatie"
+        },
+        "config": {
+            "title": "Instellingen",
+            "btn": "Instellingen",
+            "nav": "Instellingen"
+        },
+        "ota": {
+            "title": "Firmware Bijwerken",
+            "btn": "Firmware Bijwerken",
+            "nav": "Firmware",
+            "submit": "Firmware Bijwerken",
+            "file": "Firmware Bestand",
+            "url": "Firmware URL",
+            "redirect": "Volg Redirects",
+            "never": "Nooit",
+            "strict": "Strikt",
+            "always": "Altijd"
+        },
+        "editor": {
+            "title": "Bestands Editor",
+            "btn": "Bestands Editor",
+            "nav": "Bestands Editor"
+        },
+        "reset": {
+            "title": "Fabrieksinstellingen",
+            "btn": "Fabrieksinstellingen",
+            "warning": "Waarschuwing",
+            "message": "Dit proces zal alle instellingen terugzetten naar de standaardwaarden. De interne flash zal worden gewist en het apparaat wordt opnieuw gestart. U moet mogelijk verbinding maken met het Wifi AP die wordt weergegeven op het paneel om het apparaat opnieuw te configureren voordat u weer toegang krijgt.",
+            "fileloss": "ALLE BESTANDEN WORDEN VERWIJDERD!"
+        },
+        "reboot": {
+            "title": "Herstarten...",
+            "btn": "Herstarten",
+            "nav": "Herstart",
+            "message": "Het apparaat wordt herstart."
+        },
+        "about": {
+            "credits": "Gebaseerd op het eerdere werk van de volgende Open Source ontwikkelaars:",
+            "copyright": "Copyright ",
+            "rights": "Alle rechten voorbehouden.",
+            "clause1": "Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files(the \"Software\"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and / or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:",
+            "clause2": "The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.",
+            "clause3": "THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.",
+            "mit": "MIT Licentie",
+            "bsd": "BSD Licentie",
+            "freebsd": "FreeBSD Licentie",
+            "apache2": "Apache2 Licentie"
+        },
+        "wifi": {
+            "title": "Wifi Instellingen",
+            "btn": "Wifi Instellingen",
+            "ssid": "SSID"
+        },
+        "mqtt": {
+            "title": "MQTT Instellingen",
+            "btn": "MQTT Instellingen",
+            "name": "Hostnaam",
+            "group": "Groepsnaam",
+            "host": "Broker",
+            "port": "Poort",
+            "node_t": "Node Onderwerp",
+            "group_t": "Groep Onderwerp",
+            "broadcast_t": "Broadcast Onderwerp",
+            "hass_t": "HA LWT Onderwerp"
+        },
+        "http": {
+            "title": "HTTP Instellingen",
+            "btn": "HTTP Instellingen"
+        },
+        "ftp": {
+            "title": "FTP Instellingen",
+            "btn": "FTP Instellingen",
+            "port": "FTP Poort",
+            "pasv": "Passieve Poort"
+        },
+        "gui": {
+            "title": "Weergave Instellingen",
+            "btn": "Weergave Instellingen",
+            "antiburn": "Inbranden Voorkomen",
+            "calibrate": "Kalibreer"
+        },
+        "gpio": "GPIO Instellingen",
+        "debug": {
+            "title": "Debug Instellingen",
+            "btn": "Debug Instellingen",
+            "baud": "Baudrate",
+            "tele": "Tele Periode",
+            "ansi": "Gebruik ANSI-codes",
+            "host": "Syslog Server",
+            "port": "Syslog Poort",
+            "ietf": "IETF (RFC 5424)",
+            "bsd": "BSD (RFC 3164)",
+            "log": "Faciliteit"
+        },
+        "time": {
+            "title": "Tijd Instellingen",
+            "btn": "Tijd Instellingen",
+            "region": "Regio",
+            "zone": "Tijdzone",
+            "tz": "Tijdzone",
+            "ntp": "NTP Servers"
+        },
+        "region": {
+            "etc": "Etcetera ",
+            "continents": "Continenten ",
+            "af": "Afrika ",
+            "as": "Azië ",
+            "au": "Australië ",
+            "aq": "Antarctica ",
+            "eu": "Europa ",
+            "na": "Noord-Amerika ",
+            "sa": "Zuid-Amerika ",
+            "islands": "Eilanden ",
+            "at": "Atlantische Oceaan ",
+            "in": "Indische Oceaan ",
+            "pa": "Stille Oceaan "
+        }
+    }
+}
