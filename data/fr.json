@@ -15,10 +15,10 @@
             "theme": "Thème UI",
             "color1": "Couleur Primaire",
             "color2": "Couleur Secondaire",
-            "pages": "Start Layout",
-            "font": "Default Font",
-            "startpage": "Startup Page",
-            "startdim": "Startup Dim"
+            "pages": "Mise en page",
+            "font": "Police par défaut",
+            "startpage": "Page de départ",
+            "startdim": "Luminosité"
         },
         "screenshot": {
             "title": "Capture d'écran",
@@ -56,10 +56,10 @@
             "nav": "Éditeur de fichiers"
         },
         "reset": {
-            "title": "Factory Reset",
-            "btn": "Factory Reset",
+            "title": "Paramètres d'usine",
+            "btn": "Retour aux paramètres d'usine",
             "warning": "Attention",
-            "message": "This process will reset all settings to the default values. The internal flash will be erased and the device is restarted. You may need to connect to the WiFi AP displayed on the panel to reconfigure the device before accessing it again.",
+            "message": "Ce processus va réinitialiser tous les paramètres aux valeurs par défaut. Le flash interne sera effacé et l'appareil sera redémarré. Il se peut que vous deviez vous connecter à l'AP WiFi affiché sur le panneau pour reconfigurer l'appareil avant d'y accéder.",
             "fileloss": "TOUS LES FICHIERS SERONT PERDUS !"
         },
         "reboot": {
@@ -69,16 +69,16 @@
             "message": "L'appareil est en cours de redémarrage."
         },
         "about": {
-            "credits": "Based on the previous work of the following open source developers:",
-            "copyright": "Copyright ",
-            "rights": "All rights reserved.",
+            "credits": "Basé sur le travail précédent des développeurs Open Source suivants :",
+            "copyright": "Droits d’auteur ",
+            "rights": "Tous les droits sont réservés.",
             "clause1": "Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files(the \"Software\"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and / or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:",
             "clause2": "The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.",
             "clause3": "THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.",
-            "mit": "MIT License",
-            "bsd": "BSD License",
-            "freebsd": "FreeBSD License",
-            "apache2": "Apache2 License"
+            "mit": "Licence MIT",
+            "bsd": "Licence BSD",
+            "freebsd": "Licence FreeBSD",
+            "apache2": "Licence Apache2"
         },
         "wifi": {
             "title": "Paramètres WiFi",
@@ -88,14 +88,14 @@
         "mqtt": {
             "title": "Paramètres MQTT",
             "btn": "Paramètres MQTT",
-            "name": "Hostname",
+            "name": "Nom d'hôte",
             "group": "Groupe",
             "host": "Broker",
             "port": "Port",
             "node_t": "Sujet du Node",
             "group_t": "Sujet de Groupe",
-            "broadcast_t": "Broadcast Topic",
-            "hass_t": "HA LWT Topic"
+            "broadcast_t": "Sujet Broadcast",
+            "hass_t": "Sujet HA LWT"
         },
         "http": {
             "title": "Paramètres HTTP",
@@ -110,7 +110,7 @@
         "gui": {
             "title": "Paramètres d'affichage",
             "btn": "Paramètres d'affichage",
-            "antiburn": "Antiburn",
+            "antiburn": "Anti-brûlure",
             "calibrate": "Calibrer"
         },
         "gpio": "Paramètres GPIO",
@@ -120,8 +120,8 @@
             "baud": "Baudrate",
             "tele": "Période de Tele",
             "ansi": "Utiliser les codes ANSI",
-            "host": "Syslog Server",
-            "port": "Syslog Port",
+            "host": "Serveur Syslog",
+            "port": "Port Syslog",
             "ietf": "IETF (RFC 5424)",
             "bsd": "BSD (RFC 3164)",
             "log": "Facility"
@@ -130,8 +130,8 @@
             "title": "Paramètres de l'heure",
             "btn": "Paramètres de l'heure",
             "region": "Région",
-            "zone": "Timezone",
-            "tz": "Timezone",
+            "zone": "Fuseau horaire",
+            "tz": "Fuseau horaire",
             "ntp": "Serveurs NTP"
         },
         "region": {
@@ -140,7 +140,7 @@
             "af": "L'Afrique ",
             "as": "L'Asie ",
             "au": "L'Australie ",
-            "aq": "Antarctica ",
+            "aq": "Antarctique ",
             "eu": "L’Europe ",
             "na": "L'Amérique du Nord ",
             "sa": "L'Amérique du Sud ",
