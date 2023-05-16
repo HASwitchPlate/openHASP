@@ -12,13 +12,13 @@
         "hasp": {
             "title": "Desenul ecranului",
             "btn": "Desenul ecranului",
-            "theme": "UI Theme",
+            "theme": "Tema UI",
             "color1": "Culoare primară",
             "color2": "Culoare secundară",
-            "pages": "Start Layout",
-            "font": "Default Font",
-            "startpage": "Startup Page",
-            "startdim": "Startup Dim"
+            "pages": "Layout inițial",
+            "font": "Font implicit",
+            "startpage": "Pagină inițială",
+            "startdim": "Luminozitatea"
         },
         "screenshot": {
             "title": "Captură de ecran",
@@ -45,10 +45,10 @@
             "submit": "Actualizarea firmware-ului",
             "file": "Fișier firmware",
             "url": "URL firmware",
-            "redirect": "Follow Redirects",
-            "never": "Never",
+            "redirect": "Redirecționări",
+            "never": "Niciodată",
             "strict": "Strict",
-            "always": "Always"
+            "always": "Mereu"
         },
         "editor": {
             "title": "Browser de fișiere",
@@ -88,8 +88,8 @@
         "mqtt": {
             "title": "Setări MQTT",
             "btn": "Setări MQTT",
-            "name": "Hostname",
-            "group": "Groupname",
+            "name": "Nume gazdă",
+            "group": "Nume grup",
             "host": "Broker",
             "port": "Poartă",
             "node_t": "Subiect nod",
@@ -118,7 +118,7 @@
             "title": "Setări Depanare",
             "btn": "Setări Depanare",
             "baud": "Baudrate",
-            "tele": "Tele Period",
+            "tele": "Perioada Tele",
             "ansi": "Utilizează codurile ANSI",
             "host": "Server Syslog",
             "port": "Poartă Syslog",
