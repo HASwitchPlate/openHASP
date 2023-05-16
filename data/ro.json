@@ -2,31 +2,31 @@
     "en": {
         "language": "Română",
         "home": {
-            "title": "Main Menu",
-            "btn": "Main Menu",
-            "nav": "Home"
+            "title": "Meniu principal",
+            "btn": "Meniu principal",
+            "nav": "Acasă"
         },
-        "save": "Save Settings",
+        "save": "Salvarea setărilor",
         "user": "Nume utilizator",
         "pass": "Parola",
         "hasp": {
             "title": "Desenul ecranului",
             "btn": "Desenul ecranului",
             "theme": "UI Theme",
-            "color1": "Primary color",
-            "color2": "Secondary color",
+            "color1": "Culoare primară",
+            "color2": "Culoare secundară",
             "pages": "Start Layout",
             "font": "Default Font",
             "startpage": "Startup Page",
             "startdim": "Startup Dim"
         },
         "screenshot": {
-            "title": "Screenshot",
-            "btn": "Screenshot",
-            "nav": "Screenshot",
-            "prev": "Prev Page",
-            "next": "Next Page",
-            "refresh": "Refresh"
+            "title": "Captură de ecran",
+            "btn": "Captură de ecran",
+            "nav": "Captură de ecran",
+            "prev": "Pagina anterioară",
+            "next": "Pagina următoare",
+            "refresh": "Reîmprospătare"
         },
         "info": {
             "title": "Informații",
@@ -39,115 +39,115 @@
             "nav": "Setări"
         },
         "ota": {
-            "title": "Firmware Update",
-            "btn": "Firmware Update",
+            "title": "Actualizare Firmware",
+            "btn": "Actualizare Firmware",
             "nav": "Firmware",
-            "submit": "Update Firmware",
-            "file": "Firmware File",
-            "url": "Firmware URL",
+            "submit": "Actualizarea firmware-ului",
+            "file": "Fișier firmware",
+            "url": "URL firmware",
             "redirect": "Follow Redirects",
             "never": "Never",
             "strict": "Strict",
             "always": "Always"
         },
         "editor": {
-            "title": "File Editor",
-            "btn": "File Editor",
-            "nav": "File Editor"
+            "title": "Browser de fișiere",
+            "btn": "Browser de fișiere",
+            "nav": "Browser de fișiere"
         },
         "reset": {
-            "title": "Factory Reset",
-            "btn": "Factory Reset",
-            "warning": "Warning",
-            "message": "This process will reset all settings to the default values. The internal flash will be erased and the device is restarted. You may need to connect to the WiFi AP displayed on the panel to reconfigure the device before accessing it again.",
-            "fileloss": "ALL FILES WILL BE LOST!"
+            "title": "Resetare la parametri de fabrică",
+            "btn": "Resetare la parametri de fabrică",
+            "warning": "Avertizare",
+            "message": "Acest proces va reseta toate setările la valorile implicite. Flash intern va fi șters și dispozitivul este repornit. Este posibil să fie necesar să vă conectați la WiFi AP afișat pe panou pentru a reconfigura dispozitivul înainte de a-l accesa din nou.",
+            "fileloss": "TOATE FIȘIERELE VOR FI PIERDE!"
         },
         "reboot": {
-            "title": "Rebooting...",
-            "btn": "Restart",
-            "nav": "Reboot",
-            "message": "The device is rebooting."
+            "title": "Repornire...",
+            "btn": "Repornire",
+            "nav": "Repornire",
+            "message": "Dispozitivul se repornire."
         },
         "about": {
-            "credits": "Based on the previous work of the following open source developers:",
-            "copyright": "Copyright ",
-            "rights": "All rights reserved.",
+            "credits": "Pe baza lucrărilor anterioare ale următorilor dezvoltatori open source:",
+            "copyright": "Drepturi de autor ",
+            "rights": "Toate drepturile rezervate.",
             "clause1": "Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files(the \"Software\"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and / or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:",
             "clause2": "The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.",
             "clause3": "THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.",
-            "mit": "MIT License",
-            "bsd": "BSD License",
-            "freebsd": "FreeBSD License",
-            "apache2": "Apache2 License"
+            "mit": "Licență MIT",
+            "bsd": "Licență BSD",
+            "freebsd": "Licență FreeBSD",
+            "apache2": "Licență Apache2"
         },
         "wifi": {
-            "title": "Wifi Settings",
-            "btn": "Wifi Settings",
+            "title": "Setări WiFi",
+            "btn": "Setări WiFi",
             "ssid": "SSID"
         },
         "mqtt": {
-            "title": "MQTT Settings",
-            "btn": "MQTT Settings",
+            "title": "Setări MQTT",
+            "btn": "Setări MQTT",
             "name": "Hostname",
             "group": "Groupname",
             "host": "Broker",
-            "port": "Port",
-            "node_t": "Node Topic",
-            "group_t": "Group Topic",
-            "broadcast_t": "Broadcast Topic",
-            "hass_t": "HA LWT Topic"
+            "port": "Poartă",
+            "node_t": "Subiect nod",
+            "group_t": "Subiect Grup",
+            "broadcast_t": "Subiect difuzare",
+            "hass_t": "Subiect HA LWT"
         },
         "http": {
-            "title": "HTTP Settings",
-            "btn": "HTTP Settings"
+            "title": "Setări HTTP",
+            "btn": "Setări HTTP"
         },
         "ftp": {
-            "title": "FTP Settings",
-            "btn": "FTP Settings",
-            "port": "FTP Port",
-            "pasv": "Passive Port"
+            "title": "Setări FTP",
+            "btn": "Setări FTP",
+            "port": "Port FTP",
+            "pasv": "Port Pasiv"
         },
         "gui": {
-            "title": "Display Settings",
-            "btn": "Display Settings",
-            "antiburn": "Antiburn",
-            "calibrate": "Calibrate"
+            "title": "Setări ecran",
+            "btn": "Setări ecran",
+            "antiburn": "Anti-arsuri",
+            "calibrate": "Calibrare"
         },
-        "gpio": "GPIO Settings",
+        "gpio": "Setări GPIO",
         "debug": {
-            "title": "Debug Settings",
-            "btn": "Debug Settings",
+            "title": "Setări Depanare",
+            "btn": "Setări Depanare",
             "baud": "Baudrate",
             "tele": "Tele Period",
-            "ansi": "Use ANSI codes",
-            "host": "Syslog Server",
-            "port": "Syslog Port",
+            "ansi": "Utilizează codurile ANSI",
+            "host": "Server Syslog",
+            "port": "Poartă Syslog",
             "ietf": "IETF (RFC 5424)",
             "bsd": "BSD (RFC 3164)",
-            "log": "Facility"
+            "log": "Facilitate"
         },
         "time": {
-            "title": "Time Settings",
-            "btn": "Time Settings",
-            "region": "Region",
-            "zone": "Timezone",
-            "tz": "Timezone",
-            "ntp": "NTP Servers"
+            "title": "Setări de timp",
+            "btn": "Setări de timp",
+            "region": "Regiune",
+            "zone": "Fus orar",
+            "tz": "Fus orar",
+            "ntp": "Servere NTP"
         },
         "region": {
             "etc": "Etcetera ",
-            "continents": "Continents ",
+            "continents": "Continente ",
             "af": "Africa ",
             "as": "Asia ",
             "au": "Australia ",
             "aq": "Antarctica ",
-            "eu": "Europe ",
-            "na": "North America ",
-            "sa": "South America ",
-            "islands": "Islands ",
-            "at": "Atlantic Ocean ",
-            "in": "Indian Ocean ",
-            "pa": "Pacific Ocean "
+            "eu": "Europa ",
+            "na": "America de Nord ",
+            "sa": "America de Sud ",
+            "islands": "Insulele ",
+            "at": "Oceanul Atlantic ",
+            "in": "Oceanul Indian ",
+            "pa": "Oceanul Pacific "
         }
     }
 }
