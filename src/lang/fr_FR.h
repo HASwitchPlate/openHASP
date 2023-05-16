@@ -150,7 +150,6 @@
 #define D_HTTP_CONFIGURATION "Configuration"
 #define D_HTTP_CONFIG_CHANGED                                                                                            \
     "La configuration a changé, cliquez sur <a href='/reboot'>Redémarrer</a> pour enregistrer les modifications dans " \
-    "le flash."
 #define D_HTTP_SENDING_PAGE "La page %S envoyée à %s"
 #define D_HTTP_FOOTER "par Francis Van Roie"
 
@@ -210,6 +209,7 @@
 #define D_WIFI_RSSI_WEAK "Faible"
 #define D_WIFI_RSSI_BAD "Très mauvais"
 
+// new
 #define D_GPIO_SWITCH "Interrupteur"
 #define D_GPIO_BUTTON "Bouton"
 #define D_GPIO_TOUCH "Touche Capacitive"
