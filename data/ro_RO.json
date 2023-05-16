@@ -1,0 +1,153 @@
+{
+    "en": {
+        "language": "Română",
+        "home": {
+            "title": "Meniu principal",
+            "btn": "Meniu principal",
+            "nav": "Acasă"
+        },
+        "save": "Salvarea setărilor",
+        "user": "Nume utilizator",
+        "pass": "Parola",
+        "hasp": {
+            "title": "Desenul ecranului",
+            "btn": "Desenul ecranului",
+            "theme": "Tema UI",
+            "color1": "Culoare primară",
+            "color2": "Culoare secundară",
+            "pages": "Layout inițial",
+            "font": "Font implicit",
+            "startpage": "Pagină inițială",
+            "startdim": "Luminozitatea"
+        },
+        "screenshot": {
+            "title": "Captură de ecran",
+            "btn": "Captură de ecran",
+            "nav": "Captură de ecran",
+            "prev": "Pagina anterioară",
+            "next": "Pagina următoare",
+            "refresh": "Reîmprospătare"
+        },
+        "info": {
+            "title": "Informații",
+            "btn": "Informații",
+            "nav": "Informații"
+        },
+        "config": {
+            "title": "Setări",
+            "btn": "Setări",
+            "nav": "Setări"
+        },
+        "ota": {
+            "title": "Actualizare Firmware",
+            "btn": "Actualizare Firmware",
+            "nav": "Firmware",
+            "submit": "Actualizarea firmware-ului",
+            "file": "Fișier firmware",
+            "url": "URL firmware",
+            "redirect": "Redirecționări",
+            "never": "Niciodată",
+            "strict": "Strict",
+            "always": "Mereu"
+        },
+        "editor": {
+            "title": "Browser de fișiere",
+            "btn": "Browser de fișiere",
+            "nav": "Browser de fișiere"
+        },
+        "reset": {
+            "title": "Resetare la parametri de fabrică",
+            "btn": "Resetare la parametri de fabrică",
+            "warning": "Avertizare",
+            "message": "Acest proces va reseta toate setările la valorile implicite. Flash intern va fi șters și dispozitivul este repornit. Este posibil să fie necesar să vă conectați la WiFi AP afișat pe panou pentru a reconfigura dispozitivul înainte de a-l accesa din nou.",
+            "fileloss": "TOATE FIȘIERELE VOR FI PIERDE!"
+        },
+        "reboot": {
+            "title": "Repornire...",
+            "btn": "Repornire",
+            "nav": "Repornire",
+            "message": "Dispozitivul se repornire."
+        },
+        "about": {
+            "credits": "Pe baza lucrărilor anterioare ale următorilor dezvoltatori open source:",
+            "copyright": "Drepturi de autor ",
+            "rights": "Toate drepturile rezervate.",
+            "clause1": "Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files(the \"Software\"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and / or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:",
+            "clause2": "The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.",
+            "clause3": "THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.",
+            "mit": "Licență MIT",
+            "bsd": "Licență BSD",
+            "freebsd": "Licență FreeBSD",
+            "apache2": "Licență Apache2"
+        },
+        "wifi": {
+            "title": "Setări WiFi",
+            "btn": "Setări WiFi",
+            "ssid": "SSID"
+        },
+        "mqtt": {
+            "title": "Setări MQTT",
+            "btn": "Setări MQTT",
+            "name": "Nume gazdă",
+            "group": "Nume grup",
+            "host": "Broker",
+            "port": "Poartă",
+            "node_t": "Subiect nod",
+            "group_t": "Subiect Grup",
+            "broadcast_t": "Subiect difuzare",
+            "hass_t": "Subiect HA LWT"
+        },
+        "http": {
+            "title": "Setări HTTP",
+            "btn": "Setări HTTP"
+        },
+        "ftp": {
+            "title": "Setări FTP",
+            "btn": "Setări FTP",
+            "port": "Port FTP",
+            "pasv": "Port Pasiv"
+        },
+        "gui": {
+            "title": "Setări ecran",
+            "btn": "Setări ecran",
+            "antiburn": "Anti-arsuri",
+            "calibrate": "Calibrare"
+        },
+        "gpio": "Setări GPIO",
+        "debug": {
+            "title": "Setări Depanare",
+            "btn": "Setări Depanare",
+            "baud": "Baudrate",
+            "tele": "Perioada Tele",
+            "ansi": "Utilizează codurile ANSI",
+            "host": "Server Syslog",
+            "port": "Poartă Syslog",
+            "ietf": "IETF (RFC 5424)",
+            "bsd": "BSD (RFC 3164)",
+            "log": "Facilitate"
+        },
+        "time": {
+            "title": "Setări de timp",
+            "btn": "Setări de timp",
+            "region": "Regiune",
+            "zone": "Fus orar",
+            "tz": "Fus orar",
+            "ntp": "Servere NTP"
+        },
+        "region": {
+            "etc": "Etcetera ",
+            "continents": "Continente ",
+            "af": "Africa ",
+            "as": "Asia ",
+            "au": "Australia ",
+            "aq": "Antarctica ",
+            "eu": "Europa ",
+            "na": "America de Nord ",
+            "sa": "America de Sud ",
+            "islands": "Insulele ",
+            "at": "Oceanul Atlantic ",
+            "in": "Oceanul Indian ",
+            "pa": "Oceanul Pacific "
+        }
+    }
+}
