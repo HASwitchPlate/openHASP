@@ -1,0 +1,153 @@
+{
+    "en": {
+        "language": "Deutsch",
+        "home": {
+            "title": "Hauptmenü",
+            "btn": "Hauptmenü",
+            "nav": "Startseite"
+        },
+        "save": "Einstellungen speichern",
+        "user": "Benutzername",
+        "pass": "Passwort",
+        "hasp": {
+            "title": "HASP-Design",
+            "btn": "HASP-Design",
+            "theme": "UI-Thema",
+            "color1": "Hauptfarbe",
+            "color2": "Sekundärfarbe",
+            "pages": "Start-Layout",
+            "font": "Standardschrift",
+            "startpage": "Startseite",
+            "startdim": "Starthelligkeit"
+        },
+        "screenshot": {
+            "title": "Bildschirmaufnahme",
+            "btn": "Bildschirmaufnahme",
+            "nav": "Bildschirmaufnahme",
+            "prev": "Vorherige Seite",
+            "next": "Nächste Seite",
+            "refresh": "Aktualisieren"
+        },
+        "info": {
+            "title": "Informationen",
+            "btn": "Informationen",
+            "nav": "Informationen"
+        },
+        "config": {
+            "title": "Konfiguration",
+            "btn": "Konfiguration",
+            "nav": "Konfiguration"
+        },
+        "ota": {
+            "title": "Firmware Update",
+            "btn": "Firmware Update",
+            "nav": "Firmware",
+            "submit": "Firmware aktualisieren",
+            "file": "Firmware-Datei",
+            "url": "Firmware-URL",
+            "redirect": "Umleitungen folgen",
+            "never": "Niemals",
+            "strict": "Strikt",
+            "always": "Immer"
+        },
+        "editor": {
+            "title": "Datei Editor",
+            "btn": "Datei Editor",
+            "nav": "Datei Editor"
+        },
+        "reset": {
+            "title": "Werkseinsetzung",
+            "btn": "Werkseinstellungen zurücksetzen",
+            "warning": "Warnung",
+            "message": "Dieser Prozess setzt alle Einstellungen auf die Standardwerte zurück. Der interne Blitz wird gelöscht und das Gerät wird neu gestartet. Möglicherweise müssen Sie eine Verbindung zu dem WiFi AP auf dem Panel herstellen, um das Gerät neu zu konfigurieren, bevor Sie auf es erneut zugreifen.",
+            "fileloss": "ALLE DATEIEN WERDEN GELÖSCHT!"
+        },
+        "reboot": {
+            "title": "Neustarten...",
+            "btn": "Neustarten",
+            "nav": "Neustart",
+            "message": "Das Gerät wird neu gestartet."
+        },
+        "about": {
+            "credits": "Basierend auf der bisherigen Arbeit der folgenden Open-Source-Entwickler:",
+            "copyright": "Urheberrechte ",
+            "rights": "Alle Rechte vorbehalten.",
+            "clause1": "Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files(the \"Software\"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and / or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:",
+            "clause2": "The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.",
+            "clause3": "THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.",
+            "mit": "MIT-Lizenz",
+            "bsd": "BSD-Lizenz",
+            "freebsd": "FreeBSD-Lizenz",
+            "apache2": "Apache2-Lizenz"
+        },
+        "wifi": {
+            "title": "WiFi-Einstellungen",
+            "btn": "WiFi-Einstellungen",
+            "ssid": "SSID"
+        },
+        "mqtt": {
+            "title": "MQTT-Einstellungen",
+            "btn": "MQTT-Einstellungen",
+            "name": "Hostname",
+            "group": "Gruppenname",
+            "host": "Broker",
+            "port": "Port",
+            "node_t": "Knoten-Thema",
+            "group_t": "Gruppen-Thema",
+            "broadcast_t": "Broadcast-Thema",
+            "hass_t": "HA LWT-Thema"
+        },
+        "http": {
+            "title": "HTTP-Einstellungen",
+            "btn": "HTTP-Einstellungen"
+        },
+        "ftp": {
+            "title": "FTP-Einstellungen",
+            "btn": "FTP-Einstellungen",
+            "port": "FTP-Port",
+            "pasv": "Passiver Port"
+        },
+        "gui": {
+            "title": "Bildschirmeinstellungen",
+            "btn": "Bildschirmeinstellungen",
+            "antiburn": "Anti-Burn",
+            "calibrate": "Kalibrieren"
+        },
+        "gpio": "GPIO-Einstellungen",
+        "debug": {
+            "title": "Debug-Einstellungen",
+            "btn": "Debug-Einstellungen",
+            "baud": "Baudrate",
+            "tele": "Tele-Periode",
+            "ansi": "ANSI-Codes verwenden",
+            "host": "Syslog-Server",
+            "port": "Syslog-Port",
+            "ietf": "IETF (RFC 5424)",
+            "bsd": "BSD (RFC 3164)",
+            "log": "Facility"
+        },
+        "time": {
+            "title": "Zeit Einstellungen",
+            "btn": "Zeit Einstellungen",
+            "region": "Region",
+            "zone": "Zeitzone",
+            "tz": "Zeitzone",
+            "ntp": "NTP-Server"
+        },
+        "region": {
+            "etc": "Etcetera ",
+            "continents": "Kontinenten ",
+            "af": "Afrika ",
+            "as": "Asien ",
+            "au": "Australien ",
+            "aq": "Antarctica ",
+            "eu": "Europa ",
+            "na": "Nordamerika ",
+            "sa": "Südamerika ",
+            "islands": "Inseln ",
+            "at": "Atlantischer Ozean ",
+            "in": "Indischer Ozean ",
+            "pa": "Pazifischer Ozean "
+        }
+    }
+}
