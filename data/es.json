@@ -12,13 +12,13 @@
         "hasp": {
             "title": "Diseño de HASP",
             "btn": "Diseño de HASP",
-            "theme": "UI Theme",
+            "theme": "Tema de IU",
             "color1": "Color Primario",
             "color2": "Color Secundario",
-            "pages": "Start Layout",
-            "font": "Default Font",
-            "startpage": "Startup Page",
-            "startdim": "Startup Dim"
+            "pages": "Diseño inicial",
+            "font": "Fuente por Defecto",
+            "startpage": "Página inicial",
+            "startdim": "Brillo inicial"
         },
         "screenshot": {
             "title": "Captura de pantalla",
@@ -59,7 +59,7 @@
             "title": "Restaurar conf de fábrica",
             "btn": "Restaurar conf de fábrica",
             "warning": "Aviso",
-            "message": "This process will reset all settings to the default values. The internal flash will be erased and the device is restarted. You may need to connect to the WiFi AP displayed on the panel to reconfigure the device before accessing it again.",
+            "message": "Este proceso restablecerá todos los ajustes a los valores por defecto. El flash interno se borrará y el dispositivo se reiniciará. Puede que necesite conectarse al AP WiFi mostrado en el panel para reconfigurar el dispositivo antes de volver a acceder a él.",
             "fileloss": "¡TODOS LOS ARCHIVOS SERÁN PERDIDOS!"
         },
         "reboot": {
@@ -89,13 +89,13 @@
             "title": "Ajustes MQTT",
             "btn": "Ajustes MQTT",
             "name": "Nombre de equipo",
-            "group": "Groupname",
+            "group": "Nombre del Grupo",
             "host": "Broker",
             "port": "Puerto",
-            "node_t": "Node Topic",
-            "group_t": "Group Topic",
-            "broadcast_t": "Broadcast Topic",
-            "hass_t": "HA LWT Topic"
+            "node_t": "Tema del Nodo",
+            "group_t": "Tema del Grupo",
+            "broadcast_t": "Tema de Broadcast",
+            "hass_t": "Tema HA LWT"
         },
         "http": {
             "title": "Ajustes HTTP",
@@ -110,14 +110,14 @@
         "gui": {
             "title": "Ajustes de Pantalla",
             "btn": "Ajustes de Pantalla",
-            "antiburn": "Antiburn",
+            "antiburn": "Anti-quemaduras",
             "calibrate": "Calibrar"
         },
         "gpio": "Ajustes GPIO",
         "debug": {
             "title": "Ajustes de depuración",
             "btn": "Ajustes de depuración",
-            "baud": "Baudrate",
+            "baud": "Baudios",
             "tele": "Periodo de Tele",
             "ansi": "Usar códigos ANSI",
             "host": "Servidor Syslog",
