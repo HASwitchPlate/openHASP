@@ -19,7 +19,6 @@
 #define D_FILE_LOADING "A carregar %s"
 #define D_FILE_LOADED "%s carregado"
 #define D_FILE_LOAD_FAILED "Não foi possível carregar %s"
-
 #define D_FILE_SAVING "A guardar %s"
 #define D_FILE_SAVED "%s guardado"
 #define D_FILE_SAVE_FAILED "Não foi possível guardar %s"
@@ -68,11 +67,11 @@
 #define D_TELNET_CLOSING_CONNECTION "A fechar a ligação de %s"
 #define D_TELNET_CLIENT_LOGIN_FROM "Foi feito login ao cliente %s"
 #define D_TELNET_CLIENT_CONNECT_FROM "Foi conectado ao cliente %s"
+#define D_TELNET_CLIENT_NOT_CONNECTED "Cliente não ligado"
 #define D_TELNET_INCORRECT_LOGIN_ATTEMPT "Tentativa de ligação incorreta desde %s"
 #define D_TELNET_STARTED "Consola inicializada"
 #define D_TELNET_FAILED "Falhou inicialização da consola"
 #define D_TELNET_CLIENT_CONNECTED "Cliente ligado"
-#define D_TELNET_CLIENT_NOT_CONNECTED "Cliente não ligado"
 #define D_TELNET_CLIENT_REJECTED "Cliente rejeitado"
 
 #define D_HASP_INVALID_PAGE "Página inválida %u"
@@ -206,10 +205,11 @@
 #define D_WIFI_CONNECTED_TO "Ligado a %s, a pedir IP..."
 #define D_WIFI_RSSI_EXCELLENT "Excelente"
 #define D_WIFI_RSSI_GOOD "Bom"
-#define D_WIFI_RSSI_FAIR "Decente"
 #define D_WIFI_RSSI_WEAK "Fraco"
 #define D_WIFI_RSSI_BAD "Muito baixo"
+#define D_WIFI_RSSI_FAIR "Decente"
 
+// new
 #define D_GPIO_SWITCH "Interruptor"
 #define D_GPIO_BUTTON "Botão"
 #define D_GPIO_TOUCH "Capacitive Touch" // new
