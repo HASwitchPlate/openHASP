@@ -1,19 +1,19 @@
 {
     "en": {
-        "language": "Portuguese-Brazil",
+        "language": "Português",
         "home": {
             "title": "Menu Principal",
             "btn": "Menu Principal",
             "nav": "Início"
         },
         "save": "Guardar Configuração",
-        "user": "Usuário",
-        "pass": "Senha",
+        "user": "Utilizador",
+        "pass": "Palavra-passe",
         "hasp": {
             "title": "Design do HASP",
             "btn": "Design do HASP",
             "theme": "Tema da IU",
-            "color1": "Cor principal",
+            "color1": "Cor Principal",
             "color2": "Cor secundária",
             "pages": "Layout inicial",
             "font": "Fonte padrão",
@@ -44,8 +44,8 @@
             "nav": "Firmware",
             "submit": "Atualizar o firmware",
             "file": "Arquivo de Firmware",
-            "url": "URL de Firmware",
-            "redirect": "Seguir redirecionamentos",
+            "url": "URL do Firmware",
+            "redirect": "Seguir Redirecionamentos",
             "never": "Nunca",
             "strict": "Estrito",
             "always": "Sempre"
@@ -66,11 +66,11 @@
             "title": "Reiniciando...",
             "btn": "Reiniciar",
             "nav": "Reiniciar",
-            "message": "Este dispositivo está reiniciando."
+            "message": "O dispositivo está reiniciando."
         },
         "about": {
-            "credits": "Com base no trabalho anterior dos seguintes desenvolvedores de código aberto:",
-            "copyright": "Direitos autorais ",
+            "credits": "Baseado no trabalho anterior dos seguintes desenvolvedores de código aberto:",
+            "copyright": "Copyright ",
             "rights": "Todos os direitos reservados.",
             "clause1": "Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files(the \"Software\"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and / or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:",
             "clause2": "The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.",
@@ -93,7 +93,7 @@
             "host": "Broker",
             "port": "Porta",
             "node_t": "Tópico do Node",
-            "group_t": "Tópico do Grupo",
+            "group_t": "Tópico de Grupo",
             "broadcast_t": "Tópico do Broadcast",
             "hass_t": "Tópico HA LWT"
         },
@@ -104,16 +104,16 @@
         "ftp": {
             "title": "Configurar FTP",
             "btn": "Configurar FTP",
-            "port": "Porta FTP",
+            "port": "Porta de FTP",
             "pasv": "Porta Passiva"
         },
         "gui": {
-            "title": "Configurar Tela",
-            "btn": "Configurar Tela",
-            "antiburn": "Anti-queimadura",
+            "title": "Configurar tela",
+            "btn": "Configurar tela",
+            "antiburn": "Anti-queimaduras",
             "calibrate": "Calibrar"
         },
-        "gpio": "Configurar GPIO",
+        "gpio": "Configurar MQTT",
         "debug": {
             "title": "Configurar debug",
             "btn": "Configurar debug",
@@ -127,8 +127,8 @@
             "log": "Facility"
         },
         "time": {
-            "title": "Configurar hora",
-            "btn": "Configurar hora",
+            "title": "Configurar Hora",
+            "btn": "Configurar Hora",
             "region": "Região",
             "zone": "Fuso horário",
             "tz": "Fuso horário",
