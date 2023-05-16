@@ -1,12 +1,12 @@
 {
     "en": {
-        "language": "English",
+        "language": "Magyar",
         "home": {
-            "title": "Main Menu",
-            "btn": "Main Menu",
-            "nav": "Home"
+            "title": "Főmenü",
+            "btn": "Főmenü",
+            "nav": "Főoldal"
         },
-        "save": "Save Settings",
+        "save": "Beállítások mentése",
         "user": "Felhasználónév",
         "pass": "Jelszó",
         "hasp": {
@@ -16,7 +16,7 @@
             "color1": "Elsődleges szín",
             "color2": "Szekunder szín",
             "pages": "Start Layout",
-            "font": "Default Font",
+            "font": "Alapértelmezett font",
             "startpage": "Startup Page",
             "startdim": "Startup Dim"
         },
@@ -63,33 +63,33 @@
             "fileloss": "ALL FILES WILL BE LOST!"
         },
         "reboot": {
-            "title": "Rebooting...",
-            "btn": "Restart",
-            "nav": "Reboot",
-            "message": "The device is rebooting."
+            "title": "Újraindítás...",
+            "btn": "Újraindítás",
+            "nav": "Újraindítás",
+            "message": "Az eszköz újraindul."
         },
         "about": {
-            "credits": "Based on the previous work of the following open source developers:",
+            "credits": "Az alábbi nyílt forráskódú fejlesztők korábbi munkája alapján:",
             "copyright": "Copyright ",
-            "rights": "All rights reserved.",
+            "rights": "Minden jog fenntartva.",
             "clause1": "Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files(the \"Software\"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and / or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:",
             "clause2": "The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.",
             "clause3": "THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.",
-            "mit": "MIT License",
-            "bsd": "BSD License",
-            "freebsd": "FreeBSD License",
-            "apache2": "Apache2 License"
+            "mit": "MIT licenc",
+            "bsd": "BSD licenc",
+            "freebsd": "FreeBSD licenc",
+            "apache2": "Apache2 licenc"
         },
         "wifi": {
-            "title": "Wifi Settings",
-            "btn": "Wifi Settings",
+            "title": "WiFi beállítások",
+            "btn": "WiFi beállítások",
             "ssid": "SSID"
         },
         "mqtt": {
-            "title": "MQTT Settings",
-            "btn": "MQTT Settings",
-            "name": "Hostname",
-            "group": "Groupname",
+            "title": "MQTT beállítások",
+            "btn": "MQTT beállítások",
+            "name": "Gazdagépnév",
+            "group": "Csoportnév",
             "host": "Broker",
             "port": "Port",
             "node_t": "Node Topic",
@@ -98,25 +98,25 @@
             "hass_t": "HA LWT Topic"
         },
         "http": {
-            "title": "HTTP Settings",
-            "btn": "HTTP Settings"
+            "title": "HTTP beállítások",
+            "btn": "HTTP beállítások"
         },
         "ftp": {
-            "title": "FTP Settings",
-            "btn": "FTP Settings",
+            "title": "FTP beállítások",
+            "btn": "FTP beállítások",
             "port": "FTP Port",
-            "pasv": "Passive Port"
+            "pasv": "Passzív Port"
         },
         "gui": {
-            "title": "Display Settings",
-            "btn": "Display Settings",
-            "antiburn": "Antiburn",
-            "calibrate": "Calibrate"
+            "title": "Képernyő beállítások",
+            "btn": "Képernyő beállítások",
+            "antiburn": "Beégésvédelem futtatás",
+            "calibrate": "Kalibrálás"
         },
-        "gpio": "GPIO Settings",
+        "gpio": "GPIO beállítások",
         "debug": {
-            "title": "Debug Settings",
-            "btn": "Debug Settings",
+            "title": "Hibakeresési beállítások",
+            "btn": "Hibakeresési beállítások",
             "baud": "Baudrate",
             "tele": "Tele Period",
             "ansi": "Use ANSI codes",
@@ -127,27 +127,27 @@
             "log": "Facility"
         },
         "time": {
-            "title": "Time Settings",
-            "btn": "Time Settings",
-            "region": "Region",
-            "zone": "Timezone",
-            "tz": "Timezone",
-            "ntp": "NTP Servers"
+            "title": "Idő beállítások",
+            "btn": "Idő beállítások",
+            "region": "Régió",
+            "zone": "Időzóna",
+            "tz": "Időzóna",
+            "ntp": "NTP szerverek"
         },
         "region": {
             "etc": "Etcetera ",
-            "continents": "Continents ",
-            "af": "Africa ",
-            "as": "Asia ",
-            "au": "Australia ",
-            "aq": "Antarctica ",
-            "eu": "Europe ",
-            "na": "North America ",
-            "sa": "South America ",
-            "islands": "Islands ",
-            "at": "Atlantic Ocean ",
-            "in": "Indian Ocean ",
-            "pa": "Pacific Ocean "
+            "continents": "Kontinensek ",
+            "af": "Afrika ",
+            "as": "Ázsia ",
+            "au": "Ausztrália ",
+            "aq": "Antarktika ",
+            "eu": "Európa ",
+            "na": "Észak-Amerika ",
+            "sa": "Dél-Amerika ",
+            "islands": "Szigetek ",
+            "at": "Atlanti-óceán ",
+            "in": "Indiai-óceán ",
+            "pa": "Csendes-óceán "
         }
     }
 }
