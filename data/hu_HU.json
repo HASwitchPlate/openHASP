@@ -1,0 +1,153 @@
+{
+    "en": {
+        "language": "Magyar",
+        "home": {
+            "title": "Főmenü",
+            "btn": "Főmenü",
+            "nav": "Főoldal"
+        },
+        "save": "Beállítások mentése",
+        "user": "Felhasználónév",
+        "pass": "Jelszó",
+        "hasp": {
+            "title": "Képernyő dizájn",
+            "btn": "Képernyő dizájn",
+            "theme": "UI téma",
+            "color1": "Elsődleges szín",
+            "color2": "Szekunder szín",
+            "pages": "Start Layout",
+            "font": "Alapértelmezett font",
+            "startpage": "Startup Page",
+            "startdim": "Startup Dim"
+        },
+        "screenshot": {
+            "title": "Képernyőkép",
+            "btn": "Képernyőkép",
+            "nav": "Képernyőkép",
+            "prev": "Előző oldal",
+            "next": "Következő oldal",
+            "refresh": "Frissítés"
+        },
+        "info": {
+            "title": "Információk",
+            "btn": "Információk",
+            "nav": "Információk"
+        },
+        "config": {
+            "title": "Beállítások",
+            "btn": "Beállítások",
+            "nav": "Beállítások"
+        },
+        "ota": {
+            "title": "Firmware frissítés",
+            "btn": "Firmware frissítés",
+            "nav": "Firmware",
+            "submit": "Firmware frissítése",
+            "file": "Firmware fájl",
+            "url": "Firmware URL",
+            "redirect": "Átirányítások",
+            "never": "Soha",
+            "strict": "Szigorú",
+            "always": "Mindig"
+        },
+        "editor": {
+            "title": "Fájlkezelő",
+            "btn": "Fájlkezelő",
+            "nav": "Fájlkezelő"
+        },
+        "reset": {
+            "title": "Gyári beállítások visszaállítása",
+            "btn": "Gyári beállítások visszaállítása",
+            "warning": "Warning",
+            "message": "This process will reset all settings to the default values. The internal flash will be erased and the device is restarted. You may need to connect to the WiFi AP displayed on the panel to reconfigure the device before accessing it again.",
+            "fileloss": "ALL FILES WILL BE LOST!"
+        },
+        "reboot": {
+            "title": "Újraindítás...",
+            "btn": "Újraindítás",
+            "nav": "Újraindítás",
+            "message": "Az eszköz újraindul."
+        },
+        "about": {
+            "credits": "Az alábbi nyílt forráskódú fejlesztők korábbi munkája alapján:",
+            "copyright": "Copyright ",
+            "rights": "Minden jog fenntartva.",
+            "clause1": "Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files(the \"Software\"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and / or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:",
+            "clause2": "The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.",
+            "clause3": "THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.",
+            "mit": "MIT licenc",
+            "bsd": "BSD licenc",
+            "freebsd": "FreeBSD licenc",
+            "apache2": "Apache2 licenc"
+        },
+        "wifi": {
+            "title": "WiFi beállítások",
+            "btn": "WiFi beállítások",
+            "ssid": "SSID"
+        },
+        "mqtt": {
+            "title": "MQTT beállítások",
+            "btn": "MQTT beállítások",
+            "name": "Gazdagépnév",
+            "group": "Csoportnév",
+            "host": "Broker",
+            "port": "Port",
+            "node_t": "Node Topic",
+            "group_t": "Group Topic",
+            "broadcast_t": "Broadcast Topic",
+            "hass_t": "HA LWT Topic"
+        },
+        "http": {
+            "title": "HTTP beállítások",
+            "btn": "HTTP beállítások"
+        },
+        "ftp": {
+            "title": "FTP beállítások",
+            "btn": "FTP beállítások",
+            "port": "FTP Port",
+            "pasv": "Passzív Port"
+        },
+        "gui": {
+            "title": "Képernyő beállítások",
+            "btn": "Képernyő beállítások",
+            "antiburn": "Beégésvédelem futtatás",
+            "calibrate": "Kalibrálás"
+        },
+        "gpio": "GPIO beállítások",
+        "debug": {
+            "title": "Hibakeresési beállítások",
+            "btn": "Hibakeresési beállítások",
+            "baud": "Baudrate",
+            "tele": "Tele Period",
+            "ansi": "Use ANSI codes",
+            "host": "Syslog Server",
+            "port": "Syslog Port",
+            "ietf": "IETF (RFC 5424)",
+            "bsd": "BSD (RFC 3164)",
+            "log": "Facility"
+        },
+        "time": {
+            "title": "Idő beállítások",
+            "btn": "Idő beállítások",
+            "region": "Régió",
+            "zone": "Időzóna",
+            "tz": "Időzóna",
+            "ntp": "NTP szerverek"
+        },
+        "region": {
+            "etc": "Etcetera ",
+            "continents": "Kontinensek ",
+            "af": "Afrika ",
+            "as": "Ázsia ",
+            "au": "Ausztrália ",
+            "aq": "Antarktika ",
+            "eu": "Európa ",
+            "na": "Észak-Amerika ",
+            "sa": "Dél-Amerika ",
+            "islands": "Szigetek ",
+            "at": "Atlanti-óceán ",
+            "in": "Indiai-óceán ",
+            "pa": "Csendes-óceán "
+        }
+    }
+}
