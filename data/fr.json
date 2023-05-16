@@ -1,32 +1,32 @@
 {
     "en": {
-        "language": "English",
+        "language": "Français",
         "home": {
-            "title": "Main Menu",
-            "btn": "Main Menu",
-            "nav": "Home"
+            "title": "Menu Principal",
+            "btn": "Menu Principal",
+            "nav": "Page d'accueil"
         },
-        "save": "Save Settings",
-        "user": "Username",
-        "pass": "Password",
+        "save": "Enregistrer les Paramètres",
+        "user": "Nom d'utilisateur",
+        "pass": "Mot de Passe",
         "hasp": {
-            "title": "HASP Design",
-            "btn": "HASP Design",
-            "theme": "UI Theme",
-            "color1": "Primary color",
-            "color2": "Secondary color",
+            "title": "Design HASP",
+            "btn": "Design HASP",
+            "theme": "Thème UI",
+            "color1": "Couleur Primaire",
+            "color2": "Couleur Secondaire",
             "pages": "Start Layout",
             "font": "Default Font",
             "startpage": "Startup Page",
             "startdim": "Startup Dim"
         },
         "screenshot": {
-            "title": "Screenshot",
-            "btn": "Screenshot",
-            "nav": "Screenshot",
-            "prev": "Prev Page",
-            "next": "Next Page",
-            "refresh": "Refresh"
+            "title": "Capture d'écran",
+            "btn": "Capture d'écran",
+            "nav": "Capture d'écran",
+            "prev": "Page Précédente",
+            "next": "Page Suivante",
+            "refresh": "Actualiser"
         },
         "info": {
             "title": "Information",
@@ -36,37 +36,37 @@
         "config": {
             "title": "Configuration",
             "btn": "Configuration",
-            "nav": "Settings"
+            "nav": "Paramètres"
         },
         "ota": {
-            "title": "Firmware Update",
-            "btn": "Firmware Update",
-            "nav": "Firmware",
-            "submit": "Update Firmware",
-            "file": "Firmware File",
-            "url": "Firmware URL",
-            "redirect": "Follow Redirects",
-            "never": "Never",
-            "strict": "Strict",
-            "always": "Always"
+            "title": "Mise à jour du micrologiciel",
+            "btn": "Mise à jour du micrologiciel",
+            "nav": "Micrologiciel",
+            "submit": "Mettre à jour le firmware",
+            "file": "Fichier du Firmware",
+            "url": "URL du Firmware",
+            "redirect": "Suivre les redirections",
+            "never": "Jamais",
+            "strict": "Stricte",
+            "always": "Toujours"
         },
         "editor": {
-            "title": "File Editor",
-            "btn": "File Editor",
-            "nav": "File Editor"
+            "title": "Éditeur de fichiers",
+            "btn": "Éditeur de fichiers",
+            "nav": "Éditeur de fichiers"
         },
         "reset": {
             "title": "Factory Reset",
             "btn": "Factory Reset",
-            "warning": "Warning",
+            "warning": "Attention",
             "message": "This process will reset all settings to the default values. The internal flash will be erased and the device is restarted. You may need to connect to the WiFi AP displayed on the panel to reconfigure the device before accessing it again.",
-            "fileloss": "ALL FILES WILL BE LOST!"
+            "fileloss": "TOUS LES FICHIERS SERONT PERDUS !"
         },
         "reboot": {
-            "title": "Rebooting...",
-            "btn": "Restart",
-            "nav": "Reboot",
-            "message": "The device is rebooting."
+            "title": "Redémarrage en cours...",
+            "btn": "Redémarrer",
+            "nav": "Redémarrer",
+            "message": "L'appareil est en cours de redémarrage."
         },
         "about": {
             "credits": "Based on the previous work of the following open source developers:",
@@ -81,45 +81,45 @@
             "apache2": "Apache2 License"
         },
         "wifi": {
-            "title": "Wifi Settings",
-            "btn": "Wifi Settings",
+            "title": "Paramètres WiFi",
+            "btn": "Paramètres WiFi",
             "ssid": "SSID"
         },
         "mqtt": {
-            "title": "MQTT Settings",
-            "btn": "MQTT Settings",
+            "title": "Paramètres MQTT",
+            "btn": "Paramètres MQTT",
             "name": "Hostname",
-            "group": "Groupname",
+            "group": "Groupe",
             "host": "Broker",
             "port": "Port",
-            "node_t": "Node Topic",
-            "group_t": "Group Topic",
+            "node_t": "Sujet du Node",
+            "group_t": "Sujet de Groupe",
             "broadcast_t": "Broadcast Topic",
             "hass_t": "HA LWT Topic"
         },
         "http": {
-            "title": "HTTP Settings",
-            "btn": "HTTP Settings"
+            "title": "Paramètres HTTP",
+            "btn": "Paramètres HTTP"
         },
         "ftp": {
-            "title": "FTP Settings",
-            "btn": "FTP Settings",
-            "port": "FTP Port",
-            "pasv": "Passive Port"
+            "title": "Paramètres FTP",
+            "btn": "Paramètres FTP",
+            "port": "Port FTP",
+            "pasv": "Port Passif"
         },
         "gui": {
-            "title": "Display Settings",
-            "btn": "Display Settings",
+            "title": "Paramètres d'affichage",
+            "btn": "Paramètres d'affichage",
             "antiburn": "Antiburn",
-            "calibrate": "Calibrate"
+            "calibrate": "Calibrer"
         },
-        "gpio": "GPIO Settings",
+        "gpio": "Paramètres GPIO",
         "debug": {
-            "title": "Debug Settings",
-            "btn": "Debug Settings",
+            "title": "Paramètres de Débogage",
+            "btn": "Paramètres de Débogage",
             "baud": "Baudrate",
-            "tele": "Tele Period",
-            "ansi": "Use ANSI codes",
+            "tele": "Période de Tele",
+            "ansi": "Utiliser les codes ANSI",
             "host": "Syslog Server",
             "port": "Syslog Port",
             "ietf": "IETF (RFC 5424)",
@@ -127,27 +127,27 @@
             "log": "Facility"
         },
         "time": {
-            "title": "Time Settings",
-            "btn": "Time Settings",
-            "region": "Region",
+            "title": "Paramètres de l'heure",
+            "btn": "Paramètres de l'heure",
+            "region": "Région",
             "zone": "Timezone",
             "tz": "Timezone",
-            "ntp": "NTP Servers"
+            "ntp": "Serveurs NTP"
         },
         "region": {
             "etc": "Etcetera ",
             "continents": "Continents ",
-            "af": "Africa ",
-            "as": "Asia ",
-            "au": "Australia ",
+            "af": "L'Afrique ",
+            "as": "L'Asie ",
+            "au": "L'Australie ",
             "aq": "Antarctica ",
-            "eu": "Europe ",
-            "na": "North America ",
-            "sa": "South America ",
-            "islands": "Islands ",
-            "at": "Atlantic Ocean ",
-            "in": "Indian Ocean ",
-            "pa": "Pacific Ocean "
+            "eu": "L’Europe ",
+            "na": "L'Amérique du Nord ",
+            "sa": "L'Amérique du Sud ",
+            "islands": "Îles ",
+            "at": "L'océan Atlantique ",
+            "in": "L'océan Indien ",
+            "pa": "L'océan Pacifique "
         }
     }
 }
