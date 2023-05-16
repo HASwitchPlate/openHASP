@@ -1,22 +1,22 @@
 {
     "en": {
-        "language": "English",
+        "language": "Português",
         "home": {
-            "title": "Main Menu",
-            "btn": "Main Menu",
-            "nav": "Home"
+            "title": "Menu Principal",
+            "btn": "Menu Principal",
+            "nav": "Início"
         },
-        "save": "Save Settings",
-        "user": "Username",
-        "pass": "Password",
+        "save": "Guardar Configuração",
+        "user": "Utilizador",
+        "pass": "Palavra-passe",
         "hasp": {
-            "title": "HASP Design",
-            "btn": "HASP Design",
-            "theme": "UI Theme",
-            "color1": "Primary color",
-            "color2": "Secondary color",
-            "pages": "Start Layout",
-            "font": "Default Font",
+            "title": "Design do HASP",
+            "btn": "Design do HASP",
+            "theme": "Tema da IU",
+            "color1": "Cor Principal",
+            "color2": "Cor secundária",
+            "pages": "Layout inicial",
+            "font": "Fonte padrão",
             "startpage": "Startup Page",
             "startdim": "Startup Dim"
         },
@@ -24,130 +24,130 @@
             "title": "Screenshot",
             "btn": "Screenshot",
             "nav": "Screenshot",
-            "prev": "Prev Page",
-            "next": "Next Page",
-            "refresh": "Refresh"
+            "prev": "Página Anterior",
+            "next": "Página Seguinte",
+            "refresh": "Atualizar"
         },
         "info": {
-            "title": "Information",
-            "btn": "Information",
-            "nav": "Information"
+            "title": "Informação",
+            "btn": "Informação",
+            "nav": "Informação"
         },
         "config": {
-            "title": "Configuration",
-            "btn": "Configuration",
-            "nav": "Settings"
+            "title": "Configuração",
+            "btn": "Configuração",
+            "nav": "Configuração"
         },
         "ota": {
-            "title": "Firmware Update",
-            "btn": "Firmware Update",
+            "title": "Atualização do firmware",
+            "btn": "Atualização do firmware",
             "nav": "Firmware",
-            "submit": "Update Firmware",
-            "file": "Firmware File",
-            "url": "Firmware URL",
-            "redirect": "Follow Redirects",
-            "never": "Never",
-            "strict": "Strict",
-            "always": "Always"
+            "submit": "Atualizar o firmware",
+            "file": "Arquivo de Firmware",
+            "url": "URL do Firmware",
+            "redirect": "Seguir Redirecionamentos",
+            "never": "Nunca",
+            "strict": "Estrito",
+            "always": "Sempre"
         },
         "editor": {
-            "title": "File Editor",
-            "btn": "File Editor",
-            "nav": "File Editor"
+            "title": "Editor de ficheiros",
+            "btn": "Editor de ficheiros",
+            "nav": "Editor de ficheiros"
         },
         "reset": {
-            "title": "Factory Reset",
-            "btn": "Factory Reset",
-            "warning": "Warning",
-            "message": "This process will reset all settings to the default values. The internal flash will be erased and the device is restarted. You may need to connect to the WiFi AP displayed on the panel to reconfigure the device before accessing it again.",
-            "fileloss": "ALL FILES WILL BE LOST!"
+            "title": "Repor configuração de fábrica",
+            "btn": "Repor configuração de fábrica",
+            "warning": "Aviso",
+            "message": "Este processo irá redefinir todas as configurações para os valores padrão. O flash interno será apagado e o dispositivo será reiniciado. Talvez seja necessário conectar-se ao WiFi AP exibido no painel para reconfigurar o dispositivo antes de acessá-lo novamente.",
+            "fileloss": "TODOS OS ARQUIVOS SERÃO PERDIDOS!"
         },
         "reboot": {
-            "title": "Rebooting...",
-            "btn": "Restart",
-            "nav": "Reboot",
-            "message": "The device is rebooting."
+            "title": "Reiniciando...",
+            "btn": "Reiniciar",
+            "nav": "Reiniciar",
+            "message": "O dispositivo está reiniciando."
         },
         "about": {
-            "credits": "Based on the previous work of the following open source developers:",
+            "credits": "Baseado no trabalho anterior dos seguintes desenvolvedores de código aberto:",
             "copyright": "Copyright ",
-            "rights": "All rights reserved.",
+            "rights": "Todos os direitos reservados.",
             "clause1": "Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files(the \"Software\"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and / or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:",
             "clause2": "The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.",
             "clause3": "THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.",
-            "mit": "MIT License",
-            "bsd": "BSD License",
-            "freebsd": "FreeBSD License",
-            "apache2": "Apache2 License"
+            "mit": "Licença MIT",
+            "bsd": "Licença BSD",
+            "freebsd": "Licença FreeBSD",
+            "apache2": "Licença Apache2"
         },
         "wifi": {
-            "title": "Wifi Settings",
-            "btn": "Wifi Settings",
+            "title": "Configurar Wifi",
+            "btn": "Configurar Wifi",
             "ssid": "SSID"
         },
         "mqtt": {
-            "title": "MQTT Settings",
-            "btn": "MQTT Settings",
-            "name": "Hostname",
-            "group": "Groupname",
+            "title": "Configurar MQTT",
+            "btn": "Configurar MQTT",
+            "name": "Nome do host",
+            "group": "Nome do Grupo",
             "host": "Broker",
-            "port": "Port",
-            "node_t": "Node Topic",
-            "group_t": "Group Topic",
-            "broadcast_t": "Broadcast Topic",
-            "hass_t": "HA LWT Topic"
+            "port": "Porta",
+            "node_t": "Tópico do Node",
+            "group_t": "Tópico de Grupo",
+            "broadcast_t": "Tópico do Broadcast",
+            "hass_t": "Tópico HA LWT"
         },
         "http": {
-            "title": "HTTP Settings",
-            "btn": "HTTP Settings"
+            "title": "Configurar HTTP",
+            "btn": "Configurar HTTP"
         },
         "ftp": {
-            "title": "FTP Settings",
-            "btn": "FTP Settings",
-            "port": "FTP Port",
-            "pasv": "Passive Port"
+            "title": "Configurar FTP",
+            "btn": "Configurar FTP",
+            "port": "Porta de FTP",
+            "pasv": "Porta Passiva"
         },
         "gui": {
-            "title": "Display Settings",
-            "btn": "Display Settings",
-            "antiburn": "Antiburn",
-            "calibrate": "Calibrate"
+            "title": "Configurar tela",
+            "btn": "Configurar tela",
+            "antiburn": "Anti-queimaduras",
+            "calibrate": "Calibrar"
         },
-        "gpio": "GPIO Settings",
+        "gpio": "Configurar MQTT",
         "debug": {
-            "title": "Debug Settings",
-            "btn": "Debug Settings",
+            "title": "Configurar debug",
+            "btn": "Configurar debug",
             "baud": "Baudrate",
-            "tele": "Tele Period",
-            "ansi": "Use ANSI codes",
-            "host": "Syslog Server",
-            "port": "Syslog Port",
+            "tele": "Período Tele",
+            "ansi": "Usar códigos ANSI",
+            "host": "Servidor Syslog",
+            "port": "Porta Syslog",
             "ietf": "IETF (RFC 5424)",
             "bsd": "BSD (RFC 3164)",
             "log": "Facility"
         },
         "time": {
-            "title": "Time Settings",
-            "btn": "Time Settings",
-            "region": "Region",
-            "zone": "Timezone",
-            "tz": "Timezone",
-            "ntp": "NTP Servers"
+            "title": "Configurar Hora",
+            "btn": "Configurar Hora",
+            "region": "Região",
+            "zone": "Fuso horário",
+            "tz": "Fuso horário",
+            "ntp": "Servidores NTP"
         },
         "region": {
             "etc": "Etcetera ",
-            "continents": "Continents ",
-            "af": "Africa ",
-            "as": "Asia ",
-            "au": "Australia ",
+            "continents": "Continentes ",
+            "af": "África ",
+            "as": "Ásia ",
+            "au": "Austrália ",
             "aq": "Antarctica ",
-            "eu": "Europe ",
-            "na": "North America ",
-            "sa": "South America ",
-            "islands": "Islands ",
-            "at": "Atlantic Ocean ",
-            "in": "Indian Ocean ",
-            "pa": "Pacific Ocean "
+            "eu": "Europa ",
+            "na": "América do Norte ",
+            "sa": "América do Sul ",
+            "islands": "Ilhas ",
+            "at": "Oceano Atlântico ",
+            "in": "Oceano Índico ",
+            "pa": "Oceano Pacífico "
         }
     }
 }
