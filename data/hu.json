@@ -7,57 +7,57 @@
             "nav": "Home"
         },
         "save": "Save Settings",
-        "user": "Username",
-        "pass": "Password",
+        "user": "Felhasználónév",
+        "pass": "Jelszó",
         "hasp": {
-            "title": "HASP Design",
-            "btn": "HASP Design",
-            "theme": "UI Theme",
-            "color1": "Primary color",
-            "color2": "Secondary color",
+            "title": "Képernyő dizájn",
+            "btn": "Képernyő dizájn",
+            "theme": "UI téma",
+            "color1": "Elsődleges szín",
+            "color2": "Szekunder szín",
             "pages": "Start Layout",
             "font": "Default Font",
             "startpage": "Startup Page",
             "startdim": "Startup Dim"
         },
         "screenshot": {
-            "title": "Screenshot",
-            "btn": "Screenshot",
-            "nav": "Screenshot",
-            "prev": "Prev Page",
-            "next": "Next Page",
-            "refresh": "Refresh"
+            "title": "Képernyőkép",
+            "btn": "Képernyőkép",
+            "nav": "Képernyőkép",
+            "prev": "Előző oldal",
+            "next": "Következő oldal",
+            "refresh": "Frissítés"
         },
         "info": {
-            "title": "Information",
-            "btn": "Information",
-            "nav": "Information"
+            "title": "Információk",
+            "btn": "Információk",
+            "nav": "Információk"
         },
         "config": {
-            "title": "Configuration",
-            "btn": "Configuration",
-            "nav": "Settings"
+            "title": "Beállítások",
+            "btn": "Beállítások",
+            "nav": "Beállítások"
         },
         "ota": {
-            "title": "Firmware Update",
-            "btn": "Firmware Update",
+            "title": "Firmware frissítés",
+            "btn": "Firmware frissítés",
             "nav": "Firmware",
-            "submit": "Update Firmware",
-            "file": "Firmware File",
+            "submit": "Firmware frissítése",
+            "file": "Firmware fájl",
             "url": "Firmware URL",
-            "redirect": "Follow Redirects",
-            "never": "Never",
-            "strict": "Strict",
-            "always": "Always"
+            "redirect": "Átirányítások",
+            "never": "Soha",
+            "strict": "Szigorú",
+            "always": "Mindig"
         },
         "editor": {
-            "title": "File Editor",
-            "btn": "File Editor",
-            "nav": "File Editor"
+            "title": "Fájlkezelő",
+            "btn": "Fájlkezelő",
+            "nav": "Fájlkezelő"
         },
         "reset": {
-            "title": "Factory Reset",
-            "btn": "Factory Reset",
+            "title": "Gyári beállítások visszaállítása",
+            "btn": "Gyári beállítások visszaállítása",
             "warning": "Warning",
             "message": "This process will reset all settings to the default values. The internal flash will be erased and the device is restarted. You may need to connect to the WiFi AP displayed on the panel to reconfigure the device before accessing it again.",
             "fileloss": "ALL FILES WILL BE LOST!"
