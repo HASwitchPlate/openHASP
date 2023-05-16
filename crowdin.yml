@@ -1,0 +1,5 @@
+files:
+  - source: data/en.json
+    translation: /data/%locale_with_underscore%.%file_extension%
+  - source: /src/lang/en_US.h
+    translation: /%original_path%/%locale_with_underscore%.%file_extension%
