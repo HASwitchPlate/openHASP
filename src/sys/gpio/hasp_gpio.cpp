@@ -521,6 +521,21 @@ static inline bool gpio_set_analog_value(hasp_gpio_config_t* gpio)
 #endif
 }
 
+// val is assumed to be 12 bits
+static inline bool gpio_set_digital_value(hasp_gpio_config_t* gpio)
+{
+    bool state = gpio->power != 0;
+    if(gpio->inverted) state = !state;
+
+#if defined(ARDUINO_ARCH_ESP32)
+    digitalWrite(gpio->pin, state);
+    return true; // sent
+
+#else
+    return false;                  // not implemented
+#endif
+}
+
 static inline bool gpio_set_serial_dimmer(hasp_gpio_config_t* gpio)
 {
     uint16_t val = gpio_limit(gpio->val, 0, 255);
@@ -588,8 +603,7 @@ static bool gpio_set_output_value(hasp_gpio_config_t* gpio, bool power, uint16_t
     switch(gpio->type) {
         case hasp_gpio_type_t::POWER_RELAY:
         case hasp_gpio_type_t::LIGHT_RELAY:
-            digitalWrite(gpio->pin, power ? (gpio->inverted ? !gpio->val : gpio->val) : 0);
-            return true;
+            return gpio_set_digital_value(gpio);
 
         case hasp_gpio_type_t::LED... hasp_gpio_type_t::LED_W:
         case hasp_gpio_type_t::PWM:
