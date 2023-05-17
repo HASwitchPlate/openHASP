@@ -4,7 +4,7 @@
         "home": {
             "title": "Hovedmenu",
             "btn": "Hovedmenu",
-            "nav": "Home"
+            "nav": "Forside"
         },
         "save": "Gem Indstillinger",
         "user": "Brugernavn",
@@ -12,13 +12,13 @@
         "hasp": {
             "title": "HASP Design",
             "btn": "HASP Design",
-            "theme": "UI Theme",
+            "theme": "UI Tema",
             "color1": "Primær farve",
             "color2": "Sekundær farve",
             "pages": "Start Layout",
             "font": "Standardfont",
-            "startpage": "Startup Page",
-            "startdim": "Startup Dim"
+            "startpage": "Opstarts side",
+            "startdim": "Opstartslysstyrke"
         },
         "screenshot": {
             "title": "Skærmbillede",
@@ -59,7 +59,7 @@
             "title": "Gendan fabriksindstillinger",
             "btn": "Gendan fabriksindstillinger",
             "warning": "Advarsel",
-            "message": "This process will reset all settings to the default values. The internal flash will be erased and the device is restarted. You may need to connect to the WiFi AP displayed on the panel to reconfigure the device before accessing it again.",
+            "message": "Denne proces vil nulstille alle indstillinger til standardværdierne. Den interne flash vil blive slettet, og enheden genstartes. Du skal muligvis oprette forbindelse til WiFi AP vist på panelet for at omkonfigurere enheden, før du får adgang til den igen.",
             "fileloss": "ALLE FILER VIL TABE!"
         },
         "reboot": {
@@ -108,9 +108,9 @@
             "pasv": "Passiv Port"
         },
         "gui": {
-            "title": "Display Settings",
-            "btn": "Display Settings",
-            "antiburn": "Antiburn",
+            "title": "Skærm Indstillinger",
+            "btn": "Skærm Indstillinger",
+            "antiburn": "Antiforbrænding",
             "calibrate": "Kalibrér"
         },
         "gpio": "GPIO Indstillinger",
@@ -118,7 +118,7 @@
             "title": "Debug Indstillinger",
             "btn": "Debug Indstillinger",
             "baud": "Baudrate",
-            "tele": "Tele Period",
+            "tele": "Tele Periode",
             "ansi": "Brug ANSI-koder",
             "host": "Syslog Server",
             "port": "Syslog Port",
