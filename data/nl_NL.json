@@ -51,9 +51,9 @@
             "always": "Altijd"
         },
         "editor": {
-            "title": "Bestands Editor",
-            "btn": "Bestands Editor",
-            "nav": "Bestands Editor"
+            "title": "Bestandseditor",
+            "btn": "Bestandseditor",
+            "nav": "Bestandseditor"
         },
         "reset": {
             "title": "Fabrieksinstellingen",
@@ -119,7 +119,7 @@
             "btn": "Debug Instellingen",
             "baud": "Baudrate",
             "tele": "Tele Periode",
-            "ansi": "Gebruik ANSI-codes",
+            "ansi": "Gebruik ANSI codes",
             "host": "Syslog Server",
             "port": "Syslog Poort",
             "ietf": "IETF (RFC 5424)",
