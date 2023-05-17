@@ -1,0 +1,153 @@
+{
+    "en": {
+        "language": "Dansk",
+        "home": {
+            "title": "Hovedmenu",
+            "btn": "Hovedmenu",
+            "nav": "Home"
+        },
+        "save": "Gem Indstillinger",
+        "user": "Brugernavn",
+        "pass": "Adgangskode",
+        "hasp": {
+            "title": "HASP Design",
+            "btn": "HASP Design",
+            "theme": "UI Theme",
+            "color1": "Primær farve",
+            "color2": "Sekundær farve",
+            "pages": "Start Layout",
+            "font": "Standardfont",
+            "startpage": "Startup Page",
+            "startdim": "Startup Dim"
+        },
+        "screenshot": {
+            "title": "Skærmbillede",
+            "btn": "Skærmbillede",
+            "nav": "Skærmbillede",
+            "prev": "Forrige Side",
+            "next": "Næste Side",
+            "refresh": "Opdater"
+        },
+        "info": {
+            "title": "Information",
+            "btn": "Information",
+            "nav": "Information"
+        },
+        "config": {
+            "title": "Konfiguration",
+            "btn": "Konfiguration",
+            "nav": "Indstillinger"
+        },
+        "ota": {
+            "title": "Firmware Opdatering",
+            "btn": "Firmware Opdatering",
+            "nav": "Firmware",
+            "submit": "Opdater Firmware",
+            "file": "Firmware Fil",
+            "url": "Firmware URL",
+            "redirect": "Følg Omdirigeringer",
+            "never": "Aldrig",
+            "strict": "Streng",
+            "always": "Altid"
+        },
+        "editor": {
+            "title": "Fil Editor",
+            "btn": "Fil Editor",
+            "nav": "Fil Editor"
+        },
+        "reset": {
+            "title": "Gendan fabriksindstillinger",
+            "btn": "Gendan fabriksindstillinger",
+            "warning": "Advarsel",
+            "message": "This process will reset all settings to the default values. The internal flash will be erased and the device is restarted. You may need to connect to the WiFi AP displayed on the panel to reconfigure the device before accessing it again.",
+            "fileloss": "ALLE FILER VIL TABE!"
+        },
+        "reboot": {
+            "title": "Genstarter...",
+            "btn": "Genstart",
+            "nav": "Genstart",
+            "message": "Enheden er ved at genstarte."
+        },
+        "about": {
+            "credits": "Baseret på det tidligere arbejde fra følgende open source-udviklere:",
+            "copyright": "Ophavsret ",
+            "rights": "Alle rettigheder forbeholdes.",
+            "clause1": "Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files(the \"Software\"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and / or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:",
+            "clause2": "The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.",
+            "clause3": "THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.",
+            "mit": "MIT Licens",
+            "bsd": "Bsd Licens",
+            "freebsd": "FreeBSD Licens",
+            "apache2": "Apache2 Licens"
+        },
+        "wifi": {
+            "title": "WiFi Indstillinger",
+            "btn": "WiFi Indstillinger",
+            "ssid": "SSID"
+        },
+        "mqtt": {
+            "title": "MQTT Indstillinger",
+            "btn": "MQTT Indstillinger",
+            "name": "Værtsnavn",
+            "group": "Gruppenavn",
+            "host": "Broker",
+            "port": "Port",
+            "node_t": "Node Emne",
+            "group_t": "Gruppe Emne",
+            "broadcast_t": "Broadcast Emne",
+            "hass_t": "HA LWT Emne"
+        },
+        "http": {
+            "title": "HTTP Indstillinger",
+            "btn": "HTTP Indstillinger"
+        },
+        "ftp": {
+            "title": "FTP Indstillinger",
+            "btn": "FTP Indstillinger",
+            "port": "FTP Port",
+            "pasv": "Passiv Port"
+        },
+        "gui": {
+            "title": "Display Settings",
+            "btn": "Display Settings",
+            "antiburn": "Antiburn",
+            "calibrate": "Kalibrér"
+        },
+        "gpio": "GPIO Indstillinger",
+        "debug": {
+            "title": "Debug Indstillinger",
+            "btn": "Debug Indstillinger",
+            "baud": "Baudrate",
+            "tele": "Tele Period",
+            "ansi": "Brug ANSI-koder",
+            "host": "Syslog Server",
+            "port": "Syslog Port",
+            "ietf": "IETF (RFC 5424)",
+            "bsd": "BSD (RFC 3164)",
+            "log": "Facilitet"
+        },
+        "time": {
+            "title": "Tids Indstillinger",
+            "btn": "Tids Indstillinger",
+            "region": "Region",
+            "zone": "Tidszone",
+            "tz": "Tidszone",
+            "ntp": "NTP-servere"
+        },
+        "region": {
+            "etc": "Etcetera ",
+            "continents": "Kontinenter ",
+            "af": "Afrika ",
+            "as": "Asien ",
+            "au": "Australien ",
+            "aq": "Antarktis ",
+            "eu": "Europa ",
+            "na": "Nordamerika ",
+            "sa": "Sydamerika ",
+            "islands": "Øer ",
+            "at": "Atlanterhavet ",
+            "in": "Indiske Ocean ",
+            "pa": "Stillehavet "
+        }
+    }
+}
