@@ -47,7 +47,7 @@ jobs:
           - out: m5stack
             env: m5stack-core2
           - out: makerfabs
-            env: "makerfabs-tft35-cap -e makerfabs-s3-tft35-spi"
+            env: "makerfabs-tft35-cap -e makerfabs-s3-tft35-spi -e makerfabs-s3-tft40-rgb -e makerfabs-s3-tft43-rgb"
           - out: panlee
             env: "panlee-zw3d95ce01s-ar-4848_16MB -e panlee-zw3d95ce01s-ur-4848_16MB"
           - out: sunton
