@@ -1706,7 +1706,7 @@ static void http_handle_time()
 
 <div class="row" v-for="(ntp, id) in config.time.ntp" :key="id">
 <div class="col-25"><label for="ntp{{id}}" v-t="'time.ntp'" v-if="!id"></label></div>
-<div class="col-75"><input required="" type="text" id="ntp{{id}}" maxlength="128" placeholder="NTP server {{id}}" v-model="config.time.ntp[id]"></div>
+<div class="col-75"><input type="text" id="ntp{{id}}" maxlength="128" :placeholder="t('time.ntp'+id) " v-model="config.time.ntp[id]"></div>
 </div>
 <button type="submit" v-t="'save'"></button>
 </template>
