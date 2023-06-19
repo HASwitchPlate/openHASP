@@ -108,8 +108,8 @@
             "pasv": "Passieve Poort"
         },
         "gui": {
-            "title": "Weergave Instellingen",
-            "btn": "Weergave Instellingen",
+            "title": "Scherminstellingen",
+            "btn": "Scherminstellingen",
             "antiburn": "Inbranden Voorkomen",
             "calibrate": "Kalibreer"
         },
@@ -127,8 +127,8 @@
             "log": "Faciliteit"
         },
         "time": {
-            "title": "Tijd Instellingen",
-            "btn": "Tijd Instellingen",
+            "title": "Tijdsinstellingen",
+            "btn": "Tijdsinstellingen",
             "region": "Regio",
             "zone": "Tijdzone",
             "tz": "Tijdzone",
