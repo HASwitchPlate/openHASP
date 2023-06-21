@@ -127,9 +127,9 @@ static lgfx::Bus_SPI* init_spi_bus(Preferences* prefs)
     cfg.use_lock       = prefs->getBool("use_lock", true);
     cfg.freq_write     = prefs->getUInt("write_freq", SPI_FREQUENCY);
     cfg.freq_read      = prefs->getUInt("read_freq", SPI_READ_FREQUENCY);
-    cfg.dma_channel    = prefs->getUInt("dma_channel", 0);
-    cfg.spi_mode       = prefs->getUInt("spi_mode", 0);
-    uint8_t host       = prefs->getUInt("host", 3);
+    cfg.dma_channel    = prefs->getUInt("dma_channel", TFT_DMA_CHANNEL);
+    cfg.spi_mode       = prefs->getUInt("spi_mode", TFT_SPI_MODE);
+    uint8_t host       = prefs->getUInt("host", TFT_SPI_HOST);
     LOG_DEBUG(TAG_TFT, F("%s - %d"), __FILE__, __LINE__);
 
     // #if CONFIG_IDF_TARGET_ESP32C3

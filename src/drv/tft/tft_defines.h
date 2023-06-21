@@ -14,6 +14,18 @@
 #define TOUCH_IRQ -1
 #endif
 
+#ifndef TFT_DMA_CHANNEL
+#define TFT_DMA_CHANNEL 0
+#endif
+
+#ifndef TFT_SPI_MODE
+#define TFT_SPI_MODE 0
+#endif
+
+#ifndef TFT_SPI_HOST
+#define TFT_SPI_HOST 3
+#endif
+
 #ifndef TFT_MOSI
 #define TFT_MOSI -1
 #endif
