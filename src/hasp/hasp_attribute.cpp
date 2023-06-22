@@ -293,6 +293,31 @@ static hasp_attribute_type_t hasp_process_label_long_mode(lv_obj_t* obj, const c
     return HASP_ATTR_TYPE_NOT_FOUND;
 }
 
+static hasp_attribute_type_t hasp_process_cpicker_mode(lv_obj_t* obj, const char* payload, char** text, bool update)
+{
+    const char* arr[] = {PSTR("hue"), PSTR("saturation"), PSTR("value")};
+    uint8_t count     = sizeof(arr) / sizeof(arr[0]);
+    uint8_t i         = 0;
+
+    if(update) {
+        for(i = 0; i < count; i++) {
+            if(!strcasecmp_P(payload, arr[i])) {
+                lv_cpicker_set_color_mode(obj, (lv_cpicker_color_mode_t)i);
+                break;
+            }
+        }
+    } else {
+        i = lv_cpicker_get_color_mode(obj);
+    }
+
+    if(i < count) {
+        strcpy_P(*text, arr[i]);
+        return HASP_ATTR_TYPE_STR;
+    }
+
+    return HASP_ATTR_TYPE_NOT_FOUND;
+}
+
 size_t hasp_attribute_split_payload(const char* payload)
 {
     size_t pos = 0;
@@ -1602,6 +1627,9 @@ static hasp_attribute_type_t attribute_common_mode(lv_obj_t* obj, const char* pa
             }
             return HASP_ATTR_TYPE_INT;
 
+        case LV_HASP_CPICKER:
+            return hasp_process_cpicker_mode(obj, payload, text, update);
+
         default:
             break; // not found
     }
@@ -1821,7 +1849,8 @@ static hasp_attribute_type_t specific_bool_attribute(lv_obj_t* obj, uint16_t att
     { // bool but obj is not const
         hasp_attr_update_bool_t list[] = {
             {LV_HASP_DROPDOWN, ATTR_SHOW_SELECTED, lv_dropdown_set_show_selected, lv_dropdown_get_show_selected},
-            {LV_HASP_IMAGE, ATTR_ANTIALIAS, lv_img_set_antialias, lv_img_get_antialias}};
+            {LV_HASP_IMAGE, ATTR_ANTIALIAS, lv_img_set_antialias, lv_img_get_antialias},
+            {LV_HASP_CPICKER, ATTR_MODE_FIXED, lv_cpicker_set_color_mode_fixed, lv_cpicker_get_color_mode_fixed}};
         if(do_attribute(list, obj, attr_hash, val, update)) return HASP_ATTR_TYPE_BOOL;
     }
 
@@ -2744,6 +2773,7 @@ void hasp_process_obj_attribute(lv_obj_t* obj, const char* attribute, const char
         case ATTR_SHOW_SELECTED:
         case ATTR_Y_INVERT:
         case ATTR_ANTIALIAS:
+        case ATTR_MODE_FIXED:
             val = Parser::is_true(payload);
             ret = specific_bool_attribute(obj, attr_hash, val, update);
             break;
