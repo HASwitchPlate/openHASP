@@ -433,6 +433,7 @@ _HASP_ATTRIBUTE(SCALE_END_LINE_WIDTH, scale_end_line_width, lv_style_int_t)
 #define ATTR_COMMENT 62559
 #define ATTR_TAG 7866
 #define ATTR_JSONL 61604
+#define ATTR_MODE_FIXED 35736
 
 // methods
 #define ATTR_DELETE 50027
