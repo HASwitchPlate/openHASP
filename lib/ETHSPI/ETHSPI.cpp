@@ -37,7 +37,6 @@ bool ETHSPIClass::begin(int mosi_io, int miso_io, int sclk_io, int cs_io, int in
 
  // Create instance(s) of esp-netif for SPI Ethernet(s)
  esp_netif_inherent_config_t esp_netif_config = ESP_NETIF_INHERENT_DEFAULT_ETH();
- esp_netif_config.if_key = "ETH_SPI_0";
  esp_netif_config.if_desc = "eth0";
  esp_netif_config.route_prio = 30;
 
@@ -106,9 +105,9 @@ bool ETHSPIClass::begin(int mosi_io, int miso_io, int sclk_io, int cs_io, int in
   return false;
  }
 
- // W5500 Does not have a mac address on the module. So get the ESP base address (WiFi)
+ // W5500 Does not have a mac address on the module. So get the enternet mac address from ESP fuse
  uint8_t mac[6];
- esp_efuse_mac_get_default(mac);
+ esp_read_mac(mac, ESP_MAC_ETH);
  if(esp_eth_ioctl(eth_handle, ETH_CMD_S_MAC_ADDR, mac) != ESP_OK) {
   return false;
  }
