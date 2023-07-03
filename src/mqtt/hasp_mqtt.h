@@ -73,7 +73,7 @@ bool mqttSetConfig(const JsonObject& settings);
 // These defaults may be overwritten with values saved by the web interface
 
 #ifndef MQTT_GROUPNAME
-#define MQTT_GROUPNAME "plates";
+#define MQTT_GROUPNAME "plates"
 #endif
 
 #ifndef MQTT_HOSTNAME
