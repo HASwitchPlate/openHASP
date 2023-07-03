@@ -26,7 +26,7 @@
 #include "esp_tls.h"
 
 #define MQTT_DEFAULT_NODE_TOPIC MQTT_PREFIX "/%hostname%/%topic%"
-#define MQTT_DEFAULT_GROUP_TOPIC MQTT_PREFIX "/plates/%topic%"
+#define MQTT_DEFAULT_GROUP_TOPIC MQTT_PREFIX "/" MQTT_GROUPNAME "/%topic%"
 #define MQTT_DEFAULT_BROADCAST_TOPIC MQTT_PREFIX "/" MQTT_TOPIC_BROADCAST "/%topic%"
 #define MQTT_DEFAULT_HASS_TOPIC "homeassistant/status"
 
@@ -509,7 +509,7 @@ void mqttStart()
         subtopic.reserve(64);
 
         String nvsOldGroup = MQTT_PREFIX "/"; // recover group setting
-        nvsOldGroup += preferences.getString(FP_CONFIG_GROUP, "plates");
+        nvsOldGroup += preferences.getString(FP_CONFIG_GROUP, MQTT_GROUPNAME);
         nvsOldGroup += "/%topic%";
 
         subtopic = F(MQTT_TOPIC_COMMAND);
@@ -700,7 +700,7 @@ bool mqttGetConfig(const JsonObject& settings)
 
     {
         String nvsOldGroup = MQTT_PREFIX "/"; // recover group setting
-        nvsOldGroup += preferences.getString(FP_CONFIG_GROUP, "plates");
+        nvsOldGroup += preferences.getString(FP_CONFIG_GROUP, MQTT_GROUPNAME);
         nvsOldGroup += "/%topic%";
 
         String nvsGroupTopic =
@@ -784,7 +784,7 @@ bool mqttSetConfig(const JsonObject& settings)
     }
 
     // if(strlen(mqttGroupName) == 0) {
-    //     strcpy_P(mqttGroupName, PSTR("plates"));
+    //     strcpy_P(mqttGroupName, PSTR(MQTT_GROUPNAME));
     //     changed = true;
     // }
 
