@@ -134,7 +134,7 @@
 // #define HASP_FONT_SIZE_4 48
 // #define HASP_FONT_SIZE_5 12
 
-#define LV_FONT_DEFAULT &HASP_FONT_1
+// #define LV_FONT_DEFAULT &HASP_FONT_1
 
 /***************************************************
  *        GPIO Settings
