@@ -80,7 +80,7 @@ static String esp32ResetReason(uint8_t cpuid)
             break; /**<13, RTC Watch dog Reset CPU*/
         case 14:
             resetReason += F("EXT_CPU");
-            break; /**<14, for APP CPU, reseted by PRO CPU*/
+            break; /**<14, for APP CPU, reset by PRO CPU*/
         case 15:
             resetReason += F("RTCWDT_BROWN_OUT");
             break; /**<15, Reset when the vdd voltage is not stable*/
@@ -108,7 +108,7 @@ Esp32Device::Esp32Device()
     _backlight_invert = (TFT_BACKLIGHT_ON == LOW);
     _backlight_power  = 1;
     _backlight_level  = 255;
-    _backlight_pin    = 255; // not TFT_BCKL because it is unkown at this stage
+    _backlight_pin    = 255; // not TFT_BCKL because it is unknown at this stage
 
     /* fill unique identifier with wifi mac */
     byte mac[6];

@@ -201,7 +201,7 @@ void otaEverySecond(void)
 void otaSetup(void)
 {
 #if ESP_ARDUINO_VERSION_MAJOR >= 2
-    /* This method is similar to the single root certificate verfication, but it uses a standard set of root
+    /* This method is similar to the single root certificate verification, but it uses a standard set of root
      * certificates from Mozilla to authenticate against. This allows the client to connect to all public SSL
      * servers. */
     secureClient.setCACertBundle(rootca_crt_bundle_start);

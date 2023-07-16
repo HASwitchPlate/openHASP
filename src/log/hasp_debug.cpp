@@ -4,7 +4,7 @@
 /* ===========================================================================
 
 - LOG_FATAL() - A fatal exception is caught, the program should halt with while(1){}
-- LOG_ERROR() - An important but non-fatal error occured, this error should be checked and not ignored
+- LOG_ERROR() - An important but non-fatal error occurred, this error should be checked and not ignored
 - LOG_WARNING() - Send at the end of a function to indicate failure of the sub process, can be ignored
 
 - LOG_TRACE() - Information at the START of an action to notify another function is now running
@@ -192,7 +192,7 @@ bool debugGetConfig(const JsonObject& settings)
  *
  * Read the settings from json and sets the application variables.
  *
- * @note: data pixel should be formated to uint32_t RGBA. Imagemagick requirements.
+ * @note: data pixel should be formatted to uint32_t RGBA. Imagemagick requirements.
  *
  * @param[in] settings    JsonObject with the config settings.
  **/

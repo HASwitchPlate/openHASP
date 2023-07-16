@@ -673,7 +673,7 @@ void gpio_output_group_values(uint8_t group)
 
 // SHOULD only by called from DISPATCH
 // Update the normalized value of all group members
-// Does not procude logging output
+// Does not produce logging output
 void gpio_set_normalized_group_values(hasp_update_value_t& value)
 {
     // Set all pins first, minimizes delays
@@ -1001,7 +1001,7 @@ bool gpioGetConfig(const JsonObject& settings)
  *
  * Read the settings from json and sets the application variables.
  *
- * @note: data pixel should be formated to uint32_t RGBA. Imagemagick requirements.
+ * @note: data pixel should be formatted to uint32_t RGBA. Imagemagick requirements.
  *
  * @param[in] settings    JsonObject with the config settings.
  **/

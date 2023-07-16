@@ -84,7 +84,7 @@ void my_obj_set_template(lv_obj_t* obj, const char* text)
         LOG_WARNING(TAG_ATTR, "Failed to allocate memory!");
 }
 
-// free the extended user_data when all properies are NULL
+// free the extended user_data when all properties are NULL
 static void my_prune_ext_tags(lv_obj_t* obj)
 {
     if(!obj || !obj->user_data.ext) return;
@@ -96,7 +96,7 @@ static void my_prune_ext_tags(lv_obj_t* obj)
     }
 }
 
-// create extended user_data properies object
+// create extended user_data properties object
 static hasp_ext_user_data_t* my_create_ext_tags(lv_obj_t* obj)
 {
     void* ext          = hasp_calloc(1, sizeof(hasp_ext_user_data_t));
@@ -921,7 +921,7 @@ static bool attribute_lookup_lv_property(uint16_t hash, uint8_t * prop)
     for(uint32_t i = 0; i < sizeof(props) / sizeof(props[0]); i++) {
         if(props[i].hash == hash) {
             *prop = props[1].prop;
-            LOG_WARNING(TAG_ATTR, F("%d found and has propery %d"), hash, props[i].prop);
+            LOG_WARNING(TAG_ATTR, F("%d found and has property %d"), hash, props[i].prop);
             return true;
         }
     }
