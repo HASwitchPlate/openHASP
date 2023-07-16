@@ -921,7 +921,7 @@ static bool attribute_lookup_lv_property(uint16_t hash, uint8_t * prop)
     for(uint32_t i = 0; i < sizeof(props) / sizeof(props[0]); i++) {
         if(props[i].hash == hash) {
             *prop = props[1].prop;
-            LOG_WARNING(TAG_ATTR, F("%d found and has propery %d"), hash, props[i].prop);
+            LOG_WARNING(TAG_ATTR, F("%d found and has property %d"), hash, props[i].prop);
             return true;
         }
     }
