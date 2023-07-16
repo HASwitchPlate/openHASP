@@ -10,7 +10,7 @@
 #define D_NO "Non"
 
 #define D_ERROR_OUT_OF_MEMORY "Mémoire insuffisante "
-#define D_ERROR_UNKNOWN "Erreur inconnue"
+#define D_ERROR_UNKNOWN "Unknown error"
 
 #define D_CONFIG_NOT_CHANGED "Paramètres pas modifiés"
 #define D_CONFIG_CHANGED "Paramètres modifiés"
@@ -150,7 +150,6 @@
 #define D_HTTP_CONFIGURATION "Configuration"
 #define D_HTTP_CONFIG_CHANGED                                                                                            \
     "La configuration a changé, cliquez sur <a href='/reboot'>Redémarrer</a> pour enregistrer les modifications dans " \
-    "le flash."
 #define D_HTTP_SENDING_PAGE "La page %S envoyée à %s"
 #define D_HTTP_FOOTER "par Francis Van Roie"
 
@@ -210,6 +209,7 @@
 #define D_WIFI_RSSI_WEAK "Faible"
 #define D_WIFI_RSSI_BAD "Très mauvais"
 
+// new
 #define D_GPIO_SWITCH "Interrupteur"
 #define D_GPIO_BUTTON "Bouton"
 #define D_GPIO_TOUCH "Touche Capacitive"

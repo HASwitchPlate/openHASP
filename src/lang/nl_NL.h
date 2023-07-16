@@ -10,7 +10,7 @@
 #define D_NO "Nee"
 
 #define D_ERROR_OUT_OF_MEMORY "Geen geheugen bechikbaar"
-#define D_ERROR_UNKNOWN "Onbekende fout"
+#define D_ERROR_UNKNOWN "Unknown error"
 
 #define D_CONFIG_NOT_CHANGED "Instellingen ongewijzigd"
 #define D_CONFIG_CHANGED "Instellingen gewijzigd"
@@ -30,10 +30,6 @@
 #define D_FILE_SIZE_DIVIDER 1024 //  kibi or kilo bytes
 #define D_DECIMAL_POINT ","      //  decimal comma or point
 
-#define D_SETTING_ENABLED "Ingeschakeld"
-#define D_SETTING_DISABLED "Uitgeschakeld"
-#define D_SETTING_DEFAULT "Standaard"
-
 #define D_SERVICE_STARTING "Starten..."
 #define D_SERVICE_STARTED "Gestart"
 #define D_SERVICE_START_FAILED "Starten mislukt"
@@ -41,6 +37,10 @@
 #define D_SERVICE_DISABLED "Uitgeschakeld"
 #define D_SERVICE_CONNECTED "Verbonden"
 #define D_SERVICE_DISCONNECTED "Verbroken"
+
+#define D_SETTING_ENABLED "Ingeschakeld"
+#define D_SETTING_DISABLED "Uitgeschakeld"
+#define D_SETTING_DEFAULT "Standaard"
 
 #define D_NETWORK_IP_ADDRESS_RECEIVED "IP adres %s ontvangen"
 #define D_NETWORK_ONLINE "online"
@@ -209,6 +209,7 @@
 #define D_WIFI_RSSI_WEAK "Zwak"
 #define D_WIFI_RSSI_BAD "Zeer Slecht"
 
+// new
 #define D_GPIO_SWITCH "Schakelaar"
 #define D_GPIO_BUTTON "Drukknop"
 #define D_GPIO_TOUCH "Aanraakknop"
