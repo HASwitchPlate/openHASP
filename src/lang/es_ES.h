@@ -10,7 +10,7 @@
 #define D_NO "No"  // New
 
 #define D_ERROR_OUT_OF_MEMORY "Memory llena"
-#define D_ERROR_UNKNOWN "Error desconocido"
+#define D_ERROR_UNKNOWN "Unknown error"
 
 #define D_CONFIG_NOT_CHANGED "No hay cambios en la configuración"
 #define D_CONFIG_CHANGED "Configuración cambiada"
