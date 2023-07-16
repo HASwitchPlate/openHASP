@@ -10,7 +10,7 @@
 #define D_NO "Non"
 
 #define D_ERROR_OUT_OF_MEMORY "Mémoire insuffisante "
-#define D_ERROR_UNKNOWN "Erreur inconnue"
+#define D_ERROR_UNKNOWN "Unknown error"
 
 #define D_CONFIG_NOT_CHANGED "Paramètres pas modifiés"
 #define D_CONFIG_CHANGED "Paramètres modifiés"
