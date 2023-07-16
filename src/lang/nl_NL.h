@@ -10,7 +10,7 @@
 #define D_NO "Nee"
 
 #define D_ERROR_OUT_OF_MEMORY "Geen geheugen bechikbaar"
-#define D_ERROR_UNKNOWN "Onbekende fout"
+#define D_ERROR_UNKNOWN "Unknown error"
 
 #define D_CONFIG_NOT_CHANGED "Instellingen ongewijzigd"
 #define D_CONFIG_CHANGED "Instellingen gewijzigd"
