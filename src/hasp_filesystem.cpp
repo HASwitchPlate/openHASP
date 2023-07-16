@@ -288,14 +288,14 @@ bool filesystemSetup(void)
     // no SPIFFS settings, as settings depend on SPIFFS
     // no Logging, because it depends on the configuration file
 
-    // Logging is defered until debugging has started
+    // Logging is deferred until debugging has started
     // FS success or failure is printed at that time !
 
 #if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
 #if defined(ARDUINO_ARCH_ESP8266)
     if(!HASP_FS.begin()) {
 #else
-    if(HASP_FS.begin(false)) return true; // already formated
+    if(HASP_FS.begin(false)) return true; // already formatted
 
     if(!HASP_FS.begin(true)) { // format partition
 #endif

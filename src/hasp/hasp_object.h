@@ -137,7 +137,7 @@ inline const char* obj_get_type_name(const lv_obj_t* obj)
  * Check if an lvgl objecttype name corresponds to a given HASP object ID
  * @param obj an lv_obj_t* of the object to check its type
  * @param haspobjtype the HASP object ID to check against
- * @return true or false wether the types match
+ * @return true or false whether the types match
  * @note
  */
 inline bool obj_check_type(const lv_obj_t* obj, lv_hasp_obj_type_t haspobjtype)

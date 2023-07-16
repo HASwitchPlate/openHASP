@@ -387,7 +387,7 @@ void haspReconnect()
 
 // String progress_str((char *)0);
 
-// Shows/hides the the global progress bar and updates the value
+// Shows/hides the global progress bar and updates the value
 void haspProgressVal(uint8_t val)
 {
     lv_obj_t* layer = lv_disp_get_layer_sys(NULL);
@@ -818,7 +818,7 @@ bool haspGetConfig(const JsonObject& settings)
  *
  * Read the settings from json and sets the application variables.
  *
- * @note: data pixel should be formated to uint32_t RGBA. Imagemagick requirements.
+ * @note: data pixel should be formatted to uint32_t RGBA. Imagemagick requirements.
  *
  * @param[in] settings    JsonObject with the config settings.
  **/

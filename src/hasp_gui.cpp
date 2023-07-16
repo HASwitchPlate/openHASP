@@ -209,7 +209,7 @@ static inline void gui_init_filesystems()
 #if LV_USE_FS_IF != 0
     //_lv_fs_init(); // lvgl File System -- not needed, it done in lv_init() when LV_USE_FILESYSTEM is set
     LOG_VERBOSE(TAG_LVGL, F("Filesystem : " D_SETTING_ENABLED));
-    lv_fs_if_init(); // auxilary file system drivers
+    lv_fs_if_init(); // auxiliary file system drivers
     // filesystem_list_path("L:/");
 
     lv_fs_file_t f;
@@ -532,7 +532,7 @@ bool guiGetConfig(const JsonObject& settings)
  *
  * Read the settings from json and sets the application variables.
  *
- * @note: data pixel should be formated to uint32_t RGBA. Imagemagick requirements.
+ * @note: data pixel should be formatted to uint32_t RGBA. Imagemagick requirements.
  *
  * @param[in] settings    JsonObject with the config settings.
  **/
@@ -675,7 +675,7 @@ static void gui_screenshot_to_file(lv_disp_drv_t* disp, const lv_area_t* area, l
  *
  * Flush buffer into a binary file.
  *
- * @note: data pixel should be formated to uint16_t RGB. Set by Bitmap header.
+ * @note: data pixel should be formatted to uint16_t RGB. Set by Bitmap header.
  *
  * @param[in] pFileName   Output binary file name.
  *
@@ -738,7 +738,7 @@ static void gui_screenshot_to_both(lv_disp_drv_t* disp, const lv_area_t* area, l
  *
  * Flush buffer into a http client.
  *
- * @note: data pixel should be formated to uint16_t RGB. Set by Bitmap header.
+ * @note: data pixel should be formatted to uint16_t RGB. Set by Bitmap header.
  *
  **/
 void guiTakeScreenshot()

@@ -16,7 +16,7 @@ void TftEspi::init(int w, int h)
 
     /* TFT init */
     tft.begin();
-    tft.setSwapBytes(true); /* set endianess */
+    tft.setSwapBytes(true); /* set endianness */
 }
 
 void TftEspi::show_info()

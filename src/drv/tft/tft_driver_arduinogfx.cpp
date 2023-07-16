@@ -86,7 +86,7 @@ void ArduinoGfx::init(int w, int h)
     LOG_DEBUG(TAG_TFT, F("%s - %d"), __FILE__, __LINE__);
     tft->begin(GFX_NOT_DEFINED);
     LOG_DEBUG(TAG_TFT, F("%s - %d"), __FILE__, __LINE__);
-    // tft.setSwapBytes(true); /* set endianess */
+    // tft.setSwapBytes(true); /* set endianness */
     LOG_INFO(TAG_TFT, F(D_SERVICE_STARTED));
 }
 

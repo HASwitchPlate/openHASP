@@ -13,7 +13,7 @@
 // size_t halGetFreeHeap(void);
 // String halGetCoreVersion(void);
 // String halGetChipModel();
-String halGetMacAddress(int start, const char* seperator);
+String halGetMacAddress(int start, const char* separator);
 // uint16_t halGetCpuFreqMHz(void);
 // String halDisplayDriverName(void);
 // String halGpioName(uint8_t gpio);

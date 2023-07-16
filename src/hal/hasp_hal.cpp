@@ -72,7 +72,7 @@
 //             break; /**<13, RTC Watch dog Reset CPU*/
 //         case 14:
 //             resetReason += F("EXT_CPU");
-//             break; /**<14, for APP CPU, reseted by PRO CPU*/
+//             break; /**<14, for APP CPU, reset by PRO CPU*/
 //         case 15:
 //             resetReason += F("RTCWDT_BROWN_OUT");
 //             break; /**<15, Reset when the vdd voltage is not stable*/
@@ -234,12 +234,12 @@ int getMemFree() { // returns the amount of free memory in bytes
 // #elif defined(ARDUINO_ARCH_ESP8266)
 //     return ESP.getFreeHeap();
 // #else
-//     struct mallinfo chuncks = mallinfo();
+//     struct mallinfo chunks = mallinfo();
 
 //     // fordblks
 //     //    This is the total size of memory occupied by free (not in use) chunks.
 
-//     return chuncks.fordblks + freeHighMemory();
+//     return chunks.fordblks + freeHighMemory();
 // #endif
 // }
 
@@ -254,7 +254,7 @@ int getMemFree() { // returns the amount of free memory in bytes
 // #endif
 // }
 
-String halGetMacAddress(int start, const char* seperator)
+String halGetMacAddress(int start, const char* separator)
 {
     byte mac[6];
 
@@ -278,7 +278,7 @@ String halGetMacAddress(int start, const char* seperator)
     for(int i = start; i < 6; ++i) {
         if(mac[i] < 0x10) cMac += "0";
         cMac += String(mac[i], HEX);
-        if(i < 5) cMac += seperator;
+        if(i < 5) cMac += separator;
     }
     cMac.toUpperCase();
     return cMac;

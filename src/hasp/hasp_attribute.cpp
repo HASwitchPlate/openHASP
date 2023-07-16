@@ -82,7 +82,7 @@ void my_msgbox_map_clear(lv_obj_t* obj)
     lv_btnmatrix_ext_t* ext_btnmatrix = (lv_btnmatrix_ext_t*)lv_obj_get_ext_attr(btnmatrix);
     if(!ext_btnmatrix) return;
 
-    if(ext_btnmatrix->map_p != msgbox_default_map) // Dont clear the default btnmap
+    if(ext_btnmatrix->map_p != msgbox_default_map) // Don't clear the default btnmap
         my_btnmatrix_map_clear(btnmatrix);         // Clear the custom button map if it exists
 }
 
@@ -2326,7 +2326,7 @@ static hasp_attribute_type_t attribute_common_method(lv_obj_t* obj, uint16_t att
         case ATTR_OPEN:
         case ATTR_CLOSE:
             if(!obj_check_type(obj, LV_HASP_DROPDOWN)) return HASP_ATTR_TYPE_NOT_FOUND;
-            event_reset_last_value_sent(); // Prevents manual selection bug because no manual 'down' occured
+            event_reset_last_value_sent(); // Prevents manual selection bug because no manual 'down' occurred
             if(attr_hash == ATTR_OPEN)
                 lv_dropdown_open(obj);
             else
