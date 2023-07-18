@@ -35,7 +35,7 @@ jobs:
           - out: dustinwatts
             env: "freetouchdeck_4MB -e freetouchdeck_8MB -e esp32-touchdown"
           - out: elecrow
-            env: "esp-terminal-rgb_16MB -e esp-terminal-spi_16MB"
+            env: "esp32-terminal-rgb_16MB -e esp32-terminal-spi_16MB"
           - out: globalsecurity
             env: gs-t3e_16MB
           - out: lanbon
