@@ -36,12 +36,14 @@
 - Add configuration for NTP servers and timezone
 
 ### Devices
+- Add Elecrow ESP32-Terminal 3.5" SPI and RGB
 - Add GS-T3E Smart Panel
 - Add Lilygo Ttgo Lily Pi ESP32
 - Add Makerfabs ESP32-S3 SPI
 - Add Sunton ESP32-S3 TFT 4.3", 5.0" and 7.0"
 - Add Sunton ESP32-2432S028R ESP32-3248S035C ESP32-3248S035R
-- Add support for Wireless-Tag WT32-SC01 Plus and WT-86-32-3ZW1
+- Add support for Wireless-Tag WT32-SC01 Plus and WT32S3-86V
+- Deprecate support for WT-86-32-3ZW1 with ESP32-S2
 
 ## Bug fixes
 - Fix for first touch not working properly
@@ -50,10 +52,10 @@
 ### Architecture
 - Moved to Tasmota Arduino 2.0.10 and ESP-IDF 4.4.5 (thanks @Jason2866)
 - Add Arduino-GFX display driver
-- Add support for ESP32-S3 devices
+- Add support for ESP32-S3 and ESP32-C3 devices
 - Deprecation of support for ESP32-S2 devices due to lack of sRAM
 
-Updated libraries to ArduinoJson 6.21.2, ArduinoStreamUtils 1.7.0, TFT_eSPI 2.5.0, LovyanGFX 1.1.7 and SimpleFTPServer 2.1.5
+Updated libraries to ArduinoJson 6.21.2, ArduinoStreamUtils 1.7.3, AceButton 1.10.1, TFT_eSPI 2.5.0, LovyanGFX 1.1.7 and Adafruit STMPE610 1.1.5 and SimpleFTPServer 2.1.5
 
 
 ## v0.6.3

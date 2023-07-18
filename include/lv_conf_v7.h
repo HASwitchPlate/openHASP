@@ -254,7 +254,7 @@ typedef void* lv_fs_drv_user_data_t;
 #define LV_IMG_CACHE_DEF_SIZE       1
 #endif
 #ifndef LV_IMG_CACHE_DEF_SIZE_PSRAM
-#define LV_IMG_CACHE_DEF_SIZE_PSRAM 20    // special openHASP setting when PSRAM is used
+#define LV_IMG_CACHE_DEF_SIZE_PSRAM 12    // special openHASP setting when PSRAM is used
 #endif
 
  /*Declare the type of the user data of image decoder (can be e.g. `void *`, `int`, `struct`)*/

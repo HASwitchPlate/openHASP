@@ -48,8 +48,8 @@ class TouchLovyanGfx : public BaseTouch {
     void init(int w, int h)
     {
 #if defined(TOUCH_SDA) && defined(TOUCH_SCL) && defined(I2C_TOUCH_FREQUENCY)
-        Wire.begin(TOUCH_SDA, TOUCH_SCL, (uint32_t)I2C_TOUCH_FREQUENCY);
-        touch_scan(Wire);
+        // Wire.begin(TOUCH_SDA, TOUCH_SCL, (uint32_t)I2C_TOUCH_FREQUENCY);
+        // touch_scan(Wire);
 #endif
     }
 
