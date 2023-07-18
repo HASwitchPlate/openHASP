@@ -32,10 +32,10 @@ jobs:
             out: d1-r32-espduino32
           - env: d1-r32-unoshield_ili9486_adc
             out: d1-r32-espduino32
-          - out: waveshare
-            env: "esp32-one_ili9486 -e esp32-one_st7796"
           - out: dustinwatts
             env: "freetouchdeck_4MB -e freetouchdeck_8MB -e esp32-touchdown"
+          - out: elecrow
+            env: "esp-terminal-rgb_16MB -e esp-terminal-spi_16MB"
           - out: globalsecurity
             env: gs-t3e_16MB
           - out: lanbon
@@ -52,6 +52,8 @@ jobs:
             env: "panlee-zw3d95ce01s-ar-4848_16MB -e panlee-zw3d95ce01s-ur-4848_16MB"
           - out: sunton
             env: "esp32-2432s028r_4MB -e esp32-3248s035c_4MB -e esp32-3248s035r_4MB -e sunton-4827s043c_16MB -e sunton-8048s043c_16MB -e sunton-8048s050c_16MB -e sunton-8048s070c_16MB"
+          - out: waveshare
+            env: "esp32-one_ili9486 -e esp32-one_st7796"
           - out: wireless-tag
             env: "wt32-sc01_4MB -e wt32-sc01_16MB -e wt-86-32-3zw1 -e wt32-sc01-plus_8MB -e wt32-sc01-plus_16MB"
           - out: yeacreate
