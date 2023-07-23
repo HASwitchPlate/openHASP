@@ -1,8 +1,8 @@
-#include "Arduino_PCA9535SWSPI.h"
+#if defined(ESP32) && (CONFIG_IDF_TARGET_ESP32S3) && defined(HASP_USE_ARDUINOGFX)
+
+#include "Arduino_PCA9535SWSPI/Arduino_PCA9535SWSPI.h"
 #include "driver/gpio.h"
 #include "hasplib.h"
-
-#if defined(ESP32) && (CONFIG_IDF_TARGET_ESP32S3) && defined(HASP_USE_ARDUINOGFX)
 
 Arduino_PCA9535SWSPI::Arduino_PCA9535SWSPI(int8_t sda, int8_t scl, int8_t pwd, int8_t cs, int8_t sck, int8_t mosi, TwoWire *wire)
     : _sda(sda), _scl(scl), _pwd(pwd), _cs(cs), _sck(sck), _mosi(mosi), _wire(wire)
