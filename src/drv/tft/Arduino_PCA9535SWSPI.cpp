@@ -1,4 +1,4 @@
-#if defined(ESP32) && (CONFIG_IDF_TARGET_ESP32S3) && defined(HASP_USE_ARDUINOGFX)
+#if defined(ESP32) && defined(CONFIG_IDF_TARGET_ESP32S3) && defined(HASP_USE_ARDUINOGFX)
 
 #include "Arduino_PCA9535SWSPI.h"
 #include "driver/gpio.h"

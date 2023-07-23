@@ -3,7 +3,7 @@
 #include "Arduino_DataBus.h"
 #endif
 
-#if defined(ESP32) && (CONFIG_IDF_TARGET_ESP32S3) && defined(HASP_USE_ARDUINOGFX)
+#if defined(ESP32) && defined(CONFIG_IDF_TARGET_ESP32S3) && defined(HASP_USE_ARDUINOGFX)
 
 #ifndef _ARDUINO_RGB_DISPLAY_MOD_H_
 #define _ARDUINO_RGB_DISPLAY_MOD_H_
