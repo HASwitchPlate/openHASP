@@ -14,6 +14,10 @@
 #define TOUCH_IRQ -1
 #endif
 
+#ifndef TOUCH_RST
+#define TOUCH_RST -1
+#endif
+
 #ifndef TFT_DMA_CHANNEL
 #define TFT_DMA_CHANNEL 0
 #endif

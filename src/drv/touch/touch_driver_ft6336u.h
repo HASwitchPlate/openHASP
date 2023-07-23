@@ -12,8 +12,8 @@
 #include <Wire.h>
 #include "FT6336U.h"
 
-#include "touch_driver.h" // base class
-#include "touch_helper.h" // i2c scanner
+#include "touch_driver.h"    // base class
+#include "touch_helper.h"    // i2c scanner
 
 #include "../../hasp/hasp.h" // for hasp_sleep_state
 extern uint8_t hasp_sleep_state;
@@ -67,6 +67,21 @@ class TouchFt6336u : public BaseTouch {
             data->state   = LV_INDEV_STATE_PR;
             hasp_set_sleep_offset(0); // Reset the offset
 
+#if defined(TOUCH_SWAP_XY) && (TOUCH_SWAP_XY)
+            data->point.x = ft6336u_touch->read_touch1_y();
+            data->point.y = ft6336u_touch->read_touch1_x();
+#else
+            data->point.x = ft6336u_touch->read_touch1_x();
+            data->point.y = ft6336u_touch->read_touch1_y();
+#endif
+
+#if defined(TOUCH_INVERSE_X) && (TOUCH_INVERSE_X)
+            data->point.x = _width_max - data->point.x;
+#endif
+#if defined(TOUCH_INVERSE_Y) && (TOUCH_INVERSE_Y)
+            data->point.y = _height_max - data->point.y;
+#endif
+
         } else {
             data->state = LV_INDEV_STATE_REL;
         }
@@ -77,6 +92,9 @@ class TouchFt6336u : public BaseTouch {
 
     void init(int w, int h)
     {
+        _height_max = h - 1;
+        _width_max  = w - 1;
+
         LOG_INFO(TAG_DRVR, F("Touch SDA     : %d"), TOUCH_SDA);
         LOG_INFO(TAG_DRVR, F("Touch SCL     : %d"), TOUCH_SCL);
         LOG_INFO(TAG_DRVR, F("Touch freq.   : %d"), I2C_TOUCH_FREQUENCY);
@@ -110,6 +128,10 @@ class TouchFt6336u : public BaseTouch {
             LOG_ERROR(TAG_DRVR, F("FT6336U touch driver failed to start"));
         }
     }
+
+  private:
+    uint16_t _width_max;
+    uint16_t _height_max;
 };
 
 } // namespace dev
