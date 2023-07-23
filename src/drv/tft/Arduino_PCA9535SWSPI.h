@@ -1,10 +1,12 @@
 #ifndef _Arduino_PCA9535SWSPI_H_
 #define _Arduino_PCA9535SWSPI_H_
 
-#if defined(ESP32) && defined(CONFIG_IDF_TARGET_ESP32S3) && defined(HASP_USE_ARDUINOGFX)
+#if defined(HASP_USE_ARDUINOGFX)
+#warning Arduino_PCA9535SWSPI.h
 
 #include <Wire.h>
 
+#include <Arduino_GFX_Library.h>
 #include "Arduino_DataBus.h"
 
 #define PCA9535_IIC_ADDRESS 0X20
