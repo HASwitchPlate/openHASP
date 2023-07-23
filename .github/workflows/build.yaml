@@ -50,6 +50,8 @@ jobs:
             env: "makerfabs-tft35-cap_4MB -e makerfabs-tft35-cap_16MB -e makerfabs-s3-tft35-spi -e makerfabs-s3-tft40-rgb -e makerfabs-s3-tft43-rgb"
           - out: panlee
             env: "panlee-zw3d95ce01s-ar-4848_16MB -e panlee-zw3d95ce01s-ur-4848_16MB"
+          - out: seeed-studios
+            env: "sensecap-indicator-d1_8MB"
           - out: sunton
             env: "esp32-2432s028r_4MB -e esp32-3248s035c_4MB -e esp32-3248s035r_4MB -e sunton-4827s043c_16MB -e sunton-8048s043c_16MB -e sunton-8048s050c_16MB -e sunton-8048s070c_16MB"
           - out: waveshare

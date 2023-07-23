@@ -1,6 +1,8 @@
 #ifndef _Arduino_PCA9535SWSPI_H_
 #define _Arduino_PCA9535SWSPI_H_
 
+#if defined(ESP32) && (CONFIG_IDF_TARGET_ESP32S3) && defined(HASP_USE_ARDUINOGFX)
+
 #include <Wire.h>
 
 #include "Arduino_DataBus.h"
@@ -53,5 +55,7 @@ protected:
 
 private:
 };
+
+#endif
 
 #endif // _Arduino_PCA9535SWSPI_H_
