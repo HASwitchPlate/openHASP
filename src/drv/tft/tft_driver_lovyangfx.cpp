@@ -425,6 +425,31 @@ lgfx::ITouch* _init_touch(Preferences* preferences)
     }
 #endif
 
+#if TOUCH_DRIVER == 0x21100
+    {
+        auto touch = new lgfx::Touch_TT21xxx();
+        auto cfg   = touch->config();
+
+        cfg.x_min           = 0;
+        cfg.x_max           = TFT_WIDTH - 1;
+        cfg.y_min           = 0;
+        cfg.y_max           = TFT_HEIGHT - 1;
+        cfg.pin_int         = TOUCH_IRQ;
+        cfg.bus_shared      = true;
+        cfg.offset_rotation = TOUCH_OFFSET_ROTATION;
+
+        // I2C接続の場合
+        cfg.i2c_port = I2C_TOUCH_PORT;
+        cfg.i2c_addr = I2C_TOUCH_ADDRESS;
+        cfg.pin_sda  = TOUCH_SDA;
+        cfg.pin_scl  = TOUCH_SCL;
+        cfg.freq     = I2C_TOUCH_FREQUENCY;
+
+        touch->config(cfg);
+        return touch;
+    }
+#endif 
+
 #endif // HASP_USE_LGFX_TOUCH
 
     return nullptr;
