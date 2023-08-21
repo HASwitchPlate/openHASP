@@ -77,6 +77,7 @@
 // #define HASP_LANGUAGE pt_BR                       // Brazilian Portuguese
 // #define HASP_LANGUAGE pt_PT                       // Portuguese
 // #define HASP_LANGUAGE ro_RO                       // Romanian
+// #define HASP_LANGUAGE de_DE                       // German
 
 /***************************************************
  *        Web interface coloring
