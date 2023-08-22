@@ -1,3 +1,6 @@
+// This translation file is maintained on https://crowdin.com/project/openhasp/
+// Do not edit directly!
+
 #ifndef HASP_LANG_FR_FR_H
 #define HASP_LANG_FR_FR_H
 
@@ -10,7 +13,7 @@
 #define D_NO "Non"
 
 #define D_ERROR_OUT_OF_MEMORY "Mémoire insuffisante "
-#define D_ERROR_UNKNOWN "Unknown error"
+#define D_ERROR_UNKNOWN "Erreur inconnue"
 
 #define D_CONFIG_NOT_CHANGED "Paramètres pas modifiés"
 #define D_CONFIG_CHANGED "Paramètres modifiés"
@@ -209,7 +212,6 @@
 #define D_WIFI_RSSI_WEAK "Faible"
 #define D_WIFI_RSSI_BAD "Très mauvais"
 
-// new
 #define D_GPIO_SWITCH "Interrupteur"
 #define D_GPIO_BUTTON "Bouton"
 #define D_GPIO_TOUCH "Touche Capacitive"
