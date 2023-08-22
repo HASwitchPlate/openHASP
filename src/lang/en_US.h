@@ -212,7 +212,6 @@
 #define D_WIFI_RSSI_WEAK "Weak"
 #define D_WIFI_RSSI_BAD "Very bad"
 
-// new
 #define D_GPIO_SWITCH "Switch"
 #define D_GPIO_BUTTON "Push Button"
 #define D_GPIO_TOUCH "Capacitive Touch"
