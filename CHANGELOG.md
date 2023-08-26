@@ -34,6 +34,7 @@
 - Add SimpleFTPServer to easily upload and download files to the plate *(one simultaneous connection only)*
 - Add service start/stop ftp
 - Add configuration for NTP servers and timezone
+- Add support system scripts executed when the idle level is changed
 
 ### Devices
 - Add Elecrow ESP32-Terminal 3.5" SPI and RGB
