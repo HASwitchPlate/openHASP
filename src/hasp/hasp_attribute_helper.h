@@ -237,7 +237,7 @@ const char* my_obj_get_action(lv_obj_t* obj)
 void my_obj_set_swipe(lv_obj_t* obj, const char* payload)
 {
     hasp_ext_user_data_t* ext     = (hasp_ext_user_data_t*)obj->user_data.ext;
-    static const char* _swipejson = R"({"down":"page back","left":"page next","right":"page prev"})";
+    static const char* _swipejson = R"({"down":"page back","left":"page next","right":"page prev","up":"page back"})";
 
     // extended tag exists, free old tag if it's not the const _swipejson
     if(ext) {
