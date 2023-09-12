@@ -1349,6 +1349,10 @@ void dispatch_idle_state(uint8_t state)
     memcpy_P(topic, PSTR("idle"), 8);
     hasp_get_sleep_payload(state, buffer);
     dispatch_state_subtopic(topic, buffer);
+
+    char payload[18];
+    snprintf_P(payload, sizeof(payload), PSTR("L:/idle_%s.cmd"), buffer);
+    dispatch_run_script(NULL, payload, TAG_HASP);
 }
 
 void dispatch_idle(const char*, const char* payload, uint8_t source)
@@ -1357,13 +1361,10 @@ void dispatch_idle(const char*, const char* payload, uint8_t source)
         uint8_t state = HASP_SLEEP_LAST;
         if(!strcmp_P(payload, "off")) {
             hasp_set_sleep_state(HASP_SLEEP_OFF);
-            dispatch_run_script(NULL, "L:/idle_off.cmd", source);
         } else if(!strcmp_P(payload, "short")) {
             hasp_set_sleep_state(HASP_SLEEP_SHORT);
-            dispatch_run_script(NULL, "L:/idle_short.cmd", source);
         } else if(!strcmp_P(payload, "long")) {
             hasp_set_sleep_state(HASP_SLEEP_LONG);
-            dispatch_run_script(NULL, "L:/idle_long.cmd", source);
         } else {
             LOG_WARNING(TAG_MSGR, F("Invalid idle value %s"), payload);
             return;
