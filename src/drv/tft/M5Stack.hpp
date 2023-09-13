@@ -44,7 +44,7 @@ struct Panel_M5Stack : public lgfx::Panel_ILI9342
         _rotation = 1;
     }
 
-    bool init(bool use_reset) override
+    bool init(bool use_reset)
     {
         lgfx::gpio_hi(_cfg.pin_rst);
         lgfx::pinMode(_cfg.pin_rst, lgfx::pin_mode_t::input_pulldown);
