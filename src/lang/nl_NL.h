@@ -1,3 +1,6 @@
+// This translation file is maintained on https://crowdin.com/project/openhasp/
+// Do not edit directly!
+
 #ifndef HASP_LANG_NL_NL_H
 #define HASP_LANG_NL_NL_H
 
@@ -10,7 +13,7 @@
 #define D_NO "Nee"
 
 #define D_ERROR_OUT_OF_MEMORY "Geen geheugen bechikbaar"
-#define D_ERROR_UNKNOWN "Unknown error"
+#define D_ERROR_UNKNOWN "Onbekende fout"
 
 #define D_CONFIG_NOT_CHANGED "Instellingen ongewijzigd"
 #define D_CONFIG_CHANGED "Instellingen gewijzigd"
@@ -209,7 +212,6 @@
 #define D_WIFI_RSSI_WEAK "Zwak"
 #define D_WIFI_RSSI_BAD "Zeer Slecht"
 
-// new
 #define D_GPIO_SWITCH "Schakelaar"
 #define D_GPIO_BUTTON "Drukknop"
 #define D_GPIO_TOUCH "Aanraakknop"

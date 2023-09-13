@@ -14,11 +14,11 @@
             "btn": "Képernyő dizájn",
             "theme": "UI téma",
             "color1": "Elsődleges szín",
-            "color2": "Szekunder szín",
-            "pages": "Start Layout",
+            "color2": "Másodlagos szín",
+            "pages": "Betöltendő oldalak",
             "font": "Alapértelmezett font",
-            "startpage": "Startup Page",
-            "startdim": "Startup Dim"
+            "startpage": "Kezdő oldal",
+            "startdim": "Kezdeti fényerő"
         },
         "screenshot": {
             "title": "Képernyőkép",
@@ -58,9 +58,9 @@
         "reset": {
             "title": "Gyári beállítások visszaállítása",
             "btn": "Gyári beállítások visszaállítása",
-            "warning": "Warning",
-            "message": "This process will reset all settings to the default values. The internal flash will be erased and the device is restarted. You may need to connect to the WiFi AP displayed on the panel to reconfigure the device before accessing it again.",
-            "fileloss": "ALL FILES WILL BE LOST!"
+            "warning": "Képernyőkép",
+            "message": "Ez a folyamat az összes beállítást visszaállítja az alapértelmezett értékekre. A belső memória törlődik, majd a készülék újraindul. Előfordulhat, hogy csatlakoznia kell a panelen megjelenő WiFi hozzáférési ponthoz az eszköz újrakonfigurálásához, mielőtt ismét hozzá tudna férni.",
+            "fileloss": "AZ ÖSSZES FÁJL TÖRLŐDIK!"
         },
         "reboot": {
             "title": "Újraindítás...",
@@ -88,14 +88,14 @@
         "mqtt": {
             "title": "MQTT beállítások",
             "btn": "MQTT beállítások",
-            "name": "Gazdagépnév",
-            "group": "Csoportnév",
-            "host": "Broker",
+            "name": "Név",
+            "group": "Csoport",
+            "host": "Szerver",
             "port": "Port",
-            "node_t": "Node Topic",
-            "group_t": "Group Topic",
-            "broadcast_t": "Broadcast Topic",
-            "hass_t": "HA LWT Topic"
+            "node_t": "Eszköz topik",
+            "group_t": "Csoport topik",
+            "broadcast_t": "Mindenki topik",
+            "hass_t": "HA LWT topik"
         },
         "http": {
             "title": "HTTP beállítások",
@@ -110,18 +110,18 @@
         "gui": {
             "title": "Képernyő beállítások",
             "btn": "Képernyő beállítások",
-            "antiburn": "Beégésvédelem futtatás",
+            "antiburn": "Beégésvédelem futtatása",
             "calibrate": "Kalibrálás"
         },
         "gpio": "GPIO beállítások",
         "debug": {
             "title": "Hibakeresési beállítások",
             "btn": "Hibakeresési beállítások",
-            "baud": "Baudrate",
-            "tele": "Tele Period",
-            "ansi": "Use ANSI codes",
-            "host": "Syslog Server",
-            "port": "Syslog Port",
+            "baud": "Baud ráta",
+            "tele": "Tele- periódus",
+            "ansi": "ANSI kódolás",
+            "host": "Syslog szerver",
+            "port": "Syslog port",
             "ietf": "IETF (RFC 5424)",
             "bsd": "BSD (RFC 3164)",
             "log": "Facility"

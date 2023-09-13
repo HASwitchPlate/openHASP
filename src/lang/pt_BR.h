@@ -1,3 +1,6 @@
+// This translation file is maintained on https://crowdin.com/project/openhasp/
+// Do not edit directly!
+
 #ifndef HASP_LANG_PT_BR_H
 #define HASP_LANG_PT_BR_H
 
@@ -209,7 +212,6 @@
 #define D_WIFI_RSSI_WEAK "Weak"
 #define D_WIFI_RSSI_BAD "Very bad"
 
-// Overrides
 #define D_GPIO_SWITCH "Switch"
 #define D_GPIO_BUTTON "Push Button"
 #define D_GPIO_TOUCH "Capacitive Touch"
