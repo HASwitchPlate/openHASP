@@ -15,10 +15,10 @@
             "theme": "UI téma",
             "color1": "Elsődleges szín",
             "color2": "Szekunder szín",
-            "pages": "Start Layout",
+            "pages": "Betöltendő oldalak",
             "font": "Alapértelmezett font",
-            "startpage": "Startup Page",
-            "startdim": "Startup Dim"
+            "startpage": "Kezdő oldal",
+            "startdim": "Kezdeti fényerő"
         },
         "screenshot": {
             "title": "Képernyőkép",
@@ -58,9 +58,9 @@
         "reset": {
             "title": "Gyári beállítások visszaállítása",
             "btn": "Gyári beállítások visszaállítása",
-            "warning": "Warning",
-            "message": "This process will reset all settings to the default values. The internal flash will be erased and the device is restarted. You may need to connect to the WiFi AP displayed on the panel to reconfigure the device before accessing it again.",
-            "fileloss": "ALL FILES WILL BE LOST!"
+            "warning": "Képernyőkép",
+            "message": "Ez a folyamat az összes beállítást visszaállítja az alapértelmezett értékekre. A belső memória törlődik, majd a készülék újraindul. Előfordulhat, hogy csatlakoznia kell a panelen megjelenő WiFi hozzáférési ponthoz az eszköz újrakonfigurálásához, mielőtt ismét hozzá tudna férni.",
+            "fileloss": "AZ ÖSSZES FÁJL TÖRLŐDIK!"
         },
         "reboot": {
             "title": "Újraindítás...",
@@ -88,7 +88,7 @@
         "mqtt": {
             "title": "MQTT beállítások",
             "btn": "MQTT beállítások",
-            "name": "Gazdagépnév",
+            "name": "Név",
             "group": "Csoportnév",
             "host": "Broker",
             "port": "Port",
