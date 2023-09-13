@@ -90,12 +90,12 @@
             "btn": "MQTT beállítások",
             "name": "Név",
             "group": "Csoportnév",
-            "host": "Broker",
+            "host": "Szerver",
             "port": "Port",
-            "node_t": "Node Topic",
-            "group_t": "Group Topic",
-            "broadcast_t": "Broadcast Topic",
-            "hass_t": "HA LWT Topic"
+            "node_t": "Eszköz topik",
+            "group_t": "Csoport topik",
+            "broadcast_t": "Mindenki topik",
+            "hass_t": "HA LWT topik"
         },
         "http": {
             "title": "HTTP beállítások",
@@ -110,18 +110,18 @@
         "gui": {
             "title": "Képernyő beállítások",
             "btn": "Képernyő beállítások",
-            "antiburn": "Beégésvédelem futtatás",
+            "antiburn": "Beégésvédelem futtatása",
             "calibrate": "Kalibrálás"
         },
         "gpio": "GPIO beállítások",
         "debug": {
             "title": "Hibakeresési beállítások",
             "btn": "Hibakeresési beállítások",
-            "baud": "Baudrate",
-            "tele": "Tele Period",
-            "ansi": "Use ANSI codes",
-            "host": "Syslog Server",
-            "port": "Syslog Port",
+            "baud": "Baud ráta",
+            "tele": "Tele- periódus",
+            "ansi": "ANSI kódolás",
+            "host": "Syslog szerver",
+            "port": "Syslog port",
             "ietf": "IETF (RFC 5424)",
             "bsd": "BSD (RFC 3164)",
             "log": "Facility"
