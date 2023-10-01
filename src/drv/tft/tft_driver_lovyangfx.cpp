@@ -298,6 +298,11 @@ lgfx::Panel_Device* LovyanGfx::_init_panel(lgfx::IBus* bus)
             LOG_VERBOSE(TAG_TFT, F("Panel_ILI9481_b"));
             break;
         }
+        case TFT_PANEL_ILI9486: {
+            panel = new lgfx::Panel_ILI9486();
+            LOG_VERBOSE(TAG_TFT, F("Panel_ILI9486"));
+            break;
+        }
         case TFT_PANEL_ILI9488: {
             panel = new lgfx::Panel_ILI9488();
             LOG_VERBOSE(TAG_TFT, F("Panel_ILI9488"));
