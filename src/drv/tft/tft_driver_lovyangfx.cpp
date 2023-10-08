@@ -57,7 +57,7 @@ static uint32_t _read_panel_id(lgfx::Bus_SPI* bus, int32_t pin_cs, uint32_t cmd 
     return res;
 }
 
-#if defined(ESP32S2) || defined(ESP32S3)
+#if defined(CONFIG_IDF_TARGET_ESP32S2) || defined(CONFIG_IDF_TARGET_ESP32S3)
 static lgfx::Bus_Parallel16* init_parallel_16_bus(Preferences* prefs, int8_t data_pins[], uint8_t num)
 {
     lgfx::Bus_Parallel16* bus = new lgfx::v1::Bus_Parallel16();
@@ -85,7 +85,7 @@ static lgfx::Bus_Parallel16* init_parallel_16_bus(Preferences* prefs, int8_t dat
     LOG_DEBUG(TAG_TFT, F("%s - %d"), __FILE__, __LINE__);
     return bus;
 }
-#endif // ESP32S2
+#endif // ESP32S2/S3
 
 static lgfx::Bus_Parallel8* init_parallel_8_bus(Preferences* prefs, int8_t data_pins[], uint8_t num)
 {
@@ -223,9 +223,17 @@ static void configure_panel(lgfx::Panel_Device* panel, Preferences* prefs)
 #else
     cfg.rgb_order        = prefs->getBool("rgb_order", false); // true if the red and blue of the panel are swapped
 #endif
-    cfg.dlen_16bit = prefs->getBool("dlen_16bit", false); // true for panels that send data length in 16-bit units
-    cfg.bus_shared = prefs->getBool("bus_shared", true);  // true if the bus is shared with the SD card
-                                                          // (bus control is performed with drawJpgFile etc.)
+
+    bool dlen_16bit = false;
+#if defined(CONFIG_IDF_TARGET_ESP32S2) || defined(CONFIG_IDF_TARGET_ESP32S3)
+    if(panel->getBus()) {
+        lgfx::v1::bus_type_t bus_type = panel->getBus()->busType();
+        if(bus_type == lgfx::v1::bus_parallel16) dlen_16bit = true;
+    }
+#endif
+    cfg.dlen_16bit = prefs->getBool("dlen_16bit", dlen_16bit); // true for panels that send data length in 16-bit units
+    cfg.bus_shared = prefs->getBool("bus_shared", true);       // true if the bus is shared with the SD card
+                                                               // (bus control is performed with drawJpgFile etc.)
     panel->config(cfg);
 }
 
@@ -240,7 +248,7 @@ lgfx::IBus* _init_bus(Preferences* preferences)
     for(uint8_t i = 0; i < 16; i++) {
         snprintf(key, sizeof(key), "d%d", i + 1);
         data_pins[i] = preferences->getInt(key, data_pins[i]);
-        LOG_DEBUG(TAG_TFT, F("D%d: %d"), i + 1, data_pins[i]);
+        LOG_DEBUG(TAG_TFT, F("D%d: %d"), i, data_pins[i]);
     }
 
     LOG_DEBUG(TAG_TFT, F("%s - %d"), __FILE__, __LINE__);
@@ -252,13 +260,13 @@ lgfx::IBus* _init_bus(Preferences* preferences)
     }
 
     LOG_DEBUG(TAG_TFT, F("%s - %d"), __FILE__, __LINE__);
-#if defined(ESP32S2)
+#if defined(CONFIG_IDF_TARGET_ESP32S2) || defined(CONFIG_IDF_TARGET_ESP32S3)
     if(is_16bit) {
         is_8bit = false;
         LOG_VERBOSE(TAG_TFT, F("16-bit TFT bus"));
         return init_parallel_16_bus(preferences, data_pins, 16);
     } else
-#endif // ESP32S2
+#endif // ESP32S2/S3
         if(is_8bit) {
             is_16bit = false;
             LOG_VERBOSE(TAG_TFT, F("8-bit TFT bus"));
@@ -288,6 +296,11 @@ lgfx::Panel_Device* LovyanGfx::_init_panel(lgfx::IBus* bus)
         case TFT_PANEL_ILI9481: {
             panel = new lgfx::Panel_ILI9481_b();
             LOG_VERBOSE(TAG_TFT, F("Panel_ILI9481_b"));
+            break;
+        }
+        case TFT_PANEL_ILI9486: {
+            panel = new lgfx::Panel_ILI9486();
+            LOG_VERBOSE(TAG_TFT, F("Panel_ILI9486"));
             break;
         }
         case TFT_PANEL_ILI9488: {
@@ -416,6 +429,31 @@ lgfx::ITouch* _init_touch(Preferences* preferences)
         return touch;
     }
 #endif
+
+#if TOUCH_DRIVER == 0x21100
+    {
+        auto touch = new lgfx::Touch_TT21xxx();
+        auto cfg   = touch->config();
+
+        cfg.x_min           = 0;
+        cfg.x_max           = TFT_WIDTH - 1;
+        cfg.y_min           = 0;
+        cfg.y_max           = TFT_HEIGHT - 1;
+        cfg.pin_int         = TOUCH_IRQ;
+        cfg.bus_shared      = true;
+        cfg.offset_rotation = TOUCH_OFFSET_ROTATION;
+
+        // I2C接続の場合
+        cfg.i2c_port = I2C_TOUCH_PORT;
+        cfg.i2c_addr = I2C_TOUCH_ADDRESS;
+        cfg.pin_sda  = TOUCH_SDA;
+        cfg.pin_scl  = TOUCH_SCL;
+        cfg.freq     = I2C_TOUCH_FREQUENCY;
+
+        touch->config(cfg);
+        return touch;
+    }
+#endif 
 
 #endif // HASP_USE_LGFX_TOUCH
 
@@ -978,7 +1016,7 @@ void LovyanGfx::init(int w, int h)
     LOG_DEBUG(TAG_TFT, F("%s - %d"), __FILE__, __LINE__);
     tft.begin();
     LOG_DEBUG(TAG_TFT, F("%s - %d"), __FILE__, __LINE__);
-    tft.setSwapBytes(true); /* set endianess */
+    tft.setSwapBytes(true); /* set endianness */
 
     LOG_INFO(TAG_TFT, F(D_SERVICE_STARTED));
 }
@@ -1012,7 +1050,7 @@ void LovyanGfx::show_info()
         tftPinInfo(F("TFT_D7"), cfg.pin_d7);
     }
 
-#if defined(ESP32S2) || defined(ESP32S3)
+#if defined(CONFIG_IDF_TARGET_ESP32S2) || defined(CONFIG_IDF_TARGET_ESP32S3)
     if(bus_type == lgfx::v1::bus_parallel16) {
         LOG_VERBOSE(TAG_TFT, F("Interface  : Parallel 16bit"));
         auto bus = (lgfx::v1::Bus_Parallel16*)panel->getBus();
@@ -1144,7 +1182,7 @@ bool LovyanGfx::is_driver_pin(uint8_t pin)
                pin == cfg.pin_d7)
                 return true;
 
-#if defined(ESP32S2) || defined(ESP32S3)
+#if defined(CONFIG_IDF_TARGET_ESP32S2) || defined(CONFIG_IDF_TARGET_ESP32S3)
         } else if(bus_type == lgfx::v1::bus_parallel16) {
             auto bus = (lgfx::v1::Bus_Parallel16*)panel->getBus();
             auto cfg = bus->config(); // Get the structure for bus configuration.

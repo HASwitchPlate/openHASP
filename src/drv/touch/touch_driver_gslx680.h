@@ -77,7 +77,7 @@ class TouchGsl1680 : public BaseTouch {
         // delay(300); // already happens in touch.begin()
         touch_scan(Wire);
 
-        // Startup sequence CONTROLER part
+        // Startup sequence CONTROLLER part
         TS.begin(TOUCH_RST, TOUCH_IRQ);
 
         // Setup Interrupt handler

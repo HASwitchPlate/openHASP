@@ -31,29 +31,32 @@
 - Make the MQTT topics configurable
 - MQTT discovery now uses a subtopic of `hasp/discovery`. Discovery requires version 0.7.x of the Custom Component.
 - Add service start/stop mqtt
-- Add SimpleFTPServer to easily upload and download files to the plate *(one simultanious connection only)*
+- Add SimpleFTPServer to easily upload and download files to the plate *(one simultaneous connection only)*
 - Add service start/stop ftp
 - Add configuration for NTP servers and timezone
+- Add support system scripts executed when the idle level is changed
 
 ### Devices
+- Add Elecrow ESP32-Terminal 3.5" SPI and RGB
 - Add GS-T3E Smart Panel
 - Add Lilygo Ttgo Lily Pi ESP32
 - Add Makerfabs ESP32-S3 SPI
 - Add Sunton ESP32-S3 TFT 4.3", 5.0" and 7.0"
 - Add Sunton ESP32-2432S028R ESP32-3248S035C ESP32-3248S035R
-- Add support for Wireless-Tag WT32-SC01 Plus and WT-86-32-3ZW1
+- Add support for Wireless-Tag WT32-SC01 Plus and WT32S3-86V
+- Deprecate support for WT-86-32-3ZW1 with ESP32-S2
 
 ## Bug fixes
 - Fix for first touch not working properly
 - Add button GPIOs to input discovery message
 
 ### Architecture
-- Moved to Tasmota Arduino 2.0.10 and ESP-IDF 4.4.5 (thanks @Jason2866)
+- Moved to Tasmota Arduino 2.0.11 and ESP-IDF 4.4.5 (thanks @Jason2866)
 - Add Arduino-GFX display driver
-- Add support for ESP32-S3 devices
-- Deprication of support for ESP32-S2 devices due to lack of sRAM
+- Add support for ESP32-S3 and ESP32-C3 devices
+- Deprecation of support for ESP32-S2 devices due to lack of sRAM
 
-Updated libraries to ArduinoJson 6.21.2, ArduinoStreamUtils 1.7.0, TFT_eSPI 2.5.0, LovyanGFX 1.1.7 and SimpleFTPServer 2.1.5
+Updated libraries to ArduinoJson 6.21.3, ArduinoStreamUtils 1.7.3, AceButton 1.10.1, TFT_eSPI 2.5.0, LovyanGFX 1.1.8 and SimpleFTPServer 2.1.5
 
 
 ## v0.6.3
@@ -73,7 +76,7 @@ Updated libraries to ArduinoJson 6.21.2, ArduinoStreamUtils 1.7.0, TFT_eSPI 2.5.
 ### Web UI
 - Updated to modern responsive design *(requires JavaScript)*
 - Add `/api/info/` and `/api/config/*/` endpoints
-- Allow for a customizible `vars.css`, `style.css`, `script.js` and `edit.htm`
+- Allow for a customizable `vars.css`, `style.css`, `script.js` and `edit.htm`
 - Display a message when the configuration is changed and a reboot is needed
 - Add checkbox for backlight inversion to Display settings (thanks @wolffman122)
 - Add checkbox to toggle ANSI codes #261 (thanks @geiseri)
@@ -139,7 +142,7 @@ Updated libraries to ArduinoJson 6.19.4, ArduinoStreamUtils 1.6.3, AceButton 1.9
 - Add AZ-Touch MOD ESP32 with 2.4" or 2.8"
 - Add Lilygo®Ttgo Pi ESP32 with TFT 3.5"
 - Add Waveshare ESP32 One development board with Rpi MHS4001(B) or Waveshare RPi(C) LCD display
-- Add D1-R32 ESP32 development board with with Waveshare ILI9486 Touch Shield
+- Add D1-R32 ESP32 development board with Waveshare ILI9486 Touch Shield
 
 ### Bug fixes
 - Fix bug that caused a crash when both `btnmatrix` and `msgbox` where used (thanks @AndreTeixeira1998)
@@ -192,7 +195,7 @@ Updated libraries to AceButton 1.9.1 and ArduinoJson 6.18.5
 ### Commands:
 - Obsolete `dim` and `light` commands, use `backlight` command instead
 - Add `discovery` command to facilitate HA CC discovery
-- Add `idle` command to retreive idle state, replaces `wakeup` command
+- Add `idle` command to retrieve idle state, replaces `wakeup` command
 - Updated `moodlight` command with brightness support
 - Rewrite `outputX` and add `inputX` command
 

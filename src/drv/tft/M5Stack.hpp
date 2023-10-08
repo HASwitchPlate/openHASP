@@ -66,7 +66,7 @@ struct Panel_M5StackCore2 : public lgfx::Panel_ILI9342
         _rotation = 1; // default rotation
     }
 
-    void reset(void) override
+    void reset(void)
     {
         using namespace m5stack;
         // AXP192 reg 0x96 = GPIO3&4 control

@@ -55,7 +55,7 @@ jobs:
     - name: Run PlatformIO
       run: pio run -e az-touch-mod-esp32_ili9341_4MB -e az-touch-mod-esp32_ili9341_8MB
     - name: Run PlatformIO
-      run: pio run -e makerfabs-tft35-cap
+      run: pio run -e makerfabs-tft35-cap_4MB -e makerfabs-tft35-cap_16MB
     - name: Run PlatformIO
       run: pio run -e yeacreate-nscreen32 -e
     - name: Run PlatformIO

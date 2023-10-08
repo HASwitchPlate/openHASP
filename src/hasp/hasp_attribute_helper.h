@@ -84,7 +84,7 @@ void my_obj_set_template(lv_obj_t* obj, const char* text)
         LOG_WARNING(TAG_ATTR, "Failed to allocate memory!");
 }
 
-// free the extended user_data when all properies are NULL
+// free the extended user_data when all properties are NULL
 static void my_prune_ext_tags(lv_obj_t* obj)
 {
     if(!obj || !obj->user_data.ext) return;
@@ -96,7 +96,7 @@ static void my_prune_ext_tags(lv_obj_t* obj)
     }
 }
 
-// create extended user_data properies object
+// create extended user_data properties object
 static hasp_ext_user_data_t* my_create_ext_tags(lv_obj_t* obj)
 {
     void* ext          = hasp_calloc(1, sizeof(hasp_ext_user_data_t));
@@ -237,7 +237,7 @@ const char* my_obj_get_action(lv_obj_t* obj)
 void my_obj_set_swipe(lv_obj_t* obj, const char* payload)
 {
     hasp_ext_user_data_t* ext     = (hasp_ext_user_data_t*)obj->user_data.ext;
-    static const char* _swipejson = R"({"down":"page back","left":"page next","right":"page prev"})";
+    static const char* _swipejson = R"({"down":"page back","left":"page next","right":"page prev","up":"page back"})";
 
     // extended tag exists, free old tag if it's not the const _swipejson
     if(ext) {
@@ -921,7 +921,7 @@ static bool attribute_lookup_lv_property(uint16_t hash, uint8_t * prop)
     for(uint32_t i = 0; i < sizeof(props) / sizeof(props[0]); i++) {
         if(props[i].hash == hash) {
             *prop = props[1].prop;
-            LOG_WARNING(TAG_ATTR, F("%d found and has propery %d"), hash, props[i].prop);
+            LOG_WARNING(TAG_ATTR, F("%d found and has property %d"), hash, props[i].prop);
             return true;
         }
     }

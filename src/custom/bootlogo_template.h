@@ -2,7 +2,7 @@
 // https://www.online-utility.org/image/convert/to/XBM
 
 // The output must be pasted in a header file, renamed and adjusted to appear
-// as as a const unsigned char array in PROGMEM (FLASH program memory).
+// as a const unsigned char array in PROGMEM (FLASH program memory).
 
 // The xbm format adds padding to pixel rows so they are a whole number of bytes
 // In this example 93 pixel width means 96 bits = 12 bytes

@@ -1,0 +1,153 @@
+{
+    "en": {
+        "language": "Español",
+        "home": {
+            "title": "Menu Principal",
+            "btn": "Menu Principal",
+            "nav": "Inicio"
+        },
+        "save": "Guardar Configuración",
+        "user": "Usuario",
+        "pass": "Contraseña",
+        "hasp": {
+            "title": "Diseño de HASP",
+            "btn": "Diseño de HASP",
+            "theme": "Tema de IU",
+            "color1": "Color Primario",
+            "color2": "Color Secundario",
+            "pages": "Diseño inicial",
+            "font": "Fuente por Defecto",
+            "startpage": "Página inicial",
+            "startdim": "Brillo inicial"
+        },
+        "screenshot": {
+            "title": "Captura de pantalla",
+            "btn": "Captura de pantalla",
+            "nav": "Captura de pantalla",
+            "prev": "Página Previa",
+            "next": "Siguiente Página",
+            "refresh": "Refrescar"
+        },
+        "info": {
+            "title": "Información",
+            "btn": "Información",
+            "nav": "Información"
+        },
+        "config": {
+            "title": "Configuración",
+            "btn": "Configuración",
+            "nav": "Configuración"
+        },
+        "ota": {
+            "title": "Actualización de firmware",
+            "btn": "Actualización de firmware",
+            "nav": "Firmware",
+            "submit": "Actualizar Firmware",
+            "file": "Archivo Firmware",
+            "url": "URL del firmware",
+            "redirect": "Seguir redirecciones",
+            "never": "Nunca",
+            "strict": "Estricto",
+            "always": "Siempre"
+        },
+        "editor": {
+            "title": "Editor de Archivos",
+            "btn": "Editor de Archivos",
+            "nav": "Editor de Archivos"
+        },
+        "reset": {
+            "title": "Restaurar conf de fábrica",
+            "btn": "Restaurar conf de fábrica",
+            "warning": "Aviso",
+            "message": "Este proceso restablecerá todos los ajustes a los valores por defecto. El flash interno se borrará y el dispositivo se reiniciará. Puede que necesite conectarse al AP WiFi mostrado en el panel para reconfigurar el dispositivo antes de volver a acceder a él.",
+            "fileloss": "¡TODOS LOS ARCHIVOS SERÁN PERDIDOS!"
+        },
+        "reboot": {
+            "title": "Reiniciando...",
+            "btn": "Reiniciar",
+            "nav": "Reiniciar",
+            "message": "El dispositivo se está reiniciando."
+        },
+        "about": {
+            "credits": "Basado en el trabajo anterior de los siguientes desarrolladores de código abierto:",
+            "copyright": "Copyright ",
+            "rights": "Todos los derechos reservados.",
+            "clause1": "Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files(the \"Software\"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and / or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:",
+            "clause2": "The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.",
+            "clause3": "THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.",
+            "mit": "Licencia MIT",
+            "bsd": "Licencia BSD",
+            "freebsd": "Licencia FreeBSD",
+            "apache2": "Licencia Apache2"
+        },
+        "wifi": {
+            "title": "Ajustes Wifi",
+            "btn": "Ajustes Wifi",
+            "ssid": "SSID"
+        },
+        "mqtt": {
+            "title": "Ajustes MQTT",
+            "btn": "Ajustes MQTT",
+            "name": "Nombre de equipo",
+            "group": "Nombre del Grupo",
+            "host": "Broker",
+            "port": "Puerto",
+            "node_t": "Tema del Nodo",
+            "group_t": "Tema del Grupo",
+            "broadcast_t": "Tema de Broadcast",
+            "hass_t": "Tema HA LWT"
+        },
+        "http": {
+            "title": "Ajustes HTTP",
+            "btn": "Ajustes HTTP"
+        },
+        "ftp": {
+            "title": "Ajustes FTP",
+            "btn": "Ajustes FTP",
+            "port": "Puerto FTP",
+            "pasv": "Puerto Pasivo"
+        },
+        "gui": {
+            "title": "Ajustes de Pantalla",
+            "btn": "Ajustes de Pantalla",
+            "antiburn": "Anti-quemaduras",
+            "calibrate": "Calibrar"
+        },
+        "gpio": "Ajustes GPIO",
+        "debug": {
+            "title": "Ajustes de depuración",
+            "btn": "Ajustes de depuración",
+            "baud": "Baudios",
+            "tele": "Periodo de Tele",
+            "ansi": "Usar códigos ANSI",
+            "host": "Servidor Syslog",
+            "port": "Puerto Syslog",
+            "ietf": "IETF (RFC 5424)",
+            "bsd": "BSD (RFC 3164)",
+            "log": "Facility"
+        },
+        "time": {
+            "title": "Ajustes de Tiempo",
+            "btn": "Ajustes de Tiempo",
+            "region": "Región",
+            "zone": "Zona horaria",
+            "tz": "Zona horaria",
+            "ntp": "Servidores NTP"
+        },
+        "region": {
+            "etc": "Etcetera ",
+            "continents": "Continentes ",
+            "af": "Africa ",
+            "as": "Asia ",
+            "au": "Australia ",
+            "aq": "Antarctica ",
+            "eu": "Europa ",
+            "na": "América del Norte ",
+            "sa": "América del Sur ",
+            "islands": "Islas ",
+            "at": "Océano Atlántico ",
+            "in": "Océano Índico ",
+            "pa": "Océano Pacífico "
+        }
+    }
+}

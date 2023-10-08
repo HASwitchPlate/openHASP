@@ -209,7 +209,7 @@ static inline void telnetProcessData(char ch)
         case 8: // Backspace
             if(telnetInputIndex > 0) telnetInputIndex--;
             break;
-        case 13: // Cariage Return
+        case 13: // Carriage Return
             telnetProcessLine("");
             break;
         case 32 ... 250:
@@ -444,7 +444,7 @@ bool telnetGetConfig(const JsonObject& settings)
  *
  * Read the settings from json and sets the application variables.
  *
- * @note: data pixel should be formated to uint32_t RGBA. Imagemagick requirements.
+ * @note: data pixel should be formatted to uint32_t RGBA. Imagemagick requirements.
  *
  * @param[in] settings    JsonObject with the config settings.
  **/

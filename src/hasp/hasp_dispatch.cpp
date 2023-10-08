@@ -177,7 +177,7 @@ static inline bool dispatch_parse_button_attribute(const char* topic_p, const ch
     objid   = (uint8_t)num;
     topic_p = pEnd;
 
-    if(*topic_p != '.') return false; // obligated seperator
+    if(*topic_p != '.') return false; // obligated separator
     topic_p++;
 
     hasp_process_attribute(pageid, objid, topic_p, payload, update);
@@ -1312,7 +1312,7 @@ void dispatch_current_state(uint8_t source)
 // Format filesystem and erase EEPROM
 bool dispatch_factory_reset()
 {
-    bool formated = true;
+    bool formatted = true;
     bool erased   = true;
     bool cleared  = true;
 
@@ -1321,15 +1321,15 @@ bool dispatch_factory_reset()
 #endif
 
 #if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
-    formated = HASP_FS.format();
-    if(formated) filesystemSetupFiles();
+    formatted = HASP_FS.format();
+    if(formatted) filesystemSetupFiles();
 #endif
 
 #if HASP_USE_EEPROM > 0
     erased = configClearEeprom();
 #endif
 
-    return formated && erased && cleared;
+    return formatted && erased && cleared;
 }
 
 void dispatch_calibrate(const char*, const char*, uint8_t source)
@@ -1357,10 +1357,13 @@ void dispatch_idle(const char*, const char* payload, uint8_t source)
         uint8_t state = HASP_SLEEP_LAST;
         if(!strcmp_P(payload, "off")) {
             hasp_set_sleep_state(HASP_SLEEP_OFF);
+            dispatch_run_script(NULL, "L:/idle_off.cmd", source);
         } else if(!strcmp_P(payload, "short")) {
             hasp_set_sleep_state(HASP_SLEEP_SHORT);
+            dispatch_run_script(NULL, "L:/idle_short.cmd", source);
         } else if(!strcmp_P(payload, "long")) {
             hasp_set_sleep_state(HASP_SLEEP_LONG);
+            dispatch_run_script(NULL, "L:/idle_long.cmd", source);
         } else {
             LOG_WARNING(TAG_MSGR, F("Invalid idle value %s"), payload);
             return;

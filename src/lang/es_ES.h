@@ -1,3 +1,6 @@
+// This translation file is maintained on https://crowdin.com/project/openhasp/
+// Do not edit directly!
+
 #ifndef HASP_LANG_ES_ES_H
 #define HASP_LANG_ES_ES_H
 
@@ -10,7 +13,7 @@
 #define D_NO "No"  // New
 
 #define D_ERROR_OUT_OF_MEMORY "Memory llena"
-#define D_ERROR_UNKNOWN "Error desconocido"
+#define D_ERROR_UNKNOWN "Unknown error"
 
 #define D_CONFIG_NOT_CHANGED "No hay cambios en la configuración"
 #define D_CONFIG_CHANGED "Configuración cambiada"
@@ -67,11 +70,11 @@
 #define D_TELNET_CLOSING_CONNECTION "Cerrando sesión de %s"
 #define D_TELNET_CLIENT_LOGIN_FROM "Se ha firmado el cliente %s"
 #define D_TELNET_CLIENT_CONNECT_FROM "Se ha conectado el cliente %s"
+#define D_TELNET_CLIENT_NOT_CONNECTED "Cliente NO conectado"
 #define D_TELNET_INCORRECT_LOGIN_ATTEMPT "Intento de conexión incorrecta desde %s"
 #define D_TELNET_STARTED "Console Telnet arrancada"
 #define D_TELNET_FAILED "Falló el arranque de la consola Telnet"
 #define D_TELNET_CLIENT_CONNECTED "Cliente conectado"
-#define D_TELNET_CLIENT_NOT_CONNECTED "Cliente NO conectado"
 #define D_TELNET_CLIENT_REJECTED "Cliente rechazado"
 
 #define D_HASP_INVALID_PAGE "Página inválida %u"
@@ -150,7 +153,6 @@
 #define D_HTTP_CONFIGURATION "Configuración"
 #define D_HTTP_CONFIG_CHANGED                                                                                          \
     "La configuración ha cambiado, haga clic en <a href='/reboot'>Reiniciar</a> para guardar los cambios en la "      \
-    "memoria flash."
 #define D_HTTP_SENDING_PAGE "Se envió pagina %S a %s"
 #define D_HTTP_FOOTER "por Francis Van Roie"
 
@@ -210,7 +212,6 @@
 #define D_WIFI_RSSI_WEAK "Débil"
 #define D_WIFI_RSSI_BAD "Muy baka"
 
-// new
 #define D_GPIO_SWITCH "Switch"
 #define D_GPIO_BUTTON "Botón"
 #define D_GPIO_TOUCH "Capacitive Touch" // new

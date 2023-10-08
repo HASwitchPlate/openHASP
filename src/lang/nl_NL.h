@@ -1,3 +1,6 @@
+// This translation file is maintained on https://crowdin.com/project/openhasp/
+// Do not edit directly!
+
 #ifndef HASP_LANG_NL_NL_H
 #define HASP_LANG_NL_NL_H
 
@@ -30,10 +33,6 @@
 #define D_FILE_SIZE_DIVIDER 1024 //  kibi or kilo bytes
 #define D_DECIMAL_POINT ","      //  decimal comma or point
 
-#define D_SETTING_ENABLED "Ingeschakeld"
-#define D_SETTING_DISABLED "Uitgeschakeld"
-#define D_SETTING_DEFAULT "Standaard"
-
 #define D_SERVICE_STARTING "Starten..."
 #define D_SERVICE_STARTED "Gestart"
 #define D_SERVICE_START_FAILED "Starten mislukt"
@@ -41,6 +40,10 @@
 #define D_SERVICE_DISABLED "Uitgeschakeld"
 #define D_SERVICE_CONNECTED "Verbonden"
 #define D_SERVICE_DISCONNECTED "Verbroken"
+
+#define D_SETTING_ENABLED "Ingeschakeld"
+#define D_SETTING_DISABLED "Uitgeschakeld"
+#define D_SETTING_DEFAULT "Standaard"
 
 #define D_NETWORK_IP_ADDRESS_RECEIVED "IP adres %s ontvangen"
 #define D_NETWORK_ONLINE "online"
