@@ -321,6 +321,10 @@ void debug_get_tag(uint8_t tag, char* buffer)
             memcpy_P(buffer, PSTR("CUST"), 5);
             break;
 
+        case TAG_WG:
+            memcpy_P(buffer, PSTR("WG  "), 5);
+            break;
+
         default:
             memcpy_P(buffer, PSTR("----"), 5);
             break;

@@ -1259,7 +1259,7 @@ void webHandleMqttConfig(AsyncWebServerRequest* request)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 void webHandleGuiConfig(AsyncWebServerRequest* request)
-{ // http://plate01/config/wifi
+{ // http://plate01/config/gui
     if(!httpIsAuthenticated(request, F("config/gui"))) return;
 
     {

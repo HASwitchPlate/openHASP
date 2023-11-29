@@ -31,6 +31,7 @@ bool configSet(uint8_t& value, const JsonVariant& setting, const __FlashStringHe
 bool configSet(uint16_t& value, const JsonVariant& setting, const __FlashStringHelper* fstr_name);
 bool configSet(int32_t& value, const JsonVariant& setting, const __FlashStringHelper* fstr_name);
 bool configSet(lv_color_t& value, const JsonVariant& setting, const __FlashStringHelper* fstr_name);
+bool configSet(char *value, size_t size, const JsonVariant& setting, const __FlashStringHelper* fstr_name);
 bool configSet(bool& value, const JsonVariant& setting, const char* fstr_name);
 bool configSet(int8_t& value, const JsonVariant& setting, const char* fstr_name);
 bool configSet(uint8_t& value, const JsonVariant& setting, const char* fstr_name);
@@ -71,6 +72,9 @@ const char FP_CONFIG_BROADCAST_TOPIC[] PROGMEM = "broadcast_t";
 const char FP_CONFIG_BAUD[] PROGMEM            = "baud";
 const char FP_CONFIG_LOG[] PROGMEM             = "log";
 const char FP_CONFIG_PROTOCOL[] PROGMEM        = "proto";
+const char FP_CONFIG_VPN_IP[] PROGMEM          = "vpnip";
+const char FP_CONFIG_PRIVATE_KEY[] PROGMEM     = "privkey";
+const char FP_CONFIG_PUBLIC_KEY[] PROGMEM      = "pubkey";
 const char FP_GUI_ROTATION[] PROGMEM           = "rotate";
 const char FP_GUI_INVERT[] PROGMEM             = "invert";
 const char FP_GUI_TICKPERIOD[] PROGMEM         = "tick";
@@ -89,6 +93,7 @@ const char FP_GPIO_CONFIG[] PROGMEM            = "config";
 const char FP_HASP_CONFIG_FILE[] PROGMEM = "/config.json";
 
 const char FP_WIFI[] PROGMEM  = "wifi";
+const char FP_WG[] PROGMEM    = "wg";
 const char FP_MQTT[] PROGMEM  = "mqtt";
 const char FP_HTTP[] PROGMEM  = "http";
 const char FP_FTP[] PROGMEM   = "ftp";

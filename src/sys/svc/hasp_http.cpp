@@ -409,6 +409,10 @@ bool http_save_config()
         } else if(save == FP_WIFI) {
             updated = wifiSetConfig(settings.as<JsonObject>());
 #endif
+#if HASP_USE_WIREGUARD > 0
+        } else if(save == FP_WG) {
+            updated = wgSetConfig(settings.as<JsonObject>());
+#endif
         }
     }
 
@@ -635,6 +639,10 @@ static void webHandleApi()
             add_license(obj, "AceButton", "2018", "Brian T. Park", "mit");
             obj = doc.createNestedObject();
             add_license(obj, "QR Code generator", "", "Project Nayuki", "mit");
+#if HASP_USE_WIREGUARD > 0
+            obj = doc.createNestedObject();
+            add_license(obj, "WireGuard", "2021", "Kenta Ida fugafuga.org, Daniel Hope www.floorsense.nz", "bsd", 1);
+#endif
         }
         {
             char output[HTTP_PAGE_SIZE];
@@ -687,6 +695,11 @@ static void webHandleApi()
         module = FPSTR(FP_TIME);
         settings.createNestedObject(module);
         timeGetConfig(settings[module]);
+#endif
+#if HASP_USE_WIREGUARD > 0
+        module = FPSTR(FP_WG);
+        settings.createNestedObject(module);
+        wgGetConfig(settings[module]);
 #endif
 #if HASP_USE_MQTT > 0
         module = FPSTR(FP_MQTT);
@@ -790,6 +803,11 @@ static void webHandleApiConfig()
             timeSetConfig(settings);
         } else
 #endif
+#if HASP_USE_WIREGUARD > 0
+            if(!strcasecmp(endpoint_key, FP_WG)) {
+            wgSetConfig(settings);
+        } else
+#endif
 #if HASP_USE_MQTT > 0
             if(!strcasecmp(endpoint_key, FP_MQTT)) {
             mqttSetConfig(settings);
@@ -829,6 +847,11 @@ static void webHandleApiConfig()
         wifiGetConfig(settings);
     } else if(!strcasecmp(endpoint_key, FP_TIME)) {
         timeGetConfig(settings);
+    } else
+#endif
+#if HASP_USE_WIREGUARD > 0
+        if(!strcasecmp(endpoint_key, FP_WG)) {
+        wgGetConfig(settings);
     } else
 #endif
 #if HASP_USE_MQTT > 0
@@ -937,6 +960,8 @@ static void http_handle_info()
 <tr v-for="(item, key) in info.MQTT"><td v-t="key"></td><td v-if="item">{{ item }}</td></tr>
 <th v-if="info.Wifi" colspan="2">Wifi</th>
 <tr v-for="(item, key) in info.Wifi"><td v-t="key"></td><td v-if="item">{{ item }}</td></tr>
+<th v-if="info.WireGuard" colspan="2">WireGuard</th>
+<tr v-for="(item, key) in info.WireGuard"><td v-t="key"></td><td v-if="item">{{ item }}</td></tr>
 <th v-if="info.Module" colspan="2">Module</th>
 <tr v-for="(item, key) in info.Module"><td v-t="key"></td><td v-if="item">{{ item }}</td></tr>
 </table>)";
@@ -1414,6 +1439,9 @@ static void http_handle_config()
 
 #if HASP_USE_WIFI > 0
     html[min(i++, len)] = R"(<a href="/config/wifi" v-t="'wifi.btn'"></a>)";
+#endif
+#if HASP_USE_WIREGUARD > 0
+    html[min(i++, len)] = R"(<a href="/config/wireguard" v-t="'wg.btn'"></a>)";
 #endif
 #if HASP_USE_MQTT > 0
     html[min(i++, len)] = R"(<a href="/config/mqtt" v-t="'mqtt.btn'"></a>)";
@@ -2302,6 +2330,50 @@ static void http_handle_wifi()
 
 #endif // HASP_USE_WIFI
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+#if HASP_USE_WIREGUARD > 0
+static void http_handle_wireguard()
+{ // http://plate01/config/wireguard
+    if(!http_is_authenticated(F("config/wireguard"))) return;
+
+    const char* html[20];
+    int i   = 0;
+    int len = (sizeof(html) / sizeof(html[0])) - 1;
+
+    html[min(i++, len)] = "<h1>";
+    html[min(i++, len)] = haspDevice.get_hostname();
+    html[min(i++, len)] = "</h1><hr>";
+    html[min(i++, len)] = R"(
+<h2 v-t="'wg.title'" @vue:mounted="showConfig('wg');"></h2>
+<div class="container" v-cloak v-if="config.wg">
+<form @submit.prevent="submitOldConfig('wg') ">
+<div class="row">
+<div class="col-25"><label for="vpnip" v-t="'wg.vpnip'"></label></div>
+<div class="col-75"><input type="text" id="vpnip" maxlength="15" placeholder="VPN IP" v-model="config.wg.vpnip" pattern="^((\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.){3}(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$"></div>
+</div>
+<div class="row gap">
+<div class="col-25"><label for="privkey" v-t="'wg.privkey'"></label></div>
+<div class="col-75"><input type="password" id="privkey" maxlength="44" placeholder="Private Key" v-model="config.wg.privkey" pattern="^(?:[A-Za-z0-9+\/]{4})*(?:[A-Za-z0-9+\/]{4}|[A-Za-z0-9+\/]{3}=|[A-Za-z0-9+\/]{2}={2})$"></div>
+</div>
+<div class="row">
+<div class="col-25"><label for="host" v-t="'wg.host'"></label></div>
+<div class="col-75"><input type="text" id="host" maxlength="15" placeholder="Remote IP" v-model="config.wg.host" pattern="^((\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.){3}(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$"></div>
+</div>
+<div class="row">
+<div class="col-25"><label for="port" v-t="'wg.port'"></label></div>
+<div class="col-75"><input id="port" type="number" min="0" max="65535" placeholder="Remote Port" v-model="config.wg.port"></div>
+</div>
+<div class="row">
+<div class="col-25"><label for="pubkey" v-t="'wg.pubkey'"></label></div>
+<div class="col-75"><input type="text" id="pubkey" maxlength="44" placeholder="Remote Public Key" v-model="config.wg.pubkey" pattern="^(?:[A-Za-z0-9+\/]{4})*(?:[A-Za-z0-9+\/]{4}|[A-Za-z0-9+\/]{3}=|[A-Za-z0-9+\/]{2}={2})$"></div>
+</div>)";
+    html[min(i++, len)] = R"(<button type="submit" v-t="'save'"></button></form></div>)";
+    html[min(i++, len)] = R"(<a v-t="'home.btn'" href="/"></a>)";
+    http_send_content(html, min(i, len));
+}
+
+#endif // HASP_USE_WIREGUARD
+
 static inline int handleFirmwareFile(String path)
 {
     String contentType((char*)0);
@@ -2714,6 +2786,9 @@ void httpSetup()
 #endif
 #if HASP_USE_WIFI > 0
     webServer.on("/config/wifi", http_handle_wifi);
+#endif
+#if HASP_USE_WIREGUARD > 0
+    webServer.on("/config/wireguard", http_handle_wireguard);
 #endif
 #if HASP_USE_GPIO > 0
     webServer.on("/config/gpio", webHandleGpioConfig);

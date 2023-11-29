@@ -11,6 +11,7 @@ bool networkEvery5Seconds(void);
 // bool networkEverySecond(void);
 void networkStart(void);
 void networkStop(void);
+bool network_is_connected();
 
 /* ===== Special Event Processors ===== */
 void network_connected();

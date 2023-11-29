@@ -65,6 +65,10 @@
 #define HASP_USE_MQTT (HASP_HAS_NETWORK)
 #endif
 
+#ifndef HASP_USE_WIREGUARD
+#define HASP_USE_WIREGUARD (HASP_HAS_NETWORK)
+#endif
+
 #ifndef HASP_USE_BROADCAST
 #define HASP_USE_BROADCAST 1
 #endif
@@ -231,6 +235,10 @@
 static WiFiSpiClass WiFi;
 #endif
 #endif // HASP_USE_WIFI
+
+#if HASP_USE_WIREGUARD > 0
+#include "sys/net/hasp_wireguard.h"
+#endif
 
 #if HASP_USE_ETHERNET > 0
 #if defined(ARDUINO_ARCH_ESP32)
