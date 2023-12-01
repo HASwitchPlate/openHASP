@@ -561,7 +561,7 @@ static void webHandleApi()
 { // http://plate01/api
     if(!http_is_authenticated("api")) return;
 
-    DynamicJsonDocument doc(2048);
+    DynamicJsonDocument doc(max(MAX_CONFIG_JSON_ALLOC_SIZE, 2048));
     String contentType = http_get_content_type(F(".json"));
     String endpoint((char*)0);
     endpoint = webServer.pathArg(0);
@@ -1109,7 +1109,7 @@ static inline int handleFilesystemFile(String path)
         configFile = FPSTR(FP_HASP_CONFIG_FILE);
 
         if(path.endsWith(configFile.c_str())) { // "//config.json" is also a valid path!
-            DynamicJsonDocument settings(2048);
+            DynamicJsonDocument settings(MAX_CONFIG_JSON_ALLOC_SIZE);
             DeserializationError error = configParseFile(configFile, settings);
 
             if(error) return 500; // Internal Server Error

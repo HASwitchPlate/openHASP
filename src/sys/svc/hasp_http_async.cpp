@@ -934,7 +934,7 @@ int handleFileRead(AsyncWebServerRequest* request, String path)
 
         if(!strncasecmp(file.name(), configFile.c_str(), configFile.length())) {
             file.close();
-            DynamicJsonDocument settings(8 * 256);
+            DynamicJsonDocument settings(MAX_CONFIG_JSON_ALLOC_SIZE);
             DeserializationError error = configParseFile(configFile, settings);
 
             if(error) return 500; // Internal Server Error
