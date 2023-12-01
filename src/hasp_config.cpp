@@ -354,7 +354,7 @@ void configWrite()
     settingsChanged = F(D_CONFIG_CHANGED);
 
     /* Read Config File */
-    DynamicJsonDocument doc(8 * 256);
+    DynamicJsonDocument doc(MAX_CONFIG_JSON_ALLOC_SIZE);
     LOG_TRACE(TAG_CONF, F(D_FILE_LOADING), configFile.c_str());
     configRead(doc, false);
     LOG_INFO(TAG_CONF, F(D_FILE_LOADED), configFile.c_str());
@@ -515,7 +515,7 @@ void configWrite()
 
 void configSetup()
 {
-    DynamicJsonDocument settings(1024 + 512);
+    DynamicJsonDocument settings(MAX_CONFIG_JSON_ALLOC_SIZE);
 
     for(uint32_t i = 0; i < 2; i++) {
         if(i == 0) {

@@ -8,6 +8,8 @@
 
 #include "hasplib.h"
 
+#define MAX_CONFIG_JSON_ALLOC_SIZE (2048)
+
 /* ===== Default Event Processors ===== */
 void configSetup(void);
 void configLoop(void);
