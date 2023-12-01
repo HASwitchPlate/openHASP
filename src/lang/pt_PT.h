@@ -127,6 +127,7 @@
 #define D_HTTP_HTTP_SETTINGS "Configurar HTTP"
 #define D_HTTP_FTP_SETTINGS "Configurar FTP"
 #define D_HTTP_WIFI_SETTINGS "Configurar Wifi"
+#define D_HTTP_WIREGUARD_SETTINGS "WireGuard Settings"
 #define D_HTTP_MQTT_SETTINGS "Configurar MQTT"
 #define D_HTTP_GPIO_SETTINGS "Configurar GPIO"
 #define D_HTTP_MDNS_SETTINGS "Configurar mDNS"
@@ -191,6 +192,7 @@
 #define D_INFO_FAILED "Em falha"
 #define D_INFO_ETHERNET "Ethernet"
 #define D_INFO_WIFI "Wifi"
+#define D_INFO_WIREGUARD "WireGuard"
 #define D_INFO_LINK_SPEED "Link Speed"
 #define D_INFO_FULL_DUPLEX "Full Duplex"
 #define D_INFO_BSSID "BSSID"
@@ -200,6 +202,8 @@
 #define D_INFO_MAC_ADDRESS "Endereço MAC"
 #define D_INFO_GATEWAY "Gateway"
 #define D_INFO_DNS_SERVER "Servidor DNS"
+#define D_INFO_ENDPOINT_IP "Endpoint IP"
+#define D_INFO_ENDPOINT_PORT "Endpoint Port"
 
 #define D_OOBE_MSG "Toque no ecrã para configurar WiFi ou para se ligar a um access point"
 #define D_OOBE_SCAN_TO_CONNECT "Procurar rede"
@@ -211,6 +215,9 @@
 #define D_WIFI_RSSI_WEAK "Fraco"
 #define D_WIFI_RSSI_BAD "Muito baixo"
 #define D_WIFI_RSSI_FAIR "Decente"
+
+#define D_WG_INITIALIZED "Initialized"
+#define D_WG_BAD_CONFIG "Missing or bad configuration"
 
 #define D_GPIO_SWITCH "Interruptor"
 #define D_GPIO_BUTTON "Botão"
