@@ -503,6 +503,14 @@ void dispatch_config(const char* topic, const char* payload, uint8_t source)
         else
             timeGetConfig(settings);
     }
+#if HASP_USE_WIREGUARD > 0
+    else if(strcasecmp_P(topic, PSTR(FP_WG)) == 0) {
+        if(update)
+            wgSetConfig(settings);
+        else
+            wgGetConfig(settings);
+    }
+#endif
 #if HASP_USE_MQTT > 0
     else if(strcasecmp_P(topic, PSTR(FP_MQTT)) == 0) {
         if(update)

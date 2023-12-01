@@ -117,6 +117,19 @@ bool configSet(lv_color_t& value, const JsonVariant& setting, const __FlashStrin
     }
     return false;
 }
+bool configSet(char *value, size_t size, const JsonVariant& setting, const __FlashStringHelper* fstr_name)
+{
+    if(!setting.isNull()) {
+        const char *val = setting;
+        if(strcmp(value, val) != 0) {
+            confDebugSet(fstr_name);
+            strncpy(value, val, size - 1);
+            value[size - 1] = '\0';
+            return true;
+        }
+    }
+    return false;
+}
 
 bool configSet(bool& value, const JsonVariant& setting, const char* fstr_name)
 {
@@ -198,28 +211,30 @@ void configSetupDebug(JsonDocument& settings)
     debugStart(); // Debug started, now we can use it; HASP header sent
 }
 
-void configStorePasswords(JsonDocument& settings, String& wifiPass, String& mqttPass, String& httpPass)
+void configStorePasswords(JsonDocument& settings, String& wifiPass, String& mqttPass, String& httpPass, String &wgPrivKey)
 {
     const char* pass = ("pass");
 
     wifiPass = settings[FPSTR(FP_WIFI)][pass].as<String>();
     mqttPass = settings[FPSTR(FP_MQTT)][pass].as<String>();
     httpPass = settings[FPSTR(FP_HTTP)][pass].as<String>();
+    wgPrivKey = settings[FPSTR(FP_WG)][FPSTR(FP_CONFIG_PRIVATE_KEY)].as<String>();
 }
 
-void configRestorePasswords(JsonDocument& settings, String& wifiPass, String& mqttPass, String& httpPass)
+void configRestorePasswords(JsonDocument& settings, String& wifiPass, String& mqttPass, String& httpPass, String& wgPrivKey)
 {
     const char* pass = ("pass");
 
     if(!settings[FPSTR(FP_WIFI)][pass].isNull()) settings[FPSTR(FP_WIFI)][pass] = wifiPass;
     if(!settings[FPSTR(FP_MQTT)][pass].isNull()) settings[FPSTR(FP_MQTT)][pass] = mqttPass;
     if(!settings[FPSTR(FP_HTTP)][pass].isNull()) settings[FPSTR(FP_HTTP)][pass] = httpPass;
+    if(!settings[FPSTR(FP_WG)][FPSTR(FP_CONFIG_PRIVATE_KEY)].isNull()) settings[FPSTR(FP_WG)][FPSTR(FP_CONFIG_PRIVATE_KEY)] = wgPrivKey;
 }
 
 void configMaskPasswords(JsonDocument& settings)
 {
     String passmask = F(D_PASSWORD_MASK);
-    configRestorePasswords(settings, passmask, passmask, passmask);
+    configRestorePasswords(settings, passmask, passmask, passmask, passmask);
 }
 
 DeserializationError configParseFile(String& configFile, JsonDocument& settings)
@@ -254,7 +269,7 @@ DeserializationError configRead(JsonDocument& settings, bool setupdebug)
 #if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
     error = configParseFile(configFile, settings);
     if(!error) {
-        String output, wifiPass, mqttPass, httpPass;
+        String output, wifiPass, mqttPass, httpPass, wgPrivKey;
 
         /* Load Debug params */
         if(setupdebug) {
@@ -266,14 +281,14 @@ DeserializationError configRead(JsonDocument& settings, bool setupdebug)
         }
 
         LOG_TRACE(TAG_CONF, F(D_FILE_LOADING), configFile.c_str());
-        configStorePasswords(settings, wifiPass, mqttPass, httpPass);
+        configStorePasswords(settings, wifiPass, mqttPass, httpPass, wgPrivKey);
 
         // Output settings in log with masked passwords
         configMaskPasswords(settings);
         serializeJson(settings, output);
         LOG_VERBOSE(TAG_CONF, output.c_str());
 
-        configRestorePasswords(settings, wifiPass, mqttPass, httpPass);
+        configRestorePasswords(settings, wifiPass, mqttPass, httpPass, wgPrivKey);
         LOG_INFO(TAG_CONF, F(D_FILE_LOADED), configFile.c_str());
 
         // if(setupdebug) debugSetup();
@@ -378,6 +393,17 @@ void configWrite()
     if(changed) {
         LOG_VERBOSE(TAG_WIFI, settingsChanged.c_str());
         configOutput(settings[module], TAG_WIFI);
+        writefile = true;
+    }
+#endif
+
+#if HASP_USE_WIREGUARD > 0
+    module = FPSTR(FP_WG);
+    if(settings[module].as<JsonObject>().isNull()) settings.createNestedObject(module);
+    changed = wgGetConfig(settings[module]);
+    if(changed) {
+        LOG_VERBOSE(TAG_WG, settingsChanged.c_str());
+        configOutput(settings[module], TAG_WG);
         writefile = true;
     }
 #endif
@@ -549,6 +575,11 @@ void configSetup()
         wifiSetConfig(settings[FPSTR(FP_WIFI)]);
 #endif
 
+#if HASP_USE_WIREGUARD > 0
+        LOG_INFO(TAG_WG, F("Loading WireGuard settings"));
+        wgSetConfig(settings[FPSTR(FP_WG)]);
+#endif
+
 #if HASP_USE_MQTT > 0
         LOG_INFO(TAG_MQTT, F("Loading MQTT settings"));
         mqttSetConfig(settings[FPSTR(FP_MQTT)]);
@@ -621,6 +652,14 @@ void configOutput(const JsonObject& settings, uint8_t tag)
         password = F("\"pass\":\"");
         password += settings[FPSTR(FP_HTTP)][pass].as<String>();
         password += F("\"");
+        output.replace(password, passmask);
+    }
+
+    if(!settings[FPSTR(FP_WG)][FPSTR(FP_CONFIG_PRIVATE_KEY)].isNull()) {
+        password = F("\"privkey\":\"");
+        password += settings[FPSTR(FP_WG)][FPSTR(FP_CONFIG_PRIVATE_KEY)].as<String>();
+        password += F("\"");
+        passmask = F("\"privkey\":\"" D_PASSWORD_MASK "\"");
         output.replace(password, passmask);
     }
 
