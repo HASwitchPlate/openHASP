@@ -85,6 +85,15 @@
             "btn": "WiFi beállítások",
             "ssid": "SSID"
         },
+        "wg": {
+            "title": "WireGuard Settings",
+            "btn": "WireGuard Settings",
+            "vpnip": "VPN IP",
+            "privkey": "Private Key",
+            "host": "Remote IP",
+            "port": "Remote Port",
+            "pubkey": "Remote Public Key"
+        },
         "mqtt": {
             "title": "MQTT beállítások",
             "btn": "MQTT beállítások",
