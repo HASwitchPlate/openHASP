@@ -85,6 +85,15 @@
             "btn": "Paramètres WiFi",
             "ssid": "SSID"
         },
+        "wg": {
+            "title": "WireGuard Settings",
+            "btn": "WireGuard Settings",
+            "vpnip": "VPN IP",
+            "privkey": "Private Key",
+            "host": "Remote IP",
+            "port": "Remote Port",
+            "pubkey": "Remote Public Key"
+        },
         "mqtt": {
             "title": "Paramètres MQTT",
             "btn": "Paramètres MQTT",
