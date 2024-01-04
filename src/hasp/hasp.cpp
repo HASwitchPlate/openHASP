@@ -119,17 +119,20 @@ HASP_ATTRIBUTE_FAST_MEM void hasp_update_sleep_state()
     if(sleepTimeLong > 0 && idle >= (sleepTimeShort + sleepTimeLong)) {
         if(hasp_sleep_state != HASP_SLEEP_LONG) {
             gui_hide_pointer(true);
-            hasp_set_sleep_state(HASP_SLEEP_LONG, TAG_MAIN);
+            hasp_sleep_state = HASP_SLEEP_LONG;
+            dispatch_idle_state(HASP_SLEEP_LONG);
         }
     } else if(sleepTimeShort > 0 && idle >= sleepTimeShort) {
         if(hasp_sleep_state != HASP_SLEEP_SHORT) {
             gui_hide_pointer(true);
-            hasp_set_sleep_state(HASP_SLEEP_SHORT, TAG_MAIN);
+            hasp_sleep_state = HASP_SLEEP_SHORT;
+            dispatch_idle_state(HASP_SLEEP_SHORT);
         }
     } else {
         if(hasp_sleep_state != HASP_SLEEP_OFF) {
             gui_hide_pointer(false);
-            hasp_set_sleep_state(HASP_SLEEP_OFF, TAG_MAIN);
+            hasp_sleep_state = HASP_SLEEP_OFF;
+            dispatch_idle_state(HASP_SLEEP_OFF);
         }
     }
 }
@@ -144,21 +147,18 @@ uint8_t hasp_get_sleep_state()
     return hasp_sleep_state;
 }
 
-void hasp_set_sleep_state(uint8_t state, uint8_t source)
+void hasp_set_sleep_state(uint8_t state)
 {
     switch(state) {
         case HASP_SLEEP_LONG:
             hasp_set_sleep_offset(sleepTimeShort + sleepTimeLong);
-            dispatch_run_script(NULL, "L:/idle_long.cmd", source);
             break;
         case HASP_SLEEP_SHORT:
             hasp_set_sleep_offset(sleepTimeShort);
-            dispatch_run_script(NULL, "L:/idle_short.cmd", source);
             break;
         case HASP_SLEEP_OFF:
             hasp_set_sleep_offset(0);
             // hasp_set_wakeup_touch(false);
-            dispatch_run_script(NULL, "L:/idle_off.cmd", source);
             break;
         default:
             return;
