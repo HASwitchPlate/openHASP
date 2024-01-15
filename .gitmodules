@@ -2,3 +2,6 @@
 	path = lib/freetype
 	url = https://github.com/fvanroie/freetype
 	
+[submodule "lib/Adafruit_TSC2007"]
+	path = lib/Adafruit_TSC2007
+	url = https://github.com/adafruit/Adafruit_TSC2007.git
