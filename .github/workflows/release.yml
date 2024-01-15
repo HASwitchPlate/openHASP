@@ -63,7 +63,7 @@ jobs:
     - name: Run PlatformIO
       run: pio run -e esp32-touchdown -e freetouchdeck_4MB -e freetouchdeck_8MB
     - name: Run PlatformIO
-      run: pio run -e huzzah32-featherwing-24 -e huzzah32-featherwing-35
+      run: pio run -e huzzah32-featherwing-24 -e huzzah32-featherwing-35 -e huzzah32-featherwing-24-v2 -e huzzah32-featherwing-35-v2 -e huzzah32-v2-featherwing-24-v2 -e huzzah32-v2-featherwing-35-v2
     - name: Run PlatformIO
       run: pio run -e lanbon_l8
     - name: Run PlatformIO

@@ -21,7 +21,7 @@ jobs:
       matrix:
         environment:
           - out: adafruit
-            env: "huzzah32-featherwing-24 -e huzzah32-featherwing-35"
+            env: "huzzah32-featherwing-24 -e huzzah32-featherwing-35 -e huzzah32-featherwing-24-v2 -e huzzah32-featherwing-35-v2 -e huzzah32-v2-featherwing-24-v2 -e huzzah32-v2-featherwing-35-v2"
           - out: az-touch
             env: "az-touch-mod-esp32_ili9341_4MB -e az-touch-mod-esp32_ili9341_8MB"
           - env: d1-mini-esp32_ili9341
