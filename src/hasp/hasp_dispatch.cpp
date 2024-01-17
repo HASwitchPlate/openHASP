@@ -1364,11 +1364,14 @@ void dispatch_idle(const char*, const char* payload, uint8_t source)
     if(payload && strlen(payload)) {
         uint8_t state = HASP_SLEEP_LAST;
         if(!strcmp_P(payload, "off")) {
-            hasp_set_sleep_state(HASP_SLEEP_OFF, source);
+            hasp_set_sleep_state(HASP_SLEEP_OFF);
+            dispatch_run_script(NULL, "L:/idle_off.cmd", source);
         } else if(!strcmp_P(payload, "short")) {
-            hasp_set_sleep_state(HASP_SLEEP_SHORT, source);
+            hasp_set_sleep_state(HASP_SLEEP_SHORT);
+            dispatch_run_script(NULL, "L:/idle_short.cmd", source);
         } else if(!strcmp_P(payload, "long")) {
-            hasp_set_sleep_state(HASP_SLEEP_LONG, source);
+            hasp_set_sleep_state(HASP_SLEEP_LONG);
+            dispatch_run_script(NULL, "L:/idle_long.cmd", source);
         } else {
             LOG_WARNING(TAG_MSGR, F("Invalid idle value %s"), payload);
             return;
