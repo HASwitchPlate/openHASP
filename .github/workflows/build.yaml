@@ -60,6 +60,8 @@ jobs:
             env: "wt32-sc01_4MB -e wt32-sc01_16MB -e wt-86-32-3zw1 -e wt32-sc01-plus_8MB -e wt32-sc01-plus_16MB"
           - out: yeacreate
             env: yeacreate-nscreen32
+          - out: guition
+            env: esp32-s3-4848S040
 
     steps:
       - uses: actions/checkout@v3
