@@ -121,21 +121,18 @@ HASP_ATTRIBUTE_FAST_MEM void hasp_update_sleep_state()
             gui_hide_pointer(true);
             hasp_sleep_state = HASP_SLEEP_LONG;
             dispatch_idle_state(HASP_SLEEP_LONG);
-            dispatch_run_script(NULL, "L:/idle_long.cmd", TAG_MAIN);
         }
     } else if(sleepTimeShort > 0 && idle >= sleepTimeShort) {
         if(hasp_sleep_state != HASP_SLEEP_SHORT) {
             gui_hide_pointer(true);
             hasp_sleep_state = HASP_SLEEP_SHORT;
             dispatch_idle_state(HASP_SLEEP_SHORT);
-            dispatch_run_script(NULL, "L:/idle_short.cmd", TAG_MAIN);
         }
     } else {
         if(hasp_sleep_state != HASP_SLEEP_OFF) {
             gui_hide_pointer(false);
             hasp_sleep_state = HASP_SLEEP_OFF;
             dispatch_idle_state(HASP_SLEEP_OFF);
-            dispatch_run_script(NULL, "L:/idle_off.cmd", TAG_MAIN);
         }
     }
 }
