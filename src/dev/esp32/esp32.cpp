@@ -9,6 +9,7 @@
 #include "esp_system.h"
 #include <rom/rtc.h> // needed to get the ResetInfo
 #include "driver/adc.h"
+#include "driver/ledc.h"
 #include "esp_adc_cal.h"
 #include "esp_efuse.h"
 
@@ -253,7 +254,8 @@ void Esp32Device::set_backlight_pin(uint8_t pin)
         ledcSetup(BACKLIGHT_CHANNEL, BACKLIGHT_FREQUENCY, 10);
 #endif
         ledcAttachPin(pin, BACKLIGHT_CHANNEL);
-        update_backlight();
+        ledc_fade_func_install(0);
+        update_backlight(false);
     } else {
         LOG_VERBOSE(TAG_GUI, F("Backlight  : Pin not set"));
     }
@@ -262,7 +264,7 @@ void Esp32Device::set_backlight_pin(uint8_t pin)
 void Esp32Device::set_backlight_invert(bool invert)
 {
     _backlight_invert = invert;
-    update_backlight();
+    update_backlight(false);
 }
 
 bool Esp32Device::get_backlight_invert()
@@ -273,7 +275,7 @@ bool Esp32Device::get_backlight_invert()
 void Esp32Device::set_backlight_level(uint8_t level)
 {
     _backlight_level = level;
-    update_backlight();
+    update_backlight(true);
 }
 
 uint8_t Esp32Device::get_backlight_level()
@@ -284,7 +286,7 @@ uint8_t Esp32Device::get_backlight_level()
 void Esp32Device::set_backlight_power(bool power)
 {
     _backlight_power = power;
-    update_backlight();
+    update_backlight(true);
 }
 
 bool Esp32Device::get_backlight_power()
@@ -292,18 +294,30 @@ bool Esp32Device::get_backlight_power()
     return _backlight_power != 0;
 }
 
-void Esp32Device::update_backlight()
+void Esp32Device::update_backlight(bool fade)
 {
+    static uint32_t last_duty = 0;
     if(_backlight_pin < GPIO_NUM_MAX) {
 #if !defined(CONFIG_IDF_TARGET_ESP32S2)
         uint32_t duty = _backlight_power ? map(_backlight_level, 0, 255, 0, 1023) : 0;
         if(_backlight_invert) duty = 1023 - duty;
-        ledcWrite(BACKLIGHT_CHANNEL, duty); // ledChannel and value
+        if(fade) {
+            ledcWrite(BACKLIGHT_CHANNEL, last_duty); // this will stop an in-progress fade
+            ledc_set_fade_time_and_start(LEDC_LOW_SPEED_MODE, (ledc_channel_t) BACKLIGHT_CHANNEL, duty, BACKLIGHT_FADEMS, LEDC_FADE_NO_WAIT);
+        } else {
+            ledcWrite(BACKLIGHT_CHANNEL, duty); // ledChannel and value
+        }
 #else
         uint32_t duty = _backlight_power ? map(_backlight_level, 0, 255, 0, 1023) : 0;
         if(_backlight_invert) duty = 1023 - duty;
-        ledcWrite(BACKLIGHT_CHANNEL, duty); // ledChannel and value
+        if(fade) {
+            ledcWrite(BACKLIGHT_CHANNEL, last_duty); // this will stop an in-progress fade
+            ledc_set_fade_time_and_start(LEDC_LOW_SPEED_MODE, (ledc_channel_t) BACKLIGHT_CHANNEL, duty, BACKLIGHT_FADEMS, LEDC_FADE_NO_WAIT);
+        } else {
+            ledcWrite(BACKLIGHT_CHANNEL, duty); // ledChannel and value
+        }
 #endif
+        last_duty = duty;
     }
 
     // haspTft.tft.writecommand(0x53); // Write CTRL Display
