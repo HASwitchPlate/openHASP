@@ -53,6 +53,11 @@ void* lodepng_malloc(size_t size)
     if(size > LODEPNG_MAX_ALLOC) return 0;
 #endif
 
+    // void* ptr = hasp_malloc(size);
+    // if(ptr) return ptr;
+
+    // /* PSram was full retry after clearing cache*/
+    // lv_img_cache_invalidate_src(NULL);
     return hasp_malloc(size);
 }
 

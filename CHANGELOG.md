@@ -46,6 +46,7 @@
 - Add Sunton ESP32-2432S028R ESP32-3248S035C ESP32-3248S035R
 - Add support for Wireless-Tag WT32-SC01 Plus and WT32S3-86V
 - Deprecate support for WT-86-32-3ZW1 with ESP32-S2
+- Fade backlight on ESP32 devices (thanks @presslab-us)
 
 ## Bug fixes
 - Fix for first touch not working properly

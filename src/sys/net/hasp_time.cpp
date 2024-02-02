@@ -18,6 +18,7 @@
 #include "Preferences.h"
 #include "nvs.h"
 #include "nvs_flash.h"
+#include "esp_sntp.h"
 #endif
 
 #if defined(ARDUINO_ARCH_ESP32)
@@ -26,6 +27,11 @@ String mytz((char*)0);
 String ntp1((char*)0);
 String ntp2((char*)0);
 String ntp3((char*)0);
+
+void timeSyncCallback(struct timeval* tv)
+{
+    LOG_VERBOSE(TAG_TIME, "NTP Synced: %s", ctime(&tv->tv_sec));
+}
 #endif
 
 void timeSetup()
@@ -41,15 +47,19 @@ void timeSetup()
     String zone((char*)0);
     zone = preferences.getString("zone", TIMEZONE);
 
-    mytz = time_zone_to_possix(zone.c_str());
-    ntp1 = preferences.getString("ntp1", NTPSERVER1);
-    ntp2 = preferences.getString("ntp2", NTPSERVER2);
-    ntp3 = preferences.getString("ntp3", NTPSERVER3);
+    mytz        = time_zone_to_possix(zone.c_str());
+    ntp1        = preferences.getString("ntp1", NTPSERVER1);
+    ntp2        = preferences.getString("ntp2", NTPSERVER2);
+    ntp3        = preferences.getString("ntp3", NTPSERVER3);
+    bool enable = preferences.getBool("enable", true);
+    bool dhcp   = preferences.getBool("dhcp", true);
 
     LOG_VERBOSE(TAG_TIME, F("%s => %s"), zone.c_str(), mytz.c_str());
     LOG_VERBOSE(TAG_TIME, F("NTP: %s %s %s"), ntp1.c_str(), ntp2.c_str(), ntp3.c_str());
 
+    sntp_set_time_sync_notification_cb(timeSyncCallback);
     configTzTime(mytz.c_str(), ntp1.c_str(), ntp2.c_str(), ntp3.c_str());
+    sntp_servermode_dhcp(enable && dhcp ? 1 : 0);
     preferences.end();
 #endif
 }

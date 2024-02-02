@@ -22,6 +22,7 @@
 #include <HTTPClient.h>
 #include <HTTPUpdate.h>
 #include <WiFi.h>
+#include <WiFiClientSecure.h>
 #include <ArduinoOTA.h>
 #ifndef HASP_ARDUINOOTA_PORT
 #define HASP_ARDUINOOTA_PORT 3232
@@ -76,14 +77,14 @@ extern const uint8_t rootca_crt_bundle_start[] asm("_binary_data_cert_x509_crt_b
 #endif // ARDUINO_ARCH_ESP32
 
 static WiFiClientSecure secureClient;
-std::string otaUrl = "http://ota.netwize.be";
+/*std::string otaUrl = "http://ota.netwize.be";*/
 
 uint16_t arduinoOtaPort      = HASP_ARDUINOOTA_PORT;
 int8_t otaPrecentageComplete = -1;
 
 bool otaUpdateCheck()
 { // firmware update check
-    WiFiClientSecure wifiUpdateClientSecure;
+    /*WiFiClientSecure wifiUpdateClientSecure;
     HTTPClient updateClient;
     LOG_TRACE(TAG_OTA, F(D_OTA_CHECK_UPDATE), otaUrl.c_str());
 
@@ -115,7 +116,7 @@ bool otaUpdateCheck()
             // }
         }
         LOG_VERBOSE(TAG_OTA, F(D_OTA_CHECK_COMPLETE));
-    }
+    }*/
     return true;
 }
 
@@ -210,9 +211,9 @@ void otaSetup(void)
     secureClient.setTimeout(12); // timeout argument is defined in seconds
 
 #if HASP_USE_ARDUINOOTA > 0
-    if(strlen(otaUrl.c_str())) {
+    /*if(strlen(otaUrl.c_str())) {
         LOG_INFO(TAG_OTA, otaUrl.c_str());
-    }
+    }*/
 
     if(arduinoOtaPort > 0) {
         ArduinoOTA.onStart(ota_on_start);
