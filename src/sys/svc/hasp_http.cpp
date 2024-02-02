@@ -1,4 +1,4 @@
-/* MIT License - Copyright (c) 2019-2023 Francis Van Roie
+/* MIT License - Copyright (c) 2019-2024 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
 #include "hasplib.h"
@@ -920,7 +920,7 @@ static void http_handle_about()
 <span v-if="model.l && !!model.l" v-t="'about.' + model.l"></span></p>
 </template>
 
-<h3>openHASP</h3><p>Copyright 2019-2023 Francis Van Roie</br>MIT License</p>
+<h3>openHASP</h3><p>Copyright 2019-2024 Francis Van Roie</br>MIT License</p>
 <p v-t="'about.clause1'"></p>
 <p v-t="'about.clause2'"></p>
 <p v-t="'about.clause3'"></p>
