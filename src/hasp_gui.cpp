@@ -309,7 +309,7 @@ void guiSetup()
     static lv_indev_drv_t indev_drv;
     lv_indev_drv_init(&indev_drv);
     indev_drv.type = LV_INDEV_TYPE_POINTER;
-#if defined(WINDOWS) || defined(POSIX)
+#if USE_MONITOR && (defined(WINDOWS) || defined(POSIX))
     indev_drv.read_cb = mouse_read;
 #else
     indev_drv.read_cb = gui_touch_read;

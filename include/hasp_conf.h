@@ -371,7 +371,9 @@ static WiFiSpiClass WiFi;
 #include <string.h>
 #include <strings.h>
 #include <stdio.h>
+#if USE_MONITOR
 #include <SDL2/SDL.h>
+#endif
 
 #define snprintf_P snprintf
 #define memcpy_P memcpy
@@ -380,7 +382,9 @@ static WiFiSpiClass WiFi;
 #define strcpy_P strcpy
 #define strstr_P strstr
 #define halRestartMcu()
+#if USE_MONITOR
 #define millis SDL_GetTicks
+#endif
 
 #define DEC 10
 #define HEX 16

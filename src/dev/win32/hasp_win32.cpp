@@ -11,7 +11,9 @@
 #include "hasp_conf.h"
 #include "hasp_debug.h"
 
+#if USE_MONITOR
 #include "display/monitor.h"
+#endif
 
 namespace dev {
 
@@ -48,8 +50,10 @@ const char* Win32Device::get_hostname()
 void Win32Device::set_hostname(const char* hostname)
 {
     _hostname = hostname;
+#if USE_MONITOR
     monitor_title(hostname);
     // SDL_SetWindowTitle(monitor.window, hostname);
+#endif
 }
 const char* Win32Device::get_core_version()
 {
@@ -112,7 +116,9 @@ void Win32Device::update_backlight()
 {
     uint8_t level = _backlight_power ? _backlight_level : 0;
     if(_backlight_invert) level = 255 - level;
+#if USE_MONITOR
     monitor_backlight(level);
+#endif
 }
 
 size_t Win32Device::get_free_max_block()

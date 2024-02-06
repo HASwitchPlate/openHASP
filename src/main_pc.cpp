@@ -25,7 +25,9 @@
 #include "hasplib.h"
 
 // #include "app_hal.h"
+#if USE_MONITOR
 #include "display/monitor.h"
+#endif
 
 #include "hasp_debug.h"
 #include "hasp_gui.h"
@@ -258,12 +260,14 @@ int main(int argc, char* argv[])
     }
 #endif
 
-    SDL_Init(0);    // Needs to be initialized for GetPerfPath
     char buf[4096]; // never know how much is needed
     std::cout << "CWD: " << cwd(buf, sizeof buf) << std::endl;
+#if USE_MONITOR
+    SDL_Init(0); // Needs to be initialized for GetPerfPath
     cd(SDL_GetPrefPath("hasp", "hasp"));
-    std::cout << "CWD changed to: " << cwd(buf, sizeof buf) << std::endl;
     SDL_Quit(); // We'll properly init later
+#endif
+    std::cout << "CWD changed to: " << cwd(buf, sizeof buf) << std::endl;
 
     // Change to preferences dir
     std::cout << "\nCommand-line arguments:\n";
@@ -376,11 +380,11 @@ int main(int argc, char* argv[])
     LOG_TRACE(TAG_MAIN, "main loop completed");
 
 #if defined(WINDOWS)
-        WriteConsole(std_out, "bye\n\n", 3, NULL, NULL);
-        std::cout << std::endl << std::flush;
-        fflush(stdout);
-        FreeConsole();
-        exit(0);
+    WriteConsole(std_out, "bye\n\n", 3, NULL, NULL);
+    std::cout << std::endl << std::flush;
+    fflush(stdout);
+    FreeConsole();
+    exit(0);
 #endif
 
     return 0;
