@@ -152,7 +152,9 @@ void setup()
 void loop()
 {
     haspLoop();
+#if HASP_USE_MQTT
     mqttLoop();
+#endif
 
     //    debugLoop(); // Console
     haspDevice.loop();
@@ -190,7 +192,7 @@ void loop()
             haspDevice.loop_5s();
             gpioEvery5Seconds();
 
-#if defined(HASP_USE_MQTT)
+#if HASP_USE_MQTT
             mqttEvery5Seconds(true);
 #endif
 
@@ -363,7 +365,9 @@ int main(int argc, char* argv[])
     serializeJson(settings, buffer, sizeof(buffer));
     std::cout << buffer << std::endl << std::flush;
     fflush(stdout);
+#if HASP_USE_MQTT
     mqttSetConfig(settings["mqtt"]);
+#endif
     // printf("%s %d\n", __FILE__, __LINE__);
     // fflush(stdout);
 
