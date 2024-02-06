@@ -13,8 +13,6 @@
 #define BACKLIGHT_FREQUENCY 20000
 #endif
 
-#define BACKLIGHT_FADEMS 200
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -69,7 +67,7 @@ class Esp32Device : public BaseDevice {
     uint8_t _backlight_power;
     uint8_t _backlight_invert;
 
-    void update_backlight(bool fade);
+    void update_backlight();
 };
 
 } // namespace dev
