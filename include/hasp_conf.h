@@ -384,6 +384,8 @@ static WiFiSpiClass WiFi;
 #define halRestartMcu()
 #if USE_MONITOR
 #define millis SDL_GetTicks
+#elif USE_WIN32DRV
+#define millis Win32Millis
 #endif
 
 #define DEC 10

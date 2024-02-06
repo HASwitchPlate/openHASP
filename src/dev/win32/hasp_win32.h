@@ -91,6 +91,8 @@ class Win32Device : public BaseDevice {
 
 } // namespace dev
 
+extern long Win32Millis();
+
 using dev::Win32Device;
 extern dev::Win32Device haspDevice;
 

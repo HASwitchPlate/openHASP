@@ -7,6 +7,8 @@
 
 #include <windows.h>
 #include <direct.h>
+#include <shlobj.h>
+#include <shlwapi.h>
 // MSDN recommends against using getcwd & chdir names
 #define cwd _getcwd
 #define cd _chdir
@@ -35,7 +37,6 @@
 #include "dev/device.h"
 
 bool isConnected;
-bool isRunning = 1;
 
 uint8_t mainLoopCounter        = 0;
 unsigned long mainLastLoopTime = 0;
@@ -268,6 +269,12 @@ int main(int argc, char* argv[])
     SDL_Init(0); // Needs to be initialized for GetPerfPath
     cd(SDL_GetPrefPath("hasp", "hasp"));
     SDL_Quit(); // We'll properly init later
+#elif USE_WIN32DRV
+    if(SUCCEEDED(SHGetFolderPath(NULL, CSIDL_APPDATA | CSIDL_FLAG_CREATE, NULL, 0, buf))) {
+        PathAppendA(buf, "hasp");
+        PathAppendA(buf, "hasp");
+        cd(buf);
+    }
 #endif
     std::cout << "CWD changed to: " << cwd(buf, sizeof buf) << std::endl;
 
@@ -377,11 +384,16 @@ int main(int argc, char* argv[])
 
     setup();
 
-    LOG_TRACE(TAG_MAIN, "loop started");
-    while(isRunning) {
+#if USE_MONITOR
+    while(1) {
         loop();
     }
-    LOG_TRACE(TAG_MAIN, "main loop completed");
+#elif USE_WIN32DRV
+    extern bool lv_win32_quit_signal;
+    while(!lv_win32_quit_signal) {
+        loop();
+    }
+#endif
 
 #if defined(WINDOWS)
     WriteConsole(std_out, "bye\n\n", 3, NULL, NULL);

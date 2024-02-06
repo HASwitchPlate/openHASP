@@ -80,6 +80,9 @@ class BaseTft {
 #elif USE_MONITOR && (defined(WINDOWS) || defined(POSIX))
 // #warning Building for SDL2
 #include "tft_driver_sdl2.h"
+#elif USE_WIN32DRV && (defined(WINDOWS) || defined(POSIX))
+// #warning Building for Win32Drv
+#include "tft_driver_win32drv.h"
 #else
 // #warning Building for Generic Tfts
 using dev::BaseTft;

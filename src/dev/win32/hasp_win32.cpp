@@ -13,6 +13,8 @@
 
 #if USE_MONITOR
 #include "display/monitor.h"
+#elif USE_WIN32DRV
+#include "win32drv/win32drv.h"
 #endif
 
 namespace dev {
@@ -52,7 +54,8 @@ void Win32Device::set_hostname(const char* hostname)
     _hostname = hostname;
 #if USE_MONITOR
     monitor_title(hostname);
-    // SDL_SetWindowTitle(monitor.window, hostname);
+#elif USE_WIN32DRV
+    lv_win32_set_title(hostname);
 #endif
 }
 const char* Win32Device::get_core_version()
@@ -155,6 +158,11 @@ long Win32Device::get_uptime()
 }
 
 } // namespace dev
+
+long Win32Millis()
+{
+    return GetTickCount64();
+}
 
 dev::Win32Device haspDevice;
 
