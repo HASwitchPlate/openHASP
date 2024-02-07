@@ -62,11 +62,11 @@ void PosixDevice::show_info()
     if(uname(&uts) < 0) {
         LOG_ERROR(0, "uname() error");
     } else {
-        LOG_VERBOSE(0, "Sysname:  %s", uts.sysname);
-        LOG_VERBOSE(0, "Nodename: %s", uts.nodename);
-        LOG_VERBOSE(0, "Release:  %s", uts.release);
-        LOG_VERBOSE(0, "Version:  %s", uts.version);
-        LOG_VERBOSE(0, "Machine:  %s", uts.machine);
+        LOG_VERBOSE(0, "Sysname    : %s", uts.sysname);
+        LOG_VERBOSE(0, "Nodename   : %s", uts.nodename);
+        LOG_VERBOSE(0, "Release    : %s", uts.release);
+        LOG_VERBOSE(0, "Version    : %s", uts.version);
+        LOG_VERBOSE(0, "Machine    : %s", uts.machine);
     }
 
     LOG_VERBOSE(0, "Processor  : %s", "unknown");

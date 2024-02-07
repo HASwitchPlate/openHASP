@@ -800,7 +800,11 @@ void dispatch_run_script(const char*, const char* payload, uint8_t source)
     path[0] = '.';
     path[1] = '\0';
     strcat(path, filename);
+#if defined(WINDOWS)
     path[1] = '\\';
+#elif defined(POSIX)
+    path[1] = '/';
+#endif
 
     LOG_TRACE(TAG_HASP, F("Loading %s from disk..."), path);
     std::ifstream f(path); // taking file as inputstream
@@ -1323,8 +1327,8 @@ void dispatch_current_state(uint8_t source)
 bool dispatch_factory_reset()
 {
     bool formatted = true;
-    bool erased   = true;
-    bool cleared  = true;
+    bool erased    = true;
+    bool cleared   = true;
 
 #if ESP32
     erased = nvs_clear_user_config();

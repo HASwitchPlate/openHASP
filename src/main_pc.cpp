@@ -17,6 +17,7 @@
 #if defined(POSIX)
 #include <netdb.h>
 #include <unistd.h>
+#include <linux/limits.h>
 #define cwd getcwd
 #define cd chdir
 #endif
@@ -104,17 +105,20 @@ void InitializeConsoleOutput()
 
 void usage(const char* progName, const char* version)
 {
-    std::cout
-        << "\n"
-        << progName << " " << version << " [options]" << std::endl
-        << std::endl
-        << "Options:" << std::endl
-        << "    -h  | --help        Print this help" << std::endl
-        << "    -W  | --width       Width of the window" << std::endl
-        << "    -H  | --height      Height of the window" << std::endl
-        << "    -C  | --config      Configuration directory (default: '~/.local/share/hasp' or 'AppData\\hasp\\hasp')"
-        << std::endl
-        << std::endl;
+    std::cout << "\n"
+              << progName << " " << version << " [options]" << std::endl
+              << std::endl
+              << "Options:" << std::endl
+              << "    -h  | --help        Print this help" << std::endl
+              << "    -W  | --width       Width of the window" << std::endl
+              << "    -H  | --height      Height of the window" << std::endl
+              << "    -C  | --config      Configuration directory" << std::endl
+#if defined(WINDOWS)
+              << "                        (default: 'AppData\\hasp\\hasp')" << std::endl
+#elif defined(POSIX)
+              << "                        (default: '~/.local/share/hasp/hasp')" << std::endl
+#endif
+              << std::endl;
     fflush(stdout);
 }
 

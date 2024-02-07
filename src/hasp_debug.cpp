@@ -29,6 +29,7 @@
 
 #if defined(POSIX)
 #include <unistd.h>
+#include <linux/limits.h>
 #define cwd getcwd
 #endif
 
