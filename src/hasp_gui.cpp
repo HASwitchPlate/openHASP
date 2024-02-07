@@ -309,7 +309,7 @@ void guiSetup()
     static lv_indev_drv_t indev_drv;
     lv_indev_drv_init(&indev_drv);
     indev_drv.type = LV_INDEV_TYPE_POINTER;
-#if USE_MONITOR && (defined(WINDOWS) || defined(POSIX))
+#if USE_MONITOR && HASP_TARGET_PC
     indev_drv.read_cb = mouse_read;
 #else
     indev_drv.read_cb = gui_touch_read;
@@ -345,7 +345,7 @@ void guiSetup()
     gui_hide_pointer(false);
     lv_indev_set_cursor(mouse_indev, cursor); /*Connect the image  object to the driver*/
 
-#if !(defined(WINDOWS) || defined(POSIX))
+#if HASP_TARGET_ARDUINO
     // drv_touch_init(gui_settings.rotation); // Touch driver
     haspTouch.init(tft_width, tft_height);
     haspTouch.set_calibration(gui_settings.cal_data);
@@ -386,7 +386,7 @@ IRAM_ATTR void guiLoop(void)
     //  tick.update();
 #endif
 
-#if !(defined(WINDOWS) || defined(POSIX))
+#if HASP_TARGET_ARDUINO
     // haspTouch.loop();
 #endif
 }

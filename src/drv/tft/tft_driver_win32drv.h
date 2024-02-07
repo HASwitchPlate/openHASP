@@ -6,7 +6,7 @@
 
 #include "tft_driver.h"
 
-#if USE_WIN32DRV && (defined(WINDOWS) || defined(POSIX))
+#if USE_WIN32DRV && HASP_TARGET_PC
 // #warning Building H driver WIN32DRV
 
 #include "lvgl.h"
@@ -39,6 +39,6 @@ class TftWin32Drv : BaseTft {
 using dev::TftWin32Drv;
 extern dev::TftWin32Drv haspTft;
 
-#endif // defined(WINDOWS) || defined(POSIX)
+#endif // HASP_TARGET_PC
 
-#endif // HASP_SDL2_DRIVER_H
+#endif // HASP_WIN32DRV_DRIVER_H

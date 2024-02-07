@@ -17,7 +17,7 @@
 
 #include "lang/lang.h"
 
-#if(!defined(WINDOWS)) && (!defined(POSIX))
+#if HASP_TARGET_ARDUINO
 /* ===== Default Event Processors ===== */
 void debugSetup(JsonObject settings);
 

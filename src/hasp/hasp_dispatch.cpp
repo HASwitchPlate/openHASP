@@ -16,7 +16,7 @@
 #include "../hasp_debug.h"
 #include "hasp_gui.h" // for screenshot
 
-#if defined(WINDOWS) || defined(POSIX)
+#if HASP_TARGET_PC
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -1113,7 +1113,7 @@ void dispatch_reboot(bool saveConfig)
     LOG_VERBOSE(TAG_MSGR, F("-------------------------------------"));
     LOG_TRACE(TAG_MSGR, F(D_DISPATCH_REBOOT));
 
-#if defined(WINDOWS) || defined(POSIX)
+#if HASP_TARGET_PC
     fflush(stdout);
 #else
     Serial.flush();
@@ -1217,7 +1217,7 @@ void dispatch_send_discovery(const char*, const char*, uint8_t source)
 #if HASP_USE_HTTP > 0
     network_get_ipaddress(buffer, sizeof(buffer));
     doc[F("uri")] = String(F("http://")) + String(buffer);
-#elif defined(WINDOWS) || defined(POSIX)
+#elif HASP_TARGET_PC
     doc[F("uri")] = "http://google.pt";
 #endif
 

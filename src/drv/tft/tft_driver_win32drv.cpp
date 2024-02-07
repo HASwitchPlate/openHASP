@@ -1,7 +1,7 @@
 /* MIT License - Copyright (c) 2019-2022 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
-#if USE_WIN32DRV && (defined(WINDOWS) || defined(POSIX))
+#if USE_WIN32DRV && HASP_TARGET_PC
 
 #include "hasplib.h"
 #include "lvgl.h"

@@ -99,7 +99,7 @@ static inline void debug_flush()
     HASP_SERIAL.flush();
 #endif
 
-#if defined(WINDOWS) || defined(POSIX)
+#if HASP_TARGET_PC
     fflush(stdout);
 #endif
 }
@@ -116,7 +116,7 @@ void debugEverySecond()
 void debugStart(void)
 {
 
-#if defined(WINDOWS) || defined(POSIX)
+#if HASP_TARGET_PC
     debug_newline();
     debugPrintHaspHeader(NULL);
     debug_newline();

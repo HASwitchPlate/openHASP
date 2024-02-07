@@ -227,7 +227,7 @@ typedef void* lv_fs_drv_user_data_t;
 //#  define LV_FS_IF_SPIFFS   '\0'  // no internal esp Flash
 #endif
 #endif  /*LV_USE_FS_IF*/
-#if !(defined(WINDOWS) || defined(POSIX))
+#if HASP_TARGET_ARDUINO
 #define LV_FS_PC_PATH "/littlefs"
 #endif
 

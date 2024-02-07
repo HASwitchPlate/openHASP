@@ -77,10 +77,10 @@ class BaseTft {
 #elif defined(STM32F7)
 #warning Building for STM32F7xx Tfts
 #include "tft_driver_tftespi.h"
-#elif USE_MONITOR && (defined(WINDOWS) || defined(POSIX))
+#elif USE_MONITOR && HASP_TARGET_PC
 // #warning Building for SDL2
 #include "tft_driver_sdl2.h"
-#elif USE_WIN32DRV && (defined(WINDOWS) || defined(POSIX))
+#elif USE_WIN32DRV && HASP_TARGET_PC
 // #warning Building for Win32Drv
 #include "tft_driver_win32drv.h"
 #else

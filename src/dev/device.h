@@ -8,7 +8,7 @@
 #include "Arduino.h"
 #endif
 
-#if defined(WINDOWS) || defined(POSIX)
+#if HASP_TARGET_PC
 #include <cstdint>
 #endif
 #if defined(POSIX)

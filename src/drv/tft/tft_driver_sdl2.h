@@ -6,7 +6,7 @@
 
 #include "tft_driver.h"
 
-#if USE_MONITOR && (defined(WINDOWS) || defined(POSIX))
+#if USE_MONITOR && HASP_TARGET_PC
 // #warning Building H driver TFT SDL2
 
 #include "lvgl.h"
@@ -40,6 +40,6 @@ class TftSdl : BaseTft {
 using dev::TftSdl;
 extern dev::TftSdl haspTft;
 
-#endif // defined(WINDOWS) || defined(POSIX)
+#endif // HASP_TARGET_PC
 
 #endif // HASP_SDL2_DRIVER_H
