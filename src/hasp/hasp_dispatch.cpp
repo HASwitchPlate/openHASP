@@ -460,10 +460,12 @@ void dispatch_config(const char* topic, const char* payload, uint8_t source)
     }
 
     if(strcasecmp_P(topic, PSTR("debug")) == 0) {
+#if HASP_TARGET_ARDUINO
         if(update)
             debugSetConfig(settings);
         else
             debugGetConfig(settings);
+#endif
     }
 
     else if(strcasecmp_P(topic, PSTR("gui")) == 0) {
@@ -734,7 +736,7 @@ void dispatch_parse_jsonl(std::istream& stream, uint8_t& saved_page_id)
 void dispatch_parse_jsonl(const char*, const char* payload, uint8_t source)
 {
     if(source != TAG_MQTT) saved_jsonl_page = haspPages.get();
-#if HASP_USE_CONFIG > 0
+#if HASP_USE_CONFIG > 0 && HASP_TARGET_ARDUINO
     CharStream stream((char*)payload);
     // stream.setTimeout(10);
     dispatch_parse_jsonl(stream, saved_jsonl_page);
@@ -1510,7 +1512,7 @@ void dispatchSetup()
     dispatch_add_command(PSTR("unzip"), filesystemUnzip);
 #endif
 #endif
-#if HASP_USE_CONFIG > 0
+#if HASP_USE_CONFIG > 0 && HASP_TARGET_ARDUINO
     dispatch_add_command(PSTR("setupap"), oobeFakeSetup);
 #endif
     /* WARNING: remember to expand the commands array when adding new commands */

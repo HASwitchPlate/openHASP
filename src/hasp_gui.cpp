@@ -207,21 +207,7 @@ static inline void gui_init_images()
 static inline void gui_init_filesystems()
 {
 #if LV_USE_FS_IF != 0
-    //_lv_fs_init(); // lvgl File System -- not needed, it done in lv_init() when LV_USE_FILESYSTEM is set
     LOG_VERBOSE(TAG_LVGL, F("Filesystem : " D_SETTING_ENABLED));
-    lv_fs_if_init(); // auxiliary file system drivers
-    // filesystem_list_path("L:/");
-
-    lv_fs_file_t f;
-    lv_fs_res_t res;
-    res = lv_fs_open(&f, "L:/config.json", LV_FS_MODE_RD);
-    if(res == LV_FS_RES_OK) {
-        LOG_VERBOSE(TAG_HASP, F("TEST Opening config.json OK"));
-        lv_fs_close(&f);
-    } else {
-        LOG_ERROR(TAG_HASP, F("TEST Opening config.json from FS failed %d"), res);
-    }
-
 #else
     LOG_VERBOSE(TAG_LVGL, F("Filesystem : " D_SETTING_DISABLED));
 #endif

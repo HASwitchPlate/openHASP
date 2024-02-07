@@ -112,14 +112,14 @@ void InitializeConsoleOutput()
 
 void setup()
 {
-    // Load Settings
-
-    // Init debug log
-    // debug_init();
-
     // Initialize lvgl environment
     lv_init();
     lv_log_register_print_cb(debugLvglLogEvent);
+
+    // Read & Apply User Configuration
+#if HASP_USE_CONFIG > 0
+    configSetup();
+#endif
 
     haspDevice.init();      // hardware setup
     haspDevice.show_info(); // debug info

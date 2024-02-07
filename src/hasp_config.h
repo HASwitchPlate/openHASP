@@ -25,13 +25,15 @@ void configOutput(const JsonObject& settings, uint8_t tag);
 bool configClearEeprom(void);
 
 /* ===== Getter and Setter Functions ===== */
+#if HASP_TARGET_ARDUINO
 bool configSet(bool& value, const JsonVariant& setting, const __FlashStringHelper* fstr_name);
 bool configSet(int8_t& value, const JsonVariant& setting, const __FlashStringHelper* fstr_name);
 bool configSet(uint8_t& value, const JsonVariant& setting, const __FlashStringHelper* fstr_name);
 bool configSet(uint16_t& value, const JsonVariant& setting, const __FlashStringHelper* fstr_name);
 bool configSet(int32_t& value, const JsonVariant& setting, const __FlashStringHelper* fstr_name);
 bool configSet(lv_color_t& value, const JsonVariant& setting, const __FlashStringHelper* fstr_name);
-bool configSet(char *value, size_t size, const JsonVariant& setting, const __FlashStringHelper* fstr_name);
+bool configSet(char* value, size_t size, const JsonVariant& setting, const __FlashStringHelper* fstr_name);
+#endif
 bool configSet(bool& value, const JsonVariant& setting, const char* fstr_name);
 bool configSet(int8_t& value, const JsonVariant& setting, const char* fstr_name);
 bool configSet(uint8_t& value, const JsonVariant& setting, const char* fstr_name);
@@ -41,8 +43,10 @@ bool configSet(lv_color_t& value, const JsonVariant& setting, const char* fstr_n
 void configMaskPasswords(JsonDocument& settings);
 
 /* ===== Read/Write Configuration ===== */
+#if HASP_TARGET_ARDUINO
 void configSetConfig(JsonObject& settings);
 void configGetConfig(JsonDocument& settings);
+#endif
 
 /* json keys used in the configfile */
 const char FP_CONFIG_STARTPAGE[] PROGMEM       = "startpage";

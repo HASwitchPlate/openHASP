@@ -214,7 +214,12 @@
 /* Workarounds for PC build */
 #if HASP_TARGET_PC
 #ifndef __FlashStringHelper
-#define __FlashStringHelper char
+typedef char __FlashStringHelper;
+#endif
+
+#if defined(__cplusplus) && !defined(String)
+#include <iostream>
+using String = std::string;
 #endif
 
 #ifndef F
