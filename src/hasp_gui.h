@@ -60,6 +60,11 @@ uint32_t guiScreenshotEtag();
 void gui_flush_cb(lv_disp_drv_t* disp, const lv_area_t* area, lv_color_t* color_p);
 void gui_antiburn_cb(lv_disp_drv_t* disp, const lv_area_t* area, lv_color_t* color_p);
 
+/* ===== Main LVGL Task ===== */
+#if HASP_USE_LVGL_TASK == 1
+void gui_task(void* args);
+#endif
+
 /* ===== Locks ===== */
 #ifdef ESP32
 IRAM_ATTR bool gui_acquire(TickType_t timeout);

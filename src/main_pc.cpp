@@ -189,8 +189,7 @@ int main(int argc, char* argv[])
         loop();
     }
 #elif USE_WIN32DRV
-    extern bool lv_win32_quit_signal;
-    while(!lv_win32_quit_signal) {
+    while(haspDevice.pc_is_running) {
         loop();
     }
 #endif

@@ -382,23 +382,34 @@ void guiEverySecond(void)
     // nothing
 }
 
-#if defined(ESP32) && defined(HASP_USE_ESP_MQTT)
-
 #if HASP_USE_LVGL_TASK == 1
-static void gui_task(void* args)
+void gui_task(void* args)
 {
     LOG_TRACE(TAG_GUI, "Start to run LVGL");
-    while(1) {
+    while(haspDevice.pc_is_running) {
+        // no idea what MQTT has to do with LVGL - the #if is copied from the code below
+#if defined(ESP32) && defined(HASP_USE_ESP_MQTT)
         /* Try to take the semaphore, call lvgl related function on success */
-        // if(pdTRUE == xSemaphoreTake(xGuiSemaphore, pdMS_TO_TICKS(10))) {
         if(pdTRUE == xSemaphoreTake(xGuiSemaphore, portMAX_DELAY)) {
             lv_task_handler();
             xSemaphoreGive(xGuiSemaphore);
             vTaskDelay(pdMS_TO_TICKS(5));
         }
+#else
+        // optimize lv_task_handler() by actually using the returned delay value
+        auto time_start     = millis();
+        uint32_t sleep_time = lv_task_handler();
+        delay(sleep_time);
+        auto time_end = millis();
+        lv_tick_inc(time_end - time_start);
+#endif
     }
 }
+#endif // HASP_USE_LVGL_TASK
 
+#if defined(ESP32) && defined(HASP_USE_ESP_MQTT)
+
+#if HASP_USE_LVGL_TASK == 1
 esp_err_t gui_setup_lvgl_task()
 {
 #if CONFIG_FREERTOS_UNICORE == 0
