@@ -123,7 +123,7 @@
 #endif
 
 #ifndef HASP_USE_CONSOLE
-#define HASP_USE_CONSOLE 1
+#define HASP_USE_CONSOLE HASP_TARGET_ARDUINO
 #endif
 
 /* Filesystem */

@@ -26,27 +26,19 @@
 
 #include "hasplib.h"
 
-// #include "app_hal.h"
 #if USE_MONITOR
 #include "display/monitor.h"
 #endif
 
 #include "hasp_debug.h"
-#include "hasp_gui.h"
 
-#include "dev/device.h"
-
-bool isConnected;
-
-uint8_t mainLoopCounter        = 0;
-unsigned long mainLastLoopTime = 0;
-
-#ifdef HASP_USE_STAT_COUNTER
-uint16_t statLoopCounter = 0; // measures the average looptime
-#endif
-
+// hasp_gui.cpp
 extern uint16_t tft_width;
 extern uint16_t tft_height;
+
+// main.cpp
+extern void setup();
+extern void loop();
 
 #if defined(WINDOWS)
 // https://gist.github.com/kingseva/a918ec66079a9475f19642ec31276a21
@@ -109,106 +101,6 @@ void InitializeConsoleOutput()
     BindStdHandlesToConsole();
 }
 #endif
-
-void setup()
-{
-    // Initialize lvgl environment
-    lv_init();
-    lv_log_register_print_cb(debugLvglLogEvent);
-
-    // Read & Apply User Configuration
-#if HASP_USE_CONFIG > 0
-    configSetup();
-#endif
-
-    haspDevice.init(); // hardware setup
-    // hal_setup();
-    guiSetup();
-
-    dispatchSetup(); // for hasp and oobe
-    haspSetup();
-
-#if HASP_USE_MQTT > 0
-    mqttSetup(); // Hasp must be running
-    mqttStart();
-#endif
-
-#if HASP_USE_GPIO > 0
-    gpioSetup();
-#endif
-
-#if defined(HASP_USE_CUSTOM)
-    custom_setup();
-#endif
-
-    mainLastLoopTime = millis(); // - 1000; // reset loop counter
-    // delay(250);
-}
-
-void loop()
-{
-    haspLoop();
-#if HASP_USE_MQTT
-    mqttLoop();
-#endif
-
-    //    debugLoop(); // Console
-    haspDevice.loop();
-    guiLoop();
-
-#if HASP_USE_GPIO > 0
-    gpioLoop();
-#endif
-
-#if defined(HASP_USE_CUSTOM)
-    custom_loop();
-#endif
-
-#ifdef HASP_USE_STAT_COUNTER
-    statLoopCounter++; // measures the average looptime
-#endif
-
-    /* Timer Loop */
-    if(millis() - mainLastLoopTime >= 1000) {
-        /* Runs Every Second */
-        haspEverySecond();     // sleep timer
-        dispatchEverySecond(); // sleep timer
-
-#if HASP_USE_ARDUINOOTA > 0
-        otaEverySecond(); // progressbar
-#endif
-
-#if defined(HASP_USE_CUSTOM)
-        custom_every_second();
-#endif
-
-        /* Runs Every 5 Seconds */
-        if(mainLoopCounter == 0 || mainLoopCounter == 5) {
-
-            haspDevice.loop_5s();
-#if HASP_USE_GPIO > 0
-            gpioEvery5Seconds();
-#endif
-
-#if HASP_USE_MQTT
-            mqttEvery5Seconds(true);
-#endif
-
-#if defined(HASP_USE_CUSTOM)
-            custom_every_5seconds();
-#endif
-        }
-
-        /* Reset loop counter every 10 seconds */
-        if(mainLoopCounter >= 9) {
-            mainLoopCounter = 0;
-        } else {
-            mainLoopCounter++;
-        }
-        mainLastLoopTime += 1000;
-    }
-    // delay(6);
-}
 
 void usage(const char* progName, const char* version)
 {
