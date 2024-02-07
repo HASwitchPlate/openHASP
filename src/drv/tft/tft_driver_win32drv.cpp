@@ -68,13 +68,7 @@ void TftWin32Drv::show_info()
 {
     splashscreen();
 
-    unsigned long version = GetVersion();
-    unsigned long major   = LOBYTE(LOWORD(version));
-    unsigned long minor   = HIBYTE(LOWORD(version));
-    unsigned long build   = 0;
-    if(version < 0x80000000) build = HIWORD(version);
-    LOG_VERBOSE(TAG_TFT, F("Driver         : Win32Drv"));
-    LOG_VERBOSE(TAG_TFT, F("Windows Version: %d.%d.%d"), major, minor, build);
+    LOG_VERBOSE(TAG_TFT, F("Driver     : Win32Drv"));
 }
 
 void TftWin32Drv::splashscreen()

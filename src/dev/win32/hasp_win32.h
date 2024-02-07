@@ -43,7 +43,7 @@ class Win32Device : public BaseDevice {
         if(dwVersion < 0x80000000) dwBuild = (DWORD)(HIWORD(dwVersion));
 
         char version[128];
-        snprintf(version, sizeof(version), "Windows %d.%d-%d", dwMajorVersion, dwMinorVersion, dwBuild);
+        snprintf(version, sizeof(version), "Windows %d.%d.%d", dwMajorVersion, dwMinorVersion, dwBuild);
         _core_version = version;
 
         // _backlight_pin   = -1;

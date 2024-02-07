@@ -121,23 +121,19 @@ void setup()
     configSetup();
 #endif
 
-    haspDevice.init();      // hardware setup
-    haspDevice.show_info(); // debug info
+    haspDevice.init(); // hardware setup
     // hal_setup();
     guiSetup();
 
-    LOG_DEBUG(TAG_MAIN, "%s %d", __FILE__, __LINE__);
     dispatchSetup(); // for hasp and oobe
     haspSetup();
 
 #if HASP_USE_MQTT > 0
-    LOG_DEBUG(TAG_MAIN, "%s %d", __FILE__, __LINE__);
     mqttSetup(); // Hasp must be running
     mqttStart();
 #endif
 
 #if HASP_USE_GPIO > 0
-    LOG_DEBUG(TAG_MAIN, "%s %d", __FILE__, __LINE__);
     gpioSetup();
 #endif
 
@@ -146,7 +142,6 @@ void setup()
 #endif
 
     mainLastLoopTime = millis(); // - 1000; // reset loop counter
-    LOG_DEBUG(TAG_MAIN, "%s %d", __FILE__, __LINE__);
     // delay(250);
 }
 
@@ -191,7 +186,9 @@ void loop()
         if(mainLoopCounter == 0 || mainLoopCounter == 5) {
 
             haspDevice.loop_5s();
+#if HASP_USE_GPIO > 0
             gpioEvery5Seconds();
+#endif
 
 #if HASP_USE_MQTT
             mqttEvery5Seconds(true);
@@ -215,175 +212,86 @@ void loop()
 
 void usage(const char* progName, const char* version)
 {
-    std::cout << "\n\n"
-              << progName << " " << version << " [options]" << std::endl
-              << std::endl
-              << "Options:" << std::endl
-              << "    -?  | --help        Print this help" << std::endl
-              << "    -w  | --width       Width of the window" << std::endl
-              << "    -h  | --height      Height of the window" << std::endl
-              << "    --mqttname          MQTT device name topic (default: computer hostname)" << std::endl
-              << "    --mqtthost          MQTT broker hostname or IP address" << std::endl
-              << "    --mqttport          MQTT broker port (default: 1883)" << std::endl
-              << "    --mqttuser          MQTT username" << std::endl
-              << "    --mqttpass          MQTT password" << std::endl
-              << "    --mqttgroup         MQTT groupname (default: plates)" << std::endl
-              << std::endl
-              //   << "    -t | --topic       Base topic of the mqtt messages (default: hasp)" << std::endl
-              //   << std::endl
-              //   << "    -f | --fullscreen  Open the application fullscreen" << std::endl
-              //   << "    -v | --verbose     Verbosity level" << std::endl
-              << std::endl;
+    std::cout
+        << "\n"
+        << progName << " " << version << " [options]" << std::endl
+        << std::endl
+        << "Options:" << std::endl
+        << "    -h  | --help        Print this help" << std::endl
+        << "    -W  | --width       Width of the window" << std::endl
+        << "    -H  | --height      Height of the window" << std::endl
+        << "    -C  | --config      Configuration directory (default: '~/.local/share/hasp' or 'AppData\\hasp\\hasp')"
+        << std::endl
+        << std::endl;
     fflush(stdout);
-#if defined(WINDOWS)
-    static const char s[] = "\n";
-    DWORD slen            = lstrlen(s);
-    WriteConsoleA(GetStdHandle(STD_OUTPUT_HANDLE), s, slen, &slen, NULL);
-#endif
 }
 
 int main(int argc, char* argv[])
 {
-    bool showhelp = false;
-    int count;
+    bool showhelp         = false;
+    bool console          = true;
+    char config[PATH_MAX] = {'\0'};
 
 #if defined(WINDOWS)
     InitializeConsoleOutput();
     SetConsoleCP(65001); // 65001 = UTF-8
-    static const char s[] = "tränenüberströmt™\n";
-    DWORD slen            = lstrlen(s);
-    WriteConsoleA(GetStdHandle(STD_OUTPUT_HANDLE), s, slen, &slen, NULL);
-
-    HANDLE std_out = GetStdHandle(STD_OUTPUT_HANDLE);
-    if(std_out == INVALID_HANDLE_VALUE) {
-        return 66;
-    }
-    if(!WriteConsole(std_out, "Hello World!\n", 13, NULL, NULL)) {
-        return 67;
-    }
 #endif
 
-    char buf[4096]; // never know how much is needed
-    std::cout << "CWD: " << cwd(buf, sizeof buf) << std::endl;
-#if USE_MONITOR
-    SDL_Init(0); // Needs to be initialized for GetPerfPath
-    cd(SDL_GetPrefPath("hasp", "hasp"));
-    SDL_Quit(); // We'll properly init later
-#elif USE_WIN32DRV
-    if(SUCCEEDED(SHGetFolderPath(NULL, CSIDL_APPDATA | CSIDL_FLAG_CREATE, NULL, 0, buf))) {
-        PathAppendA(buf, "hasp");
-        PathAppendA(buf, "hasp");
-        cd(buf);
-    }
-#endif
-    std::cout << "CWD changed to: " << cwd(buf, sizeof buf) << std::endl;
-
-    // Change to preferences dir
-    std::cout << "\nCommand-line arguments:\n";
-    for(count = 0; count < argc; count++)
-        std::cout << "  argv[" << count << "]   " << argv[count] << std::endl << std::flush;
-
-    StaticJsonDocument<1024> settings;
-
-    for(count = 0; count < argc; count++) {
-        if(argv[count][0] == '-') {
-
-            if(strncmp(argv[count], "--help", 6) == 0 || strncmp(argv[count], "-?", 2) == 0) {
+    for(int arg = 1; arg < argc; arg++) {
+        if(strncmp(argv[arg], "--help", 6) == 0 || strncmp(argv[arg], "-h", 2) == 0) {
+            showhelp = true;
+        } else if(strncmp(argv[arg], "--width", 7) == 0 || strncmp(argv[arg], "-W", 2) == 0) {
+            if(arg + 1 < argc) {
+                int w = atoi(argv[arg + 1]);
+                if(w > 0) tft_width = w;
+                arg++;
+            } else {
+                std::cout << "Missing width value" << std::endl;
                 showhelp = true;
             }
-
-            if(strncmp(argv[count], "--width", 7) == 0 || strncmp(argv[count], "-w", 2) == 0) {
-                int w = atoi(argv[count + 1]);
-                if(w > 0) tft_width = w;
-            }
-
-            if(strncmp(argv[count], "--height", 8) == 0 || strncmp(argv[count], "-h", 2) == 0) {
-                int h = atoi(argv[count + 1]);
+        } else if(strncmp(argv[arg], "--height", 8) == 0 || strncmp(argv[arg], "-H", 2) == 0) {
+            if(arg + 1 < argc) {
+                int h = atoi(argv[arg + 1]);
                 if(h > 0) tft_height = h;
+                arg++;
+            } else {
+                std::cout << "Missing height value" << std::endl;
+                showhelp = true;
             }
-
-            if(strncmp(argv[count], "--mqttname", 10) == 0 || strncmp(argv[count], "-n", 2) == 0) {
-                std::cout << "  argv[" << count << "]   " << argv[count] << std::endl << std::flush;
-                fflush(stdout);
-                if(count + 1 < argc) {
-                    haspDevice.set_hostname(argv[count + 1]);
-                    settings["mqtt"]["name"] = argv[count + 1];
-                } else {
-                    showhelp = true;
-                }
+        } else if(strncmp(argv[arg], "--config", 8) == 0 || strncmp(argv[arg], "-C", 2) == 0) {
+            if(arg + 1 < argc) {
+                strcpy(config, argv[arg + 1]);
+                arg++;
+            } else {
+                std::cout << "Missing config directory" << std::endl;
+                showhelp = true;
             }
-
-            if(strncmp(argv[count], "--mqtthost", 10) == 0) {
-                std::cout << "  argv[" << count << "]   " << argv[count] << std::endl << std::flush;
-                fflush(stdout);
-                if(count + 1 < argc) {
-                    settings["mqtt"]["host"] = argv[count + 1];
-                } else {
-                    showhelp = true;
-                }
-            }
-
-            if(strncmp(argv[count], "--mqttport", 10) == 0) {
-                std::cout << "  argv[" << count << "]   " << argv[count] << std::endl << std::flush;
-                fflush(stdout);
-                if(count + 1 < argc) {
-                    settings["mqtt"]["port"] = atoi(argv[count + 1]);
-                } else {
-                    showhelp = true;
-                }
-            }
-
-            if(strncmp(argv[count], "--mqttuser", 10) == 0) {
-                std::cout << "  argv[" << count << "]   " << argv[count] << std::endl << std::flush;
-                fflush(stdout);
-                if(count + 1 < argc) {
-                    settings["mqtt"]["user"] = argv[count + 1];
-                } else {
-                    showhelp = true;
-                }
-            }
-
-            if(strncmp(argv[count], "--mqttpass", 10) == 0) {
-                std::cout << "  argv[" << count << "]   " << argv[count] << std::endl << std::flush;
-                fflush(stdout);
-                if(count + 1 < argc) {
-                    settings["mqtt"]["pass"] = argv[count + 1];
-                } else {
-                    showhelp = true;
-                }
-            }
+        } else {
+            std::cout << "Unrecognized command line parameter: " << argv[arg] << std::endl;
+            showhelp = true;
         }
     }
 
     if(showhelp) {
         usage("openHASP", haspDevice.get_version());
-
-#if defined(WINDOWS)
-        WriteConsole(std_out, "bye\n\n", 3, NULL, NULL);
-        std::cout << std::endl << std::flush;
-        fflush(stdout);
-        FreeConsole();
-        exit(0);
-#endif
-        return 0;
+        goto end;
     }
 
-    char buffer[2048];
-    serializeJson(settings, buffer, sizeof(buffer));
-    std::cout << buffer << std::endl << std::flush;
-    fflush(stdout);
-#if HASP_USE_MQTT
-    mqttSetConfig(settings["mqtt"]);
+    if(config[0] == '\0') {
+#if USE_MONITOR
+        SDL_Init(0); // Needs to be initialized for GetPerfPath
+        strcpy(config, SDL_GetPrefPath("hasp", "hasp"));
+        SDL_Quit(); // We'll properly init later
+#elif USE_WIN32DRV
+        if(SUCCEEDED(SHGetFolderPath(NULL, CSIDL_APPDATA | CSIDL_FLAG_CREATE, NULL, 0, config))) {
+            PathAppendA(config, "hasp");
+            PathAppendA(config, "hasp");
+        }
 #endif
-    // printf("%s %d\n", __FILE__, __LINE__);
-    // fflush(stdout);
-
-    debugPrintHaspHeader(stdout);
-    LOG_INFO(TAG_MAIN, "resolution %d x %d", tft_width, tft_height);
-    LOG_INFO(TAG_MAIN, "pre setup");
+    }
+    cd(config);
 
     setup();
-
 #if USE_MONITOR
     while(1) {
         loop();
@@ -395,14 +303,13 @@ int main(int argc, char* argv[])
     }
 #endif
 
+end:
 #if defined(WINDOWS)
-    WriteConsole(std_out, "bye\n\n", 3, NULL, NULL);
     std::cout << std::endl << std::flush;
     fflush(stdout);
     FreeConsole();
     exit(0);
 #endif
-
     return 0;
 }
 

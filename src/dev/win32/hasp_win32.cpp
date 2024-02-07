@@ -43,6 +43,7 @@ void Win32Device::show_info()
 
     LOG_VERBOSE(0, F("Processor  : %s"), vendor);
     LOG_VERBOSE(0, F("CPU freq.  : %i MHz"), get_cpu_frequency());
+    LOG_VERBOSE(0, F("OS Version : %s"), get_core_version());
 }
 
 const char* Win32Device::get_hostname()
