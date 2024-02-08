@@ -294,7 +294,6 @@ void guiSetup()
     // register a touchscreen/mouse driver - only on real hardware and SDL2
     // Win32 and POSIX handles input drivers in tft_driver
 #if TOUCH_DRIVER != -1 || USE_MONITOR
-
     /* Initialize the touch pad */
     static lv_indev_drv_t indev_drv;
     lv_indev_drv_init(&indev_drv);
@@ -306,6 +305,13 @@ void guiSetup()
 #endif
     lv_indev_t* mouse_indev  = lv_indev_drv_register(&indev_drv);
     mouse_indev->driver.type = LV_INDEV_TYPE_POINTER;
+#else
+    // find the first registered input device to add a cursor to
+    lv_indev_t* mouse_indev = NULL;
+    while((mouse_indev = lv_indev_get_next(mouse_indev))) {
+        if(mouse_indev->driver.type == LV_INDEV_TYPE_POINTER) break;
+    }
+#endif
 
     /*Set a cursor for the mouse*/
     LOG_TRACE(TAG_GUI, F("Initialize Cursor"));
@@ -326,16 +332,16 @@ void guiSetup()
     cursor = lv_img_create(mouse_layer, NULL);  /*Create an image object for the cursor */
     lv_img_set_src(cursor, &mouse_cursor_icon); /*Set the image source*/
 #else
-    cursor            = lv_obj_create(mouse_layer, NULL); // show cursor object on every page
+    cursor = lv_obj_create(mouse_layer, NULL); // show cursor object on every page
     lv_obj_set_size(cursor, 9, 9);
     lv_obj_set_style_local_radius(cursor, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_RADIUS_CIRCLE);
     lv_obj_set_style_local_bg_color(cursor, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_RED);
     lv_obj_set_style_local_bg_opa(cursor, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_COVER);
 #endif
     gui_hide_pointer(false);
-    lv_indev_set_cursor(mouse_indev, cursor); /*Connect the image  object to the driver*/
-
-#endif // TOUCH_DRIVER != -1 || USE_MONITOR
+    if(mouse_indev != NULL) {
+        lv_indev_set_cursor(mouse_indev, cursor); /*Connect the image  object to the driver*/
+    }
 
 #if HASP_TARGET_ARDUINO
     // drv_touch_init(gui_settings.rotation); // Touch driver

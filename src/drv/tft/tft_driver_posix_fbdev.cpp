@@ -86,6 +86,9 @@ void TftFbdevDrv::init(int32_t w, int h)
     fbdev_init();
     fbdev_get_sizes((uint32_t*)&_width, (uint32_t*)&_height);
 
+    // show the splashscreen early
+    splashscreen();
+
     tft_width  = _width;
     tft_height = _height;
 
@@ -131,12 +134,16 @@ void TftFbdevDrv::init(int32_t w, int h)
             }
             // check which types are supported; judge LVGL device type
             lv_indev_type_t dev_type;
-            if(ev_type[EV_ABS / 8] & (1 << (EV_ABS % 8))) {
-                dev_type = LV_INDEV_TYPE_POINTER;
-            } else if(ev_type[EV_REL / 8] & (1 << (EV_REL % 8))) {
-                dev_type = LV_INDEV_TYPE_POINTER;
+            const char* dev_type_name;
+            if(ev_type[EV_REL / 8] & (1 << (EV_REL % 8))) {
+                dev_type      = LV_INDEV_TYPE_POINTER;
+                dev_type_name = "EV_REL";
+            } else if(ev_type[EV_ABS / 8] & (1 << (EV_ABS % 8))) {
+                dev_type      = LV_INDEV_TYPE_POINTER;
+                dev_type_name = "EV_ABS";
             } else if(ev_type[EV_KEY / 8] & (1 << (EV_KEY % 8))) {
-                dev_type = LV_INDEV_TYPE_KEYPAD;
+                dev_type      = LV_INDEV_TYPE_KEYPAD;
+                dev_type_name = "EV_KEY";
             } else {
                 close(fd);
                 continue;
@@ -144,17 +151,26 @@ void TftFbdevDrv::init(int32_t w, int h)
             // register the device
             switch(dev_type) {
                 case LV_INDEV_TYPE_POINTER:
-                    LOG_VERBOSE(TAG_TFT, F("Pointer    : %s (%s)"), dev_path, dev_name);
+                    LOG_VERBOSE(TAG_TFT, F("Pointer    : %s %s (%s)"), dev_path, dev_type_name, dev_name);
                     break;
                 case LV_INDEV_TYPE_KEYPAD:
-                    LOG_VERBOSE(TAG_TFT, F("Keypad     : %s (%s)"), dev_path, dev_name);
+                    LOG_VERBOSE(TAG_TFT, F("Keypad     : %s %s (%s)"), dev_path, dev_type_name, dev_name);
                     break;
                 default:
-                    LOG_VERBOSE(TAG_TFT, F("Input      : %s (%s)"), dev_path, dev_name);
+                    LOG_VERBOSE(TAG_TFT, F("Input      : %s %s (%s)"), dev_path, dev_type_name, dev_name);
                     break;
             }
-            evdev_register(dev_path, dev_type, NULL);
             close(fd);
+            // print verbose resolution info
+            lv_indev_t* indev;
+            if(!evdev_register(dev_path, dev_type, &indev) || indev == NULL) {
+                printf("Failed to register evdev\n");
+                continue;
+            }
+            evdev_data_t* user_data = (evdev_data_t*)indev->driver.user_data;
+            LOG_VERBOSE(TAG_TFT, F("Resolution : X=%d (%d..%d), Y=%d (%d..%d)"), user_data->x_max,
+                        user_data->x_absinfo.minimum, user_data->x_absinfo.maximum, user_data->y_max,
+                        user_data->y_absinfo.minimum, user_data->y_absinfo.maximum);
         }
         closedir(dir);
     }
