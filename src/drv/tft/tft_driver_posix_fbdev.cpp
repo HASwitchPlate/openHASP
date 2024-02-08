@@ -26,6 +26,14 @@
 #endif
 
 #include <unistd.h>
+#include <dirent.h>
+#include <fcntl.h>
+
+#if USE_BSD_EVDEV
+#include <dev/evdev/input.h>
+#else
+#include <linux/input.h>
+#endif
 
 extern uint16_t tft_width;
 extern uint16_t tft_height;
@@ -82,7 +90,74 @@ void TftFbdevDrv::init(int32_t w, int h)
     tft_height = _height;
 
 #if USE_EVDEV || USE_BSD_EVDEV
-    evdev_register("/dev/input/event2", LV_INDEV_TYPE_POINTER, NULL);
+    DIR* dir = opendir("/dev/input");
+    if(dir == NULL) {
+        perror("/dev/input opendir failed");
+    } else {
+        // iterate through /dev/input devices
+        struct dirent* dirent;
+        unsigned char ev_type[EV_MAX / 8 + 1];
+        while((dirent = readdir(dir)) != NULL) {
+            // make sure it's a block device matching /dev/input/event*
+            if(strncmp(dirent->d_name, "event", 5) != 0 || strlen(dirent->d_name) <= 5) continue;
+            if(dirent->d_type != DT_CHR) continue;
+            // get full path
+            char dev_path[64];
+            strcpy(dev_path, "/dev/input/");
+            strcat(dev_path, dirent->d_name);
+#if USE_BSD_EVDEV
+            // open the device
+            int fd = open(dev_path, O_RDONLY | O_NOCTTY);
+#else
+            int fd = open(dev_path, O_RDONLY | O_NOCTTY | O_NDELAY);
+#endif
+            if(fd == -1) {
+                perror("input open failed");
+                continue;
+            }
+            // read supported event types
+            memset(ev_type, 0, sizeof(ev_type));
+            if(ioctl(fd, EVIOCGBIT(0, sizeof(ev_type)), ev_type) < 0) {
+                perror("ioctl failed");
+                close(fd);
+                continue;
+            }
+            // read device name
+            char dev_name[256];
+            if(ioctl(fd, EVIOCGNAME(sizeof(dev_name)), dev_name) < 0) {
+                perror("ioctl failed");
+                close(fd);
+                continue;
+            }
+            // check which types are supported; judge LVGL device type
+            lv_indev_type_t dev_type;
+            if(ev_type[EV_ABS / 8] & (1 << (EV_ABS % 8))) {
+                dev_type = LV_INDEV_TYPE_POINTER;
+            } else if(ev_type[EV_REL / 8] & (1 << (EV_REL % 8))) {
+                dev_type = LV_INDEV_TYPE_POINTER;
+            } else if(ev_type[EV_KEY / 8] & (1 << (EV_KEY % 8))) {
+                dev_type = LV_INDEV_TYPE_KEYPAD;
+            } else {
+                close(fd);
+                continue;
+            }
+            // register the device
+            switch(dev_type) {
+                case LV_INDEV_TYPE_POINTER:
+                    LOG_VERBOSE(TAG_TFT, F("Pointer    : %s (%s)"), dev_path, dev_name);
+                    break;
+                case LV_INDEV_TYPE_KEYPAD:
+                    LOG_VERBOSE(TAG_TFT, F("Keypad     : %s (%s)"), dev_path, dev_name);
+                    break;
+                default:
+                    LOG_VERBOSE(TAG_TFT, F("Input      : %s (%s)"), dev_path, dev_name);
+                    break;
+            }
+            evdev_register(dev_path, dev_type, NULL);
+            close(fd);
+        }
+        closedir(dir);
+    }
 #endif
 
 #if HASP_USE_LVGL_TASK
@@ -105,7 +180,7 @@ void TftFbdevDrv::splashscreen()
     uint8_t bg[]       = logoBgColor;
     lv_color_t fgColor = lv_color_make(fg[0], fg[1], fg[2]);
     lv_color_t bgColor = lv_color_make(bg[0], bg[1], bg[2]);
-    // TODO show splashscreen
+    fbdev_splashscreen(logoImage, logoWidth, logoHeight, fgColor, bgColor);
 }
 void TftFbdevDrv::set_rotation(uint8_t rotation)
 {}
