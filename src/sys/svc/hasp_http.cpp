@@ -2357,7 +2357,7 @@ static void http_handle_wireguard()
 </div>
 <div class="row">
 <div class="col-25"><label for="host" v-t="'wg.host'"></label></div>
-<div class="col-75"><input type="text" id="host" maxlength="15" placeholder="Remote IP" v-model="config.wg.host" pattern="^((\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.){3}(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$"></div>
+<div class="col-75"><input type="text" id="host" maxlength="40" placeholder="Remote IP" v-model="config.wg.host"></div>
 </div>
 <div class="row">
 <div class="col-25"><label for="port" v-t="'wg.port'"></label></div>

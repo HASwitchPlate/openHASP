@@ -12,7 +12,7 @@
 
 char wg_ip[16] = WIREGUARD_IP;
 char wg_private_key[45] = WIREGUARD_PRIVATE_KEY;
-char wg_ep_ip[16] = WIREGUARD_EP_IP;
+char wg_ep_ip[40] = WIREGUARD_EP_IP;
 uint16_t wg_ep_port = WIREGUARD_EP_PORT;
 char wg_ep_public_key[45] = WIREGUARD_EP_PUBLIC_KEY;
 static WireGuard wg;
