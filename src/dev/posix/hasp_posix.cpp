@@ -25,6 +25,7 @@
 #include "display/fbdev.h"
 #endif
 
+#include <fstream>
 #include <unistd.h>
 
 // extern monitor_t monitor;
@@ -153,7 +154,31 @@ void PosixDevice::update_backlight()
 #if USE_MONITOR
     monitor_backlight(level);
 #elif USE_FBDEV
-        // set display backlight, if possible
+    // set display backlight, if possible
+    if(backlight_device != "") {
+        if(backlight_max == 0) {
+            std::ifstream f;
+            f.open("/sys/class/backlight/" + backlight_device + "/max_brightness");
+            if(!f.fail()) {
+                f >> backlight_max;
+                f.close();
+            } else {
+                perror("Max brightness read failed");
+            }
+        }
+
+        int brightness = map(level, 0, 255, 0, backlight_max);
+        LOG_VERBOSE(0, "Setting brightness to %d/255 (%d)", level, brightness);
+
+        std::ofstream f;
+        f.open("/sys/class/backlight/" + backlight_device + "/brightness");
+        if(!f.fail()) {
+            f << brightness;
+            f.close();
+        } else {
+            perror("Brightness write failed");
+        }
+    }
 #endif
 }
 

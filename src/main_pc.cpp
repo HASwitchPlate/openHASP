@@ -120,6 +120,10 @@ void usage(const char* progName, const char* version)
 #elif defined(POSIX)
               << "                        (default: '~/.local/share/hasp/hasp')" << std::endl
 #endif
+#if USE_FBDEV && defined(POSIX)
+              << "    -b  | --backlight   Backlight device name (in /sys/class/backlight/)" << std::endl
+              << "    -B  | --bl-max      Backlight brightness limit (default: max_brightness)" << std::endl
+#endif
               << std::endl;
     fflush(stdout);
 }
@@ -138,6 +142,25 @@ int main(int argc, char* argv[])
     for(int arg = 1; arg < argc; arg++) {
         if(strncmp(argv[arg], "--help", 6) == 0 || strncmp(argv[arg], "-h", 2) == 0) {
             showhelp = true;
+#if USE_FBDEV && defined(POSIX)
+        } else if(strncmp(argv[arg], "--backlight", 11) == 0 || strncmp(argv[arg], "-b", 2) == 0) {
+            if(arg + 1 < argc) {
+                haspDevice.backlight_device = argv[arg + 1];
+                arg++;
+            } else {
+                std::cout << "Missing device name" << std::endl;
+                showhelp = true;
+            }
+        } else if(strncmp(argv[arg], "--bl-max", 9) == 0 || strncmp(argv[arg], "-B", 2) == 0) {
+            if(arg + 1 < argc) {
+                int bl_max = atoi(argv[arg + 1]);
+                if(bl_max > 0) haspDevice.backlight_max = bl_max;
+                arg++;
+            } else {
+                std::cout << "Missing backlight level" << std::endl;
+                showhelp = true;
+            }
+#endif
         } else if(strncmp(argv[arg], "--width", 7) == 0 || strncmp(argv[arg], "-W", 2) == 0) {
             if(arg + 1 < argc) {
                 int w = atoi(argv[arg + 1]);

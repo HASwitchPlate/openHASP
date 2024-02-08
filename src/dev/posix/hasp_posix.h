@@ -56,6 +56,10 @@ class PosixDevice : public BaseDevice {
 
     bool is_system_pin(uint8_t pin) override;
 
+  public:
+    std::string backlight_device;
+    int backlight_max = 0;
+
   private:
     std::string _hostname;
     std::string _core_version;
