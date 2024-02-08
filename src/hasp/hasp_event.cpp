@@ -176,9 +176,9 @@ void event_timer_clock(lv_task_t* task)
     timeval curTime;
     int rslt = gettimeofday(&curTime, NULL);
     (void)rslt; // unused
-    time_t seconds     = curTime.tv_sec;
-    useconds_t tv_msec = curTime.tv_usec / 1000;
-    tm* timeinfo       = localtime(&seconds);
+    time_t seconds = curTime.tv_sec;
+    auto tv_msec   = curTime.tv_usec / 1000;
+    tm* timeinfo   = localtime(&seconds);
     lv_task_set_period(task, data->interval - tv_msec);
 
     char buffer[128] = {0};
@@ -835,7 +835,7 @@ void cpicker_event_handler(lv_obj_t* obj, lv_event_t event)
     if(!translate_event(obj, event, hasp_event_id) || event == LV_EVENT_VALUE_CHANGED) return;
 
     /* Get the new value */
-    lv_color_t color = lv_cpicker_get_color(obj);
+    lv_color_t color             = lv_cpicker_get_color(obj);
     lv_cpicker_color_mode_t mode = lv_cpicker_get_color_mode(obj);
 
     if(hasp_event_id == HASP_EVENT_CHANGED && last_color_sent.full == color.full) return; // same value as before
@@ -853,12 +853,16 @@ void cpicker_event_handler(lv_obj_t* obj, lv_event_t event)
 
         if(const char* tag = my_obj_get_tag(obj))
             snprintf_P(data, sizeof(data),
-                       PSTR("{\"event\":\"%s\",\"color\":\"#%02x%02x%02x\",\"r\":%d,\"g\":%d,\"b\":%d,\"h\":%d,\"s\":%d,\"v\":%d,\"tag\":%s}"),
-                       eventname, c32.ch.red, c32.ch.green, c32.ch.blue, c32.ch.red, c32.ch.green, c32.ch.blue, hsv.h, hsv.s, hsv.v, tag);
+                       PSTR("{\"event\":\"%s\",\"color\":\"#%02x%02x%02x\",\"r\":%d,\"g\":%d,\"b\":%d,\"h\":%d,\"s\":%"
+                            "d,\"v\":%d,\"tag\":%s}"),
+                       eventname, c32.ch.red, c32.ch.green, c32.ch.blue, c32.ch.red, c32.ch.green, c32.ch.blue, hsv.h,
+                       hsv.s, hsv.v, tag);
         else
             snprintf_P(data, sizeof(data),
-                       PSTR("{\"event\":\"%s\",\"color\":\"#%02x%02x%02x\",\"r\":%d,\"g\":%d,\"b\":%d,\"h\":%d,\"s\":%d,\"v\":%d}"), eventname,
-                       c32.ch.red, c32.ch.green, c32.ch.blue, c32.ch.red, c32.ch.green, c32.ch.blue, hsv.h, hsv.s, hsv.v);
+                       PSTR("{\"event\":\"%s\",\"color\":\"#%02x%02x%02x\",\"r\":%d,\"g\":%d,\"b\":%d,\"h\":%d,\"s\":%"
+                            "d,\"v\":%d}"),
+                       eventname, c32.ch.red, c32.ch.green, c32.ch.blue, c32.ch.red, c32.ch.green, c32.ch.blue, hsv.h,
+                       hsv.s, hsv.v);
     }
     event_send_object_data(obj, data);
 

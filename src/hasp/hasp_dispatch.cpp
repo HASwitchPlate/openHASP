@@ -1360,7 +1360,7 @@ void dispatch_idle_state(uint8_t state)
 {
     char topic[8];
     char buffer[8];
-    memcpy_P(topic, PSTR("idle"), 8);
+    memcpy_P(topic, PSTR("idle"), 5);
     hasp_get_sleep_payload(state, buffer);
     dispatch_state_subtopic(topic, buffer);
 }
