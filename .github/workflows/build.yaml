@@ -102,7 +102,7 @@ jobs:
       - name: Run PlatformIO
         run: pio run -e ${{ matrix.environment.env }}
       - name: Upload output file
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.environment.out }}
           path: build_output/firmware/*.bin

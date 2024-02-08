@@ -71,7 +71,7 @@ jobs:
     - name: Run PlatformIO
       run: pio run -e m5stack-core2
     - name: Upload output file
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: openHASP firmware.zip
         path: build_output/firmware/*.bin
