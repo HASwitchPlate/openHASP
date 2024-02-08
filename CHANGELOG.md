@@ -20,6 +20,7 @@
 - Firmware files include the bitmapped font sizes 12, 16, 24 and 32pt
 - Use embedded TrueType font for other font sizes (PSram highly recommended)
 - Add glyphs from Cyrillic, Latin-2, Greek and Viernamese character sets to default fonts
+- Add 12 new MDI icons
 
 ### Web UI
 - Update Web UI to petite-vue app
@@ -58,7 +59,7 @@
 - Add support for ESP32-S3 and ESP32-C3 devices
 - Deprecation of support for ESP32-S2 devices due to lack of sRAM
 
-Updated libraries to ArduinoJson 6.21.4, ArduinoStreamUtils 1.7.3, AceButton 1.10.1, TFT_eSPI 2.5.0, LovyanGFX 1.1.8 and SimpleFTPServer 2.1.5
+Updated libraries to ArduinoJson 6.21.5, ArduinoStreamUtils 1.8.0, AceButton 1.10.1, TFT_eSPI 2.5.34, LovyanGFX 1.1.8 and SimpleFTPServer 2.1.5
 
 
 ## v0.6.3
