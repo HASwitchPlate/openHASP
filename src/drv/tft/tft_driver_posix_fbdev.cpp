@@ -11,6 +11,10 @@
 #include "drv/tft/tft_driver.h"
 #include "tft_driver_posix_fbdev.h"
 
+#if USE_EVDEV || USE_BSD_EVDEV
+#include "indev/evdev.h"
+#endif
+
 #include "dev/device.h"
 #include "hasp_debug.h"
 #include "hasp_gui.h"
@@ -22,6 +26,9 @@
 #endif
 
 #include <unistd.h>
+
+extern uint16_t tft_width;
+extern uint16_t tft_height;
 
 namespace dev {
 
@@ -71,6 +78,13 @@ void TftFbdevDrv::init(int32_t w, int h)
     fbdev_init();
     fbdev_get_sizes((uint32_t*)&_width, (uint32_t*)&_height);
 
+    tft_width  = _width;
+    tft_height = _height;
+
+#if USE_EVDEV || USE_BSD_EVDEV
+    evdev_register("/dev/input/event2", LV_INDEV_TYPE_POINTER, NULL);
+#endif
+
 #if HASP_USE_LVGL_TASK
 #error "fbdev LVGL task is not implemented"
 #else
@@ -99,7 +113,7 @@ void TftFbdevDrv::set_invert(bool invert)
 {}
 void TftFbdevDrv::flush_pixels(lv_disp_drv_t* disp, const lv_area_t* area, lv_color_t* color_p)
 {
-    fbdev_flush(disp, area, color_p);
+    lv_disp_flush_ready(disp);
 }
 bool TftFbdevDrv::is_driver_pin(uint8_t pin)
 {

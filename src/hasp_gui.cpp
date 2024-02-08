@@ -291,6 +291,10 @@ void guiSetup()
 #endif
     disp_drv.monitor_cb = gui_monitor_cb;
 
+    // register a touchscreen/mouse driver - only on real hardware and SDL2
+    // Win32 and POSIX handles input drivers in tft_driver
+#if TOUCH_DRIVER != -1 || USE_MONITOR
+
     /* Initialize the touch pad */
     static lv_indev_drv_t indev_drv;
     lv_indev_drv_init(&indev_drv);
@@ -330,6 +334,8 @@ void guiSetup()
 #endif
     gui_hide_pointer(false);
     lv_indev_set_cursor(mouse_indev, cursor); /*Connect the image  object to the driver*/
+
+#endif // TOUCH_DRIVER != -1 || USE_MONITOR
 
 #if HASP_TARGET_ARDUINO
     // drv_touch_init(gui_settings.rotation); // Touch driver
