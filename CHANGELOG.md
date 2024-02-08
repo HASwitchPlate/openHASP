@@ -59,7 +59,7 @@
 - Add support for ESP32-S3 and ESP32-C3 devices
 - Deprecation of support for ESP32-S2 devices due to lack of sRAM
 
-Updated libraries to ArduinoJson 6.21.5, ArduinoStreamUtils 1.8.0, AceButton 1.10.1, TFT_eSPI 2.5.34, LovyanGFX 1.1.8 and SimpleFTPServer 2.1.5
+Updated libraries to Arduino_GFX v1.4.4, ArduinoJson 6.21.5, ArduinoStreamUtils 1.8.0, AceButton 1.10.1, TFT_eSPI 2.5.34, LovyanGFX 1.1.12 and SimpleFTPServer 2.1.5
 
 
 ## v0.6.3
