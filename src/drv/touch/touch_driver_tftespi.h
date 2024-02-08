@@ -4,7 +4,7 @@
 #ifndef HASP_TFTESPI_TOUCH_DRIVER_H
 #define HASP_TFTESPI_TOUCH_DRIVER_H
 
-#ifdef ARDUINO && defined(USER_SETUP_LOADED)
+#if defined(ARDUINO) && defined(USER_SETUP_LOADED)
 #include <Arduino.h>
 
 #include "touch_driver.h" // base class
