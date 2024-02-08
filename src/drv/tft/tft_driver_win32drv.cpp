@@ -114,7 +114,7 @@ void TftWin32Drv::show_info()
 {
     splashscreen();
 
-    LOG_VERBOSE(TAG_TFT, F("Driver     : Win32Drv"));
+    LOG_VERBOSE(TAG_TFT, F("Driver     : %s"), get_tft_model());
 }
 
 void TftWin32Drv::splashscreen()

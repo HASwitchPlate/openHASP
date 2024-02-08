@@ -83,6 +83,9 @@ class BaseTft {
 #elif USE_WIN32DRV && HASP_TARGET_PC
 // #warning Building for Win32Drv
 #include "tft_driver_win32drv.h"
+#elif USE_FBDEV && HASP_TARGET_PC
+// #warning Building for POSIX fbdev
+#include "tft_driver_posix_fbdev.h"
 #else
 // #warning Building for Generic Tfts
 using dev::BaseTft;

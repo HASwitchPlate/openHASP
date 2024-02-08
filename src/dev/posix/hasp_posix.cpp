@@ -19,7 +19,13 @@
 #include "hasp_conf.h"
 #include "hasp_debug.h"
 
+#ifdef USE_MONITOR
 #include "display/monitor.h"
+#elif USE_FBDEV
+#include "display/fbdev.h"
+#endif
+
+#include <unistd.h>
 
 // extern monitor_t monitor;
 
@@ -35,12 +41,6 @@ PosixDevice::PosixDevice()
         _core_version = "unknown";
         _chip_model   = "unknown";
     } else {
-        //   LOG_VERBOSE(0,"Sysname:  %s", uts.sysname);
-        //   LOG_VERBOSE(0,"Nodename: %s", uts.nodename);
-        //   LOG_VERBOSE(0,"Release:  %s", uts.release);
-        //   LOG_VERBOSE(0,"Version:  %s", uts.version);
-        //   LOG_VERBOSE(0,"Machine:  %s", uts.machine);
-
         char version[256];
         snprintf(version, sizeof(version), "%s %s", uts.sysname, uts.release);
         _core_version = version;
@@ -69,8 +69,9 @@ void PosixDevice::show_info()
         LOG_VERBOSE(0, "Machine    : %s", uts.machine);
     }
 
-    LOG_VERBOSE(0, "Processor  : %s", "unknown");
-    LOG_VERBOSE(0, "CPU freq.  : %i MHz", 0);
+    LOG_VERBOSE(0, "Processor  : %s", get_chip_model());
+    LOG_VERBOSE(0, "CPU freq.  : %i MHz", get_cpu_frequency());
+    LOG_VERBOSE(0, "OS Version : %s", get_core_version());
 }
 
 const char* PosixDevice::get_hostname()
@@ -81,8 +82,11 @@ const char* PosixDevice::get_hostname()
 void PosixDevice::set_hostname(const char* hostname)
 {
     _hostname = hostname;
+#if USE_MONITOR
     monitor_title(hostname);
-    // SDL_SetWindowTitle(monitor.window, hostname);
+#elif USE_FBDEV
+    // fbdev doesn't really have a title bar
+#endif
 }
 
 const char* PosixDevice::get_core_version()
@@ -146,13 +150,11 @@ void PosixDevice::update_backlight()
 {
     uint8_t level = _backlight_power ? _backlight_level : 0;
     if(_backlight_invert) level = 255 - level;
+#if USE_MONITOR
     monitor_backlight(level);
-    // SDL_SetTextureColorMod(monitor.texture, level, level, level);
-    // window_update(&monitor);
-    // monitor.sdl_refr_qry = true;
-    // monitor_sdl_refr(NULL);
-    // const lv_area_t area = {1,1,0,0};
-    // monitor_flush(NULL,&area,NULL);
+#elif USE_FBDEV
+        // set display backlight, if possible
+#endif
 }
 
 size_t PosixDevice::get_free_max_block()
@@ -220,6 +222,18 @@ long PosixDevice::get_uptime()
 #endif
 
 } // namespace dev
+
+long PosixMillis()
+{
+    struct timespec spec;
+    clock_gettime(CLOCK_REALTIME, &spec);
+    return (spec.tv_sec) * 1000 + (spec.tv_nsec) / 1e6;
+}
+
+void msleep(unsigned long millis)
+{
+    usleep(millis * 1000);
+}
 
 dev::PosixDevice haspDevice;
 

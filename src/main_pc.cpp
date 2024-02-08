@@ -18,6 +18,8 @@
 #include <netdb.h>
 #include <unistd.h>
 #include <linux/limits.h>
+#include <sys/types.h>
+#include <pwd.h>
 #define cwd getcwd
 #define cd chdir
 #endif
@@ -178,25 +180,23 @@ int main(int argc, char* argv[])
         SDL_Init(0); // Needs to be initialized for GetPerfPath
         strcpy(config, SDL_GetPrefPath("hasp", "hasp"));
         SDL_Quit(); // We'll properly init later
-#elif USE_WIN32DRV
+#elif defined(WINDOWS)
         if(SUCCEEDED(SHGetFolderPath(NULL, CSIDL_APPDATA | CSIDL_FLAG_CREATE, NULL, 0, config))) {
             PathAppendA(config, "hasp");
             PathAppendA(config, "hasp");
         }
+#elif defined(POSIX)
+        struct passwd* pw = getpwuid(getuid());
+        strcpy(config, pw->pw_dir);
+        strcat(config, "/.local/share/hasp/hasp");
 #endif
     }
     cd(config);
 
     setup();
-#if USE_MONITOR
-    while(1) {
-        loop();
-    }
-#elif USE_WIN32DRV
     while(haspDevice.pc_is_running) {
         loop();
     }
-#endif
 
 end:
 #if defined(WINDOWS)

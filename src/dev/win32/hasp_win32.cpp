@@ -25,11 +25,33 @@ static inline void native_cpuid(unsigned int* eax, unsigned int* ebx, unsigned i
     asm volatile("cpuid" : "=a"(*eax), "=b"(*ebx), "=c"(*ecx), "=d"(*edx) : "0"(*eax), "2"(*ecx) : "memory");
 }
 
-void Win32Device::reboot()
-{}
-
-void Win32Device::show_info()
+Win32Device::Win32Device()
 {
+    char buffer[MAX_COMPUTERNAME_LENGTH + 1];
+    DWORD length = sizeof(buffer);
+
+    if(GetComputerNameExA((COMPUTER_NAME_FORMAT)ComputerNameNetBIOS, buffer, &length)) {
+        _hostname = buffer;
+    } else if(GetComputerNameExA((COMPUTER_NAME_FORMAT)ComputerNameDnsHostname, buffer, &length)) {
+        _hostname = buffer;
+    } else if(GetComputerNameExA((COMPUTER_NAME_FORMAT)ComputerNamePhysicalDnsHostname, buffer, &length)) {
+        _hostname = buffer;
+    } else if(GetComputerNameExA((COMPUTER_NAME_FORMAT)ComputerNamePhysicalDnsDomain, buffer, &length)) {
+        _hostname = buffer;
+    } else {
+        _hostname = "localhost";
+    }
+
+    // Get the Windows version.
+    DWORD dwBuild        = 0;
+    DWORD dwVersion      = GetVersion();
+    DWORD dwMajorVersion = (DWORD)(LOBYTE(LOWORD(dwVersion)));
+    DWORD dwMinorVersion = (DWORD)(HIBYTE(LOWORD(dwVersion)));
+    if(dwVersion < 0x80000000) dwBuild = (DWORD)(HIWORD(dwVersion));
+
+    char version[128];
+    snprintf(version, sizeof(version), "Windows %d.%d.%d", dwMajorVersion, dwMinorVersion, dwBuild);
+    _core_version = version;
 
     unsigned int eax, ebx, ecx, edx;
     eax = 0;
@@ -39,9 +61,21 @@ void Win32Device::show_info()
     memcpy(vendor, &ebx, 4);
     memcpy(vendor + 4, &edx, 4);
     memcpy(vendor + 8, &ecx, 4);
-    vendor[12] = '\0';
+    vendor[12]  = '\0';
+    _chip_model = vendor;
 
-    LOG_VERBOSE(0, F("Processor  : %s"), vendor);
+    // _backlight_pin   = -1;
+    _backlight_power  = 1;
+    _backlight_invert = 0;
+    _backlight_level  = 255;
+}
+
+void Win32Device::reboot()
+{}
+
+void Win32Device::show_info()
+{
+    LOG_VERBOSE(0, F("Processor  : %s"), get_chip_model());
     LOG_VERBOSE(0, F("CPU freq.  : %i MHz"), get_cpu_frequency());
     LOG_VERBOSE(0, F("OS Version : %s"), get_core_version());
 }
@@ -66,7 +100,7 @@ const char* Win32Device::get_core_version()
 
 const char* Win32Device::get_chip_model()
 {
-    return "SDL2";
+    return _chip_model.c_str();
 }
 
 const char* Win32Device::get_hardware_id()

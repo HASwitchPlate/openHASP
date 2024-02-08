@@ -377,7 +377,11 @@ static WiFiSpiClass WiFi;
 #endif
 
 #if defined(POSIX)
+#ifdef USE_MONITOR
 #define delay SDL_Delay
+#else
+#define delay msleep
+#endif
 #endif
 
 #if HASP_TARGET_PC
@@ -398,8 +402,10 @@ static WiFiSpiClass WiFi;
 #define halRestartMcu()
 #if USE_MONITOR
 #define millis SDL_GetTicks
-#elif USE_WIN32DRV
+#elif defined(WINDOWS)
 #define millis Win32Millis
+#elif defined(POSIX)
+#define millis PosixMillis
 #endif
 
 #define DEC 10
