@@ -1348,7 +1348,8 @@ static hasp_attribute_type_t special_attribute_src(lv_obj_t* obj, const char* pa
 #if defined(ARDUINO) && defined(ARDUINO_ARCH_ESP32)
 #if HASP_USE_WIFI > 0 || HASP_USE_ETHERNET > 0
             HTTPClient http;
-            http.begin(payload, (const char*)rootca_crt_bundle_start);
+            // http.begin(payload, (const char*)rootca_crt_bundle_start);
+            http.begin(payload);
             http.setTimeout(5000);
             http.setConnectTimeout(5000);
 
