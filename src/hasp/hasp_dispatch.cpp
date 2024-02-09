@@ -801,10 +801,10 @@ void dispatch_run_script(const char*, const char* payload, uint8_t source)
         return;
     }
 
-    if(!gui_acquire(pdMS_TO_TICKS(500))) {
-        LOG_ERROR(TAG_MSGR, F(D_FILE_LOAD_FAILED), payload);
-        return;
-    }
+    // if(!gui_acquire(pdMS_TO_TICKS(500))) {
+    //     LOG_ERROR(TAG_MSGR, F(D_FILE_LOAD_FAILED), payload);
+    //     return;
+    // }
 
     // char buffer[512]; // use stack
     String buffer((char*)0); // use heap
@@ -829,7 +829,7 @@ void dispatch_run_script(const char*, const char* payload, uint8_t source)
         }
     }
 
-    gui_release();
+    // gui_release();
     cmdfile.close();
     LOG_INFO(TAG_MSGR, F(D_FILE_LOADED), payload);
 #else
