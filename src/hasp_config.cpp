@@ -636,6 +636,12 @@ void configSetup()
         gpioSetConfig(settings[FPSTR(FP_GPIO)]);
 #endif
 
+        // target-specific config
+#if defined(POSIX)
+        LOG_INFO(TAG_CONF, F("Loading POSIX-specific settings"));
+        haspDevice.set_config(settings[F("posix")]);
+#endif
+
         LOG_INFO(TAG_CONF, F(D_CONFIG_LOADED));
     }
     // #endif

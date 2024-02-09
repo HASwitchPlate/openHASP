@@ -23,6 +23,7 @@
 #include "display/monitor.h"
 #elif USE_FBDEV
 #include "display/fbdev.h"
+#include "drv/tft/tft_driver.h"
 #endif
 
 #include <fstream>
@@ -52,6 +53,32 @@ PosixDevice::PosixDevice()
     _backlight_power  = 1;
     _backlight_invert = 0;
     _backlight_level  = 255;
+}
+
+void PosixDevice::set_config(const JsonObject& settings)
+{
+    configOutput(settings, 0);
+#if USE_FBDEV
+    if(settings["fbdev"].is<std::string>()) {
+        haspTft.fbdev_path = "/dev/" + settings["fbdev"].as<std::string>();
+    }
+#if USE_EVDEV
+    if(settings["evdev"].is<std::string>()) {
+        haspTft.evdev_names.push_back(settings["evdev"].as<std::string>());
+    }
+    if(settings["evdevs"].is<JsonArray>()) {
+        for(auto v : settings["evdevs"].as<JsonArray>()) {
+            haspTft.evdev_names.push_back(v.as<std::string>());
+        }
+    }
+#endif
+    if(settings["bldev"].is<std::string>()) {
+        haspDevice.backlight_device = settings["bldev"].as<std::string>();
+    }
+    if(settings["blmax"].is<int>()) {
+        haspDevice.backlight_max = settings["blmax"];
+    }
+#endif
 }
 
 void PosixDevice::reboot()
@@ -254,8 +281,8 @@ unsigned long PosixMillis()
 {
     struct timespec spec;
     clock_gettime(CLOCK_REALTIME, &spec);
-    if (tv_sec_start == 0) {
-	tv_sec_start = spec.tv_sec;
+    if(tv_sec_start == 0) {
+        tv_sec_start = spec.tv_sec;
     }
     unsigned long msec1 = (spec.tv_sec - tv_sec_start) * 1000;
     unsigned long msec2 = spec.tv_nsec / 1e6;

@@ -112,17 +112,15 @@ void usage(const char* progName, const char* version)
               << std::endl
               << "Options:" << std::endl
               << "    -h  | --help        Print this help" << std::endl
+#if !USE_FBDEV
               << "    -W  | --width       Width of the window" << std::endl
               << "    -H  | --height      Height of the window" << std::endl
-              << "    -C  | --config      Configuration directory" << std::endl
+#endif
+              << "    -c  | --config      Configuration/storage directory" << std::endl
 #if defined(WINDOWS)
               << "                        (default: 'AppData\\hasp\\hasp')" << std::endl
 #elif defined(POSIX)
               << "                        (default: '~/.local/share/hasp/hasp')" << std::endl
-#endif
-#if USE_FBDEV && defined(POSIX)
-              << "    -b  | --backlight   Backlight device name (in /sys/class/backlight/)" << std::endl
-              << "    -B  | --bl-max      Backlight brightness limit (default: max_brightness)" << std::endl
 #endif
               << std::endl;
     fflush(stdout);
@@ -142,25 +140,7 @@ int main(int argc, char* argv[])
     for(int arg = 1; arg < argc; arg++) {
         if(strncmp(argv[arg], "--help", 6) == 0 || strncmp(argv[arg], "-h", 2) == 0) {
             showhelp = true;
-#if USE_FBDEV && defined(POSIX)
-        } else if(strncmp(argv[arg], "--backlight", 11) == 0 || strncmp(argv[arg], "-b", 2) == 0) {
-            if(arg + 1 < argc) {
-                haspDevice.backlight_device = argv[arg + 1];
-                arg++;
-            } else {
-                std::cout << "Missing device name" << std::endl;
-                showhelp = true;
-            }
-        } else if(strncmp(argv[arg], "--bl-max", 9) == 0 || strncmp(argv[arg], "-B", 2) == 0) {
-            if(arg + 1 < argc) {
-                int bl_max = atoi(argv[arg + 1]);
-                if(bl_max > 0) haspDevice.backlight_max = bl_max;
-                arg++;
-            } else {
-                std::cout << "Missing backlight level" << std::endl;
-                showhelp = true;
-            }
-#endif
+#if !USE_FBDEV
         } else if(strncmp(argv[arg], "--width", 7) == 0 || strncmp(argv[arg], "-W", 2) == 0) {
             if(arg + 1 < argc) {
                 int w = atoi(argv[arg + 1]);
@@ -179,7 +159,8 @@ int main(int argc, char* argv[])
                 std::cout << "Missing height value" << std::endl;
                 showhelp = true;
             }
-        } else if(strncmp(argv[arg], "--config", 8) == 0 || strncmp(argv[arg], "-C", 2) == 0) {
+#endif
+        } else if(strncmp(argv[arg], "--config", 8) == 0 || strncmp(argv[arg], "-c", 2) == 0) {
             if(arg + 1 < argc) {
                 strcpy(config, argv[arg + 1]);
                 arg++;

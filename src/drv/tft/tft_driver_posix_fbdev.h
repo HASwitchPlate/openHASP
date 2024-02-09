@@ -11,6 +11,8 @@
 
 #include "lvgl.h"
 
+#include <vector>
+
 namespace dev {
 
 class TftFbdevDrv : BaseTft {
@@ -29,6 +31,10 @@ class TftFbdevDrv : BaseTft {
 
     int32_t width();
     int32_t height();
+
+  public:
+    std::string fbdev_path;
+    std::vector<std::string> evdev_names;
 
   private:
     int32_t _width, _height;

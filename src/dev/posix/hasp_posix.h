@@ -31,6 +31,8 @@ class PosixDevice : public BaseDevice {
   public:
     PosixDevice();
 
+    void set_config(const JsonObject& settings);
+
     void reboot() override;
     void show_info() override;
 

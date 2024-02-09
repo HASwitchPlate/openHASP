@@ -28,6 +28,7 @@
 #include <unistd.h>
 #include <dirent.h>
 #include <fcntl.h>
+#include <algorithm>
 
 #if USE_BSD_EVDEV
 #include <dev/evdev/input.h>
@@ -83,7 +84,7 @@ void TftFbdevDrv::init(int32_t w, int h)
     /* Add a display
      * Use the 'fbdev' driver which uses POSIX framebuffer device as a display
      * The following input devices are handled: mouse, keyboard, mousewheel */
-    fbdev_init();
+    fbdev_init(fbdev_path.empty() ? NULL : fbdev_path.c_str());
     fbdev_get_sizes((uint32_t*)&_width, (uint32_t*)&_height);
 
     // show the splashscreen early
@@ -104,6 +105,10 @@ void TftFbdevDrv::init(int32_t w, int h)
             // make sure it's a block device matching /dev/input/event*
             if(strncmp(dirent->d_name, "event", 5) != 0 || strlen(dirent->d_name) <= 5) continue;
             if(dirent->d_type != DT_CHR) continue;
+            // skip device if not specified on command line
+            if(!evdev_names.empty() &&
+               std::find(evdev_names.begin(), evdev_names.end(), std::string(dirent->d_name)) == evdev_names.end())
+                continue;
             // get full path
             char dev_path[64];
             strcpy(dev_path, "/dev/input/");
