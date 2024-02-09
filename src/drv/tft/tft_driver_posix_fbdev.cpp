@@ -29,6 +29,7 @@
 #include <dirent.h>
 #include <fcntl.h>
 #include <algorithm>
+#include <fstream>
 
 #if USE_BSD_EVDEV
 #include <dev/evdev/input.h>
@@ -82,6 +83,23 @@ static void* gui_entrypoint(void* arg)
 
 void TftFbdevDrv::init(int32_t w, int h)
 {
+    // check active tty
+    std::ifstream f;
+    f.open("/sys/class/tty/tty0/active");
+    std::string tty;
+    f >> tty;
+    tty = "/dev/" + tty;
+    f.close();
+
+    // try to hide the cursor
+    int tty_fd = open(tty.c_str(), O_WRONLY);
+    if(tty_fd == -1) {
+        perror("Couldn't open tty");
+    } else {
+        write(tty_fd, "\033[?25l", 6);
+    }
+    close(tty_fd);
+
     /* Add a display
      * Use the 'fbdev' driver which uses POSIX framebuffer device as a display
      * The following input devices are handled: mouse, keyboard, mousewheel */
