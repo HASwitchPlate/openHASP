@@ -70,12 +70,13 @@ int32_t TftFbdevDrv::height()
 static void* gui_entrypoint(void* arg)
 {
 #if HASP_USE_LVGL_TASK
-#error "fbdev LVGL task is not implemented"
-#else
-    // create a LVGL tick thread
-    pthread_t thread;
-    pthread_create(&thread, 0, tick_thread, NULL);
+    // create an LVGL GUI task thread
+    pthread_t gui_pthread;
+    pthread_create(&gui_pthread, 0, (void* (*)(void*))gui_task, NULL);
 #endif
+    // create an LVGL tick thread
+    pthread_t tick_pthread;
+    pthread_create(&tick_pthread, 0, tick_thread, NULL);
     return 0;
 }
 
@@ -181,12 +182,7 @@ void TftFbdevDrv::init(int32_t w, int h)
     }
 #endif
 
-#if HASP_USE_LVGL_TASK
-#error "fbdev LVGL task is not implemented"
-#else
-    // do not use the gui_task(), just init the GUI and return
     gui_entrypoint(NULL);
-#endif
 }
 void TftFbdevDrv::show_info()
 {
