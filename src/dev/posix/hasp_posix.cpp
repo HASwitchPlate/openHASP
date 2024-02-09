@@ -248,11 +248,18 @@ long PosixDevice::get_uptime()
 
 } // namespace dev
 
-long PosixMillis()
+static time_t tv_sec_start = 0;
+
+unsigned long PosixMillis()
 {
     struct timespec spec;
     clock_gettime(CLOCK_REALTIME, &spec);
-    return (spec.tv_sec) * 1000 + (spec.tv_nsec) / 1e6;
+    if (tv_sec_start == 0) {
+	tv_sec_start = spec.tv_sec;
+    }
+    unsigned long msec1 = (spec.tv_sec - tv_sec_start) * 1000;
+    unsigned long msec2 = spec.tv_nsec / 1e6;
+    return msec1 + msec2;
 }
 
 void msleep(unsigned long millis)

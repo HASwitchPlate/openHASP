@@ -75,7 +75,7 @@ class PosixDevice : public BaseDevice {
 
 } // namespace dev
 
-extern long PosixMillis();
+extern unsigned long PosixMillis();
 extern void msleep(unsigned long millis);
 
 using dev::PosixDevice;
