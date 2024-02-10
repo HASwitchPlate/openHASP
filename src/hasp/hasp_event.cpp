@@ -52,13 +52,14 @@ static bool script_event_handler(const char* eventname, const char* action, cons
     StaticJsonDocument<64> filter;
 
     filter[eventname]              = true;
+    filter["pub"]                  = true;
     DeserializationError jsonError = deserializeJson(doc, action, DeserializationOption::Filter(filter));
 
     if(!jsonError) {
         JsonVariant json = doc[eventname].as<JsonVariant>();
         if(json.isNull()) {
             LOG_DEBUG(TAG_EVENT, F("Skipping event: name=%s, data=%s"), eventname, data);
-            return true;
+            goto end;
         } else {
             LOG_DEBUG(TAG_EVENT, F("Handling event: name=%s, data=%s"), eventname, data);
         }
@@ -82,6 +83,9 @@ static bool script_event_handler(const char* eventname, const char* action, cons
     } else {
         dispatch_json_error(TAG_EVENT, jsonError);
     }
+
+end:
+    if(doc["pub"].is<bool>()) return !doc["pub"].as<bool>();
     return true;
 }
 
