@@ -2,6 +2,9 @@
    For full license information read the LICENSE file in the project folder */
 
 #include "hasplib.h"
+
+#if HASP_USE_HTTP > 0
+
 #include "ArduinoLog.h"
 
 #define HTTP_LEGACY
@@ -21,7 +24,6 @@
 #include "hasp_gui.h"
 #include "hasp_debug.h"
 
-#if HASP_USE_HTTP > 0
 #include "sys/net/hasp_network.h"
 #include "sys/net/hasp_time.h"
 

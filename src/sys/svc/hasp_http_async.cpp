@@ -3,6 +3,9 @@
 
 //#include "webServer.h"
 #include "hasplib.h"
+
+#if HASP_USE_HTTP_ASYNC > 0
+
 #include "ArduinoLog.h"
 
 #if defined(ARDUINO_ARCH_ESP32)
@@ -16,7 +19,6 @@
 #include "hasp_gui.h"
 #include "hasp_debug.h"
 
-#if HASP_USE_HTTP_ASYNC > 0
 #include "sys/net/hasp_network.h"
 
 /* clang-format off */

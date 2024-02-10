@@ -139,12 +139,10 @@ void debugStart(void)
     LOG_INFO(TAG_DEBG, F("Console started"));
 
     debug_flush();
-#else
+#endif
 
 #if HASP_USE_CONSOLE > 0
     consoleSetup();
-#endif
-
 #endif
 }
 
