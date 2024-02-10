@@ -822,6 +822,48 @@ void dispatch_run_script(const char*, const char* payload, uint8_t source)
 #endif
 }
 
+#if HASP_TARGET_PC
+static void shell_command_thread(char* cmdline)
+{
+    // run the command
+    FILE* pipe = popen(cmdline, "r");
+    // free the string duplicated previously
+    free(cmdline);
+    if(!pipe) {
+        LOG_ERROR(TAG_MSGR, F("Couldn't execute system command"));
+        return;
+    }
+    // read each line, up to 1023 chars long
+    char command[1024];
+    while(fgets(command, sizeof(command), pipe) != NULL) {
+        // strip newline character
+        char* temp = command;
+        while(*temp) {
+            if(*temp == '\r' || *temp == '\n') {
+                *temp = '\0';
+                break;
+            }
+            temp++;
+        }
+        // run the command
+        LOG_INFO(TAG_MSGR, F("Running '%s'"), command);
+        dispatch_text_line(command, TAG_MSGR);
+    }
+    // close the pipe, check return code
+    int status_code = pclose(pipe);
+    if(status_code) {
+        LOG_ERROR(TAG_MSGR, F("Process exited with non-zero return code %d"), status_code);
+    }
+}
+
+void dispatch_shell_execute(const char*, const char* payload, uint8_t source)
+{
+    // must duplicate the string for thread's own usage
+    char* command = strdup(payload);
+    haspDevice.run_thread((void (*)(void*))shell_command_thread, (void*)command);
+}
+#endif
+
 void dispatch_current_page()
 {
     char topic[8];
@@ -1495,6 +1537,9 @@ void dispatchSetup()
     dispatch_add_command(PSTR("sensors"), dispatch_send_sensordata);
     dispatch_add_command(PSTR("theme"), dispatch_theme);
     dispatch_add_command(PSTR("run"), dispatch_run_script);
+#if HASP_TARGET_PC
+    dispatch_add_command(PSTR("shell"), dispatch_shell_execute);
+#endif
     dispatch_add_command(PSTR("service"), dispatch_service);
     dispatch_add_command(PSTR("antiburn"), dispatch_antiburn);
     dispatch_add_command(PSTR("calibrate"), dispatch_calibrate);

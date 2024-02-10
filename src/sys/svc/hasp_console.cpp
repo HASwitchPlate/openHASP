@@ -108,7 +108,7 @@ static void console_process_line(const char* input)
 }
 #elif HASP_TARGET_PC
 static bool console_running = true;
-static int console_thread(void* arg)
+static void console_thread(void* arg)
 {
     while(console_running) {
         std::string input;
@@ -145,12 +145,7 @@ void consoleStart()
     }
 #elif HASP_TARGET_PC
     LOG_TRACE(TAG_MSGR, F(D_SERVICE_STARTING));
-#if defined(WINDOWS)
-    CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)console_thread, NULL, 0, NULL);
-#elif defined(POSIX)
-    pthread_t thread;
-    pthread_create(&thread, NULL, (void* (*)(void*))console_thread, NULL);
-#endif
+    haspDevice.run_thread(console_thread, NULL);
 #endif
 }
 
@@ -202,7 +197,7 @@ IRAM_ATTR void consoleLoop()
             case 0:
             case -1:
                 break;
-                
+
             default: {
                 update = true;
             }

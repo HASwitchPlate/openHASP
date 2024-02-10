@@ -58,6 +58,8 @@ class PosixDevice : public BaseDevice {
 
     bool is_system_pin(uint8_t pin) override;
 
+    void run_thread(void (*func)(void*), void* arg);
+
   public:
     std::string backlight_device;
     int backlight_max = 0;

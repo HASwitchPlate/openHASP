@@ -45,6 +45,8 @@ class Win32Device : public BaseDevice {
 
     bool is_system_pin(uint8_t pin) override;
 
+    void run_thread(void (*func)(void*), void* arg);
+
   private:
     std::string _hostname;
     std::string _core_version;

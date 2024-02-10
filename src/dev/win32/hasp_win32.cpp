@@ -187,6 +187,11 @@ bool Win32Device::is_system_pin(uint8_t pin)
     return false;
 }
 
+void Win32Device::run_thread(void (*func)(void*), void* arg)
+{
+    CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)func, arg, 0, NULL);
+}
+
 long Win32Device::get_uptime()
 {
     return GetTickCount64() / 1000;
