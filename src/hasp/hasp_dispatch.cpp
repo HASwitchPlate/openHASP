@@ -37,6 +37,8 @@
 #endif
 #endif
 
+#include <map>
+
 dispatch_conf_t dispatch_setings = {.teleperiod = 300};
 
 uint16_t dispatchSecondsToNextTeleperiod = 0;
@@ -47,6 +49,8 @@ haspCommand_t commands[28];
 
 moodlight_t moodlight    = {.brightness = 255};
 uint8_t saved_jsonl_page = 0;
+
+static std::map<int, lv_task_t*> scheduled_tasks;
 
 /* Sends the payload out on the state/subtopic
  */
@@ -1463,6 +1467,88 @@ void dispatch_sleep(const char*, const char*, uint8_t source)
     hasp_set_wakeup_touch(false);
 }
 
+static void dispatch_schedule_runner(lv_task_t* task)
+{
+    dispatch_text_line((const char*)task->user_data, TAG_MSGR);
+}
+
+void dispatch_schedule(const char*, const char* payload, uint8_t source)
+{
+    // duplicate the string for modification
+    char* argline = strdup(payload);
+    // split argline into argv by whitespace; limit to 4 parts
+    char* argv[4];
+    int argn     = 0;
+    argv[argn++] = argline;
+    while(*argline) {
+        if(*argline == ' ') {
+            *argline     = '\0';
+            argv[argn++] = argline + 1;
+        }
+        argline++;
+        if(argn == 4) break;
+    }
+
+    const char* action = argv[0];
+    uint32_t id        = atoi(argv[1]);
+
+    if(strcasecmp(action, "set") == 0) {
+        if(argn != 4) {
+            LOG_ERROR(TAG_MSGR, F("Usage: schedule set <id> <period(ms)> <cmd...>"));
+            goto end;
+        }
+        uint32_t period     = atoi(argv[2]);
+        const char* command = strdup(argv[3]);
+
+        if(scheduled_tasks.find(id) != scheduled_tasks.end()) {
+            // update an existing task
+            lv_task_t* task = scheduled_tasks[id];
+            free(task->user_data);
+            task->period    = period;
+            task->user_data = (void*)command;
+        } else {
+            // create a new task
+            lv_task_t* task     = lv_task_create(dispatch_schedule_runner, period, LV_TASK_PRIO_MID, (void*)command);
+            scheduled_tasks[id] = task;
+        }
+
+        LOG_INFO(TAG_MSGR, F("Scheduled command ID %u, every %u ms: %s"), id, period, command);
+
+        goto end;
+    }
+
+    if(argn != 2) {
+        LOG_ERROR(TAG_MSGR, F("Usage: schedule <set/del/start/stop> <id>"));
+        goto end;
+    }
+    if(scheduled_tasks.find(id) == scheduled_tasks.end()) {
+        LOG_ERROR(TAG_MSGR, F("Task by ID %u does not exist"), id);
+        goto end;
+    }
+
+    {
+        lv_task_t* task = scheduled_tasks[id];
+        if(strcasecmp(action, "del") == 0) {
+            free(task->user_data);
+            lv_task_del(task);
+            scheduled_tasks.erase(id);
+            goto end;
+        }
+        if(strcasecmp(action, "start") == 0) {
+            lv_task_set_prio(task, LV_TASK_PRIO_MID);
+            goto end;
+        }
+        if(strcasecmp(action, "stop") == 0) {
+            lv_task_set_prio(task, LV_TASK_PRIO_OFF);
+            goto end;
+        }
+    }
+
+end:
+    // release the duplicated argline
+    free(argv[0]);
+}
+
 void dispatch_idle_state(uint8_t state)
 {
     char topic[8];
@@ -1596,6 +1682,7 @@ void dispatchSetup()
     dispatch_add_command(PSTR("moodlight"), dispatch_moodlight);
     dispatch_add_command(PSTR("idle"), dispatch_idle);
     dispatch_add_command(PSTR("sleep"), dispatch_sleep);
+    dispatch_add_command(PSTR("schedule"), dispatch_schedule);
     dispatch_add_command(PSTR("statusupdate"), dispatch_statusupdate);
     dispatch_add_command(PSTR("clearpage"), dispatch_clear_page);
     dispatch_add_command(PSTR("clearfont"), dispatch_clear_font);
