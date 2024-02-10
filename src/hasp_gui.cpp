@@ -57,6 +57,8 @@ uint32_t screenshotEtag = 0;
 void (*drv_display_flush_cb)(struct _disp_drv_t* disp_drv, const lv_area_t* area, lv_color_t* color_p);
 
 static lv_disp_buf_t disp_buf;
+static bool gui_initialized       = false;
+static uint32_t anim_fps_deferred = 0;
 
 static inline void gui_init_lvgl()
 {
@@ -98,6 +100,27 @@ static inline void gui_init_lvgl()
 void gui_hide_pointer(bool hidden)
 {
     if(cursor) lv_obj_set_hidden(cursor, hidden || !gui_settings.show_pointer);
+}
+
+bool gui_set_fps(uint32_t fps)
+{
+    if(!gui_initialized) {
+        LOG_ERROR(TAG_GUI, F("GUI not initialized, deferring FPS setting"));
+        anim_fps_deferred = fps;
+        return false;
+    }
+
+    bool changed    = false;
+    uint32_t period = 1000 / fps;
+    // find animation task by its period
+    lv_task_t* task = NULL;
+    while(task = lv_task_get_next(task)) {
+        if(!(task->period == LV_DISP_DEF_REFR_PERIOD)) continue;
+        changed |= (task->period != period);
+        LOG_INFO(TAG_GUI, F("Changing animation period: %u -> %u (%u FPS)"), task->period, period, fps);
+        task->period = period;
+    }
+    return changed;
 }
 
 IRAM_ATTR void gui_flush_cb(lv_disp_drv_t* disp, const lv_area_t* area, lv_color_t* color_p)
@@ -373,6 +396,13 @@ void guiSetup()
     }
 #endif // ESP32 && HASP_USE_ESP_MQTT
 
+    // apply deferred FPS setting
+    gui_initialized = true;
+    if(anim_fps_deferred != 0) {
+        gui_set_fps(anim_fps_deferred);
+        anim_fps_deferred = 0;
+    }
+
     LOG_INFO(TAG_LVGL, F(D_SERVICE_STARTED));
 }
 
@@ -610,6 +640,11 @@ bool guiSetConfig(const JsonObject& settings)
 #endif
 
         changed |= status;
+    }
+
+    if(!settings[FPSTR(FP_GUI_FPS)].isNull()) {
+        uint32_t fps = settings[FPSTR(FP_GUI_FPS)].as<uint32_t>();
+        changed |= gui_set_fps(fps);
     }
 
     return changed;

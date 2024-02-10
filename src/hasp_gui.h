@@ -48,6 +48,7 @@ void guiEverySecond(void);
 void guiStart(void);
 void guiStop(void);
 void gui_hide_pointer(bool hidden);
+bool gui_set_fps(uint32_t fps);
 
 /* ===== Special Event Processors ===== */
 void guiCalibrate(void);
