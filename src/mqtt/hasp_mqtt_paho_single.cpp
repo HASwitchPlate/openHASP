@@ -5,7 +5,7 @@
 
 #include "hasplib.h"
 
-#if HASP_USE_MQTT > 0
+#if HASP_USE_MQTT > 0 && !HASP_USE_MQTT_ASYNC
 #ifdef HASP_USE_PAHO
 
 #if !HASP_USE_CONFIG
