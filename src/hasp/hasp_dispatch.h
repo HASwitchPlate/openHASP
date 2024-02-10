@@ -55,6 +55,7 @@ void dispatch_parse_jsonl(Stream& stream, uint8_t& saved_page_id);
 void dispatch_parse_jsonl(std::istream& stream, uint8_t& saved_page_id);
 #endif
 bool dispatch_json_variant(JsonVariant& json, uint8_t& savedPage, uint8_t source);
+bool dispatch_json_variant_with_data(JsonVariant& json, uint8_t& savedPage, uint8_t source, JsonObject& data);
 
 void dispatch_clear_page(const char* page);
 void dispatch_json_error(uint8_t tag, DeserializationError& jsonError);

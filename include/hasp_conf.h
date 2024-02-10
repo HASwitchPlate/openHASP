@@ -177,6 +177,10 @@
 #define HASP_NUM_GPIO_CONFIG 8
 #endif
 
+#ifndef HASP_USE_EVENT_DATA_SUBST
+#define HASP_USE_EVENT_DATA_SUBST 0
+#endif
+
 // #ifndef HASP_USE_CUSTOM
 // #define HASP_USE_CUSTOM 0
 // #endif
