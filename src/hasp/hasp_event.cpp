@@ -42,23 +42,47 @@ void event_reset_last_value_sent()
     last_value_sent = INT16_MIN;
 }
 
-void script_event_handler(const char* eventname, const char* json)
+static bool script_event_handler(const char* eventname, const char* action, const char* data)
 {
+    if(action == NULL) {
+        LOG_DEBUG(TAG_EVENT, F("Skipping event: name=%s, data=%s"), eventname, data);
+        return false;
+    }
     StaticJsonDocument<256> doc;
     StaticJsonDocument<64> filter;
 
     filter[eventname]              = true;
-    DeserializationError jsonError = deserializeJson(doc, json, DeserializationOption::Filter(filter));
+    DeserializationError jsonError = deserializeJson(doc, action, DeserializationOption::Filter(filter));
 
     if(!jsonError) {
-        JsonVariant json  = doc[eventname].as<JsonVariant>();
+        JsonVariant json = doc[eventname].as<JsonVariant>();
+        if(json.isNull()) {
+            LOG_DEBUG(TAG_EVENT, F("Skipping event: name=%s, data=%s"), eventname, data);
+            return true;
+        } else {
+            LOG_DEBUG(TAG_EVENT, F("Handling event: name=%s, data=%s"), eventname, data);
+        }
+
+        JsonObject dataJson;
+#if HASP_USE_EVENT_DATA_SUBST
+        if(data != NULL) {
+            StaticJsonDocument<256> jsonDoc;
+            if(deserializeJson(jsonDoc, data) != DeserializationError::Ok) {
+                LOG_ERROR(TAG_EVENT, F("Deserialization failed"));
+            } else {
+                dataJson = jsonDoc.as<JsonObject>();
+            }
+        }
+#endif
+
         uint8_t savedPage = haspPages.get();
-        if(!dispatch_json_variant(json, savedPage, TAG_EVENT)) {
+        if(!dispatch_json_variant_with_data(json, savedPage, TAG_EVENT, dataJson)) {
             LOG_WARNING(TAG_EVENT, F(D_DISPATCH_COMMAND_NOT_FOUND), eventname);
         }
     } else {
         dispatch_json_error(TAG_EVENT, jsonError);
     }
+    return true;
 }
 
 /**
@@ -254,10 +278,15 @@ static bool translate_event(lv_obj_t* obj, lv_event_t event, uint8_t& eventid)
 
 // ##################### Value Senders ########################################################
 
-static void event_send_object_data(lv_obj_t* obj, const char* data)
+static void event_send_object_data(lv_obj_t* obj, const char* eventname, const char* data)
 {
     uint8_t pageid;
     uint8_t objid;
+
+    // handle object "action", abort sending if handled
+    if(script_event_handler(eventname, my_obj_get_action(obj), data)) {
+        return;
+    }
 
     if(hasp_find_id_from_obj(obj, &pageid, &objid)) {
         if(!data) return;
@@ -271,23 +300,23 @@ static void event_send_object_data(lv_obj_t* obj, const char* data)
 static void event_object_val_event(lv_obj_t* obj, uint8_t eventid, int16_t val)
 {
     char data[512];
+    char eventname[8];
     {
-        char eventname[8];
         Parser::get_event_name(eventid, eventname, sizeof(eventname));
         if(const char* tag = my_obj_get_tag(obj))
             snprintf_P(data, sizeof(data), PSTR("{\"event\":\"%s\",\"val\":%d,\"tag\":%s}"), eventname, val, tag);
         else
             snprintf_P(data, sizeof(data), PSTR("{\"event\":\"%s\",\"val\":%d}"), eventname, val);
     }
-    event_send_object_data(obj, data);
+    event_send_object_data(obj, eventname, data);
 }
 
 // Send out events with a val and text attribute
 static void event_object_selection_changed(lv_obj_t* obj, uint8_t eventid, int16_t val, const char* text)
 {
     char data[512];
+    char eventname[8];
     {
-        char eventname[8];
         Parser::get_event_name(eventid, eventname, sizeof(eventname));
 
         if(const char* tag = my_obj_get_tag(obj))
@@ -296,7 +325,7 @@ static void event_object_selection_changed(lv_obj_t* obj, uint8_t eventid, int16
         else
             snprintf_P(data, sizeof(data), PSTR("{\"event\":\"%s\",\"val\":%d,\"text\":\"%s\"}"), eventname, val, text);
     }
-    event_send_object_data(obj, data);
+    event_send_object_data(obj, eventname, data);
 }
 
 // ##################### Event Handlers ########################################################
@@ -402,16 +431,16 @@ void swipe_event_handler(lv_obj_t* obj, lv_event_t event)
         lv_gesture_dir_t dir = lv_indev_get_gesture_dir(lv_indev_get_act());
         switch(dir) {
             case LV_GESTURE_DIR_LEFT:
-                script_event_handler("left", swipe);
+                script_event_handler("left", swipe, NULL);
                 break;
             case LV_GESTURE_DIR_RIGHT:
-                script_event_handler("right", swipe);
+                script_event_handler("right", swipe, NULL);
                 break;
             case LV_GESTURE_DIR_BOTTOM:
-                script_event_handler("down", swipe);
+                script_event_handler("down", swipe, NULL);
                 break;
             default:
-                script_event_handler("up", swipe);
+                script_event_handler("up", swipe, NULL);
         }
     }
 }
@@ -432,8 +461,8 @@ void textarea_event_handler(lv_obj_t* obj, lv_event_t event)
         if(!translate_event(obj, event, hasp_event_id)) return;
 
         char data[1024];
+        char eventname[8];
         {
-            char eventname[8];
             Parser::get_event_name(hasp_event_id, eventname, sizeof(eventname));
 
             if(const char* tag = my_obj_get_tag(obj))
@@ -444,7 +473,7 @@ void textarea_event_handler(lv_obj_t* obj, lv_event_t event)
                            lv_textarea_get_text(obj));
         }
 
-        event_send_object_data(obj, data);
+        event_send_object_data(obj, eventname, data);
     } else if(event == LV_EVENT_FOCUSED) {
         lv_textarea_set_cursor_hidden(obj, false);
     } else if(event == LV_EVENT_DEFOCUSED) {
@@ -518,23 +547,17 @@ void generic_event_handler(lv_obj_t* obj, lv_event_t event)
 
     if(last_value_sent == HASP_EVENT_LOST) return;
 
-    if(const char* action = my_obj_get_action(obj)) {
-        char eventname[8];
+    char data[512];
+    char eventname[8];
+    {
         Parser::get_event_name(last_value_sent, eventname, sizeof(eventname));
-        script_event_handler(eventname, action);
-    } else {
-        char data[512];
-        {
-            char eventname[8];
-            Parser::get_event_name(last_value_sent, eventname, sizeof(eventname));
 
-            if(const char* tag = my_obj_get_tag(obj))
-                snprintf_P(data, sizeof(data), PSTR("{\"event\":\"%s\",\"tag\":%s}"), eventname, tag);
-            else
-                snprintf_P(data, sizeof(data), PSTR("{\"event\":\"%s\"}"), eventname);
-        }
-        event_send_object_data(obj, data);
+        if(const char* tag = my_obj_get_tag(obj))
+            snprintf_P(data, sizeof(data), PSTR("{\"event\":\"%s\",\"tag\":%s}"), eventname, tag);
+        else
+            snprintf_P(data, sizeof(data), PSTR("{\"event\":\"%s\"}"), eventname);
     }
+    event_send_object_data(obj, eventname, data);
 
     // Update group objects and gpios on release
     if(last_value_sent != LV_EVENT_LONG_PRESSED && last_value_sent != LV_EVENT_LONG_PRESSED_REPEAT) {
@@ -841,8 +864,8 @@ void cpicker_event_handler(lv_obj_t* obj, lv_event_t event)
     if(hasp_event_id == HASP_EVENT_CHANGED && last_color_sent.full == color.full) return; // same value as before
 
     char data[512];
+    char eventname[8];
     {
-        char eventname[8];
         Parser::get_event_name(hasp_event_id, eventname, sizeof(eventname));
 
         lv_color32_t c32;
@@ -864,7 +887,7 @@ void cpicker_event_handler(lv_obj_t* obj, lv_event_t event)
                        eventname, c32.ch.red, c32.ch.green, c32.ch.blue, c32.ch.red, c32.ch.green, c32.ch.blue, hsv.h,
                        hsv.s, hsv.v);
     }
-    event_send_object_data(obj, data);
+    event_send_object_data(obj, eventname, data);
 
     // event_update_group(obj->user_data.groupid, obj, val, min, max);
 }
@@ -891,8 +914,8 @@ void calendar_event_handler(lv_obj_t* obj, lv_event_t event)
         return; // same object and value as before
 
     char data[512];
+    char eventname[8];
     {
-        char eventname[8];
         Parser::get_event_name(hasp_event_id, eventname, sizeof(eventname));
 
         last_value_sent = val;
@@ -907,7 +930,7 @@ void calendar_event_handler(lv_obj_t* obj, lv_event_t event)
                        PSTR("{\"event\":\"%s\",\"val\":\"%d\",\"text\":\"%04d-%02d-%02dT00:00:00Z\"}"), eventname,
                        date->day, date->year, date->month, date->day);
     }
-    event_send_object_data(obj, data);
+    event_send_object_data(obj, eventname, data);
 
     // event_update_group(obj->user_data.groupid, obj, val, min, max);
 }

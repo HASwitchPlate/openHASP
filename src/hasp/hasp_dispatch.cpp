@@ -647,10 +647,16 @@ void dispatch_screenshot(const char*, const char* filename, uint8_t source)
 
 bool dispatch_json_variant(JsonVariant& json, uint8_t& savedPage, uint8_t source)
 {
+    JsonObject dummy;
+    return dispatch_json_variant_with_data(json, savedPage, source, dummy);
+}
+
+bool dispatch_json_variant_with_data(JsonVariant& json, uint8_t& savedPage, uint8_t source, JsonObject& data)
+{
     if(json.is<JsonArray>()) { // handle json as an array of commands
         LOG_DEBUG(TAG_MSGR, "Json ARRAY");
         for(JsonVariant command : json.as<JsonArray>()) {
-            dispatch_json_variant(command, savedPage, source);
+            dispatch_json_variant_with_data(command, savedPage, source, data);
         }
 
     } else if(json.is<JsonObject>()) { // handle json as a jsonl
@@ -658,13 +664,23 @@ bool dispatch_json_variant(JsonVariant& json, uint8_t& savedPage, uint8_t source
         hasp_new_object(json.as<JsonObject>(), savedPage);
 
     } else if(json.is<std::string>()) { // handle json as a single command
-        LOG_DEBUG(TAG_MSGR, "Json text = %s", json.as<std::string>().c_str());
-        dispatch_simple_text_command(json.as<std::string>().c_str(), source);
+        std::string command = json.as<std::string>();
 
-    } else if(json.is<const char*>()) { // handle json as a single command
-        LOG_DEBUG(TAG_MSGR, "Json text = %s", json.as<const char*>());
-        dispatch_simple_text_command(json.as<const char*>(), source);
+#if HASP_USE_EVENT_DATA_SUBST
+        if(command.find('%') != std::string::npos) {
+            // '%' found in command, run variable substitution
+            for(JsonPair kv : data) {
+                std::string find    = "%" + std::string(kv.key().c_str()) + "%";
+                std::string replace = kv.value().as<std::string>();
+                size_t pos          = command.find(find);
+                if(pos == std::string::npos) continue;
+                command.replace(pos, find.length(), replace);
+            }
+        }
+#endif
 
+        LOG_DEBUG(TAG_MSGR, "Json text = %s", command.c_str());
+        dispatch_simple_text_command(command.c_str(), source);
     } else if(json.isNull()) { // event handler not found
                                // nothing to do
 
