@@ -1,4 +1,4 @@
-/* MIT License - Copyright (c) 2019-2023 Francis Van Roie
+/* MIT License - Copyright (c) 2019-2024 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
 #include <time.h>
@@ -268,6 +268,42 @@ static void dispatch_output(const char* topic, const char* payload)
 
 #endif
 }
+
+// static inline size_t dispatch_msg_length(size_t len)
+// {
+//     return (len / 64) * 64 + 64;
+// }
+
+// void dispatch_enqueue_message(const char* topic, const char* payload, size_t payload_len, uint8_t source)
+// {
+//     // Add new message to the queue
+//     dispatch_message_t data;
+
+//     size_t topic_len = strlen(topic);
+//     data.topic       = (char*)hasp_calloc(sizeof(char), dispatch_msg_length(topic_len + 1));
+//     data.payload     = (char*)hasp_calloc(sizeof(char), dispatch_msg_length(payload_len + 1));
+//     data.source      = source;
+
+//     if(!data.topic || !data.payload) {
+//         LOG_ERROR(TAG_MQTT_RCV, D_ERROR_OUT_OF_MEMORY);
+//         hasp_free(data.topic);
+//         hasp_free(data.payload);
+//         return;
+//     }
+//     memcpy(data.topic, topic, topic_len);
+//     memcpy(data.payload, payload, payload_len);
+
+//     {
+//         size_t attempt = 0;
+//         while(xQueueSend(message_queue, &data, (TickType_t)0) == errQUEUE_FULL && attempt < 100) {
+//             delay(5);
+//             attempt++;
+//         };
+//         if(attempt >= 100) {
+//             LOG_ERROR(TAG_MSGR, D_ERROR_OUT_OF_MEMORY);
+//         }
+//     }
+// }
 
 // objectattribute=value
 static void dispatch_command(const char* topic, const char* payload, bool update, uint8_t source)
@@ -765,6 +801,11 @@ void dispatch_run_script(const char*, const char* payload, uint8_t source)
         return;
     }
 
+    // if(!gui_acquire(pdMS_TO_TICKS(500))) {
+    //     LOG_ERROR(TAG_MSGR, F(D_FILE_LOAD_FAILED), payload);
+    //     return;
+    // }
+
     // char buffer[512]; // use stack
     String buffer((char*)0); // use heap
     buffer.reserve(512);
@@ -788,6 +829,7 @@ void dispatch_run_script(const char*, const char* payload, uint8_t source)
         }
     }
 
+    // gui_release();
     cmdfile.close();
     LOG_INFO(TAG_MSGR, F(D_FILE_LOADED), payload);
 #else
@@ -1321,8 +1363,8 @@ void dispatch_current_state(uint8_t source)
 bool dispatch_factory_reset()
 {
     bool formatted = true;
-    bool erased   = true;
-    bool cleared  = true;
+    bool erased    = true;
+    bool cleared   = true;
 
 #if ESP32
     erased = nvs_clear_user_config();
@@ -1519,7 +1561,20 @@ void dispatchSetup()
 }
 
 IRAM_ATTR void dispatchLoop()
-{}
+{
+    // UBaseType_t msg_count = uxQueueMessagesWaiting(message_queue));
+    // if(msg_count == 0) return;
+
+    // dispatch_message_t data;
+    // while(xQueueReceive(message_queue, &data, (TickType_t)0)) {
+    //     LOG_WARNING(TAG_MSGR, F("[%d] QUE %s => %s"), msg_count, data.topic, data.payload);
+    //     size_t length = strlen(data.payload);
+    //     dispatch_topic_payload(data.topic, data.payload, length > 0, data.source);
+    //     hasp_free(data.topic);
+    //     hasp_free(data.payload);
+    //     // delay(1);
+    // }
+}
 
 #if 1 || ARDUINO
 void dispatchEverySecond()
@@ -1551,7 +1606,7 @@ void everySecond()
 {
     if(dispatch_setings.teleperiod > 0) {
         std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-        std::chrono::seconds elapsed = std::chrono::duration_cast<std::chrono::seconds>(end - begin);
+        std::chrono::seconds elapsed              = std::chrono::duration_cast<std::chrono::seconds>(end - begin);
 
         if(elapsed.count() >= dispatch_setings.teleperiod) {
             std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();

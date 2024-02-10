@@ -5,6 +5,15 @@
 #define HASP_DISPATCH_H
 
 #include "hasplib.h"
+// #include "freertos/queue.h"
+
+// QueueHandle_t message_queue;
+// typedef struct
+// {
+//     char* topic;   //[64];
+//     char* payload; //[512];
+//     uint source;
+// } dispatch_message_t;
 
 struct dispatch_conf_t
 {

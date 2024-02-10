@@ -1,4 +1,4 @@
-/* MIT License - Copyright (c) 2019-2023 Francis Van Roie
+/* MIT License - Copyright (c) 2019-2024 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
 #include "hasplib.h"
@@ -920,7 +920,7 @@ static void http_handle_about()
 <span v-if="model.l && !!model.l" v-t="'about.' + model.l"></span></p>
 </template>
 
-<h3>openHASP</h3><p>Copyright 2019-2023 Francis Van Roie</br>MIT License</p>
+<h3>openHASP</h3><p>Copyright 2019-2024 Francis Van Roie</br>MIT License</p>
 <p v-t="'about.clause1'"></p>
 <p v-t="'about.clause2'"></p>
 <p v-t="'about.clause3'"></p>
@@ -2357,7 +2357,7 @@ static void http_handle_wireguard()
 </div>
 <div class="row">
 <div class="col-25"><label for="host" v-t="'wg.host'"></label></div>
-<div class="col-75"><input type="text" id="host" maxlength="15" placeholder="Remote IP" v-model="config.wg.host" pattern="^((\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.){3}(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$"></div>
+<div class="col-75"><input type="text" id="host" maxlength="40" placeholder="Remote IP" v-model="config.wg.host"></div>
 </div>
 <div class="row">
 <div class="col-25"><label for="port" v-t="'wg.port'"></label></div>
