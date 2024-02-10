@@ -6,6 +6,7 @@
 
 #include "hasp_conf.h"
 #include "../device.h"
+#include "driver/ledc.h"
 
 #if defined(ESP32)
 
@@ -68,8 +69,13 @@ class Esp32Device : public BaseDevice {
     uint8_t _backlight_level;
     uint8_t _backlight_power;
     uint8_t _backlight_invert;
+    bool _backlight_pending;
+    bool _backlight_fading;
+    bool _backlight_fade;
 
     void update_backlight(bool fade);
+    static bool cb_backlight(const ledc_cb_param_t *param, void *user_arg);
+    void end_backlight_fade();
 };
 
 } // namespace dev
