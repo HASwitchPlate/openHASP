@@ -2353,7 +2353,7 @@ static void http_handle_wireguard()
 </div>
 <div class="row gap">
 <div class="col-25"><label for="privkey" v-t="'wg.privkey'"></label></div>
-<div class="col-75"><input type="password" id="privkey" maxlength="44" placeholder="Private Key" v-model="config.wg.privkey" pattern="^(?:[A-Za-z0-9+\/]{4})*(?:[A-Za-z0-9+\/]{4}|[A-Za-z0-9+\/]{3}=|[A-Za-z0-9+\/]{2}={2})$"></div>
+<div class="col-75"><input type="password" id="privkey" maxlength="44" placeholder="Private Key" v-model="config.wg.privkey" pattern="^((?:[A-Za-z0-9+\/]{4})*(?:[A-Za-z0-9+\/]{4}|[A-Za-z0-9+\/]{3}=|[A-Za-z0-9+\/]{2}={2})|(\*\*\*\*\*\*\*\*))$"></div>
 </div>
 <div class="row">
 <div class="col-25"><label for="host" v-t="'wg.host'"></label></div>

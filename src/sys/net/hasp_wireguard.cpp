@@ -103,7 +103,6 @@ bool wgSetConfig(const JsonObject& settings)
 
     configOutput(settings, TAG_WG);
     bool changed = false;
-    bool changed_privkey = false;
 
     changed |= configSet((char *)wg_ip, sizeof(wg_ip), settings[FPSTR(FP_CONFIG_VPN_IP)], F("wgIp"));
     if(!settings[FPSTR(FP_CONFIG_PRIVATE_KEY)].isNull() &&
@@ -113,15 +112,15 @@ bool wgSetConfig(const JsonObject& settings)
         wg_private_key[sizeof(wg_private_key)-1] = '\0';
         nvsUpdateString(preferences, FP_CONFIG_PRIVATE_KEY, settings[FPSTR(FP_CONFIG_PRIVATE_KEY)]);
     }
-    changed |= changed_privkey;
     changed |= configSet((char *)wg_ep_ip, sizeof(wg_ep_ip), settings[FPSTR(FP_CONFIG_HOST)], F("wgEpIp"));
     changed |= configSet(wg_ep_port, settings[FPSTR(FP_CONFIG_PORT)], F("wgEpPort"));
     changed |= configSet((char *)wg_ep_public_key, sizeof(wg_ep_public_key), settings[FPSTR(FP_CONFIG_PUBLIC_KEY)], F("wgEpPubKey"));
 
-    if (changed && network_is_connected()) {
-        wg.end();
-        wg_network_connected();
-    }
+// may reset device...
+//    if (changed && network_is_connected()) {
+//        wg.end();
+//        wg_network_connected();
+//    }
 
     return changed;
 }
