@@ -246,7 +246,7 @@ bool PosixDevice::is_system_pin(uint8_t pin)
     return false;
 }
 
-void Win32Device::run_thread(void (*func)(void*), void* arg)
+void PosixDevice::run_thread(void (*func)(void*), void* arg)
 {
     pthread_t thread;
     pthread_create(&thread, NULL, (void* (*)(void*))func, arg);

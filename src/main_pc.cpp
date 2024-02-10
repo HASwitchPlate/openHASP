@@ -17,6 +17,7 @@
 #if defined(POSIX)
 #include <netdb.h>
 #include <unistd.h>
+#include <fcntl.h>
 #include <linux/limits.h>
 #include <sys/types.h>
 #include <pwd.h>
@@ -112,6 +113,7 @@ void usage(const char* progName, const char* version)
               << std::endl
               << "Options:" << std::endl
               << "    -h  | --help        Print this help" << std::endl
+              << "    -q  | --quiet       Suppress console output (can improve performance)" << std::endl
 #if !USE_FBDEV
               << "    -W  | --width       Width of the window" << std::endl
               << "    -H  | --height      Height of the window" << std::endl
@@ -140,6 +142,15 @@ int main(int argc, char* argv[])
     for(int arg = 1; arg < argc; arg++) {
         if(strncmp(argv[arg], "--help", 6) == 0 || strncmp(argv[arg], "-h", 2) == 0) {
             showhelp = true;
+        } else if(strncmp(argv[arg], "--quiet", 7) == 0 || strncmp(argv[arg], "-q", 2) == 0) {
+#if defined(WINDOWS)
+            FreeConsole();
+#endif
+#if defined(POSIX)
+            int nullfd = open("/dev/null", O_WRONLY);
+            dup2(nullfd, 1);
+            close(nullfd);
+#endif
 #if !USE_FBDEV
         } else if(strncmp(argv[arg], "--width", 7) == 0 || strncmp(argv[arg], "-W", 2) == 0) {
             if(arg + 1 < argc) {
