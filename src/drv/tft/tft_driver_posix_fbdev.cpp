@@ -30,6 +30,7 @@
 #include <fcntl.h>
 #include <algorithm>
 #include <fstream>
+#include <linux/vt.h>
 
 #if USE_BSD_EVDEV
 #include <dev/evdev/input.h>
@@ -83,6 +84,15 @@ static void* gui_entrypoint(void* arg)
 
 void TftFbdevDrv::init(int32_t w, int h)
 {
+    // try to switch the active tty to tty7
+    int tty_fd = open("/dev/tty0", O_WRONLY);
+    if(tty_fd == -1) {
+        perror("Couldn't open /dev/tty0 (try running as root)");
+    } else {
+        if(ioctl(tty_fd, VT_ACTIVATE, 7) == -1) perror("Couldn't change active tty");
+    }
+    close(tty_fd);
+
     // check active tty
     std::ifstream f;
     f.open("/sys/class/tty/tty0/active");
@@ -92,9 +102,9 @@ void TftFbdevDrv::init(int32_t w, int h)
     f.close();
 
     // try to hide the cursor
-    int tty_fd = open(tty.c_str(), O_WRONLY);
+    tty_fd = open(tty.c_str(), O_WRONLY);
     if(tty_fd == -1) {
-        perror("Couldn't open tty");
+        perror("Couldn't open active tty (try running as root)");
     } else {
         write(tty_fd, "\033[?25l", 6);
     }

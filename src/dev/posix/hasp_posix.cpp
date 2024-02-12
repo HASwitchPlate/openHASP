@@ -203,7 +203,7 @@ void PosixDevice::update_backlight()
             f << brightness;
             f.close();
         } else {
-            perror("Brightness write failed");
+            perror("Brightness write failed (are you root?)");
         }
     }
 #endif
