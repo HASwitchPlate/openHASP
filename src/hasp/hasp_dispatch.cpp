@@ -967,7 +967,14 @@ void dispatch_page(const char*, const char* payload, uint8_t source)
 void dispatch_clear_page(const char*, const char* page, uint8_t source)
 {
     if(!strcasecmp(page, "all")) {
+#if !HASP_TARGET_PC
         hasp_init();
+#else
+        // workaround for "clearpage all" deadlocking or crashing on PC build (when called from non-LVGL thread)
+        for(uint8_t pageid = 0; pageid <= HASP_NUM_PAGES; pageid++) {
+            haspPages.clear(pageid);
+        }
+#endif
         return;
     }
 
