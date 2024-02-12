@@ -158,7 +158,7 @@ jobs:
       - name: Enable Linux platform from platformio_override.ini
         run: |
           sed 's/; user_setups\/linux/user_setups\/linux/g' platformio_override-template.ini > platformio_override.ini
-          mkdir -p .pio/libdeps/linux_sdl_64bits/paho/src
+          mkdir -p .pio/libdeps/linux_sdl/paho/src
       - name: Install SDL2 library
         run: |
           sudo apt-get update
@@ -172,10 +172,10 @@ jobs:
       - name: Enable Linux platform from platformio_override.ini
         run: |
           sed -i 's/; user_setups\/linux/user_setups\/linux/g' platformio_override.ini
-          mkdir -p .pio/libdeps/linux_sdl_64bits/paho/src
+          mkdir -p .pio/libdeps/linux_sdl/paho/src
       - name: Install SDL2 library
         run: |
           sudo apt-get update
           sudo apt-get install libsdl2-dev
       - name: Run PlatformIO
-        run: pio run -e linux_sdl_64bits
+        run: pio run -e linux_sdl
