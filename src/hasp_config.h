@@ -90,7 +90,6 @@ const char FP_GUI_BACKLIGHTINVERT[] PROGMEM    = "bcklinv";
 const char FP_GUI_POINTER[] PROGMEM            = "cursor";
 const char FP_GUI_LONG_TIME[] PROGMEM          = "long";
 const char FP_GUI_REPEAT_TIME[] PROGMEM        = "repeat";
-const char FP_GUI_FPS[] PROGMEM                = "fps";
 const char FP_DEBUG_TELEPERIOD[] PROGMEM       = "tele";
 const char FP_DEBUG_ANSI[] PROGMEM             = "ansi";
 const char FP_GPIO_CONFIG[] PROGMEM            = "config";
