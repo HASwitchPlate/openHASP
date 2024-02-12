@@ -94,6 +94,9 @@ int mqttPublish(const char* topic, const char* payload, size_t len, bool retain 
 
 static void onConnectFailure(void* context, MQTTAsync_failureData* response)
 {
+#if HASP_TARGET_PC
+    dispatch_run_script(NULL, "L:/offline.cmd", TAG_HASP);
+#endif
     mqttConnecting = false;
     mqttConnected  = false;
     LOG_ERROR(TAG_MQTT, "Connection failed, return code %d (%s)", response->code, response->message);
@@ -101,6 +104,9 @@ static void onConnectFailure(void* context, MQTTAsync_failureData* response)
 
 static void onDisconnect(void* context, MQTTAsync_successData* response)
 {
+#if HASP_TARGET_PC
+    dispatch_run_script(NULL, "L:/offline.cmd", TAG_HASP);
+#endif
     mqttConnecting = false;
     mqttConnected  = false;
 }
@@ -124,6 +130,9 @@ static void onSubscribeFailure(void* context, MQTTAsync_failureData* response)
 
 static void connlost(void* context, char* cause)
 {
+#if HASP_TARGET_PC
+    dispatch_run_script(NULL, "L:/offline.cmd", TAG_HASP);
+#endif
     LOG_WARNING(TAG_MQTT, F(D_MQTT_DISCONNECTED ": %s"), cause);
     mqttConnecting = false;
     mqttConnected  = false;
@@ -341,6 +350,10 @@ static void onConnect(void* context, MQTTAsync_successData* response)
 #endif
 
     mqttPublish(mqttLwtTopic.c_str(), "online", 6, true);
+
+#if HASP_TARGET_PC
+    dispatch_run_script(NULL, "L:/online.cmd", TAG_HASP);
+#endif
 }
 
 void mqttStart()
