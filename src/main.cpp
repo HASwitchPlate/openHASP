@@ -48,6 +48,11 @@ void setup()
     // Initialize lvgl environment
     lv_init();
     lv_log_register_print_cb(debugLvglLogEvent);
+#if HASP_USE_CONFIG
+    // initialize FS before running configSetup()
+    // normally, it's initialized in guiSetup(), but Arduino doesn't need FS in configSetup()
+    lv_fs_if_init();
+#endif
 #endif
 
     haspDevice.init();

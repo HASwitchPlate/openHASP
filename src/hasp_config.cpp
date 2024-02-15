@@ -265,7 +265,6 @@ DeserializationError configParseFile(String& configFile, JsonDocument& settings)
     }
     return DeserializationError::InvalidInput;
 #elif HASP_TARGET_PC
-    lv_fs_if_init();
     lv_fs_file_t f;
     lv_fs_res_t res;
     lv_fs_open(&f, "L:/config.json", LV_FS_MODE_RD);

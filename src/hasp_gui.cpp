@@ -208,6 +208,7 @@ static inline void gui_init_filesystems()
 {
 #if LV_USE_FS_IF != 0
     LOG_VERBOSE(TAG_LVGL, F("Filesystem : " D_SETTING_ENABLED));
+    lv_fs_if_init(); // auxiliary file system drivers
 #else
     LOG_VERBOSE(TAG_LVGL, F("Filesystem : " D_SETTING_DISABLED));
 #endif
