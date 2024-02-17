@@ -6,9 +6,9 @@
 
 #include "hasp_conf.h"
 #include "../device.h"
-#include "driver/ledc.h"
 
 #if defined(ESP32)
+#include "driver/ledc.h"
 
 #ifndef BACKLIGHT_FREQUENCY
 #define BACKLIGHT_FREQUENCY 20000
