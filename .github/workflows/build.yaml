@@ -26,12 +26,8 @@ jobs:
             env: "az-touch-mod-esp32_ili9341_4MB -e az-touch-mod-esp32_ili9341_8MB"
           - env: d1-mini-esp32_ili9341
             out: d1-mini-esp32
-          - env: d1-r32-waveshare_ili9486
-            out: d1-r32-espduino32
-          - env: d1-r32-unoshield_ili9341_adc
-            out: d1-r32-espduino32
-          - env: d1-r32-unoshield_ili9486_adc
-            out: d1-r32-espduino32
+          - out: d1-r32-espduino32
+            env: "d1-r32-waveshare_ili9486 -e d1-r32-unoshield_ili9341_adc -e d1-r32-unoshield_ili9486_adc"
           - out: dustinwatts
             env: "freetouchdeck_4MB -e freetouchdeck_8MB -e esp32-touchdown"
           - out: elecrow
