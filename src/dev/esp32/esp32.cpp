@@ -295,7 +295,7 @@ bool Esp32Device::get_backlight_invert()
 void Esp32Device::set_backlight_level(uint8_t level)
 {
     _backlight_level = level;
-    update_backlight(true);
+    update_backlight(false);
 }
 
 uint8_t Esp32Device::get_backlight_level()
@@ -306,7 +306,7 @@ uint8_t Esp32Device::get_backlight_level()
 void Esp32Device::set_backlight_power(bool power)
 {
     _backlight_power = power;
-    update_backlight(true);
+    update_backlight(false);
 }
 
 bool Esp32Device::get_backlight_power()
