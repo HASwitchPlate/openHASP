@@ -5,7 +5,7 @@
  *      INCLUDES
  *********************/
 
-#if !(defined(WINDOWS) || defined(POSIX) || defined(STM32F7xx))
+#if !(HASP_TARGET_PC || defined(STM32F7xx))
 
 #include <Arduino.h>
 #include <stdio.h>

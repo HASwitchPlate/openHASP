@@ -8,18 +8,30 @@
 #include "hasp_debug.h"
 #include "hasp_macro.h"
 
-#if(!defined(WINDOWS)) && (!defined(POSIX))
+#if HASP_TARGET_ARDUINO
 
 #define debug_print(io, ...) io->printf(__VA_ARGS__)
 #define debug_newline(io) io->println()
 
-#else
+#elif HASP_TARGET_PC
 #include <stdio.h>
 #include <stdlib.h>
 #include <iostream>
 
 #define debug_print(io, ...) fprintf(stdout, __VA_ARGS__)
 #define debug_newline(io) fprintf(stdout, "\n")
+
+#if defined(WINDOWS)
+#include <windows.h>
+#include <direct.h>
+#define cwd _getcwd
+#endif
+
+#if defined(POSIX)
+#include <unistd.h>
+#include <linux/limits.h>
+#define cwd getcwd
+#endif
 
 #endif
 
@@ -99,7 +111,7 @@ static inline void debug_flush()
     HASP_SERIAL.flush();
 #endif
 
-#if defined(WINDOWS) || defined(POSIX)
+#if HASP_TARGET_PC
     fflush(stdout);
 #endif
 }
@@ -116,21 +128,21 @@ void debugEverySecond()
 void debugStart(void)
 {
 
-#if defined(WINDOWS) || defined(POSIX)
+#if HASP_TARGET_PC
     debug_newline();
     debugPrintHaspHeader(NULL);
     debug_newline();
 
+    char curdir[PATH_MAX];
+    LOG_INFO(TAG_DEBG, F("Configuration directory: %s"), cwd(curdir, sizeof(curdir)));
     LOG_INFO(TAG_DEBG, F("Environment: " PIOENV));
     LOG_INFO(TAG_DEBG, F("Console started"));
 
     debug_flush();
-#else
+#endif
 
 #if HASP_USE_CONSOLE > 0
     consoleSetup();
-#endif
-
 #endif
 }
 

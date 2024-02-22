@@ -5,15 +5,17 @@
 
 #include "hasplib.h"
 
-#if HASP_USE_MQTT > 0
+#if HASP_USE_MQTT > 0 && !HASP_USE_MQTT_ASYNC
 #ifdef HASP_USE_PAHO
 
+#if !HASP_USE_CONFIG
 const char FP_CONFIG_HOST[] PROGMEM  = "host";
 const char FP_CONFIG_PORT[] PROGMEM  = "port";
 const char FP_CONFIG_NAME[] PROGMEM  = "name";
 const char FP_CONFIG_USER[] PROGMEM  = "user";
 const char FP_CONFIG_PASS[] PROGMEM  = "pass";
 const char FP_CONFIG_GROUP[] PROGMEM = "group";
+#endif
 
 /*******************************************************************************
  * Copyright (c) 2012, 2020 IBM Corp.
@@ -409,6 +411,32 @@ void mqtt_get_info(JsonDocument& doc)
     info[F(D_INFO_RECEIVED)]  = mqttReceiveCount;
     info[F(D_INFO_PUBLISHED)] = mqttPublishCount;
     info[F(D_INFO_FAILED)]    = mqttFailedCount;
+}
+
+bool mqttGetConfig(const JsonObject& settings)
+{
+    bool changed = false;
+
+    if(strcmp(haspDevice.get_hostname(), settings[FPSTR(FP_CONFIG_NAME)].as<String>().c_str()) != 0) changed = true;
+    settings[FPSTR(FP_CONFIG_NAME)] = haspDevice.get_hostname();
+
+    if(mqttGroupName != settings[FPSTR(FP_CONFIG_GROUP)].as<String>()) changed = true;
+    settings[FPSTR(FP_CONFIG_GROUP)] = mqttGroupName;
+
+    if(mqttServer != settings[FPSTR(FP_CONFIG_HOST)].as<String>()) changed = true;
+    settings[FPSTR(FP_CONFIG_HOST)] = mqttServer;
+
+    if(mqttPort != settings[FPSTR(FP_CONFIG_PORT)].as<uint16_t>()) changed = true;
+    settings[FPSTR(FP_CONFIG_PORT)] = mqttPort;
+
+    if(mqttUsername != settings[FPSTR(FP_CONFIG_USER)].as<String>()) changed = true;
+    settings[FPSTR(FP_CONFIG_USER)] = mqttUsername;
+
+    if(mqttPassword != settings[FPSTR(FP_CONFIG_PASS)].as<String>()) changed = true;
+    settings[FPSTR(FP_CONFIG_PASS)] = mqttPassword;
+
+    if(changed) configOutput(settings, TAG_MQTT);
+    return changed;
 }
 
 /** Set MQTT Configuration.

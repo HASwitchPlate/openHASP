@@ -68,7 +68,7 @@ void font_setup()
     } else {
         LOG_ERROR(TAG_FONT, F("FreeType " D_SERVICE_START_FAILED));
     }
-#elif defined(WINDOWS) || defined(POSIX)
+#elif HASP_TARGET_PC
 #else
 #endif
 

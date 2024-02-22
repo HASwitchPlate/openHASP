@@ -179,7 +179,7 @@ int hasp_parse_json_attributes(lv_obj_t* obj, const JsonObject& doc)
 {
     int i = 0;
 
-#if defined(WINDOWS) || defined(POSIX) || defined(ESP32)
+#if HASP_TARGET_PC || defined(ESP32)
     std::string v;
     v.reserve(64);
 

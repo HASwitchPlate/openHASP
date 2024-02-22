@@ -33,6 +33,11 @@
 
 #define HASP_USE_APP 1
 
+/* Validate that build target was specified */
+#if HASP_TARGET_ARDUINO + HASP_TARGET_PC != 1
+#error "Build target invalid! Set *one* of: HASP_TARGET_ARDUINO, HASP_TARGET_PC"
+#endif
+
 #ifndef HASP_USE_DEBUG
 #define HASP_USE_DEBUG 1
 #endif
@@ -63,6 +68,10 @@
 
 #ifndef HASP_USE_MQTT
 #define HASP_USE_MQTT (HASP_HAS_NETWORK)
+#endif
+
+#ifndef HASP_USE_MQTT_ASYNC
+#define HASP_USE_MQTT_ASYNC (HASP_TARGET_PC)
 #endif
 
 #ifndef HASP_USE_WIREGUARD
@@ -190,6 +199,46 @@
 
 #define HASP_OBJECT_NOTATION "p%ub%u"
 
+#ifndef HASP_ATTRIBUTE_FAST_MEM
+#define HASP_ATTRIBUTE_FAST_MEM
+#endif
+
+#ifndef IRAM_ATTR
+#define IRAM_ATTR
+#endif
+
+#ifndef FPSTR
+#define FPSTR(pstr_pointer) (reinterpret_cast<const __FlashStringHelper*>(pstr_pointer))
+#endif
+
+#ifndef PGM_P
+#define PGM_P const char*
+#endif
+
+/* Workarounds for PC build */
+#if HASP_TARGET_PC
+#ifndef __FlashStringHelper
+typedef char __FlashStringHelper;
+#endif
+
+#if defined(__cplusplus) && !defined(String)
+#include <iostream>
+using String = std::string;
+#endif
+
+#ifndef F
+#define F(x) (x)
+#endif
+
+#ifndef PSTR
+#define PSTR(x) x
+#endif
+
+#ifndef PROGMEM
+#define PROGMEM
+#endif
+#endif
+
 /* Includes */
 #ifdef WINDOWS
 #include "winsock2.h"
@@ -281,7 +330,7 @@ static WiFiSpiClass WiFi;
 #if HASP_USE_MQTT > 0
 #include "mqtt/hasp_mqtt.h"
 
-#if defined(WINDOWS) || defined(POSIX)
+#if HASP_TARGET_PC
 #define HASP_USE_PAHO
 #else
 #define HASP_USE_ESP_MQTT
@@ -326,52 +375,27 @@ static WiFiSpiClass WiFi;
 #include "sys/svc/hasp_slave.h"
 #endif
 
-#ifndef HASP_ATTRIBUTE_FAST_MEM
-#define HASP_ATTRIBUTE_FAST_MEM
-#endif
-
-#ifndef IRAM_ATTR
-#define IRAM_ATTR
-#endif
-
-#ifndef FPSTR
-#define FPSTR(pstr_pointer) (reinterpret_cast<const __FlashStringHelper*>(pstr_pointer))
-#endif
-
-#ifndef PGM_P
-#define PGM_P const char*
-#endif
-
-#if defined(WINDOWS) || defined(POSIX)
-#ifndef __FlashStringHelper
-#define __FlashStringHelper char
-#endif
-
-#ifndef F
-#define F(x) (x)
-#endif
-
-#ifndef PSTR
-#define PSTR(x) x
-#endif
-
-#ifndef PROGMEM
-#define PROGMEM
-#endif
-#endif
-
 #if defined(WINDOWS)
 #include <Windows.h>
 #define delay Sleep
 #endif
+
 #if defined(POSIX)
+#ifdef USE_MONITOR
 #define delay SDL_Delay
+#else
+#define delay msleep
 #endif
-#if defined(WINDOWS) || defined(POSIX)
+#endif
+
+#if HASP_TARGET_PC
 #include <string.h>
 #include <strings.h>
 #include <stdio.h>
+
+#if USE_MONITOR
 #include <SDL2/SDL.h>
+#endif
 
 #define snprintf_P snprintf
 #define memcpy_P memcpy
@@ -380,7 +404,13 @@ static WiFiSpiClass WiFi;
 #define strcpy_P strcpy
 #define strstr_P strstr
 #define halRestartMcu()
+#if USE_MONITOR
 #define millis SDL_GetTicks
+#elif defined(WINDOWS)
+#define millis Win32Millis
+#elif defined(POSIX)
+#define millis PosixMillis
+#endif
 
 #define DEC 10
 #define HEX 16

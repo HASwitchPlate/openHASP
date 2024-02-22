@@ -4,9 +4,9 @@
 #ifndef HASP_CONSOLE_H
 #define HASP_CONSOLE_H
 
-#if HASP_USE_CONSOLE > 0
-
 #include "hasplib.h"
+
+#if HASP_USE_CONSOLE > 0
 
 /* ===== Default Event Processors ===== */
 void consoleSetup();

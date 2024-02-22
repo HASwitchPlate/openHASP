@@ -8,7 +8,7 @@
 #include "Arduino.h"
 #endif
 
-#if defined(WINDOWS) || defined(POSIX)
+#if HASP_TARGET_PC
 #include <cstdint>
 #endif
 #if defined(POSIX)
@@ -30,6 +30,9 @@ class BaseDevice {
   public:
     bool has_battery           = false;
     bool has_backligth_control = true;
+#if HASP_TARGET_PC
+    bool pc_is_running = true;
+#endif
 
     virtual void reboot()
     {}

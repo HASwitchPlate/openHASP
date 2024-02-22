@@ -1,8 +1,6 @@
 /* MIT License - Copyright (c) 2019-2024 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
-#if !(defined(WINDOWS) || defined(POSIX))
-
 /*
 #ifdef CORE_DEBUG_LEVEL
 #undef CORE_DEBUG_LEVEL
@@ -28,9 +26,9 @@
 #include "hasp_gui.h"
 #endif
 
-bool isConnected;
-uint8_t mainLoopCounter        = 0;
-unsigned long mainLastLoopTime = 0;
+static bool isConnected;
+static uint8_t mainLoopCounter        = 0;
+static unsigned long mainLastLoopTime = 0;
 
 #ifdef HASP_USE_STAT_COUNTER
 uint16_t statLoopCounter = 0; // measures the average looptime
@@ -40,11 +38,23 @@ void setup()
 {
     //   hal_setup();
 
+#if HASP_TARGET_ARDUINO
     esp_log_level_set("*", ESP_LOG_NONE); // set all components to ERROR level
     // esp_log_level_set("wifi", ESP_LOG_NONE);              // enable WARN logs from WiFi stack
     // esp_log_level_set("dhcpc", ESP_LOG_INFO);             // enable INFO logs from DHCP client
     // esp_log_level_set("esp_crt_bundle", ESP_LOG_VERBOSE); // enable WARN logs from WiFi stack
     // esp_log_level_set("esp_tls", ESP_LOG_VERBOSE);        // enable WARN logs from WiFi stack
+#elif HASP_TARGET_PC
+    // Initialize lvgl environment
+    lv_init();
+    lv_log_register_print_cb(debugLvglLogEvent);
+#if HASP_USE_CONFIG
+    // initialize FS before running configSetup()
+    // normally, it's initialized in guiSetup(), but Arduino doesn't need FS in configSetup()
+    lv_fs_if_init();
+#endif
+#endif
+
     haspDevice.init();
 
     /****************************
@@ -149,7 +159,7 @@ void setup()
     gui_setup_lvgl_task();
 #endif // HASP_USE_LVGL_TASK
 
-    mainLastLoopTime = -1000; // reset loop counter
+    mainLastLoopTime = 0; // reset loop counter
 }
 
 IRAM_ATTR void loop()
@@ -195,7 +205,7 @@ IRAM_ATTR void loop()
 
     /* Timer Loop */
     if(millis() - mainLastLoopTime >= 1000) {
-        mainLastLoopTime += 1000;
+        mainLastLoopTime = millis();
 
         /* Runs Every Second */
         haspEverySecond(); // sleep timer & statusupdate
@@ -237,10 +247,9 @@ IRAM_ATTR void loop()
             case 4:
 #if HASP_USE_WIFI > 0 || HASP_USE_ETHERNET > 0
                 isConnected = networkEvery5Seconds(); // Check connection
-
+#endif
 #if HASP_USE_MQTT > 0
                 mqttEvery5Seconds(isConnected);
-#endif
 #endif
                 break;
 
@@ -270,5 +279,3 @@ IRAM_ATTR void loop()
     delay(2); // ms
 #endif
 }
-
-#endif

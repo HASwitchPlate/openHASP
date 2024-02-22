@@ -12,15 +12,15 @@
 #include "user_config_override.h"
 #endif
 
-#if defined(WINDOWS) || defined(POSIX)
+#if HASP_TARGET_PC
 #define HASP_RANDOM(x) rand() % x
-#elif defined(ARDUINO)
+#elif HASP_TARGET_ARDUINO
 #define HASP_RANDOM(x) random(x)
 #else
 #define HASP_RANDOM(x) random() % x
 #endif
 
-#if defined(WINDOWS) || defined(POSIX)
+#if HASP_TARGET_PC
 #define LOG_OUTPUT(x, ...) printf(__VA_ARGS__)
 #else
 

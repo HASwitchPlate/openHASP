@@ -1,20 +1,19 @@
 /* MIT License - Copyright (c) 2019-2022 Francis Van Roie
  For full license information read the LICENSE file in the project folder */
 
-#ifndef HASP_SDL2_DRIVER_H
-#define HASP_SDL2_DRIVER_H
+#ifndef HASP_WIN32DRV_DRIVER_H
+#define HASP_WIN32DRV_DRIVER_H
 
 #include "tft_driver.h"
 
-#if USE_MONITOR && HASP_TARGET_PC
-// #warning Building H driver TFT SDL2
+#if USE_WIN32DRV && HASP_TARGET_PC
+// #warning Building H driver WIN32DRV
 
 #include "lvgl.h"
-#include "indev/mouse.h"
 
 namespace dev {
 
-class TftSdl : BaseTft {
+class TftWin32Drv : BaseTft {
   public:
     void init(int w, int h);
     void show_info();
@@ -37,9 +36,9 @@ class TftSdl : BaseTft {
 
 } // namespace dev
 
-using dev::TftSdl;
-extern dev::TftSdl haspTft;
+using dev::TftWin32Drv;
+extern dev::TftWin32Drv haspTft;
 
 #endif // HASP_TARGET_PC
 
-#endif // HASP_SDL2_DRIVER_H
+#endif // HASP_WIN32DRV_DRIVER_H

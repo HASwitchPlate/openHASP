@@ -16,7 +16,7 @@
 #include "../hasp_debug.h"
 #include "hasp_gui.h" // for screenshot
 
-#if defined(WINDOWS) || defined(POSIX)
+#if HASP_TARGET_PC
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -496,10 +496,12 @@ void dispatch_config(const char* topic, const char* payload, uint8_t source)
     }
 
     if(strcasecmp_P(topic, PSTR("debug")) == 0) {
+#if HASP_TARGET_ARDUINO
         if(update)
             debugSetConfig(settings);
         else
             debugGetConfig(settings);
+#endif
     }
 
     else if(strcasecmp_P(topic, PSTR("gui")) == 0) {
@@ -770,7 +772,7 @@ void dispatch_parse_jsonl(std::istream& stream, uint8_t& saved_page_id)
 void dispatch_parse_jsonl(const char*, const char* payload, uint8_t source)
 {
     if(source != TAG_MQTT) saved_jsonl_page = haspPages.get();
-#if HASP_USE_CONFIG > 0
+#if HASP_USE_CONFIG > 0 && HASP_TARGET_ARDUINO
     CharStream stream((char*)payload);
     // stream.setTimeout(10);
     dispatch_parse_jsonl(stream, saved_jsonl_page);
@@ -840,7 +842,11 @@ void dispatch_run_script(const char*, const char* payload, uint8_t source)
     path[0] = '.';
     path[1] = '\0';
     strcat(path, filename);
+#if defined(WINDOWS)
     path[1] = '\\';
+#elif defined(POSIX)
+    path[1] = '/';
+#endif
 
     LOG_TRACE(TAG_HASP, F("Loading %s from disk..."), path);
     std::ifstream f(path); // taking file as inputstream
@@ -857,6 +863,48 @@ void dispatch_run_script(const char*, const char* payload, uint8_t source)
     LOG_INFO(TAG_HASP, F("Loaded %s from disk"), path);
 #endif
 }
+
+#if HASP_TARGET_PC
+static void shell_command_thread(char* cmdline)
+{
+    // run the command
+    FILE* pipe = popen(cmdline, "r");
+    // free the string duplicated previously
+    free(cmdline);
+    if(!pipe) {
+        LOG_ERROR(TAG_MSGR, F("Couldn't execute system command"));
+        return;
+    }
+    // read each line, up to 1023 chars long
+    char command[1024];
+    while(fgets(command, sizeof(command), pipe) != NULL) {
+        // strip newline character
+        char* temp = command;
+        while(*temp) {
+            if(*temp == '\r' || *temp == '\n') {
+                *temp = '\0';
+                break;
+            }
+            temp++;
+        }
+        // run the command
+        LOG_INFO(TAG_MSGR, F("Running '%s'"), command);
+        dispatch_text_line(command, TAG_MSGR);
+    }
+    // close the pipe, check return code
+    int status_code = pclose(pipe);
+    if(status_code) {
+        LOG_ERROR(TAG_MSGR, F("Process exited with non-zero return code %d"), status_code);
+    }
+}
+
+void dispatch_shell_execute(const char*, const char* payload, uint8_t source)
+{
+    // must duplicate the string for thread's own usage
+    char* command = strdup(payload);
+    haspDevice.run_thread((void (*)(void*))shell_command_thread, (void*)command);
+}
+#endif
 
 void dispatch_current_page()
 {
@@ -941,7 +989,14 @@ void dispatch_page(const char*, const char* payload, uint8_t source)
 void dispatch_clear_page(const char*, const char* page, uint8_t source)
 {
     if(!strcasecmp(page, "all")) {
+#if !HASP_TARGET_PC
         hasp_init();
+#else
+        // workaround for "clearpage all" deadlocking or crashing on PC build (when called from non-LVGL thread)
+        for(uint8_t pageid = 0; pageid <= HASP_NUM_PAGES; pageid++) {
+            haspPages.clear(pageid);
+        }
+#endif
         return;
     }
 
@@ -1155,7 +1210,7 @@ void dispatch_reboot(bool saveConfig)
     LOG_VERBOSE(TAG_MSGR, F("-------------------------------------"));
     LOG_TRACE(TAG_MSGR, F(D_DISPATCH_REBOOT));
 
-#if defined(WINDOWS) || defined(POSIX)
+#if HASP_TARGET_PC
     fflush(stdout);
 #else
     Serial.flush();
@@ -1259,7 +1314,7 @@ void dispatch_send_discovery(const char*, const char*, uint8_t source)
 #if HASP_USE_HTTP > 0
     network_get_ipaddress(buffer, sizeof(buffer));
     doc[F("uri")] = String(F("http://")) + String(buffer);
-#elif defined(WINDOWS) || defined(POSIX)
+#elif HASP_TARGET_PC
     doc[F("uri")] = "http://google.pt";
 #endif
 
@@ -1396,7 +1451,7 @@ void dispatch_idle_state(uint8_t state)
 {
     char topic[8];
     char buffer[8];
-    memcpy_P(topic, PSTR("idle"), 8);
+    memcpy_P(topic, PSTR("idle"), 5);
     hasp_get_sleep_payload(state, buffer);
     dispatch_state_subtopic(topic, buffer);
 }
@@ -1531,6 +1586,9 @@ void dispatchSetup()
     dispatch_add_command(PSTR("sensors"), dispatch_send_sensordata);
     dispatch_add_command(PSTR("theme"), dispatch_theme);
     dispatch_add_command(PSTR("run"), dispatch_run_script);
+#if HASP_TARGET_PC
+    dispatch_add_command(PSTR("shell"), dispatch_shell_execute);
+#endif
     dispatch_add_command(PSTR("service"), dispatch_service);
     dispatch_add_command(PSTR("antiburn"), dispatch_antiburn);
     dispatch_add_command(PSTR("calibrate"), dispatch_calibrate);
@@ -1552,7 +1610,7 @@ void dispatchSetup()
     dispatch_add_command(PSTR("unzip"), filesystemUnzip);
 #endif
 #endif
-#if HASP_USE_CONFIG > 0
+#if HASP_USE_CONFIG > 0 && HASP_TARGET_ARDUINO
     dispatch_add_command(PSTR("setupap"), oobeFakeSetup);
 #endif
     /* WARNING: remember to expand the commands array when adding new commands */

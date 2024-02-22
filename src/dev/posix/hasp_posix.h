@@ -31,6 +31,8 @@ class PosixDevice : public BaseDevice {
   public:
     PosixDevice();
 
+    void set_config(const JsonObject& settings);
+
     void reboot() override;
     void show_info() override;
 
@@ -56,6 +58,12 @@ class PosixDevice : public BaseDevice {
 
     bool is_system_pin(uint8_t pin) override;
 
+    void run_thread(void (*func)(void*), void* arg);
+
+  public:
+    std::string backlight_device;
+    int backlight_max = 0;
+
   private:
     std::string _hostname;
     std::string _core_version;
@@ -70,6 +78,9 @@ class PosixDevice : public BaseDevice {
 };
 
 } // namespace dev
+
+extern unsigned long PosixMillis();
+extern void msleep(unsigned long millis);
 
 using dev::PosixDevice;
 extern dev::PosixDevice haspDevice;

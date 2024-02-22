@@ -16,7 +16,7 @@
 
 #define RETAINED true
 
-#if defined(WINDOWS) || defined(POSIX)
+#if HASP_TARGET_PC
 extern std::string mqttNodeTopic;
 extern std::string mqttGroupTopic;
 #else
@@ -35,7 +35,7 @@ const char FP_MQTT_HA_NAME[] PROGMEM         = "name";
 const char FP_MQTT_HA_MODEL[] PROGMEM        = "mdl";
 const char FP_MQTT_HA_MANUFACTURER[] PROGMEM = "mf";
 
-#if !(defined(WINDOWS) || defined(POSIX))
+#if HASP_TARGET_ARDUINO
 
 #include "hal/hasp_hal.h"
 
