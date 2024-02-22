@@ -18,7 +18,7 @@
 #include <netdb.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <linux/limits.h>
+#include <limits.h>
 #include <sys/types.h>
 #include <pwd.h>
 #define cwd getcwd
