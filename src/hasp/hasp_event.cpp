@@ -272,16 +272,12 @@ static void event_object_val_event(lv_obj_t* obj, uint8_t eventid, int16_t val)
 {
     char data[512];
     {
-        StaticJsonDocument<512> doc;
         char eventname[8];
         Parser::get_event_name(eventid, eventname, sizeof(eventname));
-        doc["event"] = eventname;
-        doc["val"]   = val;
-        if(const char* tag = my_obj_get_tag(obj)) doc["tag"] = tag;
-        serializeJson(doc, data, sizeof(data));
-        //    snprintf_P(data, sizeof(data), PSTR("{\"event\":\"%s\",\"val\":%d,\"tag\":%s}"), eventname, val, tag);
-        // else
-        //     snprintf_P(data, sizeof(data), PSTR("{\"event\":\"%s\",\"val\":%d}"), eventname, val);
+        if(const char* tag = my_obj_get_tag(obj))
+            snprintf_P(data, sizeof(data), PSTR("{\"event\":\"%s\",\"val\":%d,\"tag\":%s}"), eventname, val, tag);
+        else
+            snprintf_P(data, sizeof(data), PSTR("{\"event\":\"%s\",\"val\":%d}"), eventname, val);
     }
     event_send_object_data(obj, data);
 }
@@ -291,21 +287,20 @@ static void event_object_selection_changed(lv_obj_t* obj, uint8_t eventid, int16
 {
     char data[512];
     {
-        StaticJsonDocument<512> doc;
+        StaticJsonDocument<256> doc;
+        size_t len = text ? strlen(text) : 0;
+        doc.set(text); // use text as-is
+        char serialized_text[256];
+        len = serializeJson(doc, serialized_text, sizeof(serialized_text));
+
         char eventname[8];
         Parser::get_event_name(eventid, eventname, sizeof(eventname));
-        doc["event"] = eventname;
-        doc["val"]   = val;
-        doc["text"]  = text;
-        if(const char* tag = my_obj_get_tag(obj)) doc["tag"] = tag;
-        serializeJson(doc, data, sizeof(data));
-        // if(const char* tag = my_obj_get_tag(obj))
-        //     snprintf_P(data, sizeof(data), PSTR("{\"event\":\"%s\",\"val\":%d,\"text\":\"%s\",\"tag\":%s}"),
-        //     eventname,
-        //                val, text, tag);
-        // else
-        //     snprintf_P(data, sizeof(data), PSTR("{\"event\":\"%s\",\"val\":%d,\"text\":\"%s\"}"), eventname, val,
-        //     text);
+        if(const char* tag = my_obj_get_tag(obj))
+            snprintf_P(data, sizeof(data), PSTR("{\"event\":\"%s\",\"val\":%d,\"text\":\"%s\",\"tag\":%s}"), eventname,
+                       val, serialized_text, tag);
+        else
+            snprintf_P(data, sizeof(data), PSTR("{\"event\":\"%s\",\"val\":%d,\"text\":\"%s\"}"), eventname, val,
+                       serialized_text);
     }
     event_send_object_data(obj, data);
 }
@@ -444,19 +439,14 @@ void textarea_event_handler(lv_obj_t* obj, lv_event_t event)
 
         char data[1024];
         {
-            StaticJsonDocument<1024> doc;
             char eventname[8];
             Parser::get_event_name(hasp_event_id, eventname, sizeof(eventname));
-            doc["event"] = eventname;
-            doc["text"]  = lv_textarea_get_text(obj);
-            if(const char* tag = my_obj_get_tag(obj)) doc["tag"] = tag;
-            serializeJson(doc, data, sizeof(data));
-            // if(const char* tag = my_obj_get_tag(obj))
-            //     snprintf_P(data, sizeof(data), PSTR("{\"event\":\"%s\",\"text\":\"%s\",\"tag\":%s}"), eventname,
-            //                lv_textarea_get_text(obj), tag);
-            // else
-            //     snprintf_P(data, sizeof(data), PSTR("{\"event\":\"%s\",\"text\":\"%s\"}"), eventname,
-            //                lv_textarea_get_text(obj));
+            if(const char* tag = my_obj_get_tag(obj))
+                snprintf_P(data, sizeof(data), PSTR("{\"event\":\"%s\",\"text\":\"%s\",\"tag\":%s}"), eventname,
+                           lv_textarea_get_text(obj), tag);
+            else
+                snprintf_P(data, sizeof(data), PSTR("{\"event\":\"%s\",\"text\":\"%s\"}"), eventname,
+                           lv_textarea_get_text(obj));
         }
 
         event_send_object_data(obj, data);
@@ -540,16 +530,12 @@ void generic_event_handler(lv_obj_t* obj, lv_event_t event)
     } else {
         char data[512];
         {
-            StaticJsonDocument<512> doc;
             char eventname[8];
             Parser::get_event_name(last_value_sent, eventname, sizeof(eventname));
-            doc["event"] = eventname;
-            if(const char* tag = my_obj_get_tag(obj)) doc["tag"] = tag;
-            serializeJson(doc, data, sizeof(data));
-            // if(const char* tag = my_obj_get_tag(obj))
-            //     snprintf_P(data, sizeof(data), PSTR("{\"event\":\"%s\",\"tag\":%s}"), eventname, tag);
-            // else
-            //     snprintf_P(data, sizeof(data), PSTR("{\"event\":\"%s\"}"), eventname);
+            if(const char* tag = my_obj_get_tag(obj))
+                snprintf_P(data, sizeof(data), PSTR("{\"event\":\"%s\",\"tag\":%s}"), eventname, tag);
+            else
+                snprintf_P(data, sizeof(data), PSTR("{\"event\":\"%s\"}"), eventname);
         }
         event_send_object_data(obj, data);
     }
@@ -860,10 +846,8 @@ void cpicker_event_handler(lv_obj_t* obj, lv_event_t event)
 
     char data[512];
     {
-        StaticJsonDocument<512> doc;
-        char buffer[8];
-        Parser::get_event_name(hasp_event_id, buffer, sizeof(buffer));
-        doc["event"] = buffer;
+        char eventname[8];
+        Parser::get_event_name(hasp_event_id, eventname, sizeof(eventname));
 
         lv_color32_t c32;
         lv_color_hsv_t hsv;
@@ -871,30 +855,18 @@ void cpicker_event_handler(lv_obj_t* obj, lv_event_t event)
         hsv             = lv_color_rgb_to_hsv(c32.ch.red, c32.ch.green, c32.ch.blue);
         last_color_sent = color;
 
-        snprintf_P(buffer, sizeof(buffer), PSTR("#%02x%02x%02x"), c32.ch.red, c32.ch.green, c32.ch.blue);
-        doc["color"] = buffer;
-        doc["r"] = c32.ch.red;
-        doc["g"] = c32.ch.green;
-        doc["b"] = c32.ch.blue;
-        doc["h"] = hsv.h;
-        doc["s"] = hsv.s;
-        doc["v"] = hsv.v;
-
-        if(const char* tag = my_obj_get_tag(obj)) doc["tag"] = tag;
-        serializeJson(doc, data, sizeof(data));
-
-        // if(const char* tag = my_obj_get_tag(obj))
-        //     snprintf_P(data, sizeof(data),
-        //                PSTR("{\"event\":\"%s\",\"color\":\"#%02x%02x%02x\",\"r\":%d,\"g\":%d,\"b\":%d,\"h\":%d,\"s\":%"
-        //                     "d,\"v\":%d,\"tag\":%s}"),
-        //                eventname, c32.ch.red, c32.ch.green, c32.ch.blue, c32.ch.red, c32.ch.green, c32.ch.blue, hsv.h,
-        //                hsv.s, hsv.v, tag);
-        // else
-        //     snprintf_P(data, sizeof(data),
-        //                PSTR("{\"event\":\"%s\",\"color\":\"#%02x%02x%02x\",\"r\":%d,\"g\":%d,\"b\":%d,\"h\":%d,\"s\":%"
-        //                     "d,\"v\":%d}"),
-        //                eventname, c32.ch.red, c32.ch.green, c32.ch.blue, c32.ch.red, c32.ch.green, c32.ch.blue, hsv.h,
-        //                hsv.s, hsv.v);
+        if(const char* tag = my_obj_get_tag(obj))
+            snprintf_P(data, sizeof(data),
+                       PSTR("{\"event\":\"%s\",\"color\":\"#%02x%02x%02x\",\"r\":%d,\"g\":%d,\"b\":%d,\"h\":%d,\"s\":%"
+                            "d,\"v\":%d,\"tag\":%s}"),
+                       eventname, c32.ch.red, c32.ch.green, c32.ch.blue, c32.ch.red, c32.ch.green, c32.ch.blue, hsv.h,
+                       hsv.s, hsv.v, tag);
+        else
+            snprintf_P(data, sizeof(data),
+                       PSTR("{\"event\":\"%s\",\"color\":\"#%02x%02x%02x\",\"r\":%d,\"g\":%d,\"b\":%d,\"h\":%d,\"s\":%"
+                            "d,\"v\":%d}"),
+                       eventname, c32.ch.red, c32.ch.green, c32.ch.blue, c32.ch.red, c32.ch.green, c32.ch.blue, hsv.h,
+                       hsv.s, hsv.v);
     }
     event_send_object_data(obj, data);
 
