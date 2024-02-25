@@ -73,9 +73,9 @@ void mdnsStart()
         strcpy_P(key, PSTR("version"));
         MDNS.addServiceTxt(service, proto, key, haspDevice.get_version());
 
-        // strcpy_P(key, PSTR("app_name"));
+        // strcpy_P(key, PSTR("name"));
         // strcpy_P(value, PSTR(D_MANUFACTURER));
-        MDNS.addServiceTxt(service, proto, key, value);
+        // MDNS.addServiceTxt(service, proto, key, value);
 
         strcpy_P(key, PSTR("discovery"));
         StaticJsonDocument<1024> doc;
