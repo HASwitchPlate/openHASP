@@ -1299,12 +1299,13 @@ void dispatch_get_discovery_data(JsonDocument& doc)
 {
     char buffer[64];
 
-    doc[F("node")]  = haspDevice.get_hostname();
-    doc[F("mdl")]   = haspDevice.get_model();
-    doc[F("mf")]    = F(D_MANUFACTURER);
-    doc[F("hwid")]  = haspDevice.get_hardware_id();
-    doc[F("pages")] = haspPages.count();
-    doc[F("sw")]    = haspDevice.get_version();
+    doc[F("node")]   = haspDevice.get_hostname();
+    doc[F("mdl")]    = haspDevice.get_model();
+    doc[F("mf")]     = F(D_MANUFACTURER);
+    doc[F("hwid")]   = haspDevice.get_hardware_id();
+    doc[F("pages")]  = haspPages.count();
+    doc[F("sw")]     = haspDevice.get_version();
+    doc[F("node_t")] = String("hasp/") + haspDevice.get_hostname() + "/";
 
 #if HASP_USE_HTTP > 0
     network_get_ipaddress(buffer, sizeof(buffer));

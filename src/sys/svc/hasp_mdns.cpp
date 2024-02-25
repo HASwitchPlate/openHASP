@@ -70,18 +70,13 @@ void mdnsStart()
         strcpy_P(service, PSTR("openhasp"));
         MDNS.addService(service, proto, 80);
 
-        strcpy_P(key, PSTR("version"));
-        MDNS.addServiceTxt(service, proto, key, haspDevice.get_version());
-
-        // strcpy_P(key, PSTR("name"));
-        // strcpy_P(value, PSTR(D_MANUFACTURER));
-        // MDNS.addServiceTxt(service, proto, key, value);
-
-        strcpy_P(key, PSTR("discovery"));
         StaticJsonDocument<1024> doc;
         dispatch_get_discovery_data(doc);
-        size_t len = serializeJson(doc, value);
-        MDNS.addServiceTxt(service, proto, key, value);
+
+        JsonObject data = doc.as<JsonObject>();
+        for(JsonPair i : data) {
+            MDNS.addServiceTxt(service, proto, i.key().c_str(), i.value().as<String>());
+        }
 
         // if(debugTelnetEnabled) {
         strcpy_P(service, PSTR("telnet"));
