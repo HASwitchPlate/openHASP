@@ -489,7 +489,7 @@ void webHandleAbout(AsyncWebServerRequest* request)
     String httpMessage((char*)0);
     httpMessage.reserve(HTTP_PAGE_SIZE);
 
-    httpMessage += F("<p><h3>openHASP</h3>Copyright&copy; 2019-2022 Francis Van Roie ");
+    httpMessage += F("<p><h3>openHASP</h3>Copyright&copy; 2019-2024 Francis Van Roie ");
     httpMessage += mitLicense;
     httpMessage += F("<p>Based on the previous work of the following open source developers.</p><hr>");
     httpMessage += F("<p><h3>HASwitchPlate</h3>Copyright&copy; 2019 Allen Derusha allen@derusha.org</b>");
