@@ -1295,13 +1295,8 @@ void dispatch_queue_discovery(const char*, const char*, uint8_t source)
     dispatchSecondsToNextDiscovery = seconds;
 }
 
-// Periodically publish a JSON string facilitating plate discovery
-void dispatch_send_discovery(const char*, const char*, uint8_t source)
+void dispatch_get_discovery_data(JsonDocument& doc)
 {
-#if HASP_USE_MQTT > 0
-
-    StaticJsonDocument<1024> doc;
-    char data[1024];
     char buffer[64];
 
     doc[F("node")]  = haspDevice.get_hostname();
@@ -1326,7 +1321,17 @@ void dispatch_send_discovery(const char*, const char*, uint8_t source)
 #if HASP_USE_GPIO > 0
     gpio_discovery(input, relay, led, dimmer);
 #endif
+}
 
+// Periodically publish a JSON string facilitating plate discovery
+void dispatch_send_discovery(const char*, const char*, uint8_t source)
+{
+#if HASP_USE_MQTT > 0
+    StaticJsonDocument<1024> doc;
+    char data[1024];
+    char buffer[64];
+
+    dispatch_get_discovery_data(doc);
     size_t len = serializeJson(doc, data);
 
     switch(mqtt_send_discovery(data, len)) {
