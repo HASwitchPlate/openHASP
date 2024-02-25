@@ -4,6 +4,10 @@
 #ifndef HASP_CONF_H
 #define HASP_CONF_H
 
+#if HASP_TARGET_ARDUINO
+#include "Arduino.h"
+#endif
+
 #ifdef USE_CONFIG_OVERRIDE
 #include "user_config_override.h"
 #endif
@@ -207,11 +211,11 @@
 #define IRAM_ATTR
 #endif
 
-#ifndef FPSTR
+#if !defined(FPSTR)
 #define FPSTR(pstr_pointer) (reinterpret_cast<const __FlashStringHelper*>(pstr_pointer))
 #endif
 
-#ifndef PGM_P
+#if !defined(PGM_P)
 #define PGM_P const char*
 #endif
 
