@@ -51,7 +51,7 @@ jobs:
           - out: seeed-studios
             env: "sensecap-indicator-d1_8MB"
           - out: sunton
-            env: "esp32-2432s028r_4MB -e esp32-3248s035c_4MB -e esp32-3248s035r_4MB -e sunton-4827s043c_16MB -e sunton-8048s043c_16MB -e sunton-8048s050c_16MB -e sunton-8048s070c_16MB"
+            env: "esp32-2432s028r_4MB -e esp32-2432s028r-st7789_4MB -e esp32-3248s035c_4MB -e esp32-3248s035r_4MB -e sunton-4827s043c_16MB -e sunton-8048s043c_16MB -e sunton-8048s050c_16MB -e sunton-8048s070c_16MB"
           - out: waveshare
             env: "esp32-one_ili9486 -e esp32-one_st7796"
           - out: wireless-tag
