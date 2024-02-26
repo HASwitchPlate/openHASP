@@ -296,10 +296,10 @@ static void event_object_selection_changed(lv_obj_t* obj, uint8_t eventid, int16
         char eventname[8];
         Parser::get_event_name(eventid, eventname, sizeof(eventname));
         if(const char* tag = my_obj_get_tag(obj))
-            snprintf_P(data, sizeof(data), PSTR("{\"event\":\"%s\",\"val\":%d,\"text\":\"%s\",\"tag\":%s}"), eventname,
+            snprintf_P(data, sizeof(data), PSTR("{\"event\":\"%s\",\"val\":%d,\"text\":%s,\"tag\":%s}"), eventname,
                        val, serialized_text, tag);
         else
-            snprintf_P(data, sizeof(data), PSTR("{\"event\":\"%s\",\"val\":%d,\"text\":\"%s\"}"), eventname, val,
+            snprintf_P(data, sizeof(data), PSTR("{\"event\":\"%s\",\"val\":%d,\"text\":%s}"), eventname, val,
                        serialized_text);
     }
     event_send_object_data(obj, data);
