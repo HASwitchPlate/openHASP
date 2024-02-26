@@ -34,6 +34,8 @@ jobs:
             env: "esp32-terminal-rgb_16MB -e esp32-terminal-spi_16MB"
           - out: globalsecurity
             env: gs-t3e_16MB
+          - out: guition
+            env: esp32-s3-4848s040_16MB
           - out: lanbon
             env: lanbon_l8
           - out: lilygo-ttgo
@@ -56,8 +58,6 @@ jobs:
             env: "wt32-sc01_4MB -e wt32-sc01_16MB -e wt-86-32-3zw1 -e wt32-sc01-plus_8MB -e wt32-sc01-plus_16MB"
           - out: yeacreate
             env: yeacreate-nscreen32
-          - out: guition
-            env: esp32-s3-4848S040
 
     steps:
       - uses: actions/checkout@v4
