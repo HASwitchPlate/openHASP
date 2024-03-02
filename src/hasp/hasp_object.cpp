@@ -1,4 +1,4 @@
-/* MIT License - Copyright (c) 2019-2022 Francis Van Roie
+/* MIT License - Copyright (c) 2019-2024 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
 /* ********************************************************************************************
@@ -179,7 +179,7 @@ int hasp_parse_json_attributes(lv_obj_t* obj, const JsonObject& doc)
 {
     int i = 0;
 
-#if defined(WINDOWS) || defined(POSIX) || defined(ESP32)
+#if HASP_TARGET_PC || defined(ESP32)
     std::string v;
     v.reserve(64);
 

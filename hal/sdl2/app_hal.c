@@ -1,3 +1,4 @@
+#if USE_MONITOR
 #include <unistd.h>
 #define SDL_MAIN_HANDLED /*To fix SDL's "undefined reference to WinMain" issue*/
 #include <SDL2/SDL.h>
@@ -53,3 +54,4 @@ void hal_loop(void)
     //     lv_task_handler();
     // }
 }
+#endif

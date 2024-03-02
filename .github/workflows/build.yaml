@@ -21,23 +21,21 @@ jobs:
       matrix:
         environment:
           - out: adafruit
-            env: "huzzah32-featherwing-24 -e huzzah32-featherwing-35"
+            env: "huzzah32-featherwing-24 -e huzzah32-featherwing-35 -e huzzah32-featherwing-24-v2 -e huzzah32-featherwing-35-v2 -e huzzah32-v2-featherwing-24-v2 -e huzzah32-v2-featherwing-35-v2"
           - out: az-touch
             env: "az-touch-mod-esp32_ili9341_4MB -e az-touch-mod-esp32_ili9341_8MB"
           - env: d1-mini-esp32_ili9341
             out: d1-mini-esp32
-          - env: d1-r32-waveshare_ili9486
-            out: d1-r32-espduino32
-          - env: d1-r32-unoshield_ili9341_adc
-            out: d1-r32-espduino32
-          - env: d1-r32-unoshield_ili9486_adc
-            out: d1-r32-espduino32
+          - out: d1-r32-espduino32
+            env: "d1-r32-waveshare_ili9486 -e d1-r32-unoshield_ili9341_adc -e d1-r32-unoshield_ili9486_adc"
           - out: dustinwatts
             env: "freetouchdeck_4MB -e freetouchdeck_8MB -e esp32-touchdown"
           - out: elecrow
             env: "esp32-terminal-rgb_16MB -e esp32-terminal-spi_16MB"
           - out: globalsecurity
             env: gs-t3e_16MB
+          - out: guition
+            env: esp32-s3-4848s040_16MB
           - out: lanbon
             env: lanbon_l8
           - out: lilygo-ttgo
@@ -53,7 +51,7 @@ jobs:
           - out: seeed-studios
             env: "sensecap-indicator-d1_8MB"
           - out: sunton
-            env: "esp32-2432s028r_4MB -e esp32-3248s035c_4MB -e esp32-3248s035r_4MB -e sunton-4827s043c_16MB -e sunton-8048s043c_16MB -e sunton-8048s050c_16MB -e sunton-8048s070c_16MB"
+            env: "esp32-2432s028r_4MB -e esp32-2432s028r-ili9342_4MB -e esp32-2432s032c_4MB -e esp32-3248s035c_4MB -e esp32-3248s035r_4MB -e sunton-4827s043c_16MB -e sunton-8048s043c_16MB -e sunton-8048s050c_16MB -e sunton-8048s070c_16MB"
           - out: waveshare
             env: "esp32-one_ili9486 -e esp32-one_st7796"
           - out: wireless-tag
@@ -62,29 +60,32 @@ jobs:
             env: yeacreate-nscreen32
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: "true"
       - name: Cache pip
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
           restore-keys: |
             ${{ runner.os }}-pip-
       - name: Cache PlatformIO
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.platformio
           key: ${{ runner.os }}-${{ hashFiles('**/lockfiles') }}
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: "3.x"
       - name: Install PlatformIO
         run: |
           python -m pip install --upgrade pip
           pip install --upgrade platformio
+      - name: Install Setuptools
+        run: |
+          pip install --upgrade setuptools
       - name: Enable ESP32 platforms from platformio_override-template.ini
         run: |
           sed 's/; user_setups\/esp32/user_setups\/esp32/g' platformio_override-template.ini > platformio_override.ini
@@ -97,7 +98,7 @@ jobs:
       - name: Run PlatformIO
         run: pio run -e ${{ matrix.environment.env }}
       - name: Upload output file
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.environment.out }}
           path: build_output/firmware/*.bin
@@ -127,23 +128,23 @@ jobs:
   linux_build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: "true"
       - name: Cache pip
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
           restore-keys: |
             ${{ runner.os }}-pip-
       - name: Cache PlatformIO
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.platformio
           key: ${{ runner.os }}-${{ hashFiles('**/lockfiles') }}
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: "3.x"
       - name: Install PlatformIO
@@ -153,7 +154,7 @@ jobs:
       - name: Enable Linux platform from platformio_override.ini
         run: |
           sed 's/; user_setups\/linux/user_setups\/linux/g' platformio_override-template.ini > platformio_override.ini
-          mkdir -p .pio/libdeps/linux_sdl_64bits/paho/src
+          mkdir -p .pio/libdeps/linux_sdl/paho/src
       - name: Install SDL2 library
         run: |
           sudo apt-get update
@@ -167,10 +168,10 @@ jobs:
       - name: Enable Linux platform from platformio_override.ini
         run: |
           sed -i 's/; user_setups\/linux/user_setups\/linux/g' platformio_override.ini
-          mkdir -p .pio/libdeps/linux_sdl_64bits/paho/src
+          mkdir -p .pio/libdeps/linux_sdl/paho/src
       - name: Install SDL2 library
         run: |
           sudo apt-get update
           sudo apt-get install libsdl2-dev
       - name: Run PlatformIO
-        run: pio run -e linux_sdl_64bits
+        run: pio run -e linux_sdl

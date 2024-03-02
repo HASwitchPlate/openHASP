@@ -1,4 +1,4 @@
-/* MIT License - Copyright (c) 2019-2022 Francis Van Roie
+/* MIT License - Copyright (c) 2019-2024 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
 #include "hasplib.h"
@@ -14,6 +14,11 @@ uint16_t network_reconnect_counter = 0;
 
 #if HASP_USE_ETHERNET > 0 || HASP_USE_WIFI > 0
 
+bool network_is_connected()
+{
+    return current_network_state;
+}
+
 void network_disconnected()
 {
 
@@ -23,6 +28,9 @@ void network_disconnected()
     // if(!current_network_state) return; // we were not connected
 
     current_network_state = false; // now we are disconnected
+#if HASP_USE_WIREGUARD
+    wg_network_disconnected();
+#endif
     network_reconnect_counter++;
     // LOG_VERBOSE(TAG_NETW, F("Connected = %s"),
     //             WiFi.status() == WL_CONNECTED ? PSTR(D_NETWORK_ONLINE) : PSTR(D_NETWORK_OFFLINE));
@@ -32,10 +40,15 @@ void network_connected()
 {
     if(current_network_state) return; // already connected
 
+#if HASP_USE_WIREGUARD
+    wg_network_connected();
+#endif
+
     current_network_state     = true; // now we are connected
     network_reconnect_counter = 0;
     LOG_VERBOSE(TAG_NETW, F("Connected = %s"),
                 WiFi.status() == WL_CONNECTED ? PSTR(D_NETWORK_ONLINE) : PSTR(D_NETWORK_OFFLINE));
+
 }
 
 void network_run_scripts()
@@ -100,6 +113,10 @@ void networkSetup()
 
 #if HASP_USE_WIFI > 0
     wifiSetup();
+#endif
+
+#if HASP_USE_WIREGUARD > 0
+    wg_setup();
 #endif
 }
 
@@ -178,10 +195,20 @@ void network_get_statusupdate(char* buffer, size_t len)
 #if HASP_USE_WIFI > 0
     wifi_get_statusupdate(buffer, len);
 #endif
+
+#if HASP_USE_WIREGUARD > 0
+    size_t l = strlen(buffer);
+    wg_get_statusupdate(buffer + l, len - l);
+#endif
 }
 
 void network_get_ipaddress(char* buffer, size_t len)
 {
+#if HASP_USE_WIREGUARD > 0
+    if (wg_get_ipaddress(buffer, len))
+        return;
+#endif
+
 #if HASP_USE_ETHERNET > 0
 #if defined(ARDUINO_ARCH_ESP32)
 #if HASP_USE_ETHSPI > 0
@@ -221,6 +248,10 @@ void network_get_info(JsonDocument& doc)
 
 #if HASP_USE_WIFI > 0
     wifi_get_info(doc);
+#endif
+
+#if HASP_USE_WIREGUARD > 0
+    wg_get_info(doc);
 #endif
 }
 

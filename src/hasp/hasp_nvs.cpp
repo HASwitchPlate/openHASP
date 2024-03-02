@@ -1,10 +1,12 @@
-/* MIT License - Copyright (c) 2019-2023 Francis Van Roie
+/* MIT License - Copyright (c) 2019-2024 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
 #ifdef ESP32
 
 #include "hasplib.h"
 #include "hasp_nvs.h"
+
+#define ARRAY_SIZE(a) (sizeof(a) / sizeof((a)[0]))
 
 bool nvs_user_begin(Preferences& preferences, const char* key, bool readonly)
 {
@@ -22,16 +24,16 @@ bool nvs_user_begin(Preferences& preferences, const char* key, bool readonly)
 
 bool nvs_clear_user_config()
 {
-    const char* name[] = {FP_TIME, FP_OTA, FP_HTTP, FP_FTP, FP_MQTT, FP_WIFI};
+    const char* name[] = {FP_TIME, FP_OTA, FP_HTTP, FP_FTP, FP_MQTT, FP_WIFI, FP_WG};
     Preferences preferences;
     bool state = true;
 
-    for(int i = 0; i < sizeof(name) / sizeof(name[0]); i++) {
+    for(int i = 0; i < ARRAY_SIZE(name); i++) {
         if(preferences.begin(name[i], false) && !preferences.clear()) state = false;
         preferences.end();
     }
 
-    for(int i = 0; i < sizeof(name) / sizeof(name[0]); i++) {
+    for(int i = 0; i < ARRAY_SIZE(name); i++) {
         if(preferences.begin(name[i], false, "config") && !preferences.clear()) state = false;
         preferences.end();
     }
@@ -226,19 +228,30 @@ void nvs_setup()
            nvs_stats.free_entries, nvs_stats.total_entries);
 
     { // TODO: remove migratrion of keys from default NVS partition to CONFIG partition
-        const char* name[8] = {FP_TIME, FP_OTA, FP_HTTP, FP_FTP, FP_MQTT, FP_WIFI};
+        const struct {
+            const char* name;
+            const char* config;
+        } sec[] = {
+            { .name = FP_TIME,  .config = FP_CONFIG_PASS },
+            { .name = FP_OTA,   .config = FP_CONFIG_PASS },
+            { .name = FP_HTTP,  .config = FP_CONFIG_PASS },
+            { .name = FP_FTP,   .config = FP_CONFIG_PASS },
+            { .name = FP_MQTT,  .config = FP_CONFIG_PASS },
+            { .name = FP_WIFI,  .config = FP_CONFIG_PASS },
+            { .name = FP_WG,    .config = FP_CONFIG_PRIVATE_KEY }
+        };
         Preferences oldPrefs, newPrefs;
 
-        for(int i = 0; i < 6; i++) {
-            if(oldPrefs.begin(name[i], false) && newPrefs.begin(name[i], false, "config")) {
-                LOG_INFO(TAG_NVS, "opened %s", name[i]);
-                String password = oldPrefs.getString(FP_CONFIG_PASS, D_PASSWORD_MASK);
+        for(int i = 0; i < ARRAY_SIZE(sec); i++) {
+            if(oldPrefs.begin(sec[i].name, false) && newPrefs.begin(sec[i].name, false, "config")) {
+                LOG_INFO(TAG_NVS, "opened %s", sec[i].name);
+                String password = oldPrefs.getString(sec[i].config, D_PASSWORD_MASK);
                 if(password != D_PASSWORD_MASK) {
-                    LOG_INFO(TAG_NVS, "found %s %s => %s", name[i], D_PASSWORD_MASK, password.c_str());
-                    size_t len = newPrefs.putString(FP_CONFIG_PASS, password);
+                    LOG_INFO(TAG_NVS, "found %s %s => %s", sec[i].name, D_PASSWORD_MASK, password.c_str());
+                    size_t len = newPrefs.putString(sec[i].config, password);
                     if(len == password.length()) {
-                        oldPrefs.remove(FP_CONFIG_PASS);
-                        LOG_INFO(TAG_NVS, "Moved %s key %s to new NVS partition", name[i], FP_CONFIG_PASS);
+                        oldPrefs.remove(sec[i].config);
+                        LOG_INFO(TAG_NVS, "Moved %s key %s to new NVS partition", sec[i].name, sec[i].config);
                     }
                 }
             }

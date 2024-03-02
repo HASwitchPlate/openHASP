@@ -1,11 +1,11 @@
-/* MIT License - Copyright (c) 2019-2022 Francis Van Roie
+/* MIT License - Copyright (c) 2019-2024 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
 /*********************
  *      INCLUDES
  *********************/
 
-#if !(defined(WINDOWS) || defined(POSIX) || defined(STM32F7xx))
+#if !(HASP_TARGET_PC || defined(STM32F7xx))
 
 #include <Arduino.h>
 #include <stdio.h>

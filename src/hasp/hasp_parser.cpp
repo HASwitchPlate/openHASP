@@ -1,4 +1,4 @@
-/* MIT License - Copyright (c) 2019-2022 Francis Van Roie
+/* MIT License - Copyright (c) 2019-2024 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
 #ifdef ARDUINO
@@ -136,34 +136,34 @@ void Parser::get_event_name(uint8_t eventid, char* buffer, size_t size)
 {
     switch(eventid) {
         case HASP_EVENT_ON:
-            memcpy_P(buffer, PSTR("on"), size);
+            memcpy_P(buffer, PSTR("on"), 3);
             break;
         case HASP_EVENT_OFF:
-            memcpy_P(buffer, PSTR("off"), size);
+            memcpy_P(buffer, PSTR("off"), 4);
             break;
         case HASP_EVENT_UP:
-            memcpy_P(buffer, PSTR("up"), size);
+            memcpy_P(buffer, PSTR("up"), 3);
             break;
         case HASP_EVENT_DOWN:
-            memcpy_P(buffer, PSTR("down"), size);
+            memcpy_P(buffer, PSTR("down"), 5);
             break;
         case HASP_EVENT_RELEASE:
-            memcpy_P(buffer, PSTR("release"), size);
+            memcpy_P(buffer, PSTR("release"), 8);
             break;
         case HASP_EVENT_LONG:
-            memcpy_P(buffer, PSTR("long"), size);
+            memcpy_P(buffer, PSTR("long"), 5);
             break;
         case HASP_EVENT_HOLD:
-            memcpy_P(buffer, PSTR("hold"), size);
+            memcpy_P(buffer, PSTR("hold"), 5);
             break;
         case HASP_EVENT_LOST:
-            memcpy_P(buffer, PSTR("lost"), size);
+            memcpy_P(buffer, PSTR("lost"), 5);
             break;
         case HASP_EVENT_CHANGED:
-            memcpy_P(buffer, PSTR("changed"), size);
+            memcpy_P(buffer, PSTR("changed"), 8);
             break;
         default:
-            memcpy_P(buffer, PSTR("unknown"), size);
+            memcpy_P(buffer, PSTR("unknown"), 8);
     }
 }
 

@@ -1,4 +1,4 @@
-/* MIT License - Copyright (c) 2019-2022 Francis Van Roie
+/* MIT License - Copyright (c) 2019-2024 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
 #ifndef HASP_DEBUG_H
@@ -17,7 +17,7 @@
 
 #include "lang/lang.h"
 
-#if(!defined(WINDOWS)) && (!defined(POSIX))
+#if HASP_TARGET_ARDUINO
 /* ===== Default Event Processors ===== */
 void debugSetup(JsonObject settings);
 
@@ -194,6 +194,7 @@ enum {
     TAG_FTP      = 68,
     TAG_TIME     = 69,
     TAG_NETW     = 70,
+    TAG_WG       = 71,
 
     TAG_LVGL = 90,
     TAG_LVFS = 91,

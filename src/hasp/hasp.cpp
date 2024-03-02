@@ -1,4 +1,4 @@
-/* MIT License - Copyright (c) 2019-2023 Francis Van Roie
+/* MIT License - Copyright (c) 2019-2024 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
 #include "hasplib.h"
@@ -11,7 +11,7 @@
 #include "ArduinoLog.h"
 #endif
 
-#if defined(WINDOWS) || defined(POSIX)
+#if HASP_TARGET_PC
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -121,18 +121,21 @@ HASP_ATTRIBUTE_FAST_MEM void hasp_update_sleep_state()
             gui_hide_pointer(true);
             hasp_sleep_state = HASP_SLEEP_LONG;
             dispatch_idle_state(HASP_SLEEP_LONG);
+            dispatch_run_script(NULL, "L:/idle_long.cmd", TAG_HASP);
         }
     } else if(sleepTimeShort > 0 && idle >= sleepTimeShort) {
         if(hasp_sleep_state != HASP_SLEEP_SHORT) {
             gui_hide_pointer(true);
             hasp_sleep_state = HASP_SLEEP_SHORT;
             dispatch_idle_state(HASP_SLEEP_SHORT);
+            dispatch_run_script(NULL, "L:/idle_short.cmd", TAG_HASP);
         }
     } else {
         if(hasp_sleep_state != HASP_SLEEP_OFF) {
             gui_hide_pointer(false);
             hasp_sleep_state = HASP_SLEEP_OFF;
             dispatch_idle_state(HASP_SLEEP_OFF);
+            dispatch_run_script(NULL, "L:/idle_off.cmd", TAG_HASP);
         }
     }
 }

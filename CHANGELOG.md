@@ -20,6 +20,7 @@
 - Firmware files include the bitmapped font sizes 12, 16, 24 and 32pt
 - Use embedded TrueType font for other font sizes (PSram highly recommended)
 - Add glyphs from Cyrillic, Latin-2, Greek and Viernamese character sets to default fonts
+- Add 12 new MDI icons
 
 ### Web UI
 - Update Web UI to petite-vue app
@@ -35,6 +36,7 @@
 - Add service start/stop ftp
 - Add configuration for NTP servers and timezone
 - Add support system scripts executed when the idle level is changed
+- Add support for WireGuard (thanks @perexg)
 
 ### Devices
 - Add Elecrow ESP32-Terminal 3.5" SPI and RGB
@@ -45,6 +47,7 @@
 - Add Sunton ESP32-2432S028R ESP32-3248S035C ESP32-3248S035R
 - Add support for Wireless-Tag WT32-SC01 Plus and WT32S3-86V
 - Deprecate support for WT-86-32-3ZW1 with ESP32-S2
+- Fade backlight on ESP32 devices (thanks @presslab-us)
 
 ## Bug fixes
 - Fix for first touch not working properly
@@ -56,7 +59,7 @@
 - Add support for ESP32-S3 and ESP32-C3 devices
 - Deprecation of support for ESP32-S2 devices due to lack of sRAM
 
-Updated libraries to ArduinoJson 6.21.3, ArduinoStreamUtils 1.7.3, AceButton 1.10.1, TFT_eSPI 2.5.0, LovyanGFX 1.1.8 and SimpleFTPServer 2.1.5
+Updated libraries to Arduino_GFX v1.4.0, ArduinoJson 6.21.5, ArduinoStreamUtils 1.8.0, AceButton 1.10.1, TFT_eSPI 2.5.34, LovyanGFX 1.1.12 and SimpleFTPServer 2.1.5
 
 
 ## v0.6.3
@@ -166,23 +169,23 @@ Updated libraries to AceButton 1.9.1 and ArduinoJson 6.18.5
 - Run `/online.cmd` or `/offline.cmd` script when the wifi status changed
 
 ### Objects
-- Add new *[line](https://openhasp.haswitchplate.com/0.6.1/design/objects/#line)* object
-- Add `val` to *[btnmatrix](https://openhasp.haswitchplate.com/0.6.1/design/objects/#button-matrix)* when `one_select` is set
-- Cache up to 20 *[images](https://openhasp.haswitchplate.com/0.6.1/design/objects/#image)* in PSram when available
-- Improve precision on the *[linemeter](https://openhasp.haswitchplate.com/0.6.1/design/objects/#line-meter)* scales
-- Fix *[dropdown](https://openhasp.haswitchplate.com/0.6.1/design/objects/#dropdown-list)* redraw bug
+- Add new *[line](https://www.openhasp.com/0.6.1/design/objects/#line)* object
+- Add `val` to *[btnmatrix](https://www.openhasp.com/0.6.1/design/objects/#button-matrix)* when `one_select` is set
+- Cache up to 20 *[images](https://www.openhasp.com/0.6.1/design/objects/#image)* in PSram when available
+- Improve precision on the *[linemeter](https://www.openhasp.com/0.6.1/design/objects/#line-meter)* scales
+- Fix *[dropdown](https://www.openhasp.com/0.6.1/design/objects/#dropdown-list)* redraw bug
 
 ### Devices
-- Fix [L8-HD dimmer](https://openhasp.haswitchplate.com/0.6.1/devices/lanbon-l8/) not responding correctly to mqtt after a reboot
-- Add [M5Stack Core2](https://openhasp.haswitchplate.com/0.6.1/devices/m5stack-core2/) backlight dimming
-- Add [Yeacreate Nscreen32](https://openhasp.haswitchplate.com/0.6.1/devices/yeacreate-nscreen32/)
-- Add [Makerfabs ESP32 TFT Touch](https://openhasp.haswitchplate.com/0.6.1/devices/makerfabs-tft-touch/) Capacitive
+- Fix [L8-HD dimmer](https://www.openhasp.com/0.6.1/devices/lanbon-l8/) not responding correctly to mqtt after a reboot
+- Add [M5Stack Core2](https://www.openhasp.com/0.6.1/devices/m5stack-core2/) backlight dimming
+- Add [Yeacreate Nscreen32](https://www.openhasp.com/0.6.1/devices/yeacreate-nscreen32/)
+- Add [Makerfabs ESP32 TFT Touch](https://www.openhasp.com/0.6.1/devices/makerfabs-tft-touch/) Capacitive
 
 ### Fonts
-- [Additional characters](https://openhasp.haswitchplate.com/0.6.1/design/fonts/#ascii): `²` (squared) and `³` (cubed)
-- [Additional icons](https://openhasp.haswitchplate.com/0.6.1/design/fonts/#built-in-icons): recycle-variant and additional weather icons
-- Use latin1 as default charset on [WT32-SC01](https://openhasp.haswitchplate.com/0.6.1/devices/wt32-sc01/)
-- Add [Greek font](https://openhasp.haswitchplate.com/0.6.1/design/fonts/#greek)
+- [Additional characters](https://www.openhasp.com/0.6.1/design/fonts/#ascii): `²` (squared) and `³` (cubed)
+- [Additional icons](https://www.openhasp.com/0.6.1/design/fonts/#built-in-icons): recycle-variant and additional weather icons
+- Use latin1 as default charset on [WT32-SC01](https://www.openhasp.com/0.6.1/devices/wt32-sc01/)
+- Add [Greek font](https://www.openhasp.com/0.6.1/design/fonts/#greek)
 
 ### Compiling
 - Allow custom bootlogo
@@ -250,7 +253,7 @@ Updated libraries to lvgl 7.11.0, ArduinoJson 6.18.0 and TFT_eSPI 2.3.70
 
 ## v0.5.0
 
-Name changed to openHASP - https://openhasp.haswitchplate.com/
+Name changed to openHASP - https://www.openhasp.com/
 > When using HomeAssistant also update the [openHASP Custom Component](https://github.com/HASwitchPlate/openHASP-custom-component/releases/tag/0.5.0)
 
 - Switch built-in icons from FontAwesome to MaterialDesign icons #139
@@ -261,7 +264,7 @@ Name changed to openHASP - https://openhasp.haswitchplate.com/
 - Add `back`, `prev`, `next` attributes to pages #114
 - JSON Serialize text in payloads containing text attributes #140
 - Add az-touch-mod-esp32_ili9341 config and allow for TFT_BACKLIGHT_ON set to LOW #131
-- Add [FreeTouchDeck](https://openhasp.haswitchplate.com/0.5/#devices/freetouchdeck/) and [ESP32-Touchdown](https://openhasp.haswitchplate.com/0.5/#devices/esp32-touchdown/) configs
+- Add [FreeTouchDeck](https://www.openhasp.com/0.5/#devices/freetouchdeck/) and [ESP32-Touchdown](https://www.openhasp.com/0.5/#devices/esp32-touchdown/) configs
 - Add roller `mode` `infinite` attribute
 - Add btnmatrix `toggle` and `one_check` attributes
 - Rework all event handlers to reduce update events and prevent race condition #119 *(events have changed!)*
@@ -289,7 +292,7 @@ Changes:
 - Remove HA auto-discovery in favor of the HA Custom Component
 - Add `clearpage all` command option
 - Add local page navigation and transitions
-- Add [scale properties](https://openhasp.haswitchplate.com/0.5/#styling/#scale)
+- Add [scale properties](https://www.openhasp.com/0.5/#styling/#scale)
 - Add `config/gpio` command
 - Allow for timezone setting in user_config_override.h (thanks @arovak)
 - Start localizations for NL, HU and RO (thanks @nagyrobi)

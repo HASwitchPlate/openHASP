@@ -1,4 +1,4 @@
-/* MIT License - Copyright (c) 2019-2023 Francis Van Roie
+/* MIT License - Copyright (c) 2019-2024 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
 #include <time.h>
@@ -18,6 +18,7 @@
 #include "Preferences.h"
 #include "nvs.h"
 #include "nvs_flash.h"
+#include "esp_sntp.h"
 #endif
 
 #if defined(ARDUINO_ARCH_ESP32)
@@ -26,6 +27,11 @@ String mytz((char*)0);
 String ntp1((char*)0);
 String ntp2((char*)0);
 String ntp3((char*)0);
+
+void timeSyncCallback(struct timeval* tv)
+{
+    LOG_VERBOSE(TAG_TIME, "NTP Synced: %s", ctime(&tv->tv_sec));
+}
 #endif
 
 void timeSetup()
@@ -41,15 +47,19 @@ void timeSetup()
     String zone((char*)0);
     zone = preferences.getString("zone", TIMEZONE);
 
-    mytz = time_zone_to_possix(zone.c_str());
-    ntp1 = preferences.getString("ntp1", NTPSERVER1);
-    ntp2 = preferences.getString("ntp2", NTPSERVER2);
-    ntp3 = preferences.getString("ntp3", NTPSERVER3);
+    mytz        = time_zone_to_possix(zone.c_str());
+    ntp1        = preferences.getString("ntp1", NTPSERVER1);
+    ntp2        = preferences.getString("ntp2", NTPSERVER2);
+    ntp3        = preferences.getString("ntp3", NTPSERVER3);
+    bool enable = preferences.getBool("enable", true);
+    bool dhcp   = preferences.getBool("dhcp", true);
 
     LOG_VERBOSE(TAG_TIME, F("%s => %s"), zone.c_str(), mytz.c_str());
     LOG_VERBOSE(TAG_TIME, F("NTP: %s %s %s"), ntp1.c_str(), ntp2.c_str(), ntp3.c_str());
 
+    sntp_set_time_sync_notification_cb(timeSyncCallback);
     configTzTime(mytz.c_str(), ntp1.c_str(), ntp2.c_str(), ntp3.c_str());
+    sntp_servermode_dhcp(enable && dhcp ? 1 : 0);
     preferences.end();
 #endif
 }
@@ -100,9 +110,7 @@ String time_zone_to_possix(const char* timezone)
         case TZ_ASIA_RIYADH:
         case TZ_ETC_GMT__3:
         case TZ_EUROPE_ISTANBUL:
-        case TZ_EUROPE_KIROV:
         case TZ_EUROPE_MINSK:
-        case TZ_EUROPE_VOLGOGRAD:
             return "<+03>-3";
         case TZ_ASIA_TEHRAN:
             return "<+0330>-3:30";
@@ -273,9 +281,9 @@ String time_zone_to_possix(const char* timezone)
             return "<-03>3";
         case TZ_AMERICA_MIQUELON:
             return "<-03>3<-02>,M3.2.0,M11.1.0";
-        case TZ_AMERICA_GODTHAB:
         case TZ_AMERICA_NUUK:
-            return "<-03>3<-02>,M3.4.6/22,J365/25";
+        case TZ_AMERICA_GODTHAB:
+            return "<-02>2<-01>,M3.5.0/-1,M10.5.0/0";
         case TZ_AMERICA_BOA_VISTA:
         case TZ_AMERICA_CAMPO_GRANDE:
         case TZ_AMERICA_CARACAS:
@@ -472,10 +480,11 @@ String time_zone_to_possix(const char* timezone)
         case TZ_INDIAN_COMORO:
         case TZ_INDIAN_MAYOTTE:
             return "EAT-3";
-        case TZ_AFRICA_CAIRO:
         case TZ_AFRICA_TRIPOLI:
         case TZ_EUROPE_KALININGRAD:
             return "EET-2";
+        case TZ_AFRICA_CAIRO:
+            return "EET-2EEST,M4.5.5/0,M10.5.4/24";
         case TZ_EUROPE_CHISINAU:
             return "EET-2EEST,M3.5.0,M10.5.0/3";
         case TZ_ASIA_BEIRUT:
@@ -496,7 +505,7 @@ String time_zone_to_possix(const char* timezone)
             return "EET-2EEST,M3.5.0/3,M10.5.0/4";
         case TZ_ASIA_GAZA:
         case TZ_ASIA_HEBRON:
-            return "EET-2EEST,M3.5.6,M10.5.6";
+            return "EET-2EEST,M3.4.4/50,M10.4.4/50";
         case TZ_AMERICA_ATIKOKAN:
         case TZ_AMERICA_CANCUN:
         case TZ_AMERICA_CAYMAN:
@@ -567,8 +576,10 @@ String time_zone_to_possix(const char* timezone)
         case TZ_ASIA_PYONGYANG:
         case TZ_ASIA_SEOUL:
             return "KST-9";
+        case TZ_EUROPE_KIROV:
         case TZ_EUROPE_MOSCOW:
         case TZ_EUROPE_SIMFEROPOL:
+        case TZ_EUROPE_VOLGOGRAD:
             return "MSK-3";
         case TZ_AMERICA_CRESTON:
         case TZ_AMERICA_DAWSON:

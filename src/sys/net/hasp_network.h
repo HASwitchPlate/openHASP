@@ -1,4 +1,4 @@
-/* MIT License - Copyright (c) 2019-2022 Francis Van Roie
+/* MIT License - Copyright (c) 2019-2024 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
 #ifndef HASP_NETWORK_H
@@ -11,6 +11,7 @@ bool networkEvery5Seconds(void);
 // bool networkEverySecond(void);
 void networkStart(void);
 void networkStop(void);
+bool network_is_connected();
 
 /* ===== Special Event Processors ===== */
 void network_connected();

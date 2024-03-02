@@ -1,7 +1,7 @@
-/* MIT License - Copyright (c) 2019-2022 Francis Van Roie
+/* MIT License - Copyright (c) 2019-2024 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
-#if defined(WINDOWS) || defined(POSIX)
+#if USE_MONITOR && HASP_TARGET_PC
 
 #include "hasplib.h"
 #include "lvgl.h"
@@ -75,6 +75,10 @@ void TftSdl::init(int32_t w, int h)
      * You have to call 'lv_tick_inc()' in periodically to inform LittelvGL about how much time were elapsed
      * Create an SDL thread to do this*/
     SDL_CreateThread(tick_thread, "tick", NULL);
+
+#if HASP_USE_LVGL_TASK
+#error "SDL2 LVGL task is not implemented"
+#endif
 }
 void TftSdl::show_info()
 {

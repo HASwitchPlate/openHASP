@@ -1,4 +1,4 @@
-/* MIT License - Copyright (c) 2019-2023 Francis Van Roie
+/* MIT License - Copyright (c) 2019-2024 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
 #if HASP_USE_CONFIG > 0
@@ -7,6 +7,8 @@
 #define HASP_CONFIG_H
 
 #include "hasplib.h"
+
+#define MAX_CONFIG_JSON_ALLOC_SIZE (2048)
 
 /* ===== Default Event Processors ===== */
 void configSetup(void);
@@ -23,12 +25,15 @@ void configOutput(const JsonObject& settings, uint8_t tag);
 bool configClearEeprom(void);
 
 /* ===== Getter and Setter Functions ===== */
+#if HASP_TARGET_ARDUINO
 bool configSet(bool& value, const JsonVariant& setting, const __FlashStringHelper* fstr_name);
 bool configSet(int8_t& value, const JsonVariant& setting, const __FlashStringHelper* fstr_name);
 bool configSet(uint8_t& value, const JsonVariant& setting, const __FlashStringHelper* fstr_name);
 bool configSet(uint16_t& value, const JsonVariant& setting, const __FlashStringHelper* fstr_name);
 bool configSet(int32_t& value, const JsonVariant& setting, const __FlashStringHelper* fstr_name);
 bool configSet(lv_color_t& value, const JsonVariant& setting, const __FlashStringHelper* fstr_name);
+bool configSet(char* value, size_t size, const JsonVariant& setting, const __FlashStringHelper* fstr_name);
+#endif
 bool configSet(bool& value, const JsonVariant& setting, const char* fstr_name);
 bool configSet(int8_t& value, const JsonVariant& setting, const char* fstr_name);
 bool configSet(uint8_t& value, const JsonVariant& setting, const char* fstr_name);
@@ -38,8 +43,10 @@ bool configSet(lv_color_t& value, const JsonVariant& setting, const char* fstr_n
 void configMaskPasswords(JsonDocument& settings);
 
 /* ===== Read/Write Configuration ===== */
+#if HASP_TARGET_ARDUINO
 void configSetConfig(JsonObject& settings);
 void configGetConfig(JsonDocument& settings);
+#endif
 
 /* json keys used in the configfile */
 const char FP_CONFIG_STARTPAGE[] PROGMEM       = "startpage";
@@ -69,6 +76,9 @@ const char FP_CONFIG_BROADCAST_TOPIC[] PROGMEM = "broadcast_t";
 const char FP_CONFIG_BAUD[] PROGMEM            = "baud";
 const char FP_CONFIG_LOG[] PROGMEM             = "log";
 const char FP_CONFIG_PROTOCOL[] PROGMEM        = "proto";
+const char FP_CONFIG_VPN_IP[] PROGMEM          = "vpnip";
+const char FP_CONFIG_PRIVATE_KEY[] PROGMEM     = "privkey";
+const char FP_CONFIG_PUBLIC_KEY[] PROGMEM      = "pubkey";
 const char FP_GUI_ROTATION[] PROGMEM           = "rotate";
 const char FP_GUI_INVERT[] PROGMEM             = "invert";
 const char FP_GUI_TICKPERIOD[] PROGMEM         = "tick";
@@ -87,6 +97,7 @@ const char FP_GPIO_CONFIG[] PROGMEM            = "config";
 const char FP_HASP_CONFIG_FILE[] PROGMEM = "/config.json";
 
 const char FP_WIFI[] PROGMEM  = "wifi";
+const char FP_WG[] PROGMEM    = "wg";
 const char FP_MQTT[] PROGMEM  = "mqtt";
 const char FP_HTTP[] PROGMEM  = "http";
 const char FP_FTP[] PROGMEM   = "ftp";

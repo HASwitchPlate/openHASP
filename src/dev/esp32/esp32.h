@@ -1,4 +1,4 @@
-/* MIT License - Copyright (c) 2019-2023 Francis Van Roie
+/* MIT License - Copyright (c) 2019-2024 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
 #ifndef HASP_DEVICE_ESP32_H
@@ -8,10 +8,13 @@
 #include "../device.h"
 
 #if defined(ESP32)
+#include "driver/ledc.h"
 
 #ifndef BACKLIGHT_FREQUENCY
 #define BACKLIGHT_FREQUENCY 20000
 #endif
+
+#define BACKLIGHT_FADEMS 200
 
 #ifdef __cplusplus
 extern "C" {
@@ -66,8 +69,13 @@ class Esp32Device : public BaseDevice {
     uint8_t _backlight_level;
     uint8_t _backlight_power;
     uint8_t _backlight_invert;
+    bool _backlight_pending;
+    bool _backlight_fading;
+    bool _backlight_fade;
 
-    void update_backlight();
+    void update_backlight(bool fade);
+    static bool cb_backlight(const ledc_cb_param_t *param, void *user_arg);
+    void end_backlight_fade();
 };
 
 } // namespace dev

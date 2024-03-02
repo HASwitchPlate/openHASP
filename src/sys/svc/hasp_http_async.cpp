@@ -1,8 +1,11 @@
-/* MIT License - Copyright (c) 2019-2023 Francis Van Roie
+/* MIT License - Copyright (c) 2019-2024 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
 //#include "webServer.h"
 #include "hasplib.h"
+
+#if HASP_USE_HTTP_ASYNC > 0
+
 #include "ArduinoLog.h"
 
 #if defined(ARDUINO_ARCH_ESP32)
@@ -16,7 +19,6 @@
 #include "hasp_gui.h"
 #include "hasp_debug.h"
 
-#if HASP_USE_HTTP_ASYNC > 0
 #include "sys/net/hasp_network.h"
 
 /* clang-format off */
@@ -487,7 +489,7 @@ void webHandleAbout(AsyncWebServerRequest* request)
     String httpMessage((char*)0);
     httpMessage.reserve(HTTP_PAGE_SIZE);
 
-    httpMessage += F("<p><h3>openHASP</h3>Copyright&copy; 2019-2022 Francis Van Roie ");
+    httpMessage += F("<p><h3>openHASP</h3>Copyright&copy; 2019-2024 Francis Van Roie ");
     httpMessage += mitLicense;
     httpMessage += F("<p>Based on the previous work of the following open source developers.</p><hr>");
     httpMessage += F("<p><h3>HASwitchPlate</h3>Copyright&copy; 2019 Allen Derusha allen@derusha.org</b>");
@@ -934,7 +936,7 @@ int handleFileRead(AsyncWebServerRequest* request, String path)
 
         if(!strncasecmp(file.name(), configFile.c_str(), configFile.length())) {
             file.close();
-            DynamicJsonDocument settings(8 * 256);
+            DynamicJsonDocument settings(MAX_CONFIG_JSON_ALLOC_SIZE);
             DeserializationError error = configParseFile(configFile, settings);
 
             if(error) return 500; // Internal Server Error
@@ -1259,7 +1261,7 @@ void webHandleMqttConfig(AsyncWebServerRequest* request)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 void webHandleGuiConfig(AsyncWebServerRequest* request)
-{ // http://plate01/config/wifi
+{ // http://plate01/config/gui
     if(!httpIsAuthenticated(request, F("config/gui"))) return;
 
     {

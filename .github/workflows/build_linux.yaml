@@ -11,21 +11,21 @@ jobs:
       fail-fast: false
       matrix:
         environments:
-          - linux_sdl_64bits
+          - linux_sdl
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: 'true'
       - name: Cache pip
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
           restore-keys: |
             ${{ runner.os }}-pip-
       - name: Cache PlatformIO
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.platformio
           key: ${{ runner.os }}-${{ hashFiles('**/lockfiles') }}
@@ -43,7 +43,7 @@ jobs:
       - name: Enable Linux platform from platformio_override.ini
         run: |
           sed -i 's/; user_setups\/linux/user_setups\/linux/g' platformio_override.ini
-          mkdir -p .pio/libdeps/linux_sdl_64bits/paho/src
+          mkdir -p .pio/libdeps/linux_sdl/paho/src
       - name: Install SDL2 library
         run: |
           sudo apt-get update

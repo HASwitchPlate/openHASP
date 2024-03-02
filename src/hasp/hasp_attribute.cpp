@@ -1,4 +1,4 @@
-/* MIT License - Copyright (c) 2019-2023 Francis Van Roie
+/* MIT License - Copyright (c) 2019-2024 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
 #include "hasplib.h"
@@ -18,6 +18,9 @@
 LV_FONT_DECLARE(unscii_8_icon);
 extern const char** btnmatrix_default_map; // memory pointer to lvgl default btnmatrix map
 extern const char* msgbox_default_map[];   // memory pointer to lvgl default btnmatrix map
+
+extern const uint8_t rootca_crt_bundle_start[] asm("_binary_data_cert_x509_crt_bundle_bin_start");
+extern const uint8_t rootca_crt_bundle_end[] asm("_binary_data_cert_x509_crt_bundle_bin_end");
 
 void my_image_release_resources(lv_obj_t* obj)
 {
@@ -1345,8 +1348,9 @@ static hasp_attribute_type_t special_attribute_src(lv_obj_t* obj, const char* pa
 #if defined(ARDUINO) && defined(ARDUINO_ARCH_ESP32)
 #if HASP_USE_WIFI > 0 || HASP_USE_ETHERNET > 0
             HTTPClient http;
+            // http.begin(payload, (const char*)rootca_crt_bundle_start);
             http.begin(payload);
-            http.setTimeout(1000);
+            http.setTimeout(5000);
             http.setConnectTimeout(5000);
 
             // const char* hdrs[] = {"Content-Type"};

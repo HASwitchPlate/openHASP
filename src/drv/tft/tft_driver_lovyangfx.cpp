@@ -1,4 +1,4 @@
-/* MIT License - Copyright (c) 2019-2023 Francis Van Roie
+/* MIT License - Copyright (c) 2019-2024 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
 #if defined(ARDUINO) && defined(LGFX_USE_V1)
@@ -187,7 +187,7 @@ static lgfx::Bus_SPI* init_spi_bus(Preferences* prefs)
 
 static void configure_panel(lgfx::Panel_Device* panel, Preferences* prefs)
 {
-    auto cfg = panel->config();                     // Get the structure for display panel settings.
+    auto cfg = panel->config(); // Get the structure for display panel settings.
 
     cfg.pin_cs   = prefs->getInt("cs", TFT_CS);     // CS required
     cfg.pin_rst  = prefs->getInt("rst", TFT_RST);   // RST sum development board RST linkage
@@ -201,27 +201,27 @@ static void configure_panel(lgfx::Panel_Device* panel, Preferences* prefs)
     cfg.memory_width  = prefs->getUInt("memory_width", cfg.panel_width);   // Maximum width supported by driver IC
     cfg.memory_height = prefs->getUInt("memory_height", cfg.panel_height); // Maximum height supported by driver IC
 
-    cfg.offset_x = prefs->getUInt("offset_x", 0);                 // Amount of offset in the X direction of the panel
-    cfg.offset_y = prefs->getUInt("offset_y", 0);                 // Amount of offset in the Y direction of the panel
+    cfg.offset_x = prefs->getUInt("offset_x", 0); // Amount of offset in the X direction of the panel
+    cfg.offset_y = prefs->getUInt("offset_y", 0); // Amount of offset in the Y direction of the panel
     cfg.offset_rotation =
-        prefs->getUInt("offset_rotation", TFT_OFFSET_ROTATION);   // Offset of the rotation 0 ~ 7 (4 ~ 7 is upside down)
+        prefs->getUInt("offset_rotation", TFT_OFFSET_ROTATION); // Offset of the rotation 0 ~ 7 (4 ~ 7 is upside down)
 
     cfg.dummy_read_pixel = prefs->getUInt("dummy_read_pixel", 8); // Number of dummy read bits before pixel read
     cfg.dummy_read_bits =
         prefs->getUInt("dummy_read_bits", 1);         // bits of dummy read before reading data other than pixels
     cfg.readable = prefs->getBool("readable", false); // true if data can be read
 
-#ifdef INVERT_COLORS                                  // This is configurable un Web UI
+#ifdef INVERT_COLORS // This is configurable un Web UI
     cfg.invert =
         prefs->getBool("invert", INVERT_COLORS != 0); // true if the light and darkness of the panel is reversed
 #else
-    cfg.invert           = prefs->getBool("invert", false); // true if the light and darkness of the panel is reversed
+    cfg.invert = prefs->getBool("invert", false); // true if the light and darkness of the panel is reversed
 #endif
 #ifdef TFT_RGB_ORDER
     cfg.rgb_order =
         prefs->getBool("rgb_order", TFT_RGB_ORDER != 0); // true if the red and blue of the panel are swapped
 #else
-    cfg.rgb_order        = prefs->getBool("rgb_order", false); // true if the red and blue of the panel are swapped
+    cfg.rgb_order = prefs->getBool("rgb_order", false); // true if the red and blue of the panel are swapped
 #endif
 
     bool dlen_16bit = false;
@@ -453,7 +453,7 @@ lgfx::ITouch* _init_touch(Preferences* preferences)
         touch->config(cfg);
         return touch;
     }
-#endif 
+#endif
 
 #endif // HASP_USE_LGFX_TOUCH
 
@@ -592,7 +592,7 @@ void LovyanGfx::init(int w, int h)
     lgfx::i2c::writeRegister8(axp_i2c_port, axp_i2c_addr, 0x12, 0x04, ~0, axp_i2c_freq); // LDO2 enable
     lgfx::i2c::writeRegister8(axp_i2c_port, axp_i2c_addr, 0x92, 0x00, 0xF8,
                               axp_i2c_freq); // GPIO1 OpenDrain (M5Tough TOUCH)
-    lgfx::i2c::writeRegister8(axp_i2c_port, axp_i2c_addr, 0x95, 0x84, 0x72, axp_i2c_freq);   // GPIO4 enable
+    lgfx::i2c::writeRegister8(axp_i2c_port, axp_i2c_addr, 0x95, 0x84, 0x72, axp_i2c_freq); // GPIO4 enable
     if(/*use_reset*/ true) {
         lgfx::i2c::writeRegister8(axp_i2c_port, axp_i2c_addr, 0x96, 0, ~0x02, axp_i2c_freq); // GPIO4 LOW (LCD RST)
         lgfx::i2c::writeRegister8(axp_i2c_port, axp_i2c_addr, 0x94, 0, ~0x02,
@@ -639,7 +639,14 @@ void LovyanGfx::init(int w, int h)
     _panel_instance->setLight(new Light_M5Tough());
 
 #elif defined(ESP32_2432S028R)
+
+#if defined(ILI9341_DRIVER)
     auto _panel_instance = new lgfx::Panel_ILI9341();
+#elif defined(ILI9342_DRIVER)
+    auto _panel_instance = new lgfx::Panel_ILI9342();
+#elif defined(ST7789_DRIVER)
+    auto _panel_instance = new lgfx::Panel_ST7789();
+#endif
     auto _bus_instance   = new lgfx::Bus_SPI();
     auto _touch_instance = new lgfx::Touch_XPT2046();
 
@@ -675,7 +682,7 @@ void LovyanGfx::init(int w, int h)
         cfg.dummy_read_pixel = 8;
         cfg.dummy_read_bits  = 1;
         cfg.readable         = true;
-        cfg.invert           = false;
+        cfg.invert           = INVERT_COLORS;
         cfg.rgb_order        = false;
         cfg.dlen_16bit       = false;
         cfg.bus_shared       = false;

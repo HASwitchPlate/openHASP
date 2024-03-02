@@ -1,4 +1,4 @@
-/* MIT License - Copyright (c) 2019-2023 Francis Van Roie
+/* MIT License - Copyright (c) 2019-2024 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
 #include <string.h>
@@ -68,7 +68,7 @@ void font_setup()
     } else {
         LOG_ERROR(TAG_FONT, F("FreeType " D_SERVICE_START_FAILED));
     }
-#elif defined(WINDOWS) || defined(POSIX)
+#elif HASP_TARGET_PC
 #else
 #endif
 

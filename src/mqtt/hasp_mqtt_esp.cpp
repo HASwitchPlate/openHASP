@@ -1,4 +1,4 @@
-/* MIT License - Copyright (c) 2019-2023 Francis Van Roie
+/* MIT License - Copyright (c) 2019-2024 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
 #include "hasp_conf.h"
@@ -465,7 +465,7 @@ static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
 void mqttSetup()
 {
     queue = xQueueCreate(64, sizeof(mqtt_message_t));
-    //esp_crt_bundle_set(rootca_crt_bundle_start);
+    //esp_crt_bundle_set(rootca_crt_bundle_start, rootca_crt_bundle_end-rootca_crt_bundle_start);
     arduino_esp_crt_bundle_set(rootca_crt_bundle_start);
     mqttStart();
 }

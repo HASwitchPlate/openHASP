@@ -1,4 +1,4 @@
-/* MIT License - Copyright (c) 2019-2022 Francis Van Roie
+/* MIT License - Copyright (c) 2019-2024 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
 #if defined(POSIX)
@@ -19,7 +19,15 @@
 #include "hasp_conf.h"
 #include "hasp_debug.h"
 
+#ifdef USE_MONITOR
 #include "display/monitor.h"
+#elif USE_FBDEV
+#include "display/fbdev.h"
+#include "drv/tft/tft_driver.h"
+#endif
+
+#include <fstream>
+#include <unistd.h>
 
 // extern monitor_t monitor;
 
@@ -35,12 +43,6 @@ PosixDevice::PosixDevice()
         _core_version = "unknown";
         _chip_model   = "unknown";
     } else {
-        //   LOG_VERBOSE(0,"Sysname:  %s", uts.sysname);
-        //   LOG_VERBOSE(0,"Nodename: %s", uts.nodename);
-        //   LOG_VERBOSE(0,"Release:  %s", uts.release);
-        //   LOG_VERBOSE(0,"Version:  %s", uts.version);
-        //   LOG_VERBOSE(0,"Machine:  %s", uts.machine);
-
         char version[256];
         snprintf(version, sizeof(version), "%s %s", uts.sysname, uts.release);
         _core_version = version;
@@ -53,6 +55,32 @@ PosixDevice::PosixDevice()
     _backlight_level  = 255;
 }
 
+void PosixDevice::set_config(const JsonObject& settings)
+{
+    configOutput(settings, 0);
+#if USE_FBDEV
+    if(settings["fbdev"].is<std::string>()) {
+        haspTft.fbdev_path = "/dev/" + settings["fbdev"].as<std::string>();
+    }
+#if USE_EVDEV
+    if(settings["evdev"].is<std::string>()) {
+        haspTft.evdev_names.push_back(settings["evdev"].as<std::string>());
+    }
+    if(settings["evdevs"].is<JsonArray>()) {
+        for(auto v : settings["evdevs"].as<JsonArray>()) {
+            haspTft.evdev_names.push_back(v.as<std::string>());
+        }
+    }
+#endif
+    if(settings["bldev"].is<std::string>()) {
+        haspDevice.backlight_device = settings["bldev"].as<std::string>();
+    }
+    if(settings["blmax"].is<int>()) {
+        haspDevice.backlight_max = settings["blmax"];
+    }
+#endif
+}
+
 void PosixDevice::reboot()
 {}
 void PosixDevice::show_info()
@@ -62,15 +90,16 @@ void PosixDevice::show_info()
     if(uname(&uts) < 0) {
         LOG_ERROR(0, "uname() error");
     } else {
-        LOG_VERBOSE(0, "Sysname:  %s", uts.sysname);
-        LOG_VERBOSE(0, "Nodename: %s", uts.nodename);
-        LOG_VERBOSE(0, "Release:  %s", uts.release);
-        LOG_VERBOSE(0, "Version:  %s", uts.version);
-        LOG_VERBOSE(0, "Machine:  %s", uts.machine);
+        LOG_VERBOSE(0, "Sysname    : %s", uts.sysname);
+        LOG_VERBOSE(0, "Nodename   : %s", uts.nodename);
+        LOG_VERBOSE(0, "Release    : %s", uts.release);
+        LOG_VERBOSE(0, "Version    : %s", uts.version);
+        LOG_VERBOSE(0, "Machine    : %s", uts.machine);
     }
 
-    LOG_VERBOSE(0, "Processor  : %s", "unknown");
-    LOG_VERBOSE(0, "CPU freq.  : %i MHz", 0);
+    LOG_VERBOSE(0, "Processor  : %s", get_chip_model());
+    LOG_VERBOSE(0, "CPU freq.  : %i MHz", get_cpu_frequency());
+    LOG_VERBOSE(0, "OS Version : %s", get_core_version());
 }
 
 const char* PosixDevice::get_hostname()
@@ -81,8 +110,11 @@ const char* PosixDevice::get_hostname()
 void PosixDevice::set_hostname(const char* hostname)
 {
     _hostname = hostname;
+#if USE_MONITOR
     monitor_title(hostname);
-    // SDL_SetWindowTitle(monitor.window, hostname);
+#elif USE_FBDEV
+    // fbdev doesn't really have a title bar
+#endif
 }
 
 const char* PosixDevice::get_core_version()
@@ -146,13 +178,35 @@ void PosixDevice::update_backlight()
 {
     uint8_t level = _backlight_power ? _backlight_level : 0;
     if(_backlight_invert) level = 255 - level;
+#if USE_MONITOR
     monitor_backlight(level);
-    // SDL_SetTextureColorMod(monitor.texture, level, level, level);
-    // window_update(&monitor);
-    // monitor.sdl_refr_qry = true;
-    // monitor_sdl_refr(NULL);
-    // const lv_area_t area = {1,1,0,0};
-    // monitor_flush(NULL,&area,NULL);
+#elif USE_FBDEV
+    // set display backlight, if possible
+    if(backlight_device != "") {
+        if(backlight_max == 0) {
+            std::ifstream f;
+            f.open("/sys/class/backlight/" + backlight_device + "/max_brightness");
+            if(!f.fail()) {
+                f >> backlight_max;
+                f.close();
+            } else {
+                perror("Max brightness read failed");
+            }
+        }
+
+        int brightness = map(level, 0, 255, 0, backlight_max);
+        LOG_VERBOSE(0, "Setting brightness to %d/255 (%d)", level, brightness);
+
+        std::ofstream f;
+        f.open("/sys/class/backlight/" + backlight_device + "/brightness");
+        if(!f.fail()) {
+            f << brightness;
+            f.close();
+        } else {
+            perror("Brightness write failed (are you root?)");
+        }
+    }
+#endif
 }
 
 size_t PosixDevice::get_free_max_block()
@@ -192,6 +246,12 @@ bool PosixDevice::is_system_pin(uint8_t pin)
     return false;
 }
 
+void PosixDevice::run_thread(void (*func)(void*), void* arg)
+{
+    pthread_t thread;
+    pthread_create(&thread, NULL, (void* (*)(void*))func, arg);
+}
+
 #ifndef TARGET_OS_MAC
 long PosixDevice::get_uptime()
 {
@@ -220,6 +280,25 @@ long PosixDevice::get_uptime()
 #endif
 
 } // namespace dev
+
+static time_t tv_sec_start = 0;
+
+unsigned long PosixMillis()
+{
+    struct timespec spec;
+    clock_gettime(CLOCK_REALTIME, &spec);
+    if(tv_sec_start == 0) {
+        tv_sec_start = spec.tv_sec;
+    }
+    unsigned long msec1 = (spec.tv_sec - tv_sec_start) * 1000;
+    unsigned long msec2 = spec.tv_nsec / 1e6;
+    return msec1 + msec2;
+}
+
+void msleep(unsigned long millis)
+{
+    usleep(millis * 1000);
+}
 
 dev::PosixDevice haspDevice;
 

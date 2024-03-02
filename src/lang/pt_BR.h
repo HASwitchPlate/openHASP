@@ -127,6 +127,7 @@
 #define D_HTTP_HTTP_SETTINGS "HTTP Settings"
 #define D_HTTP_FTP_SETTINGS "FTP Settings"
 #define D_HTTP_WIFI_SETTINGS "Wifi Settings"
+#define D_HTTP_WIREGUARD_SETTINGS "WireGuard Settings"
 #define D_HTTP_MQTT_SETTINGS "MQTT Settings"
 #define D_HTTP_GPIO_SETTINGS "GPIO Settings"
 #define D_HTTP_MDNS_SETTINGS "mDNS Settings"
@@ -191,6 +192,7 @@
 #define D_INFO_FAILED "Failed"
 #define D_INFO_ETHERNET "Ethernet"
 #define D_INFO_WIFI "Wifi"
+#define D_INFO_WIREGUARD "WireGuard"
 #define D_INFO_LINK_SPEED "Link Speed"
 #define D_INFO_FULL_DUPLEX "Full Duplex"
 #define D_INFO_BSSID "BSSID"
@@ -200,6 +202,8 @@
 #define D_INFO_MAC_ADDRESS "MAC Address"
 #define D_INFO_GATEWAY "Gateway"
 #define D_INFO_DNS_SERVER "DNS Server"
+#define D_INFO_ENDPOINT_IP "Endpoint IP"
+#define D_INFO_ENDPOINT_PORT "Endpoint Port"
 
 #define D_OOBE_MSG "Tap the screen to setup WiFi or connect to this Access Point:"
 #define D_OOBE_SCAN_TO_CONNECT "Scan to connect"
@@ -211,6 +215,9 @@
 #define D_WIFI_RSSI_FAIR "Fair"
 #define D_WIFI_RSSI_WEAK "Weak"
 #define D_WIFI_RSSI_BAD "Very bad"
+
+#define D_WG_INITIALIZED "Initialized"
+#define D_WG_BAD_CONFIG "Missing or bad configuration"
 
 #define D_GPIO_SWITCH "Switch"
 #define D_GPIO_BUTTON "Push Button"

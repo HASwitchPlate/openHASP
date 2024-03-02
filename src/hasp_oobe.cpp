@@ -1,4 +1,4 @@
-/* MIT License - Copyright (c) 2019-2023 Francis Van Roie
+/* MIT License - Copyright (c) 2019-2024 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
 #if HASP_USE_CONFIG > 0
@@ -213,7 +213,7 @@ static void oobeSetupSsid(void)
     lv_obj_set_style_local_text_font(pwd_ta, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, defaultfont);
 
     lv_textarea_set_text(pwd_ta, "");
-    lv_textarea_set_max_length(pwd_ta, 32);
+    lv_textarea_set_max_length(pwd_ta, MAX_PASSWORD_LENGTH);
     lv_textarea_set_pwd_mode(pwd_ta, true);
     lv_textarea_set_one_line(pwd_ta, true);
     lv_textarea_set_cursor_hidden(pwd_ta, true);

@@ -11,7 +11,7 @@
 #endif
 
 //  language independent defines
-#define D_PASSWORD_MASK "********"
+#define D_PASSWORD_MASK "********" // beware: webui have this string hardcoded!
 #define D_BULLET "    * "
 #define D_MANUFACTURER "openHASP"
 #define D_BACK_ICON "&#8617; "

@@ -1,4 +1,4 @@
-/* MIT License - Copyright (c) 2019-2022 Francis Van Roie
+/* MIT License - Copyright (c) 2019-2024 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
 #ifndef HASP_DEVICE_WINDOWS_H
@@ -18,39 +18,7 @@ namespace dev {
 class Win32Device : public BaseDevice {
 
   public:
-    Win32Device()
-    {
-        char buffer[MAX_COMPUTERNAME_LENGTH + 1];
-        DWORD length = sizeof(buffer);
-
-        if(GetComputerNameExA((COMPUTER_NAME_FORMAT)ComputerNameNetBIOS, buffer, &length)) {
-            _hostname = buffer;
-        } else if(GetComputerNameExA((COMPUTER_NAME_FORMAT)ComputerNameDnsHostname, buffer, &length)) {
-            _hostname = buffer;
-        } else if(GetComputerNameExA((COMPUTER_NAME_FORMAT)ComputerNamePhysicalDnsHostname, buffer, &length)) {
-            _hostname = buffer;
-        } else if(GetComputerNameExA((COMPUTER_NAME_FORMAT)ComputerNamePhysicalDnsDomain, buffer, &length)) {
-            _hostname = buffer;
-        } else {
-            _hostname = "localhost";
-        }
-
-        // Get the Windows version.
-        DWORD dwBuild        = 0;
-        DWORD dwVersion      = GetVersion();
-        DWORD dwMajorVersion = (DWORD)(LOBYTE(LOWORD(dwVersion)));
-        DWORD dwMinorVersion = (DWORD)(HIBYTE(LOWORD(dwVersion)));
-        if(dwVersion < 0x80000000) dwBuild = (DWORD)(HIWORD(dwVersion));
-
-        char version[128];
-        snprintf(version, sizeof(version), "Windows %d.%d-%d", dwMajorVersion, dwMinorVersion, dwBuild);
-        _core_version = version;
-
-        // _backlight_pin   = -1;
-        _backlight_power  = 1;
-        _backlight_invert = 0;
-        _backlight_level  = 255;
-    }
+    Win32Device();
 
     void reboot() override;
     void show_info() override;
@@ -77,9 +45,12 @@ class Win32Device : public BaseDevice {
 
     bool is_system_pin(uint8_t pin) override;
 
+    void run_thread(void (*func)(void*), void* arg);
+
   private:
     std::string _hostname;
     std::string _core_version;
+    std::string _chip_model;
 
     uint8_t _backlight_pin;
     uint8_t _backlight_level;
@@ -90,6 +61,8 @@ class Win32Device : public BaseDevice {
 };
 
 } // namespace dev
+
+extern long Win32Millis();
 
 using dev::Win32Device;
 extern dev::Win32Device haspDevice;

@@ -1,10 +1,19 @@
-/* MIT License - Copyright (c) 2019-2022 Francis Van Roie
+/* MIT License - Copyright (c) 2019-2024 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
 #ifndef HASP_DISPATCH_H
 #define HASP_DISPATCH_H
 
 #include "hasplib.h"
+// #include "freertos/queue.h"
+
+// QueueHandle_t message_queue;
+// typedef struct
+// {
+//     char* topic;   //[64];
+//     char* payload; //[512];
+//     uint source;
+// } dispatch_message_t;
 
 struct dispatch_conf_t
 {
@@ -91,6 +100,7 @@ void dispatch_state_val(const char* topic, hasp_event_t eventid, int32_t val);
 void dispatch_state_antiburn(hasp_event_t eventid);
 
 /* ===== Getter and Setter Functions ===== */
+void dispatch_get_discovery_data(JsonDocument& doc);
 
 /* ===== Read/Write Configuration ===== */
 

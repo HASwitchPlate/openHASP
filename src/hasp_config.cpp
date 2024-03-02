@@ -1,4 +1,4 @@
-/* MIT License - Copyright (c) 2019-2023 Francis Van Roie
+/* MIT License - Copyright (c) 2019-2024 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
 #if HASP_USE_CONFIG > 0
@@ -8,7 +8,9 @@
 #include "hasp_config.h"
 #include "hasp_debug.h"
 #include "hasp_gui.h"
+#if HASP_TARGET_ARDUINO
 #include "hal/hasp_hal.h"
+#endif
 
 // #include "hasp_ota.h" included in conf
 // #include "hasp_filesystem.h" included in conf
@@ -21,7 +23,9 @@
 #include "EEPROM.h"
 #endif
 
+#if HASP_USE_EEPROM > 0
 #include "StreamUtils.h" // For EEPromStream
+#endif
 
 extern uint16_t dispatchTelePeriod;
 extern uint32_t dispatchLastMillis;
@@ -29,6 +33,7 @@ extern uint32_t dispatchLastMillis;
 extern gui_conf_t gui_settings;
 extern dispatch_conf_t dispatch_settings;
 
+#if HASP_TARGET_ARDUINO
 void confDebugSet(const __FlashStringHelper* fstr_name)
 {
     /*char buffer[128];
@@ -36,6 +41,7 @@ void confDebugSet(const __FlashStringHelper* fstr_name)
     debugPrintln(buffer);*/
     LOG_VERBOSE(TAG_CONF, F(D_BULLET "%S set"), fstr_name);
 }
+#endif
 void confDebugSet(const char* fstr_name)
 {
     /*char buffer[128];
@@ -44,6 +50,7 @@ void confDebugSet(const char* fstr_name)
     LOG_VERBOSE(TAG_CONF, F(D_BULLET "%s set"), fstr_name);
 }
 
+#if HASP_TARGET_ARDUINO
 bool configSet(bool& value, const JsonVariant& setting, const __FlashStringHelper* fstr_name)
 {
     if(!setting.isNull()) {
@@ -117,6 +124,20 @@ bool configSet(lv_color_t& value, const JsonVariant& setting, const __FlashStrin
     }
     return false;
 }
+bool configSet(char *value, size_t size, const JsonVariant& setting, const __FlashStringHelper* fstr_name)
+{
+    if(!setting.isNull()) {
+        const char *val = setting;
+        if(strcmp(value, val) != 0) {
+            confDebugSet(fstr_name);
+            strncpy(value, val, size - 1);
+            value[size - 1] = '\0';
+            return true;
+        }
+    }
+    return false;
+}
+#endif
 
 bool configSet(bool& value, const JsonVariant& setting, const char* fstr_name)
 {
@@ -194,39 +215,43 @@ bool configSet(lv_color_t& value, const JsonVariant& setting, const char* fstr_n
 
 void configSetupDebug(JsonDocument& settings)
 {
+#if HASP_TARGET_ARDUINO
     debugSetup(settings[FPSTR(FP_DEBUG)]);
+#endif
     debugStart(); // Debug started, now we can use it; HASP header sent
 }
 
-void configStorePasswords(JsonDocument& settings, String& wifiPass, String& mqttPass, String& httpPass)
+void configStorePasswords(JsonDocument& settings, String& wifiPass, String& mqttPass, String& httpPass, String &wgPrivKey)
 {
     const char* pass = ("pass");
 
     wifiPass = settings[FPSTR(FP_WIFI)][pass].as<String>();
     mqttPass = settings[FPSTR(FP_MQTT)][pass].as<String>();
     httpPass = settings[FPSTR(FP_HTTP)][pass].as<String>();
+    wgPrivKey = settings[FPSTR(FP_WG)][FPSTR(FP_CONFIG_PRIVATE_KEY)].as<String>();
 }
 
-void configRestorePasswords(JsonDocument& settings, String& wifiPass, String& mqttPass, String& httpPass)
+void configRestorePasswords(JsonDocument& settings, String& wifiPass, String& mqttPass, String& httpPass, String& wgPrivKey)
 {
     const char* pass = ("pass");
 
     if(!settings[FPSTR(FP_WIFI)][pass].isNull()) settings[FPSTR(FP_WIFI)][pass] = wifiPass;
     if(!settings[FPSTR(FP_MQTT)][pass].isNull()) settings[FPSTR(FP_MQTT)][pass] = mqttPass;
     if(!settings[FPSTR(FP_HTTP)][pass].isNull()) settings[FPSTR(FP_HTTP)][pass] = httpPass;
+    if(!settings[FPSTR(FP_WG)][FPSTR(FP_CONFIG_PRIVATE_KEY)].isNull()) settings[FPSTR(FP_WG)][FPSTR(FP_CONFIG_PRIVATE_KEY)] = wgPrivKey;
 }
 
 void configMaskPasswords(JsonDocument& settings)
 {
     String passmask = F(D_PASSWORD_MASK);
-    configRestorePasswords(settings, passmask, passmask, passmask);
+    configRestorePasswords(settings, passmask, passmask, passmask, passmask);
 }
 
 DeserializationError configParseFile(String& configFile, JsonDocument& settings)
 {
+    DeserializationError result = DeserializationError::InvalidInput;
 #if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
     File file = HASP_FS.open(configFile, "r");
-    DeserializationError result;
 
     if(file) {
         // size_t size = file.size();
@@ -239,41 +264,61 @@ DeserializationError configParseFile(String& configFile, JsonDocument& settings)
         return result;
     }
     return DeserializationError::InvalidInput;
+#elif HASP_TARGET_PC
+    lv_fs_file_t f;
+    lv_fs_res_t res;
+    lv_fs_open(&f, "L:/config.json", LV_FS_MODE_RD);
+    if(res == LV_FS_RES_OK) {
+        uint32_t size = 0, read = 0;
+        if(lv_fs_size(&f, &size) == LV_FS_RES_OK && size != 0) {
+            char* buf = (char*)malloc(size + 1);
+            if(lv_fs_read(&f, buf, size, &read) == LV_FS_RES_OK && read == size) {
+                result = deserializeJson(settings, buf);
+            }
+        }
+        lv_fs_close(&f);
+        return result;
+    }
+    LOG_ERROR(TAG_HASP, F("Opening config.json from FS failed %d"), res);
+    return result;
 #else
-    return DeserializationError::InvalidInput;
+    return result;
 #endif
 }
 
 DeserializationError configRead(JsonDocument& settings, bool setupdebug)
 {
-    String configFile((char*)0);
+    String configFile;
     configFile.reserve(32);
     configFile = String(FPSTR(FP_HASP_CONFIG_FILE));
     DeserializationError error;
 
-#if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
+    if(setupdebug) configSetupDebug(settings); // Now we can use log
+
+#if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0 || HASP_TARGET_PC
     error = configParseFile(configFile, settings);
     if(!error) {
-        String output, wifiPass, mqttPass, httpPass;
+        String output, wifiPass, mqttPass, httpPass, wgPrivKey;
 
         /* Load Debug params */
         if(setupdebug) {
-            configSetupDebug(settings); // Now we can use log
             LOG_INFO(TAG_CONF, F("SPI flash FS mounted"));
 
+#if HASP_TARGET_ARDUINO
             filesystemInfo();
             filesystemList();
+#endif
         }
 
         LOG_TRACE(TAG_CONF, F(D_FILE_LOADING), configFile.c_str());
-        configStorePasswords(settings, wifiPass, mqttPass, httpPass);
+        configStorePasswords(settings, wifiPass, mqttPass, httpPass, wgPrivKey);
 
         // Output settings in log with masked passwords
         configMaskPasswords(settings);
         serializeJson(settings, output);
         LOG_VERBOSE(TAG_CONF, output.c_str());
 
-        configRestorePasswords(settings, wifiPass, mqttPass, httpPass);
+        configRestorePasswords(settings, wifiPass, mqttPass, httpPass, wgPrivKey);
         LOG_INFO(TAG_CONF, F(D_FILE_LOADED), configFile.c_str());
 
         // if(setupdebug) debugSetup();
@@ -288,9 +333,6 @@ DeserializationError configRead(JsonDocument& settings, bool setupdebug)
 #endif
 
 #endif
-
-    // File does not exist or error reading file
-    if(setupdebug) configSetupDebug(settings); // Now we can use log
 
 #if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
     LOG_ERROR(TAG_CONF, F(D_FILE_LOAD_FAILED), configFile.c_str());
@@ -345,16 +387,16 @@ void configBackupToEeprom()
 */
 void configWrite()
 {
-    String configFile((char*)0);
+    String configFile;
     configFile.reserve(32);
     configFile = String(FPSTR(FP_HASP_CONFIG_FILE));
 
-    String settingsChanged((char*)0);
+    String settingsChanged;
     settingsChanged.reserve(128);
     settingsChanged = F(D_CONFIG_CHANGED);
 
     /* Read Config File */
-    DynamicJsonDocument doc(8 * 256);
+    DynamicJsonDocument doc(MAX_CONFIG_JSON_ALLOC_SIZE);
     LOG_TRACE(TAG_CONF, F(D_FILE_LOADING), configFile.c_str());
     configRead(doc, false);
     LOG_INFO(TAG_CONF, F(D_FILE_LOADED), configFile.c_str());
@@ -378,6 +420,17 @@ void configWrite()
     if(changed) {
         LOG_VERBOSE(TAG_WIFI, settingsChanged.c_str());
         configOutput(settings[module], TAG_WIFI);
+        writefile = true;
+    }
+#endif
+
+#if HASP_USE_WIREGUARD > 0
+    module = FPSTR(FP_WG);
+    if(settings[module].as<JsonObject>().isNull()) settings.createNestedObject(module);
+    changed = wgGetConfig(settings[module]);
+    if(changed) {
+        LOG_VERBOSE(TAG_WG, settingsChanged.c_str());
+        configOutput(settings[module], TAG_WG);
         writefile = true;
     }
 #endif
@@ -436,6 +489,7 @@ void configWrite()
     }
 #endif
 
+#if HASP_TARGET_ARDUINO
     module = FPSTR(FP_DEBUG);
     if(settings[module].as<JsonObject>().isNull()) settings.createNestedObject(module);
     changed = debugGetConfig(settings[module]);
@@ -444,6 +498,7 @@ void configWrite()
         configOutput(settings[module], TAG_DEBG);
         writefile = true;
     }
+#endif
 
     if(settings[FPSTR(FP_GUI)].as<JsonObject>().isNull()) settings.createNestedObject(FPSTR(FP_GUI));
     changed = guiGetConfig(settings[FPSTR(FP_GUI)]);
@@ -515,7 +570,7 @@ void configWrite()
 
 void configSetup()
 {
-    DynamicJsonDocument settings(1024 + 512);
+    DynamicJsonDocument settings(MAX_CONFIG_JSON_ALLOC_SIZE);
 
     for(uint32_t i = 0; i < 2; i++) {
         if(i == 0) {
@@ -535,9 +590,10 @@ void configSetup()
             configRead(settings, true);
         }
 
-        // #if HASP_USE_SPIFFS > 0
+#if HASP_TARGET_ARDUINO
         LOG_INFO(TAG_DEBG, F("Loading debug settings"));
         debugSetConfig(settings[FPSTR(FP_DEBUG)]);
+#endif
         LOG_INFO(TAG_GPIO, F("Loading GUI settings"));
         guiSetConfig(settings[FPSTR(FP_GUI)]);
         LOG_INFO(TAG_HASP, F("Loading HASP settings"));
@@ -547,6 +603,11 @@ void configSetup()
 #if HASP_USE_WIFI > 0
         LOG_INFO(TAG_WIFI, F("Loading WiFi settings"));
         wifiSetConfig(settings[FPSTR(FP_WIFI)]);
+#endif
+
+#if HASP_USE_WIREGUARD > 0
+        LOG_INFO(TAG_WG, F("Loading WireGuard settings"));
+        wgSetConfig(settings[FPSTR(FP_WG)]);
 #endif
 
 #if HASP_USE_MQTT > 0
@@ -574,6 +635,12 @@ void configSetup()
         gpioSetConfig(settings[FPSTR(FP_GPIO)]);
 #endif
 
+        // target-specific config
+#if defined(POSIX)
+        LOG_INFO(TAG_CONF, F("Loading POSIX-specific settings"));
+        haspDevice.set_config(settings[F("posix")]);
+#endif
+
         LOG_INFO(TAG_CONF, F(D_CONFIG_LOADED));
     }
     // #endif
@@ -584,15 +651,15 @@ void configLoop(void)
 
 void configOutput(const JsonObject& settings, uint8_t tag)
 {
-    String output((char*)0);
+    String output;
     output.reserve(128);
     serializeJson(settings, output);
 
-    String passmask((char*)0);
+    String passmask;
     passmask.reserve(128);
     passmask = F("\"pass\":\"" D_PASSWORD_MASK "\"");
 
-    String password((char*)0);
+    String password;
     password.reserve(128);
 
     String pass = F("pass");
@@ -600,28 +667,61 @@ void configOutput(const JsonObject& settings, uint8_t tag)
         password = F("\"pass\":\"");
         password += settings[pass].as<String>();
         password += F("\"");
+#if HASP_TARGET_ARDUINO
         output.replace(password, passmask);
+#elif HASP_TARGET_PC
+        size_t pos = 0;
+        if((pos = output.find(password)) != std::string::npos) output.replace(pos, password.size(), passmask);
+#endif
     }
 
     if(!settings[FPSTR(FP_WIFI)][pass].isNull()) {
         password = F("\"pass\":\"");
         password += settings[FPSTR(FP_WIFI)][pass].as<String>();
         password += F("\"");
+#if HASP_TARGET_ARDUINO
         output.replace(password, passmask);
+#elif HASP_TARGET_PC
+        size_t pos = 0;
+        if((pos = output.find(password)) != std::string::npos) output.replace(pos, password.size(), passmask);
+#endif
     }
 
     if(!settings[FPSTR(FP_MQTT)][pass].isNull()) {
         password = F("\"pass\":\"");
         password += settings[FPSTR(FP_MQTT)][pass].as<String>();
         password += F("\"");
+#if HASP_TARGET_ARDUINO
         output.replace(password, passmask);
+#elif HASP_TARGET_PC
+        size_t pos = 0;
+        if((pos = output.find(password)) != std::string::npos) output.replace(pos, password.size(), passmask);
+#endif
     }
 
     if(!settings[FPSTR(FP_HTTP)][pass].isNull()) {
         password = F("\"pass\":\"");
         password += settings[FPSTR(FP_HTTP)][pass].as<String>();
         password += F("\"");
+#if HASP_TARGET_ARDUINO
         output.replace(password, passmask);
+#elif HASP_TARGET_PC
+        size_t pos = 0;
+        if((pos = output.find(password)) != std::string::npos) output.replace(pos, password.size(), passmask);
+#endif
+    }
+
+    if(!settings[FPSTR(FP_WG)][FPSTR(FP_CONFIG_PRIVATE_KEY)].isNull()) {
+        password = F("\"privkey\":\"");
+        password += settings[FPSTR(FP_WG)][FPSTR(FP_CONFIG_PRIVATE_KEY)].as<String>();
+        password += F("\"");
+        passmask = F("\"privkey\":\"" D_PASSWORD_MASK "\"");
+#if HASP_TARGET_ARDUINO
+        output.replace(password, passmask);
+#elif HASP_TARGET_PC
+        size_t pos = 0;
+        if((pos = output.find(password)) != std::string::npos) output.replace(pos, password.size(), passmask);
+#endif
     }
 
     LOG_VERBOSE(tag, output.c_str());

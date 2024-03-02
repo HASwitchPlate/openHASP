@@ -1,5 +1,5 @@
 
-/* MIT License - Copyright (c) 2019-2022 Francis Van Roie
+/* MIT License - Copyright (c) 2019-2024 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
 #include <stdlib.h>
@@ -53,6 +53,11 @@ void* lodepng_malloc(size_t size)
     if(size > LODEPNG_MAX_ALLOC) return 0;
 #endif
 
+    // void* ptr = hasp_malloc(size);
+    // if(ptr) return ptr;
+
+    // /* PSram was full retry after clearing cache*/
+    // lv_img_cache_invalidate_src(NULL);
     return hasp_malloc(size);
 }
 

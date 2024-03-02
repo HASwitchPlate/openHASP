@@ -1,4 +1,4 @@
-/* MIT License - Copyright (c) 2019-2022 Francis Van Roie
+/* MIT License - Copyright (c) 2019-2024 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
 #include "ArduinoJson.h"
@@ -16,7 +16,7 @@
 
 #define RETAINED true
 
-#if defined(WINDOWS) || defined(POSIX)
+#if HASP_TARGET_PC
 extern std::string mqttNodeTopic;
 extern std::string mqttGroupTopic;
 #else
@@ -35,7 +35,7 @@ const char FP_MQTT_HA_NAME[] PROGMEM         = "name";
 const char FP_MQTT_HA_MODEL[] PROGMEM        = "mdl";
 const char FP_MQTT_HA_MANUFACTURER[] PROGMEM = "mf";
 
-#if !(defined(WINDOWS) || defined(POSIX))
+#if HASP_TARGET_ARDUINO
 
 #include "hal/hasp_hal.h"
 
