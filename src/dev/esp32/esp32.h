@@ -73,7 +73,7 @@ class Esp32Device : public BaseDevice {
     bool _backlight_fading;
     bool _backlight_fade;
 
-    void update_backlight(bool fade);
+    void update_backlight();
     static bool cb_backlight(const ledc_cb_param_t *param, void *user_arg);
     void end_backlight_fade();
 };
