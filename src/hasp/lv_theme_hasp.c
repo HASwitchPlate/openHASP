@@ -26,6 +26,7 @@
 
 /*SCREEN*/
 
+#define COLOR_SCR_BG (IS_LIGHT ? LV_COLOR_WHITE : LV_COLOR_BLACK)
 #define COLOR_SCR (IS_LIGHT ? LV_COLOR_WHITE : lv_color_hex(0x545b6a))
 #define COLOR_SCR_GRAD (IS_LIGHT ? LV_COLOR_SILVER : lv_color_hex(0x222b3a))
 #define COLOR_SCR_TEXT (IS_LIGHT ? lv_color_hex(0x3b3e42) : lv_color_hex(0xefefef))
@@ -282,6 +283,13 @@ static void basic_init(lv_style_int_t border_width, lv_style_int_t outline_width
     style_init_reset(&styles->screen);
     lv_style_copy(&styles->screen, &styles->pretty);
     lv_style_set_radius(&styles->screen, LV_STATE_DEFAULT, 0);
+
+    lv_style_set_bg_color(&styles->screen, LV_STATE_DEFAULT, COLOR_SCR_BG);
+    lv_style_set_bg_grad_dir(&styles->screen, LV_STATE_DEFAULT, LV_GRAD_DIR_NONE);
+    lv_style_set_bg_opa(&styles->pretty, LV_STATE_DEFAULT, LV_OPA_COVER);
+
+    lv_style_set_border_opa(&styles->screen, LV_STATE_DEFAULT, LV_OPA_0);
+    lv_style_set_border_width(&styles->screen, LV_STATE_DEFAULT, 0);
 
     // Primary Colored gradient
     style_init_reset(&styles->pretty_color);
