@@ -79,7 +79,7 @@
 #endif
 
 #ifndef HASP_USE_WIREGUARD
-#define HASP_USE_WIREGUARD (HASP_HAS_NETWORK)
+#define HASP_USE_WIREGUARD 0
 #endif
 
 #ifndef HASP_USE_BROADCAST
