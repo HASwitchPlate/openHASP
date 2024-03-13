@@ -607,6 +607,17 @@ static inline void my_btn_set_text(lv_obj_t* obj, const char* value)
     }
 }
 
+// OK - lvgl does not return a const char *
+static const char* my_qrcode_get_text(const lv_obj_t* obj)
+{
+    return NULL;
+}
+
+static void my_qrcode_set_text(lv_obj_t* obj, const char* text)
+{
+    lv_qrcode_set_text(obj, text);
+}
+
 /**
  * Get the value_str for an object part and state.
  * @param obj pointer to a object
