@@ -119,6 +119,8 @@ lv_res_t lv_qrcode_update(lv_obj_t* qrcode, const void* data, uint32_t data_len)
     lv_canvas_fill_bg(qrcode, c, 0);
     // lv_canvas_zoom();
 
+    LV_LOG_INFO("Update QR-code text with length : %d", data_len);
+
     if(data_len > qrcodegen_BUFFER_LEN_MAX) return LV_RES_INV;
 
     uint8_t qr0[qrcodegen_BUFFER_LEN_MAX];
@@ -128,13 +130,18 @@ lv_res_t lv_qrcode_update(lv_obj_t* qrcode, const void* data, uint32_t data_len)
     bool ok = qrcodegen_encodeBinary(data_tmp, data_len, qr0, qrcodegen_Ecc_MEDIUM, qrcodegen_VERSION_MIN,
                                      qrcodegen_VERSION_MAX, qrcodegen_Mask_AUTO, true);
 
-    if(!ok) return LV_RES_INV;
+    if(!ok) {
+        LV_LOG_WARN("QR-code encoding error");
+        return LV_RES_INV;
+    }
 
     lv_coord_t obj_w = lv_obj_get_width(qrcode);
     int qr_size      = qrcodegen_getSize(qr0);      // Number of vertical QR blocks
     int scale        = obj_w / (qr_size + 2);       // +2 guaranteed a minimum of 1 block margin all round
     int scaled       = qr_size * scale;
     int margin       = (obj_w - scaled) / 2;
+
+    LV_LOG_INFO("Update QR-code data : obj_w[%d] QR moduls[%d] scale factor[%d]", obj_w, qr_size, scale);
 
     /*Expand the qr encodet binary to canvas size*/
     for(int y = 0; y < scaled; y++) {
