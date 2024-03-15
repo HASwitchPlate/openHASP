@@ -132,12 +132,13 @@ struct qrcodegen_Segment
 * VERSION_MAX = 11 : max text length to encode 251 alphanumeric characters
 * VERSION_MAX = 15 : max text length to encode 412 alphanumeric characters
 * and so on
-* VERSION_MAX = 25 : openHASP restarts on qrcode update 
+* 25 is the highest posible version, see below
 */
 #define qrcodegen_VERSION_MIN 1 // The minimum version number
 #ifndef qrcodegen_VERSION_MAX
     #define qrcodegen_VERSION_MAX 7 // The maximum version number
 #endif
+#define qrcodegen_VERSION_MAX_LIMIT 25
 
 // Calculates the number of bytes needed to store any QR Code up to and including the given version number,
 // as a compile-time constant. For example, 'uint8_t buffer[qrcodegen_BUFFER_LEN_FOR_VERSION(25)];'
