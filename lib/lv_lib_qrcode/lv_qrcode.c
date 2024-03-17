@@ -272,6 +272,20 @@ lv_res_t lv_qrcode_set_text_static(lv_obj_t * qrcode, const void * text)
 }
 
 /**
+ * Get the text of a qrcode
+ * @param qrcode pointer to a qrcode object
+ * @return the text of the qrcode
+ */
+char * lv_qrcode_get_text(const lv_obj_t * qrcode)
+{
+    LV_ASSERT_OBJ(qrcode, LV_OBJX_NAME);
+
+    lv_qrcode_ext_t * ext = lv_obj_get_ext_attr(qrcode);
+
+    return ext->text;
+}
+
+/**
  * Set the data of a QR code object
  * @param qrcode pointer to aQ code object
  * @param size width and height of the QR code

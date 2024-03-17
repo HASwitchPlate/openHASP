@@ -610,6 +610,17 @@ static inline void my_btn_set_text(lv_obj_t* obj, const char* value)
 // OK - lvgl does not return a const char *
 static const char* my_qrcode_get_text(const lv_obj_t* obj)
 {
+    if(!obj) {
+        LOG_WARNING(TAG_ATTR, F("QR-code not defined"));
+        return NULL;
+    }
+
+    if(obj) {
+        if(obj_check_type(obj, LV_HASP_QRCODE)) return lv_qrcode_get_text(obj);
+    } else {
+        LOG_WARNING(TAG_ATTR, F("my_qrcode_get_text NULL Pointer encountered"));
+    }
+
     return NULL;
 }
 
