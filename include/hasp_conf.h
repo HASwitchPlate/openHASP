@@ -67,7 +67,7 @@
 #endif
 
 #ifndef HASP_USE_HTTP_UPDATE
-#define HASP_USE_HTTP_UPDATE (HASP_HAS_NETWORK)
+#define HASP_USE_HTTP_UPDATE (HASP_HAS_NETWORK) // Adds 10kB
 #endif
 
 #ifndef HASP_USE_MQTT
