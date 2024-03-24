@@ -507,6 +507,7 @@ void wifiSetup()
         preferences.end();
 #endif
 
+        WiFi.setScanMethod(WIFI_ALL_CHANNEL_SCAN);
         wifiReconnect();
         WiFi.setAutoReconnect(false); // done in wifiEvery5Seconds
         LOG_TRACE(TAG_WIFI, F(D_WIFI_CONNECTING_TO), wifiSsid);
