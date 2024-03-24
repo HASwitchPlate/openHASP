@@ -138,6 +138,11 @@ static const int PENALTY_N4 = 10;
 bool qrcodegen_encodeText(const char* text, uint8_t tempBuffer[], uint8_t qrcode[], enum qrcodegen_Ecc ecl,
                           int minVersion, int maxVersion, enum qrcodegen_Mask mask, bool boostEcl)
 {
+    /* preventing crashes */
+    if (maxVersion > qrcodegen_VERSION_MAX_LIMIT) {
+        qrcode[0] = 0; // Set size to invalid value for safety
+        return false;
+    }
 
     size_t textLen = strlen(text);
     if(textLen == 0)
@@ -172,6 +177,11 @@ fail:
 bool qrcodegen_encodeBinary(uint8_t dataAndTemp[], size_t dataLen, uint8_t qrcode[], enum qrcodegen_Ecc ecl,
                             int minVersion, int maxVersion, enum qrcodegen_Mask mask, bool boostEcl)
 {
+    /* preventing crashes */
+    if (maxVersion > qrcodegen_VERSION_MAX_LIMIT) {
+        qrcode[0] = 0; // Set size to invalid value for safety
+        return false;
+    }
 
     struct qrcodegen_Segment seg;
     seg.mode      = qrcodegen_Mode_BYTE;
