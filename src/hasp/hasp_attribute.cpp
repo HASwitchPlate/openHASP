@@ -15,6 +15,10 @@
 #endif
 /*** Image Improvement ***/
 
+#if HASP_USE_QRCODE > 0
+#include "lv_qrcode.h"
+#endif
+
 LV_FONT_DECLARE(unscii_8_icon);
 extern const char** btnmatrix_default_map; // memory pointer to lvgl default btnmatrix map
 extern const char* msgbox_default_map[];   // memory pointer to lvgl default btnmatrix map
@@ -394,6 +398,7 @@ static void hasp_attribute_get_part_state_new(lv_obj_t* obj, const char* attr_in
         case LV_HASP_IMGBTN:
         case LV_HASP_OBJECT:
         case LV_HASP_TAB:
+        case LV_HASP_QRCODE:
             part = LV_BTN_PART_MAIN;
             break;
 
@@ -1752,7 +1757,8 @@ static hasp_attribute_type_t attribute_common_text(lv_obj_t* obj, uint16_t attr_
 #if LV_USE_WIN != 0
         {LV_HASP_WINDOW, ATTR_TEXT, lv_win_set_title, lv_win_get_title},
 #endif
-        {LV_HASP_MSGBOX, ATTR_TEXT, my_msgbox_set_text, lv_msgbox_get_text}
+        {LV_HASP_MSGBOX, ATTR_TEXT, my_msgbox_set_text, lv_msgbox_get_text},
+        {LV_HASP_QRCODE, ATTR_TEXT, my_qrcode_set_text, my_qrcode_get_text}
     };
 
     for(int i = 0; i < sizeof(list) / sizeof(list[0]); i++) {
@@ -2446,6 +2452,16 @@ static hasp_attribute_type_t attribute_common_int(lv_obj_t* obj, uint16_t attr_h
                 val = lv_obj_get_ext_click_pad_top(obj);
             break; // attribute_found
 
+        case ATTR_SIZE:
+            if(obj_check_type(obj, LV_HASP_QRCODE)) {
+                if(update) {
+                    lv_qrcode_set_size(obj, val);
+                } else {
+                    val = lv_obj_get_width(obj);
+                }
+            }
+            break;
+
         default:
             return HASP_ATTR_TYPE_NOT_FOUND; // attribute_not found
     }
@@ -2648,6 +2664,7 @@ void hasp_process_obj_attribute(lv_obj_t* obj, const char* attribute, const char
         case ATTR_OPACITY:
         case ATTR_EXT_CLICK_H:
         case ATTR_EXT_CLICK_V:
+        case ATTR_SIZE:
             val = strtol(payload, nullptr, DEC);
             ret = attribute_common_int(obj, attr_hash, val, update);
             break;
