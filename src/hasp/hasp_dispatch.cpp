@@ -184,6 +184,53 @@ static inline bool dispatch_parse_button_attribute(const char* topic_p, const ch
     return true;
 }
 
+#if USE_OBJ_ALIAS > 0
+static inline bool dispatch_parse_alias_attribute(const char* topic_p, const char* payload, bool update)
+{
+
+    if(*topic_p != '@') return false; // obligated @
+
+    topic_p++;
+
+    const char *pSeperator = strchr(topic_p, '.');
+    uint16_t aliaslen = (uint16_t)(pSeperator-topic_p);
+    
+    uint16_t aliashash = Parser::get_sdbm(topic_p, aliaslen);
+    topic_p = pSeperator;
+
+    if(*topic_p != '.') return false; // obligated separator
+
+    topic_p++;
+
+    LOG_DEBUG(TAG_MSGR, "parse alias attribute : obj alias hash[%d] command[%s] payload[%s]", aliashash, topic_p, payload);
+
+    lv_obj_t *top = lv_layer_top();
+    lv_obj_t *scr = lv_scr_act();
+
+    LOG_DEBUG(TAG_MSGR, "parse alias attribute : page 0 childs[%d] current page childs[%d]", lv_obj_count_children(top), lv_obj_count_children(scr));
+
+    /* search object on page 0 */
+    lv_obj_t* obj = NULL;
+    if (obj = hasp_find_obj_from_alias(top, aliashash)) {
+        /* Object found on page 0 */
+    }
+
+    /* search object on all other pages include subpages (tabview) */
+    uint8_t page = HASP_START_PAGE;
+    while ((page <= HASP_NUM_PAGES && obj == NULL)) {
+        obj = hasp_find_obj_from_alias(haspPages.get_obj(page), aliashash);
+        page++;
+    }
+
+    if(obj) {
+        hasp_process_obj_attribute(obj, topic_p, payload, update);
+        return true;
+    }
+
+    return false;
+}
+#endif // #if USE_OBJ_ALIAS > 0
+
 static void dispatch_input(const char* topic, const char* payload)
 {
 #if HASP_USE_GPIO > 0
@@ -310,7 +357,17 @@ static void dispatch_command(const char* topic, const char* payload, bool update
 {
     /* ================================= Standard payload commands ======================================= */
 
-    if(dispatch_parse_button_attribute(topic, payload, update)) return; // matched pxby.attr, first for speed
+    if(dispatch_parse_button_attribute(topic, payload, update)) {
+        LOG_DEBUG(TAG_MSGR, "dispatch object matched pxby.attr");
+        return; // matched pxby.attr, first for speed
+    }
+
+#if USE_OBJ_ALIAS > 0
+    if(dispatch_parse_alias_attribute(topic, payload, update)) {
+        LOG_DEBUG(TAG_MSGR, "dispatch object matched alias.attr");
+        return; // matched alias.attr
+    }
+#endif  // #if USE_OBJ_ALIAS > 0
 
     // check and execute commands from commands array
     for(int i = 0; i < nCommands; i++) {

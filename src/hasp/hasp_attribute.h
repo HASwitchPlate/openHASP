@@ -501,6 +501,7 @@ _HASP_ATTRIBUTE(SCALE_END_LINE_WIDTH, scale_end_line_width, lv_style_int_t)
 #define ATTR_GROUPID 48986
 #define ATTR_OBJID 41010
 #define ATTR_OBJ 53623
+#define ATTR_ALIAS 33840
 
 #define ATTR_TEXT_MAC 38107
 #define ATTR_TEXT_IP 41785

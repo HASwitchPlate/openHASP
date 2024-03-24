@@ -825,6 +825,42 @@ static uint16_t my_btnmatrix_get_count(const lv_obj_t* btnm)
     return ext->btn_cnt;
 }
 
+#if USE_OBJ_ALIAS > 0
+/**
+ * Find object with given alias
+ * @param obj pointer to perent object
+ * @param alias hash to be searched for
+ * @return Null at the moment in further text of alias
+ */
+static const char* my_obj_get_alias(const lv_obj_t* obj)
+{
+#if LV_USE_USER_DATA
+    if (obj->user_data.aliashash > 0) {
+//        const char hashtext[6] = {0};
+//        itoa(obj->user_data.aliashash, (char*)hashtext, 10);
+//        return hashtext;
+    }
+#endif
+    return NULL;
+}
+
+/**
+ * Set the alias of an object
+ * @param obj pointer to object
+ * @param attr_hash alias hash to store in object user data
+ * @param text alias text - not used further
+ */
+static void my_obj_set_alias(lv_obj_t* obj, uint16_t attr_hash, const char* text)
+{
+#if LV_USE_USER_DATA
+    obj->user_data.aliashash = Parser::get_sdbm(text); 
+
+    LOG_DEBUG(TAG_HASP, "set alias hash [%s] [%d]", text, obj->user_data.aliashash);
+#endif
+    return;
+}
+#endif // USE_OBJ_ALIAS
+
 #if 0
 static bool attribute_lookup_lv_property(uint16_t hash, uint8_t * prop)
 {

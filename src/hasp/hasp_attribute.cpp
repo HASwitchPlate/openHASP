@@ -1794,6 +1794,16 @@ static hasp_attribute_type_t attribute_common_text(lv_obj_t* obj, uint16_t attr_
         }
     }
 
+#if USE_OBJ_ALIAS > 0
+    if(attr_hash == ATTR_ALIAS) {
+        if(update) {
+            my_obj_set_alias(obj, attr_hash, payload);
+        } else {
+            *text = (char*)my_obj_get_alias(obj);
+        }
+    }
+#endif  // #if USE_OBJ_ALIAS > 0
+
     return HASP_ATTR_TYPE_STR;
 }
 
@@ -2698,6 +2708,9 @@ void hasp_process_obj_attribute(lv_obj_t* obj, const char* attribute, const char
         //     LOG_WARNING(TAG_HASP, F(D_ATTRIBUTE_OBSOLETE D_ATTRIBUTE_INSTEAD), attribute, "text");
         case ATTR_TEXT:
         case ATTR_TEMPLATE:
+#if USE_OBJ_ALIAS > 0
+        case ATTR_ALIAS:
+#endif  // #if USE_OBJ_ALIAS > 0
             ret = attribute_common_text(obj, attr_hash, payload, &text, update);
             break;
 

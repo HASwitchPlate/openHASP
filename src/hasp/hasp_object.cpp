@@ -68,6 +68,57 @@ bool hasp_find_id_from_obj(const lv_obj_t* obj, uint8_t* pageid, uint8_t* objid)
     return true;
 }
 
+#if USE_OBJ_ALIAS > 0
+/**
+ * Find object with given alias
+ * @param obj pointer to perent object
+ * @param alias hash to be searched for
+ * @return pointer to found object or NULL if nothing was found
+ */
+lv_obj_t* hasp_find_obj_from_alias(const lv_obj_t* obj, uint16_t alias, uint8_t level) 
+{
+    if(!obj || level > 10) return NULL;
+
+    level++;
+
+    lv_obj_t* child = lv_obj_get_child_back(obj, NULL);
+    while(child) {
+        LOG_DEBUG(TAG_HASP, "find obj from alias : level[%d] objtype[%s] alias hash[%d]", level, obj_get_type_name(child), child->user_data.aliashash);
+
+        if (alias == child->user_data.aliashash) {
+            level--;
+            return child;
+        }
+
+        if(obj_check_type(child, LV_HASP_TABVIEW)) {
+            /* search in all tab */
+            lv_tabview_ext_t * tv_ext = (lv_tabview_ext_t *)lv_obj_get_ext_attr(child);
+            lv_obj_t * tv_content = lv_page_get_scrollable(tv_ext->content);
+            lv_obj_t * tv_tab = lv_obj_get_child_back(tv_content, NULL);
+            lv_obj_t * tab_scrl;
+            lv_obj_t * tab_child;
+
+            while(tv_tab != NULL) {
+                tab_scrl = lv_page_get_scrollable(tv_tab);
+
+                LOG_DEBUG(TAG_HASP, "find obj from alias : level[%d] objtype[%s] childs[%d]", level, obj_get_type_name(tv_tab), lv_obj_count_children(tab_scrl));
+
+                tab_child = hasp_find_obj_from_alias(tab_scrl, alias, level);
+                if (tab_child) {
+                    level--;
+                    return tab_child;
+                }
+                tv_tab = lv_obj_get_child_back(tv_content, tv_tab);
+            }
+        }
+        child = lv_obj_get_child_back(obj, child);
+    }
+
+    level--;
+    return NULL;
+}
+#endif  // #if USE_OBJ_ALIAS > 0
+
 void hasp_object_tree(const lv_obj_t* parent, uint8_t pageid, uint16_t level)
 {
     if(parent == nullptr) return;
