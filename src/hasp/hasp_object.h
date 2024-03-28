@@ -100,6 +100,17 @@ lv_obj_t* hasp_find_obj_from_parent_id(lv_obj_t* parent, uint8_t objid);
 lv_obj_t* hasp_find_obj_from_page_id(uint8_t pageid, uint8_t objid);
 bool hasp_find_id_from_obj(const lv_obj_t* obj, uint8_t* pageid, uint8_t* objid);
 
+#if USE_OBJ_ALIAS > 0
+/**
+ * Find object with given alias
+ * @param obj pointer to perent object
+ * @param alias hash to be searched for
+ * @param level level of the search depth, is incremented in each level
+ * @return pointer to found object or NULL if nothing was found
+ */
+lv_obj_t* hasp_find_obj_from_alias(const lv_obj_t* obj, uint16_t alias, uint8_t level = 0);
+#endif  // #if USE_OBJ_ALIAS
+
 void hasp_object_tree(const lv_obj_t* parent, uint8_t pageid, uint16_t level);
 
 void object_dispatch_state(uint8_t pageid, uint8_t btnid, const char* payload);

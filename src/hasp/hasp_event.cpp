@@ -276,12 +276,31 @@ static void event_object_val_event(lv_obj_t* obj, uint8_t eventid, int16_t val)
 {
     char data[512];
     {
-        char eventname[8];
-        Parser::get_event_name(eventid, eventname, sizeof(eventname));
-        if(const char* tag = my_obj_get_tag(obj))
-            snprintf_P(data, sizeof(data), PSTR("{\"event\":\"%s\",\"val\":%d,\"tag\":%s}"), eventname, val, tag);
-        else
-            snprintf_P(data, sizeof(data), PSTR("{\"event\":\"%s\",\"val\":%d}"), eventname, val);
+    char eventname[8];
+    Parser::get_event_name(eventid, eventname, sizeof(eventname));
+
+/*        
+    if(const char* tag = my_obj_get_tag(obj))
+        snprintf_P(data, sizeof(data), PSTR("{\"event\":\"%s\",\"val\":%d,\"tag\":%s}"), eventname, val, tag);
+    else
+        snprintf_P(data, sizeof(data), PSTR("{\"event\":\"%s\",\"val\":%d}"), eventname, val);
+*/
+
+    snprintf_P(data, sizeof(data), PSTR("{\"event\":\"%s\",\"val\":%d"), eventname, val);
+
+    LOG_INFO(TAG_MQTT, "event_object_val_event pdata[%d] len[%d] pend[%d] eid[%d] val[%d] char[%d]", &data, strlen(data), &data[strlen(data)], eventid, val, (uint8_t)data[strlen(data)]);
+
+    if (const char* tag = my_obj_get_tag(obj)) {
+        snprintf_P(&data[strlen(data)], sizeof(data)-strlen(data), PSTR(",\"tag\":%s"), tag);
+    }
+
+#if USE_OBJ_ALIAS > 0
+    if (const char* alias = my_obj_get_alias(obj)) {
+        snprintf_P(&data[strlen(data)], sizeof(data)-strlen(data), PSTR(",\"alias\":\"%s\""), alias);
+    }
+#endif  // #if USE_OBJ_ALIAS > 0
+
+    snprintf_P(&data[strlen(data)], sizeof(data)-strlen(data), PSTR("}"));
     }
     event_send_object_data(obj, data);
 }
@@ -299,12 +318,29 @@ static void event_object_selection_changed(lv_obj_t* obj, uint8_t eventid, int16
 
         char eventname[8];
         Parser::get_event_name(eventid, eventname, sizeof(eventname));
+
+/*        
         if(const char* tag = my_obj_get_tag(obj))
             snprintf_P(data, sizeof(data), PSTR("{\"event\":\"%s\",\"val\":%d,\"text\":%s,\"tag\":%s}"), eventname,
                        val, serialized_text, tag);
         else
             snprintf_P(data, sizeof(data), PSTR("{\"event\":\"%s\",\"val\":%d,\"text\":%s}"), eventname, val,
                        serialized_text);
+*/
+
+        snprintf_P(data, sizeof(data), PSTR("{\"event\":\"%s\",\"val\":%d,\"text\":%s"), eventname, val, serialized_text);
+
+        if (const char* tag = my_obj_get_tag(obj)) {
+            snprintf_P(&data[strlen(data)], sizeof(data)-strlen(data), PSTR(",\"tag\":%s"), tag);
+        }
+
+#if USE_OBJ_ALIAS > 0
+        if (const char* alias = my_obj_get_alias(obj)) {
+            snprintf_P(&data[strlen(data)], sizeof(data)-strlen(data), PSTR(",\"alias\":\"%s\""), alias);
+        }
+#endif  // #if USE_OBJ_ALIAS > 0
+
+        snprintf_P(&data[strlen(data)], sizeof(data)-strlen(data), PSTR("}"));
     }
     event_send_object_data(obj, data);
 }
@@ -445,12 +481,28 @@ void textarea_event_handler(lv_obj_t* obj, lv_event_t event)
         {
             char eventname[8];
             Parser::get_event_name(hasp_event_id, eventname, sizeof(eventname));
+/*            
             if(const char* tag = my_obj_get_tag(obj))
                 snprintf_P(data, sizeof(data), PSTR("{\"event\":\"%s\",\"text\":\"%s\",\"tag\":%s}"), eventname,
                            lv_textarea_get_text(obj), tag);
             else
                 snprintf_P(data, sizeof(data), PSTR("{\"event\":\"%s\",\"text\":\"%s\"}"), eventname,
                            lv_textarea_get_text(obj));
+*/
+
+            snprintf_P(data, sizeof(data), PSTR("{\"event\":\"%s\",\"text\":\"%s\""), eventname, lv_textarea_get_text(obj));
+
+            if (const char* tag = my_obj_get_tag(obj)) {
+                snprintf_P(&data[strlen(data)], sizeof(data)-strlen(data), PSTR(",\"tag\":%s"), tag);
+            }
+
+#if USE_OBJ_ALIAS > 0
+            if (const char* alias = my_obj_get_alias(obj)) {
+                snprintf_P(&data[strlen(data)], sizeof(data)-strlen(data), PSTR(",\"alias\":\"%s\""), alias);
+            }
+#endif  // #if USE_OBJ_ALIAS > 0
+
+            snprintf_P(&data[strlen(data)], sizeof(data)-strlen(data), PSTR("}"));
         }
 
         event_send_object_data(obj, data);
@@ -536,10 +588,26 @@ void generic_event_handler(lv_obj_t* obj, lv_event_t event)
         {
             char eventname[8];
             Parser::get_event_name(last_value_sent, eventname, sizeof(eventname));
+/*            
             if(const char* tag = my_obj_get_tag(obj))
                 snprintf_P(data, sizeof(data), PSTR("{\"event\":\"%s\",\"tag\":%s}"), eventname, tag);
             else
                 snprintf_P(data, sizeof(data), PSTR("{\"event\":\"%s\"}"), eventname);
+*/
+
+            snprintf_P(data, sizeof(data), PSTR("{\"event\":\"%s\""), eventname);
+
+            if (const char* tag = my_obj_get_tag(obj)) {
+                snprintf_P(&data[strlen(data)], sizeof(data)-strlen(data), PSTR(",\"tag\":%s"), tag);
+            }
+
+#if USE_OBJ_ALIAS > 0
+            if (const char* alias = my_obj_get_alias(obj)) {
+                snprintf_P(&data[strlen(data)], sizeof(data)-strlen(data), PSTR(",\"alias\":\"%s\""), alias);
+            }
+#endif  // #if USE_OBJ_ALIAS > 0
+
+            snprintf_P(&data[strlen(data)], sizeof(data)-strlen(data), PSTR("}"));
         }
         event_send_object_data(obj, data);
     }
@@ -859,6 +927,7 @@ void cpicker_event_handler(lv_obj_t* obj, lv_event_t event)
         hsv             = lv_color_rgb_to_hsv(c32.ch.red, c32.ch.green, c32.ch.blue);
         last_color_sent = color;
 
+/*
         if(const char* tag = my_obj_get_tag(obj))
             snprintf_P(data, sizeof(data),
                        PSTR("{\"event\":\"%s\",\"color\":\"#%02x%02x%02x\",\"r\":%d,\"g\":%d,\"b\":%d,\"h\":%d,\"s\":%"
@@ -871,6 +940,25 @@ void cpicker_event_handler(lv_obj_t* obj, lv_event_t event)
                             "d,\"v\":%d}"),
                        eventname, c32.ch.red, c32.ch.green, c32.ch.blue, c32.ch.red, c32.ch.green, c32.ch.blue, hsv.h,
                        hsv.s, hsv.v);
+*/
+
+        snprintf_P(data, sizeof(data), PSTR("{\"event\":\"%s\",\"color\":\"#%02x%02x%02x\",\"r\":%d,\"g\":%d,\"b\":%d,"
+                    "\"h\":%d,\"s\":%d,\"v\":%d"), 
+                    eventname, c32.ch.red, c32.ch.green, c32.ch.blue, c32.ch.red, c32.ch.green, c32.ch.blue, hsv.h,
+                    hsv.s, hsv.v);
+
+        if (const char* tag = my_obj_get_tag(obj)) {
+            snprintf_P(&data[strlen(data)], sizeof(data)-strlen(data), PSTR(",\"tag\":%s"), tag);
+        }
+
+#if USE_OBJ_ALIAS > 0
+        if (const char* alias = my_obj_get_alias(obj)) {
+            snprintf_P(&data[strlen(data)], sizeof(data)-strlen(data), PSTR(",\"alias\":\"%s\""), alias);
+        }
+#endif  // #if USE_OBJ_ALIAS > 0
+
+        snprintf_P(&data[strlen(data)], sizeof(data)-strlen(data), PSTR("}"));
+
     }
     event_send_object_data(obj, data);
 
@@ -906,6 +994,7 @@ void calendar_event_handler(lv_obj_t* obj, lv_event_t event)
         last_value_sent = val;
         last_obj_sent   = obj;
 
+/*
         if(const char* tag = my_obj_get_tag(obj))
             snprintf_P(data, sizeof(data),
                        PSTR("{\"event\":\"%s\",\"val\":\"%d\",\"text\":\"%04d-%02d-%02dT00:00:00Z\",\"tag\":%s}"),
@@ -914,6 +1003,22 @@ void calendar_event_handler(lv_obj_t* obj, lv_event_t event)
             snprintf_P(data, sizeof(data),
                        PSTR("{\"event\":\"%s\",\"val\":\"%d\",\"text\":\"%04d-%02d-%02dT00:00:00Z\"}"), eventname,
                        date->day, date->year, date->month, date->day);
+*/
+
+        snprintf_P(data, sizeof(data), PSTR("{\"event\":\"%s\",\"val\":\"%d\",\"text\":\"%04d-%02d-%02dT00:00:00Z\""), 
+                    eventname, date->day, date->year, date->month, date->day);
+
+        if (const char* tag = my_obj_get_tag(obj)) {
+            snprintf_P(&data[strlen(data)], sizeof(data)-strlen(data), PSTR(",\"tag\":%s"), tag);
+        }
+
+#if USE_OBJ_ALIAS > 0
+        if (const char* alias = my_obj_get_alias(obj)) {
+            snprintf_P(&data[strlen(data)], sizeof(data)-strlen(data), PSTR(",\"alias\":\"%s\""), alias);
+        }
+#endif  // #if USE_OBJ_ALIAS > 0
+
+        snprintf_P(&data[strlen(data)], sizeof(data)-strlen(data), PSTR("}"));
     }
     event_send_object_data(obj, data);
 
