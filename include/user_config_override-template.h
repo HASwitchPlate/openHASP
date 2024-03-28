@@ -160,10 +160,4 @@
 //#define HASP_LOG_TASKS                              // Also log the Taskname and watermark of ESP32 tasks
 #define USE_OBJ_ALIAS 1                             // Enable store object alias und accept commands for objects with alias1
 
-#if USE_OBJ_ALIAS > 0
-#ifndef LV_USE_USER_DATA
-   #define LV_USE_USER_DATA
-#endif
-#endif
-
 #endif // HASP_USER_CONFIG_OVERRIDE_H

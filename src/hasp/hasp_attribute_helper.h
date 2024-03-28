@@ -827,36 +827,49 @@ static uint16_t my_btnmatrix_get_count(const lv_obj_t* btnm)
 
 #if USE_OBJ_ALIAS > 0
 /**
- * Find object with given alias
+ * Get the text of alias
  * @param obj pointer to perent object
- * @param alias hash to be searched for
- * @return Null at the moment in further text of alias
+ * @return alias text
  */
-static const char* my_obj_get_alias(const lv_obj_t* obj)
+const char* my_obj_get_alias(lv_obj_t* obj)
 {
-#if LV_USE_USER_DATA
-    if (obj->user_data.aliashash > 0) {
-//        const char hashtext[6] = {0};
-//        itoa(obj->user_data.aliashash, (char*)hashtext, 10);
-//        return hashtext;
-    }
-#endif
-    return NULL;
+    if(!obj) return NULL;
+
+    return obj->user_data.alias;
 }
 
 /**
  * Set the alias of an object
  * @param obj pointer to object
  * @param attr_hash alias hash to store in object user data
- * @param text alias text - not used further
+ * @param text alias text
  */
 static void my_obj_set_alias(lv_obj_t* obj, uint16_t attr_hash, const char* text)
 {
-#if LV_USE_USER_DATA
+    // If exist old alias, free up memory
+    if(obj->user_data.alias) {
+        hasp_free(obj->user_data.alias);
+        obj->user_data.alias = NULL;
+    }
+
+    // new alias is blank
+    if(text == NULL || text[0] == '\0') {
+        obj->user_data.aliashash = 0; 
+        obj->user_data.alias = NULL; 
+    }
+
+    // store alias text
+    const size_t size = strlen(text);
+    if(char* str = (char*)hasp_malloc(size + 1)) {
+        strncpy(str, text, size + 1);   // copy include 0 termination
+        str[size] = '\0';   // safety 0 termination
+        obj->user_data.alias = str;
+    } 
+
+    // store alias hash
     obj->user_data.aliashash = Parser::get_sdbm(text); 
 
-    LOG_DEBUG(TAG_HASP, "set alias hash [%s] [%d]", text, obj->user_data.aliashash);
-#endif
+    LOG_INFO(TAG_HASP, "set user data alias [%s] [%d]", obj->user_data.alias, obj->user_data.aliashash);
     return;
 }
 #endif // USE_OBJ_ALIAS

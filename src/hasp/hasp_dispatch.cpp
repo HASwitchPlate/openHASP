@@ -86,6 +86,8 @@ void dispatch_state_eventid(const char* topic, hasp_event_t eventid)
     char payload[32];
     char eventname[8];
 
+    LOG_INFO(TAG_MQTT, "dispatch_state_eventid topic[%s] eid[%d]", topic, (uint16_t)eventid);
+
     Parser::get_event_name(eventid, eventname, sizeof(eventname));
     if(eventid == HASP_EVENT_ON || eventid == HASP_EVENT_OFF) {
         snprintf_P(payload, sizeof(payload), PSTR("{\"state\":\"%s\"}"), eventname);

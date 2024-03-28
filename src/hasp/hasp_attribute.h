@@ -21,6 +21,7 @@ void my_obj_set_swipe(lv_obj_t* obj, const char* tag);
 const char* my_obj_get_tag(lv_obj_t* obj);
 const char* my_obj_get_action(lv_obj_t* obj);
 const char* my_obj_get_swipe(lv_obj_t* obj);
+const char* my_obj_get_alias(lv_obj_t* obj);
 void my_btnmatrix_map_clear(lv_obj_t* obj);
 void my_msgbox_map_clear(lv_obj_t* obj);
 void my_line_clear_points(lv_obj_t* obj);

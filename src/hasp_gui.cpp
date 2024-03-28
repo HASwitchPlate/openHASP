@@ -353,7 +353,7 @@ void guiSetup()
 
     /* Initialize Global progress bar*/
 #if USE_OBJ_ALIAS > 0
-    lv_obj_user_data_t udata = (lv_obj_user_data_t){10, 0, 10, NULL, 0};
+    lv_obj_user_data_t udata = (lv_obj_user_data_t){10, 0, 10, NULL, 0, NULL};
 #else
     lv_obj_user_data_t udata = (lv_obj_user_data_t){10, 0, 10};
 #endif  // #if USE_OBJ_ALIAS > 0
