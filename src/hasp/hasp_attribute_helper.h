@@ -846,7 +846,36 @@ const char* my_obj_get_alias(lv_obj_t* obj)
  */
 static void my_obj_set_alias(lv_obj_t* obj, uint16_t attr_hash, const char* text)
 {
-    // If exist old alias, free up memory
+    // calculate hash
+    uint16_t hash = Parser::get_sdbm(text);
+
+#if USE_ALIAS_ALLOW_DUPLICATES < 1
+    lv_obj_t *top = lv_layer_top();
+    lv_obj_t *scr = lv_scr_act();
+
+    // search object on page 0
+    lv_obj_t* tempobj = NULL;
+    if (tempobj = hasp_find_obj_from_alias(top, hash)) {
+        // Object found on page 0
+    }
+
+    // search object on all other pages include subpages (tabview)
+    uint8_t page = HASP_START_PAGE;
+    while ((page <= HASP_NUM_PAGES && tempobj == NULL)) {
+        tempobj = hasp_find_obj_from_alias(haspPages.get_obj(page), hash);
+        page++;
+    }
+
+    if (tempobj) {
+        LOG_WARNING(TAG_HASP, "Warning! Alias hash for \"%s\" already exists. Alias not stored!", text);
+        return;     // Store no duplicates
+    }
+#endif
+
+    // store alias hash in object
+    obj->user_data.aliashash = hash; 
+
+    // If exist old alias string, free up memory
     if(obj->user_data.alias) {
         hasp_free(obj->user_data.alias);
         obj->user_data.alias = NULL;
@@ -858,7 +887,7 @@ static void my_obj_set_alias(lv_obj_t* obj, uint16_t attr_hash, const char* text
         obj->user_data.alias = NULL; 
     }
 
-    // store alias text
+    // allocate mem for store alias text and save the pointer in object
     const size_t size = strlen(text);
     if(char* str = (char*)hasp_malloc(size + 1)) {
         strncpy(str, text, size + 1);   // copy include 0 termination
@@ -866,10 +895,7 @@ static void my_obj_set_alias(lv_obj_t* obj, uint16_t attr_hash, const char* text
         obj->user_data.alias = str;
     } 
 
-    // store alias hash
-    obj->user_data.aliashash = Parser::get_sdbm(text); 
-
-    LOG_INFO(TAG_HASP, "set user data alias [%s] [%d]", obj->user_data.alias, obj->user_data.aliashash);
+    LOG_DEBUG(TAG_HASP, "set user data alias [%s] [%d]", obj->user_data.alias, obj->user_data.aliashash);
     return;
 }
 #endif // USE_OBJ_ALIAS

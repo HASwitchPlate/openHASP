@@ -159,5 +159,6 @@
 //#define HASP_LOG_LEVEL LOG_LEVEL_VERBOSE            // LOG_LEVEL_* can be DEBUG, VERBOSE, TRACE, INFO, WARNING, ERROR, CRITICAL, ALERT, FATAL, SILENT
 //#define HASP_LOG_TASKS                              // Also log the Taskname and watermark of ESP32 tasks
 #define USE_OBJ_ALIAS 1                             // Enable store object alias und accept commands for objects with alias1
+#define USE_ALIAS_ALLOW_DUPLICATES 0
 
 #endif // HASP_USER_CONFIG_OVERRIDE_H
