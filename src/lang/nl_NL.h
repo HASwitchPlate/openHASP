@@ -127,7 +127,7 @@
 #define D_HTTP_HTTP_SETTINGS "HTTP Instellingen"
 #define D_HTTP_FTP_SETTINGS "FTP Instellingen"
 #define D_HTTP_WIFI_SETTINGS "Wifi Instellingen"
-#define D_HTTP_WIREGUARD_SETTINGS "WireGuard Settings"
+#define D_HTTP_WIREGUARD_SETTINGS "WireGuard Instellingen"
 #define D_HTTP_MQTT_SETTINGS "MQTT Instellingen"
 #define D_HTTP_GPIO_SETTINGS "GPIO Instellingen"
 #define D_HTTP_MDNS_SETTINGS "mDNS Instellingen"
@@ -202,8 +202,8 @@
 #define D_INFO_MAC_ADDRESS "Fysiek adres (MAC)"
 #define D_INFO_GATEWAY "Gateway"
 #define D_INFO_DNS_SERVER "DNS Server"
-#define D_INFO_ENDPOINT_IP "Endpoint IP"
-#define D_INFO_ENDPOINT_PORT "Endpoint Port"
+#define D_INFO_ENDPOINT_IP "Eindpunt IP"
+#define D_INFO_ENDPOINT_PORT "Eindpunt Poort"
 
 #define D_OOBE_MSG "Raak het scherm aan om WiFi in te stellen of meld je aan op AP:"
 #define D_OOBE_SCAN_TO_CONNECT "Scan code"
@@ -216,8 +216,8 @@
 #define D_WIFI_RSSI_WEAK "Zwak"
 #define D_WIFI_RSSI_BAD "Zeer Slecht"
 
-#define D_WG_INITIALIZED "Initialized"
-#define D_WG_BAD_CONFIG "Missing or bad configuration"
+#define D_WG_INITIALIZED "Geïnitialiseerd"
+#define D_WG_BAD_CONFIG "Ontbrekende of verkeerde configuratie"
 
 #define D_GPIO_SWITCH "Schakelaar"
 #define D_GPIO_BUTTON "Drukknop"
