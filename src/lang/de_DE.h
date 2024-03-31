@@ -9,7 +9,7 @@
 #define D_USERNAME "Username:"
 #define D_PASSWORD "Password:"
 #define D_SSID "Ssid:"
-#define D_YES "Yes"
+#define D_YES "Ja"
 #define D_NO "No"
 
 #define D_ERROR_OUT_OF_MEMORY "Out of memory"
