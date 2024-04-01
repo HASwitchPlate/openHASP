@@ -381,6 +381,7 @@ void hasp_new_object(const JsonObject& config, uint8_t& saved_page_id)
             case HASP_OBJ_QRCODE:
                 obj = lv_qrcode_create(parent_obj, 140, LV_COLOR_BLACK, LV_COLOR_WHITE);
                 if(obj) {
+                    lv_obj_set_event_cb(obj, delete_event_handler);
                     obj->user_data.objid = LV_HASP_QRCODE;
                 }
                 break;
