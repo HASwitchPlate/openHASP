@@ -1797,7 +1797,7 @@ static hasp_attribute_type_t attribute_common_text(lv_obj_t* obj, uint16_t attr_
 #if USE_OBJ_ALIAS > 0
     if(attr_hash == ATTR_ALIAS) {
         if(update) {
-            my_obj_set_alias(obj, attr_hash, payload);
+            my_obj_set_alias(obj, payload);
         } else {
             *text = (char*)my_obj_get_alias(obj);
         }

@@ -111,6 +111,7 @@ void delete_event_handler(lv_obj_t* obj, lv_event_t event)
         my_obj_set_value_str_text(obj, part, LV_STATE_DISABLED + LV_STATE_DEFAULT, NULL);
         my_obj_set_value_str_text(obj, part, LV_STATE_DISABLED + LV_STATE_CHECKED, NULL);
     }
+    my_obj_set_alias(obj, (char*)NULL);
     my_obj_set_tag(obj, (char*)NULL);
     my_obj_set_action(obj, (char*)NULL);
     my_obj_set_swipe(obj, (char*)NULL);

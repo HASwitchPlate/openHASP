@@ -18,6 +18,7 @@ void my_obj_set_value_str_text(lv_obj_t* obj, uint8_t part, lv_state_t state, co
 void my_obj_set_tag(lv_obj_t* obj, const char* tag);
 void my_obj_set_action(lv_obj_t* obj, const char* tag);
 void my_obj_set_swipe(lv_obj_t* obj, const char* tag);
+void my_obj_set_alias(lv_obj_t* obj, const char* text);
 const char* my_obj_get_tag(lv_obj_t* obj);
 const char* my_obj_get_action(lv_obj_t* obj);
 const char* my_obj_get_swipe(lv_obj_t* obj);

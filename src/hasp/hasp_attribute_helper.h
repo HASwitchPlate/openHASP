@@ -841,11 +841,24 @@ const char* my_obj_get_alias(lv_obj_t* obj)
 /**
  * Set the alias of an object
  * @param obj pointer to object
- * @param attr_hash alias hash to store in object user data
  * @param text alias text
  */
-static void my_obj_set_alias(lv_obj_t* obj, uint16_t attr_hash, const char* text)
+void my_obj_set_alias(lv_obj_t* obj, const char* text)
 {
+    // If exist old alias string, free up memory
+    if(obj->user_data.alias) {
+        hasp_free(obj->user_data.alias);
+        obj->user_data.aliashash = 0; 
+        obj->user_data.alias = NULL;
+    }
+
+    // new alias is blank
+    if(text == NULL || text[0] == '\0') {
+        obj->user_data.aliashash = 0; 
+        obj->user_data.alias = NULL;
+        return; 
+    }
+
     // calculate hash
     uint16_t hash = Parser::get_sdbm(text);
 
@@ -874,18 +887,6 @@ static void my_obj_set_alias(lv_obj_t* obj, uint16_t attr_hash, const char* text
 
     // store alias hash in object
     obj->user_data.aliashash = hash; 
-
-    // If exist old alias string, free up memory
-    if(obj->user_data.alias) {
-        hasp_free(obj->user_data.alias);
-        obj->user_data.alias = NULL;
-    }
-
-    // new alias is blank
-    if(text == NULL || text[0] == '\0') {
-        obj->user_data.aliashash = 0; 
-        obj->user_data.alias = NULL; 
-    }
 
     // allocate mem for store alias text and save the pointer in object
     const size_t size = strlen(text);
