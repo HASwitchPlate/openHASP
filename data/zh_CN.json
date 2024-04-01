@@ -86,13 +86,13 @@
             "ssid": "SSID"
         },
         "wg": {
-            "title": "WireGuard Settings",
-            "btn": "WireGuard Settings",
+            "title": "WireGuard 设置",
+            "btn": "WireGuard 设置",
             "vpnip": "VPN IP",
-            "privkey": "Private Key",
-            "host": "Remote IP",
-            "port": "Remote Port",
-            "pubkey": "Remote Public Key"
+            "privkey": "专用密钥",
+            "host": "远程IP",
+            "port": "删除",
+            "pubkey": "远程公钥"
         },
         "mqtt": {
             "title": "MQTT 设置",
