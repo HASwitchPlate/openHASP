@@ -377,6 +377,7 @@ void hasp_new_object(const JsonObject& config, uint8_t& saved_page_id)
                 }
                 break;
 
+#if HASP_USE_QRCODE > 0
             case LV_HASP_QRCODE:
             case HASP_OBJ_QRCODE:
                 obj = lv_qrcode_create(parent_obj, 140, LV_COLOR_BLACK, LV_COLOR_WHITE);
@@ -385,6 +386,7 @@ void hasp_new_object(const JsonObject& config, uint8_t& saved_page_id)
                     obj->user_data.objid = LV_HASP_QRCODE;
                 }
                 break;
+#endif
 
             case LV_HASP_ARC:
             case HASP_OBJ_ARC:
