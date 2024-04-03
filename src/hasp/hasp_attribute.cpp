@@ -1757,8 +1757,10 @@ static hasp_attribute_type_t attribute_common_text(lv_obj_t* obj, uint16_t attr_
 #if LV_USE_WIN != 0
         {LV_HASP_WINDOW, ATTR_TEXT, lv_win_set_title, lv_win_get_title},
 #endif
-        {LV_HASP_MSGBOX, ATTR_TEXT, my_msgbox_set_text, lv_msgbox_get_text},
-        {LV_HASP_QRCODE, ATTR_TEXT, my_qrcode_set_text, my_qrcode_get_text}
+#if HASP_USE_QRCODE > 0
+        {LV_HASP_QRCODE, ATTR_TEXT, my_qrcode_set_text, my_qrcode_get_text},
+#endif
+        {LV_HASP_MSGBOX, ATTR_TEXT, my_msgbox_set_text, lv_msgbox_get_text}
     };
 
     for(int i = 0; i < sizeof(list) / sizeof(list[0]); i++) {
@@ -2375,12 +2377,12 @@ static hasp_attribute_type_t attribute_common_int(lv_obj_t* obj, uint16_t attr_h
                 val = obj->user_data.groupid;
             break; // attribute_found
 
-        // case ATTR_TRANSITION:
-        //     if(update)
-        //         obj->user_data.transitionid = (uint8_t)val;
-        //     else
-        //         val = obj->user_data.transitionid;
-        //     break; // attribute_found
+            // case ATTR_TRANSITION:
+            //     if(update)
+            //         obj->user_data.transitionid = (uint8_t)val;
+            //     else
+            //         val = obj->user_data.transitionid;
+            //     break; // attribute_found
 
         case ATTR_OBJID:
             if(update && val != obj->user_data.objid) return HASP_ATTR_TYPE_INT_READONLY;
@@ -2452,6 +2454,7 @@ static hasp_attribute_type_t attribute_common_int(lv_obj_t* obj, uint16_t attr_h
                 val = lv_obj_get_ext_click_pad_top(obj);
             break; // attribute_found
 
+#if HASP_USE_QRCODE > 0
         case ATTR_SIZE:
             if(obj_check_type(obj, LV_HASP_QRCODE)) {
                 if(update) {
@@ -2461,6 +2464,7 @@ static hasp_attribute_type_t attribute_common_int(lv_obj_t* obj, uint16_t attr_h
                 }
             }
             break;
+#endif
 
         default:
             return HASP_ATTR_TYPE_NOT_FOUND; // attribute_not found
@@ -2511,12 +2515,12 @@ static hasp_attribute_type_t attribute_common_bool(lv_obj_t* obj, uint16_t attr_
                 val = !(lv_obj_get_state(obj, LV_BTN_PART_MAIN) & LV_STATE_DISABLED);
             break; // attribute_found
 
-        // case ATTR_SWIPE:
-        //     if(update)
-        //         obj->user_data.swipeid = (!!val) % 16;
-        //     else
-        //         val = obj->user_data.swipeid;
-        //     break; // attribute_found
+            // case ATTR_SWIPE:
+            //     if(update)
+            //         obj->user_data.swipeid = (!!val) % 16;
+            //     else
+            //         val = obj->user_data.swipeid;
+            //     break; // attribute_found
 
         case ATTR_TOGGLE:
             switch(obj_get_type(obj)) {
