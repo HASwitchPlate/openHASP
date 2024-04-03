@@ -11,6 +11,7 @@
 <!-- ? Support for State and Part properties -->
 - `action` and `swipe` can now be set to any command
 - Set default `line_width` of new `line` objects to 1
+- Add `qrcode` object (thanks @marsman7)
 - Allow line and block comments in pages.jsonl
 - Removed deprecated `txt` property, use `text` instead
 - Removed deprecated `objid` property, use `obj` instead
