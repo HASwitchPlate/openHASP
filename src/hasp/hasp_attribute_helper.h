@@ -608,6 +608,7 @@ static inline void my_btn_set_text(lv_obj_t* obj, const char* value)
 }
 
 // OK - lvgl does not return a const char *
+#if HASP_USE_QRCODE > 0
 static const char* my_qrcode_get_text(const lv_obj_t* obj)
 {
     if(!obj) {
@@ -628,6 +629,7 @@ static void my_qrcode_set_text(lv_obj_t* obj, const char* text)
 {
     lv_qrcode_set_text(obj, text);
 }
+#endif
 
 /**
  * Get the value_str for an object part and state.
