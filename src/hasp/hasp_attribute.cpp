@@ -15,8 +15,10 @@
 #endif
 /*** Image Improvement ***/
 
+#if HASP_TARGET_ARDUINO
 #if HASP_USE_QRCODE > 0
 #include "lv_qrcode.h"
+#endif
 #endif
 
 LV_FONT_DECLARE(unscii_8_icon);
