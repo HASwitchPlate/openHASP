@@ -86,9 +86,11 @@ void delete_event_handler(lv_obj_t* obj, lv_event_t event)
             my_image_release_resources(obj);
             break;
 
+#if HASP_USE_QRCODE > 0
         case LV_HASP_QRCODE:
             lv_qrcode_delete(obj);
             break;
+#endif
 
         case LV_HASP_GAUGE:
             break;
