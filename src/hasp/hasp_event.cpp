@@ -111,10 +111,13 @@ void delete_event_handler(lv_obj_t* obj, lv_event_t event)
         my_obj_set_value_str_text(obj, part, LV_STATE_DISABLED + LV_STATE_DEFAULT, NULL);
         my_obj_set_value_str_text(obj, part, LV_STATE_DISABLED + LV_STATE_CHECKED, NULL);
     }
-    my_obj_set_alias(obj, (char*)NULL);
     my_obj_set_tag(obj, (char*)NULL);
     my_obj_set_action(obj, (char*)NULL);
     my_obj_set_swipe(obj, (char*)NULL);
+
+#if USE_OBJ_ALIAS > 0
+    my_obj_set_alias(obj, (char*)NULL);
+#endif  // #if USE_OBJ_ALIAS > 0
 }
 
 /* ============================== Timer Event  ============================ */
@@ -289,8 +292,6 @@ static void event_object_val_event(lv_obj_t* obj, uint8_t eventid, int16_t val)
 
     snprintf_P(data, sizeof(data), PSTR("{\"event\":\"%s\",\"val\":%d"), eventname, val);
 
-    LOG_INFO(TAG_MQTT, "event_object_val_event pdata[%d] len[%d] pend[%d] eid[%d] val[%d] char[%d]", &data, strlen(data), &data[strlen(data)], eventid, val, (uint8_t)data[strlen(data)]);
-
     if (const char* tag = my_obj_get_tag(obj)) {
         snprintf_P(&data[strlen(data)], sizeof(data)-strlen(data), PSTR(",\"tag\":%s"), tag);
     }
@@ -350,7 +351,18 @@ static void event_object_selection_changed(lv_obj_t* obj, uint8_t eventid, int16
 
 static inline void event_update_group(uint8_t group, lv_obj_t* obj, bool power, int32_t val, int32_t min, int32_t max)
 {
-    hasp_update_value_t value = {.obj = obj, .group = group, .min = min, .max = max, .val = val, .power = power};
+    hasp_update_value_t value = {
+                      .obj = obj
+                    , .group = group
+                    , .min = min
+                    , .max = max
+                    , .val = val
+                    , .power = power 
+#if  USE_OBJ_ALIAS > 0
+                    , .alias = obj->user_data.aliashash
+#endif                    
+                    };
+
     dispatch_normalized_group_values(value);
 }
 
@@ -659,7 +671,12 @@ void toggle_event_handler(lv_obj_t* obj, lv_event_t event)
     event_object_val_event(obj, hasp_event_id, last_value_sent);
 
     // Update group objects and gpios on release
-    if(obj->user_data.groupid && hasp_event_id == HASP_EVENT_UP) {
+#if  USE_OBJ_ALIAS == 0
+    if(obj->user_data.groupid && hasp_event_id == HASP_EVENT_UP) 
+#else
+    if((obj->user_data.groupid || obj->user_data.aliashash) && hasp_event_id == HASP_EVENT_UP) 
+#endif
+    {
         event_update_group(obj->user_data.groupid, obj, last_value_sent, last_value_sent, HASP_EVENT_OFF,
                            HASP_EVENT_ON);
     }
@@ -895,8 +912,14 @@ void slider_event_handler(lv_obj_t* obj, lv_event_t event)
     last_obj_sent   = obj;
     event_object_val_event(obj, hasp_event_id, val);
 
+#if USE_OBJ_ALIAS == 0
     if(obj->user_data.groupid && (hasp_event_id == HASP_EVENT_CHANGED || hasp_event_id == HASP_EVENT_UP) && min != max)
+#else
+    if((obj->user_data.groupid || obj->user_data.aliashash) && (hasp_event_id == HASP_EVENT_CHANGED || hasp_event_id == HASP_EVENT_UP) && min != max)
+#endif
+    {
         event_update_group(obj->user_data.groupid, obj, !!val, val, min, max);
+    }
 }
 
 /**
@@ -963,7 +986,11 @@ void cpicker_event_handler(lv_obj_t* obj, lv_event_t event)
     }
     event_send_object_data(obj, data);
 
-    // event_update_group(obj->user_data.groupid, obj, val, min, max);
+#if USE_OBJ_ALIAS > 0
+    if(obj->user_data.aliashash && hasp_event_id == HASP_EVENT_UP) {
+        event_update_group(0, obj, true, lv_color_to32(color), 0x000000, 0x00ffffff);
+    }
+#endif
 }
 
 #if LV_USE_CALENDAR > 0

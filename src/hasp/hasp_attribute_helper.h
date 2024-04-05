@@ -862,29 +862,6 @@ void my_obj_set_alias(lv_obj_t* obj, const char* text)
     // calculate hash
     uint16_t hash = Parser::get_sdbm(text);
 
-#if USE_ALIAS_ALLOW_DUPLICATES < 1
-    lv_obj_t *top = lv_layer_top();
-    lv_obj_t *scr = lv_scr_act();
-
-    // search object on page 0
-    lv_obj_t* tempobj = NULL;
-    if (tempobj = hasp_find_obj_from_alias(top, hash)) {
-        // Object found on page 0
-    }
-
-    // search object on all other pages include subpages (tabview)
-    uint8_t page = HASP_START_PAGE;
-    while ((page <= HASP_NUM_PAGES && tempobj == NULL)) {
-        tempobj = hasp_find_obj_from_alias(haspPages.get_obj(page), hash);
-        page++;
-    }
-
-    if (tempobj) {
-        LOG_WARNING(TAG_HASP, "Warning! Alias hash for \"%s\" already exists. Alias not stored!", text);
-        return;     // Store no duplicates
-    }
-#endif
-
     // store alias hash in object
     obj->user_data.aliashash = hash; 
 
@@ -896,7 +873,6 @@ void my_obj_set_alias(lv_obj_t* obj, const char* text)
         obj->user_data.alias = str;
     } 
 
-    LOG_DEBUG(TAG_HASP, "set user data alias [%s] [%d]", obj->user_data.alias, obj->user_data.aliashash);
     return;
 }
 #endif // USE_OBJ_ALIAS

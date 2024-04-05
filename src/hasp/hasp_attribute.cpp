@@ -2193,6 +2193,15 @@ static hasp_attribute_type_t attribute_common_val(lv_obj_t* obj, int32_t& val, b
                 val = lv_tabview_get_tab_act(obj);
             break;
 
+        case LV_HASP_CPICKER:
+            if(update) {
+                lv_cpicker_set_color(obj, lv_color_hex(val));
+            } else {
+                lv_color_t color = lv_cpicker_get_color(obj);
+                val = lv_color_to32(color);                
+            }
+            break;
+
         default:
             return HASP_ATTR_TYPE_NOT_FOUND; // not found
     }
@@ -2205,23 +2214,28 @@ bool attribute_set_normalized_value(lv_obj_t* obj, hasp_update_value_t& value)
     if(value.min == value.max) return false; // would cause divide by zero error
 
     int32_t val;
-    int32_t min;
-    int32_t max;
-    if(!my_obj_get_range(obj, min, max)) return false; // range could not be determined
 
-    // Limit the value between min and max, adjust if power = 0
-    if(value.power == 0 || value.val <= value.min) {
-        val = value.min;
-    } else if(value.val >= value.max) {
-        val = value.max;
+    if (obj_get_type(obj) != LV_HASP_CPICKER) {
+        int32_t min;
+        int32_t max;
+        if(!my_obj_get_range(obj, min, max)) return false; // range could not be determined
+
+        // Limit the value between min and max, adjust if power = 0
+        if(value.power == 0 || value.val <= value.min) {
+            val = value.min;
+        } else if(value.val >= value.max) {
+            val = value.max;
+        } else {
+            val = value.val;
+        }
+    
+        if(min == 0 && max == 1) {
+            val = val != value.min; // Toggles are set to 0 when val = min, otherwise 1
+        } else {
+            val = map(val, value.min, value.max, min, max);
+        }
     } else {
         val = value.val;
-    }
-
-    if(min == 0 && max == 1) {
-        val = val != value.min; // Toggles are set to 0 when val = min, otherwise 1
-    } else {
-        val = map(val, value.min, value.max, min, max);
     }
 
     attribute_common_val(obj, val, true);
