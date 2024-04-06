@@ -159,7 +159,7 @@
 
 #define D_INFO_VERSION "Version"
 #define D_INFO_BUILD_DATETIME "Erstellungs Datum/Uhrzeit"
-#define D_INFO_ENVIRONMENT "Umgebung"
+#Definiere D_INFO_ENVIRONMENT "Umgebung"
 #define D_INFO_UPTIME "Betriebsdauer"
 #define D_INFO_FREE_HEAP "Freier Heap"
 #define D_INFO_FREE_BLOCK "Freier Block"
