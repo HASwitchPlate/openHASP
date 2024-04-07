@@ -93,7 +93,7 @@
 #define D_ATTRIBUTE_UNKNOWN "Unbekannte Eigenschaft %s"
 // D_ATTRIBUTE_OBSOLETE D_ATTRIBUTE_INSTEAD can be used together or just D_ATTRIBUTE_OBSOLETE alone
 #define D_ATTRIBUTE_OBSOLETE "%s ist veraltet"
-#define D_ATTRIBUTE_INSTEAD ", benutze stattdessen %s
+#define D_ATTRIBUTE_INSTEAD ", benutze stattdessen %s"
 #define D_ATTRIBUTE_READ_ONLY "%s ist schreibgeschützt"
 #define D_ATTRIBUTE_PAGE_METHOD_INVALID "Unerlaubter Aufruf auf Seite %s"
 #define D_ATTRIBUTE_ALIGN_INVALID "Ungültige Ausrichtung: %s"
@@ -187,7 +187,7 @@
 #define D_INFO_CLIENTID "Client ID"
 // #define D_INFO_CONNECTED "Verbunden"
 // #define D_INFO_DISCONNECTED "Getrennt"
-#define D_INFO_REECEIVED "Empfangen"
+#define D_INFO_RECEIVED "Empfangen"
 #define D_INFO_PUBLISHED "Veröffentlicht"
 #define D_INFO_FAILED "Fehlerhaft"
 #define D_INFO_ETHERNET "Ethernet"
