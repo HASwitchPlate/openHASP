@@ -86,8 +86,10 @@ typedef int16_t lv_coord_t;
 /* LittelvGL's internal memory manager's settings.
  * The graphical objects and other related data are stored here. */
 
+#ifndef LV_MEM_CUSTOM
 /* 1: use custom malloc/free, 0: use the built-in `lv_mem_alloc` and `lv_mem_free` */
 #define LV_MEM_CUSTOM      0
+#endif
 #if LV_MEM_CUSTOM == 0
 /* Size of the memory used by `lv_mem_alloc` in bytes (>= 2kB)*/
 //#  define LV_MEM_SIZE    (32U * 1024U)

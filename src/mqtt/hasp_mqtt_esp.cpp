@@ -320,6 +320,7 @@ static int mqttSubscribeTo(String topic)
     return err;
 }
 
+/*
 String mqttGetTopic(Preferences preferences, String subtopic, String key, String value, bool add_slash)
 {
     String topic = preferences.getString(key.c_str(), value);
@@ -333,6 +334,20 @@ String mqttGetTopic(Preferences preferences, String subtopic, String key, String
         topic += "/";
     }
     return topic;
+}
+*/
+
+void mqttParseTopic(String *topic, String subtopic, bool add_slash)
+{
+
+    topic->replace(F("%hostname%"), haspDevice.get_hostname());
+    topic->replace(F("%hwid%"), haspDevice.get_hardware_id());
+    topic->replace(F("%topic%"), subtopic);
+    topic->replace(F("%prefix%"), MQTT_PREFIX);
+
+    if(add_slash && !topic->endsWith("/")) {
+        *topic += "/";
+    }
 }
 
 void onMqttConnect(esp_mqtt_client_handle_t client)
@@ -521,23 +536,29 @@ void mqttStart()
         nvsOldGroup += "/%topic%";
 
         subtopic = F(MQTT_TOPIC_COMMAND);
-        mqttNodeCommandTopic =
-            mqttGetTopic(preferences, subtopic, FP_CONFIG_NODE_TOPIC, MQTT_DEFAULT_NODE_TOPIC, false);
-        mqttGroupCommandTopic = mqttGetTopic(preferences, subtopic, FP_CONFIG_GROUP_TOPIC, nvsOldGroup.c_str(), false);
+        mqttNodeCommandTopic = preferences.getString(FP_CONFIG_NODE_TOPIC, MQTT_DEFAULT_NODE_TOPIC);
+        mqttParseTopic(&mqttNodeCommandTopic, subtopic, false);
+        mqttGroupCommandTopic = preferences.getString(FP_CONFIG_GROUP_TOPIC, nvsOldGroup.c_str());
+        mqttParseTopic(&mqttGroupCommandTopic, subtopic, false);
+
 #ifdef HASP_USE_BROADCAST
-        mqttBroadcastCommandTopic =
-            mqttGetTopic(preferences, subtopic, FP_CONFIG_BROADCAST_TOPIC, MQTT_DEFAULT_BROADCAST_TOPIC, false);
+        mqttBroadcastCommandTopic = preferences.getString(FP_CONFIG_BROADCAST_TOPIC, MQTT_DEFAULT_BROADCAST_TOPIC);
+        mqttParseTopic(&mqttBroadcastCommandTopic, subtopic, false);
+
 #endif
 
         subtopic           = F(MQTT_TOPIC_STATE);
-        mqttNodeStateTopic = mqttGetTopic(preferences, subtopic, FP_CONFIG_NODE_TOPIC, MQTT_DEFAULT_NODE_TOPIC, true);
+        mqttNodeStateTopic = preferences.getString(FP_CONFIG_NODE_TOPIC, MQTT_DEFAULT_NODE_TOPIC);
+        mqttParseTopic(&mqttNodeStateTopic, subtopic, true);
 
         subtopic         = F(MQTT_TOPIC_LWT);
-        mqttNodeLwtTopic = mqttGetTopic(preferences, subtopic, FP_CONFIG_NODE_TOPIC, MQTT_DEFAULT_NODE_TOPIC, false);
+        mqttNodeLwtTopic = preferences.getString(FP_CONFIG_NODE_TOPIC, MQTT_DEFAULT_NODE_TOPIC);
+        mqttParseTopic(&mqttNodeLwtTopic, subtopic, false);
         LOG_WARNING(TAG_MQTT, mqttNodeLwtTopic.c_str());
 
         subtopic         = F(MQTT_TOPIC_LWT);
-        mqttHassLwtTopic = mqttGetTopic(preferences, subtopic, FP_CONFIG_HASS_TOPIC, MQTT_DEFAULT_HASS_TOPIC, false);
+        mqttHassLwtTopic = preferences.getString(FP_CONFIG_HASS_TOPIC, MQTT_DEFAULT_HASS_TOPIC);
+        mqttParseTopic(&mqttHassLwtTopic, subtopic, false);
         LOG_WARNING(TAG_MQTT, mqttNodeLwtTopic.c_str());
 
         preferences.end();
