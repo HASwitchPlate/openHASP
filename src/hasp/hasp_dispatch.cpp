@@ -198,7 +198,7 @@ static inline bool dispatch_parse_alias_attribute(const char* topic_p, const cha
     const char *pSeperator = strchr(topic_p, '.');
     uint16_t aliaslen = (uint16_t)(pSeperator-topic_p);
     
-    uint16_t aliashash = Parser::get_sdbm(topic_p, aliaslen);
+    uint16_t aliashash = Parser::get_sdbm(topic_p, aliaslen, true);
     topic_p = pSeperator;
 
     if(*topic_p != '.') return false; // obligated separator

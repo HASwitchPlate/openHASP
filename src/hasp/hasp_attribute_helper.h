@@ -860,7 +860,7 @@ void my_obj_set_alias(lv_obj_t* obj, const char* text)
     }
 
     // calculate hash
-    uint16_t hash = Parser::get_sdbm(text);
+    uint16_t hash = Parser::get_sdbm(text, UINT16_MAX, true);
 
     // store alias hash in object
     obj->user_data.aliashash = hash; 
