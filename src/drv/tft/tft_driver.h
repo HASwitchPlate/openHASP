@@ -32,6 +32,7 @@ enum lv_hasp_obj_type_t {
     TFT_PANEL_RM68140,
     TFT_PANEL_RGB,
     TFT_PANEL_EPD,
+    TFT_PANEL_GC9A01,
     TFT_PANEL_LAST,
 };
 

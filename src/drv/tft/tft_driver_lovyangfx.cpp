@@ -94,8 +94,12 @@ static lgfx::Bus_Parallel8* init_parallel_8_bus(Preferences* prefs, int8_t data_
     cfg.pin_rd               = prefs->getInt("rd", TFT_RD);
     cfg.pin_wr               = prefs->getInt("wr", TFT_WR);
     cfg.pin_rs               = prefs->getInt("rs", TFT_DC);
+#ifndef ESP32C3
     cfg.freq_write           = prefs->getUInt("write_freq", SPI_FREQUENCY);
-#if !defined(CONFIG_IDF_TARGET_ESP32S3)
+#endif 
+
+
+#if !defined(CONFIG_IDF_TARGET_ESP32S3) && !defined(ESP32C3)
     uint8_t port = prefs->getUInt("i2s_port", 0);
     switch(port) {
 #if SOC_I2S_NUM > 1
@@ -328,6 +332,11 @@ lgfx::Panel_Device* LovyanGfx::_init_panel(lgfx::IBus* bus)
             LOG_VERBOSE(TAG_TFT, F("Panel_RGB"));
             break;
         }
+        case TFT_PANEL_GC9A01: {
+            panel = new lgfx::Panel_GC9A01();
+            LOG_VERBOSE(TAG_TFT, F("Panel_GC9A01"));
+            break;
+        }
         default: { // Needs to be in curly braces
             LOG_FATAL(TAG_TFT, F(D_SERVICE_START_FAILED ": %s line %d"), __FILE__, __LINE__);
         }
@@ -433,6 +442,31 @@ lgfx::ITouch* _init_touch(Preferences* preferences)
 #if TOUCH_DRIVER == 0x21100
     {
         auto touch = new lgfx::Touch_TT21xxx();
+        auto cfg   = touch->config();
+
+        cfg.x_min           = 0;
+        cfg.x_max           = TFT_WIDTH - 1;
+        cfg.y_min           = 0;
+        cfg.y_max           = TFT_HEIGHT - 1;
+        cfg.pin_int         = TOUCH_IRQ;
+        cfg.bus_shared      = true;
+        cfg.offset_rotation = TOUCH_OFFSET_ROTATION;
+
+        // I2C接続の場合
+        cfg.i2c_port = I2C_TOUCH_PORT;
+        cfg.i2c_addr = I2C_TOUCH_ADDRESS;
+        cfg.pin_sda  = TOUCH_SDA;
+        cfg.pin_scl  = TOUCH_SCL;
+        cfg.freq     = I2C_TOUCH_FREQUENCY;
+
+        touch->config(cfg);
+        return touch;
+    }
+#endif
+
+#if TOUCH_DRIVER == 0x816
+    {
+        auto touch = new lgfx::Touch_CST816S();
         auto cfg   = touch->config();
 
         cfg.x_min           = 0;
@@ -1261,6 +1295,8 @@ const char* LovyanGfx::get_tft_model()
     return "R61529";
 #elif defined(RM68140_DRIVER)
     return "RM68140";
+#elif defined(GC9A01_DRIVER)
+    return "GC9A01";
 #else
     return "Other";
 #endif
@@ -1302,6 +1338,8 @@ uint32_t LovyanGfx::get_tft_driver()
     return TFT_PANEL_EPD;
 #elif defined(RGB_DRIVER)
     return TFT_PANEL_RGB;
+#elif defined(GC9A01_DRIVER)
+    return TFT_PANEL_GC9A01;
 #else
     return TFT_PANEL_UNKNOWN;
 #endif
