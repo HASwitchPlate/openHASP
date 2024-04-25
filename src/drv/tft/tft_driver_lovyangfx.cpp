@@ -94,12 +94,12 @@ static lgfx::Bus_Parallel8* init_parallel_8_bus(Preferences* prefs, int8_t data_
     cfg.pin_rd               = prefs->getInt("rd", TFT_RD);
     cfg.pin_wr               = prefs->getInt("wr", TFT_WR);
     cfg.pin_rs               = prefs->getInt("rs", TFT_DC);
-#ifndef ESP32C3
+#ifndef CONFIG_IDF_TARGET_ESP32C3
     cfg.freq_write           = prefs->getUInt("write_freq", SPI_FREQUENCY);
 #endif 
 
 
-#if !defined(CONFIG_IDF_TARGET_ESP32S3) && !defined(ESP32C3)
+#if !defined(CONFIG_IDF_TARGET_ESP32S3) && !defined(CONFIG_IDF_TARGET_ESP32C3)
     uint8_t port = prefs->getUInt("i2s_port", 0);
     switch(port) {
 #if SOC_I2S_NUM > 1
