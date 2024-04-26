@@ -112,6 +112,12 @@
 #define D_HTTP_COLOR_GROUP              "#444"       // Group container background color - Dark gray
 #define D_HTTP_COLOR_GROUP_TEXT         "#fff"       // Group container text color - white
 #define D_HTTP_COLOR_FOOTER_TEXT        "#1fa3ec"    // Footer text color - Vivid blue
+#define D_HTTP_COLOR_TITLE              "#fa0"       //
+#define D_HTTP_COLOR_TREE               "#222"       // Editor left menu background
+#define D_HTTP_COLOR_TOOLBAR            "#222"       // Editor top bar background
+#define D_HTTP_COLOR_PREVIEW            "#888"       //
+#define D_HTTP_COLOR_DROPDOWN_BG        "#777"       // Editor dropdown menu background
+#define D_HTTP_COLOR_ITEM_HOVER         "#ccf"       // Editor left menu item hover background
 */
 
 /***************************************************
