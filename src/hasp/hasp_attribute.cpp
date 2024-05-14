@@ -1331,7 +1331,7 @@ static hasp_attribute_type_t special_attribute_src(lv_obj_t* obj, const char* pa
                 my_image_release_resources(obj);
                 lv_img_set_src(obj, payload);
             } else if (payload == strstr_P(payload, PSTR("Z:"))) { 
-              // if (HASP_SD_FS.exists("/b.png"))
+                // Is the file under SD Card?
                 char tempsrcf[64] = "";
                 strncpy(tempsrcf , payload + 2, sizeof(tempsrcf));
                 LOG_ERROR(TAG_ATTR, "PAYLOAD DENTRO %s", tempsrcf);
