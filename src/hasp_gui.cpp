@@ -19,7 +19,7 @@
 
 #define BACKLIGHT_CHANNEL 0 // pwm channel 0-15
 
-#if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
+#if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0 || HASP_USE_SDCARD
 File pFileOut;
 #endif
 
@@ -695,7 +695,12 @@ void guiTakeScreenshot(const char* pFileName)
     uint8_t buffer[sizeof(bmp_header_t) + 2];
     gui_get_bitmap_header(buffer, sizeof(buffer));
 
-    pFileOut = HASP_FS.open(pFileName, "w");
+    #if HASP_USE_SDCARD > 0
+       pFileOut = HASP_SD_FS.open(pFileName, "w");
+    #else
+       pFileOut = HASP_FS.open(pFileName, "w");
+    #endif
+
     if(pFileOut) {
 
         size_t len = pFileOut.write(buffer, sizeof(buffer));

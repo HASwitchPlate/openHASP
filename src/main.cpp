@@ -37,6 +37,9 @@ uint16_t statLoopCounter = 0; // measures the average looptime
 void setup()
 {
     //   hal_setup();
+#if HASP_USE_SDCARD > 0
+    sdcardSetup();
+#endif
 
 #if HASP_TARGET_ARDUINO
     esp_log_level_set("*", ESP_LOG_NONE); // set all components to ERROR level
@@ -67,10 +70,6 @@ void setup()
 
     // #if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
     //     filesystemSetup();  // FS mount is done in configSetup()
-    // #endif
-
-    // #if HASP_USE_SDCARD > 0
-    //     sdcardSetup();
     // #endif
 
     /****************************
@@ -158,6 +157,7 @@ void setup()
 #if HASP_USE_LVGL_TASK && defined(ESP32)
     gui_setup_lvgl_task();
 #endif // HASP_USE_LVGL_TASK
+
 
     mainLastLoopTime = 0; // reset loop counter
 }

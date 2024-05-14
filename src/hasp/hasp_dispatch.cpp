@@ -785,24 +785,45 @@ void dispatch_parse_jsonl(const char*, const char* payload, uint8_t source)
 void dispatch_run_script(const char*, const char* payload, uint8_t source)
 {
     const char* filename = payload;
-    if(filename[0] == 'L' && filename[1] == ':') filename += 2; // strip littlefs drive letter
-
+    char driveLetter;
+    if(filename[0] == 'L' && filename[1] == ':')
+    {
+         filename += 2; // strip littlefs drive letter
+         driveLetter = 'L';
+    } else if (filename[0] == 'Z' && filename[1] == ':')
+    {
+         filename += 2; // strip littlefs drive letter
+         driveLetter = 'Z';
+    }
 #if ARDUINO
-#if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
-
-    if(!HASP_FS.exists(filename)) {
-        LOG_WARNING(TAG_MSGR, F(D_FILE_NOT_FOUND ": %s"), payload);
-        return;
-    }
-
+#if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0 || HASP_USE_SDCARD
+    if (driveLetter = 'L')
+     if(!HASP_FS.exists(filename)) {
+         LOG_WARNING(TAG_MSGR, F(D_FILE_NOT_FOUND ": %s"), payload);
+         if (!HASP_USE_SDCARD)
+           return;
+         else
+           driveLetter = 'Z';
+     }
+    if (driveLetter = 'Z')
+     if(!HASP_SD_FS.exists(filename)) {
+         LOG_WARNING(TAG_MSGR, F(D_FILE_NOT_FOUND ": %s"), payload);
+         return;
+     }
+    
     LOG_TRACE(TAG_MSGR, F(D_FILE_LOADING), payload);
+    File cmdfile;
+    
+    if (driveLetter = 'L')
+       cmdfile = HASP_FS.open(filename, "r");
+    if (driveLetter = 'Z')
+       cmdfile = HASP_SD_FS.open(filename, "r");
 
-    File cmdfile = HASP_FS.open(filename, "r");
     if(!cmdfile) {
-        LOG_ERROR(TAG_MSGR, F(D_FILE_LOAD_FAILED), payload);
-        return;
-    }
-
+          LOG_ERROR(TAG_MSGR, F(D_FILE_LOAD_FAILED), payload);
+          return;
+      }
+    
     // if(!gui_acquire(pdMS_TO_TICKS(500))) {
     //     LOG_ERROR(TAG_MSGR, F(D_FILE_LOAD_FAILED), payload);
     //     return;

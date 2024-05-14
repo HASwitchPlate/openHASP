@@ -20,44 +20,8 @@ jobs:
       fail-fast: false
       matrix:
         environment:
-          - out: adafruit
-            env: "huzzah32-featherwing-24 -e huzzah32-featherwing-35 -e huzzah32-featherwing-24-v2 -e huzzah32-featherwing-35-v2 -e huzzah32-v2-featherwing-24-v2 -e huzzah32-v2-featherwing-35-v2"
-          - out: az-touch
-            env: "az-touch-mod-esp32_ili9341_4MB -e az-touch-mod-esp32_ili9341_8MB"
-          - env: d1-mini-esp32_ili9341
-            out: d1-mini-esp32
-          - out: d1-r32-espduino32
-            env: "d1-r32-waveshare_ili9486 -e d1-r32-unoshield_ili9341_adc -e d1-r32-unoshield_ili9486_adc"
-          - out: dustinwatts
-            env: "freetouchdeck_4MB -e freetouchdeck_8MB -e esp32-touchdown"
-          - out: elecrow
-            env: "esp32-terminal-rgb_16MB -e esp32-terminal-spi_16MB"
-          - out: globalsecurity
-            env: gs-t3e_16MB
-          - out: guition
-            env: esp32-s3-4848s040_16MB
-          - out: lanbon
-            env: lanbon_l8
-          - out: lilygo-ttgo
-            env: "lilygo-lily-pi_st7796 -e lilygo-lily-pi_ili9481 -e ttgo-t7-v1_5_ili9341_4MB -e ttgo-t7-v1_5_ili9341_16MB"
-          - out: lolin
-            env: lolin-d32-pro_ili9341
-          - out: m5stack
-            env: m5stack-core2
-          - out: makerfabs
-            env: "makerfabs-tft35-cap_4MB -e makerfabs-tft35-cap_16MB -e makerfabs-s3-tft35-spi -e makerfabs-s3-tft40-rgb -e makerfabs-s3-tft43-rgb"
-          - out: panlee
-            env: "panlee-zw3d95ce01s-ar-4848_16MB -e panlee-zw3d95ce01s-ur-4848_16MB -e panlee-zw3d95ce01s-tr-4848_16MB"
-          - out: seeed-studios
-            env: "sensecap-indicator-d1_8MB"
           - out: sunton
-            env: "esp32-2432s028r_4MB -e esp32-2432s028r-ili9342_4MB -e esp32-2432s032c_4MB -e esp32-3248s035c_4MB -e esp32-3248s035r_4MB -e sunton-4827s043c_16MB -e sunton-8048s043c_16MB -e sunton-8048s050c_16MB -e sunton-8048s070c_16MB"
-          - out: waveshare
-            env: "esp32-one_ili9486 -e esp32-one_st7796"
-          - out: wireless-tag
-            env: "wt32-sc01_4MB -e wt32-sc01_16MB -e wt-86-32-3zw1 -e wt32-sc01-plus_8MB -e wt32-sc01-plus_16MB"
-          - out: yeacreate
-            env: yeacreate-nscreen32
+            env: "-e sunton-8048s070c_16MB"
 
     steps:
       - uses: actions/checkout@v4

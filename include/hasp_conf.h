@@ -78,10 +78,6 @@
 #define HASP_USE_MQTT_ASYNC (HASP_TARGET_PC)
 #endif
 
-#ifndef HASP_USE_WIREGUARD
-#define HASP_USE_WIREGUARD (HASP_HAS_NETWORK)
-#endif
-
 #ifndef HASP_USE_BROADCAST
 #define HASP_USE_BROADCAST 1
 #endif
@@ -154,7 +150,7 @@
 #endif
 
 #ifndef HASP_USE_SDCARD
-#define HASP_USE_SDCARD 0
+#define HASP_USE_SDCARD 1
 #endif
 
 #ifndef HASP_USE_GPIO

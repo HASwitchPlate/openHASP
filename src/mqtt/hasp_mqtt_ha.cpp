@@ -85,7 +85,7 @@ void mqtt_ha_add_device_ids(JsonDocument& doc)
     device[FPSTR(FP_MQTT_HA_MODEL)]        = F(PIOENV);
     device[FPSTR(FP_MQTT_HA_MANUFACTURER)] = F(D_MANUFACTURER);
 
-    doc[F("~")] = mqttNodeTopic;
+    doc[F("~")] = "hasp/plate/";
 }
 
 // adds the name and unique_id to the HA MQTT auto-discovery message
