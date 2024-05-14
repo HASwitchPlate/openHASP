@@ -1320,7 +1320,7 @@ static inline bool do_attribute(T& list, lv_obj_t* obj, uint16_t attr_hash, int3
 
 static hasp_attribute_type_t special_attribute_src(lv_obj_t* obj, const char* payload, char** text, bool update)
 {
-    LOG_ERROR(TAG_ATTR, "PAYLOAD %s", payload);
+
     if(!obj_check_type(obj, LV_HASP_IMAGE)) return HASP_ATTR_TYPE_NOT_FOUND;
 
     if(update) {
@@ -1334,14 +1334,11 @@ static hasp_attribute_type_t special_attribute_src(lv_obj_t* obj, const char* pa
                 // Is the file under SD Card?
                 char tempsrcf[64] = "";
                 strncpy(tempsrcf , payload + 2, sizeof(tempsrcf));
-                LOG_ERROR(TAG_ATTR, "PAYLOAD DENTRO %s", tempsrcf);
-
 
                int readf = 0;
                File file;
                file = HASP_SD_FS.open(tempsrcf, "r");
     
-
                int buf_lenf = file.size();
                LOG_ERROR(TAG_ATTR, "size %d", buf_lenf);
 

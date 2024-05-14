@@ -50,7 +50,9 @@ typedef struct
 #include "esp_littlefs.h"
 #define HASP_FS LITTLEFS
 #endif // ESP_ARDUINO_VERSION
-
+/* 
+Experimental for ESP32S3
+*/
 #if HASP_USE_SDCARD > 0
 #include "SPI.h"
 #include "SD.h"

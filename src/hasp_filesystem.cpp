@@ -314,6 +314,10 @@ void filesystemSetupFiles()
     filesystem_write_file("/mqtt_off.cmd", HASP_MQTT_OFF_CMD, strlen(HASP_MQTT_OFF_CMD));
 #endif
 }
+/*
+/* 
+Experimental for ESP32S3
+*/
 bool sdcardSetup(void)
 {
     bool flag = false;
