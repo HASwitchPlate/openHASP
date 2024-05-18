@@ -85,6 +85,10 @@ void ArduinoGfx::init(int w, int h)
     /* More display class: https://github.com/moononournation/Arduino_GFX/wiki/Display-Class */
     tft = new Arduino_RGB_Display(w, h, rgbpanel, 0 /* rotation */, TFT_AUTO_FLUSH, bus, TFT_RST,
                                   st7701_type1_init_operations, sizeof(st7701_type1_init_operations));
+#elif(TFT_WIDTH == 480) && (TFT_HEIGHT == 272) && defined(NV3041A_DRIVER)
+    Arduino_DataBus* bus = new Arduino_ESP32QSPI(TFT_CS, TFT_SCK, TFT_D0, TFT_D1, TFT_D2, TFT_D3);
+    Arduino_GFX* g = new Arduino_NV3041A(bus, TFT_RST, TFT_ROTATION, TFT_IPS);
+    tft = g;
 #elif 1
     /* Reset is not implemented in the panel */
     if(TFT_RST != GFX_NOT_DEFINED) {
@@ -299,6 +303,8 @@ const char* ArduinoGfx::get_tft_model()
     return "R61529";
 #elif defined(RM68140_DRIVER)
     return "RM68140";
+#elif defined(NV3041A_DRIVER)
+    return "NV3041A";
 #else
     return "Other";
 #endif
@@ -336,6 +342,8 @@ uint32_t ArduinoGfx::get_tft_driver()
     return 0x61529;
 #elif defined(RM68140_DRIVER)
     return 0x68140;
+#elif defined(NV3041A_DRIVER)
+    return 0x3041A;
 #else
     return 0x0;
 #endif
