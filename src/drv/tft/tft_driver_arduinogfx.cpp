@@ -262,6 +262,104 @@ void IRAM_ATTR ArduinoGfx::flush_pixels(lv_disp_drv_t* disp, const lv_area_t* ar
 
 bool ArduinoGfx::is_driver_pin(uint8_t pin)
 {
+    if(false // start condition is always needed
+
+// Use individual checks instead of switch statement, as some case labels could be duplicated
+#ifdef TFT_MOSI
+       || (pin == TFT_MOSI)
+#endif
+#ifdef TFT_MISO
+       || (pin == TFT_MISO)
+#endif
+#ifdef TFT_SCLK
+       || (pin == TFT_SCLK)
+#endif
+#ifdef TFT_CS
+       || (pin == TFT_CS)
+#endif
+#ifdef TFT_DC
+       || (pin == TFT_DC)
+#endif
+#ifdef TFT_DE
+       || (pin == TFT_DE)
+#endif
+#ifdef TFT_PCLK
+       || (pin == TFT_PCLK)
+#endif
+#ifdef TFT_VSYNC
+       || (pin == TFT_VSYNC)
+#endif
+#ifdef TFT_HSYNC
+       || (pin == TFT_HSYNC)
+#endif
+#ifdef TFT_BCKL
+       || (pin == TFT_BCKL)
+#endif
+#ifdef TFT_RST
+       || (pin == TFT_RST)
+#endif
+#ifdef TFT_BUSY
+       || (pin == TFT_BUSY)
+#endif
+#ifdef TFT_RD
+       || (pin == TFT_RD)
+#endif
+#ifdef TFT_R0
+       || (pin == TFT_R0)
+#endif
+#ifdef TFT_R1
+       || (pin == TFT_R1)
+#endif
+#ifdef TFT_R2
+       || (pin == TFT_R2)
+#endif
+#ifdef TFT_R3
+       || (pin == TFT_R3)
+#endif
+#ifdef TFT_R4
+       || (pin == TFT_R4)
+#endif
+#ifdef TFT_G0
+       || (pin == TFT_G0)
+#endif
+#ifdef TFT_G1
+       || (pin == TFT_G1)
+#endif
+#ifdef TFT_G2
+       || (pin == TFT_G2)
+#endif
+#ifdef TFT_G3
+       || (pin == TFT_G3)
+#endif
+#ifdef TFT_G4
+       || (pin == TFT_G4)
+#endif
+#ifdef TFT_B0
+       || (pin == TFT_B0)
+#endif
+#ifdef TFT_B1
+       || (pin == TFT_B1)
+#endif
+#ifdef TFT_B2
+       || (pin == TFT_B2)
+#endif
+#ifdef TFT_B3
+       || (pin == TFT_B3)
+#endif
+#ifdef TFT_B4
+       || (pin == TFT_B4)
+#endif
+    ) {
+        return true;
+    }
+
+#ifdef ARDUINO_ARCH_ESP8266
+#ifndef TFT_SPI_OVERLAP
+    if((pin >= 12) && (pin <= 14)) return true; // HSPI
+#endif
+#endif
+
+    return false;
     return false;
 }
 
