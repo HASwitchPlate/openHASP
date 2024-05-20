@@ -349,6 +349,18 @@ bool ArduinoGfx::is_driver_pin(uint8_t pin)
 #ifdef TFT_B4
        || (pin == TFT_B4)
 #endif
+#ifdef TOUCH_SDA
+       || (pin == TOUCH_SDA)
+#endif
+#ifdef TOUCH_SCL
+       || (pin == TOUCH_SCL)
+#endif
+#ifdef TOUCH_RST
+       || (pin == TOUCH_RST)
+#endif
+#ifdef TOUCH_IRQ
+       || (pin == TOUCH_IRQ)
+#endif
     ) {
         return true;
     }
