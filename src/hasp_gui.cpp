@@ -341,7 +341,7 @@ void guiSetup()
 #endif
     gui_hide_pointer(false);
     if(mouse_indev != NULL) {
-        lv_indev_set_cursor(mouse_indev, cursor); /*Connect the image  object to the driver*/
+        lv_indev_set_cursor(mouse_indev, cursor); /*Connect the image object to the driver*/
     }
 
 #if HASP_TARGET_ARDUINO

@@ -85,6 +85,10 @@ void ArduinoGfx::init(int w, int h)
     /* More display class: https://github.com/moononournation/Arduino_GFX/wiki/Display-Class */
     tft = new Arduino_RGB_Display(w, h, rgbpanel, 0 /* rotation */, TFT_AUTO_FLUSH, bus, TFT_RST,
                                   st7701_type1_init_operations, sizeof(st7701_type1_init_operations));
+#elif(TFT_WIDTH == 480) && (TFT_HEIGHT == 272) && defined(NV3041A_DRIVER)
+    Arduino_DataBus* bus = new Arduino_ESP32QSPI(TFT_CS, TFT_SCK, TFT_D0, TFT_D1, TFT_D2, TFT_D3);
+    Arduino_GFX* g = new Arduino_NV3041A(bus, TFT_RST, TFT_ROTATION, TFT_IPS);
+    tft = g;
 #elif 1
     /* Reset is not implemented in the panel */
     if(TFT_RST != GFX_NOT_DEFINED) {
@@ -262,6 +266,116 @@ void IRAM_ATTR ArduinoGfx::flush_pixels(lv_disp_drv_t* disp, const lv_area_t* ar
 
 bool ArduinoGfx::is_driver_pin(uint8_t pin)
 {
+    if(false // start condition is always needed
+
+// Use individual checks instead of switch statement, as some case labels could be duplicated
+#ifdef TFT_MOSI
+       || (pin == TFT_MOSI)
+#endif
+#ifdef TFT_MISO
+       || (pin == TFT_MISO)
+#endif
+#ifdef TFT_SCLK
+       || (pin == TFT_SCLK)
+#endif
+#ifdef TFT_CS
+       || (pin == TFT_CS)
+#endif
+#ifdef TFT_DC
+       || (pin == TFT_DC)
+#endif
+#ifdef TFT_DE
+       || (pin == TFT_DE)
+#endif
+#ifdef TFT_PCLK
+       || (pin == TFT_PCLK)
+#endif
+#ifdef TFT_VSYNC
+       || (pin == TFT_VSYNC)
+#endif
+#ifdef TFT_HSYNC
+       || (pin == TFT_HSYNC)
+#endif
+#ifdef TFT_BCKL
+       || (pin == TFT_BCKL)
+#endif
+#ifdef TFT_RST
+       || (pin == TFT_RST)
+#endif
+#ifdef TFT_BUSY
+       || (pin == TFT_BUSY)
+#endif
+#ifdef TFT_RD
+       || (pin == TFT_RD)
+#endif
+#ifdef TFT_R0
+       || (pin == TFT_R0)
+#endif
+#ifdef TFT_R1
+       || (pin == TFT_R1)
+#endif
+#ifdef TFT_R2
+       || (pin == TFT_R2)
+#endif
+#ifdef TFT_R3
+       || (pin == TFT_R3)
+#endif
+#ifdef TFT_R4
+       || (pin == TFT_R4)
+#endif
+#ifdef TFT_G0
+       || (pin == TFT_G0)
+#endif
+#ifdef TFT_G1
+       || (pin == TFT_G1)
+#endif
+#ifdef TFT_G2
+       || (pin == TFT_G2)
+#endif
+#ifdef TFT_G3
+       || (pin == TFT_G3)
+#endif
+#ifdef TFT_G4
+       || (pin == TFT_G4)
+#endif
+#ifdef TFT_B0
+       || (pin == TFT_B0)
+#endif
+#ifdef TFT_B1
+       || (pin == TFT_B1)
+#endif
+#ifdef TFT_B2
+       || (pin == TFT_B2)
+#endif
+#ifdef TFT_B3
+       || (pin == TFT_B3)
+#endif
+#ifdef TFT_B4
+       || (pin == TFT_B4)
+#endif
+#ifdef TOUCH_SDA
+       || (pin == TOUCH_SDA)
+#endif
+#ifdef TOUCH_SCL
+       || (pin == TOUCH_SCL)
+#endif
+#ifdef TOUCH_RST
+       || (pin == TOUCH_RST)
+#endif
+#ifdef TOUCH_IRQ
+       || (pin == TOUCH_IRQ)
+#endif
+    ) {
+        return true;
+    }
+
+#ifdef ARDUINO_ARCH_ESP8266
+#ifndef TFT_SPI_OVERLAP
+    if((pin >= 12) && (pin <= 14)) return true; // HSPI
+#endif
+#endif
+
+    return false;
     return false;
 }
 
@@ -299,6 +413,8 @@ const char* ArduinoGfx::get_tft_model()
     return "R61529";
 #elif defined(RM68140_DRIVER)
     return "RM68140";
+#elif defined(NV3041A_DRIVER)
+    return "NV3041A";
 #else
     return "Other";
 #endif
@@ -336,6 +452,8 @@ uint32_t ArduinoGfx::get_tft_driver()
     return 0x61529;
 #elif defined(RM68140_DRIVER)
     return 0x68140;
+#elif defined(NV3041A_DRIVER)
+    return 0x3041A;
 #else
     return 0x0;
 #endif
