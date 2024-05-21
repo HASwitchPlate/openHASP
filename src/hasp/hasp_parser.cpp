@@ -197,24 +197,26 @@ bool Parser::is_only_digits(const char* s)
     return strlen(s) == digits;
 }
 
-int Parser::format_bytes(size_t filesize, char* buf, size_t len)
+int Parser::format_bytes(uint64_t filesize, char* buf, size_t len)
 {
-    if(filesize < D_FILE_SIZE_DIVIDER) return snprintf_P(buf, len, PSTR("%d " D_FILE_SIZE_BYTES), filesize);
-    filesize = filesize * 100;
+    uint32_t tmp = (uint32_t) filesize; // cast to unsigned int here to saye ugly casts in next line
+    if(filesize < D_FILE_SIZE_DIVIDER) return snprintf_P(buf, len, PSTR("%u " D_FILE_SIZE_BYTES), tmp);
 
-    filesize = filesize / D_FILE_SIZE_DIVIDER; // multiply by 100 for 2 decimal place
+    filesize = filesize / (D_FILE_SIZE_DIVIDER/100); // multiply by 100 for 2 decimal place
+    tmp = (uint32_t) filesize;
     if(filesize < D_FILE_SIZE_DIVIDER * 100)
-        return snprintf_P(buf, len, PSTR("%d" D_DECIMAL_POINT "%02d " D_FILE_SIZE_KILOBYTES), filesize / 100,
-                          filesize % 100);
+        return snprintf_P(buf, len, PSTR("%u" D_DECIMAL_POINT "%02u " D_FILE_SIZE_KILOBYTES), tmp / 100,
+                          tmp % 100);
 
-    filesize = filesize / D_FILE_SIZE_DIVIDER; // multiply by 100 for 2 decimal place
+    filesize = filesize / D_FILE_SIZE_DIVIDER;
+    tmp = (uint32_t) filesize;
     if(filesize < D_FILE_SIZE_DIVIDER * 100)
-        return snprintf_P(buf, len, PSTR("%d" D_DECIMAL_POINT "%02d " D_FILE_SIZE_MEGABYTES), filesize / 100,
-                          filesize % 100);
+        return snprintf_P(buf, len, PSTR("%u" D_DECIMAL_POINT "%02u " D_FILE_SIZE_MEGABYTES), tmp / 100,
+                          tmp % 100);
 
-    filesize = filesize / D_FILE_SIZE_DIVIDER; // multiply by 100 for 2 decimal place
-    return snprintf_P(buf, len, PSTR("%d" D_DECIMAL_POINT "%02d " D_FILE_SIZE_GIGABYTES), filesize / 100,
-                      filesize % 100);
+    tmp = (uint32_t) (filesize / D_FILE_SIZE_DIVIDER);
+    return snprintf_P(buf, len, PSTR("%u" D_DECIMAL_POINT "%02u " D_FILE_SIZE_GIGABYTES), tmp / 100,
+                          tmp % 100);
 }
 
 uint8_t Parser::get_action_id(const char* action)
