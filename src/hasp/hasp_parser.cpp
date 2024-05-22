@@ -199,22 +199,24 @@ bool Parser::is_only_digits(const char* s)
 
 int Parser::format_bytes(uint64_t filesize, char* buf, size_t len)
 {
+    filesize *= 100; // Warning - If filesize up in the Zi range (2^60), we will overflow.
     uint32_t tmp = (uint32_t) filesize; // cast to unsigned int here to saye ugly casts in next line
     if(filesize < D_FILE_SIZE_DIVIDER) return snprintf_P(buf, len, PSTR("%u " D_FILE_SIZE_BYTES), tmp);
 
-    filesize = filesize / (D_FILE_SIZE_DIVIDER/100); // multiply by 100 for 2 decimal place
+    filesize /= D_FILE_SIZE_DIVIDER;
     tmp = (uint32_t) filesize;
     if(filesize < D_FILE_SIZE_DIVIDER * 100)
         return snprintf_P(buf, len, PSTR("%u" D_DECIMAL_POINT "%02u " D_FILE_SIZE_KILOBYTES), tmp / 100,
                           tmp % 100);
 
-    filesize = filesize / D_FILE_SIZE_DIVIDER;
+    filesize /= D_FILE_SIZE_DIVIDER;
     tmp = (uint32_t) filesize;
-    if(filesize < D_FILE_SIZE_DIVIDER * 100)
+    if(filesize < D_FILE_SIZE_DIVIDER * D_FILE_SIZE_DIVIDER * 100)
         return snprintf_P(buf, len, PSTR("%u" D_DECIMAL_POINT "%02u " D_FILE_SIZE_MEGABYTES), tmp / 100,
                           tmp % 100);
 
-    tmp = (uint32_t) (filesize / D_FILE_SIZE_DIVIDER);
+    filesize /= D_FILE_SIZE_DIVIDER;
+    tmp = (uint32_t) filesize;
     return snprintf_P(buf, len, PSTR("%u" D_DECIMAL_POINT "%02u " D_FILE_SIZE_GIGABYTES), tmp / 100,
                           tmp % 100);
 }
