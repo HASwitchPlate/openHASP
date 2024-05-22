@@ -30,7 +30,7 @@
 #define D_FILE_SIZE_KILOBYTES "Kio"
 #define D_FILE_SIZE_MEGABYTES "Mio"
 #define D_FILE_SIZE_GIGABYTES "Gio"
-#define D_FILE_SIZE_TERABYTES "TiB"
+#define D_FILE_SIZE_TERABYTES "Tio"
 #define D_FILE_SIZE_DIVIDER 1024 // kibi or kilo bytes
 #define D_DECIMAL_POINT ","      // decimal comma or point
 
@@ -128,7 +128,7 @@
 #define D_HTTP_HTTP_SETTINGS "Paramètres HTTP"
 #define D_HTTP_FTP_SETTINGS "Paramètres FTP"
 #define D_HTTP_WIFI_SETTINGS "Paramètres Wifi"
-#define D_HTTP_WIREGUARD_SETTINGS "WireGuard Settings"
+#define D_HTTP_WIREGUARD_SETTINGS "Paramètres WireGuard"
 #define D_HTTP_MQTT_SETTINGS "Paramètres MQTT"
 #define D_HTTP_GPIO_SETTINGS "Paramètres GPIO"
 #define D_HTTP_MDNS_SETTINGS "Paramètres mDNS"
@@ -203,8 +203,8 @@
 #define D_INFO_MAC_ADDRESS "Adresse MAC"
 #define D_INFO_GATEWAY "Passerelle"
 #define D_INFO_DNS_SERVER "Serveur DNS"
-#define D_INFO_ENDPOINT_IP "Endpoint IP"
-#define D_INFO_ENDPOINT_PORT "Endpoint Port"
+#define D_INFO_ENDPOINT_IP "Adresse IP du point final"
+#define D_INFO_ENDPOINT_IP "Port du point final"
 
 #define D_OOBE_MSG "Touchez l'écran pour configurer le WiFi ou branchez ce point d'accès:"
 #define D_OOBE_SCAN_TO_CONNECT "Scanner pour se connecter"
@@ -217,8 +217,8 @@
 #define D_WIFI_RSSI_WEAK "Faible"
 #define D_WIFI_RSSI_BAD "Très mauvais"
 
-#define D_WG_INITIALIZED "Initialized"
-#define D_WG_BAD_CONFIG "Missing or bad configuration"
+#define D_WG_INITIALIZED "Initialisé"
+#define D_WG_BAD_CONFIG "Configuration manquante ou incorrecte"
 
 #define D_GPIO_SWITCH "Interrupteur"
 #define D_GPIO_BUTTON "Bouton"
