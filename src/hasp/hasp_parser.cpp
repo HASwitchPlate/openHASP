@@ -197,24 +197,22 @@ bool Parser::is_only_digits(const char* s)
     return strlen(s) == digits;
 }
 
-int Parser::format_bytes(size_t filesize, char* buf, size_t len)
+int Parser::format_bytes(uint64_t filesize, char* buf, size_t len)
 {
-    if(filesize < D_FILE_SIZE_DIVIDER) return snprintf_P(buf, len, PSTR("%d " D_FILE_SIZE_BYTES), filesize);
-    filesize = filesize * 100;
+    filesize *= 100; // Warning - If filesize up in the Ei range (2^60), we will overflow.
+    uint32_t tmp = (uint32_t) filesize; // cast to unsigned int here to saye ugly casts in next line
+    if(filesize < D_FILE_SIZE_DIVIDER) return snprintf_P(buf, len, PSTR("%u " D_FILE_SIZE_BYTES), tmp);
 
-    filesize = filesize / D_FILE_SIZE_DIVIDER; // multiply by 100 for 2 decimal place
-    if(filesize < D_FILE_SIZE_DIVIDER * 100)
-        return snprintf_P(buf, len, PSTR("%d" D_DECIMAL_POINT "%02d " D_FILE_SIZE_KILOBYTES), filesize / 100,
-                          filesize % 100);
+    const char* suffix[] = {D_FILE_SIZE_KILOBYTES, D_FILE_SIZE_MEGABYTES, D_FILE_SIZE_GIGABYTES, "oops"};
+    #define UNKNOWN_SUFFIX 2
+    int n = -1;
+    while (filesize > D_FILE_SIZE_DIVIDER * 100 && n < UNKNOWN_SUFFIX) {
+        n += 1;
+        filesize /= D_FILE_SIZE_DIVIDER;
+    }
 
-    filesize = filesize / D_FILE_SIZE_DIVIDER; // multiply by 100 for 2 decimal place
-    if(filesize < D_FILE_SIZE_DIVIDER * 100)
-        return snprintf_P(buf, len, PSTR("%d" D_DECIMAL_POINT "%02d " D_FILE_SIZE_MEGABYTES), filesize / 100,
-                          filesize % 100);
-
-    filesize = filesize / D_FILE_SIZE_DIVIDER; // multiply by 100 for 2 decimal place
-    return snprintf_P(buf, len, PSTR("%d" D_DECIMAL_POINT "%02d " D_FILE_SIZE_GIGABYTES), filesize / 100,
-                      filesize % 100);
+    tmp = (uint32_t) filesize;
+    return snprintf_P(buf, len, PSTR("%u" D_DECIMAL_POINT "%02u %s"), tmp / 100, tmp % 100,  suffix[n]);
 }
 
 uint8_t Parser::get_action_id(const char* action)
