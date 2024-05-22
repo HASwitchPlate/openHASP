@@ -199,7 +199,7 @@ bool Parser::is_only_digits(const char* s)
 
 int Parser::format_bytes(uint64_t filesize, char* buf, size_t len)
 {
-    filesize *= 102400; // Warning - If filesize up in the Ei range (2^60), we will overflow.
+    filesize *= 100; // Warning - If filesize up in the Ei range (2^60), we will overflow.
     uint32_t tmp = (uint32_t) filesize; // cast to unsigned int here to saye ugly casts in next line
     if(filesize < D_FILE_SIZE_DIVIDER) return snprintf_P(buf, len, PSTR("%u " D_FILE_SIZE_BYTES), tmp);
 
