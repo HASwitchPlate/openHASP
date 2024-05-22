@@ -30,6 +30,7 @@
 #define D_FILE_SIZE_KILOBYTES "KiB" // new
 #define D_FILE_SIZE_MEGABYTES "MiB" // new
 #define D_FILE_SIZE_GIGABYTES "GiB" // new
+#define D_FILE_SIZE_TERABYTES "TiB"
 #define D_FILE_SIZE_DIVIDER 1024    // new, kibi or kilo bytes
 #define D_DECIMAL_POINT "."         // new, decimal comma or point
 
@@ -127,7 +128,7 @@
 #define D_HTTP_HTTP_SETTINGS "Configurar HTTP"
 #define D_HTTP_FTP_SETTINGS "Configurar FTP"
 #define D_HTTP_WIFI_SETTINGS "Configurar Wifi"
-#define D_HTTP_WIREGUARD_SETTINGS "WireGuard Settings"
+#define D_HTTP_WIREGUARD_SETTINGS "Configurar WireGuard"
 #define D_HTTP_MQTT_SETTINGS "Configurar MQTT"
 #define D_HTTP_GPIO_SETTINGS "Configurar GPIO"
 #define D_HTTP_MDNS_SETTINGS "Configurar mDNS"
@@ -216,8 +217,8 @@
 #define D_WIFI_RSSI_BAD "Muito baixo"
 #define D_WIFI_RSSI_FAIR "Decente"
 
-#define D_WG_INITIALIZED "Initialized"
-#define D_WG_BAD_CONFIG "Missing or bad configuration"
+#define D_WG_INITIALIZED "Inicializado"
+#define D_WG_BAD_CONFIG "Configuração ausente ou ruim"
 
 #define D_GPIO_SWITCH "Interruptor"
 #define D_GPIO_BUTTON "Botão"
