@@ -199,20 +199,24 @@ bool Parser::is_only_digits(const char* s)
 
 int Parser::format_bytes(uint64_t filesize, char* buf, size_t len)
 {
-    filesize *= 100; // Warning - If filesize up in the Ei range (2^60), we will overflow.
-    uint32_t tmp = (uint32_t) filesize; // cast to unsigned int here to saye ugly casts in next line
-    if(filesize < D_FILE_SIZE_DIVIDER) return snprintf_P(buf, len, PSTR("%u " D_FILE_SIZE_BYTES), tmp);
+    const char* suffix[] = {D_FILE_SIZE_BYTES, D_FILE_SIZE_KILOBYTES, D_FILE_SIZE_MEGABYTES, D_FILE_SIZE_GIGABYTES,
+                            D_FILE_SIZE_TERABYTES};
+    uint32_t factor;
+    uint16_t remainder = 0;
+    uint8_t i          = 0;
+    uint8_t last_index = (sizeof(suffix) / sizeof(suffix[0])) - 1;
 
-    const char* suffix[] = {D_FILE_SIZE_KILOBYTES, D_FILE_SIZE_MEGABYTES, D_FILE_SIZE_GIGABYTES, "oops"};
-    #define UNKNOWN_SUFFIX 2
-    int n = -1;
-    while (filesize > D_FILE_SIZE_DIVIDER * 100 && n < UNKNOWN_SUFFIX) {
-        n += 1;
+    while(filesize >= D_FILE_SIZE_DIVIDER && i < last_index) {
+        i += 1;
+        remainder = filesize % D_FILE_SIZE_DIVIDER;
         filesize /= D_FILE_SIZE_DIVIDER;
     }
 
-    tmp = (uint32_t) filesize;
-    return snprintf_P(buf, len, PSTR("%u" D_DECIMAL_POINT "%02u %s"), tmp / 100, tmp % 100,  suffix[n]);
+    factor = (uint32_t)filesize;
+    if(i == 0) return snprintf_P(buf, len, PSTR("%u %s"), factor, suffix[i]);
+
+    remainder = remainder * 100 / D_FILE_SIZE_DIVIDER;
+    return snprintf_P(buf, len, PSTR("%u" D_DECIMAL_POINT "%02u %s"), factor, remainder, suffix[i]);
 }
 
 uint8_t Parser::get_action_id(const char* action)
