@@ -203,22 +203,14 @@ int Parser::format_bytes(uint64_t filesize, char* buf, size_t len)
     uint32_t tmp = (uint32_t) filesize; // cast to unsigned int here to saye ugly casts in next line
     if(filesize < D_FILE_SIZE_DIVIDER) return snprintf_P(buf, len, PSTR("%u " D_FILE_SIZE_BYTES), tmp);
 
-    filesize /= D_FILE_SIZE_DIVIDER;
+    const char* suffix[] = {D_FILE_SIZE_KILOBYTES, D_FILE_SIZE_MEGABYTES, D_FILE_SIZE_GIGABYTES};
+    int n = -1;
+    while (filesize > D_FILE_SIZE_DIVIDER * 100) {
+        n += 1;
+        filesize /= D_FILE_SIZE_DIVIDER;
+    }
     tmp = (uint32_t) filesize;
-    if(filesize < D_FILE_SIZE_DIVIDER * 100)
-        return snprintf_P(buf, len, PSTR("%u" D_DECIMAL_POINT "%02u " D_FILE_SIZE_KILOBYTES), tmp / 100,
-                          tmp % 100);
-
-    filesize /= D_FILE_SIZE_DIVIDER;
-    tmp = (uint32_t) filesize;
-    if(filesize < D_FILE_SIZE_DIVIDER * 100)
-        return snprintf_P(buf, len, PSTR("%u" D_DECIMAL_POINT "%02u " D_FILE_SIZE_MEGABYTES), tmp / 100,
-                          tmp % 100);
-
-    filesize /= D_FILE_SIZE_DIVIDER;
-    tmp = (uint32_t) filesize;
-    return snprintf_P(buf, len, PSTR("%u" D_DECIMAL_POINT "%02u " D_FILE_SIZE_GIGABYTES), tmp / 100,
-                          tmp % 100);
+    return snprintf_P(buf, len, PSTR("%u" D_DECIMAL_POINT "%02u %s"), tmp / 100, tmp % 100,  suffix[n]);
 }
 
 uint8_t Parser::get_action_id(const char* action)
