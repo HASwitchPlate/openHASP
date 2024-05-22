@@ -211,7 +211,7 @@ int Parser::format_bytes(uint64_t filesize, char* buf, size_t len)
 
     filesize /= D_FILE_SIZE_DIVIDER;
     tmp = (uint32_t) filesize;
-    if(filesize < D_FILE_SIZE_DIVIDER * D_FILE_SIZE_DIVIDER * 100)
+    if(filesize < D_FILE_SIZE_DIVIDER * 100)
         return snprintf_P(buf, len, PSTR("%u" D_DECIMAL_POINT "%02u " D_FILE_SIZE_MEGABYTES), tmp / 100,
                           tmp % 100);
 
