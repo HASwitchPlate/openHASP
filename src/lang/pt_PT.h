@@ -128,7 +128,7 @@
 #define D_HTTP_HTTP_SETTINGS "Configurar HTTP"
 #define D_HTTP_FTP_SETTINGS "Configurar FTP"
 #define D_HTTP_WIFI_SETTINGS "Configurar Wifi"
-#define D_HTTP_WIREGUARD_SETTINGS "WireGuard Settings"
+#define D_HTTP_WIREGUARD_SETTINGS "Configurar WireGuard"
 #define D_HTTP_MQTT_SETTINGS "Configurar MQTT"
 #define D_HTTP_GPIO_SETTINGS "Configurar GPIO"
 #define D_HTTP_MDNS_SETTINGS "Configurar mDNS"
@@ -217,8 +217,8 @@
 #define D_WIFI_RSSI_BAD "Muito baixo"
 #define D_WIFI_RSSI_FAIR "Decente"
 
-#define D_WG_INITIALIZED "Initialized"
-#define D_WG_BAD_CONFIG "Missing or bad configuration"
+#define D_WG_INITIALIZED "Inicializado"
+#define D_WG_BAD_CONFIG "Configuração ausente ou ruim"
 
 #define D_GPIO_SWITCH "Interruptor"
 #define D_GPIO_BUTTON "Botão"
