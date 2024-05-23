@@ -55,10 +55,6 @@ typedef struct
 #include "SPI.h"
 #include "SD.h"
 #include "FS.h"
-#define SD_CS         10
-#define SPI_MOSI      11
-#define SPI_MISO      13
-#define SPI_SCK       12
 #define HASP_SD_FS SD
 
 #endif
