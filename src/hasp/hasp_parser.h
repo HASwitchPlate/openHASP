@@ -19,7 +19,7 @@ class Parser {
     static bool is_true(const char* s);
     static bool is_true(JsonVariant json);
     static bool is_only_digits(const char* s);
-    static int format_bytes(size_t filesize, char* buf, size_t len);
+    static int format_bytes(uint64_t filesize, char* buf, size_t len);
 };
 
 #ifndef ARDUINO

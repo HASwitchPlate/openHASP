@@ -13,7 +13,7 @@
 #define D_NO "No"  // New
 
 #define D_ERROR_OUT_OF_MEMORY "Memory llena"
-#define D_ERROR_UNKNOWN "Unknown error"
+#define D_ERROR_UNKNOWN "Error desconocido"
 
 #define D_CONFIG_NOT_CHANGED "No hay cambios en la configuracion"
 #define D_CONFIG_CHANGED "Configuracion cambiada"
@@ -30,6 +30,7 @@
 #define D_FILE_SIZE_KILOBYTES "KiB" // new
 #define D_FILE_SIZE_MEGABYTES "MiB" // new
 #define D_FILE_SIZE_GIGABYTES "GiB" // new
+#define D_FILE_SIZE_TERABYTES "TiB"
 #define D_FILE_SIZE_DIVIDER 1024    // new, kibi or kilo bytes
 #define D_DECIMAL_POINT ","         // new, decimal comma or point
 
@@ -127,7 +128,7 @@
 #define D_HTTP_HTTP_SETTINGS "Ajustes HTTP"
 #define D_HTTP_HTTP_SETTINGS "Ajustes FTP"
 #define D_HTTP_WIFI_SETTINGS "Ajustes Wifi"
-#define D_HTTP_WIREGUARD_SETTINGS "WireGuard Settings"
+#define D_HTTP_GUI_SETTINGS "Ajustes WireGuard"
 #define D_HTTP_MQTT_SETTINGS "Ajustes MQTT"
 #define D_HTTP_GPIO_SETTINGS "Ajustes GPIO"
 #define D_HTTP_MDNS_SETTINGS "Ajustes mDNS"
@@ -202,8 +203,8 @@
 #define D_INFO_MAC_ADDRESS "Direccion MAC"
 #define D_INFO_GATEWAY "Gateway"
 #define D_INFO_DNS_SERVER "Servidor DNS"
-#define D_INFO_ENDPOINT_IP "Endpoint IP"
-#define D_INFO_ENDPOINT_PORT "Endpoint Port"
+#define D_INFO_ENDPOINT_IP "IP de punto final"
+#define D_INFO_ENDPOINT_PORT "Puerto de punto final"
 
 #define D_OOBE_MSG "Toque la pantalla para ajustar WiFi o conectarse a un punto de acceso"
 #define D_OOBE_SCAN_TO_CONNECT "Scanee para conectar"
@@ -216,8 +217,8 @@
 #define D_WIFI_RSSI_WEAK "Debil"
 #define D_WIFI_RSSI_BAD "Muy baka"
 
-#define D_WG_INITIALIZED "Initialized"
-#define D_WG_BAD_CONFIG "Missing or bad configuration"
+#define D_WG_INITIALIZED "Inicializado"
+#define D_WG_BAD_CONFIG "Falta o mala configuración"
 
 #define D_GPIO_SWITCH "Switch"
 #define D_GPIO_BUTTON "Boton"

@@ -86,13 +86,13 @@
             "ssid": "SSID"
         },
         "wg": {
-            "title": "WireGuard Settings",
-            "btn": "WireGuard Settings",
-            "vpnip": "VPN IP",
-            "privkey": "Private Key",
-            "host": "Remote IP",
-            "port": "Remote Port",
-            "pubkey": "Remote Public Key"
+            "title": "Ajustes de WireGuard",
+            "btn": "Ajustes de WireGuard",
+            "vpnip": "IP VPN",
+            "privkey": "Clave Privada",
+            "host": "IP Remota",
+            "port": "Puerto Remoto",
+            "pubkey": "Clave Pública Remota"
         },
         "mqtt": {
             "title": "Ajustes MQTT",
