@@ -85,10 +85,20 @@ void M5StackCore2::get_sensors(JsonDocument& doc)
     JsonObject sensor        = doc.createNestedObject(F("AXP192"));
     sensor[F("BattVoltage")] = Axp.GetBatVoltage();
     sensor[F("BattPower")]   = Axp.GetBatPower();
-    // sensor[F("Batt%")]             = Axp.getBattPercentage();
+    sensor[F("BatteryLevel")] = Axp.GetBatteryLevel();
     sensor[F("BattChargeCurrent")] = Axp.GetBatChargeCurrent();
     sensor[F("Temperature")]       = Axp.GetTempInAXP192();
     sensor[F("Charging")]          = Axp.isCharging();
+}
+
+void M5StackCore2::set_led(bool led)
+{
+    Axp.SetLed(led);
+}
+
+void M5StackCore2::shutdown()
+{
+    Axp.PowerOff();
 }
 
 } // namespace dev

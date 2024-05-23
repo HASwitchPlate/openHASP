@@ -287,6 +287,60 @@ void mqtt_ha_register_activepage()
     mqtt_ha_send_json(buffer, doc);
 }
 
+#if defined(M5STACK)
+void mqtt_ha_register_isconnected()
+{
+    StaticJsonDocument<1024> doc;
+    char item[16];
+    snprintf_P(item, sizeof(item), PSTR("charging"));
+
+    // start from static keys and values that do not change
+    deserializeJson(doc, F("{"
+                           "\"dev_cla\":\"power\","
+                           "\"avty_t\":\"~LWT\","
+                           "\"pl_on\": true,"
+                           "\"pl_off\": false,"
+                           "\"pl_avail\":\"online\","
+                           "\"pl_not_avail\":\"offline\","                           
+                           "\"val_tpl\": \"{{ value_json.AXP192.Charging }}\","
+                           "\"stat_t\":\"~" MQTT_TOPIC_STATE "/sensors\"}"));
+    mqtt_ha_add_device_ids(doc);
+    mqtt_ha_add_unique_id(doc, item);
+
+    char buffer[128];
+    snprintf_P(buffer, sizeof(buffer), PSTR("%s/binary_sensor/%s/%s/config"), discovery_prefix,
+               haspDevice.get_hostname(), item);
+    mqtt_ha_send_json(buffer, doc);
+}
+
+void mqtt_ha_register_batterylevel()
+{
+    StaticJsonDocument<1024> doc;
+    char item[16];
+    snprintf_P(item, sizeof(item), PSTR("battery"));
+
+    // start from static keys and values that do not change
+    deserializeJson(doc, F("{"
+                           "\"dev_cla\":\"battery\","
+                           "\"avty_t\":\"~LWT\","
+                           "\"pl_on\": true,"
+                           "\"pl_off\": false,"
+                           "\"pl_avail\":\"online\","
+                           "\"stat_cla\":\"measurement\","
+                           "\"unit_of_meas\":\"%\","
+                           "\"pl_not_avail\":\"offline\","                           
+                           "\"val_tpl\": \"{{ value_json.AXP192.BatteryLevel|round }}\","
+                           "\"stat_t\":\"~" MQTT_TOPIC_STATE "/sensors\"}"));
+    mqtt_ha_add_device_ids(doc);
+    mqtt_ha_add_unique_id(doc, item);
+
+    char buffer[128];
+    snprintf_P(buffer, sizeof(buffer), PSTR("%s/sensor/%s/%s/config"), discovery_prefix,
+               haspDevice.get_hostname(), item);
+    mqtt_ha_send_json(buffer, doc);
+}
+#endif
+
 void mqtt_ha_register_auto_discovery()
 {
     LOG_TRACE(TAG_MQTT_PUB, F(D_MQTT_HA_AUTO_DISCOVERY));
@@ -297,6 +351,10 @@ void mqtt_ha_register_auto_discovery()
     mqtt_ha_register_moodlight();
     mqtt_ha_register_idle();
     mqtt_ha_register_connectivity();
+#if defined(M5STACK)
+    mqtt_ha_register_isconnected();
+    mqtt_ha_register_batterylevel();
+#endif
 }
 #endif
 
