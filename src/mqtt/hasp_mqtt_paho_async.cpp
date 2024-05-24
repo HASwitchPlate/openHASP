@@ -3,8 +3,6 @@
 
 /* Multi threaded asynchronous paho client */
 
-#include <stdint.h>
-
 #include "hasp_conf.h"
 
 #if HASP_USE_MQTT_ASYNC > 0

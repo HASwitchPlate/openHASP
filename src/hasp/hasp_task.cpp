@@ -24,6 +24,10 @@ void task_every_second_cb(lv_task_t* task)
 {
     haspEverySecond(); // sleep timer & statusupdate
 
+#if HASP_MQTT_TELNET > 0
+    mqttEverySecond();
+#endif
+
 #if HASP_USE_TELNET > 0
     telnetEverySecond();
 #endif

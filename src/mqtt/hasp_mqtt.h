@@ -18,6 +18,7 @@ typedef enum {
 
 void mqttSetup();
 IRAM_ATTR void mqttLoop();
+void mqttEverySecond();
 void mqttEvery5Seconds(bool wifiIsConnected);
 void mqttStart();
 void mqttStop();

@@ -14,10 +14,10 @@
 
 #if defined(ARDUINO_ARCH_ESP32)
 #include <WiFi.h>
-#include <WiFiClientSecure.h>
+// #include <WiFiClientSecure.h>
 WiFiClient mqttNetworkClient;
 // WiFiClientSecure mqttNetworkClient;
-extern const uint8_t rootca_crt_bundle_start[] asm("_binary_data_cert_x509_crt_bundle_bin_start");
+// extern const uint8_t rootca_crt_bundle_start[] asm("_binary_data_cert_x509_crt_bundle_bin_start");
 #elif defined(ARDUINO_ARCH_ESP8266)
 #include <ESP8266WiFi.h>
 #include <EEPROM.h>
