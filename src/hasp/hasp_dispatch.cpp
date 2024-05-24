@@ -52,7 +52,7 @@ uint8_t saved_jsonl_page = 0;
  */
 void dispatch_state_subtopic(const char* subtopic, const char* payload)
 {
-#if HASP_USE_MQTT == 0 && HASP_USE_TASMOTA_CLIENT == 0
+#if HASP_USE_MQTT == 0 && defined(HASP_USE_TASMOTA_CLIENT) && HASP_USE_TASMOTA_CLIENT > 0
     LOG_TRACE(TAG_MSGR, F("%s => %s"), subtopic, payload);
 #else
 
@@ -74,14 +74,14 @@ void dispatch_state_subtopic(const char* subtopic, const char* payload)
     }
 #endif
 
-#if HASP_USE_CUSTOM > 0
-    custom_state_subtopic(subtopic, payload);
-#endif
-
-#if HASP_USE_TASMOTA_CLIENT > 0
+#if defined(HASP_USE_TASMOTA_CLIENT) && HASP_USE_TASMOTA_CLIENT > 0
     slave_send_state(subtopic, payload);
 #endif
 
+#endif
+
+#if defined(HASP_USE_CUSTOM) && HASP_USE_CUSTOM > 0
+    custom_state_subtopic(subtopic, payload);
 #endif
 }
 
