@@ -43,7 +43,7 @@ uint16_t dispatchSecondsToNextTeleperiod = 0;
 uint16_t dispatchSecondsToNextSensordata = 0;
 uint16_t dispatchSecondsToNextDiscovery  = 0;
 uint8_t nCommands                        = 0;
-haspCommand_t commands[28];
+haspCommand_t commands[29];
 
 moodlight_t moodlight    = {.brightness = 255};
 uint8_t saved_jsonl_page = 0;
@@ -72,6 +72,10 @@ void dispatch_state_subtopic(const char* subtopic, const char* payload)
         default:
             LOG_ERROR(TAG_MQTT, F(D_ERROR_UNKNOWN " %s => %s"), subtopic, payload);
     }
+#endif
+
+#if HASP_USE_CUSTOM > 0
+    custom_state_subtopic(subtopic, payload);
 #endif
 
 #if HASP_USE_TASMOTA_CLIENT > 0
@@ -864,6 +868,11 @@ void dispatch_run_script(const char*, const char* payload, uint8_t source)
 #endif
 }
 
+void dispatch_dir(const char*, const char* payload, uint8_t source)
+{
+    filesystem_list_path(payload);
+}
+
 #if HASP_TARGET_PC
 static void shell_command_thread(char* cmdline)
 {
@@ -1592,6 +1601,7 @@ void dispatchSetup()
     dispatch_add_command(PSTR("sensors"), dispatch_send_sensordata);
     dispatch_add_command(PSTR("theme"), dispatch_theme);
     dispatch_add_command(PSTR("run"), dispatch_run_script);
+    dispatch_add_command(PSTR("dir"), dispatch_dir);
 #if HASP_TARGET_PC
     dispatch_add_command(PSTR("shell"), dispatch_shell_execute);
 #endif
