@@ -78,7 +78,7 @@ void lv_fs_if_pc_init(char letter, const char* path)
 
     /*Set up fields...*/
     fs_drv.file_size     = sizeof(file_t);
-    fs_drv.letter        = LV_FS_IF_PC;
+    fs_drv.letter        = letter;
     fs_drv.open_cb       = fs_open;
     fs_drv.close_cb      = fs_close;
     fs_drv.read_cb       = fs_read;
@@ -96,7 +96,7 @@ void lv_fs_if_pc_init(char letter, const char* path)
     fs_drv.dir_open_cb  = fs_dir_open;
     fs_drv.dir_read_cb  = fs_dir_read;
 
-    fs_drv.user_data = LV_FS_PC_PATH;
+    fs_drv.user_data = path;
 
     lv_fs_drv_register(&fs_drv);
 
