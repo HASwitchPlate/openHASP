@@ -296,9 +296,6 @@ bool ArduinoGfx::is_driver_pin(uint8_t pin)
 #ifdef TFT_HSYNC
        || (pin == TFT_HSYNC)
 #endif
-#ifdef TFT_BCKL
-       || (pin == TFT_BCKL)
-#endif
 #ifdef TFT_RST
        || (pin == TFT_RST)
 #endif
