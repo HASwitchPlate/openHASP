@@ -365,12 +365,6 @@ bool ArduinoGfx::is_driver_pin(uint8_t pin)
 #ifdef TOUCH_IRQ
        || (pin == TOUCH_IRQ)
 #endif
-#ifdef USB_TXD
-       || (pin == USB_TXD)
-#endif
-#ifdef USB_RXD
-       || (pin == USB_RXD)
-#endif
     ) {
         return true;
     }
