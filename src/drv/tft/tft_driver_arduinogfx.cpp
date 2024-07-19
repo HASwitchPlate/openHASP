@@ -335,6 +335,9 @@ bool ArduinoGfx::is_driver_pin(uint8_t pin)
 #ifdef TFT_G4
        || (pin == TFT_G4)
 #endif
+#ifdef TFT_G5
+       || (pin == TFT_G5)
+#endif
 #ifdef TFT_B0
        || (pin == TFT_B0)
 #endif
@@ -361,6 +364,12 @@ bool ArduinoGfx::is_driver_pin(uint8_t pin)
 #endif
 #ifdef TOUCH_IRQ
        || (pin == TOUCH_IRQ)
+#endif
+#ifdef USB_TXD
+       || (pin == USB_TXD)
+#endif
+#ifdef USB_RXD
+       || (pin == USB_RXD)
 #endif
     ) {
         return true;
