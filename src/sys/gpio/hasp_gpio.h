@@ -47,7 +47,7 @@ bool gpio_set_pin_state(uint8_t pin, bool power, int32_t val);
 
 void gpio_set_moodlight(moodlight_t& moodlight);
 
-void gpio_discovery(JsonObject& input, JsonArray& relay, JsonArray& light, JsonArray& dimmer);
+void gpio_discovery(JsonObject& input, JsonArray& relay, JsonArray& light, JsonArray& dimmer, JsonArray& event);
 
 bool gpioSavePinConfig(uint8_t config_num, uint8_t pin, uint8_t type, uint8_t group, uint8_t pinfunc, bool inverted);
 bool gpioIsSystemPin(uint8_t gpio);
