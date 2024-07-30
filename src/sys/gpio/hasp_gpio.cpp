@@ -835,7 +835,7 @@ hasp_gpio_config_t gpioGetPinConfig(uint8_t num)
     return gpioConfig[num];
 }
 
-void gpio_discovery(JsonObject& input, JsonArray& relay, JsonArray& light, JsonArray& dimmer)
+void gpio_discovery(JsonObject& input, JsonArray& relay, JsonArray& light, JsonArray& dimmer, JsonArray& event)
 {
     char description[20] = "";
 
@@ -848,6 +848,10 @@ void gpio_discovery(JsonObject& input, JsonArray& relay, JsonArray& light, JsonA
             case hasp_gpio_type_t::POWER_RELAY:
                 relay.add(gpioConfig[i].pin);
                 break;
+                
+            case BUTTON ... TOUCH:
+                event.add(gpioConfig[i].pin);
+                break;
 
             case hasp_gpio_type_t::HASP_DAC:
             case hasp_gpio_type_t::LED: // Don't include the moodlight
@@ -857,8 +861,8 @@ void gpio_discovery(JsonObject& input, JsonArray& relay, JsonArray& light, JsonA
                 dimmer.add(gpioConfig[i].pin);
                 break;
 
+            // case BUTTON ... TOUCH:
             case SWITCH:
-            case BUTTON ... TOUCH:
                 strcpy_P(description, PSTR("none"));
                 break;
             case BATTERY:
@@ -950,8 +954,8 @@ void gpio_discovery(JsonObject& input, JsonArray& relay, JsonArray& light, JsonA
                 strcpy_P(description, PSTR("unknown"));
         }
 
-        if((gpioConfig[i].type >= hasp_gpio_type_t::SWITCH && gpioConfig[i].type <= hasp_gpio_type_t::WINDOW) ||
-           (gpioConfig[i].type >= hasp_gpio_type_t::BUTTON && gpioConfig[i].type <= hasp_gpio_type_t::TOUCH)) {
+        if((gpioConfig[i].type >= hasp_gpio_type_t::SWITCH && gpioConfig[i].type <= hasp_gpio_type_t::WINDOW)) {
+            // || (gpioConfig[i].type >= hasp_gpio_type_t::BUTTON && gpioConfig[i].type <= hasp_gpio_type_t::TOUCH)) {
             JsonArray arr = input[description];
             if(arr.isNull()) arr = input.createNestedArray(description);
             arr.add(gpioConfig[i].pin);

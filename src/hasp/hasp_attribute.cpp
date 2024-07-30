@@ -98,7 +98,7 @@ const char** my_map_create(const char* payload)
 {
     // Reserve memory for JsonDocument
     // StaticJsonDocument<1024> map_doc;
-    size_t maxsize = (128u * ((strlen(payload) / 128) + 1)) + 256;
+    size_t maxsize = (128u * ((strlen(payload) / 128) + 1)) + 1024;
     DynamicJsonDocument map_doc(maxsize);
     DeserializationError jsonError = deserializeJson(map_doc, payload);
 

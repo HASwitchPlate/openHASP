@@ -391,6 +391,9 @@ IRAM_ATTR void mqttLoop()
     if(rc == MQTTCLIENT_SUCCESS && message) mqtt_message_arrived(mqtt_client, topicName, topicLen, message);
 };
 
+void mqttEverySecond()
+{}
+
 void mqttEvery5Seconds(bool wifiIsConnected)
 {
     if(!mqttIsConnected()) {

@@ -53,4 +53,9 @@ void custom_topic_payload(const char* topic, const char* payload, uint8_t source
     // Not used
 }
 
+void custom_state_subtopic(const char* subtopic, const char* payload){
+    // Not used
+}
+
+
 #endif // HASP_USE_CUSTOM

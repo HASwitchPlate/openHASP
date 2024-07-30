@@ -30,6 +30,7 @@
 #define D_FILE_SIZE_KILOBYTES "KiB"
 #define D_FILE_SIZE_MEGABYTES "MiB"
 #define D_FILE_SIZE_GIGABYTES "GiB"
+#define D_FILE_SIZE_TERABYTES "TiB"
 #define D_FILE_SIZE_DIVIDER 1024 // kibi or kilo bytes
 #define D_DECIMAL_POINT "."      // decimal comma or point
 

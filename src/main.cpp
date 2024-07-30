@@ -210,6 +210,10 @@ IRAM_ATTR void loop()
         /* Runs Every Second */
         haspEverySecond(); // sleep timer & statusupdate
 
+#if HASP_USE_MQTT > 0
+        mqttEverySecond();
+#endif
+
 #if HASP_USE_FTP > 0
         ftpEverySecond();
 #endif

@@ -3,8 +3,6 @@
 
 /* Multi threaded asynchronous paho client */
 
-#include <stdint.h>
-
 #include "hasp_conf.h"
 
 #if HASP_USE_MQTT_ASYNC > 0
@@ -47,7 +45,7 @@ const char FP_CONFIG_GROUP[] PROGMEM = "group";
 #include "hasp_mqtt.h" // functions to implement here
 
 #include "hasp/hasp_dispatch.h" // for dispatch_topic_payload
-#include "hasp_debug.h" // for logging
+#include "hasp_debug.h"         // for logging
 
 #if !defined(_WIN32)
 #include <unistd.h>
@@ -438,7 +436,10 @@ void mqttSetup()
     mqttLwtTopic += MQTT_TOPIC_LWT;
 }
 
-IRAM_ATTR void mqttLoop(){};
+IRAM_ATTR void mqttLoop() {};
+
+void mqttEverySecond()
+{}
 
 void mqttEvery5Seconds(bool wifiIsConnected)
 {
