@@ -284,11 +284,11 @@ bool mqttIsConnected()
     return mqttConnected; // MQTTAsync_isConnected(mqtt_client); // <- deadlocking on Linux
 }
 
-int mqtt_send_state(const __FlashStringHelper* subtopic, const char* payload)
+int mqtt_send_state(const __FlashStringHelper* subtopic, const char* payload, bool retain)
 {
     char tmp_topic[mqttNodeTopic.length() + 20];
     snprintf_P(tmp_topic, sizeof(tmp_topic), ("%s" MQTT_TOPIC_STATE "/%s"), mqttNodeTopic.c_str(), subtopic);
-    return mqttPublish(tmp_topic, payload, strlen(payload), false);
+    return mqttPublish(tmp_topic, payload, strlen(payload), retain);
 }
 
 int mqtt_send_discovery(const char* payload, size_t len)
