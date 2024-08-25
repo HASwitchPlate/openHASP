@@ -1,6 +1,5 @@
 Import('env')
-import os
-import sys
+import os, sys, json
 import shutil
 import subprocess
 import pkg_resources
@@ -106,6 +105,53 @@ def copy_merge_bins(source, target, env):
     print(stdout.decode("utf-8") )
     print(stderr.decode("utf-8") )
 
+def create_manifest(source, target, env):
+    short_version = 'v' + str(HASP_VER_MAJ) + '.' + str(HASP_VER_MIN) + '.' + str(HASP_VER_REV)
+    long_version = short_version + '_' + get_firmware_commit_hash()
+    name = str(target[0]).split(os.path.sep)[2]
+    name = name.replace('_4MB', '').replace('_8MB', '').replace('_16MB', '').replace('_32MB', '')
+    flash_size = env.GetProjectOption("board_upload.flash_size")
+    board = env.BoardConfig()
+    filename = "{}_full_{}_{}.json".format(name, flash_size, long_version)
+    output_json ="{}firmware{}{}".format(OUTPUT_DIR, os.path.sep, filename)
+
+    data = {"name":"openHASP", "version": short_version, "home_assistant_domain": "openhasp", "funding_url": "https://ko-fi.com/openhasp", "new_install_prompt_erase": True, "builds": "d"}
+    builds = []
+    parts = []
+    parts.append({ "path": filename, "offset": 0 })
+
+    mcu = board.get("build.mcu", "esp32")
+    if (mcu == 'esp32'):
+        builds.append({ "chipFamily": "ESP32", "improv": False })
+    elif (mcu == 'esp32s2'):
+        builds.append({ "chipFamily": "ESP32-S2", "improv": False })
+    elif (mcu == 'esp32s3'):
+        builds.append({ "chipFamily": "ESP32-S3", "improv": False })
+    elif (mcu == 'esp32c3'):
+        builds.append({ "chipFamily": "ESP32-C3", "improv": False })
+    elif (mcu == 'esp32c6'):
+        builds.append({ "chipFamily": "ESP32-C6", "improv": False })
+    builds[0]["parts"] = parts
+    data["builds"] = builds
+    json_data = json.dumps(data, indent=4, sort_keys=False)
+    print(json_data)
+
+    # check if output directories exist and create if necessary
+    if not os.path.isdir(OUTPUT_DIR):
+        os.mkdir(OUTPUT_DIR)
+
+    for d in ['firmware', 'map']:
+        if not os.path.isdir("{}{}".format(OUTPUT_DIR, d)):
+            os.mkdir("{}{}".format(OUTPUT_DIR, d))
+
+    # check if new target files exist and remove if necessary
+    for f in [output_json]:
+        if os.path.isfile(f):
+            os.remove(f)
+
+    with open(output_json, "w") as outfile:
+        outfile.write(json_data)
+
 def copy_ota(source, target, env):
     version = 'v' + str(HASP_VER_MAJ) + '.' + str(HASP_VER_MIN) + '.' + str(HASP_VER_REV) + '_' + get_firmware_commit_hash()
     name =str(target[0]).split(os.path.sep)[2]
@@ -135,4 +181,5 @@ def copy_ota(source, target, env):
 
 env.AddPreAction("$BUILD_DIR/${PROGNAME}.bin", [get_fw_version])
 env.AddPostAction("$BUILD_DIR/${PROGNAME}.bin", [copy_merge_bins])
+env.AddPostAction("$BUILD_DIR/${PROGNAME}.bin", [create_manifest])
 env.AddPostAction("$BUILD_DIR/${PROGNAME}.bin", [copy_ota])

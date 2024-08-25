@@ -101,7 +101,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.environment.out }}
-          path: build_output/firmware/*.bin
+          path: build_output/firmware/*.*n
       - name: Create release and upload firmware
         if: github.ref != 'refs/heads/master'
         run: |
