@@ -2,7 +2,7 @@ name: Build branch
 
 on:
   release:
-    types: [created]
+    types: [published]
   push:
     branches:
       - master
