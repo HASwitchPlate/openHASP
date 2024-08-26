@@ -102,13 +102,16 @@ jobs:
         with:
           name: ${{ matrix.environment.out }}
           path: build_output/firmware/*.*n
+      ## Release only:
+      - name: Zip artifact for deployment
+        run: zip ${{ matrix.environment.out }}.zip "build_output/firmware/*.bin" -r
       - name: On Release, upload assets to that Release
         uses: AButler/upload-release-assets@v3.0
         with:
-          files: "build_output/firmware/*.bin"
+          files: ${{ matrix.environment.out }}.zip
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
-          
+
   linux_build:
     runs-on: ubuntu-latest
     steps:
