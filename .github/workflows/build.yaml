@@ -104,8 +104,11 @@ jobs:
           path: build_output/firmware/*.*n
       ## Release only:
       - name: Zip artifact for deployment
-        run: zip ${{ matrix.environment.out }}.zip "build_output/firmware/*.bin" -r
+        if: github.ref != 'refs/heads/master'
+        run: |
+          zip ${{ matrix.environment.out }}.zip "build_output/firmware/*.bin" -r
       - name: On Release, upload assets to that Release
+        if: github.ref != 'refs/heads/master'
         uses: AButler/upload-release-assets@v3.0
         with:
           files: ${{ matrix.environment.out }}.zip
