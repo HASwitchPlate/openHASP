@@ -15,18 +15,18 @@
             "theme": "Tema de IU",
             "color1": "Color Primario",
             "color2": "Color Secundario",
-            "pages": "Diseño inicial",
+            "pages": "Diseño Inicial",
             "font": "Fuente por Defecto",
-            "startpage": "Página inicial",
-            "startdim": "Brillo inicial"
+            "startpage": "Página de Inicio",
+            "startdim": "Brillo Inicial"
         },
         "screenshot": {
-            "title": "Captura de pantalla",
-            "btn": "Captura de pantalla",
-            "nav": "Captura de pantalla",
-            "prev": "Página Previa",
+            "title": "Captura de Pantalla",
+            "btn": "Captura de Pantalla",
+            "nav": "Captura de Pantalla",
+            "prev": "Prev Página",
             "next": "Siguiente Página",
-            "refresh": "Refrescar"
+            "refresh": "Actualizar"
         },
         "info": {
             "title": "Información",
@@ -36,16 +36,16 @@
         "config": {
             "title": "Configuración",
             "btn": "Configuración",
-            "nav": "Configuración"
+            "nav": "Configuraciones"
         },
         "ota": {
-            "title": "Actualización de firmware",
-            "btn": "Actualización de firmware",
+            "title": "Actualización de Firmware",
+            "btn": "Actualización de Firmware",
             "nav": "Firmware",
             "submit": "Actualizar Firmware",
             "file": "Archivo Firmware",
-            "url": "URL del firmware",
-            "redirect": "Seguir redirecciones",
+            "url": "URL del Firmware",
+            "redirect": "Sigue Redirecciones",
             "never": "Nunca",
             "strict": "Estricto",
             "always": "Siempre"
@@ -56,10 +56,10 @@
             "nav": "Editor de Archivos"
         },
         "reset": {
-            "title": "Restaurar conf de fábrica",
-            "btn": "Restaurar conf de fábrica",
+            "title": "Reconfiguración de Fábrica",
+            "btn": "Restaurar conf de Fábrica",
             "warning": "Aviso",
-            "message": "Este proceso restablecerá todos los ajustes a los valores por defecto. El flash interno se borrará y el dispositivo se reiniciará. Puede que necesite conectarse al AP WiFi mostrado en el panel para reconfigurar el dispositivo antes de volver a acceder a él.",
+            "message": "Este proceso restablecerá todos los ajustes a los valores predeterminados. El flash interno se borrará y el dispositivo se reiniciará. Es posible que necesite conectarse al AP WiFi mostrado en el panel para reconfigurar el dispositivo antes de volver a acceder a él.",
             "fileloss": "¡TODOS LOS ARCHIVOS SERÁN PERDIDOS!"
         },
         "reboot": {
@@ -81,8 +81,8 @@
             "apache2": "Licencia Apache2"
         },
         "wifi": {
-            "title": "Ajustes Wifi",
-            "btn": "Ajustes Wifi",
+            "title": "Ajustes WiFi",
+            "btn": "Ajustes WiFi",
             "ssid": "SSID"
         },
         "wg": {
@@ -97,7 +97,7 @@
         "mqtt": {
             "title": "Ajustes MQTT",
             "btn": "Ajustes MQTT",
-            "name": "Nombre de equipo",
+            "name": "Nombre del Host",
             "group": "Nombre del Grupo",
             "host": "Broker",
             "port": "Puerto",
@@ -124,9 +124,9 @@
         },
         "gpio": "Ajustes GPIO",
         "debug": {
-            "title": "Ajustes de depuración",
-            "btn": "Ajustes de depuración",
-            "baud": "Baudios",
+            "title": "Ajustes de Depuración",
+            "btn": "Ajustes de Depuración",
+            "baud": "Tasa Baudios",
             "tele": "Periodo de Tele",
             "ansi": "Usar códigos ANSI",
             "host": "Servidor Syslog",
@@ -139,9 +139,9 @@
             "title": "Ajustes de Tiempo",
             "btn": "Ajustes de Tiempo",
             "region": "Región",
-            "zone": "Zona horaria",
-            "tz": "Zona horaria",
-            "ntp": "Servidores NTP"
+            "zone": "Zona Horaria",
+            "tz": "Zona Horaria",
+            "ntp": "Servidor NTP"
         },
         "region": {
             "etc": "Etcetera ",
@@ -149,7 +149,7 @@
             "af": "Africa ",
             "as": "Asia ",
             "au": "Australia ",
-            "aq": "Antarctica ",
+            "aq": "Antártida ",
             "eu": "Europa ",
             "na": "América del Norte ",
             "sa": "América del Sur ",
