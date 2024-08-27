@@ -81,8 +81,8 @@
             "apache2": "Licencia Apache2"
         },
         "wifi": {
-            "title": "Ajustes Wifi",
-            "btn": "Ajustes Wifi",
+            "title": "Ajustes WiFi",
+            "btn": "Ajustes WiFi",
             "ssid": "SSID"
         },
         "wg": {
@@ -97,7 +97,7 @@
         "mqtt": {
             "title": "Ajustes MQTT",
             "btn": "Ajustes MQTT",
-            "name": "Nombre de equipo",
+            "name": "Nombre del Host",
             "group": "Nombre del Grupo",
             "host": "Broker",
             "port": "Puerto",
@@ -149,7 +149,7 @@
             "af": "Africa ",
             "as": "Asia ",
             "au": "Australia ",
-            "aq": "Antártida",
+            "aq": "Antártida ",
             "eu": "Europa ",
             "na": "América del Norte ",
             "sa": "América del Sur ",
