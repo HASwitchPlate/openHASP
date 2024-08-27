@@ -50,7 +50,7 @@
 #define D_NETWORK_ONLINE "online"
 #define D_NETWORK_OFFLINE "offline"
 #define D_NETWORK_CONNECTION_FAILED "Connection failed"
-#define D_NETWORK_CONNECTION_UNAUTHORIZED "Authorization failed"
+#define D_NETWORK_CONNECTION_UNAUTHORIZED "Auktorisering misslyckades"
 
 #define D_MQTT_DEFAULT_NAME "plate_%s"
 #define D_MQTT_CONNECTING "Connecting..."
@@ -115,7 +115,7 @@
 
 #define D_OTA_CHECK_UPDATE "Trying update URL: %s"
 #define D_OTA_CHECK_COMPLETE "Update check complete"
-#define D_OTA_CHECK_FAILED "Update check failed: %s"
+#define D_OTA_CHECK_FAILED "Uppdateringskontroll misslyckades: %s"
 #define D_OTA_UPDATE_FIRMWARE "OTA Firmware Update"
 #define D_OTA_UPDATE_COMPLETE "OTA Update complete"
 #define D_OTA_UPDATE_APPLY "Applying Firmware & Reboot"
