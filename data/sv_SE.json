@@ -72,16 +72,16 @@
             "credits": "Based on the previous work of the following open source developers:",
             "copyright": "Copyright ",
             "rights": "All rights reserved.",
-            "clause1": "Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files(the \"Software\"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and / or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:",
-            "clause2": "The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.",
-            "clause3": "THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.",
+            "clause1": "Härmed beviljas tillstånd, utan kostnad, till alla personer som erhåller en kopia av denna programvara och tillhörande dokumentationsfiler (\"Programvaran\"), att hantera Programvaran utan begränsningar, inklusive men inte begränsat till rätten att använda, kopiera, modifiera, sammanfoga, publicera, distribuera, underlicensiera och/eller sälja kopior av Programvaran, samt att tillåta personer till vilka Programvaran tillhandahålls att göra detsamma, under förutsättning av följande villkor:",
+            "clause2": "Ovanstående meddelande om upphovsrätt och detta tillståndsmeddelande ska inkluderas i alla kopior eller väsentliga delar av programvaran.",
+            "clause3": "PROGRAMVARAN TILLHANDAHÅLLS \"I BEFINTLIGT SKICK\", UTAN NÅGON SOM HELST GARANTI, VARE SIG UTTRYCKLIG ELLER UNDERFÖRSTÅDD, INKLUSIVE MEN INTE BEGRÄNSAT TILL GARANTIER OM SÄLJBARHET, LÄMPLIGHET FÖR ETT VISST ÄNDAMÅL OCH ICKE-INTRÅNG. UNDER INGA OMSTÄNDIGHETER SKALL FÖRFATTARNA ELLER UPPHOVSRÄTTSINNEHAVARNA VARA ANSVARIGA FÖR NÅGON TYP AV KRAV, SKADOR ELLER ANNAT ANSVAR, VARE SIG I KONTRAKT, SKADESTÅND ELLER ANNAT, SOM UPPSTÅR FRÅN, UR ELLER I SAMBAND MED PROGRAMVARAN ELLER ANVÄNDNINGEN ELLER ANDRA ÅTGÄRDER I SAMBAND MED PROGRAMVARAN.",
             "mit": "MIT License",
-            "bsd": "BSD License",
-            "freebsd": "FreeBSD License",
-            "apache2": "Apache2 License"
+            "bsd": "BSD Licens",
+            "freebsd": "FreeBSD Licens",
+            "apache2": "Apache2 Licens"
         },
         "wifi": {
-            "title": "Wifi Settings",
+            "title": "Inställningar för WiFi",
             "btn": "Wifi Settings",
             "ssid": "SSID"
         },
