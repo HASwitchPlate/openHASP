@@ -82,7 +82,7 @@
         },
         "wifi": {
             "title": "Inställningar för WiFi",
-            "btn": "Inställningar för Wifi",
+            "btn": "Inställningar för WiFi",
             "ssid": "SSID"
         },
         "wg": {
@@ -124,8 +124,8 @@
         },
         "gpio": "GPIO Inställningar",
         "debug": {
-            "title": "Debug inställningar",
-            "btn": "Debug inställningar",
+            "title": "Debug Inställningar",
+            "btn": "Debug Inställningar",
             "baud": "Datahastighet",
             "tele": "Telemetri period",
             "ansi": "Använd ANSI-kod",
