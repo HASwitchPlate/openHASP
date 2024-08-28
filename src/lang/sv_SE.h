@@ -1,5 +1,5 @@
-// Denna översättningsfil bibehålls på https://crowdin.com/project/openhasp/
-// Redigera inte direkt!
+// This translation file is maintained on https://crowdin.com/project/openhasp/
+// Do not edit directly!
 
 #ifndef HASP_LANG_SV_SE_H
 #define HASP_LANG_SV_SE_H
