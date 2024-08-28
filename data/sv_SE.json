@@ -82,14 +82,14 @@
         },
         "wifi": {
             "title": "Inställningar för WiFi",
-            "btn": "Wifi Settings",
+            "btn": "Inställningar för Wifi",
             "ssid": "SSID"
         },
         "wg": {
             "title": "WireGuard Settings",
             "btn": "WireGuard Settings",
             "vpnip": "VPN IP",
-            "privkey": "Private Key",
+            "privkey": "Privat nyckel",
             "host": "Remote IP",
             "port": "Remote Port",
             "pubkey": "Remote Public Key"
