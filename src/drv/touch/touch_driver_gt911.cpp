@@ -92,6 +92,7 @@ IRAM_ATTR bool TouchGt911::read(lv_indev_drv_t* indev_driver, lv_indev_data_t* d
     return false;
 }
 
+#ifdef NOISE_REDUCTION
 static void setup_noise_reduction(uint8_t nr_level)
 {
     uint8_t len = 0x8100 - GT_REG_CFG;
@@ -139,6 +140,7 @@ end:
 end2:
     LOG_ERROR(TAG_DRVR, "GT911 Failed to read config space");
 }
+#endif
 
 void TouchGt911::init(int w, int h)
 {
@@ -169,8 +171,9 @@ found:
         LOG_WARNING(TAG_DRVR, "GT911 %s", D_SERVICE_START_FAILED);
     }
 
+#ifdef NOISE_REDUCTION
     setup_noise_reduction((uint8_t) h);
-
+#endif
     Wire.begin(TOUCH_SDA, TOUCH_SCL, (uint32_t)I2C_TOUCH_FREQUENCY);
     touch_scan(Wire); // The address could change during begin, so scan afterwards
 }
