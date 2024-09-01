@@ -97,6 +97,7 @@ static void setup_noise_reduction(uint8_t nr_level)
     uint8_t len = 0x8100 - GT_REG_CFG;
     uint8_t cfg[len];
     GTInfo* info;
+    uint8_t err;
 
     memset(cfg, 0, len);
 /*    This is the only way to read the entire config space.
@@ -107,12 +108,16 @@ static void setup_noise_reduction(uint8_t nr_level)
     Need to do a split read as the WDT will bite for reads
     of more than 128 bytes (give or take).
 */
-    touch.read(GT_REG_CFG, cfg, 100);
+    err = touch.read(GT_REG_CFG, cfg, 100);
+    if (err != 0) goto end2;
     if (cfg[11] == nr_level) {
         LOG_INFO(TAG_DRVR, "GT911 noise reduction unchanged");
         return;
     }
-    touch.read(GT_REG_CFG+100, cfg+100, len-100);
+    err = touch.read(GT_REG_CFG+100, cfg+100, len-100);
+    if (err != 0) goto end2;
+
+    if (cfg[len - 1] != touch.calcChecksum(cfg, len - 1) goto end2;
 
     // Check noise_reduction is within limits
     if (nr_level < 0 || nr_level > 15) {
@@ -122,12 +127,17 @@ static void setup_noise_reduction(uint8_t nr_level)
     cfg[11] = nr_level;
     cfg[len - 1] = touch.calcChecksum(cfg, len - 1);
 
-    uint8_t err = touch.write(GT_REG_CFG, cfg, len);
+    err = touch.write(GT_REG_CFG, cfg, len);
     if (err != 0) goto end;
     err = touch.write(0x8100, 1);
-
+    if (err != 0) goto end;
+    LOG_INFO(TAG_DRVR, "GT911 noise reduction updated");
+    return;
 end:
     LOG_ERROR(TAG_DRVR, "GT911 Failed to write noise reduction byte");
+    return;
+end2;
+    LOG_ERROR(TAG_DRVR, "GT911 Failed to read config space");
 }
 
 void TouchGt911::init(int w, int h)
