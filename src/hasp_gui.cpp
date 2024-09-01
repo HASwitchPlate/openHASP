@@ -347,11 +347,9 @@ void guiSetup()
 
 #if HASP_TARGET_ARDUINO
     // drv_touch_init(gui_settings.rotation); // Touch driver
-#ifdef NOISE_REDUCTION
-    // hijack tft_height to pass noise_reduction to the GT911 driver
-    haspTouch.init(tft_width, gui_settings.noise_reduction);
-#else
     haspTouch.init(tft_width, tft_height);
+#ifdef NOISE_REDUCTION
+    haspTouch.setup_noise_reduction(gui_settings.noise_reduction);
 #endif
     haspTouch.set_calibration(gui_settings.cal_data);
     haspTouch.set_rotation(gui_settings.rotation);
