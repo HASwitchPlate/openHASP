@@ -117,7 +117,7 @@ static void setup_noise_reduction(uint8_t nr_level)
     err = touch.read(GT_REG_CFG+100, cfg+100, len-100);
     if (err != 0) goto end2;
 
-    if (cfg[len - 1] != touch.calcChecksum(cfg, len - 1) goto end2;
+    if (cfg[len - 1] != touch.calcChecksum(cfg, len - 1)) goto end2;
 
     // Check noise_reduction is within limits
     if (nr_level < 0 || nr_level > 15) {
@@ -136,7 +136,7 @@ static void setup_noise_reduction(uint8_t nr_level)
 end:
     LOG_ERROR(TAG_DRVR, "GT911 Failed to write noise reduction byte");
     return;
-end2;
+end2:
     LOG_ERROR(TAG_DRVR, "GT911 Failed to read config space");
 }
 
