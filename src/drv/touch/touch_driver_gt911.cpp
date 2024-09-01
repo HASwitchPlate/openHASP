@@ -92,10 +92,6 @@ IRAM_ATTR bool TouchGt911::read(lv_indev_drv_t* indev_driver, lv_indev_data_t* d
     return false;
 }
 
-#include "hexdump.h"
-#include <driver/timer.h>
-#include <soc/timer_group_struct.h>
-#include <soc/timer_group_reg.h>
 static void setup_noise_reduction(uint8_t nr_level)
 {
     uint8_t len = 0x8100 - GT_REG_CFG;
@@ -103,16 +99,26 @@ static void setup_noise_reduction(uint8_t nr_level)
     GTInfo* info;
 
     memset(cfg, 0, len);
-/*    This is the only way to read the entire config space
+/*    This is the only way to read the entire config space.
+    The Goodix driver provides a readConfig() function, but
+    struct is not packed which leads to errors (when using
+    struct members).
+
     Need to do a split read as the WDT will bite for reads
     of more than 128 bytes (give or take).
 */
     touch.read(GT_REG_CFG, cfg, 100);
+    if (cfg[11] == nr_level) {
+        LOG_INFO(TAG_DRVR, "GT911 noise reduction unchanged");
+        return;
+    }
     touch.read(GT_REG_CFG+100, cfg+100, len-100);
 
     // Check noise_reduction is within limits
-    if (nr_level < 0 || nr_level > 15) goto end;
-
+    if (nr_level < 0 || nr_level > 15) {
+        LOG_ERROR(TAG_DRVR, "GT911 Noise Reduction value out of range (0-15)");
+        return;
+    }
     cfg[11] = nr_level;
     cfg[len - 1] = touch.calcChecksum(cfg, len - 1);
 
