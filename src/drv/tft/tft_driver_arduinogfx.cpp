@@ -26,10 +26,6 @@ void ArduinoGfx::init(int w, int h)
     LOG_TRACE(TAG_TFT, F(D_SERVICE_STARTING));
 
 #if(TFT_WIDTH == 480) && (TFT_HEIGHT == 480) && defined(LILYGO_T_PANEL)
-
-    // pinMode(TFT_SCLK, OUTPUT);
-    // pinMode(TFT_MOSI, OUTPUT);
-    // pinMode(TFT_MISO, OUTPUT);
     Arduino_DataBus* bus            = new Arduino_XL9535SWSPI(17 /* SDA */, 18 /* SCL */, -1 /* XL PWD */, 17 /* XL CS */,
                                                               15 /* XL SCK */, 16 /* XL MOSI */);
     Arduino_ESP32RGBPanel *rgbpanel = new Arduino_ESP32RGBPanel(
