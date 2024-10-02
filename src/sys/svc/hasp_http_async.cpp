@@ -1311,7 +1311,7 @@ void webHandleGuiConfig(AsyncWebServerRequest* request)
         httpMessage += getOption(-1, F("None"), bcklpin == -1);
 #if defined(ARDUINO_ARCH_ESP32)
         add_gpio_select_option(httpMessage, 5, bcklpin);  // D8 on ESP32 for D1 mini 32
-        add_gpio_select_option(httpMessage, 12, bcklpin); // TFT_LED on the Liligo Pi
+        add_gpio_select_option(httpMessage, 12, bcklpin); // TFT_LED on the Lilygo Pi
         add_gpio_select_option(httpMessage, 13, bcklpin); // TFT_LED on the D1 R32 + Waveshare
         add_gpio_select_option(httpMessage, 15, bcklpin); // TFT_LED on the AZ Touch
         add_gpio_select_option(httpMessage, 16, bcklpin); // D4 on ESP32 for D1 mini 32
