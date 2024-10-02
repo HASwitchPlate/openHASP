@@ -25,7 +25,23 @@ void ArduinoGfx::init(int w, int h)
 {
     LOG_TRACE(TAG_TFT, F(D_SERVICE_STARTING));
 
-#if(TFT_WIDTH == 480) && (TFT_HEIGHT == 480) && defined(LILYGO_T_RGB)
+#if(TFT_WIDTH == 480) && (TFT_HEIGHT == 480) && defined(LILYGO_T_PANEL)
+    Arduino_DataBus* bus            = new Arduino_XL9535SWSPI(17 /* SDA */, 18 /* SCL */, -1 /* XL PWD */, 17 /* XL CS */,
+                                                              15 /* XL SCK */, 16 /* XL MOSI */);
+    Arduino_ESP32RGBPanel *rgbpanel = new Arduino_ESP32RGBPanel(
+        -1 /* DE */, TFT_VSYNC /* VSYNC */, TFT_HSYNC /* HSYNC */, TFT_PCLK /* PCLK */,
+        TFT_B0 /* B0 */, TFT_B1 /* B1 */, TFT_B2 /* B2 */, TFT_B3 /* B3 */, TFT_B4 /* B4 */,
+        TFT_G0 /* G0 */, TFT_G1 /* G1 */, TFT_G2 /* G2 */, TFT_G3 /* G3 */, TFT_G4 /* G4 */, TFT_G5 /* G5 */,
+        TFT_R0 /* R0 */, TFT_R1 /* R1 */, TFT_R2 /* R2 */, TFT_R3 /* R3 */, TFT_R4 /* R4 */,
+        1 /* hsync_polarity */, 20 /* hsync_front_porch */, 2 /* hsync_pulse_width */, 0 /* hsync_back_porch */,
+        1 /* vsync_polarity */, 30 /* vsync_front_porch */, 8 /* vsync_pulse_width */, 1 /* vsync_back_porch */,
+        10 /* pclk_active_neg */, 6000000L /* prefer_speed */, false /* useBigEndian */,
+        0 /* de_idle_high*/, 0 /* pclk_idle_high */);
+
+    tft = new Arduino_RGB_Display(TFT_WIDTH /* width */, TFT_HEIGHT /* height */, rgbpanel, 0 /* rotation */, true /* auto_flush */,
+    bus, -1 /* RST */, st7701_sensecap_indicator_init_operations, sizeof(st7701_sensecap_indicator_init_operations));
+
+#elif(TFT_WIDTH == 480) && (TFT_HEIGHT == 480) && defined(LILYGO_T_RGB)
     Wire.begin(8 /* SDA */, 48 /* SCL */, 800000L /* speed */);
     Arduino_DataBus* bus            = new Arduino_XL9535SWSPI(8 /* SDA */, 48 /* SCL */, 2 /* XL PWD */, 3 /* XL CS */,
                                                               5 /* XL SCK */, 4 /* XL MOSI */);
