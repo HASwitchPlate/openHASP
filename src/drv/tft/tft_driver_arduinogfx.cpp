@@ -25,7 +25,18 @@ void ArduinoGfx::init(int w, int h)
 {
     LOG_TRACE(TAG_TFT, F(D_SERVICE_STARTING));
 
-#if(TFT_WIDTH == 480) && (TFT_HEIGHT == 480) && defined(LILYGO_T_RGB)
+#if(TFT_WIDTH == 170) && (TFT_HEIGHT == 320) 
+    Arduino_DataBus *bus = new Arduino_ESP32PAR8Q(
+        TFT_DC, TFT_CS, TFT_WR, TFT_RD,
+        TFT_D0, TFT_D1, TFT_D2, TFT_D3, TFT_D4, TFT_D5, TFT_D6, TFT_D7);
+    Arduino_GFX *gfx = new Arduino_ST7789(bus,
+        TFT_RST /* RST */, TFT_ROTATION /* rotation */, true /* IPS */,
+        TFT_WIDTH /* width */, TFT_HEIGHT /* height */,
+        35 /* col offset 1 */, 0 /* row offset 1 */,
+        35 /* col offset 2 */, 0 /* row offset 2 */
+    );
+
+#elif(TFT_WIDTH == 480) && (TFT_HEIGHT == 480) && defined(LILYGO_T_RGB)
     Wire.begin(8 /* SDA */, 48 /* SCL */, 800000L /* speed */);
     Arduino_DataBus* bus            = new Arduino_XL9535SWSPI(8 /* SDA */, 48 /* SCL */, 2 /* XL PWD */, 3 /* XL CS */,
                                                               5 /* XL SCK */, 4 /* XL MOSI */);
