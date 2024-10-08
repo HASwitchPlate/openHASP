@@ -1751,6 +1751,7 @@ static hasp_attribute_type_t attribute_common_text(lv_obj_t* obj, uint16_t attr_
         {LV_HASP_LABEL, ATTR_TEXT, my_label_set_text, my_label_get_text},
         {LV_HASP_LABEL, ATTR_TEMPLATE, my_obj_set_template, my_obj_get_template},
         {LV_HASP_CHECKBOX, ATTR_TEXT, lv_checkbox_set_text, lv_checkbox_get_text},
+        {LV_HASP_DROPDOWN, ATTR_TEXT, my_dropdown_set_text, my_dropdown_get_text},
         {LV_HASP_TABVIEW, ATTR_TEXT, my_tabview_set_text, my_tabview_get_text},
         {LV_HASP_TEXTAREA, ATTR_TEXT, lv_textarea_set_text, lv_textarea_get_text},
         {LV_HASP_TAB, ATTR_TEXT, my_tab_set_text, my_tab_get_text},
