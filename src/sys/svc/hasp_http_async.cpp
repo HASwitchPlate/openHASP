@@ -1479,7 +1479,7 @@ void webHandleGpioConfig(AsyncWebServerRequest* request)
 
                     switch(conf.type) {
 
-                        case hasp_gpio_type_t::BUTTON:
+                        case hasp_gpio_type_t::BUTTON_TYPE:
                             httpMessage += F(D_GPIO_BUTTON);
                             break;
                         case hasp_gpio_type_t::SWITCH:
@@ -1757,8 +1757,8 @@ void webHandleGpioInput(AsyncWebServerRequest* request)
         bool selected;
         httpMessage += F("<p><b>Type</b> <select id='type' name='type'>");
 
-        selected = (conf.type == hasp_gpio_type_t::BUTTON);
-        httpMessage += getOption(hasp_gpio_type_t::BUTTON, F(D_GPIO_BUTTON), selected);
+        selected = (conf.type == hasp_gpio_type_t::BUTTON_TYPE);
+        httpMessage += getOption(hasp_gpio_type_t::BUTTON_TYPE, F(D_GPIO_BUTTON), selected);
 
         selected = (conf.type == hasp_gpio_type_t::SWITCH);
         httpMessage += getOption(hasp_gpio_type_t::SWITCH, F(D_GPIO_SWITCH), selected);
