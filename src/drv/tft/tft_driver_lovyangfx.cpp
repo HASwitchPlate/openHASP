@@ -95,9 +95,8 @@ static lgfx::Bus_Parallel8* init_parallel_8_bus(Preferences* prefs, int8_t data_
     cfg.pin_wr               = prefs->getInt("wr", TFT_WR);
     cfg.pin_rs               = prefs->getInt("rs", TFT_DC);
 #ifndef CONFIG_IDF_TARGET_ESP32C3
-    cfg.freq_write           = prefs->getUInt("write_freq", SPI_FREQUENCY);
-#endif 
-
+    cfg.freq_write = prefs->getUInt("write_freq", SPI_FREQUENCY);
+#endif
 
 #if !defined(CONFIG_IDF_TARGET_ESP32S3) && !defined(CONFIG_IDF_TARGET_ESP32C3)
     uint8_t port = prefs->getUInt("i2s_port", 0);
@@ -717,7 +716,7 @@ void LovyanGfx::init(int w, int h)
         cfg.dummy_read_bits  = 1;
         cfg.readable         = true;
         cfg.invert           = INVERT_COLORS;
-        cfg.rgb_order        = false;
+        cfg.rgb_order        = (TFT_RGB_ORDER != 0); // true if the red and blue of the panel are swapped
         cfg.dlen_16bit       = false;
         cfg.bus_shared       = false;
         _panel_instance->config(cfg);
