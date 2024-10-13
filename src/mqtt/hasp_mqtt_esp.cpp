@@ -250,14 +250,6 @@ static void mqtt_message_cb(const char* topic, byte* payload, unsigned int lengt
         topic += strlen_P(mqttBroadcastCommandTopic.c_str());                // shorten Broadcast topic
 #endif
 
-#ifdef HASP_USE_HA
-    } else if(topic == strstr_P(topic, PSTR("homeassistant/status"))) { // HA discovery topic
-        if(mqttHAautodiscover && !strcasecmp_P((char*)payload, PSTR("online"))) {
-            mqtt_ha_register_auto_discovery(); // auto-discovery first
-            dispatch_current_state(TAG_MQTT);  // send the data
-        }
-        return;
-#endif
     } else if(topic == strstr(topic, mqttHassLwtTopic.c_str())) { // startsWith mqttGroupCommandTopic
         String state = String((const char*)payload);
         state.toLowerCase();
@@ -375,17 +367,6 @@ void onMqttConnect(esp_mqtt_client_handle_t client)
     String subtopic = F(MQTT_TOPIC_CUSTOM "/#");
     mqttSubscribeTo(mqttGroupCommandTopic + subtopic);
     mqttSubscribeTo(mqttNodeCommandTopic + subtopic);
-#endif
-
-    /* Home Assistant auto-configuration */
-#ifdef HASP_USE_HA
-    if(mqttHAautodiscover) {
-        char topic[64];
-        snprintf_P(topic, sizeof(topic), PSTR("hass/status"));
-        mqttSubscribeTo(topic);
-        snprintf_P(topic, sizeof(topic), PSTR("homeassistant/status"));
-        mqttSubscribeTo(topic);
-    }
 #endif
 
     mqttSubscribeTo(mqttHassLwtTopic);

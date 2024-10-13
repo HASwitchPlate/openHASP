@@ -176,17 +176,6 @@ static void mqtt_message_cb(char* topic, char* payload, size_t length)
         return;
 #endif
 
-#ifdef HASP_USE_HA
-    } else if(topic == strstr_P(topic, PSTR("homeassistant/status"))) { // HA discovery topic
-        if(mqttHAautodiscover && !strcasecmp_P((char*)payload, PSTR("online"))) {
-            dispatch_mtx.lock();
-            dispatch_current_state(TAG_MQTT);
-            dispatch_mtx.unlock();
-            mqtt_ha_register_auto_discovery();
-        }
-        return;
-#endif
-
     } else {
         // Other topic
         LOG_ERROR(TAG_MQTT, F(D_MQTT_INVALID_TOPIC));
@@ -338,12 +327,6 @@ static void onConnect(void* context, MQTTAsync_successData* response)
 
 #ifdef HASP_USE_BROADCAST
     topic = MQTT_PREFIX "/" MQTT_TOPIC_BROADCAST "/" MQTT_TOPIC_COMMAND "/#";
-    mqtt_subscribe(mqtt_client, topic.c_str());
-#endif
-
-    /* Home Assistant auto-configuration */
-#ifdef HASP_USE_HA
-    topic = "homeassistant/status";
     mqtt_subscribe(mqtt_client, topic.c_str());
 #endif
 
