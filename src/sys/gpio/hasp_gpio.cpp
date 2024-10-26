@@ -125,7 +125,7 @@ static void gpio_event_handler(AceButton* button, uint8_t eventType, uint8_t but
     bool state = false;
     switch(eventType) {
         case AceButton::kEventPressed:
-            if(gpioConfig[btnid].type != hasp_gpio_type_t::BUTTON) {
+            if(gpioConfig[btnid].type != hasp_gpio_type_t::BUTTON_TYPE) {
                 eventid = HASP_EVENT_ON;
             } else {
                 eventid = HASP_EVENT_DOWN;
@@ -148,7 +148,7 @@ static void gpio_event_handler(AceButton* button, uint8_t eventType, uint8_t but
         //     state = true; // do not repeat DOWN + LONG + HOLD
         //     break;
         case AceButton::kEventReleased:
-            if(gpioConfig[btnid].type != hasp_gpio_type_t::BUTTON) {
+            if(gpioConfig[btnid].type != hasp_gpio_type_t::BUTTON_TYPE) {
                 eventid = HASP_EVENT_OFF;
             } else {
                 eventid = HASP_EVENT_RELEASE;
@@ -255,7 +255,7 @@ static void gpio_setup_pin(uint8_t index)
             pinMode(gpio->pin, input_mode);
             gpio->max = 0;
             break;
-        case hasp_gpio_type_t::BUTTON:
+        case hasp_gpio_type_t::BUTTON_TYPE:
             if(gpio->btn) delete gpio->btn;
             gpio->btn   = new AceButton(&buttonConfig, gpio->pin, default_state, index);
             gpio->power = gpio->btn->isPressedRaw();
@@ -845,7 +845,7 @@ void gpio_discovery(JsonObject& input, JsonArray& relay, JsonArray& light, JsonA
                 relay.add(gpioConfig[i].pin);
                 break;
                 
-            case BUTTON ... TOUCH:
+            case BUTTON_TYPE ... TOUCH:
                 event.add(gpioConfig[i].pin);
                 break;
 
@@ -857,7 +857,7 @@ void gpio_discovery(JsonObject& input, JsonArray& relay, JsonArray& light, JsonA
                 dimmer.add(gpioConfig[i].pin);
                 break;
 
-            // case BUTTON ... TOUCH:
+            // case BUTTON_TYPE ... TOUCH:
             case SWITCH:
                 strcpy_P(description, PSTR("none"));
                 break;
@@ -951,7 +951,7 @@ void gpio_discovery(JsonObject& input, JsonArray& relay, JsonArray& light, JsonA
         }
 
         if((gpioConfig[i].type >= hasp_gpio_type_t::SWITCH && gpioConfig[i].type <= hasp_gpio_type_t::WINDOW)) {
-            // || (gpioConfig[i].type >= hasp_gpio_type_t::BUTTON && gpioConfig[i].type <= hasp_gpio_type_t::TOUCH)) {
+            // || (gpioConfig[i].type >= hasp_gpio_type_t::BUTTON_TYPE && gpioConfig[i].type <= hasp_gpio_type_t::TOUCH)) {
             JsonArray arr = input[description];
             if(arr.isNull()) arr = input.createNestedArray(description);
             arr.add(gpioConfig[i].pin);

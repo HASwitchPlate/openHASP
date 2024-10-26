@@ -640,6 +640,7 @@ void hasp_new_object(const JsonObject& config, uint8_t& saved_page_id)
             case HASP_OBJ_DROPDOWN:
                 obj = lv_dropdown_create(parent_obj, NULL);
                 if(obj) {
+                    lv_dropdown_set_text(obj, NULL); // Clear default text
                     lv_dropdown_set_draw_arrow(obj, true);
                     // lv_dropdown_set_anim_time(obj, 200);
                     lv_obj_set_top(obj, true);

@@ -24,7 +24,7 @@ void mqttStart();
 void mqttStop();
 
 // int mqtt_send_object_state(uint8_t pageid, uint8_t btnid, const char* payload);
-int mqtt_send_state(const char* subtopic, const char* payload);
+int mqtt_send_state(const char* subtopic, const char* payload, bool retain=false);
 int mqtt_send_discovery(const char* payload, size_t len);
 int mqttPublish(const char* topic, const char* payload, size_t len, bool retain);
 

@@ -116,8 +116,8 @@ typedef int16_t lv_coord_t;
 #  define LV_MEM_AUTO_DEFRAG  1
 #else       /*LV_MEM_CUSTOM*/
 #define LV_MEM_CUSTOM_INCLUDE <stdlib.h>   /*Header for the dynamic memory function*/
-#define LV_MEM_CUSTOM_ALLOC   malloc       /*Wrapper to malloc*/
-#define LV_MEM_CUSTOM_FREE    free         /*Wrapper to free*/
+#define LV_MEM_CUSTOM_ALLOC   hasp_malloc  /*Wrapper to malloc*/
+#define LV_MEM_CUSTOM_FREE    hasp_free    /*Wrapper to free*/
 #endif     /*LV_MEM_CUSTOM*/
 
 #ifndef LV_VDB_SIZE

@@ -2,7 +2,7 @@ name: Build branch
 
 on:
   release:
-    types: [created]
+    types: [published]
   push:
     branches:
       - master
@@ -51,7 +51,7 @@ jobs:
           - out: seeed-studios
             env: "sensecap-indicator-d1_8MB"
           - out: sunton
-            env: "esp32-2432s028r_4MB -e esp32-2432s028r-ili9342_4MB -e esp32-2432s032c_4MB -e esp32-3248s035c_4MB -e esp32-3248s035r_4MB -e sunton-4827s043c_16MB -e sunton-8048s043c_16MB -e sunton-8048s050c_16MB -e sunton-8048s070c_16MB"
+            env: "esp32-2432s028r_4MB -e esp32-2432s028r-ili9342_4MB -e esp32-2432s028r_v2_4MB -e esp32-2432s032c_4MB -e esp32-3248s035c_4MB -e esp32-3248s035r_4MB -e sunton-4827s043c_16MB -e sunton-8048s043c_16MB -e sunton-8048s050c_16MB -e sunton-8048s070c_16MB"
           - out: waveshare
             env: "esp32-one_ili9486 -e esp32-one_st7796"
           - out: wireless-tag
@@ -101,30 +101,20 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.environment.out }}
-          path: build_output/firmware/*.bin
-      - name: Create release and upload firmware
+          path: build_output/firmware/*.*n
+      ## Release only:
+      - name: Zip artifact for deployment
         if: github.ref != 'refs/heads/master'
         run: |
-          set -x
-          assets=()
-          for asset in build_output/firmware/*.bin; do
-            assets+=("-a" "$asset")
-          done
-          tag_name="${GITHUB_REF##*/}"
-          hub release edit "${assets[@]}" -m "$tag_name" "$tag_name"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    #- name: Create release and upload firmware
-    #  run: |
-    #    set -x
-    #    assets=()
-    #    for asset in build_output/firmware/*.bin; do
-    #      assets+=("-a" "$asset")
-    #    done
-    #    tag_name="${GITHUB_REF##*/}"
-    #    hub release create "${assets[@]}" -m "$tag_name" "$tag_name"
-    #  env:
-    #    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          zip ${{ matrix.environment.out }}.zip build_output/firmware/*.bin -r
+      - name: On Release, upload assets to that Release
+        if: github.ref != 'refs/heads/master'
+        uses: AButler/upload-release-assets@v3.0
+        with:
+          files: ${{ matrix.environment.out }}.zip
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+
   linux_build:
     runs-on: ubuntu-latest
     steps:

@@ -1804,7 +1804,7 @@ static void webHandleGpioConfig()
 
                     switch(conf.type) {
 
-                        case hasp_gpio_type_t::BUTTON:
+                        case hasp_gpio_type_t::BUTTON_TYPE:
                             httpMessage += D_GPIO_BUTTON;
                             break;
                         case hasp_gpio_type_t::SWITCH:
@@ -2049,7 +2049,7 @@ static void webHandleGpioInput()
         httpMessage += F("</select></p>");
 
         httpMessage += F("<p><b>Type</b> <select id='type' name='type'>");
-        httpMessage += getOption(hasp_gpio_type_t::BUTTON, D_GPIO_BUTTON, conf.type);
+        httpMessage += getOption(hasp_gpio_type_t::BUTTON_TYPE, D_GPIO_BUTTON, conf.type);
         httpMessage += getOption(hasp_gpio_type_t::SWITCH, D_GPIO_SWITCH, conf.type);
         httpMessage += getOption(hasp_gpio_type_t::DOOR, "door", conf.type);
         httpMessage += getOption(hasp_gpio_type_t::GARAGE_DOOR, "garage_door", conf.type);

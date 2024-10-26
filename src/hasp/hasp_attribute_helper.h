@@ -473,6 +473,31 @@ lv_obj_t* FindButtonLabel(lv_obj_t* btn)
 }
 
 // OK - lvgl does not return a const char *
+static const char* my_dropdown_get_text(const lv_obj_t* dd)
+{
+    const char* str_p = lv_dropdown_get_text((lv_obj_t*)dd);
+    return str_p ? str_p : "";
+}
+
+// OK - lvgl does not return a const char *
+static void my_dropdown_set_text(lv_obj_t* dd, const char* text)
+{
+    size_t len = 0;
+    if(text) len = strlen(text) + 1;
+
+    // release previous text
+    char* str_p = (char*)lv_dropdown_get_text(dd);
+    if(str_p) lv_mem_free(str_p);
+
+    // reserve and copy new text
+    str_p = (char*)lv_mem_alloc(len);
+    if(str_p != NULL) strncpy(str_p, text, len);
+
+    lv_dropdown_set_text((lv_obj_t*)dd, str_p); // library does not return const
+    lv_obj_invalidate(dd); // Needed if old ptr is equal to new ptr
+}
+
+// OK - lvgl does not return a const char *
 static const char* my_label_get_text(const lv_obj_t* label)
 {
     return lv_label_get_text(label); // library does not return const

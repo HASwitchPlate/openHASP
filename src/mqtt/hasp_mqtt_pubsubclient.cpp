@@ -117,11 +117,11 @@ bool mqtt_send_lwt(bool online)
 //     return mqttPublish(tmp_topic, payload, false);
 // }
 
-int mqtt_send_state(const char* subtopic, const char* payload)
+int mqtt_send_state(const char* subtopic, const char* payload, bool retain)
 {
     char tmp_topic[strlen(mqttNodeTopic) + strlen(subtopic) + 16];
     snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%s" MQTT_TOPIC_STATE "/%s"), mqttNodeTopic, subtopic);
-    return mqttPublish(tmp_topic, payload, false);
+    return mqttPublish(tmp_topic, payload, retain);
 }
 
 int mqtt_send_discovery(const char* payload, size_t len)

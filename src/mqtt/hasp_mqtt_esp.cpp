@@ -165,7 +165,7 @@ bool mqtt_send_lwt(bool online)
 //     return mqttPublish(tmp_topic, payload, false);
 // }
 
-int mqtt_send_state(const char* subtopic, const char* payload)
+int mqtt_send_state(const char* subtopic, const char* payload, bool retain)
 {
     String tmp_topic((char*)0);
     tmp_topic.reserve(128);
@@ -174,7 +174,7 @@ int mqtt_send_state(const char* subtopic, const char* payload)
     // tmp_topic += "/";
     tmp_topic += subtopic;
 
-    return mqttPublish(tmp_topic.c_str(), payload, false);
+    return mqttPublish(tmp_topic.c_str(), payload, retain);
 }
 
 int mqtt_send_discovery(const char* payload, size_t len)
