@@ -199,7 +199,7 @@ uint8_t FindNsID(const esp_partition_t* nvs, const char* ns)
 
 void nvs_setup()
 {
-    /*
+    
     // Example of listing all the key-value pairs of any type under specified partition and namespace
     nvs_iterator_t it = NULL;
     esp_err_t res     = nvs_entry_find("data", NULL, NVS_TYPE_ANY, &it);
@@ -210,16 +210,6 @@ void nvs_setup()
         res = nvs_entry_next(&it);
     }
     nvs_release_iterator(it);
-    */
-
-    nvs_iterator_t it = nvs_entry_find("config", NULL, NVS_TYPE_ANY);
-    nvs_entry_info_t info;
-
-    while(it) {
-        nvs_entry_info(it, &info);
-        printf("%s::%s type=%d\n", info.namespace_name, info.key, info.type);
-        it = nvs_entry_next(it);
-    }
 
     // Example of nvs_get_stats() to get the number of used entries and free entries:
     nvs_stats_t nvs_stats;

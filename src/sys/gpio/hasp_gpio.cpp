@@ -74,7 +74,9 @@ static inline void gpio_update_group(uint8_t group, lv_obj_t* obj, bool power, i
 //     uint32_t div_b;     /*!<Division factor. Range: 1 ~ 63. */
 //     uint32_t div_a;     /*!<Division factor. Range: 0 ~ 63. */
 // } adc_digi_clk_t;
-#include "driver/adc.h"
+
+#include "esp_adc/adc_continuous.h"
+// #include "driver/adc.h"
 // #include "driver/dac_common.h"
 #include "driver/ledc.h"
 #include "driver/uart.h"
@@ -286,14 +288,8 @@ static void gpio_setup_pin(uint8_t index)
             gpio->power = gpio->inverted; // gpio is off, state is set to reflect the true output state of the gpio
             gpio->val   = gpio->inverted ? 0 : gpio->max;
 #if defined(ARDUINO_ARCH_ESP32)
-            if(pwm_channel < LEDC_CHANNEL_MAX) {
-                // configure LED PWM functionalitites
-                ledcSetup(pwm_channel, 20000, 10);
-                // attach the channel to the GPIO to be controlled
-                ledcAttachPin(gpio->pin, pwm_channel);
-                gpio->channel = pwm_channel++;
-            } else {
-                LOG_ERROR(TAG_GPIO, F("Too many PWM channels defined"));
+            if (!ledcAttach(gpio->pin, 20000, 10)) {
+                LOG_ERROR(TAG_GPIO, F("Failed to attach PWM output!"));
             }
 #endif
             break;
@@ -310,7 +306,7 @@ static void gpio_setup_pin(uint8_t index)
 
         case hasp_gpio_type_t::SERIAL_DIMMER:
         case hasp_gpio_type_t::SERIAL_DIMMER_L8_HD:
-        case hasp_gpio_type_t::SERIAL_DIMMER_L8_HD_INVERTED: {
+        case hasp_gpio_type_t::SERIAL_DIMMER_L8_HD_INVERTED: 
             const char command[9] = "\xEF\x01\x4D\xA3"; // Start Lanbon Dimmer
 #if defined(ARDUINO_ARCH_ESP32)
             Serial1.begin(115200UL, SERIAL_8N1, UART_PIN_NO_CHANGE, gpio->pin,
@@ -323,7 +319,7 @@ static void gpio_setup_pin(uint8_t index)
             gpio->val = gpio->max;
             gpio_log_serial_dimmer(command);
             break;
-        }
+        
 
         case hasp_gpio_type_t::FREE:
             return;
@@ -487,7 +483,7 @@ static inline bool gpio_set_analog_value(hasp_gpio_config_t* gpio)
     if(!gpio->power) val = 0;
     if(gpio->inverted) val = 4095 - val;
 
-    ledcWrite(gpio->channel, val); // 12 bits
+    ledcWrite(gpio->pin, val); // 12 bits
     return true;                   // sent
 
 #elif defined(ARDUINO_ARCH_ESP32)
@@ -500,7 +496,7 @@ static inline bool gpio_set_analog_value(hasp_gpio_config_t* gpio)
     if(!gpio->power) val = 0;
     if(gpio->inverted) val = 1023 - val;
 
-    ledcWrite(gpio->channel, val); // 10 bits
+    ledcWrite(gpio->pin, val); // 10 bits
     return true;                   // sent
 
 #elif defined(ARDUINO_ARCH_ESP8266)

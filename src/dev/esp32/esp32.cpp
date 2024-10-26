@@ -8,8 +8,9 @@
 #include <WiFi.h>
 #include "esp_system.h"
 #include <rom/rtc.h> // needed to get the ResetInfo
-#include "driver/adc.h"
-#include "esp_adc_cal.h"
+// #include "driver/adc.h"
+// #include "esp_adc_cal.h" // yetanothercarbot - remove if not needed.
+#include "esp_adc/adc_continuous.h"
 #include "esp_efuse.h"
 
 #include "hasp_conf.h"
@@ -247,12 +248,7 @@ void Esp32Device::set_backlight_pin(uint8_t pin)
     /* Setup Backlight Control Pin */
     if(pin < GPIO_NUM_MAX) {
         LOG_VERBOSE(TAG_GUI, F("Backlight  : Pin %d"), pin);
-#if !defined(CONFIG_IDF_TARGET_ESP32S2)
-        ledcSetup(BACKLIGHT_CHANNEL, BACKLIGHT_FREQUENCY, 10);
-#else
-        ledcSetup(BACKLIGHT_CHANNEL, BACKLIGHT_FREQUENCY, 10);
-#endif
-        ledcAttachPin(pin, BACKLIGHT_CHANNEL);
+        ledcAttach(pin, BACKLIGHT_FREQUENCY, 10);
         update_backlight();
     } else {
         LOG_VERBOSE(TAG_GUI, F("Backlight  : Pin not set"));
@@ -295,15 +291,9 @@ bool Esp32Device::get_backlight_power()
 void Esp32Device::update_backlight()
 {
     if(_backlight_pin < GPIO_NUM_MAX) {
-#if !defined(CONFIG_IDF_TARGET_ESP32S2)
         uint32_t duty = _backlight_power ? map(_backlight_level, 0, 255, 0, 1023) : 0;
         if(_backlight_invert) duty = 1023 - duty;
-        ledcWrite(BACKLIGHT_CHANNEL, duty); // ledChannel and value
-#else
-        uint32_t duty = _backlight_power ? map(_backlight_level, 0, 255, 0, 1023) : 0;
-        if(_backlight_invert) duty = 1023 - duty;
-        ledcWrite(BACKLIGHT_CHANNEL, duty); // ledChannel and value
-#endif
+        ledcWrite(_backlight_pin, duty); // ledChannel and value
     }
 
     // haspTft.tft.writecommand(0x53); // Write CTRL Display

@@ -668,11 +668,12 @@ bool timeGetConfig(const JsonObject& settings)
     preferences.end();
 
 #if ESP_ARDUINO_VERSION_MAJOR >= 2
-    nvs_iterator_t it = nvs_entry_find("config", "time", NVS_TYPE_ANY);
-    while(it != NULL) {
+    nvs_iterator_t it = NULL;
+    esp_err_t res = nvs_entry_find("config", "time", NVS_TYPE_ANY, &it);
+    while(res == ESP_OK) {
         nvs_entry_info_t info;
         nvs_entry_info(it, &info);
-        it = nvs_entry_next(it);
+        res = nvs_entry_next(&it);
         printf("key '%s', type '%d' \n", info.key, info.type);
     };
 #endif
