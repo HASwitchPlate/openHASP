@@ -37,8 +37,9 @@ void ArduinoGfx::init(int w, int h)
     );
 
 #elif(TFT_WIDTH == 480) && (TFT_HEIGHT == 480) && defined(LILYGO_T_PANEL)
+    Wire.begin(17, 18);
     Arduino_DataBus* bus            = new Arduino_XL9535SWSPI(17 /* SDA */, 18 /* SCL */, -1 /* XL PWD */, 17 /* XL CS */,
-                                                              15 /* XL SCK */, 16 /* XL MOSI */);
+                                                              15 /* XL SCK */, 16 /* XL MOSI */,&Wire);
     Arduino_ESP32RGBPanel *rgbpanel = new Arduino_ESP32RGBPanel(
         -1 /* DE */, TFT_VSYNC /* VSYNC */, TFT_HSYNC /* HSYNC */, TFT_PCLK /* PCLK */,
         TFT_B0 /* B0 */, TFT_B1 /* B1 */, TFT_B2 /* B2 */, TFT_B3 /* B3 */, TFT_B4 /* B4 */,
@@ -50,7 +51,7 @@ void ArduinoGfx::init(int w, int h)
         0 /* de_idle_high*/, 0 /* pclk_idle_high */);
 
     tft = new Arduino_RGB_Display(TFT_WIDTH /* width */, TFT_HEIGHT /* height */, rgbpanel, 0 /* rotation */, true /* auto_flush */,
-    bus, -1 /* RST */, st7701_sensecap_indicator_init_operations, sizeof(st7701_sensecap_indicator_init_operations));
+    bus, -1 /* RST */, st7701_t_panel_init_operations, sizeof(st7701_t_panel_init_operations));
 
 #elif(TFT_WIDTH == 480) && (TFT_HEIGHT == 480) && defined(LILYGO_T_RGB)
     Wire.begin(8 /* SDA */, 48 /* SCL */, 800000L /* speed */);
