@@ -776,7 +776,7 @@ bool gpioIsSystemPin(uint8_t gpio)
         return true;
     }
 
-#if defined(HASP_USE_CUSTOM)
+#if defined(HASP_USE_CUSTOM) && HASP_USE_CUSTOM > 0
     if(custom_pin_in_use(gpio)) {
         LOG_DEBUG(TAG_GPIO, F(D_BULLET D_GPIO_PIN " %d => Custom"), gpio);
         return true;
