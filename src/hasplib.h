@@ -70,6 +70,6 @@
 #endif
 #endif
 
-#if defined(HASP_USE_CUSTOM)
+#if defined(HASP_USE_CUSTOM) && HASP_USE_CUSTOM > 0
 #include "custom/my_custom.h"
 #endif
