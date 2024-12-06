@@ -26,7 +26,7 @@ void ArduinoGfx::init(int w, int h)
     LOG_TRACE(TAG_TFT, F(D_SERVICE_STARTING));
 
 #if(TFT_WIDTH == 170) && (TFT_HEIGHT == 320) 
-    Arduino_DataBus *bus = new Arduino_ESP32LCD8(
+    Arduino_DataBus *bus = new Arduino_ESP32PAR8(
         TFT_DC, TFT_CS, TFT_WR, TFT_RD,
         TFT_D0, TFT_D1, TFT_D2, TFT_D3, TFT_D4, TFT_D5, TFT_D6, TFT_D7);
     tft = new Arduino_ST7789(bus,
