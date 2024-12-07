@@ -204,8 +204,8 @@ static void configure_panel(lgfx::Panel_Device* panel, Preferences* prefs)
     cfg.memory_width  = prefs->getUInt("memory_width", cfg.panel_width);   // Maximum width supported by driver IC
     cfg.memory_height = prefs->getUInt("memory_height", cfg.panel_height); // Maximum height supported by driver IC
 
-    cfg.offset_x = prefs->getUInt("offset_x", 0); // Amount of offset in the X direction of the panel
-    cfg.offset_y = prefs->getUInt("offset_y", 0); // Amount of offset in the Y direction of the panel
+    cfg.offset_x = prefs->getUInt("offset_x", TFT_OFFSET_X); // Amount of offset in the X direction of the panel
+    cfg.offset_y = prefs->getUInt("offset_y", TFT_OFFSET_Y); // Amount of offset in the Y direction of the panel
     cfg.offset_rotation =
         prefs->getUInt("offset_rotation", TFT_OFFSET_ROTATION); // Offset of the rotation 0 ~ 7 (4 ~ 7 is upside down)
 
