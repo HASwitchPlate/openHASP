@@ -37,7 +37,7 @@ jobs:
           - out: guition
             env: esp32-s3-4848s040_16MB -e guition-jc4827w543c_4MB
           - out: lanbon
-            env: lanbon_l8
+            env: lanbon_l8 -e lanbon_l9
           - out: lilygo-ttgo
             env: "lilygo-lily-pi_st7796 -e lilygo-lily-pi_ili9481 -e ttgo-t7-v1_5_ili9341_4MB -e ttgo-t7-v1_5_ili9341_16MB"
           - out: lolin
