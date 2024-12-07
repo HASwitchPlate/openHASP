@@ -26,10 +26,10 @@ void ArduinoGfx::init(int w, int h)
     LOG_TRACE(TAG_TFT, F(D_SERVICE_STARTING));
 
 #if(TFT_WIDTH == 170) && (TFT_HEIGHT == 320) 
-    Arduino_DataBus *bus = new Arduino_ESP32PAR8Q(
+    Arduino_DataBus *bus = new Arduino_ESP32PAR8(
         TFT_DC, TFT_CS, TFT_WR, TFT_RD,
         TFT_D0, TFT_D1, TFT_D2, TFT_D3, TFT_D4, TFT_D5, TFT_D6, TFT_D7);
-    Arduino_GFX *gfx = new Arduino_ST7789(bus,
+    tft = new Arduino_ST7789(bus,
         TFT_RST /* RST */, TFT_ROTATION /* rotation */, true /* IPS */,
         TFT_WIDTH /* width */, TFT_HEIGHT /* height */,
         35 /* col offset 1 */, 0 /* row offset 1 */,
@@ -37,8 +37,9 @@ void ArduinoGfx::init(int w, int h)
     );
 
 #elif(TFT_WIDTH == 480) && (TFT_HEIGHT == 480) && defined(LILYGO_T_PANEL)
+    Wire.begin(17, 18);
     Arduino_DataBus* bus            = new Arduino_XL9535SWSPI(17 /* SDA */, 18 /* SCL */, -1 /* XL PWD */, 17 /* XL CS */,
-                                                              15 /* XL SCK */, 16 /* XL MOSI */);
+                                                              15 /* XL SCK */, 16 /* XL MOSI */,&Wire);
     Arduino_ESP32RGBPanel *rgbpanel = new Arduino_ESP32RGBPanel(
         -1 /* DE */, TFT_VSYNC /* VSYNC */, TFT_HSYNC /* HSYNC */, TFT_PCLK /* PCLK */,
         TFT_B0 /* B0 */, TFT_B1 /* B1 */, TFT_B2 /* B2 */, TFT_B3 /* B3 */, TFT_B4 /* B4 */,
@@ -50,7 +51,7 @@ void ArduinoGfx::init(int w, int h)
         0 /* de_idle_high*/, 0 /* pclk_idle_high */);
 
     tft = new Arduino_RGB_Display(TFT_WIDTH /* width */, TFT_HEIGHT /* height */, rgbpanel, 0 /* rotation */, true /* auto_flush */,
-    bus, -1 /* RST */, st7701_sensecap_indicator_init_operations, sizeof(st7701_sensecap_indicator_init_operations));
+    bus, -1 /* RST */, st7701_t_panel_init_operations, sizeof(st7701_t_panel_init_operations));
 
 #elif(TFT_WIDTH == 480) && (TFT_HEIGHT == 480) && defined(LILYGO_T_RGB)
     Wire.begin(8 /* SDA */, 48 /* SCL */, 800000L /* speed */);
@@ -141,7 +142,7 @@ void ArduinoGfx::init(int w, int h)
 
     /* TFT init */
     LOG_DEBUG(TAG_TFT, F("%s - %d"), __FILE__, __LINE__);
-    tft->begin(GFX_NOT_DEFINED);
+    tft->begin(SPI_FREQUENCY);
     LOG_DEBUG(TAG_TFT, F("%s - %d"), __FILE__, __LINE__);
     // tft.setSwapBytes(true); /* set endianness */
     LOG_INFO(TAG_TFT, F(D_SERVICE_STARTED));

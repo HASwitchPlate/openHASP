@@ -371,7 +371,7 @@ void onMqttConnect(esp_mqtt_client_handle_t client)
     // mqttSubscribeTo(mqttGroupTopic + subtopic);
     // mqttSubscribeTo(mqttNodeTopic + subtopic);
 
-#if defined(HASP_USE_CUSTOM)
+#if defined(HASP_USE_CUSTOM) && HASP_USE_CUSTOM > 0
     String subtopic = F(MQTT_TOPIC_CUSTOM "/#");
     mqttSubscribeTo(mqttGroupCommandTopic + subtopic);
     mqttSubscribeTo(mqttNodeCommandTopic + subtopic);
