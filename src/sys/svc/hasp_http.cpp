@@ -264,18 +264,18 @@ static void webSendFooter()
 #endif
 }
 
-static void http_send_cache_header(int size, int age = 3600)
+static void http_send_cache_header(int age = 3600)
 {
-    webServer.sendHeader("Content-Length", (String)(size));
     webServer.sendHeader("Cache-Control", (String)(F("public, max-age=")) + (String)(age));
 }
 
 static int http_send_cached(int statuscode, const char* contenttype, const char* data, size_t size, int age = 3600)
 {
-    http_send_cache_header(size, age);
+    http_send_cache_header(age);
 #if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
     webServer.send_P(statuscode, contenttype, data, size);
 #else
+    webServer.sendHeader("Content-Length", (String)(size));
     webServer.send(statuscode, contenttype, data);
 #endif
     return statuscode;
