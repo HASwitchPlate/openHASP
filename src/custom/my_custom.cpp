@@ -7,16 +7,16 @@
 
 #include "hasplib.h"
 //#include <lvgl.h>
+
 #if defined(HASP_USE_CUSTOM) && true // <-- set this to true in your code
 
 #include "hasp_debug.h"
 #include "custom/my_custom.h"
 
-
-const int voltage_read = 35;
-const int blink_speed = 60000; //read every 60 sec
-bool blink_state = LOW;
 unsigned long last_blink = 0;
+const int voltage_read = 35;
+const int blink_speed = 1000; //read every 1 sec
+
 float batteryFraction;
 float currentVoltage;
 
@@ -33,13 +33,14 @@ const float minVoltage = 3.0;  // Minimum voltage (0% charge)
 const float maxVoltage = 4.2;  // Maximum voltage (100% charge)
 
 //deep sleep timer
-const int sleepTimeSeconds = 60;  // Set the sleep time in seconds
+const int sleepTimeSeconds = 1;  // Set the sleep time in seconds
 
 void custom_setup()
 {
     // Initialization code here
+    analogReadResolution(12);
     last_blink = millis();
-    pinMode(voltage_read, ANALOG);
+    // pinMode(voltage_read, INPUT_PULLUP);
 
     randomSeed(millis());
 }
@@ -49,23 +50,26 @@ void custom_loop()
     // read voltage every 60 seconds
     if(blink_speed && (millis() - last_blink > blink_speed)) {
 
-        currentVoltage = analogReadMilliVolts(anavoltage_read) * (maxVoltage / 4095.0);
+        currentVoltage = analogReadMilliVolts(35);
+        currentVoltage = currentVoltage * 2 / 1000;
+        Serial.println(currentVoltage);
+        
         // Calculate the percentage of charge
-        batteryFraction = map(constrain(currentVoltage, minVoltage, maxVoltage) * 1000, minVoltage * 1000, maxVoltage * 1000, 0, 100);
+        batteryFraction = map(constrain(currentVoltage, minVoltage, maxVoltage)*1000, minVoltage*1000, maxVoltage*1000, 0, 100);
         //read illumination
-
+        Serial.println(batteryFraction);
         last_blink = millis();
         
         updateBatteryDisplay(12, 9, batteryFraction);
         updateBatteryDisplay(9, 9, batteryFraction);
-        updateBatteryDisplay(0, 7, batteryFraction);
+        updateBatteryDisplay(0, 6, batteryFraction);
         //updateVoltageDisplay(9,10,currentVoltage);
         String voltageString = String(currentVoltage, 2);     // Converts the float to a String with 2 decimal places
         voltageString += "V";                                 // Concatenates "V" at the end
-        updateTextDisplay(12, 10, voltageString.c_str());
+        updateTextDisplay(9, 8, voltageString.c_str());
         String fractionString = String(batteryFraction, 2);   // Converts the float to a String with 2 decimal places
         fractionString += "%";                                // Concatenates "%" at the end 
-        updateTextDisplay(9, 11, fractionString.c_str());  
+        updateTextDisplay(9, 5, fractionString.c_str());  
         updateTextDisplay(12, 11, fractionString.c_str());
     }
 
@@ -103,6 +107,8 @@ void custom_every_second()
 
 void custom_every_5seconds()
 {
+    LOG_VERBOSE(TAG_CUSTOM, "%d seconds have passsed...", 5);
+
 
     // Convert the integer to a string
     String vbatFraction = String(batteryFraction);
@@ -152,6 +158,10 @@ void custom_get_sensors(JsonDocument& doc)
 
 void custom_topic_payload(const char* topic, const char* payload, uint8_t source){
     // Not used
+}
+
+void custom_state_subtopic(const char* subtopic, const char* payload){
+
 }
 
 #endif // HASP_USE_CUSTOM
