@@ -39,7 +39,7 @@ void custom_setup()
 {
     // Initialization code here
     last_blink = millis();
-    pinMode(voltage_read, INPUT_PULLUP);
+    pinMode(voltage_read, ANALOG);
 
     randomSeed(millis());
 }
@@ -49,7 +49,7 @@ void custom_loop()
     // read voltage every 60 seconds
     if(blink_speed && (millis() - last_blink > blink_speed)) {
 
-        currentVoltage = analogRead(voltage_read) * (maxVoltage / 4095.0);
+        currentVoltage = analogReadMilliVolts(anavoltage_read) * (maxVoltage / 4095.0);
         // Calculate the percentage of charge
         batteryFraction = map(constrain(currentVoltage, minVoltage, maxVoltage) * 1000, minVoltage * 1000, maxVoltage * 1000, 0, 100);
         //read illumination
