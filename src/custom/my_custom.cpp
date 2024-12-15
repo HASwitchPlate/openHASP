@@ -6,6 +6,7 @@
 //280mA - LED ON, 190mA - LED off
 
 #include "hasplib.h"
+#include <Arduino.h>
 //#include <lvgl.h>
 #if defined(HASP_USE_CUSTOM) && true // <-- set this to true in your code
 
