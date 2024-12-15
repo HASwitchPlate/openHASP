@@ -25,33 +25,32 @@ void ArduinoGfx::init(int w, int h)
 {
     LOG_TRACE(TAG_TFT, F(D_SERVICE_STARTING));
 
-#if(TFT_WIDTH == 170) && (TFT_HEIGHT == 320) 
-    Arduino_DataBus *bus = new Arduino_ESP32PAR8(
-        TFT_DC, TFT_CS, TFT_WR, TFT_RD,
-        TFT_D0, TFT_D1, TFT_D2, TFT_D3, TFT_D4, TFT_D5, TFT_D6, TFT_D7);
-    tft = new Arduino_ST7789(bus,
-        TFT_RST /* RST */, TFT_ROTATION /* rotation */, true /* IPS */,
-        TFT_WIDTH /* width */, TFT_HEIGHT /* height */,
-        35 /* col offset 1 */, 0 /* row offset 1 */,
-        35 /* col offset 2 */, 0 /* row offset 2 */
+#if(TFT_WIDTH == 170) && (TFT_HEIGHT == 320)
+    Arduino_DataBus* bus = new Arduino_ESP32PAR8(TFT_DC, TFT_CS, TFT_WR, TFT_RD, TFT_D0, TFT_D1, TFT_D2, TFT_D3, TFT_D4,
+                                                 TFT_D5, TFT_D6, TFT_D7);
+    tft = new Arduino_ST7789(bus, TFT_RST /* RST */, TFT_ROTATION /* rotation */, true /* IPS */, TFT_WIDTH /* width */,
+                             TFT_HEIGHT /* height */, 35 /* col offset 1 */, 0 /* row offset 1 */,
+                             35 /* col offset 2 */, 0 /* row offset 2 */
     );
+    tft->begin(SPI_FREQUENCY); // Used for SPI displays
 
 #elif(TFT_WIDTH == 480) && (TFT_HEIGHT == 480) && defined(LILYGO_T_PANEL)
     Wire.begin(17, 18);
-    Arduino_DataBus* bus            = new Arduino_XL9535SWSPI(17 /* SDA */, 18 /* SCL */, -1 /* XL PWD */, 17 /* XL CS */,
-                                                              15 /* XL SCK */, 16 /* XL MOSI */,&Wire);
-    Arduino_ESP32RGBPanel *rgbpanel = new Arduino_ESP32RGBPanel(
-        -1 /* DE */, TFT_VSYNC /* VSYNC */, TFT_HSYNC /* HSYNC */, TFT_PCLK /* PCLK */,
-        TFT_B0 /* B0 */, TFT_B1 /* B1 */, TFT_B2 /* B2 */, TFT_B3 /* B3 */, TFT_B4 /* B4 */,
-        TFT_G0 /* G0 */, TFT_G1 /* G1 */, TFT_G2 /* G2 */, TFT_G3 /* G3 */, TFT_G4 /* G4 */, TFT_G5 /* G5 */,
-        TFT_R0 /* R0 */, TFT_R1 /* R1 */, TFT_R2 /* R2 */, TFT_R3 /* R3 */, TFT_R4 /* R4 */,
-        1 /* hsync_polarity */, 20 /* hsync_front_porch */, 2 /* hsync_pulse_width */, 0 /* hsync_back_porch */,
-        1 /* vsync_polarity */, 30 /* vsync_front_porch */, 8 /* vsync_pulse_width */, 1 /* vsync_back_porch */,
-        10 /* pclk_active_neg */, 6000000L /* prefer_speed */, false /* useBigEndian */,
-        0 /* de_idle_high*/, 0 /* pclk_idle_high */);
+    Arduino_DataBus* bus = new Arduino_XL9535SWSPI(17 /* SDA */, 18 /* SCL */, -1 /* XL PWD */, 17 /* XL CS */,
+                                                   15 /* XL SCK */, 16 /* XL MOSI */, &Wire);
+    Arduino_ESP32RGBPanel* rgbpanel = new Arduino_ESP32RGBPanel(
+        -1 /* DE */, TFT_VSYNC /* VSYNC */, TFT_HSYNC /* HSYNC */, TFT_PCLK /* PCLK */, TFT_B0 /* B0 */,
+        TFT_B1 /* B1 */, TFT_B2 /* B2 */, TFT_B3 /* B3 */, TFT_B4 /* B4 */, TFT_G0 /* G0 */, TFT_G1 /* G1 */,
+        TFT_G2 /* G2 */, TFT_G3 /* G3 */, TFT_G4 /* G4 */, TFT_G5 /* G5 */, TFT_R0 /* R0 */, TFT_R1 /* R1 */,
+        TFT_R2 /* R2 */, TFT_R3 /* R3 */, TFT_R4 /* R4 */, 1 /* hsync_polarity */, 20 /* hsync_front_porch */,
+        2 /* hsync_pulse_width */, 0 /* hsync_back_porch */, 1 /* vsync_polarity */, 30 /* vsync_front_porch */,
+        8 /* vsync_pulse_width */, 1 /* vsync_back_porch */, 10 /* pclk_active_neg */, 6000000L /* prefer_speed */,
+        false /* useBigEndian */, 0 /* de_idle_high*/, 0 /* pclk_idle_high */);
 
-    tft = new Arduino_RGB_Display(TFT_WIDTH /* width */, TFT_HEIGHT /* height */, rgbpanel, 0 /* rotation */, true /* auto_flush */,
-    bus, -1 /* RST */, st7701_t_panel_init_operations, sizeof(st7701_t_panel_init_operations));
+    tft = new Arduino_RGB_Display(TFT_WIDTH /* width */, TFT_HEIGHT /* height */, rgbpanel, 0 /* rotation */,
+                                  true /* auto_flush */, bus, -1 /* RST */, st7701_t_panel_init_operations,
+                                  sizeof(st7701_t_panel_init_operations));
+    tft->begin(GFX_NOT_DEFINED); // Used for RFB displays
 
 #elif(TFT_WIDTH == 480) && (TFT_HEIGHT == 480) && defined(LILYGO_T_RGB)
     Wire.begin(8 /* SDA */, 48 /* SCL */, 800000L /* speed */);
@@ -63,8 +62,9 @@ void ArduinoGfx::init(int w, int h)
         6 /* B1 */, 5 /* B2 */, 3 /* B3 */, 2 /* B4 */, 1 /* hsync_polarity */, 50 /* hsync_front_porch */,
         1 /* hsync_pulse_width */, 30 /* hsync_back_porch */, 1 /* vsync_polarity */, 20 /* vsync_front_porch */,
         1 /* vsync_pulse_width */, 30 /* vsync_back_porch */, 1 /* pclk_active_neg */);
-     tft = new Arduino_RGB_Display(w, h, rgbpanel, 0 /* rotation */, TFT_AUTO_FLUSH, bus, TFT_RST,
+    tft = new Arduino_RGB_Display(w, h, rgbpanel, 0 /* rotation */, TFT_AUTO_FLUSH, bus, TFT_RST,
                                   st7701_type4_init_operations, sizeof(st7701_type4_init_operations));
+    tft->begin(GFX_NOT_DEFINED); // Used for RFB displays
 
 #elif(TFT_WIDTH == 480) && (TFT_HEIGHT == 480) && defined(SENSECAP_INDICATOR_D1)
     Wire.begin(TOUCH_SDA, TOUCH_SCL, I2C_TOUCH_FREQUENCY);
@@ -72,14 +72,16 @@ void ArduinoGfx::init(int w, int h)
     pinMode(TFT_MOSI, OUTPUT);
     pinMode(TFT_MISO, OUTPUT);
     Arduino_DataBus* bus            = new Arduino_PCA9535SWSPI(TOUCH_SDA, TOUCH_SCL, 5 /* XL PWD */, 4 /* XL CS */,
-                                                              TFT_SCLK /* XL SCK */, TFT_MOSI /* XL MOSI */, &Wire);
+                                                               TFT_SCLK /* XL SCK */, TFT_MOSI /* XL MOSI */, &Wire);
     Arduino_ESP32RGBPanel* rgbpanel = new Arduino_ESP32RGBPanel(
         TFT_DE, TFT_VSYNC, TFT_HSYNC, TFT_PCLK, TFT_R0, TFT_R1, TFT_R2, TFT_R3, TFT_R4, TFT_G0, TFT_G1, TFT_G2, TFT_G3,
         TFT_G4, TFT_G5, TFT_B0, TFT_B1, TFT_B2, TFT_B3, TFT_B4, TFT_HSYNC_POLARITY, TFT_HSYNC_FRONT_PORCH,
         TFT_HSYNC_PULSE_WIDTH, TFT_HSYNC_BACK_PORCH, TFT_VSYNC_POLARITY, TFT_VSYNC_FRONT_PORCH, TFT_VSYNC_PULSE_WIDTH,
         TFT_VSYNC_BACK_PORCH);
     tft = new Arduino_RGB_Display(w, h, rgbpanel, 0 /* rotation */, TFT_AUTO_FLUSH, bus, TFT_RST,
-                                  st7701_sensecap_indicator_init_operations, sizeof(st7701_sensecap_indicator_init_operations));
+                                  st7701_sensecap_indicator_init_operations,
+                                  sizeof(st7701_sensecap_indicator_init_operations));
+    tft->begin(GFX_NOT_DEFINED); // Used for RFB displays
 
 #elif(TFT_WIDTH == 480) && (TFT_HEIGHT == 480) && defined(GC9503V_DRIVER)
     Arduino_DataBus* bus            = new Arduino_SWSPI(TFT_DC, TFT_CS, TFT_SCLK, TFT_MOSI, TFT_MISO);
@@ -90,6 +92,7 @@ void ArduinoGfx::init(int w, int h)
         TFT_VSYNC_BACK_PORCH);
     tft = new Arduino_RGB_Display(w, h, rgbpanel, 0 /* rotation */, TFT_AUTO_FLUSH, bus, TFT_RST,
                                   gc9503v_type1_init_operations, sizeof(gc9503v_type1_init_operations));
+    tft->begin(GFX_NOT_DEFINED); // Used for RFB displays
 
 #elif(TFT_WIDTH == 480) && (TFT_HEIGHT == 480) && defined(ST7701_DRIVER) && defined(ST7701_4848S040)
     Arduino_DataBus* bus            = new Arduino_SWSPI(TFT_DC, TFT_CS, TFT_SCLK, TFT_MOSI, TFT_MISO);
@@ -101,6 +104,8 @@ void ArduinoGfx::init(int w, int h)
 
     tft = new Arduino_RGB_Display(w, h, rgbpanel, 0 /* rotation */, TFT_AUTO_FLUSH, bus, TFT_RST,
                                   st7701_4848S040_init_operations, sizeof(st7701_4848S040_init_operations));
+    tft->begin(GFX_NOT_DEFINED); // Used for RFB displays
+
 #elif(TFT_WIDTH == 480) && (TFT_HEIGHT == 480) && defined(ST7701_DRIVER)
     /* More data bus class: https://github.com/moononournation/Arduino_GFX/wiki/Data-Bus-Class */
     Arduino_DataBus* bus            = new Arduino_SWSPI(TFT_DC, TFT_CS, TFT_SCLK, TFT_MOSI, TFT_MISO);
@@ -113,10 +118,13 @@ void ArduinoGfx::init(int w, int h)
     /* More display class: https://github.com/moononournation/Arduino_GFX/wiki/Display-Class */
     tft = new Arduino_RGB_Display(w, h, rgbpanel, 0 /* rotation */, TFT_AUTO_FLUSH, bus, TFT_RST,
                                   st7701_type1_init_operations, sizeof(st7701_type1_init_operations));
+    tft->begin(GFX_NOT_DEFINED); // Used for RFB displays
+
 #elif(TFT_WIDTH == 480) && (TFT_HEIGHT == 272) && defined(NV3041A_DRIVER)
     Arduino_DataBus* bus = new Arduino_ESP32QSPI(TFT_CS, TFT_SCK, TFT_D0, TFT_D1, TFT_D2, TFT_D3);
-    Arduino_GFX* g = new Arduino_NV3041A(bus, TFT_RST, TFT_ROTATION, TFT_IPS);
-    tft = g;
+    tft                  = new Arduino_NV3041A(bus, TFT_RST, TFT_ROTATION, TFT_IPS);
+    tft->begin(GFX_NOT_DEFINED); // Used for RFB displays
+
 #elif 1
     /* Reset is not implemented in the panel */
     if(TFT_RST != GFX_NOT_DEFINED) {
@@ -135,15 +143,11 @@ void ArduinoGfx::init(int w, int h)
         TFT_HSYNC_PULSE_WIDTH, TFT_HSYNC_BACK_PORCH, TFT_VSYNC_POLARITY, TFT_VSYNC_FRONT_PORCH, TFT_VSYNC_PULSE_WIDTH,
         TFT_VSYNC_BACK_PORCH, TFT_PCLK_ACTIVE_NEG, TFT_PREFER_SPEED);
 
-    Arduino_RGB_Display_Mod* gfx = new Arduino_RGB_Display_Mod(TFT_WIDTH, TFT_HEIGHT, bus);
-    tft                          = gfx;
+    tft = new Arduino_RGB_Display_Mod(TFT_WIDTH, TFT_HEIGHT, bus);
+    tft->begin(GFX_NOT_DEFINED); // Used for RFB displays
     // fb  = ((Arduino_RGBPanel_Mod*)tft)->getFramebuffer();
 #endif
 
-    /* TFT init */
-    LOG_DEBUG(TAG_TFT, F("%s - %d"), __FILE__, __LINE__);
-    tft->begin(SPI_FREQUENCY);
-    LOG_DEBUG(TAG_TFT, F("%s - %d"), __FILE__, __LINE__);
     // tft.setSwapBytes(true); /* set endianness */
     LOG_INFO(TAG_TFT, F(D_SERVICE_STARTED));
 }
