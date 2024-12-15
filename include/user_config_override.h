@@ -147,7 +147,7 @@
  *        Other Settings
  **************************************************/
 //#define HASP_USE_MDNS 0                             // Disable MDNS
-//#define HASP_USE_CUSTOM 1                           // Enable compilation of custom code from /src/custom
+#define HASP_USE_CUSTOM 1                           // Enable compilation of custom code from /src/custom
 //#define HASP_START_CONSOLE 0                        // Disable starting of serial console at boot
 //#define HASP_START_TELNET 0                         // Disable starting of telnet service at boot
 //#define HASP_START_HTTP 0                           // Disable starting of web interface at boot
