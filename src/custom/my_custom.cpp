@@ -7,8 +7,7 @@
 
 #include "hasplib.h"
 //#include <lvgl.h>
-
-#if defined(HASP_USE_CUSTOM) && true // <-- set this to true in your code
+#if defined(HASP_USE_CUSTOM) && HASP_USE_CUSTOM > 0 && true // <-- set this to true in your code
 
 #include "hasp_debug.h"
 #include "custom/my_custom.h"
@@ -16,7 +15,8 @@
 
 const int voltage_read = 35;
 const int blink_speed = 60000; //read every 60 sec
-
+bool blink_state = LOW;
+unsigned long last_blink = 0;
 float batteryFraction;
 float currentVoltage;
 
@@ -96,6 +96,52 @@ void updateTextDisplay(uint8_t page, uint8_t id, const char* text) {
     lv_label_set_text(widget, text);
 }
 
+void custom_every_second()
+{
+    Serial.print("#");
+}
+
+void custom_every_5seconds()
+{
+
+    // Convert the integer to a string
+    String vbatFraction = String(batteryFraction);
+    String vbatLevel = String(currentVoltage);
+
+    // Create the JSON string
+    String jsonString = "{\"vbat_Fraction\":" + vbatFraction + "}";
+    String jsonString2 = "{\"vbat_Level\":" + vbatLevel + "}";
+
+    
+
+    // Convert the JSON string to a const char* for your function
+    const char* jsonChar = jsonString.c_str();
+    const char* jsonChar2 = jsonString2.c_str();
+
+    // Call your function with the JSON string
+    dispatch_state_subtopic("vbat_Fraction", jsonChar);
+    dispatch_state_subtopic("vbat_Level", jsonChar2);  
+    
+    //Battery percentage
+    String jsonString4 = "Battery"; //topic
+    const char* jsonChar4 = jsonString4.c_str();
+    dispatch_state_val(jsonChar4, (hasp_event_t) 1, batteryFraction); 
+
+}
+
+bool custom_pin_in_use(uint8_t pin)
+{
+    /*
+    switch(pin) {
+        case illum_read:  // Custom LED pin
+        case 6:  // Custom Input pin
+            return true;
+        default:
+            return false;
+    }
+    */
+   return false;
+}
 
 void custom_get_sensors(JsonDocument& doc)
 {
