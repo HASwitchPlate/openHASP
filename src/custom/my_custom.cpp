@@ -52,12 +52,12 @@ void custom_loop()
 
         currentVoltage = analogReadMilliVolts(35);
         currentVoltage = currentVoltage * 2 / 1000;
-        Serial.println(currentVoltage);
+        // Serial.println(currentVoltage);
         
         // Calculate the percentage of charge
         batteryFraction = map(constrain(currentVoltage, minVoltage, maxVoltage)*1000, minVoltage*1000, maxVoltage*1000, 0, 100);
         //read illumination
-        Serial.println(batteryFraction);
+        // Serial.println(batteryFraction);
         last_blink = millis();
         
         updateBatteryDisplay(12, 9, batteryFraction);
