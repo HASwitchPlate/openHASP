@@ -7,7 +7,7 @@
 
 #include "hasplib.h"
 //#include <lvgl.h>
-#if defined(HASP_USE_CUSTOM) && HASP_USE_CUSTOM > 0 && true // <-- set this to true in your code
+#if defined(HASP_USE_CUSTOM) && true // <-- set this to true in your code
 
 #include "hasp_debug.h"
 #include "custom/my_custom.h"
