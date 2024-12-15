@@ -102,7 +102,7 @@ void updateTextDisplay(uint8_t page, uint8_t id, const char* text) {
 
 void custom_every_second()
 {
-    Serial.print("#");
+    // Serial.print("#");
 }
 
 void custom_every_5seconds()
