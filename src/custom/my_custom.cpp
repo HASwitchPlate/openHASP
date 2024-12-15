@@ -15,7 +15,7 @@
 
 unsigned long last_blink = 0;
 const int voltage_read = 35;
-const int blink_speed = 1000; //read every 1 sec
+const int blink_speed = 60000; //read every 60 sec
 
 float batteryFraction;
 float currentVoltage;
@@ -33,7 +33,7 @@ const float minVoltage = 3.0;  // Minimum voltage (0% charge)
 const float maxVoltage = 4.2;  // Maximum voltage (100% charge)
 
 //deep sleep timer
-const int sleepTimeSeconds = 1;  // Set the sleep time in seconds
+const int sleepTimeSeconds = 60;  // Set the sleep time in seconds
 
 void custom_setup()
 {
