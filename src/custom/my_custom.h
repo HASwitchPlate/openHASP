@@ -9,7 +9,7 @@
 #define HASP_CUSTOM_H
 
 #include "hasplib.h"
-#if defined(HASP_USE_CUSTOM) && HASP_USE_CUSTOM > 0
+#if defined(HASP_USE_CUSTOM)
 
 //extern float batteryFraction; //shared with hasp_gui.cpp
 
