@@ -40,7 +40,9 @@ void custom_setup()
     // Initialization code here
     analogReadResolution(12);
     last_blink = millis();
-    // pinMode(voltage_read, INPUT_PULLUP);
+
+    pinMode(2, OUTPUT); //disable onboard voltage converter for neopixel connector
+    digitalWrite(2, LOW);
 
     randomSeed(millis());
 }
