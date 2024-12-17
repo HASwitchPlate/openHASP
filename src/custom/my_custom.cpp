@@ -7,6 +7,7 @@
 
 #include "hasplib.h"
 //#include <lvgl.h>
+#include "driver/rtc_io.h"
 
 #if defined(HASP_USE_CUSTOM) && true // <-- set this to true in your code
 
@@ -15,7 +16,7 @@
 
 unsigned long last_blink = 0;
 const int voltage_read = 35;
-const int blink_speed = 60000; //read every 60 sec
+const int blink_speed = 5000; //read every 5 sec
 
 float batteryFraction;
 float currentVoltage;
@@ -33,7 +34,7 @@ const float minVoltage = 3.0;  // Minimum voltage (0% charge)
 const float maxVoltage = 4.2;  // Maximum voltage (100% charge)
 
 //deep sleep timer
-const int sleepTimeSeconds = 60;  // Set the sleep time in seconds
+// const int sleepTimeSeconds = 60;  // Set the sleep time in seconds
 
 void custom_setup()
 {
@@ -41,8 +42,19 @@ void custom_setup()
     analogReadResolution(12);
     last_blink = millis();
 
+    pinMode(37, INPUT_PULLUP);
+    //gpio_wakeup_enable(GPIO_NUM_37, GPIO_INTR_LOW_LEVEL);
+    esp_sleep_enable_gpio_wakeup();
+    rtc_gpio_pullup_en(GPIO_NUM_37);
+    rtc_gpio_pulldown_dis(GPIO_NUM_37);
+    esp_sleep_enable_ext0_wakeup(GPIO_NUM_37, 1);
+
     pinMode(2, OUTPUT); //disable onboard voltage converter for neopixel connector
     digitalWrite(2, LOW);
+
+    gpio_hold_dis(GPIO_NUM_26);
+ 
+    gpio_deep_sleep_hold_dis();
 
     randomSeed(millis());
 }
@@ -73,7 +85,17 @@ void custom_loop()
         fractionString += "%";                                // Concatenates "%" at the end 
         updateTextDisplay(9, 5, fractionString.c_str());  
         updateTextDisplay(12, 11, fractionString.c_str());
+        uint8_t hasp_sleep_state = hasp_get_sleep_state();
+        Serial.print("SleepState: ");
+        Serial.println(hasp_sleep_state);
+        if(hasp_sleep_state == 2) {
+            Serial.println("Sleep");
+            gpio_hold_en(GPIO_NUM_26);
+            gpio_deep_sleep_hold_en();
+            esp_deep_sleep_start();
+        }
     }
+
 
 }
 
