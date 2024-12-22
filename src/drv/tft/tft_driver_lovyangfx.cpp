@@ -807,6 +807,73 @@ void LovyanGfx::init(int w, int h)
         _touch_instance->config(cfg);
         _panel_instance->setTouch(_touch_instance);
     }
+#elif defined(ESP32_2432S022C)
+    //pinMode(PWR_EN, OUTPUT);
+    //digitalWrite(PWR_EN, HIGH);
+
+    auto _panel_instance = new lgfx::Panel_ST7789();
+    auto _bus_instance   = new lgfx::Bus_Parallel8();
+    auto _touch_instance = new lgfx::Touch_CST816S();    
+    {
+        auto cfg       = _bus_instance->config();
+        cfg.freq_write = 16000000;
+        cfg.pin_wr     = TFT_WR;
+        cfg.pin_rd     = TFT_RD;
+        cfg.pin_rs     = TFT_DC; // D/C
+        cfg.pin_d0     = TFT_D0;
+        cfg.pin_d1     = TFT_D1;
+        cfg.pin_d2     = TFT_D2;
+        cfg.pin_d3     = TFT_D3;
+        cfg.pin_d4     = TFT_D4;
+        cfg.pin_d5     = TFT_D5;
+        cfg.pin_d6     = TFT_D6;
+        cfg.pin_d7     = TFT_D7;
+        _bus_instance->config(cfg);
+        _panel_instance->setBus(_bus_instance);
+    }
+
+    {
+        auto cfg             = _panel_instance->config();
+        cfg.pin_cs           = TFT_CS;
+        cfg.pin_rst          = TFT_RST;
+        cfg.pin_busy         = TFT_BUSY;
+        cfg.memory_width     = TFT_WIDTH;
+        cfg.memory_height    = TFT_HEIGHT;
+        cfg.panel_width      = TFT_WIDTH;
+        cfg.panel_height     = TFT_HEIGHT;
+        cfg.offset_x         = 0;
+        cfg.offset_y         = 0;
+        cfg.offset_rotation  = TFT_ROTATION;
+        cfg.dummy_read_pixel = 8;
+        cfg.dummy_read_bits  = 1;
+        cfg.readable         = true;
+        cfg.invert           = false;
+        cfg.rgb_order        = false;
+        cfg.dlen_16bit       = false;
+        cfg.bus_shared       = false;
+        _panel_instance->config(cfg);
+    }
+
+    {
+        auto cfg = _touch_instance->config();
+
+        cfg.x_min           = 0;
+        cfg.x_max           = TFT_WIDTH;
+        cfg.y_min           = 0;
+        cfg.y_max           = TFT_HEIGHT;
+        cfg.pin_int         = TOUCH_IRQ;
+        cfg.bus_shared      = true;
+        cfg.offset_rotation = 0;
+
+        cfg.i2c_port = I2C_TOUCH_PORT;
+        cfg.i2c_addr = I2C_TOUCH_ADDRESS;
+        cfg.pin_sda  = TOUCH_SDA;
+        cfg.pin_scl  = TOUCH_SCL;
+        cfg.freq     = I2C_TOUCH_FREQUENCY;
+
+        _touch_instance->config(cfg);
+        _panel_instance->setTouch(_touch_instance);
+    }
 #elif 0
     auto _panel_instance = new lgfx::Panel_ST7796();
     auto _bus_instance   = new lgfx::Bus_SPI();
