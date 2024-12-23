@@ -42,12 +42,7 @@ void custom_setup()
     analogReadResolution(12);
     last_blink = millis();
 
-    pinMode(37, INPUT_PULLUP);
-    //gpio_wakeup_enable(GPIO_NUM_37, GPIO_INTR_LOW_LEVEL);
-    esp_sleep_enable_gpio_wakeup();
-    rtc_gpio_pullup_en(GPIO_NUM_37);
-    rtc_gpio_pulldown_dis(GPIO_NUM_37);
-    esp_sleep_enable_ext0_wakeup(GPIO_NUM_37, 1);
+    touchSleepWakeUpEnable(T0, 100);
 
     pinMode(2, OUTPUT); //disable onboard voltage converter for neopixel connector
     digitalWrite(2, LOW);
@@ -83,13 +78,13 @@ void custom_loop()
         updateTextDisplay(9, 8, voltageString.c_str());
         String fractionString = String(batteryFraction, 2);   // Converts the float to a String with 2 decimal places
         fractionString += "%";                                // Concatenates "%" at the end 
-        updateTextDisplay(9, 5, fractionString.c_str());  
+        updateTextDisplay(0, 2, fractionString.c_str());  
         updateTextDisplay(12, 11, fractionString.c_str());
         uint8_t hasp_sleep_state = hasp_get_sleep_state();
-        Serial.print("SleepState: ");
-        Serial.println(hasp_sleep_state);
+        // Serial.print("SleepState: ");
+        // Serial.println(hasp_sleep_state);
         if(hasp_sleep_state == 2) {
-            Serial.println("Sleep");
+            // Serial.println("Sleep");
             gpio_hold_en(GPIO_NUM_26);
             gpio_deep_sleep_hold_en();
             esp_deep_sleep_start();
