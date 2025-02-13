@@ -1,72 +1,72 @@
 {
     "en": {
-        "language": "English",
+        "language": "Русский",
         "home": {
-            "title": "Main Menu",
-            "btn": "Main Menu",
-            "nav": "Home"
+            "title": "Главное меню",
+            "btn": "Главное меню",
+            "nav": "Домой"
         },
-        "save": "Save Settings",
-        "user": "Username",
-        "pass": "Password",
+        "save": "Сохранить настройки",
+        "user": "Имя пользователя",
+        "pass": "Пароль",
         "hasp": {
-            "title": "HASP Design",
-            "btn": "HASP Design",
-            "theme": "UI Theme",
-            "color1": "Primary color",
-            "color2": "Secondary color",
-            "pages": "Start Layout",
-            "font": "Default Font",
-            "startpage": "Startup Page",
-            "startdim": "Startup Dim"
+            "title": "Оформление",
+            "btn": "Настройка оформления",
+            "theme": "Тема интерфейса",
+            "color1": "Основной цвет",
+            "color2": "Вторичный цвет",
+            "pages": "Начальный макет",
+            "font": "Шрифт по умолчанию",
+            "startpage": "Стартовая страница",
+            "startdim": "Ярокость при запуске"
         },
         "screenshot": {
-            "title": "Screenshot",
-            "btn": "Screenshot",
-            "nav": "Screenshot",
-            "prev": "Prev Page",
-            "next": "Next Page",
-            "refresh": "Refresh"
+            "title": "Скриншот",
+            "btn": "Скриншот",
+            "nav": "Скиншот",
+            "prev": "Предыдущая страница",
+            "next": "Следующая страница",
+            "refresh": "Обновить"
         },
         "info": {
-            "title": "Information",
-            "btn": "Information",
-            "nav": "Information"
+            "title": "Информация",
+            "btn": "Информация",
+            "nav": "Информация"
         },
         "config": {
-            "title": "Configuration",
-            "btn": "Configuration",
-            "nav": "Settings"
+            "title": "Настройки",
+            "btn": "Настройки",
+            "nav": "Настройки"
         },
         "ota": {
-            "title": "Firmware Update",
-            "btn": "Firmware Update",
-            "nav": "Firmware",
-            "submit": "Update Firmware",
-            "file": "Firmware File",
-            "url": "Firmware URL",
-            "redirect": "Follow Redirects",
-            "never": "Never",
-            "strict": "Strict",
-            "always": "Always"
+            "title": "Обновление прошивки",
+            "btn": "Обновление прошивки",
+            "nav": "Прошивка",
+            "submit": "Обновление прошивки",
+            "file": "Файл прошивки",
+            "url": "URL прошивки",
+            "redirect": "Разрешить редиректы",
+            "never": "Никогда",
+            "strict": "Строго",
+            "always": "Всегда"
         },
         "editor": {
-            "title": "File Editor",
-            "btn": "File Editor",
-            "nav": "File Editor"
+            "title": "Редактор файлов",
+            "btn": "Редактор файлов",
+            "nav": "Редактор файлов"
         },
         "reset": {
-            "title": "Factory Reset",
-            "btn": "Factory Reset",
-            "warning": "Warning",
-            "message": "This process will reset all settings to the default values. The internal flash will be erased and the device is restarted. You may need to connect to the WiFi AP displayed on the panel to reconfigure the device before accessing it again.",
-            "fileloss": "ALL FILES WILL BE LOST!"
+            "title": "Сброс на заводские настройки",
+            "btn": "Сброс на заводские настройки",
+            "warning": "Предупреждение",
+            "message": "Этот процесс вернет все настройки к значениям по умолчанию. Внутренняя флэш-память будет очищена и устройство перезапустится. Возможно, вам придется подключиться к точке доступа Wi-Fi, отображаемой на панели, чтобы перенастроить устройство перед повторным доступом к нему.",
+            "fileloss": "ВСЕ ФАЙЛЫ БУДУТ ПОТЕРЯНЫ!"
         },
         "reboot": {
-            "title": "Rebooting...",
-            "btn": "Restart",
-            "nav": "Reboot",
-            "message": "The device is rebooting."
+            "title": "Перезагрузка...",
+            "btn": "Перезагрузка",
+            "nav": "Перезагрузка",
+            "message": "Устройство перезагружается."
         },
         "about": {
             "credits": "Based on the previous work of the following open source developers:",
@@ -75,19 +75,19 @@
             "clause1": "Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files(the \"Software\"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and / or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:",
             "clause2": "The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.",
             "clause3": "THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.",
-            "mit": "MIT License",
-            "bsd": "BSD License",
-            "freebsd": "FreeBSD License",
-            "apache2": "Apache2 License"
+            "mit": "Лицензия MIT",
+            "bsd": "Лицезия BSD",
+            "freebsd": "Лицензия FreeBSD",
+            "apache2": "Лицензия Apache2"
         },
         "wifi": {
-            "title": "Wifi Settings",
-            "btn": "Wifi Settings",
+            "title": "Настройка WiFi",
+            "btn": "Настройка WiFi",
             "ssid": "SSID"
         },
         "wg": {
-            "title": "WireGuard Settings",
-            "btn": "WireGuard Settings",
+            "title": "Настройки WireGuard",
+            "btn": "Настройки WireGuard",
             "vpnip": "VPN IP",
             "privkey": "Private Key",
             "host": "Remote IP",
@@ -95,68 +95,68 @@
             "pubkey": "Remote Public Key"
         },
         "mqtt": {
-            "title": "MQTT Settings",
-            "btn": "MQTT Settings",
-            "name": "Hostname",
-            "group": "Groupname",
-            "host": "Broker",
-            "port": "Port",
+            "title": "Настройки MQTT",
+            "btn": "Настройки MQTT",
+            "name": "Имя хоста",
+            "group": "Имя группы",
+            "host": "Брокер",
+            "port": "Порт",
             "node_t": "Node Topic",
             "group_t": "Group Topic",
             "broadcast_t": "Broadcast Topic",
             "hass_t": "HA LWT Topic"
         },
         "http": {
-            "title": "HTTP Settings",
-            "btn": "HTTP Settings"
+            "title": "Настройки HTTP",
+            "btn": "Настройки HTTP"
         },
         "ftp": {
-            "title": "FTP Settings",
-            "btn": "FTP Settings",
-            "port": "FTP Port",
-            "pasv": "Passive Port"
+            "title": "Настройки FTP",
+            "btn": "Настройкаи FTP",
+            "port": "FTP порт",
+            "pasv": "Пароль"
         },
         "gui": {
-            "title": "Display Settings",
-            "btn": "Display Settings",
-            "antiburn": "Antiburn",
-            "calibrate": "Calibrate"
+            "title": "Настройки экрана",
+            "btn": "Настройки экрана",
+            "antiburn": "Прдеотвращение выгорания",
+            "calibrate": "Калибровка"
         },
-        "gpio": "GPIO Settings",
+        "gpio": "Настройки GPIO",
         "debug": {
-            "title": "Debug Settings",
-            "btn": "Debug Settings",
+            "title": "Настройки отладки",
+            "btn": "Настройки отладки",
             "baud": "Baudrate",
-            "tele": "Tele Period",
-            "ansi": "Use ANSI codes",
-            "host": "Syslog Server",
-            "port": "Syslog Port",
+            "tele": "Tele период",
+            "ansi": "Использовать кодировку ANSI",
+            "host": "Сервер Syslog",
+            "port": "Порт Syslog",
             "ietf": "IETF (RFC 5424)",
             "bsd": "BSD (RFC 3164)",
-            "log": "Facility"
+            "log": "Объект"
         },
         "time": {
-            "title": "Time Settings",
-            "btn": "Time Settings",
-            "region": "Region",
-            "zone": "Timezone",
-            "tz": "Timezone",
-            "ntp": "NTP Servers"
+            "title": "Настройки времени",
+            "btn": "Настройки времени",
+            "region": "Регион",
+            "zone": "Часовой пояс",
+            "tz": "Часовой пояс",
+            "ntp": "Сервер NTP"
         },
         "region": {
-            "etc": "Etcetera ",
-            "continents": "Continents ",
-            "af": "Africa ",
-            "as": "Asia ",
-            "au": "Australia ",
-            "aq": "Antarctica ",
-            "eu": "Europe ",
-            "na": "North America ",
-            "sa": "South America ",
-            "islands": "Islands ",
-            "at": "Atlantic Ocean ",
-            "in": "Indian Ocean ",
-            "pa": "Pacific Ocean "
+            "etc": "Прочие ",
+            "continents": "Континент ",
+            "af": "Африка ",
+            "as": "Азия ",
+            "au": "Австралия ",
+            "aq": "Антарктика ",
+            "eu": "Европа ",
+            "na": "Северная Америка ",
+            "sa": "Южна Америка ",
+            "islands": "Острова ",
+            "at": "Атлантический океан ",
+            "in": "Индийский океан ",
+            "pa": "Тихий океан "
         }
     }
 }
