@@ -28,13 +28,13 @@ IRAM_ATTR bool TouchCst816::read(lv_indev_drv_t* indev_driver, lv_indev_data_t* 
         //LOG_INFO(TAG_DRVR, "CST816 touched x:%d, y:%d", touchpad.x, touchpad.y);
 
 #ifdef TOUCH_WIDTH
-        data->point.x = map(x, 0, TOUCH_WIDTH - 1, 0, TFT_WIDTH - 1);
+        data->point.x = map(touchpad.x, 0, TOUCH_WIDTH - 1, 0, TFT_WIDTH - 1);
 #else
         data->point.x = touchpad.x;
 #endif
 
 #ifdef TOUCH_HEIGHT
-        data->point.y = map(y, 0, TOUCH_HEIGHT - 1, 0, TFT_HEIGHT - 1);
+        data->point.y = map(touchpad.y, 0, TOUCH_HEIGHT - 1, 0, TFT_HEIGHT - 1);
 #else
         data->point.y = touchpad.y;
 #endif
