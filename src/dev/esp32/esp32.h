@@ -86,6 +86,8 @@ class Esp32Device : public BaseDevice {
 #elif defined(M5STACK) || defined (M5STACKLGFX)
 // #warning Building for M5Stack core2
 #include "m5stackcore2.h"
+#elif defined(TWATCH)
+#include "twatch.h"
 #else
 using dev::Esp32Device;
 extern dev::Esp32Device haspDevice;

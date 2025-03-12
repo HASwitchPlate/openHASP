@@ -451,6 +451,11 @@ long Esp32Device::get_uptime()
 #elif defined(M5STACK) || defined(M5STACKLGFX)
 #warning Building for M5Stack core2
 #include "dev/esp32/m5stackcore2.h"
+
+#elif defined(TWATCH)
+#warning Building for TTGo T-Watch
+#include "dev/esp32/twatch.h"
+
 #else
 dev::Esp32Device haspDevice;
 #endif
