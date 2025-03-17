@@ -93,6 +93,9 @@ class BaseTouch {
 #elif TOUCH_DRIVER == 0x3240
 #warning Building for CST3240
 #include "touch_driver_cst3240.h"
+#elif TOUCH_DRIVER == 0x816
+#warning Building for CST816S
+#include "touch_driver_cst816.h"
 #else
 #warning Building for Generic Touch
 using dev::BaseTouch;
