@@ -27,6 +27,8 @@
 #include "sys/net/hasp_network.h"
 #include "sys/net/hasp_time.h"
 
+#include "ZipStream.h"
+
 #if(HASP_USE_CAPTIVE_PORTAL > 0) && (HASP_USE_WIFI > 0)
 #include <DNSServer.h>
 #endif
@@ -440,6 +442,7 @@ static void http_handle_root()
     html[min(i++, len)] = R"(<a href="/screenshot" v-t="'screenshot.btn'"></a>)";
     html[min(i++, len)] = R"(<a href="/info" v-t="'info.btn'"></a>)";
     html[min(i++, len)] = R"(<a href="/config" v-t="'config.btn'"></a>)";
+    html[min(i++, len)] = R"(<a href="/backup" v-t="'backup.btn'"></a>)";
     html[min(i++, len)] = R"(<a href="/firmware" v-t="'ota.btn'"></a>)";
 #ifdef ARDUINO_ARCH_ESP32
     html[min(i++, len)] = R"(<a href="/edit" v-t="'editor.btn'"></a>)";
@@ -2540,6 +2543,185 @@ static void webHandleFirmware()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/**************************************************************************//**
+ * @brief Handle backup and restore
+ *      When the backup is executed, the ‘config.json’ file is created and 
+ *      the data from this file is transferred to the configuration during 
+ *      the restore. No archive file is created during the backup in the 
+ *      file system. The archive is sent directly to the client. The archive 
+ *      is also not cached in the file system during the restore.
+ * 
+ **************************************************************************  */
+
+#if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
+
+static void webHandleBackup()
+{
+    if(!http_is_authenticated("backup")) return;
+
+    bool isError = false;
+
+    if (webServer.method() == HTTP_POST) {
+//        LOG_INFO(TAG_HTTP, F("Backup : %s | %i"), webServer.uri().c_str(), webServer.args());
+//        for (int i = 0; i < webServer.args(); i++) LOG_INFO(TAG_HTTP, F("Backup Arg %i =  %s | %s"), i, webServer.argName(i).c_str(), webServer.arg(i).c_str());
+
+        if (webServer.hasArg("backup")) {
+            configWrite();
+
+            String dirjson = filesystem_list(HASP_FS, String("/").c_str(), 5);
+//            LOG_INFO(TAG_HTTP, F("File list : %s"), dirjson.c_str() );
+
+            String filename = String(haspDevice.get_hostname()) + String("_backup.zip");
+            if (webServer.hasArg("filename")) {
+                filename = webServer.arg("filename");
+            }
+
+            uint8_t * pBuffer = (uint8_t *)malloc(1360);
+            if (!pBuffer) {
+                LOG_ERROR(TAG_HTTP, F("Failed to allocate memory"));
+                webServer.send(500, "Content-Type", PSTR("Failed to allocate memory"));
+                return;
+            }
+
+            LOG_INFO(TAG_HTTP, F("Backup name : %s"), filename.c_str() );
+
+            webServer.sendHeader("content-disposition", "attachment; filename=" + filename);
+            webServer.sendHeader("Content-Type", "application/x-zip");
+            webServer.sendHeader("Transfer-Encoding", "chunked");
+            webServer.send(200, "", ""); // Send initial headers
+
+            ZipStream zipstream;
+            zipstream.beginZip(&dirjson);
+
+            size_t bytesRead;
+
+            // Write data chunks into the zip stream
+            while (zipstream.available()) {
+                bytesRead = zipstream.readBytes(pBuffer, 1360);
+                if (bytesRead > 0) {
+                    String chunkHeader = String(bytesRead, HEX) + "\r\n";
+                    webServer.sendContent(chunkHeader);
+                    webServer.sendContent((const char*)pBuffer, bytesRead);
+                    webServer.sendContent("\r\n");
+                }
+            }
+
+            webServer.sendContent("0\r\n\r\n");
+            free(pBuffer);
+            pBuffer = NULL;
+            zipstream.flush();
+            LOG_INFO(TAG_HTTP, F("Backup success"));
+            return;
+        } 
+
+        if (webServer.hasArg("restore")) {
+            LOG_INFO(TAG_HTTP, F("Restore success"));
+            if (HASP_FS.exists(FPSTR(FP_HASP_CONFIG_FILE))) {
+                configSetup();
+            }
+            isError = true;
+        }
+    } 
+
+    const char* html[20];
+    int i   = 0;
+    int len = (sizeof(html) / sizeof(html[0])) - 1;
+
+    html[min(i++, len)] = "<h1>";
+    html[min(i++, len)] = haspDevice.get_hostname();
+    html[min(i++, len)] = "</h1><hr>";
+    html[min(i++, len)] = R"(
+<h2 v-t="'backup.title'"></h2>
+
+<div class="container">
+    <form method="POST" id="backupForm">
+        <div class="row">
+            <div class="col-25"><label class="required" for="url" v-t="'backup.bakfile'"></label></div>
+            <div class="col-75"><input id="filename" name="filename" value="
+)";
+    html[min(i++, len)] = haspDevice.get_hostname();
+    html[min(i++, len)] = R"(_backup.zip"></div>
+        </div>
+        <input type="hidden" name="cmd" value="0">
+        <button type="submit" name="backup" value="backup" v-t="'backup.backup'" id="backupfile"></button>
+    </form>
+</div>
+
+<div class="container">
+    <form method="POST" enctype="multipart/form-data" id="restoreForm">
+        <div class="row">
+            <div class="col-25"><label class="required" for="bakfile" v-t="'backup.resfile'"></label></div>
+            <div class="col-75">
+                <input type="file" name="bakfile" accept=".zip">
+                <input type="hidden" name="cmd" value="0">
+            </div>
+        </div>
+        <button type="submit" name="restore" v-t="'backup.restore'"></button>
+    </form>
+</div>
+
+)";
+    html[min(i++, len)] = R"(<a v-t="'home.btn'" href="/"></a>)";
+ 
+/* 
+    // error message
+    if (true) {
+        html[min(i++, len)] = R"(
+            <script>
+                alert("Error uploading the file.");
+            </script>
+        )";
+    }
+ */
+    http_send_content(html, min(i, len));
+}
+
+static void webHandleRestoreUpload()
+{
+    static ZipStream *unzipstream = NULL;
+
+    if(!http_is_authenticated()) return;
+
+    upload = &webServer.upload();
+    
+    switch (upload->status) {
+        case UPLOAD_FILE_START : {
+            if (unzipstream) { delete unzipstream; }
+            unzipstream = new ZipStream();
+            unzipstream->beginUnZip();
+            break;
+        }
+        case UPLOAD_FILE_WRITE : {
+            if (unzipstream && unzipstream->getLastError() >= ZIP_STREAM_OK) {
+                unzipstream->write(upload->buf, upload->currentSize);
+            }
+            break;
+        }
+        case UPLOAD_FILE_END : {
+            if (unzipstream && unzipstream->getLastError() != ZIP_STREAM_OK) {
+                LOG_ERROR(TAG_FILE, F("Restore error %d - %s"), unzipstream->getLastError(), unzipstream->getLastErrorString().c_str() );
+            }
+
+            if (unzipstream) {
+                delete unzipstream;
+                unzipstream = NULL;
+            }
+            break;
+        }
+        default: {
+            LOG_WARNING(TAG_HTTP, "Restore aborted");
+            if (unzipstream) {
+                delete unzipstream;
+                unzipstream = NULL;
+            }
+            webServer.send(400, "text/plain", PSTR("Upload aborted"));
+        }
+    }
+}
+#endif // HASP_USE_SPIFFS || HASP_USE_LITTLEFS
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 #if HASP_USE_CONFIG > 0
 
 static void httpHandleResetConfig()
@@ -2721,6 +2903,10 @@ void httpSetup()
             LOG_VERBOSE(TAG_HTTP, F("Total size: %s"), webServer.hostHeader().c_str());
         },
         webHandleFirmwareUpload);
+#endif
+
+#if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
+    webServer.on("/backup", HTTP_ANY, webHandleBackup, webHandleRestoreUpload);
 #endif
 
 #ifdef HTTP_LEGACY

@@ -31,124 +31,38 @@ extern const uint8_t PAGES_JSONL_END[] asm("_binary_data_pages_pages_jsonl_end")
 #endif
 #endif
 
-#include <Arduino.h>
 #include "ArduinoJson.h"
-#include "ArduinoLog.h"
-
 #include "hasp_debug.h"
 #include "hasp_filesystem.h"
+#include "ZipStream.h"
+
 
 #if defined(ARDUINO_ARCH_ESP32)
 #include "rom/crc.h"
 
 void filesystemUnzip(const char*, const char* filename, uint8_t source)
 {
+    if (strlen(filename) < 1) {
+        LOG_ERROR(TAG_FILE, F("File name not available"));
+        return;
+    }
+    
     File zipfile = HASP_FS.open(filename, FILE_READ);
-    if(!zipfile) {
+    if (!zipfile) {
+        LOG_ERROR(TAG_FILE, F("File %s not found"), filename);
         return;
     }
 
-    int32_t head;
-    size_t len;
-    bool done = false;
-
-    zipfile.seek(0);
-    while(!done) {
-        len = zipfile.read((uint8_t*)&head, sizeof(head));
-        if(len != sizeof(head)) {
-            done = true;
-            continue;
-        }
-
-        switch(head) {
-            case 0x04034b50: {
-                zip_file_header_t fh;
-                zipfile.seek(zipfile.position() - 2, SeekSet); // rewind for struct alignment (26-28)
-                len = zipfile.read((uint8_t*)(&fh), sizeof(zip_file_header_t));
-                if(len != sizeof(zip_file_header_t)) {
-                    done = true;
-                    continue;
-                }
-
-                if(fh.filename_length >= 255) {
-                    LOG_WARNING(TAG_FILE, F("filename length too long %d"), fh.filename_length);
-                    zipfile.seek(fh.filename_length + fh.extra_length, SeekCur); // skip extra field
-                    continue;
-                    // } else {
-                    //     LOG_WARNING(TAG_FILE, F("min %d - flag %d - len %d - xtra %d"), fh.min_version, fh.flags,
-                    //                 fh.filename_length, fh.extra_length);
-                }
-                char name[257] = {0};
-                name[0]        = '/';
-
-                len = zipfile.read((uint8_t*)&name[1], fh.filename_length);
-                if(len != fh.filename_length) {
-                    LOG_WARNING(TAG_FILE, F("filename read failed %d != %d"), fh.filename_length, len);
-                    done = true;
-                    continue;
-                }
-                zipfile.seek(fh.extra_length, SeekCur); // skip extra field
-
-                if(fh.compression_method != ZIP_NO_COMPRESSION) {
-                    LOG_WARNING(TAG_FILE, F("Compression is not supported %d"), fh.compression_method);
-                    zipfile.seek(fh.compressed_size, SeekCur); // skip compressed file
-                } else {
-
-                    if(HASP_FS.exists(name)) HASP_FS.remove(name);
-
-                    File f = HASP_FS.open(name, FILE_WRITE);
-                    if(f) {
-                        uint8_t buffer[512];
-                        uint32_t crc32 = 0;
-
-                        while(!done && fh.compressed_size >= 512) {
-                            len = zipfile.readBytes((char*)&buffer, 512);
-                            if(len != 512) done = true;
-                            fh.compressed_size -= len;
-                            crc32 = crc32_le(crc32, buffer, len);
-                            f.write(buffer, len);
-                        }
-
-                        if(!done && fh.compressed_size > 0) {
-                            len = zipfile.readBytes((char*)&buffer, fh.compressed_size);
-                            if(len != fh.compressed_size) done = true;
-                            fh.compressed_size -= len;
-                            crc32 = crc32_le(crc32, buffer, len);
-                            f.write(buffer, len);
-                        }
-
-                        if(crc32 != fh.crc) done = true;
-
-                        if(!done) {
-                            Parser::format_bytes(fh.uncompressed_size, (char*)buffer, sizeof(buffer));
-                            LOG_VERBOSE(TAG_FILE, F(D_BULLET "%s (%s)"), name, buffer);
-                        } else {
-                            LOG_ERROR(TAG_FILE, F(D_FILE_SAVE_FAILED), name);
-                        }
-
-                        f.close();
-                    }
-                }
-
-                break;
-            }
-            case 0x02014b50:
-                done = true;
-                break;
-            case 0x06054b50:
-                // end of file
-                done = true;
-                break;
-            default: {
-                char outputString[9];
-                itoa(head, outputString, 16);
-                LOG_WARNING(TAG_FILE, F("invalid %s"), outputString);
-                done = true;
-            }
-        }
+    ZipStream unzipStream;
+    if ( unzipStream.beginUnZip() == ZIP_STREAM_OK) {
+        unzipStream.write(zipfile);
     }
+
     zipfile.close();
-    LOG_VERBOSE(TAG_FILE, F("extracting %s complete"), filename);
+
+    if (unzipStream.getLastError() != ZIP_STREAM_OK) {
+        LOG_ERROR(TAG_FILE, F("Unpacking error %d - %s"), unzipStream.getLastError(), unzipStream.getLastErrorString().c_str() );
+    }
 }
 #endif
 
