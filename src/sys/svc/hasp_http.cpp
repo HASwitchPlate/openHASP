@@ -134,6 +134,8 @@ const uint8_t HTTP_VARS_CSS[] PROGMEM = ":root{"
                                         "--toolbg:" D_HTTP_COLOR_TOOLBAR ";"
                                         "--treebg:" D_HTTP_COLOR_TREE ";"
                                         "--preeviewbg:" D_HTTP_COLOR_PREVIEW ";"
+                                        "--ddmenubg:" D_HTTP_COLOR_DROPDOWN_BG ";"
+                                        "--itemhoverbg:" D_HTTP_COLOR_ITEM_HOVER ";"
                                         "}";
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
