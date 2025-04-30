@@ -170,7 +170,7 @@ private:
     uint16_t _fileIdx;  // Current file index
     size_t _content_length;
     zip_file_discriptor_t *_pFileDescriptorBuffer;
-    zip_end_central_dir_record_t _pEndCentralDirRecord;
+    zip_end_central_dir_record_t *_pEndCentralDirRecord;
 
     void buildBufferLocalFileHeader();
     void buildBufferCentralDirFileHeader();
@@ -187,6 +187,7 @@ public:
         _content_length(0), 
         _fileIdx(0),
         _pFileDescriptorBuffer(NULL),
+        _pEndCentralDirRecord(NULL),
 
         _signature(0),
         _datalen(0),

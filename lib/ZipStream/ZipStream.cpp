@@ -119,8 +119,6 @@ zip_stream_error_t ZipStream::beginZip(String *fileList)
     _lastErrorCode = ZIP_STREAM_OK;
     _lastErrorString = "";
 
-    memset(&_pEndCentralDirRecord, 0, sizeof(zip_end_central_dir_record_t));
-
     _jsonError = deserializeJson(_jsonDoc, *fileList);
     if (_jsonError != DeserializationError::Ok) {
         _lastErrorCode = ZIP_STREAM_FILE_LIST_FAIL;
@@ -138,7 +136,6 @@ zip_stream_error_t ZipStream::beginZip(String *fileList)
 
     if (_lastErrorCode != ZIP_STREAM_OK) {
         _lastErrorString = String("File list error");
-//        ESP_LOGE(TAG_ZIP, F(_lastErrorString.c_str()));
         return _lastErrorCode;
     }
 
@@ -149,6 +146,7 @@ zip_stream_error_t ZipStream::beginZip(String *fileList)
     if (!_pBuffer) {
         _lastErrorCode = ZIP_STREAM_ERROR_NO_MEMORY;
         _lastErrorString = String(zip_memory_error);
+        flush();
         return _lastErrorCode;
     }
 
@@ -157,10 +155,22 @@ zip_stream_error_t ZipStream::beginZip(String *fileList)
         if (!_pFileDescriptorBuffer) {
             _lastErrorCode = ZIP_STREAM_ERROR_NO_MEMORY;
             _lastErrorString = String(zip_memory_error);
-//            ESP_LOGE(TAG_ZIP, F(_lastErrorString.c_str()));
+            flush();
             return _lastErrorCode;
         }
     }
+
+    if (!_pEndCentralDirRecord) {
+        _pEndCentralDirRecord = (zip_end_central_dir_record_t *)malloc(sizeof(zip_end_central_dir_record_t));
+        if (!_pEndCentralDirRecord) {
+            _lastErrorCode = ZIP_STREAM_ERROR_NO_MEMORY;
+            _lastErrorString = String(zip_memory_error);
+            flush();
+            return _lastErrorCode;
+        }
+    }
+
+    memset(_pEndCentralDirRecord, 0, sizeof(zip_end_central_dir_record_t));
 
     _streamState = ZIP_STREAM_LOCAL_HEADER;
     buildBufferLocalFileHeader();
@@ -199,7 +209,7 @@ size_t ZipStream::write(Stream &zipStream)
     if (!_pInputBuffer) {
         _lastErrorCode = ZIP_STREAM_ERROR_NO_MEMORY;
         _lastErrorString = String(zip_memory_error);
-        return 1;
+        return 0;
     }
 
     size_t toRead = 0;    
@@ -438,8 +448,8 @@ size_t ZipStream::write(const uint8_t *pInData, size_t size)
 
                 if(_fileCRC32 != _zipLocalHeader.crc) {
 //                    ESP_LOGI(TAG_ZIP, "File CRC does not match %x <=> %x", _fileCRC32, _zipLocalHeader.crc);
-//                    _lastErrorCode = ZIP_STREAM_CRC_ERROR;
-//                    _lastErrorString = String(zip_file_crc_error);
+                    _lastErrorCode = ZIP_STREAM_CRC_ERROR;
+                    _lastErrorString = String(zip_file_crc_error);
                 }
 
                 _streamState = ZIP_STREAM_EXPECT_SIGNATURE;
@@ -479,15 +489,6 @@ size_t ZipStream::write(const uint8_t *pInData, size_t size)
 void ZipStream::buildBufferLocalFileHeader() {
     _pFileDescriptorBuffer[_fileIdx].is_valid = false;
     _position = 0;
-
-/* 
-    if (!_pBuffer) {
-        _lastErrorCode = ZIP_STREAM_ERROR_NO_MEMORY;
-        _lastErrorString = String(zip_memory_error);
-//        ESP_LOGE(TAG_ZIP, "%s", _lastErrorString.c_str());
-        return;
-    }
-*/
 
     *(uint32_t*)_pBuffer = ZIP_LFH_SIGNATURE;
     _content_length = sizeof(uint32_t);
@@ -557,9 +558,9 @@ void ZipStream::buildBufferLocalFileHeader() {
     _pFileDescriptorBuffer[_fileIdx].is_valid = true;
     _pFileDescriptorBuffer[_fileIdx].crc = pZipLocalHeader->crc;
     _pFileDescriptorBuffer[_fileIdx].compressed_size = pZipLocalHeader->compressed_size;
-    _pFileDescriptorBuffer[_fileIdx].relative_offset = _pEndCentralDirRecord.offset_central_dir_start;
+    _pFileDescriptorBuffer[_fileIdx].relative_offset = _pEndCentralDirRecord->offset_central_dir_start;
 
-    _pEndCentralDirRecord.offset_central_dir_start += _content_length + pZipLocalHeader->compressed_size;
+    _pEndCentralDirRecord->offset_central_dir_start += _content_length + pZipLocalHeader->compressed_size;
 
     return;
 }
@@ -577,15 +578,6 @@ void ZipStream::buildBufferCentralDirFileHeader() {
     }
 
     _position = 0;
-
-/* 
-    if (!_pBuffer) {
-        _lastErrorCode = ZIP_STREAM_ERROR_NO_MEMORY;
-        _lastErrorString = String(zip_memory_error);
-//        ESP_LOGE(TAG_ZIP, "%s", _lastErrorString.c_str());
-        return;
-    }
-*/
 
     *(uint32_t*)_pBuffer = ZIP_CDFH_SIGNATURE;
     _content_length = sizeof(uint32_t);
@@ -622,9 +614,9 @@ void ZipStream::buildBufferCentralDirFileHeader() {
     _content_length += filename.length();
     pHeader->filename_length = filename.length();
 
-    _pEndCentralDirRecord.central_dir_records++;
-    _pEndCentralDirRecord.total_dir_records++;
-    _pEndCentralDirRecord.central_dir_size += _content_length;
+    _pEndCentralDirRecord->central_dir_records++;
+    _pEndCentralDirRecord->total_dir_records++;
+    _pEndCentralDirRecord->central_dir_size += _content_length;
 
     return;
 }
@@ -637,19 +629,10 @@ void ZipStream::buildBufferCentralDirFileHeader() {
 void ZipStream::buildBufferEndCentralFileHeader() {
     _position = 0;
 
-/*
-    if (!_pBuffer) {
-        _lastErrorCode = ZIP_STREAM_ERROR_NO_MEMORY;
-        _lastErrorString = String(zip_memory_error);
-//        ESP_LOGE(TAG_ZIP, F(_lastErrorString.c_str()));
-        return;
-    }
- */
-
     *(uint32_t*)_pBuffer = ZIP_EOCD_SIGNATURE;
     _content_length = sizeof(uint32_t);
 
-    memcpy(_pBuffer + _content_length, &_pEndCentralDirRecord, sizeof(zip_end_central_dir_record_t));
+    memcpy(_pBuffer + _content_length, _pEndCentralDirRecord, sizeof(zip_end_central_dir_record_t));
 
     _content_length += sizeof(zip_end_central_dir_record_t);
 
@@ -778,6 +761,11 @@ void ZipStream::flush() {
     if (_pFileDescriptorBuffer) {
         free(_pFileDescriptorBuffer);
         _pFileDescriptorBuffer = NULL;
+    }
+
+    if (_pEndCentralDirRecord) {
+        free(_pEndCentralDirRecord);
+        _pEndCentralDirRecord = NULL;
     }
 }
 
