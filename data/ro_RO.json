@@ -50,6 +50,16 @@
             "strict": "Strict",
             "always": "Mereu"
         },
+        "backup": {
+            "title": "Backup / Restore",
+            "btn": "Backup / Restore",
+            "nav": "Backup",
+            "backup": "Backup Data",
+            "bakfile": "Backup to file",
+            "restore": "Restore Data",
+            "resfile": "Restore file",
+            "overwrite": "Overwrite existing files"
+        },
         "editor": {
             "title": "Browser de fișiere",
             "btn": "Browser de fișiere",
