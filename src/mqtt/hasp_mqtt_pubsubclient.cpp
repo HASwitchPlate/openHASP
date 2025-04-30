@@ -14,10 +14,10 @@
 
 #if defined(ARDUINO_ARCH_ESP32)
 #include <WiFi.h>
-#include <WiFiClientSecure.h>
+// #include <WiFiClientSecure.h>
 WiFiClient mqttNetworkClient;
 // WiFiClientSecure mqttNetworkClient;
-extern const uint8_t rootca_crt_bundle_start[] asm("_binary_data_cert_x509_crt_bundle_bin_start");
+// extern const uint8_t rootca_crt_bundle_start[] asm("_binary_data_cert_x509_crt_bundle_bin_start");
 #elif defined(ARDUINO_ARCH_ESP8266)
 #include <ESP8266WiFi.h>
 #include <EEPROM.h>
@@ -117,11 +117,11 @@ bool mqtt_send_lwt(bool online)
 //     return mqttPublish(tmp_topic, payload, false);
 // }
 
-int mqtt_send_state(const char* subtopic, const char* payload)
+int mqtt_send_state(const char* subtopic, const char* payload, bool retain)
 {
     char tmp_topic[strlen(mqttNodeTopic) + strlen(subtopic) + 16];
     snprintf_P(tmp_topic, sizeof(tmp_topic), PSTR("%s" MQTT_TOPIC_STATE "/%s"), mqttNodeTopic, subtopic);
-    return mqttPublish(tmp_topic, payload, false);
+    return mqttPublish(tmp_topic, payload, retain);
 }
 
 int mqtt_send_discovery(const char* payload, size_t len)
@@ -311,7 +311,7 @@ void mqttStart()
     snprintf_P(topic, sizeof(topic), PSTR("%s" MQTT_TOPIC_CONFIG "/#"), mqttNodeTopic);
     mqttSubscribeTo(topic);
 
-#if defined(HASP_USE_CUSTOM)
+#if defined(HASP_USE_CUSTOM) && HASP_USE_CUSTOM > 0
     snprintf_P(topic, sizeof(topic), PSTR("%s" MQTT_TOPIC_CUSTOM "/#"), mqttGroupTopic);
     mqttSubscribeTo(topic);
     snprintf_P(topic, sizeof(topic), PSTR("%s" MQTT_TOPIC_CUSTOM "/#"), mqttNodeTopic);

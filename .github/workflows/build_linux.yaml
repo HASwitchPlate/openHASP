@@ -1,4 +1,4 @@
-name: Build branch
+name: Build Linux (Obsolete)
 
 on:
   workflow_dispatch:

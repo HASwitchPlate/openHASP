@@ -226,11 +226,11 @@ bool mqttIsConnected()
     return MQTTClient_isConnected(mqtt_client);
 }
 
-int mqtt_send_state(const __FlashStringHelper* subtopic, const char* payload)
+int mqtt_send_state(const __FlashStringHelper* subtopic, const char* payload, bool retain)
 {
     char tmp_topic[mqttNodeTopic.length() + 20];
     snprintf_P(tmp_topic, sizeof(tmp_topic), ("%s" MQTT_TOPIC_STATE "/%s"), mqttNodeTopic.c_str(), subtopic);
-    return mqttPublish(tmp_topic, payload, strlen(payload), false);
+    return mqttPublish(tmp_topic, payload, strlen(payload), retain);
 }
 
 int mqtt_send_discovery(const char* payload, size_t len)
@@ -269,7 +269,7 @@ static void onConnect(void* context)
     topic = mqttNodeTopic + "config/#";
     mqtt_subscribe(mqtt_client, topic.c_str());
 
-#if defined(HASP_USE_CUSTOM)
+#if defined(HASP_USE_CUSTOM) && HASP_USE_CUSTOM > 0
     topic = mqttGroupTopic + MQTT_TOPIC_CUSTOM "/#";
     mqtt_subscribe(mqtt_client, topic.c_str());
 
@@ -390,6 +390,9 @@ IRAM_ATTR void mqttLoop()
     int rc = MQTTClient_receive(mqtt_client, &topicName, &topicLen, &message, 4);
     if(rc == MQTTCLIENT_SUCCESS && message) mqtt_message_arrived(mqtt_client, topicName, topicLen, message);
 };
+
+void mqttEverySecond()
+{}
 
 void mqttEvery5Seconds(bool wifiIsConnected)
 {

@@ -24,11 +24,15 @@ void task_every_second_cb(lv_task_t* task)
 {
     haspEverySecond(); // sleep timer & statusupdate
 
+#if HASP_MQTT_TELNET > 0
+    mqttEverySecond();
+#endif
+
 #if HASP_USE_TELNET > 0
     telnetEverySecond();
 #endif
 
-#if defined(HASP_USE_CUSTOM)
+#if defined(HASP_USE_CUSTOM) && HASP_USE_CUSTOM > 0
     custom_every_second();
 #endif
     // debugEverySecond();
@@ -49,7 +53,7 @@ void task_every_second_cb(lv_task_t* task)
             break;
 
         case 3:
-#if defined(HASP_USE_CUSTOM)
+#if defined(HASP_USE_CUSTOM) && HASP_USE_CUSTOM > 0
             custom_every_5seconds();
 #endif
             break;

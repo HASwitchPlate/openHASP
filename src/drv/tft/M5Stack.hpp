@@ -17,7 +17,7 @@ Contributors:
 /----------------------------------------------------------------------------*/
 #pragma once
 
-#if defined(ARDUINO) && defined(LGFX_USE_V1)
+#if defined(ARDUINO) && defined(LGFX_USE_V1) && !defined(CONFIG_IDF_TARGET_ESP32C3)
 
 #include "Arduino.h"
 #include "LovyanGFX.hpp"

@@ -43,7 +43,7 @@ uint16_t dispatchSecondsToNextTeleperiod = 0;
 uint16_t dispatchSecondsToNextSensordata = 0;
 uint16_t dispatchSecondsToNextDiscovery  = 0;
 uint8_t nCommands                        = 0;
-haspCommand_t commands[28];
+haspCommand_t commands[29];
 
 moodlight_t moodlight    = {.brightness = 255};
 uint8_t saved_jsonl_page = 0;
@@ -52,7 +52,7 @@ uint8_t saved_jsonl_page = 0;
  */
 void dispatch_state_subtopic(const char* subtopic, const char* payload)
 {
-#if HASP_USE_MQTT == 0 && HASP_USE_TASMOTA_CLIENT == 0
+#if HASP_USE_MQTT == 0 && defined(HASP_USE_TASMOTA_CLIENT) && HASP_USE_TASMOTA_CLIENT > 0
     LOG_TRACE(TAG_MSGR, F("%s => %s"), subtopic, payload);
 #else
 
@@ -74,10 +74,14 @@ void dispatch_state_subtopic(const char* subtopic, const char* payload)
     }
 #endif
 
-#if HASP_USE_TASMOTA_CLIENT > 0
+#if defined(HASP_USE_TASMOTA_CLIENT) && HASP_USE_TASMOTA_CLIENT > 0
     slave_send_state(subtopic, payload);
 #endif
 
+#endif
+
+#if defined(HASP_USE_CUSTOM) && HASP_USE_CUSTOM > 0
+    custom_state_subtopic(subtopic, payload);
 #endif
 }
 
@@ -448,7 +452,7 @@ void dispatch_topic_payload(const char* topic, const char* payload, bool update,
     }
 #endif
 
-#if defined(HASP_USE_CUSTOM)
+#if defined(HASP_USE_CUSTOM) && HASP_USE_CUSTOM > 0
     if(topic == strstr_P(topic, PSTR(MQTT_TOPIC_CUSTOM "/"))) { // startsWith custom
         topic += 7u;
         custom_topic_payload(topic, (char*)payload, source);
@@ -864,6 +868,46 @@ void dispatch_run_script(const char*, const char* payload, uint8_t source)
 #endif
 }
 
+/*
+void dispatch_fs(const char*, const char* payload, uint8_t source)
+{
+    StaticJsonDocument<512> json;
+
+    // Note: Deserialization needs to be (const char *) so the objects WILL be copied
+    // this uses more memory but otherwise the mqtt receive buffer can get overwritten by the send buffer !!
+    DeserializationError jsonError = deserializeJson(json, payload);
+    // json.shrinkToFit();
+
+    if(!jsonError && json.is<JsonObject>()) { // Only JsonObject is valid
+        JsonVariant action;
+
+        const char* cmd = json["cmd"].as<const char*>();
+        const char* src = json["src"].as<const char*>();
+        const char* dst = json["dst"].as<const char*>();
+        int res = 0;
+
+        if(String(cmd) == "stat") {
+            res = filesystem_vfs_file_exists(src);
+        }
+        if(String(cmd) == "rm") {
+            res = filesystem_vfs_delete_file(src);
+        }
+        if(String(cmd) == "cp") {
+            res = filesystem_vfs_copy_file(src, dst);
+        }
+        if(String(cmd) == "ls") {
+            filesystem_list_path(src);
+        }
+
+        if(res) {
+            LOG_WARNING(TAG_MSGR, "Succes");
+        } else {
+            LOG_WARNING(TAG_MSGR, "Failed");
+        }
+    }
+}
+*/
+
 #if HASP_TARGET_PC
 static void shell_command_thread(char* cmdline)
 {
@@ -1251,7 +1295,7 @@ void dispatch_send_sensordata(const char*, const char*, uint8_t source)
 
     haspDevice.get_sensors(doc);
 
-#if defined(HASP_USE_CUSTOM)
+#if defined(HASP_USE_CUSTOM) && HASP_USE_CUSTOM > 0
     custom_get_sensors(doc);
 #endif
 
@@ -1318,9 +1362,10 @@ void dispatch_get_discovery_data(JsonDocument& doc)
     JsonArray relay  = doc.createNestedArray(F("power"));
     JsonArray led    = doc.createNestedArray(F("light"));
     JsonArray dimmer = doc.createNestedArray(F("dim"));
+    JsonArray event  = doc.createNestedArray(F("event"));
 
 #if HASP_USE_GPIO > 0
-    gpio_discovery(input, relay, led, dimmer);
+    gpio_discovery(input, relay, led, dimmer, event);
 #endif
 }
 
@@ -1592,6 +1637,7 @@ void dispatchSetup()
     dispatch_add_command(PSTR("sensors"), dispatch_send_sensordata);
     dispatch_add_command(PSTR("theme"), dispatch_theme);
     dispatch_add_command(PSTR("run"), dispatch_run_script);
+    // dispatch_add_command(PSTR("fs"), dispatch_fs);
 #if HASP_TARGET_PC
     dispatch_add_command(PSTR("shell"), dispatch_shell_execute);
 #endif

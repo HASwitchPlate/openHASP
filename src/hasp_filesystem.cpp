@@ -180,7 +180,7 @@ void filesystemList()
 #else
     if(!HASP_FS.begin(true)) {            // default vfs path: /littlefs
 #endif
-        LOG_ERROR(TAG_FILE, F("Flash file system not mouted."));
+        LOG_ERROR(TAG_FILE, F("Flash file system not mounted."));
     } else {
 
         LOG_VERBOSE(TAG_FILE, F("Listing files on the internal flash:"));

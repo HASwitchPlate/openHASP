@@ -71,7 +71,7 @@ bool last_mqtt_state            = false;
 bool current_mqtt_state         = false;
 uint16_t mqtt_reconnect_counter = 0;
 
-void mqtt_run_scripts()
+static inline void mqtt_run_scripts()
 {
     if(last_mqtt_state != current_mqtt_state) {
         // mqtt_message_t data;
@@ -104,8 +104,8 @@ void mqtt_run_scripts()
 void mqtt_disconnected()
 {
     current_mqtt_state = false; // now we are disconnected
-                                // mqtt_run_scripts();
     mqtt_reconnect_counter++;
+    // mqtt_run_scripts(); // must happen in LVGL loop
 }
 
 void mqtt_connected()
@@ -115,7 +115,7 @@ void mqtt_connected()
         current_mqtt_state     = true; // now we are connected
         LOG_VERBOSE(TAG_MQTT, F("%s"), current_mqtt_state ? PSTR(D_SERVICE_CONNECTED) : PSTR(D_SERVICE_DISCONNECTED));
     }
-    // mqtt_run_scripts();
+    // mqtt_run_scripts(); // must happen in LVGL loop
 }
 
 int mqttPublish(const char* topic, const char* payload, size_t len, bool retain)
@@ -165,7 +165,7 @@ bool mqtt_send_lwt(bool online)
 //     return mqttPublish(tmp_topic, payload, false);
 // }
 
-int mqtt_send_state(const char* subtopic, const char* payload)
+int mqtt_send_state(const char* subtopic, const char* payload, bool retain)
 {
     String tmp_topic((char*)0);
     tmp_topic.reserve(128);
@@ -174,7 +174,7 @@ int mqtt_send_state(const char* subtopic, const char* payload)
     // tmp_topic += "/";
     tmp_topic += subtopic;
 
-    return mqttPublish(tmp_topic.c_str(), payload, false);
+    return mqttPublish(tmp_topic.c_str(), payload, retain);
 }
 
 int mqtt_send_discovery(const char* payload, size_t len)
@@ -337,7 +337,7 @@ String mqttGetTopic(Preferences preferences, String subtopic, String key, String
 }
 */
 
-void mqttParseTopic(String *topic, String subtopic, bool add_slash)
+void mqttParseTopic(String* topic, String subtopic, bool add_slash)
 {
 
     topic->replace(F("%hostname%"), haspDevice.get_hostname());
@@ -371,7 +371,7 @@ void onMqttConnect(esp_mqtt_client_handle_t client)
     // mqttSubscribeTo(mqttGroupTopic + subtopic);
     // mqttSubscribeTo(mqttNodeTopic + subtopic);
 
-#if defined(HASP_USE_CUSTOM)
+#if defined(HASP_USE_CUSTOM) && HASP_USE_CUSTOM > 0
     String subtopic = F(MQTT_TOPIC_CUSTOM "/#");
     mqttSubscribeTo(mqttGroupCommandTopic + subtopic);
     mqttSubscribeTo(mqttNodeCommandTopic + subtopic);
@@ -509,10 +509,14 @@ IRAM_ATTR void mqttLoop(void)
     }
 }
 
-void mqttEvery5Seconds(bool networkIsConnected)
+void mqttEverySecond()
 {
     mqtt_run_scripts();
-    // if(mqttEnabled && networkIsConnected && !mqttClientConnected) {
+}
+
+void mqttEvery5Seconds(bool networkIsConnected)
+{
+    // if(mqttEnabled && networkIsConnected && !current_mqtt_state) {
     //     LOG_TRACE(TAG_MQTT, F(D_MQTT_RECONNECTING));
     //     mqttStart();
     // }
@@ -535,7 +539,7 @@ void mqttStart()
         nvsOldGroup += preferences.getString(FP_CONFIG_GROUP, MQTT_GROUPNAME);
         nvsOldGroup += "/%topic%";
 
-        subtopic = F(MQTT_TOPIC_COMMAND);
+        subtopic             = F(MQTT_TOPIC_COMMAND);
         mqttNodeCommandTopic = preferences.getString(FP_CONFIG_NODE_TOPIC, MQTT_DEFAULT_NODE_TOPIC);
         mqttParseTopic(&mqttNodeCommandTopic, subtopic, false);
         mqttGroupCommandTopic = preferences.getString(FP_CONFIG_GROUP_TOPIC, nvsOldGroup.c_str());
