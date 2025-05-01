@@ -27,7 +27,9 @@
 #include "sys/net/hasp_network.h"
 #include "sys/net/hasp_time.h"
 
+#if !(!defined(HASP_USE_BACKUP) || HASP_USE_BACKUP < 1)
 #include "ZipStream.h"
+#endif
 
 #if(HASP_USE_CAPTIVE_PORTAL > 0) && (HASP_USE_WIFI > 0)
 #include <DNSServer.h>
@@ -442,7 +444,9 @@ static void http_handle_root()
     html[min(i++, len)] = R"(<a href="/screenshot" v-t="'screenshot.btn'"></a>)";
     html[min(i++, len)] = R"(<a href="/info" v-t="'info.btn'"></a>)";
     html[min(i++, len)] = R"(<a href="/config" v-t="'config.btn'"></a>)";
+#if !(!defined(HASP_USE_BACKUP) || HASP_USE_BACKUP < 1)
     html[min(i++, len)] = R"(<a href="/backup" v-t="'backup.btn'"></a>)";
+#endif
     html[min(i++, len)] = R"(<a href="/firmware" v-t="'ota.btn'"></a>)";
 #ifdef ARDUINO_ARCH_ESP32
     html[min(i++, len)] = R"(<a href="/edit" v-t="'editor.btn'"></a>)";
@@ -2544,6 +2548,7 @@ static void webHandleFirmware()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+#if !(!defined(HASP_USE_BACKUP) || HASP_USE_BACKUP < 1)
 /**************************************************************************//**
  * @brief Handle backup and restore
  *      When the backup is executed, the ‘config.json’ file is created and 
@@ -2719,6 +2724,8 @@ static void webHandleRestoreUpload()
         }
     }
 }
+#endif  // #if !(!defined(HASP_USE_BACKUP) || HASP_USE_BACKUP < 1)
+
 #endif // HASP_USE_SPIFFS || HASP_USE_LITTLEFS
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2905,7 +2912,7 @@ void httpSetup()
         webHandleFirmwareUpload);
 #endif
 
-#if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
+#if (HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0) && !(!defined(HASP_USE_BACKUP) || HASP_USE_BACKUP < 1)
     webServer.on("/backup", HTTP_ANY, webHandleBackup, webHandleRestoreUpload);
 #endif
 

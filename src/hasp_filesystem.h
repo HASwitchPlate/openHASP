@@ -6,16 +6,36 @@
 
 #include <Arduino.h>
 #include <FS.h>
-#include "hasp_debug.h"
+//#include "hasp_debug.h"
 
-#include <functional>
-#include <memory>
-#include <Stream.h>
+//#include <functional>
+//#include <memory>
+//#include <Stream.h>
 
 bool filesystemSetup(void);
 void filesystemList();
 void filesystemInfo();
 void filesystemSetupFiles();
+
+#if (!defined(HASP_USE_BACKUP) || HASP_USE_BACKUP < 1)
+   enum { ZIP_NO_COMPRESSION = 0, ZIP_DEFLTATE = 8 };
+   typedef uint16_t zip_compression_method_t;
+
+   typedef struct
+   {
+      uint16_t dummy_bytes; // total struct needs to be a multiple of 4 bytes
+      uint16_t min_version;
+      uint16_t flags;
+      zip_compression_method_t compression_method;
+      uint16_t time_modified;
+      uint16_t date_modified;
+      uint32_t crc;
+      uint32_t compressed_size;
+      uint32_t uncompressed_size;
+      uint16_t filename_length; // OK
+      uint16_t extra_length;
+   } zip_file_header_t;
+#endif
 
 #if defined(ARDUINO_ARCH_ESP32)
 #if HASP_USE_SPIFFS > 0
