@@ -357,10 +357,15 @@ uint16_t Esp32Device::get_cpu_frequency()
 bool Esp32Device::is_system_pin(uint8_t pin)
 {
 // Also see esp32.cpp / hasp_gpio.cpp
-#if defined(CONFIG_IDF_TARGET_ESP32S3)
+#if defined(CONFIG_IDF_TARGET_ESP32S3) && !defined(LANBONL9)
     if((pin >= 22) && (pin <= 25)) return true; // unavailable
     if((pin >= 26) && (pin <= 32)) return true; // integrated SPI flash
     if((pin >= 33) && (pin <= 37)) return true; // octal flash or PSram
+#elif defined(CONFIG_IDF_TARGET_ESP32S3) && defined(LANBONL9)
+    if((pin >= 22) && (pin <= 25)) return true; // unavailable
+    if((pin >= 26) && (pin <= 32)) return true; // integrated SPI flash
+    if((pin >= 33) && (pin <= 34)) return true; // Pins 33 and 34 are not broken out on the WROOM module
+    // Lanbon L9 uses a WROOM module with Quad flash and pings 35 to 37 are available for use.
 #elif defined(CONFIG_IDF_TARGET_ESP32S2)                          // Arduino NUM_DIGITAL_PINS = 48 (but espressif says it only has 46)
     // From https://hggh.github.io/esp32/2021/01/06/ESP32-S2-pinout.html, it looks like IO26 is for PSRAM
     // More info https://docs.espressif.com/projects/esp-idf/en/latest/esp32s2/_images/esp32-s2_saola1-pinout.jpg
