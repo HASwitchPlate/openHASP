@@ -7,7 +7,7 @@
 #include "hasplib.h"
 
 /* ===== Default Event Processors ===== */
-void timeSetup();
+void timeSetup(bool websync = true);
 
 /* ===== Special Event Processors ===== */
 
