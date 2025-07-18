@@ -509,7 +509,7 @@ void wifiSetup()
 
         WiFi.setScanMethod(WIFI_ALL_CHANNEL_SCAN);
         wifiReconnect();
-        WiFi.setAutoReconnect(false); // done in wifiEvery5Seconds
+        WiFi.setAutoReconnect(true); // done in wifiEvery5Seconds
         LOG_TRACE(TAG_WIFI, F(D_WIFI_CONNECTING_TO), wifiSsid);
     }
 #endif
@@ -532,10 +532,11 @@ bool wifiEvery5Seconds()
         return true;
     }
 
-    if(wifiEnabled) {
-        LOG_WARNING(TAG_WIFI, F("No Connection... retry %d"), network_reconnect_counter);
-        wifiReconnect();
-    }
+    // Issue #919 : Reconnects happens to quickly
+    // if(wifiEnabled) {
+    //     LOG_WARNING(TAG_WIFI, F("No Connection... retry %d"), network_reconnect_counter);
+    //     wifiReconnect();
+    // }
 
     return false;
 }
