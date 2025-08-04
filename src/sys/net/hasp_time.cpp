@@ -34,12 +34,13 @@ void timeSyncCallback(struct timeval* tv)
 }
 #endif
 
-void timeSetup()
+void timeSetup(bool websync)
 {
 #if defined(ARDUINO_ARCH_ESP8266)
     LOG_WARNING(TAG_TIME, F("TIMEZONE: %s"), MYTZ);
     configTzTime(MYTZ, NTPSERVER1, NTPSERVER2, NTPSERVER3); // literal string
 #endif
+
 #if defined(ARDUINO_ARCH_ESP32)
     Preferences preferences;
     nvs_user_begin(preferences, "time", true);
@@ -57,9 +58,12 @@ void timeSetup()
     LOG_VERBOSE(TAG_TIME, F("%s => %s"), zone.c_str(), mytz.c_str());
     LOG_VERBOSE(TAG_TIME, F("NTP: %s %s %s"), ntp1.c_str(), ntp2.c_str(), ntp3.c_str());
 
-    sntp_set_time_sync_notification_cb(timeSyncCallback);
-    configTzTime(mytz.c_str(), ntp1.c_str(), ntp2.c_str(), ntp3.c_str());
-    sntp_servermode_dhcp(enable && dhcp ? 1 : 0);
+    if (websync) {
+        sntp_set_time_sync_notification_cb(timeSyncCallback);
+        configTzTime(mytz.c_str(), ntp1.c_str(), ntp2.c_str(), ntp3.c_str());
+        sntp_servermode_dhcp(enable && dhcp ? 1 : 0);
+    }
+
     preferences.end();
 #endif
 }
@@ -697,8 +701,8 @@ bool timeSetConfig(const JsonObject& settings)
     changed |= nvsUpdateString(preferences, "ntp3", settings["ntp"][2]);
 
     preferences.end();
-    timeSetup();
-
+    timeSetup(false);
+   
     return changed;
 }
 #endif
