@@ -53,7 +53,7 @@
         "editor": {
             "title": "Editor de ficheiros",
             "btn": "Editor de ficheiros",
-            "nav": "Editor de ficheiros"
+            "nav": "Editor de arquivos"
         },
         "reset": {
             "title": "Repor configuração de fábrica",
@@ -91,7 +91,7 @@
             "vpnip": "VPN IP",
             "privkey": "Private Key",
             "host": "Remote IP",
-            "port": "Remote Port",
+            "port": "Porta remota",
             "pubkey": "Remote Public Key"
         },
         "mqtt": {
@@ -128,7 +128,7 @@
             "btn": "Configurar debug",
             "baud": "Baudrate",
             "tele": "Período Tele",
-            "ansi": "Usar códigos ANSI",
+            "ansi": "Usar codificação ANSI",
             "host": "Servidor Syslog",
             "port": "Porta Syslog",
             "ietf": "IETF (RFC 5424)",
