@@ -1,12 +1,12 @@
 {
     "en": {
-        "language": "Portuguese-Brazil",
+        "language": "Português-Brasil",
         "home": {
-            "title": "Menu Principal",
-            "btn": "Menu Principal",
+            "title": "Menu principal",
+            "btn": "Menu principal",
             "nav": "Início"
         },
-        "save": "Guardar Configuração",
+        "save": "Salvar configuração",
         "user": "Usuário",
         "pass": "Senha",
         "hasp": {
@@ -17,15 +17,15 @@
             "color2": "Cor secundária",
             "pages": "Layout inicial",
             "font": "Fonte padrão",
-            "startpage": "Startup Page",
-            "startdim": "Startup Dim"
+            "startpage": "Página inicial",
+            "startdim": "Dim inicial"
         },
         "screenshot": {
             "title": "Screenshot",
             "btn": "Screenshot",
             "nav": "Screenshot",
-            "prev": "Página Anterior",
-            "next": "Página Seguinte",
+            "prev": "Página anterior",
+            "next": "Próxima página",
             "refresh": "Atualizar"
         },
         "info": {
@@ -43,23 +43,23 @@
             "btn": "Atualização do firmware",
             "nav": "Firmware",
             "submit": "Atualizar o firmware",
-            "file": "Arquivo de Firmware",
-            "url": "URL de Firmware",
+            "file": "Arquivo de firmware",
+            "url": "URL do firmware",
             "redirect": "Seguir redirecionamentos",
             "never": "Nunca",
             "strict": "Estrito",
             "always": "Sempre"
         },
         "editor": {
-            "title": "Editor de ficheiros",
-            "btn": "Editor de ficheiros",
+            "title": "Editor de arquivos",
+            "btn": "Editor de arquivos",
             "nav": "Editor de arquivos"
         },
         "reset": {
             "title": "Repor configuração de fábrica",
             "btn": "Repor configuração de fábrica",
             "warning": "Aviso",
-            "message": "Este processo irá redefinir todas as configurações para os valores padrão. O flash interno será apagado e o dispositivo será reiniciado. Talvez seja necessário conectar-se ao WiFi AP exibido no painel para reconfigurar o dispositivo antes de acessá-lo novamente.",
+            "message": "Este processo irá redefinir todas as configurações para os valores padrão. A memória flash interna será apagada e o dispositivo será reiniciado. Talvez seja necessário conectar-se ao AP WiFi exibido no painel para reconfigurar o dispositivo antes de acessá-lo novamente.",
             "fileloss": "TODOS OS ARQUIVOS SERÃO PERDIDOS!"
         },
         "reboot": {
@@ -81,18 +81,18 @@
             "apache2": "Licença Apache2"
         },
         "wifi": {
-            "title": "Configurar Wifi",
-            "btn": "Configurar Wifi",
+            "title": "Configurar WiFi",
+            "btn": "Configurar WiFi",
             "ssid": "SSID"
         },
         "wg": {
-            "title": "WireGuard Settings",
-            "btn": "WireGuard Settings",
-            "vpnip": "VPN IP",
-            "privkey": "Private Key",
-            "host": "Remote IP",
+            "title": "Configurações do WireGuard",
+            "btn": "Configurações do WireGuard",
+            "vpnip": "IP VPN",
+            "privkey": "Chave privada",
+            "host": "IP remoto",
             "port": "Porta remota",
-            "pubkey": "Remote Public Key"
+            "pubkey": "Chave pública remota"
         },
         "mqtt": {
             "title": "Configurar MQTT",
@@ -101,9 +101,9 @@
             "group": "Nome do Grupo",
             "host": "Broker",
             "port": "Porta",
-            "node_t": "Tópico do Node",
-            "group_t": "Tópico do Grupo",
-            "broadcast_t": "Tópico do Broadcast",
+            "node_t": "Tópico do node",
+            "group_t": "Tópico do grupo",
+            "broadcast_t": "Tópico do broadcast",
             "hass_t": "Tópico HA LWT"
         },
         "http": {
@@ -114,11 +114,11 @@
             "title": "Configurar FTP",
             "btn": "Configurar FTP",
             "port": "Porta FTP",
-            "pasv": "Porta Passiva"
+            "pasv": "Porta passiva"
         },
         "gui": {
-            "title": "Configurar Tela",
-            "btn": "Configurar Tela",
+            "title": "Configurar tela",
+            "btn": "Configurar tela",
             "antiburn": "Anti-queimadura",
             "calibrate": "Calibrar"
         },
@@ -133,7 +133,7 @@
             "port": "Porta Syslog",
             "ietf": "IETF (RFC 5424)",
             "bsd": "BSD (RFC 3164)",
-            "log": "Facility"
+            "log": "Facilidade"
         },
         "time": {
             "title": "Configurar hora",
