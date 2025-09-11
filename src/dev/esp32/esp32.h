@@ -73,7 +73,7 @@ class Esp32Device : public BaseDevice {
     bool _backlight_fading;
     bool _backlight_fade;
 
-    void update_backlight(bool fade);
+    void update_backlight();
     static bool cb_backlight(const ledc_cb_param_t *param, void *user_arg);
     void end_backlight_fade();
 };
@@ -86,6 +86,8 @@ class Esp32Device : public BaseDevice {
 #elif defined(M5STACK) || defined (M5STACKLGFX)
 // #warning Building for M5Stack core2
 #include "m5stackcore2.h"
+#elif defined(TWATCH)
+#include "twatch.h"
 #else
 using dev::Esp32Device;
 extern dev::Esp32Device haspDevice;

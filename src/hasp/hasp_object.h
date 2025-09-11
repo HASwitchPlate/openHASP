@@ -88,6 +88,7 @@ enum lv_hasp_obj_type_t {
     LV_HASP_ANIMIMAGE = 38, // placeholder
     LV_HASP_CANVAS    = 39, // placeholder
     LV_HASP_MASK      = 40, // placeholder
+    LV_HASP_QRCODE    = 41, // placeholder
 
     /* Custom */
     LV_HASP_ALARM = 60,
@@ -170,6 +171,7 @@ inline bool obj_check_type(const lv_obj_t* obj, lv_hasp_obj_type_t haspobjtype)
 #define HASP_OBJ_SPINBOX 25641
 #define HASP_OBJ_CALENDAR 30334
 #define HASP_OBJ_IMG 30499
+#define HASP_OBJ_QRCODE 50958
 #define HASP_OBJ_GAUGE 33145
 #define HASP_OBJ_CHART 34654
 #define HASP_OBJ_LINE 34804

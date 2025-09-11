@@ -64,14 +64,14 @@ int mqttQos       = 0;
 esp_mqtt_client_handle_t mqttClient;
 static esp_mqtt_client_config_t mqtt_cfg;
 
-extern const uint8_t rootca_crt_bundle_start[] asm("_binary_data_cert_x509_crt_bundle_bin_start");
-extern const uint8_t rootca_crt_bundle_end[] asm("_binary_data_cert_x509_crt_bundle_bin_end");
+// extern const uint8_t rootca_crt_bundle_start[] asm("_binary_data_cert_x509_crt_bundle_bin_start");
+// extern const uint8_t rootca_crt_bundle_end[] asm("_binary_data_cert_x509_crt_bundle_bin_end");
 
 bool last_mqtt_state            = false;
 bool current_mqtt_state         = false;
 uint16_t mqtt_reconnect_counter = 0;
 
-void mqtt_run_scripts()
+static inline void mqtt_run_scripts()
 {
     if(last_mqtt_state != current_mqtt_state) {
         // mqtt_message_t data;
@@ -104,8 +104,8 @@ void mqtt_run_scripts()
 void mqtt_disconnected()
 {
     current_mqtt_state = false; // now we are disconnected
-    mqtt_run_scripts();
     mqtt_reconnect_counter++;
+    // mqtt_run_scripts(); // must happen in LVGL loop
 }
 
 void mqtt_connected()
@@ -115,7 +115,7 @@ void mqtt_connected()
         current_mqtt_state     = true; // now we are connected
         LOG_VERBOSE(TAG_MQTT, F("%s"), current_mqtt_state ? PSTR(D_SERVICE_CONNECTED) : PSTR(D_SERVICE_DISCONNECTED));
     }
-    mqtt_run_scripts();
+    // mqtt_run_scripts(); // must happen in LVGL loop
 }
 
 int mqttPublish(const char* topic, const char* payload, size_t len, bool retain)
@@ -165,7 +165,7 @@ bool mqtt_send_lwt(bool online)
 //     return mqttPublish(tmp_topic, payload, false);
 // }
 
-int mqtt_send_state(const char* subtopic, const char* payload)
+int mqtt_send_state(const char* subtopic, const char* payload, bool retain)
 {
     String tmp_topic((char*)0);
     tmp_topic.reserve(128);
@@ -174,7 +174,7 @@ int mqtt_send_state(const char* subtopic, const char* payload)
     // tmp_topic += "/";
     tmp_topic += subtopic;
 
-    return mqttPublish(tmp_topic.c_str(), payload, false);
+    return mqttPublish(tmp_topic.c_str(), payload, retain);
 }
 
 int mqtt_send_discovery(const char* payload, size_t len)
@@ -190,6 +190,36 @@ static inline size_t mqtt_msg_length(size_t len)
     return (len / 64) * 64 + 64;
 }
 
+void mqtt_enqueue_message(const char* topic, const char* payload, size_t payload_len)
+{
+    // Add new message to the queue
+    mqtt_message_t data;
+
+    size_t topic_len = strlen(topic);
+    data.topic       = (char*)hasp_calloc(sizeof(char), mqtt_msg_length(topic_len + 1));
+    data.payload     = (char*)hasp_calloc(sizeof(char), mqtt_msg_length(payload_len + 1));
+
+    if(!data.topic || !data.payload) {
+        LOG_ERROR(TAG_MQTT_RCV, D_ERROR_OUT_OF_MEMORY);
+        hasp_free(data.topic);
+        hasp_free(data.payload);
+        return;
+    }
+    memcpy(data.topic, topic, topic_len);
+    memcpy(data.payload, payload, payload_len);
+
+    {
+        size_t attempt = 0;
+        while(xQueueSend(queue, &data, (TickType_t)0) == errQUEUE_FULL && attempt < 100) {
+            delay(5);
+            attempt++;
+        };
+        if(attempt >= 100) {
+            LOG_ERROR(TAG_MQTT_RCV, D_ERROR_OUT_OF_MEMORY);
+        }
+    }
+}
+
 void mqtt_process_topic_payload(const char* topic, const char* payload, unsigned int length)
 {
     if(gui_acquire(pdMS_TO_TICKS(30))) {
@@ -198,30 +228,7 @@ void mqtt_process_topic_payload(const char* topic, const char* payload, unsigned
         dispatch_topic_payload(topic, payload, length > 0, TAG_MQTT);
         gui_release();
     } else {
-        // Add new message to the queue
-        mqtt_message_t data;
-
-        size_t topic_len   = strlen(topic);
-        size_t payload_len = length;
-        data.topic         = (char*)hasp_calloc(sizeof(char), mqtt_msg_length(topic_len + 1));
-        data.payload       = (char*)hasp_calloc(sizeof(char), mqtt_msg_length(payload_len + 1));
-
-        if(!data.topic || !data.payload) {
-            LOG_ERROR(TAG_MQTT_RCV, D_ERROR_OUT_OF_MEMORY);
-            hasp_free(data.topic);
-            hasp_free(data.payload);
-            return;
-        }
-        memcpy(data.topic, topic, topic_len);
-        memcpy(data.payload, payload, payload_len);
-
-        {
-            size_t attempt = 0;
-            while(xQueueSend(queue, &data, (TickType_t)0) == errQUEUE_FULL && attempt < 100) {
-                delay(5);
-                attempt++;
-            };
-        }
+        mqtt_enqueue_message(topic, payload, length);
     }
 }
 
@@ -313,6 +320,7 @@ static int mqttSubscribeTo(String topic)
     return err;
 }
 
+/*
 String mqttGetTopic(Preferences preferences, String subtopic, String key, String value, bool add_slash)
 {
     String topic = preferences.getString(key.c_str(), value);
@@ -326,6 +334,20 @@ String mqttGetTopic(Preferences preferences, String subtopic, String key, String
         topic += "/";
     }
     return topic;
+}
+*/
+
+void mqttParseTopic(String* topic, String subtopic, bool add_slash)
+{
+
+    topic->replace(F("%hostname%"), haspDevice.get_hostname());
+    topic->replace(F("%hwid%"), haspDevice.get_hardware_id());
+    topic->replace(F("%topic%"), subtopic);
+    topic->replace(F("%prefix%"), MQTT_PREFIX);
+
+    if(add_slash && !topic->endsWith("/")) {
+        *topic += "/";
+    }
 }
 
 void onMqttConnect(esp_mqtt_client_handle_t client)
@@ -349,11 +371,11 @@ void onMqttConnect(esp_mqtt_client_handle_t client)
     // mqttSubscribeTo(mqttGroupTopic + subtopic);
     // mqttSubscribeTo(mqttNodeTopic + subtopic);
 
-#if defined(HASP_USE_CUSTOM)
+#if defined(HASP_USE_CUSTOM) && HASP_USE_CUSTOM > 0
     String subtopic = F(MQTT_TOPIC_CUSTOM "/#");
     mqttSubscribeTo(mqttGroupCommandTopic + subtopic);
     mqttSubscribeTo(mqttNodeCommandTopic + subtopic);
-#endif 
+#endif
 
     /* Home Assistant auto-configuration */
 #ifdef HASP_USE_HA
@@ -465,8 +487,8 @@ static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
 void mqttSetup()
 {
     queue = xQueueCreate(64, sizeof(mqtt_message_t));
-    //esp_crt_bundle_set(rootca_crt_bundle_start, rootca_crt_bundle_end-rootca_crt_bundle_start);
-    arduino_esp_crt_bundle_set(rootca_crt_bundle_start);
+    // esp_crt_bundle_set(rootca_crt_bundle_start, rootca_crt_bundle_end-rootca_crt_bundle_start);
+    //    arduino_esp_crt_bundle_set(rootca_crt_bundle_start);
     mqttStart();
 }
 
@@ -487,9 +509,14 @@ IRAM_ATTR void mqttLoop(void)
     }
 }
 
+void mqttEverySecond()
+{
+    mqtt_run_scripts();
+}
+
 void mqttEvery5Seconds(bool networkIsConnected)
 {
-    // if(mqttEnabled && networkIsConnected && !mqttClientConnected) {
+    // if(mqttEnabled && networkIsConnected && !current_mqtt_state) {
     //     LOG_TRACE(TAG_MQTT, F(D_MQTT_RECONNECTING));
     //     mqttStart();
     // }
@@ -512,24 +539,30 @@ void mqttStart()
         nvsOldGroup += preferences.getString(FP_CONFIG_GROUP, MQTT_GROUPNAME);
         nvsOldGroup += "/%topic%";
 
-        subtopic = F(MQTT_TOPIC_COMMAND);
-        mqttNodeCommandTopic =
-            mqttGetTopic(preferences, subtopic, FP_CONFIG_NODE_TOPIC, MQTT_DEFAULT_NODE_TOPIC, false);
-        mqttGroupCommandTopic = mqttGetTopic(preferences, subtopic, FP_CONFIG_GROUP_TOPIC, nvsOldGroup.c_str(), false);
+        subtopic             = F(MQTT_TOPIC_COMMAND);
+        mqttNodeCommandTopic = preferences.getString(FP_CONFIG_NODE_TOPIC, MQTT_DEFAULT_NODE_TOPIC);
+        mqttParseTopic(&mqttNodeCommandTopic, subtopic, false);
+        mqttGroupCommandTopic = preferences.getString(FP_CONFIG_GROUP_TOPIC, nvsOldGroup.c_str());
+        mqttParseTopic(&mqttGroupCommandTopic, subtopic, false);
+
 #ifdef HASP_USE_BROADCAST
-        mqttBroadcastCommandTopic =
-            mqttGetTopic(preferences, subtopic, FP_CONFIG_BROADCAST_TOPIC, MQTT_DEFAULT_BROADCAST_TOPIC, false);
+        mqttBroadcastCommandTopic = preferences.getString(FP_CONFIG_BROADCAST_TOPIC, MQTT_DEFAULT_BROADCAST_TOPIC);
+        mqttParseTopic(&mqttBroadcastCommandTopic, subtopic, false);
+
 #endif
 
         subtopic           = F(MQTT_TOPIC_STATE);
-        mqttNodeStateTopic = mqttGetTopic(preferences, subtopic, FP_CONFIG_NODE_TOPIC, MQTT_DEFAULT_NODE_TOPIC, true);
+        mqttNodeStateTopic = preferences.getString(FP_CONFIG_NODE_TOPIC, MQTT_DEFAULT_NODE_TOPIC);
+        mqttParseTopic(&mqttNodeStateTopic, subtopic, true);
 
         subtopic         = F(MQTT_TOPIC_LWT);
-        mqttNodeLwtTopic = mqttGetTopic(preferences, subtopic, FP_CONFIG_NODE_TOPIC, MQTT_DEFAULT_NODE_TOPIC, false);
+        mqttNodeLwtTopic = preferences.getString(FP_CONFIG_NODE_TOPIC, MQTT_DEFAULT_NODE_TOPIC);
+        mqttParseTopic(&mqttNodeLwtTopic, subtopic, false);
         LOG_WARNING(TAG_MQTT, mqttNodeLwtTopic.c_str());
 
         subtopic         = F(MQTT_TOPIC_LWT);
-        mqttHassLwtTopic = mqttGetTopic(preferences, subtopic, FP_CONFIG_HASS_TOPIC, MQTT_DEFAULT_HASS_TOPIC, false);
+        mqttHassLwtTopic = preferences.getString(FP_CONFIG_HASS_TOPIC, MQTT_DEFAULT_HASS_TOPIC);
+        mqttParseTopic(&mqttHassLwtTopic, subtopic, false);
         LOG_WARNING(TAG_MQTT, mqttNodeLwtTopic.c_str());
 
         preferences.end();

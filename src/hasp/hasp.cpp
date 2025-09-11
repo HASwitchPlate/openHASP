@@ -111,7 +111,8 @@ lv_font_t* hasp_get_font(uint8_t fontid)
  */
 HASP_ATTRIBUTE_FAST_MEM void hasp_update_sleep_state()
 {
-    if(hasp_first_touch_state) return; // don't update sleep when first touch is still active
+    // Don't fast exit, see issue #839
+    // if(hasp_first_touch_state) return; // don't update sleep when first touch is still active
 
     uint32_t idle = lv_disp_get_inactive_time(lv_disp_get_default()) / 1000;
     idle += sleepTimeOffset; // To force a specific state
@@ -217,11 +218,12 @@ void hasp_antiburn_cb(lv_task_t* task)
     lv_obj_t* layer = lv_disp_get_layer_sys(NULL);
     if(layer) {
         // Fill a buffer with random colors
-        lv_color_t color[1223];
-        size_t len = sizeof(color) / sizeof(color[0]);
-        for(size_t x = 0; x < len; x++) {
+        lv_color_t color[1223]; // prime
+        size_t max_len = sizeof(color) / sizeof(color[0]);
+        for(size_t x = 0; x < max_len; x++) {
             color[x].full = HASP_RANDOM(UINT16_MAX);
         }
+        max_len -= 64; // leave some headroom to randomize
 
         // list of possible draw widths; prime numbers combat recurring patterns on the screen
         uint8_t prime[] = {61,  67,  73,  79,  83,  89,  97,  103, 109, 113, 127, 131, 137, 139, 149,
@@ -230,17 +232,27 @@ void hasp_antiburn_cb(lv_task_t* task)
         lv_disp_t* disp         = lv_disp_get_default();
         lv_disp_drv_t* disp_drv = &disp->driver;
 
-        lv_coord_t scr_h = lv_obj_get_height(layer) - 1;
-        lv_coord_t scr_w = lv_obj_get_width(layer) - 1;
-        lv_coord_t w     = 487; // first prime larger than 480
+        lv_coord_t scr_h;
+        lv_coord_t scr_w;
+
+        if(disp_drv->sw_rotate) {
+            scr_w = disp_drv->hor_res - 1; // use hardware w
+            scr_h = disp_drv->ver_res - 1; // use hardware h
+        } else {
+            scr_w = lv_obj_get_width(layer) - 1;  // use software w
+            scr_h = lv_obj_get_height(layer) - 1; // use software h
+        }
+
+        lv_coord_t w = scr_w; // maximum screen width
         lv_area_t area;
 
         area.y1 = 0;
         while(area.y1 <= scr_h) {
-            if(w > scr_w) w = scr_w; // limit to the actual screenwidth
-            if(w > len) w = len;     // don't overrun the buffer
-            lv_coord_t h    = len / w;
-            size_t headroom = len % w; // additional bytes in the buffer that can be used for a random offset
+            if(w > scr_w) w = scr_w;     // limit to the actual screenwidth
+            if(w > max_len) w = max_len; // don't overrun the buffer
+            lv_coord_t h    = max_len / w;
+            size_t headroom = (sizeof(color) / sizeof(color[0])) -
+                              (h * w); // additional bytes in the buffer that can be used for a random offset
 
             area.y2 = area.y1 + h - 1;
             if(area.y2 > scr_h) area.y2 = scr_h;
@@ -255,16 +267,16 @@ void hasp_antiburn_cb(lv_task_t* task)
                 area.x1 += w;
             }
 
-            w = prime[HASP_RANDOM(sizeof(prime))]; // new random width
+            w = prime[HASP_RANDOM(sizeof(prime) / sizeof(prime[0]))]; // new random width
             area.y1 += h;
         }
     }
 
-    if(task->repeat_count != 1) return; // don't stop yet
-
     // task is about to get deleted
-    hasp_stop_antiburn();
-    dispatch_state_antiburn(HASP_EVENT_OFF);
+    if(task->repeat_count == 1) {
+        hasp_stop_antiburn();
+        dispatch_state_antiburn(HASP_EVENT_OFF);
+    }
 }
 
 /**

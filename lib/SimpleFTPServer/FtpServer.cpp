@@ -293,10 +293,9 @@ uint8_t FtpServer::handleFTP() {
 void FtpServer::clientConnected()
 {
   // DEBUG_PRINTLN( F(" Client connected!") );
-  client.print(F("220 ---")); client.print(welcomeMessage); client.println(F(" ---"));
-  // client.print(F("220---")); client.print(welcomeMessage); client.println(F(" ---"));
-  // client.println(F("220---   By Renzo Mischianti   ---"));
-  // client.print(F("220 --    Version ")); client.print(FTP_SERVER_VERSION); client.println(F("    --"));
+  client.print  (F("220--- ")); client.print(welcomeMessage); client.println(F(" ---"));
+  // client.println(F("    --   By Renzo Mischianti   --"));
+  client.print  (F("220 -- Version ")); client.print(FTP_SERVER_VERSION);
   iCL = 0;
   if (FtpServer::_callback) {
 	  FtpServer::_callback(FTP_CONNECT, free(), capacity());

@@ -377,6 +377,17 @@ void hasp_new_object(const JsonObject& config, uint8_t& saved_page_id)
                 }
                 break;
 
+#if HASP_USE_QRCODE > 0
+            case LV_HASP_QRCODE:
+            case HASP_OBJ_QRCODE:
+                obj = lv_qrcode_create(parent_obj, 140, LV_COLOR_BLACK, LV_COLOR_WHITE);
+                if(obj) {
+                    lv_obj_set_event_cb(obj, delete_event_handler);
+                    obj->user_data.objid = LV_HASP_QRCODE;
+                }
+                break;
+#endif
+
             case LV_HASP_ARC:
             case HASP_OBJ_ARC:
                 obj = lv_arc_create(parent_obj, NULL);
@@ -629,6 +640,7 @@ void hasp_new_object(const JsonObject& config, uint8_t& saved_page_id)
             case HASP_OBJ_DROPDOWN:
                 obj = lv_dropdown_create(parent_obj, NULL);
                 if(obj) {
+                    lv_dropdown_set_text(obj, NULL); // Clear default text
                     lv_dropdown_set_draw_arrow(obj, true);
                     // lv_dropdown_set_anim_time(obj, 200);
                     lv_obj_set_top(obj, true);

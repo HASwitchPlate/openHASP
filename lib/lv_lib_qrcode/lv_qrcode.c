@@ -16,6 +16,7 @@
  *      DEFINES
  *********************/
 #define QR_SIZE 150
+#define LV_OBJX_NAME "lv_qrcode"
 
 /**********************
  *      TYPEDEFS
@@ -47,18 +48,39 @@
  */
 lv_obj_t* lv_qrcode_create(lv_obj_t* parent, lv_coord_t size, lv_color_t dark_color, lv_color_t light_color)
 {
+    LV_LOG_INFO("qrcode create started");
+
+    /*Create a basic object*/
+    lv_obj_t* new_qrcode = lv_canvas_create(parent, NULL);
+    LV_ASSERT_MEM(new_qrcode);
+    if(new_qrcode == NULL) return NULL;
+
+    /*Extend the canvas ext attr to qrcode ext attr*/
+    lv_qrcode_ext_t * ext = lv_obj_allocate_ext_attr(new_qrcode, sizeof(lv_qrcode_ext_t));
+    LV_ASSERT_MEM(ext);
+    if(ext == NULL) {
+        lv_obj_del(new_qrcode);
+        return NULL;
+    }
+
+    ext->text           = NULL;
+    ext->static_txt     = 0;
+    ext->dot.tmp_ptr    = NULL;
+    ext->dot_tmp_alloc  = 0;
+
+    /*Allocate QR bitmap buffer*/
     uint32_t buf_size = LV_CANVAS_BUF_SIZE_INDEXED_1BIT(size, size);
     uint8_t* buf      = lv_mem_alloc(buf_size);
     LV_ASSERT_MEM(buf);
     if(buf == NULL) return NULL;
 
-    lv_obj_t* canvas = lv_canvas_create(parent, NULL);
+    lv_canvas_set_buffer(new_qrcode, buf, size, size, LV_IMG_CF_INDEXED_1BIT);
+    lv_canvas_set_palette(new_qrcode, 0, dark_color);
+    lv_canvas_set_palette(new_qrcode, 1, light_color);
 
-    lv_canvas_set_buffer(canvas, buf, size, size, LV_IMG_CF_INDEXED_1BIT);
-    lv_canvas_set_palette(canvas, 0, dark_color);
-    lv_canvas_set_palette(canvas, 1, light_color);
+    LV_LOG_INFO("qrcode create ready");
 
-    return canvas;
+    return new_qrcode;
 
     // lv_img_dsc_t * img_buf = lv_img_buf_alloc(20, 20, LV_IMG_CF_TRUE_COLOR);
     // if(img_buf == NULL) {
@@ -97,6 +119,8 @@ lv_res_t lv_qrcode_update(lv_obj_t* qrcode, const void* data, uint32_t data_len)
     lv_canvas_fill_bg(qrcode, c, 0);
     // lv_canvas_zoom();
 
+    LV_LOG_INFO("Update QR-code text with length : %d", data_len);
+
     if(data_len > qrcodegen_BUFFER_LEN_MAX) return LV_RES_INV;
 
     uint8_t qr0[qrcodegen_BUFFER_LEN_MAX];
@@ -106,20 +130,28 @@ lv_res_t lv_qrcode_update(lv_obj_t* qrcode, const void* data, uint32_t data_len)
     bool ok = qrcodegen_encodeBinary(data_tmp, data_len, qr0, qrcodegen_Ecc_MEDIUM, qrcodegen_VERSION_MIN,
                                      qrcodegen_VERSION_MAX, qrcodegen_Mask_AUTO, true);
 
-    if(!ok) return LV_RES_INV;
+    if(!ok) {
+        LV_LOG_WARN("QR-code encoding error");
+        return LV_RES_INV;
+    }
 
     lv_coord_t obj_w = lv_obj_get_width(qrcode);
-    int qr_size      = qrcodegen_getSize(qr0);
-    int scale        = obj_w / qr_size;
+    int qr_size      = qrcodegen_getSize(qr0);      // Number of vertical QR blocks
+    int scale        = obj_w / (qr_size + 2);       // +2 guaranteed a minimum of 1 block margin all round
     int scaled       = qr_size * scale;
     int margin       = (obj_w - scaled) / 2;
 
+    LV_LOG_INFO("Update QR-code data : obj_w[%d] QR moduls[%d] scale factor[%d]", obj_w, qr_size, scale);
+
+    /*Expand the qr encodet binary to canvas size*/
     for(int y = 0; y < scaled; y++) {
         for(int x = 0; x < scaled; x++) {
             c.full = qrcodegen_getModule(qr0, x / scale, y / scale) ? 0 : 1;
             lv_canvas_set_px(qrcode, x + margin, y + margin, c);
         }
     }
+
+    qrcode->signal_cb(qrcode, LV_SIGNAL_CLEANUP, NULL);
 
     return LV_RES_OK;
 }
@@ -169,6 +201,118 @@ lv_res_t lv_qrcode_update2(lv_obj_t* qrcode, const void* data, uint32_t data_len
 }
 
 /**
+ * Set the data of a QR code object
+ * @param qrcode pointer to aQ code object
+ * @param text data to display, '\0' terminated character string. NULL to refresh with the current text.
+ * @return LV_RES_OK: if no error; LV_RES_INV: on error
+ */
+lv_res_t lv_qrcode_set_text(lv_obj_t * qrcode, const void * text)
+{
+    LV_ASSERT_OBJ(qrcode, LV_OBJX_NAME);
+
+    lv_qrcode_ext_t * ext = lv_obj_get_ext_attr(qrcode);
+
+    /*If text is NULL then just refresh with the current text */
+    if(text == NULL) text = ext->text;
+
+    LV_ASSERT_STR(text);
+
+    if(ext->text == text && ext->static_txt == 0) {
+        /*If set its own text then reallocate it (maybe its size changed)*/
+        ext->text = lv_mem_realloc(ext->text, strlen(ext->text) + 1);
+
+        LV_ASSERT_MEM(ext->text);
+        if(ext->text == NULL) return LV_RES_INV;
+    }
+    else {
+        /*Free the old text*/
+        if(ext->text != NULL && ext->static_txt == 0) {
+            lv_mem_free(ext->text);
+            ext->text = NULL;
+        }
+
+        /*Get the size of the text*/
+        size_t len = strlen(text) + 1;
+
+        /*Allocate space for the new text*/
+        ext->text = lv_mem_alloc(len);
+        LV_ASSERT_MEM(ext->text);
+        if(ext->text == NULL) return LV_RES_INV;
+        strcpy(ext->text, text);
+
+        /*Now the text is dynamically allocated*/
+        ext->static_txt = 0;
+    }
+
+    return lv_qrcode_update(qrcode, ext->text, strlen(ext->text));
+}
+
+/**
+ * Set the data of a QR code object
+ * @param qrcode pointer to aQ code object
+ * @param text data to display, '\0' terminated character string. NULL to refresh with the current text.
+ * @return LV_RES_OK: if no error; LV_RES_INV: on error
+ */
+lv_res_t lv_qrcode_set_text_static(lv_obj_t * qrcode, const void * text)
+{
+    LV_ASSERT_OBJ(qrcode, LV_OBJX_NAME);
+
+    lv_qrcode_ext_t * ext = lv_obj_get_ext_attr(qrcode);
+    if(ext->static_txt == 0 && ext->text != NULL) {
+        lv_mem_free(ext->text);
+        ext->text = NULL;
+    }
+
+    if(text != NULL) {
+        ext->static_txt = 1;
+        ext->text       = (char *)text;
+    }
+
+    return lv_qrcode_update(qrcode, text, strlen(text));
+}
+
+/**
+ * Get the text of a qrcode
+ * @param qrcode pointer to a qrcode object
+ * @return the text of the qrcode
+ */
+char * lv_qrcode_get_text(const lv_obj_t * qrcode)
+{
+    LV_ASSERT_OBJ(qrcode, LV_OBJX_NAME);
+
+    lv_qrcode_ext_t * ext = lv_obj_get_ext_attr(qrcode);
+
+    return ext->text;
+}
+
+/**
+ * Set the data of a QR code object
+ * @param qrcode pointer to aQ code object
+ * @param size width and height of the QR code
+ * @return LV_RES_OK: if no error; LV_RES_INV: on error
+ */
+lv_res_t lv_qrcode_set_size(lv_obj_t * qrcode, lv_coord_t size)
+{
+    LV_ASSERT_OBJ(qrcode, LV_OBJX_NAME);
+
+    lv_qrcode_ext_t * ext = lv_obj_get_ext_attr(qrcode);
+
+    /*Reallocate QR bitmap buffer*/
+    uint32_t new_buf_size = LV_CANVAS_BUF_SIZE_INDEXED_1BIT(size, size);
+    uint8_t* buf = lv_mem_realloc((void *)ext->canvas.dsc.data, new_buf_size);
+    LV_ASSERT_MEM(buf);
+    if(buf == NULL) return LV_RES_INV;
+
+    lv_canvas_set_buffer(qrcode, buf, size, size, LV_IMG_CF_INDEXED_1BIT);
+
+    lv_qrcode_update(qrcode, ext->text, strlen(ext->text));
+
+//     qrcode->signal_cb(qrcode, LV_SIGNAL_CLEANUP, NULL);
+
+    return LV_RES_OK;
+}
+
+/**
  * Delete a QR code object
  * @param qrcode pointer to a QR code obejct
  */
@@ -177,7 +321,6 @@ void lv_qrcode_delete(lv_obj_t* qrcode)
     lv_img_dsc_t* img = lv_canvas_get_img(qrcode);
     lv_mem_free(img->data);
     lv_mem_free(img);
-    lv_obj_del(qrcode);
 }
 
 /**********************

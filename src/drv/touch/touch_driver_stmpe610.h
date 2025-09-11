@@ -29,8 +29,7 @@ bool touch_read(lv_indev_drv_t* indev_driver, lv_indev_data_t* data)
     data->state = LV_INDEV_STATE_REL;
 
     // while touched, but the state is released => read next point
-    while(data->state == LV_INDEV_STATE_REL && stmpe610_touchpanel.touched()) {
-
+    while(data->state == LV_INDEV_STATE_REL && !stmpe610_touchpanel.bufferEmpty()) {
         TS_Point point = stmpe610_touchpanel.getPoint();
         Log.trace(TAG_DRVR, F("STMPE610: x=%i y=%i z=%i"), point.x, point.y, point.z);
 

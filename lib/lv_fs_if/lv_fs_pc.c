@@ -19,17 +19,6 @@
 #include <windows.h>
 #endif
 
-/*********************
- *      DEFINES
- *********************/
-#ifndef LV_FS_PC_PATH
-#ifndef WIN32
-#define LV_FS_PC_PATH "./" /*Projet root*/
-#else
-#define LV_FS_PC_PATH ".\\" /*Projet root*/
-#endif
-#endif /*LV_FS_PATH*/
-
 /**********************
  *      TYPEDEFS
  **********************/
@@ -77,7 +66,7 @@ static lv_fs_res_t fs_dir_close(lv_fs_drv_t* drv, void* dir_p);
 /**
  * Register a driver for the File system interface
  */
-void lv_fs_if_pc_init(void)
+void lv_fs_if_pc_init(char letter, const char* path)
 {
     /*---------------------------------------------------
      * Register the file system interface  in LittlevGL
@@ -89,7 +78,7 @@ void lv_fs_if_pc_init(void)
 
     /*Set up fields...*/
     fs_drv.file_size     = sizeof(file_t);
-    fs_drv.letter        = LV_FS_IF_PC;
+    fs_drv.letter        = letter;
     fs_drv.open_cb       = fs_open;
     fs_drv.close_cb      = fs_close;
     fs_drv.read_cb       = fs_read;
@@ -106,6 +95,8 @@ void lv_fs_if_pc_init(void)
     fs_drv.dir_close_cb = fs_dir_close;
     fs_drv.dir_open_cb  = fs_dir_open;
     fs_drv.dir_read_cb  = fs_dir_read;
+
+    fs_drv.user_data = path;
 
     lv_fs_drv_register(&fs_drv);
 
@@ -145,10 +136,10 @@ static lv_fs_res_t fs_open(lv_fs_drv_t* drv, void* file_p, const char* path, lv_
 
 #ifndef WIN32
     char buf[256];
-    sprintf(buf, LV_FS_PC_PATH "/%s", path);
+    sprintf(buf, "%s/%s", drv->user_data, path);
 #else
     char buf[256];
-    sprintf(buf, LV_FS_PC_PATH "\\%s", path);
+    sprintf(buf, "%s\\%s", drv->user_data, path);
 #endif
 
     LV_LOG_USER(buf);
@@ -255,6 +246,7 @@ static lv_fs_res_t fs_size(lv_fs_drv_t* drv, void* file_p, uint32_t* size_p)
 
     return LV_FS_RES_OK;
 }
+
 /**
  * Give the position of the read write pointer
  * @param drv pointer to a driver where this function belongs
@@ -318,8 +310,8 @@ static lv_fs_res_t fs_rename(lv_fs_drv_t* drv, const char* oldname, const char* 
     static char new[512];
     static char old[512];
 
-    sprintf(old, LV_FS_PC_PATH "/%s", oldname);
-    sprintf(new, LV_FS_PC_PATH "/%s", newname);
+    sprintf(old, "%s/%s", drv->user_data, oldname);
+    sprintf(new, "%s/%s", drv->user_data, newname);
 
     int r = rename(old, new);
 
@@ -365,7 +357,7 @@ static lv_fs_res_t fs_dir_open(lv_fs_drv_t* drv, void* dir_p, const char* path)
 #ifndef WIN32
     /*Make the path relative to the current directory (the projects root folder)*/
     char buf[256];
-    sprintf(buf, LV_FS_PC_PATH "/%s", path);
+    sprintf(buf, "%s/%s", drv->user_data, path);
     if((d = opendir(buf)) == NULL) {
         return LV_FS_RES_FS_ERR;
     } else {
@@ -380,7 +372,7 @@ static lv_fs_res_t fs_dir_open(lv_fs_drv_t* drv, void* dir_p, const char* path)
 
     /*Make the path relative to the current directory (the projects root folder)*/
     char buf[256];
-    sprintf(buf, LV_FS_PC_PATH "\\%s\\*", path);
+    sprintf(buf, "%s\\%s\\*", drv->user_data, path);
 
     strcpy(next_fn, "");
     d = FindFirstFile(buf, &fdata);

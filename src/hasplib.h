@@ -64,6 +64,12 @@
 #include "lv_sjpg.h"
 #endif
 
-#if defined(HASP_USE_CUSTOM)
+#if HASP_TARGET_ARDUINO
+#if HASP_USE_QRCODE > 0
+#include "lv_qrcode.h"
+#endif
+#endif
+
+#if defined(HASP_USE_CUSTOM) && HASP_USE_CUSTOM > 0
 #include "custom/my_custom.h"
 #endif

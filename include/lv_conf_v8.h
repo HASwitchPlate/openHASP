@@ -86,8 +86,10 @@ typedef int16_t lv_coord_t;
 /* LittelvGL's internal memory manager's settings.
  * The graphical objects and other related data are stored here. */
 
+#ifndef LV_MEM_CUSTOM
 /* 1: use custom malloc/free, 0: use the built-in `lv_mem_alloc` and `lv_mem_free` */
 #define LV_MEM_CUSTOM      0
+#endif
 #if LV_MEM_CUSTOM == 0
 /* Size of the memory used by `lv_mem_alloc` in bytes (>= 2kB)*/
 //#  define LV_MEM_SIZE    (32U * 1024U)
@@ -103,8 +105,8 @@ typedef int16_t lv_coord_t;
 #  define LV_MEM_AUTO_DEFRAG  1
 #else       /*LV_MEM_CUSTOM*/
 #  define LV_MEM_CUSTOM_INCLUDE <stdlib.h>   /*Header for the dynamic memory function*/
-#  define LV_MEM_CUSTOM_ALLOC   malloc       /*Wrapper to malloc*/
-#  define LV_MEM_CUSTOM_FREE    free         /*Wrapper to free*/
+#  define LV_MEM_CUSTOM_ALLOC   hasp_malloc  /*Wrapper to malloc*/
+#  define LV_MEM_CUSTOM_FREE    hasp_free    /*Wrapper to free*/
 #endif     /*LV_MEM_CUSTOM*/
 
 /* Use the standard memcpy and memset instead of LVGL's own functions.

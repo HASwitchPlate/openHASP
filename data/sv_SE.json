@@ -1,0 +1,162 @@
+{
+    "en": {
+        "language": "Svenska",
+        "home": {
+            "title": "Huvudmeny",
+            "btn": "Huvudmeny",
+            "nav": "Hem"
+        },
+        "save": "Spara Inställningar",
+        "user": "Användarnamn",
+        "pass": "Lösenord",
+        "hasp": {
+            "title": "HASP Design",
+            "btn": "HASP Design",
+            "theme": "UI Tema",
+            "color1": "Primärfärg",
+            "color2": "Sekundärfärg",
+            "pages": "Starta Layout",
+            "font": "Standardtypsnitt",
+            "startpage": "Startsida",
+            "startdim": "Startljusstyrka"
+        },
+        "screenshot": {
+            "title": "Skärmbild",
+            "btn": "Skärmbild",
+            "nav": "Skärmbild",
+            "prev": "Föregående Sida",
+            "next": "Nästa Sida",
+            "refresh": "Uppdatera"
+        },
+        "info": {
+            "title": "Information",
+            "btn": "Information",
+            "nav": "Information"
+        },
+        "config": {
+            "title": "Inställningar",
+            "btn": "Konfiguration",
+            "nav": "Inställningar"
+        },
+        "ota": {
+            "title": "Firmware-uppdatering",
+            "btn": "Firmware-uppdatering",
+            "nav": "Firmware",
+            "submit": "Uppdatera Firmware",
+            "file": "Firmware-fil",
+            "url": "Firmware URL",
+            "redirect": "Följ omdirigeringar",
+            "never": "Aldrig",
+            "strict": "Strikt",
+            "always": "Alltid"
+        },
+        "editor": {
+            "title": "Filredigerare",
+            "btn": "Filredigerare",
+            "nav": "Filredigerare"
+        },
+        "reset": {
+            "title": "Fabriksåterställning",
+            "btn": "Fabriksåterställning",
+            "warning": "Varning",
+            "message": "Denna process kommer att återställa alla inställningar till standardvärden. Det interna minnet kommer att raderas och enheten startas om. Du kan behöva ansluta till WiFi AP som visas på panelen för att konfigurera om enheten innan du öppnar den igen.",
+            "fileloss": "ALLA FILLER KOMMER ATT FÖRLORAS!"
+        },
+        "reboot": {
+            "title": "Startar om...",
+            "btn": "Omstart",
+            "nav": "Omstart",
+            "message": "Enheten startar om."
+        },
+        "about": {
+            "credits": "Baserat på det tidigare arbetet av följande utvecklare av öppen källkod:",
+            "copyright": "Copyright ",
+            "rights": "Alla rättigheter förbehållna.",
+            "clause1": "Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files(the \"Software\"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and / or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:",
+            "clause2": "The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.",
+            "clause3": "THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.",
+            "mit": "MIT Licens",
+            "bsd": "BSD Licens",
+            "freebsd": "FreeBSD Licens",
+            "apache2": "Apache2 Licens"
+        },
+        "wifi": {
+            "title": "Inställningar för WiFi",
+            "btn": "Inställningar för WiFi",
+            "ssid": "SSID"
+        },
+        "wg": {
+            "title": "Inställningar för WireGuard",
+            "btn": "Inställningar för WireGuard",
+            "vpnip": "VPN IP-adress",
+            "privkey": "Privat nyckel",
+            "host": "Fjärr-IP",
+            "port": "Fjärrport",
+            "pubkey": "Publik fjärrnyckel"
+        },
+        "mqtt": {
+            "title": "MQTT Inställningar",
+            "btn": "MQTT Inställningar",
+            "name": "Servernamn",
+            "group": "Gruppnamn",
+            "host": "Broker",
+            "port": "Port",
+            "node_t": "Nod topic",
+            "group_t": "Grupp topic",
+            "broadcast_t": "Broadcast topic",
+            "hass_t": "HA LWT topic"
+        },
+        "http": {
+            "title": "HTTP Inställningar",
+            "btn": "HTTP Inställningar"
+        },
+        "ftp": {
+            "title": "FTP Inställningar",
+            "btn": "FTP Inställningar",
+            "port": "FTP Port",
+            "pasv": "Passiv port"
+        },
+        "gui": {
+            "title": "Bildskärmsinställningar",
+            "btn": "Bildskärmsinställningar",
+            "antiburn": "Antiburn",
+            "calibrate": "Kalibrera"
+        },
+        "gpio": "GPIO Inställningar",
+        "debug": {
+            "title": "Debug Inställningar",
+            "btn": "Debug Inställningar",
+            "baud": "Datahastighet",
+            "tele": "Telemetri period",
+            "ansi": "Använd ANSI-kod",
+            "host": "Syslog server",
+            "port": "Syslog port",
+            "ietf": "IETF (RFC 5424)",
+            "bsd": "BSD (RFC 3164)",
+            "log": "Facilitet"
+        },
+        "time": {
+            "title": "Tidsinställningar",
+            "btn": "Tidsinställningar",
+            "region": "Region",
+            "zone": "Tidszon",
+            "tz": "Tidszon",
+            "ntp": "NTP-servrar"
+        },
+        "region": {
+            "etc": "Etcetera ",
+            "continents": "Kontinenter ",
+            "af": "Afrika ",
+            "as": "Asien ",
+            "au": "Australien ",
+            "aq": "Antarktis",
+            "eu": "Europa ",
+            "na": "Nordamerika ",
+            "sa": "Sydamerika ",
+            "islands": "Öar ",
+            "at": "Atlanten ",
+            "in": "Indiska oceanen ",
+            "pa": "Stilla havet "
+        }
+    }
+}

@@ -13,7 +13,7 @@
 
 #include "hasplib.h"
 
-#if defined(HASP_USE_CUSTOM) && false // <-- set this to true in your code
+#if defined(HASP_USE_CUSTOM) && HASP_USE_CUSTOM > 0 && false // <-- set this to true in your code
 
 #include "hasp_debug.h"
 
@@ -96,6 +96,10 @@ void custom_topic_payload(const char* topic, const char* payload, uint8_t source
     }
 
     // LOG_VERBOSE(TAG_CUSTOM, "Handled custom message: %s => %s", topic, payload);
+}
+
+void custom_state_subtopic(const char* subtopic, const char* payload){
+    // Not used
 }
 
 #endif // HASP_USE_CUSTOM

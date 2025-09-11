@@ -2,7 +2,7 @@ name: Build branch
 
 on:
   release:
-    types: [created]
+    types: [published]
   push:
     branches:
       - master
@@ -15,6 +15,7 @@ on:
 jobs:
   build_esp32:
     runs-on: ubuntu-latest
+    #runs-on: ubuntu-24.04
 
     strategy:
       fail-fast: false
@@ -31,13 +32,13 @@ jobs:
           - out: dustinwatts
             env: "freetouchdeck_4MB -e freetouchdeck_8MB -e esp32-touchdown"
           - out: elecrow
-            env: "esp32-terminal-rgb_16MB -e esp32-terminal-spi_16MB"
+            env: "esp32-terminal-rgb_16MB -e esp32-terminal-spi_16MB -e elecrow-s3-8048c050_4MB -e elecrow-s3-8048c070_4MB"
           - out: globalsecurity
             env: gs-t3e_16MB
           - out: guition
-            env: esp32-s3-4848s040_16MB
+            env: esp32-s3-4848s040_16MB -e guition-jc4827w543c_4MB -e guition-jc8048w50n_16MB
           - out: lanbon
-            env: lanbon_l8
+            env: lanbon_l8 -e lanbon_l9
           - out: lilygo-ttgo
             env: "lilygo-lily-pi_st7796 -e lilygo-lily-pi_ili9481 -e ttgo-t7-v1_5_ili9341_4MB -e ttgo-t7-v1_5_ili9341_16MB"
           - out: lolin
@@ -51,9 +52,9 @@ jobs:
           - out: seeed-studios
             env: "sensecap-indicator-d1_8MB"
           - out: sunton
-            env: "esp32-2432s028r_4MB -e esp32-2432s028r-ili9342_4MB -e esp32-2432s032c_4MB -e esp32-3248s035c_4MB -e esp32-3248s035r_4MB -e sunton-4827s043c_16MB -e sunton-8048s043c_16MB -e sunton-8048s050c_16MB -e sunton-8048s070c_16MB"
+            env: "esp32-2432s022c_4MB -e esp32-2432s028r_4MB -e esp32-2432s028r-ili9342_4MB -e esp32-2432s028r_v2_4MB -e esp32-2432s032c_4MB -e esp32-3248s035c_4MB -e esp32-3248s035r_4MB -e sunton-4827s043c_16MB -e sunton-8048s043c_16MB -e sunton-8048s050c_16MB -e sunton-8048s070c_16MB"
           - out: waveshare
-            env: "esp32-one_ili9486 -e esp32-one_st7796"
+            env: "esp32-one_ili9486 -e esp32-one_st7796 -e ws_esp32_s3_touch_lcd_4p3 -e ws_esp32_s3_touch_lcd_4"
           - out: wireless-tag
             env: "wt32-sc01_4MB -e wt32-sc01_16MB -e wt-86-32-3zw1 -e wt32-sc01-plus_8MB -e wt32-sc01-plus_16MB"
           - out: yeacreate
@@ -101,30 +102,20 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.environment.out }}
-          path: build_output/firmware/*.bin
-      - name: Create release and upload firmware
+          path: build_output/firmware/*.*n
+      ## Release only:
+      - name: Zip artifact for deployment
         if: github.ref != 'refs/heads/master'
         run: |
-          set -x
-          assets=()
-          for asset in build_output/firmware/*.bin; do
-            assets+=("-a" "$asset")
-          done
-          tag_name="${GITHUB_REF##*/}"
-          hub release edit "${assets[@]}" -m "$tag_name" "$tag_name"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    #- name: Create release and upload firmware
-    #  run: |
-    #    set -x
-    #    assets=()
-    #    for asset in build_output/firmware/*.bin; do
-    #      assets+=("-a" "$asset")
-    #    done
-    #    tag_name="${GITHUB_REF##*/}"
-    #    hub release create "${assets[@]}" -m "$tag_name" "$tag_name"
-    #  env:
-    #    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          zip ${{ matrix.environment.out }}.zip build_output/firmware/*.bin -r
+      - name: On Release, upload assets to that Release
+        if: github.ref != 'refs/heads/master'
+        uses: AButler/upload-release-assets@v3.0
+        with:
+          files: ${{ matrix.environment.out }}.zip
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+
   linux_build:
     runs-on: ubuntu-latest
     steps:

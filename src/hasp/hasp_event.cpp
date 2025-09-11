@@ -86,11 +86,21 @@ void delete_event_handler(lv_obj_t* obj, lv_event_t event)
             my_image_release_resources(obj);
             break;
 
+#if HASP_USE_QRCODE > 0
+        case LV_HASP_QRCODE:
+            lv_qrcode_delete(obj);
+            break;
+#endif
+
         case LV_HASP_GAUGE:
             break;
 
         case LV_HASP_LABEL:
             my_obj_del_task(obj);
+            break;
+
+        case LV_HASP_DROPDOWN:
+            lv_mem_free(lv_dropdown_get_text(obj));
             break;
 
         default:
@@ -296,8 +306,8 @@ static void event_object_selection_changed(lv_obj_t* obj, uint8_t eventid, int16
         char eventname[8];
         Parser::get_event_name(eventid, eventname, sizeof(eventname));
         if(const char* tag = my_obj_get_tag(obj))
-            snprintf_P(data, sizeof(data), PSTR("{\"event\":\"%s\",\"val\":%d,\"text\":%s,\"tag\":%s}"), eventname,
-                       val, serialized_text, tag);
+            snprintf_P(data, sizeof(data), PSTR("{\"event\":\"%s\",\"val\":%d,\"text\":%s,\"tag\":%s}"), eventname, val,
+                       serialized_text, tag);
         else
             snprintf_P(data, sizeof(data), PSTR("{\"event\":\"%s\",\"val\":%d,\"text\":%s}"), eventname, val,
                        serialized_text);

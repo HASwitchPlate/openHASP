@@ -11,6 +11,7 @@
 <!-- ? Support for State and Part properties -->
 - `action` and `swipe` can now be set to any command
 - Set default `line_width` of new `line` objects to 1
+- Add `qrcode` object (thanks @marsman7)
 - Allow line and block comments in pages.jsonl
 - Removed deprecated `txt` property, use `text` instead
 - Removed deprecated `objid` property, use `obj` instead
@@ -59,7 +60,7 @@
 - Add support for ESP32-S3 and ESP32-C3 devices
 - Deprecation of support for ESP32-S2 devices due to lack of sRAM
 
-Updated libraries to Arduino_GFX v1.4.0, ArduinoJson 6.21.5, ArduinoStreamUtils 1.8.0, AceButton 1.10.1, TFT_eSPI 2.5.34, LovyanGFX 1.1.12 and SimpleFTPServer 2.1.5
+Updated libraries to Arduino_GFX v1.4.0, ArduinoJson 6.21.5, ArduinoStreamUtils 1.8.0, AceButton 1.10.1, TFT_eSPI 2.5.43, LovyanGFX 1.1.12 and SimpleFTPServer 2.1.5
 
 
 ## v0.6.3

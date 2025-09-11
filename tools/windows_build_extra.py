@@ -4,7 +4,8 @@ env.Append(
   LINKFLAGS=[
       "-static",
       "-static-libgcc",
-      "-static-libstdc++"
+      "-static-libstdc++",
+      "-std=c++11"
   ]
 )
 

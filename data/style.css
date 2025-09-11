@@ -518,7 +518,7 @@ a.foot:visited {
 	top: 10px;
 	left: 50px;
 	position: absolute;
-	background: #fff;
+	background: var(--ddmenubg);
 	z-index: 10;
 	padding: 0.75rem;
 	border-radius: 0.5rem;
@@ -591,6 +591,37 @@ a.foot:visited {
   padding: 0.5em 1em;
   background-color: lightblue;
   animation: toastIt 3000ms cubic-bezier(0.785, 0.135, 0.15, 0.86) forwards;
+}
+
+ul {
+  list-style-type: none;
+  padding-left: 20px
+}
+
+ul>li {
+  white-space: nowrap
+}
+
+.inact:hover {
+  cursor: default
+}
+
+.item:hover {
+  cursor: pointer;
+/*  background-color: #dadaff */
+  background-color: var(--itemhoverbg)
+}
+
+.item>span:nth-child(2):hover {
+  text-decoration: underline
+}
+
+.selitem>div {
+  background-color: var(--itemhoverbg)
+}
+
+.selitem>div:hover {
+  background-color: var(--itemhoverbg)
 }
 
 @keyframes toastIt {
