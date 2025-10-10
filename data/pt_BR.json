@@ -50,6 +50,16 @@
             "strict": "Estrito",
             "always": "Sempre"
         },
+        "backup": {
+            "title": "Backup / Restore",
+            "btn": "Backup / Restore",
+            "nav": "Backup",
+            "backup": "Backup Data",
+            "bakfile": "Backup to file",
+            "restore": "Restore Data",
+            "resfile": "Restore file",
+            "overwrite": "Overwrite existing files"
+        },
         "editor": {
             "title": "Editor de arquivos",
             "btn": "Editor de arquivos",
