@@ -9,7 +9,6 @@ on:
     paths-ignore:
       - "**.md"
       - "**.yml"
-      - "**.yaml"
   workflow_dispatch:
 
 jobs:
@@ -56,7 +55,7 @@ jobs:
           - out: sunton
             env: "esp32-2432s022c_4MB -e esp32-2432s028r_4MB -e esp32-2432s028r-ili9342_4MB -e esp32-2432s028r_v2_4MB -e esp32-2432s032c_4MB -e esp32-3248s035c_4MB -e esp32-3248s035r_4MB -e sunton-4827s043c_16MB -e sunton-8048s043c_16MB -e sunton-8048s050c_16MB -e sunton-8048s070c_16MB -e cyd-2424s012_4MB"
           - out: waveshare
-            env: "esp32-one_ili9486 -e esp32-one_st7796 -e ws_esp32_s3_touch_lcd_4p3 -e ws_esp32_s3_touch_lcd_4"
+            env: "esp32-one_ili9486 -e esp32-one_st7796 -e ws_esp32_s3_touch_lcd_4p3 -e ws_esp32_s3_touch_lcd_4 -e waveshare-esp32-s3-touch-lcd-7"
           - out: wireless-tag
             env: "wt32-sc01_4MB -e wt32-sc01_16MB -e wt-86-32-3zw1 -e wt32-sc01-plus_8MB -e wt32-sc01-plus_16MB"
           - out: yeacreate
