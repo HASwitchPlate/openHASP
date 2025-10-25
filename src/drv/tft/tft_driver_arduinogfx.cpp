@@ -234,7 +234,8 @@ void ArduinoGfx::init(int w, int h)
 
 #elif(TFT_WIDTH == 480) && (TFT_HEIGHT == 480) && defined(ST7701_DRIVER) && defined(ST7701_TRGB_28)
     /* SPI to the TFT is done over an I2C port expander */
-    Arduino_DataBus *bus = new Arduino_XL9535SWSPI(8 /* SDA */, 48 /* SCL */, 2 /* XL PWD */, 3 /* XL CS */, 5 /* XL SCK */, 4 /* XL MOSI */);
+    Wire.begin(8 /* SDA */, 48 /* SCL */, 800000L /* speed */);
+    Arduino_XL9535SWSPI *bus = new Arduino_XL9535SWSPI(8 /* SDA */, 48 /* SCL */, 2 /* XL PWD */, 3 /* XL CS */, 5 /* XL SCK */, 4 /* XL MOSI */);
 
     Arduino_ESP32RGBPanel *rgbpanel = new Arduino_ESP32RGBPanel(
     45 /* DE */, 41 /* VSYNC */, 47 /* HSYNC */, 42 /* PCLK */,
@@ -248,6 +249,16 @@ void ArduinoGfx::init(int w, int h)
     tft = new Arduino_RGB_Display(
         480 /* width */, 480 /* height */, rgbpanel, 0 /* rotation */, true /* auto_flush */,
         bus, GFX_NOT_DEFINED /* RST */, st7701_type9_init_operations_trgb28, sizeof(st7701_type9_init_operations_trgb28));
+
+    // reset sequence from T-RGB SDK
+    const uint8_t reset = 1;
+    bus->begin(); // will be repeated by Arduino_RGB_Display::begin(), checked this is safe at the time of writing
+    bus->pinMode(reset, OUTPUT);
+    bus->digitalWrite(reset, LOW);
+    delay(20);
+    bus->digitalWrite(reset, HIGH);
+    delay(10);
+
     tft->begin(GFX_NOT_DEFINED); // Used for RFB displays
 
 #elif(TFT_WIDTH == 480) && (TFT_HEIGHT == 480) && defined(ST7701_DRIVER)
