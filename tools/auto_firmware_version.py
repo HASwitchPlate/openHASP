@@ -7,7 +7,10 @@ installed_pkgs = {pkg.key for pkg in pkg_resources.working_set}
 missing_pkgs = required_pkgs - installed_pkgs
 
 if missing_pkgs:
-    env.Execute('$PYTHONEXE -m pip install dulwich --global-option="--pure" --use-pep517')
+    # As of pip v23.1 the global-options flag has been removed and we should use the config-settings flag instead.
+    print("Installing dependencies...")
+    print("Note: If you see an error about an unknown '--config-settings' option, please update pip to the latest version.")
+    env.Execute('$PYTHONEXE -m pip install dulwich --config-settings "--build-option=--pure" --use-pep517')
 
 from dulwich import porcelain
 from dulwich.repo import Repo
