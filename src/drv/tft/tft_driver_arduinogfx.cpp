@@ -134,7 +134,7 @@ void ArduinoGfx::init(int w, int h)
         digitalWrite(TFT_RST, LOW);
         delay(120);
         digitalWrite(TFT_RST, HIGH);
-        delay(120);
+        delay(300);
     }
 
     Arduino_RGBPanel_Mod* bus = new Arduino_RGBPanel_Mod(
