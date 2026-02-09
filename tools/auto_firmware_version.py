@@ -1,16 +1,20 @@
-import gzip, pkg_resources
+import gzip
+import subprocess
+import sys
+from importlib import metadata
 
 Import("env")
 
-required_pkgs = {'dulwich'}
-installed_pkgs = {pkg.key for pkg in pkg_resources.working_set}
-missing_pkgs = required_pkgs - installed_pkgs
+def install_and_import(package):
+    try:
+        metadata.version(package)
+    except metadata.PackageNotFoundError:
+        print(f"Installing {package}...")
+        # Gebruik de Python interpreter van de omgeving
+        subprocess.check_call([sys.executable, "-m", "pip", "install", package, "--config-settings", "--build-option=--pure", "--use-pep517"])
 
-if missing_pkgs:
-    # As of pip v23.1 the global-options flag has been removed and we should use the config-settings flag instead.
-    print("Installing dependencies...")
-    print("Note: If you see an error about an unknown '--config-settings' option, please update pip to the latest version.")
-    env.Execute('$PYTHONEXE -m pip install dulwich --config-settings "--build-option=--pure" --use-pep517')
+# Zorg dat dulwich aanwezig is
+install_and_import('dulwich')
 
 from dulwich import porcelain
 from dulwich.repo import Repo
