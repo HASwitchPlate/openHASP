@@ -2,7 +2,7 @@ Import('env')
 import os, sys, json
 import shutil
 import subprocess
-import pkg_resources
+from importlib import metadata  # Vervang pkg_resources
 
 buildFlags = env.ParseFlags(env['BUILD_FLAGS'])
 OUTPUT_DIR = "build_output{}".format(os.path.sep)
@@ -11,14 +11,12 @@ platform = env.PioPlatform()
 FRAMEWORK_DIR = platform.get_package_dir("framework-arduinoespressif32")
 FRAMEWORK_DIR = "{}{}".format(FRAMEWORK_DIR, os.path.sep)
 
-required_pkgs = {'dulwich'}
-installed_pkgs = {pkg.key for pkg in pkg_resources.working_set}
-missing_pkgs = required_pkgs - installed_pkgs
-
-if missing_pkgs:
-    # As of pip v23.1 the global-options flag has been removed and we should use the config-settings flag instead.
+# Verbeterde check voor dulwich
+try:
+    metadata.version('dulwich')
+except metadata.PackageNotFoundError:
     print("Installing dependencies...")
-    print("Note: If you see an error about an unknown '--config-settings' option, please update pip to the latest version.")
+    # Gebruik env.Execute om binnen de PlatformIO omgeving te blijven
     env.Execute('$PYTHONEXE -m pip install dulwich --config-settings "--build-option=--pure" --use-pep517')
 
 from dulwich import porcelain

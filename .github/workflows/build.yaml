@@ -80,17 +80,15 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.x"
-      - name: Install dependencies
+          # python-version: "3.x"
+          python-version: "3.12" # Stable version as of 2024-06
+      - name: Install PlatformIO & Dependencies
         run: |
           python -m pip install --upgrade pip
-      - name: Install Setuptools
-        run: |
-          pip install --upgrade setuptools
-          pip install --upgrade dulwich
-      - name: Install PlatformIO
-        run: |
-          pip install --upgrade platformio
+          pip install --upgrade platformio dulwich
+      #- name: Install Setuptools
+      #  run: |
+      #    pip install --upgrade setuptools # obsolete, use importlib.metadata instead
       - name: Enable ESP32 platforms from platformio_override-template.ini
         run: |
           sed 's/; user_setups\/esp32/user_setups\/esp32/g' platformio_override-template.ini > platformio_override.ini
@@ -141,11 +139,12 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.x"
-      - name: Install PlatformIO
+          # python-version: "3.x"
+          python-version: "3.12" # Stable version as of 2024-06
+      - name: Install PlatformIO & Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install --upgrade platformio
+          pip install --upgrade platformio dulwich
       - name: Enable Linux platform from platformio_override.ini
         run: |
           sed 's/; user_setups\/linux/user_setups\/linux/g' platformio_override-template.ini > platformio_override.ini
@@ -164,9 +163,5 @@ jobs:
         run: |
           sed -i 's/; user_setups\/linux/user_setups\/linux/g' platformio_override.ini
           mkdir -p .pio/libdeps/linux_sdl/paho/src
-      - name: Install SDL2 library
-        run: |
-          sudo apt-get update
-          sudo apt-get install libsdl2-dev
       - name: Run PlatformIO
         run: pio run -e linux_sdl
