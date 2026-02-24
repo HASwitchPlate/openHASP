@@ -23,6 +23,10 @@
 File pFileOut;
 #endif
 
+#if defined(POSIX) && USE_MONITOR
+bool gui_pop_screenshot_request(void);
+#endif
+
 #if ESP32
 static SemaphoreHandle_t xGuiSemaphore = NULL;
 static TaskHandle_t g_lvgl_task_handle;
@@ -388,6 +392,12 @@ IRAM_ATTR void guiLoop(void)
 #if HASP_TARGET_ARDUINO
     // haspTouch.loop();
 #endif
+
+#if defined(POSIX) && USE_MONITOR
+    if(gui_pop_screenshot_request()) {
+        guiTakeScreenshot("screenshot.bmp");
+    }
+#endif
 }
 
 void guiEverySecond(void)
@@ -618,7 +628,7 @@ bool guiSetConfig(const JsonObject& settings)
 #endif // HASP_USE_CONFIG
 
 /* **************************** SCREENSHOTS ************************************** */
-#if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0 || HASP_USE_HTTP > 0
+#if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0 || HASP_USE_HTTP > 0 || defined(POSIX)
 
 /** Send Bitmap Header.
  *
@@ -666,7 +676,7 @@ void gui_flush_not_complete()
 {
     LOG_WARNING(TAG_GUI, F("Pixelbuffer not completely sent"));
 }
-#endif // HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0 || HASP_USE_HTTP > 0
+#endif // HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0 || HASP_USE_HTTP > 0 || defined(POSIX)
 
 #if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
 /* Flush VDB bytes to a file */
@@ -717,6 +727,56 @@ void guiTakeScreenshot(const char* pFileName)
             LOG_ERROR(TAG_GUI, F("Data written does not match header size"));
         }
         pFileOut.close();
+
+    } else {
+        LOG_WARNING(TAG_GUI, F(D_FILE_SAVE_FAILED), pFileName);
+    }
+}
+#elif defined(POSIX)
+static FILE* pFileOutPosix = NULL;
+
+static void gui_screenshot_to_file(lv_disp_drv_t* disp, const lv_area_t* area, lv_color_t* color_p)
+{
+    size_t len = (area->x2 - area->x1 + 1) * (area->y2 - area->y1 + 1);
+    len *= sizeof(lv_color_t);
+    size_t res = fwrite((uint8_t*)color_p, 1, len, pFileOutPosix);
+    if(res != len) gui_flush_not_complete();
+
+    drv_display_flush_cb(disp, area, color_p);
+}
+
+void guiTakeScreenshot(const char* pFileName)
+{
+    uint8_t buffer[sizeof(bmp_header_t) + 2];
+    gui_get_bitmap_header(buffer, sizeof(buffer));
+
+    pFileOutPosix = fopen(pFileName, "wb");
+    if(pFileOutPosix) {
+
+        size_t len = fwrite(buffer, 1, sizeof(buffer), pFileOutPosix);
+        if(len == sizeof(buffer)) {
+            LOG_VERBOSE(TAG_GUI, F("Bitmap header written"));
+
+            lv_disp_t* disp       = lv_disp_get_default();
+            drv_display_flush_cb  = disp->driver.flush_cb;
+            disp->driver.flush_cb = gui_screenshot_to_file;
+
+            lv_obj_invalidate(lv_scr_act());
+            lv_refr_now(NULL);
+            disp->driver.flush_cb = drv_display_flush_cb;
+
+            char fullpath[PATH_MAX];
+            if(realpath(pFileName, fullpath)) {
+                LOG_VERBOSE(TAG_GUI, F("Bitmap data flushed to %s"), fullpath);
+            } else {
+                LOG_VERBOSE(TAG_GUI, F("Bitmap data flushed to %s"), pFileName);
+            }
+
+        } else {
+            LOG_ERROR(TAG_GUI, F("Data written does not match header size"));
+        }
+        fclose(pFileOutPosix);
+        pFileOutPosix = NULL;
 
     } else {
         LOG_WARNING(TAG_GUI, F(D_FILE_SAVE_FAILED), pFileName);
