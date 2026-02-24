@@ -644,6 +644,14 @@ void dispatch_screenshot(const char*, const char* filename, uint8_t source)
         guiTakeScreenshot(filename);
     }
 
+#elif defined(POSIX)
+
+    if(strlen(filename) == 0) {
+        guiTakeScreenshot("screenshot.bmp");
+    } else {
+        guiTakeScreenshot(filename);
+    }
+
 #else
     LOG_WARNING(TAG_MSGR, D_FILE_SAVE_FAILED, filename);
 #endif
