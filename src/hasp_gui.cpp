@@ -27,6 +27,10 @@ File pFileOut;
 bool gui_pop_screenshot_request(void);
 #endif
 
+#if defined(POSIX)
+#include <limits.h>
+#endif
+
 #if ESP32
 static SemaphoreHandle_t xGuiSemaphore = NULL;
 static TaskHandle_t g_lvgl_task_handle;
