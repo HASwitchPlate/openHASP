@@ -199,7 +199,7 @@ void my_obj_set_action(lv_obj_t* obj, const char* payload)
                 }
             }
             strcat(json, "\"}");
-            deserializeJson(doc, json);
+            deserializeJson(doc, (const char*)json);
         } else {
             // Check for new json action format
             DeserializationError res = deserializeJson(doc, payload, len);
