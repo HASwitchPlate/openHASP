@@ -412,9 +412,9 @@ lgfx::ITouch* _init_touch(Preferences* preferences)
         auto cfg   = touch->config();
 
         cfg.x_min           = 0;
-        cfg.x_max           = TFT_WIDTH - 1;
+        cfg.x_max           = TOUCH_WIDTH - 1;
         cfg.y_min           = 0;
-        cfg.y_max           = TFT_HEIGHT - 1;
+        cfg.y_max           = TOUCH_HEIGHT - 1;
         cfg.pin_int         = TOUCH_IRQ;
         cfg.bus_shared      = true;
         cfg.offset_rotation = TOUCH_OFFSET_ROTATION;
@@ -1043,7 +1043,11 @@ void LovyanGfx::init(int w, int h)
 #elif defined(ESP32_8040S070C) || defined(RGB_DRIVER)
     auto _panel_instance = new lgfx::Panel_RGB();
     auto _bus_instance   = new lgfx::Bus_RGB();
-    auto _touch_instance = new lgfx::Touch_GT911();
+    #if TOUCH_DRIVER == 0x911
+        auto _touch_instance = new lgfx::Touch_GT911();
+    #elif TOUCH_DRIVER == 0x6336
+        auto _touch_instance = new lgfx::Touch_FT5x06();
+    #endif
 
     {
         auto cfg          = _panel_instance->config();
@@ -1105,17 +1109,18 @@ void LovyanGfx::init(int w, int h)
     {
         auto cfg            = _touch_instance->config();
         cfg.x_min           = 0;
-        cfg.x_max           = TFT_WIDTH;
+        cfg.x_max           = TOUCH_WIDTH;
         cfg.y_min           = 0;
-        cfg.y_max           = TFT_HEIGHT;
+        cfg.y_max           = TOUCH_HEIGHT;
         cfg.pin_int         = TOUCH_IRQ;
-        cfg.bus_shared      = false;
+        cfg.pin_rst         = TOUCH_RST;
+        cfg.bus_shared      = true;
         cfg.offset_rotation = TOUCH_OFFSET_ROTATION;
         cfg.i2c_port        = I2C_TOUCH_PORT;
         cfg.pin_sda         = TOUCH_SDA;
         cfg.pin_scl         = TOUCH_SCL;
-        cfg.freq            = 400000;
-        cfg.i2c_addr        = 0x14; // 0x5D , 0x14
+        cfg.freq            = I2C_TOUCH_FREQUENCY;
+        cfg.i2c_addr        = I2C_TOUCH_ADDRESS; // 0x5D , 0x14
         _touch_instance->config(cfg);
         _panel_instance->setTouch(_touch_instance);
     }
