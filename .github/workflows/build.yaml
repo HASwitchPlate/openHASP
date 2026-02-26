@@ -164,4 +164,4 @@ jobs:
           sed -i 's/; user_setups\/linux/user_setups\/linux/g' platformio_override.ini
           mkdir -p .pio/libdeps/linux_sdl/paho/src
       - name: Run PlatformIO
-        run: pio run -e linux_sdl
+        run: pio run -e linux_sdl -e linux_headless -e linux_fbdev
