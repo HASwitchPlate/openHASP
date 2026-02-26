@@ -12,6 +12,8 @@ jobs:
       matrix:
         environments:
           - linux_sdl
+          - linux_headless
+          - linux_fbdev 
 
     steps:
       - uses: actions/checkout@v4
