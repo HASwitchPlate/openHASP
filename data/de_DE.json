@@ -50,6 +50,16 @@
             "strict": "Strikt",
             "always": "Immer"
         },
+        "backup": {
+            "title": "Datensicherung / -wiederherstellung",
+            "btn": "Datensicherung",
+            "nav": "Backup",
+            "backup": "Daten sichern",
+            "bakfile": "Datensicherungs Dateiname",
+            "restore": "Daten wiederherstellen",
+            "resfile": "Datei Wiederherstellung",
+            "overwrite": "Vorhandene Datei überschrieben"
+        },   
         "editor": {
             "title": "Datei Editor",
             "btn": "Datei Editor",
