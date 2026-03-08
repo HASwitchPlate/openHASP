@@ -44,7 +44,7 @@ const char FP_CONFIG_GROUP[] PROGMEM = "group";
 
 #include "hasp_mqtt.h" // functions to implement here
 
-#include "hasp/hasp_dispatch.h" // for dispatch_topic_payload
+#include "hasp/hasp_dispatch.h" // for dispatch_topic_payload, dispatch_defer_command
 #include "hasp_debug.h"         // for logging
 
 #if !defined(_WIN32)
@@ -206,6 +206,11 @@ static void mqtt_message_cb(char* topic, char* payload, size_t length)
             // LOG_TRACE(TAG_MQTT, F("ignoring LWT = online"));
         }
     } else {
+        // On PC, jsonl/json handlers call LVGL from MQTT thread -> segfault. Defer to main thread.
+        if(!strcmp(topic, "command/jsonl") || !strcmp(topic, "command/json")) {
+            dispatch_defer_command(topic, payload);
+            return;
+        }
         dispatch_mtx.lock();
         dispatch_topic_payload(topic, (const char*)payload, length > 0, TAG_MQTT);
         dispatch_mtx.unlock();
