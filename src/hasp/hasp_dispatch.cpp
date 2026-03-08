@@ -31,7 +31,6 @@
 #define DISPATCH_DEFERRED_QUEUE_MAX 64
 static std::queue<std::pair<std::string, std::string>> deferred_queue;
 static std::mutex deferred_mutex;
-#endif
 #else
 #include "StringStream.h"
 #include "StreamUtils.h" // for exec ReadBufferingStream
@@ -46,7 +45,7 @@ static std::mutex deferred_mutex;
 #include "sys/net/hasp_network.h" // for network_get_status()
 #include "sys/net/hasp_time.h"
 #endif
-#endif
+#endif // HASP_USE_DEBUG
 
 dispatch_conf_t dispatch_setings = {.teleperiod = 300};
 
