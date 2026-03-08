@@ -26,8 +26,9 @@
 #include "../mqtt/hasp_mqtt.h"
 
 /* Deferred command queue: MQTT callback runs on Paho thread; jsonl/json handlers call LVGL
- * (hasp_new_object) which is not thread-safe. Queue jsonl/json for processing on main thread. */
-#define DISPATCH_DEFERRED_QUEUE_MAX 4
+ * (hasp_new_object) which is not thread-safe. Queue jsonl/json for processing on main thread.
+ * 64 is enough for burst layout + state; PC has plenty of memory. */
+#define DISPATCH_DEFERRED_QUEUE_MAX 64
 static std::queue<std::pair<std::string, std::string>> deferred_queue;
 static std::mutex deferred_mutex;
 #endif
