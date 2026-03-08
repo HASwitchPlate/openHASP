@@ -45,7 +45,7 @@ static std::mutex deferred_mutex;
 #include "sys/net/hasp_network.h" // for network_get_status()
 #include "sys/net/hasp_time.h"
 #endif
-#endif // HASP_USE_DEBUG
+#endif
 
 dispatch_conf_t dispatch_setings = {.teleperiod = 300};
 
