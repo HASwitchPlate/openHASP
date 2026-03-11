@@ -202,13 +202,11 @@ static bool my_line_set_points(lv_obj_t* obj, const char* payload)
     for (const char* p = payload; *p; p++) 
         if (*p == '[') count++;
     count--;
-    // Create new points
-    // Reserve memory for JsonDocument
-    // StaticJsonDocument<1024> doc;
-
+    
+    // Reserve memory for JsonDocument rounded to upper 128 bytes
     uint16_t maxsize = 128u * (3*JSON_ARRAY_SIZE(1)*count / 128+1) ;
     
-    LOG_TRACE(TAG_ATTR,"payload: %s",payload);
+    LOG_VERBOSE(TAG_ATTR,"payload: %s",payload);
     LOG_TRACE(TAG_ATTR,"count: %u maxsize: %u taille brut %u",count,maxsize,(uint32_t)(3*JSON_ARRAY_SIZE(1)*count));
 
     DynamicJsonDocument doc(maxsize);
@@ -218,7 +216,7 @@ static bool my_line_set_points(lv_obj_t* obj, const char* payload)
         dispatch_json_error(TAG_ATTR, jsonError);
         return false;
     }
-     LOG_TRACE(TAG_ATTR,"usage: %u",(uint32_t)doc.memoryUsage());
+     LOG_VERBOSE(TAG_ATTR,"Memory usage: %u",(uint32_t)doc.memoryUsage());
 
     JsonArray arr  = doc.as<JsonArray>(); // Parse payload
     size_t tot_len = sizeof(lv_point_t*) * (arr.size());
