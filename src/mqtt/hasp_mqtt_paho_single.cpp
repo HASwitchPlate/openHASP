@@ -80,6 +80,7 @@ uint16_t mqttPort         = MQTT_PORT;
 
 MQTTClient mqtt_client;
 
+static bool mqttClientCreated = false;
 int disc_finished = 0;
 int subscribed    = 0;
 int connected     = 0;
@@ -300,18 +301,21 @@ void mqttStart()
     int ch;
 
     LOG_DEBUG(TAG_MQTT, "%s %d", __FILE__, __LINE__);
-    if((rc = MQTTClient_create(&mqtt_client, mqttServer.c_str(), haspDevice.get_hostname(), MQTTCLIENT_PERSISTENCE_NONE,
-                               NULL)) != MQTTCLIENT_SUCCESS) {
-        LOG_ERROR(TAG_MQTT, "Failed to create client, return code %d", rc);
-        rc = EXIT_FAILURE;
-        return;
-    }
+    if(!mqttClientCreated) {
+        if((rc = MQTTClient_create(&mqtt_client, mqttServer.c_str(), haspDevice.get_hostname(), MQTTCLIENT_PERSISTENCE_NONE,
+                                   NULL)) != MQTTCLIENT_SUCCESS) {
+            LOG_ERROR(TAG_MQTT, "Failed to create client, return code %d", rc);
+            rc = EXIT_FAILURE;
+            return;
+        }
 
-    if((rc = MQTTClient_setCallbacks(mqtt_client, mqtt_client, connlost, mqtt_message_arrived, NULL)) !=
-       MQTTCLIENT_SUCCESS) {
-        LOG_ERROR(TAG_MQTT, "Failed to set callbacks, return code %d", rc);
-        rc = EXIT_FAILURE;
-        return;
+        if((rc = MQTTClient_setCallbacks(mqtt_client, mqtt_client, connlost, mqtt_message_arrived, NULL)) !=
+           MQTTCLIENT_SUCCESS) {
+            LOG_ERROR(TAG_MQTT, "Failed to set callbacks, return code %d", rc);
+            rc = EXIT_FAILURE;
+            return;
+        }
+        mqttClientCreated = true;
     }
 
     LOG_DEBUG(TAG_MQTT, "%s %d", __FILE__, __LINE__);
@@ -350,6 +354,8 @@ void mqttStart()
 
 void mqttStop()
 {
+    if(!mqttClientCreated) return;
+
     int rc;
     // MQTTClient_disconnectOptions disc_opts = MQTTClient_disconnectOptions_initializer;
     // disc_opts.onSuccess                    = onDisconnect;
@@ -358,6 +364,8 @@ void mqttStop()
         LOG_ERROR(TAG_MQTT, "Failed to disconnect, return code %d", rc);
         rc = EXIT_FAILURE;
     }
+    MQTTClient_destroy(&mqtt_client);
+    mqttClientCreated = false;
 }
 
 void mqttSetup()
