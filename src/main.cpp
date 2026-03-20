@@ -172,6 +172,11 @@ IRAM_ATTR void loop()
     }
 #endif
 
+#if HASP_TARGET_PC
+    /* Process jsonl/json commands deferred from MQTT thread (LVGL not thread-safe on PC). */
+    dispatch_process_deferred();
+#endif
+
 #if HASP_USE_LVGL_TASK == 0
     guiLoop();
 #endif
