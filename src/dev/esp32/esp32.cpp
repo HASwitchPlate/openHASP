@@ -461,6 +461,9 @@ long Esp32Device::get_uptime()
 #warning Building for TTGo T-Watch
 #include "dev/esp32/twatch.h"
 
+#elif defined(HASP_ESP32_DEVICE_I2C_BACKLIGHT) && defined(HASP_USE_I2C_GPIO)
+#include "dev/esp32/esp32_i2c_ledc.h"
+
 #else
 dev::Esp32Device haspDevice;
 #endif

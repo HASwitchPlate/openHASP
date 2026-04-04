@@ -6,6 +6,96 @@
 #include "Arduino_DataBus.h"
 #include "Arduino_RGB_Display_mod.h"
 
+namespace {
+
+bool execute_custom_init_ops(Arduino_DataBus* bus, const uint8_t* ops, size_t len)
+{
+    if(!bus || !ops || len == 0) return true;
+
+    size_t i = 0;
+    while(i < len) {
+        const uint8_t op = ops[i++];
+        switch(op) {
+            case BEGIN_WRITE:
+                bus->beginWrite();
+                break;
+            case END_WRITE:
+                bus->endWrite();
+                break;
+            case WRITE_COMMAND_8:
+                if(i >= len) return false;
+                bus->writeCommand(ops[i++]);
+                break;
+            case WRITE_C8_D8:
+                if(i + 1 >= len) return false;
+                bus->writeCommand(ops[i++]);
+                bus->write(ops[i++]);
+                break;
+            case WRITE_C8_D16:
+                if(i + 2 >= len) return false;
+                bus->writeCommand(ops[i++]);
+                bus->write(ops[i++]);
+                bus->write(ops[i++]);
+                break;
+            case WRITE_BYTES: {
+                if(i >= len) return false;
+                uint8_t n = ops[i++];
+                if(i + n > len) return false;
+                for(uint8_t k = 0; k < n; k++) bus->write(ops[i++]);
+                break;
+            }
+            case DELAY:
+                if(i >= len) return false;
+                delay(ops[i++]);
+                break;
+            case I2C_WRITE_REG:
+                if(i + 1 >= len) return false;
+#if defined(USE_I2C_SW_SPI)
+                bus->writeRegisterI2COpcode(ops[i], ops[i + 1]);
+                i += 2;
+#else
+                return false;
+#endif
+                break;
+            case I2C_WRITE_SEQ:
+                if(i + 1 >= len) return false;
+                {
+                    const uint8_t reg = ops[i++];
+                    const uint8_t n = ops[i++];
+                    if(i + n > len) return false;
+#if defined(USE_I2C_SW_SPI)
+                    bus->writeRegisterI2CSeqOpcode(reg, &ops[i], n);
+                    i += n;
+#else
+                    return false;
+#endif
+                }
+                break;
+            case REPEAT_IN:
+                if(i + 3 >= len) return false;
+                {
+                    const uint8_t count = ops[i++];
+                    const uint8_t nested_op = ops[i++];
+                    if(nested_op != I2C_WRITE_REG) return false;
+                    const uint8_t reg = ops[i++];
+                    const uint8_t val = ops[i++];
+#if defined(USE_I2C_SW_SPI)
+                    for(uint8_t r = 0; r < count; r++) bus->writeRegisterI2COpcode(reg, val);
+#else
+                    return false;
+#endif
+                }
+                break;
+            default:
+                return false;
+        }
+    }
+
+    return true;
+}
+
+} // namespace
+
 Arduino_RGB_Display_Mod::Arduino_RGB_Display_Mod(int16_t w, int16_t h, Arduino_RGBPanel_Mod* rgbpanel, uint8_t r,
                                                  bool auto_flush, Arduino_DataBus* bus, int8_t rst,
                                                  const uint8_t* init_operations, size_t init_operations_len)
@@ -42,7 +132,9 @@ bool Arduino_RGB_Display_Mod::begin(int32_t speed)
 
     if(_bus) {
         if(_init_operations_len > 0) {
-            _bus->batchOperation((uint8_t*)_init_operations, _init_operations_len);
+            if(!execute_custom_init_ops(_bus, _init_operations, _init_operations_len)) {
+                _bus->batchOperation((uint8_t*)_init_operations, _init_operations_len);
+            }
         }
     }
 
