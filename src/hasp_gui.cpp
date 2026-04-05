@@ -52,6 +52,7 @@ static TaskHandle_t g_lvgl_task_handle;
 
 gui_conf_t gui_settings = {.show_pointer   = false,
                            .backlight_pin  = TFT_BCKL,
+                           .auto_dim_on_idle = false,
                            .rotation       = TFT_ROTATION,
                            .invert_display = INVERT_COLORS,
                            .cal_data       = {0, 65535, 0, 65535, 0}};
@@ -496,6 +497,9 @@ bool guiGetConfig(const JsonObject& settings)
     if(gui_settings.backlight_pin != settings[FPSTR(FP_GUI_BACKLIGHTPIN)].as<int8_t>()) changed = true;
     settings[FPSTR(FP_GUI_BACKLIGHTPIN)] = gui_settings.backlight_pin;
 
+    if(gui_settings.auto_dim_on_idle != settings[FPSTR(FP_GUI_AUTODIM)].as<bool>()) changed = true;
+    settings[FPSTR(FP_GUI_AUTODIM)] = (uint8_t)gui_settings.auto_dim_on_idle;
+
     if(backlight_invert != settings[FPSTR(FP_GUI_BACKLIGHTINVERT)].as<bool>()) changed = true;
     settings[FPSTR(FP_GUI_BACKLIGHTINVERT)] = (uint8_t)backlight_invert;
 
@@ -572,6 +576,7 @@ bool guiSetConfig(const JsonObject& settings)
 
     // changed |= configSet(guiTickPeriod, settings[FPSTR(FP_GUI_TICKPERIOD)], F("guiTickPeriod"));
     changed |= configSet(gui_settings.backlight_pin, settings[FPSTR(FP_GUI_BACKLIGHTPIN)], F("guiBacklightPin"));
+    changed |= configSet(gui_settings.auto_dim_on_idle, settings[FPSTR(FP_GUI_AUTODIM)], F("guiAutoDimOnIdle"));
     changed |= configSet(backlight_invert, settings[FPSTR(FP_GUI_BACKLIGHTINVERT)], F("guiBacklightInvert"));
     changed |= configSet(guiSleepTime1, settings[FPSTR(FP_GUI_IDLEPERIOD1)], F("guiSleepTime1"));
     changed |= configSet(guiSleepTime2, settings[FPSTR(FP_GUI_IDLEPERIOD2)], F("guiSleepTime2"));
@@ -628,6 +633,11 @@ bool guiSetConfig(const JsonObject& settings)
     }
 
     return changed;
+}
+
+bool gui_get_auto_dim_on_idle()
+{
+    return gui_settings.auto_dim_on_idle;
 }
 #endif // HASP_USE_CONFIG
 

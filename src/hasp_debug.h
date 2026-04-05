@@ -182,6 +182,7 @@ enum {
     TAG_FILE = 31,
     TAG_NVS  = 32,
     TAG_GPIO = 40,
+    TAG_LEDC = 41,
 
     TAG_ETH      = 60,
     TAG_WIFI     = 61,

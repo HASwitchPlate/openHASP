@@ -60,6 +60,14 @@ class Esp32Device : public BaseDevice {
 
     bool is_system_pin(uint8_t pin) override;
 
+  protected:
+    /** For board-specific subclasses (e.g. I2C virtual backlight). Base = LEDC when pin is a real GPIO. */
+    virtual void update_backlight();
+    uint8_t get_backlight_pin() const
+    {
+        return _backlight_pin;
+    }
+
   private:
     std::string _hardware_id;
     std::string _chip_model;
@@ -73,7 +81,6 @@ class Esp32Device : public BaseDevice {
     bool _backlight_fading;
     bool _backlight_fade;
 
-    void update_backlight();
     static bool cb_backlight(const ledc_cb_param_t *param, void *user_arg);
     void end_backlight_fade();
 };
@@ -88,6 +95,8 @@ class Esp32Device : public BaseDevice {
 #include "m5stackcore2.h"
 #elif defined(TWATCH)
 #include "twatch.h"
+#elif defined(HASP_ESP32_DEVICE_I2C_BACKLIGHT) && defined(HASP_USE_I2C_GPIO)
+#include "esp32_i2c_ledc.h"
 #else
 using dev::Esp32Device;
 extern dev::Esp32Device haspDevice;

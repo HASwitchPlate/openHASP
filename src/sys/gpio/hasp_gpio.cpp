@@ -7,6 +7,13 @@
 
 #include "hasp_gpio.h"
 
+#if defined(HASP_USE_I2C_GPIO) && defined(ARDUINO_ARCH_ESP32)
+#include "sys/gpio/i2c_gpio_bus.h"
+#endif
+#if defined(HASP_USE_I2C_GPIO) && defined(HASP_EXPANDER_GPIO_STC_L10) && defined(ARDUINO_ARCH_ESP32)
+#include "drv/gpio/i2c_gpio_stc_l10.h"
+#endif
+
 // Device Drivers
 #include "dev/device.h"
 #include "drv/tft/tft_driver.h"
@@ -20,8 +27,19 @@
 #include "AceButton.h"
 
 using namespace ace_button;
+
+#if defined(HASP_USE_I2C_GPIO) && defined(ARDUINO_ARCH_ESP32)
+/** AceButton reads virtual expander pins via i2c_gpio; others use digitalRead(). */
+class HaspI2cButtonConfig : public ButtonConfig {
+  public:
+    int readButton(uint8_t pin) override;
+};
+HaspI2cButtonConfig buttonConfig; // Clicks, double-clicks and long presses
+HaspI2cButtonConfig switchConfig; // Clicks only (switch, motion, …)
+#else
 ButtonConfig buttonConfig; // Clicks, double-clicks and long presses
 ButtonConfig switchConfig; // Clicks only
+#endif
 #else
 
 #define HIGH 1
@@ -159,6 +177,17 @@ static void gpio_event_handler(AceButton* button, uint8_t eventType, uint8_t but
     gpioConfig[btnid].power = Parser::get_event_state(eventid);
     gpio_input_event(gpioConfig[btnid].pin, eventid);
 
+#if defined(USE_MOTION_WAKEUP)
+    /* GPIO Input "Action" = Backlight-ON (binary sensors SWITCH..WINDOW). */
+    if(eventid == HASP_EVENT_ON && gpioConfig[btnid].input_action == hasp_gpio_input_action_t::INPUT_ACTION_BACKLIGHT_ON
+       && gpioConfig[btnid].type >= hasp_gpio_type_t::SWITCH && gpioConfig[btnid].type <= hasp_gpio_type_t::WINDOW) {
+        bool antiburn_changed = hasp_stop_antiburn();
+        dispatch_wakeup(TAG_GPIO); // clears idle first (wakeup path)
+        hasp_update_sleep_state();
+        if(antiburn_changed) dispatch_state_antiburn(hasp_get_antiburn());
+    }
+#endif
+
     // update objects and gpios in this group
     if(gpioConfig[btnid].group && eventid != HASP_EVENT_LONG) // do not repeat DOWN + LONG
         gpio_update_group(gpioConfig[btnid].group, NULL, gpioConfig[btnid].power, state, HASP_EVENT_OFF, HASP_EVENT_ON);
@@ -209,6 +238,34 @@ void aceButtonSetup(void)
 #endif
 }
 
+#if defined(HASP_USE_I2C_GPIO) && defined(ARDUINO_ARCH_ESP32)
+namespace {
+/** Per-pin last known level when i2c digitalRead is 0/1; if read returns -1, replay last. */
+uint8_t s_i2c_prev_level[256];
+bool s_i2c_prev_valid[256];
+} // namespace
+
+int HaspI2cButtonConfig::readButton(uint8_t pin)
+{
+    if(i2c_gpio && i2c_gpio->handles_pin(pin)) {
+        const int v = i2c_gpio->digitalRead(pin);
+        if(v > 0) {
+            s_i2c_prev_level[pin] = HIGH;
+            s_i2c_prev_valid[pin] = true;
+            return HIGH;
+        }
+        if(v == 0) {
+            s_i2c_prev_level[pin] = LOW;
+            s_i2c_prev_valid[pin] = true;
+            return LOW;
+        }
+        if(s_i2c_prev_valid[pin]) return (int)s_i2c_prev_level[pin];
+        return LOW;
+    }
+    return digitalRead(pin);
+}
+#endif
+
 // Can be called ad-hoc to change a setup
 static void gpio_setup_pin(uint8_t index)
 {
@@ -250,14 +307,20 @@ static void gpio_setup_pin(uint8_t index)
             if(gpio->btn) delete gpio->btn;
             gpio->btn   = new AceButton(&switchConfig, gpio->pin, default_state, index);
             gpio->power = gpio->btn->isPressedRaw();
-            pinMode(gpio->pin, input_mode);
+#if defined(HASP_USE_I2C_GPIO) && defined(ARDUINO_ARCH_ESP32)
+            if(!(i2c_gpio && i2c_gpio->handles_pin(gpio->pin)))
+#endif
+                pinMode(gpio->pin, input_mode);
             gpio->max = 0;
             break;
         case hasp_gpio_type_t::BUTTON_TYPE:
             if(gpio->btn) delete gpio->btn;
             gpio->btn   = new AceButton(&buttonConfig, gpio->pin, default_state, index);
             gpio->power = gpio->btn->isPressedRaw();
-            pinMode(gpio->pin, input_mode);
+#if defined(HASP_USE_I2C_GPIO) && defined(ARDUINO_ARCH_ESP32)
+            if(!(i2c_gpio && i2c_gpio->handles_pin(gpio->pin)))
+#endif
+                pinMode(gpio->pin, input_mode);
             gpio->max = 0;
             break;
 #if defined(ARDUINO_ARCH_ESP32)
@@ -272,6 +335,16 @@ static void gpio_setup_pin(uint8_t index)
 
         case hasp_gpio_type_t::POWER_RELAY:
         case hasp_gpio_type_t::LIGHT_RELAY:
+#if defined(HASP_USE_I2C_GPIO)
+            if(i2c_gpio && i2c_gpio->handles_pin(gpio->pin)) {
+                i2c_gpio->pinMode(gpio->pin, OUTPUT);
+                gpio->power = gpio->inverted;
+                gpio->max   = 1;
+                gpio->val   = gpio->power;
+                i2c_gpio->digitalWrite(gpio->pin, gpio->power ? HIGH : LOW);
+                break;
+            }
+#endif
             pinMode(gpio->pin, OUTPUT);
             gpio->power = gpio->inverted; // gpio is off, state is set to reflect the true output state of the gpio
             gpio->max   = 1;              // on-off
@@ -282,6 +355,15 @@ static void gpio_setup_pin(uint8_t index)
             gpio->max = 4095;
         case hasp_gpio_type_t::LED... hasp_gpio_type_t::LED_W:
             // case hasp_gpio_type_t::BACKLIGHT:
+#if defined(HASP_USE_I2C_GPIO)
+            if(i2c_gpio && i2c_gpio->handles_pin(gpio->pin)) {
+                gpio->power = gpio->inverted;
+                gpio->val   = gpio->inverted ? 0 : gpio->max;
+                gpio->channel = 0xFF;
+                i2c_gpio->analogWrite8(gpio->pin, gpio->power ? (uint8_t)gpio->val : 0);
+                break;
+            }
+#endif
             pinMode(gpio->pin, OUTPUT);
             gpio->power = gpio->inverted; // gpio is off, state is set to reflect the true output state of the gpio
             gpio->val   = gpio->inverted ? 0 : gpio->max;
@@ -342,6 +424,22 @@ void gpioSetup()
 #endif
 
     aceButtonSetup();
+
+#if defined(HASP_USE_I2C_GPIO) && defined(HASP_EXPANDER_GPIO_STC_L10) && defined(ARDUINO_ARCH_ESP32) \
+    && defined(EXPANDER_ADDRESS)
+    if(!i2c_gpio) {
+        i2c_gpio = new i2c_gpio_stc_l10((uint8_t)EXPANDER_ADDRESS, Wire);
+        if(!i2c_gpio->begin()) {
+            LOG_WARNING(TAG_GPIO, F("STC L10 I2C GPIO (0x%02X) not responding"), (unsigned)EXPANDER_ADDRESS);
+        }
+        else {  
+            LOG_INFO(TAG_GPIO, F("STC L10 I2C GPIO (0x%02X) i2cgpio ready"), (unsigned)EXPANDER_ADDRESS);
+        }
+    }
+#if defined(HASP_LANBON_L10_TCA9554_GC9503V)
+    haspDevice.set_backlight_level(haspDevice.get_backlight_level());
+#endif
+#endif
 
     for(uint8_t i = 0; i < HASP_NUM_GPIO_CONFIG; i++) {
         gpio_setup_pin(i);
@@ -491,6 +589,14 @@ static inline bool gpio_set_analog_value(hasp_gpio_config_t* gpio)
     return true;                   // sent
 
 #elif defined(ARDUINO_ARCH_ESP32)
+#if defined(HASP_USE_I2C_GPIO)
+    if(i2c_gpio && i2c_gpio->handles_pin(gpio->pin)) {
+        val = gpio_limit(gpio->val, 0, 255);
+        if(!gpio->power) val = 0;
+        if(gpio->inverted) val = 255 - val;
+        return i2c_gpio->analogWrite8(gpio->pin, (uint8_t)val);
+    }
+#endif
 
     if(gpio->max == 255)
         val = SCALE_8BIT_TO_10BIT(gpio->val);
@@ -528,6 +634,11 @@ static inline bool gpio_set_digital_value(hasp_gpio_config_t* gpio)
     if(gpio->inverted) state = !state;
 
 #if defined(ARDUINO_ARCH_ESP32)
+#if defined(HASP_USE_I2C_GPIO)
+    if(i2c_gpio && i2c_gpio->handles_pin(gpio->pin)) {
+        return i2c_gpio->digitalWrite(gpio->pin, state ? HIGH : LOW);
+    }
+#endif
     digitalWrite(gpio->pin, state);
     return true; // sent
 
@@ -789,10 +900,15 @@ bool gpioIsSystemPin(uint8_t gpio)
     // Serial GPIOs
     // Tasmota Client GPIOs
 
+#if defined(HASP_USE_I2C_GPIO) && defined(HASP_EXPANDER_GPIO_STC_L10)
+    if(i2c_gpio && gpio >= HASP_I2C_GPIO_UI_PIN_FIRST && gpio <= HASP_I2C_GPIO_UI_PIN_LAST) return false;
+#endif
+
     return false;
 }
 
-bool gpioSavePinConfig(uint8_t config_num, uint8_t pin, uint8_t type, uint8_t group, uint8_t pinfunc, bool inverted)
+bool gpioSavePinConfig(uint8_t config_num, uint8_t pin, uint8_t type, uint8_t group, uint8_t pinfunc, bool inverted,
+                       uint8_t input_action)
 {
     // TODO: Input validation
 
@@ -806,8 +922,12 @@ bool gpioSavePinConfig(uint8_t config_num, uint8_t pin, uint8_t type, uint8_t gr
         gpioConfig[config_num].group         = group;
         gpioConfig[config_num].gpio_function = pinfunc;
         gpioConfig[config_num].inverted      = inverted;
-        LOG_TRACE(TAG_GPIO, F("Saving Pin config #%d pin %d - type %d - group %d - func %d"), config_num, pin, type,
-                  group, pinfunc);
+        if(type >= hasp_gpio_type_t::SWITCH && type <= hasp_gpio_type_t::WINDOW)
+            gpioConfig[config_num].input_action = input_action;
+        else
+            gpioConfig[config_num].input_action = 0;
+        LOG_TRACE(TAG_GPIO, F("Saving Pin config #%d pin %d - type %d - group %d - func %d act %u"), config_num, pin,
+                  type, group, pinfunc, (unsigned)gpioConfig[config_num].input_action);
         return true;
     }
 
@@ -997,6 +1117,27 @@ bool gpioGetConfig(const JsonObject& settings)
         changed = true;
     }
 
+#if defined(USE_MOTION_WAKEUP)
+    {
+        JsonArray act = settings[FPSTR(FP_GPIO_ACTION)].as<JsonArray>();
+        if(act.isNull()) {
+            act = const_cast<JsonObject&>(settings).createNestedArray(FPSTR(FP_GPIO_ACTION));
+            changed = true;
+        }
+        while(act.size() < HASP_NUM_GPIO_CONFIG) {
+            act.add((uint8_t)0);
+            changed = true;
+        }
+        for(uint8_t j = 0; j < HASP_NUM_GPIO_CONFIG; j++) {
+            const uint8_t cur = gpioConfig[j].input_action;
+            if(j < act.size() && act[j].as<uint8_t>() != cur) {
+                act[j].set(cur);
+                changed = true;
+            }
+        }
+    }
+#endif
+
     if(changed) configOutput(settings, TAG_GPIO);
     return changed;
 }
@@ -1013,9 +1154,10 @@ bool gpioSetConfig(const JsonObject& settings)
 {
     configOutput(settings, TAG_GPIO);
     bool changed = false;
+    bool status  = false;
 
     if(!settings[FPSTR(FP_GPIO_CONFIG)].isNull()) {
-        bool status = false;
+        status = false;
         int i       = 0;
 
         JsonArray array = settings[FPSTR(FP_GPIO_CONFIG)].as<JsonArray>();
@@ -1037,6 +1179,34 @@ bool gpioSetConfig(const JsonObject& settings)
         }
         changed |= status;
     }
+
+#if defined(USE_MOTION_WAKEUP)
+    {
+        status = false;
+        if(!settings[FPSTR(FP_GPIO_ACTION)].isNull()) {
+            JsonArray act = settings[FPSTR(FP_GPIO_ACTION)].as<JsonArray>();
+            int j         = 0;
+            for(JsonVariant v : act) {
+                if(j < HASP_NUM_GPIO_CONFIG) {
+                    const uint8_t na = v.as<uint8_t>();
+                    if(gpioConfig[j].input_action != na) status = true;
+                    gpioConfig[j].input_action = na;
+                }
+                j++;
+            }
+        } else {
+            for(uint8_t j = 0; j < HASP_NUM_GPIO_CONFIG; j++) {
+                if(gpioConfig[j].type == hasp_gpio_type_t::MOTION) {
+                    if(gpioConfig[j].input_action != hasp_gpio_input_action_t::INPUT_ACTION_BACKLIGHT_ON) {
+                        gpioConfig[j].input_action = hasp_gpio_input_action_t::INPUT_ACTION_BACKLIGHT_ON;
+                        status                       = true;
+                    }
+                }
+            }
+        }
+        changed |= status;
+    }
+#endif
 
     return changed;
 }
