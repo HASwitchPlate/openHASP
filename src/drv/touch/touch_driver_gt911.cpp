@@ -95,6 +95,7 @@ IRAM_ATTR bool TouchGt911::read(lv_indev_drv_t* indev_driver, lv_indev_data_t* d
 void TouchGt911::init(int w, int h)
 {
     Wire.begin(TOUCH_SDA, TOUCH_SCL, (uint32_t)I2C_TOUCH_FREQUENCY);
+ 
     touch.setHandler(GT911_setXY);
     GTInfo* info;
 
@@ -119,9 +120,20 @@ found:
     } else {
         LOG_WARNING(TAG_DRVR, "GT911 %s", D_SERVICE_START_FAILED);
     }
-
+    
+   Wire.begin(TOUCH_SDA, TOUCH_SCL);
+    Wire.beginTransmission(0x30);
+    //Wire.write(250);
+    Wire.write(16);
+      if(Wire.endTransmission() == 0) {
+            LOG_INFO(TAG_DRVR, "Buzzer set");
+        } else {
+            LOG_WARNING(TAG_DRVR, "Backlight not set");
+        }
+  
     Wire.begin(TOUCH_SDA, TOUCH_SCL, (uint32_t)I2C_TOUCH_FREQUENCY);
     touch_scan(Wire); // The address could change during begin, so scan afterwards
+
 }
 
 } // namespace dev
