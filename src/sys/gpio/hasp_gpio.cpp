@@ -45,6 +45,10 @@ hasp_gpio_config_t gpioConfig[HASP_NUM_GPIO_CONFIG] = {
     {.pin = RELAY_3, .group = 3, .gpio_function = OUTPUT, .type = LIGHT_RELAY},
     {.pin = LED_GREEN, .group = 5, .gpio_function = OUTPUT, .type = LED_G},
     {.pin = LED_BLUE, .group = 6, .gpio_function = OUTPUT, .type = LED_B}
+#elif defined(ESP32_2432S024)
+    {.pin = LED_RED, .group = 4, .gpio_function = OUTPUT, .type = LED_R, .inverted = 1},
+    {.pin = LED_GREEN, .group = 5, .gpio_function = OUTPUT, .type = LED_G, .inverted = 1},
+    {.pin = LED_BLUE, .group = 6, .gpio_function = OUTPUT, .type = LED_B, .inverted = 1}
 #endif
     //    {2, 8, INPUT, LOW}, {3, 9, OUTPUT, LOW}, {4, 10, INPUT, HIGH}, {5, 11, OUTPUT, LOW}, {6, 12, INPUT, LOW},
 };

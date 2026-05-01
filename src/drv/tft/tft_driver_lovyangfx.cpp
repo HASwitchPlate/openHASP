@@ -446,7 +446,14 @@ lgfx::ITouch* _init_touch(Preferences* preferences)
         LOG_DEBUG(TAG_TFT, F("%s - %d"), __FILE__, __LINE__);
 
         cfg.bus_shared      = true;
-        cfg.offset_rotation = 0;
+        cfg.offset_rotation = TOUCH_OFFSET_ROTATION;
+#ifdef SPI_TOUCH_FREQUENCY
+        cfg.freq            = SPI_TOUCH_FREQUENCY;
+#endif
+        cfg.x_min = 0;    // XPT2046 raw ADC minimum (12-bit)
+        cfg.x_max = 4095; // XPT2046 raw ADC maximum (12-bit)
+        cfg.y_min = 0;
+        cfg.y_max = 4095;
 
         cfg.spi_host = SPI3_HOST;
         // cfg.pin_sclk = 18;
