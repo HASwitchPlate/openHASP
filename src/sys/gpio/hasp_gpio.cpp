@@ -329,6 +329,17 @@ static void gpio_setup_pin(uint8_t index)
             break;
         }
 
+        case hasp_gpio_type_t::HASP_ADC:
+            pinMode(gpio->pin, INPUT);
+            gpio->max = 4095; // 12-bit ADC full range (overrides the default 255 set above)
+#if defined(ARDUINO_ARCH_ESP32)
+            analogSetPinAttenuation(gpio->pin, ADC_11db); // full 0-3.3V range
+            gpio->val = analogRead(gpio->pin); // seed the smoothing filter
+#else
+            gpio->val = analogRead(gpio->pin);
+#endif
+            break;
+
         case hasp_gpio_type_t::FREE:
             return;
 
@@ -389,6 +400,33 @@ static inline bool gpio_is_input(hasp_gpio_config_t* gpio)
 static inline bool gpio_is_output(hasp_gpio_config_t* gpio)
 {
     return (gpio->type > hasp_gpio_type_t::USED) && (gpio->type < 0x80);
+}
+
+void gpioEverySecond(void)
+{
+#if defined(ARDUINO_ARCH_ESP32)
+    for(uint8_t i = 0; i < HASP_NUM_GPIO_CONFIG; i++) {
+        if(!gpioConfigInUse(i) || gpioConfig[i].type != hasp_gpio_type_t::HASP_ADC) continue;
+
+        // Exponential moving average (alpha = 1/8) to smooth noisy ADC readings
+        uint16_t raw      = analogRead(gpioConfig[i].pin);
+        gpioConfig[i].val = (gpioConfig[i].val * 7 + raw) >> 3;
+
+        // Only adjust backlight when the screen is currently on
+        if(!haspDevice.get_backlight_power()) continue;
+
+        // Map smoothed ADC value (0..ceiling) to backlight level (0-255).
+        // 'max' defaults to 4095 (full 12-bit range) but can be reduced for
+        // in-case installs where the sensor never sees full daylight, so the
+        // full backlight range is still exercised.
+        uint16_t ceiling = gpioConfig[i].max > 0 ? gpioConfig[i].max : 4095;
+        uint8_t level    = (uint8_t)min((uint32_t)255, (uint32_t)gpioConfig[i].val * 255 / ceiling);
+        if(gpioConfig[i].inverted) level = 255 - level;
+        if(level < 10) level = 10; // always keep screen readable in darkness
+
+        haspDevice.set_backlight_level(level);
+    }
+#endif
 }
 
 void gpioEvery5Seconds(void)
@@ -1001,6 +1039,40 @@ bool gpioGetConfig(const JsonObject& settings)
         changed = true;
     }
 
+    /* Save per-slot ADC ceiling values (for ambient-light auto-backlight calibration).
+     * Only written for slots with a non-default max (i.e. user has calibrated for their install).
+     * A value of 0 in the array means "use type default" (4095 for ADC). */
+    bool hasAdcMax = false;
+    for(uint8_t j = 0; j < HASP_NUM_GPIO_CONFIG; j++) {
+        if(gpioConfig[j].type == hasp_gpio_type_t::HASP_ADC && gpioConfig[j].max != 4095 && gpioConfig[j].max != 0) {
+            hasAdcMax = true;
+            break;
+        }
+    }
+    if(hasAdcMax) {
+        /* Compare against what's already in JSON before marking changed */
+        JsonArray existingAdcArr = settings[FPSTR(FP_GPIO_ADC_MAX)].as<JsonArray>();
+        uint8_t k = 0;
+        for(JsonVariant v : existingAdcArr) {
+            if(k < HASP_NUM_GPIO_CONFIG) {
+                uint16_t m = (gpioConfig[k].type == hasp_gpio_type_t::HASP_ADC) ? gpioConfig[k].max : 0;
+                if(v.as<uint16_t>() != m) changed = true;
+            } else {
+                changed = true;
+            }
+            k++;
+        }
+        if(k != HASP_NUM_GPIO_CONFIG) changed = true;
+
+        if(changed) { /* Rebuild only when necessary */
+            JsonArray adcArr = settings[FPSTR(FP_GPIO_ADC_MAX)].to<JsonArray>();
+            for(uint8_t j = 0; j < HASP_NUM_GPIO_CONFIG; j++) {
+                uint16_t m = (gpioConfig[j].type == hasp_gpio_type_t::HASP_ADC) ? gpioConfig[j].max : 0;
+                adcArr.add(m);
+            }
+        }
+    }
+
     if(changed) configOutput(settings, TAG_GPIO);
     return changed;
 }
@@ -1040,6 +1112,22 @@ bool gpioSetConfig(const JsonObject& settings)
             i++;
         }
         changed |= status;
+    }
+
+    /* Load per-slot ADC ceiling values. These are applied before gpioSetup() calls
+     * gpio_setup_pin(), which preserves any non-zero max already set here. */
+    if(!settings[FPSTR(FP_GPIO_ADC_MAX)].isNull()) {
+        int j = 0;
+        JsonArray adcArr = settings[FPSTR(FP_GPIO_ADC_MAX)].as<JsonArray>();
+        for(JsonVariant v : adcArr) {
+            if(j < HASP_NUM_GPIO_CONFIG) {
+                uint16_t m = v.as<uint16_t>();
+                if(m > 0 && gpioConfig[j].type == hasp_gpio_type_t::HASP_ADC) {
+                    gpioConfig[j].max = m;
+                }
+            }
+            j++;
+        }
     }
 
     return changed;
