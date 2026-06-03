@@ -1,9 +1,12 @@
-import gzip, pkg_resources
-
+import gzip
 Import("env")
-
+try:
+    from importlib.metadata import packages_distributions
+    installed_pkgs = set(packages_distributions().keys())
+except ImportError:
+    import pkg_resources
+    installed_pkgs = {pkg.key for pkg in pkg_resources.working_set}
 required_pkgs = {'dulwich'}
-installed_pkgs = {pkg.key for pkg in pkg_resources.working_set}
 missing_pkgs = required_pkgs - installed_pkgs
 
 if missing_pkgs:

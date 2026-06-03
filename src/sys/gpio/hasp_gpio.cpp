@@ -107,6 +107,30 @@ class CapacitiveConfig : public ButtonConfig {
 CapacitiveConfig touchConfig; // Capacitive touch
 #endif
 
+#ifdef LANBONL8
+static void gpio_save_output_state(hasp_gpio_config_t* gpio)
+{
+    Preferences preferences;
+    char key[8];
+    snprintf(key, sizeof(key), "p%d", gpio->pin);
+    if(nvs_user_begin(preferences, "gpio", false)) {
+        preferences.putBool(key, gpio->power);
+        preferences.end();
+    }
+}
+
+static void gpio_restore_output_state(hasp_gpio_config_t* gpio)
+{
+    Preferences preferences;
+    char key[8];
+    snprintf(key, sizeof(key), "p%d", gpio->pin);
+    if (nvs_user_begin(preferences, "gpio", true)) {
+        gpio->power = preferences.getBool(key, gpio->inverted);
+        preferences.end();
+    }
+}
+#endif
+
 void gpio_log_serial_dimmer(const char* command)
 {
     char buffer[32];
@@ -273,7 +297,11 @@ static void gpio_setup_pin(uint8_t index)
         case hasp_gpio_type_t::POWER_RELAY:
         case hasp_gpio_type_t::LIGHT_RELAY:
             pinMode(gpio->pin, OUTPUT);
+#ifdef LANBONL8            
+            gpio_restore_output_state(gpio);
+#else
             gpio->power = gpio->inverted; // gpio is off, state is set to reflect the true output state of the gpio
+#endif            
             gpio->max   = 1;              // on-off
             gpio->val   = gpio->power;
             break;
@@ -603,6 +631,9 @@ static bool gpio_set_output_value(hasp_gpio_config_t* gpio, bool power, uint16_t
     switch(gpio->type) {
         case hasp_gpio_type_t::POWER_RELAY:
         case hasp_gpio_type_t::LIGHT_RELAY:
+#ifdef LANBONL8     
+            gpio_save_output_state(gpio);
+#endif            
             return gpio_set_digital_value(gpio);
 
         case hasp_gpio_type_t::LED... hasp_gpio_type_t::LED_W:
