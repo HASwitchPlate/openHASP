@@ -1,16 +1,20 @@
 import gzip
-Import("env")
-try:
-    from importlib.metadata import packages_distributions
-    installed_pkgs = set(packages_distributions().keys())
-except ImportError:
-    import pkg_resources
-    installed_pkgs = {pkg.key for pkg in pkg_resources.working_set}
-required_pkgs = {'dulwich'}
-missing_pkgs = required_pkgs - installed_pkgs
+import subprocess
+import sys
+from importlib import metadata
 
-if missing_pkgs:
-    env.Execute('$PYTHONEXE -m pip install dulwich --global-option="--pure" --use-pep517')
+Import("env")
+
+def install_and_import(package):
+    try:
+        metadata.version(package)
+    except metadata.PackageNotFoundError:
+        print(f"Installing {package}...")
+        # Gebruik de Python interpreter van de omgeving
+        subprocess.check_call([sys.executable, "-m", "pip", "install", package, "--config-settings", "--build-option=--pure", "--use-pep517"])
+
+# Zorg dat dulwich aanwezig is
+install_and_import('dulwich')
 
 from dulwich import porcelain
 from dulwich.repo import Repo

@@ -2,12 +2,7 @@ Import('env')
 import os, sys, json
 import shutil
 import subprocess
-try:
-    from importlib.metadata import packages_distributions
-    installed_pkgs = set(packages_distributions().keys())
-except ImportError:
-    import pkg_resources
-    installed_pkgs = {pkg.key for pkg in pkg_resources.working_set}
+from importlib import metadata  # Vervang pkg_resources
 
 buildFlags = env.ParseFlags(env['BUILD_FLAGS'])
 OUTPUT_DIR = "build_output{}".format(os.path.sep)
@@ -16,11 +11,13 @@ platform = env.PioPlatform()
 FRAMEWORK_DIR = platform.get_package_dir("framework-arduinoespressif32")
 FRAMEWORK_DIR = "{}{}".format(FRAMEWORK_DIR, os.path.sep)
 
-required_pkgs = {'dulwich'}
-missing_pkgs = required_pkgs - installed_pkgs
-
-if missing_pkgs:
-    env.Execute('$PYTHONEXE -m pip install dulwich --global-option="--pure" --use-pep517')
+# Verbeterde check voor dulwich
+try:
+    metadata.version('dulwich')
+except metadata.PackageNotFoundError:
+    print("Installing dependencies...")
+    # Gebruik env.Execute om binnen de PlatformIO omgeving te blijven
+    env.Execute('$PYTHONEXE -m pip install dulwich --config-settings "--build-option=--pure" --use-pep517')
 
 from dulwich import porcelain
 from dulwich.repo import Repo

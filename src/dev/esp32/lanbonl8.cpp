@@ -36,6 +36,7 @@
 
 int16_t PulseCounter = 0; // pulse counter, max. value is 32535
 int OverflowCounter  = 0; // pulse counter overflow counter
+uint32_t pulseOffset = 0; // total historical pulses, used to calculate total energy consumption across power cycles
 uint32_t totalPulses;
 
 pcnt_isr_handle_t user_isr_handle = NULL; // interrupt handler - not used
@@ -55,7 +56,7 @@ static void energy_save()
 {
     Preferences preferences;
     if (nvs_user_begin(preferences, "energy", false)){
-        preferences.putUInt("pulses", totalPulses);
+        preferences.putUInt("pulses", totalPulses + pulseOffset);
         preferences.end();
     }
 }
@@ -64,7 +65,7 @@ static void energy_restore()
 {
     Preferences preferences;
     if (nvs_user_begin(preferences, "energy", true)){
-        totalPulses = preferences.getUInt("pulses", 0);
+        pulseOffset = preferences.getUInt("pulses", 0);
         preferences.end();
     }
 }
@@ -125,6 +126,7 @@ void LanbonL8::set_backlight_power(bool power)
 
 void LanbonL8::energy_reset()
 {
+    pulseOffset = 0;
     totalPulses = 0;
     OverflowCounter = 0;
     pcnt_counter_clear(PCNT_FREQ_UNIT);
@@ -234,7 +236,7 @@ void LanbonL8::loop_5s()
     totalPulses        = newPulses;
     watt_10            = DEC / 5 * delta * MEASURED_WATTS / MEASURED_PULSES_PER_SECOND;
     //kwh_10             = DEC * totalPulses * MEASURED_WATTS / MEASURED_PULSES_PER_SECOND / 3600 / 1000;
-    kwh                = (float)totalPulses * MEASURED_WATTS / MEASURED_PULSES_PER_SECOND / 3600.0f / 1000.0f;
+    kwh                = (float)((totalPulses + pulseOffset) * MEASURED_WATTS / MEASURED_PULSES_PER_SECOND / 3600.0f / 1000.0f);
 
     if (++_save_counter >= 720){ //trigger hourly
         _save_counter = 0;
