@@ -53,7 +53,7 @@ uint16_t dispatchSecondsToNextTeleperiod = 0;
 uint16_t dispatchSecondsToNextSensordata = 0;
 uint16_t dispatchSecondsToNextDiscovery  = 0;
 uint8_t nCommands                        = 0;
-haspCommand_t commands[29];
+haspCommand_t commands[32];
 
 moodlight_t moodlight    = {.brightness = 255};
 uint8_t saved_jsonl_page = 0;
@@ -94,6 +94,14 @@ void dispatch_state_subtopic(const char* subtopic, const char* payload)
     custom_state_subtopic(subtopic, payload);
 #endif
 }
+
+#if defined (LANBONL8)
+void dispatch_energy_reset(const char*, const char*, uint8_t source)
+{
+    haspDevice.energy_reset();
+    LOG_WARNING(TAG_MSGR, F("Energy reset"));
+}
+#endif
 
 void dispatch_state_eventid(const char* topic, hasp_event_t eventid)
 {
@@ -1711,7 +1719,9 @@ void dispatchSetup()
     dispatch_add_command(PSTR("setupap"), oobeFakeSetup);
 #endif
     /* WARNING: remember to expand the commands array when adding new commands */
-
+#if defined(LANBONL8)
+    dispatch_add_command(PSTR("energy_reset"), dispatch_energy_reset);
+#endif
     LOG_INFO(TAG_MSGR, F(D_SERVICE_STARTED));
 }
 
