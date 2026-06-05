@@ -197,10 +197,18 @@ static bool my_line_set_points(lv_obj_t* obj, const char* payload)
 {
     my_line_clear_points(obj); // delete pointmap
 
-    // Create new points
-    // Reserve memory for JsonDocument
-    // StaticJsonDocument<1024> doc;
-    size_t maxsize = (128u * ((strlen(payload) / 128) + 1)) + 256;
+    // count LEFT SQUARE BRACKET => nb points +1
+    uint16_t count = 0;
+    for (const char* p = payload; *p; p++) 
+        if (*p == '[') count++;
+    count--;
+    
+    // Reserve memory for JsonDocument rounded to upper 128 bytes
+    uint16_t maxsize = 128u * (3*JSON_ARRAY_SIZE(1)*count / 128+1) ;
+    
+    LOG_VERBOSE(TAG_ATTR,"payload: %s",payload);
+    LOG_TRACE(TAG_ATTR,"count: %u maxsize: %u taille brut %u",count,maxsize,(uint32_t)(3*JSON_ARRAY_SIZE(1)*count));
+
     DynamicJsonDocument doc(maxsize);
     DeserializationError jsonError = deserializeJson(doc, payload);
 
@@ -208,6 +216,7 @@ static bool my_line_set_points(lv_obj_t* obj, const char* payload)
         dispatch_json_error(TAG_ATTR, jsonError);
         return false;
     }
+     LOG_VERBOSE(TAG_ATTR,"Memory usage: %u",(uint32_t)doc.memoryUsage());
 
     JsonArray arr  = doc.as<JsonArray>(); // Parse payload
     size_t tot_len = sizeof(lv_point_t*) * (arr.size());
@@ -1751,6 +1760,7 @@ static hasp_attribute_type_t attribute_common_text(lv_obj_t* obj, uint16_t attr_
         {LV_HASP_LABEL, ATTR_TEXT, my_label_set_text, my_label_get_text},
         {LV_HASP_LABEL, ATTR_TEMPLATE, my_obj_set_template, my_obj_get_template},
         {LV_HASP_CHECKBOX, ATTR_TEXT, lv_checkbox_set_text, lv_checkbox_get_text},
+        {LV_HASP_DROPDOWN, ATTR_TEXT, my_dropdown_set_text, my_dropdown_get_text},
         {LV_HASP_TABVIEW, ATTR_TEXT, my_tabview_set_text, my_tabview_get_text},
         {LV_HASP_TEXTAREA, ATTR_TEXT, lv_textarea_set_text, lv_textarea_get_text},
         {LV_HASP_TAB, ATTR_TEXT, my_tab_set_text, my_tab_get_text},

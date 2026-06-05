@@ -45,6 +45,10 @@ hasp_gpio_config_t gpioConfig[HASP_NUM_GPIO_CONFIG] = {
     {.pin = RELAY_3, .group = 3, .gpio_function = OUTPUT, .type = LIGHT_RELAY},
     {.pin = LED_GREEN, .group = 5, .gpio_function = OUTPUT, .type = LED_G},
     {.pin = LED_BLUE, .group = 6, .gpio_function = OUTPUT, .type = LED_B}
+#elif defined(ESP32_2432S024)
+    {.pin = LED_RED, .group = 4, .gpio_function = OUTPUT, .type = LED_R, .inverted = 1},
+    {.pin = LED_GREEN, .group = 5, .gpio_function = OUTPUT, .type = LED_G, .inverted = 1},
+    {.pin = LED_BLUE, .group = 6, .gpio_function = OUTPUT, .type = LED_B, .inverted = 1}
 #endif
     //    {2, 8, INPUT, LOW}, {3, 9, OUTPUT, LOW}, {4, 10, INPUT, HIGH}, {5, 11, OUTPUT, LOW}, {6, 12, INPUT, LOW},
 };
@@ -157,7 +161,7 @@ static void gpio_event_handler(AceButton* button, uint8_t eventType, uint8_t but
     bool state = false;
     switch(eventType) {
         case AceButton::kEventPressed:
-            if(gpioConfig[btnid].type != hasp_gpio_type_t::BUTTON) {
+            if(gpioConfig[btnid].type != hasp_gpio_type_t::BUTTON_TYPE) {
                 eventid = HASP_EVENT_ON;
             } else {
                 eventid = HASP_EVENT_DOWN;
@@ -180,7 +184,7 @@ static void gpio_event_handler(AceButton* button, uint8_t eventType, uint8_t but
         //     state = true; // do not repeat DOWN + LONG + HOLD
         //     break;
         case AceButton::kEventReleased:
-            if(gpioConfig[btnid].type != hasp_gpio_type_t::BUTTON) {
+            if(gpioConfig[btnid].type != hasp_gpio_type_t::BUTTON_TYPE) {
                 eventid = HASP_EVENT_OFF;
             } else {
                 eventid = HASP_EVENT_RELEASE;
@@ -287,7 +291,7 @@ static void gpio_setup_pin(uint8_t index)
             pinMode(gpio->pin, input_mode);
             gpio->max = 0;
             break;
-        case hasp_gpio_type_t::BUTTON:
+        case hasp_gpio_type_t::BUTTON_TYPE:
             if(gpio->btn) delete gpio->btn;
             gpio->btn   = new AceButton(&buttonConfig, gpio->pin, default_state, index);
             gpio->power = gpio->btn->isPressedRaw();
@@ -838,7 +842,7 @@ bool gpioIsSystemPin(uint8_t gpio)
         return true;
     }
 
-#if defined(HASP_USE_CUSTOM)
+#if defined(HASP_USE_CUSTOM) && HASP_USE_CUSTOM > 0
     if(custom_pin_in_use(gpio)) {
         LOG_DEBUG(TAG_GPIO, F(D_BULLET D_GPIO_PIN " %d => Custom"), gpio);
         return true;
@@ -911,7 +915,7 @@ void gpio_discovery(JsonObject& input, JsonArray& relay, JsonArray& light, JsonA
                 relay.add(gpioConfig[i].pin);
                 break;
                 
-            case BUTTON ... TOUCH:
+            case BUTTON_TYPE ... TOUCH:
                 event.add(gpioConfig[i].pin);
                 break;
 
@@ -923,7 +927,7 @@ void gpio_discovery(JsonObject& input, JsonArray& relay, JsonArray& light, JsonA
                 dimmer.add(gpioConfig[i].pin);
                 break;
 
-            // case BUTTON ... TOUCH:
+            // case BUTTON_TYPE ... TOUCH:
             case SWITCH:
                 strcpy_P(description, PSTR("none"));
                 break;
@@ -1017,7 +1021,7 @@ void gpio_discovery(JsonObject& input, JsonArray& relay, JsonArray& light, JsonA
         }
 
         if((gpioConfig[i].type >= hasp_gpio_type_t::SWITCH && gpioConfig[i].type <= hasp_gpio_type_t::WINDOW)) {
-            // || (gpioConfig[i].type >= hasp_gpio_type_t::BUTTON && gpioConfig[i].type <= hasp_gpio_type_t::TOUCH)) {
+            // || (gpioConfig[i].type >= hasp_gpio_type_t::BUTTON_TYPE && gpioConfig[i].type <= hasp_gpio_type_t::TOUCH)) {
             JsonArray arr = input[description];
             if(arr.isNull()) arr = input.createNestedArray(description);
             arr.add(gpioConfig[i].pin);

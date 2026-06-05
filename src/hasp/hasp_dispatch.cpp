@@ -20,7 +20,17 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <queue>
+#include <mutex>
+#include <string>
 #include "../mqtt/hasp_mqtt.h"
+
+/* Deferred command queue: MQTT callback runs on Paho thread; jsonl/json handlers call LVGL
+ * (hasp_new_object) which is not thread-safe. Queue jsonl/json for processing on main thread.
+ * 64 is enough for burst layout + state; PC has plenty of memory. */
+#define DISPATCH_DEFERRED_QUEUE_MAX 64
+static std::queue<std::pair<std::string, std::string>> deferred_queue;
+static std::mutex deferred_mutex;
 #else
 #include "StringStream.h"
 #include "StreamUtils.h" // for exec ReadBufferingStream
@@ -460,7 +470,7 @@ void dispatch_topic_payload(const char* topic, const char* payload, bool update,
     }
 #endif
 
-#if defined(HASP_USE_CUSTOM)
+#if defined(HASP_USE_CUSTOM) && HASP_USE_CUSTOM > 0
     if(topic == strstr_P(topic, PSTR(MQTT_TOPIC_CUSTOM "/"))) { // startsWith custom
         topic += 7u;
         custom_topic_payload(topic, (char*)payload, source);
@@ -470,6 +480,33 @@ void dispatch_topic_payload(const char* topic, const char* payload, bool update,
 
     dispatch_command(topic, (char*)payload, update, source); // dispatch as is
 }
+
+#if HASP_TARGET_PC
+void dispatch_defer_command(const char* topic, const char* payload)
+{
+    std::lock_guard<std::mutex> lock(deferred_mutex);
+    if(deferred_queue.size() >= DISPATCH_DEFERRED_QUEUE_MAX) {
+        (void)deferred_queue.front();
+        deferred_queue.pop(); // drop oldest
+    }
+    deferred_queue.push({std::string(topic), std::string(payload)});
+}
+
+void dispatch_process_deferred(void)
+{
+    std::pair<std::string, std::string> item;
+    for(;;) {
+        {
+            std::lock_guard<std::mutex> lock(deferred_mutex);
+            if(deferred_queue.empty()) break;
+            item = deferred_queue.front();
+            deferred_queue.pop();
+        }
+        bool update = item.second.size() > 0;
+        dispatch_topic_payload(item.first.c_str(), item.second.c_str(), update, TAG_MQTT);
+    }
+}
+#endif
 
 // void dispatch_output_group_state(uint8_t groupid, uint16_t state)
 // {
@@ -649,6 +686,14 @@ void dispatch_screenshot(const char*, const char* filename, uint8_t source)
     } else if(strlen(filename) > 31 || filename[0] != '/') { // Invalid filename
         LOG_WARNING(TAG_MSGR, F("D_FILE_SAVE_FAILED"), filename);
     } else { // Valid filename
+        guiTakeScreenshot(filename);
+    }
+
+#elif defined(POSIX)
+
+    if(strlen(filename) == 0) {
+        guiTakeScreenshot("screenshot.bmp");
+    } else {
         guiTakeScreenshot(filename);
     }
 
@@ -1303,7 +1348,7 @@ void dispatch_send_sensordata(const char*, const char*, uint8_t source)
 
     haspDevice.get_sensors(doc);
 
-#if defined(HASP_USE_CUSTOM)
+#if defined(HASP_USE_CUSTOM) && HASP_USE_CUSTOM > 0
     custom_get_sensors(doc);
 #endif
 

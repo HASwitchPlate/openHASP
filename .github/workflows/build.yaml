@@ -9,12 +9,12 @@ on:
     paths-ignore:
       - "**.md"
       - "**.yml"
-      - "**.yaml"
   workflow_dispatch:
 
 jobs:
   build_esp32:
     runs-on: ubuntu-latest
+    #runs-on: ubuntu-24.04
 
     strategy:
       fail-fast: false
@@ -24,6 +24,8 @@ jobs:
             env: "huzzah32-featherwing-24 -e huzzah32-featherwing-35 -e huzzah32-featherwing-24-v2 -e huzzah32-featherwing-35-v2 -e huzzah32-v2-featherwing-24-v2 -e huzzah32-v2-featherwing-35-v2"
           - out: az-touch
             env: "az-touch-mod-esp32_ili9341_4MB -e az-touch-mod-esp32_ili9341_8MB"
+          - out: btt
+            env: "esp32-s3-pandatouch_8MB"
           - env: d1-mini-esp32_ili9341
             out: d1-mini-esp32
           - out: d1-r32-espduino32
@@ -35,9 +37,9 @@ jobs:
           - out: globalsecurity
             env: gs-t3e_16MB
           - out: guition
-            env: esp32-s3-4848s040_16MB -e guition-jc4827w543c_4MB
+            env: esp32-s3-4848s040_16MB -e guition-jc4827w543c_4MB -e guition-jc8048w50n_16MB
           - out: lanbon
-            env: lanbon_l8
+            env: lanbon_l8 -e lanbon_l9_v1_0 -e lanbon_l9_v3_3
           - out: lilygo-ttgo
             env: "lilygo-lily-pi_st7796 -e lilygo-lily-pi_ili9481 -e ttgo-t7-v1_5_ili9341_4MB -e ttgo-t7-v1_5_ili9341_16MB"
           - out: lolin
@@ -51,41 +53,42 @@ jobs:
           - out: seeed-studios
             env: "sensecap-indicator-d1_8MB"
           - out: sunton
-            env: "esp32-2432s028r_4MB -e esp32-2432s028r-ili9342_4MB -e esp32-2432s032c_4MB -e esp32-3248s035c_4MB -e esp32-3248s035r_4MB -e sunton-4827s043c_16MB -e sunton-8048s043c_16MB -e sunton-8048s050c_16MB -e sunton-8048s070c_16MB"
+            env: "esp32-2432s022c_4MB -e esp32-2432s028r_4MB -e esp32-2432s028r-ili9342_4MB -e esp32-2432s028r_v2_4MB -e esp32-2432s032c_4MB -e esp32-3248s035c_4MB -e esp32-3248s035r_4MB -e sunton-4827s043c_16MB -e sunton-8048s043c_16MB -e sunton-8048s050c_16MB -e sunton-8048s070c_16MB -e cyd-2424s012_4MB -e esp32-2432s024c_4MB -e esp32-2432s024r_4MB"
           - out: waveshare
-            env: "esp32-one_ili9486 -e esp32-one_st7796"
+            env: "esp32-one_ili9486 -e esp32-one_st7796 -e ws_esp32_s3_touch_lcd_4p3 -e ws_esp32_s3_touch_lcd_4 -e waveshare-esp32-s3-touch-lcd-7"
           - out: wireless-tag
             env: "wt32-sc01_4MB -e wt32-sc01_16MB -e wt-86-32-3zw1 -e wt32-sc01-plus_8MB -e wt32-sc01-plus_16MB"
           - out: yeacreate
             env: yeacreate-nscreen32
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           submodules: "true"
       - name: Cache pip
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
           restore-keys: |
             ${{ runner.os }}-pip-
       - name: Cache PlatformIO
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.platformio
           key: ${{ runner.os }}-${{ hashFiles('**/lockfiles') }}
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.x"
-      - name: Install PlatformIO
+          # python-version: "3.x"
+          python-version: "3.12" # Stable version as of 2024-06
+      - name: Install PlatformIO & Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install --upgrade platformio
-      - name: Install Setuptools
-        run: |
-          pip install --upgrade setuptools
+          pip install --upgrade platformio dulwich
+      #- name: Install Setuptools
+      #  run: |
+      #    pip install --upgrade setuptools # obsolete, use importlib.metadata instead
       - name: Enable ESP32 platforms from platformio_override-template.ini
         run: |
           sed 's/; user_setups\/esp32/user_setups\/esp32/g' platformio_override-template.ini > platformio_override.ini
@@ -98,7 +101,7 @@ jobs:
       - name: Run PlatformIO
         run: pio run -e ${{ matrix.environment.env }}
       - name: Upload output file
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: ${{ matrix.environment.out }}
           path: build_output/firmware/*.*n
@@ -118,29 +121,30 @@ jobs:
   linux_build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           submodules: "true"
       - name: Cache pip
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
           restore-keys: |
             ${{ runner.os }}-pip-
       - name: Cache PlatformIO
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.platformio
           key: ${{ runner.os }}-${{ hashFiles('**/lockfiles') }}
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.x"
-      - name: Install PlatformIO
+          # python-version: "3.x"
+          python-version: "3.12" # Stable version as of 2024-06
+      - name: Install PlatformIO & Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install --upgrade platformio
+          pip install --upgrade platformio dulwich
       - name: Enable Linux platform from platformio_override.ini
         run: |
           sed 's/; user_setups\/linux/user_setups\/linux/g' platformio_override-template.ini > platformio_override.ini
@@ -159,9 +163,5 @@ jobs:
         run: |
           sed -i 's/; user_setups\/linux/user_setups\/linux/g' platformio_override.ini
           mkdir -p .pio/libdeps/linux_sdl/paho/src
-      - name: Install SDL2 library
-        run: |
-          sudo apt-get update
-          sudo apt-get install libsdl2-dev
       - name: Run PlatformIO
-        run: pio run -e linux_sdl
+        run: pio run -e linux_sdl -e linux_headless -e linux_fbdev

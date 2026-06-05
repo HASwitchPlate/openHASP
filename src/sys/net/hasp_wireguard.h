@@ -4,6 +4,8 @@
 #ifndef HASP_WIREGUARD_H
 #define HASP_WIREGUARD_H
 
+#include "ArduinoJson.h"
+
 void wg_setup();
 int wg_config_valid();
 void wg_network_disconnected();

@@ -6,7 +6,7 @@
 
 #include "hasplib.h"
 
-#if defined(HASP_USE_CUSTOM) && false // <-- set this to true in your code
+#if defined(HASP_USE_CUSTOM) && HASP_USE_CUSTOM > 0 && false // <-- set this to true in your code
 
 #include "hasp_debug.h"
 

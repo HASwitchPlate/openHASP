@@ -134,7 +134,7 @@ enum hasp_gpio_type_t {
     TAMPER           = 0xBB,
     UPDATE           = 0xBC,
 
-    BUTTON             = 0xF0,
+    BUTTON_TYPE        = 0xF0,
     BUTTON_TOGGLE_UP   = 0xF1,
     BUTTON_TOGGLE_DOWN = 0xF2,
     BUTTON_TOGGLE_BOTH = 0xF3,

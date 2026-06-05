@@ -134,6 +134,8 @@ const uint8_t HTTP_VARS_CSS[] PROGMEM = ":root{"
                                         "--toolbg:" D_HTTP_COLOR_TOOLBAR ";"
                                         "--treebg:" D_HTTP_COLOR_TREE ";"
                                         "--preeviewbg:" D_HTTP_COLOR_PREVIEW ";"
+                                        "--ddmenubg:" D_HTTP_COLOR_DROPDOWN_BG ";"
+                                        "--itemhoverbg:" D_HTTP_COLOR_ITEM_HOVER ";"
                                         "}";
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -264,18 +266,18 @@ static void webSendFooter()
 #endif
 }
 
-static void http_send_cache_header(int size, int age = 3600)
+static void http_send_cache_header(int age = 3600)
 {
-    webServer.sendHeader("Content-Length", (String)(size));
     webServer.sendHeader("Cache-Control", (String)(F("public, max-age=")) + (String)(age));
 }
 
 static int http_send_cached(int statuscode, const char* contenttype, const char* data, size_t size, int age = 3600)
 {
-    http_send_cache_header(size, age);
+    http_send_cache_header(age);
 #if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
     webServer.send_P(statuscode, contenttype, data, size);
 #else
+    webServer.sendHeader("Content-Length", (String)(size));
     webServer.send(statuscode, contenttype, data);
 #endif
     return statuscode;
@@ -1804,7 +1806,7 @@ static void webHandleGpioConfig()
 
                     switch(conf.type) {
 
-                        case hasp_gpio_type_t::BUTTON:
+                        case hasp_gpio_type_t::BUTTON_TYPE:
                             httpMessage += D_GPIO_BUTTON;
                             break;
                         case hasp_gpio_type_t::SWITCH:
@@ -2049,7 +2051,7 @@ static void webHandleGpioInput()
         httpMessage += F("</select></p>");
 
         httpMessage += F("<p><b>Type</b> <select id='type' name='type'>");
-        httpMessage += getOption(hasp_gpio_type_t::BUTTON, D_GPIO_BUTTON, conf.type);
+        httpMessage += getOption(hasp_gpio_type_t::BUTTON_TYPE, D_GPIO_BUTTON, conf.type);
         httpMessage += getOption(hasp_gpio_type_t::SWITCH, D_GPIO_SWITCH, conf.type);
         httpMessage += getOption(hasp_gpio_type_t::DOOR, "door", conf.type);
         httpMessage += getOption(hasp_gpio_type_t::GARAGE_DOOR, "garage_door", conf.type);

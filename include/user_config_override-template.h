@@ -83,35 +83,47 @@
  *        Web interface coloring
  **************************************************/
 // Light theme (default)
-#define D_HTTP_COLOR_TEXT "#000"               // Global text color - Black
-#define D_HTTP_COLOR_BACKGROUND "#fff"         // Global background color - White
-#define D_HTTP_COLOR_INPUT_TEXT "#000"         // Input text color - Black
-#define D_HTTP_COLOR_INPUT "#fff"              // Input background color - White
-#define D_HTTP_COLOR_INPUT_WARNING "#f00"      // Input warning border color - Red
-#define D_HTTP_COLOR_BUTTON_TEXT "#fff"        // Button text color - White
-#define D_HTTP_COLOR_BUTTON "#1fa3ec"          // Button color - Vivid blue
-#define D_HTTP_COLOR_BUTTON_HOVER "#0083cc"    // Button color - Olympic blue
-#define D_HTTP_COLOR_BUTTON_RESET "#f00"       // Restart/Reset button color - red
-#define D_HTTP_COLOR_BUTTON_RESET_HOVER "#b00" // Restart/Reset button color - Dark red
-#define D_HTTP_COLOR_GROUP "#f3f3f3"           // Group container background color
-#define D_HTTP_COLOR_GROUP_TEXT "#000"         // Group container text color - black
-#define D_HTTP_COLOR_FOOTER_TEXT "#0083cc"     // Footer text color - Olympic blue
+#define D_HTTP_COLOR_TEXT                 "#000"      // Global text color - Black
+#define D_HTTP_COLOR_BACKGROUND           "#fff"      // Global background color - White
+#define D_HTTP_COLOR_INPUT_TEXT           "#000"      // Input text color - Black
+#define D_HTTP_COLOR_INPUT                "#fff"      // Input background color - White
+#define D_HTTP_COLOR_INPUT_WARNING        "#f00"      // Input warning border color - Red
+#define D_HTTP_COLOR_BUTTON_TEXT          "#fff"      // Button text color - White
+#define D_HTTP_COLOR_BUTTON               "#1fa3ec"   // Button color - Vivid blue
+#define D_HTTP_COLOR_BUTTON_HOVER         "#0083cc"   // Button color - Olympic blue
+#define D_HTTP_COLOR_BUTTON_RESET         "#f00"      // Restart/Reset button color - red
+#define D_HTTP_COLOR_BUTTON_RESET_HOVER   "#b00"      // Restart/Reset button color - Dark red
+#define D_HTTP_COLOR_GROUP                "#f3f3f3"   // Group container background color
+#define D_HTTP_COLOR_GROUP_TEXT           "#000"      // Group container text color - black
+#define D_HTTP_COLOR_FOOTER_TEXT          "#0083cc"   // Footer text color - Olympic blue
+#define D_HTTP_COLOR_TITLE                "#fa0"
+#define D_HTTP_COLOR_TREE                 "#fff"      // Editor left menu background
+#define D_HTTP_COLOR_TOOLBAR              "#fff"      // Editor top bar background
+#define D_HTTP_COLOR_PREVIEW              "#888"      //
+#define D_HTTP_COLOR_DROPDOWN_BG          "#777"      // Editor dropdown menu background
+#define D_HTTP_COLOR_ITEM_HOVER           "#060"      // Editor left menu item hover background
 
 /*
 // Dark theme
-#define D_HTTP_COLOR_TEXT               "#eaeaea"    // Global text color - Very light gray
-#define D_HTTP_COLOR_BACKGROUND         "#252525"    // Global background color - Very dark gray (mostly black)
-#define D_HTTP_COLOR_INPUT_TEXT         "#000"       // Input text color - Black
-#define D_HTTP_COLOR_INPUT              "#ddd"       // Input background color - Very light gray
-#define D_HTTP_COLOR_INPUT_WARNING      "#ff5661"    // Warning text color - Brick Red
-#define D_HTTP_COLOR_BUTTON_TEXT        "#faffff"    // Button text color - Very pale (mostly white) cyan
-#define D_HTTP_COLOR_BUTTON             "#1fa3ec"    // Button color - Vivid blue
-#define D_HTTP_COLOR_BUTTON_HOVER       "#0083cc"    // Button color - Olympic Blue
-#define D_HTTP_COLOR_BUTTON_RESET       "#d43535"    // Restart/Reset/Delete button color - Strong red
-#define D_HTTP_COLOR_BUTTON_RESET_HOVER "#b00"       // Restart/Reset button color - Dark red
-#define D_HTTP_COLOR_GROUP              "#444"       // Group container background color - Dark gray
-#define D_HTTP_COLOR_GROUP_TEXT         "#fff"       // Group container text color - white
-#define D_HTTP_COLOR_FOOTER_TEXT        "#1fa3ec"    // Footer text color - Vivid blue
+#define D_HTTP_COLOR_TEXT                 "#eaeaea"   // Global text color - Very light gray
+#define D_HTTP_COLOR_BACKGROUND           "#252525"   // Global background color - Very dark gray (mostly black)
+#define D_HTTP_COLOR_INPUT_TEXT           "#000"      // Input text color - Black
+#define D_HTTP_COLOR_INPUT                "#ddd"      // Input background color - Very light gray
+#define D_HTTP_COLOR_INPUT_WARNING        "#ff5661"   // Warning text color - Brick Red
+#define D_HTTP_COLOR_BUTTON_TEXT          "#faffff"   // Button text color - Very pale (mostly white) cyan
+#define D_HTTP_COLOR_BUTTON               "#1fa3ec"   // Button color - Vivid blue
+#define D_HTTP_COLOR_BUTTON_HOVER         "#0083cc"   // Button color - Olympic Blue
+#define D_HTTP_COLOR_BUTTON_RESET         "#d43535"   // Restart/Reset/Delete button color - Strong red
+#define D_HTTP_COLOR_BUTTON_RESET_HOVER   "#b00"      // Restart/Reset button color - Dark red
+#define D_HTTP_COLOR_GROUP                "#444"      // Group container background color - Dark gray
+#define D_HTTP_COLOR_GROUP_TEXT           "#fff"      // Group container text color - white
+#define D_HTTP_COLOR_FOOTER_TEXT          "#1fa3ec"   // Footer text color - Vivid blue
+#define D_HTTP_COLOR_TITLE                "#fa0"
+#define D_HTTP_COLOR_TREE                 "#444"      // Editor left menu background
+#define D_HTTP_COLOR_TOOLBAR              "#1fa3ec"   // Editor top bar background
+#define D_HTTP_COLOR_PREVIEW              "#888"      //
+#define D_HTTP_COLOR_DROPDOWN_BG          "#666"      // Editor dropdown menu background
+#define D_HTTP_COLOR_ITEM_HOVER           "#0083cc"   // Editor left menu item hover background
 */
 
 /***************************************************
@@ -148,7 +160,6 @@
  **************************************************/
 //#define HASP_USE_MDNS 0                             // Disable MDNS
 //#define HASP_USE_CUSTOM 1                           // Enable compilation of custom code from /src/custom
-//#define HASP_USE_HA                                 // Enable Home Assistant auto-discovery
 //#define HASP_START_CONSOLE 0                        // Disable starting of serial console at boot
 //#define HASP_START_TELNET 0                         // Disable starting of telnet service at boot
 //#define HASP_START_HTTP 0                           // Disable starting of web interface at boot

@@ -111,7 +111,8 @@ lv_font_t* hasp_get_font(uint8_t fontid)
  */
 HASP_ATTRIBUTE_FAST_MEM void hasp_update_sleep_state()
 {
-    if(hasp_first_touch_state) return; // don't update sleep when first touch is still active
+    // Don't fast exit, see issue #839
+    // if(hasp_first_touch_state) return; // don't update sleep when first touch is still active
 
     uint32_t idle = lv_disp_get_inactive_time(lv_disp_get_default()) / 1000;
     idle += sleepTimeOffset; // To force a specific state

@@ -9,7 +9,7 @@
 #define HASP_CUSTOM_H
 
 #include "hasplib.h"
-#if defined(HASP_USE_CUSTOM)
+#if defined(HASP_USE_CUSTOM) && HASP_USE_CUSTOM > 0
 
 /* This function is called at boot */
 void custom_setup();

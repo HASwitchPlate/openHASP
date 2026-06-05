@@ -87,6 +87,9 @@ class BaseTft {
 #elif USE_FBDEV && HASP_TARGET_PC
 // #warning Building for POSIX fbdev
 #include "tft_driver_posix_fbdev.h"
+#elif HASP_USE_NULL_DRIVER && HASP_TARGET_PC
+// #warning Building for Null (headless)
+#include "tft_driver_null.h"
 #else
 // #warning Building for Generic Tfts
 using dev::BaseTft;

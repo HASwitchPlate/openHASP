@@ -113,6 +113,12 @@
 #ifndef SPI_READ_FREQUENCY
 #define SPI_READ_FREQUENCY 0
 #endif
+#ifndef TFT_OFFSET_X
+#define TFT_OFFSET_X 0
+#endif
+#ifndef TFT_OFFSET_Y
+#define TFT_OFFSET_Y 0
+#endif
 #ifndef TFT_OFFSET_ROTATION
 #define TFT_OFFSET_ROTATION 0
 #endif

@@ -22,6 +22,26 @@
 #include "custom/bootlogo_template.h" // Sketch tab header for xbm images
 #endif
 
+static volatile bool screenshot_requested = false;
+
+static int screenshot_event_watch(void* userdata, SDL_Event* event)
+{
+    (void)userdata;
+    if(event->type == SDL_KEYDOWN && event->key.keysym.sym == SDLK_F12) {
+        screenshot_requested = true;
+    }
+    return 1;
+}
+
+bool gui_pop_screenshot_request(void)
+{
+    if(screenshot_requested) {
+        screenshot_requested = false;
+        return true;
+    }
+    return false;
+}
+
 namespace dev {
 
 /**
@@ -75,6 +95,7 @@ void TftSdl::init(int32_t w, int h)
      * You have to call 'lv_tick_inc()' in periodically to inform LittelvGL about how much time were elapsed
      * Create an SDL thread to do this*/
     SDL_CreateThread(tick_thread, "tick", NULL);
+    SDL_AddEventWatch(screenshot_event_watch, NULL);
 
 #if HASP_USE_LVGL_TASK
 #error "SDL2 LVGL task is not implemented"
