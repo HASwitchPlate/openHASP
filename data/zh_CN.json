@@ -50,6 +50,16 @@
             "strict": "严格",
             "always": "总是"
         },
+        "backup": {
+            "title": "Backup / Restore",
+            "btn": "Backup / Restore",
+            "nav": "Backup",
+            "backup": "Backup Data",
+            "bakfile": "Backup to file",
+            "restore": "Restore Data",
+            "resfile": "Restore file",
+            "overwrite": "Overwrite existing files"
+        },
         "editor": {
             "title": "文件编辑器",
             "btn": "文件编辑器",
