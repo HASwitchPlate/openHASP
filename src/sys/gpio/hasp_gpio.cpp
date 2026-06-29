@@ -53,8 +53,15 @@ hasp_gpio_config_t gpioConfig[HASP_NUM_GPIO_CONFIG] = {
     //    {2, 8, INPUT, LOW}, {3, 9, OUTPUT, LOW}, {4, 10, INPUT, HIGH}, {5, 11, OUTPUT, LOW}, {6, 12, INPUT, LOW},
 };
 uint8_t pwm_channel = 1; // Backlight has 0
+#ifdef LANBONL8
+static bool gpio_restoring = false;
+#endif
 
 static inline void gpio_input_event(uint8_t pin, hasp_event_t eventid);
+
+static inline bool gpio_set_digital_value(hasp_gpio_config_t* gpio);
+
+static inline bool gpio_is_output(hasp_gpio_config_t* gpio);
 
 static inline void gpio_update_group(uint8_t group, lv_obj_t* obj, bool power, int32_t val, int32_t min, int32_t max)
 {
@@ -109,6 +116,33 @@ class CapacitiveConfig : public ButtonConfig {
     }
 };
 CapacitiveConfig touchConfig; // Capacitive touch
+#endif
+
+#ifdef LANBONL8
+static void gpio_save_output_state(hasp_gpio_config_t* gpio)
+{
+    if (gpio_restoring) return;
+    Preferences preferences;
+    char key[8];
+    snprintf(key, sizeof(key), "p%d", gpio->pin);
+    
+    if(nvs_user_begin(preferences, "gpio", false)) {
+        bool result = preferences.putBool(key, gpio->power);
+        preferences.end();
+    }
+}
+
+static void gpio_restore_output_state(hasp_gpio_config_t* gpio)
+{
+    Preferences preferences;
+    char key[8];
+    snprintf(key, sizeof(key), "p%d", gpio->pin);
+    if(nvs_user_begin(preferences, "gpio", true)) {
+        bool val = preferences.getBool(key, gpio->inverted);
+        gpio->power = val;
+        preferences.end();
+    } 
+}
 #endif
 
 void gpio_log_serial_dimmer(const char* command)
@@ -277,9 +311,14 @@ static void gpio_setup_pin(uint8_t index)
         case hasp_gpio_type_t::POWER_RELAY:
         case hasp_gpio_type_t::LIGHT_RELAY:
             pinMode(gpio->pin, OUTPUT);
+#ifdef LANBONL8            
+            gpio_restore_output_state(gpio);
+#else
             gpio->power = gpio->inverted; // gpio is off, state is set to reflect the true output state of the gpio
+#endif            
             gpio->max   = 1;              // on-off
             gpio->val   = gpio->power;
+            gpio_set_digital_value(gpio);
             break;
 
         case hasp_gpio_type_t::PWM:
@@ -350,6 +389,27 @@ void gpioSetup()
     for(uint8_t i = 0; i < HASP_NUM_GPIO_CONFIG; i++) {
         gpio_setup_pin(i);
     }
+
+#ifdef LANBONL8
+    // Restore UI state for all relay outputs after boot
+    gpio_restoring = true;
+    for(uint8_t i = 0; i < HASP_NUM_GPIO_CONFIG; i++) {
+        hasp_gpio_config_t* gpio = &gpioConfig[i];
+        if(gpio->group && gpio_is_output(gpio)) {
+            hasp_update_value_t value = {
+                .obj   = NULL,
+                .group = gpio->group,
+                .min   = 0,
+                .max   = 1,
+                .val   = gpio->power,
+                .power = gpio->power
+            };
+            dispatch_normalized_group_values(value);
+        }
+    }
+    gpio_restoring = false;
+#endif
+
     moodlight_t moodlight = {.brightness = 255};
     gpio_set_moodlight(moodlight);
 
@@ -533,10 +593,9 @@ static inline bool gpio_set_digital_value(hasp_gpio_config_t* gpio)
 
 #if defined(ARDUINO_ARCH_ESP32)
     digitalWrite(gpio->pin, state);
-    return true; // sent
-
+    return true;
 #else
-    return false;                  // not implemented
+    return false;
 #endif
 }
 
@@ -607,6 +666,9 @@ static bool gpio_set_output_value(hasp_gpio_config_t* gpio, bool power, uint16_t
     switch(gpio->type) {
         case hasp_gpio_type_t::POWER_RELAY:
         case hasp_gpio_type_t::LIGHT_RELAY:
+#ifdef LANBONL8     
+            gpio_save_output_state(gpio);
+#endif            
             return gpio_set_digital_value(gpio);
 
         case hasp_gpio_type_t::LED... hasp_gpio_type_t::LED_W:
