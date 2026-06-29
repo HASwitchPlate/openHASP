@@ -164,12 +164,23 @@ String getOption(String value, String label, bool selected)
     return buffer;
 }
 
-static void add_gpio_select_option(String& str, uint8_t gpio, uint8_t bcklpin)
+static void add_gpio_select_option(String& str, uint8_t gpio, int32_t bcklpin)
 {
-    char buffer[10];
+    char buffer[24];
     snprintf_P(buffer, sizeof(buffer), PSTR("GPIO %d"), gpio);
-    str += getOption(gpio, buffer, bcklpin == gpio);
+    str += getOption(gpio, buffer, bcklpin == (int32_t)gpio);
 }
+
+#if defined(HASP_USE_I2C_GPIO) && defined(HASP_EXPANDER_GPIO_STC_L10)
+static void add_i2c_gpio_select_options(String& str, int32_t bcklpin)
+{
+    char buffer[24];
+    for(uint8_t gpio = HASP_I2C_GPIO_UI_PIN_FIRST; gpio <= HASP_I2C_GPIO_UI_PIN_LAST; gpio++) {
+        snprintf_P(buffer, sizeof(buffer), PSTR("I2C GPIO %u"), (unsigned)gpio);
+        str += getOption(gpio, buffer, bcklpin == (int32_t)gpio);
+    }
+}
+#endif
 
 static void add_button(String& str, const __FlashStringHelper* label, const __FlashStringHelper* extra)
 {
@@ -1306,7 +1317,7 @@ void webHandleGuiConfig(AsyncWebServerRequest* request)
         if(settings[FPSTR(FP_GUI_POINTER)].as<bool>()) httpMessage += F(" checked");
         httpMessage += F("><b>Show Pointer</b>");
 
-        int8_t bcklpin = settings[FPSTR(FP_GUI_BACKLIGHTPIN)].as<int8_t>();
+        int32_t bcklpin = settings[FPSTR(FP_GUI_BACKLIGHTPIN)].as<int32_t>();
         httpMessage += F("<p><b>Backlight Pin</b> <select id='bckl' name='bckl'>");
         httpMessage += getOption(-1, F("None"), bcklpin == -1);
 #if defined(ARDUINO_ARCH_ESP32)
@@ -1322,6 +1333,9 @@ void webHandleGuiConfig(AsyncWebServerRequest* request)
         add_gpio_select_option(httpMessage, 22, bcklpin); // D2 on ESP32 for D1 mini 32
         add_gpio_select_option(httpMessage, 23, bcklpin); // D7 on ESP32 for D1 mini 32
         add_gpio_select_option(httpMessage, 32, bcklpin); // TFT_LED on the Lolin D32 Pro
+#if defined(HASP_USE_I2C_GPIO) && defined(HASP_EXPANDER_GPIO_STC_L10)
+        add_i2c_gpio_select_options(httpMessage, bcklpin);
+#endif
 #else
         httpMessage += getOption(5, F("D1 - GPIO 5"), bcklpin == 5);
         httpMessage += getOption(4, F("D2 - GPIO 4"), bcklpin == 4);
@@ -1442,7 +1456,11 @@ void webHandleGpioConfig(AsyncWebServerRequest* request)
         uint8_t group   = request->arg(F("group")).toInt();
         uint8_t pinfunc = request->arg(F("func")).toInt();
         bool inverted   = request->arg(F("state")).toInt();
-        gpioSavePinConfig(id, pin, type, group, pinfunc, inverted);
+        uint8_t inact   = 0;
+#if defined(USE_MOTION_WAKEUP)
+        if(request->hasArg(F("inact"))) inact = (uint8_t)request->arg(F("inact")).toInt();
+#endif
+        gpioSavePinConfig(id, pin, type, group, pinfunc, inverted, inact);
     }
     if(request->hasArg(PSTR("del"))) {
         uint8_t id  = request->arg(F("id")).toInt();
@@ -1460,9 +1478,9 @@ void webHandleGpioConfig(AsyncWebServerRequest* request)
         httpMessage += F("<form method='POST' action='/config'>");
 
         httpMessage += F("<table><tr><th>" D_GPIO_PIN "</th><th>Type</th><th>" D_GPIO_GROUP
-                         "</th><th>Default</th><th>Action</th></tr>");
+                         "</th><th>Default</th></tr>");
 
-        for(uint8_t gpio = 0; gpio < NUM_DIGITAL_PINS; gpio++) {
+        auto append_gpio_config_table_rows = [&](uint8_t gpio) {
             for(uint8_t id = 0; id < HASP_NUM_GPIO_CONFIG; id++) {
                 hasp_gpio_config_t conf = gpioGetPinConfig(id);
                 if((conf.pin == gpio) && gpioConfigInUse(id) && gpioInUse(gpio) && !gpioIsSystemPin(gpio)) {
@@ -1505,6 +1523,10 @@ void webHandleGpioConfig(AsyncWebServerRequest* request)
                             break;
                         case hasp_gpio_type_t::MOTION:
                             httpMessage += F("motion");
+#if defined(USE_MOTION_WAKEUP)
+                            if(conf.input_action == hasp_gpio_input_action_t::INPUT_ACTION_BACKLIGHT_ON)
+                                httpMessage += F(" · Backlight-ON");
+#endif
                             break;
                         case hasp_gpio_type_t::OCCUPANCY:
                             httpMessage += F("occupancy");
@@ -1582,7 +1604,7 @@ void webHandleGpioConfig(AsyncWebServerRequest* request)
                     httpMessage += F("</td><td>");
                     httpMessage += (conf.inverted) ? F(D_GPIO_STATE_INVERTED) : F(D_GPIO_STATE_NORMAL);
 
-                    httpMessage += ("</td><td><a href='/config/gpio?del=&id=");
+                    httpMessage += (" <a href='/config/gpio?del=&id=");
                     httpMessage += id;
                     httpMessage += ("&pin=");
                     httpMessage += conf.pin;
@@ -1590,7 +1612,13 @@ void webHandleGpioConfig(AsyncWebServerRequest* request)
                     configCount++;
                 }
             }
-        }
+        };
+
+        for(uint8_t gpio = 0; gpio < NUM_DIGITAL_PINS; gpio++) append_gpio_config_table_rows(gpio);
+#if defined(HASP_USE_I2C_GPIO) && defined(HASP_EXPANDER_GPIO_STC_L10)
+        for(uint8_t gpio = HASP_I2C_GPIO_UI_PIN_FIRST; gpio <= HASP_I2C_GPIO_UI_PIN_LAST; gpio++)
+            append_gpio_config_table_rows(gpio);
+#endif
 
         httpMessage += F("</table></form>");
 
@@ -1648,6 +1676,15 @@ void webHandleGpioOutput(AsyncWebServerRequest* request)
             httpMessage += getOption(io, haspDevice.gpio_name(io).c_str(), conf.pin == io);
         }
     }
+#if defined(HASP_USE_I2C_GPIO) && defined(HASP_EXPANDER_GPIO_STC_L10)
+    for(uint8_t io = HASP_I2C_GPIO_UI_PIN_FIRST; io <= HASP_I2C_GPIO_UI_PIN_LAST; io++) {
+        if(((conf.pin == io) || !gpioInUse(io)) && !gpioIsSystemPin(io)) {
+            char ilab[20];
+            snprintf_P(ilab, sizeof(ilab), PSTR("I2C %u"), (unsigned)io);
+            httpMessage += getOption(io, ilab, conf.pin == io);
+        }
+    }
+#endif
     httpMessage += F("</select></p>");
 
     bool selected;
@@ -1688,7 +1725,7 @@ void webHandleGpioOutput(AsyncWebServerRequest* request)
     httpMessage += getOption(hasp_gpio_type_t::SERIAL_DIMMER_L8_HD_INVERTED, F("L8-HD (inv.)"), selected);
 #endif
 
-    if(digitalPinHasPWM(request->arg((size_t)0).toInt())) {
+    if(conf.pin < NUM_DIGITAL_PINS && digitalPinHasPWM(conf.pin)) {
         selected = (conf.type == hasp_gpio_type_t::PWM);
         httpMessage += getOption(hasp_gpio_type_t::PWM, F(D_GPIO_PWM), selected);
     }
@@ -1752,6 +1789,15 @@ void webHandleGpioInput(AsyncWebServerRequest* request)
                 httpMessage += getOption(io, haspDevice.gpio_name(io).c_str(), conf.pin == io);
             }
         }
+        #if defined(HASP_USE_I2C_GPIO) 
+                for(uint8_t io = HASP_I2C_GPIO_UI_PIN_FIRST; io <= HASP_I2C_GPIO_UI_PIN_LAST; io++) {
+                    if(((conf.pin == io) || !gpioInUse(io)) && !gpioIsSystemPin(io)) {
+                        char ilab[20];
+                        snprintf_P(ilab, sizeof(ilab), PSTR("I2C %u"), (unsigned)io);
+                        httpMessage += getOption(io, ilab, conf.pin == io);
+                    }
+                }
+        #endif
         httpMessage += F("</select></p>");
 
         bool selected;
@@ -1832,6 +1878,15 @@ void webHandleGpioInput(AsyncWebServerRequest* request)
         httpMessage += getOption(hasp_gpio_function_t::EXTERNAL_PULLUP, F("External Pullup"), conf.gpio_function);
         httpMessage += getOption(hasp_gpio_function_t::EXTERNAL_PULLDOWN, F("External Pulldown"), conf.gpio_function);
         httpMessage += F("</select></p>");
+
+        #if defined(USE_MOTION_WAKEUP)
+                httpMessage += F("<p><b>Action</b> <select id='inact' name='inact'>");
+                httpMessage += getOption((int)hasp_gpio_input_action_t::INPUT_ACTION_NONE, F("None"),
+                                        conf.input_action == hasp_gpio_input_action_t::INPUT_ACTION_NONE);
+                httpMessage += getOption((int)hasp_gpio_input_action_t::INPUT_ACTION_BACKLIGHT_ON, F("Backlight-ON"),
+                                        conf.input_action == hasp_gpio_input_action_t::INPUT_ACTION_BACKLIGHT_ON);
+                httpMessage += F("</select></p>");
+        #endif
 
         httpMessage +=
             F("<p><button type='submit' name='save' value='gpio'>" D_HTTP_SAVE_SETTINGS "</button></p></form>");

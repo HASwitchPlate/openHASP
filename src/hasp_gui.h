@@ -31,6 +31,7 @@ struct gui_conf_t
 {
     bool show_pointer;
     int8_t backlight_pin;
+    bool auto_dim_on_idle;
     uint8_t rotation;
     uint8_t invert_display;
 #if defined(USER_SETUP_LOADED)
@@ -55,6 +56,7 @@ void guiTakeScreenshot(const char* pFileName); // to file
 void guiTakeScreenshot(void);                  // webclient
 bool guiScreenshotIsDirty();
 uint32_t guiScreenshotEtag();
+bool gui_get_auto_dim_on_idle();
 
 /* ===== Callbacks ===== */
 void gui_flush_cb(lv_disp_drv_t* disp, const lv_area_t* area, lv_color_t* color_p);

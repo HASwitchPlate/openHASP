@@ -397,6 +397,7 @@ bool http_save_config()
             settings[FPSTR(FP_GUI_POINTER)]         = webServer.hasArg("cursor");
             settings[FPSTR(FP_GUI_INVERT)]          = webServer.hasArg("invert");
             settings[FPSTR(FP_GUI_BACKLIGHTINVERT)] = webServer.hasArg("bcklinv");
+            settings[FPSTR(FP_GUI_AUTODIM)]         = webServer.hasArg("autodim");
             updated                                 = guiSetConfig(settings.as<JsonObject>());
 
         } else if(save == FP_DEBUG) {
@@ -1581,7 +1582,7 @@ static void http_handle_gui()
     httpGpio.reserve(256);
     httpGpio += getOption(-1, "None");
 #if defined(ARDUINO_ARCH_ESP32)
-    char buffer[10];
+    char buffer[24];
     for(uint8_t gpio = 0; gpio < NUM_DIGITAL_PINS; gpio++) {
         if(!gpioIsSystemPin(gpio)) {
             snprintf_P(buffer, sizeof(buffer), PSTR("GPIO %d"), gpio);
@@ -1590,6 +1591,14 @@ static void http_handle_gui()
             LOG_WARNING(TAG_HTTP, F("pin %d"), gpio);
         }
     }
+#if defined(HASP_USE_I2C_GPIO) && defined(HASP_EXPANDER_GPIO_STC_L10)
+    for(uint8_t gpio = HASP_I2C_GPIO_UI_PIN_FIRST; gpio <= HASP_I2C_GPIO_UI_PIN_LAST; gpio++) {
+        if(!gpioIsSystemPin(gpio)) {
+            snprintf_P(buffer, sizeof(buffer), PSTR("I2C GPIO %u"), (unsigned)gpio);
+            httpGpio += getOption(gpio, buffer);
+        }
+    }
+#endif
 #endif
     html[min(i++, len)] = httpGpio.c_str();
     html[min(i++, len)] = R"(
@@ -1599,6 +1608,12 @@ static void http_handle_gui()
 <div class="col-25"></div>
 <div class="col-75"><input type="checkbox" id="bcklinv" @vue:mounted="config.gui.bcklinv=!!config.gui.bcklinv" v-model="config.gui.bcklinv">
     <label for="bcklinv">Invert Backlight</label></div>
+</div>)";
+    html[min(i++, len)] = R"(
+<div class="row gap">
+<div class="col-25"></div>
+<div class="col-75"><input type="checkbox" id="autodim" @vue:mounted="config.gui.autodim=!!config.gui.autodim" v-model="config.gui.autodim">
+    <label for="autodim">Auto dim on idle</label></div>
 </div>)";
     html[min(i++, len)] = R"(<button type="submit" v-t="'save'"></button></form></div>)";
 #if TOUCH_DRIVER == 0x2046 && defined(TOUCH_CS)
@@ -1768,7 +1783,11 @@ static void webHandleGpioConfig()
             uint8_t group   = webServer.arg("group").toInt();
             uint8_t pinfunc = webServer.arg("func").toInt();
             bool inverted   = webServer.arg("state").toInt();
-            gpioSavePinConfig(id, pin, type, group, pinfunc, inverted);
+            uint8_t inact   = 0;
+#if defined(USE_MOTION_WAKEUP)
+            if(webServer.hasArg("inact")) inact = (uint8_t)webServer.arg("inact").toInt();
+#endif
+            gpioSavePinConfig(id, pin, type, group, pinfunc, inverted, inact);
         }
 
         if(webServer.hasArg("del")) {
@@ -1787,9 +1806,9 @@ static void webHandleGpioConfig()
         httpMessage += F("<form method='POST' action='/config'>");
 
         httpMessage += F("<table><tr><th>" D_GPIO_PIN "</th><th>Type</th><th>" D_GPIO_GROUP
-                         "</th><th>Default</th><th>Action</th></tr>");
+                         "</th><th>Default</th></tr>");
 
-        for(uint8_t gpio = 0; gpio < NUM_DIGITAL_PINS; gpio++) {
+        auto append_gpio_config_table_rows = [&](uint8_t gpio) {
             for(uint8_t id = 0; id < HASP_NUM_GPIO_CONFIG; id++) {
                 hasp_gpio_config_t conf = gpioGetPinConfig(id);
                 if((conf.pin == gpio) && gpioConfigInUse(id) && !gpioIsSystemPin(gpio)) {
@@ -1832,6 +1851,10 @@ static void webHandleGpioConfig()
                             break;
                         case hasp_gpio_type_t::MOTION:
                             httpMessage += "motion";
+#if defined(USE_MOTION_WAKEUP)
+                            if(conf.input_action == hasp_gpio_input_action_t::INPUT_ACTION_BACKLIGHT_ON)
+                                httpMessage += " · Backlight-ON";
+#endif
                             break;
                         case hasp_gpio_type_t::OCCUPANCY:
                             httpMessage += "occupancy";
@@ -1909,7 +1932,7 @@ static void webHandleGpioConfig()
                     httpMessage += F("</td><td>");
                     httpMessage += (conf.inverted) ? D_GPIO_STATE_INVERTED : D_GPIO_STATE_NORMAL;
 
-                    httpMessage += ("</td><td><a href='/config/gpio?del=&id=");
+                    httpMessage += (" <a href='/config/gpio?del=&id=");
                     httpMessage += id;
                     httpMessage += ("&pin=");
                     httpMessage += conf.pin;
@@ -1917,7 +1940,13 @@ static void webHandleGpioConfig()
                     configCount++;
                 }
             }
-        }
+        };
+
+        for(uint8_t gpio = 0; gpio < NUM_DIGITAL_PINS; gpio++) append_gpio_config_table_rows(gpio);
+#if defined(HASP_USE_I2C_GPIO) && defined(HASP_EXPANDER_GPIO_STC_L10)
+        for(uint8_t gpio = HASP_I2C_GPIO_UI_PIN_FIRST; gpio <= HASP_I2C_GPIO_UI_PIN_LAST; gpio++)
+            append_gpio_config_table_rows(gpio);
+#endif
 
         httpMessage += F("</table></form>");
 
@@ -1968,6 +1997,15 @@ static void webHandleGpioOutput()
                 httpMessage += getOption(io, haspDevice.gpio_name(io).c_str(), conf.pin);
             }
         }
+#if defined(HASP_USE_I2C_GPIO) && defined(HASP_EXPANDER_GPIO_STC_L10)
+        for(uint8_t io = HASP_I2C_GPIO_UI_PIN_FIRST; io <= HASP_I2C_GPIO_UI_PIN_LAST; io++) {
+            if(((conf.pin == io) || !gpioInUse(io)) && !gpioIsSystemPin(io)) {
+                char ilab[20];
+                snprintf_P(ilab, sizeof(ilab), PSTR("I2C %u"), (unsigned)io);
+                httpMessage += getOption(io, ilab, conf.pin);
+            }
+        }
+#endif
         httpMessage += F("</select></p>");
 
         httpMessage += F("<p><b>Type</b> <select id='type' name='type'>");
@@ -1984,7 +2022,7 @@ static void webHandleGpioOutput()
         httpMessage += getOption(hasp_gpio_type_t::SERIAL_DIMMER_L8_HD, F("L8-HD"), conf.type);
         httpMessage += getOption(hasp_gpio_type_t::SERIAL_DIMMER_L8_HD_INVERTED, F("L8-HD (inv.)"), conf.type);
 #endif
-        if(digitalPinHasPWM(webServer.arg(0).toInt())) {
+        if(conf.pin < NUM_DIGITAL_PINS && digitalPinHasPWM(conf.pin)) {
             httpMessage += getOption(hasp_gpio_type_t::PWM, D_GPIO_PWM, conf.type);
         }
         httpMessage += F("</select></p>");
@@ -2048,6 +2086,15 @@ static void webHandleGpioInput()
                 httpMessage += getOption(io, haspDevice.gpio_name(io).c_str(), conf.pin);
             }
         }
+#if defined(HASP_USE_I2C_GPIO) && defined(HASP_EXPANDER_GPIO_STC_L10)
+        for(uint8_t io = HASP_I2C_GPIO_UI_PIN_FIRST; io <= HASP_I2C_GPIO_UI_PIN_LAST; io++) {
+            if(((conf.pin == io) || !gpioInUse(io)) && !gpioIsSystemPin(io)) {
+                char ilab[20];
+                snprintf_P(ilab, sizeof(ilab), PSTR("I2C %u"), (unsigned)io);
+                httpMessage += getOption(io, ilab, conf.pin);
+            }
+        }
+#endif
         httpMessage += F("</select></p>");
 
         httpMessage += F("<p><b>Type</b> <select id='type' name='type'>");
@@ -2092,6 +2139,15 @@ static void webHandleGpioInput()
         httpMessage += getOption(hasp_gpio_function_t::EXTERNAL_PULLUP, "External Pullup", conf.gpio_function);
         httpMessage += getOption(hasp_gpio_function_t::EXTERNAL_PULLDOWN, "External Pulldown", conf.gpio_function);
         httpMessage += F("</select></p>");
+
+#if defined(USE_MOTION_WAKEUP)
+        httpMessage += F("<p><b>Action</b> <select id='inact' name='inact'>");
+        httpMessage += getOption((int)hasp_gpio_input_action_t::INPUT_ACTION_NONE, String(F("None")),
+                                 (int)conf.input_action);
+        httpMessage += getOption((int)hasp_gpio_input_action_t::INPUT_ACTION_BACKLIGHT_ON, String(F("Backlight-ON")),
+                                 (int)conf.input_action);
+        httpMessage += F("</select></p>");
+#endif
 
         httpMessage +=
             F("<p><button type='submit' name='save' value='gpio'>" D_HTTP_SAVE_SETTINGS "</button></p></form>");
