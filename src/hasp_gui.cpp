@@ -159,6 +159,10 @@ void guiCalibrate(void)
     // }
 
     lv_obj_invalidate(lv_disp_get_layer_sys(NULL));
+
+#if HASP_USE_CONFIG > 0
+    configWrite(); // Persist calibration data so it survives reboot
+#endif
 #endif
 }
 
