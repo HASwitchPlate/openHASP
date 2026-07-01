@@ -713,7 +713,7 @@ void hasp_get_info(JsonDocument& doc)
     std::string buffer;
     buffer.reserve(64);
     char size_buf[32];
-    JsonObject info = doc.createNestedObject(F(D_MANUFACTURER));
+    JsonObject info = doc[D_MANUFACTURER].to<JsonObject>();
 
     buffer = haspDevice.get_version();
 #ifdef COMMIT_HASH
@@ -762,7 +762,7 @@ void hasp_get_info(JsonDocument& doc)
     info[F("Idle")]        = size_buf;
     info[F("Active Page")] = haspPages.get();
 
-    info = doc.createNestedObject(F(D_INFO_DEVICE_MEMORY));
+    info = doc[D_INFO_DEVICE_MEMORY].to<JsonObject>();
     Parser::format_bytes(haspDevice.get_free_heap(), size_buf, sizeof(size_buf));
     info[F(D_INFO_FREE_HEAP)] = size_buf;
     Parser::format_bytes(haspDevice.get_free_max_block(), size_buf, sizeof(size_buf));
@@ -779,7 +779,7 @@ void hasp_get_info(JsonDocument& doc)
 #endif
 
 #if LV_MEM_CUSTOM == 0
-    info = doc.createNestedObject(F(D_INFO_LVGL_MEMORY));
+    info = doc[D_INFO_LVGL_MEMORY].to<JsonObject>();
     lv_mem_monitor_t mem_mon;
     lv_mem_monitor(&mem_mon);
     Parser::format_bytes(mem_mon.total_size, size_buf, sizeof(size_buf));

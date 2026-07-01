@@ -378,7 +378,7 @@ bool http_save_config()
     if(webServer.method() == HTTP_POST && webServer.hasArg("save")) {
         String save = webServer.arg("save");
 
-        StaticJsonDocument<256> settings;
+        JsonDocument settings;
         for(int i = 0; i < webServer.args(); i++) settings[webServer.argName(i)] = webServer.arg(i);
 
         if(save == FP_HASP) {
@@ -569,7 +569,7 @@ static void webHandleApi()
 { // http://plate01/api
     if(!http_is_authenticated("api")) return;
 
-    DynamicJsonDocument doc(max(MAX_CONFIG_JSON_ALLOC_SIZE, 2048));
+    JsonDocument doc;
     String contentType = http_get_content_type(F(".json"));
     String endpoint((char*)0);
     endpoint = webServer.pathArg(0);
@@ -608,43 +608,43 @@ static void webHandleApi()
 
         {
             JsonObject obj;
-            obj = doc.createNestedObject();
+            obj = doc.add<JsonObject>();
             add_license(obj, "HASwitchPlate", "2019", "Allen Derusha allen@derusha.org", "mit");
-            obj = doc.createNestedObject();
+            obj = doc.add<JsonObject>();
             add_license(obj, "Tasmota Core", "2016", "Tasmota", "apache2");
-            obj = doc.createNestedObject();
+            obj = doc.add<JsonObject>();
             add_license(obj, "LVGL", "2021", "LVGL Kft", "mit");
 #if defined(LGFX_USE_V1)
-            obj = doc.createNestedObject();
+            obj = doc.add<JsonObject>();
             add_license(obj, "LovyanGFX", "2020", "lovyan03 (https://github.com/lovyan03)", "freebsd", 1);
 #endif
-            obj = doc.createNestedObject();
+            obj = doc.add<JsonObject>();
             add_license(obj, "TFT_eSPI", "2020", "Bodmer (https://github.com/Bodmer)", "freebsd", 1);
-            obj = doc.createNestedObject();
+            obj = doc.add<JsonObject>();
             add_license(obj, "Adafruit_GFX", "2021", "Adafruit Industries.", "bsd", 1);
 #if defined(HASP_USE_ARDUINOGFX)
-            obj = doc.createNestedObject();
+            obj = doc.add<JsonObject>();
             add_license(obj, "Arduino_GFX", "", "moononournation", "", 0);
 #endif
 #if HASP_USE_MQTT > 0 && defined(HASP_USE_PUBSUBCLIENT)
-            obj = doc.createNestedObject();
+            obj = doc.add<JsonObject>();
             add_license(obj, "PubSubClient", "2008-2015", "Nicholas O'Leary", "mit");
 #endif
-            obj = doc.createNestedObject();
+            obj = doc.add<JsonObject>();
             add_license(obj, "ArduinoJson", "2014-2022", "Benoit BLANCHON", "mit");
-            obj = doc.createNestedObject();
+            obj = doc.add<JsonObject>();
             add_license(obj, "ArduinoLog", "2017-2018",
                         "Thijs Elenbaas, MrRobot62, rahuldeo2047, NOX73, dhylands, Josha blemasle, mfalkvidd", "mit");
 #if HASP_USE_FTP > 0
-            obj = doc.createNestedObject();
+            obj = doc.add<JsonObject>();
             add_license(obj, "SimpleFTPServer", "2017", "Renzo Mischianti www.mischianti.org", "mit", 1);
 #endif
-            obj = doc.createNestedObject();
+            obj = doc.add<JsonObject>();
             add_license(obj, "AceButton", "2018", "Brian T. Park", "mit");
-            obj = doc.createNestedObject();
+            obj = doc.add<JsonObject>();
             add_license(obj, "QR Code generator", "", "Project Nayuki", "mit");
 #if HASP_USE_WIREGUARD > 0
-            obj = doc.createNestedObject();
+            obj = doc.add<JsonObject>();
             add_license(obj, "WireGuard", "2021", "Kenta Ida fugafuga.org, Daniel Hope www.floorsense.nz", "bsd", 1);
 #endif
         }
@@ -679,56 +679,31 @@ static void webHandleApi()
         settings = doc.to<JsonObject>();
         const __FlashStringHelper* module;
 
-        module = FPSTR(FP_HASP);
-        settings.createNestedObject(module);
-        haspGetConfig(settings[module]);
-
-        module = FPSTR(FP_GUI);
-        settings.createNestedObject(module);
-        guiGetConfig(settings[module]);
-
-        module = FPSTR(FP_DEBUG);
-        settings.createNestedObject(module);
-        debugGetConfig(settings[module]);
+        haspGetConfig(settings[FP_HASP].to<JsonObject>());
+        guiGetConfig(settings[FP_GUI].to<JsonObject>());
+        debugGetConfig(settings[FP_DEBUG].to<JsonObject>());
 
 #if HASP_USE_WIFI > 0
-        module = FPSTR(FP_WIFI);
-        settings.createNestedObject(module);
-        wifiGetConfig(settings[module]);
-
-        module = FPSTR(FP_TIME);
-        settings.createNestedObject(module);
-        timeGetConfig(settings[module]);
+        wifiGetConfig(settings[FP_WIFI].to<JsonObject>());
+        timeGetConfig(settings[FP_TIME].to<JsonObject>());
 #endif
 #if HASP_USE_WIREGUARD > 0
-        module = FPSTR(FP_WG);
-        settings.createNestedObject(module);
-        wgGetConfig(settings[module]);
+        wgGetConfig(settings[FP_WG].to<JsonObject>());
 #endif
 #if HASP_USE_MQTT > 0
-        module = FPSTR(FP_MQTT);
-        settings.createNestedObject(module);
-        mqttGetConfig(settings[module]);
+        mqttGetConfig(settings[FP_MQTT].to<JsonObject>());
 #endif
 #if HASP_USE_FTP > 0
-        module = FPSTR(FP_FTP);
-        settings.createNestedObject(module);
-        ftpGetConfig(settings[module]);
+        ftpGetConfig(settings[FP_FTP].to<JsonObject>());
 #endif
 #if HASP_USE_HTTP > 0
-        module = FPSTR(FP_HTTP);
-        settings.createNestedObject(module);
-        httpGetConfig(settings[module]);
+        httpGetConfig(settings[FP_HTTP].to<JsonObject>());
 #endif
 #if HASP_USE_ARDUINOOTA > 0 || HASP_USE_HTTP_UPDATE > 0
-        module = FPSTR(FP_OTA);
-        settings.createNestedObject(module);
-        otaGetConfig(settings[module]);
+        otaGetConfig(settings[FP_OTA].to<JsonObject>());
 #endif
 #if HASP_USE_GPIO > 0
-        module = FPSTR(FP_GPIO);
-        settings.createNestedObject(module);
-        gpioGetConfig(settings[module]);
+        gpioGetConfig(settings[FP_GPIO].to<JsonObject>());
 #endif
         configOutput(settings, TAG_HTTP); // Log current JSON config
 
@@ -765,7 +740,7 @@ static void webHandleApiConfig()
         return;
     }
 
-    StaticJsonDocument<1024> doc;
+    JsonDocument doc;
     JsonObject settings;
     // String contentType = http_get_content_type(F(".json"));
     String endpoint((char*)0);
@@ -1138,7 +1113,7 @@ static inline int handleFilesystemFile(String path)
         configFile = FPSTR(FP_HASP_CONFIG_FILE);
 
         if(path.endsWith(configFile.c_str())) { // "//config.json" is also a valid path!
-            DynamicJsonDocument settings(MAX_CONFIG_JSON_ALLOC_SIZE);
+            JsonDocument settings;
             DeserializationError error = configParseFile(configFile, settings);
 
             if(error) return 500; // Internal Server Error
@@ -2489,7 +2464,7 @@ static void webHandleFirmware()
     html[min(i++, len)] = "</h1><hr>";
 
     if(webServer.method() == HTTP_POST && webServer.hasArg("url")) {
-        StaticJsonDocument<512> settings;
+        JsonDocument settings;
         for(int i = 0; i < webServer.args(); i++) settings[webServer.argName(i)] = webServer.arg(i);
         bool updated = otaSetConfig(settings.as<JsonObject>());
         String url   = webServer.arg("url");

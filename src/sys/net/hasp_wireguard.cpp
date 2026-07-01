@@ -64,7 +64,7 @@ int wg_get_ipaddress(char* buffer, size_t len)
 
 void wg_get_info(JsonDocument& doc)
 {
-    JsonObject info = doc.createNestedObject(F(D_INFO_WIREGUARD));
+    JsonObject info = doc[D_INFO_WIREGUARD].to<JsonObject>();
     info[F(D_INFO_STATUS)] = wg.is_initialized() ? F(D_WG_INITIALIZED) : F(D_WG_BAD_CONFIG);
     info[F(D_INFO_IP_ADDRESS)] = String(wg_ip);
     info[F(D_INFO_ENDPOINT_IP)] = String(wg_ep_ip);

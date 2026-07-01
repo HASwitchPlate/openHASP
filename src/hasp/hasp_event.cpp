@@ -44,8 +44,8 @@ void event_reset_last_value_sent()
 
 void script_event_handler(const char* eventname, const char* json)
 {
-    StaticJsonDocument<256> doc;
-    StaticJsonDocument<64> filter;
+    JsonDocument doc;
+    JsonDocument filter;
 
     filter[eventname]              = true;
     DeserializationError jsonError = deserializeJson(doc, json, DeserializationOption::Filter(filter));
@@ -297,7 +297,7 @@ static void event_object_selection_changed(lv_obj_t* obj, uint8_t eventid, int16
 {
     char data[512];
     {
-        StaticJsonDocument<256> doc;
+        JsonDocument doc;
         size_t len = text ? strlen(text) : 0;
         doc.set(text); // use text as-is
         char serialized_text[256];

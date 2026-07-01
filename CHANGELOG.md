@@ -2,6 +2,10 @@
 
 ## v0.7.0
 
+- Updated ArduinoJson library to v7.4.3
+
+## v0.7.0
+
 !!! THE PARTITION SCHEME OF THE INTERNAL FLASH HAS CHANGED, CHECK THE DOCS BEFORE UPGRADING !!!
 
 ### Commands

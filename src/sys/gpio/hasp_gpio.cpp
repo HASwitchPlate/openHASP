@@ -960,8 +960,7 @@ void gpio_discovery(JsonObject& input, JsonArray& relay, JsonArray& light, JsonA
 
         if((gpioConfig[i].type >= hasp_gpio_type_t::SWITCH && gpioConfig[i].type <= hasp_gpio_type_t::WINDOW)) {
             // || (gpioConfig[i].type >= hasp_gpio_type_t::BUTTON_TYPE && gpioConfig[i].type <= hasp_gpio_type_t::TOUCH)) {
-            JsonArray arr = input[description];
-            if(arr.isNull()) arr = input.createNestedArray(description);
+            JsonArray arr = input[description].to<JsonArray>();
             arr.add(gpioConfig[i].pin);
         }
     }
