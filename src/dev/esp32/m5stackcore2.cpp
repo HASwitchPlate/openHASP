@@ -82,7 +82,7 @@ void M5StackCore2::get_sensors(JsonDocument& doc)
 {
     Esp32Device::get_sensors(doc);
 
-    JsonObject info = doc["AXP192"].to<JsonObject>();
+    JsonObject sensor = doc["AXP192"].to<JsonObject>();
     sensor[F("BattVoltage")] = Axp.GetBatVoltage();
     sensor[F("BattPower")]   = Axp.GetBatPower();
     // sensor[F("Batt%")]             = Axp.getBattPercentage();
