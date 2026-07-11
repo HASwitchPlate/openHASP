@@ -39,7 +39,7 @@ IRAM_ATTR bool TouchGt911::read_active(TouchGt911* instance, lv_indev_drv_t* ind
     data->state = LV_INDEV_STATE_REL;
 
     // touch is static global, no instance-> pointer invocation needed
-    if(touch.readInput(points) > 0) {
+    if(touch.readInput((uint8_t*)points) > 0) {
         data->point.x = map(points[0].x, 0, instance->xResolution - 1, 0, instance->tftWidth - 1);
         data->point.y = map(points[0].y, 0, instance->yResolution - 1, 0, instance->tftHeight - 1);
 
