@@ -17,78 +17,44 @@
 extern uint8_t hasp_sleep_state;
 
 static Goodix touch = Goodix();
-// static int8_t GT911_num_touches;
-// static GTPoint* GT911_points;
 
-// Store touch points into global variable
+// Global callback handler required by the Goodix library pipeline
 IRAM_ATTR void GT911_setXY(int8_t contacts, GTPoint* points)
 {
-    // GT911_num_touches = contacts;
-    // GT911_points      = points;
-
-    // LOG_VERBOSE(TAG_GUI, F("Contacts: %d"), contacts);
-    // for(int i = 0; i < contacts; i++) {
-    //     LOG_VERBOSE(TAG_GUI, F("C%d: #%d %d,%d s:%d"), i, points[i].trackId, points[i].x, points[i].y,
-    //     points[i].area); yield();
-    // }
+    // NOOP - Handled directly inside the polling strategy via touch.readInput
 }
-
-// IRAM_ATTR bool touch_read(lv_indev_drv_t* indev_driver, lv_indev_data_t* data)
-// {
-//     //  LOG_VERBOSE(TAG_GUI, F("Contacts: %d"), GT911_num_touches);
-//     static GTPoint points[5];
-
-//     if(touch.readInput((uint8_t*)&points) > 0) {
-
-//         if(hasp_sleep_state != HASP_SLEEP_OFF) hasp_update_sleep_state(); // update Idle
-
-//         data->point.x = points[0].x;
-//         data->point.y = points[0].y;
-//         data->state   = LV_INDEV_STATE_PR;
-
-//     } else {
-//         data->state = LV_INDEV_STATE_REL;
-//     }
-
-//     touch.loop(); // reset IRQ
-
-//     /*Return `false` because we are not buffering and no more data to read*/
-//     return false;
-// }
 
 namespace dev {
 
 IRAM_ATTR bool TouchGt911::read(lv_indev_drv_t* indev_driver, lv_indev_data_t* data)
 {
-    //  LOG_VERBOSE(TAG_GUI, F("Contacts: %d"), GT911_num_touches);
+    // Zero branches inside execution loop
+    return _read_strategy(this, indev_driver, data);
+}
+
+// STRATEGY 1: Device is present, initialized and operational
+IRAM_ATTR bool TouchGt911::read_active(TouchGt911* instance, lv_indev_drv_t* indev_driver, lv_indev_data_t* data)
+{
     static GTPoint points[5];
+    data->state = LV_INDEV_STATE_REL;
 
-    if(touch.readInput((uint8_t*)&points) > 0) {
-
-        if(hasp_sleep_state != HASP_SLEEP_OFF) hasp_update_sleep_state(); // update Idle
-
-#ifdef TOUCH_WIDTH
-        data->point.x = map(points[0].x, 0, TOUCH_WIDTH - 1, 0, TFT_WIDTH - 1);
-#else
-        data->point.x = points[0].x;
-#endif
-
-#ifdef TOUCH_HEIGHT
-        data->point.y = map(points[0].y, 0, TOUCH_HEIGHT - 1, 0, TFT_HEIGHT - 1);
-#else
-        data->point.y = points[0].y;
-#endif
+    // touch is static global, no instance-> pointer invocation needed
+    if(touch.readInput(points) > 0) {
+        data->point.x = map(points[0].x, 0, instance->xResolution - 1, 0, instance->tftWidth - 1);
+        data->point.y = map(points[0].y, 0, instance->yResolution - 1, 0, instance->tftHeight - 1);
 
         data->state = LV_INDEV_STATE_PR;
-        hasp_set_sleep_offset(0); // Reset the offset
-
-    } else {
-        data->state = LV_INDEV_STATE_REL;
+        
+        if(hasp_sleep_state != HASP_SLEEP_OFF) hasp_update_sleep_state();
+        hasp_set_sleep_offset(0);
     }
+    return false;
+}
 
-    // touch.loop(); // reset IRQ (now in readInput)
-
-    /*Return `false` because we are not buffering and no more data to read*/
+// STRATEGY 2: Hardware failure or unsupported configuration fallback
+IRAM_ATTR bool TouchGt911::read_failed(TouchGt911* instance, lv_indev_drv_t* indev_driver, lv_indev_data_t* data)
+{
+    data->state = LV_INDEV_STATE_REL;
     return false;
 }
 
@@ -96,32 +62,50 @@ void TouchGt911::init(int w, int h)
 {
     Wire.begin(TOUCH_SDA, TOUCH_SCL, (uint32_t)I2C_TOUCH_FREQUENCY);
     touch.setHandler(GT911_setXY);
-    GTInfo* info;
+    GTInfo* info = nullptr;
 
-    if(touch.begin(TOUCH_IRQ, TOUCH_RST, I2C_TOUCH_ADDRESS)) {
-        info = touch.readInfo();
-        if(info->xResolution > 0 && info->yResolution > 0) goto found;
-    }
-    
-#if TOUCH_IRQ == -1
-    // Probe both addresses if IRQ is not connected
-    for(uint8_t i = 0; i < 4; i++)
-        if(touch.begin(TOUCH_IRQ, TOUCH_RST, i < 2 ? 0x5d : 0x14)) {
-            info = touch.readInfo();
-            if(info->xResolution > 0 && info->yResolution > 0) goto found;
-        }
+    tftWidth  = w;
+    tftHeight = h;
+
+#if defined(TOUCH_WIDTH) && defined(TOUCH_HEIGHT)
+    xResolution = TOUCH_WIDTH;
+    yResolution = TOUCH_HEIGHT;
+#else
+    xResolution = 0;
+    yResolution = 0;
 #endif
 
-found:
-    if(info->xResolution != 0 && info->yResolution != 0) {
+#ifdef I2C_TOUCH_ADDRESS
+    uint8_t i2c_addresses[] = {I2C_TOUCH_ADDRESS, GOODIX_I2C_ADDR_28, GOODIX_I2C_ADDR_BA};
+#else
+    uint8_t i2c_addresses[] = {GOODIX_I2C_ADDR_28, GOODIX_I2C_ADDR_BA};
+#endif
+
+    // Probe addresses sequentially to check for chip existence
+    uint8_t len = sizeof(i2c_addresses) / sizeof(i2c_addresses[0]);
+    for(uint8_t i = 0; i < len; i++) {
+        if(touch.begin(TOUCH_IRQ, TOUCH_RST, i2c_addresses[i])) {
+            info = touch.readInfo();
+            if(info && info->xResolution > 0 && info->yResolution > 0) {
+                break;
+            }
+        }
+    }
+
+    if(info && info->xResolution > 0 && info->yResolution > 0) {
+        xResolution = info->xResolution;
+        yResolution = info->yResolution;
+        _read_strategy = &TouchGt911::read_active;
         LOG_INFO(TAG_DRVR, "GT911 %s (%dx%d)", D_SERVICE_STARTED, info->xResolution, info->yResolution);
-        // uint8_t len = touch.fwResolution(480, 272);
+    } else if (xResolution > 0 && yResolution > 0) {
+        _read_strategy = &TouchGt911::read_active; // Use pre-configured macro fallback targets
+        LOG_WARNING(TAG_DRVR, "GT911 read failed, using macro fallbacks (%dx%d)", xResolution, yResolution);
     } else {
+        _read_strategy = &TouchGt911::read_failed;
         LOG_WARNING(TAG_DRVR, "GT911 %s", D_SERVICE_START_FAILED);
     }
 
-    Wire.begin(TOUCH_SDA, TOUCH_SCL, (uint32_t)I2C_TOUCH_FREQUENCY);
-    touch_scan(Wire); // The address could change during begin, so scan afterwards
+    touch_scan(Wire);
 }
 
 } // namespace dev
