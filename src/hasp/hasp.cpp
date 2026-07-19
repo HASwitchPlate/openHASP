@@ -41,6 +41,10 @@
  *      DEFINES
  *********************/
 #define PAGE_START_INDEX 1 // Page number of array index 0
+#define HASP_IDLE_UNLOCK_HOLD_DEFAULT_MS 2000
+#define HASP_IDLE_UNLOCK_HOLD_MIN_MS 250
+#define HASP_IDLE_UNLOCK_HOLD_MAX_MS 60000
+#define HASP_IDLE_LOCK_SCREEN_DEFAULT_SEC 10
 
 /**********************
  *      TYPEDEFS
@@ -76,6 +80,17 @@ bool hasp_first_touch_state     = false;          // Track first touch state
 static uint16_t sleepTimeShort  = 60;             // 1 second resolution
 static uint16_t sleepTimeLong   = 120;            // 1 second resolution
 static uint32_t sleepTimeOffset = 0;              // 1 second resolution
+static bool idleLockEnabled     = false;
+static bool idleLocked          = false;
+static bool idleUnlockActive    = false;
+static bool idleUnlockPending   = false;
+static uint32_t idleUnlockStart = 0;
+static uint16_t idleUnlockHold  = HASP_IDLE_UNLOCK_HOLD_DEFAULT_MS;
+static uint16_t idleLockScreen      = HASP_IDLE_LOCK_SCREEN_DEFAULT_SEC;
+static uint32_t idleLockScreenStart = 0;
+static lv_obj_t* idleLockOverlay;
+static lv_obj_t* idleLockArc;
+static lv_obj_t* idleLockLabel;
 
 uint8_t haspStartDim       = HASP_START_DIM;
 uint8_t haspStartPage      = HASP_START_PAGE;
@@ -93,6 +108,95 @@ lv_obj_t* kb;
 
 static lv_font_t* haspFonts[12] = {nullptr};
 uint8_t current_page            = 1;
+
+static void hasp_hide_idle_lock_overlay()
+{
+    if(idleLockOverlay) lv_obj_set_hidden(idleLockOverlay, true);
+}
+
+static void hasp_show_idle_lock_overlay(uint8_t progress)
+{
+    lv_obj_t* layer = lv_disp_get_layer_sys(NULL);
+    if(!layer) return;
+
+    if(!idleLockOverlay) {
+        idleLockOverlay = lv_obj_create(layer, NULL);
+        if(!idleLockOverlay) return;
+
+        lv_obj_set_click(idleLockOverlay, false);
+        lv_obj_set_style_local_bg_color(idleLockOverlay, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_BLACK);
+        lv_obj_set_style_local_bg_opa(idleLockOverlay, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_COVER);
+        lv_obj_set_style_local_border_width(idleLockOverlay, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, 0);
+        lv_obj_set_style_local_radius(idleLockOverlay, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, 0);
+
+        idleLockArc = lv_arc_create(idleLockOverlay, NULL);
+        if(idleLockArc) {
+            lv_obj_set_click(idleLockArc, false);
+            lv_obj_set_size(idleLockArc, 170, 170);
+            lv_arc_set_range(idleLockArc, 0, 100);
+            lv_arc_set_bg_angles(idleLockArc, 0, 360);
+            lv_arc_set_rotation(idleLockArc, 270);
+            lv_obj_set_style_local_line_width(idleLockArc, LV_ARC_PART_BG, LV_STATE_DEFAULT, 14);
+            lv_obj_set_style_local_line_color(idleLockArc, LV_ARC_PART_BG, LV_STATE_DEFAULT, lv_color_hex(0x404040));
+            lv_obj_set_style_local_line_width(idleLockArc, LV_ARC_PART_INDIC, LV_STATE_DEFAULT, 14);
+            lv_obj_set_style_local_line_color(idleLockArc, LV_ARC_PART_INDIC, LV_STATE_DEFAULT, LV_COLOR_WHITE);
+            lv_obj_set_style_local_bg_opa(idleLockArc, LV_ARC_PART_KNOB, LV_STATE_DEFAULT, LV_OPA_TRANSP);
+            lv_obj_set_style_local_border_opa(idleLockArc, LV_ARC_PART_KNOB, LV_STATE_DEFAULT, LV_OPA_TRANSP);
+        }
+
+        idleLockLabel = lv_label_create(idleLockOverlay, NULL);
+        if(idleLockLabel) {
+            lv_label_set_align(idleLockLabel, LV_LABEL_ALIGN_CENTER);
+            lv_label_set_long_mode(idleLockLabel, LV_LABEL_LONG_BREAK);
+            lv_obj_set_style_local_text_color(idleLockLabel, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_WHITE);
+            if(haspFonts[3]) {
+                lv_obj_set_style_local_text_font(idleLockLabel, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, haspFonts[3]);
+            }
+        }
+    }
+
+    lv_obj_set_size(idleLockOverlay, lv_obj_get_width(layer), lv_obj_get_height(layer));
+    lv_obj_align(idleLockOverlay, layer, LV_ALIGN_CENTER, 0, 0);
+    lv_obj_move_foreground(idleLockOverlay);
+    lv_obj_set_hidden(idleLockOverlay, false);
+
+    if(idleLockArc) {
+        lv_arc_set_value(idleLockArc, progress);
+        lv_obj_align(idleLockArc, idleLockOverlay, LV_ALIGN_CENTER, 0, 0);
+    }
+
+    if(idleLockLabel) {
+        lv_obj_set_width(idleLockLabel, lv_obj_get_width(idleLockOverlay) - 20);
+        if(idleUnlockPending) {
+            lv_label_set_text(idleLockLabel, LV_SYMBOL_EYE_OPEN "\nRelease to unlock");
+        } else {
+            lv_label_set_text(idleLockLabel, LV_SYMBOL_EYE_CLOSE "\nHold to unlock");
+        }
+        lv_obj_align(idleLockLabel, idleLockOverlay, LV_ALIGN_CENTER, 0, 0);
+    }
+}
+
+static void hasp_lock_idle()
+{
+    if(idleLocked) return;
+
+    idleLocked        = true;
+    idleUnlockActive  = false;
+    idleUnlockPending = false;
+    dispatch_backlight(NULL, "on", TAG_HASP);
+    hasp_set_wakeup_touch(true);
+    hasp_show_idle_lock_overlay(100);
+    idleLockScreenStart = lv_tick_get();
+}
+
+static void hasp_update_idle_lock_screen()
+{
+    if(!idleLocked || idleUnlockActive || idleLockScreen == 0 || !haspDevice.get_backlight_power()) return;
+
+    if(lv_tick_elaps(idleLockScreenStart) >= (uint32_t)idleLockScreen * 1000) {
+        dispatch_backlight(NULL, "off", TAG_HASP);
+    }
+}
 
 /**
  * Get Font ID
@@ -116,6 +220,7 @@ HASP_ATTRIBUTE_FAST_MEM void hasp_update_sleep_state()
 
     uint32_t idle = lv_disp_get_inactive_time(lv_disp_get_default()) / 1000;
     idle += sleepTimeOffset; // To force a specific state
+    hasp_update_idle_lock_screen();
 
     if(sleepTimeLong > 0 && idle >= (sleepTimeShort + sleepTimeLong)) {
         if(hasp_sleep_state != HASP_SLEEP_LONG) {
@@ -123,6 +228,7 @@ HASP_ATTRIBUTE_FAST_MEM void hasp_update_sleep_state()
             hasp_sleep_state = HASP_SLEEP_LONG;
             dispatch_idle_state(HASP_SLEEP_LONG);
             dispatch_run_script(NULL, "L:/idle_long.cmd", TAG_HASP);
+            if(idleLockEnabled && sleepTimeShort > 0) hasp_lock_idle();
         }
     } else if(sleepTimeShort > 0 && idle >= sleepTimeShort) {
         if(hasp_sleep_state != HASP_SLEEP_SHORT) {
@@ -130,8 +236,9 @@ HASP_ATTRIBUTE_FAST_MEM void hasp_update_sleep_state()
             hasp_sleep_state = HASP_SLEEP_SHORT;
             dispatch_idle_state(HASP_SLEEP_SHORT);
             dispatch_run_script(NULL, "L:/idle_short.cmd", TAG_HASP);
+            if(idleLockEnabled) hasp_lock_idle();
         }
-    } else {
+    } else if(!idleLocked) {
         if(hasp_sleep_state != HASP_SLEEP_OFF) {
             gui_hide_pointer(false);
             hasp_sleep_state = HASP_SLEEP_OFF;
@@ -169,6 +276,10 @@ void hasp_set_sleep_state(uint8_t state)
     }
     lv_disp_trig_activity(NULL);
     hasp_sleep_state = state;
+
+    if(idleLockEnabled && state != HASP_SLEEP_OFF && sleepTimeShort > 0) {
+        hasp_lock_idle();
+    }
 }
 
 void hasp_get_sleep_payload(uint8_t state, char* payload)
@@ -326,6 +437,12 @@ void hasp_set_wakeup_touch(bool en)
     lv_obj_t* layer = lv_disp_get_layer_sys(NULL);
     if(!layer) return;
 
+    // A latched idle lock owns the system layer until the long-press handler unlocks it.
+    if(idleLocked) {
+        if(!en) idleLockScreenStart = lv_tick_get();
+        en = true;
+    }
+
     if(lv_obj_get_click(layer) != en) {
         hasp_first_touch_state = en;
         lv_obj_set_event_cb(layer, first_touch_event_handler);
@@ -350,6 +467,96 @@ void hasp_set_sleep_time(uint16_t short_time, uint16_t long_time)
 {
     sleepTimeShort = short_time;
     sleepTimeLong  = long_time;
+}
+
+bool hasp_get_idle_lock_enabled()
+{
+    return idleLockEnabled;
+}
+
+void hasp_set_idle_lock_enabled(bool enabled)
+{
+    if(idleLockEnabled == enabled) return;
+
+    idleLockEnabled = enabled;
+
+    if(!enabled) {
+        idleLocked = false;
+        idleUnlockActive  = false;
+        idleUnlockPending = false;
+        hasp_hide_idle_lock_overlay();
+        hasp_set_wakeup_touch(!haspDevice.get_backlight_power());
+    } else if(hasp_sleep_state != HASP_SLEEP_OFF && sleepTimeShort > 0) {
+        hasp_lock_idle();
+    }
+}
+
+uint16_t hasp_get_idle_lock_hold_time()
+{
+    return idleUnlockHold;
+}
+
+void hasp_set_idle_lock_hold_time(uint16_t hold_time)
+{
+    if(hold_time < HASP_IDLE_UNLOCK_HOLD_MIN_MS) hold_time = HASP_IDLE_UNLOCK_HOLD_MIN_MS;
+    if(hold_time > HASP_IDLE_UNLOCK_HOLD_MAX_MS) hold_time = HASP_IDLE_UNLOCK_HOLD_MAX_MS;
+    idleUnlockHold = hold_time;
+}
+
+uint16_t hasp_get_idle_lock_screen_time()
+{
+    return idleLockScreen;
+}
+
+void hasp_set_idle_lock_screen_time(uint16_t screen_time)
+{
+    if(idleLockScreen == screen_time) return;
+
+    idleLockScreen      = screen_time;
+    idleLockScreenStart = lv_tick_get();
+    if(idleLocked && screen_time == 0) dispatch_backlight(NULL, "on", TAG_HASP);
+}
+
+bool hasp_handle_idle_lock_event(lv_event_t event)
+{
+    if(!idleLocked) return false;
+
+    if(event == LV_EVENT_PRESSED) {
+        idleUnlockStart   = lv_tick_get();
+        idleUnlockActive  = true;
+        idleUnlockPending = false;
+        dispatch_backlight(NULL, "on", TAG_EVENT);
+        hasp_show_idle_lock_overlay(100);
+        idleLockScreenStart = lv_tick_get();
+
+    } else if(event == LV_EVENT_PRESSING && idleUnlockActive) {
+        uint32_t elapsed = lv_tick_elaps(idleUnlockStart);
+        if(elapsed >= idleUnlockHold) {
+            idleUnlockPending = true;
+            hasp_show_idle_lock_overlay(0);
+        } else {
+            hasp_show_idle_lock_overlay(((uint32_t)idleUnlockHold - elapsed) * 100 / idleUnlockHold);
+        }
+
+    } else if((event == LV_EVENT_RELEASED || event == LV_EVENT_PRESS_LOST) && idleUnlockActive) {
+        if(lv_tick_elaps(idleUnlockStart) >= idleUnlockHold) idleUnlockPending = true;
+
+        idleUnlockActive = false;
+
+        if(idleUnlockPending && event == LV_EVENT_RELEASED) {
+            idleUnlockPending = false;
+            idleLocked        = false;
+            hasp_hide_idle_lock_overlay();
+            hasp_set_wakeup_touch(false);
+            hasp_update_sleep_state();
+        } else {
+            idleUnlockPending = false;
+            hasp_show_idle_lock_overlay(100);
+            idleLockScreenStart = lv_tick_get();
+        }
+    }
+
+    return true;
 }
 
 /**

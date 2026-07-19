@@ -389,6 +389,7 @@ void first_touch_event_handler(lv_obj_t* obj, lv_event_t event)
 {
     //  log_event("wakeup", event);
     if(obj != lv_disp_get_layer_sys(NULL)) return;
+    if(hasp_handle_idle_lock_event(event)) return;
 
     if(event == LV_EVENT_RELEASED) {
         bool changed = hasp_stop_antiburn(); // Disable antiburn task
