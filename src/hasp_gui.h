@@ -43,7 +43,7 @@ struct gui_conf_t
 /* ===== Default Event Processors ===== */
 void guiTftInit(void);
 void guiSetup(void);
-IRAM_ATTR void guiLoop(void);
+void guiLoop(void);
 void guiEverySecond(void);
 void guiStart(void);
 void guiStop(void);
@@ -67,8 +67,8 @@ void gui_task(void* args);
 
 /* ===== Locks ===== */
 #ifdef ESP32
-IRAM_ATTR bool gui_acquire(TickType_t timeout);
-IRAM_ATTR void gui_release(void);
+bool gui_acquire(TickType_t timeout);
+void gui_release(void);
 esp_err_t gui_setup_lvgl_task(void);
 #endif
 

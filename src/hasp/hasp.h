@@ -57,7 +57,7 @@ extern "C" {
  * Create a hasp application
  */
 void haspSetup(void);
-IRAM_ATTR void haspLoop(void);
+void haspLoop(void);
 void haspEverySecond(void);
 
 void haspReconnect(void);
@@ -76,7 +76,7 @@ bool haspSetConfig(const JsonObject& settings);
 
 lv_font_t* hasp_get_font(uint8_t fontid);
 
-HASP_ATTRIBUTE_FAST_MEM void hasp_update_sleep_state();
+void hasp_update_sleep_state();
 void hasp_get_sleep_payload(uint8_t state, char* payload);
 uint8_t hasp_get_sleep_state();
 void hasp_set_sleep_state(uint8_t state);

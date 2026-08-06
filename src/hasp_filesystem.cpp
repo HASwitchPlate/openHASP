@@ -4,7 +4,7 @@
 #ifdef ARDUINO
 #include <Arduino.h>
 #include "ArduinoLog.h"
-#include "FS.h"
+#include <FS.h>
 #endif
 
 #include "hasp_conf.h" // include first

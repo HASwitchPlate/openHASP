@@ -1,3 +1,14 @@
+## --- PlatformIO & ESP-IDF Component Management ---
+# Dynamically generated component manifests
+src/idf_component.yml
+
+# Downloaded/fetched third-party components
+managed_components/
+build/
+
+# Lock file created by the ESP-IDF component manager tracking resolved versions
+dependencies.lock
+
 ## OS specific ########
 .DS_Store
 

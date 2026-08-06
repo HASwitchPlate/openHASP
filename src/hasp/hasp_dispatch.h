@@ -49,7 +49,7 @@ enum hasp_event_t { // even = released, odd = pressed
 
 /* ===== Default Event Processors ===== */
 void dispatchSetup(void);
-IRAM_ATTR void dispatchLoop(void);
+void dispatchLoop(void);
 void dispatchEverySecond(void);
 void dispatchStart(void);
 void dispatchStop(void);

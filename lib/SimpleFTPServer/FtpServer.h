@@ -305,8 +305,8 @@
 	#else
 #ifdef ESP32
 	#if ESP_ARDUINO_VERSION_MAJOR >= 2
-			#include "FS.h"
-			#include "LittleFS.h"
+			//#include "FS.h"
+			#include <LittleFS.h>
 			#define STORAGE_MANAGER LittleFS
 	#else
 			#include "LITTLEFS.h"

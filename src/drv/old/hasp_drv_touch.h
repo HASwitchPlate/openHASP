@@ -11,7 +11,7 @@
 #endif
 
 void drv_touch_init(uint8_t rotation);
-IRAM_ATTR bool drv_touch_read(lv_indev_drv_t* indev_driver, lv_indev_data_t* data);
-IRAM_ATTR void drv_touch_loop();
+bool drv_touch_read(lv_indev_drv_t* indev_driver, lv_indev_data_t* data);
+void drv_touch_loop();
 
 #endif

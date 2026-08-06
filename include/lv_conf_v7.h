@@ -26,10 +26,21 @@
  *====================*/
 
  /* Maximal horizontal and vertical resolution to support by the library.*/
+#ifdef TFT_WIDTH
 #define LV_HOR_RES_MAX          (TFT_WIDTH)
+#define LV_HOR_RES              (TFT_WIDTH)
+#elif defined(BSP_LCD_H_RES)
+#define LV_HOR_RES_MAX          (BSP_LCD_H_RES)
+#define LV_HOR_RES              (BSP_LCD_H_RES)
+#endif
+
+#ifdef TFT_HEIGHT
 #define LV_VER_RES_MAX          (TFT_HEIGHT)
-#define LV_HOR_RES          (TFT_WIDTH)
-#define LV_VER_RES          (TFT_HEIGHT)
+#define LV_VER_RES              (TFT_HEIGHT)
+#elif defined(BSP_LCD_V_RES)
+#define LV_VER_RES_MAX          (BSP_LCD_V_RES)
+#define LV_VER_RES              (BSP_LCD_V_RES)
+#endif
 
 /* Color depth:
  * - 1:  1 byte per pixel

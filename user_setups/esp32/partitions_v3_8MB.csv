@@ -1,0 +1,13 @@
+# openHASP WT32-SC01-Plus 8MB partitions
+# 0K - 4K = ROM / Vector Table / Reserved
+# 4K - 40K = Bootloader (on ESP32-S3, the bootloader starts at 0K instead of 4K)
+# 56K - 64K = Partition Table (on ESP32-S3, the partition table starts at 0xA000 instead of 0x8000)
+# app0 and app 1 must be aligned to 0x1000, so it starts at 64K
+# partition table moved to 0xA000 in platformio.ini
+# Name,   Type, SubType, Offset,  Size, Flags
+otadata,  data, ota,     56K,     8K,
+app0,     app,  ota_0,   64K,     2496K,
+app1,     app,  ota_1,   2560K,   2496K,
+nvs,      data, nvs,     5076K,   20K,
+config,   data, nvs,     5096K,   24K,
+spiffs,   data, spiffs,  5120K,   3072K,

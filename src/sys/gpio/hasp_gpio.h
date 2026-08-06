@@ -34,7 +34,7 @@ extern "C" {
 #endif
 
 void gpioSetup(void);
-IRAM_ATTR void gpioLoop(void);
+void gpioLoop(void);
 void gpioEvery5Seconds(void);
 
 void gpio_set_normalized_group_values(hasp_update_value_t& value);
