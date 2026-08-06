@@ -89,7 +89,7 @@ class TouchLovyanGfx : public BaseTouch {
 
 #warning Using Lovyan Touch
 using dev::TouchLovyanGfx;
-extern dev::TouchLovyanGfx haspTouch;
+dev::TouchLovyanGfx haspTouch;
 
 #endif // ARDUINO
 
