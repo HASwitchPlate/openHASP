@@ -2099,63 +2099,39 @@ static void http_handle_debug()
 <h2 v-t="'debug.title'"></h2>
 <div class="container" v-cloak v-if="config.debug">
 <form @submit.prevent="submitOldConfig('debug') ">
-<div class="row">
-<div class="col-25"><label for="baud" v-t="'debug.baud'"></label></div>
+<div class="row"><div class="col-25"><label for="baud" v-t="'debug.baud'"></label></div>
 <div class="col-75"><select id="baud" v-model="config.debug.baud">
 <option value="-1" v-t="'debug.disabled'"></option>
+)";
+
+#if defined(SOC_USB_OTG_SUPPORTED) || defined(SOC_USB_SERIAL_JTAG_SUPPORTED) || (defined(ARDUINO_USB_CDC_ON_BOOT) && ARDUINO_USB_CDC_ON_BOOT>0)
+    html[min(i++, len)] = R"(<option value="1" v-t="'debug.usb'"></option>)";
+#endif
+
+    html[min(i++, len)] = R"(
+<optgroup :label="t('debug.uart') ">
 <option value="0" v-t="'debug.default'"></option>
-<option value="9600">9600</option>
-<option value="19200">19200</option>
-<option value="38400">38400</option>
-<option value="57600">57600</option>
-<option value="74880">74880</option>
-<option value="115200">115200</option>
-<option value="230400">230400</option>
-<option value="460800">460800</option>
-<option value="921600">921600</option>
-</select></div>
-</div>
-<div class="row">
-<div class="col-25"><label for="tele" v-t="'debug.tele'"></label></div>
-<div class="col-75"><input type="number" id="tele" min="0" max="65535" v-model="config.debug.tele"></div>
-</div>
-<div class="row gap">
-<div class="col-25"></div>
+<option v-for="m in [1,2,4,6,7.8,12,24,48,96]" :value="m*9600">{{m*9600}}</option></optgroup></select></div></div>
+<div class="row"><div class="col-25"><label for="tele" v-t="'debug.tele'"></label></div>
+<div class="col-75"><input type="number" id="tele" min="0" max="65535" v-model="config.debug.tele"></div></div>
+<div class="row gap"><div class="col-25"></div>
 <div class="col-75"><input type="checkbox" id="ansi" @vue:mounted="config.debug.ansi=!!config.debug.ansi" v-model="config.debug.ansi">
-<label for="ansi" v-t="'debug.ansi'"></label></div>
-</div>
+<label for="ansi" v-t="'debug.ansi'"></label></div></div>
 )";
 
 #if HASP_USE_SYSLOG > 0
     html[min(i++, len)] = R"(
-<div class="row">
-<div class="col-25"><label for="host">Syslog Server</label></div>
-<div class="col-75"><input type="text" id="host" name="host" maxlength="127" v-model="config.debug.host"></div>
-</div>
-<div class="row">
-<div class="col-25"><label for="port" v-t="'debug.port'"></label></div>
-<div class="col-75"><input type="number" id="port" min="0" max="65535" v-model="config.debug.port"></div>
-</div>
-<div class="row">
-<div class="col-25"><label for="log" v-t="'debug.log'"></label></div>
+<div class="row"><div class="col-25"><label for="host">Syslog Server</label></div>
+<div class="col-75"><input type="text" id="host" name="host" maxlength="127" v-model="config.debug.host"></div></div>
+<div class="row"><div class="col-25"><label for="port" v-t="'debug.port'"></label></div>
+<div class="col-75"><input type="number" id="port" min="0" max="65535" v-model="config.debug.port"></div></div>
+<div class="row"><div class="col-25"><label for="log" v-t="'debug.log'"></label></div>
 <div class="col-75"><select id="log" v-model="config.debug.log">
-<option value="0">Local0</option>
-<option value="1">Local1</option>
-<option value="2">Local2</option>
-<option value="3">Local3</option>
-<option value="4">Local4</option>
-<option value="5">Local5</option>
-<option value="6">Local6</option>
-<option value="7">Local7</option>
-</select></div>
-</div>
-<div class="row">
-<div class="col-25"></div>
-<div class="col-75">
-<input id="ietf" type="radio" value="0" v-model="config.debug.proto"><label for="ietf" v-t="'debug.ietf'"></label>
-<input id="bsd" type="radio" value="1" v-model="config.debug.proto"><label for="bsd" v-t="'debug.bsd'"></label>
-</div>
-</div>)";
+<option v-for="n in 8" :value="n-1">Local{{n-1}}</option></select></div></div>
+<div class="row"><div class="col-25"></div>
+<div class="col-75"><input id="ietf" type="radio" value="0" v-model="config.debug.proto"><label for="ietf" v-t="'debug.ietf'"></label>
+<input id="bsd" type="radio" value="1" v-model="config.debug.proto"><label for="bsd" v-t="'debug.bsd'"></label></div></div>
+)";
 #endif
 
     html[min(i++, len)] = R"(<button type="submit" v-t="'save'"></button></form></div>)";
