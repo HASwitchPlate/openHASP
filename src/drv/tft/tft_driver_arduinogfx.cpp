@@ -8,6 +8,11 @@
 #include "Arduino_RGBPanel_mod.h"
 #include "Arduino_RGB_Display_mod.h"
 #include "Arduino_PCA9535SWSPI.h"
+#include "Arduino_TCA9554SWSPI.h"
+
+#ifndef TFT_AUTO_FLUSH
+#define TFT_AUTO_FLUSH 1
+#endif
 
 namespace dev {
 
@@ -124,6 +129,44 @@ void ArduinoGfx::init(int w, int h)
     Arduino_DataBus* bus = new Arduino_ESP32QSPI(TFT_CS, TFT_SCK, TFT_D0, TFT_D1, TFT_D2, TFT_D3);
     tft                  = new Arduino_NV3041A(bus, TFT_RST, TFT_ROTATION, TFT_IPS);
     tft->begin(GFX_NOT_DEFINED); // Used for RFB displays
+
+#elif defined(HASP_LANBON_L10_TCA9554_GC9503V)
+    LOG_INFO(TAG_TFT, F("Lanbon L10: GC9503V RGB panel + TCA9554 3-wire init bus"));
+    // Lanbon L10: GC9503V RGB panel + TCA9554 3-wire init bus
+    // I2C bus: GPIO 8 / 18
+    // TCA9554 bits: MOSI=1, SCK=2, CS=3, RST=4, BL=7
+
+    // 1. Setup the 9-bit I2C Expand Bus
+    Arduino_DataBus* bus = new Arduino_TCA9554SWSPI(
+        EXPANDER_I2C_SDA,
+        EXPANDER_I2C_SCL,
+        EXPANDER_MOSI,
+        EXPANDER_SCK,
+        EXPANDER_CS,
+        &Wire);
+  
+    Arduino_ESP32RGBPanel* rgbpanel = new Arduino_ESP32RGBPanel(
+        TFT_DE, TFT_VSYNC, TFT_HSYNC, TFT_PCLK, TFT_R0, TFT_R1, TFT_R2, TFT_R3, TFT_R4, TFT_G0, TFT_G1, TFT_G2, TFT_G3,
+        TFT_G4, TFT_G5, TFT_B0, TFT_B1, TFT_B2, TFT_B3, TFT_B4, TFT_HSYNC_POLARITY, TFT_HSYNC_FRONT_PORCH,
+        TFT_HSYNC_PULSE_WIDTH, TFT_HSYNC_BACK_PORCH, TFT_VSYNC_POLARITY, TFT_VSYNC_FRONT_PORCH, TFT_VSYNC_PULSE_WIDTH,
+        TFT_VSYNC_BACK_PORCH
+    );
+
+    tft = new Arduino_RGB_Display(TFT_WIDTH, TFT_HEIGHT, rgbpanel, 0, true /* auto_flush */, bus, GFX_NOT_DEFINED,
+                                  gc9503v_l10_init_operations, sizeof(gc9503v_l10_init_operations));
+
+    tft->begin(GFX_NOT_DEFINED);
+
+   // ((Arduino_TCA9554SWSPI*)bus)->closeOut();
+   // Data 13
+//delay(10);
+//((Arduino_TCA9554SWSPI*)bus)->lcd_power_and_brightness(0x64);
+   
+delay(10);
+((Arduino_TCA9554SWSPI*)bus)->initMotionSensor();
+
+
+    LOG_INFO(TAG_TFT, F("Brightness set to max"));
 
 #elif 1
     /* Reset is not implemented in the panel */
@@ -298,6 +341,13 @@ void IRAM_ATTR ArduinoGfx::flush_pixels(lv_disp_drv_t* disp, const lv_area_t* ar
 
 bool ArduinoGfx::is_driver_pin(uint8_t pin)
 {
+#if defined(HASP_LANBON_L10_TCA9554_GC9503V)
+    // On Lanbon L10 these GPIOs are not used by the TFT bus and should be available for GPIO config
+    if(pin == 32 || pin == 35 || pin == 0) {
+        return false;
+    }
+#endif
+
     if(false // start condition is always needed
 
 // Use individual checks instead of switch statement, as some case labels could be duplicated

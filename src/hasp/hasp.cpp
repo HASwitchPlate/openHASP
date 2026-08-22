@@ -76,6 +76,9 @@ bool hasp_first_touch_state     = false;          // Track first touch state
 static uint16_t sleepTimeShort  = 60;             // 1 second resolution
 static uint16_t sleepTimeLong   = 120;            // 1 second resolution
 static uint32_t sleepTimeOffset = 0;              // 1 second resolution
+static bool auto_dim_active     = false;
+static bool auto_dim_prev_power = true;
+static uint8_t auto_dim_prev_level = 255;
 
 uint8_t haspStartDim       = HASP_START_DIM;
 uint8_t haspStartPage      = HASP_START_PAGE;
@@ -116,6 +119,20 @@ HASP_ATTRIBUTE_FAST_MEM void hasp_update_sleep_state()
 
     uint32_t idle = lv_disp_get_inactive_time(lv_disp_get_default()) / 1000;
     idle += sleepTimeOffset; // To force a specific state
+
+    bool should_dim = gui_get_auto_dim_on_idle() && sleepTimeShort > 0 && idle >= sleepTimeShort;
+    if(should_dim && !auto_dim_active) {
+        auto_dim_prev_power = haspDevice.get_backlight_power();
+        auto_dim_prev_level = haspDevice.get_backlight_level();
+        auto_dim_active     = true;
+        dispatch_backlight(NULL, "{\"state\":\"on\",\"brightness\":1}", TAG_HASP);
+    } else if(!should_dim && auto_dim_active) {
+        char payload[64];
+        snprintf_P(payload, sizeof(payload), PSTR("{\"state\":\"%s\",\"brightness\":%u}"),
+                   auto_dim_prev_power ? "on" : "off", auto_dim_prev_level);
+        dispatch_backlight(NULL, payload, TAG_HASP);
+        auto_dim_active = false;
+    }
 
     if(sleepTimeLong > 0 && idle >= (sleepTimeShort + sleepTimeLong)) {
         if(hasp_sleep_state != HASP_SLEEP_LONG) {

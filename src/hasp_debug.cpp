@@ -289,6 +289,9 @@ void debug_get_tag(uint8_t tag, char* buffer)
         case TAG_GPIO:
             memcpy_P(buffer, PSTR("GPIO"), 5);
             break;
+        case TAG_LEDC:
+            memcpy_P(buffer, PSTR("LEDC"), 5);
+            break;
 
         case TAG_TIME:
             memcpy_P(buffer, PSTR("TIME"), 5);

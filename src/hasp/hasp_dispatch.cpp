@@ -1179,6 +1179,9 @@ void dispatch_backlight(const char*, const char* payload, uint8_t source)
     bool power    = haspDevice.get_backlight_power();
     uint8_t level = haspDevice.get_backlight_level();
 
+    LOG_INFO(TAG_MSGR, F("dispatch_backlight src=%u payload='%s' start power=%u level=%u"),
+             source, payload ? payload : "", power, level);
+
     // Set the current state
     if(strlen(payload) != 0) {
         StaticJsonDocument<128> json;
@@ -1224,6 +1227,7 @@ void dispatch_backlight(const char*, const char* payload, uint8_t source)
     }
 
     // toggle power and wakeup touch if changed
+    LOG_INFO(TAG_MSGR, F("dispatch_backlight applying power=%u level=%u"), power, level);
     if(power) haspDevice.set_backlight_level(level); // set level before power on
     if(haspDevice.get_backlight_power() != power) {
         haspDevice.set_backlight_power(power);

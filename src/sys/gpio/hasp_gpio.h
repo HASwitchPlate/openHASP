@@ -20,6 +20,7 @@ struct hasp_gpio_config_t
     uint8_t inverted : 1;
     uint8_t channel : 4; // pwmchannel
     uint8_t power : 1;
+    uint8_t input_action; /** @see hasp_gpio_input_action_t; HTTP "Action" for inputs when USE_MOTION_WAKEUP */
     uint16_t val;
     uint16_t max;
 #ifdef ARDUINO
@@ -49,7 +50,8 @@ void gpio_set_moodlight(moodlight_t& moodlight);
 
 void gpio_discovery(JsonObject& input, JsonArray& relay, JsonArray& light, JsonArray& dimmer, JsonArray& event);
 
-bool gpioSavePinConfig(uint8_t config_num, uint8_t pin, uint8_t type, uint8_t group, uint8_t pinfunc, bool inverted);
+bool gpioSavePinConfig(uint8_t config_num, uint8_t pin, uint8_t type, uint8_t group, uint8_t pinfunc, bool inverted,
+                       uint8_t input_action = 0);
 bool gpioIsSystemPin(uint8_t gpio);
 bool gpioInUse(uint8_t pin);
 bool gpioConfigInUse(uint8_t num);
@@ -67,6 +69,12 @@ enum hasp_gpio_function_t {
     INTERNAL_PULLDOWN = 3,
     EXTERNAL_PULLUP   = 4,
     EXTERNAL_PULLDOWN = 5
+};
+
+/** Per-input GPIO action when @c USE_MOTION_WAKEUP (HTTP "Action" dropdown). Stored in @c config.json gpio.action[] */
+enum hasp_gpio_input_action_t : uint8_t {
+    INPUT_ACTION_NONE         = 0,
+    INPUT_ACTION_BACKLIGHT_ON = 1,
 };
 
 enum hasp_gpio_type_t {
@@ -148,6 +156,16 @@ enum hasp_gpio_type_t {
 
     USER = 0xFF
 };
+
+/** Virtual pin numbers for STC/L10 I2C expander (shown in GPIO / backlight UI). Override in build flags if needed. */
+#if defined(HASP_USE_I2C_GPIO) && defined(HASP_EXPANDER_GPIO_STC_L10)
+#ifndef HASP_I2C_GPIO_UI_PIN_FIRST
+#define HASP_I2C_GPIO_UI_PIN_FIRST 129u
+#endif
+#ifndef HASP_I2C_GPIO_UI_PIN_LAST
+#define HASP_I2C_GPIO_UI_PIN_LAST 150u
+#endif
+#endif
 
 #ifdef __cplusplus
 } /* extern "C" */
