@@ -17,6 +17,10 @@
 #include "sys/net/hasp_time.h"
 #include "dev/device.h"
 
+#if HASP_USE_GPIO > 0
+#include "sys/gpio/hasp_gpio.h"
+#endif
+
 #if HASP_USE_CONFIG > 0
 #include "hasp_debug.h"
 #include "hasp_macro.h"
@@ -214,6 +218,10 @@ IRAM_ATTR void loop()
 
         /* Runs Every Second */
         haspEverySecond(); // sleep timer & statusupdate
+
+#if HASP_USE_GPIO > 0
+        gpioEverySecond();
+#endif
 
 #if HASP_USE_MQTT > 0
         mqttEverySecond();

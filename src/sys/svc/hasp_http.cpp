@@ -1769,10 +1769,12 @@ static void webHandleGpioConfig()
             uint8_t pinfunc = webServer.arg("func").toInt();
             bool inverted   = webServer.arg("state").toInt();
             gpioSavePinConfig(id, pin, type, group, pinfunc, inverted);
+            configWrite(); // persist to config.json
         }
 
         if(webServer.hasArg("del")) {
             gpioSavePinConfig(id, pin, hasp_gpio_type_t::FREE, 0, 0, false);
+            configWrite(); // persist to config.json
         }
     }
 
@@ -1860,6 +1862,9 @@ static void webHandleGpioConfig()
 
                         case hasp_gpio_type_t::TOUCH:
                             httpMessage += D_GPIO_TOUCH;
+                            break;
+                        case hasp_gpio_type_t::HASP_ADC:
+                            httpMessage += D_GPIO_ADC_BACKLIGHT;
                             break;
                         case hasp_gpio_type_t::LED:
                             httpMessage += D_GPIO_LED;
@@ -2068,6 +2073,7 @@ static void webHandleGpioInput()
         httpMessage += getOption(hasp_gpio_type_t::SMOKE, "Smoke", conf.type);
         httpMessage += getOption(hasp_gpio_type_t::VIBRATION, "Vibration", conf.type);
         httpMessage += getOption(hasp_gpio_type_t::WINDOW, "Window", conf.type);
+        httpMessage += getOption(hasp_gpio_type_t::HASP_ADC, D_GPIO_ADC_BACKLIGHT, conf.type);
         httpMessage += F("</select></p>");
 
         httpMessage += F("<p><b>" D_GPIO_GROUP "</b> <select id='group' name='group'>");
@@ -2082,8 +2088,8 @@ static void webHandleGpioInput()
         httpMessage += F("</select></p>");
 
         httpMessage += F("<p><b>Default State</b> <select id='state' name='state'>");
-        httpMessage += getOption(0, "Normally Open", conf.inverted);
-        httpMessage += getOption(1, "Normally Closed", conf.inverted);
+        httpMessage += getOption(0, D_GPIO_STATE_NORMAL, conf.inverted);
+        httpMessage += getOption(1, D_GPIO_STATE_INVERTED, conf.inverted);
         httpMessage += F("</select></p>");
 
         httpMessage += F("<p><b>Resistor</b> <select id='func' name='func'>");

@@ -231,6 +231,7 @@
 #define D_GPIO_LIGHT_RELAY "Light Relay"
 #define D_GPIO_PWM "PWM"
 #define D_GPIO_DAC "DAC"
+#define D_GPIO_ADC_BACKLIGHT "Ambient Light (Auto Backlight)"
 #define D_GPIO_SERIAL_DIMMER "Serial Dimmer"
 #define D_GPIO_UNKNOWN "Unknown"
 #define D_GPIO_PIN "Pin"
