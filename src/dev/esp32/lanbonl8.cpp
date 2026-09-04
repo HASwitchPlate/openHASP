@@ -36,6 +36,7 @@
 
 int16_t PulseCounter = 0; // pulse counter, max. value is 32535
 int OverflowCounter  = 0; // pulse counter overflow counter
+uint32_t pulseOffset = 0; // total historical pulses, used to calculate total energy consumption across power cycles
 uint32_t totalPulses;
 
 pcnt_isr_handle_t user_isr_handle = NULL; // interrupt handler - not used
@@ -46,8 +47,95 @@ esp_adc_cal_characteristics_t* adc_chars =
     new esp_adc_cal_characteristics_t; // adc_chars = calloc(1, sizeof(esp_adc_cal_characteristics_t));
 
 int16_t watt_10 = 0;
+//int16_t kwh_10 = 0;
+float kwh = 0;
 
 namespace dev {
+
+static void energy_save()
+{
+    Preferences preferences;
+    if (nvs_user_begin(preferences, "energy", false)){
+        preferences.putUInt("pulses", totalPulses + pulseOffset);
+        preferences.end();
+    }
+}
+
+static void energy_restore()
+{
+    Preferences preferences;
+    if (nvs_user_begin(preferences, "energy", true)){
+        pulseOffset = preferences.getUInt("pulses", 0);
+        preferences.end();
+    }
+}
+
+static void moodlight_save(moodlight_t& ml)
+{
+    Preferences preferences;
+    if(nvs_user_begin(preferences, "moodlight", false)) {
+        preferences.putUChar("brightness", ml.brightness);
+        preferences.putUChar("power", ml.power);
+        preferences.putBytes("rgbww", ml.rgbww, sizeof(ml.rgbww));
+        preferences.end();
+    }
+}
+
+static void moodlight_restore(moodlight_t& ml)
+{
+    Preferences preferences;
+    if(nvs_user_begin(preferences, "moodlight", true)) {
+        ml.brightness = preferences.getUChar("brightness", 255);
+        ml.power      = preferences.getUChar("power", 0);
+        preferences.getBytes("rgbww", ml.rgbww, sizeof(ml.rgbww));
+        preferences.end();
+    }
+}
+
+static void backlight_save(uint8_t level, bool power)
+{
+    Preferences preferences;
+    if(nvs_user_begin(preferences, "backlight", false)) {
+        preferences.putUChar("level", level);
+        preferences.putBool("power", power);
+        preferences.end();
+    }
+}
+
+static void backlight_restore(uint8_t& level, bool& power)
+{
+    Preferences preferences;
+    if(nvs_user_begin(preferences, "backlight", true)) {
+        level = preferences.getUChar("level", 255);
+        power = preferences.getBool("power", true);
+        preferences.end();
+    }
+}
+
+void LanbonL8::set_backlight_level(uint8_t level)
+{
+    Esp32Device::set_backlight_level(level);
+    backlight_save(level, get_backlight_power());
+}
+
+void LanbonL8::set_backlight_power(bool power)
+{
+    Esp32Device::set_backlight_power(power);
+    backlight_save(get_backlight_level(), power);
+}
+
+void LanbonL8::energy_reset()
+{
+    pulseOffset = 0;
+    totalPulses = 0;
+    OverflowCounter = 0;
+    pcnt_counter_clear(PCNT_FREQ_UNIT);
+    Preferences preferences;
+    if(nvs_user_begin(preferences, "energy", false)) {
+        preferences.putUInt("pulses", 0);
+        preferences.end();
+    }
+}
 
 static void check_efuse(void)
 {
@@ -120,6 +208,14 @@ void energy_pulse_counter_init()
 void LanbonL8::init()
 {
     energy_pulse_counter_init();
+    energy_restore();
+
+    // Restore backlight state
+    uint8_t level = 255;
+    bool power    = true;
+    backlight_restore(level, power);
+    Esp32Device::set_backlight_level(level);
+    Esp32Device::set_backlight_power(power);
 
     // Check if Two Point or Vref are burned into eFuse
     check_efuse();
@@ -139,7 +235,13 @@ void LanbonL8::loop_5s()
     uint32_t delta     = newPulses - totalPulses;
     totalPulses        = newPulses;
     watt_10            = DEC / 5 * delta * MEASURED_WATTS / MEASURED_PULSES_PER_SECOND;
-    int16_t kwh_10     = DEC * totalPulses * MEASURED_WATTS / MEASURED_PULSES_PER_SECOND / 3600 / 1000;
+    //kwh_10             = DEC * totalPulses * MEASURED_WATTS / MEASURED_PULSES_PER_SECOND / 3600 / 1000;
+    kwh                = (float)((totalPulses + pulseOffset) * MEASURED_WATTS / MEASURED_PULSES_PER_SECOND / 3600.0f / 1000.0f);
+
+    if (++_save_counter >= 720){ //trigger hourly
+        _save_counter = 0;
+        energy_save();
+    }
     // LOG_VERBOSE(TAG_DEV, F("Pulse Counter %d.%d W / %d / %d.%d kWh"), watt_10 / DEC, watt_10 % DEC, totalPulses,
     //             kwh_10 / DEC, kwh_10 % DEC);
     // uint32_t temp = (temprature_sens_read() - 32) * 100 / 1.8;
@@ -156,6 +258,7 @@ void LanbonL8::get_sensors(JsonDocument& doc)
 
     /* Pulse counter Stats */
     sensor[F("Power")] = serialized(String(1.0f * watt_10 / DEC, 2));
+    sensor[F("Total")] = serialized(String(kwh, 3));
 }
 
 //------------------------------------------------------------

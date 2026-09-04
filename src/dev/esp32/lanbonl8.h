@@ -17,6 +17,11 @@ class LanbonL8 : public Esp32Device {
     void init();
     void loop_5s();
     void get_sensors(JsonDocument& doc);
+    void energy_reset();
+    void set_backlight_level(uint8_t level);
+    void set_backlight_power(bool power);
+  private:
+    uint16_t _save_counter = 0;
 };
 
 } // namespace dev
