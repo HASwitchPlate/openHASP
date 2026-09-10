@@ -8,6 +8,7 @@
 #include "hasp_config.h"
 #include "hasp_debug.h"
 #include "hasp_gui.h"
+#include "sys/net/hasp_time.h"
 #if HASP_TARGET_ARDUINO
 #include "hal/hasp_hal.h"
 #endif
@@ -478,6 +479,26 @@ void configWrite()
     }
 #endif
 
+#if HASP_USE_FTP > 0
+    if(settings[FPSTR(FP_FTP)].as<JsonObject>().isNull()) settings.createNestedObject(F("ftp"));
+    changed = ftpGetConfig(settings[FPSTR(FP_FTP)]);
+    if(changed) {
+        LOG_VERBOSE(TAG_FTP, settingsChanged.c_str());
+        configOutput(settings[FPSTR(FP_FTP)], TAG_FTP);
+        writefile = true;
+    }
+#endif
+
+#if HASP_USE_CONFIG > 0
+    if(settings[FPSTR(FP_TIME)].as<JsonObject>().isNull()) settings.createNestedObject(F("time"));
+    changed = timeGetConfig(settings[FPSTR(FP_TIME)]);
+    if(changed) {
+        LOG_VERBOSE(TAG_TIME, settingsChanged.c_str());
+        configOutput(settings[FPSTR(FP_TIME)], TAG_TIME);
+        writefile = true;
+    }
+#endif
+
 #if HASP_USE_GPIO > 0
     module = FPSTR(FP_GPIO);
     if(settings[module].as<JsonObject>().isNull()) settings.createNestedObject(module);
@@ -628,6 +649,16 @@ void configSetup()
 #if HASP_USE_HTTP > 0
         LOG_INFO(TAG_HTTP, F("Loading HTTP settings"));
         httpSetConfig(settings[FPSTR(FP_HTTP)]);
+#endif
+
+#if HASP_USE_FTP > 0
+    LOG_INFO(TAG_FTP, F("Loading FTP settings"));
+    ftpSetConfig(settings[FPSTR(FP_FTP)]);
+#endif
+
+#if HASP_USE_CONFIG > 0
+    LOG_INFO(TAG_TIME, F("Loading time settings"));
+    timeSetConfig(settings[FPSTR(FP_TIME)]);
 #endif
 
 #if HASP_USE_GPIO > 0

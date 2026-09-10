@@ -761,6 +761,9 @@ void hasp_get_info(JsonDocument& doc)
     hasp_get_sleep_payload(hasp_get_sleep_state(), size_buf);
     info[F("Idle")]        = size_buf;
     info[F("Active Page")] = haspPages.get();
+    snprintf(size_buf,sizeof(size_buf)-1,"%d.%d.%d",LVGL_VERSION_MAJOR,LVGL_VERSION_MINOR,LVGL_VERSION_PATCH);
+    buffer = size_buf;
+    info[F("LVGL Version")] = buffer;
 
     info = doc.createNestedObject(F(D_INFO_DEVICE_MEMORY));
     Parser::format_bytes(haspDevice.get_free_heap(), size_buf, sizeof(size_buf));
