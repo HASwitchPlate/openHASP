@@ -112,7 +112,14 @@ static void console_thread(void* arg)
 {
     while(console_running) {
         std::string input;
-        std::getline(std::cin, input);
+        if(!std::getline(std::cin, input)) {
+            // stdin is at EOF or closed, which is the normal state for a detached process: its stdin is
+            // /dev/null, so getline returns immediately, forever. Without this the loop spun a whole core
+            // calling dispatch_text_line("") -- each call building and freeing a DynamicJsonDocument -- for
+            // as long as the process ran. No console input can arrive on a stream in this state, so stop.
+            LOG_TRACE(TAG_MSGR, F(D_SERVICE_DISABLED));
+            return;
+        }
         dispatch_text_line(input.c_str(), TAG_CONS);
     }
 }
