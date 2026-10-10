@@ -514,6 +514,15 @@ bool guiGetConfig(const JsonObject& settings)
     if(guiSleepTime2 != settings[FPSTR(FP_GUI_IDLEPERIOD2)].as<uint16_t>()) changed = true;
     settings[FPSTR(FP_GUI_IDLEPERIOD2)] = guiSleepTime2;
 
+    if(hasp_get_idle_lock_enabled() != settings[FPSTR(FP_GUI_IDLELOCK)].as<bool>()) changed = true;
+    settings[FPSTR(FP_GUI_IDLELOCK)] = hasp_get_idle_lock_enabled();
+
+    if(hasp_get_idle_lock_hold_time() != settings[FPSTR(FP_GUI_IDLELOCKHOLD)].as<uint16_t>()) changed = true;
+    settings[FPSTR(FP_GUI_IDLELOCKHOLD)] = hasp_get_idle_lock_hold_time();
+
+    if(hasp_get_idle_lock_screen_time() != settings[FPSTR(FP_GUI_IDLELOCKSCREEN)].as<uint16_t>()) changed = true;
+    settings[FPSTR(FP_GUI_IDLELOCKSCREEN)] = hasp_get_idle_lock_screen_time();
+
     if(gui_settings.backlight_pin != settings[FPSTR(FP_GUI_BACKLIGHTPIN)].as<int8_t>()) changed = true;
     settings[FPSTR(FP_GUI_BACKLIGHTPIN)] = gui_settings.backlight_pin;
 
@@ -588,6 +597,9 @@ bool guiSetConfig(const JsonObject& settings)
     uint8_t backlight_invert = haspDevice.get_backlight_invert();
     uint16_t guiSleepTime1;
     uint16_t guiSleepTime2;
+    bool guiIdleLock           = hasp_get_idle_lock_enabled();
+    uint16_t guiIdleLockHold   = hasp_get_idle_lock_hold_time();
+    uint16_t guiIdleLockScreen = hasp_get_idle_lock_screen_time();
 
     hasp_get_sleep_time(guiSleepTime1, guiSleepTime2);
 
@@ -596,10 +608,16 @@ bool guiSetConfig(const JsonObject& settings)
     changed |= configSet(backlight_invert, settings[FPSTR(FP_GUI_BACKLIGHTINVERT)], F("guiBacklightInvert"));
     changed |= configSet(guiSleepTime1, settings[FPSTR(FP_GUI_IDLEPERIOD1)], F("guiSleepTime1"));
     changed |= configSet(guiSleepTime2, settings[FPSTR(FP_GUI_IDLEPERIOD2)], F("guiSleepTime2"));
+    changed |= configSet(guiIdleLock, settings[FPSTR(FP_GUI_IDLELOCK)], F("guiIdleLock"));
+    changed |= configSet(guiIdleLockHold, settings[FPSTR(FP_GUI_IDLELOCKHOLD)], F("guiIdleLockHold"));
+    changed |= configSet(guiIdleLockScreen, settings[FPSTR(FP_GUI_IDLELOCKSCREEN)], F("guiIdleLockScreen"));
     changed |= configSet(gui_settings.rotation, settings[FPSTR(FP_GUI_ROTATION)], F("gui_settings.rotation"));
     changed |= configSet(gui_settings.invert_display, settings[FPSTR(FP_GUI_INVERT)], F("guiInvertDisplay"));
 
     hasp_set_sleep_time(guiSleepTime1, guiSleepTime2);
+    hasp_set_idle_lock_enabled(guiIdleLock);
+    hasp_set_idle_lock_hold_time(guiIdleLockHold);
+    hasp_set_idle_lock_screen_time(guiIdleLockScreen);
     haspDevice.set_backlight_invert(backlight_invert); // Update if changed
 
     if(!settings[FPSTR(FP_GUI_POINTER)].isNull()) {
