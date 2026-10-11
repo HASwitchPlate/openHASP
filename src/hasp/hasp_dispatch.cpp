@@ -91,6 +91,10 @@ void dispatch_state_subtopic(const char* subtopic, const char* payload)
 
 #endif
 
+#if HASP_USE_UART_TRANSPORT > 0
+    hasp_uart::uartTransport.publishState(subtopic, payload);
+#endif
+
 #if defined(HASP_USE_CUSTOM) && HASP_USE_CUSTOM > 0
     custom_state_subtopic(subtopic, payload);
 #endif
@@ -463,10 +467,15 @@ void dispatch_topic_payload(const char* topic, const char* payload, bool update,
     }
 #endif
 
-#if defined(HASP_USE_CUSTOM) && HASP_USE_CUSTOM > 0
+#if HASP_USE_UART_TRANSPORT > 0 || (defined(HASP_USE_CUSTOM) && HASP_USE_CUSTOM > 0)
     if(topic == strstr_P(topic, PSTR(MQTT_TOPIC_CUSTOM "/"))) { // startsWith custom
-        topic += 7u;
-        custom_topic_payload(topic, (char*)payload, source);
+        const char* customTopic = topic + 7u;
+#if HASP_USE_UART_TRANSPORT > 0
+        if(hasp_uart::uartTransport.handleCustomCommand(customTopic, payload, source)) return;
+#endif
+#if defined(HASP_USE_CUSTOM) && HASP_USE_CUSTOM > 0
+        custom_topic_payload(customTopic, (char*)payload, source);
+#endif
         return;
     }
 #endif
@@ -1343,6 +1352,10 @@ void dispatch_send_sensordata(const char*, const char*, uint8_t source)
     doc[F("uptime")] = buffer;
 
     haspDevice.get_sensors(doc);
+
+#if HASP_USE_UART_TRANSPORT > 0
+    hasp_uart::uartTransport.appendSensorData(doc);
+#endif
 
 #if defined(HASP_USE_CUSTOM) && HASP_USE_CUSTOM > 0
     custom_get_sensors(doc);

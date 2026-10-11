@@ -229,6 +229,9 @@ void Page::load_jsonl(const char* pagesfile)
     }
     dispatch_parse_jsonl(file, savedPage);
     file.close();
+#if defined(HASP_USE_UART_TRANSPORT) && HASP_USE_UART_TRANSPORT > 0
+    hasp_uart::uartTransport.onLayoutLoaded();
+#endif
 
     LOG_INFO(TAG_HASP, F(D_FILE_LOADED), pagesfile);
 
