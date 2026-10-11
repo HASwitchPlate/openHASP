@@ -1,6 +1,10 @@
 /* MIT License - Copyright (c) 2019-2024 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
+#include "Preferences.h"
+#include "pgmspace.h"
+#include "sys/gpio/hasp_gpio.h"
+#include <cstdio>
 #ifdef ESP32
 
 #include "hasplib.h"
