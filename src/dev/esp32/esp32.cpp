@@ -19,6 +19,10 @@
 
 #include "../../drv/tft/tft_driver.h" // for haspTft
 
+#if defined(HASP_CROWPANEL_ADVANCE_STC)
+#include "../../hal/boards/crowpanel_advance.h"
+#endif
+
 #define BACKLIGHT_CHANNEL 0
 
 #if defined(CONFIG_IDF_TARGET_ESP32)
@@ -294,6 +298,10 @@ bool Esp32Device::get_backlight_power()
 
 void Esp32Device::update_backlight()
 {
+#if defined(HASP_CROWPANEL_ADVANCE_STC)
+    crowpanelAdvanceBacklight(_backlight_level, _backlight_power != 0);
+    return;
+#endif
     if(_backlight_pin < GPIO_NUM_MAX) {
 #if !defined(CONFIG_IDF_TARGET_ESP32S2)
         uint32_t duty = _backlight_power ? map(_backlight_level, 0, 255, 0, 1023) : 0;
@@ -356,6 +364,9 @@ uint16_t Esp32Device::get_cpu_frequency()
 
 bool Esp32Device::is_system_pin(uint8_t pin)
 {
+#if defined(HASP_CROWPANEL_ADVANCE_STC)
+    if(crowpanelAdvancePinInUse(pin)) return true;
+#endif
 // Also see esp32.cpp / hasp_gpio.cpp
 #if defined(CONFIG_IDF_TARGET_ESP32S3) && !defined(LANBONL9)
     if((pin >= 22) && (pin <= 25)) return true; // unavailable

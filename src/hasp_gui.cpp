@@ -3,6 +3,10 @@
 
 #include "hasplib.h"
 
+#if defined(HASP_CROWPANEL_ADVANCE_STC)
+#include "hal/boards/crowpanel_advance.h"
+#endif
+
 #include "lv_drv_conf.h"
 #include "lv_fs_if.h"
 
@@ -181,6 +185,9 @@ void gui_start_tft(void)
     /* Setup Backlight Control Pin */
     haspDevice.set_backlight_pin(gui_settings.backlight_pin);
 
+#if defined(HASP_CROWPANEL_ADVANCE_STC)
+    crowpanelAdvanceBegin();
+#endif
     haspTft.init(tft_width, tft_height);
     haspTft.set_rotation(gui_settings.rotation);
     haspTft.set_invert(gui_settings.invert_display);

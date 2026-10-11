@@ -1154,7 +1154,12 @@ void LovyanGfx::init(int w, int h)
         cfg.pin_sda         = TOUCH_SDA;
         cfg.pin_scl         = TOUCH_SCL;
         cfg.freq            = 400000;
+#if defined(HASP_CROWPANEL_ADVANCE_STC)
+        cfg.pin_rst         = TOUCH_RST;
+        cfg.i2c_addr        = I2C_TOUCH_ADDRESS;
+#else
         cfg.i2c_addr        = 0x14; // 0x5D , 0x14
+#endif
         _touch_instance->config(cfg);
         _panel_instance->setTouch(_touch_instance);
     }
