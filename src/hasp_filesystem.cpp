@@ -31,22 +31,37 @@ extern const uint8_t PAGES_JSONL_END[] asm("_binary_data_pages_pages_jsonl_end")
 #endif
 #endif
 
-#include <Arduino.h>
 #include "ArduinoJson.h"
-#include "ArduinoLog.h"
-
 #include "hasp_debug.h"
 #include "hasp_filesystem.h"
+
+#if !(!defined(HASP_USE_BACKUP) || HASP_USE_BACKUP < 1)
+#include "ZipStream.h"
+#endif
+
 
 #if defined(ARDUINO_ARCH_ESP32)
 #include "rom/crc.h"
 
 void filesystemUnzip(const char*, const char* filename, uint8_t source)
 {
-    File zipfile = HASP_FS.open(filename, FILE_READ);
-    if(!zipfile) {
+    if (strlen(filename) < 1) {
+        LOG_ERROR(TAG_FILE, F("File name not available"));
         return;
     }
+    
+    File zipfile = HASP_FS.open(filename, FILE_READ);
+    if (!zipfile) {
+        LOG_ERROR(TAG_FILE, F("File %s not found"), filename);
+        return;
+    }
+
+#if !(!defined(HASP_USE_BACKUP) || HASP_USE_BACKUP < 1)    
+    ZipStream unzipStream;
+    if ( unzipStream.beginUnZip() == ZIP_STREAM_OK) {
+        unzipStream.write(zipfile);
+    }
+#else
 
     int32_t head;
     size_t len;
@@ -147,10 +162,20 @@ void filesystemUnzip(const char*, const char* filename, uint8_t source)
             }
         }
     }
-    zipfile.close();
-    LOG_VERBOSE(TAG_FILE, F("extracting %s complete"), filename);
-}
+
 #endif
+
+    zipfile.close();
+
+#if !(!defined(HASP_USE_BACKUP) || HASP_USE_BACKUP < 1)    
+    if (unzipStream.getLastError() != ZIP_STREAM_OK) {
+        LOG_ERROR(TAG_FILE, F("Unpacking error %d - %s"), unzipStream.getLastError(), unzipStream.getLastErrorString().c_str() );
+    }
+#else
+    LOG_VERBOSE(TAG_FILE, F("extracting %s complete"), filename);
+#endif
+}
+#endif  #if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
 
 void filesystemInfo()
 { // Get all information of your SPIFFS
