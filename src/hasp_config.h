@@ -93,6 +93,7 @@ const char FP_GUI_REPEAT_TIME[] PROGMEM        = "repeat";
 const char FP_DEBUG_TELEPERIOD[] PROGMEM       = "tele";
 const char FP_DEBUG_ANSI[] PROGMEM             = "ansi";
 const char FP_GPIO_CONFIG[] PROGMEM            = "config";
+const char FP_GPIO_ADC_MAX[] PROGMEM           = "adc_max"; // per-slot ADC ceiling for ambient-light scaling
 
 const char FP_HASP_CONFIG_FILE[] PROGMEM = "/config.json";
 

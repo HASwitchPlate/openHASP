@@ -1534,6 +1534,9 @@ void webHandleGpioConfig(AsyncWebServerRequest* request)
                         case hasp_gpio_type_t::TOUCH:
                             httpMessage += F(D_GPIO_TOUCH);
                             break;
+                        case hasp_gpio_type_t::HASP_ADC:
+                            httpMessage += F(D_GPIO_ADC_BACKLIGHT);
+                            break;
                         case hasp_gpio_type_t::LED:
                             httpMessage += F(D_GPIO_LED);
                             break;
@@ -1807,6 +1810,9 @@ void webHandleGpioInput(AsyncWebServerRequest* request)
 
         selected = (conf.type == hasp_gpio_type_t::WINDOW);
         httpMessage += getOption(hasp_gpio_type_t::WINDOW, F("Window"), selected);
+
+        selected = (conf.type == hasp_gpio_type_t::HASP_ADC);
+        httpMessage += getOption(hasp_gpio_type_t::HASP_ADC, F(D_GPIO_ADC_BACKLIGHT), selected);
 
         httpMessage += F("</select></p>");
 

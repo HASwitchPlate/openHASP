@@ -15,6 +15,10 @@ For full license information read the LICENSE file in the project folder */
 #include "hasp_gui.h"
 #endif
 
+#if HASP_USE_GPIO > 0
+#include "sys/gpio/hasp_gpio.h"
+#endif
+
 #ifdef HASP_USE_STAT_COUNTER
 extern uint16_t statLoopCounter; // measures the average looptime
 #endif
@@ -23,6 +27,10 @@ extern uint16_t statLoopCounter; // measures the average looptime
 void task_every_second_cb(lv_task_t* task)
 {
     haspEverySecond(); // sleep timer & statusupdate
+
+#if HASP_USE_GPIO > 0
+    gpioEverySecond();
+#endif
 
 #if HASP_MQTT_TELNET > 0
     mqttEverySecond();
