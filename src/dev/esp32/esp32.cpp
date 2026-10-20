@@ -449,7 +449,10 @@ long Esp32Device::get_uptime()
 
 } // namespace dev
 
-#if defined(LANBONL8)
+#if defined(HASP_CROWPANEL_ADVANCED)
+#include "dev/esp32/crowpanel_advanced.h"
+
+#elif defined(LANBONL8)
 // #warning Building for Lanbon L8
 #include "dev/esp32/lanbonl8.h"
 
