@@ -621,7 +621,7 @@ void wifi_get_info(JsonDocument& doc)
     String buffer((char*)0);
     buffer.reserve(64);
 
-    JsonObject info       = doc.createNestedObject(F(D_INFO_WIFI));
+    JsonObject info = doc[D_INFO_WIFI].to<JsonObject>();
     info[F(D_INFO_BSSID)] = WiFi.BSSIDstr();
 
     int8_t rssi = WiFi.RSSI();

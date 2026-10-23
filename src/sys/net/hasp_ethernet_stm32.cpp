@@ -116,7 +116,7 @@ void ethernet_get_info(JsonDocument& doc)
     String buffer((char*)0);
     buffer.reserve(64);
 
-    JsonObject info = doc.createNestedObject(F(D_INFO_ETHERNET));
+    JsonObject info = doc[D_INFO_ETHERNET].to<JsonObject>();
 
     // buffer = Ethernet.linkSpeed();
     // buffer += F(" Mbps");

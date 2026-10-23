@@ -414,7 +414,7 @@ void mqtt_get_info(JsonDocument& doc)
 {
     char mqttClientId[64];
 
-    JsonObject info           = doc.createNestedObject(F("MQTT"));
+    JsonObject info = doc[D_INFO_MQTT].to<JsonObject>();
     info[F(D_INFO_SERVER)]    = mqttServer;
     info[F(D_INFO_USERNAME)]  = mqttUsername;
     info[F(D_INFO_CLIENTID)]  = haspDevice.get_hostname();

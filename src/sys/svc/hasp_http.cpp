@@ -378,7 +378,7 @@ bool http_save_config()
     if(webServer.method() == HTTP_POST && webServer.hasArg("save")) {
         String save = webServer.arg("save");
 
-        StaticJsonDocument<256> settings;
+        JsonDocument settings;
         for(int i = 0; i < webServer.args(); i++) settings[webServer.argName(i)] = webServer.arg(i);
 
         if(save == FP_HASP) {
@@ -569,7 +569,7 @@ static void webHandleApi()
 { // http://plate01/api
     if(!http_is_authenticated("api")) return;
 
-    DynamicJsonDocument doc(max(MAX_CONFIG_JSON_ALLOC_SIZE, 2048));
+    JsonDocument doc;
     String contentType = http_get_content_type(F(".json"));
     String endpoint((char*)0);
     endpoint = webServer.pathArg(0);
@@ -608,43 +608,43 @@ static void webHandleApi()
 
         {
             JsonObject obj;
-            obj = doc.createNestedObject();
+            obj = doc.add<JsonObject>();
             add_license(obj, "HASwitchPlate", "2019", "Allen Derusha allen@derusha.org", "mit");
-            obj = doc.createNestedObject();
+            obj = doc.add<JsonObject>();
             add_license(obj, "Tasmota Core", "2016", "Tasmota", "apache2");
-            obj = doc.createNestedObject();
+            obj = doc.add<JsonObject>();
             add_license(obj, "LVGL", "2021", "LVGL Kft", "mit");
 #if defined(LGFX_USE_V1)
-            obj = doc.createNestedObject();
+            obj = doc.add<JsonObject>();
             add_license(obj, "LovyanGFX", "2020", "lovyan03 (https://github.com/lovyan03)", "freebsd", 1);
 #endif
-            obj = doc.createNestedObject();
+            obj = doc.add<JsonObject>();
             add_license(obj, "TFT_eSPI", "2020", "Bodmer (https://github.com/Bodmer)", "freebsd", 1);
-            obj = doc.createNestedObject();
+            obj = doc.add<JsonObject>();
             add_license(obj, "Adafruit_GFX", "2021", "Adafruit Industries.", "bsd", 1);
 #if defined(HASP_USE_ARDUINOGFX)
-            obj = doc.createNestedObject();
+            obj = doc.add<JsonObject>();
             add_license(obj, "Arduino_GFX", "", "moononournation", "", 0);
 #endif
 #if HASP_USE_MQTT > 0 && defined(HASP_USE_PUBSUBCLIENT)
-            obj = doc.createNestedObject();
+            obj = doc.add<JsonObject>();
             add_license(obj, "PubSubClient", "2008-2015", "Nicholas O'Leary", "mit");
 #endif
-            obj = doc.createNestedObject();
+            obj = doc.add<JsonObject>();
             add_license(obj, "ArduinoJson", "2014-2022", "Benoit BLANCHON", "mit");
-            obj = doc.createNestedObject();
+            obj = doc.add<JsonObject>();
             add_license(obj, "ArduinoLog", "2017-2018",
                         "Thijs Elenbaas, MrRobot62, rahuldeo2047, NOX73, dhylands, Josha blemasle, mfalkvidd", "mit");
 #if HASP_USE_FTP > 0
-            obj = doc.createNestedObject();
+            obj = doc.add<JsonObject>();
             add_license(obj, "SimpleFTPServer", "2017", "Renzo Mischianti www.mischianti.org", "mit", 1);
 #endif
-            obj = doc.createNestedObject();
+            obj = doc.add<JsonObject>();
             add_license(obj, "AceButton", "2018", "Brian T. Park", "mit");
-            obj = doc.createNestedObject();
+            obj = doc.add<JsonObject>();
             add_license(obj, "QR Code generator", "", "Project Nayuki", "mit");
 #if HASP_USE_WIREGUARD > 0
-            obj = doc.createNestedObject();
+            obj = doc.add<JsonObject>();
             add_license(obj, "WireGuard", "2021", "Kenta Ida fugafuga.org, Daniel Hope www.floorsense.nz", "bsd", 1);
 #endif
         }
@@ -679,56 +679,31 @@ static void webHandleApi()
         settings = doc.to<JsonObject>();
         const __FlashStringHelper* module;
 
-        module = FPSTR(FP_HASP);
-        settings.createNestedObject(module);
-        haspGetConfig(settings[module]);
-
-        module = FPSTR(FP_GUI);
-        settings.createNestedObject(module);
-        guiGetConfig(settings[module]);
-
-        module = FPSTR(FP_DEBUG);
-        settings.createNestedObject(module);
-        debugGetConfig(settings[module]);
+        haspGetConfig(settings[FP_HASP].to<JsonObject>());
+        guiGetConfig(settings[FP_GUI].to<JsonObject>());
+        debugGetConfig(settings[FP_DEBUG].to<JsonObject>());
 
 #if HASP_USE_WIFI > 0
-        module = FPSTR(FP_WIFI);
-        settings.createNestedObject(module);
-        wifiGetConfig(settings[module]);
-
-        module = FPSTR(FP_TIME);
-        settings.createNestedObject(module);
-        timeGetConfig(settings[module]);
+        wifiGetConfig(settings[FP_WIFI].to<JsonObject>());
+        timeGetConfig(settings[FP_TIME].to<JsonObject>());
 #endif
 #if HASP_USE_WIREGUARD > 0
-        module = FPSTR(FP_WG);
-        settings.createNestedObject(module);
-        wgGetConfig(settings[module]);
+        wgGetConfig(settings[FP_WG].to<JsonObject>());
 #endif
 #if HASP_USE_MQTT > 0
-        module = FPSTR(FP_MQTT);
-        settings.createNestedObject(module);
-        mqttGetConfig(settings[module]);
+        mqttGetConfig(settings[FP_MQTT].to<JsonObject>());
 #endif
 #if HASP_USE_FTP > 0
-        module = FPSTR(FP_FTP);
-        settings.createNestedObject(module);
-        ftpGetConfig(settings[module]);
+        ftpGetConfig(settings[FP_FTP].to<JsonObject>());
 #endif
 #if HASP_USE_HTTP > 0
-        module = FPSTR(FP_HTTP);
-        settings.createNestedObject(module);
-        httpGetConfig(settings[module]);
+        httpGetConfig(settings[FP_HTTP].to<JsonObject>());
 #endif
 #if HASP_USE_ARDUINOOTA > 0 || HASP_USE_HTTP_UPDATE > 0
-        module = FPSTR(FP_OTA);
-        settings.createNestedObject(module);
-        otaGetConfig(settings[module]);
+        otaGetConfig(settings[FP_OTA].to<JsonObject>());
 #endif
 #if HASP_USE_GPIO > 0
-        module = FPSTR(FP_GPIO);
-        settings.createNestedObject(module);
-        gpioGetConfig(settings[module]);
+        gpioGetConfig(settings[FP_GPIO].to<JsonObject>());
 #endif
         configOutput(settings, TAG_HTTP); // Log current JSON config
 
@@ -765,7 +740,7 @@ static void webHandleApiConfig()
         return;
     }
 
-    StaticJsonDocument<1024> doc;
+    JsonDocument doc;
     JsonObject settings;
     // String contentType = http_get_content_type(F(".json"));
     String endpoint((char*)0);
@@ -1138,7 +1113,7 @@ static inline int handleFilesystemFile(String path)
         configFile = FPSTR(FP_HASP_CONFIG_FILE);
 
         if(path.endsWith(configFile.c_str())) { // "//config.json" is also a valid path!
-            DynamicJsonDocument settings(MAX_CONFIG_JSON_ALLOC_SIZE);
+            JsonDocument settings;
             DeserializationError error = configParseFile(configFile, settings);
 
             if(error) return 500; // Internal Server Error
@@ -2124,63 +2099,39 @@ static void http_handle_debug()
 <h2 v-t="'debug.title'"></h2>
 <div class="container" v-cloak v-if="config.debug">
 <form @submit.prevent="submitOldConfig('debug') ">
-<div class="row">
-<div class="col-25"><label for="baud" v-t="'debug.baud'"></label></div>
+<div class="row"><div class="col-25"><label for="baud" v-t="'debug.baud'"></label></div>
 <div class="col-75"><select id="baud" v-model="config.debug.baud">
 <option value="-1" v-t="'debug.disabled'"></option>
+)";
+
+#if defined(SOC_USB_OTG_SUPPORTED) || defined(SOC_USB_SERIAL_JTAG_SUPPORTED) || (defined(ARDUINO_USB_CDC_ON_BOOT) && ARDUINO_USB_CDC_ON_BOOT>0)
+    html[min(i++, len)] = R"(<option value="1" v-t="'debug.usb'"></option>)";
+#endif
+
+    html[min(i++, len)] = R"(
+<optgroup :label="t('debug.uart') ">
 <option value="0" v-t="'debug.default'"></option>
-<option value="9600">9600</option>
-<option value="19200">19200</option>
-<option value="38400">38400</option>
-<option value="57600">57600</option>
-<option value="74880">74880</option>
-<option value="115200">115200</option>
-<option value="230400">230400</option>
-<option value="460800">460800</option>
-<option value="921600">921600</option>
-</select></div>
-</div>
-<div class="row">
-<div class="col-25"><label for="tele" v-t="'debug.tele'"></label></div>
-<div class="col-75"><input type="number" id="tele" min="0" max="65535" v-model="config.debug.tele"></div>
-</div>
-<div class="row gap">
-<div class="col-25"></div>
+<option v-for="m in [1,2,4,6,7.8,12,24,48,96]" :value="m*9600">{{m*9600}}</option></optgroup></select></div></div>
+<div class="row"><div class="col-25"><label for="tele" v-t="'debug.tele'"></label></div>
+<div class="col-75"><input type="number" id="tele" min="0" max="65535" v-model="config.debug.tele"></div></div>
+<div class="row gap"><div class="col-25"></div>
 <div class="col-75"><input type="checkbox" id="ansi" @vue:mounted="config.debug.ansi=!!config.debug.ansi" v-model="config.debug.ansi">
-<label for="ansi" v-t="'debug.ansi'"></label></div>
-</div>
+<label for="ansi" v-t="'debug.ansi'"></label></div></div>
 )";
 
 #if HASP_USE_SYSLOG > 0
     html[min(i++, len)] = R"(
-<div class="row">
-<div class="col-25"><label for="host">Syslog Server</label></div>
-<div class="col-75"><input type="text" id="host" name="host" maxlength="127" v-model="config.debug.host"></div>
-</div>
-<div class="row">
-<div class="col-25"><label for="port" v-t="'debug.port'"></label></div>
-<div class="col-75"><input type="number" id="port" min="0" max="65535" v-model="config.debug.port"></div>
-</div>
-<div class="row">
-<div class="col-25"><label for="log" v-t="'debug.log'"></label></div>
+<div class="row"><div class="col-25"><label for="host">Syslog Server</label></div>
+<div class="col-75"><input type="text" id="host" name="host" maxlength="127" v-model="config.debug.host"></div></div>
+<div class="row"><div class="col-25"><label for="port" v-t="'debug.port'"></label></div>
+<div class="col-75"><input type="number" id="port" min="0" max="65535" v-model="config.debug.port"></div></div>
+<div class="row"><div class="col-25"><label for="log" v-t="'debug.log'"></label></div>
 <div class="col-75"><select id="log" v-model="config.debug.log">
-<option value="0">Local0</option>
-<option value="1">Local1</option>
-<option value="2">Local2</option>
-<option value="3">Local3</option>
-<option value="4">Local4</option>
-<option value="5">Local5</option>
-<option value="6">Local6</option>
-<option value="7">Local7</option>
-</select></div>
-</div>
-<div class="row">
-<div class="col-25"></div>
-<div class="col-75">
-<input id="ietf" type="radio" value="0" v-model="config.debug.proto"><label for="ietf" v-t="'debug.ietf'"></label>
-<input id="bsd" type="radio" value="1" v-model="config.debug.proto"><label for="bsd" v-t="'debug.bsd'"></label>
-</div>
-</div>)";
+<option v-for="n in 8" :value="n-1">Local{{n-1}}</option></select></div></div>
+<div class="row"><div class="col-25"></div>
+<div class="col-75"><input id="ietf" type="radio" value="0" v-model="config.debug.proto"><label for="ietf" v-t="'debug.ietf'"></label>
+<input id="bsd" type="radio" value="1" v-model="config.debug.proto"><label for="bsd" v-t="'debug.bsd'"></label></div></div>
+)";
 #endif
 
     html[min(i++, len)] = R"(<button type="submit" v-t="'save'"></button></form></div>)";
@@ -2489,7 +2440,7 @@ static void webHandleFirmware()
     html[min(i++, len)] = "</h1><hr>";
 
     if(webServer.method() == HTTP_POST && webServer.hasArg("url")) {
-        StaticJsonDocument<512> settings;
+        JsonDocument settings;
         for(int i = 0; i < webServer.args(); i++) settings[webServer.argName(i)] = webServer.arg(i);
         bool updated = otaSetConfig(settings.as<JsonObject>());
         String url   = webServer.arg("url");

@@ -122,7 +122,7 @@ void my_obj_set_tag(lv_obj_t* obj, const char* payload)
 
     if(ext) {
         // create new tag
-        StaticJsonDocument<512> doc;
+        JsonDocument doc;
         size_t len = payload ? strlen(payload) : 0;
 
         // check if it is a proper JSON object
@@ -172,7 +172,7 @@ void my_obj_set_action(lv_obj_t* obj, const char* payload)
 
     // create new action
     if(ext) {
-        StaticJsonDocument<512> doc;
+        JsonDocument doc;
         size_t len  = payload ? strlen(payload) : 0;
         ext->action = NULL;
 
@@ -258,7 +258,7 @@ void my_obj_set_swipe(lv_obj_t* obj, const char* payload)
         }
 
         // create new action
-        StaticJsonDocument<512> doc;
+        JsonDocument doc;
         size_t len = payload ? strlen(payload) : 0;
         ext->swipe = NULL;
 
@@ -720,8 +720,7 @@ void my_obj_set_value_str_text(lv_obj_t* obj, uint8_t part, lv_state_t state, co
 
 void my_list_set_options(lv_obj_t* obj, const char* payload)
 { // Reserve memory for JsonDocument
-    size_t maxsize = (128u * ((strlen(payload) / 128) + 1)) + 256;
-    DynamicJsonDocument doc(maxsize);
+    JsonDocument doc;
     DeserializationError jsonError = deserializeJson(doc, payload);
 
     if(jsonError) { // Couldn't parse incoming JSON payload

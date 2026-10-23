@@ -98,7 +98,7 @@ def copy_merge_bins(source, target, env):
     # esptool = 'tools/esptool_with_merge_bin.py'
     esptool = '{}{}esptool.py'.format(platform.get_package_dir("tool-esptoolpy"),os.path.sep)
     print(esptool)
-    process = subprocess.Popen(['python', esptool, '--chip', mcu, 'merge_bin', '--output', firmware_dst, '--flash_mode', 'dio', '--flash_size', flash_size, '--flash_freq', flash_freq, bootloader_location, bootloader, '0x8000', partitions, '0xe000', boot_app0, '0x10000', firmware_src],
+    process = subprocess.Popen([env["PYTHONEXE"], esptool, '--chip', mcu, 'merge_bin', '--output', firmware_dst, '--flash_mode', 'dio', '--flash_size', flash_size, '--flash_freq', flash_freq, bootloader_location, bootloader, '0x8000', partitions, '0xe000', boot_app0, '0x10000', firmware_src],
                         stdout=subprocess.PIPE, 
                         stderr=subprocess.PIPE)
     stdout, stderr = process.communicate()
