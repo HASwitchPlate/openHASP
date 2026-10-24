@@ -136,6 +136,10 @@ void setup()
     slaveSetup();
 #endif
 
+#if HASP_USE_UART_TRANSPORT > 0
+    hasp_uart::uartTransport.setup();
+#endif
+
 #if defined(HASP_USE_CUSTOM) && HASP_USE_CUSTOM > 0
     custom_setup();
 #endif
@@ -198,6 +202,10 @@ IRAM_ATTR void loop()
 #if HASP_USE_CONSOLE > 0
     // debugLoop();
     consoleLoop();
+#endif
+
+#if HASP_USE_UART_TRANSPORT > 0
+    hasp_uart::uartTransport.loop();
 #endif
 
 #if defined(HASP_USE_CUSTOM) && HASP_USE_CUSTOM > 0
