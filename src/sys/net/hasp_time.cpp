@@ -93,10 +93,11 @@ String time_zone_to_possix(const char* timezone)
     switch(sdbm) {
         case TZ_ANTARCTICA_TROLL:
             return "<+00>0<+02>-2,M3.5.0/1,M10.5.0/3";
-        case TZ_AFRICA_CASABLANCA:
-        case TZ_AFRICA_EL_AAIUN:
         case TZ_ETC_GMT__1:
             return "<+01>-1";
+        case TZ_AFRICA_CASABLANCA:
+        case TZ_AFRICA_EL_AAIUN:
+            return "<+00>0";
         case TZ_ETC_GMT__2:
             return "<+02>-2";
         case TZ_ANTARCTICA_SYOWA:
@@ -131,6 +132,8 @@ String time_zone_to_possix(const char* timezone)
         case TZ_ASIA_KABUL:
             return "<+0430>-4:30";
         case TZ_ANTARCTICA_MAWSON:
+        case TZ_ANTARCTICA_VOSTOK:
+        case TZ_ASIA_ALMATY:
         case TZ_ASIA_AQTAU:
         case TZ_ASIA_AQTOBE:
         case TZ_ASIA_ASHGABAT:
@@ -149,8 +152,6 @@ String time_zone_to_possix(const char* timezone)
             return "<+0530>-5:30";
         case TZ_ASIA_KATHMANDU:
             return "<+0545>-5:45";
-        case TZ_ANTARCTICA_VOSTOK:
-        case TZ_ASIA_ALMATY:
         case TZ_ASIA_BISHKEK:
         case TZ_ASIA_DHAKA:
         case TZ_ASIA_OMSK:
@@ -176,6 +177,7 @@ String time_zone_to_possix(const char* timezone)
         case TZ_ETC_GMT__7:
         case TZ_INDIAN_CHRISTMAS:
             return "<+07>-7";
+        case TZ_ANTARCTICA_CASEY:
         case TZ_ASIA_BRUNEI:
         case TZ_ASIA_CHOIBALSAN:
         case TZ_ASIA_IRKUTSK:
@@ -203,7 +205,6 @@ String time_zone_to_possix(const char* timezone)
             return "<+10>-10";
         case TZ_AUSTRALIA_LORD_HOWE:
             return "<+1030>-10:30<+11>-11,M10.1.0,M4.1.0";
-        case TZ_ANTARCTICA_CASEY:
         case TZ_ASIA_MAGADAN:
         case TZ_ASIA_SAKHALIN:
         case TZ_ASIA_SREDNEKOLYMSK:
@@ -243,7 +244,6 @@ String time_zone_to_possix(const char* timezone)
         case TZ_ATLANTIC_CAPE_VERDE:
         case TZ_ETC_GMT1:
             return "<-01>1";
-        case TZ_AMERICA_SCORESBYSUND:
         case TZ_ATLANTIC_AZORES:
             return "<-01>1<+00>,M3.5.0/0,M10.5.0/1";
         case TZ_AMERICA_NORONHA:
@@ -263,6 +263,7 @@ String time_zone_to_possix(const char* timezone)
         case TZ_AMERICA_ARGENTINA_SAN_LUIS:
         case TZ_AMERICA_ARGENTINA_TUCUMAN:
         case TZ_AMERICA_ARGENTINA_USHUAIA:
+        case TZ_AMERICA_ASUNCION:
         case TZ_AMERICA_BAHIA:
         case TZ_AMERICA_BELEM:
         case TZ_AMERICA_CAYENNE:
@@ -281,8 +282,9 @@ String time_zone_to_possix(const char* timezone)
             return "<-03>3";
         case TZ_AMERICA_MIQUELON:
             return "<-03>3<-02>,M3.2.0,M11.1.0";
-        case TZ_AMERICA_NUUK:
         case TZ_AMERICA_GODTHAB:
+        case TZ_AMERICA_NUUK:
+        case TZ_AMERICA_SCORESBYSUND:
             return "<-02>2<-01>,M3.5.0/-1,M10.5.0/0";
         case TZ_AMERICA_BOA_VISTA:
         case TZ_AMERICA_CAMPO_GRANDE:
@@ -294,10 +296,8 @@ String time_zone_to_possix(const char* timezone)
         case TZ_AMERICA_PORTO_VELHO:
         case TZ_ETC_GMT4:
             return "<-04>4";
-        case TZ_AMERICA_ASUNCION:
-            return "<-04>4<-03>,M10.1.0/0,M3.4.0/0";
         case TZ_AMERICA_SANTIAGO:
-            return "<-04>4<-03>,M9.1.0/0,M4.1.0/0";
+            return "<-04>4<-03>,M9.1.6/24,M4.1.6/24";
         case TZ_AMERICA_BOGOTA:
         case TZ_AMERICA_EIRUNEPE:
         case TZ_AMERICA_GUAYAQUIL:
@@ -441,8 +441,10 @@ String time_zone_to_possix(const char* timezone)
         case TZ_AMERICA_BELIZE:
         case TZ_AMERICA_CHIHUAHUA:
         case TZ_AMERICA_COSTA_RICA:
+        case TZ_AMERICA_EDMONTON:
         case TZ_AMERICA_EL_SALVADOR:
         case TZ_AMERICA_GUATEMALA:
+        case TZ_AMERICA_INUVIK:
         case TZ_AMERICA_MANAGUA:
         case TZ_AMERICA_MERIDA:
         case TZ_AMERICA_MEXICO_CITY:
@@ -450,6 +452,7 @@ String time_zone_to_possix(const char* timezone)
         case TZ_AMERICA_REGINA:
         case TZ_AMERICA_SWIFT_CURRENT:
         case TZ_AMERICA_TEGUCIGALPA:
+        case TZ_AMERICA_YELLOWKNIFE:
             return "CST6";
         case TZ_AMERICA_CHICAGO:
         case TZ_AMERICA_INDIANA_KNOX:
@@ -460,10 +463,8 @@ String time_zone_to_possix(const char* timezone)
         case TZ_AMERICA_NORTH_DAKOTA_CENTER:
         case TZ_AMERICA_NORTH_DAKOTA_NEW_SALEM:
         case TZ_AMERICA_OJINAGA:
-        case TZ_AMERICA_RAINY_RIVER:
         case TZ_AMERICA_RANKIN_INLET:
         case TZ_AMERICA_RESOLUTE:
-        case TZ_AMERICA_WINNIPEG:
             return "CST6CDT,M3.2.0,M11.1.0";
         case TZ_ASIA_MACAU:
         case TZ_ASIA_SHANGHAI:
@@ -485,14 +486,13 @@ String time_zone_to_possix(const char* timezone)
             return "EET-2";
         case TZ_AFRICA_CAIRO:
             return "EET-2EEST,M4.5.5/0,M10.5.4/24";
-        case TZ_EUROPE_CHISINAU:
-            return "EET-2EEST,M3.5.0,M10.5.0/3";
         case TZ_ASIA_BEIRUT:
             return "EET-2EEST,M3.5.0/0,M10.5.0/0";
         case TZ_ASIA_FAMAGUSTA:
         case TZ_ASIA_NICOSIA:
         case TZ_EUROPE_ATHENS:
         case TZ_EUROPE_BUCHAREST:
+        case TZ_EUROPE_CHISINAU:
         case TZ_EUROPE_HELSINKI:
         case TZ_EUROPE_KIEV:
         case TZ_EUROPE_MARIEHAMN:
@@ -511,6 +511,8 @@ String time_zone_to_possix(const char* timezone)
         case TZ_AMERICA_CAYMAN:
         case TZ_AMERICA_JAMAICA:
         case TZ_AMERICA_PANAMA:
+        case TZ_AMERICA_RAINY_RIVER:
+        case TZ_AMERICA_WINNIPEG:
             return "EST5";
         case TZ_AMERICA_DETROIT:
         case TZ_AMERICA_GRAND_TURK:
@@ -568,7 +570,7 @@ String time_zone_to_possix(const char* timezone)
         case TZ_AMERICA_ADAK:
             return "HST10HDT,M3.2.0,M11.1.0";
         case TZ_ASIA_JERUSALEM:
-            return "IST-2IDT,M3.5.5,M10.5.0";
+            return "IST-2IDT,M3.4.4/26,M10.5.0";
         case TZ_ASIA_KOLKATA:
             return "IST-5:30";
         case TZ_ASIA_TOKYO:
@@ -588,14 +590,12 @@ String time_zone_to_possix(const char* timezone)
         case TZ_AMERICA_HERMOSILLO:
         case TZ_AMERICA_MAZATLAN:
         case TZ_AMERICA_PHOENIX:
+        case TZ_AMERICA_VANCOUVER:
         case TZ_AMERICA_WHITEHORSE:
             return "MST7";
         case TZ_AMERICA_BOISE:
         case TZ_AMERICA_CAMBRIDGE_BAY:
         case TZ_AMERICA_DENVER:
-        case TZ_AMERICA_EDMONTON:
-        case TZ_AMERICA_INUVIK:
-        case TZ_AMERICA_YELLOWKNIFE:
             return "MST7MDT,M3.2.0,M11.1.0";
         case TZ_AMERICA_ST_JOHNS:
             return "NST3:30NDT,M3.2.0,M11.1.0";
@@ -608,7 +608,6 @@ String time_zone_to_possix(const char* timezone)
             return "PST-8";
         case TZ_AMERICA_LOS_ANGELES:
         case TZ_AMERICA_TIJUANA:
-        case TZ_AMERICA_VANCOUVER:
             return "PST8PDT,M3.2.0,M11.1.0";
         case TZ_AFRICA_JOHANNESBURG:
         case TZ_AFRICA_MASERU:
