@@ -43,7 +43,7 @@ bool custom_pin_in_use(uint8_t pin)
 void custom_get_sensors(JsonDocument& doc)
 {
     /* Sensor Name */
-    JsonObject info = doc["Custom"].to<JsonObject>();
+    JsonObject sensor = doc.createNestedObject(F("Custom"));
 
     /* Key-Value pair of the sensor value */
     sensor[F("Random")] = HASP_RANDOM(256);

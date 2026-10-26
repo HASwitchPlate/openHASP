@@ -97,8 +97,9 @@ void my_msgbox_map_clear(lv_obj_t* obj)
 const char** my_map_create(const char* payload)
 {
     // Reserve memory for JsonDocument
-    // JsonDocument map_doc;
-    JsonDocument map_doc;
+    // StaticJsonDocument<1024> map_doc;
+    size_t maxsize = (128u * ((strlen(payload) / 128) + 1)) + 1024;
+    DynamicJsonDocument map_doc(maxsize);
     DeserializationError jsonError = deserializeJson(map_doc, payload);
 
     if(jsonError) { // Couldn't parse incoming JSON payload
@@ -196,16 +197,11 @@ static bool my_line_set_points(lv_obj_t* obj, const char* payload)
 {
     my_line_clear_points(obj); // delete pointmap
 
-    // count LEFT SQUARE BRACKET => nb points +1
-    uint16_t count = 0;
-    for (const char* p = payload; *p; p++) 
-        if (*p == '[') count++;
-    count--;
-       
-    LOG_VERBOSE(TAG_ATTR,"payload: %s",payload);
-    LOG_TRACE(TAG_ATTR,"count: %u",count);
-
-    JsonDocument doc;
+    // Create new points
+    // Reserve memory for JsonDocument
+    // StaticJsonDocument<1024> doc;
+    size_t maxsize = (128u * ((strlen(payload) / 128) + 1)) + 256;
+    DynamicJsonDocument doc(maxsize);
     DeserializationError jsonError = deserializeJson(doc, payload);
 
     if(jsonError) { // Couldn't parse incoming JSON payload
@@ -1705,7 +1701,9 @@ static hasp_attribute_type_t attribute_common_json(lv_obj_t* obj, uint16_t attr_
 
             if(update) {
 
-                JsonDocument json;
+                // StaticJsonDocument<1024> json;
+                size_t maxsize = (512u + JSON_OBJECT_SIZE(25));
+                DynamicJsonDocument json(maxsize);
 
                 // Note: Deserialization can to be (char *) so the objects WILL NOT be copied
                 // this uses less memory since the data is already copied from the mqtt receive buffer and cannot
@@ -2577,7 +2575,7 @@ void attr_out(lv_obj_t* obj, const char* attribute, const char* data, bool is_js
     char payload[size];
 
     {
-        JsonDocument doc; // Total (recommended) size for const char*
+        StaticJsonDocument<64> doc; // Total (recommended) size for const char*
         if(data)
             if(is_json)
                 doc[attribute].set(serialized(data));
@@ -2623,7 +2621,7 @@ void attr_out_color(lv_obj_t* obj, const char* attribute, lv_color_t color)
     const size_t size = 64 + strlen(attribute);
     char payload[size];
     {
-        JsonDocument doc; // Total (recommended) size for const char*
+        StaticJsonDocument<128> doc; // Total (recommended) size for const char*
         char buffer[16];
         lv_color32_t c32;
 

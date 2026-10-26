@@ -2,7 +2,7 @@ Import('env')
 import os, sys, json
 import shutil
 import subprocess
-from importlib import metadata  # Vervang pkg_resources
+import pkg_resources
 
 buildFlags = env.ParseFlags(env['BUILD_FLAGS'])
 OUTPUT_DIR = "build_output{}".format(os.path.sep)
@@ -11,13 +11,12 @@ platform = env.PioPlatform()
 FRAMEWORK_DIR = platform.get_package_dir("framework-arduinoespressif32")
 FRAMEWORK_DIR = "{}{}".format(FRAMEWORK_DIR, os.path.sep)
 
-# Verbeterde check voor dulwich
-try:
-    metadata.version('dulwich')
-except metadata.PackageNotFoundError:
-    print("Installing dependencies...")
-    # Gebruik env.Execute om binnen de PlatformIO omgeving te blijven
-    env.Execute('$PYTHONEXE -m pip install dulwich --config-settings "--build-option=--pure" --use-pep517')
+required_pkgs = {'dulwich'}
+installed_pkgs = {pkg.key for pkg in pkg_resources.working_set}
+missing_pkgs = required_pkgs - installed_pkgs
+
+if missing_pkgs:
+    env.Execute('$PYTHONEXE -m pip install dulwich --global-option="--pure" --use-pep517')
 
 from dulwich import porcelain
 from dulwich.repo import Repo
@@ -98,7 +97,7 @@ def copy_merge_bins(source, target, env):
     # esptool = 'tools/esptool_with_merge_bin.py'
     esptool = '{}{}esptool.py'.format(platform.get_package_dir("tool-esptoolpy"),os.path.sep)
     print(esptool)
-    process = subprocess.Popen([env["PYTHONEXE"], esptool, '--chip', mcu, 'merge_bin', '--output', firmware_dst, '--flash_mode', 'dio', '--flash_size', flash_size, '--flash_freq', flash_freq, bootloader_location, bootloader, '0x8000', partitions, '0xe000', boot_app0, '0x10000', firmware_src],
+    process = subprocess.Popen(['python', esptool, '--chip', mcu, 'merge_bin', '--output', firmware_dst, '--flash_mode', 'dio', '--flash_size', flash_size, '--flash_freq', flash_freq, bootloader_location, bootloader, '0x8000', partitions, '0xe000', boot_app0, '0x10000', firmware_src],
                         stdout=subprocess.PIPE, 
                         stderr=subprocess.PIPE)
     stdout, stderr = process.communicate()

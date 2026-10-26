@@ -401,7 +401,7 @@ void Esp32Device::get_info(JsonDocument& doc)
     String buffer((char*)0);
     buffer.reserve(64);
 
-    JsonObject info = doc[D_INFO_MODULE].to<JsonObject>();
+    JsonObject info = doc.createNestedObject(F(D_INFO_MODULE));
 
     /* ESP Stats */
     buffer = String(get_cpu_frequency());
@@ -436,7 +436,7 @@ void Esp32Device::get_info(JsonDocument& doc)
 void Esp32Device::get_sensors(JsonDocument& doc)
 {
 #if defined(CONFIG_IDF_TARGET_ESP32)
-    JsonObject sensor        = doc["ESP32"].to<JsonObject>();
+    JsonObject sensor        = doc.createNestedObject(F("ESP32"));
     uint32_t temp            = (temprature_sens_read() - 32) * 100 / 1.8;
     sensor[F("Temperature")] = serialized(String(1.0f * temp / 100, 2));
 #endif
@@ -449,10 +449,7 @@ long Esp32Device::get_uptime()
 
 } // namespace dev
 
-#if defined(HASP_CROWPANEL_ADVANCED)
-#include "dev/esp32/crowpanel_advanced.h"
-
-#elif defined(LANBONL8)
+#if defined(LANBONL8)
 // #warning Building for Lanbon L8
 #include "dev/esp32/lanbonl8.h"
 

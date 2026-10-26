@@ -45,14 +45,6 @@ hasp_gpio_config_t gpioConfig[HASP_NUM_GPIO_CONFIG] = {
     {.pin = RELAY_3, .group = 3, .gpio_function = OUTPUT, .type = LIGHT_RELAY},
     {.pin = LED_GREEN, .group = 5, .gpio_function = OUTPUT, .type = LED_G},
     {.pin = LED_BLUE, .group = 6, .gpio_function = OUTPUT, .type = LED_B}
-#elif defined(ESP32_2432S024)
-    {.pin = LED_RED, .group = 4, .gpio_function = OUTPUT, .type = LED_R, .inverted = 1},
-    {.pin = LED_GREEN, .group = 5, .gpio_function = OUTPUT, .type = LED_G, .inverted = 1},
-    {.pin = LED_BLUE, .group = 6, .gpio_function = OUTPUT, .type = LED_B, .inverted = 1}
-#elif defined(LILYGO_T_PANEL_LITE)
-    {.pin = 0, .group = 1, .gpio_function = INTERNAL_PULLUP, .type = BUTTON_TYPE},  // BOOT
-    {.pin = 47, .group = 2, .gpio_function = INTERNAL_PULLUP, .type = BUTTON_TYPE}, // KEY2
-    {.pin = 48, .group = 3, .gpio_function = INTERNAL_PULLUP, .type = BUTTON_TYPE}, // KEY1
 #endif
     //    {2, 8, INPUT, LOW}, {3, 9, OUTPUT, LOW}, {4, 10, INPUT, HIGH}, {5, 11, OUTPUT, LOW}, {6, 12, INPUT, LOW},
 };
@@ -964,7 +956,8 @@ void gpio_discovery(JsonObject& input, JsonArray& relay, JsonArray& light, JsonA
 
         if((gpioConfig[i].type >= hasp_gpio_type_t::SWITCH && gpioConfig[i].type <= hasp_gpio_type_t::WINDOW)) {
             // || (gpioConfig[i].type >= hasp_gpio_type_t::BUTTON_TYPE && gpioConfig[i].type <= hasp_gpio_type_t::TOUCH)) {
-            JsonArray arr = input[description].to<JsonArray>();
+            JsonArray arr = input[description];
+            if(arr.isNull()) arr = input.createNestedArray(description);
             arr.add(gpioConfig[i].pin);
         }
     }

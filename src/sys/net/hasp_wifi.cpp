@@ -517,31 +517,27 @@ void wifiSetup()
 
 bool wifiEvery5Seconds()
 {
-	static uint8_t disconnectionPeriod = 0;	// WiFi disconnection period counter
-
 #if defined(STM32F4xx)
-	if(wifiShowAP()) { // no ssid is set yet wait for user on-screen input
-		return false;
-	}
+    if(wifiShowAP()) { // no ssid is set yet wait for user on-screen input
+        return false;
+    }
 #else
-	if(WiFi.getMode() == WIFI_AP || WiFi.getMode() == WIFI_AP_STA) {
-		LOG_DEBUG(TAG_WIFI, F("5sec mode AP %d"), WiFi.getMode());
-		return false;
-	}
+    if(WiFi.getMode() == WIFI_AP || WiFi.getMode() == WIFI_AP_STA) {
+        LOG_DEBUG(TAG_WIFI, F("5sec mode AP %d"), WiFi.getMode());
+        return false;
+    }
 #endif
 
-	if(WiFi.status() == WL_CONNECTED && WiFi.localIP() > 0) {
-		disconnectionPeriod = 0;		    // Reset the counter if connection was established
-		return true;
-	}
+    if(WiFi.status() == WL_CONNECTED && WiFi.localIP() > 0) {
+        return true;
+    }
 
-	if(WiFi.status() != WL_CONNECTED) {		// If WiFi disconnected...
-		if(++disconnectionPeriod >= 6) { 	// If 30 seconds have passed since the disconnection...
-			disconnectionPeriod = 0;	    // Restart timeout period
-			wifiReconnect();		        // Reconnect to WiFi
-		}
-	}
-	return false;
+    if(wifiEnabled) {
+        LOG_WARNING(TAG_WIFI, F("No Connection... retry %d"), network_reconnect_counter);
+        wifiReconnect();
+    }
+
+    return false;
 }
 
 bool wifiValidateSsid(const char* ssid, const char* pass)
@@ -621,7 +617,7 @@ void wifi_get_info(JsonDocument& doc)
     String buffer((char*)0);
     buffer.reserve(64);
 
-    JsonObject info = doc[D_INFO_WIFI].to<JsonObject>();
+    JsonObject info       = doc.createNestedObject(F(D_INFO_WIFI));
     info[F(D_INFO_BSSID)] = WiFi.BSSIDstr();
 
     int8_t rssi = WiFi.RSSI();

@@ -43,29 +43,18 @@ bool nvs_clear_user_config()
 
 bool nvsUpdateString(Preferences& preferences, const char* key, JsonVariant value)
 {
-    bool changed = true;
-    if (value.isNull()) return false; 
-
+    bool changed    = false;
     const char* val = value.as<const char*>();
 
-    if (preferences.isKey(key)) {
-        // Arduino's getString length ALREADY includes the null terminator '\0'
-        size_t requiredLen = preferences.getString(key, NULL, 0); 
-        
-        if (requiredLen > 0) {
-            char* buffer = (char*)hasp_malloc(requiredLen);
-            
-            if (buffer) {
-                preferences.getString(key, buffer, requiredLen);
-                changed = (strcmp(buffer, val) != 0); 
-                hasp_free(buffer);
-            }
+    if(!value.isNull()) {                                            // Json key exists
+        if(preferences.isKey(key)) {                                 // Nvs key exists
+            changed = preferences.getString(key, "") != String(val); // Value changed
+        } else
+            changed = true; // Nvs key doesnot exist, create it
+        if(changed) {
+            size_t len = preferences.putString(key, val);
+            LOG_DEBUG(TAG_NVS, F(D_BULLET "Wrote %s => %s (%d bytes)"), key, val, len);
         }
-    } 
-
-    if (changed) {
-        size_t len = preferences.putString(key, val);
-        LOG_DEBUG(TAG_NVS, F(D_BULLET "Wrote %s => %s (%d bytes)"), key, val, len);
     }
 
     return changed;
@@ -74,17 +63,17 @@ bool nvsUpdateString(Preferences& preferences, const char* key, JsonVariant valu
 bool nvsUpdateUInt(Preferences& preferences, const char* key, JsonVariant value)
 {
     bool changed = false;
-    if (value.isNull()) return false; // Json key doesn't exist, change nothing
-
     uint32_t val = value.as<uint32_t>();
 
-    if(preferences.isKey(key)) {                      // Nvs key exists
-        changed = preferences.getUInt(key, 0) != val; // Value changed
-    } else
-        changed = true; // Nvs key doesnot exist, create it
-    if(changed) {
-        size_t len = preferences.putUInt(key, val);
-        LOG_DEBUG(TAG_TIME, F(D_BULLET "Wrote %s => %d"), key, val);
+    if(!value.isNull()) {                                 // Json key exists
+        if(preferences.isKey(key)) {                      // Nvs key exists
+            changed = preferences.getUInt(key, 0) != val; // Value changed
+        } else
+            changed = true; // Nvs key doesnot exist, create it
+        if(changed) {
+            size_t len = preferences.putUInt(key, val);
+            LOG_DEBUG(TAG_TIME, F(D_BULLET "Wrote %s => %d"), key, val);
+        }
     }
 
     return changed;
@@ -93,17 +82,17 @@ bool nvsUpdateUInt(Preferences& preferences, const char* key, JsonVariant value)
 bool nvsUpdateUShort(Preferences& preferences, const char* key, JsonVariant value)
 {
     bool changed = false;
-    if (value.isNull()) return false; // Json key doesn't exist, change nothing
+    uint32_t val = value.as<uint32_t>();
 
-    uint16_t val = value.as<uint16_t>();
-
-    if(preferences.isKey(key)) {                        // Nvs key exists
-        changed = preferences.getUShort(key, 0) != val; // Value changed
-    } else
-        changed = true; // Nvs key doesnot exist, create it
-    if(changed) {
-        size_t len = preferences.putUShort(key, val);
-        LOG_DEBUG(TAG_TIME, F(D_BULLET "Wrote %s => %d"), key, val);
+    if(!value.isNull()) {                                   // Json key exists
+        if(preferences.isKey(key)) {                        // Nvs key exists
+            changed = preferences.getUShort(key, 0) != val; // Value changed
+        } else
+            changed = true; // Nvs key doesnot exist, create it
+        if(changed) {
+            size_t len = preferences.putUShort(key, val);
+            LOG_DEBUG(TAG_TIME, F(D_BULLET "Wrote %s => %d"), key, val);
+        }
     }
 
     return changed;

@@ -70,7 +70,7 @@ void mdnsStart()
         strcpy_P(service, PSTR("openhasp"));
         MDNS.addService(service, proto, 80);
 
-        JsonDocument doc;
+        StaticJsonDocument<1024> doc;
         dispatch_get_discovery_data(doc);
 
         JsonObject data = doc.as<JsonObject>();

@@ -98,7 +98,7 @@ bool otaUpdateCheck()
         return false;
     }
 
-    JsonDocument updateJson;
+    StaticJsonDocument<1024> updateJson;
     DeserializationError jsonError = deserializeJson(updateJson, updateClient.getString());
     updateClient.end();
 
@@ -287,7 +287,7 @@ void ota_http_update(const char* url)
         LOG_ERROR(TAG_OTA, F("HTTP_UPDATE_FAILED client is already connected"));
         return;
     } else {
-        JsonDocument doc; // update update url, get redirect setting
+        StaticJsonDocument<512> doc; // update update url, get redirect setting
         JsonObject settings;
         settings = doc.to<JsonObject>(); // force creation of an empty JsonObject
         otaGetConfig(settings);

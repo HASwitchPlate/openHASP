@@ -20,18 +20,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
-#include <queue>
-#include <mutex>
-#include <string>
 #include "../mqtt/hasp_mqtt.h"
-
-/* Deferred command queue: the MQTT callback runs on the Paho thread, and the handlers call LVGL and
- * SDL, which are not thread-safe. Queue incoming commands for processing on the main thread.
- * The queue drops the oldest entry when full, and the oldest entries of a layout push are the jsonl
- * lines that create the objects, so this has to be comfortably larger than one burst. */
-#define DISPATCH_DEFERRED_QUEUE_MAX 1024
-static std::queue<std::pair<std::string, std::string>> deferred_queue;
-static std::mutex deferred_mutex;
 #else
 #include "StringStream.h"
 #include "StreamUtils.h" // for exec ReadBufferingStream
@@ -229,7 +218,7 @@ static void dispatch_output(const char* topic, const char* payload)
     uint8_t pin = atoi(topic);
 
     if(strlen(payload) > 0) {
-        JsonDocument json;
+        StaticJsonDocument<128> json;
 
         // Note: Deserialization needs to be (const char *) so the objects WILL be copied
         // this uses more memory but otherwise the mqtt receive buffer can get overwritten by the send buffer !!
@@ -351,7 +340,7 @@ static void dispatch_command(const char* topic, const char* payload, bool update
 
 #if HASP_USE_WIFI > 0
     } else if(!strcmp_P(topic, FP_CONFIG_SSID) || !strcmp_P(topic, FP_CONFIG_PASS)) {
-        JsonDocument settings;
+        StaticJsonDocument<64> settings;
         settings[topic] = payload;
         wifiSetConfig(settings.as<JsonObject>());
 #endif // HASP_USE_WIFI
@@ -364,7 +353,7 @@ static void dispatch_command(const char* topic, const char* payload, bool update
         // memset(item, 0, sizeof(item));
         // strncpy(item, topic + 4, 4);
 
-        JsonDocument settings;
+        StaticJsonDocument<64> settings;
         settings[topic + 4] = payload;
         mqttSetConfig(settings.as<JsonObject>());
 #endif // HASP_USE_MQTT
@@ -474,36 +463,6 @@ void dispatch_topic_payload(const char* topic, const char* payload, bool update,
     dispatch_command(topic, (char*)payload, update, source); // dispatch as is
 }
 
-#if HASP_TARGET_PC
-void dispatch_defer_command(const char* topic, const char* payload)
-{
-    std::lock_guard<std::mutex> lock(deferred_mutex);
-    if(deferred_queue.size() >= DISPATCH_DEFERRED_QUEUE_MAX) {
-        // Dropping the oldest entry of a layout push discards the jsonl that creates the objects, and the
-        // values that follow then arrive for objects that do not exist. Say so rather than truncating in
-        // silence.
-        LOG_WARNING(TAG_MSGR, F("Deferred command queue full, dropping %s"), deferred_queue.front().first.c_str());
-        deferred_queue.pop();
-    }
-    deferred_queue.push({std::string(topic), std::string(payload)});
-}
-
-void dispatch_process_deferred(void)
-{
-    std::pair<std::string, std::string> item;
-    for(;;) {
-        {
-            std::lock_guard<std::mutex> lock(deferred_mutex);
-            if(deferred_queue.empty()) break;
-            item = deferred_queue.front();
-            deferred_queue.pop();
-        }
-        bool update = item.second.size() > 0;
-        dispatch_topic_payload(item.first.c_str(), item.second.c_str(), update, TAG_MQTT);
-    }
-}
-#endif
-
 // void dispatch_output_group_state(uint8_t groupid, uint16_t state)
 // {
 //     char payload[64];
@@ -520,14 +479,14 @@ void dispatch_process_deferred(void)
 // Get or Set a part of the config.json file
 void dispatch_config(const char* topic, const char* payload, uint8_t source)
 {
-    JsonDocument doc;
+    DynamicJsonDocument doc(512);
     char buffer[512];
     JsonObject settings;
     bool update;
 
     if(strlen(payload) == 0) {
         // Make sure we have a valid JsonObject to start from
-        settings = doc[topic].to<JsonObject>();
+        settings = doc.to<JsonObject>().createNestedObject(topic);
         update   = false;
 
     } else {
@@ -685,14 +644,6 @@ void dispatch_screenshot(const char*, const char* filename, uint8_t source)
         guiTakeScreenshot(filename);
     }
 
-#elif defined(POSIX)
-
-    if(strlen(filename) == 0) {
-        guiTakeScreenshot("screenshot.bmp");
-    } else {
-        guiTakeScreenshot(filename);
-    }
-
 #else
     LOG_WARNING(TAG_MSGR, D_FILE_SAVE_FAILED, filename);
 #endif
@@ -732,7 +683,9 @@ void dispatch_text_line(const char* payload, uint8_t source)
 {
 
     {
-        JsonDocument doc;
+        // StaticJsonDocument<1024> doc;
+        size_t maxsize = (128u * ((strlen(payload) / 128) + 1)) + 512;
+        DynamicJsonDocument doc(maxsize);
 
         // Note: Deserialization needs to be (const char *) so the objects WILL be copied
         // this uses more memory but otherwise the mqtt receive buffer can get overwritten by the send buffer !!
@@ -760,7 +713,9 @@ void dispatch_text_line(const char* payload, uint8_t source)
 
 void dispatch_parse_json(const char*, const char* payload, uint8_t source)
 { // Parse an incoming JSON array into individual commands
-    JsonDocument doc;
+  // StaticJsonDocument<2048> doc;
+    size_t maxsize = (128u * ((strlen(payload) / 128) + 1)) + 512;
+    DynamicJsonDocument doc(maxsize);
     DeserializationError jsonError = deserializeJson(doc, payload);
     doc.shrinkToFit();
 
@@ -786,7 +741,8 @@ void dispatch_parse_jsonl(std::istream& stream, uint8_t& saved_page_id)
     stream.setTimeout(25);
 #endif
 
-    JsonDocument jsonl;
+    // StaticJsonDocument<1024> jsonl;
+    DynamicJsonDocument jsonl(MQTT_MAX_PACKET_SIZE / 2 + 128);
     DeserializationError jsonError; // = deserializeJson(jsonl, stream);
     uint16_t line = 1;
 
@@ -915,7 +871,7 @@ void dispatch_run_script(const char*, const char* payload, uint8_t source)
 /*
 void dispatch_fs(const char*, const char* payload, uint8_t source)
 {
-    JsonDocument json;
+    StaticJsonDocument<512> json;
 
     // Note: Deserialization needs to be (const char *) so the objects WILL be copied
     // this uses more memory but otherwise the mqtt receive buffer can get overwritten by the send buffer !!
@@ -1046,7 +1002,7 @@ void dispatch_page(const char*, const char* payload, uint8_t source)
     uint8_t pageid               = Parser::haspPayloadToPageid(payload);
 
     if(pageid == 0) {
-        JsonDocument json;
+        StaticJsonDocument<128> json;
 
         // Note: Deserialization needs to be (const char *) so the objects WILL be copied
         // this uses more memory but otherwise the mqtt receive buffer can get overwritten by the send buffer !!
@@ -1122,7 +1078,7 @@ void dispatch_moodlight(const char* topic, const char* payload, uint8_t source)
 {
     // Set the current state
     if(strlen(payload) != 0) {
-        JsonDocument json;
+        StaticJsonDocument<128> json;
 
         // Note: Deserialization needs to be (const char *) so the objects WILL be copied
         // this uses more memory but otherwise the mqtt receive buffer can get overwritten by the send buffer !!
@@ -1180,7 +1136,7 @@ void dispatch_backlight(const char*, const char* payload, uint8_t source)
 
     // Set the current state
     if(strlen(payload) != 0) {
-        JsonDocument json;
+        StaticJsonDocument<128> json;
 
         // Note: Deserialization needs to be (const char *) so the objects WILL be copied
         // this uses more memory but otherwise the mqtt receive buffer can get overwritten by the send buffer !!
@@ -1247,7 +1203,7 @@ void dispatch_web_update(const char*, const char* espOtaUrl, uint8_t source)
 void dispatch_antiburn(const char*, const char* payload, uint8_t source)
 {
     if(strlen(payload) >= 0) {
-        JsonDocument json;
+        StaticJsonDocument<128> json;
 
         // Note: Deserialization needs to be (const char *) so the objects WILL be copied
         // this uses more memory but otherwise the mqtt receive buffer can get overwritten by the send buffer !!
@@ -1315,7 +1271,7 @@ void dispatch_send_sensordata(const char*, const char*, uint8_t source)
 {
 #if HASP_USE_MQTT > 0
 
-    JsonDocument doc;
+    StaticJsonDocument<1024> doc;
 
     time_t rawtime;
     time(&rawtime);
@@ -1323,10 +1279,10 @@ void dispatch_send_sensordata(const char*, const char*, uint8_t source)
     struct tm* timeinfo = localtime(&rawtime);
 
     strftime(buffer, sizeof(buffer), "%FT%T", timeinfo);
-    doc["time"] = buffer;
+    doc[F("time")] = buffer;
 
     long uptime         = haspDevice.get_uptime();
-    doc["uptimeSec"] = (uint32_t)uptime;
+    doc[F("uptimeSec")] = (uint32_t)uptime;
 
     uint32_t seconds = uptime % 60;
     uint32_t minutes = uptime / 60;
@@ -1335,13 +1291,22 @@ void dispatch_send_sensordata(const char*, const char*, uint8_t source)
     minutes          = minutes % 60;
     hours            = hours % 24;
     snprintf_P(buffer, sizeof(buffer), PSTR("%dT%02d:%02d:%02d"), days, hours, minutes, seconds);
-    doc["uptime"] = buffer;
+    doc[F("uptime")] = buffer;
 
     haspDevice.get_sensors(doc);
 
 #if defined(HASP_USE_CUSTOM) && HASP_USE_CUSTOM > 0
     custom_get_sensors(doc);
 #endif
+
+    //     JsonObject input = doc.createNestedObject(F("input"));
+    //     JsonArray relay  = doc.createNestedArray(F("power"));
+    //     JsonArray led    = doc.createNestedArray(F("light"));
+    //     JsonArray dimmer = doc.createNestedArray(F("dim"));
+
+    // #if HASP_USE_GPIO > 0
+    //     gpio_discovery(input, relay, led, dimmer);
+    // #endif
 
     char data[1024];
     size_t len = serializeJson(doc, data);
@@ -1378,26 +1343,26 @@ void dispatch_get_discovery_data(JsonDocument& doc)
 {
     char buffer[64];
 
-    doc["node"]   = haspDevice.get_hostname();
-    doc["mdl"]    = haspDevice.get_model();
-    doc["mf"]     = F(D_MANUFACTURER);
-    doc["hwid"]   = haspDevice.get_hardware_id();
-    doc["pages"]  = haspPages.count();
-    doc["sw"]     = haspDevice.get_version();
-    doc["node_t"] = String("hasp/") + haspDevice.get_hostname() + "/";
+    doc[F("node")]   = haspDevice.get_hostname();
+    doc[F("mdl")]    = haspDevice.get_model();
+    doc[F("mf")]     = F(D_MANUFACTURER);
+    doc[F("hwid")]   = haspDevice.get_hardware_id();
+    doc[F("pages")]  = haspPages.count();
+    doc[F("sw")]     = haspDevice.get_version();
+    doc[F("node_t")] = String("hasp/") + haspDevice.get_hostname() + "/";
 
 #if HASP_USE_HTTP > 0
     network_get_ipaddress(buffer, sizeof(buffer));
-    doc["uri"] = String(F("http://")) + String(buffer);
+    doc[F("uri")] = String(F("http://")) + String(buffer);
 #elif HASP_TARGET_PC
-    doc["uri"] = "http://google.pt";
+    doc[F("uri")] = "http://google.pt";
 #endif
 
-    JsonObject input = doc["input"].to<JsonObject>();
-    JsonArray relay  = doc["power"].to<JsonArray>();
-    JsonArray led    = doc["light"].to<JsonArray>();
-    JsonArray dimmer = doc["dim"].to<JsonArray>();
-    JsonArray event  = doc["event"].to<JsonArray>();
+    JsonObject input = doc.createNestedObject(F("input"));
+    JsonArray relay  = doc.createNestedArray(F("power"));
+    JsonArray led    = doc.createNestedArray(F("light"));
+    JsonArray dimmer = doc.createNestedArray(F("dim"));
+    JsonArray event  = doc.createNestedArray(F("event"));
 
 #if HASP_USE_GPIO > 0
     gpio_discovery(input, relay, led, dimmer, event);
@@ -1408,7 +1373,7 @@ void dispatch_get_discovery_data(JsonDocument& doc)
 void dispatch_send_discovery(const char*, const char*, uint8_t source)
 {
 #if HASP_USE_MQTT > 0
-    JsonDocument doc;
+    StaticJsonDocument<1024> doc;
     char data[1024];
     char buffer[64];
 

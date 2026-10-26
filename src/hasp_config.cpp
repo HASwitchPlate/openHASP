@@ -396,7 +396,7 @@ void configWrite()
     settingsChanged = F(D_CONFIG_CHANGED);
 
     /* Read Config File */
-    JsonDocument doc;
+    DynamicJsonDocument doc(MAX_CONFIG_JSON_ALLOC_SIZE);
     LOG_TRACE(TAG_CONF, F(D_FILE_LOADING), configFile.c_str());
     configRead(doc, false);
     LOG_INFO(TAG_CONF, F(D_FILE_LOADED), configFile.c_str());
@@ -411,101 +411,108 @@ void configWrite()
 
     bool writefile = false;
     bool changed   = false;
-    JsonObject config;
+    const __FlashStringHelper* module;
 
 #if HASP_USE_WIFI > 0
-    config = settings[FP_WIFI].to<JsonObject>();
-    changed = wifiGetConfig(config);
-    if (changed) {
+    module = FPSTR(FP_WIFI);
+    if(settings[module].as<JsonObject>().isNull()) settings.createNestedObject(module);
+    changed = wifiGetConfig(settings[module]);
+    if(changed) {
         LOG_VERBOSE(TAG_WIFI, settingsChanged.c_str());
-        configOutput(config, TAG_WIFI);
+        configOutput(settings[module], TAG_WIFI);
         writefile = true;
     }
 #endif
 
 #if HASP_USE_WIREGUARD > 0
-    config = settings[FP_WG].to<JsonObject>();
-    changed = wgGetConfig(config);
+    module = FPSTR(FP_WG);
+    if(settings[module].as<JsonObject>().isNull()) settings.createNestedObject(module);
+    changed = wgGetConfig(settings[module]);
     if(changed) {
         LOG_VERBOSE(TAG_WG, settingsChanged.c_str());
-        configOutput(config, TAG_WG);
+        configOutput(settings[module], TAG_WG);
         writefile = true;
     }
 #endif
 
 #if HASP_USE_MQTT > 0
-    config = settings[FP_MQTT].to<JsonObject>();
-    changed = mqttGetConfig(config);
+    module = FPSTR(FP_MQTT);
+    if(settings[module].as<JsonObject>().isNull()) settings.createNestedObject(module);
+    changed = mqttGetConfig(settings[module]);
     if(changed) {
         LOG_VERBOSE(TAG_MQTT, settingsChanged.c_str());
-        configOutput(config, TAG_MQTT);
+        configOutput(settings[module], TAG_MQTT);
         writefile = true;
     }
 #endif
 
 #if HASP_USE_TELNET > 0
-    config = settings[FP_TELNET].to<JsonObject>();
-    changed = telnetGetConfig(config);
+    module = F("telnet");
+    if(settings[module].as<JsonObject>().isNull()) settings.createNestedObject(module);
+    changed = telnetGetConfig(settings[module]);
     if(changed) {
         LOG_VERBOSE(TAG_TELN, settingsChanged.c_str());
-        configOutput(config, TAG_TELN);
+        configOutput(settings[module], TAG_TELN);
         writefile = true;
     }
 #endif
 
 #if HASP_USE_MDNS > 0
-    config = settings[FP_MDNS].to<JsonObject>();
-    changed = mdnsGetConfig(config);
+    module = FPSTR(FP_MDNS);
+    if(settings[module].as<JsonObject>().isNull()) settings.createNestedObject(module);
+    changed = mdnsGetConfig(settings[module]);
     if(changed) {
         LOG_VERBOSE(TAG_MDNS, settingsChanged.c_str());
-        configOutput(config, TAG_MDNS);
+        configOutput(settings[module], TAG_MDNS);
         writefile = true;
     }
 #endif
 
 #if HASP_USE_HTTP > 0
-    config = settings[FP_HTTP].to<JsonObject>();
-    changed = httpGetConfig(config);
+    if(settings[FPSTR(FP_HTTP)].as<JsonObject>().isNull()) settings.createNestedObject(F("http"));
+    changed = httpGetConfig(settings[FPSTR(FP_HTTP)]);
     if(changed) {
         LOG_VERBOSE(TAG_HTTP, settingsChanged.c_str());
-        configOutput(config, TAG_HTTP);
+        configOutput(settings[FPSTR(FP_HTTP)], TAG_HTTP);
         writefile = true;
     }
 #endif
 
 #if HASP_USE_GPIO > 0
-    config = settings[FP_GPIO].to<JsonObject>();
-    changed = gpioGetConfig(config);
+    module = FPSTR(FP_GPIO);
+    if(settings[module].as<JsonObject>().isNull()) settings.createNestedObject(module);
+    changed = gpioGetConfig(settings[module]);
     if(changed) {
         LOG_VERBOSE(TAG_GPIO, settingsChanged.c_str());
-        configOutput(config, TAG_GPIO);
+        configOutput(settings[module], TAG_GPIO);
         writefile = true;
     }
 #endif
 
 #if HASP_TARGET_ARDUINO
-    config = settings[FP_DEBUG].to<JsonObject>();
-    changed = debugGetConfig(config);
+    module = FPSTR(FP_DEBUG);
+    if(settings[module].as<JsonObject>().isNull()) settings.createNestedObject(module);
+    changed = debugGetConfig(settings[module]);
     if(changed) {
         LOG_VERBOSE(TAG_DEBG, settingsChanged.c_str());
-        configOutput(config, TAG_DEBG);
+        configOutput(settings[module], TAG_DEBG);
         writefile = true;
     }
 #endif
 
-    config = settings[FP_GUI].to<JsonObject>();
-    changed = guiGetConfig(config);
+    if(settings[FPSTR(FP_GUI)].as<JsonObject>().isNull()) settings.createNestedObject(FPSTR(FP_GUI));
+    changed = guiGetConfig(settings[FPSTR(FP_GUI)]);
     if(changed) {
         LOG_VERBOSE(TAG_GUI, settingsChanged.c_str());
-        configOutput(config, TAG_GUI);
+        configOutput(settings[FPSTR(FP_GUI)], TAG_GUI);
         writefile = true;
     }
 
-    config = settings[FP_HASP].to<JsonObject>();
-    changed = haspGetConfig(config);
+    if(settings[FPSTR(FP_HASP)].as<JsonObject>().isNull()) settings.createNestedObject(FPSTR(FP_HASP));
+    changed = haspGetConfig(settings[FPSTR(FP_HASP)]);
     if(changed) {
         LOG_VERBOSE(TAG_HASP, settingsChanged.c_str());
-        configOutput(config, TAG_HASP);
+        configOutput(settings[FPSTR(FP_HASP)], TAG_HASP);
         writefile = true;
     }
 
@@ -563,7 +570,7 @@ void configWrite()
 
 void configSetup()
 {
-    JsonDocument settings;
+    DynamicJsonDocument settings(MAX_CONFIG_JSON_ALLOC_SIZE);
 
     for(uint32_t i = 0; i < 2; i++) {
         if(i == 0) {
