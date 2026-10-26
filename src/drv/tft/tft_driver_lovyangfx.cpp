@@ -336,6 +336,13 @@ lgfx::Panel_Device* LovyanGfx::_init_panel(lgfx::IBus* bus)
             LOG_VERBOSE(TAG_TFT, F("Panel_GC9A01"));
             break;
         }
+        case TFT_PANEL_RM690B0: {
+#if defined(LGFX_USE_QSPI)
+            panel = new lgfx::Panel_RM690B0();
+            LOG_VERBOSE(TAG_TFT, F("Panel_RM690B0"));
+#endif
+            break;
+        }
         default: { // Needs to be in curly braces
             LOG_FATAL(TAG_TFT, F(D_SERVICE_START_FAILED ": %s line %d"), __FILE__, __LINE__);
         }
@@ -366,6 +373,32 @@ lgfx::ITouch* _init_touch(Preferences* preferences)
         cfg.y_max      = TFT_HEIGHT - 1; // タッチスクリーンから得られる最大のY値(生の値)
         cfg.bus_shared = false;          // 画面と共通のバスを使用している場合 trueを設定
         cfg.offset_rotation = TOUCH_OFFSET_ROTATION; // 表示とタッチの向きのが一致しない場合の調整 0~7の値で設定
+
+        // I2C接続の場合
+        cfg.i2c_port = I2C_TOUCH_PORT;      // 使用するI2Cを選択 (0 or 1)
+        cfg.i2c_addr = I2C_TOUCH_ADDRESS;   // I2Cデバイスアドレス番号
+        cfg.pin_sda  = TOUCH_SDA;           // SDAが接続されているピン番号
+        cfg.pin_scl  = TOUCH_SCL;           // SCLが接続されているピン番号
+        cfg.pin_int  = TOUCH_IRQ;           // INTが接続されているピン番号
+        cfg.freq     = I2C_TOUCH_FREQUENCY; // I2Cクロックを設定
+
+        touch->config(cfg);
+        return touch;
+    }
+#endif
+
+#if TOUCH_DRIVER == 0x0820
+
+    { // タッチスクリーン制御の設定を行います。（必要なければ削除）
+        auto touch = new lgfx::Touch_FT5x06();
+        auto cfg   = touch->config();
+
+        cfg.x_min      = 0;              // The minimum X value obtained from the touchscreen (raw value).
+        cfg.x_max      = TFT_WIDTH - 1;  // The maximum X value obtained from the touchscreen (raw value).
+        cfg.y_min      = 0;              // The minimum Y value obtained from the touchscreen (raw value).
+        cfg.y_max      = TFT_HEIGHT - 1; // The maximum Y value obtained from the touchscreen (raw value).
+        cfg.bus_shared = true;           // If using a common bus with the screen, set it to true.
+        cfg.offset_rotation = TOUCH_OFFSET_ROTATION; // Adjustment when the display orientation does not match the touch orientation. Set in values from 0 to 7.
 
         // I2C接続の場合
         cfg.i2c_port = I2C_TOUCH_PORT;      // 使用するI2Cを選択 (0 or 1)
@@ -420,7 +453,14 @@ lgfx::ITouch* _init_touch(Preferences* preferences)
         LOG_DEBUG(TAG_TFT, F("%s - %d"), __FILE__, __LINE__);
 
         cfg.bus_shared      = true;
-        cfg.offset_rotation = 0;
+        cfg.offset_rotation = TOUCH_OFFSET_ROTATION;
+#ifdef SPI_TOUCH_FREQUENCY
+        cfg.freq            = SPI_TOUCH_FREQUENCY;
+#endif
+        cfg.x_min = 0;    // XPT2046 raw ADC minimum (12-bit)
+        cfg.x_max = 4095; // XPT2046 raw ADC maximum (12-bit)
+        cfg.y_min = 0;
+        cfg.y_max = 4095;
 
         cfg.spi_host = SPI3_HOST;
         // cfg.pin_sclk = 18;
@@ -477,6 +517,31 @@ lgfx::ITouch* _init_touch(Preferences* preferences)
         cfg.offset_rotation = TOUCH_OFFSET_ROTATION;
 
         // I2C接続の場合
+        cfg.i2c_port = I2C_TOUCH_PORT;
+        cfg.i2c_addr = I2C_TOUCH_ADDRESS;
+        cfg.pin_sda  = TOUCH_SDA;
+        cfg.pin_scl  = TOUCH_SCL;
+        cfg.freq     = I2C_TOUCH_FREQUENCY;
+
+        touch->config(cfg);
+        return touch;
+    }
+#endif
+
+#if TOUCH_DRIVER == 0x0226 || TOUCH_DRIVER == 0x226
+    {
+        auto touch = new lgfx::Touch_CST226();
+        auto cfg   = touch->config();
+
+        cfg.x_min           = 0;
+        cfg.x_max           = TFT_WIDTH - 1;
+        cfg.y_min           = 0;
+        cfg.y_max           = TFT_HEIGHT - 1;
+        cfg.pin_int         = TOUCH_IRQ;
+        cfg.pin_rst         = TOUCH_RST;
+        cfg.bus_shared      = false;
+        cfg.offset_rotation = TOUCH_OFFSET_ROTATION;
+
         cfg.i2c_port = I2C_TOUCH_PORT;
         cfg.i2c_addr = I2C_TOUCH_ADDRESS;
         cfg.pin_sda  = TOUCH_SDA;
@@ -1089,7 +1154,69 @@ void LovyanGfx::init(int w, int h)
         cfg.pin_sda         = TOUCH_SDA;
         cfg.pin_scl         = TOUCH_SCL;
         cfg.freq            = 400000;
-        cfg.i2c_addr        = 0x14; // 0x5D , 0x14
+        cfg.pin_rst         = TOUCH_RST;
+        cfg.i2c_addr        = I2C_TOUCH_ADDRESS;
+        _touch_instance->config(cfg);
+        _panel_instance->setTouch(_touch_instance);
+    }
+#elif defined(LILYGO_T4_S3)
+    pinMode(PWR_EN, OUTPUT);
+    digitalWrite(PWR_EN, HIGH);
+
+    auto _panel_instance = new lgfx::Panel_RM690B0();
+    auto _bus_instance   = new lgfx::Bus_SPI();
+    auto _touch_instance = new lgfx::Touch_CST226();
+
+    {
+        auto cfg       = _bus_instance->config();
+        cfg.freq_write = SPI_FREQUENCY;
+        cfg.freq_read  = SPI_READ_FREQUENCY;
+        cfg.pin_sclk   = TFT_SCK;
+        cfg.pin_io0    = TFT_D0;
+        cfg.pin_io1    = TFT_D1;
+        cfg.pin_io2    = TFT_D2;
+        cfg.pin_io3    = TFT_D3;
+        cfg.spi_host   = SPI2_HOST;
+        cfg.spi_mode   = SPI_MODE0;
+        cfg.dma_channel = SPI_DMA_CH_AUTO;
+        _bus_instance->config(cfg);
+        _panel_instance->setBus(_bus_instance);
+    }
+
+    {
+        auto cfg             = _panel_instance->config();
+        cfg.pin_cs           = TFT_CS;
+        cfg.pin_rst          = TFT_RST;
+        cfg.pin_busy         = TFT_BUSY;
+        cfg.memory_width     = 452;
+        cfg.memory_height    = 600;
+        cfg.panel_width      = TFT_WIDTH;
+        cfg.panel_height     = TFT_HEIGHT;
+        cfg.offset_x         = TFT_OFFSET_X;
+        cfg.offset_y         = TFT_OFFSET_Y;
+        cfg.offset_rotation  = TFT_ROTATION;
+        cfg.readable         = true;
+        cfg.invert           = false;
+        cfg.rgb_order        = false;
+        cfg.bus_shared       = false;
+        _panel_instance->config(cfg);
+    }
+
+    {
+        auto cfg            = _touch_instance->config();
+        cfg.x_min           = 0;
+        cfg.x_max           = TFT_WIDTH - 1;
+        cfg.y_min           = 0;
+        cfg.y_max           = TFT_HEIGHT - 1;
+        cfg.pin_int         = TOUCH_IRQ;
+        cfg.pin_rst         = TOUCH_RST;
+        cfg.bus_shared      = false;
+        cfg.offset_rotation = TOUCH_OFFSET_ROTATION;
+        cfg.i2c_port        = I2C_TOUCH_PORT;
+        cfg.i2c_addr        = I2C_TOUCH_ADDRESS;
+        cfg.pin_sda         = TOUCH_SDA;
+        cfg.pin_scl         = TOUCH_SCL;
+        cfg.freq            = I2C_TOUCH_FREQUENCY;
         _touch_instance->config(cfg);
         _panel_instance->setTouch(_touch_instance);
     }
@@ -1259,6 +1386,41 @@ void LovyanGfx::set_invert(bool invert)
     tft.invertDisplay(invert);
 }
 
+void LovyanGfx::restore_analog_touch_pins()
+{
+#if defined(CONFIG_IDF_TARGET_ESP32S3) && (TOUCH_DRIVER == 0x0ADC)
+    auto panel = tft.getPanel();
+    if(!panel || !panel->getBus() || panel->getBus()->busType() != lgfx::v1::bus_parallel8) return;
+
+    auto cfg = ((lgfx::Bus_Parallel8*)panel->getBus())->config();
+    const int8_t touch_pins[] = {TFT_D6, TFT_DC, TFT_WR, TFT_D7};
+
+    for(int8_t pin : touch_pins) {
+        if(pin == cfg.pin_rs) {
+            gpio_matrix_out(pin, LCD_DC_IDX, false, false);
+        } else if(pin == cfg.pin_wr) {
+            gpio_matrix_out(pin, LCD_PCLK_IDX, false, false);
+        } else if(pin == cfg.pin_d0) {
+            gpio_matrix_out(pin, LCD_DATA_OUT0_IDX, false, false);
+        } else if(pin == cfg.pin_d1) {
+            gpio_matrix_out(pin, LCD_DATA_OUT0_IDX + 1, false, false);
+        } else if(pin == cfg.pin_d2) {
+            gpio_matrix_out(pin, LCD_DATA_OUT0_IDX + 2, false, false);
+        } else if(pin == cfg.pin_d3) {
+            gpio_matrix_out(pin, LCD_DATA_OUT0_IDX + 3, false, false);
+        } else if(pin == cfg.pin_d4) {
+            gpio_matrix_out(pin, LCD_DATA_OUT0_IDX + 4, false, false);
+        } else if(pin == cfg.pin_d5) {
+            gpio_matrix_out(pin, LCD_DATA_OUT0_IDX + 5, false, false);
+        } else if(pin == cfg.pin_d6) {
+            gpio_matrix_out(pin, LCD_DATA_OUT0_IDX + 6, false, false);
+        } else if(pin == cfg.pin_d7) {
+            gpio_matrix_out(pin, LCD_DATA_OUT0_IDX + 7, false, false);
+        }
+    }
+#endif
+}
+
 /* Update TFT */
 void IRAM_ATTR LovyanGfx::flush_pixels(lv_disp_drv_t* disp, const lv_area_t* area, lv_color_t* color_p)
 {
@@ -1266,10 +1428,15 @@ void IRAM_ATTR LovyanGfx::flush_pixels(lv_disp_drv_t* disp, const lv_area_t* are
     uint32_t h   = (area->y2 - area->y1 + 1);
     uint32_t len = w * h;
 
-    tft.startWrite();                                        /* Start new TFT transaction */
+    tft.startWrite(); /* Start new TFT transaction */
+#if defined(ILI9486_DRIVER)
+    tft.setWindow(area->x1, area->y1, area->x2, area->y2);
+    tft.writePixels((const uint16_t*)&color_p->full, len, true);
+#else
     tft.setAddrWindow(area->x1, area->y1, w, h);             /* set the working window */
     tft.writePixels((lgfx::rgb565_t*)&color_p->full, w * h); /* Write words at once */
-    tft.endWrite();                                          /* terminate TFT transaction */
+#endif
+    tft.endWrite(); /* terminate TFT transaction */
 
     /* Tell lvgl that flushing is done */
     lv_disp_flush_ready(disp);
@@ -1363,6 +1530,8 @@ const char* LovyanGfx::get_tft_model()
     return "RM68140";
 #elif defined(GC9A01_DRIVER)
     return "GC9A01";
+#elif defined(RM690B0_DRIVER)
+    return "RM690B0";
 #else
     return "Other";
 #endif
@@ -1406,6 +1575,8 @@ uint32_t LovyanGfx::get_tft_driver()
     return TFT_PANEL_RGB;
 #elif defined(GC9A01_DRIVER)
     return TFT_PANEL_GC9A01;
+#elif defined(RM690B0_DRIVER)
+    return TFT_PANEL_RM690B0;
 #else
     return TFT_PANEL_UNKNOWN;
 #endif

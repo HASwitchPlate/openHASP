@@ -86,6 +86,14 @@ bool httpSetConfig(const JsonObject& settings);
 #ifndef D_HTTP_COLOR_PREVIEW
 #define D_HTTP_COLOR_PREVIEW            "#888"
 #endif
+#ifndef D_HTTP_COLOR_DROPDOWN_BG
+#define D_HTTP_COLOR_DROPDOWN_BG        "#777"       // Editor dropdown menu background
+#endif
+#ifndef D_HTTP_COLOR_ITEM_HOVER
+#define D_HTTP_COLOR_ITEM_HOVER         "#ccf"       // Editor left menu item hover background
+#endif
+
+
 
 /* clang-format on */
 

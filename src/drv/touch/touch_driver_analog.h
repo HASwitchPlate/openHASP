@@ -13,6 +13,9 @@
 #include "touch_driver.h" // base class
 
 #include "../../hasp/hasp.h" // for hasp_sleep_state
+#if defined(LGFX_USE_V1) && defined(CONFIG_IDF_TARGET_ESP32S3)
+#include "../tft/tft_driver.h"
+#endif
 extern uint8_t hasp_sleep_state;
 #define MINPRESSURE 200
 #define MAXPRESSURE 2400
@@ -38,10 +41,17 @@ class AnalogTouch : public BaseTouch {
     {
         static TSPoint tp;
         tp = ts.getPoint();
+#if defined(LGFX_USE_V1) && defined(CONFIG_IDF_TARGET_ESP32S3)
+        haspTft.restore_analog_touch_pins();
+#endif
         if(tp.z < MINPRESSURE) {
             data->state = LV_INDEV_STATE_REL;
         } else {
+#ifdef TOUCH_INVERT_X
+            data->point.x = map(tp.x, TS_LEFT, TS_RT, max_x, 0);
+#else
             data->point.x = map(tp.x, TS_LEFT, TS_RT, 0, max_x);
+#endif
             data->point.y = map(tp.y, TS_BOT, TS_TOP, max_y, 0);
             data->state   = LV_INDEV_STATE_PR;
             hasp_set_sleep_offset(0); // Reset the offset

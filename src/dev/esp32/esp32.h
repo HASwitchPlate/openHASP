@@ -80,12 +80,16 @@ class Esp32Device : public BaseDevice {
 
 } // namespace dev
 
-#if defined(LANBONL8)
+#if defined(HASP_CROWPANEL_ADVANCED)
+#include "crowpanel_advanced.h"
+#elif defined(LANBONL8)
 // #warning Building for Lanbon L8
 #include "lanbonl8.h"
 #elif defined(M5STACK) || defined (M5STACKLGFX)
 // #warning Building for M5Stack core2
 #include "m5stackcore2.h"
+#elif defined(TWATCH)
+#include "twatch.h"
 #else
 using dev::Esp32Device;
 extern dev::Esp32Device haspDevice;

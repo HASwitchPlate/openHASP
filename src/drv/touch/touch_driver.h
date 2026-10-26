@@ -57,14 +57,14 @@ class BaseTouch {
 #elif TOUCH_DRIVER == 0x2046 && defined(LGFX_USE_V1) && defined(HASP_USE_LGFX_TOUCH)
 #warning Building for LovyanGFX XPT2046
 #include "touch_driver_lovyangfx.h"
+#elif TOUCH_DRIVER == 0x2046
+#warning Building for standalone XPT2046
+#include "touch_driver_xpt2046.h"
 #elif TOUCH_DRIVER == 0x0911 && defined(LGFX_USE_V1) && defined(HASP_USE_LGFX_TOUCH)
 #warning Building for LovyanGFX GT911
 #include "touch_driver_lovyangfx.h"
 #elif TOUCH_DRIVER == 0x6336 && defined(LGFX_USE_V1) && defined(HASP_USE_LGFX_TOUCH)
 #warning Building for LovyanGFX FT6336
-#include "touch_driver_lovyangfx.h"
-#elif defined(LGFX_USE_V1) && defined(HASP_USE_LGFX_TOUCH)
-#warning Building for LovyanGFX
 #include "touch_driver_lovyangfx.h"
 #elif TOUCH_DRIVER == 0x5206
 #warning Building for FT5206
@@ -87,12 +87,18 @@ class BaseTouch {
 #elif TOUCH_DRIVER == 0x2007
 #warning Building for TSC2007
 #include "touch_driver_tsc2007.h"
-#elif defined(LGFX_USE_V1)
-#warning Building for LovyanGfx Touch
-#include "touch_driver_lovyangfx.h"
 #elif TOUCH_DRIVER == 0x3240
 #warning Building for CST3240
 #include "touch_driver_cst3240.h"
+#elif TOUCH_DRIVER == 0x816
+#warning Building for CST816S
+#include "touch_driver_cst816.h"
+#elif defined(LGFX_USE_V1) && defined(HASP_USE_LGFX_TOUCH)
+#warning Building for LovyanGFX Touch
+#include "touch_driver_lovyangfx.h"
+#elif defined(LGFX_USE_V1)
+#warning Building for LovyanGfx No Touch
+#include "touch_driver_lovyangfx.h"
 #else
 #warning Building for Generic Touch
 using dev::BaseTouch;

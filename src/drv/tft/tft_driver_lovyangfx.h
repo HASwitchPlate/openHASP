@@ -39,6 +39,7 @@ class LovyanGfx : BaseTft {
 
     void set_rotation(uint8_t rotation);
     void set_invert(bool invert);
+    void restore_analog_touch_pins();
 
     void flush_pixels(lv_disp_drv_t* disp, const lv_area_t* area, lv_color_t* color_p);
     bool is_driver_pin(uint8_t pin);
