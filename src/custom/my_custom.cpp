@@ -8,7 +8,7 @@
 #include "hasplib.h"
 //#include <lvgl.h>
 #include "driver/rtc_io.h"
-#include <Adafruit_AHTX0.h>
+//#include <Adafruit_AHTX0.h>
 
 #if defined(HASP_USE_CUSTOM) && true // <-- set this to true in your code
 
