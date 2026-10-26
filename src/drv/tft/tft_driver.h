@@ -33,6 +33,7 @@ enum lv_hasp_obj_type_t {
     TFT_PANEL_RGB,
     TFT_PANEL_EPD,
     TFT_PANEL_GC9A01,
+    TFT_PANEL_RM690B0,
     TFT_PANEL_LAST,
 };
 
@@ -87,6 +88,9 @@ class BaseTft {
 #elif USE_FBDEV && HASP_TARGET_PC
 // #warning Building for POSIX fbdev
 #include "tft_driver_posix_fbdev.h"
+#elif HASP_USE_NULL_DRIVER && HASP_TARGET_PC
+// #warning Building for Null (headless)
+#include "tft_driver_null.h"
 #else
 // #warning Building for Generic Tfts
 using dev::BaseTft;
