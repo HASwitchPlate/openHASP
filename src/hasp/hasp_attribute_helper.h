@@ -122,7 +122,7 @@ void my_obj_set_tag(lv_obj_t* obj, const char* payload)
 
     if(ext) {
         // create new tag
-        StaticJsonDocument<512> doc;
+        JsonDocument doc;
         size_t len = payload ? strlen(payload) : 0;
 
         // check if it is a proper JSON object
@@ -172,7 +172,7 @@ void my_obj_set_action(lv_obj_t* obj, const char* payload)
 
     // create new action
     if(ext) {
-        StaticJsonDocument<512> doc;
+        JsonDocument doc;
         size_t len  = payload ? strlen(payload) : 0;
         ext->action = NULL;
 
@@ -199,7 +199,7 @@ void my_obj_set_action(lv_obj_t* obj, const char* payload)
                 }
             }
             strcat(json, "\"}");
-            deserializeJson(doc, json);
+            deserializeJson(doc, (const char*)json);
         } else {
             // Check for new json action format
             DeserializationError res = deserializeJson(doc, payload, len);
@@ -258,7 +258,7 @@ void my_obj_set_swipe(lv_obj_t* obj, const char* payload)
         }
 
         // create new action
-        StaticJsonDocument<512> doc;
+        JsonDocument doc;
         size_t len = payload ? strlen(payload) : 0;
         ext->swipe = NULL;
 
@@ -505,45 +505,37 @@ static const char* my_label_get_text(const lv_obj_t* label)
 
 static void my_label_set_text(lv_obj_t* label, const char* text)
 {
-    if(text[0] == '%') {
-        uint16_t hash           = Parser::get_sdbm(text);
-        size_t len              = strlen(text);
-        const char* static_text = NULL;
+    if(!text || !label) return;
 
-        switch(hash) {
-            case ATTR_TEXT_MAC:
-                if(len == 5) static_text = haspDevice.get_hardware_id();
-                break;
+    std::string result(text);
+
+    // Helper to replace tags only if not preceded by '\'
+    auto safe_replace = [](std::string& str, const std::string& tag, const char* replacement) {
+        size_t pos = 0;
+        while((pos = str.find(tag, pos)) != std::string::npos) {
+            if(pos == 0 || str[pos - 1] != '\\') {
+                str.replace(pos, tag.length(), replacement);
+                pos += strlen(replacement);
+            } else {
+                // Remove the escape character '\'
+                str.erase(pos - 1, 1);
+                pos += tag.length() - 1;
+            }
+        }
+    };
+
+    safe_replace(result, "%mac%", haspDevice.get_hardware_id());
 
 #if HASP_USE_WIFI > 0
-            case ATTR_TEXT_SSID:
-                if(len == 6) static_text = wifi_get_ssid();
-                break;
-
-            case ATTR_TEXT_IP:
-                if(len == 4) static_text = wifi_get_ip_address();
-                break;
+    safe_replace(result, "%ssid%", wifi_get_ssid());
+    safe_replace(result, "%ip%", wifi_get_ip_address());
 #endif
-            case ATTR_TEXT_HOSTNAME:
-                if(len == 10) static_text = haspDevice.get_hostname();
-                break;
 
-            case ATTR_TEXT_MODEL:
-                if(len == 7) static_text = haspDevice.get_model();
-                break;
+    safe_replace(result, "%hostname%", haspDevice.get_hostname());
+    safe_replace(result, "%model%", haspDevice.get_model());
+    safe_replace(result, "%version%", haspDevice.get_version());
 
-            case ATTR_TEXT_VERSION:
-                if(len == 9) static_text = haspDevice.get_version();
-                break;
-        }
-
-        if(static_text) {
-            lv_label_set_text_static(label, static_text);
-            return;
-        }
-    }
-
-    lv_label_set_text(label, text);
+    lv_label_set_text(label, result.c_str());
 }
 
 /**
@@ -728,8 +720,7 @@ void my_obj_set_value_str_text(lv_obj_t* obj, uint8_t part, lv_state_t state, co
 
 void my_list_set_options(lv_obj_t* obj, const char* payload)
 { // Reserve memory for JsonDocument
-    size_t maxsize = (128u * ((strlen(payload) / 128) + 1)) + 256;
-    DynamicJsonDocument doc(maxsize);
+    JsonDocument doc;
     DeserializationError jsonError = deserializeJson(doc, payload);
 
     if(jsonError) { // Couldn't parse incoming JSON payload

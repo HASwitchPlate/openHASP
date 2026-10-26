@@ -150,7 +150,7 @@ void LanbonL8::get_sensors(JsonDocument& doc)
 {
     Esp32Device::get_sensors(doc);
 
-    JsonObject sensor = doc.createNestedObject(F("Energy"));
+    JsonObject sensor = doc["Energy"].to<JsonObject>();
 
     //  int16_t kwh_10     = DEC * totalPulses * MEASURED_WATTS / MEASURED_PULSES_PER_SECOND / 3600 / 1000;
 

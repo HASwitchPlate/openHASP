@@ -57,6 +57,9 @@ class BaseTouch {
 #elif TOUCH_DRIVER == 0x2046 && defined(LGFX_USE_V1) && defined(HASP_USE_LGFX_TOUCH)
 #warning Building for LovyanGFX XPT2046
 #include "touch_driver_lovyangfx.h"
+#elif TOUCH_DRIVER == 0x2046
+#warning Building for standalone XPT2046
+#include "touch_driver_xpt2046.h"
 #elif TOUCH_DRIVER == 0x0911 && defined(LGFX_USE_V1) && defined(HASP_USE_LGFX_TOUCH)
 #warning Building for LovyanGFX GT911
 #include "touch_driver_lovyangfx.h"

@@ -23,6 +23,14 @@
 File pFileOut;
 #endif
 
+#if defined(POSIX) && USE_MONITOR
+bool gui_pop_screenshot_request(void);
+#endif
+
+#if defined(POSIX)
+#include <limits.h>
+#endif
+
 #if ESP32
 static SemaphoreHandle_t xGuiSemaphore = NULL;
 static TaskHandle_t g_lvgl_task_handle;
@@ -105,6 +113,19 @@ IRAM_ATTR void gui_flush_cb(lv_disp_drv_t* disp, const lv_area_t* area, lv_color
     haspTft.flush_pixels(disp, area, color_p);
     screenshotIsDirty = true;
 }
+
+#if defined(RM690B0_DRIVER) || defined(LILYGO_T4_S3)
+void gui_rounder_cb(lv_disp_drv_t* disp_drv, lv_area_t* area)
+{
+    area->x1 = area->x1 & ~1; // Round down start X to even
+    area->x2 = area->x2 | 1;  // Round up end X to odd (width = x2 - x1 + 1 = even)
+    area->y1 = area->y1 & ~1; // Round down start Y to even
+    area->y2 = area->y2 | 1;  // Round up end Y to odd (height = y2 - y1 + 1 = even)
+
+    if(area->x2 >= disp_drv->hor_res) area->x2 = disp_drv->hor_res - 1;
+    if(area->y2 >= disp_drv->ver_res) area->y2 = disp_drv->ver_res - 1;
+}
+#endif
 
 void gui_antiburn_cb(lv_disp_drv_t* disp, const lv_area_t* area, lv_color_t* color_p)
 {
@@ -234,6 +255,9 @@ void guiSetup()
     lv_disp_drv_init(&disp_drv);
     disp_drv.buffer   = &disp_buf;
     disp_drv.flush_cb = gui_flush_cb;
+#if defined(RM690B0_DRIVER) || defined(LILYGO_T4_S3)
+    disp_drv.rounder_cb = gui_rounder_cb;
+#endif
 
     if(gui_settings.rotation % 2) {
         disp_drv.hor_res = tft_height;
@@ -279,6 +303,9 @@ void guiSetup()
     lv_disp_drv_init(&disp_drv);
     disp_drv.buffer    = &disp_buf;
     disp_drv.flush_cb  = gui_flush_cb;
+#if defined(RM690B0_DRIVER) || defined(LILYGO_T4_S3)
+    disp_drv.rounder_cb = gui_rounder_cb;
+#endif
     disp_drv.hor_res   = tft_width;
     disp_drv.ver_res   = tft_height;
 
@@ -319,6 +346,7 @@ void guiSetup()
     lv_obj_t* mouse_layer = lv_disp_get_layer_sys(NULL); // default display
 
 #if defined(ARDUINO_ARCH_ESP32)
+#if TOUCH_DRIVER != -1
     Preferences preferences;
     nvs_user_begin(preferences, "gui", true);
     // indev_drv.drag_limit           = preferences.getUChar(key, LV_INDEV_DEF_DRAG_LIMIT);
@@ -328,6 +356,7 @@ void guiSetup()
     // indev_drv.gesture_limit        = preferences.getUChar(key, LV_INDEV_DEF_GESTURE_LIMIT);
     // indev_drv.gesture_min_velocity = preferences.getUChar(key, LV_INDEV_DEF_GESTURE_MIN_VELOCITY);
     preferences.end();
+#endif
 
     LV_IMG_DECLARE(mouse_cursor_icon);          /*Declare the image file.*/
     cursor = lv_img_create(mouse_layer, NULL);  /*Create an image object for the cursor */
@@ -387,6 +416,12 @@ IRAM_ATTR void guiLoop(void)
 
 #if HASP_TARGET_ARDUINO
     // haspTouch.loop();
+#endif
+
+#if defined(POSIX) && USE_MONITOR
+    if(gui_pop_screenshot_request()) {
+        guiTakeScreenshot("screenshot.bmp");
+    }
 #endif
 }
 
@@ -618,7 +653,7 @@ bool guiSetConfig(const JsonObject& settings)
 #endif // HASP_USE_CONFIG
 
 /* **************************** SCREENSHOTS ************************************** */
-#if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0 || HASP_USE_HTTP > 0
+#if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0 || HASP_USE_HTTP > 0 || defined(POSIX)
 
 /** Send Bitmap Header.
  *
@@ -666,7 +701,7 @@ void gui_flush_not_complete()
 {
     LOG_WARNING(TAG_GUI, F("Pixelbuffer not completely sent"));
 }
-#endif // HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0 || HASP_USE_HTTP > 0
+#endif // HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0 || HASP_USE_HTTP > 0 || defined(POSIX)
 
 #if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
 /* Flush VDB bytes to a file */
@@ -717,6 +752,56 @@ void guiTakeScreenshot(const char* pFileName)
             LOG_ERROR(TAG_GUI, F("Data written does not match header size"));
         }
         pFileOut.close();
+
+    } else {
+        LOG_WARNING(TAG_GUI, F(D_FILE_SAVE_FAILED), pFileName);
+    }
+}
+#elif defined(POSIX)
+static FILE* pFileOutPosix = NULL;
+
+static void gui_screenshot_to_file(lv_disp_drv_t* disp, const lv_area_t* area, lv_color_t* color_p)
+{
+    size_t len = (area->x2 - area->x1 + 1) * (area->y2 - area->y1 + 1);
+    len *= sizeof(lv_color_t);
+    size_t res = fwrite((uint8_t*)color_p, 1, len, pFileOutPosix);
+    if(res != len) gui_flush_not_complete();
+
+    drv_display_flush_cb(disp, area, color_p);
+}
+
+void guiTakeScreenshot(const char* pFileName)
+{
+    uint8_t buffer[sizeof(bmp_header_t) + 2];
+    gui_get_bitmap_header(buffer, sizeof(buffer));
+
+    pFileOutPosix = fopen(pFileName, "wb");
+    if(pFileOutPosix) {
+
+        size_t len = fwrite(buffer, 1, sizeof(buffer), pFileOutPosix);
+        if(len == sizeof(buffer)) {
+            LOG_VERBOSE(TAG_GUI, F("Bitmap header written"));
+
+            lv_disp_t* disp       = lv_disp_get_default();
+            drv_display_flush_cb  = disp->driver.flush_cb;
+            disp->driver.flush_cb = gui_screenshot_to_file;
+
+            lv_obj_invalidate(lv_scr_act());
+            lv_refr_now(NULL);
+            disp->driver.flush_cb = drv_display_flush_cb;
+
+            char fullpath[PATH_MAX];
+            if(realpath(pFileName, fullpath)) {
+                LOG_VERBOSE(TAG_GUI, F("Bitmap data flushed to %s"), fullpath);
+            } else {
+                LOG_VERBOSE(TAG_GUI, F("Bitmap data flushed to %s"), pFileName);
+            }
+
+        } else {
+            LOG_ERROR(TAG_GUI, F("Data written does not match header size"));
+        }
+        fclose(pFileOutPosix);
+        pFileOutPosix = NULL;
 
     } else {
         LOG_WARNING(TAG_GUI, F(D_FILE_SAVE_FAILED), pFileName);

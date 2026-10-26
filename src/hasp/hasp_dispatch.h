@@ -93,6 +93,12 @@ void dispatch_config(const char* topic, const char* payload, uint8_t source);
 
 void dispatch_normalized_group_values(hasp_update_value_t& value);
 
+#if HASP_TARGET_PC
+/* Defer json/jsonl from MQTT thread to main (LVGL) thread to avoid segfault (PC/SDL2 only). */
+void dispatch_defer_command(const char* topic, const char* payload);
+void dispatch_process_deferred(void);
+#endif
+
 void dispatch_state_subtopic(const char* subtopic, const char* payload);
 void dispatch_state_eventid(const char* topic, hasp_event_t eventid);
 void dispatch_state_brightness(const char* topic, hasp_event_t eventid, int32_t val);

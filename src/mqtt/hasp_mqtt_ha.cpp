@@ -75,8 +75,8 @@ void mqtt_ha_send_json(char* topic, JsonDocument& doc)
 // adds the device identifiers to the HA MQTT auto-discovery message
 void mqtt_ha_add_device_ids(JsonDocument& doc)
 {
-    JsonObject device = doc.createNestedObject(FPSTR(FP_MQTT_HA_DEVICE));
-    JsonArray ids     = device.createNestedArray(FPSTR(FP_MQTT_HA_IDENTIFIERS));
+    JsonObject device = doc[FPSTR(FP_MQTT_HA_DEVICE)].to<JsonObject>();
+    JsonArray ids = device[FPSTR(FP_MQTT_HA_IDENTIFIERS)].to<JsonArray>();
     ids.add(haspDevice.get_hostname());
     ids.add(haspDevice.get_hardware_id());
 
@@ -85,7 +85,7 @@ void mqtt_ha_add_device_ids(JsonDocument& doc)
     device[FPSTR(FP_MQTT_HA_MODEL)]        = F(PIOENV);
     device[FPSTR(FP_MQTT_HA_MANUFACTURER)] = F(D_MANUFACTURER);
 
-    doc[F("~")] = mqttNodeTopic;
+    doc["~"] = mqttNodeTopic;
 }
 
 // adds the name and unique_id to the HA MQTT auto-discovery message
@@ -97,46 +97,46 @@ void mqtt_ha_add_unique_id(JsonDocument& doc, char* item)
     doc[FPSTR(FP_MQTT_HA_NAME)] = buffer;
 
     snprintf_P(buffer, sizeof(buffer), PSTR("hasp_%s-%s"), haspDevice.get_hostname(), item);
-    doc[F("uniq_id")] = buffer;
+    doc["uniq_id"] = buffer;
 }
 
 void mqtt_ha_register_button(uint8_t page, uint8_t id)
 {
-    StaticJsonDocument<800> doc;
+    JsonDocument doc;
     mqtt_ha_add_device_ids(doc);
 
     char buffer[128];
     snprintf_P(buffer, sizeof(buffer), PSTR(HASP_OBJECT_NOTATION), page, id);
-    doc[F("stype")] = buffer; // subtype = "p0b0"
+    doc["stype"] = buffer; // subtype = "p0b0"
     snprintf_P(buffer, sizeof(buffer), PSTR("~" MQTT_TOPIC_STATE "/" HASP_OBJECT_NOTATION), page, id);
-    doc[F("t")] = buffer; // topic
+    doc["t"] = buffer; // topic
 
-    doc[F("atype")] = "trigger"; // automation_type
+    doc["atype"] = "trigger"; // automation_type
 
     Parser::get_event_name(HASP_EVENT_DOWN, buffer, sizeof(buffer));
-    doc[F("pl")]   = buffer;
-    doc[F("type")] = "button_short_press";
+    doc["pl"]   = buffer;
+    doc["type"] = "button_short_press";
     snprintf_P(buffer, sizeof(buffer), PSTR("%s/device_automation/%s/" HASP_OBJECT_NOTATION "_%s/config"),
                discovery_prefix, haspDevice.get_hostname(), page, id, "short_press");
     mqtt_ha_send_json(buffer, doc);
 
     Parser::get_event_name(HASP_EVENT_UP, buffer, sizeof(buffer));
-    doc[F("pl")]   = buffer;
-    doc[F("type")] = "button_short_release";
+    doc["pl"]   = buffer;
+    doc["type"] = "button_short_release";
     snprintf_P(buffer, sizeof(buffer), PSTR("%s/device_automation/%s/" HASP_OBJECT_NOTATION "_%s/config"),
                discovery_prefix, haspDevice.get_hostname(), page, id, "short_release");
     mqtt_ha_send_json(buffer, doc);
 
     Parser::get_event_name(HASP_EVENT_LONG, buffer, sizeof(buffer));
-    doc[F("pl")]   = buffer;
-    doc[F("type")] = "button_long_press";
+    doc["pl"]   = buffer;
+    doc["type"] = "button_long_press";
     snprintf_P(buffer, sizeof(buffer), PSTR("%s/device_automation/%s/" HASP_OBJECT_NOTATION "_%s/config"),
                discovery_prefix, haspDevice.get_hostname(), page, id, "long_press");
     mqtt_ha_send_json(buffer, doc);
 
     Parser::get_event_name(HASP_EVENT_RELEASE, buffer, sizeof(buffer));
-    doc[F("pl")]   = buffer;
-    doc[F("type")] = "button_long_release";
+    doc["pl"]   = buffer;
+    doc["type"] = "button_long_release";
     snprintf_P(buffer, sizeof(buffer), PSTR("%s/device_automation/%s/" HASP_OBJECT_NOTATION "_%s/config"),
                discovery_prefix, haspDevice.get_hostname(), page, id, "long_release");
     mqtt_ha_send_json(buffer, doc);
@@ -144,18 +144,18 @@ void mqtt_ha_register_button(uint8_t page, uint8_t id)
 
 void mqtt_ha_register_switch(uint8_t page, uint8_t id)
 {
-    StaticJsonDocument<800> doc;
+    JsonDocument doc;
     mqtt_ha_add_device_ids(doc);
 
     char buffer[128];
     snprintf_P(buffer, sizeof(buffer), PSTR(HASP_OBJECT_NOTATION), page, id);
-    doc[F("stype")] = buffer; // subtype = "p0b0"
+    doc["stype"] = buffer; // subtype = "p0b0"
     snprintf_P(buffer, sizeof(buffer), PSTR("~" MQTT_TOPIC_STATE "/" HASP_OBJECT_NOTATION), page, id);
-    doc[F("t")] = buffer; // topic
+    doc["t"] = buffer; // topic
 
-    doc[F("atype")] = F("binary_sensor"); // automation_type
-    doc[F("pl")]    = F("short");         // payload
-    doc[F("type")]  = F("button_short_release");
+    doc["atype"] = F("binary_sensor"); // automation_type
+    doc["pl"]    = F("short");         // payload
+    doc["type"]  = F("button_short_release");
 
     snprintf_P(buffer, sizeof(buffer), PSTR("%s/device_automation/%s/" HASP_OBJECT_NOTATION "_%s/config"),
                discovery_prefix, haspDevice.get_hostname(), page, id, "short");
@@ -165,7 +165,7 @@ void mqtt_ha_register_switch(uint8_t page, uint8_t id)
 
 void mqtt_ha_register_connectivity()
 {
-    StaticJsonDocument<1024> doc;
+    JsonDocument doc;
     char item[16];
     snprintf_P(item, sizeof(item), PSTR("connectivity"));
 
@@ -183,7 +183,7 @@ void mqtt_ha_register_connectivity()
 
 void mqtt_ha_register_backlight()
 {
-    DynamicJsonDocument doc(1024);
+    JsonDocument doc;
     char item[16];
     snprintf_P(item, sizeof(item), PSTR("backlight"));
 
@@ -200,8 +200,8 @@ void mqtt_ha_register_backlight()
     mqtt_ha_add_device_ids(doc);
     mqtt_ha_add_unique_id(doc, item);
 
-    // doc[F("pl_on")]  = F("on");
-    // doc[F("pl_off")] = F("off");
+    // doc["pl_on"]  = F("on");
+    // doc["pl_off"] = F("off");
 
     char buffer[128];
     snprintf_P(buffer, sizeof(buffer), PSTR("%s/light/%s/%s/config"), discovery_prefix, haspDevice.get_hostname(),
@@ -211,7 +211,7 @@ void mqtt_ha_register_backlight()
 
 void mqtt_ha_register_moodlight()
 {
-    DynamicJsonDocument doc(1024);
+    JsonDocument doc;
     char item[16];
     snprintf_P(item, sizeof(item), PSTR("moodlight"));
 
@@ -238,12 +238,12 @@ void mqtt_ha_register_moodlight()
     mqtt_ha_add_device_ids(doc);
     mqtt_ha_add_unique_id(doc, item);
 
-    // doc[F("pl_on")]  = F("ON");
-    // doc[F("pl_off")] = F("OFF");
+    // doc["pl_on"]  = F("ON");
+    // doc["pl_off"] = F("OFF");
 
-    // doc[F("state_value_template")]      = F("~command/moodlight/light");
-    // doc[F("brightness_value_template")] = F("{{ value_json.brightness }}");
-    // doc[F("rgb_command_template")]        = F("{{ '%02x%02x%02x0000'| format(red, green, blue) }}");
+    // doc["state_value_template"]      = F("~command/moodlight/light");
+    // doc["brightness_value_template"] = F("{{ value_json.brightness }}");
+    // doc["rgb_command_template"]        = F("{{ '%02x%02x%02x0000'| format(red, green, blue) }}");
 
     char buffer[128];
     snprintf_P(buffer, sizeof(buffer), PSTR("%s/light/%s/%s/config"), discovery_prefix, haspDevice.get_hostname(),
@@ -253,7 +253,7 @@ void mqtt_ha_register_moodlight()
 
 void mqtt_ha_register_idle()
 {
-    StaticJsonDocument<800> doc;
+    JsonDocument doc;
     char item[16];
     snprintf_P(item, sizeof(item), PSTR("idle"));
 
@@ -271,7 +271,7 @@ void mqtt_ha_register_idle()
 
 void mqtt_ha_register_activepage()
 {
-    StaticJsonDocument<800> doc;
+    JsonDocument doc;
     char item[16];
     snprintf_P(item, sizeof(item), PSTR("page"));
 
