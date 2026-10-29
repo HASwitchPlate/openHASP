@@ -189,6 +189,10 @@
 // #define HASP_USE_CUSTOM 0
 // #endif
 
+#ifndef HASP_USE_UART_TRANSPORT
+#define HASP_USE_UART_TRANSPORT 0
+#endif
+
 // #ifndef HASP_NUM_OUTPUTS
 // #define HASP_NUM_OUTPUTS 3
 // #endif
@@ -357,6 +361,10 @@ static WiFiSpiClass WiFi;
 
 #if HASP_USE_CONSOLE > 0
 #include "sys/svc/hasp_console.h"
+#endif
+
+#if HASP_USE_UART_TRANSPORT > 0
+#include "sys/svc/hasp_uart_transport.h"
 #endif
 
 #if HASP_USE_FTP > 0

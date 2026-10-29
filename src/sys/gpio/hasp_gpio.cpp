@@ -784,6 +784,13 @@ bool gpioIsSystemPin(uint8_t gpio)
         return true;
     }
 
+#if HASP_USE_UART_TRANSPORT > 0
+    if(hasp_uart::uartTransport.ownsPin(gpio)) {
+        LOG_DEBUG(TAG_GPIO, F(D_BULLET D_GPIO_PIN " %d => UART transport"), gpio);
+        return true;
+    }
+#endif
+
 #if defined(HASP_USE_CUSTOM) && HASP_USE_CUSTOM > 0
     if(custom_pin_in_use(gpio)) {
         LOG_DEBUG(TAG_GPIO, F(D_BULLET D_GPIO_PIN " %d => Custom"), gpio);

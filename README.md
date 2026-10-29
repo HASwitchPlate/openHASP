@@ -16,6 +16,8 @@ This rewrite removes the Nextion/TJC hardware requirement by using the [Light an
 
 openHASP uses the ESP32 and STM32F4 to take advantage of the hardware capabilities.
 
+An optional UART command and event transport is available for direct integrations; see [Generic UART transport](docs/serial-transport.md).
+
 
 ## Demo Screens
 
