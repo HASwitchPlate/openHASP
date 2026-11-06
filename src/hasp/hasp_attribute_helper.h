@@ -7,7 +7,7 @@ lv_task_t* my_obj_get_task(const lv_obj_t* obj)
 {
     lv_task_t* task = lv_task_get_next(NULL);
     while(task) {
-        if(task->user_data) {
+        if(task->user_data && task->task_cb != event_timer_watchdog) {
             hasp_task_user_data_t* data = (hasp_task_user_data_t*)task->user_data;
             if(data->obj == obj) return task;
         }
@@ -50,6 +50,49 @@ void my_obj_del_task(const lv_obj_t* obj)
         lv_mem_free(data);
     }
     lv_task_del(task);
+}
+
+static lv_task_t* my_obj_get_watchdog_task(const lv_obj_t* obj)
+{
+    lv_task_t* task = lv_task_get_next(NULL);
+    while(task) {
+        if(task->task_cb == event_timer_watchdog && task->user_data == obj) return task;
+        task = lv_task_get_next(task);
+    }
+    return NULL;
+}
+
+void my_obj_del_watchdog(const lv_obj_t* obj)
+{
+    lv_task_t* task = my_obj_get_watchdog_task(obj);
+    if(task) lv_task_del(task);
+}
+
+static int32_t my_obj_get_watchdog(const lv_obj_t* obj)
+{
+    lv_task_t* task = my_obj_get_watchdog_task(obj);
+    return task ? task->period : 0;
+}
+
+static void my_obj_set_watchdog(lv_obj_t* obj, int32_t period)
+{
+    lv_task_t* task = my_obj_get_watchdog_task(obj);
+
+    if(period <= 0) {
+        if(task) lv_task_del(task);
+        return;
+    }
+
+    lv_obj_set_hidden(obj, true);
+
+    if(task) {
+        lv_task_set_period(task, period);
+        lv_task_reset(task);
+        return;
+    }
+
+    task = lv_task_create(event_timer_watchdog, period, LV_TASK_PRIO_LOWEST, (void*)obj);
+    if(task) lv_task_set_repeat_count(task, 1); // One shot
 }
 
 const char* my_obj_get_template(const lv_obj_t* obj)

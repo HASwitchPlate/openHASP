@@ -2457,6 +2457,13 @@ static hasp_attribute_type_t attribute_common_int(lv_obj_t* obj, uint16_t attr_h
                 val = lv_obj_get_ext_click_pad_top(obj);
             break; // attribute_found
 
+        case ATTR_WATCHDOG:
+            if(update)
+                my_obj_set_watchdog(obj, val);
+            else
+                val = my_obj_get_watchdog(obj);
+            break; // attribute_found
+
 #if HASP_USE_QRCODE > 0
         case ATTR_SIZE:
             if(obj_check_type(obj, LV_HASP_QRCODE)) {
@@ -2671,6 +2678,7 @@ void hasp_process_obj_attribute(lv_obj_t* obj, const char* attribute, const char
         case ATTR_OPACITY:
         case ATTR_EXT_CLICK_H:
         case ATTR_EXT_CLICK_V:
+        case ATTR_WATCHDOG:
         case ATTR_SIZE:
             val = strtol(payload, nullptr, DEC);
             ret = attribute_common_int(obj, attr_hash, val, update);

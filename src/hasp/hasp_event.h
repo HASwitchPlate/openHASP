@@ -14,6 +14,7 @@
 // Timer event Handlers
 void event_timer_calendar(lv_task_t* task);
 void event_timer_clock(lv_task_t* task);
+void event_timer_watchdog(lv_task_t* task);
 
 // Object event Handlers
 void delete_event_handler(lv_obj_t* obj, lv_event_t event);

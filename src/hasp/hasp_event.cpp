@@ -69,6 +69,8 @@ void delete_event_handler(lv_obj_t* obj, lv_event_t event)
 {
     if(event != LV_EVENT_DELETE) return;
 
+    my_obj_del_watchdog(obj);
+
     switch(obj_get_type(obj)) {
         case LV_HASP_LINE:
             my_line_clear_points(obj);
@@ -203,6 +205,13 @@ void event_timer_clock(lv_task_t* task)
     char* cur_text = lv_label_get_text(data->obj);
     if(!cur_text || !strcmp(buffer, cur_text)) return; // No change
     lv_label_set_text(data->obj, buffer);
+}
+
+/* ============================== Timer Event  ============================ */
+void event_timer_watchdog(lv_task_t* task)
+{
+    lv_obj_t* obj = (lv_obj_t*)task->user_data;
+    if(lv_debug_check_obj_valid(obj)) lv_obj_set_hidden(obj, false);
 }
 
 /* ============================== Timer Event  ============================ */

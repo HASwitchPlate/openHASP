@@ -26,6 +26,7 @@ void my_msgbox_map_clear(lv_obj_t* obj);
 void my_line_clear_points(lv_obj_t* obj);
 void my_image_release_resources(lv_obj_t* obj);
 void my_obj_del_task(const lv_obj_t* obj);
+void my_obj_del_watchdog(const lv_obj_t* obj);
 
 void hasp_process_obj_attribute(lv_obj_t* obj, const char* attr_p, const char* payload, bool update);
 
@@ -427,6 +428,7 @@ _HASP_ATTRIBUTE(SCALE_END_LINE_WIDTH, scale_end_line_width, lv_style_int_t)
 #define ATTR_ID 6715
 #define ATTR_EXT_CLICK_H 46643
 #define ATTR_EXT_CLICK_V 46657
+#define ATTR_WATCHDOG 50253
 #define ATTR_ANIM_TIME 59451
 #define ATTR_ANIM_SPEED 281
 #define ATTR_START_VALUE 11828
