@@ -192,6 +192,7 @@
 #define D_INFO_PUBLISHED "Publicado"
 #define D_INFO_FAILED "Falhou"
 #define D_INFO_ETHERNET "Ethernet"
+#define D_INFO_MQTT "MQTT"
 #define D_INFO_WIFI "WiFi"
 #define D_INFO_WIREGUARD "WireGuard"
 #define D_INFO_LINK_SPEED "Velocidade do Link"
@@ -213,8 +214,8 @@
 #define D_WIFI_CONNECTED_TO "Conectado a %s, solicitando IP..."
 #define D_WIFI_RSSI_EXCELLENT "Excelente"
 #define D_WIFI_RSSI_GOD "Bom"
-#define D_WIFI_RSSI_FAIR "Longe"
 #define D_WIFI_RSSI_WEAK "Fraco"
+#define D_WIFI_RSSI_FAIR "Longe"
 #define D_WIFI_RSSI_BAD "Muito ruim"
 
 #define D_WG_INITIALIZED "Inicializado"
