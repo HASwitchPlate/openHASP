@@ -1,5 +1,5 @@
 // This translation file is maintained on https://crowdin.com/project/openhasp/
-// Diese Datei nicht direkt hier ändern!
+// Do not edit directly!
 
 #ifndef HASP_LANG_DE_DE_H
 #define HASP_LANG_DE_DE_H
