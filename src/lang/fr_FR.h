@@ -2,7 +2,7 @@
 // Do not edit directly!
 
 #ifndef HASP_LANG_FR_FR_H
-#define HASP_LANG_FR_FR_H
+#define HASP_LANG_EN_US_H
 
 #define D_ISO_LANG_CODE "fr-FR"
 
