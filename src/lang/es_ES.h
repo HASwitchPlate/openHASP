@@ -1,8 +1,8 @@
 // This translation file is maintained on https://crowdin.com/project/openhasp/
 // Do not edit directly!
 
-#ifndef HASP_LANG_ES_ES_H
-#define HASP_LANG_ES_ES_H
+#ifndef HASP_LANG_EN_US_H
+#define HASP_LANG_EN_US_H
 
 #define D_ISO_LANG_CODE "es-ES"
 
