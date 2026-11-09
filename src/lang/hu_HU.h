@@ -1,10 +1,10 @@
 // This translation file is maintained on https://crowdin.com/project/openhasp/
 // Do not edit directly!
 
-#ifndef HASP_LANG_EN_US_H
-#define HASP_LANG_EN_US_H
+#ifndef HASP_LANG_HU_HU_H
+#define HASP_LANG_HU_HU_H
 
-#define D_ISO_LANG_CODE "en-US"
+#define D_ISO_LANG_CODE "hu-HU"
 
 #define D_USERNAME "Username:"
 #define D_PASSWORD "Password:"
