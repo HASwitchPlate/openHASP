@@ -1690,6 +1690,18 @@ static hasp_attribute_type_t attribute_common_tag(lv_obj_t* obj, uint16_t attr_h
             }
             break; // attribute_found
 
+        case ATTR_TIMER_ACTION:
+            if(update) {
+                my_obj_set_timer_action(obj, payload);
+            } else {
+                if(my_obj_get_timer_action(obj)) {
+                    *text = (char*)my_obj_get_timer_action(obj);
+                } else {
+                    strcpy_P(*text, "null"); // TODO : Literal String
+                }
+            }
+            break; // attribute_found
+
         default:
             return HASP_ATTR_TYPE_NOT_FOUND;
     }
@@ -2457,11 +2469,11 @@ static hasp_attribute_type_t attribute_common_int(lv_obj_t* obj, uint16_t attr_h
                 val = lv_obj_get_ext_click_pad_top(obj);
             break; // attribute_found
 
-        case ATTR_WATCHDOG:
+        case ATTR_TIMER_INTERVAL:
             if(update)
-                my_obj_set_watchdog(obj, val);
+                my_obj_set_timer_interval(obj, val);
             else
-                val = my_obj_get_watchdog(obj);
+                val = my_obj_get_timer_interval(obj);
             break; // attribute_found
 
 #if HASP_USE_QRCODE > 0
@@ -2523,6 +2535,13 @@ static hasp_attribute_type_t attribute_common_bool(lv_obj_t* obj, uint16_t attr_
                     lv_obj_add_state(obj, LV_STATE_DISABLED);
             else
                 val = !(lv_obj_get_state(obj, LV_BTN_PART_MAIN) & LV_STATE_DISABLED);
+            break; // attribute_found
+
+        case ATTR_TIMER_REPEAT:
+            if(update)
+                my_obj_set_timer_repeat(obj, !!val);
+            else
+                val = my_obj_get_timer_repeat(obj);
             break; // attribute_found
 
             // case ATTR_SWIPE:
@@ -2678,7 +2697,7 @@ void hasp_process_obj_attribute(lv_obj_t* obj, const char* attribute, const char
         case ATTR_OPACITY:
         case ATTR_EXT_CLICK_H:
         case ATTR_EXT_CLICK_V:
-        case ATTR_WATCHDOG:
+        case ATTR_TIMER_INTERVAL:
         case ATTR_SIZE:
             val = strtol(payload, nullptr, DEC);
             ret = attribute_common_int(obj, attr_hash, val, update);
@@ -2690,6 +2709,7 @@ void hasp_process_obj_attribute(lv_obj_t* obj, const char* attribute, const char
         case ATTR_CLICK:
         // case ATTR_SWIPE:
         case ATTR_ENABLED:
+        case ATTR_TIMER_REPEAT:
             val = Parser::is_true(payload);
             ret = attribute_common_bool(obj, attr_hash, val, update);
             break;
@@ -2722,6 +2742,7 @@ void hasp_process_obj_attribute(lv_obj_t* obj, const char* attribute, const char
         case ATTR_TAG:
         case ATTR_ACTION:
         case ATTR_SWIPE:
+        case ATTR_TIMER_ACTION:
             ret = attribute_common_tag(obj, attr_hash, payload, &text, update);
             break;
         case ATTR_JSONL:

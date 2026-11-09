@@ -18,15 +18,19 @@ void my_obj_set_value_str_text(lv_obj_t* obj, uint8_t part, lv_state_t state, co
 void my_obj_set_tag(lv_obj_t* obj, const char* tag);
 void my_obj_set_action(lv_obj_t* obj, const char* tag);
 void my_obj_set_swipe(lv_obj_t* obj, const char* tag);
+void my_obj_set_timer_action(lv_obj_t* obj, const char* tag);
+void my_obj_set_timer_repeat(lv_obj_t* obj, bool repeat);
 const char* my_obj_get_tag(lv_obj_t* obj);
 const char* my_obj_get_action(lv_obj_t* obj);
 const char* my_obj_get_swipe(lv_obj_t* obj);
+const char* my_obj_get_timer_action(lv_obj_t* obj);
+bool my_obj_get_timer_repeat(lv_obj_t* obj);
 void my_btnmatrix_map_clear(lv_obj_t* obj);
 void my_msgbox_map_clear(lv_obj_t* obj);
 void my_line_clear_points(lv_obj_t* obj);
 void my_image_release_resources(lv_obj_t* obj);
 void my_obj_del_task(const lv_obj_t* obj);
-void my_obj_del_watchdog(const lv_obj_t* obj);
+void my_obj_del_timer(const lv_obj_t* obj);
 
 void hasp_process_obj_attribute(lv_obj_t* obj, const char* attr_p, const char* payload, bool update);
 
@@ -428,7 +432,8 @@ _HASP_ATTRIBUTE(SCALE_END_LINE_WIDTH, scale_end_line_width, lv_style_int_t)
 #define ATTR_ID 6715
 #define ATTR_EXT_CLICK_H 46643
 #define ATTR_EXT_CLICK_V 46657
-#define ATTR_WATCHDOG 50253
+#define ATTR_TIMER_INTERVAL 37151
+#define ATTR_TIMER_REPEAT 28629
 #define ATTR_ANIM_TIME 59451
 #define ATTR_ANIM_SPEED 281
 #define ATTR_START_VALUE 11828
@@ -499,6 +504,7 @@ _HASP_ATTRIBUTE(SCALE_END_LINE_WIDTH, scale_end_line_width, lv_style_int_t)
 
 /* hasp user data */
 #define ATTR_ACTION 42102
+#define ATTR_TIMER_ACTION 49424
 #define ATTR_TRANSITION 10933
 #define ATTR_GROUPID 48986
 #define ATTR_OBJID 41010

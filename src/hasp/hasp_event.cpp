@@ -69,7 +69,7 @@ void delete_event_handler(lv_obj_t* obj, lv_event_t event)
 {
     if(event != LV_EVENT_DELETE) return;
 
-    my_obj_del_watchdog(obj);
+    my_obj_del_timer(obj);
 
     switch(obj_get_type(obj)) {
         case LV_HASP_LINE:
@@ -122,6 +122,8 @@ void delete_event_handler(lv_obj_t* obj, lv_event_t event)
     my_obj_set_tag(obj, (char*)NULL);
     my_obj_set_action(obj, (char*)NULL);
     my_obj_set_swipe(obj, (char*)NULL);
+    my_obj_set_timer_action(obj, (char*)NULL);
+    my_obj_set_timer_repeat(obj, false);
 }
 
 /* ============================== Timer Event  ============================ */
@@ -208,10 +210,13 @@ void event_timer_clock(lv_task_t* task)
 }
 
 /* ============================== Timer Event  ============================ */
-void event_timer_watchdog(lv_task_t* task)
+void event_timer_object(lv_task_t* task)
 {
     lv_obj_t* obj = (lv_obj_t*)task->user_data;
-    if(lv_debug_check_obj_valid(obj)) lv_obj_set_hidden(obj, false);
+    if(!lv_debug_check_obj_valid(obj)) return;
+
+    if(!my_obj_get_timer_repeat(obj)) lv_task_del(task); // One shot, the timeout action may restart the timer
+    timer_event_handler(obj, "timeout");
 }
 
 /* ============================== Timer Event  ============================ */
@@ -438,6 +443,25 @@ void swipe_event_handler(lv_obj_t* obj, lv_event_t event)
             default:
                 script_event_handler("up", swipe);
         }
+    }
+}
+
+/**
+ * Called when an object timer is started, stopped or timed out
+ * @param obj pointer to an object
+ * @param eventname name of the timer event
+ */
+void timer_event_handler(lv_obj_t* obj, const char* eventname)
+{
+    if(const char* action = my_obj_get_timer_action(obj)) {
+        script_event_handler(eventname, action);
+    } else {
+        char data[512];
+        if(const char* tag = my_obj_get_tag(obj))
+            snprintf_P(data, sizeof(data), PSTR("{\"event\":\"%s\",\"tag\":%s}"), eventname, tag);
+        else
+            snprintf_P(data, sizeof(data), PSTR("{\"event\":\"%s\"}"), eventname);
+        event_send_object_data(obj, data);
     }
 }
 

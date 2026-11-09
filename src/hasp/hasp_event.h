@@ -14,7 +14,7 @@
 // Timer event Handlers
 void event_timer_calendar(lv_task_t* task);
 void event_timer_clock(lv_task_t* task);
-void event_timer_watchdog(lv_task_t* task);
+void event_timer_object(lv_task_t* task);
 
 // Object event Handlers
 void delete_event_handler(lv_obj_t* obj, lv_event_t event);
@@ -29,6 +29,7 @@ void cpicker_event_handler(lv_obj_t* obj, lv_event_t event);
 void calendar_event_handler(lv_obj_t* obj, lv_event_t event);
 void textarea_event_handler(lv_obj_t* obj, lv_event_t event);
 void alarm_event_handler(lv_obj_t* obj, lv_event_t event);
+void timer_event_handler(lv_obj_t* obj, const char* eventname);
 
 // Other functions
 void event_reset_last_value_sent();
