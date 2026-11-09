@@ -31,8 +31,8 @@
 #define D_FILE_SIZE_MEGABYTES "MiB"
 #define D_FILE_SIZE_GIGABYTES "GiB"
 #define D_FILE_SIZE_TERABYTES "TiB"
-#define D_FILE_SIZE_DIVIDER 1024 // kibi eller kilo bytes
-#define D_DECIMAL_POINT "." // kommatecken eller punkt
+#define D_FILE_SIZE_DIVIDER 1024 // kibi or kilo bytes
+#define D_DECIMAL_POINT "."      // decimal comma or point
 
 #define D_SERVICE_STARTING "Startar..."
 #define D_SERVICE_STARTED "Startat"
