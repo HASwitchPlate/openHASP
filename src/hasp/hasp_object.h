@@ -19,8 +19,6 @@ typedef struct
     char* action;
     char* tag;
     const char* swipe;
-    char* timer_action;
-    bool timer_repeat;
 } hasp_ext_user_data_t;
 
 typedef struct
@@ -28,6 +26,7 @@ typedef struct
     lv_obj_t* obj;
     char* templ;
     uint16_t interval;
+    bool repeat;
 } hasp_task_user_data_t;
 
 typedef struct

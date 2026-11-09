@@ -122,8 +122,6 @@ void delete_event_handler(lv_obj_t* obj, lv_event_t event)
     my_obj_set_tag(obj, (char*)NULL);
     my_obj_set_action(obj, (char*)NULL);
     my_obj_set_swipe(obj, (char*)NULL);
-    my_obj_set_timer_action(obj, (char*)NULL);
-    my_obj_set_timer_repeat(obj, false);
 }
 
 /* ============================== Timer Event  ============================ */
@@ -212,11 +210,11 @@ void event_timer_clock(lv_task_t* task)
 /* ============================== Timer Event  ============================ */
 void event_timer_object(lv_task_t* task)
 {
-    lv_obj_t* obj = (lv_obj_t*)task->user_data;
-    if(!lv_debug_check_obj_valid(obj)) return;
+    hasp_task_user_data_t* data = (hasp_task_user_data_t*)task->user_data;
+    if(!data || !lv_debug_check_obj_valid(data->obj)) return;
 
-    if(!my_obj_get_timer_repeat(obj)) lv_task_del(task); // One shot, the timeout action may restart the timer
-    timer_event_handler(obj, "timeout");
+    if(!data->repeat) lv_task_set_prio(task, LV_TASK_PRIO_OFF); // One shot, the timeout action may restart the timer
+    timer_event_handler(data->obj, "timeout");
 }
 
 /* ============================== Timer Event  ============================ */

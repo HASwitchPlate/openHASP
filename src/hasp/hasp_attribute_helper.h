@@ -3,11 +3,11 @@
 
 #include "hasplib.h"
 
-lv_task_t* my_obj_get_task(const lv_obj_t* obj)
+lv_task_t* my_obj_get_task(const lv_obj_t* obj, lv_task_cb_t task_cb)
 {
     lv_task_t* task = lv_task_get_next(NULL);
     while(task) {
-        if(task->user_data && task->task_cb != event_timer_object) {
+        if(task->user_data && task->task_cb == task_cb) {
             hasp_task_user_data_t* data = (hasp_task_user_data_t*)task->user_data;
             if(data->obj == obj) return task;
         }
@@ -41,7 +41,7 @@ lv_task_t* my_obj_new_task(lv_obj_t* obj)
 
 void my_obj_del_task(const lv_obj_t* obj)
 {
-    lv_task_t* task = my_obj_get_task(obj);
+    lv_task_t* task = my_obj_get_task(obj, event_timer_clock);
     if(!task) return;
 
     hasp_task_user_data_t* data = (hasp_task_user_data_t*)task->user_data;
@@ -52,57 +52,125 @@ void my_obj_del_task(const lv_obj_t* obj)
     lv_task_del(task);
 }
 
-static lv_task_t* my_obj_get_timer(const lv_obj_t* obj)
+// the timer task is created stopped, it keeps the action and repeat settings until the object is deleted
+static lv_task_t* my_obj_new_timer(lv_obj_t* obj)
 {
-    lv_task_t* task = lv_task_get_next(NULL);
-    while(task) {
-        if(task->task_cb == event_timer_object && task->user_data == obj) return task;
-        task = lv_task_get_next(task);
+    lv_task_t* task                  = NULL;
+    hasp_task_user_data_t* user_data = (hasp_task_user_data_t*)lv_mem_alloc(sizeof(hasp_task_user_data_t));
+    if(user_data) {
+        user_data->obj      = obj;
+        user_data->templ    = NULL; // timer action
+        user_data->interval = 0;
+        user_data->repeat   = false;
+        task                = lv_task_create(event_timer_object, 1000, LV_TASK_PRIO_OFF, (void*)user_data);
+        if(!task) lv_mem_free(user_data);
     }
-    return NULL;
+
+    if(!task) LOG_WARNING(TAG_ATTR, D_ERROR_OUT_OF_MEMORY);
+    return task;
 }
 
 void my_obj_del_timer(const lv_obj_t* obj)
 {
-    lv_task_t* task = my_obj_get_timer(obj);
-    if(task) lv_task_del(task);
+    lv_task_t* task = my_obj_get_task(obj, event_timer_object);
+    if(!task) return;
+
+    hasp_task_user_data_t* data = (hasp_task_user_data_t*)task->user_data;
+    hasp_free(data->templ);
+    lv_mem_free(data);
+    lv_task_del(task);
 }
 
 static int32_t my_obj_get_timer_interval(const lv_obj_t* obj)
 {
-    lv_task_t* task = my_obj_get_timer(obj);
-    return task ? task->period : 0;
+    lv_task_t* task = my_obj_get_task(obj, event_timer_object);
+    return task && task->prio != LV_TASK_PRIO_OFF ? task->period : 0;
 }
 
 // a positive interval (re)starts the timer, zero stops it
 static void my_obj_set_timer_interval(lv_obj_t* obj, int32_t period)
 {
-    lv_task_t* task = my_obj_get_timer(obj);
+    lv_task_t* task = my_obj_get_task(obj, event_timer_object);
 
     if(period <= 0) {
-        if(!task) return;
-        lv_task_del(task);
+        if(!task || task->prio == LV_TASK_PRIO_OFF) return;
+        lv_task_set_prio(task, LV_TASK_PRIO_OFF);
         timer_event_handler(obj, "stop");
         return;
     }
 
-    if(task) {
-        lv_task_set_period(task, period);
-        lv_task_reset(task);
-    } else {
-        task = lv_task_create(event_timer_object, period, LV_TASK_PRIO_LOWEST, (void*)obj);
-        if(!task) {
-            LOG_WARNING(TAG_ATTR, D_ERROR_OUT_OF_MEMORY);
-            return;
-        }
+    if(!task) task = my_obj_new_timer(obj);
+    if(!task) return;
+
+    lv_task_set_period(task, period);
+    lv_task_set_prio(task, LV_TASK_PRIO_LOWEST);
+    lv_task_reset(task);
+    timer_event_handler(obj, "start");
+}
+
+// the timer action data is stored as SERIALIZED JSON data
+void my_obj_set_timer_action(lv_obj_t* obj, const char* payload)
+{
+    lv_task_t* task = my_obj_get_task(obj, event_timer_object);
+    bool blank      = payload == NULL || payload[0] == '\0';
+
+    if(!task) {
+        if(blank) return;
+        task = my_obj_new_timer(obj);
+        if(!task) return;
     }
 
-    timer_event_handler(obj, "start");
+    hasp_task_user_data_t* data = (hasp_task_user_data_t*)task->user_data;
+    hasp_free(data->templ);
+    data->templ = NULL;
+    if(blank) return;
+
+    // check if it is a proper JSON object
+    JsonDocument doc;
+    DeserializationError res = deserializeJson(doc, payload, strlen(payload));
+    if(res != DeserializationError::Ok) {
+        LOG_WARNING(TAG_ATTR, "Invalid parameter");
+        return;
+    }
+
+    const size_t size = measureJson(doc) + 1;
+    if(char* str = (char*)hasp_malloc(size)) {
+        serializeJson(doc, str, size); // tidy-up the json object
+        data->templ = str;
+        LOG_VERBOSE(TAG_ATTR, "new json: %s", str);
+    } else {
+        LOG_WARNING(TAG_ATTR, D_ERROR_OUT_OF_MEMORY);
+    }
+}
+
+const char* my_obj_get_timer_action(lv_obj_t* obj)
+{
+    lv_task_t* task = my_obj_get_task(obj, event_timer_object);
+    return task ? ((hasp_task_user_data_t*)task->user_data)->templ : NULL;
+}
+
+void my_obj_set_timer_repeat(lv_obj_t* obj, bool repeat)
+{
+    lv_task_t* task = my_obj_get_task(obj, event_timer_object);
+
+    if(!task) {
+        if(!repeat) return;
+        task = my_obj_new_timer(obj);
+        if(!task) return;
+    }
+
+    ((hasp_task_user_data_t*)task->user_data)->repeat = repeat;
+}
+
+bool my_obj_get_timer_repeat(lv_obj_t* obj)
+{
+    lv_task_t* task = my_obj_get_task(obj, event_timer_object);
+    return task ? ((hasp_task_user_data_t*)task->user_data)->repeat : false;
 }
 
 const char* my_obj_get_template(const lv_obj_t* obj)
 {
-    lv_task_t* task = my_obj_get_task(obj);
+    lv_task_t* task = my_obj_get_task(obj, event_timer_clock);
     if(!task || !task->user_data) return NULL;
 
     hasp_task_user_data_t* data = (hasp_task_user_data_t*)task->user_data;
@@ -111,7 +179,7 @@ const char* my_obj_get_template(const lv_obj_t* obj)
 
 void my_obj_set_template(lv_obj_t* obj, const char* text)
 {
-    lv_task_t* task = my_obj_get_task(obj);
+    lv_task_t* task = my_obj_get_task(obj, event_timer_clock);
     if(!task || !task->user_data) {
         task = my_obj_new_task(obj);
     }
@@ -138,7 +206,7 @@ static void my_prune_ext_tags(lv_obj_t* obj)
     if(!obj || !obj->user_data.ext) return;
 
     hasp_ext_user_data_t* ext = (hasp_ext_user_data_t*)obj->user_data.ext;
-    if(!ext->action && !ext->swipe && !ext->tag && !ext->timer_action && !ext->timer_repeat) {
+    if(!ext->action && !ext->swipe && !ext->tag) {
         hasp_free(ext);
         obj->user_data.ext = NULL;
     }
@@ -348,84 +416,6 @@ const char* my_obj_get_swipe(lv_obj_t* obj)
     if(!obj) return NULL;
     hasp_ext_user_data_t* ext = (hasp_ext_user_data_t*)obj->user_data.ext;
     return ext ? ext->swipe : NULL;
-}
-
-// the timer action data is stored as SERIALIZED JSON data
-void my_obj_set_timer_action(lv_obj_t* obj, const char* payload)
-{
-    hasp_ext_user_data_t* ext = (hasp_ext_user_data_t*)obj->user_data.ext;
-
-    // extended tag exists, free old timer action
-    if(ext && ext->timer_action) {
-        hasp_free(ext->timer_action);
-        ext->timer_action = NULL;
-    }
-
-    // new timer action is blank
-    if(payload == NULL || payload[0] == '\0') goto prune;
-
-    // create new extended tags
-    if(!ext) ext = my_create_ext_tags(obj);
-
-    // create new timer action
-    if(ext) {
-        JsonDocument doc;
-        size_t len = strlen(payload);
-
-        // check if it is a proper JSON object
-        DeserializationError res = deserializeJson(doc, payload, len);
-        if(res != DeserializationError::Ok) {
-            LOG_WARNING(TAG_ATTR, "Invalid parameter");
-            goto prune;
-        }
-
-        const size_t size = measureJson(doc) + 1;
-        if(char* str = (char*)hasp_malloc(size)) {
-            serializeJson(doc, str, size); // tidy-up the json object
-            ext->timer_action = str;
-            LOG_VERBOSE(TAG_ATTR, "new json: %s", str);
-            return; // no error & no prune
-        }
-    }
-
-    LOG_WARNING(TAG_ATTR, D_ERROR_OUT_OF_MEMORY); // ext or str was NULL
-
-prune:
-    my_prune_ext_tags(obj); // delete extended data if all extended properties are NULL
-}
-
-// the timer action data is stored as SERIALIZED JSON data
-const char* my_obj_get_timer_action(lv_obj_t* obj)
-{
-    if(!obj) return NULL;
-    hasp_ext_user_data_t* ext = (hasp_ext_user_data_t*)obj->user_data.ext;
-    return ext ? ext->timer_action : NULL;
-}
-
-void my_obj_set_timer_repeat(lv_obj_t* obj, bool repeat)
-{
-    hasp_ext_user_data_t* ext = (hasp_ext_user_data_t*)obj->user_data.ext;
-
-    if(!repeat) {
-        if(ext) ext->timer_repeat = false;
-        my_prune_ext_tags(obj); // delete extended data if all extended properties are NULL
-        return;
-    }
-
-    // create new extended tags
-    if(!ext) ext = my_create_ext_tags(obj);
-
-    if(ext)
-        ext->timer_repeat = true;
-    else
-        LOG_WARNING(TAG_ATTR, D_ERROR_OUT_OF_MEMORY);
-}
-
-bool my_obj_get_timer_repeat(lv_obj_t* obj)
-{
-    if(!obj) return false;
-    hasp_ext_user_data_t* ext = (hasp_ext_user_data_t*)obj->user_data.ext;
-    return ext ? ext->timer_repeat : false;
 }
 
 lv_label_align_t my_textarea_get_text_align(lv_obj_t* ta)
