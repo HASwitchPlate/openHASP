@@ -192,6 +192,7 @@
 #define D_INFO_PUBLISHED "Veröffentlicht"
 #define D_INFO_FAILED "Fehlerhaft"
 #define D_INFO_ETHERNET "Ethernet"
+#define D_MQTT_DISCONNECTED "Getrennt"
 #define D_INFO_WIFI "Wifi"
 #define D_INFO_WIREGUARD "WireGuard"
 #define D_INFO_LINK_SPEED "Link Geschwindigkeit"
