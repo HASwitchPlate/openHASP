@@ -1,8 +1,8 @@
 // This translation file is maintained on https://crowdin.com/project/openhasp/
 // Do not edit directly!
 
-#ifndef HASP_LANG_RU_RU_H
-#define HASP_LANG_RU_RU_H
+#ifndef HASP_LANG_EN_US_H
+#define HASP_LANG_EN_US_H
 
 #define D_ISO_LANG_CODE "ru-RU"
 
