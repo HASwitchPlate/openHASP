@@ -128,10 +128,12 @@ void my_obj_set_timer_action(lv_obj_t* obj, const char* payload)
     // check if it is a proper JSON object
     JsonDocument doc;
     DeserializationError res = deserializeJson(doc, payload, strlen(payload));
-    if(res != DeserializationError::Ok) {
+    if(res != DeserializationError::Ok || (!doc.isNull() && !doc.is<JsonObject>())) {
         LOG_WARNING(TAG_ATTR, "Invalid parameter");
         return;
     }
+
+    if(doc.isNull()) return; // null clears the timer action
 
     const size_t size = measureJson(doc) + 1;
     if(char* str = (char*)hasp_malloc(size)) {
