@@ -26,6 +26,7 @@ typedef struct
     lv_obj_t* obj;
     char* templ;
     uint16_t interval;
+    bool repeat;
 } hasp_task_user_data_t;
 
 typedef struct

@@ -69,6 +69,8 @@ void delete_event_handler(lv_obj_t* obj, lv_event_t event)
 {
     if(event != LV_EVENT_DELETE) return;
 
+    my_obj_del_timer(obj);
+
     switch(obj_get_type(obj)) {
         case LV_HASP_LINE:
             my_line_clear_points(obj);
@@ -203,6 +205,16 @@ void event_timer_clock(lv_task_t* task)
     char* cur_text = lv_label_get_text(data->obj);
     if(!cur_text || !strcmp(buffer, cur_text)) return; // No change
     lv_label_set_text(data->obj, buffer);
+}
+
+/* ============================== Timer Event  ============================ */
+void event_timer_object(lv_task_t* task)
+{
+    hasp_task_user_data_t* data = (hasp_task_user_data_t*)task->user_data;
+    if(!data || !lv_debug_check_obj_valid(data->obj)) return;
+
+    if(!data->repeat) lv_task_set_prio(task, LV_TASK_PRIO_OFF); // One shot, the timeout action may restart the timer
+    timer_event_handler(data->obj, "timeout");
 }
 
 /* ============================== Timer Event  ============================ */
@@ -429,6 +441,25 @@ void swipe_event_handler(lv_obj_t* obj, lv_event_t event)
             default:
                 script_event_handler("up", swipe);
         }
+    }
+}
+
+/**
+ * Called when an object timer is started, stopped or timed out
+ * @param obj pointer to an object
+ * @param eventname name of the timer event
+ */
+void timer_event_handler(lv_obj_t* obj, const char* eventname)
+{
+    if(const char* action = my_obj_get_timer_action(obj)) {
+        script_event_handler(eventname, action);
+    } else {
+        char data[512];
+        if(const char* tag = my_obj_get_tag(obj))
+            snprintf_P(data, sizeof(data), PSTR("{\"event\":\"%s\",\"tag\":%s}"), eventname, tag);
+        else
+            snprintf_P(data, sizeof(data), PSTR("{\"event\":\"%s\"}"), eventname);
+        event_send_object_data(obj, data);
     }
 }
 
