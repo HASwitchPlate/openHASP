@@ -4,7 +4,7 @@
 #ifndef HASP_LANG_RO_RO_H
 #define HASP_LANG_RO_RO_H
 
-#define D_ISO_LANG_CODE "ro-RO"
+#define D_ISO_LANG_CODE "ro-RO" 
 
 #define D_USERNAME "Username:"
 #define D_PASSWORD "Password:"
